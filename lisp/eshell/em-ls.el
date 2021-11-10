@@ -35,10 +35,10 @@
 ;;;###autoload
 (progn
 (defgroup eshell-ls nil
-  "This module implements the \"ls\" utility fully in Lisp.  If it is
-passed any unrecognized command switches, it will revert to the
-operating system's version.  This version of \"ls\" uses text
-properties to colorize its output based on the setting of
+  "This module implements the \"ls\" utility fully in Lisp.
+If it is passed any unrecognized command switches, it will revert
+to the operating system's version.  This version of \"ls\" uses
+text properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
   :group 'eshell-module))
@@ -476,9 +476,9 @@ name should be displayed as, etc.  Think of it as cooking a FILEINFO."
   fileinfo)
 
 (defun eshell-ls-file (fileinfo &optional size-width copy-fileinfo)
-  "Output FILE in long format.
-FILE may be a string, or a cons cell whose car is the filename and
-whose cdr is the list of file attributes."
+  "Output FILEINFO in long format.
+FILEINFO may be a string, or a cons cell whose car is the
+filename and whose cdr is the list of file attributes."
   (if (not (cdr fileinfo))
       (funcall error-func (format "%s: No such file or directory\n"
 				  (car fileinfo)))

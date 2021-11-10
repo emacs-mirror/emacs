@@ -353,7 +353,7 @@ other ways to move text around.)
 
 @vindex kill-ring-max
   The maximum number of entries in the kill ring is controlled by the
-variable @code{kill-ring-max}.  The default is 60.  If you make a new
+variable @code{kill-ring-max}.  The default is 120.  If you make a new
 kill when this limit has been reached, Emacs makes room by deleting
 the oldest entry in the kill ring.
 
@@ -561,6 +561,14 @@ new yank to the clipboard.
 @vindex select-enable-clipboard
   To prevent kill and yank commands from accessing the clipboard,
 change the variable @code{select-enable-clipboard} to @code{nil}.
+
+@findex yank-media
+  Programs can put other things than plain text on the clipboard.  For
+instance, a web browser will usually let you choose ``Copy Image'' on
+images, and this image will be put on the clipboard.  On capable
+platforms, Emacs can yank these objects with the @code{yank-media}
+command---but only in modes that have support for it (@pxref{Yanking
+Media,,, elisp, The Emacs Lisp Reference Manual}).
 
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager

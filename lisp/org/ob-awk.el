@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
+;; Maintainer: Tyler Smith <tyler@plantarum.ca>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 
@@ -58,12 +59,12 @@ This function is called by `org-babel-execute-src-block'."
 	 (code-file (let ((file (org-babel-temp-file "awk-")))
                       (with-temp-file file (insert full-body)) file))
 	 (stdin (let ((stdin (cdr (assq :stdin params))))
-		   (when stdin
-		     (let ((tmp (org-babel-temp-file "awk-stdin-"))
-			   (res (org-babel-ref-resolve stdin)))
-		       (with-temp-file tmp
-			 (insert (org-babel-awk-var-to-awk res)))
-		       tmp))))
+		  (when stdin
+		    (let ((tmp (org-babel-temp-file "awk-stdin-"))
+			  (res (org-babel-ref-resolve stdin)))
+		      (with-temp-file tmp
+			(insert (org-babel-awk-var-to-awk res)))
+		      tmp))))
          (cmd (mapconcat #'identity
 			 (append
 			  (list org-babel-awk-command

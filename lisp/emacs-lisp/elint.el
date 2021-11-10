@@ -1035,7 +1035,7 @@ Insert HEADER followed by a blank line if non-nil."
     (sit-for 0)))
 
 (defun elint-set-mode-line (&optional on)
-  "Set the mode-line-process of the Elint log buffer."
+  "Set the `mode-line-process' of the Elint log buffer."
   (with-current-buffer (elint-get-log-buffer)
     (and (eq major-mode 'compilation-mode)
 	 (setq mode-line-process

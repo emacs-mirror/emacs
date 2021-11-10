@@ -47,4 +47,4 @@
 
 (provide 'tar-mode-tests)
 
-;; tar-mode-tests.el ends here
+;;; tar-mode-tests.el ends here

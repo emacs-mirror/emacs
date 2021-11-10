@@ -41,7 +41,7 @@ unifiles = $(addprefix ${unidir}/,$(sort $(shell sed -n 's/^[ \t][ \t]*${lparen}
 .PHONY: all
 
 all: ${top_srcdir}/src/macuvs.h ${unifiles} ${unidir}/charscript.el \
-  ${unidir}/charprop.el
+  ${unidir}/charprop.el ${unidir}/emoji-zwj.el ${unidir}/emoji-labels.el
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -72,18 +72,30 @@ ${unifiles}: ${srcdir}/unidata-gen.el \
   ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
 	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
-	$(AM_V_GEN)${emacs} -L ${srcdir} -l unidata-gen \
+	$(AM_V_at)${emacs} -L ${srcdir} -l unidata-gen \
 	  -f unidata-gen-file $@ ${srcdir}
 
+${unidir}/emoji-labels.el: ${unidir}/../international/emoji.el \
+	  ${srcdir}/emoji-test.txt
+	$(AM_V_at)${emacs} -l emoji.el -f emoji--generate-file $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el
 
 blocks = ${srcdir}/blocks.awk
 
-${unidir}/charscript.el: ${srcdir}/Blocks.txt ${blocks}
-	$(AM_V_GEN)$(AWK) -f ${blocks} < $< > $@
+${unidir}/charscript.el: ${blocks}
 
+${unidir}/charscript.el: ${srcdir}/Blocks.txt ${srcdir}/emoji-data.txt
+	$(AM_V_GEN)$(AWK) -f ${blocks} $^ > $@
+
+.PHONY: emoji-zwj.el
+emoji-zwj.el: ${unidir}/emoji-zwj.el
+
+zwj = ${srcdir}/emoji-zwj.awk
+
+${unidir}/emoji-zwj.el: ${srcdir}/emoji-zwj-sequences.txt $(srcdir)/emoji-sequences.txt ${zwj}
+	$(AM_V_GEN)$(AWK) -f ${zwj} $^ > $@
 
 .PHONY: clean bootstrap-clean distclean maintainer-clean gen-clean
 
@@ -102,7 +114,9 @@ distclean: clean
 ## from a make target, we don't delete it here.
 gen-clean:
 	rm -f ${unidir}/charscript.el*
+	rm -f ${unidir}/emoji-zwj.el*
 	rm -f ${unifiles} ${unidir}/charprop.el
+	rm -f ${unidir}/emoji-labels.el*
 ## ref: https://lists.gnu.org/r/emacs-devel/2013-11/msg01029.html
 
 maintainer-clean: gen-clean distclean

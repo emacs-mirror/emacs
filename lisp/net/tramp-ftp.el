@@ -120,15 +120,15 @@ pass to the OPERATION."
 		 (nth 2 tramp-file-name-structure)
 		 (nth 4 tramp-file-name-structure)))
 	  ;; ange-ftp uses `ange-ftp-ftp-name-arg' and `ange-ftp-ftp-name-res'
-	  ;; for optimization in `ange-ftp-ftp-name'. If Tramp wasn't active,
+	  ;; for optimization in `ange-ftp-ftp-name'.  If Tramp wasn't active,
 	  ;; there could be incorrect values from previous calls in case the
-	  ;; "ftp" method is used in the Tramp file name. So we unset
+	  ;; "ftp" method is used in the Tramp file name.  So we unset
 	  ;; those values.
 	  (ange-ftp-ftp-name-arg "")
 	  (ange-ftp-ftp-name-res nil))
       (cond
        ;; If argument is a symlink, `file-directory-p' and
-       ;; `file-exists-p' call the traversed file recursively. So we
+       ;; `file-exists-p' call the traversed file recursively.  So we
        ;; cannot disable the file-name-handler this case.  We set the
        ;; connection property "started" in order to put the remote
        ;; location into the cache, which is helpful for further

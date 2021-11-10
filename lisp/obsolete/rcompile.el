@@ -108,7 +108,10 @@ nil means run no commands."
 
 ;;;; entry point
 
-;; We use the Tramp internal function`tramp-make-tramp-file-name'.
+;; We use the Tramp internal function `tramp-make-tramp-file-name'.
+;; It has changed its signature in Emacs 27.1, supporting still the
+;; old calling convention.  Let's assume rcompile.el has been removed
+;; once Tramp does not support it any longer.
 ;; Better would be, if there are functions to provide user, host and
 ;; localname of a remote filename, independent of Tramp's implementation.
 ;; The function calls are wrapped by `funcall' in order to pacify the byte
@@ -167,7 +170,8 @@ See \\[compile]."
     (with-current-buffer compilation-last-buffer
       (when (fboundp 'tramp-make-tramp-file-name)
 	(set (make-local-variable 'comint-file-name-prefix)
-	     (tramp-make-tramp-file-name
+	     (funcall
+              #'tramp-make-tramp-file-name
 	      nil ;; method.
 	      remote-compile-user
 	      remote-compile-host

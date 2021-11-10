@@ -114,68 +114,68 @@
 ;;; MH-Letter Keys
 
 ;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
-(gnus-define-keys  mh-letter-mode-map
-  " "                   mh-letter-complete-or-space
-  ","                   mh-letter-confirm-address
-  "\C-c?"               mh-help
-  "\C-c\C-\\"           mh-fully-kill-draft ;if no C-q
-  "\C-c\C-^"            mh-insert-signature ;if no C-s
-  "\C-c\C-c"            mh-send-letter
-  "\C-c\C-d"            mh-insert-identity
-  "\C-c\C-e"            mh-mh-to-mime
-  "\C-c\C-f\C-a"        mh-to-field
-  "\C-c\C-f\C-b"        mh-to-field
-  "\C-c\C-f\C-c"        mh-to-field
-  "\C-c\C-f\C-d"        mh-to-field
-  "\C-c\C-f\C-f"        mh-to-fcc
-  "\C-c\C-f\C-l"        mh-to-field
-  "\C-c\C-f\C-m"        mh-to-field
-  "\C-c\C-f\C-r"        mh-to-field
-  "\C-c\C-f\C-s"        mh-to-field
-  "\C-c\C-f\C-t"        mh-to-field
-  "\C-c\C-fa"           mh-to-field
-  "\C-c\C-fb"           mh-to-field
-  "\C-c\C-fc"           mh-to-field
-  "\C-c\C-fd"           mh-to-field
-  "\C-c\C-ff"           mh-to-fcc
-  "\C-c\C-fl"           mh-to-field
-  "\C-c\C-fm"           mh-to-field
-  "\C-c\C-fr"           mh-to-field
-  "\C-c\C-fs"           mh-to-field
-  "\C-c\C-ft"           mh-to-field
-  "\C-c\C-i"            mh-insert-letter
-  "\C-c\C-m\C-e"        mh-mml-secure-message-encrypt
-  "\C-c\C-m\C-f"        mh-compose-forward
-  "\C-c\C-m\C-g"        mh-mh-compose-anon-ftp
-  "\C-c\C-m\C-i"        mh-compose-insertion
-  "\C-c\C-m\C-m"        mh-mml-to-mime
-  "\C-c\C-m\C-n"        mh-mml-unsecure-message
-  "\C-c\C-m\C-s"        mh-mml-secure-message-sign
-  "\C-c\C-m\C-t"        mh-mh-compose-external-compressed-tar
-  "\C-c\C-m\C-u"        mh-mh-to-mime-undo
-  "\C-c\C-m\C-x"        mh-mh-compose-external-type
-  "\C-c\C-mee"          mh-mml-secure-message-encrypt
-  "\C-c\C-mes"          mh-mml-secure-message-signencrypt
-  "\C-c\C-mf"           mh-compose-forward
-  "\C-c\C-mg"           mh-mh-compose-anon-ftp
-  "\C-c\C-mi"           mh-compose-insertion
-  "\C-c\C-mm"           mh-mml-to-mime
-  "\C-c\C-mn"           mh-mml-unsecure-message
-  "\C-c\C-mse"          mh-mml-secure-message-signencrypt
-  "\C-c\C-mss"          mh-mml-secure-message-sign
-  "\C-c\C-mt"           mh-mh-compose-external-compressed-tar
-  "\C-c\C-mu"           mh-mh-to-mime-undo
-  "\C-c\C-mx"           mh-mh-compose-external-type
-  "\C-c\C-o"            mh-open-line
-  "\C-c\C-q"            mh-fully-kill-draft
-  "\C-c\C-s"            mh-insert-signature
-  "\C-c\C-t"            mh-letter-toggle-header-field-display
-  "\C-c\C-w"            mh-check-whom
-  "\C-c\C-y"            mh-yank-cur-msg
-  "\C-c\M-d"            mh-insert-auto-fields
-  "\M-\t"               mh-letter-complete
-  "\t"                  mh-letter-next-header-field-or-indent
-  [backtab]             mh-letter-previous-header-field)
+(define-keymap :keymap mh-letter-mode-map
+  " "                   #'mh-letter-complete-or-space
+  ","                   #'mh-letter-confirm-address
+  "\C-c?"               #'mh-help
+  "\C-c\C-\\"           #'mh-fully-kill-draft ;if no C-q
+  "\C-c\C-^"            #'mh-insert-signature ;if no C-s
+  "\C-c\C-c"            #'mh-send-letter
+  "\C-c\C-d"            #'mh-insert-identity
+  "\C-c\C-e"            #'mh-mh-to-mime
+  "\C-c\C-f\C-a"        #'mh-to-field
+  "\C-c\C-f\C-b"        #'mh-to-field
+  "\C-c\C-f\C-c"        #'mh-to-field
+  "\C-c\C-f\C-d"        #'mh-to-field
+  "\C-c\C-f\C-f"        #'mh-to-fcc
+  "\C-c\C-f\C-l"        #'mh-to-field
+  "\C-c\C-f\C-m"        #'mh-to-field
+  "\C-c\C-f\C-r"        #'mh-to-field
+  "\C-c\C-f\C-s"        #'mh-to-field
+  "\C-c\C-f\C-t"        #'mh-to-field
+  "\C-c\C-fa"           #'mh-to-field
+  "\C-c\C-fb"           #'mh-to-field
+  "\C-c\C-fc"           #'mh-to-field
+  "\C-c\C-fd"           #'mh-to-field
+  "\C-c\C-ff"           #'mh-to-fcc
+  "\C-c\C-fl"           #'mh-to-field
+  "\C-c\C-fm"           #'mh-to-field
+  "\C-c\C-fr"           #'mh-to-field
+  "\C-c\C-fs"           #'mh-to-field
+  "\C-c\C-ft"           #'mh-to-field
+  "\C-c\C-i"            #'mh-insert-letter
+  "\C-c\C-m\C-e"        #'mh-mml-secure-message-encrypt
+  "\C-c\C-m\C-f"        #'mh-compose-forward
+  "\C-c\C-m\C-g"        #'mh-mh-compose-anon-ftp
+  "\C-c\C-m\C-i"        #'mh-compose-insertion
+  "\C-c\C-m\C-m"        #'mh-mml-to-mime
+  "\C-c\C-m\C-n"        #'mh-mml-unsecure-message
+  "\C-c\C-m\C-s"        #'mh-mml-secure-message-sign
+  "\C-c\C-m\C-t"        #'mh-mh-compose-external-compressed-tar
+  "\C-c\C-m\C-u"        #'mh-mh-to-mime-undo
+  "\C-c\C-m\C-x"        #'mh-mh-compose-external-type
+  "\C-c\C-mee"          #'mh-mml-secure-message-encrypt
+  "\C-c\C-mes"          #'mh-mml-secure-message-signencrypt
+  "\C-c\C-mf"           #'mh-compose-forward
+  "\C-c\C-mg"           #'mh-mh-compose-anon-ftp
+  "\C-c\C-mi"           #'mh-compose-insertion
+  "\C-c\C-mm"           #'mh-mml-to-mime
+  "\C-c\C-mn"           #'mh-mml-unsecure-message
+  "\C-c\C-mse"          #'mh-mml-secure-message-signencrypt
+  "\C-c\C-mss"          #'mh-mml-secure-message-sign
+  "\C-c\C-mt"           #'mh-mh-compose-external-compressed-tar
+  "\C-c\C-mu"           #'mh-mh-to-mime-undo
+  "\C-c\C-mx"           #'mh-mh-compose-external-type
+  "\C-c\C-o"            #'mh-open-line
+  "\C-c\C-q"            #'mh-fully-kill-draft
+  "\C-c\C-s"            #'mh-insert-signature
+  "\C-c\C-t"            #'mh-letter-toggle-header-field-display
+  "\C-c\C-w"            #'mh-check-whom
+  "\C-c\C-y"            #'mh-yank-cur-msg
+  "\C-c\M-d"            #'mh-insert-auto-fields
+  "\M-\t"               #'completion-at-point
+  "\t"                  #'mh-letter-next-header-field-or-indent
+  [backtab]             #'mh-letter-previous-header-field)
 
 ;; "C-c /" prefix is used in mh-letter-mode by pgp.el and mailcrypt.el.
 
@@ -253,16 +253,12 @@ searching for `mh-mail-header-separator' in the buffer."
     (goto-char (point-min))
     (cond ((equal mh-mail-header-separator "") (point-min))
           ((search-forward (format "\n%s\n" mh-mail-header-separator) nil t)
-           (mh-line-beginning-position 0))
+           (line-beginning-position 0))
           (t (point-min)))))
 
 
 
 ;;; MH-Letter Mode
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
@@ -295,24 +291,21 @@ order).
   (make-local-variable 'mh-previous-window-config)
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
-  (mh-do-in-gnu-emacs
-    (unless mh-letter-tool-bar-map
-      (mh-tool-bar-letter-buttons-init))
-    (if (boundp 'tool-bar-map)
-        (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)))
-  (mh-do-in-xemacs
-    (mh-tool-bar-init :letter))
+  (unless mh-letter-tool-bar-map
+    (mh-tool-bar-letter-buttons-init))
+  (if (boundp 'tool-bar-map)
+      (setq-local tool-bar-map mh-letter-tool-bar-map))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
-  (set (make-local-variable 'mh-mail-header-separator)
-       (save-excursion
-         (goto-char (mh-mail-header-end))
-         (buffer-substring-no-properties (point) (mh-line-end-position))))
+  (setq-local mh-mail-header-separator
+              (save-excursion
+                (goto-char (mh-mail-header-end))
+                (buffer-substring-no-properties (point) (line-end-position))))
   (make-local-variable 'mail-header-separator)
   (setq mail-header-separator mh-mail-header-separator) ;override sendmail.el
   (mh-set-help mh-letter-mode-help-messages)
   (setq buffer-invisibility-spec '((vanish . t) t))
-  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (setq-local line-move-ignore-invisible t)
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
@@ -328,12 +321,10 @@ order).
    (t
     ;; ...or the header only
     (setq font-lock-defaults '((mh-show-font-lock-keywords) t))))
-  (mh-do-in-xemacs (easy-menu-add mh-letter-menu))
   ;; Maybe we want to use the existing Mail menu from mail-mode in
   ;; 9.0; in the mean time, let's remove it since the redundancy will
   ;; only produce confusion.
   (define-key mh-letter-mode-map [menu-bar mail] #'undefined)
-  (mh-do-in-xemacs (easy-menu-remove mail-menubar-menu))
   (setq fill-column mh-letter-fill-column)
   (add-hook 'completion-at-point-functions
             #'mh-letter-completion-at-point nil 'local)
@@ -488,29 +479,8 @@ This provides alias and folder completion in header fields according to
         (or (funcall func) #'ignore)
       mh-letter-complete-function)))
 
-;; TODO Now that completion-at-point performs the task of
-;; mh-letter-complete, perhaps mh-letter-complete along with
-;; mh-complete-word should be rewritten as a more general function for
-;; XEmacs, renamed to mh-completion-at-point, and moved to
-;; mh-compat.el.
-(defun-mh mh-letter-complete completion-at-point ()
-  "Perform completion on header field or word preceding point.
-
-If the field contains addresses (for example, \"To:\" or \"Cc:\")
-or folders (for example, \"Fcc:\") then this command will provide
-alias completion. In the body of the message, this command runs
-`mh-letter-complete-function' instead, which is set to
-`ispell-complete-word' by default."
-      (interactive)
-      (let ((data (mh-letter-completion-at-point)))
-        (cond
-         ((functionp data) (funcall data))
-         ((consp data)
-          (let ((start (nth 0 data))
-                (end (nth 1 data))
-                (table (nth 2 data)))
-            (mh-complete-word (buffer-substring-no-properties start end)
-                              table start end))))))
+(define-obsolete-function-alias 'mh-letter-complete
+  #'completion-at-point "29.1")
 
 (defun mh-letter-complete-or-space (arg)
   "Perform completion or insert space.
@@ -530,7 +500,7 @@ one space."
           ((> (point) end-of-prev) (self-insert-command arg))
           ((let ((mh-letter-complete-function nil))
              (mh-letter-completion-at-point))
-           (mh-letter-complete))
+           (completion-at-point))
           (t (self-insert-command arg)))))
 
 (defun mh-letter-confirm-address ()
@@ -722,7 +692,7 @@ and `mh-ins-buf-prefix' is not inserted."
           ;; Find displayed message
           (with-current-buffer show-buffer
             (let* ((from-attr (mh-extract-from-attribution))
-                   (yank-region (mh-mark-active-p nil))
+                   (yank-region mark-active)
                    (mh-ins-str
                     (cond ((and yank-region
                                 (or (eq 'supercite mh-yank-behavior)
@@ -834,7 +804,7 @@ body."
           ((< (point) (progn
                         (beginning-of-line)
                         (re-search-forward mh-letter-header-field-regexp
-                                           (mh-line-end-position) t)
+                                           (line-end-position) t)
                         (point)))
            (beginning-of-line))
           (t (end-of-line)))

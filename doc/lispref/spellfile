@@ -179,6 +179,8 @@ copyleft
 counterintuitive
 cr
 creatable
+customization
+customizations
 customize
 deactivate
 deactivated
@@ -243,6 +245,8 @@ fmakunbound
 fo
 fol
 following'
+fontification
+fontified
 fooba
 foobaz
 foox
@@ -257,6 +261,7 @@ garbles
 gc
 getenv
 gid
+glyphs
 gp
 grep
 gtr
@@ -270,6 +275,8 @@ hostname
 hpux
 hscroll
 ick
+iconified
+iconify
 id
 idiom
 ii
@@ -314,6 +321,7 @@ mathsurround
 memq
 mh
 mini
+minibuf
 minibuffer's
 minibuffers
 misalignment
@@ -387,6 +395,7 @@ passwd
 ped
 perverse
 pid
+pixelwise
 plist
 pointer'
 pointm
@@ -417,6 +426,10 @@ reader'
 rebind
 rec
 rechecking
+redisplay
+redisplayed
+redisplaying
+redisplays
 redo
 redrawing
 redraws
@@ -430,6 +443,7 @@ reinitialize
 reinitialized
 reinstall
 reinstalled
+resizable
 resize
 resized
 resizes
@@ -486,6 +500,8 @@ terpri
 text'
 tildes
 time's
+tooltip
+tooltips
 towards
 transportable
 txt
@@ -494,6 +510,7 @@ unbind
 unbinding
 unbinds
 unclutters
+uncustomized
 undefine
 undefines
 underfull
@@ -520,6 +537,7 @@ vconcat
 vectorp
 vn
 voidness
+whitespace
 window'
 windowing
 windowp

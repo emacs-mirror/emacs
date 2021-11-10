@@ -116,9 +116,9 @@
 		  (&optional form stub paring form-only))
 
 (defgroup eshell-cmd nil
-  "Executing an Eshell command is as simple as typing it in and
-pressing <RET>.  There are several different kinds of commands,
-however."
+  "Executing an Eshell command is as simple as typing it in and \
+pressing \\<eshell-mode-map>\\[eshell-send-input].
+There are several different kinds of commands, however."
   :tag "Command invocation"
   ;; :link '(info-link "(eshell)Command invocation")
   :group 'eshell)
@@ -923,10 +923,10 @@ at the moment are:
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."
   (if eshell-current-command
-      ;; we can just stick the new command at the end of the current
-      ;; one, and everything will happen as it should
+      ;; We can just stick the new command at the end of the current
+      ;; one, and everything will happen as it should.
       (setcdr (last (cdr eshell-current-command))
-	      (list `(let ((here (and (eobp) (point))))
+              (list `(let ((here (and (eobp) (point))))
                        ,(and input
                              `(insert-and-inherit ,(concat input "\n")))
                        (if here
@@ -937,14 +937,20 @@ at the moment are:
            (erase-buffer)
            (insert "command: \"" input "\"\n")))
     (setq eshell-current-command command)
-    (let ((delim (catch 'eshell-incomplete
-		   (eshell-resume-eval))))
-      ;; On systems that don't support async subprocesses, eshell-resume
-      ;; can return t.  Don't treat that as an error.
-      (if (listp delim)
-	  (setq delim (car delim)))
-      (if (and delim (not (eq delim t)))
-	  (error "Unmatched delimiter: %c" delim)))))
+    (let* ((delim (catch 'eshell-incomplete
+                    (eshell-resume-eval)))
+           (val (car-safe delim)))
+      ;; If the return value of `eshell-resume-eval' is wrapped in a
+      ;; list, it indicates that the command was run asynchronously.
+      ;; In that case, unwrap the value before checking the delimiter
+      ;; value.
+      (if (and val
+               (not (processp val))
+               (not (eq val t)))
+          (error "Unmatched delimiter: %S" val)
+        ;; Eshell-command expect a list like (<process>) to know if the
+        ;; command should be async or not.
+        (or (and (processp val) delim) val)))))
 
 (defun eshell-resume-command (proc status)
   "Resume the current command when a process ends."
@@ -1230,10 +1236,10 @@ or an external command."
       (eshell-external-command command args))))
 
 (defun eshell-exec-lisp (printer errprint func-or-form args form-p)
-  "Execute a lisp FUNC-OR-FORM, maybe passing ARGS.
+  "Execute a Lisp FUNC-OR-FORM, maybe passing ARGS.
 PRINTER and ERRPRINT are functions to use for printing regular
 messages, and errors.  FORM-P should be non-nil if FUNC-OR-FORM
-represent a lisp form; ARGS will be ignored in that case."
+represent a Lisp form; ARGS will be ignored in that case."
   (eshell-condition-case err
       (let ((result
              (save-current-buffer

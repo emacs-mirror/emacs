@@ -4,156 +4,138 @@
 @c See file emacs.texi for copying conditions.
 
 @node Antinews
-@appendix Emacs 26 Antinews
+@appendix Emacs 27 Antinews
 @c Update the emacs.texi Antinews menu entry with the above version number.
 
   For those users who live backwards in time, here is information
-about downgrading to Emacs version 26.3.  We hope you will enjoy the
+about downgrading to Emacs version 27.2.  We hope you will enjoy the
 greater simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
 @itemize @bullet
 @item
-Emacs no longer uses @acronym{GMP}, the GNU Multiple Precision
-library, and doesn't support Lisp integers greater than
-@code{most-positive-fixnum} or smaller than
-@code{most-negative-fixnum}.  We now have only one kind of a Lisp
-integer.  This simplifies many Lisp programs that use integers, and
-makes integer calculations always fast.  If you want larger values,
-use Lisp floats, as Emacs has done since day one.
+Emacs can no longer be built with support of native compilation of
+Lisp programs.  This means Emacs builds much faster, and the problems
+that came with native compilation: the need to have GCC and Binutils
+installed, the complications of managing your @file{eln-cache}
+directories---all of that is now future history.  The simplicity and
+elegance of the Emacs byte-compiled code is now restored in all of its
+pristine beauty.
 
 @item
-Emacs no longer supports HarfBuzz as the engine for shaping complex
-text.  As you move back in time, we will gradually shed off all traces
-of support for complex text shaping, and this is one step in that
-direction.
+Emacs no longer builds by default with Cairo, even if it's present.
+The warnings about not using HarfBuzz are also gone, in preparation
+for complete removal of HarfBuzz support in previous Emacs versions.
+Fancy text shaping and display is becoming less important as you move
+back in time.  The @code{ftx} font backend is again part of Emacs, for
+the same reasons.
 
 @item
-We have removed support for building with the Jansson library, and
-consequently the native support for JSON parsing is gone.  The
-importance of JSON decreases as we go back in time, so for now using
-the Lisp code for handling it should be good enough; in one of the
-past Emacs versions, we intend to remove even that, as useless bloat.
-
-The library for supporting JSONRPC applications was removed for the
-same reason.
+As Motif becomes more and more important with moving farther into the
+past, we've reinstated the code which supports Motif in Emacs.
 
 @item
-The ``portable dumper'' feature is gone.  We are once again using the
-field-proven ``unexec'' way of dumping Emacs.  With that, the hope for
-being able to re-dump your customized Emacs session is also gone: why
-would anyone want to record their random customization experiments on
-disk, and restore them the next time they start Emacs?  And true
-Emacsers don't restart their Emacs sessions anyway.
+Emacs once again supports versions 5.3 and older OpenBSD systems,
+which will be needed as you move back in time.
 
 @item
-We dropped the support for @acronym{XDG}-style configuration
-directories and the @env{XDG_CONFIG_HOME} environment variable.
-There's once again only one place where Emacs looks for its init
-files: the @file{~/.emacs.d} directory, with the @file{~/.emacs} file
-as fallback.  We think this will go a long way towards preventing
-confusion among users who for some reason have @env{XDG_CONFIG_HOME}
-set, thus risking to have their init files randomly spread between two
-places.  In one of the past Emacs versions, we intend to further
-simplify this, removing the @file{~/.emacs.d} place and leaving only
-@file{~/.emacs}; stay tuned.
-
-For similar reasons, we've removed the ``early init'' file.  You can
-now again use all the tricks you want to initialize variables like
-@code{package-user-dir} and @code{package-load-list} just in time for
-the packages to load.
-
-@command{emacsclient} no longer supports @acronym{XDG}-style directory
-trees, either.
+We've dropped support for Secure Computing filter on GNU/Linux.  The
+past world is much more secure than the present, so the complexities
+related with this stuff, which can only be explained by severe
+paranoia, are no longer justified.
 
 @item
-TLS connections are back to their lenient security settings.  We
-decided that too tight security settings are an annoyance for users,
-and make little sense considering the world-wide tendency to have
-fewer and fewer network security problems as we move back in time
-(those issues will be completely gone when networks disappear in some
-distant past).
+Emacs reverted back to supporting Unicode 13.x, since the following
+versions of the standards are not yet published where you are going.
+The @samp{emoji} script and the support for displaying Emoji sequences
+were removed for the same reasons: no one will produce them in the
+past.
 
 @item
-The @code{server-after-make-frame-hook} hook was deleted, in
-preparation for removing the entire daemon business in some past Emacs
-version.  You will be glad to learn that setting up the GUI
-customizations of your sessions is now once again as easy as it ever
-was, with just the @code{after-make-frame-functions} to use.
+Mode-specific commands and the @kbd{M-S-x} command that invokes them
+were removed.  As you move back in time, the command set in Emacs
+becomes smaller, so any such filtering of applicable commands just
+gets in the way.
 
 @item
-The @code{flex} completion style was removed.  We feel that it
-unnecessarily complicates the Emacs user experience, and therefore
-will continue to remove other tricky completion styles, until in some
-past Emacs version we get to a single original style Emacs pioneered
-decades ago.  Long live simplicity; down with complications!
+We have removed the system for displaying documentation of groups of
+related functions, the @kbd{shortdoc-display-group} command to go with
+it, and the corresponding ``See also'' button in the @file{*Help*}
+buffer.  That should make searching for certain functions simpler:
+just use the venerable @samp{apropos} commands.
 
 @item
-The optional display of the fill-column indicator is no longer
-supported.  With the display sizes becoming smaller and smaller as you
-move back in time, we feel that the display itself will always show
-you where to fill or wrap your text, and do this much more easily and
-reliably than any such display indicator.
+The @code{context-menu-mode} was removed, and with it the context
+menus popped by pressing the right mouse button.  This is one small
+step towards freeing Emacs (and eventually, the whole world of
+computing) from the tyranny of the GUI pointing devices in general,
+and moving back to the simplicity of text-mode user interfaces.
+Down with mice and other rodents!
 
 @item
-We removed the features that made visiting large files easier.  Thus,
-Emacs will no longer suggest visiting a large file literally, nor
-offer the @code{so-long} mode to deal with overly-long lines.  We
-decided that this simplification is worthwhile, given that the general
-tendency of having very large files is becoming a rarity as we move
-back in time.
+The commands @kbd{C-x 4 4} and @kbd{C-x 5 5} for displaying the
+results in a new window/frame re gone.  We are quite certain that
+creating a new window/frame before running a command is much simpler,
+and doesn't require a complication of a new prefix.
 
 @item
-We have removed the feature that displayed echo-area messages without
-hiding content of the active minibuffer.  This should prevent user
-confusion from having two unrelated pieces of text staring at them,
-with no clear separation between them.  Users with good memories (and
-Emacs users are all expected to be of that kind) will have no trouble
-keeping the minibuffer text in their minds, and typing the responses
-without actually seeing the prompts.
+The behavior of active minibuffers when switching frames is now the
+perfect mess it should be: sometimes the minibuffer moves to the new
+selected frame, sometimes it doesn't, and sometimes you get an error.
+This makes Emacs usage much more fun, as you get to guess the result,
+instead of having it boringly consistent.
 
 @item
-Horizontal scrolling using the mouse or touchpad has been removed.  In
-the past, wide monitors will become less popular, so horizontal
-scrolling will no longer be needed.  Removal of the mouse support for
-horizontal scrolling is the first step towards its complete removal in
-prior Emacs versions.
+Compact mode-line display mode has been removed.  The items displayed
+on the mode line are now always in the same place, and if there's not
+enough space for them, they are not displayed at all, instead of being
+confusingly displayed in a different position.  You no longer need to
+think twice where to find a particular mode-line element on display.
 
 @item
-The @code{main-thread} variable and @code{list-threads} were removed,
-and @code{thread-join} no longer returns the result of the finished
-thread.  We intend to remove the support for Lisp threads in some past
-Emacs version, so we continue removing the associated complexities and
-features as we go back in time.
+Many commands and options related to tab bars were removed, including
+(but not limited to) frame-specific appearance of tab bars, the
+@code{tab-bar-format} option, the @kbd{C-x t n}, @kbd{C-x t N},
+@kbd{C-x t M}, and @kbd{C-x t G} commands, and many mouse gestures on
+the tab bar.  We are going to delete the tab bar support from Emacs in
+one of the past versions, and this is a step in that direction.
 
 @item
-Tab bar and window tab-lines were removed.  This should make the Emacs
-display simpler and less cluttered, and help those users who disable
-menu bar and tool bar in their GUI sessions.  The fashion to provide
-tabs in every GUI application out there is gaining less and less
-popularity as we move back in time, and will completely disappear at
-some past point; removing the tabs from Emacs is the step in that
-direction.
+The ``transient'' input methods have been removed; use @kbd{C-\} to
+turn input methods on and off instead.  This is in preparation for
+complete removal of input methods from Emacs in version 19, and
+consistent with the fact that the number of input methods we support
+becomes smaller as you move back in time.
 
 @item
-Displaying line numbers for a buffer is only possibly using add-on
-features, such as @code{linum-mode}, which can only display the
-numbers in the display margins.  Line-number display using these
-features is also slow, as we firmly believe such a feature is
-un-Emacsy and should not have been included in Emacs to begin with.
-Consequently, @code{display-line-numbers-mode} was removed.
+We disabled @code{show-paren-mode} by default, since we think the
+venerable @code{blink-matching-paren} feature is more than enough, and
+better fits the simplicity of past Emacs versions.  It will definitely
+be better when colors are removed from Emacs in the distant past.
+
+For the same reason, sub-groups in interactive regexp searches are no
+longer highlighted in distinct colors.
 
 @item
-On our permanent quest for simplifying Emacs, we've removed the
-support for changing the font size by turning the mouse wheel.
+On our permanent quest for simplifying Emacs, we've removed the Ispell
+command @code{ispell-comment-or-string-at-point}; the old-time friend
+@code{ispell-comments-and-strings} should suffice.
 
 @item
-Several commands, deemed to be unnecessary complications, have been
-removed.  Examples include @code{make-empty-file},
-@code{font-lock-refontify}, @code{xref-find-definitions-at-mouse},
-@code{make-frame-on-monitor}, and @code{diff-buffers}.
+Many Gnus commands and options were deemed to unnecessarily complicate
+the use of Gnus (which is too complex to begin with), and thus were
+removed.  This includes @code{gnus-topic-display-predicate},
+@code{gnus-process-mark-toggle}, @code{gnus-registry-register-all},
+@code{gnus-paging-select-next}, and many others.  The @code{nnselect}
+backend was deleted for the same reason.
+
+@item
+The @file{project.el} package have been redesigned to remove many
+unnecessary features, so that just the bare essentials remain.  We
+plan on removing this package from Emacs in a previous version, but
+decided to begin with removing some extra features first.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
-other functions and files have been eliminated in Emacs 26.3.
+other functions and files have been eliminated in Emacs 27.2.
 @end itemize

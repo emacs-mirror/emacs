@@ -19,6 +19,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-vars)
@@ -106,7 +108,7 @@
 	 (article (url-unhex-string (url-filename url))))
     (url-news-open-host host port (url-user url) (url-password url))
     (cond
-     ((string-match "@" article)	; Its a specific article
+     ((string-search "@" article)	; Its a specific article
       (setq buf (url-news-fetch-message-id host article)))
      ((string= article "")		; List all newsgroups
       (gnus))

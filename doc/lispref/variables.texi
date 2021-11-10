@@ -194,7 +194,7 @@ default scoping rule in Emacs Lisp is called @dfn{dynamic scoping},
 which simply states that the current binding at any given point in the
 execution of a program is the most recently-created binding for that
 variable that still exists.  For details about dynamic scoping, and an
-alternative scoping rule called @dfn{lexical scoping}, @xref{Variable
+alternative scoping rule called @dfn{lexical scoping}, @pxref{Variable
 Scoping}.
 
   The special forms @code{let} and @code{let*} exist to create local
@@ -284,6 +284,57 @@ being run once:
                     (remove-hook 'post-command-hook hookfun))))
   (add-hook 'post-command-hook hookfun))
 @end lisp
+@end defspec
+
+@cindex dynamic binding, temporarily
+@cindex dynamic let-binding
+@defspec dlet (bindings@dots{}) forms@dots{}
+This special form is like @code{let}, but it binds all variables
+dynamically.  This is rarely useful---you usually want to bind normal
+variables lexically, and special variables (i.e., variables that are
+defined with @code{defvar}) dynamically, and this is what @code{let}
+does.
+
+@code{dlet} can be useful when interfacing with old code that assumes
+that certain variables are dynamically bound (@pxref{Dynamic
+Binding}), but it's impractical to @code{defvar} these variables.
+@code{dlet} will temporarily make the bound variables special, execute
+the forms, and then make the variables non-special again.
+@end defspec
+
+@defspec named-let name bindings &rest body
+This special form is a looping construct inspired from the
+Scheme language.  It is similar to @code{let}: It binds the variables in
+@var{bindings}, and then evaluates @var{body}.  However,
+@code{named-let} also binds @var{name} to a
+local function whose formal arguments are the variables in @var{bindings}
+and whose body is @var{body}.  This allows @var{body} to call itself
+recursively by calling
+@var{name}, where the arguments passed to @var{name} are used as the
+new values of the bound variables in the recursive invocation.
+
+Example of a loop summing a list of numbers:
+
+@lisp
+(named-let sum ((numbers '(1 2 3 4))
+                (running-sum 0))
+  (if numbers
+      (sum (cdr numbers) (+ running-sum (car numbers)))
+    running-sum))
+@result{} 10
+@end lisp
+
+@anchor{Tail recursion}
+Recursive calls to @var{name} that occur in @emph{tail
+positions} in @var{body} are guaranteed to be optimised as @emph{tail
+calls}, which means that they will not consume any additional stack
+space no matter how deeply the recursion runs.  Such recursive calls
+will effectively jump to the top of the loop with new values for the
+variables.
+
+A function call is in the tail position if it's the very last thing
+done so that the value returned by the call is the value of @var{body}
+itself, as is the case in the recursive call to @code{sum} above.
 @end defspec
 
   Here is a complete list of the other facilities that create local
@@ -1644,12 +1695,14 @@ buffer-local variables interactively.
 @end deffn
 
 @cindex local variables, killed by major mode
-@defun kill-all-local-variables
+@defun kill-all-local-variables &optional kill-permanent
 This function eliminates all the buffer-local variable bindings of the
-current buffer except for variables marked as permanent and local
-hook functions that have a non-@code{nil} @code{permanent-local-hook}
-property (@pxref{Setting Hooks}).  As a result, the buffer will see
-the default values of most variables.
+current buffer.  As a result, the buffer will see the default values
+of most variables.  By default, for variables marked as permanent and
+local hook functions that have a non-@code{nil}
+@code{permanent-local-hook} property (@pxref{Setting Hooks}) won't be
+killed, but if the optional @var{kill-permanent} argument is
+non-@code{nil}, even these variables will be killed.
 
 This function also resets certain other information pertaining to the
 buffer: it sets the local keymap to @code{nil}, the syntax table to the

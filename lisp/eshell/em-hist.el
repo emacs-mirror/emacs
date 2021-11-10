@@ -402,7 +402,7 @@ variable `eshell-input-filter' returns non-nil when called on the
 command.
 
 This function is supposed to be called from the minibuffer, presumably
-as a minibuffer-exit-hook."
+as a `minibuffer-exit-hook'."
   (eshell-add-input-to-history
    (buffer-substring (minibuffer-prompt-end) (point-max))))
 

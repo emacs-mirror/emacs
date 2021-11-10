@@ -541,17 +541,18 @@ If the optional argument LIST is non-nil, it should be a list of
 colors to display.  Otherwise, this command computes a list of
 colors that the current display can handle.  Customize
 `list-colors-sort' to change the order in which colors are shown.
-Type `g' or \\[revert-buffer] after customizing `list-colors-sort'
-to redisplay colors in the new order.
+Type \\<help-mode-map>\\[revert-buffer] after customizing \
+`list-colors-sort' to redisplay colors in
+the new order.
 
-If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
+If the optional argument BUFFER-NAME is nil, it defaults to \"*Colors*\".
 
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
 color.  The function should accept a single argument, the color name."
   (interactive)
-  (when (and (null list) (> (display-color-cells) 0))
-    (setq list (list-colors-duplicates (defined-colors)))
+  (when (> (display-color-cells) 0)
+    (setq list (list-colors-duplicates (or list (defined-colors))))
     (when list-colors-sort
       ;; Schwartzian transform with `(color key1 key2 key3 ...)'.
       (setq list (mapcar

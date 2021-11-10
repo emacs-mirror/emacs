@@ -69,7 +69,8 @@ major mode in effect."
   :group 'viper)
 
 (defcustom viper-want-ctl-h-help nil
-  "If non-nil, bind C-h to help-command; otherwise, C-h gets the usual Vi bindings."
+  "If non-nil, bind C-h to `help-command'.
+If nil, C-h gets the usual Vi bindings."
   :type 'boolean
   :group 'viper)
 
@@ -86,8 +87,8 @@ major mode in effect."
   "Keymap for user-defined local bindings.
 Useful for changing bindings such as ZZ in certain major modes.
 For instance, in letter-mode, one may want to bind ZZ to
-mh-send-letter.  In a newsreader such as gnus, tin, or rn, ZZ could be bound
-to save-buffers-kill-emacs then post article, etc.")
+`mh-send-letter'.  In a newsreader such as gnus, tin, or rn, ZZ could be bound
+to `save-buffers-kill-emacs' then post article, etc.")
 (put 'viper-vi-local-user-map 'permanent-local t)
 
 (defvar viper-vi-global-user-map (make-sparse-keymap)
@@ -181,7 +182,7 @@ In insert mode, this key also functions as Meta."
   :type 'string
   :group 'viper)
 
-(defconst viper-ESC-key (kbd "ESC")
+(defconst viper-ESC-key [escape]
   "Key used to ESC.")
 
 
@@ -211,17 +212,17 @@ In insert mode, this key also functions as Meta."
 
 ;; Tells viper-add-local-keys to create a new viper-vi-local-user-map for new
 ;; buffers.  Not a user option.
-(defvar-local viper-need-new-vi-local-map t "")
+(defvar-local viper-need-new-vi-local-map t)
 (put 'viper-need-new-vi-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-insert-local-user-map for
 ;; new buffers.  Not a user option.
-(defvar-local viper-need-new-insert-local-map t "")
+(defvar-local viper-need-new-insert-local-map t)
 (put 'viper-need-new-insert-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-emacs-local-user-map for
 ;; new buffers.  Not a user option.
-(defvar-local viper-need-new-emacs-local-map t "")
+(defvar-local viper-need-new-emacs-local-map t)
 (put 'viper-need-new-emacs-local-map  'permanent-local t)
 
 
@@ -491,7 +492,7 @@ ALIST is of the form ((KEY . FUNC) (KEY . FUNC) ...)
 Normally, this would be called from a hook to a major mode or
 on a per buffer basis.
 Usage:
-      (viper-add-local-keys state \\='((key-str . func) (key-str . func)...))   "
+      (viper-add-local-keys state \\='((key-str . func) (key-str . func)...))"
 
   (let (map)
     (cond ((eq state 'vi-state)
@@ -520,7 +521,7 @@ Usage:
 (defun viper-zap-local-keys ()
   "Unconditionally reset Viper viper-*-local-user-map's.
 Rarely useful, but if you made a mistake by switching to a mode that adds
-undesirable local keys, e.g., comint-mode, then this function can restore
+undesirable local keys, e.g., `comint-mode', then this function can restore
 sanity."
   (interactive)
   (setq viper-vi-local-user-map (make-sparse-keymap)

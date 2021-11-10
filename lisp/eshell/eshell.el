@@ -33,15 +33,15 @@
 ;; @ A high degree of configurability
 ;;
 ;; @ The ability to have the same shell on every system Emacs has been
-;;   ported to. Since Eshell imposes no external requirements, and
+;;   ported to.  Since Eshell imposes no external requirements, and
 ;;   relies upon only the Lisp functions exposed by Emacs, it is quite
-;;   operating system independent. Several of the common UNIX
+;;   operating system independent.  Several of the common UNIX
 ;;   commands, such as ls, mv, rm, ln, etc., have been implemented in
 ;;   Lisp in order to provide a more consistent work environment.
 ;;
 ;; For those who might be using an older version of Eshell, version
-;; 2.1 represents an entirely new, module-based architecture. It
-;; supports most of the features offered by modern shells. Here is a
+;; 2.1 represents an entirely new, module-based architecture.  It
+;; supports most of the features offered by modern shells.  Here is a
 ;; brief list of some of its more visible features:
 ;;
 ;; @ Command argument completion (tcsh, zsh)
@@ -136,7 +136,7 @@
 ;;   errors, such as 'dri' for `dir'.  Since executing non-existent
 ;;   programs is rarely the intention of the user, eshell could prompt
 ;;   for the replacement string, and then record that in a database of
-;;   known misspellings. (Note: The typo at the beginning of this
+;;   known misspellings.  (Note: The typo at the beginning of this
 ;;   paragraph wasn't discovered until two months after I wrote the
 ;;   text; it was not intentional).
 ;;
@@ -240,7 +240,7 @@ session.  Return the buffer selected (or created).
 
 With a nonnumeric prefix arg, create a new session.
 
-With a numeric prefix arg (as in `C-u 42 M-x eshell RET'), switch
+With a numeric prefix arg (as in `\\[universal-argument] 42 \\[eshell]'), switch
 to the session with that number, or create it if it doesn't
 already exist.
 

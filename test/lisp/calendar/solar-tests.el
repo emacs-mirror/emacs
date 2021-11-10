@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 (require 'solar)
 
@@ -42,3 +44,5 @@
       (should (< (abs (- sunset 17.72)) epsilon)))))
 
 (provide 'solar-tests)
+
+;;; solar-tests.el ends here

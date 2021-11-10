@@ -110,7 +110,7 @@ wholly ignored."
 (autoload 'eshell-parse-command "esh-cmd")
 
 (defsubst eshell-invoke-batch-file (&rest args)
-  "Invoke a .BAT or .CMD file on DOS/Windows systems."
+  "Invoke a .BAT or .CMD file on MS-DOS/MS-Windows systems."
   ;; since CMD.EXE can't handle forward slashes in the initial
   ;; argument...
   (setcar args (subst-char-in-string ?/ ?\\ (car args)))

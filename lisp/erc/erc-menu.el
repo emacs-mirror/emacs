@@ -103,8 +103,7 @@
   "ERC menu definition.")
 
 (defvar erc-menu-defined nil
-  "Internal variable used to keep track of whether we've defined the
-ERC menu yet.")
+  "Internal variable used to keep track of whether we've defined the ERC menu yet.")
 
 ;;;###autoload(autoload 'erc-menu-mode "erc-menu" nil t)
 (define-erc-module menu nil

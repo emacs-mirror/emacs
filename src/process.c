@@ -90,6 +90,7 @@ static struct rlimit nofile_limit;
 
 #include <c-ctype.h>
 #include <flexmember.h>
+#include <nproc.h>
 #include <sig2str.h>
 #include <verify.h>
 
@@ -680,6 +681,22 @@ clear_waiting_thread_info (void)
       if (fd_callback_info[fd].waiting_thread == current_thread)
 	fd_callback_info[fd].waiting_thread = NULL;
     }
+}
+
+/* Return TRUE if the keyboard descriptor is being monitored by the
+   current thread, FALSE otherwise.  */
+static bool
+kbd_is_ours (void)
+{
+  for (int fd = 0; fd <= max_desc; ++fd)
+    {
+      if (fd_callback_info[fd].waiting_thread != current_thread)
+	continue;
+      if ((fd_callback_info[fd].flags & (FOR_READ | KEYBOARD_FD))
+	  == (FOR_READ | KEYBOARD_FD))
+	return true;
+    }
+  return false;
 }
 
 
@@ -1718,7 +1735,10 @@ to use a pty, or nil to use the default specified through
 :stderr STDERR -- STDERR is either a buffer or a pipe process attached
 to the standard error of subprocess.  Specifying this implies
 `:connection-type' is set to `pipe'.  If STDERR is nil, standard error
-is mixed with standard output and sent to BUFFER or FILTER.
+is mixed with standard output and sent to BUFFER or FILTER.  (Note
+that specifying :stderr will create a new, separate (but associated)
+process, with its own filter and sentinel.  See
+Info node `(elisp) Asynchronous Processes' for more details.)
 
 :file-handler FILE-HANDLER -- If FILE-HANDLER is non-nil, then look
 for a file name handler for the current buffer's `default-directory'
@@ -2147,7 +2167,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   p->pty_flag = pty_flag;
   pset_status (p, Qrun);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
 
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -2265,7 +2286,8 @@ create_pty (Lisp_Object process)
       pset_status (p, Qrun);
       setup_process_coding_systems (process);
 
-      add_process_read_fd (pty_fd);
+      if (!EQ (p->filter, Qt))
+	add_process_read_fd (pty_fd);
 
       pset_tty_name (p, build_string (pty_name));
     }
@@ -2374,7 +2396,8 @@ usage:  (make-pipe-process &rest ARGS)  */)
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
   p->adaptive_read_buffering
     = (NILP (Vprocess_adaptive_read_buffering) ? 0
@@ -3109,7 +3132,8 @@ usage:  (make-serial-process &rest ARGS)  */)
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
-  if (!EQ (p->command, Qt))
+  if (!EQ (p->command, Qt)
+      && !EQ (p->filter, Qt))
     add_process_read_fd (fd);
 
   update_process_mark (p);
@@ -4001,7 +4025,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (!NILP (host))
     {
-      ptrdiff_t portstringlen ATTRIBUTE_UNUSED;
+      MAYBE_UNUSED ptrdiff_t portstringlen;
 
       /* SERVICE can either be a string or int.
 	 Convert to a C string for later use by getaddrinfo.  */
@@ -5308,13 +5332,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
               wait_reading_process_output_1 ();
         }
 
-      /* Cause C-g and alarm signals to take immediate action,
+      /* Cause C-g signals to take immediate action,
 	 and cause input available signals to zero out timeout.
 
 	 It is important that we do this before checking for process
 	 activity.  If we get a SIGCHLD after the explicit checks for
 	 process activity, timeout is the only way we will know.  */
-      if (read_kbd < 0)
+      if (read_kbd < 0 && kbd_is_ours ())
 	set_waiting_for_input (&timeout);
 
       /* If status of something has changed, and no input is
@@ -5444,7 +5468,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	{
 	  clear_waiting_for_input ();
 	  redisplay_preserve_echo_area (11);
-	  if (read_kbd < 0)
+	  if (read_kbd < 0 && kbd_is_ours ())
 	    set_waiting_for_input (&timeout);
 	}
 
@@ -6888,7 +6912,7 @@ If CURRENT-GROUP is `lambda', and if the shell owns the terminal,
 don't send the signal.
 
 This function calls the functions of `interrupt-process-functions' in
-the order of the list, until one of them returns non-`nil'.  */)
+the order of the list, until one of them returns non-nil.  */)
   (Lisp_Object process, Lisp_Object current_group)
 {
   return CALLN (Frun_hook_with_args_until_success, Qinterrupt_process_functions,
@@ -8213,6 +8237,20 @@ integer or floating point values.
   return system_process_attributes (pid);
 }
 
+DEFUN ("num-processors", Fnum_processors, Snum_processors, 0, 1, 0,
+       doc: /* Return the number of processors, a positive integer.
+Each usable thread execution unit counts as a processor.
+By default, count the number of available processors,
+overridable via the OMP_NUM_THREADS environment variable.
+If optional argument QUERY is `current', ignore OMP_NUM_THREADS.
+If QUERY is `all', also count processors not available.  */)
+  (Lisp_Object query)
+{
+  return make_uint (num_processors (EQ (query, Qall) ? NPROC_ALL
+				    : EQ (query, Qcurrent) ? NPROC_CURRENT
+				    : NPROC_CURRENT_OVERRIDABLE));
+}
+
 #ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
    Invoke this after init_process_emacs, and after glib and/or GNUstep
@@ -8473,6 +8511,8 @@ syms_of_process (void)
   DEFSYM (Qpcpu, "pcpu");
   DEFSYM (Qpmem, "pmem");
   DEFSYM (Qargs, "args");
+  DEFSYM (Qall, "all");
+  DEFSYM (Qcurrent, "current");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* Non-nil means delete processes immediately when they exit.
@@ -8515,7 +8555,7 @@ thus favoring processes with lower descriptors.  */);
 	       doc: /* List of functions to be called for `interrupt-process'.
 The arguments of the functions are the same as for `interrupt-process'.
 These functions are called in the order of the list, until one of them
-returns non-`nil'.  */);
+returns non-nil.  */);
   Vinterrupt_process_functions = list1 (Qinternal_default_interrupt_process);
 
   DEFVAR_LISP ("internal--daemon-sockname", Vinternal__daemon_sockname,
@@ -8634,4 +8674,5 @@ amounts of data in one go.  */);
   defsubr (&Sprocess_inherit_coding_system_flag);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
+  defsubr (&Snum_processors);
 }

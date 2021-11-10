@@ -83,7 +83,7 @@
 ;;;  Macros to parse the list
 
 (defconst xml-undefined-entity "?"
-  "What to substitute for undefined entities")
+  "What to substitute for undefined entities.")
 
 (defconst xml-default-ns '(("" . "")
 			   ("xml" . "http://www.w3.org/XML/1998/namespace")
@@ -922,11 +922,11 @@ references and parameter-entity references."
 	(progn
 	  (setq elem     (match-string-no-properties 1 string)
 		modifier (match-string-no-properties 2 string))
-	  (if (string-match-p "|" elem)
+	  (if (string-search "|" elem)
 	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
 				       (split-string elem "|"))))
-	    (if (string-match-p "," elem)
+	    (if (string-search "," elem)
 		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ",")))))))

@@ -126,7 +126,7 @@ get_lim_data (void)
 
   dos_memory_info (&totalram, &freeram, &totalswap, &freeswap);
   lim_data = freeram;
-  /* Don't believe they will give us more that 0.5 GB.   */
+  /* Don't believe they will give us more than 0.5 GB.   */
   if (lim_data > 512U * 1024U * 1024U)
     lim_data = 512U * 1024U * 1024U;
 }

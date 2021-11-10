@@ -1330,7 +1330,7 @@ to print a message if FILE is not found."
       (unless (or valid
 		  (member file authors-ignored-files)
 		  (authors-obsolete-file-p file)
-		  (string-match "[*]" file)
+		  (string-search "*" file)
 		  (string-match "^[0-9.]+$" file)
 		  laxlog)
 	(setq authors-invalid-file-names
@@ -1465,7 +1465,7 @@ Suggested\\|Trivial\\|Version\\|Originally\\|From:\\|Patch[ \t]+[Bb]y\\)")))
 		((looking-at "^[ \t]+\\*")
 		 (let ((line (buffer-substring-no-properties
 			      (match-end 0) (line-end-position))))
-		   (while (and (not (string-match ":" line))
+		   (while (and (not (string-search ":" line))
 			       (forward-line 1)
 			       (not (looking-at ":\\|^[ \t]*$")))
 		     (setq line (concat line
@@ -1475,7 +1475,7 @@ Suggested\\|Trivial\\|Version\\|Originally\\|From:\\|Patch[ \t]+[Bb]y\\)")))
 		   (when (string-match ":" line)
 		     (setq line (substring line 0 (match-beginning 0)))
 		     (setq line (replace-regexp-in-string "[[(<{].*$" "" line))
-		     (setq line (replace-regexp-in-string "," "" line))
+		     (setq line (string-replace "," "" line))
 		     (dolist (file (split-string line))
 		       (when (setq file (authors-canonical-file-name file log-file pos (car authors)))
 			 (dolist (author authors)
@@ -1610,7 +1610,8 @@ and a buffer *Authors Errors* containing references to unknown files."
       ;; the versioned ChangeLog.N rather than the unversioned ChangeLog.
       (zerop (call-process "make" nil nil nil
                            "-C" root "change-history-nocommit"))
-      (error "Problem updating ChangeLog, try \"C-u M-x authors RET\""))
+      (error (substitute-command-keys
+              "Problem updating ChangeLog, try \"\\[universal-argument] \\[authors]\"")))
   (let ((logs (process-lines find-program root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*")
@@ -1676,7 +1677,7 @@ list of their contributions.\n")
 		(insert "\n "))
 	    (insert " " file))
 	  (insert "\n")))))
-    (insert "\nLocal" " Variables:\ncoding: "
+    (insert "\nLocal" " Variables:\nmode: etc-authors\ncoding: "
 	    (symbol-name authors-coding-system) "\nEnd:\n")
     (message "Generating buffer %s... done" buffer-name)
     (unless noninteractive

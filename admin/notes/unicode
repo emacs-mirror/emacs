@@ -12,17 +12,23 @@ Emacs uses the following files from the Unicode Character Database
   . UnicodeData.txt
   . Blocks.txt
   . BidiBrackets.txt
-  . BidiCharacterTest.txt
   . BidiMirroring.txt
   . IVD_Sequences.txt
   . NormalizationTest.txt
   . SpecialCasing.txt
+  . emoji-data.txt
+  . emoji-zwj-sequences.txt
+  . emoji-sequences.txt
+  . BidiCharacterTest.txt
 
-First, the first 7 files need to be copied into admin/unidata/, and
-the file https://www.unicode.org/copyright.html should be copied over
-copyright.html in admin/unidata (that file might need trailing
-whitespace removed before it can be committed to the Emacs
-repository).
+Emacs also uses the file emoji-test.txt which should be imported from
+the Unicode's Public/emoji/ directory.
+
+First, the first 10 files and emoji-test.txt need to be copied into
+admin/unidata/, and the file https://www.unicode.org/copyright.html
+should be copied over copyright.html in admin/unidata (some of them
+might need trailing whitespace removed before they can be committed to
+the Emacs repository).
 
 Then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source
@@ -81,7 +87,47 @@ regarding failing lines.
 
 The file BidiCharacterTest.txt should be copied to the test suite, and
 if its format has changed, the file biditest.el there should be
-modified to follow suit.
+modified to follow suit.  If there's trailing whitespace in
+BidiCharacterTest.txt, it should be removed before committing the new
+version.
+
+Visit "emoji-data.txt" with the rebuilt Emacs, and check that an
+appropriate font is being used for the emoji (by default Emacs uses
+"Noto Color Emoji").  Running the following command in that buffer
+will give you an idea of which codepoints are not supported by
+whichever font Emacs is using.
+
+(defun check-emoji-coverage (font-name-regexp)
+"Display a buffer containing emoji codepoints for which FONT-NAME is not used.
+This must be run from a buffer in the format of emoji-data.txt.
+FONT-NAME-REGEXP is checked using `string-match'."
+(interactive "MFont Name: ")
+(save-excursion
+(goto-char (point-min))
+(let (res char name ifont)
+  (while (re-search-forward "; Emoji_Presentation [^(]+(\\(.\\)[).]" nil t)
+    (setq char (aref (match-string 1) 0))
+    (setq ifont (car (internal-char-font nil char)))
+    (when ifont
+      (setq name (font-xlfd-name ifont)))
+    (if (or (not ifont) (not (string-match font-name-regexp name)))
+        (setq res (concat (string char) res))))
+  (when res
+    (with-output-to-temp-buffer "*Check-Emoji-Coverage*"
+      (princ (format "Font not matching '%s' was used for the following characters:\n%s"
+                     font-name-regexp (reverse res))))))))
+
+Visit "emoji-zwj-sequences.txt" and "emoji-sequences.txt" with the
+rebuilt Emacs, and check that the sample sequences are composed
+properly.  Also check the Unicode style chart file available at
+https://unicode.org/emoji/charts/emoji-style.txt for any issues
+involving VS-15 and VS-16, if so you may need to update the value
+generated for auto-composition-emoji-eligible-codepoints by
+admin/unidata/emoji-zwj.awk.  Note that your emoji font might not have
+glyphs for the newest codepoints yet.
+
+Finally, etc/NEWS should be updated to announce the support for the
+new Unicode version.
 
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------

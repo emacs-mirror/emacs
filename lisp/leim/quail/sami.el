@@ -33,7 +33,7 @@
 ;; - skolt-sami-prefix
 ;; - kildin-sami-prefix
 
-;;; Code
+;;; Code:
 
 (require 'quail)
 

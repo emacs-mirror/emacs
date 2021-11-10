@@ -380,7 +380,7 @@ You don't need this.  (See bytecomp.el commentary for more details.)
   "Define an inline function.  The syntax is just like that of `defun'.
 
 \(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
-  (declare (debug defun) (doc-string 3))
+  (declare (debug defun) (doc-string 3) (indent 2))
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
       (error "`%s' is a primitive" name))
@@ -422,18 +422,19 @@ was first made obsolete, for example a date or a release number."
                                            &optional docstring)
   "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
-\(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
+\(define-obsolete-function-alias \\='old-fun \\='new-fun \"28.1\" \
+\"old-fun's doc.\")
 
 is equivalent to the following two lines of code:
 
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
-\(make-obsolete \\='old-fun \\='new-fun \"22.1\")
+\(make-obsolete \\='old-fun \\='new-fun \"28.1\")
 
 WHEN should be a string indicating when the function was first
 made obsolete, for example a date or a release number.
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
-  (declare (doc-string 4))
+  (declare (doc-string 4) (indent defun))
   `(progn
      (defalias ,obsolete-name ,current-name ,docstring)
      (make-obsolete ,obsolete-name ,current-name ,when)))
@@ -462,7 +463,7 @@ made obsolete, for example a date or a release number.
 This macro evaluates all its parameters, and both OBSOLETE-NAME
 and CURRENT-NAME should be symbols, so a typical usage would look like:
 
-  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"27.1\")
+  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"28.1\")
 
 This macro uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.
@@ -482,7 +483,7 @@ For the benefit of Customize, if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
 `saved-value', `saved-variable-comment'."
-  (declare (doc-string 4))
+  (declare (doc-string 4) (indent defun))
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
      ;; See Bug#4706.
@@ -529,11 +530,11 @@ is enabled."
   (list 'quote (eval (cons 'progn body) lexical-binding)))
 
 (defmacro eval-and-compile (&rest body)
-  "Like `progn', but evaluates the body at compile time and at
-load time.  In interpreted code, this is entirely equivalent to
-`progn', except that the value of the expression may be (but is
-not necessarily) computed at load time if eager macro expansion
-is enabled."
+  "Like `progn', but evaluates the body at compile time and at load time.
+In interpreted code, this is entirely equivalent to `progn',
+except that the value of the expression may be (but is not
+necessarily) computed at load time if eager macro expansion is
+enabled."
   (declare (debug (&rest def-form)) (indent 0))
   ;; When the byte-compiler expands code, this macro is not used, so we're
   ;; either about to run `body' (plain interpretation) or we're doing eager

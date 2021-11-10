@@ -153,7 +153,7 @@ regardless of the number of after-change calls from commands doing
 complex processing.")
 
 (defun refill-after-change-function (_beg end _len)
-  "Function for `after-change-functions' which just sets `refill-doit'."
+  "Set `refill-doit'.  Used by `after-change-functions'."
   (unless undo-in-progress
     (setq refill-doit end)))
 

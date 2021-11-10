@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2020-04-05" "GNU Emacs @version@" "GNU"
+.TH EMACS 1 "2021-09-28" "GNU Emacs @version@" "GNU"
 .
 .
 .SH NAME
@@ -214,6 +214,9 @@ Specify the name which should be assigned to the initial
 .I Emacs
 window.
 This controls looking up X resources as well as the window title.
+.TP
+.BR \-\-no\-x\-resources
+Do not load X resources.
 .TP
 .BI \-T " name\fR,\fP " \-\-title= "name"
 Specify the title for the initial X window.

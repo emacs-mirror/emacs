@@ -22,13 +22,13 @@
 
 ;;; Commentary:
 
-;; This implements an XML 1.0 parser. It also implements the XML
+;; This implements an XML 1.0 parser.  It also implements the XML
 ;; Namespaces Recommendation.  It is designed to be conforming, but it
-;; works a bit differently from a normal XML parser. An XML document
+;; works a bit differently from a normal XML parser.  An XML document
 ;; consists of the prolog and an instance.  The prolog is parsed as a
 ;; single unit using `xmltok-forward-prolog'.  The instance is
 ;; considered as a sequence of tokens, where a token is something like
-;; a start-tag, a comment, a chunk of data or a CDATA section. The
+;; a start-tag, a comment, a chunk of data or a CDATA section.  The
 ;; tokenization of the instance is stateless: the tokenization of one
 ;; part of the instance does not depend on tokenization of the
 ;; preceding part of the instance.  This allows the instance to be
@@ -70,7 +70,7 @@
 ;; value literals specifying default attribute values, and default
 ;; attribute values are not reported to the client.
 ;;
-;; 2. It does not implement internal entities containing elements. If
+;; 2. It does not implement internal entities containing elements.  If
 ;; an internal entity is referenced and parsing its replacement text
 ;; yields one or more tags, then it will skip the reference and
 ;; report this to the client.
@@ -479,7 +479,7 @@ and VALUE-END, otherwise a STRING giving the value."
 		      "[^<'&\r\n\t]*"
 		      (xmltok-g complex1 "[&\r\n\t][^<']*") opt
 		      "'"))
-	    (lit2 (cons (replace-regexp-in-string "'" "\"" (car lit1))
+	    (lit2 (cons (string-replace "'" "\"" (car lit1))
 			'(complex2)))
 	    (literal (xmltok-g literal lit1 or lit2))
 	    (name (xmltok+ open (xmltok-g xmlns "xmlns") or ncname close

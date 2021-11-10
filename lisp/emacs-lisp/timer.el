@@ -29,10 +29,12 @@
 
 (eval-when-compile (require 'cl-lib))
 
+;; If you change this structure, you also have to change `timerp'
+;; (below) and decode_timer in keyboard.c.
 (cl-defstruct (timer
                (:constructor nil)
                (:copier nil)
-               (:constructor timer-create ())
+               (:constructor timer--create ())
                (:type vector)
                (:conc-name timer--))
   ;; nil if the timer is active (waiting to be triggered),
@@ -46,11 +48,25 @@
   repeat-delay
   function args                         ;What to do when triggered.
   idle-delay                            ;If non-nil, this is an idle-timer.
-  psecs)
+  psecs
+  ;; A timer may be created with t as the TIME, which means that we
+  ;; want to run at specific integral multiples of `repeat-delay'.  We
+  ;; then have to recompute this (because the machine may have gone to
+  ;; sleep, etc).
+  integral-multiple)
+
+(defun timer-create ()
+  ;; BEWARE: This is not an eta-redex, because `timer--create' is inlinable
+  ;; whereas `timer-create' should not be because we don't want to
+  ;; hardcode the shape of timers in other .elc files.
+  (timer--create))
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
-  (and (vectorp object) (= (length object) 9)))
+  (and (vectorp object)
+       ;; Timers are now ten elements, but old .elc code may have
+       ;; shorter versions of `timer-create'.
+       (<= 9 (length object) 10)))
 
 (defsubst timer--check (timer)
   (or (timerp timer) (signal 'wrong-type-argument (list #'timerp timer))))
@@ -109,9 +125,12 @@ of SECS seconds since the epoch.  SECS may be a fraction."
       (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
-  "Advance TIME by SECS seconds and optionally USECS microseconds
-and PSECS picoseconds.  SECS may be either an integer or a
-floating point number."
+  "Advance TIME by SECS seconds.
+
+Optionally also advance it by USECS microseconds and PSECS
+picoseconds.
+
+SECS may be either an integer or a floating point number."
   (let ((delta secs))
     (if (or usecs psecs)
 	(setq delta (time-add delta (list 0 0 (or usecs 0) (or psecs 0)))))
@@ -122,9 +141,13 @@ floating point number."
   (time-less-p (timer--time t1) (timer--time t2)))
 
 (defun timer-inc-time (timer secs &optional usecs psecs)
-  "Increment the time set in TIMER by SECS seconds, USECS microseconds,
-and PSECS picoseconds.  SECS may be a fraction.  If USECS or PSECS are
-omitted, they are treated as zero."
+  "Increment the time set in TIMER by SECS seconds.
+
+Optionally also increment it by USECS microseconds, and PSECS
+picoseconds.  If USECS or PSECS are omitted, they are treated as
+zero.
+
+SECS may be a fraction."
   (setf (timer--time timer)
         (timer-relative-time (timer--time timer) secs usecs psecs)))
 
@@ -284,6 +307,14 @@ This function is called, by name, directly by the C code."
                     (if (> repeats timer-max-repeats)
                         (timer-inc-time timer (* (timer--repeat-delay timer)
                                                  repeats)))))
+              ;; If we want integral multiples, we have to recompute
+              ;; the repetition.
+              (when (and (> (length timer) 9) ; Backwards compatible.
+                         (timer--integral-multiple timer)
+                         (not (timer--idle-delay timer)))
+                (setf (timer--time timer)
+                      (timer-next-integral-multiple-of-time
+                       (current-time) (timer--repeat-delay timer))))
               ;; Place it back on the timer-list before running
               ;; timer--function, so it can cancel-timer itself.
               (timer-activate timer t cell)
@@ -340,45 +371,44 @@ This function returns a timer object which you can use in
 `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
-  (or (null repeat)
-      (and (numberp repeat) (< 0 repeat))
-      (error "Invalid repetition interval"))
-
-  ;; Special case: nil means "now" and is useful when repeating.
-  (if (null time)
-      (setq time (current-time)))
-
-  ;; Special case: t means the next integral multiple of REPEAT.
-  (if (and (eq time t) repeat)
-      (setq time (timer-next-integral-multiple-of-time (current-time) repeat)))
-
-  ;; Handle numbers as relative times in seconds.
-  (if (numberp time)
-      (setq time (timer-relative-time nil time)))
-
-  ;; Handle relative times like "2 hours 35 minutes"
-  (if (stringp time)
-      (let ((secs (timer-duration time)))
-	(if secs
-	    (setq time (timer-relative-time nil secs)))))
-
-  ;; Handle "11:23pm" and the like.  Interpret it as meaning today
-  ;; which admittedly is rather stupid if we have passed that time
-  ;; already.  (Though only Emacs hackers hack Emacs at that time.)
-  (if (stringp time)
-      (progn
-	(require 'diary-lib)
-	(let ((hhmm (diary-entry-time time))
-	      (now (decode-time)))
-	  (if (>= hhmm 0)
-	      (setq time
-		    (encode-time 0 (% hhmm 100) (/ hhmm 100)
-                                 (decoded-time-day now)
-				 (decoded-time-month now)
-                                 (decoded-time-year now)
-                                 (decoded-time-zone now)))))))
+  (when (and repeat
+             (numberp repeat)
+             (< repeat 0))
+    (error "Invalid repetition interval"))
 
   (let ((timer (timer-create)))
+    ;; Special case: nil means "now" and is useful when repeating.
+    (unless time
+      (setq time (current-time)))
+
+    ;; Special case: t means the next integral multiple of REPEAT.
+    (when (and (eq time t) repeat)
+      (setq time (timer-next-integral-multiple-of-time (current-time) repeat))
+      (setf (timer--integral-multiple timer) t))
+
+    ;; Handle numbers as relative times in seconds.
+    (when (numberp time)
+      (setq time (timer-relative-time nil time)))
+
+    ;; Handle relative times like "2 hours 35 minutes".
+    (when (stringp time)
+      (when-let ((secs (timer-duration time)))
+	(setq time (timer-relative-time nil secs))))
+
+    ;; Handle "11:23pm" and the like.  Interpret it as meaning today
+    ;; which admittedly is rather stupid if we have passed that time
+    ;; already.  (Though only Emacs hackers hack Emacs at that time.)
+    (when (stringp time)
+      (require 'diary-lib)
+      (let ((hhmm (diary-entry-time time))
+	    (now (decode-time)))
+	(when (>= hhmm 0)
+	  (setq time (encode-time 0 (% hhmm 100) (/ hhmm 100)
+                                  (decoded-time-day now)
+			          (decoded-time-month now)
+                                  (decoded-time-year now)
+                                  (decoded-time-zone now))))))
+
     (timer-set-time timer time repeat)
     (timer-set-function timer function args)
     (timer-activate timer)

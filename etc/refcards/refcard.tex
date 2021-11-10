@@ -273,13 +273,15 @@ see the Emacs distribution, or {\tt https://www.gnu.org/software/emacs}
 
 \centerline{(for version \versionemacs)}
 
-\section{Starting Emacs}
+\section{Key Binding Notation}
 
-To enter GNU Emacs \versionemacs, just type its name: \kbd{emacs}
+In the Emacs key binding notation, \kbd{C-x}
+is \kbd{Ctrl+X}; \kbd{M-x} is usually \kbd{Alt+X}; \kbd{S-x} is
+\kbd{Shift+X}; and \kbd{C-M-x} is \kbd{Ctrl+Alt+X}, etc.
 
 \section{Leaving Emacs}
 
-\key{suspend Emacs (or iconify it under X)}{C-z}
+\key{iconify Emacs (or suspend it in terminal)}{C-z}
 \key{exit Emacs permanently}{C-x C-c}
 
 \section{Files}
@@ -322,7 +324,7 @@ the directions.  If you are a first-time user, type \kbd{C-h t} for a
 \key{reverse regular expression search}{C-M-r}
 
 \key{select previous search string}{M-p}
-\key{select next later search string}{M-n}
+\key{select next search string}{M-n}
 \key{exit incremental search}{RET}
 \key{undo effect of last character}{DEL}
 \key{abort current search}{C-g}
@@ -456,8 +458,6 @@ frame instead of a window.
 \key{fill paragraph}{M-q}
 \key{set fill column to {\it arg}}{C-x f}
 \key{set prefix each line starts with}{C-x .}
-
-\key{set face}{M-o}
 
 \section{Case Change}
 

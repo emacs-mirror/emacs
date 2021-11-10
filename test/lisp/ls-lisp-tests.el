@@ -25,6 +25,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'ls-lisp)
 (require 'dired)
 
@@ -59,22 +60,22 @@
 
 (ert-deftest ls-lisp-test-bug27631 ()
   "Test for https://debbugs.gnu.org/27631 ."
-  (let* ((dir (make-temp-file "bug27631" 'dir))
-         (dir1 (expand-file-name "dir1" dir))
-         (dir2 (expand-file-name "dir2" dir))
-         (default-directory dir)
-         ls-lisp-use-insert-directory-program buf)
-    (unwind-protect
-        (progn
-          (make-directory dir1)
-          (make-directory dir2)
-          (with-temp-file (expand-file-name "a.txt" dir1))
-          (with-temp-file (expand-file-name "b.txt" dir2))
-          (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
-          (dired-toggle-marks)
-          (should (cdr (dired-get-marked-files))))
-      (delete-directory dir 'recursive)
-      (when (buffer-live-p buf) (kill-buffer buf)))))
+  (ert-with-temp-directory dir
+    :suffix "bug27631"
+    (let* ((dir1 (expand-file-name "dir1" dir))
+           (dir2 (expand-file-name "dir2" dir))
+           (default-directory dir)
+           ls-lisp-use-insert-directory-program buf)
+      (unwind-protect
+          (progn
+            (make-directory dir1)
+            (make-directory dir2)
+            (with-temp-file (expand-file-name "a.txt" dir1))
+            (with-temp-file (expand-file-name "b.txt" dir2))
+            (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
+            (dired-toggle-marks)
+            (should (cdr (dired-get-marked-files))))
+        (when (buffer-live-p buf) (kill-buffer buf))))))
 
 (ert-deftest ls-lisp-test-bug27693 ()
   "Test for https://debbugs.gnu.org/27693 ."

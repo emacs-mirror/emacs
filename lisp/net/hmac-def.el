@@ -34,9 +34,10 @@ HMAC function is H(KEY XOR opad, H(KEY XOR ipad, TEXT)):
 
 H is a cryptographic hash function, such as SHA1 and MD5, which takes
 a string and return a digest of it (in binary form).
-B is a byte-length of a block size of H. (B=64 for both SHA1 and MD5.)
-L is a byte-length of hash outputs. (L=16 for MD5, L=20 for SHA1.)
+B is a byte length of a block size of H. (B=64 for both SHA1 and MD5.)
+L is a byte length of hash outputs.  (L=16 for MD5, L=20 for SHA1.)
 If BIT is non-nil, truncate output to specified bits."
+  (declare (indent defun))
   `(defun ,name (text key)
      ,(concat "Compute "
 	      (upcase (symbol-name name))

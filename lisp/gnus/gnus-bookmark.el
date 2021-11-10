@@ -198,7 +198,9 @@ So the cdr of each bookmark is an alist too.")
 
 (defun gnus-bookmark-make-record
   (group message-id author date subject annotation)
-  "Return the record part of a new bookmark, given GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION."
+  "Return the record part of a new bookmark.
+Arguments GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION
+will be saved in the bookmark."
   (let ((the-record
 	 `((group . ,(substring-no-properties group))
 	   (message-id . ,(substring-no-properties message-id))
@@ -416,32 +418,29 @@ That is, all information but the name."
 
 (defvar gnus-bookmark-bmenu-bookmark-column nil)
 (defvar gnus-bookmark-bmenu-hidden-bookmarks ())
-(defvar gnus-bookmark-bmenu-mode-map nil)
 
-(if gnus-bookmark-bmenu-mode-map
-    nil
-  (setq gnus-bookmark-bmenu-mode-map (make-keymap))
-  (suppress-keymap gnus-bookmark-bmenu-mode-map t)
-  (define-key gnus-bookmark-bmenu-mode-map "q" 'quit-window)
-  (define-key gnus-bookmark-bmenu-mode-map "\C-m" 'gnus-bookmark-bmenu-select)
-  (define-key gnus-bookmark-bmenu-mode-map "v" 'gnus-bookmark-bmenu-select)
-  (define-key gnus-bookmark-bmenu-mode-map "d" 'gnus-bookmark-bmenu-delete)
-  (define-key gnus-bookmark-bmenu-mode-map "k" 'gnus-bookmark-bmenu-delete)
-  (define-key gnus-bookmark-bmenu-mode-map "\C-d" 'gnus-bookmark-bmenu-delete-backwards)
-  (define-key gnus-bookmark-bmenu-mode-map "x" 'gnus-bookmark-bmenu-execute-deletions)
-  (define-key gnus-bookmark-bmenu-mode-map " " 'next-line)
-  (define-key gnus-bookmark-bmenu-mode-map "n" 'next-line)
-  (define-key gnus-bookmark-bmenu-mode-map "p" 'previous-line)
-  (define-key gnus-bookmark-bmenu-mode-map "\177" 'gnus-bookmark-bmenu-backup-unmark)
-  (define-key gnus-bookmark-bmenu-mode-map "?" 'describe-mode)
-  (define-key gnus-bookmark-bmenu-mode-map "u" 'gnus-bookmark-bmenu-unmark)
-  (define-key gnus-bookmark-bmenu-mode-map "m" 'gnus-bookmark-bmenu-mark)
-  (define-key gnus-bookmark-bmenu-mode-map "l" 'gnus-bookmark-bmenu-load)
-  (define-key gnus-bookmark-bmenu-mode-map "s" 'gnus-bookmark-bmenu-save)
-  (define-key gnus-bookmark-bmenu-mode-map "t" 'gnus-bookmark-bmenu-toggle-infos)
-  (define-key gnus-bookmark-bmenu-mode-map "a" 'gnus-bookmark-bmenu-show-details)
-  (define-key gnus-bookmark-bmenu-mode-map [mouse-2]
-    'gnus-bookmark-bmenu-select-by-mouse))
+(defvar-keymap gnus-bookmark-bmenu-mode-map
+  :full t
+  :suppress 'nodigits
+  "q" #'quit-window
+  "\C-m" #'gnus-bookmark-bmenu-select
+  "v" #'gnus-bookmark-bmenu-select
+  "d" #'gnus-bookmark-bmenu-delete
+  "k" #'gnus-bookmark-bmenu-delete
+  "\C-d" #'gnus-bookmark-bmenu-delete-backwards
+  "x" #'gnus-bookmark-bmenu-execute-deletions
+  " " #'next-line
+  "n" #'next-line
+  "p" #'previous-line
+  "\177" #'gnus-bookmark-bmenu-backup-unmark
+  "?" #'describe-mode
+  "u" #'gnus-bookmark-bmenu-unmark
+  "m" #'gnus-bookmark-bmenu-mark
+  "l" #'gnus-bookmark-bmenu-load
+  "s" #'gnus-bookmark-bmenu-save
+  "t" #'gnus-bookmark-bmenu-toggle-infos
+  "a" #'gnus-bookmark-bmenu-show-details
+  [mouse-2] #'gnus-bookmark-bmenu-select-by-mouse)
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.

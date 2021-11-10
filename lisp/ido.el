@@ -354,8 +354,8 @@ The following values are possible:
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
-  :set #'(lambda (_symbol value)
-           (ido-mode (or value 0)))
+  :set (lambda (_symbol value)
+         (ido-mode (or value 0)))
   :initialize #'custom-initialize-default
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
@@ -620,9 +620,9 @@ hosts on first use of UNC path."
 		 (function-item :tag "Use `NET VIEW'"
 				:value ido-unc-hosts-net-view)
 		 (function :tag "Your own function"))
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (setq ido-unc-hosts-cache t)))
+  :set (lambda (symbol value)
+         (set symbol value)
+         (setq ido-unc-hosts-cache t)))
 
 (defcustom ido-downcase-unc-hosts t
   "Non-nil if UNC host names should be downcased."
@@ -834,7 +834,7 @@ Each function on the list may modify the dynamically bound variable
   :type 'hook)
 
 (defcustom ido-rewrite-file-prompt-functions nil
-  "List of functions to run when the find-file prompt is created.
+  "List of functions to run when the `find-file' prompt is created.
 Each function on the list may modify the following dynamically bound
 variables:
   dirname   - the (abbreviated) directory name
@@ -1770,7 +1770,7 @@ is enabled then some keybindings are changed in the keymap."
 	      (let ((l (length dirname)))
 		(if (and max-width (> max-width 0) (> l max-width))
 		    (let* ((s (substring dirname (- max-width)))
-			   (i (string-match "/" s)))
+			   (i (string-search "/" s)))
 		      (concat "..." (if i (substring s i) s)))
 		  dirname)))))
    (t prompt)))
@@ -2516,7 +2516,7 @@ If cursor is not at the end of the user input, move to end of input."
       ;; Do nothing
       )
      ((and (memq ido-cur-item '(file dir))
-	   (string-match "[$]" ido-text))
+	   (string-search "$" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
 	(if (not (file-exists-p (file-name-directory evar)))
 	    (message "Expansion generates non-existing directory name")
@@ -3089,7 +3089,7 @@ If repeated, insert text from buffer instead."
 	  (setq ido-text-init word
 		ido-try-merged-list nil
 		ido-exit 'chdir))
-	 ((string-match "/" word)
+	 ((string-search "/" word)
 	  (setq ido-text-init (concat ido-current-directory word)
 		ido-try-merged-list nil
 		ido-exit 'chdir))
@@ -3620,7 +3620,7 @@ Uses and updates `ido-dir-file-cache'."
 
 
 (defun ido-make-file-list-1 (dir &optional merged)
-  "Return list of non-ignored files in DIR
+  "Return list of non-ignored files in DIR.
 If MERGED is non-nil, each file is cons'ed with DIR."
   (and (or (ido-is-tramp-root dir) (ido-is-unc-root dir)
 	   (file-directory-p dir))
@@ -4397,7 +4397,7 @@ For details of keybindings, see `ido-find-file'."
 
 ;;;###autoload
 (defun ido-dired-other-window ()
-  "\"Edit\" a directory.  Like `ido-dired' but selects in another window.
+  "\"Edit\" a directory.  Like `ido-dired' but select in another window.
 The directory is selected interactively by typing a substring.
 For details of keybindings, see `ido-find-file'."
   (interactive)
@@ -4408,7 +4408,7 @@ For details of keybindings, see `ido-find-file'."
 
 ;;;###autoload
 (defun ido-dired-other-frame ()
-  "\"Edit\" a directory.  Like `ido-dired' but makes a new frame.
+  "\"Edit\" a directory.  Like `ido-dired' but make a new frame.
 The directory is selected interactively by typing a substring.
 For details of keybindings, see `ido-find-file'."
   (interactive)
@@ -4559,7 +4559,7 @@ For details of keybindings, see `ido-find-file'."
 	    (setq try-single-dir-match t))))
 
 	 ((and (string-equal (substring contents -2 -1) "/")
-	       (not (string-match "[$]" contents)))
+	       (not (string-search "$" contents)))
 	  (ido-set-current-directory
 	   (cond
 	    ((= (length contents) 2)
@@ -4656,7 +4656,7 @@ For details of keybindings, see `ido-find-file'."
 	       (memq ido-cur-item '(file dir))
 	       (not (ido-is-root-directory))
 	       (> (length contents) 1)
-	       (not (string-match "[$]" contents))
+	       (not (string-search "$" contents))
 	       (not ido-directory-nonreadable)
 	       (not ido-directory-too-big))
 	  (ido-trace "merge?")

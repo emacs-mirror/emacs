@@ -21,15 +21,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
 
 ;; Contents management by FCM version 0.1.
 
-;; Description:
-;; ===========
-
-;; gnus-diary is a utility toolkit used on top of the nndiary back end. It is
+;; gnus-diary is a utility toolkit used on top of the nndiary back end.  It is
 ;; now fully documented in the Gnus manual.
 
 ;;; Code:

@@ -67,7 +67,7 @@
 
 ;; In addition to using the shifted movement keys, you can also use
 ;; [C-space] to start the region and use unshifted movement keys to extend
-;; it. To cancel the region, use [C-space] or [C-g].
+;; it.  To cancel the region, use [C-space] or [C-g].
 
 ;; If you prefer to use the standard Emacs cut, copy, paste, and undo
 ;; bindings, customize cua-enable-cua-keys to nil.
@@ -116,7 +116,7 @@
 ;; "register commands".
 ;;
 ;; CUA's register support is activated by providing a numeric
-;; prefix argument to the C-x, C-c, and C-v commands. For example,
+;; prefix argument to the C-x, C-c, and C-v commands.  For example,
 ;; to copy the selected region to register 2, enter [M-2 C-c].
 ;; Or if you have activated the keypad prefix mode, enter [kp-2 C-c].
 ;;
@@ -182,7 +182,7 @@
 ;; If you type a normal (self-inserting) character when the rectangle is
 ;; active, the character is inserted on the "current side" of every line
 ;; of the rectangle.  The "current side" is the side on which the cursor
-;; is currently located. If the rectangle is only 1 column wide,
+;; is currently located.  If the rectangle is only 1 column wide,
 ;; insertion will be performed to the left when the cursor is at the
 ;; bottom of the rectangle.  So, for example, to comment out an entire
 ;; paragraph like this one, just place the cursor on the first character
@@ -330,9 +330,9 @@ See `cua-set-mark' for details."
   "If non-nil, registers are supported via numeric prefix arg.
 If the value is t, any numeric prefix arg in the range 0 to 9 will be
 interpreted as a register number.
-If the value is `not-ctrl-u', using C-u to enter a numeric prefix is not
+If the value is `not-ctrl-u', using \\[universal-argument] to enter a numeric prefix is not
 interpreted as a register number.
-If the value is `ctrl-u-only', only numeric prefix entered with C-u is
+If the value is `ctrl-u-only', only numeric prefix entered with \\[universal-argument] is
 interpreted as a register number."
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Enabled, but C-u arg is not a register" not-ctrl-u)
@@ -360,7 +360,7 @@ managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean)
 
 (defcustom cua-paste-pop-rotate-temporarily nil
-  "If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
+  "If non-nil, \\[cua-paste-pop] only rotates the kill ring temporarily.
 This means that both \\[yank] and the first \\[yank-pop] in a sequence always
 insert the most recently killed text.  Each immediately following \\[cua-paste-pop]
 replaces the previous text with the next older element on the `kill-ring'.
@@ -396,17 +396,17 @@ and after the region marked by the rectangle to search."
 
 (defcustom cua-rectangle-mark-key [(control return)]
   "Global key used to toggle the cua rectangle mark."
-  :set #'(lambda (symbol value)
-	   (set symbol value)
-	   (when (and (boundp 'cua--keymaps-initialized)
-		      cua--keymaps-initialized)
-	     (define-key cua-global-keymap value
-	       #'cua-set-rectangle-mark)
-	     (when (boundp 'cua--rectangle-keymap)
-	       (define-key cua--rectangle-keymap value
-		 #'cua-clear-rectangle-mark)
-	       (define-key cua--region-keymap value
-		 #'cua-toggle-rectangle-mark))))
+  :set (lambda (symbol value)
+         (set symbol value)
+         (when (and (boundp 'cua--keymaps-initialized)
+                    cua--keymaps-initialized)
+           (define-key cua-global-keymap value
+             #'cua-set-rectangle-mark)
+           (when (boundp 'cua--rectangle-keymap)
+             (define-key cua--rectangle-keymap value
+               #'cua-clear-rectangle-mark)
+             (define-key cua--region-keymap value
+               #'cua-toggle-rectangle-mark))))
   :type 'key-sequence)
 
 (defcustom cua-rectangle-modifier-key 'meta
@@ -698,6 +698,11 @@ a cons (TYPE . COLOR), then both properties are affected."
 Repeating prefix key when region is active works as a single prefix key."
   (interactive)
   (cua--prefix-override-replay 0))
+
+;; These aliases are so that we can look up the commands and find the
+;; correct keys when generating menus.
+(defalias 'cua-cut-handler #'cua--prefix-override-handler)
+(defalias 'cua-copy-handler #'cua--prefix-override-handler)
 
 (defun cua--prefix-repeat-handler ()
   "Repeating prefix key when region is active works as a single prefix key."
@@ -1140,7 +1145,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
       def nil))
 
 (defvar cua-global-keymap (make-sparse-keymap)
-  "Global keymap for cua-mode; users may add to this keymap.")
+  "Global keymap for `cua-mode'; users may add to this keymap.")
 
 (defvar cua--cua-keys-keymap (make-sparse-keymap))
 (defvar cua--prefix-override-keymap (make-sparse-keymap))
@@ -1258,10 +1263,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
     (define-key cua--cua-keys-keymap [(meta v)]
       #'delete-selection-repeat-replace-region))
 
-  (define-key cua--prefix-override-keymap [(control x)]
-    #'cua--prefix-override-handler)
-  (define-key cua--prefix-override-keymap [(control c)]
-    #'cua--prefix-override-handler)
+  (define-key cua--prefix-override-keymap [(control x)] #'cua-cut-handler)
+  (define-key cua--prefix-override-keymap [(control c)] #'cua-copy-handler)
 
   (define-key cua--prefix-repeat-keymap [(control x) (control x)]
     #'cua--prefix-repeat-handler)

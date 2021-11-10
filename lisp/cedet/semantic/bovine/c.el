@@ -1937,7 +1937,7 @@ For types with a :parent, create faux namespaces to put TAG into."
 
 (define-mode-local-override semanticdb-find-table-for-include c-mode
   (includetag &optional table)
-  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
+  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object.
 INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute.
@@ -2034,7 +2034,7 @@ for arguments compared."
   (if blankok t (semantic--tag-similar-names-p-default tag1 tag2 nil)))
 
 (define-mode-local-override semantic--tag-similar-types-p c-mode (tag1 tag2)
-  "For c-mode, deal with TAG1 and TAG2 being used in different namespaces.
+  "For `c-mode', deal with TAG1 and TAG2 being used in different namespaces.
 In this case, one type will be shorter than the other.  Instead
 of fully resolving all namespaces currently in scope for both
 types, we simply compare as many elements as the shorter type
@@ -2064,7 +2064,7 @@ provides."
 
 (define-mode-local-override semantic--tag-attribute-similar-p c-mode
   (attr value1 value2 ignorable-attributes)
-  "For c-mode, allow function :arguments to ignore the :name attributes."
+  "For `c-mode', allow function :arguments to ignore the :name attributes."
   (cond ((eq attr :arguments)
 	 (semantic--tag-attribute-similar-p-default attr value1 value2
 						    (cons :name ignorable-attributes)))

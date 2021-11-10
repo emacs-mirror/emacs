@@ -502,19 +502,20 @@ of the last successful match.")
 
 ;;; Summary mode score maps.
 
-(gnus-define-keys (gnus-summary-score-map "V" gnus-summary-mode-map)
-  "s" gnus-summary-set-score
-  "S" gnus-summary-current-score
-  "c" gnus-score-change-score-file
-  "C" gnus-score-customize
-  "m" gnus-score-set-mark-below
-  "x" gnus-score-set-expunge-below
-  "R" gnus-summary-rescore
-  "e" gnus-score-edit-current-scores
-  "f" gnus-score-edit-file
-  "F" gnus-score-flush-cache
-  "t" gnus-score-find-trace
-  "w" gnus-score-find-favorite-words)
+(define-key gnus-summary-mode-map "V"
+  (define-keymap :prefix 'gnus-summary-score-map
+    "s" #'gnus-summary-set-score
+    "S" #'gnus-summary-current-score
+    "c" #'gnus-score-change-score-file
+    "C" #'gnus-score-customize
+    "m" #'gnus-score-set-mark-below
+    "x" #'gnus-score-set-expunge-below
+    "R" #'gnus-summary-rescore
+    "e" #'gnus-score-edit-current-scores
+    "f" #'gnus-score-edit-file
+    "F" #'gnus-score-flush-cache
+    "t" #'gnus-score-find-trace
+    "w" #'gnus-score-find-favorite-words))
 
 ;; Summary score file commands
 
@@ -1093,7 +1094,7 @@ EXTRA is the possible non-standard header."
 
 (defun gnus-summary-current-score (arg)
   "Return the score of the current article.
-  With prefix ARG, return the total score of the current (sub)thread."
+With prefix ARG, return the total score of the current (sub)thread."
   (interactive "P" gnus-article-mode gnus-summary-mode)
   (message "%s" (if arg
 		    (gnus-thread-total-score
@@ -3115,7 +3116,9 @@ If ADAPT, return the home adaptive file instead."
 ;;;
 
 (defun gnus-decay-score (score)
-  "Decay SCORE according to `gnus-score-decay-constant' and `gnus-score-decay-scale'."
+  "Decay SCORE according to decay variables.
+The decay variables are `gnus-score-decay-constant' and
+`gnus-score-decay-scale'."
   (floor (- score
 	    (* (if (< score 0) -1 1)
 	       (min (abs score)

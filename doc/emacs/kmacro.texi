@@ -102,7 +102,7 @@ are in the process of defining one, or calls the last macro
 otherwise.)  You can also supply @key{F4} with a numeric prefix
 argument @samp{n}, which means to invoke the macro @samp{n} times.  An
 argument of zero repeats the macro indefinitely, until it gets an
-error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{BREAK}}).
+error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{Break}}).
 
   The above example demonstrates a handy trick that you can employ
 with keyboard macros: if you wish to repeat an operation at regularly
@@ -180,11 +180,11 @@ define it, so @kbd{C-u 4 C-x )} executes the macro immediately 3
 additional times.
 
 @findex kdb-macro-redisplay
-@kindex C-x C-k Q
+@kindex C-x C-k d
   While executing a long-running keyboard macro, it can sometimes be
 useful to trigger a redisplay (to show how far we've gotten).  The
-@kbd{C-x C-k Q} can be used for this.  As a not very useful example,
-@kbd{C-x ( M-f C-x C-k Q C-x )} will create a macro that will
+@kbd{C-x C-k d} command can be used for this.  As a not very useful
+example, @kbd{C-x ( M-f C-x C-k d C-x )} will create a macro that will
 redisplay once per iteration when saying @kbd{C-u 42 C-x e}.
 
 @node Keyboard Macro Ring

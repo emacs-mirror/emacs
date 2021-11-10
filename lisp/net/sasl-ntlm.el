@@ -37,8 +37,8 @@
   '(ignore				;nothing to do before making
     sasl-ntlm-request			;authentication request
     sasl-ntlm-response)			;response to challenge
-  "A list of functions to be called in sequence for the NTLM
-authentication steps.  They are called by `sasl-next-step'.")
+  "List of functions to call in sequence for the NTLM authentication steps.
+They are called by `sasl-next-step'.")
 
 (defun sasl-ntlm-request (client _step)
   "SASL step function to generate a NTLM authentication request to the server.

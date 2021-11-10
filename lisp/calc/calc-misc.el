@@ -102,8 +102,7 @@ Miscellaneous:
   0  (zero) calc-reset.  Reset Calc stack and modes to default state.
 
 Press `*' twice (`C-x * *') to turn Calc on or off using the same
-Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
-"
+Calc user interface as before (either C-x * C or C-x * K; initially C-x * C)."
   (interactive "P")
   (calc-check-defines)
   (if calc-dispatch-help

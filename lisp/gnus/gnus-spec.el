@@ -582,7 +582,7 @@ or to characters when given a pad value."
       ((string= fstring "")
        nil)
       ;; Not a format string.
-      ((not (string-match "%" fstring))
+      ((not (string-search "%" fstring))
        (list fstring))
       ;; A format string with just a single string spec.
       ((string= fstring "%s")

@@ -58,6 +58,9 @@
 ;;  (:tag 306 :tag-name date-time :format 2 :format-type ascii
 ;;   :value "2019:09:21 16:22:13")
 ;;   ...)
+;;
+;; (exif-field 'date-time (exif-parse-file "test.jpg")) =>
+;; "2022:09:14 18:46:19"
 
 ;;; Code:
 
@@ -65,6 +68,7 @@
 
 (defvar exif-tag-alist
   '((11 processing-software)
+    (270 description)
     (271 make)
     (272 model)
     (274 orientation)
@@ -73,7 +77,8 @@
     (296 resolution-unit)
     (305 software)
     (306 date-time)
-    (315 artist))
+    (315 artist)
+    (33432 copyright))
   "Alist of tag values and their names.")
 
 (defconst exif--orientation
@@ -122,13 +127,20 @@ If the data is invalid, an `exif-error' is signaled."
         (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
           (exif--parse-exif-chunk app1))))))
 
+(defun exif-field (field data)
+  "Return raw FIELD from EXIF.
+If FIELD is not present in the data, return nil.
+FIELD is a symbol in the cdr of `exif-tag-alist'.
+DATA is the result of calling `exif-parse-file'."
+  (plist-get (seq-find (lambda (e)
+                         (eq field (plist-get e :tag-name)))
+                       data)
+             :value))
+
 (defun exif-orientation (exif)
   "Return the orientation (in degrees) in EXIF.
 If the orientation isn't present in the data, return nil."
-  (let ((code (plist-get (cl-find 'orientation exif
-                                  :key (lambda (e)
-                                         (plist-get e :tag-name)))
-                         :value)))
+  (let ((code (exif-field 'orientation exif)))
     (cadr (assq code exif--orientation))))
 
 (defun exif--parse-jpeg ()

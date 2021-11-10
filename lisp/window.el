@@ -108,11 +108,14 @@ Return the buffer."
       ;; Return the buffer.
       buffer)))
 
+;; Defined in help.el.
+(defvar resize-temp-buffer-window-inhibit)
+
 (defun temp-buffer-window-show (buffer &optional action)
   "Show temporary buffer BUFFER in a window.
 Return the window showing BUFFER.  Pass ACTION as action argument
 to `display-buffer'."
-  (let (window frame)
+  (let (resize-temp-buffer-window-inhibit window)
     (with-current-buffer buffer
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
@@ -130,9 +133,9 @@ to `display-buffer'."
 		       t
 		     window-combination-limit)))
 	      (setq window (display-buffer buffer action)))
-	(setq frame (window-frame window))
-	(unless (eq frame (selected-frame))
-	  (raise-frame frame))
+        ;; We used to raise the window's frame here.  Do not do that
+        ;; since it would override an `inhibit-switch-frame' entry
+        ;; specified for the action alist used by `display-buffer'.
 	(setq minibuffer-scroll-window window)
 	(set-window-hscroll window 0)
 	(with-selected-window window
@@ -634,7 +637,7 @@ is unpredictable."
 (defun window-with-parameter (parameter &optional value frame any minibuf)
   "Return first window on FRAME with PARAMETER non-nil.
 FRAME defaults to the selected frame.  Optional argument VALUE
-non-nil means only return a window whose window-parameter value
+non-nil means only return a window whose `window-parameter' value
 for PARAMETER equals VALUE (comparison is done with `equal').
 Optional argument ANY non-nil means consider internal windows
 too.
@@ -867,7 +870,7 @@ window annihilates any effect provided by this variable.")
 (defun window--sides-reverse-on-frame-p (frame)
   "Return non-nil when side windows should appear reversed on FRAME.
 This uses some heuristics to guess the user's intentions when the
-selected window of FRAME is a side window ."
+selected window of FRAME is a side window."
   (cond
    ;; Reverse when `window-sides-reversed' is t.  Do not reverse when
    ;; `window-sides-reversed' is nil.
@@ -1212,7 +1215,8 @@ it is found."
      ((setq state (frame-parameter frame 'window-state))
       ;; A window state was saved for FRAME.  Restore it and put the
       ;; current root window into its main window.
-      (let ((main-state (window-state-get (frame-root-window frame))))
+      (let ((window-combination-resize t)
+            (main-state (window-state-get (frame-root-window frame))))
         (window-state-put state (frame-root-window frame) t)
         (window-state-put main-state (window-main-window frame)))
       (window--sides-reverse-frame frame))
@@ -1406,9 +1410,12 @@ before writing to it."
 		 (cadr fringes)
 		 (window-scroll-bar-width window)
 		 (window-right-divider-width window))
-	 (format "height header-line: %s  mode-line: %s  divider: %s\n"
+	 (format "height tab-line: %s header-line: %s  mode-line: %s\n"
+		 (window-tab-line-height window)
 		 (window-header-line-height window)
-		 (window-mode-line-height window)
+		 (window-mode-line-height window))
+	 (format "height scroll-bar: %s divider: %s"
+		 (window-scroll-bar-height window)
 		 (window-bottom-divider-width window)))))
     (insert "\n")))
 
@@ -1510,21 +1517,11 @@ Emacs won't change the size of any window displaying that buffer,
 unless it has no other choice (like when deleting a neighboring
 window).")
 
-(defun window--preservable-size (window &optional horizontal)
-  "Return height of WINDOW as `window-preserve-size' would preserve it.
-Optional argument HORIZONTAL non-nil means to return the width of
-WINDOW as `window-preserve-size' would preserve it."
-  (if horizontal
-      (window-body-width window t)
-    (+ (window-body-height window t)
-       (window-header-line-height window)
-       (window-mode-line-height window))))
-
 (defun window-preserve-size (&optional window horizontal preserve)
-  "Preserve height of window WINDOW.
+  "Preserve height of specified WINDOW's body.
 WINDOW must be a live window and defaults to the selected one.
-Optional argument HORIZONTAL non-nil means preserve the width of
-WINDOW.
+Optional argument HORIZONTAL non-nil means to preserve the width
+of WINDOW's body.
 
 PRESERVE t means to preserve the current height/width of WINDOW's
 body in frame and window resizing operations whenever possible.
@@ -1541,21 +1538,15 @@ WINDOW as argument also removes the respective restraint.
 Other values of PRESERVE are reserved for future use."
   (setq window (window-normalize-window window t))
   (let* ((parameter (window-parameter window 'window-preserved-size))
-	 (width (nth 1 parameter))
-	 (height (nth 2 parameter)))
-    (if horizontal
-	(set-window-parameter
-	 window 'window-preserved-size
-	 (list
-	  (window-buffer window)
-	  (and preserve (window--preservable-size window t))
-	  height))
-      (set-window-parameter
-       window 'window-preserved-size
-       (list
-	(window-buffer window)
-	width
-	(and preserve (window--preservable-size window)))))))
+	 (width (if horizontal
+                     (and preserve (window-body-width window t))
+                   (nth 1 parameter)))
+	 (height (if horizontal
+                      (nth 2 parameter)
+                    (and preserve (window-body-height window t)))))
+    (set-window-parameter
+     window 'window-preserved-size
+     (list (window-buffer window) width height))))
 
 (defun window-preserved-size (&optional window horizontal)
   "Return preserved height of window WINDOW.
@@ -1563,12 +1554,9 @@ WINDOW must be a live window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means to return preserved
 width of WINDOW."
   (setq window (window-normalize-window window t))
-  (let* ((parameter (window-parameter window 'window-preserved-size))
-	 (buffer (nth 0 parameter))
-	 (width (nth 1 parameter))
-	 (height (nth 2 parameter)))
-    (when (eq buffer (window-buffer window))
-      (if horizontal width height))))
+  (let ((parameter (window-parameter window 'window-preserved-size)))
+    (when (eq (nth 0 parameter) (window-buffer window))
+      (nth (if horizontal 1 2) parameter))))
 
 (defun window--preserve-size (window horizontal)
   "Return non-nil when the height of WINDOW shall be preserved.
@@ -1576,7 +1564,7 @@ Optional argument HORIZONTAL non-nil means to return non-nil when
 the width of WINDOW shall be preserved."
   (let ((size (window-preserved-size window horizontal)))
     (and (numberp size)
-	 (= size (window--preservable-size window horizontal)))))
+	 (= size (window-body-size window horizontal t)))))
 
 (defun window-safe-min-size (&optional window horizontal pixelwise)
   "Return safe minimum size of WINDOW.
@@ -1690,6 +1678,7 @@ return the minimum pixel-size of WINDOW."
 	 ((let ((char-size (frame-char-size window))
 		(pixel-height
 		 (+ (window-safe-min-size window nil t)
+		    (window-tab-line-height window)
 		    (window-header-line-height window)
 		    (window-scroll-bar-height window)
 		    (window-mode-line-height window)
@@ -4632,7 +4621,7 @@ another window.  Also, if WINDOW's frame has a `buffer-predicate'
 parameter, that predicate may inhibit switching to certain
 buffers.
 
-This function is called by `prev-buffer'."
+This function is called by `previous-buffer'."
   (interactive)
   (let* ((window (window-normalize-window window t))
 	 (frame (window-frame window))
@@ -4721,8 +4710,8 @@ This function is called by `prev-buffer'."
 	       window new-buffer (nth 1 entry) (nth 2 entry))
 	      (throw 'found t)))))
 
-      (when skipped
-        ;; Show first skipped buffer.
+      (when (and skipped (not (functionp switch-to-prev-buffer-skip)))
+        ;; Show first skipped buffer, unless skip was a function.
 	(setq new-buffer skipped)
 	(set-window-buffer-start-and-point window new-buffer)))
 
@@ -4831,6 +4820,7 @@ This function is called by `next-buffer'."
       ;; nreverse here!)
       (dolist (entry (reverse (window-prev-buffers window)))
 	(when (and (not (eq new-buffer (car entry)))
+                   (not (eq old-buffer (car entry)))
                    (setq new-buffer (car entry))
 		   (or (buffer-live-p new-buffer)
 		       (not (setq killed-buffers
@@ -4842,8 +4832,8 @@ This function is called by `next-buffer'."
 	     window new-buffer (nth 1 entry) (nth 2 entry))
 	    (throw 'found t))))
 
-      (when skipped
-        ;; Show first skipped buffer.
+      (when (and skipped (not (functionp switch-to-prev-buffer-skip)))
+        ;; Show first skipped buffer, unless skip was a function.
 	(setq new-buffer skipped)
 	(set-window-buffer-start-and-point window new-buffer)))
 
@@ -6566,9 +6556,6 @@ of the window used."
 (make-obsolete-variable 'display-buffer-function
 			'display-buffer-alist "24.3")
 
-;; Eventually, we want to turn this into a defvar; instead of
-;; customizing this, the user should use a `pop-up-frame-parameters'
-;; alist entry in `display-buffer-base-action'.
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
 If non-nil, the value you specify here is used by the default
@@ -6578,7 +6565,12 @@ Since `pop-up-frame-function' is used by `display-buffer' for
 making new frames, any value specified here by default affects
 the automatic generation of new frames via `display-buffer' and
 all functions based on it.  The behavior of `make-frame' is not
-affected by this variable."
+affected by this variable.
+
+This option is provided for backward compatibility only.  New
+code should use a `pop-up-frame-parameters' action alist entry in
+`display-buffer-alist' instead.  See Info node `(elisp) Choosing
+Window Options' in the Emacs Lisp manual."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -6850,6 +6842,11 @@ the buffer name.  This is for compatibility with
 `special-display-buffer-names'; the cdr of the cons cell is
 ignored.
 
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
+
 See also `same-window-regexps'."
  :type '(repeat (string :format "%v"))
  :group 'windows)
@@ -6864,6 +6861,11 @@ An element of this list can be a cons cell instead of just a
 string.  In that case, the cell's car must be a regexp matching
 the buffer name.  This is for compatibility with
 `special-display-regexps'; the cdr of the cons cell is ignored.
+
+This variable is provided for backward compatibility only and
+should not be used in new code.  Customize `display-buffer-alist'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example.
 
 See also `same-window-buffer-names'."
   :type '(repeat (regexp :format "%v"))
@@ -6896,7 +6898,13 @@ selected rather than (as usual) some other window.  See
 If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
-Any other non-nil value means always make a separate frame."
+Any other non-nil value means always make a separate frame.
+
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type '(choice
 	  (const :tag "Never" nil)
 	  (const :tag "On graphic displays only" graphic-only)
@@ -6917,7 +6925,12 @@ that frame."
  "24.3")
 
 (defcustom pop-up-windows t
-  "Non-nil means `display-buffer' should make a new window."
+  "Non-nil means `display-buffer' should make a new window.
+This variable is provided mainly for backward compatibility and
+should not be used in new code.  To make `display-buffer' behave
+as if this were t, customize `display-buffer-base-action'
+instead.  See Info node `(elisp) Choosing Window Options' in the
+Emacs Lisp manual for an example."
   :type 'boolean
   :group 'windows)
 
@@ -7221,11 +7234,15 @@ Return WINDOW if BUFFER and WINDOW are live."
             (inhibit-modification-hooks t))
         (funcall (cdr (assq 'body-function alist)) window)))
 
-    (let ((quit-restore (window-parameter window 'quit-restore))
-	  (height (cdr (assq 'window-height alist)))
-	  (width (cdr (assq 'window-width alist)))
-	  (size (cdr (assq 'window-size alist)))
-	  (preserve-size (cdr (assq 'preserve-size alist))))
+    (let* ((frame (window-frame window))
+           (quit-restore (window-parameter window 'quit-restore))
+	   (window-height (assq 'window-height alist))
+           (height (cdr window-height))
+	   (window-width (assq 'window-width alist))
+           (width (cdr window-width))
+           (window-size (assq 'window-size alist))
+           (size (cdr window-size))
+	   (preserve-size (cdr (assq 'preserve-size alist))))
       (cond
        ((or (eq type 'frame)
 	    (and (eq (car quit-restore) 'same)
@@ -7236,29 +7253,43 @@ Return WINDOW if BUFFER and WINDOW are live."
         ;; Adjust size of frame if asked for.  We probably should do
         ;; that only for a single window frame.
 	(cond
-	 ((not size))
+	 ((not size)
+          (when window-size
+            (setq resize-temp-buffer-window-inhibit t)))
 	 ((consp size)
-	  (let ((width (car size))
-		(height (cdr size))
-		(frame (window-frame window)))
-	    (when (and (numberp width) (numberp height))
-	      (set-frame-height
-	       frame (+ (frame-height frame)
-			(- height (window-total-height window))))
-	      (set-frame-width
-	       frame (+ (frame-width frame)
-			(- width (window-total-width window)))))))
-	 ((functionp size)
-	  (ignore-errors (funcall size window)))))
+          ;; Modifying the parameters of a newly created frame might
+          ;; not work everywhere, but then `temp-buffer-resize-mode'
+          ;; will certainly fail in a similar fashion.
+          (if (eq (car size) 'body-chars)
+	      (let ((width (+ (frame-text-width frame)
+                              (* (frame-char-width frame) (cadr size))
+                              (- (window-body-width window t))))
+                    (height (+ (frame-text-height frame)
+                               (* (frame-char-height frame) (cddr size))
+                               (- (window-body-height window t)))))
+	        (modify-frame-parameters
+	         frame `((height . (text-pixels . ,height))
+                         (width . (text-pixels . ,width)))))
+	    (let ((width (- (+ (frame-width frame) (car size))
+                            (window-total-width window)))
+                  (height (- (+ (frame-height frame) (cdr size))
+                             (window-total-height window))))
+	      (modify-frame-parameters
+	       frame `((height . ,height) (width . ,width)))))
+          (setq resize-temp-buffer-window-inhibit t))
+         ((functionp size)
+	  (ignore-errors (funcall size window))
+          (setq resize-temp-buffer-window-inhibit t))))
        ((or (eq type 'window)
 	    (and (eq (car quit-restore) 'same)
 		 (eq (nth 1 quit-restore) 'window)))
 	;; A window that never showed another buffer but BUFFER ever
-        ;; since it was created on an existing frame.
-        ;;
-        ;; Adjust width and/or height of window if asked for.
+        ;; since it was created on an existing frame.  Adjust its width
+        ;; and/or height if asked for.
 	(cond
-	 ((not height))
+         ((not height)
+	  (when window-height
+            (setq resize-temp-buffer-window-inhibit 'vertical)))
 	 ((numberp height)
 	  (let* ((new-height
 		  (if (integerp height)
@@ -7269,12 +7300,23 @@ Return WINDOW if BUFFER and WINDOW are live."
 		 (delta (- new-height (window-total-height window))))
 	    (when (and (window--resizable-p window delta nil 'safe)
 		       (window-combined-p window))
-	      (window-resize window delta nil 'safe))))
-	 ((functionp height)
-	  (ignore-errors (funcall height window))))
+	      (window-resize window delta nil 'safe)))
+          (setq resize-temp-buffer-window-inhibit 'vertical))
+         ((and (consp height) (eq (car height) 'body-lines))
+	  (let* ((delta (- (* (frame-char-height frame) (cdr height))
+                           (window-body-height window t))))
+	    (and (window--resizable-p window delta nil 'safe nil nil nil t)
+		 (window-combined-p window)
+	         (window-resize window delta nil 'safe t)))
+          (setq resize-temp-buffer-window-inhibit 'vertical))
+         ((functionp height)
+	  (ignore-errors (funcall height window))
+          (setq resize-temp-buffer-window-inhibit 'vertical)))
 	;; Adjust width of window if asked for.
 	(cond
-	 ((not width))
+	 ((not width)
+          (when window-width
+            (setq resize-temp-buffer-window-inhibit 'horizontal)))
 	 ((numberp width)
 	  (let* ((new-width
 		  (if (integerp width)
@@ -7285,13 +7327,24 @@ Return WINDOW if BUFFER and WINDOW are live."
 		 (delta (- new-width (window-total-width window))))
 	    (when (and (window--resizable-p window delta t 'safe)
 		       (window-combined-p window t))
-	      (window-resize window delta t 'safe))))
+	      (window-resize window delta t 'safe)))
+          (setq resize-temp-buffer-window-inhibit 'horizontal))
+         ((and (consp width) (eq (car width) 'body-columns))
+	  (let* ((delta (- (* (frame-char-width frame) (cdr width))
+                           (window-body-width window t))))
+	    (and (window--resizable-p window delta t 'safe nil nil nil t)
+		 (window-combined-p window t)
+	         (window-resize window delta t 'safe t)))
+          (setq resize-temp-buffer-window-inhibit 'horizontal))
 	 ((functionp width)
-	  (ignore-errors (funcall width window))))
+	  (ignore-errors (funcall width window))
+          (setq resize-temp-buffer-window-inhibit 'horizontal)))
+
 	;; Preserve window size if asked for.
 	(when (consp preserve-size)
 	  (window-preserve-size window t (car preserve-size))
 	  (window-preserve-size window nil (cdr preserve-size)))))
+
       ;; Assign any window parameters specified.
       (let ((parameters (cdr (assq 'window-parameters alist))))
         (dolist (parameter parameters)
@@ -7534,6 +7587,9 @@ Action alist entries are:
     window from being used for display.
  `inhibit-switch-frame' -- A non-nil value prevents any frame
     used for showing the buffer from being raised or selected.
+    Note that a window manager may still raise a new frame and
+    give it focus, effectively overriding the value specified
+    here.
  `reusable-frames' -- The value specifies the set of frames to
     search for a window that already displays the buffer.
     Possible values are nil (the selected frame), t (any live
@@ -7543,20 +7599,33 @@ Action alist entries are:
     frame parameters to give a new frame, if one is created.
  `window-height' -- The value specifies the desired height of the
     window chosen and is either an integer (the total height of
-    the window), a floating point number (the fraction of its
-    total height with respect to the total height of the frame's
-    root window) or a function to be called with one argument -
-    the chosen window.  The function is supposed to adjust the
-    height of the window; its return value is ignored.  Suitable
-    functions are `shrink-window-if-larger-than-buffer' and
-    `fit-window-to-buffer'.
+    the window specified in frame lines), a floating point
+    number (the fraction of its total height with respect to the
+    total height of the frame's root window), a cons cell whose
+    car is 'body-lines' and whose cdr is an integer that
+    specifies the height of the window's body in frame lines, or
+    a function to be called with one argument - the chosen
+    window.  That function is supposed to adjust the height of
+    the window.  Suitable functions are `fit-window-to-buffer'
+    and `shrink-window-if-larger-than-buffer'.
  `window-width' -- The value specifies the desired width of the
     window chosen and is either an integer (the total width of
-    the window), a floating point number (the fraction of its
-    total width with respect to the width of the frame's root
-    window) or a function to be called with one argument - the
-    chosen window.  The function is supposed to adjust the width
-    of the window; its return value is ignored.
+    the window specified in frame lines), a floating point
+    number (the fraction of its total width with respect to the
+    width of the frame's root window), a cons cell whose car is
+    'body-columns' and whose cdr is an integer that specifies the
+    width of the window's body in frame columns, or a function to
+    be called with one argument - the chosen window.  That
+    function is supposed to adjust the width of the window.
+ `window-size' -- This entry is only useful for windows appearing
+    alone on their frame and specifies the desired size of that
+    window either as a cons of integers (the total width and
+    height of the window on that frame), a cons cell whose car is
+    'body-chars' and whose cdr is a cons of integers (the desired
+    width and height of the window's body in columns and lines of
+    its frame), or a function to be called with one argument -
+    the chosen window.  That function is supposed to adjust the
+    size of the frame.
  `preserve-size' -- The value should be either (t . nil) to
     preserve the width of the chosen window, (nil . t) to
     preserve its height or (t . t) to preserve its height and
@@ -7572,9 +7641,9 @@ Action alist entries are:
     to fill the window body with some contents that might depend
     on dimensions of the displayed window.
 
-The entries `window-height', `window-width' and `preserve-size'
-are applied only when the window used for displaying the buffer
-never showed another buffer before.
+The entries `window-height', `window-width', `window-size' and
+`preserve-size' are applied only when the window used for
+displaying the buffer never showed another buffer before.
 
 The ACTION argument can also have a non-nil and non-list value.
 This means to display the buffer in a window other than the
@@ -8339,7 +8408,8 @@ indirectly called by the latter."
 	    (throw 'best t)))))
     ;; When ALIST has a `previous-window' entry, that entry may override
     ;; anything we found so far.
-    (when (and previous-window (boundp previous-window))
+    (when (and previous-window (symbolp previous-window)
+               (boundp previous-window))
       (setq previous-window (symbol-value previous-window)))
     (when (and (setq window previous-window)
 	       (window-live-p window)
@@ -8594,7 +8664,7 @@ the buffer in the window specified by the rules from these variables."
 
 WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids
-messing with the window-buffer correspondences.
+messing with the `window-buffer' correspondences.
 
 If the selected window cannot display the specified buffer
 because it is a minibuffer window or strongly dedicated to
@@ -8649,7 +8719,7 @@ Return the buffer switched to."
                        "Cannot switch buffers in a dedicated window"))
                 ('prompt
                  (if (y-or-n-p
-                      (format "Window is dedicated to %s; undedicate it"
+                      (format "Window is dedicated to %s; undedicate it?"
                               (window-buffer)))
                      (progn
                        (set-window-dedicated-p nil nil)
@@ -9745,7 +9815,7 @@ tool-bar's height to the minimum height needed); if
 `recenter-redisplay' has the special value `tty', then only tty frames
 are redrawn.
 
-Just C-u as prefix means put point in the center of the window
+Just \\[universal-argument] as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame."
   (if (functionp recenter-window-group-function)
       (funcall recenter-window-group-function arg)
@@ -9874,7 +9944,7 @@ With plain \\[universal-argument], move current line to window center."
 
 A prefix argument is handled like `recenter':
  With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center."
+ With plain \\[universal-argument], move current line to window center."
   (interactive "P")
   (with-selected-window (other-window-for-scrolling)
     (recenter-top-bottom arg)
@@ -10364,7 +10434,7 @@ displaying that processes's buffer."
                           (setq repeat-map 'other-window-repeat-map)
                           (other-window -1)))
     map)
-  "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
+  "Keymap to repeat `other-window' key sequences.  Used in `repeat-mode'.")
 (put 'other-window 'repeat-map 'other-window-repeat-map)
 
 (defvar resize-window-repeat-map

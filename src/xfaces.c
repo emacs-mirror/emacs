@@ -698,7 +698,8 @@ clear_face_cache (bool clear_fonts_p)
 	{
 	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
-	      && FRAME_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
+	      && FRAME_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS
+	      && !f->inhibit_clear_image_cache)
 	    {
 	      clear_font_cache (f);
 	      free_all_realized_faces (frame);
@@ -2443,11 +2444,11 @@ evaluate_face_filter (Lisp_Object filter, struct window *w,
 /* Determine whether FACE_REF is a "filter" face specification (case
    #4 in merge_face_ref).  If it is, evaluate the filter, and if the
    filter matches, return the filtered face spec.  If the filter does
-   not match, return `nil'.  If FACE_REF is not a filtered face
+   not match, return nil.  If FACE_REF is not a filtered face
    specification, return FACE_REF.
 
    On error, set *OK to false, having logged an error message if
-   ERR_MSGS is true, and return `nil'.  Otherwise, *OK is not touched.
+   ERR_MSGS is true, and return nil.  Otherwise, *OK is not touched.
 
    W is either NULL or a window used to evaluate filters.  If W is
    NULL, no window-based face specification filter matches.
@@ -2732,7 +2733,7 @@ merge_face_ref (struct window *w,
 		{
 		  if (EQ (value, Qt))
 		    value = make_fixnum (1);
-		  if (FIXNUMP (value)
+		  if ((FIXNUMP (value) && XFIXNUM (value) != 0)
 		      || STRINGP (value)
 		      || CONSP (value)
 		      || NILP (value))
@@ -5116,8 +5117,8 @@ gui_supports_face_attributes_p (struct frame *f,
 {
   Lisp_Object *def_attrs = def_face->lface;
 
-  /* Check that other specified attributes are different that the default
-     face.  */
+  /* Check that other specified attributes are different from the
+     default face.  */
   if ((!UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
        && face_attr_equal_p (attrs[LFACE_UNDERLINE_INDEX],
 			     def_attrs[LFACE_UNDERLINE_INDEX]))
@@ -5395,6 +5396,10 @@ DEFUN ("display-supports-face-attributes-p",
        doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
 The optional argument DISPLAY can be a display name, a frame, or
 nil (meaning the selected frame's display).
+
+For instance, to check whether the display supports underlining:
+
+  (display-supports-face-attributes-p \\='(:underline t))
 
 The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
@@ -6956,13 +6961,20 @@ syms_of_xfaces (void)
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qflat_button, "flat-button");
   DEFSYM (Qnormal, "normal");
+  DEFSYM (Qthin, "thin");
   DEFSYM (Qextra_light, "extra-light");
+  DEFSYM (Qultra_light, "ultra-light");
   DEFSYM (Qlight, "light");
   DEFSYM (Qsemi_light, "semi-light");
+  DEFSYM (Qmedium, "medium");
   DEFSYM (Qsemi_bold, "semi-bold");
+  DEFSYM (Qbook, "book");
   DEFSYM (Qbold, "bold");
   DEFSYM (Qextra_bold, "extra-bold");
   DEFSYM (Qultra_bold, "ultra-bold");
+  DEFSYM (Qheavy, "heavy");
+  DEFSYM (Qultra_heavy, "ultra-heavy");
+  DEFSYM (Qblack, "black");
   DEFSYM (Qoblique, "oblique");
   DEFSYM (Qitalic, "italic");
 

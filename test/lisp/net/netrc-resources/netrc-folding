@@ -1,0 +1,6 @@
+# Foo
+machine XM login XL password XP
+
+machine YM
+  login YL
+  password YP

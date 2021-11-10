@@ -116,7 +116,7 @@ ways to customize it; it corresponds to GNU Emacs version @value{EMACSVER}.
 @c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
-The homepage for GNU Emacs is at
+The GNU Emacs website is at
 <a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 To view this manual in other formats, click
 <a href="/software/emacs/manual/emacs.html">here</a>.<br>
@@ -219,7 +219,7 @@ Appendices
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::            Information about Emacs version 26.
+* Antinews::            Information about Emacs version 27.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!

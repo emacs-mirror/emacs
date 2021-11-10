@@ -431,8 +431,7 @@ definitions, or lack thereof).
            (obsolete "use either `cl-flet' or `cl-letf'."  "24.3"))
   `(letf ,(mapcar
            (lambda (x)
-             (if (or (and (fboundp (car x))
-                          (eq (car-safe (symbol-function (car x))) 'macro))
+             (if (or (eq (car-safe (symbol-function (car x))) 'macro)
                      (cdr (assq (car x) macroexpand-all-environment)))
                  (error "Use `labels', not `flet', to rebind macro names"))
              (let ((func `(cl-function
@@ -466,10 +465,10 @@ rather than relying on `lexical-binding'."
 	(push `(cl-function (lambda . ,(cdr binding))) sets)
 	(push var sets)
 	(push (cons (car binding)
-                    `(lambda (&rest cl-labels-args)
-                       (if (eq (car cl-labels-args) cl--labels-magic)
-                           (list cl--labels-magic ',var)
-                         (cl-list* 'funcall ',var cl-labels-args))))
+                    (lambda (&rest cl-labels-args)
+                      (if (eq (car cl-labels-args) cl--labels-magic)
+                          (list cl--labels-magic var)
+                        (cl-list* 'funcall var cl-labels-args))))
               newenv)))
     ;; `lexical-let' adds `cl--function-convert' (which calls
     ;; `cl--labels-convert') as a macroexpander for `function'.
@@ -514,7 +513,8 @@ a temporary-variables list, a value-forms list, a store-variables list
 See `gv-define-expander', and `gv-define-setter' for better and
 simpler ways to define setf-methods."
   (declare (debug
-            (&define name cl-lambda-list cl-declarations-or-string def-body)))
+            (&define name cl-lambda-list cl-declarations-or-string def-body))
+           (indent defun))
   `(progn
      ,@(if (stringp (car body))
            (list `(put ',name 'setf-documentation ,(pop body))))
@@ -555,7 +555,8 @@ You can replace this form with `gv-define-setter'.
             (&define name
                      [&or [symbolp &optional stringp]
                           [cl-lambda-list (symbolp)]]
-                     cl-declarations-or-string def-body)))
+                     cl-declarations-or-string def-body))
+           (indent defun))
   (if (and (listp arg1) (consp args))
       ;; Like `gv-define-setter' but with `cl-function'.
       `(gv-define-expander ,name
@@ -616,7 +617,8 @@ arguments from ARGLIST using FUNC.  For example:
 You can replace this macro with `gv-letplace'."
   (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
-                     symbolp &optional stringp)))
+                     symbolp &optional stringp))
+           (indent defun))
   (if (memq '&key arglist)
       (error "&key not allowed in define-modify-macro"))
   (require 'cl-macs)                    ;For cl--arglist-args.

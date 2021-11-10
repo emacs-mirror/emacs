@@ -442,22 +442,6 @@ like <img alt=\"Some thing.\">."
     map)
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
-;; correct on mouse 3
-(defun flyspell--set-use-mouse-3-for-menu (var value)
-  (set-default var value)
-  (if value
-      (progn (define-key flyspell-mouse-map [mouse-2] nil)
-             (define-key flyspell-mouse-map [down-mouse-3] 'flyspell-correct-word))
-    (define-key flyspell-mouse-map [mouse-2] 'flyspell-correct-word)
-    (define-key flyspell-mouse-map [down-mouse-3] nil)))
-
-(defcustom flyspell-use-mouse-3-for-menu nil
-  "Non-nil means to bind `mouse-3' to `flyspell-correct-word'.
-If this is set, also unbind `mouse-2'."
-  :type 'boolean
-  :set 'flyspell--set-use-mouse-3-for-menu
-  :version "28.1")
-
 ;; dash character machinery
 (defvar-local flyspell-consider-dash-as-word-delimiter-flag nil
   "Non-nil means that the `-' char is considered as a word delimiter.")
@@ -485,6 +469,13 @@ See also `flyspell-duplicate-distance'."
   :version "24.4")
 
 (defvar flyspell-overlay nil)
+
+(defun flyspell-context-menu (_menu _click)
+  "Context menu for `context-menu-mode'."
+  ;; TODO: refactor `flyspell-correct-word' and related functions to return
+  ;; a keymap menu where every menu item is bound to a lambda that calls
+  ;; `flyspell-do-correct' with an argument that is a correct word.
+  'flyspell-correct-word)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode ...                                                */
@@ -537,10 +528,7 @@ in your init file.
   :group 'flyspell
   (if flyspell-mode
       (condition-case err
-          (progn
-            (when flyspell-use-mouse-3-for-menu
-              (flyspell--set-use-mouse-3-for-menu 'flyspell-use-mouse-3-for-menu t))
-            (flyspell-mode-on (called-interactively-p 'interactive)))
+	  (flyspell-mode-on (called-interactively-p 'interactive))
 	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
@@ -558,7 +546,7 @@ in your init file.
 (custom-add-option 'text-mode-hook 'turn-on-flyspell)
 
 (defvar flyspell-buffers nil
-  "For remembering buffers running flyspell")
+  "For remembering buffers running flyspell.")
 (make-obsolete-variable 'flyspell-buffers "not used." "28.1")
 
 ;;*---------------------------------------------------------------------*/
@@ -656,8 +644,7 @@ are both non-nil."
            show-msg)
       (let* ((binding (where-is-internal 'flyspell-auto-correct-word
                                          nil 'non-ascii))
-             (mouse-button (if flyspell-use-mouse-3-for-menu
-                               "Mouse-3" "Mouse-2")))
+             (mouse-button (if context-menu-mode "Mouse-3" "Mouse-2")))
         (message (format-message
                   "Welcome to Flyspell. Use %s to correct words."
                   (if binding
@@ -715,8 +702,8 @@ has been used, the current word is not checked."
 ;;*    has to be spell checked.                                         */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-pre-buffer     nil "Buffer current before `this-command'.")
-(defvar flyspell-pre-point      nil "Point before running `this-command'")
-(defvar flyspell-pre-column     nil "Column before running `this-command'")
+(defvar flyspell-pre-point      nil "Point before running `this-command'.")
+(defvar flyspell-pre-column     nil "Column before running `this-command'.")
 (defvar flyspell-pre-pre-buffer nil)
 (defvar flyspell-pre-pre-point  nil)
 (make-variable-buffer-local 'flyspell-pre-point) ;Why??  --Stef
@@ -1759,7 +1746,7 @@ FLYSPELL-BUFFER."
 ;;*    flyspell-overlay-p ...                                           */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-overlay-p (o)
-  "Return true if O is an overlay used by flyspell."
+  "Return non-nil if O is an overlay used by flyspell."
   (and (overlayp o) (overlay-get o 'flyspell-overlay)))
 
 ;;*---------------------------------------------------------------------*/
@@ -1820,13 +1807,15 @@ for the overlay."
     (overlay-put overlay 'mouse-face mouse-face)
     (overlay-put overlay 'flyspell-overlay t)
     (overlay-put overlay 'evaporate t)
-    (overlay-put overlay 'help-echo (concat (if flyspell-use-mouse-3-for-menu
-                                                "mouse-3"
-                                              "mouse-2") ": correct word at point"))
-    ;; If misspelled text has a 'keymap' property, let that remain in
-    ;; effect for the bindings that flyspell-mouse-map doesn't override.
-    (set-keymap-parent flyspell-mouse-map (get-char-property beg 'keymap))
-    (overlay-put overlay 'keymap flyspell-mouse-map)
+    (overlay-put overlay 'help-echo
+                 (concat (if context-menu-mode "mouse-3" "mouse-2")
+                         ": correct word at point"))
+    (if context-menu-mode
+        (overlay-put overlay 'context-menu-function 'flyspell-context-menu)
+      ;; If misspelled text has a 'keymap' property, let that remain in
+      ;; effect for the bindings that flyspell-mouse-map doesn't override.
+      (set-keymap-parent flyspell-mouse-map (get-char-property beg 'keymap))
+      (overlay-put overlay 'keymap flyspell-mouse-map))
     (when (eq face 'flyspell-incorrect)
       (and (stringp flyspell-before-incorrect-word-string)
            (overlay-put overlay 'before-string
@@ -1872,7 +1861,7 @@ is itself incorrect, but suspiciously repeated."
 ;;*    flyspell-highlight-duplicate-region ...                          */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-duplicate-region (beg end poss)
-  "Set up an overlay on a duplicate misspelled word, in the buffer from BEG to END.
+  "Set up overlay on duplicate misspelled word, in the buffer from BEG to END.
 POSS is a list of possible spelling/correction lists,
 as returned by `ispell-parse-output'."
   (let ((inhibit-read-only t))

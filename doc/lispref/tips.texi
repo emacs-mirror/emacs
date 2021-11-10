@@ -252,6 +252,13 @@ themselves; Lisp programmers find this disconcerting.
 Please put a copyright notice and copying permission notice on the
 file if you distribute copies.  @xref{Library Headers}.
 
+@item
+For variables holding (or functions returning) a file or directory name,
+avoid using @code{path} in its name, preferring @code{file},
+@code{file-name}, or @code{directory} instead, since Emacs follows the
+GNU convention to use the term @emph{path} only for search paths,
+which are lists of directory names.
+
 @end itemize
 
 @node Key Binding Conventions
@@ -393,12 +400,18 @@ Don't use @code{message}, @code{throw}, @code{sleep-for}, or
 
 @item
 An error message should start with a capital letter but should not end
-with a period.
+with a period or other punctuation.
+
+It is occasionally useful to tell the user where an error originated,
+even if @code{debug-on-error} is @code{nil}.  In such cases, a
+lower-case Lisp symbol can be prepended to the error message.  For
+example, the error message ``Invalid input'' could be extended to say
+``some-function: Invalid input''.
 
 @item
 A question asked in the minibuffer with @code{yes-or-no-p} or
 @code{y-or-n-p} should start with a capital letter and end with
-@samp{? }.
+@samp{?}.
 
 @item
 When you mention a default value in a minibuffer prompt,
@@ -755,11 +768,33 @@ anchor}.  The Info file name defaults to @samp{emacs}.  For example,
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
 
+To make a hyperlink to a man page, write the single-quoted name of the
+man page, preceded by @samp{Man page}, @samp{man page}, or @samp{man
+page for}.  For example,
+
+@smallexample
+See the man page `chmod(1)' for details.
+@end smallexample
+
+@noindent
+The Info documentation is always preferable to man pages, so be sure
+to link to an Info manual where available.  For example,
+@command{chmod} is documented in the GNU Coreutils manual, so it is
+better to link to that instead of the man page.
+
+To link to a customization group, write the single-quoted name of the
+group, preceded by @samp{customization group} (the first character in
+each word is case-insensitive).  For example,
+
+@smallexample
+See the customization group `whitespace' for details.
+@end smallexample
+
 Finally, to create a hyperlink to URLs, write the single-quoted URL,
 preceded by @samp{URL}.  For example,
 
 @smallexample
-The home page for the GNU project has more information (see URL
+The GNU project wesite has more information (see URL
 `https://www.gnu.org/').
 @end smallexample
 
@@ -781,10 +816,12 @@ the first use of @samp{\\[@dots{}]}.  The text inside the
 @samp{\\<@dots{}>} should be the name of the variable containing the
 local keymap for the major mode.
 
-It is not practical to use @samp{\\[@dots{}]} very many times, because
-display of the documentation string will become slow.  So use this to
-describe the most important commands in your major mode, and then use
-@samp{\\@{@dots{}@}} to display the rest of the mode's keymap.
+Each use of @samp{\\[@dots{}]} slows the display of the documentation
+string by a tiny amount.  If you use a lot of them, these tiny
+slowdowns will add up, and might become tangible, especially on slow
+systems.  So our recommendation is not to over-use them; e.g., try to
+avoid using more than one reference to the same command in the same
+doc string.
 
 @item
 For consistency, phrase the verb in the first sentence of a function's
@@ -1090,9 +1127,9 @@ The name of this field is unfortunate, since people often assume it is
 the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
-@item Homepage
-@itemx URL
-These lines state the homepage of the library.
+@item URL
+@itemx Homepage
+These lines state the website of the library.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then

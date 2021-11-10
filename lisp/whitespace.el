@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, wp
 ;; Version: 13.2.2
-;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 
@@ -565,8 +565,8 @@ Used when `whitespace-style' includes the value `space-before-tab'.")
 
 
 (defvar whitespace-indentation 'whitespace-indentation
-  "Symbol face used to visualize `tab-width' or more SPACEs at beginning of
-line.  Used when `whitespace-style' includes the value `indentation'.")
+  "Symbol face used to visualize `tab-width' or more SPACEs at beginning of line.
+Used when `whitespace-style' includes the value `indentation'.")
 (make-obsolete-variable 'whitespace-indentation "use the face instead." "24.4")
 
 (defface whitespace-indentation
@@ -593,7 +593,7 @@ Used when `whitespace-style' includes the value `empty'.")
 
 (defface whitespace-empty
   '((((class mono)) :inverse-video t :weight bold :underline t)
-    (t :background "yellow" :foreground "firebrick"))
+    (t :background "yellow" :foreground "firebrick" :extend t))
   "Face used to visualize empty lines at beginning and/or end of buffer."
   :group 'whitespace)
 
@@ -924,7 +924,10 @@ Any other value is treated as nil."
   "Toggle whitespace visualization (Whitespace mode).
 
 See also `whitespace-style', `whitespace-newline' and
-`whitespace-display-mappings'."
+`whitespace-display-mappings'.
+
+This mode uses a number of faces to visualize the whitespace; see
+the customization group `whitespace' for details."
   :lighter    " ws"
   :init-value nil
   :global     nil
@@ -1684,32 +1687,32 @@ cleaning up these problems."
                        (or whitespace-active-style whitespace-style)))
            (bogus-list
             (mapcar
-             #'(lambda (option)
-                 (when force
-                   (push (car option) style))
-                 (goto-char rstart)
-                 (let ((regexp
-                        (cond
-                         ((eq (car option) 'indentation)
-                          (whitespace-indentation-regexp))
-                         ((eq (car option) 'indentation::tab)
-                          (whitespace-indentation-regexp 'tab))
-                         ((eq (car option) 'indentation::space)
-                          (whitespace-indentation-regexp 'space))
-                         ((eq (car option) 'space-after-tab)
-                          (whitespace-space-after-tab-regexp))
-                         ((eq (car option) 'space-after-tab::tab)
-                          (whitespace-space-after-tab-regexp 'tab))
-                         ((eq (car option) 'space-after-tab::space)
-                          (whitespace-space-after-tab-regexp 'space))
-                         ((eq (car option) 'missing-newline-at-eof)
-                          "[^\n]\\'")
-                         (t
-                          (cdr option)))))
-                   (when (re-search-forward regexp rend t)
-                     (unless has-bogus
-                       (setq has-bogus (memq (car option) style)))
-                     t)))
+             (lambda (option)
+               (when force
+                 (push (car option) style))
+               (goto-char rstart)
+               (let ((regexp
+                      (cond
+                       ((eq (car option) 'indentation)
+                        (whitespace-indentation-regexp))
+                       ((eq (car option) 'indentation::tab)
+                        (whitespace-indentation-regexp 'tab))
+                       ((eq (car option) 'indentation::space)
+                        (whitespace-indentation-regexp 'space))
+                       ((eq (car option) 'space-after-tab)
+                        (whitespace-space-after-tab-regexp))
+                       ((eq (car option) 'space-after-tab::tab)
+                        (whitespace-space-after-tab-regexp 'tab))
+                       ((eq (car option) 'space-after-tab::space)
+                        (whitespace-space-after-tab-regexp 'space))
+                       ((eq (car option) 'missing-newline-at-eof)
+                        "[^\n]\\'")
+                       (t
+                        (cdr option)))))
+                 (when (re-search-forward regexp rend t)
+                   (unless has-bogus
+                     (setq has-bogus (memq (car option) style)))
+                   t)))
              whitespace-report-list)))
       (when (pcase report-if-bogus ('nil t) ('never nil) (_ has-bogus))
         (whitespace-kill-buffer whitespace-report-buffer-name)
@@ -1719,30 +1722,32 @@ cleaning up these problems."
               (ws-tab-width tab-width))
           (with-current-buffer (get-buffer-create
                                 whitespace-report-buffer-name)
-            (erase-buffer)
-            (insert (if ws-indent-tabs-mode
-                        (car whitespace-report-text)
-                      (cdr whitespace-report-text)))
-            (goto-char (point-min))
-            (forward-line 3)
-            (dolist (option whitespace-report-list)
+            (let ((inhibit-read-only t))
+              (special-mode)
+              (erase-buffer)
+              (insert (if ws-indent-tabs-mode
+                          (car whitespace-report-text)
+                        (cdr whitespace-report-text)))
+              (goto-char (point-min))
+              (forward-line 3)
+              (dolist (option whitespace-report-list)
+                (forward-line 1)
+                (whitespace-mark-x
+                 27 (memq (car option) style))
+                (whitespace-mark-x 7 (car bogus-list))
+                (setq bogus-list (cdr bogus-list)))
               (forward-line 1)
-              (whitespace-mark-x
-               27 (memq (car option) style))
-              (whitespace-mark-x 7 (car bogus-list))
-              (setq bogus-list (cdr bogus-list)))
-            (forward-line 1)
-            (whitespace-insert-value ws-indent-tabs-mode)
-            (whitespace-insert-value ws-tab-width)
-            (when has-bogus
-              (goto-char (point-max))
-              (insert (substitute-command-keys
-                       " Type `\\[whitespace-cleanup]'")
-                      " to cleanup the buffer.\n\n"
-                      (substitute-command-keys
-                       " Type `\\[whitespace-cleanup-region]'")
-                      " to cleanup a region.\n\n"))
-            (whitespace-display-window (current-buffer)))))
+              (whitespace-insert-value ws-indent-tabs-mode)
+              (whitespace-insert-value ws-tab-width)
+              (when has-bogus
+                (goto-char (point-max))
+                (insert (substitute-command-keys
+                         " Type `\\[whitespace-cleanup]'")
+                        " to cleanup the buffer.\n\n"
+                        (substitute-command-keys
+                         " Type `\\[whitespace-cleanup-region]'")
+                        " to cleanup a region.\n\n"))
+              (whitespace-display-window (current-buffer))))))
       has-bogus)))
 
 
@@ -1831,17 +1836,14 @@ cleaning up these problems."
 
 
 (defun whitespace-display-window (buffer)
-  "Display BUFFER in a new window."
+  "Display BUFFER, preferably below the selected window."
   (goto-char (point-min))
   (set-buffer-modified-p nil)
-  (when (< (window-height) (* 2 window-min-height))
-    (kill-buffer buffer)
-    (error "Window height is too small; \
-can't split window to display whitespace toggle options"))
-  (let ((win (split-window)))
-    (set-window-buffer win buffer)
-    (shrink-window-if-larger-than-buffer win)))
-
+  (let ((window (display-buffer
+	         buffer
+	         `((display-buffer-reuse-window
+		    display-buffer-below-selected)))))
+    (shrink-window-if-larger-than-buffer window)))
 
 (defun whitespace-kill-buffer (buffer-name)
   "Kill buffer BUFFER-NAME and windows related with it."
@@ -2191,8 +2193,7 @@ resultant list will be returned."
    limit t))
 
 (defun whitespace-empty-at-bob-regexp (limit)
-  "Match spaces at beginning of buffer which do not contain the point at \
-beginning of buffer."
+  "Match spaces at beginning of buffer (BOB) which do not contain point at BOB."
   (let ((b (point))
 	r)
     (cond
@@ -2352,7 +2353,7 @@ Also refontify when necessary."
 
 
 (defun whitespace-display-vector-p (vec)
-  "Return true if every character in vector VEC can be displayed."
+  "Return non-nil if every character in vector VEC can be displayed."
   (let ((i (length vec)))
     (when (> i 0)
       (while (and (>= (setq i (1- i)) 0)
@@ -2461,6 +2462,5 @@ It should be added buffer-locally to `write-file-functions'."
 (make-obsolete-variable 'whitespace-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'whitespace-load-hook)
-
 
 ;;; whitespace.el ends here

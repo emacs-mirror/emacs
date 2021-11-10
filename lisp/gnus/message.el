@@ -48,6 +48,8 @@
 (require 'puny)
 (require 'rmc)                          ; read-multiple-choice
 (require 'subr-x)
+(require 'yank-media)
+(require 'mailcap)
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -2395,6 +2397,8 @@ If VERBATIM, use slrn style verbatim marks (\"#v+\" and \"#v-\")."
   (save-excursion
     ;; add to the end of the region first, otherwise end would be invalid
     (goto-char end)
+    (unless (bolp)
+      (insert "\n"))
     (insert (if verbatim "#v-\n" message-mark-insert-end))
     (goto-char beg)
     (insert (if verbatim "#v+\n" message-mark-insert-begin))))
@@ -2868,84 +2872,78 @@ Consider adding this function to `message-header-setup-hook'"
 
 ;;; Set up keymap.
 
-(defvar message-mode-map nil)
+(defvar-keymap message-mode-map
+  :full t :parent text-mode-map
+  :doc "Message Mode keymap."
+  "\C-c?" #'describe-mode
 
-(unless message-mode-map
-  (setq message-mode-map (make-keymap))
-  (set-keymap-parent message-mode-map text-mode-map)
-  (define-key message-mode-map "\C-c?" #'describe-mode)
-
-  (define-key message-mode-map "\C-c\C-f\C-t" #'message-goto-to)
-  (define-key message-mode-map "\C-c\C-f\C-o" #'message-goto-from)
-  (define-key message-mode-map "\C-c\C-f\C-b" #'message-goto-bcc)
-  (define-key message-mode-map "\C-c\C-f\C-w" #'message-goto-fcc)
-  (define-key message-mode-map "\C-c\C-f\C-c" #'message-goto-cc)
-  (define-key message-mode-map "\C-c\C-f\C-s" #'message-goto-subject)
-  (define-key message-mode-map "\C-c\C-f\C-r" #'message-goto-reply-to)
-  (define-key message-mode-map "\C-c\C-f\C-n" #'message-goto-newsgroups)
-  (define-key message-mode-map "\C-c\C-f\C-d" #'message-goto-distribution)
-  (define-key message-mode-map "\C-c\C-f\C-f" #'message-goto-followup-to)
-  (define-key message-mode-map "\C-c\C-f\C-m" #'message-goto-mail-followup-to)
-  (define-key message-mode-map "\C-c\C-f\C-k" #'message-goto-keywords)
-  (define-key message-mode-map "\C-c\C-f\C-u" #'message-goto-summary)
-  (define-key message-mode-map "\C-c\C-f\C-i"
-    #'message-insert-or-toggle-importance)
-  (define-key message-mode-map "\C-c\C-f\C-a"
-    #'message-generate-unsubscribed-mail-followup-to)
+  "\C-c\C-f\C-t" #'message-goto-to
+  "\C-c\C-f\C-o" #'message-goto-from
+  "\C-c\C-f\C-b" #'message-goto-bcc
+  "\C-c\C-f\C-w" #'message-goto-fcc
+  "\C-c\C-f\C-c" #'message-goto-cc
+  "\C-c\C-f\C-s" #'message-goto-subject
+  "\C-c\C-f\C-r" #'message-goto-reply-to
+  "\C-c\C-f\C-n" #'message-goto-newsgroups
+  "\C-c\C-f\C-d" #'message-goto-distribution
+  "\C-c\C-f\C-f" #'message-goto-followup-to
+  "\C-c\C-f\C-m" #'message-goto-mail-followup-to
+  "\C-c\C-f\C-k" #'message-goto-keywords
+  "\C-c\C-f\C-u" #'message-goto-summary
+  "\C-c\C-f\C-i" #'message-insert-or-toggle-importance
+  "\C-c\C-f\C-a" #'message-generate-unsubscribed-mail-followup-to
 
   ;; modify headers (and insert notes in body)
-  (define-key message-mode-map "\C-c\C-fs"    #'message-change-subject)
+  "\C-c\C-fs"    #'message-change-subject
   ;;
-  (define-key message-mode-map "\C-c\C-fx"    #'message-cross-post-followup-to)
+  "\C-c\C-fx"    #'message-cross-post-followup-to
   ;; prefix+message-cross-post-followup-to = same w/o cross-post
-  (define-key message-mode-map "\C-c\C-ft"    #'message-reduce-to-to-cc)
-  (define-key message-mode-map "\C-c\C-fa"    #'message-add-archive-header)
+  "\C-c\C-ft"    #'message-reduce-to-to-cc
+  "\C-c\C-fa"    #'message-add-archive-header
   ;; mark inserted text
-  (define-key message-mode-map "\C-c\M-m" #'message-mark-inserted-region)
-  (define-key message-mode-map "\C-c\M-f" #'message-mark-insert-file)
+  "\C-c\M-m" #'message-mark-inserted-region
+  "\C-c\M-f" #'message-mark-insert-file
 
-  (define-key message-mode-map "\C-c\C-b" #'message-goto-body)
-  (define-key message-mode-map "\C-c\C-i" #'message-goto-signature)
+  "\C-c\C-b" #'message-goto-body
+  "\C-c\C-i" #'message-goto-signature
 
-  (define-key message-mode-map "\C-c\C-t" #'message-insert-to)
-  (define-key message-mode-map "\C-c\C-fw" #'message-insert-wide-reply)
-  (define-key message-mode-map "\C-c\C-n" #'message-insert-newsgroups)
-  (define-key message-mode-map "\C-c\C-l" #'message-to-list-only)
-  (define-key message-mode-map "\C-c\C-f\C-e" #'message-insert-expires)
+  "\C-c\C-t" #'message-insert-to
+  "\C-c\C-fw" #'message-insert-wide-reply
+  "\C-c\C-n" #'message-insert-newsgroups
+  "\C-c\C-l" #'message-to-list-only
+  "\C-c\C-f\C-e" #'message-insert-expires
+  "\C-c\C-u" #'message-insert-or-toggle-importance
+  "\C-c\M-n" #'message-insert-disposition-notification-to
 
-  (define-key message-mode-map "\C-c\C-u" #'message-insert-or-toggle-importance)
-  (define-key message-mode-map "\C-c\M-n"
-    #'message-insert-disposition-notification-to)
+  "\C-c\C-y" #'message-yank-original
+  "\C-c\M-\C-y" #'message-yank-buffer
+  "\C-c\C-q" #'message-fill-yanked-message
+  "\C-c\C-w" #'message-insert-signature
+  "\C-c\M-h" #'message-insert-headers
+  "\C-c\C-r" #'message-caesar-buffer-body
+  "\C-c\C-o" #'message-sort-headers
+  "\C-c\M-r" #'message-rename-buffer
 
-  (define-key message-mode-map "\C-c\C-y" #'message-yank-original)
-  (define-key message-mode-map "\C-c\M-\C-y" #'message-yank-buffer)
-  (define-key message-mode-map "\C-c\C-q" #'message-fill-yanked-message)
-  (define-key message-mode-map "\C-c\C-w" #'message-insert-signature)
-  (define-key message-mode-map "\C-c\M-h" #'message-insert-headers)
-  (define-key message-mode-map "\C-c\C-r" #'message-caesar-buffer-body)
-  (define-key message-mode-map "\C-c\C-o" #'message-sort-headers)
-  (define-key message-mode-map "\C-c\M-r" #'message-rename-buffer)
+  "\C-c\C-c" #'message-send-and-exit
+  "\C-c\C-s" #'message-send
+  "\C-c\C-k" #'message-kill-buffer
+  "\C-c\C-d" #'message-dont-send
+  "\C-c\n" #'gnus-delay-article
 
-  (define-key message-mode-map "\C-c\C-c" #'message-send-and-exit)
-  (define-key message-mode-map "\C-c\C-s" #'message-send)
-  (define-key message-mode-map "\C-c\C-k" #'message-kill-buffer)
-  (define-key message-mode-map "\C-c\C-d" #'message-dont-send)
-  (define-key message-mode-map "\C-c\n" #'gnus-delay-article)
+  "\C-c\M-k" #'message-kill-address
+  "\C-c\C-e" #'message-elide-region
+  "\C-c\C-v" #'message-delete-not-region
+  "\C-c\C-z" #'message-kill-to-signature
+  "\M-\r" #'message-newline-and-reformat
+  [remap split-line]  #'message-split-line
 
-  (define-key message-mode-map "\C-c\M-k" #'message-kill-address)
-  (define-key message-mode-map "\C-c\C-e" #'message-elide-region)
-  (define-key message-mode-map "\C-c\C-v" #'message-delete-not-region)
-  (define-key message-mode-map "\C-c\C-z" #'message-kill-to-signature)
-  (define-key message-mode-map "\M-\r" #'message-newline-and-reformat)
-  (define-key message-mode-map [remap split-line]  #'message-split-line)
+  "\C-c\C-a" #'mml-attach-file
+  "\C-c\C-p" #'message-insert-screenshot
 
-  (define-key message-mode-map "\C-c\C-a" #'mml-attach-file)
-  (define-key message-mode-map "\C-c\C-p" #'message-insert-screenshot)
+  "\C-a" #'message-beginning-of-line
+  "\t" #'message-tab
 
-  (define-key message-mode-map "\C-a" #'message-beginning-of-line)
-  (define-key message-mode-map "\t" #'message-tab)
-
-  (define-key message-mode-map "\M-n" #'message-display-abbrev))
+  "\M-n" #'message-display-abbrev)
 
 (easy-menu-define
   message-mode-menu message-mode-map "Message Menu."
@@ -3159,6 +3157,7 @@ Like `text-mode', but with these additional commands:
   (setq-local message-checksum nil)
   (setq-local message-mime-part 0)
   (message-setup-fill-variables)
+  (yank-media-handler "image/.*" #'message--yank-media-image-handler)
   (when message-fill-column
     (setq fill-column message-fill-column)
     (turn-on-auto-fill))
@@ -3572,8 +3571,18 @@ Prefix arg means justify as well."
     (when (looking-at message-cite-prefix-regexp)
       (setq quoted (match-string 0))
       (goto-char (match-end 0))
-      (looking-at "[ \t]*")
-      (setq leading-space (match-string 0)))
+      (let ((after (point)))
+        ;; This is a line with no text after the cite prefix.  In that
+        ;; case, the trailing space is commonly not present, so look
+        ;; around for other lines that have some data.
+        (when (looking-at-p "\n")
+          (let ((regexp (concat "^" message-cite-prefix-regexp "[ \t]")))
+            (when (or (re-search-backward regexp nil t)
+                      (re-search-forward regexp nil t))
+              (goto-char (1- (match-end 0))))))
+        (looking-at "[ \t]*")
+        (setq leading-space (match-string 0))
+        (goto-char after)))
     (if (and quoted
 	     (not not-break)
 	     (not bolp)
@@ -3590,7 +3599,7 @@ Prefix arg means justify as well."
 		      (equal quoted (match-string 0)))
 	    (goto-char (match-end 0))
 	    (looking-at "[ \t]*")
-	    (when (< (length leading-space) (length (match-string 0)))
+	    (when (> (length leading-space) (length (match-string 0)))
 	      (setq leading-space (match-string 0)))
 	    (forward-line 1))
 	  (setq end (point))
@@ -3841,7 +3850,7 @@ text was killed."
   "Caesar rotate all letters in the current buffer by 13 places.
 Used to encode/decode possibly offensive messages (commonly in rec.humor).
 With prefix arg, specifies the number of places to rotate each letter forward.
-Mail and USENET news headers are not rotated unless WIDE is non-nil."
+Mail and Usenet news headers are not rotated unless WIDE is non-nil."
   (interactive (if current-prefix-arg
 		   (list (prefix-numeric-value current-prefix-arg))
 		 (list nil))
@@ -5340,13 +5349,13 @@ Otherwise, generate and save a value for `canlock-password' first."
 	   (followup-to (message-fetch-field "followup-to"))
 	   to)
        (when (and newsgroups
-		  (string-match "," newsgroups)
+		  (string-search "," newsgroups)
 		  (not followup-to)
 		  (not
 		   (zerop
 		    (length
 		     (setq to (completing-read
-			       "Followups to (default no Followup-To header): "
+                               (format-prompt "Followups to" "no Followup-To header")
 			       (mapcar #'list
 				       (cons "poster"
 					     (message-tokenize-header
@@ -5357,7 +5366,7 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check "Shoot me".
    (message-check 'shoot
      (if (re-search-forward
-	  "Message-ID.*.i-did-not-set--mail-host-address--so-tickle-me" nil t)
+	  "Message-ID.*.mail-host-address-is-not-set" nil t)
 	 (y-or-n-p "You appear to have a misconfigured system.  Really post? ")
        t))
    ;; Check for Approved.
@@ -5371,11 +5380,11 @@ Otherwise, generate and save a value for `canlock-password' first."
 	    (message-id (message-fetch-field "message-id" t)))
        (or (not message-id)
 	   ;; Is there an @ in the ID?
-	   (and (string-match "@" message-id)
+	   (and (string-search "@" message-id)
 		;; Is there a dot in the ID?
 		(string-match "@[^.]*\\." message-id)
 		;; Does the ID end with a dot?
-		(not (string-match "\\.>" message-id)))
+		(not (string-search ".>" message-id)))
 	   (y-or-n-p
 	    (format "The Message-ID looks strange: \"%s\".  Really post? "
 		    message-id)))))
@@ -5497,8 +5506,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 		   "@[^\\.]*\\."
 		   (setq ad (nth 1 (mail-extract-address-components
 				    from))))) ;larsi@ifi
-	     (string-match "\\.\\." ad)	;larsi@ifi..uio
-	     (string-match "@\\." ad)	;larsi@.ifi.uio
+	     (string-search ".." ad)	;larsi@ifi..uio
+	     (string-search "@." ad)	;larsi@.ifi.uio
 	     (string-match "\\.$" ad)	;larsi@ifi.uio.
 	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
 	     (string-match "(.*).*(.*)" from)) ;(lars) (lars)
@@ -5523,7 +5532,7 @@ Otherwise, generate and save a value for `canlock-password' first."
        (cond
 	((not reply-to)
 	 t)
-	((string-match "," reply-to)
+	((string-search "," reply-to)
 	 (y-or-n-p
 	  (format "Multiple Reply-To addresses: \"%s\". Really post? "
 		  reply-to)))
@@ -5531,8 +5540,8 @@ Otherwise, generate and save a value for `canlock-password' first."
 		   "@[^\\.]*\\."
 		   (setq ad (nth 1 (mail-extract-address-components
 				    reply-to))))) ;larsi@ifi
-	     (string-match "\\.\\." ad)	;larsi@ifi..uio
-	     (string-match "@\\." ad)	;larsi@.ifi.uio
+	     (string-search ".." ad)	;larsi@ifi..uio
+	     (string-search "@." ad)	;larsi@.ifi.uio
 	     (string-match "\\.$" ad)	;larsi@ifi.uio.
 	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
 	     (string-match "(.*).*(.*)" reply-to)) ;(lars) (lars)
@@ -5806,7 +5815,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 			     (mail-header-subject message-reply-headers))
 			    (message-strip-subject-re psubject))))
 		 (and psupersedes
-		      (string-match "_-_@" psupersedes)))
+		      (string-search "_-_@" psupersedes)))
 		"_-_" ""))
 	  "@" (message-make-fqdn) ">"))
 
@@ -6022,7 +6031,7 @@ give as trustworthy answer as possible."
   "Return the pertinent part of `user-mail-address'."
   (when (and user-mail-address
 	     (string-match "@.*\\." user-mail-address))
-    (if (string-match " " user-mail-address)
+    (if (string-search " " user-mail-address)
 	(nth 1 (mail-extract-address-components user-mail-address))
       user-mail-address)))
 
@@ -6053,7 +6062,7 @@ give as trustworthy answer as possible."
       message-user-fqdn)
      ;; A system name without any dots is unlikely to be a good fully
      ;; qualified domain name.
-     ((and (string-match "[.]" sysname)
+     ((and (string-search "." sysname)
 	   (not (string-match message-bogus-system-names sysname)))
       ;; `system-name' returned the right result.
       sysname)
@@ -6068,8 +6077,7 @@ give as trustworthy answer as possible."
       user-domain)
      ;; Default to this bogus thing.
      (t
-      (concat sysname
-	      ".i-did-not-set--mail-host-address--so-tickle-me")))))
+      (concat sysname ".mail-host-address-is-not-set")))))
 
 (defun message-make-domain ()
   "Return the domain name."
@@ -7054,7 +7062,7 @@ article, it has the value of
 
 " mft "
 
-which directs your response to " (if (string-match "," mft)
+which directs your response to " (if (string-search "," mft)
 				     "the specified addresses"
 				   "that address only") ".
 
@@ -7358,7 +7366,7 @@ want to get rid of this query permanently."))
 You should normally obey the Followup-To: header.
 
 	`Followup-To: " followup-to "'
-directs your response to " (if (string-match "," followup-to)
+directs your response to " (if (string-search "," followup-to)
 			       "the specified newsgroups"
 			     "that newsgroup only") ".
 
@@ -8600,7 +8608,7 @@ From headers in the original article."
     (let ((value (message-field-value header)))
       (dolist (string (mail-header-parse-addresses value 'raw))
 	(setq string
-	      (replace-regexp-in-string
+	      (string-replace
 	       "\n" ""
 	       (replace-regexp-in-string "^ +\\| +$" "" string)))
 	(ecomplete-add-item 'mail (car (mail-header-parse-address string))
@@ -8868,29 +8876,34 @@ used to take the screenshot."
 		  (car message-screenshot-command) nil (current-buffer) nil
 		  (cdr message-screenshot-command))
 	   (buffer-string))))
-    (set-mark (point))
-    (insert-image
-     (create-image image 'png t
-		   :max-width (truncate (* (frame-pixel-width) 0.8))
-		   :max-height (truncate (* (frame-pixel-height) 0.8))
-		   :scale 1)
-     (format "<#part type=\"image/png\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-	     ;; Get a base64 version of the image -- this avoids later
-	     ;; complications if we're auto-saving the buffer and
-	     ;; restoring from a file.
-	     (with-temp-buffer
-	       (set-buffer-multibyte nil)
-	       (insert image)
-	       (base64-encode-region (point-min) (point-max) t)
-	       (buffer-string))))
-    (insert "\n\n")
+    (message--yank-media-image-handler 'image/png image)
     (message "")))
+
+(defun message--yank-media-image-handler (type image)
+  (set-mark (point))
+  (insert-image
+   (create-image image (mailcap-mime-type-to-extension type) t
+		 :max-width (truncate (* (frame-pixel-width) 0.8))
+		 :max-height (truncate (* (frame-pixel-height) 0.8))
+		 :scale 1)
+   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+           type
+	   ;; Get a base64 version of the image -- this avoids later
+	   ;; complications if we're auto-saving the buffer and
+	   ;; restoring from a file.
+	   (with-temp-buffer
+	     (set-buffer-multibyte nil)
+	     (insert image)
+	     (base64-encode-region (point-min) (point-max) t)
+	     (buffer-string)))
+   nil nil t)
+  (insert "\n\n"))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 
 (defun message-parse-mailto-url (url)
   "Parse a mailto: url."
-  (setq url (replace-regexp-in-string "\n" " " url))
+  (setq url (string-replace "\n" " " url))
   (when (string-match "mailto:/*\\(.*\\)" url)
     (setq url (substring url (match-beginning 1) nil)))
   (setq url (if (string-match "^\\?" url)
@@ -8932,9 +8945,9 @@ will then start up Emacs ready to compose mail.  For emacsclient use
     (dolist (arg args)
       (unless (equal (car arg) "body")
 	(message-position-on-field (capitalize (car arg)))
-	(insert (replace-regexp-in-string
+	(insert (string-replace
 		 "\r\n" "\n"
-		 (mapconcat #'identity (reverse (cdr arg)) ", ") nil t))))
+		 (mapconcat #'identity (reverse (cdr arg)) ", ")))))
     (when (assoc "body" args)
       (message-goto-body)
       (dolist (body (cdr (assoc "body" args)))

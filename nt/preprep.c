@@ -21,6 +21,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
      based on code from addsection.c
 */
 
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>

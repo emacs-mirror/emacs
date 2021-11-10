@@ -27,7 +27,7 @@
 ;; This is actually useful when you are running X11 locally, but is
 ;; working on remote machine over a modem line or through a gateway.
 
-;; It works by translating xterm escape codes into generic emacs mouse
+;; It works by translating xterm escape codes into generic Emacs mouse
 ;; events so it should work with any package that uses the mouse.
 
 ;; You don't have to turn off xterm mode to use the normal xterm mouse
@@ -376,11 +376,11 @@ given escape sequence takes precedence over the former."
   "\e[?1000h\e[?1003h\e[?1005h\e[?1006h"
   "Control sequence to enable xterm mouse tracking.
 Enables basic mouse tracking, mouse motion events and finally
-extended tracking on terminals that support it. The following
+extended tracking on terminals that support it.  The following
 escape sequences are understood by modern xterms:
 
 \"\\e[?1000h\" \"Basic mouse mode\": Enables reports for mouse
-            clicks. There is a limit to the maximum row/column
+            clicks.  There is a limit to the maximum row/column
             position (<= 223), which can be reported in this
             basic mode.
 
@@ -389,7 +389,7 @@ escape sequences are understood by modern xterms:
 
 \"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an extension
             to the basic mouse mode, which uses UTF-8
-            characters to overcome the 223 row/column limit. This
+            characters to overcome the 223 row/column limit.  This
             extension may conflict with non UTF-8 applications or
             non UTF-8 locales.
 

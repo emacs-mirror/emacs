@@ -218,6 +218,14 @@ the Emacs executable that dumped them.
 
 If you want to use this function in an Emacs that was already dumped,
 you must run Emacs with the @samp{-batch} option.
+
+@vindex after-pdump-load-hook
+If you're including @samp{.el} files in the dumped Emacs and that
+@samp{.el} file has code that is normally run at load time, that code
+won't be run when Emacs starts after dumping.  To help work around
+that problem, you can put functions on the
+@code{after-pdump-load-hook} hook.  This hook is run when starting
+Emacs.
 @end defun
 
 @defun dump-emacs to-file from-file
@@ -337,18 +345,22 @@ by the vector allocation code while iterating over the vector blocks.
   It is quite common to use some storage for a while, then release it
 by (for example) killing a buffer or deleting the last pointer to an
 object.  Emacs provides a @dfn{garbage collector} to reclaim this
-abandoned storage.  The garbage collector operates by finding and
-marking all Lisp objects that are still accessible to Lisp programs.
-To begin with, it assumes all the symbols, their values and associated
-function definitions, and any data presently on the stack, are
-accessible.  Any objects that can be reached indirectly through other
-accessible objects are also accessible.
+abandoned storage.  The garbage collector operates, in essence, by
+finding and marking all Lisp objects that are still accessible to Lisp
+programs.  To begin with, it assumes all the symbols, their values and
+associated function definitions, and any data presently on the stack,
+are accessible.  Any objects that can be reached indirectly through
+other accessible objects are also accessible, but this calculation is
+done ``conservatively'', so it may slightly overestimate how many
+objects that are accessible.
 
   When marking is finished, all objects still unmarked are garbage.  No
 matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
-(sweep) phase of the garbage collector arranges to reuse them.
+(sweep) phase of the garbage collector arranges to reuse them.  (But
+since the marking was done ``conservatively'', not all unused objects
+are guaranteed to be garbage-collected by any one sweep.)
 
 @c ??? Maybe add something describing weak hash tables here?
 

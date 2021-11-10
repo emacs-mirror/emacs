@@ -36,7 +36,7 @@ as its argument.")
 (cl-generic-define-context-rewriter window-system (value)
   ;; If `value' is a `consp', it's probably an old-style specializer,
   ;; so just use it, and anyway `eql' isn't very useful on cons cells.
-  `(window-system ,(if (consp value) value `(eql ,value))))
+  `(window-system ,(if (consp value) value `(eql ',value))))
 
 (cl-defmethod frame-creation-function (params &context (window-system nil))
   ;; It's tempting to get rid of tty-create-frame-with-faces and turn it into
@@ -701,9 +701,8 @@ Return nil if we don't know how to interpret DISPLAY."
   "Make a frame on display DISPLAY.
 The optional argument PARAMETERS specifies additional frame parameters."
   (interactive (if (fboundp 'x-display-list)
-                   (list (completing-read
-                          (format "Make frame on display: ")
-                          (x-display-list)))
+                   (list (completing-read "Make frame on display: "
+                                          (x-display-list)))
                  (user-error "This Emacs build does not support X displays")))
   (make-frame (cons (cons 'display display) parameters)))
 
@@ -786,6 +785,27 @@ When called from Lisp, returns the new frame."
   (if (display-graphic-p)
       (make-frame)
     (select-frame (make-frame))))
+
+(defun clone-frame (&optional frame no-windows)
+  "Make a new frame with the same parameters and windows as FRAME.
+With a prefix arg NO-WINDOWS, don't clone the window configuration.
+
+FRAME defaults to the selected frame.  The frame is created on the
+same terminal as FRAME.  If the terminal is a text-only terminal then
+also select the new frame."
+  (interactive (list (selected-frame) current-prefix-arg))
+  (let* ((frame (or frame (selected-frame)))
+         (windows (unless no-windows
+                    (window-state-get (frame-root-window frame))))
+         (default-frame-alist
+           (seq-remove (lambda (elem) (eq (car elem) 'name))
+                       (frame-parameters frame)))
+         (new-frame (make-frame)))
+    (when windows
+      (window-state-put windows (frame-root-window new-frame) 'safe))
+    (unless (display-graphic-p)
+      (select-frame new-frame))
+    new-frame))
 
 (defvar before-make-frame-hook nil
   "Functions to run before `make-frame' creates a new frame.")
@@ -1507,7 +1527,7 @@ To get the frame's current background color, use `frame-parameters'."
   "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive (list (read-color "Foreground color: ")))
+  (interactive (list (read-color "Foreground color: " nil nil nil t)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
@@ -2830,6 +2850,7 @@ See also `toggle-frame-maximized'."
 (define-key ctl-x-5-map "0" #'delete-frame)
 (define-key ctl-x-5-map "o" #'other-frame)
 (define-key ctl-x-5-map "5" #'other-frame-prefix)
+(define-key ctl-x-5-map "c" #'clone-frame)
 (define-key global-map [f11] #'toggle-frame-fullscreen)
 (define-key global-map [(meta f10)] #'toggle-frame-maximized)
 (define-key esc-map    [f10]        #'toggle-frame-maximized)

@@ -303,3 +303,5 @@ and postfix: E66 -> E6, a55 -> a5, etc.
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
+
+;;; vnvni.el ends here

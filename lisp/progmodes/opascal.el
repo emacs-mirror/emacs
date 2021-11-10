@@ -24,9 +24,10 @@
 
 ;;; Commentary:
 
-;; To enter OPascal mode when you find an Object Pascal source file, one must
-;; override the auto-mode-alist to associate OPascal with .pas (and .dpr and
-;; .dpk) files.  Emacs, by default, will otherwise enter Pascal mode. E.g.
+;; To enter OPascal mode when you find an Object Pascal source file,
+;; one must override the auto-mode-alist to associate OPascal with
+;; .pas (and .dpr and .dpk) files.  Emacs, by default, will otherwise
+;; enter Pascal mode.  For example:
 ;;
 ;; (autoload 'opascal-mode "opascal")
 ;; (add-to-list 'auto-mode-alist
@@ -50,7 +51,7 @@
   :group 'languages)
 
 (defconst opascal-debug nil
-  "True if in debug mode.")
+  "Non-nil if in debug mode.")
 
 (define-obsolete-variable-alias
   'delphi-search-path 'opascal-search-path "24.4")
@@ -244,8 +245,8 @@ are followed by an expression.")
 
 (defconst opascal-begin-previous-tokens
   `(,@opascal-decl-sections ,@opascal-routine-statements)
-  "Tokens that a begin token aligns with, but only if not part of a nested
-routine.")
+  "Tokens that a begin token aligns with, but only if not part of a \
+nested routine.")
 
 (defconst opascal-space-chars "\000-\011\013- ") ; all except \n
 (defconst opascal-non-space-chars (concat "^" opascal-space-chars))
@@ -1530,7 +1531,7 @@ If no extension is specified, .pas is assumed.  Creates a buffer for the unit."
                       (concat unit ".pas")))
          (file (opascal-find-unit-file unit-file)))
     (if (null file)
-        (error "unit not found: %s" unit-file)
+        (error "Unit not found: %s" unit-file)
       (find-file file)
       (if (not (derived-mode-p 'opascal-mode))
           (opascal-mode)))
@@ -1539,7 +1540,7 @@ If no extension is specified, .pas is assumed.  Creates a buffer for the unit."
 (defun opascal-find-current-def ()
   "Find the definition of the identifier under the current point."
   (interactive)
-  (error "opascal-find-current-def: not implemented yet"))
+  (error "opascal-find-current-def: Not implemented yet"))
 
 (defun opascal-find-current-xdef ()
   "Find the definition of the identifier under the current point, searching
@@ -1547,13 +1548,13 @@ in external units if necessary (as listed in the current unit's use clause).
 The set of directories to search for a unit is specified by the global variable
 `opascal-search-path'."
   (interactive)
-  (error "opascal-find-current-xdef: not implemented yet"))
+  (error "opascal-find-current-xdef: Not implemented yet"))
 
 (defun opascal-find-current-body ()
   "Find the body of the identifier under the current point, assuming
 it is a routine."
   (interactive)
-  (error "opascal-find-current-body: not implemented yet"))
+  (error "opascal-find-current-body: Not implemented yet"))
 
 (defun opascal-fill-comment ()
   "Fill the text of the current comment, according to `fill-column'.
@@ -1731,7 +1732,8 @@ comment block.  If not in a // comment, just does a normal newline."
 (define-obsolete-function-alias 'delphi-mode #'opascal-mode "24.4")
 ;;;###autoload
 (define-derived-mode opascal-mode prog-mode "OPascal"
-  "Major mode for editing OPascal code.\\<opascal-mode-map>
+  "Major mode for editing OPascal code.
+\\<opascal-mode-map>
 \\[opascal-find-unit]\t- Search for a OPascal source file.
 \\[opascal-fill-comment]\t- Fill the current comment.
 \\[opascal-new-comment-line]\t- If in a // comment, do a new comment line.

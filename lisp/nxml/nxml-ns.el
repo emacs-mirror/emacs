@@ -95,7 +95,7 @@ Return nil if there is no default namespace."
   (caar nxml-ns-state))
 
 (defun nxml-ns-set-default (ns)
-  "Changes the current default namespace.
+  "Change the current default namespace.
 The change will be in effect until the end of the current element.
 NS is a symbol or nil."
   (setq nxml-ns-state

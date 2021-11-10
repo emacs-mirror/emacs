@@ -491,7 +491,7 @@ extern void process_pending_signals (void);
 extern struct timespec timer_check (void);
 extern void mark_kboards (void);
 
-#ifdef HAVE_NTGUI
+#if defined HAVE_NTGUI || defined HAVE_X_WINDOWS
 extern const char *const lispy_function_keys[];
 #endif
 

@@ -89,6 +89,7 @@ The value t means never ding, and `error' means only ding on wrong input."
 
 
 (define-derived-mode mpuz-mode fundamental-mode "Mult Puzzle"
+  :interactive nil
   "Multiplication puzzle mode.
 
 You have to guess which letters stand for which digits in the
@@ -98,7 +99,7 @@ You may enter a guess for a letter's value by typing first the letter,
 then the digit.  Thus, to guess that A=3, type `A 3'.
 
 To leave the game to do other editing work, just switch buffers.
-Then you may resume the game with M-x mpuz.
+Then you may resume the game with \\[mpuz].
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (setq tab-width 30))
 
@@ -118,7 +119,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 ;; Some variables for game tracking
 ;;---------------------------------
 (defvar mpuz-in-progress nil
-  "True if a game is currently in progress.")
+  "Non-nil if a game is currently in progress.")
 
 (defvar mpuz-found-digits (make-bool-vector 10 nil)
   "A vector recording which digits have been decrypted.")
@@ -152,7 +153,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(index 10)
 	elem)
     (while letters
-      (setq elem    (nth (random index) letters)
+      (setq elem    (seq-random-elt letters)
 	    letters (delq elem letters)
 	    index   (1- index))
       (aset mpuz-digit-to-letter index elem)
@@ -367,7 +368,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-offer-abort ()
   "Ask if user wants to abort current puzzle."
-  (interactive)
+  (interactive nil mpuz-mode)
   (if (y-or-n-p "Abort game? ")
       (let ((buf (mpuz-get-buffer)))
 	(message "Mult Puzzle aborted.")
@@ -389,7 +390,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-try-letter ()
   "Propose a digit for a letter in puzzle."
-  (interactive)
+  (interactive nil mpuz-mode)
   (if mpuz-in-progress
       (let (letter-char digit digit-char)
 	(setq letter-char (upcase last-command-event)
@@ -474,7 +475,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-show-solution (row)
   "Display solution for debugging purposes."
-  (interactive "P")
+  (interactive "P" mpuz-mode)
   (mpuz-switch-to-window)
   (mpuz-solve (if row (* 2 (prefix-numeric-value row))))
   (mpuz-paint-board)

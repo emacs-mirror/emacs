@@ -673,7 +673,7 @@ in order."
 (defun hack-connection-local-variables (criteria)
   "Read connection-local variables according to CRITERIA.
 Store the connection-local variables in buffer local
-variable`connection-local-variables-alist'.
+variable `connection-local-variables-alist'.
 
 This does nothing if `enable-connection-local-variables' is nil."
   (when enable-connection-local-variables

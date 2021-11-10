@@ -57,7 +57,7 @@
   "Identifiers for pseudo-classes.")
 
 (defconst css-pseudo-element-ids
-  '("after" "before" "first-letter" "first-line")
+  '("after" "before" "first-letter" "first-line" "selection")
   "Identifiers for pseudo-elements.")
 
 (defconst css-at-ids
@@ -274,12 +274,13 @@
     ("color" color)
     ("opacity" alphavalue)
 
-    ;; CSS Containment Module Level 1
-    ;; (https://www.w3.org/TR/css-contain-1/#property-index)
-    ("contain" "none" "strict" "content" "size" "layout" "paint")
+    ;; CSS Containment Module Level 2
+    ;; (https://www.w3.org/TR/css-contain-2/#property-index)
+    ("contain" "none" "strict" "content" "size" "layout" "style" "paint")
+    ("content-visibility" "visible" "auto" "hidden")
 
-    ;; CSS Grid Layout Module Level 1
-    ;; (https://www.w3.org/TR/css-grid-1/#property-index)
+    ;; CSS Grid Layout Module Level 2
+    ;; (https://www.w3.org/TR/css-grid-2/#property-index)
     ("grid" grid-template grid-template-rows "auto-flow" "dense"
      grid-auto-columns grid-auto-rows grid-template-columns)
     ("grid-area" grid-line)
@@ -298,17 +299,32 @@
     ("grid-template" "none" grid-template-rows grid-template-columns
      line-names string track-size line-names explicit-track-list)
     ("grid-template-areas" "none" string)
-    ("grid-template-columns" "none" track-list auto-track-list)
-    ("grid-template-rows" "none" track-list auto-track-list)
+    ("grid-template-columns" "none" track-list auto-track-list "subgrid")
+    ("grid-template-rows" "none" track-list auto-track-list "subgrid")
 
-    ;; CSS Flexible Box Layout Module Level 1
-    ;; (https://www.w3.org/TR/css-flexbox-1/#property-index)
-    ("align-content" "flex-start" "flex-end" "center" "space-between"
-     "space-around" "stretch")
-    ("align-items" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
-    ("align-self" "auto" "flex-start" "flex-end" "center" "baseline"
-     "stretch")
+    ;; CSS Box Alignment Module Level 3
+    ;; (https://www.w3.org/TR/css-align-3/#property-index)
+    ("align-content"
+     baseline-position content-distribution overflow-position content-position)
+    ("align-items"
+     "normal" "stretch" baseline-position overflow-position self-position)
+    ("align-self"
+     "auto" "normal" "stretch"
+     baseline-position overflow-position self-position)
+    ("justify-content" "normal"
+     content-distribution overflow-position content-position "left" "right")
+    ("justify-items"
+     "normal" "stretch" baseline-position overflow-position self-position
+     "left" "right" "legacy")
+    ("justify-self"
+     "auto" "normal" "stretch" baseline-position overflow-position self-position
+     "left" "right")
+    ("place-content" align-content justify-content)
+    ("place-items" align-items justify-items)
+    ("place-self" justify-self align-self)
+
+    ;; CSS Flexible Box Layout Module Level 2
+    ;; (https://www.w3.org/TR/css-flexbox-2/#property-index)
     ("flex" "none" flex-grow flex-shrink flex-basis)
     ("flex-basis" "auto" "content" width)
     ("flex-direction" "row" "row-reverse" "column" "column-reverse")
@@ -316,8 +332,6 @@
     ("flex-grow" number)
     ("flex-shrink" number)
     ("flex-wrap" "nowrap" "wrap" "wrap-reverse")
-    ("justify-content" "flex-start" "flex-end" "center"
-     "space-between" "space-around")
     ("order" integer)
 
     ;; CSS Fonts Module Level 3
@@ -757,6 +771,13 @@ further value candidates, since that list would be infinite.")
     (padding-width length percentage)
     (position
      "left" "center" "right" "top" "bottom" percentage length)
+    (baseline-position "left" "right" "baseline")
+    (content-distribution
+     "space-between" "space-around" "space-evenly" "stretch")
+    (overflow-position "unsafe" "safe")
+    (content-position "center" "start" "end" "flex-start" "flex-end")
+    (self-position
+     "center" "start" "end" "self-start" "self-end" "flex-start" "flex-end")
     (radial-gradient "radial-gradient()")
     (relative-size "larger" "smaller")
     (repeat-style
@@ -1135,7 +1156,7 @@ by `css--colors-regexp'.  START-POINT is the start of the color,
 and MATCH is the string matched by the regexp.
 
 This function will either return the color, as a hex RGB string;
-or `nil' if no color could be recognized.  When this function
+or nil if no color could be recognized.  When this function
 returns, point will be at the end of the recognized color."
   (cond
    ((eq (aref match 0) ?#)
@@ -1149,7 +1170,7 @@ returns, point will be at the end of the recognized color."
 
 (defcustom css-fontify-colors t
   "Whether CSS colors should be fontified using the color as the background.
-When non-`nil', a text representing CSS color will be fontified
+When non-nil, a text representing CSS color will be fontified
 such that its background is the color itself.  E.g., #ff0000 will
 be fontified with a red background."
   :version "26.1"

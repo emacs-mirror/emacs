@@ -29,9 +29,9 @@
 
 (require 'seq)
 (require 'subr-x)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
-(defvar memory-report--type-size (make-hash-table))
+(defvar memory-report--type-size nil)
 
 ;;;###autoload
 (defun memory-report ()
@@ -84,6 +84,7 @@ by counted more than once."
       (gethash 'object memory-report--type-size)))
 
 (defun memory-report--set-size (elems)
+  (setq memory-report--type-size (make-hash-table))
   (setf (gethash 'string memory-report--type-size)
         (cadr (assq 'strings elems)))
   (setf (gethash 'cons memory-report--type-size)
@@ -230,8 +231,7 @@ by counted more than once."
   (let ((total (+ (memory-report--size 'vector)
                   (* (memory-report--size 'object) (length value)))))
     (cl-loop for elem across value
-             do (setf (gethash elem counted) t)
-             (cl-incf total (memory-report--object-size counted elem)))
+             do (cl-incf total (memory-report--object-size counted elem)))
     total))
 
 (cl-defmethod memory-report--object-size-1 (counted (value hash-table))
@@ -239,12 +239,23 @@ by counted more than once."
                   (* (memory-report--size 'object) (hash-table-size value)))))
     (maphash
      (lambda (key elem)
-       (setf (gethash key counted) t)
-       (setf (gethash elem counted) t)
        (cl-incf total (memory-report--object-size counted key))
        (cl-incf total (memory-report--object-size counted elem)))
      value)
     total))
+
+;; All cl-defstruct types.
+(cl-defmethod memory-report--object-size-1 (counted (value cl-structure-object))
+  (let ((struct-type (type-of value)))
+    (apply #'+
+           (memory-report--size 'vector)
+           (mapcar (lambda (slot)
+                     (if (eq (car slot) 'cl-tag-slot)
+                         0
+                       (memory-report--object-size
+                        counted
+                        (cl-struct-slot-value struct-type (car slot) value))))
+                   (cl-struct-slot-info struct-type)))))
 
 (defun memory-report--format (bytes)
   (setq bytes (/ bytes 1024.0))
@@ -272,7 +283,7 @@ by counted more than once."
                                                       buffers)
                      do (insert (memory-report--format size)
                                 "  "
-                                (button-buttonize
+                                (buttonize
                                  (buffer-name buffer)
                                  #'memory-report--buffer-details buffer)
                                 "\n"))

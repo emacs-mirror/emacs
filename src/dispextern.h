@@ -544,8 +544,8 @@ struct glyph
     int img_id;
 
 #ifdef HAVE_XWIDGETS
-    /* Xwidget reference (type == XWIDGET_GLYPH).  */
-    struct xwidget *xwidget;
+    /* Xwidget ID.  */
+    uint32_t xwidget;
 #endif
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
@@ -1334,7 +1334,9 @@ struct glyph_string
   /* The area within row.  */
   enum glyph_row_area area;
 
-  /* Characters to be drawn, and number of characters.  */
+  /* Characters to be drawn, and number of characters.  Note that
+     NCHARS can be zero if this is a composition glyph string, as
+     evidenced by FIRST_GLYPH->type.  */
   unsigned *char2b;
   int nchars;
 
@@ -3171,7 +3173,7 @@ struct image_cache
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
-#define IMAGE_CACHE_BUCKETS_SIZE 1001
+#define IMAGE_CACHE_BUCKETS_SIZE 1009
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -3213,7 +3215,7 @@ enum tab_bar_item_idx
 
 /* Default values of the above variables.  */
 
-#define DEFAULT_TAB_BAR_BUTTON_MARGIN 4
+#define DEFAULT_TAB_BAR_BUTTON_MARGIN 1
 #define DEFAULT_TAB_BAR_BUTTON_RELIEF 1
 
 /* The height in pixels of the default tab-bar images.  */
@@ -3426,8 +3428,8 @@ extern void get_glyph_string_clip_rect (struct glyph_string *,
                                         NativeRectangle *nr);
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
 
-extern void handle_tab_bar_click (struct frame *,
-                                   int, int, bool, int);
+extern Lisp_Object handle_tab_bar_click (struct frame *,
+					 int, int, bool, int);
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, bool, int);
 
@@ -3731,10 +3733,8 @@ extern Lisp_Object gui_default_parameter (struct frame *, Lisp_Object,
                                           const char *, const char *,
                                           enum resource_types);
 
-#ifndef HAVE_NS /* These both used on W32 and X only.  */
 extern bool gui_mouse_grabbed (Display_Info *);
 extern void gui_redo_mouse_highlight (Display_Info *);
-#endif /* HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

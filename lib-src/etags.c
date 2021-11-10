@@ -6259,7 +6259,7 @@ test_objc_is_mercury (char *this_file, language **lang)
 	}
     }
 
-  /* Fallback heuristic test.  Not failsafe but errless in pratice.  */
+  /* Fallback heuristic test.  Not failsafe but errless in practice.  */
   ratio = ((float) rule_signs + percentage_signs + mercury_dots) / lines;
 
  out:

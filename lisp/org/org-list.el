@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;	   Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
@@ -601,25 +601,23 @@ Assume point is at an item."
 	   (beg-cell (cons (point) (current-indentation)))
            itm-lst itm-lst-2 end-lst end-lst-2 struct
 	   (assoc-at-point
-	    (function
-	     ;; Return association at point.
-	     (lambda (ind)
-	       (looking-at org-list-full-item-re)
-	       (let ((bullet (match-string-no-properties 1)))
-		 (list (point)
-		       ind
-		       bullet
-		       (match-string-no-properties 2) ; counter
-		       (match-string-no-properties 3) ; checkbox
-		       ;; Description tag.
-		       (and (string-match-p "[-+*]" bullet)
-			    (match-string-no-properties 4)))))))
+	    ;; Return association at point.
+	    (lambda (ind)
+	      (looking-at org-list-full-item-re)
+	      (let ((bullet (match-string-no-properties 1)))
+		(list (point)
+		      ind
+		      bullet
+		      (match-string-no-properties 2) ; counter
+		      (match-string-no-properties 3) ; checkbox
+		      ;; Description tag.
+		      (and (string-match-p "[-+*]" bullet)
+			   (match-string-no-properties 4))))))
 	   (end-before-blank
-	    (function
-	     ;; Ensure list ends at the first blank line.
-	     (lambda ()
-	       (skip-chars-backward " \r\t\n")
-	       (min (1+ (point-at-eol)) lim-down)))))
+	    ;; Ensure list ends at the first blank line.
+	    (lambda ()
+	      (skip-chars-backward " \r\t\n")
+	      (min (1+ (point-at-eol)) lim-down))))
       ;; 1. Read list from starting item to its beginning, and save
       ;;    top item position and indentation in BEG-CELL.  Also store
       ;;    ending position of items in END-LST.
@@ -1004,23 +1002,22 @@ alist of ancestors, as returned by `org-list-parents-alist'.
 Return value is a list of integers.  Counters have an impact on
 that value."
   (let ((get-relative-number
-	 (function
-	  (lambda (item struct prevs)
-	    ;; Return relative sequence number of ITEM in the sub-list
-	    ;; it belongs.  STRUCT is the list structure.  PREVS is
-	    ;; the alist of previous items.
-	    (let ((seq 0) (pos item) counter)
-	      (while (and (not (setq counter (org-list-get-counter pos struct)))
-			  (setq pos (org-list-get-prev-item pos struct prevs)))
-		(cl-incf seq))
-	      (if (not counter) (1+ seq)
-		(cond
-		 ((string-match "[A-Za-z]" counter)
-		  (+ (- (string-to-char (upcase (match-string 0 counter))) 64)
-		     seq))
-		 ((string-match "[0-9]+" counter)
-		  (+ (string-to-number (match-string 0 counter)) seq))
-		 (t (1+ seq)))))))))
+	 (lambda (item struct prevs)
+	   ;; Return relative sequence number of ITEM in the sub-list
+	   ;; it belongs.  STRUCT is the list structure.  PREVS is
+	   ;; the alist of previous items.
+	   (let ((seq 0) (pos item) counter)
+	     (while (and (not (setq counter (org-list-get-counter pos struct)))
+			 (setq pos (org-list-get-prev-item pos struct prevs)))
+	       (cl-incf seq))
+	     (if (not counter) (1+ seq)
+	       (cond
+		((string-match "[A-Za-z]" counter)
+		 (+ (- (string-to-char (upcase (match-string 0 counter))) 64)
+		    seq))
+		((string-match "[0-9]+" counter)
+		 (+ (string-to-number (match-string 0 counter)) seq))
+		(t (1+ seq))))))))
     ;; Cons each parent relative number into return value (OUT).
     (let ((out (list (funcall get-relative-number item struct prevs)))
 	  (parent item))
@@ -1182,14 +1179,13 @@ some heuristics to guess the result."
 	   (cdr (assq 'plain-list-item org-blank-before-new-entry)))
 	  usr-blank
 	  (count-blanks
-	   (function
-	    (lambda ()
-	      ;; Count blank lines above beginning of line.
-	      (save-excursion
-		(count-lines (goto-char (point-at-bol))
-			     (progn (skip-chars-backward " \r\t\n")
-				    (forward-line)
-				    (point))))))))
+	   (lambda ()
+	     ;; Count blank lines above beginning of line.
+	     (save-excursion
+	       (count-lines (goto-char (point-at-bol))
+			    (progn (skip-chars-backward " \r\t\n")
+				   (forward-line)
+				   (point)))))))
       (cond
        ;; Trivial cases where there should be none.
        ((not insert-blank-p) 0)
@@ -1652,65 +1648,64 @@ PREVS is the alist of previous items, as returned by
 This function modifies STRUCT."
   (let ((case-fold-search nil)
 	(fix-bul
-	 (function
-	  ;; Set bullet of ITEM in STRUCT, depending on the type of
-	  ;; first item of the list, the previous bullet and counter
-	  ;; if any.
-	  (lambda (item)
-	    (let* ((prev (org-list-get-prev-item item struct prevs))
-		   (prev-bul (and prev (org-list-get-bullet prev struct)))
-		   (counter (org-list-get-counter item struct))
-		   (bullet (org-list-get-bullet item struct))
-		   (alphap (and (not prev)
-				(org-list-use-alpha-bul-p item struct prevs))))
-	      (org-list-set-bullet
-	       item struct
-	       (org-list-bullet-string
-		(cond
-		 ;; Alpha counter in alpha list: use counter.
-		 ((and prev counter
-		       (string-match "[a-zA-Z]" counter)
-		       (string-match "[a-zA-Z]" prev-bul))
-		  ;; Use cond to be sure `string-match' is used in
-		  ;; both cases.
-		  (let ((real-count
-			 (cond
-			  ((string-match "[a-z]" prev-bul) (downcase counter))
-			  ((string-match "[A-Z]" prev-bul) (upcase counter)))))
-		    (replace-match real-count nil nil prev-bul)))
-		 ;; Num counter in a num list: use counter.
-		 ((and prev counter
-		       (string-match "[0-9]+" counter)
-		       (string-match "[0-9]+" prev-bul))
-		  (replace-match counter nil nil prev-bul))
-		 ;; No counter: increase, if needed, previous bullet.
-		 (prev
-		  (org-list-inc-bullet-maybe (org-list-get-bullet prev struct)))
-		 ;; Alpha counter at first item: use counter.
-		 ((and counter (org-list-use-alpha-bul-p item struct prevs)
-		       (string-match "[A-Za-z]" counter)
-		       (string-match "[A-Za-z]" bullet))
-		  (let ((real-count
-			 (cond
-			  ((string-match "[a-z]" bullet) (downcase counter))
-			  ((string-match "[A-Z]" bullet) (upcase counter)))))
-		    (replace-match real-count nil nil bullet)))
-		 ;; Num counter at first item: use counter.
-		 ((and counter
-		       (string-match "[0-9]+" counter)
-		       (string-match "[0-9]+" bullet))
-		  (replace-match counter nil nil bullet))
-		 ;; First bullet is alpha uppercase: use "A".
-		 ((and alphap (string-match "[A-Z]" bullet))
-		  (replace-match "A" nil nil bullet))
-		 ;; First bullet is alpha lowercase: use "a".
-		 ((and alphap (string-match "[a-z]" bullet))
-		  (replace-match "a" nil nil bullet))
-		 ;; First bullet is num: use "1".
-		 ((string-match "\\([0-9]+\\|[A-Za-z]\\)" bullet)
-		  (replace-match "1" nil nil bullet))
-		 ;; Not an ordered list: keep bullet.
-		 (t bullet)))))))))
+	 ;; Set bullet of ITEM in STRUCT, depending on the type of
+	 ;; first item of the list, the previous bullet and counter
+	 ;; if any.
+	 (lambda (item)
+	   (let* ((prev (org-list-get-prev-item item struct prevs))
+		  (prev-bul (and prev (org-list-get-bullet prev struct)))
+		  (counter (org-list-get-counter item struct))
+		  (bullet (org-list-get-bullet item struct))
+		  (alphap (and (not prev)
+			       (org-list-use-alpha-bul-p item struct prevs))))
+	     (org-list-set-bullet
+	      item struct
+	      (org-list-bullet-string
+	       (cond
+		;; Alpha counter in alpha list: use counter.
+		((and prev counter
+		      (string-match "[a-zA-Z]" counter)
+		      (string-match "[a-zA-Z]" prev-bul))
+		 ;; Use cond to be sure `string-match' is used in
+		 ;; both cases.
+		 (let ((real-count
+			(cond
+			 ((string-match "[a-z]" prev-bul) (downcase counter))
+			 ((string-match "[A-Z]" prev-bul) (upcase counter)))))
+		   (replace-match real-count nil nil prev-bul)))
+		;; Num counter in a num list: use counter.
+		((and prev counter
+		      (string-match "[0-9]+" counter)
+		      (string-match "[0-9]+" prev-bul))
+		 (replace-match counter nil nil prev-bul))
+		;; No counter: increase, if needed, previous bullet.
+		(prev
+		 (org-list-inc-bullet-maybe (org-list-get-bullet prev struct)))
+		;; Alpha counter at first item: use counter.
+		((and counter (org-list-use-alpha-bul-p item struct prevs)
+		      (string-match "[A-Za-z]" counter)
+		      (string-match "[A-Za-z]" bullet))
+		 (let ((real-count
+			(cond
+			 ((string-match "[a-z]" bullet) (downcase counter))
+			 ((string-match "[A-Z]" bullet) (upcase counter)))))
+		   (replace-match real-count nil nil bullet)))
+		;; Num counter at first item: use counter.
+		((and counter
+		      (string-match "[0-9]+" counter)
+		      (string-match "[0-9]+" bullet))
+		 (replace-match counter nil nil bullet))
+		;; First bullet is alpha uppercase: use "A".
+		((and alphap (string-match "[A-Z]" bullet))
+		 (replace-match "A" nil nil bullet))
+		;; First bullet is alpha lowercase: use "a".
+		((and alphap (string-match "[a-z]" bullet))
+		 (replace-match "a" nil nil bullet))
+		;; First bullet is num: use "1".
+		((string-match "\\([0-9]+\\|[A-Za-z]\\)" bullet)
+		 (replace-match "1" nil nil bullet))
+		;; Not an ordered list: keep bullet.
+		(t bullet))))))))
     (mapc fix-bul (mapcar #'car struct))))
 
 (defun org-list-struct-fix-ind (struct parents &optional bullet-size)
@@ -1756,21 +1751,20 @@ all others cases, the return value will be nil.
 This function modifies STRUCT."
   (let ((all-items (mapcar #'car struct))
 	(set-parent-box
-	 (function
-	  (lambda (item)
-	    (let* ((box-list
-		    (mapcar (lambda (child)
-			      (org-list-get-checkbox child struct))
-			    (org-list-get-children item struct parents))))
-	      (org-list-set-checkbox
-	       item struct
-	       (cond
-		((and (member "[ ]" box-list) (member "[X]" box-list)) "[-]")
-		((member "[-]" box-list) "[-]")
-		((member "[X]" box-list) "[X]")
-		((member "[ ]" box-list) "[ ]")
-		;; Parent has no boxed child: leave box as-is.
-		(t (org-list-get-checkbox item struct))))))))
+	 (lambda (item)
+	   (let* ((box-list
+		   (mapcar (lambda (child)
+			     (org-list-get-checkbox child struct))
+			   (org-list-get-children item struct parents))))
+	     (org-list-set-checkbox
+	      item struct
+	      (cond
+	       ((and (member "[ ]" box-list) (member "[X]" box-list)) "[-]")
+	       ((member "[-]" box-list) "[-]")
+	       ((member "[X]" box-list) "[X]")
+	       ((member "[ ]" box-list) "[ ]")
+	       ;; Parent has no boxed child: leave box as-is.
+	       (t (org-list-get-checkbox item struct)))))))
 	parent-list)
     ;; 1. List all parents with a checkbox.
     (mapc
@@ -1841,56 +1835,54 @@ Initial position of cursor is restored after the changes."
 			     (org-inlinetask-outline-regexp)))
 	 (item-re (org-item-re))
 	 (shift-body-ind
-	  (function
-	   ;; Shift the indentation between END and BEG by DELTA.
-	   ;; Start from the line before END.
-	   (lambda (end beg delta)
-	     (goto-char end)
-	     (skip-chars-backward " \r\t\n")
-	     (beginning-of-line)
-	     (while (or (> (point) beg)
-			(and (= (point) beg)
-			     (not (looking-at item-re))))
-	       (cond
-		;; Skip inline tasks.
-		((and inlinetask-re (looking-at inlinetask-re))
-		 (org-inlinetask-goto-beginning))
-		;; Shift only non-empty lines.
-		((looking-at-p "^[ \t]*\\S-")
-		 (indent-line-to (+ (current-indentation) delta))))
-	       (forward-line -1)))))
-         (modify-item
-          (function
-	   ;; Replace ITEM first line elements with new elements from
-	   ;; STRUCT, if appropriate.
-	   (lambda (item)
-	     (goto-char item)
-	     (let* ((new-ind (org-list-get-ind item struct))
-		    (old-ind (current-indentation))
-		    (new-bul (org-list-bullet-string
-			      (org-list-get-bullet item struct)))
-		    (old-bul (org-list-get-bullet item old-struct))
-		    (new-box (org-list-get-checkbox item struct)))
-	       (looking-at org-list-full-item-re)
-	       ;; a.  Replace bullet
-	       (unless (equal old-bul new-bul)
-		 (replace-match new-bul nil nil nil 1))
-	       ;; b.  Replace checkbox.
-	       (cond
-		((equal (match-string 3) new-box))
-		((and (match-string 3) new-box)
-		 (replace-match new-box nil nil nil 3))
-		((match-string 3)
-		 (looking-at ".*?\\([ \t]*\\[[ X-]\\]\\)")
-		 (replace-match "" nil nil nil 1))
-		(t (let ((counterp (match-end 2)))
-		     (goto-char (if counterp (1+ counterp) (match-end 1)))
-		     (insert (concat new-box (unless counterp " "))))))
-	       ;; c.  Indent item to appropriate column.
-	       (unless (= new-ind old-ind)
-		 (delete-region (goto-char (point-at-bol))
-				(progn (skip-chars-forward " \t") (point)))
-		 (indent-to new-ind)))))))
+	  ;; Shift the indentation between END and BEG by DELTA.
+	  ;; Start from the line before END.
+	  (lambda (end beg delta)
+	    (goto-char end)
+	    (skip-chars-backward " \r\t\n")
+	    (beginning-of-line)
+	    (while (or (> (point) beg)
+		       (and (= (point) beg)
+			    (not (looking-at item-re))))
+	      (cond
+	       ;; Skip inline tasks.
+	       ((and inlinetask-re (looking-at inlinetask-re))
+		(org-inlinetask-goto-beginning))
+	       ;; Shift only non-empty lines.
+	       ((looking-at-p "^[ \t]*\\S-")
+		(indent-line-to (+ (current-indentation) delta))))
+	      (forward-line -1))))
+	 (modify-item
+	  ;; Replace ITEM first line elements with new elements from
+	  ;; STRUCT, if appropriate.
+	  (lambda (item)
+	    (goto-char item)
+	    (let* ((new-ind (org-list-get-ind item struct))
+		   (old-ind (current-indentation))
+		   (new-bul (org-list-bullet-string
+			     (org-list-get-bullet item struct)))
+		   (old-bul (org-list-get-bullet item old-struct))
+		   (new-box (org-list-get-checkbox item struct)))
+	      (looking-at org-list-full-item-re)
+	      ;; a.  Replace bullet
+	      (unless (equal old-bul new-bul)
+		(replace-match new-bul nil nil nil 1))
+	      ;; b.  Replace checkbox.
+	      (cond
+	       ((equal (match-string 3) new-box))
+	       ((and (match-string 3) new-box)
+		(replace-match new-box nil nil nil 3))
+	       ((match-string 3)
+		(looking-at ".*?\\([ \t]*\\[[ X-]\\]\\)")
+		(replace-match "" nil nil nil 1))
+	       (t (let ((counterp (match-end 2)))
+		    (goto-char (if counterp (1+ counterp) (match-end 1)))
+		    (insert (concat new-box (unless counterp " "))))))
+	      ;; c.  Indent item to appropriate column.
+	      (unless (= new-ind old-ind)
+		(delete-region (goto-char (point-at-bol))
+			       (progn (skip-chars-forward " \t") (point)))
+		(indent-to new-ind))))))
     ;; 1. First get list of items and position endings.  We maintain
     ;;    two alists: ITM-SHIFT, determining indentation shift needed
     ;;    at item, and END-LIST, a pseudo-alist where key is ending
@@ -2484,10 +2476,10 @@ With optional prefix argument ALL, do this for the whole buffer."
    (let* ((cookie-re "\\(\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)\\)")
 	  (box-re "^[ \t]*\\([-+*]\\|\\([0-9]+\\|[A-Za-z]\\)[.)]\\)[ \t]+\
 \\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?\\(\\[[- X]\\]\\)")
+          (cookie-data (or (org-entry-get nil "COOKIE_DATA") ""))
 	  (recursivep
 	   (or (not org-checkbox-hierarchical-statistics)
-	       (string-match "\\<recursive\\>"
-			     (or (org-entry-get nil "COOKIE_DATA") ""))))
+	       (string-match-p "\\<recursive\\>" cookie-data)))
 	  (within-inlinetask (and (not all)
 				  (featurep 'org-inlinetask)
 				  (org-inlinetask-in-task-p)))
@@ -2533,7 +2525,8 @@ With optional prefix argument ALL, do this for the whole buffer."
      (while (re-search-forward cookie-re end t)
        (let ((context (save-excursion (backward-char)
 				      (save-match-data (org-element-context)))))
-	 (when (eq (org-element-type context) 'statistics-cookie)
+	 (when (and (eq (org-element-type context) 'statistics-cookie)
+                    (not (string-match-p "\\<todo\\>" cookie-data)))
 	   (push
 	    (append
 	     (list (match-beginning 1) (match-end 1) (match-end 2))
@@ -3355,7 +3348,7 @@ Valid parameters are:
     (when (and backend (symbolp backend) (not (org-export-get-backend backend)))
       (user-error "Unknown :backend value"))
     (unless backend (require 'ox-org))
-    ;; When`:raw' property has a non-nil value, turn all objects back
+    ;; When ':raw' property has a non-nil value, turn all objects back
     ;; into Org syntax.
     (when (and backend (plist-get params :raw))
       (org-element-map data org-element-all-objects

@@ -2318,19 +2318,18 @@ commands listed in @ref{Browse Foreign Server} at hand.
 @itemx u
 @kindex S t @r{(Group)}
 @kindex u @r{(Group)}
-@findex gnus-group-unsubscribe-current-group
-@c @icon{gnus-group-unsubscribe}
-Toggle subscription to the current group
-(@code{gnus-group-unsubscribe-current-group}).
+@findex gnus-group-toggle-subscription-at-point
+@c @icon{gnus-group-toggle-subscription-at-point}
+Toggle subscription to group under point
+(@code{gnus-group-toggle-subscription-at-point}).
 
 @item S s
 @itemx U
 @kindex S s @r{(Group)}
 @kindex U @r{(Group)}
-@findex gnus-group-unsubscribe-group
-Prompt for a group to subscribe, and then subscribe it.  If it was
-subscribed already, unsubscribe it instead
-(@code{gnus-group-unsubscribe-group}).
+@findex gnus-group-toggle-subscription
+Prompt for group, and toggle its subscription.
+(@code{gnus-group-toggle-subscription}).
 
 @item S k
 @itemx C-k
@@ -3736,10 +3735,10 @@ Enter the current group (@code{gnus-browse-select-group}).
 
 @item u
 @kindex u @r{(Browse)}
-@findex gnus-browse-unsubscribe-current-group
+@findex gnus-browse-toggle-subscription
 @vindex gnus-browse-subscribe-newsgroup-method
-Unsubscribe to the current group, or, as will be the case here,
-subscribe to it (@code{gnus-browse-unsubscribe-current-group}).  You
+Toggle subscription of the current group
+(@code{gnus-browse-toggle-subscription}).  You
 can affect the way the new group is entered into the Group buffer
 using the variable @code{gnus-browse-subscribe-newsgroup-method}.  See
 @pxref{Subscription Methods} for available options.
@@ -4146,6 +4145,25 @@ The default is 2.
 The @code{gnus-topic-display-empty-topics} says whether to display even
 topics that have no unread articles in them.  The default is @code{t}.
 
+@vindex gnus-topic-display-predicate
+If @code{gnus-topic-display-predicate} is non-@code{nil}, it should be
+a function that says whether the topic is to be displayed or not.
+The function will be called with one parameter (the name of the topic)
+and should return non-@code{nil} is the topic is to be displayed.
+
+For instance, if you don't even want to be reminded that work exists
+outside of office hours, you can gather all the work-related groups
+into a topic called @samp{"Work"}, and then say something like the
+following:
+
+@lisp
+(setq gnus-topic-display-predicate
+      (lambda (name)
+        (or (not (equal name "Work"))
+            (< 090000
+               (string-to-number (format-time-string "%H%M%S"))
+               170000))))
+@end lisp
 
 @node Topic Sorting
 @subsection Topic Sorting
@@ -7112,20 +7130,15 @@ as 10, you might consider setting this variable to something sensible:
 (setq gnus-simplify-ignored-prefixes
       (concat
        "\\`\\[?\\("
-       (mapconcat
-        'identity
-        '("looking"
-          "wanted" "followup" "summary\\( of\\)?"
-          "help" "query" "problem" "question"
-          "answer" "reference" "announce"
-          "How can I" "How to" "Comparison of"
-          ;; ...
-          )
-        "\\|")
+       (regexp-opt '("looking"
+                     "wanted" "followup" "summary" "summary of"
+                     "help" "query" "problem" "question"
+                     "answer" "reference" "announce"
+                     "How can I" "How to" "Comparison of"
+                     ;; ...
+                     ))
        "\\)\\s *\\("
-       (mapconcat 'identity
-                  '("for" "for reference" "with" "about")
-                  "\\|")
+       (regexp-opt '("for" "for reference" "with" "about"))
        "\\)?\\]?:?[ \t]*"))
 @end lisp
 
@@ -9356,6 +9369,12 @@ Use html2text---a simple @acronym{HTML} converter included with Gnus.
 
 @end table
 
+@item W D F
+@kindex W D F @r{(Summary)}
+@findex gnus-article-toggle-fonts
+Toggle proportional fonts for @acronym{HTML} articles.  This temporarily
+changes the @code{shr-use-fonts} variable in the current article buffer.
+
 @item W b
 @kindex W b @r{(Summary)}
 @findex gnus-article-add-buttons
@@ -9823,6 +9842,13 @@ Gravatarify the @code{From} header (@code{gnus-treat-from-gravatar}).
 @findex gnus-treat-mail-gravatar
 Gravatarify all mail headers (i.e., @code{Cc}, @code{To})
 (@code{gnus-treat-from-gravatar}).
+
+@item W D e
+@kindex W D e @r{(Summary)}
+@findex gnus-article-emojize-symbols
+Some symbols have both a non-emoji presentation and an emoji
+presentation.  This command will make Gnus choose the emoji presentation
+(@code{gnus-article-emojize-symbols}).
 
 @item W D D
 @kindex W D D @r{(Summary)}
@@ -12166,6 +12192,7 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-capitalize-sentences
 @vindex gnus-treat-overstrike
 @vindex gnus-treat-strip-cr
+@vindex gnus-treat-emojize-symbols
 @vindex gnus-treat-strip-headers-in-body
 @vindex gnus-treat-strip-leading-blank-lines
 @vindex gnus-treat-strip-multiple-blank-lines
@@ -12218,6 +12245,7 @@ possible but those listed are probably sufficient for most people.
 @item gnus-treat-capitalize-sentences (t, integer)
 @item gnus-treat-overstrike (t, integer)
 @item gnus-treat-strip-cr (t, integer)
+@item gnus-treat-emojize-symbols (t, integer)
 @item gnus-treat-strip-headers-in-body (t, integer)
 @item gnus-treat-strip-leading-blank-lines (t, first, integer)
 @item gnus-treat-strip-multiple-blank-lines (t, integer)
@@ -13851,11 +13879,9 @@ present in this hook.
 @item nntp-authinfo-function
 @vindex nntp-authinfo-function
 @findex nntp-send-authinfo
-@vindex nntp-authinfo-file
 This function will be used to send @samp{AUTHINFO} to the @acronym{NNTP}
 server.  The default function is @code{nntp-send-authinfo}, which looks
-through your @file{~/.authinfo} (or whatever you've set the
-@code{nntp-authinfo-file} variable to) for applicable entries.  If none
+through your @file{~/.authinfo} for applicable entries.  If none
 are found, it will prompt you for a login name and a password.  The
 format of the @file{~/.authinfo} file is (almost) the same as the
 @code{ftp} @file{~/.netrc} file, which is defined in the @code{ftp}
@@ -14517,7 +14543,8 @@ this should be set to @code{anonymous}.  If this variable isn't set,
 the normal login methods will be used.  If you wish to specify a
 specific login method to be used, you can set this variable to either
 @code{login} (the traditional @acronym{IMAP} login method),
-@code{plain} or @code{cram-md5}.
+@code{plain}, @code{cram-md5} or @code{xoauth2}.  (The latter method
+requires using the @file{oauth2.el} library.)
 
 @item nnimap-expunge
 When to expunge deleted messages.  If @code{never}, deleted articles
@@ -21873,7 +21900,7 @@ bound to mairix searches and are automatically updated.
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the
 GPL@.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), macOS and Solaris.  The homepage can
+runs under Windows (with cygwin), macOS and Solaris.  The website can
 be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
@@ -22701,6 +22728,13 @@ things like @code{gnus-group-line-format} and
 output lines in the various buffers.  There's quite a lot of them.
 Fortunately, they all use the same syntax, so there's not that much to
 be annoyed by.
+
+Gnus does not use the font locking machinery used by most modes in
+Emacs, so switching @code{font-lock-mode} on in the Gnus
+group/summary/article buffers usually doesn't do anything
+useful---instead it'll just mess up the faces that Gnus has already
+put in the buffer.  (This is also the case for other minor modes that
+use the font locking machinery, like @code{whitespace-mode}.)
 
 Here's an example format spec (from the group buffer): @samp{%M%S%5y:
 %(%g%)\n}.  We see that it is indeed extremely ugly, and that there are
@@ -26292,7 +26326,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 @end lisp
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
-and when you press @kbd{s} from the @file{*Group*} buffer.  It also
+and when you press @kbd{s} from the @file{*Group*} buffer).  It also
 adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.
@@ -26861,9 +26895,10 @@ but at the common table.@*
 
 If you want to investigate the person responsible for this outrage,
 you can point your (feh!) web browser to
-@uref{https://quimby.gnus.org/}.  This is also the primary
-distribution point for the new and spiffy versions of Gnus, and is
-known as The Site That Destroys Newsrcs And Drives People Mad.
+@uref{https://quimby.gnus.org/}.  This used to be the primary
+distribution point for the new and spiffy versions of Gnus, and was
+known as The Site That Destroys Newsrcs And Drives People Mad, but
+these days Gnus is developed in the Emacs repository.
 
 During the first extended alpha period of development, the new Gnus was
 called ``(ding) Gnus''.  @dfn{(ding)} is, of course, short for

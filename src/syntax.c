@@ -17,7 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-
 #include <config.h>
 
 #include "lisp.h"
@@ -3547,8 +3546,10 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
        doc: /* Parse Lisp syntax starting at FROM until TO; return status of parse at TO.
 Parsing stops at TO or when certain criteria are met;
  point is set to where parsing stops.
-If fifth arg OLDSTATE is omitted or nil,
- parsing assumes that FROM is the beginning of a function.
+
+If OLDSTATE is omitted or nil, parsing assumes that FROM is the
+ beginning of a function.  If not, OLDSTATE should be the state at
+ FROM.
 
 Value is a list of elements describing final state of parsing:
  0. depth in parens.
@@ -3593,6 +3594,9 @@ Sixth arg COMMENTSTOP non-nil means stop after the start of a comment.
     }
   else
     target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth.  */
+
+  if (fix_position (to) < fix_position (from))
+    error ("End position is smaller than start position");
 
   validate_region (&from, &to);
   internalize_parse_state (oldstate, &state);

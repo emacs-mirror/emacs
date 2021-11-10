@@ -162,9 +162,7 @@ Return nil when any other file notification watch is still active."
 
 (defun file-notify--test-cleanup ()
   "Cleanup after a test."
-  (file-notify-rm-watch file-notify--test-desc)
-  (file-notify-rm-watch file-notify--test-desc1)
-  (file-notify-rm-watch file-notify--test-desc2)
+  (file-notify-rm-all-watches)
 
   (ignore-errors
     (delete-file (file-newest-backup file-notify--test-tmpfile)))
@@ -421,7 +419,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 ;; This test is inspired by Bug#26126 and Bug#26127.
 (ert-deftest file-notify-test02-rm-watch ()
-  "Check `file-notify-rm-watch'."
+  "Check `file-notify-rm-watch' and `file-notify-rm-all-watches'."
   (skip-unless (file-notify--test-local-enabled))
 
   (unwind-protect
@@ -515,6 +513,31 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
             ;; The environment shall be cleaned up.
             (file-notify--test-cleanup-p))))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup))
+
+  (unwind-protect
+      ;; Check `file-notify-rm-all-watches'.
+      (progn
+        (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
+              file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
+        (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
+        (write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
+        (should
+         (setq file-notify--test-desc
+               (file-notify-add-watch
+                file-notify--test-tmpfile '(change) #'ignore)))
+        (should
+         (setq file-notify--test-desc1
+               (file-notify-add-watch
+                file-notify--test-tmpfile1 '(change) #'ignore)))
+        (file-notify-rm-all-watches)
+        (delete-file file-notify--test-tmpfile)
+        (delete-file file-notify--test-tmpfile1)
+
+        ;; The environment shall be cleaned up.
+        (file-notify--test-cleanup-p))
 
     ;; Cleanup.
     (file-notify--test-cleanup)))
@@ -743,7 +766,7 @@ delivered."
 	     ;; the directory.  Except for
 	     ;; GFam{File,Directory}Monitor, GPollFileMonitor and
 	     ;; kqueue.  And GFam{File,Directory}Monitor and
-	     ;; GPollFileMonitordo not raise a `changed' event.
+	     ;; GPollFileMonitor do not raise a `changed' event.
 	     ((memq (file-notify--test-monitor)
                     '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	      '(created deleted stopped))

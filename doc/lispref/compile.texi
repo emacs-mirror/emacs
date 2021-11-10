@@ -811,8 +811,7 @@ for you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
-natively-compiled Lisp code, test whether the @code{native-compile}
-feature is available (@pxref{Named Features}).  Alternatively, call
+natively-compiled Lisp code, call
 @code{native-comp-available-p} (@pxref{Native-Compilation Functions}).
 
   Unlike byte-compiled code, natively-compiled Lisp code is executed
@@ -904,13 +903,20 @@ invokes the same Emacs executable as the process that called this
 function.
 @end defun
 
-@defun batch-native-compile
+@defun batch-native-compile &optional for-tarball
 This function runs native-compilation on files specified on the Emacs
 command line in batch mode.  It must be used only in a batch execution
 of Emacs, as it kills Emacs upon completion of the compilation.  If
 one or more of the files fail to compile, the Emacs process will
 attempt to compile all the other files, and will terminate with a
-non-zero status code.
+non-zero status code.  The optional argument @var{for-tarball}, if
+non-@code{nil}, tells the function to place the resulting @file{.eln}
+files in the last directory mentioned in
+@code{native-comp-eln-load-path} (@pxref{Library Search}); this is
+meant to be used as part of building an Emacs source tarball for the
+first time, when the natively-compiled files, which are absent from
+the source tarball, should be generated in the build tree instead of
+the user's cache directory.
 @end defun
 
 Native compilation can be run entirely asynchronously, in a subprocess

@@ -6,7 +6,7 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, vc, tools, unix
 ;; Version: 2.81.6
-(defconst ediff-version "2.81.6" "The current version of Ediff")
+(defconst ediff-version "2.81.6" "The current version of Ediff.")
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 20/3/2008, and the maintainer agreed that when a bug is
@@ -551,9 +551,11 @@ symbol describing the Ediff job type; it defaults to
 
 ;;;###autoload
 (defun ediff-directories (dir1 dir2 regexp)
-  "Run Ediff on a pair of directories, DIR1 and DIR2, comparing files that have
-the same name in both.  The third argument, REGEXP, is nil or a regular
-expression; only file names that match the regexp are considered."
+  "Run Ediff on directories DIR1 and DIR2, comparing files.
+Consider only files that have the same name in both directories.
+
+REGEXP is nil or a regular expression; only file names that match
+the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp t))
@@ -608,10 +610,11 @@ names.  Only the files that are under revision control are taken into account."
 
 ;;;###autoload
 (defun ediff-directories3 (dir1 dir2 dir3 regexp)
-  "Run Ediff on three directories, DIR1, DIR2, and DIR3, comparing files that
-have the same name in all three.  The last argument, REGEXP, is nil or a
-regular expression; only file names that match the regexp are considered."
+  "Run Ediff on directories DIR1, DIR2, and DIR3, comparing files.
+Consider only files that have the same name in all three directories.
 
+REGEXP is nil or a regular expression; only file names that match
+the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp t))
@@ -677,7 +680,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 (defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp
 						   &optional
 						   merge-autostore-dir)
-  "Merge files in directories DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
+  "Merge files in DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
 Ediff merges files that have identical names in DIR1, DIR2.  If a pair of files
 in DIR1 and DIR2 doesn't have an ancestor in ANCESTOR-DIR, Ediff will merge
 without ancestor.  The fourth argument, REGEXP, is nil or a regular expression;
@@ -743,7 +746,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 (defun ediff-merge-directory-revisions-with-ancestor (dir1 regexp
 							   &optional
 							   merge-autostore-dir)
-  "Run Ediff on a directory, DIR1, merging its files with their revisions and ancestors.
+  "Run Ediff on DIR1 and merge its files with their revisions and ancestors.
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
@@ -980,9 +983,9 @@ STARTUP-HOOKS is a list of functions that Emacs calls without
 arguments after setting up the Ediff buffers."
   (interactive
    (let (bf)
-     (list (setq bf (read-buffer "Region's A buffer: "
+     (list (setq bf (read-buffer "Region A's buffer: "
 				 (ediff-other-buffer "") t))
-	   (read-buffer "Region's B buffer: "
+	   (read-buffer "Region B's buffer: "
 			(progn
 			  ;; realign buffers so that two visible bufs will be
 			  ;; at the top
@@ -1597,7 +1600,7 @@ With optional NODE, goes to that node."
 
 ;;;###autoload
 (defun ediff-merge-with-ancestor-command ()
-  "Call `ediff-merge-files-with-ancestor' with the next three command line arguments."
+  "Call `ediff-merge-files-with-ancestor' with next three command line arguments."
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
 	(ancestor (nth 2 command-line-args-left)))
@@ -1634,7 +1637,8 @@ With optional NODE, goes to that node."
 
 ;;;###autoload
 (defun ediff-merge-directories-with-ancestor-command ()
-  "Call `ediff-merge-directories-with-ancestor' with the next four command line arguments."
+  "Call `ediff-merge-directories-with-ancestor' with the next four command line
+arguments."
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
 	(ancestor (nth 2 command-line-args-left))

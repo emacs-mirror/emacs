@@ -131,9 +131,12 @@ export_filter (const char *file,
                int (*function) (const scmp_filter_ctx, int),
                const char *name)
 {
-  int fd = TEMP_FAILURE_RETRY (
-    open (file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_CLOEXEC,
-          0644));
+  int fd;
+  do
+    fd = open (file,
+               O_WRONLY | O_CREAT | O_TRUNC | O_BINARY | O_CLOEXEC,
+               0644);
+  while (fd < 0 && errno == EINTR);
   if (fd < 0)
     fail (errno, "open %s", file);
   int status = function (ctx, fd);
@@ -348,6 +351,8 @@ main (int argc, char **argv)
      calls at startup time to set up thread-local storage.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (execve));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
+  RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (prctl),
+	SCMP_A0_32 (SCMP_CMP_EQ, PR_CAPBSET_READ));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (arch_prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, ARCH_SET_FS));
   RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (arch_prctl),

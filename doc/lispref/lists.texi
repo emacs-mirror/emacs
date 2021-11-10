@@ -679,6 +679,20 @@ list are in the same order as in @var{tree}.
     @result{}(1 2 3 4 5 6 7)
 @end example
 
+@defun ensure-list object
+This function returns @var{object} as a list.  If @var{object} is
+already a list, the function returns it; otherwise, the function
+returns a one-element list containing @var{object}.
+
+This is usually useful if you have a variable that may or may not be a
+list, and you can then say, for instance:
+
+@lisp
+(dolist (elem (ensure-list foo))
+  (princ elem))
+@end lisp
+@end defun
+
 @defun number-sequence from &optional to separation
 This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
@@ -1213,13 +1227,13 @@ this is not guaranteed to happen):
 @cindex lists as sets
 @cindex sets
 
-  A list can represent an unordered mathematical set---simply consider a
-value an element of a set if it appears in the list, and ignore the
-order of the list.  To form the union of two sets, use @code{append} (as
-long as you don't mind having duplicate elements).  You can remove
-@code{equal} duplicates using @code{delete-dups}.  Other useful
-functions for sets include @code{memq} and @code{delq}, and their
-@code{equal} versions, @code{member} and @code{delete}.
+  A list can represent an unordered mathematical set---simply consider
+a value an element of a set if it appears in the list, and ignore the
+order of the list.  To form the union of two sets, use @code{append}
+(as long as you don't mind having duplicate elements).  You can remove
+@code{equal} duplicates using @code{delete-dups} or @code{seq-uniq}.
+Other useful functions for sets include @code{memq} and @code{delq},
+and their @code{equal} versions, @code{member} and @code{delete}.
 
 @cindex CL note---lack @code{union}, @code{intersection}
 @quotation
@@ -1475,7 +1489,8 @@ comparison.
 This function destructively removes all @code{equal} duplicates from
 @var{list}, stores the result in @var{list} and returns it.  Of
 several @code{equal} occurrences of an element in @var{list},
-@code{delete-dups} keeps the first one.
+@code{delete-dups} keeps the first one.  See @code{seq-uniq} for
+non-destructive operation (@pxref{Sequence Functions}).
 @end defun
 
   See also the function @code{add-to-list}, in @ref{List Variables},
@@ -1557,10 +1572,12 @@ of property lists and association lists.
 @defun assoc key alist &optional testfn
 This function returns the first association for @var{key} in
 @var{alist}, comparing @var{key} against the alist elements using
-@var{testfn} if it is non-@code{nil} and @code{equal} otherwise
-(@pxref{Equality Predicates}).  It returns @code{nil} if no
-association in @var{alist} has a @sc{car} equal to @var{key}.  For
-example:
+@var{testfn} if it is a function, and @code{equal} otherwise
+(@pxref{Equality Predicates}).  If @var{testfn} is a function, it is
+called with two arguments: the @sc{car} of an element from @var{alist}
+and @var{key}.  The function returns @code{nil} if no
+association in @var{alist} has a @sc{car} equal to @var{key}, as
+tested by @var{testfn}.  For example:
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))

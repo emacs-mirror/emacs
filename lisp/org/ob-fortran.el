@@ -40,9 +40,11 @@
 
 (defvar org-babel-default-header-args:fortran '())
 
-(defvar org-babel-fortran-compiler "gfortran"
-  "fortran command used to compile a fortran source code file into an
-  executable.")
+(defcustom org-babel-fortran-compiler "gfortran"
+  "Fortran command used to compile Fortran source code file."
+  :group 'org-babel
+  :package-version '(Org . "9.5")
+  :type  'string)
 
 (defun org-babel-execute:fortran (body params)
   "This function should only be called by `org-babel-execute:fortran'."
@@ -155,7 +157,7 @@ of the same value."
       (format "real, parameter :: %S(%d) = %s\n"
 	      var (length val) (org-babel-fortran-transform-list val)))
      (t
-      (error "the type of parameter %s is not supported by ob-fortran" var)))))
+      (error "The type of parameter %s is not supported by ob-fortran" var)))))
 
 (defun org-babel-fortran-transform-list (val)
   "Return a fortran representation of enclose syntactic lists."

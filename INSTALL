@@ -187,6 +187,7 @@ X11 is being used.
   X libtiff for TIFF: http://www.simplesystems.org/libtiff/
   X libgif for GIF:   http://giflib.sourceforge.net/
     librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
+    libwebp for WebP: https://developers.google.com/speed/webp/
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -220,7 +221,7 @@ GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
 like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
-eg 'emacs25').  On Red Hat-based systems, the corresponding command is
+e.g. 'emacs25').  On Red Hat-based systems, the corresponding command is
 'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
 On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.
@@ -313,6 +314,7 @@ or more of these options:
   --without-gif          for GIF image support
   --without-png          for PNG image support
   --without-rsvg         for SVG image support
+  --without-webp         for WebP image support
 
 Although ImageMagick support is disabled by default due to security
 and stability concerns, you can enable it with --with-imagemagick.
@@ -322,8 +324,11 @@ Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --disable-largefile to omit support for files larger than 2GB on
-systems which support that.
+Use --disable-largefile to omit support for files larger than 2GB, and
+--disable-year2038 to omit support for timestamps past the year 2038,
+on systems which allow omitting such support.  This may help when
+linking Emacs to a library with an ABI that requires a particular
+width for off_t or for time_t.
 
 Use --without-sound to disable sound support.
 

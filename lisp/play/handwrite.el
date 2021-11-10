@@ -139,7 +139,7 @@
 
 ;;;###autoload
 (defun handwrite ()
-  "Turns the buffer into a \"handwritten\" document.
+  "Turn the buffer into a \"handwritten\" document.
 The functions `handwrite-10pt', `handwrite-11pt', `handwrite-12pt'
 and `handwrite-13pt' set up for various sizes of output.
 
@@ -200,7 +200,7 @@ Variables: `handwrite-linespace'     (default 12)
 					       (concat "\\\\" (cdr trans))
 					       line)))
 	(switch-to-buffer ps-buf-name)
-	(insert (replace-regexp-in-string "\n" "" line))
+	(insert (string-replace "\n" "" line))
 	(message "write write write...")
 	(setq ps-ypos (+ ps-ypos handwrite-linespace))
 	(end-of-line)

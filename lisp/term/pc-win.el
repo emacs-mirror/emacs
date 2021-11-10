@@ -290,7 +290,7 @@ This is used by `msdos-show-help'.")
              (not cursor-in-echo-area)) ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (setq help (replace-regexp-in-string "\n" ", " help))
+      (setq help (string-replace "\n" ", " help))
       (unless (or msdos-previous-message
 		  (string-equal help (current-message))
 		  (and (stringp msdos-last-help-message)

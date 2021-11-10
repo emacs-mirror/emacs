@@ -364,7 +364,7 @@ values but STATE is nil."
        ;; Value is some other object; create a compound value.
        (t
 	(unless state
-	  (error "Cannot insert compound values without state."))
+          (error "Cannot insert compound values without state"))
 
 	(srecode-dictionary-set-value
 	 dict name
@@ -410,7 +410,7 @@ OTHERDICT."
   "Return information about DICT's value for NAME.
 DICT is a dictionary, and NAME is a string that is treated as the
 name of an entry in the dictionary.  If such an entry exists, its
-value is returned.  Otherwise, nil is returned. Normally, the
+value is returned.  Otherwise, nil is returned.  Normally, the
 lookup is recursive in the sense that the parent of DICT is
 searched for NAME if it is not found in DICT.  This recursive
 lookup can be disabled by the optional argument NON-RECURSIVE.

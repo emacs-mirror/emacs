@@ -25,8 +25,8 @@
 ;;; Commentary:
 
 ;; This implements buffer truncation (and optional log file writing
-;; support for the Emacs IRC client. Use `erc-truncate-mode' to switch
-;; on. Use `erc-enable-logging' to enable logging of the stuff which
+;; support for the Emacs IRC client.  Use `erc-truncate-mode' to switch
+;; on.  Use `erc-enable-logging' to enable logging of the stuff which
 ;; is getting truncated.
 
 ;;; Code:
@@ -34,7 +34,7 @@
 (require 'erc)
 
 (defgroup erc-truncate nil
-  "Truncate buffers when they reach a certain size"
+  "Truncate buffers when they reach a certain size."
   :group 'erc)
 
 (defcustom erc-max-buffer-size 30000

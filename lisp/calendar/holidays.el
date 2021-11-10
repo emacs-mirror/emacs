@@ -482,7 +482,7 @@ The optional LABEL is used to label the buffer created."
       (calendar-increment-month displayed-month displayed-year 3)
       (setq s (calendar-absolute-from-gregorian
                (list displayed-month 1 displayed-year))))
-    (save-excursion
+    (save-current-buffer
       (calendar-in-read-only-buffer holiday-buffer
         (calendar-set-mode-line
          (if (= y1 y2)
@@ -683,7 +683,7 @@ nil, or if the date is not visible, there is no holiday."
         (y displayed-year))
     (calendar-increment-month m y -1)
     (holiday-filter-visible-calendar
-     (calendar-dlet* (year date)
+     (calendar-dlet (year date)
        (list
         (progn
           (setq year y

@@ -35,7 +35,7 @@
 (require 'sgml-mode)
 
 (defcustom rng-nxml-auto-validate-flag t
-  "Non-nil means automatically turn on validation with nxml-mode."
+  "Non-nil means automatically turn on validation with `nxml-mode'."
   :type 'boolean
   :group 'relax-ng)
 

@@ -147,7 +147,7 @@ Display the results only if something went wrong."
                                             "-recurse"
                                           "-norecurse"))
         (goto-char (point-min))
-        (mh-view-mode-enter)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing folders...done")))))
 
@@ -354,8 +354,8 @@ Arguments are IGNORED (for `revert-buffer')."
              (yes-or-no-p "Undo all commands in folder? "))
          (setq mh-delete-list nil
                mh-refile-list nil
-               mh-blacklist nil
-               mh-whitelist nil
+               mh-blocklist nil
+               mh-allowlist nil
                mh-seq-list nil
                mh-next-direction 'forward)
          (with-mh-folder-updating (nil)

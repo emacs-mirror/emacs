@@ -279,7 +279,7 @@ Optional MODIFIERS is additional text needed for variables."
 (defun semantic-sb-show-extra (text token indent)
   "Display additional information about the token as an expansion.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -288,7 +288,7 @@ TEXT TOKEN and INDENT are the details."
 	       (narrow-to-region (point) (point))
 	       ;; Add in stuff specific to this type of token.
 	       (semantic-sb-insert-details token (1+ indent))))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))
@@ -325,7 +325,7 @@ TEXT TOKEN and INDENT are the details."
 (defun semantic-sb-expand-group (text token indent)
   "Expand a group which has semantic tokens.
 TEXT TOKEN and INDENT are the details."
-  (cond ((string-match "\\+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion
@@ -333,7 +333,7 @@ TEXT TOKEN and INDENT are the details."
 	     (save-restriction
 	       (narrow-to-region (point-min) (point))
 	       (semantic-sb-buttons-plain (1+ indent) token)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (speedbar-delete-subblock indent))
 	(t (error "Ooops...  not sure what to do")))

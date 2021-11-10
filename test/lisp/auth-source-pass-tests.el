@@ -56,10 +56,10 @@
                      ("key2" . "please: keep my space after colon"))))))
 
 (defvar auth-source-pass--debug-log nil
-  "Contains a list of all messages passed to `auth-source-do-debug`.")
+  "Contains a list of all messages passed to `auth-source-do-debug'.")
 
 (defun auth-source-pass--have-message-matching (regexp)
-  "Return non-nil iff at least one `auth-source-do-debug` match REGEXP."
+  "Return non-nil iff at least one `auth-source-do-debug' match REGEXP."
   (seq-find (lambda (message)
               (string-match regexp message))
             auth-source-pass--debug-log))
@@ -75,8 +75,8 @@ REGEXP is the same as in `auth-source-pass--have-message-matching'."
 (put #'auth-source-pass--have-message-matching 'ert-explainer #'auth-source-pass--explain--have-message-matching)
 
 (defun auth-source-pass--debug (&rest msg)
-  "Format MSG and add that to `auth-source-pass--debug-log`.
-This function is intended to be set to `auth-source-debug`."
+  "Format MSG and add that to `auth-source-pass--debug-log'.
+This function is intended to be set to `auth-source-debug'."
   (add-to-list 'auth-source-pass--debug-log (apply #'format msg) t))
 
 (defvar auth-source-pass--parse-log nil)
@@ -97,7 +97,8 @@ This function is intended to be set to `auth-source-debug`."
 (defun auth-source-pass--explain-match-entry-p (entry hostname &optional user port)
   "Explainer function for `auth-source-pass-match-entry-p'.
 
-ENTRY, HOSTNAME, USER and PORT are the same as in `auth-source-pass-match-entry-p'."
+ENTRY, HOSTNAME, USER and PORT are the same as in
+`auth-source-pass-match-entry-p'."
   `(entry
     ,entry
     store
@@ -122,7 +123,8 @@ HOSTNAME, USER and PORT are passed unchanged to
 (defun auth-source-pass--explain-includes-sorted-entries (entries hostname &optional user port)
   "Explainer function for `auth-source-pass--includes-sorted-entries'.
 
-ENTRIES, HOSTNAME, USER and PORT are the same as in `auth-source-pass--includes-sorted-entries'."
+ENTRIES, HOSTNAME, USER and PORT are the same as in
+`auth-source-pass--includes-sorted-entries'."
   `(store
     ,(auth-source-pass-entries)
     matching-entries

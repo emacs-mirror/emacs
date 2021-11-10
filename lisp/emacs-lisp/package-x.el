@@ -34,7 +34,7 @@
 ;; (possibly one on a remote machine, accessed via Tramp).
 
 ;; Then call M-x package-upload-file, which prompts for a file to
-;; upload. Alternatively, M-x package-upload-buffer uploads the
+;; upload.  Alternatively, M-x package-upload-buffer uploads the
 ;; current buffer, if it's visiting a package file.
 
 ;; Once a package is uploaded, users can access it via the Package

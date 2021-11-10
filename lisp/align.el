@@ -553,8 +553,7 @@ The possible settings for `align-region-separate' are:
      (modes    . align-text-modes)
      (repeat   . t)
      (run-if   . ,(lambda ()
-                    (and current-prefix-arg
-                         (not (eq '- current-prefix-arg))))))
+                    (not (eq '- current-prefix-arg)))))
 
     ;; With a negative prefix argument, lists of dollar figures will
     ;; be aligned.
@@ -787,7 +786,7 @@ See the variable `align-exclude-rules-list' for more details.")
   "The current overlays highlighting the text matched by a rule.")
 
 (defvar align-regexp-history nil
-  "Input history for the full user-entered regex in `align-regexp'")
+  "Input history for the full user-entered regex in `align-regexp'.")
 
 ;; Sample extension rule set for vhdl-mode.  This is now obsolete.
 (defcustom align-vhdl-rules-list
@@ -836,11 +835,22 @@ See the variable `align-exclude-rules-list' for more details.")
 ;;;###autoload
 (defun align (beg end &optional separate rules exclude-rules)
   "Attempt to align a region based on a set of alignment rules.
-BEG and END mark the region.  If BEG and END are specifically set to
-nil (this can only be done programmatically), the beginning and end of
-the current alignment section will be calculated based on the location
-of point, and the value of `align-region-separate' (or possibly each
-rule's `separate' attribute).
+Interactively, BEG and END are the mark/point of the current region.
+
+Many modes define specific alignment rules, and some of these
+rules in some modes react to the current prefix argument.  For
+instance, in `text-mode', `M-x align' will align into columns
+based on space delimiters, while `C-u - M-x align' will align
+into columns based on the \"$\" character.  See the
+`align-rules-list' variable definition for the specific rules.
+
+Also see `align-regexp', which will guide you through various
+parameters for aligning text.
+
+Non-interactively, if BEG and END are nil, the beginning and end
+of the current alignment section will be calculated based on the
+location of point, and the value of `align-region-separate' (or
+possibly each rule's `separate' attribute).
 
 If SEPARATE is non-nil, it overrides the value of
 `align-region-separate' for all rules, except those that have their
@@ -889,6 +899,15 @@ on the format of these lists."
 BEG and END mark the limits of the region.  Interactively, this function
 prompts for the regular expression REGEXP to align with.
 
+Interactively, if you specify a prefix argument, the function
+will guide you through entering the full regular expression, and
+then prompts for which subexpression parenthesis GROUP (default
+1) within REGEXP to modify, the amount of SPACING (default
+`align-default-spacing') to use, and whether or not to REPEAT the
+rule throughout the line.
+
+See `align-rules-list' for more information about these options.
+
 For example, let's say you had a list of phone numbers, and wanted to
 align them so that the opening parentheses would line up:
 
@@ -897,24 +916,19 @@ align them so that the opening parentheses would line up:
     Mary-Anne (123) 456-7890
     Joe (123) 456-7890
 
-There is no predefined rule to handle this, but you could easily do it
-using a REGEXP like \"(\".  Interactively, all you would have to do is
-to mark the region, call `align-regexp' and enter that regular expression.
+There is no predefined rule to handle this, but interactively,
+all you would have to do is to mark the region, call `align-regexp'
+and enter \"(\".
 
-REGEXP must contain at least one parenthesized subexpression, typically
-whitespace of the form \"\\\\(\\\\s-*\\\\)\".  In normal interactive use,
-this is automatically added to the start of your regular expression after
-you enter it.  You only need to supply the characters to be lined up, and
-any preceding whitespace is replaced.
+REGEXP must contain at least one parenthesized subexpression,
+typically whitespace of the form \"\\\\(\\\\s-*\\\\)\", but in
+interactive use, this is automatically added to the start of your
+regular expression after you enter it.  Interactively, you only
+need to supply the characters to be lined up, and any preceding
+whitespace is replaced.
 
-If you specify a prefix argument (or use this function non-interactively),
-you must enter the full regular expression, including the subexpression.
-The function also then prompts for which subexpression parenthesis GROUP
-\(default 1) within REGEXP to modify, the amount of SPACING (default
-`align-default-spacing') to use, and whether or not to REPEAT the rule
-throughout the line.
-
-See `align-rules-list' for more information about these options.
+Non-interactively, you must enter the full regular expression,
+including the subexpression.
 
 The non-interactive form of the previous example would look something like:
   (align-regexp (point-min) (point-max) \"\\\\(\\\\s-*\\\\)(\")
@@ -926,7 +940,7 @@ construct a rule to pass to `align-region', which does the real work."
     (list (region-beginning) (region-end))
     (if current-prefix-arg
 	(list (read-string "Complex align using regexp: "
-                          "\\(\\s-*\\)" 'align-regexp-history)
+                           "\\(\\s-*\\) " 'align-regexp-history)
 	      (string-to-number
 	       (read-string
 		"Parenthesis group to modify (justify if negative): " "1"))

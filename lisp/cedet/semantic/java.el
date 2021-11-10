@@ -141,7 +141,7 @@ corresponding compound declaration."
         (semantic-tag-put-attribute clone :dereference (+ dim0 (cdr dim)))
         (semantic-tag-set-bounds clone start end)))
 
-     ((and (eq class 'type) (string-match "\\." (semantic-tag-name tag)))
+     ((and (eq class 'type) (string-search "." (semantic-tag-name tag)))
       ;; javap outputs files where the package name is stuck onto the class or interface
       ;; name.  To make this more regular, we extract the package name into a package statement,
       ;; then make the class name regular.

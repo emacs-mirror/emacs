@@ -5,10 +5,9 @@
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: unix, tools
+;; URL: https://www.emacswiki.org/emacs/GDB-MI
 
 ;; This file is part of GNU Emacs.
-
-;; Homepage: https://www.emacswiki.org/emacs/GDB-MI
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -468,8 +467,8 @@ GDB session needs to be restarted for this setting to take effect."
 ;; TODO Some commands can't be called with --all (give a notice about
 ;; it in setting doc)
 (defcustom gdb-gud-control-all-threads t
-  "When non-nil, GUD execution commands affect all threads when
-in non-stop mode.  Otherwise, only current thread is affected."
+  "When non-nil, GUD execution commands affect all threads when in non-stop mode.
+Otherwise, only current thread is affected."
   :type 'boolean
   :group 'gdb-non-stop
   :version "23.2")
@@ -594,7 +593,7 @@ filter."
 Each pattern is a regular expression.  GDB displays registers
 whose name matches any pattern in the list.  Refresh the register
 buffer for the change to take effect."
-  :type 'list
+  :type '(repeat regexp)
   :group 'gdb-buffers
   :version "28.1")
 
@@ -767,7 +766,9 @@ NOARG must be t when this macro is used outside `gud-def'."
       ;; Apparently we're not running with -i=mi (or we're, for
       ;; instance, debugging something inside a Docker instance with
       ;; Emacs on the outside).
-      (let ((msg "Error: Either -i=mi wasn't specified on the GDB command line, or the extra socket couldn't be established.  Consider using `M-x gud-gdb' instead."))
+      (let ((msg (substitute-command-keys
+                  "Error: Either -i=mi wasn't specified on the GDB command line,\
+ or the extra socket couldn't be established.  Consider using \\[gud-gdb] instead.")))
         (message msg)
         (setq string (concat (propertize msg 'font-lock-face 'error)
                              "\n" string)))
@@ -789,7 +790,7 @@ becomes the initial working directory and source-file directory
 for your debugger.
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
-cases the initial working directory is the default-directory of
+cases the initial working directory is the `default-directory' of
 the buffer in which this command was invoked.
 
 COMMAND-LINE should include \"-i=mi\" to use gdb's MI text interface.
@@ -995,6 +996,8 @@ detailed description of this mode.
     'gdb-mouse-jump)
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
+
+  (gud-set-repeat-map-property 'gud-gdb-repeat-map)
 
   (setq-local gud-gdb-completion-function 'gud-gdbmi-completions)
 
@@ -1380,7 +1383,7 @@ With arg, enter name of variable to be watched in the minibuffer."
     (string-match "\\(\\S-+\\)" text)
     (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
            (varnum (car var)))
-      (if (string-match "\\." (car var))
+      (if (string-search "." (car var))
           (message-box "Can only delete a root expression")
         (gdb-var-delete-1 var varnum)))))
 
@@ -1477,14 +1480,14 @@ With arg, enter name of variable to be watched in the minibuffer."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
-  (cond ((string-match "\\+" text)        ;expand this node
+  (cond ((string-search "+" text)        ;expand this node
 	 (let* ((var (assoc token gdb-var-list))
 		(expr (nth 1 var)) (children (nth 2 var)))
 	   (if (or (<= (string-to-number children) gdb-max-children)
 		   (y-or-n-p
-		    (format "%s has %s children. Continue? " expr children)))
+                    (format "%s has %s children.  Continue?" expr children)))
 	       (gdb-var-list-children token))))
-	((string-match "-" text)	;contract this node
+	((string-search "-" text)	;contract this node
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (car var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
@@ -1609,6 +1612,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 ;; Used to display windows with thread-bound buffers
 (defmacro def-gdb-preempt-display-buffer (name buffer &optional doc
 					       split-horizontal)
+  (declare (indent defun))
   `(defun ,name (&optional thread)
      ,(when doc doc)
      (message "%s" thread)
@@ -1961,7 +1965,7 @@ commands to be prefixed by \"-interpreter-exec console\".")
 The string is enclosed in double quotes.
 All embedded quotes, newlines, and backslashes are preceded with a backslash."
   (setq string (replace-regexp-in-string "\\([\"\\]\\)" "\\\\\\&" string))
-  (setq string (replace-regexp-in-string "\n" "\\n" string t t))
+  (setq string (string-replace "\n" "\\n" string))
   (concat "\"" string "\""))
 
 (defun gdb-input (command handler-function &optional trigger-name)
@@ -2414,7 +2418,7 @@ rule from an incomplete data stream.  The parser will stay in this state until
 the end of the current result or async record is reached."
   (when (< gdbmi-bnf-offset (length gud-marker-acc))
     ;; Search the data stream for the end of the current record:
-    (let* ((newline-pos (string-match "\n" gud-marker-acc gdbmi-bnf-offset))
+    (let* ((newline-pos (string-search "\n" gud-marker-acc gdbmi-bnf-offset))
 	   (is-progressive (equal (cdr class-command) 'progressive))
        (is-complete (not (null newline-pos)))
        result-str)
@@ -3009,6 +3013,7 @@ calling `gdb-current-context-command').
 Triggers defined by this command are meant to be used as a
 trigger argument when describing buffer types with
 `gdb-set-buffer-rules'."
+  (declare (indent defun))
   `(defun ,trigger-name (&optional signal)
      (when
          (or (not ,signal-list)
@@ -3029,6 +3034,7 @@ Erase current buffer and evaluate CUSTOM-DEFUN.
 Then call `gdb-update-buffer-name'.
 
 If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
+  (declare (indent defun))
   `(defun ,handler-name ()
      (let* ((inhibit-read-only t)
             ,@(unless nopreserve
@@ -3052,6 +3058,7 @@ See `def-gdb-auto-update-trigger'.
 
 HANDLER-NAME handler uses customization of CUSTOM-DEFUN.
 See `def-gdb-auto-update-handler'."
+  (declare (indent defun))
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ,gdb-command
@@ -3470,6 +3477,7 @@ corresponding to the mode line clicked."
 CUSTOM-DEFUN may use locally bound `thread' variable, which will
 be the value of `gdb-thread' property of the current line.
 If `gdb-thread' is nil, error is signaled."
+  (declare (indent defun))
   `(defun ,name (&optional event)
      ,(when doc doc)
      (interactive (list last-input-event))
@@ -3485,6 +3493,7 @@ If `gdb-thread' is nil, error is signaled."
                                                      &optional doc)
   "Define a NAME which will call BUFFER-COMMAND with id of thread
 on the current line."
+  (declare (indent defun))
   `(def-gdb-thread-buffer-command ,name
      (,buffer-command (gdb-mi--field thread 'id))
      ,doc))
@@ -3540,6 +3549,7 @@ on the current line."
   "Define a NAME which will execute GUD-COMMAND with
 `gdb-thread-number' locally bound to id of thread on the current
 line."
+  (declare (indent defun))
   `(def-gdb-thread-buffer-command ,name
      (if gdb-non-stop
          (let ((gdb-thread-number (gdb-mi--field thread 'id))
@@ -3708,6 +3718,7 @@ in `gdb-memory-format'."
 
 (defmacro def-gdb-set-positive-number (name variable echo-string &optional doc)
   "Define a function NAME which reads new VAR value from minibuffer."
+  (declare (indent defun))
   `(defun ,name (event)
      ,(when doc doc)
      (interactive "e")
@@ -3736,6 +3747,7 @@ in `gdb-memory-format'."
   "Define a function NAME to switch memory buffer to use FORMAT.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-format ,format)
@@ -3805,6 +3817,7 @@ DOC is an optional documentation string."
   "Define a function NAME to switch memory unit size to UNIT-SIZE.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-unit ,unit-size)
@@ -3829,6 +3842,7 @@ The defined function switches Memory buffer to show address
 stored in ADDRESS-VAR variable.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name
      ,(when doc doc)
      (interactive)

@@ -340,7 +340,7 @@ Switches from the 1 to 5 to 15 minute load average, and then back to 1."
                        (float-time end-time))))))))))
 
 (defun display-time-update ()
-  "Update the display-time info for the mode line.
+  "Update the `display-time' info for the mode line.
 However, don't redisplay right now.
 
 This is used for things like Rmail `g' that want to force an
@@ -626,7 +626,7 @@ point."
 ;;;###autoload
 (defun emacs-init-time (&optional format)
   "Return a string giving the duration of the Emacs initialization.
-FORMAT is a string to format the result, using `format'. If nil,
+FORMAT is a string to format the result, using `format'.  If nil,
 the default format \"%f seconds\" is used."
   (interactive)
   (let ((str (format (or format "%f seconds")

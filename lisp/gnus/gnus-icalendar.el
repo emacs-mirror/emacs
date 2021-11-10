@@ -107,19 +107,19 @@
          :accessor gnus-icalendar-event:opt-participants
          :initform nil
          :type (or null t)))
-  "generic iCalendar Event class")
+  "Generic iCalendar Event class.")
 
 (defclass gnus-icalendar-event-request (gnus-icalendar-event)
   nil
-  "iCalendar class for REQUEST events")
+  "iCalendar class for REQUEST events.")
 
 (defclass gnus-icalendar-event-cancel (gnus-icalendar-event)
   nil
-  "iCalendar class for CANCEL events")
+  "iCalendar class for CANCEL events.")
 
 (defclass gnus-icalendar-event-reply (gnus-icalendar-event)
   nil
-  "iCalendar class for REPLY events")
+  "iCalendar class for REPLY events.")
 
 (cl-defmethod gnus-icalendar-event:recurring-p ((event gnus-icalendar-event))
   "Return t if EVENT is recurring."
@@ -194,7 +194,11 @@
                           (caddr event))))
 
     (cl-labels
-	((attendee-role (prop) (plist-get (cadr prop) 'ROLE))
+	((attendee-role (prop)
+                        ;; RFC5546: default ROLE is REQ-PARTICIPANT
+                        (and prop
+                             (or (plist-get (cadr prop) 'ROLE)
+                                 "REQ-PARTICIPANT")))
 	 (attendee-name
 	  (prop)
 	  (or (plist-get (cadr prop) 'CN)
@@ -222,28 +226,35 @@
                      (uid . UID)))
          (method (caddr (assoc 'METHOD (caddr (car (nreverse ical))))))
          (attendee (when attendee-name-or-email
-                     (gnus-icalendar-event--find-attendee ical attendee-name-or-email)))
+                     (gnus-icalendar-event--find-attendee
+                      ical attendee-name-or-email)))
          (attendee-names (gnus-icalendar-event--get-attendee-names ical))
-         (role (plist-get (cadr attendee) 'ROLE))
+         ;; RFC5546: default ROLE is REQ-PARTICIPANT
+         (role (and attendee
+                    (or (plist-get (cadr attendee) 'ROLE)
+                        "REQ-PARTICIPANT")))
          (participation-type (pcase role
-                              ("REQ-PARTICIPANT" 'required)
-                              ("OPT-PARTICIPANT" 'optional)
-                              (_                 'non-participant)))
+                               ("REQ-PARTICIPANT" 'required)
+                               ("OPT-PARTICIPANT" 'optional)
+                               (_                 'non-participant)))
          (zone-map (icalendar--convert-all-timezones ical))
-         (args (list :method method
-                     :organizer organizer
-                     :start-time (gnus-icalendar-event--decode-datefield event 'DTSTART zone-map)
-                     :end-time (gnus-icalendar-event--decode-datefield event 'DTEND zone-map)
-                     :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
-                     :participation-type participation-type
-                     :req-participants (car attendee-names)
-                     :opt-participants (cadr attendee-names)))
-         (event-class (cond
-                       ((string= method "REQUEST") 'gnus-icalendar-event-request)
-                       ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
-                       ((string= method "REPLY") 'gnus-icalendar-event-reply)
-                       (t 'gnus-icalendar-event))))
-
+         (args
+          (list :method method
+                :organizer organizer
+                :start-time (gnus-icalendar-event--decode-datefield
+                             event 'DTSTART zone-map)
+                :end-time (gnus-icalendar-event--decode-datefield
+                           event 'DTEND zone-map)
+                :rsvp (string= (plist-get (cadr attendee) 'RSVP) "TRUE")
+                :participation-type participation-type
+                :req-participants (car attendee-names)
+                :opt-participants (cadr attendee-names)))
+         (event-class
+          (cond
+           ((string= method "REQUEST") 'gnus-icalendar-event-request)
+           ((string= method "CANCEL") 'gnus-icalendar-event-cancel)
+           ((string= method "REPLY") 'gnus-icalendar-event-reply)
+           (t 'gnus-icalendar-event))))
     (cl-labels
 	((map-property
 	  (prop)
@@ -252,10 +263,10 @@
 	      ;; ugly, but cannot get
 	      ;;replace-regexp-in-string work with "\\" as
 	      ;;REP, plus we should also handle "\\;"
-	      (replace-regexp-in-string
-	       "\\\\," ","
-	       (replace-regexp-in-string
-		"\\\\n" "\n" (substring-no-properties value))))))
+	      (string-replace
+	       "\\," ","
+	       (string-replace
+		"\\n" "\n" (substring-no-properties value))))))
 	 (accumulate-args
 	  (mapping)
 	  (cl-destructuring-bind (slot . ical-property) mapping
@@ -271,7 +282,11 @@
 		for keyword = (intern
 			       (format ":%s" (eieio-slot-descriptor-name slot)))
 		when (plist-member args keyword)
-		append (list keyword (plist-get args keyword)))))))
+		append (list keyword
+                             (if (eq keyword :uid)
+                                 ;; The UID has to be a string.
+                                 (or (plist-get args keyword) "")
+                               (plist-get args keyword))))))))
 
 (defun gnus-icalendar-event-from-buffer (buf &optional attendee-name-or-email)
   "Parse RFC5545 iCalendar in buffer BUF and return an event object.
@@ -337,10 +352,16 @@ status will be retrieved from the first matching attendee record."
 
       (mapc #'process-event-line (split-string ical-request "\n"))
 
+      ;; RFC5546 refers to uninvited attendees as "party crashers".
+      ;; This situation is common if the invitation is sent to a group
+      ;; of people via a mailing list.
       (unless (gnus-icalendar-find-if (lambda (x) (string-match "^ATTENDEE" x))
 				      reply-event-lines)
         (lwarn 'gnus-icalendar :warning
-               "Could not find an event attendee matching given identity"))
+               "Could not find an event attendee matching given identity")
+        (push (format "ATTENDEE;RSVP=TRUE;PARTSTAT=%s;CN=%s:MAILTO:%s"
+                      attendee-status user-full-name user-mail-address)
+              reply-event-lines))
 
       (mapconcat #'identity `("BEGIN:VEVENT"
                               ,@(nreverse reply-event-lines)
@@ -839,10 +860,14 @@ These will be used to retrieve the RSVP information from ical events."
        button t
        gnus-data ,data))))
 
-(defun gnus-icalendar-send-buffer-by-mail (buffer-name subject)
+(defun gnus-icalendar-send-buffer-by-mail (buffer-name subject organizer)
   (let ((message-signature nil))
     (with-current-buffer gnus-summary-buffer
       (gnus-summary-reply)
+      ;; Reply to the organizer, not to whoever sent the invitation. person
+      ;; Some calendar systems use specific email address as organizer to
+      ;; receive these responses.
+      (message-replace-header "To" organizer)
       (message-goto-body)
       (mml-insert-multipart "alternative")
       (mml-insert-empty-tag 'part 'type "text/plain")
@@ -858,7 +883,8 @@ These will be used to retrieve the RSVP information from ical events."
          (event (caddr data))
          (reply (gnus-icalendar-with-decoded-handle handle
                   (gnus-icalendar-event-reply-from-buffer
-                   (current-buffer) status (gnus-icalendar-identities)))))
+                   (current-buffer) status (gnus-icalendar-identities))))
+         (organizer (gnus-icalendar-event:organizer event)))
 
     (when reply
       (cl-labels
@@ -875,7 +901,7 @@ These will be used to retrieve the RSVP information from ical events."
             (delete-region (point-min) (point-max))
             (insert reply)
             (fold-icalendar-buffer)
-            (gnus-icalendar-send-buffer-by-mail (buffer-name) subject))
+            (gnus-icalendar-send-buffer-by-mail (buffer-name) subject organizer))
 
           ;; Back in article buffer
           (setq-local gnus-icalendar-reply-status status)
@@ -889,10 +915,16 @@ These will be used to retrieve the RSVP information from ical events."
   (gnus-icalendar-event:sync-to-org event gnus-icalendar-reply-status))
 
 (cl-defmethod gnus-icalendar-event:inline-reply-buttons ((event gnus-icalendar-event) handle)
-  (when (gnus-icalendar-event:rsvp event)
-    `(("Accept" gnus-icalendar-reply (,handle accepted ,event))
-      ("Tentative" gnus-icalendar-reply (,handle tentative ,event))
-      ("Decline" gnus-icalendar-reply (,handle declined ,event)))))
+  (let ((accept-btn "Accept")
+        (tentative-btn "Tentative")
+        (decline-btn "Decline"))
+    (unless (gnus-icalendar-event:rsvp event)
+      (setq accept-btn "Uninvited Accept"
+            tentative-btn "Uninvited Tentative"
+            decline-btn "Uninvited Decline"))
+    `((,accept-btn gnus-icalendar-reply (,handle accepted ,event))
+      (,tentative-btn gnus-icalendar-reply (,handle tentative ,event))
+      (,decline-btn gnus-icalendar-reply (,handle declined ,event)))))
 
 (cl-defmethod gnus-icalendar-event:inline-reply-buttons ((_event gnus-icalendar-event-reply) _handle)
   "No buttons for REPLY events."
@@ -1030,13 +1062,14 @@ These will be used to retrieve the RSVP information from ical events."
   (add-to-list 'mm-automatic-display "text/calendar")
   (add-to-list 'mm-inline-media-tests '("text/calendar" gnus-icalendar-mm-inline identity))
 
-  (gnus-define-keys (gnus-summary-calendar-map "i" gnus-summary-mode-map)
-    "a" gnus-icalendar-reply-accept
-    "t" gnus-icalendar-reply-tentative
-    "d" gnus-icalendar-reply-decline
-    "c" gnus-icalendar-event-check-agenda
-    "e" gnus-icalendar-event-export
-    "s" gnus-icalendar-event-show)
+  (define-key gnus-summary-mode-map "i"
+    (define-keymap :prefix 'gnus-summary-calendar-map
+      "a" #'gnus-icalendar-reply-accept
+      "t" #'gnus-icalendar-reply-tentative
+      "d" #'gnus-icalendar-reply-decline
+      "c" #'gnus-icalendar-event-check-agenda
+      "e" #'gnus-icalendar-event-export
+      "s" #'gnus-icalendar-event-show))
 
   (require 'gnus-art)
   (add-to-list 'gnus-mime-action-alist

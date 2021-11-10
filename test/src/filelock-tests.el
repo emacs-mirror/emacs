@@ -28,6 +28,7 @@
 
 (require 'cl-macs)
 (require 'ert)
+(require 'ert-x)
 (require 'seq)
 
 (defun filelock-tests--fixture (test-function)
@@ -36,22 +37,20 @@ Create a test directory and a buffer whose `buffer-file-name' and
 `buffer-file-truename' are a file within it, then call
 TEST-FUNCTION.  Finally, delete the buffer and the test
 directory."
-  (let* ((temp-dir (make-temp-file "filelock-tests" t))
-         (name (concat (file-name-as-directory temp-dir)
-                       "userfile"))
-         (create-lockfiles t))
-    (unwind-protect
-        (with-temp-buffer
-          (setq buffer-file-name name
-                buffer-file-truename name)
-          (unwind-protect
-              (save-current-buffer
-                (funcall test-function))
-            ;; Set `buffer-file-truename' nil to prevent unlocking,
-            ;; which might prompt the user and/or signal errors.
-            (setq buffer-file-name nil
-                  buffer-file-truename nil)))
-      (delete-directory temp-dir t nil))))
+  (ert-with-temp-directory temp-dir
+    (let ((name (concat (file-name-as-directory temp-dir)
+                        "userfile"))
+          (create-lockfiles t))
+      (with-temp-buffer
+        (setq buffer-file-name name
+              buffer-file-truename name)
+        (unwind-protect
+            (save-current-buffer
+              (funcall test-function))
+          ;; Set `buffer-file-truename' nil to prevent unlocking,
+          ;; which might prompt the user and/or signal errors.
+          (setq buffer-file-name nil
+                buffer-file-truename nil))))))
 
 (defun filelock-tests--make-lock-name (file-name)
   "Return the lock file name for FILE-NAME.

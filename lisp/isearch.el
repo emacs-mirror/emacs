@@ -114,7 +114,7 @@ is called to let you enter the search string, and RET terminates editing
 and does a nonincremental search.)"
   :type 'boolean)
 
-(defcustom search-whitespace-regexp (purecopy "\\s-+")
+(defcustom search-whitespace-regexp (purecopy "[ \t]+")
   "If non-nil, regular expression to match a sequence of whitespace chars.
 When you enter a space or spaces in the incremental search, it
 will match any sequence matched by this regexp.  As an exception,
@@ -133,8 +133,10 @@ tab, a carriage return (control-M), a newline, and `]+'.  Don't
 add any capturing groups into this value; that can change the
 numbering of existing capture groups in unexpected ways."
   :type '(choice (const :tag "Match Spaces Literally" nil)
+                 (const :tag "Tabs and spaces" "[ \t]+")
+                 (const :tag "Tabs, spaces and line breaks" "[ \t\n]+")
 		 regexp)
-  :version "24.3")
+  :version "28.1")
 
 (defcustom search-invisible 'open
   "If t incremental search/query-replace can match hidden text.
@@ -174,11 +176,11 @@ command history."
 
 (defcustom isearch-wrap-pause t
   "Define the behavior of wrapping when there are no more matches.
-When `t' (by default), signal an error when no more matches are found.
+When t (by default), signal an error when no more matches are found.
 Then after repeating the search, wrap with `isearch-wrap-function'.
 When `no', wrap immediately after reaching the last match.
 When `no-ding', wrap immediately without flashing the screen.
-When `nil', never wrap, just stop at the last match."
+When nil, never wrap, just stop at the last match."
   :type '(choice (const :tag "Pause before wrapping" t)
                  (const :tag "No pause before wrapping" no)
                  (const :tag "No pause and no flashing" no-ding)
@@ -187,9 +189,9 @@ When `nil', never wrap, just stop at the last match."
 
 (defcustom isearch-repeat-on-direction-change nil
   "Whether a direction change should move to another match.
-When `nil', the default, a direction change moves point to the other
+When nil, the default, a direction change moves point to the other
 end of the current search match.
-When `t', a direction change moves to another search match, if there
+When t, a direction change moves to another search match, if there
 is one."
   :type '(choice (const :tag "Remain on the same match" nil)
                  (const :tag "Move to another match" t))
@@ -869,7 +871,8 @@ When you enter a space or spaces in ordinary incremental search, it
 will match any sequence matched by the regexp defined by the variable
 `search-whitespace-regexp'.  If the value is nil, each space you type
 matches literally, against one space.  You can toggle the value of this
-variable by the command `isearch-toggle-lax-whitespace'.")
+variable by the command `isearch-toggle-lax-whitespace', usually bound to
+`M-s SPC' during isearch.")
 
 (defvar isearch-regexp-lax-whitespace nil
   "If non-nil, a space will match a sequence of whitespace chars.
@@ -877,7 +880,8 @@ When you enter a space or spaces in regexp incremental search, it
 will match any sequence matched by the regexp defined by the variable
 `search-whitespace-regexp'.  If the value is nil, each space you type
 matches literally, against one space.  You can toggle the value of this
-variable by the command `isearch-toggle-lax-whitespace'.")
+variable by the command `isearch-toggle-lax-whitespace', usually bound to
+`M-s SPC' during isearch.")
 
 (defvar isearch-cmds nil
   "Stack of search status elements.
@@ -1092,7 +1096,8 @@ as a regexp.  See the command `isearch-forward' for more information.
 In incremental searches, a space or spaces normally matches any
 whitespace defined by the variable `search-whitespace-regexp'.
 To search for a literal space and nothing else, enter C-q SPC.
-To toggle whitespace matching, use `isearch-toggle-lax-whitespace'.
+To toggle whitespace matching, use `isearch-toggle-lax-whitespace',
+usually bound to `M-s SPC' during isearch.
 This command does not support character folding."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
@@ -1217,7 +1222,7 @@ is processed.  (It is not called after characters that exit the search.)
 
 When the arg RECURSIVE-EDIT is non-nil, this function behaves modally and
 does not return to the calling function until the search is completed.
-To behave this way it enters a recursive-edit and exits it when done
+To behave this way it enters a recursive edit and exits it when done
 isearching.
 
 The arg REGEXP-FUNCTION, if non-nil, should be a function.  It is
@@ -1999,7 +2004,8 @@ Move point to the beginning of the buffer and search forwards from the top.
 \\<isearch-mode-map>
 With a numeric argument, go to the ARGth absolute occurrence counting from
 the beginning of the buffer.  To find the next relative occurrence forwards,
-type \\[isearch-repeat-forward] with a numeric argument."
+type \\[isearch-repeat-forward] with a numeric argument.
+You might want to use `isearch-allow-motion' instead of this command."
   (interactive "p")
   (if (and arg (< arg 0))
       (isearch-end-of-buffer (abs arg))
@@ -2007,7 +2013,11 @@ type \\[isearch-repeat-forward] with a numeric argument."
     ;; don't forward char in isearch-repeat
     (setq isearch-just-started t)
     (goto-char (point-min))
-    (isearch-repeat 'forward arg)))
+    (let ((current-direction (if isearch-forward 'forward 'backward))
+          (isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'forward arg)
+      (unless (eq current-direction (if isearch-forward 'forward 'backward))
+        (isearch-repeat current-direction)))))
 
 (defun isearch-end-of-buffer (&optional arg)
   "Go to the last occurrence of the current search string.
@@ -2015,13 +2025,18 @@ Move point to the end of the buffer and search backwards from the bottom.
 \\<isearch-mode-map>
 With a numeric argument, go to the ARGth absolute occurrence counting from
 the end of the buffer.  To find the next relative occurrence backwards,
-type \\[isearch-repeat-backward] with a numeric argument."
+type \\[isearch-repeat-backward] with a numeric argument.
+You might want to use `isearch-allow-motion' instead of this command."
   (interactive "p")
   (if (and arg (< arg 0))
       (isearch-beginning-of-buffer (abs arg))
     (setq isearch-just-started t)
     (goto-char (point-max))
-    (isearch-repeat 'backward arg)))
+    (let ((current-direction (if isearch-forward 'forward 'backward))
+          (isearch-repeat-on-direction-change nil))
+      (isearch-repeat 'backward arg)
+      (unless (eq current-direction (if isearch-forward 'forward 'backward))
+        (isearch-repeat current-direction)))))
 
 
 ;;; Toggles for `isearch-regexp-function' and `search-default-mode'.
@@ -2463,8 +2478,8 @@ The arguments passed to `highlight-regexp' are the regexp from
 the last search and the face from `hi-lock-read-face-name'."
   (interactive)
   (isearch--highlight-regexp-or-lines
-   #'(lambda (regexp face lighter)
-       (highlight-regexp regexp face nil lighter))))
+   (lambda (regexp face lighter)
+     (highlight-regexp regexp face nil lighter))))
 
 (defun isearch-highlight-lines-matching-regexp ()
   "Exit Isearch mode and call `highlight-lines-matching-regexp'.
@@ -2472,8 +2487,8 @@ The arguments passed to `highlight-lines-matching-regexp' are the
 regexp from the last search and the face from `hi-lock-read-face-name'."
   (interactive)
   (isearch--highlight-regexp-or-lines
-   #'(lambda (regexp face _lighter)
-       (highlight-lines-matching-regexp regexp face))))
+   (lambda (regexp face _lighter)
+     (highlight-lines-matching-regexp regexp face))))
 
 
 (defun isearch-delete-char ()
@@ -2923,11 +2938,48 @@ If non-nil, scrolling commands can be used in Isearch mode.
 However, you cannot scroll far enough that the current match is
 no longer visible (is off screen).  But if the value is `unlimited'
 that limitation is removed and you can scroll any distance off screen.
-If nil, scrolling commands exit Isearch mode."
+If nil, scrolling commands exit Isearch mode.
+See also the related option `isearch-allow-motion'."
   :type '(choice (const :tag "Scrolling exits Isearch" nil)
                  (const :tag "Scrolling with current match on screen" t)
                  (const :tag "Scrolling with current match off screen" unlimited))
   :group 'isearch)
+
+(put 'beginning-of-buffer 'isearch-motion
+     (cons (lambda () (goto-char (point-min))) 'forward))
+(put 'end-of-buffer 'isearch-motion
+     (cons (lambda () (goto-char (point-max)) (recenter -1 t)) 'backward))
+(put 'scroll-up-command 'isearch-motion
+     (cons (lambda () (goto-char (window-end)) (recenter 0 t)) 'forward))
+(put 'scroll-down-command 'isearch-motion
+     (cons (lambda () (goto-char (window-start)) (recenter -1 t)) 'backward))
+
+(defcustom isearch-allow-motion nil
+  "Whether to allow movement between isearch matches by cursor motion commands.
+If non-nil, the four motion commands \\[beginning-of-buffer], \\[end-of-buffer], \
+\\[scroll-up-command] and \\[scroll-down-command], when invoked during
+Isearch, move respectively to the first occurrence of the current search string
+in the buffer, the last one, the first one after the current window, and the
+last one before the current window.
+If nil, these motion commands normally exit Isearch and are executed.
+See also the related options `isearch-motion-changes-direction' and
+`isearch-allow-scroll'."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'isearch
+  :version "28.1")
+
+(defcustom isearch-motion-changes-direction nil
+  "Whether motion commands during incremental search change search direction.
+If nil, the search direction (forward or backward) does not change when
+motion commands are used during incremental search, except when wrapping.
+If non-nil, the search direction is forward after \\[beginning-of-buffer] and \
+\\[scroll-up-command], and
+backward after \\[end-of-buffer] and \\[scroll-down-command]."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'isearch
+  :version "28.1")
 
 (defcustom isearch-allow-prefix t
   "Whether prefix arguments are allowed during incremental search.
@@ -3030,6 +3082,27 @@ See more for options in `search-exit-option'."
      ;; Optionally edit the search string instead of exiting.
      ((eq search-exit-option 'edit)
       (setq this-command 'isearch-edit-string))
+     ;; Handle motion command functions.
+     ((and isearch-allow-motion
+           (symbolp this-command)
+           (get this-command 'isearch-motion)
+           ;; Don't override `isearch-yank-on-move' used below.
+           (not (and (eq isearch-yank-on-move 'shift)
+                     this-command-keys-shift-translated)))
+      (let* ((property (get this-command 'isearch-motion))
+             (function (car property))
+             (current-direction (if isearch-forward 'forward 'backward))
+             (direction (or (cdr property)
+                            (if isearch-forward 'forward 'backward))))
+        (funcall function)
+        (setq isearch-just-started t)
+        (let ((isearch-repeat-on-direction-change nil))
+          (isearch-repeat direction))
+        (when (and isearch-success (not isearch-motion-changes-direction))
+          (unless (eq direction current-direction)
+            (let ((isearch-repeat-on-direction-change nil))
+              (isearch-repeat current-direction))))
+        (setq this-command 'ignore)))
      ;; Handle a scrolling function or prefix argument.
      ((or (and isearch-allow-prefix
                (memq this-command '(universal-argument universal-argument-more
@@ -3714,8 +3787,10 @@ Isearch, at least partially, as determined by `isearch-range-invisible'.
 If `search-invisible' is t, which allows Isearch matches inside
 invisible text, this function will always return non-nil, regardless
 of what `isearch-range-invisible' says."
-  (or (eq search-invisible t)
-      (not (isearch-range-invisible beg end))))
+  (and (or (eq search-invisible t)
+           (not (isearch-range-invisible beg end)))
+       (not (text-property-not-all (min beg end) (max beg end)
+                                   'inhibit-isearch nil))))
 
 
 ;; General utilities

@@ -355,7 +355,7 @@ static char * file[] = {
 \"                            \",
 \"                            \",
 \"                            \"};")
-  "The edit-cmd icon")
+  "The edit-cmd icon.")
 
 (defvar idlwave-toolbar-run-icon
   (idlwave-toolbar-make-button

@@ -180,7 +180,7 @@ z          Jump to a specific section (e.g. '3 z' goes to section 3).")
 (defun reftex-toc (&optional _rebuild reuse)
   ;; FIXME: Get rid of the `rebuild' argument.
   "Show the table of contents for the current document.
-When called with a raw C-u prefix, rescan the document first."
+When called with a raw \\[universal-argument] prefix, rescan the document first."
 
 ;; The REUSE argument means, search all visible frames for a window
 ;; displaying the toc window.  If yes, reuse this window.
@@ -856,10 +856,10 @@ label prefix determines the wording of a reference."
          (label (car toc)) newlabel)
     (if (not (stringp label))
         (error "This is not a label entry"))
-    (setq newlabel (read-string (format "Rename label \"%s\" to:" label)))
+    (setq newlabel (read-string (format "Rename label \"%s\" to: " label)))
     (if (assoc newlabel (symbol-value reftex-docstruct-symbol))
         (if (not (y-or-n-p
-                  (format-message "Label `%s' exists.  Use anyway? " label)))
+                  (format-message "Label `%s' exists.  Use anyway? " newlabel)))
             (error "Abort")))
     (save-excursion
       (save-window-excursion

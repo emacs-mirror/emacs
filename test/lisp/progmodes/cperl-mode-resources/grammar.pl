@@ -1,6 +1,7 @@
 use 5.024;
 use strict;
 use warnings;
+use utf8;
 
 sub outside {
     say "Line @{[__LINE__]}: package '@{[__PACKAGE__]}'";
@@ -154,5 +155,18 @@ package :: {
 }
 
 Shoved::elsewhere();
+
+# Finally, try unicode identifiers.
+package Erdős::Number;
+
+sub erdős_number {
+    my $name = shift;
+    if ($name eq  "Erdős Pál") {
+	return 0;
+    }
+    else {
+        die "No access to the database. Sorry.";
+    }
+}
 
 1;

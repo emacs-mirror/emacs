@@ -453,7 +453,7 @@ non-nil means return old filename."
   (remove-function (local 'revert-buffer-function) #'wdired-revert))
 
 (defun wdired-abort-changes ()
-  "Abort changes and return to dired mode."
+  "Abort changes and return to `dired-mode'."
   (interactive)
   (remove-hook 'before-change-functions #'wdired--before-change-fn t)
   (let ((inhibit-read-only t))
@@ -689,7 +689,7 @@ Optional arguments are ignored."
   ;; FIXME: Can't we use the normal mechanism for that?  --Stef
   (if (and
        (buffer-modified-p)
-       (not (y-or-n-p "Buffer changed. Discard changes and kill buffer? ")))
+       (not (y-or-n-p "Buffer changed.  Discard changes and kill buffer?")))
       (error "Error")))
 
 ;; Added to after-change-functions in wdired-change-to-wdired-mode to

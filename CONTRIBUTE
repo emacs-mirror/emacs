@@ -58,7 +58,7 @@ format and whitespace are not munged in transit by the various mail
 agents.  To send just one such patch without additional remarks, it is
 also possible to use a command like
 
-  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
 
 However, we prefer the 'git format-patch' method with attachment, as
 doing so delivers patches in the correct and easily-recognizable format
@@ -156,6 +156,14 @@ To run tests on the entire Emacs tree, run "make check" from the
 top-level directory.  Most tests are in the directory "test/".  From
 the "test/" directory, run "make <filename>" to run the tests for
 <filename>.el(c).  See "test/README" for more information.
+
+If you're making changes that involve the Emacs build system, please
+test 'out-of-tree' builds as well, i.e.:
+
+    mkdir emacs-build
+    cd emacs-build
+    ../path-to-emacs-sources/configure
+    make
 
 ** Commit messages
 

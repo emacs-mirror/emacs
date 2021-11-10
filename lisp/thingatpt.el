@@ -31,7 +31,7 @@
 ;; The function bounds-of-thing-at-point finds the beginning and end
 ;; positions by moving first forward to the end of the "thing", and then
 ;; backwards to the beginning.  By default, it uses the corresponding
-;; forward-"thing" operator (eg. forward-word, forward-line).
+;; forward-"thing" operator (e.g. forward-word, forward-line).
 ;;
 ;; Special cases are allowed for using properties associated with the named
 ;; "thing":
@@ -73,8 +73,8 @@ provider functions are called with no parameters at the point in
 question.
 
 \"things\" include `symbol', `list', `sexp', `defun', `filename',
-`url', `email', `uuid', `word', `sentence', `whitespace', `line',
-and `page'.")
+`existing-filename', `url', `email', `uuid', `word', `sentence',
+`whitespace', `line', and `page'.")
 
 ;; Basic movement
 
@@ -156,30 +156,54 @@ positions of the thing found."
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
-`line', `number', and `page'.
+`filename', `existing-filename', `url', `email', `uuid', `word',
+`sentence', `whitespace', `line', `number', and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
 
+If the current buffer uses fields (see Info node `(elisp)Fields'),
+this function will narrow to the field before identifying the
+thing at point.
+
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (let ((text
-         (cond
-          ((cl-loop for (pthing . function) in thing-at-point-provider-alist
-                    when (eq pthing thing)
-                    for result = (funcall function)
-                    when result
-                    return result))
-          ((get thing 'thing-at-point)
-           (funcall (get thing 'thing-at-point)))
-          (t
-           (let ((bounds (bounds-of-thing-at-point thing)))
-             (when bounds
-               (buffer-substring (car bounds) (cdr bounds))))))))
-    (when (and text no-properties (sequencep text))
-      (set-text-properties 0 (length text) nil text))
-    text))
+  (save-restriction
+    (narrow-to-region (field-beginning) (field-end))
+    (let ((text
+           (cond
+            ((cl-loop for (pthing . function) in thing-at-point-provider-alist
+                      when (eq pthing thing)
+                      for result = (funcall function)
+                      when result
+                      return result))
+            ((get thing 'thing-at-point)
+             (funcall (get thing 'thing-at-point)))
+            (t
+             (let ((bounds (bounds-of-thing-at-point thing)))
+               (when bounds
+                 (buffer-substring (car bounds) (cdr bounds))))))))
+      (when (and text no-properties (sequencep text))
+        (set-text-properties 0 (length text) nil text))
+      text)))
+
+;;;###autoload
+(defun bounds-of-thing-at-mouse (event thing)
+  "Determine start and end locations for THING at mouse click given by EVENT.
+Like `bounds-of-thing-at-point', but tries to use the position in EVENT
+where the mouse button is clicked to find the thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (bounds-of-thing-at-point thing)))
+
+;;;###autoload
+(defun thing-at-mouse (event thing &optional no-properties)
+  "Return the THING at mouse click specified by EVENT.
+Like `thing-at-point', but tries to use the position in EVENT
+where the mouse button is clicked to find the thing nearby."
+  (save-excursion
+    (mouse-set-point event)
+    (thing-at-point thing no-properties)))
 
 ;; Go to beginning/end
 
@@ -207,7 +231,27 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (put 'line 'beginning-op
      (lambda () (if (bolp) (forward-line -1) (beginning-of-line))))
 
-;;  Sexps
+;;  Strings
+
+(put 'string 'bounds-of-thing-at-point 'thing-at-point-bounds-of-string-at-point)
+
+(defun thing-at-point-bounds-of-string-at-point ()
+  "Return the bounds of the string at point.
+Prefer the enclosing string with fallback on sexp at point.
+\[Internal function used by `bounds-of-thing-at-point'.]"
+  (save-excursion
+    (let ((ppss (syntax-ppss)))
+      (if (nth 3 ppss)
+          ;; Inside the string
+          (ignore-errors
+            (goto-char (nth 8 ppss))
+            (cons (point) (progn (forward-sexp) (point))))
+        ;; At the beginning of the string
+        (if (eq (char-syntax (char-after)) ?\")
+            (let ((bound (bounds-of-thing-at-point 'sexp)))
+	      (and bound
+	           (<= (car bound) (point)) (< (point) (cdr bound))
+	           bound)))))))
 
 (defun in-string-p ()
   "Return non-nil if point is in a string."
@@ -216,6 +260,8 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
     (save-excursion
       (beginning-of-defun)
       (nth 3 (parse-partial-sexp (point) orig)))))
+
+;;  Sexps
 
 (defun thing-at-point--end-of-sexp ()
   "Move point to the end of the current sexp."
@@ -300,6 +346,17 @@ E.g.:
   "Characters allowable in filenames.")
 
 (define-thing-chars filename thing-at-point-file-name-chars)
+
+;; Files
+
+(defun thing-at-point-file-at-point (&optional _lax _bounds)
+  "Return the name of the existing file at point."
+  (when-let ((filename (thing-at-point 'filename)))
+    (setq filename (expand-file-name filename))
+    (and (file-exists-p filename)
+         filename)))
+
+(put 'existing-filename 'thing-at-point 'thing-at-point-file-at-point)
 
 ;;  URIs
 
@@ -481,7 +538,7 @@ looks like an email address, \"ftp://\" if it starts with
 	 (and (string-match "\\`[[:alnum:]]+\\'" str)
 	      (eq (char-before (car bounds)) ?<)
 	      (eq (char-after  (cdr bounds)) ?>)
-	      (not (string-match "~" (expand-file-name (concat "~" str))))
+	      (not (string-search "~" (expand-file-name (concat "~" str))))
 	      (setq str (concat "mailto:" str)))
 	 ;; If it looks like news.example.com, treat it as news.
 	 (if (thing-at-point-newsgroup-p str)

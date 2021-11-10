@@ -151,7 +151,7 @@
 (defun cal-html-comment (string)
   "Return STRING as html comment."
   (format "<!--  ======  %s  ======  -->\n"
-          (replace-regexp-in-string "--" "++" string)))
+          (string-replace "--" "++" string)))
 
 (defun cal-html-href (link string)
   "Return a hyperlink to url LINK with text STRING."

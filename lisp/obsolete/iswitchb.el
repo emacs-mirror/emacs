@@ -977,17 +977,7 @@ Return the modified list with the last element prepended to it."
 	  (set-buffer buf))
 
       (with-output-to-temp-buffer temp-buf
-	(if (featurep 'xemacs)
-
-	    ;; XEmacs extents are put on by default, doesn't seem to be
-	    ;; any way of switching them off.
-	    (display-completion-list (or iswitchb-matches iswitchb-buflist)
-				     :help-string "iswitchb "
-				     :activate-callback
-				     (lambda (_x _y _z)
-				       (message "doesn't work yet, sorry!")))
-	  ;; else running Emacs
-	  (display-completion-list (or iswitchb-matches iswitchb-buflist))))
+        (display-completion-list (or iswitchb-matches iswitchb-buflist)))
       (setq iswitchb-common-match-inserted nil))))
 
 ;;; KILL CURRENT BUFFER
@@ -1326,9 +1316,7 @@ This is an example function which can be hooked on to
   "Return non-nil if we should ignore case when matching.
 See the variable `iswitchb-case' for details."
   (if iswitchb-case
-      (if (featurep 'xemacs)
-	  (isearch-no-upper-case-p iswitchb-text)
-	(isearch-no-upper-case-p iswitchb-text t))))
+      (isearch-no-upper-case-p iswitchb-text t)))
 
 ;;;###autoload
 (define-minor-mode iswitchb-mode

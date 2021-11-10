@@ -32,7 +32,7 @@
 ;; invoke allout-widgets-mode in a particular allout buffer.  When
 ;; auto-enabled, you can inhibit widget operation in particular allout
 ;; buffers by setting the variable `allout-widgets-mode-inhibit' non-nil in
-;; that file's buffer.  Use emacs *file local variables* to generally
+;; that file's buffer.  Use Emacs *file local variables* to generally
 ;; inhibit for a file.
 ;;
 ;; See the `allout-widgets-mode' docstring for more details.
@@ -55,7 +55,7 @@
 ;; bindings for easy outline navigation and exposure control, extending
 ;; outline hot-spot navigation (see `allout-mode' docstring for details).
 ;;
-;; Developers note: Our use of emacs widgets is unconventional.  We
+;; Developers note: Our use of Emacs widgets is unconventional.  We
 ;; decorate existing text rather than substituting for it, to
 ;; piggy-back on existing allout operation.  This employs the C-coded
 ;; efficiencies of widget-apply, widget-get, and widget-put, along
@@ -87,7 +87,7 @@
   "Allout extension that highlights outline structure graphically.
 
 Customize `allout-widgets-auto-activation' to activate allout-widgets
-with allout-mode."
+with `allout-mode'."
   :group 'allout)
 ;;;_  > defgroup allout-widgets-developer
 (defgroup allout-widgets-developer nil
@@ -96,19 +96,19 @@ with allout-mode."
 ;;;_  ; some functions a bit early, for allout-auto-activation dependency:
 ;;;_  > allout-widgets-mode-enable
 (defun allout-widgets-mode-enable ()
-  "Enable allout-widgets-mode in allout-mode buffers.
+  "Enable `allout-widgets-mode' in `allout-mode' buffers.
 
 See `allout-widgets-mode-inhibit' for per-file/per-buffer
-inhibition of allout-widgets-mode."
+inhibition of `allout-widgets-mode'."
   (add-hook 'allout-mode-off-hook #'allout-widgets-mode-off)
   (add-hook 'allout-mode-on-hook #'allout-widgets-mode-on)
   t)
 ;;;_  > allout-widgets-mode-disable
 (defun allout-widgets-mode-disable ()
-  "Disable allout-widgets-mode in allout-mode buffers.
+  "Disable `allout-widgets-mode' in `allout-mode' buffers.
 
 See `allout-widgets-mode-inhibit' for per-file/per-buffer
-inhibition of allout-widgets-mode."
+inhibition of `allout-widgets-mode'."
   (remove-hook 'allout-mode-off-hook #'allout-widgets-mode-off)
   (remove-hook 'allout-mode-on-hook #'allout-widgets-mode-on)
   t)
@@ -384,7 +384,7 @@ onto the front.")
  )
 ;;;_    = allout-doing-exposure-undo-processor nil
 (defvar allout-undo-exposure-in-progress nil
-  "Maintained true during `allout-widgets-exposure-undo-processor'")
+  "Maintained true during `allout-widgets-exposure-undo-processor'.")
 ;;;_   , Widget-specific outline text format
 ;;;_    = allout-escaped-prefix-regexp
 (defvar-local allout-escaped-prefix-regexp ""
@@ -880,7 +880,7 @@ encompassing condition-case."
     ;; reraise the error, or one concerning this function if unexpected:
     (if (equal mode 'error)
         (apply #'signal args)
-      (error "%s: unexpected mode, %s %s" this mode args))))
+      (error "%s: Unexpected mode, %s %s" this mode args))))
 ;;;_   > allout-widgets-changes-exceed-threshold-p ()
 (defun allout-widgets-adjusting-message (message)
   "Post MESSAGE when pending are likely to make a big enough delay.
@@ -1450,7 +1450,7 @@ recursive operation."
   )
 ;;;_  > allout-new-item-widget ()
 (defsubst allout-new-item-widget ()
-  "create a new item widget, not yet situated anywhere."
+  "Create a new item widget, not yet situated anywhere."
   (if allout-widgets-maintain-tally
       ;; all the extra overhead is incurred only when doing the
       ;; maintenance, except the condition, which can't be avoided.

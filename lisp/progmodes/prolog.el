@@ -512,7 +512,7 @@ to automatically indent if-then-else constructs."
   :type 'boolean)
 
 (defcustom prolog-electric-colon-flag nil
-  "Makes `:' electric (inserts `:-' on a new line).
+  "Non-nil means make `:' electric (inserts `:-' on a new line).
 If non-nil, pressing `:' at the end of a line that starts in
 the first column (i.e., clause heads) inserts ` :-' and newline."
   :version "24.1"
@@ -520,7 +520,7 @@ the first column (i.e., clause heads) inserts ` :-' and newline."
   :type 'boolean)
 
 (defcustom prolog-electric-dash-flag nil
-  "Makes `-' electric (inserts a `-->' on a new line).
+  "Non-nil means make `-' electric (inserts a `-->' on a new line).
 If non-nil, pressing `-' at the end of a line that starts in
 the first column (i.e., DCG heads) inserts ` -->' and newline."
   :version "24.1"
@@ -1272,7 +1272,7 @@ using the commands `send-region', `send-string' and \\[prolog-consult-region].
 Commands:
 Tab indents for Prolog; with argument, shifts rest
  of expression rigidly with the current line.
-Paragraphs are separated only by blank lines and `%%'. `%'s start comments.
+Paragraphs are separated only by blank lines and `%%'.  `%'s start comments.
 
 Return at end of buffer sends line as input.
 Return not at end copies rest of line to end and sends it.
@@ -1315,6 +1315,7 @@ With prefix argument ARG, restart the Prolog process if running before."
       (progn
         (process-send-string "prolog" "halt.\n")
         (while (get-process "prolog") (sit-for 0.1))))
+  (prolog-ensure-process)
   (let ((buff (buffer-name)))
     (if (not (string= buff "*prolog*"))
         (prolog-goto-prolog-process-buffer))
@@ -1324,7 +1325,6 @@ With prefix argument ARG, restart the Prolog process if running before."
              prolog-use-sicstus-sd)
         (prolog-enable-sicstus-sd))
     (prolog-mode-variables)
-    (prolog-ensure-process)
     ))
 
 (defun prolog-inferior-guess-flavor (&optional ignored)
@@ -1349,56 +1349,57 @@ With prefix argument ARG, restart the Prolog process if running before."
   "If Prolog process is not running, run it.
 If the optional argument WAIT is non-nil, wait for Prolog prompt specified by
 the variable `prolog-prompt-regexp'."
-  (if (null (prolog-program-name))
-      (error "This Prolog system has defined no interpreter."))
-  (if (comint-check-proc "*prolog*")
-      ()
-    (with-current-buffer (get-buffer-create "*prolog*")
-      (prolog-inferior-mode)
+  (let ((pname (prolog-program-name))
+        (pswitches (prolog-program-switches)))
+    (if (null pname)
+        (error "This Prolog system has defined no interpreter"))
+    (unless (comint-check-proc "*prolog*")
+      (with-current-buffer (get-buffer-create "*prolog*")
+        (prolog-inferior-mode)
 
-      ;; The "INFERIOR=yes" hack is for SWI-Prolog 7.2.3 and earlier,
-      ;; which assumes it is running under Emacs if either INFERIOR=yes or
-      ;; if EMACS is set to a nonempty value.  The EMACS setting is
-      ;; obsolescent, so set INFERIOR.  Newer versions of SWI-Prolog should
-      ;; know about INSIDE_EMACS (which replaced EMACS) and should not need
-      ;; this hack.
-      (let ((process-environment
-	     (if (getenv "INFERIOR")
-		 process-environment
-	       (cons "INFERIOR=yes" process-environment))))
-	(apply 'make-comint-in-buffer "prolog" (current-buffer)
-	       (prolog-program-name) nil (prolog-program-switches)))
+        ;; The "INFERIOR=yes" hack is for SWI-Prolog 7.2.3 and earlier,
+        ;; which assumes it is running under Emacs if either INFERIOR=yes or
+        ;; if EMACS is set to a nonempty value.  The EMACS setting is
+        ;; obsolescent, so set INFERIOR.  Newer versions of SWI-Prolog should
+        ;; know about INSIDE_EMACS (which replaced EMACS) and should not need
+        ;; this hack.
+        (let ((process-environment
+	       (if (getenv "INFERIOR")
+		   process-environment
+	         (cons "INFERIOR=yes" process-environment))))
+	  (apply 'make-comint-in-buffer "prolog" (current-buffer)
+	         pname nil pswitches))
 
-      (unless prolog-system
-        ;; Setup auto-detection.
-        (setq-local
-         prolog-system
-         ;; Force re-detection.
-         (let* ((proc (get-buffer-process (current-buffer)))
-                (pmark (and proc (marker-position (process-mark proc)))))
-           (cond
-            ((null pmark) (1- (point-min)))
-            ;; The use of insert-before-markers in comint.el together with
-            ;; the potential use of comint-truncate-buffer in the output
-            ;; filter, means that it's difficult to reliably keep track of
-            ;; the buffer position where the process's output started.
-            ;; If possible we use a marker at "start - 1", so that
-            ;; insert-before-marker at `start' won't shift it.  And if not,
-            ;; we fall back on using a plain integer.
-            ((> pmark (point-min)) (copy-marker (1- pmark)))
-            (t (1- pmark)))))
-        (add-hook 'comint-output-filter-functions
-                  'prolog-inferior-guess-flavor nil t))
-      (if wait
-          (progn
-            (goto-char (point-max))
-            (while
-                (save-excursion
-                  (not
-                   (re-search-backward
-                    (concat "\\(" (prolog-prompt-regexp) "\\)" "\\=")
-                    nil t)))
-              (sit-for 0.1)))))))
+        (unless prolog-system
+          ;; Setup auto-detection.
+          (setq-local
+           prolog-system
+           ;; Force re-detection.
+           (let* ((proc (get-buffer-process (current-buffer)))
+                  (pmark (and proc (marker-position (process-mark proc)))))
+             (cond
+              ((null pmark) (1- (point-min)))
+              ;; The use of insert-before-markers in comint.el together with
+              ;; the potential use of comint-truncate-buffer in the output
+              ;; filter, means that it's difficult to reliably keep track of
+              ;; the buffer position where the process's output started.
+              ;; If possible we use a marker at "start - 1", so that
+              ;; insert-before-marker at `start' won't shift it.  And if not,
+              ;; we fall back on using a plain integer.
+              ((> pmark (point-min)) (copy-marker (1- pmark)))
+              (t (1- pmark)))))
+          (add-hook 'comint-output-filter-functions
+                    'prolog-inferior-guess-flavor nil t))
+        (if wait
+            (progn
+              (goto-char (point-max))
+              (while
+                  (save-excursion
+                    (not
+                     (re-search-backward
+                      (concat "\\(" (prolog-prompt-regexp) "\\)" "\\=")
+                      nil t)))
+                (sit-for 0.1))))))))
 
 (defun prolog-inferior-buffer (&optional dont-run)
   (or (get-buffer "*prolog*")
@@ -1640,7 +1641,7 @@ region.
 
 This function must be called from the source code buffer."
   (if prolog-process-flag
-      (error "Another Prolog task is running."))
+      (error "Another Prolog task is running"))
   (prolog-ensure-process t)
   (let* ((buffer (get-buffer-create prolog-compilation-buffer))
          (real-file buffer-file-name)
@@ -2135,7 +2136,8 @@ A return value of N means N more left parentheses than right ones."
                              (line-end-position)))))
 
 (defun prolog-electric--if-then-else ()
-  "Insert spaces after the opening parenthesis, \"then\" (->) and \"else\" (;) branches.
+  "Insert spaces after the opening parenthesis.
+\"then\" (->) and \"else\" (;) branches.
 Spaces are inserted if all preceding objects on the line are
 whitespace characters, parentheses, or then/else branches."
   (when prolog-electric-if-then-else-flag
@@ -2276,7 +2278,7 @@ between them)."
           ;(goto-char beg)
           (if (search-forward-regexp "^[ \t]*\\(%+\\|\\*+\\|/\\*+\\)[ \t]*"
                                      end t)
-              (replace-regexp-in-string "/" " " (buffer-substring beg (point)))
+              (string-replace "/" " " (buffer-substring beg (point)))
             (beginning-of-line)
             (when (search-forward-regexp "^[ \t]+" end t)
               (buffer-substring beg (point)))))))))
@@ -2354,7 +2356,7 @@ In effect it sets the `fill-prefix' when inside comments and then calls
            )
       (if prolog-help-function-i
           (funcall prolog-help-function-i predicate)
-        (error "Sorry, no help method defined for this Prolog system."))))
+        (error "Sorry, no help method defined for this Prolog system"))))
    ))
 
 
@@ -2368,7 +2370,7 @@ In effect it sets the `fill-prefix' when inside comments and then calls
     (pop-to-buffer nil)
     (Info-goto-node prolog-info-predicate-index)
     (if (not (re-search-forward str nil t))
-        (error "Help on predicate `%s' not found." predicate))
+        (error "Help on predicate `%s' not found" predicate))
 
     (setq oldp (point))
     (if (re-search-forward str nil t)
@@ -2412,7 +2414,7 @@ This function is only available when `prolog-system' is set to `swi'."
     (process-send-string "prolog" (concat "apropos(" string ").\n"))
     (display-buffer "*prolog*"))
    (t
-    (error "Sorry, no Prolog apropos available for this Prolog system."))))
+    (error "Sorry, no Prolog apropos available for this Prolog system"))))
 
 (defun prolog-atom-under-point ()
   "Return the atom under or left to the point."
@@ -2482,11 +2484,8 @@ Interaction supports completion."
     (if (eq (try-completion default prolog-info-alist) nil)
         (setq default nil))
     ;; Read the PredSpec from the user
-    (completing-read
-     (if (zerop (length default))
-         "Help on predicate: "
-       (concat "Help on predicate (default " default "): "))
-     prolog-info-alist nil t nil nil default)))
+    (completing-read (format-prompt "Help on predicate" default)
+                     prolog-info-alist nil t nil nil default)))
 
 (defun prolog-build-info-alist (&optional verbose)
   "Build an alist of all builtins and library predicates.
@@ -3288,7 +3287,7 @@ PREFIX is the prefix of the search regexp."
 
 (easy-menu-define
   prolog-edit-menu-runtime prolog-mode-map
-  "Runtime Prolog commands available from the editing buffer"
+  "Runtime Prolog commands available from the editing buffer."
   ;; FIXME: Don't use a whole menu for just "Run Mercury".  --Stef
   `("System"
     ;; Runtime menu name.

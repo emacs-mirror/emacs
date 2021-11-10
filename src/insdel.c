@@ -1392,7 +1392,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
                bool prepare, bool inherit, bool markers,
-               bool adjust_match_data)
+               bool adjust_match_data, bool inhibit_mod_hooks)
 {
   ptrdiff_t inschars = SCHARS (new);
   ptrdiff_t insbytes = SBYTES (new);
@@ -1552,8 +1552,11 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (adjust_match_data)
     update_search_regs (from, to, from + SCHARS (new));
 
-  signal_after_change (from, nchars_del, GPT - from);
-  update_compositions (from, GPT, CHECK_BORDER);
+  if (!inhibit_mod_hooks)
+    {
+      signal_after_change (from, nchars_del, GPT - from);
+      update_compositions (from, GPT, CHECK_BORDER);
+    }
 }
 
 /* Replace the text from character positions FROM to TO with

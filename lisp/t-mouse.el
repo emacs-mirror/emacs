@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This package provides access to mouse event as reported by the gpm-Linux
-;; package. It tries to reproduce the functionality offered by Emacs under X.
+;; package.  It tries to reproduce the functionality offered by Emacs under X.
 ;; The "gpm" server runs under Linux, so this package is rather
 ;; Linux-dependent.
 

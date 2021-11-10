@@ -3,12 +3,582 @@ ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 #+STARTUP: overview
 
 #+LINK: doc https://orgmode.org/worg/doc.html#%s
-#+LINK: git https://code.orgmode.org/bzg/org-mode/commit/%s
+#+LINK: msg https://list.orgmode.org/%s/
+#+LINK: git https://git.savannah.gnu.org/cgit/emacs/org-mode.git/commit/?id=%s
 
 Copyright (C) 2012-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
+
+* Version 9.5
+
+** Important announcements and breaking changes
+
+*** The =contrib/= now lives in a separate repository
+
+Org's repository has been trimmed from the =contrib/= directory.
+
+The old contents of the =contrib/= directory now lives in a separate
+repository at https://git.sr.ht/~bzg/org-contrib.
+
+You can install this repository by cloning it and updating your
+~load-path~ accordingly.  You can also install =org-contrib= as a
+[[https://elpa.nongnu.org/nongnu/][NonGNU ELPA]] package.
+
+*** Org ELPA and Org archives won't be available for Org > 9.5
+
+[[https://orgmode.org/elpa.html][Org ELPA]] is still available for installing Org 9.5, either with or
+without contributed packages, but future versions won't be available
+via Org ELPA, as we are deprecating this installation method.
+
+Also, Org 9.5 is available as =tar.gz= and =zip= archives, but this
+installation method is also deprecated.
+
+If you want to install the latest stable versions of Org, please use
+the GNU ELPA package.  If you want to install the contributed files,
+please use the NonGNU ELPA package.  If you want to keep up with the
+latest unstable Org, please install from the Git repository.
+
+See https://orgmode.org/org.html#Installation for the details.
+
+*** =ditaa.jar= is not bundled with Org anymore
+
+=ditaa.jar= used to be bundled with Org but it is not anymore.
+See [[https://github.com/stathissideris/ditaa][the ditaa repository]] on how to install it.
+
+*** ~org-adapt-indentation~ now defaults to =nil=
+
+If you want to automatically indent headlines' metadata, set it to
+=headline-data=.
+
+If you want to automatically indent every line to the headline's
+current indentation, set it to =t=.
+
+Indent added by =RET= and =C-j= also depends on the value of
+~electric-indent-mode~.  Enabling this mode by default in 9.4 revealed
+some bugs caused confusing behavior.  If you disabled
+~electric-indent-mode~ for this reason, it is time to try it again.
+Hopefully problems have been fixed.  See [[https://orgmode.org/worg/org-faq.html#indentation][this FAQ]] for more details.
+
+*** ~org-speed-commands-user~ is obsolete, use ~org-speed-commands~
+
+Setting ~org-speed-commands-user~ in your configuration won't have any
+effect.  Please set ~org-speed-commands~ instead, which see.
+
+*** Some =ob-*.el= files have been moved to the org-contrib repo
+
+These files have been moved to https://git.sr.ht/~bzg/org-contrib:
+
+- ob-abc.el
+- ob-asymptote.el
+- ob-coq.el
+- ob-ebnf.el
+- ob-hledger.el
+- ob-io.el
+- ob-J.el
+- ob-ledger.el
+- ob-mscgen.el
+- ob-picolisp.el
+- ob-shen.el
+- ob-stan.el
+- ob-vala.el
+
+See the discussion [[msg::87bl9rq29m.fsf@gnu.org][here]].
+
+*** Compatibility with Emacs versions
+
+We made it explicit that we aim at keeping the latest stable version
+of Org compatible with at least Emacs V, V-1 and V-2, where V is the
+stable major version of Emacs.
+
+For example, if the current major version of Emacs is 28.x, then the
+latest stable version of Org should be compatible with Emacs 28.x,
+27.x and 26.x – but not with Emacs 25.x.
+
+See [[https://orgmode.org/worg/org-maintenance.html#emacs-compatibility][this note on Worg]] and [[git::519947e508e081e71bf67db99e27b1c171ba4dfe][this commit]].
+
+*** The keybinding for ~org-table-blank-field~ has been removed
+
+If you prefer to keep the keybinding, you can add it back to
+~org-mode-map~ like so:
+
+#+begin_src emacs-lisp
+(define-key org-mode-map (kbd "C-c SPC") #'org-table-blank-field)
+#+end_src
+
+** New features
+
+*** New citation engine
+
+Org 9.5 provides a new library =oc.el= which provides tooling to
+handle citations in Org, e.g., activate, follow, insert, and export
+them, respectively called "activate", "follow", "insert" and "export"
+capabilities.  Libraries responsible for providing some, or all, of
+these capabilities are called "citation processors".
+
+The manual contains a few pointers to let you start and you may want
+to check [[https://blog.tecosaur.com/tmio/2021-07-31-citations.html][this blog post]].  If you need help using this new features,
+please ask on the mailing list.
+
+Thanks to Nicolas Goaziou for implementing this, to Bruce D’Arcus for
+helping him and to John Kitchin for paving the way with =org-ref.el=.
+
+*** Async session evaluation
+
+The =:async= header argument can be used for asynchronous evaluation
+in session blocks for certain languages.
+
+Currently, async evaluation is supported in Python.  There is also
+functionality to implement async evaluation in other languages that
+use comint, but this needs to be done on a per-language basis.
+
+By default, async evaluation is disabled unless the =:async= header
+argument is present.  You can also set =:async no= to force it off
+(for example if you've set =:async= in a property drawer).
+
+Async evaluation is disabled during export.
+*** ~ox-koma-letter.el~ is now part of Org's core
+
+~ox-koma-letter.el~ provides a KOMA scrlttr2 back-end for the Org
+export engine.  It used to be in the =contrib/= directory but it is
+now part of Org's core.
+
+*** Support exporting DOI links
+
+Org now supports export for DOI links, through its new =ol-doi.el=
+library.  For backward compatibility, it is loaded by default.
+
+*** Add a new ~:refile-targets~ template option
+
+When exiting capture mode via ~org-capture-refile~, the variable
+~org-refile-targets~ will be temporarily bound to the value of this
+template option.
+
+*** New startup options =#+startup: show<n>levels=
+
+These startup options complement the existing =overview=, =content=,
+=showall=, =showeverything= with a way to start the document with n
+levels shown, where n goes from 2 to 5.
+
+Example:
+
+: #+startup: show3levels
+
+*** New =u= table formula flag to enable Calc units simplification mode
+
+A new =u= mode flag for Calc formulas in Org tables has been added to
+enable Calc units simplification mode.
+
+*** Support fontification of inline export snippets
+
+See [[msg:87im57fh8j.fsf@gmail.com][this thread]].
+
+*** New command =org-refile-reverse= bound to =C-c C-M-w=
+
+You can now use =C-c C-M-w= to run ~org-refile-reverse~.
+
+It is almost identical to ~org-refile~, except that it temporarily
+toggles how ~org-reverse-note-order~ applies to the current buffer.
+So if ~org-refile~ would append the entry as the last entry under the
+target heading, ~org-refile-reverse~ will prepend it as the first
+entry, and vice-versa.
+
+*** LaTeX attribute ~:float~ now passes through arbitrary values
+
+LaTeX users are able to define arbitrary float types, e.g. with the
+float package.  The Org mode LaTeX exporter is now able to process and
+export arbitrary float types.  The user is responsible for ensuring
+that Org mode configures LaTeX to process any new float type.
+
+*** Support verse and quote blocks in LaTeX export
+
+The LaTeX export back-end accepts four attributes for verse blocks:
+=:lines=, =:center=, =:versewidth= and =:latexcode=. The three first
+require the external LaTeX package =verse.sty=, which is an extension
+of the standard LaTeX environment.
+
+The LaTeX export back-end accepts two attributes for quote blocks:
+=:environment=, for an arbitrary quoting environment (the default
+value is that of =org-latex-default-quote-environment=: ="quote"=) and
+=:options=.
+
+*** =org-set-tags-command= selects tags from ~org-global-tags-completion-table~
+
+Let ~org-set-tags-command~ TAB fast tag completion interface complete
+tags including from both buffer local and user defined persistent
+global list (~org-tag-alist~ and ~org-tag-persistent-alist~).  Now
+option ~org-complete-tags-always-offer-all-agenda-tags~ is honored.
+
+*** Clocktable option =:formula %= now shows the per-file time percentages
+
+This change only has an effect when multiple files are contributing to
+a given clocktable (such as when =:scope agenda= has been specified).
+The existing behavior is that such tables have an extra 'File' column,
+and each individual file that contributes has its own summary line
+with the headline value '*File time*'.  Those summary rows also
+produce a rollup time value for the file in the 'Time' column.
+
+Prior to this change, the built-in =%= formula did not produce a
+calculation for those per-file times in the '%' column (the relevant
+cells in the '%' column were blank).  With this change, the percentage
+contribution of each individual file time to the total time is shown.
+
+The more agenda files you have, the more useful this behavior becomes.
+
+*** =ob-python.el= improvements to =:return= header argument
+
+The =:return= header argument in =ob-python= now works for session
+blocks as well as non-session blocks.  Also, it now works with the
+=:epilogue= header argument -- previously, setting the =:return=
+header would cause the =:epilogue= to be ignored.
+
+This change allows more easily moving boilerplate out of the main code
+block and into the header. For example, for plotting, we need to add
+boilerplate to save the figure to a file and return the
+filename. Instead of doing this within the code block, we can now
+handle it through the header arguments as follows:
+
+#+BEGIN_SRC org
+,#+header: :var fname="/home/jack/tmp/plot.svg"
+,#+header: :epilogue plt.savefig(fname)
+,#+header: :return fname
+,#+begin_src python :results value file
+  import matplotlib, numpy
+  import matplotlib.pyplot as plt
+  fig=plt.figure(figsize=(4,2))
+  x=numpy.linspace(-15,15)
+  plt.plot(numpy.sin(x)/x)
+  fig.tight_layout()
+,#+end_src
+
+,#+RESULTS:
+[[file:/home/jack/tmp/plot.svg]]
+#+END_SRC
+
+As another example, we can use =:return= with the external [[https://pypi.org/project/tabulate/][tabulate]]
+package, to convert pandas Dataframes into orgmode tables:
+
+#+begin_src org
+,#+header: :prologue from tabulate import tabulate
+,#+header: :return tabulate(table, headers=table.columns, tablefmt="orgtbl")
+,#+begin_src python :results value raw :session
+  import pandas as pd
+  table = pd.DataFrame({
+      "a": [1,2,3],
+      "b": [4,5,6]
+  })
+,#+end_src
+
+,#+RESULTS:
+|   | a | b |
+|---+---+---|
+| 0 | 1 | 4 |
+| 1 | 2 | 5 |
+| 2 | 3 | 6 |
+#+end_src
+
+*** Display images with width proportional to the buffer text width
+
+Previously, if you used a =:width= attribute like =#+attr_html: :width 70%= or
+=#+attr_latex: :width 0.7\linewidth= this would be interpreted as a 70px wide and
+0.7px wide width specification respectively.
+
+Now, percentages are transformed into floats (i.e. 70% becomes 0.7),
+and float width specifications between 0.0 and 2.0 are now interpreted
+as that portion of the text width in the buffer. For instance, the
+above examples of =70%= and =0.7\linewidth= will result in an image
+with width equal to the pixel-width of the buffer text multiplied by 0.7.
+
+This functionality is implemented in a new function,
+~org-display-inline-image--width~ which contains the width
+determination logic previously in ~org-display-inline-images~ and the
+new behaviour.
+
+** New options
+*** Option ~org-hidden-keywords~ now also applies to #+SUBTITLE:
+
+The option ~org-hidden-keywords~ previously applied
+to #+TITLE:, #+AUTHOR:, #+DATE:, and #+EMAIL:.  Now it can also be
+used to hide the #+SUBTITLE: keyword.
+
+*** New formatting directive ~%L~ for org-capture
+
+The new ~%L~ formatting directive contains the bare link target, and
+may be used to create links with programmatically generated
+descriptions.
+
+*** New option ~org-id-ts-format~
+
+Earlier, IDs generated using =ts= method had a hard-coded format (i.e. =20200923T160237.891616=).
+The new option allows user to customise the format.
+Defaults are unchanged.
+
+*** New argument for ~file-desc~ babel header
+
+It is now possible to provide the =file-desc= header argument for a
+babel source block but omit the description by passing an empty vector
+as an argument (i.e., :file-desc []).  This can be useful because
+providing =file-desc= without an argument results in the result of
+=file= being used in the description.  Previously, the only way to
+omit a file description was to omit the header argument entirely,
+which made it difficult/impossible to provide a default value for
+=file-desc=.
+
+*** New option to set ~org-link-file-path-type~ to a function
+
+~org-link-file-path-type~ can now be set to a function that takes the
+full filename as an argument and returns the path to link to.
+
+For example, if you use ~project.el~, you can set this function to use
+relative links within a project as follows:
+
+#+begin_src emacs-lisp
+(setq (org-link-file-path-type
+       (lambda (path)
+         (let* ((proj (project-current))
+                (root (if proj (project-root proj) default-directory)))
+           (if (string-prefix-p (expand-file-name root) path)
+               (file-relative-name path)
+             (abbreviate-file-name path))))))
+#+end_src
+
+*** New options and new behavior for babel LaTeX SVG image files
+
+Org babel now uses a two-stage process for converting latex source
+blocks to SVG image files (when the extension of the output file is
+~.svg~).  The first stage in the process converts the latex block into
+a PDF file, which is then converted into an SVG file in the second
+stage.  The TeX->PDF part uses the existing infrastructure for
+~org-babel-latex-tex-to-pdf~.  The PDF->SVG part uses a command
+specified in a new customization,
+~org-babel-latex-pdf-svg-process~. By default, this uses inkscape for
+conversion, but since it is fully customizable, any other command can
+be used in its place. For instance, dvisvgm might be used here. This
+two-part processing replaces the previous use of htlatex to process
+LaTeX directly to SVG (htlatex is still used for HTML conversion).
+
+Conversion to SVG exposes a number of additional customizations that
+give the user full control over the contents of the latex source
+block. ~org-babel-latex-preamble~, ~org-babel-latex-begin-env~ and
+~org-babel-latex-end-env~ are new customization options added to allow
+the user to specify the preamble and code that preceedes and proceeds
+the contents of the source block.
+
+*** New option ~org-html-meta-tags~ allows for HTML meta tags customization
+
+New variable ~org-html-meta-tags~ makes it possible to customize the
+=<meta>= tags used in an HTML export.  Accepts either a static list of
+values, or a function that generates such a list (see
+~org-html-meta-tags-default~ as an example of the latter).
+
+*** Option ~org-agenda-bulk-custom-functions~ now supports collecting bulk arguments
+
+When specifying a custom agenda bulk option, you can now also specify
+a function which collects the arguments to be used with each call to
+the custom function.
+
+*** New faces to improve the contextuality of Org agenda views
+
+Four new faces improve certain styles and offer more flexibility for
+some Org agenda views: ~org-agenda-date-weekend-today~,
+~org-imminent-deadline~, ~org-agenda-structure-secondary~,
+~org-agenda-structure-filter~.  They inherit from existing faces in
+order to remain backward-compatible.
+
+Quoting from [[https://list.orgmode.org/87lf7q7gpq.fsf@protesilaos.com/][this thread]]:
+
+#+begin_quote
++ The 'org-imminent-deadline' is useful to disambiguate generic
+  warnings from deadlines.  For example, a warning could be rendered
+  in a yellow colored text and have a bold weight, whereas a deadline
+  might be red and styled with italics.
+
++ The 'org-agenda-structure-filter' applies to all tag/term filters
+  in agenda views that search for keywords or patterns.  It is
+  designed to inherit from 'org-agenda-structure' in addition to the
+  'org-warning' face that was present before (and removes the
+  generic 'warning' face from one place).  This offers the benefit
+  of consistency, as, say, an increase in font height or a change in
+  font family in 'org-agenda-structure' will propagate to the filter
+  as well.  The whole header line thus looks part of a singular
+  design.
+
++ The 'org-agenda-structure-secondary' complements the above for those
+  same views where a description follows the header.  For instance, the
+  tags view provides information to "Press N r" to filter by a
+  numbered tag.  Themes/users may prefer to disambiguate this line
+  from the header above it, such as by using a less intense color or by
+  reducing its height relative to the 'org-agenda-structure'.
+
++ The 'org-agenda-date-weekend-today' provides the option to
+  differentiate the current date on a weekend from the current date on
+  weekdays.
+#+end_quote
+
+*** New option ~org-clock-ask-before-exiting~
+
+By default, a function is now added to ~kill-emacs-query-functions~
+that asks whether to clock out and save when there's a running clock.
+Customize ~org-clock-ask-before-exiting~~ to nil to disable this new
+behavior.
+
+*** Option ~org-html-inline-image-rules~ now includes .webp
+
+By default ox-html now inlines webp images.
+
+*** ~org-html-head-include-scripts~ is now =nil= by default
+
+See [[msg:498dbe2e-0cd2-c81e-7960-4a26c566a1f7@memebeam.org][this thread]].
+
+*** New option ~org-html-content-class~
+
+This is the CSS class name to use for the top level content wrapper.
+
+*** New option ~org-babel-plantuml-svg-text-to-path~
+
+This option, nil by default, allows to add a SVG-specific post-export
+step that runs inkscape text-to-path replacement over the output file.
+
+*** You can now configure ~org-html-scripts~ and ~org-html-style-default~
+
+~org-html-scripts~ and ~org-html-style-default~ used to be constants,
+you can now configure them.
+
+*** New option ~org-attach-git-dir~
+
+~org-attach-git-dir~ will decide whether to use ~org-attach-git-dir~
+(the default) or use the attachment directory of the current node, if
+it is correctly configured as a Git repository.
+
+*** Some faces now use fixed-pitch
+
+See [[msg:875z8njaol.fsf@protesilaos.com][this thread]].
+
+*** New option ~org-attach-sync-delete-empty-dir~
+
+~org-attach-sync-delete-empty-dir~ controls the deletion of an empty
+attachment directory at calls of ~org-attach-sync~.  There is
+Never delete, Always delete and Query the user (default).
+
+*** ~org-babel-default-header-args~ can now be specified as closures or strings
+
+~org-babel-default-header-args~ now also accepts closures that
+evaluate to a string. Previously, only direct strings were
+supported. These closures are evaluated when point is at the source
+block, which allows them to make use of contextual information at the
+relevant source block. One example that illustrates the usefulness of
+this addition (also given in the documentation for
+~org-babel-default-header-args~) is:
+
+#+begin_src elisp
+(defun org-src-sha ()
+  (let ((elem (org-element-at-point)))
+    (concat (sha1 (org-element-property :value elem)) \".svg\")))
+
+(setq org-babel-default-header-args:latex
+      `((:results . \"file link replace\")
+        (:file . (lambda () (org-src-sha)))))
+#+end_src
+
+This will set the ~:file~ header argument to the sha1 checksum of the
+contents of the current latex source block.
+
+Finally, the closures are only evaluated if they're not overridden for
+a source block. This improves efficiency in cases where the result of
+a compute-expensive closure would otherwise be discarded.
+
+** Miscellaneous
+*** =org-bibtex= includes =doi= and =url= entries when exporting to BiBTeX
+=doi= and =url= entries have been made optional for some publication
+types and will be exported if present for those types.
+*** Missing or empty placeholders in "eval" macros are now =nil=
+They used to be the empty string.
+*** =org-goto-first-child= now works before first heading
+
+When point is before first heading =org-goto-first-child= will move
+point to the first child heading, or return nil if no heading exist
+in buffer.  This is in line with the fact that everything before first
+heading is regarded as outline level 0, i.e. the parent level of all
+headings in the buffer.
+
+Previously =org-goto-first-child= would do nothing before first
+heading, except return nil.
+
+*** Faces of all the heading text elements now conform to the headline face
+
+In the past, faces of todo keywords, emphasised text, tags, and
+priority cookies inherited =default= face.  The resulting headline
+fontification was not always consistent, as discussed in [[https://lists.gnu.org/archive/html/emacs-orgmode/2020-09/msg00331.html][this bug
+report]].  Now, the relevant faces adapt to face used to fontify the
+current headline level.
+
+Users who prefer to keep the old behaviour should change their face
+customisation explicitly stating that =default= face is inherited.
+
+Example of old face customisation:
+
+#+begin_src emacs-lisp
+(setq org-todo-keyword-faces '(("TODO"
+                                :background "chocolate"
+                                :height 0.75)))
+#+end_src
+
+To preserve the old behaviour the above customisation should be
+changed to
+
+#+begin_src emacs-lisp
+(setq org-todo-keyword-faces '(("TODO"
+                                :inherit default
+                                :background "chocolate"
+                                :height 0.75)))
+#+end_src
+
+*** Storing ID-links before first heading uses title as description
+
+Storing links to files using ~org-store-link~ (=<C-c l>=) when
+~org-id-link-to-org-use-id~ is not nil will now store the title as
+description of the link, if available.  If no title exists it falls
+back to the filename as before.
+
+*** Change in =org-tags-expand= signature
+
+The function does not allow for a third optional parameter anymore.
+*** LaTeX environment =#+results= are now removed
+
+If a babel src block produces a raw LaTeX environment, it will now be
+recognised as a result, and so replaced when re-evaluated.
+
+*** Tag completion now uses =completing-read-multiple=
+
+Tag completion now uses =completing-read-multiple= with a simple
+completion table, which should allow better interoperability with
+custom completion functions.
+
+*** Providing =directory-empty-p= from Emacs 28 as =org-directory-empty-p=
+
+*** =org-get-last-sibling= marked as obsolete
+
+Use =org-get-previous-sibling= instead.  This is just a rename to have
+a more consistent naming.  E.g. recall the pair of funtctions
+=next-line= / =previous-line=.
+
+*** Make org-protocol compatible with =URLSearchParams= JavaScript class
+
+Decoder of query part of org-protocol URI recognizes "+" as an encoded
+space characters now, so it is possible to avoid call to =encodeURIComponent=
+for each parameter and use more readable expression in bookmarklet:
+
+#+begin_example
+'org-protocol://store-link?' + new URLSearchParams({
+      url: location.href, title: document.title})
+#+end_example
+
+*** Remove obsolete LaTeX packages from ~org-latex-default-packages-alist~
+
+The LaTeX packages =grffile= and =textcomp= are redundant, with their
+capabilities being merged into =graphicx= and the LaTeX core
+respectively a while ago.
 
 * Version 9.4
 ** Incompatible changes
@@ -101,6 +671,40 @@ Also, ~org-startup-folded~ now defaults to ~showeverything~.
 
 ** New features
 
+*** =RET= and =C-j= now obey ~electric-indent-mode~
+
+Since Emacs 24.4, ~electric-indent-mode~ is enabled by default.  In
+most major modes, this causes =RET= to reindent the current line and
+indent the new line, and =C-j= to insert a newline without indenting.
+
+Org mode now obeys this minor mode: when ~electric-indent-mode~ is
+enabled, and point is neither in a table nor on a timestamp or a link:
+
+- =RET= (bound to ~org-return~) reindents the current line and indents
+  the new line;
+- =C-j= (bound to the new command ~org-return-and-maybe-indent~)
+  merely inserts a newline.
+
+To get the previous behaviour back, disable ~electric-indent-mode~
+explicitly:
+
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
+#+end_src
+
+Alternatively, if you wish to keep =RET= as the "smart-return" key,
+but dislike Org's default indentation of sections, you may prefer to
+customize ~org-adapt-indentation~ to either nil or =headline-data=.
+
+*** New allowed value for ~org-adapt-indentation~
+
+~org-adapt-indentation~ now accepts a new value, =headline-data=.
+
+When set to this value, Org will only adapt indentation of headline
+data lines, such as planning/clock lines and property/logbook drawers.
+Also, with this setting, =org-indent-mode= will keep these data lines
+correctly aligned with the headline above.
+
 *** Looping agenda commands over headlines
 
 ~org-agenda-loop-over-headlines-in-active-region~ allows you to loop
@@ -133,15 +737,6 @@ call ~org-toggle-radio-button~.
 
 You can also add =#+ATTR_ORG: :radio t= right before the list to tell
 Org to use radio buttons for this list only.
-
-*** New allowed value for ~org-adapt-indentation~
-
-~org-adapt-indentation~ now accepts a new value, ='headline-data=.
-
-When set to this value, Org will only adapt indentation of headline
-data lines, such as planning/clock lines and property/logbook drawers.
-Also, with this setting, =org-indent-mode= will keep these data lines
-correctly aligned with the headline above.
 
 *** Numeric priorities are now allowed (up to 65)
 
@@ -211,31 +806,6 @@ can now be inserted with this prefix argument.
 
 Source code block header argument =:file-mode= can set file
 permissions if =:file= argument is provided.
-
-*** =RET= and =C-j= now obey ~electric-indent-mode~
-
-Since Emacs 24.4, ~electric-indent-mode~ is enabled by default.  In
-most major modes, this causes =RET= to reindent the current line and
-indent the new line, and =C-j= to insert a newline without indenting.
-
-Org mode now obeys this minor mode: when ~electric-indent-mode~ is
-enabled, and point is neither in a table nor on a timestamp or a link:
-
-- =RET= (bound to ~org-return~) reindents the current line and indents
-  the new line;
-- =C-j= (bound to the new command ~org-return-and-maybe-indent~)
-  merely inserts a newline.
-
-To get the previous behaviour back, disable ~electric-indent-mode~
-explicitly:
-
-#+begin_src emacs-lisp
-(add-hook 'org-mode-hook (lambda () (electric-indent-local-mode -1)))
-#+end_src
-
-Alternatively, if you wish to keep =RET= as the "smart-return" key,
-but dislike Org's default indentation of sections, you may prefer to
-customize ~org-adapt-indentation~ to either =nil= or ='headline-data=.
 
 *** =ob-C.el= allows the inclusion of non-system header files
 
@@ -353,7 +923,7 @@ source buffers are displayed by modifying ~display-buffer-alist~ or
 *** New option ~org-archive-subtree-save-file-p~
 
 Archiving a subtree used to always save the target archive buffer.
-Commit [[https://code.orgmode.org/bzg/org-mode/commit/b186d1d7][b186d1d7]] changed this behavior by always not saving the target
+Commit [[git::b186d1d7][b186d1d7]] changed this behavior by always not saving the target
 buffer, because batch archiving from agenda could take too much time.
 
 This new option ~org-archive-subtree-save-file-p~ defaults to the
@@ -380,14 +950,14 @@ The value of a shell script's execution is its exit code.  But most
 users expect the results of executing a shell script to be its output,
 not its exit code.
 
-So we introduced this option, that you can set to =nil= if you want
-to stick using ~:results value~ as the implicit header.
+So we introduced this option, that you can set to nil if you want to
+stick using ~:results value~ as the implicit header.
 
 In all Babel libraries, the absence of a ~:results~ header should
 produce the same result than setting ~:results value~, unless there is
 an option to explicitly create an exception.
 
-See [[https://orgmode.org/list/CA+A2iZaziAfMeGpBqL6qGrzrWEVvLvC0DUw++T4gCF3NGuW-DQ@mail.gmail.com/][this thread]] for more context.
+See [[msg:CA+A2iZaziAfMeGpBqL6qGrzrWEVvLvC0DUw++T4gCF3NGuW-DQ@mail.gmail.com][this thread]] for more context.
 
 *** New option in ~org-attach-store-link-p~
 
@@ -1197,7 +1767,7 @@ With this output format, create a link to the file specified in
 
 #+begin_example
 ,#+begin_src shell :dir "data/tmp" :results link :file "crackzor_1.0.c.gz"
-wget -c "http://ben.akrin.com/crackzor/crackzor_1.0.c.gz"
+wget -c "https://ben.akrin.com/crackzor/crackzor_1.0.c.gz"
 ,#+end_src
 
 ,#+results:
@@ -1537,7 +2107,9 @@ Use "/!" markup when filtering TODO keywords to get only not-done TODO
 keywords.
 
 *** ~org-split-string~ returns ~("")~ when called on an empty string
+
 It used to return nil.
+
 *** Removal of =ob-scala.el=
 
 See [[https://github.com/ensime/emacs-scala-mode/issues/114][this github issue]].
@@ -1605,7 +2177,8 @@ before this let form.
 
 Creation of a new setting to specify the Cider timeout.  By setting
 the =org-babel-clojure-sync-nrepl-timeout= setting option.  The value
-is in seconds and if set to =nil= then no timeout will occur.
+is in seconds and if set to nil then no timeout will occur.
+
 **** Clojure: new header ~:show-process~
 
 A new block code header has been created for Org Babel that enables
@@ -1648,7 +2221,7 @@ this ~:prologue "fpprintprec: 2; linel: 50;"~ for presenting Maxima
 results in a beamer presentation.
 **** PlantUML: add support for header arguments
 
-[[http://plantuml.com/][Plantuml]] source blocks now support the [[https://orgmode.org/manual/prologue.html#prologue][~:prologue~]], [[https://orgmode.org/manual/epilogue.html#epilogue][~:epilogue~]] and
+[[https://plantuml.com/][Plantuml]] source blocks now support the [[https://orgmode.org/manual/prologue.html#prologue][~:prologue~]], [[https://orgmode.org/manual/epilogue.html#epilogue][~:epilogue~]] and
 [[https://orgmode.org/manual/var.html#var][~:var~]] header arguments.
 
 **** SQL: new engine added ~sqsh~
@@ -1821,9 +2394,8 @@ removed from Gnus circa September 2010.
 
 *** ~org-agenda-repeating-timestamp-show-all~ is removed.
 
-For an equivalent to a =nil= value, set
-~org-agenda-show-future-repeats~ to nil and
-~org-agenda-prefer-last-repeat~ to =t=.
+For an equivalent to a nil value, set ~org-agenda-show-future-repeats~
+to nil and ~org-agenda-prefer-last-repeat~ to =t=.
 
 *** ~org-gnus-nnimap-query-article-no-from-file~ is removed.
 
@@ -1841,7 +2413,7 @@ equivalent to the removed format string.
 
 *** ~org-enable-table-editor~ is removed.
 
-Setting it to a =nil= value broke some other features (e.g., speed
+Setting it to a nil value broke some other features (e.g., speed
 keys).
 
 *** ~org-export-use-babel~ cannot be set to ~inline-only~
@@ -2284,7 +2856,7 @@ The postgresql engine in a sql code block supports now ~:dbport~ nd
 
 **** Support for additional plantuml output formats
 
-The support for output formats of [[http://plantuml.com/][plantuml]] has been extended to now
+The support for output formats of [[https://plantuml.com/][plantuml]] has been extended to now
 include:
 
 All Diagrams:
@@ -2317,7 +2889,7 @@ Alice <-- Bob: another authentication Response
 #+end_src
 
 Please note that *pdf* *does not work out of the box* and needs additional
-setup in addition to plantuml.  See [[http://plantuml.com/pdf.html]] for
+setup in addition to plantuml.  See [[https://plantuml.com/pdf.html]] for
 details and setup information.
 
 *** Rewrite of radio lists
@@ -3447,11 +4019,11 @@ then inline code snippets will be wrapped into the formatting string.
 ** New contributed packages
 
 - =ox-bibtex.el= by Nicolas Goaziou :: an utility to handle BibTeX
-     export to both LaTeX and HTML exports.  It uses the [[http://www.lri.fr/~filliatr/bibtex2html/][bibtex2html]]
+     export to both LaTeX and HTML exports.  It uses the [[https://www.lri.fr/~filliatr/bibtex2html/][bibtex2html]]
      software.
 
 - =org-screenshot.el= by Max Mikhanosha :: an utility to handle
-     screenshots easily from Org, using the external tool [[http://freecode.com/projects/scrot][scrot]].
+     screenshots easily from Org, using the external tool [[https://freecode.com/projects/scrot][scrot]].
 
 ** Miscellaneous
 
@@ -3602,7 +4174,7 @@ manual for details and check [[https://orgmode.org/worg/org-8.0.html][this Worg 
 *** ~ox-md.el~ by Nicolas Goaziou
 
     =ox-md.el= allows you to export Org files to Markdown files, using the
-    vanilla [[http://daringfireball.net/projects/markdown/][Markdown syntax]].
+    vanilla [[https://daringfireball.net/projects/markdown/][Markdown syntax]].
 
 *** ~ox-texinfo.el~ by Jonathan Leech-Pepin
 
@@ -3612,14 +4184,14 @@ manual for details and check [[https://orgmode.org/worg/org-8.0.html][this Worg 
 
 *** ~ob-julia.el~ by G. Jay Kerns
 
-    [[http://julialang.org/][Julia]] is a new programming language.
+    [[https://julialang.org/][Julia]] is a new programming language.
 
     =ob-julia.el= provides Org Babel support for evaluating Julia source
     code.
 
 *** ~ob-mathomatic.el~ by Luis Anaya
 
-    [[http://www.mathomatic.org/][mathomatic]] a portable, command-line, educational CAS and calculator
+    [[https://www.mathomatic.org/][mathomatic]] a portable, command-line, educational CAS and calculator
     software, written entirely in the C programming language.
 
     ~ob-mathomatic.el~ provides Org Babel support for evaluating mathomatic
@@ -3627,7 +4199,7 @@ manual for details and check [[https://orgmode.org/worg/org-8.0.html][this Worg 
 
 *** ~ob-tcl.el~ by Luis Anaya
 
-    ~ob-tcl.el~ provides Org Babel support for evaluating [[http://www.tcl.tk/][Tcl]] source code.
+    ~ob-tcl.el~ provides Org Babel support for evaluating [[https://www.tcl.tk/][Tcl]] source code.
 
 *** ~org-bullets.el~ by Evgeni Sabof
 
@@ -3653,7 +4225,7 @@ manual for details and check [[https://orgmode.org/worg/org-8.0.html][this Worg 
     presentations.  ~ox-deck.el~ exports Org files to HTML presentations
     using =deck.js=.
 
-    [[http://meyerweb.com/eric/tools/s5/][s5]] is a set of scripts which also allows to display HTML pages as
+    [[https://meyerweb.com/eric/tools/s5/][s5]] is a set of scripts which also allows to display HTML pages as
     presentations.  ~ox-s5.el~ exports Org files to HTML presentations
     using =s5=.
 
@@ -3760,13 +4332,13 @@ forward and backward.
 
 Now Org will sort this list
 
-: - [[http://abc.org][B]]
-: - [[http://def.org][A]]
+: - [[https://abc.org][B]]
+: - [[https://def.org][A]]
 
 like this:
 
-: - [[http://def.org][A]]
-: - [[http://abc.org][B]]
+: - [[https://def.org][A]]
+: - [[https://abc.org][B]]
 
 by comparing the descriptions, not the links.
 Same when sorting headlines instead of list items.
@@ -4270,8 +4842,8 @@ found here: https://orgmode.org/worg/org-tutorials/org-outside-org.html
 
 Here are two screencasts demonstrating Thorsten's tools:
 
-- [[http://youtu.be/nqE6YxlY0rw]["Modern conventions for Emacs Lisp files"]]
-- [[http://www.youtube.com/watch?v%3DII-xYw5VGFM][Exploring Bernt Hansen's Org-mode tutorial with 'navi-mode']]
+- [[https://youtu.be/nqE6YxlY0rw]["Modern conventions for Emacs Lisp files"]]
+- [[https://www.youtube.com/watch?v%3DII-xYw5VGFM][Exploring Bernt Hansen's Org-mode tutorial with 'navi-mode']]
 
 *** MobileOrg for iOS
 
@@ -4301,7 +4873,7 @@ lines even if `org-use-tag-inheritance' was nil.  The default is now
 to *never* display inherited tags in agenda lines, but to /know/ about
 them when the agenda type is listed in [[doc::org-agenda-use-tag-inheritance][org-agenda-use-tag-inheritance]].
 
-** New default value nil for [[doc::org-agenda-dim-blocked-tasks][org-agenda-dim-blocked-tasks]]
+** New default value =nil= for [[doc::org-agenda-dim-blocked-tasks][org-agenda-dim-blocked-tasks]]
 
 Using `nil' as the default value speeds up the agenda generation.  You
 can hit `#' (or `C-u #') in agenda buffers to temporarily dim (or turn
@@ -5130,7 +5702,7 @@ that Calc formulas can operate on them.
 
     The new system has a technically cleaner implementation and more
     possibilities for capturing different types of data.  See
-    [[https://orgmode.org/list/C46F10DC-DE51-43D4-AFFE-F71E440D1E1F@gmail.com][Carsten's announcement]] for more details.
+    [[msg:C46F10DC-DE51-43D4-AFFE-F71E440D1E1F@gmail.com][Carsten's announcement]] for more details.
 
     To switch over to the new system:
 
@@ -5261,7 +5833,7 @@ that Calc formulas can operate on them.
 
 **** Modified link escaping
 
-     David Maus worked on `org-link-escape'.  See [[https://orgmode.org/list/87k4gysacq.wl%dmaus@ictsoc.de][his message]]:
+     David Maus worked on `org-link-escape'.  See [[msg:87k4gysacq.wl%dmaus@ictsoc.de][his message]]:
 
      : Percent escaping is used in Org mode to escape certain characters
      : in links that would either break the parser (e.g. square brackets

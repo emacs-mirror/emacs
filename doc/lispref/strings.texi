@@ -402,7 +402,7 @@ Remove the trailing text that matches @var{regexp} from @var{string}.
 
 @defun string-trim string &optional trim-left trim-right
 Remove the leading text that matches @var{trim-left} and trailing text
-that matches @var{trim-right} from from @var{string}.  Both regexps
+that matches @var{trim-right} from @var{string}.  Both regexps
 default to @samp{[ \t\n\r]+}.
 @end defun
 
@@ -414,18 +414,24 @@ will not be shortened.
 @end defun
 
 @defun string-limit string length &optional end coding-system
-If @var{string} is shorter than @var{length}, @var{string} is returned
-as is.  Otherwise, return a substring of @var{string} consisting of
-the first @var{length} characters.  If the optional @var{end}
-parameter is given, return a string of the @var{length} last
+If @var{string} is shorter than @var{length} characters, @var{string}
+is returned as is.  Otherwise, return a substring of @var{string}
+consisting of the first @var{length} characters.  If the optional
+@var{end} parameter is given, return a string of the @var{length} last
 characters instead.
 
 If @var{coding-system} is non-@code{nil}, @var{string} will be encoded
 before limiting, and the result will be a unibyte string that's
-shorter than @code{length}.  If @var{string} contains characters that
-are encoded into several bytes (for instance, when using
+shorter than @code{length} bytes.  If @var{string} contains characters
+that are encoded into several bytes (for instance, when using
 @code{utf-8}), the resulting unibyte string is never truncated in the
 middle of a character representation.
+
+This function measures the string length in characters or bytes, and
+thus is generally inappropriate if you need to shorten strings for
+display purposes; use @code{truncate-string-to-width} or
+@code{window-text-pixel-size} or @code{string-glyph-split} instead
+(@pxref{Size of Displayed Text}).
 @end defun
 
 @defun string-lines string &optional omit-nulls

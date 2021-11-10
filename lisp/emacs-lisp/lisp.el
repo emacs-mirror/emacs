@@ -186,12 +186,16 @@ report errors as appropriate for this kind of usage."
 This command will also work on other parentheses-like expressions
 defined by the current language mode.  With ARG, do this that
 many times.  A negative argument means move forward but still to
-a less deep spot.  If ESCAPE-STRINGS is non-nil (as it is
-interactively), move out of enclosing strings as well.  If
-NO-SYNTAX-CROSSING is non-nil (as it is interactively), prefer to
-break out of any enclosing string instead of moving to the start
-of a list broken across multiple strings.  On error, location of
-point is unspecified."
+a less deep spot.
+
+If ESCAPE-STRINGS is non-nil (as it is interactively), move out
+of enclosing strings as well.
+
+If NO-SYNTAX-CROSSING is non-nil (as it is interactively), prefer
+to break out of any enclosing string instead of moving to the
+start of a list broken across multiple strings.
+
+On error, location of point is unspecified."
   (interactive "^p\nd\nd")
   (up-list (- (or arg 1)) escape-strings no-syntax-crossing))
 
@@ -200,12 +204,16 @@ point is unspecified."
 This command will also work on other parentheses-like expressions
 defined by the current language mode.  With ARG, do this that
 many times.  A negative argument means move backward but still to
-a less deep spot.  If ESCAPE-STRINGS is non-nil (as it is
-interactively), move out of enclosing strings as well.  If
-NO-SYNTAX-CROSSING is non-nil (as it is interactively), prefer to
-break out of any enclosing string instead of moving to the start
-of a list broken across multiple strings.  On error, location of
-point is unspecified."
+a less deep spot.
+
+If ESCAPE-STRINGS is non-nil (as it is interactively), move out
+of enclosing strings as well.
+
+If NO-SYNTAX-CROSSING is non-nil (as it is interactively), prefer
+to break out of any enclosing string instead of moving to the
+end of a list broken across multiple strings.
+
+On error, location of point is unspecified."
   (interactive "^p\nd\nd")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1))

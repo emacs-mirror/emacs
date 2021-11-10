@@ -1,4 +1,4 @@
-;;; hierarchy.el --- Library to create and display hierarchy structures  -*- lexical-binding: t; -*-
+;;; hierarchy.el --- Library to create and display hierarchical structures  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
@@ -22,7 +22,8 @@
 
 ;;; Commentary:
 
-;; Library to create, query, navigate and display hierarchy structures.
+;; Library to create, query, navigate and display hierarchical
+;; structures.
 
 ;; Creation: After having created a hierarchy with `hierarchy-new',
 ;; populate it by calling `hierarchy-add-tree' or

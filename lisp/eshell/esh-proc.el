@@ -266,7 +266,7 @@ See `eshell-needs-pipe'."
        ;; neither 'first nor 'last?  See bug#1388 discussion.
        (catch 'found
 	 (dolist (exe eshell-needs-pipe)
-	   (if (string-equal exe (if (string-match "/" exe)
+	   (if (string-equal exe (if (string-search "/" exe)
 				     command
 				   (file-name-nondirectory command)))
 	       (throw 'found t))))))

@@ -44,7 +44,7 @@
 ;; completion for its tags.
 ;;
 ;; This file is a completion plugin which implements this kind of
-;; completion. It is also an example which shows how completion plugins
+;; completion.  It is also an example which shows how completion plugins
 ;; should be programmed.
 ;;
 ;; New versions of IDLWAVE, documentation, and more information available
@@ -85,6 +85,8 @@
 ;;  - The file is parsed again for each new completion variable and location.
 ;;  - You can force an update of the tag list with the usual command
 ;;    to update routine info in IDLWAVE: C-c C-i
+
+;;; Code:
 
 (require 'idlwave)
 

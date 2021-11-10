@@ -91,4 +91,4 @@
 
 (provide 'descr-text-test)
 
-;;; descr-text-test.el ends here
+;;; descr-text-tests.el ends here

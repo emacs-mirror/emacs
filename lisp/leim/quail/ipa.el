@@ -278,10 +278,10 @@ string."
   (list
    (apply #'vector
 	  (mapcar
-	   #'(lambda (entry)
-               (cl-assert (char-or-string-p entry) t)
-               (format "%s%s" to-prepend
-                       (if (integerp entry) (string entry) entry)))
+           (lambda (entry)
+             (cl-assert (char-or-string-p entry) t)
+             (format "%s%s" to-prepend
+                     (if (integerp entry) (string entry) entry)))
 	   quail-keymap))))
 
 (defun ipa-x-sampa-underscore-implosive (input-string length)

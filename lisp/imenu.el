@@ -85,7 +85,8 @@ This might not yet be honored by all index-building functions."
   :type 'boolean)
 
 (defcustom imenu-auto-rescan-maxout 600000
-  "Imenu auto-rescan is disabled in buffers larger than this size (in bytes)."
+  "Imenu auto-rescan is disabled in buffers larger than this size (in bytes).
+Also see `imenu-max-index-time'."
   :type 'integer
   :version "26.2")
 
@@ -152,6 +153,11 @@ alternative implementation of `imenu-create-index-function' that
 uses `imenu--generic-function')."
   :type 'boolean
   :version "24.4")
+
+(defcustom imenu-max-index-time 5
+  "Max time to use when creating imenu indices."
+  :type 'number
+  :version "28.1")
 
 ;;;###autoload
 (defvar-local imenu-generic-expression nil
@@ -520,10 +526,13 @@ The alternate method, which is the one most often used, is to call
   (cond ((and imenu-prev-index-position-function
 	      imenu-extract-index-name-function)
 	 (let ((index-alist '()) (pos (point-max))
+               (start (float-time))
 	       name)
 	   (goto-char pos)
 	   ;; Search for the function
-	   (while (funcall imenu-prev-index-position-function)
+	   (while (and (funcall imenu-prev-index-position-function)
+                       ;; Don't use an excessive amount of time.
+                       (< (- (float-time) start) imenu-max-index-time))
              (unless (< (point) pos)
                (error "Infinite loop at %s:%d: imenu-prev-index-position-function does not move point" (buffer-name) pos))
              (setq pos (point))
@@ -576,6 +585,7 @@ depending on PATTERNS."
 				  (not (local-variable-p 'font-lock-defaults)))
 			      imenu-case-fold-search
 			    (nth 2 font-lock-defaults)))
+        (start-time (float-time))
         (old-table (syntax-table))
         (table (copy-syntax-table (syntax-table)))
         (slist imenu-syntax-alist))
@@ -618,7 +628,13 @@ depending on PATTERNS."
 				     (not invis))))))
 			  ;; Exit the loop if we get an empty match,
 			  ;; because it means a bad regexp was specified.
-			  (not (= (match-beginning 0) (match-end 0))))
+			  (not (= (match-beginning 0) (match-end 0)))
+                          ;; Don't take an excessive amount of time.
+                          (or (< (- (float-time) start-time)
+                                 imenu-max-index-time)
+                              (progn
+                                (message "`imenu-max-index-time' exceeded")
+                                nil)))
 		(setq start (point))
 		;; Record the start of the line in which the match starts.
 		;; That's the official position of this definition.
@@ -813,8 +829,7 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 (defvar imenu-buffer-menubar nil)
 
 (defvar-local imenu-menubar-modified-tick 0
-  "The value of (buffer-chars-modified-tick) as of the last call
-to `imenu-update-menubar'.")
+  "Value of (buffer-chars-modified-tick) when `imenu-update-menubar' was called.")
 
 (defun imenu-update-menubar ()
   (when (and (current-local-map)

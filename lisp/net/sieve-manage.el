@@ -410,7 +410,7 @@ If BUFFER is nil, the current buffer is used."
 
 (defun sieve-manage-capability (&optional name value buffer)
   "Check if capability NAME of server BUFFER match VALUE.
-If it does, return the server value of NAME. If not returns nil.
+If it does, return the server value of NAME.  If not return nil.
 If VALUE is nil, do not check VALUE and return server value.
 If NAME is nil, return the full server list of capabilities."
   (with-current-buffer (or buffer (current-buffer))

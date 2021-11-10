@@ -31,7 +31,7 @@
 
 ;;;###autoload
 (defun isPlainHostName (host)
-  (not (string-match "\\." host)))
+  (not (string-search "." host)))
 
 ;;;###autoload
 (defun dnsDomainIs (host dom)

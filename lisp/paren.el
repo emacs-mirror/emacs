@@ -88,6 +88,14 @@ is not highlighted, the cursor being regarded as adequate to mark
 its position."
   :type 'boolean)
 
+(defcustom show-paren-context-when-offscreen nil
+  "If non-nil, show context in the echo area when the openparen is offscreen.
+The context is usually the line that contains the openparen,
+except if the openparen is on its own line, in which case the
+context includes the previous nonblank line."
+  :type 'boolean
+  :version "29.1")
+
 (defvar show-paren--idle-timer nil)
 (defvar show-paren--overlay
   (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
@@ -101,10 +109,14 @@ its position."
 (define-minor-mode show-paren-mode
   "Toggle visualization of matching parens (Show Paren mode).
 
-Show Paren mode is a global minor mode.  When enabled, any
-matching parenthesis is highlighted in `show-paren-style' after
-`show-paren-delay' seconds of Emacs idle time."
+When enabled, any matching parenthesis is highlighted in `show-paren-style'
+after `show-paren-delay' seconds of Emacs idle time.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `show-paren-local-mode'."
   :global t :group 'paren-showing
+  :initialize 'custom-initialize-delay
+  :init-value t
   ;; Enable or disable the mechanism.
   ;; First get rid of the old idle timer.
   (when show-paren--idle-timer
@@ -114,8 +126,28 @@ matching parenthesis is highlighted in `show-paren-style' after
                                 show-paren-delay t
                                 #'show-paren-function))
   (unless show-paren-mode
-    (delete-overlay show-paren--overlay)
-    (delete-overlay show-paren--overlay-1)))
+    (show-paren--delete-overlays)))
+
+(defun show-paren--delete-overlays ()
+  (delete-overlay show-paren--overlay)
+  (delete-overlay show-paren--overlay-1))
+
+;;;###autoload
+(define-minor-mode show-paren-local-mode
+  "Toggle `show-paren-mode' only in this buffer."
+  :variable (buffer-local-value 'show-paren-mode (current-buffer))
+  (cond
+   ((eq show-paren-mode (default-value 'show-paren-mode))
+    (unless show-paren-mode
+      (show-paren--delete-overlays))
+    (kill-local-variable 'show-paren-mode))
+   ((not (default-value 'show-paren-mode))
+    ;; Locally enabled, but globally disabled.
+    (show-paren-mode 1)                ; Setup the timer.
+    (setq-default show-paren-mode nil) ; But keep it globally disabled.
+    )
+   (t ;; Locally disabled only.
+    (show-paren--delete-overlays))))
 
 (defun show-paren--unescaped-p (pos)
   "Determine whether the paren after POS is unescaped."
@@ -288,6 +320,19 @@ It is the default value of `show-paren-data-function'."
                             (current-buffer))
             (move-overlay show-paren--overlay
                           there-beg there-end (current-buffer)))
+          ;; If `show-paren-open-line-when-offscreen' is t and point
+          ;; is at a close paren, show the line that contains the
+          ;; openparen in the echo area.
+          (let ((openparen (min here-beg there-beg)))
+            (if (and show-paren-context-when-offscreen
+                     (< there-beg here-beg)
+                     (not (pos-visible-in-window-p openparen)))
+                (let ((open-paren-line-string
+                       (blink-paren-open-paren-line-string openparen))
+                      (message-log-max nil))
+                  (minibuffer-message
+                   "Matches %s"
+                   (substring-no-properties open-paren-line-string)))))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))

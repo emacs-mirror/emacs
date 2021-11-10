@@ -497,7 +497,15 @@ Key translation rules are:
    cedilla   |   \\=`    | \\=`c -> ç   \\=`e -> ?ę
     misc     | \\=' \\=` ~  | \\='d -> đ   \\=`l -> ł   \\=`z -> ż   ~o -> ő   ~u -> ű
    symbol    |   ~    | \\=`. -> ˙   ~~ -> ˘   ~. -> ?¸
-" nil t nil nil nil nil nil nil nil nil t)
+"
+ '(("\C-?" . quail-delete-last-char)
+   (">" . quail-next-translation)
+   ("\C-f" . quail-next-translation)
+   ([right] . quail-next-translation)
+   ("<" . quail-prev-translation)
+   ("\C-b" . quail-prev-translation)
+   ([left] . quail-prev-translation))
+ t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("'A" ?Á)
@@ -532,15 +540,15 @@ Key translation rules are:
  ("`C" ?Ç)
  ("`E" ?Ę)
  ("`L" ?Ł)
- ("`S" ?Ş)
- ("`T" ?Ţ)
+ ("`S" "ŞȘ")
+ ("`T" "ŢȚ") ; the second variant is for Romanian
  ("`Z" ?Ż)
  ("`a" ?ą)
  ("`l" ?ł)
  ("`c" ?ç)
  ("`e" ?ę)
- ("`s" ?ş)
- ("`t" ?ţ)
+ ("`s" "şș")
+ ("`t" "ţț") ; the second variant is for Romanian
  ("`z" ?ż)
  ("``" ?Ş)
  ("`." ?˙)

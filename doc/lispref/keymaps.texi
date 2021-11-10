@@ -94,7 +94,24 @@ Manual}.
 (kbd "<f1> SPC") @result{} [f1 32]
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
+
+@findex kbd-valid-p
+The @code{kbd} function is very permissive, and will try to return
+something sensible even if the syntax used isn't completely
+conforming.  To check whether the syntax is actually valid, use the
+@code{kbd-valid-p} function.
+
+@code{define-key} also supports using the shorthand syntax
+@samp{["..."]} syntax to define a key.  The string has to be a
+strictly valid @code{kbd} sequence, and if it's not valid, an error
+will be signalled.  For instance, to bind @key{C-c f}, you can say:
+
+@lisp
+(define-key global-map ["C-c f"] #'find-file-literally)
+@end lisp
+
 @end defun
+
 
 @node Keymap Basics
 @section Keymap Basics
@@ -1278,24 +1295,46 @@ Binding Conventions}).
 
 @cindex meta character key constants
 @cindex control character key constants
-  In writing the key sequence to rebind, it is good to use the special
-escape sequences for control and meta characters (@pxref{String Type}).
-The syntax @samp{\C-} means that the following character is a control
-character and @samp{\M-} means that the following character is a meta
-character.  Thus, the string @code{"\M-x"} is read as containing a
-single @kbd{M-x}, @code{"\C-f"} is read as containing a single
-@kbd{C-f}, and @code{"\M-\C-x"} and @code{"\C-\M-x"} are both read as
-containing a single @kbd{C-M-x}.  You can also use this escape syntax in
-vectors, as well as others that aren't allowed in strings; one example
-is @samp{[?\C-\H-x home]}.  @xref{Character Type}.
+  @code{define-key} (and other functions that are used to rebind keys)
+understand a number of different syntaxes for the keys.
 
-  The key definition and lookup functions accept an alternate syntax for
-event types in a key sequence that is a vector: you can use a list
-containing modifier names plus one base event (a character or function
-key name).  For example, @code{(control ?a)} is equivalent to
-@code{?\C-a} and @code{(hyper control left)} is equivalent to
-@code{C-H-left}.  One advantage of such lists is that the precise
-numeric codes for the modifier bits don't appear in compiled files.
+@table @asis
+@item A vector containing a single string.
+This is the preferred way to represent a key sequence.  Here's a
+couple of examples:
+
+@example
+["C-c M-f"]
+["S-<home>"]
+@end example
+
+The syntax is the same as the one used by Emacs when displaying key
+bindings, for instance in @samp{*Help*} buffers and help texts.
+
+If the syntax isn't valid, an error will be raised when running
+@code{define-key}, or when byte-compiling code that has these calls.
+
+@item A vector containing lists of keys.
+You can use a list containing modifier names plus one base event (a
+character or function key name).  For example, @code{[(control ?a)
+(meta b)]} is equivalent to @kbd{C-a M-b} and @code{[(hyper control
+left)]} is equivalent to @kbd{C-H-left}.
+
+@item A string with control and meta characters.
+Internally, key sequences are often represented as strings using the
+special escape sequences for control and meta characters
+(@pxref{String Type}), but this representation can also be used by
+users when rebinding keys.  A string like @code{"\M-x"} is read as
+containing a single @kbd{M-x}, @code{"\C-f"} is read as containing a
+single @kbd{C-f}, and @code{"\M-\C-x"} and @code{"\C-\M-x"} are both
+read as containing a single @kbd{C-M-x}.
+
+@item a vector of characters.
+This is the other internal representation of key sequences, and
+supports a fuller range of modifiers than the string representation.
+One example is @samp{[?\C-\H-x home]}, which represents the @kbd{C-H-x
+home} key sequence.  @xref{Character Type}.
+@end table
 
   The functions below signal an error if @var{keymap} is not a keymap,
 or if @var{key} is not a string or vector representing a key sequence.
@@ -1337,7 +1376,7 @@ bindings in it:
     @result{} (keymap)
 @end group
 @group
-(define-key map "\C-f" 'forward-char)
+(define-key map ["C-f"] 'forward-char)
     @result{} forward-char
 @end group
 @group
@@ -1347,7 +1386,7 @@ map
 
 @group
 ;; @r{Build sparse submap for @kbd{C-x} and bind @kbd{f} in that.}
-(define-key map (kbd "C-x f") 'forward-word)
+(define-key map ["C-x f"] 'forward-word)
     @result{} forward-word
 @end group
 @group
@@ -1360,14 +1399,14 @@ map
 
 @group
 ;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
-(define-key map (kbd "C-p") ctl-x-map)
+(define-key map ["C-p"] ctl-x-map)
 ;; @code{ctl-x-map}
 @result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
 @end group
 
 @group
 ;; @r{Bind @kbd{C-f} to @code{foo} in the @code{ctl-x-map}.}
-(define-key map (kbd "C-p C-f") 'foo)
+(define-key map ["C-p C-f"] 'foo)
 @result{} 'foo
 @end group
 @group
@@ -1385,6 +1424,99 @@ Note that storing a new binding for @kbd{C-p C-f} actually works by
 changing an entry in @code{ctl-x-map}, and this has the effect of
 changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
 default global map.
+
+@defun define-keymap &key options... &rest pairs...
+@code{define-key} is the general work horse for defining a key in a
+keymap.  When writing modes, however, you frequently have to bind a
+large number of keys at once, and using @code{define-key} on them all
+can be tedious and error-prone.  Instead you can use
+@code{define-keymap}, which creates a keymaps and binds a number of
+keys.  Here's a very basic example:
+
+@lisp
+(define-keymap
+  "n" #'forward-line
+  "f" #'previous-line
+  ["C-c C-c"] #'quit-window)
+@end lisp
+
+This function creates a new sparse keymap, defines the two keystrokes
+in @var{pairs}, and returns the new keymap.
+
+@var{pairs} is a list of alternating key bindings and key definitions,
+as accepted by @code{define-key}.  In addition the key can be the
+special symbol @code{:menu}, in which case the definition should be a
+menu definition as accepted by @code{easy-menu-define} (@pxref{Easy
+Menu}).  Here's a brief example:
+
+@lisp
+(define-keymap :full t
+  "g" #'eww-reload
+  :menu '("Eww"
+          ["Exit" quit-window t]
+          ["Reload" eww-reload t]))
+@end lisp
+
+A number of keywords can be used before the key/definition pairs to
+changes features of the new keymap.  If the keyword is missing, the
+default value for the feature is @code{nil}.  Here's a list of the
+available keywords:
+
+@table @code
+@item :full
+If non-@code{nil}, create a chartable keymap (as from
+@code{make-keymap}) instead of a sparse keymap (as from
+@code{make-sparse-keymap} (@pxref{Creating Keymaps}).  A sparse keymap
+is the default.
+
+@item :parent
+If non-@code{nil}, this should be a keymap to use as the parent
+(@pxref{Inheritance and Keymaps}).
+
+@item :keymap
+If non-@code{nil}, this should be a keymap.  Instead of creating a new
+keymap, this keymap is modified instead.
+
+@item :suppress
+If non-@code{nil}, the keymap will be suppressed with
+@code{suppress-keymap} (@pxref{Changing Key Bindings}).  If
+@code{nodigits}, treat digits like other chars.
+
+@item :name
+If non-@code{nil}, this should be a string to use as the menu for the
+keymap if you use it as a menu with @code{x-popup-menu} (@pxref{Pop-Up
+Menus}).
+
+@item :prefix
+If non-@code{nil}, this should be a symbol to be used as a prefix
+command (@pxref{Prefix Keys}).  If this is the case, this symbol is
+returned by @code{define-keymap} instead of the map itself.
+@end table
+
+@end defun
+
+@defmac defvar-keymap name &key options... &rest pairs...
+By far, the most common thing to do with a keymap is to bind it to a
+variable.  This is what virtually all modes do---a mode called
+@code{foo} almost always has a variable called @code{foo-mode-map}.
+
+This macro defines @var{name} as a variable, and passes @var{options}
+and @var{pars} to @code{define-keymap}, and uses the result as the
+default value for the variable.
+
+@var{options} is like the keywords in @code{define-keymap}, but adds a
+@code{:doc} keyword that says what the doc string for the @var{name}
+variable should be.
+
+Here's an example:
+
+@lisp
+(defvar-keymap eww-textarea-map
+  :parent text-mode-map
+  "\r" #'forward-line
+  [?\t] #'shr-next-link)
+@end lisp
+@end defmac
 
   The function @code{substitute-key-definition} scans a keymap for
 keys that have a certain binding and rebinds them with a different
@@ -2226,6 +2358,12 @@ Specifying @code{nil} for @var{key-sequence} is equivalent to the
 This property specifies that @var{string} is the string to display
 as the keyboard equivalent for this menu item.  You can use
 the @samp{\\[...]} documentation construct in @var{string}.
+
+This property can also be a function (which will be called with no
+arguments).  This function should return a string.  This function will
+be called every time the menu is computed, so using a function that
+takes a lot of time to compute is not a good idea, and it should
+expect to be called from any context.
 
 @item :filter @var{filter-fn}
 This property provides a way to compute the menu item dynamically.

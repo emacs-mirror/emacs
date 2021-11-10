@@ -19,6 +19,8 @@
 
 ;;; Code:
 
+(require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
@@ -754,7 +756,7 @@ with parameters from the *Messages* buffer modification."
       (should-length 2 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max)))
       (narrow-to-region 1 50)
-      (should-length 0 (overlays-in 1 (point-max)))
+      (should-length 1 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max))))))
 
 
@@ -1398,5 +1400,86 @@ with parameters from the *Messages* buffer modification."
       (should (= (length (overlays-in 3 3)) 2))
       (should (memq long-overlay (overlays-in 3 3)))
       (should (memq zero-overlay (overlays-in 3 3))))))
+
+(ert-deftest test-remove-overlays ()
+  (with-temp-buffer
+    (insert "foo")
+    (make-overlay (point) (point))
+    (should (= (length (overlays-in (point-min) (point-max))) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0)))
+
+  (with-temp-buffer
+    (insert "foo")
+    (goto-char 2)
+    (make-overlay (point) (point))
+    ;; We only count zero-length overlays at the end of the buffer.
+    (should (= (length (overlays-in 1 2)) 0))
+    (narrow-to-region 1 2)
+    ;; We've now narrowed, so the zero-length overlay is at the end of
+    ;; the (accessible part of the) buffer.
+    (should (= (length (overlays-in 1 2)) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0))))
+
+(ert-deftest test-kill-buffer-auto-save-default ()
+  (ert-with-temp-file file
+    (let (auto-save)
+      ;; Always answer yes.
+      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              (kill-buffer (current-buffer))
+              (should (file-exists-p auto-save)))
+          (when auto-save
+            (ignore-errors (delete-file auto-save))))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete ()
+  (ert-with-temp-file file
+    (let (auto-save)
+      (should (file-exists-p file))
+      (setq kill-buffer-delete-auto-save-files t)
+      ;; Always answer yes.
+      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              ;; This should delete the auto-save file.
+              (kill-buffer (current-buffer))
+              (should-not (file-exists-p auto-save)))
+          (ignore-errors (delete-file file))
+          (when auto-save
+            (ignore-errors (delete-file auto-save)))))
+      ;; Answer no to deletion.
+      (cl-letf (((symbol-function #'yes-or-no-p)
+                 (lambda (prompt)
+                   (not (string-search "Delete auto-save file" prompt)))))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              ;; This should not delete the auto-save file.
+              (kill-buffer (current-buffer))
+              (should (file-exists-p auto-save)))
+          (when auto-save
+            (ignore-errors (delete-file auto-save))))))))
 
 ;;; buffer-tests.el ends here

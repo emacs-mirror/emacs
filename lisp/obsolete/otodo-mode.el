@@ -908,8 +908,7 @@ If INCLUDE-SEP is non-nil, return point after the separator."
 ;;;###autoload
 (define-derived-mode todo-mode nil "TODO"
   "Major mode for editing TODO lists."
-  (when (featurep 'xemacs)
-    (easy-menu-add todo-menu)))
+  nil)
 
 (with-suppressed-warnings ((lexical date entry))
   (defvar date)

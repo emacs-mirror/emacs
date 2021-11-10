@@ -31,13 +31,13 @@
 
 ;; If this fails it will search for AUCTeX's TeX-master or tex-mode's
 ;; tex-main-file variable in the local variables section and visit
-;; that file to get the coding system from the master file. This check
+;; that file to get the coding system from the master file.  This check
 ;; can be disabled by setting `latexenc-dont-use-TeX-master-flag' to
 ;; t.
 
 ;; If we have still not found a coding system we will try to use the
 ;; standard tex-mode's `tex-guess-main-file' and get the coding system
-;; from the main file. This check can be disabled by setting
+;; from the main file.  This check can be disabled by setting
 ;; `latexenc-dont-use-tex-guess-main-file-flag' to t.
 
 ;; The functionality is enabled by adding the function

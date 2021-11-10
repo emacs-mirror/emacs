@@ -1108,6 +1108,7 @@ extern void x_mouse_leave (struct x_display_info *);
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
+extern int x_emacs_to_x_modifiers (struct x_display_info *, intmax_t);
 #ifdef USE_CAIRO
 extern void x_cr_destroy_frame_context (struct frame *);
 extern void x_cr_update_surface_desired_size (struct frame *, int, int);

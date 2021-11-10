@@ -45,7 +45,7 @@
 ;; Variables
 
 (defgroup erc-networks nil
-  "IRC Networks"
+  "IRC Networks."
   :group 'erc)
 
 (defcustom erc-server-alist
@@ -720,7 +720,7 @@ NET is a symbol naming that IRC network and
 MATCHER is used to find a corresponding network to a server while
   connected to it.  If it is regexp, it's used to match against
   `erc-server-announced-name'.  It can also be a function (predicate).
-  Then it is executed with the server buffer as current-buffer."
+  Then it is executed with the server buffer as current buffer."
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")
@@ -754,15 +754,6 @@ server name and search for a match in `erc-networks-alist'."
 (defun erc-network ()
   "Return the value of `erc-network' for the current server."
   (erc-with-server-buffer erc-network))
-
-(defun erc-current-network ()
-  "Deprecated.  Use `erc-network' instead.
-Return the name of this server's network as a symbol."
-  (erc-with-server-buffer
-    (intern (downcase (symbol-name erc-network)))))
-
-(make-obsolete 'erc-current-network 'erc-network
-               "Obsolete since erc-networks 1.5")
 
 (defun erc-network-name ()
   "Return the name of the current network as a string."
@@ -833,7 +824,7 @@ As an example:
 	 (ports (if (listp (nth 3 srv))
 		    (erc-ports-list (nth 3 srv))
 		  (list (nth 3 srv))))
-	 (port (nth (random (length ports)) ports)))
+         (port (and ports (seq-random-elt ports))))
     (erc :server host :port port)))
 
 ;;; The following experimental

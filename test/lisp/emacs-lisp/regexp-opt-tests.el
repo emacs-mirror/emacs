@@ -66,4 +66,4 @@
 
   (should (equal (regexp-opt-charset '()) regexp-unmatchable)))
 
-;;; regexp-tests.el ends here.
+;;; regexp-opt-tests.el ends here

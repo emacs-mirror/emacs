@@ -21,6 +21,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (require 'ert)
 (require 'timezone)
 

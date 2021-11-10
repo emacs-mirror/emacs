@@ -213,8 +213,7 @@ proper index number for SYMBOL.  PROP should be
   (ccl-embed-data (cons symbol prop)))
 
 (defun ccl-embed-string (len str)
-  "Embed string STR of length LEN in `ccl-program-vector' at
-`ccl-current-ic'."
+  "Embed string STR of length LEN in `ccl-program-vector' at `ccl-current-ic'."
   (if (> len #xFFFFF)
       (error "CCL: String too long: %d" len))
   (if (> (string-bytes str) len)
@@ -282,8 +281,7 @@ changed to a relative jump address."
 (defvar ccl-loop-head nil
   "If non-nil, index of the start of the current loop.")
 (defvar ccl-breaks nil
-  "If non-nil, list of absolute addresses of the breaking points of
-the current loop.")
+  "If non-nil, list of absolute addresses of breaking points of the current loop.")
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
@@ -512,7 +510,7 @@ If READ-FLAG is non-nil, this statement has the form
 	    (arg (nth 2 condition)))
 	(ccl-check-register rrr cmd)
 	(or (integerp op)
-	    (error "CCL: invalid operator: %s" (nth 1 condition)))
+            (error "CCL: Invalid operator: %s" (nth 1 condition)))
 	(if (integerp arg)
 	    (progn
 	      (ccl-embed-code (if read-flag 'read-jump-cond-expr-const
@@ -568,8 +566,8 @@ If READ-FLAG is non-nil, this statement has the form
 			     (cdr (cdr cmd))))
 
 (defun ccl-compile-branch-expression (expr cmd)
-  "Compile EXPRESSION part of BRANCH statement and return register
-which holds a value of the expression."
+  "Compile EXPRESSION part of BRANCH statement.
+Return register which holds a value of the expression."
   (if (listp expr)
       ;; EXPR has the form `(EXPR2 OP ARG)'.  Compile it as SET
       ;; statement of the form `(r7 = (EXPR2 OP ARG))'.
@@ -864,7 +862,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-int rrr RRR 0))))
@@ -884,7 +882,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-char rrr RRR 0))))
@@ -1554,9 +1552,8 @@ MAP :=
 
 MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
-MAP-ID := integer
-"
-  (declare (doc-string 3))
+MAP-ID := integer"
+  (declare (doc-string 3) (indent defun))
   `(let ((prog ,(unwind-protect
 		    (progn
 		      ;; To make ,(charset-id CHARSET) works well.

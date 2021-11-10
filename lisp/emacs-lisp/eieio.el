@@ -110,7 +110,7 @@ Options in CLOS not supported in EIEIO:
 
 Due to the way class options are set up, you can add any tags you wish,
 and reference them using the function `class-option'."
-  (declare (doc-string 4))
+  (declare (doc-string 4) (indent defun))
   (cl-check-type superclasses list)
 
   (cond ((and (stringp (car options-and-doc))
@@ -205,7 +205,7 @@ and reference them using the function `class-option'."
                    (eieio-oset this ',sname value))
                 accessors)
           (push `(cl-defmethod ,acces ((this ,name))
-                   ,(format
+                   ,(internal--format-docstring-line
                      "Retrieve the slot `%S' from an object of class `%S'."
                      sname name)
                    ;; FIXME: Why is this different from the :reader case?
@@ -285,7 +285,8 @@ This method is obsolete."
 
           ;; Non-abstract classes need a constructor.
           `(defun ,name (&rest slots)
-             ,(format "Create a new object of class type `%S'." name)
+             ,(internal--format-docstring-line
+               "Create a new object of class type `%S'." name)
              (declare (compiler-macro
                        (lambda (whole)
                          (if (not (stringp (car slots)))
@@ -358,9 +359,7 @@ variable name of the same name as the slot."
 
 (defun eieio-pcase-slot-index-from-index-table (index-table slot)
   "Find the index to pass to `aref' to access SLOT."
-  (let ((index (gethash slot index-table)))
-    (if index (+ (eval-when-compile eieio--object-num-slots)
-                 index))))
+  (gethash slot index-table))
 
 (pcase-defmacro eieio (&rest fields)
   "Pcase patterns that match EIEIO object EXPVAL.

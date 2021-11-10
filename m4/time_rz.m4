@@ -10,7 +10,7 @@ dnl Written by Paul Eggert.
 AC_DEFUN([gl_TIME_RZ],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+  AC_REQUIRE([gl_TIME_H_DEFAULTS])
   AC_REQUIRE([AC_STRUCT_TIMEZONE])
 
   # On Mac OS X 10.6, localtime loops forever with some time_t values.

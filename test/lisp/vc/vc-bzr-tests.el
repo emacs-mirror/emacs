@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'vc-bzr)
 (require 'vc-dir)
 
@@ -51,106 +52,97 @@
   ;; temporary directory.
   ;; TODO does this means tests should be setting XDG_ variables (not
   ;; just HOME) to temporary values too?
-  (let* ((homedir (make-temp-file "vc-bzr-test" t))
-         (bzrdir (expand-file-name "bzr" homedir))
-         (ignored-dir (progn
-                        (make-directory bzrdir)
-                        (expand-file-name "ignored-dir" bzrdir)))
-         (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
-                                    process-environment)))
-    (unwind-protect
-        (progn
-          (make-directory ignored-dir)
-          (with-temp-buffer
-            (insert (file-name-nondirectory ignored-dir))
-            (write-region nil nil (expand-file-name ".bzrignore" bzrdir)
-                          nil 'silent))
-          (skip-unless (eq 0            ; some internal bzr error
-                           (call-process vc-bzr-program nil nil nil "init")))
-          (call-process vc-bzr-program nil nil nil "add")
-          (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
-          (with-temp-buffer
-            (insert "unregistered file")
-            (write-region nil nil (expand-file-name "testfile2" ignored-dir)
-                          nil 'silent))
-          (vc-dir ignored-dir)
-          (while (vc-dir-busy)
-            (sit-for 0.1))
-          ;; FIXME better to explicitly test for error from process sentinel.
-          (with-current-buffer "*vc-dir*"
-            (goto-char (point-min))
-            (should (search-forward "unregistered" nil t))))
-      (delete-directory homedir t))))
+  (ert-with-temp-directory homedir
+    (let* ((bzrdir (expand-file-name "bzr" homedir))
+           (ignored-dir (progn
+                          (make-directory bzrdir)
+                          (expand-file-name "ignored-dir" bzrdir)))
+           (default-directory (file-name-as-directory bzrdir))
+           (process-environment (cons (format "HOME=%s" homedir)
+                                      process-environment)))
+      (make-directory ignored-dir)
+      (with-temp-buffer
+        (insert (file-name-nondirectory ignored-dir))
+        (write-region nil nil (expand-file-name ".bzrignore" bzrdir)
+                      nil 'silent))
+      (skip-unless (eq 0           ; some internal bzr error
+                       (call-process vc-bzr-program nil nil nil "init")))
+      (call-process vc-bzr-program nil nil nil "add")
+      (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
+      (with-temp-buffer
+        (insert "unregistered file")
+        (write-region nil nil (expand-file-name "testfile2" ignored-dir)
+                      nil 'silent))
+      (vc-dir ignored-dir)
+      (while (vc-dir-busy)
+        (sit-for 0.1))
+      ;; FIXME better to explicitly test for error from process sentinel.
+      (with-current-buffer "*vc-dir*"
+        (goto-char (point-min))
+        (should (search-forward "unregistered" nil t))))))
 
 ;; Not specific to bzr.
 (ert-deftest vc-bzr-test-bug9781 ()
   "Test for https://debbugs.gnu.org/9781 ."
   (skip-unless (executable-find vc-bzr-program))
-  (let* ((homedir (make-temp-file "vc-bzr-test" t))
-         (bzrdir (expand-file-name "bzr" homedir))
-         (subdir (progn
-                   (make-directory bzrdir)
-                   (expand-file-name "subdir" bzrdir)))
-         (file (expand-file-name "file" bzrdir))
-         (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
-                                    process-environment)))
-    (unwind-protect
-        (progn
-          (skip-unless (eq 0            ; some internal bzr error
-                           (call-process vc-bzr-program nil nil nil "init")))
-          (make-directory subdir)
-          (with-temp-buffer
-            (insert "text")
-            (write-region nil nil file nil 'silent)
-            (write-region nil nil (expand-file-name "subfile" subdir)
-                          nil 'silent))
-          (call-process vc-bzr-program nil nil nil "add")
-          (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
-          (call-process vc-bzr-program nil nil nil "remove" subdir)
-          (with-temp-buffer
-            (insert "different text")
-            (write-region nil nil file nil 'silent))
-          (vc-dir bzrdir)
-          (while (vc-dir-busy)
-            (sit-for 0.1))
-          (vc-dir-mark-all-files t)
-          (cl-letf (((symbol-function 'y-or-n-p) (lambda (_) t)))
-            (vc-next-action nil))
-          (should (get-buffer "*vc-log*")))
-      (delete-directory homedir t))))
+  (ert-with-temp-directory homedir
+    (let* ((bzrdir (expand-file-name "bzr" homedir))
+           (subdir (progn
+                     (make-directory bzrdir)
+                     (expand-file-name "subdir" bzrdir)))
+           (file (expand-file-name "file" bzrdir))
+           (default-directory (file-name-as-directory bzrdir))
+           (process-environment (cons (format "HOME=%s" homedir)
+                                      process-environment)))
+      (skip-unless (eq 0           ; some internal bzr error
+                       (call-process vc-bzr-program nil nil nil "init")))
+      (make-directory subdir)
+      (with-temp-buffer
+        (insert "text")
+        (write-region nil nil file nil 'silent)
+        (write-region nil nil (expand-file-name "subfile" subdir)
+                      nil 'silent))
+      (call-process vc-bzr-program nil nil nil "add")
+      (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
+      (call-process vc-bzr-program nil nil nil "remove" subdir)
+      (with-temp-buffer
+        (insert "different text")
+        (write-region nil nil file nil 'silent))
+      (vc-dir bzrdir)
+      (while (vc-dir-busy)
+        (sit-for 0.1))
+      (vc-dir-mark-all-files t)
+      (cl-letf (((symbol-function 'y-or-n-p) (lambda (_) t)))
+        (vc-next-action nil))
+      (should (get-buffer "*vc-log*")))))
 
 ;; https://lists.gnu.org/r/help-gnu-emacs/2012-04/msg00145.html
 (ert-deftest vc-bzr-test-faulty-bzr-autoloads ()
   "Test we can generate autoloads in a bzr directory when bzr is faulty."
   (skip-unless (executable-find vc-bzr-program))
-  (let* ((homedir (make-temp-file "vc-bzr-test" t))
-         (bzrdir (expand-file-name "bzr" homedir))
-         (file (progn
-                 (make-directory bzrdir)
-                 (expand-file-name "foo.el" bzrdir)))
-         (default-directory (file-name-as-directory bzrdir))
-         (process-environment (cons (format "HOME=%s" homedir)
-                                    process-environment)))
-    (unwind-protect
-        (progn
-          (call-process vc-bzr-program nil nil nil "init")
-          (with-temp-buffer
-            (insert ";;;###autoload
+  (ert-with-temp-directory homedir
+    (let* ((bzrdir (expand-file-name "bzr" homedir))
+           (file (progn
+                   (make-directory bzrdir)
+                   (expand-file-name "foo.el" bzrdir)))
+           (default-directory (file-name-as-directory bzrdir))
+           (process-environment (cons (format "HOME=%s" homedir)
+                                      process-environment)))
+      (call-process vc-bzr-program nil nil nil "init")
+      (with-temp-buffer
+        (insert ";;;###autoload
 \(defun foo () \"foo\" (interactive) (message \"foo!\"))")
-            (write-region nil nil file nil 'silent))
-          (call-process vc-bzr-program nil nil nil "add")
-          (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
-          ;; Deleting dirstate ensures both that vc-bzr's status heuristic
-          ;; fails, so it has to call the external bzr status, and
-          ;; causes bzr status to fail.  This simulates a broken bzr
-          ;; installation.
-          (delete-file ".bzr/checkout/dirstate")
-          (should (progn (make-directory-autoloads
-                          default-directory
-                          (expand-file-name "loaddefs.el" bzrdir))
-                         t)))
-      (delete-directory homedir t))))
+        (write-region nil nil file nil 'silent))
+      (call-process vc-bzr-program nil nil nil "add")
+      (call-process vc-bzr-program nil nil nil "commit" "-m" "Commit 1")
+      ;; Deleting dirstate ensures both that vc-bzr's status heuristic
+      ;; fails, so it has to call the external bzr status, and
+      ;; causes bzr status to fail.  This simulates a broken bzr
+      ;; installation.
+      (delete-file ".bzr/checkout/dirstate")
+      (should (progn (make-directory-autoloads
+                      default-directory
+                      (expand-file-name "loaddefs.el" bzrdir))
+                     t)))))
 
-;;; vc-bzr.el ends here
+;;; vc-bzr-tests.el ends here

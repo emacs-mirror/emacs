@@ -26,7 +26,6 @@
 
 ;; compiler pacifier
 (defvar double-click-time)
-(defvar mouse-track-multi-click-time)
 (defvar viper-search-start-marker)
 (defvar viper-local-search-start-marker)
 (defvar viper-search-history)
@@ -65,8 +64,7 @@ or a triple-click."
 (defcustom viper-multiclick-timeout (if (viper-window-display-p)
                                         double-click-time
 				    500)
-  "Time interval in millisecond within which successive mouse clicks are
-considered related."
+  "Time interval in milliseconds for mouse clicks to be considered related."
   :type 'integer)
 
 ;; Local variable used to toggle wraparound search on click.
@@ -77,8 +75,8 @@ considered related."
 
 ;; remembers prefix argument to pass along to commands invoked by second
 ;; click.
-;; This is needed because in Emacs (not XEmacs), assigning to prefix-arg
-;; causes Emacs to count the second click as if it was a single click
+;; This is needed because assigning to prefix-arg causes Emacs to
+;; count the second click as if it was a single click
 (defvar viper-global-prefix-argument nil)
 
 
@@ -116,7 +114,7 @@ considered related."
   (buffer-name (viper-mouse-click-window-buffer click)))
 
 (defsubst viper-mouse-click-posn (click)
-  "Returns position of a click."
+  "Return position of a click."
   (declare (obsolete nil "27.1"))
   (posn-point (event-start click)))
 

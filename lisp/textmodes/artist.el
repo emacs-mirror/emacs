@@ -1277,7 +1277,7 @@ Drawing with keys
 
  \\[artist-key-set-point]		Does one of the following:
 		For lines/rectangles/squares: sets the first/second endpoint
-		For poly-lines: sets a point (use C-u \\[artist-key-set-point] to set last point)
+                For poly-lines: sets a point (use \\[universal-argument] \\[artist-key-set-point] to set last point)
 		When erase characters: toggles erasing
 		When cutting/copying: Sets first/last endpoint of rect/square
 		When pasting: Pastes
@@ -2840,9 +2840,8 @@ Returns a list of strings."
           (if (memq system-type '(windows-nt ms-dos))
               (artist-figlet-get-font-list-windows)
             (artist-figlet-get-font-list)))
-	 (font (completing-read (concat "Select font (default "
-					artist-figlet-default-font
-					"): ")
+         (font (completing-read (format-prompt "Select font"
+                                               artist-figlet-default-font)
 				(mapcar
 				 (lambda (font) (cons font font))
 				 avail-fonts))))
@@ -4891,7 +4890,7 @@ If optional argument STATE is positive, turn borders on."
 	    (+ window-y window-start-y))))
 
 (defun artist--adjust-x (x)
-  "Adjust the X position wrt. `display-line-numbers-mode'."
+  "Adjust the X position with regards to `display-line-numbers-mode'."
   (let ((adjust (line-number-display-width)))
     (if (= adjust 0)
         x

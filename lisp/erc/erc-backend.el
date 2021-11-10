@@ -199,6 +199,11 @@ active, use the `erc-server-process-alive' function instead.")
 (defvar-local erc-server-reconnecting nil
   "Non-nil if the user requests an explicit reconnect, and the
 current IRC process is still alive.")
+(make-obsolete-variable 'erc-server-reconnecting
+                        "see `erc--server-reconnecting'" "29.1")
+
+(defvar-local erc--server-reconnecting nil
+  "Non-nil when reconnecting.")
 
 (defvar-local erc-server-timed-out nil
   "Non-nil if the IRC server failed to respond to a ping.")
@@ -233,8 +238,7 @@ This is useful for detecting hung connections.")
 This variable is only set in a server buffer.")
 
 (defvar-local erc-server-filter-data nil
-  "The data that arrived from the server
-but has not been processed yet.")
+  "The data that arrived from the server but has not been processed yet.")
 
 (defvar-local erc-server-duplicates (make-hash-table :test 'equal)
   "Internal variable used to track duplicate messages.")
@@ -278,16 +282,15 @@ Reconnection will happen automatically for any unexpected disconnection."
   :type 'boolean)
 
 (defcustom erc-server-reconnect-attempts 2
-  "The number of times that ERC will attempt to reestablish a
-broken connection, or t to always attempt to reconnect.
+  "Number of times that ERC will attempt to reestablish a broken connection.
+If t, always attempt to reconnect.
 
 This only has an effect if `erc-server-auto-reconnect' is non-nil."
   :type '(choice (const :tag "Always reconnect" t)
                  integer))
 
 (defcustom erc-server-reconnect-timeout 1
-  "The amount of time, in seconds, that ERC will wait between
-successive reconnect attempts.
+  "Number of seconds to wait between successive reconnect attempts.
 
 If a key is pressed while ERC is waiting, it will stop waiting."
   :type 'number)
@@ -446,7 +449,7 @@ Currently this is called by `erc-send-input'."
 
 (defun erc-forward-word ()
   "Move forward one word, ignoring any subword settings.
-If no subword-mode is active, then this is (forward-word)."
+If no `subword-mode' is active, then this is (forward-word)."
   (skip-syntax-forward "^w")
   (> (skip-syntax-forward "w") 0))
 
@@ -460,7 +463,7 @@ If POS is out of range, the value is nil."
 
 (defun erc-bounds-of-word-at-point ()
   "Return the bounds of word at point, or nil if we're not at a word.
-If no subword-mode is active, then this is
+If no `subword-mode' is active, then this is
 \(bounds-of-thing-at-point 'word)."
   (if (or (erc-word-at-arg-p (point))
           (erc-word-at-arg-p (1- (point))))
@@ -535,7 +538,8 @@ TLS (see `erc-session-client-certificate' for more details)."
     (with-current-buffer buffer
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
-      (setq erc-server-reconnecting nil)
+      (setq erc-server-reconnecting nil
+            erc--server-reconnecting nil)
       (setq erc-server-timed-out nil)
       (setq erc-server-banned nil)
       (setq erc-server-error-occurred nil)
@@ -618,36 +622,42 @@ Make sure you are in an ERC buffer when running this."
             (erc-log-irc-protocol line nil)
             (erc-parse-server-response process line)))))))
 
-(define-inline erc-server-reconnect-p (event)
+(defun erc--server-reconnect-p (event)
+  "Return non-nil when ERC should attempt to reconnect.
+EVENT is the message received from the closed connection process."
+  (and erc-server-auto-reconnect
+       (not erc-server-banned)
+       ;; make sure we don't infinitely try to reconnect, unless the
+       ;; user wants that
+       (or (eq erc-server-reconnect-attempts t)
+           (and (integerp erc-server-reconnect-attempts)
+                (< erc-server-reconnect-count
+                   erc-server-reconnect-attempts)))
+       (or erc-server-timed-out
+           (not (string-match "^deleted" event)))
+       ;; open-network-stream-nowait error for connection refused
+       (if (string-match "^failed with code 111" event) 'nonblocking t)))
+
+(defun erc-server-reconnect-p (event)
   "Return non-nil if ERC should attempt to reconnect automatically.
 EVENT is the message received from the closed connection process."
-  (inline-letevals (event)
-    (inline-quote
-     (or erc-server-reconnecting
-         (and erc-server-auto-reconnect
-              (not erc-server-banned)
-              ;; make sure we don't infinitely try to reconnect, unless the
-              ;; user wants that
-              (or (eq erc-server-reconnect-attempts t)
-                  (and (integerp erc-server-reconnect-attempts)
-                       (< erc-server-reconnect-count
-                          erc-server-reconnect-attempts)))
-              (or erc-server-timed-out
-                  (not (string-match "^deleted" ,event)))
-              ;; open-network-stream-nowait error for connection refused
-              (if (string-match "^failed with code 111" ,event) 'nonblocking t))))))
+  (declare (obsolete "see `erc--server-reconnect-p'" "29.1"))
+  (or (with-suppressed-warnings ((obsolete erc-server-reconnecting))
+        erc-server-reconnecting)
+      (erc--server-reconnect-p event)))
 
 (defun erc-process-sentinel-2 (event buffer)
   "Called when `erc-process-sentinel-1' has detected an unexpected disconnect."
   (if (not (buffer-live-p buffer))
       (erc-update-mode-line)
     (with-current-buffer buffer
-      (let ((reconnect-p (erc-server-reconnect-p event)) message delay)
+      (let ((reconnect-p (erc--server-reconnect-p event)) message delay)
         (setq message (if reconnect-p 'disconnected 'disconnected-noreconnect))
         (erc-display-message nil 'error (current-buffer) message)
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
+              (setq erc--server-reconnecting nil)
               (erc-display-message nil 'error (current-buffer)
                                    'terminated ?e event)
               ;; Update mode line indicators
@@ -656,7 +666,8 @@ EVENT is the message received from the closed connection process."
           ;; reconnect
           (condition-case nil
               (progn
-                (setq erc-server-reconnecting   nil
+                (setq erc-server-reconnecting nil
+                      erc--server-reconnecting t
                       erc-server-reconnect-count (1+ erc-server-reconnect-count))
                 (setq delay erc-server-reconnect-timeout)
                 (run-at-time delay nil
@@ -950,15 +961,22 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
   (unless (string= string "") ;; Ignore empty strings
     (save-match-data
       (let* ((tag-list (when (eq (aref string 0) ?@)
-                         (substring string 1 (string-match " " string))))
+                         (substring string 1
+                                    (if (>= emacs-major-version 28)
+                                        (string-search " " string)
+                                      (string-match " " string)))))
              (msg (make-erc-response :unparsed string :tags (when tag-list
                                                               (erc-parse-tags
                                                                tag-list))))
              (string (if tag-list
-                         (substring string (+ 1 (string-match " " string)))
+                         (substring string (+ 1 (if (>= emacs-major-version 28)
+                                                    (string-search " " string)
+                                                  (string-match " " string))))
                        string))
              (posn (if (eq (aref string 0) ?:)
-                       (string-match " " string)
+                       (if (>= emacs-major-version 28)
+                           (string-search " " string)
+                         (string-match " " string))
                      0)))
 
         (setf (erc-response.sender msg)
@@ -968,7 +986,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
 
         (setf (erc-response.command msg)
               (let* ((bposn (string-match "[^ \n]" string posn))
-                     (eposn (string-match " " string bposn)))
+                     (eposn (if (>= emacs-major-version 28)
+                                (string-search " " string bposn)
+                              (string-match " " string bposn))))
                 (setq posn (and eposn
                                 (string-match "[^ \n]" string eposn)))
                 (substring string bposn eposn)))
@@ -976,7 +996,9 @@ PROCs `process-buffer' is `current-buffer' when this function is called."
         (while (and posn
                     (not (eq (aref string posn) ?:)))
           (push (let* ((bposn posn)
-                       (eposn (string-match " " string bposn)))
+                       (eposn (if (>= emacs-major-version 28)
+                                  (string-search " " string bposn)
+                                (string-match " " string bposn))))
                   (setq posn (and eposn
                                   (string-match "[^ \n]" string eposn)))
                   (substring string bposn eposn))
@@ -1160,7 +1182,8 @@ Would expand to:
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
   (declare (debug (&define [&name "erc-response-handler@"
                                   (symbolp &rest symbolp)]
-                           &optional sexp sexp def-body)))
+                           &optional sexp sexp def-body))
+           (indent defun))
   (if (numberp name) (setq name (intern (format "%03i" name))))
   (setq aliases (mapcar (lambda (a)
                           (if (numberp a)
@@ -1523,7 +1546,8 @@ add things to `%s' instead."
        'WALLOPS ?n nick ?m message))))
 
 (define-erc-response-handler (001)
-  "Set `erc-server-current-nick' to reflect server settings and display the welcome message."
+  "Set `erc-server-current-nick' to reflect server settings.
+Then display the welcome message."
   nil
   (erc-set-current-nick (car (erc-response.command-args parsed)))
   (erc-update-mode-line)                ; needed here?

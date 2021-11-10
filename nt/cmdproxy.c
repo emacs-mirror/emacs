@@ -27,6 +27,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <windows.h>
 
 #include <stdarg.h>  /* va_args */

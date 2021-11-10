@@ -191,7 +191,7 @@ Optional string REV is a revision."
 (autoload 'vc-switches "vc")
 
 (defun vc-sccs-register (files &optional comment)
-  "Register FILES into the SCCS version-control system.
+  "Register FILES into the SCCS version control system.
 Automatically retrieve a read-only version of the files with keywords expanded.
 COMMENT can be used to provide an initial description of FILES.
 Passes either `vc-sccs-register-switches' or `vc-register-switches'
@@ -270,8 +270,8 @@ locked.  REV is the revision to check out."
       (message "Checking out %s...done" file))))
 
 (defun vc-sccs-revert (file &optional _contents-done)
-  "Revert FILE to the version it was based on. If FILE is a directory,
-revert all subfiles."
+  "Revert FILE to the version it was based on.
+If FILE is a directory, revert all subfiles."
   (if (file-directory-p file)
       (mapc #'vc-sccs-revert (vc-expand-dirs (list file) 'SCCS))
     (vc-sccs-do-command nil 0 "unget" (vc-master-name file))

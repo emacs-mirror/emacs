@@ -24,7 +24,7 @@
 
 ;; This is an interface to the mairix mail search engine.  Mairix is
 ;; written by Richard Curnow and is licensed under the GPL.  See the
-;; home page for details:
+;; Mairix website for details:
 ;;
 ;; http://www.rpcurnow.force9.co.uk/mairix/
 ;;
@@ -422,7 +422,7 @@ with m:msgid of the current article and enabled threads."
     (while (string-match "[<>]" mid)
       (setq mid (replace-match "" t t mid)))
     ;; mairix somehow does not like '$' in message-id
-    (when (string-match "\\$" mid)
+    (when (string-search "$" mid)
       (setq mid (concat mid "=")))
     (while (string-match "\\$" mid)
       (setq mid (replace-match "=," t t mid)))

@@ -530,13 +530,14 @@ See documentation for variable `ebnf-abn-lex'."
 	(let ((prose-p (= (following-char) ?<)))
 	  (when prose-p
 	    (forward-char)
-	    (or (looking-at ebnf-abn-non-terminal-letter-chars)
+	    (or (looking-at (concat "[" ebnf-abn-non-terminal-letter-chars "]"))
 		(error "Invalid prose value")))
 	  (setq ebnf-abn-lex
 		(ebnf-buffer-substring ebnf-abn-non-terminal-chars))
 	  (when prose-p
 	    (or (= (following-char) ?>)
 		(error "Invalid prose value"))
+            (forward-char)
 	    (setq ebnf-abn-lex (concat "<" ebnf-abn-lex ">"))))
 	'non-terminal)
        ;; equal: =, =/

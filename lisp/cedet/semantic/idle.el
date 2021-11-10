@@ -102,7 +102,6 @@ it is unlikely the user would be ready to type again right away."
 
 (defun semantic-idle-scheduler-setup-timers ()
   "Lazy initialization of the auto parse idle timer."
-  ;; REFRESH THIS FUNCTION for XEMACS FOIBLES
   (or (timerp semantic-idle-scheduler-timer)
       (setq semantic-idle-scheduler-timer
             (run-with-idle-timer
@@ -578,10 +577,11 @@ This routine creates the following functions and variables:"
     `(progn
        (define-minor-mode ,global
 	 ,(concat "Toggle " (symbol-name global) ".
-With ARG, turn the minor mode on if ARG is positive, off otherwise.
-
-When this minor mode is enabled, `" (symbol-name mode) "' is
-turned on in every Semantic-supported buffer.")
+With ARG, turn the minor mode on if ARG is positive, off otherwise.\n\n"
+                  (internal--format-docstring-line
+                   "When this minor mode is enabled, `%s' is \
+turned on in every Semantic-supported buffer."
+                   (symbol-name mode)))
          :global t
 	 :group 'semantic
 	 :group 'semantic-modes
@@ -619,8 +619,9 @@ turned on in every Semantic-supported buffer.")
 				"")	; idle schedulers are quiet?
 
        (defun ,func ()
-	 ,(concat "Perform idle activity for the minor mode `"
-		  (symbol-name mode) "'.")
+         ,(internal--format-docstring-line
+           "Perform idle activity for the minor mode `%s'."
+           (symbol-name mode))
 	 ,@forms))))
 
 ;;; SUMMARY MODE
@@ -1071,7 +1072,7 @@ be called."
 (easy-menu-define
   semantic-idle-breadcrumbs-popup-menu
   semantic-idle-breadcrumbs-popup-map
-  "Semantic Breadcrumbs Mode Menu"
+  "Semantic Breadcrumbs Mode Menu."
   (list
    "Breadcrumb Tag"
    (vector

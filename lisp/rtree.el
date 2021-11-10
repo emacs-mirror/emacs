@@ -171,7 +171,7 @@
 	  (setq tree nil))))))))
 
 (defun rtree-delq (tree number)
-  "Remove NUMBER from TREE destructively.  Returns the new tree."
+  "Remove NUMBER from TREE destructively.  Return the new tree."
   (let ((result tree)
 	prev)
     (while tree

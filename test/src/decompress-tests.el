@@ -42,4 +42,4 @@
 
 (provide 'decompress-tests)
 
-;;; decompress-tests.el ends here.
+;;; decompress-tests.el ends here

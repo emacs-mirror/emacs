@@ -73,6 +73,13 @@ string bytes that can be copied is 3/4 of this value."
   :version "27.1"
   :type 'boolean)
 
+(defcustom xterm-store-paste-on-kill-ring t
+  "If non-nil, pasting text into Emacs will put the text onto the kill ring.
+This user option is only heeded when using a terminal using xterm
+capabilities, and only when that terminal understands bracketed paste."
+  :version "28.1"
+  :type 'boolean)
+
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
 
@@ -100,9 +107,15 @@ Return the pasted text as a string."
   (interactive "e")
   (unless (eq (car-safe event) 'xterm-paste)
     (error "xterm-paste must be found to xterm-paste event"))
-  (let* ((pasted-text (nth 1 event))
-         (interprogram-paste-function (lambda () pasted-text)))
-    (yank)))
+  (let ((pasted-text (nth 1 event)))
+    (if xterm-store-paste-on-kill-ring
+        ;; Put the text onto the kill ring and then insert it into the
+        ;; buffer.
+        (let ((interprogram-paste-function (lambda () pasted-text)))
+          (yank))
+      ;; Insert the text without putting it onto the kill ring.
+      (push-mark)
+      (insert-for-yank pasted-text))))
 
 ;; Put xterm-paste itself in global-map because, after translation,
 ;; it's just a normal input event.
@@ -350,7 +363,20 @@ Return the pasted text as a string."
     (define-key map "\e[5;3~" [M-prior])
     (define-key map "\e[6;3~" [M-next])
 
-    (define-key map "\e[29~" [print])
+    ;; This escape sequence has a controversial story.
+    ;; It was initially mapped to [print] (initial commit by Karl Heuer),
+    ;; but we can't find any justification for it.
+    ;; Xterm uses this escape sequence for both `F16' and `Menu' keys,
+    ;; and the reason for it is that in the VT220 keyboard the key
+    ;; placed logically at position where `F16' would be (and sending
+    ;; the escape sequence that naturally belongs to `F16') was
+    ;; labeled `Menu'.  [ The story gets even more interesting if you
+    ;; want to dig deeper, e.g. some terminals would send that same
+    ;; escape sequence in response to `S-F4' (because they (ab)used
+    ;; the escape sequence of `F<n+12>' for `S-F<n>').  ]
+    ;; The current binding was chosen because current keyboards almost never
+    ;; have an `F16' key, whereas many do have a `Menu' key.
+    (define-key map "\e[29~" [menu])
 
     (define-key map "\eOj" [kp-multiply])
     (define-key map "\eOk" [kp-add])
@@ -367,6 +393,9 @@ Return the pasted text as a string."
     (define-key map "\eOw" [kp-7])
     (define-key map "\eOx" [kp-8])
     (define-key map "\eOy" [kp-9])
+
+    ;; Some keypads have an equal key (for instance, most Apple keypads).
+    (define-key map "\eOX" [kp-equal])
 
     (define-key map "\eO2j" [S-kp-multiply])
     (define-key map "\eO2k" [S-kp-add])
@@ -761,14 +790,13 @@ Return the pasted text as a string."
 Can be nil to mean \"no timeout\".")
 
 (defvar xterm-query-redisplay-timeout 0.2
-  "Seconds to wait before allowing redisplay during terminal
-  query." )
+  "Seconds to wait before allowing redisplay during terminal query." )
 
 (defun xterm--read-event-for-query ()
-  "Like read-event, but inhibit redisplay.
+  "Like `read-event', but inhibit redisplay.
 
 By not redisplaying right away for xterm queries, we can avoid
-unsightly flashing during initialization. Give up and redisplay
+unsightly flashing during initialization.  Give up and redisplay
 anyway if we've been waiting a little while."
   (let ((start-time (current-time)))
     (or (let ((inhibit-redisplay t))
@@ -944,9 +972,10 @@ See `xterm--init-frame-title'"
 (defun xterm-set-window-title (&optional terminal)
   "Set the window title of the Xterm TERMINAL.
 The title is constructed from `frame-title-format'."
-  (send-string-to-terminal
-   (format "\e]2;%s\a" (format-mode-line frame-title-format))
-   terminal))
+  (unless (display-graphic-p terminal)
+    (send-string-to-terminal
+     (format "\e]2;%s\a" (format-mode-line frame-title-format))
+     terminal)))
 
 (defun xterm--selection-char (type)
   (pcase type
@@ -1015,10 +1044,9 @@ hitting screen's max DCS length."
                      'terminal-init-screen))
          (bytes (encode-coding-string data 'utf-8-unix))
          (base-64 (if screen
-                      (replace-regexp-in-string
+                      (string-replace
                        "\n" "\e\\\eP"
-                       (base64-encode-string bytes)
-                       :fixedcase :literal)
+                       (base64-encode-string bytes))
                     (base64-encode-string bytes :no-line-break)))
          (length (length base-64)))
     (if (> length xterm-max-cut-length)

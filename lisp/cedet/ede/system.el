@@ -34,7 +34,7 @@
 
 ;;;###autoload
 (defun ede-web-browse-home ()
-  "Browse the home page of the current project."
+  "Browse the website of the current project."
   (interactive)
   (if (not (ede-toplevel))
       (error "No project"))

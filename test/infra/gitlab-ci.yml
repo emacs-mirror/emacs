@@ -44,13 +44,18 @@ workflow:
 variables:
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
+  # Three hours, see below.
+  EMACS_TEST_TIMEOUT: 10800
   EMACS_TEST_VERBOSE: 1
   # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
   # DOCKER_TLS_CERTDIR: "/certs"
-  # Put the configuration for each run in a separate directory to avoid conflicts
+  # Put the configuration for each run in a separate directory to
+  # avoid conflicts.
   DOCKER_CONFIG: "/.docker-config-${CI_COMMIT_SHA}"
-  # We don't use ${CI_COMMIT_SHA} to be able to do one bootstrap across multiple builds
+  DOCKER_BUILDKIT: 1
+  # We don't use ${CI_COMMIT_SHA} to be able to do one bootstrap
+  # across multiple builds.
   BUILD_TAG: ${CI_COMMIT_REF_SLUG}
 
 default:
@@ -66,57 +71,61 @@ default:
     test_name: ${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}
   rules:
     - changes:
-        - "**/Makefile.in"
+        - "**Makefile.in"
         - .gitlab-ci.yml
         - aclocal.m4
         - autogen.sh
         - configure.ac
         - lib/*.{h,c}
-        - lisp/**/*.el
+        - lisp/**.el
         - src/*.{h,c}
         - test/infra/*
         - test/lib-src/*.el
-        - test/lisp/**/*.el
+        - test/lisp/**.el
+        - test/misc/*.el
         - test/src/*.el
     - changes:
         # gfilemonitor, kqueue
         - src/gfilenotify.c
         - src/kqueue.c
         # MS Windows
-        - "**/w32*"
+        - "**w32*"
         # GNUstep
         - lisp/term/ns-win.el
         - src/ns*.{h,m}
         - src/macfont.{h,m}
       when: never
-  # these will be cached across builds
+  # These will be cached across builds.
   cache:
     key: ${CI_COMMIT_SHA}
     paths: []
     policy: pull-push
-  # these will be saved for followup builds
+  # These will be saved for followup builds.
   artifacts:
     expire_in: 24 hrs
     paths: []
-  # using the variables for each job
+  # Using the variables for each job.
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
-    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
+    # TODO: with make -j4 several of the tests were failing, for
+    # example shadowfile-tests, but passed without it.
     - 'export PWD=$(pwd)'
-    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
   after_script:
     # - docker ps -a
     # - printenv
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
+    # - ls -alR ${test_name}
 
 .build-template:
+  needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
     - changes:
-        - "**/Makefile.in"
+        - "**Makefile.in"
         - .gitlab-ci.yml
         - aclocal.m4
         - autogen.sh
@@ -130,7 +139,7 @@ default:
         - src/gfilenotify.c
         - src/kqueue.c
         # MS Windows
-        - "**/w32*"
+        - "**w32*"
         # GNUstep
         - lisp/term/ns-win.el
         - src/ns*.{h,m}
@@ -141,7 +150,7 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
-  # Do not run fast and normal test jobs when scheduled
+  # Do not run fast and normal test jobs when scheduled.
   rules:
     - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -151,20 +160,23 @@ default:
     public: true
     expire_in: 1 week
     paths:
-      - "${test_name}/**/*.log"
+      - ${test_name}/**/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
+    when: always
 
 .gnustep-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**/Makefile.in"
+        - "**Makefile.in"
         - .gitlab-ci.yml
         - configure.ac
         - src/ns*.{h,m}
         - src/macfont.{h,m}
         - lisp/term/ns-win.el
-        - nextstep/**/*
+        - nextstep/**
         - test/infra/*
 
 .filenotify-gio-template:
@@ -172,7 +184,7 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**/Makefile.in"
+        - "**Makefile.in"
         - .gitlab-ci.yml
         - lisp/autorevert.el
         - lisp/filenotify.el
@@ -187,7 +199,7 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**/Makefile.in"
+        - "**Makefile.in"
         - .gitlab-ci.yml
         - lisp/emacs-lisp/comp.el
         - lisp/emacs-lisp/comp-cstr.el
@@ -198,9 +210,8 @@ default:
   timeout: 8 hours
 
 stages:
-  - prep-images
   - build-images
-  - fast
+#  - fast
   - normal
   - platform-images
   - platforms
@@ -208,25 +219,20 @@ stages:
   - native-comp
   - slow
 
-prep-image-base:
-  stage: prep-images
-  extends: [.job-template, .build-template]
-  variables:
-    target: emacs-base
-
 build-image-inotify:
   stage: build-images
   extends: [.job-template, .build-template]
-  needs: [prep-image-base]
   variables:
     target: emacs-inotify
+# Temporarily.
+  timeout: 8 hours
 
-test-fast-inotify:
-  stage: fast
-  extends: [.job-template, .test-template]
-  variables:
-    target: emacs-inotify
-    make_params: "-C test check"
+# test-fast-inotify:
+#   stage: fast
+#   extends: [.job-template, .test-template]
+#   variables:
+#     target: emacs-inotify
+#     make_params: "-C test check"
 
 test-lisp-inotify:
   stage: normal
@@ -245,14 +251,12 @@ test-lisp-net-inotify:
 build-image-filenotify-gio:
   stage: platform-images
   extends: [.job-template, .build-template, .filenotify-gio-template]
-  needs: [prep-image-base]
   variables:
     target: emacs-filenotify-gio
 
 build-image-gnustep:
   stage: platform-images
   extends: [.job-template, .build-template, .gnustep-template]
-  needs: [prep-image-base]
   variables:
     target: emacs-gnustep
 
@@ -266,7 +270,7 @@ test-filenotify-gio:
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
 test-gnustep:
-  # This tests the GNUstep build process
+  # This tests the GNUstep build process.
   stage: platforms
   needs: [build-image-gnustep]
   extends: [.job-template, .gnustep-template]
@@ -274,56 +278,48 @@ test-gnustep:
     target: emacs-gnustep
     make_params: install
 
-build-native-bootstrap-speed0:
+build-native-comp-speed0:
   stage: native-comp-images
   extends: [.job-template, .build-template, .native-comp-template]
-  needs: [prep-image-base]
   variables:
     target: emacs-native-comp-speed0
 
-# build-native-bootstrap-speed0:
-#   # Test a full native bootstrap
-#   # Run for now only speed 0 to limit memory usage and compilation time.
-#   stage: native-comp-images
-#   # Uncomment the following to run it only when scheduled.
-#   # only:
-#   #   - schedules
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-#     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
-#     - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
-#   timeout: 8 hours
+build-native-comp-speed1:
+  stage: native-comp-images
+  extends: [.job-template, .build-template, .native-comp-template]
+  variables:
+    target: emacs-native-comp-speed1
 
-# build-native-bootstrap-speed1:
-#   stage: native-comp-images
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-#     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
-#     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
-#   timeout: 8 hours
+build-native-comp-speed2:
+  stage: native-comp-images
+  extends: [.job-template, .build-template, .native-comp-template]
+  variables:
+    target: emacs-native-comp-speed2
 
-# build-native-bootstrap-speed2:
-#   stage: native-comp-images
-#   script:
-#     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
-#     - ./autogen.sh autoconf
-#     - ./configure --with-nativecomp
-#     - make bootstrap
-#   timeout: 8 hours
+test-native-comp-speed0:
+  stage: native-comp
+  needs: [build-native-comp-speed0]
+  extends: [.job-template, .test-template, .native-comp-template]
+  variables:
+    target: emacs-native-comp-speed0
+    make_params: >-
+      -C test check EXCLUDE_TESTS=%emacs-module-tests.el
+         SELECTOR='(not (tag :unstable))'
 
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: slow
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
-    # note there's no "changes" section, so this always runs on a schedule
+    # Note there's no "changes" section, so this always runs on a schedule.
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
   variables:
     target: emacs-inotify
-    make_params: check-expensive
+    make_params: check-expensive EXCLUDE_TESTS=%emacs-module-tests.el
+    # Two hours.
+    EMACS_TEST_TIMEOUT: 7200
 
 # Local Variables:
 # add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"

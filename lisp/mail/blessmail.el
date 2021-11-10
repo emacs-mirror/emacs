@@ -27,7 +27,7 @@
 ;; which (on systems that need it) is used during installation
 ;; to give appropriate permissions to movemail.
 ;;
-;; It has to be done from lisp in order to be sure of getting the
+;; It has to be done from Lisp in order to be sure of getting the
 ;; correct value of rmail-spool-directory.
 
 ;;; Code:

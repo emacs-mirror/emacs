@@ -692,16 +692,11 @@ alist is deprecated.  Use `browse-url-handlers' instead.")
 
 (defun browse-url-url-encode-chars (text chars)
   "URL-encode the chars in TEXT that match CHARS.
-CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
-  (let ((encoded-text (copy-sequence text))
-	(s 0))
-    (while (setq s (string-match chars encoded-text s))
-      (setq encoded-text
-	    (replace-match (format "%%%X"
-				   (string-to-char (match-string 0 encoded-text)))
-			   t t encoded-text)
-	    s (1+ s)))
-    encoded-text))
+CHARS is a regexp that matches a character."
+  (replace-regexp-in-string chars
+                            (lambda (s)
+                              (format "%%%X" (string-to-char s)))
+                            text))
 
 (defun browse-url-encode-url (url)
   "Escape annoying characters in URL.
@@ -710,7 +705,7 @@ regarding its parameter treatment."
   ;; FIXME: Is there an actual example of a web browser getting
   ;; confused?  (This used to encode commas, but at least Firefox
   ;; handles commas correctly and doesn't accept encoded commas.)
-  (browse-url-url-encode-chars url "[\")$] "))
+  (browse-url-url-encode-chars url "[\"()$ ]"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
@@ -980,6 +975,7 @@ click but point is not changed."
   "Invoke the MS-Windows system's default Web browser.
 The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
   (cond ((eq system-type 'ms-dos)
 	 (if dos-windows-version
 	     (shell-command (concat "start " (shell-quote-argument url)))
@@ -1009,6 +1005,7 @@ The optional NEW-WINDOW argument is not used."
   "Invoke the macOS system's default Web browser.
 The optional NEW-WINDOW argument is not used."
   (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
   (start-process (concat "open " url) nil "open" url))
 
 (function-put 'browse-url-default-macosx-browser 'browse-url-browser-kind
@@ -1612,7 +1609,7 @@ used instead of `browse-url-new-window-flag'."
 
 ;; --- mailto ---
 
-(autoload 'rfc2368-parse-mailto-url "rfc2368")
+(autoload 'rfc6068-parse-mailto-url "rfc6068")
 
 ;;;###autoload
 (defun browse-url-mail (url &optional new-window)
@@ -1631,7 +1628,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "Mailto URL: "))
   (save-excursion
-    (let* ((alist (rfc2368-parse-mailto-url url))
+    (let* ((alist (rfc6068-parse-mailto-url url))
 	   (to (assoc "To" alist))
 	   (subject (assoc "Subject" alist))
 	   (body (assoc "Body" alist))
@@ -1653,7 +1650,7 @@ used instead of `browse-url-new-window-flag'."
 	  (insert "\n"))
 	(goto-char (prog1
 		       (point)
-		     (insert (replace-regexp-in-string "\r\n" "\n" body))
+		     (insert (string-replace "\r\n" "\n" body))
 		     (unless (bolp)
 		       (insert "\n"))))))))
 
@@ -1766,11 +1763,11 @@ from `browse-url-elinks-wrapper'."
     (define-key map [mouse-2] #'browse-url-button-open)
     (define-key map "w" #'browse-url-button-copy)
     map)
-  "The keymap used for browse-url buttons.")
+  "The keymap used for `browse-url' buttons.")
 
 (defface browse-url-button
   '((t :inherit link))
-  "Face for browse-url buttons (i.e., links)."
+  "Face for `browse-url' buttons (i.e., links)."
   :version "27.1")
 
 (defun browse-url-add-buttons ()
@@ -1789,6 +1786,7 @@ clickable and will use `browse-url' to open the URLs in question."
                                          category browse-url
                                          browse-url-data ,(match-string 0)))))))
 
+;;;###autoload
 (defun browse-url-button-open (&optional external mouse-event)
   "Follow the link under point using `browse-url'.
 If EXTERNAL (the prefix if used interactively), open with the

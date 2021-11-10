@@ -252,7 +252,7 @@ Test with both unibyte and multibyte strings."
   (let* ((input
           "{ \"abc\" : [9, false] , \"def\" : null }")
          (output
-          (replace-regexp-in-string " " "" input)))
+          (string-replace " " "" input)))
     (should (equal (json-parse-string input
                                       :object-type 'plist
                                       :null-object :json-null

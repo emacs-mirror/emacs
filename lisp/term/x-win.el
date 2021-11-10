@@ -131,7 +131,7 @@ When a session manager tells Emacs that the window system is shutting
 down, this function is called.  It calls the functions in the hook
 `emacs-save-session-functions'.  Functions are called with the current
 buffer set to a temporary buffer.  Functions should use `insert' to insert
-lisp code to save the session state.  The buffer is saved in a file in the
+Lisp code to save the session state.  The buffer is saved in a file in the
 home directory of the user running Emacs.  The file is evaluated when
 Emacs is restarted by the session manager.
 

@@ -188,7 +188,7 @@ otherwise.  IMAGE-TYPE should be a MIME image type, like
   "Insert image placed at RELATIVE-FILENAME into the SVG structure.
 RELATIVE-FILENAME will be searched in `file-name-directory' of the
 image's `:base-uri' property.  If `:base-uri' is not specified for the
-image, then embedding won't work. Embedding large images using this
+image, then embedding won't work.  Embedding large images using this
 function is much faster than `svg-embed'."
   (svg--append
    svg

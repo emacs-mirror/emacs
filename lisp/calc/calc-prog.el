@@ -124,7 +124,7 @@
 	(or (memq (car-safe (car-safe place)) '(error xxxerror))
 	    (setq place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 27)))
 	(or (memq (car (car place)) '(error xxxerror))
-	    (error "foo"))
+            (error "Foo"))
 	(setcar (car place) 'xxxerror))
     (error (error "The calc-do function has been modified; unable to patch"))))
 
@@ -205,9 +205,8 @@
 	 (progn
 	   (setq cmd-base-default (concat "User-" keyname))
            (setq cmd (completing-read
-                      (concat "Define M-x command name (default calc-"
-                              cmd-base-default
-                              "): ")
+                      (format-prompt "Define M-x command name"
+                                     (concat "calc-" cmd-base-default))
                       obarray 'commandp nil
                       (if (and odef (symbolp (cdr odef)))
                           (symbol-name (cdr odef))
@@ -241,8 +240,8 @@
 	   (setq func
                  (concat "calcFunc-"
                          (completing-read
-                          (concat "Define algebraic function name (default "
-                                  cmd-base-default "): ")
+                          (format-prompt "Define algebraic function name"
+                                         cmd-base-default)
                           (mapcar (lambda (x) (substring x 9))
                                   (all-completions "calcFunc-"
                                                    obarray))
@@ -604,7 +603,7 @@
 	((equal name "#")
 	 (search-backward "#")
 	 (error "Token `#' is reserved"))
-	((and unquoted (string-match "#" name))
+	((and unquoted (string-search "#" name))
 	 (error "Tokens containing `#' must be quoted"))
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
@@ -802,8 +801,8 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string "SPC" " SPC "
-                  (replace-regexp-in-string " " "" line)))
+    (setq line (string-replace "SPC" " SPC "
+                               (string-replace " " "" line)))
     (insert line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -830,7 +829,7 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string " " "" line))
+    (setq line (string-replace " " "" line))
     (insert cmdbeg " " line "\t\t\t")
     (if (> (current-column) 24)
         (delete-char -1))
@@ -857,7 +856,7 @@
       (when match
         (kill-line 1)
         (setq line (concat line (substring curline 0 match))))
-      (setq line (replace-regexp-in-string " " "" line))
+      (setq line (string-replace " " "" line))
       (insert line "\t\t\t")
       (if (> (current-column) 24)
           (delete-char -1))
@@ -1068,7 +1067,7 @@ Redefine the corresponding command."
 	     (insert (setq str (prin1-to-string
 				(cons 'defun (cons cmd (cdr fcmd)))))
 		     "\n")
-	     (or (and (string-match "\"" str) (not q-ok))
+	     (or (and (string-search "\"" str) (not q-ok))
 		 (fill-region pt (point)))
 	     (indent-rigidly pt (point) 2)
 	     (delete-region pt (1+ pt))
@@ -1087,7 +1086,7 @@ Redefine the corresponding command."
 					 (cons 'defun (cons func
 							    (cdr ffunc)))))
 			      "\n")
-		      (or (and (string-match "\"" str) (not q-ok))
+		      (or (and (string-search "\"" str) (not q-ok))
 			  (fill-region pt (point)))
 		      (indent-rigidly pt (point) 2)
 		      (delete-region pt (1+ pt))
@@ -2132,7 +2131,7 @@ Redefine the corresponding command."
 		  (cdr prim))
 		 ((memq exp math-exp-env)
 		  exp)
-		 ((string-match "-" name)
+		 ((string-search "-" name)
 		  exp)
 		 (t
 		  (intern (concat "var-" name))))))

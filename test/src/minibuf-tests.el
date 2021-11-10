@@ -406,7 +406,7 @@
     (should (equal (try-completion "bar" '("bArfoo" "barbaz"))
                    (try-completion "bar" '("barbaz" "bArfoo"))))
     ;; bug#11339
-    (should (equal (try-completion "baz" '("baz" "bAz")) "baz")) ;And not `t'!
+    (should (equal (try-completion "baz" '("baz" "bAz")) "baz")) ;And not t!
     (should (equal (try-completion "baz" '("bAz" "baz"))
                    (try-completion "baz" '("baz" "bAz"))))))
 
@@ -414,8 +414,8 @@
   (let ((inhibit-interaction t))
     (should-error (read-from-minibuffer "foo: ") :type 'inhibited-interaction)
 
-    (should-error (y-or-n-p "foo: ") :type 'inhibited-interaction)
-    (should-error (yes-or-no-p "foo: ") :type 'inhibited-interaction)
+    (should-error (y-or-n-p "Foo?") :type 'inhibited-interaction)
+    (should-error (yes-or-no-p "Foo?") :type 'inhibited-interaction)
     (should-error (read-no-blanks-input "foo: ") :type 'inhibited-interaction)
 
     ;; See that we get the expected error.

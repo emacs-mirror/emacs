@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ediff-ptch)
 
 (ert-deftest ediff-ptch-test-bug25010 ()
@@ -45,34 +46,33 @@ index 6a07f80..6e8e947 100644
   "Test for https://debbugs.gnu.org/26084 ."
   (skip-unless (executable-find "git"))
   (skip-unless (executable-find ediff-patch-program))
-  (let* ((tmpdir (make-temp-file "ediff-ptch-test" t))
-         (default-directory (file-name-as-directory tmpdir))
-         (patch (make-temp-file "ediff-ptch-test"))
-         (qux (expand-file-name "qux.txt" tmpdir))
-         (bar (expand-file-name "bar.txt" tmpdir))
-         (git-program (executable-find "git")))
-    ;; Create repository.
-    (with-temp-buffer
-      (insert "qux here\n")
-      (write-region nil nil qux nil 'silent)
-      (erase-buffer)
-      (insert "bar here\n")
-      (write-region nil nil bar nil 'silent))
-    (call-process git-program nil nil nil "init")
-    (call-process git-program nil nil nil "add" ".")
-    (call-process git-program nil nil nil "commit" "-m" "Test repository.")
-    ;; Update repo., save the diff and reset to initial state.
-    (with-temp-buffer
-      (insert "foo here\n")
-      (write-region nil nil qux nil 'silent)
-      (write-region nil nil bar nil 'silent))
-    (call-process git-program nil `(:file ,patch) nil "diff")
-    (call-process git-program nil nil nil "reset" "--hard" "HEAD")
-    ;; Visit the diff file i.e., patch; extract from it the parts
-    ;; affecting just each of the files: store in patch-bar the part
-    ;; affecting 'bar', and in patch-qux the part affecting 'qux'.
-    (find-file patch)
-    (unwind-protect
+  (ert-with-temp-directory tmpdir
+    (ert-with-temp-file patch
+      (let* ((default-directory (file-name-as-directory tmpdir))
+             (qux (expand-file-name "qux.txt" tmpdir))
+             (bar (expand-file-name "bar.txt" tmpdir))
+             (git-program (executable-find "git")))
+        ;; Create repository.
+        (with-temp-buffer
+          (insert "qux here\n")
+          (write-region nil nil qux nil 'silent)
+          (erase-buffer)
+          (insert "bar here\n")
+          (write-region nil nil bar nil 'silent))
+        (call-process git-program nil nil nil "init")
+        (call-process git-program nil nil nil "add" ".")
+        (call-process git-program nil nil nil "commit" "-m" "Test repository.")
+        ;; Update repo., save the diff and reset to initial state.
+        (with-temp-buffer
+          (insert "foo here\n")
+          (write-region nil nil qux nil 'silent)
+          (write-region nil nil bar nil 'silent))
+        (call-process git-program nil `(:file ,patch) nil "diff")
+        (call-process git-program nil nil nil "reset" "--hard" "HEAD")
+        ;; Visit the diff file i.e., patch; extract from it the parts
+        ;; affecting just each of the files: store in patch-bar the part
+        ;; affecting 'bar', and in patch-qux the part affecting 'qux'.
+        (find-file patch)
         (let* ((info
                 (progn (ediff-map-patch-buffer (current-buffer)) ediff-patch-map))
                (patch-bar
@@ -116,9 +116,7 @@ index 6a07f80..6e8e947 100644
                             (buffer-string))
                           (with-temp-buffer
                             (insert-file-contents backup)
-                            (buffer-string)))))))
-          (delete-directory tmpdir 'recursive)
-          (delete-file patch)))))
+                            (buffer-string))))))))))))
 
 
 (provide 'ediff-ptch-tests)

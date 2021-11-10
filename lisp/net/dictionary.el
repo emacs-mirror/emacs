@@ -25,9 +25,9 @@
 ;; dictionary allows you to interact with dictionary servers.
 ;; Use M-x customize-group dictionary to modify user settings.
 ;;
-;; Main functions for interaction are:
-;; dictionary        - opens a new dictionary buffer
-;; dictionary-search - search for the definition of a word
+;; Main commands for interaction are:
+;; M-x dictionary        - opens a new dictionary buffer
+;; M-x dictionary-search - search for the definition of a word
 ;;
 ;; You can find more information in the README file of the GitHub
 ;; repository https://github.com/myrkr/dictionary-el
@@ -58,11 +58,11 @@ the existing connection."
   (set-default name value))
 
 (defgroup dictionary nil
-  "Client for accessing the dictd server based dictionaries"
+  "Client for accessing the dictd server based dictionaries."
   :group 'hypermedia)
 
 (defgroup dictionary-proxy nil
-  "Proxy configuration options for the dictionary client"
+  "Proxy configuration options for the dictionary client."
   :group 'dictionary)
 
 (defcustom dictionary-server
@@ -86,7 +86,7 @@ You can specify here:
 (defcustom dictionary-port
   2628
   "The port of the dictionary server.
-This port is propably always 2628 so there should be no need to modify it."
+This port is probably always 2628 so there should be no need to modify it."
   :group 'dictionary
   :set #'dictionary-set-server-var
   :type 'number
@@ -943,7 +943,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-set-dictionary (param &optional more)
   "Select the dictionary which is the car of PARAM as new default."
-
   (if more
       (dictionary-display-more-info param)
     (let ((dictionary (car param)))
@@ -1050,8 +1049,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 				'dictionary-display-match-result)))
 
 (defun dictionary-do-matching (word dictionary strategy function)
-  "Find matches for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
-
+  "Search for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
   (message "Lookup matching words for %s in %s using %s"
 	   word dictionary strategy)
   (dictionary-send-command
@@ -1211,7 +1209,6 @@ allows editing it."
 		(save-excursion
 		  (mouse-set-point event)
 		  (current-word)))))
-    (selected-window)
     (dictionary-popup-matching-words word)))
 
 ;;;###autoload
@@ -1315,9 +1312,9 @@ allows editing it."
   "Turn off or on support for the dictionary tooltip mode.
 
 It is normally internally called with 1 to enable support for the
-tooltip mode. The hook function will check the value of the
-variable dictionary-tooltip-mode to decide if some action must be
-taken. When disabling the tooltip mode the value of this variable
+tooltip mode.  The hook function will check the value of the
+variable `dictionary-tooltip-mode' to decide if some action must be
+taken.  When disabling the tooltip mode the value of this variable
 will be set to nil."
   (interactive)
   (tooltip-mode on)
@@ -1348,10 +1345,10 @@ active it will overwrite that mode for the current buffer."
 
 ;;;###autoload
 (defun global-dictionary-tooltip-mode (&optional arg)
-  "Enable/disable dictionary-tooltip-mode for all buffers.
+  "Enable/disable `dictionary-tooltip-mode' for all buffers.
 
-Internally it provides a default for the dictionary-tooltip-mode.
-It can be overwritten for each buffer using dictionary-tooltip-mode.
+Internally it provides a default for the `dictionary-tooltip-mode'.
+It can be overwritten for each buffer using `dictionary-tooltip-mode'.
 
 Note: (global-dictionary-tooltip-mode 0) will not disable the mode
 any buffer where (dictionary-tooltip-mode 1) has been called."
@@ -1367,6 +1364,31 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
     (global-set-key [mouse-movement]
                     (if on #'dictionary-tooltip-track-mouse #'ignore))
     on))
+
+;;; Context menu support
+
+(defun dictionary-search-word-at-mouse (event)
+  (interactive "e")
+  (let ((word (save-window-excursion
+		(save-excursion
+		  (mouse-set-point event)
+		  (current-word)))))
+    (dictionary-search word)))
+
+;;;###autoload
+(defun context-menu-dictionary (menu click)
+  "Populate MENU with dictionary commands at CLICK.
+When you add this function to `context-menu-functions',
+the context menu will contain an item that searches
+the word at mouse click."
+  (when (thing-at-mouse click 'word)
+    (define-key-after menu [dictionary-separator] menu-bar-separator
+      'middle-separator)
+    (define-key-after menu [dictionary-search-word-at-mouse]
+      '(menu-item "Dictionary Search" dictionary-search-word-at-mouse
+                  :help "Search the word at mouse click in dictionary")
+      'dictionary-separator))
+  menu)
 
 (provide 'dictionary)
 ;;; dictionary.el ends here

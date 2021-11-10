@@ -663,7 +663,7 @@ any entries were found."
          (calendar-month-name-array (or months calendar-month-name-array))
          (case-fold-search t)
          entry-found)
-    (calendar-dlet*
+    (calendar-dlet
         ((dayname (format "%s\\|%s\\.?" (calendar-day-name date)
                           (calendar-day-name date 'abbrev)))
          (monthname (format "\\*\\|%s%s" (calendar-month-name month)
@@ -858,7 +858,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                   ;; every time, diary-include-other-diary-files
                   ;; binds it to nil (essentially) when it runs
                   ;; in included files.
-                  (calendar-dlet* ((number number)
+                  (calendar-dlet ((number number)
                                    (list-only list-only))
                     (run-hooks 'diary-nongregorian-listing-hook
                                'diary-list-entries-hook))
@@ -877,7 +877,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                                   (copy-sequence
                                    (car display-buffer-fallback-action))))))
                       (funcall diary-display-function)))
-                  (calendar-dlet* ((number number)
+                  (calendar-dlet ((number number)
                                    (original-date original-date))
                     (run-hooks 'diary-hook))))))
         (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
@@ -1223,8 +1223,7 @@ ensure that all relevant variables are set.
 
 \(diary-mail-entries)
 
-# diary-rem.el ends here
-"
+# diary-rem.el ends here"
   (interactive "P")
   (if (string-equal diary-mail-addr "")
       (user-error "You must set `diary-mail-addr' to use this command")
@@ -1254,10 +1253,10 @@ the regexp with parentheses."
               paren))
 
 (defvar diary-marking-entries-flag nil
-  "True during the marking of diary entries, nil otherwise.")
+  "Non-nil during the marking of diary entries, nil otherwise.")
 
 (defvar diary-marking-entry-flag nil
-  "True during the marking of diary entries, if current entry is marking.")
+  "Non-nil during the marking of diary entries, if current entry is marking.")
 
 ;; file-glob-attrs bound in diary-mark-entries.
 (defun diary-mark-entries-1 (markfunc &optional months symbol absfunc)
@@ -1266,7 +1265,7 @@ MARKFUNC is a function that marks entries of the appropriate type
 matching a given date pattern.  MONTHS is an array of month names.
 SYMBOL marks diary entries of the type in question.  ABSFUNC is a
 function that converts absolute dates to dates of the appropriate type."
-  (calendar-dlet*
+  (calendar-dlet
       ((dayname (diary-name-pattern calendar-day-name-array
                                     calendar-day-abbrev-array))
        (monthname (format "%s\\|\\*"
@@ -1435,7 +1434,7 @@ marks.  This is intended to deal with deleted diary entries."
 (defun diary-sexp-entry (sexp entry date)
   "Process a SEXP diary ENTRY for DATE."
   (let ((result
-         (calendar-dlet* ((date date)
+         (calendar-dlet ((date date)
                           (entry entry))
            (if calendar-debug-sexp
                (let ((debug-on-error t))
@@ -2014,6 +2013,17 @@ string to use when highlighting the day in the calendar."
     (and (>= diff 0) (zerop (% diff n))
          (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+(defun diary-offset (sexp days)
+  "Offsetted diary entry.  Offsets SEXP by DAYS days.
+Entry applies if the date is DAYS days after another diary-sexp SEXP."
+  (with-no-warnings (defvar date))
+  (unless (integerp days)
+    (user-error "Days must be an integer"))
+  (let ((date (calendar-gregorian-from-absolute
+	       (- (calendar-absolute-from-gregorian date) days))))
+    (eval sexp)))
+
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
   (with-no-warnings (defvar date))
@@ -2043,7 +2053,7 @@ calendar."
   (and (integerp days)
        (< days 0)
        (setq days (number-sequence 1 (- days))))
-  (calendar-dlet* ((diary-entry (eval sexp)))
+  (calendar-dlet ((diary-entry (eval sexp)))
     (cond
      ;; Diary entry applies on date.
      ((and diary-entry
@@ -2059,7 +2069,7 @@ calendar."
         (when (setq diary-entry (eval sexp))
           ;; Discard any mark portion from diary-anniversary, etc.
           (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
-          (calendar-dlet* ((days days))
+          (calendar-dlet ((days days))
             (mapconcat #'eval diary-remind-message "")))))
      ;; Diary entry may apply to one of a list of days before date.
      ((and (listp days) days)
@@ -2264,7 +2274,7 @@ If given, optional SYMBOL must be a prefix to entries.  If
 optional ABBREV-ARRAY is present, also matches the abbreviations
 from this array (with or without a final `.'), in addition to the
 full month names."
-  (calendar-dlet*
+  (calendar-dlet
       ((dayname (diary-name-pattern calendar-day-name-array
                                     calendar-day-abbrev-array t))
        (monthname (format "\\(%s\\|\\*\\)"
@@ -2400,7 +2410,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 This depends on the calendar date style."
   (declare (obsolete nil "28.1"))
   (concat
-   (calendar-dlet*
+   (calendar-dlet
        ((dayname (diary-name-pattern calendar-day-name-array nil t))
         (monthname (diary-name-pattern calendar-month-name-array nil t))
         (day "1")

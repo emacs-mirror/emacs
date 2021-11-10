@@ -413,8 +413,14 @@
     (bindings--define-key menu [separator-tag-file]
       '(menu-item "--" nil :visible (menu-bar-goto-uses-etags-p)))
 
+    (bindings--define-key menu [xref-forward]
+      '(menu-item "Forward" xref-go-forward
+                  :visible (and (featurep 'xref)
+                                (not (xref-forward-history-empty-p)))
+                  :help "Forward to the position gone Back from"))
+
     (bindings--define-key menu [xref-pop]
-      '(menu-item "Back" xref-pop-marker-stack
+      '(menu-item "Back" xref-go-back
                   :visible (and (featurep 'xref)
                                 (not (xref-marker-stack-empty-p)))
                   :help "Back to the position of the last search"))
@@ -514,7 +520,11 @@
                                          (cdr yank-menu)
                                        kill-ring))
                                     (not buffer-read-only))))
-                  :help "Paste (yank) text most recently cut/copied"))
+                  :help "Paste (yank) text most recently cut/copied"
+                  :keys ,(lambda ()
+                           (if cua-mode
+                               "\\[cua-paste]"
+                             "\\[yank]"))))
     (bindings--define-key menu [copy]
       ;; ns-win.el said: Substitute a Copy function that works better
       ;; under X (for GNUstep).
@@ -523,14 +533,23 @@
                             'kill-ring-save)
                   :enable mark-active
                   :help "Copy text in region between mark and current position"
-                  :keys ,(if (featurep 'ns)
-                             "\\[ns-copy-including-secondary]"
-                           "\\[kill-ring-save]")))
+                  :keys ,(lambda ()
+                           (cond
+                            ((featurep 'ns)
+                             "\\[ns-copy-including-secondary]")
+                            ((and cua-mode mark-active)
+                             "\\[cua-copy-handler]")
+                            (t
+                             "\\[kill-ring-save]")))))
     (bindings--define-key menu [cut]
-      '(menu-item "Cut" kill-region
+      `(menu-item "Cut" kill-region
                   :enable (and mark-active (not buffer-read-only))
                   :help
-                  "Cut (kill) text in region between mark and current position"))
+                  "Cut (kill) text in region between mark and current position"
+                  :keys ,(lambda ()
+                           (if (and cua-mode mark-active)
+                               "\\[cua-cut-handler]"
+                             "\\[kill-region]"))))
     ;; ns-win.el said: Separate undo from cut/paste section.
     (if (featurep 'ns)
         (bindings--define-key menu [separator-undo] menu-bar-separator))
@@ -1315,6 +1334,11 @@ mail status in mode line"))
                   :visible (and (display-graphic-p) (fboundp 'x-show-tip))
                   :button (:toggle . tooltip-mode)))
 
+    (bindings--define-key menu [showhide-context-menu]
+      '(menu-item "Context Menus" context-menu-mode
+                  :help "Turn mouse-3 context menus on/off"
+                  :button (:toggle . context-menu-mode)))
+
     (bindings--define-key menu [menu-bar-mode]
       '(menu-item "Menu Bar" toggle-menu-bar-mode-from-frame
                   :help "Turn menu bar on/off"
@@ -1913,10 +1937,7 @@ key, a click, or a menu-item"))
   (let* ((default (thing-at-point 'sexp))
          (topic
           (read-from-minibuffer
-           (format "Subject to look up%s: "
-                   (if default
-                       (format " (default \"%s\")" default)
-                     ""))
+           (format-prompt "Subject to look up" default)
            nil nil nil nil default)))
     (list (if (zerop (length topic))
               default
@@ -1955,6 +1976,9 @@ key, a click, or a menu-item"))
                   :help "Find commands whose names match a regexp"))
     (bindings--define-key menu [sep1]
       menu-bar-separator)
+    (bindings--define-key menu [lookup-symbol-in-manual]
+      '(menu-item "Look Up Symbol in Manual..." info-lookup-symbol
+                  :help "Display manual section that describes a symbol"))
     (bindings--define-key menu [lookup-command-in-manual]
       '(menu-item "Look Up Command in User Manual..." Info-goto-emacs-command-node
                   :help "Display manual section that describes a command"))
@@ -2151,9 +2175,15 @@ otherwise it could decide to silently do nothing."
     (> count 1)))
 
 (defcustom yank-menu-length 20
-  "Maximum length to display in the yank-menu."
+  "Text of items in `yank-menu' longer than this will be truncated."
   :type 'integer
   :group 'menu)
+
+(defcustom yank-menu-max-items 60
+  "Maximum number of entries to display in the `yank-menu'."
+  :type 'integer
+  :group 'menu
+  :version "29.1")
 
 (defun menu-bar-update-yank-menu (string old)
   (let ((front (car (cdr yank-menu)))
@@ -2178,8 +2208,9 @@ otherwise it could decide to silently do nothing."
 	      (cons
 	       (cons string (cons menu-string 'menu-bar-select-yank))
 	       (cdr yank-menu)))))
-  (if (> (length (cdr yank-menu)) kill-ring-max)
-      (setcdr (nthcdr kill-ring-max yank-menu) nil)))
+  (let ((max-items (min yank-menu-max-items kill-ring-max)))
+    (if (> (length (cdr yank-menu)) max-items)
+        (setcdr (nthcdr max-items yank-menu) nil))))
 
 (put 'menu-bar-select-yank 'apropos-inhibit t)
 (defun menu-bar-select-yank ()
@@ -2284,7 +2315,7 @@ Buffers menu is regenerated."
 It must accept a buffer as its only required argument.")
 
 (defun menu-bar-buffer-vector (alist)
-  ;; turn ((name . buffer) ...) into a menu
+  "Turn ((name . buffer) ...) into a menu."
   (let ((buffers-vec (make-vector (length alist) nil))
         (i (length alist)))
     (dolist (pair alist)
@@ -2298,7 +2329,7 @@ It must accept a buffer as its only required argument.")
     buffers-vec))
 
 (defun menu-bar-update-buffers (&optional force)
-  ;; If user discards the Buffers item, play along.
+  "If user discards the Buffers item, play along."
   (and (lookup-key (current-global-map) [menu-bar buffer])
        (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
@@ -2482,7 +2513,9 @@ created in the future."
   ;; after this function returns, overwriting any message we do here.
   (when (and (called-interactively-p 'interactive) (not menu-bar-mode))
     (run-with-idle-timer 0 nil 'message
-			 "Menu Bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
+                         (substitute-command-keys
+                          "Menu Bar mode disabled.  \
+Use \\[menu-bar-mode] to make the menu bar appear."))))
 
 ;;;###autoload
 ;; (This does not work right unless it comes after the above definition.)
@@ -2687,10 +2720,13 @@ This command is to be used when you click the mouse in the menubar."
                        (cdr menu-bar-item-cons)
                      0))))
 
-(defun menu-bar-keymap ()
+(defun menu-bar-keymap (&optional keymap)
   "Return the current menu-bar keymap.
+The ordering of the return value respects `menu-bar-final-items'.
 
-The ordering of the return value respects `menu-bar-final-items'."
+It's possible to use the KEYMAP argument to override the default keymap
+that is the currently active maps.  For example, the argument KEYMAP
+could provide `global-map' where items are limited to the global map only."
   (let ((menu-bar '())
         (menu-end '()))
     (map-keymap
@@ -2703,7 +2739,7 @@ The ordering of the return value respects `menu-bar-final-items'."
              ;; sorting.
              (push (cons pos menu-item) menu-end)
            (push menu-item menu-bar))))
-     (lookup-key (menu-bar-current-active-maps) [menu-bar]))
+     (lookup-key (or keymap (menu-bar-current-active-maps)) [menu-bar]))
     `(keymap ,@(nreverse menu-bar)
              ,@(mapcar #'cdr (sort menu-end
                                    (lambda (a b)
@@ -2773,7 +2809,7 @@ This is the keyboard interface to \\[mouse-buffer-menu]."
     km))
 
 (defun menu-bar-define-mouse-key (map key def)
-  "Like `define-key', but adds all possible prefixes for the mouse."
+  "Like `define-key', but add all possible prefixes for the mouse."
   (define-key map (vector key) def)
   (mapc (lambda (prefix) (define-key map (vector prefix key) def))
         ;; This list only needs to contain special window areas that

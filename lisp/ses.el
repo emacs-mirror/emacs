@@ -299,11 +299,11 @@ Used for listing local printers or renamed cells.")
     ses-center-span ses-dashfill ses-dashfill-span
     ses-tildefill-span
     ses-prin1)
-  "List of print functions to be included in initial history of
-printer functions.  None of these standard-printer functions,
-except function `ses-prin1', is suitable for use as a column
-printer or a global-default printer because they invoke the
-column or default printer and then modify its output.")
+  "List of print functions to be included in initial history of printer functions.
+None of these standard-printer functions, except function
+`ses-prin1', is suitable for use as a column printer or a
+global-default printer because they invoke the column or default
+printer and then modify its output.")
 
 
 ;;----------------------------------------------------------------------------
@@ -454,8 +454,8 @@ functions refer to its value."
   `(ses-cell--references ,(if col `(ses-get-cell ,row ,col) row)))
 
 (defmacro ses-sym-rowcol (sym)
-  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
-is nil if SYM is not a symbol that names a cell."
+  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).
+Result is nil if SYM is not a symbol that names a cell."
   (declare (debug t))
   `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
      (if (eq rc :ses-named)
@@ -623,7 +623,7 @@ This is a macro to prevent propagate-on-load viruses."
   t)
 
 (defmacro ses-column-printers (printers)
-  "Load the vector of column printers from the spreadsheet file and checks
+  "Load the vector of column printers from the spreadsheet file and check
 them for safety.  This is a macro to prevent propagate-on-load viruses."
   (or (and (vectorp printers) (= (length printers) ses--numcols))
       (error "Bad column-printers vector"))
@@ -634,14 +634,14 @@ them for safety.  This is a macro to prevent propagate-on-load viruses."
   t)
 
 (defmacro ses-default-printer (def)
-  "Load the global default printer from the spreadsheet file and checks it
+  "Load the global default printer from the spreadsheet file and check it
 for safety.  This is a macro to prevent propagate-on-load viruses."
   (setq ses--default-printer (ses-safe-printer def))
   (ses-printer-record def)
   t)
 
 (defmacro ses-header-row (row)
-  "Load the header row from the spreadsheet file and checks it
+  "Load the header row from the spreadsheet file and check it
 for safety.  This is a macro to prevent propagate-on-load viruses."
   (or (and (wholenump row) (or (zerop ses--numrows) (< row ses--numrows)))
       (error "Bad header-row"))
@@ -819,8 +819,8 @@ Return nil in case of failure."
 	buffer-undo-list))
 
 (defun ses-reset-header-string ()
-  "Flag the header string for update.  Upon undo, the header string will be
-updated again."
+  "Flag the header string for update.
+Upon undo, the header string will be updated again."
   (push '(apply ses-reset-header-string) buffer-undo-list)
   (setq ses--header-hscroll -1))
 
@@ -1677,7 +1677,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      `(ses-range ,min ,max ,@(cl-cdddr range)))))
+      `(ses-range ,min ,max ,@(cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate
@@ -1898,7 +1898,7 @@ Does not execute cell formulas or print functions."
 	  (or (and (= (following-char) ?\n)
 		   (eq (car-safe x) 'ses-local-printer)
 		   (apply #'ses--local-printer (cdr x)))
-	      (error "local printer-def error"))
+              (error "Local printer-def error"))
 	  (setq ses--numlocprn (1+ ses--numlocprn))))))
   ;; Load cell definitions.
   (dotimes (row ses--numrows)
@@ -2594,8 +2594,7 @@ With prefix, deletes several cells."
       (forward-char 1))))
 
 (defun ses-clear-cell-backward (count)
-  "Move to previous cell and then delete it.  With prefix, delete several
-cells."
+  "Move to previous cell and then delete it.  With prefix, delete several cells."
   (interactive "*p")
   (if (< count 0)
       (1value (ses-clear-cell-forward (- count)))
@@ -3054,8 +3053,9 @@ hard to override how mouse-1 works."
 (advice-add 'copy-region-as-kill :around #'ses--advice-copy-region-as-kill)
 
 (defun ses-copy-region (beg end)
-  "Treat the region as rectangular.  Convert the intangible attributes to
-SES attributes recording the contents of the cell as of the time of copying."
+  "Treat the region as rectangular.
+Convert the intangible attributes to SES attributes recording the
+contents of the cell as of the time of copying."
   (when (= end ses--data-marker)
     ;;Avoid overflow situation
     (setq end (1- ses--data-marker)))
@@ -3070,7 +3070,7 @@ SES attributes recording the contents of the cell as of the time of copying."
     x))
 
 (defun ses-copy-region-helper (line)
-  "Converts one line (of a rectangle being extracted from a spreadsheet) to
+  "Convert one line (of a rectangle being extracted from a spreadsheet) to
 external form by attaching to each print cell a `ses' attribute that records
 the corresponding data cell."
   (or (> (length line) 1)
@@ -3124,13 +3124,13 @@ Otherwise the text is inserted as the formula for the current cell.
 
 When inserting cells, the formulas are usually relocated to keep the same
 relative references to neighboring cells.  This is best if the formulas
-generally refer to other cells within the yanked text.  You can use the C-u
+generally refer to other cells within the yanked text.  You can use the \\[universal-argument]
 prefix to specify insertion without relocation, which is best when the
 formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
 make sense as a sexp or would otherwise be considered a symbol.  Use `sym' to
-explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
+explicitly insert a symbol, or use the \\[universal-argument] prefix to treat all unmarked words
 as symbols."
   (if (not (and (derived-mode-p 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))
@@ -3172,8 +3172,8 @@ previous insertion."
   (setq this-command 'yank))
 
 (defun ses-yank-cells (text arg)
-  "If the TEXT has a proper set of `ses' attributes, insert the text as
-cells, else return nil.  The cells are reprinted--the supplied text is
+  "If TEXT has a proper set of `ses' attributes, insert it as cells.
+Otherwise, return nil.  The cells are reprinted--the supplied text is
 ignored because the column widths, default printer, etc. at yank time might
 be different from those at kill-time.  ARG is a list to indicate that
 formulas are to be inserted without relocation."
@@ -3357,7 +3357,7 @@ is non-nil.  Newlines and tabs in the export text are escaped."
 	(push "'" result)
 	(setq item (cadr item)))
       (setq item (ses-prin1 item))
-      (setq item (replace-regexp-in-string "\t" "\\\\t" item))
+      (setq item (string-replace "\t" "\\t" item))
       (push item result)
       (cond
        ((< col maxcol)
@@ -3554,7 +3554,7 @@ With prefix, sorts in REVERSE order."
 	(push (cons (buffer-substring-no-properties (point) end)
 		    (+ minrow x))
 	      keys))
-      (setq keys (sort keys #'(lambda (x y) (string< (car x) (car y)))))
+      (setq keys (sort keys (lambda (x y) (string< (car x) (car y)))))
       ;;Extract the lines in reverse sorted order
       (or reverse
 	  (setq keys (nreverse keys)))
@@ -3743,7 +3743,7 @@ Uses the value COMPILED-VALUE for this printer."
 (defun ses-define-local-printer (name definition)
   "Define a local printer with name NAME and definition DEFINITION.
 
-NAME shall be a symbol. Use TAB to complete over existing local
+NAME shall be a symbol.  Use TAB to complete over existing local
 printer names.
 
 DEFINITION shall be either a string formatter, e.g.:
@@ -3774,7 +3774,9 @@ function is redefined."
      (setq name (intern name))
      (let* ((cur-printer (gethash name ses--local-printer-hashmap))
             (default (and cur-printer (ses--locprn-def cur-printer))))
-            (setq def (ses-read-printer (format "Enter definition of printer %S" name)
+            (setq def (ses-read-printer (format-prompt
+                                         "Enter definition of printer %S"
+                                         default name)
                                         default)))
             (list name def)))
 
@@ -4012,8 +4014,9 @@ Use `math-format-value' as a printer for Calc objects."
   (apply #'+ (apply #'ses-delete-blanks args)))
 
 (defun ses-average (list)
-  "Computes the sum of the numbers in LIST, divided by their length.  Blanks
-are ignored.  Result is always floating-point, even if all args are integers."
+  "Calculate the sum of the numbers in LIST, divided by their length.
+Blanks are ignored.  Result is always floating-point, even if all
+args are integers."
   (setq list (apply #'ses-delete-blanks list))
   (/ (float (apply #'+ list)) (length list)))
 

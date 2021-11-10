@@ -823,7 +823,9 @@ link.
 Change the mode (also called @dfn{permission bits}) of the specified
 files (@code{dired-do-chmod}).  @var{modespec} can be in octal or
 symbolic notation, like arguments handled by the @command{chmod}
-program.
+program.  This command does not follow symbolic links, so it reports
+an error if you try to change the mode of a symbolic link on a
+platform where such modes are immutable.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}
@@ -850,8 +852,8 @@ different systems put @command{chown} in different places).
 @cindex changing file time (in Dired)
 @item T @var{timestamp} @key{RET}
 Touch the specified files (@code{dired-do-touch}).  This means
-updating their modification times to the present time.  This is like
-the shell command @code{touch}.
+updating their modification times to @var{timestamp}, which defaults
+to the present time.  This is like the shell command @command{touch}.
 
 @findex dired-do-print
 @kindex P @r{(Dired)}
@@ -1505,16 +1507,14 @@ buffer containing image-dired, corresponding to the marked files.
   You can also enter Image-Dired directly by typing @kbd{M-x
 image-dired}.  This prompts for a directory; specify one that has
 image files.  This creates thumbnails for all the images in that
-directory, and displays them all in the thumbnail buffer.  This
-takes a long time if the directory contains many image files, and it
-asks for confirmation if the number of image files exceeds
-@code{image-dired-show-all-from-dir-max-files}.
+directory, and displays them all in the thumbnail buffer.  The
+thumbnails are generated in the background and are loaded as they
+become available.
 
   With point in the thumbnail buffer, you can type @key{RET}
-(@code{image-dired-display-thumbnail-original-image}) to display a
-sized version of it in another window.  This sizes the image to fit
-the window.  Use the arrow keys to move around in the buffer.  For
-easy browsing, use @key{SPC}
+(@code{image-dired-display-thumbnail-original-image}) to display the
+image in another window.  Use the arrow keys to move around in the
+thumbnail buffer.  For easy browsing, use @key{SPC}
 (@code{image-dired-display-next-thumbnail-original}) to advance and
 display the next image.  Typing @key{DEL}
 (@code{image-dired-display-previous-thumbnail-original}) backs up to
@@ -1552,6 +1552,11 @@ differently).  That is used to enter a comment or description about the
 image.  You comment a file from the thumbnail buffer by typing
 @kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
 a comment from Dired (@code{image-dired-dired-comment-files}).
+
+@vindex image-dired-thumb-visible-marks
+  Files that are marked in Dired will also be marked in Image-Dired if
+@code{image-dired-thumb-visible-marks} is non-@code{nil} (which is the
+default).
 
   Image-Dired also provides simple image manipulation.  In the
 thumbnail buffer, type @kbd{L} to rotate the original image 90 degrees

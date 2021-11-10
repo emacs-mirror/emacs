@@ -300,7 +300,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode (region-active-p))
       (setq deactivate-mark t)
-    (abort-recursive-edit)))
+    (abort-minibuffers)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
 

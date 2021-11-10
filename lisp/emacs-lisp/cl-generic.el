@@ -86,6 +86,14 @@
 
 ;;; Code:
 
+;; We provide a mechanism to define new specializers.
+;; Related work can be found in:
+;; - http://www.p-cos.net/documents/filtered-dispatch.pdf
+;; - Generalizers: New metaobjects for generalized dispatch
+;;   http://research.gold.ac.uk/9924/1/els-specializers.pdf
+;; This second one is closely related to what we do here (and that's
+;; the name "generalizer" comes from).
+
 ;; The autoloads.el mechanism which adds package--builtin-versions
 ;; maintenance to loaddefs.el doesn't work for preloaded packages (such
 ;; as this one), so we have to do it by hand!
@@ -100,6 +108,7 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'cl-macs))  ;For cl--find-class.
 (eval-when-compile (require 'pcase))
+(eval-when-compile (require 'subr-x))
 
 (cl-defstruct (cl--generic-generalizer
                (:constructor nil)
@@ -589,19 +598,10 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
         ;; e.g. for tracing/debug-on-entry.
         (defalias sym gfun)))))
 
-(defmacro cl--generic-with-memoization (place &rest code)
-  (declare (indent 1) (debug t))
-  (gv-letplace (getter setter) place
-    `(or ,getter
-         ,(macroexp-let2 nil val (macroexp-progn code)
-            `(progn
-               ,(funcall setter val)
-               ,val)))))
-
 (defvar cl--generic-dispatchers (make-hash-table :test #'equal))
 
 (defun cl--generic-get-dispatcher (dispatch)
-  (cl--generic-with-memoization
+  (with-memoization
       (gethash dispatch cl--generic-dispatchers)
     ;; (message "cl--generic-get-dispatcher (%S)" dispatch)
     (let* ((dispatch-arg (car dispatch))
@@ -644,10 +644,13 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       ;; overkill: better just use a `cl-typep' test.
       (byte-compile
        `(lambda (generic dispatches-left methods)
+          ;; FIXME: We should find a way to expand `with-memoize' once
+          ;; and forall so we don't need `subr-x' when we get here.
+          (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
-                (apply (cl--generic-with-memoization
+                (apply (with-memoization
                            (gethash ,tag-exp method-cache)
                          (cl--generic-cache-miss
                           generic ',dispatch-arg dispatches-left methods
@@ -684,14 +687,14 @@ This is particularly useful when many different tags select the same set
 of methods, since this table then allows us to share a single combined-method
 for all those different tags in the method-cache.")
 
-(define-error 'cl--generic-cyclic-definition "Cyclic definition: %S")
+(define-error 'cl--generic-cyclic-definition "Cyclic definition")
 
 (defun cl--generic-build-combined-method (generic methods)
   (if (null methods)
       ;; Special case needed to fix a circularity during bootstrap.
       (cl--generic-standard-method-combination generic methods)
     (let ((f
-           (cl--generic-with-memoization
+           (with-memoization
                ;; FIXME: Since the fields of `generic' are modified, this
                ;; hash-table won't work right, because the hashes will change!
                ;; It's not terribly serious, but reduces the effectiveness of
@@ -960,7 +963,7 @@ Can only be used from within the lexical body of a primary or around method."
 ;;; Add support for describe-function
 
 (defun cl--generic-search-method (met-name)
-  "For `find-function-regexp-alist'.  Searches for a cl-defmethod.
+  "For `find-function-regexp-alist'.  Search for a `cl-defmethod'.
 MET-NAME is as returned by `cl--generic-load-hist-format'."
   (let ((base-re (concat "(\\(?:cl-\\)?defmethod[ \t]+"
                          (regexp-quote (format "%s" (car met-name)))
@@ -1026,7 +1029,10 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
     (when generic
       (require 'help-mode)              ;Needed for `help-function-def' button!
       (save-excursion
-        (insert "\n\nThis is a generic function.\n\n")
+        ;; Ensure that we have two blank lines (but not more).
+        (unless (looking-back "\n\n" (- (point) 2))
+          (insert "\n"))
+        (insert "This is a generic function.\n\n")
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
         (dolist (method (cl--generic-method-table generic))
@@ -1140,7 +1146,7 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
   ;; since we can't use the `head' specializer to implement itself.
   (if (not (eq (car-safe specializer) 'head))
       (cl-call-next-method)
-    (cl--generic-with-memoization
+    (with-memoization
         (gethash (cadr specializer) cl--generic-head-used)
       specializer)
     (list cl--generic-head-generalizer)))
@@ -1153,12 +1159,27 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
 
 (cl-generic-define-generalizer cl--generic-eql-generalizer
   100 (lambda (name &rest _) `(gethash ,name cl--generic-eql-used))
-  (lambda (tag &rest _) (if (eq (car-safe tag) 'eql) (list tag))))
+  (lambda (tag &rest _) (if (eq (car-safe tag) 'eql) (cdr tag))))
 
 (cl-defmethod cl-generic-generalizers ((specializer (head eql)))
   "Support for (eql VAL) specializers.
 These match if the argument is `eql' to VAL."
-  (puthash (cadr specializer) specializer cl--generic-eql-used)
+  (let* ((form (cadr specializer))
+         (val (if (or (not (symbolp form)) (macroexp-const-p form))
+                  (eval form t)
+                ;; FIXME: Compatibility with Emacs<28.  For now emitting
+                ;; a warning would be annoying for third party packages
+                ;; which can't use the new form without breaking compatibility
+                ;; with older Emacsen, but in the future we should emit
+                ;; a warning.
+                ;; (message "Quoting obsolete `eql' form: %S" specializer)
+                form))
+         (specializers (cdr (gethash val cl--generic-eql-used))))
+    ;; The `specializers-function' needs to return all the (eql EXP) that
+    ;; were used for the same VALue (bug#49866).
+    ;; So we keep this info in `cl--generic-eql-used'.
+    (cl-pushnew specializer specializers :test #'equal)
+    (puthash val `(eql . ,specializers) cl--generic-eql-used))
   (list cl--generic-eql-generalizer))
 
 (cl--generic-prefill-dispatchers 0 (eql nil))

@@ -293,7 +293,7 @@ files"]
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
 
-To see the options you can set, use M-x customize-group RET dired-x RET.
+To see the options you can set, use \\[customize-group] RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'
@@ -340,8 +340,8 @@ A `.' is automatically prepended to EXTENSION when not present.
 EXTENSION may also be a list of extensions instead of a single one.
 Optional MARKER-CHAR is marker to use.
 Interactively, ask for EXTENSION.
-Prefixed with one C-u, unmark files instead.
-Prefixed with two C-u's, prompt for MARKER-CHAR and mark files with it."
+Prefixed with one \\[universal-argument], unmark files instead.
+Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
   (interactive (dired--mark-suffix-interactive-spec))
   (unless (listp extension)
     (setq extension (list extension)))
@@ -365,8 +365,8 @@ prepends `.' when not present.
 SUFFIX may also be a list of suffixes instead of a single one.
 Optional MARKER-CHAR is marker to use.
 Interactively, ask for SUFFIX.
-Prefixed with one C-u, unmark files instead.
-Prefixed with two C-u's, prompt for MARKER-CHAR and mark files with it."
+Prefixed with one \\[universal-argument], unmark files instead.
+Prefixed with two \\[universal-argument]'s, prompt for MARKER-CHAR and mark files with it."
   (interactive (dired--mark-suffix-interactive-spec))
   (unless (listp suffix)
     (setq suffix (list suffix)))
@@ -554,7 +554,7 @@ If the region is active in Transient Mark mode, operate only on
 files in the active region if `dired-mark-region' is non-nil."
   (interactive
    (list (read-regexp
-	  "Mark unmarked files matching regexp (default all): "
+          (format-prompt "Mark unmarked files matching regexp" "all")
           nil 'dired-regexp-history)
 	 nil current-prefix-arg nil))
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
@@ -589,7 +589,7 @@ This is useful if you want to peruse and move around in an ls -lR
 output file, for example one you got from an ftp server.  With
 ange-ftp, you can even Dired a directory containing an ls-lR file,
 visit that file and turn on Virtual Dired mode.  But don't try to save
-this file, as dired-virtual indents the listing and thus changes the
+this file, as `dired-virtual' indents the listing and thus changes the
 buffer.
 
 If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
@@ -956,7 +956,7 @@ as the variable `file'.
 
 If several COMMANDs are given, the first one will be the default
 and the rest will be added temporarily to the history and can be retrieved
-with \\[previous-history-element] (M-p) .
+with `previous-history-element' (\\<minibuffer-mode-map>\\[previous-history-element]).
 
 The variable `dired-guess-shell-case-fold-search' controls whether
 REGEXP is matched case-sensitively."
@@ -1044,11 +1044,11 @@ results in
           len2 (length file2))
     ;; Find common initial file name components:
     (let (next)
-      (while (and (setq next (string-match "/" file1 index))
+      (while (and (setq next (string-search "/" file1 index))
                   (< (setq next (1+ next)) (min len1 len2))
                   ;; For the comparison, both substrings must end in
                   ;; `/', so NEXT is *one plus* the result of the
-                  ;; string-match.
+                  ;; string-search.
                   ;; E.g., consider the case of linking "/tmp/a/abc"
                   ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
                   ;; of "/tmp/" as common initial component
@@ -1066,7 +1066,7 @@ results in
             (start 0)
             (count 0))
         ;; Count number of slashes we must compensate for ...
-        (while (setq start (string-match "/" tem start))
+        (while (setq start (string-search "/" tem start))
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
@@ -1193,7 +1193,7 @@ NOSELECT the files are merely found but not selected."
   (interactive)
   (require 'man)
   (let* ((file (dired-get-filename))
-         (manual-program (replace-regexp-in-string "\\*" "%s"
+         (manual-program (string-replace "*" "%s"
                           (dired-guess-shell-command
                            "Man command: " (list file)))))
     (Man-getpage-in-background file)))
@@ -1478,12 +1478,12 @@ a prefix argument, when it offers the filename near point as a default."
 
 ;;; Internal functions
 
-;; Fixme: This should probably use `thing-at-point'.  -- fx
 (define-obsolete-function-alias 'dired-filename-at-point
   #'dired-x-guess-file-name-at-point "28.1")
 (defun dired-x-guess-file-name-at-point ()
   "Return the filename closest to point, expanded.
 Point should be in or after a filename."
+  (declare (obsolete "use (thing-at-point 'filename) instead." "29.1"))
   (save-excursion
     ;; First see if just past a filename.
     (or (eobp)                             ; why?
@@ -1515,7 +1515,7 @@ Point should be in or after a filename."
   "Return filename prompting with PROMPT with completion.
 If `current-prefix-arg' is non-nil, uses name at point as guess."
   (if current-prefix-arg
-      (let ((guess (dired-x-guess-file-name-at-point)))
+      (let ((guess (thing-at-point 'filename)))
         (read-file-name prompt
                         (file-name-directory guess)
                         guess

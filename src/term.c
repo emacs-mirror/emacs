@@ -549,13 +549,14 @@ encode_terminal_code (struct glyph *src, int src_len,
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp UNINIT;
+	  struct composition *cmp;
 	  Lisp_Object gstring UNINIT;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
 	  if (src->u.cmp.automatic)
 	    {
+	      cmp = NULL;
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
 	      required = src->slice.cmp.to - src->slice.cmp.from + 1;
 	    }
@@ -575,7 +576,7 @@ encode_terminal_code (struct glyph *src, int src_len,
 	      buf = encode_terminal_src + nbytes;
 	    }
 
-	  if (src->u.cmp.automatic)
+	  if (!cmp)
 	    for (i = src->slice.cmp.from; i <= src->slice.cmp.to; i++)
 	      {
 		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
@@ -2169,6 +2170,14 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 #endif /* !DOS_NT */
 
+char *
+tty_type_name (Lisp_Object terminal)
+{
+  struct terminal *t = decode_tty_terminal (terminal);
+
+  return t? t->display_info.tty->type: NULL;
+}
+
 DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
@@ -2177,10 +2186,9 @@ TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
   (Lisp_Object terminal)
 {
-  struct terminal *t = decode_tty_terminal (terminal);
+  char *name = tty_type_name (terminal);
 
-  return (t && t->display_info.tty->type
-	  ? build_string (t->display_info.tty->type) : Qnil);
+  return (name? build_string (name) : Qnil);
 }
 
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
@@ -2568,21 +2576,8 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
     {
       f->mouse_moved = 0;
       term_mouse_click (&ie, event, f);
-      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
-      if (tty_handle_tab_bar_click (f, event->x, event->y,
-                                    (ie.modifiers & down_modifier) != 0, &ie))
-        {
-          /* eassert (ie.kind == MOUSE_CLICK_EVENT
-           *          || ie.kind == TAB_BAR_EVENT); */
-          /* tty_handle_tab_bar_click stores 2 events in the event
-             queue, so we are done here.  */
-          /* FIXME: Actually, `tty_handle_tab_bar_click` returns true
-             without storing any events, when
-             (ie.modifiers & down_modifier) != 0  */
-          count += 2;
-          return count;
-        }
-      /* eassert (ie.kind == MOUSE_CLICK_EVENT); */
+      ie.arg = tty_handle_tab_bar_click (f, event->x, event->y,
+					 (ie.modifiers & down_modifier) != 0, &ie);
       kbd_buffer_store_event (&ie);
       count++;
     }

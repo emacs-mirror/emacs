@@ -48,6 +48,7 @@ The ability to:
 Create @strong{PostScript output} from plain-text files (special
 editing modes for @LaTeX{} and @TeX{} are included).
 
+
 @item
 @strong{Compile} and @strong{debug} from inside Emacs.
 
@@ -67,7 +68,7 @@ Enjoy the use of extensive @strong{merge} and @strong{diff} functions.
 
 @item
 Take advantage of built-in support for many @strong{version control
-systems}, including Git, Mercurial, Bazaar, Subversion, and CVS.
+systems,} including Git, Mercurial, Bazaar, Subversion, and CVS.
 
 @item
 And much more!
@@ -82,8 +83,8 @@ useful to expert users.  It also includes appendices with specific
 material about X and GTK resources, and with details for users of
 macOS and Microsoft Windows.
 
-And when you tire of all the work you can accomplish with it, Emacs
-contains games to play.
+And when you tire of all the work you can accomplish with Emacs, enjoy
+the games that come with it.
 
 @strong{About the original and principal author:}
 
@@ -92,8 +93,10 @@ Emacs in 1984/85.  He has received the ACM Grace Hopper Award, a
 MacArthur Foundation fellowship, the Electronic Frontier Foundation's
 Pioneer award, the Takeda Award for Social/Economic Betterment, and
 the ACM Software and System Award, as well as several doctorates
-honoris causa.
+@emph{honoris causa.}
 @end quotation
 
 @hfil
 @bye
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -3088,7 +3088,7 @@ If X is not an error form, return 1."
 	  (math-read-big-err-msg nil)
 	  math-read-big-baseline math-read-big-h2
 	  new-pos p)
-      (while (setq new-pos (string-match "\n" str pos))
+      (while (setq new-pos (string-search "\n" str pos))
 	(setq math-read-big-lines
               (cons (substring str pos new-pos) math-read-big-lines)
 	      pos (1+ new-pos)))
@@ -3249,7 +3249,7 @@ If X is not an error form, return 1."
 	(t
 	 (let ((str (math-format-flat-expr x 0))
 	       (pos 0) p)
-	   (or (string-match "\"" str)
+	   (or (string-search "\"" str)
 	       (while (<= (setq p (+ pos w)) (length str))
 		 (while (and (> (setq p (1- p)) pos)
 			     (not (= (aref str p) ? ))))
@@ -3278,7 +3278,7 @@ If X is not an error form, return 1."
 			      (math-format-radix-float a prec))
 		   (format "%d#%s" calc-number-radix
 			   (math-format-radix-float a prec)))))
-	(if (and prec (> prec 191) (string-match "\\*" str))
+	(if (and prec (> prec 191) (string-search "*" str))
 	    (concat "(" str ")")
 	  str))))
    ((eq (car a) 'frac)
@@ -3418,7 +3418,7 @@ If X is not an error form, return 1."
 
 ;;; Users can redefine this in their init files.
 (defvar calc-keypad-user-menu nil
-  "If non-nil, this describes an additional menu for calc-keypad.
+  "If non-nil, this describes an additional menu for `calc-keypad'.
 It should contain a list of three rows.
 Each row should be a list of six keys.
 Each key should be a list of a label string, plus a Calc command name spec.

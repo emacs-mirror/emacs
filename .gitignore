@@ -65,6 +65,7 @@ lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
 lib/limits.h
+lib/malloc/*.gl.h
 lib/signal.h
 lib/std*.h
 !lib/std*.in.h
@@ -143,6 +144,7 @@ src/gl-stamp
 core
 core.*[0-9]
 gmon.out
+native-lisp/
 oo/
 oo-spd/
 src/*.map
@@ -212,6 +214,8 @@ etc/charsets/*.map
 lisp/international/charprop.el
 lisp/international/charscript.el
 lisp/international/cp51932.el
+lisp/international/emoji-zwj.el
+lisp/international/emoji-labels.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
 lisp/language/pinyin.el

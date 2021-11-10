@@ -20,15 +20,13 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'thumbs)
 
 (ert-deftest thumbs-tests-thumbsdir/create-if-missing ()
-  (let ((thumbs-thumbsdir (make-temp-file "thumbs-test" t)))
-    (unwind-protect
-        (progn
-          (delete-directory thumbs-thumbsdir)
-          (should (file-directory-p (thumbs-thumbsdir))))
-      (delete-directory thumbs-thumbsdir))))
+  (ert-with-temp-directory thumbs-thumbsdir
+    (delete-directory thumbs-thumbsdir)
+    (should (file-directory-p (thumbs-thumbsdir)))))
 
 (provide 'thumbs-tests)
 ;;; thumbs-tests.el ends here

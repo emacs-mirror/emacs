@@ -112,7 +112,8 @@
 (defvar filesets-updated-buffers nil
   "A list of buffers with updated menu bars.")
 (defvar filesets-menu-use-cached-flag nil
-  "Use cached data.  See `filesets-menu-ensure-use-cached' for details.")
+  "Non-nil means use cached data.
+See `filesets-menu-ensure-use-cached' for details.")
 (defvar filesets-update-cache-file-flag nil
   "Non-nil means the cache needs updating.")
 (defvar filesets-ignore-next-set-default nil
@@ -607,8 +608,8 @@ the filename."
 	(:ignore-on-read-text t)
 	;; (:constraintp ,pic-cmd)
 	))))
-  "Association list of file patterns and external viewers for use with
-`filesets-find-or-display-file'.
+  "Alist of file patterns and external viewers.
+This is intended for use with `filesets-find-or-display-file'.
 
 Has the form ((FILE-PATTERN VIEWER PROPERTIES) ...), VIEWER being either a
 function or a command name as string.
@@ -1770,7 +1771,7 @@ User will be queried, if no fileset name is provided."
 		      filesets-data nil)))
          (entry  (or (assoc name filesets-data)
                      (when (y-or-n-p
-                            (format "Fileset %s does not exist. Create it? "
+                            (format "Fileset %s does not exist.  Create it?"
                                     name))
                        (progn
       (add-to-list 'filesets-data (list name '(:files)))
@@ -1848,7 +1849,7 @@ User will be queried, if no fileset name is provided."
       (filesets-goto-homepage)))
 
 (defun filesets-goto-homepage ()
-  "Show filesets's homepage."
+  "Show filesets's website."
   (interactive)
   (browse-url filesets-homepage))
 
@@ -2198,8 +2199,9 @@ FS is a fileset's name.  FLIST is a list returned by
     nil))
 
 (defun filesets-build-dir-submenu (entry lookup-name dir patt)
-  "Build a :tree submenu named LOOKUP-NAME with base directory DIR including
-all files matching PATT for filesets ENTRY."
+  "Build a `:tree' submenu named LOOKUP-NAME.
+It has base directory DIR including all files matching PATT for
+filesets ENTRY."
   (let ((fd (filesets-entry-get-filter-dirs-flag entry))
 	(depth (or (filesets-entry-get-tree-max-level entry)
 		   filesets-tree-max-level)))

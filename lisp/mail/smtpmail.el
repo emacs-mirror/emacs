@@ -516,7 +516,7 @@ for `smtpmail-try-auth-method'.")
 
 (defun smtpmail-maybe-append-domain (recipient)
   (if (or (not smtpmail-sendto-domain)
-	  (string-match "@" recipient))
+	  (string-search "@" recipient))
       recipient
     (concat recipient "@" smtpmail-sendto-domain)))
 
@@ -596,7 +596,7 @@ USER and PASSWORD should be non-nil."
   (error "Mechanism %S not implemented" mech))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql cram-md5)) user password)
+  (process (_mech (eql 'cram-md5)) user password)
   (let ((ret (smtpmail-command-or-throw process "AUTH CRAM-MD5")))
     (when (eq (car ret) 334)
       (let* ((challenge (substring (cadr ret) 4))
@@ -618,13 +618,13 @@ USER and PASSWORD should be non-nil."
 	(smtpmail-command-or-throw process encoded)))))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql login)) user password)
+  (process (_mech (eql 'login)) user password)
   (smtpmail-command-or-throw process "AUTH LOGIN")
   (smtpmail-command-or-throw process (base64-encode-string user t))
   (smtpmail-command-or-throw process (base64-encode-string password t)))
 
 (cl-defmethod smtpmail-try-auth-method
-  (process (_mech (eql plain)) user password)
+  (process (_mech (eql 'plain)) user password)
   ;; We used to send an empty initial request, and wait for an
   ;; empty response, and then send the password, but this
   ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
@@ -635,6 +635,14 @@ USER and PASSWORD should be non-nil."
    (concat "AUTH PLAIN "
 	   (base64-encode-string (concat "\0" user "\0" password) t))
    235))
+
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql xoauth2)) user password)
+  (smtpmail-command-or-throw
+   process
+   (concat "AUTH XOAUTH2 "
+           (base64-encode-string
+            (concat "user=" user "\1auth=Bearer " password "\1\1") t))))
 
 (defun smtpmail-response-code (string)
   (when string
@@ -692,7 +700,7 @@ Returns an error if the server cannot be contacted."
        (let ((parts (split-string user-mail-address "@")))
 	 (and (= (length parts) 2)
 	      ;; There's a dot in the domain name.
-	      (string-match "\\." (cadr parts))
+	      (string-search "." (cadr parts))
 	      user-mail-address))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer
@@ -821,15 +829,15 @@ Returns an error if the server cannot be contacted."
 
 	    (when (or (member 'onex supported-extensions)
 		      (member 'xone supported-extensions))
-	      (smtpmail-command-or-throw process (format "ONEX")))
+	      (smtpmail-command-or-throw process "ONEX"))
 
 	    (when (and smtpmail-debug-verb
 		       (or (member 'verb supported-extensions)
 			   (member 'xvrb supported-extensions)))
-	      (smtpmail-command-or-throw process (format "VERB")))
+	      (smtpmail-command-or-throw process "VERB"))
 
 	    (when (member 'xusr supported-extensions)
-	      (smtpmail-command-or-throw process (format "XUSR")))
+	      (smtpmail-command-or-throw process "XUSR"))
 
 	    ;; MAIL FROM:<sender>
 	    (let ((size-part

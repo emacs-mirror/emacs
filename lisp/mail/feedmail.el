@@ -7,7 +7,7 @@
 ;; Author: Bill Carpenter <bill@carpenter.ORG>
 ;; Version: 11
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
-;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
+;; URL: http://www.carpenter.org/feedmail/feedmail.html
 
 ;;; Commentary:
 
@@ -47,7 +47,7 @@
 ;; A NOTE TO THOSE WHO WOULD CHANGE THIS CODE...  Since it is PD,
 ;; you're within your rights to do whatever you want.  If you do
 ;; publish a new version with your changes in it, please (1) insert
-;; lisp comments describing the changes, (2) insert lisp comments
+;; Lisp comments describing the changes, (2) insert Lisp comments
 ;; that clearly delimit where your changes are, (3) email me a copy
 ;; (I can't always consistently follow the relevant usenet groups),
 ;; and (4) use a version number that is based on the version you're
@@ -128,7 +128,7 @@
 ;;    --- you can generate/modify an X-Mailer: message header
 ;;
 ;; After a long list of options below, you will find the function
-;; feedmail-send-it. Hers's the best way to use the stuff in this
+;; feedmail-send-it.  Hers's the best way to use the stuff in this
 ;; file:
 ;;
 ;; Save this file as feedmail.el somewhere on your elisp loadpath;
@@ -157,7 +157,7 @@
 ;; If you are wondering how to send your messages to some SMTP server
 ;; (which is not really a feedmail-specific issue), you are probably
 ;; looking for smtpmail.el, and it is probably already present in your
-;; emacs installation.  Look at smtpmail.el for how to set that up, and
+;; Emacs installation.  Look at smtpmail.el for how to set that up, and
 ;; then do this to hook it into feedmail:
 ;;
 ;;     (autoload 'feedmail-buffer-to-smtpmail "feedmail" nil t)
@@ -939,7 +939,7 @@ a message you see a bit later.
 There is a separate queue for draft messages, intended to prevent
 you from accidentally sending incomplete messages.  The queues are
 disk-based and intended for later transmission.  The messages are
-queued in their raw state as they appear in the mail-mode buffer and
+queued in their raw state as they appear in the `mail-mode' buffer and
 can be arbitrarily edited later, before sending, by visiting the
 appropriate file in the queue directory (and setting the buffer to
 mail-mode or whatever).  If you visit a file in the queue directory
@@ -1286,7 +1286,7 @@ of casual real use only to the feedmail developer."
   "Duration of pause after feedmail-debug messages.
 After some messages are divulged, it may be helpful to pause before
 something else obliterates them.  This value controls the duration of
-the pause.  If the value is nil or 0, the sit-for is not done, which
+the pause.  If the value is nil or 0, the `sit-for' is not done, which
 has the effect of not pausing at all.  Debug messages can be seen after
 the fact in the messages buffer."
   :version "24.1"
@@ -2020,7 +2020,7 @@ backup file names and the like)."
 		    ;; if can't find EOH, this is no message!
 		    (unless (feedmail-find-eoh t)
 		      (feedmail-say-chatter "Skipping %s; no mail-header-separator" maybe-file)
-		      (error "FQM: you should never see this message"))
+                      (error "FQM: You should never see this message"))
 		    (feedmail-say-debug "Prepping %s" maybe-file)
 		    ;; the catch is a way out for users to voluntarily skip sending a message
 		    (catch 'skip-me-q (funcall feedmail-queue-runner-message-sender arg))
@@ -3149,7 +3149,7 @@ been weeded out."
 	 (sit-for feedmail-queue-chatty-sit-for))))
 
 (defun feedmail-find-eoh (&optional noerror)
-  "Internal; finds the end of message header fields, returns mark just before it."
+  "Internal; find the end of message header fields, return mark just before it."
   ;; all this funny business with line endings is to account for CRLF
   ;; weirdness that I don't think I'll ever figure out
   (feedmail-say-debug ">in-> feedmail-find-eoh %s" noerror)

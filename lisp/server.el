@@ -90,12 +90,12 @@
 
 (defcustom server-use-tcp nil
   "If non-nil, use TCP sockets instead of local sockets."
-  :set #'(lambda (sym val)
-           (unless (featurep 'make-network-process '(:family local))
-             (setq val t)
-             (unless load-in-progress
-               (message "Local sockets unsupported, using TCP sockets")))
-           (set-default sym val))
+  :set (lambda (sym val)
+         (unless (featurep 'make-network-process '(:family local))
+           (setq val t)
+           (unless load-in-progress
+             (message "Local sockets unsupported, using TCP sockets")))
+         (set-default sym val))
   :type 'boolean
   :version "22.1")
 
@@ -485,11 +485,11 @@ If CLIENT is non-nil, add a description of it to the logged message."
     (when (and (frame-live-p frame)
 	       proc
 	       ;; See if this is the last frame for this client.
-	       (>= 1 (let ((frame-num 0))
-		       (dolist (f (frame-list))
-			 (when (eq proc (frame-parameter f 'client))
-			   (setq frame-num (1+ frame-num))))
-		       frame-num)))
+               (not (seq-some
+                     (lambda (f)
+                       (and (not (eq frame f))
+                            (eq proc (frame-parameter f 'client))))
+                     (frame-list))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
@@ -881,7 +881,7 @@ This handles splitting the command if it would be bigger than
 						  &optional parameters)
   (let* ((display (or display
                       (frame-parameter nil 'display)
-                      (error "Please specify display.")))
+                      (error "Please specify display")))
          (w (or (cdr (assq 'window-system parameters))
                 (window-system-for-display display))))
 
@@ -1083,7 +1083,7 @@ The following commands are accepted by the client:
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.
-  Sent when the user presses C-z."
+  Sent when the user presses \\[suspend-frame]."
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
@@ -1585,13 +1585,13 @@ specifically for the clients and did not exist before their request for it."
     (server-buffer-done (current-buffer))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs if it has live clients."
-  (or (not (let (live-client)
-             (dolist (proc server-clients)
-               (when (memq t (mapcar #'buffer-live-p
-                                     (process-get proc 'buffers)))
-                 (setq live-client t)))
-             live-client))
+  "Ask before exiting Emacs if it has live clients.
+A \"live client\" is a client with at least one live buffer
+associated with it."
+  (or (not (seq-some (lambda (proc)
+                       (seq-some #'buffer-live-p
+                                 (process-get proc 'buffers)))
+                     server-clients))
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
 
 (defun server-kill-buffer ()

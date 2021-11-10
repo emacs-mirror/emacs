@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -219,9 +219,9 @@ position or nil."
 	    (error (make-indirect-buffer (current-buffer) "*org-goto*" t))))
 	 (let (temp-buffer-show-function temp-buffer-show-hook)
 	   (with-output-to-temp-buffer "*Org Help*"
-	   (princ (format help (if org-goto-auto-isearch
-				   "  Just type for auto-isearch."
-				 "  n/p/f/b/u to navigate, q to quit.")))))
+	     (princ (format help (if org-goto-auto-isearch
+				     "  Just type for auto-isearch."
+				   "  n/p/f/b/u to navigate, q to quit.")))))
 	 (org-fit-window-to-buffer (get-buffer-window "*Org Help*"))
 	 (org-overview)
 	 (setq buffer-read-only t)
@@ -250,7 +250,7 @@ want.
 
 This command works around this by showing a copy of the current
 buffer in an indirect buffer, in overview mode.  You can dive
-into the tree in that copy, use org-occur and incremental search
+into the tree in that copy, use `org-occur' and incremental search
 to find a location.  When pressing RET or `Q', the command
 returns to the original buffer in which the visibility is still
 unchanged.  After RET it will also jump to the location selected

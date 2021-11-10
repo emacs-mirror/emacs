@@ -32,7 +32,7 @@
 ;;
 ;; Many people maintain their include file in a directory separate to their
 ;; src directory, and very often you may be editing a file and have a need to
-;; visit the "other file". This package searches through a set of directories
+;; visit the "other file".  This package searches through a set of directories
 ;; to find that file.
 ;;
 ;; THE "OTHER FILE", or "corresponding file", generally has the same basename,
@@ -44,14 +44,14 @@
 ;;
 ;; If the current file has a .cc extension, ff-find-other-file will attempt
 ;; to look for a .hh file, and then a .h file in some directory as described
-;; below. The mechanism here is to replace the matched part of the original
+;; below.  The mechanism here is to replace the matched part of the original
 ;; filename with each of the corresponding extensions in turn.
 ;;
 ;; Alternatively, there are situations where the filename of the other file
-;; cannot be determined easily with regexps. For example, a .c file may
+;; cannot be determined easily with regexps.  For example, a .c file may
 ;; have two corresponding .h files, for its public and private parts, or
 ;; the filename for the .c file contains part of the pathname of the .h
-;; file, as between src/fooZap.cc and include/FOO/zap.hh. In that case, the
+;; file, as between src/fooZap.cc and include/FOO/zap.hh.  In that case, the
 ;; format above can be changed to include a function to be called when the
 ;; current file matches the regexp:
 ;;
@@ -59,7 +59,7 @@
 ;;     ("\\.hh\\'"  hh-function))
 ;;
 ;; These functions must return a list consisting of the possible names of the
-;; corresponding file, with or without path. There is no real need for more
+;; corresponding file, with or without path.  There is no real need for more
 ;; than one function, and one could imagine the following value for cc-other-
 ;; file-alist:
 ;;
@@ -78,13 +78,13 @@
 ;;
 ;; This means that the corresponding file will be searched for first in
 ;; the current directory, then in ../../src, then in one of the directories
-;; under ../include, and so on. The star is _not_ a general wildcard
+;; under ../include, and so on.  The star is _not_ a general wildcard
 ;; character: it just indicates that the subdirectories of this directory
-;; must each be searched in turn. Environment variables will be expanded in
+;; must each be searched in turn.  Environment variables will be expanded in
 ;; the ff-search-directories variable.
 ;;
 ;; If the point is on a #include line, the file to be #included is searched
-;; for in the same manner. This can be disabled with the ff-ignore-include
+;; for in the same manner.  This can be disabled with the ff-ignore-include
 ;; variable, or by calling ff-get-other-file instead of ff-find-other-file.
 ;;
 ;; If the file was not found, ff-find-other-file will prompt you for where
@@ -356,7 +356,7 @@ Variables of interest include:
    List of functions to be called if the other file has been created."
   (interactive (list current-prefix-arg nil last-nonmenu-event))
   ;; We want to preserve point in the current buffer. But the point of
-  ;; ff-find-the-other-file is to make the the other file buffer
+  ;; ff-find-the-other-file is to make the other file buffer
   ;; current, so we can't use save-excursion here (see bug 48535).
   (let ((start-buffer (current-buffer))
         (start-point (point)))

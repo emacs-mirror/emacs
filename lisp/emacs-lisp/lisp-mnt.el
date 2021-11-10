@@ -111,6 +111,8 @@
 
 ;;; Code:
 
+(require 'mail-parse)
+
 ;;; Variables:
 
 (defgroup lisp-mnt nil
@@ -357,18 +359,11 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
 	    summary)))))
 
 (defun lm-crack-address (x)
-  "Split up an email address X into full name and real email address.
-The value is a cons of the form (FULLNAME . ADDRESS)."
-  (cond ((string-match "\\(.+\\) [(<]\\(\\S-+@\\S-+\\)[>)]" x)
-	 (cons (string-trim-right (match-string 1 x))
-	       (match-string 2 x)))
-	((string-match "\\(\\S-+@\\S-+\\) [(<]\\(.*\\)[>)]" x)
-	 (cons (string-trim-right (match-string 2 x))
-	       (match-string 1 x)))
-	((string-match "\\S-+@\\S-+" x)
-	 (cons nil x))
-	(t
-	 (cons x nil))))
+  "Split up email address(es) X into full name and real email address.
+The value is a list of elements of the form (FULLNAME . ADDRESS)."
+  (mapcar (lambda (elem)
+            (cons (cdr elem) (car elem)))
+          (mail-header-parse-addresses-lax x)))
 
 (defun lm-authors (&optional file)
   "Return the author list of file FILE, or current buffer if FILE is nil.
@@ -376,7 +371,7 @@ Each element of the list is a cons; the car is the full name,
 the cdr is an email address."
   (lm-with-file file
     (let ((authorlist (lm-header-multiline "author")))
-      (mapcar #'lm-crack-address authorlist))))
+      (mapcan #'lm-crack-address authorlist))))
 
 (defun lm-maintainers (&optional file)
   "Return the maintainer list of file FILE, or current buffer if FILE is nil.
@@ -384,7 +379,7 @@ If the maintainers are unspecified, then return the authors.
 Each element of the list is a cons; the car is the full name,
 the cdr is an email address."
   (lm-with-file file
-    (mapcar #'lm-crack-address
+    (mapcan #'lm-crack-address
             (or (lm-header-multiline "maintainer")
                 (lm-header-multiline "author")))))
 
@@ -458,7 +453,7 @@ each line."
   "Return list of keywords given in file FILE."
   (let ((keywords (lm-keywords file)))
     (if keywords
-	(if (string-match-p "," keywords)
+	(if (string-search "," keywords)
 	    (split-string keywords ",[ \t\n]*" t "[ ]+")
 	  (split-string keywords "[ \t\n]+" t "[ ]+")))))
 
@@ -503,13 +498,14 @@ absent, return nil."
           "" (buffer-substring-no-properties
               start (lm-commentary-end))))))))
 
-(defun lm-homepage (&optional file)
-  "Return the homepage in file FILE, or current buffer if FILE is nil."
+(defun lm-website (&optional file)
+  "Return the website in file FILE, or current buffer if FILE is nil."
   (let ((page (lm-with-file file
-		(lm-header "\\(?:x-\\)?\\(?:homepage\\|url\\)"))))
-    (if (and page (string-match "^<.+>$" page))
-	(substring page 1 -1)
+                (lm-header (rx (? "x-") (or "url" "homepage"))))))
+    (if (and page (string-match (rx bol "<" (+ nonl) ">" eol) page))
+        (substring page 1 -1)
       page)))
+(defalias 'lm-homepage 'lm-website) ; for backwards-compatibility
 
 ;;; Verification and synopses
 

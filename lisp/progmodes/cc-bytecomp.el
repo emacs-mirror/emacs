@@ -339,8 +339,8 @@ should be a string.  CONDITION should not be quoted."
     '(progn)))
 
 (defmacro cc-provide (feature)
-  "A replacement for the `provide' form that restores the environment
-after the compilation.  Don't use within `eval-when-compile'."
+  "A replacement for `provide' that restores the environment after the compilation.
+Don't use within `eval-when-compile'."
   (declare (debug t))
   `(progn
      (eval-when-compile (cc-bytecomp-restore-environment))
@@ -381,8 +381,9 @@ afterwards.  Don't use within `eval-when-compile'."
      (eval-when-compile (cc-bytecomp-setup-environment))))
 
 (defmacro cc-bytecomp-defvar (var)
-  "Binds the symbol as a variable during compilation of the file,
-to silence the byte compiler.  Don't use within `eval-when-compile'."
+  "Bind the symbol VAR as a variable during compilation of the file.
+This can be used to silence the byte compiler.  Don't use within
+`eval-when-compile'."
   (declare (debug nil))
   `(eval-when-compile
      (if (boundp ',var)
@@ -403,8 +404,9 @@ to silence the byte compiler.  Don't use within `eval-when-compile'."
 	      "cc-bytecomp-defvar: Covered variable %s" ',var))))))
 
 (defmacro cc-bytecomp-defun (fun)
-  "Bind the symbol as a function during compilation of the file,
-to silence the byte compiler.  Don't use within `eval-when-compile'.
+  "Bind the symbol FUN as a function during compilation of the file.
+This can be used to silence the byte compiler.  Don't use within
+`eval-when-compile'.
 
 If the symbol already is bound as a function, it will keep that
 definition.  That means that this macro will not shut up warnings
@@ -431,8 +433,8 @@ at compile time, e.g. for macros and inline functions."
 	      "cc-bytecomp-defun: Covered function %s" ',fun))))))
 
 (defmacro cc-bytecomp-put (symbol propname value)
-  "Set a property on a symbol during compilation (and evaluation) of
-the file.  Don't use outside `eval-when-compile'."
+  "Set a property on SYMBOL during compilation (and evaluation) of the file.
+Don't use outside `eval-when-compile'."
   (declare (debug t))
   `(eval-when-compile
      (if (not (assoc (cons ,symbol ,propname) cc-bytecomp-original-properties))
@@ -450,9 +452,9 @@ the file.  Don't use outside `eval-when-compile'."
       ,propname ,symbol ,value)))
 
 (defmacro cc-bytecomp-boundp (symbol)
-  "Return non-nil if the given symbol is bound as a variable outside
-the compilation.  This is the same as using `boundp' but additionally
-exclude any variables that have been bound during compilation with
+  "Return non-nil if SYMBOL is bound as a variable outside the compilation.
+This is the same as using `boundp' but additionally exclude any
+variables that have been bound during compilation with
 `cc-bytecomp-defvar'."
   (declare (debug t))
   (if (and (cc-bytecomp-is-compiling)
@@ -461,9 +463,9 @@ exclude any variables that have been bound during compilation with
     `(boundp ,symbol)))
 
 (defmacro cc-bytecomp-fboundp (symbol)
-  "Return non-nil if the given symbol is bound as a function outside
-the compilation.  This is the same as using `fboundp' but additionally
-exclude any functions that have been bound during compilation with
+  "Return non-nil if SYMBOL is bound as a function outside the compilation.
+This is the same as using `fboundp' but additionally exclude any
+functions that have been bound during compilation with
 `cc-bytecomp-defun'."
   (declare (debug t))
   (let (fun-elem)

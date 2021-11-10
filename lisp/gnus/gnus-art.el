@@ -610,17 +610,17 @@ The recommended coding systems are `utf-8', `iso-2022-7bit' and so on,
 which can safely encode any characters in text.  This is used by the
 commands including:
 
-* gnus-summary-save-article-file
-* gnus-summary-save-article-body-file
-* gnus-summary-write-article-file
-* gnus-summary-write-article-body-file
+* `gnus-summary-save-article-file'
+* `gnus-summary-save-article-body-file'
+* `gnus-summary-write-article-file'
+* `gnus-summary-write-article-body-file'
 
 and the functions to which you may set `gnus-default-article-saver':
 
-* gnus-summary-save-in-file
-* gnus-summary-save-body-in-file
-* gnus-summary-write-to-file
-* gnus-summary-write-body-to-file
+* `gnus-summary-save-in-file'
+* `gnus-summary-save-body-in-file'
+* `gnus-summary-write-to-file'
+* `gnus-summary-write-body-to-file'
 
 Those commands and functions save just text displayed in the article
 buffer to a file if the value of this variable is non-nil.  Note that
@@ -1167,6 +1167,19 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
+(defcustom gnus-treat-emojize-symbols nil
+  "Display emoji versions of symbol.
+Some symbols have both a non-emoji presentation and an emoji
+presentation.  This treatment will make Gnus display the latter
+as emojis even when they weren't sent as such.
+
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles'."
+  :version "29.1"
+  :group 'gnus-article-treat
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :type gnus-article-treat-custom)
+
 (defcustom gnus-treat-unsplit-urls nil
   "Remove newlines from within URLs.
 Valid values are nil, t, `head', `first', `last', an integer or a
@@ -1650,6 +1663,7 @@ regexp."
 (defvar gnus-article-mime-handle-alist-1 nil)
 (defvar gnus-treatment-function-alist
   '((gnus-treat-strip-cr gnus-article-remove-cr)
+    (gnus-treat-emojize-symbols gnus-article-emojize-symbols)
     (gnus-treat-x-pgp-sig gnus-article-verify-x-pgp-sig)
     (gnus-treat-strip-banner gnus-article-strip-banner)
     (gnus-treat-strip-headers-in-body gnus-article-strip-headers-in-body)
@@ -2243,6 +2257,14 @@ This only works if the article in question is HTML."
 	    (funcall function (get-text-property start 'image-url)
 		     start end)))))))
 
+(defun gnus-article-toggle-fonts ()
+  "Toggle the use of proportional fonts for HTML articles."
+  (interactive nil gnus-article-mode gnus-summary-mode)
+  (gnus-with-article-buffer
+    (when (eq mm-text-html-renderer 'shr)
+      (setq-local shr-use-fonts (not shr-use-fonts))
+      (gnus-summary-show-article))))
+
 (defun gnus-article-treat-fold-newsgroups ()
   "Fold the Newsgroups and Followup-To message headers."
   (interactive nil gnus-article-mode gnus-summary-mode)
@@ -2351,6 +2373,20 @@ fill width."
       (goto-char (point-min))
       (while (search-forward "\r" nil t)
 	(replace-match "\n" t t)))))
+
+(defun article-emojize-symbols ()
+  "Display symbols (that have an emoji version) as emojis."
+  (interactive nil gnus-article-mode)
+  (when-let ((font (and (display-multi-font-p)
+                        (car (internal-char-font nil ?😀)))))
+    (save-excursion
+      (let ((inhibit-read-only t))
+        (goto-char (point-min))
+        (while (re-search-forward "[[:multibyte:]]" nil t)
+          ;; If there's already a grapheme cluster here, skip it.
+          (when (and (not (find-composition (point)))
+                     (font-has-char-p font (char-after (match-beginning 0))))
+            (insert "\N{VARIATION SELECTOR-16}")))))))
 
 (defun article-remove-trailing-blank-lines ()
   "Remove all trailing blank lines from the article."
@@ -2519,7 +2555,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 	      format (and ctl (mail-content-type-get ctl 'format)))
 	(when cte
 	  (setq cte (mail-header-strip-cte cte)))
-	(if (and ctl (not (string-match "/" (car ctl))))
+	(if (and ctl (not (string-search "/" (car ctl))))
 	    (setq ctl nil))
 	(goto-char (point-max)))
       (forward-line 1)
@@ -3925,8 +3961,8 @@ This format is defined by the `gnus-article-time-format' variable."
 		      ;; No split name was found.
 		      ((null split-name)
 		       (read-file-name
-			(concat prompt " (default "
-				(file-name-nondirectory default-name) "): ")
+                        (format-prompt prompt
+                                       (file-name-nondirectory default-name))
 			(file-name-directory default-name)
 			default-name))
 		      ;; A single group name is returned.
@@ -3935,8 +3971,8 @@ This format is defined by the `gnus-article-time-format' variable."
 			     (funcall function split-name headers
 				      (symbol-value variable)))
 		       (read-file-name
-			(concat prompt " (default "
-				(file-name-nondirectory default-name) "): ")
+                        (format-prompt prompt
+                                       (file-name-nondirectory default-name))
 			(file-name-directory default-name)
 			default-name))
 		      ;; A single split name was found
@@ -3948,9 +3984,8 @@ This format is defined by the `gnus-article-time-format' variable."
 					  (file-name-as-directory name))
 					 ((file-exists-p name) name)
 					 (t gnus-article-save-directory))))
-			 (read-file-name
-			  (concat prompt " (default " name "): ")
-			  dir name)))
+                         (read-file-name (format-prompt prompt name)
+                                         dir name)))
 		      ;; A list of splits was found.
 		      (t
 		       (setq split-name (nreverse split-name))
@@ -4271,7 +4306,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 	    (insert "Version: " (car items) "\n\n")
 	    (insert (mapconcat #'identity (cddr items) "\n"))
 	    (insert "\n-----END PGP SIGNATURE-----\n")
-	    (let ((mm-security-handle (list (format "multipart/signed"))))
+	    (let ((mm-security-handle (list (substring "multipart/signed"))))
 	      (mml2015-clean-buffer)
 	      (let ((coding-system-for-write (or gnus-newsgroup-charset
 						 'iso-8859-1)))
@@ -4334,6 +4369,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
            article-fill-long-lines
            article-capitalize-sentences
            article-remove-cr
+           article-emojize-symbols
            article-remove-leading-whitespace
            article-display-x-face
            article-display-face
@@ -4379,43 +4415,43 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 ;;; Gnus article mode
 ;;;
 
-(set-keymap-parent gnus-article-mode-map button-buffer-map)
+(defvar gnus-article-send-map nil)
 
-(gnus-define-keys gnus-article-mode-map
-  " " gnus-article-goto-next-page
-  [?\S-\ ] gnus-article-goto-prev-page
-  "\177" gnus-article-goto-prev-page
-  [delete] gnus-article-goto-prev-page
-  "\C-c^" gnus-article-refer-article
-  "h" gnus-article-show-summary
-  "s" gnus-article-show-summary
-  "\C-c\C-m" gnus-article-mail
-  "?" gnus-article-describe-briefly
-  "<" beginning-of-buffer
-  ">" end-of-buffer
-  "\C-c\C-i" gnus-info-find-node
-  "\C-c\C-b" gnus-bug
-  "R" gnus-article-reply-with-original
-  "F" gnus-article-followup-with-original
-  "\C-hk" gnus-article-describe-key
-  "\C-hc" gnus-article-describe-key-briefly
-  "\C-hb" gnus-article-describe-bindings
+(define-keymap :keymap gnus-article-mode-map :suppress t
+  :parent button-buffer-map
+  " " #'gnus-article-goto-next-page
+  [?\S-\ ] #'gnus-article-goto-prev-page
+  "\177" #'gnus-article-goto-prev-page
+  [delete] #'gnus-article-goto-prev-page
+  "\C-c^" #'gnus-article-refer-article
+  "h" #'gnus-article-show-summary
+  "s" #'gnus-article-show-summary
+  "\C-c\C-m" #'gnus-article-mail
+  "?" #'gnus-article-describe-briefly
+  "<" #'beginning-of-buffer
+  ">" #'end-of-buffer
+  "\C-c\C-i" #'gnus-info-find-node
+  "\C-c\C-b" #'gnus-bug
+  "R" #'gnus-article-reply-with-original
+  "F" #'gnus-article-followup-with-original
+  "\C-hk" #'gnus-article-describe-key
+  "\C-hc" #'gnus-article-describe-key-briefly
+  "\C-hb" #'gnus-article-describe-bindings
 
-  "e" gnus-article-read-summary-keys
-  "\C-d" gnus-article-read-summary-keys
-  "\C-c\C-f" gnus-summary-mail-forward
-  "\M-*" gnus-article-read-summary-keys
-  "\M-#" gnus-article-read-summary-keys
-  "\M-^" gnus-article-read-summary-keys
-  "\M-g" gnus-article-read-summary-keys)
+  "e" #'gnus-article-read-summary-keys
+  "\C-d" #'gnus-article-read-summary-keys
+  "\C-c\C-f" #'gnus-summary-mail-forward
+  "\M-*" #'gnus-article-read-summary-keys
+  "\M-#" #'gnus-article-read-summary-keys
+  "\M-^" #'gnus-article-read-summary-keys
+  "\M-g" #'gnus-article-read-summary-keys
+
+  "S" (define-keymap :prefix 'gnus-article-send-map
+        "W" #'gnus-article-wide-reply-with-original
+        [t] #'gnus-article-read-summary-send-keys))
 
 (substitute-key-definition
  #'undefined #'gnus-article-read-summary-keys gnus-article-mode-map)
-
-(defvar gnus-article-send-map)
-(gnus-define-keys (gnus-article-send-map "S" gnus-article-mode-map)
-  "W" gnus-article-wide-reply-with-original
-  [t] gnus-article-read-summary-send-keys)
 
 (defun gnus-article-make-menu-bar ()
   (unless (boundp 'gnus-article-commands-menu)
@@ -4441,6 +4477,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
        ["Treat overstrike" gnus-article-treat-overstrike t]
        ["Treat ANSI sequences" gnus-article-treat-ansi-sequences t]
        ["Remove carriage return" gnus-article-remove-cr t]
+       ["Emojize Symbols" gnus-article-emojize-symbols t]
        ["Remove leading whitespace" gnus-article-remove-leading-whitespace t]
        ["Remove quoted-unreadable" gnus-article-de-quoted-unreadable t]
        ["Remove base64" gnus-article-de-base64-unreadable t]
@@ -4499,6 +4536,10 @@ commands:
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq show-trailing-whitespace nil)
+  ;; Arrange a callback from `mm-inline-message' if we're
+  ;; displaying a message/rfc822 part.
+  (setq-local mm-inline-message-prepare-function
+              #'gnus-mime--inline-message-function)
   (mm-enable-multibyte))
 
 (defun gnus-article-setup-buffer ()
@@ -6034,31 +6075,29 @@ If nil, don't show those extra buttons."
 (defun gnus-mime-display-mixed (handles)
   (mapcar #'gnus-mime-display-part handles))
 
+(defun gnus-mime--inline-message-function (handle charset)
+  (let ((handles
+         (let (gnus-article-mime-handles
+	       ;; disable prepare hook
+	       gnus-article-prepare-hook
+	       (gnus-newsgroup-charset
+                ;; mm-uu might set it.
+	        (unless (eq charset 'gnus-decoded)
+		  (or charset gnus-newsgroup-charset))))
+	   (let ((gnus-original-article-buffer
+                  (mm-handle-buffer handle)))
+	     (run-hooks 'gnus-article-decode-hook))
+	   (gnus-article-prepare-display)
+           gnus-article-mime-handles)))
+    (when handles
+      (setq gnus-article-mime-handles
+	    (mm-merge-handles gnus-article-mime-handles handles)))))
+
 (defun gnus-mime-display-single (handle)
   (let ((type (mm-handle-media-type handle))
 	(ignored gnus-ignored-mime-types)
 	(mm-inline-font-lock (gnus-visual-p 'article-highlight 'highlight))
 	(not-attachment t)
-        ;; Arrange a callback from `mm-inline-message' if we're
-        ;; displaying a message/rfc822 part.
-        (mm-inline-message-prepare-function
-         (lambda (charset)
-           (let ((handles
-                  (let (gnus-article-mime-handles
-	                ;; disable prepare hook
-	                gnus-article-prepare-hook
-	                (gnus-newsgroup-charset
-                         ;; mm-uu might set it.
-	                 (unless (eq charset 'gnus-decoded)
-		           (or charset gnus-newsgroup-charset))))
-	            (let ((gnus-original-article-buffer
-                           (mm-handle-buffer handle)))
-	              (run-hooks 'gnus-article-decode-hook))
-	            (gnus-article-prepare-display)
-                    gnus-article-mime-handles)))
-	     (when handles
-	       (setq gnus-article-mime-handles
-		     (mm-merge-handles gnus-article-mime-handles handles))))))
 	display text
         gnus-displaying-mime)
     (catch 'ignored
@@ -6238,8 +6277,9 @@ If nil, don't show those extra buttons."
 	      (gnus-display-mime preferred)
 	    (let ((mail-parse-charset gnus-newsgroup-charset)
 		  (mail-parse-ignored-charsets
-		   (with-current-buffer gnus-summary-buffer
-		     gnus-newsgroup-ignored-charsets)))
+                   (and (buffer-live-p gnus-summary-buffer)
+		        (with-current-buffer gnus-summary-buffer
+		          gnus-newsgroup-ignored-charsets))))
 	      (gnus-bind-mm-vars (mm-display-part preferred))
 	      ;; Do highlighting.
 	      (save-excursion
@@ -6857,7 +6897,9 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key (read-key-sequence nil t))))
+	  (describe-key (cons (read-key-sequence nil t)
+			      (this-single-command-raw-keys))
+			(current-buffer))))
     (describe-key key)))
 
 (defun gnus-article-describe-key-briefly (key &optional insert)
@@ -6880,7 +6922,9 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key-briefly (read-key-sequence nil t) insert)))
+	  (describe-key-briefly (cons (read-key-sequence nil t)
+				      (this-single-command-raw-keys))
+				insert (current-buffer))))
     (describe-key-briefly key insert)))
 
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
@@ -7208,50 +7252,43 @@ other groups."
 
 (defvar gnus-article-edit-done-function nil)
 
-(defvar gnus-article-edit-mode-map nil)
+(defvar-keymap gnus-article-edit-mode-map
+  :full t :parent text-mode-map
+  "\C-c?" #'describe-mode
+  "\C-c\C-c" #'gnus-article-edit-done
+  "\C-c\C-k" #'gnus-article-edit-exit
+  "\C-c\C-f\C-t" #'message-goto-to
+  "\C-c\C-f\C-o" #'message-goto-from
+  "\C-c\C-f\C-b" #'message-goto-bcc
+  ;;"\C-c\C-f\C-w" message-goto-fcc
+  "\C-c\C-f\C-c" #'message-goto-cc
+  "\C-c\C-f\C-s" #'message-goto-subject
+  "\C-c\C-f\C-r" #'message-goto-reply-to
+  "\C-c\C-f\C-n" #'message-goto-newsgroups
+  "\C-c\C-f\C-d" #'message-goto-distribution
+  "\C-c\C-f\C-f" #'message-goto-followup-to
+  "\C-c\C-f\C-m" #'message-goto-mail-followup-to
+  "\C-c\C-f\C-k" #'message-goto-keywords
+  "\C-c\C-f\C-u" #'message-goto-summary
+  "\C-c\C-f\C-i" #'message-insert-or-toggle-importance
+  "\C-c\C-f\C-a" #'message-generate-unsubscribed-mail-followup-to
+  "\C-c\C-b" #'message-goto-body
+  "\C-c\C-i" #'message-goto-signature
 
-;; Should we be using derived.el for this?
-(unless gnus-article-edit-mode-map
-  (setq gnus-article-edit-mode-map (make-keymap))
-  (set-keymap-parent gnus-article-edit-mode-map text-mode-map)
+  "\C-c\C-t" #'message-insert-to
+  "\C-c\C-n" #'message-insert-newsgroups
+  "\C-c\C-o" #'message-sort-headers
+  "\C-c\C-e" #'message-elide-region
+  "\C-c\C-v" #'message-delete-not-region
+  "\C-c\C-z" #'message-kill-to-signature
+  "\M-\r" #'message-newline-and-reformat
+  "\C-c\C-a" #'mml-attach-file
+  "\C-a" #'message-beginning-of-line
+  "\t" #'message-tab
+  "\M-;" #'comment-region
 
-  (gnus-define-keys gnus-article-edit-mode-map
-    "\C-c?"    describe-mode
-    "\C-c\C-c" gnus-article-edit-done
-    "\C-c\C-k" gnus-article-edit-exit
-    "\C-c\C-f\C-t" message-goto-to
-    "\C-c\C-f\C-o" message-goto-from
-    "\C-c\C-f\C-b" message-goto-bcc
-    ;;"\C-c\C-f\C-w" message-goto-fcc
-    "\C-c\C-f\C-c" message-goto-cc
-    "\C-c\C-f\C-s" message-goto-subject
-    "\C-c\C-f\C-r" message-goto-reply-to
-    "\C-c\C-f\C-n" message-goto-newsgroups
-    "\C-c\C-f\C-d" message-goto-distribution
-    "\C-c\C-f\C-f" message-goto-followup-to
-    "\C-c\C-f\C-m" message-goto-mail-followup-to
-    "\C-c\C-f\C-k" message-goto-keywords
-    "\C-c\C-f\C-u" message-goto-summary
-    "\C-c\C-f\C-i" message-insert-or-toggle-importance
-    "\C-c\C-f\C-a" message-generate-unsubscribed-mail-followup-to
-    "\C-c\C-b" message-goto-body
-    "\C-c\C-i" message-goto-signature
-
-    "\C-c\C-t" message-insert-to
-    "\C-c\C-n" message-insert-newsgroups
-    "\C-c\C-o" message-sort-headers
-    "\C-c\C-e" message-elide-region
-    "\C-c\C-v" message-delete-not-region
-    "\C-c\C-z" message-kill-to-signature
-    "\M-\r" message-newline-and-reformat
-    "\C-c\C-a" mml-attach-file
-    "\C-a" message-beginning-of-line
-    "\t" message-tab
-    "\M-;" comment-region)
-
-  (gnus-define-keys (gnus-article-edit-wash-map
-		     "\C-c\C-w" gnus-article-edit-mode-map)
-    "f" gnus-article-edit-full-stops))
+  "\C-c\C-w" (define-keymap :prefix 'gnus-article-edit-wash-map
+               "f" #'gnus-article-edit-full-stops))
 
 (easy-menu-define
   gnus-article-edit-mode-field-menu gnus-article-edit-mode-map ""
@@ -8287,7 +8324,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	     ")" (gnus-url-unhex-string (match-string 2 url)))))
    ((string-match "([^)\"]+)[^\"]+" url)
     (setq url
-	  (replace-regexp-in-string
+	  (string-replace
 	   "\"" "" (replace-regexp-in-string "[\n\t ]+" " " url)))
     (gnus-info-find-node url))
    (t (error "Can't parse %s" url))))
@@ -8510,8 +8547,7 @@ whose names match REGEXP.
 For example:
 \((\"chinese\" . gnus-decode-encoded-word-region-by-guess)
  mail-decode-encoded-word-region
- (\"chinese\" . rfc1843-decode-region))
-")
+ (\"chinese\" . rfc1843-decode-region))")
 
 (defvar gnus-decode-header-methods-cache nil)
 

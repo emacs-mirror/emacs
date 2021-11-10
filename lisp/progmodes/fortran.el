@@ -749,7 +749,7 @@ Variables controlling indentation style and extra features:
 `fortran-comment-line-extra-indent'
   Amount of extra indentation for text in full-line comments (default 0).
 `fortran-comment-indent-style'
-  How to indent the text in full-line comments. Allowed values are:
+  How to indent the text in full-line comments.  Allowed values are:
   nil         don't change the indentation
   `fixed'     indent to `fortran-comment-line-extra-indent' beyond the
               value of either

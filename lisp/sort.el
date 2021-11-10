@@ -56,12 +56,12 @@ The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order.
 
 The next four arguments are functions to be called to move point
-across a sort record.  They will be called many times from within sort-subr.
+across a sort record.  They will be called many times from within `sort-subr'.
 
 NEXTRECFUN is called with point at the end of the previous record.
 It moves point to the start of the next record.
 It should move point to the end of the buffer if there are no more records.
-The first record is assumed to start at the position of point when sort-subr
+The first record is assumed to start at the position of point when `sort-subr'
 is called.
 
 ENDRECFUN is called with point within the record.
@@ -507,7 +507,8 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-start (min col-beg1 col-end1))
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
-	  (error "sort-columns does not work with tabs -- use M-x untabify"))
+          (error (substitute-command-keys
+                  "sort-columns does not work with tabs -- use \\[untabify]")))
       (if (not (or (memq system-type '(windows-nt))
 		   (let ((pos beg1) plist fontified)
 		     (catch 'found
@@ -539,8 +540,8 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	    (narrow-to-region beg1 end1)
 	    (goto-char beg1)
 	    (sort-subr reverse 'forward-line 'end-of-line
-		       #'(lambda () (move-to-column col-start) nil)
-		       #'(lambda () (move-to-column col-end) nil))))))))
+                       (lambda () (move-to-column col-start) nil)
+                       (lambda () (move-to-column col-end) nil))))))))
 
 ;;;###autoload
 (defun reverse-region (beg end)
@@ -587,16 +588,16 @@ is the one that ends before END."
 Non-interactively, arguments BEG and END delimit the region.
 Normally it searches forwards, keeping the first instance of
 each identical line.  If REVERSE is non-nil (interactively, with
-a C-u prefix), it searches backwards and keeps the last instance of
+a \\[universal-argument] prefix), it searches backwards and keeps the last instance of
 each repeated line.
 
 Identical lines need not be adjacent, unless the argument
-ADJACENT is non-nil (interactively, with a C-u C-u prefix).
+ADJACENT is non-nil (interactively, with a \\[universal-argument] \\[universal-argument] prefix).
 This is a more efficient mode of operation, and may be useful
 on large regions that have already been sorted.
 
 If the argument KEEP-BLANKS is non-nil (interactively, with a
-C-u C-u C-u prefix), it retains repeated blank lines.
+\\[universal-argument] \\[universal-argument] \\[universal-argument] prefix), it retains repeated blank lines.
 
 Returns the number of deleted lines.  Interactively, or if INTERACTIVE
 is non-nil, it also prints a message describing the number of deletions."

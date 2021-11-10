@@ -129,7 +129,7 @@ entails.
 @item w
 @kindex w @r{(Package Menu)}
 @findex package-browse-url
-Open the home page of the package on the current line in a browser
+Open the package website on the current line in a browser
 (@code{package-browse-url}).  @code{browse-url} is used to open the
 browser.
 

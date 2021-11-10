@@ -29,7 +29,7 @@
 
 ;;;###autoload
 (defvar default-korean-keyboard
-   (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
+   (purecopy (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     ""))
    "The kind of Korean keyboard for Korean (Hangul) input method.

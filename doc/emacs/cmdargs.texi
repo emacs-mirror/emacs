@@ -185,6 +185,11 @@ successfully.
 @item --version
 @opindex --version
 Print Emacs version, then exit successfully.
+
+@item --fingerprint
+@opindex --fingerprint
+Print the Emacs ``fingerprint'', which is used to uniquely identify
+the compiled version of Emacs.
 @end table
 
 @node Initial Options
@@ -265,6 +270,11 @@ to exit after processing all the command options.  In addition, it
 disables auto-saving except in buffers for which auto-saving is
 explicitly requested, and when saving files it omits the @code{fsync}
 system call unless otherwise requested.
+
+@vindex backtrace-on-error-noninteractive
+Errors that occur when running a @samp{--batch} Emacs will result in
+an Emacs Lisp backtrace being printed.  To disable this behavior, set
+@code{backtrace-on-error-noninteractive} to @code{nil}.
 
 @item --script @var{file}
 @opindex --script

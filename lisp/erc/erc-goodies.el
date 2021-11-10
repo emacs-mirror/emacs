@@ -137,7 +137,7 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
     (goto-char (point-max))))
 
 (defun erc-move-to-prompt-setup ()
-  "Initialize the move-to-prompt module for XEmacs."
+  "Initialize the move-to-prompt module."
   (add-hook 'pre-command-hook #'erc-move-to-prompt nil t))
 
 ;;; Keep place in unvisited channels

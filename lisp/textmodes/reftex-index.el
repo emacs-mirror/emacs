@@ -38,8 +38,8 @@
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
 entry.  The phrase indexed is the current selection or the word near point.
-When called with one `C-u' prefix, let the user have a chance to edit the
-index entry.  When called with 2 `C-u' as prefix, also ask for the index
+When called with one \\[universal-argument] prefix, let the user have a chance to edit the
+index entry.  When called with 2 \\[universal-argument] as prefix, also ask for the index
 macro and other stuff.
 When called inside TeX math mode as determined by the `texmathp.el' library
 which is part of AUCTeX, the string is first processed with the
@@ -462,7 +462,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
   "Display a buffer with an index compiled from the current document.
 When the document has multiple indices, first prompts for the correct one.
 When index support is turned off, offer to turn it on.
-With one or two `C-u' prefixes, rescan document first.
+With one or two \\[universal-argument] prefixes, rescan document first.
 With prefix 2, restrict index to current document section.
 With prefix 3, restrict index to region."
 
@@ -842,7 +842,7 @@ The function will go to the section where the entry at point was defined."
   (reftex-display-index nil nil 'redo))
 
 (defun reftex-index-restrict-to-section (&optional force)
-  "Restrict index to entries defined in same document sect. as entry at point."
+  "Restrict index to entries defined in same document section as entry at point."
   ;; Optional FORCE means, even if point is not on an index entry.
   (interactive)
   (let* ((data (get-text-property (point) :data))
@@ -934,8 +934,8 @@ When index is restricted, select the previous section as restriction criterion."
      (t nil))))
 
 (defun reftex-index-analyze-entry (data)
-  ;; This splits the index context so that key, attribute and visual
-  ;; values are accessible individually.
+  "Split index context so that key, attribute and visual
+values are accessible individually."
   (interactive)
   (let* ((arg (nth 5 data))
          (context (nth 2 data))
@@ -1150,7 +1150,7 @@ When index is restricted, select the previous section as restriction criterion."
 
 ;; Some constants and variables
 (defconst reftex-index-phrases-comment-regexp "^[ \t]*%.*"
-  "Regular expression to match comment lines in phrases buffer")
+  "Regular expression to match comment lines in phrases buffer.")
 (defconst reftex-index-phrases-macrodef-regexp
   "^\\(>>>INDEX_MACRO_DEFINITION:\\)[ \t]+\\(\\S-\\)\\( *\t[ \t]*\\)\\([^\t]*[^ \t]\\)\\( *\t[ \t]*\\)\\(\\S-+\\)"
   "Regular expression to match macro definition lines the phrases buffer.")
@@ -1666,7 +1666,7 @@ this function repeatedly."
          (repeat
           (princ (format "  Index entry:  %s\n" phrase)))
          (t
-          (princ (format "    Index key:  <<Given by the match>>\n"))))
+          (princ "    Index key:  <<Given by the match>>\n")))
         (princ (format "      Example:  %s\n" example))
         (terpri)
         (princ (format "Total matches:  %s in %s\n"
@@ -2068,7 +2068,7 @@ both ends."
 
 (defun reftex-index-phrases-replace-space (pos)
   "If there is a space at POS, replace it with a newline char.
-Does not do a save-excursion."
+Does not do a `save-excursion'."
   (when (equal (char-after pos) ?\ )
     (goto-char pos)
     (delete-char 1)

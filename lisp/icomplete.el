@@ -109,7 +109,11 @@ Otherwise this should be a list of the completion tables (e.g.,
 
 (defface icomplete-selected-match '((t :inherit highlight))
   "Face used by `icomplete-vertical-mode' for the selected candidate."
-  :version "24.4")
+  :version "28.1")
+
+(defface icomplete-section '((t :inherit shadow :slant italic))
+  "Face used by `icomplete-vertical-mode' for the section title."
+  :version "28.1")
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-height 2
@@ -161,7 +165,7 @@ icompletion is occurring."
   "Overlay used to display the list of completions.")
 
 (defvar icomplete--initial-input nil
-  "Initial input in the minibuffer when icomplete-mode was activated.
+  "Initial input in the minibuffer when `icomplete-mode' was activated.
 Used to implement the option `icomplete-show-matches-on-no-input'.")
 
 (defun icomplete-post-command-hook ()
@@ -249,38 +253,53 @@ the default otherwise."
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
 Second entry becomes the first and can be selected with
-`icomplete-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'.
+Return non-nil iff something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
-         (comps (completion-all-sorted-completions beg end))
-         (last (last comps)))
+         (comps (completion-all-sorted-completions beg end)))
     (when (consp (cdr comps))
       (cond (icomplete-scroll
              (push (pop comps) icomplete--scrolled-past)
              (setq icomplete--scrolled-completions comps))
             (t
-             (setcdr (last comps) (cons (pop comps) (cdr last)))))
+             (let ((last (last comps)))
+               (setcdr (last comps) (cons (pop comps) (cdr last))))))
       (completion--cache-all-sorted-completions beg end comps))))
 
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
 Last entry becomes the first and can be selected with
-`icomplete-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'.
+Return non-nil iff something was stepped."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
          (comps (completion-all-sorted-completions beg end))
-	 last-but-one)
-    (cond ((and icomplete-scroll icomplete--scrolled-past)
-           (push (pop icomplete--scrolled-past) comps)
-           (setq icomplete--scrolled-completions comps))
-          ((and (not icomplete-scroll)
-                (consp (cdr (setq last-but-one (last comps 2)))))
-           ;; At least two elements in comps
-           (push (car (cdr last-but-one)) comps)
-           (setcdr last-but-one (cdr (cdr last-but-one)))))
-    (completion--cache-all-sorted-completions beg end comps)))
+         last-but-one)
+    (prog1
+        (cond ((and icomplete-scroll icomplete--scrolled-past)
+               (push (pop icomplete--scrolled-past) comps)
+               (setq icomplete--scrolled-completions comps))
+              ((and (not icomplete-scroll)
+                    (consp (cdr (setq last-but-one (last comps 2)))))
+               ;; At least two elements in comps
+               (push (car (cdr last-but-one)) comps)
+               (setcdr last-but-one (cdr (cdr last-but-one)))))
+      (completion--cache-all-sorted-completions beg end comps))))
+
+(defun icomplete-vertical-goto-first ()
+  "Go to first completions entry when `icomplete-scroll' is non-nil."
+  (interactive)
+  (unless icomplete-scroll (error "Only works with `icomplete-scroll'"))
+  (while (icomplete-backward-completions)))
+
+(defun icomplete-vertical-goto-last ()
+  "Go to last completions entry when `icomplete-scroll' is non-nil."
+  (interactive)
+  (unless icomplete-scroll (error "Only works with `icomplete-scroll'"))
+  (while (icomplete-forward-completions)))
 
 ;;;_* Helpers for `fido-mode' (or `ido-mode' emulation)
 
@@ -298,18 +317,21 @@ require user confirmation."
         (call-interactively 'kill-line)
       (let* ((all (completion-all-sorted-completions))
              (thing (car all))
+             (cat (icomplete--category))
              (action
-              (pcase (icomplete--category)
-                (`buffer
+              (cl-case cat
+                (buffer
                  (lambda ()
                    (when (yes-or-no-p (concat "Kill buffer " thing "? "))
                      (kill-buffer thing))))
-                (`file
+                ((project-file file)
                  (lambda ()
                    (let* ((dir (file-name-directory (icomplete--field-string)))
                           (path (expand-file-name thing dir)))
                      (when (yes-or-no-p (concat "Delete file " path "? "))
-                       (delete-file path) t)))))))
+                       (delete-file path) t))))
+                (t
+                 (error "Sorry, don't know how to kill things for `%s'" cat)))))
         (when (let (;; Allow `yes-or-no-p' to work and don't let it
                     ;; `icomplete-exhibit' anything.
                     (enable-recursive-minibuffers t)
@@ -606,6 +628,10 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-n") 'icomplete-forward-completions)
     (define-key map (kbd "C-p") 'icomplete-backward-completions)
+    (define-key map (kbd "<down>") 'icomplete-forward-completions)
+    (define-key map (kbd "<up>") 'icomplete-backward-completions)
+    (define-key map (kbd "M-<") 'icomplete-vertical-goto-first)
+    (define-key map (kbd "M->") 'icomplete-vertical-goto-last)
     map)
   "Keymap used by `icomplete-vertical-mode' in the minibuffer.")
 
@@ -613,8 +639,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
   "Setup the minibuffer for vertical display of completion candidates."
   (use-local-map (make-composed-keymap icomplete-vertical-mode-minibuffer-map
                                        (current-local-map)))
-  (setq-local icomplete-separator "\n"
-              icomplete-hide-common-prefix nil
+  (setq-local icomplete-hide-common-prefix nil
               ;; Ask `icomplete-completions' to return enough completions candidates.
               icomplete-prospects-height 25
               redisplay-adhoc-scroll-in-resize-mini-windows nil))
@@ -623,6 +648,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 (define-minor-mode icomplete-vertical-mode
   "Toggle vertical candidate display in `icomplete-mode' or `fido-mode'.
 
+If none of these modes are on, turn on `icomplete-mode'.
+
 As many completion candidates as possible are displayed, depending on
 the value of `max-mini-window-height', and the way the mini-window is
 resized depends on `resize-mini-windows'."
@@ -630,10 +657,21 @@ resized depends on `resize-mini-windows'."
   (remove-hook 'icomplete-minibuffer-setup-hook
                #'icomplete--vertical-minibuffer-setup)
   (when icomplete-vertical-mode
+    (unless icomplete-mode
+      (icomplete-mode 1))
     (add-hook 'icomplete-minibuffer-setup-hook
               #'icomplete--vertical-minibuffer-setup)))
 
-(defalias 'fido-vertical-mode 'icomplete-vertical-mode)
+;;;###autoload
+(define-minor-mode fido-vertical-mode
+  "Toggle vertical candidate display in `fido-mode'.
+When turning on, if non-vertical `fido-mode' is off, turn it on.
+If it's on, just add the vertical display."
+  :global t
+  (icomplete-vertical-mode -1)
+  (when fido-vertical-mode
+    (unless fido-mode (fido-mode 1))
+    (icomplete-vertical-mode 1)))
 
 
 
@@ -678,11 +716,6 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
             (delete-region (overlay-start rfn-eshadow-overlay)
                            (overlay-end rfn-eshadow-overlay)))
           (let* ((field-string (icomplete--field-string))
-                 ;; Not sure why, but such requests seem to come
-                 ;; every once in a while.  It's not fully
-                 ;; deterministic but `C-x C-f M-DEL M-DEL ...'
-                 ;; seems to trigger it fairly often!
-                 (while-no-input-ignore-events '(selection-request))
                  (text (while-no-input
                          (icomplete-completions
                           field-string
@@ -710,14 +743,22 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                       (format icomplete-matches-format current total))))
               (overlay-put icomplete-overlay 'after-string text))))))))
 
-(defun icomplete--affixate (md prospects)
-  "Affixate PROSPECTS given completion metadata MD.
-Return a list of (COMP PREFIX SUFFIX)."
-  (let ((aff-fun (or (completion-metadata-get md 'affixation-function)
-                     (plist-get completion-extra-properties :affixation-function)))
-        (ann-fun (or (completion-metadata-get md 'annotation-function)
-                     (plist-get completion-extra-properties :annotation-function))))
-    (cond (aff-fun
+(defun icomplete--augment (md prospects)
+  "Augment completion strings in PROSPECTS with completion metadata MD.
+Return a list of strings (COMP PREFIX SUFFIX SECTION).  PREFIX
+and SUFFIX, if non-nil, are obtained from `affixation-function' or
+`annotation-function' metadata.  SECTION is obtained from
+`group-function'.  Consecutive `equal' sections are avoided.
+COMP is the element in PROSPECTS or a transformation also given
+by `group-function''s second \"transformation\" protocol."
+  (let* ((aff-fun (or (completion-metadata-get md 'affixation-function)
+                      (plist-get completion-extra-properties :affixation-function)))
+         (ann-fun (or (completion-metadata-get md 'annotation-function)
+                      (plist-get completion-extra-properties :annotation-function)))
+         (grp-fun (and completions-group
+                       (completion-metadata-get md 'group-function)))
+         (annotated
+          (cond (aff-fun
            (funcall aff-fun prospects))
           (ann-fun
            (mapcar
@@ -731,9 +772,24 @@ Return a list of (COMP PREFIX SUFFIX)."
                           suffix
                         (propertize suffix 'face 'completions-annotations)))))
             prospects))
-          (prospects))))
+          (t (mapcar #'list prospects)))))
+    (if grp-fun
+        (cl-loop with section = nil
+                 for (c prefix suffix) in annotated
+                 for selectedp = (get-text-property 0 'icomplete-selected c)
+                 for tr = (propertize (or (funcall grp-fun c t) c)
+                                      'icomplete-selected selectedp)
+                 if (not (equal section (setq section (funcall grp-fun c nil))))
+                 collect (list tr prefix suffix section)
+                 else collect (list tr prefix suffix ))
+      annotated)))
 
-(cl-defun icomplete--render-vertical (comps md &aux scroll-above scroll-below)
+(cl-defun icomplete--render-vertical
+    (comps md &aux scroll-above scroll-below
+           (total-space ; number of mini-window lines available
+            (1- (min
+                 icomplete-prospects-height
+                 (truncate (max-mini-window-lines) 1)))))
   ;; Welcome to loopapalooza!
   ;;
   ;; First, be mindful of `icomplete-scroll' and manual scrolls.  If
@@ -741,11 +797,11 @@ Return a list of (COMP PREFIX SUFFIX)."
   ;; are:
   ;;
   ;; - both nil, there is no manual scroll;
-  ;; - both non-nil, there is a healthy manual scroll the doesn't need
+  ;; - both non-nil, there is a healthy manual scroll that doesn't need
   ;;   to be readjusted (user just moved around the minibuffer, for
   ;;   example)l
   ;; - non-nil and nil, respectively, a refiltering took place and we
-  ;;   need attempt to readjust them to the new filtered `comps'.
+  ;;   may need to readjust them to the new filtered `comps'.
   (when (and icomplete-scroll
              icomplete--scrolled-completions
              (null icomplete--scrolled-past))
@@ -767,52 +823,67 @@ Return a list of (COMP PREFIX SUFFIX)."
   ;; positions.
   (cl-loop with preds = icomplete--scrolled-past
            with succs = (cdr comps)
-           with max-lines = (1- (min
-                                 icomplete-prospects-height
-                                 (truncate (max-mini-window-lines) 1)))
-           with max-above = (- max-lines
-                               1
-                               (cl-loop for (_ . r) on comps
-                                        repeat (truncate max-lines 2)
-                                        while (listp r)
-                                        count 1))
-           repeat max-lines
+           with space-above = (- total-space
+                                 1
+                                 (cl-loop for (_ . r) on comps
+                                          repeat (truncate total-space 2)
+                                          while (listp r)
+                                          count 1))
+           repeat total-space
            for neighbour = nil
-           if (and preds (> max-above 0)) do
+           if (and preds (> space-above 0)) do
            (push (setq neighbour (pop preds)) scroll-above)
-           (cl-decf max-above)
+           (cl-decf space-above)
            else if (consp succs) collect
            (setq neighbour (pop succs)) into scroll-below-aux
            while neighbour
            finally (setq scroll-below scroll-below-aux))
-  ;; Now figure out spacing and layout
-  ;;
-  (cl-loop
-   with selected = (substring (car comps))
-   initially (add-face-text-property 0 (length selected)
-                                     'icomplete-selected-match 'append selected)
-   with torender = (nconc scroll-above (list selected) scroll-below)
-   with triplets = (icomplete--affixate md torender)
-   initially (when (eq triplets torender)
-               (cl-return-from icomplete--render-vertical
-                 (concat
-                  " \n"
-                  (mapconcat #'identity torender icomplete-separator))))
-   for (comp prefix) in triplets
-   maximizing (length prefix) into max-prefix-len
-   maximizing (length comp) into max-comp-len
-   finally return
-   ;; Finally, render
-   ;;
-   (concat
-    " \n"
-    (cl-loop for (comp prefix suffix) in triplets
-             concat prefix
-             concat (make-string (- max-prefix-len (length prefix)) ? )
-             concat comp
-             concat (make-string (- max-comp-len (length comp)) ? )
-             concat suffix
-             concat icomplete-separator))))
+  ;; Halfway there...
+  (let* ((selected (propertize (car comps) 'icomplete-selected t))
+         (chosen (append scroll-above (list selected) scroll-below))
+         (tuples (icomplete--augment md chosen))
+         max-prefix-len max-comp-len lines nsections)
+    (add-face-text-property 0 (length selected)
+                            'icomplete-selected-match 'append selected)
+    ;; Figure out parameters for horizontal spacing
+    (cl-loop
+     for (comp prefix) in tuples
+     maximizing (length prefix) into max-prefix-len-aux
+     maximizing (length comp) into max-comp-len-aux
+     finally (setq max-prefix-len max-prefix-len-aux
+                   max-comp-len max-comp-len-aux))
+    ;; Serialize completions and section titles into a list
+    ;; of lines to render
+    (cl-loop
+     for (comp prefix suffix section) in tuples
+     when section
+     collect (propertize section 'face 'icomplete-section) into lines-aux
+     and count 1 into nsections-aux
+     when (get-text-property 0 'icomplete-selected comp)
+     do (add-face-text-property 0 (length comp)
+                                'icomplete-selected-match 'append comp)
+     collect (concat prefix
+                     (make-string (- max-prefix-len (length prefix)) ? )
+                     comp
+                     (make-string (- max-comp-len (length comp)) ? )
+                     suffix)
+     into lines-aux
+     finally (setq lines lines-aux
+                   nsections nsections-aux))
+    ;; Kick out some lines from the beginning due to extra sections.
+    ;; This hopes to keep the selected entry more or less in the
+    ;; middle of the dropdown-like widget when `icomplete-scroll' is
+    ;; t.  Funky, but at least I didn't use `cl-loop'
+    (setq lines
+          (nthcdr
+           (cond ((<= (length lines) total-space) 0)
+                 ((> (length scroll-above) (length scroll-below)) nsections)
+                 (t (min (ceiling nsections 2) (length scroll-above))))
+           lines))
+    ;; At long last, render final string return value.  This may still
+    ;; kick out lines at the end.
+    (concat " \n"
+            (cl-loop for l in lines repeat total-space concat l concat "\n"))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)

@@ -20,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; The colors in this theme come from the Tango palette, which is in
 ;; the public domain: http://tango.freedesktop.org/
@@ -44,7 +44,9 @@ Semantic, and Ansi-Color faces are included.")
       (alum-1 "#eeeeec") (alum-2 "#d3d7cf") (alum-3 "#babdb6")
       (alum-4 "#888a85") (alum-5 "#5f615c") (alum-6 "#2e3436")
       ;; Not in Tango palette; used for better contrast.
-      (cham-4 "#346604") (blue-0 "#8cc4ff") (orange-4 "#b35000"))
+      (cham-4 "#346604") (blue-0 "#8cc4ff") (orange-4 "#b35000")
+      ;; Not in Tango palette; used for ANSI cyan.
+      (cyan-1 "#34e2e2") (cyan-2 "#06989a"))
 
   (custom-theme-set-faces
    'tango
@@ -145,12 +147,31 @@ Semantic, and Ansi-Color faces are included.")
    `(semantic-decoration-on-unparsed-includes
      ((,class (:underline  ,orange-3))))
    `(semantic-tag-boundary-face ((,class (:overline   ,blue-1))))
-   `(semantic-unmatched-syntax-face ((,class (:underline  ,red-1)))))
-
-  (custom-theme-set-variables
-   'tango
-   `(ansi-color-names-vector [,alum-6 ,red-3 ,cham-3 ,butter-3
-				      ,blue-3 ,plum-3 ,blue-1 ,alum-1])))
+   `(semantic-unmatched-syntax-face ((,class (:underline  ,red-1))))
+   ;; ANSI colors
+   `(ansi-color-black ((,class (:background ,alum-6 :foreground ,alum-6))))
+   `(ansi-color-red ((,class (:background ,red-2 :foreground ,red-2))))
+   `(ansi-color-green ((,class (:background ,cham-3 :foreground ,cham-3))))
+   `(ansi-color-yellow ((,class (:background ,butter-3 :foreground ,butter-3))))
+   `(ansi-color-blue ((,class (:background ,blue-2 :foreground ,blue-2))))
+   `(ansi-color-magenta ((,class (:background ,plum-2 :foreground ,plum-2))))
+   `(ansi-color-cyan ((,class (:background ,cyan-2 :foreground ,cyan-2))))
+   `(ansi-color-white ((,class (:background ,alum-2 :foreground ,alum-2))))
+   `(ansi-color-bright-black ((,class (:background ,alum-5
+				       :foreground ,alum-5))))
+   `(ansi-color-bright-red ((,class (:background ,red-1 :foreground ,red-1))))
+   `(ansi-color-bright-green ((,class (:background ,cham-1
+				       :foreground ,cham-1))))
+   `(ansi-color-bright-yellow ((,class (:background ,butter-1
+					:foreground ,butter-1))))
+   `(ansi-color-bright-blue ((,class (:background ,blue-1
+				      :foreground ,blue-1))))
+   `(ansi-color-bright-magenta ((,class (:background ,plum-1
+					 :foreground ,plum-1))))
+   `(ansi-color-bright-cyan ((,class (:background ,cyan-1
+				      :foreground ,cyan-1))))
+   `(ansi-color-bright-white ((,class (:background ,alum-1
+				       :foreground ,alum-1))))))
 
 (provide-theme 'tango)
 

@@ -31,7 +31,7 @@
 ;; <shane@spr.com> added support for xdb (HPUX debugger).  Rick Sladkey
 ;; <jrs@world.std.com> wrote the GDB command completion code.  Dave Love
 ;; <d.love@dl.ac.uk> added the IRIX kluge, re-implemented the Mips-ish variant
-;; and added a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX
+;; and added a menu.  Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX
 ;; kluge with the gud-xdb-directories hack producing gud-dbx-directories.
 ;; Derek L. Davies <ddavies@world.std.com> added support for jdb (Java
 ;; debugger.)  Jan Nieuwenhuizen added support for the Guile REPL (Guile
@@ -320,9 +320,31 @@ Used to gray out relevant toolbar icons.")
       (tool-bar-local-item-from-menu
        (car x) (cdr x) map gud-minor-mode-map))))
 
-(defvar gud-repeat-map (make-sparse-keymap)
-  "Keymap to repeat gud stepping instructions `C-x C-a C-n n n'.
+(defvar gud-gdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `gud-gdb' stepping instructions `C-x C-a C-n n n'.
 Used in `repeat-mode'.")
+
+(defun gud-set-repeat-map-property (keymap-symbol)
+  "Set the `repeat-map' property of relevant gud commands to KEYMAP-SYMBOL.
+
+KEYMAP-SYMBOL is a symbol corresponding to some
+`<FOO>-repeat-map', a keymap containing gud commands that may be
+repeated when `repeat-mode' is on."
+  (map-keymap-internal (lambda (_ cmd)
+                         (put cmd 'repeat-map keymap-symbol))
+                       (symbol-value keymap-symbol)))
+
 
 (defun gud-file-name (f)
   "Transform a relative file name to an absolute file name.
@@ -773,7 +795,7 @@ becomes the initial working directory and source-file directory
 for your debugger.
 If COMMAND-LINE requests that gdb attaches to a process PID, gdb
 will run in *gud-PID*, otherwise it will run in *gud*; in these
-cases the initial working directory is the default-directory of
+cases the initial working directory is the `default-directory' of
 the buffer in which this command was invoked."
   (interactive (list (gud-query-cmdline 'gud-gdb)))
 
@@ -814,16 +836,7 @@ the buffer in which this command was invoked."
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
 
-  (dolist (cmd '(("n" . gud-next)
-                 ("s" . gud-step)
-                 ("i" . gud-stepi)
-                 ("c" . gud-cont)
-                 ("l" . gud-refresh)
-                 ("f" . gud-finish)
-                 ("<" . gud-up)
-                 (">" . gud-down)))
-    (define-key gud-repeat-map (car cmd) (cdr cmd))
-    (put (cdr cmd) 'repeat-map 'gud-repeat-map))
+  (gud-set-repeat-map-property 'gud-gdb-repeat-map)
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
@@ -1024,6 +1037,18 @@ SKIP is the number of chars to skip on each line, it defaults to 0."
 
 (defvar gud-sdb-lastfile nil)
 
+(defvar gud-sdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `sdb' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
+
 (defun gud-sdb-marker-filter (string)
   (setq gud-marker-acc
 	(if gud-marker-acc (concat gud-marker-acc string) string))
@@ -1093,6 +1118,8 @@ and source-file directory for your debugger."
   (gud-def gud-next   "S %p" "\C-n"   "Step one line (skip functions).")
   (gud-def gud-cont   "c"    "\C-r"   "Continue with display.")
   (gud-def gud-print  "%e/"  "\C-p"   "Evaluate C expression at point.")
+
+  (gud-set-repeat-map-property 'gud-sdb-repeat-map)
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (setq paragraph-start comint-prompt-regexp)
@@ -1252,6 +1279,23 @@ whereby $stopformat=1 produces an output format compatible with
 ;; whereby `set $stopformat=1' reportedly produces output compatible
 ;; with `gud-dbx-marker-filter', which we prefer.
 
+(defvar gud-dbx-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    (when (or gud-mips-p
+              gud-irix-p)
+      (define-key map "f" 'gud-finish))
+    map)
+  "Keymap to repeat `dbx' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
+
 ;; The process filter is also somewhat
 ;; unreliable, sometimes not spotting the markers; I don't know
 ;; whether there's anything that can be done about that.]
@@ -1399,6 +1443,8 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
+  (gud-set-repeat-map-property 'gud-dbx-repeat-map)
+
   (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'dbx-mode-hook)
@@ -1409,6 +1455,21 @@ and source-file directory for your debugger."
 
 ;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)
+
+(defvar gud-xdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `xdb' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
 
 (defcustom gud-xdb-directories nil
   "A list of directories that xdb should search for source code.
@@ -1475,6 +1536,8 @@ directories if your program contains sources from more than one directory."
   (gud-def gud-finish "bu\\t"      "\C-f" "Finish executing current function.")
   (gud-def gud-print  "p %e"       "\C-p" "Evaluate C expression at point.")
 
+  (gud-set-repeat-map-property 'gud-xdb-repeat-map)
+
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'xdb-mode-hook))
@@ -1484,6 +1547,17 @@ directories if your program contains sources from more than one directory."
 
 ;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
+
+(defvar gud-perldb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `perldb' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
 
 (defun gud-perldb-massage-args (_file args)
   "Convert a command line as would be typed normally to run perldb
@@ -1605,9 +1679,14 @@ into one that invokes an Emacs-enabled debugging session.
 
 ;;;###autoload
 (defun perldb (command-line)
-  "Run perldb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger."
+  "Debug a perl program with gud.
+Interactively, this will prompt you for a command line.
+
+Noninteractively, COMMAND-LINE should be on the form
+\"perl -d perl-file.pl\".
+
+The directory containing the perl program becomes the initial
+working directory and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'perldb
 			    (concat (or (buffer-file-name) "-e 0") " "))))
@@ -1627,6 +1706,7 @@ and source-file directory for your debugger."
   (gud-def gud-print  "p %e"          "\C-p" "Evaluate perl expression at point.")
   (gud-def gud-until  "c %l"          "\C-u" "Continue to current line.")
 
+  (gud-set-repeat-map-property 'gud-perldb-repeat-map)
 
   (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
@@ -1654,6 +1734,20 @@ and source-file directory for your debugger."
 (defvar gud-pdb-marker-regexp-fnname-group 3)
 
 (defvar gud-pdb-marker-regexp-start "^> ")
+
+(defvar gud-pdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("c" . gud-cont)
+                                    ("l" . gud-refresh)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `pdb' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -1744,6 +1838,8 @@ directory and source-file directory for your debugger."
   (gud-def gud-print  "p %e"         "\C-p" "Evaluate Python expression at point.")
   (gud-def gud-statement "!%e"      "\C-e" "Execute Python statement at point.")
 
+  (gud-set-repeat-map-property 'gud-pdb-repeat-map)
+
   ;; (setq comint-prompt-regexp "^(.*pdb[+]?) *")
   (setq comint-prompt-regexp "^(Pdb) *")
   (setq paragraph-start comint-prompt-regexp)
@@ -1756,6 +1852,19 @@ directory and source-file directory for your debugger."
 (defvar gud-guiler-history nil)
 
 (defvar gud-guiler-lastfile nil)
+
+(defvar gud-guiler-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("l" . gud-refresh)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `guiler' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
 
 (defun gud-guiler-marker-filter (string)
   (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
@@ -1821,6 +1930,8 @@ and source-file directory for your debugger."
   (gud-def gud-up     ",up"           "<" "Up one stack frame.")
   (gud-def gud-down   ",down"         ">" "Down one stack frame.")
   (gud-def gud-print  "%e"            "\C-p" "Evaluate Guile expression at point.")
+
+  (gud-set-repeat-map-property 'gud-guiler-repeat-map)
 
   (setq comint-prompt-regexp "^scheme@([^>]+> ")
   (setq paragraph-start comint-prompt-regexp)
@@ -2267,6 +2378,21 @@ extension EXTN.  Normally EXTN is given as the regular expression
 ;; Note: Reset to this value every time a prompt is seen
 (defvar gud-jdb-lowest-stack-level 999)
 
+(defvar gud-jdb-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
+                                    ("s" . gud-step)
+                                    ("i" . gud-stepi)
+                                    ("c" . gud-cont)
+                                    ("f" . gud-finish)
+                                    ("<" . gud-up)
+                                    (">" . gud-down)
+                                    ("l" . gud-refresh)))
+      (define-key map key cmd))
+    map)
+  "Keymap to repeat `jdb' stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
+
 (defun gud-jdb-find-source-using-classpath (p)
   "Find source file corresponding to fully qualified class P.
 Convert P from jdb's output, converted to a pathname
@@ -2475,6 +2601,8 @@ gud, see `gud-mode'."
   (gud-def gud-print  "print %e"  "\C-p" "Print value of expression at point.")
   (gud-def gud-pstar  "dump %e"  nil "Print all object information at point.")
 
+  (gud-set-repeat-map-property 'gud-jdb-repeat-map)
+
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'jdb-mode-hook)
@@ -2549,8 +2677,8 @@ gud, see `gud-mode'."
 (define-derived-mode gud-mode comint-mode "Debugger"
   "Major mode for interacting with an inferior debugger process.
 
-   You start it up with one of the commands M-x gdb, M-x sdb, M-x dbx,
-M-x perldb, M-x xdb, or M-x jdb.  Each entry point finishes by executing a
+   You start it up with one of the commands \\[gdb], \\[sdb], \\[dbx],
+\\[perldb], \\[xdb], or \\[jdb].  Each entry point finishes by executing a
 hook; `gdb-mode-hook', `sdb-mode-hook', `dbx-mode-hook',
 `perldb-mode-hook', `xdb-mode-hook', or `jdb-mode-hook' respectively.
 
@@ -2652,14 +2780,24 @@ Commands:
 			(expand-file-name file-subst)
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file))))
-	 (existing-buffer (get-buffer (concat "*gud" filepart "*"))))
+         (buffer-name (concat "*gud" filepart "*"))
+	 (existing-buffer (get-buffer buffer-name))
+         error)
+    (when (and existing-buffer
+               (get-buffer-process existing-buffer))
+      (if (equal (buffer-local-value 'default-directory existing-buffer)
+                 default-directory)
+          ;; We're already debugging this executable.
+          (setq error t)
+        ;; Open a new window to debug an executable with the same name.
+        (setq buffer-name (generate-new-buffer-name buffer-name))))
     (select-window
      (display-buffer
-      (get-buffer-create (concat "*gud" filepart "*"))
+      (get-buffer-create buffer-name)
       '((display-buffer-reuse-window
          display-buffer-in-previous-window
          display-buffer-same-window display-buffer-pop-up-window))))
-    (when (and existing-buffer (get-buffer-process existing-buffer))
+    (when error
       (error "This program is already being debugged"))
     ;; Set the dir, in case the buffer already existed with a different dir.
     (setq default-directory dir)
@@ -2681,8 +2819,12 @@ Commands:
 	(setq w (cdr w)))
       ;; Tramp has already been loaded if we are here.
       (if w (setcar w (setq file (file-local-name file)))))
-    (apply #'make-comint (concat "gud" filepart) program nil
-	   (if massage-args (funcall massage-args file args) args))
+    (apply #'make-comint-in-buffer
+           (concat "gud" filepart) (current-buffer)
+           program nil
+	   (if massage-args
+               (funcall massage-args file args)
+             args))
     ;; Since comint clobbered the mode, we don't set it until now.
     (gud-mode)
     (setq-local gud-target-name
@@ -3027,7 +3169,7 @@ Obeying it means displaying in another window the specified file and line."
 		  (buffer-substring (region-beginning) (region-end))
 		(apply gud-find-expr-function args))))
     (save-match-data
-      (if (string-match "\n" expr)
+      (if (string-search "\n" expr)
 	  (error "Expression must not include a newline"))
       (with-current-buffer gud-comint-buffer
 	(save-excursion
@@ -3191,7 +3333,7 @@ This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
 pathname relative to its classpath directory.  The values in
 `gud-jdb-classpath' are assumed to have been converted to absolute
-pathname standards using file-truename.
+pathname standards using `file-truename'.
 If F is visited by a buffer and its mode is CC-mode(Java),
 syntactic information of LINE is used to find the enclosing (nested)
 class string which is appended to the top level
@@ -3397,8 +3539,8 @@ Treats actions as defuns."
               #'gdb-script-end-of-defun)
   (setq-local font-lock-defaults
               '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
-                (font-lock-syntactic-face-function
-                 . gdb-script-font-lock-syntactic-face)))
+                                              (font-lock-syntactic-face-function
+                                               . gdb-script-font-lock-syntactic-face)))
   ;; Recognize docstrings.
   (setq-local syntax-propertize-function
               gdb-script-syntax-propertize-function)

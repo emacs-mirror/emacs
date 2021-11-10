@@ -50,7 +50,7 @@
   :group 'image)
 
 (defcustom iimage-mode-image-search-path nil
-  "List of directories to search for image files for iimage-mode."
+  "List of directories to search for image files for `iimage-mode'."
   :type '(choice (const nil) (repeat directory)))
 
 (defvar iimage-mode-image-filename-regex

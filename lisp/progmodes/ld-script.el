@@ -167,11 +167,11 @@
      ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
      )
    cpp-font-lock-keywords)
-  "Default font-lock-keywords for `ld-script-mode'.")
+  "Default `font-lock-keywords' for `ld-script-mode'.")
 
 ;;;###autoload
 (define-derived-mode ld-script-mode prog-mode "LD-Script"
-   "A major mode to edit GNU ld script files"
+   "A major mode to edit GNU ld script files."
   (setq-local comment-start "/* ")
   (setq-local comment-end   " */")
   (setq-local font-lock-defaults '(ld-script-font-lock-keywords nil)))

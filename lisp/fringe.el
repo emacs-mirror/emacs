@@ -189,7 +189,7 @@ fringes."
   :type `(choice
           ,@ (mapcar (lambda (style)
                       (let ((name
-                             (replace-regexp-in-string "-" " " (car style))))
+                             (string-replace "-" " " (car style))))
                         `(const :tag
                                 ,(concat (capitalize (substring name 0 1))
                                          (substring name 1))

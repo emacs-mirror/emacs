@@ -364,7 +364,8 @@ call that function directly.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
-  (declare (doc-string 3) (debug (name body)))
+  (declare (doc-string 3) (debug (name body))
+           (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -378,7 +379,7 @@ for more information."
          ;; expression is checked by the byte-compiler, and that
          ;; lexical-binding is obeyed, so quote the expression with
          ;; `lambda' rather than with `quote'.
-         ``(funcall #',(lambda () ,standard))
+         ``(funcall #',(lambda () "" ,standard))
        `',standard)
     ,doc
     ,@args))
@@ -447,7 +448,7 @@ In the ATTS property list, possible attributes are `:family',
 
 See Info node `(elisp) Faces' in the Emacs Lisp manual for more
 information."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -507,11 +508,15 @@ The remaining arguments should have the form
    [KEYWORD VALUE]...
 
 For a list of valid keywords, see the common keywords listed in
-`defcustom'.
+`defcustom'.  The keyword :prefix can only be used for
+customization groups, and means that the given string should be
+removed from variable names before creating unlispified names,
+when the user option `custom-unlispify-remove-prefixes' is
+non-nil.
 
 See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -1131,29 +1136,24 @@ list, in which A occurs before B if B was defined with a
 ;;   (provide-theme 'THEME)
 
 
-;; The IGNORED arguments to deftheme come from the XEmacs theme code, where
-;; they were used to supply keyword-value pairs like `:immediate',
-;; `:variable-reset-string', etc.  We don't use any of these, so ignore them.
-
-(defmacro deftheme (theme &optional doc &rest _ignored)
+(defmacro deftheme (theme &optional doc)
   "Declare THEME to be a Custom theme.
 The optional argument DOC is a doc string describing the theme.
 
 Any theme `foo' should be defined in a file called `foo-theme.el';
 see `custom-make-theme-feature' for more information."
   (declare (doc-string 2)
-           (advertised-calling-convention (theme &optional doc) "22.1"))
+           (indent 1))
   (let ((feature (custom-make-theme-feature theme)))
     ;; It is better not to use backquote in this file,
     ;; because that makes a bootstrapping problem
     ;; if you need to recompile all the Lisp files using interpreted code.
     (list 'custom-declare-theme (list 'quote theme) (list 'quote feature) doc)))
 
-(defun custom-declare-theme (theme feature &optional doc &rest _ignored)
+(defun custom-declare-theme (theme feature &optional doc)
   "Like `deftheme', but THEME is evaluated as a normal argument.
 FEATURE is the feature this theme provides.  Normally, this is a symbol
 created from THEME by `custom-make-theme-feature'."
-  (declare (advertised-calling-convention (theme feature &optional doc) "22.1"))
   (unless (custom-theme-name-valid-p theme)
     (error "Custom theme cannot be named %S" theme))
   (unless (memq theme custom-known-themes)
@@ -1331,6 +1331,13 @@ Return t if THEME was successfully loaded, nil otherwise."
                  t))))
           (t
            (error "Unable to load theme `%s'" theme))))
+  (when-let ((obs (get theme 'byte-obsolete-info)))
+    (display-warning 'initialization
+                     (format "The `%s' theme is obsolete%s"
+                             theme
+                             (if (nth 2 obs)
+                                 (format " since Emacs %s" (nth 2 obs))
+                               ""))))
   ;; Optimization: if the theme changes the `default' face, put that
   ;; entry first.  This avoids some `frame-set-background-mode' rigmarole
   ;; by assigning the new background immediately.

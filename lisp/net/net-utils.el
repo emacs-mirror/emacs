@@ -885,9 +885,9 @@ and `network-connection-service-alist', which see."
   :type '(repeat (cons string string)))
 
 (defcustom whois-guess-server t
-  "If non-nil then whois will try to deduce the appropriate whois
-server from the query.  If the query doesn't look like a domain or hostname
-then the server named by `whois-server-name' is used."
+  "If non-nil, try to deduce the appropriate whois server from the query.
+If the query doesn't look like a domain or hostname then the
+server named by `whois-server-name' is used."
   :type 'boolean)
 
 (defun whois-get-tld (host)
@@ -943,7 +943,7 @@ The port is deduced from `network-connection-service-alist'."
 ;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode
   network-connection-mode comint-mode "Network-Connection"
-  "Major mode for interacting with the network-connection program.")
+  "Major mode for interacting with the `network-connection' program.")
 
 (defun network-connection-mode-setup (host service)
   (setq-local network-connection-host host)

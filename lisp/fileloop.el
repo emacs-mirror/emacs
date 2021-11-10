@@ -44,6 +44,7 @@
 
 (defcustom fileloop-revert-buffers 'silent
   "Whether to revert files during fileloop operation.
+This can be one of:
   `silent' means to only do it if `revert-without-query' is applicable;
   t        means to offer to do it for all applicable files;
   nil      means never to do it"
@@ -120,7 +121,10 @@ operating on the next file and nil otherwise."
         (kill-all-local-variables)
         (erase-buffer)
         (setq new next)
-        (insert-file-contents new nil))
+        (condition-case nil
+            (insert-file-contents new nil)
+          (file-missing
+           (fileloop-next-file novisit))))
       new)))
 
 (defun fileloop-continue ()

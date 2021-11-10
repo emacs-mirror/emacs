@@ -212,7 +212,7 @@ You can also use TRAMP for use with rcp & scp.")
 		  :label "Web Page File"
 		  :group name
 		  :documentation
-		  "A file which contains the home page for this project.
+                  "A file which contains the website for this project.
 This file can be relative to slot `web-site-directory'.
 This can be a local file, use ange-ftp, EFS, or TRAMP.")
    (ftp-site :initarg :ftp-site
@@ -267,7 +267,7 @@ and target specific elements such as build variables.")
 	 '(
 	   [ "Update Version" ede-update-version ede-object ]
 	   [ "Version Control Status" ede-vc-project-directory ede-object ]
-	   [ "Edit Project Homepage" ede-edit-web-page
+           [ "Edit Project Website" ede-edit-web-page
 	     (and ede-object (oref (ede-toplevel) web-site-file)) ]
 	   [ "Browse Project URL" ede-web-browse-home
 	     (and ede-object

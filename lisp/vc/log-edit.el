@@ -54,21 +54,19 @@
 (define-obsolete-variable-alias 'vc-log-mode-map 'log-edit-mode-map "28.1")
 (define-obsolete-variable-alias 'vc-log-entry-mode 'log-edit-mode-map "28.1")
 
-(easy-mmode-defmap log-edit-mode-map
-  '(("\C-c\C-c" . log-edit-done)
-    ("\C-c\C-a" . log-edit-insert-changelog)
-    ("\C-c\C-w" . log-edit-generate-changelog-from-diff)
-    ("\C-c\C-d" . log-edit-show-diff)
-    ("\C-c\C-f" . log-edit-show-files)
-    ("\C-c\C-k" . log-edit-kill-buffer)
-    ("\C-a"     . log-edit-beginning-of-line)
-    ("\M-n"	. log-edit-next-comment)
-    ("\M-p"	. log-edit-previous-comment)
-    ("\M-r"	. log-edit-comment-search-backward)
-    ("\M-s"	. log-edit-comment-search-forward)
-    ("\C-c?"	. log-edit-mode-help))
-  "Keymap for the `log-edit-mode' (to edit version control log messages)."
-  :group 'log-edit)
+(defvar-keymap log-edit-mode-map
+  (kbd "C-c C-c") #'log-edit-done
+  (kbd "C-c C-a") #'log-edit-insert-changelog
+  (kbd "C-c C-w") #'log-edit-generate-changelog-from-diff
+  (kbd "C-c C-d") #'log-edit-show-diff
+  (kbd "C-c C-f") #'log-edit-show-files
+  (kbd "C-c C-k") #'log-edit-kill-buffer
+  (kbd "C-a")     #'log-edit-beginning-of-line
+  (kbd "M-n")     #'log-edit-next-comment
+  (kbd "M-p")     #'log-edit-previous-comment
+  (kbd "M-r")     #'log-edit-comment-search-backward
+  (kbd "M-s")     #'log-edit-comment-search-forward
+  (kbd "C-c ?")   #'log-edit-mode-help)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -98,7 +96,7 @@
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
 If `changed', only request confirmation if the list of files has
-  changed since the beginning of the log-edit session."
+  changed since the beginning of the `log-edit' session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
 
@@ -497,7 +495,7 @@ When done editing the log entry, type \\[log-edit-done], which will
 trigger the actual commit of the file(s).
 Several other handy support commands are provided, and the package
 from which this is used might also provide additional commands (under
-the \"C-x v\" prefix for VC commands, for example).
+the \\[vc-prefix-map] prefix for VC commands, for example).
 
 \\{log-edit-mode-map}"
   (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
@@ -891,7 +889,7 @@ name or time."
 Actually, the narrowed region doesn't include the date line.
 A \"page\" in a ChangeLog file is the area between two dates."
   (or (eq major-mode 'change-log-mode)
-      (error "log-edit-narrow-changelog: current buffer isn't a ChangeLog"))
+      (error "log-edit-narrow-changelog: Current buffer isn't a ChangeLog"))
 
   (goto-char (point-min))
 
@@ -974,8 +972,8 @@ Return non-nil if it is."
                    (not (looking-at (format ".+  .+  <%s>"
                                             (regexp-quote mail))))
                    (looking-at ".+  \\(.+  <.+>\\) *\\((tiny change)\\)?"))
-          (let ((author (replace-regexp-in-string "  " " "
-                                                  (match-string 1))))
+          (let ((author (string-replace "  " " "
+                                        (match-string 1))))
             (unless (and log-edit-author
                          (string-match (regexp-quote author)
                                        (car log-edit-author)))

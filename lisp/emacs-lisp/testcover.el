@@ -20,7 +20,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
 
 ;; * Use `testcover-start' to instrument a Lisp file for coverage testing.
@@ -62,6 +61,8 @@
 ;;   error if these "potentially" 1-valued forms actually return differing
 ;;   values.
 
+;;; Code:
+
 (eval-when-compile (require 'cl-lib))
 (require 'edebug)
 (provide 'testcover)
@@ -80,8 +81,9 @@
 (defcustom testcover-constants
   '(nil t emacs-build-time emacs-version emacs-major-version
     emacs-minor-version)
-  "Variables whose values never change.  No brown splotch is shown for
-these.  This list is quite incomplete!"
+  "Variables whose values never change.
+No brown splotch is shown for these.  This list is quite
+incomplete!"
   :group 'testcover
   :type '(repeat variable))
 
@@ -103,8 +105,8 @@ incomplete!  Notes: Nobody ever changes the current global map."
 
 (defcustom testcover-noreturn-functions
   '(error noreturn throw signal)
-  "Subset of `testcover-1value-functions' -- these never return.  We mark
-them as having returned nil just before calling them."
+  "Subset of `testcover-1value-functions' -- these never return.
+We mark them as having returned nil just before calling them."
   :group 'testcover
   :type '(repeat symbol))
 
@@ -126,25 +128,26 @@ side-effect-free functions should be here."
     set set-default set-marker-insertion-type setq setq-default
     with-current-buffer with-output-to-temp-buffer with-syntax-table
     with-temp-buffer with-temp-file with-temp-message with-timeout)
-  "Functions whose return value is the same as their last argument.  No
-brown splotch is shown for these if the last argument is a constant or a
-call to one of the `testcover-1value-functions'.  This list is probably
-incomplete!"
+  "Functions whose return value is the same as their last argument.
+No brown splotch is shown for these if the last argument is a
+constant or a call to one of the `testcover-1value-functions'.
+This list is probably incomplete!"
   :group 'testcover
   :type '(repeat symbol))
 
 (defcustom testcover-prog1-functions
   '(prog1 unwind-protect)
-  "Functions whose return value is the same as their first argument.  No
-brown splotch is shown for these if the first argument is a constant or a
-call to one of the `testcover-1value-functions'."
+  "Functions whose return value is the same as their first argument.
+No brown splotch is shown for these if the first argument is a
+constant or a call to one of the `testcover-1value-functions'."
   :group 'testcover
   :type '(repeat symbol))
 
 (defcustom testcover-potentially-1value-functions
   '(add-hook and beep or remove-hook unless when)
-  "Functions that are potentially 1-valued.  No brown splotch if actually
-1-valued, no error if actually multi-valued."
+  "Functions that are potentially 1-valued.
+No brown splotch if actually 1-valued, no error if actually
+multi-valued."
   :group 'testcover
   :type '(repeat symbol))
 
@@ -164,8 +167,7 @@ call to one of the `testcover-1value-functions'."
 ;;;=========================================================================
 
 (defvar testcover-module-constants nil
-  "Symbols declared with defconst in the last file processed by
-`testcover-start'.")
+  "Symbols declared with defconst in the last file processed by `testcover-start'.")
 
 (defvar testcover-module-1value-functions nil
   "Symbols declared with defun in the last file processed by
@@ -331,7 +333,7 @@ vectors as well as conses."
 ;;;=========================================================================
 
 (defun testcover-mark (def)
-  "Marks one DEF (a function or macro symbol) to highlight its contained forms
+  "Mark one DEF (a function or macro symbol) to highlight its contained forms
 that did not get completely tested during coverage tests.
   A marking with the face `testcover-nohits' (default = red) indicates that the
 form was never evaluated.  A marking using the `testcover-1value' face
@@ -388,7 +390,7 @@ coverage tests.  This function creates many overlays."
     (error nil)))  ;Ignore "No such buffer" errors
 
 (defun testcover-next-mark ()
-  "Moves point to next line in current buffer that has a splotch."
+  "Move point to next line in current buffer that has a splotch."
   (interactive)
   (goto-char (next-overlay-change (point)))
   (end-of-line))

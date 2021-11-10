@@ -72,6 +72,7 @@
 
 (require 'esh-mode)
 (require 'esh-util)
+(require 'em-dirs)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -377,8 +378,12 @@ to writing a completion function."
                           (cl-assert (eq (car result) 'quote))
                           (cadr result))
                       arg)))
-               (if (numberp val)
-                   (setq val (number-to-string val)))
+               (cond ((numberp val)
+                      (setq val (number-to-string val)))
+                     ;; expand .../ etc that only eshell understands to
+                     ;; standard ../../
+                     ((string-match "\\.\\.\\.+/" val)
+                      (setq val (eshell-expand-multiple-dots val))))
                (or val "")))
 	   args)
 	  posns)))

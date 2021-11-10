@@ -168,8 +168,7 @@ documentation of `unload-feature' for details.")
 ;; So we use this auxiliary variable to keep track of the last (t . SYMBOL)
 ;; that occurred.
 (defvar loadhist--restore-autoload nil
-  "If non-nil, this is a symbol for which we should
-restore a previous autoload if possible.")
+  "If non-nil, is a symbol for which to try to restore a previous autoload.")
 
 (cl-defmethod loadhist-unload-element ((x (head t)))
   (setq loadhist--restore-autoload (cdr x)))

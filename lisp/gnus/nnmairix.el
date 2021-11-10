@@ -1629,7 +1629,7 @@ SERVER."
   (while (string-match "[<>]" mid)
     (setq mid (replace-match "" t t mid)))
   ;; mairix somehow does not like '$' in message-id
-  (when (string-match "\\$" mid)
+  (when (string-search "$" mid)
     (setq mid (concat mid "=")))
   (while (string-match "\\$" mid)
     (setq mid (replace-match "=," t t mid)))

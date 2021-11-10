@@ -1712,7 +1712,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   /* Suppress GCC's bogus "no previous prototype for 'FOO'"
      and "no previous declaration for 'FOO'"  diagnostics,
      when FOO is an inline function in the header; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
 # define _GL_INLINE_HEADER_BEGIN \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \

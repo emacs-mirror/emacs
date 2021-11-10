@@ -40,6 +40,7 @@
 ;; - dbuser
 ;; - dbpassword
 ;; - dbconnection (to reference connections in sql-connection-alist)
+;; - dbinstance (currently only used by SAP HANA)
 ;; - database
 ;; - colnames (default, nil, means "yes")
 ;; - result-params
@@ -58,6 +59,7 @@
 ;; - postgresql (postgres)
 ;; - oracle
 ;; - vertica
+;; - saphana
 ;;
 ;; TODO:
 ;;
@@ -85,20 +87,30 @@
     (dbport	       . :any)
     (dbuser	       . :any)
     (dbpassword	       . :any)
+    (dbinstance	       . :any)
     (database	       . :any))
   "SQL-specific header arguments.")
 
 (defun org-babel-expand-body:sql (body params)
   "Expand BODY according to the values of PARAMS."
-  (org-babel-sql-expand-vars
-   body (org-babel--get-vars params)))
+  (let ((prologue (cdr (assq :prologue params)))
+	(epilogue (cdr (assq :epilogue params))))
+    (mapconcat 'identity
+               (list
+                prologue
+                (org-babel-sql-expand-vars
+                 body (org-babel--get-vars params))
+                epilogue)
+               "\n")))
 
 (defun org-babel-edit-prep:sql (info)
   "Set `sql-product' in Org edit buffer.
 Set `sql-product' in Org edit buffer according to the
 corresponding :engine source block header argument."
   (let ((product (cdr (assq :engine (nth 2 info)))))
-    (sql-set-product product)))
+    (condition-case nil
+        (sql-set-product product)
+      (user-error "Cannot set `sql-product' in Org Src edit buffer"))))
 
 (defun org-babel-sql-dbstring-mysql (host port user password database)
   "Make MySQL cmd line args for database connection.  Pass nil to omit that arg."
@@ -167,13 +179,27 @@ SQL Server on Windows and Linux platform."
   "Make Vertica command line args for database connection.
 Pass nil to omit that arg."
   (mapconcat #'identity
-	      (delq nil
-		    (list (when host     (format "-h %s" host))
-			  (when port     (format "-p %d" port))
-			  (when user     (format "-U %s" user))
-			  (when password (format "-w %s" (shell-quote-argument password) ))
-			  (when database (format "-d %s" database))))
-	      " "))
+	     (delq nil
+		   (list (when host     (format "-h %s" host))
+			 (when port     (format "-p %d" port))
+			 (when user     (format "-U %s" user))
+			 (when password (format "-w %s" (shell-quote-argument password) ))
+			 (when database (format "-d %s" database))))
+	     " "))
+
+(defun org-babel-sql-dbstring-saphana (host port instance user password database)
+  "Make SAP HANA command line args for database connection.
+Pass nil to omit that arg."
+  (mapconcat #'identity
+             (delq nil
+                   (list (and host port (format "-n %s:%s" host port))
+                         (and host (not port) (format "-n %s" host))
+                         (and instance (format "-i %d" instance))
+                         (and user (format "-u %s" user))
+                         (and password (format "-p %s"
+                                               (shell-quote-argument password)))
+                         (and database (format "-d %s" database))))
+             " "))
 
 (defun org-babel-sql-convert-standard-filename (file)
   "Convert FILE to OS standard file name.
@@ -189,8 +215,8 @@ Otherwise, use Emacs' standard conversion function."
   "Return database connection parameter NAME.
 Given a parameter NAME, if :dbconnection is defined in PARAMS
 then look for the parameter into the corresponding connection
-defined in `sql-connection-alist`, otherwise look into PARAMS.
-Look `sql-connection-alist` (part of SQL mode) for how to define
+defined in `sql-connection-alist', otherwise look into PARAMS.
+See `sql-connection-alist' (part of SQL mode) for how to define
 database connections."
   (if (assq :dbconnection params)
       (let* ((dbconnection (cdr (assq :dbconnection params)))
@@ -198,6 +224,7 @@ database connections."
                              (:dbport . sql-port)
                              (:dbuser . sql-user)
                              (:dbpassword . sql-password)
+                             (:dbinstance . sql-dbinstance)
                              (:database . sql-database)))
              (mapped-name (cdr (assq name name-mapping))))
         (cadr (assq mapped-name
@@ -213,6 +240,7 @@ This function is called by `org-babel-execute-src-block'."
          (dbport (org-babel-find-db-connection-param params :dbport))
          (dbuser (org-babel-find-db-connection-param params :dbuser))
          (dbpassword (org-babel-find-db-connection-param params :dbpassword))
+         (dbinstance (org-babel-find-db-connection-param params :dbinstance))
          (database (org-babel-find-db-connection-param params :database))
          (engine (cdr (assq :engine params)))
          (colnames-p (not (equal "no" (cdr (assq :colnames params)))))
@@ -246,11 +274,14 @@ This function is called by `org-babel-execute-src-block'."
 				   (org-babel-process-file-name in-file)
 				   (org-babel-process-file-name out-file)))
 		    ((postgresql postgres) (format
-					    "%spsql --set=\"ON_ERROR_STOP=1\" %s -A -P \
+					    "%s%s --set=\"ON_ERROR_STOP=1\" %s -A -P \
 footer=off -F \"\t\"  %s -f %s -o %s %s"
 					    (if dbpassword
 						(format "PGPASSWORD=%s " dbpassword)
 					      "")
+                                            (or (bound-and-true-p
+                                                 sql-postgres-program)
+                                                "psql")
 					    (if colnames-p "" "-t")
 					    (org-babel-sql-dbstring-postgresql
 					     dbhost dbport dbuser database)
@@ -277,6 +308,12 @@ footer=off -F \"\t\"  %s -f %s -o %s %s"
 			      dbhost dbport dbuser dbpassword database)
 			     (org-babel-process-file-name in-file)
 			     (org-babel-process-file-name out-file)))
+		    (saphana (format "hdbsql %s -I %s -o %s %s"
+				     (org-babel-sql-dbstring-saphana
+				      dbhost dbport dbinstance dbuser dbpassword database)
+				     (org-babel-process-file-name in-file)
+				     (org-babel-process-file-name out-file)
+				     (or cmdline "")))
                     (t (user-error "No support for the %s SQL engine" engine)))))
     (with-temp-file in-file
       (insert
@@ -310,7 +347,7 @@ SET COLSEP '|'
 	(progn (insert-file-contents-literally out-file) (buffer-string)))
       (with-temp-buffer
 	(cond
-	 ((memq (intern engine) '(dbi mysql postgresql postgres sqsh vertica))
+	 ((memq (intern engine) '(dbi mysql postgresql postgres saphana sqsh vertica))
 	  ;; Add header row delimiter after column-names header in first line
 	  (cond
 	   (colnames-p
@@ -347,8 +384,13 @@ SET COLSEP '|'
 	 (org-babel-pick-name (cdr (assq :rowname-names params))
 			      (cdr (assq :rownames params))))))))
 
-(defun org-babel-sql-expand-vars (body vars)
-  "Expand the variables held in VARS in BODY."
+(defun org-babel-sql-expand-vars (body vars &optional sqlite)
+  "Expand the variables held in VARS in BODY.
+
+If SQLITE has been provided, prevent passing a format to
+`orgtbl-to-csv'.  This prevents overriding the default format, which if
+there were commas in the context of the table broke the table as an
+argument mechanism."
   (mapc
    (lambda (pair)
      (setq body
@@ -359,9 +401,11 @@ SET COLSEP '|'
                   (let ((data-file (org-babel-temp-file "sql-data-")))
                     (with-temp-file data-file
                       (insert (orgtbl-to-csv
-                               val '(:fmt (lambda (el) (if (stringp el)
-                                                      el
-                                                    (format "%S" el)))))))
+                               val (if sqlite
+                                       nil
+                                     '(:fmt (lambda (el) (if (stringp el)
+                                                             el
+                                                           (format "%S" el))))))))
                     data-file)
                 (if (stringp val) val (format "%S" val))))
 	    body)))

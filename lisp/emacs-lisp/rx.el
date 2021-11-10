@@ -1266,7 +1266,8 @@ Zero-width assertions: these all match the empty string in specific places.
 
 (literal EXPR) Match the literal string from evaluating EXPR at run time.
 (regexp EXPR)  Match the string regexp from evaluating EXPR at run time.
-(eval EXPR)    Match the rx sexp from evaluating EXPR at compile time.
+(eval EXPR)    Match the rx sexp from evaluating EXPR at macro-expansion
+                (compile) time.
 
 Additional constructs can be defined using `rx-define' and `rx-let',
 which see.

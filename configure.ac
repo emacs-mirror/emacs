@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.65)
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT(GNU Emacs, 28.0.50, bug-gnu-emacs@gnu.org, , https://www.gnu.org/software/emacs/)
+AC_INIT(GNU Emacs, 29.0.50, bug-gnu-emacs@gnu.org, , https://www.gnu.org/software/emacs/)
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
@@ -447,6 +447,7 @@ OPTION_DEFAULT_ON([tiff],[don't compile with TIFF image support])
 OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
+OPTION_DEFAULT_ON([webp],[don't compile with WebP image support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
@@ -486,6 +487,7 @@ OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
+OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -876,8 +878,8 @@ done
 ac_func_list=$funcs
 # Emacs does not use the wchar or wctype-h modules.
 AC_DEFUN([gt_TYPE_WINT_T],
-  [GNULIB_OVERRIDES_WINT_T=0
-   AC_SUBST([GNULIB_OVERRIDES_WINT_T])])
+  [GNULIBHEADERS_OVERRIDE_WINT_T=0
+   AC_SUBST([GNULIBHEADERS_OVERRIDE_WINT_T])])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.
@@ -1333,6 +1335,11 @@ AC_CHECK_PROGS(BREW, [brew])
 if test -n "$BREW"; then
   AC_PATH_PROG([MAKEINFO], [makeinfo], [],
     [`$BREW --prefix texinfo 2>/dev/null`/bin$PATH_SEPARATOR$PATH])
+fi
+
+# Check MacPorts on macOS.
+if test $opsys = darwin; then
+  AC_PATH_PROG(HAVE_MACPORTS, port)
 fi
 
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
@@ -2595,6 +2602,28 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${window_sys
   fi
 fi
 
+### Use -lwebp if available, unless '--with-webp=no'
+HAVE_WEBP=no
+if test "${with_webp}" != "no"; then
+   if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
+   || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes"; then
+      WEBP_REQUIRED=0.6.0
+      WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
+
+      EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
+      AC_SUBST(WEBP_CFLAGS)
+      AC_SUBST(WEBP_LIBS)
+   fi
+   if test $HAVE_WEBP = yes; then
+      AC_DEFINE(HAVE_WEBP, 1, [Define to 1 if using libwebp.])
+      CFLAGS="$CFLAGS $WEBP_CFLAGS"
+      # Windows loads libwebp dynamically
+      if test "${opsys}" = "mingw32"; then
+	WEBP_LIBS=
+      fi
+   fi
+fi
+
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${window_system}" = "pgtk" || test "${HAVE_W32}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
@@ -3803,10 +3832,12 @@ AC_SUBST_FILE([module_env_snippet_25])
 AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
 AC_SUBST_FILE([module_env_snippet_28])
+AC_SUBST_FILE([module_env_snippet_29])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
+module_env_snippet_29="$srcdir/src/module-env-29.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST(emacs_major_version)
 
@@ -3862,7 +3893,7 @@ AC_DEFUN([libgccjit_dev_not_found], [
 not found.
 Please try installing libgccjit-dev or a similar package.
 If you are sure you want Emacs be compiled without ELisp native compiler,
-pass the --without-nativecomp option to configure.])])
+pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken], [
   AC_MSG_ERROR([The installed libgccjit failed to compile and run a test program using
@@ -3877,51 +3908,92 @@ source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
 HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIB=
+LIBGCCJIT_LIBS=
+LIBGCCJIT_CFLAGS=
+if test "$canonical" = i686-pc-cygwin; then
+  if test "${with_cygwin32_native_compilation}" = yes; then
+    with_native_compilation=yes
+  elif test "${with_native_compilation}" != no; then
+    AC_MSG_ERROR([Native compilation is not supported on 32-bit Cygwin.
+If you really want to try it anyway, use the configure option
+'--with-cygwin32-native-compilation'.])
+  fi
+fi
+
 if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+       AC_MSG_ERROR(['--with-native-compilation' requires '--with-dumping=pdumper'])
     fi
     if test "${HAVE_ZLIB}" = no; then
-       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+       AC_MSG_ERROR(['--with-native-compilation' requires zlib])
     fi
 
-    # Ensure libgccjit installed by Homebrew can be found.
-    if test -n "$BREW"; then
-      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
-      if test "$BREW_LIBGCCJIT_PREFIX"; then
-        brew_libdir=`find ${BREW_LIBGCCJIT_PREFIX}/ -name \*.so \
-                     | sed -e '1!d;s|/[[^/]]*\.so$||'`
-        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
-        LDFLAGS="$LDFLAGS -L${brew_libdir} -I${BREW_LIBGCCJIT_PREFIX}/include"
+    SAVE_CFLAGS=$CFLAGS
+    SAVE_LIBS=$LIBS
+
+    if test "${opsys}" = "darwin"; then
+      # Ensure libgccjit installed by Homebrew or macports can be found.
+      if test -n "$BREW"; then
+        if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
+          MAC_CFLAGS="-I$(dirname $($BREW ls -v libgccjit | \
+                                                grep libgccjit.h))"
+          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit| \
+                                            grep libgccjit.so\$))"
+        fi
+      fi
+
+      if test -n "$HAVE_MACPORTS"; then
+        # Determine which gcc version has been installed (gcc11, for
+        # instance). Use the latest version, if more than one is
+        # available.  (We filter out the gcc4 packages, because they
+        # don't support jit, and they have names like "gcc49" that
+        # sort later than "gcc11".)
+        PORT_PACKAGE=$(port installed active | grep '^ *gcc@<:@0-9@:>@* ' | \
+                            awk '{ print $1; }' | grep -v 'gcc4@<:@0-9@:>@' | \
+                            sort -V | tail -n 1)
+        if test -n "$PORT_PACKAGE"; then
+          MAC_CFLAGS="-I$(dirname $(port contents $PORT_PACKAGE | \
+                                           grep libgccjit.h))"
+          MAC_LIBS="-L$(dirname $(port contents $PORT_PACKAGE | \
+                                              grep libgccjit.dylib))"
+        fi
+      fi
+
+      if test -n "$MAC_CFLAGS" && test -n "$MAC_LIBS"; then
+        CFLAGS="$CFLAGS ${MAC_CFLAGS}"
+        LIBS="$LIBS ${MAC_LIBS}"
       fi
     fi
 
     # Check if libgccjit is available.
     AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
     AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])
-    emacs_save_LIBS=$LIBS
-    LIBS="-lgccjit"
     # Check if libgccjit really works.
     AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
-    LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
     case "${opsys}" in
       # mingw32 loads the library dynamically.
       mingw32) ;;
       # OpenBSD doesn't have libdl, all the functions are in libc
       netbsd|openbsd)
-        LIBGCCJIT_LIB="-lgccjit" ;;
+        LIBGCCJIT_LIBS="-lgccjit" ;;
+      darwin)
+        LIBGCCJIT_CFLAGS="${MAC_CFLAGS}"
+        LIBGCCJIT_LIBS="${MAC_LIBS} -lgccjit -ldl";;
       *)
-        LIBGCCJIT_LIB="-lgccjit -ldl" ;;
+        LIBGCCJIT_LIBS="-lgccjit -ldl" ;;
     esac
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
+
+    CFLAGS=$SAVE_CFLAGS
+    LIBS=$SAVE_LIBS
 fi
 AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
   [System extension for native compiled elisp])
 AC_SUBST(HAVE_NATIVE_COMP)
-AC_SUBST(LIBGCCJIT_LIB)
+AC_SUBST(LIBGCCJIT_CFLAGS)
+AC_SUBST(LIBGCCJIT_LIBS)
 
 DYNLIB_OBJ=
 if test "${NEED_DYNLIB}" = yes; then
@@ -4954,7 +5026,7 @@ emacs_broken_SIGIO=no
 
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
-  hpux* | nacl | openbsd | solaris | unixware )
+  hpux* | nacl | solaris | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -5709,11 +5781,12 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
+gl_EEMALLOC
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
-# timer_getoverrun needs the same libarary as timer_settime
+# timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS
 LIBS="$LIB_TIMER_TIME $LIBS"
 AC_CHECK_FUNCS(timer_getoverrun)
@@ -5734,7 +5807,8 @@ case "$opsys" in
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
-        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon -framework IOSurface"
+        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon \
+                    -framework IOSurface -framework QuartzCore"
      fi
    else
      libs_nsgui=
@@ -5916,8 +5990,8 @@ emacs_config_features=
 for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
- SOUND THREADS TIFF \
- TOOLKIT_SCROLL_BARS UNEXEC X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
+ SOUND THREADS TIFF TOOLKIT_SCROLL_BARS \
+ UNEXEC WEBP X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 
     case $opt in
@@ -5962,6 +6036,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use a gif library?                           ${HAVE_GIF} $LIBGIF
   Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG
   Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}
+  Does Emacs use -lwebp?                                  ${HAVE_WEBP}
   Does Emacs use cairo?                                   ${HAVE_CAIRO}
   Does Emacs use -llcms2?                                 ${HAVE_LCMS2}
   Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}

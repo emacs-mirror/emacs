@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-11-25.18}
+\def\texinfoversion{2021-04-25.21}
 %
-% Copyright 1985, 1986, 1988, 1990-2020 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2021 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -574,7 +574,7 @@
 
 
 % @end foo calls \checkenv and executes the definition of \Efoo.
-\parseargdef\end{
+\parseargdef\end{%
   \if 1\csname iscond.#1\endcsname
   \else
     % The general wording of \badenverr may not be ideal.
@@ -1002,6 +1002,14 @@ where each line of input produces a line of output.}
   \global\everypar = {}%
 }
 
+% leave vertical mode without cancelling any first paragraph indent
+\gdef\imageindent{%
+  \toks0=\everypar
+  \everypar={}%
+  \ptexnoindent
+  \global\everypar=\toks0
+}
+
 
 % @refill is a no-op.
 \let\refill=\relax
@@ -1181,7 +1189,7 @@ where each line of input produces a line of output.}
 % double any backslashes.  Otherwise, a name like "\node" will be
 % interpreted as a newline (\n), followed by o, d, e.  Not good.
 %
-% See https://mailman.ntg.nl/pipermail/ntg-pdftex/2004-July/000654.html and
+% See http://www.ntg.nl/pipermail/ntg-pdftex/2004-July/000654.html and
 % related messages.  The final outcome is that it is up to the TeX user
 % to double the backslashes and otherwise make the string valid, so
 % that's what we do.  pdftex 1.30.0 (ca.2005) introduced a primitive to
@@ -1862,19 +1870,23 @@ output) for that.)}
       \closein 1
     \endgroup
     %
-    \def\xetexpdfext{pdf}%
-    \ifx\xeteximgext\xetexpdfext
-      \XeTeXpdffile "#1".\xeteximgext ""
-    \else
-      \def\xetexpdfext{PDF}%
+    % Putting an \hbox around the image can prevent an over-long line
+    % after the image.
+    \hbox\bgroup
+      \def\xetexpdfext{pdf}%
       \ifx\xeteximgext\xetexpdfext
         \XeTeXpdffile "#1".\xeteximgext ""
       \else
-        \XeTeXpicfile "#1".\xeteximgext ""
+        \def\xetexpdfext{PDF}%
+        \ifx\xeteximgext\xetexpdfext
+          \XeTeXpdffile "#1".\xeteximgext ""
+        \else
+          \XeTeXpicfile "#1".\xeteximgext ""
+        \fi
       \fi
-    \fi
-    \ifdim \wd0 >0pt width \xeteximagewidth \fi
-    \ifdim \wd2 >0pt height \xeteximageheight \fi \relax
+      \ifdim \wd0 >0pt width \xeteximagewidth \fi
+      \ifdim \wd2 >0pt height \xeteximageheight \fi \relax
+    \egroup
   }
 \fi
 
@@ -3539,7 +3551,7 @@ $$%
 % We use the free feym* fonts from the eurosym package by Henrik
 % Theiling, which support regular, slanted, bold and bold slanted (and
 % "outlined" (blackboard board, sort of) versions, which we don't need).
-% It is available from https://www.ctan.org/tex-archive/fonts/eurosym.
+% It is available from http://www.ctan.org/tex-archive/fonts/eurosym.
 %
 % Although only regular is the truly official Euro symbol, we ignore
 % that.  The Euro is designed to be slightly taller than the regular
@@ -4289,82 +4301,8 @@ $$%
   \doitemize{#1.}\flushcr
 }
 
-% @alphaenumerate and @capsenumerate are abbreviations for giving an arg
-% to @enumerate.
-%
-\def\alphaenumerate{\enumerate{a}}
-\def\capsenumerate{\enumerate{A}}
-\def\Ealphaenumerate{\Eenumerate}
-\def\Ecapsenumerate{\Eenumerate}
-
 
 % @multitable macros
-% Amy Hendrickson, 8/18/94, 3/6/96
-%
-% @multitable ... @end multitable will make as many columns as desired.
-% Contents of each column will wrap at width given in preamble.  Width
-% can be specified either with sample text given in a template line,
-% or in percent of \hsize, the current width of text on page.
-
-% Table can continue over pages but will only break between lines.
-
-% To make preamble:
-%
-% Either define widths of columns in terms of percent of \hsize:
-%   @multitable @columnfractions .25 .3 .45
-%   @item ...
-%
-%   Numbers following @columnfractions are the percent of the total
-%   current hsize to be used for each column. You may use as many
-%   columns as desired.
-
-
-% Or use a template:
-%   @multitable {Column 1 template} {Column 2 template} {Column 3 template}
-%   @item ...
-%   using the widest term desired in each column.
-
-% Each new table line starts with @item, each subsequent new column
-% starts with @tab. Empty columns may be produced by supplying @tab's
-% with nothing between them for as many times as empty columns are needed,
-% ie, @tab@tab@tab will produce two empty columns.
-
-% @item, @tab do not need to be on their own lines, but it will not hurt
-% if they are.
-
-% Sample multitable:
-
-%   @multitable {Column 1 template} {Column 2 template} {Column 3 template}
-%   @item first col stuff @tab second col stuff @tab third col
-%   @item
-%   first col stuff
-%   @tab
-%   second col stuff
-%   @tab
-%   third col
-%   @item first col stuff @tab second col stuff
-%   @tab Many paragraphs of text may be used in any column.
-%
-%         They will wrap at the width determined by the template.
-%   @item@tab@tab This will be in third column.
-%   @end multitable
-
-% Default dimensions may be reset by user.
-% @multitableparskip is vertical space between paragraphs in table.
-% @multitableparindent is paragraph indent in table.
-% @multitablecolmargin is horizontal space to be left between columns.
-% @multitablelinespace is space to leave between table items, baseline
-%                                                            to baseline.
-%   0pt means it depends on current normal line spacing.
-%
-\newskip\multitableparskip
-\newskip\multitableparindent
-\newdimen\multitablecolspace
-\newskip\multitablelinespace
-\multitableparskip=0pt
-\multitableparindent=6pt
-\multitablecolspace=12pt
-\multitablelinespace=0pt
 
 % Macros used to set up halign preamble:
 %
@@ -4412,8 +4350,6 @@ $$%
   \go
 }
 
-% multitable-only commands.
-%
 % @headitem starts a heading row, which we typeset in bold.  Assignments
 % have to be global since we are inside the implicit group of an
 % alignment entry.  \everycr below resets \everytab so we don't have to
@@ -4430,14 +4366,8 @@ $$%
 % default for tables with no headings.
 \let\headitemcrhook=\relax
 %
-% A \tab used to include \hskip1sp.  But then the space in a template
-% line is not enough.  That is bad.  So let's go back to just `&' until
-% we again encounter the problem the 1sp was intended to solve.
-%					--karl, nathan@acm.org, 20apr99.
 \def\tab{\checkenv\multitable &\the\everytab}%
 
-% @multitable ... @end multitable definitions:
-%
 \newtoks\everytab  % insert after every tab.
 %
 \envdef\multitable{%
@@ -4452,9 +4382,8 @@ $$%
   %
   \tolerance=9500
   \hbadness=9500
-  \setmultitablespacing
-  \parskip=\multitableparskip
-  \parindent=\multitableparindent
+  \parskip=0pt
+  \parindent=6pt
   \overfullrule=0pt
   \global\colcount=0
   %
@@ -4484,47 +4413,24 @@ $$%
   % continue for many paragraphs if desired.
   \halign\bgroup &%
     \global\advance\colcount by 1
-    \multistrut
+    \strut
     \vtop{%
-      % Use the current \colcount to find the correct column width:
+      \advance\hsize by -1\leftskip
+      % Find the correct column width
       \hsize=\expandafter\csname col\the\colcount\endcsname
       %
-      % In order to keep entries from bumping into each other
-      % we will add a \leftskip of \multitablecolspace to all columns after
-      % the first one.
-      %
-      % If a template has been used, we will add \multitablecolspace
-      % to the width of each template entry.
-      %
-      % If the user has set preamble in terms of percent of \hsize we will
-      % use that dimension as the width of the column, and the \leftskip
-      % will keep entries from bumping into each other.  Table will start at
-      % left margin and final column will justify at right margin.
-      %
-      % Make sure we don't inherit \rightskip from the outer environment.
       \rightskip=0pt
       \ifnum\colcount=1
-	% The first column will be indented with the surrounding text.
-	\advance\hsize by\leftskip
+        \advance\hsize by\leftskip % Add indent of surrounding text
       \else
-	\ifsetpercent \else
-	  % If user has not set preamble in terms of percent of \hsize
-	  % we will advance \hsize by \multitablecolspace.
-	  \advance\hsize by \multitablecolspace
-	\fi
-       % In either case we will make \leftskip=\multitablecolspace:
-      \leftskip=\multitablecolspace
+        % In order to keep entries from bumping into each other.
+        \leftskip=12pt
+        \ifsetpercent \else
+          % If a template has been used
+          \advance\hsize by \leftskip
+        \fi
       \fi
-      % Ignoring space at the beginning and end avoids an occasional spurious
-      % blank line, when TeX decides to break the line at the space before the
-      % box from the multistrut, so the strut ends up on a line by itself.
-      % For example:
-      % @multitable @columnfractions .11 .89
-      % @item @code{#}
-      % @tab Legal holiday which is valid in major parts of the whole country.
-      % Is automatically provided with highlighting sequences respectively
-      % marking characters.
-      \noindent\ignorespaces##\unskip\multistrut
+      \noindent\ignorespaces##\unskip\strut
     }\cr
 }
 \def\Emultitable{%
@@ -4532,31 +4438,6 @@ $$%
   \egroup % end the \halign
   \global\setpercentfalse
 }
-
-\def\setmultitablespacing{%
-  \def\multistrut{\strut}% just use the standard line spacing
-  %
-  % Compute \multitablelinespace (if not defined by user) for use in
-  % \multitableparskip calculation.  We used define \multistrut based on
-  % this, but (ironically) that caused the spacing to be off.
-  % See bug-texinfo report from Werner Lemberg, 31 Oct 2004 12:52:20 +0100.
-\ifdim\multitablelinespace=0pt
-\setbox0=\vbox{X}\global\multitablelinespace=\the\baselineskip
-\global\advance\multitablelinespace by-\ht0
-\fi
-% Test to see if parskip is larger than space between lines of
-% table. If not, do nothing.
-%        If so, set to same dimension as multitablelinespace.
-\ifdim\multitableparskip>\multitablelinespace
-\global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
-                                      % than skip between lines in the table.
-\fi%
-\ifdim\multitableparskip=0pt
-\global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
-                                      % than skip between lines in the table.
-\fi}
 
 
 \message{conditionals,}
@@ -5171,29 +5052,28 @@ $$%
   \let\lbracechar\{%
   \let\rbracechar\}%
   %
+  % Non-English letters.
+  \def\AA{AA}%
+  \def\AE{AE}%
+  \def\DH{DZZ}%
+  \def\L{L}%
+  \def\OE{OE}%
+  \def\O{O}%
+  \def\TH{TH}%
+  \def\aa{aa}%
+  \def\ae{ae}%
+  \def\dh{dzz}%
+  \def\exclamdown{!}%
+  \def\l{l}%
+  \def\oe{oe}%
+  \def\ordf{a}%
+  \def\ordm{o}%
+  \def\o{o}%
+  \def\questiondown{?}%
+  \def\ss{ss}%
+  \def\th{th}%
   %
   \let\do\indexnofontsdef
-  %
-  % Non-English letters.
-  \do\AA{AA}%
-  \do\AE{AE}%
-  \do\DH{DZZ}%
-  \do\L{L}%
-  \do\OE{OE}%
-  \do\O{O}%
-  \do\TH{TH}%
-  \do\aa{aa}%
-  \do\ae{ae}%
-  \do\dh{dzz}%
-  \do\exclamdown{!}%
-  \do\l{l}%
-  \do\oe{oe}%
-  \do\ordf{a}%
-  \do\ordm{o}%
-  \do\o{o}%
-  \do\questiondown{?}%
-  \do\ss{ss}%
-  \do\th{th}%
   %
   \do\LaTeX{LaTeX}%
   \do\TeX{TeX}%
@@ -8931,7 +8811,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \else
         \ifhavexrefs
           % We (should) know the real title if we have the xref values.
-          \def\printedrefname{\refx{#1-title}{}}%
+          \def\printedrefname{\refx{#1-title}}%
         \else
           % Otherwise just copy the Info node name.
           \def\printedrefname{\ignorespaces #1}%
@@ -9025,7 +8905,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % If the user specified the print name (third arg) to the ref,
     % print it instead of our usual "Figure 1.2".
     \ifdim\wd\printedrefnamebox = 0pt
-      \refx{#1-snt}{}%
+      \refx{#1-snt}%
     \else
       \printedrefname
     \fi
@@ -9060,9 +8940,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \else
       % Reference within this manual.
       %
-      % Only output a following space if the -snt ref is nonempty; for
-      % @unnumbered and @anchor, it won't be.
-      \setbox2 = \hbox{\ignorespaces \refx{#1-snt}{}}%
+      % Only output a following space if the -snt ref is nonempty, as the ref
+      % will be empty for @unnumbered and @anchor.
+      \setbox2 = \hbox{\ignorespaces \refx{#1-snt}}%
       \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
       %
       % output the `[mynode]' via the macro below so it can be overridden.
@@ -9073,7 +8953,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
         ,\space
         %
         % output the `page 3'.
-        \turnoffactive \putwordpage\tie\refx{#1-pg}{}%
+        \turnoffactive \putwordpage\tie\refx{#1-pg}%
         % Add a , if xref followed by a space
         \if\space\noexpand\tokenafterxref ,%
         \else\ifx\	\tokenafterxref ,% @TAB
@@ -9150,9 +9030,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi\fi\fi
 }
 
-% \refx{NAME}{SUFFIX} - reference a cross-reference string named NAME.  SUFFIX
-% is output afterwards if non-empty.
-\def\refx#1#2{%
+% \refx{NAME} - reference a cross-reference string named NAME.
+\def\refx#1{%
   \requireauxfile
   {%
     \indexnofonts
@@ -9179,7 +9058,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % It's defined, so just use it.
     \thisrefX
   \fi
-  #2% Output the suffix in any case.
 }
 
 % This is the macro invoked by entries in the aux file.  Define a control
@@ -9289,10 +9167,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \catcode`\[=\other
   \catcode`\]=\other
   \catcode`\"=\other
-  \catcode`\_=\other
-  \catcode`\|=\other
-  \catcode`\<=\other
-  \catcode`\>=\other
+  \catcode`\_=\active
+  \catcode`\|=\active
+  \catcode`\<=\active
+  \catcode`\>=\active
   \catcode`\$=\other
   \catcode`\#=\other
   \catcode`\&=\other
@@ -9539,7 +9417,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % On the other hand, if we are in the case of @center @image, we don't
   %  want to start a paragraph, which will create a hsize-width box and
   %  eradicate the centering.
-  \ifx\centersub\centerV\else \noindent \fi
+  \ifx\centersub\centerV \else \imageindent \fi
   %
   % Output the image.
   \ifpdf
@@ -11731,3 +11609,4 @@ directory should work if nowhere else does.}
 @c vim:sw=2:
 
 @enablebackslashhack
+

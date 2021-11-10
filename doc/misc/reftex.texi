@@ -658,9 +658,9 @@ variable @code{reftex-auto-recenter-toc}.
 
 @end table
 
-@vindex reftex-toc-map
+@vindex reftex-toc-mode-map
 In order to define additional commands for the @file{*toc*} buffer, the
-keymap @code{reftex-toc-map} may be used.
+keymap @code{reftex-toc-mode-map} may be used.
 
 @findex reftex-toc-recenter
 @vindex reftex-auto-recenter-toc
@@ -1021,9 +1021,9 @@ document and let you select a label from there (@pxref{LaTeX xr Package,,xr}).
 
 @end table
 
-@vindex reftex-select-label-map
+@vindex reftex-select-label-mode-map
 In order to define additional commands for the selection process, the
-keymap @code{reftex-select-label-map} may be used.
+keymap @code{reftex-select-label-mode-map} may be used.
 
 @node Builtin Label Environments
 @section Builtin Label Environments
@@ -1871,9 +1871,9 @@ entries.
 
 @end table
 
-@vindex reftex-select-bib-map
+@vindex reftex-select-bib-mode-map
 In order to define additional commands for this selection process, the
-keymap @code{reftex-select-bib-map} may be used.
+keymap @code{reftex-select-bib-mode-map} may be used.
 
 Note that if you do not use Emacs to edit the @BibTeX{} database files,
 @RefTeX{} will ask if the related buffers should be updated once it
@@ -3192,7 +3192,7 @@ with the @kbd{g} key.  To get this behavior, use instead
 
 @AUCTeX{} is without doubt the best major mode for editing @TeX{} and @LaTeX{}
 files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
-You can get it from its home page at @value{AUCTEXSITE}, but since
+You can get it from its website at @value{AUCTEXSITE}, but since
 it is available from GNU ELPA, you can simply install it from @kbd{M-x
 list-packages}.
 
@@ -3565,7 +3565,7 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex Acknowledgments
 @cindex Thanks
 @cindex Bug reports
-@cindex @code{http}, @RefTeX{} home page
+@cindex @code{http}, @RefTeX{} website
 @cindex @code{ftp}, @RefTeX{} site
 
 @c dominik@@science.uva.nl
@@ -3960,7 +3960,7 @@ Normal hook which is run when a @file{*toc*} buffer is
 created.
 @end deffn
 
-@deffn Keymap reftex-toc-map
+@deffn Keymap reftex-toc-mode-map
 The keymap which is active in the @file{*toc*} buffer.
 (@pxref{Table of Contents}).
 @end deffn
@@ -4425,7 +4425,7 @@ Normal hook which is run when a selection buffer enters
 @code{reftex-select-label-mode}.
 @end deffn
 
-@deffn Keymap reftex-select-label-map
+@deffn Keymap reftex-select-label-mode-map
 The keymap which is active in the labels selection process
 (@pxref{Referencing Labels}).
 @end deffn
@@ -4586,7 +4586,7 @@ Normal hook which is run when a selection buffer enters
 @code{reftex-select-bib-mode}.
 @end deffn
 
-@deffn Keymap reftex-select-bib-map
+@deffn Keymap reftex-select-bib-mode-map
 The keymap which is active in the citation-key selection process
 (@pxref{Creating Citations}).
 @end deffn
@@ -4792,7 +4792,7 @@ into blocks.  Sorting will then preserve blocks, so that lines are
 re-arranged only within blocks.
 @end defopt
 
-@defopt reftex-index-phrases-map
+@defopt reftex-index-phrases-mode-map
 Keymap for the Index Phrases buffer.
 @end defopt
 
@@ -4824,7 +4824,7 @@ the document.  This flag can be toggled from within the @file{*Index*}
 buffer with the @kbd{f} key.
 @end defopt
 
-@deffn Keymap reftex-index-map
+@deffn Keymap reftex-index-mode-map
 The keymap which is active in the @file{*Index*} buffer
 (@pxref{Index Support}).
 @end deffn
@@ -5813,8 +5813,8 @@ buffer).
 @noindent @b{Version 3.12}
 @itemize @bullet
 @item
-There are 3 new keymaps for customization: @code{reftex-toc-map},
-@code{reftex-select-label-map}, @code{reftex-select-bib-map}.
+There are 3 new keymaps for customization: @code{reftex-toc-mode-map},
+@code{reftex-select-label-mode-map}, @code{reftex-select-bib-mode-map}.
 @item
 Refontification uses more standard font-lock stuff.
 @item

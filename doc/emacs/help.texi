@@ -278,6 +278,15 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+@vindex help-enable-symbol-autoload
+  If you request help for an autoloaded function whose @code{autoload}
+form (@pxref{Autoload,,, elisp, The Emacs Lisp Reference Manual})
+doesn't provide a doc string, the @file{*Help*} buffer won't have any
+doc string to display.  In that case, if
+@code{help-enable-symbol-autoload} is non-@code{nil}, Emacs will try
+to load the file in which the function is defined to see whether
+there's a doc string there.
+
 @findex shortdoc-display-group
   You can get an overview of functions relevant for a particular topic
 by using the @kbd{M-x shortdoc-display-group} command.  This will
@@ -309,6 +318,14 @@ manuals, not just the Emacs manual, and finds the right one.
 variable, or a face.  If the symbol has more than one definition, like
 it has both definition as a function and as a variable, this command
 will show the documentation of all of them, one after the other.
+
+@vindex completions-detailed
+  If the @code{completions-detailed} user option is non-@code{nil},
+some commands provide details about the possible values when
+displaying completions.  For instance, @kbd{C-h o TAB} will then
+include the first line of the doc string, and will also say whether
+each symbol is a function or a variable (and so on).  Which details
+are included varies depending on the command used.
 
 @node Apropos
 @section Apropos
@@ -426,11 +443,13 @@ alphabetical order, change the variable
 
 @node Help Mode
 @section Help Mode Commands
+@findex help-mode
+@cindex help mode
 
-  Help buffers provide the same commands as View mode (@pxref{View
-Mode}); for instance, @key{SPC} scrolls forward, and @key{DEL} or
-@kbd{S-@key{SPC}} scrolls backward.  A few special commands are also
-provided:
+  Help buffers have Help mode as their major mode.  Help mode provides
+the same commands as View mode (@pxref{View Mode}); for instance,
+@key{SPC} scrolls forward, and @key{DEL} or @kbd{S-@key{SPC}} scrolls
+backward.  It also provides a few special commands:
 
 @table @kbd
 @item @key{RET}
@@ -442,15 +461,18 @@ Move point back to the previous hyperlink (@code{backward-button}).
 @item mouse-1
 @itemx mouse-2
 Follow a hyperlink that you click on.
+@item n
+@itemx p
+Move forward and back between pages in the Help buffer.
 @item C-c C-c
 Show all documentation about the symbol at point
 (@code{help-follow-symbol}).
 @item C-c C-f
 @itemx r
-Go forward to the next help topic (@code{help-go-forward}).
+Go forward in history of help commands (@code{help-go-forward}).
 @item C-c C-b
 @itemx l
-Go back to the previous help topic (@code{help-go-back}).
+Go back in history of help commands (@code{help-go-back}).
 @item s
 View the source of the current help topic (if any)
 (@code{help-view-source}).
@@ -479,6 +501,30 @@ C-b} or @kbd{l} (@code{help-go-back}).  While retracing your steps,
 you can go forward by using @kbd{C-c C-f} or @kbd{r}
 (@code{help-go-forward}).
 
+@kindex TAB @r{(Help mode)}
+@findex forward-button
+@kindex S-TAB @r{(Help mode)}
+@findex backward-button
+  To move between hyperlinks in a help buffer, use @key{TAB}
+(@code{forward-button}) to move forward to the next hyperlink and
+@kbd{S-@key{TAB}} (@code{backward-button}) to move back to the
+previous hyperlink.  These commands act cyclically; for instance,
+typing @key{TAB} at the last hyperlink moves back to the first
+hyperlink.
+
+@kindex n @r{(Help mode)}
+@kindex p @r{(Help mode)}
+@findex help-goto-next-page
+@findex help-goto-previous-page
+  Help buffers produced by some Help commands (like @kbd{C-h b}, which
+shows a long list of key bindings) are divided into pages by the
+@samp{^L} character.  In such buffers, the @kbd{n}
+(@code{help-goto-next-page}) command will take you to the next start
+of page, and the @kbd{p} (@code{help-goto-previous-page}) command will
+take you to the previous start of page.  This way you can quickly
+navigate between the different kinds of documentation in a help
+buffer.
+
 @cindex URL, viewing in help
 @cindex help, viewing web pages
 @cindex viewing web pages in help
@@ -487,16 +533,6 @@ you can go forward by using @kbd{C-c C-f} or @kbd{r}
 code definitions, and URLs (web pages).  The first two are opened in
 Emacs, and the third using a web browser via the @code{browse-url}
 command (@pxref{Browse-URL}).
-
-@kindex TAB @r{(Help mode)}
-@findex forward-button
-@kindex S-TAB @r{(Help mode)}
-@findex backward-button
-  In a help buffer, @key{TAB} (@code{forward-button}) moves point
-forward to the next hyperlink, while @kbd{S-@key{TAB}}
-(@code{backward-button}) moves point back to the previous hyperlink.
-These commands act cyclically; for instance, typing @key{TAB} at the
-last hyperlink moves back to the first hyperlink.
 
   To view all documentation about any symbol in the text, move point
 to the symbol and type @kbd{C-c C-c} (@code{help-follow-symbol}).
@@ -629,14 +665,14 @@ Emacs Lisp Reference Manual}).
 
 @findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h}, @kbd{?}, or @key{f1}
+typing @kbd{C-h}, @kbd{?}, or @key{F1}
 (@code{describe-prefix-bindings}) after the prefix key.  (There are a
 few prefix keys for which not all of these keys work---those that
 provide their own bindings for that key.  One of these prefix keys
 is @key{ESC}, because @kbd{@key{ESC} C-h} and @kbd{@key{ESC} ?} are
 actually @kbd{C-M-h} (@code{mark-defun}) and @kbd{M-?}
 (@code{xref-find-references}), respectively.  However,
-@w{@kbd{@key{ESC} @key{f1}}} works fine.)
+@w{@kbd{@key{ESC} @key{F1}}} works fine.)
 
 @findex describe-keymap
 Finally, @kbd{M-x describe-keymap} prompts for the name of a keymap,

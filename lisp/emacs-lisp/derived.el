@@ -94,19 +94,19 @@
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
-  "Construct a mode-hook name based on a MODE name."
+  "Construct a mode-hook name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-hook")))
 
 (defsubst derived-mode-map-name (mode)
-  "Construct a map name based on a MODE name."
+  "Construct a map name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-map")))
 
 (defsubst derived-mode-syntax-table-name (mode)
-  "Construct a syntax-table name based on a MODE name."
+  "Construct a syntax-table name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-syntax-table")))
 
 (defsubst derived-mode-abbrev-table-name (mode)
-  "Construct an abbrev-table name based on a MODE name."
+  "Construct an abbrev-table name based on the symbol MODE."
   (intern (concat (symbol-name mode) "-abbrev-table")))
 
 ;; PUBLIC: define a new major mode which inherits from an existing one.
@@ -120,7 +120,7 @@ The arguments are as follows:
 CHILD:     the name of the command for the derived mode.
 PARENT:    the name of the command for the parent mode (e.g. `text-mode')
            or nil if there is no parent.
-NAME:      a string which will appear in the status line (e.g. \"Hypertext\")
+NAME:      a string that will appear in the mode line (e.g. \"HTML\")
 DOCSTRING: an optional documentation string--if you do not supply one,
            the function will attempt to invent something useful.
 KEYWORD-ARGS:
@@ -139,7 +139,7 @@ KEYWORD-ARGS:
                    A nil value means to simply use the same abbrev-table
                    as the parent.
            :after-hook FORM
-                   A single lisp form which is evaluated after the mode
+                   A single Lisp form which is evaluated after the mode
                    hooks have been run.  It should not be quoted.
            :interactive BOOLEAN
                    Whether the derived mode should be `interactive' or not.
@@ -166,8 +166,8 @@ the parent, and then sets the variable `case-fold-search' to nil:
 Note that if the documentation string had been left out, it would have
 been generated automatically, with a reference to the keymap.
 
-The new mode runs the hook constructed by the function
-`derived-mode-hook-name'.
+The new mode runs the hook named MODE-hook.  For `foo-mode',
+the hook will be named `foo-mode-hook'.
 
 See Info node `(elisp)Derived Modes' for more details.
 
@@ -175,12 +175,7 @@ See Info node `(elisp)Derived Modes' for more details.
   (declare (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
 	   (doc-string 4)
-	   ;; Ask not what
-	   ;;(indent 3)
-	   ;; can do for you, ask what it can do to others. IOW, the
-	   ;; missing of indentation setting here is the indentation
-	   ;; setting and not an oversight.
-	   )
+	   (indent defun))
 
   (when (and docstring (not (stringp docstring)))
     ;; Some trickiness, since what appears to be the docstring may really be
@@ -321,7 +316,7 @@ No problems result if this variable is not bound.
 	      (format "Major mode derived from `%s' by `define-derived-mode'.
 It inherits all of the parent's attributes, but has its own keymap%s:
 
-  `%s'%s
+%s
 
 which more-or-less shadow%s %s's corresponding table%s."
 		      parent
@@ -330,12 +325,14 @@ which more-or-less shadow%s %s's corresponding table%s."
 			    (abbrev "\nand abbrev table")
 			    (syntax "\nand syntax table")
 			    (t ""))
-		      map
-		      (cond ((and abbrev syntax)
-			     (format ", `%s' and `%s'" abbrev syntax))
-			    ((or abbrev syntax)
-			     (format " and `%s'" (or abbrev syntax)))
-			    (t ""))
+                      (internal--format-docstring-line
+                       "  `%s'%s"
+                       map
+                       (cond ((and abbrev syntax)
+                              (format ", `%s' and `%s'" abbrev syntax))
+                             ((or abbrev syntax)
+                              (format " and `%s'" (or abbrev syntax)))
+                             (t "")))
 		      (if (or abbrev syntax) "" "s")
 		      parent
 		      (if (or abbrev syntax) "s" "")))))

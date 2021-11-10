@@ -160,7 +160,7 @@ The prompt and initial input should already have been inserted."
 ;; post-command-hook to swap prompts when necessary
 (defun minibuf-eldef-update-minibuffer ()
   "Update a minibuffer's prompt to include a default only when applicable.
-This is intended to be used as a minibuffer post-command-hook for
+This is intended to be used as a minibuffer `post-command-hook' for
 `minibuffer-electric-default-mode'; the minibuffer should have already
 been set up by `minibuf-eldef-setup-minibuffer'."
   (unless (eq minibuf-eldef-showing-default-in-prompt

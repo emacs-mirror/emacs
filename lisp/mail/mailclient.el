@@ -198,7 +198,7 @@ The mail client is taken to be the handler of mailto URLs."
 		   ((string= character-coding "quoted-printable")
 		    (mail-unquote-printable-region (point-min) (point-max)
 						   nil nil t))
-		   (t (error "unsupported Content-Transfer-Encoding: %s"
+                   (t (error "Unsupported Content-Transfer-Encoding: %s"
 			     character-coding)))
 		  (decode-coding-region (point-min) (point-max) coding-system))
 		(mailclient-encode-string-as-url

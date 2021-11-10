@@ -58,16 +58,29 @@ It is called with one argument, the initial WINPROPS.")
   "Non-nil to resize the image upon first display.
 Its value should be one of the following:
  - nil, meaning no resizing.
- - t, meaning to fit the image to the window height and width.
+ - t, meaning to scale the image down to fit in the window.
+ - `fit-window', meaning to fit the image to the window.
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 1)."
+ - A number, which is a scale factor (the default size is 1).
+
+Resizing will always preserve the aspect ratio of the image."
   :type '(choice (const :tag "No resizing" nil)
-                 (other :tag "Fit height and width" t)
-                 (const :tag "Fit height" fit-height)
-                 (const :tag "Fit width" fit-width)
+                 (const :tag "Fit to window" fit-window)
+                 (const :tag "Fit to window height" fit-height)
+                 (const :tag "Fit to window width" fit-width)
+                 (other :tag "Scale down to fit window" t)
                  (number :tag "Scale factor" 1))
-  :version "27.1"
+  :version "29.1"
+  :group 'image)
+
+(defcustom image-auto-resize-max-scale-percent nil
+  "Max size (in percent) to scale up to when `image-auto-resize' is `fit-window'.
+Can be either a number larger than 100, or nil, which means no
+max size."
+  :type '(choice (const nil "No max")
+                 natnum)
+  :version "29.1"
   :group 'image)
 
 (defcustom image-auto-resize-on-window-resize 1
@@ -82,12 +95,16 @@ resizing according to the value specified in `image-auto-resize'."
 
 (defvar-local image-transform-resize nil
   "The image resize operation.
+Non-nil to resize the image upon first display.
 Its value should be one of the following:
  - nil, meaning no resizing.
- - t, meaning to fit the image to the window height and width.
+ - t, meaning to scale the image down to fit in the window.
+ - `fit-window', meaning to fit the image to the window.
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 1).")
+ - A number, which is a scale factor (the default size is 1).
+
+Resizing will always preserve the aspect ratio of the image.")
 
 (defvar-local image-transform-scale 1.0
   "The scale factor of the image being displayed.")
@@ -455,8 +472,9 @@ call."
 
     ;; Transformation keys
     (define-key map "sf" 'image-mode-fit-frame)
+    (define-key map "sw" 'image-transform-fit-to-window)
     (define-key map "sh" 'image-transform-fit-to-height)
-    (define-key map "sw" 'image-transform-fit-to-width)
+    (define-key map "si" 'image-transform-fit-to-width)
     (define-key map "sb" 'image-transform-fit-both)
     (define-key map "ss" 'image-transform-set-scale)
     (define-key map "sr" 'image-transform-set-rotation)
@@ -511,12 +529,10 @@ call."
 	"--"
 	["Fit Frame to Image" image-mode-fit-frame :active t
 	 :help "Resize frame to match image"]
-	["Fit Image to Window (Best Fit)" image-transform-fit-both
-	 :help "Resize image to match the window height and width"]
-	["Fit to Window Height" image-transform-fit-to-height
-	 :help "Resize image to match the window height"]
-	["Fit to Window Width" image-transform-fit-to-width
-	 :help "Resize image to match the window width"]
+        ["Fit Image to Window" image-transform-fit-to-window
+         :help "Resize image to match the window height and width"]
+        ["Fit Image to Window (Scale down only)" image-transform-fit-both
+         :help "Scale image down to match the window height and width"]
 	["Zoom In" image-increase-size
 	 :help "Enlarge the image"]
 	["Zoom Out" image-decrease-size
@@ -803,6 +819,21 @@ Remove text properties that display the image."
 (defvar tar-superior-buffer)
 (declare-function image-flush "image.c" (spec &optional frame))
 
+(defun image--scale-within-limits-p (image)
+  "Return t if `fit-window' will scale image within the customized limits.
+The limits are given by the user option
+`image-auto-resize-max-scale-percent'."
+  (or (not image-auto-resize-max-scale-percent)
+      (let ((scale (/ image-auto-resize-max-scale-percent 100))
+            (mw (plist-get (cdr image) :max-width))
+            (mh (plist-get (cdr image) :max-height))
+            ;; Note: `image-size' looks up and thus caches the
+            ;; untransformed image.  There's no easy way to
+            ;; prevent that.
+            (size (image-size image t)))
+        (or (<= mw (* (car size) scale))
+            (<= mh (* (cdr size) scale))))))
+
 (defun image-toggle-display-image ()
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
@@ -837,7 +868,8 @@ was inserted."
 	    filename))
 	 ;; If we have a `fit-width' or a `fit-height', don't limit
 	 ;; the size of the image to the window size.
-	 (edges (when (eq image-transform-resize t)
+         (edges (when (or (eq image-transform-resize t)
+                          (eq image-transform-resize 'fit-window))
 		  (window-inside-pixel-edges (get-buffer-window))))
 	 (max-width (when edges
 		      (- (nth 2 edges) (nth 0 edges))))
@@ -883,6 +915,14 @@ was inserted."
 				:max-height max-height
                                 ;; Type hint.
                                 :format (and filename data-p))))
+
+    ;; Handle `fit-window'.
+    (when (and (eq image-transform-resize 'fit-window)
+               (image--scale-within-limits-p image))
+      (setq image
+            (cons (car image)
+                  (plist-put (cdr image) :width
+                             (plist-get (cdr image) :max-width)))))
 
     ;; Discard any stale image data before looking it up again.
     (image-flush image)
@@ -1241,7 +1281,7 @@ will have the line where the image appears (if any) marked.
 If no such buffer exists, it will be opened."
   (interactive)
   (unless buffer-file-name
-    (error "The current buffer doesn't visit a file."))
+    (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
 
 (defun image-mode-unmark-file ()
@@ -1253,7 +1293,7 @@ any).
 If no such buffer exists, it will be opened."
   (interactive)
   (unless buffer-file-name
-    (error "The current buffer doesn't visit a file."))
+    (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-unmark "unmarked"))
 
 (declare-function dired-mark "dired" (arg &optional interactive))
@@ -1494,19 +1534,27 @@ return value is suitable for appending to an image spec."
 (defun image-transform-fit-to-height ()
   "Fit the current image to the height of the current window."
   (interactive)
+  (declare (obsolete nil "29.1"))
   (setq image-transform-resize 'fit-height)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-width ()
   "Fit the current image to the width of the current window."
+  (declare (obsolete nil "29.1"))
   (interactive)
   (setq image-transform-resize 'fit-width)
   (image-toggle-display-image))
 
 (defun image-transform-fit-both ()
-  "Fit the current image both to the height and width of the current window."
+  "Scale the current image down to fit in the current window."
   (interactive)
   (setq image-transform-resize t)
+  (image-toggle-display-image))
+
+(defun image-transform-fit-to-window ()
+  "Fit the current image to the height and width of the current window."
+  (interactive)
+  (setq image-transform-resize 'fit-window)
   (image-toggle-display-image))
 
 (defun image-transform-set-rotation (rotation)

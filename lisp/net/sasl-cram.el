@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (require 'sasl)
 (require 'hmac-md5)
 

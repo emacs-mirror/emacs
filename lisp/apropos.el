@@ -78,7 +78,7 @@ This option only controls the default behavior.  Each of the above
 commands also has an optional argument to request a more extensive search.
 
 Additionally, this option makes the function `apropos-library'
-include key-binding information in its output."
+include keybinding information in its output."
   :type 'boolean)
 
 (defface apropos-symbol
@@ -515,9 +515,9 @@ variables, not just user options."
                      current-prefix-arg))
   (apropos-command pattern nil
 		   (if (or do-all apropos-do-all)
-		       #'(lambda (symbol)
-			   (and (boundp symbol)
-				(get symbol 'variable-documentation)))
+                       (lambda (symbol)
+                         (and (boundp symbol)
+                              (get symbol 'variable-documentation)))
 		     #'custom-variable-p)))
 
 ;;;###autoload
@@ -616,7 +616,7 @@ while a list of strings is used as a word list."
                              (if (eq doc 'error)
                                  "(documentation error)"
 			       (setq score (+ score (apropos-score-doc doc)))
-			       (substring doc 0 (string-match "\n" doc)))
+			       (substring doc 0 (string-search "\n" doc)))
 			   "(not documented)")))
 		   (and var-predicate
 			(funcall var-predicate symbol)
@@ -625,7 +625,7 @@ while a list of strings is used as a word list."
 			     (progn
 			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0
-					  (string-match "\n" doc)))))))
+					  (string-search "\n" doc)))))))
 	(setcar (cdr (car p)) score)
 	(setq p (cdr p))))
     (and (let ((apropos-multi-type do-all))
@@ -639,7 +639,7 @@ while a list of strings is used as a word list."
   "Like (documentation-property SYMBOL PROPERTY RAW) but handle errors."
   (condition-case ()
       (let ((doc (documentation-property symbol property raw)))
-	(if doc (substring doc 0 (string-match "\n" doc))
+	(if doc (substring doc 0 (string-search "\n" doc))
 	  "(not documented)"))
     (error "(error retrieving documentation)")))
 
@@ -767,7 +767,7 @@ the output includes key-bindings of commands."
 				  "(alias for undefined function)")
 				 (error
 				  "(can't retrieve function documentation)")))
-		     (substring doc 0 (string-match "\n" doc))
+		     (substring doc 0 (string-search "\n" doc))
 		   "(not documented)"))
 	       (when (boundp symbol)
 		 (apropos-documentation-property
@@ -1305,7 +1305,7 @@ as a heading."
        (error "There is nothing to follow here"))))
 
 (defun apropos-next-symbol ()
-  "Move cursor down to the next symbol in an apropos-mode buffer."
+  "Move cursor down to the next symbol in an `apropos-mode' buffer."
   (interactive)
   (forward-line)
   (while (and (not (eq (face-at-point) 'apropos-symbol))
@@ -1313,7 +1313,7 @@ as a heading."
     (forward-line)))
 
 (defun apropos-previous-symbol ()
-  "Move cursor back to the last symbol in an apropos-mode buffer."
+  "Move cursor back to the last symbol in an `apropos-mode' buffer."
   (interactive)
   (forward-line -1)
   (while (and (not (eq (face-at-point) 'apropos-symbol))

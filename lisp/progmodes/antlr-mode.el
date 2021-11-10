@@ -5,7 +5,7 @@
 ;; Author: Christoph Wedler <Christoph.Wedler@sap.com>
 ;; Keywords: languages, ANTLR, code generator
 ;; Version: 2.2c
-;; X-URL: http://antlr-mode.sourceforge.net/
+;; URL: http://antlr-mode.sourceforge.net/
 
 ;; This file is part of GNU Emacs.
 
@@ -570,7 +570,7 @@ See \\[antlr-show-makefile-rules] and `antlr-unknown-file-formats'.")
   "The following Makefile rules define the dependencies for all (non-
 expanded) grammars in directory \"%s\".\n
 They are stored in the kill-ring, i.e., you can insert them with C-y
-into your Makefile.  You can also invoke M-x antlr-show-makefile-rules
+into your Makefile.  You can also invoke \\[antlr-show-makefile-rules]
 from within a Makefile to insert them directly.\n\n\n"
   "Introduction to use with \\[antlr-show-makefile-rules].
 It is a format string and used with substitution DIRECTORY/%s where
@@ -2167,7 +2167,8 @@ command `antlr-show-makefile-rules' for detail."
     (unless in-makefile
       (copy-region-as-kill (point-min) (point-max))
       (goto-char (point-min))
-      (insert (format antlr-help-rules-intro dirname)))))
+      (insert (format (substitute-command-keys antlr-help-rules-intro)
+                      dirname)))))
 
 ;;;###autoload
 (defun antlr-show-makefile-rules ()

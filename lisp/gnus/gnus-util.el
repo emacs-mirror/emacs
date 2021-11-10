@@ -154,7 +154,7 @@ is slower."
 	(and (string-match "(.+)" from)
 	     (setq name (substring from (1+ (match-beginning 0))
 				   (1- (match-end 0)))))
-	(and (string-match "()" from)
+	(and (string-search "()" from)
 	     (setq name address))
 	;; XOVER might not support folded From headers.
 	(and (string-match "(.*" from)
@@ -265,7 +265,7 @@ If END is non-nil, use the end of the span instead."
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
   (let* ((newsgroup (gnus-newsgroup-savable-name newsgroup))
-	 (idx (string-match ":" newsgroup)))
+	 (idx (string-search ":" newsgroup)))
     (concat
      (if idx (substring newsgroup 0 idx))
      (if idx "/")
@@ -300,25 +300,26 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-local-set-keys (&rest plist)
   "Set the keys in PLIST in the current keymap."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (current-local-map) ',plist))
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 ,(if (symbolp keymap) keymap `',keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP without overwriting previous definitions."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist) t))
 
 (defmacro gnus-define-keymap (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 ,keymap (quote ,plist)))
 
 (defun gnus-define-keys-1 (keymap plist &optional safe)
+  (declare (obsolete define-keymap "29.1"))
   (when (null keymap)
     (error "Can't set keys in a null keymap"))
   (cond ((symbolp keymap) (error "First arg should be a keymap object"))
@@ -408,7 +409,7 @@ Cache the result as a text property stored in DATE."
 
 (defun gnus-mode-string-quote (string)
   "Quote all \"%\"'s in STRING."
-  (replace-regexp-in-string "%" "%%" string))
+  (string-replace "%" "%%" string))
 
 (defsubst gnus-make-hashtable (&optional size)
   "Make a hash table of SIZE, testing on `equal'."
@@ -533,7 +534,7 @@ ARGS are passed to `message'."
 
 (defun gnus-extract-references (references)
   "Return a list of Message-IDs in REFERENCES (in In-Reply-To
-  format), trimmed to only contain the Message-IDs."
+format), trimmed to only contain the Message-IDs."
   (let ((ids (gnus-split-references references))
 	refs)
     (dolist (id ids)
@@ -1310,9 +1311,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                     initial-input history def)
   "Call `gnus-completing-read-function'."
   (funcall gnus-completing-read-function
-           (concat prompt (when def
-                            (concat " (default " def ")"))
-                   ": ")
+           (format-prompt prompt def)
            collection require-match initial-input history def))
 
 (defun gnus-emacs-completing-read (prompt collection &optional require-match
@@ -1528,8 +1527,8 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
      (t emacs-version))))
 
 (defun gnus-rename-file (old-path new-path &optional trim)
-  "Rename OLD-PATH as NEW-PATH.  If TRIM, recursively delete
-empty directories from OLD-PATH."
+  "Rename OLD-PATH as NEW-PATH.
+If TRIM, recursively delete empty directories from OLD-PATH."
   (when (file-exists-p old-path)
     (let* ((old-dir (file-name-directory old-path))
 	   ;; (old-name (file-name-nondirectory old-path))
@@ -1549,7 +1548,7 @@ empty directories from OLD-PATH."
 			  (concat old-dir "..")))))))))
 
 (defun gnus-set-file-modes (filename mode &optional flag)
-  "Wrapper for set-file-modes."
+  "Wrapper for `set-file-modes'."
   (ignore-errors
     (set-file-modes filename mode flag)))
 

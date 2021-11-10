@@ -137,7 +137,7 @@ with the cdr.")
 
 
 (defcustom bib-auto-capitalize t
-  "True to automatically capitalize appropriate fields in Bib mode."
+  "Non-nil to automatically capitalize appropriate fields in Bib mode."
   :type 'boolean)
 
 (defconst bib-capitalized-fields "%[AETCBIJR]")

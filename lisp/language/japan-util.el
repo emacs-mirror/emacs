@@ -108,7 +108,7 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     ;; cp932-2-byte
     (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
   "Japanese JISX0208 and CP932 symbol character table.
-  Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
+Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
 belongs to `japanese-jisx0208' or `cp932', ASCII belongs to `ascii',
 and HANKAKU belongs to `japanese-jisx0201-kana'.")
 
@@ -145,7 +145,7 @@ and HANKAKU belongs to `japanese-jisx0201-kana'.")
     (?ｐ . ?p) (?ｑ . ?q) (?ｒ . ?r) (?ｓ . ?s) (?ｔ . ?t)
     (?ｕ . ?u) (?ｖ . ?v) (?ｗ . ?w) (?ｘ . ?x) (?ｙ . ?y) (?ｚ . ?z))
   "Japanese JISX0208 alpha numeric character table.
-Each element is of the form (ALPHA-NUMERIC . ASCII), where ALPHA-NUMERIC
+Each element is of the form (ALPHANUMERIC . ASCII), where ALPHANUMERIC
 belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 
 ;; Put properties 'jisx0208 and 'ascii to each Japanese alpha numeric

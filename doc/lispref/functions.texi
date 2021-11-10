@@ -378,7 +378,7 @@ keyword @code{&rest} before one final argument.
 @group
 (@var{required-vars}@dots{}
  @r{[}&optional @r{[}@var{optional-vars}@dots{}@r{]}@r{]}
- @r{[}&rest @r{[}@var{rest-var}@r{]}@r{]})
+ @r{[}&rest @var{rest-var}@r{]})
 @end group
 @end example
 
@@ -826,12 +826,20 @@ This function returns a new function which, when called, will call
 @var{func} with the list of arguments composed from @var{args} and
 additional arguments specified at the time of the call.  If @var{func}
 accepts @var{n} arguments, then a call to @code{apply-partially} with
-@w{@code{@var{m} < @var{n}}} arguments will produce a new function of
-@w{@code{@var{n} - @var{m}}} arguments.
+@w{@code{@var{m} <= @var{n}}} arguments will produce a new function of
+@w{@code{@var{n} - @var{m}}} arguments@footnote{
+If the number of arguments that @var{func} can accept is unlimited,
+then the new function will also accept an unlimited number of
+arguments, so in that case @code{apply-partially} doesn't reduce the
+number of arguments that the new function could accept.
+}.
 
 Here's how we could define the built-in function @code{1+}, if it
 didn't exist, using @code{apply-partially} and @code{+}, another
-built-in function:
+built-in function@footnote{
+Note that unlike the built-in function, this version accepts any
+number of arguments.
+}:
 
 @example
 @group
@@ -902,11 +910,11 @@ length of @var{sequence}.  For example:
 
 @example
 @group
-(mapcar 'car '((a b) (c d) (e f)))
+(mapcar #'car '((a b) (c d) (e f)))
      @result{} (a c e)
-(mapcar '1+ [1 2 3])
+(mapcar #'1+ [1 2 3])
      @result{} (2 3 4)
-(mapcar 'string "abc")
+(mapcar #'string "abc")
      @result{} ("a" "b" "c")
 @end group
 
@@ -922,14 +930,14 @@ Return the list of results."
   ;; @r{If no list is exhausted,}
   (if (not (memq nil args))
       ;; @r{apply function to @sc{car}s.}
-      (cons (apply function (mapcar 'car args))
-            (apply 'mapcar* function
+      (cons (apply function (mapcar #'car args))
+            (apply #'mapcar* function
                    ;; @r{Recurse for rest of elements.}
-                   (mapcar 'cdr args)))))
+                   (mapcar #'cdr args)))))
 @end group
 
 @group
-(mapcar* 'cons '(a b c) '(1 2 3 4))
+(mapcar* #'cons '(a b c) '(1 2 3 4))
      @result{} ((a . 1) (b . 2) (c . 3))
 @end group
 @end example
@@ -946,10 +954,10 @@ the results (which must be lists), by altering the results (using
 @example
 @group
 ;; @r{Contrast this:}
-(mapcar 'list '(a b c d))
+(mapcar #'list '(a b c d))
      @result{} ((a) (b) (c) (d))
 ;; @r{with this:}
-(mapcan 'list '(a b c d))
+(mapcan #'list '(a b c d))
      @result{} (a b c d)
 @end group
 @end example
@@ -961,14 +969,14 @@ side-effects only---the values it returns are ignored, not collected
 into a list.  @code{mapc} always returns @var{sequence}.
 @end defun
 
-@defun mapconcat function sequence separator
+@defun mapconcat function sequence &optional separator
 @code{mapconcat} applies @var{function} to each element of
 @var{sequence}; the results, which must be sequences of characters
 (strings, vectors, or lists), are concatenated into a single string
 return value.  Between each pair of result sequences, @code{mapconcat}
 inserts the characters from @var{separator}, which also must be a
-string, or a vector or list of characters.  @xref{Sequences Arrays
-Vectors}.
+string, or a vector or list of characters; a @code{nil} value is
+treated as the empty string.  @xref{Sequences Arrays Vectors}.
 
 The argument @var{function} must be a function that can take one
 argument and returns a sequence of characters: a string, a vector, or
@@ -978,7 +986,7 @@ string.
 
 @example
 @group
-(mapconcat 'symbol-name
+(mapconcat #'symbol-name
            '(The cat in the hat)
            " ")
      @result{} "The cat in the hat"
@@ -986,8 +994,7 @@ string.
 
 @group
 (mapconcat (lambda (x) (format "%c" (1+ x)))
-           "HAL-8000"
-           "")
+           "HAL-8000")
      @result{} "IBM.9111"
 @end group
 @end example
@@ -1443,7 +1450,7 @@ is not a function, e.g., a keyboard macro (@pxref{Keyboard Macros}):
      @result{} "\^u2\^k"
 @end example
 
-It you wish to use @code{fset} to make an alternate name for a
+If you wish to use @code{fset} to make an alternate name for a
 function, consider using @code{defalias} instead.  @xref{Definition of
 defalias}.
 @end defun

@@ -75,7 +75,7 @@ match any of the group-specified splitting rules.  See
 
 ;;;###autoload
 (defun gnus-group-split-update (&optional catch-all)
-  "Computes nnmail-split-fancy from group params and CATCH-ALL.
+  "Computes `nnmail-split-fancy' from group params and CATCH-ALL.
 It does this by calling (gnus-group-split-fancy nil nil CATCH-ALL).
 
 If CATCH-ALL is nil, `gnus-group-split-default-catch-all-group' is used
@@ -169,7 +169,7 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
        (when (not (null params))
          (let ((split-spec (assoc 'split-spec params)) group-clean)
            ;; Remove backend from group name
-           (setq group-clean (string-match ":" group))
+           (setq group-clean (string-search ":" group))
 	    (setq group-clean
 		  (if group-clean
 		      (substring group (1+ group-clean))
@@ -209,7 +209,7 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 			 "\\)"))
 		  ;; Now create the new SPLIT
 		  (let ((split-regexp-with-list-ids
-			 (replace-regexp-in-string "@" "[@.]" split-regexp t t))
+			 (string-replace "@" "[@.]" split-regexp))
 			(exclude
 			 ;; Generate RESTRICTs for SPLIT-EXCLUDEs.
 			 (if (listp split-exclude)

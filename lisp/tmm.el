@@ -268,7 +268,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
           (cdr elt)))
    (t
     (let* ((str (car elt))
-           (paren (string-match "(" str))
+           (paren (string-search "(" str))
            (pos 0) (word 0) char)
       (catch 'done                             ; ??? is this slow?
         (while (and (or (not tmm-shortcut-words)   ; no limit on words
@@ -410,23 +410,15 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
     (if (eq elt 'undefined)
 	(setq tmm-table-undef (cons (cons event nil) tmm-table-undef))
       (unless (assoc event tmm-table-undef)
-	(cond ((if (listp elt)
-		   (or (keymapp elt) (eq (car elt) 'lambda))
-		 (and (symbolp elt) (fboundp elt)))
+	(cond ((or (functionp elt) (keymapp elt))
 	       (setq km elt))
 
-	      ((if (listp (cdr-safe elt))
-		   (or (keymapp (cdr-safe elt))
-		       (eq (car (cdr-safe elt)) 'lambda))
-		 (and (symbolp (cdr-safe elt)) (fboundp (cdr-safe elt))))
+	      ((or (keymapp (cdr-safe elt)) (functionp (cdr-safe elt)))
 	       (setq km (cdr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
-	      ((if (listp (cdr-safe (cdr-safe elt)))
-		   (or (keymapp (cdr-safe (cdr-safe elt)))
-		       (eq (car (cdr-safe (cdr-safe elt))) 'lambda))
-		 (and (symbolp (cdr-safe (cdr-safe elt)))
-                      (fboundp (cdr-safe (cdr-safe elt)))))
+	      ((or (keymapp (cdr-safe (cdr-safe elt)))
+		   (functionp (cdr-safe (cdr-safe elt))))
 	       (setq km (cddr elt))
 	       (and (stringp (car elt)) (setq str (car elt))))
 
@@ -447,11 +439,8 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (if enable
                    (setq km (if (eval enable) km 'ignore))))
 
-	      ((if (listp (cdr-safe (cdr-safe (cdr-safe elt))))
-		   (or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
-		       (eq (car (cdr-safe (cdr-safe (cdr-safe elt)))) 'lambda))
-		 (and (symbolp (cdr-safe (cdr-safe (cdr-safe elt))))
-		      (fboundp (cdr-safe (cdr-safe (cdr-safe elt))))))
+	      ((or (keymapp (cdr-safe (cdr-safe (cdr-safe elt))))
+		   (functionp (cdr-safe (cdr-safe (cdr-safe elt)))))
                                         ; New style of easy-menu
 	       (setq km (cdr (cddr elt)))
 	       (and (stringp (car elt)) (setq str (car elt))))

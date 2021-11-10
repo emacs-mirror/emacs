@@ -126,7 +126,7 @@ Defaults to today's date if DATE is not given."
         ""                              ; pre-Bahai
       (let ((m (calendar-extract-month bahai-date))
             (d (calendar-extract-day bahai-date)))
-        (calendar-dlet*
+        (calendar-dlet
             ((monthname (if (and (= m 19)
                                  (<= d 0))
                             "Ayyám-i-Há"

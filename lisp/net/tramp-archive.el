@@ -190,7 +190,7 @@ It must be supported by libarchive(3).")
 
 ;; In older Emacsen (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
-;; tramp-loaddefs.el. But it exists, when tramp-archive.el is loaded.
+;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
 ;;;###tramp-autoload
 (defconst tramp-archive-file-name-regexp
   (ignore-errors (tramp-archive-autoload-file-name-regexp))
@@ -353,6 +353,7 @@ arguments to pass to the OPERATION."
 ;;;###autoload
 (progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)
   "Load Tramp archive file name handler, and perform OPERATION."
+  (defvar tramp-archive-autoload)
   (when tramp-archive-enabled
     ;; We cannot use `tramp-compat-temporary-file-directory' here due
     ;; to autoload.  When installing Tramp's GNU ELPA package, there
@@ -360,7 +361,6 @@ arguments to pass to the OPERATION."
     ;; overload this.
     (let ((default-directory temporary-file-directory)
           (tramp-archive-autoload t))
-      tramp-archive-autoload ; Silence byte compiler.
       (apply #'tramp-autoload-file-name-handler operation args)))))
 
 ;;;###autoload
@@ -658,7 +658,7 @@ offered."
   ;; mounted directory, it is returned as it.  Not what we want.
   (with-parsed-tramp-archive-file-name default-directory nil
     (let ((default-directory (file-name-directory archive)))
-      (tramp-compat-temporary-file-directory))))
+      (tramp-compat-temporary-file-directory-function))))
 
 (defun tramp-archive-handle-not-implemented (operation &rest args)
   "Generic handler for operations not implemented for file archives."

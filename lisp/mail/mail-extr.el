@@ -707,7 +707,10 @@ This function is primarily meant for when you're displaying the
 result to the user: Many prettifications are applied to the
 result returned.  If you want to decode an address for further
 non-display use, you should probably use
-`mail-header-parse-address' instead."
+`mail-header-parse-address' instead.  Also see
+`mail-header-parse-address-lax' for a function that's less strict
+than `mail-header-parse-address', but does less post-processing
+to the results."
   (let ((canonicalization-buffer (get-buffer-create " *canonical address*"))
 	(extraction-buffer (get-buffer-create " *extract address components*"))
 	value-list)

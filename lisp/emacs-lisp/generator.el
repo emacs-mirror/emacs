@@ -467,7 +467,7 @@ DYNAMIC-VAR bound to STATIC-VAR."
           (guard (cps--special-form-p name))
           (guard (not (memq name cps-standard-special-forms))))
      name                               ; Shut up byte compiler
-     (error "special form %S incorrect or not supported" form))
+     (error "Special form %S incorrect or not supported" form))
 
     ;; Process regular function applications with nontrivial
     ;; parameters, converting them to applications of trivial
@@ -633,7 +633,7 @@ modified copy."
                          ;; If we're exiting non-locally (error, quit,
                          ;; etc.)  close the iterator.
                          ,(cps--make-close-iterator-form terminal-state)))))
-                  (t (error "unknown iterator operation %S" op))))))
+                  (t (error "Unknown iterator operation %S" op))))))
          ,(when finalizer-symbol
             '(funcall iterator
                       :stash-finalizer
@@ -668,7 +668,7 @@ sub-iterator function returns via `iter-end-of-sequence'."
          (iter-close ,valsym)))))
 
 (defmacro iter-defun (name arglist &rest body)
-  "Creates a generator NAME.
+  "Create a generator NAME that accepts ARGLIST as its arguments.
 When called as a function, NAME returns an iterator value that
 encapsulates the state of a computation that produces a sequence
 of values.  Callers can retrieve each value using `iter-next'."
@@ -711,7 +711,7 @@ iterator cannot supply more values."
 
 (defun iter-close (iterator)
   "Terminate an iterator early.
-Run any unwind-protect handlers in scope at the point ITERATOR
+Run any `unwind-protect' handlers in scope at the point ITERATOR
 is blocked."
   (funcall iterator :close nil))
 

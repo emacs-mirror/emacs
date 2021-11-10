@@ -132,7 +132,7 @@
     (modify-syntax-entry ?\} "){" st)
     (modify-syntax-entry ?\" "\"" st)
     st)
-  "Syntax table in use in sieve-mode buffers.")
+  "Syntax table in use in `sieve-mode' buffers.")
 
 
 ;; Key map definition

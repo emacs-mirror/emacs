@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; The murderous generals say to call it "Myanmar".
-;; We will call it "Burma". -- rms, Chief GNUisance.
+;; We will call it "Burma".  -- rms, Chief GNUisance.
 
 ;;; Code:
 

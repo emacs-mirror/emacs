@@ -29,6 +29,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (defvar font-lock-comment-face)
 (defvar font-lock-doc-face)
@@ -462,8 +463,8 @@ This will generate compile-time constants from BINDINGS."
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
           (1 (elisp--font-lock-backslash) prepend))
-         ;; Words inside ‘’ and `' tend to be symbol names.
-         (,(concat "[`‘]\\(" lisp-mode-symbol-regexp "\\)['’]")
+         ;; Words inside ‘’, '' and `' tend to be symbol names.
+         (,(concat "[`‘']\\(" lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
@@ -556,7 +557,7 @@ This will generate compile-time constants from BINDINGS."
   "Gaudy highlighting from Emacs Lisp mode used in Backtrace mode.")
 
 (defun lisp-string-in-doc-position-p (listbeg startpos)
-   "Return true if a doc string may occur at STARTPOS inside a list.
+   "Return non-nil if a doc string may occur at STARTPOS inside a list.
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (let* ((firstsym (and listbeg
@@ -589,7 +590,9 @@ containing STARTPOS."
                 (= (point) startpos))))))
 
 (defun lisp-string-after-doc-keyword-p (listbeg startpos)
-  "Return true if `:documentation' symbol ends at STARTPOS inside a list.
+  "Return non-nil if `:documentation' symbol ends at STARTPOS inside a list.
+`:doc' can also be used.
+
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (and listbeg                          ; We are inside a Lisp form.
@@ -597,7 +600,7 @@ containing STARTPOS."
          (goto-char startpos)
          (ignore-errors
            (progn (backward-sexp 1)
-                  (looking-at ":documentation\\_>"))))))
+                  (looking-at ":documentation\\_>\\|:doc\\_>"))))))
 
 (defun lisp-font-lock-syntactic-face-function (state)
   "Return syntactic face function for the position represented by STATE.
@@ -624,10 +627,10 @@ Value for `adaptive-fill-function'."
   (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
 
 ;; Maybe this should be discouraged/obsoleted and users should be
-;; encouraged to use `lisp-data-mode` instead.
+;; encouraged to use 'lisp-data-mode' instead.
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
-  "Common initialization routine for lisp modes.
+  "Common initialization routine for Lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 \(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
 score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
@@ -824,7 +827,7 @@ function is `common-lisp-indent-function'."
   "Return Parse-Partial-Sexp State at POS, defaulting to point.
 Like `syntax-ppss' but includes the character address of the last
 complete sexp in the innermost containing list at position
-2 (counting from 0).  This is important for lisp indentation."
+2 (counting from 0).  This is important for Lisp indentation."
   (unless pos (setq pos (point)))
   (let ((pss (syntax-ppss pos)))
     (if (nth 9 pss)
@@ -1075,10 +1078,11 @@ is the buffer position of the start of the containing expression."
 		       ;; Handle prefix characters and whitespace
 		       ;; following an open paren.  (Bug#1012)
                        (backward-prefix-chars)
-                       (while (not (or (looking-back "^[ \t]*\\|([ \t]+"
-                                                      (line-beginning-position))
-                                       (and containing-sexp
-                                            (>= (1+ containing-sexp) (point)))))
+                       (while (not (save-excursion
+                                     (skip-chars-backward " \t")
+                                     (or (= (point) (line-beginning-position))
+                                         (and containing-sexp
+                                              (= (point) (1+ containing-sexp))))))
                          (forward-sexp -1)
                          (backward-prefix-chars))
                        (setq calculate-lisp-indent-last-sexp (point)))
@@ -1104,6 +1108,53 @@ is the buffer position of the start of the containing expression."
               (desired-indent)
               (t
                normal-indent))))))
+
+(defun lisp--local-defform-body-p (state)
+  "Return non-nil when at local definition body according to STATE.
+STATE is the `parse-partial-sexp' state for current position."
+  (when-let ((start-of-innermost-containing-list (nth 1 state)))
+    (let* ((parents (nth 9 state))
+           (first-cons-after (cdr parents))
+           (second-cons-after (cdr first-cons-after))
+           first-order-parent second-order-parent)
+      (while second-cons-after
+        (when (= start-of-innermost-containing-list
+                 (car second-cons-after))
+          (setq second-order-parent (pop parents)
+                first-order-parent (pop parents)
+                ;; Leave the loop.
+                second-cons-after nil))
+        (pop second-cons-after)
+        (pop parents))
+      (when second-order-parent
+        (let (local-definitions-starting-point)
+          (and (save-excursion
+                 (goto-char (1+ second-order-parent))
+                 (when-let ((head (ignore-errors
+                                    ;; FIXME: This does not distinguish
+                                    ;; between reading nil and a read error.
+                                    ;; We don't care but still, better fix this.
+                                    (read (current-buffer)))))
+                   (when (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
+                                       cl-symbol-macrolet))
+                     ;; In what follows, we rely on (point) returning non-nil.
+                     (setq local-definitions-starting-point
+                           (progn
+                             (parse-partial-sexp
+                              (point) first-order-parent nil
+                              ;; From docstring of `parse-partial-sexp':
+                              ;; Fourth arg non-nil means stop
+                              ;; when we come to any character
+                              ;; that starts a sexp.
+                              t)
+                             (point))))))
+               (save-excursion
+                 (when (ignore-errors
+                         ;; We rely on `backward-up-list' working
+                         ;; even when sexp is incomplete “to the right”.
+                         (backward-up-list 2)
+                         t)
+                   (= local-definitions-starting-point (point))))))))))
 
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
@@ -1138,16 +1189,19 @@ Lisp function does not specify a special indentation."
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
         ;; car of form doesn't seem to be a symbol
-        (progn
+        (if (lisp--local-defform-body-p state)
+            ;; We nevertheless check whether we are in flet-like form
+            ;; as we presume local function names could be non-symbols.
+            (lisp-indent-defform state indent-point)
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
-		(progn (goto-char calculate-lisp-indent-last-sexp)
-		       (beginning-of-line)
-		       (parse-partial-sexp (point)
-					   calculate-lisp-indent-last-sexp 0 t)))
-	    ;; Indent under the list or under the first sexp on the same
-	    ;; line as calculate-lisp-indent-last-sexp.  Note that first
-	    ;; thing on that line has to be complete sexp since we are
+	      (progn (goto-char calculate-lisp-indent-last-sexp)
+		     (beginning-of-line)
+		     (parse-partial-sexp (point)
+					 calculate-lisp-indent-last-sexp 0 t)))
+	  ;; Indent under the list or under the first sexp on the same
+	  ;; line as calculate-lisp-indent-last-sexp.  Note that first
+	  ;; thing on that line has to be complete sexp since we are
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
@@ -1158,15 +1212,14 @@ Lisp function does not specify a special indentation."
                                        'lisp-indent-function)
 			 (get (intern-soft function) 'lisp-indent-hook)))
 	(cond ((or (eq method 'defun)
-		   (and (null method)
-			(> (length function) 3)
-			(string-match "\\`def" function)))
+                   ;; Check whether we are in flet-like form.
+                   (lisp--local-defform-body-p state))
 	       (lisp-indent-defform state indent-point))
 	      ((integerp method)
 	       (lisp-indent-specform method state
 				     indent-point normal-indent))
 	      (method
-		(funcall method indent-point state)))))))
+	       (funcall method indent-point state)))))))
 
 (defcustom lisp-body-indent 2
   "Number of columns to indent the second line of a `(def...)' form."
@@ -1234,6 +1287,13 @@ Lisp function does not specify a special indentation."
 
 (put 'autoload 'lisp-indent-function 'defun) ;Elisp
 (put 'progn 'lisp-indent-function 0)
+(put 'defvar 'lisp-indent-function 'defun)
+(put 'defalias 'lisp-indent-function 'defun)
+(put 'defvaralias 'lisp-indent-function 'defun)
+(put 'defconst 'lisp-indent-function 'defun)
+(put 'define-category 'lisp-indent-function 'defun)
+(put 'define-charset-internal 'lisp-indent-function 'defun)
+(put 'define-fringe-bitmap 'lisp-indent-function 'defun)
 (put 'prog1 'lisp-indent-function 1)
 (put 'save-excursion 'lisp-indent-function 0)      ;Elisp
 (put 'save-restriction 'lisp-indent-function 0)    ;Elisp

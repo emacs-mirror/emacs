@@ -19,6 +19,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'dired-x)
 
 
@@ -31,23 +32,20 @@
            (append (copy-sequence dirs)
                    (delete "c" (copy-sequence files)))
            #'string<))
-         (dir (make-temp-file "Bug25942" 'dir))
          (extension "c"))
-    (unwind-protect
-        (progn
-          (dolist (d dirs)
-            (make-directory (expand-file-name d dir)))
-          (dolist (f files)
-            (write-region nil nil (expand-file-name f dir)))
-          (dired dir)
-          (dired-mark-extension extension)
-          (should (equal '("bar.c" "foo.c")
-                         (sort (dired-get-marked-files 'local) #'string<)))
-          (dired-unmark-all-marks)
-          (dired-mark-suffix extension)
-          (should (equal all-but-c
-                         (sort (dired-get-marked-files 'local) #'string<))))
-      (delete-directory dir 'recursive))))
+    (ert-with-temp-directory dir
+      (dolist (d dirs)
+        (make-directory (expand-file-name d dir)))
+      (dolist (f files)
+        (write-region nil nil (expand-file-name f dir)))
+      (dired dir)
+      (dired-mark-extension extension)
+      (should (equal '("bar.c" "foo.c")
+                     (sort (dired-get-marked-files 'local) #'string<)))
+      (dired-unmark-all-marks)
+      (dired-mark-suffix extension)
+      (should (equal all-but-c
+                     (sort (dired-get-marked-files 'local) #'string<))))))
 
 (ert-deftest dired-guess-default ()
   (let ((dired-guess-shell-alist-user nil)
@@ -63,4 +61,4 @@
                    nil))))
 
 (provide 'dired-x-tests)
-;; dired-x-tests.el ends here
+;;; dired-x-tests.el ends here

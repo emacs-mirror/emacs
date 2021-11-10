@@ -732,7 +732,7 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	  && (f->new_width >= 0 || f->new_height >= 0))
 	/* For implied resizes with inhibit 2 (external menu and tool
 	   bar) pick up any new sizes the display engine has not
-	   processed yet.  Otherwsie, we would request the old sizes
+	   processed yet.  Otherwise, we would request the old sizes
 	   which will make this request appear as a request to set new
 	   sizes and have the WM react accordingly which is not TRT.
 
@@ -1409,11 +1409,6 @@ affects all frames on the same terminal device.  */)
 		  (t->display_info.tty->name
 		   ? build_string (t->display_info.tty->name)
 		   : Qnil));
-  /* On terminal frames the `minibuffer' frame parameter is always
-     virtually t.  Avoid that a different value in parms causes
-     complaints, see Bug#24758.  */
-  store_in_alist (&parms, Qminibuffer, Qt);
-  Fmodify_frame_parameters (frame, parms);
 
   /* Make the frame face hash be frame-specific, so that each
      frame could change its face definitions independently.  */
@@ -1425,6 +1420,12 @@ affects all frames on the same terminal device.  */)
   struct Lisp_Hash_Table *table = XHASH_TABLE (f->face_hash_table);
   for (idx = 0; idx < table->count; ++idx)
     set_hash_value_slot (table, idx, Fcopy_sequence (HASH_VALUE (table, idx)));
+
+  /* On terminal frames the `minibuffer' frame parameter is always
+     virtually t.  Avoid that a different value in parms causes
+     complaints, see Bug#24758.  */
+  store_in_alist (&parms, Qminibuffer, Qt);
+  Fmodify_frame_parameters (frame, parms);
 
   f->can_set_window_size = true;
   f->after_make_frame = true;
@@ -1840,15 +1841,20 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
        doc: /* Return the next frame in the frame list after FRAME.
-It considers only frames on the same terminal as FRAME.
-By default, skip minibuffer-only frames.
-If omitted, FRAME defaults to the selected frame.
-If optional argument MINIFRAME is nil, exclude minibuffer-only frames.
-If MINIFRAME is a window, include only its own frame
-and any frame now using that window as the minibuffer.
-If MINIFRAME is `visible', include all visible frames.
-If MINIFRAME is 0, include all visible and iconified frames.
-Otherwise, include all frames.  */)
+Only frames on the same terminal as FRAME are included in the list
+of candidate frames.  If omitted, FRAME defaults to the selected frame.
+
+If MINIFRAME is nil (the default), include all frames except
+minibuffer-only frames.
+
+If MINIFRAME is a window, include only its own frame and any frame now
+using that window as the minibuffer.
+
+If MINIFRAME is `visible', include only visible frames.
+
+If MINIFRAME is 0, include only visible and iconified frames.
+
+If MINIFRAME is any other value, include all frames.  */)
   (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
@@ -5033,8 +5039,6 @@ gui_set_no_special_glyphs (struct frame *f, Lisp_Object new_value, Lisp_Object o
 }
 
 
-#ifndef HAVE_NS
-
 /* Non-zero if mouse is grabbed on DPYINFO
    and we know the frame where it is.  */
 
@@ -5058,8 +5062,6 @@ gui_redo_mouse_highlight (Display_Info *dpyinfo)
 			  dpyinfo->last_mouse_motion_x,
 			  dpyinfo->last_mouse_motion_y);
 }
-
-#endif /* HAVE_NS */
 
 /* Subroutines of creating an X frame.  */
 
@@ -6251,7 +6253,10 @@ when the mouse is over clickable text.  */);
 
   DEFVAR_LISP ("make-pointer-invisible", Vmake_pointer_invisible,
                doc: /* If non-nil, make mouse pointer invisible while typing.
-The pointer becomes visible again when the mouse is moved.  */);
+The pointer becomes visible again when the mouse is moved.
+
+When using this, you might also want to disable highlighting of
+clickable text.  See `mouse-highlight'.  */);
   Vmake_pointer_invisible = Qt;
 
   DEFVAR_LISP ("move-frame-functions", Vmove_frame_functions,

@@ -53,7 +53,7 @@ A and B should be calc expressions."
 
 (defun calc-tests-simple (fun string &rest args)
   "Push STRING on the calc stack, then call FUN and return the new top.
-The result is a calc (i.e., lisp) expression, not its string representation.
+The result is a calc (i.e., Lisp) expression, not its string representation.
 Also pop the entire stack afterwards.
 An existing calc stack is reused, otherwise a new one is created."
   (calc-eval string 'push)
@@ -448,7 +448,7 @@ An existing calc stack is reused, otherwise a new one is created."
     ;; Generalisation for any n, integral k≥0: use falling product
     (/ (apply '* (number-sequence n (- n (1- k)) -1))
        (calc-tests--fac k)))
-   (t (error "case not covered"))))
+   (t (error "Case not covered"))))
 
 (defun calc-tests--calc-to-number (x)
   "Convert a Calc object to a Lisp number."
@@ -809,6 +809,12 @@ An existing calc stack is reused, otherwise a new one is created."
                  (+ 2 3 5 7 11 13)))
   (should (equal (calcFunc-test6 3) (* (* 3 2) (- 3 1))))
   (should (equal (calcFunc-test7 3) (* 3 2))))
+
+(ert-deftest calc-nth-root ()
+  ;; bug#51209
+  (let* ((calc-display-working-message nil)
+         (x (calc-tests--calc-to-number (math-pow 8 '(frac 1 6)))))
+    (should (< (abs (- x (sqrt 2.0))) 1.0e-10))))
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here

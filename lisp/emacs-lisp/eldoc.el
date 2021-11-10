@@ -380,7 +380,14 @@ Also store it in `eldoc-last-message' and return that value."
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
   "Return nil if displaying a message would cause interference."
-  (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
+  (not (or executing-kbd-macro
+           (bound-and-true-p edebug-active)
+           ;; The following configuration shows "Matches..." in the
+           ;; echo area when point is after a closing bracket, which
+           ;; conflicts with eldoc.
+           (and show-paren-context-when-offscreen
+                (not (pos-visible-in-window-p
+                      (overlay-end show-paren--overlay)))))))
 
 
 (defvar eldoc-documentation-functions nil
@@ -437,7 +444,7 @@ return any documentation.")
 (defvar eldoc-display-functions
   '(eldoc-display-in-echo-area eldoc-display-in-buffer)
   "Hook of functions tasked with displaying ElDoc results.
-Each function is passed two arguments: DOCS and INTERACTIVE. DOCS
+Each function is passed two arguments: DOCS and INTERACTIVE.  DOCS
 is a list (DOC ...) where DOC looks like (STRING :KEY VALUE :KEY2
 VALUE2 ...).  STRING is a string containing the documentation's
 text and the remainder of DOC is an optional list of
@@ -477,6 +484,7 @@ This holds the results of the last documentation request."
       (let ((inhibit-read-only t)
             (things-reported-on))
         (erase-buffer) (setq buffer-read-only t)
+        (setq-local nobreak-char-display nil)
         (local-set-key "q" 'quit-window)
         (cl-loop for (docs . rest) on docs
                  for (this-doc . plist) = docs

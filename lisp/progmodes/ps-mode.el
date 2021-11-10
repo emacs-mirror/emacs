@@ -446,7 +446,7 @@ If nil, use `temporary-file-directory'."
      ps-mode-submit-bug-report
      t]))
 
-(easy-menu-define ps-mode-main ps-mode-map "PostScript" ps-mode-menu-main)
+(easy-menu-define ps-mode-main ps-mode-map "PostScript Menu." ps-mode-menu-main)
 
 
 

@@ -65,6 +65,9 @@ static Lisp_Object exclude_keys;
 /* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
 static Lisp_Object command_remapping_vector;
 
+/* Char table for the backwards-compatibility part in Flookup_key.  */
+static Lisp_Object unicode_case_table;
+
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
@@ -629,6 +632,9 @@ the definition it is bound to.  The event may be a character range.
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
 grandparent's bindings are also included and so on.
+
+For more information, see Info node `(elisp) Keymaps'.
+
 usage: (map-keymap FUNCTION KEYMAP)  */)
   (Lisp_Object function, Lisp_Object keymap, Lisp_Object sort_first)
 {
@@ -1024,6 +1030,28 @@ is not copied.  */)
 
 /* Simple Keymap mutators and accessors.				*/
 
+static Lisp_Object
+possibly_translate_key_sequence (Lisp_Object key, ptrdiff_t *length)
+{
+  if (VECTORP (key) && ASIZE (key) == 1 && STRINGP (AREF (key, 0)))
+    {
+      /* KEY is on the ["C-c"] format, so translate to internal
+	 format.  */
+      if (NILP (Ffboundp (Qkbd_valid_p)))
+	xsignal2 (Qerror,
+		  build_string ("`kbd-valid-p' is not defined, so this syntax can't be used: %s"),
+		  key);
+      if (NILP (call1 (Qkbd_valid_p, AREF (key, 0))))
+	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
+      key = call1 (Qkbd, AREF (key, 0));
+      *length = CHECK_VECTOR_OR_STRING (key);
+      if (*length == 0)
+	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
+    }
+
+  return key;
+}
+
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
@@ -1047,7 +1075,9 @@ DEF is anything that can be a key's definition:
     function definition, which should at that time be one of the above,
     or another symbol whose function definition is used, etc.),
  a cons (STRING . DEFN), meaning that DEFN is the definition
-    (DEFN should be a valid definition in its own right),
+    (DEFN should be a valid definition in its own right) and
+    STRING is the menu item name (which is used only if the containing
+    keymap has been created with a menu name, see `make-keymap'),
  or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
  or an extended menu item definition.
  (See info node `(elisp)Extended Menu Items'.)
@@ -1081,6 +1111,8 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 	}
       def = tmp;
     }
+
+  key = possibly_translate_key_sequence (key, &length);
 
   ptrdiff_t idx = 0;
   while (1)
@@ -1180,27 +1212,8 @@ remapping in all currently active keymaps.  */)
   return FIXNUMP (command) ? Qnil : command;
 }
 
-/* Value is number if KEY is too long; nil if valid but has no definition.  */
-/* GC is possible in this function.  */
-
-DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
-       doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
-A value of nil means undefined.  See doc of `define-key'
-for kinds of definitions.
-
-A number as value means KEY is "too long";
-that is, characters or symbols in it except for the last one
-fail to be a valid sequence of prefix characters in KEYMAP.
-The number is how many characters at the front of KEY
-it takes to reach a non-prefix key.
-KEYMAP can also be a list of keymaps.
-
-Normally, `lookup-key' ignores bindings for t, which act as default
-bindings, used when nothing else in the keymap applies; this makes it
-usable as a general function for probing keymaps.  However, if the
-third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
-recognize the default bindings, just as `read-key-sequence' does.  */)
-  (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
+static Lisp_Object
+lookup_key_1 (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
 {
   bool t_ok = !NILP (accept_default);
 
@@ -1210,6 +1223,8 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   ptrdiff_t length = CHECK_VECTOR_OR_STRING (key);
   if (length == 0)
     return keymap;
+
+  key = possibly_translate_key_sequence (key, &length);
 
   ptrdiff_t idx = 0;
   while (1)
@@ -1238,6 +1253,156 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 
       maybe_quit ();
     }
+}
+
+/* Value is number if KEY is too long; nil if valid but has no definition.  */
+/* GC is possible in this function.  */
+
+DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
+       doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
+A value of nil means undefined.  See doc of `define-key'
+for kinds of definitions.
+
+A number as value means KEY is "too long";
+that is, characters or symbols in it except for the last one
+fail to be a valid sequence of prefix characters in KEYMAP.
+The number is how many characters at the front of KEY
+it takes to reach a non-prefix key.
+KEYMAP can also be a list of keymaps.
+
+Normally, `lookup-key' ignores bindings for t, which act as default
+bindings, used when nothing else in the keymap applies; this makes it
+usable as a general function for probing keymaps.  However, if the
+third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
+recognize the default bindings, just as `read-key-sequence' does.  */)
+  (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
+{
+  Lisp_Object found = lookup_key_1 (keymap, key, accept_default);
+  if (!NILP (found) && !NUMBERP (found))
+    return found;
+
+  /* Menu definitions might use mixed case symbols (notably in old
+     versions of `easy-menu-define'), or use " " instead of "-".
+     The rest of this function is about accepting these variations for
+     backwards-compatibility.  (Bug#50752) */
+
+  /* Just skip everything below unless this is a menu item.  */
+  if (!VECTORP (key) || !(ASIZE (key) > 0)
+      || !EQ (AREF (key, 0), Qmenu_bar))
+    return found;
+
+  /* Initialize the unicode case table, if it wasn't already.  */
+  if (NILP (unicode_case_table))
+    {
+      unicode_case_table = uniprop_table (intern ("lowercase"));
+      /* uni-lowercase.el might be unavailable during bootstrap.  */
+      if (NILP (unicode_case_table))
+	return found;
+      staticpro (&unicode_case_table);
+    }
+
+  ptrdiff_t key_len = ASIZE (key);
+  Lisp_Object new_key = make_vector (key_len, Qnil);
+
+  /* Try both the Unicode case table, and the buffer local one.
+     Otherwise, we will fail for e.g. the "Turkish" language
+     environment where 'I' does not downcase to 'i'.  */
+  Lisp_Object tables[2] = {unicode_case_table, Fcurrent_case_table ()};
+  for (int tbl_num = 0; tbl_num < 2; tbl_num++)
+    {
+      /* First, let's try converting all symbols like "Foo-Bar-Baz" to
+	 "foo-bar-baz".  */
+      for (int i = 0; i < key_len; i++)
+	{
+	  Lisp_Object item = AREF (key, i);
+	  if (!SYMBOLP (item))
+	    ASET (new_key, i, item);
+	  else
+	    {
+	      Lisp_Object key_item = Fsymbol_name (item);
+	      Lisp_Object new_item;
+	      if (!STRING_MULTIBYTE (key_item))
+		new_item = Fdowncase (key_item);
+	      else
+		{
+		  USE_SAFE_ALLOCA;
+		  ptrdiff_t size = SCHARS (key_item), n;
+		  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
+		    n = PTRDIFF_MAX;
+		  unsigned char *dst = SAFE_ALLOCA (n);
+		  unsigned char *p = dst;
+		  ptrdiff_t j_char = 0, j_byte = 0;
+
+		  while (j_char < size)
+		    {
+		      int ch = fetch_string_char_advance (key_item,
+							  &j_char, &j_byte);
+		      Lisp_Object ch_conv = CHAR_TABLE_REF (tables[tbl_num],
+							    ch);
+		      if (!NILP (ch_conv))
+			CHAR_STRING (XFIXNUM (ch_conv), p);
+		      else
+			CHAR_STRING (ch, p);
+		      p = dst + j_byte;
+		    }
+		  new_item = make_multibyte_string ((char *) dst,
+						    SCHARS (key_item),
+						    SBYTES (key_item));
+		  SAFE_FREE ();
+		}
+	      ASET (new_key, i, Fintern (new_item, Qnil));
+	    }
+	}
+
+      /* Check for match.  */
+      found = lookup_key_1 (keymap, new_key, accept_default);
+      if (!NILP (found) && !NUMBERP (found))
+	break;
+
+      /* If we still don't have a match, let's convert any spaces in
+	 our lowercased string into dashes, e.g. "foo bar baz" to
+	 "foo-bar-baz".  */
+      for (int i = 0; i < key_len; i++)
+	{
+	  if (!SYMBOLP (AREF (new_key, i)))
+	    continue;
+
+	  Lisp_Object lc_key = Fsymbol_name (AREF (new_key, i));
+
+	  /* If there are no spaces in this symbol, just skip it.  */
+	  if (!strstr (SSDATA (lc_key), " "))
+	    continue;
+
+	  USE_SAFE_ALLOCA;
+	  ptrdiff_t size = SCHARS (lc_key), n;
+	  if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &n))
+	    n = PTRDIFF_MAX;
+	  unsigned char *dst = SAFE_ALLOCA (n);
+
+	  /* We can walk the string data byte by byte, because UTF-8
+	     encoding ensures that no other byte of any multibyte
+	     sequence will ever include a 7-bit byte equal to an ASCII
+	     single-byte character.  */
+	  memcpy (dst, SSDATA (lc_key), SBYTES (lc_key));
+	  for (int i = 0; i < SBYTES (lc_key); ++i)
+	    {
+	      if (dst[i] == ' ')
+		dst[i] = '-';
+	    }
+	  Lisp_Object new_it =
+	    make_multibyte_string ((char *) dst,
+				   SCHARS (lc_key), SBYTES (lc_key));
+	  ASET (new_key, i, Fintern (new_it, Qnil));
+	  SAFE_FREE ();
+	}
+
+      /* Check for match.  */
+      found = lookup_key_1 (keymap, new_key, accept_default);
+      if (!NILP (found) && !NUMBERP (found))
+	break;
+    }
+
+  return found;
 }
 
 /* Make KEYMAP define event C as a keymap (i.e., as a prefix).
@@ -2768,7 +2933,10 @@ You type        Translation\n\
 	{
 	  if (EQ (start1, BVAR (XBUFFER (buffer), keymap)))
 	    {
-	      Lisp_Object msg = build_unibyte_string ("\f\nMajor Mode Bindings");
+	      Lisp_Object msg =
+		CALLN (Fformat,
+		       build_unibyte_string ("\f\n`%s' Major Mode Bindings"),
+		       XBUFFER (buffer)->major_mode_);
 	      CALLN (Ffuncall,
 		     Qdescribe_map_tree,
 		     start1, Qt, shadow, prefix,
@@ -2935,7 +3103,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   Lisp_Object suppress = Qnil;
   bool first = true;
   /* Range of elements to be handled.  */
-  int from, to, stop;
+  int to, stop;
 
   if (!keymap_p)
     {
@@ -2955,17 +3123,19 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   if (partial)
     suppress = intern ("suppress-keymap");
 
-  from = 0;
+  /* STOP is a boundary between normal characters (-#x3FFF7F) and
+     8-bit characters (#x3FFF80-), used below when VECTOR is a
+     char-table.  */
   if (CHAR_TABLE_P (vector))
     stop = MAX_5_BYTE_CHAR + 1, to = MAX_CHAR + 1;
   else
     stop = to = ASIZE (vector);
 
-  for (int i = from; ; i++)
+  for (int i = 0; ; i++)
     {
       bool this_shadowed = false;
       Lisp_Object shadowed_by = Qnil;
-      int range_beg, range_end;
+      int range_beg;
       Lisp_Object val, tem2;
 
       maybe_quit ();
@@ -2981,6 +3151,10 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 
       if (CHAR_TABLE_P (vector))
 	{
+	  /* Find the value in VECTOR for the first character in the
+	     range [RANGE_BEG..STOP), and update the range to include
+	     only the characters whose value is the same as that of
+	     the first in the range.  */
 	  range_beg = i;
 	  i = stop - 1;
 	  val = char_table_ref_and_range (vector, range_beg, &range_beg, &i);
@@ -3039,33 +3213,26 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       insert1 (describe_key_maybe_fontify (kludge, prefix, keymap_p));
 
       /* Find all consecutive characters or rows that have the same
-	 definition.  But, if VECTOR is a char-table, we had better
-	 put a boundary between normal characters (-#x3FFF7F) and
-	 8-bit characters (#x3FFF80-).  */
-      if (CHAR_TABLE_P (vector))
+	 definition.  */
+      if (!CHAR_TABLE_P (vector))
 	{
 	  while (i + 1 < stop
-		 && (range_beg = i + 1, range_end = stop - 1,
-		   val = char_table_ref_and_range (vector, range_beg,
-						   &range_beg, &range_end),
-		   tem2 = get_keyelt (val, 0),
-		   !NILP (tem2))
+		 && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
+		     !NILP (tem2))
 		 && !NILP (Fequal (tem2, definition)))
-	    i = range_end;
+	    i++;
 	}
-      else
-	while (i + 1 < stop
-	       && (tem2 = get_keyelt (AREF (vector, i + 1), 0),
-		   !NILP (tem2))
-	       && !NILP (Fequal (tem2, definition)))
-	  i++;
 
       /* Make sure found consecutive keys are either not shadowed or,
 	 if they are, that they are shadowed by the same command.  */
-      if (CHAR_TABLE_P (vector) && i != starting_i)
+      if (!NILP (Vdescribe_bindings_check_shadowing_in_ranges)
+	  && CHAR_TABLE_P (vector) && i != starting_i
+	  && (!EQ (Vdescribe_bindings_check_shadowing_in_ranges,
+		   Qignore_self_insert)
+	      || !EQ (definition, Qself_insert_command)))
 	{
 	  Lisp_Object key = make_nil_vector (1);
-	  for (int j = starting_i + 1; j <= i; j++)
+	  for (int j = range_beg + 1; j <= i; j++)
 	    {
 	      ASET (key, 0, make_fixnum (j));
 	      Lisp_Object tem = shadow_lookup (shadow, key, Qt, 0);
@@ -3181,6 +3348,24 @@ be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
 
+  DEFVAR_LISP ("describe-bindings-check-shadowing-in-ranges",
+	       Vdescribe_bindings_check_shadowing_in_ranges,
+	       doc: /* If non-nil, consider command shadowing when describing ranges of keys.
+If the value is t, describing bindings of consecutive keys will not
+report them as a single range if they are shadowed by different
+minor-mode commands.
+If the value is `ignore-self-insert', assume that consecutive keys
+bound to `self-insert-command' are not all shadowed; this speeds up
+commands such as \\[describe-bindings] and \\[describe-mode], but could miss some shadowing.
+Any other non-nil value is treated is t.
+
+Beware: setting this non-nil could potentially slow down commands
+that describe key bindings.  That is why the default is nil.  */);
+  Vdescribe_bindings_check_shadowing_in_ranges = Qnil;
+
+  DEFSYM (Qself_insert_command, "self-insert-command");
+  DEFSYM (Qignore_self_insert, "ignore-self-insert");
+
   DEFSYM (Qmenu_bar, "menu-bar");
   DEFSYM (Qmode_line, "mode-line");
 
@@ -3244,4 +3429,7 @@ be preferred.  */);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
+
+  DEFSYM (Qkbd, "kbd");
+  DEFSYM (Qkbd_valid_p, "kbd-valid-p");
 }

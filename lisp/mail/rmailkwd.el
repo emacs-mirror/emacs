@@ -74,12 +74,9 @@ according to the choice made, and returns a symbol."
 		(rmail-summary-exists)
 		(and (setq old (rmail-get-keywords))
 		     (mapc #'rmail-make-label (split-string old ", "))))
-	    (completing-read (concat prompt
-				     (if rmail-last-label
-					 (concat " (default "
-						 (symbol-name rmail-last-label)
-						 "): ")
-				       ": "))
+            (completing-read (format-prompt prompt
+                                            (and rmail-last-label
+                                                 (symbol-name rmail-last-label)))
 			     rmail-label-obarray
 			     nil
 			     nil))))
@@ -93,7 +90,7 @@ according to the choice made, and returns a symbol."
   "Set LABEL as present or absent according to STATE in message MSG.
 LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
-  (if (string-match "," label)
+  (if (string-search "," label)
       (error "More than one label specified"))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)

@@ -30,11 +30,11 @@
 
 ;;; Variables and constants
 (defvar reftex-cite-regexp-hist nil
-  "The history list of regular expressions used for citations")
+  "The history list of regular expressions used for citations.")
 
 (defconst reftex-citation-prompt
   "Select: [n]ext [p]revious [r]estrict [ ]full_entry [q]uit RET [?]Help+more"
-  "Prompt and help string for citation selection")
+  "Prompt and help string for citation selection.")
 
 (defconst reftex-citation-help
   " n / p      Go to next/previous entry (Cursor motion works as well).
@@ -221,7 +221,7 @@ Return list with entries."
     (if (string-match "\\`[ \t]*\\'" (or first-re ""))
         (user-error "Empty regular expression"))
     (if (string-match first-re "")
-        (user-error "Regular expression matches the empty string."))
+        (user-error "Regular expression matches the empty string"))
 
     (save-excursion
       (save-window-excursion
@@ -628,7 +628,7 @@ If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
 
 FORMAT-KEY can be used to pre-select a citation format.
 
-When called with a `C-u' prefix, prompt for optional arguments in
+When called with a \\[universal-argument] prefix, prompt for optional arguments in
 cite macros.  When called with a numeric prefix, make that many
 citations.  When called with point inside the braces of a `\\cite'
 command, it will add another key, ignoring the value of
@@ -718,7 +718,7 @@ While entering the regexp, completion on knows citation keys is possible.
         (insert string))
 
       ;; Reposition cursor?
-      (when (string-match "\\?" string)
+      (when (string-search "?" string)
         (search-backward "?")
         (delete-char 1))
 
@@ -814,7 +814,7 @@ in order to only add another reference in the same cite command."
   (interactive)
   (reftex-citation nil ?t))
 
-(defvar reftex-select-bib-map)
+(defvar reftex-select-bib-mode-map)
 (defvar reftex--found-list)
 (defun reftex-offer-bib-menu ()
   "Offer bib menu and return list of selected items."
@@ -870,7 +870,7 @@ in order to only add another reference in the same cite command."
                     (reftex-select-item
                      reftex-citation-prompt
                      reftex-citation-help
-                     reftex-select-bib-map
+                     reftex-select-bib-mode-map
                      nil
                      'reftex-bibtex-selection-callback nil))
               (setq key (car rtn)

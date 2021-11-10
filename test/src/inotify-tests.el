@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (declare-function inotify-add-watch "inotify.c" (file-name aspect callback))
 (declare-function inotify-rm-watch "inotify.c" (watch-descriptor))
@@ -37,8 +38,7 @@
 
 ;; (ert-deftest filewatch-file-watch-aspects-check ()
 ;;   "Test whether `file-watch' properly checks the aspects."
-;;   (let ((temp-file (make-temp-file "filewatch-aspects")))
-;;     (should (stringp temp-file))
+;;   (ert-with-temp-file temp-file
 ;;     (should-error (file-watch temp-file 'wrong nil)
 ;;                   :type 'error)
 ;;     (should-error (file-watch temp-file '(modify t) nil)
@@ -50,24 +50,22 @@
 
 (ert-deftest inotify-file-watch-simple ()
   "Test if watching a normal file works."
-
   (skip-unless (featurep 'inotify))
-  (let ((temp-file (make-temp-file "inotify-simple"))
-	(events 0))
-    (let ((wd
-	   (inotify-add-watch temp-file t (lambda (_ev)
-					    (setq events (1+ events))))))
-      (unwind-protect
-	  (progn
-	    (with-temp-file temp-file
-	      (insert "Foo\n"))
-	    (read-event nil nil 5)
-	    (should (> events 0)))
-	(should (inotify-valid-p wd))
-	(inotify-rm-watch wd)
-	(should-not (inotify-valid-p wd))
-	(delete-file temp-file)))))
+  (ert-with-temp-file temp-file
+    (let ((events 0))
+      (let ((wd
+             (inotify-add-watch temp-file t (lambda (_ev)
+                                       (setq events (1+ events))))))
+        (unwind-protect
+            (progn
+              (with-temp-file temp-file
+                (insert "Foo\n"))
+              (read-event nil nil 5)
+              (should (> events 0)))
+          (should (inotify-valid-p wd))
+          (inotify-rm-watch wd)
+          (should-not (inotify-valid-p wd)))))))
 
 (provide 'inotify-tests)
 
-;;; inotify-tests.el ends here.
+;;; inotify-tests.el ends here

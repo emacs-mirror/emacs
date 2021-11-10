@@ -315,7 +315,7 @@ Quit current game           \\[5x5-quit-game]"
 	  (save-excursion
 	    (goto-char grid-org)
 	    (beginning-of-line (+ 1 (/ 5x5-y-scale 2)))
-	    (let ((solution-grid (cl-cdadr 5x5-solver-output)))
+            (let ((solution-grid (cdadr 5x5-solver-output)))
 	      (dotimes (y 5x5-grid-size)
 		(save-excursion
 		  (forward-char  (+ 1 (/ (1+ 5x5-x-scale) 2)))
@@ -387,7 +387,7 @@ Mutate the result."
 (defun 5x5-crack (breeder)
   "Attempt to find a solution for 5x5.
 
-5x5-crack takes the argument BREEDER which should be a function that takes
+`5x5-crack' takes the argument BREEDER which should be a function that takes
 two parameters, the first will be a grid vector array that is the current
 solution and the second will be the best solution so far.  The function
 should return a grid vector array that is the new solution."
@@ -443,8 +443,9 @@ should return a grid vector array that is the new solution."
   solution)
 
 (defun 5x5-play-solution (solution best)
-  "Play a solution on an empty grid.  This destroys the current game
-in progress because it is an animated attempt."
+  "Play a solution on an empty grid.
+This destroys the current game in progress because it is an
+animated attempt."
   (5x5-new-game)
   (let ((inhibit-quit t))
     (dotimes (y 5x5-grid-size)
@@ -473,8 +474,8 @@ position."
 		grid)))
 
 (defun 5x5-vec-to-grid (grid-matrix)
-  "Convert a grid matrix GRID-MATRIX in Calc format to a grid in
-5x5 format.  See function `5x5-grid-to-vec'."
+  "Convert a grid matrix GRID-MATRIX in Calc format to a grid in 5x5 format.
+See function `5x5-grid-to-vec'."
   (apply
    #'vector
    (mapcar
@@ -746,9 +747,9 @@ Solutions are sorted from least to greatest Hamming weight."
 		    ;; The Hamming Weight is computed by matrix reduction
 		    ;; with an ad-hoc operator.
 		    (math-reduce-vec
-		     ;; (cl-cadadr '(vec (mod x 2))) => x
-		     (lambda (r x) (+ (if (integerp r) r (cl-cadadr r))
-				      (cl-cadadr x)))
+                     ;; (cadadr '(vec (mod x 2))) => x
+                     (lambda (r x) (+ (if (integerp r) r (cadadr r))
+                                      (cadadr x)))
 		     solution); car
 		    (5x5-vec-to-grid
 		     (calcFunc-arrange solution 5x5-grid-size));cdr
@@ -802,7 +803,7 @@ there are 4 possible solutions.  When function
 `5x5-solve-suggest' (press `\\[5x5-solve-suggest]') is called the
 solution that is presented is the one that needs least number of
 strokes --- other solutions can be viewed by rotating through the
-list. The list of solution is ordered by number of strokes, so
+list.  The list of solution is ordered by number of strokes, so
 rotating left just after calling `5x5-solve-suggest' will show
 the solution with second least number of strokes, while rotating
 right will show the solution with greatest number of strokes."

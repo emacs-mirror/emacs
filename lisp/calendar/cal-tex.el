@@ -263,7 +263,7 @@ Optional string ARGS are included as options for the article
 document class with inclusion of default values \"12pt\" for
 size, and \"a4paper\" for paper unless size or paper are already
 specified in ARGS.  When ARGS is omitted, by default the option
-\"12pt,a4paper\" is passed. When ARGS has any other value, then
+\"12pt,a4paper\" is passed.  When ARGS has any other value, then
 no option is passed to the class.
 
 Insert the \"\\usepackage{geometry}\" directive when ARGS
@@ -974,11 +974,11 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil.  Note that the hours
 shown are hard-coded to 8-12, 13-17."
   (with-suppressed-warnings ((lexical date))
     (defvar date))                      ;For `cal-tex-daily-string'.
-  (let ((date thedate)
-        (month (calendar-extract-month date))
-        (day (calendar-extract-day date))
-        ;; (year (calendar-extract-year date))
-        morning afternoon s)
+  (let* ((date thedate)
+         (month (calendar-extract-month date))
+         (day (calendar-extract-day date))
+         ;; (year (calendar-extract-year date))
+         morning afternoon s)
   (cal-tex-comment "begin cal-tex-week-hours")
   (cal-tex-cmd  "\\ \\\\[-.2cm]")
   (cal-tex-cmd "\\noindent")
@@ -1465,10 +1465,10 @@ hourly sections for the period specified by `cal-tex-daily-start'
 and `cal-tex-daily-end'."
   (with-suppressed-warnings ((lexical date))
     (defvar date))                      ;For `cal-tex-daily-string'.
-  (let ((date thedate)
-        (month-name (cal-tex-month-name (calendar-extract-month date)))
-        (i (1- cal-tex-daily-start))
-        hour)
+  (let* ((date thedate)
+         (month-name (cal-tex-month-name (calendar-extract-month date)))
+         (i (1- cal-tex-daily-start))
+         hour)
     (cal-tex-banner "cal-tex-daily-page")
     (cal-tex-b-makebox "4cm" "l")
     (cal-tex-b-parbox "b" "3.8cm")
@@ -1648,10 +1648,10 @@ informative header, and run HOOK."
   (goto-char (point-min))
   ;; FIXME auctex equivalents?
   (cal-tex-comment
-   (format "\tThis buffer was produced by cal-tex.el.
+   "\tThis buffer was produced by cal-tex.el.
 \tTo print a calendar, type
 \t\tM-x tex-buffer RET
-\t\tM-x tex-print  RET")))
+\t\tM-x tex-print  RET"))
 
 (defun cal-tex-insert-preamble (weeks &optional class-options append)
   "Initialize the output LaTeX calendar buffer, `cal-tex-buffer'.
@@ -1755,7 +1755,7 @@ current contents."
 COMMENT may contain newlines, which are prefixed by \"% \" in the output."
   (insert (format "%% %s\n"
                   (if comment
-                      (replace-regexp-in-string "\n" "\n% " comment)
+                      (string-replace "\n" "\n% " comment)
                     ""))))
 
 (defun cal-tex-banner (comment)

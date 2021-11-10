@@ -178,7 +178,7 @@
 ;;    Inserts a completion at point
 ;;
 ;;  completion-initialize
-;;    Loads the completions file and sets up so that exiting emacs will
+;;    Loads the completions file and sets up so that exiting Emacs will
 ;;  save them.
 ;;
 ;;  save-completions-to-file &optional filename
@@ -207,7 +207,7 @@
 ;;   Add package prefix smarts (for Common Lisp)
 ;;   Add autoprompting of possible completions after every keystroke (fast
 ;;      terminals only !)
-;;   Add doc. to texinfo
+;;   Add documentation to texinfo
 ;;
 ;;
 ;;-----------------------------------------------
@@ -1088,7 +1088,8 @@ Must be called after `find-exact-completion'."
   #'completion-locate-db-error "27.1")
 (defun completion-locate-db-error ()
   ;; recursive error: really scrod
-  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report"))
+  (error (substitute-command-keys
+          "Completion database corrupted.  Try \\[clear-all-completions].  Send bug report")))
 
 ;; WRITES
 (defun add-completion-to-tail-if-new (string)
@@ -1917,68 +1918,64 @@ If file is not specified, then use `save-completions-file-name'."
 	    (clear-visited-file-modtime)
 	    (erase-buffer)
 
-	    (let ((insert-okay-p nil)
-		  (buffer (current-buffer))
+	    (let ((buffer (current-buffer))
 		  string entry last-use-time
 		  cmpl-entry cmpl-last-use-time
 		  (current-completion-source cmpl-source-init-file)
 		  (total-in-file 0) (total-perm 0))
 	      ;; insert the file into a buffer
 	      (condition-case nil
-		  (progn (insert-file-contents filename t)
-			 (setq insert-okay-p t))
-
+		  (insert-file-contents filename t)
 		(file-error
 		 (message "File error trying to load completion file %s."
-			  filename)))
-	      ;; parse it
-	      (if insert-okay-p
-		  (progn
-		    (goto-char (point-min))
+			  filename))
+                (:success
+	         ;; parse it
+		 (goto-char (point-min))
 
-		    (condition-case nil
-			(while t
-			  (setq entry (read buffer))
-			  (setq total-in-file (1+ total-in-file))
-			  (cond
-			   ((and (consp entry)
-				 (stringp (setq string (car entry)))
-				 (cond
-				  ((eq (setq last-use-time (cdr entry)) 'T)
-				   ;; handle case sensitivity
-				   (setq total-perm (1+ total-perm))
-				   (setq last-use-time t))
-				  ((eq last-use-time t)
-				   (setq total-perm (1+ total-perm)))
-				  ((integerp last-use-time))))
-			    ;; Valid entry
-			    ;; add it in
-			    (setq cmpl-last-use-time
-				  (completion-last-use-time
-				   (setq cmpl-entry
-					 (add-completion-to-tail-if-new string))))
-			    (if (or (eq last-use-time t)
-				    (and (> last-use-time 1000);;backcompatibility
-					 (not (eq cmpl-last-use-time t))
-					 (or (not cmpl-last-use-time)
-					     ;; more recent
-					     (> last-use-time  cmpl-last-use-time))))
-				;; update last-use-time
-				(set-completion-last-use-time cmpl-entry last-use-time)))
-			   (t
-			    ;; Bad format
-			    (message "Error: invalid saved completion - %s"
-				     (prin1-to-string entry))
-			    ;; try to get back in sync
-			    (search-forward "\n("))))
-		      (search-failed
-		       (message "End of file while reading completions."))
-		      (end-of-file
-		       (if (= (point) (point-max))
-			   (if (not no-message-p)
-			       (message "Loading completions from file %s . . . Done."
-					filename))
-			 (message "End of file while reading completions."))))))
+		 (condition-case nil
+		     (while t
+		       (setq entry (read buffer))
+		       (setq total-in-file (1+ total-in-file))
+		       (cond
+			((and (consp entry)
+			      (stringp (setq string (car entry)))
+			      (cond
+			       ((eq (setq last-use-time (cdr entry)) 'T)
+				;; handle case sensitivity
+				(setq total-perm (1+ total-perm))
+				(setq last-use-time t))
+			       ((eq last-use-time t)
+				(setq total-perm (1+ total-perm)))
+			       ((integerp last-use-time))))
+			 ;; Valid entry
+			 ;; add it in
+			 (setq cmpl-last-use-time
+			       (completion-last-use-time
+				(setq cmpl-entry
+				      (add-completion-to-tail-if-new string))))
+			 (if (or (eq last-use-time t)
+				 (and (> last-use-time 1000);;backcompatibility
+				      (not (eq cmpl-last-use-time t))
+				      (or (not cmpl-last-use-time)
+					  ;; more recent
+					  (> last-use-time  cmpl-last-use-time))))
+			     ;; update last-use-time
+			     (set-completion-last-use-time cmpl-entry last-use-time)))
+			(t
+			 ;; Bad format
+			 (message "Error: invalid saved completion - %s"
+				  (prin1-to-string entry))
+			 ;; try to get back in sync
+			 (search-forward "\n("))))
+		   (search-failed
+		    (message "End of file while reading completions."))
+		   (end-of-file
+		    (if (= (point) (point-max))
+			(if (not no-message-p)
+			    (message "Loading completions from file %s . . . Done."
+				     filename))
+		      (message "End of file while reading completions."))))))
 ))))))
 
 (defun completion-initialize ()

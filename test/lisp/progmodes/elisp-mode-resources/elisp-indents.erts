@@ -1,0 +1,88 @@
+Code:
+  (lambda ()
+    (emacs-lisp-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: defun
+
+=-=
+(defun foo ()
+"doc"
+(+ 1 2))
+=-=
+(defun foo ()
+  "doc"
+  (+ 1 2))
+=-=-=
+
+Name: function call
+
+=-=
+(foo zot
+bar
+(zot bar))
+=-=
+(foo zot
+     bar
+     (zot bar))
+=-=-=
+
+Name: lisp data
+
+=-=
+( foo zot
+bar
+(zot bar))
+=-=
+( foo zot
+  bar
+  (zot bar))
+=-=-=
+
+Name: defun-space
+
+=-=
+(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))
+=-=-=
+
+Name: defvar-keymap
+
+=-=
+(defvar-keymap eww-link-keymap
+  :copy shr-map
+  :foo bar
+  "\r" #'eww-follow-link)
+=-=-=
+
+Name: def-indent1
+
+=-=
+(defzot-does-not-exist 1
+                       2 3)
+=-=-=
+
+Name: def-indent2
+
+=-=
+(define-keymap 1
+  2 3)
+=-=-=
+
+Name: elisp-indents1
+
+=-=
+(defvar foo
+  ()
+  "bar")
+=-=-=
+
+Name: elisp-indents2
+
+=-=
+(defvar foo ()
+  "bar")
+=-=-=

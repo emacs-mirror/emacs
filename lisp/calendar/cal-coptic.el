@@ -116,7 +116,7 @@ Defaults to today's date if DATE is not given."
          (m (calendar-extract-month coptic-date)))
     (if (< y 1)
         ""
-      (calendar-dlet*
+      (calendar-dlet
           ((monthname (aref calendar-coptic-month-name-array (1- m)))
            (day (number-to-string (calendar-extract-day coptic-date)))
            (dayname nil)

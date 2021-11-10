@@ -172,7 +172,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
    "[ \t\n\r]*"))
 
 (defun cc-imenu-java-build-type-args-regex (depth)
-  "Builds regexp for type arguments list with DEPTH allowed
+  "Build regexp for type arguments list with DEPTH allowed
 nested angle brackets constructs."
   (if (> depth 0)
       (concat "<"

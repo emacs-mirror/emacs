@@ -171,6 +171,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	       (const :tag "Right to Left" right-to-left)
 	       (const :tag "Dynamic, according to paragraph text" nil))
 	      "24.1")
+             (delete-auto-save-files auto-save boolean)
+             (kill-buffer-delete-auto-save-files auto-save boolean "28.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -384,7 +386,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR1" sigusr1)
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
-
+             (translate-upper-case-key-bindings keyboard boolean "29.1")
              ;; This is not good news because it will use the wrong
              ;; version-specific directories when you upgrade.  We need
              ;; customization of the front of the list, maintaining the
@@ -431,6 +433,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      "21.1"
               :set minibuffer-prompt-properties--setter)
 	     (minibuffer-auto-raise minibuffer boolean)
+	     (read-minibuffer-restore-windows minibuffer boolean "28.1")
 	     ;; options property set at end
 	     (read-buffer-function minibuffer
 				   (choice (const nil)

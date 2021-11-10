@@ -5,7 +5,7 @@
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions, lisp
-;; Version: 3.0
+;; Version: 3.2.1
 ;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
@@ -103,10 +103,14 @@ Returns the result of evaluating the form associated with MAP-VAR's type."
   (and (consp list) (atom (car list))))
 
 (cl-defgeneric map-elt (map key &optional default testfn)
-  "Lookup KEY in MAP and return its associated value.
+  "Look up KEY in MAP and return its associated value.
 If KEY is not found, return DEFAULT which defaults to nil.
 
-TESTFN is deprecated.  Its default depends on the MAP argument.
+TESTFN is the function to use for comparing keys.  It is
+deprecated because its default and valid values depend on the MAP
+argument.  Generally, alist keys are compared with `equal', plist
+keys with `eq', and hash-table keys with the hash-table's test
+function.
 
 In the base definition, MAP can be an alist, plist, hash-table,
 or array."
@@ -119,14 +123,16 @@ or array."
             ((key key) (default default) (testfn testfn))
           (funcall do `(map-elt ,mgetter ,key ,default)
                    (lambda (v)
-                     `(condition-case nil
-                          ;; Silence warnings about the hidden 4th arg.
-                          (with-no-warnings (map-put! ,mgetter ,key ,v ,testfn))
-                        (map-not-inplace
-                         ,(funcall msetter
-                                   `(map-insert ,mgetter ,key ,v))
-                         ;; Always return the value.
-                         ,v))))))))
+                     (macroexp-let2 nil v v
+                       `(condition-case nil
+                            ;; Silence warnings about the hidden 4th arg.
+                            (with-no-warnings
+                              (map-put! ,mgetter ,key ,v ,testfn))
+                          (map-not-inplace
+                           ,(funcall msetter
+                                     `(map-insert ,mgetter ,key ,v))
+                           ;; Always return the value.
+                           ,v)))))))))
    ;; `testfn' is deprecated.
    (advertised-calling-convention (map key &optional default) "27.1"))
   ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
@@ -134,7 +140,7 @@ or array."
     :list (if (map--plist-p map)
               (let ((res (plist-member map key)))
                 (if res (cadr res) default))
-            (alist-get key map default nil testfn))
+            (alist-get key map default nil (or testfn #'equal)))
     :hash-table (gethash key map default)
     :array (if (map-contains-key map key)
                (aref map key)
@@ -145,7 +151,7 @@ or array."
 If KEY is already present in MAP, replace the associated value
 with VALUE.
 When MAP is an alist, test equality with TESTFN if non-nil,
-otherwise use `eql'.
+otherwise use `equal'.
 
 MAP can be an alist, plist, hash-table, or array."
   (declare (obsolete "use map-put! or (setf (map-elt ...) ...) instead" "27.1"))
@@ -155,7 +161,7 @@ MAP can be an alist, plist, hash-table, or array."
   (let ((tail map) last)
     (while (consp tail)
       (cond
-       ((not (equal key (car tail)))
+       ((not (eq key (car tail)))
         (setq last tail)
         (setq tail (cddr last)))
        (last
@@ -175,7 +181,7 @@ Keys not present in MAP are ignored.")
   ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
   (if (map--plist-p map)
       (map--plist-delete map key)
-    (setf (alist-get key map nil t) nil)
+    (setf (alist-get key map nil t #'equal) nil)
     map))
 
 (cl-defmethod map-delete ((map hash-table) key)
@@ -371,37 +377,51 @@ The default implementation delegates to `map-do'."
             map)
     t))
 
+(defun map--merge (merge type &rest maps)
+  "Merge into a map of TYPE all the key/value pairs in MAPS.
+MERGE is a function that takes the target MAP, a KEY, and a
+VALUE, merges KEY and VALUE into MAP, and returns the result.
+MAP may be of a type other than TYPE."
+  ;; Use a hash table internally if `type' is a list.  This avoids
+  ;; both quadratic lookup behavior and the type ambiguity of nil.
+  (let* ((tolist (memq type '(list alist plist)))
+         (result (map-into (pop maps)
+                            ;; Use same testfn as `map-elt' gv setter.
+                           (cond ((eq type 'plist) '(hash-table :test eq))
+                                 (tolist '(hash-table :test equal))
+                                 (type)))))
+    (dolist (map maps)
+      (map-do (lambda (key value)
+                (setq result (funcall merge result key value)))
+              map))
+    ;; Convert internal representation to desired type.
+    (if tolist (map-into result type) result)))
+
 (defun map-merge (type &rest maps)
   "Merge into a map of TYPE all the key/value pairs in MAPS.
 See `map-into' for all supported values of TYPE."
-  (let ((result (map-into (pop maps) type)))
-    (while maps
-      ;; FIXME: When `type' is `list', we get an O(N^2) behavior.
-      ;; For small tables, this is fine, but for large tables, we
-      ;; should probably use a hash-table internally which we convert
-      ;; to an alist in the end.
-      (map-do (lambda (key value)
-                (setf (map-elt result key) value))
-              (pop maps)))
-    result))
+  (apply #'map--merge
+         (lambda (result key value)
+           (setf (map-elt result key) value)
+           result)
+         type maps))
 
 (defun map-merge-with (type function &rest maps)
   "Merge into a map of TYPE all the key/value pairs in MAPS.
-When two maps contain the same (`eql') key, call FUNCTION on the two
+When two maps contain the same key, call FUNCTION on the two
 values and use the value returned by it.
 Each of MAPS can be an alist, plist, hash-table, or array.
 See `map-into' for all supported values of TYPE."
-  (let ((result (map-into (pop maps) type))
-        (not-found (list nil)))
-    (while maps
-      (map-do (lambda (key value)
-                (cl-callf (lambda (old)
-                            (if (eql old not-found)
-                                value
-                              (funcall function old value)))
-                    (map-elt result key not-found)))
-              (pop maps)))
-    result))
+  (let ((not-found (list nil)))
+    (apply #'map--merge
+           (lambda (result key value)
+             (cl-callf (lambda (old)
+                         (if (eql old not-found)
+                             value
+                           (funcall function old value)))
+                 (map-elt result key not-found))
+             result)
+           type maps)))
 
 (cl-defgeneric map-into (map type)
   "Convert MAP into a map of TYPE.")

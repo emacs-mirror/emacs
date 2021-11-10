@@ -440,8 +440,7 @@ nonempty, then flushes the buffer."
                                  (concat (buffer-string) aux))))))
           (error
            (setq error-type "IELM Error")
-           (setq result (format "Error during pretty-printing (bug in pp): %S"
-                                err)))
+           (setq result (format "Error during pretty-printing: %S" err)))
           (quit  (setq error-type "IELM Error")
                  (setq result "Quit during pretty-printing"))))
       (if error-type

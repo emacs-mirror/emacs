@@ -158,7 +158,7 @@
 					   (calc-top-n 2)
 					   (calc-top-n 1)))
        (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			   (not (string-match "\\[" var)))
+			   (not (string-search "[" var)))
 		      (math-read-expr (concat "[" var "]"))
 		    (math-read-expr var))))
 	 (if (eq (car-safe var) 'error)
@@ -175,7 +175,7 @@
 					 (calc-top-n 2)
 					 (calc-top-n 1)))
      (let ((var (if (and (string-match ",\\|[^ ] +[^ ]" var)
-			 (not (string-match "\\[" var)))
+			 (not (string-search "[" var)))
 		    (math-read-expr (concat "[" var "]"))
 		  (math-read-expr var))))
        (if (eq (car-safe var) 'error)
@@ -1028,7 +1028,7 @@
 		 (fset 'calcFunc-integ math-old-integ))))
 
 	;; See if the function is a symbolic derivative.
-	(and (string-match "'" (symbol-name (car expr)))
+	(and (string-search "'" (symbol-name (car expr)))
 	     (let ((name (symbol-name (car expr)))
 		   (p expr) (n 0) (which nil) (bad nil))
 	       (while (setq n (1+ n) p (cdr p))

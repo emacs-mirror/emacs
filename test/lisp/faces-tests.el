@@ -25,7 +25,7 @@
 (require 'ert)
 (require 'ert-x)
 
-(defgroup faces--test nil ""
+(defgroup faces--test nil "Group to test faces."
   :group 'faces--test)
 
 (defface faces--test1

@@ -33,15 +33,15 @@
 ;; merge them into the master source.
 ;;
 ;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
-;; interface that communicates process state back to the superior emacs by
+;; interface that communicates process state back to the superior Emacs by
 ;; outputting special control sequences.  The Emacs package, xscheme.el, has
 ;; lots and lots of special purpose code to read these control sequences, and
 ;; so is very tightly integrated with the cscheme process.  The cscheme
 ;; interrupt handler and debugger read single character commands in cbreak
 ;; mode; when this happens, xscheme.el switches to special keymaps that bind
-;; the single letter command keys to emacs functions that directly send the
+;; the single letter command keys to Emacs functions that directly send the
 ;; character to the scheme process.  Cmuscheme mode does *not* provide this
-;; functionality. If you are a cscheme user, you may prefer to use the
+;; functionality.  If you are a cscheme user, you may prefer to use the
 ;; xscheme.el/cscheme -emacs interaction.
 ;;
 ;; Here's a summary of the pros and cons, as I see them.
@@ -159,7 +159,7 @@
 The following commands are available:
 \\{inferior-scheme-mode-map}
 
-A Scheme process can be fired up with M-x run-scheme.
+A Scheme process can be fired up with \\[run-scheme].
 
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `inferior-scheme-mode-hook' (in that order).
@@ -186,7 +186,7 @@ Return before the end of the process' output copies the sexp ending at point
 Delete converts tabs to spaces as it moves back.
 Tab indents for Scheme; with argument, shifts rest
     of expression rigidly with the current line.
-C-M-q does Tab on each line starting within following expression.
+\\[indent-pp-sexp] does Tab on each line starting within following expression.
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
@@ -245,7 +245,8 @@ Search in the directories \"~\" and `user-emacs-directory',
 in this order.  Return nil if no start file found."
   (let* ((progname (file-name-nondirectory prog))
 	 (start-file (concat "~/.emacs_" progname))
-	 (alt-start-file (concat user-emacs-directory "init_" progname ".scm")))
+         (alt-start-file (locate-user-emacs-file
+                          (concat "init_" progname ".scm"))))
     (if (file-exists-p start-file)
         start-file
       (and (file-exists-p alt-start-file) alt-start-file))))

@@ -70,7 +70,7 @@
   :group 'games)
 
 (defcustom hanoi-horizontal-flag nil
-  "If non-nil, hanoi poles are oriented horizontally."
+  "Non-nil means that hanoi poles are oriented horizontally."
   :type 'boolean)
 
 (defcustom hanoi-move-period 1.0
@@ -131,9 +131,9 @@ Repent before ring 31 moves."
 
 ;;;###autoload
 (defun hanoi-unix-64 ()
-  "Like hanoi-unix, but pretend to have a 64-bit clock.
+  "Like `hanoi-unix', but pretend to have a 64-bit clock.
 This is, necessarily (as of Emacs 20.3), a crock.  When the
-current-time interface is made s2G-compliant, hanoi.el will need
+`current-time' interface is made s2G-compliant, hanoi.el will need
 to be updated."
   (interactive)
   (let* ((start (ftruncate (float-time)))
@@ -284,7 +284,7 @@ BITS must be of length nrings.  Start at START-TIME."
     (force-mode-line-update)))
 
 (defun hanoi-put-face (start end value &optional object)
-  "If hanoi-use-faces is non-nil, call put-text-property for face property."
+  "If `hanoi-use-faces' is non-nil, call `put-text-property' for face property."
   (if hanoi-use-faces
       (put-text-property start end 'face value object)))
 

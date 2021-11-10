@@ -288,6 +288,10 @@ or zero means the region is the expansion.
 A negative argument means to undefine the specified abbrev.
 Reads the abbreviation in the minibuffer.
 
+See also `inverse-add-mode-abbrev', which performs the opposite task:
+if the abbrev text is already in the buffer, use this command to
+define an abbrev by specifying the expansion in the minibuffer.
+
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
   (add-abbrev
@@ -303,6 +307,10 @@ The prefix argument specifies the number of words before point that form the
 expansion; or zero means the region is the expansion.
 A negative argument means to undefine the specified abbrev.
 This command uses the minibuffer to read the abbreviation.
+
+See also `inverse-add-global-abbrev', which performs the opposite task:
+if the abbrev text is already in the buffer, use this command to
+define an abbrev by specifying the expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
@@ -330,7 +338,11 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
   "Define last word before point as a mode-specific abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it."
+Expands the abbreviation after defining it.
+
+See also `add-mode-abbrev', which performs the opposite task:
+if the expansion is already in the buffer, use this command
+to define an abbrev by specifying the abbrev in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev
    (if only-global-abbrevs
@@ -343,7 +355,11 @@ Expands the abbreviation after defining it."
   "Define last word before point as a global (mode-independent) abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it."
+Expands the abbreviation after defining it.
+
+See also `add-global-abbrev', which performs the opposite task:
+if the expansion is already in the buffer, use this command
+to define an abbrev by specifying the abbrev in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev global-abbrev-table "Global" n))
 
@@ -567,6 +583,7 @@ PROPS is a property list.  The following properties are special:
 An obsolete but still supported calling form is:
 
 \(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
+  (declare (indent defun))
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
     (setq props `(:count ,(car props)
@@ -957,11 +974,11 @@ full text instead of the abbrevs that expand into that text."
 	(buf (get-buffer-create "*abbrev-suggest*")))
     (set-buffer buf)
     (erase-buffer)
-        (insert "** Abbrev expansion usage **
+        (insert (substitute-command-keys "** Abbrev expansion usage **
 
 Below is a list of expansions for which abbrevs are defined, and
 the number of times the expansion was typed manually.  To display
-and edit all abbrevs, type `M-x edit-abbrevs RET'\n\n")
+and edit all abbrevs, type \\[edit-abbrevs].\n\n"))
 	(dolist (expansion totals)
 	  (insert (format " %s: %d\n" (car expansion) (cdr expansion))))
 	(display-buffer buf)))
@@ -1123,7 +1140,7 @@ Properties with special meaning:
 - `:enable-function' can be set to a function of no argument which returns
   non-nil if and only if the abbrevs in this table should be used for this
   instance of `expand-abbrev'."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; We used to manually add the docstring, but we also want to record this
   ;; location as the definition of the variable (in load-history), so we may
   ;; as well just use `defvar'.

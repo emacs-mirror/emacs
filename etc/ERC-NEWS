@@ -3,8 +3,181 @@ ERC NEWS                                                       -*- outline -*-
 Copyright (C) 2006-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-* For changes after ERC 5.3, see the main Emacs NEWS file
+Please send ERC bug reports to 'bug-gnu-emacs@gnu.org',
+and Cc the 'emacs-erc@gnu.org' mailing list as well.
+If possible, use 'M-x erc-bug' or 'M-x report-emacs-bug'.
 
+This file is about changes in ERC, the powerful, modular, and
+extensible IRC (Internet Relay Chat) client distributed with
+GNU Emacs since Emacs version 22.1.
+
+
+* Changes in ERC 5.4.1
+
+** No user-visible changes since ERC 5.4, but a few tweaks in some ERC
+file headers and the ERC manual in order to successfully build ERC for
+GNU ELPA.  (See below for the news item of ERC now being distributed
+on GNU ELPA in addition to its continued inclusion in GNU Emacs core.)
+
+
+* Changes in ERC 5.4
+
+** Starting with Emacs 28.1 and ERC 5.4, ERC NEWS are added here again.
+After ERC 5.3, since November 2012, ERC's NEWS items were added in the
+main Emacs NEWS file, and users were referred to there.  Now, starting
+with Emacs 28.1 and ERC 5.4, which mark ERC's release to GNU ELPA, ERC
+NEWS have been moved to this file again, so that we can include a NEWS
+file consisting only of ERC changes in ERC's package on GNU ELPA.
+
+The NEWS entries for ERC changes in Emacs 28.1 have been moved from
+the main Emacs NEWS file to here.  For ERC NEWS entries corresponding
+to Emacs versions before 28, to avoid modifying the NEWS file for all
+of those releases, the ERC NEWS entries have only been copied below,
+and the NEWS.* files were left intact.
+
+** ERC is now available on GNU ELPA.
+Starting with ERC 5.4, in addition to being distributed with GNU Emacs
+itself, ERC is also included in GNU ELPA, allowing users to enjoy the
+improvements of newer ERC versions on older Emacs versions as well.
+
+ERC's package page on GNU ELPA: https://elpa.gnu.org/packages/erc.html
+
+** New option 'erc-rename-buffers'.
+
+** New faces 'erc-my-nick-prefix-face' and 'erc-nick-prefix-face'.
+
+** 'erc-format-@nick' displays all user modes instead of only op and voice.
+
+** The display of irc commands in the current buffer has been disabled.
+
+** 'erc-version' now follows the Emacs version.
+
+** ERC can now hide message types by network or channel.
+'erc-hide-list' will hide all messages of the specified type, while
+'erc-network-hide-list' and 'erc-channel-hide-list' will only hide the
+specified message types for the respective specified targets.
+
+** Reconnection is now asynchronous.
+
+** Nick completion is now case-insensitive again after inadvertently
+being made case-sensitive in Emacs 24.2.
+
+** New variable 'erc-default-port-tls' used to connect to TLS IRC
+servers.
+
+** New hook 'erc-insert-done-hook'.
+This hook is called after strings have been inserted into the buffer,
+and is free to alter point and window configurations, as it's not
+called from inside a 'save-excursion', as opposed to 'erc-insert-post-hook'.
+
+** 'erc-button-google-url' has been renamed to 'erc-button-search-url'
+and its value has been changed to Duck Duck Go.
+
+** 'erc-send-pre-hook' and 'erc-send-this' have been obsoleted.
+The user option to use instead to alter text to be sent is now
+'erc-pre-send-functions'.
+
+** Improve matching/highlighting of nicknames.
+Open and close parenthesis and apostrophe are not considered valid
+nick characters anymore, matching the given grammar in RFC 2812
+section 2.3.1.  This enables correct matching and highlighting of
+nicks when they are surrounded by parentheses, like "(nick)", and when
+adjacent to an apostrophe, like "nick's".
+
+** Set 'erc-button-url-regexp' to 'browse-url-button-regexp'
+which better handles surrounding pair of parentheses.
+
+** New function 'erc-switch-to-buffer-other-window'
+which is like 'erc-switch-to-buffer', but opens the buffer in another
+window.
+
+** New function 'erc-track-switch-buffer-other-window'
+which is like 'erc-track-switch-buffer', but opens the buffer in
+another window.
+
+** NickServ passwords can now be retrieved from auth-source.
+The 'erc-use-auth-source-for-nickserv-password' user option enables
+querying auth-source for NickServ passwords.  To enable this, add the
+following to your init file:
+
+    (setq erc-use-auth-source-for-nickserv-password t)
+
+** NickServ identification now prompts for password last.
+When 'erc-prompt-for-nickserv-password' is non-nil, the user used to
+be unconditionally prompted interactively for a password, regardless
+of the value of 'erc-nickserv-passwords', which was effectively
+ignored (same for the new
+'erc-use-auth-source-for-nickserv-password').  This limitation is now
+lifted, and the user is interactively prompted last, after the other
+identification methods have run.
+
+** The '/ignore' command will now ask for a timeout to stop ignoring the user.
+Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
+
+** ERC now recognizes 'C-]' for italic text.
+Italic text is displayed in the new 'erc-italic-face'.
+
+** erc-match.el now supports 'message' highlight type (not including the nick).
+The 'erc-current-nick-highlight-type', 'erc-pal-highlight-type',
+'erc-fool-highlight-type', 'erc-keyword-highlight-type', and
+'erc-dangerous-host-highlight-type' user options now support a
+'message' type for highlighting the entire message but not the
+sender's nick.
+
+** erc-status-sidebar.el is now part of ERC.
+The 'erc-status-sidebar' package which provides a HexChat-like
+activity overview sidebar for joined IRC channels is now part of ERC.
+
+** erc-tls now supports specifying a TLS client certificate.
+The 'erc-tls' function has been updated to allow specifying a TLS
+client certificate for authentication, as an alternative to NickServ
+password-based authentication.  This is referred to as "CertFP" (short
+for Certificate Fingerprint) by several IRC networks.  See the Info
+node "(erc) Connecting" in the ERC manual for more details and
+examples on how to specify and use TLS client certificates with
+'erc-tls'.
+
+** Update IRC-related references to point to Libera.Chat.
+The Free Software Foundation and the GNU Project have moved their
+official IRC channels from the Freenode network to Libera.Chat.
+For the original announcement and the follow-up update, including
+more details, see:
+
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html
+https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html
+
+Given the relocation of GNU and FSF's official IRC channels, as well
+as #emacs and various other Emacs-themed channels (see the link below)
+to Libera.Chat, IRC-related references in the Emacs repository have
+now been updated to point to Libera.Chat.
+
+https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html
+
+** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
+The 'erc-track-find-face' function of the erc-track module has been
+declared obsolete and rewritten as 'erc-track-select-mode-line-face',
+with different expected arguments (the current and old faces are now
+separated) and clearer documentation.
+
+** Add '/opme' and '/deopme' convenience commands.
+The new '/opme' convenience command asks ChanServ to set the operator
+status for the current nick in the current channel, and '/deopme'
+unsets it.
+
+** Add '/wii' convenience command for whois with idle time.
+The new '/wii' convenience command calls the '/whois' command with the
+given nick as both arguments, which is useful for displaying the whois
+information for the nick along with idle time, even if the nick is on
+a different server than the one the current user is connected to.
+Using the given nick itself instead of the server it is connected to
+is not standardized, but is widely supported across IRC networks.
+
+** Add 'erc-bug' command for reporting ERC bugs.
+The new 'erc-bug' command prompts for a subject, and passes it on to
+'report-emacs-bug' along with the current ERC version, and adds the
+ERC mailing list in Cc.
+
+
 * Changes in ERC 5.3
 
 ** New function `erc-tls' is to be used for connecting to a server via TLS.
@@ -249,6 +422,7 @@ message types are "333" and "353", respectively.
 **** Turn this into the "xdcc" module for ERC, so that it can be more
 easily enabled.
 
+
 * Changes in ERC 5.2
 
 ** M-x erc RET now starts ERC.
@@ -528,6 +702,7 @@ not.
 **** New function: `erc-toggle-timestamps'.
 Toggles display of timestamps.
 
+
 * Changes in ERC 5.1.4
 
 ** Make find-function and find-variable work in Emacs 22 for
@@ -551,6 +726,7 @@ is deactivated.
 **** Fix some errors that occur when exiting Emacs without first
 quitting open IRC servers.
 
+
 * Changes in ERC 5.1.3
 
 ** Fix use of /quote command with no initial whitespace.
@@ -665,6 +841,7 @@ modules.
 
 **** Don't complete the user's current nickname.
 
+
 * Changes in ERC 5.1.2
 
 ** Fix compiler errors in erc-autojoin.el and erc-dcc.el.
@@ -701,6 +878,7 @@ A side effect of using this new method is that there will only be one
 space before a right timestamp in any saved logs.  If this is
 unacceptable, set `erc-timestamp-use-align-to' to nil.
 
+
 * Changes in ERC 5.1.1
 
 ** Fix a requirement on cl.el.
@@ -734,6 +912,7 @@ new `erc-timestamp-right-align-by-pixel' option to non-nil.
 **** Since most of these changes are now merged into Emacs22, detect
 whether we need these changes and install them only if necessary.
 
+
 * Changes in ERC 5.1
 
 ** Improve XEmacs compatibility.
@@ -940,10 +1119,12 @@ the right margin.
 
 **** Helps ERC work correctly in viper-mode.
 
+
 * Changes in ERC 5.0.4
 
 ** Fix a problem with undo in channels.
 
+
 * Changes in ERC 5.0.3
 
 ** Fix typo in the `ctcp-request-to' entry of the English catalog.
@@ -985,6 +1166,7 @@ indicator.  Previously, there was an additional unnecessary space.
 **** Fix an error that occurred when unchecked buffers existed when
 invoking /QUIT.
 
+
 * Changes in ERC 5.0.2
 
 ** If a channel key is required for a certain channel, ERC will prompt
@@ -1018,6 +1200,7 @@ choice anymore.
 
 **** You can now save logs and truncate buffers from the menu-bar.
 
+
 * Changes in ERC 5.0.1
 
 ** Narrowing in ERC buffers no longer causes formatting errors.
@@ -1032,6 +1215,7 @@ choice anymore.
 This means that `erc-track-priority-faces-only', `erc-track-exclude',
 and `erc-track-exclude-types' now work with server buffers.
 
+
 * Changes in ERC 5.0
 
 ** Channel members are now stored as a hash-table.
@@ -1276,6 +1460,7 @@ in XEmacs.
     mode-line where modified channels are shown (only works in GNU
     Emacs versions above 21.3).
 
+
 * Changes in ERC 4.0
 
 ** The module system has again changed a lot.  You can now customize
@@ -1299,6 +1484,7 @@ in XEmacs.
   openprojects to freenode.  You may need to update your configuration
   for a successful automatic nickserv identification.
 
+
 * Changes in ERC 3.0.cvs.20030119
 
 ** New module erc-dcc:
@@ -1330,6 +1516,7 @@ Same applies to timestamps.  You no longer need to (require
 the rest should be automatic.
 
 
+----------------------------------------------------------------------
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
@@ -1344,3 +1531,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+Local variables:
+coding: utf-8
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

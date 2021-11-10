@@ -53,7 +53,7 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
   "Pattern to be used for combining difference regions in buffers A and B.
 The value must be a list of the form
 \(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
-where bufspec is the symbol A, B, or Ancestor. For instance, if the value is
+where bufspec is the symbol A, B, or Ancestor.  For instance, if the value is
 '(STRING1 A  STRING2 Ancestor STRING3 B STRING4) then the
 combined text will look like this:
 
@@ -63,8 +63,7 @@ STRING2
 diff region from the ancestor
 STRING3
 diff region from variant B
-STRING4
-"
+STRING4"
   :type '(choice (list string symbol string symbol string)
 		 (list string symbol string symbol string symbol string))
   :group 'ediff-merge)
@@ -258,7 +257,8 @@ Buffer B."
 
 
 (defun ediff-re-merge ()
-  "Remerge unmodified diff regions using a new default.  Start with the current region."
+  "Remerge unmodified diff regions using a new default.
+Start with the current region."
   (interactive)
   (let* ((default-variant-alist
 	   (list '("default-A") '("default-B") '("combined")))

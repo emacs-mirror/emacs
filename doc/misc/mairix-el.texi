@@ -60,6 +60,8 @@ database.
 * Using::                       List of interactive functions
 * Extending::                   Support your favorite mail reader!
 * GNU Free Documentation License::  The license for this documentation.
+* Function Index:               Function Index.
+* Variable Index:               Variable Index.
 @end menu
 
 @node About
@@ -68,7 +70,7 @@ database.
 Mairix is a tool for indexing and searching words in locally stored
 mail.  It was written by Richard Curnow and is licensed under the
 GPL@.  Mairix comes with most popular GNU/Linux distributions, but it also
-runs under Windows (with cygwin), macOS and Solaris.  The homepage can
+runs under Windows (with cygwin), macOS and Solaris.  The website can
 be found at
 @uref{http://www.rpcurnow.force9.co.uk/mairix/index.html}
 
@@ -338,5 +340,15 @@ And that's it!
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Function Index
+@unnumbered Function Index
+
+@printindex fn
+
+@node Variable Index
+@unnumbered Variable Index
+
+@printindex vr
 
 @bye

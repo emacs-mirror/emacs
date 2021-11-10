@@ -35,6 +35,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl-lib))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
 
@@ -137,10 +138,9 @@ For more details, see Info node `(emacs)ls in Lisp'."
                  (const :tag "Do not use --dired" nil)
                  (other :tag "Always use --dired" t)))
 
-(defcustom dired-chmod-program "chmod"
-  "Name of chmod command (usually `chmod')."
-  :group 'dired
-  :type 'file)
+(defvar dired-chmod-program "chmod"
+  "Name of chmod command (usually `chmod').")
+(make-obsolete-variable 'dired-chmod-program nil "28.1")
 
 (defcustom dired-touch-program "touch"
   "Name of touch command (usually `touch')."
@@ -248,7 +248,7 @@ This is similar to the \"-L\" option for the \"cp\" shell command."
   :type 'boolean
   :group 'dired)
 
-;; These variables were deleted and the replacements are on files.el.
+;; These variables were deleted and the replacements are in files.el.
 ;; We leave aliases behind for back-compatibility.
 (define-obsolete-variable-alias 'dired-free-space-program
   'directory-free-space-program "27.1")
@@ -281,6 +281,11 @@ with the buffer narrowed to the listing."
   :type 'hook)
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
+
+(defcustom dired-make-directory-clickable t
+  "When non-nil, make the directory at the start of the dired buffer clickable."
+  :version "29.1"
+  :type 'boolean)
 
 (defcustom dired-initial-position-hook nil
   "This hook is used to position the point.
@@ -316,12 +321,12 @@ new Dired buffers."
 
 (defcustom dired-always-read-filesystem nil
   "Non-nil means revert buffers visiting files before searching them.
- By default,  commands like `dired-mark-files-containing-regexp' will
- search any buffers visiting the marked files without reverting them,
- even if they were changed on disk.  When this option is non-nil, such
- buffers are always reverted in a temporary buffer before searching
- them: the search is performed on the temporary buffer, the original
- buffer visiting the file is not modified."
+By default,  commands like `dired-mark-files-containing-regexp' will
+search any buffers visiting the marked files without reverting them,
+even if they were changed on disk.  When this option is non-nil, such
+buffers are always reverted in a temporary buffer before searching
+them: the search is performed on the temporary buffer, the original
+buffer visiting the file is not modified."
   :type 'boolean
   :version "26.1"
   :group 'dired)
@@ -1020,27 +1025,27 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
 ;;;###autoload (define-key ctl-x-4-map "d" 'dired-other-window)
 ;;;###autoload
 (defun dired-other-window (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but selects in another window."
+  "\"Edit\" directory DIRNAME.  Like `dired' but select in another window."
   (interactive (dired-read-dir-and-switches "in other window "))
   (switch-to-buffer-other-window (dired-noselect dirname switches)))
 
 ;;;###autoload (define-key ctl-x-5-map "d" 'dired-other-frame)
 ;;;###autoload
 (defun dired-other-frame (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but makes a new frame."
+  "\"Edit\" directory DIRNAME.  Like `dired' but make a new frame."
   (interactive (dired-read-dir-and-switches "in other frame "))
   (switch-to-buffer-other-frame (dired-noselect dirname switches)))
 
 ;;;###autoload (define-key tab-prefix-map "d" 'dired-other-tab)
 ;;;###autoload
 (defun dired-other-tab (dirname &optional switches)
-  "\"Edit\" directory DIRNAME.  Like `dired' but makes a new tab."
+  "\"Edit\" directory DIRNAME.  Like `dired' but make a new tab."
   (interactive (dired-read-dir-and-switches "in other tab "))
   (switch-to-buffer-other-tab (dired-noselect dirname switches)))
 
 ;;;###autoload
 (defun dired-noselect (dir-or-list &optional switches)
-  "Like `dired' but returns the Dired buffer as value, does not select it."
+  "Like `dired' but return the Dired buffer as value, do not select it."
   (or dir-or-list (setq dir-or-list default-directory))
   ;; This loses the distinction between "/foo/*/" and "/foo/*" that
   ;; some shells make:
@@ -1327,6 +1332,8 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	    (set-visited-file-modtime (file-attribute-modification-time
                                        attributes))))
       (set-buffer-modified-p nil)
+      (when dired-make-directory-clickable
+        (dired--make-directory-clickable))
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can
       ;; successfully use dired functions (e.g. dired-get-filename)
@@ -1587,8 +1594,8 @@ see `dired-use-ls-dired' for more details.")
       ;; because newlines in dirnames are uncommon, and people may
       ;; have gotten used to seeing unescaped "\" in the headers.
       ;; Note: adjust dired-build-subdir-alist if you change this.
-      (setq dir (replace-regexp-in-string "\\\\" "\\\\" dir nil t)
-            dir (replace-regexp-in-string "\n" "\\n" dir nil t)))
+      (setq dir (string-replace "\\" "\\\\" dir)
+            dir (string-replace "\n" "\\n" dir)))
     ;; If we used --dired and it worked, the lines are already indented.
     ;; Otherwise, indent them.
     (unless (save-excursion
@@ -1617,7 +1624,7 @@ see `dired-use-ls-dired' for more details.")
       (dired-insert-set-properties content-point (point)))))
 
 (defun dired-insert-set-properties (beg end)
-  "Add various text properties to the lines in the region."
+  "Add various text properties to the lines in the region, from BEG to END."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
@@ -1643,6 +1650,32 @@ see `dired-use-ls-dired' for more details.")
 	    (put-text-property (+ (point) 4) (line-end-position)
 			       'invisible 'dired-hide-details-link))))
       (forward-line 1))))
+
+(defun dired--make-directory-clickable ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^  /" nil t 1)
+      (let ((bound (line-end-position))
+            (segment-start (point))
+            (inhibit-read-only t)
+            (dir "/"))
+        (while (search-forward "/" bound t 1)
+          (setq dir (concat dir (buffer-substring segment-start (point))))
+          (add-text-properties
+           segment-start (1- (point))
+           `( mouse-face highlight
+              help-echo "mouse-1: goto this directory"
+              keymap ,(let* ((current-dir dir)
+                             (click (lambda ()
+                                      (interactive)
+                                      (if (assoc current-dir dired-subdir-alist)
+                                          (dired-goto-subdir current-dir)
+                                        (dired current-dir)))))
+                        (define-keymap
+                          [mouse-2] click
+                          [follow-link] 'mouse-face
+                          ["RET"] click))))
+          (setq segment-start (point)))))))
 
 
 ;;; Reverting a dired buffer
@@ -2194,6 +2227,22 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ["Delete Image Tag..." image-dired-delete-tag
      :help "Delete image tag from current or marked files"]))
 
+(defun dired-context-menu (menu click)
+  "Populate MENU with Dired mode commands at CLICK."
+  (when (mouse-posn-property (event-start click) 'dired-filename)
+    (define-key menu [dired-separator] menu-bar-separator)
+    (let ((easy-menu (make-sparse-keymap "Immediate")))
+      (easy-menu-define nil easy-menu nil
+        '("Immediate"
+          ["Find This File" dired-mouse-find-file
+           :help "Edit file at mouse click"]
+          ["Find in Other Window" dired-mouse-find-file-other-window
+           :help "Edit file at mouse click in other window"]))
+      (dolist (item (reverse (lookup-key easy-menu [menu-bar immediate])))
+        (when (consp item)
+          (define-key menu (vector (car item)) (cdr item))))))
+  menu)
+
 
 ;;; Dired mode
 
@@ -2204,8 +2253,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (defun dired-mode (&optional dirname switches)
-  "\
-Mode for \"editing\" directory listings.
+  "Mode for \"editing\" directory listings.
 In Dired, you are \"editing\" a list of the files in a directory and
   (optionally) its subdirectories, in the format of `ls -lR'.
   Each directory is a page: use \\[backward-page] and \\[forward-page] to move pagewise.
@@ -2293,6 +2341,7 @@ Keybindings:
                 (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (add-hook 'file-name-at-point-functions #'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t)
+  (add-hook 'context-menu-functions 'dired-context-menu 5 t)
   (run-mode-hooks 'dired-mode-hook))
 
 
@@ -2863,7 +2912,7 @@ If SUBDIRS is non-nil, also include the dired buffers of
 directories below DIR.
 The list is in reverse order of buffer creation, most recent last.
 As a side effect, killed dired buffers for DIR are removed from
-dired-buffers."
+`dired-buffers'."
   (setq dir (file-name-as-directory dir))
   (let (result buf)
     (dolist (elt dired-buffers)
@@ -2872,7 +2921,7 @@ dired-buffers."
        ((null (buffer-name buf))
 	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-       ((file-in-directory-p (car elt) dir)
+       ((dired-in-this-tree-p (car elt) dir)
 	(with-current-buffer buf
           (when (and (or subdirs
                          (assoc dir dired-subdir-alist))
@@ -2909,7 +2958,7 @@ dired-buffers."
 		       (if (= (aref pattern (1+ set-start)) ?^)
 			   (+ 3 set-start)
 			 (+ 2 set-start)))
-		      (set-end (string-match-p "]" pattern set-cont))
+		      (set-end (string-search "]" pattern set-cont))
 		      (set (substring pattern set-start (1+ set-end))))
 		 (setq regexp (concat regexp set))
 		 (setq matched-in-pattern (1+ set-end))))
@@ -2947,7 +2996,7 @@ dired-buffers."
   ;;"Is FILE part of the directory tree starting at DIR?"
   (let (case-fold-search)
     (string-match-p (concat "^" (regexp-quote dir)) file)))
-(make-obsolete 'dired-in-this-tree-p 'file-in-directory-p "28.1")
+
 (define-obsolete-function-alias 'dired-in-this-tree
   'dired-in-this-tree-p "27.1")
 
@@ -3167,15 +3216,15 @@ the quoted forms of those characters.
 FULL-NAME specifies the actual file name the listing must have,
 as returned by `dired-get-filename'.  LIMIT is the search limit."
   (let (str)
-    (setq str (replace-regexp-in-string "\^m" "\\^m"  file nil t))
-    (setq str (replace-regexp-in-string "\\\\" "\\\\" str nil t))
+    (setq str (string-replace "\^m" "\\^m"  file))
+    (setq str (string-replace "\\" "\\\\" str))
     (and (dired-switches-escape-p dired-actual-switches)
 	 (string-match-p "[ \t\n]" str)
 	 ;; FIXME: to fix this for embedded control characters etc, we
 	 ;; should escape everything that `ls -b' does.
-	 (setq str (replace-regexp-in-string " " "\\ "  str nil t)
-	       str (replace-regexp-in-string "\t" "\\t" str nil t)
-	       str (replace-regexp-in-string "\n" "\\n" str nil t)))
+	 (setq str (string-replace " " "\\ "  str)
+	       str (string-replace "\t" "\\t" str)
+	       str (string-replace "\n" "\\n" str)))
     (let ((found nil)
 	  ;; filenames are preceded by SPC, this makes the search faster
 	  ;; (e.g. for the filename "-").
@@ -3681,7 +3730,7 @@ no ARGth marked file is found before this line."
 (defun dired-mark-files-in-region (start end)
   (let ((inhibit-read-only t))
     (if (> start end)
-	(error "start > end"))
+        (error "Start > End"))
     (goto-char start)			; assumed at beginning of line
     (while (< (point) end)
       ;; Skip subdir line and following garbage like the `total' line:
@@ -4175,7 +4224,7 @@ The idea is to set this buffer-locally in special Dired buffers.")
 (defcustom dired-switches-in-mode-line nil
   "How to indicate `dired-actual-switches' in mode-line.
 Possible values:
- * `nil':    Indicate name-or-date sort order, if possible.
+ * nil:      Indicate name-or-date sort order, if possible.
              Else show full switches.
  * `as-is':  Show full switches.
  * Integer:  Show only the first N chars of full switches.
@@ -4475,15 +4524,22 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
+(declare-function dired-omit-mode "dired-x" (&optional arg))
 
 ;;;###autoload
 (defun dired-jump (&optional other-window file-name)
   "Jump to Dired buffer corresponding to current buffer.
-If in a file, Dired the current directory and move to file's line.
+If in a buffer visiting a file, Dired that file's directory and
+move to that file's line in the directory listing.
+
+If the current buffer isn't visiting a file, Dired `default-directory'.
+
 If in Dired already, pop up a level and goto old directory's line.
 In case the proper Dired file line cannot be found, refresh the dired
 buffer and try again.
+
 When OTHER-WINDOW is non-nil, jump to Dired buffer in other window.
+
 When FILE-NAME is non-nil, jump to its line in Dired.
 Interactively with prefix argument, read FILE-NAME."
   (interactive

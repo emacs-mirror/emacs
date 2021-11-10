@@ -465,11 +465,11 @@ Returned values:
 			     mesg) nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
-	      ;; (file-error "connection failed" "permission denied"
+              ;; (file-error "Connection failed" "permission denied"
 	      ;;             "nonesuch" "ffap-machine-p")
-	      ;; (file-error "connection failed" "host is unreachable"
+              ;; (file-error "Connection failed" "host is unreachable"
 	      ;;	     "gopher.house.gov" "ffap-machine-p")
-	      ;; (file-error "connection failed" "address already in use"
+              ;; (file-error "Connection failed" "address already in use"
 	      ;;	     "ftp.uu.net" "ffap-machine-p")
 	      ((equal mesg "connection failed")
 	       (if (string= (downcase (nth 2 error)) "permission denied")
@@ -651,7 +651,7 @@ also is substituted for the first empty-string component, if there is one.
 Uses `path-separator' to separate the path into substrings."
   ;; We cannot use parse-colon-path (files.el), since it kills
   ;; "//" entries using file-name-as-directory.
-  ;; Similar: dired-split, TeX-split-string, and RHOGEE's psg-list-env
+  ;; Similar: TeX-split-string, and RHOGEE's psg-list-env
   ;; in ff-paths and bib-cite.  The EMPTY arg may help mimic kpathsea.
   (if (or empty (getenv env))		; should return something
       (let ((start 0) match dir ret)
@@ -1088,8 +1088,8 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     (latex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     (tex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     )
-  "Alist of (MODE CHARS BEG END), where MODE is a symbol,
-possibly a major-mode name, or one of the symbols
+  "Alist of (MODE CHARS BEG END), where MODE is a symbol.
+This is possibly a major-mode name, or one of the symbols
 `file', `url', `machine', and `nocolon'.
 Function `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,
@@ -1114,7 +1114,7 @@ like)."
 
 (defun ffap-search-backward-file-end (&optional dir-separator end)
   "Search backward position point where file would probably end.
-Optional DIR-SEPARATOR defaults to \"/\". The search maximum is
+Optional DIR-SEPARATOR defaults to \"/\".  The search maximum is
 `line-end-position' or optional END point.
 
 Suppose the cursor is somewhere that might be near end of file,
@@ -1190,7 +1190,7 @@ Call `ffap-search-backward-file-end' to refine the ending point."
 
 (defun ffap-dir-separator-near-point ()
   "Search backward and forward for closest slash or backlash in line.
-Return string slash or backslash. Point is moved to closest position."
+Return string slash or backslash.  Point is moved to closest position."
   (let ((point (point))
 	str pos)
     (when (looking-at ".*?/")
@@ -1418,7 +1418,7 @@ which may actually result in an URL rather than a filename."
 	 (string (ffap-string-at-point)) ; uses mode alist
 	 (name
 	  (or (condition-case nil
-		  (and (not (string-match "//" string)) ; foo.com://bar
+		  (and (not (string-search "//" string)) ; foo.com://bar
 		       (substitute-in-file-name string))
 		(error nil))
 	      string))
@@ -1525,24 +1525,37 @@ which may actually result in an URL rather than a filename."
 ;; The solution here is to forcefully activate url-handler-mode, which
 ;; takes care of it for us.
 
+(defun ffap--url-file-handler (operation &rest args)
+  (let ((inhibit-file-name-handlers
+         (cons 'ffap--url-file-handler inhibit-file-name-handlers))
+        (inhibit-file-name-operation operation))
+    (cl-case operation
+      ;; We mainly just want to disable these bits:
+      (substitute-in-file-name (car args))
+      (expand-file-name (car args))
+      (otherwise
+       (apply operation args)))))
+
 (defun ffap-read-file-or-url (prompt guess)
   "Read file or URL from minibuffer, with PROMPT and initial GUESS."
-  (or guess (setq guess default-directory))
-  ;; Tricky: guess may have or be a local directory, like "w3/w3.elc"
-  ;; or "w3/" or "../el/ffap.el" or "../../../"
-  (if (ffap-url-p guess)
-      ;; FIXME: We earlier tried to make use of `url-file-handler' so
-      ;; `read-file-name' could also be used for URLs, but it
-      ;; introduced all kinds of subtle breakage such as:
-      ;; - (file-name-directory "http://a") returning "http://a/"
-      ;; - Trying to contact remote hosts with no justification
-      ;; These should be fixed in url-handler-mode before we can try
-      ;; using it here again.
-      (read-string prompt guess nil nil t)
-    (unless (ffap-file-remote-p guess)
-      (setq guess (abbreviate-file-name (expand-file-name guess))))
-    (read-file-name prompt (file-name-directory guess) nil nil
-                    (file-name-nondirectory guess))))
+  (let ((elem (cons ffap-url-regexp #'ffap--url-file-handler)))
+    (unwind-protect
+        (progn
+          (push elem file-name-handler-alist)
+          (if (ffap-url-p guess)
+              (read-file-name prompt guess guess)
+            (unless guess
+              (setq guess default-directory))
+            (unless (ffap-file-remote-p guess)
+              (setq guess (abbreviate-file-name (expand-file-name guess))))
+            (read-file-name prompt
+                            (file-name-directory guess) nil nil
+                            (file-name-nondirectory guess))))
+      ;; Remove the special handler manually.  We used to just let-bind
+      ;; file-name-handler-alist to preserve its value, but that caused
+      ;; other modifications to be lost (e.g. when Tramp gets loaded
+      ;; during the completing-read call).
+      (setq file-name-handler-alist (delq elem file-name-handler-alist)))))
 
 ;; The rest of this page is just to work with package complete.el.
 ;; This code assumes that you load ffap.el after complete.el.
@@ -1626,8 +1639,9 @@ If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
-`ffap-url-unwrap-local', `ffap-url-unwrap-remote', and the functions
-`ffap-file-at-point' and `ffap-url-at-point'."
+`ffap-url-unwrap-local', `ffap-url-unwrap-remote',
+`ffap-file-name-with-spaces', and the functions `ffap-file-at-point'
+and `ffap-url-at-point'."
   (interactive)
   (if (and (called-interactively-p 'interactive)
 	   (if ffap-require-prefix (not current-prefix-arg)
@@ -1654,9 +1668,9 @@ See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
        ((or (not ffap-newfile-prompt)
 	    (file-exists-p filename)
 	    (y-or-n-p "File does not exist, create buffer? "))
-	(funcall ffap-file-finder
-		 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
-		 (expand-file-name filename)))
+	(find-file
+	 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
+	 (expand-file-name filename)))
        ;; User does not want to find a non-existent file:
        ((signal 'file-missing (list "Opening file buffer"
 				    "No such file or directory"

@@ -882,14 +882,15 @@ fill_gstring_body (Lisp_Object gstring)
 /* Try to compose the characters at CHARPOS according to composition
    rule RULE ([PATTERN PREV-CHARS FUNC]).  LIMIT limits the characters
    to compose.  STRING, if not nil, is a target string.  WIN is a
-   window where the characters are being displayed.  If characters are
+   window where the characters are being displayed.  CH is the
+   character that triggered the composition check.  If characters are
    successfully composed, return the composition as a glyph-string
    object.  Otherwise return nil.  */
 
 static Lisp_Object
 autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       ptrdiff_t limit, struct window *win, struct face *face,
-	       Lisp_Object string, Lisp_Object direction)
+	       Lisp_Object string, Lisp_Object direction, int ch)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
@@ -920,7 +921,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   struct frame *f = XFRAME (font_object);
   if (FRAME_WINDOW_P (f))
     {
-      font_object = font_range (charpos, bytepos, &to, win, face, string);
+      font_object = font_range (charpos, bytepos, &to, win, face, string, ch);
       if (! FONT_OBJECT_P (font_object)
 	  || (! NILP (re)
 	      && to < limit
@@ -953,12 +954,32 @@ char_composable_p (int c)
   Lisp_Object val;
   return (c >= ' '
 	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
+	      /* Per Unicode TR51, these tag characters can be part of
+		 Emoji sequences.  */
+	      || (TAG_SPACE <= c && c <= CANCEL_TAG)
 	      /* unicode-category-table may not be available during
 		 dumping.  */
 	      || (CHAR_TABLE_P (Vunicode_category_table)
 		  && (val = CHAR_TABLE_REF (Vunicode_category_table, c),
 		      (FIXNUMP (val)
 		       && (XFIXNUM (val) <= UNICODE_CATEGORY_Zs))))));
+}
+
+static inline bool
+inhibit_auto_composition (void)
+{
+  if (NILP (Vauto_composition_mode))
+    return true;
+
+  if (STRINGP (Vauto_composition_mode))
+    {
+      char *name = tty_type_name (Qnil);
+
+      if (name && ! strcmp (SSDATA (Vauto_composition_mode), name))
+	return true;
+    }
+
+  return false;
 }
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
@@ -1015,7 +1036,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       cmp_it->ch = -1;
     }
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+      || inhibit_auto_composition ())
     return;
   if (bytepos < 0)
     {
@@ -1252,7 +1273,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	      if (XFIXNAT (AREF (elt, 1)) != cmp_it->lookback)
 		goto no_composition;
 	      lgstring = autocmp_chars (elt, charpos, bytepos, endpos,
-					w, face, string, direction);
+					w, face, string, direction, cmp_it->ch);
 	      if (composition_gstring_p (lgstring))
 		break;
 	      lgstring = Qnil;
@@ -1290,7 +1311,7 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  else
 	    direction = QR2L;
 	  lgstring = autocmp_chars (elt, cpos, bpos, charpos + 1, w, face,
-				    string, direction);
+				    string, direction, cmp_it->ch);
 	  if (! composition_gstring_p (lgstring)
 	      || cpos + LGSTRING_CHAR_LEN (lgstring) - 1 != charpos)
 	    /* Composition failed or didn't cover the current
@@ -1659,7 +1680,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 		  for (check = cur; check_pos < check.pos; )
 		    BACKWARD_CHAR (check, stop);
 		  *gstring = autocmp_chars (elt, check.pos, check.pos_byte,
-					    tail, w, NULL, string, Qnil);
+					    tail, w, NULL, string, Qnil, c);
 		  need_adjustment = 1;
 		  if (NILP (*gstring))
 		    {
@@ -1741,7 +1762,7 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
     }
 
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-      || NILP (Vauto_composition_mode))
+      || inhibit_auto_composition ())
     return new_pt;
 
   /* Next check the automatic composition.  */
@@ -1941,7 +1962,7 @@ See `find-composition' for more details.  */)
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
       if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
-	  && ! NILP (Vauto_composition_mode)
+	  && ! inhibit_auto_composition ()
 	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
 					 &start, &end, &gstring, string))
 	return list3 (make_fixnum (start), make_fixnum (end), gstring);
@@ -2040,7 +2061,10 @@ The default value is the function `compose-chars-after'.  */);
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
-Use the command `auto-composition-mode' to change this variable. */);
+Use the command `auto-composition-mode' to change this variable.
+
+If this variable is a string, `auto-composition-mode' will be disabled in
+buffers displayed on a terminal whose type compares equal to this string.  */);
   Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
@@ -2099,6 +2123,17 @@ GSTRING, or modify GSTRING itself and return it.
 
 See also the documentation of `auto-composition-mode'.  */);
   Vcomposition_function_table = Fmake_char_table (Qnil, Qnil);
+
+  DEFVAR_LISP ("auto-composition-emoji-eligible-codepoints", Vauto_composition_emoji_eligible_codepoints,
+	       doc: /* List of codepoints for which auto-composition will check for an emoji font.
+
+These are codepoints which have Emoji_Presentation = No, and thus by
+default are not displayed as emoji.  In certain circumstances, such as
+when followed by U+FE0F (VS-16) the emoji font should be used for
+them anyway.
+
+This list is auto-generated, you should not need to modify it.  */);
+  Vauto_composition_emoji_eligible_codepoints = Qnil;
 
   defsubr (&Scompose_region_internal);
   defsubr (&Scompose_string_internal);

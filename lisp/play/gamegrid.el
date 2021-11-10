@@ -490,7 +490,7 @@ format."
   "Add the current score to the high score file.
 
 If REVERSE is non-nil, treat lower scores as better than higher
-scores. This is useful for games where lower scores are better.
+scores.  This is useful for games where lower scores are better.
 
 On POSIX systems there may be a shared game directory for all users in
 which the scorefiles are kept.  On such systems Emacs doesn't create

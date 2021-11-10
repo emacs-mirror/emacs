@@ -357,7 +357,7 @@ is output until the first non-zero unit is encountered."
                            (format " %s%s" name
                                    (if (= num 1) "" "s"))))
                  t t string))))))
-  (replace-regexp-in-string "%%" "%" string))
+  (string-replace "%%" "%" string))
 
 (defvar seconds-to-string
   (list (list 1 "ms" 0.001)
@@ -406,7 +406,11 @@ entries only for the values that should be altered.
 
 For instance, if you want to \"add two months\" to TIME, then
 leave all other fields but the month field in DELTA nil, and make
-the month field 2.  The values in DELTA can be negative.
+the month field 2.  For instance:
+
+  (decoded-time-add (decode-time) (make-decoded-time :month 2))
+
+The values in DELTA can be negative.
 
 If applying a month/year delta leaves the time spec invalid, it
 is decreased to be valid (\"add one month\" to January 31st 2019

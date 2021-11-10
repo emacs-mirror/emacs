@@ -22,22 +22,22 @@
 
 ;;; Commentary:
 ;;
-;; Test method invocation order.  From the common lisp reference
-;; manual:
+;; Test method invocation order.  From the Common Lisp Reference
+;; Manual:
 ;;
 ;; QUOTE:
 ;; - All the :before methods are called, in most-specific-first
 ;;   order.  Their values are ignored.  An error is signaled if
 ;;   call-next-method is used in a :before method.
 ;;
-;; - The most specific primary method is called. Inside the body of a
+;; - The most specific primary method is called.  Inside the body of a
 ;;   primary method, call-next-method may be used to call the next
-;;   most specific primary method. When that method returns, the
+;;   most specific primary method.  When that method returns, the
 ;;   previous primary method can execute more code, perhaps based on
-;;   the returned value or values. The generic function no-next-method
+;;   the returned value or values.  The generic function no-next-method
 ;;   is invoked if call-next-method is used and there are no more
-;;   applicable primary methods. The function next-method-p may be
-;;   used to determine whether a next method exists. If
+;;   applicable primary methods.  The function next-method-p may be
+;;   used to determine whether a next method exists.  If
 ;;   call-next-method is not used, only the most specific primary
 ;;   method is called.
 ;;
@@ -46,11 +46,13 @@
 ;;   call-next-method is used in a :after method.
 ;;
 ;;
-;; Also test behavior of `call-next-method'. From clos.org:
+;; Also test behavior of `call-next-method'.  From clos.org:
 ;;
 ;; QUOTE:
 ;; When call-next-method is called with no arguments, it passes the
 ;; current method's original arguments to the next method.
+
+;;; Code:
 
 (require 'eieio)
 (require 'ert)
@@ -403,3 +405,5 @@
   (should (equal (eieio-test--1 (make-instance 'CNM-2) 5)
                  '("CNM-1-1" "CNM-1-2" "CNM-0" 7 5)))
   (should (equal (eieio-test--1 'CNM-2 6) '("subclass CNM-1-2" CNM-2 6))))
+
+;;; eieio-test-methodinvoke.el ends here

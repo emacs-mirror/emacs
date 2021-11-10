@@ -88,7 +88,7 @@
 ;;
 ;; - All Bibtex information is taken from the document compiled by
 ;;   Andrew Roberts from the Bibtex manual, available at
-;;   http://www.andy-roberts.net/res/writing/latex/bibentries.pdf
+;;   https://www.andy-roberts.net/res/writing/latex/bibentries.pdf
 ;;
 ;;; History:
 ;;
@@ -145,59 +145,59 @@
   '((:article
      (:description . "An article from a journal or magazine")
      (:required :author :title :journal :year)
-     (:optional :volume :number :pages :month :note))
+     (:optional :volume :number :pages :month :note :doi))
     (:book
      (:description . "A book with an explicit publisher")
      (:required (:editor :author) :title :publisher :year)
-     (:optional (:volume :number) :series :address :edition :month :note))
+     (:optional (:volume :number) :series :address :edition :month :note :doi))
     (:booklet
      (:description . "A work that is printed and bound, but without a named publisher or sponsoring institution.")
      (:required :title)
-     (:optional :author :howpublished :address :month :year :note))
+     (:optional :author :howpublished :address :month :year :note :doi :url))
     (:conference
      (:description . "")
      (:required :author :title :booktitle :year)
-     (:optional :editor :pages :organization :publisher :address :month :note))
+     (:optional :editor :pages :organization :publisher :address :month :note :doi :url))
     (:inbook
      (:description . "A part of a book, which may be a chapter (or section or whatever) and/or a range of pages.")
      (:required (:author :editor) :title (:chapter :pages) :publisher :year)
-     (:optional :crossref (:volume :number) :series :type :address :edition :month :note))
+     (:optional :crossref (:volume :number) :series :type :address :edition :month :note :doi))
     (:incollection
      (:description . "A part of a book having its own title.")
      (:required :author :title :booktitle :publisher :year)
-     (:optional :crossref :editor (:volume :number) :series :type :chapter :pages :address :edition :month :note))
+     (:optional :crossref :editor (:volume :number) :series :type :chapter :pages :address :edition :month :note :doi))
     (:inproceedings
      (:description . "An article in a conference proceedings")
      (:required :author :title :booktitle :year)
-     (:optional :crossref :editor (:volume :number) :series :pages :address :month :organization :publisher :note))
+     (:optional :crossref :editor (:volume :number) :series :pages :address :month :organization :publisher :note :doi))
     (:manual
      (:description . "Technical documentation.")
      (:required :title)
-     (:optional :author :organization :address :edition :month :year :note))
+     (:optional :author :organization :address :edition :month :year :note :doi :url))
     (:mastersthesis
      (:description . "A Master’s thesis.")
      (:required :author :title :school :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:misc
      (:description . "Use this type when nothing else fits.")
      (:required)
-     (:optional :author :title :howpublished :month :year :note))
+     (:optional :author :title :howpublished :month :year :note :doi :url))
     (:phdthesis
      (:description . "A PhD thesis.")
      (:required :author :title :school :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:proceedings
      (:description . "The proceedings of a conference.")
      (:required :title :year)
-     (:optional :editor (:volume :number) :series :address :month :organization :publisher :note))
+     (:optional :editor (:volume :number) :series :address :month :organization :publisher :note :doi))
     (:techreport
      (:description . "A report published by a school or other institution.")
      (:required :author :title :institution :year)
-     (:optional :type :address :month :note))
+     (:optional :type :address :month :note :doi :url))
     (:unpublished
      (:description . "A document having an author and title, but not formally published.")
      (:required :author :title :note)
-     (:optional :month :year)))
+     (:optional :month :year :doi :url)))
   "Bibtex entry types with required and optional parameters.")
 
 (defvar org-bibtex-fields
@@ -207,6 +207,7 @@
     (:booktitle    . "Title of a book, part of which is being cited.  See the LaTeX book for how to type titles.  For book entries, use the title field instead.")
     (:chapter      . "A chapter (or section or whatever) number.")
     (:crossref     . "The database key of the entry being cross referenced.")
+    (:doi          . "The digital object identifier.")
     (:edition      . "The edition of a book for example, 'Second'.  This should be an ordinal, and should have the first letter capitalized, as shown here; the standard styles convert to lower case when necessary.")
     (:editor       . "Name(s) of editor(s), typed as indicated in the LaTeX book.  If there is also an author field, then the editor field gives the editor of the book or collection in which the reference appears.")
     (:howpublished . "How something strange has been published.  The first word should be capitalized.")
@@ -223,6 +224,7 @@
     (:series       . "The name of a series or set of books.  When citing an entire book, the title field gives its title and an optional series field gives the name of a series or multi-volume set in which the book is published.")
     (:title        . "The work’s title, typed as explained in the LaTeX book.")
     (:type         . "The type of a technical report for example, 'Research Note'.")
+    (:url          . "Uniform resource locator.")
     (:volume       . "The volume of a journal or multi-volume book.")
     (:year         . "The year of publication or, for an unpublished work, the year it was written.  Generally it should consist of four numerals, such as 1984, although the standard styles can handle any year whose last four nonpunctuation characters are numerals, such as '(about 1984)'"))
   "Bibtex fields with descriptions.")
@@ -507,6 +509,7 @@ ARG, when non-nil, is a universal prefix argument.  See
       (org-link-store-props
        :key (cdr (assoc "=key=" entry))
        :author (or (cdr (assoc "author" entry)) "[no author]")
+       :doi (or (cdr (assoc "doi" entry)) "[no doi]")
        :editor (or (cdr (assoc "editor" entry)) "[no editor]")
        :title (or (cdr (assoc "title" entry)) "[no title]")
        :booktitle (or (cdr (assoc "booktitle" entry)) "[no booktitle]")
@@ -656,7 +659,7 @@ This uses `bibtex-parse-entry'."
   (interactive)
   (let ((keyword (lambda (str) (intern (concat ":" (downcase str)))))
 	(clean-space (lambda (str) (replace-regexp-in-string
-			       "[[:space:]\n\r]+" " " str)))
+			            "[[:space:]\n\r]+" " " str)))
 	(strip-delim
 	 (lambda (str)		     ; strip enclosing "..." and {...}
 	   (dolist (pair '((34 . 34) (123 . 125)))
@@ -674,7 +677,8 @@ This uses `bibtex-parse-entry'."
                        (_ field)))
                    (funcall clean-space (funcall strip-delim (cdr pair)))))
            (save-excursion (bibtex-beginning-of-entry) (bibtex-parse-entry)))
-          org-bibtex-entries)))
+          org-bibtex-entries)
+    (unless (car org-bibtex-entries) (pop org-bibtex-entries))))
 
 (defun org-bibtex-read-buffer (buffer)
   "Read all bibtex entries in BUFFER and save to `org-bibtex-entries'.

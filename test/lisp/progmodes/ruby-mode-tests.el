@@ -357,7 +357,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (let ((ruby-align-chained-calls t))
     (ruby-should-indent-buffer
      "one.two.three
-     |       .four
+     |   .four
      |
      |my_array.select { |str| str.size > 5 }
      |        .map    { |str| str.downcase }"
@@ -875,6 +875,28 @@ VALUES-PLIST is a list with alternating index and value elements."
       (ruby-mode-set-encoding)
       (should (string= "# coding: iso-8859-15\nⓇ" (buffer-string))))))
 
+(ert-deftest ruby-imenu-with-private-modifier ()
+  (ruby-with-temp-buffer
+      (ruby-test-string
+       "class Blub
+       |  def hi
+       |    'Hi!'
+       |  end
+       |
+       |  def bye
+       |    'Bye!'
+       |  end
+       |
+       |  private def hiding
+       |    'You can't see me'
+       |  end
+       |end")
+    (should (equal (mapcar #'car (ruby-imenu-create-index))
+                   '("Blub"
+                     "Blub#hi"
+                     "Blub#bye"
+                     "Blub#hiding")))))
+
 (ert-deftest ruby--indent/converted-from-manual-test ()
   :tags '(:expensive-test)
   ;; Converted from manual test.
@@ -885,6 +907,33 @@ VALUES-PLIST is a list with alternating index and value elements."
             (indent-region (point-min) (point-max))
             (should (equal (buffer-string) orig))))
       (kill-buffer buf))))
+
+(ert-deftest ruby--test-chained-indentation ()
+  (with-temp-buffer
+    (ruby-mode)
+    (setq-local ruby-align-chained-calls t)
+    (insert "some_variable.where
+.not(x: nil)
+.where(y: 2)
+")
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+                   "some_variable.where
+             .not(x: nil)
+             .where(y: 2)
+")))
+
+  (with-temp-buffer
+    (ruby-mode)
+    (setq-local ruby-align-chained-calls t)
+    (insert "some_variable.where.not(x: nil)
+.where(y: 2)
+")
+    (indent-region (point-min) (point-max))
+    (should (equal (buffer-string)
+                   "some_variable.where.not(x: nil)
+             .where(y: 2)
+"))))
 
 (provide 'ruby-mode-tests)
 

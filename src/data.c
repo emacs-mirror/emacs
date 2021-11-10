@@ -681,7 +681,7 @@ global value outside of any lexical scope.  */)
 /* It has been previously suggested to make this function an alias for
    symbol-function, but upon discussion at Bug#23957, there is a risk
    breaking backward compatibility, as some users of fboundp may
-   expect `t' in particular, rather than any true value.  */
+   expect t in particular, rather than any true value.  */
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's function definition is not void.  */)
   (Lisp_Object symbol)
@@ -1045,6 +1045,8 @@ The value, if non-nil, is a list of mode name symbols.  */)
 
   if (COMPILEDP (fun))
     {
+      if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
+	return Qnil;
       Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
       if (VECTORP (form))
 	/* New form -- the second element is the command modes. */

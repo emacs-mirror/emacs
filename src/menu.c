@@ -1127,9 +1127,12 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 
     /* Decode the first argument: find the window and the coordinates.  */
     if (EQ (position, Qt)
-	|| (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
-				 || EQ (XCAR (position), Qtab_bar)
-				 || EQ (XCAR (position), Qtool_bar))))
+	|| (CONSP (position)
+	    && (EQ (XCAR (position), Qmenu_bar)
+		|| EQ (XCAR (position), Qtab_bar)
+		|| (CONSP (XCDR (position))
+		    && EQ (XCAR (XCDR (position)), Qtab_bar))
+		|| EQ (XCAR (position), Qtool_bar))))
       {
 	get_current_pos_p = 1;
       }
@@ -1284,12 +1287,16 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
       prompt = Fkeymap_prompt (keymap);
+
+#if defined (USE_GTK) || defined (HAVE_NS)
+      if (STRINGP (prompt)
+	  && SCHARS (prompt) > 0
+	  && !NILP (Fget_text_property (make_fixnum (0), Qhide, prompt)))
+	title = Qnil;
+      else
+#endif
       if (!NILP (prompt))
 	title = prompt;
-#ifdef HAVE_NS		/* Is that needed and NS-specific?  --Stef  */
-      else
-	title = build_string ("Select");
-#endif
 
       /* Make that be the pane title of the first pane.  */
       if (!NILP (prompt) && menu_items_n_panes >= 0)
@@ -1574,6 +1581,8 @@ syms_of_menu (void)
 {
   menu_items = Qnil;
   staticpro (&menu_items);
+
+  DEFSYM (Qhide, "hide");
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 ;;
@@ -72,6 +72,16 @@
 (defvar org-table1-hline-regexp)
 
 
+;;; Emacs < 28.1 compatibility
+
+(if (fboundp 'directory-empty-p)
+    (defalias 'org-directory-empty-p #'directory-empty-p)
+  (defun org-directory-empty-p (dir)
+    "Return t if DIR names an existing directory containing no other files."
+    (and (file-directory-p dir)
+         (null (directory-files dir nil directory-files-no-dot-files-regexp t)))))
+
+
 ;;; Emacs < 27.1 compatibility
 
 (unless (fboundp 'proper-list-p)
@@ -118,6 +128,32 @@ This is a no-op for Emacs versions lower than 27, since face
 extension beyond end of line was not controllable."
   (when (fboundp 'set-face-extend)
     (mapc (lambda (f) (set-face-extend f extend-p)) faces)))
+
+(if (fboundp 'string-distance)
+    (defalias 'org-string-distance 'string-distance)
+  (defun org-string-distance (s1 s2)
+    "Return the edit (levenshtein) distance between strings S1 S2."
+    (let* ((l1 (length s1))
+	   (l2 (length s2))
+	   (dist (vconcat (mapcar (lambda (_) (make-vector (1+ l2) nil))
+				  (number-sequence 1 (1+ l1)))))
+	   (in (lambda (i j) (aref (aref dist i) j))))
+      (setf (aref (aref dist 0) 0) 0)
+      (dolist (j (number-sequence 1 l2))
+        (setf (aref (aref dist 0) j) j))
+      (dolist (i (number-sequence 1 l1))
+        (setf (aref (aref dist i) 0) i)
+        (dolist (j (number-sequence 1 l2))
+	  (setf (aref (aref dist i) j)
+	        (min
+	         (1+ (funcall in (1- i) j))
+	         (1+ (funcall in i (1- j)))
+	         (+ (if (equal (aref s1 (1- i)) (aref s2 (1- j))) 0 1)
+		    (funcall in (1- i) (1- j)))))))
+      (funcall in l1 l2))))
+
+(define-obsolete-function-alias 'org-babel-edit-distance 'org-string-distance
+  "9.5")
 
 
 ;;; Emacs < 26.1 compatibility
@@ -179,9 +215,9 @@ This is a floating point number if the size is too large for an integer."
 Case is significant."
     (string< s1 s2)))
 
-;; The time- functions below translate nil to `current-time` and
-;; accept an integer as of Emacs 25.  `decode-time` and
-;; `format-time-string` accept nil on Emacs 24 but don't accept an
+;; The time- functions below translate nil to 'current-time' and
+;; accept an integer as of Emacs 25.  'decode-time' and
+;; 'format-time-string' accept nil on Emacs 24 but don't accept an
 ;; integer until Emacs 25.
 (if (< emacs-major-version 25)
     (let ((convert
@@ -212,38 +248,38 @@ Case is significant."
 ;;; Obsolete aliases (remove them after the next major release).
 
 ;;;; XEmacs compatibility, now removed.
-(define-obsolete-function-alias 'org-activate-mark 'activate-mark "Org 9.0")
-(define-obsolete-function-alias 'org-add-hook 'add-hook "Org 9.0")
-(define-obsolete-function-alias 'org-bound-and-true-p 'bound-and-true-p "Org 9.0")
-(define-obsolete-function-alias 'org-decompose-region 'decompose-region "Org 9.0")
-(define-obsolete-function-alias 'org-defvaralias 'defvaralias "Org 9.0")
-(define-obsolete-function-alias 'org-detach-overlay 'delete-overlay "Org 9.0")
-(define-obsolete-function-alias 'org-file-equal-p 'file-equal-p "Org 9.0")
-(define-obsolete-function-alias 'org-float-time 'float-time "Org 9.0")
-(define-obsolete-function-alias 'org-indent-line-to 'indent-line-to "Org 9.0")
-(define-obsolete-function-alias 'org-indent-to-column 'indent-to-column "Org 9.0")
-(define-obsolete-function-alias 'org-looking-at-p 'looking-at-p "Org 9.0")
-(define-obsolete-function-alias 'org-looking-back 'looking-back "Org 9.0")
-(define-obsolete-function-alias 'org-match-string-no-properties 'match-string-no-properties "Org 9.0")
-(define-obsolete-function-alias 'org-propertize 'propertize "Org 9.0")
-(define-obsolete-function-alias 'org-select-frame-set-input-focus 'select-frame-set-input-focus "Org 9.0")
-(define-obsolete-function-alias 'org-file-remote-p 'file-remote-p "Org 9.2")
+(define-obsolete-function-alias 'org-activate-mark 'activate-mark "9.0")
+(define-obsolete-function-alias 'org-add-hook 'add-hook "9.0")
+(define-obsolete-function-alias 'org-bound-and-true-p 'bound-and-true-p "9.0")
+(define-obsolete-function-alias 'org-decompose-region 'decompose-region "9.0")
+(define-obsolete-function-alias 'org-defvaralias 'defvaralias "9.0")
+(define-obsolete-function-alias 'org-detach-overlay 'delete-overlay "9.0")
+(define-obsolete-function-alias 'org-file-equal-p 'file-equal-p "9.0")
+(define-obsolete-function-alias 'org-float-time 'float-time "9.0")
+(define-obsolete-function-alias 'org-indent-line-to 'indent-line-to "9.0")
+(define-obsolete-function-alias 'org-indent-to-column 'indent-to-column "9.0")
+(define-obsolete-function-alias 'org-looking-at-p 'looking-at-p "9.0")
+(define-obsolete-function-alias 'org-looking-back 'looking-back "9.0")
+(define-obsolete-function-alias 'org-match-string-no-properties 'match-string-no-properties "9.0")
+(define-obsolete-function-alias 'org-propertize 'propertize "9.0")
+(define-obsolete-function-alias 'org-select-frame-set-input-focus 'select-frame-set-input-focus "9.0")
+(define-obsolete-function-alias 'org-file-remote-p 'file-remote-p "9.2")
 
 (defmacro org-re (s)
   "Replace posix classes in regular expression S."
   (declare (debug (form))
-           (obsolete "you can safely remove it." "Org 9.0"))
+           (obsolete "you can safely remove it." "9.0"))
   s)
 
 ;;;; Functions from cl-lib that Org used to have its own implementation of.
-(define-obsolete-function-alias 'org-count 'cl-count "Org 9.0")
-(define-obsolete-function-alias 'org-every 'cl-every "Org 9.0")
-(define-obsolete-function-alias 'org-find-if 'cl-find-if "Org 9.0")
-(define-obsolete-function-alias 'org-reduce 'cl-reduce "Org 9.0")
-(define-obsolete-function-alias 'org-remove-if 'cl-remove-if "Org 9.0")
-(define-obsolete-function-alias 'org-remove-if-not 'cl-remove-if-not "Org 9.0")
-(define-obsolete-function-alias 'org-some 'cl-some "Org 9.0")
-(define-obsolete-function-alias 'org-floor* 'cl-floor "Org 9.0")
+(define-obsolete-function-alias 'org-count 'cl-count "9.0")
+(define-obsolete-function-alias 'org-every 'cl-every "9.0")
+(define-obsolete-function-alias 'org-find-if 'cl-find-if "9.0")
+(define-obsolete-function-alias 'org-reduce 'cl-reduce "9.0")
+(define-obsolete-function-alias 'org-remove-if 'cl-remove-if "9.0")
+(define-obsolete-function-alias 'org-remove-if-not 'cl-remove-if-not "9.0")
+(define-obsolete-function-alias 'org-some 'cl-some "9.0")
+(define-obsolete-function-alias 'org-floor* 'cl-floor "9.0")
 
 (defun org-sublist (list start end)
   "Return a section of LIST, from START to END.
@@ -251,89 +287,91 @@ Counting starts at 1."
   (cl-subseq list (1- start) end))
 (make-obsolete 'org-sublist
                "use cl-subseq (note the 0-based counting)."
-               "Org 9.0")
+               "9.0")
 
 
 ;;;; Functions available since Emacs 24.3
-(define-obsolete-function-alias 'org-buffer-narrowed-p 'buffer-narrowed-p "Org 9.0")
-(define-obsolete-function-alias 'org-called-interactively-p 'called-interactively-p "Org 9.0")
-(define-obsolete-function-alias 'org-char-to-string 'char-to-string "Org 9.0")
-(define-obsolete-function-alias 'org-delete-directory 'delete-directory "Org 9.0")
-(define-obsolete-function-alias 'org-format-seconds 'format-seconds "Org 9.0")
-(define-obsolete-function-alias 'org-link-escape-browser 'url-encode-url "Org 9.0")
-(define-obsolete-function-alias 'org-no-warnings 'with-no-warnings "Org 9.0")
-(define-obsolete-function-alias 'org-number-sequence 'number-sequence "Org 9.0")
-(define-obsolete-function-alias 'org-pop-to-buffer-same-window 'pop-to-buffer-same-window "Org 9.0")
-(define-obsolete-function-alias 'org-string-match-p 'string-match-p "Org 9.0")
+(define-obsolete-function-alias 'org-buffer-narrowed-p 'buffer-narrowed-p "9.0")
+(define-obsolete-function-alias 'org-called-interactively-p 'called-interactively-p "9.0")
+(define-obsolete-function-alias 'org-char-to-string 'char-to-string "9.0")
+(define-obsolete-function-alias 'org-delete-directory 'delete-directory "9.0")
+(define-obsolete-function-alias 'org-format-seconds 'format-seconds "9.0")
+(define-obsolete-function-alias 'org-link-escape-browser 'url-encode-url "9.0")
+(define-obsolete-function-alias 'org-no-warnings 'with-no-warnings "9.0")
+(define-obsolete-function-alias 'org-number-sequence 'number-sequence "9.0")
+(define-obsolete-function-alias 'org-pop-to-buffer-same-window 'pop-to-buffer-same-window "9.0")
+(define-obsolete-function-alias 'org-string-match-p 'string-match-p "9.0")
 
 ;;;; Functions and variables from previous releases now obsolete.
 (define-obsolete-function-alias 'org-element-remove-indentation
-  'org-remove-indentation "Org 9.0")
+  'org-remove-indentation "9.0")
 (define-obsolete-variable-alias 'org-latex-create-formula-image-program
-  'org-preview-latex-default-process "Org 9.0")
+  'org-preview-latex-default-process "9.0")
 (define-obsolete-variable-alias 'org-latex-preview-ltxpng-directory
-  'org-preview-latex-image-directory "Org 9.0")
-(define-obsolete-function-alias 'org-table-p 'org-at-table-p "Org 9.0")
-(define-obsolete-function-alias 'org-on-heading-p 'org-at-heading-p "Org 9.0")
-(define-obsolete-function-alias 'org-at-regexp-p 'org-in-regexp "Org 8.3")
+  'org-preview-latex-image-directory "9.0")
+(define-obsolete-function-alias 'org-table-p 'org-at-table-p "9.0")
+(define-obsolete-function-alias 'org-on-heading-p 'org-at-heading-p "9.0")
+(define-obsolete-function-alias 'org-at-regexp-p 'org-in-regexp "8.3")
 (define-obsolete-function-alias 'org-image-file-name-regexp
-  'image-file-name-regexp "Org 9.0")
+  'image-file-name-regexp "9.0")
 (define-obsolete-function-alias 'org-completing-read-no-i
-  'completing-read "Org 9.0")
+  'completing-read "9.0")
 (define-obsolete-function-alias 'org-icompleting-read
-  'completing-read "Org 9.0")
-(define-obsolete-function-alias 'org-iread-file-name 'read-file-name "Org 9.0")
+  'completing-read "9.0")
+(define-obsolete-function-alias 'org-iread-file-name 'read-file-name "9.0")
 (define-obsolete-function-alias 'org-days-to-time
-  'org-time-stamp-to-now "Org 8.2")
+  'org-time-stamp-to-now "8.2")
 (define-obsolete-variable-alias 'org-agenda-ignore-drawer-properties
-  'org-agenda-ignore-properties "Org 9.0")
+  'org-agenda-ignore-properties "9.0")
 (define-obsolete-function-alias 'org-preview-latex-fragment
-  'org-toggle-latex-fragment "Org 8.3")
+  'org-toggle-latex-fragment "8.3")
 (define-obsolete-function-alias 'org-export-get-genealogy
-  'org-element-lineage "Org 9.0")
+  'org-element-lineage "9.0")
 (define-obsolete-variable-alias 'org-latex-with-hyperref
-  'org-latex-hyperref-template "Org 9.0")
-(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "Org 9.0")
+  'org-latex-hyperref-template "9.0")
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "9.0")
 (define-obsolete-variable-alias 'org-export-htmlized-org-css-url
-  'org-org-htmlized-css-url "Org 8.2")
-(define-obsolete-function-alias 'org-list-parse-list 'org-list-to-lisp "Org 9.0")
+  'org-org-htmlized-css-url "8.2")
+(define-obsolete-function-alias 'org-list-parse-list 'org-list-to-lisp "9.0")
 (define-obsolete-function-alias 'org-agenda-todayp
-  'org-agenda-today-p "Org 9.0")
+  'org-agenda-today-p "9.0")
 (define-obsolete-function-alias 'org-babel-examplize-region
-  'org-babel-examplify-region "Org 9.0")
+  'org-babel-examplify-region "9.0")
 (define-obsolete-variable-alias 'org-babel-capitalize-example-region-markers
-  'org-babel-uppercase-example-markers "Org 9.1")
+  'org-babel-uppercase-example-markers "9.1")
 
-(define-obsolete-function-alias 'org-babel-trim 'org-trim "Org 9.0")
+(define-obsolete-function-alias 'org-babel-trim 'org-trim "9.0")
 (define-obsolete-variable-alias 'org-html-style 'org-html-head "24.4")
 (define-obsolete-function-alias 'org-insert-columns-dblock
-  'org-columns-insert-dblock "Org 9.0")
+  'org-columns-insert-dblock "9.0")
 (define-obsolete-variable-alias 'org-export-babel-evaluate
-  'org-export-use-babel "Org 9.1")
+  'org-export-use-babel "9.1")
 (define-obsolete-function-alias 'org-activate-bracket-links
-  'org-activate-links "Org 9.0")
-(define-obsolete-function-alias 'org-activate-plain-links 'ignore "Org 9.0")
-(define-obsolete-function-alias 'org-activate-angle-links 'ignore "Org 9.0")
-(define-obsolete-function-alias 'org-remove-double-quotes 'org-strip-quotes "Org 9.0")
+  'org-activate-links "9.0")
+(define-obsolete-function-alias 'org-activate-plain-links 'ignore "9.0")
+(define-obsolete-function-alias 'org-activate-angle-links 'ignore "9.0")
+(define-obsolete-function-alias 'org-remove-double-quotes 'org-strip-quotes "9.0")
 (define-obsolete-function-alias 'org-get-indentation
-  'current-indentation "Org 9.2")
-(define-obsolete-function-alias 'org-capture-member 'org-capture-get "Org 9.2")
+  'current-indentation "9.2")
+(define-obsolete-function-alias 'org-capture-member 'org-capture-get "9.2")
 (define-obsolete-function-alias 'org-remove-from-invisibility-spec
-  'remove-from-invisibility-spec "Org 9.2")
+  'remove-from-invisibility-spec "9.2")
 
 (define-obsolete-variable-alias 'org-effort-durations 'org-duration-units
-  "Org 9.2")
+  "9.2")
 
 (define-obsolete-function-alias 'org-toggle-latex-fragment 'org-latex-preview
-  "Org 9.3")
+  "9.3")
 
 (define-obsolete-function-alias 'org-remove-latex-fragment-image-overlays
-  'org-clear-latex-preview "Org 9.3")
+  'org-clear-latex-preview "9.3")
 
 (define-obsolete-variable-alias 'org-attach-directory
-  'org-attach-id-dir "Org 9.3")
-(make-obsolete 'org-attach-store-link "No longer used" "Org 9.4")
-(make-obsolete 'org-attach-expand-link "No longer used" "Org 9.4")
+  'org-attach-id-dir "9.3")
+(make-obsolete 'org-attach-store-link "No longer used" "9.4")
+(make-obsolete 'org-attach-expand-link "No longer used" "9.4")
+
+(define-obsolete-function-alias 'org-file-url-p 'org-url-p "9.5")
 
 (defun org-in-fixed-width-region-p ()
   "Non-nil if point in a fixed-width region."
@@ -341,7 +379,7 @@ Counting starts at 1."
     (eq 'fixed-width (org-element-type (org-element-at-point)))))
 (make-obsolete 'org-in-fixed-width-region-p
                "use `org-element' library"
-               "Org 9.0")
+               "9.0")
 
 (defun org-compatible-face (inherits specs)
   "Make a compatible face specification.
@@ -352,7 +390,7 @@ is, use SPECS to define the face."
   (if (facep inherits)
       (list (list t :inherit inherits))
     specs))
-(make-obsolete 'org-compatible-face "you can remove it." "Org 9.0")
+(make-obsolete 'org-compatible-face "you can remove it." "9.0")
 
 (defun org-add-link-type (type &optional follow export)
   "Add a new TYPE link.
@@ -383,7 +421,7 @@ See `org-link-parameters' for documentation on the other parameters."
   (org-link-set-parameters type :follow follow :export export)
   (message "Created %s link." type))
 
-(make-obsolete 'org-add-link-type "use `org-link-set-parameters' instead." "Org 9.0")
+(make-obsolete 'org-add-link-type "use `org-link-set-parameters' instead." "9.0")
 
 ;;;; Functions unused in Org core.
 (defun org-table-recognize-table.el ()
@@ -407,12 +445,12 @@ See `org-link-parameters' for documentation on the other parameters."
 ;; Not used since commit 6d1e3082, Feb 2010.
 (make-obsolete 'org-table-recognize-table.el
                "please notify Org mailing list if you use this function."
-               "Org 9.0")
+               "9.0")
 
 (defmacro org-preserve-lc (&rest body)
   (declare (debug (body))
 	   (obsolete "please notify Org mailing list if you use this function."
-		     "Org 9.2"))
+		     "9.2"))
   (org-with-gensyms (line col)
     `(let ((,line (org-current-line))
 	   (,col (current-column)))
@@ -424,12 +462,12 @@ See `org-link-parameters' for documentation on the other parameters."
 (defun org-version-check (version &rest _)
   "Non-nil if VERSION is lower (older) than `emacs-version'."
   (declare (obsolete "use `version<' or `fboundp' instead."
-		     "Org 9.2"))
+		     "9.2"))
   (version< version emacs-version))
 
 (defun org-remove-angle-brackets (s)
   (org-unbracket-string "<" ">" s))
-(make-obsolete 'org-remove-angle-brackets 'org-unbracket-string "Org 9.0")
+(make-obsolete 'org-remove-angle-brackets 'org-unbracket-string "9.0")
 
 (defcustom org-publish-sitemap-file-entry-format "%t"
   "Format string for site-map file entry.
@@ -443,7 +481,7 @@ You could use brackets to delimit on what part the link will be.
 (make-obsolete-variable
  'org-publish-sitemap-file-entry-format
  "set `:sitemap-format-entry' in `org-publish-project-alist' instead."
- "Org 9.1")
+ "9.1")
 
 (defvar org-agenda-skip-regexp)
 (defun org-agenda-skip-entry-when-regexp-matches ()
@@ -452,7 +490,7 @@ If yes, it returns the end position of this entry, causing agenda commands
 to skip the entry but continuing the search in the subtree.  This is a
 function that can be put into `org-agenda-skip-function' for the duration
 of a command."
-  (declare (obsolete "use `org-agenda-skip-if' instead." "Org 9.1"))
+  (declare (obsolete "use `org-agenda-skip-if' instead." "9.1"))
   (let ((end (save-excursion (org-end-of-subtree t)))
 	skip)
     (save-excursion
@@ -464,7 +502,7 @@ of a command."
 If yes, it returns the end position of this tree, causing agenda commands
 to skip this subtree.  This is a function that can be put into
 `org-agenda-skip-function' for the duration of a command."
-  (declare (obsolete "use `org-agenda-skip-if' instead." "Org 9.1"))
+  (declare (obsolete "use `org-agenda-skip-if' instead." "9.1"))
   (let ((end (save-excursion (org-end-of-subtree t)))
 	skip)
     (save-excursion
@@ -478,7 +516,7 @@ causing agenda commands to skip the entry but continuing the search in
 the subtree.  This is a function that can be put into
 `org-agenda-skip-function' for the duration of a command.  An important
 use of this function is for the stuck project list."
-  (declare (obsolete "use `org-agenda-skip-if' instead." "Org 9.1"))
+  (declare (obsolete "use `org-agenda-skip-if' instead." "9.1"))
   (let ((end (save-excursion (org-end-of-subtree t)))
 	(entry-end (save-excursion (outline-next-heading) (1- (point))))
 	skip)
@@ -487,126 +525,126 @@ use of this function is for the stuck project list."
     (and skip entry-end)))
 
 (define-obsolete-function-alias 'org-minutes-to-clocksum-string
-  'org-duration-from-minutes "Org 9.1")
+  'org-duration-from-minutes "9.1")
 
 (define-obsolete-function-alias 'org-hh:mm-string-to-minutes
-  'org-duration-to-minutes "Org 9.1")
+  'org-duration-to-minutes "9.1")
 
 (define-obsolete-function-alias 'org-duration-string-to-minutes
-  'org-duration-to-minutes "Org 9.1")
+  'org-duration-to-minutes "9.1")
 
 (make-obsolete-variable 'org-time-clocksum-format
-  "set `org-duration-format' instead." "Org 9.1")
+                        "set `org-duration-format' instead." "9.1")
 
 (make-obsolete-variable 'org-time-clocksum-use-fractional
-  "set `org-duration-format' instead." "Org 9.1")
+                        "set `org-duration-format' instead." "9.1")
 
 (make-obsolete-variable 'org-time-clocksum-fractional-format
-  "set `org-duration-format' instead." "Org 9.1")
+                        "set `org-duration-format' instead." "9.1")
 
 (make-obsolete-variable 'org-time-clocksum-use-effort-durations
-  "set `org-duration-units' instead." "Org 9.1")
+                        "set `org-duration-units' instead." "9.1")
 
 (define-obsolete-function-alias 'org-babel-number-p
-  'org-babel--string-to-number "Org 9.0")
+  'org-babel--string-to-number "9.0")
 
 (define-obsolete-variable-alias 'org-usenet-links-prefer-google
-  'org-gnus-prefer-web-links "Org 9.1")
+  'org-gnus-prefer-web-links "9.1")
 
 (define-obsolete-variable-alias 'org-texinfo-def-table-markup
-  'org-texinfo-table-default-markup "Org 9.1")
+  'org-texinfo-table-default-markup "9.1")
 
 (define-obsolete-variable-alias 'org-agenda-overriding-columns-format
-  'org-overriding-columns-format "Org 9.2.2")
+  'org-overriding-columns-format "9.2.2")
 
 (define-obsolete-variable-alias 'org-doi-server-url
-  'org-link-doi-server-url "Org 9.3")
+  'org-link-doi-server-url "9.3")
 
 (define-obsolete-variable-alias 'org-email-link-description-format
-  'org-link-email-description-format "Org 9.3")
+  'org-link-email-description-format "9.3")
 
 (define-obsolete-variable-alias 'org-make-link-description-function
-  'org-link-make-description-function "Org 9.3")
+  'org-link-make-description-function "9.3")
 
 (define-obsolete-variable-alias 'org-from-is-user-regexp
-  'org-link-from-user-regexp "Org 9.3")
+  'org-link-from-user-regexp "9.3")
 
 (define-obsolete-variable-alias 'org-descriptive-links
-  'org-link-descriptive "Org 9.3")
+  'org-link-descriptive "9.3")
 
 (define-obsolete-variable-alias 'org-context-in-file-links
-  'org-link-context-for-files "Org 9.3")
+  'org-link-context-for-files "9.3")
 
 (define-obsolete-variable-alias 'org-keep-stored-link-after-insertion
-  'org-link-keep-stored-after-insertion "Org 9.3")
+  'org-link-keep-stored-after-insertion "9.3")
 
 (define-obsolete-variable-alias 'org-display-internal-link-with-indirect-buffer
-  'org-link-use-indirect-buffer-for-internals "Org 9.3")
+  'org-link-use-indirect-buffer-for-internals "9.3")
 
 (define-obsolete-variable-alias 'org-confirm-shell-link-function
-  'org-link-shell-confirm-function "Org 9.3")
+  'org-link-shell-confirm-function "9.3")
 
 (define-obsolete-variable-alias 'org-confirm-shell-link-not-regexp
-  'org-link-shell-skip-confirm-regexp "Org 9.3")
+  'org-link-shell-skip-confirm-regexp "9.3")
 
 (define-obsolete-variable-alias 'org-confirm-elisp-link-function
-  'org-link-elisp-confirm-function "Org 9.3")
+  'org-link-elisp-confirm-function "9.3")
 
 (define-obsolete-variable-alias 'org-confirm-elisp-link-not-regexp
-  'org-link-elisp-skip-confirm-regexp "Org 9.3")
+  'org-link-elisp-skip-confirm-regexp "9.3")
 
 (define-obsolete-function-alias 'org-file-complete-link
-  'org-link-complete-file "Org 9.3")
+  'org-link-complete-file "9.3")
 
 (define-obsolete-function-alias 'org-email-link-description
-  'org-link-email-description "Org 9.3")
+  'org-link-email-description "9.3")
 
 (define-obsolete-function-alias 'org-make-link-string
-  'org-link-make-string "Org 9.3")
+  'org-link-make-string "9.3")
 
 (define-obsolete-function-alias 'org-store-link-props
-  'org-link-store-props "Org 9.3")
+  'org-link-store-props "9.3")
 
 (define-obsolete-function-alias 'org-add-link-props
-  'org-link-add-props "Org 9.3")
+  'org-link-add-props "9.3")
 
 (define-obsolete-function-alias 'org-make-org-heading-search-string
-  'org-link-heading-search-string "Org 9.3")
+  'org-link-heading-search-string "9.3")
 
 (define-obsolete-function-alias 'org-make-link-regexps
-  'org-link-make-regexps "Org 9.3")
+  'org-link-make-regexps "9.3")
 
 (define-obsolete-function-alias 'org-property-global-value
-  'org-property-global-or-keyword-value "Org 9.3")
+  'org-property-global-or-keyword-value "9.3")
 
-(make-obsolete-variable 'org-file-properties 'org-keyword-properties "Org 9.3")
+(make-obsolete-variable 'org-file-properties 'org-keyword-properties "9.3")
 
 (define-obsolete-variable-alias 'org-angle-link-re
-  'org-link-angle-re "Org 9.3")
+  'org-link-angle-re "9.3")
 
 (define-obsolete-variable-alias 'org-plain-link-re
-  'org-link-plain-re "Org 9.3")
+  'org-link-plain-re "9.3")
 
 (define-obsolete-variable-alias 'org-bracket-link-regexp
-  'org-link-bracket-re "Org 9.3")
+  'org-link-bracket-re "9.3")
 
 (define-obsolete-variable-alias 'org-bracket-link-analytic-regexp
-  'org-link-bracket-re "Org 9.3")
+  'org-link-bracket-re "9.3")
 
 (define-obsolete-variable-alias 'org-any-link-re
-  'org-link-any-re "Org 9.3")
+  'org-link-any-re "9.3")
 
 (define-obsolete-function-alias 'org-open-link-from-string
-  'org-link-open-from-string "Org 9.3")
+  'org-link-open-from-string "9.3")
 
 (define-obsolete-function-alias 'org-add-angle-brackets
-  'org-link-add-angle-brackets "Org 9.3")
+  'org-link-add-angle-brackets "9.3")
 
 ;; The function was made obsolete by commit 65399674d5 of 2013-02-22.
 ;; This make-obsolete call was added 2016-09-01.
 (make-obsolete 'org-capture-import-remember-templates
 	       "use the `org-capture-templates' variable instead."
-	       "Org 9.0")
+	       "9.0")
 
 (defun org-show-block-all ()
   "Unfold all blocks in the current buffer."
@@ -615,34 +653,34 @@ use of this function is for the stuck project list."
 
 (make-obsolete 'org-show-block-all
 	       "use `org-show-all' instead."
-	       "Org 9.2")
+	       "9.2")
 
-(define-obsolete-function-alias 'org-get-tags-at 'org-get-tags "Org 9.2")
+(define-obsolete-function-alias 'org-get-tags-at 'org-get-tags "9.2")
 
 (defun org-get-local-tags ()
   "Get a list of tags defined in the current headline."
-  (declare (obsolete "use `org-get-tags' instead." "Org 9.2"))
+  (declare (obsolete "use `org-get-tags' instead." "9.2"))
   (org-get-tags nil 'local))
 
 (defun org-get-local-tags-at (&optional pos)
   "Get a list of tags defined in the current headline."
-  (declare (obsolete "use `org-get-tags' instead." "Org 9.2"))
+  (declare (obsolete "use `org-get-tags' instead." "9.2"))
   (org-get-tags pos 'local))
 
 (defun org-get-tags-string ()
   "Get the TAGS string in the current headline."
-  (declare (obsolete "use `org-make-tag-string' instead." "Org 9.2"))
+  (declare (obsolete "use `org-make-tag-string' instead." "9.2"))
   (org-make-tag-string (org-get-tags nil t)))
 
-(define-obsolete-function-alias 'org-set-tags-to 'org-set-tags "Org 9.2")
+(define-obsolete-function-alias 'org-set-tags-to 'org-set-tags "9.2")
 
 (defun org-align-all-tags ()
   "Align the tags in all headings."
-  (declare (obsolete "use `org-align-tags' instead." "Org 9.2"))
+  (declare (obsolete "use `org-align-tags' instead." "9.2"))
   (org-align-tags t))
 
 (define-obsolete-function-alias
-  'org-at-property-block-p 'org-at-property-drawer-p "Org 9.4")
+  'org-at-property-block-p 'org-at-property-drawer-p "9.4")
 
 (defun org-flag-drawer (flag &optional element beg end)
   "When FLAG is non-nil, hide the drawer we are at.
@@ -653,7 +691,7 @@ When optional argument ELEMENT is a parsed drawer, as returned by
 
 When buffer positions BEG and END are provided, hide or show that
 region as a drawer without further ado."
-  (declare (obsolete "use `org-hide-drawer-toggle' instead." "Org 9.4"))
+  (declare (obsolete "use `org-hide-drawer-toggle' instead." "9.4"))
   (if (and beg end) (org-flag-region beg end flag 'outline)
     (let ((drawer
 	   (or element
@@ -678,14 +716,14 @@ region as a drawer without further ado."
   "Toggle visibility of block at point.
 Unlike to `org-hide-block-toggle', this function does not throw
 an error.  Return a non-nil value when toggling is successful."
-  (declare (obsolete "use `org-hide-block-toggle' instead." "Org 9.4"))
+  (declare (obsolete "use `org-hide-block-toggle' instead." "9.4"))
   (interactive)
   (org-hide-block-toggle nil t))
 
 (defun org-hide-block-toggle-all ()
   "Toggle the visibility of all blocks in the current buffer."
   (declare (obsolete "please notify Org mailing list if you use this function."
-		     "Org 9.4"))
+		     "9.4"))
   (let ((start (point-min))
         (end (point-max)))
     (save-excursion
@@ -703,17 +741,17 @@ an error.  Return a non-nil value when toggling is successful."
 Calls `org-table-next-row' or `newline-and-indent', depending on
 context.  See the individual commands for more information."
   (declare (obsolete "use `org-return' with INDENT set to t instead."
-		     "Org 9.4"))
+		     "9.4"))
   (interactive)
   (org-return t))
 
 (defmacro org-with-silent-modifications (&rest body)
-  (declare (obsolete "use `with-silent-modifications' instead." "Org 9.2")
+  (declare (obsolete "use `with-silent-modifications' instead." "9.2")
 	   (debug (body)))
   `(with-silent-modifications ,@body))
 
 (define-obsolete-function-alias 'org-babel-strip-quotes
-  'org-strip-quotes "Org 9.2")
+  'org-strip-quotes "9.2")
 
 (define-obsolete-variable-alias 'org-sort-agenda-notime-is-late
   'org-agenda-sort-notime-is-late "9.4")
@@ -730,7 +768,11 @@ context.  See the individual commands for more information."
 (make-obsolete-variable
  'org-maybe-keyword-time-regexp
  "use `org-planning-line-re', followed by `org-ts-regexp-both' instead."
- "Org 9.4")
+ "9.4")
+
+(define-obsolete-function-alias 'org-copy 'org-refile-copy "9.4")
+
+(define-obsolete-function-alias 'org-get-last-sibling 'org-get-previous-sibling "9.4")
 
 ;;;; Obsolete link types
 
@@ -1023,8 +1065,7 @@ ELEMENT is the element at point."
 (defun org-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate'."
   (if (org-at-heading-p)
-      ;; At a headline or an inlinetask, check title only.  This is
-      ;; faster than relying on `org-element-at-point'.
+      ;; At a headline or an inlinetask, check title only.
       (and (save-excursion (beginning-of-line)
 			   (and (let ((case-fold-search t))
 				  (not (looking-at-p "\\*+ END[ \t]*$")))
@@ -1033,7 +1074,9 @@ ELEMENT is the element at point."
 	   (match-beginning 4)
 	   (>= (point) (match-beginning 4))
 	   (or (not (match-beginning 5))
-	       (< (point) (match-beginning 5))))
+	       (< (point) (match-beginning 5)))
+           ;; Ignore checks in code, verbatim and others.
+           (org--flyspell-object-check-p (org-element-at-point)))
     (let* ((element (org-element-at-point))
 	   (post-affiliated (org-element-property :post-affiliated element)))
       (cond
@@ -1102,14 +1145,7 @@ ELEMENT is the element at point."
        (org-show-context 'bookmark-jump)))
 
 ;; Make `bookmark-jump' shows the jump location if it was hidden.
-(eval-after-load 'bookmark
-  '(if (boundp 'bookmark-after-jump-hook)
-       ;; We can use the hook
-       (add-hook 'bookmark-after-jump-hook 'org-bookmark-jump-unhide)
-     ;; Hook not available, use advice
-     (defadvice bookmark-jump (after org-make-visible activate)
-       "Make the position visible."
-       (org-bookmark-jump-unhide))))
+(add-hook 'bookmark-after-jump-hook 'org-bookmark-jump-unhide)
 
 ;;;; Calendar
 
@@ -1205,6 +1241,11 @@ key."
 (defvar session-globals-exclude)
 (eval-after-load 'session
   '(add-to-list 'session-globals-exclude 'org-mark-ring))
+
+;;;; Speed commands
+
+(make-obsolete-variable 'org-speed-commands-user
+                        "configure `org-speed-commands' instead." "9.5")
 
 (provide 'org-compat)
 

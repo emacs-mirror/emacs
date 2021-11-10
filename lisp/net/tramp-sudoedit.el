@@ -190,7 +190,7 @@ arguments to pass to the OPERATION."
 		  (and (numberp ok-if-already-exists)
 		       (not (yes-or-no-p
 			     (format
-			      "File %s already exists; make it a link anyway? "
+			      "File %s already exists; make it a link anyway?"
 			      v2-localname)))))
 	      (tramp-error v2 'file-already-exists newname)
 	    (delete-file newname)))
@@ -464,8 +464,9 @@ the result will be a local, non-Tramp, file name."
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
-      (tramp-sudoedit-send-command
-       v "test" "-r" (tramp-compat-file-name-unquote localname)))))
+      (or (tramp-handle-file-readable-p filename)
+	  (tramp-sudoedit-send-command
+	   v "test" "-r" (tramp-compat-file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -597,6 +598,7 @@ the result will be a local, non-Tramp, file name."
      v (if parents "/" (file-name-directory localname)))
     (unless (tramp-sudoedit-send-command
 	     v (if parents '("mkdir" "-p") "mkdir")
+	     "-m" (format "%#o" (default-file-modes))
 	     (tramp-compat-file-name-unquote localname))
       (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
@@ -631,7 +633,7 @@ component is used as the target of the symlink."
 		       (not
 			(yes-or-no-p
 			 (format
-			  "File %s already exists; make it a link anyway? "
+			  "File %s already exists; make it a link anyway?"
 			  localname)))))
 	      (tramp-error v 'file-already-exists localname)
 	    (delete-file linkname)))
@@ -817,6 +819,9 @@ in case of error, t otherwise."
 		      (tramp-compat-flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
+	   ;; The password shall be cached also in case of "emacs -Q".
+	   ;; See `tramp-process-actions'.
+	   (tramp-cache-read-persistent-data t)
 	   ;; We do not want to save the password.
 	   auth-source-save-behavior)
       (tramp-message vec 6 "%s" (string-join (process-command p) " "))

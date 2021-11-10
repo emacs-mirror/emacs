@@ -283,6 +283,7 @@ are also supported; unsupported long options are silently ignored."
       (funcall orig-fun
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
+    (setq switches (or switches ""))
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory))
 	  (orig-file file)
@@ -599,7 +600,7 @@ to a non-nil value."
   "Return t if versioned string S1 should sort before versioned string S2.
 
 Case is significant if `ls-lisp-ignore-case' is nil.
-This is the same as string-lessp (with the exception of case
+This is the same as `string-lessp' (with the exception of case
 insensitivity), but sequences of digits are compared numerically,
 as a whole, in the same manner as the `strverscmp' function available
 in some standard C libraries does."

@@ -24,6 +24,8 @@
 ;; Originally, there are many test functions scattered among the
 ;; Semantic source files.  This file consolidates them.
 
+;;; Code:
+
 (require 'data-debug)
 
 ;;; From semantic-complete
@@ -46,7 +48,7 @@
 All systems are different.  Ask questions along the way."
   (interactive)
   (let ((doload nil))
-    (when (y-or-n-p "Create a system database to test with? ")
+    (when (y-or-n-p "Create a system database to test with?")
       (call-interactively 'semanticdb-create-ebrowse-database)
       (setq doload t))
     ;;  Should we load in caches
@@ -269,3 +271,5 @@ tag that contains point, and return that."
 		 Lcount (semantic-tag-name target)
 		 (semantic-elapsed-time start nil)))
       Lcount)))
+
+;;; semantic-tests.el ends here

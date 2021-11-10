@@ -9,7 +9,7 @@
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
-;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (eval-when-compile (require 'cl-lib))
 
@@ -450,7 +450,7 @@ Please send all bug fixes and enhancements to
 ;;     (setq ps-left-header (list 'moe-func 'larry-var "(Curly)"))
 ;;
 ;; Note that Curly has the PostScript string delimiters inside his quotes --
-;; those aren't misplaced lisp delimiters!
+;; those aren't misplaced Lisp delimiters!
 ;;
 ;; Without them, PostScript would attempt to call the undefined function Curly,
 ;; which would result in a PostScript error.
@@ -676,7 +676,7 @@ Please send all bug fixes and enhancements to
 ;; Valid values for `ps-print-control-characters' are:
 ;;
 ;;  8-bit           This is the value to use when you want an ASCII encoding of
-;;                  any control or non-ASCII character. Control characters are
+;;                  any control or non-ASCII character.  Control characters are
 ;;                  encoded as "^D", and non-ASCII characters have an
 ;;                  octal encoding.
 ;;
@@ -689,7 +689,7 @@ Please send all bug fixes and enhancements to
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
-;;  nil             No ASCII encoding. Any character is printed according the
+;;  nil             No ASCII encoding.  Any character is printed according the
 ;;                  current font.
 ;;
 ;; Any other value is treated as nil.
@@ -968,7 +968,7 @@ Please send all bug fixes and enhancements to
 ;;	    ps-font-info-database))
 ;; - Now you can use this font family with any size:
 ;;	(setq ps-font-family 'Helvetica)
-;; - if you want to use this family in another emacs session, you must put into
+;; - if you want to use this family in another Emacs session, you must put into
 ;;   your `~/.emacs':
 ;;	(require 'ps-print)
 ;;	(setq ps-font-info-database (append ...)))
@@ -1101,7 +1101,7 @@ Please send all bug fixes and enhancements to
 ;; -----------------------
 ;;
 ;; As ps-print uses PostScript to print buffers, it is possible to have other
-;; attributes associated with faces. So the new attributes used by ps-print
+;; attributes associated with faces.  So the new attributes used by ps-print
 ;; are:
 ;;
 ;;   strikeout - like underline, but the line is in middle of text.
@@ -1423,7 +1423,7 @@ Please send all bug fixes and enhancements to
 ;;  * Check `ps-paper-type': Sudhakar Frederick <sfrederi@asc.corp.mot.com>
 ;;
 ;; Thanks to Jacques Duthen <duthen@cegelec-red.fr> (Jack) for version 3.4 I
-;; started from. [vinicius]
+;; started from.  [vinicius]
 ;;
 ;; Thanks to Jim Thompson <?@?> for the 2.8 version I started from.  [jack]
 ;;
@@ -2788,7 +2788,7 @@ Each element comprises: font family (the key), name, bold, italic, bold-italic,
 reference size, line height, space width, average character width.
 To get the info for another specific font (say Helvetica), do the following:
 - create a new buffer
-- generate the PostScript image to a file (C-u M-x ps-print-buffer)
+- generate the PostScript image to a file (\\[universal-argument] \\[ps-print-buffer])
 - open this file and delete the leading `%' (which is the PostScript comment
   character) from the line
 	   `% 3 cm 20 cm moveto  10/Courier ReportFontInfo  showpage'
@@ -3855,7 +3855,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 (defun ps-color-scale (color)
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
-  (mapcar #'(lambda (value) (/ value ps-print-color-scale))
+  (mapcar (lambda (value) (/ value ps-print-color-scale))
 	  (color-values color)))
 
 
@@ -3878,7 +3878,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 	(with-temp-buffer
 	  (insert-file-contents filename)
 	  (buffer-string))
-      (error "ps-print PostScript prologue `%s' file was not found"
+      (error "ps-print: PostScript prologue `%s' file was not found"
 	     filename))))
 
 
@@ -4747,11 +4747,11 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 (defun ps-background-pages (page-list func)
   (if page-list
       (mapcar
-       #'(lambda (pages)
-	   (let ((start (if (consp pages) (car pages) pages))
-		 (end   (if (consp pages) (cdr pages) pages)))
-	     (and (integerp start) (integerp end) (<= start end)
-		  (add-to-list 'ps-background-pages (vector start end func)))))
+       (lambda (pages)
+         (let ((start (if (consp pages) (car pages) pages))
+               (end   (if (consp pages) (cdr pages) pages)))
+           (and (integerp start) (integerp end) (<= start end)
+                (add-to-list 'ps-background-pages (vector start end func)))))
        page-list)
     (setq ps-background-all-pages (cons func ps-background-all-pages))))
 
@@ -4789,76 +4789,76 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 (defun ps-background-text ()
   (mapcar
-   #'(lambda (text)
-       (setq ps-background-text-count (1+ ps-background-text-count))
-       (ps-output (format "/ShowBackText-%d{\n" ps-background-text-count))
-       (ps-output-string (nth 0 text))	; text
-       (ps-output
-	"\n"
-	(ps-float-format (nth 4 text) 200.0) ; font size
-	(format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
-	(ps-float-format (nth 6 text)
-			 "PrintHeight PrintPageWidth atan") ; rotation
-	(ps-float-format (nth 5 text) 0.85) ; gray
-	(ps-float-format (nth 1 text) "0") ; x position
-	(ps-float-format (nth 2 text) "0") ; y position
-	"\nShowBackText}def\n")
-       (ps-background-pages (nthcdr 7 text) ; page list
-			    (format "ShowBackText-%d\n"
-				    ps-background-text-count)))
+   (lambda (text)
+     (setq ps-background-text-count (1+ ps-background-text-count))
+     (ps-output (format "/ShowBackText-%d{\n" ps-background-text-count))
+     (ps-output-string (nth 0 text))	; text
+     (ps-output
+      "\n"
+      (ps-float-format (nth 4 text) 200.0) ; font size
+      (format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
+      (ps-float-format (nth 6 text)
+                       "PrintHeight PrintPageWidth atan") ; rotation
+      (ps-float-format (nth 5 text) 0.85) ; gray
+      (ps-float-format (nth 1 text) "0") ; x position
+      (ps-float-format (nth 2 text) "0") ; y position
+      "\nShowBackText}def\n")
+     (ps-background-pages (nthcdr 7 text) ; page list
+                          (format "ShowBackText-%d\n"
+                                  ps-background-text-count)))
    ps-print-background-text))
 
 
 (defun ps-background-image ()
   (mapcar
-   #'(lambda (image)
-       (let ((image-file (expand-file-name (nth 0 image))))
-	 (when (file-readable-p image-file)
-	   (setq ps-background-image-count (1+ ps-background-image-count))
-	   (ps-output
-	    (format "/ShowBackImage-%d{\n--back-- "
-		    ps-background-image-count)
-	    (ps-float-format (nth 5 image) 0.0) ; rotation
-	    (ps-float-format (nth 3 image) 1.0) ; x scale
-	    (ps-float-format (nth 4 image) 1.0) ; y scale
-	    (ps-float-format (nth 1 image) ; x position
-			     "PrintPageWidth 2 div")
-	    (ps-float-format (nth 2 image) ; y position
-			     "PrintHeight 2 div BottomMargin add")
-	    "\nBeginBackImage\n")
-	   (ps-insert-file image-file)
-	   ;; coordinate adjustment to center image
-	   ;; around x and y position
-	   (let ((box (ps-get-boundingbox)))
-	     (with-current-buffer ps-spool-buffer
-	       (save-excursion
-		 (if (re-search-backward "^--back--" nil t)
-		     (replace-match
-		      (format "%s %s"
-			      (ps-float-format
-			       (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
-				     (aref box 0))))
-			      (ps-float-format
-			       (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
-				     (aref box 1)))))
-		      t)))))
-	   (ps-output "\nEndBackImage}def\n")
-	   (ps-background-pages (nthcdr 6 image) ; page list
-				(format "ShowBackImage-%d\n"
-					ps-background-image-count)))))
+   (lambda (image)
+     (let ((image-file (expand-file-name (nth 0 image))))
+       (when (file-readable-p image-file)
+         (setq ps-background-image-count (1+ ps-background-image-count))
+         (ps-output
+          (format "/ShowBackImage-%d{\n--back-- "
+                  ps-background-image-count)
+          (ps-float-format (nth 5 image) 0.0) ; rotation
+          (ps-float-format (nth 3 image) 1.0) ; x scale
+          (ps-float-format (nth 4 image) 1.0) ; y scale
+          (ps-float-format (nth 1 image) ; x position
+                           "PrintPageWidth 2 div")
+          (ps-float-format (nth 2 image) ; y position
+                           "PrintHeight 2 div BottomMargin add")
+          "\nBeginBackImage\n")
+         (ps-insert-file image-file)
+         ;; coordinate adjustment to center image
+         ;; around x and y position
+         (let ((box (ps-get-boundingbox)))
+           (with-current-buffer ps-spool-buffer
+             (save-excursion
+               (if (re-search-backward "^--back--" nil t)
+                   (replace-match
+                    (format "%s %s"
+                            (ps-float-format
+                             (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
+                                   (aref box 0))))
+                            (ps-float-format
+                             (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
+                                   (aref box 1)))))
+                    t)))))
+         (ps-output "\nEndBackImage}def\n")
+         (ps-background-pages (nthcdr 6 image) ; page list
+                              (format "ShowBackImage-%d\n"
+                                      ps-background-image-count)))))
    ps-print-background-image))
 
 
 (defun ps-background (page-number)
   (let (has-local-background)
-    (mapc #'(lambda (range)
-	      (and (<= (aref range 0) page-number)
-		   (<= page-number (aref range 1))
-		   (if has-local-background
-		       (ps-output (aref range 2))
-		     (setq has-local-background t)
-		     (ps-output "/printLocalBackground{\n"
-				(aref range 2)))))
+    (mapc (lambda (range)
+            (and (<= (aref range 0) page-number)
+                 (<= page-number (aref range 1))
+                 (if has-local-background
+                     (ps-output (aref range 2))
+                   (setq has-local-background t)
+                   (ps-output "/printLocalBackground{\n"
+                              (aref range 2)))))
 	  ps-background-pages)
     (and has-local-background (ps-output "}def\n"))))
 
@@ -5697,8 +5697,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		  (> (car page) 0)
 		  (<= (car page) (cdr page))
 		  (setq new (cons page new))))))
-    (setq ps-selected-pages      (sort new #'(lambda (one other)
-					       (< (car one) (car other))))
+    (setq ps-selected-pages      (sort new (lambda (one other)
+                                             (< (car one) (car other))))
 	  ps-last-selected-pages ps-selected-pages
 	  ps-first-page          nil
 	  ps-last-page           nil))
@@ -5782,8 +5782,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       "unspecified-fg"
 			       0.0)
 	ps-foreground-list    (mapcar
-			       #'(lambda (arg)
-				   (ps-rgb-color arg "unspecified-fg" 0.0))
+                               (lambda (arg)
+                                 (ps-rgb-color arg "unspecified-fg" 0.0))
 			       (append (and (not (member ps-print-color-p
 							 '(nil black-white)))
 					    ps-fg-list)
@@ -6012,9 +6012,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (if (and (boundp 'ucs-mule-8859-to-mule-unicode)
 	   (char-table-p ucs-mule-8859-to-mule-unicode))
 	(map-char-table
-	 #'(lambda (k v)
-	     (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
-		 (aset tbl k v)))
+         (lambda (k v)
+           (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
+               (aset tbl k v)))
 	 ucs-mule-8859-to-mule-unicode))
     tbl)
   "Translation table for PostScript printing.

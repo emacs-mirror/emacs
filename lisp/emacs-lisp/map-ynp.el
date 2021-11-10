@@ -79,7 +79,7 @@ of the alist has the form (KEY FUNCTION HELP), where KEY is a character;
 FUNCTION is a function of one argument (an object from LIST); and HELP
 is a string.  When the user presses KEY, FUNCTION is called; if it
 returns non-nil, the object is considered to have been \"acted upon\",
-and `map-y-or-n-p' proceeeds to the next object from LIST.  If
+and `map-y-or-n-p' proceeds to the next object from LIST.  If
 FUNCTION returns nil, the prompt is re-issued for the same object: this
 comes in handy if FUNCTION produces some display that will allow the
 user to make an intelligent decision whether the object in question

@@ -85,42 +85,50 @@ Each element has the form (WHERE BYTECODE STACK) where:
       (if (eq bytecode (cadr elem)) (setq where (car elem))))
     where))
 
+(defun advice--make-single-doc (flist function macrop)
+  (let ((where (advice--where flist)))
+    (concat
+     (format "This %s has %s advice: "
+             (if macrop "macro" "function")
+             where)
+     (let ((fun (advice--car flist)))
+       (if (symbolp fun) (format-message "`%S'." fun)
+         (let* ((name (cdr (assq 'name (advice--props flist))))
+                (doc (documentation fun t))
+                (usage (help-split-fundoc doc function)))
+           (if usage (setq doc (cdr usage)))
+           (if name
+               (if doc
+                   (format "%s\n%s" name doc)
+                 (format "%s" name))
+             (or doc "No documentation")))))
+     "\n")))
+
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
   (let* ((flist (indirect-function function))
          (docfun nil)
          (macrop (eq 'macro (car-safe flist)))
          (docstring nil))
-    (if macrop (setq flist (cdr flist)))
-    (while (advice--p flist)
-      (let ((doc (aref flist 4))
-            (where (advice--where flist)))
+    (when macrop
+      (setq flist (cdr flist)))
+    (if (and (autoloadp flist)
+             (get function 'advice--pending))
+        (setq docstring
+              (advice--make-single-doc (get function 'advice--pending)
+                                       function macrop))
+      (while (advice--p flist)
         ;; Hack attack!  For advices installed before calling
         ;; Snarf-documentation, the integer offset into the DOC file will not
         ;; be installed in the "core unadvised function" but in the advice
         ;; object instead!  So here we try to undo the damage.
-        (if (integerp doc) (setq docfun flist))
-        (setq docstring
-              (concat
-               docstring
-               (format "This %s has %s advice: "
-                       (if macrop "macro" "function")
-                       where)
-               (let ((fun (advice--car flist)))
-                 (if (symbolp fun) (format-message "`%S'." fun)
-                   (let* ((name (cdr (assq 'name (advice--props flist))))
-                          (doc (documentation fun t))
-                          (usage (help-split-fundoc doc function)))
-                     (if usage (setq doc (cdr usage)))
-                     (if name
-                         (if doc
-                             (format "%s\n%s" name doc)
-                           (format "%s" name))
-                       (or doc "No documentation")))))
-               "\n")))
-      (setq flist (advice--cdr flist)))
-    (if docstring (setq docstring (concat docstring "\n")))
-    (unless docfun (setq docfun flist))
+        (when (integerp (aref flist 4))
+          (setq docfun flist))
+        (setq docstring (concat docstring (advice--make-single-doc
+                                           flist function macrop))
+              flist (advice--cdr flist))))
+    (unless docfun
+      (setq docfun flist))
     (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
                       (documentation docfun t)))
            (usage (help-split-fundoc origdoc function)))
@@ -131,7 +139,12 @@ Each element has the form (WHERE BYTECODE STACK) where:
                         (if (stringp arglist) t
                           (help--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
-      (help-add-fundoc-usage (concat docstring origdoc) usage))))
+      (help-add-fundoc-usage (concat origdoc
+                                     (if (string-suffix-p "\n" origdoc)
+                                         "\n"
+                                       "\n\n")
+                                     docstring)
+                             usage))))
 
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
@@ -147,7 +160,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
    (t (eval spec))))
 
 (defun advice--interactive-form (function)
-  ;; Like `interactive-form' but tries to avoid autoloading functions.
+  "Like `interactive-form' but tries to avoid autoloading functions."
   (when (commandp function)
     (if (not (and (symbolp function) (autoloadp (indirect-function function))))
         (interactive-form function)
@@ -232,7 +245,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
                           (list (advice--remove-function rest function)))))))
 
 (defvar advice--buffer-local-function-sample nil
-  "keeps an example of the special \"run the default value\" functions.
+  "Keeps an example of the special \"run the default value\" functions.
 These functions play the same role as t in buffer-local hooks, and to recognize
 them, we keep a sample here against which to compare.  Each instance is
 different, but `function-equal' will hopefully ignore those differences.")

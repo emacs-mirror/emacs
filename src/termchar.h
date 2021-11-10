@@ -234,7 +234,7 @@ extern struct tty_display_info *tty_list;
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
 
 struct input_event;
-extern bool tty_handle_tab_bar_click (struct frame *, int, int, bool,
-				      struct input_event *);
+extern Lisp_Object tty_handle_tab_bar_click (struct frame *, int, int, bool,
+					     struct input_event *);
 
 #endif /* EMACS_TERMCHAR_H */

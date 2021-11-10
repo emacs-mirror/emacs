@@ -25,6 +25,7 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x) ; ert-with-temp-directory
 (require 'puny)
 (require 'subr-x)
 (require 'dns)
@@ -64,24 +65,22 @@
 (when (eq system-type 'windows-nt)
   (ert-deftest process-test-quoted-batfile ()
     "Check that Emacs hides CreateProcess deficiency (bug#18745)."
-    (let (batfile)
-      (unwind-protect
-          (progn
-            ;; CreateProcess will fail when both the bat file and 1st
-            ;; argument are quoted, so include spaces in both of those
-            ;; to force quoting.
-            (setq batfile (make-temp-file "echo args" nil ".bat"))
-            (with-temp-file batfile
-              (insert "@echo arg1=%1, arg2=%2\n"))
-            (with-temp-buffer
-              (call-process batfile nil '(t t) t "x &y")
-              (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n")))
-            (with-temp-buffer
-              (call-process-shell-command
-               (mapconcat #'shell-quote-argument (list batfile "x &y") " ")
-               nil '(t t) t)
-              (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n"))))
-        (when batfile (delete-file batfile))))))
+    (ert-with-temp-file batfile
+      ;; CreateProcess will fail when both the bat file and 1st
+      ;; argument are quoted, so include spaces in both of those
+      ;; to force quoting.
+      :prefix "echo args"
+      :suffix ".bat"
+      (with-temp-file batfile
+        (insert "@echo arg1=%1, arg2=%2\n"))
+      (with-temp-buffer
+        (call-process batfile nil '(t t) t "x &y")
+        (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n")))
+      (with-temp-buffer
+        (call-process-shell-command
+         (mapconcat #'shell-quote-argument (list batfile "x &y") " ")
+         nil '(t t) t)
+        (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n"))))))
 
 (ert-deftest process-test-stderr-buffer ()
   (skip-unless (executable-find "bash"))
@@ -531,18 +530,6 @@ FD_SETSIZE."
            (delete-process (pop ,processes))
            ,@body)))))
 
-(defmacro process-tests--with-temp-directory (var &rest body)
-  "Bind VAR to the name of a new directory and evaluate BODY.
-Afterwards, delete the directory."
-  (declare (indent 1) (debug (symbolp body)))
-  (cl-check-type var symbol)
-  (let ((dir (make-symbol "dir")))
-    `(let ((,dir (make-temp-file "emacs-test-" :dir)))
-       (unwind-protect
-           (let ((,var ,dir))
-             ,@body)
-         (delete-directory ,dir :recursive)))))
-
 ;; Tests for FD_SETSIZE overflow (Bug#24325).  The following tests
 ;; generate lots of process objects of the various kinds.  Running the
 ;; tests with assertions enabled should not result in any crashes due
@@ -630,7 +617,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   ;; Avoid hang due to connect/accept handshake on Cygwin (bug#49496).
   (skip-unless (not (eq system-type 'cygwin)))
   (with-timeout (60 (ert-fail "Test timed out"))
-    (process-tests--with-temp-directory directory
+    (ert-with-temp-directory directory
       (process-tests--with-processes processes
         (let* ((num-clients 10)
                (socket-name (expand-file-name "socket" directory))
@@ -745,7 +732,7 @@ Return nil if that can't be determined."
   process-tests--EMFILE-message)
 
 (ert-deftest process-tests/sentinel-called ()
-  "Check that sentinels are called after processes finish"
+  "Check that sentinels are called after processes finish."
   (let ((command (process-tests--emacs-command)))
     (skip-unless command)
     (dolist (conn-type '(pipe pty))
@@ -945,6 +932,12 @@ Return nil if FILENAME doesn't exist."
           )
       (when buf
         (kill-buffer buf)))))
+
+(ert-deftest process-num-processors ()
+  "Sanity checks for num-processors."
+  (should (equal (num-processors) (num-processors)))
+  (should (integerp (num-processors)))
+  (should (< 0 (num-processors))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here

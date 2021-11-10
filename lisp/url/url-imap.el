@@ -22,8 +22,8 @@
 
 ;;; Commentary:
 
-;; Anyway, here's a teaser. It's quite broken in lots of regards, but at
-;; least it seem to work. At least a little. At least when called
+;; Anyway, here's a teaser.  It's quite broken in lots of regards, but at
+;; least it seem to work.  At least a little.  At least when called
 ;; manually like this (I've no idea how it's supposed to be called):
 
 ;; (url-imap (url-generic-parse-url "imap://cyrus.andrew.cmu.edu/archive.c-client;UID=1021"))

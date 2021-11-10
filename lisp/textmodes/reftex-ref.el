@@ -230,7 +230,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                                  (symbol-value reftex-docstruct-symbol)))
               (ding)
               (if (y-or-n-p
-                   (format-message "Label `%s' exists. Use anyway? " label))
+                   (format-message "Label `%s' exists.  Use anyway?" label))
                   (setq valid t)))
 
              ;; Label is ok
@@ -415,7 +415,7 @@ reftex-label.  Rescanning of the buffer can also be requested from the
 label selection menu.
 The function returns the selected label or nil.
 If NO-INSERT is non-nil, do not insert \\ref command, just return label.
-When called with 2 C-u prefix args, disable magic word recognition."
+When called with 2 \\[universal-argument] prefix args, disable magic word recognition."
 
   (interactive)
 
@@ -533,7 +533,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
         (cons (cdr cell) (- (match-end 0) (match-end 1)))
       nil)))
 
-(defvar reftex-select-label-map)
+(defvar reftex-select-label-mode-map)
 (defun reftex-offer-label-menu (typekey)
   ;; Offer a menu with the appropriate labels.
   (let* ((buf (current-buffer))
@@ -605,7 +605,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                     (reftex-select-item
                      reftex-select-label-prompt
                      reftex-select-label-help
-                     reftex-select-label-map
+                     reftex-select-label-mode-map
                      offset
                      'reftex-show-label-location follow))
               (setq key       (car rtn)
@@ -798,7 +798,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
       (push (cons (current-buffer) buffer-invisibility-spec)
             reftex-buffers-with-changed-invisibility)
       (setq buffer-invisibility-spec nil))
-     ((string-match "\r" (buffer-substring beg end))
+     ((string-search "\r" (buffer-substring beg end))
       ;; Invisible with selective display.  We need to copy it.
       (let ((string (buffer-substring-no-properties beg end)))
         (switch-to-buffer "*RefTeX Context Copy*")

@@ -63,7 +63,7 @@ When inserting a closing paren character right before the same character,
 just skip that character instead, so that hitting ( followed by ) results
 in \"()\" rather than \"())\".
 
-This can be convenient for people who find it easier to hit ) than C-f.
+This can be convenient for people who find it easier to hit ) than \\[forward-char].
 
 Can also be a function of one argument (the closer char just
 inserted), in which case that function's return value is
@@ -238,9 +238,9 @@ inside a comment or string."
     (self-insert-command 1)))
 
 (cl-defmacro electric-pair--with-uncached-syntax ((table &optional start) &rest body)
-  "Like `with-syntax-table', but flush the syntax-ppss cache afterwards.
+  "Like `with-syntax-table', but flush the `syntax-ppss' cache afterwards.
 Use this instead of (with-syntax-table TABLE BODY) when BODY
-contains code which may update the syntax-ppss cache.  This
+contains code which may update the `syntax-ppss' cache.  This
 includes calling `parse-partial-sexp' and any sexp-based movement
 functions when `parse-sexp-lookup-properties' is non-nil.  The
 cache is flushed from position START, defaulting to point."
@@ -308,51 +308,51 @@ If point is not enclosed by any lists, return ((t) . (t))."
           ;; called when `scan-sexps' ran perfectly, when it found
           ;; a parenthesis pointing in the direction of travel.
           ;; Also when travel started inside a comment and exited it.
-          #'(lambda ()
-              (setq outermost (list t))
-              (unless innermost
-                (setq innermost (list t)))))
+          (lambda ()
+            (setq outermost (list t))
+            (unless innermost
+              (setq innermost (list t)))))
          (ended-prematurely-fn
           ;; called when `scan-sexps' crashed against a parenthesis
           ;; pointing opposite the direction of travel.  After
           ;; traversing that character, the idea is to travel one sexp
           ;; in the opposite direction looking for a matching
           ;; delimiter.
-          #'(lambda ()
-              (let* ((pos (point))
-                     (matched
-                      (save-excursion
-                        (cond ((< direction 0)
-                               (condition-case nil
-                                   (eq (char-after pos)
-                                       (electric-pair--with-uncached-syntax
-                                           (table)
-                                         (matching-paren
-                                          (char-before
-                                           (scan-sexps (point) 1)))))
-                                 (scan-error nil)))
-                              (t
-                               ;; In this case, no need to use
-                               ;; `scan-sexps', we can use some
-                               ;; `electric-pair--syntax-ppss' in this
-                               ;; case (which uses the quicker
-                               ;; `syntax-ppss' in some cases)
-                               (let* ((ppss (electric-pair--syntax-ppss
-                                             (1- (point))))
-                                      (start (car (last (nth 9 ppss))))
-                                      (opener (char-after start)))
-                                 (and start
-                                      (eq (char-before pos)
-                                          (or (with-syntax-table table
-                                                (matching-paren opener))
-                                              opener))))))))
-                     (actual-pair (if (> direction 0)
-                                      (char-before (point))
-                                    (char-after (point)))))
-                (unless innermost
-                  (setq innermost (cons matched actual-pair)))
-                (unless matched
-                  (setq outermost (cons matched actual-pair)))))))
+          (lambda ()
+            (let* ((pos (point))
+                   (matched
+                    (save-excursion
+                      (cond ((< direction 0)
+                             (condition-case nil
+                                 (eq (char-after pos)
+                                     (electric-pair--with-uncached-syntax
+                                      (table)
+                                      (matching-paren
+                                       (char-before
+                                        (scan-sexps (point) 1)))))
+                               (scan-error nil)))
+                            (t
+                             ;; In this case, no need to use
+                             ;; `scan-sexps', we can use some
+                             ;; `electric-pair--syntax-ppss' in this
+                             ;; case (which uses the quicker
+                             ;; `syntax-ppss' in some cases)
+                             (let* ((ppss (electric-pair--syntax-ppss
+                                           (1- (point))))
+                                    (start (car (last (nth 9 ppss))))
+                                    (opener (char-after start)))
+                               (and start
+                                    (eq (char-before pos)
+                                        (or (with-syntax-table table
+                                              (matching-paren opener))
+                                            opener))))))))
+                   (actual-pair (if (> direction 0)
+                                    (char-before (point))
+                                  (char-after (point)))))
+              (unless innermost
+                (setq innermost (cons matched actual-pair)))
+              (unless matched
+                (setq outermost (cons matched actual-pair)))))))
     (save-excursion
       (while (not outermost)
         (condition-case err
@@ -485,6 +485,27 @@ happened."
     (electric-pair-conservative-inhibit char)))
 
 (defun electric-pair-post-self-insert-function ()
+  "Member of `post-self-insert-hook'.  Do main work for `electric-pair-mode'.
+If the newly inserted character C has delimiter syntax, this
+function may decide to insert additional paired delimiters, or
+skip the insertion of the new character altogether by jumping
+over an existing identical character, or do nothing.
+
+The decision is taken by order of preference:
+
+* According to `use-region-p'.  If this returns non-nil this
+  function will unconditionally \"wrap\" the region in the
+  corresponding delimiter for C;
+
+* According to C alone, by looking C up in the tables
+  `electric-pair-paris' or `electric-pair-text-pairs' (which
+  see);
+
+* According to C's syntax and the syntactic state of the buffer
+  (both as defined by the major mode's syntax table).  This is
+  done by looking up up the variables
+  `electric-pair-inhibit-predicate', `electric-pair-skip-self'
+  and `electric-pair-skip-whitespace' (which see)."
   (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
          (skip-whitespace-info))
     (pcase (electric-pair-syntax-info last-command-event)
@@ -551,18 +572,21 @@ happened."
                          (goto-char pos)
                          (funcall electric-pair-inhibit-predicate
                                   last-command-event)))))
-         (save-excursion (electric-pair--insert pair)))))
-      (_
-       (when (and (if (functionp electric-pair-open-newline-between-pairs)
-                      (funcall electric-pair-open-newline-between-pairs)
-                    electric-pair-open-newline-between-pairs)
-                  (eq last-command-event ?\n)
-                  (< (1+ (point-min)) (point) (point-max))
-                  (eq (save-excursion
-                        (skip-chars-backward "\t\s")
-                        (char-before (1- (point))))
-                      (matching-paren (char-after))))
-         (save-excursion (newline 1 t)))))))
+         (save-excursion (electric-pair--insert pair))))))))
+
+(defun electric-pair-open-newline-between-pairs-psif ()
+  "Honour `electric-pair-open-newline-between-pairs'.
+Member of `post-self-insert-hook' if `electric-pair-mode' is on."
+  (when (and (if (functionp electric-pair-open-newline-between-pairs)
+                 (funcall electric-pair-open-newline-between-pairs)
+               electric-pair-open-newline-between-pairs)
+             (eq last-command-event ?\n)
+             (< (1+ (point-min)) (point) (point-max))
+             (eq (save-excursion
+                   (skip-chars-backward "\t\s")
+                   (char-before (1- (point))))
+                 (matching-paren (char-after))))
+    (save-excursion (newline 1 t))))
 
 (defun electric-pair-will-use-region ()
   (and (use-region-p)
@@ -623,10 +647,15 @@ To toggle the mode in a single buffer, use `electric-pair-local-mode'."
                   ;; `electric-indent-mode' are used together.
                   ;; Use `vc-region-history' on these lines for more info.
                   50)
+        (add-hook 'post-self-insert-hook
+		  #'electric-pair-open-newline-between-pairs-psif
+                  50)
 	(add-hook 'self-insert-uses-region-functions
 		  #'electric-pair-will-use-region))
     (remove-hook 'post-self-insert-hook
                  #'electric-pair-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-pair-open-newline-between-pairs-psif)
     (remove-hook 'self-insert-uses-region-functions
                  #'electric-pair-will-use-region)))
 

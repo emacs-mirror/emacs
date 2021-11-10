@@ -953,6 +953,24 @@ contain less elements than @var{n}.  @var{n} must be an integer.  If
 @end example
 @end defun
 
+@defun seq-union sequence1 sequence2 &optional function
+@cindex sequences, union of
+@cindex union of sequences
+  This function returns a list of the elements that appear either in
+@var{sequence1} or @var{sequence2}.  The elements of the returned list
+are all unique, in the sense that no two elements there will compare
+equal.  If the optional argument @var{function} is non-@code{nil}, it
+should be a function of two arguments to use to compare elements,
+instead of the default @code{equal}.
+
+@example
+@group
+(seq-union [1 2 3] [3 5])
+@result{} (1 2 3 5)
+@end group
+@end example
+@end defun
+
 @defun seq-intersection sequence1 sequence2 &optional function
 @cindex sequences, intersection of
 @cindex intersection of sequences
@@ -1109,6 +1127,23 @@ marker followed by a variable name to be bound to the rest of
 
 The @code{pcase} patterns provide an alternative facility for
 destructuring binding, see @ref{Destructuring with pcase Patterns}.
+@end defmac
+
+@defmac seq-setq var-sequence val-sequence
+@cindex sequence destructuring
+  This macro works similarly to @code{seq-let}, except that values are
+assigned to variables as if by @code{setq} instead of as in a
+@code{let} binding.
+
+@example
+@group
+(let ((a nil)
+      (b nil))
+  (seq-setq (_ a _ b) '(1 2 3 4))
+  (list a b))
+@result{} (2 4)
+@end group
+@end example
 @end defmac
 
 @defun seq-random-elt sequence

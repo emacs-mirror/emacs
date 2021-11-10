@@ -21,6 +21,13 @@
 
 (require 'perl-mode)
 
+(ert-deftest perl-test-lock ()
+  (with-temp-buffer
+    (perl-mode)
+    (insert "$package = foo;")
+    (font-lock-ensure (point-min) (point-max))
+    (should (equal (get-text-property 4 'face) 'font-lock-variable-name-face))))
+
 ;;;; Re-use cperl-mode tests
 
 (defvar cperl-test-mode)

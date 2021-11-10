@@ -525,25 +525,26 @@ be set in `.emacs' instead."
 
 ;; Summary mode faces.
 
-(defface gnus-summary-selected '((t (:underline t)))
+(defface gnus-summary-selected '((t (:underline t :extend t)))
   "Face used for selected articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-cancelled
   '((((class color))
-     (:foreground "yellow" :background "black")))
+     (:foreground "yellow" :background "black" :extend t))
+    (t (:extend t)))
   "Face used for canceled articles."
   :group 'gnus-summary)
 
 (defface gnus-summary-normal-ticked
   '((((class color)
       (background dark))
-     (:foreground "pink"))
+     (:foreground "pink" :extend t))
     (((class color)
       (background light))
-     (:foreground "firebrick"))
+     (:foreground "firebrick" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ticked articles."
   :group 'gnus-summary)
 
@@ -560,12 +561,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-ancient
   '((((class color)
       (background dark))
-     (:foreground "SkyBlue"))
+     (:foreground "SkyBlue" :extend t))
     (((class color)
       (background light))
-     (:foreground "RoyalBlue"))
+     (:foreground "RoyalBlue" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest ancient articles."
   :group 'gnus-summary)
 
@@ -582,10 +583,10 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-undownloaded
    '((((class color)
        (background light))
-      (:foreground "cyan4" :bold nil))
+      (:foreground "cyan4" :bold nil :extend t))
      (((class color) (background dark))
-      (:foreground "LightGray" :bold nil))
-     (t (:inverse-video t)))
+      (:foreground "LightGray" :bold nil :extend t))
+     (t (:inverse-video t :extend t)))
   "Face used for normal interest uncached articles."
   :group 'gnus-summary)
 
@@ -601,7 +602,7 @@ be set in `.emacs' instead."
 
 (defface gnus-summary-normal-unread
   '((t
-     ()))
+     (:extend t)))
   "Face used for normal interest unread articles."
   :group 'gnus-summary)
 
@@ -618,12 +619,12 @@ be set in `.emacs' instead."
 (defface gnus-summary-normal-read
   '((((class color)
       (background dark))
-     (:foreground "PaleGreen"))
+     (:foreground "PaleGreen" :extend t))
     (((class color)
       (background light))
-     (:foreground "DarkGreen"))
+     (:foreground "DarkGreen" :extend t))
     (t
-     ()))
+     (:extend t)))
   "Face used for normal interest read articles."
   :group 'gnus-summary)
 
@@ -797,7 +798,7 @@ be used directly.")
 	       (goto-char (point-min))
                t)))
     (insert
-     (format "
+     "
 	  _    ___ _             _
 	  _ ___ __ ___  __    _ ___
 	  __   _     ___    __  ___
@@ -816,7 +817,7 @@ be used directly.")
 	    _
 	  __
 
-"))
+")
     ;; And then hack it.
     (gnus-indent-rigidly (point-min) (point-max)
 			 (/ (max (- (window-width) (or x 46)) 0) 2))
@@ -1113,7 +1114,7 @@ that case, just return a fully prefixed name of the group --
 (defcustom gnus-secondary-servers nil
   "List of NNTP servers that the user can choose between interactively.
 To make Gnus query you for a server, you have to give `gnus' a
-non-numeric prefix - `C-u M-x gnus', in short."
+non-numeric prefix - `\\[universal-argument] \\[gnus]', in short."
   :group 'gnus-server
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
@@ -2139,8 +2140,9 @@ instance, to switch off all visual things except menus, you can say:
 
 Valid elements include `summary-highlight', `group-highlight',
 `article-highlight', `mouse-face', `summary-menu', `group-menu',
-`article-menu', `tree-highlight', `menu', `highlight', `browse-menu',
-`server-menu', `page-marker', `tree-menu', `binary-menu', and`pick-menu'."
+`article-menu', `tree-highlight', `menu', `highlight',
+`browse-menu', `server-menu', `page-marker', `tree-menu',
+`binary-menu', and `pick-menu'."
   :group 'gnus-meta
   :group 'gnus-visual
   :type '(set (const summary-highlight)
@@ -2215,7 +2217,7 @@ covered by that variable."
 (defcustom gnus-agent t
   "Whether we want to use the Gnus agent or not.
 
-You may customize gnus-agent to disable its use.  However, some
+You may customize `gnus-agent' to disable its use.  However, some
 back ends have started to use the agent as a client-side cache.
 Disabling the agent may result in noticeable loss of performance."
   :version "22.1"
@@ -2535,7 +2537,7 @@ are always t.")
      ;; Only used in gnus-util, which has an autoload.
      ("rmailsum" rmail-update-summary)
      ("gnus-xmas" gnus-xmas-splash)
-     ("score-mode" :interactive t gnus-score-mode)
+     ("score-mode" :interactive t gnus-score-mode gnus-score-edit-all-score)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive (gnus-summary-mode) gnus-summary-save-in-folder)
@@ -2607,7 +2609,11 @@ are always t.")
       gnus-uu-decode-uu-and-save-view gnus-uu-decode-unshar-view
       gnus-uu-decode-unshar-and-save-view gnus-uu-decode-save-view
       gnus-uu-decode-binhex-view gnus-uu-unmark-thread
-      gnus-uu-mark-over gnus-uu-post-news gnus-uu-invert-processable)
+      gnus-uu-mark-over gnus-uu-post-news gnus-uu-invert-processable
+      gnus-uu-decode-postscript-and-save-view
+      gnus-uu-decode-postscript-view gnus-uu-decode-postscript-and-save
+      gnus-uu-decode-yenc gnus-uu-unmark-by-regexp gnus-uu-unmark-region
+      gnus-uu-decode-postscript)
      ("gnus-uu" gnus-uu-delete-work-dir gnus-uu-unmark-thread)
      ("gnus-msg" (gnus-summary-send-map keymap)
       gnus-article-mail gnus-copy-article-buffer gnus-extended-version)
@@ -2654,6 +2660,7 @@ are always t.")
       gnus-article-hide-headers gnus-article-hide-boring-headers
       gnus-article-treat-overstrike
       gnus-article-remove-cr gnus-article-remove-trailing-blank-lines
+      gnus-article-emojize-symbols
       gnus-article-display-x-face gnus-article-de-quoted-unreadable
       gnus-article-de-base64-unreadable
       gnus-article-decode-HZ
@@ -2665,7 +2672,34 @@ are always t.")
       gnus-article-edit-mode gnus-article-edit-article
       gnus-article-edit-done gnus-article-decode-encoded-words
       gnus-start-date-timer gnus-stop-date-timer
-      gnus-mime-view-all-parts)
+      gnus-mime-view-all-parts gnus-article-pipe-part
+      gnus-article-inline-part gnus-article-encrypt-body
+      gnus-article-browse-html-article gnus-article-view-part-externally
+      gnus-article-view-part-as-charset gnus-article-copy-part
+      gnus-article-jump-to-part gnus-article-view-part-as-type
+      gnus-article-delete-part gnus-article-replace-part
+      gnus-article-save-part-and-strip gnus-article-save-part
+      gnus-article-remove-leading-whitespace gnus-article-strip-trailing-space
+      gnus-article-strip-leading-space gnus-article-strip-all-blank-lines
+      gnus-article-strip-blank-lines gnus-article-strip-multiple-blank-lines
+      gnus-article-date-user gnus-article-date-iso8601
+      gnus-article-date-english gnus-article-date-ut
+      gnus-article-decode-charset gnus-article-decode-mime-words
+      gnus-article-toggle-fonts gnus-article-show-images
+      gnus-article-remove-images gnus-article-display-face
+      gnus-article-treat-fold-newsgroups gnus-article-treat-unfold-headers
+      gnus-article-treat-fold-headers gnus-article-highlight-signature
+      gnus-article-highlight-headers gnus-article-highlight
+      gnus-article-strip-banner gnus-article-hide-list-identifiers
+      gnus-article-hide gnus-article-outlook-rearrange-citation
+      gnus-article-treat-non-ascii gnus-article-treat-smartquotes
+      gnus-article-verify-x-pgp-sig gnus-article-strip-headers-in-body
+      gnus-treat-smiley gnus-article-treat-ansi-sequences
+      gnus-article-capitalize-sentences gnus-article-toggle-truncate-lines
+      gnus-article-fill-long-lines gnus-article-emphasize
+      gnus-article-add-buttons-to-head gnus-article-add-button
+      gnus-article-babel gnus-sticky-article gnus-article-view-part
+      gnus-article-add-buttons)
      ("gnus-int" gnus-request-type)
      ("gnus-start" gnus-newsrc-parse-options gnus-1 gnus-no-server-1
       gnus-dribble-enter gnus-read-init-file gnus-dribble-touch
@@ -3525,7 +3559,7 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-group-native-p (group)
   "Say whether the group is native or not."
-  (not (string-match ":" group)))
+  (not (string-search ":" group)))
 
 (defun gnus-group-secondary-p (group)
   "Say whether the group is secondary or not."
@@ -3741,17 +3775,19 @@ just the host name."
     ;; Separate foreign select method from group name and collapse.
     ;; If method contains a server, collapse to non-domain server name,
     ;; otherwise collapse to select method.
-    (let* ((colon (string-match ":" group))
+    (let* ((colon (string-search ":" group))
 	   (server (and colon (substring group 0 colon)))
-	   (plus (and server (string-match "\\+" server))))
+	   (plus (and server (string-search "+" server))))
       (when server
 	(if plus
 	    (setq foreign (substring server (+ 1 plus)
-				     (string-match "\\." server))
+				     (string-search "." server))
 		  group (substring group (+ 1 colon)))
 	  (setq foreign server
 		group (substring group (+ 1 colon))))
 	(setq foreign (concat foreign ":")))
+      ;; Remove braces from name (common in IMAP groups).
+      (setq group (replace-regexp-in-string "[][]+" "" group))
       ;; Collapse group name leaving LEVELS uncollapsed elements
       (let* ((slist (split-string group "/"))
 	     (slen (length slist))

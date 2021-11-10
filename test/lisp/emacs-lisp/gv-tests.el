@@ -21,22 +21,21 @@
 
 (require 'edebug)
 (require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (cl-defmacro gv-tests--in-temp-dir ((elvar elcvar)
                                     (&rest filebody)
                                     &rest body)
   (declare (indent 2))
-  `(let ((default-directory (make-temp-file "gv-test" t)))
-     (unwind-protect
-         (let ((,elvar "gv-test-deffoo.el")
-               (,elcvar "gv-test-deffoo.elc"))
-           (with-temp-file ,elvar
-             (insert ";; -*- lexical-binding: t; -*-\n")
-             (dolist (form ',filebody)
-               (pp form (current-buffer))))
-           ,@body)
-       (delete-directory default-directory t))))
+  `(ert-with-temp-directory default-directory
+     (let ((,elvar "gv-test-deffoo.el")
+           (,elcvar "gv-test-deffoo.elc"))
+       (with-temp-file ,elvar
+         (insert ";; -*- lexical-binding: t; -*-\n")
+         (dolist (form ',filebody)
+           (pp form (current-buffer))))
+       ,@body)))
 
 (ert-deftest gv-define-expander-in-file ()
   (gv-tests--in-temp-dir (el elc)

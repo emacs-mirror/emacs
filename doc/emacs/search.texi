@@ -222,6 +222,15 @@ going past the original starting point of the search, it changes to
 @samp{Overwrapped}, which means that you are revisiting matches that
 you have already seen.
 
+@vindex isearch-wrap-pause
+  You can control what happens when there are no more matches by
+customizing the @code{isearch-wrap-pause} user option.  If it is
+@code{t} (the default), signal an error.  (Repeating the search will
+wrap around.)  If @code{no}, issue a @code{ding} and wrap immediately
+after reaching the last match.  If @code{no-ding}, wrap immediately,
+but don't @code{ding}.  Finally, if @code{nil}, never wrap, but just
+stop at the last match.
+
 @cindex search ring
 @findex isearch-ring-advance
 @findex isearch-ring-retreat
@@ -327,6 +336,16 @@ case-insensitive (@pxref{Lax Search, case folding}).  However, if the
 value of the variable @code{search-upper-case} (@pxref{Lax Search,
 search-upper-case}) is other than @code{not-yanks}, that disables this
 down-casing.
+
+@kindex M-s M-.
+@findex isearch-forward-thing-at-point
+  To begin a new incremental search with the text near point yanked
+into the initial search string, type @kbd{M-s M-.} that runs the
+command @code{isearch-forward-thing-at-point}.  If the region was
+active, then it yanks the text from the region into the search string.
+Otherwise, it tries to yank a URL, a symbol or an expression found
+near point.  What to yank is defined by the user option
+@code{isearch-forward-thing-at-point}.
 
 @node Error in Isearch
 @subsection Errors in Incremental Search
@@ -592,6 +611,19 @@ change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.  This feature is disabled if
 @code{isearch-allow-scroll} is @code{nil} (which it is by default).
+
+@vindex isearch-allow-motion
+@vindex isearch-motion-changes-direction
+  Likewise, if you change the variable @code{isearch-allow-motion}
+to a non-@code{nil} value, this enables the use of the keyboard motion
+commands @kbd{M-<}, @kbd{M->}, @kbd{C-v} and @kbd{M-v}, to move
+respectively to the first occurrence of the current search string in
+the buffer, the last one, the first one after the current window,
+and the last one before the current window.  The search direction
+does not change when these motion commands are used, unless you change
+the variable @code{isearch-motion-changes-direction} to a non-@code{nil}
+value, in which case the search direction is forward after @kbd{M-<} and
+@kbd{C-v}, and backward after @kbd{M->} and @kbd{M-v}.
 
 @item Motion Commands
 @cindex motion commands, during incremental search
@@ -1309,10 +1341,9 @@ matches @w{@samp{foo bar}}, @w{@samp{foo@ @ bar}},
 precisely, Emacs matches each sequence of space characters in the
 search string to a regular expression specified by the variable
 @code{search-whitespace-regexp}.  For example, to make spaces match
-sequences of newlines as well as spaces, set it to
-@samp{"[[:space:]\n]+"}.  The default value of this variable depends
-on the buffer's major mode; most major modes classify spaces, tabs,
-and formfeed characters as whitespace.
+sequences of newlines as well as spaces, set it to the regular expression
+@samp{[[:space:]\n]+}.  The default value of this variable considers
+any sequence of spaces and tab characters as whitespace.
 
   If you want whitespace characters to match exactly, you can turn lax
 space matching off by typing @kbd{M-s @key{SPC}}

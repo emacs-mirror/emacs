@@ -60,7 +60,7 @@ Some useful context values used by the provided srecode templates are:
            \"pure\" - and those virtual items are pure virtual
      \"type\"     - In or near type declarations.
      \"comment\"  - In a comment in a block of code
-     -- these items show up at the end of the context list. --
+     -- these items show up at the end of the context list.  --
      \"public\", \"protected\", \"private\" -
                   In or near a section of public/protected/private entries.
   \"code\" - In a block of code.

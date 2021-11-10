@@ -516,9 +516,9 @@ codes for these non-@acronym{ASCII} control characters include the
 2**26
 @end ifnottex
 bit as well as the code for the corresponding non-control character.
-Ordinary text terminals have no way of generating non-@acronym{ASCII}
-control characters, but you can generate them straightforwardly using
-X and other window systems.
+Not all text terminals can generate non-@acronym{ASCII} control
+characters, but it is straightforward to generate them using X and
+other window systems.
 
   For historical reasons, Emacs treats the @key{DEL} character as
 the control equivalent of @kbd{?}:
@@ -588,8 +588,8 @@ character is upper case or lower case.  Emacs uses the
 2**25
 @end ifnottex
 bit to indicate that the shift key was used in typing a control
-character.  This distinction is possible only when you use X terminals
-or other special terminals; ordinary text terminals do not report the
+character.  This distinction is possible only on a graphical display
+such as a GUI display on X; text terminals do not report the
 distinction.  The Lisp syntax for the shift bit is @samp{\S-}; thus,
 @samp{?\C-\S-o} or @samp{?\C-\S-O} represents the shifted-control-o
 character.
@@ -1535,6 +1535,7 @@ editing.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
 * Font Type::           Fonts for displaying text.
+* Xwidget Type::        Embeddable widgets.
 @end menu
 
 @node Buffer Type
@@ -1625,19 +1626,18 @@ markers.
 @node Window Type
 @subsection Window Type
 
-  A @dfn{window} describes the portion of the terminal screen that Emacs
-uses to display a buffer.  Every window has one associated buffer, whose
-contents appear in the window.  By contrast, a given buffer may appear
-in one window, no window, or several windows.
+  A @dfn{window} describes the portion of the screen that Emacs uses to
+display buffers.  Every live window (@pxref{Basic Windows}) has one
+associated buffer, whose contents appear in that window.  By contrast, a
+given buffer may appear in one window, no window, or several windows.
+Windows are grouped on the screen into frames; each window belongs to
+one and only one frame.  @xref{Frame Type}.
 
   Though many windows may exist simultaneously, at any time one window
-is designated the @dfn{selected window}.  This is the window where the
-cursor is (usually) displayed when Emacs is ready for a command.  The
-selected window usually displays the current buffer (@pxref{Current
-Buffer}), but this is not necessarily the case.
-
-  Windows are grouped on the screen into frames; each window belongs to
-one and only one frame.  @xref{Frame Type}.
+is designated the @dfn{selected window} (@pxref{Selecting Windows}).
+This is the window where the cursor is (usually) displayed when Emacs is
+ready for a command.  The selected window usually displays the current
+buffer (@pxref{Current Buffer}), but this is not necessarily the case.
 
   Windows have no read syntax.  They print in hash notation, giving the
 window number and the name of the buffer being displayed.  The window
@@ -1860,6 +1860,20 @@ different properties.  None of them have a read syntax; their print
 syntax looks like @samp{#<font-object>}, @samp{#<font-spec>}, and
 @samp{#<font-entity>} respectively.  @xref{Low-Level Font}, for a
 description of these Lisp objects.
+
+@node Xwidget Type
+@subsection Xwidget Type
+@cindex xwidget type
+@cindex xwidget-view type
+
+  An @dfn{xwidget} is a special display element, such as a web
+browser, that can be embedded inside a buffer.  Each window that
+displays an xwidget will also have an @dfn{xwidget view}, which on
+X-Windows corresponds to a single X window used to display the widget.
+
+Neither of these objects are readable; their print syntaxes look like
+@samp{#<xwidget>} and @samp{#<xwidget-view>}, respectively.
+@xref{Xwidgets}, for a more detailed description of xwidgets.
 
 @node Circular Objects
 @section Read Syntax for Circular Objects

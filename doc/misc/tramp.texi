@@ -290,7 +290,7 @@ file's contents.
 
 For external transfers, @value{tramp} sends a command as follows:
 @example
-rcp user@@host:/path/to/remote/file /tmp/tramp.4711
+$ rcp user@@host:/path/to/remote/file /tmp/tramp.4711
 @end example
 @value{tramp} reads the local temporary file @file{/tmp/tramp.4711}
 into a buffer, and then deletes the temporary file.
@@ -1071,7 +1071,7 @@ capable of servicing requests from @value{tramp}.
 
 This non-native @value{tramp} method connects via the Server Message
 Block (SMB) networking protocol to hosts running file servers that are
-typically based on @url{https://www.samba.org/,,Samba} or MS Windows.
+typically based on @uref{https://www.samba.org/,,Samba} or MS Windows.
 
 Using @command{smbclient} requires a few tweaks when working with
 @value{tramp}:
@@ -1290,7 +1290,7 @@ they are added here for the benefit of @ref{Archive file names}.
 
 If you want to use @acronym{GVFS}-based @option{ftp} or @option{smb}
 methods, you must add them to @code{tramp-gvfs-methods}, and you must
-disable the corresponding Tramp package by setting
+disable the corresponding @value{tramp} package by setting
 @code{tramp-ftp-method} or @code{tramp-smb-method} to @code{nil},
 respectively:
 
@@ -1323,7 +1323,7 @@ possible, @value{tramp} emulates those operations otherwise.
 
 @vindex tramp-rclone-program
 The program @command{rclone} allows to access different system
-storages in the cloud, see @url{https://rclone.org/} for a list of
+storages in the cloud, see @uref{https://rclone.org/} for a list of
 supported systems.  If the @command{rclone} program isn't found in
 your @env{PATH} environment variable, you can tell @value{tramp} its
 absolute path via the user option @code{tramp-rclone-program}.
@@ -1362,7 +1362,7 @@ for accessing the system storage, you should use it.
 On local hosts which have installed the @command{sshfs} client for
 mounting a file system based on @command{sftp}, this method can be
 used, see
-@url{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
+@uref{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
 the @command{sshfs} program isn't found in your @env{PATH} environment
 variable, you can tell @value{tramp} its absolute path via the user
 option @code{tramp-sshfs-program}.
@@ -2122,9 +2122,9 @@ to construct these lists.
 
 @item @t{"remote-shell"}
 
-This property tells Tramp which remote shell to apply on the remote
-host.  It is used in all connection methods of @file{tramp-sh.el}.
-The default value is @t{"/bin/sh"}.
+This property tells @value{tramp} which remote shell to apply on the
+remote host.  It is used in all connection methods of
+@file{tramp-sh.el}.  The default value is @t{"/bin/sh"}.
 
 @item @t{"remote-shell-login"}
 
@@ -2310,9 +2310,9 @@ trouble with the shell prompt due to set zle options will be avoided.
 For @command{bash}, loading @file{~/.editrc} or @file{~/.inputrc} is
 suppressed.
 
-Similar problems can happen with the local shell Tramp uses to create
-a process.  By default, it uses the command @command{/bin/sh} for
-this, which could also be a link to another shell.  In order to
+Similar problems can happen with the local shell @value{tramp} uses to
+create a process.  By default, it uses the command @command{/bin/sh}
+for this, which could also be a link to another shell.  In order to
 overwrite this, you might apply
 
 @vindex tramp-encoding-shell
@@ -2610,7 +2610,7 @@ where @samp{192.168.0.1} is the remote host IP address
 @node FUSE setup
 @section @acronym{FUSE} setup hints
 
-The @acronym{FUSE} file systems are mounted per default at
+The @acronym{FUSE} file systems are mounted by default at
 @file{/tmp/tramp.method.user@@host#port}.  The user name and port
 number are optional.  If the file system is already mounted, it will
 be used as it is.  If the mount point does not exist yet,
@@ -2628,6 +2628,11 @@ Example:
                ,(expand-file-name "sshfs.user@@host" user-emacs-directory)))
 @end group
 @end lisp
+
+@vindex tramp-fuse-unmount-on-cleanup
+The user option @code{tramp-fuse-unmount-on-cleanup}, when set to
+non-@code{nil}, controls, whether a mount point is unmounted on
+connection cleanup or on Emacs exiting.
 
 
 @anchor{Setup of rclone method}
@@ -3231,7 +3236,10 @@ directory @file{/sbin} on your local host.
 Type @kbd{s h @value{postfixhop}} for the minibuffer completion to
 @samp{@value{prefix}ssh@value{postfixhop}}.  Typing @kbd{@key{TAB}}
 shows host names @value{tramp} extracts from @file{~/.ssh/config}
-file, for example.
+@c bug#50387
+file, for example@footnote{Some completion styles, like
+@code{substring} or @code{flex}, require to type at least one
+character after the trailing @samp{@value{postfixhop}}.}.
 
 @example
 @group
@@ -3732,6 +3740,33 @@ To open @command{powershell} as a remote shell, use this:
       explicit-powershell-args '("-file" "-"))
 @end group
 @end lisp
+
+
+@subsection Remote process connection type
+@vindex process-connection-type
+@cindex tramp-process-connection-type
+
+Asynchronous processes behave differently based on whether they use a
+pseudo tty or not.  This is controlled by the variable
+@code{process-connection-type}, which can be @code{t} or @code{pty}
+(use a pseudo tty), or @code{nil} or @code{pipe} (don't use one).
+@value{tramp} is based on running shells on the remote host, which
+requires a pseudo tty.  Therefore, it declares the variable
+@code{tramp-process-connection-type}, which carries this information
+for remote processes.  Its default value is @code{t}, and there is no
+need to change it.  The name of the remote pseudo tty is returned by
+the function @code{process-tty-name}.
+
+If a remote process, started by @code{start-file-process}, should
+@emph{not} use a pseudo tty, this can be requested by setting
+@code{process-connection-type} to @code{nil} or @code{pipe}.  There is
+still a pseudo tty for the started process, but some terminal
+properties are changed, like suppressing translation of carriage
+return characters into newline.
+
+The function @code{make-process} allows controlling this explicitly by
+using the @code{:connection-type} keyword.  If this keyword is not
+used, the value of @code{process-connection-type} is applied instead.
 
 
 @anchor{Improving performance of asynchronous remote processes}
@@ -4255,7 +4290,17 @@ test, @ref{Cleanup remote connections}.  Alternatively, and often
 better for analysis, reproduce the problem in a clean Emacs session
 started with @command{emacs -Q}.  Then, @value{tramp} does not load
 the persistency file (@pxref{Connection caching}), and it does not use
-passwords from @file{auth-source.el} (@pxref{Password handling}).
+passwords from @file{auth-source.el} (@pxref{Password handling}).  The
+latter does not happen for the @option{sudoedit} method, otherwise it
+would be unusable.
+
+If you use the GNU ELPA version of @value{tramp}, you must load it
+explicitly, because @command{emacs -Q} ignores installed ELPA
+packages.  Call (version number adapted)
+
+@example
+$ emacs -Q -l ~/.emacs.d/elpa/tramp-2.4.5.1/tramp-autoloads
+@end example
 
 When including @value{tramp}'s messages in the bug report, increase
 the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
@@ -4265,6 +4310,11 @@ buffers with the bug report.  Both buffers could contain
 non-@acronym{ASCII} characters which are relevant for analysis, append
 the buffers as attachments to the bug report.  This is also needed in
 order to avoid line breaks during mail transfer.
+
+If you send the message from Emacs, you are asked about to append
+these buffers to the bug report.  If you use an external mail program,
+you must save these buffers to files, and append them with that mail
+program.
 
 @strong{Note} that a verbosity level greater than 6 is not necessary
 at this stage.  Also note that a verbosity level of 6 or greater, the
@@ -4573,6 +4623,16 @@ Host *
 
 Check the @samp{ssh_config(5)} man page whether these options are
 supported on your proxy host.
+
+
+@item
+Does @value{tramp} support @acronym{SSH} security keys?
+
+Yes.  @command{OpenSSH} has added support for @acronym{FIDO} hardware
+devices via special key types @option{*-sk}.  @value{tramp} supports
+the additional handshaking messages for them.  This requires at least
+@command{OpenSSH} 8.2, and a @acronym{FIDO} @acronym{U2F} compatible
+security key, like yubikey, solokey, or nitrokey.
 
 
 @item
@@ -5049,7 +5109,7 @@ location.
 Then start Emacs Client from the command line:
 
 @example
-emacsclient @trampfn{ssh,user@@host,/file/to/edit}
+$ emacsclient @trampfn{ssh,user@@host,/file/to/edit}
 @end example
 
 @code{user} and @code{host} refer to the local host.
@@ -5069,7 +5129,7 @@ Then change the environment variable @env{EDITOR} to point to the
 wrapper script:
 
 @example
-export EDITOR=/path/to/emacsclient.sh
+$ export EDITOR=/path/to/emacsclient.sh
 @end example
 
 
@@ -5132,12 +5192,15 @@ tramp-compat-with-mutex}
 
 @value{tramp} comes with compatibility code for different Emacs
 versions.  When you see such a message (the text might differ), you
-don't use the Emacs built-in version of @value{tramp}.  In case you
-have installed @value{tramp} from GNU ELPA, see the package README
-file for instructions how to recompile it.
+don't use the Emacs built-in version of @value{tramp}, and you must
+recompile it.  In case you have installed @value{tramp} from GNU ELPA,
 @ifset installchapter
-@xref{Recompilation}.
+@xref{ELPA Installation}.  Otherwise, @xref{Recompilation}.
 @end ifset
+@ifclear installchapter
+see @uref{@value{trampurl}#ELPA-Installation}.  Otherwise, see
+@uref{@value{trampurl}#Recompilation}.
+@end ifclear
 
 
 @item
@@ -5266,6 +5329,12 @@ handlers.
 
 @node External packages
 @section Integrating with external Lisp packages
+
+In general, it is not recommended to use @value{tramp} functions and
+variables not described in this manual.  They might change their
+signature and/or semantics without any announcement.
+
+
 @subsection File name completion
 
 @vindex non-essential

@@ -213,7 +213,6 @@ Select a buffer to be used by next invocation of @code{next-error} and
 @kindex M-g n
 @kindex C-x `
 @findex next-error
-@findex next-error-message
 @vindex next-error-message-highlight
 @vindex next-error-highlight
 @vindex next-error-highlight-no-select
@@ -263,7 +262,9 @@ to skip any messages.
 highlights the relevant source line.  The duration of this highlight
 is determined by the variable @code{next-error-highlight} for the locus
 in the selected buffer, and @code{next-error-highlight-no-select} for
-the locus in non-selected buffers.
+the locus in non-selected buffers.  Also you can customize the variable
+@code{next-error-message-highlight} that defines how to highlight the
+current error message in the buffer that contains messages.
 
 @vindex compilation-context-lines
   If the @file{*compilation*} buffer is shown in a window with a left
@@ -1491,7 +1492,7 @@ Emacs Lisp Reference Manual}.
 code not unlike the one produced by a C or Fortran compiler.  Native
 code runs even faster than byte-code.  Natively-compiled Emacs Lisp
 code is stored in files whose names end in @samp{.eln}.  @xref{Native
-Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference Manual}.
+Compilation,, Native Compilation, elisp, the Emacs Lisp Reference Manual}.
 
 @findex load-file
   To @dfn{load} an Emacs Lisp file, type @kbd{M-x load-file}.  This

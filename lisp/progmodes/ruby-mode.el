@@ -151,10 +151,8 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     map)
   "Keymap used in Ruby mode.")
 
-(easy-menu-define
-  ruby-mode-menu
-  ruby-mode-map
-  "Ruby Mode Menu"
+(easy-menu-define ruby-mode-menu ruby-mode-map
+  "Ruby Mode Menu."
   '("Ruby"
     ["Beginning of Block" ruby-beginning-of-block t]
     ["End of Block" ruby-end-of-block t]
@@ -640,7 +638,15 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     ('(:before . "do") (ruby-smie--indent-to-stmt))
     ('(:before . ".")
      (if (smie-rule-sibling-p)
-         (and ruby-align-chained-calls 0)
+         (when ruby-align-chained-calls
+           (while
+               (let ((pos (point))
+                     (parent (smie-backward-sexp ".")))
+                 (if (not (equal (nth 2 parent) "."))
+                     (progn (goto-char pos) nil)
+                   (goto-char (nth 1 parent))
+                   (not (smie-rule-bolp)))))
+           (cons 'column (current-column)))
        (smie-backward-sexp ".")
        (cons 'column (+ (current-column)
                         ruby-indent-level))))
@@ -679,7 +685,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (let ((index-alist '()) (case-fold-search nil)
         name next pos decl sing)
     (goto-char beg)
-    (while (re-search-forward "^\\s *\\(\\(class\\s +\\|\\(class\\s *<<\\s *\\)\\|module\\s +\\)\\([^(<\n ]+\\)\\|\\(def\\|alias\\)\\s +\\([^(\n ]+\\)\\)" end t)
+    (while (re-search-forward "^\\s *\\(\\(class\\s +\\|\\(class\\s *<<\\s *\\)\\|module\\s +\\)\\([^(<\n ]+\\)\\|\\(\\(?:\\(?:private\\|protected\\|public\\) +\\)?def\\|alias\\)\\s +\\([^(\n ]+\\)\\)" end t)
       (setq sing (match-beginning 3))
       (setq decl (match-string 5))
       (setq next (match-end 0))
@@ -689,7 +695,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        ((string= "alias" decl)
         (if prefix (setq name (concat prefix name)))
         (push (cons name pos) index-alist))
-       ((string= "def" decl)
+       ((not (null decl))
         (if prefix
             (setq name
                   (cond
@@ -828,6 +834,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 ;; `ruby-calculate-indent' in user init files still call it.
 (defun ruby-current-indentation ()
   "Return the indentation level of current line."
+  (declare (obsolete current-indentation "28.1"))
   (save-excursion
     (beginning-of-line)
     (back-to-indentation)
@@ -927,7 +934,7 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'."
 
 (defun ruby-forward-string (term &optional end no-error expand)
   "Move forward across one balanced pair of string delimiters.
-Skips escaped delimiters. If EXPAND is non-nil, also ignores
+Skips escaped delimiters.  If EXPAND is non-nil, also ignores
 delimiters in interpolated strings.
 
 TERM should be a string containing either a single, self-matching
@@ -1788,8 +1795,8 @@ If the result is do-end block, it will always be multiline."
             (buffer-substring-no-properties (1+ min) (1- max))))
       (setq content
             (if (equal string-quote "'")
-                (replace-regexp-in-string "\\\\\"" "\"" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)'" "\\1\\\\'" content))
-              (replace-regexp-in-string "\\\\'" "'" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)\"" "\\1\\\\\"" content))))
+                (string-replace "\\\"" "\"" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)'" "\\1\\\\'" content))
+              (string-replace "\\'" "'" (replace-regexp-in-string "\\(\\`\\|[^\\]\\)\"" "\\1\\\\\"" content))))
       (let ((orig-point (point)))
         (delete-region min max)
         (insert

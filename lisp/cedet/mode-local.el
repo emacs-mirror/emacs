@@ -156,7 +156,7 @@ local variables have been defined."
 DOCSTRING is optional and not used.
 To work properly, this should be put after PARENT mode local variables
 definition."
-  (declare (obsolete define-derived-mode "27.1"))
+  (declare (obsolete define-derived-mode "27.1") (indent 2))
   `(mode-local--set-parent ',mode ',parent))
 
 (defun mode-local-use-bindings-p (this-mode desired-mode)
@@ -567,6 +567,7 @@ appropriate arguments deduced from ARGS.
 OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
   (declare (doc-string 3)
+           (indent defun)
            (debug (&define name lambda-list stringp def-body)))
   `(eval-and-compile
      (defun ,name ,args
@@ -595,21 +596,23 @@ DOCSTRING is the documentation string.
 BODY is the implementation of this function."
   ;; FIXME: Make this obsolete and use cl-defmethod with &context instead.
   (declare (doc-string 4)
+           (indent defun)
            (debug (&define name symbolp lambda-list stringp def-body)))
   (let ((newname (intern (format "%s-%s" name mode))))
     `(progn
        (eval-and-compile
 	 (defun ,newname ,args
-	   ,(format "%s\n\nOverride %s in `%s' buffers."
-		    docstring name mode)
+           ,(concat docstring "\n"
+                    (internal--format-docstring-line
+                     "Override `%s' in `%s' buffers."
+                     name mode))
 	   ;; The body for this implementation
 	   ,@body)
          ;; For find-func to locate the definition of NEWNAME.
          (put ',newname 'definition-name ',name))
        (mode-local-bind '((,name . ,newname))
                         '(override-flag t)
-                        ',mode))
-    ))
+                        ',mode))))
 
 ;;; Read/Query Support
 (defun mode-local-read-function (prompt &optional initial hist default)
@@ -773,11 +776,11 @@ SYMBOL is a function that can be overridden."
 (defconst xref-mode-local-find-overloadable-regexp
   "(define-overload\\(able-function\\)? +%s"
   "Regexp used by `xref-find-definitions' when searching for a
-  mode-local overloadable function definition.")
+mode-local overloadable function definition.")
 
 (defun xref-mode-local-find-override (meta-name)
   "Function used by `xref-find-definitions' when searching for an
-  override of a mode-local overloadable function.
+override of a mode-local overloadable function.
 META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
   (let* ((override (car meta-name))
 	 (mode (cdr meta-name))

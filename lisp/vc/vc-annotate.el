@@ -277,7 +277,7 @@ cover the range from the oldest annotation to the newest."
 
 ;; Menu -- Using easymenu.el
 (easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-  "VC Annotate Display Menu"
+  "VC Annotate Display Menu."
   `("VC-Annotate"
     ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)
@@ -545,6 +545,7 @@ Return a cons (REV . FILENAME)."
 
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
+(defvar vc-git-print-log-follow)
 
 (defun vc-annotate-show-log-revision-at-line ()
   "Visit the log of the revision at line.
@@ -559,6 +560,8 @@ the file in question, search for the log entry required and move point."
 	  (message "Cannot extract revision number from the current line")
 	(let ((backend vc-annotate-backend)
 	      (log-buf (get-buffer "*vc-change-log*"))
+              ;; No need to follow renames: we specify the historical file name.
+              vc-git-print-log-follow
 	      pos)
 	  (if (and
 	       log-buf
@@ -607,7 +610,8 @@ the file in question, search for the log entry required and move point."
   (vc-annotate-show-diff-revision-at-line-internal t))
 
 (defun vc-annotate-show-changeset-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
+  "Show the diffs of revision at current line relative to previous revision.
+This is done for all files in changeset."
   (interactive)
   (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
     (error "The %s backend does not support changeset diffs" vc-annotate-backend))

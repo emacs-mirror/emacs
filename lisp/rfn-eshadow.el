@@ -122,7 +122,7 @@ system, `file-name-shadow-properties' is used instead."
   "Minibuffer setup functions from other packages.")
 
 (defvar rfn-eshadow-update-overlay-hook nil
-  "Customer overlay functions from other packages")
+  "Customer overlay functions from other packages.")
 
 
 ;;; Internal variables

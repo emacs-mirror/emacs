@@ -45,10 +45,11 @@ from running the command by name.
 
 @cindex obsolete command
   When @kbd{M-x} completes on commands, it ignores the commands that
-are declared @dfn{obsolete}; for these, you will have to type their
-full name.  (Obsolete commands are those for which newer, better
-alternatives exist, and which are slated for removal in some future
-Emacs release.)
+were declared @dfn{obsolete} in any previous major version of Emacs;
+for these, you will have to type their full name.  Commands that were
+marked obsolete in the current version of Emacs are listed.  (Obsolete
+commands are those for which newer, better alternatives exist, and
+which are slated for removal in some future Emacs release.)
 
 @vindex read-extended-command-predicate
   In addition, @kbd{M-x} completion can exclude commands that are not

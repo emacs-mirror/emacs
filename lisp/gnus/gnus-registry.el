@@ -772,7 +772,7 @@ possible.  Uses `gnus-registry-split-strategy'."
         nil))))
 
 (defun gnus-registry-follow-group-p (group)
-  "Determines if a group name should be followed.
+  "Determine if a group name should be followed.
 Consults `gnus-registry-unfollowed-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
@@ -789,7 +789,7 @@ Consults `gnus-registry-unfollowed-groups' and
 ;; we do special logic for ignoring to accept regular expressions and
 ;; nnmail-split-fancy-with-parent-ignore-groups as well
 (defun gnus-registry-ignore-group-p (group)
-  "Determines if a group name should be ignored.
+  "Determine if a group name should be ignored.
 Consults `gnus-registry-ignored-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
@@ -990,9 +990,9 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                    gnus-registry-misc-menus)
              (gnus-message 9 "Defined mark handling function %s"
                            function-name))))))
-    (gnus-define-keys-1
-     '(gnus-registry-mark-map "M" gnus-summary-mark-map)
-     keys-plist)
+    (define-key gnus-summary-mark-map "M"
+      (apply #'define-keymap :prefix 'gnus-summary-mark-map
+             keys-plist))
     (add-hook 'gnus-summary-menu-hook
               (lambda ()
                 (easy-menu-add-item
@@ -1142,7 +1142,7 @@ non-nil."
            entry)
       (while (car-safe old)
         (cl-incf count)
-        ;; don't use progress reporters for backwards compatibility
+        ;; todo: use progress reporters.
         (when (and (< 0 expected)
                    (= 0 (mod count 100)))
           (message "importing: %d of %d (%.2f%%)"

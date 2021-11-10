@@ -113,7 +113,7 @@ and the value `((4) (4))' for horizontally split windows."
   :version "22.1")
 
 (defcustom compare-windows-highlight t
-  "Non-nil means compare-windows highlights the differences.
+  "Non-nil means `compare-windows' highlights the differences.
 The value t removes highlighting immediately after invoking a command
 other than `compare-windows'.
 The value `persistent' leaves all highlighted differences.  You can clear
@@ -188,7 +188,7 @@ If both windows display the same buffer,
 the mark is pushed twice in that buffer:
 first in the other window, then in the selected window.
 
-A prefix arg means reverse the value of variable
+A prefix arg IGNORE-WHITESPACE, means reverse the value of variable
 `compare-ignore-whitespace'.  If `compare-ignore-whitespace' is
 nil, then a prefix arg means ignore changes in whitespace.  If
 `compare-ignore-whitespace' is non-nil, then a prefix arg means

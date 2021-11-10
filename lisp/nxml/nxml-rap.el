@@ -22,14 +22,14 @@
 
 ;;; Commentary:
 
-;; This uses xmltok.el to do XML parsing. The fundamental problem is
-;; how to handle changes. We don't want to maintain a complete parse
+;; This uses xmltok.el to do XML parsing.  The fundamental problem is
+;; how to handle changes.  We don't want to maintain a complete parse
 ;; tree.  We also don't want to reparse from the start of the document
 ;; on every keystroke.  However, it is not possible in general to
 ;; parse an XML document correctly starting at a random point in the
 ;; middle.  The main problems are comments, CDATA sections and
 ;; processing instructions: these can all contain things that are
-;; indistinguishable from elements. Literals in the prolog are also a
+;; indistinguishable from elements.  Literals in the prolog are also a
 ;; problem.  Attribute value literals are not a problem because
 ;; attribute value literals cannot contain less-than signs.
 ;;
@@ -47,14 +47,14 @@
 ;; we have found.
 ;;
 ;; The prolog has to be parsed specially, so we also keep track of the
-;; end of the prolog in `nxml-prolog-end'. The prolog is reparsed on
+;; end of the prolog in `nxml-prolog-end'.  The prolog is reparsed on
 ;; every change to the prolog.  This won't work well if people try to
-;; edit huge internal subsets. Hopefully that will be rare.
+;; edit huge internal subsets.  Hopefully that will be rare.
 ;;
 ;; We rely on the `syntax-propertize-function' machinery to keep track
 ;; of the changes in the buffer.  Fontification also relies on correct
 ;; `syntax-table' properties.  This means that scanning for these
-;; constructs had better be quick.  Fortunately it is. Firstly, the
+;; constructs had better be quick.  Fortunately it is.  Firstly, the
 ;; typical proportion of comments, CDATA sections and processing
 ;; instructions is small relative to other things.  Secondly, to scan
 ;; we just search for the regexp <[!?].
@@ -191,7 +191,7 @@ Leave point unmoved if it is not inside anything special."
 (defun nxml-scan-element-forward (from &optional up)
   "Scan forward from FROM over a single balanced element.
 Point must be between tokens.  Return the position of the end of
-the tag that ends the element. `xmltok-start' will contain the
+the tag that ends the element.  `xmltok-start' will contain the
 position of the start of the tag.  If UP is non-nil, then scan
 past end-tag of element containing point.  If no element is
 found, return nil.  If a well-formedness error prevents scanning,
@@ -242,7 +242,7 @@ expected `%s'"
 (defun nxml-scan-element-backward (from &optional up bound)
   "Scan backward from FROM over a single balanced element.
 Point must be between tokens.  Return the position of the end of
-the tag that starts the element. `xmltok-start' will contain the
+the tag that starts the element.  `xmltok-start' will contain the
 position of the start of the tag.  If UP is non-nil, then scan
 past start-tag of element containing point.  If BOUND is non-nil,
 then don't scan back past BOUND.  If no element is found, return

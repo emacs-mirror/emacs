@@ -8,7 +8,7 @@
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
-;; X-URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.

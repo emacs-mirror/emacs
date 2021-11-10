@@ -426,7 +426,7 @@ synchronously."
   :version "28.1")
 
 (defcustom package-archive-column-width 8
-  "Column width for the Package status in the package menu."
+  "Column width for the Package archive in the package menu."
   :type 'number
   :version "28.1")
 
@@ -714,6 +714,7 @@ REQUIREMENTS is a list of dependencies on other packages.
  where OTHER-VERSION is a string.
 
 EXTRA-PROPERTIES is currently unused."
+  (declare (indent defun))
   ;; FIXME: Placeholder!  Should we keep it?
   (error "Don't call me!"))
 
@@ -757,47 +758,47 @@ PKG-DESC is a `package-desc' object."
    (format "%s-autoloads" (package-desc-name pkg-desc))
    (package-desc-dir pkg-desc)))
 
-(defun package--activate-autoloads-and-load-path (pkg-desc)
-  "Load the autoloads file and add package dir to `load-path'.
-PKG-DESC is a `package-desc' object."
-  (let* ((old-lp load-path)
-         (pkg-dir (package-desc-dir pkg-desc))
-         (pkg-dir-dir (file-name-as-directory pkg-dir)))
-    (with-demoted-errors "Error loading autoloads: %s"
-      (load (package--autoloads-file-name pkg-desc) nil t))
-    (when (and (eq old-lp load-path)
-               (not (or (member pkg-dir load-path)
-                        (member pkg-dir-dir load-path))))
-      ;; Old packages don't add themselves to the `load-path', so we have to
-      ;; do it ourselves.
-      (push pkg-dir load-path))))
-
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
 (defvar package--quickstart-pkgs t
   "If set to a list, we're computing the set of pkgs to activate.")
 
-(defun package--load-files-for-activation (pkg-desc reload)
-  "Load files for activating a package given by PKG-DESC.
-Load the autoloads file, and ensure `load-path' is setup.  If
-RELOAD is non-nil, also load all files in the package that
-correspond to previously loaded files."
-  (let* ((loaded-files-list
-          (when reload
-            (package--list-loaded-files (package-desc-dir pkg-desc)))))
-    ;; Add to load path, add autoloads, and activate the package.
-    (package--activate-autoloads-and-load-path pkg-desc)
-    ;; Call `load' on all files in `package-desc-dir' already present in
-    ;; `load-history'.  This is done so that macros in these files are updated
-    ;; to their new definitions.  If another package is being installed which
-    ;; depends on this new definition, not doing this update would cause
-    ;; compilation errors and break the installation.
-    (with-demoted-errors "Error in package--load-files-for-activation: %s"
-      (mapc (lambda (feature) (load feature nil t))
-            ;; Skip autoloads file since we already evaluated it above.
-            (remove (file-truename (package--autoloads-file-name pkg-desc))
-                    loaded-files-list)))))
+(defsubst package--library-stem (file)
+  (catch 'done
+    (let (result)
+      (dolist (suffix (get-load-suffixes) file)
+        (setq result (string-trim file nil suffix))
+        (unless (equal file result)
+          (throw 'done result))))))
+
+(defun package--reload-previously-loaded (pkg-desc)
+  "Force reimportation of files in PKG-DESC already present in `load-history'.
+New editions of files contain macro definitions and
+redefinitions, the overlooking of which would cause
+byte-compilation of the new package to fail."
+  (with-demoted-errors "Error in package--load-files-for-activation: %s"
+    (let* (result
+           (dir (package-desc-dir pkg-desc))
+           (load-path-sans-dir
+            (cl-remove-if (apply-partially #'string= dir)
+                          (or (bound-and-true-p find-function-source-path)
+                              load-path)))
+           (files (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
+           (history (mapcar #'file-truename
+                            (cl-remove-if-not #'stringp
+                                              (mapcar #'car load-history)))))
+      (dolist (file files)
+        (when-let ((library (package--library-stem
+                             (file-relative-name file dir)))
+                   (canonical (locate-library library nil load-path-sans-dir))
+                   (found (member (file-truename canonical) history))
+                   (recent-index (length found)))
+          (unless (equal (file-name-base library)
+                         (format "%s-autoloads" (package-desc-name pkg-desc)))
+            (push (cons (expand-file-name library dir) recent-index) result))))
+      (mapc (lambda (c) (load (car c) nil t))
+            (sort result (lambda (x y) (< (cdr x) (cdr y))))))))
 
 (defun package-activate-1 (pkg-desc &optional reload deps)
   "Activate package given by PKG-DESC, even if it was already active.
@@ -824,7 +825,11 @@ correspond to previously loaded files (those returned by
       (if (listp package--quickstart-pkgs)
           ;; We're only collecting the set of packages to activate!
           (push pkg-desc package--quickstart-pkgs)
-        (package--load-files-for-activation pkg-desc reload))
+        (when reload
+          (package--reload-previously-loaded pkg-desc))
+        (with-demoted-errors "Error loading autoloads: %s"
+          (load (package--autoloads-file-name pkg-desc) nil t))
+        (add-to-list 'load-path (directory-file-name pkg-dir)))
       ;; Add info node.
       (when (file-exists-p (expand-file-name "dir" pkg-dir))
         ;; FIXME: not the friendliest, but simple.
@@ -834,48 +839,6 @@ correspond to previously loaded files (those returned by
       (push name package-activated-list)
       ;; Don't return nil.
       t)))
-
-(defun package--files-load-history ()
-  (delq nil
-        (mapcar (lambda (x)
-                  (let ((f (car x)))
-                    (and (stringp f)
-                         (file-name-sans-extension (file-truename f)))))
-                load-history)))
-
-(defun package--list-of-conflicts (dir history)
-  (require 'find-func)
-  (declare-function find-library-name "find-func" (library))
-  (delq
-   nil
-   (mapcar
-    (lambda (x) (let* ((file (file-relative-name x dir))
-                  ;; Previously loaded file, if any.
-                  (previous
-                   (ignore-error file-error ;"Can't find library"
-                     (file-name-sans-extension
-                      (file-truename (find-library-name file)))))
-                  (pos (when previous (member previous history))))
-             ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
-             (when pos
-               (cons (file-name-sans-extension file) (length pos)))))
-    (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
-
-(defun package--list-loaded-files (dir)
-  "Recursively list all files in DIR which correspond to loaded features.
-Returns the `file-name-sans-extension' of each file, relative to
-DIR, sorted by most recently loaded last."
-  (let* ((history (package--files-load-history))
-         (dir (file-truename dir))
-         ;; List all files that have already been loaded.
-         (list-of-conflicts (package--list-of-conflicts dir history)))
-    ;; Turn the list of (FILENAME . POS) back into a list of features.  Files in
-    ;; subdirectories are returned relative to DIR (so not actually features).
-    (let ((default-directory (file-name-as-directory dir)))
-      (mapcar (lambda (x) (file-truename (car x)))
-              (sort list-of-conflicts
-                    ;; Sort the files by ascending HISTORY-POSITION.
-                    (lambda (x y) (< (cdr x) (cdr y))))))))
 
 ;;;; `package-activate'
 
@@ -995,7 +958,7 @@ untar into a directory named DIR; otherwise, signal an error."
           (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--load-files-for-activation new-desc :reload)))
+        (package--reload-previously-loaded new-desc)))
     pkg-dir))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
@@ -1081,8 +1044,7 @@ This assumes that `pkg-desc' has already been activated with
   "Native compile installed package PKG-DESC asynchronously.
 This assumes that `pkg-desc' has already been activated with
 `package-activate-1'."
-  (when (and (featurep 'native-compile)
-             (native-comp-available-p))
+  (when (native-comp-available-p)
     (let ((warning-minimum-level :error))
       (native-compile-async (package-desc-dir pkg-desc) t))))
 
@@ -1118,9 +1080,9 @@ is wrapped around any parts requiring it."
 
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-header-multiline "lisp-mnt" (header))
-(declare-function lm-homepage "lisp-mnt" (&optional file))
+(declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
-(declare-function lm-maintainer "lisp-mnt" (&optional file))
+(declare-function lm-maintainers "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
 
 (defun package-buffer-info ()
@@ -1153,7 +1115,7 @@ boundaries."
             (or (lm-header "package-version") (lm-header "version")))
            (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
-           (homepage (lm-homepage)))
+           (website (lm-website)))
       (unless pkg-version
          (if version-info
              (error "Unrecognized package version: %s" version-info)
@@ -1164,9 +1126,12 @@ boundaries."
          (package--prepare-dependencies
           (package-read-from-string (mapconcat #'identity require-lines " "))))
        :kind 'single
-       :url homepage
+       :url website
        :keywords keywords
-       :maintainer (lm-maintainer)
+       :maintainer
+       ;; For backward compatibility, use a single string if there's only
+       ;; one maintainer (the most common case).
+       (let ((maints (lm-maintainers))) (if (cdr maints) maints (car maints)))
        :authors (lm-authors)))))
 
 (defun package--read-pkg-desc (kind)
@@ -1366,11 +1331,9 @@ errors signaled by ERROR-FORM or by BODY).
                 (kill-buffer buffer)
                 (goto-char (point-min))))))
       (package--unless-error body
-        (let ((url (expand-file-name file url)))
-          (unless (file-name-absolute-p url)
-            (error "Location %s is not a url nor an absolute file name"
-                   url))
-          (insert-file-contents-literally url)))))
+        (unless (file-name-absolute-p url)
+          (error "Location %s is not a url nor an absolute file name" url))
+        (insert-file-contents-literally (expand-file-name file url)))))
 
 (define-error 'bad-signature "Failed to verify signature")
 
@@ -1585,7 +1548,7 @@ If the archive version is too new, signal an error."
         (if package
             (package--add-to-archive-contents package archive)
           (lwarn '(package refresh) :warning
-                 "Ignoring `nil' package on `%s' package archive" archive))))))
+                 "Ignoring nil package on `%s' package archive" archive))))))
 
 (defvar package--old-archive-priorities nil
   "Store currently used `package-archive-priorities'.
@@ -2169,7 +2132,7 @@ Otherwise return nil."
       ;; to make sure we use a "canonical name"!
       (if l (package-version-join l)))))
 
-(declare-function lm-homepage "lisp-mnt" (&optional file))
+(declare-function lm-website "lisp-mnt" (&optional file))
 
 ;;;###autoload
 (defun package-install-from-buffer ()
@@ -2267,7 +2230,9 @@ confirmation to install packages."
                            (mapconcat #'symbol-name available " "))))
           (mapc (lambda (p) (package-install p 'dont-select)) available)))
        ((> difference 0)
-        (message "Packages that are not available: %d (the rest is already installed), maybe you need to `M-x package-refresh-contents'"
+        (message (substitute-command-keys
+                  "Packages that are not available: %d (the rest is already \
+installed), maybe you need to \\[package-refresh-contents]")
                  difference))
        (t
         (message "All your packages are already installed"))))))
@@ -2485,6 +2450,15 @@ The description is read from the installed package files."
                      (format "%s.el" (package-desc-name desc)) srcdir))
      "")))
 
+(defun package--describe-add-library-links ()
+  "Add links to library names in package description."
+  (while (re-search-forward "\\<\\([-[:alnum:]]+\\.el\\)\\>" nil t)
+    (if (locate-library (match-string 1))
+        (make-text-button (match-beginning 1) (match-end 1)
+                          'xref (match-string-no-properties 1)
+                          'help-echo "Read this file's commentary"
+                          :type 'package--finder-xref))))
+
 (defun describe-package-1 (pkg)
   "Insert the package description for PKG.
 Helper function for `describe-package'."
@@ -2503,7 +2477,7 @@ Helper function for `describe-package'."
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
          (extras (and desc (package-desc-extras desc)))
-         (homepage (cdr (assoc :url extras)))
+         (website (cdr (assoc :url extras)))
          (commit (cdr (assoc :commit extras)))
          (keywords (if desc (package-desc--keywords desc)))
          (built-in (eq pkg-dir 'builtin))
@@ -2616,15 +2590,20 @@ Helper function for `describe-package'."
             (help-insert-xref-button text 'help-package
                                      (package-desc-name pkg))))
         (insert "\n")))
-    (when homepage
-      ;; Prefer https for the homepage of packages on gnu.org.
-      (if (string-match-p "^http://\\(elpa\\|www\\)\\.gnu\\.org/" homepage)
-          (let ((gnu (cdr (assoc "gnu" package-archives))))
-            (and gnu (string-match-p "^https" gnu)
-                 (setq homepage
-                       (replace-regexp-in-string "^http" "https" homepage)))))
-      (package--print-help-section "Homepage")
-      (help-insert-xref-button homepage 'help-url homepage)
+    (when website
+      ;; Prefer https for the website of packages on common domains.
+      (when (string-match-p (rx bol "http://" (or "elpa." "www." "git." "")
+                                (or "nongnu.org" "gnu.org" "sr.ht"
+                                    "emacswiki.org" "gitlab.com" "github.com")
+                                "/")
+                            website)
+        ;; But only if the user has "https" in `package-archives'.
+        (let ((gnu (cdr (assoc "gnu" package-archives))))
+          (and gnu (string-match-p "^https" gnu)
+               (setq website
+                     (replace-regexp-in-string "^http" "https" website)))))
+      (package--print-help-section "Website")
+      (help-insert-xref-button website 'help-url website)
       (insert "\n"))
     (when keywords
       (package--print-help-section "Keywords")
@@ -2706,6 +2685,9 @@ Helper function for `describe-package'."
               t)
             (insert (or readme-string
                         "This package does not provide a description.")))))
+      ;; Make library descriptions into links.
+      (goto-char start-of-description)
+      (package--describe-add-library-links)
       ;; Make URLs in the description into links.
       (goto-char start-of-description)
       (browse-url-add-buttons))))
@@ -2750,6 +2732,15 @@ function is a convenience wrapper used by `describe-package-1'."
                        'link)))
     (apply #'insert-text-button button-text 'face button-face 'follow-link t
            properties)))
+
+(defun package--finder-goto-xref (button)
+  "Jump to a Lisp file for the BUTTON at point."
+  (let* ((file (button-get button 'xref))
+         (lib (locate-library file)))
+    (if lib (finder-commentary lib)
+      (message "Unable to locate `%s'" file))))
+
+(define-button-type 'package--finder-xref 'action #'package--finder-goto-xref)
 
 (defun package--print-email-button (recipient)
   "Insert a button whose action will send an email to RECIPIENT.
@@ -2806,8 +2797,8 @@ either a full name or nil, and EMAIL is a valid email address."
   "Menu for `package-menu-mode'."
   '("Package"
     ["Describe Package" package-menu-describe-package :help "Display information about this package"]
-    ["Open Package Homepage" package-browse-url
-     :help "Open the homepage of this package"]
+    ["Open Package Website" package-browse-url
+     :help "Open the website of this package"]
     ["Help" package-menu-quick-help :help "Show short key binding help for package-menu-mode"]
     "--"
     ["Refresh Package List" revert-buffer
@@ -3600,8 +3591,10 @@ packages list, respectively."
 
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
-Packages marked for installation are downloaded and installed;
-packages marked for deletion are removed.
+Packages marked for installation are downloaded and installed,
+packages marked for deletion are removed,
+and packages marked for upgrading are downloaded and upgraded.
+
 Optional argument NOQUERY non-nil means do not ask the user to confirm."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
@@ -4154,6 +4147,10 @@ activations need to be changed, such as when `package-load-list' is modified."
         (package-activated-list ())
         ;; Make sure we can load this file without load-source-file-function.
         (coding-system-for-write 'emacs-internal)
+        ;; Ensure that `pp' and `prin1-to-string' calls further down
+        ;; aren't truncated.
+        (print-length nil)
+        (print-level nil)
         (Info-directory-list '("")))
     (dolist (elt package-alist)
       (condition-case err
@@ -4181,6 +4178,7 @@ activations need to be changed, such as when `package-load-list' is modified."
               (replace-match (if (match-end 1) "" pfile) t t)))
           (unless (bolp) (insert "\n"))
           (insert ")\n")))
+      (pp `(defvar package-activated-list) (current-buffer))
       (pp `(setq package-activated-list
                  (append ',(mapcar #'package-desc-name package--quickstart-pkgs)
                          package-activated-list))
@@ -4198,6 +4196,7 @@ activations need to be changed, such as when `package-load-list' is modified."
 ;; Local\sVariables:
 ;; version-control: never
 ;; no-update-autoloads: t
+;; byte-compile-warnings: (not make-local)
 ;; End:
 "))
     ;; FIXME: Do it asynchronously in an Emacs subprocess, and
@@ -4223,7 +4222,7 @@ beginning of the line."
             (package-desc-summary package-desc))))
 
 (defun package-browse-url (desc &optional secondary)
-  "Open the home page of the package under point in a browser.
+  "Open the website of the package under point in a browser.
 `browse-url' is used to determine the browser to be used.
 If SECONDARY (interactively, the prefix), use the secondary browser."
   (interactive (list (tabulated-list-get-id)
@@ -4233,7 +4232,7 @@ If SECONDARY (interactively, the prefix), use the secondary browser."
     (user-error "No package here"))
   (let ((url (cdr (assoc :url (package-desc-extras desc)))))
     (unless url
-      (user-error "No home page for %s" (package-desc-name desc)))
+      (user-error "No website for %s" (package-desc-name desc)))
     (if secondary
 	(funcall browse-url-secondary-browser-function url)
       (browse-url url))))

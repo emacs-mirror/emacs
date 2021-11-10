@@ -555,7 +555,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 			<key>UTTypeIdentifier</key>
 			<string>org.orgmode.org</string>
 			<key>UTTypeReferenceURL</key>
-			<string>http://orgmode.org</string>
+			<string>https://orgmode.org</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>

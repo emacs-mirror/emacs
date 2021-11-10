@@ -17,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
 
 (defun try-link (target link)
@@ -97,7 +99,7 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-as-directory "D:/abc//") "d:/abc//")))
 
 (ert-deftest fileio-tests--relative-HOME ()
-  "Test that expand-file-name works even when HOME is relative."
+  "Test that `expand-file-name' works even when HOME is relative."
   (let ((process-environment (copy-sequence process-environment)))
     (setenv "HOME" "a/b/c")
     (should (equal (expand-file-name "~/foo")
@@ -128,7 +130,7 @@ Also check that an encoding error can appear in a symlink."
       (if f (delete-file f)))))
 
 (ert-deftest fileio-tests--relative-default-directory ()
-  "Test expand-file-name when default-directory is relative."
+  "Test `expand-file-name' when `default-directory' is relative."
   (let ((default-directory "some/relative/name"))
     (should (file-name-absolute-p (expand-file-name "foo"))))
   (let* ((default-directory "~foo")
@@ -136,8 +138,17 @@ Also check that an encoding error can appear in a symlink."
     (should (and (file-name-absolute-p name)
                  (not (eq (aref name 0) ?~))))))
 
+(ert-deftest fileio-test--expand-file-name-null-bytes ()
+  "Test that `expand-file-name' checks for null bytes in filenames."
+  (should-error (expand-file-name (concat "file" (char-to-string ?\0) ".txt"))
+                :type 'wrong-type-argument)
+  (should-error (expand-file-name "file.txt" (concat "dir" (char-to-string ?\0)))
+                :type 'wrong-type-argument)
+  (let ((default-directory (concat "dir" (char-to-string ?\0))))
+    (should-error (expand-file-name "file.txt") :type 'wrong-type-argument)))
+
 (ert-deftest fileio-tests--file-name-absolute-p ()
-  "Test file-name-absolute-p."
+  "Test `file-name-absolute-p'."
   (dolist (suffix '("" "/" "//" "/foo" "/foo/" "/foo//" "/foo/bar"))
     (unless (string-equal suffix "")
       (should (file-name-absolute-p suffix)))
@@ -148,7 +159,7 @@ Also check that an encoding error can appear in a symlink."
       (should (not (file-name-absolute-p (concat "~nosuchuser" suffix)))))))
 
 (ert-deftest fileio-tests--circular-after-insert-file-functions ()
-  "Test after-insert-file-functions as a circular list."
+  "Test `after-insert-file-functions' as a circular list."
   (let ((f (make-temp-file "fileio"))
         (after-insert-file-functions (list 'identity)))
     (setcdr after-insert-file-functions after-insert-file-functions)

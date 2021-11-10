@@ -19,31 +19,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Require
-;;
+;;; Code:
+
 (require 'semantic)
 (require 'eieio "../eieio")
 
 ;; tags encapsulated in eval-when-compile and eval-and-compile
 ;; should be expanded out into the outer environment.
 (eval-when-compile
-  (require 'semantic-imenu)
-  )
+  (require 'semantic-imenu))
 
 (eval-and-compile
   (defconst const-1 nil)
   (defun function-1 (arg)
-    nil)
-  )
+    nil))
 
 ;;; Functions
 ;;
 (defun a-defun (arg1 arg2 &optional arg3)
-  "doc a"
+  "Doc a."
   nil)
 
 (defun a-defun-interactive (arg1 arg2 &optional arg3)
-  "doc a that is a command"
+  "Doc a that is a command."
   (interactive "R")
   nil)
 
@@ -52,15 +50,15 @@
   nil)
 
 (defsubst a-defsubst (arg1 arg2 &optional arg3)
-  "doc a-subst"
+  "Doc a-subst."
   nil)
 
 (defmacro a-defmacro (arg1 arg2 &optional arg3)
-  "doc a-macro"
+  "Doc a-macro."
   nil)
 
 (define-overload a-overload (arg)
-  "doc a-overload"
+  "Doc a-overload."
   nil)
 
 ;;; Methods
@@ -81,16 +79,16 @@
 ;;; Variables
 ;;
 (defvar a-defvar (cons 1 2)
-  "Variable a")
+  "Variable a.")
 
 ;; FIXME: This practice is not recommended in recent Emacs.  Remove?
 (defvar a-defvar-star (cons 1 2)
-  "*User visible var a")
+  "*User visible var a.")
 
-(defconst a-defconst 'a "var doc const")
+(defconst a-defconst 'a "Var doc const.")
 
 (defcustom a-defcustom nil
-  "doc custom"
+  "Doc custom."
   :group 'a-defgroup
   :type 'boolean)
 
@@ -111,7 +109,7 @@
 
 
 (defgroup a-defgroup nil
-  "Group for `emacs-lisp' regression-test")
+  "Group for `emacs-lisp' regression-test.")
 
 ;;; Classes
 ;;
@@ -154,3 +152,5 @@
   "some value")
 
 (provide 'test)
+
+;;; test.el ends here

@@ -48,6 +48,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . jpeg)    ; used to be (image-jpeg-p . jpeg)
+    ("\\`RIFF....WEBPVP8" . webp)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
 	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
@@ -67,6 +68,7 @@ a non-nil value, TYPE is the image's type.")
   '(("\\.png\\'" . png)
     ("\\.gif\\'" . gif)
     ("\\.jpe?g\\'" . jpeg)
+    ("\\.webp\\'" . webp)
     ("\\.bmp\\'" . bmp)
     ("\\.xpm\\'" . xpm)
     ("\\.pbm\\'" . pbm)
@@ -92,6 +94,7 @@ be of image type IMAGE-TYPE.")
     (jpeg . maybe)
     (tiff . maybe)
     (svg . maybe)
+    (webp . maybe)
     (postscript . nil))
   "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
 \(See `image-type-auto-detected-p').
@@ -556,7 +559,12 @@ If VALUE is nil, PROPERTY is removed from IMAGE."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
-(defun image-compute-scaling-factor (scaling)
+(defun image-compute-scaling-factor (&optional scaling)
+  "Compute the scaling factor based on SCALING.
+If a number, use that.  If it's `auto', compute the factor.
+If nil, use the `image-scaling-factor' variable."
+  (unless scaling
+    (setq scaling image-scaling-factor))
   (cond
    ((numberp scaling) scaling)
    ((eq scaling 'auto)
@@ -600,7 +608,7 @@ means display it in the right marginal area."
 
 
 ;;;###autoload
-(defun insert-image (image &optional string area slice)
+(defun insert-image (image &optional string area slice inhibit-isearch)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
 with a `display' property whose value is the image.
@@ -617,7 +625,11 @@ SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
 means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
 specifying the X and Y positions and WIDTH and HEIGHT of image area
 to insert.  A float value 0.0 - 1.0 means relative to the width or
-height of the image; integer values are taken as pixel values."
+height of the image; integer values are taken as pixel values.
+
+Normally `isearch' is able to search for STRING in the buffer
+even if it's hidden behind a displayed image.  If INHIBIT-ISEARCH
+is non-nil, this is inhibited."
   ;; Use a space as least likely to cause trouble when it's a hidden
   ;; character in the buffer.
   (unless string (setq string " "))
@@ -641,6 +653,7 @@ height of the image; integer values are taken as pixel values."
 					(list (cons 'slice slice) image)
 				      image)
                                    rear-nonsticky t
+				   inhibit-isearch ,inhibit-isearch
                                    keymap ,image-map))))
 
 
@@ -791,7 +804,7 @@ Example:
 
    (defimage test-image ((:type xpm :file \"~/test1.xpm\")
                          (:type xbm :file \"~/test1.xbm\")))"
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defvar ,symbol (find-image ',specs) ,doc))
 
 
@@ -817,7 +830,7 @@ in which case you might want to use `image-default-frame-delay'."
 	(cons images delay)))))
 
 (defun image-animated-p (image)
-  "Like `image-multi-frame-p', but returns nil if no delay is specified."
+  "Like `image-multi-frame-p', but return nil if no delay is specified."
   (let ((multi (image-multi-frame-p image)))
     (and (cdr multi) multi)))
 
@@ -1136,6 +1149,13 @@ default is 20%."
     (unless (eq (car-safe image) 'image)
       (error "No image under point"))
     image))
+
+;;;###autoload
+(defun image-at-point-p ()
+  "Return non-nil if there is an image at point."
+  (condition-case nil
+      (prog1 t (image--get-image))
+    (error nil)))
 
 (defun image--get-imagemagick-and-warn (&optional position)
   (declare-function image-transforms-p "image.c" (&optional frame))

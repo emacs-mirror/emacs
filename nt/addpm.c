@@ -34,6 +34,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    installed, then the DDE fallback for creating icons the Windows 3.1
    progman way will be used instead, but that is prone to lockups
    caused by other applications not servicing their message queues.  */
+
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>

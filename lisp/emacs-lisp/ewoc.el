@@ -49,13 +49,13 @@
 ;;
 ;; Ewoc is a package that implements a connection between an
 ;; dll (a doubly linked list) and the contents of a buffer.
-;; Possible uses are dired (have all files in a list, and show them),
+;; Possible uses are Dired (have all files in a list, and show them),
 ;; buffer-list, kom-prioritize (in the LysKOM elisp client) and
 ;; others.  pcl-cvs.el and vc.el use ewoc.el.
 ;;
 ;; Ewoc can be considered as the `view' part of a model-view-controller.
 ;;
-;; A `element' can be any lisp object.  When you use the ewoc
+;; An `element' can be any Lisp object.  When you use the ewoc
 ;; package you specify a pretty-printer, a function that inserts
 ;; a printable representation of the element in the buffer.  (The
 ;; pretty-printer should use "insert" and not
@@ -67,7 +67,7 @@
 ;; fixed when the ewoc is created).  The header and the footer
 ;; are constant strings.  They appear before and after the elements.
 ;;
-;; Ewoc does not affect the mode of the buffer in any way. It
+;; Ewoc does not affect the mode of the buffer in any way.  It
 ;; merely makes it easy to connect an underlying data representation
 ;; to the buffer contents.
 ;;
@@ -117,7 +117,7 @@
     (unless (eq dll L) L)))
 
 (defun ewoc--node-nth (dll n)
-  "Return the Nth node from the doubly linked list `dll'.
+  "Return the Nth node from the doubly linked list DLL.
 N counts from zero.  If N is negative, return the -(N+1)th last element.
 If N is out of range, return nil.
 Thus, (ewoc--node-nth dll 0) returns the first node,
@@ -147,7 +147,7 @@ and (ewoc--node-nth dll -1) returns the last node."
   buffer pretty-printer header footer dll last-node hf-pp)
 
 (defmacro ewoc--set-buffer-bind-dll-let* (ewoc varlist &rest forms)
-  "Execute FORMS with ewoc--buffer selected as current buffer,
+  "Execute FORMS with `ewoc--buffer' selected as current buffer,
 `dll' bound to the dll, and VARLIST bound as in a let*.
 `dll' will be bound when VARLIST is initialized, but
 the current buffer will *not* have been changed.
@@ -381,7 +381,7 @@ arguments will be passed to MAP-FUNCTION."
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
-Note that the buffer for EWOC will be current-buffer when PREDICATE
+Note that the buffer for EWOC will be the current buffer when PREDICATE
 is called.  PREDICATE must restore the current buffer before it returns
 if it changes it.
 The PREDICATE is called with the element as its first argument.  If any

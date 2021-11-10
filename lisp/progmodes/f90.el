@@ -64,10 +64,11 @@
 ;; The function f90-comment-region toggles insertion of
 ;; the variable f90-comment-region in every line of the region.
 
-;; One common convention for free vs. fixed format is that free format files
-;; have the ending .f90 or .f95 while fixed format files have the ending .f.
-;; Emacs automatically loads Fortran files in the appropriate mode based
-;; on extension. You can modify this by adjusting the variable auto-mode-alist.
+;; One common convention for free vs. fixed format is that free format
+;; files have the ending ".f90" or ".f95" while fixed format files have
+;; the ending ".f".  Emacs automatically loads Fortran files in the
+;; appropriate mode based on extension.  You can modify this by
+;; adjusting the variable `auto-mode-alist'.
 ;; For example:
 ;; (add-to-list 'auto-mode-alist '("\\.f\\'" . f90-mode))
 
@@ -104,21 +105,21 @@
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
 ;;           (f90-change-keywords f90-auto-keyword-case))))
 ;;
-;; in your init file. You can also customize the lists
-;; f90-font-lock-keywords, etc.
+;; in your init file.  You can also customize the lists
+;; `f90-font-lock-keywords', etc.
 ;;
 ;; The auto-fill and abbreviation minor modes are accessible from the F90 menu,
 ;; or by using M-x auto-fill-mode and M-x abbrev-mode, respectively.
 
 ;; Remarks
-;; 1) Line numbers are by default left-justified. If f90-leave-line-no is
+;; 1) Line numbers are by default left-justified.  If f90-leave-line-no is
 ;;    non-nil, the line numbers are never touched.
 ;; 2) Multi-; statements like "do i=1,20 ; j=j+i ; end do" are not handled
 ;;    correctly, but I imagine them to be rare.
 ;; 3) Regexps for hilit19 are no longer supported.
 ;; 4) For FIXED FORMAT code, use fortran mode.
 ;; 5) Preprocessor directives, i.e., lines starting with # are left-justified
-;;    and are untouched by all case-changing commands. There is, at present, no
+;;    and are untouched by all case-changing commands.  There is, at present, no
 ;;    mechanism for treating multi-line directives (continued by \ ).
 ;; 6) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
@@ -140,7 +141,7 @@
 ;;   f90-font-lock-1, f90-font-lock-2, f90-font-lock-3, f90-font-lock-4
 
 ;; Original author's thanks
-;; Thanks to all the people who have tested the mode. Special thanks to Jens
+;; Thanks to all the people who have tested the mode.  Special thanks to Jens
 ;; Bloch Helmers for encouraging me to write this code, for creative
 ;; suggestions as well as for the lists of hpf-commands.
 ;; Also thanks to the authors of the fortran and pascal modes, on which some
@@ -344,6 +345,7 @@ The options are `downcase-word', `upcase-word', `capitalize-word' and nil."
                  ;; there are spaces.
                  "contiguous" "submodule" "concurrent" "codimension"
                  "sync all" "sync memory" "critical" "image_index" "error stop"
+                 "impure"
                  ))
    "\\_>")
   "Regexp used by the function `f90-change-keywords'.")
@@ -983,7 +985,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 ;; FIXME trivial to extend this to enum. Worth it?
 (defun f90-imenu-type-matcher ()
   "Search backward for the start of a derived type.
-Set subexpression 1 in the match-data to the name of the type."
+Set subexpression 1 in the `match-data' to the name of the type."
   (let (found)
     (while (and (re-search-backward "^[ \t0-9]*type[ \t]*" nil t)
                 (not (setq found

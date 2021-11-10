@@ -168,7 +168,7 @@ This is default behavior of shells like bash."
 
 (defun eshell-lock-local-map (&optional arg)
   "Lock or unlock the current local keymap.
-Within a prefix arg, set the local keymap to its normal value, and
+With prefix ARG, set the local keymap to its normal value, and
 lock it at that."
   (interactive "P")
   (if (or arg (not eshell-lock-keymap))

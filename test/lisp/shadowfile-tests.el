@@ -664,7 +664,29 @@ guaranteed by the originator of a cluster definition."
 	  (should (member (format "/%s:%s" cluster2 (file-local-name file2))
                           (car shadow-literal-groups)))
           ;; Bug#49596.
-	  (should (member (concat primary file1) (car shadow-literal-groups))))
+	  (should (member (concat primary file1) (car shadow-literal-groups)))
+
+          ;; Error handling.
+          (setq shadow-literal-groups nil)
+          ;; There's no `buffer-file-name'.
+          (with-temp-buffer
+            (call-interactively #'shadow-define-literal-group)
+            (set-buffer-modified-p nil))
+          (should-not shadow-literal-groups)
+	  ;; Define an empty literal group.
+	  (setq mocked-input `(,(kbd "RET")))
+	  (with-temp-buffer
+            (set-visited-file-name file1)
+	    (call-interactively #'shadow-define-literal-group)
+            (set-buffer-modified-p nil))
+          (should-not shadow-literal-groups)
+          ;; Use a non-existing site name.
+	  (setq mocked-input `("foo" ,(kbd "RET")))
+	  (with-temp-buffer
+            (set-visited-file-name file1)
+	    (call-interactively #'shadow-define-literal-group)
+            (set-buffer-modified-p nil))
+          (should-not shadow-literal-groups))
 
       ;; Cleanup.
       (shadow--tests-cleanup))))

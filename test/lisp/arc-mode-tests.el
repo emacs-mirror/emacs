@@ -48,4 +48,4 @@
 
 (provide 'arc-mode-tests)
 
-;; arc-mode-tests.el ends here
+;;; arc-mode-tests.el ends here

@@ -586,8 +586,8 @@ string dropped into the current buffer."
 ;; Based on a function by David Reitter <dreitter@inf.ed.ac.uk> ;
 ;; see https://lists.gnu.org/r/emacs-devel/2005-09/msg00681.html .
 (defun ns-toggle-toolbar (&optional frame)
-  "Switches the tool bar on and off in frame FRAME.
- If FRAME is nil, the change applies to the selected frame."
+  "Switch the tool bar on and off in frame FRAME.
+If FRAME is nil, the change applies to the selected frame."
   (interactive)
   (modify-frame-parameters
    frame (list (cons 'tool-bar-lines
@@ -867,10 +867,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; For Darwin nothing except UTF-8 makes sense.
   (when (eq system-type 'darwin)
       (add-hook 'before-init-hook
-                #'(lambda ()
-                    (setq locale-coding-system 'utf-8-unix)
-                    (setq default-process-coding-system
-                          '(utf-8-unix . utf-8-unix)))))
+                (lambda ()
+                  (setq locale-coding-system 'utf-8-unix)
+                  (setq default-process-coding-system
+                        '(utf-8-unix . utf-8-unix)))))
 
   ;; Mac OS X Lion introduces PressAndHold, which is unsupported by this port.
   ;; See this thread for more details:

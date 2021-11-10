@@ -161,7 +161,7 @@ enable expiration per categories, topics, and groups."
 
 (defcustom gnus-agent-expire-unagentized-dirs t
   "Whether expiration should expire in unagentized directories.
-Have gnus-agent-expire scan the directories under
+Have `gnus-agent-expire' scan the directories under
 \(gnus-agent-directory) for groups that are no longer agentized.
 When found, offer to remove them."
   :version "22.1"
@@ -475,17 +475,16 @@ manipulated as follows:
     (gnus-run-hooks 'gnus-agent-mode-hook
 		    (intern (format "gnus-agent-%s-mode-hook" buffer)))))
 
-(defvar gnus-agent-group-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-group-mode-map
-  "Ju" gnus-agent-fetch-groups
-  "Jc" gnus-enter-category-buffer
-  "Jj" gnus-agent-toggle-plugged
-  "Js" gnus-agent-fetch-session
-  "JY" gnus-agent-synchronize-flags
-  "JS" gnus-group-send-queue
-  "Ja" gnus-agent-add-group
-  "Jr" gnus-agent-remove-group
-  "Jo" gnus-agent-toggle-group-plugged)
+(defvar-keymap gnus-agent-group-mode-map
+  "Ju" #'gnus-agent-fetch-groups
+  "Jc" #'gnus-enter-category-buffer
+  "Jj" #'gnus-agent-toggle-plugged
+  "Js" #'gnus-agent-fetch-session
+  "JY" #'gnus-agent-synchronize-flags
+  "JS" #'gnus-group-send-queue
+  "Ja" #'gnus-agent-add-group
+  "Jr" #'gnus-agent-remove-group
+  "Jo" #'gnus-agent-toggle-group-plugged)
 
 (defun gnus-agent-group-make-menu-bar ()
   (unless (boundp 'gnus-agent-group-menu)
@@ -504,16 +503,15 @@ manipulated as follows:
        ["Synchronize flags" gnus-agent-synchronize-flags t]
        ))))
 
-(defvar gnus-agent-summary-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-summary-mode-map
-  "Jj" gnus-agent-toggle-plugged
-  "Ju" gnus-agent-summary-fetch-group
-  "JS" gnus-agent-fetch-group
-  "Js" gnus-agent-summary-fetch-series
-  "J#" gnus-agent-mark-article
-  "J\M-#" gnus-agent-unmark-article
-  "@" gnus-agent-toggle-mark
-  "Jc" gnus-agent-catchup)
+(defvar-keymap gnus-agent-summary-mode-map
+  "Jj" #'gnus-agent-toggle-plugged
+  "Ju" #'gnus-agent-summary-fetch-group
+  "JS" #'gnus-agent-fetch-group
+  "Js" #'gnus-agent-summary-fetch-series
+  "J#" #'gnus-agent-mark-article
+  "J\M-#" #'gnus-agent-unmark-article
+  "@" #'gnus-agent-toggle-mark
+  "Jc" #'gnus-agent-catchup)
 
 (defun gnus-agent-summary-make-menu-bar ()
   (unless (boundp 'gnus-agent-summary-menu)
@@ -527,11 +525,10 @@ manipulated as follows:
        ["Fetch downloadable" gnus-agent-summary-fetch-group t]
        ["Catchup undownloaded" gnus-agent-catchup t]))))
 
-(defvar gnus-agent-server-mode-map (make-sparse-keymap))
-(gnus-define-keys gnus-agent-server-mode-map
-  "Jj" gnus-agent-toggle-plugged
-  "Ja" gnus-agent-add-server
-  "Jr" gnus-agent-remove-server)
+(defvar-keymap gnus-agent-server-mode-map
+  "Jj" #'gnus-agent-toggle-plugged
+  "Ja" #'gnus-agent-add-server
+  "Jr" #'gnus-agent-remove-server)
 
 (defun gnus-agent-server-make-menu-bar ()
   (unless (boundp 'gnus-agent-server-menu)
@@ -622,7 +619,7 @@ manipulated as follows:
 
 The gnus-agentize function is now called internally by gnus when
 gnus-agent is set.  If you wish to avoid calling gnus-agentize,
-customize gnus-agent to nil.
+customize `gnus-agent' to nil.
 
 This will modify the `gnus-setup-news-hook', and
 `message-send-mail-real-function' variables, and install the Gnus agent
@@ -1323,7 +1320,7 @@ downloaded into the agent."
           (gnus-agent-set-local group agent-min (1- active-min)))))))
 
 (defun gnus-agent-save-group-info (method group active)
-  "Update a single group's active range in the agent's copy of the server's active file."
+  "Update single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
@@ -1356,7 +1353,7 @@ downloaded into the agent."
 	    (delete-char 1)))))))
 
 (defun gnus-agent-get-group-info (method group)
-  "Get a single group's active range in the agent's copy of the server's active file."
+  "Get single group's active range in agent's copy of server's active file."
   (when (gnus-agent-method-p method)
     (let* ((gnus-command-method (or method gnus-command-method))
 	   (coding-system-for-write nnheader-file-coding-system)
@@ -1703,8 +1700,8 @@ and that there are no duplicates."
 
 (defun gnus-agent-flush-server (&optional server-or-method)
   "Flush all agent index files for every subscribed group within
-  the given SERVER-OR-METHOD.  When called with nil, the current
-  value of gnus-command-method identifies the server."
+the given SERVER-OR-METHOD.  When called with nil, the current
+value of gnus-command-method identifies the server."
   (let* ((gnus-command-method (if server-or-method
 				  (gnus-server-to-method server-or-method)
 				gnus-command-method))
@@ -2153,8 +2150,9 @@ doesn't exist, to valid the overview buffer."
 (defvar gnus-agent-file-loading-local nil)
 
 (defun gnus-agent-load-local (&optional method)
-  "Load the METHOD'S local file.  The local file contains min/max
-article counts for each of the method's subscribed groups."
+  "Load the METHOD'S local file.
+The local file contains min/max article counts for each of the
+method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
     (when (or (null gnus-agent-article-local-times)
 	      (zerop gnus-agent-article-local-times)
@@ -2171,9 +2169,9 @@ article counts for each of the method's subscribed groups."
     gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
-  "Load and read FILE then bind its contents to
-gnus-agent-article-local.  If that variable had `dirty' (also known as
-modified) original contents, they are first saved to their own file."
+  "Load and read FILE then bind its contents to `gnus-agent-article-local'.
+If that variable had `dirty' (also known as modified) original
+contents, they are first saved to their own file."
   (if (and gnus-agent-article-local
            (gethash "+dirty" gnus-agent-article-local))
       (gnus-agent-save-local))
@@ -2224,7 +2222,7 @@ modified) original contents, they are first saved to their own file."
     hashtb))
 
 (defun gnus-agent-save-local (&optional force)
-  "Save gnus-agent-article-local under it method's agent.lib directory."
+  "Save `gnus-agent-article-local' under it method's agent.lib directory."
   (let ((hashtb gnus-agent-article-local))
     (when (and hashtb
                (or force (gethash "+dirty" hashtb)))
@@ -2596,25 +2594,20 @@ General format specifiers can also be used.  See Info node
 (defvar gnus-category-line-format-spec nil)
 (defvar gnus-category-mode-line-format-spec nil)
 
-(defvar gnus-category-mode-map nil)
+(defvar-keymap gnus-category-mode-map
+  :suppress t
+  "q" #'gnus-category-exit
+  "k" #'gnus-category-kill
+  "c" #'gnus-category-copy
+  "a" #'gnus-category-add
+  "e" #'gnus-agent-customize-category
+  "p" #'gnus-category-edit-predicate
+  "g" #'gnus-category-edit-groups
+  "s" #'gnus-category-edit-score
+  "l" #'gnus-category-list
 
-(unless gnus-category-mode-map
-  (setq gnus-category-mode-map (make-sparse-keymap))
-  (suppress-keymap gnus-category-mode-map)
-
-  (gnus-define-keys gnus-category-mode-map
-    "q" gnus-category-exit
-    "k" gnus-category-kill
-    "c" gnus-category-copy
-    "a" gnus-category-add
-    "e" gnus-agent-customize-category
-    "p" gnus-category-edit-predicate
-    "g" gnus-category-edit-groups
-    "s" gnus-category-edit-score
-    "l" gnus-category-list
-
-    "\C-c\C-i" gnus-info-find-node
-    "\C-c\C-b" gnus-bug))
+  "\C-c\C-i" #'gnus-info-find-node
+  "\C-c\C-b" #'gnus-bug)
 
 (defcustom gnus-category-menu-hook nil
   "Hook run after the creation of the menu."
@@ -3552,32 +3545,13 @@ articles in every agentized group? "))
       (when (and to-remove
                  (or gnus-expert-user
                      (gnus-y-or-n-p
-                      "gnus-agent-expire has identified local directories that are\
- not currently required by any agentized group.  Do you wish to consider\
- deleting them?")))
-        (while to-remove
-          (let ((dir (pop to-remove)))
-            (if (or gnus-expert-user
+                      "gnus-agent-expire has identified local directories that are
+not currently required by any agentized group.  Do you wish to consider
+deleting them?")))
+        (dolist (dir to-remove)
+          (when (or gnus-expert-user
 		    (gnus-y-or-n-p (format "Delete %s? " dir)))
-                (let* (delete-recursive
-		       files f
-                       (delete-recursive
-                        (lambda (f-or-d)
-                          (ignore-errors
-                            (if (file-directory-p f-or-d)
-                                (condition-case nil
-                                    (delete-directory f-or-d)
-                                  (file-error
-                                   (setq files (directory-files f-or-d))
-                                   (while files
-                                     (setq f (pop files))
-                                     (or (member f '("." ".."))
-                                         (funcall delete-recursive
-                                                  (nnheader-concat
-                                                   f-or-d f))))
-                                   (delete-directory f-or-d)))
-                              (delete-file f-or-d))))))
-                  (funcall delete-recursive dir)))))))))
+            (delete-directory dir t)))))))
 
 ;;;###autoload
 (defun gnus-agent-batch ()

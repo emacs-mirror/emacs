@@ -36,7 +36,7 @@
 ;; reporter.el was written primarily for Emacs Lisp package authors so
 ;; that their users can more easily report bugs.  When invoked,
 ;; `reporter-submit-bug-report' will set up an outgoing mail buffer
-;; with the appropriate bug report address, including a lisp
+;; with the appropriate bug report address, including a Lisp
 ;; expression the maintainer of the package can evaluate to completely
 ;; reproduce the environment in which the bug was observed (e.g. by
 ;; using `eval-last-sexp').  This package proved especially useful
@@ -158,7 +158,7 @@ composed.")
       (error indent-enclosing-p))))
 
 (defun reporter-lisp-indent (_indent-point state)
-  "A better lisp indentation style for bug reporting."
+  "A better Lisp indentation style for bug reporting."
   (save-excursion
     (goto-char (1+ (nth 1 state)))
     (current-column)))

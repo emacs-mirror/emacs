@@ -117,5 +117,36 @@
                          (- (point-max) 1) (point-max)
                          nil)))))
 
+(ert-deftest paren-tests-open-paren-line ()
+  (cl-flet ((open-paren-line ()
+                             (let* ((data (show-paren--default))
+                                    (here-beg (nth 0 data))
+                                    (there-beg (nth 2 data)))
+                               (blink-paren-open-paren-line-string
+                                (min here-beg there-beg)))))
+    ;; Lisp-like
+    (with-temp-buffer
+      (insert "(defun foo ()
+                  (dummy))")
+      (goto-char (point-max))
+      (should (string= "(defun foo ()" (open-paren-line))))
+
+    ;; C-like
+    (with-temp-buffer
+      (insert "int foo() {
+                 int blah;
+             }")
+      (goto-char (point-max))
+      (should (string= "int foo() {" (open-paren-line))))
+
+    ;; C-like with hanging {
+    (with-temp-buffer
+      (insert "int foo()
+               {
+                 int blah;
+               }")
+      (goto-char (point-max))
+      (should (string= "int foo()...{" (open-paren-line))))))
+
 (provide 'paren-tests)
 ;;; paren-tests.el ends here

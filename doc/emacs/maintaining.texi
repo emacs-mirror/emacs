@@ -493,7 +493,7 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
@@ -945,7 +945,7 @@ the author's description of the changes in the revision on the current
 line.
 
 @item w
-Annotate the working revision--the one you are editing.  If you used
+Annotate the working revision---the one you are editing.  If you used
 @kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
 
@@ -1136,13 +1136,17 @@ Revert the work file(s) in the current VC fileset to the last revision
 @findex vc-revert
 @vindex vc-revert-show-diff
   If you want to discard all the changes you have made to the current
-VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This shows
-you a diff between the work file(s) and the revision from which you
-started editing, and asks for confirmation for discarding the changes.
-If you agree, the fileset is reverted.  If you don't want @kbd{C-x v
-u} to show a diff, set the variable @code{vc-revert-show-diff} to
-@code{nil} (you can still view the diff directly with @kbd{C-x v =};
-@pxref{Old Revisions}).
+VC fileset, type @kbd{C-x v u} (@code{vc-revert}).  This will ask you
+for confirmation before discarding the changes.  If you agree, the
+fileset is reverted.
+
+  If @code{vc-revert-show-diff} is non-@code{nil}, this command will
+show you a diff between the work file(s) and the revision from which
+you started editing.  Afterwards, the diff buffer will either be
+killed (if this variable is @code{kill}), or the buffer will be buried
+(any other non-@code{nil} value).  If you don't want @kbd{C-x v u} to
+show a diff, set this variable to @code{nil} (you can still view the
+diff directly with @kbd{C-x v =}; @pxref{Old Revisions}).
 
   On locking-based version control systems, @kbd{C-x v u} leaves files
 unlocked; you must lock again to resume editing.  You can also use
@@ -1731,7 +1735,8 @@ the full file name of the file to visit, you can type only the file's
 base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files
 belonging to the current project, and nothing else.  If there's a file
-name at point, this command offers that file as the default to visit.
+name at point, this command offers that file as the first element of
+the ``future history''.
 
 @findex project-find-regexp
   The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to
@@ -1743,10 +1748,12 @@ commands (@pxref{Xref Commands}).  When invoked with a prefix
 argument, this command additionally prompts for the base directory
 from which to start the search; this allows, for example, to limit the
 search only to project files under a certain subdirectory of the
-project root.
+project root.  The way this command displays the matches is affected
+by the value of @code{xref-auto-jump-to-first-xref} (@pxref{Identifier
+Search}).
 
 @findex project-search
-  @kbd{M-x project-search} is an interactive variant of
+  @kbd{M-x project-search} is a sequential variant of
 @code{project-find-regexp}.  It prompts for a regular expression to
 search in the current project's files, but instead of finding all the
 matches and displaying them, it stops when it finds a match and visits
@@ -1762,8 +1769,13 @@ Replace}), and continues to the next match after you respond.  If your
 response causes Emacs to exit the query-replace loop, you can later
 continue with @w{@kbd{M-x fileloop-continue @key{RET}}}.
 
+@findex project-find-dir
+  The command @kbd{C-x p d} (@code{project-find-dir}) prompts you to
+choose a directory inside the current project, with completion.
+And opens a Dired buffer (@pxref{Dired}) listing the files in it.
+
 @findex project-dired
-  The command @kbd{C-x p d} (@code{project-dired}) opens a Dired
+  The command @kbd{C-x p D} (@code{project-dired}) opens a Dired
 buffer (@pxref{Dired}) listing the files in the current project's root
 directory.
 
@@ -1854,14 +1866,14 @@ records the list of known projects.  It defaults to the file
 @subsection Managing the Project List File
 
 @table @kbd
-@item M-x project-remove-known-project
+@item M-x project-forget-project
 Remove a known project from the @code{project-list-file}.
 @end table
 
-@findex project-remove-known-project
+@findex project-forget-project
   Normally Emacs automatically adds and removes projects to and from the
 @code{project-list-file}, but sometimes you may want to manually edit
-the available projects.  @kbd{M-x project-remove-known-project}
+the available projects.  @kbd{M-x project-forget-project}
 prompts you to choose one of the available projects, and then removes
 it from the file.
 
@@ -2127,7 +2139,10 @@ Find definition of identifier, and display it in a new frame
 Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
-(@code{xref-pop-marker-stack}).
+(@code{xref-go-back}).
+@item C-M-,
+Go forward to where you previously invoked @kbd{M-,}
+(@code{xref-go-forward}).
 @item M-x xref-etags-mode
 Switch @code{xref} to use the @code{etags} backend.
 @end table
@@ -2135,24 +2150,15 @@ Switch @code{xref} to use the @code{etags} backend.
 @kindex M-.
 @findex xref-find-definitions
 @vindex xref-prompt-for-identifier
-  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definitions of
+  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definition of
 the identifier at point.  With a prefix argument, or if there's no
 identifier at point, it prompts for the identifier.  (If you want it
 to always prompt, customize @code{xref-prompt-for-identifier} to
 @code{t}.)
 
-If the specified identifier has only one definition, the command jumps
-to it.  If the identifier has more than one possible definition (e.g.,
-in an object-oriented language, or if there's a function and a
-variable by the same name), the command shows the candidate
-definitions in the @file{*xref*} buffer, together with the files in
-which these definitions are found.  Selecting one of these candidates
-by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
-showing the corresponding definition.
-
-  When entering the identifier argument to @kbd{M-.}, the usual
-minibuffer completion commands can be used (@pxref{Completion}), with
-the known identifier names as completion candidates.
+  When entering the identifier argument to @kbd{M-.}, you can use the
+usual minibuffer completion commands (@pxref{Completion}), with the
+known identifier names being the completion candidates.
 
 @kindex C-x 4 .
 @findex xref-find-definitions-other-window
@@ -2170,29 +2176,48 @@ former is @w{@kbd{C-x 4 .}}
 or around the place of a mouse event.  This command is intended to be
 bound to a mouse event, such as @kbd{C-M-mouse-1}, for example.
 
-@findex xref-find-apropos
 @kindex C-M-.
-  The command @kbd{C-M-.} (@code{xref-find-apropos}) finds the
-definitions of one or more identifiers that match a specified regular
-expression.  It is just like @kbd{M-.} except that it does regexp
+@findex xref-find-apropos
+@vindex tags-apropos-additional-actions
+  The command @kbd{C-M-.}@: (@code{xref-find-apropos}) is like
+@code{apropos} for tags (@pxref{Apropos}).  It displays a list of
+identifiers in the selected tags table whose names match the specified
+@var{regexp}.  This is just like @kbd{M-.}, except that it does regexp
 matching of identifiers instead of matching symbol names as fixed
-strings.
+strings.  By default, the command pops up the @file{*xref*} buffer,
+like @kbd{M-.}, but you can display additional output by customizing
+the variable @code{tags-apropos-additional-actions}; see its
+documentation for details.
 
-  When any of the above commands finds more than one definition, it
-presents the @file{*xref*} buffer showing the definition candidates.
-In that buffer, you have several specialized commands, described in
-@ref{Xref Commands}.
+@vindex xref-auto-jump-to-first-definition
+  If any of the above commands finds more than one matching
+definition, it by default pops up the @file{*xref*} buffer showing the
+matching candidates.  (@kbd{C-M-.}@: @emph{always} pops up the
+@file{*xref*} buffer if it finds at least one match.)  The candidates
+are normally shown in that buffer as the name of a file and the
+matching identifier(s) in that file.  In that buffer, you can select
+any of the candidates for display, and you have several additional
+commands, described in @ref{Xref Commands}.  However, if the value of
+the variable @code{xref-auto-jump-to-first-definition} is @code{move},
+the first of these candidates is automatically selected in the
+@file{*xref*} buffer, and if it's @code{t} or @code{show}, the first
+candidate is automatically shown in its own window; @code{t} also
+selects the window showing the first candidate.  The default value is
+@code{nil}, which just shows the candidates in the @file{*xref*}
+buffer, but doesn't select any of them.
 
 @kindex M-,
-@findex xref-pop-marker-stack
-@vindex xref-marker-ring-length
-  To go back to places @emph{from where} you found the definition,
-use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
+@findex xref-go-back
+  To go back to places @emph{from where} you've displayed the definition,
+use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace your
-steps to a depth determined by the variable
-@code{xref-marker-ring-length}, which defaults to 16.
+where you were with @kbd{M-,}.
+
+@kindex C-M-,
+@findex xref-go-forward
+  Go forward to a place from where you previously went back using @kbd{M-,}.
+This is useful if you find that you went back too far.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
@@ -2218,9 +2243,15 @@ the special XREF mode:
 
 @table @kbd
 @item @key{RET}
-@itemx mouse-2
+@itemx mouse-1
 Display the reference on the current line (@code{xref-goto-xref}).
 With prefix argument, also bury the @file{*xref*} buffer.
+
+@item mouse-2
+@findex xref-select-and-show-xref
+The same as @code{mouse-1}, but make the window displaying the
+@file{*xref*} buffer the selected window
+(@code{xref-select-and-show-xref}).
 
 @item n
 @itemx .
@@ -2257,10 +2288,15 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 @item g
 @findex xref-revert-buffer
 Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}.
+(@code{xref-revert-buffer}).
 
-@findex xref-quit
+@item M-,
+@findex xref-quit-and-pop-marker-stack
+Quit the window showing the @file{*xref*} buffer, and then jump to the
+previous Xref stack location (@code{xref-quit-and-pop-marker-stack}).
+
 @item q
+@findex xref-quit
 Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
 @end table
 
@@ -2310,6 +2346,16 @@ then presents the @file{*xref*} buffer with all the references to the
 identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
 @ref{Xref Commands}.
+
+@vindex xref-auto-jump-to-first-xref
+  If the value of the variable @code{xref-auto-jump-to-first-xref} is
+@code{t}, @code{xref-find-references} automatically jumps to the first
+result and selects the window where it is displayed.  If the value is
+@code{show}, the first result is shown, but the window showing the
+@file{*xref*} buffer is left selected.  If the value is @code{move},
+the first result is selected in the @file{*xref*} buffer, but is not
+shown.  The default value is @code{nil}, which just shows the results
+in the @file{*xref*} buffer, but doesn't select any of them.
 
 @findex xref-query-replace-in-results
   @kbd{M-x xref-query-replace-in-results} reads a regexp to match identifier
@@ -2381,12 +2427,13 @@ Searching}.
 Perform completion on the text around point, possibly using the
 selected tags table if one is loaded (@code{completion-at-point}).
 
-@item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
-Display a list of all known identifiers matching @var{regexp}.
-
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the identifiers defined in the program file
 @var{file}.
+
+@item C-M-. @var{regexp} @key{RET}
+Display a list of all identifiers matching @var{regexp}
+(@code{xref-find-apropos}).  @xref{Looking Up Identifiers}.
 
 @item M-x tags-next-file
 Visit files recorded in the selected tags table.
@@ -2408,26 +2455,6 @@ command works only with the etags backend, and requires a tags table
 for the project to be available.  @xref{Tags Tables}.  If used
 interactively, the default tag is file name of the current buffer if
 used interactively.
-
-@c Sadly, the new-and-improved Xref feature doesn't provide anything
-@c close to the described below features of the now-obsoleted
-@c tags-apropos.  I'm leaving this here to encourage enhancements to
-@c xref.el.
-@ignore
-@findex tags-apropos
-@vindex tags-apropos-verbose
-@vindex tags-tag-face
-@vindex tags-apropos-additional-actions
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It displays a list of tags in the selected tags
-table whose entries match @var{regexp}.  If the variable
-@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
-of the tags files together with the tag names.  You can customize the
-appearance of the output by setting the variable @code{tags-tag-face}
-to a face.  You can display additional output by customizing the
-variable @code{tags-apropos-additional-actions}; see its documentation
-for details.
-@end ignore
 
 @findex tags-next-file
   @kbd{M-x tags-next-file} visits files covered by the selected tags table.
@@ -3097,19 +3124,23 @@ these local variables section would do.
 
 @smallexample
 ;; Local Variables:
-;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\)\\([0-9]+\\)"
+;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\([0-9]+\\)\\)"
 ;; bug-reference-url-format: "https://project.org/issues/%s"
 ;; End:
 @end smallexample
+
+The string captured by the first regexp group defines the bounds of
+the overlay bug-reference creates, i.e., the part which is highlighted
+and made clickable.
 
 The string captured by the second regexp group in
 @code{bug-reference-bug-regexp} is used to replace the @code{%s}
 template in the @code{bug-reference-url-format}.
 
 Note that @code{bug-reference-url-format} may also be a function in
-order to cater for more complex scenarios, e.g., when the part before
-the actual bug number has to be used to distinguish between issues and
-merge requests where each of them has a different URL.
+order to cater for more complex scenarios, e.g., when different parts
+of the bug reference have to be used to distinguish between issues and
+merge requests resulting in different URLs.
 
 
 @heading Automatic Setup
@@ -3124,20 +3155,22 @@ variables itself by calling the functions in
 one is able to set the variables.
 
 @vindex bug-reference-setup-from-vc-alist
+@vindex bug-reference-forge-alist
 @vindex bug-reference-setup-from-mail-alist
 @vindex bug-reference-setup-from-irc-alist
   Right now, there are three types of setup functions.
 @enumerate
 @item
-Setup for version-controlled files configurable by the variable
-@code{bug-reference-setup-from-vc-alist}.  The default is able to
+Setup for version-controlled files configurable by the variables
+@code{bug-reference-forge-alist}, and
+@code{bug-reference-setup-from-vc-alist}.  The defaults are able to
 setup GNU projects where @url{https://debbugs.gnu.org} is used as
 issue tracker and issues are usually referenced as @code{bug#13} (but
-many different notations are considered, too), Sourcehut projects
-where issues are referenced using the notation @code{#17}, Codeberg
-and Github projects where both bugs and pull requests are referenced
-using the same notation, and GitLab projects where bugs are referenced
-with @code{#17}, too, but merge requests use the @code{!18} notation.
+many different notations are considered, too), and several kinds of
+modern software forges such as GitLab, Gitea, SourceHut, or GitHub.
+If you deploy a self-hosted instance of such a forge, the easiest way
+to tell bug-reference about it is through
+@code{bug-reference-forge-alist}.
 
 @item
 Setup for email guessing from mail folder/mbox names, and mail header

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 ;;; reftex
 (require 'reftex)
@@ -33,32 +34,31 @@
 
 (ert-deftest reftex-locate-bibliography-files ()
   "Test `reftex-locate-bibliography-files'."
-  (let ((temp-dir (make-temp-file "reftex-bib" 'dir))
-        (files '("ref1.bib" "ref2.bib"))
-        (test '(("\\addbibresource{ref1.bib}\n" . ("ref1.bib"))
-                ("\\\\addbibresource[label=x]{ref2.bib}\\n" . ("ref2.bib"))
-                ("\\begin{document}\n\\bibliographystyle{plain}\n
+  (ert-with-temp-directory temp-dir
+    (let ((files '("ref1.bib" "ref2.bib"))
+          (test '(("\\addbibresource{ref1.bib}\n" . ("ref1.bib"))
+                  ("\\\\addbibresource[label=x]{ref2.bib}\\n" . ("ref2.bib"))
+                  ("\\begin{document}\n\\bibliographystyle{plain}\n
 \\bibliography{ref1,ref2}\n\\end{document}" . ("ref1.bib" "ref2.bib"))))
-        (reftex-bibliography-commands
-         ;; Default value: See reftex-vars.el `reftex-bibliography-commands'
-         '("bibliography" "nobibliography" "setupbibtex\\[.*?database="
-           "addbibresource")))
-    (with-temp-buffer
-      (insert "test\n")
+          (reftex-bibliography-commands
+           ;; Default value: See reftex-vars.el `reftex-bibliography-commands'
+           '("bibliography" "nobibliography" "setupbibtex\\[.*?database="
+             "addbibresource")))
+      (with-temp-buffer
+        (insert "test\n")
+        (mapc
+         (lambda (file)
+           (write-region (point-min) (point-max) (expand-file-name file
+                                                                   temp-dir)))
+         files))
       (mapc
-       (lambda (file)
-        (write-region (point-min) (point-max) (expand-file-name file
-                                                                temp-dir)))
-       files))
-    (mapc
-     (lambda (data)
-       (with-temp-buffer
-         (insert (car data))
-         (let ((res (mapcar #'file-name-nondirectory
-                            (reftex-locate-bibliography-files temp-dir))))
-           (should (equal res (cdr data))))))
-     test)
-    (delete-directory temp-dir 'recursive)))
+       (lambda (data)
+         (with-temp-buffer
+           (insert (car data))
+           (let ((res (mapcar #'file-name-nondirectory
+                              (reftex-locate-bibliography-files temp-dir))))
+             (should (equal res (cdr data))))))
+       test))))
 
 (ert-deftest reftex-what-environment-test ()
   "Test `reftex-what-environment'."
@@ -102,12 +102,12 @@
   ;; reason.  (An alternative solution would be to use file-equal-p,
   ;; but I'm too lazy to do that, as one of the tests compares a
   ;; list.)
-  (let* ((temp-dir (file-truename (make-temp-file "reftex-parse" 'dir)))
-         (tex-file (expand-file-name "test.tex" temp-dir))
-         (bib-file (expand-file-name "ref.bib" temp-dir)))
-    (with-temp-buffer
-      (insert
-"\\begin{document}
+  (ert-with-temp-directory temp-dir
+    (let* ((tex-file (expand-file-name "test.tex" temp-dir))
+           (bib-file (expand-file-name "ref.bib" temp-dir)))
+      (with-temp-buffer
+        (insert
+         "\\begin{document}
 \\section{test}\\label{sec:test}
 \\subsection{subtest}
 
@@ -118,27 +118,26 @@
 \\bibliographystyle{plain}
 \\bibliography{ref}
 \\end{document}")
-      (write-region (point-min) (point-max) tex-file))
-    (with-temp-buffer
-      (insert "test\n")
-      (write-region (point-min) (point-max) bib-file))
-    (reftex-ensure-compiled-variables)
-    (let ((parsed (reftex-parse-from-file tex-file nil temp-dir)))
-      (should (equal (car parsed) `(eof ,tex-file)))
-      (pop parsed)
-      (while parsed
-        (let ((entry (pop parsed)))
-         (cond
-          ((eq (car entry) 'bib)
-           (should (string= (cadr entry) bib-file)))
-          ((eq (car entry) 'toc)) ;; ...
-          ((string= (car entry) "eq:foo"))
-          ((string= (car entry) "sec:test"))
-          ((eq (car entry) 'bof)
-           (should (string= (cadr entry) tex-file))
-           (should (null parsed)))
-          (t (should-not t)))))
-      (delete-directory temp-dir 'recursive))))
+        (write-region (point-min) (point-max) tex-file))
+      (with-temp-buffer
+        (insert "test\n")
+        (write-region (point-min) (point-max) bib-file))
+      (reftex-ensure-compiled-variables)
+      (let ((parsed (reftex-parse-from-file tex-file nil temp-dir)))
+        (should (equal (car parsed) `(eof ,tex-file)))
+        (pop parsed)
+        (while parsed
+          (let ((entry (pop parsed)))
+            (cond
+             ((eq (car entry) 'bib)
+              (should (string= (cadr entry) bib-file)))
+             ((eq (car entry) 'toc)) ;; ...
+             ((string= (car entry) "eq:foo"))
+             ((string= (car entry) "sec:test"))
+             ((eq (car entry) 'bof)
+              (should (string= (cadr entry) tex-file))
+              (should (null parsed)))
+             (t (should-not t)))))))))
 
 ;;; reftex-cite
 (require 'reftex-cite)

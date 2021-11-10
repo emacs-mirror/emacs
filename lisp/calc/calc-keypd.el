@@ -481,7 +481,7 @@
 					      ":"
 					    (if (and (equal cmd "e")
 						     (or (not input)
-							 (string-match
+							 (string-search
 							  "#" input))
 						     (> radix 14))
 						(format "*%d.^" radix)

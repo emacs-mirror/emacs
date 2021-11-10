@@ -263,6 +263,7 @@ case-sensitive.
 * Rx Notation::             An alternative, structured regexp notation.
 @end ifnottex
 * Regexp Functions::        Functions for operating on regular expressions.
+* Regexp Problems::         Some problems and how they may be avoided.
 @end menu
 
 @node Syntax of Regexps
@@ -342,15 +343,6 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.
-
-@strong{Warning:} Nested repetition operators can run for a very
-long time, if they lead to ambiguous matching.  For
-example, trying to match the regular expression @samp{\(x+y*\)*a}
-against the string @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could
-take hours before it ultimately fails.  Emacs may try each way of
-grouping the @samp{x}s before concluding that none of them can work.
-In general, avoid expressions that can match the same string in
-multiple ways.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -1060,7 +1052,8 @@ customization.
 
 The various forms in @code{rx} regexps are described below.  The
 shorthand @var{rx} represents any @code{rx} form, and @var{rx}@dots{}
-means zero or more @code{rx} forms.  Where the corresponding string
+means zero or more @code{rx} forms.  These are all valid arguments to
+the @code{rx} macro.  Where the corresponding string
 regexp syntax is given, @var{A}, @var{B}, @dots{} are string regexp
 subexpressions.
 
@@ -1356,7 +1349,8 @@ names:
 For details, @pxref{Syntax Class Table}.  Please note that
 @code{(syntax punctuation)} is @emph{not} equivalent to the character class
 @code{punctuation}.@*
-Corresponding string regexp: @samp{\s@var{code}}
+Corresponding string regexp: @samp{\s@var{char}} where @var{char} is the
+syntax character.
 
 @item @code{(category @var{category})}
 @cindex @code{category} in rx
@@ -1413,7 +1407,8 @@ the names below or its category character.
 For more information about currently defined categories, run the
 command @kbd{M-x describe-categories @key{RET}}.  For how to define
 new categories, @pxref{Categories}.@*
-Corresponding string regexp: @samp{\c@var{code}}
+Corresponding string regexp: @samp{\c@var{char}} where @var{char} is the
+category character.
 @end table
 
 @subsubheading Zero-width assertions
@@ -1543,11 +1538,18 @@ in the current global environment.
 @node Rx Functions
 @subsubsection Functions and macros using @code{rx} regexps
 
-@defmac rx rx-expr@dots{}
-Translate the @var{rx-expr}s to a string regexp, as if they were the
+@defmac rx rx-form@dots{}
+Translate the @var{rx-form}s to a string regexp, as if they were the
 body of a @code{(seq @dots{})} form.  The @code{rx} macro expands to a
 string constant, or, if @code{literal} or @code{regexp} forms are
-used, a Lisp expression that evaluates to a string.
+used, a Lisp expression that evaluates to a string.  Example:
+
+@example
+@group
+(rx (+ alpha) "=" (+ digit))
+  @result{} "[[:alpha:]]+=[[:digit:]]+"
+@end group
+@end example
 @end defmac
 
 @defun rx-to-string rx-expr &optional no-group
@@ -1555,6 +1557,14 @@ Translate @var{rx-expr} to a string regexp which is returned.
 If @var{no-group} is absent or nil, bracket the result in a
 non-capturing group, @samp{\(?:@dots{}\)}, if necessary to ensure that
 a postfix operator appended to it will apply to the whole expression.
+Example:
+
+@example
+@group
+(rx-to-string '(seq (+ alpha) "=" (+ digit)) t)
+  @result{} "[[:alpha:]]+=[[:digit:]]+"
+@end group
+@end example
 
 Arguments to @code{literal} and @code{regexp} forms in @var{rx-expr}
 must be string literals.
@@ -1649,6 +1659,24 @@ extra actual argument values not matched by any other parameter in
 Since the definition is global, it is recommended to give @var{name} a
 package prefix to avoid name clashes with definitions elsewhere, as is
 usual when naming non-local variables and functions.
+
+Forms defined this way only perform simple template substitution.
+For arbitrary computations, use them together with the @code{rx}
+forms @code{eval}, @code{regexp} or @code{literal}.  Example:
+
+@example
+@group
+(defun n-tuple-rx (n element)
+  `(seq "<"
+        (group-n 1 ,element)
+        ,@@(mapcar (lambda (i) `(seq ?, (group-n ,i ,element)))
+                  (number-sequence 2 n))
+        ">"))
+(rx-define n-tuple (n element) (eval (n-tuple-rx n 'element)))
+(rx (n-tuple 3 (+ (in "0-9"))))
+  @result{} "<\\(?1:[0-9]+\\),\\(?2:[0-9]+\\),\\(?3:[0-9]+\\)>"
+@end group
+@end example
 @end defmac
 
 @defmac rx-let (bindings@dots{}) body@dots{}
@@ -1848,6 +1876,73 @@ variables that may be set to a pattern that actually matches
 something.
 @end defvar
 
+@node Regexp Problems
+@subsection Problems with Regular Expressions
+@cindex regular expression problems
+@cindex regexp stack overflow
+@cindex stack overflow in regexp
+
+The Emacs regexp implementation, like many of its kind, is generally
+robust but occasionally causes trouble in either of two ways: matching
+may run out of internal stack space and signal an error, and it can
+take a long time to complete.  The advice below will make these
+symptoms less likely and help alleviate problems that do arise.
+
+@itemize
+@item
+Anchor regexps at the beginning of a line, string or buffer using
+zero-width assertions (@samp{^} and @code{\`}). This takes advantage
+of fast paths in the implementation and can avoid futile matching
+attempts.  Other zero-width assertions may also bring benefits by
+causing a match to fail early.
+
+@item
+Avoid or-patterns in favour of character alternatives: write
+@samp{[ab]} instead of @samp{a\|b}.  Recall that @samp{\s-} and @samp{\sw}
+are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively.
+
+@item
+Since the last branch of an or-pattern does not add a backtrack point
+on the stack, consider putting the most likely matched pattern last.
+For example, @samp{^\(?:a\|.b\)*c} will run out of stack if trying to
+match a very long string of @samp{a}s, but the equivalent
+@samp{^\(?:.b\|a\)*c} will not.
+
+(It is a trade-off: successfully matched or-patterns run faster with
+the most frequently matched pattern first.)
+
+@item
+Try to ensure that any part of the text can only match in a single
+way.  For example, @samp{a*a*} will match the same set of strings as
+@samp{a*}, but the former can do so in many ways and will therefore
+cause slow backtracking if the match fails later on.  Make or-pattern
+branches mutually exclusive if possible, so that matching will not go
+far into more than one branch before failing.
+
+Be especially careful with nested repetitions: they can easily result
+in very slow matching in the presence of ambiguities.  For example,
+@samp{\(?:a*b*\)+c} will take a long time attempting to match even a
+moderately long string of @samp{a}s before failing.  The equivalent
+@samp{\(?:a\|b\)*c} is much faster, and @samp{[ab]*c} better still.
+
+@item
+Don't use capturing groups unless they are really needed; that is, use
+@samp{\(?:@dots{}\)} instead of @samp{\(@dots{}\)} for bracketing
+purposes.
+
+@ifnottex
+@item
+Consider using @code{rx} (@pxref{Rx Notation}); it can optimise some
+or-patterns automatically and will never introduce capturing groups
+unless explicitly requested.
+@end ifnottex
+@end itemize
+
+If you run into regexp stack overflow despite following the above
+advice, don't be afraid of performing the matching in multiple
+function calls, each using a simpler regexp where backtracking can
+more easily be contained.
+
 @node Regexp Search
 @section Regular Expression Searching
 @cindex regular expression searching
@@ -1950,7 +2045,7 @@ feature for matching regular expressions from end to beginning.  It's
 not worth the trouble of implementing that.
 @end deffn
 
-@defun string-match regexp string &optional start
+@defun string-match regexp string &optional start inhibit-modify
 This function returns the index of the start of the first match for
 the regular expression @var{regexp} in @var{string}, or @code{nil} if
 there is no match.  If @var{start} is non-@code{nil}, the search starts
@@ -1975,8 +2070,10 @@ For example,
 The index of the first character of the
 string is 0, the index of the second character is 1, and so on.
 
-If this function finds a match, the index of the first character beyond
-the match is available as @code{(match-end 0)}.  @xref{Match Data}.
+By default, if this function finds a match, the index of the first
+character beyond the match is available as @code{(match-end 0)}.
+@xref{Match Data}.  If @var{inhibit-modify} is non-@code{nil}, the
+match data isn't modified.
 
 @example
 @group
@@ -1997,16 +2094,18 @@ This predicate function does what @code{string-match} does, but it
 avoids modifying the match data.
 @end defun
 
-@defun looking-at regexp
+@defun looking-at regexp &optional inhibit-modify
 This function determines whether the text in the current buffer directly
 following point matches the regular expression @var{regexp}.  ``Directly
 following'' means precisely that: the search is ``anchored'' and it can
 succeed only starting with the first character following point.  The
 result is @code{t} if so, @code{nil} otherwise.
 
-This function does not move point, but it does update the match data.
-@xref{Match Data}.  If you need to test for a match without modifying
-the match data, use @code{looking-at-p}, described below.
+This function does not move point, but it does update the match data
+(if @var{inhibit-modify} is @code{nil} or missing, which is the
+default).  @xref{Match Data}.  As a convenience, instead of using the
+@var{inhibit-modify} argument, you can use @code{looking-at-p},
+described below.
 
 In this example, point is located directly before the @samp{T}.  If it
 were anywhere else, the result would be @code{nil}.
@@ -2113,13 +2212,13 @@ backtracking specified by the POSIX standard for regular expression
 matching.
 @end deffn
 
-@defun posix-looking-at regexp
+@defun posix-looking-at regexp &optional inhibit-modify
 This is like @code{looking-at} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
 @end defun
 
-@defun posix-string-match regexp string &optional start
+@defun posix-string-match regexp string &optional start inhibit-modify
 This is like @code{string-match} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
@@ -2540,9 +2639,9 @@ associated with it still exists.
 @cindex replacement after search
 @cindex searching and replacing
 
-  If you want to find all matches for a regexp in part of the buffer,
-and replace them, the best way is to write an explicit loop using
-@code{re-search-forward} and @code{replace-match}, like this:
+  If you want to find all matches for a regexp in part of the buffer
+and replace them, the most flexible way is to write an explicit loop
+using @code{re-search-forward} and @code{replace-match}, like this:
 
 @example
 (while (re-search-forward "foo[ \t]+bar" nil t)
@@ -2553,9 +2652,33 @@ and replace them, the best way is to write an explicit loop using
 @xref{Replacing Match,, Replacing the Text that Matched}, for a
 description of @code{replace-match}.
 
-  However, replacing matches in a string is more complex, especially
-if you want to do it efficiently.  So Emacs provides two functions to do
-this.
+  It may be more convenient to limit the replacements to a specific
+region.  The function @code{replace-regexp-in-region} does that.
+
+@defun replace-regexp-in-region regexp replacement &optional start end
+This function replaces all the occurrences of @var{regexp} with
+@var{replacement} in the region of buffer text between @var{start} and
+@var{end}; @var{start} defaults to position of point, and @var{end}
+defaults to the last accessible position of the buffer.  The search
+for @var{regexp} is case-sensitive, and @var{replacement} is inserted
+without changing its letter-case.  The @var{replacement} string can
+use the same special elements starting with @samp{\} as
+@code{replace-match} does.  The function returns the number of
+replaced occurrences, or @code{nil} if @var{regexp} is not found.  The
+function preserves the position of point.
+
+@example
+(replace-regexp-in-region "foo[ \t]+bar" "foobar")
+@end example
+@end defun
+
+@defun replace-string-in-region string replacement &optional start end
+  This function works similarly to @code{replace-regexp-in-region},
+but searches for, and replaces, literal @var{string}s instead of
+regular expressions.
+@end defun
+
+  Emacs also has special functions for replacing matches in a string.
 
 @defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
 This function copies @var{string} and searches it for matches for
@@ -2578,9 +2701,9 @@ replacement string.  The match data at this point are the result
 of matching @var{regexp} against a substring of @var{string}.
 @end defun
 
-@defun string-replace fromstring tostring instring
-This function replaces all occurrences of @var{fromstring} with
-@var{tostring} in @var{instring} and returns the result.  It may
+@defun string-replace from-string to-string in-string
+This function replaces all occurrences of @var{from-string} with
+@var{to-string} in @var{in-string} and returns the result.  It may
 return one of its arguments unchanged, a constant string or a new
 string.  Case is significant, and text properties are ignored.
 @end defun

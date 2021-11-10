@@ -998,15 +998,15 @@ TIMESTRING and has the same result as \"9:00\"."
 
 (defun icalendar--convert-string-for-export (string)
   "Escape comma and other critical characters in STRING."
-  (replace-regexp-in-string "," "\\\\," string))
+  (string-replace "," "\\," string))
 
 (defun icalendar--convert-string-for-import (string)
   "Remove escape chars for comma, semicolon etc. from STRING."
-  (replace-regexp-in-string
-   "\\\\n" "\n " (replace-regexp-in-string
-                  "\\\\\"" "\"" (replace-regexp-in-string
-                                 "\\\\;" ";" (replace-regexp-in-string
-                                              "\\\\," "," string)))))
+  (string-replace
+   "\\n" "\n " (string-replace
+                "\\\"" "\"" (string-replace
+                             "\\;" ";" (string-replace
+                                        "\\," "," string)))))
 
 ;; ======================================================================
 ;; Export -- convert emacs-diary to iCalendar
@@ -1273,7 +1273,7 @@ Returns an alist."
                      (concat "\\(" icalendar-import-format-uid "\\)??"))))
 	;; Need the \' regexp in order to detect multi-line items
         (setq s (concat "\\`"
-                        (replace-regexp-in-string "%s" "\\(.*?\\)" s nil t)
+                        (replace-regexp-in-string "%s" "\\([^z-a]*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
             (let (cla des loc org sta url uid) ;; sum
@@ -1749,7 +1749,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 (defun icalendar--convert-float-to-ical (nonmarker entry-main)
   "Convert float diary entry to iCalendar format -- partially unsupported!
 
-  FIXME! DAY from diary-float yet unimplemented.
+  FIXME! DAY from `diary-float' yet unimplemented.
 
   NONMARKER is a regular expression matching the start of non-marking
   entries.  ENTRY-MAIN is the first line of the diary entry."
@@ -1783,8 +1783,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                  ;;BUT remove today if `diary-float'
                  ;;expression does not hold true for today:
                  (when
-                     (null (calendar-dlet* ((date (calendar-current-date))
-                                            (entry entry-main))
+                     (null (calendar-dlet ((date (calendar-current-date))
+                                           (entry entry-main))
                              (diary-float month dayname n)))
                    (concat
                     "\nEXDATE;VALUE=DATE:"
@@ -1985,9 +1985,7 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file: \n\
-Finto diary file:
-P")
+  (interactive "fImport iCalendar data from file: \nFInto diary file: \nP")
   ;; clean up the diary file
   (save-current-buffer
     ;; now load and convert from the ical file
@@ -2184,8 +2182,7 @@ written into the buffer `*icalendar-errors*'."
               (setq diary-string "")
               (mapc (lambda (_datestring)
 		      (setq diary-string
-			    (concat diary-string
-				    (format "......"))))
+			    (concat diary-string "......")))
 		    (icalendar--split-value rdate)))
              ;; non-recurring event
              ;; all-day event
@@ -2530,7 +2527,7 @@ the entry."
                                       summary)))
     (when summary
       (setq non-marking
-            (y-or-n-p (format "Make appointment non-marking? "))))
+            (y-or-n-p "Make appointment non-marking? ")))
     (unless diary-filename
       (setq diary-filename
             (read-file-name "Add appointment to this diary file: ")))

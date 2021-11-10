@@ -1,4 +1,4 @@
-# timer_time.m4 serial 4
+# timer_time.m4 serial 5
 dnl Copyright (C) 2011-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,9 +18,13 @@ AC_DEFUN([gl_TIMER_TIME],
   dnl the threadlib.m4 file that is installed in $PREFIX/share/aclocal/.
   m4_ifdef([gl_][PTHREADLIB], [AC_REQUIRE([gl_][PTHREADLIB])])
 
+  AC_CHECK_DECL([timer_settime], [], [],
+                [[#include <time.h>
+                ]])
   LIB_TIMER_TIME=
   AC_SUBST([LIB_TIMER_TIME])
-  gl_saved_libs=$LIBS
+  AS_IF([test "$ac_cv_have_decl_timer_settime" = yes], [
+    gl_saved_libs=$LIBS
     AC_SEARCH_LIBS([timer_settime], [rt posix4],
                    [test "$ac_cv_search_timer_settime" = "none required" ||
                     LIB_TIMER_TIME=$ac_cv_search_timer_settime])
@@ -40,5 +44,6 @@ AC_DEFUN([gl_TIMER_TIME],
          ],
          [LIB_TIMER_TIME="$LIB_TIMER_TIME $LIBPMULTITHREAD"])])
     AC_CHECK_FUNCS([timer_settime])
-  LIBS=$gl_saved_libs
+    LIBS=$gl_saved_libs
+  ])
 ])

@@ -218,6 +218,7 @@ corresponding Unicode character code.
 If it is a string, it is a name of file that contains the above
 information.  The file format is the same as what described for `:map'
 attribute."
+  (declare (indent defun))
   (when (vectorp (car props))
     ;; Old style code:
     ;;   (define-charset CHARSET-ID CHARSET-SYMBOL INFO-VECTOR)
@@ -294,6 +295,8 @@ attribute."
 
     (apply 'define-charset-internal name (mapcar 'cdr attrs))))
 
+(defvar hack-read-symbol-shorthands-function nil
+  "Holds function to compute `read-symbol-shorthands'.")
 
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
@@ -320,7 +323,8 @@ Return t if file exists."
 	  (let ((load-true-file-name fullname)
                 (load-file-name fullname)
                 (set-auto-coding-for-load t)
-		(inhibit-file-name-operation nil))
+		(inhibit-file-name-operation nil)
+                shorthands)
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
@@ -329,6 +333,13 @@ Return t if file exists."
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
+              (setq shorthands
+                    ;; We need this indirection because hacking local
+                    ;; variables in too early seems to have cause
+                    ;; recursive load loops (bug#50946).  Thus it
+                    ;; remains nil until it is save to do so.
+                    (and hack-read-symbol-shorthands-function
+                         (funcall hack-read-symbol-shorthands-function)))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random
@@ -339,11 +350,13 @@ Return t if file exists."
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
-	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil
-			 ;; This is compatible with what `load' does.
-                         (if dump-mode file fullname)
-			 nil t))
+	    ;; Have the original buffer current while we eval,
+            ;; but consider shorthands of the eval'ed one.
+	    (let ((read-symbol-shorthands shorthands))
+              (eval-buffer buffer nil
+			   ;; This is compatible with what `load' does.
+                           (if dump-mode file fullname)
+			   nil t)))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
@@ -878,6 +891,7 @@ non-nil.
 VALUE non-nil means Emacs prefers UTF-8 on code detection for
 non-ASCII files.  This attribute is meaningful only when
 `:coding-type' is `undecided'."
+  (declare (indent defun))
   (let* ((common-attrs (mapcar 'list
 			       '(:mnemonic
 				 :coding-type
@@ -1148,7 +1162,7 @@ Value is a list of transformed arguments."
 	      (,(plist-get props 'decode) . ,(plist-get props 'encode))
 	      ,properties ,eol-type))
      (t
-      (error "unsupported XEmacs style make-coding-style arguments: %S"
+      (error "Unsupported XEmacs style make-coding-style arguments: %S"
 	     `(,name ,type ,doc-string ,props))))))
 
 (defun merge-coding-systems (first second)
@@ -1380,8 +1394,11 @@ If CODING-SYSTEM is nil or the coding-type of CODING-SYSTEM is
 `raw-text', the decoding of keyboard input is disabled.
 
 TERMINAL may be a terminal object, a frame, or nil for the
-selected frame's terminal.  The setting has no effect on
-graphical terminals."
+selected frame's terminal.
+
+The setting has no effect on graphical terminals.  It also
+has no effect on MS-Windows text-mode terminals, except on
+Windows 9X systems.  For Windows 9X, see also `w32-set-console-codepage'."
   (interactive
    (list (let* ((coding (keyboard-coding-system nil))
 		(default (if (eq (coding-system-type coding) 'raw-text)
@@ -2305,6 +2322,7 @@ This function sets properties `translation-table' and
 `translation-table-id' of SYMBOL to the created table itself and the
 identification number of the table respectively.  It also registers
 the table in `translation-table-vector'."
+  (declare (indent defun))
   (let ((table (if (and (char-table-p (car args))
 			(eq (char-table-subtype (car args))
 			    'translation-table))
@@ -2379,6 +2397,7 @@ Value is what BODY returns."
 Analogous to `define-translation-table', but updates
 `translation-hash-table-vector' and the table is for use in the CCL
 `lookup-integer' and `lookup-character' functions."
+  (declare (indent defun))
   (unless (and (symbolp symbol)
 	       (hash-table-p table))
     (error "Bad args to define-translation-hash-table"))

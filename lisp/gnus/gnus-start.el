@@ -663,6 +663,7 @@ the first newsgroup."
 (defvar mail-sources)
 (defvar nnmail-scan-directory-mail-source-once)
 (defvar nnmail-split-history)
+(defvar gnus-save-newsrc-file-last-timestamp nil)
 
 (defun gnus-close-all-servers ()
   "Close all servers."
@@ -707,6 +708,7 @@ the first newsgroup."
 	gnus-current-select-method nil
 	nnmail-split-history nil
 	gnus-extended-servers nil
+        gnus-save-newsrc-file-last-timestamp nil
 	gnus-ephemeral-servers nil)
   (gnus-shutdown 'gnus)
   ;; Kill the startup file.
@@ -715,6 +717,9 @@ the first newsgroup."
        (kill-buffer (get-file-buffer gnus-current-startup-file)))
   ;; Clear the dribble buffer.
   (gnus-dribble-clear)
+  ;; Reset the level when Gnus is restarted.
+  (when (numberp gnus-group-use-permanent-levels)
+    (setq gnus-group-use-permanent-levels t))
   ;; Kill global KILL file buffer.
   (when (get-file-buffer (gnus-newsgroup-kill-file nil))
     (kill-buffer (get-file-buffer (gnus-newsgroup-kill-file nil))))
@@ -854,7 +859,7 @@ If REGEXP is given, lines that match it will be deleted."
       (goto-char (point-max))
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
-      (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
+      (insert (string-replace "\n" "\\n" string) "\n")
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
 	(gnus-group-set-mode-line)))))
@@ -1065,9 +1070,9 @@ If no function returns `non-nil', call `gnus-subscribe-zombies'."
 Each new newsgroup will be treated with `gnus-subscribe-newsgroup-method'.
 The `-n' option line from .newsrc is respected.
 
-With 1 C-u, use the `ask-server' method to query the server for new
+With 1 \\[universal-argument], use the `ask-server' method to query the server for new
 groups.
-With 2 C-u's, use most complete method possible to query the server
+With 2 \\[universal-argument]'s, use most complete method possible to query the server
 for new groups, and subscribe the new groups as zombies."
   (interactive "p" gnus-group-mode)
   (let* ((gnus-subscribe-newsgroup-method
@@ -2337,9 +2342,9 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
   "Indicate whether CONVERTER requires `gnus-convert-old-newsrc' to
-  display the conversion prompt.  NO-PROMPT may be nil (prompt),
-  t (no prompt), or any form that can be called as a function.
-  The form should return either t or nil."
+display the conversion prompt.  NO-PROMPT may be nil (prompt),
+t (no prompt), or any form that can be called as a function.
+The form should return either t or nil."
   (put converter 'gnus-convert-no-prompt no-prompt))
 
 (defun gnus-convert-converter-needs-prompt (converter)
@@ -2728,7 +2733,6 @@ If FORCE is non-nil, the .newsrc file is read."
       'msdos-long-file-names
       (lambda () t))))
 
-(defvar gnus-save-newsrc-file-last-timestamp nil)
 (defun gnus-save-newsrc-file (&optional force)
   "Save .newsrc file.
 Use the group string names in `gnus-group-list' to pull info
@@ -2931,7 +2935,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
     (nreverse olist)))
 
 (defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
-  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
+  (interactive (list (gnus-y-or-n-p "Write foreign groups too?")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((standard-output (current-buffer))

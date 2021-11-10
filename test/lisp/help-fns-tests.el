@@ -148,7 +148,7 @@ Return first line of the output of (describe-function-1 FUNC)."
 (ert-deftest help-fns-test-describe-keymap/value ()
   (describe-keymap minibuffer-local-must-match-map)
   (with-current-buffer "*Help*"
-    (should (looking-at "^key"))))
+    (should (looking-at "\nKey"))))
 
 (ert-deftest help-fns-test-describe-keymap/not-keymap ()
   (should-error (describe-keymap nil))
@@ -158,7 +158,7 @@ Return first line of the output of (describe-function-1 FUNC)."
   (let ((foobar minibuffer-local-must-match-map))
     (describe-keymap foobar)
     (with-current-buffer "*Help*"
-      (should (looking-at "^key")))))
+      (should (looking-at "\nKey")))))
 
 (ert-deftest help-fns-test-describe-keymap/dynamically-bound-no-file ()
   (setq help-fns-test--describe-keymap-foo minibuffer-local-must-match-map)

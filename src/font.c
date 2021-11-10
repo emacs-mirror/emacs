@@ -57,24 +57,26 @@ struct table_entry
   int numeric;
   /* The first one is a valid name as a face attribute.
      The second one (if any) is a typical name in XLFD field.  */
-  const char *names[5];
+  const char *names[6];
 };
 
 /* Table of weight numeric values and their names.  This table must be
-   sorted by numeric values in ascending order.  */
+   sorted by numeric values in ascending order and the numeric values
+   must approximately match the weights in the font files.  */
 
 static const struct table_entry weight_table[] =
 {
   { 0, { "thin" }},
-  { 20, { "ultra-light", "ultralight" }},
-  { 40, { "extra-light", "extralight" }},
+  { 40, { "ultra-light", "ultralight", "extra-light", "extralight" }},
   { 50, { "light" }},
-  { 75, { "semi-light", "semilight", "demilight", "book" }},
-  { 100, { "normal", "medium", "regular", "unspecified" }},
-  { 180, { "semi-bold", "semibold", "demibold", "demi" }},
+  { 55, { "semi-light", "semilight", "demilight" }},
+  { 80, { "regular", "normal", "unspecified", "book" }},
+  { 100, { "medium" }},
+  { 180, { "semi-bold", "semibold", "demibold", "demi-bold", "demi" }},
   { 200, { "bold" }},
-  { 205, { "extra-bold", "extrabold" }},
-  { 210, { "ultra-bold", "ultrabold", "black" }}
+  { 205, { "extra-bold", "extrabold", "ultra-bold", "ultrabold" }},
+  { 210, { "black", "heavy" }},
+  { 250, { "ultra-heavy", "ultraheavy" }}
 };
 
 /* Table of slant numeric values and their names.  This table must be
@@ -1029,8 +1031,8 @@ font_expand_wildcards (Lisp_Object *field, int n)
    X font backend driver, it is a font-entity.  In that case, NAME is
    a fully specified XLFD.  */
 
-int
-font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
+static int
+font_parse_xlfd_1 (char *name, ptrdiff_t len, Lisp_Object font, int segments)
 {
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
@@ -1040,17 +1042,27 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
   if (len > 255 || !len)
     /* Maximum XLFD name length is 255. */
     return -1;
+
   /* Accept "*-.." as a fully specified XLFD. */
   if (name[0] == '*' && (len == 1 || name[1] == '-'))
     i = 1, f[XLFD_FOUNDRY_INDEX] = name;
   else
     i = 0;
+
+  /* Split into segments. */
   for (p = name + i; *p; p++)
     if (*p == '-')
       {
-	f[i++] = p + 1;
-	if (i == XLFD_LAST_INDEX)
-	  break;
+	/* If we have too many segments, then gather them up into the
+	   FAMILY part of the name.  This allows using fonts with
+	   dashes in the FAMILY bit. */
+	if (segments > XLFD_LAST_INDEX && i == XLFD_WEIGHT_INDEX)
+	  segments--;
+	else {
+	  f[i++] = p + 1;
+	  if (i == XLFD_LAST_INDEX)
+	    break;
+	}
       }
   f[i] = name + len;
 
@@ -1214,6 +1226,28 @@ font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
 
   return 0;
 }
+
+int
+font_parse_xlfd (char *name, ptrdiff_t len, Lisp_Object font)
+{
+  int found = font_parse_xlfd_1 (name, len, font, -1);
+  if (found > -1)
+    return found;
+
+  int segments = 0;
+  /* Count how many segments we have. */
+  for (char *p = name; *p; p++)
+    if (*p == '-')
+      segments++;
+
+  /* If we have a surplus of segments, then we try to parse again, in
+     case there's a font with dashes in the family name. */
+  if (segments > XLFD_LAST_INDEX)
+    return font_parse_xlfd_1 (name, len, font, segments);
+  else
+    return -1;
+}
+
 
 /* Store XLFD name of FONT (font-spec or font-entity) in NAME (NBYTES
    length), and return the name length.  If FONT_SIZE_INDEX of FONT is
@@ -1452,11 +1486,20 @@ font_parse_fcname (char *name, ptrdiff_t len, Lisp_Object font)
 #define PROP_MATCH(STR) (word_len == strlen (STR)		\
 			 && memcmp (p, STR, strlen (STR)) == 0)
 
-		  if (PROP_MATCH ("light")
+		  if (PROP_MATCH ("thin")
+		      || PROP_MATCH ("ultra-light")
+		      || PROP_MATCH ("light")
+		      || PROP_MATCH ("semi-light")
+		      || PROP_MATCH ("book")
 		      || PROP_MATCH ("medium")
+		      || PROP_MATCH ("normal")
+		      || PROP_MATCH ("semibold")
 		      || PROP_MATCH ("demibold")
 		      || PROP_MATCH ("bold")
-		      || PROP_MATCH ("black"))
+		      || PROP_MATCH ("ultra-bold")
+		      || PROP_MATCH ("black")
+		      || PROP_MATCH ("heavy")
+		      || PROP_MATCH ("ultra-heavy"))
 		    FONT_SET_STYLE (font, FONT_WEIGHT_INDEX, val);
 		  else if (PROP_MATCH ("roman")
 			   || PROP_MATCH ("italic")
@@ -3828,11 +3871,31 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* Check if CH is a codepoint for which we should attempt to use the
+   emoji font, even if the codepoint itself has Emoji_Presentation =
+   No.  Vauto_composition_emoji_eligible_codepoints is filled in for
+   us by admin/unidata/emoji-zwj.awk.  */
+static bool
+codepoint_is_emoji_eligible (int ch)
+{
+  if (EQ (CHAR_TABLE_REF (Vchar_script_table, ch), Qemoji))
+    return true;
+
+  if (! NILP (Fmemq (make_fixnum (ch),
+		     Vauto_composition_emoji_eligible_codepoints)))
+    return true;
+
+  return false;
+}
+
 /* Check how many characters after character/byte position POS/POS_BYTE
    (at most to *LIMIT) can be displayed by the same font in the window W.
    FACE, if non-NULL, is the face selected for the character at POS.
    If STRING is not nil, it is the string to check instead of the current
    buffer.  In that case, FACE must be not NULL.
+
+   CH is the character that actually caused the composition
+   process to start, it may be different from the character at POS.
 
    The return value is the font-object for the character at POS.
    *LIMIT is set to the position where that font can't be used.
@@ -3841,15 +3904,16 @@ font_at (int c, ptrdiff_t pos, struct face *face, struct window *w,
 
 Lisp_Object
 font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
-	    struct window *w, struct face *face, Lisp_Object string)
+	    struct window *w, struct face *face, Lisp_Object string,
+	    int ch)
 {
   ptrdiff_t ignore;
   int c;
   Lisp_Object font_object = Qnil;
+  struct frame *f = XFRAME (w->frame);
 
   if (!face)
     {
-      struct frame *f = XFRAME (w->frame);
       int face_id;
 
       if (NILP (string))
@@ -3866,6 +3930,23 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	                                     face_id, false, 0);
 	}
       face = FACE_FROM_ID (f, face_id);
+    }
+
+  /* If the composition was triggered by an emoji, use a character
+     from 'script-representative-chars', rather than the first
+     character in the string, to determine the font to use.  */
+  if (codepoint_is_emoji_eligible (ch))
+    {
+      Lisp_Object val = assq_no_quit (Qemoji, Vscript_representative_chars);
+      if (CONSP (val))
+	{
+	  val = XCDR (val);
+	  if (CONSP (val))
+	    val = XCAR (val);
+	  else if (VECTORP (val))
+	    val = AREF (val, 0);
+	  font_object = font_for_char (face, XFIXNAT (val), pos, string);
+	}
     }
 
   while (pos < *limit)
@@ -4896,6 +4977,33 @@ If the font is not OpenType font, CAPABILITY is nil.  */)
 		 : Qnil));
 }
 
+DEFUN ("font-has-char-p", Ffont_has_char_p, Sfont_has_char_p, 2, 3, 0,
+       doc:
+       /* Return non-nil if FONT on FRAME has a glyph for character CH.
+FONT can be either a font-entity or a font-object.  If it is
+a font-entity and the result is nil, it means the font needs to be
+opened (with `open-font') to check.
+FRAME defaults to the selected frame if it is nil or omitted.  */)
+  (Lisp_Object font, Lisp_Object ch, Lisp_Object frame)
+{
+  struct frame *f;
+  CHECK_FONT (font);
+  CHECK_CHARACTER (ch);
+
+  if (NILP (frame))
+    f = XFRAME (selected_frame);
+  else
+    {
+      CHECK_FRAME (frame);
+      f = XFRAME (frame);
+    }
+
+  if (font_has_char (f, font, XFIXNAT (ch)) <= 0)
+    return Qnil;
+  else
+    return Qt;
+}
+
 DEFUN ("font-get-glyphs", Ffont_get_glyphs, Sfont_get_glyphs, 3, 4, 0,
        doc:
        /* Return a vector of FONT-OBJECT's glyphs for the specified characters.
@@ -4914,8 +5022,13 @@ where
   CODE is the glyph-code of C in FONT-OBJECT.
   WIDTH thru DESCENT are the metrics (in pixels) of the glyph.
   ADJUSTMENT is always nil.
-If FONT-OBJECT doesn't have a glyph for a character,
-the corresponding element is nil.  */)
+
+If FONT-OBJECT doesn't have a glyph for a character, the corresponding
+element is nil.
+
+Also see `font-has-char-p', which is more efficient than this function
+if you just want to check whether FONT-OBJECT has a glyph for a
+character.  */)
   (Lisp_Object font_object, Lisp_Object from, Lisp_Object to,
    Lisp_Object object)
 {
@@ -5391,6 +5504,7 @@ syms_of_font (void)
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");
   DEFSYM (Qunicode_bmp, "unicode-bmp");
+  DEFSYM (Qemoji, "emoji");
 
   /* Symbols representing keys of font extra info.  */
   DEFSYM (QCotf, ":otf");
@@ -5466,6 +5580,7 @@ syms_of_font (void)
   defsubr (&Sclose_font);
   defsubr (&Squery_font);
   defsubr (&Sfont_get_glyphs);
+  defsubr (&Sfont_has_char_p);
   defsubr (&Sfont_match_p);
   defsubr (&Sfont_at);
 #if 0

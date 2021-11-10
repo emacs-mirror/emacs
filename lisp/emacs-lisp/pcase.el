@@ -86,7 +86,7 @@
         (funcall pf (and me (symbolp me) (edebug-get-spec me))))))
 
 (defun pcase--get-macroexpander (s)
-  "Return the macroexpander for pcase pattern head S, or nil"
+  "Return the macroexpander for pcase pattern head S, or nil."
   (get s 'pcase-macroexpander))
 
 ;;;###autoload
@@ -201,7 +201,11 @@ Emacs Lisp manual for more information and examples."
 ;;;###autoload
 (defmacro pcase-exhaustive (exp &rest cases)
   "The exhaustive version of `pcase' (which see).
-If EXP fails to match any of the patterns in CASES, an error is signaled."
+If EXP fails to match any of the patterns in CASES, an error is
+signaled.
+
+In contrast, `pcase' will return nil if there is no match, but
+not signal an error."
   (declare (indent 1) (debug pcase))
   (let* ((x (gensym "x"))
          (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
@@ -317,6 +321,46 @@ of the elements of LIST is performed as if by `pcase-let'.
          (pcase-let* ((,(car spec) ,tmpvar))
            ,@body)))))
 
+;;;###autoload
+(defmacro pcase-setq (pat val &rest args)
+  "Assign values to variables by destructuring with `pcase'.
+PATTERNS are normal `pcase' patterns, and VALUES are expression.
+
+Evaluation happens sequentially as in `setq' (not in parallel).
+
+An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+
+VAL is presumed to match PAT.  Failure to match may signal an error or go
+undetected, binding variables to arbitrary values, such as nil.
+
+\(fn PATTERNS VALUE PATTERN VALUES ...)"
+  (declare (debug (&rest [pcase-PAT form])))
+  (cond
+   (args
+    (let ((arg-length (length args)))
+      (unless (= 0 (mod arg-length 2))
+        (signal 'wrong-number-of-arguments
+                (list 'pcase-setq (+ 2 arg-length)))))
+    (let ((result))
+      (while args
+        (push `(pcase-setq ,(pop args) ,(pop args))
+              result))
+      `(progn
+         (pcase-setq ,pat ,val)
+         ,@(nreverse result))))
+   ((pcase--trivial-upat-p pat)
+    `(setq ,pat ,val))
+   (t
+    (pcase-compile-patterns
+     val
+     `((,pat
+        . ,(lambda (varvals &rest _)
+             `(setq ,@(mapcan (lambda (varval)
+                                (let ((var (car varval))
+                                      (val (cadr varval)))
+                                  (list var val)))
+                              varvals))))
+       (pcase--dontcare . ignore))))))
 
 (defun pcase--trivial-upat-p (upat)
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))

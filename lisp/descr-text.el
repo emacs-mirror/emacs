@@ -50,7 +50,7 @@
     (when (string-match-p "\n\\'" pp)
       (setq pp (substring pp 0 (1- (length pp)))))
 
-    (if (and (not (string-match-p "\n" pp))
+    (if (and (not (string-search "\n" pp))
     	     (<= (length pp) (- (window-width) (current-column))))
 	(insert pp)
       (insert-text-button
@@ -97,7 +97,7 @@ into help buttons that call `describe-text-category' or
 ;;; Describe-Text Commands.
 
 (defun describe-text-category (category)
-  "Describe a text property category."
+  "Describe a text property CATEGORY."
   (interactive "SCategory: ")
   (help-setup-xref (list #'describe-text-category category)
 		   (called-interactively-p 'interactive))
@@ -417,6 +417,7 @@ The character information includes:
            (display-table (or (window-display-table)
                               buffer-display-table
                               standard-display-table))
+           (composition-string nil)
            (disp-vector (and display-table (aref display-table char)))
            (multibyte-p enable-multibyte-characters)
            (overlays (mapcar (lambda (o) (overlay-properties o))
@@ -538,7 +539,8 @@ The character information includes:
                     (setcar composition nil)))
                 (setcar (cdr composition)
                         (format "composed to form \"%s\" (see below)"
-                                (buffer-substring from to)))))
+                                (setq composition-string
+                                      (buffer-substring from to))))))
             (setq composition nil)))
 
       (setq item-list
@@ -677,11 +679,16 @@ The character information includes:
                   (let ((display (describe-char-display pos char)))
                     (if (display-graphic-p (selected-frame))
                         (if display
-                            (concat "by this font (glyph code)\n    " display)
+                            (concat "by this font (glyph code):\n    " display)
                           "no font available")
                       (if display
                           (format "terminal code %s" display)
                         "not encodable for terminal"))))))
+              ,@(when-let ((composition-name
+                            (and composition-string
+                                 (eq (aref char-script-table char) 'emoji)
+                                 (emoji-describe composition-string))))
+                  (list (list "composition name" composition-name)))
               ,@(let ((face
                        (if (not (or disp-vector composition))
                            (cond

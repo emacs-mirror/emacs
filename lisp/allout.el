@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Allout outline minor mode provides extensive outline formatting and
-;; and manipulation beyond standard emacs outline mode.  Some features:
+;; and manipulation beyond standard Emacs outline mode.  Some features:
 ;;
 ;;  - Classic outline-mode topic-oriented navigation and exposure adjustment
 ;;  - Topic-oriented editing including coherent topic and subtopic
@@ -35,7 +35,7 @@
 ;;  - Customizable bullet format -- enables programming-language specific
 ;;    outlining, for code-folding editing.  (Allout code itself is to try it;
 ;;    formatted as an outline -- do ESC-x eval-buffer in allout.el; but
-;;    emacs local file variables need to be enabled when the
+;;    Emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
 ;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
@@ -116,7 +116,7 @@ Do NOT set the value of this variable.  Instead, customize
   "Create the allout keymap according to the keybinding specs, and set it.
 
 Useful standalone or to effect customizations of the
-respective allout-mode keybinding variables, `allout-command-prefix',
+respective `allout-mode' keybinding variables, `allout-command-prefix',
 `allout-prefixed-keybindings', and `allout-unprefixed-keybindings'"
   ;; Set the customization variable, if any:
   (when varname
@@ -145,7 +145,7 @@ respective allout-mode keybinding variables, `allout-command-prefix',
     (allout-institute-keymap map)))
 ;;;_  > allout-institute-keymap (map)
 (defun allout-institute-keymap (map)
-  "Associate allout-mode bindings with allout as a minor mode."
+  "Associate `allout-mode' bindings with allout as a minor mode."
   ;; Architecture:
   ;; allout-mode-map var is a keymap by virtue of being a defalias for
   ;; allout-mode-map-value, which has the actual keymap value.
@@ -242,7 +242,7 @@ prevails."
     )
   "Allout-mode functions bound to keys without any added prefix.
 
-This is in contrast to the majority of allout-mode bindings on
+This is in contrast to the majority of `allout-mode' bindings on
 `allout-prefixed-keybindings', whose bindings are created with a
 preceding command key.
 
@@ -288,7 +288,7 @@ Control whether and how allout outline mode is automatically
 activated when files are visited with non-nil buffer-specific
 file variable `allout-layout'.
 
-When allout-auto-activation is \"On\" (t), allout mode is
+When `allout-auto-activation' is \"On\" (t), allout mode is
 activated in buffers with non-nil `allout-layout', and the
 specified layout is applied.
 
@@ -358,7 +358,7 @@ Examples:
 See `allout-expose-topic' for more about the exposure process.
 
 Also, allout's mode-specific provisions will make topic prefixes default
-to the comment-start string, if any, of the language of the file.  This
+to the `comment-start' string, if any, of the language of the file.  This
 is modulo the setting of `allout-use-mode-specific-leader', which see."
   :type 'allout-layout-type
   :group 'allout)
@@ -382,7 +382,7 @@ in individual buffers if you want to inhibit auto-fill only in particular
 buffers.  (You could use a function on `allout-mode-hook' to inhibit
 auto-fill according, eg, to the major mode.)
 
-If you don't set this and auto-fill-mode is enabled, allout will use the
+If you don't set this and `auto-fill-mode' is enabled, allout will use the
 value that `normal-auto-fill-function', if any, when allout mode starts, or
 else allout's special hanging-indent maintaining auto-fill function,
 `allout-auto-fill'."
@@ -429,8 +429,7 @@ those that do not have the variable `comment-start' set.  A value of
 
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
-  "If non-nil, show entire body when exposing a topic, rather than
-just the header."
+  "If non-nil, show entire body when exposing a topic, rather than just the header."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-show-bodies)
@@ -460,7 +459,7 @@ advance as follows:
  - if the cursor is on the first column of the headline:
    then it goes to the start of the headline within the item body.
 
-In this fashion, you can use the beginning-of-line command to do
+In this fashion, you can use the `beginning-of-line' command to do
 its normal job and then, when repeated, advance through the
 entry, cycling back to start.
 
@@ -596,16 +595,16 @@ strings."
   "When non-nil, use mode-specific topic-header prefixes.
 
 Allout outline mode will use the mode-specific `allout-mode-leaders' or
-comment-start string, if any, to lead the topic prefix string, so topic
+`comment-start' string, if any, to lead the topic prefix string, so topic
 headers look like comments in the programming language.  It will also use
-the comment-start string, with an `_' appended, for `allout-primary-bullet'.
+the `comment-start' string, with an `_' appended, for `allout-primary-bullet'.
 
 String values are used as literals, not regular expressions, so
 do not escape any regular-expression characters.
 
 Value t means to first check for assoc value in `allout-mode-leaders'
-alist, then use comment-start string, if any, then use default (`.').
-\(See note about use of comment-start strings, below.)
+alist, then use `comment-start' string, if any, then use default (`.').
+\(See note about use of `comment-start' strings, below.)
 
 Set to the symbol for either of `allout-mode-leaders' or
 `comment-start' to use only one of them, respectively.
@@ -613,9 +612,9 @@ Set to the symbol for either of `allout-mode-leaders' or
 Value nil means to always use the default (`.') and leave
 `allout-primary-bullet' unaltered.
 
-comment-start strings that do not end in spaces are tripled in
+`comment-start' strings that do not end in spaces are tripled in
 the header-prefix, and an `_' underscore is tacked on the end, to
-distinguish them from regular comment strings.  comment-start
+distinguish them from regular comment strings.  `comment-start'
 strings that do end in spaces are not tripled, but an underscore
 is substituted for the space.  [This presumes that the space is
 for appearance, not comment syntax.  You can use
@@ -633,8 +632,8 @@ undesired.]"
 (defvar allout-mode-leaders '()
   "Specific allout-prefix leading strings per major modes.
 
-Use this if the mode's comment-start string isn't what you
-prefer, or if the mode lacks a comment-start string.  See
+Use this if the mode's `comment-start' string isn't what you
+prefer, or if the mode lacks a `comment-start' string.  See
 `allout-use-mode-specific-leader' for more details.
 
 If you're constructing a string that will comment-out outline
@@ -824,12 +823,12 @@ such topics are encrypted.)"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 (defvar allout-auto-save-temporarily-disabled nil
-  "True while topic encryption is pending and auto-saving was active.
+  "Non-nil while topic encryption is pending and auto-saving was active.
 
 The value of `buffer-saved-size' at the time of decryption is used,
 for restoring when all encryptions are established.")
 (defvar-local allout-just-did-undo nil
-  "True just after undo commands, until allout-post-command-business.")
+  "Non-nil just after undo commands, until allout-post-command-business.")
 
 ;;;_ + Developer
 ;;;_  = allout-developer group
@@ -860,7 +859,7 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version "2.3"
-  "Version of currently loaded outline package.  (allout.el)")
+  "Version of currently loaded allout.el package.")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
   "Return string describing the loaded outline version."
@@ -882,7 +881,7 @@ has been customized to enable this behavior), `allout-mode' will be
 automatically activated.  The layout dictated by the value will be used to
 set the initial exposure when `allout-mode' is activated.
 
-*You should not setq-default this variable non-nil unless you want every
+*You should not `setq-default' this variable non-nil unless you want every
 visited file to be treated as an allout file.*
 
 The value would typically be set by a file local variable.  For
@@ -1321,21 +1320,21 @@ The settings are stored on `allout-mode-prior-settings'."
       (if qualifier
           (cond ((eq qualifier 'extend)
                  (if (not (listp prior-value))
-                     (error "extension of non-list prior value attempted")
+                     (error "Extension of non-list prior value attempted")
                    (set name (cons value prior-value))))
                 ((eq qualifier 'append)
                  (if (not (listp prior-value))
-                     (error "appending of non-list prior value attempted")
+                     (error "Appending of non-list prior value attempted")
                    (set name (append prior-value (list value)))))
-                (t (error "unrecognized setting qualifier `%s' encountered"
+                (t (error "Unrecognized setting qualifier `%s' encountered"
                           qualifier)))
         (set name value)))))
 ;;;_   > allout-do-resumptions ()
 (defun allout-do-resumptions ()
   "Resume all name/value settings registered by `allout-add-resumptions'.
 
-This is used when concluding allout-mode, to resume selected variables to
-their settings before allout-mode was started."
+This is used when concluding `allout-mode', to resume selected variables to
+their settings before `allout-mode' was started."
 
     (while allout-mode-prior-settings
       (let* ((pair (pop allout-mode-prior-settings))
@@ -1509,7 +1508,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
   'allout-mode)
 ;;;_   > allout-write-contents-hook-handler ()
 (defun allout-write-contents-hook-handler ()
-  "Implement `allout-encrypt-unencrypted-on-saves' for file writes
+  "Implement `allout-encrypt-unencrypted-on-saves' for file writes.
 
 Return nil if all goes smoothly, or else return an informative
 message if an error is encountered.  The message will serve as a
@@ -1601,7 +1600,7 @@ So `allout-post-command-business' should not reactivate it...")
   ;; the _transient_ opening of invisible text during isearch -- is keyed to
   ;; presence of the isearch-open-invisible property -- even though this
   ;; property controls the isearch _arrival_ behavior.  This is the case at
-  ;; least in emacs 21, 22.1, and xemacs 21.4.
+  ;; least in emacs 21, 22.1.
   (put 'allout-exposure-category 'isearch-open-invisible
        #'allout-isearch-end-handler)
   (put 'allout-exposure-category 'insert-in-front-hooks
@@ -2129,7 +2128,7 @@ to return the current depth."
   allout-recent-depth)
 ;;;_  > allout-recent-prefix ()
 (defsubst allout-recent-prefix ()
-  "Like `allout-recent-depth', but returns text of last encountered prefix.
+  "Like `allout-recent-depth', but return text of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
@@ -2139,7 +2138,7 @@ to return the current prefix."
                                   allout-recent-prefix-end))
 ;;;_  > allout-recent-bullet ()
 (defmacro allout-recent-bullet ()
-  "Like `allout-recent-prefix', but returns bullet of last encountered prefix.
+  "Like `allout-recent-prefix', but return bullet of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
@@ -3080,6 +3079,8 @@ Move to buffer limit in indicated direction if headings are exhausted."
          (backward (if (< arg 0) (setq arg (* -1 arg))))
 	 (step (if backward -1 1))
          (progress (allout-current-bullet-pos))
+         ;; Move to the next physical line.
+         (line-move-visual nil)
 	 prev got)
 
     (while (> arg 0)
@@ -3145,7 +3146,7 @@ Returns resulting position, else nil if none found."
 	(start-arg arg)
 	(backward (> 0 arg)))
     (if (= 0 start-depth)
-	(error "No siblings, not in a topic..."))
+        (error "No siblings, not in a topic"))
     (if backward (setq arg (* -1 arg)))
     (allout-back-to-current-heading)
     (while (and (not (zerop arg))
@@ -3185,13 +3186,13 @@ are mapped to the command of the corresponding control-key on the
 `allout-mode-map-value'.")
 ;;;_   = allout-command-counter
 (defvar-local allout-command-counter 0
-  "Counter that monotonically increases in allout-mode buffers.
+  "Counter that monotonically increases in `allout-mode' buffers.
 
 Set by `allout-pre-command-business', to support allout addons in
 coordinating with allout activity.")
 ;;;_   = allout-this-command-hid-text
 (defvar-local allout-this-command-hid-text nil
-  "True if the most recent allout-mode command hid any text.")
+  "Non-nil if the most recent `allout-mode' command hid any text.")
 ;;;_   > allout-post-command-business ()
 (defun allout-post-command-business ()
   "Outline `post-command-hook' function.
@@ -3325,7 +3326,6 @@ See `allout-auto-activation' for setup instructions."
 ;;;_  - Topic Format Assessment
 ;;;_   > allout-solicit-alternate-bullet (depth &optional current-bullet)
 (defun allout-solicit-alternate-bullet (depth &optional current-bullet)
-
   "Prompt for and return a bullet char as an alternative to the current one.
 
 Offer one suitable for current depth DEPTH as default."
@@ -3999,8 +3999,7 @@ With repeat count, shift topic depth by that amount."
                                                index
                                                do-successors
                                                sans-offspring)
-  "Like `allout-rebullet-topic', but on nearest containing topic
-\(visible or not).
+  "Like `allout-rebullet-topic', but on nearest containing topic (visible or not).
 
 See `allout-rebullet-heading' for rebulleting behavior.
 
@@ -4790,7 +4789,7 @@ Useful for coherently exposing to a random point in a hidden region."
 		   (setq bag-it (1+ bag-it))
                    (if (> bag-it 1)
                        (error "allout-show-to-offshoot: %s"
-                              "Stumped by aberrant nesting.")))
+                              "Stumped by aberrant nesting")))
           (if (> bag-it 0) (setq bag-it 0))
           (allout-show-children)
           (goto-char orig-pref)))
@@ -5057,9 +5056,7 @@ Examples:
       max-pos)))
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
-
-  "Deprecated.  Use `allout-expose-topic' (with different schema
-format) instead.
+  "Deprecated.  Use `allout-expose-topic' (with different schema format) instead.
 
 Dictate wholesale exposure scheme for current topic, according to SPEC.
 
@@ -5089,7 +5086,7 @@ elements of the list are nested SPECs, dictating the specific exposure
 for the corresponding offspring of the topic.
 
 Optional FOLLOWERS arguments dictate exposure for succeeding siblings."
-
+  (declare (obsolete allout-expose-topic "28.1"))
   (interactive "xExposure spec: ")
   (let ((inhibit-field-text-motion t)
         (depth (allout-current-depth))
@@ -5407,7 +5404,7 @@ Defaults:
 	  ;; Specified but not a buffer -- get it:
 	  (let ((got (get-buffer frombuf)))
 	    (if (not got)
-		(error "allout-process-exposed: source buffer %s not found."
+                (error "allout-process-exposed: Source buffer %s not found"
 		       frombuf)
 	      (setq frombuf got))))
     ;; not specified -- default it:
@@ -5807,7 +5804,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
            (after-bullet-pos (point))
            (was-encrypted
             (progn (if (= (point-max) after-bullet-pos)
-                       (error "no body to encrypt"))
+                       (error "No body to encrypt"))
                    (allout-encrypted-topic-p)))
            (was-collapsed (if (not (search-forward "\n" nil t))
                               nil
@@ -6032,7 +6029,7 @@ signal."
 
     ;; validate result -- non-empty
     (if (not result-text)
-        (error "%scryption failed." (if decrypt "De" "En")))
+        (error "%scryption failed" (if decrypt "De" "En")))
 
 
     (when (eq keypair-mode 'prompt-save)

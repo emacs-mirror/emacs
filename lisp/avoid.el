@@ -43,7 +43,7 @@
 ;;
 ;; (if (eq window-system 'x)
 ;;     (mouse-avoidance-set-pointer-shape
-;;	     (nth (random 4)
+;;	     (seq-random-elt
 ;;		  (list x-pointer-man x-pointer-spider
 ;;			x-pointer-gobbler x-pointer-gumby))))
 ;;
@@ -125,7 +125,6 @@ TOP-OR-BOTTOM-POS: Distance from top or bottom edge of frame or window."
 ;; Internal variables
 (defvar mouse-avoidance-state nil)
 (defvar mouse-avoidance-pointer-shapes nil)
-(defvar mouse-avoidance-n-pointer-shapes 0)
 (defvar mouse-avoidance-old-pointer-shape nil)
 (defvar mouse-avoidance-animating-pointer nil)
 
@@ -306,11 +305,8 @@ redefine this function to suit your own tastes."
 		      (all-completions "x-pointer-" obarray
 				       (lambda (x)
 					  (and (boundp x)
-					       (integerp (symbol-value x)))))))
-	(setq mouse-avoidance-n-pointer-shapes
-	      (length mouse-avoidance-pointer-shapes))))
-  (nth (random mouse-avoidance-n-pointer-shapes)
-       mouse-avoidance-pointer-shapes))
+                                               (integerp (symbol-value x)))))))))
+  (seq-random-elt mouse-avoidance-pointer-shapes))
 
 (defun mouse-avoidance-ignore-p ()
   (let ((mp (mouse-position)))

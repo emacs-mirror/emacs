@@ -24,21 +24,21 @@
 ;;; Commentary:
 ;;
 ;; This is a very generalized form of find; it basically implements a
-;; recursive directory descent. The conditions which bound the search
+;; recursive directory descent.  The conditions which bound the search
 ;; are expressed as predicates, and I have not addressed the question
 ;; of how to wrap up the common chores that find does in a simpler
 ;; format than writing code for all the various predicates.
 ;;
 ;; Some random thoughts are to express simple queries directly with
 ;; user-level functions, and perhaps use some kind of forms interface
-;; for medium-level queries. Really complicated queries can be
+;; for medium-level queries.  Really complicated queries can be
 ;; expressed in Lisp.
 ;;
 
 ;;; Todo
 ;;
 ;; It would be nice if we could sort the results without running the find
-;; again. Maybe that could work by storing the original file attributes?
+;; again.  Maybe that could work by storing the original file attributes?
 
 ;;; Code:
 

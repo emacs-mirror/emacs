@@ -2098,6 +2098,10 @@ mark."
 ;; The ethiopic-tex package is not used for keyboard input, therefore
 ;; not registered with the register-input-method function.
 
+;; Local Variables:
+;; checkdoc-symbol-words: ("-->")
+;; End:
+
 (provide 'ethio-util)
 
 ;;; ethio-util.el ends here

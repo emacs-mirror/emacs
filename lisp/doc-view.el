@@ -41,7 +41,7 @@
 ;;
 ;;     C-x C-f ~/path/to/document RET
 ;;
-;; and the document will be converted and displayed, if your emacs supports PNG
+;; and the document will be converted and displayed, if your Emacs supports PNG
 ;; images.  With `C-c C-c' you can toggle between the rendered images
 ;; representation and the source text representation of the document.
 ;;
@@ -727,7 +727,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (concat (thread-last
-                        (file-name-nondirectory doc-view--buffer-file-name)
+                      (file-name-nondirectory doc-view--buffer-file-name)
                       ;; bug#13679
                       (subst-char-in-string ?% ?_)
                       ;; arc-mode concatenates archive name and file name
@@ -788,7 +788,7 @@ OpenDocument format)."
         (doc-view-reconvert-doc)))))
 
 (defun doc-view-shrink (factor)
-  "Shrink the document."
+  "Shrink the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
 
@@ -809,7 +809,7 @@ OpenDocument format)."
 FACTOR defaults to `doc-view-shrink-factor'.
 
 The actual adjustment made depends on the final component of the
-key-binding used to invoke the command, with all modifiers removed:
+keybinding used to invoke the command, with all modifiers removed:
 
    +, =   Increase the image scale by FACTOR
    -      Decrease the image scale by FACTOR
@@ -1197,7 +1197,7 @@ Start by converting PAGES, and then the rest."
 
 (defun doc-view-current-cache-doc-pdf ()
   "Return the name of the doc.pdf in the current cache dir.
-  This file exists only if the current document isn't a PDF or PS file already."
+This file exists only if the current document isn't a PDF or PS file already."
   (expand-file-name "doc.pdf" (doc-view--current-cache-dir)))
 
 (defun doc-view-doc->txt (txt callback)

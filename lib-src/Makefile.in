@@ -52,6 +52,7 @@ top_builddir = @top_builddir@
 # Location to install Emacs.app under GNUstep / macOS.
 # Later values may use this.
 ns_appbindir=@ns_appbindir@
+ns_applibexecdir=@ns_applibexecdir@
 
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  The default values for many of

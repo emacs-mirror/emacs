@@ -562,7 +562,7 @@ The strings are concatenated and terminated by a newline."
 
 (defun xscheme-yank (&optional arg)
   "Insert the most recent expression at point.
-With just C-U as argument, same but put point in front (and mark at end).
+With just \\[universal-argument] as argument, same but put point in front (and mark at end).
 With argument n, reinsert the nth most recently sent expression.
 See also the commands \\[xscheme-yank-pop] and \\[xscheme-yank-push]."
   (interactive "*P")
@@ -908,8 +908,8 @@ the remaining input.")
 	       xscheme-signal-death-message)
 	  (progn
 	    (beep)
-	    (message
-"The Scheme process has died!  Do M-x reset-scheme to restart it"))))))
+            (message (substitute-command-keys
+"The Scheme process has died!  Type \\[reset-scheme] to restart it")))))))
 
 (defun xscheme-process-filter-initialize (running-p)
   (setq xscheme-process-filter-state 'idle)
@@ -936,7 +936,7 @@ the remaining input.")
       (setq call-noexcursion nil)
       (with-current-buffer (process-buffer proc)
 	(cond ((eq xscheme-process-filter-state 'idle)
-	       (let ((start (string-match "\e" xscheme-filter-input)))
+	       (let ((start (string-search "\e" xscheme-filter-input)))
 		 (if start
 		     (progn
 		       (xscheme-process-filter-output
@@ -960,7 +960,7 @@ the remaining input.")
 			 (xscheme-process-filter-output ?\e char)
 			 (setq xscheme-process-filter-state 'idle)))))))
 	      ((eq xscheme-process-filter-state 'reading-string)
-	       (let ((start (string-match "\e" xscheme-filter-input)))
+	       (let ((start (string-search "\e" xscheme-filter-input)))
 		 (if start
 		     (let ((string
 			    (concat xscheme-string-accumulator

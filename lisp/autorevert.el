@@ -36,7 +36,7 @@
 ;; buffer contains no unsaved changes.
 ;;
 ;; Auto-Revert Mode can be activated for individual buffers.  Global
-;; Auto-Revert Mode applies to all file buffers. (If the user option
+;; Auto-Revert Mode applies to all file buffers.  (If the user option
 ;; `global-auto-revert-non-file-buffers' is non-nil, it also applies
 ;; to some non-file buffers.  This option is disabled by default.)
 ;;
@@ -72,7 +72,7 @@
 ;; at the end of the buffer in that window, even if the window is not
 ;; selected.  This way, you can use Auto-Revert Mode to `tail' a file.
 ;; Just put point at the end of the buffer and it will stay there.
-;; These rules apply to file buffers. For non-file buffers, the
+;; These rules apply to file buffers.  For non-file buffers, the
 ;; behavior may be mode dependent.
 ;;
 ;; While you can use Auto-Revert Mode to tail a file, this package
@@ -521,13 +521,12 @@ specifies in the mode line."
         ;; To track non-file buffers, we need to listen in to buffer
         ;; creation in general.  Listening to major-mode changes is
         ;; suitable, since we then know whether it's a mode that is tracked.
-        (when global-auto-revert-non-file-buffers
-          (add-hook 'after-change-major-mode-hook
-                    #'auto-revert--global-adopt-current-buffer))
+        (add-hook 'after-change-major-mode-hook
+                  #'auto-revert--global-possibly-adopt-current-buffer)
         (auto-revert-buffers))
     ;; Turn global-auto-revert-mode OFF.
     (remove-hook 'after-change-major-mode-hook
-                 #'auto-revert--global-adopt-current-buffer)
+                 #'auto-revert--global-possibly-adopt-current-buffer)
     (remove-hook 'find-file-hook #'auto-revert--global-adopt-current-buffer)
     (dolist (buf (buffer-list))
       (with-current-buffer buf
@@ -555,6 +554,12 @@ specifies in the mode line."
                                    (current-buffer)))
                    nil)))
     (setq auto-revert--global-mode t)))
+
+(defun auto-revert--global-possibly-adopt-current-buffer ()
+  "Consider tracking current buffer in a running Global Auto-Revert mode.
+This tracks buffers if `global-auto-revert-non-file-buffers' is non-nil."
+  (when global-auto-revert-non-file-buffers
+    (auto-revert--global-adopt-current-buffer)))
 
 (defun auto-revert--global-adopt-current-buffer ()
   "Consider tracking current buffer in a running Global Auto-Revert mode."
@@ -853,8 +858,8 @@ This is an internal function used by Auto-Revert Mode."
   "Return a prioritized list of buffers to maybe auto-revert.
 The differences between this return value and the reference
 variable `auto-revert-buffer-list' include: 1) this has more
-entries when in global-auto-revert-mode; 2) this prioritizes
-buffers not reverted last time due to user interruption. "
+entries when in `global-auto-revert-mode'; 2) this prioritizes
+buffers not reverted last time due to user interruption."
   (let ((bufs (delq nil
                     ;; Buffers with remote contents shall be reverted only
                     ;; if the connection is established already.
@@ -881,7 +886,7 @@ buffers not reverted last time due to user interruption. "
     (nreverse (nconc new remaining))))
 
 (defun auto-revert-buffer (buf)
-  "Revert a single buffer.
+  "Revert a single buffer BUF.
 
 This is performed as specified by Auto-Revert and Global
 Auto-Revert Modes."

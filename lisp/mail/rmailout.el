@@ -107,9 +107,8 @@ error: %S\n"
 	 (read-file
 	  (expand-file-name
 	   (read-file-name
-	    (concat "Output message to mail file (default "
-		    (file-name-nondirectory default-file)
-		    "): ")
+            (format-prompt "Output message to mail file"
+                           (file-name-nondirectory default-file))
 	    (file-name-directory default-file)
 	    (abbreviate-file-name default-file))
 	   (file-name-directory default-file))))
@@ -434,7 +433,7 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
 
 (defun rmail-output-to-rmail-buffer (tembuf msg)
   "Copy message in TEMBUF into the current Rmail buffer.
-Do what is necessary to make Rmail know about the new message. then
+Do what is necessary to make Rmail know about the new message, then
 display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
@@ -678,9 +677,9 @@ than appending to it.  Deletes the message after writing if
 	   (or (mail-fetch-field "Subject")
 	       rmail-default-body-file)))
      (setq default-file
-	   (replace-regexp-in-string ":" "-" default-file))
+	   (string-replace ":" "-" default-file))
      (setq default-file
-	   (replace-regexp-in-string " " "-" default-file))
+	   (string-replace " " "-" default-file))
      (list (setq rmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "

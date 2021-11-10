@@ -42,4 +42,4 @@
       ;; retrieve cached data
       (should (equal (semantic-get-cache-data 'moose) data)))))
 
-;;; gw-tests.el ends here
+;;; fw-tests.el ends here

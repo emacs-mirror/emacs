@@ -36,7 +36,7 @@
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
-  "Emacs Web Wowser"
+  "Emacs Web Wowser."
   :version "25.1"
   :link '(custom-manual "(eww) Top")
   :group 'web
@@ -57,7 +57,7 @@
   :type 'string)
 
 (defcustom eww-use-browse-url "\\`mailto:"
-  "eww will use `browse-url' when following links that match this regexp.
+  "EWW will use `browse-url' when following links that match this regexp.
 The action to be taken can be further customized via
 `browse-url-handlers'."
   :version "28.1"
@@ -143,12 +143,14 @@ The string will be passed through `substitute-command-keys'."
 
 (defcustom eww-retrieve-command nil
   "Command to retrieve an URL via an external program.
-If nil, `url-retrieve' is used to download the data.  If non-nil,
-this should be a list where the first item is the program, and
-the rest are the arguments."
+If nil, `url-retrieve' is used to download the data.
+If `sync', `url-retrieve-synchronously' is used.
+For other non-nil values, this should be a list of strings where
+the first item is the program, and the rest are the arguments."
   :version "28.1"
   :type '(choice (const :tag "Use `url-retrieve'" nil)
-                 (repeat string)))
+                 (const :tag "Use `url-retrieve-synchronously'" sync)
+                 (repeat :tag "Command/args" string )))
 
 (defcustom eww-use-external-browser-for-content-type
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
@@ -176,6 +178,40 @@ the tab bar is enabled."
   :group 'eww
   :type 'hook)
 
+(defcustom eww-auto-rename-buffer nil
+  "Automatically rename EWW buffers once the page is rendered.
+
+When nil, do not rename the buffer.  With a non-nil value
+determine the renaming scheme, as follows:
+
+- `title': Use the web page's title.
+- `url': Use the web page's URL.
+- a function's symbol: Run a user-defined function that returns a
+  string with which to rename the buffer.  Sample of a
+  user-defined function:
+
+  (defun my-eww-rename-buffer ()
+    (when (eq major-mode 'eww-mode)
+      (when-let ((string (or (plist-get eww-data :title)
+                             (plist-get eww-data :url))))
+        (format \"*%s*\" string))))
+
+The string of `title' and `url' is always truncated to the value
+of `eww-buffer-name-length'."
+  :version "29.1"
+  :type '(choice
+          (const :tag "Do not rename buffers (default)" nil)
+          (const :tag "Rename buffer to web page title" title)
+          (const :tag "Rename buffer to web page URL" url)
+          (function :tag "A user-defined function to rename the buffer"))
+  :group 'eww)
+
+(defcustom eww-buffer-name-length 40
+  "Length of renamed buffer name, per `eww-auto-rename-buffer'."
+  :type 'natnum
+  :version "29.1"
+  :group 'eww)
+
 (defcustom eww-form-checkbox-selected-symbol "[X]"
   "Symbol used to represent a selected checkbox.
 See also `eww-form-checkbox-symbol'."
@@ -194,6 +230,13 @@ See also `eww-form-checkbox-selected-symbol'."
   :type '(choice (const "[ ]")
                  (const "☐")            ; Unicode BALLOT BOX
                  string))
+
+(defcustom eww-url-transformers '(eww-remove-tracking)
+  "This is a list of transforming functions applied to an URL before usage.
+The functions will be called with the URL as the single
+parameter, and should return the (possibly) transformed URL."
+  :type '(repeat function)
+  :version "29.1")
 
 (defface eww-form-submit
   '((((type x w32 ns pgtk) (class color))	; Like default mode line
@@ -269,15 +312,13 @@ See also `eww-form-checkbox-selected-symbol'."
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
   "Value used for the HTTP 'Accept' header.")
 
-(defvar eww-link-keymap
-  (let ((map (copy-keymap shr-map)))
-    (define-key map "\r" 'eww-follow-link)
-    map))
+(defvar-keymap eww-link-keymap
+  :parent shr-map
+  "\r" #'eww-follow-link)
 
-(defvar eww-image-link-keymap
-  (let ((map (copy-keymap shr-image-map)))
-    (define-key map "\r" 'eww-follow-link)
-    map))
+(defvar-keymap eww-image-link-keymap
+  :parent shr-map
+  "\r" #'eww-follow-link)
 
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
@@ -311,13 +352,13 @@ will start Emacs and browse the GNU web site."
 
 
 ;;;###autoload
-(defun eww (url &optional arg buffer)
+(defun eww (url &optional new-buffer buffer)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'.
 
-If called with a prefix ARG, use a new buffer instead of reusing
-the default EWW buffer.
+If NEW-BUFFER is non-nil (interactively, the prefix arg), use a
+new buffer instead of reusing the default EWW buffer.
 
 If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
@@ -327,11 +368,11 @@ killed after rendering."
      (list (read-string (format-prompt "Enter URL or keywords"
                                        (and uris (car uris)))
                         nil 'eww-prompt-history uris)
-           (prefix-numeric-value current-prefix-arg))))
+           current-prefix-arg)))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
    (cond
-    ((eq arg 4)
+    (new-buffer
      (generate-new-buffer "*eww*"))
     ((eq major-mode 'eww-mode)
      (current-buffer))
@@ -351,9 +392,10 @@ killed after rendering."
       (while (string-match "\\`/[.][.]/" (url-filename parsed))
         (setf (url-filename parsed) (substring (url-filename parsed) 3))))
     (setq url (url-recreate-url parsed)))
+  (setq url (eww--transform-url url))
   (plist-put eww-data :url url)
   (plist-put eww-data :title "")
-  (eww-update-header-line-format)
+  (eww--after-page-change)
   (let ((inhibit-read-only t))
     (insert (format "Loading %s..." url))
     (goto-char (point-min)))
@@ -366,9 +408,16 @@ killed after rendering."
                     (list url nil (current-buffer))))))
 
 (defun eww-retrieve (url callback cbargs)
-  (if (null eww-retrieve-command)
-      (url-retrieve url #'eww-render
-                    (list url nil (current-buffer)))
+  (cond
+   ((null eww-retrieve-command)
+    (url-retrieve url #'eww-render
+                  (list url nil (current-buffer))))
+   ((eq eww-retrieve-command 'sync)
+    (let ((orig-buffer (current-buffer))
+          (data-buffer (url-retrieve-synchronously url)))
+      (with-current-buffer data-buffer
+        (eww-render nil url nil orig-buffer))))
+   (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
       (with-current-buffer buffer
@@ -388,7 +437,7 @@ killed after rendering."
                          (with-current-buffer buffer
                            (goto-char (point-min))
                            (insert "Content-type: text/html; charset=utf-8\n\n")
-                           (apply #'funcall callback nil cbargs))))))))))
+                           (apply #'funcall callback nil cbargs)))))))))))
 
 (function-put 'eww 'browse-url-browser-kind 'internal)
 
@@ -495,6 +544,30 @@ Currently this means either text/html or application/xhtml+xml."
   (member content-type '("text/html"
 			 "application/xhtml+xml")))
 
+(defun eww--rename-buffer ()
+  "Rename the current EWW buffer.
+The renaming scheme is performed in accordance with
+`eww-auto-rename-buffer'."
+  (let ((rename-string)
+        (formatter
+         (lambda (string)
+           (format "*%s # eww*" (truncate-string-to-width
+                                 string eww-buffer-name-length))))
+        (site-title (plist-get eww-data :title))
+        (site-url (plist-get eww-data :url)))
+    (cond ((null eww-auto-rename-buffer))
+          ((eq eww-auto-rename-buffer 'url)
+           (setq rename-string (funcall formatter site-url)))
+          ((functionp eww-auto-rename-buffer)
+           (setq rename-string (funcall eww-auto-rename-buffer)))
+          (t (setq rename-string
+                   (funcall formatter (if (or (equal site-title "")
+                                              (null site-title))
+                                          "Untitled"
+                                        site-title)))))
+    (when rename-string
+      (rename-buffer rename-string t))))
+
 (defun eww-render (status url &optional point buffer encode)
   (let* ((headers (eww-parse-headers))
 	 (content-type
@@ -545,7 +618,7 @@ Currently this means either text/html or application/xhtml+xml."
 	    (eww-display-raw buffer (or encode charset 'utf-8))))
 	  (with-current-buffer buffer
 	    (plist-put eww-data :url url)
-	    (eww-update-header-line-format)
+	    (eww--after-page-change)
 	    (setq eww-history-position 0)
 	    (and last-coding-system-used
 		 (set-buffer-file-coding-system last-coding-system-used))
@@ -629,7 +702,8 @@ Currently this means either text/html or application/xhtml+xml."
                 (meta . eww-tag-meta)
                 (a . eww-tag-a)))))
 	(erase-buffer)
-	(shr-insert-document document)
+        (with-delayed-message (2 "Rendering HTML...")
+	  (shr-insert-document document))
 	(cond
 	 (point
 	  (goto-char point))
@@ -668,9 +742,12 @@ Currently this means either text/html or application/xhtml+xml."
 		   ("home" . :home)
 		   ("contents" . :contents)
 		   ("up" . :up)))))
-    (and href
-	 where
-	 (plist-put eww-data (cdr where) href))))
+    (when (and href where)
+      (when (memq (cdr where) '(:next :previous))
+        ;; Multi-page isearch support.
+        (setq-local multi-isearch-next-buffer-function
+                    #'eww-isearch-next-buffer))
+      (plist-put eww-data (cdr where) href))))
 
 (defvar eww-redirect-level 1)
 
@@ -779,19 +856,23 @@ Currently this means either text/html or application/xhtml+xml."
                                        (propertize "...: " 'face
                                                    'variable-pitch))))
                             (propertize "..." 'face 'variable-pitch)))))))
-	       (replace-regexp-in-string
+	       (string-replace
 		"%" "%%"
 		(format-spec
 		 eww-header-line-format
 		 `((?u . ,(or url ""))
 		   (?t . ,title))))))))
 
+(defun eww--after-page-change ()
+  (eww-update-header-line-format)
+  (eww--rename-buffer))
+
 (defun eww-tag-title (dom)
   (plist-put eww-data :title
 	     (replace-regexp-in-string
 	      "^ \\| $" ""
 	      (replace-regexp-in-string "[ \t\r\n]+" " " (dom-text dom))))
-  (eww-update-header-line-format))
+  (eww--after-page-change))
 
 (defun eww-display-raw (buffer &optional encode)
   (let ((data (buffer-substring (point) (point-max))))
@@ -840,6 +921,8 @@ Currently this means either text/html or application/xhtml+xml."
     (remove-overlays)
     (erase-buffer))
   (setq bidi-paragraph-direction nil)
+  ;; May be set later if there's a next/prev link.
+  (setq-local multi-isearch-next-buffer-function nil)
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
@@ -917,7 +1000,7 @@ the like."
 		      nil (current-buffer))
     (dolist (elem '(:source :url :title :next :previous :up))
       (plist-put eww-data elem (plist-get old-data elem)))
-    (eww-update-header-line-format)))
+    (eww--after-page-change)))
 
 (defun eww-score-readability (node)
   (let ((score -1))
@@ -959,67 +1042,97 @@ the like."
 	  (setq result highest))))
     result))
 
-(defvar eww-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "g" 'eww-reload) ;FIXME: revert-buffer-function instead!
-    (define-key map "G" 'eww)
-    (define-key map [?\M-\r] 'eww-open-in-new-buffer)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    (define-key map [delete] 'scroll-down-command)
-    (define-key map "l" 'eww-back-url)
-    (define-key map "r" 'eww-forward-url)
-    (define-key map "n" 'eww-next-url)
-    (define-key map "p" 'eww-previous-url)
-    (define-key map "u" 'eww-up-url)
-    (define-key map "t" 'eww-top-url)
-    (define-key map "&" 'eww-browse-with-external-browser)
-    (define-key map "d" 'eww-download)
-    (define-key map "w" 'eww-copy-page-url)
-    (define-key map "C" 'url-cookie-list)
-    (define-key map "v" 'eww-view-source)
-    (define-key map "R" 'eww-readable)
-    (define-key map "H" 'eww-list-histories)
-    (define-key map "E" 'eww-set-character-encoding)
-    (define-key map "s" 'eww-switch-to-buffer)
-    (define-key map "S" 'eww-list-buffers)
-    (define-key map "F" 'eww-toggle-fonts)
-    (define-key map "D" 'eww-toggle-paragraph-direction)
-    (define-key map [(meta C)] 'eww-toggle-colors)
-    (define-key map [(meta I)] 'eww-toggle-images)
+(defvar-keymap eww-mode-map
+  "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
+  "G" #'eww
+  [?\M-\r] #'eww-open-in-new-buffer
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link
+  [delete] #'scroll-down-command
+  "l" #'eww-back-url
+  "r" #'eww-forward-url
+  "n" #'eww-next-url
+  "p" #'eww-previous-url
+  "u" #'eww-up-url
+  "t" #'eww-top-url
+  "&" #'eww-browse-with-external-browser
+  "d" #'eww-download
+  "w" #'eww-copy-page-url
+  "C" #'url-cookie-list
+  "v" #'eww-view-source
+  "R" #'eww-readable
+  "H" #'eww-list-histories
+  "E" #'eww-set-character-encoding
+  "s" #'eww-switch-to-buffer
+  "S" #'eww-list-buffers
+  "F" #'eww-toggle-fonts
+  "D" #'eww-toggle-paragraph-direction
+  [(meta C)] #'eww-toggle-colors
+  [(meta I)] #'eww-toggle-images
 
-    (define-key map "b" 'eww-add-bookmark)
-    (define-key map "B" 'eww-list-bookmarks)
-    (define-key map [(meta n)] 'eww-next-bookmark)
-    (define-key map [(meta p)] 'eww-previous-bookmark)
+  "b" #'eww-add-bookmark
+  "B" #'eww-list-bookmarks
+  [(meta n)] #'eww-next-bookmark
+  [(meta p)] #'eww-previous-bookmark
 
-    (easy-menu-define nil map ""
+  [(mouse-8)] #'eww-back-url
+  [(mouse-9)] #'eww-forward-url
+
+  :menu '("Eww"
+          ["Exit" quit-window t]
+          ["Close browser" quit-window t]
+          ["Reload" eww-reload t]
+          ["Follow URL in new buffer" eww-open-in-new-buffer]
+          ["Back to previous page" eww-back-url
+           :active (not (zerop (length eww-history)))]
+          ["Forward to next page" eww-forward-url
+           :active (not (zerop eww-history-position))]
+          ["Browse with external browser" eww-browse-with-external-browser t]
+          ["Download" eww-download t]
+          ["View page source" eww-view-source]
+          ["Copy page URL" eww-copy-page-url t]
+          ["List histories" eww-list-histories t]
+          ["Switch to buffer" eww-switch-to-buffer t]
+          ["List buffers" eww-list-buffers t]
+          ["Add bookmark" eww-add-bookmark t]
+          ["List bookmarks" eww-list-bookmarks t]
+          ["List cookies" url-cookie-list t]
+          ["Toggle fonts" eww-toggle-fonts t]
+          ["Toggle colors" eww-toggle-colors t]
+          ["Toggle images" eww-toggle-images t]
+          ["Character Encoding" eww-set-character-encoding]
+          ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
+
+(defun eww-context-menu (menu click)
+  "Populate MENU with eww commands at CLICK."
+  (define-key menu [eww-separator] menu-bar-separator)
+  (let ((easy-menu (make-sparse-keymap "Eww")))
+    (easy-menu-define nil easy-menu nil
       '("Eww"
-	["Exit" quit-window t]
-	["Close browser" quit-window t]
-	["Reload" eww-reload t]
-	["Follow URL in new buffer" eww-open-in-new-buffer]
-	["Back to previous page" eww-back-url
-	 :active (not (zerop (length eww-history)))]
+        ["Back to previous page" eww-back-url
+	 :visible (not (zerop (length eww-history)))]
 	["Forward to next page" eww-forward-url
-	 :active (not (zerop eww-history-position))]
-	["Browse with external browser" eww-browse-with-external-browser t]
-	["Download" eww-download t]
-	["View page source" eww-view-source]
-	["Copy page URL" eww-copy-page-url t]
-	["List histories" eww-list-histories t]
-	["Switch to buffer" eww-switch-to-buffer t]
-	["List buffers" eww-list-buffers t]
-	["Add bookmark" eww-add-bookmark t]
-	["List bookmarks" eww-list-bookmarks t]
-	["List cookies" url-cookie-list t]
-	["Toggle fonts" eww-toggle-fonts t]
-	["Toggle colors" eww-toggle-colors t]
-	["Toggle images" eww-toggle-images t]
-        ["Character Encoding" eww-set-character-encoding]
-        ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
-    map))
+	 :visible (not (zerop eww-history-position))]
+	["Reload" eww-reload t]))
+    (dolist (item (reverse (lookup-key easy-menu [menu-bar eww])))
+      (when (consp item)
+        (define-key menu (vector (car item)) (cdr item)))))
+
+  (when (or (mouse-posn-property (event-start click) 'shr-url)
+            (mouse-posn-property (event-start click) 'image-url))
+    (define-key menu [shr-mouse-browse-url-new-window]
+      `(menu-item "Follow URL in new window" ,(if browse-url-new-window-flag
+                                                  'shr-mouse-browse-url
+                                                'shr-mouse-browse-url-new-window)
+                  :help "Browse the URL under the mouse cursor in a new window"))
+    (define-key menu [shr-mouse-browse-url]
+      `(menu-item "Follow URL" ,(if browse-url-new-window-flag
+                                    'shr-mouse-browse-url-new-window
+                                  'shr-mouse-browse-url)
+                  :help "Browse the URL under the mouse cursor")))
+
+  menu)
 
 (defvar eww-tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -1039,23 +1152,25 @@ the like."
 ;; Autoload cookie needed by desktop.el.
 ;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
-  "Mode for browsing the web."
+  "Mode for browsing the web.
+
+\\{eww-mode-map}"
   :interactive nil
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
   (add-hook 'after-change-functions #'eww-process-text-input nil t)
+  (add-hook 'context-menu-functions 'eww-context-menu 5 t)
   (setq-local eww-history nil)
   (setq-local eww-history-position 0)
   (when (boundp 'tool-bar-map)
     (setq-local tool-bar-map eww-tool-bar-map))
   ;; desktop support
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
-  ;; multi-page isearch support
-  (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
   (setq truncate-lines t)
   (setq-local thing-at-point-provider-alist
               (append thing-at-point-provider-alist
                       '((url . eww--url-at-point))))
+  (setq-local bookmark-make-record-function #'eww-bookmark-make-record)
   (buffer-disable-undo)
   (setq buffer-read-only t))
 
@@ -1120,7 +1235,7 @@ instead of `browse-url-new-window-flag'."
       (goto-char (plist-get elem :point))
       ;; Make buffer listings more informative.
       (setq list-buffers-directory (plist-get elem :url))
-      (eww-update-header-line-format))))
+      (eww--after-page-change))))
 
 (defun eww-next-url ()
   "Go to the page marked `next'.
@@ -1184,54 +1299,43 @@ just re-display the HTML already fetched."
 
 (defvar eww-form nil)
 
-(defvar eww-submit-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-submit)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-submit-map
+  "\r" #'eww-submit
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-submit-file
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-select-file)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-submit-file
+  "\r" #'eww-select-file
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-checkbox-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " 'eww-toggle-checkbox)
-    (define-key map "\r" 'eww-toggle-checkbox)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-checkbox-map
+  " " #'eww-toggle-checkbox
+  "\r" #'eww-toggle-checkbox
+  [(control c) (control c)] #'eww-submit)
 
-(defvar eww-text-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\r" 'eww-submit)
-    (define-key map [(control a)] 'eww-beginning-of-text)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [(control e)] 'eww-end-of-text)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    map))
+(defvar-keymap eww-text-map
+  :full t :parent text-mode-map
+  "\r" #'eww-submit
+  [(control a)] #'eww-beginning-of-text
+  [(control c) (control c)] #'eww-submit
+  [(control e)] #'eww-end-of-text
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link)
 
-(defvar eww-textarea-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\r" 'forward-line)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
-    (define-key map [backtab] 'shr-previous-link)
-    map))
+(defvar-keymap eww-textarea-map
+  :full t :parent text-mode-map
+  "\r" #'forward-line
+  [(control c) (control c)] #'eww-submit
+  [?\t] #'shr-next-link
+  [?\M-\t] #'shr-previous-link
+  [backtab] #'shr-previous-link)
 
-(defvar eww-select-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-change-select)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'eww-change-select)
-    (define-key map [(control c) (control c)] 'eww-submit)
-    map))
+(defvar-keymap eww-select-map
+  :doc "Map for select buttons"
+  "\r" #'eww-change-select
+  [follow-link] 'mouse-face
+  [mouse-2] #'eww-change-select
+  [(control c) (control c)] #'eww-submit)
 
 (defun eww-beginning-of-text ()
   "Move to the start of the input field."
@@ -1738,6 +1842,17 @@ The browser to used is specified by the
   (funcall browse-url-secondary-browser-function
            (or url (plist-get eww-data :url))))
 
+(defun eww-remove-tracking (url)
+  "Remove the commong utm_ tracking cookies from URLs."
+  (replace-regexp-in-string ".utm_.*" "" url))
+
+(defun eww--transform-url (url)
+  "Appy `eww-url-transformers'."
+  (when url
+    (dolist (func eww-url-transformers)
+      (setq url (funcall func url)))
+    url))
+
 (defun eww-follow-link (&optional external mouse-event)
   "Browse the URL under point.
 If EXTERNAL is single prefix, browse the URL using
@@ -1748,7 +1863,8 @@ If EXTERNAL is double prefix, browse in new buffer."
    (list current-prefix-arg last-nonmenu-event)
    eww-mode)
   (mouse-set-point mouse-event)
-  (let ((url (get-text-property (point) 'shr-url)))
+  (let* ((orig-url (get-text-property (point) 'shr-url))
+         (url (eww--transform-url orig-url)))
     (cond
      ((not url)
       (message "No link under point"))
@@ -1767,7 +1883,7 @@ If EXTERNAL is double prefix, browse in new buffer."
 	(plist-put eww-data :url url)
 	(eww-display-html 'utf-8 url dom nil (current-buffer))))
      (t
-      (eww-browse-url url external)))))
+      (eww-browse-url orig-url external)))))
 
 (defun eww-same-page-p (url1 url2)
   "Return non-nil if URL1 and URL2 represent the same page.
@@ -1855,7 +1971,7 @@ Use link at point if there is one, else the current page's URL."
 (defun eww-set-character-encoding (charset)
   "Set character encoding to CHARSET.
 If CHARSET is nil then use UTF-8."
-  (interactive "zUse character set (default utf-8): " eww-mode)
+  (interactive "zUse character set (default `utf-8'): " eww-mode)
   (if (null charset)
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
@@ -2054,23 +2170,18 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 					'eww-bookmark)))
     (eww-browse-url (plist-get bookmark :url))))
 
-(defvar eww-bookmark-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control k)] 'eww-bookmark-kill)
-    (define-key map [(control y)] 'eww-bookmark-yank)
-    (define-key map "\r" 'eww-bookmark-browse)
-
-    (easy-menu-define nil map
-      "Menu for `eww-bookmark-mode-map'."
-      '("Eww Bookmark"
-        ["Exit" quit-window t]
-        ["Browse" eww-bookmark-browse
-         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
-        ["Kill" eww-bookmark-kill
-         :active (get-text-property (line-beginning-position) 'eww-bookmark)]
-        ["Yank" eww-bookmark-yank
-         :active eww-bookmark-kill-ring]))
-    map))
+(defvar-keymap eww-bookmark-mode-map
+  [(control k)] #'eww-bookmark-kill
+  [(control y)] #'eww-bookmark-yank
+  "\r" #'eww-bookmark-browse
+  :menu '("Eww Bookmark"
+          ["Exit" quit-window t]
+          ["Browse" eww-bookmark-browse
+           :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+          ["Kill" eww-bookmark-kill
+           :active (get-text-property (line-beginning-position) 'eww-bookmark)]
+          ["Yank" eww-bookmark-yank
+           :active eww-bookmark-kill-ring]))
 
 (define-derived-mode eww-bookmark-mode special-mode "eww bookmarks"
   "Mode for listing bookmarks.
@@ -2135,19 +2246,15 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 	(pop-to-buffer-same-window buffer)))
     (eww-restore-history history)))
 
-(defvar eww-history-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'eww-history-browse)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-
-    (easy-menu-define nil map
-      "Menu for `eww-history-mode-map'."
-      '("Eww History"
-        ["Exit" quit-window t]
-        ["Browse" eww-history-browse
-         :active (get-text-property (line-beginning-position) 'eww-history)]))
-    map))
+(defvar-keymap eww-history-mode-map
+  "\r" #'eww-history-browse
+  "n" #'next-line
+  "p" #'previous-line
+  :menu '("Eww History"
+          ["Exit" quit-window t]
+          ["Browse" eww-history-browse
+           :active (get-text-property (line-beginning-position)
+                                      'eww-history)]))
 
 (define-derived-mode eww-history-mode special-mode "eww history"
   "Mode for listing eww-histories.
@@ -2258,22 +2365,18 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
     (forward-line -1))
   (eww-buffer-show))
 
-(defvar eww-buffers-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control k)] 'eww-buffer-kill)
-    (define-key map "\r" 'eww-buffer-select)
-    (define-key map "n" 'eww-buffer-show-next)
-    (define-key map "p" 'eww-buffer-show-previous)
-
-    (easy-menu-define nil map
-      "Menu for `eww-buffers-mode-map'."
-      '("Eww Buffers"
-        ["Exit" quit-window t]
-        ["Select" eww-buffer-select
-         :active (get-text-property (line-beginning-position) 'eww-buffer)]
-        ["Kill" eww-buffer-kill
-         :active (get-text-property (line-beginning-position) 'eww-buffer)]))
-    map))
+(defvar-keymap eww-buffers-mode-map
+  [(control k)] #'eww-buffer-kill
+  "\r" #'eww-buffer-select
+  "n" #'eww-buffer-show-next
+  "p" #'eww-buffer-show-previous
+  :menu '("Eww Buffers"
+          ["Exit" quit-window t]
+          ["Select" eww-buffer-select
+           :active (get-text-property (line-beginning-position) 'eww-buffer)]
+          ["Kill" eww-buffer-kill
+           :active (get-text-property (line-beginning-position)
+                                      'eww-buffer)]))
 
 (define-derived-mode eww-buffers-mode special-mode "eww buffers"
   "Mode for listing buffers.
@@ -2364,14 +2467,37 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 
 (defun eww-isearch-next-buffer (&optional _buffer wrap)
   "Go to the next page to search using `rel' attribute for navigation."
-  (if wrap
-      (condition-case nil
-	  (eww-top-url)
-	(error nil))
-    (if isearch-forward
-	(eww-next-url)
-      (eww-previous-url)))
+  (let ((eww-retrieve-command 'sync))
+    (if wrap
+        (condition-case nil
+	    (eww-top-url)
+	  (error nil))
+      (if isearch-forward
+	  (eww-next-url)
+        (eww-previous-url))))
   (current-buffer))
+
+;;; bookmark.el support
+
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defun eww-bookmark-name ()
+  "Create a default bookmark name for the current EWW buffer."
+  (plist-get eww-data :title))
+
+(defun eww-bookmark-make-record ()
+  "Create a bookmark for the current EWW buffer."
+  `(,(eww-bookmark-name)
+    ,@(bookmark-make-record-default t)
+    (location . ,(plist-get eww-data :url))
+    (handler . eww-bookmark-jump)))
+
+;;;###autoload
+(defun eww-bookmark-jump (bookmark)
+  "Default bookmark handler for EWW buffers."
+  (eww (bookmark-prop-get bookmark 'location)))
 
 (provide 'eww)
 

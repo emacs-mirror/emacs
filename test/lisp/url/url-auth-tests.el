@@ -154,7 +154,7 @@ Essential is how realms and paths are matched."
          auth)
 
     (dolist (row (list
-                  ;; If :expected-user is `nil' it indicates
+                  ;; If :expected-user is nil it indicates
                   ;; authentication information shouldn't be found.
 
                   ;; non-existent server

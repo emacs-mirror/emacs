@@ -243,7 +243,7 @@ second TAB brings up the `*Completions*' buffer."
   (when (and partial-completion-mode (null PC-env-vars-alist))
     (setq PC-env-vars-alist
           (mapcar (lambda (string)
-                    (let ((d (string-match "=" string)))
+                    (let ((d (string-search "=" string)))
                       (cons (concat "$" (substring string 0 d))
                             (and d (substring string (1+ d))))))
                   process-environment))))
@@ -575,7 +575,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		  p (+ p (length PC-ndelims-regex) 1)))))
       (setq p 0)
       (if filename
-	  (while (setq p (string-match "\\\\\\*" regex p))
+	  (while (setq p (string-search "\\*" regex p))
 	    (setq regex (concat (substring regex 0 p)
 				"[^/]*"
 				(substring regex (+ p 2))))))

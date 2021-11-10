@@ -78,7 +78,7 @@ is a string, it should be a MIME format string like
                 (string-match image-converter-regexp source))
            (and data-p
                 (symbolp data-p)
-                (string-match "/" (symbol-name data-p))
+                (string-search "/" (symbol-name data-p))
                 (string-match
                  image-converter-regexp
                  (concat "foo." (image-converter--mime-type data-p)))))
@@ -133,7 +133,7 @@ data is returned as a string."
         (list value)
       value)))
 
-(cl-defmethod image-converter--probe ((type (eql graphicsmagick)))
+(cl-defmethod image-converter--probe ((type (eql 'graphicsmagick)))
   "Check whether the system has GraphicsMagick installed."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
@@ -151,7 +151,7 @@ data is returned as a string."
             (push (downcase (match-string 1)) formats)))
         (nreverse formats)))))
 
-(cl-defmethod image-converter--probe ((type (eql imagemagick)))
+(cl-defmethod image-converter--probe ((type (eql 'imagemagick)))
   "Check whether the system has ImageMagick installed."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
@@ -171,7 +171,7 @@ data is returned as a string."
           (push (downcase (match-string 1)) formats)))
       (nreverse formats))))
 
-(cl-defmethod image-converter--probe ((type (eql ffmpeg)))
+(cl-defmethod image-converter--probe ((type (eql 'ffmpeg)))
   "Check whether the system has ffmpeg installed."
   (with-temp-buffer
     (let ((command (image-converter--value type :command))
@@ -212,12 +212,12 @@ Only suffixes that map to `image-mode' are returned."
                     'image-mode)
            collect suffix))
 
-(cl-defmethod image-converter--convert ((type (eql graphicsmagick)) source
+(cl-defmethod image-converter--convert ((type (eql 'graphicsmagick)) source
                                         image-format)
   "Convert using GraphicsMagick."
   (image-converter--convert-magick type source image-format))
 
-(cl-defmethod image-converter--convert ((type (eql imagemagick)) source
+(cl-defmethod image-converter--convert ((type (eql 'imagemagick)) source
                                         image-format)
   "Convert using ImageMagick."
   (image-converter--convert-magick type source image-format))
@@ -249,7 +249,7 @@ Only suffixes that map to `image-mode' are returned."
       ;; error message.
       (buffer-string))))
 
-(cl-defmethod image-converter--convert ((type (eql ffmpeg)) source
+(cl-defmethod image-converter--convert ((type (eql 'ffmpeg)) source
                                         image-format)
   "Convert using ffmpeg."
   (let ((command (image-converter--value type :command)))

@@ -290,7 +290,7 @@ The default behavior is to save all file-visiting buffers.
 @cindex using Nextstep services (macOS)
   Emacs also allows users to make use of Nextstep services, via a set
 of commands whose names begin with @samp{ns-service-} and end with the
-name of the service.  Type @kbd{M-x ns-service-@key{TAB}} to
+name of the service.  Type @kbd{M-x ns-service- @key{TAB}} to
 see a list of these commands.  These functions either operate on
 marked text (replacing it with the result) or take a string argument
 and return the result as a string.  You can also use the Lisp function

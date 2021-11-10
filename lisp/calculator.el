@@ -833,8 +833,7 @@ The result should not exceed the screen width."
     (concat prompt (if (<= trim 0) expr (substring expr trim)))))
 
 (defun calculator-string-to-number (str)
-  "Convert the given STR to a number, according to the value of
-`calculator-input-radix'."
+  "Convert STR to number according to `calculator-input-radix'."
   (if calculator-input-radix
     (string-to-number str (cadr (assq calculator-input-radix
                                       '((bin 2) (oct 8) (hex 16)))))
@@ -1171,9 +1170,9 @@ arguments."
 ;;; Input interaction
 
 (defun calculator-last-input (&optional keys)
-  "Return the last key sequence that was used to invoke this command, or
-the input KEYS.  Uses the `function-key-map' translate keypad numbers to
-plain ones."
+  "Return the last key sequence used to invoke this command, or the input KEYS.
+Uses the `function-key-map' translate keypad numbers to plain
+ones."
   (let* ((inp (or keys (this-command-keys)))
          (inp (or (and (arrayp inp) (not (stringp inp))
                        (lookup-key function-key-map inp))
@@ -1475,8 +1474,7 @@ a multiplication."
       (calculator-put-value (calculator-string-to-number str)))))
 
 (defun calculator-register-read-with-preview (prompt)
-  "Similar to `register-read-with-preview' but for calculator
-registers."
+  "Similar to `register-read-with-preview' but for calculator registers."
   (let ((register-alist calculator-registers)
         (register-preview-delay 1)
         (register-preview-function

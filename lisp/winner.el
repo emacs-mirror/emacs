@@ -131,8 +131,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 (defsubst winner-equal (a b)
-  "Check whether two Winner configurations (as produced by
-`winner-conf') are equal."
+  "Return t if two Winner configurations (as produced by `winner-conf') are equal."
   (equal (cdr a) (cdr b)))
 
 

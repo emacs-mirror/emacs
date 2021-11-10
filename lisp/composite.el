@@ -815,6 +815,35 @@ prepending a space before it."
 	      (setq i (1+ i)))))))
     gstring))
 
+(defun compose-gstring-for-variation-glyph (gstring _direction)
+  "Compose glyph-string GSTRING for graphic display.
+GSTRING must have two glyphs; the first is a glyph for a han character,
+and the second is a glyph for a variation selector."
+  (let* ((font (lgstring-font gstring))
+	 (han (lgstring-char gstring 0))
+	 (vs (lgstring-char gstring 1))
+	 (glyphs (font-variation-glyphs font han))
+	 (g0 (lgstring-glyph gstring 0))
+	 (g1 (lgstring-glyph gstring 1)))
+    (catch 'tag
+      (dolist (elt glyphs)
+	(if (= (car elt) vs)
+	    (progn
+	      (lglyph-set-code g0 (cdr elt))
+	      (lglyph-set-from-to g0 (lglyph-from g0) (lglyph-to g1))
+	      (lgstring-set-glyph gstring 1 nil)
+	      (throw 'tag gstring)))))))
+
+;; We explicitly don't handle #xFE0F (VS-16) here, because that's
+;; taken care of by font_range in font.c, which will check for an
+;; emoji font for codepoints used in compositions even if they're not
+;; emoji themselves, and thus choose the Emoji presentation for them
+;; when followed by VS-16.  VS-15 *is* handled here, because if it's
+;; handled in font_range, we end up choosing the Emoji presentation
+;; rather than the Text presentation.
+(let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0E) elt)
+  (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (defun auto-compose-chars (func from to font-object string direction)
   "Compose the characters at FROM by FUNC.
@@ -864,14 +893,12 @@ Auto Composition mode in all buffers (this is the default)."
   "Toggle Auto Composition mode in all buffers.
 
 For more information on Auto Composition mode, see
-`auto-composition-mode' ."
+`auto-composition-mode'."
   :global t
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 (provide 'composite)
-
-
 
 ;;; composite.el ends here

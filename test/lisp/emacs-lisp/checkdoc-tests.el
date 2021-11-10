@@ -49,27 +49,27 @@
   (with-temp-buffer
     (emacs-lisp-mode)
     ;; this method matches if A is the symbol `smthg' and if b is a list:
-    (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
+    (insert "(cl-defmethod foo ((a (eql 'smthg)) (b list)) \"Return A+B.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-qualified-ok ()
   "Checkdoc should be happy with a `cl-defmethod' using qualifiers."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defmethod test :around ((a (eql smthg))) \"Return A.\")")
+    (insert "(cl-defmethod test :around ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-ok ()
   "Checkdoc should be happy with a :extra qualified `cl-defmethod'."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql smthg))) \"Return A.\")")
+    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun))
 
   (with-temp-buffer
     (emacs-lisp-mode)
     (insert
-     "(cl-defmethod foo :extra \"foo\" :after ((a (eql smthg))) \"Return A.\")")
+     "(cl-defmethod foo :extra \"foo\" :after ((a (eql 'smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-and-nil-args-ok ()
@@ -121,5 +121,101 @@ See the comments in Bug#24998."
     (should (checkdoc-next-docstring))
     (should (looking-at-p "\"baz\")"))
     (should-not (checkdoc-next-docstring))))
+
+(defun checkdoc-tests--abbrev-test (buffer-contents goto-string)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert buffer-contents)
+    (goto-char (point-min))
+    (re-search-forward goto-string)
+    (checkdoc-in-abbreviation-p (point))))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/basic-case ()
+  (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g"))
+  (should (checkdoc-tests--abbrev-test "behavior/errors etc. that" "etc"))
+  (should (checkdoc-tests--abbrev-test "foo vs. bar" "vs"))
+  (should (checkdoc-tests--abbrev-test "spy a.k.a. spy" "a.k.a")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
+  (should (checkdoc-tests--abbrev-test "foo bar (e.g. baz)" "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-escaped-parens ()
+  (should (checkdoc-tests--abbrev-test "foo\n\\(e.g. baz)" "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/single-char ()
+  (should (checkdoc-tests--abbrev-test "a. foo bar" "a")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-em-dash ()
+  (should (checkdoc-tests--abbrev-test "foo bar baz---e.g." "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/incorrect-abbreviation ()
+  (should-not (checkdoc-tests--abbrev-test "foo bar a.b.c." "a.b.c")))
+
+(defun checkdoc-test-error-format-is-good (msg &optional reverse literal)
+  (with-temp-buffer
+    (erase-buffer)
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer)))
+      (if literal
+          (print (format "(error \"%s\")" msg))
+        (prin1 `(error ,msg))))
+    (goto-char (length "(error \""))
+    (if reverse
+         (should (checkdoc--error-bad-format-p))
+       (should-not (checkdoc--error-bad-format-p)))))
+
+(defun checkdoc-test-error-format-is-bad (msg &optional literal)
+  (checkdoc-test-error-format-is-good msg t literal))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p ()
+  (checkdoc-test-error-format-is-good "Foo")
+  (checkdoc-test-error-format-is-good "Foo: bar baz")
+  (checkdoc-test-error-format-is-good "some-symbol: Foo")
+  (checkdoc-test-error-format-is-good "`some-symbol' foo bar")
+  (checkdoc-test-error-format-is-good "%sfoo")
+  (checkdoc-test-error-format-is-good "avl-tree-enter:\\
+ Updated data does not match existing data" nil 'literal))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p/defined-symbols ()
+  (defvar checkdoc-tests--var-symbol nil)
+  (checkdoc-test-error-format-is-good "checkdoc-tests--var-symbol foo bar baz")
+  (defun checkdoc-tests--fun-symbol ())
+  (checkdoc-test-error-format-is-good "checkdoc-tests--fun-symbol foo bar baz"))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p/not-capitalized ()
+  (checkdoc-test-error-format-is-bad "foo")
+  (checkdoc-test-error-format-is-bad "some-symbol: foo")
+  (checkdoc-test-error-format-is-bad "avl-tree-enter:\
+ updated data does not match existing data"))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo"))         ; "foo"
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo?\")")))))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p/no-change ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo?"))        ; "foo?"
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo?\")")))))
+
+(ert-deftest checkdoc-tests-fix-y-or-n-p/with-space ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((standard-output (current-buffer))
+          (checkdoc-autofix-flag 'automatic))
+      (prin1 '(y-or-n-p "foo? "))       ; "foo? "
+      (goto-char (length "(y-or-n-p "))
+      (checkdoc--fix-y-or-n-p)
+      (should (equal (buffer-string) "(y-or-n-p \"foo? \")")))))
 
 ;;; checkdoc-tests.el ends here

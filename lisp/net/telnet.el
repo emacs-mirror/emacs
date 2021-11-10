@@ -73,8 +73,9 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
 (defvar-local telnet-remote-echoes t
-  "True if the telnet process will echo input.")
-(defvar-local telnet-interrupt-string "\C-c" "String sent by C-c.")
+  "Non-nil if the telnet process will echo input.")
+(defvar-local telnet-interrupt-string "\C-c"
+  "String sent by C-c.")
 
 (defvar-local telnet-count 0
   "Number of output strings from telnet process while looking for password.")
@@ -83,8 +84,9 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
   "Program to run to open a telnet connection.")
 
 (defvar telnet-initial-count -50
-  "Initial value of `telnet-count'.  Should be set to the negative of the
-number of terminal writes telnet will make setting up the host connection.")
+  "Initial value of `telnet-count'.
+Should be set to the negative of the number of terminal writes
+telnet will make setting up the host connection.")
 
 (defvar telnet-maximum-count 4
   "Maximum value `telnet-count' can have.
@@ -105,7 +107,7 @@ rejecting one login and prompting again for a username and password.")
       (let (revert-buffer-function)
         (revert-buffer ignore-auto noconfirm))
     (if (or noconfirm
-            (yes-or-no-p (format "Restart connection? ")))
+            (yes-or-no-p "Restart connection? "))
         (apply telnet-connect-command))))
 
 (defun telnet-c-z ()
@@ -122,7 +124,7 @@ rejecting one login and prompting again for a username and password.")
 
 ;;maybe should have a flag for when have found type
 (defun telnet-check-software-type-initialize (string)
-  "Tries to put correct initializations in.  Needs work."
+  "Try to put correct initializations in.  Needs work."
   (let ((case-fold-search t))
     (cond ((string-match "unix" string)
 	 (setq telnet-prompt-pattern comint-prompt-regexp)
@@ -245,7 +247,7 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (define-derived-mode telnet-mode comint-mode "Telnet"
   "This mode is for using telnet (or rsh) from a buffer to another host.
-It has most of the same commands as comint-mode.
+It has most of the same commands as `comint-mode'.
 There is a variable `telnet-interrupt-string' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."

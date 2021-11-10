@@ -742,6 +742,17 @@ always supposed to end in newlines.  Such major modes set the variable
 setting the latter variable, you can control how these modes handle
 final newlines.
 
+@vindex file-preserve-symlinks-on-save
+If this option is non-@code{nil} and you're visiting a file via a
+symbolic link, Emacs will break the symbolic link upon saving the
+buffer, and will write the buffer to a file with the same name as the
+symbolic link, if the value of @code{file-precious-flag} is
+non-@code{nil} (@pxref{Saving Buffers, file-precious-flag,, elisp, The
+Emacs Lisp Reference Manual}).  If you want Emacs to save the buffer
+to the file the symbolic link points to (thereby preserving the link)
+in these cases, customize the variable
+@code{file-preserve-symlinks-on-save} to @code{t}.
+
 @vindex write-region-inhibit-fsync
   Normally, when a program writes a file, the operating system briefly
 caches the file's data in main memory before committing the data to
@@ -948,7 +959,7 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 then change your mind, you can @dfn{revert} the changes and go back to
 the saved version of the file.  To do this, type @kbd{C-x x g}.  Since
 reverting unintentionally could lose a lot of work, Emacs asks for
-confirmation first.
+confirmation first if the buffer is modified.
 
   The @code{revert-buffer} command tries to position point in such a
 way that, if the file was edited only slightly, you will be at
@@ -990,6 +1001,17 @@ regular expressions, @code{find-file} and @code{revert-buffer} will
 revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
+
+@vindex revert-buffer-quick-short-answers
+@findex revert-buffer-quick
+  The @kbd{C-x x g} keystroke is bound to the
+@code{revert-buffer-quick} command.  This is like the
+@code{revert-buffer} command, but prompts less.  Unlike
+@code{revert-buffer}, it will not prompt if the current buffer visits
+a file, and the buffer is not modified.  It also respects the
+@code{revert-buffer-quick-short-answers} user option.  If this option
+is non-@code{nil}, use a shorter @kbd{y/n} query instead of a longer
+@kbd{yes/no} query.
 
   You can also tell Emacs to revert buffers automatically when their
 visited files change on disk; @pxref{Auto Revert}.
@@ -1168,6 +1190,13 @@ visited file.  (You can inhibit this by setting the variable
 @code{delete-auto-save-files} to @code{nil}.)  Changing the visited
 file name with @kbd{C-x C-w} or @code{set-visited-file-name} renames
 any auto-save file to go with the new visited name.
+
+@vindex kill-buffer-delete-auto-save-files
+  Killing a buffer, by default, doesn't remove the buffer's auto-save
+file.  If @code{kill-buffer-delete-auto-save-files} is non-@code{nil},
+killing a buffer that has an auto-save file will make Emacs prompt the
+user for whether the auto-save file should be deleted.  (This is
+inhibited if @code{delete-auto-save-files} is @code{nil}.)
 
 @node Auto Save Control
 @subsection Controlling Auto-Saving
@@ -1717,12 +1746,16 @@ exists.
   @kbd{M-x copy-file} copies the contents of the file @var{old} to the
 file @var{new}.
 
+@vindex copy-directory-create-symlink
 @findex copy-directory
   @kbd{M-x copy-directory} copies directories, similar to the
 @command{cp -r} shell command.  If @var{new} is a directory name, it
 creates a copy of the @var{old} directory and puts it in @var{new}.
 Otherwise it copies all the contents of @var{old} into a new directory
-named @var{new}.
+named @var{new}.  If @code{copy-directory-create-symlink} is
+non-@code{nil} and @var{old} is a symbolic link, this command will
+copy the symbolic link.  If @code{nil}, this command will follow the
+link and copy the contents instead.  (This is the default.)
 
 @cindex renaming files
 @findex rename-file
@@ -2172,11 +2205,11 @@ window, so this is only necessary if you customize the default
 behavior by using the options @code{image-auto-resize} and
 @code{image-auto-resize-on-window-resize}.
 
-@findex image-transform-fit-both
+@findex image-transform-fit-to-window
 @findex image-transform-set-scale
 @findex image-transform-reset
 To resize the image manually you can use the command
-@code{image-transform-fit-both} bound to @kbd{s b}
+@code{image-transform-fit-to-window} bound to @kbd{s w}
 that fits the image to both the window height and width.
 To scale the image specifying a scale factor, use the command
 @code{image-transform-set-scale} bound to @kbd{s s}.

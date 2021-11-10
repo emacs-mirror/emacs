@@ -203,7 +203,7 @@ treated as a literal character."
   (setq eshell-current-modifiers nil))
 
 (defun eshell-finish-arg (&optional argument)
-  "Finish the current argument being processed."
+  "Finish the current ARGUMENT being processed."
   (if argument
       (setq eshell-current-argument argument))
   (throw 'eshell-arg-done t))

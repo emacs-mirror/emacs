@@ -23,8 +23,10 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'xref)
 (eval-when-compile (require 'cl-lib))
+(require 'ert-x)
 
 ;;; Completion
 
@@ -300,12 +302,9 @@
 
 ;; tmp may be on a different filesystem to the tests, but, ehh.
 (defvar xref--case-insensitive
-  (let ((dir (make-temp-file "xref-test" t)))
-    (unwind-protect
-        (progn
-          (with-temp-file (expand-file-name "hElLo" dir) "hello")
-          (file-exists-p (expand-file-name "HELLO" dir)))
-      (delete-directory dir t)))
+  (ert-with-temp-directory dir
+    (with-temp-file (expand-file-name "hElLo" dir) "hello")
+    (file-exists-p (expand-file-name "HELLO" dir)))
   "Non-nil if file system seems to be case-insensitive.")
 
 (defun xref-elisp-test-run (xrefs expected-xrefs)
@@ -315,27 +314,27 @@
            (expected (pop expected-xrefs))
            (expected-xref (or (when (consp expected) (car expected)) expected))
            (expected-source (when (consp expected) (cdr expected)))
-           (xref-file (xref-elisp-location-file (oref xref location)))
+           (xref-file (xref-elisp-location-file (xref-item-location xref)))
            (expected-file (xref-elisp-location-file
-                           (oref expected-xref location))))
+                           (xref-item-location expected-xref))))
 
       ;; Make sure file names compare as strings.
       (when (file-name-absolute-p xref-file)
-        (setf (xref-elisp-location-file (oref xref location))
-              (file-truename (xref-elisp-location-file (oref xref location)))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (file-truename (xref-elisp-location-file (xref-item-location xref)))))
       (when (file-name-absolute-p expected-file)
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (file-truename (xref-elisp-location-file
-                              (oref expected-xref location)))))
+                              (xref-item-location expected-xref)))))
 
       ;; Downcase the filenames for case-insensitive file systems.
       (when xref--case-insensitive
-        (setf (xref-elisp-location-file (oref xref location))
-              (downcase (xref-elisp-location-file (oref xref location))))
+        (setf (xref-elisp-location-file (xref-item-location xref))
+              (downcase (xref-elisp-location-file (xref-item-location xref))))
 
-        (setf (xref-elisp-location-file (oref expected-xref location))
+        (setf (xref-elisp-location-file (xref-item-location expected-xref))
               (downcase (xref-elisp-location-file
-                         (oref expected-xref location)))))
+                         (xref-item-location expected-xref)))))
 
       (should (equal xref expected-xref))
 
@@ -416,8 +415,6 @@ to (xref-elisp-test-descr-to-target xref)."
 
 ;; FIXME: defconst
 
-;; FIXME: eieio defclass
-
 ;; Possible ways of defining the default method implementation for a
 ;; generic function. We declare these here, so we know we cover all
 ;; cases, and we don't rely on other code not changing.
@@ -429,7 +426,7 @@ to (xref-elisp-test-descr-to-target xref)."
   slot-1)
 
 (cl-defgeneric xref-elisp-generic-no-methods (arg1 arg2)
-  "doc string generic no-methods"
+  "Doc string generic no-methods."
   ;; No default implementation, no methods, but fboundp is true for
   ;; this symbol; it calls cl-no-applicable-method
   )
@@ -440,44 +437,44 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; ‘this’. It passes in interactive tests, so I haven't been able to
 ;; track down the problem.
 (cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
-  "doc string generic no-default xref-elisp-root-type"
+  "Doc string generic no-default xref-elisp-root-type."
   "non-default for no-default")
 
 ;; defgeneric after defmethod in file to ensure the fallback search
 ;; method of just looking for the function name will fail.
 (cl-defgeneric xref-elisp-generic-no-default (arg1 arg2)
-  "doc string generic no-default generic"
+  "Doc string generic no-default generic."
   ;; No default implementation; this function calls the cl-generic
   ;; dispatching code.
   )
 
 (cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
-  "doc string generic co-located-default"
+  "Doc string generic co-located-default."
   "co-located default")
 
 (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
-  "doc string generic co-located-default xref-elisp-root-type"
+  "Doc string generic co-located-default xref-elisp-root-type."
   "non-default for co-located-default")
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default"
+  "Doc string generic separate-default."
   ;; default implementation provided separately
   )
 
 (cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
-  "doc string generic separate-default default"
+  "Doc string generic separate-default default."
   "separate default")
 
 (cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
-  "doc string generic separate-default xref-elisp-root-type"
+  "Doc string generic separate-default xref-elisp-root-type."
   "non-default for separate-default")
 
 (cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
-  "doc string generic implicit-generic default"
+  "Doc string generic implicit-generic default."
   "default for implicit generic")
 
 (cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
-  "doc string generic implicit-generic xref-elisp-root-type"
+  "Doc string generic implicit-generic xref-elisp-root-type."
   "non-default for implicit generic")
 
 
@@ -604,6 +601,12 @@ to (xref-elisp-test-descr-to-target xref)."
                 'xref-location-marker nil '(xref-etags-location))
                'cl-defmethod
                (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
+   (xref-make "(cl-defmethod xref-location-marker ((l xref-etags-apropos-location)))"
+              (xref-make-elisp-location
+               (cl--generic-load-hist-format
+                'xref-location-marker nil '(xref-etags-apropos-location))
+               'cl-defmethod
+               (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-eval
@@ -617,35 +620,35 @@ to (xref-elisp-test-descr-to-target xref)."
 (declare-function xref-elisp-overloadable-no-default-default "elisp-mode-tests")
 
 (define-overloadable-function xref-elisp-overloadable-no-methods ()
-  "doc string overloadable no-methods")
+  "Doc string overloadable no-methods.")
 
 (define-overloadable-function xref-elisp-overloadable-no-default ()
-  "doc string overloadable no-default")
+  "Doc string overloadable no-default.")
 
 (define-mode-local-override xref-elisp-overloadable-no-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable no-default c-mode."
+  "Doc string overloadable no-default c-mode."
   "result overloadable no-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-co-located-default ()
-  "doc string overloadable co-located-default"
+  "Doc string overloadable co-located-default."
   "result overloadable co-located-default.")
 
 (define-mode-local-override xref-elisp-overloadable-co-located-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable co-located-default c-mode."
+  "Doc string overloadable co-located-default c-mode."
   "result overloadable co-located-default c-mode.")
 
 (define-overloadable-function xref-elisp-overloadable-separate-default ()
-  "doc string overloadable separate-default.")
+  "Doc string overloadable separate-default.")
 
 (defun xref-elisp-overloadable-separate-default-default ()
-  "doc string overloadable separate-default default"
+  "Doc string overloadable separate-default default."
   "result overloadable separate-default.")
 
 (define-mode-local-override xref-elisp-overloadable-separate-default c-mode
   (_start _end &optional _nonterminal _depth _returnonerror)
-  "doc string overloadable separate-default c-mode."
+  "Doc string overloadable separate-default c-mode."
   "result overloadable separate-default c-mode.")
 
 (xref-elisp-deftest find-defs-define-overload-no-methods
@@ -746,15 +749,11 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; Source for both variable and defun is "(define-minor-mode
 ;; compilation-minor-mode". There is no way to tell that directly from
 ;; the symbol, but we can use (memq sym minor-mode-list) to detect
-;; that the symbol is a minor mode. See `elisp--xref-find-definitions'
-;; for more comments.
-;;
-;; IMPROVEME: return defvar instead of defun if source near starting
-;; point indicates the user is searching for a variable, not a
-;; function.
+;; that the symbol is a minor mode. In non-filtering mode we only
+;; return the function.
 (require 'compile) ;; not loaded by default at test time
 (xref-elisp-deftest find-defs-defun-defvar-el
-  (elisp--xref-find-definitions 'compilation-minor-mode)
+  (xref-backend-definitions 'elisp "compilation-minor-mode")
   (list
    (cons
     (xref-make "(defun compilation-minor-mode)"
@@ -764,12 +763,27 @@ to (xref-elisp-test-descr-to-target xref)."
     "(define-minor-mode compilation-minor-mode")
    ))
 
-(xref-elisp-deftest find-defs-defvar-el
-  (elisp--xref-find-definitions 'xref--marker-ring)
+;; Returning only defvar because source near point indicates the user
+;; is searching for a variable, not a function.
+(xref-elisp-deftest find-defs-minor-defvar-c
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo overwrite-mode")
+    (xref-backend-definitions 'elisp
+                              (xref-backend-identifier-at-point 'elisp)))
   (list
-   (xref-make "(defvar xref--marker-ring)"
+   (cons
+    (xref-make "(defvar overwrite-mode)"
+               (xref-make-elisp-location 'overwrite-mode 'defvar "src/buffer.c"))
+    "DEFVAR_PER_BUFFER (\"overwrite-mode\"")
+   ))
+
+(xref-elisp-deftest find-defs-defvar-el
+  (elisp--xref-find-definitions 'xref--history)
+  (list
+   (xref-make "(defvar xref--history)"
 	      (xref-make-elisp-location
-	       'xref--marker-ring 'defvar
+	       'xref--history 'defvar
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
     ))
 
@@ -824,18 +838,6 @@ to (xref-elisp-test-descr-to-target xref)."
     (emacs-lisp-mode)
     (insert "?\\N{HEAVY CHECK MARK}")
     (should (equal (elisp--preceding-sexp) ?\N{HEAVY CHECK MARK}))))
-
-(ert-deftest elisp-indent-basic ()
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (let ((orig "(defun x ()
-  (print (quote ( thingy great
-		  stuff)))
-  (print (quote (thingy great
-			stuff))))"))
-      (insert orig)
-      (indent-region (point-min) (point-max))
-      (should (equal (buffer-string) orig)))))
 
 (defun test--font (form search)
   (with-temp-buffer
@@ -892,6 +894,219 @@ to (xref-elisp-test-descr-to-target xref)."
                              (error t))
                           "(\\(when\\)")
               nil)))
+
+(defmacro elisp-mode-test--with-buffer (text-with-pos &rest body)
+  "Eval BODY with buffer and variables from TEXT-WITH-POS.
+All occurrences of {NAME} are removed from TEXT-WITH-POS and
+the remaining text put in a buffer in `elisp-mode'.
+Each NAME is then bound to its position in the text during the
+evaluation of BODY."
+  (declare (indent 1))
+  (let* ((annot-text (eval text-with-pos t))
+         (pieces nil)
+         (positions nil)
+         (tlen (length annot-text))
+         (ofs 0)
+         (text-ofs 0))
+    (while
+        (and (< ofs tlen)
+             (let ((m (string-match (rx "{" (group (+ (not "}"))) "}")
+                                    annot-text ofs)))
+               (and m
+                    (let ((var (intern (match-string 1 annot-text))))
+                      (push (substring annot-text ofs m) pieces)
+                      (setq text-ofs (+ text-ofs (- m ofs)))
+                      (push (list var (1+ text-ofs)) positions)
+                      (setq ofs (match-end 0))
+                      t)))))
+    (push (substring annot-text ofs tlen) pieces)
+    (let ((text (apply #'concat (nreverse pieces)))
+          (bindings (nreverse positions)))
+      `(with-temp-buffer
+         (ert-info (,text :prefix "text: ")
+           (emacs-lisp-mode)
+           (insert ,text)
+           (let ,bindings . ,body))))))
+
+(ert-deftest elisp-mode-with-buffer ()
+  ;; Sanity test of macro, also demonstrating how it works.
+  (elisp-mode-test--with-buffer
+      "{a}123{b}45{c}6"
+    (should (equal a 1))
+    (should (equal b 4))
+    (should (equal c 6))
+    (should (equal (buffer-string) "123456"))))
+
+(ert-deftest elisp-mode-infer-namespace ()
+  (elisp-mode-test--with-buffer
+      (concat " ({p1}alphaX {p2}beta {p3}gamma '{p4}delta\n"
+              "    #'{p5}epsilon `{p6}zeta `(,{p7}eta ,@{p8}theta))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'any))
+    (should (equal (elisp--xref-infer-namespace p5) 'function))
+    (should (equal (elisp--xref-infer-namespace p6) 'any))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable))
+    (should (equal (elisp--xref-infer-namespace p8) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(let ({p1}alpha {p2}beta ({p3}gamma {p4}delta))\n"
+              "  ({p5}epsilon {p6}zeta)\n"
+              "  {p7}eta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'function))
+    (should (equal (elisp--xref-infer-namespace p6) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(let (({p1}alpha {p2}beta)\n"
+              "      ({p3}gamma ({p4}delta {p5}epsilon)))\n"
+              "  ({p6}zeta))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'function))
+    (should (equal (elisp--xref-infer-namespace p5) 'maybe-variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(defun {p1}alpha () {p2}beta)\n"
+              "(defface {p3}gamma ...)\n"
+              "(defvar {p4}delta {p5}epsilon)\n"
+              "(function {p6}zeta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'function))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'face))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(require '{p1}alpha)\n"
+              "(fboundp '{p2}beta)\n"
+              "(boundp '{p3}gamma)\n"
+              "(facep '{p4}delta)\n"
+              "(define-key map [f1] '{p5}epsilon)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'feature))
+    (should (equal (elisp--xref-infer-namespace p2) 'function))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'face))
+    (should (equal (elisp--xref-infer-namespace p5) 'function)))
+
+  (elisp-mode-test--with-buffer
+      (concat "(list {p1}alpha {p2}beta)\n"
+              "(progn {p3}gamma {p4}delta)\n"
+              "(lambda ({p5}epsilon {p6}zeta) {p7}eta)\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'variable))
+    (should (equal (elisp--xref-infer-namespace p2) 'variable))
+    (should (equal (elisp--xref-infer-namespace p3) 'variable))
+    (should (equal (elisp--xref-infer-namespace p4) 'variable))
+    (should (equal (elisp--xref-infer-namespace p5) 'variable))
+    (should (equal (elisp--xref-infer-namespace p6) 'variable))
+    (should (equal (elisp--xref-infer-namespace p7) 'variable)))
+
+  (elisp-mode-test--with-buffer
+      (concat "'({p1}alpha {p2}beta\n"
+              "  ({p3}gamma ({p4}delta)))\n")
+    (should (equal (elisp--xref-infer-namespace p1) 'any))
+    (should (equal (elisp--xref-infer-namespace p2) 'any))
+    (should (equal (elisp--xref-infer-namespace p3) 'any))
+    (should (equal (elisp--xref-infer-namespace p4) 'any))))
+
+
+(ert-deftest elisp-shorthand-read-buffer ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((read-symbol-shorthands
+                          '(("s-" . "shorthand-longhand-"))))
+                     (with-temp-buffer
+                       (insert shorthand-sname)
+                       (goto-char (point-min))
+                       (read (current-buffer))))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(ert-deftest elisp-shorthand-read-from-string ()
+  (let* ((gsym (downcase (symbol-name (cl-gensym "sh-"))))
+         (shorthand-sname (format "s-%s" gsym))
+         (expected (intern (format "shorthand-longhand-%s" gsym))))
+    (cl-assert (not (intern-soft shorthand-sname)))
+    (should (equal (let ((read-symbol-shorthands
+                          '(("s-" . "shorthand-longhand-"))))
+                     (car (read-from-string shorthand-sname)))
+                   expected))
+    (should (not (intern-soft shorthand-sname)))))
+
+(ert-deftest elisp-shorthand-load-a-file ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (load test-file)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-byte-compile-a-file ()
+
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el"))
+        (byte-compiled (ert-resource-file "simple-shorthand-test.elc")))
+    (mapatoms (lambda (s)
+                (when (string-match "^elisp--foo-" (symbol-name s))
+                  (unintern s obarray))))
+    (byte-compile-file test-file)
+    (should-not (intern-soft "f-test"))
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (fboundp (intern-soft "elisp--foo-test")))
+    (load byte-compiled)
+    (should (intern-soft "elisp--foo-test"))
+    (should-not (intern-soft "f-test"))))
+
+(ert-deftest elisp-shorthand-completion-at-point ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (load test-file)
+    (with-current-buffer (find-file-noselect test-file)
+      (revert-buffer t t)
+      (goto-char (point-min))
+      (insert "f-test-compl")
+      (completion-at-point)
+      (goto-char (point-min))
+      (should (search-forward "f-test-complete-me" (line-end-position) t))
+      (goto-char (point-min))
+      (should (string= (symbol-name (read (current-buffer)))
+                       "elisp--foo-test-complete-me"))
+      (revert-buffer t t))))
+
+(ert-deftest elisp-shorthand-escape ()
+  (let ((test-file (ert-resource-file "simple-shorthand-test.el")))
+    (load test-file)
+    (should (intern-soft "f-test4---"))
+    (should-not (intern-soft "elisp--foo-test4---"))
+    (should (= 84 (funcall (intern-soft "f-test4---"))))
+    (should (unintern "f-test4---"))))
+
+(ert-deftest elisp-dont-shadow-punctuation-only-symbols ()
+  (let* ((shorthanded-form '(/= 42 (-foo 42)))
+         (expected-longhand-form '(/= 42 (fooey-foo 42)))
+         (observed (let ((read-symbol-shorthands
+                          '(("-" . "fooey-"))))
+                     (car (read-from-string
+                           (with-temp-buffer
+                             (print shorthanded-form (current-buffer))
+                             (buffer-string)))))))
+    (should (equal observed expected-longhand-form))))
+
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "elisp-indents.erts"))
+  (ert-test-erts-file (ert-resource-file "flet.erts")
+                      (lambda ()
+                        (emacs-lisp-mode)
+                        (indent-region (point-min) (point-max)))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

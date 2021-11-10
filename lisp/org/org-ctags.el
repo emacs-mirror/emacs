@@ -3,10 +3,8 @@
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-
-
 ;; Keywords: org, wp
-;;
+
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -21,6 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;
 ;; Synopsis

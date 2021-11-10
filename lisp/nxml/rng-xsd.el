@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; The main entry point is `rng-xsd-compile'. The validator
+;; The main entry point is `rng-xsd-compile'.  The validator
 ;; knows to use this for the datatype library with URI
 ;; https://www.w3.org/2001/XMLSchema-datatypes because it
 ;; is the value of the rng-dt-compile property on that URI

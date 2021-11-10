@@ -260,36 +260,103 @@ unexpected result.  In the example above, there are two failures, both
 due to failed @code{should} forms.  @xref{Understanding Explanations},
 for more details.
 
+The following key bindings are available in the ERT results buffer:
+
+@table @kbd
+
+@item @key{RET}
+@kindex RET@r{, in ert results buffer}
+Each name of a function or macro in this buffer is a button; moving
+point to it and typing @kbd{@key{RET}} jumps to its definition.
+
+@item @key{TAB}
+@itemx S-@key{TAB}
 @kindex TAB@r{, in ert results buffer}
 @kindex S-TAB@r{, in ert results buffer}
-In the ERT results buffer, @kbd{@key{TAB}} and @kbd{S-@key{TAB}} cycle between
-buttons.  Each name of a function or macro in this buffer is a button;
-moving point to it and typing @kbd{@key{RET}} jumps to its definition.
+Cycle between buttons forward (@code{forward-button}) and backward
+(@code{backward-button}).
 
+@item r
 @kindex r@r{, in ert results buffer}
+@findex ert-results-rerun-test-at-point
+Re-run the test near point on its own
+(@code{ert-results-rerun-test-at-point}).
+
+@item d
 @kindex d@r{, in ert results buffer}
+@findex ert-results-rerun-test-at-point-debugging-errors
+Re-run the test near point on its own with the debugger enabled
+(@code{ert-results-rerun-test-at-point-debugging-errors}).
+
+@item R
+@kindex R@r{, in ert results buffer}
+@findex ert-results-rerun-all-tests
+Re-run all tests (@code{ert-results-rerun-all-tests}).
+
+@item .
 @kindex .@r{, in ert results buffer}
+@findex ert-results-find-test-at-point-other-window
+Jump to the definition of the test near point
+(@code{ert-results-find-test-at-point-other-window}).  This has the
+same effect as @kbd{@key{RET}}, but does not require point to be on
+the name of the test.
+
+@item b
 @kindex b@r{, in ert results buffer}
+@findex ert-results-pop-to-backtrace-for-test-at-point
 @cindex backtrace of a failed test
-Pressing @kbd{r} re-runs the test near point on its own.  Pressing
-@kbd{d} re-runs it with the debugger enabled.  @kbd{.} jumps to the
-definition of the test near point (@kbd{@key{RET}} has the same effect
-if point is on the name of the test).  On a failed test, @kbd{b} shows
-the backtrace of the failure.  @xref{Debugging,, Backtraces, elisp,
-GNU Emacs Lisp Reference Manual}, for more information about
-backtraces.
+Show the backtrace of a failed test
+(@code{ert-results-pop-to-backtrace-for-test-at-point}).
+@xref{Debugging,, Backtraces, elisp, GNU Emacs Lisp Reference Manual},
+for more information about backtraces.
 
+@item l
 @kindex l@r{, in ert results buffer}
-@kbd{l} shows the list of @code{should} forms executed in the test.
-If any messages were generated (with the Lisp function @code{message})
-in a test or any of the code that it invoked, @kbd{m} will show them.
+@findex ert-results-pop-to-should-forms-for-test-at-point
+Show the list of @code{should} forms executed in the test
+(@code{ert-results-pop-to-should-forms-for-test-at-point}).
 
+@item m
+@kindex m@r{, in ert results buffer}
+@findex ert-results-pop-to-messages-for-test-at-point
+Show any messages that were generated (with the Lisp function
+@code{message}) in in a test or any of the code that it invoked
+(@code{ert-results-pop-to-messages-for-test-at-point}).
+
+@item L
 @kindex L@r{, in ert results buffer}
+@findex ert-results-toggle-printer-limits-for-test-at-point
 By default, long expressions in the failure details are abbreviated
-using @code{print-length} and @code{print-level}.  Pressing @kbd{L}
-while point is on a test failure will increase the limits to show more
-of the expression.
+using @code{print-length} and @code{print-level}.  Increase the limits
+to show more of the expression by moving point to a test failure with
+this command (@code{ert-results-toggle-printer-limits-for-test-at-point}).
 
+@item D
+@kindex D@r{, in ert results buffer}
+@findex ert-delete-test
+@cindex delete test
+Delete a test from the running Emacs session (@code{ert-delete-test}).
+
+@item h
+@kindex h@r{, in ert results buffer}
+@findex ert-describe-test
+Show the documentation of a test (@code{ert-describe-test}).
+
+@item T
+@kindex T@r{, in ert results buffer}
+@findex ert-results-pop-to-timings
+Display test timings for the last run (@code{ert-results-pop-to-timings}).
+
+@item M-x ert-delete-all-tests
+@findex ert-delete-all-tests
+@cindex delete all tests
+Delete all tests from the running session.
+
+@item M-x ert-describe-test
+@findex ert-results-describe-test-at-point
+Prompt for a test and then show its documentation.
+
+@end table
 
 @node Running Tests in Batch Mode
 @section Running Tests in Batch Mode
@@ -348,7 +415,7 @@ emacs -batch -l ert -l my-tests.el \
 @end example
 
 By default, ERT test failure summaries are quite brief in batch
-mode--only the names of the failed tests are listed.  If the
+mode---only the names of the failed tests are listed.  If the
 EMACS_TEST_VERBOSE environment variable is set, the failure summaries
 will also include the data from the failing test.
 
@@ -419,6 +486,7 @@ to find where a test was defined if the test was loaded from a file.
 * Expected Failures::           Tests for known bugs.
 * Tests and Their Environment:: Don't depend on customizations; no side effects.
 * Useful Techniques::           Some examples.
+* erts files::                  Files containing many buffer tests.
 @end menu
 
 @node The @code{should} Macro
@@ -700,6 +768,119 @@ code is to restructure the code slightly to provide better interfaces
 for testing.  Usually, this makes the interfaces easier to use as
 well.
 
+@node erts files
+@section erts files
+
+@findex ert-test-erts-file
+Many relevant Emacs tests depend on comparing the contents of a buffer
+before and after executing a particular function.  These tests can be
+written the normal way---making a temporary buffer, inserting the
+``before'' text, running the function, and then comparing with the
+expected ``after'' text.  However, this often leads to test code
+that's pretty difficult to read and write, especially when the text in
+question is multi-line.
+
+So ert provides a function called @code{ert-test-erts-file} that takes
+two parameters: The name of a specially-formatted @dfn{erts} file, and
+(optionally) a function that performs the transform.
+
+@findex erts-mode
+These erts files can be edited with the @code{erts-mode} major mode.
+
+An erts file is divided into sections by the (@samp{=-=}) separator.
+
+Here's an example file containing two tests:
+
+@example
+Name: flet
+
+=-=
+(cl-flet ((bla (x)
+(* x x)))
+(bla 42))
+=-=
+(cl-flet ((bla (x)
+            (* x x)))
+  (bla 42))
+=-=-=
+
+Name: defun
+
+=-=
+(defun x ()
+  (print (quote ( thingy great
+                  stuff))))
+=-=-=
+@end example
+
+A test starts with a line containing just @samp{=-=} and ends with a
+line containing just @samp{=-=-=}.  The test may be preceded by
+freeform text (for instance, comments), and also name/value pairs (see
+below for a list of them).
+
+If there is a line with @samp{=-=} inside the test, that designates
+the start of the ``after'' text.  Otherwise, the ``before'' and
+``after'' texts are assumed to be identical, which you typically see
+when writing indentation tests.
+
+@code{ert-test-erts-file} puts the ``before'' section into a temporary
+buffer, calls the transform function, and then compares with the
+``after'' section.
+
+Here's an example usage:
+
+@lisp
+(ert-test-erts-file "elisp.erts"
+                    (lambda ()
+                      (emacs-lisp-mode)
+                      (indent-region (point-min) (point-max))))
+@end lisp
+
+A list of the name/value specifications that can appear before a test
+follows.  The general syntax is @samp{Name: Value}, but continuation
+lines can be used (along the same lines as in mail---subsequent lines
+that start with a space are part of the value).
+
+@example
+Name: foo
+Code: (indent-region
+        (point-min) (point-max))
+@end example
+
+@table @samp
+@item Name
+All tests should have a name.  This name will appear in ERT output if
+the test fails, and helps to identify the failing test.
+
+@item Code
+This is the code that will be run to do the transform.  This can also
+be passed in via the @code{ert-test-erts-file} call, but @samp{Code}
+overrides that.  It's used not only in the following test, but in all
+subsequent tests in the file (until overridden by another @samp{Code}
+specification).
+
+@item No-Before-Newline
+@itemx No-After-Newline
+These specifications say whether the ``before'' or ``after'' portions
+have a newline at the end.  (This would otherwise be impossible to
+specify.)
+
+@item Point-Char
+Sometimes it's useful to be able to put point at a specific place
+before executing the transform function.  @samp{Point-Char: |} will
+make @code{ert-test-erts-file} place point where @samp{|} is in the
+``before'' form (and remove that character), and will check that it's
+where the @samp{|} character is in the ``after'' form (and issue a
+test failure if that isn't the case).  (This is used in all subsequent
+tests, unless overridden by a new @samp{Point-Char} spec.)
+
+@item Skip
+If this is present and value is a form that evaluates to a
+non-@code{nil} value, the test will be skipped.
+@end table
+
+If you need to use the literal line single line @samp{=-=} in a test
+section, you can quote it with a @samp{\} character.
 
 @node How to Debug Tests
 @chapter How to Debug Tests

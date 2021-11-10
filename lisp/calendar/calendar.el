@@ -119,11 +119,11 @@
 ;; Calendar has historically relied heavily on dynamic scoping.
 ;; Concretely, this manifests in the use of references to let-bound variables
 ;; in Custom vars as well as code in diary files.
-;; `eval` is hence the core of the culprit.  It's used on:
+;; 'eval' is hence the core of the culprit.  It's used on:
 ;; - calendar-date-display-form
 ;; - calendar-time-display-form
 ;; - calendar-chinese-time-zone
-;; - in cal-dst's there are various calls to `eval' but they seem not to refer
+;; - in cal-dst's there are various calls to 'eval' but they seem not to refer
 ;;   to let-bound variables, surprisingly.
 ;; - calendar-date-echo-text
 ;; - calendar-mode-line-format
@@ -137,7 +137,7 @@
 ;; - whatever is passed to diary-sexp-entry
 ;; - whatever is passed to diary-remind
 
-(defmacro calendar-dlet* (binders &rest body)
+(defmacro calendar-dlet (binders &rest body)
   "Like `dlet' but without warnings about non-prefixed var names."
   (declare (indent 1) (debug let))
   (let ((vars (mapcar (lambda (binder)
@@ -1308,7 +1308,9 @@ This function is suitable for execution in an init file."
   ;; Avoid loading cal-x unless it will be used.
   (if (and (memq calendar-setup '(one-frame two-frames calendar-only))
            (display-multi-frame-p))
-      (calendar-frame-setup calendar-setup arg)
+      ;; Calendar does its own frame setup.
+      (let ((pop-up-frames nil))
+        (calendar-frame-setup calendar-setup arg))
     (calendar-basic-setup arg)))
 
 (defun calendar-basic-setup (&optional arg nodisplay)
@@ -1499,7 +1501,7 @@ first INDENT characters on the line."
    (goto-char (point-min))
    (calendar-move-to-column indent)
    (insert
-    (calendar-dlet* ((month month) (year year))
+    (calendar-dlet ((month month) (year year))
       (calendar-string-spread (list calendar-month-header)
                               ?\s calendar-month-digit-width)))
    (calendar-ensure-newline)
@@ -1516,7 +1518,7 @@ first INDENT characters on the line."
        calendar-day-header-width nil ?\s)
       (make-string (- calendar-column-width calendar-day-header-width) ?\s)))
    (calendar-ensure-newline)
-   (calendar-dlet* ((day day) (month month) (year year))
+   (calendar-dlet ((day day) (month month) (year year))
      (calendar-insert-at-column indent calendar-intermonth-text trunc))
    ;; Add blank days before the first of the month.
    (insert (make-string (* blank-days calendar-column-width) ?\s))
@@ -1527,7 +1529,7 @@ first INDENT characters on the line."
      (insert (propertize
               (format (format "%%%dd" calendar-day-digit-width) day)
               'mouse-face 'highlight
-              'help-echo (calendar-dlet* ((day day) (month month) (year year))
+              'help-echo (calendar-dlet ((day day) (month month) (year year))
                            (eval calendar-date-echo-text t))
               ;; 'date property prevents intermonth text confusing re-searches.
               ;; (Tried intangible, it did not really work.)
@@ -1538,7 +1540,7 @@ first INDENT characters on the line."
                 (/= day last))
        (calendar-ensure-newline)
        (setq day (1+ day))              ; first day of next week
-       (calendar-dlet* ((day day) (month month) (year year))
+       (calendar-dlet ((day day) (month month) (year year))
          (calendar-insert-at-column indent calendar-intermonth-text trunc))))))
 
 (defun calendar-redraw ()
@@ -1833,7 +1835,7 @@ concatenated and the result truncated."
            (bufferp (get-buffer calendar-buffer)))
       (with-current-buffer calendar-buffer
         (let ((start (- calendar-left-margin 2)))
-          (calendar-dlet* ((date (condition-case nil
+          (calendar-dlet ((date (condition-case nil
                                      (calendar-cursor-to-nearest-date)
                                    (error (calendar-current-date)))))
             (setq mode-line-format
@@ -2561,7 +2563,7 @@ and day names to be abbreviated as specified by
 respectively.  An optional parameter NODAYNAME, when t, omits the
 name of the day of the week."
   (let ((month (calendar-extract-month date)))
-    (calendar-dlet*
+    (calendar-dlet
         ((dayname (unless nodayname (calendar-day-name date abbreviate)))
          (monthname (calendar-month-name month abbreviate))
          (day (number-to-string (calendar-extract-day date)))

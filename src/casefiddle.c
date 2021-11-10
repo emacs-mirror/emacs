@@ -54,6 +54,9 @@ struct casing_context
 
   /* Whether the context is within a word.  */
   bool inword;
+
+  /* What the last operation was.  */
+  bool downcase_last;
 };
 
 /* Initialize CTX structure for casing characters.  */
@@ -143,10 +146,14 @@ case_character_impl (struct casing_str_buf *buf,
 
   /* Handle simple, one-to-one case.  */
   if (flag == CASE_DOWN)
-    cased = downcase (ch);
+    {
+      cased = downcase (ch);
+      ctx->downcase_last = true;
+    }
   else
     {
       bool cased_is_set = false;
+      ctx->downcase_last = false;
       if (!NILP (ctx->titlecase_char_table))
 	{
 	  prop = CHAR_TABLE_REF (ctx->titlecase_char_table, ch);
@@ -297,6 +304,16 @@ do_casify_multibyte_string (struct casing_context *ctx, Lisp_Object obj)
   return obj;
 }
 
+static int
+ascii_casify_character (bool downcase, int c)
+{
+  Lisp_Object cased = CHAR_TABLE_REF (downcase?
+				      uniprop_table (Qlowercase) :
+				      uniprop_table (Quppercase),
+				      c);
+  return FIXNATP (cased) ? XFIXNAT (cased) : c;
+}
+
 static Lisp_Object
 do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
 {
@@ -310,11 +327,12 @@ do_casify_unibyte_string (struct casing_context *ctx, Lisp_Object obj)
       cased = case_single_character (ctx, ch);
       if (ch == cased)
 	continue;
-      cased = make_char_unibyte (cased);
-      /* If the char can't be converted to a valid byte, just don't
-	 change it.  */
-      if (SINGLE_BYTE_CHAR_P (cased))
-	SSET (obj, i, cased);
+      /* If down/upcasing changed an ASCII character into a non-ASCII
+	 character (this can happen in some locales, like the Turkish
+	 "I"), downcase using the ASCII char table.  */
+      if (ASCII_CHAR_P (ch) && !SINGLE_BYTE_CHAR_P (cased))
+	cased = ascii_casify_character (ctx->downcase_last, ch);
+      SSET (obj, i, make_char_unibyte (cased));
     }
   return obj;
 }
@@ -339,10 +357,13 @@ casify_object (enum case_action flag, Lisp_Object obj)
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
        doc: /* Convert argument to upper case and return that.
-The argument may be a character or string.  The result has the same type.
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.
+
 See also `capitalize', `downcase' and `upcase-initials'.  */)
   (Lisp_Object obj)
 {
@@ -351,7 +372,15 @@ See also `capitalize', `downcase' and `upcase-initials'.  */)
 
 DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
        doc: /* Convert argument to lower case and return that.
-The argument may be a character or string.  The result has the same type.
+The argument may be a character or string.  The result has the same type,
+including the multibyteness of the string.
+
+This means that if this function is called with a unibyte string
+argument, and downcasing it would turn it into a multibyte string
+(according to the current locale), the downcasing is done using ASCII
+\"C\" rules instead.  To accurately downcase according to the current
+locale, the string must be converted into multibyte first.
+
 The argument object is not altered--the value is a copy.  */)
   (Lisp_Object obj)
 {
@@ -362,7 +391,10 @@ DEFUN ("capitalize", Fcapitalize, Scapitalize, 1, 1, 0,
        doc: /* Convert argument to capitalized form and return that.
 This means that each word's first character is converted to either
 title case or upper case, and the rest to lower case.
-The argument may be a character or string.  The result has the same type.
+
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.  */)
@@ -377,7 +409,10 @@ DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
        doc: /* Convert the initial of each word in the argument to upper case.
 This means that each word's first character is converted to either
 title case or upper case, and the rest are left unchanged.
-The argument may be a character or string.  The result has the same type.
+
+The argument may be a character or string.  The result has the same
+type.  (See `downcase' for further details about the type.)
+
 The argument object is not altered--the value is a copy.  If argument
 is a character, characters which map to multiple code points when
 cased, e.g. ﬁ, are returned unchanged.  */)
@@ -651,6 +686,8 @@ syms_of_casefiddle (void)
   DEFSYM (Qbounds, "bounds");
   DEFSYM (Qidentity, "identity");
   DEFSYM (Qtitlecase, "titlecase");
+  DEFSYM (Qlowercase, "lowercase");
+  DEFSYM (Quppercase, "uppercase");
   DEFSYM (Qspecial_uppercase, "special-uppercase");
   DEFSYM (Qspecial_lowercase, "special-lowercase");
   DEFSYM (Qspecial_titlecase, "special-titlecase");

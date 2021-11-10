@@ -200,7 +200,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
                    (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
          new-rules)
-    (calendar-dlet* ((year (1+ y)))
+    (calendar-dlet ((year (1+ y)))
       ;; Scan through the next few years until only one rule remains.
       (while (cdr candidate-rules)
         (dolist (rule candidate-rules)
@@ -397,7 +397,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
-        (calendar-dlet* ((year year))
+        (calendar-dlet ((year year))
           (if expr (eval expr))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
@@ -409,7 +409,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
-        (calendar-dlet* ((year year))
+        (calendar-dlet ((year year))
           (if expr (eval expr))))
       ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
@@ -419,7 +419,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
 Fractional part of DATE is local standard time of day."
-  (calendar-dlet* ((year (calendar-extract-year
+  (calendar-dlet ((year (calendar-extract-year
                           (calendar-gregorian-from-absolute (floor date)))))
     (let* ((dst-starts-gregorian (eval calendar-daylight-savings-starts))
            (dst-ends-gregorian (eval calendar-daylight-savings-ends))

@@ -374,7 +374,7 @@ See `run-hooks'."
   "Keymap for directory buffer.")
 
 (defmacro vc-dir-at-event (event &rest body)
-  "Evaluate BODY with point located at event-start of EVENT.
+  "Evaluate BODY with point located at `event-start' of EVENT.
 If BODY uses EVENT, it should be a variable,
  otherwise it will be evaluated twice."
   (let ((posn (make-symbol "vc-dir-at-event-posn")))
@@ -567,7 +567,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 
 (defun vc-dir-next-line (arg)
   "Go to the next line.
-If a prefix argument is given, move by that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "p")
   (with-no-warnings
     (ewoc-goto-next vc-ewoc arg)
@@ -575,7 +575,7 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-dir-previous-line (arg)
   "Go to the previous line.
-If a prefix argument is given, move by that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "p")
   (ewoc-goto-prev vc-ewoc arg)
   (vc-dir-move-to-goal-column))
@@ -703,7 +703,7 @@ line."
 
 (defun vc-dir-mark-all-files (arg)
   "Mark all files with the same state as the current one.
-With a prefix argument mark all files (not directories).
+With prefix argument ARG, mark all files (not directories).
 If the current entry is a directory, mark all child files.
 
 The commands operate on files that are on the same state.
@@ -813,7 +813,7 @@ line."
 
 (defun vc-dir-unmark-all-files (arg)
   "Unmark all files with the same state as the current one.
-With a prefix argument unmark all files.
+With prefix argument ARG, unmark all files.
 If the current entry is a directory, unmark all the child files.
 
 The commands operate on files that are on the same state.
@@ -1015,8 +1015,11 @@ child files."
     (nreverse result)))
 
 (defun vc-dir-child-files-and-states ()
-  "Return the list of conses (FILE . STATE) for child files of the current entry if it's a directory.
-If it is a file, return the corresponding cons for the file itself."
+  "Return the state of one or more files for the current entry.
+If the entry is a directory, return the list of states of its child
+files, where each file is described by a cons of the form (FILE . STATE).
+If the entry is a file, return a single cons cell (FILE . STATE) for
+that file."
   (let* ((crt (ewoc-locate vc-ewoc))
 	 (crt-data (ewoc-data crt))
          result)
@@ -1113,33 +1116,33 @@ If it is a file, return the corresponding cons for the file itself."
 
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
-Marking/Unmarking key bindings and actions:
-m - mark a file/directory
+Marking/Unmarking key bindings and actions: \\<vc-dir-mode-map>
+\\[vc-dir-mark] - mark a file/directory
   - if the region is active, mark all the files in region.
     Restrictions: - a file cannot be marked if any parent directory is marked
                   - a directory cannot be marked if any child file or
                     directory is marked
-u - unmark a file/directory
+\\[vc-dir-unmark] - unmark a file/directory
   - if the region is active, unmark all the files in region.
-M - if the cursor is on a file: mark all the files with the same state as
+\\[vc-dir-mark-all-files] - if the cursor is on a file: mark all the files with the same state as
       the current file
   - if the cursor is on a directory: mark all child files
   - with a prefix argument: mark all files
-U - if the cursor is on a file: unmark all the files with the same state
+\\[vc-dir-unmark-all-files] - if the cursor is on a file: unmark all the files with the same state
       as the current file
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files
 
 VC commands
-VC commands in the `C-x v' prefix can be used.
+VC commands in the \\[vc-prefix-map] prefix can be used.
 VC commands act on the marked entries.  If nothing is marked, VC
 commands act on the current entry.
 
 Search & Replace
-S - searches the marked files
-Q - does a query replace on the marked files
-M-s a C-s - does an isearch on the marked files
-M-s a C-M-s - does a regexp isearch on the marked files
+\\[vc-dir-search] - searches the marked files
+\\[vc-dir-query-replace-regexp] - does a query replace on the marked files
+\\[vc-dir-isearch] - does an isearch on the marked files
+\\[vc-dir-isearch-regexp] - does a regexp isearch on the marked files
 If nothing is marked, these commands act on the current entry.
 When a directory is current or marked, the Search & Replace
 commands act on the child files of that directory that are displayed in
@@ -1181,7 +1184,7 @@ specific headers."
    "\n"))
 
 (defun vc-dir-refresh-files (files)
-  "Refresh some files in the *VC-dir* buffer."
+  "Refresh some FILES in the *VC-dir* buffer."
   (let ((def-dir default-directory)
 	(backend vc-dir-backend))
     (vc-set-mode-line-busy-indicator)
@@ -1542,7 +1545,7 @@ This implements the `bookmark-make-record-function' type for
 
 ;;;###autoload
 (defun vc-dir-bookmark-jump (bmk)
-  "Provides the bookmark-jump behavior for a `vc-dir' buffer.
+  "Provide the `bookmark-jump' behavior for a `vc-dir' buffer.
 This implements the `handler' function interface for the record
 type returned by `vc-dir-bookmark-make-record'."
   (let* ((file (bookmark-prop-get bmk 'filename))

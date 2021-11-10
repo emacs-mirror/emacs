@@ -252,7 +252,7 @@ comma-separated list, and return the pruned list."
       (setq cur-pos (string-match "[,\"]" destinations cur-pos))
       (if (and cur-pos (equal (match-string 0 destinations) "\""))
 	  ;; Search for matching quote.
-	  (let ((next-pos (string-match "\"" destinations (1+ cur-pos))))
+	  (let ((next-pos (string-search "\"" destinations (1+ cur-pos))))
 	    (if next-pos
 		(setq cur-pos (1+ next-pos))
 	      ;; If the open-quote has no close-quote,

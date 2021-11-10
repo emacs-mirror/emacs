@@ -2371,7 +2371,7 @@ Both characters must have the same length of multi-byte form.  */)
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
-			     false, false, true, false);
+			     false, false, true, false, false);
 	      pos_byte_next = CHAR_TO_BYTE (pos);
 	      if (pos_byte_next > pos_byte)
 		/* Before combining happened.  We should not increment
@@ -2578,7 +2578,7 @@ It returns the number of characters changed.  */)
 		     but it should handle multibyte characters correctly.  */
 		  string = make_multibyte_string ((char *) str, 1, str_len);
 		  replace_range (pos, pos + 1, string,
-				 true, false, true, false);
+				 true, false, true, false, false);
 		  len = str_len;
 		}
 	      else
@@ -2613,7 +2613,8 @@ It returns the number of characters changed.  */)
 		= (VECTORP (val)
 		   ? Fconcat (1, &val)
 		   : Fmake_string (make_fixnum (1), val, Qnil));
-	      replace_range (pos, pos + len, string, true, false, true, false);
+	      replace_range (pos, pos + len, string, true, false, true, false,
+			     false);
 	      pos_byte += SBYTES (string);
 	      pos += SCHARS (string);
 	      characters_changed += SCHARS (string);

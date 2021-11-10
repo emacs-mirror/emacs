@@ -531,7 +531,7 @@ that form should be displayed.")
      ((bound-and-true-p semantic-c-takeover-hideif)
       (semantic-c-hideif-defined var))
      ;; Here we can't use hif-lookup as an empty definition like `#define EMPTY'
-     ;; is considered defined but is evaluated as `nil'.
+     ;; is considered defined but is evaluated as nil.
      ((assq var hide-ifdef-env) 1)
      ((and (setq def (assq var hif-predefine-alist))
            (funcall (cdr def))) 1)
@@ -682,7 +682,7 @@ that form should be displayed.")
 (defconst hif-valid-token-list (mapcar 'cdr hif-token-alist))
 
 (defconst hif-token-regexp
-  ;; The ordering of regexp grouping is crutial to `hif-strtok'
+  ;; The ordering of regexp grouping is crucial to `hif-strtok'
   (concat
    ;; hex/binary:
    "\\([+-]?0[xXbB]\\([[:xdigit:]']+\\)?\\.?\\([[:xdigit:]']+\\)?\\([pP]\\([+-]?[0-9]+\\)\\)?"
@@ -1071,7 +1071,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
                 (error "`defined' followed by non-identifier: %S" target))
             (if (and paren
                      (not (eq (hif-nexttoken) 'hif-rparen)))
-                (error "missing right parenthesis for `defined'"))
+                (error "Missing right parenthesis for `defined'"))
             (setq hif-token
                   (list 'hif-defined 'hif-lparen target 'hif-rparen)))
           (push hif-token tokens))
@@ -2456,7 +2456,7 @@ This allows #ifdef VAR to be hidden."
                            (t
                             nil))))
           (var (read-minibuffer "Define what? " default))
-          (val (read-from-minibuffer (format "Set %s to? (default 1): " var)
+          (val (read-from-minibuffer (format-prompt "Set %s to?" "1" var)
                                      nil nil t nil "1")))
      (list var val)))
   (hif-set-var var (or val 1))

@@ -757,9 +757,9 @@ If the game is finished, this command requests for another game."
     (let ((square (landmark-point-square))
           score)
       (cond ((null square)
-	     (error "Your point is not on a square. Retry!"))
+             (error "Your point is not on a square.  Retry!"))
 	    ((not (zerop (aref landmark-board square)))
-	     (error "Your point is not on a free square. Retry!"))
+             (error "Your point is not on a free square.  Retry!"))
 	    (t
 	     (setq score (aref landmark-score-table square))
 	     (landmark-play-move square 1)
@@ -823,14 +823,14 @@ If the game is finished, this command requests for another game."
 (defun landmark-prompt-for-other-game ()
   "Ask for another game, and start it."
   (if (y-or-n-p "Another game? ")
-      (if (y-or-n-p "Retain learned weights ")
+      (if (y-or-n-p "Retain learned weights?")
 	  (landmark 2)
 	(landmark 1))
     (message "Chicken!")))
 
 (defun landmark-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
-  (or (y-or-n-p "I offer you a draw. Do you accept it? ")
+  (or (y-or-n-p "I offer you a draw.  Do you accept it?")
       (not (setq landmark-human-refused-draw t))))
 
 
@@ -1470,7 +1470,7 @@ push him out of it."
   (mapc
    (lambda (direction) (put direction 'y_t 0))
    landmark-directions)
-  (dolist (direction (nth (random 8) landmark-8-directions))
+  (dolist (direction (seq-random-elt landmark-8-directions))
     (put direction 'y_t 1.0))
   (landmark-move))
 
@@ -1512,9 +1512,9 @@ If the game is finished, this command requests for another game."
    (t
     (let ((square (landmark-point-square)))
       (cond ((null square)
-	     (error "Your point is not on a square. Retry!"))
+             (error "Your point is not on a square.  Retry!"))
 	    ((not (zerop (aref landmark-board square)))
-	     (error "Your point is not on a free square. Retry!"))
+             (error "Your point is not on a free square.  Retry!"))
 	    (t
 	     (progn
 	       (landmark-plot-square square 1)

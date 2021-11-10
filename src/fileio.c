@@ -945,6 +945,7 @@ the root directory.  */)
   USE_SAFE_ALLOCA;
 
   CHECK_STRING (name);
+  CHECK_STRING_NULL_BYTES (name);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
@@ -993,7 +994,10 @@ the root directory.  */)
       if (STRINGP (dir))
 	{
 	  if (file_name_absolute_no_tilde_p (dir))
-	    default_directory = dir;
+	    {
+	      CHECK_STRING_NULL_BYTES (dir);
+	      default_directory = dir;
+	    }
 	  else
 	    {
 	      Lisp_Object absdir
@@ -1307,6 +1311,8 @@ the root directory.  */)
 	      newdir = SSDATA (hdir);
 	      newdirlim = newdir + SBYTES (hdir);
 	    }
+	  else if (!multibyte && STRING_MULTIBYTE (tem))
+	    multibyte = 1;
 #ifdef DOS_NT
 	  collapse_newdir = false;
 #endif

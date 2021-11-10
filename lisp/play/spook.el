@@ -53,7 +53,7 @@
 
 ;;;###autoload
 (defun spook ()
-  "Adds that special touch of class to your outgoing mail."
+  "Add that special touch of class to your outgoing mail."
   (interactive)
   (cookie-insert spook-phrases-file
 		 spook-phrase-default-count

@@ -42,6 +42,12 @@ General steps (for each step, check for possible errors):
     because some of the commands below run Make, so they need
     Makefiles to be present.
 
+    For Emacs 28, and as long as --with-native-compilation is not the
+    default, the tree needs to be configured with native-compilation
+    enabled, to ensure all the pertinent *.elc files will end up in
+    the tarball.  Otherwise, the *.eln files might not build correctly
+    on the user's system.
+
 2.  Regenerate the etc/AUTHORS file:
       M-: (require 'authors) RET
       M-x authors RET

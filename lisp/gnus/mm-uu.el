@@ -145,6 +145,14 @@ This can be either \"inline\" or \"attachment\".")
      ,#'mm-uu-pgp-key-extract
      ,#'mm-uu-gpg-key-skip-to-last
      nil)
+    (markdown-emacs-sources
+     "^```\\(?:elisp\\|emacs-lisp\\|\n(\\)"
+     "^```$"
+     ,#'mm-uu-emacs-sources-extract)
+    (markdown-diff ;; this should be higher than `git-format-patch'
+     "^```\\(?:diff\\|patch\\|\ndiff --git \\)"
+     "^```$"
+     ,#'mm-uu-diff-extract)
     (emacs-sources
      "^;;;?[ \t]*[^ \t]+\\.el[ \t]*--"
      "^;;;?[ \t]*\\([^ \t]+\\.el\\)[ \t]+ends here"
@@ -511,7 +519,7 @@ apply the face `mm-uu-extract'."
       (list (mm-make-handle buf mm-uu-text-plain-type)))))
 
 (defun mm-uu-pgp-signed-extract ()
-  (let ((mm-security-handle (list (format "multipart/signed"))))
+  (let ((mm-security-handle (list (substring "multipart/signed"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-signature")
     (save-restriction
@@ -579,7 +587,7 @@ apply the face `mm-uu-extract'."
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
 
 (defun mm-uu-pgp-encrypted-extract ()
-  (let ((mm-security-handle (list (format "multipart/encrypted"))))
+  (let ((mm-security-handle (list (substring "multipart/encrypted"))))
     (mm-set-handle-multipart-parameter
      mm-security-handle 'protocol "application/x-gnus-pgp-encrypted")
     (save-restriction

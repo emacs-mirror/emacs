@@ -25,7 +25,7 @@
 ;; Search a database of files and use dired commands on the result.
 ;;
 ;; Locate.el provides an interface to a program which searches a
-;; database of file names. By default, this program is the GNU locate
+;; database of file names.  By default, this program is the GNU locate
 ;; command, but it could also be the BSD-style find command, or even a
 ;; user specified command.
 ;;
@@ -39,7 +39,7 @@
 ;;   To use a more complicated expression, create a function which
 ;; takes a string (the name to find) as input and returns a list.
 ;; The first element should be the command to be executed, the remaining
-;; elements should be the arguments (including the name to find). Then put
+;; elements should be the arguments (including the name to find).  Then put
 ;;
 ;; (setq locate-make-command-line 'my-locate-command-line)
 ;;
@@ -47,25 +47,25 @@
 ;; my-locate-command-line.
 ;;
 ;; You should make sure that whichever command you use works correctly
-;; from a shell prompt. GNU locate and BSD find expect the file databases
+;; from a shell prompt.  GNU locate and BSD find expect the file databases
 ;; to either be in standard places or located via environment variables.
 ;; If the latter, make sure these environment variables are set in
-;; your emacs process.
+;; your Emacs process.
 ;;
 ;; Locate-mode assumes that each line output from the locate-command
 ;; consists exactly of a file name, possibly preceded or trailed by
-;; whitespace. If your file database has other information on the line (for
+;; whitespace.  If your file database has other information on the line (for
 ;; example, the file size), you will need to redefine the function
 ;; `locate-get-file-positions' to return a list consisting of the first
 ;; character in the file name and the last character in the file name.
 ;;
 ;; To use locate-mode, simply type M-x locate and then the string
-;; you wish to find. You can use almost all of the dired commands in
+;; you wish to find.  You can use almost all of the dired commands in
 ;; the resulting *Locate* buffer.  It is worth noting that your commands
-;; do not, of course, affect the file database. For example, if you
+;; do not, of course, affect the file database.  For example, if you
 ;; compress a file in the locate buffer, the actual file will be
 ;; compressed, but the entry in the file database will not be
-;; affected. Consequently, the database and the filesystem will be out
+;; affected.  Consequently, the database and the filesystem will be out
 ;; of sync until the next time the database is updated.
 ;;
 ;; The command `locate-with-filter' keeps only lines matching a

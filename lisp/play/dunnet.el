@@ -944,8 +944,8 @@ handled specially by 'dun-describe-room.")
 	(list obj-pc)                          ;; pc-area
 	nil nil nil nil nil nil
 	)
-  "These are objects in a room that are only described in the
-room description.  They are permanent.")
+  "These are objects in a room that are only described in the room description.
+They are permanent.")
 (defvar dun-inventory '(1))
 
 (defconst dun-objects
@@ -1010,8 +1010,7 @@ the inventory.")
     nil nil
     ("There is a bus here.")
     nil nil nil)
-  "These are the descriptions for the negative numbered objects from
-`dun-room-objects'.")
+  "Descriptions for the negative numbered objects from `dun-room-objects'.")
 
 
 (defconst dun-physobj-desc '(
@@ -1135,11 +1134,12 @@ treasures for points?" "4" "four")
 
 (define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
+  :interactive nil
   (setq-local scroll-step 2))
 
 (defun dun-parse (_arg)
   "Function called when return is pressed in interactive mode to parse line."
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let ((beg (1+ (point)))
         line)
@@ -1215,8 +1215,9 @@ Otherwise short.  Also give long if we were called with negative room number."
 	(dun-mprincl "You are on the bus."))))
 
 (defun dun-special-object ()
-  "There is a special object in the room.  This object's description,
-or lack thereof, depends on certain conditions."
+  "There is a special object in the room.
+This object's description, or lack thereof, depends on certain
+conditions."
   (cond
    ((= dun-current-room computer-room)
     (if dun-computer
@@ -2170,7 +2171,7 @@ other words."
   (let (pos ret-list end-pos)
     (setq pos 0)
     (setq ret-list nil)
-    (while (setq end-pos (string-match " " (substring strin pos)))
+    (while (setq end-pos (string-search " " (substring strin pos)))
       (setq end-pos (+ end-pos pos))
       (if (not (= end-pos pos))
 	  (setq ret-list (append ret-list (list
@@ -2229,7 +2230,7 @@ Call the proper verb with the rest of the line passed in as a list."
 (defun dun-fix-screen ()
   "In window mode, keep screen from jumping by keeping last line at
 the bottom of the screen."
-  (interactive)
+  (interactive nil dun-mode)
   (forward-line (- 0 (- (window-height) 2 )))
   (set-window-start (selected-window) (point))
   (goto-char (point-max)))
@@ -2263,13 +2264,13 @@ except for the verb."
     result)))
 
 (defun dun-get-path (dirstring startlist)
-  "Given a unix style pathname, build a list of path components (recursive)"
+  "Given a unix style pathname, build a list of path components (recursive)."
   (let (slash)
     (if (= (length dirstring) 0)
 	startlist
       (if (string= (substring dirstring 0 1) "/")
 	  (dun-get-path (substring dirstring 1) (append startlist (list "/")))
-	(if (not (setq slash (string-match "/" dirstring)))
+	(if (not (setq slash (string-search "/" dirstring)))
 	    (append startlist (list dirstring))
 	  (dun-get-path (substring dirstring (1+ slash))
 		    (append startlist
@@ -2336,7 +2337,7 @@ Also prints current score to let user know he has scored."
 ;;;;
 
 (defun dun-unix-parse (_args)
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let (beg esign)
     (setq beg (+ (point) 2))
@@ -2348,7 +2349,7 @@ Also prints current score to let user know he has scored."
 	  (princ dun-line)
 	  (if (eq (dun-parse2 nil dun-unix-verbs dun-line) -1)
 	      (progn
-		(if (setq esign (string-match "=" dun-line))
+		(if (setq esign (string-search "=" dun-line))
 		    (dun-doassign dun-line esign)
 		  (dun-mprinc (car dun-line-list))
 		  (dun-mprincl ": not found.")))))
@@ -2373,28 +2374,28 @@ Also prints current score to let user know he has scored."
 	  (dun-mprincl "Incorrect.")))
 
     (let (varname epoint afterq i value)
-      (setq varname (replace-regexp-in-string " " "" (substring line 0 esign)))
+      (setq varname (string-replace " " "" (substring line 0 esign)))
 
       (if (or (= (length varname) 0) (< (- (length line) esign) 2))
 	  (progn
 	    (dun-mprinc line)
 	    (dun-mprincl " : not found."))
 
-	(if (not (setq epoint (string-match ")" line)))
+	(if (not (setq epoint (string-search ")" line)))
 	    (if (string= (substring line (1+ esign) (+ esign 2))
 			 "\"")
 		(progn
 		  (setq afterq (substring line (+ esign 2)))
 		  (setq epoint (+
-				(string-match "\"" afterq)
+				(string-search "\"" afterq)
 				(+ esign 3))))
 
-	      (if (not (setq epoint (string-match " " line)))
+	      (if (not (setq epoint (string-search " " line)))
 		  (setq epoint (length line))))
 	  (setq epoint (1+ epoint))
 	  (while (and
 		  (not (= epoint (length line)))
-		  (setq i (string-match ")" (substring line epoint))))
+		  (setq i (string-search ")" (substring line epoint))))
 	    (setq epoint (+ epoint i 1))))
 	(setq value (substring line (1+ esign) epoint))
 	(dun-eval varname value)))))
@@ -2788,7 +2789,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
   (cond
    ((null (setq args (car args)))
     (dun-mprincl "Usage: cat <ascii-file-name>"))
-   ((string-match-p "/" args)
+   ((string-search "/" args)
     (dun-mprincl "cat: only files in current directory allowed."))
    ((and (> dun-cdroom 0) (string= args "description"))
     (dun-mprincl (car (nth dun-cdroom dun-rooms))))
@@ -2825,7 +2826,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 ;;;;
 
 (defun dun-dos-parse (_args)
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   (beginning-of-line)
   (let (beg)
     (setq beg (+ (point) 3))
@@ -3110,7 +3111,7 @@ File not found")))
 	    (setq dun-line (downcase (dun-read-line)))
 	    (if (eq (dun-parse2 nil dun-unix-verbs dun-line) -1)
 		(let (esign)
-		  (if (setq esign (string-match "=" dun-line))
+		  (if (setq esign (string-search "=" dun-line))
 		      (dun-doassign dun-line esign)
 		    (dun-mprinc (car dun-line-list))
 		    (dun-mprincl ": not found.")))))
@@ -3119,7 +3120,7 @@ File not found")))
 
 (defun dungeon-nil (_arg)
   "noop"
-  (interactive "*p")
+  (interactive "*p" dun-mode)
   nil)
 
 (defun dun-batch-dungeon ()

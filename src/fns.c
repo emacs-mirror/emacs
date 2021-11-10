@@ -322,7 +322,7 @@ Letter-case is significant, but text properties are ignored. */)
 
   USE_SAFE_ALLOCA;
   ptrdiff_t *column = SAFE_ALLOCA ((len1 + 1) * sizeof (ptrdiff_t));
-  for (y = 1; y <= len1; y++)
+  for (y = 0; y <= len1; y++)
     column[y] = y;
 
   if (use_byte_compare)
@@ -672,6 +672,9 @@ DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a string.
 The result is a string whose elements are the elements of all the arguments.
 Each argument may be a string or a list or vector of characters (integers).
+
+Values of the `composition' property of the result are not guaranteed
+to be `eq'.
 usage: (concat &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -1174,7 +1177,7 @@ string_make_multibyte (Lisp_Object string)
 
 
 /* Convert STRING (if unibyte) to a multibyte string without changing
-   the number of characters.  Characters 0200 trough 0237 are
+   the number of characters.  Characters 0200 through 0237 are
    converted to eight-bit characters. */
 
 Lisp_Object
@@ -1755,7 +1758,8 @@ DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
        doc: /* Return non-nil if KEY is equal to the car of an element of ALIST.
 The value is actually the first element of ALIST whose car equals KEY.
 
-Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
+Equality is defined by the function TESTFN, defaulting to `equal'.
+TESTFN is called with 2 arguments: a car of an alist element and KEY.  */)
      (Lisp_Object key, Lisp_Object alist, Lisp_Object testfn)
 {
   if (eq_comparable_value (key) && NILP (testfn))
@@ -2851,12 +2855,16 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
   return leni;
 }
 
-DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
+DEFUN ("mapconcat", Fmapconcat, Smapconcat, 2, 3, 0,
        doc: /* Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
 In between each pair of results, stick in SEPARATOR.  Thus, " " as
   SEPARATOR results in spaces between the values returned by FUNCTION.
+
 SEQUENCE may be a list, a vector, a bool-vector, or a string.
-SEPARATOR must be a string, a vector, or a list of characters.
+
+Optional argument SEPARATOR must be a string, a vector, or a list of
+characters; nil stands for the empty string.
+
 FUNCTION must be a function of one argument, and must return a value
   that is a sequence of characters: either a string, or a vector or
   list of numbers that are valid character codepoints.  */)
@@ -2949,8 +2957,10 @@ do_yes_or_no_p (Lisp_Object prompt)
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
        doc: /* Ask user a yes-or-no question.
 Return t if answer is yes, and nil if the answer is no.
-PROMPT is the string to display to ask the question.  It should end in
-a space; `yes-or-no-p' adds \"(yes or no) \" to it.
+
+PROMPT is the string to display to ask the question; `yes-or-no-p'
+adds \"(yes or no) \" to it.  It does not need to end in space, but if
+it does up to one space will be removed.
 
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.

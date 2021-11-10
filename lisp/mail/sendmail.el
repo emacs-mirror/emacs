@@ -277,6 +277,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map "\C-c\C-f\C-r" 'mail-reply-to)
     (define-key map "\C-c\C-f\C-a" 'mail-mail-reply-to)    ; author
     (define-key map "\C-c\C-f\C-l" 'mail-mail-followup-to) ; list
+    (define-key map "\C-c\C-f\C-d" 'mail-insert-disposition-notification-to)
     (define-key map "\C-c\C-t" 'mail-text)
     (define-key map "\C-c\C-y" 'mail-yank-original)
     (define-key map "\C-c\C-r" 'mail-yank-region)
@@ -324,6 +325,9 @@ The default value matches citations like `foo-bar>' plus whitespace."
 
     (define-key map [menu-bar headers expand-aliases]
       '("Expand Aliases" . expand-mail-aliases))
+
+    (define-key map [menu-bar headers disposition-notification]
+      '("Disposition-Notification-To" . mail-insert-disposition-notification-to))
 
     (define-key map [menu-bar headers mail-reply-to]
       '("Mail-Reply-To" . mail-mail-reply-to))
@@ -1598,6 +1602,25 @@ Returns non-nil if FIELD was originally present."
   (interactive)
   (expand-abbrev)
   (goto-char (mail-text-start)))
+
+(defun mail-insert-disposition-notification-to ()
+  "Insert a Disposition-Notification-To header, if it doesn't already exist."
+  (interactive)
+  (expand-abbrev)
+  (save-excursion
+    (or (mail-position-on-field "Disposition-Notification-To")
+        (insert
+	 (format
+	  "%s"
+	  (save-excursion
+            (save-restriction
+              (message-narrow-to-headers)
+              (or (mail-fetch-field "Reply-To")
+                  (mail-fetch-field "From")
+                  (with-temp-buffer
+                    (mail-insert-from-field)
+                    (substring (buffer-string) (length "From: ") -1))))))))))
+
 
 (defun mail-signature (&optional atpoint)
   "Sign letter with signature.
@@ -1927,7 +1950,8 @@ The seventh argument ACTIONS is a list of actions to take
 	   (setq initialized t)))
     (if (and buffer-auto-save-file-name
 	     (file-exists-p buffer-auto-save-file-name))
-	(message "Auto save file for draft message exists; consider M-x mail-recover"))
+        (message (substitute-command-keys
+                  "Auto save file for draft message exists; consider \\[mail-recover]")))
     initialized))
 
 (declare-function dired-view-file "dired" ())

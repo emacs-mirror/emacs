@@ -238,7 +238,7 @@ supports it in developing GNU and promoting software freedom.''
 
 @ifset WWW_GNU_ORG
 @html
-<p>The homepage for GNU Emacs is at
+<p>The GNU Emacs website is at
 <a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 To view this manual in other formats, click
 <a href="/software/emacs/manual/eintr.html">here</a>.
@@ -1162,6 +1162,10 @@ computer.  Often, people use the term @dfn{expression}
 indiscriminately.  (Also, in many texts, the word @dfn{form} is used
 as a synonym for expression.)
 
+@c This and the next paragraph say ``kinds of atom'', but that is not
+@c a typo, just slightly ``old-fashioned wording which adds a fillip
+@c of interest to it'', and ``is more elegant writing'', according to
+@c RMS.
 Incidentally, the atoms that make up our universe were named such when
 they were thought to be indivisible; but it has been found that physical
 atoms are not indivisible.  Parts can split off an atom or it can
@@ -4201,7 +4205,7 @@ times.
 
 The part of the buffer between point and mark is called @dfn{the
 region}.  Numerous commands work on the region, including
-@code{center-region}, @code{count-lines-region}, @code{kill-region}, and
+@code{center-region}, @code{count-words-region}, @code{kill-region}, and
 @code{print-region}.
 
 The @code{save-excursion} special form saves the location of point and
@@ -4214,7 +4218,7 @@ evaluated.
 
 In Emacs, a function frequently moves point as part of its internal
 workings even though a user would not expect this.  For example,
-@code{count-lines-region} moves point.  To prevent the user from being
+@code{count-words-region} moves point.  To prevent the user from being
 bothered by jumps that are both unexpected and (from the user's point of
 view) unnecessary, @code{save-excursion} is often used to keep point in
 the location expected by the user.  The use of
@@ -4893,6 +4897,23 @@ region.
 
 @c FIXME: the definition of append-to-buffer has been changed (in
 @c 2010-03-30).
+@c In Bug#8275, Stefan Monner <monnier@iro.umontreal.ca> writes:
+@c >> Do you want to fix this, or shall I try?  The problem is that
+@c >> append-to-buffer now uses let* and with-current-buffer, so this might
+@c >> break the flow of the text.  At this point in the book, let* and
+@c >> with-current-buffer are not yet introduced.
+@c >
+@c > Here are some thoughts:
+@c > - I don't think it's of any importance that the example code be
+@c >   identical to the currently used code.
+@c > - append-to-buffer might not be the best example since AFAICT copying
+@c >   text from one buffer to another is not a common operation and in most
+@c >   cases this is done via buffer-substring + insert (often with some
+@c >   processing on the string between the two) rather than with
+@c >   insert-buffer-substring which is a rarely used function.
+@c > - yes, I think the text would benefit from some rethink to try and present
+@c >   with-current-buffer in preference to set-buffer, but it's not
+@c >   a simple fix.
 @node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
@@ -8767,7 +8788,7 @@ keeps the kill ring from growing too long.  It looks like this:
 
 The code checks whether the length of the kill ring is greater than
 the maximum permitted length.  This is the value of
-@code{kill-ring-max} (which is 60, by default).  If the length of the
+@code{kill-ring-max} (which is 120, by default).  If the length of the
 kill ring is too long, then this code sets the last element of the
 kill ring to @code{nil}.  It does this by using two functions,
 @code{nthcdr} and @code{setcdr}.
@@ -13473,10 +13494,9 @@ The template for an interactive function definition is, as always:
 
 What we need to do is fill in the slots.
 
-The name of the function should be self-explanatory and similar to the
-existing @code{count-lines-region} name.  This makes the name easier
+The name of the function should be self-explanatory and easy
 to remember.  @code{count-words-region} is the obvious choice.  Since
-that name is now used for the standard Emacs command to count words, we
+that name is used for the standard Emacs command to count words, we
 will name our implementation @code{@value{COUNT-WORDS}}.
 
 The function counts words within a region.  This means that the
@@ -14650,7 +14670,9 @@ Let's re-use @kbd{C-c =} as a convenient keybinding:
 
 Now we can try out @code{count-words-defun}: install both
 @code{count-words-in-defun} and @code{count-words-defun}, and set the
-keybinding, and then place the cursor within the following definition:
+keybinding.  Then copy the following to an Emacs Lisp buffer (like,
+for instance, @file{*scratch*}), place the cursor within the
+definition, and use the @kbd{C-c =} command.
 
 @smallexample
 @group
@@ -17455,9 +17477,9 @@ Manual}, for more information.
 @findex line-to-top-of-window
 @cindex Simple extension in @file{.emacs} file
 
-Here is a simple extension to Emacs that moves the line point is on to
-the top of the window.  I use this all the time, to make text easier
-to read.
+Here is a simple extension to Emacs that moves the line that point is
+on to the top of the window.  I use this all the time, to make text
+easier to read.
 
 You can put the following code into a separate file and then load it
 from your @file{.emacs} file, or you can include it within your
@@ -17838,7 +17860,7 @@ xmodmap -e "keysym Alt_L = Meta_L Alt_L"
 Finally, a feature I really like: a modified mode line.
 
 When I work over a network, I forget which machine I am using.  Also,
-I tend to I lose track of where I am, and which line point is on.
+I tend to lose track of where I am, and which line point is on.
 
 So I reset my mode line to look like this:
 

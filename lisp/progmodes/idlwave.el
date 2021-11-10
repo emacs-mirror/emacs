@@ -119,7 +119,7 @@
 ;;
 ;;   Moving the point backwards in conjunction with abbrev expansion
 ;;   does not work as I would like it, but this is a problem with
-;;   emacs abbrev expansion done by the self-insert-command.  It ends
+;;   Emacs abbrev expansion done by the self-insert-command.  It ends
 ;;   up inserting the character that expanded the abbrev after moving
 ;;   point backward, e.g., "\cl" expanded with a space becomes
 ;;   "LONG( )" with point before the close paren.  This is solved by
@@ -163,7 +163,7 @@
 (defgroup idlwave nil
   "Major mode for editing IDL .pro files."
   :tag "IDLWAVE"
-  :link '(url-link :tag "Home Page"
+  :link '(url-link :tag "Website"
                    "https://github.com/jdtsmith/idlwave")
   :link '(emacs-commentary-link :tag "Commentary in idlw-shell.el"
 				"idlw-shell.el")
@@ -245,7 +245,7 @@ would yield:
   :type 'boolean)
 
 (defcustom idlwave-indent-parens-nested nil
-  "Non-nil means, indent continuation lines with parens by nesting
+  "Non-nil means indent continuation lines with parens by nesting
 lines at consecutively deeper levels."
  :group 'idlwave-code-formatting
   :type 'boolean)
@@ -1359,13 +1359,13 @@ Normally a space.")
 
 (defconst idlwave-continuation-char ?$
   "Character which is inserted as a last character on previous line by
-   \\[idlwave-split-line] to begin a continuation line.  Normally $.")
+\\[idlwave-split-line] to begin a continuation line.  Normally $.")
 
 (defconst idlwave-mode-version "6.1_em22")
 
 (defun idlwave-keyword-abbrev (&rest args)
   "Create a function for abbrev hooks to call `idlwave-modify-abbrev' with args."
-  (lambda () (append #'idlwave-modify-abbrev args)))
+  (lambda () (apply #'idlwave-modify-abbrev args)))
 
 (autoload 'idlwave-shell "idlw-shell"
   "Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'." t)
@@ -1522,7 +1522,8 @@ No spaces before and 1 after a comma
 A minimum of 1 space before and after `=' (see `idlwave-expand-equal').
    (idlwave-action-and-binding \"=\"  (lambda (_) (idlwave-expand-equal -1 -1)))
 Capitalize system variables - action only
-   (idlwave-action-and-binding idlwave-sysvar (lambda (_) (capitalize-word 1) t))"
+   (idlwave-action-and-binding idlwave-sysvar
+                               (lambda (_) (capitalize-word 1) t))"
   (if (not (equal select 'noaction))
       ;; Add action
       (let* ((table (if select 'idlwave-indent-action-table
@@ -1821,7 +1822,7 @@ The main features of this mode are
    Info documentation for this package is available.  Use
    \\[idlwave-info] to display (complain to your sysadmin if that does
    not work).  For Postscript, PDF, and HTML versions of the
-   documentation, check IDLWAVE's homepage at URL
+   documentation, check IDLWAVE's website at URL
    `https://github.com/jdtsmith/idlwave'.
    IDLWAVE has customize support - see the group `idlwave'.
 
@@ -1953,7 +1954,7 @@ The main features of this mode are
 
 (defvar idlwave--command-function nil
   "If non-nil, a function called from `post-command-hook'.
-It is evaluated in the lisp function `idlwave-command-hook' which is
+It is evaluated in the Lisp function `idlwave-command-hook' which is
 placed in `post-command-hook'.")
 
 (defun idlwave-command-hook ()
@@ -2547,7 +2548,7 @@ If there is no label point is not moved and nil is returned."
 	 (end (idlwave-find-key ":" 1 'nomark eos)))
     (if (and end
              (= (nth 0 (parse-partial-sexp start end)) 0)
-	     (not (string-match "\\?" (buffer-substring start end)))
+	     (not (string-search "?" (buffer-substring start end)))
 	     (not (string-match "^::" (buffer-substring end eos))))
         (progn
           (forward-char)
@@ -4067,7 +4068,7 @@ blank lines."
     iname))
 
 (defun idlwave-sintern-keyword-list (kwd-list &optional set)
-  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)"
+  "Sintern a set of keywords (file (key . link) (key2 . link2) ...)."
   (mapc (lambda(x)
 	  (setcar x (idlwave-sintern-keyword (car x) set)))
 	(cdr kwd-list))
@@ -5049,7 +5050,7 @@ Can run from `after-save-hook'."
 ;;----- Scanning buffers -------------------
 
 (defun idlwave-get-routine-info-from-buffers (buffers)
-  "Call `idlwave-get-buffer-routine-info' on idlwave-mode buffers in BUFFERS."
+  "Call `idlwave-get-buffer-routine-info' on `idlwave-mode' buffers in BUFFERS."
   (let (buf routine-lists res)
     (save-excursion
       (while (setq buf (pop buffers))
@@ -5316,7 +5317,7 @@ directories and save the routine info.
 
 (defun idlwave-delete-user-catalog-file (&rest _ignore)
   (if (yes-or-no-p
-       (format "Delete file %s " idlwave-user-catalog-file))
+       (format "Delete file %s?" idlwave-user-catalog-file))
       (progn
 	(delete-file idlwave-user-catalog-file)
 	(message "%s has been deleted" idlwave-user-catalog-file))))
@@ -5727,10 +5728,10 @@ Possible values are:
 8  <=>  `function-method-keyword'
 9  <=>  `class'
 
-As a special case, the universal argument C-u forces completion of
+As a special case, the universal argument \\[universal-argument] forces completion of
 function names in places where the default would be a keyword.
 
-Two prefix argument, C-u C-u, prompts for a regexp by which to limit
+Two prefix argument, \\[universal-argument] \\[universal-argument], prompts for a regexp by which to limit
 completion.
 
 For Lisp programmers only:
@@ -7285,8 +7286,7 @@ The list is cached in `idlwave-class-info' for faster access."
 				   inherits))
 	    (if (> (cdr cl) 999)
 	      (error
-	       "Class scan: inheritance depth exceeded. Circular inheritance?")
-	      ))
+               "Class scan: inheritance depth exceeded.  Circular inheritance?")))
 	  (setq all-inherits (nreverse rtn))
 	  (nconc info (list (cons 'all-inherits all-inherits)))
 	  all-inherits))))))
@@ -7677,9 +7677,9 @@ arg, the class property is cleared out."
 
   (interactive "P")
   (idlwave-routines)
-  (if (string-match "->" (buffer-substring
-			  (max (point-min) (1- (point)))
-			  (min (+ 2 (point)) (point-max))))
+  (if (string-search "->" (buffer-substring
+			   (max (point-min) (1- (point)))
+			   (min (+ 2 (point)) (point-max))))
       ;; Cursor is on an arrow
       (if (get-text-property (point) 'idlwave-class)
 	  ;; arrow has class property
@@ -7786,7 +7786,7 @@ force class query for object methods."
 		(if (or (not this-buffer)
 			(assoc default list))
 		    (format-prompt "Module" default)
-		  (format "Module in this file: "))
+		  "Module in this file: ")
 		list))
 	 type class)
     (if (string-match "\\`\\s-*\\'" name)
@@ -8971,10 +8971,10 @@ Assumes that point is at the beginning of the unit as found by
 	  idlwave-shell-automatic-start)]))
 
 (easy-menu-define idlwave-mode-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-menu-def)
 (easy-menu-define idlwave-mode-debug-menu idlwave-mode-map
-  "IDL and WAVE CL editing menu"
+  "IDL and WAVE CL editing menu."
   idlwave-mode-debug-menu-def)
 
 (defun idlwave-customize ()

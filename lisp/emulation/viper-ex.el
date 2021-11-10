@@ -25,7 +25,6 @@
 ;;; Code:
 
 ;; Compiler pacifier
-(defvar read-file-name-map)
 (defvar viper-use-register)
 (defvar viper-s-string)
 (defvar viper-shift-width)
@@ -1100,7 +1099,7 @@ reversed."
       (setq viper-keep-reading-filename nil
 	    val (read-file-name (concat prompt str) nil default-directory))
       (setq val (expand-file-name val))
-      (if (and (string-match " " val)
+      (if (and (string-search " " val)
 	       (ex-cmd-accepts-multiple-files-p ex-token))
 	  (setq val (concat "\"" val "\"")))
       (setq str  (concat str (if (equal val "") "" " ")
@@ -1798,7 +1797,7 @@ reversed."
 		      set-cmd var auto-cmd-label)))
 
     (if (and ask-if-save
-	     (y-or-n-p (format "Do you want to save this setting in %s "
+             (y-or-n-p (format "Do you want to save this setting in %s?"
 			       viper-custom-file-name)))
 	(progn
 	  (viper-save-string-in-file
@@ -1876,11 +1875,11 @@ reversed."
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *viper-info*"
-	     (princ (format "
+	     (princ "
 The Info file for Viper does not seem to be installed.
 
 This file is part of the standard distribution of Emacs.
-Please contact your system administrator. "))))))
+Please contact your system administrator. ")))))
 
 ;; Ex source command.
 ;; Loads the file specified as argument or viper-custom-file-name.
@@ -2176,7 +2175,7 @@ Please contact your system administrator. "))))))
 	(goto-char beg)))))
 
 (defun ex-compile ()
-  "Reads args from the command line, then runs make with the args.
+  "Read args from the command line, then run make with the args.
 If no args are given, then it runs the last compile command.
 Type `mak ' (including the space) to run make with no args."
   (let (args)
@@ -2300,10 +2299,10 @@ Type `mak ' (including the space) to run make with no args."
 (defun ex-print-display-lines (lines)
   (cond
    ;; String doesn't contain a newline.
-   ((not (string-match "\n" lines))
+   ((not (string-search "\n" lines))
     (message "%s" lines))
    ;; String contains only one newline at the end.  Strip it off.
-   ((= (string-match "\n" lines) (1- (length lines)))
+   ((= (string-search "\n" lines) (1- (length lines)))
     (message "%s" (substring lines 0 -1)))
    ;; String spans more than one line.  Use a temporary buffer.
    (t

@@ -56,14 +56,14 @@
 ;;
 ;; Char ::= #x9 | #xA | #xD
 ;;        | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-;; /* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+;; /* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF.  */
 ;;
 ;; /* NOTE:
 ;;
 ;;    Document authors are encouraged to avoid "compatibility characters", as
 ;;    defined in section 6.8 of [Unicode] (see also D21 in section 3.6 of
-;;    [Unicode3]). The characters defined in the following ranges are also
-;;    discouraged. They are either control characters or permanently undefined
+;;    [Unicode3]).  The characters defined in the following ranges are also
+;;    discouraged.  They are either control characters or permanently undefined
 ;;    Unicode characters:
 ;;
 ;;    [#x7F-#x84],      [#x86-#x9F],      [#xFDD0-#xFDDF],
@@ -72,7 +72,7 @@
 ;;    [#7FFFE-#x7FFFF], [#8FFFE-#x8FFFF], [#9FFFE-#x9FFFF],
 ;;    [#AFFFE-#xAFFFF], [#BFFFE-#xBFFFF], [#CFFFE-#xCFFFF],
 ;;    [#DFFFE-#xDFFFF], [#EFFFE-#xEFFFF], [#FFFFE-#xFFFFF],
-;;    [#10FFFE-#x10FFFF]. */
+;;    [#10FFFE-#x10FFFF].  */
 ;;
 ;;
 ;; /* White Space */
@@ -115,7 +115,7 @@
 ;;    Although the EntityValue production allows the definition of a general
 ;;    entity consisting of a single explicit < in the literal (e.g., <!ENTITY
 ;;    mylt "<">), it is strongly advised to avoid this practice since any
-;;    reference to that entity will cause a well-formedness error. */
+;;    reference to that entity will cause a well-formedness error.  */
 ;;
 ;;
 ;; /* Character Data */

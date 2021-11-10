@@ -102,7 +102,7 @@ If nil, do not show register previews, unless `help-char' (or a member of
   (alist-get register register-alist))
 
 (defun set-register (register value)
-  "Set contents of Emacs register named REGISTER to VALUE.  Returns VALUE.
+  "Set contents of Emacs register named REGISTER to VALUE.  Return VALUE.
 See the documentation of the variable `register-alist' for possible VALUEs."
   (setf (alist-get register register-alist) value))
 

@@ -32,17 +32,20 @@
 
 ;;;###autoload
 (defun reftex-view-crossref (&optional arg auto-how fail-quietly)
-  "View cross reference of macro at point.  Point must be on the KEY
-argument.  When at a `\\ref' macro, show corresponding `\\label'
-definition, also in external documents (`xr').  When on a label, show
-a locations where KEY is referenced.  Subsequent calls find additional
-locations.  When on a `\\cite', show the associated `\\bibitem' macro or
-the BibTeX database entry.  When on a `\\bibitem', show a `\\cite' macro
-which uses this KEY. When on an `\\index', show other locations marked
-by the same index entry.
+  "View cross reference of macro at point.
+
+Point must be on the KEY argument.  When at a `\\ref' macro, show
+corresponding `\\label' definition, also in external
+documents (`xr').  When on a label, show a locations where KEY is
+referenced.  Subsequent calls find additional locations.  When on
+a `\\cite', show the associated `\\bibitem' macro or the BibTeX
+database entry.  When on a `\\bibitem', show a `\\cite' macro
+which uses this KEY.  When on an `\\index', show other locations
+marked by the same index entry.
+
 To define additional cross referencing items, use the option
 `reftex-view-crossref-extra'.  See also `reftex-view-crossref-from-bibtex'.
-With one or two C-u prefixes, enforce rescanning of the document.
+With one or two \\[universal-argument] prefixes, enforce rescanning of the document.
 With argument 2, select the window showing the cross reference.
 AUTO-HOW is only for the automatic crossref display and is handed through
 to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."

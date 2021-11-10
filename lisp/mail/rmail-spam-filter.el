@@ -72,6 +72,8 @@
 ;;; rmail-spam-filter such that the spam is rejected by
 ;;; rmail-spam-filter itself.
 
+;;; Code:
+
 (require 'rmail)
 (require 'rmailsum)
 

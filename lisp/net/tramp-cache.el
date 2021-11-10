@@ -72,8 +72,8 @@
 ;;   process key retrieved by `tramp-get-process' (the main connection
 ;;   process).  Other processes could reuse these properties, avoiding
 ;;   recomputation when a new asynchronous process is created by
-;;   `make-process'.  Examples are "remote-path",
-;;   "unsafe-temporary-file" or "device" (tramp-adb.el).
+;;   `make-process'.  Examples are "unsafe-temporary-file",
+;;   "remote-path", "device" (tramp-adb.el) or "share" (tramp-gvfs.el).
 
 ;;; Code:
 
@@ -101,8 +101,7 @@ details see the info pages."
 		       (choice :tag "           Value" sexp))))
 
 ;;;###tramp-autoload
-(defcustom tramp-persistency-file-name
-  (expand-file-name (locate-user-emacs-file "tramp"))
+(defcustom tramp-persistency-file-name (locate-user-emacs-file "tramp")
   "File which keeps connection history for Tramp connections."
   :group 'tramp
   :type 'file)
@@ -125,7 +124,7 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 	       (puthash key (make-hash-table :test #'equal) tramp-cache-data)))
 	  (when (tramp-file-name-p key)
 	    (dolist (elt tramp-connection-properties)
-	      (when (string-match-p
+	      (when (tramp-compat-string-search
 		     (or (nth 0 elt) "")
 		     (tramp-make-tramp-file-name key 'noloc 'nohop))
 		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
@@ -268,8 +267,8 @@ Remove also properties of all files in subdirectories."
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (tramp-file-name-p key)
 		 (stringp (tramp-file-name-localname key))
-		 (string-match-p (regexp-quote directory)
-				 (tramp-file-name-localname key)))
+		 (tramp-compat-string-search
+		  directory (tramp-file-name-localname key)))
 	(remhash key tramp-cache-data)))
     ;; Remove file properties of symlinks.
     (when (and (stringp truename)
@@ -319,12 +318,7 @@ KEY identifies the connection, it is either a process or a
 used to cache connection properties of the local machine.
 If KEY is `tramp-cache-undefined', or if the value is not set for
 the connection, return DEFAULT."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (let* ((hash (tramp-get-hash-table key))
 	 (cached (if (hash-table-p hash)
 		     (gethash property hash tramp-cache-undefined)
@@ -350,12 +344,7 @@ used to cache connection properties of the local machine.  If KEY
 is `tramp-cache-undefined', nothing is set.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure.
 Return VALUE."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (when-let ((hash (tramp-get-hash-table key)))
     (puthash property value hash))
   (setq tramp-cache-data-changed
@@ -379,12 +368,7 @@ KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
 used to cache connection properties of the local machine.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (when-let ((hash (tramp-get-hash-table key)))
     (remhash property hash))
   (setq tramp-cache-data-changed
@@ -397,12 +381,7 @@ PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is
 used to cache connection properties of the local machine."
-  ;; Unify key by removing localname and hop from `tramp-file-name'
-  ;; structure.  Work with a copy in order to avoid side effects.
-  (when (tramp-file-name-p key)
-    (setq key (copy-tramp-file-name key))
-    (setf (tramp-file-name-localname key) nil
-	  (tramp-file-name-hop key) nil))
+  (setq key (tramp-file-name-unify key))
   (tramp-message
    key 7 "%s %s" key
    (when-let ((hash (gethash key tramp-cache-data)))

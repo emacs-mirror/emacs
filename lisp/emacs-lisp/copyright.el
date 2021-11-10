@@ -120,7 +120,7 @@ When this is `function', only ask when called non-interactively."
     (re-search-forward regexp bound noerror count)))
 
 (defun copyright-start-point ()
-  "Return point-min or point-max, depending on `copyright-at-end-flag'."
+  "Return `point-min' or `point-max', depending on `copyright-at-end-flag'."
   (if copyright-at-end-flag
       (point-max)
     (point-min)))
@@ -135,7 +135,7 @@ When this is `function', only ask when called non-interactively."
 (defun copyright-find-copyright ()
   "Return non-nil if a copyright header suitable for updating is found.
 The header must match `copyright-regexp' and `copyright-names-regexp', if set.
-This function sets the match-data that `copyright-update-year' uses."
+This function sets the match data that `copyright-update-year' uses."
   (widen)
   (goto-char (copyright-start-point))
   ;; In case the regexp is rejected.  This is useful because

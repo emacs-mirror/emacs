@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;         John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
@@ -21,8 +21,7 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
 ;;; Code:
 
 ;;;; Require other packages
@@ -186,7 +185,7 @@ When completing for #+STARTUP, for example, this function returns
 	(cons (reverse args) (reverse begins))))))
 
 (defun org-pcomplete-initial ()
-  "Calls the right completion function for first argument completions."
+  "Call the right completion function for first argument completions."
   (ignore
    (funcall (or (pcomplete-find-completion-function
 		 (car (org-thing-at-point)))

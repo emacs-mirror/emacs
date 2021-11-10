@@ -52,7 +52,7 @@ netsplits, so that it can filter the JOIN messages on a netjoin too."
    (remove-hook 'erc-timer-hook #'erc-netsplit-timer)))
 
 (defcustom erc-netsplit-show-server-mode-changes-flag nil
-  "Set to t to enable display of server mode changes."
+  "Non-nil means to enable display of server mode changes."
   :type 'boolean)
 
 (defcustom erc-netsplit-debug nil
@@ -61,8 +61,7 @@ netsplits, so that it can filter the JOIN messages on a netjoin too."
 
 (defcustom erc-netsplit-regexp
   "^[^ @!\"\n]+\\.[^ @!\n]+ [^ @!\n]+\\.[^ @!\"\n]+$"
-  "This regular expression should match quit reasons produced
-by netsplits."
+  "This regular expression should match quit reasons produced by netsplits."
   :type 'regexp)
 
 (defcustom erc-netsplit-hook nil

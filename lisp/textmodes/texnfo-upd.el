@@ -894,10 +894,10 @@ be updated first using `texinfo-make-menu' or
 `texinfo-all-menus-update', which see.  Alternatively, invoke
 this function with a prefix argument, see below.
 
-Non-nil, non-numeric argument (C-u prefix, if interactive) means
+Non-nil, non-numeric argument (\\[universal-argument] prefix, if interactive) means
 first update all existing menus in the buffer (incorporating
 descriptions from pre-existing menus) before it constructs the
-master menu.  If the argument is numeric (e.g., \"C-u 2\"),
+master menu.  If the argument is numeric (e.g., \"\\[universal-argument] 2\"),
 update all existing nodes as well, by calling
 `texinfo-update-node' on the entire file.  Warning: do NOT
 invoke with a numeric argument if your Texinfo file uses @node
@@ -1508,7 +1508,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-find-pointer: lack proper arguments")))))
+           (error "texinfo-find-pointer: Lack proper arguments")))))
 
 (defun texinfo-pointer-name (kind)
   "Return the node name preceding the section command.
@@ -1676,7 +1676,7 @@ or `Up' pointer."
 	       'normal
 	     'no-pointer))
 	  (t
-	   (error "texinfo-sequential-find-pointer: lack proper arguments")))))
+           (error "texinfo-sequential-find-pointer: Lack proper arguments")))))
 
 
 ;;; Inserting `@node' lines

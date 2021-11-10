@@ -444,7 +444,7 @@ selected window write:
 @group
 (customize-set-variable
  'display-buffer-alist
- '("\\*scratch\\*" (display-buffer-same-window)))
+ '(("\\*scratch\\*" (display-buffer-same-window))))
 @end group
 @end example
 
@@ -603,16 +603,16 @@ buffer.  @xref{Follow Mode}.
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
 one, and similarly for the left, up, and down counterparts.
-@w{@kbd{M-x windmove-default-keybindings}} binds these commands to
+@code{windmove-default-keybindings} binds these commands to
 @kbd{S-right} etc.; doing so disables shift selection for those keys
 (@pxref{Shift Selection}).  In the same way as keybindings can be
 defined for commands that select windows directionally, you can use
-@w{@kbd{M-x windmove-display-default-keybindings}} to define
-keybindings for commands that specify in what direction to display the
-window for the buffer that the next command is going to display.
-Also there is @w{@kbd{M-x windmove-delete-default-keybindings}} to
-define keybindings for commands that delete windows directionally, and
-@w{@kbd{M-x windmove-swap-states-default-keybindings}} that defines
+@code{windmove-display-default-keybindings} to define keybindings for
+commands that specify in what direction to display the window for the
+buffer that the next command is going to display.  Also there is
+@code{windmove-delete-default-keybindings} to define keybindings for
+commands that delete windows directionally, and
+@code{windmove-swap-states-default-keybindings} that defines
 keybindings for commands that swap the window contents of the selected
 window with the window in the specified direction.
 

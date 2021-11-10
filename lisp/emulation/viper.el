@@ -15,7 +15,7 @@
 ;; of the bug report be sent to the maintainer's email address.
 
 (defconst viper-version "3.14.2 of July 4, 2013"
-  "The current version of Viper")
+  "The current version of Viper.")
 
 ;; This file is part of GNU Emacs.
 
@@ -304,7 +304,6 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
-(defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-mode-string)
 (defvar viper-major-mode-modifier-list)
@@ -516,7 +515,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 
 ;;;###autoload
 (defun viper-mode ()
-  "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Top'."
+  "Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'."
   (interactive)
   (if (not noninteractive)
       (progn
@@ -577,7 +576,7 @@ For more information on Viper:
 To submit a bug report or to contact the author, type :submitReport in Vi
 command mode.  To shoo Viper away and return to pure Emacs (horror!), type:
 
-   M-x viper-go-away
+   \\[viper-go-away]
 
 This startup message appears whenever you load Viper, unless you type `y' now."
 		      ))

@@ -139,6 +139,7 @@
 ;;; Code:
 
 (require 'calc-macs)
+(require 'rect)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
@@ -251,7 +252,7 @@
 
 (defcustom calc-embedded-announce-formula
   "%Embed\n\\(% .*\n\\)*"
-  "A regular expression which is sure to be followed by a calc-embedded formula."
+  "A regular expression which is sure to be followed by a `calc-embedded' formula."
   :type '(regexp))
 
 (defcustom calc-embedded-announce-formula-alist
@@ -277,12 +278,12 @@
 
 (defcustom calc-embedded-close-formula
   "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
-  "Regexp for the closing delimiter of a formula used by calc-embedded."
+  "Regexp for the closing delimiter of a formula used by `calc-embedded'."
   :type '(regexp))
 
 (defcustom calc-embedded-open-close-formula-alist
   nil
-  "Alist of major modes with pairs of formula delimiters used by calc-embedded."
+  "Alist of major modes with pairs of formula delimiters used by `calc-embedded'."
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (list (regexp :tag "Opening formula delimiter")
                                   (regexp :tag "Closing formula delimiter"))))
@@ -347,13 +348,13 @@ See calc-embedded-open-plain."
 
 (defcustom calc-embedded-open-mode
   "% "
-  "A string which should precede calc-embedded mode annotations.
+  "A string which should precede `calc-embedded' mode annotations.
 This is not required to be present for user-written mode annotations."
   :type '(string))
 
 (defcustom calc-embedded-close-mode
   "\n"
-  "A string which should follow calc-embedded mode annotations.
+  "A string which should follow `calc-embedded' mode annotations.
 This is not required to be present for user-written mode annotations."
   :type '(string))
 
@@ -386,43 +387,34 @@ This is not required to be present for user-written mode annotations."
   :type '(string)
   :version "26.2")
 
-(defcustom calc-gnuplot-plot-command
-  nil
+(defcustom calc-gnuplot-plot-command nil
   "Name of command for displaying GNUPLOT output; %s = file name to print."
   :type '(choice (string) (sexp)))
 
-(defcustom calc-gnuplot-print-command
-  "lp %s"
+(defcustom calc-gnuplot-print-command "lp %s"
   "Name of command for printing GNUPLOT output; %s = file name to print."
   :type '(choice (string) (sexp)))
 
-(defcustom calc-multiplication-has-precedence
-  t
-  "If non-nil, multiplication has precedence over division
-in normal mode."
+(defcustom calc-multiplication-has-precedence t
+  "If non-nil, multiplication has precedence over division in normal mode."
   :type 'boolean)
 
-(defcustom calc-ensure-consistent-units
-  nil
-  "If non-nil, make sure new units are consistent with current units
-when converting units."
+(defcustom calc-ensure-consistent-units nil
+  "If non-nil, ensure new units are consistent with current units when converting."
   :version "24.3"
   :type 'boolean)
 
-(defcustom calc-context-sensitive-enter
-  nil
+(defcustom calc-context-sensitive-enter nil
   "If non-nil, the stack element under the cursor will be copied by `calc-enter'
 and deleted by `calc-pop'."
   :version "24.4"
   :type 'boolean)
 
-(defcustom calc-undo-length
-  100
+(defcustom calc-undo-length 100
   "The number of undo steps that will be preserved when Calc is quit."
   :type 'integer)
 
-(defcustom calc-highlight-selections-with-faces
-  nil
+(defcustom calc-highlight-selections-with-faces nil
   "If non-nil, use a separate face to indicate selected sub-formulas.
 If option `calc-show-selections' is non-nil, then selected sub-formulas are
 shown by displaying the rest of the formula in `calc-nonselected-face'.
@@ -431,14 +423,12 @@ by displaying the sub-formula in `calc-selected-face'."
   :version "24.1"
   :type 'boolean)
 
-(defcustom calc-lu-field-reference
-  "20 uPa"
+(defcustom calc-lu-field-reference "20 uPa"
   "The default reference level for logarithmic units (field)."
   :version "24.1"
   :type '(string))
 
-(defcustom calc-lu-power-reference
-  "mW"
+(defcustom calc-lu-power-reference "mW"
   "The default reference level for logarithmic units (power)."
   :version "24.1"
   :type '(string))
@@ -477,11 +467,11 @@ This is 1 unless `calc-truncate-stack' has been used.")
 
 (defvar calc-display-sci-high 0
   "Floating-point numbers with this positive exponent or higher above the
-current precision are displayed in scientific notation in calc-mode.")
+current precision are displayed in scientific notation in `calc-mode'.")
 
 (defvar calc-display-sci-low -3
   "Floating-point numbers with this negative exponent or lower are displayed
-scientific notation in calc-mode.")
+scientific notation in `calc-mode'.")
 
 (defvar calc-digit-after-point nil
   "If t, display at least one digit after the decimal point, as in `12.0'.
@@ -495,16 +485,16 @@ This setting only applies to floats in normal display mode.")
   "List of strings for Y prefix help.")
 
 (defvar calc-loaded-settings-file nil
-  "t if `calc-settings-file' has been loaded yet.")
+  "Return t if `calc-settings-file' has been loaded yet.")
 
 
 (defvar calc-mode-var-list '()
   "List of variables used in customizing GNU Calc.")
 
 (defmacro defcalcmodevar (var defval &optional doc)
-  "Declare VAR as a Calc variable, with default value DEFVAL
-and doc-string DOC.
+  "Declare VAR as a Calc variable, with default value DEFVAL and doc-string DOC.
 The variable VAR will be added to `calc-mode-var-list'."
+  (declare (doc-string 3) (indent defun))
   `(progn
      (defvar ,var ,defval ,doc)
      (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
@@ -742,7 +732,7 @@ If nil, symbolic math routines make no assumptions about variables.")
   "Initial height of Calculator window.")
 
 (defcalcmodevar calc-display-trail t
-  "If non-nil, M-x calc creates a window to display Calculator trail.")
+  "If non-nil, \\[calc] creates a window to display Calculator trail.")
 
 (defcalcmodevar calc-show-selections t
   "If non-nil, selected sub-formulas are shown by obscuring rest of formula.
@@ -921,7 +911,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-trail-pointer nil
   "The \"current\" entry in trail buffer.")
 (defvar calc-trail-overlay nil
-  "The value of overlay-arrow-string.")
+  "The value of `overlay-arrow-string'.")
 (defvar calc-undo-list nil
   "The list of previous operations for undo.")
 (defvar calc-redo-list nil
@@ -960,7 +950,7 @@ Used by `calc-user-invocation'.")
 (defvar calc-lang-allow-percentsigns nil
   "A list of languages which allow percent signs in variable names.")
 (defvar calc-lang-c-type-hex nil
-  "Languages in which octal and hex numbers are written with leading 0 and 0x,")
+  "Languages in which octal and hex numbers are written with leading 0 and 0x.")
 (defvar calc-lang-brackets-are-subscripts nil
   "Languages in which subscripts are indicated by brackets.")
 (defvar calc-lang-parens-are-subscripts nil
@@ -1310,8 +1300,7 @@ Notations:  3.14e6     3.14 * 10^6
 	    <1 jan 91> Date form (enter using \\=' key)
 
 
-\\{calc-mode-map}
-"
+\\{calc-mode-map}"
   (interactive)
   (mapc (lambda (v)
           ;; FIXME: Why (set-default v (symbol-value v)) ?!?!?
@@ -1382,12 +1371,12 @@ Notations:  3.14e6     3.14 * 10^6
     map))
 
 (defun calc--header-line (long short width &optional fudge)
-  "Return a Calc header line appropriate for the buffer width.
+  "Return a Calc header line appropriate for the buffer WIDTH.
 
 LONG is a desired text for a wide window, SHORT is a desired
 abbreviated text, and width is the buffer width, which will be
 some fraction of the 'parent' window width (At the time of
-writing, 2/3 for calc, 1/3 for trail). The optional FUDGE is a
+writing, 2/3 for calc, 1/3 for trail).  The optional FUDGE is a
 trial-and-error adjustment number for the edge-cases at the
 border of the two cases."
   ;; TODO: This could be called as part of a 'window-resize' hook.
@@ -1409,7 +1398,7 @@ border of the two cases."
 This mode is used by the *Calc Trail* buffer, which records all results
 obtained by the GNU Emacs Calculator.
 
-Calculator commands beginning with the `t' key are used to manipulate
+Calculator commands beginning with the t key are used to manipulate
 the Trail.
 
 This buffer uses the same key map as the *Calculator* buffer; calculator
@@ -1480,7 +1469,9 @@ See `window-dedicated-p' for what that means."
       (with-current-buffer (calc-trail-buffer)
         (and calc-display-trail
              (calc-trail-display 1 t)))
-      (message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
+      (message (substitute-command-keys
+                (concat "Welcome to the GNU Emacs Calculator!  \\<calc-mode-map>"
+                        "Press \\[calc-help] or \\[calc-help-prefix] for help, \\[calc-quit] to quit")))
       (run-hooks 'calc-start-hook)
       (and (windowp full-display)
            (window-point full-display)
@@ -1500,7 +1491,7 @@ See `window-dedicated-p' for what that means."
   (calc nil t interactive))
 
 (defun calc-same-interface (arg)
-  "Invoke the Calculator using the most recent interface (calc or calc-keypad)."
+  "Invoke the Calculator using the most recent interface (`calc' or `calc-keypad')."
   (interactive "P")
   (if (and (equal (buffer-name) "*Gnuplot Trail*")
 	   (> (recursion-depth) 0))
@@ -1577,7 +1568,7 @@ or a list containing a character position and an error message in string form."
   "Invoke the Calculator in \"visual keypad\" mode.
 This is most useful in the X window system.
 In this mode, click on the Calc \"buttons\" using the left mouse button.
-Or, position the cursor manually and do M-x calc-keypad-press."
+Or, position the cursor manually and do \\[calc-keypad-press]."
   (interactive "p")
   (require 'calc-ext)
   (calc-do-keypad calc-full-mode interactive))
@@ -2126,7 +2117,7 @@ the United States."
 	    (goto-char (point-max))
 	    (cond ((null prefix) (insert "     "))
 		  ((and (> (length prefix) 4)
-			(string-match " " prefix 4))
+			(string-search " " prefix 4))
 		   (insert (substring prefix 0 4) " "))
 		  (t (insert (format "%4s " prefix))))
 	    (insert fval "\n")
@@ -2469,7 +2460,7 @@ the United States."
 	      (calc-minibuffer-contains
 	       "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9]+\\.?0*[@oh] *\\)?\\([0-9]+\\.?0*['m] *\\)?[0-9]*\\(\\.?[0-9]*\\(e[-+]?[0-3]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?\\)?\\|[0-9]:\\([0-9]+:\\)?[0-9]*\\)?[\"s]?\\'"))
 	  (if (and (memq last-command-event '(?@ ?o ?h ?\' ?m))
-		   (string-match " " calc-hms-format))
+		   (string-search " " calc-hms-format))
 	      (insert " "))
 	(if (and (memq last-command '(calcDigit-start calcDigit-key))
 		 (eq last-command-event ?.))
@@ -3059,7 +3050,7 @@ the United States."
 (defun calc-count-lines (s)
   (let ((pos 0)
 	(num 1))
-    (while (setq pos (string-match "\n" s pos))
+    (while (setq pos (string-search "\n" s pos))
       (setq pos (1+ pos)
 	    num (1+ num)))
     num))
@@ -3388,7 +3379,9 @@ and all digits are kept, regardless of Calc's current precision."
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
   (require 'calc-ext)
-  (calc-do-grab-region top bot arg))
+  (if rectangle-mark-mode
+      (calc-do-grab-rectangle top bot arg)
+    (calc-do-grab-region top bot arg)))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
@@ -3397,12 +3390,14 @@ and all digits are kept, regardless of Calc's current precision."
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg))
 
+;;;###autoload
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
   (require 'calc-ext)
   (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
+;;;###autoload
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")
@@ -3444,7 +3439,7 @@ The prefix `calcFunc-' is added to the specified name to get the
 actual Lisp function name.
 
 See Info node `(calc)Defining Functions'."
-  (declare (doc-string 3)) ;; FIXME: Edebug spec?
+  (declare (doc-string 3) (indent defun)) ;; FIXME: Edebug spec?
   (require 'calc-ext)
   (math-do-defmath func args body))
 

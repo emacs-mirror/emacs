@@ -218,7 +218,7 @@ recently executed command not bound to an input event\"."
    ((null last-repeatable-command)
     (error "There is nothing to repeat"))
    ((eq last-repeatable-command 'mode-exit)
-    (error "last-repeatable-command is mode-exit & can't be repeated"))
+    (error "`last-repeatable-command' is `mode-exit' and can't be repeated"))
    ((memq last-repeatable-command repeat-too-dangerous)
     (error "Command %S too dangerous to repeat automatically"
 	   last-repeatable-command)))
@@ -344,8 +344,8 @@ For example, you can set it to <return> like `isearch-exit'."
 
 (defcustom repeat-exit-timeout nil
   "Break the repetition chain of keys after specified timeout.
-When a number, exit the repeat mode after idle time of the specified
-number of seconds."
+When a number, exit the transient repeating mode after idle time
+of the specified number of seconds."
   :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
                  (number :tag "Timeout in seconds to exit repeating"))
   :group 'convenience
@@ -355,7 +355,7 @@ number of seconds."
   "Timer activated after the last key typed in the repeating key sequence.")
 
 (defcustom repeat-keep-prefix t
-  "Keep the prefix arg of the previous command."
+  "Whether to keep the prefix arg of the previous command when repeating."
   :type 'boolean
   :group 'convenience
   :version "28.1")
@@ -363,7 +363,7 @@ number of seconds."
 (defcustom repeat-echo-function #'repeat-echo-message
   "Function to display a hint about available keys.
 Function is called after every repeatable command with one argument:
-a repeating map, or nil after deactivating the repeat mode."
+a repeating map, or nil after deactivating the transient repeating mode."
   :type '(choice (const :tag "Show hints in the echo area"
                         repeat-echo-message)
                  (const :tag "Show indicator in the mode line"
@@ -374,11 +374,11 @@ a repeating map, or nil after deactivating the repeat mode."
   :version "28.1")
 
 (defvar repeat-in-progress nil
-  "Non-nil when the repeating map is active.")
+  "Non-nil when the repeating transient map is active.")
 
 ;;;###autoload
 (defvar repeat-map nil
-  "The value of the repeating map for the next command.
+  "The value of the repeating transient map for the next command.
 A command called from the map can set it again to the same map when
 the map can't be set on the command symbol property `repeat-map'.")
 
@@ -386,7 +386,8 @@ the map can't be set on the command symbol property `repeat-map'.")
 (define-minor-mode repeat-mode
   "Toggle Repeat mode.
 When Repeat mode is enabled, and the command symbol has the property named
-`repeat-map', this map is activated temporarily for the next command."
+`repeat-map', this map is activated temporarily for the next command.
+See `describe-repeat-maps' for a list of all repeatable commands."
   :global t :group 'convenience
   (if (not repeat-mode)
       (remove-hook 'post-command-hook 'repeat-post-hook)
@@ -470,12 +471,18 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defun repeat-echo-message (keymap)
   "Display available repeating keys in the echo area."
   (if keymap
-      (let ((mess (repeat-echo-message-string keymap)))
+      (let ((message (repeat-echo-message-string keymap)))
         (if (current-message)
-            (message "%s [%s]" (current-message) mess)
-          (message mess)))
-    (when (string-prefix-p "Repeat with " (current-message))
-      (message nil))))
+            (message "%s [%s]" (current-message) message)
+          (message "%s" message)))
+    (let ((message (current-message)))
+      (when message
+        (cond
+         ((string-prefix-p "Repeat with " message)
+          (message nil))
+         ((string-search " [Repeat with " message)
+          (message "%s" (replace-regexp-in-string
+                         " \\[Repeat with .*\\'" "" message))))))))
 
 (defvar repeat-echo-mode-line-string
   (propertize "[Repeating...] " 'face 'mode-line-emphasis)
@@ -490,7 +497,8 @@ When Repeat mode is enabled, and the command symbol has the property named
     (force-mode-line-update t)))
 
 (defun describe-repeat-maps ()
-  "Describe mappings of commands repeatable by symbol property `repeat-map'."
+  "Describe mappings of commands repeatable by symbol property `repeat-map'.
+Used in `repeat-mode'."
   (interactive)
   (help-setup-xref (list #'describe-repeat-maps)
                    (called-interactively-p 'interactive))

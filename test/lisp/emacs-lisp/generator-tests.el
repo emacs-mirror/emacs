@@ -271,7 +271,7 @@ identical output."
                      (unwind-protect
                           (progn
                             (iter-yield 1)
-                            (error "test")
+                            (error "Test")
                             (iter-yield 2))
                        (cl-incf nr-unwound))))))
     (should (equal (iter-next iter) 1))

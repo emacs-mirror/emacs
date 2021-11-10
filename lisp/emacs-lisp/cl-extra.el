@@ -336,7 +336,7 @@ non-nil value.
 
 ;;;###autoload
 (defun cl-isqrt (x)
-  "Return the integer square root of the (integer) argument."
+  "Return the integer square root of the (integer) argument X."
   (if (and (integerp x) (> x 0))
       (let ((g (ash 2 (/ (logb x) 2)))
 	    g2)
@@ -455,7 +455,7 @@ as an integer unless JUNK-ALLOWED is non-nil."
 
 ;;;###autoload
 (defun cl-random (lim &optional state)
-  "Return a random nonnegative number less than LIM, an integer or float.
+  "Return a pseudo-random nonnegative number less than LIM, an integer or float.
 Optional second arg STATE is a random-state object."
   (or state (setq state cl--random-state))
   ;; Inspired by "ran3" from Numerical Recipes.  Additive congruential method.

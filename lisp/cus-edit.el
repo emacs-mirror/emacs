@@ -1133,7 +1133,7 @@ for the MODE to customize."
 
 (defun customize-read-group ()
   (let ((completion-ignore-case t))
-    (completing-read "Customize group (default emacs): "
+    (completing-read (format-prompt "Customize group" "emacs")
                      obarray
                      (lambda (symbol)
                        (or (and (get symbol 'custom-loads)
@@ -1205,7 +1205,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "26.3"
+(defvar customize-changed-options-previous-release "28.1"
   "Version for `customize-changed' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -1910,7 +1910,7 @@ item in another window.\n\n"))
 (widget-put (get 'editable-field 'widget-type)
 	    :custom-show (lambda (_widget value)
 			   (let ((pp (pp-to-string value)))
-			     (cond ((string-match-p "\n" pp)
+			     (cond ((string-search "\n" pp)
 				    nil)
 				   ((> (length pp) 40)
 				    nil)
@@ -5127,8 +5127,8 @@ If several parents are listed, go to the first of them."
 The following commands are available:
 
 \\<widget-keymap>\
-Move to next button, link or editable field.     \\[widget-forward]
-Move to previous button, link or editable field. \\[widget-backward]
+Move to next button, link or editable field.      \\[widget-forward]
+Move to previous button, link or editable field.  \\[widget-backward]
 \\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\

@@ -134,7 +134,7 @@ Integer values are handled in the `range' slot.")
                     :neg (neg cstr))))
 
 (defsubst comp-cstr-empty-p (cstr)
-  "Return t if CSTR is equivalent to the `nil' type specifier or nil otherwise."
+  "Return t if CSTR is equivalent to the nil type specifier or nil otherwise."
   (with-comp-cstr-accessors
     (and (null (typeset cstr))
          (null (valset cstr))
@@ -152,7 +152,7 @@ Integer values are handled in the `range' slot.")
 (defun comp-cstrs-homogeneous (cstrs)
   "Check if constraints CSTRS are all homogeneously negated or non-negated.
 Return `pos' if they are all positive, `neg' if they are all
-negated or nil othewise."
+negated or nil otherwise."
   (cl-loop
    for cstr in cstrs
    unless (comp-cstr-neg cstr)

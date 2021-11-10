@@ -95,6 +95,28 @@ inherit all the commands defined in this map.")
      :style toggle
      :selected (memq 'turn-on-auto-fill text-mode-hook)]))
 
+(defun text-mode-context-menu (menu click)
+  "Populate MENU with text selection commands at CLICK."
+
+  (when (thing-at-mouse click 'word)
+    (define-key-after menu [select-region mark-word]
+      `(menu-item "Word"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'word))
+                  :help "Mark the word at click for a subsequent cut/copy")
+      'mark-whole-buffer))
+  (define-key-after menu [select-region mark-sentence]
+    `(menu-item "Sentence"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'sentence))
+                :help "Mark the sentence at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+  (define-key-after menu [select-region mark-paragraph]
+    `(menu-item "Paragraph"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'paragraph))
+                :help "Mark the paragraph at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+
+  menu)
+
 
 (define-derived-mode text-mode nil "Text"
   "Major mode for editing text written for humans to read.
@@ -104,7 +126,8 @@ You can thus get the full benefit of adaptive filling
 \\{text-mode-map}
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq-local text-mode-variant t)
-  (setq-local require-final-newline mode-require-final-newline))
+  (setq-local require-final-newline mode-require-final-newline)
+  (add-hook 'context-menu-functions 'text-mode-context-menu 10 t))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.

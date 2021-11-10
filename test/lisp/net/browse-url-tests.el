@@ -28,6 +28,7 @@
 
 (require 'browse-url)
 (require 'ert)
+(require 'ert-x)
 
 (ert-deftest browse-url-tests-browser-kind ()
   (should (eq (browse-url--browser-kind #'browse-url-w3 "gnu.org")
@@ -68,11 +69,11 @@
 
 (ert-deftest browse-url-tests-encode-url ()
   (should (equal (browse-url-encode-url "") ""))
-  (should (equal (browse-url-encode-url "a b c") "a b c"))
+  (should (equal (browse-url-encode-url "a b c") "a%20b%20c"))
   (should (equal (browse-url-encode-url "\"a\" \"b\"")
-                 "\"a%22\"b\""))
-  (should (equal (browse-url-encode-url "(a) (b)") "(a%29(b)"))
-  (should (equal (browse-url-encode-url "a$ b$") "a%24b$")))
+                 "%22a%22%20%22b%22"))
+  (should (equal (browse-url-encode-url "(a) (b)") "%28a%29%20%28b%29"))
+  (should (equal (browse-url-encode-url "a$ b$") "a%24%20b%24")))
 
 (ert-deftest browse-url-tests-url-at-point ()
   (with-temp-buffer
@@ -87,11 +88,10 @@
                  "ftp://foo/")))
 
 (ert-deftest browse-url-tests-delete-temp-file ()
-  (let ((browse-url-temp-file-name
-         (make-temp-file "browse-url-tests-")))
+  (ert-with-temp-file browse-url-temp-file-name
     (browse-url-delete-temp-file)
     (should-not (file-exists-p browse-url-temp-file-name)))
-  (let ((file (make-temp-file "browse-url-tests-")))
+  (ert-with-temp-file file
     (browse-url-delete-temp-file file)
     (should-not (file-exists-p file))))
 

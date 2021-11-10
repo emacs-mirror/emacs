@@ -62,7 +62,7 @@ Is equivalent to:
     (+ (- (/ (+ 5 20) 25)) 40)
 Note how the single `-' got converted into a list before
 threading."
-  (declare (indent 1)
+  (declare (indent 0)
            (debug (form &rest [&or symbolp (sexp &rest form)])))
   `(internal--thread-argument t ,@forms))
 
@@ -79,7 +79,7 @@ Is equivalent to:
     (+ 40 (- (/ 25 (+ 20 5))))
 Note how the single `-' got converted into a list before
 threading."
-  (declare (indent 1) (debug thread-first))
+  (declare (indent 0) (debug thread-first))
   `(internal--thread-argument nil ,@forms))
 
 (defsubst internal--listify (elt)
@@ -107,7 +107,7 @@ If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
   (thread-first
-      binding
+    binding
     internal--listify
     internal--check-binding
     (internal--build-binding-value-form prev-var)))
@@ -208,7 +208,9 @@ The variable list SPEC is the same as in `if-let'."
   (string= string ""))
 
 (defsubst string-join (strings &optional separator)
-  "Join all STRINGS using SEPARATOR."
+  "Join all STRINGS using SEPARATOR.
+Optional argument SEPARATOR must be a string, a vector, or a list of
+characters; nil stands for the empty string."
   (mapconcat #'identity strings separator))
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")
@@ -240,6 +242,7 @@ carriage return."
       (substring string 0 (- (length string) (length suffix)))
     string))
 
+;;;###autoload
 (defun string-clean-whitespace (string)
   "Clean up whitespace in STRING.
 All sequences of whitespaces in STRING are collapsed into a
@@ -263,13 +266,13 @@ result will have lines that are longer than LENGTH."
     (buffer-string)))
 
 (defun string-limit (string length &optional end coding-system)
-  "Return (up to) a LENGTH substring of STRING.
-If STRING is shorter than or equal to LENGTH, the entire string
-is returned unchanged.
+  "Return a substring of STRING that is (up to) LENGTH characters long.
+If STRING is shorter than or equal to LENGTH characters, return the
+entire string unchanged.
 
-If STRING is longer than LENGTH, return a substring consisting of
-the first LENGTH characters of STRING.  If END is non-nil, return
-the last LENGTH characters instead.
+If STRING is longer than LENGTH characters, return a substring
+consisting of the first LENGTH characters of STRING.  If END is
+non-nil, return the last LENGTH characters instead.
 
 If CODING-SYSTEM is non-nil, STRING will be encoded before
 limiting, and LENGTH is interpreted as the number of bytes to
@@ -399,6 +402,68 @@ as the new values of the bound variables in the recursive invocation."
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
 
+(defmacro with-memoization (place &rest code)
+  "Return the value of CODE and stash it in PLACE.
+If PLACE's value is non-nil, then don't bother evaluating CODE
+and return the value found in PLACE instead."
+  (declare (indent 1) (debug (gv-place body)))
+  (gv-letplace (getter setter) place
+    `(or ,getter
+         ,(macroexp-let2 nil val (macroexp-progn code)
+            `(progn
+               ,(funcall setter val)
+               ,val)))))
+
+;;;###autoload
+(defun ensure-empty-lines (&optional lines)
+  "Ensure that there's LINES number of empty lines before point.
+If LINES is nil or missing, a this ensures that there's a single
+empty line before point.
+
+Interactively, this command uses the numerical prefix for LINES.
+
+If there's already more empty lines before point than LINES, the
+number of blank lines will be reduced.
+
+If point is not at the beginning of a line, a newline character
+is inserted before adjusting the number of empty lines."
+  (interactive "p")
+  (unless (bolp)
+    (insert "\n"))
+  (let ((lines (or lines 1))
+        (start (save-excursion
+                 (if (re-search-backward "[^\n]" nil t)
+                     (+ (point) 2)
+                   (point-min)))))
+    (cond
+     ((> (- (point) start) lines)
+      (delete-region (point) (- (point) (- (point) start lines))))
+     ((< (- (point) start) lines)
+      (insert (make-string (- lines (- (point) start)) ?\n))))))
+
+;;;###autoload
+(defun string-pixel-width (string)
+  "Return the width of STRING in pixels."
+  (with-temp-buffer
+    (insert string)
+    (car (window-text-pixel-size
+          (current-buffer) (point-min) (point)))))
+
+;;;###autoload
+(defun string-glyph-split (string)
+  "Split STRING into a list of strings representing separate glyphs.
+This takes into account combining characters and grapheme clusters."
+  (let ((result nil)
+        (start 0)
+        comp)
+    (while (< start (length string))
+      (if (setq comp (find-composition-internal start nil string nil))
+          (progn
+            (push (substring string (car comp) (cadr comp)) result)
+            (setq start (cadr comp)))
+        (push (substring string start (1+ start)) result)
+        (setq start (1+ start))))
+    (nreverse result)))
 
 (provide 'subr-x)
 

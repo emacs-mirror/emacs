@@ -27,7 +27,7 @@
 
 ;;; Requirements:
 
-;; - ruby and irb executables :: http://www.ruby-lang.org/
+;; - ruby and irb executables :: https://www.ruby-lang.org/
 ;;
 ;; - ruby-mode :: Can be installed through ELPA, or from
 ;;   https://github.com/eschulte/rinari/raw/master/util/ruby-mode.el

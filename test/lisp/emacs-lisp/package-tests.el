@@ -115,57 +115,55 @@
                                 &rest body)
   "Set up temporary locations and variables for testing."
   (declare (indent 1) (debug (([&rest form]) body)))
-  `(let* ((package-test-user-dir (make-temp-file "pkg-test-user-dir-" t))
-          (process-environment (cons (format "HOME=%s" package-test-user-dir)
-                                     process-environment))
-          (package-user-dir package-test-user-dir)
-          (package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
-          (package-archives `(("gnu" . ,(or ,location package-test-data-dir))))
-          (default-directory package-test-file-dir)
-          abbreviated-home-dir
-          package--initialized
-          package-alist
-          ,@(if update-news
-                '(package-update-news-on-upload t)
-              (list (cl-gensym)))
-          ,@(if upload-base
-                '((package-test-archive-upload-base (make-temp-file "pkg-archive-base-" t))
-                  (package-archive-upload-base package-test-archive-upload-base))
-              (list (cl-gensym)))) ;; Dummy value so `let' doesn't try to bind nil
-     (let ((buf (get-buffer "*Packages*")))
-       (when (buffer-live-p buf)
-         (kill-buffer buf)))
-     (unwind-protect
-         (progn
-           ,(if basedir `(cd ,basedir))
-           (unless (file-directory-p package-user-dir)
-             (mkdir package-user-dir))
-           (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest _) t))
-                     ((symbol-function 'y-or-n-p)    (lambda (&rest _) t)))
-             ,@(when install
-                 `((package-initialize)
-                   (package-refresh-contents)
-                   (mapc 'package-install ,install)))
-             (with-temp-buffer
-               ,(if file
-                    `(insert-file-contents ,file))
-               ,@body)))
+  `(ert-with-temp-directory package-test-user-dir
+     (let* ((process-environment (cons (format "HOME=%s" package-test-user-dir)
+                                       process-environment))
+            (package-user-dir package-test-user-dir)
+            (package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
+            (package-archives `(("gnu" . ,(or ,location package-test-data-dir))))
+            (default-directory package-test-file-dir)
+            abbreviated-home-dir
+            package--initialized
+            package-alist
+            ,@(if update-news
+                  '(package-update-news-on-upload t)
+                (list (cl-gensym)))
+            ,@(if upload-base
+                  '((package-test-archive-upload-base (make-temp-file "pkg-archive-base-" t))
+                    (package-archive-upload-base package-test-archive-upload-base))
+                (list (cl-gensym)))) ;; Dummy value so `let' doesn't try to bind nil
+       (let ((buf (get-buffer "*Packages*")))
+         (when (buffer-live-p buf)
+           (kill-buffer buf)))
+       (unwind-protect
+           (progn
+             ,(if basedir `(cd ,basedir))
+             (unless (file-directory-p package-user-dir)
+               (mkdir package-user-dir))
+             (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest _) t))
+                       ((symbol-function 'y-or-n-p)    (lambda (&rest _) t)))
+               ,@(when install
+                   `((package-initialize)
+                     (package-refresh-contents)
+                     (mapc 'package-install ,install)))
+               (with-temp-buffer
+                 ,(if file
+                      `(insert-file-contents ,file))
+                 ,@body)))
 
-       (when ,upload-base
-         (dolist (f '("archive-contents"
-                      "simple-single-1.3.el"
-                      "simple-single-1.4.el"
-                      "simple-single-readme.txt"))
-           (ignore-errors
-             (delete-file
-              (expand-file-name f package-test-archive-upload-base))))
-         (delete-directory package-test-archive-upload-base))
-       (when (file-directory-p package-test-user-dir)
-         (delete-directory package-test-user-dir t))
+         (when ,upload-base
+           (dolist (f '("archive-contents"
+                        "simple-single-1.3.el"
+                        "simple-single-1.4.el"
+                        "simple-single-readme.txt"))
+             (ignore-errors
+               (delete-file
+                (expand-file-name f package-test-archive-upload-base))))
+           (delete-directory package-test-archive-upload-base))
 
-       (when (and (boundp 'package-test-archive-upload-base)
-                  (file-directory-p package-test-archive-upload-base))
-         (delete-directory package-test-archive-upload-base t)))))
+         (when (and (boundp 'package-test-archive-upload-base)
+                    (file-directory-p package-test-archive-upload-base))
+           (delete-directory package-test-archive-upload-base t))))))
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
@@ -180,7 +178,7 @@
   (replace-regexp-in-string "-pkg\\.el\\'" "" (package--description-file dir)))
 
 (defun package-test-suffix-matches (base suffix-list)
-  "Return file names matching BASE concatenated with each item in SUFFIX-LIST"
+  "Return file names matching BASE concatenated with each item in SUFFIX-LIST."
   (mapcan (lambda (item) (file-expand-wildcards (concat base item)))
           suffix-list))
 
@@ -342,9 +340,13 @@ but with a different end of line convention (bug#48137)."
 
 (declare-function macro-problem-func "macro-problem" ())
 (declare-function macro-problem-10-and-90 "macro-problem" ())
+(declare-function macro-builtin-func "macro-builtin" ())
+(declare-function macro-builtin-10-and-90 "macro-builtin" ())
 
 (ert-deftest package-test-macro-compilation ()
-  "Install a package which includes a dependency."
+  "\"Activation has to be done before compilation, so that if we're
+   upgrading and macros have changed we load the new definitions
+   before compiling.\" -- package.el"
   (with-package-test (:basedir (ert-resource-directory))
     (package-install-file (expand-file-name "macro-problem-package-1.0/"))
     (require 'macro-problem)
@@ -356,6 +358,32 @@ but with a different end of line convention (bug#48137)."
     (should (equal (macro-problem-func) '(1 b)))
     ;; `macro-problem-10-and-90' depends on an entirely new macro from `macro-aux'.
     (should (equal (macro-problem-10-and-90) '(10 90)))))
+
+(ert-deftest package-test-macro-compilation-gz ()
+  "Built-in's can be superseded as well."
+  (with-package-test (:basedir (ert-resource-directory))
+    (let ((dir (expand-file-name "macro-builtin-package-1.0")))
+      (unwind-protect
+          (let ((load-path load-path))
+            (add-to-list 'load-path (directory-file-name dir))
+            (byte-recompile-directory dir 0 t)
+            (mapc (lambda (f) (call-process "gzip" nil nil nil f))
+                  (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
+            (require 'macro-builtin)
+            (should (member (expand-file-name "macro-builtin-aux.elc" dir)
+                            (mapcar #'car load-history)))
+            ;; `macro-builtin-func' uses a macro from `macro-aux'.
+            (should (equal (macro-builtin-func) '(progn a b)))
+            (package-install-file (expand-file-name "macro-builtin-package-2.0/"))
+            ;; After upgrading, `macro-builtin-func' depends on a new version
+            ;; of the macro from `macro-builtin-aux'.
+            (should (equal (macro-builtin-func) '(1 b)))
+            ;; `macro-builtin-10-and-90' depends on an entirely new macro from `macro-aux'.
+            (should (equal (macro-builtin-10-and-90) '(10 90))))
+        (mapc #'delete-file
+              (directory-files-recursively dir "\\`[^\\.].*\\.elc\\'"))
+        (mapc (lambda (f) (call-process "gunzip" nil nil nil f))
+              (directory-files-recursively dir "\\`[^\\.].*\\.el.gz\\'"))))))
 
 (ert-deftest package-test-install-two-dependencies ()
   "Install a package which includes a dependency."
@@ -636,7 +664,7 @@ but with a different end of line convention (bug#48137)."
      (save-excursion (should (re-search-forward "Status: Installed in ['`‘]simple-single-1.3/['’] (unsigned)." nil t)))
      (save-excursion (should (search-forward "Version: 1.3" nil t)))
      (save-excursion (should (search-forward "Summary: A single-file package with no dependencies" nil t)))
-     (save-excursion (should (search-forward "Homepage: http://doodles.au" nil t)))
+     (save-excursion (should (search-forward "Website: http://doodles.au" nil t)))
      (save-excursion (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t)))
      (save-excursion (should (search-forward "This package provides a minor mode to frobnicate"
                                              nil t)))
@@ -652,7 +680,7 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'multi-file)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://puddles.li" nil t))
+     (should (search-forward "Website: http://puddles.li" nil t))
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 
@@ -665,7 +693,7 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'simple-single)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://doodles.au" nil t))
+     (should (search-forward "Website: http://doodles.au" nil t))
      (should (search-forward "This package provides a minor mode to frobnicate"
                              nil t)))))
 
@@ -678,32 +706,30 @@ but with a different end of line convention (bug#48137)."
     (with-fake-help-buffer
      (describe-package 'multi-file)
      (goto-char (point-min))
-     (should (search-forward "Homepage: http://puddles.li" nil t))
+     (should (search-forward "Website: http://puddles.li" nil t))
      (should (search-forward "This is a bare-bones readme file for the multi-file"
                              nil t)))))
 
 (defvar epg-config--program-alist) ; Silence byte-compiler.
 (ert-deftest package-test-signed ()
   "Test verifying package signature."
-  (skip-unless (let ((homedir (make-temp-file "package-test" t)))
-		 (unwind-protect
-		     (let ((process-environment
-			    (cons (concat "HOME=" homedir)
-				  process-environment)))
-                       (require 'epg-config)
-                       (defvar epg-config--program-alist)
-		       (epg-find-configuration
-                        'OpenPGP nil
-                        ;; By default we require gpg2 2.1+ due to some
-                        ;; practical problems with pinentry.  But this
-                        ;; test works fine with 2.0 as well.
-                        (let ((prog-alist (copy-tree epg-config--program-alist)))
-                          (setf (alist-get "gpg2"
-                                           (alist-get 'OpenPGP prog-alist)
-                                           nil nil #'equal)
-                                "2.0")
-                          prog-alist)))
-		   (delete-directory homedir t))))
+  (skip-unless (ert-with-temp-directory homedir
+                 (let ((process-environment
+                        (cons (concat "HOME=" homedir)
+                              process-environment)))
+                   (require 'epg-config)
+                   (defvar epg-config--program-alist)
+                   (epg-find-configuration
+                    'OpenPGP nil
+                    ;; By default we require gpg2 2.1+ due to some
+                    ;; practical problems with pinentry.  But this
+                    ;; test works fine with 2.0 as well.
+                    (let ((prog-alist (copy-tree epg-config--program-alist)))
+                      (setf (alist-get "gpg2"
+                                       (alist-get 'OpenPGP prog-alist)
+                                       nil nil #'equal)
+                            "2.0")
+                      prog-alist)))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
          (package-test-data-dir (ert-resource-file "signed")))
     (with-package-test ()

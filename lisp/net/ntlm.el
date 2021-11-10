@@ -405,8 +405,8 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	(ntlm-md4hash password)))
 
 (defun ntlm-ascii2unicode (str len)
-  "Convert an ASCII string into a NT Unicode string, which is
-little-endian utf16."
+  "Convert an ASCII string STR of length LEN into a NT Unicode string.
+NT Unicode strings are little-endian utf16."
   ;; FIXME: Can't we use encode-coding-string with a `utf-16le' coding system?
   (let ((utf (make-string (* 2 len) 0))
         (i 0)
@@ -428,25 +428,24 @@ little-endian utf16."
     buf))
 
 (defun ntlm-smb-passwd-hash (passwd)
-  "Return the SMB password hash string of 16 bytes long for the given password
-string PASSWD.  PASSWD is truncated to 14 bytes if longer."
+  "Return SMB password hash string of 16 bytes long for password string PASSWD.
+PASSWD is truncated to 14 bytes if longer."
   (let ((len (min (length passwd) 14)))
     (ntlm-smb-des-e-p16
      (concat (substring (upcase passwd) 0 len) ;fill top 14 bytes with passwd
 	     (make-string (- 15 len) 0)))))
 
 (defun ntlm-smb-owf-encrypt (passwd c8)
-  "Return the response string of 24 bytes long for the given password
-string PASSWD based on the DES encryption.  PASSWD is of at most 14
-bytes long and the challenge string C8 of 8 bytes long."
+  "Return response string of 24 bytes long for PASSWD based on DES encryption.
+PASSWD is of at most 14 bytes long and the challenge string C8 of
+8 bytes long."
   (let* ((len (min (length passwd) 16))
          (p22 (concat (substring passwd 0 len) ;Fill top 16 bytes with passwd.
 		      (make-string (- 22 len) 0))))
     (ntlm-smb-des-e-p24 p22 c8)))
 
 (defun ntlm-smb-des-e-p24 (p22 c8)
-  "Return a 24 bytes hashed string for a 21 bytes string P22 and a 8 bytes
-string C8."
+  "Return 24 bytes hashed string for a 21 bytes string P22 and a 8 bytes string C8."
   (concat (ntlm-smb-hash c8 p22 t)		;hash first 8 bytes of p22
 	  (ntlm-smb-hash c8 (substring p22 7) t)
 	  (ntlm-smb-hash c8 (substring p22 14) t)))
@@ -460,8 +459,8 @@ string C8."
 			 (substring p15 7) t)))
 
 (defun ntlm-smb-hash (in key forw)
-  "Return the hash string of length 8 for a string IN of length 8 and
-a string KEY of length 8.  FORW is t or nil."
+  "Return hash string of length 8 for IN of length 8 and KEY of length 8.
+FORW is t or nil."
   (let ((out (make-string 8 0))
 	(inb (make-string 64 0))
 	(keyb (make-string 64 0))
@@ -603,8 +602,8 @@ a string KEY of length 8.  FORW is t or nil."
 		     [ 2  1 14  7  4 10  8 13 15 12  9  0  3  5  6 11]]])
 
 (defsubst ntlm-string-permute (in perm n)
-  "Return a string of length N for a string IN and a permutation vector
-PERM of size N.  The length of IN should be height of PERM."
+  "Return string of length N for string IN and permutation vector PERM of size N.
+The length of IN should be height of PERM."
   (let ((i 0) (out (make-string n 0)))
     (while (< i n)
       (aset out i (aref in (- (aref perm i) 1)))
@@ -701,8 +700,8 @@ backward."
     (ntlm-string-permute rl ntlm-smb-perm6 64)))
 
 (defun ntlm-md4hash (passwd)
-  "Return the 16 bytes MD4 hash of a string PASSWD after converting it
-into a Unicode string.  PASSWD is truncated to 128 bytes if longer."
+  "Return 16 bytes MD4 hash of string PASSWD after converting it to Unicode.
+PASSWD is truncated to 128 bytes if longer."
   (let* ((len (min (length passwd) 128)) ;Pwd can't be > than 128 characters.
          ;; Password must be converted to NT Unicode.
          (wpwd (ntlm-ascii2unicode passwd len)))

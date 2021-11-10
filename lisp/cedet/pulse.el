@@ -195,11 +195,13 @@ Optional argument FACE specifies the face to do the highlighting."
   (remove-hook 'pre-command-hook #'pulse-momentary-unhighlight))
 
 ;;;###autoload
-(defun pulse-momentary-highlight-one-line (point &optional face)
+(defun pulse-momentary-highlight-one-line (&optional point face)
   "Highlight the line around POINT, unhighlighting before next command.
+If POINT is nil or missing, the current point is used instead.
+
 Optional argument FACE specifies the face to do the highlighting."
   (save-excursion
-    (goto-char point)
+    (goto-char (or point (point)))
     (let ((start (point-at-bol))
           (end (save-excursion
                  (end-of-line)

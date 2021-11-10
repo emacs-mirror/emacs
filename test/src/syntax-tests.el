@@ -500,4 +500,10 @@ the `parse-partial-sexp's are expected to stop.  See
 (syntax-pps-comments /* 56 76 77 58)
 (syntax-pps-comments /* 60 78 79)
 
+(ert-deftest test-from-to-parse-partial-sexp ()
+  (with-temp-buffer
+    (insert "foo")
+    (should (parse-partial-sexp 1 1))
+    (should-error (parse-partial-sexp 2 1))))
+
 ;;; syntax-tests.el ends here

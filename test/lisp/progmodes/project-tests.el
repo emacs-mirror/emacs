@@ -29,21 +29,9 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x) ; ert-with-temp-directory
 (require 'grep)
 (require 'xref)
-
-(defmacro project-tests--with-temporary-directory (var &rest body)
-  "Create a new temporary directory.
-Bind VAR to the name of the directory, and evaluate BODY.  Delete
-the directory after BODY exits."
-  (declare (debug (symbolp body)) (indent 1))
-  (cl-check-type var symbol)
-  (let ((directory (make-symbol "directory")))
-    `(let ((,directory (make-temp-file "project-tests-" :directory)))
-       (unwind-protect
-           (let ((,var ,directory))
-             ,@body)
-         (delete-directory ,directory :recursive)))))
 
 (ert-deftest project/quoted-directory ()
   "Check that `project-files' and `project-find-regexp' deal with
@@ -51,7 +39,7 @@ quoted directory names (Bug#47799)."
   (skip-unless (executable-find find-program))
   (skip-unless (executable-find "xargs"))
   (skip-unless (executable-find "grep"))
-  (project-tests--with-temporary-directory directory
+  (ert-with-temp-directory directory
     (let ((default-directory directory)
           (project-current-inhibit-prompt t)
           (project-find-functions nil)
@@ -95,7 +83,7 @@ quoted directory names (Bug#47799)."
 returned by `project-ignores' if the root directory is a
 directory name (Bug#48471)."
   (skip-unless (executable-find find-program))
-  (project-tests--with-temporary-directory dir
+  (ert-with-temp-directory dir
     (make-empty-file (expand-file-name "some-file" dir))
     (make-empty-file (expand-file-name "ignored-file" dir))
     (let* ((project (make-project-tests--trivial
@@ -106,5 +94,20 @@ directory name (Bug#48471)."
             (cl-loop for file in files
                      collect (file-relative-name file dir))))
       (should (equal relative-files '("some-file"))))))
+
+(ert-deftest project-ignores-bug-50240 ()
+  "Check that `project-files' does not ignore all files.
+When `project-ignores' includes a name matching project dir."
+  (skip-unless (executable-find find-program))
+  (ert-with-temp-directory dir
+    (make-empty-file (expand-file-name "some-file" dir))
+    (let* ((project (make-project-tests--trivial
+                     :root (file-name-as-directory dir)
+                     :ignores (list (file-name-nondirectory
+                                     (directory-file-name dir)))))
+           (files (project-files project)))
+      (should (equal files
+                     (list
+                      (expand-file-name "some-file" dir)))))))
 
 ;;; project-tests.el ends here

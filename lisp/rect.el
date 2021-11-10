@@ -202,8 +202,8 @@ rectangles, as conses of the form (WIDTH . HEIGHT)."
              (<= (+ y2 h2) y1)))))
 
 (defun rectangle-dimensions (start end)
-  "Return the dimensions of the rectangle with corners at START
-and END. The returned value has the form of (WIDTH . HEIGHT)."
+  "Return the dimensions of the rectangle with corners at START and END.
+The returned value has the form of (WIDTH . HEIGHT)."
   (save-excursion
     (let* ((height (1+ (abs (- (line-number-at-pos end)
                                (line-number-at-pos start)))))

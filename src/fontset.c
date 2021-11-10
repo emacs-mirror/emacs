@@ -1361,7 +1361,11 @@ check_fontset_name (Lisp_Object name, Lisp_Object *frame)
   if (EQ (name, Qt))
     return Vdefault_fontset;
   if (NILP (name))
-    id = FRAME_FONTSET (f);
+    {
+      if (!FRAME_WINDOW_P (f))
+	error ("Can't use fontsets in non-GUI frames");
+      id = FRAME_FONTSET (f);
+    }
   else
     {
       CHECK_STRING (name);

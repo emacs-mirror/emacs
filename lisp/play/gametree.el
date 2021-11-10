@@ -508,7 +508,7 @@ being entered automatically (and thus should lack the manual mark)."
         (insert (int-to-string (prefix-numeric-value score))))))
 
 (defun gametree-compute-and-insert-score ()
-  "Compute current node score, maybe recursively from subnodes. Insert it.
+  "Compute current node score, maybe recursively from subnodes.  Insert it.
 Subnodes which have been manually scored are honored."
   (interactive "*")
   (let ((auto (not (and (looking-at gametree-score-regexp)

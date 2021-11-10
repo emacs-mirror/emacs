@@ -45,34 +45,34 @@ testcases.el.  This can be used to create test cases if Testcover
 is working correctly on a code sample.  OPTARGS are optional
 arguments for `testcover-start'."
     (interactive "r")
-    (let ((tempfile (make-temp-file "testcover-tests-" nil ".el"))
-          (find-file-suppress-same-file-warnings t)
-          (code (buffer-substring beg end))
-          (marked-up-code))
-      (unwind-protect
-          (progn
-            (with-temp-file tempfile
-              (insert code))
-            (save-current-buffer
-              (let ((buf (find-file-noselect tempfile)))
-                (set-buffer buf)
-                (apply 'testcover-start (cons tempfile optargs))
-                (testcover-mark-all buf)
-                (dolist (overlay (overlays-in (point-min) (point-max)))
-                  (let ((ov-face (overlay-get overlay 'face)))
-                    (goto-char (overlay-end overlay))
-                    (cond
-                     ((eq ov-face 'testcover-nohits) (insert "!!!"))
-                     ((eq ov-face 'testcover-1value) (insert "%%%"))
-                     (t nil))))
-                (setq marked-up-code (buffer-string)))
-              (set-buffer-modified-p nil)))
-        (ignore-errors (kill-buffer (find-file-noselect tempfile)))
-        (ignore-errors (delete-file tempfile)))
+    (ert-with-temp-file tempfile
+      :suffix ".el"
+      (let ((find-file-suppress-same-file-warnings t)
+            (code (buffer-substring beg end))
+            (marked-up-code))
+        (unwind-protect
+            (progn
+              (with-temp-file tempfile
+                (insert code))
+              (save-current-buffer
+                (let ((buf (find-file-noselect tempfile)))
+                  (set-buffer buf)
+                  (apply 'testcover-start (cons tempfile optargs))
+                  (testcover-mark-all buf)
+                  (dolist (overlay (overlays-in (point-min) (point-max)))
+                    (let ((ov-face (overlay-get overlay 'face)))
+                      (goto-char (overlay-end overlay))
+                      (cond
+                       ((eq ov-face 'testcover-nohits) (insert "!!!"))
+                       ((eq ov-face 'testcover-1value) (insert "%%%"))
+                       (t nil))))
+                  (setq marked-up-code (buffer-string)))
+                (set-buffer-modified-p nil)))
+          (ignore-errors (kill-buffer (find-file-noselect tempfile))))
 
-      ;; Now replace the original code with the marked up code.
-      (delete-region beg end)
-      (insert marked-up-code))))
+        ;; Now replace the original code with the marked up code.
+        (delete-region beg end)
+        (insert marked-up-code)))))
 
 (eval-and-compile
   (defun testcover-tests-unmarkup-region (beg end)
@@ -99,32 +99,32 @@ arguments for `testcover-start'."
 (eval-and-compile
   (defun testcover-tests-run-test-case (marked-up-code)
     "Test the operation of Testcover on the string MARKED-UP-CODE."
-    (let ((tempfile (make-temp-file "testcover-tests-" nil ".el"))
-          (find-file-suppress-same-file-warnings t))
-      (unwind-protect
-          (progn
-            (with-temp-file tempfile
-              (insert marked-up-code))
-            ;; Remove the marks and mark the code up again. The original
-            ;; and recreated versions should match.
-            (save-current-buffer
-              (set-buffer (find-file-noselect tempfile))
-              ;; Fail the test if the debugger tries to become active,
-              ;; which can happen if Testcover fails to attach itself
-              ;; correctly. Note that this will prevent debugging
-              ;; these tests using Edebug.
-              (cl-letf (((symbol-function #'edebug-default-enter)
-                         (lambda (&rest _args)
-                           (ert-fail "Debugger invoked during test run"))))
-                (dolist (byte-compile '(t nil))
-                  (testcover-tests-unmarkup-region (point-min) (point-max))
-                  (unwind-protect
-                      (testcover-tests-markup-region (point-min) (point-max) byte-compile)
-                    (set-buffer-modified-p nil))
-                  (should (string= marked-up-code
-                                   (buffer-string)))))))
-        (ignore-errors (kill-buffer (find-file-noselect tempfile)))
-        (ignore-errors (delete-file tempfile))))))
+    (ert-with-temp-file tempfile
+      :suffix ".el"
+      (let ((find-file-suppress-same-file-warnings t))
+        (unwind-protect
+            (progn
+              (with-temp-file tempfile
+                (insert marked-up-code))
+              ;; Remove the marks and mark the code up again. The original
+              ;; and recreated versions should match.
+              (save-current-buffer
+                (set-buffer (find-file-noselect tempfile))
+                ;; Fail the test if the debugger tries to become active,
+                ;; which can happen if Testcover fails to attach itself
+                ;; correctly. Note that this will prevent debugging
+                ;; these tests using Edebug.
+                (cl-letf (((symbol-function #'edebug-default-enter)
+                           (lambda (&rest _args)
+                             (ert-fail "Debugger invoked during test run"))))
+                  (dolist (byte-compile '(t nil))
+                    (testcover-tests-unmarkup-region (point-min) (point-max))
+                    (unwind-protect
+                        (testcover-tests-markup-region (point-min) (point-max) byte-compile)
+                      (set-buffer-modified-p nil))
+                    (should (string= marked-up-code
+                                     (buffer-string)))))))
+          (ignore-errors (kill-buffer (find-file-noselect tempfile))))))))
 
 ;; Convert test case file to ert-defmethod.
 

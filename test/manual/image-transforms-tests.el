@@ -174,3 +174,5 @@
     (test-scaling)
     (test-scaling-rotation)
     (goto-char (point-min))))
+
+;;; image-transforms-tests.el ends here

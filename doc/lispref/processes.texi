@@ -1047,6 +1047,19 @@ This function returns a list of all processes that have not been deleted.
 @end smallexample
 @end defun
 
+@defun num-processors &optional query
+This function returns the number of processors, a positive integer.
+Each usable thread execution unit counts as a processor.
+By default, the count includes the number of available processors,
+which you can override by setting the
+@url{https://www.openmp.org/spec-html/5.1/openmpse59.html,
+@env{OMP_NUM_THREADS} environment variable of OpenMP}.
+If the optional argument @var{query} is @code{current},
+this function ignores @env{OMP_NUM_THREADS};
+if @var{query} is @code{all}, this function also counts processors
+that are on the system but are not available to the current process.
+@end defun
+
 @defun get-process name
 This function returns the process named @var{name} (a string), or
 @code{nil} if there is none.  The argument @var{name} can also be a
@@ -1766,9 +1779,12 @@ or more batches of output; one way to do this is to insert the
 received text into a temporary buffer, which can then be searched.
 
 @defun set-process-filter process filter
-This function gives @var{process} the filter function @var{filter}.  If
-@var{filter} is @code{nil}, it gives the process the default filter,
-which inserts the process output into the process buffer.
+This function gives @var{process} the filter function @var{filter}.
+If @var{filter} is @code{nil}, it gives the process the default
+filter, which inserts the process output into the process buffer.  If
+@var{filter} is @code{t}, Emacs stops accepting output from the
+process, unless it's a network server process that listens for
+incoming connections.
 @end defun
 
 @defun process-filter process

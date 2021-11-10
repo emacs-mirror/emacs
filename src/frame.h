@@ -449,8 +449,8 @@ struct frame
   /* Non-zero if this frame's faces need to be recomputed.  */
   bool_bf face_change : 1;
 
-  /* Non-zero if this frame's image cache cannot be freed because the
-     frame is in the process of being redisplayed.  */
+  /* Non-zero if this frame's image cache and face cache cannot be
+     freed because the frame is in the process of being redisplayed.  */
   bool_bf inhibit_clear_image_cache : 1;
 
   /* True when new_width or new_height were set by change_frame_size,

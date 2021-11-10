@@ -244,7 +244,7 @@ by cycling through the faces in `hi-lock-face-defaults'."
   "String used to identify hi-lock patterns at the start of files.")
 
 (defvar hi-lock-archaic-interface-message-used nil
-  "True if user alerted that `global-hi-lock-mode' is now the global switch.
+  "Non-nil if user alerted that `global-hi-lock-mode' is now the global switch.
 Earlier versions of hi-lock used `hi-lock-mode' as the global switch;
 the message is issued if it appears that `hi-lock-mode' is used assuming
 that older functionality.  This variable avoids multiple reminders.")
@@ -344,9 +344,9 @@ which can be called interactively, are:
 When hi-lock is started and if the mode is not excluded or patterns
 rejected, the beginning of the buffer is searched for lines of the
 form:
-  Hi-lock: FOO
+  Hi-lock: (FOO ...)
 
-where FOO is a list of patterns.  The patterns must start before
+where (FOO ...) is a list of patterns.  The patterns must start before
 position \(number of characters into buffer)
 `hi-lock-file-patterns-range'.  Patterns will be read until
 Hi-lock: end is found.  A mode is excluded if it's in the list
@@ -818,7 +818,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
 		      (not (looking-at "\\s-*end")))
             (condition-case nil
                 (setq all-patterns (append (read (current-buffer)) all-patterns))
-              (error (message "Invalid pattern list expression at %d"
+              (error (message "Invalid pattern list expression at line %d"
                               (line-number-at-pos)))))))
       (when (and all-patterns
                  hi-lock-mode

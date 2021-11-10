@@ -1443,7 +1443,7 @@ details.
 
 However, what you really want is the Insidious Big Brother
 Database bbdb. Get it from
-@uref{http://bbdb.sourceforge.net/, bbdb's homepage}.
+@uref{http://bbdb.sourceforge.net/, bbdb's website}.
 Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
 @example
@@ -1559,7 +1559,7 @@ if you already use Gnus 5.10, if you still use 5.8.8 or
       "Request confirmation when replying to news."
       (interactive)
       (when (or (not (gnus-news-group-p gnus-newsgroup-name))
-                (y-or-n-p "Really reply by mail to article author? "))
+                (y-or-n-p "Really reply by mail to article author?"))
         ad-do-it))))
 @end example
 @noindent

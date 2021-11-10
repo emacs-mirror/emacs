@@ -76,10 +76,10 @@
 ;; should make sure your version does before including verbose addresses like
 ;; this.  One solution to this, if you are on a system whose /bin/mail doesn't
 ;; work that way, (and you still want to be able to /bin/mail to send mail in
-;; addition to emacs) is to define minimal aliases (without full names) in
+;; addition to Emacs) is to define minimal aliases (without full names) in
 ;; your .mailrc file, and use define-mail-abbrev to redefine them when sending
-;; mail from emacs; this way, mail sent from /bin/mail will work, and mail
-;; sent from emacs will be pretty.
+;; mail from Emacs; this way, mail sent from /bin/mail will work, and mail
+;; sent from Emacs will be pretty.
 ;;
 ;; Aliases in the mailrc file may be nested.  If you define aliases like
 ;;     alias group1 fred ethel
@@ -98,7 +98,7 @@
 ;; normally cannot contain hyphens, but this code works around that for the
 ;; specific case of mail-alias word-abbrevs.
 ;;
-;; To read in the contents of another .mailrc-type file from emacs, use the
+;; To read in the contents of another .mailrc-type file from Emacs, use the
 ;; command Meta-X merge-mail-abbrevs.  The rebuild-mail-abbrevs command is
 ;; similar, but will delete existing aliases first.
 ;;
@@ -363,7 +363,7 @@ double-quotes."
 
 (defun mail-resolve-all-aliases-1 (sym &optional so-far)
   (if (memq sym so-far)
-      (error "mail alias loop detected: %s"
+      (error "Mail alias loop detected: %s"
 	     (mapconcat #'symbol-name (cons sym so-far) " <- ")))
   (let ((definition (and (boundp sym) (symbol-value sym))))
     (if definition
@@ -388,7 +388,7 @@ double-quotes."
 (defun mail-abbrev-expand-hook ()
   "For use as the fourth arg to `define-abbrev'.
 After expanding a mail-abbrev, if Auto Fill mode is on and we're past the
-fill-column, break the line at the previous comma, and indent the next line
+`fill-column', break the line at the previous comma, and indent the next line
 with a space."
   (when auto-fill-function
     (let (p)

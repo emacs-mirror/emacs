@@ -190,7 +190,7 @@ the contents of strings."
   (buffer-enable-undo))
 
 (defcustom widget-menu-max-size 40
-  "Largest number of items allowed in a popup-menu.
+  "Largest number of items allowed in a popup menu.
 Larger menus are read through the minibuffer."
   :group 'widgets
   :type 'integer)
@@ -202,9 +202,8 @@ For a larger number of items, the minibuffer is used."
   :type 'integer)
 
 (defcustom widget-menu-minibuffer-flag nil
-  "Control how to ask for a choice from the keyboard.
-Non-nil means use the minibuffer;
-nil means read a single character."
+  "Non-nil means use the minibuffer; to ask for a choice from the keyboard.
+If nil, read a single character."
   :group 'widgets
   :type 'boolean)
 
@@ -3326,7 +3325,7 @@ It reads a file name from an editable text field."
 ;;;	 (file (file-name-nondirectory value))
 ;;;	 (menu-tag (widget-apply widget :menu-tag-get))
 ;;;	 (must-match (widget-get widget :must-match))
-;;;	 (answer (read-file-name (concat menu-tag " (default " value "): ")
+;;;	 (answer (read-file-name (format-prompt menu-tag value)
 ;;;				 dir nil must-match file)))
 ;;;    (widget-value-set widget (abbreviate-file-name answer))
 ;;;    (widget-setup)
@@ -3644,6 +3643,13 @@ match-alternatives: %S"
   :value 0
   :type-error "This field should contain an integer"
   :match-alternatives '(integerp))
+
+(define-widget 'natnum 'restricted-sexp
+  "A nonnegative integer."
+  :tag "Integer (positive or zero)"
+  :value 0
+  :type-error "This field should contain a nonnegative integer"
+  :match-alternatives '(natnump))
 
 (define-widget 'number 'restricted-sexp
   "A number (floating point or integer)."

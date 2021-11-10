@@ -1079,7 +1079,8 @@ a new window in the current frame, splitting vertically."
   ;; Make sure that redisplay is performed, otherwise there can be a
   ;; bad interaction with code in the window-scroll-functions hook
   (redisplay t)
-  (when (buffer-local-value 'ibuffer-auto-mode (window-buffer))
+  (when (with-current-buffer (window-buffer)
+          (eq major-mode 'ibuffer-mode))
     (fit-window-to-buffer
      nil (and owin
               (/ (frame-height)
@@ -1719,7 +1720,7 @@ If point is on a group name, this function operates on that group."
                             (ibuffer-buffer-name-face buffer mark))))
     (if (not (seq-position string ?\n))
         string
-      (replace-regexp-in-string
+      (string-replace
        "\n" (propertize "^J" 'font-lock-face 'escape-glyph) string))))
 
 (define-ibuffer-column size
@@ -2483,6 +2484,7 @@ Other commands:
   `\\[ibuffer-update]' - Regenerate the list of all buffers.
           Prefix arg means to toggle whether buffers that match
           `ibuffer-maybe-show-predicates' should be displayed.
+  `\\[ibuffer-auto-mode]' - Toggle automatic updates.
 
   `\\[ibuffer-switch-format]' - Change the current display format.
   `\\[forward-line]' - Move point to the next line.

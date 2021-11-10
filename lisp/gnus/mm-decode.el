@@ -649,7 +649,7 @@ MIME-Version header before proceeding."
 	      (setq description (mail-decode-encoded-word-string
 				 description)))))
       (if (or (not ctl)
-	      (not (string-match "/" (car ctl))))
+	      (not (string-search "/" (car ctl))))
 	  (mm-dissect-singlepart
 	   (list mm-dissect-default-type)
 	   (and cte (intern (downcase (mail-header-strip-cte cte))))
@@ -1676,8 +1676,7 @@ If RECURSIVE, search recursively."
 		    ((eq mm-decrypt-option 'never) nil)
 		    ((eq mm-decrypt-option 'always) t)
 		    ((eq mm-decrypt-option 'known) t)
-		    (t (y-or-n-p
-			(format "Decrypt (S/MIME) part? "))))
+		    (t (y-or-n-p "Decrypt (S/MIME) part? ")))
 		   (mm-view-pkcs7 parts from))
 	  (goto-char (point-min))
 	  ;; The encrypted document is a MIME part, and may use either
