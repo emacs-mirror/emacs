@@ -852,6 +852,9 @@ ifeq ($(DUMPING),unexec)
 else
 	@: In the pdumper case, make compile-first after the dump
 	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
+ifeq ($(DO_CODESIGN),yes)
+	codesign -s - -f bootstrap-emacs$(EXEEXT)
+endif
 endif
 
 ifeq ($(DUMPING),pdumper)
