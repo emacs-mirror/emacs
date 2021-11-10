@@ -248,6 +248,7 @@ representation as emojis.
 
 ** EIEIO
 
++++
 *** 'slot-value' can now be used to read slots of 'cl-defstruct' objects
 
 ** Tab Bars and Tab Lines
