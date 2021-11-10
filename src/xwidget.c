@@ -1375,6 +1375,8 @@ webkit_script_dialog_cb (WebKitWebView *webview,
   GtkWidget *dialog;
   GtkWidget *entry;
   GtkWidget *content_area;
+  GtkWidget *box;
+  GtkWidget *label;
   const gchar *content;
   const gchar *message;
   gint result;
@@ -1390,23 +1392,32 @@ webkit_script_dialog_cb (WebKitWebView *webview,
   content = webkit_script_dialog_get_message (script_dialog);
 
   if (type == WEBKIT_SCRIPT_DIALOG_ALERT)
-    dialog = gtk_dialog_new_with_buttons (content, GTK_WINDOW (widget),
+    dialog = gtk_dialog_new_with_buttons ("Alert", GTK_WINDOW (widget),
 					  GTK_DIALOG_MODAL,
 					  "Dismiss", 1, NULL);
   else
-    dialog = gtk_dialog_new_with_buttons (content, GTK_WINDOW (widget),
+    dialog = gtk_dialog_new_with_buttons ("Question", GTK_WINDOW (widget),
 					  GTK_DIALOG_MODAL,
 					  "OK", 0, "Cancel", 1, NULL);
+
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
+  label = gtk_label_new (content);
+  content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+  gtk_container_add (GTK_CONTAINER (content_area), box);
+
+  gtk_widget_show (box);
+  gtk_widget_show (label);
+
+  gtk_box_pack_start (GTK_BOX (box), label, TRUE, TRUE, 0);
 
   if (type == WEBKIT_SCRIPT_DIALOG_PROMPT)
     {
       entry = gtk_entry_new ();
       message = webkit_script_dialog_prompt_get_default_text (script_dialog);
-      content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
 
       gtk_widget_show (entry);
       gtk_entry_set_text (GTK_ENTRY (entry), message);
-      gtk_container_add (GTK_CONTAINER (content_area), entry);
+      gtk_box_pack_end (GTK_BOX (box), entry, TRUE, TRUE, 0);
     }
 
   result = gtk_dialog_run (GTK_DIALOG (dialog));
