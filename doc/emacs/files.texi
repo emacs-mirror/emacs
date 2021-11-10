@@ -1476,8 +1476,8 @@ characters that don't match.  Then the command exits.
   If point in the two windows is followed by non-matching text when
 the command starts, @kbd{M-x compare-windows} tries heuristically to
 advance up to matching text in the two windows, and then exits.  So if
-you use @kbd{M-x compare-windows} repeatedly, each time it either
-skips one matching range or finds the start of another.
+you use @kbd{M-x compare-windows} repeatedly (@pxref{Repeating}), each
+time it either skips one matching range or finds the start of another.
 
 @vindex compare-ignore-case
 @vindex compare-ignore-whitespace
