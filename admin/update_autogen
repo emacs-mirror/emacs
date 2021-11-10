@@ -248,7 +248,7 @@ info_dir ()
     rm -f $outfile
     cp $basefile $outfile
 
-    local topic file dircat dirent
+    local topic file dircat
 
     ## FIXME inefficient looping.
     for topic in "Texinfo documentation system" "Emacs" "GNU Emacs Lisp" \
@@ -291,8 +291,6 @@ EOF
 
 
 [ "$autogendir" ] && {
-
-    oldpwd=$PWD
 
     cp $genfiles $autogendir/
 
