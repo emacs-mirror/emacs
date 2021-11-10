@@ -900,7 +900,8 @@ With argument, add COUNT copies of CHAR."
   (let ((was-reverse xwidget-webkit-isearch--is-reverse))
     (setq xwidget-webkit-isearch--is-reverse nil)
     (when was-reverse
-      (xwidget-webkit-isearch--update)))
+      (xwidget-webkit-isearch--update)
+      (setq count (1- count))))
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-next-result (xwidget-webkit-current-session))
@@ -913,7 +914,8 @@ With argument, add COUNT copies of CHAR."
   (let ((was-reverse xwidget-webkit-isearch--is-reverse))
     (setq xwidget-webkit-isearch--is-reverse t)
     (unless was-reverse
-      (xwidget-webkit-isearch--update)))
+      (xwidget-webkit-isearch--update)
+      (setq count (1- count))))
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-previous-result (xwidget-webkit-current-session))
