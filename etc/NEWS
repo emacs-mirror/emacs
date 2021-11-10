@@ -1533,16 +1533,6 @@ When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 ---
-*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
-The interactive bookmark list will now benefit from features in
-'tabulated-list-mode' like sorting columns or changing column width.
-
-Support for the optional "inline" header line, allowing for a header
-without using 'header-line-format', has been dropped.  Consequently,
-the variables 'bookmark-bmenu-use-header-line' and
-'bookmark-bmenu-inline-header-height' are now declared obsolete.
-
----
 *** New user option 'bookmark-set-fringe-mark'.
 If non-nil, setting a bookmark will set a fringe mark on the current
 line, and jumping to a bookmark will also set this mark.
@@ -1554,6 +1544,16 @@ confirmation when you type 'x' to execute the deletion of bookmarks
 that have been marked for deletion.  However, if this new option is
 non-nil then Emacs will require confirmation with 'yes-or-no-p' before
 deleting.
+
+---
+*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a
+header without using 'header-line-format', has been dropped.
+The variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now obsolete.
 
 ** Recentf
 
