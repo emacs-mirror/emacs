@@ -153,6 +153,18 @@ If NAME is nil or the empty string, a name will be auto-generated."
     (insert "Name: " name "\n\n")
     (insert "=-=\n")))
 
+(defun erts-mode--preceding-spec (name)
+  (save-excursion
+    ;; Find the name, but skip if it's in a test.
+    (while (and (re-search-backward (format "^%s:" name)  nil t)
+                (erts-mode--in-test-p (point))))
+    (and (not (erts-mode--in-test-p (point)))
+         (re-search-forward "^=-=$" nil t)
+         (progn
+           (goto-char (match-beginning 0))
+           (cdr (assq (intern (downcase name))
+                      (ert--erts-specifications (point))))))))
+
 (defun erts-run-test (test-function &optional verbose)
   "Run the current test.
 If the current erts file doesn't define a test function, the user
@@ -161,16 +173,8 @@ will be prompted for one.
 If VERBOSE (interactively, the prefix), display a diff of the
 expected results and the actual results in a separate buffer."
   (interactive
-   (list (save-excursion
-           ;; Find the preceding Code spec.
-           (while (and (re-search-backward "^Code:" nil t)
-                       (erts-mode--in-test-p (point))))
-           (if (and (not (erts-mode--in-test-p (point)))
-                    (re-search-forward "^=-=$" nil t))
-               (progn
-                 (goto-char (match-beginning 0))
-                 (cdr (assq 'code (ert--erts-specifications (point)))))
-             (read-string "Transformation function: ")))
+   (list (or (erts-mode--preceding-spec "Code")
+             (read-string "Transformation function: "))
          current-prefix-arg)
    erts-mode)
   (save-excursion
@@ -178,7 +182,8 @@ expected results and the actual results in a separate buffer."
     (condition-case arg
         (ert-test--erts-test
          (list (cons 'dummy t)
-               (cons 'code (car (read-from-string test-function))))
+               (cons 'code (car (read-from-string test-function)))
+               (cons 'point-char (erts-mode--preceding-spec "Point-Char")))
          (buffer-file-name))
       (:success (message "Test successful"))
       (ert-test-failed
