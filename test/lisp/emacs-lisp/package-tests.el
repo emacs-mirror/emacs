@@ -367,7 +367,7 @@ but with a different end of line convention (bug#48137)."
           (let ((load-path load-path))
             (add-to-list 'load-path (directory-file-name dir))
             (byte-recompile-directory dir 0 t)
-            (mapc (lambda (f) (rename-file f (concat f ".gz")))
+            (mapc (lambda (f) (call-process "gzip" nil nil nil f))
                   (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
             (require 'macro-builtin)
             (should (member (expand-file-name "macro-builtin-aux.elc" dir)
@@ -382,7 +382,7 @@ but with a different end of line convention (bug#48137)."
             (should (equal (macro-builtin-10-and-90) '(10 90))))
         (mapc #'delete-file
               (directory-files-recursively dir "\\`[^\\.].*\\.elc\\'"))
-        (mapc (lambda (f) (rename-file f (file-name-sans-extension f)))
+        (mapc (lambda (f) (call-process "gunzip" nil nil nil f))
               (directory-files-recursively dir "\\`[^\\.].*\\.el.gz\\'"))))))
 
 (ert-deftest package-test-install-two-dependencies ()
