@@ -2246,7 +2246,7 @@ and @code{file-name-nondirectory}.  For example,
 
 @defun file-name-split filename
 This function splits a file name into its components, and can be
-thought of as the inverse of @code{string-joing} with the appropriate
+thought of as the inverse of @code{string-join} with the appropriate
 directory separator.  For example,
 
 @example
