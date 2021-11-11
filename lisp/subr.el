@@ -2042,7 +2042,7 @@ performance impact when running `add-hook' and `remove-hook'."
       (when (or (get hook 'hook--depth-alist) (not (zerop depth)))
         ;; Note: The main purpose of the above `when' test is to avoid running
         ;; this `setf' before `gv' is loaded during bootstrap.
-        (push (cons function depth) (get hook 'hook--depth-alist)))
+        (setf (alist-get function (get hook 'hook--depth-alist) 0) depth))
       (setq hook-value
 	    (if (< 0 depth)
 		(append hook-value (list function))
