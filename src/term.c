@@ -4155,7 +4155,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	/* Fall back to xterm+direct (semicolon version) if Tc is set
 	   (de-facto standard introduced by tmux) or if	requested by
 	   the COLORTERM environment variable.  */
-	else if ((tigetflag ("Tc") != -1)
+	else if ((tigetflag ("Tc") > 0)
 		 || ((bg = getenv ("COLORTERM")) != NULL
 		     && strcasecmp (bg, "truecolor") == 0))
 	  {
