@@ -393,6 +393,8 @@ FILE's name."
     (concat ";;; " basename
             " --- automatically extracted " (or type "autoloads")
             "  -*- lexical-binding: t -*-\n"
+            (when (equal basename "loaddefs.el")
+              ";; This file will be copied to ldefs-boot.el and checked in periodically.\n")
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    (if lp
