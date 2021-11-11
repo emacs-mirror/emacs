@@ -1669,6 +1669,16 @@ default values are used."
 
 (put #'tramp-dissect-file-name 'tramp-suppress-trace t)
 
+(defun tramp-ensure-dissected-file-name (vec-or-filename)
+  "Return a `tramp-file-name' structure for VEC-OR-FILENAME.
+
+VEC-OR-FILENAME may be either a string or a `tramp-file-name'.
+If it's not a Tramp filename, return nil."
+  (cond
+   ((tramp-file-name-p vec-or-filename) vec-or-filename)
+   ((tramp-tramp-file-p vec-or-filename)
+    (tramp-dissect-file-name vec-or-filename))))
+
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
 See `tramp-dissect-file-name' for details."
@@ -2552,11 +2562,14 @@ Must be handled by the callers."
   "Return foreign file name handler if exists."
   (when (tramp-tramp-file-p filename)
     (let ((handler tramp-foreign-file-name-handler-alist)
+          (vec (tramp-dissect-file-name filename))
 	  elt res)
       (while handler
 	(setq elt (car handler)
 	      handler (cdr handler))
-	(when (funcall (car elt) filename)
+        ;; Previously, this function was called with FILENAME, but now
+        ;; it's called with the VEC.
+        (when (with-demoted-errors "Error: %S" (funcall (car elt) vec))
 	  (setq handler nil
 		res (cdr elt))))
       res)))
@@ -2755,8 +2768,9 @@ remote file names."
 (defun tramp-register-foreign-file-name-handler
     (func handler &optional append)
   "Register (FUNC . HANDLER) in `tramp-foreign-file-name-handler-alist'.
-FUNC is the function, which determines whether HANDLER is to be called.
-Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
+FUNC is the function, which takes a dissected filename and determines
+whether HANDLER is to be called.  Add operations defined in
+`HANDLER-alist' to `tramp-file-name-handler'."
   (add-to-list
    'tramp-foreign-file-name-handler-alist `(,func . ,handler) append)
   ;; Mark `operations' the handler is responsible for.
@@ -2814,11 +2828,7 @@ They are completed by \"M-x TAB\" only if the current buffer is remote."
 This is true, if either the remote host is already connected, or if we are
 not in completion mode."
   (let ((tramp-verbose 0)
-	(vec
-	 (cond
-	  ((tramp-file-name-p vec-or-filename) vec-or-filename)
-	  ((tramp-tramp-file-p vec-or-filename)
-	   (tramp-dissect-file-name vec-or-filename)))))
+	(vec (tramp-ensure-dissected-file-name vec-or-filename)))
     (or ;; We check this for the process related to
 	;; `tramp-buffer-name'; otherwise `start-file-process'
 	;; wouldn't run ever when `non-essential' is non-nil.

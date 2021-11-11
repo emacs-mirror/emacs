@@ -148,11 +148,10 @@ See `tramp-actions-before-shell' for more info.")
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-sudoedit-file-name-p (filename)
-  "Check if it's a FILENAME for SUDOEDIT."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-sudoedit-method)))
+(defsubst tramp-sudoedit-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for SUDOEDIT."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-sudoedit-method)))
 
 ;;;###tramp-autoload
 (defun tramp-sudoedit-file-name-handler (operation &rest args)

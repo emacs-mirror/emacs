@@ -330,11 +330,10 @@ This can be used to disable echo etc."
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-smb-file-name-p (filename)
-  "Check if it's a FILENAME for SMB servers."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-smb-method)))
+(defsubst tramp-smb-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for SMB servers."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-smb-method)))
 
 ;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)

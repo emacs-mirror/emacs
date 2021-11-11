@@ -191,11 +191,10 @@ It is used for TCP/IP devices."
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-adb-file-name-p (filename)
-  "Check if it's a FILENAME for ADB."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-adb-method)))
+(defsubst tramp-adb-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for ADB."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-adb-method)))
 
 ;;;###tramp-autoload
 (defun tramp-adb-file-name-handler (operation &rest args)

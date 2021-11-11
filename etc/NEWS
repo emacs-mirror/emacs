@@ -533,6 +533,12 @@ to multibyte first.  (This goes for the other case-changing functions,
 too.)
 
 ---
+** Functions in 'tramp-foreign-file-name-handler-alist' have changed.
+Functions to determine which Tramp file name handler to use are now
+passed a file name in dissected form (via 'tramp-dissect-file-name')
+instead of in string form.
+
+---
 ** 'def' indentation changes.
 In 'emacs-lisp-mode', forms with a symbol with a name that start with
 "def" have been automatically indented as if they were 'defun'-like

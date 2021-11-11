@@ -156,11 +156,10 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-rclone-file-name-p (filename)
-  "Check if it's a FILENAME for rclone."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-rclone-method)))
+(defsubst tramp-rclone-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for rclone."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-rclone-method)))
 
 ;;;###tramp-autoload
 (defun tramp-rclone-file-name-handler (operation &rest args)

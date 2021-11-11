@@ -834,12 +834,11 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-gvfs-file-name-p (filename)
-  "Check if it's a FILENAME handled by the GVFS daemon."
-  (and (tramp-tramp-file-p filename)
-       (let ((method
-	      (tramp-file-name-method (tramp-dissect-file-name filename))))
-	 (and (stringp method) (member method tramp-gvfs-methods)))))
+(defsubst tramp-gvfs-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME handled by the GVFS daemon."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (let ((method (tramp-file-name-method vec)))
+      (and (stringp method) (member method tramp-gvfs-methods)))))
 
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
