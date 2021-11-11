@@ -386,14 +386,17 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'file-name-concat)
       #'file-name-concat
     (lambda (directory &rest components)
-      (unless (null directory)
-	(let ((components (delq nil components))
-	      file-name-handler-alist)
-	  (if (null components)
-	      directory
-	    (tramp-compat-file-name-concat
-	     (concat (file-name-as-directory directory) (car components))
-	     (cdr components))))))))
+      (let ((components (cl-remove-if (lambda (el)
+                                        (or (null el) (equal "" el)))
+                                      components))
+	    file-name-handler-alist)
+        (if (null components)
+	    directory
+          (apply #'tramp-compat-file-name-concat
+	         (concat (unless (or (equal "" directory) (null directory))
+                           (file-name-as-directory directory))
+                         (car components))
+	         (cdr components)))))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
