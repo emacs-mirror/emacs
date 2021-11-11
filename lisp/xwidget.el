@@ -100,7 +100,8 @@ This returns the result of `make-xwidget'."
   "Template for naming `xwidget-webkit' buffers.
 It can use the following special constructs:
 
-  %T -- the title of the Web page loaded by the xwidget."
+  %T -- the title of the Web page loaded by the xwidget.
+  %U -- the URI of the Web page loaded by the xwidget."
   :type 'string
   :version "29.1")
 
@@ -362,7 +363,8 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
       (xwidget-log
        "error: callback called for xwidget with dead buffer")
     (cond ((eq xwidget-event-type 'load-changed)
-           (let ((title (xwidget-webkit-title xwidget)))
+           (let ((title (xwidget-webkit-title xwidget))
+                 (uri (xwidget-webkit-uri xwidget)))
              ;; This funciton will be called multi times, so only
              ;; change buffer name when the load actually completes
              ;; this can limit buffer-name flicker in mode-line.
@@ -379,7 +381,8 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                  (rename-buffer
                   (format-spec
                    xwidget-webkit-buffer-name-format
-                   `((?T . ,title)))
+                   `((?T . ,title)
+                     (?U . ,uri)))
                   t)))))
           ((eq xwidget-event-type 'decide-policy)
            (let ((strarg  (nth 3 last-input-event)))
