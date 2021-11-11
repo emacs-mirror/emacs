@@ -49,7 +49,10 @@ time.
 ** Terminal Emacs
 
 ---
-*** Emacs will now use 24-bit colors on terminal that support "Tc".
+*** Emacs will now use 24-bit colors on terminals that support "Tc" capability.
+This is in addition to previously-supported ways of discovering 24-bit
+color support: either via the "RGB" or "setf24" capabilities, or if
+the COLORTERM environment variable is set to the value "truecolor".
 
 ** Emoji
 
