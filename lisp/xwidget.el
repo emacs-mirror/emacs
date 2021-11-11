@@ -762,7 +762,8 @@ Return the buffer."
   "Goto URL with xwidget webkit."
   (if (xwidget-webkit-current-session)
       (progn
-        (xwidget-webkit-goto-uri (xwidget-webkit-current-session) url))
+        (xwidget-webkit-goto-uri (xwidget-webkit-current-session) url)
+        (switch-to-buffer (xwidget-buffer (xwidget-webkit-current-session))))
     (xwidget-webkit-new-session url)))
 
 (defun xwidget-webkit-back ()
