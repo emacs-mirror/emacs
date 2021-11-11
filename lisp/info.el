@@ -1792,7 +1792,46 @@ of NODENAME; if none is found it then tries a case-insensitive match
       (if trim (setq nodename (substring nodename 0 trim))))
     (if transient-mark-mode (deactivate-mark))
     (Info-find-node (if (equal filename "") nil filename)
-		    (if (equal nodename "") "Top" nodename) nil strict-case)))
+                    (if (equal nodename "") "Top" nodename) nil strict-case)))
+
+(defun Info-goto-node-web (node)
+  "Use `browse-url' to go to the gnu.org web server's version of NODE.
+By default, go to the current Info node."
+  (interactive (list (Info-read-node-name
+                      "Go to node (default current page): " Info-current-node))
+               Info-mode)
+  (browse-url-button-open-url
+   (Info-url-for-node (format "(%s)%s" (file-name-sans-extension
+                                        (file-name-nondirectory
+                                         Info-current-file))
+                              node))))
+
+(defun Info-url-for-node (node)
+  "Return a URL for NODE, a node in the GNU Emacs or Elisp manual.
+NODE should be a string on the form \"(manual)Node\".  Only emacs
+and elisp manuals are supported."
+  (unless (string-match "\\`(\\(.+\\))\\(.+\\)\\'" node)
+    (error "Invalid node name %s" node))
+  (let ((manual (match-string 1 node))
+        (node (match-string 2 node)))
+    (unless (member manual '("emacs" "elisp"))
+      (error "Only emacs/elisp manuals are supported"))
+    ;; Encode a bunch of characters the way that makeinfo does.
+    (setq node
+          (mapconcat (lambda (ch)
+                       (if (or (< ch 32)        ; ^@^A-^Z^[^\^]^^^-
+                               (<= 33 ch 47)    ; !"#$%&'()*+,-./
+                               (<= 58 ch 64)    ; :;<=>?@
+                               (<= 91 ch 96)    ; [\]_`
+                               (<= 123 ch 127)) ; {|}~ DEL
+                           (format "_00%x" ch)
+                         (char-to-string ch)))
+                     node
+                     ""))
+    (concat "https://www.gnu.org/software/emacs/manual/html_node/"
+            manual "/"
+            (url-hexify-string (string-replace " " "-" node))
+            ".html")))
 
 (defvar Info-read-node-completion-table)
 
@@ -1877,7 +1916,7 @@ See `completing-read' for a description of arguments and usage."
        code Info-read-node-completion-table string predicate))))
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
-(defun Info-read-node-name (prompt)
+(defun Info-read-node-name (prompt &optional default)
   "Read an Info node name with completion, prompting with PROMPT.
 A node name can have the form \"NODENAME\", referring to a node
 in the current Info file, or \"(FILENAME)NODENAME\", referring to
@@ -1885,7 +1924,8 @@ a node in FILENAME.  \"(FILENAME)\" is a short format to go to
 the Top node in FILENAME."
   (let* ((completion-ignore-case t)
 	 (Info-read-node-completion-table (Info-build-node-completions))
-	 (nodename (completing-read prompt #'Info-read-node-name-1 nil t)))
+         (nodename (completing-read prompt #'Info-read-node-name-1 nil t nil
+                                    'Info-minibuf-history default)))
     (if (equal nodename "")
 	(Info-read-node-name prompt)
       nodename)))
@@ -4067,6 +4107,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "T" 'Info-toc)
     (define-key map "u" 'Info-up)
     ;; `w' for consistency with `dired-copy-filename-as-kill'.
+    (define-key map "W" 'Info-goto-node-web)
     (define-key map "w" 'Info-copy-current-node-name)
     (define-key map "c" 'Info-copy-current-node-name)
     ;; `^' for consistency with `dired-up-directory'.
