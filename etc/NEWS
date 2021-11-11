@@ -454,8 +454,9 @@ This is a convenience function to extract the field data from
 ** Xwidgets
 
 ---
-*** New user option 'xwidget-webkit-buffer-name-prefix'.
-This allows the user to change the webkit buffer names.
+*** New user option 'xwidget-webkit-buffer-name-format'.
+Using this option you can control how the xwidget-webkit buffers are
+named.
 
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.

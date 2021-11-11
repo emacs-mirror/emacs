@@ -33,6 +33,7 @@
 
 (require 'cl-lib)
 (require 'bookmark)
+(require 'format-spec)
 
 (declare-function make-xwidget "xwidget.c"
                   (type title width height arguments &optional buffer related))
@@ -95,8 +96,11 @@ This returns the result of `make-xwidget'."
   :group 'web
   :prefix "xwidget-webkit-")
 
-(defcustom xwidget-webkit-buffer-name-prefix "*xwidget-webkit: "
-  "Buffer name prefix used by `xwidget-webkit' buffers."
+(defcustom xwidget-webkit-buffer-name-format "*xwidget-webkit: %T*"
+  "Template for naming `xwidget-webkit' buffers.
+It can use the following special constructs:
+
+  %T -- the title of the Web page loaded by the xwidget."
   :type 'string
   :version "29.1")
 
@@ -372,9 +376,11 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                  ;; Do not adjust webkit size to window here, the
                  ;; selected window can be the mini-buffer window
                  ;; unwantedly.
-                 (rename-buffer (concat xwidget-webkit-buffer-name-prefix
-                                        title "*")
-                                t)))))
+                 (rename-buffer
+                  (format-spec
+                   xwidget-webkit-buffer-name-format
+                   `((?T . ,title)))
+                  t)))))
           ((eq xwidget-event-type 'decide-policy)
            (let ((strarg  (nth 3 last-input-event)))
              (if (string-match ".*#\\(.*\\)" strarg)
