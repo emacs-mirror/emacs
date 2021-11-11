@@ -1791,24 +1791,26 @@ only these files will be asked to be saved."
 
 ;;;###autoload
 (defun server-stop-automatically (arg)
-  "Automatically stop server when possible.
+  "Automatically stop server as specified by ARG.
 
-When ARG is 'empty, the server is stopped when it has no remaining
-clients, no remaining unsaved file-visiting buffers, and no
-running processes with a query-on-exit flag.
+If ARG is the symbol `empty', stop the server when it has no
+remaining clients, no remaining unsaved file-visiting buffers,
+and no running processes with a `query-on-exit' flag.
 
-When ARG is 'delete-frame, the user is asked when the last frame is
-being closed whether each unsaved file-visiting buffer must be
-saved and each running process with a query-on-exit flag can be
-stopped, and if so, the server itself is stopped.
+If ARG is the symbol `delete-frame', ask the user when the last
+frame is deleted whether each unsaved file-visiting buffer must
+be saved and each running process with a `query-on-exit' flag
+can be stopped, and if so, stop the server itself.
 
-When ARG is 'kill-terminal, the user is asked when the last frame
-is being close with \\[save-buffers-kill-terminal] \
+If ARG is the symbol `kill-terminal', ask the user when the
+terminal is killed with \\[save-buffers-kill-terminal] \
 whether each unsaved file-visiting
-buffer must be saved and each running process with a query-on-exit
-flag can be stopped, and if so, the server itself is stopped.
+buffer must be saved and each running process with a `query-on-exit'
+flag can be stopped, and if so, stop the server itself.
 
-This function is meant to be put in init files."
+Any other value of ARG will cause this function to signal an error.
+
+This function is meant to be called from the user init file."
   (when (daemonp)
     (setq server-stop-automatically arg)
     (cond
