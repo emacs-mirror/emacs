@@ -343,7 +343,7 @@ are also supported; unsupported long options are silently ignored."
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
 	  (when (re-search-forward "^total" nil t)
-	    (let ((available (get-free-disk-space ".")))
+	    (let ((available (get-free-disk-space orig-file)))
 	      (when available
 		;; Replace "total" with "total used", to avoid confusion.
 		(replace-match "total used in directory")

@@ -1531,10 +1531,13 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      (write-file temp-file-name)
-      (erase-buffer)
-      (insert files-tests-tzu)
-      (revert-buffer t t t)
+      ;; Disable lock files, since that barfs in
+      ;; userlock--check-content-unchanged on MS-Windows.
+      (let (create-lockfiles)
+        (write-file temp-file-name)
+        (erase-buffer)
+        (insert files-tests-tzu)
+        (revert-buffer t t t))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1544,10 +1547,13 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      (write-file temp-file-name)
-      (erase-buffer)
-      (insert files-tests-tzu)
-      (should (revert-buffer-with-fine-grain t t))
+      ;; Disable lock files, since that barfs in
+      ;; userlock--check-content-unchanged on MS-Windows.
+      (let (create-lockfiles)
+        (write-file temp-file-name)
+        (erase-buffer)
+        (insert files-tests-tzu)
+        (should (revert-buffer-with-fine-grain t t)))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
