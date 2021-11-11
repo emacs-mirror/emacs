@@ -6595,7 +6595,8 @@ acl_get_file (const char *fname, acl_type_t type)
 		  xfree (psd);
 		  err = GetLastError ();
 		  if (err == ERROR_NOT_SUPPORTED
-		      || err == ERROR_ACCESS_DENIED)
+		      || err == ERROR_ACCESS_DENIED
+		      || err == ERROR_INVALID_FUNCTION)
 		    errno = ENOTSUP;
 		  else if (err == ERROR_FILE_NOT_FOUND
 			   || err == ERROR_PATH_NOT_FOUND
@@ -6614,10 +6615,11 @@ acl_get_file (const char *fname, acl_type_t type)
 		   || err == ERROR_INVALID_NAME)
 	    errno = ENOENT;
 	  else if (err == ERROR_NOT_SUPPORTED
-		   /* ERROR_ACCESS_DENIED is what we get for a volume
-		      mounted by WebDAV, which evidently doesn't
-		      support ACLs.  */
-		   || err == ERROR_ACCESS_DENIED)
+		   /* ERROR_ACCESS_DENIED or ERROR_INVALID_FUNCTION is
+		      what we get for a volume mounted by WebDAV,
+		      which evidently doesn't support ACLs.  */
+		   || err == ERROR_ACCESS_DENIED
+		   || err == ERROR_INVALID_FUNCTION)
 	    errno = ENOTSUP;
 	  else
 	    errno = EIO;
