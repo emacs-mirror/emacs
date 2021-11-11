@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "buffer.h"
+#include "coding.h"
 #include "xwidget.h"
 
 #include "lisp.h"
@@ -2444,6 +2445,99 @@ to "about:blank".  */)
 
   return Qnil;
 }
+
+DEFUN ("xwidget-webkit-back-forward-list", Fxwidget_webkit_back_forward_list,
+       Sxwidget_webkit_back_forward_list, 1, 2, 0,
+       doc: /* Return the navigation history of XWIDGET, a WebKit xwidget.
+
+Return the history as a list of the form (BACK HERE FORWARD), where
+HERE is the current navigation item, while BACK and FORWARD are lists
+of history items of the form (IDX TITLE URI).  Here, IDX is an index
+that can be passed to `xwidget-webkit-goto-history', TITLE is a string
+containing the human-readable title of the history item, and URI is
+the URI of the history item.
+
+BACK, HERE, and FORWARD can all be nil depending on the state of the
+navigation history.
+
+BACK and FORWARD will each not contain more elements than LIMIT.  If
+LIMIT is not specified or nil, it is treated as `50'.  */)
+  (Lisp_Object xwidget, Lisp_Object limit)
+{
+  struct xwidget *xw;
+  Lisp_Object back, here, forward;
+  WebKitWebView *webview;
+  WebKitBackForwardList *list;
+  WebKitBackForwardListItem *item;
+  GList *parent, *tem;
+  int i;
+  unsigned int lim;
+  Lisp_Object title, uri;
+  const gchar *item_title, *item_uri;
+
+  back = Qnil;
+  here = Qnil;
+  forward = Qnil;
+
+  if (NILP (limit))
+    limit = make_fixnum (50);
+  else
+    CHECK_FIXNAT (limit);
+
+  CHECK_LIVE_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  list = webkit_web_view_get_back_forward_list (webview);
+  item = webkit_back_forward_list_get_current_item (list);
+  lim = XFIXNAT (limit);
+
+  if (item)
+    {
+      item_title = webkit_back_forward_list_item_get_title (item);
+      item_uri = webkit_back_forward_list_item_get_uri (item);
+      here = list3 (make_fixnum (0),
+		    build_string_from_utf8 (item_title ? item_title : ""),
+		    build_string_from_utf8 (item_uri ? item_uri : ""));
+    }
+  parent = webkit_back_forward_list_get_back_list_with_limit (list, lim);
+
+  if (parent)
+    {
+      for (i = 1, tem = parent; parent; parent = parent->next, ++i)
+	{
+	  item = tem->data;
+	  item_title = webkit_back_forward_list_item_get_title (item);
+	  item_uri = webkit_back_forward_list_item_get_uri (item);
+	  title = build_string_from_utf8 (item_title ? item_title : "");
+	  uri = build_string_from_utf8 (item_uri ? item_uri : "");
+	  back = Fcons (list3 (make_fixnum (-i), title, uri), back);
+	}
+    }
+
+  back = Fnreverse (back);
+  g_list_free (parent);
+
+  parent = webkit_back_forward_list_get_forward_list_with_limit (list, lim);
+
+  if (parent)
+    {
+      for (i = 1, tem = parent; parent; parent = parent->next, ++i)
+	{
+	  item = tem->data;
+	  item_title = webkit_back_forward_list_item_get_title (item);
+	  item_uri = webkit_back_forward_list_item_get_uri (item);
+	  title = build_string_from_utf8 (item_title ? item_title : "");
+	  uri = build_string_from_utf8 (item_uri ? item_uri : "");
+	  forward = Fcons (list3 (make_fixnum (i), title, uri), forward);
+	}
+    }
+
+  forward = Fnreverse (forward);
+  g_list_free (parent);
+
+  return list3 (back, here, forward);
+}
 #endif
 
 void
@@ -2488,6 +2582,7 @@ syms_of_xwidget (void)
   defsubr (&Sset_xwidget_buffer);
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
+  defsubr (&Sxwidget_webkit_back_forward_list);
 #endif
   defsubr (&Skill_xwidget);
 

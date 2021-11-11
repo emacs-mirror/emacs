@@ -782,6 +782,11 @@ Some new functions, such as 'xwidget-webkit-search', have been added
 for performing searches on WebKit xwidgets.
 
 +++
+*** New function 'xwidget-webkit-back-forward-list'.
+This function is used to obtain the history of page-loads in a given
+WebKit xwidget.
+
++++
 *** 'load-changed' xwidget events are now more detailed.
 In particular, they can now have different arguments based on the
 state of the WebKit widget.  'load-finished' is sent when a load has

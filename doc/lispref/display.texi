@@ -6971,6 +6971,39 @@ the absolute location of the web resources referenced by @var{text},
 to be used for resolving relative links in @var{text}.
 @end defun
 
+@defun xwidget-webkit-goto-history xwidget rel-pos
+Make @var{xwidget}, a WebKit widget, load the @var{rel-pos}th element
+in its navigation history.
+
+If @var{rel-pos} is zero, the current page will be reloaded instead.
+@end defun
+
+@defun xwidget-webkit-back-forward-list xwidget &optional limit
+Return the navigation history of @var{xwidget}, up to @var{limit}
+items in each direction.  If not specified, @var{limit} defaults to
+50.
+
+The returned value is a list of the form @w{@code{(@var{back}
+@var{here} @var{forward})}}, where @var{here} is the current
+navigation item, while @var{back} is a list of items containing the
+items recorded by WebKit before the current navigation item, and
+@var{forward} is a list of items recorded after the current navigation
+item.  @var{back}, @var{here} and @var{forward} can all be @code{nil}.
+
+When @var{here} is @code{nil}, it means that no items have been
+recorded yet; if @var{back} or @var{forward} are @code{nil}, it means
+that there is no history recorded before or after the current item
+respectively.
+
+Navigation items are themselves lists of the form @w{@code{(@var{idx}
+@var{title} @var{uri})}}.  In these lists, @var{idx} is an index that
+can be passed to @code{xwidget-webkit-goto-history}, @var{title} is
+the human-readable title of the item, and @var{uri} is the URI of the
+item.  The user should normally have no reason to load @var{uri}
+manually to reach a specific history item.  Instead, @var{idx} should
+be passed as an index to @code{xwidget-webkit-goto-history}.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers
