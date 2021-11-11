@@ -3504,7 +3504,6 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   struct face *face = p->face;
 
   cairo_t *cr = pgtk_begin_cr_clip (f);
-  cairo_save (cr);
 
   /* Must clip because of partially visible lines.  */
   pgtk_clip_to_row (w, row, ANY_AREA, cr);
@@ -3546,7 +3545,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			  p->wd, p->h, p->x, p->y, p->overlay_p);
     }
 
-  cairo_restore (cr);
+  pgtk_end_cr_clip(f);
 }
 
 static struct atimer *hourglass_atimer = NULL;
