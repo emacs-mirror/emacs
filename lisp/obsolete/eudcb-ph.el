@@ -176,9 +176,7 @@ SERVER is either a string naming the server or a list (NAME PORT)."
       (setq eudc-ph-process-buffer (get-buffer-create (format " *PH-%s*" host)))
       (with-current-buffer eudc-ph-process-buffer
 	(erase-buffer)
-	(setq eudc-ph-read-point (point))
-	(and (featurep 'xemacs) (featurep 'mule)
-	     (set-buffer-file-coding-system 'binary t)))
+        (setq eudc-ph-read-point (point)))
       (setq process (open-network-stream "ph" eudc-ph-process-buffer host port))
       (if (null process)
 	  (throw 'done nil))

@@ -145,6 +145,14 @@ This can be either \"inline\" or \"attachment\".")
      ,#'mm-uu-pgp-key-extract
      ,#'mm-uu-gpg-key-skip-to-last
      nil)
+    (markdown-emacs-sources
+     "^```\\(?:elisp\\|emacs-lisp\\|\n(\\)"
+     "^```$"
+     ,#'mm-uu-emacs-sources-extract)
+    (markdown-diff ;; this should be higher than `git-format-patch'
+     "^```\\(?:diff\\|patch\\|\ndiff --git \\)"
+     "^```$"
+     ,#'mm-uu-diff-extract)
     (emacs-sources
      "^;;;?[ \t]*[^ \t]+\\.el[ \t]*--"
      "^;;;?[ \t]*\\([^ \t]+\\.el\\)[ \t]+ends here"

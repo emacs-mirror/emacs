@@ -5373,6 +5373,10 @@ DEFUN ("display-supports-face-attributes-p",
 The optional argument DISPLAY can be a display name, a frame, or
 nil (meaning the selected frame's display).
 
+For instance, to check whether the display supports underlining:
+
+  (display-supports-face-attributes-p \\='(:underline t))
+
 The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
 with the default face for display, can be represented in a way that's
@@ -6933,13 +6937,20 @@ syms_of_xfaces (void)
   DEFSYM (Qpressed_button, "pressed-button");
   DEFSYM (Qflat_button, "flat-button");
   DEFSYM (Qnormal, "normal");
+  DEFSYM (Qthin, "thin");
   DEFSYM (Qextra_light, "extra-light");
+  DEFSYM (Qultra_light, "ultra-light");
   DEFSYM (Qlight, "light");
   DEFSYM (Qsemi_light, "semi-light");
+  DEFSYM (Qmedium, "medium");
   DEFSYM (Qsemi_bold, "semi-bold");
+  DEFSYM (Qbook, "book");
   DEFSYM (Qbold, "bold");
   DEFSYM (Qextra_bold, "extra-bold");
   DEFSYM (Qultra_bold, "ultra-bold");
+  DEFSYM (Qheavy, "heavy");
+  DEFSYM (Qultra_heavy, "ultra-heavy");
+  DEFSYM (Qblack, "black");
   DEFSYM (Qoblique, "oblique");
   DEFSYM (Qitalic, "italic");
 

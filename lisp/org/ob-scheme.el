@@ -110,7 +110,7 @@
     geiser-impl--implementation))
 
 (defun org-babel-scheme-get-repl (impl name)
-  "Switch to a scheme REPL, creating it if it doesn't exist:"
+  "Switch to a scheme REPL, creating it if it doesn't exist."
   (let ((buffer (org-babel-scheme-get-session-buffer name)))
     (or buffer
 	(progn

@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;;
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: https://orgmode.org
 ;;
@@ -37,6 +37,7 @@
 (declare-function org-at-comment-p "org" ())
 (declare-function org-at-heading-p "org" (&optional ignored))
 (declare-function org-back-over-empty-lines "org" ())
+(declare-function org-end-of-meta-data "org" (&optional full))
 (declare-function org-edit-footnote-reference "org-src" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-class "org-element" (datum &optional parent))
@@ -280,13 +281,21 @@ otherwise."
 	    (save-excursion (goto-char (org-element-property :end context))
 			    (skip-chars-backward " \r\t\n")
 			    (if (eq (org-element-class context) 'object) (point)
-			      (1+ (line-beginning-position 2))))))
+			      (line-beginning-position 2)))))
+       ;; At the beginning of a footnote definition, right after the
+       ;; label, is OK.
+       ((eq type 'footnote-definition) (looking-at (rx space)))
        ;; Other elements are invalid.
        ((eq (org-element-class context) 'element) nil)
        ;; Just before object is fine.
        ((= (point) (org-element-property :begin context)))
        ;; Within recursive object too, but not in a link.
        ((eq type 'link) nil)
+       ((eq type 'table-cell)
+        ;; :contents-begin is not reliable on empty cells, so special
+        ;; case it.
+        (<= (save-excursion (skip-chars-backward " \t") (point))
+            (org-element-property :contents-end context)))
        ((let ((cbeg (org-element-property :contents-begin context))
 	      (cend (org-element-property :contents-end context)))
 	  (and cbeg (>= (point) cbeg) (<= (point) cend))))))))
@@ -704,7 +713,7 @@ function doesn't move point."
 	   (concat "^\\*+[ \t]+" (regexp-quote org-footnote-section) "[ \t]*$")
 	   nil t))
 	(goto-char (match-end 0))
-	(forward-line)
+        (org-end-of-meta-data t)
 	(unless (bolp) (insert "\n")))
        (t (org-footnote--clear-footnote-section)))
       (when (zerop (org-back-over-empty-lines)) (insert "\n"))

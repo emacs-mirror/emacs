@@ -304,7 +304,6 @@
 
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
-(defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-mode-string)
 (defvar viper-major-mode-modifier-list)
@@ -577,7 +576,7 @@ For more information on Viper:
 To submit a bug report or to contact the author, type :submitReport in Vi
 command mode.  To shoo Viper away and return to pure Emacs (horror!), type:
 
-   M-x viper-go-away
+   \\[viper-go-away]
 
 This startup message appears whenever you load Viper, unless you type `y' now."
 		      ))

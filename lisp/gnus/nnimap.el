@@ -429,8 +429,18 @@ during splitting, which may be slow."
 		       now
 		       (nnimap-last-command-time nnimap-object))))
             (with-local-quit
-              (ignore-errors          ;E.g. "buffer foo has no process".
-                (nnimap-send-command "NOOP")))))))))
+              (ignore-errors        ;E.g. "buffer foo has no process".
+                (nnimap-send-command "NOOP"))
+              ;; If our connection has died in the meantime, clean it
+              ;; and its buffer up.
+              (unless (process-live-p (get-buffer-process buffer))
+	        (setq nnimap-process-buffers
+		      (delq buffer nnimap-process-buffers))
+	        (setq nnimap-connection-alist
+		      (seq-filter (lambda (elt)
+				    (null (eq buffer (cdr elt))))
+				  nnimap-connection-alist))
+	        (kill-buffer buffer)))))))))
 
 (defun nnimap-open-connection (buffer)
   ;; Be backwards-compatible -- the earlier value of nnimap-stream was
@@ -662,10 +672,17 @@ during splitting, which may be slow."
 
 (deffoo nnimap-close-server (&optional server defs)
   (when (nnoo-change-server 'nnimap server defs)
-    (ignore-errors
-      (delete-process (get-buffer-process (nnimap-buffer))))
-    (nnoo-close-server 'nnimap server)
-    t))
+    (let ((buf (nnimap-buffer)))
+      (ignore-errors
+        (delete-process (get-buffer-process buf)))
+      (setq nnimap-process-buffers
+            (delq buf nnimap-process-buffers)
+            nnimap-connection-alist
+	    (seq-filter (lambda (elt)
+			  (null (eq buf (cdr elt))))
+			nnimap-connection-alist))
+      (nnoo-close-server 'nnimap server)
+      t)))
 
 (deffoo nnimap-request-close ()
   t)
@@ -1638,15 +1655,13 @@ If LIMIT, first try to limit the search to the N last articles."
 	      (setq start-article 1))
 	    (let* ((unread
 		    (gnus-compress-sequence
-                     (seq-difference
-                      (seq-difference
+		     (gnus-set-difference
+		      (gnus-set-difference
 		       existing
 		       (gnus-sorted-union
 			(cdr (assoc '%Seen flags))
-                        (cdr (assoc '%Deleted flags)))
-                       #'eq)
-                      (cdr (assoc '%Flagged flags))
-                      #'eq)))
+			(cdr (assoc '%Deleted flags))))
+		      (cdr (assoc '%Flagged flags)))))
 		   (read (gnus-range-difference
 			  (cons start-article high) unread)))
 	      (when (> start-article 1)
@@ -1939,10 +1954,13 @@ Return the server's response to the SELECT or EXAMINE command."
     (when entry
       (if (and (buffer-live-p (cadr entry))
 	       (get-buffer-process (cadr entry))
-	       (memq (process-status (get-buffer-process (cadr entry)))
-		     '(open run)))
+	       (process-live-p (get-buffer-process (cadr entry))))
 	  (get-buffer-process (cadr entry))
-	(setq nnimap-connection-alist (delq entry nnimap-connection-alist))
+	(setq nnimap-connection-alist (delq entry nnimap-connection-alist)
+              nnimap-process-buffers
+	      (delq (cadr entry) nnimap-process-buffers))
+	(when (buffer-live-p (cadr entry))
+	  (kill-buffer (cadr entry)))
 	nil))))
 
 ;; Leave room for `open-network-stream' to issue a couple of IMAP
@@ -2289,7 +2307,7 @@ Return the server's response to the SELECT or EXAMINE command."
 	  nnimap-incoming-split-list)))
 
 (defun nnimap-make-thread-query (header)
-  (let* ((id  (mail-header-id header))
+  (let* ((id (substring-no-properties (mail-header-id header)))
 	 (refs (split-string
 		(or (mail-header-references header)
 		    "")))

@@ -124,7 +124,7 @@
 	(or (memq (car-safe (car-safe place)) '(error xxxerror))
 	    (setq place (aref (nth 2 (nth 2 (symbol-function 'calc-do))) 27)))
 	(or (memq (car (car place)) '(error xxxerror))
-	    (error "foo"))
+            (error "Foo"))
 	(setcar (car place) 'xxxerror))
     (error (error "The calc-do function has been modified; unable to patch"))))
 
@@ -205,9 +205,8 @@
 	 (progn
 	   (setq cmd-base-default (concat "User-" keyname))
            (setq cmd (completing-read
-                      (concat "Define M-x command name (default calc-"
-                              cmd-base-default
-                              "): ")
+                      (format-prompt "Define M-x command name"
+                                     (concat "calc-" cmd-base-default))
                       obarray 'commandp nil
                       (if (and odef (symbolp (cdr odef)))
                           (symbol-name (cdr odef))
@@ -241,8 +240,8 @@
 	   (setq func
                  (concat "calcFunc-"
                          (completing-read
-                          (concat "Define algebraic function name (default "
-                                  cmd-base-default "): ")
+                          (format-prompt "Define algebraic function name"
+                                         cmd-base-default)
                           (mapcar (lambda (x) (substring x 9))
                                   (all-completions "calcFunc-"
                                                    obarray))

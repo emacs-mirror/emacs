@@ -2,13 +2,15 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
+@set ERCVER 5.4.1
+@set ERCDIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex fn cp
 @include emacsver.texi
 @c %**end of header
 
 @copying
-This manual is for ERC as distributed with Emacs @value{EMACSVER}.
+This manual is for ERC @value{ERCVER} @value{ERCDIST}.
 
 Copyright @copyright{} 2005--2021 Free Software Foundation, Inc.
 

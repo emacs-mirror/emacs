@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <carsten at orgmode dot org>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;;
 ;; This file is part of GNU Emacs.
@@ -214,7 +214,7 @@ converted to a headline before refiling."
 		   org-org-menu
 		   '("Edit Structure") i))
       '(["Refile Subtree" org-refile (org-in-subtree-not-table-p)]
-	["Refile and copy Subtree" org-copy (org-in-subtree-not-table-p)]))
+	["Refile and copy Subtree" org-refile-copy (org-in-subtree-not-table-p)]))
 
 (defun org-refile-marker (pos)
   "Get a new refile marker, but only if caching is in use."
@@ -310,11 +310,13 @@ converted to a headline before refiling."
 		 (setq f (buffer-file-name (buffer-base-buffer f))))
 	       (setq f (and f (expand-file-name f)))
 	       (when (eq org-refile-use-outline-path 'file)
-		 (push (list (file-name-nondirectory f) f nil nil) tgs))
+		 (push (list (and f (file-name-nondirectory f)) f nil nil) tgs))
 	       (when (eq org-refile-use-outline-path 'buffer-name)
 		 (push (list (buffer-name (buffer-base-buffer)) f nil nil) tgs))
 	       (when (eq org-refile-use-outline-path 'full-file-path)
-		 (push (list (file-truename (buffer-file-name (buffer-base-buffer))) f nil nil) tgs))
+		 (push (list (and (buffer-file-name (buffer-base-buffer))
+                                  (file-truename (buffer-file-name (buffer-base-buffer))))
+                             f nil nil) tgs))
 	       (org-with-wide-buffer
 		(goto-char (point-min))
 		(setq org-outline-path-cache nil)
@@ -337,9 +339,10 @@ converted to a headline before refiling."
 				#'identity
 				(append
 				 (pcase org-refile-use-outline-path
-				   (`file (list (file-name-nondirectory
-						 (buffer-file-name
-						  (buffer-base-buffer)))))
+				   (`file (list
+                                           (and (buffer-file-name (buffer-base-buffer))
+                                                (file-name-nondirectory
+                                                 (buffer-file-name (buffer-base-buffer))))))
 				   (`full-file-path
 				    (list (buffer-file-name
 					   (buffer-base-buffer))))
@@ -373,8 +376,6 @@ the *old* location.")
 (defvar org-refile-keep nil
   "Non-nil means `org-refile' will copy instead of refile.")
 
-(define-obsolete-function-alias 'org-copy 'org-refile-copy "Org 9.4")
-
 ;;;###autoload
 (defun org-refile-copy ()
   "Like `org-refile', but preserve the refiled subtree."
@@ -382,7 +383,18 @@ the *old* location.")
   (let ((org-refile-keep t))
     (org-refile nil nil nil "Copy")))
 
+;;;###autoload
+(defun org-refile-reverse (&optional arg default-buffer rfloc msg)
+  "Refile while temporarily toggling `org-reverse-note-order'.
+So if `org-refile' would append the entry as the last entry under
+the target heading, `org-refile-reverse' will prepend it as the
+first entry, and vice-versa."
+  (interactive "P")
+  (let ((org-reverse-note-order (not (org-notes-order-reversed-p))))
+    (org-refile arg default-buffer rfloc msg)))
+
 (defvar org-capture-last-stored-marker)
+
 
 ;;;###autoload
 (defun org-refile (&optional arg default-buffer rfloc msg)
@@ -426,7 +438,7 @@ needed when passing RFLOC
 headline to refile under
 
 MSG is a string to replace \"Refile\" in the default prompt with
-another verb.  E.g. `org-copy' sets this parameter to \"Copy\".
+another verb.  E.g. `org-refile-copy' sets this parameter to \"Copy\".
 
 See also `org-refile-use-outline-path'.
 
@@ -628,29 +640,29 @@ this function appends the default value from
 	       org-refile-target-table))
 	 (completion-ignore-case t)
 	 cdef
-	 (prompt (concat prompt
-			 (or (and (car org-refile-history)
-				  (concat " (default " (car org-refile-history) ")"))
-			     (and (assoc cbnex tbl) (setq cdef cbnex)
-				  (concat " (default " cbnex ")"))) ": "))
+         (prompt (let ((default (or (car org-refile-history)
+                                    (and (assoc cbnex tbl) (setq cdef cbnex)
+                                         cbnex))))
+                   ;; `format-prompt' is new in Emacs 28.1.
+                   (if (fboundp 'format-prompt)
+                       (format-prompt prompt default)
+                     (concat prompt " (default " default ": "))))
 	 pa answ parent-target child parent old-hist)
     (setq old-hist org-refile-history)
     (setq answ (funcall cfunc prompt tbl nil (not new-nodes)
 			nil 'org-refile-history
-			(or cdef (concat (car org-refile-history) extra))))
+			(or cdef (car org-refile-history))))
     (if (setq pa (org-refile--get-location answ tbl))
-	(let* ((last-refile-loc (car org-refile-history))
-	       (last-refile-loc-path (concat last-refile-loc extra)))
+	(let ((last-refile-loc (car org-refile-history)))
 	  (org-refile-check-position pa)
 	  (when (or (not org-refile-history)
 		    (not (eq old-hist org-refile-history))
-		    (not (equal (car pa) last-refile-loc-path)))
+		    (not (equal (car pa) last-refile-loc)))
 	    (setq org-refile-history
 		  (cons (car pa) (if (assoc last-refile-loc tbl)
 				     org-refile-history
 				   (cdr org-refile-history))))
-	    (when (or (equal last-refile-loc-path (nth 1 org-refile-history))
-		      (equal last-refile-loc (nth 1 org-refile-history)))
+	    (when (equal last-refile-loc (nth 1 org-refile-history))
 	      (pop org-refile-history)))
 	  pa)
       (if (string-match "\\`\\(.*\\)/\\([^/]+\\)\\'" answ)

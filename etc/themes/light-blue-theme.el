@@ -3,6 +3,7 @@
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +28,8 @@
 
 (deftheme light-blue
   "Face colors utilizing a light blue background.")
+
+(make-obsolete 'light-blue nil "29.1")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

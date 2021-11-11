@@ -3653,6 +3653,9 @@ Prepare every function for final compilation and drive the C back-end."
 (defvar comp-async-compilation nil
   "Non-nil while executing an asynchronous native compilation.")
 
+(defvar comp-running-batch-compilation nil
+  "Non-nil when compilation is driven by any `batch-*-compile' function.")
+
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
   (maphash #'comp-compute-function-type (comp-ctxt-funcs-h comp-ctxt))
@@ -3661,7 +3664,7 @@ Prepare every function for final compilation and drive the C back-end."
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
     ;; leaks memory but also interfere with the ability of Emacs to
     ;; detect when a sub-process completes (TODO understand why).
-    (if (or byte+native-compile comp-async-compilation)
+    (if (or comp-running-batch-compilation comp-async-compilation)
 	(comp-final1)
       ;; Call comp-final1 in a child process.
       (let* ((output (comp-ctxt-output comp-ctxt))
@@ -3778,15 +3781,18 @@ Return the trampoline if found or nil otherwise."
                         for arg in lambda-list
                         unless (memq arg '(&optional &rest))
                         collect arg)))))
-         ;; Use speed 0 to maximize compilation speed and not to
-         ;; optimize away funcall calls!
+         ;; Use speed 1 for compilation speed and not to optimize away
+         ;; funcall calls!
          (byte-optimize nil)
          (native-comp-speed 1)
          (lexical-binding t))
     (comp--native-compile
      form nil
      (cl-loop
-      for dir in (comp-eln-load-path-eff)
+      for dir in (if native-compile-target-directory
+                     (list (expand-file-name comp-native-version-dir
+                                             native-compile-target-directory))
+                   (comp-eln-load-path-eff))
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
                dir)
@@ -3873,26 +3879,13 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
-(declare-function w32-get-nproc "w32.c")
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
   (if (zerop native-comp-async-jobs-number)
       (or comp-num-cpus
           (setf comp-num-cpus
-                ;; FIXME: we already have a function to determine
-                ;; the number of processors, see get_native_system_info in w32.c.
-                ;; The result needs to be exported to Lisp.
-                (max 1 (/ (cond ((eq 'windows-nt system-type)
-                                 (w32-get-nproc))
-                                ((executable-find "nproc")
-                                 (string-to-number
-                                  (shell-command-to-string "nproc")))
-                                ((eq 'berkeley-unix system-type)
-                                 (string-to-number
-                                  (shell-command-to-string "sysctl -n hw.ncpu")))
-                                (t 1))
-                          2))))
+		(max 1 (/ (num-processors) 2))))
     native-comp-async-jobs-number))
 
 (defvar comp-last-scanned-async-output nil)
@@ -4191,19 +4184,28 @@ form, return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
-(defun batch-native-compile ()
-  "Perform native compilation on remaining command-line arguments.
-Use this from the command line, with ‘-batch’;
-it won’t work in an interactive Emacs.
-Native compilation equivalent to `batch-byte-compile'."
+(defun batch-native-compile (&optional for-tarball)
+  "Perform batch native compilation of remaining command-line arguments.
+
+Native compilation equivalent of `batch-byte-compile'.
+Use this from the command line, with `-batch'; it won't work
+in an interactive Emacs session.
+Optional argument FOR-TARBALL non-nil means the file being compiled
+as part of building the source tarball, in which case the .eln file
+will be placed under the native-lisp/ directory (actually, in the
+last directory in `native-comp-eln-load-path')."
   (comp-ensure-native-compiler)
-  (cl-loop for file in command-line-args-left
-           if (or (null byte+native-compile)
-                  (cl-notany (lambda (re) (string-match re file))
-                             native-comp-bootstrap-deny-list))
-           do (comp--native-compile file)
-           else
-           do (byte-compile-file file)))
+  (let ((comp-running-batch-compilation t)
+        (native-compile-target-directory
+            (if for-tarball
+                (car (last native-comp-eln-load-path)))))
+    (cl-loop for file in command-line-args-left
+             if (or (null byte+native-compile)
+                    (cl-notany (lambda (re) (string-match re file))
+                               native-comp-bootstrap-deny-list))
+             do (comp--native-compile file)
+             else
+             do (byte-compile-file file))))
 
 ;;;###autoload
 (defun batch-byte+native-compile ()

@@ -155,14 +155,15 @@ extern unsigned int w32_get_short_filename (const char *, char *, int);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
-				      int err, HANDLE handles[4]);
+				      int err, HANDLE handles[3]);
 
 /* Reset our standard handles to their original state.  */
 extern void reset_standard_handles (int in, int out,
-				    int err, HANDLE handles[4]);
+				    int err, HANDLE handles[3]);
 
-/* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
+/* Query Windows Registry and return the resource associated
+   associated with KEY and NAME of type TYPE.  */
+extern LPBYTE w32_get_resource (const char * key, const char * name, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);

@@ -479,7 +479,7 @@ See user option `bookmark-set-fringe'."
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (equal filename buffer-file-name)
-            (setq overlays (overlays-in pos pos))
+            (setq overlays (overlays-in pos (1+ pos)))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -498,11 +498,8 @@ If DEFAULT is nil then return empty string for empty input."
 						'string-lessp)
 					(bookmark-all-names)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
-           (default (unless (equal "" default) default))
-	   (prompt (concat prompt (if default
-                                      (format " (%s): " default)
-                                    ": "))))
-      (completing-read prompt
+           (default (unless (equal "" default) default)))
+      (completing-read (format-prompt prompt default)
                        (lambda (string pred action)
                          (if (eq action 'metadata)
                              '(metadata (category . bookmark))
@@ -2317,10 +2314,10 @@ Prompt with completion for the new path."
             (lambda ()
               (setq timer (run-with-idle-timer
                            bookmark-search-delay 'repeat
-                           #'(lambda (buf)
-                               (with-current-buffer buf
-                                 (bookmark-bmenu-filter-alist-by-regexp
-                                  (minibuffer-contents))))
+                           (lambda (buf)
+                             (with-current-buffer buf
+                               (bookmark-bmenu-filter-alist-by-regexp
+                                (minibuffer-contents))))
                            (current-buffer))))
           (read-string "Pattern: ")
           (when timer (cancel-timer timer) (setq timer nil)))

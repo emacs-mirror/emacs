@@ -608,10 +608,9 @@ FORM is the parent form that binds this var."
     (`((,(and var (guard (eq ?_ (aref (symbol-name var) 0)))) . ,_)
        ,_ ,_ ,_ ,_)
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
-     ;; so as to give better position information and obey
-     ;; `byte-compile-warnings'.
-     (byte-compile-warn
-      "%s `%S' not left unused" varkind var))
+     ;; so as to give better position information.
+     (when (byte-compile-warning-enabled-p 'not-unused var)
+       (byte-compile-warn "%s `%S' not left unused" varkind var)))
     ((and (let (or 'let* 'let) (car form))
           `((,var) ;; (or `(,var nil) : Too many false positives: bug#47080
             t nil ,_ ,_))

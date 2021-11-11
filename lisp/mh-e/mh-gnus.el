@@ -29,110 +29,49 @@
 (require 'mh-e)
 
 (eval-and-compile
-  (mh-require 'gnus-util nil t)
-  (mh-require 'mm-bodies nil t)
-  (mh-require 'mm-decode nil t)
-  (mh-require 'mm-view nil t)
-  (mh-require 'mml nil t))
+  (require 'gnus-util nil t)
+  (require 'mm-bodies nil t)
+  (require 'mm-decode nil t)
+  (require 'mm-view nil t)
+  (require 'mml nil t))
 
-;; Copy of function from gnus-util.el.
-;; TODO This is not in Gnus 5.11.
-(defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
+(defun mh-gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
-  (cond ((featurep 'xemacs) (list 'keymap map))
-        ((>= emacs-major-version 21) (list 'keymap map))
-        (t (list 'local-map map))))
+  (declare (obsolete nil "29.1"))
+  (list 'keymap map))
 
-;; Copy of function from mm-decode.el.
-(defun-mh mh-mm-merge-handles mm-merge-handles (handles1 handles2)
-  (append
-   (if (listp (car handles1))
-       handles1
-     (list handles1))
-   (if (listp (car handles2))
-       handles2
-     (list handles2))))
+(define-obsolete-function-alias 'mh-mm-merge-handles
+  #'mm-merge-handles "29.1")
 
-;; Copy of function from mm-decode.el.
-(defun-mh mh-mm-set-handle-multipart-parameter
-  mm-set-handle-multipart-parameter (handle parameter value)
-  ;; HANDLE could be a CTL.
-  (when handle
-    (put-text-property 0 (length (car handle)) parameter value
-		       (car handle))))
+(define-obsolete-function-alias 'mh-mm-set-handle-multipart-parameter
+  #'mm-set-handle-multipart-parameter "29.1")
 
-;; Copy of function from mm-view.el.
-(defun-mh mh-mm-inline-text-vcard mm-inline-text-vcard (handle)
-  (let ((inhibit-read-only t))
-    (mm-insert-inline
-     handle
-     (concat "\n-- \n"
-	     (ignore-errors
-	       (if (fboundp 'vcard-pretty-print)
-		   (vcard-pretty-print (mm-get-part handle))
-		 (vcard-format-string
-		  (vcard-parse-string (mm-get-part handle)
-				      'vcard-standard-filter))))))))
+(define-obsolete-function-alias 'mh-mm-inline-text-vcard
+  #'mm-inline-text-vcard "29.1")
 
-;; Function from mm-decode.el used in PGP messages. Just define it with older
-;; Gnus to avoid compiler warning.
-(defun-mh mh-mm-possibly-verify-or-decrypt
-  mm-possibly-verify-or-decrypt (_parts _ctl)
-  nil)
+(define-obsolete-function-alias 'mh-mm-possibly-verify-or-decrypt
+  #'mm-possibly-verify-or-decrypt "29.1")
 
-;; Copy of macro in mm-decode.el.
-(defmacro-mh mh-mm-handle-multipart-ctl-parameter
-  mm-handle-multipart-ctl-parameter (handle parameter)
-  `(get-text-property 0 ,parameter (car ,handle)))
+(define-obsolete-function-alias 'mh-mm-handle-multipart-ctl-parameter
+  #'mm-handle-multipart-ctl-parameter "29.1")
 
-;; Copy of function in mm-decode.el.
-(defun-mh mh-mm-readable-p mm-readable-p (handle)
-  "Say whether the content of HANDLE is readable."
-  (and (< (with-current-buffer (mm-handle-buffer handle)
-            (buffer-size)) 10000)
-       (mm-with-unibyte-buffer
-         (mm-insert-part handle)
-         (and (eq (mm-body-7-or-8) '7bit)
-              (not (mh-mm-long-lines-p 76))))))
+(define-obsolete-function-alias 'mh-mm-readable-p
+  #'mm-readable-p "29.1")
 
-;; Copy of function in mm-bodies.el.
-(defun-mh mh-mm-long-lines-p mm-long-lines-p (length)
-  "Say whether any of the lines in the buffer is longer than LENGTH."
-  (save-excursion
-    (goto-char (point-min))
-    (end-of-line)
-    (while (and (not (eobp))
-                (not (> (current-column) length)))
-      (forward-line 1)
-      (end-of-line))
-    (and (> (current-column) length)
-         (current-column))))
+(define-obsolete-function-alias 'mh-mm-long-lines-p
+  #'mm-long-lines-p "29.1")
 
-(defun-mh mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (_handle)
-  ;; Released Gnus doesn't keep handles associated with externally displayed
-  ;; MIME parts. So this will always return nil.
-  nil)
+(define-obsolete-function-alias 'mh-mm-keep-viewer-alive-p
+  #'mm-keep-viewer-alive-p "29.1")
 
-(defun-mh mh-mm-destroy-parts mm-destroy-parts (_list)
-  "Older versions of Emacs don't have this function."
-  nil)
+(define-obsolete-function-alias 'mh-mm-destroy-parts
+  #'mm-destroy-parts "29.1")
 
-(defun-mh mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (_handles)
-  "Emacs 21 and XEmacs don't have this function."
-  nil)
+(define-obsolete-function-alias 'mh-mm-uu-dissect-text-parts
+  #'mm-uu-dissect-text-parts "29.1")
 
-;; Copy of function in mml.el.
-(defun-mh mh-mml-minibuffer-read-disposition
-  mml-minibuffer-read-disposition (type &optional default filename)
-  (unless default
-    (setq default (mml-content-disposition type filename)))
-  (let ((disposition (completing-read
-		      (format-prompt "Disposition" default)
-		      '(("attachment") ("inline") (""))
-		      nil t nil nil default)))
-    (if (not (equal disposition ""))
-	disposition
-      default)))
+(define-obsolete-function-alias 'mh-mml-minibuffer-read-disposition
+  #'mml-minibuffer-read-disposition "29.1")
 
 ;; This is mm-save-part from Gnus 5.11 since that function in Emacs
 ;; 21.2 is buggy (the args to read-file-name are incorrect) and the
@@ -163,8 +102,8 @@ PROMPT overrides the default one used to ask user for a file name."
 
 (defun mh-mm-text-html-renderer ()
   "Find the renderer Gnus is using to display text/html MIME parts."
-  (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
-      (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
+  (declare (obsolete mm-text-html-renderer "29.1"))
+  mm-text-html-renderer)
 
 (provide 'mh-gnus)
 

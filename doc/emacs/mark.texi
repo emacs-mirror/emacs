@@ -409,9 +409,14 @@ region by dragging the mouse, you can continue to extend the region
 using shifted cursor motion commands.  In either case, any unshifted
 cursor motion command deactivates the mark.
 
+@vindex shift-select-mode
   To turn off shift-selection, set @code{shift-select-mode} to
 @code{nil}.  Doing so does not disable setting the mark via mouse
-commands.
+commands.  If you set @code{shift-select-mode} to the value
+@code{permanent}, cursor motion keys that were not shift-translated
+will not deactivate the mark, so, for example, the region set by prior
+commands can be extended by shift-selection, and unshifted cursor
+motion keys will extend the region set by shift-selection.
 
 @node Disabled Transient Mark
 @section Disabling Transient Mark Mode

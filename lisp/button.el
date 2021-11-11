@@ -130,6 +130,7 @@ In addition, the keyword argument :supertype may be used to specify a
 `button-type' from which NAME inherits its default property values
 (however, the inheritance happens only when NAME is defined; subsequent
 changes to a supertype are not reflected in its subtypes)."
+  (declare (indent defun))
   (let ((catsym (make-symbol (concat (symbol-name name) "-button")))
 	(super-catsym
 	 (button-category-symbol
@@ -615,13 +616,19 @@ button at point is the button to describe."
       (button--describe props)
       t)))
 
-(defun button-buttonize (string callback &optional data)
+(define-obsolete-function-alias 'button-buttonize #'buttonize "29.1")
+
+(defun buttonize (string callback &optional data help-echo)
   "Make STRING into a button and return it.
 When clicked, CALLBACK will be called with the DATA as the
 function argument.  If DATA isn't present (or is nil), the button
-itself will be used instead as the function argument."
+itself will be used instead as the function argument.
+
+If HELP-ECHO, use that as the `help-echo' property."
   (propertize string
               'face 'button
+              'mouse-face 'highlight
+              'help-echo help-echo
               'button t
               'follow-link t
               'category t

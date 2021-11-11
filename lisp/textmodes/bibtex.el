@@ -4317,8 +4317,6 @@ for a crossref key, t otherwise."
           (eqb (goto-char pos))
           (t (set-buffer buffer) (goto-char pos)))
     pos))
-;; backward compatibility
-(defalias 'bibtex-find-crossref 'bibtex-search-crossref)
 
 (defun bibtex-dist (pos beg end)
   "Return distance between POS and region delimited by BEG and END."
@@ -4381,8 +4379,6 @@ A prefix arg negates the value of `bibtex-search-entry-globally'."
              (if display (bibtex-reposition-window)))
             (display (message "Key `%s' not found" key)))
       pnt)))
-;; backward compatibility
-(defalias 'bibtex-find-entry 'bibtex-search-entry)
 
 (defun bibtex-prepare-new-entry (index)
   "Prepare a new BibTeX entry with index INDEX.
@@ -5607,6 +5603,9 @@ If APPEND is non-nil, append ENTRIES to those already displayed."
   (set-buffer-modified-p nil)
   (setq buffer-read-only t)
   (goto-char (point-min)))
+
+(define-obsolete-function-alias 'bibtex-find-crossref #'bibtex-search-crossref "29.1")
+(define-obsolete-function-alias 'bibtex-find-entry #'bibtex-search-entry "29.1")
 
 (provide 'bibtex)
 ;;; bibtex.el ends here

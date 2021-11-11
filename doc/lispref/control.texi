@@ -557,7 +557,7 @@ Likewise, it makes no sense to bind keyword symbols
 
 @item (cl-type @var{type})
 Matches if @var{expval} is of type @var{type}, which is a type
-descriptor as accepted by @code{cl-typep} (@pxref{cl-typep,,,cl,Common
+descriptor as accepted by @code{cl-typep} (@pxref{Type Predicates,,,cl,Common
 Lisp Extensions}).  Examples:
 
 @lisp
@@ -1283,6 +1283,15 @@ bindings that can then be used inside @var{body}.  The variable
 bindings are produced by destructuring binding of elements of
 @var{pattern} to the values of the corresponding elements of the
 evaluated @var{exp}.
+
+Here's a trivial example:
+
+@example
+(pcase-let ((`(,major ,minor)
+	     (split-string "image/png" "/")))
+  minor)
+     @result{} "png"
+@end example
 @end defmac
 
 @defmac pcase-let* bindings body@dots{}

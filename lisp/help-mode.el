@@ -35,6 +35,8 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap button-buffer-map
                                                  special-mode-map))
+    (define-key map "n" 'help-goto-next-page)
+    (define-key map "p" 'help-goto-previous-page)
     (define-key map "l" 'help-go-back)
     (define-key map "r" 'help-go-forward)
     (define-key map "\C-c\C-b" 'help-go-back)
@@ -224,6 +226,11 @@ The format is (FUNCTION ARGS...).")
   'help-function #'info
   'help-echo (purecopy "mouse-2, RET: read this Info node"))
 
+(define-button-type 'help-man
+  :supertype 'help-xref
+  'help-function #'man
+  'help-echo (purecopy "mouse-2, RET: read this man page"))
+
 (define-button-type 'help-customization-group
   :supertype 'help-xref
   'help-function #'customize-group
@@ -268,6 +275,10 @@ The format is (FUNCTION ARGS...).")
             (when (or (< position (point-min))
                       (> position (point-max)))
               (widen))
+            ;; Save mark for the old location, unless the point is not
+            ;; actually going to move.
+            (unless (= (point) position)
+              (push-mark nil t))
             (goto-char position))
         (message "Unable to find location in file")))))
 
@@ -367,6 +378,13 @@ The format is (FUNCTION ARGS...).")
     (view-buffer-other-window (find-file-noselect file))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
+
+;;;###autoload
+(defun help-mode--add-function-link (str fun)
+  (make-text-button (copy-sequence str) nil
+                    'type 'help-function
+                    'help-args (list fun)))
+
 
 (defvar bookmark-make-record-function)
 (defvar help-mode--current-data nil)
@@ -437,6 +455,11 @@ when help commands related to multilingual environment (e.g.,
   (purecopy
    "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+['`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to an Info node.")
+
+(defconst help-xref-man-regexp
+  (purecopy
+   "\\<[Mm]an[ \t\n]+page[ \t\n]+\\(?:for[ \t\n]+\\)?['`‘\"]\\([^'’\"]+\\)['’\"]")
+  "Regexp matching doc string references to a man page.")
 
 (defconst help-xref-customization-group-regexp
   (purecopy "\\<[Cc]ustomization[ \t\n]+[Gg]roup[ \t\n]+['`‘]\\([^'’]+\\)['’]")
@@ -548,6 +571,10 @@ that."
 			(setq data ;; possible newlines if para filled
 			      (replace-regexp-in-string "[ \t\n]+" " " data t t)))
                       (help-xref-button 2 'help-info data))))
+                ;; Man references
+                (save-excursion
+                  (while (re-search-forward help-xref-man-regexp nil t)
+                    (help-xref-button 1 'help-man (match-string 1))))
                 ;; Customization groups.
                 (save-excursion
                   (while (re-search-forward
@@ -617,34 +644,7 @@ that."
                           "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)*\\sw\\)" nil t)
                     (let ((sym (intern-soft (match-string 1))))
                       (if (fboundp sym)
-                          (help-xref-button 1 'help-function sym)))))
-                ;; Look for commands in whole keymap substitutions:
-                (save-excursion
-                  ;; Make sure to find the first keymap.
-                  (goto-char (point-min))
-                  ;; Find a header and the column at which the command
-                  ;; name will be found.
-
-                  ;; If the keymap substitution isn't the last thing in
-                  ;; the doc string, and if there is anything on the same
-                  ;; line after it, this code won't recognize the end of it.
-                  (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n"
-                                            nil t)
-                    (let ((col (- (match-end 1) (match-beginning 1))))
-                      (while
-                          (and (not (eobp))
-                               ;; Stop at a pair of blank lines.
-                               (not (looking-at-p "\n\\s-*\n")))
-                        ;; Skip a single blank line.
-                        (and (eolp) (forward-line))
-                        (end-of-line)
-                        (skip-chars-backward "^ \t\n")
-                        (if (and (>= (current-column) col)
-                                 (looking-at "\\(\\sw\\|\\s_\\)+$"))
-                            (let ((sym (intern-soft (match-string 0))))
-                              (if (fboundp sym)
-                                  (help-xref-button 0 'help-function sym))))
-                        (forward-line))))))
+                          (help-xref-button 1 'help-function sym))))))
             (set-syntax-table stab))
           ;; Delete extraneous newlines at the end of the docstring
           (goto-char (point-max))
@@ -780,6 +780,26 @@ See `help-make-xrefs'."
   (if help-xref-forward-stack
       (help-xref-go-forward (current-buffer))
     (user-error "No next help buffer")))
+
+(defun help-goto-next-page ()
+  "Go to the next page (if any) in the current buffer.
+The help buffers are divided into \"pages\" by the ^L character."
+  (interactive nil help-mode)
+  (push-mark)
+  (forward-page)
+  (unless (eobp)
+    (forward-line 1)))
+
+(defun help-goto-previous-page ()
+  "Go to the previous page (if any) in the current buffer.
+(If not at the start of a page, go to the start of the current page.)
+
+The help buffers are divided into \"pages\" by the ^L character."
+  (interactive nil help-mode)
+  (push-mark)
+  (backward-page (if (looking-back "\f\n" (- (point) 5)) 2 1))
+  (unless (bobp)
+    (forward-line 1)))
 
 (defun help-view-source ()
   "View the source of the current help item."

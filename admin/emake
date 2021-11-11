@@ -28,6 +28,7 @@ s#^Installing git hooks...# Installing git hooks...#
 s#^Running # Running #
 s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
+s#^make.*Error#  \\& #
 ' | \
 egrep --line-buffered -v "^make|\
 ^Loading|\

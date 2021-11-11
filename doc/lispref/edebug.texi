@@ -1216,9 +1216,7 @@ directs processing of arguments.
 @table @asis
 @item @code{t}
 All arguments are instrumented for evaluation.
-
-@item @code{0}
-None of the arguments is instrumented.
+This is short for @code{(body)}.
 
 @item a symbol
 The symbol must have an Edebug specification, which is used instead.
@@ -1527,6 +1525,16 @@ example of the @code{let} specification.
 
 It may be easier to understand Edebug specifications by studying
 the examples provided here.
+
+Consider a hypothetical macro @code{my-test-generator} that runs
+tests on supplied lists of data.  Although it is Edebug's default
+behavior to not instrument arguments as code, as controlled by
+@code{edebug-eval-macro-args} (@pxref{Instrumenting Macro Calls}),
+it can be useful to explicitly document that the arguments are data:
+
+@example
+(def-edebug-spec my-test-generator (&rest sexp))
+@end example
 
 A @code{let} special form has a sequence of bindings and a body.  Each
 of the bindings is either a symbol or a sublist with a symbol and

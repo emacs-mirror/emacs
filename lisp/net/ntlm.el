@@ -436,7 +436,7 @@ PASSWD is truncated to 14 bytes if longer."
 	     (make-string (- 15 len) 0)))))
 
 (defun ntlm-smb-owf-encrypt (passwd c8)
-  "Return response string of 24 bytes long for password string PASSWD based on DES encryption.
+  "Return response string of 24 bytes long for PASSWD based on DES encryption.
 PASSWD is of at most 14 bytes long and the challenge string C8 of
 8 bytes long."
   (let* ((len (min (length passwd) 16))
@@ -459,7 +459,7 @@ PASSWD is of at most 14 bytes long and the challenge string C8 of
 			 (substring p15 7) t)))
 
 (defun ntlm-smb-hash (in key forw)
-  "Return hash string of length 8 for a string IN of length 8 and a string KEY of length 8.
+  "Return hash string of length 8 for IN of length 8 and KEY of length 8.
 FORW is t or nil."
   (let ((out (make-string 8 0))
 	(inb (make-string 64 0))

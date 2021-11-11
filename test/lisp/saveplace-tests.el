@@ -21,6 +21,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (require 'ert)
 (require 'ert-x)
 (require 'saveplace)
@@ -39,49 +41,42 @@
 
 (ert-deftest saveplace-test-save-place-to-alist/file ()
   (save-place-mode)
-  (let* ((tmpfile (make-temp-file "emacs-test-saveplace-"))
-         (tmpfile (file-truename tmpfile))
-         (save-place-alist nil)
-         (save-place-loaded t)
-         (loc tmpfile)
-         (pos 4))
-    (unwind-protect
-        (save-window-excursion
-          (find-file loc)
-          (insert "abc") ; must insert something
-          (save-place-to-alist)
-          (should (equal save-place-alist (list (cons tmpfile pos)))))
-      (delete-file tmpfile))))
+  (ert-with-temp-file tmpfile
+    (let* ((tmpfile (file-truename tmpfile))
+           (save-place-alist nil)
+           (save-place-loaded t)
+           (loc tmpfile)
+           (pos 4))
+      (save-window-excursion
+        (find-file loc)
+        (insert "abc")                  ; must insert something
+        (save-place-to-alist)
+        (should (equal save-place-alist (list (cons tmpfile pos))))))))
 
 (ert-deftest saveplace-test-forget-unreadable-files ()
   (save-place-mode)
-  (let* ((save-place-loaded t)
-         (tmpfile (make-temp-file "emacs-test-saveplace-"))
-         (alist-orig (list (cons "/this/file/does/not/exist" 10)
-                           (cons tmpfile 1917)))
-         (save-place-alist alist-orig))
-    (unwind-protect
-        (progn
-          (save-place-forget-unreadable-files)
-          (should (equal save-place-alist (cdr alist-orig))))
-      (delete-file tmpfile))))
+  (ert-with-temp-file tmpfile
+    :suffix "-saveplace"
+    (let* ((save-place-loaded t)
+           (alist-orig (list (cons "/this/file/does/not/exist" 10)
+                             (cons tmpfile 1917)))
+           (save-place-alist alist-orig))
+      (save-place-forget-unreadable-files)
+      (should (equal save-place-alist (cdr alist-orig))))))
 
 (ert-deftest saveplace-test-place-alist-to-file ()
   (save-place-mode)
-  (let* ((tmpfile (make-temp-file "emacs-test-saveplace-"))
-         (tmpfile2 (make-temp-file "emacs-test-saveplace-"))
-         (save-place-file tmpfile)
-         (save-place-alist (list (cons tmpfile2 99))))
-    (unwind-protect
-        (progn (save-place-alist-to-file)
-               (setq save-place-alist nil)
-               (save-window-excursion
-                 (find-file save-place-file)
-                 (unwind-protect
-                     (should (string-match tmpfile2 (buffer-string)))
-                   (kill-buffer))))
-      (delete-file tmpfile)
-      (delete-file tmpfile2))))
+  (ert-with-temp-file tmpfile
+    (ert-with-temp-file tmpfile2
+      (let* ((save-place-file tmpfile)
+             (save-place-alist (list (cons tmpfile2 99))))
+        (save-place-alist-to-file)
+        (setq save-place-alist nil)
+        (save-window-excursion
+          (find-file save-place-file)
+          (unwind-protect
+              (should (string-match tmpfile2 (buffer-string)))
+            (kill-buffer)))))))
 
 (ert-deftest saveplace-test-load-alist-from-file ()
   (save-place-mode)

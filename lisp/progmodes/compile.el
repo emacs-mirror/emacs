@@ -662,7 +662,8 @@ has just been matched, and should correspondingly preserve this match data.
 TYPE is 2 or nil for a real error or 1 for warning or 0 for info.
 TYPE can also be of the form (WARNING . INFO).  In that case this
 will be equivalent to 1 if the WARNING'th subexpression matched
-or else equivalent to 0 if the INFO'th subexpression matched.
+or else equivalent to 0 if the INFO'th subexpression matched,
+or else equivalent to 2 if neither of them matched.
 See `compilation-error-face', `compilation-warning-face',
 `compilation-info-face' and `compilation-skip-threshold'.
 
@@ -2227,6 +2228,7 @@ The parent is always `compilation-mode' and the customizable `compilation-...'
 variables are also set from the name of the mode you have chosen,
 by replacing the first word, e.g., `compilation-scroll-output' from
 `grep-scroll-output' if that variable exists."
+  (declare (indent defun))
   (let ((mode-name (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
     `(define-derived-mode ,mode compilation-mode ,name
        ,doc

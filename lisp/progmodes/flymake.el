@@ -266,7 +266,9 @@ If set to nil, don't suppress any zero counters."
         (warning-type-format
          (format " [%s %s]"
                  (or sublog 'flymake)
-                 (current-buffer))))
+                 ;; Handle file names with "%" correctly.  (Bug#51549)
+                 (string-replace "%" "%%"
+                                 (buffer-name (current-buffer))))))
     (display-warning (list 'flymake sublog)
                      (apply #'format-message msg args)
                      (if (numberp level)
@@ -1334,7 +1336,7 @@ default) no filter is applied."
     [ "Go to next problem"      flymake-goto-next-error t ]
     [ "Go to previous problem"  flymake-goto-prev-error t ]
     [ "Check now"               flymake-start t ]
-    [ "List all problems"       flymake-show-diagnostics-buffer t ]
+    [ "List all problems"       flymake-show-buffer-diagnostics t ]
     "--"
     [ "Go to log buffer"        flymake-switch-to-log-buffer t ]
     [ "Turn off Flymake"        flymake-mode t ]))
@@ -1599,7 +1601,7 @@ buffer."
   ;; been set to a valid buffer.  This could happen when this function
   ;; is called too early.  For example 'global-display-line-numbers-mode'
   ;; calls us from its mode hook, when the diagnostic buffer has just
-  ;; been created by 'flymake-show-diagnostics-buffer', but is not yet
+  ;; been created by 'flymake-show-buffer-diagnostics', but is not yet
   ;; set up properly (Bug#40529).
   (when (bufferp flymake--diagnostics-buffer-source)
     (with-current-buffer flymake--diagnostics-buffer-source
@@ -1654,7 +1656,7 @@ buffer."
   "Diagnostics list meant for listing, not highlighting.
 This variable holds an alist ((FILE-NAME . DIAGS) ...) where
 FILE-NAME is a string holding an absolute file name and DIAGS is
-a list of diagnostic objects created with with
+a list of diagnostic objects created with
 `flymake-make-diagnostic'.  These diagnostics are never annotated
 as overlays in actual buffers: they merely serve as temporary
 stand-ins for more accurate diagnostics that are produced once

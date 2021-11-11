@@ -2075,7 +2075,7 @@ as the constructs of Haddock, Javadoc and similar systems."
     (((class color) (min-colors 16) (background dark))  :foreground "PaleGreen")
     (((class color) (min-colors 8)) :foreground "green")
     (t :weight bold :underline t))
-  "Font Lock mode face used to highlight type and classes."
+  "Font Lock mode face used to highlight type and class names."
   :group 'font-lock-faces)
 
 (defface font-lock-constant-face

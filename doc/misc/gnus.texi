@@ -7130,20 +7130,15 @@ as 10, you might consider setting this variable to something sensible:
 (setq gnus-simplify-ignored-prefixes
       (concat
        "\\`\\[?\\("
-       (mapconcat
-        'identity
-        '("looking"
-          "wanted" "followup" "summary\\( of\\)?"
-          "help" "query" "problem" "question"
-          "answer" "reference" "announce"
-          "How can I" "How to" "Comparison of"
-          ;; ...
-          )
-        "\\|")
+       (regexp-opt '("looking"
+                     "wanted" "followup" "summary" "summary of"
+                     "help" "query" "problem" "question"
+                     "answer" "reference" "announce"
+                     "How can I" "How to" "Comparison of"
+                     ;; ...
+                     ))
        "\\)\\s *\\("
-       (mapconcat 'identity
-                  '("for" "for reference" "with" "about")
-                  "\\|")
+       (regexp-opt '("for" "for reference" "with" "about"))
        "\\)?\\]?:?[ \t]*"))
 @end lisp
 
@@ -9848,6 +9843,13 @@ Gravatarify the @code{From} header (@code{gnus-treat-from-gravatar}).
 Gravatarify all mail headers (i.e., @code{Cc}, @code{To})
 (@code{gnus-treat-from-gravatar}).
 
+@item W D e
+@kindex W D e @r{(Summary)}
+@findex gnus-article-emojize-symbols
+Some symbols have both a non-emoji presentation and an emoji
+presentation.  This command will make Gnus choose the emoji presentation
+(@code{gnus-article-emojize-symbols}).
+
 @item W D D
 @kindex W D D @r{(Summary)}
 @findex gnus-article-remove-images
@@ -12190,6 +12192,7 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-capitalize-sentences
 @vindex gnus-treat-overstrike
 @vindex gnus-treat-strip-cr
+@vindex gnus-treat-emojize-symbols
 @vindex gnus-treat-strip-headers-in-body
 @vindex gnus-treat-strip-leading-blank-lines
 @vindex gnus-treat-strip-multiple-blank-lines
@@ -12242,6 +12245,7 @@ possible but those listed are probably sufficient for most people.
 @item gnus-treat-capitalize-sentences (t, integer)
 @item gnus-treat-overstrike (t, integer)
 @item gnus-treat-strip-cr (t, integer)
+@item gnus-treat-emojize-symbols (t, integer)
 @item gnus-treat-strip-headers-in-body (t, integer)
 @item gnus-treat-strip-leading-blank-lines (t, first, integer)
 @item gnus-treat-strip-multiple-blank-lines (t, integer)
@@ -13875,11 +13879,9 @@ present in this hook.
 @item nntp-authinfo-function
 @vindex nntp-authinfo-function
 @findex nntp-send-authinfo
-@vindex nntp-authinfo-file
 This function will be used to send @samp{AUTHINFO} to the @acronym{NNTP}
 server.  The default function is @code{nntp-send-authinfo}, which looks
-through your @file{~/.authinfo} (or whatever you've set the
-@code{nntp-authinfo-file} variable to) for applicable entries.  If none
+through your @file{~/.authinfo} for applicable entries.  If none
 are found, it will prompt you for a login name and a password.  The
 format of the @file{~/.authinfo} file is (almost) the same as the
 @code{ftp} @file{~/.netrc} file, which is defined in the @code{ftp}
@@ -26324,7 +26326,7 @@ Fortunately, setting up the Gnus registry is pretty easy:
 @end lisp
 
 This adds registry saves to Gnus newsrc saves (which happen on exit
-and when you press @kbd{s} from the @file{*Group*} buffer.  It also
+and when you press @kbd{s} from the @file{*Group*} buffer).  It also
 adds registry calls to article actions in Gnus (copy, move, etc.)@: so
 it's not easy to undo the initialization.  See
 @code{gnus-registry-initialize} for the gory details.

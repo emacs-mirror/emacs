@@ -4,7 +4,8 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;		Leo Liu <sdl.web@gmail.com>
+;;		Leo Liu <sdl.web@gmail.com>,
+;;              Philip Kaludercic <philipk@posteo.net>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -189,20 +190,23 @@ If nil, no maximum is applied."
 (defvar-local rcirc-low-priority-flag nil
   "Non-nil means activity in this buffer is considered low priority.")
 
+(defvar-local rcirc-pending-requests '()
+  "List of pending requests.
+See `rcirc-omit-unless-requested'.")
+
+(defcustom rcirc-omit-unless-requested '()
+  "List of commands to only be requested if preceded by a command.
+For example, if \"TOPIC\" is added to this list, TOPIC commands
+will only be displayed if `rcirc-cmd-TOPIC' was previously
+invoked.  Commands will only be hidden if `rcirc-omit-mode' is
+enabled."
+  :version "28.1"
+  :type '(repeat string))
+
 (defcustom rcirc-omit-responses
   '("JOIN" "PART" "QUIT" "NICK")
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string))
-
-(defcustom rcirc-omit-responses-after-join '()
-  "Types of messages to hide right after joining a channel."
-  :type '(repeat string)
-  :version "28.1")
-
-(defvar-local rcirc-joined nil
-  "Non-nil means we have just connected.
-This is used to hide the message types enumerated in
-`rcirc-omit-responses-after-join'.")
 
 (defvar-local rcirc-prompt-start-marker nil
   "Marker indicating the beginning of the message prompt.")
@@ -850,16 +854,17 @@ If QUIET is non-nil, no not emit a message."
                                  rcirc-failed-attempts
                                  rcirc-reconnect-attempts))
             (setq rcirc-reconnection-timer
-                  (run-at-time rcirc-timeout-seconds nil
+                  (run-at-time rcirc-reconnect-delay nil
                                #'rcirc-reconnect process t))))))))
 
 (defun rcirc-sentinel (process sentinel)
-  "Called when PROCESS receives SENTINEL."
-  (let ((sentinel (string-replace "\n" "" sentinel)))
+  "Called on a change of the state of PROCESS.
+SENTINEL describes the change in form of a string."
+  (let ((status (process-status process)))
     (rcirc-debug process (format "SENTINEL: %S %S\n" process sentinel))
     (with-rcirc-process-buffer process
       (cond
-       ((string= sentinel "open")
+       ((eq status 'open)
         (let* ((server (nth 0 rcirc-connection-info))
                (user-name (nth 3 rcirc-connection-info))
                (full-name (nth 4 rcirc-connection-info))
@@ -903,7 +908,7 @@ If QUIET is non-nil, no not emit a message."
           (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
 	    (with-current-buffer (or buffer (current-buffer))
 	      (setq mode-line-process nil)))))
-       ((string= sentinel "deleted")
+       ((eq status 'closed)
         (let ((now (current-time)))
           (with-rcirc-process-buffer process
             (when (and (< 0 rcirc-reconnect-delay)
@@ -911,7 +916,8 @@ If QUIET is non-nil, no not emit a message."
 				    (time-subtract now rcirc-last-connect-time)))
               (setq rcirc-last-connect-time now)
               (rcirc-reconnect process)))))
-       ((dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
+       ((eq status 'failed)
+        (dolist (buffer (cons nil (mapcar 'cdr rcirc-buffer-alist)))
 	  (with-current-buffer (or buffer (current-buffer))
 	    (rcirc-print process "*rcirc*" "ERROR" rcirc-target
 		         (format "%s: %s (%S)"
@@ -1564,8 +1570,7 @@ Create the buffer if it doesn't exist."
 	  (with-current-buffer new-buffer
             (unless (eq major-mode 'rcirc-mode)
 	      (rcirc-mode process target))
-            (setq mode-line-process nil)
-            (setq rcirc-joined (current-time)))
+            (setq mode-line-process nil))
 	  (rcirc-put-nick-channel process (rcirc-nick process) target
 				  rcirc-current-line)
 	  new-buffer)))))
@@ -1966,12 +1971,15 @@ connection."
               ;; make text omittable
 	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
 		(if (and (not (string= (rcirc-nick process) sender))
-			 (or (member response rcirc-omit-responses)
-                             (and (member response rcirc-omit-responses-after-join)
-                                  (< (time-to-seconds (time-since rcirc-joined))
-                                     1)))
-			 (or (not last-activity-lines)
-			     (< rcirc-omit-threshold last-activity-lines)))
+                         (or (member response rcirc-omit-responses)
+                             (and (member response rcirc-omit-unless-requested)
+                                  (if (member response rcirc-pending-requests)
+                                      (ignore (setq rcirc-pending-requests
+                                                    (delete response rcirc-pending-requests)))
+                                    t)))
+                         (or (member response rcirc-omit-unless-requested)
+                             (not last-activity-lines)
+                             (< rcirc-omit-threshold last-activity-lines)))
                   (put-text-property (point-min) (point-max)
 				       'invisible 'rcirc-omit)
 		  ;; otherwise increment the line count
@@ -2580,6 +2588,7 @@ that, an interactive form can specified."
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
            (user-error "Malformed input (%s): %S" ',command ,argument))
+         (push ,(upcase (symbol-name command)) rcirc-pending-requests)
          (let ((process (or process (rcirc-buffer-process)))
 	       (target (or target rcirc-target)))
            (ignore target process)
@@ -2818,24 +2827,9 @@ keywords when no KEYWORD is given."
     string))
 
 (defvar rcirc-url-regexp
-  (concat
-   "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|"
-   "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
-   "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
-   (if (string-match "[[:digit:]]" "1") ;; Support POSIX?
-       (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
-	     (punct "!?:;.,"))
-	 (concat
-	  "\\(?:"
-	  ;; Match paired parentheses, e.g. in Wikipedia URLs:
-	  "[" chars punct "]+" "(" "[" chars punct "]+" ")" "[" chars "]"
-	  "\\|"
-	  "[" chars punct     "]+" "[" chars "]"
-	  "\\)"))
-     (concat ;; XEmacs 21.4 doesn't support POSIX.
-      "\\([-a-z0-9_=!?#$@~%&*+\\/:;.,]\\|\\w\\)+"
-      "\\([-a-z0-9_=#$@~%&*+\\/]\\|\\w\\)"))
-   "\\)")
+  (eval-when-compile
+    (require 'browse-url)
+    browse-url-button-regexp)
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
 ;; cf cl-remove-if-not

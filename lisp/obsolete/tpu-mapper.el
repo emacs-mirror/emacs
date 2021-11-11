@@ -46,24 +46,14 @@
 ;;;
 (defun tpu-map-key (ident descrip func gold-func)
   (interactive)
-  (if (featurep 'xemacs)
-      (progn
-	(setq tpu-key-seq (read-key-sequence
-                           (format "Press %s%s: " ident descrip))
-              tpu-key (format "[%s]" (event-key (aref tpu-key-seq 0))))
-	(unless (equal tpu-key tpu-return)
-          (set-buffer "Keys")
-          (insert (format"(global-set-key %s %s)\n" tpu-key func))
-          (set-buffer "Gold-Keys")
-          (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))))
-    (message "Press %s%s: " ident descrip)
-    (setq tpu-key-seq (read-event)
-          tpu-key (format "[%s]" tpu-key-seq))
-    (unless (equal tpu-key tpu-return)
-      (set-buffer "Keys")
-      (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
-      (set-buffer "Gold-Keys")
-      (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))))
+  (message "Press %s%s: " ident descrip)
+  (setq tpu-key-seq (read-event)
+        tpu-key (format "[%s]" tpu-key-seq))
+  (unless (equal tpu-key tpu-return)
+    (set-buffer "Keys")
+    (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
+    (set-buffer "Gold-Keys")
+    (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func)))
   (set-buffer "Directions")
   tpu-key)
 
@@ -103,8 +93,7 @@ your local X guru can try to figure out why the key is being ignored."
 
   ;; Make sure the window is big enough to display the instructions
 
-  (if (featurep 'xemacs) (set-screen-size (selected-screen) 80 36)
-    (set-frame-size (selected-frame) 80 36))
+  (set-frame-size (selected-frame) 80 36)
 
   ;; Create buffers - Directions, Keys, Gold-Keys
 
@@ -162,14 +151,9 @@ your local X guru can try to figure out why the key is being ignored."
 
   ;; Save <CR> for future reference
 
-  (cond
-   ((featurep 'xemacs)
-    (setq tpu-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
-    (setq tpu-return (concat "[" (format "%s" (event-key (aref tpu-return-seq 0))) "]")))
-   (t
-    (message "Hit carriage-return <CR> to continue ")
-    (setq tpu-return-seq (read-event))
-    (setq tpu-return (concat "[" (format "%s" tpu-return-seq) "]"))))
+  (message "Hit carriage-return <CR> to continue ")
+  (setq tpu-return-seq (read-event))
+  (setq tpu-return (concat "[" (format "%s" tpu-return-seq) "]"))
 
   ;; Build the keymap file
 
@@ -308,24 +292,14 @@ your local X guru can try to figure out why the key is being ignored."
 ;;
 ")
 
-  (cond ((featurep 'xemacs)
-	 (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter-seq))
-	 (insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq))
-	 (insert "(setq tpu-help-N \"[#<keypress-event N>]\")\n")
-	 (insert "(setq tpu-help-n \"[#<keypress-event n>]\")\n")
-	 (insert "(setq tpu-help-P \"[#<keypress-event P>]\")\n")
-	 (insert "(setq tpu-help-p \"[#<keypress-event p>]\")\n"))
-	(t
-	 (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter))))
+  (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter))
 
   (append-to-buffer "Keys" 1 (point))
   (set-buffer "Keys")
 
   ;; Save the key mapping program
 
-  (let ((file
-	 (convert-standard-filename
-	  (if (featurep 'xemacs) "~/.tpu-lucid-keys" "~/.tpu-keys"))))
+  (let ((file (convert-standard-filename "~/.tpu-keys")))
     (set-visited-file-name
      (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
   (save-buffer)

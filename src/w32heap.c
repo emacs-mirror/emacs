@@ -189,6 +189,26 @@ malloc_fn the_malloc_fn;
 realloc_fn the_realloc_fn;
 free_fn the_free_fn;
 
+static void *
+heap_alloc (size_t size)
+{
+  void *p = size <= PTRDIFF_MAX ? HeapAlloc (heap, 0, size | !size) : NULL;
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
+static void *
+heap_realloc (void *ptr, size_t size)
+{
+  void *p = (size <= PTRDIFF_MAX
+	     ? HeapReAlloc (heap, 0, ptr, size | !size)
+	     : NULL);
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
 /* It doesn't seem to be useful to allocate from a file mapping.
    It would be if the memory was shared.
      https://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
@@ -346,7 +366,7 @@ void *
 malloc_after_dump (size_t size)
 {
   /* Use the new private heap.  */
-  void *p = HeapAlloc (heap, 0, size);
+  void *p = heap_alloc (size);
 
   /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
@@ -356,8 +376,6 @@ malloc_after_dump (size_t size)
       if (new_brk > data_region_end)
 	data_region_end = new_brk;
     }
-  else
-    errno = ENOMEM;
   return p;
 }
 
@@ -373,9 +391,7 @@ malloc_before_dump (size_t size)
   if (size < MaxBlockSize)
     {
       /* Use the private heap if possible.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_alloc (size);
     }
   else
     {
@@ -433,18 +449,14 @@ realloc_after_dump (void *ptr, size_t size)
   if (FREEABLE_P (ptr))
     {
       /* Reallocate the block since it lies in the new heap.  */
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {
       /* If the block lies in the dumped data, do not free it.  Only
          allocate a new one.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
-      else if (ptr)
+      p = heap_alloc (size);
+      if (p && ptr)
 	CopyMemory (p, ptr, size);
     }
   /* After dump, keep track of the "brk value" for sbrk(0).  */
@@ -467,9 +479,7 @@ realloc_before_dump (void *ptr, size_t size)
   if (dumped_data < (unsigned char *)ptr
       && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
     {
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {

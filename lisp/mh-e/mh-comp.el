@@ -177,9 +177,8 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
   "Messages annotated, either a sequence name or a list of message numbers.
 This variable can be used by `mh-annotate-msg-hook'.")
 
-(defvar mh-insert-auto-fields-done-local nil
+(defvar-local mh-insert-auto-fields-done-local nil
   "Buffer-local variable set when `mh-insert-auto-fields' called successfully.")
-(make-variable-buffer-local 'mh-insert-auto-fields-done-local)
 
 
 
@@ -304,21 +303,7 @@ message and scan line."
   (let ((draft-buffer (current-buffer))
         (file-name buffer-file-name)
         (config mh-previous-window-config)
-        ;; FIXME this is subtly different to select-message-coding-system.
-        (coding-system-for-write
-         (if (fboundp 'select-message-coding-system)
-             (select-message-coding-system) ; Emacs has this since at least 21.1
-           (if (and (local-variable-p 'buffer-file-coding-system
-                                      (current-buffer)) ;XEmacs needs two args
-                    ;; We're not sure why, but buffer-file-coding-system
-                    ;; tends to get set to undecided-unix.
-                    (not (memq buffer-file-coding-system
-                               '(undecided undecided-unix undecided-dos))))
-               buffer-file-coding-system
-             (or (and (boundp 'sendmail-coding-system) sendmail-coding-system)
-                 (and (default-boundp 'buffer-file-coding-system)
-                      (default-value 'buffer-file-coding-system))
-                 'utf-8)))))
+        (coding-system-for-write (select-message-coding-system)))
     ;; Older versions of spost do not support -msgid and -mime.
     (unless mh-send-uses-spost-flag
       ;; Adding a Message-ID field looks good, makes it easier to search for
@@ -433,7 +418,7 @@ See also `mh-send'."
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (mh-insert-header-separator)
     ;; Merge in components
-    (mh-mapc
+    (mapc
      (lambda (header-field)
        (let ((field (car header-field))
              (value (cdr header-field))
@@ -593,11 +578,12 @@ See also `mh-compose-forward-as-mime-flag',
         (goto-char (point-min))
         ;; Set the local value of mh-mail-header-separator according to what is
         ;; present in the buffer...
-        (set (make-local-variable 'mh-mail-header-separator)
-             (save-excursion
-               (goto-char (mh-mail-header-end))
-               (buffer-substring-no-properties (point) (mh-line-end-position))))
-        (set (make-local-variable 'mail-header-separator) mh-mail-header-separator) ;override sendmail.el
+        (setq-local mh-mail-header-separator
+                    (save-excursion
+                      (goto-char (mh-mail-header-end))
+                      (buffer-substring-no-properties (point)
+                                                      (line-end-position))))
+        (setq-local mail-header-separator mh-mail-header-separator) ;override sendmail.el
         ;; If using MML, translate MH-style directive
         (if (equal mh-compose-insertion 'mml)
             (save-excursion
@@ -697,7 +683,7 @@ message and scan line."
       ;; For "From", the first value wins, with the identity's "From"
       ;; trumping anything in the distcomps file.
       (let ((components-file (mh-bare-components mh-dist-formfile)))
-        (mh-mapc
+        (mapc
          (lambda (header-field)
            (let ((field (car header-field))
                  (value (cdr header-field))
@@ -1077,7 +1063,6 @@ letter."
   ;; Insert identity.
   (mh-insert-identity mh-identity-default t)
   (mh-identity-make-menu)
-  (mh-identity-add-menu)
 
   ;; Cleanup possibly RFC2047 encoded subject header
   (mh-decode-message-subject)
@@ -1096,7 +1081,6 @@ letter."
   (setq mh-previous-window-config config)
   (setq mode-line-buffer-identification (list "    {%b}"))
   (mh-logo-display)
-  (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook #'mh-tidy-draft-buffer nil t)
   (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
@@ -1107,18 +1091,8 @@ The versions of MH-E, Emacs, and MH are shown."
   ;; Lazily initialize mh-x-mailer-string.
   (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (setq mh-x-mailer-string
-          (format "MH-E %s; %s; %sEmacs %s"
-                  mh-version mh-variant-in-use
-                  (if (featurep 'xemacs) "X" "GNU ")
-                  (cond ((not (featurep 'xemacs))
-                         (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        ((string-match "[0-9.]*\\( +([ a-z]+[0-9]+)\\)?"
-                                       emacs-version)
-                         (match-string 0 emacs-version))
-                        (t (format "%s.%s" emacs-major-version
-                                   emacs-minor-version))))))
+          (format "MH-E %s; %s; Emacs %s"
+                  mh-version mh-variant-in-use emacs-version)))
   ;; Insert X-Mailer, but only if it doesn't already exist.
   (save-excursion
     (when (and mh-insert-x-mailer-flag
@@ -1245,7 +1219,7 @@ discarded."
   (cond ((and overwrite-flag
               (mh-goto-header-field (concat field ":")))
          (insert " " value)
-         (delete-region (point) (mh-line-end-position)))
+         (delete-region (point) (line-end-position)))
         ((and (not overwrite-flag)
               (mh-regexp-in-field-p (concat "\\b" (regexp-quote value) "\\b") field))
          ;; Already there, do nothing.
@@ -1288,11 +1262,8 @@ discarded."
       (set-syntax-table old-syntax-table))))
 
 (defun mh-ascii-buffer-p ()
-  "Check if current buffer is entirely composed of ASCII.
-The function doesn't work for XEmacs since `find-charset-region'
-doesn't exist there."
-  (cl-loop for charset in (mh-funcall-if-exists
-                           find-charset-region (point-min) (point-max))
+  "Check if current buffer is entirely composed of ASCII."
+  (cl-loop for charset in (find-charset-region (point-min) (point-max))
            unless (eq charset 'ascii) return nil
            finally return t))
 

@@ -166,10 +166,11 @@ merge_properties (register INTERVAL source, register INTERVAL target)
     }
 }
 
-/* Return true if the two intervals have the same properties.  */
+/* Return true if the two intervals have the same properties.
+   If use_equal is true, use Fequal for comparisons instead of EQ.  */
 
-bool
-intervals_equal (INTERVAL i0, INTERVAL i1)
+static bool
+intervals_equal_1 (INTERVAL i0, INTERVAL i1, bool use_equal)
 {
   Lisp_Object i0_cdr, i0_sym;
   Lisp_Object i1_cdr, i1_val;
@@ -204,7 +205,8 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
       /* i0 and i1 both have sym, but it has different values in each.  */
       if (!CONSP (i1_val)
 	  || (i1_val = XCDR (i1_val), !CONSP (i1_val))
-	  || !EQ (XCAR (i1_val), XCAR (i0_cdr)))
+	  || use_equal ? NILP (Fequal (XCAR (i1_val), XCAR (i0_cdr)))
+		       : !EQ (XCAR (i1_val), XCAR (i0_cdr)))
 	return false;
 
       i0_cdr = XCDR (i0_cdr);
@@ -217,6 +219,14 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
 
   /* Lengths of the two plists were equal.  */
   return (NILP (i0_cdr) && NILP (i1_cdr));
+}
+
+/* Return true if the two intervals have the same properties.  */
+
+bool
+intervals_equal (INTERVAL i0, INTERVAL i1)
+{
+  return intervals_equal_1 (i0, i1, false);
 }
 
 
@@ -2291,7 +2301,7 @@ compare_string_intervals (Lisp_Object s1, Lisp_Object s2)
 
       /* If we ever find a mismatch between the strings,
 	 they differ.  */
-      if (! intervals_equal (i1, i2))
+      if (! intervals_equal_1 (i1, i2, true))
 	return 0;
 
       /* Advance POS till the end of the shorter interval,

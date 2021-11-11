@@ -1563,22 +1563,6 @@ x_set_cursor_gc (struct glyph_string *s)
 static void
 x_set_mouse_face_gc (struct glyph_string *s)
 {
-  int face_id;
-  struct face *face;
-
-  /* What face has to be used last for the mouse face?  */
-  face_id = MOUSE_HL_INFO (s->f)->mouse_face_face_id;
-  face = FACE_FROM_ID_OR_NULL (s->f, face_id);
-  if (face == NULL)
-    face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-
-  if (s->first_glyph->type == CHAR_GLYPH)
-    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch, -1, Qnil);
-  else
-    face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
-  s->face = FACE_FROM_ID (s->f, face_id);
-  prepare_face_for_display (s->f, s->face);
-
   if (s->font == s->face->font)
     s->gc = s->face->gc;
   else
@@ -4049,7 +4033,7 @@ x_delete_glyphs (struct frame *f, int n)
 /* Like XClearArea, but check that WIDTH and HEIGHT are reasonable.
    If they are <= 0, this is probably an error.  */
 
-static ATTRIBUTE_UNUSED void
+MAYBE_UNUSED static void
 x_clear_area1 (Display *dpy, Window window,
                int x, int y, int width, int height, int exposures)
 {
@@ -4142,6 +4126,8 @@ x_show_hourglass (struct frame *f)
 
          XMapRaised (dpy, x->hourglass_window);
          XFlush (dpy);
+	 /* Ensure that the spinning hourglass is shown.  */
+	 flush_frame (f);
        }
     }
 }
@@ -4405,6 +4391,99 @@ x_scroll_run (struct window *w, struct run *run)
   /* Cursor off.  Will be switched on again in gui_update_window_end.  */
   gui_clear_cursor (w);
 
+#ifdef HAVE_XWIDGETS
+  /* "Copy" xwidget windows in the area that will be scrolled.  */
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Window window = FRAME_X_WINDOW (f);
+
+  Window root, parent, *children;
+  unsigned int nchildren;
+
+  if (XQueryTree (dpy, window, &root, &parent, &children, &nchildren))
+    {
+      /* Now find xwidget views situated between from_y and to_y, and
+	 attached to w.  */
+      for (unsigned int i = 0; i < nchildren; ++i)
+	{
+	  Window child = children[i];
+	  struct xwidget_view *view = xwidget_view_from_window (child);
+
+	  if (view && !view->hidden)
+	    {
+	      int window_y = view->y + view->clip_top;
+	      int window_height = view->clip_bottom - view->clip_top;
+
+	      Emacs_Rectangle r1, r2, result;
+	      r1.x = w->pixel_left;
+	      r1.y = from_y;
+	      r1.width = w->pixel_width;
+	      r1.height = height;
+	      r2 = r1;
+	      r2.y = window_y;
+	      r2.height = window_height;
+
+	      /* The window is offscreen, just unmap it.  */
+	      if (window_height == 0)
+		{
+		  view->hidden = true;
+		  XUnmapWindow (dpy, child);
+		  continue;
+		}
+
+	      bool intersects_p =
+		gui_intersect_rectangles (&r1, &r2, &result);
+
+	      if (XWINDOW (view->w) == w && intersects_p)
+		{
+		  int y = view->y + (to_y - from_y);
+		  int text_area_x, text_area_y, text_area_width, text_area_height;
+		  int clip_top, clip_bottom;
+
+		  window_box (w, TEXT_AREA, &text_area_x, &text_area_y,
+			      &text_area_width, &text_area_height);
+
+		  view->y = y;
+
+		  clip_top = 0;
+		  clip_bottom = XXWIDGET (view->model)->height;
+
+		  if (y < text_area_y)
+		    clip_top = text_area_y - y;
+
+		  if ((y + clip_bottom) > (text_area_y + text_area_height))
+		    {
+		      clip_bottom -= (y + clip_bottom) - (text_area_y + text_area_height);
+		    }
+
+		  view->clip_top = clip_top;
+		  view->clip_bottom = clip_bottom;
+
+		  /* This means the view has moved offscreen.  Unmap
+		     it and hide it here.  */
+		  if ((view->clip_bottom - view->clip_top) <= 0)
+		    {
+		      view->hidden = true;
+		      XUnmapWindow (dpy, child);
+		    }
+		  else
+		    {
+		      XMoveResizeWindow (dpy, child, view->x + view->clip_left,
+					 view->y + view->clip_top,
+					 view->clip_right - view->clip_left,
+					 view->clip_bottom - view->clip_top);
+		      cairo_xlib_surface_set_size (view->cr_surface,
+						   view->clip_right - view->clip_left,
+						   view->clip_bottom - view->clip_top);
+		    }
+		  xwidget_expose (view);
+		  XFlush (dpy);
+		}
+            }
+	}
+      XFree (children);
+    }
+#endif
+
 #ifdef USE_CAIRO
   if (FRAME_CR_CONTEXT (f))
     {
@@ -4578,8 +4657,9 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
     }
 }
 
-/* Return the Emacs frame-object corresponding to an X window.
-   It could be the frame's main window or an icon window.  */
+/* Return the Emacs frame-object corresponding to an X window.  It
+   could be the frame's main window, an icon window, or an xwidget
+   window.  */
 
 static struct frame *
 x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
@@ -4589,6 +4669,13 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
   if (wdesc == None)
     return NULL;
+
+#ifdef HAVE_XWIDGETS
+  struct xwidget_view *xvw = xwidget_view_from_window (wdesc);
+
+  if (xvw && xvw->frame)
+    return xvw->frame;
+#endif
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -5012,7 +5099,7 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
             | ((state & dpyinfo->hyper_mod_mask)	? mod_hyper	: 0));
 }
 
-static int
+int
 x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, intmax_t state)
 {
   EMACS_INT mod_ctrl = ctrl_modifier;
@@ -8226,6 +8313,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case Expose:
       f = x_window_to_frame (dpyinfo, event->xexpose.window);
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xv =
+	  xwidget_view_from_window (event->xexpose.window);
+
+	if (xv)
+	  {
+	    xwidget_expose (xv);
+	    goto OTHER;
+	  }
+      }
+#endif
       if (f)
         {
           if (!FRAME_VISIBLE_P (f))
@@ -8806,6 +8905,31 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+	Mouse_HLInfo *hlinfo;
+
+	if (xvw)
+	  {
+	    xwidget_motion_or_crossing (xvw, event);
+	    hlinfo = MOUSE_HL_INFO (xvw->frame);
+
+	    if (xvw->frame == hlinfo->mouse_face_mouse_frame)
+	      {
+		clear_mouse_face (hlinfo);
+		hlinfo->mouse_face_mouse_frame = 0;
+	      }
+
+	    if (any_help_event_p)
+	      {
+		do_help = -1;
+	      }
+	    goto OTHER;
+	  }
+      }
+#endif
+
       f = any;
 
       if (f && x_mouse_click_focus_ignore_position)
@@ -8849,6 +8973,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case LeaveNotify:
+#ifdef HAVE_XWIDGETS
+      {
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
+
+	if (xvw)
+	  {
+	    xwidget_motion_or_crossing (xvw, event);
+	    goto OTHER;
+	  }
+      }
+#endif
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
@@ -8898,6 +9033,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
         if (f && xg_event_is_for_scrollbar (f, event))
           f = 0;
+#endif
+#ifdef HAVE_XWIDGETS
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+
+	if (xvw)
+	  xwidget_motion_or_crossing (xvw, event);
 #endif
         if (f)
           {
@@ -9153,6 +9294,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     case ButtonRelease:
     case ButtonPress:
       {
+#ifdef HAVE_XWIDGETS
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+
+	if (xvw)
+	  {
+	    xwidget_button (xvw, event->type == ButtonPress,
+			    event->xbutton.x, event->xbutton.y,
+			    event->xbutton.button, event->xbutton.state,
+			    event->xbutton.time);
+
+	    if (!EQ (selected_window, xvw->w))
+	      {
+		inev.ie.kind = SELECT_WINDOW_EVENT;
+		inev.ie.frame_or_window = xvw->w;
+	      }
+	    goto OTHER;
+	  }
+#endif
         /* If we decide we want to generate an event to be seen
            by the rest of Emacs, we put it here.  */
         Lisp_Object tab_bar_arg = Qnil;
@@ -10133,8 +10292,9 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
          frame on it. */
       dpyinfo->reference_count++;
       dpyinfo->terminal->reference_count++;
+      if (ioerror)
+	dpyinfo->display = 0;
     }
-  if (ioerror) dpyinfo->display = 0;
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
@@ -12121,6 +12281,10 @@ x_free_frame_resources (struct frame *f)
       if (f->shell_position)
 	xfree (f->shell_position);
 #else  /* !USE_X_TOOLKIT */
+
+#ifdef HAVE_XWIDGETS
+      kill_frame_xwidget_views (f);
+#endif
 
 #ifdef USE_GTK
       xg_free_frame_widgets (f);

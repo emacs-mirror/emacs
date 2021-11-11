@@ -49,9 +49,15 @@
   (define-key-after menu [prog-separator] menu-bar-separator
     'middle-separator)
 
+  (unless (xref-forward-history-empty-p)
+    (define-key-after menu [xref-forward]
+      '(menu-item "Go Forward" xref-go-forward
+                  :help "Forward to the position gone Back from")
+      'prog-separator))
+
   (unless (xref-marker-stack-empty-p)
     (define-key-after menu [xref-pop]
-      '(menu-item "Back Definition" xref-pop-marker-stack
+      '(menu-item "Go Back" xref-go-back
                   :help "Back to the position of the last search")
       'prog-separator))
 
@@ -68,6 +74,28 @@
         `(menu-item "Find Definition" xref-find-definitions-at-mouse
                     :help ,(format "Find definition of `%s'" identifier))
         'prog-separator)))
+
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [select-region mark-symbol]
+      `(menu-item "Symbol"
+                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
+                  :help "Mark the symbol at click for a subsequent cut/copy")
+      'mark-whole-buffer))
+  (define-key-after menu [select-region mark-list]
+    `(menu-item "List"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list))
+                :help "Mark the list at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+  (define-key-after menu [select-region mark-defun]
+    `(menu-item "Defun"
+                ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
+                :help "Mark the defun at click for a subsequent cut/copy")
+    'mark-whole-buffer)
+
+  ;; Include text-mode select menu only in strings and comments.
+  (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
+    (text-mode-context-menu menu click))
+
   menu)
 
 (defvar prog-mode-map

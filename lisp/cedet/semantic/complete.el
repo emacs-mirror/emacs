@@ -224,11 +224,10 @@ HISTORY is a symbol representing a variable to story the history in."
 
       ;; @todo - move from () to into the editable area
       (if (string-match ":" prompt)
-	  (setq prompt (concat
-			(substring prompt 0 (match-beginning 0))
-			" (default " default-as-string ")"
-			(substring prompt (match-beginning 0))))
-	(setq prompt (concat prompt " (" default-as-string "): "))))
+          (setq prompt (format-prompt
+                        (substring prompt 0 (match-beginning 0))
+                        default-as-string))
+        (setq prompt (format-prompt prompt default-as-string))))
     ;;
     ;; Perform the Completion
     ;;

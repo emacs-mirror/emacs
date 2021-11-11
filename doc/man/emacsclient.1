@@ -1,5 +1,5 @@
 .\" See section COPYING for conditions for redistribution.
-.TH EMACSCLIENT 1 "2020-10-18" "GNU Emacs" "GNU"
+.TH EMACSCLIENT 1 "2021-11-05" "GNU Emacs" "GNU"
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other params are allowed: see man(7), man(1)
 .SH NAME
@@ -68,6 +68,9 @@ start Emacs in daemon mode, and try to connect to it.
 .TP
 .B -c, \-\-create-frame
 Create a new frame instead of trying to use the current Emacs frame.
+.TP
+.B -r \-\-reuse-frame
+Reuse an existing frame if one exists, otherwise create a new frame.
 .TP
 .B \-F, \-\-frame-parameters=ALIST
 Set the parameters of a newly-created frame.

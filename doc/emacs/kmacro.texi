@@ -102,7 +102,7 @@ are in the process of defining one, or calls the last macro
 otherwise.)  You can also supply @key{F4} with a numeric prefix
 argument @samp{n}, which means to invoke the macro @samp{n} times.  An
 argument of zero repeats the macro indefinitely, until it gets an
-error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{BREAK}}).
+error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{Break}}).
 
   The above example demonstrates a handy trick that you can employ
 with keyboard macros: if you wish to repeat an operation at regularly

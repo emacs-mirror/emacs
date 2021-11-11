@@ -35,11 +35,11 @@
 
 (defvar uudecode-tests-encoded-str
   (uudecode-tests-read-file (ert-resource-file "uuencoded.txt"))
-  "Uuencoded data for bookmark-tests.el
+  "Uuencoded data for bookmark-tests.el.
 Same as `uudecode-tests-decoded-str' but uuencoded.")
 (defvar uudecode-tests-decoded-str
   (uudecode-tests-read-file (ert-resource-file "uudecoded.txt"))
-  "Plain text data for bookmark-tests.el
+  "Plain text data for bookmark-tests.el.
 Same as `uudecode-tests-encoded-str' but plain text.")
 
 (ert-deftest uudecode-tests-decode-region-internal ()
@@ -50,14 +50,11 @@ Same as `uudecode-tests-encoded-str' but plain text.")
     (should (equal (buffer-string) uudecode-tests-decoded-str)))
   ;; Write to file
   (with-temp-buffer
-    (let ((tmpfile (make-temp-file "uudecode-tests-")))
-      (unwind-protect
-          (progn
-            (insert uudecode-tests-encoded-str)
-            (uudecode-decode-region-internal (point-min) (point-max) tmpfile)
-            (should (equal (uudecode-tests-read-file tmpfile)
-                           uudecode-tests-decoded-str)))
-        (delete-file tmpfile)))))
+    (ert-with-temp-file tmpfile
+      (insert uudecode-tests-encoded-str)
+      (uudecode-decode-region-internal (point-min) (point-max) tmpfile)
+      (should (equal (uudecode-tests-read-file tmpfile)
+                     uudecode-tests-decoded-str)))))
 
 (ert-deftest uudecode-tests-decode-region-external ()
   ;; Write to buffer
@@ -68,14 +65,11 @@ Same as `uudecode-tests-encoded-str' but plain text.")
       (should (equal (buffer-string) uudecode-tests-decoded-str)))
     ;; Write to file
     (with-temp-buffer
-      (let ((tmpfile (make-temp-file "uudecode-tests-")))
-        (unwind-protect
-            (progn
-              (insert uudecode-tests-encoded-str)
-              (uudecode-decode-region-external (point-min) (point-max) tmpfile)
-              (should (equal (uudecode-tests-read-file tmpfile)
-                             uudecode-tests-decoded-str)))
-          (delete-file tmpfile))))))
+      (ert-with-temp-file tmpfile
+        (insert uudecode-tests-encoded-str)
+        (uudecode-decode-region-external (point-min) (point-max) tmpfile)
+        (should (equal (uudecode-tests-read-file tmpfile)
+                       uudecode-tests-decoded-str))))))
 
 (provide 'uudecode-tests)
 ;;; uudecode-tests.el ends here

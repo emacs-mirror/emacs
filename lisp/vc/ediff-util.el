@@ -2777,8 +2777,8 @@ up an appropriate window config."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (run-hooks 'ediff-suspend-hook)
-  (message
-   "To resume, type M-x eregistry and select the desired Ediff session"))
+  (message (substitute-command-keys
+            "To resume, type \\[eregistry] and select the desired Ediff session")))
 
 ;; ediff-barf-if-not-control-buffer ensures only called from ediff.
 (declare-function ediff-version "ediff" ())
@@ -3103,11 +3103,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		(lambda () (when defaults
 			     (setq minibuffer-default defaults)))
 	      (read-file-name
-	       (format "%s%s "
-		       prompt
-		       (cond (default-file
-			       (concat " (default " default-file "):"))
-			     (t (concat " (default " default-dir "):"))))
+               (format-prompt prompt (or default-file default-dir))
 	       default-dir
 	       (or default-file default-dir)
 	       t			; must match, no-confirm
@@ -3220,7 +3216,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
       (if (buffer-modified-p)
 	  ;; If buffer is not obsolete and is modified, offer to save
 	  (if (yes-or-no-p
-	       (format "Buffer %s has been modified. Save it in file %s? "
+               (format "Buffer %s has been modified.  Save it in file %s?"
 		       (buffer-name)
 		       buffer-file-name))
 	      (condition-case nil

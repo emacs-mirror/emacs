@@ -64,7 +64,6 @@ point is used to decide where the old indentation is on a lines that
 is otherwise empty (ignoring any line continuation backslash), but
 that's not done if IGNORE-POINT-POS is non-nil.  Returns the amount of
 indentation change \(in columns)."
-
   (let ((line-cont-backslash (save-excursion
 			       (end-of-line)
 			       (eq (char-before) ?\\)))
@@ -480,7 +479,7 @@ function to control that."
 
 ;; This function is only used in XEmacs.
 (defun c-hungry-delete ()
-  "Delete a non-whitespace char, or all whitespace up to the next non-whitespace char.
+  "Delete non-whitespace char, or all whitespace up to next non-whitespace char.
 The direction of deletion depends on the configuration: If the
 function `delete-forward-p' is defined and returns non-nil, it deletes
 forward using `c-hungry-delete-forward'.  Otherwise it deletes
@@ -1897,16 +1896,18 @@ defun."
 	    (if (< arg 0)
 		(c-while-widening-to-decl-block
 		 (< (setq arg (- (c-forward-to-nth-EOF-\;-or-} (- arg) where))) 0)))
-	    ;; Move forward to the next opening brace....
-	    (when (and (= arg 0)
-		       (progn
-			 (c-while-widening-to-decl-block
-			  (not (c-syntactic-re-search-forward "{" nil 'eob)))
-			 (eq (char-before) ?{)))
-	      (backward-char)
-	      ;; ... and backward to the function header.
-	      (c-beginning-of-decl-1)
-	      t))
+	    (prog1
+		;; Move forward to the next opening brace....
+		(when (and (= arg 0)
+			   (progn
+			     (c-while-widening-to-decl-block
+			      (not (c-syntactic-re-search-forward "{" nil 'eob)))
+			     (eq (char-before) ?{)))
+		  (backward-char)
+		  ;; ... and backward to the function header.
+		  (c-beginning-of-decl-1)
+		  t)
+	      (c-keep-region-active)))
 
 	;; Move backward to the opening brace of a function, making successively
 	;; larger portions of the buffer visible as necessary.
@@ -2058,9 +2059,9 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
       (= arg 0))))
 
 (defun c-defun-name-1 ()
-  "Return the name of the current defun, at the current narrowing,
-or nil if there isn't one.  \"Defun\" here means a function, or
-other top level construct with a brace block."
+  "Return name of current defun, at current narrowing, or nil if there isn't one.
+\"Defun\" here means a function, or other top level construct
+with a brace block."
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        where pos decl0 decl type-pos tag-pos case-fold-search)
@@ -3414,7 +3415,8 @@ to call `c-scan-conditionals' directly instead."
   (interactive "p")
   (let ((new-point (c-scan-conditionals count target-depth with-else)))
     (push-mark)
-    (goto-char new-point)))
+    (goto-char new-point))
+  (c-keep-region-active))
 
 (defun c-scan-conditionals (count &optional target-depth with-else)
   "Scan forward across COUNT preprocessor conditionals.
@@ -3655,9 +3657,9 @@ continuation backslashes, unless `c-auto-align-backslashes' is nil."
       (set-marker here nil))))
 
 (defun c-indent-region (start end &optional quiet)
-  "Indent syntactically every line whose first char is between START
-and END inclusive.  If the optional argument QUIET is non-nil then no
-syntactic errors are reported, even if `c-report-syntactic-errors' is
+  "Indent syntactically lines whose first char is between START and END inclusive.
+If the optional argument QUIET is non-nil then no syntactic
+errors are reported, even if `c-report-syntactic-errors' is
 non-nil."
   (save-excursion
     (goto-char end)

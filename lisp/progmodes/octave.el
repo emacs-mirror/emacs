@@ -1814,18 +1814,18 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
        (user-error "Aborted")))
     (_ name)))
 
-(defvar find-tag-marker-ring)
+(declare-function xref-push-marker-stack "xref" (&optional m))
 
 (defun octave-find-definition (fn)
   "Find the definition of FN.
 Functions implemented in C++ can be found if
 variable `octave-source-directories' is set correctly."
   (interactive (list (octave-completing-read)))
-  (require 'etags)
+  (require 'xref)
   (let ((orig (point)))
     (if (and (derived-mode-p 'octave-mode)
              (octave-goto-function-definition fn))
-        (ring-insert find-tag-marker-ring (copy-marker orig))
+        (xref-push-marker-stack (copy-marker orig))
       (inferior-octave-send-list-and-digest
        ;; help NAME is more verbose
        (list (format "\
@@ -1840,7 +1840,7 @@ if iskeyword('%s') disp('`%s'' is a keyword') else which('%s') endif\n"
             (setq file (match-string 1 line))))
         (if (not file)
             (user-error "%s" (or line (format-message "`%s' not found" fn)))
-          (ring-insert find-tag-marker-ring (point-marker))
+          (xref-push-marker-stack)
           (setq file (funcall octave-find-definition-filename-function file))
           (when file
             (find-file file)

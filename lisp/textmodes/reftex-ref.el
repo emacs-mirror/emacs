@@ -230,7 +230,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                                  (symbol-value reftex-docstruct-symbol)))
               (ding)
               (if (y-or-n-p
-                   (format-message "Label `%s' exists. Use anyway? " label))
+                   (format-message "Label `%s' exists.  Use anyway?" label))
                   (setq valid t)))
 
              ;; Label is ok
@@ -533,7 +533,7 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
         (cons (cdr cell) (- (match-end 0) (match-end 1)))
       nil)))
 
-(defvar reftex-select-label-map)
+(defvar reftex-select-label-mode-map)
 (defun reftex-offer-label-menu (typekey)
   ;; Offer a menu with the appropriate labels.
   (let* ((buf (current-buffer))
@@ -605,7 +605,7 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
                     (reftex-select-item
                      reftex-select-label-prompt
                      reftex-select-label-help
-                     reftex-select-label-map
+                     reftex-select-label-mode-map
                      offset
                      'reftex-show-label-location follow))
               (setq key       (car rtn)

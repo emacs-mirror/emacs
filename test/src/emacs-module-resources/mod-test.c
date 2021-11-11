@@ -298,7 +298,10 @@ Fmod_test_userptr_make (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
 {
   struct super_struct *p = calloc (1, sizeof *p);
   if (!p)
-    signal_errno (env, "calloc");
+    {
+      signal_errno (env, "calloc");
+      return NULL;
+    }
   p->amazing_int = env->extract_integer (env, args[0]);
   return env->make_user_ptr (env, free, p);
 }

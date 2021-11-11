@@ -283,6 +283,8 @@ Font Locking
 * Font Locking Preliminaries::
 * Faces::
 * Doc Comments::
+* Wrong Comment Style::
+* Found Types::
 * Misc Font Locking::
 * AWK Mode Font Locking::
 
@@ -1855,6 +1857,7 @@ sections apply to the other languages.
 * Faces::
 * Doc Comments::
 * Wrong Comment Style::
+* Found Types::
 * Misc Font Locking::
 * AWK Mode Font Locking::
 @end menu
@@ -2159,6 +2162,60 @@ option @code{c-mark-wrong-style-of-comment} to non-@code{nil}.
 When this customizable option is non-@code{nil}, comment delimiters
 which aren't of the default style will be fontified with
 @code{font-lock-warning-face}.
+@end defvar
+
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Found Types
+@comment  node-name,  next,  previous,  up
+@section ``Found Type'' handling.
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+In most languages handled by CC Mode, @dfn{found types} are recognized
+as types by their context in the source code.  These contrast with
+types which are basic to a language or are declared as types (e.g. by
+@code{typedef} in C).
+
+In earlier versions of @ccmode{}, when @code{jit-lock-mode} was
+enabled in Emacs (which it is by default), found types would
+frequently fail to get fontified properly.  This happened when the
+fontification functions scanned a use of the found type before
+scanning the code which caused it to be recognized.
+
+From @ccmode{} version 5.36, a timer mechanism scans the entire buffer
+for found types in the seconds immediately after starting the major
+mode.  When a found type gets recognized, all its occurrences in the
+buffer get marked for (re)fontification.  This scanning happens in
+short time slices interleaved with other processing, such as keyboard
+handling, so that the responsiveness of Emacs should be barely
+affected.  This mechanism can be disabled (see below).  It is only
+active when @code{jit-lock-mode} is also active.
+
+@defvar c-type-finder-time-slot
+@vindex type-finder-time-slot (c-)
+The approximate time in seconds that CC Mode spends in scanning source
+code before relinquishing control to other Emacs activities.  The
+default value is 0.05.  To disable the scanning mechanism, set this
+variable to @code{nil}.
+@end defvar
+
+@defvar c-type-finder-repeat-time
+@vindex type-finder-repeat-time (c-)
+The approximate frequency (in seconds) with which the scanning
+mechanism is triggered.  This time must be greater than
+@code{c-type-finder-time-slot}.  Its default value is 0.1.  If a less
+powerful machine becomes sluggish due to the scanning, increase the
+value of @code{c-type-finder-repeat-time} to compensate.
+@end defvar
+
+@defvar c-type-finder-chunk-size
+@vindex type-finder-chunk-size (c-)
+The approximate size (in characters) of the buffer chunk processed as
+a unit before the scanning mechanism checks whether
+@code{c-type-finder-time-slot} seconds have passed.  The default value
+is 1000.  A too small value here will cause inefficiencies due to the
+initialization which happens for each chunk, whereas a too large value
+will cause the processing to consume an excessive proportion of the
+@code{c-type-finder-repeat-time}.
 @end defvar
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

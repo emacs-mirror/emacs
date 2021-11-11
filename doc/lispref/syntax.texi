@@ -900,6 +900,7 @@ arrived at a top level position.
 @defun syntax-ppss-context state
 Return @code{string} if the end position of the scan returning
 @var{state} is in a string, and @code{comment} if it's in a comment.
+Otherwise return @code{nil}.
 @end defun
 
 @node Low-Level Parsing

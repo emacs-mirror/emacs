@@ -59,12 +59,13 @@ runs just before Emacs suspends itself (@pxref{Suspending Emacs}).
 
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
-indicates it is probably an @dfn{abnormal hook}.  That means the hook
-functions are called with arguments, or their return values are used
-in some way.  The hook's documentation says how the functions are
-called.  Any functions added to an abnormal hook must follow the
-hook's calling convention.  By convention, abnormal hook names end in
-@samp{-functions}.
+indicates it is probably an @dfn{abnormal hook}.  These differ from
+normal hooks in two ways: they can be called with one or more
+arguments, and their return values can be used in some way.  The
+hook's documentation says how the functions are called and how their
+return values are used.  Any functions added to an abnormal hook must
+follow the hook's calling convention.  By convention, abnormal hook
+names end in @samp{-functions}.
 
 @cindex single-function hook
 If the name of the variable ends in @samp{-predicate} or
@@ -266,6 +267,18 @@ This function restores the major mode recorded by
 function calls @code{normal-mode} (@pxref{Auto Major Mode,
 normal-mode}), but tries to force it not to choose any modes in
 @var{avoided-modes}, if that argument is non-@code{nil}.
+@end defun
+
+@defun clean-mode
+Changing the major mode clears out most local variables, but it
+doesn't remove all artefacts in the buffer (like text properties and
+overlays).  It's rare to change a buffer from one major mode to
+another (except from @code{fundamental-mode} to everything else), so
+this is usually not a concern.  It can sometimes be convenient (mostly
+when debugging a problem in a buffer) to do a ``full reset'' of the
+buffer, and that's what the @code{clean-mode} major mode offers.  It
+will kill all local variables (even the permanently local ones), and
+also removes all overlays and text properties.
 @end defun
 
   The easiest way to write a major mode is to use the macro
@@ -1137,10 +1150,11 @@ re-sorting entries.  Comparison is done with @code{equal}.
 @item
 @var{contents} is a vector with the same number of elements as
 @code{tabulated-list-format}.  Each vector element is either a string,
-which is inserted into the buffer as-is, or a list @code{(@var{label}
-. @var{properties})}, which means to insert a text button by calling
-@code{insert-text-button} with @var{label} and @var{properties} as
-arguments (@pxref{Making Buttons}).
+which is inserted into the buffer as-is; an image descriptor, which is
+used to insert an image (@pxref{Image Descriptors}); or a list
+@w{@code{(@var{label} . @var{properties})}}, which means to insert a
+text button by calling @code{insert-text-button} with @var{label} and
+@var{properties} as arguments (@pxref{Making Buttons}).
 
 There should be no newlines in any of these strings.
 @end itemize

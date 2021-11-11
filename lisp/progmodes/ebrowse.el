@@ -1330,9 +1330,9 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
   "Set the indentation width of the tree display."
   (interactive)
   (let ((width (string-to-number (read-string
-                                  (concat "Indentation (default "
-                                          (int-to-string ebrowse--indentation)
-                                          "): ")
+                                  (format-prompt
+                                   "Indentation"
+                                   (int-to-string ebrowse--indentation))
                                   nil nil ebrowse--indentation))))
     (when (cl-plusp width)
       (setq-local ebrowse--indentation width)

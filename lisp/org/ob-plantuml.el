@@ -71,6 +71,12 @@ You can also configure extra arguments via `org-plantuml-executable-args'."
   :package-version '(Org . "9.4")
   :type '(repeat string))
 
+(defcustom org-babel-plantuml-svg-text-to-path nil
+  "When non-nil, export text in SVG images to paths using Inkscape."
+  :group 'org-babel
+  :package-version '(Org . "9.5")
+  :type 'boolean)
+
 (defun org-babel-variable-assignments:plantuml (params)
   "Return a list of PlantUML statements assigning the block's variables.
 PARAMS is a property list of source block parameters, which may
@@ -78,9 +84,9 @@ contain multiple entries for the key `:var'.  `:var' entries in PARAMS
 are expected to be scalar variables."
   (mapcar
    (lambda (pair)
-       (format "!define %s %s"
-	       (car pair)
-	       (replace-regexp-in-string "\"" "" (cdr pair))))
+     (format "!define %s %s"
+	     (car pair)
+	     (replace-regexp-in-string "\"" "" (cdr pair))))
    (org-babel--get-vars params)))
 
 (defun org-babel-plantuml-make-body (body params)
@@ -145,6 +151,9 @@ This function is called by `org-babel-execute-src-block'."
 			 " ")))
     (with-temp-file in-file (insert full-body))
     (message "%s" cmd) (org-babel-eval cmd "")
+    (if (and (string= (file-name-extension out-file) "svg")
+             org-babel-plantuml-svg-text-to-path)
+        (org-babel-eval (format "inkscape %s -T -l %s" out-file out-file) ""))
     nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:plantuml (_session _params)

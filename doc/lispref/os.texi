@@ -1042,6 +1042,21 @@ that variable with @code{let} is also reasonable practice.
 if it removed @var{variable} from the environment.
 @end deffn
 
+@defmac with-environment-variables variables body@dots{}
+This macro sets the environment variables according to @var{variables}
+temporarily when executing @var{body}.  The previous values are
+restored when the form finishes.  The argument @var{variables} should
+be a list of pairs of strings of the form
+@w{@code{(@var{var} @var{value})}}, where @var{var} is the name of the
+environment variable and @var{value} is that variable's value.
+
+@lisp
+(with-environment-variables (("LANG" "C")
+                             ("LANGUAGE" "en_US:en"))
+  (call-process "ls" nil t))
+@end lisp
+@end defmac
+
 @defvar process-environment
 This variable is a list of strings, each describing one environment
 variable.  The functions @code{getenv} and @code{setenv} work by means
@@ -3109,8 +3124,9 @@ watch for file attribute changes, like permissions or modification
 time
 @end table
 
-If @var{file} is a directory, changes for all files in that directory
-will be notified.  This does not work recursively.
+If @var{file} is a directory, @code{change} watches for file creation
+or deletion in that directory.  Some of the file notification backends
+report also file changes.  This does not work recursively.
 
 When any event happens, Emacs will call the @var{callback} function
 passing it a single argument @var{event}, which is of the form
@@ -3214,6 +3230,14 @@ Removes an existing file watch specified by its @var{descriptor}.
 @var{descriptor} should be an object returned by
 @code{file-notify-add-watch}.
 @end defun
+
+@deffn Command file-notify-rm-all-watches
+Removes all existing file notification watches from Emacs.
+
+Use this command with caution, because it could have unexpected side
+effects on packages relying on file watches.  It is intended mainly
+for debugging purposes, or when Emacs has been stalled.
+@end deffn
 
 @defun file-notify-valid-p descriptor
 Checks a watch specified by its @var{descriptor} for validity.

@@ -1230,8 +1230,9 @@ only return the directory part of FILE."
 			    ;; found another machine with the same user.
 			    ;; Try that account.
 			    (read-passwd
-			     (format "passwd for %s@%s (default same as %s@%s): "
-				     user host user other)
+                             (format-prompt "passwd for %s@%s"
+                                            (format "same as %s@%s" user other)
+                                            user host)
 			     nil
 			     (ange-ftp-lookup-passwd other user))
 
@@ -4723,7 +4724,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; by using the ftp chmod command.
 (defun ange-ftp-call-chmod (args)
   (if (< (length args) 2)
-      (error "ange-ftp-call-chmod: missing mode and/or filename: %s" args))
+      (error "ange-ftp-call-chmod: Missing mode and/or filename: %s" args))
   (let ((mode (car args))
 	(rest (cdr args)))
     (if (equal "--" (car rest))

@@ -312,14 +312,15 @@ dump_reloc_set_offset (struct dump_reloc *reloc, dump_off offset)
     error ("dump relocation out of range");
 }
 
-static void
-dump_fingerprint (char const *label,
+void
+dump_fingerprint (FILE *output, char const *label,
 		  unsigned char const xfingerprint[sizeof fingerprint])
 {
   enum { hexbuf_size = 2 * sizeof fingerprint };
   char hexbuf[hexbuf_size];
   hexbuf_digest (hexbuf, xfingerprint, sizeof fingerprint);
-  fprintf (stderr, "%s: %.*s\n", label, hexbuf_size, hexbuf);
+  fprintf (output, "%s%s%.*s\n", label, *label ? ": " : "",
+	   hexbuf_size, hexbuf);
 }
 
 /* To be used if some order in the relocation process has to be enforced. */
@@ -799,31 +800,13 @@ dump_tailq_length (const struct dump_tailq *tailq)
   return tailq->length;
 }
 
-static void ATTRIBUTE_UNUSED
+static void
 dump_tailq_prepend (struct dump_tailq *tailq, Lisp_Object value)
 {
   Lisp_Object link = Fcons (value, tailq->head);
   tailq->head = link;
   if (NILP (tailq->tail))
     tailq->tail = link;
-  tailq->length += 1;
-}
-
-static void ATTRIBUTE_UNUSED
-dump_tailq_append (struct dump_tailq *tailq, Lisp_Object value)
-{
-  Lisp_Object link = Fcons (value, Qnil);
-  if (NILP (tailq->head))
-    {
-      eassert (NILP (tailq->tail));
-      tailq->head = tailq->tail = link;
-    }
-  else
-    {
-      eassert (!NILP (tailq->tail));
-      XSETCDR (tailq->tail, link);
-      tailq->tail = link;
-    }
   tailq->length += 1;
 }
 
@@ -4145,7 +4128,7 @@ types.  */)
     ctx->header.fingerprint[i] = fingerprint[i];
 
   const dump_off header_start = ctx->offset;
-  dump_fingerprint ("Dumping fingerprint", ctx->header.fingerprint);
+  dump_fingerprint (stderr, "Dumping fingerprint", ctx->header.fingerprint);
   dump_write (ctx, &ctx->header, sizeof (ctx->header));
   const dump_off header_end = ctx->offset;
 
@@ -5313,6 +5296,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  error ("Trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 
+	if (!CONSP (comp_u->file))
+	  error ("Incoherent compilation unit for dump was dumped");
+
 	/* emacs_execdir is always unibyte, but the file names in
 	   comp_u->file could be multibyte, so we need to encode
 	   them.  */
@@ -5614,8 +5600,8 @@ pdumper_load (const char *dump_filename, char *argv0)
     desired[i] = fingerprint[i];
   if (memcmp (header->fingerprint, desired, sizeof desired) != 0)
     {
-      dump_fingerprint ("desired fingerprint", desired);
-      dump_fingerprint ("found fingerprint", header->fingerprint);
+      dump_fingerprint (stderr, "desired fingerprint", desired);
+      dump_fingerprint (stderr, "found fingerprint", header->fingerprint);
       goto out;
     }
 
@@ -5723,6 +5709,7 @@ pdumper_load (const char *dump_filename, char *argv0)
     dump_mmap_release (&sections[i]);
   if (dump_fd >= 0)
     emacs_close (dump_fd);
+
   return err;
 }
 
@@ -5807,6 +5794,7 @@ syms_of_pdumper (void)
   DEFSYM (Qdumped_with_pdumper, "dumped-with-pdumper");
   DEFSYM (Qload_time, "load-time");
   DEFSYM (Qdump_file_name, "dump-file-name");
+  DEFSYM (Qafter_pdump_load_hook, "after-pdump-load-hook");
   defsubr (&Spdumper_stats);
 #endif /* HAVE_PDUMPER */
 }

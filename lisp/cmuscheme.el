@@ -245,7 +245,8 @@ Search in the directories \"~\" and `user-emacs-directory',
 in this order.  Return nil if no start file found."
   (let* ((progname (file-name-nondirectory prog))
 	 (start-file (concat "~/.emacs_" progname))
-	 (alt-start-file (concat user-emacs-directory "init_" progname ".scm")))
+         (alt-start-file (locate-user-emacs-file
+                          (concat "init_" progname ".scm"))))
     (if (file-exists-p start-file)
         start-file
       (and (file-exists-p alt-start-file) alt-start-file))))

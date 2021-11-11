@@ -823,17 +823,18 @@ active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
 
-@vindex rcirc-omit-responses-after-join
-Right after connecting to a server, rcirc will also hide all messages
-in @code{rcirc-omit-responses-after-join}, next to
-@code{rcirc-omit-responses}. For example,
+@vindex rcirc-omit-unless-requested
+Certain messages can be omitted by default, unless the user manual
+requests them. For example, if you don't want to display @code{TOPIC}
+and @code{NAMES} messages, after reconnecting, you can configure
+@code{rcirc-omit-unless-requested} to hide:
 
 @example
-(setq rcirc-omit-responses-after-join '("TOPIC" "NICK"))
+(setq rcirc-omit-unless-requested '("TOPIC" "NAMES"))
 @end example
 
-would hide the topic message and the list of users in the current
-channel right after joining a new channel.
+Now NAMES will only be displayed, after it has been requested via the
+@code{rcirc-cmd-name} command.
 
 @node Hacking and Tweaking
 @chapter Hacking and Tweaking
@@ -975,9 +976,6 @@ displayed. A simple configuration to fix the above example might be:
 (setq rcirc-nick-filter #'my/rcirc-remove-suffix
       rcirc-channel-filter #'local/rcirc-soju-suffix)
 @end smallexample
-
-The effect is that buffer names, nicks in messages, nick-completion
-all strip away the suffix introduced by the bouncer.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

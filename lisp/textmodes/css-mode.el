@@ -305,14 +305,14 @@
     ;; CSS Box Alignment Module Level 3
     ;; (https://www.w3.org/TR/css-align-3/#property-index)
     ("align-content"
-     baseline-position content-distibution overflow-position content-position)
+     baseline-position content-distribution overflow-position content-position)
     ("align-items"
      "normal" "stretch" baseline-position overflow-position self-position)
     ("align-self"
      "auto" "normal" "stretch"
      baseline-position overflow-position self-position)
     ("justify-content" "normal"
-     content-distibution overflow-position content-position "left" "right")
+     content-distribution overflow-position content-position "left" "right")
     ("justify-items"
      "normal" "stretch" baseline-position overflow-position self-position
      "left" "right" "legacy")

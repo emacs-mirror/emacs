@@ -510,7 +510,7 @@ If READ-FLAG is non-nil, this statement has the form
 	    (arg (nth 2 condition)))
 	(ccl-check-register rrr cmd)
 	(or (integerp op)
-	    (error "CCL: invalid operator: %s" (nth 1 condition)))
+            (error "CCL: Invalid operator: %s" (nth 1 condition)))
 	(if (integerp arg)
 	    (progn
 	      (ccl-embed-code (if read-flag 'read-jump-cond-expr-const
@@ -862,7 +862,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-int rrr RRR 0))))
@@ -882,7 +882,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-char rrr RRR 0))))
@@ -1553,7 +1553,7 @@ MAP :=
 MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
 MAP-ID := integer"
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(let ((prog ,(unwind-protect
 		    (progn
 		      ;; To make ,(charset-id CHARSET) works well.

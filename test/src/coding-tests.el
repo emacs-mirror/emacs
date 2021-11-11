@@ -434,4 +434,4 @@
 ;; End:
 
 (provide 'coding-tests)
-;; coding-tests.el ends here
+;;; coding-tests.el ends here

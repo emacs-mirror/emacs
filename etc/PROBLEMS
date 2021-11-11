@@ -123,98 +123,6 @@ load-path.
 
 * Crash bugs
 
-** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
-
-This version of GCC is buggy: see
-
-  https://debbugs.gnu.org/6031
-  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
-
-You can work around this error in gcc-4.5 by omitting sibling call
-optimization.  To do this, configure Emacs with
-
- ./configure CFLAGS="-g -O2 -fno-optimize-sibling-calls"
-
-** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
-
-This is known to happen when Emacs is compiled with MinGW GCC 4.6.1
-with the -O2 option (which is the default in the Windows build).  The
-reason is a bug in MinGW GCC 4.6.1; to work around, either add the
-'-fno-omit-frame-pointer' switch to GCC or compile without
-optimizations ('--no-opt' switch to the configure.bat script).
-
-** Emacs crashes in x-popup-dialog.
-
-This can happen if the dialog widget cannot find the font it wants to
-use.  You can work around the problem by specifying another font with
-an X resource--for example, 'Emacs.dialog*.font: 9x15' (or any font that
-happens to exist on your X server).
-
-** Emacs crashes when you use Bibtex mode.
-
-This happens if your system puts a small limit on stack size.  You can
-prevent the problem by using a suitable shell command (often 'ulimit')
-to raise the stack size limit before you run Emacs.
-
-Patches to raise the stack size limit automatically in 'main'
-(src/emacs.c) on various systems would be greatly appreciated.
-
-** Error message 'Symbol’s value as variable is void: x', followed by
-a segmentation fault and core dump.
-
-This has been tracked to a bug in tar!  People report that tar erroneously
-added a line like this at the beginning of files of Lisp code:
-
-   x FILENAME, N bytes, B tape blocks
-
-If your tar has this problem, install GNU tar--if you can manage to
-untar it :-).
-
-** Emacs can crash when displaying PNG images with transparency.
-
-This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
-be fixed in ImageMagick 6.8.3-10.  See <URL:https://debbugs.gnu.org/13867>.
-
-** Crashes when displaying GIF images in Emacs built with version
-libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
-Configure checks for the correct version, but this problem could occur
-if a binary built against a shared libungif is run on a system with an
-older version.
-
-** SVG images may be cropped incorrectly with librsvg 2.45 and below.
-Librsvg 2.46 and above have improved geometry code which Emacs is able
-to take advantage of.
-
-** Emacs aborts inside the function 'tparam1'.
-
-This can happen if Emacs was built without terminfo support, but the
-terminal's capabilities use format that is only supported by terminfo.
-If your system has ncurses installed, this might happen if your
-version of ncurses is broken; upgrading to a newer version of ncurses
-and reconfiguring and rebuilding Emacs should solve this.
-
-All modern systems support terminfo, so even if ncurses is not the
-problem, you should look for a way to configure Emacs so that it uses
-terminfo when built.
-
-** Emacs crashes when using some version of the Exceed X server.
-
-Upgrading to a newer version of Exceed has been reported to prevent
-these crashes.  You should consider switching to a free X server, such
-as Xming or Cygwin/X.
-
-** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
-
-It crashes on X, but runs fine when called with option "-nw".
-
-This has been observed when Emacs is linked with GNU ld but without passing
-the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
-flag when needed, so if you come across a situation where the flag is
-necessary but missing, please report it via M-x report-emacs-bug.
-
-On platforms such as Solaris, you can also work around this problem by
-configuring your compiler to use the native linker instead of GNU ld.
-
 ** When Emacs is compiled with Gtk+, closing a display kills Emacs.
 
 There is a long-standing bug in GTK that prevents it from recovering
@@ -270,11 +178,31 @@ The relevant bug report is here:
 A workaround is to set XLIB_SKIP_ARGB_VISUALS=1 in the environment
 before starting Emacs, or run Emacs as root.
 
+** Emacs crashes with SIGTRAP when trying to start a WebKit xwidget.
+
+This could happen if the version of WebKitGTK installed on your system
+is buggy, and errors out trying to start a subprocess through
+Bubblewrap sandboxing.  You can avoid the crash by setting the
+environment variables SNAP, SNAP_NAME and SNAP_REVISION, which will
+make WebKit use GLib to launch subprocesses instead.  For example,
+invoke Emacs like this (where "..." stands for the other command-line
+arguments you intend to pass to Emacs):
+
+  $ SNAP=1 SNAP_NAME=1 SNAP_REVISION=1 emacs ...
+
 ** Emacs crashes when you try to view a file with complex characters.
 
 One possible reason for this could be a bug in the libotf or the
 libm17n-flt/m17n-db libraries Emacs uses for displaying complex
-scripts.  Make sure you have the latest versions of these libraries
+scripts.
+
+The easiest and the recommended way of solving these crashes is to
+build Emacs with HarfBuzz as the shaping engine library instead of
+libm17n-flt.  Building with HarfBuzz is the default since Emacs 27.1.
+
+If you must use libm17n-flt, read on.
+
+Make sure you have the latest versions of these libraries
 installed.  If the problem still persists with the latest released
 versions of these libraries, you can try building these libraries from
 their CVS repository:
@@ -321,6 +249,94 @@ wrapper shell script (or function) "emacs" that removes the offending
 element from LD_LIBRARY_PATH before starting emacs proper.
 Or you could recompile Emacs with an -Wl,-rpath option that
 gives the location of the correct libotf.
+
+** Emacs crashes in x-popup-dialog.
+
+This can happen if the dialog widget cannot find the font it wants to
+use.  You can work around the problem by specifying another font with
+an X resource--for example, 'Emacs.dialog*.font: 9x15' (or any font that
+happens to exist on your X server).
+
+** Emacs crashes when you use Bibtex mode.
+
+This happens if your system puts a small limit on stack size.  You can
+prevent the problem by using a suitable shell command (often 'ulimit')
+to raise the stack size limit before you run Emacs.
+
+Patches to raise the stack size limit automatically in 'main'
+(src/emacs.c) on various systems would be greatly appreciated.
+
+** Error message 'Symbol’s value as variable is void: x', followed by
+a segmentation fault and core dump.
+
+This has been tracked to a bug in tar!  People report that tar erroneously
+added a line like this at the beginning of files of Lisp code:
+
+   x FILENAME, N bytes, B tape blocks
+
+If your tar has this problem, install GNU tar--if you can manage to
+untar it :-).
+
+** Emacs crashes when running in a terminal, if compiled with GCC 4.5.0
+
+This version of GCC is buggy: see
+
+  https://debbugs.gnu.org/6031
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43904
+
+You can work around this error in gcc-4.5 by omitting sibling call
+optimization.  To do this, configure Emacs with
+
+ ./configure CFLAGS="-g -O2 -fno-optimize-sibling-calls"
+
+** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
+
+This is known to happen when Emacs is compiled with MinGW GCC 4.6.1
+with the -O2 option (which is the default in the Windows build).  The
+reason is a bug in MinGW GCC 4.6.1; to work around, either add the
+'-fno-omit-frame-pointer' switch to GCC or compile without
+optimizations ('--no-opt' switch to the configure.bat script).
+
+** Emacs can crash when displaying PNG images with transparency.
+
+This is due to a bug introduced in ImageMagick 6.8.2-3.  The bug should
+be fixed in ImageMagick 6.8.3-10.  See <URL:https://debbugs.gnu.org/13867>.
+
+** Crashes when displaying GIF images in Emacs built with version
+libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
+Configure checks for the correct version, but this problem could occur
+if a binary built against a shared libungif is run on a system with an
+older version.
+
+** Emacs aborts inside the function 'tparam1'.
+
+This can happen if Emacs was built without terminfo support, but the
+terminal's capabilities use format that is only supported by terminfo.
+If your system has ncurses installed, this might happen if your
+version of ncurses is broken; upgrading to a newer version of ncurses
+and reconfiguring and rebuilding Emacs should solve this.
+
+All modern systems support terminfo, so even if ncurses is not the
+problem, you should look for a way to configure Emacs so that it uses
+terminfo when built.
+
+** Emacs crashes when using some version of the Exceed X server.
+
+Upgrading to a newer version of Exceed has been reported to prevent
+these crashes.  You should consider switching to a free X server, such
+as Xming or Cygwin/X.
+
+** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
+
+It crashes on X, but runs fine when called with option "-nw".
+
+This has been observed when Emacs is linked with GNU ld but without passing
+the -z nocombreloc flag.  Emacs normally knows to pass the -z nocombreloc
+flag when needed, so if you come across a situation where the flag is
+necessary but missing, please report it via M-x report-emacs-bug.
+
+On platforms such as Solaris, you can also work around this problem by
+configuring your compiler to use the native linker instead of GNU ld.
 
 * Problems when reading or debugging Emacs C code
 
@@ -742,6 +758,11 @@ completed" message that tls.el relies upon, causing affected Emacs
 functions to hang.  To work around the problem, use older or newer
 versions of gnutls-cli, or use Emacs's built-in gnutls support.
 
+*** SVG images may be cropped incorrectly with librsvg 2.45 or older.
+
+Librsvg 2.46 and above have improved geometry code which Emacs is able
+to take advantage of.
+
 * Runtime problems related to font handling
 
 ** Characters are displayed as empty boxes or with wrong font under X.
@@ -750,6 +771,18 @@ versions of gnutls-cli, or use Emacs's built-in gnutls support.
 Try removing or moving aside "$XDG_CONFIG_HOME/fontconfig/conf.d" and
 "$XDG_CONFIG_HOME/fontconfig/fonts.conf"
 ($XDG_CONFIG_HOME is treated as "~/.config" if not set)
+
+Running Emacs as
+
+    FC_DEBUG=1024 emacs
+
+will cause fontconfig to output information about which configuration
+files it is reading.  Running Emacs as
+
+    FC_DEBUG=1 emacs
+
+will result in information about the results of fontconfig's font
+matching (including the filename(s) of the resulting fonts).
 
 *** This can occur when two different versions of FontConfig are used.
 For example, XFree86 4.3.0 has one version and Gnome usually comes
@@ -763,7 +796,7 @@ same version of FontConfig as the rest of the system uses.  For KDE,
 it is sufficient to recompile Qt.
 
 *** Some fonts have a missing glyph and no default character.  This is
-known to occur for character number 160 (no-break space) in some
+known to occur for character number 160 (no-break space, U+A0) in some
 fonts, such as Lucida but Emacs sets the display table for the unibyte
 and Latin-1 version of this character to display a space.
 
@@ -1054,14 +1087,6 @@ The solution is to remove the corresponding lines from the appropriate
 'fonts.alias' file, then run 'mkfontdir' in that directory, and then run
 'xset fp rehash'.
 
-** The 'oc-unicode' package doesn't work with Emacs 21.
-
-This package tries to define more private charsets than there are free
-slots now.  The current built-in Unicode support is actually more
-flexible.  (Use option 'utf-translate-cjk-mode' if you need CJK
-support.)  Files encoded as emacs-mule using oc-unicode aren't
-generally read correctly by Emacs 21.
-
 * X runtime problems
 
 ** X keyboard problems
@@ -1104,20 +1129,6 @@ The same problem happens on any other system if you are using fcitx
 you want to use fcitx with Emacs, you have two choices.  Toggle fcitx
 by another key (e.g. C-\) by modifying ~/.fcitx/config, or be
 accustomed to use C-@ for 'set-mark-command'.
-
-*** Link-time optimization with clang doesn't work on Fedora 20.
-
-As of May 2014, Fedora 20 has broken LLVMgold.so plugin support in clang
-(tested with clang-3.4-6.fc20) - 'clang --print-file-name=LLVMgold.so'
-prints 'LLVMgold.so' instead of full path to plugin shared library, and
-'clang -flto' is unable to find the plugin with the following error:
-
-/bin/ld: error: /usr/bin/../lib/LLVMgold.so: could not load plugin library:
-/usr/bin/../lib/LLVMgold.so: cannot open shared object file: No such file
-or directory
-
-The only way to avoid this is to build your own clang from source code
-repositories, as described at http://clang.llvm.org/get_started.html.
 
 *** M-SPC seems to be ignored as input.
 
@@ -1632,6 +1643,13 @@ restart the X server after the monitor configuration has been changed.
 
 * Runtime problems on character terminals
 
+*** With X forwarding, mouse highlighting can make Emacs slow.
+
+If you see slow updates when moving the mouse in an Emacs running on a
+remote X server, try this:
+
+    (setq mouse-highlight nil)
+
 ** The meta key does not work on xterm.
 
 Typing M-x rings the terminal bell, and inserts a string like ";120~".
@@ -1942,6 +1960,75 @@ To avoid it, set xterm-extra-capabilities to a value other than
 'check' (the default).  See that variable's documentation (in
 term/xterm.el) for more details.
 
+** Incorrect or corrupted display of some Unicode characters
+
+*** Linux console problems with double-width characters
+
+The Linux console declares UTF-8 encoding, but supports only a limited
+number of Unicode characters, and can cause Emacs produce corrupted or
+garbled display with some unusual characters and sequences.  Emacs 28
+and later by default disables 'auto-composition-mode' on this console,
+for that reason, but this might not be enough.  One known problem with
+this console is that zero-width and double-width characters are
+displayed incorrectly (as a single-column characters), and that causes
+the cursor to be out of sync with the actual display.
+
+One way of working around this is to use the display-table feature to
+display the problematic characters as some other, less problematic
+ones.  Here's an example of setting up the standard display table to
+show the U+01F64F PERSON WITH FOLDED HANDS character as a diamond with
+a special face:
+
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
+  (aset standard-display-table
+	#x1f64f (vector (make-glyph-code #xFFFD 'escape-glyph)))
+
+Similar setup can be done with any other problematic character.  If
+the console cannot even display the U+FFFD REPLACEMENT CHARACTER, you
+can use some ASCII character instead, like '?'; it will stand out due
+to the 'escape-glyph' face.  The disadvantage of this method is that
+all such characters will look the same on display, and the only way of
+knowing what is the real codepoint in the buffer is to go to the
+character and type "C-u C-x =".
+
+*** Messed-up display on the Kitty text terminal
+
+This terminal has its own peculiar ideas about display of unusual
+characters.  For example, it hides the U+00AD SOFT HYPHEN characters
+on display, which messes up Emacs cursor addressing, since Emacs
+doesn't know these characters are effectively treated as zero-width
+characters.
+
+One way of working around such "hidden" characters is to tell Emacs to
+display them as zero-width:
+
+  (aset glyphless-char-display #xAD 'zero-width)
+
+Another possibility is to use display-table to display SOFT HYPHEN as
+a regular ASCII dash character '-':
+
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
+  (aset standard-display-table
+        #xAD (vector (make-glyph-code ?- 'escape-glyph)))
+
+Another workaround is to set 'nobreak-char-ascii-display' to a non-nil
+value, which will cause any non-ASCII space and hyphen characters to
+be displayed as their ASCII counterparts, with a special face.
+
+Kitty also differs from many other character terminals in how it
+handles character compositions.  As one example, Emoji sequences that
+begin with a non-Emoji character and end in U+FE0F VARIATION SELECTOR
+16 should be composed into an Emoji glyph; Kitty assumes that all such
+Emoji glyphs have 2-column width, whereas Emacs and many other text
+terminals display them as 1-column glyphs.  Again, this causes cursor
+addressing to get out of sync and eventually messes up the display.
+
+One possible workaround for problems caused by character composition
+is to turn off 'auto-composition-mode' on Kitty terminals.
+
+
 * Runtime problems specific to individual Unix variants
 
 ** GNU/Linux
@@ -2197,20 +2284,6 @@ are compiling with the system's 'cc' and CFLAGS containing '-O5'.  If
 so, you have hit a compiler bug.  Please make sure to re-configure
 Emacs so that it isn't compiled with '-O5'.
 
-*** AIX 4.3.x or 4.4: Compiling fails.
-
-This could happen if you use /bin/c89 as your compiler, instead of
-the default 'cc'.  /bin/c89 treats certain warnings, such as benign
-redefinitions of macros, as errors, and fails the build.  A solution
-is to use the default compiler 'cc'.
-
-*** AIX 4: Some programs fail when run in a Shell buffer
-with an error message like   No terminfo entry for "unknown".
-
-On AIX, many terminal type definitions are not installed by default.
-'unknown' is one of them.  Install the "Special Generic Terminal
-Definitions" to make them defined.
-
 ** Solaris
 
 We list bugs in current versions here.  See also the section on legacy
@@ -2247,7 +2320,7 @@ implementation is only available in UNICOWS.DLL, which implements the
 Microsoft Layer for Unicode on Windows 9X, or "MSLU".  This article on
 MSDN:
 
-  http://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
+  https://web.archive.org/web/20151224032644/https://msdn.microsoft.com/en-us/goglobal/bb688166.aspx
 
 includes a short description of MSLU and a link where it can be
 downloaded.
@@ -2261,13 +2334,6 @@ runtime shared library, distributed with Windows 9X.
 
 A workaround is to build Emacs with MinGW runtime 3.x (the latest
 version is 3.20).
-
-** addpm fails to run on Windows NT4, complaining about Shell32.dll
-
-This is likely to happen because Shell32.dll shipped with NT4 lacks
-the updates required by Emacs.  Installing Internet Explorer 4 solves
-the problem.  Note that it is NOT enough to install IE6, because doing
-so will not install the Shell32.dll update.
 
 ** A few seconds delay is seen at startup and for many file operations
 
@@ -2314,7 +2380,7 @@ dialogs introduced in Windows 7.  It is explicitly described in the
 MSDN documentation of the GetOpenFileName API used by Emacs to pop up
 the file selection dialog.  For the details, see
 
-  http://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
+  https://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
 
 The dialog shows the last directory in which the user selected a file
 in a previous invocation of the dialog with the same initial
@@ -2382,15 +2448,6 @@ C:\Users\<UserName>\):
 
 Look for the file 'emacs.lnk' there.
 
-** Windows 95 and networking.
-
-To support server sockets, Emacs loads ws2_32.dll.  If this file is
-missing, all Emacs networking features are disabled.
-
-Old versions of Windows 95 may not have the required DLL.  To use
-Emacs's networking features on Windows 95, you must install the
-"Windows Socket 2" update available from MicroSoft's support Web.
-
 ** Emacs exits with "X protocol error" when run with an X server for MS-Windows.
 
 A certain X server for Windows had a bug which caused this.
@@ -2426,11 +2483,6 @@ under Windows is synchronous, so we cannot handle repaint (or any
 other) messages while waiting for a system function, which popped up
 the menu/dialog, to return the result of the dialog or pop-up menu
 interaction.
-
-** Help text in tooltips does not work on old Windows versions
-
-Windows 95 and Windows NT up to version 4.0 do not support help text
-for menus.  Help text is only available in later versions of Windows.
 
 ** Display problems with ClearType method of smoothing
 
@@ -2656,6 +2708,23 @@ If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 * Runtime problems specific to macOS
 
+** Error message when opening Emacs on macOS
+
+When opening Emacs, you may see an error message saying something like
+this:
+
+  "Emacs" can't be opened because Apple cannot check it for malicious
+  software. This software needs to be updated. Contact the developer
+  for more information.
+
+The reason is that Apple incorrectly catalogs Emacs as potentially
+malicious software and thus shows this error message.
+
+To avoid this alert, open Finder, go to Applications, control-click
+the Emacs app icon, and then choose Open.  This adds a security
+exception for Emacs and from now on you should be able to open it by
+double-clicking on its icon, like any other app.
+
 ** macOS doesn't come with libxpm, so only XPM3 is supported.
 
 Libxpm is available for macOS as part of the XQuartz project.
@@ -2706,6 +2775,20 @@ for your C compiler (CPP="/opt/developerstudio12.6/bin/cc -E" in the
 above example).
 
 ** Compilation
+
+*** Link-time optimization with clang doesn't work on Fedora 20.
+
+As of May 2014, Fedora 20 has broken LLVMgold.so plugin support in clang
+(tested with clang-3.4-6.fc20) - 'clang --print-file-name=LLVMgold.so'
+prints 'LLVMgold.so' instead of full path to plugin shared library, and
+'clang -flto' is unable to find the plugin with the following error:
+
+/bin/ld: error: /usr/bin/../lib/LLVMgold.so: could not load plugin library:
+/usr/bin/../lib/LLVMgold.so: cannot open shared object file: No such file
+or directory
+
+The only way to avoid this is to build your own clang from source code
+repositories, as described at http://clang.llvm.org/get_started.html.
 
 *** Building Emacs over NFS fails with "Text file busy".
 
@@ -3019,15 +3102,6 @@ of PURESIZE in puresize.h.
 But in some of the cases listed above, this problem is a consequence
 of something else that is wrong.  Be sure to check and fix the real problem.
 
-*** OpenBSD 4.0 macppc: Segfault during dumping.
-
-The build aborts with signal 11 when the command './temacs --batch
---load loadup bootstrap' tries to load files.el.  A workaround seems
-to be to reduce the level of compiler optimization used during the
-build (from -O2 to -O1).  It is possible this is an OpenBSD
-GCC problem specific to the macppc architecture, possibly only
-occurring with older versions of GCC (e.g. 3.3.5).
-
 *** openSUSE 10.3: Segfault in bcopy during dumping.
 
 This is due to a bug in the bcopy implementation in openSUSE 10.3.
@@ -3182,7 +3256,50 @@ should do.
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
 
+** OpenBSD
+
+*** OpenBSD 4.0 macppc: Segfault during dumping.
+
+The build aborts with signal 11 when the command './temacs --batch
+--load loadup bootstrap' tries to load files.el.  A workaround seems
+to be to reduce the level of compiler optimization used during the
+build (from -O2 to -O1).  It is possible this is an OpenBSD
+GCC problem specific to the macppc architecture, possibly only
+occurring with older versions of GCC (e.g. 3.3.5).
+
+** AIX
+
+*** AIX 4.3.x or 4.4: Compiling fails.
+
+This could happen if you use /bin/c89 as your compiler, instead of
+the default 'cc'.  /bin/c89 treats certain warnings, such as benign
+redefinitions of macros, as errors, and fails the build.  A solution
+is to use the default compiler 'cc'.
+
+*** AIX 4: Some programs fail when run in a Shell buffer
+with an error message like   No terminfo entry for "unknown".
+
+On AIX, many terminal type definitions are not installed by default.
+'unknown' is one of them.  Install the "Special Generic Terminal
+Definitions" to make them defined.
+
 ** MS-Windows 95, 98, ME, and NT
+
+*** MS-Windows 95: Networking.
+
+To support server sockets, Emacs loads ws2_32.dll.  If this file is
+missing, all Emacs networking features are disabled.
+
+Old versions of Windows 95 may not have the required DLL.  To use
+Emacs's networking features on Windows 95, you must install the
+"Windows Socket 2" update available from MicroSoft's support Web.
+
+*** MS-Windows NT4: addpm fails to run, complaining about Shell32.dll
+
+This is likely to happen because Shell32.dll shipped with NT4 lacks
+the updates required by Emacs.  Installing Internet Explorer 4 solves
+the problem.  Note that it is NOT enough to install IE6, because doing
+so will not install the Shell32.dll update.
 
 *** MS-Windows NT/95: Problems running Perl under Emacs
 
@@ -3246,6 +3363,11 @@ For Perl 4:
           $rcfile="perldb.ini";
       }
       else {
+
+*** MS-Windows NT/95: Help text in tooltips does not work
+
+Windows 95 and Windows NT up to version 4.0 do not support help text
+for menus.  Help text is only available in later versions of Windows.
 
 *** MS-Windows 95: Alt-f6 does not get through to Emacs.
 

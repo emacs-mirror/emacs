@@ -917,7 +917,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 The variable `quail-keyboard-layout-type' holds the currently selected
 keyboard type."
   (interactive
-   (list (completing-read "Keyboard type (default current choice): "
+   (list (completing-read (format-prompt "Keyboard type" "current choice")
 			  quail-keyboard-layout-alist
 			  nil t)))
   (or (and keyboard-type (> (length keyboard-type) 0))
@@ -1382,6 +1382,8 @@ a cons cell of the form (no-record . KEY).
 If KEY is a vector of events, the events in the vector are prepended
 to `unread-command-events', after converting each event to a cons cell
 of the form (no-record . EVENT).
+If KEY is an event, it is prepended to `unread-command-events' as a cons
+cell of the form (no-record . EVENT).
 If RESET is non-nil, the events in `unread-command-events' are first
 discarded, i.e. in this case KEY will end up being the only key
 in `unread-command-events'."
@@ -1390,7 +1392,7 @@ in `unread-command-events'."
         (if (characterp key)
             (cons (cons 'no-record key) unread-command-events)
           (append (mapcan (lambda (e) (list (cons 'no-record e)))
-                          (append key nil))
+                          (append (if (vectorp key) key (vector key)) nil))
                   unread-command-events))))
 
 (defun quail-start-translation (key)

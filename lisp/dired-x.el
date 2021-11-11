@@ -293,7 +293,7 @@ files"]
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
 
-To see the options you can set, use M-x customize-group RET dired-x RET.
+To see the options you can set, use \\[customize-group] RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'
@@ -554,7 +554,7 @@ If the region is active in Transient Mark mode, operate only on
 files in the active region if `dired-mark-region' is non-nil."
   (interactive
    (list (read-regexp
-	  "Mark unmarked files matching regexp (default all): "
+          (format-prompt "Mark unmarked files matching regexp" "all")
           nil 'dired-regexp-history)
 	 nil current-prefix-arg nil))
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
@@ -1478,12 +1478,12 @@ a prefix argument, when it offers the filename near point as a default."
 
 ;;; Internal functions
 
-;; Fixme: This should probably use `thing-at-point'.  -- fx
 (define-obsolete-function-alias 'dired-filename-at-point
   #'dired-x-guess-file-name-at-point "28.1")
 (defun dired-x-guess-file-name-at-point ()
   "Return the filename closest to point, expanded.
 Point should be in or after a filename."
+  (declare (obsolete "use (thing-at-point 'filename) instead." "29.1"))
   (save-excursion
     ;; First see if just past a filename.
     (or (eobp)                             ; why?
@@ -1515,7 +1515,7 @@ Point should be in or after a filename."
   "Return filename prompting with PROMPT with completion.
 If `current-prefix-arg' is non-nil, uses name at point as guess."
   (if current-prefix-arg
-      (let ((guess (dired-x-guess-file-name-at-point)))
+      (let ((guess (thing-at-point 'filename)))
         (read-file-name prompt
                         (file-name-directory guess)
                         guess

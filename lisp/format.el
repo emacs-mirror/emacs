@@ -320,7 +320,7 @@ If the format is not specified, attempt a regexp-based guess.
 Set `buffer-file-format' to the format used, and call any
 format-specific mode functions."
   (interactive
-   (list (format-read "Translate buffer from format (default guess): ")))
+   (list (format-read (format-prompt "Translate buffer from format" "guess"))))
   (save-excursion
     (goto-char (point-min))
     (format-decode format (buffer-size) t)))
@@ -331,7 +331,7 @@ Arg FORMAT is optional; if omitted the format will be determined by looking
 for identifying regular expressions at the beginning of the region."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read "Translate region from format (default guess): ")))
+         (format-read (format-prompt "Translate region from format" "guess"))))
   (save-excursion
     (goto-char from)
     (format-decode format (- to from) nil)))
@@ -519,7 +519,7 @@ the value of `foo'."
       (cdr list)
     (let ((p list))
       (while (not (eq (cdr p) cons))
-	(if (null p) (error "format-delq-cons: not an element"))
+        (if (null p) (error "format-delq-cons: Not an element"))
 	(setq p (cdr p)))
       ;; Now (cdr p) is the cons to delete
       (setcdr p (cdr cons))

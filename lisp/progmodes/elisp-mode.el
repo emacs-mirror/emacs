@@ -210,7 +210,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (emacs-lisp--before-compile-buffer)
   (require 'bytecomp)
   (byte-recompile-file buffer-file-name nil 0)
-  (load buffer-file-name))
+  (load (byte-compile-dest-file buffer-file-name)))
 
 (declare-function native-compile "comp")
 (defun emacs-lisp-native-compile-and-load ()
@@ -532,6 +532,53 @@ It can be quoted, or be inside a quoted form."
             0))
      ((facep sym) (find-definition-noselect sym 'defface)))))
 
+(defvar obarray-cache nil
+  "If non-nil, a hash table of cached obarray-related information.
+The cache holds information specific to the current state of the
+Elisp obarray.  If the obarray is modified by any means (such as
+interning or uninterning a symbol), this variable is set to nil.")
+
+(defun elisp--completion-local-symbols ()
+  "Compute collections of all Elisp symbols for completion purposes.
+The return value is compatible with the COLLECTION form described
+in `completion-at-point-functions' (which see)."
+  (cl-flet ((obarray-plus-shorthands ()
+              (let (retval)
+                (mapatoms
+                 (lambda (s)
+                   (push s retval)
+                   (cl-loop
+                    for (shorthand . longhand) in read-symbol-shorthands
+                    for full-name = (symbol-name s)
+                    when (string-prefix-p longhand full-name)
+                    do (let ((sym (make-symbol
+                                   (concat shorthand
+                                           (substring full-name
+                                                      (length longhand))))))
+                         (put sym 'shorthand t)
+                         (push sym retval)
+                         retval))))
+                retval)))
+    (cond ((null read-symbol-shorthands) obarray)
+          ((and obarray-cache
+                (gethash (cons (current-buffer) read-symbol-shorthands)
+                         obarray-cache)))
+          (obarray-cache
+            (puthash (cons (current-buffer) read-symbol-shorthands)
+                     (obarray-plus-shorthands)
+                     obarray-cache))
+          (t
+            (setq obarray-cache (make-hash-table :test #'equal))
+            (puthash (cons (current-buffer) read-symbol-shorthands)
+                     (obarray-plus-shorthands)
+                     obarray-cache)))))
+
+(defun elisp--shorthand-aware-fboundp (sym)
+  (fboundp (intern-soft (symbol-name sym))))
+
+(defun elisp--shorthand-aware-boundp (sym)
+  (boundp (intern-soft (symbol-name sym))))
+
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
 If the context at point allows only a certain category of
@@ -579,36 +626,41 @@ functions are annotated with \"<f>\" via the
                     ;; the current form and use it to provide a more
                     ;; specific completion table in more cases.
                     ((eq fun-sym 'ignore-error)
-                     (list t obarray
+                     (list t (elisp--completion-local-symbols)
                            :predicate (lambda (sym)
                                         (get sym 'error-conditions))))
                     ((elisp--expect-function-p beg)
-                     (list nil obarray
-                           :predicate #'fboundp
+                     (list nil (elisp--completion-local-symbols)
+                           :predicate
+                           #'elisp--shorthand-aware-fboundp
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated))
                     (quoted
-                     (list nil obarray
+                     (list nil (elisp--completion-local-symbols)
                            ;; Don't include all symbols (bug#16646).
                            :predicate (lambda (sym)
-                                        (or (boundp sym)
-                                            (fboundp sym)
-                                            (featurep sym)
-                                            (symbol-plist sym)))
+                                        ;; shorthand-aware
+                                        (let ((sym (intern-soft (symbol-name sym))))
+                                          (or (boundp sym)
+                                              (fboundp sym)
+                                              (featurep sym)
+                                              (symbol-plist sym))))
                            :annotation-function
                            (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
                            :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated))
                     (t
                      (list nil (completion-table-merge
                                 elisp--local-variables-completion-table
                                 (apply-partially #'completion-table-with-predicate
-                                                 obarray
-                                                 #'boundp
+                                                 (elisp--completion-local-symbols)
+                                                 #'elisp--shorthand-aware-boundp
                                                  'strict))
                            :company-kind
                            (lambda (s)
@@ -617,7 +669,8 @@ functions are annotated with \"<f>\" via the
                                'variable))
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
-                           :company-location #'elisp--company-location)))
+                           :company-location #'elisp--company-location
+                           :company-deprecated #'elisp--company-deprecated)))
                  ;; Looks like a funcall position.  Let's double check.
                  (save-excursion
                    (goto-char (1- beg))
@@ -645,11 +698,11 @@ functions are annotated with \"<f>\" via the
                                       (ignore-errors
                                         (forward-sexp 2)
                                         (< (point) beg)))))
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym) (get sym 'error-conditions))))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
-                        (list t obarray
+                        (list t (elisp--completion-local-symbols)
                               :predicate (lambda (sym)
                                            (get sym 'error-conditions))))
                        ((and (or ?\( 'let 'let*)
@@ -659,18 +712,20 @@ functions are annotated with \"<f>\" via the
                                         (up-list -1))
                                       (forward-symbol -1)
                                       (looking-at "\\_<let\\*?\\_>"))))
-                        (list t obarray
-                              :predicate #'boundp
+                        (list t (elisp--completion-local-symbols)
+                              :predicate #'elisp--shorthand-aware-boundp
                               :company-kind (lambda (_) 'variable)
                               :company-doc-buffer #'elisp--company-doc-buffer
                               :company-docsig #'elisp--company-doc-string
-                              :company-location #'elisp--company-location))
-                       (_ (list nil obarray
-                                :predicate #'fboundp
+                              :company-location #'elisp--company-location
+                              :company-deprecated #'elisp--company-deprecated))
+                       (_ (list nil (elisp--completion-local-symbols)
+                                :predicate #'elisp--shorthand-aware-fboundp
                                 :company-kind #'elisp--company-kind
                                 :company-doc-buffer #'elisp--company-doc-buffer
                                 :company-docsig #'elisp--company-doc-string
                                 :company-location #'elisp--company-location
+                                :company-deprecated #'elisp--company-deprecated
                                 ))))))))
           (nconc (list beg end)
                  (if (null (car table-etc))
@@ -692,6 +747,11 @@ functions are annotated with \"<f>\" via the
      ((featurep sym) 'module)
      ((facep sym) 'color)
      (t 'text))))
+
+(defun elisp--company-deprecated (str)
+  (let ((sym (intern-soft str)))
+    (or (get sym 'byte-obsolete-variable)
+        (get sym 'byte-obsolete-info))))
 
 (defun lisp-completion-at-point (&optional _predicate)
   (declare (obsolete elisp-completion-at-point "25.1"))
@@ -827,17 +887,17 @@ namespace but with lower confidence."
         ;;             ^ index K   ^ index J   ^ index I
         (let* ((i (elisp--xref-list-index))
                (i-head (looking-at-sym))
-               (i-paren (and i-head (eq (char-before) ?\()
+               (i-paren (and i (eq (char-before) ?\()
                              (progn (backward-char) t)))
                (i-quoted (and i-paren (memq (char-before) '(?\' ?`))))
                (j (and i-paren (elisp--xref-list-index)))
                (j-head (and j (looking-at-sym)))
-               (j-paren (and j-head (eq (char-before) ?\()
+               (j-paren (and j (eq (char-before) ?\()
                              (progn (backward-char) t)))
                (j-quoted (and j-paren (memq (char-before) '(?\' ?`))))
                (k (and j-paren (elisp--xref-list-index)))
                (k-head (and k (looking-at-sym)))
-               (k-paren (and k-head (eq (char-before) ?\()
+               (k-paren (and k (eq (char-before) ?\()
                              (progn (backward-char) t)))
                (k-quoted (and k-paren (memq (char-before) '(?\' ?`)))))
           (cond
@@ -2074,6 +2134,9 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (prin1 :elisp-flymake-output-start)
     (terpri)
     (pp collected)))
+
+
+(put 'read-symbol-shorthands 'safe-local-variable #'consp)
 
 (provide 'elisp-mode)
 ;;; elisp-mode.el ends here

@@ -20,6 +20,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -286,9 +289,6 @@ is_exec (const char * name)
 	 stricmp (p, ".bat") == 0 ||
 	 stricmp (p, ".cmd") == 0));
 }
-
-/* FIXME?  This is in configure.ac now - is this still needed?  */
-#define IS_DIRECTORY_SEP(x) ((x) == '/' || (x) == '\\')
 
 /* We need stat/fsfat below because nt/inc/sys/stat.h defines struct
    stat that is incompatible with the MS run-time libraries.  */

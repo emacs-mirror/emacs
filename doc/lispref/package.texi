@@ -17,6 +17,11 @@ put it in a @dfn{package archive} for others to download.
 @xref{Packages,,, emacs, The GNU Emacs Manual}, for a description of
 user-level features of the packaging system.
 
+  These sections are mostly directed towards package archive
+maintainers---much of this information is not relevant for package
+authors (i.e., people who write code that will be distributed via
+these archives).
+
 @menu
 * Packaging Basics::        The basic concepts of Emacs Lisp packages.
 * Simple Packages::         How to package a single .el file.

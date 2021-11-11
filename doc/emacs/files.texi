@@ -2205,11 +2205,11 @@ window, so this is only necessary if you customize the default
 behavior by using the options @code{image-auto-resize} and
 @code{image-auto-resize-on-window-resize}.
 
-@findex image-transform-fit-both
+@findex image-transform-fit-to-window
 @findex image-transform-set-scale
 @findex image-transform-reset
 To resize the image manually you can use the command
-@code{image-transform-fit-both} bound to @kbd{s b}
+@code{image-transform-fit-to-window} bound to @kbd{s w}
 that fits the image to both the window height and width.
 To scale the image specifying a scale factor, use the command
 @code{image-transform-set-scale} bound to @kbd{s s}.

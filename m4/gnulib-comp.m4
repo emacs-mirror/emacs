@@ -63,6 +63,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module count-leading-zeros:
   # Code from module count-one-bits:
   # Code from module count-trailing-zeros:
+  # Code from module crypto/md5:
   # Code from module crypto/md5-buffer:
   # Code from module crypto/sha1-buffer:
   # Code from module crypto/sha256-buffer:
@@ -121,11 +122,13 @@ AC_DEFUN([gl_EARLY],
   # Code from module inttypes-incomplete:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
+  AC_REQUIRE([gl_YEAR2038_EARLY])
   # Code from module lchmod:
   # Code from module libc-config:
   # Code from module libgmp:
   # Code from module limits-h:
   # Code from module lstat:
+  # Code from module malloc-posix:
   # Code from module manywarnings:
   # Code from module memmem-simple:
   # Code from module mempcpy:
@@ -136,6 +139,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime-internal:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module nproc:
   # Code from module nstrftime:
   # Code from module open:
   # Code from module openat-h:
@@ -147,6 +151,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module rawmemchr:
   # Code from module readlink:
   # Code from module readlinkat:
+  # Code from module realloc-gnu:
+  # Code from module realloc-posix:
   # Code from module regex:
   # Code from module root-uid:
   # Code from module scratch_buffer:
@@ -189,6 +195,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module unlocked-io:
+  # Code from module unlocked-io-internal:
   # Code from module update-copyright:
   # Code from module utimens:
   # Code from module utimensat:
@@ -213,6 +220,8 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([AC_LIBSOURCES], m4_defn([gl_LIBSOURCES]))
   m4_pushdef([gl_LIBSOURCES_LIST], [])
   m4_pushdef([gl_LIBSOURCES_DIR], [])
+  m4_pushdef([GL_MACRO_PREFIX], [gl])
+  m4_pushdef([GL_MODULE_INDICATOR_PREFIX], [GL])
   gl_COMMON
   gl_source_base='lib'
   gl_FUNC_ACL
@@ -245,6 +254,7 @@ AC_DEFUN([gl_INIT],
   gl_SHA512
   gl_CHECK_TYPE_STRUCT_DIRENT_D_TYPE
   gl_DIRENT_H
+  gl_DIRENT_H_REQUIRE_DEFAULTS
   gl_DOUBLE_SLASH_ROOT
   gl_FUNC_DUP2
   if test $REPLACE_DUP2 = 1; then
@@ -282,6 +292,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_FCNTL_MODULE_INDICATOR([fcntl])
   gl_FCNTL_H
+  gl_FCNTL_H_REQUIRE_DEFAULTS
   gl_FUNC_FDOPENDIR
   if test $HAVE_FDOPENDIR = 0 || test $REPLACE_FDOPENDIR = 1; then
     AC_LIBOBJ([fdopendir])
@@ -337,10 +348,10 @@ AC_DEFUN([gl_INIT],
   if test $REPLACE_GETOPT = 1; then
     AC_LIBOBJ([getopt])
     AC_LIBOBJ([getopt1])
-    dnl Arrange for unistd.h to include getopt.h.
-    GNULIB_GL_UNISTD_H_GETOPT=1
+    dnl Define the substituted variable GNULIB_UNISTD_H_GETOPT to 1.
+    gl_UNISTD_H_REQUIRE_DEFAULTS
+    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_UNISTD_H_GETOPT], [1])
   fi
-  AC_SUBST([GNULIB_GL_UNISTD_H_GETOPT])
   gl_UNISTD_MODULE_INDICATOR([getopt-posix])
   AC_REQUIRE([AC_CANONICAL_HOST])
   gl_FUNC_GETRANDOM
@@ -357,6 +368,7 @@ AC_DEFUN([gl_INIT],
   gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
   gl_IEEE754_H
   gl_INTTYPES_INCOMPLETE
+  gl_INTTYPES_H_REQUIRE_DEFAULTS
   AC_REQUIRE([gl_LARGEFILE])
   gl___INLINE
   gl_LIBGMP
@@ -402,6 +414,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_TIME_MODULE_INDICATOR([mktime])
   gl_MULTIARCH
+  gl_NPROC
   gl_FUNC_GNU_STRFTIME
   gl_PATHMAX
   gl_FUNC_PIPE2
@@ -444,22 +457,50 @@ AC_DEFUN([gl_INIT],
   fi
   gl_STRING_MODULE_INDICATOR([sigdescr_np])
   gl_SIGNAL_H
+  gl_SIGNAL_H_REQUIRE_DEFAULTS
   gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
   gl_STAT_TIME
   gl_STAT_BIRTHTIME
   gl_STDALIGN_H
   gl_STDDEF_H
+  gl_STDDEF_H_REQUIRE_DEFAULTS
   gl_STDINT_H
   gl_STDIO_H
+  gl_STDIO_H_REQUIRE_DEFAULTS
+  dnl No need to create extra modules for these functions. Everyone who uses
+  dnl <stdio.h> likely needs them.
+  gl_STDIO_MODULE_INDICATOR([fscanf])
+  gl_MODULE_INDICATOR([fscanf])
+  gl_STDIO_MODULE_INDICATOR([scanf])
+  gl_MODULE_INDICATOR([scanf])
+  gl_STDIO_MODULE_INDICATOR([fgetc])
+  gl_STDIO_MODULE_INDICATOR([getc])
+  gl_STDIO_MODULE_INDICATOR([getchar])
+  gl_STDIO_MODULE_INDICATOR([fgets])
+  gl_STDIO_MODULE_INDICATOR([fread])
+  dnl No need to create extra modules for these functions. Everyone who uses
+  dnl <stdio.h> likely needs them.
+  gl_STDIO_MODULE_INDICATOR([fprintf])
+  gl_STDIO_MODULE_INDICATOR([printf])
+  gl_STDIO_MODULE_INDICATOR([vfprintf])
+  gl_STDIO_MODULE_INDICATOR([vprintf])
+  gl_STDIO_MODULE_INDICATOR([fputc])
+  gl_STDIO_MODULE_INDICATOR([putc])
+  gl_STDIO_MODULE_INDICATOR([putchar])
+  gl_STDIO_MODULE_INDICATOR([fputs])
+  gl_STDIO_MODULE_INDICATOR([puts])
+  gl_STDIO_MODULE_INDICATOR([fwrite])
   gl_STDLIB_H
+  gl_STDLIB_H_REQUIRE_DEFAULTS
   gl_FUNC_STPCPY
   if test $HAVE_STPCPY = 0; then
     AC_LIBOBJ([stpcpy])
     gl_PREREQ_STPCPY
   fi
   gl_STRING_MODULE_INDICATOR([stpcpy])
-  gl_HEADER_STRING_H
+  gl_STRING_H
+  gl_STRING_H_REQUIRE_DEFAULTS
   gl_FUNC_STRNLEN
   if test $HAVE_DECL_STRNLEN = 0 || test $REPLACE_STRNLEN = 1; then
     AC_LIBOBJ([strnlen])
@@ -477,19 +518,25 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([symlink])
   fi
   gl_UNISTD_MODULE_INDICATOR([symlink])
-  gl_HEADER_SYS_RANDOM
+  gl_SYS_RANDOM_H
+  gl_SYS_RANDOM_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
-  AC_REQUIRE([gl_HEADER_SYS_SELECT])
+  gl_SYS_SELECT_H
+  gl_SYS_SELECT_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
-  gl_HEADER_SYS_STAT_H
+  gl_SYS_STAT_H
+  gl_SYS_STAT_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
-  gl_HEADER_SYS_TIME_H
+  gl_SYS_TIME_H
+  gl_SYS_TIME_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
   gl_SYS_TYPES_H
+  gl_SYS_TYPES_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
   gl_FUNC_GEN_TEMPNAME
   gl_MODULE_INDICATOR([tempname])
-  gl_HEADER_TIME_H
+  gl_TIME_H
+  gl_TIME_H_REQUIRE_DEFAULTS
   gl_TIME_R
   if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
     AC_LIBOBJ([time_r])
@@ -510,6 +557,17 @@ AC_DEFUN([gl_INIT],
   gl_TIMER_TIME
   gl_TIMESPEC
   gl_UNISTD_H
+  gl_UNISTD_H_REQUIRE_DEFAULTS
+  AC_DEFINE([GNULIB_STDIO_SINGLE_THREAD], [1],
+    [Define to 1 if you want the FILE stream functions getc, putc, etc.
+     to use unlocked I/O if available, throughout the package.
+     Unlocked I/O can improve performance, sometimes dramatically.
+     But unlocked I/O is safe only in single-threaded programs,
+     as well as in multithreaded programs for which you can guarantee that
+     every FILE stream, including stdin, stdout, stderr, is used only
+     in a single thread.])
+  AC_DEFINE([USE_UNLOCKED_IO], [GNULIB_STDIO_SINGLE_THREAD],
+    [An alias of GNULIB_STDIO_SINGLE_THREAD.])
   gl_FUNC_GLIBC_UNLOCKED_IO
   gl_FUNC_UTIMENSAT
   if test $HAVE_UTIMENSAT = 0 || test $REPLACE_UTIMENSAT = 1; then
@@ -527,12 +585,14 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
-  gl_gnulib_enabled_idx=false
   gl_gnulib_enabled_lchmod=false
+  gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
   gl_gnulib_enabled_open=false
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_rawmemchr=false
+  gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b=false
+  gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
   gl_gnulib_enabled_scratch_buffer=false
   gl_gnulib_enabled_strtoll=false
@@ -571,6 +631,7 @@ AC_DEFUN([gl_INIT],
   func_gl_gnulib_m4code_dynarray ()
   {
     if ! $gl_gnulib_enabled_dynarray; then
+      AC_PROG_MKDIR_P
       gl_gnulib_enabled_dynarray=true
     fi
   }
@@ -617,6 +678,9 @@ AC_DEFUN([gl_INIT],
       fi
       gl_UNISTD_MODULE_INDICATOR([getgroups])
       gl_gnulib_enabled_getgroups=true
+      if test $HAVE_GETGROUPS = 0 || test $REPLACE_GETGROUPS = 1; then
+        func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866
+      fi
     fi
   }
   func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36 ()
@@ -641,14 +705,8 @@ AC_DEFUN([gl_INIT],
         func_gl_gnulib_m4code_getgroups
       fi
       if test $HAVE_GROUP_MEMBER = 0; then
-        func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
+        func_gl_gnulib_m4code_d3b2383720ee0e541357aa2aac598e2b
       fi
-    fi
-  }
-  func_gl_gnulib_m4code_idx ()
-  {
-    if ! $gl_gnulib_enabled_idx; then
-      gl_gnulib_enabled_idx=true
     fi
   }
   func_gl_gnulib_m4code_lchmod ()
@@ -661,6 +719,20 @@ AC_DEFUN([gl_INIT],
       fi
       gl_SYS_STAT_MODULE_INDICATOR([lchmod])
       gl_gnulib_enabled_lchmod=true
+    fi
+  }
+  func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866 ()
+  {
+    if ! $gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866; then
+      AC_REQUIRE([gl_FUNC_MALLOC_POSIX])
+      if test $REPLACE_MALLOC = 1; then
+        AC_LIBOBJ([malloc])
+      fi
+      gl_STDLIB_MODULE_INDICATOR([malloc-posix])
+      gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866=true
+      if test $REPLACE_MALLOC = 1; then
+        func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
+      fi
     fi
   }
   func_gl_gnulib_m4code_5264294aa0a5557541b53c8c741f7f31 ()
@@ -707,6 +779,34 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_rawmemchr=true
     fi
   }
+  func_gl_gnulib_m4code_d3b2383720ee0e541357aa2aac598e2b ()
+  {
+    if ! $gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b; then
+      gl_FUNC_REALLOC_GNU
+      if test $REPLACE_REALLOC = 1; then
+        AC_LIBOBJ([realloc])
+      fi
+      gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b=true
+      func_gl_gnulib_m4code_61bcaca76b3e6f9ae55d57a1c3193bc4
+    fi
+  }
+  func_gl_gnulib_m4code_61bcaca76b3e6f9ae55d57a1c3193bc4 ()
+  {
+    if ! $gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4; then
+      gl_FUNC_REALLOC_POSIX
+      if test $REPLACE_REALLOC = 1; then
+        AC_LIBOBJ([realloc])
+      fi
+      gl_STDLIB_MODULE_INDICATOR([realloc-posix])
+      gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4=true
+      if test $REPLACE_REALLOC = 1; then
+        func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866
+      fi
+      if test $REPLACE_REALLOC = 1; then
+        func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
+      fi
+    fi
+  }
   func_gl_gnulib_m4code_6099e9737f757db36c47fa9d9f02e88c ()
   {
     if ! $gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c; then
@@ -716,14 +816,17 @@ AC_DEFUN([gl_INIT],
   func_gl_gnulib_m4code_scratch_buffer ()
   {
     if ! $gl_gnulib_enabled_scratch_buffer; then
+      AC_PROG_MKDIR_P
       gl_gnulib_enabled_scratch_buffer=true
+      func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866
+      func_gl_gnulib_m4code_61bcaca76b3e6f9ae55d57a1c3193bc4
     fi
   }
   func_gl_gnulib_m4code_strtoll ()
   {
     if ! $gl_gnulib_enabled_strtoll; then
       gl_FUNC_STRTOLL
-      if test $HAVE_STRTOLL = 0; then
+      if test $HAVE_STRTOLL = 0 || test $REPLACE_STRTOLL = 1; then
         AC_LIBOBJ([strtoll])
         gl_PREREQ_STRTOLL
       fi
@@ -746,9 +849,6 @@ AC_DEFUN([gl_INIT],
   }
   if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
     func_gl_gnulib_m4code_925677f0343de64b89a9f0c790b4104c
-  fi
-  if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
-    func_gl_gnulib_m4code_idx
   fi
   if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
     func_gl_gnulib_m4code_rawmemchr
@@ -813,9 +913,6 @@ AC_DEFUN([gl_INIT],
   if { test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; } && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test $HAVE_TIMEZONE_T = 0; then
-    func_gl_gnulib_m4code_idx
-  fi
   if test $HAVE_TIMEGM = 0 || test $REPLACE_TIMEGM = 1; then
     func_gl_gnulib_m4code_5264294aa0a5557541b53c8c741f7f31
   fi
@@ -839,12 +936,14 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_idx], [$gl_gnulib_enabled_idx])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_lchmod], [$gl_gnulib_enabled_lchmod])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866], [$gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_open], [$gl_gnulib_enabled_open])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_rawmemchr], [$gl_gnulib_enabled_rawmemchr])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_d3b2383720ee0e541357aa2aac598e2b], [$gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4], [$gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_scratch_buffer], [$gl_gnulib_enabled_scratch_buffer])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
@@ -862,6 +961,8 @@ AC_DEFUN([gl_INIT],
       m4_if(m4_sysval, [0], [],
         [AC_FATAL([expected source file, required through AC_LIBSOURCES, not found])])
   ])
+  m4_popdef([GL_MODULE_INDICATOR_PREFIX])
+  m4_popdef([GL_MACRO_PREFIX])
   m4_popdef([gl_LIBSOURCES_DIR])
   m4_popdef([gl_LIBSOURCES_LIST])
   m4_popdef([AC_LIBSOURCES])
@@ -888,6 +989,8 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([AC_LIBSOURCES], m4_defn([gltests_LIBSOURCES]))
   m4_pushdef([gltests_LIBSOURCES_LIST], [])
   m4_pushdef([gltests_LIBSOURCES_DIR], [])
+  m4_pushdef([GL_MACRO_PREFIX], [gltests])
+  m4_pushdef([GL_MODULE_INDICATOR_PREFIX], [GL])
   gl_COMMON
   gl_source_base='tests'
 changequote(,)dnl
@@ -909,6 +1012,8 @@ changequote([, ])dnl
       m4_if(m4_sysval, [0], [],
         [AC_FATAL([expected source file, required through AC_LIBSOURCES, not found])])
   ])
+  m4_popdef([GL_MODULE_INDICATOR_PREFIX])
+  m4_popdef([GL_MACRO_PREFIX])
   m4_popdef([gltests_LIBSOURCES_DIR])
   m4_popdef([gltests_LIBSOURCES_LIST])
   m4_popdef([AC_LIBSOURCES])
@@ -1092,6 +1197,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/libc-config.h
   lib/limits.in.h
   lib/lstat.c
+  lib/malloc.c
   lib/malloc/dynarray-skeleton.c
   lib/malloc/dynarray.h
   lib/malloc/dynarray_at_failure.c
@@ -1104,6 +1210,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/malloc/scratch_buffer_grow.c
   lib/malloc/scratch_buffer_grow_preserve.c
   lib/malloc/scratch_buffer_set_array_size.c
+  lib/md5-stream.c
   lib/md5.c
   lib/md5.h
   lib/memmem.c
@@ -1116,6 +1223,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
+  lib/nproc.c
+  lib/nproc.h
   lib/nstrftime.c
   lib/open.c
   lib/openat-priv.h
@@ -1130,6 +1239,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/rawmemchr.valgrind
   lib/readlink.c
   lib/readlinkat.c
+  lib/realloc.c
   lib/regcomp.c
   lib/regex.c
   lib/regex.h
@@ -1250,6 +1360,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/libgmp.m4
   m4/limits-h.m4
   m4/lstat.m4
+  m4/malloc.m4
   m4/manywarnings-c++.m4
   m4/manywarnings.m4
   m4/mbstate_t.m4
@@ -1263,6 +1374,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mode_t.m4
   m4/multiarch.m4
   m4/nocrash.m4
+  m4/nproc.m4
   m4/nstrftime.m4
   m4/off_t.m4
   m4/open-cloexec.m4
@@ -1276,6 +1388,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/rawmemchr.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/realloc.m4
   m4/regex.m4
   m4/sha1.m4
   m4/sha256.m4
@@ -1322,5 +1435,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/warnings.m4
   m4/wchar_t.m4
   m4/wint_t.m4
+  m4/year2038.m4
   m4/zzgnulib.m4
 ])

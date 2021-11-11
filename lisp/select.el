@@ -440,13 +440,13 @@ two markers or an overlay.  Otherwise, it is nil."
 	      (setq type 'C_STRING))
 	     (t
 	      (let (non-latin-1 non-unicode eight-bit)
-		(mapc #'(lambda (x)
-			  (if (>= x #x100)
-			      (if (< x #x110000)
-				  (setq non-latin-1 t)
-				(if (< x #x3FFF80)
-				    (setq non-unicode t)
-				  (setq eight-bit t)))))
+                (mapc (lambda (x)
+                        (if (>= x #x100)
+                            (if (< x #x110000)
+                                (setq non-latin-1 t)
+                              (if (< x #x3FFF80)
+                                  (setq non-unicode t)
+                                (setq eight-bit t)))))
 		      str)
 		(setq type (if (or non-unicode
 				   (and

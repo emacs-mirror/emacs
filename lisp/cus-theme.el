@@ -627,22 +627,24 @@ Theme files are named *-theme.el in `"))
   (let ((help-echo "mouse-2: Enable this theme for this session")
 	widget)
     (dolist (theme (custom-available-themes))
-      (setq widget (widget-create 'checkbox
-				  :value (custom-theme-enabled-p theme)
-				  :theme-name theme
-				  :help-echo help-echo
-                                  :action #'custom-theme-checkbox-toggle))
-      (push (cons theme widget) custom--listed-themes)
-      (widget-create-child-and-convert widget 'push-button
-				       :button-face-get 'ignore
-				       :mouse-face-get 'ignore
-				       :value (format " %s" theme)
-                                       :action #'widget-parent-action
-				       :help-echo help-echo)
-      (widget-insert " -- "
-		     (propertize (custom-theme-summary theme)
-				 'face 'shadow)
-		     ?\n)))
+      ;; Don't list obsolete themes.
+      (unless (get theme 'byte-obsolete-info)
+        (setq widget (widget-create 'checkbox
+				    :value (custom-theme-enabled-p theme)
+				    :theme-name theme
+				    :help-echo help-echo
+                                    :action #'custom-theme-checkbox-toggle))
+        (push (cons theme widget) custom--listed-themes)
+        (widget-create-child-and-convert widget 'push-button
+				         :button-face-get 'ignore
+				         :mouse-face-get 'ignore
+				         :value (format " %s" theme)
+                                         :action #'widget-parent-action
+				         :help-echo help-echo)
+        (widget-insert " -- "
+		       (propertize (custom-theme-summary theme)
+				   'face 'shadow)
+		       ?\n))))
   (goto-char (point-min))
   (widget-setup))
 

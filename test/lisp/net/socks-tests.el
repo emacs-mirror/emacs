@@ -128,7 +128,7 @@
 
 (defvar socks-tests-canned-server-patterns nil
   "Alist containing request/response cons pairs to be tried in order.
-Vectors must match verbatim. Strings are considered regex patterns.")
+Vectors must match verbatim.  Strings are considered regex patterns.")
 
 (defun socks-tests-canned-server-create ()
   "Create and return a fake SOCKS server."
@@ -203,7 +203,7 @@ Vectors must match verbatim. Strings are considered regex patterns.")
                    (should (equal host "example.com"))
                    (list 93 184 216 34)))
                 ((symbol-function 'user-full-name)
-                 (lambda () "foo")))
+                 (lambda (&optional _) "foo")))
         (socks-tests-perform-hello-world-http-request)))))
 
 ;; Replace first pattern below with ([5 3 0 1 2] . [5 2]) to validate

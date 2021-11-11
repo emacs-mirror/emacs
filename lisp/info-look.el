@@ -124,6 +124,14 @@ OTHER-MODES is a list of cross references to other help modes.")
 (defsubst info-lookup->mode-value (topic mode)
   (assoc mode (info-lookup->topic-value topic)))
 
+(defun info-lookup--expand-info (info)
+  ;; We have a dynamic doc-spec function.
+  (when (and (null (nth 3 info))
+             (nth 6 info))
+    (setf (nth 3 info) (funcall (nth 6 info))
+          (nth 6 info) nil))
+  info)
+
 (defsubst info-lookup->regexp (topic mode)
   (nth 1 (info-lookup->mode-value topic mode)))
 
@@ -146,7 +154,11 @@ Function arguments are specified as keyword/argument pairs:
     (KEYWORD . ARGUMENT)
 
 KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
- `:doc-spec', `:parse-rule', or `:other-modes'.
+ `:doc-spec', `:parse-rule', `:other-modes' or `:doc-spec-function'.
+  `:doc-spec-function' is used to compute a `:doc-spec', but instead of
+  doing so at load time, this is done when the user asks for info on
+  the mode in question.
+
 ARGUMENT has a value as explained in the documentation of the
  variable `info-lookup-alist'.
 
@@ -162,7 +174,8 @@ for more details."
 
 (defun info-lookup-add-help* (maybe &rest arg)
   (let (topic mode regexp ignore-case doc-spec
-	      parse-rule other-modes keyword value)
+	      parse-rule other-modes keyword value
+              doc-spec-function)
     (setq topic 'symbol
 	  mode major-mode
 	  regexp "\\w+")
@@ -185,6 +198,8 @@ for more details."
 	     (setq ignore-case value))
 	    ((eq keyword :doc-spec)
 	     (setq doc-spec value))
+	    ((eq keyword :doc-spec-function)
+	     (setq doc-spec-function value))
 	    ((eq keyword :parse-rule)
 	     (setq parse-rule value))
 	    ((eq keyword :other-modes)
@@ -192,7 +207,8 @@ for more details."
 	    (t
 	     (error "Unknown keyword \"%S\"" keyword))))
     (or (and maybe (info-lookup->mode-value topic mode))
-	(let* ((data (list regexp ignore-case doc-spec parse-rule other-modes))
+	(let* ((data (list regexp ignore-case doc-spec parse-rule other-modes
+                           doc-spec-function))
 	       (topic-cell (or (assoc topic info-lookup-alist)
 			       (car (setq info-lookup-alist
 					  (cons (cons topic nil)
@@ -342,11 +358,22 @@ If optional argument QUERY is non-nil, query for the help mode."
 	(error "No %s help available for `%s'" topic mode))
     (setq info-lookup-mode mode)))
 
+(defun info-lookup--item-to-mode (item mode)
+  (let ((spec (cons mode (car (split-string (if (stringp item)
+                                                item
+                                              (symbol-name item))
+                                            "-")))))
+    (if (assoc spec (cdr (assq 'symbol info-lookup-alist)))
+        spec
+      mode)))
+
 (defun info-lookup (topic item mode)
   "Display the documentation of a help item."
   (or mode (setq mode (info-lookup-select-mode)))
-  (or (info-lookup->mode-value topic mode)
-      (error "No %s help available for `%s'" topic mode))
+  (setq mode (info-lookup--item-to-mode item mode))
+  (if-let ((info (info-lookup->mode-value topic mode)))
+      (info-lookup--expand-info info)
+    (error "No %s help available for `%s'" topic mode))
   (let* ((completions (info-lookup->completions topic mode))
          (ignore-case (info-lookup->ignore-case topic mode))
          (entry (or (assoc (if ignore-case (downcase item) item) completions)
@@ -725,6 +752,8 @@ Return nil if there is nothing appropriate in the buffer near point."
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
+  (when-let ((info (info-lookup->mode-value topic mode)))
+    (info-lookup--expand-info info))
   (let ((data (info-lookup-completions-at-point topic mode)))
     (if (null data)
         (error "No %s completion available for `%s' at point" topic mode)
@@ -907,11 +936,14 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'python-mode
  ;; Debian includes Python info files, but they're version-named
  ;; instead of having a symlink.
- :doc-spec `((,(cl-loop for version from 20 downto 7
-                        for name = (format "python3.%d" version)
-                        if (Info-find-file name t)
-                        return (format "(%s)Index" name)
-                        finally return "(python)Index"))))
+ :doc-spec-function (lambda ()
+                      (list
+                       (list
+                        (cl-loop for version from 20 downto 7
+                                 for name = (format "python3.%d" version)
+                                 if (Info-find-file name t)
+                                 return (format "(%s)Index" name)
+                                 finally return "(python)Index")))))
 
 (info-lookup-maybe-add-help
  :mode 'cperl-mode
@@ -948,6 +980,67 @@ Return nil if there is nothing appropriate in the buffer near point."
              ("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")
              ("(cl)Function Index"    nil "^ -+ .*: " "\\( \\|$\\)")
              ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")))
+
+(mapc
+ (lambda (elem)
+   (let* ((prefix (car elem)))
+     (info-lookup-add-help
+      :mode (cons 'emacs-lisp-mode prefix)
+      :regexp (concat "\\b" prefix "-[^][()`'‘’,\" \t\n]+")
+      :doc-spec (cl-loop for node in (cdr elem)
+                         collect
+                         (list (if (string-match-p "^(" node)
+                                   node
+                                 (format "(%s)%s" prefix node))
+                               nil "^ -+ .*: " "\\( \\|$\\)")))))
+ ;; Below we have a list of prefixes (used to match on symbols in
+ ;; `emacs-lisp-mode') and the nodes where the function/variable
+ ;; indices live.  If the prefix is different than the name of the
+ ;; manual, then the full "(manual)Node" name has to be used.
+ '(("auth" "Function Index" "Variable Index")
+   ("autotype" "Command Index" "Variable Index")
+   ("calc" "Lisp Function Index" "Variable Index")
+   ;;("cc-mode" "Variable Index" "Command and Function Index")
+   ("dbus" "Index")
+   ("ediff" "Index")
+   ("eieio" "Function Index")
+   ("gnutls" "(emacs-gnutls)Variable Index" "(emacs-gnutls)Function Index")
+   ("mm" "(emacs-mime)Index")
+   ("epa" "Variable Index" "Function Index")
+   ("ert" "Index")
+   ("eshell" "Function and Variable Index")
+   ("eudc" "Index")
+   ("eww" "Variable Index" "Lisp Function Index")
+   ("flymake" "Index")
+   ("forms" "Index")
+   ("gnus" "Index")
+   ("htmlfontify" "Functions" "Variables & Customization")
+   ("idlwave" "Index")
+   ("ido" "Variable Index" "Function Index")
+   ("info" "Index")
+   ("mairix" "(mairix-el)Variable Index" "(mairix-el)Function Index")
+   ("message" "Index")
+   ("mh" "(mh-e)Option Index" "(mh-e)Command Index")
+   ("newsticker" "Index")
+   ("octave" "(octave-mode)Variable Index" "(octave-mode)Lisp Function Index")
+   ("org" "Variable Index" "Command and Function Index")
+   ("pgg" "Variable Index" "Function Index")
+   ("rcirc" "Variable Index" "Index")
+   ("reftex" "Index")
+   ("sasl" "Variable Index" "Function Index")
+   ("sc" "Variable Index")
+   ("semantic" "Index")
+   ("ses" "Index")
+   ("sieve" "Index")
+   ("smtpmail" "Function and Variable Index")
+   ("srecode" "Index")
+   ("tramp" "Variable Index" "Function Index")
+   ("url" "Variable Index" "Function Index")
+   ("vhdl" "(vhdl-mode)Variable Index" "(vhdl-mode)Command Index")
+   ("viper" "Variable Index" "Function Index")
+   ("widget" "Index")
+   ("wisent" "Index")
+   ("woman" "Variable Index" "Command Index")))
 
 ;; docstrings talk about elisp, so have apropos-mode follow emacs-lisp-mode
 (info-lookup-maybe-add-help

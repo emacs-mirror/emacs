@@ -29,16 +29,15 @@
 
 (ert-deftest dabbrev-expand-test ()
   "Test for bug#1948.
-When DABBREV-ELIMINATE-NEWLINES is non-nil (the default),
-repeated calls to DABBREV-EXPAND can result in the source of
+When `dabbrev-eliminate-newlines' is non-nil (the default),
+repeated calls to `dabbrev-expand' can result in the source of
 first expansion being replaced rather than the destination."
   (with-temp-buffer
    (insert "ab  x\na\nab  y")
    (goto-char 8)
    (save-window-excursion
      (set-window-buffer nil (current-buffer))
-     ;; M-/ SPC M-/ M-/
-     (execute-kbd-macro "\257 \257\257"))
+     (execute-kbd-macro (kbd "M-/ SPC M-/ M-/")))
    (should (string= (buffer-string) "ab  x\nab y\nab  y"))))
 
 (ert-deftest dabbrev-completion-test ()
@@ -52,8 +51,7 @@ buffers unless a prefix argument is used."
       (goto-char 6)
       (save-window-excursion
         (set-window-buffer nil (current-buffer))
-        ;; C-M-/
-        (execute-kbd-macro [201326639]))
+        (execute-kbd-macro (kbd "C-M-/")))
       (should (string= (buffer-string) "abc\nabc")))))
 
 (ert-deftest dabbrev-completion-test-with-argument ()
@@ -67,6 +65,7 @@ multiple expansions."
       (goto-char 6)
       (save-window-excursion
         (set-window-buffer nil (current-buffer))
-        ;; C-u C-u C-M-/
-        (execute-kbd-macro [21 21 201326639]))
+        (execute-kbd-macro (kbd "C-u C-u C-M-/")))
       (should (string= (buffer-string) "abc\na")))))
+
+;;; dabbrev-tests.el ends here

@@ -246,3 +246,5 @@ At EOF:
            (registers [17 0 0 0 0 0 0 0]))
       (ccl-execute compiled registers)
       (should (equal registers [2 16 0 0 0 0 0 1])))))
+
+;;; ccl-tests.el ends here

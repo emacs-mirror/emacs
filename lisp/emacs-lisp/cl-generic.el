@@ -86,6 +86,14 @@
 
 ;;; Code:
 
+;; We provide a mechanism to define new specializers.
+;; Related work can be found in:
+;; - http://www.p-cos.net/documents/filtered-dispatch.pdf
+;; - Generalizers: New metaobjects for generalized dispatch
+;;   http://research.gold.ac.uk/9924/1/els-specializers.pdf
+;; This second one is closely related to what we do here (and that's
+;; the name "generalizer" comes from).
+
 ;; The autoloads.el mechanism which adds package--builtin-versions
 ;; maintenance to loaddefs.el doesn't work for preloaded packages (such
 ;; as this one), so we have to do it by hand!
@@ -100,6 +108,7 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'cl-macs))  ;For cl--find-class.
 (eval-when-compile (require 'pcase))
+(eval-when-compile (require 'subr-x))
 
 (cl-defstruct (cl--generic-generalizer
                (:constructor nil)
@@ -589,19 +598,10 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
         ;; e.g. for tracing/debug-on-entry.
         (defalias sym gfun)))))
 
-(defmacro cl--generic-with-memoization (place &rest code)
-  (declare (indent 1) (debug t))
-  (gv-letplace (getter setter) place
-    `(or ,getter
-         ,(macroexp-let2 nil val (macroexp-progn code)
-            `(progn
-               ,(funcall setter val)
-               ,val)))))
-
 (defvar cl--generic-dispatchers (make-hash-table :test #'equal))
 
 (defun cl--generic-get-dispatcher (dispatch)
-  (cl--generic-with-memoization
+  (with-memoization
       (gethash dispatch cl--generic-dispatchers)
     ;; (message "cl--generic-get-dispatcher (%S)" dispatch)
     (let* ((dispatch-arg (car dispatch))
@@ -644,10 +644,13 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       ;; overkill: better just use a `cl-typep' test.
       (byte-compile
        `(lambda (generic dispatches-left methods)
+          ;; FIXME: We should find a way to expand `with-memoize' once
+          ;; and forall so we don't need `subr-x' when we get here.
+          (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
-                (apply (cl--generic-with-memoization
+                (apply (with-memoization
                            (gethash ,tag-exp method-cache)
                          (cl--generic-cache-miss
                           generic ',dispatch-arg dispatches-left methods
@@ -691,7 +694,7 @@ for all those different tags in the method-cache.")
       ;; Special case needed to fix a circularity during bootstrap.
       (cl--generic-standard-method-combination generic methods)
     (let ((f
-           (cl--generic-with-memoization
+           (with-memoization
                ;; FIXME: Since the fields of `generic' are modified, this
                ;; hash-table won't work right, because the hashes will change!
                ;; It's not terribly serious, but reduces the effectiveness of
@@ -1026,7 +1029,10 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
     (when generic
       (require 'help-mode)              ;Needed for `help-function-def' button!
       (save-excursion
-        (insert "\n\nThis is a generic function.\n\n")
+        ;; Ensure that we have two blank lines (but not more).
+        (unless (looking-back "\n\n" (- (point) 2))
+          (insert "\n"))
+        (insert "This is a generic function.\n\n")
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
         (dolist (method (cl--generic-method-table generic))
@@ -1140,7 +1146,7 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
   ;; since we can't use the `head' specializer to implement itself.
   (if (not (eq (car-safe specializer) 'head))
       (cl-call-next-method)
-    (cl--generic-with-memoization
+    (with-memoization
         (gethash (cadr specializer) cl--generic-head-used)
       specializer)
     (list cl--generic-head-generalizer)))

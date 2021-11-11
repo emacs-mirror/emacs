@@ -766,7 +766,9 @@ NOARG must be t when this macro is used outside `gud-def'."
       ;; Apparently we're not running with -i=mi (or we're, for
       ;; instance, debugging something inside a Docker instance with
       ;; Emacs on the outside).
-      (let ((msg "Error: Either -i=mi wasn't specified on the GDB command line, or the extra socket couldn't be established.  Consider using `M-x gud-gdb' instead."))
+      (let ((msg (substitute-command-keys
+                  "Error: Either -i=mi wasn't specified on the GDB command line,\
+ or the extra socket couldn't be established.  Consider using \\[gud-gdb] instead.")))
         (message msg)
         (setq string (concat (propertize msg 'font-lock-face 'error)
                              "\n" string)))
@@ -1610,6 +1612,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 ;; Used to display windows with thread-bound buffers
 (defmacro def-gdb-preempt-display-buffer (name buffer &optional doc
 					       split-horizontal)
+  (declare (indent defun))
   `(defun ,name (&optional thread)
      ,(when doc doc)
      (message "%s" thread)
@@ -3010,6 +3013,7 @@ calling `gdb-current-context-command').
 Triggers defined by this command are meant to be used as a
 trigger argument when describing buffer types with
 `gdb-set-buffer-rules'."
+  (declare (indent defun))
   `(defun ,trigger-name (&optional signal)
      (when
          (or (not ,signal-list)
@@ -3030,6 +3034,7 @@ Erase current buffer and evaluate CUSTOM-DEFUN.
 Then call `gdb-update-buffer-name'.
 
 If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
+  (declare (indent defun))
   `(defun ,handler-name ()
      (let* ((inhibit-read-only t)
             ,@(unless nopreserve
@@ -3053,6 +3058,7 @@ See `def-gdb-auto-update-trigger'.
 
 HANDLER-NAME handler uses customization of CUSTOM-DEFUN.
 See `def-gdb-auto-update-handler'."
+  (declare (indent defun))
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ,gdb-command
@@ -3471,6 +3477,7 @@ corresponding to the mode line clicked."
 CUSTOM-DEFUN may use locally bound `thread' variable, which will
 be the value of `gdb-thread' property of the current line.
 If `gdb-thread' is nil, error is signaled."
+  (declare (indent defun))
   `(defun ,name (&optional event)
      ,(when doc doc)
      (interactive (list last-input-event))
@@ -3486,6 +3493,7 @@ If `gdb-thread' is nil, error is signaled."
                                                      &optional doc)
   "Define a NAME which will call BUFFER-COMMAND with id of thread
 on the current line."
+  (declare (indent defun))
   `(def-gdb-thread-buffer-command ,name
      (,buffer-command (gdb-mi--field thread 'id))
      ,doc))
@@ -3541,6 +3549,7 @@ on the current line."
   "Define a NAME which will execute GUD-COMMAND with
 `gdb-thread-number' locally bound to id of thread on the current
 line."
+  (declare (indent defun))
   `(def-gdb-thread-buffer-command ,name
      (if gdb-non-stop
          (let ((gdb-thread-number (gdb-mi--field thread 'id))
@@ -3709,6 +3718,7 @@ in `gdb-memory-format'."
 
 (defmacro def-gdb-set-positive-number (name variable echo-string &optional doc)
   "Define a function NAME which reads new VAR value from minibuffer."
+  (declare (indent defun))
   `(defun ,name (event)
      ,(when doc doc)
      (interactive "e")
@@ -3737,6 +3747,7 @@ in `gdb-memory-format'."
   "Define a function NAME to switch memory buffer to use FORMAT.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-format ,format)
@@ -3806,6 +3817,7 @@ DOC is an optional documentation string."
   "Define a function NAME to switch memory unit size to UNIT-SIZE.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-unit ,unit-size)
@@ -3830,6 +3842,7 @@ The defined function switches Memory buffer to show address
 stored in ADDRESS-VAR variable.
 
 DOC is an optional documentation string."
+  (declare (indent defun))
   `(defun ,name
      ,(when doc doc)
      (interactive)

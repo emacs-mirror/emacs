@@ -3554,7 +3554,7 @@ With prefix, sorts in REVERSE order."
 	(push (cons (buffer-substring-no-properties (point) end)
 		    (+ minrow x))
 	      keys))
-      (setq keys (sort keys #'(lambda (x y) (string< (car x) (car y)))))
+      (setq keys (sort keys (lambda (x y) (string< (car x) (car y)))))
       ;;Extract the lines in reverse sorted order
       (or reverse
 	  (setq keys (nreverse keys)))
@@ -3774,7 +3774,9 @@ function is redefined."
      (setq name (intern name))
      (let* ((cur-printer (gethash name ses--local-printer-hashmap))
             (default (and cur-printer (ses--locprn-def cur-printer))))
-            (setq def (ses-read-printer (format "Enter definition of printer %S" name)
+            (setq def (ses-read-printer (format-prompt
+                                         "Enter definition of printer %S"
+                                         default name)
                                         default)))
             (list name def)))
 

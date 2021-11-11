@@ -80,4 +80,4 @@ The search is done with the current EDE root."
     (ede-locate-file-in-project loc file)
     (data-debug-insert-object-slots loc "]")))
 
-;;; ede-test.el ends here
+;;; ede-tests.el ends here

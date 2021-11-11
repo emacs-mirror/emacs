@@ -52,4 +52,4 @@
       (should (equal (cdr test)
                      (libxml-parse-xml-region (point-min) (point-max)))))))
 
-;;; libxml-tests.el ends here
+;;; xml-tests.el ends here

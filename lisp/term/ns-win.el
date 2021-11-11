@@ -867,10 +867,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; For Darwin nothing except UTF-8 makes sense.
   (when (eq system-type 'darwin)
       (add-hook 'before-init-hook
-                #'(lambda ()
-                    (setq locale-coding-system 'utf-8-unix)
-                    (setq default-process-coding-system
-                          '(utf-8-unix . utf-8-unix)))))
+                (lambda ()
+                  (setq locale-coding-system 'utf-8-unix)
+                  (setq default-process-coding-system
+                        '(utf-8-unix . utf-8-unix)))))
 
   ;; Mac OS X Lion introduces PressAndHold, which is unsupported by this port.
   ;; See this thread for more details:

@@ -130,7 +130,10 @@ are the same.
 
 Similar tags that have sub-tags such as arg lists or type members,
 are similar w/out checking the sub-list of tags.
-Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing similarity.
+
+Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing
+similarity.
+
 By default, `semantic-tag-similar-ignorable-attributes' is referenced for
 attributes, and IGNORABLE-ATTRIBUTES will augment this list.
 
@@ -191,11 +194,14 @@ See `semantic-tag-similar-p' for details."
 ;; will contain the info needed to determine the full name.
 (define-overloadable-function semantic-tag-full-package (tag &optional stream-or-buffer)
   "Return the fully qualified package name of TAG in a package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-tag-table',
-but must be a toplevel semantic tag stream that contains TAG.
+STREAM-OR-BUFFER can be anything convertible by
+`semantic-something-to-tag-table', but must be a toplevel
+semantic tag stream that contains TAG.
+
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
 class can be accessed via it's fully qualified name, (such as Java.)
+
 Other languages qualify names within a Namespace (such as C++) which
 result in a different package like structure.
 
@@ -214,11 +220,14 @@ Return the name of the first tag of class `package' in STREAM."
 
 (define-overloadable-function semantic-tag-full-name (tag &optional stream-or-buffer)
   "Return the fully qualified name of TAG in the package hierarchy.
-STREAM-OR-BUFFER can be anything convertible by `semantic-something-to-tag-table',
-but must be a toplevel semantic tag stream that contains TAG.
+STREAM-OR-BUFFER can be anything convertible by
+`semantic-something-to-tag-table', but must be a toplevel
+semantic tag stream that contains TAG.
+
 A Package Hierarchy is defined in UML by the way classes and methods
 are organized on disk.  Some languages use this concept such that a
 class can be accessed via it's fully qualified name, (such as Java.)
+
 Other languages qualify names within a Namespace (such as C++) which
 result in a different package like structure.
 

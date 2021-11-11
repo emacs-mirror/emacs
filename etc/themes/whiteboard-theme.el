@@ -63,6 +63,8 @@
    `(ido-first-match ((,class (:weight normal :foreground "DarkOrange3"))))
    `(ido-only-match ((,class (:foreground "SeaGreen4"))))
    `(ido-subdir ((,class (:foreground nil :inherit font-lock-keyword-face))))
+   `(image-dired-thumb-flagged ((,class :background "Red1")))
+   `(image-dired-thumb-mark ((,class :background "dodgerblue3")))
    `(info-header-node ((,class (:foreground "DeepSkyBlue1"))))
    `(info-header-xref ((,class (:foreground "SeaGreen2"))))
    `(info-menu-header ((,class (:family "helv" :weight bold))))

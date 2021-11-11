@@ -48,7 +48,7 @@ static exe_header_t *
 read_exe_header (int fd, exe_header_t * exe_header_buffer)
 {
   int i;
-  int ret ATTRIBUTE_UNUSED;
+  MAYBE_UNUSED int ret;
 
   assert (fd >= 0);
   assert (exe_header_buffer != 0);
@@ -111,7 +111,7 @@ fixup_executable (int fd)
   exe_header_t exe_header_buffer;
   exe_header_t *exe_header;
   int i;
-  int ret ATTRIBUTE_UNUSED;
+  MAYBE_UNUSED int ret;
   int found_data = 0;
   int found_bss = 0;
 
@@ -269,7 +269,7 @@ unexec (const char *outfile, const char *infile)
   int fd_in;
   int fd_out;
   int ret;
-  int ret2 ATTRIBUTE_UNUSED;
+  MAYBE_UNUSED int ret2;
 
   infile = add_exe_suffix_if_necessary (infile, infile_buffer);
   outfile = add_exe_suffix_if_necessary (outfile, outfile_buffer);

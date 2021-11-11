@@ -1245,6 +1245,12 @@ blocks for other macros like @code{cl-incf}, and @code{cl-pushnew}.
 The @code{cl-letf} and @code{cl-letf*} macros are used in the processing
 of symbol macros; @pxref{Macro Bindings}.
 
+@defmac with-memoization @var{place} @var{code}@dots{}
+This macro provides a simple way to do memoization.  @var{code} is
+evaluated and then stashed in @var{place}.  If @var{place}'s value is
+non-@code{nil}, return that value instead of evaluating @var{code}.
+@end defmac
+
 
 @node Variable Bindings
 @section Variable Bindings
@@ -3364,9 +3370,13 @@ true for all elements.
 @end defun
 
 @defun cl-reduce function seq @t{&key :from-end :start :end :initial-value :key}
-This function combines the elements of @var{seq} using an associative
-binary operation.  Suppose @var{function} is @code{*} and @var{seq} is
-the list @code{(2 3 4 5)}.  The first two elements of the list are
+This function returns the result of calling @var{function} on the
+first and second element of @var{seq}, then calling @var{function}
+with that result and the third element of @var{seq}, then with that
+result and the third element of @var{seq}, etc.
+
+Here is an example.  Suppose @var{function} is @code{*} and @var{seq}
+is the list @code{(2 3 4 5)}.  The first two elements of the list are
 combined with @code{(* 2 3) = 6}; this is combined with the next
 element, @code{(* 6 4) = 24}, and that is combined with the final
 element: @code{(* 24 5) = 120}.  Note that the @code{*} function happens
@@ -5024,7 +5034,7 @@ The above @code{incf} example could be written using
 @ignore
 (defmacro concatf (place &rest args)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (mapconcat 'identity args "")
+    (macroexp-let2 nil v (mapconcat 'identity args)
       (funcall setter `(concat ,getter ,v)))))
 @end ignore
 @end defmac

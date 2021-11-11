@@ -125,9 +125,12 @@ of SECS seconds since the epoch.  SECS may be a fraction."
       (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
-  "Advance TIME by SECS seconds and optionally USECS microseconds
-and PSECS picoseconds.  SECS may be either an integer or a
-floating point number."
+  "Advance TIME by SECS seconds.
+
+Optionally also advance it by USECS microseconds and PSECS
+picoseconds.
+
+SECS may be either an integer or a floating point number."
   (let ((delta secs))
     (if (or usecs psecs)
 	(setq delta (time-add delta (list 0 0 (or usecs 0) (or psecs 0)))))
@@ -138,9 +141,13 @@ floating point number."
   (time-less-p (timer--time t1) (timer--time t2)))
 
 (defun timer-inc-time (timer secs &optional usecs psecs)
-  "Increment the time set in TIMER by SECS seconds, USECS microseconds,
-and PSECS picoseconds.  SECS may be a fraction.  If USECS or PSECS are
-omitted, they are treated as zero."
+  "Increment the time set in TIMER by SECS seconds.
+
+Optionally also increment it by USECS microseconds, and PSECS
+picoseconds.  If USECS or PSECS are omitted, they are treated as
+zero.
+
+SECS may be a fraction."
   (setf (timer--time timer)
         (timer-relative-time (timer--time timer) secs usecs psecs)))
 

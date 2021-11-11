@@ -579,7 +579,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 (defun gnus-new-processable (unmarkp articles)
   (if unmarkp
       (nreverse (seq-intersection gnus-newsgroup-processable articles #'eq))
-    (seq-difference articles gnus-newsgroup-processable #'eq)))
+    (gnus-set-difference articles gnus-newsgroup-processable)))
 
 (defun gnus-uu-mark-by-regexp (regexp &optional unmark)
   "Set the process mark on articles whose subjects match REGEXP.

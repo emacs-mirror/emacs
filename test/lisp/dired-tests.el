@@ -19,6 +19,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (require 'dired)
 
 (ert-deftest dired-autoload ()
@@ -141,116 +142,113 @@
 
 (ert-deftest dired-test-bug27243-01 ()
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#5 ."
-  (let* ((test-dir (file-name-as-directory (make-temp-file "test-dir-" t)))
-         (save-pos (lambda ()
-                     (with-current-buffer (car (dired-buffers-for-dir test-dir))
-                       (dired-save-positions))))
-         (dired-auto-revert-buffer t) buffers)
-    ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
-    ;; corresponding long file names exist, otherwise such names trip
-    ;; dired-buffers-for-dir.
-    (if (eq system-type 'windows-nt)
-        (setq test-dir (file-truename test-dir)))
-    (should-not (dired-buffers-for-dir test-dir))
-    (with-current-buffer (find-file-noselect test-dir)
-      (make-directory "test-subdir"))
-    (message "Saved pos: %S" (funcall save-pos))
-    ;; Point must be at end-of-buffer.
-    (with-current-buffer (car (dired-buffers-for-dir test-dir))
-      (should (eobp)))
-    (push (dired test-dir) buffers)
-    (message "Saved pos: %S" (funcall save-pos))
-    ;; Previous dired call shouldn't create a new buffer: must visit the one
-    ;; created by `find-file-noselect' above.
-    (should (eq 1 (length (dired-buffers-for-dir test-dir))))
-    (unwind-protect
-        (let ((buf (current-buffer))
-              (pt1 (point))
-              (test-file (concat (file-name-as-directory "test-subdir")
-                                 "test-file")))
-          (message "Saved pos: %S" (funcall save-pos))
-          (write-region "Test" nil test-file nil 'silent nil 'excl)
-          (message "Saved pos: %S" (funcall save-pos))
-          ;; Sanity check: point should now be on the subdirectory.
-          (should (equal (dired-file-name-at-point)
-                         (concat test-dir (file-name-as-directory "test-subdir"))))
-          (message "Saved pos: %S" (funcall save-pos))
-          (push (dired-find-file) buffers)
-          (let ((pt2 (point)))          ; Point is on test-file.
-            (pop-to-buffer-same-window buf)
-            ;; Sanity check: point should now be back on the subdirectory.
-            (should (eq (point) pt1))
+  (ert-with-temp-directory test-dir
+    (let* ((save-pos (lambda ()
+                       (with-current-buffer (car (dired-buffers-for-dir test-dir))
+                         (dired-save-positions))))
+           (dired-auto-revert-buffer t) buffers)
+      ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
+      ;; corresponding long file names exist, otherwise such names trip
+      ;; dired-buffers-for-dir.
+      (if (eq system-type 'windows-nt)
+          (setq test-dir (file-truename test-dir)))
+      (should-not (dired-buffers-for-dir test-dir))
+      (with-current-buffer (find-file-noselect test-dir)
+        (make-directory "test-subdir"))
+      (message "Saved pos: %S" (funcall save-pos))
+      ;; Point must be at end-of-buffer.
+      (with-current-buffer (car (dired-buffers-for-dir test-dir))
+        (should (eobp)))
+      (push (dired test-dir) buffers)
+      (message "Saved pos: %S" (funcall save-pos))
+      ;; Previous dired call shouldn't create a new buffer: must visit the one
+      ;; created by `find-file-noselect' above.
+      (should (eq 1 (length (dired-buffers-for-dir test-dir))))
+      (unwind-protect
+          (let ((buf (current-buffer))
+                (pt1 (point))
+                (test-file (concat (file-name-as-directory "test-subdir")
+                                   "test-file")))
+            (message "Saved pos: %S" (funcall save-pos))
+            (write-region "Test" nil test-file nil 'silent nil 'excl)
+            (message "Saved pos: %S" (funcall save-pos))
+            ;; Sanity check: point should now be on the subdirectory.
+            (should (equal (dired-file-name-at-point)
+                           (concat test-dir (file-name-as-directory "test-subdir"))))
+            (message "Saved pos: %S" (funcall save-pos))
             (push (dired-find-file) buffers)
-            (should (eq (point) pt2))))
-      (dolist (buf buffers)
-        (when (buffer-live-p buf) (kill-buffer buf)))
-      (delete-directory test-dir t))))
+            (let ((pt2 (point)))         ; Point is on test-file.
+              (pop-to-buffer-same-window buf)
+              ;; Sanity check: point should now be back on the subdirectory.
+              (should (eq (point) pt1))
+              (push (dired-find-file) buffers)
+              (should (eq (point) pt2))))
+        (dolist (buf buffers)
+          (when (buffer-live-p buf) (kill-buffer buf)))))))
 
 (ert-deftest dired-test-bug27243-02 ()
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#28 ."
-  (let ((test-dir (make-temp-file "test-dir-" t))
-        (dired-auto-revert-buffer t) buffers)
-    ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
-    ;; corresponding long file names exist, otherwise such names trip
-    ;; string comparisons below.
-    (if (eq system-type 'windows-nt)
-        (setq test-dir (file-truename test-dir)))
-    (with-current-buffer (find-file-noselect test-dir)
-      (make-directory "test-subdir"))
-    (push (dired test-dir) buffers)
-    (unwind-protect
-        (let ((buf (current-buffer))
-              (pt1 (point))
-              (test-file (concat (file-name-as-directory "test-subdir")
-                                 "test-file")))
-          (write-region "Test" nil test-file nil 'silent nil 'excl)
-          ;; Sanity check: point should now be on the subdirectory.
-          (should (equal (dired-file-name-at-point)
-                         (concat (file-name-as-directory test-dir)
-                                 (file-name-as-directory "test-subdir"))))
-          (push (dired-find-file) buffers)
-          ;; Point is on test-file.
-          (switch-to-buffer buf)
-          ;; Sanity check: point should now be back on the subdirectory.
-          (should (eq (point) pt1))
-          (push (dired test-dir) buffers)
-          (should (eq (point) pt1)))
-      (dolist (buf buffers)
-        (when (buffer-live-p buf) (kill-buffer buf)))
-      (delete-directory test-dir t))))
+  (ert-with-temp-directory test-dir
+    (let ((dired-auto-revert-buffer t) buffers)
+      ;; On MS-Windows, get rid of 8+3 short names in test-dir, if the
+      ;; corresponding long file names exist, otherwise such names trip
+      ;; string comparisons below.
+      (if (eq system-type 'windows-nt)
+          (setq test-dir (file-truename test-dir)))
+      (with-current-buffer (find-file-noselect test-dir)
+        (make-directory "test-subdir"))
+      (push (dired test-dir) buffers)
+      (unwind-protect
+          (let ((buf (current-buffer))
+                (pt1 (point))
+                (test-file (concat (file-name-as-directory "test-subdir")
+                                   "test-file")))
+            (write-region "Test" nil test-file nil 'silent nil 'excl)
+            ;; Sanity check: point should now be on the subdirectory.
+            (should (equal (dired-file-name-at-point)
+                           (concat (file-name-as-directory test-dir)
+                                   (file-name-as-directory "test-subdir"))))
+            (push (dired-find-file) buffers)
+            ;; Point is on test-file.
+            (switch-to-buffer buf)
+            ;; Sanity check: point should now be back on the subdirectory.
+            (should (eq (point) pt1))
+            (push (dired test-dir) buffers)
+            (should (eq (point) pt1)))
+        (dolist (buf buffers)
+          (when (buffer-live-p buf) (kill-buffer buf)))))))
 
 (ert-deftest dired-test-bug27243-03 ()
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#61 ."
-  (let ((test-dir (make-temp-file "test-dir-" t))
-        (dired-auto-revert-buffer t)
-        allbufs)
-    (unwind-protect
-        (progn
-          (with-current-buffer (find-file-noselect test-dir)
-            (push (current-buffer) allbufs)
-            (make-directory "test-subdir1")
-            (make-directory "test-subdir2")
-            (let ((test-file1 "test-file1")
-                  (test-file2 "test-file2"))
-              (with-current-buffer (find-file-noselect "test-subdir1")
-                (push (current-buffer) allbufs)
-                (write-region "Test1" nil test-file1 nil 'silent nil 'excl))
-              (with-current-buffer (find-file-noselect "test-subdir2")
-                (push (current-buffer) allbufs)
-                (write-region "Test2" nil test-file2 nil 'silent nil 'excl))))
-          ;; Call find-file with a wild card and test point in each file.
-          (let ((buffers (find-file (concat (file-name-as-directory test-dir)
-                                            "*")
-                                    t)))
-            (dolist (buf buffers)
-              (let ((pt (with-current-buffer buf (point))))
-                (switch-to-buffer (find-file-noselect test-dir))
-                (find-file (buffer-name buf))
-                (should (equal (point) pt))))
-            (append buffers allbufs)))
-      (dolist (buf allbufs)
-        (when (buffer-live-p buf) (kill-buffer buf)))
-      (delete-directory test-dir t))))
+  (ert-with-temp-directory test-dir
+    (let ((dired-auto-revert-buffer t)
+          allbufs)
+      (unwind-protect
+          (progn
+            (with-current-buffer (find-file-noselect test-dir)
+              (push (current-buffer) allbufs)
+              (make-directory "test-subdir1")
+              (make-directory "test-subdir2")
+              (let ((test-file1 "test-file1")
+                    (test-file2 "test-file2"))
+                (with-current-buffer (find-file-noselect "test-subdir1")
+                  (push (current-buffer) allbufs)
+                  (write-region "Test1" nil test-file1 nil 'silent nil 'excl))
+                (with-current-buffer (find-file-noselect "test-subdir2")
+                  (push (current-buffer) allbufs)
+                  (write-region "Test2" nil test-file2 nil 'silent nil 'excl))))
+            ;; Call find-file with a wild card and test point in each file.
+            (let ((buffers (find-file (concat (file-name-as-directory test-dir)
+                                              "*")
+                                      t)))
+              (dolist (buf buffers)
+                (let ((pt (with-current-buffer buf (point))))
+                  (switch-to-buffer (find-file-noselect test-dir))
+                  (find-file (buffer-name buf))
+                  (should (equal (point) pt))))
+              (append buffers allbufs)))
+        (dolist (buf allbufs)
+          (when (buffer-live-p buf) (kill-buffer buf)))))))
 
 (ert-deftest dired-test-bug7131 ()
   "Test for https://debbugs.gnu.org/7131 ."
@@ -274,22 +272,21 @@
   ;; ls-lisp-tests.el and em-ls-tests.el.
   (skip-unless (and (not (featurep 'ls-lisp))
                     (not (featurep 'eshell))))
-  (let* ((dir (make-temp-file "bug27631" 'dir))
-         (dir1 (expand-file-name "dir1" dir))
-         (dir2 (expand-file-name "dir2" dir))
-         (default-directory dir)
-         buf)
-    (unwind-protect
-        (progn
-          (make-directory dir1)
-          (make-directory dir2)
-          (with-temp-file (expand-file-name "a.txt" dir1))
-          (with-temp-file (expand-file-name "b.txt" dir2))
-          (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
-          (dired-toggle-marks)
-          (should (cdr (dired-get-marked-files))))
-      (delete-directory dir 'recursive)
-      (when (buffer-live-p buf) (kill-buffer buf)))))
+  (ert-with-temp-directory dir
+    (let* ((dir1 (expand-file-name "dir1" dir))
+           (dir2 (expand-file-name "dir2" dir))
+           (default-directory dir)
+           buf)
+      (unwind-protect
+          (progn
+            (make-directory dir1)
+            (make-directory dir2)
+            (with-temp-file (expand-file-name "a.txt" dir1))
+            (with-temp-file (expand-file-name "b.txt" dir2))
+            (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
+            (dired-toggle-marks)
+            (should (cdr (dired-get-marked-files))))
+        (when (buffer-live-p buf) (kill-buffer buf))))))
 
 (ert-deftest dired-test-bug27899 ()
   "Test for https://debbugs.gnu.org/27899 ."
@@ -310,72 +307,69 @@
 
 (ert-deftest dired-test-bug27968 ()
   "Test for https://debbugs.gnu.org/27968 ."
-  (let* ((top-dir (make-temp-file "top-dir" t))
-         (subdir (expand-file-name "subdir" top-dir))
-         (header-len-fn (lambda ()
-                          (save-excursion
-                            (goto-char 1)
-                            (forward-line 1)
-                            (- (point-at-eol) (point)))))
-         orig-len len diff pos line-nb)
-    (make-directory subdir 'parents)
-    (unwind-protect
-        (with-current-buffer (dired-noselect subdir)
-          (setq orig-len (funcall header-len-fn)
-                pos (point)
-                line-nb (line-number-at-pos))
-          ;; Bug arises when the header line changes its length; this may
-          ;; happen if the used space has changed: for instance, with the
-          ;; creation of additional files.
-          (make-directory "subdir" t)
-          (dired-revert)
-          ;; Change the header line.
-          (save-excursion
-            (goto-char 1)
-            (forward-line 1)
-            (let ((inhibit-read-only t)
-                  (new-header "  test-bug27968"))
-              (delete-region (point) (point-at-eol))
-              (when (= orig-len (length new-header))
-                ;; Wow lucky guy! I must buy lottery today.
-                (setq new-header (concat new-header " :-)")))
-              (insert new-header)))
-          (setq len (funcall header-len-fn)
-                diff (- len orig-len))
-          (should-not (zerop diff)) ; Header length has changed.
-          ;; If diff > 0, then the point moves back.
-          ;; If diff < 0, then the point moves forward.
-          ;; If diff = 0, then the point doesn't move.
-          ;; Sometimes this point movement causes
-          ;; line-nb != (line-number-at-pos pos), so that we get
-          ;; an unexpected file at point if we store buffer points.
-          ;; Note that the line number before/after revert
-          ;; doesn't change.
-          (should (= line-nb
-                     (line-number-at-pos)
-                     (line-number-at-pos (+ pos diff))))
-          ;; After revert, the point must be in 'subdir' line.
-          (should (equal "subdir" (dired-get-filename 'local t))))
-      (delete-directory top-dir t))))
+  (ert-with-temp-directory top-dir
+    (let* ((subdir (expand-file-name "subdir" top-dir))
+           (header-len-fn (lambda ()
+                            (save-excursion
+                              (goto-char 1)
+                              (forward-line 1)
+                              (- (point-at-eol) (point)))))
+           orig-len len diff pos line-nb)
+      (make-directory subdir 'parents)
+      (with-current-buffer (dired-noselect subdir)
+        (setq orig-len (funcall header-len-fn)
+              pos (point)
+              line-nb (line-number-at-pos))
+        ;; Bug arises when the header line changes its length; this may
+        ;; happen if the used space has changed: for instance, with the
+        ;; creation of additional files.
+        (make-directory "subdir" t)
+        (dired-revert)
+        ;; Change the header line.
+        (save-excursion
+          (goto-char 1)
+          (forward-line 1)
+          (let ((inhibit-read-only t)
+                (new-header "  test-bug27968"))
+            (delete-region (point) (point-at-eol))
+            (when (= orig-len (length new-header))
+              ;; Wow lucky guy! I must buy lottery today.
+              (setq new-header (concat new-header " :-)")))
+            (insert new-header)))
+        (setq len (funcall header-len-fn)
+              diff (- len orig-len))
+        (should-not (zerop diff))    ; Header length has changed.
+        ;; If diff > 0, then the point moves back.
+        ;; If diff < 0, then the point moves forward.
+        ;; If diff = 0, then the point doesn't move.
+        ;; Sometimes this point movement causes
+        ;; line-nb != (line-number-at-pos pos), so that we get
+        ;; an unexpected file at point if we store buffer points.
+        ;; Note that the line number before/after revert
+        ;; doesn't change.
+        (should (= line-nb
+                   (line-number-at-pos)
+                   (line-number-at-pos (+ pos diff))))
+        ;; After revert, the point must be in 'subdir' line.
+        (should (equal "subdir" (dired-get-filename 'local t)))))))
 
 
 (defmacro dired-test-with-temp-dirs (just-empty-dirs &rest body)
   "Helper macro for Bug#27940 test."
   (declare (indent 1) (debug body))
   (let ((dir (make-symbol "dir")))
-    `(let* ((,dir (make-temp-file "bug27940" t))
-            (dired-deletion-confirmer (lambda (_) "yes")) ; Suppress prompts.
-            (inhibit-message t)
-            (default-directory ,dir))
-       (dotimes (i 5) (make-directory (format "empty-dir-%d" i)))
-       (unless ,just-empty-dirs
-         (dotimes (i 5) (make-directory (format "non-empty-%d/foo" i) 'parents)))
-       (make-directory "zeta-empty-dir")
-       (unwind-protect
-           (progn
-             ,@body)
-         (delete-directory ,dir t)
-         (kill-buffer (current-buffer))))))
+    `(ert-with-temp-directory ,dir
+       (let* ((dired-deletion-confirmer (lambda (_) "yes")) ; Suppress prompts.
+              (inhibit-message t)
+              (default-directory ,dir))
+         (dotimes (i 5) (make-directory (format "empty-dir-%d" i)))
+         (unless ,just-empty-dirs
+           (dotimes (i 5) (make-directory (format "non-empty-%d/foo" i) 'parents)))
+         (make-directory "zeta-empty-dir")
+         (unwind-protect
+             (progn
+               ,@body)
+           (kill-buffer (current-buffer)))))))
 
 (ert-deftest dired-test-bug27940 ()
   "Test for https://debbugs.gnu.org/27940 ."
@@ -518,4 +512,4 @@
         (delete-directory testdir t)))))
 
 (provide 'dired-tests)
-;; dired-tests.el ends here
+;;; dired-tests.el ends here

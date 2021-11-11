@@ -74,12 +74,9 @@ according to the choice made, and returns a symbol."
 		(rmail-summary-exists)
 		(and (setq old (rmail-get-keywords))
 		     (mapc #'rmail-make-label (split-string old ", "))))
-	    (completing-read (concat prompt
-				     (if rmail-last-label
-					 (concat " (default "
-						 (symbol-name rmail-last-label)
-						 "): ")
-				       ": "))
+            (completing-read (format-prompt prompt
+                                            (and rmail-last-label
+                                                 (symbol-name rmail-last-label)))
 			     rmail-label-obarray
 			     nil
 			     nil))))

@@ -43,4 +43,4 @@ available (Bug#25468)."
                  0)))
 
 (provide 'htmlfontify-tests)
-;; htmlfontify-tests.el ends here
+;;; htmlfontify-tests.el ends here

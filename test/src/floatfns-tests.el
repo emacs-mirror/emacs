@@ -17,7 +17,71 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'ert)
+
+(ert-deftest floatfns-tests-cos ()
+  (should (= (cos 0) 1.0))
+  (should (= (cos float-pi) -1.0)))
+
+(ert-deftest floatfns-tests-sin ()
+  (should (= (sin 0) 0.0)))
+
+(ert-deftest floatfns-tests-tan ()
+  (should (= (tan 0) 0.0)))
+
+(ert-deftest floatfns-tests-isnan ()
+  (should (isnan 0.0e+NaN))
+  (should (isnan -0.0e+NaN))
+  (should-error (isnan "foo") :type 'wrong-type-argument))
+
+(ert-deftest floatfns-tests-exp ()
+  (should (= (exp 0) 1.0)))
+
+(ert-deftest floatfns-tests-expt ()
+  (should (= (expt 2 8) 256)))
+
+(ert-deftest floatfns-tests-log ()
+  (should (= (log 1000 10) 3.0)))
+
+(ert-deftest floatfns-tests-sqrt ()
+  (should (= (sqrt 25) 5)))
+
+(ert-deftest floatfns-tests-abs ()
+  (should (= (abs 10) 10))
+  (should (= (abs -10) 10)))
+
+(ert-deftest floatfns-tests-logb ()
+  (should (= (logb 10000) 13)))
+
+(ert-deftest floatfns-tests-ceiling ()
+  (should (= (ceiling 0.5) 1)))
+
+(ert-deftest floatfns-tests-floor ()
+  (should (= (floor 1.5) 1)))
+
+(ert-deftest floatfns-tests-round ()
+  (should (= (round 1.49999999999) 1))
+  (should (= (round 1.50000000000) 2))
+  (should (= (round 1.50000000001) 2)))
+
+(ert-deftest floatfns-tests-truncate ()
+  (should (= (truncate float-pi) 3)))
+
+(ert-deftest floatfns-tests-fceiling ()
+  (should (= (fceiling 0.5) 1.0)))
+
+(ert-deftest floatfns-tests-ffloor ()
+  (should (= (ffloor 1.5) 1.0)))
+
+(ert-deftest floatfns-tests-fround ()
+  (should (= (fround 1.49999999999) 1.0))
+  (should (= (fround 1.50000000000) 2.0))
+  (should (= (fround 1.50000000001) 2.0)))
+
+(ert-deftest floatfns-tests-ftruncate ()
+  (should (= (ftruncate float-pi) 3.0)))
 
 (ert-deftest divide-extreme-sign ()
   (should (= (ceiling most-negative-fixnum -1.0) (- most-negative-fixnum)))
@@ -125,3 +189,5 @@
              (ash (1- (ash 1 53)) 2045))))
 
 (provide 'floatfns-tests)
+
+;;; floatfns-tests.el ends here

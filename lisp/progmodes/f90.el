@@ -345,6 +345,7 @@ The options are `downcase-word', `upcase-word', `capitalize-word' and nil."
                  ;; there are spaces.
                  "contiguous" "submodule" "concurrent" "codimension"
                  "sync all" "sync memory" "critical" "image_index" "error stop"
+                 "impure"
                  ))
    "\\_>")
   "Regexp used by the function `f90-change-keywords'.")

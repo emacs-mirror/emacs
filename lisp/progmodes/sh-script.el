@@ -628,7 +628,8 @@ removed when closing the here document."
     (wksh sh-append ksh88)
 
     (zsh sh-append ksh88
-	 "autoload" "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
+	 "autoload" "always"
+         "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
 	 "disable" "disown" "echotc" "enable" "functions" "getln" "hash"
 	 "history" "integer" "limit" "local" "log" "popd" "pushd" "r"
 	 "readonly" "rehash" "sched" "setopt" "source" "suspend" "true"
@@ -1396,8 +1397,15 @@ If FORCE is non-nil and no process found, create one."
             (or found
                 (and force
                      (get-buffer-process
-                      (let ((explicit-shell-file-name sh-shell-file))
-                        (shell)))))))))
+                      (let ((explicit-shell-file-name sh-shell-file)
+                            (display-buffer-overriding-action
+                             '(nil . ((inhibit-same-window . t)))))
+                        ;; We must prevent this `(shell)' call from
+                        ;; switching buffers, so that the variable
+                        ;; `sh-shell-process' is set locally in the
+                        ;; correct buffer.
+                        (save-current-buffer
+                          (shell))))))))))
 
 (defun sh-show-shell ()
   "Pop the shell interaction buffer."
@@ -2515,7 +2523,7 @@ overwritten if
 		      sh-styles-alist nil t)))
   (let ((sl (assoc name  sh-styles-alist)))
     (if (null sl)
-	(error "sh-load-style - style %s not known" name)
+        (error "sh-load-style: Style %s not known" name)
       (dolist (var (cdr sl))
 	(set (car var) (cdr var))))))
 

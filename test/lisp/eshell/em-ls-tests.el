@@ -25,30 +25,30 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'em-ls)
 (require 'dired)
 
 (ert-deftest em-ls-test-bug27631 ()
   "Test for https://debbugs.gnu.org/27631 ."
-  (let* ((dir (make-temp-file "bug27631" 'dir))
-         (dir1 (expand-file-name "dir1" dir))
-         (dir2 (expand-file-name "dir2" dir))
-         (default-directory dir)
-         (orig eshell-ls-use-in-dired)
-         buf)
-    (unwind-protect
-        (progn
-          (customize-set-value 'eshell-ls-use-in-dired t)
-          (make-directory dir1)
-          (make-directory dir2)
-          (with-temp-file (expand-file-name "a.txt" dir1))
-          (with-temp-file (expand-file-name "b.txt" dir2))
-          (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
-          (dired-toggle-marks)
-          (should (cdr (dired-get-marked-files))))
-      (customize-set-variable 'eshell-ls-use-in-dired orig)
-      (delete-directory dir 'recursive)
-      (when (buffer-live-p buf) (kill-buffer buf)))))
+  (ert-with-temp-directory dir
+    (let* ((dir1 (expand-file-name "dir1" dir))
+           (dir2 (expand-file-name "dir2" dir))
+           (default-directory dir)
+           (orig eshell-ls-use-in-dired)
+           buf)
+      (unwind-protect
+          (progn
+            (customize-set-value 'eshell-ls-use-in-dired t)
+            (make-directory dir1)
+            (make-directory dir2)
+            (with-temp-file (expand-file-name "a.txt" dir1))
+            (with-temp-file (expand-file-name "b.txt" dir2))
+            (setq buf (dired (expand-file-name "dir*/*.txt" dir)))
+            (dired-toggle-marks)
+            (should (cdr (dired-get-marked-files))))
+        (customize-set-variable 'eshell-ls-use-in-dired orig)
+        (when (buffer-live-p buf) (kill-buffer buf))))))
 
 (ert-deftest em-ls-test-bug27817 ()
   "Test for https://debbugs.gnu.org/27817 ."

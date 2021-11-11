@@ -610,7 +610,8 @@ the file in question, search for the log entry required and move point."
   (vc-annotate-show-diff-revision-at-line-internal t))
 
 (defun vc-annotate-show-changeset-diff-revision-at-line ()
-  "Visit the diff of the revision at line from its previous revision for all files in the changeset."
+  "Show the diffs of revision at current line relative to previous revision.
+This is done for all files in changeset."
   (interactive)
   (when (eq 'file (vc-call-backend vc-annotate-backend 'revision-granularity))
     (error "The %s backend does not support changeset diffs" vc-annotate-backend))

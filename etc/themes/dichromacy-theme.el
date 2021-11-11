@@ -101,6 +101,9 @@ Ansi-Color faces are included.")
    `(gnus-header-subject ((,class (:foreground ,orange))))
    `(gnus-header-name ((,class (:foreground ,skyblue))))
    `(gnus-header-newsgroups ((,class (:foreground ,vermillion))))
+   ;; Image-Dired
+   `(image-dired-thumb-flagged ((,class (:background ,vermillion))))
+   `(image-dired-thumb-mark ((,class (:background ,orange))))
    ;; Message faces
    `(message-header-name ((,class (:foreground ,skyblue))))
    `(message-header-cc ((,class (:foreground ,vermillion))))
@@ -113,12 +116,34 @@ Ansi-Color faces are included.")
    `(flyspell-duplicate ((,class (:weight unspecified :foreground unspecified
 				  :slant unspecified :underline ,orange))))
    `(flyspell-incorrect ((,class (:weight unspecified :foreground unspecified
-				  :slant unspecified :underline ,redpurple)))))
-
-  (custom-theme-set-variables
-   'dichromacy
-   `(ansi-color-names-vector ["black" ,vermillion ,bluegreen ,yellow
-			      ,blue ,redpurple ,skyblue "white"])))
+				  :slant unspecified :underline ,redpurple))))
+   ;; ANSI color
+   `(ansi-color-black ((,class (:background "black" :foreground "black"))))
+   `(ansi-color-red ((,class (:background ,vermillion
+			      :foreground ,vermillion))))
+   `(ansi-color-green ((,class (:background ,bluegreen
+				:foreground ,bluegreen))))
+   `(ansi-color-yellow ((,class (:background ,yellow :foreground ,yellow))))
+   `(ansi-color-blue ((,class (:background ,blue :foreground ,blue))))
+   `(ansi-color-magenta ((,class (:background ,redpurple
+				  :foreground ,redpurple))))
+   `(ansi-color-cyan ((,class (:background ,skyblue :foreground ,skyblue))))
+   `(ansi-color-white ((,class (:background "gray90" :foreground "gray90"))))
+   `(ansi-color-bright-black ((,class (:background "black"
+				       :foreground "black"))))
+   `(ansi-color-bright-red ((,class (:background ,vermillion
+				     :foreground ,vermillion))))
+   `(ansi-color-bright-green ((,class (:background ,bluegreen
+				       :foreground ,bluegreen))))
+   `(ansi-color-bright-yellow ((,class (:background ,yellow
+					:foreground ,yellow))))
+   `(ansi-color-bright-blue ((,class (:background ,blue :foreground ,blue))))
+   `(ansi-color-bright-magenta ((,class (:background ,redpurple
+					 :foreground ,redpurple))))
+   `(ansi-color-bright-cyan ((,class (:background ,skyblue
+				      :foreground ,skyblue))))
+   `(ansi-color-bright-white ((,class (:background "gray90"
+				       :foreground "gray90"))))))
 
 (provide-theme 'dichromacy)
 

@@ -4123,7 +4123,7 @@ one for the file name and another for its contents, followed by .eln.  */)
   FOR_EACH_TAIL (lds_re_tail)
     {
       Lisp_Object match_idx =
-	Fstring_match (XCAR (lds_re_tail), filename, Qnil);
+	Fstring_match (XCAR (lds_re_tail), filename, Qnil, Qnil);
       if (EQ (match_idx, make_fixnum (0)))
 	{
 	  filename =
@@ -5260,7 +5260,8 @@ file_in_eln_sys_dir (Lisp_Object filename)
     eln_sys_dir = XCAR (tmp);
   return !NILP (Fstring_match (Fregexp_quote (Fexpand_file_name (eln_sys_dir,
 								 Qnil)),
-			       Fexpand_file_name (filename, Qnil), Qnil));
+			       Fexpand_file_name (filename, Qnil),
+			       Qnil, Qnil));
 }
 
 /* Load related routines.  */

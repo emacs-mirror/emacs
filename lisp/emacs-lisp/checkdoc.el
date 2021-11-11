@@ -164,6 +164,7 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
+(require 'lisp-mode) ;; for lisp-mode-symbol-regexp
 (require 'dired)     ;; for dired-get-filename and dired-map-over-marks
 (require 'lisp-mnt)
 
@@ -253,7 +254,7 @@ with these words enabled."
 (defcustom checkdoc-max-keyref-before-warn nil
   "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
-\\\\={keymap} be used instead.  If the value is nil, never warn.
+\\\\={mapvar} be used instead.  If the value is nil, never warn.
 
 It used to not be practical to use `\\\\=[...]' very many times,
 because display of the documentation string would become slow.
@@ -338,6 +339,7 @@ See Info node `(elisp) Documentation Tips' for background."
 ;; (setq checkdoc--argument-missing-flag nil)      ; optional
 ;; (setq checkdoc--disambiguate-symbol-flag nil)   ; optional
 ;; (setq checkdoc--interactive-docstring-flag nil) ; optional
+;; (setq checkdoc-verb-check-experimental-flag nil)
 ;; Then use `M-x find-dired' ("-name '*.el'") and `M-x checkdoc-dired'
 
 (defvar checkdoc--argument-missing-flag t
@@ -491,6 +493,9 @@ be re-created.")
 
 (defconst checkdoc--help-buffer "*Checkdoc Help*"
   "Name of buffer used for Checkdoc Help.")
+
+(defvar checkdoc-commentary-header-string "\n;;; Commentary:\n;; \n\n"
+  "String inserted as commentary marker in `checkdoc-file-comments-engine'.")
 
 ;;; User level commands
 ;;
@@ -1625,7 +1630,7 @@ mouse-[0-3]\\)\\)\\>"))
 	     (checkdoc-create-error
 	      (concat
 	       "Keycode " (match-string 1)
-	       " embedded in doc string.  Use \\\\<keymap> & \\\\[function] "
+	       " embedded in doc string.  Use \\\\<mapvar> & \\\\[command] "
 	       "instead")
 	      (match-beginning 1) (match-end 1) t))))
      ;; Optionally warn about too many command substitutions.
@@ -1635,7 +1640,7 @@ mouse-[0-3]\\)\\)\\>"))
                                      (1+ checkdoc-max-keyref-before-warn))
                   (not (re-search-forward "\\\\\\\\{\\w+}" e t)))
              (checkdoc-create-error
-              "Too many occurrences of \\[function].  Use \\{keymap} instead"
+              "Too many occurrences of \\[command].  Use \\{mapvar} instead"
               s (marker-position e)))))
      ;; Ambiguous quoted symbol.  When a symbol is both bound and fbound,
      ;; and is referred to in documentation, it should be prefixed with
@@ -1653,7 +1658,10 @@ mouse-[0-3]\\)\\)\\>"))
 		   me (match-end 1))
 	     (if (and sym (boundp sym) (fboundp sym)
                       checkdoc--disambiguate-symbol-flag
-		      (save-excursion
+                      ;; Mode names do not need disambiguating.  (Bug#4110)
+                      (not (string-match (rx "-mode" string-end)
+                                         (symbol-name sym)))
+                      (save-excursion
 			(goto-char mb)
 			(forward-word-strictly -1)
 			(not (looking-at
@@ -1685,20 +1693,28 @@ function,command,variable,option or symbol." ms1))))))
      ;;   first line can be wider if necessary to fit the
      ;;   information that ought to be there.
      (save-excursion
-       (let ((start (point))
-	     (eol nil))
+       (let* ((start (point))
+              (eol nil)
+              ;; Respect this file local variable.
+              (max-column (max 80 byte-compile-docstring-max-column))
+              ;; Allow the first line to be three characters longer, to
+              ;; fit the leading ` "' while still having a docstring
+              ;; shorter than e.g. 80 characters.
+              (first t)
+              (get-max-column (lambda () (+ max-column (if first 3 0)))))
 	 (while (and (< (point) e)
 		     (or (progn (end-of-line) (setq eol (point))
-				(< (current-column) 80))
+                                (< (current-column) (funcall get-max-column)))
 			 (progn (beginning-of-line)
 				(re-search-forward "\\\\\\\\[[<{]"
 						   eol t))
-			 (checkdoc-in-sample-code-p start e)))
+                         (checkdoc-in-sample-code-p start e)))
+           (setq first nil)
 	   (forward-line 1))
 	 (end-of-line)
-	 (if (and (< (point) e) (> (current-column) 80))
+         (if (and (< (point) e) (> (current-column) (funcall get-max-column)))
 	     (checkdoc-create-error
-	      "Some lines are over 80 columns wide"
+              (format "Some lines are over %d columns wide" max-column)
 	      s (save-excursion (goto-char s) (line-end-position))))))
      ;; Here we deviate to tests based on a variable or function.
      ;; We must do this before checking for symbols in quotes because there
@@ -2093,31 +2109,35 @@ The text checked is between START and LIMIT."
 
 (defun checkdoc-in-abbreviation-p (begin)
   "Return non-nil if point is at an abbreviation.
-Examples of abbreviations handled: \"e.g.\", \"i.e.\", \"cf.\"."
+Examples of recognized abbreviations: \"e.g.\", \"i.e.\", \"cf.\"."
   (save-excursion
     (goto-char begin)
     (condition-case nil
-        (progn
-          (forward-sexp -1)
+        (let (single-letter)
+          (forward-word -1)
+          ;; Skip over all dots backwards, as `forward-word' will only
+          ;; go one dot at a time in a string like "e.g.".
+          (while (save-excursion (forward-char -1)
+                                 (looking-at (rx ".")))
+            (forward-word -1))
+          (when (= (point) (1- begin))
+            (setq single-letter t))
           ;; Piece of an abbreviation.
           (looking-at
-           (rx (or letter     ; single letter, as in "a."
-                   (seq
-                    ;; There might exist an escaped parenthesis, as
-                    ;; this is often used in docstrings.  In this
-                    ;; case, `forward-sexp' will have skipped over it,
-                    ;; so we need to skip it here too.
-                    (? "\\(")
-                    ;; The abbreviations:
-                    (or (seq (any "cC") "f")              ; cf.
-                        (seq (any "eE") ".g")             ; e.g.
-                        (seq (any "iI") "." (any "eE")))) ; i.e.
-                   "etc"                                  ; etc.
-                   "vs"                                   ; vs.
-                   ;; Some non-standard or less common ones that we
-                   ;; might as well ignore.
-                   "Inc" "Univ" "misc" "resp")
-               ".")))
+           (if single-letter
+               ;; Handle a single letter, as in "a.", as this might be
+               ;; a part of a list.
+               (rx letter ".")
+             (rx (or
+                  ;; The abbreviations (a trailing dot is added below).
+                  (seq (any "cC") "f")            ; cf.
+                  (seq (any "eE") ".g")           ; e.g.
+                  (seq (any "iI") "." (any "eE")) ; i.e.
+                  "a.k.a" "etc" "vs" "N.B"
+                  ;; Some non-standard or less common ones that we
+                  ;; might as well accept.
+                  "Inc" "Univ" "misc" "resp")
+                 "."))))
       (error t))))
 
 (defun checkdoc-proper-noun-region-engine (begin end)
@@ -2368,8 +2388,13 @@ Code:, and others referenced in the style guide."
        err
        (or
 	;; * Commentary Section
-	(if (not (lm-commentary-mark))
-	    (progn
+        (if (and (not (lm-commentary-mark))
+                 ;; No need for a commentary section in test files.
+                 (not (string-match
+                       (rx (or (seq (or "-test.el" "-tests.el") string-end)
+                               "/test/" "/tests/"))
+                       (buffer-file-name))))
+            (progn
 	      (goto-char (point-min))
 	      (cond
 	       ((re-search-forward
@@ -2387,7 +2412,7 @@ Code:, and others referenced in the style guide."
                  nil nil t)))
 	      (if (checkdoc-y-or-n-p
                    "You should have a \";;; Commentary:\", add one?")
-		  (insert "\n;;; Commentary:\n;; \n\n")
+                  (insert checkdoc-commentary-header-string)
 		(checkdoc-create-error
 		 "You should have a section marked \";;; Commentary:\""
 		 nil nil t)))
@@ -2457,10 +2482,9 @@ Code:, and others referenced in the style guide."
 	(save-excursion
 	  (goto-char (point-max))
 	  (if (not (re-search-backward
-		    (concat "^;;;[ \t]+" (regexp-quote fn) "\\(" (regexp-quote fe)
-			    "\\)?[ \t]+ends here[ \t]*$"
-			    "\\|^;;;[ \t]+ End of file[ \t]+"
-			    (regexp-quote fn) "\\(" (regexp-quote fe) "\\)?")
+                    ;; This should match the requirement in
+                    ;; `package-buffer-info'.
+                    (concat "^;;; " (regexp-quote (concat fn fe)) " ends here")
 		    nil t))
               (if (checkdoc-y-or-n-p "No identifiable footer!  Add one?")
 		  (progn
@@ -2554,6 +2578,30 @@ Argument END is the maximum bounds to search in."
 	  (setq return type))))
     return))
 
+(defun checkdoc--error-bad-format-p ()
+  "Return non-nil if the start of error message at point has the wrong format.
+The correct format is \"Foo\" or \"some-symbol: Foo\".  See also
+`error' and Info node `(elisp) Documentation Tips'."
+  (save-excursion
+    ;; Skip the first quote character in string.
+    (forward-char 1)
+    ;; A capital letter is always okay.
+    (unless (let ((case-fold-search nil))
+              (looking-at (rx (or upper-case "%s"))))
+      ;; A defined Lisp symbol is always okay.
+      (unless (and (looking-at (rx (group (regexp lisp-mode-symbol-regexp))))
+                   (or (fboundp (intern (match-string 1)))
+                       (boundp (intern (match-string 1)))))
+        ;; Other Lisp symbols are sometimes okay.
+        (rx-let ((c (? "\\\n")))        ; `c' is for a continued line
+          (let ((case-fold-search nil)
+                (some-symbol (rx (regexp lisp-mode-symbol-regexp)
+                                 c ":" c (+ (any " \t\n"))))
+                (lowercase-str (rx c (group (any "a-z") (+ wordchar)))))
+            (if (looking-at some-symbol)
+                (looking-at (concat some-symbol lowercase-str))
+              (looking-at lowercase-str))))))))
+
 (defun checkdoc--fix-y-or-n-p ()
   "Fix `y-or-n-p' prompt to end with \"?\" or \"? \".
 The space is technically redundant, but also more compatible with
@@ -2601,16 +2649,14 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
      ;; In Emacs, the convention is that error messages start with a capital
      ;; letter but *do not* end with a period.  Please follow this convention
      ;; for the sake of consistency.
-     (if (and (save-excursion (forward-char 1)
-			      (looking-at "[a-z]\\w+"))
+     (if (and (checkdoc--error-bad-format-p)
 	      (not (checkdoc-autofix-ask-replace
-		    (match-beginning 0) (match-end 0)
+                    (match-beginning 1) (match-end 1)
                     "Capitalize your message text?"
-		    (capitalize (match-string 0))
+                    (capitalize (match-string 1))
 		    t)))
-	 (checkdoc-create-error
-	  "Messages should start with a capital letter"
-	  (match-beginning 0) (match-end 0))
+         (checkdoc-create-error "Messages should start with a capital letter"
+          (match-beginning 1) (match-end 1))
        nil)
      ;; In general, sentences should have two spaces after the period.
      (checkdoc-sentencespace-region-engine (point)

@@ -28,6 +28,7 @@
 
 (require 'browse-url)
 (require 'ert)
+(require 'ert-x)
 
 (ert-deftest browse-url-tests-browser-kind ()
   (should (eq (browse-url--browser-kind #'browse-url-w3 "gnu.org")
@@ -87,11 +88,10 @@
                  "ftp://foo/")))
 
 (ert-deftest browse-url-tests-delete-temp-file ()
-  (let ((browse-url-temp-file-name
-         (make-temp-file "browse-url-tests-")))
+  (ert-with-temp-file browse-url-temp-file-name
     (browse-url-delete-temp-file)
     (should-not (file-exists-p browse-url-temp-file-name)))
-  (let ((file (make-temp-file "browse-url-tests-")))
+  (ert-with-temp-file file
     (browse-url-delete-temp-file file)
     (should-not (file-exists-p file))))
 

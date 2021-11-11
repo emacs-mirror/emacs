@@ -814,7 +814,7 @@ in order to only add another reference in the same cite command."
   (interactive)
   (reftex-citation nil ?t))
 
-(defvar reftex-select-bib-map)
+(defvar reftex-select-bib-mode-map)
 (defvar reftex--found-list)
 (defun reftex-offer-bib-menu ()
   "Offer bib menu and return list of selected items."
@@ -870,7 +870,7 @@ in order to only add another reference in the same cite command."
                     (reftex-select-item
                      reftex-citation-prompt
                      reftex-citation-help
-                     reftex-select-bib-map
+                     reftex-select-bib-mode-map
                      nil
                      'reftex-bibtex-selection-callback nil))
               (setq key (car rtn)

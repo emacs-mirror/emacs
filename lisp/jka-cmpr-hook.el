@@ -203,7 +203,7 @@ options through Custom does this automatically."
   ;; can-append strip-extension-flag file-magic-bytes
   ;; uncompress-function]
   (mapcar 'purecopy
-  '(["\\.Z\\'"
+  `(["\\.Z\\'"
      "compressing"    "compress"     ("-c")
      ;; gzip is more common than uncompress. It can only read, not write.
      "uncompressing"  "gzip"   ("-c" "-q" "-d")
@@ -239,7 +239,8 @@ options through Custom does this automatically."
      "LZMA uncompressing" "lzma"         ("-c" "-q" "-d")
      t t ""]
     ["\\.xz\\'"
-     "XZ compressing"     "xz"           ("-c" "-q")
+     ;; On MacOS, gzip can uncompress xz files.
+     "XZ compressing" ,(if (featurep 'ns) "gzip" "xz") ("-c" "-q")
      "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
      t t "\3757zXZ\0"]
     ["\\.txz\\'"

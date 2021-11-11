@@ -71,21 +71,17 @@ fit these criteria."
   :group 'gnus-art
   :type 'float)
 
-(defvar gnus-html-image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "u" 'gnus-article-copy-string)
-    (define-key map "i" 'gnus-html-insert-image)
-    (define-key map "v" 'gnus-html-browse-url)
-    map))
+(defvar-keymap gnus-html-image-map
+  "u" #'gnus-article-copy-string
+  "i" #'gnus-html-insert-image
+  "v" #'gnus-html-browse-url)
 
-(defvar gnus-html-displayed-image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'gnus-html-show-alt-text)
-    (define-key map "i" 'gnus-html-browse-image)
-    (define-key map "\r" 'gnus-html-browse-url)
-    (define-key map "u" 'gnus-article-copy-string)
-    (define-key map [tab] 'button-forward)
-    map))
+(defvar-keymap gnus-html-displayed-image-map
+  "a" #'gnus-html-show-alt-text
+  "i" #'gnus-html-browse-image
+  "\r" #'gnus-html-browse-url
+  "u" #'gnus-article-copy-string
+  [tab] #'forward-button)
 
 (defun gnus-html-encode-url (url)
   "Encode URL."

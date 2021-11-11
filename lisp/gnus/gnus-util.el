@@ -300,25 +300,26 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-local-set-keys (&rest plist)
   "Set the keys in PLIST in the current keymap."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (current-local-map) ',plist))
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 ,(if (symbolp keymap) keymap `',keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP without overwriting previous definitions."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist) t))
 
 (defmacro gnus-define-keymap (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  (declare (indent 1))
+  (declare (obsolete define-keymap "29.1") (indent 1))
   `(gnus-define-keys-1 ,keymap (quote ,plist)))
 
 (defun gnus-define-keys-1 (keymap plist &optional safe)
+  (declare (obsolete define-keymap "29.1"))
   (when (null keymap)
     (error "Can't set keys in a null keymap"))
   (cond ((symbolp keymap) (error "First arg should be a keymap object"))
@@ -1310,9 +1311,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                     initial-input history def)
   "Call `gnus-completing-read-function'."
   (funcall gnus-completing-read-function
-           (concat prompt (when def
-                            (concat " (default " def ")"))
-                   ": ")
+           (format-prompt prompt def)
            collection require-match initial-input history def))
 
 (defun gnus-emacs-completing-read (prompt collection &optional require-match

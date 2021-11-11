@@ -48,13 +48,13 @@
 	 :type (or null class-a)
 	 :documentation "Test self referencing types.")
    )
-  "Class A")
+  "Class A.")
 
 (defclass class-b ()
   ((land :initform "Sc"
 	 :type string
 	 :documentation "Detail about land."))
-  "Class B")
+  "Class B.")
 
 (defclass class-ab (class-a class-b)
   ((amphibian :initform "frog"
@@ -160,7 +160,7 @@
   ;; error
   (should-error (abstract-class)))
 
-(defgeneric generic1 () "First generic function")
+(defgeneric generic1 () "First generic function.")
 
 (ert-deftest eieio-test-03-generics ()
   (defun anormalfunction () "A plain function for error testing." nil)
@@ -901,12 +901,12 @@ Subclasses to override slot attributes.")
 
 (defclass opt-test1 ()
   ()
-  "Abstract base class"
+  "Abstract base class."
   :abstract t)
 
 (defclass opt-test2 (opt-test1)
   ()
-  "Instantiable child")
+  "Instantiable child.")
 
 (ert-deftest eieio-test-36-build-class-alist ()
   (should (= (length (eieio-build-class-alist 'opt-test1 nil)) 2))
@@ -969,6 +969,18 @@ Subclasses to override slot attributes.")
     (should (eieio-instance-inheritor-slot-boundp C :b))
     (should-not (eieio-instance-inheritor-slot-boundp C :c))))
 
+;;;; Interaction with defstruct
+
+(cl-defstruct eieio-test--struct a b c)
+
+(ert-deftest eieio-test-defstruct-slot-value ()
+  (let ((x (make-eieio-test--struct :a 'A :b 'B :c 'C)))
+    (should (eq (eieio-test--struct-a x)
+                (slot-value x 'a)))
+    (should (eq (eieio-test--struct-b x)
+                (slot-value x 'b)))
+    (should (eq (eieio-test--struct-c x)
+                (slot-value x 'c)))))
 
 (provide 'eieio-tests)
 

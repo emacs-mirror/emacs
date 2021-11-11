@@ -386,6 +386,7 @@ connection if a previous connection has died for some reason."
 	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
 	;; Mark it as connected.
+	(add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))
 	(tramp-set-connection-property
 	 (tramp-get-connection-process vec) "connected" t))))
 

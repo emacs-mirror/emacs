@@ -29,6 +29,8 @@
 (require 'cedet)
 (require 'semantic)
 
+;;; Code:
+
 (defvar cedet-utest-directory
   (let* ((C (file-name-directory (locate-library "cedet")))
          (D (expand-file-name "../../test/manual/cedet/" C)))
@@ -103,7 +105,7 @@ int calc_sv(int);
 (defvar semantic-utest-C-filename-h
   (concat (file-name-sans-extension semantic-utest-C-filename)
 	  ".h")
-  "Header file filename for C")
+  "Header file filename for C.")
 
 
 (defvar semantic-utest-C-name-contents
@@ -424,8 +426,7 @@ class aClass {
      nil
      (overlay 135 262 "phptest.php"))
     )
-  "Expected results from the PHP Unit test"
-  )
+  "Expected results from the PHP Unit test.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

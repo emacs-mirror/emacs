@@ -1056,63 +1056,56 @@ articles in the topic and its subtopics."
 
 ;;; Topic mode, commands and keymap.
 
-(defvar gnus-topic-mode-map nil)
-(defvar gnus-group-topic-map nil)
-
-(unless gnus-topic-mode-map
-  (setq gnus-topic-mode-map (make-sparse-keymap))
-
+(defvar-keymap gnus-topic-mode-map
   ;; Override certain group mode keys.
-  (gnus-define-keys gnus-topic-mode-map
-    "=" gnus-topic-select-group
-    "\r" gnus-topic-select-group
-    " " gnus-topic-read-group
-    "\C-c\C-x" gnus-topic-expire-articles
-    "c" gnus-topic-catchup-articles
-    "\C-k" gnus-topic-kill-group
-    "\C-y" gnus-topic-yank-group
-    "\M-g" gnus-topic-get-new-news-this-topic
-    "AT" gnus-topic-list-active
-    "Gp" gnus-topic-edit-parameters
-    "#" gnus-topic-mark-topic
-    "\M-#" gnus-topic-unmark-topic
-    [tab] gnus-topic-indent
-    [(meta tab)] gnus-topic-unindent
-    "\C-i" gnus-topic-indent
-    "\M-\C-i" gnus-topic-unindent
-    [mouse-2] gnus-mouse-pick-topic)
+  "=" #'gnus-topic-select-group
+  "\r" #'gnus-topic-select-group
+  " " #'gnus-topic-read-group
+  "\C-c\C-x" #'gnus-topic-expire-articles
+  "c" #'gnus-topic-catchup-articles
+  "\C-k" #'gnus-topic-kill-group
+  "\C-y" #'gnus-topic-yank-group
+  "\M-g" #'gnus-topic-get-new-news-this-topic
+  "AT" #'gnus-topic-list-active
+  "Gp" #'gnus-topic-edit-parameters
+  "#" #'gnus-topic-mark-topic
+  "\M-#" #'gnus-topic-unmark-topic
+  [tab] #'gnus-topic-indent
+  [(meta tab)] #'gnus-topic-unindent
+  "\C-i" #'gnus-topic-indent
+  "\M-\C-i" #'gnus-topic-unindent
+  [mouse-2] #'gnus-mouse-pick-topic
 
-  ;; Define a new submap.
-  (gnus-define-keys (gnus-group-topic-map "T" gnus-group-mode-map)
-    "#" gnus-topic-mark-topic
-    "\M-#" gnus-topic-unmark-topic
-    "n" gnus-topic-create-topic
-    "m" gnus-topic-move-group
-    "D" gnus-topic-remove-group
-    "c" gnus-topic-copy-group
-    "h" gnus-topic-hide-topic
-    "s" gnus-topic-show-topic
-    "j" gnus-topic-jump-to-topic
-    "M" gnus-topic-move-matching
-    "C" gnus-topic-copy-matching
-    "\M-p" gnus-topic-goto-previous-topic
-    "\M-n" gnus-topic-goto-next-topic
-    "\C-i" gnus-topic-indent
-    [tab] gnus-topic-indent
-    "r" gnus-topic-rename
-    "\177" gnus-topic-delete
-    [delete] gnus-topic-delete
-    "H" gnus-topic-toggle-display-empty-topics)
+  "T" (define-keymap :prefix 'gnus-group-topic-map
+        "#" #'gnus-topic-mark-topic
+        "\M-#" #'gnus-topic-unmark-topic
+        "n" #'gnus-topic-create-topic
+        "m" #'gnus-topic-move-group
+        "D" #'gnus-topic-remove-group
+        "c" #'gnus-topic-copy-group
+        "h" #'gnus-topic-hide-topic
+        "s" #'gnus-topic-show-topic
+        "j" #'gnus-topic-jump-to-topic
+        "M" #'gnus-topic-move-matching
+        "C" #'gnus-topic-copy-matching
+        "\M-p" #'gnus-topic-goto-previous-topic
+        "\M-n" #'gnus-topic-goto-next-topic
+        "\C-i" #'gnus-topic-indent
+        [tab] #'gnus-topic-indent
+        "r" #'gnus-topic-rename
+        "\177" #'gnus-topic-delete
+        [delete] #'gnus-topic-delete
+        "H" #'gnus-topic-toggle-display-empty-topics
 
-  (gnus-define-keys (gnus-topic-sort-map "S" gnus-group-topic-map)
-    "s" gnus-topic-sort-groups
-    "a" gnus-topic-sort-groups-by-alphabet
-    "u" gnus-topic-sort-groups-by-unread
-    "l" gnus-topic-sort-groups-by-level
-    "e" gnus-topic-sort-groups-by-server
-    "v" gnus-topic-sort-groups-by-score
-    "r" gnus-topic-sort-groups-by-rank
-    "m" gnus-topic-sort-groups-by-method))
+        "S" (define-keymap :prefix 'gnus-topic-sort-map
+              "s" #'gnus-topic-sort-groups
+              "a" #'gnus-topic-sort-groups-by-alphabet
+              "u" #'gnus-topic-sort-groups-by-unread
+              "l" #'gnus-topic-sort-groups-by-level
+              "e" #'gnus-topic-sort-groups-by-server
+              "v" #'gnus-topic-sort-groups-by-score
+              "r" #'gnus-topic-sort-groups-by-rank
+              "m" #'gnus-topic-sort-groups-by-method)))
 
 (defun gnus-topic-make-menu-bar ()
   (unless (boundp 'gnus-topic-menu)

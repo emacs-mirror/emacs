@@ -218,6 +218,14 @@ the Emacs executable that dumped them.
 
 If you want to use this function in an Emacs that was already dumped,
 you must run Emacs with the @samp{-batch} option.
+
+@vindex after-pdump-load-hook
+If you're including @samp{.el} files in the dumped Emacs and that
+@samp{.el} file has code that is normally run at load time, that code
+won't be run when Emacs starts after dumping.  To help work around
+that problem, you can put functions on the
+@code{after-pdump-load-hook} hook.  This hook is run when starting
+Emacs.
 @end defun
 
 @defun dump-emacs to-file from-file

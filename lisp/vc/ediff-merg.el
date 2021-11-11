@@ -257,7 +257,8 @@ Buffer B."
 
 
 (defun ediff-re-merge ()
-  "Remerge unmodified diff regions using a new default.  Start with the current region."
+  "Remerge unmodified diff regions using a new default.
+Start with the current region."
   (interactive)
   (let* ((default-variant-alist
 	   (list '("default-A") '("default-B") '("combined")))

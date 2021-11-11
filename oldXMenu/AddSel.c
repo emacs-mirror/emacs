@@ -31,8 +31,8 @@ without express or implied warranty.
  *
  */
 
-#include <string.h>
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuAddSelection(Display *display, register XMenu *menu, register int p_num, char *data, char *label, int active, char const *help)

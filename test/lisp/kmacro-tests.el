@@ -834,7 +834,7 @@ and `read-event' and `read-key-sequence' set up to return items from
 EVENTS and SEQUENCES respectively.  SEQUENCES may be nil, but
 EVENTS should not be.  EVENTS should be a list of symbols bound
 in `kmacro-step-edit-map' or `query-replace' map, and this function
-will do the keymap lookup for you. SEQUENCES should contain
+will do the keymap lookup for you.  SEQUENCES should contain
 return values for `read-key-sequence'.
 
 Before running the macro, the current buffer will be erased.

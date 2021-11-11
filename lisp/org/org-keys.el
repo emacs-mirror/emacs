@@ -31,6 +31,8 @@
 
 (defvar org-outline-regexp)
 
+(require 'oc)
+
 (declare-function org-add-note "org" ())
 (declare-function org-agenda "org" (&optional arg org-keys restriction))
 (declare-function org-agenda-file-to-front "org" (&optional to-end))
@@ -56,7 +58,6 @@
 (declare-function org-clone-subtree-with-time-shift "org" (n &optional shift))
 (declare-function org-columns "org" (&optional global columns-fmt-string))
 (declare-function org-comment-dwim "org" (arg))
-(declare-function org-refile-copy "org" ())
 (declare-function org-copy-special "org" ())
 (declare-function org-copy-visible "org" (beg end))
 (declare-function org-ctrl-c-ctrl-c "org" (&optional arg))
@@ -143,6 +144,8 @@
 (declare-function org-promote-subtree "org" ())
 (declare-function org-redisplay-inline-images "org" ())
 (declare-function org-refile "org" (&optional arg1 default-buffer rfloc msg))
+(declare-function org-refile-copy "org" ())
+(declare-function org-refile-reverse "org-refile" (&optional arg default-buffer rfloc msg))
 (declare-function org-reftex-citation "org" ())
 (declare-function org-reload "org" (&optional arg1))
 (declare-function org-remove-file "org" (&optional file))
@@ -174,7 +177,6 @@
 (declare-function org-show-subtree "org" ())
 (declare-function org-sort "org" (&optional with-case))
 (declare-function org-sparse-tree "org" (&optional arg type))
-(declare-function org-table-blank-field "org" ())
 (declare-function org-table-copy-down "org" (n))
 (declare-function org-table-create-or-convert-from-region "org" (arg))
 (declare-function org-table-create-with-table\.el "org-table" ())
@@ -277,8 +279,7 @@ before org.el is loaded."
   :type '(choice
 	  (const :tag "A double click follows the link" double)
 	  (const :tag "Unconditionally follow the link with mouse-1" t)
-	  (integer :tag "mouse-1 click does not follow the link if longer than N ms" 450))
-  :safe t)
+	  (integer :tag "mouse-1 click does not follow the link if longer than N ms" 450)))
 
 (defcustom org-tab-follows-link nil
   "Non-nil means on links TAB will follow the link.
@@ -298,7 +299,7 @@ implementation is bad."
 In tables, the special behavior of RET has precedence."
   :group 'org-link-follow
   :type 'boolean
-  :safe t)
+  :safe #'booleanp)
 
 
 ;;; Functions
@@ -337,7 +338,6 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
   (org-defkey org-mouse-map [follow-link] 'mouse-face))
 
 (when org-tab-follows-link
-  (org-defkey org-mouse-map (kbd "<tab>") #'org-open-at-point)
   (org-defkey org-mouse-map (kbd "TAB") #'org-open-at-point))
 
 
@@ -443,18 +443,13 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c C-x") (make-sparse-keymap))
 
 ;;;; TAB key with modifiers
-(org-defkey org-mode-map (kbd "C-i") #'org-cycle)
-(org-defkey org-mode-map (kbd "<tab>") #'org-cycle)
-(org-defkey org-mode-map (kbd "C-c C-<tab>") #'org-force-cycle-archived)
+(org-defkey org-mode-map (kbd "TAB") #'org-cycle)
+(org-defkey org-mode-map (kbd "C-c C-TAB") #'org-force-cycle-archived)
 ;; Override text-mode binding to expose `complete-symbol' for
 ;; pcomplete functionality.
-(org-defkey org-mode-map (kbd "M-<tab>") nil)
 (org-defkey org-mode-map (kbd "M-TAB") nil)
-(org-defkey org-mode-map (kbd "ESC <tab>") nil)
 (org-defkey org-mode-map (kbd "ESC TAB") nil)
 
-(org-defkey org-mode-map (kbd "<S-iso-leftab>") #'org-shifttab)
-(org-defkey org-mode-map (kbd "S-<tab>") #'org-shifttab)
 (org-defkey org-mode-map (kbd "S-TAB") #'org-shifttab)
 (define-key org-mode-map (kbd "<backtab>") #'org-shifttab)
 
@@ -463,12 +458,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "S-RET") #'org-table-copy-down)
 (org-defkey org-mode-map (kbd "M-S-<return>") #'org-insert-todo-heading)
 (org-defkey org-mode-map (kbd "M-S-RET") #'org-insert-todo-heading)
-(org-defkey org-mode-map (kbd "ESC S-<return>") #'org-insert-todo-heading)
-(org-defkey org-mode-map (kbd "ESC S-RET") #'org-insert-todo-heading)
-(org-defkey org-mode-map (kbd "M-<return>") #'org-meta-return)
 (org-defkey org-mode-map (kbd "M-RET") #'org-meta-return)
-(org-defkey org-mode-map (kbd "ESC <return>") #'org-meta-return)
-(org-defkey org-mode-map (kbd "ESC RET") #'org-meta-return)
 
 ;;;; Cursor keys with modifiers
 (org-defkey org-mode-map (kbd "M-<left>") #'org-metaleft)
@@ -582,6 +572,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c ;") #'org-toggle-comment)
 (org-defkey org-mode-map (kbd "C-c C-w") #'org-refile)
 (org-defkey org-mode-map (kbd "C-c M-w") #'org-refile-copy)
+(org-defkey org-mode-map (kbd "C-c C-M-w") #'org-refile-reverse)
 (org-defkey org-mode-map (kbd "C-c /") #'org-sparse-tree) ;minor-mode reserved
 (org-defkey org-mode-map (kbd "C-c \\") #'org-match-sparse-tree) ;minor-mode r.
 (org-defkey org-mode-map (kbd "C-c RET") #'org-ctrl-c-ret)
@@ -620,7 +611,6 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "RET") #'org-return)
 (org-defkey org-mode-map (kbd "C-j") #'org-return-and-maybe-indent)
 (org-defkey org-mode-map (kbd "C-c ?") #'org-table-field-info)
-(org-defkey org-mode-map (kbd "C-c SPC") #'org-table-blank-field)
 (org-defkey org-mode-map (kbd "C-c +") #'org-table-sum)
 (org-defkey org-mode-map (kbd "C-c =") #'org-table-eval-formula)
 (org-defkey org-mode-map (kbd "C-c '") #'org-edit-special)
@@ -676,6 +666,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 (org-defkey org-mode-map (kbd "C-c C-x !") #'org-reload)
 (org-defkey org-mode-map (kbd "C-c C-x g") #'org-feed-update-all)
 (org-defkey org-mode-map (kbd "C-c C-x G") #'org-feed-goto-inbox)
+(org-defkey org-mode-map (kbd "C-c C-x @") #'org-cite-insert)
 (org-defkey org-mode-map (kbd "C-c C-x [") #'org-reftex-citation)
 (org-defkey org-mode-map (kbd "C-c C-x I") #'org-info-find-node)
 
@@ -698,28 +689,6 @@ star at the beginning of the headline, you can do this:
 	  (const :tag "At beginning of headline stars" t)
 	  (function)))
 
-(defcustom org-speed-commands-user nil
-  "Alist of additional speed commands.
-This list will be checked before `org-speed-commands-default'
-when the variable `org-use-speed-commands' is non-nil
-and when the cursor is at the beginning of a headline.
-The car of each entry is a string with a single letter, which must
-be assigned to `self-insert-command' in the global map.
-The cdr is either a command to be called interactively, a function
-to be called, or a form to be evaluated.
-An entry that is just a list with a single string will be interpreted
-as a descriptive headline that will be added when listing the speed
-commands in the Help buffer using the `?' speed command."
-  :group 'org-structure
-  :type '(repeat :value ("k" . ignore)
-		 (choice :value ("k" . ignore)
-			 (list :tag "Descriptive Headline" (string :tag "Headline"))
-			 (cons :tag "Letter and Command"
-			       (string :tag "Command letter")
-			       (choice
-				(function)
-				(sexp))))))
-
 (defcustom org-speed-command-hook
   '(org-speed-command-activate org-babel-speed-command-activate)
   "Hook for activating speed commands at strategic locations.
@@ -739,7 +708,7 @@ hook.  The default setting is `org-speed-command-activate'."
   :version "24.1"
   :type 'hook)
 
-(defconst org-speed-commands-default
+(defcustom org-speed-commands
   '(("Outline Navigation")
     ("n" . (org-speed-move-safe 'org-next-visible-heading))
     ("p" . (org-speed-move-safe 'org-previous-visible-heading))
@@ -749,7 +718,7 @@ hook.  The default setting is `org-speed-command-activate'."
     ("B" . org-previous-block)
     ("u" . (org-speed-move-safe 'outline-up-heading))
     ("j" . org-goto)
-    ("g" . (org-refile t))
+    ("g" . (org-refile '(4)))
     ("Outline Visibility")
     ("c" . org-cycle)
     ("C" . org-shifttab)
@@ -764,8 +733,7 @@ hook.  The default setting is `org-speed-command-activate'."
     ("l" . org-metaleft)
     ("R" . org-shiftmetaright)
     ("L" . org-shiftmetaleft)
-    ("i" . (progn (forward-char 1) (call-interactively
-				    'org-insert-heading-respect-content)))
+    ("i" . (progn (forward-char 1) (call-interactively 'org-insert-heading-respect-content)))
     ("^" . org-sort)
     ("w" . org-refile)
     ("a" . org-archive-subtree-default-with-confirmation)
@@ -784,8 +752,7 @@ hook.  The default setting is `org-speed-command-activate'."
     (":" . org-set-tags-command)
     ("e" . org-set-effort)
     ("E" . org-inc-effort)
-    ("W" . (lambda(m) (interactive "sMinutes before warning: ")
-	     (org-entry-put (point) "APPT_WARNTIME" m)))
+    ("W" . (lambda (m) (interactive "sMinutes before warning: ") (org-entry-put (point) "APPT_WARNTIME" m)))
     ("Agenda Views etc")
     ("v" . org-agenda)
     ("/" . org-sparse-tree)
@@ -794,7 +761,28 @@ hook.  The default setting is `org-speed-command-activate'."
     ("?" . org-speed-command-help)
     ("<" . (org-agenda-set-restriction-lock 'subtree))
     (">" . (org-agenda-remove-restriction-lock)))
-  "The default speed commands.")
+  "Alist of speed commands.
+
+The car of each entry is a string with a single letter, which
+must be assigned to `self-insert-command' in the global map.
+
+The cdr is either a command to be called interactively, a
+function to be called, or a form to be evaluated.
+
+An entry that is just a list with a single string will be
+interpreted as a descriptive headline that will be added when
+listing the speed commands in the Help buffer using the `?' speed
+command."
+  :group 'org-structure
+  :package-version '(Org . "9.5")
+  :type '(repeat :value ("k" . ignore)
+		 (choice :value ("k" . ignore)
+			 (list :tag "Descriptive Headline" (string :tag "Headline"))
+			 (cons :tag "Letter and Command"
+			       (string :tag "Command letter")
+			       (choice
+				(function)
+				(sexp))))))
 
 (defun org-print-speed-command (e)
   (if (> (length (car e)) 1)
@@ -816,12 +804,18 @@ hook.  The default setting is `org-speed-command-activate'."
   (interactive)
   (unless org-use-speed-commands
     (user-error "Speed commands are not activated, customize `org-use-speed-commands'"))
+  ;; FIXME: remove this warning for 9.6
+  (when (boundp 'org-speed-commands-user)
+    (message "`org-speed-command-user' is obsolete, please use `org-speed-commands'")
+    (sit-for 3))
   (with-output-to-temp-buffer "*Help*"
-    (princ "User-defined Speed commands\n===========================\n")
-    (mapc #'org-print-speed-command org-speed-commands-user)
-    (princ "\n")
-    (princ "Built-in Speed commands\n=======================\n")
-    (mapc #'org-print-speed-command org-speed-commands-default))
+    (princ "Speed commands\n==============\n")
+    (mapc #'org-print-speed-command
+          ;; FIXME: don't check `org-speed-commands-user' past 9.6
+          (if (boundp 'org-speed-commands-user)
+              (append org-speed-commands
+                      org-speed-commands-user)
+            org-speed-commands)))
   (with-current-buffer "*Help*"
     (setq truncate-lines t)))
 
@@ -837,13 +831,16 @@ If not, return to the original position and throw an error."
 
 (defun org-speed-command-activate (keys)
   "Hook for activating single-letter speed commands.
-`org-speed-commands-default' specifies a minimal command set.
-Use `org-speed-commands-user' for further customization."
+See `org-speed-commands' for configuring them."
   (when (or (and (bolp) (looking-at org-outline-regexp))
 	    (and (functionp org-use-speed-commands)
 		 (funcall org-use-speed-commands)))
-    (cdr (assoc keys (append org-speed-commands-user
-			     org-speed-commands-default)))))
+    (cdr (assoc keys
+                ;; FIXME: don't check `org-speed-commands-user' past 9.6
+                (if (boundp 'org-speed-commands-user)
+                    (append org-speed-commands
+                            org-speed-commands-user)
+                  org-speed-commands)))))
 
 
 ;;; Babel speed keys

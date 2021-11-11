@@ -2604,12 +2604,9 @@ new buffer."
      (if (eq (length completions) 1)
          (setq default (car completions)))
      (if completions
-	 (let ((input (completing-read (if default
-					   (concat
-					    "Follow reference named (default "
-					    default "): ")
-					 "Follow reference named: ")
-				       completions nil t)))
+         (let ((input (completing-read (format-prompt "Follow reference named"
+                                                      default)
+                                       completions nil t)))
 	   (list (if (equal input "")
 		     default input)
                  current-prefix-arg))

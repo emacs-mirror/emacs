@@ -283,6 +283,7 @@ are also supported; unsupported long options are silently ignored."
       (funcall orig-fun
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
+    (setq switches (or switches ""))
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory))
 	  (orig-file file)

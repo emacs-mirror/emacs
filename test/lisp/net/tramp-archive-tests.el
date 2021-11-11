@@ -923,9 +923,10 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	 "(progn \
 	    (message \"tramp-archive loaded: %%s\" \
               (featurep 'tramp-archive)) \
-	    (file-attributes %S \"/\") \
+	    (let ((inhibit-message t)) \
+              (file-attributes %S \"/\")) \
 	    (message \"tramp-archive loaded: %%s\" \
-              (featurep 'tramp-archive)))"))
+              (featurep 'tramp-archive))))"))
     (dolist (default-directory
               `(,temporary-file-directory
 		;;  Starting Emacs in a directory which has

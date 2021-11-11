@@ -583,6 +583,7 @@ PROPS is a property list.  The following properties are special:
 An obsolete but still supported calling form is:
 
 \(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
+  (declare (indent defun))
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
     (setq props `(:count ,(car props)
@@ -973,11 +974,11 @@ full text instead of the abbrevs that expand into that text."
 	(buf (get-buffer-create "*abbrev-suggest*")))
     (set-buffer buf)
     (erase-buffer)
-        (insert "** Abbrev expansion usage **
+        (insert (substitute-command-keys "** Abbrev expansion usage **
 
 Below is a list of expansions for which abbrevs are defined, and
 the number of times the expansion was typed manually.  To display
-and edit all abbrevs, type `M-x edit-abbrevs RET'\n\n")
+and edit all abbrevs, type \\[edit-abbrevs].\n\n"))
 	(dolist (expansion totals)
 	  (insert (format " %s: %d\n" (car expansion) (cdr expansion))))
 	(display-buffer buf)))
@@ -1139,7 +1140,7 @@ Properties with special meaning:
 - `:enable-function' can be set to a function of no argument which returns
   non-nil if and only if the abbrevs in this table should be used for this
   instance of `expand-abbrev'."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;; We used to manually add the docstring, but we also want to record this
   ;; location as the definition of the variable (in load-history), so we may
   ;; as well just use `defvar'.

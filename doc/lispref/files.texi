@@ -563,7 +563,17 @@ In this case, @var{visit} must be @code{nil}.  For example,
 @end example
 
 @noindent
-inserts the first 500 characters of a file.
+inserts the characters coded by the first 500 bytes of a file.
+
+If @var{beg} or @var{end} happens to be in the middle of a character's
+multibyte sequence, Emacs's character code conversion will insert one
+or more eight-bit characters (a.k.a.@: ``raw bytes'')
+(@pxref{Character Sets}) into the buffer.  If you want to read part of
+a file this way, we recommend to bind @code{coding-system-for-read} to
+a suitable value around the call to this function (@pxref{Specifying
+Coding Systems}), and to write Lisp code which will check for raw
+bytes at the boundaries, read the entire sequence of these bytes, and
+convert them back to valid characters.
 
 If the argument @var{replace} is non-@code{nil}, it means to replace the
 contents of the buffer (actually, just the accessible portion) with the
@@ -577,10 +587,11 @@ with @code{insert-file-contents}, as long as @var{replace} and
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
-This function works like @code{insert-file-contents} except that it
-does not run @code{after-insert-file-functions}, and does not do
-format decoding, character code conversion, automatic uncompression,
-and so on.
+This function works like @code{insert-file-contents} except that each
+byte in the file is handled separately, being converted into an
+eight-bit character if needed.  It does not run
+@code{after-insert-file-functions}, and does not do format decoding,
+character code conversion, automatic uncompression, and so on.
 @end defun
 
 If you want to pass a file name to another process so that another
@@ -1301,6 +1312,20 @@ on the 19th, @file{aug-20} was written on the 20th, and the file
      @result{} nil
 @end group
 @end example
+@end defun
+
+@defun file-has-changed-p filename tag
+This function returns non-@code{nil} if the time stamp of
+@var{filename} has changed since the last call.  When called for the
+first time for some @var{filename}, it records the last modification
+time and size of the file, and returns non-@code{nil} when
+@var{filename} exists.  Thereafter, when called for the same
+@var{filename}, it compares the current time stamp and size with the
+recorded ones, and returns non-@code{nil} only if either the time
+stamp or the size (or both) are different.  This is useful when a Lisp
+program wants to re-read a file whenever it changes.  With an optional
+argument @var{tag}, which must be a symbol, the size and modification
+time comparisons are limited to calls with the same tag.
 @end defun
 
 @defun file-attributes filename &optional id-format
@@ -2072,6 +2097,9 @@ directory.  Therefore, Emacs considers a file name as having two main
 parts: the @dfn{directory name} part, and the @dfn{nondirectory} part
 (or @dfn{file name within the directory}).  Either part may be empty.
 Concatenating these two parts reproduces the original file name.
+@footnote{Emacs follows the GNU convention to use the term @emph{file name}
+instead of the term @emph{pathname}.  We use the term @emph{path} only for
+search paths, which are lists of directory names.}
 
   On most systems, the directory part is everything up to and including
 the last slash (backslash is also allowed in input on MS-DOS or
@@ -2213,6 +2241,19 @@ and @code{file-name-nondirectory}.  For example,
 @example
 (file-name-base "/my/home/foo.c")
     @result{} "foo"
+@end example
+@end defun
+
+@defun file-name-split filename
+This function splits a file name into its components, and can be
+thought of as the inverse of @code{string-joing} with the appropriate
+directory separator.  For example,
+
+@example
+(file-name-split "/tmp/foo.txt")
+    @result{} ("" "tmp" "foo.txt")
+(string-join (file-name-split "/tmp/foo.txt") "/")
+    @result{} "/tmp/foo.txt"
 @end example
 @end defun
 

@@ -122,29 +122,71 @@ See the comments in Bug#24998."
     (should (looking-at-p "\"baz\")"))
     (should-not (checkdoc-next-docstring))))
 
-(ert-deftest checkdoc-tests-in-abbrevation-p ()
+(defun checkdoc-tests--abbrev-test (buffer-contents goto-string)
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "foo bar e.g. baz")
+    (insert buffer-contents)
     (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+    (re-search-forward goto-string)
+    (checkdoc-in-abbreviation-p (point))))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/basic-case ()
+  (should (checkdoc-tests--abbrev-test "foo bar e.g. baz" "e.g"))
+  (should (checkdoc-tests--abbrev-test "behavior/errors etc. that" "etc"))
+  (should (checkdoc-tests--abbrev-test "foo vs. bar" "vs"))
+  (should (checkdoc-tests--abbrev-test "spy a.k.a. spy" "a.k.a")))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/with-parens ()
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "foo bar (e.g. baz)")
-    (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+  (should (checkdoc-tests--abbrev-test "foo bar (e.g. baz)" "e.g")))
 
 (ert-deftest checkdoc-tests-in-abbrevation-p/with-escaped-parens ()
+  (should (checkdoc-tests--abbrev-test "foo\n\\(e.g. baz)" "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/single-char ()
+  (should (checkdoc-tests--abbrev-test "a. foo bar" "a")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/with-em-dash ()
+  (should (checkdoc-tests--abbrev-test "foo bar baz---e.g." "e.g")))
+
+(ert-deftest checkdoc-tests-in-abbrevation-p/incorrect-abbreviation ()
+  (should-not (checkdoc-tests--abbrev-test "foo bar a.b.c." "a.b.c")))
+
+(defun checkdoc-test-error-format-is-good (msg &optional reverse literal)
   (with-temp-buffer
+    (erase-buffer)
     (emacs-lisp-mode)
-    (insert "foo\n\\(e.g. baz)")
-    (goto-char (point-min))
-    (re-search-forward "e.g")
-    (should (checkdoc-in-abbreviation-p (point)))))
+    (let ((standard-output (current-buffer)))
+      (if literal
+          (print (format "(error \"%s\")" msg))
+        (prin1 `(error ,msg))))
+    (goto-char (length "(error \""))
+    (if reverse
+         (should (checkdoc--error-bad-format-p))
+       (should-not (checkdoc--error-bad-format-p)))))
+
+(defun checkdoc-test-error-format-is-bad (msg &optional literal)
+  (checkdoc-test-error-format-is-good msg t literal))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p ()
+  (checkdoc-test-error-format-is-good "Foo")
+  (checkdoc-test-error-format-is-good "Foo: bar baz")
+  (checkdoc-test-error-format-is-good "some-symbol: Foo")
+  (checkdoc-test-error-format-is-good "`some-symbol' foo bar")
+  (checkdoc-test-error-format-is-good "%sfoo")
+  (checkdoc-test-error-format-is-good "avl-tree-enter:\\
+ Updated data does not match existing data" nil 'literal))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p/defined-symbols ()
+  (defvar checkdoc-tests--var-symbol nil)
+  (checkdoc-test-error-format-is-good "checkdoc-tests--var-symbol foo bar baz")
+  (defun checkdoc-tests--fun-symbol ())
+  (checkdoc-test-error-format-is-good "checkdoc-tests--fun-symbol foo bar baz"))
+
+(ert-deftest checkdoc-tests-error-message-bad-format-p/not-capitalized ()
+  (checkdoc-test-error-format-is-bad "foo")
+  (checkdoc-test-error-format-is-bad "some-symbol: foo")
+  (checkdoc-test-error-format-is-bad "avl-tree-enter:\
+ updated data does not match existing data"))
 
 (ert-deftest checkdoc-tests-fix-y-or-n-p ()
   (with-temp-buffer

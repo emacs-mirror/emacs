@@ -93,7 +93,7 @@ Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `%S'.
+evaluate `%s'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.")
@@ -109,7 +109,9 @@ it is disabled.")
              (docs-fc (bound-and-true-p emacs-lisp-docstring-fill-column))
              (fill-column (if (integerp docs-fc) docs-fc 65))
              (argdoc (format easy-mmode--arg-docstring mode-pretty-name
-                             getter))
+                             ;; Avoid having quotes turn into pretty quotes.
+                             (string-replace "'" "\\\\='"
+                                             (format "%S" getter))))
              (filled (if (fboundp 'fill-region)
                          (with-temp-buffer
                            (insert argdoc)
@@ -163,8 +165,8 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		Not used if you also specify :variable.
 :lighter SPEC	Text displayed in the mode line when the mode is on.
 :keymap MAP	Keymap bound to the mode keymap.  Defaults to `MODE-map'.
-		If non-nil, it should be a variable name (whose value is
-		a keymap), or an expression that returns either a keymap or
+                If non-nil, it should be an unquoted variable name (whose value
+                is a keymap), or an expression that returns either a keymap or
 		a list of (KEY . BINDING) pairs where KEY and BINDING are
 		suitable for `define-key'.  If you supply a KEYMAP argument
 		that is not a symbol, this macro defines the variable MODE-map
@@ -196,6 +198,7 @@ INIT-VALUE LIGHTER KEYMAP.
 
 \(fn MODE DOC [KEYWORD VAL ... &rest BODY])"
   (declare (doc-string 2)
+           (indent defun)
            (debug (&define name string-or-null-p
 			   [&optional [&not keywordp] sexp
 			    &optional [&not keywordp] sexp
@@ -448,7 +451,7 @@ after running the major mode's hook.  However, MODE is not turned
 on if the hook has explicitly disabled it.
 
 \(fn GLOBAL-MODE MODE TURN-ON [KEY VALUE]... BODY...)"
-  (declare (doc-string 2))
+  (declare (doc-string 2) (indent defun))
   (let* ((global-mode-name (symbol-name global-mode))
 	 (mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode))
@@ -496,15 +499,17 @@ on if the hook has explicitly disabled it.
        (define-minor-mode ,global-mode
          ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
                   (internal--format-docstring-line
-                   "With prefix ARG, enable %s if ARG is positive; otherwise, \
-disable it.\n\n"
+                   (concat "With prefix ARG, enable %s if ARG is positive; "
+                           "otherwise, disable it.")
                    pretty-global-name)
+                  "\n\n"
                   "If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.\n\n"
                   (internal--format-docstring-line
-                   "%s is enabled in all buffers where `%s' would do it.\n\n"
+                   "%s is enabled in all buffers where `%s' would do it."
                    pretty-name turn-on)
+                  "\n\n"
                   (internal--format-docstring-line
                    "See `%s' for more information on %s."
                    mode pretty-name)

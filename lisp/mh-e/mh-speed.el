@@ -63,13 +63,13 @@
   '("--"
     ["Visit Folder" mh-speed-view
      (with-current-buffer speedbar-buffer
-       (get-text-property (mh-line-beginning-position) 'mh-folder))]
+       (get-text-property (line-beginning-position) 'mh-folder))]
     ["Expand Nested Folders" mh-speed-expand-folder
-     (and (get-text-property (mh-line-beginning-position) 'mh-children-p)
-          (not (get-text-property (mh-line-beginning-position) 'mh-expanded)))]
+     (and (get-text-property (line-beginning-position) 'mh-children-p)
+          (not (get-text-property (line-beginning-position) 'mh-expanded)))]
     ["Contract Nested Folders" mh-speed-contract-folder
-     (and (get-text-property (mh-line-beginning-position) 'mh-children-p)
-          (get-text-property (mh-line-beginning-position) 'mh-expanded))]
+     (and (get-text-property (line-beginning-position) 'mh-children-p)
+          (get-text-property (line-beginning-position) 'mh-expanded))]
     ["Refresh Speedbar" mh-speed-refresh t])
   "Extra menu items for speedbar.")
 
@@ -83,11 +83,11 @@
 (defvar mh-folder-speedbar-key-map (speedbar-make-specialized-keymap)
   "Specialized speedbar keymap for MH-E buffers.")
 
-(gnus-define-keys mh-folder-speedbar-key-map
-  "+"           mh-speed-expand-folder
-  "-"           mh-speed-contract-folder
-  "\r"          mh-speed-view
-  "r"           mh-speed-refresh)
+(define-keymap :keymap mh-folder-speedbar-key-map
+  "+"           #'mh-speed-expand-folder
+  "-"           #'mh-speed-contract-folder
+  "\r"          #'mh-speed-view
+  "r"           #'mh-speed-refresh)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
 (defvar mh-letter-speedbar-key-map mh-folder-speedbar-key-map)
@@ -150,7 +150,7 @@ The optional arguments from speedbar are IGNORED."
              (forward-line -1)
              (speedbar-change-expand-button-char ?+)
              (add-text-properties
-              (mh-line-beginning-position) (1+ (line-beginning-position))
+              (line-beginning-position) (1+ (line-beginning-position))
               '(mh-expanded nil)))
             (t
              (forward-line)
@@ -158,14 +158,14 @@ The optional arguments from speedbar are IGNORED."
              (goto-char point)
              (speedbar-change-expand-button-char ?-)
              (add-text-properties
-              (mh-line-beginning-position) (1+ (line-beginning-position))
+              (line-beginning-position) (1+ (line-beginning-position))
               '(mh-expanded t)))))))
 
 (defun mh-speed-view (&rest _ignored)
   "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
 The optional arguments from speedbar are IGNORED."
   (interactive)
-  (let* ((folder (get-text-property (mh-line-beginning-position) 'mh-folder))
+  (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
          (range (and (stringp folder)
                      (mh-read-range "Scan" folder t nil nil
                                     mh-interpret-number-as-range-flag))))
@@ -191,9 +191,9 @@ created."
     (forward-line -1)
     (setf (gethash nil mh-speed-folder-map)
           (set-marker (or (gethash nil mh-speed-folder-map) (make-marker))
-                      (1+ (mh-line-beginning-position))))
+                      (1+ (line-beginning-position))))
     (add-text-properties
-     (mh-line-beginning-position) (1+ (line-beginning-position))
+     (line-beginning-position) (1+ (line-beginning-position))
      '(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
     (mh-speed-stealth-update t)
     (when (> mh-speed-update-interval 0)
@@ -260,12 +260,12 @@ The update is always carried out if FORCE is non-nil."
     (speedbar-with-writable
       (goto-char (gethash folder mh-speed-folder-map (point)))
       (beginning-of-line)
-      (if (re-search-forward "([1-9][0-9]*/[0-9]+)" (mh-line-end-position) t)
+      (if (re-search-forward "([1-9][0-9]*/[0-9]+)" (line-end-position) t)
           (setq face (mh-speed-bold-face face))
         (setq face (mh-speed-normal-face face)))
       (beginning-of-line)
-      (when (re-search-forward "\\[.\\] " (mh-line-end-position) t)
-        (put-text-property (point) (mh-line-end-position) 'face face)))))
+      (when (re-search-forward "\\[.\\] " (line-end-position) t)
+        (put-text-property (point) (line-end-position) 'face face)))))
 
 (defun mh-speed-normal-face (face)
   "Return normal face for given FACE."
@@ -305,7 +305,7 @@ The function will expand out parent folders of FOLDER if needed."
     (while suffix-list
       ;; We always need at least one toggle. We need two if the directory list
       ;; is stale since a folder was added.
-      (when (equal prefix (get-text-property (mh-line-beginning-position)
+      (when (equal prefix (get-text-property (line-beginning-position)
                                              'mh-folder))
         (mh-speed-toggle)
         (unless (get-text-property (point) 'mh-expanded)
@@ -359,9 +359,9 @@ uses."
              (setf (gethash folder-name mh-speed-folder-map)
                    (set-marker (or (gethash folder-name mh-speed-folder-map)
                                    (make-marker))
-                               (1+ (mh-line-beginning-position))))
+                               (1+ (line-beginning-position))))
              (add-text-properties
-              (mh-line-beginning-position) (1+ (mh-line-beginning-position))
+              (line-beginning-position) (1+ (line-beginning-position))
               `(mh-folder ,folder-name
                           mh-expanded nil
                           mh-children-p ,(not (not (cdr f)))
@@ -374,12 +374,9 @@ uses."
 (defvar mh-speed-flists-folder nil)
 
 (defmacro mh-process-kill-without-query (process)
-  "PROCESS can be killed without query on Emacs exit.
-Avoid using `process-kill-without-query' if possible since it is
-now obsolete."
-  (if (fboundp 'set-process-query-on-exit-flag)
-      `(set-process-query-on-exit-flag ,process nil)
-    `(process-kill-without-query ,process)))
+  "PROCESS can be killed without query on Emacs exit."
+  (declare (obsolete set-process-query-on-exit-flag "29.1"))
+  `(set-process-query-on-exit-flag ,process nil))
 
 ;;;###mh-autoload
 (defun mh-speed-flists (force &rest folders)
@@ -391,7 +388,7 @@ flists is run only for that one folder."
   (interactive (list t))
   (when force
     (when mh-speed-flists-timer
-      (mh-cancel-timer mh-speed-flists-timer)
+      (cancel-timer mh-speed-flists-timer)
       (setq mh-speed-flists-timer nil))
     (when (and (processp mh-speed-flists-process)
                (not (eq (process-status mh-speed-flists-process) 'exit)))
@@ -427,7 +424,7 @@ flists is run only for that one folder."
                             (or mh-speed-flists-folder '("-recurse"))))
                ;; Run flists on all folders the next time around...
                (setq mh-speed-flists-folder nil)
-               (mh-process-kill-without-query mh-speed-flists-process)
+               (set-process-query-on-exit-flag mh-speed-flists-process nil)
                (set-process-filter mh-speed-flists-process
                                    #'mh-speed-parse-flists-output)))))))
 
@@ -462,25 +459,25 @@ be handled next."
                           face)
                       (when pos
                         (goto-char pos)
-                        (goto-char (mh-line-beginning-position))
+                        (goto-char (line-beginning-position))
                         (cond
                          ((null (get-text-property (point) 'mh-count))
-                          (goto-char (mh-line-end-position))
+                          (goto-char (line-end-position))
                           (setq face (get-text-property (1- (point)) 'face))
                           (insert (format " (%s/%s)" unseen total))
                           (mh-speed-highlight 'unknown face)
-                          (goto-char (mh-line-beginning-position))
+                          (goto-char (line-beginning-position))
                           (add-text-properties (point) (1+ (point))
                                                `(mh-count (,unseen . ,total))))
                          ((not (equal (get-text-property (point) 'mh-count)
                                       (cons unseen total)))
-                          (goto-char (mh-line-end-position))
+                          (goto-char (line-end-position))
                           (setq face (get-text-property (1- (point)) 'face))
-                          (re-search-backward " " (mh-line-beginning-position) t)
-                          (delete-region (point) (mh-line-end-position))
+                          (re-search-backward " " (line-beginning-position) t)
+                          (delete-region (point) (line-end-position))
                           (insert (format " (%s/%s)" unseen total))
                           (mh-speed-highlight 'unknown face)
-                          (goto-char (mh-line-beginning-position))
+                          (goto-char (line-beginning-position))
                           (add-text-properties
                            (point) (1+ (point))
                            `(mh-count (,unseen . ,total))))))))))))
@@ -509,15 +506,15 @@ be handled next."
                              (caar parent-kids)))
                  (setq parent-change ? ))))
         (goto-char parent-position)
-        (when (equal (get-text-property (mh-line-beginning-position) 'mh-folder)
+        (when (equal (get-text-property (line-beginning-position) 'mh-folder)
                      parent)
-          (when (get-text-property (mh-line-beginning-position) 'mh-expanded)
+          (when (get-text-property (line-beginning-position) 'mh-expanded)
             (mh-speed-toggle))
           (when parent-change
             (speedbar-with-writable
               (mh-speedbar-change-expand-button-char parent-change)
               (add-text-properties
-               (mh-line-beginning-position) (1+ (mh-line-beginning-position))
+               (line-beginning-position) (1+ (line-beginning-position))
                `(mh-children-p ,(equal parent-change ?+)))))
           (mh-speed-highlight mh-speed-last-selected-folder 'mh-speedbar-folder)
           (setq mh-speed-last-selected-folder nil)
@@ -531,7 +528,7 @@ be handled next."
   "Change the expansion button character to CHAR for the current line."
   (save-excursion
     (beginning-of-line)
-    (if (re-search-forward "\\[.\\]" (mh-line-end-position) t)
+    (if (re-search-forward "\\[.\\]" (line-end-position) t)
         (speedbar-with-writable
           (backward-char 2)
           (delete-char 1)
@@ -562,9 +559,9 @@ The function invalidates the latest ancestor that is present."
       (speedbar-with-writable
         (mh-speedbar-change-expand-button-char ?+)
         (add-text-properties
-         (mh-line-beginning-position) (1+ (mh-line-beginning-position))
+         (line-beginning-position) (1+ (line-beginning-position))
          '(mh-children-p t)))
-      (when (get-text-property (mh-line-beginning-position) 'mh-expanded)
+      (when (get-text-property (line-beginning-position) 'mh-expanded)
         (mh-speed-toggle))
       (setq mh-speed-refresh-flag t))))
 

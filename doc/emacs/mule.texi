@@ -473,6 +473,10 @@ First, letters are mapped into symbols for particular sounds or tone
 marks; then, sequences of these that make up a whole syllable are
 mapped into one syllable sign.
 
+@kindex C-f@r{, when using input methods}
+@kindex C-b@r{, when using input methods}
+@kindex C-n@r{, when using input methods}
+@kindex C-p@r{, when using input methods}
   Chinese and Japanese require more complex methods.  In Chinese input
 methods, first you enter the phonetic spelling of a Chinese word (in
 input method @code{chinese-py}, among others), or a sequence of
@@ -498,6 +502,7 @@ alternatives in the row are also numbered; the number appears before
 the alternative.  Typing a number selects the associated alternative
 of the current row and uses it as input.
 
+@kindex TAB@r{, when using Chinese input methods}
   @key{TAB} in these Chinese input methods displays a buffer showing
 all the possible characters at once; then clicking @kbd{mouse-2} on
 one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
@@ -571,10 +576,36 @@ modes that make buffer text or parts of it read-only, such as
 @code{read-only-mode} and @code{image-mode}, even when an input method
 is active.
 
+@kindex C-x 8 @key{RET}
+@cindex insert character by name or code-point
   Another facility for typing characters not on your keyboard is by
 using @kbd{C-x 8 @key{RET}} (@code{insert-char}) to insert a single
 character based on its Unicode name or code-point; see @ref{Inserting
 Text}.
+
+@cindex emoji input
+@cindex inserting Emoji
+@kindex C-x 8 e
+@findex emoji-insert
+@findex emoji-list
+@findex emoji-search
+  There are specialized commands for inserting Emoji, and these can be
+found on the @kbd{C-x 8 e} keymap.  @kbd{C-x 8 e e}
+(@code{emoji-insert}) will let you navigate through different Emoji
+categories and then choose one.  @kbd{C-x 8 e l} (@code{emoji-list})
+will pop up a new buffer and list all the Emoji; clicking (or using
+@kbd{RET}) on an emoji character will insert it in the current buffer.
+Finally, @kbd{C-x 8 e s} (@code{emoji-search}) will allow you to
+search for Emoji based on their names.
+
+@findex emoji-describe
+  @code{describe-char} displays a lot of information about the
+character/glyphs under point (including emojis).  It's sometimes
+useful to get a quick description of the name, and you can use the
+@kbd{C-x 8 e d} (@code{emoji-describe}) command to do that.  It's
+meant primarily to help distinguish between different Emoji
+variants (which can look very similar), but it will also tell you
+the names of non-Emoji characters.
 
 @node Select Input Method
 @section Selecting an Input Method

@@ -513,7 +513,8 @@ a temporary-variables list, a value-forms list, a store-variables list
 See `gv-define-expander', and `gv-define-setter' for better and
 simpler ways to define setf-methods."
   (declare (debug
-            (&define name cl-lambda-list cl-declarations-or-string def-body)))
+            (&define name cl-lambda-list cl-declarations-or-string def-body))
+           (indent defun))
   `(progn
      ,@(if (stringp (car body))
            (list `(put ',name 'setf-documentation ,(pop body))))
@@ -554,7 +555,8 @@ You can replace this form with `gv-define-setter'.
             (&define name
                      [&or [symbolp &optional stringp]
                           [cl-lambda-list (symbolp)]]
-                     cl-declarations-or-string def-body)))
+                     cl-declarations-or-string def-body))
+           (indent defun))
   (if (and (listp arg1) (consp args))
       ;; Like `gv-define-setter' but with `cl-function'.
       `(gv-define-expander ,name
@@ -615,7 +617,8 @@ arguments from ARGLIST using FUNC.  For example:
 You can replace this macro with `gv-letplace'."
   (declare (debug
             (&define name cl-lambda-list ;; should exclude &key
-                     symbolp &optional stringp)))
+                     symbolp &optional stringp))
+           (indent defun))
   (if (memq '&key arglist)
       (error "&key not allowed in define-modify-macro"))
   (require 'cl-macs)                    ;For cl--arglist-args.

@@ -2457,7 +2457,7 @@ Only applies the FSPEC to the args part of FORMAT."
 	  (default (tex-compile-default fspec)))
      (list default-directory
 	   (completing-read
-	    (format "Command [%s]: " (tex-summarize-command default))
+            (format-prompt "Command" (tex-summarize-command default))
 	    (mapcar (lambda (x)
 		      (list (tex-format-cmd (eval (car x) t) fspec)))
 		    tex-compile-commands)

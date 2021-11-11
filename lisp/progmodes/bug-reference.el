@@ -72,7 +72,7 @@ so that it is considered safe, see `enable-local-variables'.")
                 (get s 'bug-reference-url-format)))))
 
 (defcustom bug-reference-bug-regexp
-  "\\(\\(?:[Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+  "\\(\\b\\(?:[Bb]ug ?#?\\|[Pp]atch ?#\\|RFE ?#\\|PR [a-z+-]+/\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
   "Regular expression matching bug references.
 The first subexpression defines the region of the bug-reference
 overlay, i.e., the region being fontified and made clickable in
@@ -269,8 +269,9 @@ via the internet it might also be http.")
 ;; pull/17 page if 17 is a PR.  Explicit user/project#17 links to
 ;; possibly different projects are also supported.
 (cl-defmethod bug-reference--build-forge-setup-entry
-  (host-domain (_forge-type (eql github)) protocol)
-  `(,(concat "[/@]" host-domain "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+  (host-domain (_forge-type (eql 'github)) protocol)
+  `(,(concat "[/@]" (regexp-quote host-domain)
+             "[/:]\\([.A-Za-z0-9_/-]+?\\)\\(?:\\.git\\)?/?\\'")
     "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
     ,(lambda (groups)
        (let ((ns-project (nth 1 groups)))
@@ -284,9 +285,9 @@ via the internet it might also be http.")
 ;; namespace/project#18 or namespace/project!17 references to possibly
 ;; different projects are also supported.
 (cl-defmethod bug-reference--build-forge-setup-entry
-  (host-domain (_forge-type (eql gitlab)) protocol)
+  (host-domain (_forge-type (eql 'gitlab)) protocol)
   `(,(concat "[/@]" (regexp-quote host-domain)
-             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "[/:]\\([.A-Za-z0-9_/-]+?\\)\\(?:\\.git\\)?/?\\'")
     "\\(\\([.A-Za-z0-9_/-]+\\)?\\([#!]\\)\\([0-9]+\\)\\)\\>"
     ,(lambda (groups)
        (let ((ns-project (nth 1 groups)))
@@ -301,9 +302,9 @@ via the internet it might also be http.")
 
 ;; Gitea: The systematics is exactly as for Github projects.
 (cl-defmethod bug-reference--build-forge-setup-entry
-  (host-domain (_forge-type (eql gitea)) protocol)
+  (host-domain (_forge-type (eql 'gitea)) protocol)
   `(,(concat "[/@]" (regexp-quote host-domain)
-             "[/:]\\([.A-Za-z0-9_/-]+\\)\\.git")
+             "[/:]\\([.A-Za-z0-9_/-]+?\\)\\(?:\\.git\\)?/?\\'")
     "\\(\\([.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
     ,(lambda (groups)
        (let ((ns-project (nth 1 groups)))
@@ -322,7 +323,7 @@ via the internet it might also be http.")
 ;; repo without tracker, or a repo with a tracker using a different
 ;; name, etc.  So we can only try to make a good guess.
 (cl-defmethod bug-reference--build-forge-setup-entry
-  (host-domain (_forge-type (eql sourcehut)) protocol)
+  (host-domain (_forge-type (eql 'sourcehut)) protocol)
   `(,(concat "[/@]\\(?:git\\|hg\\)." (regexp-quote host-domain)
              "[/:]\\(~[.A-Za-z0-9_/-]+\\)")
     "\\(\\(~[.A-Za-z0-9_/-]+\\)?\\(?:#\\)\\([0-9]+\\)\\)\\>"
@@ -350,7 +351,7 @@ generated from `bug-reference-forge-alist'."
             ;; `bug-reference-url-format' and
             ;; `bug-reference-bug-regexp' aren't set already.
             ("git\\.\\(?:sv\\|savannah\\)\\.gnu\\.org:"
-             "\\<\\(\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
+             "\\(\\b\\(?:[Bb]ug ?#?\\)\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)\\>"
              ,(lambda (_) "https://debbugs.gnu.org/%s"))
 
             ;; Entries for the software forges of
@@ -395,7 +396,7 @@ applicable."
      ,(regexp-opt '("@debbugs.gnu.org" "-devel@gnu.org"
                     ;; List-Id of Gnus devel mailing list.
                     "ding.gnus.org"))
-     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+     "\\(\\b[Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in mail modes.
 
@@ -526,7 +527,7 @@ From, and Cc against HEADER-REGEXP in
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
      "Libera.Chat"
-     "\\([Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
+     "\\(\\b[Bb]ug ?#?\\([0-9]+\\(?:#[0-9]+\\)?\\)\\)"
      "https://debbugs.gnu.org/%s"))
   "An alist for setting up `bug-reference-mode' in IRC modes.
 

@@ -319,7 +319,7 @@ The argument @var{thing} is a symbol which specifies a kind of
 syntactic entity.  Possibilities include @code{symbol}, @code{list},
 @code{sexp}, @code{defun}, @code{filename}, @code{existing-filename},
 @code{url}, @code{word}, @code{sentence}, @code{whitespace},
-@code{line}, @code{page}, and others.
+@code{line}, @code{page}, @code{string}, and others.
 
 When the optional argument @var{no-properties} is non-@code{nil}, this
 function strips text properties from the return value.
@@ -597,6 +597,19 @@ This command indents to the left margin if that is not zero.
 @xref{Margins}.
 
 The value returned is @code{nil}.
+@end deffn
+
+@deffn Command ensure-empty-lines &optional number-of-empty-lines
+This command can be used to ensure that you have a specific number of
+empty lines before point.  (An ``empty line'' is here defined as a
+line with no characters on it---a line with space characters isn't an
+empty line.)  It defaults to ensuring that there's a single empty line
+before point.
+
+If point isn't at the beginning of a line, a newline character is
+inserted first.  If there's more empty lines before point than
+specified, the number of empty lines is reduced.  Otherwise it's
+increased to the specified number.
 @end deffn
 
 @defvar overwrite-mode
@@ -1329,7 +1342,7 @@ that @kbd{C-y} should yank.
 @defopt kill-ring-max
 The value of this variable is the maximum length to which the kill
 ring can grow, before elements are thrown away at the end.  The default
-value for @code{kill-ring-max} is 60.
+value for @code{kill-ring-max} is 120.
 @end defopt
 
 @node Undo
@@ -1492,6 +1505,11 @@ continuing to undo.
 
 This function does not bind @code{undo-in-progress}.
 @end defun
+
+@defmac with-undo-amalgamate body@dots{}
+This macro removes all the undo boundaries inserted during the
+execution of @var{body} so that it can be undone as a single step.
+@end defmac
 
 Some commands leave the region active after execution in such a way that
 it interferes with selective undo of that command.  To make @code{undo}
@@ -3601,6 +3619,11 @@ edited even in read-only buffers.  @xref{Read Only Buffers}.
 @kindex invisible @r{(text property)}
 A non-@code{nil} @code{invisible} property can make a character invisible
 on the screen.  @xref{Invisible Text}, for details.
+
+@kindex inhibit-isearch @r{(text property)}
+@item inhibit-isearch
+A non-@code{nil} @code{inhibit-isearch} property will make isearch
+skip the text.
 
 @item intangible
 @kindex intangible @r{(text property)}

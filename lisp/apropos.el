@@ -515,9 +515,9 @@ variables, not just user options."
                      current-prefix-arg))
   (apropos-command pattern nil
 		   (if (or do-all apropos-do-all)
-		       #'(lambda (symbol)
-			   (and (boundp symbol)
-				(get symbol 'variable-documentation)))
+                       (lambda (symbol)
+                         (and (boundp symbol)
+                              (get symbol 'variable-documentation)))
 		     #'custom-variable-p)))
 
 ;;;###autoload

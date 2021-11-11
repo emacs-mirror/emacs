@@ -716,11 +716,6 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
             (delete-region (overlay-start rfn-eshadow-overlay)
                            (overlay-end rfn-eshadow-overlay)))
           (let* ((field-string (icomplete--field-string))
-                 ;; Not sure why, but such requests seem to come
-                 ;; every once in a while.  It's not fully
-                 ;; deterministic but `C-x C-f M-DEL M-DEL ...'
-                 ;; seems to trigger it fairly often!
-                 (while-no-input-ignore-events '(selection-request))
                  (text (while-no-input
                          (icomplete-completions
                           field-string

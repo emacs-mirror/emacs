@@ -945,7 +945,7 @@ the author's description of the changes in the revision on the current
 line.
 
 @item w
-Annotate the working revision--the one you are editing.  If you used
+Annotate the working revision---the one you are editing.  If you used
 @kbd{p} and @kbd{n} to browse to other revisions, use this key to
 return to your working revision.
 
@@ -2139,7 +2139,10 @@ Find definition of identifier, and display it in a new frame
 Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
-(@code{xref-pop-marker-stack}).
+(@code{xref-go-back}).
+@item C-M-,
+Go forward to where you previously invoked @kbd{M-,}
+(@code{xref-go-forward}).
 @item M-x xref-etags-mode
 Switch @code{xref} to use the @code{etags} backend.
 @end table
@@ -2204,15 +2207,17 @@ selects the window showing the first candidate.  The default value is
 buffer, but doesn't select any of them.
 
 @kindex M-,
-@findex xref-pop-marker-stack
-@vindex xref-marker-ring-length
+@findex xref-go-back
   To go back to places @emph{from where} you've displayed the definition,
-use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
+use @kbd{M-,} (@code{xref-go-back}).  It jumps back to the
 point of the last invocation of @kbd{M-.}.  Thus you can find and
 examine the definition of something with @kbd{M-.} and then return to
-where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace your
-steps to a depth determined by the variable
-@code{xref-marker-ring-length}, which defaults to 16.
+where you were with @kbd{M-,}.
+
+@kindex C-M-,
+@findex xref-go-forward
+  Go forward to a place from where you previously went back using @kbd{M-,}.
+This is useful if you find that you went back too far.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
@@ -2283,12 +2288,12 @@ the match with @var{replacement}.  @xref{Identifier Search}.
 @item g
 @findex xref-revert-buffer
 Refresh the contents of the @file{*xref*} buffer
-(@code{xref-revert-buffer}.
+(@code{xref-revert-buffer}).
 
 @item M-,
 @findex xref-quit-and-pop-marker-stack
 Quit the window showing the @file{*xref*} buffer, and then jump to the
-previous Xref stack location (@code{xref-quit-and-pop-marker-stack}.
+previous Xref stack location (@code{xref-quit-and-pop-marker-stack}).
 
 @item q
 @findex xref-quit

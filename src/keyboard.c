@@ -375,6 +375,7 @@ static void timer_resume_idle (void);
 static void deliver_user_signal (int);
 static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
+static bool is_ignored_event (union buffered_input_event *);
 
 /* Advance or retreat a buffered input event pointer.  */
 
@@ -2943,20 +2944,8 @@ read_char (int commandflag, Lisp_Object map,
       last_input_event = c;
       call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
-      if (CONSP (c)
-          && (EQ (XCAR (c), Qselect_window)
-              || EQ (XCAR (c), Qfocus_out)
-#ifdef HAVE_DBUS
-	      || EQ (XCAR (c), Qdbus_event)
-#endif
-#ifdef USE_FILE_NOTIFY
-	      || EQ (XCAR (c), Qfile_notify)
-#endif
-#ifdef THREADS_ENABLED
-	      || EQ (XCAR (c), Qthread_event)
-#endif
-	      || EQ (XCAR (c), Qconfig_changed_event))
-          && !end_time)
+      if (CONSP (c) && !NILP (Fmemq (XCAR (c), Vwhile_no_input_ignore_events))
+	  && !end_time)
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
 	   mouse-autoselect-window) from acting as a real input event, for
@@ -3458,10 +3447,17 @@ readable_events (int flags)
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check ();
 
-  /* If the buffer contains only FOCUS_IN/OUT_EVENT events, and
-     READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
+  /* READABLE_EVENTS_FILTER_EVENTS is meant to be used only by
+     input-pending-p and similar callers, which aren't interested in
+     some input events.  If this flag is set, and
+     input-pending-p-filter-events is non-nil, ignore events in
+     while-no-input-ignore-events.  If the flag is set and
+     input-pending-p-filter-events is nil, ignore only
+     FOCUS_IN/OUT_EVENT events.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
+      /* See https://lists.gnu.org/r/emacs-devel/2005-05/msg00297.html
+	 for why we treat toolkit scroll-bar events specially here.  */
       if (flags & (READABLE_EVENTS_FILTER_EVENTS
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		   | READABLE_EVENTS_IGNORE_SQUEEZABLES
@@ -3476,8 +3472,11 @@ readable_events (int flags)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    (flags & READABLE_EVENTS_FILTER_EVENTS) &&
 #endif
-		    (event->kind == FOCUS_IN_EVENT
-                     || event->kind == FOCUS_OUT_EVENT))
+		    ((!input_pending_p_filter_events
+		      && (event->kind == FOCUS_IN_EVENT
+			  || event->kind == FOCUS_OUT_EVENT))
+		     || (input_pending_p_filter_events
+			 && is_ignored_event (event))))
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
 		       && (event->kind == SCROLL_BAR_CLICK_EVENT
@@ -3659,29 +3658,10 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 #endif	/* subprocesses */
     }
 
-  Lisp_Object ignore_event;
-
-  switch (event->kind)
-    {
-    case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
-    case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;
-    case HELP_EVENT: ignore_event = Qhelp_echo; break;
-    case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
-    case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
-    case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
-#ifdef USE_FILE_NOTIFY
-    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
-#endif
-#ifdef HAVE_DBUS
-    case DBUS_EVENT: ignore_event = Qdbus_event; break;
-#endif
-    default: ignore_event = Qnil; break;
-    }
-
   /* If we're inside while-no-input, and this event qualifies
      as input, set quit-flag to cause an interrupt.  */
   if (!NILP (Vthrow_on_input)
-      && NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events)))
+      && !is_ignored_event (event))
     Vquit_flag = Vthrow_on_input;
 }
 
@@ -4013,6 +3993,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 #ifdef HAVE_XWIDGETS
       case XWIDGET_EVENT:
+      case XWIDGET_DISPLAY_EVENT:
 #endif
       case SAVE_SESSION_EVENT:
       case NO_EVENT:
@@ -4917,7 +4898,7 @@ static const char *const lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static const char *const lispy_function_keys[] =
+const char *const lispy_function_keys[] =
   {
     /* X Keysym value */
 
@@ -5122,7 +5103,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 #endif
       )
     {
-      posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
+      /* FIXME: While track_mouse is non-nil, we do not report this
+	 event as something that happened on the tool or tab bar since
+	 that would break mouse dragging operations that originate from
+	 an ordinary window beneath and expect the window to auto-scroll
+	 as soon as the mouse cursor appears above or beneath it
+	 (Bug#50993).  Since this "fix" might break track_mouse based
+	 operations originating from the tool or tab bar itself, such
+	 operations should set track_mouse to some special value that
+	 would be recognized by the following check.
+
+	 This issue should be properly handled by 'mouse-drag-track' and
+	 friends, so the below is only a temporary workaround.  */
+      if (NILP (track_mouse))
+	posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
       /* Kludge alert: for mouse events on the tab bar and tool bar,
 	 keyboard.c wants the frame, not the special-purpose window
 	 we use to display those, and it wants frame-relative
@@ -5130,7 +5124,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       window_or_frame = Qnil;
     }
 #endif
-  if (!FRAME_WINDOW_P (f)
+  if (f
+      && !FRAME_WINDOW_P (f)
       && FRAME_TAB_BAR_LINES (f) > 0
       && my >= FRAME_MENU_BAR_LINES (f)
       && my < FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f))
@@ -6128,23 +6123,20 @@ make_lispy_event (struct input_event *event)
 
 #ifdef HAVE_DBUS
     case DBUS_EVENT:
-      {
-	return Fcons (Qdbus_event, event->arg);
-      }
+      return Fcons (Qdbus_event, event->arg);
 #endif /* HAVE_DBUS */
 
 #ifdef THREADS_ENABLED
     case THREAD_EVENT:
-      {
-	return Fcons (Qthread_event, event->arg);
-      }
+      return Fcons (Qthread_event, event->arg);
 #endif /* THREADS_ENABLED */
 
 #ifdef HAVE_XWIDGETS
     case XWIDGET_EVENT:
-      {
-        return Fcons (Qxwidget_event, event->arg);
-      }
+      return Fcons (Qxwidget_event, event->arg);
+
+    case XWIDGET_DISPLAY_EVENT:
+      return list2 (Qxwidget_display_event, event->arg);
 #endif
 
 #ifdef USE_FILE_NOTIFY
@@ -7840,7 +7832,9 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 	      else if (EQ (tem, QCkeys))
 		{
 		  tem = XCAR (item);
-		  if (CONSP (tem) || STRINGP (tem))
+		  if (FUNCTIONP (tem))
+		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, call0 (tem));
+		  else if (CONSP (tem) || STRINGP (tem))
 		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
@@ -10168,7 +10162,8 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	 use the corresponding lower-case letter instead.  */
       if (NILP (current_binding)
 	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
-	  && FIXNUMP (key))
+	  && FIXNUMP (key)
+	  && translate_upper_case_key_bindings)
 	{
 	  Lisp_Object new_key;
 	  EMACS_INT k = XFIXNUM (key);
@@ -10220,12 +10215,14 @@ read_key_sequence (Lisp_Object *keybuf, Lisp_Object prompt,
 	  int modifiers
 	    = CONSP (breakdown) ? (XFIXNUM (XCAR (XCDR (breakdown)))) : 0;
 
-	  if (modifiers & shift_modifier
-	      /* Treat uppercase keys as shifted.  */
-	      || (FIXNUMP (key)
-		  && (KEY_TO_CHAR (key)
-		      < XCHAR_TABLE (BVAR (current_buffer, downcase_table))->header.size)
-		  && uppercasep (KEY_TO_CHAR (key))))
+	  if (translate_upper_case_key_bindings
+	      && (modifiers & shift_modifier
+		  /* Treat uppercase keys as shifted.  */
+		  || (FIXNUMP (key)
+		      && (KEY_TO_CHAR (key)
+			  < XCHAR_TABLE (BVAR (current_buffer,
+					       downcase_table))->header.size)
+		      && uppercasep (KEY_TO_CHAR (key)))))
 	    {
 	      Lisp_Object new_key
 		= (modifiers & shift_modifier
@@ -11332,6 +11329,8 @@ The elements of this list correspond to the arguments of
 DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
        doc: /* Return position information for pixel coordinates X and Y.
 By default, X and Y are relative to text area of the selected window.
+Note that the text area includes the header-line and the tab-line of
+the window, if any of them are present.
 Optional third arg FRAME-OR-WINDOW non-nil specifies frame or window.
 If optional fourth arg WHOLE is non-nil, X is relative to the left
 edge of the window.
@@ -11599,6 +11598,52 @@ static const struct event_head head_table[] = {
   {SYMBOL_INDEX (Qselect_window),       SYMBOL_INDEX (Qswitch_frame)}
 };
 
+static Lisp_Object
+init_while_no_input_ignore_events (void)
+{
+  Lisp_Object events = listn (9, Qselect_window, Qhelp_echo, Qmove_frame,
+			      Qiconify_frame, Qmake_frame_visible,
+			      Qfocus_in, Qfocus_out, Qconfig_changed_event,
+			      Qselection_request);
+
+#ifdef HAVE_DBUS
+  events = Fcons (Qdbus_event, events);
+#endif
+#ifdef USE_FILE_NOTIFY
+  events = Fcons (Qfile_notify, events);
+#endif
+#ifdef THREADS_ENABLED
+  events = Fcons (Qthread_event, events);
+#endif
+
+  return events;
+}
+
+static bool
+is_ignored_event (union buffered_input_event *event)
+{
+  Lisp_Object ignore_event;
+
+  switch (event->kind)
+    {
+    case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
+    case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;
+    case HELP_EVENT: ignore_event = Qhelp_echo; break;
+    case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
+    case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
+    case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
+#ifdef USE_FILE_NOTIFY
+    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
+#endif
+#ifdef HAVE_DBUS
+    case DBUS_EVENT: ignore_event = Qdbus_event; break;
+#endif
+    default: ignore_event = Qnil; break;
+    }
+
+  return !NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events));
+}
+
 static void syms_of_keyboard_for_pdumper (void);
 
 void
@@ -11685,6 +11730,7 @@ syms_of_keyboard (void)
 
 #ifdef HAVE_XWIDGETS
   DEFSYM (Qxwidget_event, "xwidget-event");
+  DEFSYM (Qxwidget_display_event, "xwidget-display-event");
 #endif
 
 #ifdef USE_FILE_NOTIFY
@@ -12493,7 +12539,29 @@ If nil, Emacs crashes immediately in response to fatal signals.  */);
 
   DEFVAR_LISP ("while-no-input-ignore-events",
                Vwhile_no_input_ignore_events,
-               doc: /* Ignored events from while-no-input.  */);
+               doc: /* Ignored events from `while-no-input'.
+Events in this list do not count as pending input while running
+`while-no-input' and do not cause any idle timers to get reset when they
+occur.  */);
+  Vwhile_no_input_ignore_events = init_while_no_input_ignore_events ();
+
+  DEFVAR_BOOL ("translate-upper-case-key-bindings",
+               translate_upper_case_key_bindings,
+               doc: /* If non-nil, interpret upper case keys as lower case (when applicable).
+Emacs allows binding both upper and lower case key sequences to
+commands.  However, if there is a lower case key sequence bound to a
+command, and the user enters an upper case key sequence that is not
+bound to a command, Emacs will use the lower case binding.  Setting
+this variable to nil inhibits this behaviour.  */);
+  translate_upper_case_key_bindings = true;
+
+  DEFVAR_BOOL ("input-pending-p-filter-events",
+               input_pending_p_filter_events,
+               doc: /* If non-nil, `input-pending-p' ignores some input events.
+If this variable is non-nil (the default), `input-pending-p' and
+other similar functions ignore input events in `while-no-input-ignore-events'.
+This flag may eventually be removed once this behavior is deemed safe.  */);
+  input_pending_p_filter_events = true;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

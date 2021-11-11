@@ -4,6 +4,7 @@
 
 ;; Authors: Dan Davison
 ;;	 Eric Schulte
+;; Maintainer: Corwin Brust
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: https://orgmode.org
 

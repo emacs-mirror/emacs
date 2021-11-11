@@ -242,15 +242,14 @@ included in the completions."
 ;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
+;; Good example of file name that needs this: "test[56].xx".
 (defun vc-git--literal-pathspec (file)
   "Prepend :(literal) path magic to FILE."
-  ;; Good example of file name that needs this: "test[56].xx".
   (when file
-    (let ((lname (file-local-name file)))
-      ;; Expand abbreviated file names.
-      (when (file-name-absolute-p lname)
-        (setq lname (expand-file-name lname)))
-      (concat ":(literal)" lname))))
+    ;; Expand abbreviated file names.
+    (when (file-name-absolute-p file)
+      (setq file (expand-file-name file)))
+    (concat ":(literal)" (file-local-name file))))
 
 (defun vc-git--literal-pathspecs (files)
   "Prepend :(literal) path magic to FILES."
@@ -1324,7 +1323,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-expanded-log-entry (revision)
   (with-temp-buffer
-    (apply #'vc-git-command t nil nil (list "log" revision "-1" "--"))
+    (apply #'vc-git-command t nil nil (list "log" revision "-1"  "--no-color" "--"))
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.

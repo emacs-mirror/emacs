@@ -440,7 +440,8 @@ These have to be run via `sgml-syntax-propertize'"))
 
 ;; internal
 (defvar sgml-face-tag-alist ()
-  "Alist of face and tag name for facemenu.")
+  "Alist of face and tag name for facemenu.
+The tag name can be a string or a list of strings.")
 
 (defvar sgml-tag-face-alist ()
   "Tag names and face or list of faces to fontify with when invisible.
@@ -528,11 +529,13 @@ an optional alist of possible values."
     (comment-indent-new-line soft)))
 
 (defun sgml-mode-facemenu-add-face-function (face _end)
-  (let ((tag-face (cdr (assq face sgml-face-tag-alist))))
+  "Add \"face\" tags with `facemenu-keymap' commands."
+  (let ((tag-face (ensure-list (cdr (assq face sgml-face-tag-alist)))))
     (cond (tag-face
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
-	   (setq facemenu-end-add-face (concat "</" tag-face ">"))
-	   (concat "<" tag-face ">"))
+           (setq facemenu-end-add-face
+                 (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face) ""))
+           (mapconcat (lambda (f) (concat "<" f ">")) tag-face ""))
 	  ((and (consp face)
 		(consp (car face))
 		(null  (cdr face))
@@ -1868,6 +1871,7 @@ This takes effect when first loading the library.")
 (defvar html-face-tag-alist
   '((bold . "strong")
     (italic . "em")
+    (bold-italic . ("strong" "em"))
     (underline . "u")
     (mode-line . "rev"))
   "Value of `sgml-face-tag-alist' for HTML mode.")
@@ -2411,6 +2415,8 @@ To work around that, do:
     (setq-local css-id-list-function #'html-current-buffer-ids))
 
   (setq imenu-create-index-function 'html-imenu-index)
+  (yank-media-handler 'text/html #'html-mode--html-yank-handler)
+  (yank-media-handler "image/.*" #'html-mode--image-yank-handler)
 
   (setq-local sgml-empty-tags
 	      ;; From HTML-4.01's loose.dtd, parsed with
@@ -2425,6 +2431,30 @@ To work around that, do:
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   )
+
+(defun html-mode--html-yank-handler (_type html)
+  (save-restriction
+    (insert html)
+    (ignore-errors
+      (sgml-pretty-print (point-min) (point-max)))))
+
+(defun html-mode--image-yank-handler (type image)
+  (let ((file (read-file-name (format "Save %s image to: " type))))
+    (when (file-directory-p file)
+      (user-error "%s is a directory"))
+    (when (and (file-exists-p file)
+               (not (yes-or-no-p (format "%s exists; overwrite?" file))))
+      (user-error "%s exists"))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (insert image)
+      (write-region (point-min) (point-max) file))
+    (insert (format "<img src=%S>\n" (file-relative-name file)))
+    (insert-image
+     (create-image file (mailcap-mime-type-to-extension type) nil
+		   :max-width 200
+		   :max-height 200)
+     " ")))
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"

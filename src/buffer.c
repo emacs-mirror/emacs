@@ -1434,7 +1434,7 @@ and `buffer-file-truename' are non-nil.  */)
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
        doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
-This function also locks and unlocks the file visited by the buffer,
+This function also locks or unlocks the file visited by the buffer,
 if both `buffer-file-truename' and `buffer-file-name' are non-nil.
 
 It is not ensured that mode lines will be updated to show the modified
@@ -2805,7 +2805,7 @@ current buffer is cleared.  */)
 }
 
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables,
-       Skill_all_local_variables, 0, 0, 0,
+       Skill_all_local_variables, 0, 1, 0,
        doc: /* Switch to Fundamental mode by killing current buffer's local variables.
 Most local variable bindings are eliminated so that the default values
 become effective once more.  Also, the syntax table is set from
@@ -2816,18 +2816,20 @@ This function also forces redisplay of the mode line.
 Every function to select a new major mode starts by
 calling this function.
 
-As a special exception, local variables whose names have
-a non-nil `permanent-local' property are not eliminated by this function.
+As a special exception, local variables whose names have a non-nil
+`permanent-local' property are not eliminated by this function.  If
+the optional KILL-PERMANENT argument is non-nil, clear out these local
+variables, too.
 
 The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
-  (void)
+  (Lisp_Object kill_permanent)
 {
   run_hook (Qchange_major_mode_hook);
 
   /* Actually eliminate all local bindings of this buffer.  */
 
-  reset_buffer_local_variables (current_buffer, 0);
+  reset_buffer_local_variables (current_buffer, !NILP (kill_permanent));
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
@@ -3843,7 +3845,9 @@ fix_overlays_before (struct buffer *bp, ptrdiff_t prev, ptrdiff_t pos)
      or the found one ends before PREV,
      or the found one is the last one in the list,
      we don't have to fix anything.  */
-  if (!tail || end < prev || !tail->next)
+  if (!tail)
+    return;
+  if (end < prev || !tail->next)
     return;
 
   right_pair = parent;

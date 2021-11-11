@@ -411,13 +411,13 @@ value of `texinfo-mode-hook'."
 		      "\\)\\>"))
   (setq-local require-final-newline mode-require-final-newline)
   (setq-local indent-tabs-mode nil)
-  (setq-local paragraph-separate
-	      (concat "@[a-zA-Z]*[ \n]\\|"
-		      paragraph-separate))
   (setq-local paragraph-start (concat "@[a-zA-Z]*[ \n]\\|"
 				      paragraph-start))
+  (setq-local fill-paragraph-function 'texinfo--fill-paragraph)
   (setq-local sentence-end-base "\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
   (setq-local fill-column 70)
+  (setq-local beginning-of-defun-function #'texinfo--beginning-of-defun)
+  (setq-local end-of-defun-function #'texinfo--end-of-defun)
   (setq-local comment-start "@c ")
   (setq-local comment-start-skip "@c +\\|@comment +")
   (setq-local words-include-escapes t)
@@ -457,6 +457,58 @@ value of `texinfo-mode-hook'."
 		    prevent-filling
 		  (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
 
+(defvar texinfo-fillable-commands '("@noindent")
+  "A list of commands that can be filled.")
+
+(defun texinfo--fill-paragraph (justify)
+  "Function to fill a paragraph in `texinfo-mode'."
+  (let ((command-re "\\(@[a-zA-Z]+\\)[ \t\n]"))
+    (catch 'no-fill
+      (save-restriction
+        ;; First check whether we're on a command line that can be
+        ;; filled by itself.
+        (or
+         (save-excursion
+           (beginning-of-line)
+           (when (looking-at command-re)
+             (let ((command (match-string 1)))
+               (if (member command texinfo-fillable-commands)
+                   (progn
+                     (narrow-to-region (point) (progn (forward-line 1) (point)))
+                     t)
+                 (throw 'no-fill nil)))))
+         ;; We're not on such a line, so fill the region.
+         (save-excursion
+           (let ((regexp (concat command-re "\\|^[ \t]*$\\|\f")))
+             (narrow-to-region
+              (if (re-search-backward regexp nil t)
+                  (progn
+                    (forward-line 1)
+                    (point))
+                (point-min))
+              (if (re-search-forward regexp nil t)
+                  (match-beginning 0)
+                (point-max)))
+             (goto-char (point-min)))))
+        ;; We've now narrowed to the region we want to fill.
+        (let ((fill-paragraph-function nil)
+              (adaptive-fill-mode nil))
+          (fill-paragraph justify))))
+    t))
+
+(defun texinfo--beginning-of-defun (&optional arg)
+  "Go to the previous @node line."
+  (while (and (> arg 0)
+              (re-search-backward "^@node " nil t))
+    (setq arg (1- arg))))
+
+(defun texinfo--end-of-defun ()
+  "Go to the start of the next @node line."
+  (when (looking-at-p "@node")
+    (forward-line))
+  (if (re-search-forward "^@node " nil t)
+      (goto-char (match-beginning 0))
+    (goto-char (point-max))))
 
 
 ;;; Insert string commands
@@ -806,7 +858,8 @@ temporary file before the region itself.  The buffer's header is all lines
 between the strings defined by `tex-start-of-header' and `tex-end-of-header'
 inclusive.  The header must start in the first 100 lines.
 
-The value of `texinfo-tex-trailer' is appended to the temporary file after the region."
+The value of `texinfo-tex-trailer' is appended to the temporary
+file after the region."
   (interactive "r")
   (require 'tex-mode)
   (let ((tex-command texinfo-tex-command)

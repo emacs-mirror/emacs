@@ -52,7 +52,7 @@ used in lieu of `search' in the CL package."
   (let ((syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (mh-mail-abbrev-make-syntax-table)
+          (mail-abbrev-make-syntax-table)
           (set-syntax-table mail-abbrev-syntax-table)
           (backward-word n)
           (point))
@@ -61,9 +61,9 @@ used in lieu of `search' in the CL package."
 ;;;###mh-autoload
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
-  (or (featurep 'xemacs)
-      (let ((color-cells (mh-display-color-cells)))
-        (and (numberp color-cells) (>= color-cells 8)))))
+  ;; FIXME: Can this be replaced with `display-color-p'?
+  (let ((color-cells (display-color-cells)))
+    (and (numberp color-cells) (>= color-cells 8))))
 
 ;;;###mh-autoload
 (defun mh-colors-in-use-p ()
@@ -78,16 +78,13 @@ used in lieu of `search' in the CL package."
 ;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
   "Initialize local variables according to the variable-value PAIRS."
+  (declare (obsolete setq-local "29.1"))
   (while pairs
     (set (make-local-variable (car pairs)) (car (cdr pairs)))
     (setq pairs (cdr (cdr pairs)))))
 
 ;;;###mh-autoload
-(defun mh-mapc (function list)
-  "Apply FUNCTION to each element of LIST for side effects only."
-  (while list
-    (funcall function (car list))
-    (setq list (cdr list))))
+(define-obsolete-function-alias 'mh-mapc #'mapc "29.1")
 
 (defvar mh-pick-regexp-chars ".*$["
   "List of special characters in pick regular expressions.")
@@ -102,7 +99,7 @@ PICK-EXPR is a list of strings. Return nil if PICK-EXPR is nil."
                  (not (string-equal string "")))
         (cl-loop for i from 0 to (1- (length mh-pick-regexp-chars)) do
                  (let ((s (string ?\\ (aref mh-pick-regexp-chars i))))
-                   (setq string (mh-replace-regexp-in-string s s string t t))))
+                   (setq string (replace-regexp-in-string s s string t t))))
         (setq quoted-pick-expr (append quoted-pick-expr (list string)))))
     quoted-pick-expr))
 
@@ -119,34 +116,33 @@ Ignores case when searching for OLD."
 
 ;;; Logo Display
 
-(defvar mh-logo-cache nil)
+;;;###mh-autoload
+(defmacro mh--with-image-load-path (&rest body)
+  "Load `image' and eval BODY with `image-load-path' set appropriately."
+  (declare (debug t) (indent 0))
+  `(progn
+     ;; Not preloaded in without-x builds.
+     (require 'image)
+     (defvar image-load-path)
+     (declare-function image-load-path-for-library "image")
+     (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+            (image-load-path (cons (car load-path) image-load-path)))
+       ,@body)))
 
-;; Shush compiler.
-(defvar image-load-path)
+(defvar mh-logo-cache nil)
 
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
-  (mh-do-in-gnu-emacs
-    (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-           (image-load-path (cons (car load-path)
-                                  (when (boundp 'image-load-path)
-                                    image-load-path))))
-      (add-text-properties
-       0 2
-       `(display ,(or mh-logo-cache
-                      (setq mh-logo-cache
-                            (mh-funcall-if-exists
-                             find-image '((:type xpm :ascent center
-                                                 :file "mh-logo.xpm"))))))
-       (car mode-line-buffer-identification))))
-  (mh-do-in-xemacs
-    (setq modeline-buffer-identification
-          (list
-           (if mh-modeline-glyph
-               (cons modeline-buffer-id-left-extent mh-modeline-glyph)
-             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
-           (cons modeline-buffer-id-right-extent " %17b")))))
+  (mh--with-image-load-path
+    (add-text-properties
+     0 2
+     `(display ,(or mh-logo-cache
+                    (setq mh-logo-cache
+                          (mh-funcall-if-exists
+                           find-image '(( :type xpm :ascent center
+                                          :file "mh-logo.xpm" ))))))
+     (car mode-line-buffer-identification))))
 
 
 
@@ -509,8 +505,8 @@ they will not be returned."
     ;; folder is specified, ensure it is nil to avoid adding the
     ;; folder to the folder-list and adding a slash to it.
     (when folder
-      (setq folder (mh-replace-regexp-in-string "^\\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
+      (setq folder (replace-regexp-in-string "^\\+" "" folder))
+      (setq folder (replace-regexp-in-string "/+$" "" folder))
       (if (equal folder "")
           (setq folder nil)))
     ;; Add provided folder to list, unless all folders are asked for.
@@ -573,10 +569,10 @@ Expects FOLDER to have already been normalized with
       (apply #'call-process arg-list)
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
-        (goto-char (mh-line-end-position))
-        (let ((start-pos (mh-line-beginning-position))
+        (goto-char (line-end-position))
+        (let ((start-pos (line-beginning-position))
               (has-pos (search-backward " has "
-                                        (mh-line-beginning-position) t)))
+                                        (line-beginning-position) t)))
           (when (integerp has-pos)
             (while (equal (char-after has-pos) ? )
               (cl-decf has-pos))
@@ -591,7 +587,7 @@ Expects FOLDER to have already been normalized with
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
-                       (search-forward "(others)" (mh-line-end-position) t))
+                       (search-forward "(others)" (line-end-position) t))
                  results))))
           (forward-line 1))))
     (setq results (nreverse results))
@@ -727,16 +723,12 @@ See Info node `(elisp) Programmed Completion' for details."
                    ((equal path mh-user-path) nil)
                    (t (file-directory-p path))))))))
 
-;; Shush compiler.
-(defvar completion-root-regexp) ;; Apparently used in XEmacs
-
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.
 If ALLOW-ROOT-FOLDER-FLAG is non-nil then \"+\" is allowed to be
 a folder name corresponding to `mh-user-path'."
   (mh-normalize-folder-name
-   (let ((completion-root-regexp "^[+/]") ;FIXME: Who/what uses that?
-         (minibuffer-local-completion-map mh-folder-completion-map)
+   (let ((minibuffer-local-completion-map mh-folder-completion-map)
          (mh-allow-root-folder-flag allow-root-folder-flag))
      (completing-read prompt 'mh-folder-completion-function nil nil nil
                       'mh-folder-hist default))
@@ -920,11 +912,7 @@ Handle RFC 822 (or later) continuation lines."
 
 (defvar mh-hidden-header-keymap
   (let ((map (make-sparse-keymap)))
-    (mh-do-in-gnu-emacs
-      (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button))
-    (mh-do-in-xemacs
-      (define-key map '(button2)
-        #'mh-letter-toggle-header-field-display-button))
+    (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button)
     map))
 
 ;;;###mh-autoload
@@ -958,9 +946,9 @@ is hidden, if positive then the field is displayed."
                      (and (numberp arg)
                           (>= arg 0))
                      (and (eq arg 'long)
-                          (> (mh-line-beginning-position 5) end)))
+                          (> (line-beginning-position 5) end)))
                  (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (mh-line-end-position) t)
+                 (search-forward ":" (line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
                 ;; XXX Redesign to make usable by user. Perhaps use a positive
                 ;; numeric prefix to make that many lines visible.

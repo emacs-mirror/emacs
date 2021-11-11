@@ -218,6 +218,23 @@ in the environment list of the selected frame."
       (message "%s" (if value value "Not set")))
     value))
 
+;;;###autoload
+(defmacro with-environment-variables (variables &rest body)
+  "Set VARIABLES in the environent and execute BODY.
+VARIABLES is a list of variable settings of the form (VAR VALUE),
+where VAR is the name of the variable (a string) and VALUE
+is its value (also a string).
+
+The previous values will be be restored upon exit."
+  (declare (indent 1) (debug (sexp body)))
+  (unless (consp variables)
+    (error "Invalid VARIABLES: %s" variables))
+  `(let ((process-environment (copy-sequence process-environment)))
+     ,@(mapcar (lambda (elem)
+                 `(setenv ,(car elem) ,(cadr elem)))
+               variables)
+     ,@body))
+
 (provide 'env)
 
 ;;; env.el ends here

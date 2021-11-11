@@ -21,7 +21,8 @@
 
 ;;; Code:
 
-
+(require 'ert)
+(require 'ert-x)
 (require 'viper)
 
 (defun viper-test-undo-kmacro (kmacro)
@@ -30,47 +31,42 @@
 This function makes as many attempts as possible to clean up
 after itself, although it will leave a buffer called
 *viper-test-buffer* if it fails (this is deliberate!)."
-  (let (
-        ;; Viper just turns itself off during batch use.
-        (noninteractive nil)
-        ;; Switch off start up message or it will chew the key presses.
-        (viper-inhibit-startup-message 't)
-        ;; Select an expert-level for the same reason.
-        (viper-expert-level 5)
-        ;; viper loads this even with -q so make sure it's empty!
-        (viper-custom-file-name (make-temp-file "viper-tests" nil ".elc"))
-        (before-buffer (current-buffer)))
-    (unwind-protect
-        (progn
-          ;; viper-mode is essentially global, so set it here.
-          (viper-mode)
-          ;; We must switch to buffer because we are using a keyboard macro
-          ;; which appears to not go to the current-buffer but what ever is
-          ;; currently taking keyboard events. We use a named buffer because
-          ;; then we can see what it in it if it all goes wrong.
-          (switch-to-buffer
-           (get-buffer-create
-            "*viper-test-buffer*"))
-          (erase-buffer)
-          ;; The new buffer fails to enter vi state so set it.
-          (viper-change-state-to-vi)
-          ;; Run the macro.
-          (execute-kbd-macro kmacro)
-          (let ((rtn
-                 (buffer-substring-no-properties
-                  (point-min)
-                  (point-max))))
-            ;; Kill the buffer iff the macro succeeds.
-            (kill-buffer)
-            rtn))
-      ;; Switch everything off and restore the buffer.
-      (toggle-viper-mode)
-      (delete-file viper-custom-file-name)
-      (switch-to-buffer before-buffer))))
-
-(ert-deftest viper-test-go ()
-  "Test that this file is running."
-  (should t))
+  (ert-with-temp-file viper-custom-file-name
+    ;; viper loads this even with -q so make sure it's empty!
+    :prefix "emacs-viper-tests" :suffix ".elc"
+    (let (;; Viper just turns itself off during batch use.
+          (noninteractive nil)
+          ;; Switch off start up message or it will chew the key presses.
+          (viper-inhibit-startup-message 't)
+          ;; Select an expert-level for the same reason.
+          (viper-expert-level 5)
+          (before-buffer (current-buffer)))
+      (unwind-protect
+          (progn
+            ;; viper-mode is essentially global, so set it here.
+            (viper-mode)
+            ;; We must switch to buffer because we are using a keyboard macro
+            ;; which appears to not go to the current-buffer but what ever is
+            ;; currently taking keyboard events. We use a named buffer because
+            ;; then we can see what it in it if it all goes wrong.
+            (switch-to-buffer
+             (get-buffer-create
+              "*viper-test-buffer*"))
+            (erase-buffer)
+            ;; The new buffer fails to enter vi state so set it.
+            (viper-change-state-to-vi)
+            ;; Run the macro.
+            (execute-kbd-macro kmacro)
+            (let ((rtn
+                   (buffer-substring-no-properties
+                    (point-min)
+                    (point-max))))
+              ;; Kill the buffer iff the macro succeeds.
+              (kill-buffer)
+              rtn))
+        ;; Switch everything off and restore the buffer.
+        (toggle-viper-mode)
+        (switch-to-buffer before-buffer)))))
 
 (ert-deftest viper-test-fix ()
   "Test that the viper kmacro fixture is working."

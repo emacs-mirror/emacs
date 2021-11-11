@@ -97,7 +97,11 @@ sure to call the following command:
   :group 'org-agenda
   :version "26.1"
   :package-version '(Org . "9.1")
-  :set (lambda (var val) (set-default var val) (org-duration-set-regexps))
+  :set (lambda (var val)
+         (set-default var val)
+         ;; Avoid recursive load at startup.
+	 (when (featurep 'org-duration)
+           (org-duration-set-regexps)))
   :initialize 'custom-initialize-changed
   :type '(choice
 	  (const :tag "H:MM" h:mm)

@@ -549,13 +549,14 @@ encode_terminal_code (struct glyph *src, int src_len,
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp UNINIT;
+	  struct composition *cmp;
 	  Lisp_Object gstring UNINIT;
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
 	  if (src->u.cmp.automatic)
 	    {
+	      cmp = NULL;
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
 	      required = src->slice.cmp.to - src->slice.cmp.from + 1;
 	    }
@@ -575,7 +576,7 @@ encode_terminal_code (struct glyph *src, int src_len,
 	      buf = encode_terminal_src + nbytes;
 	    }
 
-	  if (src->u.cmp.automatic)
+	  if (!cmp)
 	    for (i = src->slice.cmp.from; i <= src->slice.cmp.to; i++)
 	      {
 		Lisp_Object g = LGSTRING_GLYPH (gstring, i);

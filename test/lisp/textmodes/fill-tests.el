@@ -76,6 +76,28 @@
                (buffer-string)
                "aaa =   baaaaaaaa aaaaaaaaaa\n         aaaaaaaaaa\n")))))
 
+(ert-deftest test-fill-end-period ()
+  (should
+   (equal
+    (with-temp-buffer
+      (text-mode)
+      (auto-fill-mode)
+      (insert "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eius.")
+      (self-insert-command 1 ?\s)
+      (buffer-string))
+    "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eius. "))
+  (should
+   (equal
+    (with-temp-buffer
+      (text-mode)
+      (auto-fill-mode)
+      (insert "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eius.Foo")
+      (forward-char -3)
+      (self-insert-command 1 ?\s)
+      (buffer-string))
+    "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
+eius. Foo")))
+
 (provide 'fill-tests)
 
 ;;; fill-tests.el ends here

@@ -49,7 +49,7 @@
 ;;
 ;; Ewoc is a package that implements a connection between an
 ;; dll (a doubly linked list) and the contents of a buffer.
-;; Possible uses are dired (have all files in a list, and show them),
+;; Possible uses are Dired (have all files in a list, and show them),
 ;; buffer-list, kom-prioritize (in the LysKOM elisp client) and
 ;; others.  pcl-cvs.el and vc.el use ewoc.el.
 ;;
@@ -381,7 +381,7 @@ arguments will be passed to MAP-FUNCTION."
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
-Note that the buffer for EWOC will be current-buffer when PREDICATE
+Note that the buffer for EWOC will be the current buffer when PREDICATE
 is called.  PREDICATE must restore the current buffer before it returns
 if it changes it.
 The PREDICATE is called with the element as its first argument.  If any

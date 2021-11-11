@@ -3325,7 +3325,7 @@ It reads a file name from an editable text field."
 ;;;	 (file (file-name-nondirectory value))
 ;;;	 (menu-tag (widget-apply widget :menu-tag-get))
 ;;;	 (must-match (widget-get widget :must-match))
-;;;	 (answer (read-file-name (concat menu-tag " (default " value "): ")
+;;;	 (answer (read-file-name (format-prompt menu-tag value)
 ;;;				 dir nil must-match file)))
 ;;;    (widget-value-set widget (abbreviate-file-name answer))
 ;;;    (widget-setup)
@@ -3643,6 +3643,13 @@ match-alternatives: %S"
   :value 0
   :type-error "This field should contain an integer"
   :match-alternatives '(integerp))
+
+(define-widget 'natnum 'restricted-sexp
+  "A nonnegative integer."
+  :tag "Integer (positive or zero)"
+  :value 0
+  :type-error "This field should contain a nonnegative integer"
+  :match-alternatives '(natnump))
 
 (define-widget 'number 'restricted-sexp
   "A number (floating point or integer)."

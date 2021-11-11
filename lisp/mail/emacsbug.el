@@ -426,7 +426,7 @@ usually do not have translators for other languages.\n\n")))
     (with-output-to-temp-buffer "*Bug Help*"
       (princ (substitute-command-keys
               (format "\
-You invoked the command M-x report-emacs-bug,
+You invoked the command \\[report-emacs-bug],
 but you decided not to mail the bug report to the Emacs maintainers.
 
 If you want to mail it to someone else instead,

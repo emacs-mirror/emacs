@@ -1209,8 +1209,8 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
 	  (ps-output-prologue (format "ETOP%d %d %d put\n" i (car font) index))
 	  (setq index (1+ index))))
       (ps-output-prologue (format "/VTOP%d [%s] def\n" i
-				  (mapconcat #'(lambda (x)
-						 (format "F%02X" (cdr x)))
+                                  (mapconcat (lambda (x)
+                                               (format "F%02X" (cdr x)))
 					     font-list " ")))))
 
   ;; Redefine fonts f0, f1, f2, f3, h0, h1, H0.

@@ -86,8 +86,8 @@ delimiter for you (@pxref{Matching,,Matching Parens}).
 @anchor{Glossary---Balanced Expression}
 @item Balanced Expressions
 A balanced expression is a syntactically recognizable expression, such
-as a symbol, number, string constant, block, or parenthesized expression
-in C@.  @xref{Expressions,Balanced Expressions}.
+as a symbol (q.v.@:), number, string constant, block, or parenthesized
+expression in C@.  @xref{Expressions,Balanced Expressions}.
 
 @item Balloon Help
 @xref{Glossary---Tooltips}.
@@ -238,7 +238,7 @@ a key binding in Emacs or to be invoked by its name
 
 @anchor{Glossary---Command Name}
 @item Command Name
-A command name is the name of a Lisp symbol that is a command
+A command name is the name of a Lisp symbol (q.v.@:) that is a command
 (@pxref{Commands}).  You can invoke any command by its name using
 @kbd{M-x} (@pxref{M-x,M-x,Running Commands by Name}).
 
@@ -1113,7 +1113,7 @@ Emacs.  @xref{Query Replace}.
 @anchor{Glossary---Quitting}
 @item Quitting
 Quitting means canceling a partially typed command or a running
-command, using @kbd{C-g} (or @kbd{C-@key{BREAK}} on MS-DOS).  @xref{Quitting}.
+command, using @kbd{C-g} (or @kbd{C-@key{Break}} on MS-DOS).  @xref{Quitting}.
 
 @item Quoting
 Quoting means depriving a character of its usual special significance.
@@ -1333,6 +1333,13 @@ allowed as well.
 
 @item String Substitution
 @xref{Glossary---Global Substitution}.
+
+@item Symbol
+A symbol in Emacs Lisp is an object with a name.  The object can be a
+variable (q.v.@:), a function or command (q.v.@:), or a face (q.v.@:).
+The symbol's name serves as the printed representation of the symbol.
+@xref{Symbol Type,, Symbol Type, elisp, The Emacs Lisp Reference
+Manual}.
 
 @item Syntax Highlighting
 @xref{Glossary---Font Lock}.

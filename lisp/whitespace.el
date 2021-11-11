@@ -1687,32 +1687,32 @@ cleaning up these problems."
                        (or whitespace-active-style whitespace-style)))
            (bogus-list
             (mapcar
-             #'(lambda (option)
-                 (when force
-                   (push (car option) style))
-                 (goto-char rstart)
-                 (let ((regexp
-                        (cond
-                         ((eq (car option) 'indentation)
-                          (whitespace-indentation-regexp))
-                         ((eq (car option) 'indentation::tab)
-                          (whitespace-indentation-regexp 'tab))
-                         ((eq (car option) 'indentation::space)
-                          (whitespace-indentation-regexp 'space))
-                         ((eq (car option) 'space-after-tab)
-                          (whitespace-space-after-tab-regexp))
-                         ((eq (car option) 'space-after-tab::tab)
-                          (whitespace-space-after-tab-regexp 'tab))
-                         ((eq (car option) 'space-after-tab::space)
-                          (whitespace-space-after-tab-regexp 'space))
-                         ((eq (car option) 'missing-newline-at-eof)
-                          "[^\n]\\'")
-                         (t
-                          (cdr option)))))
-                   (when (re-search-forward regexp rend t)
-                     (unless has-bogus
-                       (setq has-bogus (memq (car option) style)))
-                     t)))
+             (lambda (option)
+               (when force
+                 (push (car option) style))
+               (goto-char rstart)
+               (let ((regexp
+                      (cond
+                       ((eq (car option) 'indentation)
+                        (whitespace-indentation-regexp))
+                       ((eq (car option) 'indentation::tab)
+                        (whitespace-indentation-regexp 'tab))
+                       ((eq (car option) 'indentation::space)
+                        (whitespace-indentation-regexp 'space))
+                       ((eq (car option) 'space-after-tab)
+                        (whitespace-space-after-tab-regexp))
+                       ((eq (car option) 'space-after-tab::tab)
+                        (whitespace-space-after-tab-regexp 'tab))
+                       ((eq (car option) 'space-after-tab::space)
+                        (whitespace-space-after-tab-regexp 'space))
+                       ((eq (car option) 'missing-newline-at-eof)
+                        "[^\n]\\'")
+                       (t
+                        (cdr option)))))
+                 (when (re-search-forward regexp rend t)
+                   (unless has-bogus
+                     (setq has-bogus (memq (car option) style)))
+                   t)))
              whitespace-report-list)))
       (when (pcase report-if-bogus ('nil t) ('never nil) (_ has-bogus))
         (whitespace-kill-buffer whitespace-report-buffer-name)
@@ -2193,8 +2193,7 @@ resultant list will be returned."
    limit t))
 
 (defun whitespace-empty-at-bob-regexp (limit)
-  "Match spaces at beginning of buffer which do not contain the point at \
-beginning of buffer."
+  "Match spaces at beginning of buffer (BOB) which do not contain point at BOB."
   (let ((b (point))
 	r)
     (cond
@@ -2463,6 +2462,5 @@ It should be added buffer-locally to `write-file-functions'."
 (make-obsolete-variable 'whitespace-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 (run-hooks 'whitespace-load-hook)
-
 
 ;;; whitespace.el ends here

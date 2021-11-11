@@ -914,7 +914,7 @@ but should be good enough for debugging assertions."
 	   (null (car (cdr (car resultp)))))))
 
 (defun semanticdb-find-result-prin1-to-string (result)
-  "Presuming RESULT satisfies `semanticdb-find-results-p', provide a short PRIN1 output."
+  "If RESULT satisfies `semanticdb-find-results-p', provide a short PRIN1 output."
   (if (< (length result) 2)
       (concat "#<FIND RESULT "
 	      (mapconcat (lambda (a)

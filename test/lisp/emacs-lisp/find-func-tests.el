@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'ert-x)                        ;For `ert-run-keys'.
+(require 'ert-x)                        ;For `ert-simulate-keys'.
 (require 'find-func)
 
 (ert-deftest find-func-tests--library-completion () ;bug#43393

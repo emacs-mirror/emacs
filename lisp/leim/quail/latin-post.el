@@ -215,7 +215,15 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
   others     |    /    | s/ -> ß
 
 Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
-" nil t nil nil nil nil nil nil nil nil t)
+"
+ '(("\C-?" . quail-delete-last-char)
+   (">" . quail-next-translation)
+   ("\C-f" . quail-next-translation)
+   ([right] . quail-next-translation)
+   ("<" . quail-prev-translation)
+   ("\C-b" . quail-prev-translation)
+   ([left] . quail-prev-translation))
+ t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("A'" ?Á)
@@ -246,9 +254,9 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("R'" ?Ŕ)
  ("R~" ?Ř)
  ("S'" ?Ś)
- ("S," ?Ş)
+ ("S," "ŞȘ") ; the second variant is for Romanian
  ("S~" ?Š)
- ("T," ?Ţ)
+ ("T," "ŢȚ") ; the second variant is for Romanian
  ("T~" ?Ť)
  ("U'" ?Ú)
  ("U:" ?Ű)
@@ -286,10 +294,10 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("r'" ?ŕ)
  ("r~" ?ř)
  ("s'" ?ś)
- ("s," ?ş)
+ ("s," "şș") ; the second variant is for Romanian
  ("s/" ?ß)
  ("s~" ?š)
- ("t," ?ţ)
+ ("t," "ţț") ; the second variant is for Romanian
  ("t~" ?ť)
  ("u'" ?ú)
  ("u:" ?ű)

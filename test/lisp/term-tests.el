@@ -28,6 +28,65 @@
 (defvar term-height)                    ; Number of lines in window.
 (defvar term-width)                     ; Number of columns in window.
 
+(defvar yellow-fg-props
+  `( :foreground ,(face-foreground 'term-color-yellow nil 'default)
+     :background "unspecified-bg" :inverse-video nil))
+(defvar yellow-bg-props
+  `( :foreground "unspecified-fg"
+     :background ,(face-background 'term-color-yellow nil 'default)
+     :inverse-video nil))
+(defvar bright-yellow-fg-props
+  `( :foreground ,(face-foreground 'term-color-bright-yellow nil 'default)
+     :background "unspecified-bg" :inverse-video nil))
+(defvar bright-yellow-bg-props
+  `( :foreground "unspecified-fg"
+     :background ,(face-background 'term-color-bright-yellow nil 'default)
+     :inverse-video nil))
+(defvar custom-color-fg-props
+  `( :foreground "#87FFFF"
+     :background "unspecified-bg" :inverse-video nil))
+
+(defvar ansi-test-strings
+  `(("\e[33mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face `(,yellow-fg-props)))
+    ("\e[43mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face `(,yellow-bg-props)))
+    ("\e[93mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face `(,bright-yellow-fg-props)))
+    ("\e[103mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face `(,bright-yellow-bg-props)))
+    ("\e[1;33mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props term-bold)))
+    ("\e[33;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props term-bold)))
+    ("\e[1m\e[33mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props term-bold)))
+    ("\e[33m\e[1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props term-bold)))
+    ("\e[38;5;3;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,yellow-fg-props term-bold))
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,bright-yellow-fg-props term-bold)))
+    ("\e[38;5;123;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,custom-color-fg-props term-bold)))
+    ("\e[38;2;135;255;255;1mHello World\e[0m"
+     ,(propertize "Hello World" 'font-lock-face
+                  `(,custom-color-fg-props term-bold)))))
+
 (defun term-test-screen-from-input (width height input &optional return-var)
   (with-temp-buffer
     (term-mode)
@@ -48,7 +107,7 @@
                 (mapc (lambda (input) (term-emulate-terminal proc input)) input)
               (term-emulate-terminal proc input))
       (if return-var (buffer-local-value return-var (current-buffer))
-        (buffer-substring-no-properties (point-min) (point-max))))))
+        (buffer-substring (point-min) (point-max))))))
 
 (ert-deftest term-simple-lines ()
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))
@@ -76,6 +135,24 @@ first line\r_next line\r\n"))
            "\\`a\\{40\\}\na\\{20\\} *\\'"
            (term-test-screen-from-input 40 12 (let ((str (make-string 30 ?a)))
                                                 (list str str))))))
+
+(ert-deftest term-colors ()
+  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (pcase-dolist (`(,str ,expected) ansi-test-strings)
+    (let ((result (term-test-screen-from-input 40 12 str)))
+      (should (equal result expected))
+      (should (equal (text-properties-at 0 result)
+                     (text-properties-at 0 expected))))))
+
+(ert-deftest term-colors-bold-is-bright ()
+  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (let ((ansi-color-bold-is-bright t))
+    (pcase-dolist (`(,str ,expected ,bright-expected) ansi-test-strings)
+      (let ((expected (or bright-expected expected))
+            (result (term-test-screen-from-input 40 12 str)))
+        (should (equal result expected))
+        (should (equal (text-properties-at 0 result)
+                       (text-properties-at 0 expected)))))))
 
 (ert-deftest term-cursor-movement ()
   (skip-unless (not (memq system-type '(windows-nt ms-dos))))

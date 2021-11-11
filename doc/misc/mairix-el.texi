@@ -60,6 +60,8 @@ database.
 * Using::                       List of interactive functions
 * Extending::                   Support your favorite mail reader!
 * GNU Free Documentation License::  The license for this documentation.
+* Function Index:               Function Index.
+* Variable Index:               Variable Index.
 @end menu
 
 @node About
@@ -338,5 +340,15 @@ And that's it!
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
 @include doclicense.texi
+
+@node Function Index
+@unnumbered Function Index
+
+@printindex fn
+
+@node Variable Index
+@unnumbered Variable Index
+
+@printindex vr
 
 @bye

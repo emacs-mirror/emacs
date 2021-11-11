@@ -1610,7 +1610,8 @@ and a buffer *Authors Errors* containing references to unknown files."
       ;; the versioned ChangeLog.N rather than the unversioned ChangeLog.
       (zerop (call-process "make" nil nil nil
                            "-C" root "change-history-nocommit"))
-      (error "Problem updating ChangeLog, try \"C-u M-x authors RET\""))
+      (error (substitute-command-keys
+              "Problem updating ChangeLog, try \"\\[universal-argument] \\[authors]\"")))
   (let ((logs (process-lines find-program root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*")

@@ -536,8 +536,8 @@ struct glyph
     int img_id;
 
 #ifdef HAVE_XWIDGETS
-    /* Xwidget reference (type == XWIDGET_GLYPH).  */
-    struct xwidget *xwidget;
+    /* Xwidget ID.  */
+    uint32_t xwidget;
 #endif
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
@@ -1326,7 +1326,9 @@ struct glyph_string
   /* The area within row.  */
   enum glyph_row_area area;
 
-  /* Characters to be drawn, and number of characters.  */
+  /* Characters to be drawn, and number of characters.  Note that
+     NCHARS can be zero if this is a composition glyph string, as
+     evidenced by FIRST_GLYPH->type.  */
   unsigned *char2b;
   int nchars;
 
@@ -3160,7 +3162,7 @@ struct image_cache
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
-#define IMAGE_CACHE_BUCKETS_SIZE 1001
+#define IMAGE_CACHE_BUCKETS_SIZE 1009
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -3720,10 +3722,8 @@ extern Lisp_Object gui_default_parameter (struct frame *, Lisp_Object,
                                           const char *, const char *,
                                           enum resource_types);
 
-#ifndef HAVE_NS /* These both used on W32 and X only.  */
 extern bool gui_mouse_grabbed (Display_Info *);
 extern void gui_redo_mouse_highlight (Display_Info *);
-#endif /* HAVE_NS */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

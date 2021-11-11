@@ -44,7 +44,7 @@
   ;; 	(list 'or (list 'boundp (list 'car 'keywords))
   ;; 	  (list 'set (list 'car 'keywords) (list 'car 'keywords)))
   ;; 	(list 'setq 'keywords (list 'cdr 'keywords)))))
-  (declare (obsolete nil "27.1"))
+  (declare (obsolete nil "27.1") (indent defun))
   nil)
 
 ;;(define-widget-keywords :documentation-indent
@@ -83,7 +83,7 @@ create identical widgets:
 * (apply #\\='widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   ;;
   (unless (or (null doc) (stringp doc))
     (error "Widget documentation must be nil or a string"))

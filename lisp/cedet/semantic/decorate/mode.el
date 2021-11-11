@@ -391,6 +391,7 @@ etc., found in the semantic-decorate library.
 To add other kind of decorations on a tag, `NAME-highlight' must use
 `semantic-decorate-tag', and other functions of the semantic
 decoration API found in this library."
+  (declare (indent 1))
   (let ((predicate   (semantic-decorate-style-predicate   name))
         (highlighter (semantic-decorate-style-highlighter name))
 	(predicatedef   (semantic-decorate-style-predicate-default   name))
@@ -409,8 +410,11 @@ decoration API found in this library."
        ;; Create an override method to specify if a given tag belongs
        ;; to this type of decoration
        (define-overloadable-function ,predicate (tag)
-         ,(format "Return non-nil to decorate TAG with `%s' style.\n%s"
-                  name doc))
+         ,(concat
+           (internal--format-docstring-line
+            "Return non-nil to decorate TAG with `%s' style."
+            name)
+           "\n" doc))
        ;; Create an override method that will perform the highlight
        ;; operation if the -p method returns non-nil.
        (define-overloadable-function ,highlighter (tag)

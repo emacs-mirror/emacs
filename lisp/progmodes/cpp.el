@@ -702,11 +702,8 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 	  (x-popup-menu cpp-button-event
 			(list prompt (cons prompt cpp-face-default-list)))
 	(let ((name (car (rassq default cpp-face-default-list))))
-	  (cdr (assoc (completing-read (if name
-					   (concat prompt
-						   " (default " name "): ")
-					 (concat prompt ": "))
-				       cpp-face-default-list nil t)
+          (cdr (assoc (completing-read (format-prompt "%s" name prompt)
+                                       cpp-face-default-list nil t)
 		      cpp-face-all-list))))
       default))
 

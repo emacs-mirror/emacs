@@ -680,7 +680,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 (defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp
 						   &optional
 						   merge-autostore-dir)
-  "Merge files in directories DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
+  "Merge files in DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
 Ediff merges files that have identical names in DIR1, DIR2.  If a pair of files
 in DIR1 and DIR2 doesn't have an ancestor in ANCESTOR-DIR, Ediff will merge
 without ancestor.  The fourth argument, REGEXP, is nil or a regular expression;
@@ -746,7 +746,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 (defun ediff-merge-directory-revisions-with-ancestor (dir1 regexp
 							   &optional
 							   merge-autostore-dir)
-  "Run Ediff on a directory, DIR1, merging its files with their revisions and ancestors.
+  "Run Ediff on DIR1 and merge its files with their revisions and ancestors.
 The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
@@ -1600,7 +1600,7 @@ With optional NODE, goes to that node."
 
 ;;;###autoload
 (defun ediff-merge-with-ancestor-command ()
-  "Call `ediff-merge-files-with-ancestor' with the next three command line arguments."
+  "Call `ediff-merge-files-with-ancestor' with next three command line arguments."
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
 	(ancestor (nth 2 command-line-args-left)))
@@ -1637,7 +1637,8 @@ With optional NODE, goes to that node."
 
 ;;;###autoload
 (defun ediff-merge-directories-with-ancestor-command ()
-  "Call `ediff-merge-directories-with-ancestor' with the next four command line arguments."
+  "Call `ediff-merge-directories-with-ancestor' with the next four command line
+arguments."
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
 	(ancestor (nth 2 command-line-args-left))

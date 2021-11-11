@@ -157,7 +157,9 @@
 	(armenian #x531)
 	(hebrew #x5D0)
 	(vai #xA500)
-	(arabic #x628)
+        ;; U+06C1 prevents us from using bad fonts, like DejaVu Sans,
+        ;; for Arabic text.
+	(arabic #x628 #x6C1)
 	(syriac #x710)
 	(thaana #x78C)
 	(devanagari #x915)
@@ -279,7 +281,7 @@
 	(ottoman-siyaq-number #x1ed01)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)
-        (emoji #x1F300 #x1F600 #xFE0F)))
+        (emoji #x1F300 #x1F600)))
 
 (defvar otf-script-alist)
 
@@ -814,11 +816,16 @@
 			   (#x1D7EC #x1D7F5 mathematical-sans-serif-bold)
 			   (#x1D7F6 #x1D7FF mathematical-monospace)))
     (let ((slot (assq (nth 2 math-subgroup) script-representative-chars)))
+      ;; Add both ends of each subgroup to help filter out some
+      ;; incomplete fonts, e.g. those that cover MATHEMATICAL SCRIPT
+      ;; CAPITAL glyphs but not MATHEMATICAL SCRIPT SMALL ones.
       (if slot
-	  (if (vectorp (cdr slot))
-	      (setcdr slot (vconcat (cdr slot) (vector (car math-subgroup))))
-	    (setcdr slot (vector (cadr slot) (car math-subgroup))))
-	(setq slot (list (nth 2 math-subgroup) (car math-subgroup)))
+          (setcdr slot (append (list (nth 0 math-subgroup)
+                                     (nth 1 math-subgroup))
+                               (cdr slot)))
+        (setq slot (list (nth 2 math-subgroup)
+                         (nth 0 math-subgroup)
+                         (nth 1 math-subgroup)))
 	(nconc script-representative-chars (list slot))))
     (set-fontset-font
      "fontset-default"

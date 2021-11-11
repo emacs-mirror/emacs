@@ -66,18 +66,15 @@ of time."
 ;;; Gnus Kill File Mode
 ;;;
 
-(defvar gnus-kill-file-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map emacs-lisp-mode-map)
-    (gnus-define-keymap map
-      "\C-c\C-k\C-s" gnus-kill-file-kill-by-subject
-      "\C-c\C-k\C-a" gnus-kill-file-kill-by-author
-      "\C-c\C-k\C-t" gnus-kill-file-kill-by-thread
-      "\C-c\C-k\C-x" gnus-kill-file-kill-by-xref
-      "\C-c\C-a" gnus-kill-file-apply-buffer
-      "\C-c\C-e" gnus-kill-file-apply-last-sexp
-      "\C-c\C-c" gnus-kill-file-exit)
-    map))
+(defvar-keymap gnus-kill-file-mode-map
+  :parent emacs-lisp-mode-map
+  "\C-c\C-k\C-s" #'gnus-kill-file-kill-by-subject
+  "\C-c\C-k\C-a" #'gnus-kill-file-kill-by-author
+  "\C-c\C-k\C-t" #'gnus-kill-file-kill-by-thread
+  "\C-c\C-k\C-x" #'gnus-kill-file-kill-by-xref
+  "\C-c\C-a" #'gnus-kill-file-apply-buffer
+  "\C-c\C-e" #'gnus-kill-file-apply-last-sexp
+  "\C-c\C-c" #'gnus-kill-file-exit)
 
 (define-derived-mode gnus-kill-file-mode emacs-lisp-mode "Kill"
   "Major mode for editing kill files.

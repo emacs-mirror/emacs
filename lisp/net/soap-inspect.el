@@ -114,7 +114,7 @@ This is a specialization of `soap-sample-value' for
    (cond
     ((soap-xs-simple-type-enumeration type)
      (let ((enumeration (soap-xs-simple-type-enumeration type)))
-       (nth (random (length enumeration)) enumeration)))
+       (and enumeration (seq-random-elt enumeration))))
     ((soap-xs-simple-type-pattern type)
      (format "a string matching %s" (soap-xs-simple-type-pattern type)))
     ((soap-xs-simple-type-length-range type)
@@ -134,7 +134,7 @@ This is a specialization of `soap-sample-value' for
         (t (random 100)))))
     ((consp (soap-xs-simple-type-base type)) ; an union of values
      (let ((base (soap-xs-simple-type-base type)))
-       (soap-sample-value (nth (random (length base)) base))))
+       (soap-sample-value (and base (seq-random-elt base)))))
     ((soap-xs-basic-type-p (soap-xs-simple-type-base type))
      (soap-sample-value (soap-xs-simple-type-base type))))))
 
@@ -220,7 +220,7 @@ to its sub elements.  If ELEMENT is the WSDL document itself, the
 entire WSDL can be inspected."
   (let ((inspect (get (soap-type-of element) 'soap-inspect)))
     (unless inspect
-      (error "Soap-inspect: no inspector for element"))
+      (error "soap-inspect: No inspector for element"))
 
     (with-current-buffer (get-buffer-create "*soap-inspect*")
       (setq buffer-read-only t)

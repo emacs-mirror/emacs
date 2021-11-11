@@ -3539,8 +3539,8 @@ Treats actions as defuns."
               #'gdb-script-end-of-defun)
   (setq-local font-lock-defaults
               '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
-                (font-lock-syntactic-face-function
-                 . gdb-script-font-lock-syntactic-face)))
+                                              (font-lock-syntactic-face-function
+                                               . gdb-script-font-lock-syntactic-face)))
   ;; Recognize docstrings.
   (setq-local syntax-propertize-function
               gdb-script-syntax-propertize-function)

@@ -331,9 +331,7 @@ retried once before actually displaying the error report."
     (when nntp-record-commands
       (nntp-record-command "*** CALLED nntp-report ***"))
 
-    (nnheader-report 'nntp args)
-
-    (apply #'error args)))
+    (nnheader-report 'nntp args)))
 
 (defsubst nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."

@@ -221,6 +221,9 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(gnus-group-news-low-empty ((t (:foreground "DarkTurquoise"))))
  '(gnus-group-news-low-empty-face ((t (:foreground "DarkTurquoise"))))
 
+ ;; '(image-dired-thumb-flagged ((t (:background "red"))))
+ ;; '(image-dired-thumb-mark ((t (:background "Pink"))))
+
  ;;message faces
  '(message-cited-text ((t (:foreground "red3"))))
  '(message-header-cc ((t (:bold t :foreground "chartreuse1" :weight bold))))

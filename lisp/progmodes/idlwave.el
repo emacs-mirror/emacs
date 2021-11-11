@@ -245,7 +245,7 @@ would yield:
   :type 'boolean)
 
 (defcustom idlwave-indent-parens-nested nil
-  "Non-nil means, indent continuation lines with parens by nesting
+  "Non-nil means indent continuation lines with parens by nesting
 lines at consecutively deeper levels."
  :group 'idlwave-code-formatting
   :type 'boolean)
@@ -1522,7 +1522,8 @@ No spaces before and 1 after a comma
 A minimum of 1 space before and after `=' (see `idlwave-expand-equal').
    (idlwave-action-and-binding \"=\"  (lambda (_) (idlwave-expand-equal -1 -1)))
 Capitalize system variables - action only
-   (idlwave-action-and-binding idlwave-sysvar (lambda (_) (capitalize-word 1) t))"
+   (idlwave-action-and-binding idlwave-sysvar
+                               (lambda (_) (capitalize-word 1) t))"
   (if (not (equal select 'noaction))
       ;; Add action
       (let* ((table (if select 'idlwave-indent-action-table
@@ -7285,8 +7286,7 @@ The list is cached in `idlwave-class-info' for faster access."
 				   inherits))
 	    (if (> (cdr cl) 999)
 	      (error
-	       "Class scan: inheritance depth exceeded. Circular inheritance?")
-	      ))
+               "Class scan: inheritance depth exceeded.  Circular inheritance?")))
 	  (setq all-inherits (nreverse rtn))
 	  (nconc info (list (cons 'all-inherits all-inherits)))
 	  all-inherits))))))

@@ -144,7 +144,7 @@ displayed."
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
         (mh-display-msg msg folder)))
-    (unless (mh-window-full-height-p) ; not vertically split
+    (unless (window-full-height-p) ; not vertically split
       (shrink-window (- (window-height) (or mh-summary-height
                                             (mh-summary-height)))))
     (mh-recenter nil)
@@ -328,17 +328,15 @@ ignored if VISIBLE-HEADERS is non-nil."
 (defun mh-summary-height ()
   "Return ideal value for the variable `mh-summary-height'.
 The current frame height is taken into consideration."
-  (or (and (fboundp 'frame-height)
-           (> (frame-height) 24)
+  (or (and (> (frame-height) 24)
            (min 10 (/ (frame-height) 6)))
       4))
 
 
 
-;; Infrastructure to generate show-buffer functions from folder functions
-;; XEmacs does not have deactivate-mark? What is the equivalent of
-;; transient-mark-mode for XEmacs? Should we be restoring the mark in the
-;; folder buffer after the operation has been carried out.
+;; Infrastructure to generate show-buffer functions from folder functions.
+;; Should we be restoring the mark in the folder buffer after the
+;; operation has been carried out?
 (defmacro mh-defun-show-buffer (function original-function
                                          &optional dont-return)
   "Define FUNCTION to run ORIGINAL-FUNCTION in folder buffer.
@@ -363,11 +361,11 @@ still visible.\n")
                         folder-buffer)
            (delete-other-windows))
          (mh-goto-cur-msg t)
-         (mh-funcall-if-exists deactivate-mark)
+         (deactivate-mark)
          (unwind-protect
              (prog1 (call-interactively (function ,original-function))
                (setq normal-exit t))
-           (mh-funcall-if-exists deactivate-mark)
+           (deactivate-mark)
            (when (eq major-mode 'mh-folder-mode)
              (mh-funcall-if-exists hl-line-highlight))
            (cond ((not normal-exit)
@@ -464,8 +462,7 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-toggle-tick mh-toggle-tick)
 (mh-defun-show-buffer mh-show-narrow-to-tick mh-narrow-to-tick)
 (mh-defun-show-buffer mh-show-junk-allowlist mh-junk-allowlist)
-(mh-defun-show-buffer mh-show-junk-whitelist mh-junk-allowlist)
-(make-obsolete 'mh-show-junk-whitelist 'mh-show-junk-allowlist "28.1")
+(mh-defun-show-buffer mh-show-junk-whitelist mh-junk-whitelist)
 (mh-defun-show-buffer mh-show-junk-blocklist mh-junk-blocklist)
 (mh-defun-show-buffer mh-show-index-new-messages mh-index-new-messages)
 (mh-defun-show-buffer mh-show-index-ticked-messages mh-index-ticked-messages)
@@ -562,132 +559,132 @@ still visible.\n")
 
 ;;; MH-Show Keys
 
-(gnus-define-keys mh-show-mode-map
-  " "    mh-show-page-msg
-  "!"    mh-show-refile-or-write-again
-  "'"    mh-show-toggle-tick
-  ","    mh-show-header-display
-  "."    mh-show-show
-  ":"    mh-show-show-preferred-alternative
-  ">"    mh-show-write-message-to-file
-  "?"    mh-help
-  "E"    mh-show-extract-rejected-mail
-  "M"    mh-show-modify
-  "\177" mh-show-previous-page
-  "\C-d" mh-show-delete-msg-no-motion
-  "\t"   mh-show-next-button
-  [backtab] mh-show-prev-button
-  "\M-\t" mh-show-prev-button
-  "\ed"  mh-show-redistribute
-  "^"    mh-show-refile-msg
-  "c"    mh-show-copy-msg
-  "d"    mh-show-delete-msg
-  "e"    mh-show-edit-again
-  "f"    mh-show-forward
-  "g"    mh-show-goto-msg
-  "i"    mh-show-inc-folder
-  "k"    mh-show-delete-subject-or-thread
-  "m"    mh-show-send
-  "n"    mh-show-next-undeleted-msg
-  "\M-n" mh-show-next-unread-msg
-  "o"    mh-show-refile-msg
-  "p"    mh-show-previous-undeleted-msg
-  "\M-p" mh-show-previous-unread-msg
-  "q"    mh-show-quit
-  "r"    mh-show-reply
-  "s"    mh-show-send
-  "t"    mh-show-toggle-showing
-  "u"    mh-show-undo
-  "x"    mh-show-execute-commands
-  "v"    mh-show-index-visit-folder
-  "|"    mh-show-pipe-msg)
+(define-keymap :keymap mh-show-mode-map
+  " "    #'mh-show-page-msg
+  "!"    #'mh-show-refile-or-write-again
+  "'"    #'mh-show-toggle-tick
+  ","    #'mh-show-header-display
+  "."    #'mh-show-show
+  ":"    #'mh-show-show-preferred-alternative
+  ">"    #'mh-show-write-message-to-file
+  "?"    #'mh-help
+  "E"    #'mh-show-extract-rejected-mail
+  "M"    #'mh-show-modify
+  "\177" #'mh-show-previous-page
+  "\C-d" #'mh-show-delete-msg-no-motion
+  "\t"   #'mh-show-next-button
+  [backtab] #'mh-show-prev-button
+  "\M-\t" #'mh-show-prev-button
+  "\ed"  #'mh-show-redistribute
+  "^"    #'mh-show-refile-msg
+  "c"    #'mh-show-copy-msg
+  "d"    #'mh-show-delete-msg
+  "e"    #'mh-show-edit-again
+  "f"    #'mh-show-forward
+  "g"    #'mh-show-goto-msg
+  "i"    #'mh-show-inc-folder
+  "k"    #'mh-show-delete-subject-or-thread
+  "m"    #'mh-show-send
+  "n"    #'mh-show-next-undeleted-msg
+  "\M-n" #'mh-show-next-unread-msg
+  "o"    #'mh-show-refile-msg
+  "p"    #'mh-show-previous-undeleted-msg
+  "\M-p" #'mh-show-previous-unread-msg
+  "q"    #'mh-show-quit
+  "r"    #'mh-show-reply
+  "s"    #'mh-show-send
+  "t"    #'mh-show-toggle-showing
+  "u"    #'mh-show-undo
+  "x"    #'mh-show-execute-commands
+  "v"    #'mh-show-index-visit-folder
+  "|"    #'mh-show-pipe-msg
 
-(gnus-define-keys (mh-show-folder-map "F" mh-show-mode-map)
-  "?"    mh-prefix-help
-  "'"    mh-index-ticked-messages
-  "S"    mh-show-sort-folder
-  "c"    mh-show-catchup
-  "f"    mh-show-visit-folder
-  "k"    mh-show-kill-folder
-  "l"    mh-show-list-folders
-  "n"    mh-index-new-messages
-  "o"    mh-show-visit-folder
-  "p"    mh-show-pack-folder
-  "q"    mh-show-index-sequenced-messages
-  "r"    mh-show-rescan-folder
-  "s"    mh-search
-  "t"    mh-show-toggle-threads
-  "u"    mh-show-undo-folder
-  "v"    mh-show-visit-folder)
+  "F" (define-keymap :prefix 'mh-show-folder-map
+        "?"    #'mh-prefix-help
+        "'"    #'mh-index-ticked-messages
+        "S"    #'mh-show-sort-folder
+        "c"    #'mh-show-catchup
+        "f"    #'mh-show-visit-folder
+        "k"    #'mh-show-kill-folder
+        "l"    #'mh-show-list-folders
+        "n"    #'mh-index-new-messages
+        "o"    #'mh-show-visit-folder
+        "p"    #'mh-show-pack-folder
+        "q"    #'mh-show-index-sequenced-messages
+        "r"    #'mh-show-rescan-folder
+        "s"    #'mh-search
+        "t"    #'mh-show-toggle-threads
+        "u"    #'mh-show-undo-folder
+        "v"    #'mh-show-visit-folder)
 
-(gnus-define-keys (mh-show-sequence-map "S" mh-show-mode-map)
-  "'"    mh-show-narrow-to-tick
-  "?"    mh-prefix-help
-  "d"    mh-show-delete-msg-from-seq
-  "k"    mh-show-delete-seq
-  "l"    mh-show-list-sequences
-  "n"    mh-show-narrow-to-seq
-  "p"    mh-show-put-msg-in-seq
-  "s"    mh-show-msg-is-in-seq
-  "w"    mh-show-widen)
+  "S" (define-keymap :prefix 'mh-show-sequence-map
+        "'"    #'mh-show-narrow-to-tick
+        "?"    #'mh-prefix-help
+        "d"    #'mh-show-delete-msg-from-seq
+        "k"    #'mh-show-delete-seq
+        "l"    #'mh-show-list-sequences
+        "n"    #'mh-show-narrow-to-seq
+        "p"    #'mh-show-put-msg-in-seq
+        "s"    #'mh-show-msg-is-in-seq
+        "w"    #'mh-show-widen)
 
-(define-key mh-show-mode-map "I" mh-inc-spool-map)
+  "I" mh-inc-spool-map
 
-(gnus-define-keys (mh-show-junk-map "J" mh-show-mode-map)
-  "?"    mh-prefix-help
-  "a"    mh-show-junk-allowlist
-  "b"    mh-show-junk-blocklist
-  "w"    mh-show-junk-whitelist)
+  "J" (define-keymap :prefix 'mh-show-junk-map
+        "?"    #'mh-prefix-help
+        "a"    #'mh-show-junk-allowlist
+        "b"    #'mh-show-junk-blocklist
+        "w"    #'mh-show-junk-whitelist)
 
-(gnus-define-keys (mh-show-ps-print-map "P" mh-show-mode-map)
-  "?"   mh-prefix-help
-  "C"   mh-show-ps-print-toggle-color
-  "F"   mh-show-ps-print-toggle-faces
-  "f"   mh-show-ps-print-msg-file
-  "l"   mh-show-print-msg
-  "p"   mh-show-ps-print-msg)
+  "P" (define-keymap :prefix 'mh-show-ps-print-map
+        "?"   #'mh-prefix-help
+        "C"   #'mh-show-ps-print-toggle-color
+        "F"   #'mh-show-ps-print-toggle-faces
+        "f"   #'mh-show-ps-print-msg-file
+        "l"   #'mh-show-print-msg
+        "p"   #'mh-show-ps-print-msg)
 
-(gnus-define-keys (mh-show-thread-map "T" mh-show-mode-map)
-  "?"    mh-prefix-help
-  "u"    mh-show-thread-ancestor
-  "p"    mh-show-thread-previous-sibling
-  "n"    mh-show-thread-next-sibling
-  "t"    mh-show-toggle-threads
-  "d"    mh-show-thread-delete
-  "o"    mh-show-thread-refile)
+  "T" (define-keymap :prefix 'mh-show-thread-map
+        "?"    #'mh-prefix-help
+        "u"    #'mh-show-thread-ancestor
+        "p"    #'mh-show-thread-previous-sibling
+        "n"    #'mh-show-thread-next-sibling
+        "t"    #'mh-show-toggle-threads
+        "d"    #'mh-show-thread-delete
+        "o"    #'mh-show-thread-refile)
 
-(gnus-define-keys (mh-show-limit-map "/" mh-show-mode-map)
-  "'"    mh-show-narrow-to-tick
-  "?"    mh-prefix-help
-  "c"    mh-show-narrow-to-cc
-  "g"    mh-show-narrow-to-range
-  "m"    mh-show-narrow-to-from
-  "s"    mh-show-narrow-to-subject
-  "t"    mh-show-narrow-to-to
-  "w"    mh-show-widen)
+  "/" (define-keymap :prefix 'mh-show-limit-map
+        "'"    #'mh-show-narrow-to-tick
+        "?"    #'mh-prefix-help
+        "c"    #'mh-show-narrow-to-cc
+        "g"    #'mh-show-narrow-to-range
+        "m"    #'mh-show-narrow-to-from
+        "s"    #'mh-show-narrow-to-subject
+        "t"    #'mh-show-narrow-to-to
+        "w"    #'mh-show-widen)
 
-(gnus-define-keys (mh-show-extract-map "X" mh-show-mode-map)
-  "?"    mh-prefix-help
-  "s"    mh-show-store-msg
-  "u"    mh-show-store-msg)
+  "X" (define-keymap :prefix 'mh-show-extract-map
+        "?"    #'mh-prefix-help
+        "s"    #'mh-show-store-msg
+        "u"    #'mh-show-store-msg)
 
-(gnus-define-keys (mh-show-digest-map "D" mh-show-mode-map)
-  "?"    mh-prefix-help
-  " "    mh-show-page-digest
-  "\177" mh-show-page-digest-backwards
-  "b"    mh-show-burst-digest)
+  "D" (define-keymap :prefix 'mh-show-digest-map
+        "?"    #'mh-prefix-help
+        " "    #'mh-show-page-digest
+        "\177" #'mh-show-page-digest-backwards
+        "b"    #'mh-show-burst-digest)
 
-(gnus-define-keys (mh-show-mime-map "K" mh-show-mode-map)
-  "?"           mh-prefix-help
-  "a"           mh-mime-save-parts
-  "e"           mh-show-display-with-external-viewer
-  "v"           mh-show-toggle-mime-part
-  "o"           mh-show-save-mime-part
-  "i"           mh-show-inline-mime-part
-  "t"           mh-show-toggle-mime-buttons
-  "\t"          mh-show-next-button
-  [backtab]     mh-show-prev-button
-  "\M-\t"       mh-show-prev-button)
+  "K" (define-keymap :prefix 'mh-show-mime-map
+        "?"           #'mh-prefix-help
+        "a"           #'mh-mime-save-parts
+        "e"           #'mh-show-display-with-external-viewer
+        "v"           #'mh-show-toggle-mime-part
+        "o"           #'mh-show-save-mime-part
+        "i"           #'mh-show-inline-mime-part
+        "t"           #'mh-show-toggle-mime-buttons
+        "\t"          #'mh-show-next-button
+        [backtab]     #'mh-show-prev-button
+        "\M-\t"       #'mh-show-prev-button))
 
 
 
@@ -817,9 +814,6 @@ operation."
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
-;; Shush compiler.
-(defvar font-lock-auto-fontify)
-
 ;;;###mh-autoload
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
@@ -836,17 +830,14 @@ The hook `mh-show-mode-hook' is called upon entry to this mode.
 See also `mh-folder-mode'.
 
 \\{mh-show-mode-map}"
-  (mh-do-in-gnu-emacs
-   (if (boundp 'tool-bar-map)
-       (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)))
-  (mh-do-in-xemacs
-    (mh-tool-bar-init :show))
-  (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
+  (if (boundp 'tool-bar-map)
+      (setq-local tool-bar-map mh-show-tool-bar-map))
+  (setq-local mail-header-separator mh-mail-header-separator)
   (setq paragraph-start (default-value 'paragraph-start))
   (setq buffer-invisibility-spec '((vanish . t) t))
-  (set (make-local-variable 'line-move-ignore-invisible) t)
+  (setq-local line-move-ignore-invisible t)
   (make-local-variable 'font-lock-defaults)
-  ;;(set (make-local-variable 'font-lock-support-mode) nil)
+  ;;(setq-local font-lock-support-mode nil)
   (cond
    ((equal mh-highlight-citation-style 'font-lock)
     (setq font-lock-defaults '(mh-show-font-lock-keywords-with-cite t)))
@@ -858,16 +849,8 @@ See also `mh-folder-mode'.
     (mh-gnus-article-highlight-citation))
    (t
     (setq font-lock-defaults '(mh-show-font-lock-keywords t))))
-  (if (and (featurep 'xemacs)
-           font-lock-auto-fontify)
-      (turn-on-font-lock))
   (when mh-decode-mime-flag
-    (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook #'mh-mime-cleanup nil t))
-  (mh-do-in-xemacs
-    (easy-menu-add mh-show-sequence-menu)
-    (easy-menu-add mh-show-message-menu)
-    (easy-menu-add mh-show-folder-menu))
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)
   (use-local-map mh-show-mode-map))

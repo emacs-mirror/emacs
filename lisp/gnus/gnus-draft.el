@@ -33,15 +33,12 @@
 
 ;;; Draft minor mode
 
-(defvar gnus-draft-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-     "Dt" gnus-draft-toggle-sending
-     "e"  gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
-     "De" gnus-draft-edit-message
-     "Ds" gnus-draft-send-message
-     "DS" gnus-draft-send-all-messages)
-    map))
+(defvar-keymap gnus-draft-mode-map
+  "Dt" #'gnus-draft-toggle-sending
+  "e" #' gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
+  "De" #'gnus-draft-edit-message
+  "Ds" #'gnus-draft-send-message
+  "DS" #'gnus-draft-send-all-messages)
 
 (defun gnus-draft-make-menu-bar ()
   (unless (boundp 'gnus-draft-menu)

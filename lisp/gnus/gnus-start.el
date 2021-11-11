@@ -663,6 +663,7 @@ the first newsgroup."
 (defvar mail-sources)
 (defvar nnmail-scan-directory-mail-source-once)
 (defvar nnmail-split-history)
+(defvar gnus-save-newsrc-file-last-timestamp nil)
 
 (defun gnus-close-all-servers ()
   "Close all servers."
@@ -707,6 +708,7 @@ the first newsgroup."
 	gnus-current-select-method nil
 	nnmail-split-history nil
 	gnus-extended-servers nil
+        gnus-save-newsrc-file-last-timestamp nil
 	gnus-ephemeral-servers nil)
   (gnus-shutdown 'gnus)
   ;; Kill the startup file.
@@ -2731,7 +2733,6 @@ The form should return either t or nil."
       'msdos-long-file-names
       (lambda () t))))
 
-(defvar gnus-save-newsrc-file-last-timestamp nil)
 (defun gnus-save-newsrc-file (&optional force)
   "Save .newsrc file.
 Use the group string names in `gnus-group-list' to pull info
@@ -2934,7 +2935,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
     (nreverse olist)))
 
 (defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
-  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
+  (interactive (list (gnus-y-or-n-p "Write foreign groups too?")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((standard-output (current-buffer))

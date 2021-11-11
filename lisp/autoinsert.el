@@ -415,6 +415,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
   "Associate CONDITION with (additional) ACTION in `auto-insert-alist'.
 Optional AFTER means to insert action after all existing actions for CONDITION,
 or if CONDITION had no actions, after all other CONDITIONs."
+  (declare (indent defun))
   (let ((elt (assoc condition auto-insert-alist)))
     (if elt
 	(setcdr elt

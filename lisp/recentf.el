@@ -674,55 +674,55 @@ Return nil if file NAME is not one of the ten more recent."
   "Sort the list of menu elements L in ascending order.
 The MENU-ITEM part of each menu element is compared."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-string-lessp
-             (recentf-menu-element-item e1)
-             (recentf-menu-element-item e2)))))
+        (lambda (e1 e2)
+          (recentf-string-lessp
+           (recentf-menu-element-item e1)
+           (recentf-menu-element-item e2)))))
 
 (defsubst recentf-sort-descending (l)
   "Sort the list of menu elements L in descending order.
 The MENU-ITEM part of each menu element is compared."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-string-lessp
-             (recentf-menu-element-item e2)
-             (recentf-menu-element-item e1)))))
+        (lambda (e1 e2)
+          (recentf-string-lessp
+           (recentf-menu-element-item e2)
+           (recentf-menu-element-item e1)))))
 
 (defsubst recentf-sort-basenames-ascending (l)
   "Sort the list of menu elements L in ascending order.
 Only filenames sans directory are compared."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-string-lessp
-             (file-name-nondirectory (recentf-menu-element-value e1))
-             (file-name-nondirectory (recentf-menu-element-value e2))))))
+        (lambda (e1 e2)
+          (recentf-string-lessp
+           (file-name-nondirectory (recentf-menu-element-value e1))
+           (file-name-nondirectory (recentf-menu-element-value e2))))))
 
 (defsubst recentf-sort-basenames-descending (l)
   "Sort the list of menu elements L in descending order.
 Only filenames sans directory are compared."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-string-lessp
-             (file-name-nondirectory (recentf-menu-element-value e2))
-             (file-name-nondirectory (recentf-menu-element-value e1))))))
+        (lambda (e1 e2)
+          (recentf-string-lessp
+           (file-name-nondirectory (recentf-menu-element-value e2))
+           (file-name-nondirectory (recentf-menu-element-value e1))))))
 
 (defsubst recentf-sort-directories-ascending (l)
   "Sort the list of menu elements L in ascending order.
 Compares directories then filenames to order the list."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-directory-compare
-             (recentf-menu-element-value e1)
-             (recentf-menu-element-value e2)))))
+        (lambda (e1 e2)
+          (recentf-directory-compare
+           (recentf-menu-element-value e1)
+           (recentf-menu-element-value e2)))))
 
 (defsubst recentf-sort-directories-descending (l)
   "Sort the list of menu elements L in descending order.
 Compares directories then filenames to order the list."
   (sort (copy-sequence l)
-        #'(lambda (e1 e2)
-            (recentf-directory-compare
-             (recentf-menu-element-value e2)
-             (recentf-menu-element-value e1)))))
+        (lambda (e1 e2)
+          (recentf-directory-compare
+           (recentf-menu-element-value e2)
+           (recentf-menu-element-value e1)))))
 
 (defun recentf-show-basenames (l &optional no-dir)
   "Filter the list of menu elements L to show filenames sans directory.
@@ -1122,8 +1122,9 @@ IGNORE arguments."
     (setq-local recentf-edit-list nil)
     (widget-insert
      (format-message
-      "Click on OK to delete selected files from the recent list.
-Click on Cancel or type `q' to cancel.\n"))
+      (substitute-command-keys
+       "Click on OK to delete selected files from the recent list.
+Click on Cancel or type \\[recentf-cancel-dialog] to cancel.\n")))
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
       (widget-create 'checkbox
@@ -1221,7 +1222,8 @@ use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
                        ", or type the corresponding digit key,"
                      "")
                    " to open it.\n"
-                   (format-message "Click on Cancel or type `q' to cancel.\n"))
+                   (substitute-command-keys
+                    "Click on Cancel or type \\[recentf-cancel-dialog] to cancel.\n"))
     ;; Use a L&F that looks like the recentf menu.
     (tree-widget-set-theme "folder")
     (apply #'widget-create
@@ -1380,5 +1382,5 @@ buffers you switch to a lot, you can say something like the following:
 (provide 'recentf)
 
 (run-hooks 'recentf-load-hook)
-
+
 ;;; recentf.el ends here

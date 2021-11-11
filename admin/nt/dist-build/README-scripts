@@ -3,6 +3,15 @@ Distribution Build Scripts for Windows
 
 The scripts are used to build the binary distribution zip files for windows.
 
+Environment
+-----------
+
+A full installation of msys2 is required along for the build. The
+various dependencies of Emacs need to be installed also. These change
+over time, but are listed in build-deps-zips.py.
+
+
+
 File System Organization
 ------------------------
 
@@ -15,15 +24,19 @@ The file system needs to be organized like so:
 
 ~/emacs-build/git
 
-Contains a checkout of the Emacs git repository, organized according
-to branches, with git worktree
+Contains checkouts and worktrees of the Emacs git repository,
+organized according to branches.
 
-~/emacs-build/git/emacs-$branch
+~/emacs-build/git/master
 
-A branch of the git repository containing the current release
+A checkout out of the master branch of the Emacs git repository.
+
+~/emacs-build/git/emacs-$major-version
+
+A worktree of the git repository containing the current release
 branch. This has to be created by hand.
 
-~/emacs-build/git/emacs-$version
+~/emacs-build/git/emacs-$release-version
 
 A branch of the git repository containing the last release. The
 build-zips.sh file will create this for you.
@@ -63,8 +76,8 @@ uploaded.
 Build Process
 -------------
 
-For each major version
-----------------------
+
+### For each major version
 
 The dependencies files need to be created. This can be around the time
 of the pre-tests, then used for all releases of that version, to
@@ -88,8 +101,7 @@ files will be created in ~/emacs-upload from where they can be signed
 and uploaded with `gnupload`.
 
 
-For snapshots from Master
--------------------------
+### For snapshots from Master
 
 Snapshots are generally created from master when there is a release
 branch on which a release has already been created. At this point,
@@ -110,8 +122,7 @@ used.
 Now, run `build-zips.sh -s` to build a snapshot release.
 
 
-For snapshots from a Release Branch
------------------------------------
+### For snapshots from a Release Branch
 
 Snapshots can be built from a release branch; this is really only
 useful before a pre-test has happened.
@@ -123,8 +134,8 @@ version number must be added to the command line with `build-zips.sh
 the version (e.g emacs-27-2019-12-26.zip) rather than than the Emacs
 version (e.g emacs-27.0.50.zip).
 
-For snapshots from another branch
----------------------------------
+
+### For snapshots from another branch
 
 Snapshots can be build from any other branch.  There is rarely a need
 to do this, except where some significant, wide-ranging feature is

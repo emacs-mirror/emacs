@@ -86,41 +86,33 @@
   message parent children
   (real-child-p t))
 
-(defvar mh-thread-id-hash nil
+(defvar-local mh-thread-id-hash nil
   "Hash table used to canonicalize message identifiers.")
-(make-variable-buffer-local 'mh-thread-id-hash)
 
-(defvar mh-thread-subject-hash nil
+(defvar-local mh-thread-subject-hash nil
   "Hash table used to canonicalize subject strings.")
-(make-variable-buffer-local 'mh-thread-subject-hash)
 
-(defvar mh-thread-id-table nil
+(defvar-local mh-thread-id-table nil
   "Thread ID table maps from message identifiers to message containers.")
-(make-variable-buffer-local 'mh-thread-id-table)
 
-(defvar mh-thread-index-id-map nil
+(defvar-local mh-thread-index-id-map nil
   "Table to look up message identifier from message index.")
-(make-variable-buffer-local 'mh-thread-index-id-map)
 
-(defvar mh-thread-id-index-map nil
+(defvar-local mh-thread-id-index-map nil
   "Table to look up message index number from message identifier.")
-(make-variable-buffer-local 'mh-thread-id-index-map)
 
-(defvar mh-thread-subject-container-hash nil
+(defvar-local mh-thread-subject-container-hash nil
   "Hash table used to group messages by subject.")
-(make-variable-buffer-local 'mh-thread-subject-container-hash)
 
-(defvar mh-thread-duplicates nil
+(defvar-local mh-thread-duplicates nil
   "Hash table used to associate messages with the same message identifier.")
-(make-variable-buffer-local 'mh-thread-duplicates)
 
-(defvar mh-thread-history ()
+(defvar-local mh-thread-history ()
   "Variable to remember the transformations to the thread tree.
 When new messages are added, these transformations are rewound,
 then the links are added from the newly seen messages. Finally
 the transformations are redone to get the new thread tree. This
 makes incremental threading easier.")
-(make-variable-buffer-local 'mh-thread-history)
 
 (defvar mh-thread-body-width nil
   "Width of scan substring that contains subject and body of message.")
@@ -294,7 +286,7 @@ at the end."
         (while (not (eobp))
           (forward-char address-start-offset)
           (unless (equal (string-match spaces (buffer-substring-no-properties
-                                               (point) (mh-line-end-position)))
+                                               (point) (line-end-position)))
                          0)
             (beginning-of-line)
             (backward-char)
@@ -455,8 +447,8 @@ If optional argument STRING is given then that is assumed to be
 the scan line. Otherwise uses the line at point as the scan line
 to parse."
   (let* ((string (or string (buffer-substring-no-properties
-                             (mh-line-beginning-position)
-                             (mh-line-end-position))))
+                             (line-beginning-position)
+                             (line-end-position))))
          (address-start (+ mh-cmd-note mh-scan-field-from-start-offset))
          (body-start (+ mh-cmd-note mh-scan-field-from-end-offset))
          (first-string (substring string 0 address-start)))
@@ -597,20 +589,20 @@ Only information about messages in MSG-LIST are added to the tree."
         (while (not (eobp))
           (cl-block process-message
             (let* ((index-line
-                    (prog1 (buffer-substring (point) (mh-line-end-position))
+                    (prog1 (buffer-substring (point) (line-end-position))
                       (forward-line)))
                    (index (string-to-number index-line))
-                   (id (prog1 (buffer-substring (point) (mh-line-end-position))
+                   (id (prog1 (buffer-substring (point) (line-end-position))
                          (forward-line)))
                    (refs (prog1
-                             (buffer-substring (point) (mh-line-end-position))
+                             (buffer-substring (point) (line-end-position))
                            (forward-line)))
                    (in-reply-to (prog1 (buffer-substring (point)
-                                                         (mh-line-end-position))
+                                                         (line-end-position))
                                   (forward-line)))
                    (subject (prog1
                                 (buffer-substring
-                                 (point) (mh-line-end-position))
+                                 (point) (line-end-position))
                               (forward-line)))
                    (subject-re-p nil))
               (unless (gethash index mh-thread-scan-line-map)

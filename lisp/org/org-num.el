@@ -29,8 +29,8 @@
 ;; to toggle it.
 ;;
 ;; You can select what is numbered according to level, tags, COMMENT
-;; keyword, or UNNUMBERED property. You can also skip footnotes
-;; sections. See `org-num-max-level', `org-num-skip-tags',
+;; keyword, or UNNUMBERED property.  You can also skip footnotes
+;; sections.  See `org-num-max-level', `org-num-skip-tags',
 ;; `org-num-skip-commented', `org-num-skip-unnumbered', and
 ;; `org-num-skip-footnotes' for details.
 ;;
@@ -63,6 +63,7 @@
 
 (require 'cl-lib)
 (require 'org-macs)
+(require 'org) ;Otherwise `org-num--comment-re' burps on `org-comment-string'
 
 (defvar org-comment-string)
 (defvar org-complex-heading-regexp)
@@ -90,7 +91,7 @@ output."
                  (face :tag "Use face"))
   :safe (lambda (val) (or (null val) (facep val))))
 
-(defcustom org-num-format-function 'org-num-default-format
+(defcustom org-num-format-function #'org-num-default-format
   "Function used to display numbering.
 It is called with one argument, a list of numbers, and should
 return a string, or nil.  When nil, no numbering is displayed.
@@ -98,8 +99,7 @@ Any `face' text property on the returned string overrides
 `org-num-face'."
   :group 'org-appearance
   :package-version '(Org . "9.3")
-  :type 'function
-  :safe nil)
+  :type 'function)
 
 (defcustom org-num-max-level nil
   "Level below which headlines are not numbered.

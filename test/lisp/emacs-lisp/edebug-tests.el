@@ -107,27 +107,27 @@ back to the top level.")
   "Set up the environment for an Edebug test BODY, run it, and clean up."
   (declare (debug (body)))
   `(edebug-tests-with-default-config
-    (let ((edebug-tests-failure-in-post-command nil)
-          (edebug-tests-temp-file (make-temp-file "edebug-tests-" nil ".el"))
-          (find-file-suppress-same-file-warnings t))
-      (edebug-tests-setup-code-file edebug-tests-temp-file)
-      (ert-with-message-capture
-       edebug-tests-messages
-       (unwind-protect
-           (with-current-buffer (find-file edebug-tests-temp-file)
-             (read-only-mode)
-             (setq lexical-binding t)
-             (eval-buffer)
-             ,@body
-             (when edebug-tests-failure-in-post-command
-               (signal (car edebug-tests-failure-in-post-command)
-                       (cdr edebug-tests-failure-in-post-command))))
-         (unload-feature 'edebug-test-code)
-         (with-current-buffer (find-file-noselect edebug-tests-temp-file)
-           (set-buffer-modified-p nil))
-         (ignore-errors (kill-buffer (find-file-noselect
-                                      edebug-tests-temp-file)))
-         (ignore-errors (delete-file edebug-tests-temp-file)))))))
+    (ert-with-temp-file edebug-tests-temp-file
+      :suffix ".el"
+      (let ((edebug-tests-failure-in-post-command nil)
+            (find-file-suppress-same-file-warnings t))
+        (edebug-tests-setup-code-file edebug-tests-temp-file)
+        (ert-with-message-capture
+            edebug-tests-messages
+          (unwind-protect
+              (with-current-buffer (find-file edebug-tests-temp-file)
+                (read-only-mode)
+                (setq lexical-binding t)
+                (eval-buffer)
+                ,@body
+                (when edebug-tests-failure-in-post-command
+                  (signal (car edebug-tests-failure-in-post-command)
+                          (cdr edebug-tests-failure-in-post-command))))
+            (unload-feature 'edebug-test-code)
+            (with-current-buffer (find-file-noselect edebug-tests-temp-file)
+              (set-buffer-modified-p nil))
+            (ignore-errors (kill-buffer (find-file-noselect
+                                         edebug-tests-temp-file)))))))))
 
 ;; The following macro and its support functions implement an extension
 ;; to keyboard macros to allow interleaving of keyboard macro

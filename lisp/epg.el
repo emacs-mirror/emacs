@@ -334,6 +334,7 @@ callback data (if any)."
 
 (cl-defstruct (epg-key
                (:constructor nil)
+               (:copier epg--copy-key)
                (:constructor epg-make-key (owner-trust))
                (:predicate nil))
   (owner-trust nil :read-only t)
@@ -1389,7 +1390,7 @@ NAME is either a string or a list of strings."
      (if (seq-find (lambda (user)
                      (eq (epg-user-id-validity user) 'revoked))
                    (epg-key-user-id-list key))
-         (let ((copy (copy-epg-key key)))
+         (let ((copy (epg--copy-key key)))
            (setf (epg-key-user-id-list copy)
                  (seq-remove (lambda (user)
                                (eq (epg-user-id-validity user) 'revoked))

@@ -462,7 +462,7 @@ if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
 	    (insert "\n" generate-autoload-section-continuation))))))
 
 (defun autoload-find-file (file)
-  "Fetch file and put it in a temp buffer.  Return the buffer."
+  "Fetch FILE and put it in a temp buffer.  Return the buffer."
   ;; It is faster to avoid visiting the file.
   (setq file (expand-file-name file))
   (with-current-buffer (get-buffer-create " *autoload-file*")
@@ -482,10 +482,10 @@ if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
   "File local variable to prevent scanning this file for autoload cookies.")
 
 (defun autoload-file-load-name (file outfile)
-  "Compute the name that will be used to load FILE."
-  ;; OUTFILE should be the name of the global loaddefs.el file, which
-  ;; is expected to be at the root directory of the files we're
-  ;; scanning for autoloads and will be in the `load-path'.
+  "Compute the name that will be used to load FILE.
+OUTFILE should be the name of the global loaddefs.el file, which
+is expected to be at the root directory of the files we are
+scanning for autoloads and will be in the `load-path'."
   (let* ((name (file-relative-name file (file-name-directory outfile)))
          (names '())
          (dir (file-name-directory outfile)))

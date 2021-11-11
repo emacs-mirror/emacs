@@ -788,7 +788,7 @@ It has been changed in GVFS 1.14.")
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
     (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-gvfs-handle-file-readable-p)
+    (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
@@ -1396,8 +1396,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-executable-p"
-      (and (file-exists-p filename)
-	   (tramp-check-cached-permissions v ?x)))))
+      (tramp-check-cached-permissions v ?x))))
 
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -1518,31 +1517,6 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (when (zerop (length string)) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
-
-(defun tramp-gvfs-handle-file-readable-p (filename)
-  "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (with-tramp-file-property v localname "file-readable-p"
-      (and (file-exists-p filename)
-	   (or (tramp-check-cached-permissions v ?r)
-	       ;; `tramp-check-cached-permissions' doesn't handle
-	       ;; symbolic links.
-	       (and (stringp (file-symlink-p filename))
-		    (file-readable-p
-		     (concat
-		      (file-remote-p filename) (file-symlink-p filename))))
-	       ;; If the user is different from what we guess to be
-	       ;; the user, we don't know.  Let's check, whether
-	       ;; access is restricted explicitly.
-	       (and (/= (tramp-get-remote-uid v 'integer)
-			(tramp-compat-file-attribute-user-id
-			 (file-attributes filename 'integer)))
-		    (not
-		     (string-equal
-		      "FALSE"
-		      (cdr (assoc
-			    "access::can-read"
-			    (tramp-gvfs-get-file-attributes filename)))))))))))
 
 (defun tramp-gvfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -1833,8 +1807,9 @@ a downcased host name only."
 	result))))
 
 (defun tramp-gvfs-handler-mounted-unmounted (mount-info)
-  "Signal handler for the \"org.gtk.vfs.MountTracker.mounted\" and \
-\"org.gtk.vfs.MountTracker.unmounted\" signals."
+  "Signal handler for the gvfs \"mounted\" and \"unmounted\" signals.
+Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
+\"org.gtk.vfs.MountTracker.unmounted\"."
   (ignore-errors
     (let ((signal-name (dbus-event-member-name last-input-event))
 	  (elt mount-info))
@@ -1890,8 +1865,9 @@ a downcased host name only."
 		    host (tramp-file-name-host v)
 		    port (tramp-file-name-port v)))))
 	(when (member method tramp-gvfs-methods)
-	  (with-parsed-tramp-file-name
-	      (tramp-make-tramp-file-name method user domain host port "") nil
+          (let ((v (make-tramp-file-name
+	            :method method :user user :domain domain
+	            :host host :port port)))
 	    (tramp-message
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))
@@ -2090,8 +2066,10 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
     `(:struct ,(tramp-gvfs-dbus-string-to-byte-array mount-pref) ,mount-spec)))
 
 (defun tramp-gvfs-handler-volumeadded-volumeremoved (_dbus-name _id volume)
-  "Signal handler for the \"org.gtk.Private.RemoteVolumeMonitor.VolumeAdded\" \
-and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
+  "Signal handler for the gvfs \"VolumeAdded\" and \"VolumeRemoved\" signals.
+Their full names are
+\"org.gtk.Private.RemoteVolumeMonitor.VolumeAdded\" and
+\"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\"."
   (ignore-errors
     (let* ((signal-name (dbus-event-member-name last-input-event))
 	   (uri (url-generic-parse-url (nth 5 volume)))

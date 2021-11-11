@@ -290,6 +290,7 @@ and should return the same menu with changes such as added new menu items."
   :type '(repeat
           (choice (function-item context-menu-undo)
                   (function-item context-menu-region)
+                  (function-item context-menu-middle-separator)
                   (function-item context-menu-toolbar)
                   (function-item context-menu-global)
                   (function-item context-menu-local)
@@ -328,7 +329,7 @@ the function `context-menu-filter-function'."
 
     ;; Remove duplicate separators
     (let ((l menu))
-      (while l
+      (while (consp l)
         (when (and (equal (cdr-safe (car l)) menu-bar-separator)
                    (equal (cdr-safe (cadr l)) menu-bar-separator))
           (setcdr l (cddr l)))
@@ -363,7 +364,7 @@ Some context functions add menu items below the separator."
                 (when (consp binding)
                   (define-key-after menu (vector key)
                     (copy-sequence binding))))
-              (lookup-key global-map [menu-bar]))
+              (menu-bar-keymap global-map))
   menu)
 
 (defun context-menu-local (menu _click)
@@ -478,24 +479,18 @@ Some context functions add menu items below the separator."
       `(menu-item "All"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
                   :help "Mark the whole buffer for a subsequent cut/copy"))
-    (define-key-after submenu [mark-defun]
-      `(menu-item "Defun"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'defun))
-                  :help "Mark the defun at click for a subsequent cut/copy"))
-    (define-key-after submenu [mark-list-or-string]
-      `(menu-item ,(if (nth 8 (save-excursion
-                                (syntax-ppss (posn-point (event-end click)))))
-                       "String" "List")
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'list-or-string))
-                  :help "Mark list or string at click for a subsequent cut/copy"))
+    (when (let* ((pos (posn-point (event-end click)))
+                 (char (when pos (char-after pos))))
+            (or (and char (eq (char-syntax char) ?\"))
+                (nth 3 (save-excursion (syntax-ppss pos)))))
+      (define-key-after submenu [mark-string]
+        `(menu-item "String"
+                    ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'string))
+                    :help "Mark the string at click for a subsequent cut/copy")))
     (define-key-after submenu [mark-line]
       `(menu-item "Line"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
                   :help "Mark the line at click for a subsequent cut/copy"))
-    (define-key-after submenu [mark-symbol]
-      `(menu-item "Symbol"
-                  ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'symbol))
-                  :help "Mark the symbol at click for a subsequent cut/copy"))
     (when (region-active-p)
       (define-key-after submenu [mark-none]
         `(menu-item "None"
@@ -576,7 +571,8 @@ This is the keyboard interface to \\[context-menu-map]."
 
 (defun mouse-minibuffer-check (event)
   (let ((w (posn-window (event-start event))))
-    (and (window-minibuffer-p w)
+    (and (windowp w)
+         (window-minibuffer-p w)
 	 (not (minibuffer-window-active-p w))
 	 (user-error "Minibuffer window is not active")))
   ;; Give temporary modes such as isearch a chance to turn off.
@@ -1573,8 +1569,7 @@ The region will be defined with mark and point."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (deactivate-mark)
-  (let* ((scroll-margin 0) ; Avoid margin scrolling (Bug#9541).
-	 (start-posn (event-start start-event))
+  (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (_ (with-current-buffer (window-buffer start-window)
@@ -1596,72 +1591,84 @@ The region will be defined with mark and point."
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
 	 (click-count (1- (event-click-count start-event)))
-	 ;; Suppress automatic hscrolling, because that is a nuisance
-	 ;; when setting point near the right fringe (but see below).
+         ;; Save original automatic scrolling behavior (see below).
 	 (auto-hscroll-mode-saved auto-hscroll-mode)
-         (old-track-mouse track-mouse))
+	 (scroll-margin-saved scroll-margin)
+         (old-track-mouse track-mouse)
+         (cleanup (lambda ()
+                    (setq track-mouse old-track-mouse)
+                    (setq auto-hscroll-mode auto-hscroll-mode-saved)
+                    (setq scroll-margin scroll-margin-saved))))
+    (condition-case err
+        (progn
+          (setq mouse-selection-click-count click-count)
 
-    (setq mouse-selection-click-count click-count)
-    ;; In case the down click is in the middle of some intangible text,
-    ;; use the end of that text, and put it in START-POINT.
-    (if (< (point) start-point)
-	(goto-char start-point))
-    (setq start-point (point))
+          ;; Suppress automatic scrolling near the edges while tracking
+          ;; movement, as it interferes with the natural dragging behavior
+          ;; (point will unexpectedly be moved beneath the pointer, making
+          ;; selections in auto-scrolling margins impossible).
+          (setq auto-hscroll-mode nil)
+          (setq scroll-margin 0)
 
-    ;; Activate the region, using `mouse-start-end' to determine where
-    ;; to put point and mark (e.g., double-click will select a word).
-    (setq-local transient-mark-mode
-                (if (eq transient-mark-mode 'lambda)
-                    '(only)
-                  (cons 'only transient-mark-mode)))
-    (let ((range (mouse-start-end start-point start-point click-count)))
-      (push-mark (nth 0 range) t t)
-      (goto-char (nth 1 range)))
+          ;; In case the down click is in the middle of some intangible text,
+          ;; use the end of that text, and put it in START-POINT.
+          (if (< (point) start-point)
+	      (goto-char start-point))
+          (setq start-point (point))
 
-    (setf (terminal-parameter nil 'mouse-drag-start) start-event)
-    (setq track-mouse t)
-    (setq auto-hscroll-mode nil)
+          ;; Activate the region, using `mouse-start-end' to determine where
+          ;; to put point and mark (e.g., double-click will select a word).
+          (setq-local transient-mark-mode
+                      (if (eq transient-mark-mode 'lambda)
+                          '(only)
+                        (cons 'only transient-mark-mode)))
+          (let ((range (mouse-start-end start-point start-point click-count)))
+            (push-mark (nth 0 range) t t)
+            (goto-char (nth 1 range)))
 
-    (set-transient-map
-     (let ((map (make-sparse-keymap)))
-       (define-key map [switch-frame] #'ignore)
-       (define-key map [select-window] #'ignore)
-       (define-key map [mouse-movement]
-         (lambda (event) (interactive "e")
-           (let* ((end (event-end event))
-                  (end-point (posn-point end)))
-             (unless (eq end-point start-point)
-               ;; As soon as the user moves, we can re-enable auto-hscroll.
-               (setq auto-hscroll-mode auto-hscroll-mode-saved)
-               ;; And remember that we have moved, so mouse-set-region can know
-               ;; its event is really a drag event.
-               (setcar start-event 'mouse-movement))
-             (if (and (eq (posn-window end) start-window)
-                      (integer-or-marker-p end-point))
-                 (mouse--drag-set-mark-and-point start-point
-                                                 end-point click-count)
-               (let ((mouse-row (cdr (cdr (mouse-position)))))
-                 (cond
-                  ((null mouse-row))
-                  ((< mouse-row top)
-                   (mouse-scroll-subr start-window (- mouse-row top)
-                                      nil start-point))
-                  ((>= mouse-row bottom)
-                   (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-                                      nil start-point))))))))
-       map)
-     t (lambda ()
-         (setq track-mouse old-track-mouse)
-         (setq auto-hscroll-mode auto-hscroll-mode-saved)
-         ;; Don't deactivate the mark when the context menu was invoked
-         ;; by down-mouse-3 immediately after down-mouse-1 and without
-         ;; releasing the mouse button with mouse-1. This allows to use
-         ;; region-related context menu to operate on the selected region.
-         (unless (and context-menu-mode
-                      (eq (car-safe (aref (this-command-keys-vector) 0))
-                          'down-mouse-3))
-           (deactivate-mark)
-           (pop-mark))))))
+          (setf (terminal-parameter nil 'mouse-drag-start) start-event)
+          (setq track-mouse t)
+
+          (set-transient-map
+           (let ((map (make-sparse-keymap)))
+             (define-key map [switch-frame] #'ignore)
+             (define-key map [select-window] #'ignore)
+             (define-key map [mouse-movement]
+               (lambda (event) (interactive "e")
+                 (let* ((end (event-end event))
+                        (end-point (posn-point end)))
+                   (unless (eq end-point start-point)
+                     ;; And remember that we have moved, so mouse-set-region can know
+                     ;; its event is really a drag event.
+                     (setcar start-event 'mouse-movement))
+                   (if (and (eq (posn-window end) start-window)
+                            (integer-or-marker-p end-point))
+                       (mouse--drag-set-mark-and-point start-point
+                                                       end-point click-count)
+                     (let ((mouse-row (cdr (cdr (mouse-position)))))
+                       (cond
+                        ((null mouse-row))
+                        ((< mouse-row top)
+                         (mouse-scroll-subr start-window (- mouse-row top)
+                                            nil start-point))
+                        ((>= mouse-row bottom)
+                         (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
+                                            nil start-point))))))))
+             map)
+           t (lambda ()
+               (funcall cleanup)
+               ;; Don't deactivate the mark when the context menu was invoked
+               ;; by down-mouse-3 immediately after down-mouse-1 and without
+               ;; releasing the mouse button with mouse-1. This allows to use
+               ;; region-related context menu to operate on the selected region.
+               (unless (and context-menu-mode
+                            (eq (car-safe (aref (this-command-keys-vector) 0))
+                                'down-mouse-3))
+                 (deactivate-mark)
+                 (pop-mark)))))
+      ;; Cleanup on errors
+      (error (funcall cleanup)
+             (signal (car err) (cdr err))))))
 
 (defun mouse--drag-set-mark-and-point (start click click-count)
   (let* ((range (mouse-start-end start click click-count))
@@ -2470,7 +2477,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("Text" . "Text")
     ("Outline" . "Text")
     ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
-    ("log\\|diff\\|vc\\|cvs\\|Git\\|Annotate" . "Version Control")
+    ("\\blog\\b\\|diff\\|\\bvc\\b\\|cvs\\|Git\\|Annotate" . "Version Control")
     ("Threads\\|Memory\\|Disassembly\\|Breakpoints\\|Frames\\|Locals\\|Registers\\|Inferior I/O\\|Debugger"
      . "GDB")
     ("Lisp" . "Lisp")))

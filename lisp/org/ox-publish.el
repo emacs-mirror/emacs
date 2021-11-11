@@ -2,7 +2,7 @@
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
-;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
+;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: hypermedia, outlines, wp
 
 ;; This file is part of GNU Emacs.
@@ -358,7 +358,7 @@ You can overwrite this default per project in your
   (concat "X" (if (fboundp 'sha1) (sha1 filename) (md5 filename))))
 
 (defun org-publish-needed-p
-  (filename &optional pub-dir pub-func _true-pub-dir base-dir)
+    (filename &optional pub-dir pub-func _true-pub-dir base-dir)
   "Non-nil if FILENAME should be published in PUB-DIR using PUB-FUNC.
 TRUE-PUB-DIR is where the file will truly end up.  Currently we
 are not using this - maybe it can eventually be used to check if
@@ -375,7 +375,7 @@ still decide about that independently."
     rtn))
 
 (defun org-publish-update-timestamp
-  (filename &optional pub-dir pub-func _base-dir)
+    (filename &optional pub-dir pub-func _base-dir)
   "Update publishing timestamp for file FILENAME.
 If there is no timestamp, create one."
   (let ((key (org-publish-timestamp-filename filename pub-dir pub-func))
@@ -617,7 +617,8 @@ files, when entire projects are published (see
 			  (abbreviate-file-name filename))))
 	 (project-plist (cdr project))
 	 (publishing-function
-	  (pcase (org-publish-property :publishing-function project)
+	  (pcase (org-publish-property :publishing-function project
+                                       'org-html-publish-to-html)
 	    (`nil (user-error "No publishing function chosen"))
 	    ((and f (pred listp)) f)
 	    (f (list f))))
@@ -1064,7 +1065,7 @@ publishing directory."
 		  (setq full-index
 			(sort (nreverse full-index)
 			      (lambda (a b) (string< (downcase (car a))
-						(downcase (car b)))))))
+						     (downcase (car b)))))))
       (let ((index (org-publish-cache-get-file-property file :index)))
 	(dolist (term index)
 	  (unless (member term full-index) (push term full-index)))))
@@ -1270,7 +1271,7 @@ If FREE-CACHE, empty the cache."
   org-publish-cache)
 
 (defun org-publish-reset-cache ()
-  "Empty org-publish-cache and reset it nil."
+  "Empty `org-publish-cache' and reset it nil."
   (message "%s" "Resetting org-publish-cache")
   (when (hash-table-p org-publish-cache)
     (clrhash org-publish-cache))
@@ -1290,29 +1291,28 @@ the file including them will be republished as well."
 	 (org-inhibit-startup t)
 	 included-files-ctime)
     (when (equal (file-name-extension filename) "org")
-      (let ((visiting (find-buffer-visiting filename))
-	    (buf (find-file-noselect filename))
-	    (case-fold-search t))
-	(unwind-protect
-	    (with-current-buffer buf
-	      (goto-char (point-min))
-	      (while (re-search-forward "^[ \t]*#\\+INCLUDE:" nil t)
-		(let ((element (org-element-at-point)))
-		  (when (eq 'keyword (org-element-type element))
-		    (let* ((value (org-element-property :value element))
-			   (filename
-			    (and (string-match "\\`\\(\".+?\"\\|\\S-+\\)" value)
-				 (let ((m (org-strip-quotes
-					   (match-string 1 value))))
-				   ;; Ignore search suffix.
-				   (if (string-match "::.*?\\'" m)
-				       (substring m 0 (match-beginning 0))
-				     m)))))
-		      (when filename
-			(push (org-publish-cache-ctime-of-src
-			       (expand-file-name filename))
-			      included-files-ctime)))))))
-	  (unless visiting (kill-buffer buf)))))
+      (let ((case-fold-search t))
+	(with-temp-buffer
+          (delay-mode-hooks
+            (org-mode)
+            (insert-file-contents filename)
+	    (goto-char (point-min))
+	    (while (re-search-forward "^[ \t]*#\\+INCLUDE:" nil t)
+	      (let ((element (org-element-at-point)))
+	        (when (eq 'keyword (org-element-type element))
+		  (let* ((value (org-element-property :value element))
+		         (include-filename
+			  (and (string-match "\\`\\(\".+?\"\\|\\S-+\\)" value)
+			       (let ((m (org-strip-quotes
+				         (match-string 1 value))))
+			         ;; Ignore search suffix.
+			         (if (string-match "::.*?\\'" m)
+				     (substring m 0 (match-beginning 0))
+				   m)))))
+		    (when include-filename
+		      (push (org-publish-cache-ctime-of-src
+			     (expand-file-name include-filename (file-name-directory filename)))
+			    included-files-ctime))))))))))
     (or (null pstamp)
 	(let ((ctime (org-publish-cache-ctime-of-src filename)))
 	  (or (time-less-p pstamp ctime)
@@ -1320,7 +1320,7 @@ the file including them will be republished as well."
 		       included-files-ctime))))))
 
 (defun org-publish-cache-set-file-property
-  (filename property value &optional project-name)
+    (filename property value &optional project-name)
   "Set the VALUE for a PROPERTY of file FILENAME in publishing cache to VALUE.
 Use cache file of PROJECT-NAME.  If the entry does not exist, it
 will be created.  Return VALUE."

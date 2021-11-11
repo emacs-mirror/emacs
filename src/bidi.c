@@ -3564,11 +3564,19 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 }
 
 /* Utility function for looking for strong directional characters
-   whose bidi type was overridden by a directional override.  */
+   whose bidi type was overridden by directional override or embedding
+   or isolate control characters.  */
 ptrdiff_t
 bidi_find_first_overridden (struct bidi_it *bidi_it)
 {
   ptrdiff_t found_pos = ZV;
+  /* Maximum bidi levels we allow for L2R and R2L characters.  Note
+     that these are levels after resolving explicit embeddings,
+     overrides, and isolates, i.e. before resolving implicit levels.  */
+  int max_l2r = bidi_it->paragraph_dir == L2R ? 0 : 2;
+  int max_r2l = 1;
+  /* Same for WEAK and NEUTRAL_ON types.  */
+  int max_weak = bidi_it->paragraph_dir == L2R ? 1 : 2;
 
   do
     {
@@ -3576,11 +3584,28 @@ bidi_find_first_overridden (struct bidi_it *bidi_it)
 	 because the directional overrides are applied by the
 	 former.  */
       bidi_type_t type = bidi_resolve_weak (bidi_it);
+      unsigned level = bidi_it->level_stack[bidi_it->stack_idx].level;
+      bidi_category_t category = bidi_get_category (bidi_it->orig_type);
 
+      /* Detect strong L or R types that have been overridden by
+	 explicit overrides.  */
       if ((type == STRONG_R && bidi_it->orig_type == STRONG_L)
 	  || (type == STRONG_L
 	      && (bidi_it->orig_type == STRONG_R
-		  || bidi_it->orig_type == STRONG_AL)))
+		  || bidi_it->orig_type == STRONG_AL))
+	  /* Detect strong L or R types or WEAK_EN types that were
+	     pushed into higher embedding levels (and will thus
+	     reorder) by explicit embeddings and isolates.  */
+	  || ((bidi_it->orig_type == STRONG_L
+	       || bidi_it->orig_type == WEAK_EN)
+	      && level > max_l2r)
+	  || ((bidi_it->orig_type == STRONG_R
+	       || bidi_it->orig_type == STRONG_AL)
+	      && level > max_r2l)
+	  /* Detect other weak or neutral types whose level was
+	     tweaked by explicit embeddings and isolates.  */
+	  || ((category == WEAK || bidi_it->orig_type == NEUTRAL_ON)
+	      && level > max_weak))
 	found_pos = bidi_it->charpos;
     } while (found_pos == ZV
 	     && bidi_it->charpos < ZV

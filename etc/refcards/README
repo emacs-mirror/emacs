@@ -5,7 +5,7 @@ See the end of the file for license conditions.
 REFERENCE CARDS FOR GNU EMACS
 
 To generate these refcards, you need to install the TeX document
-production system.  For example, <http://www.tug.org/texlive/>.
+production system.  For example, <https://www.tug.org/texlive/>.
 
 All modern GNU/Linux distributions provide TeX packages, so the
 easiest way is just to install those.  Your distribution may have
@@ -23,6 +23,51 @@ PDF and PS copies of these cards are also available at
 <https://www.gnu.org/software/emacs/refcards>.  The FSF online
 store <https://shop.fsf.org/> sometimes has printed copies for sale.
 
+List of generated cards:
+
+    calccard.pdf           Calc Reference Card
+    dired-ref.pdf          Dired Reference Card
+    gnus-booklet.pdf       Gnus Reference Booklet
+    gnus-refcard.pdf       Gnus Reference Card
+    orgcard.pdf            Org-Mode Reference Card
+    refcard.pdf            Emacs Reference Card
+    survival.pdf           Emacs Survival Card
+    vipcard.pdf            VIP Quick Reference Card
+    viperCard.pdf          ViperCard: Viper Reference Pal
+
+Brazilian Portuguese
+
+    pt-br-refcard.pdf      Reference Card (pt-br)
+
+Czech
+
+    cs-dired-ref.pdf       Dired Reference Card (cs)
+    cs-refcard.pdf         Emacs Reference Card (cs)
+    cs-survival.pdf        Emacs Survival Card (cs)
+
+French
+
+    fr-dired-ref.pdf       Dired Reference Card (fr)
+    fr-refcard.pdf         Emacs Reference Card (fr)
+    fr-survival.pdf        Emacs Survival Card (fr)
+
+German
+
+    de-refcard.pdf         Emacs Reference Card (de)
+
+Polish
+
+    pl-refcard.pdf         Emacs Reference Card (pl)
+
+Russian
+
+    ru-refcard.pdf         Emacs Reference Card (ru)
+
+Slovak
+
+    sk-dired-ref.pdf       Dired Reference Card (sk)
+    sk-refcard.pdf         Emacs Reference Card (sk)
+    sk-survival.pdf        Emacs Survival Card (sk)
 
 
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES

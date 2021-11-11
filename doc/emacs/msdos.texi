@@ -543,7 +543,7 @@ keyboard input in Emacs.
 conventional uses in MS-Windows programs conflict with traditional
 Emacs key bindings.  (These Emacs key bindings were established years
 before Microsoft was founded.)  Examples of conflicts include
-@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
+@kbd{C-c}, @kbd{C-x}, @kbd{C-z}, and @kbd{C-a}.
 You can redefine some of them with meanings more like the MS-Windows
 meanings by enabling CUA Mode (@pxref{CUA Bindings}).  Another
 optional feature which will make Emacs behave like other Windows
@@ -1180,6 +1180,14 @@ non-@code{nil} value causes a frame to grab focus when it is raised.
 The default is @code{t}, which fits well with the Windows default
 click-to-focus policy.
 @end ifnottex
+
+  On Windows 10 (version 1809 and higher) and Windows 11, Emacs title
+bars and scroll bars will follow the system's Light or Dark mode,
+similar to other programs such as Explorer and Command Prompt.  To
+change the color mode, select @code{Personalization} from
+@w{@code{Windows Settings}}, then
+@w{@code{Colors->Choose your color}} (or @w{@code{Choose your default
+app mode}}); then restart Emacs.
 
 @ifnottex
 @include msdos-xtra.texi

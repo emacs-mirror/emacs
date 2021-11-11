@@ -202,7 +202,7 @@
 (defun comp-tests-err-arith-f ()
   (/ 1 0))
 (defun comp-tests-err-foo-f ()
-  (error "foo"))
+  (error "Foo"))
 
 (defun comp-tests-condition-case-0-f ()
   ;; Bpushhandler Bpophandler
@@ -264,7 +264,7 @@
     (% a b)))
 
 (defun comp-tests-doc-f ()
-  "A nice docstring"
+  "A nice docstring."
   t)
 
 (defun comp-test-interactive-form0-f (dir)
@@ -478,6 +478,7 @@
 	      (eq family 'unspecified))
       family)))
 
+;; This function doesn't have a doc string on purpose.
 (defun comp-test-46670-1-f (_)
   "foo")
 
@@ -647,7 +648,7 @@
       (?> 2))))
 
 (defun comp-test-big-interactive (filename &optional force arg load)
-  ;; Check non trivial interactive form using `byte-recompile-file'.
+  "Check non trivial interactive form using `byte-recompile-file'."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -683,17 +684,17 @@
 
 (defun comp-test-no-return-1 (x)
   (while x
-   (error "foo")))
+   (error "Foo")))
 
 (defun comp-test-no-return-2 (x)
   (cond
    ((eql x '2) t)
-   ((error "bar") nil)))
+   ((error "Bar") nil)))
 
 (defun comp-test-no-return-3 ())
 (defun comp-test-no-return-4 (x)
   (when x
-    (error "foo")
+    (error "Foo")
     (while (comp-test-no-return-3)
       (comp-test-no-return-3))))
 

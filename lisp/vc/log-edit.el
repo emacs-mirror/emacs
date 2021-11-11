@@ -54,21 +54,19 @@
 (define-obsolete-variable-alias 'vc-log-mode-map 'log-edit-mode-map "28.1")
 (define-obsolete-variable-alias 'vc-log-entry-mode 'log-edit-mode-map "28.1")
 
-(easy-mmode-defmap log-edit-mode-map
-  '(("\C-c\C-c" . log-edit-done)
-    ("\C-c\C-a" . log-edit-insert-changelog)
-    ("\C-c\C-w" . log-edit-generate-changelog-from-diff)
-    ("\C-c\C-d" . log-edit-show-diff)
-    ("\C-c\C-f" . log-edit-show-files)
-    ("\C-c\C-k" . log-edit-kill-buffer)
-    ("\C-a"     . log-edit-beginning-of-line)
-    ("\M-n"	. log-edit-next-comment)
-    ("\M-p"	. log-edit-previous-comment)
-    ("\M-r"	. log-edit-comment-search-backward)
-    ("\M-s"	. log-edit-comment-search-forward)
-    ("\C-c?"	. log-edit-mode-help))
-  "Keymap for the `log-edit-mode' (to edit version control log messages)."
-  :group 'log-edit)
+(defvar-keymap log-edit-mode-map
+  (kbd "C-c C-c") #'log-edit-done
+  (kbd "C-c C-a") #'log-edit-insert-changelog
+  (kbd "C-c C-w") #'log-edit-generate-changelog-from-diff
+  (kbd "C-c C-d") #'log-edit-show-diff
+  (kbd "C-c C-f") #'log-edit-show-files
+  (kbd "C-c C-k") #'log-edit-kill-buffer
+  (kbd "C-a")     #'log-edit-beginning-of-line
+  (kbd "M-n")     #'log-edit-next-comment
+  (kbd "M-p")     #'log-edit-previous-comment
+  (kbd "M-r")     #'log-edit-comment-search-backward
+  (kbd "M-s")     #'log-edit-comment-search-forward
+  (kbd "C-c ?")   #'log-edit-mode-help)
 
 (easy-menu-define log-edit-menu log-edit-mode-map
   "Menu used for `log-edit-mode'."
@@ -891,7 +889,7 @@ name or time."
 Actually, the narrowed region doesn't include the date line.
 A \"page\" in a ChangeLog file is the area between two dates."
   (or (eq major-mode 'change-log-mode)
-      (error "log-edit-narrow-changelog: current buffer isn't a ChangeLog"))
+      (error "log-edit-narrow-changelog: Current buffer isn't a ChangeLog"))
 
   (goto-char (point-min))
 

@@ -362,19 +362,13 @@ not `finder-known-keywords'."
     (let ((package-list-unversioned t))
       (package-show-package-list packages))))
 
-(define-button-type 'finder-xref 'action #'finder-goto-xref)
-
-(defun finder-goto-xref (button)
-  "Jump to a Lisp file for the BUTTON at point."
-  (let* ((file (button-get button 'xref))
-         (lib (locate-library file)))
-    (if lib (finder-commentary lib)
-      (message "Unable to locate `%s'" file))))
-
 ;;;###autoload
 (defun finder-commentary (file)
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
+  ;; FIXME: Merge this function into `describe-package', which is
+  ;; strictly better as it has links to URL's and is in a proper help
+  ;; buffer with navigation forward and backward, etc.
   (interactive
    (list
     (completing-read "Library name: "
@@ -391,12 +385,7 @@ FILE should be in a form suitable for passing to `locate-library'."
     (erase-buffer)
     (insert str)
     (goto-char (point-min))
-    (while (re-search-forward "\\<\\([-[:alnum:]]+\\.el\\)\\>" nil t)
-      (if (locate-library (match-string 1))
-          (make-text-button (match-beginning 1) (match-end 1)
-                            'xref (match-string-no-properties 1)
-                            'help-echo "Read this file's commentary"
-                            :type 'finder-xref)))
+    (package--describe-add-library-links)
     (goto-char (point-min))
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)
@@ -468,6 +457,9 @@ Quit the window and kill all Finder-related buffers."
   (with-demoted-errors (unload-feature 'finder-inf t))
   ;; continue standard unloading
   nil)
+
+(define-obsolete-function-alias 'finder-goto-xref
+  #'package--finder-goto-xref "29.1")
 
 
 (provide 'finder)

@@ -53,12 +53,10 @@
 (autoload 'message-buffers "message")
 (autoload 'gnus-print-buffer "gnus-sum")
 
-(defvar gnus-dired-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-m\C-a" 'gnus-dired-attach)
-    (define-key map "\C-c\C-m\C-l" 'gnus-dired-find-file-mailcap)
-    (define-key map "\C-c\C-m\C-p" 'gnus-dired-print)
-    map))
+(defvar-keymap gnus-dired-mode-map
+  "\C-c\C-m\C-a" #'gnus-dired-attach
+  "\C-c\C-m\C-l" #'gnus-dired-find-file-mailcap
+  "\C-c\C-m\C-p" #'gnus-dired-print)
 
 ;; FIXME: Make it customizable, change the default to `mail-user-agent' when
 ;; this file is renamed (e.g. to `dired-mime.el').

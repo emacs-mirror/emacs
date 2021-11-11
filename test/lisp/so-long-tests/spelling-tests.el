@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'ispell)
 (require 'cl-lib)
 
@@ -50,20 +51,19 @@
     ;; The Emacs test Makefile's use of HOME=/nonexistent triggers an error
     ;; when starting the inferior ispell process, so we set HOME to a valid
     ;; (but empty) temporary directory for this test.
-    (let* ((tmpdir (make-temp-file "so-long." :dir ".ispell"))
-           (process-environment (cons (format "HOME=%s" tmpdir)
-                                      process-environment))
-           (find-spelling-mistake
-            (unwind-protect
-                (cl-letf (((symbol-function 'ispell-command-loop)
-                           (lambda (_miss _guess word _start _end)
-                             (message "Unrecognised word: %s." word)
-                             (throw 'mistake t))))
-                  (catch 'mistake
-                    (find-library "so-long")
-                    (ispell-buffer)
-                    nil))
-              (delete-directory tmpdir))))
-      (should (not find-spelling-mistake)))))
+    (ert-with-temp-file tmpdir
+      :suffix "so-long.ispell"
+      (let* ((process-environment (cons (format "HOME=%s" tmpdir)
+                                        process-environment))
+             (find-spelling-mistake
+              (cl-letf (((symbol-function 'ispell-command-loop)
+                         (lambda (_miss _guess word _start _end)
+                           (message "Unrecognised word: %s." word)
+                           (throw 'mistake t))))
+                (catch 'mistake
+                  (find-library "so-long")
+                  (ispell-buffer)
+                  nil))))
+        (should (not find-spelling-mistake))))))
 
 ;;; spelling-tests.el ends here

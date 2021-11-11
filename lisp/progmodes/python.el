@@ -4,8 +4,8 @@
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
-;; Version: 0.27.1
-;; Package-Requires: ((emacs "24.2") (cl-lib "1.0"))
+;; Version: 0.28
+;; Package-Requires: ((emacs "24.4") (cl-lib "1.0"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
@@ -555,9 +555,6 @@ class declarations.")
           "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
           "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
           "try"
-          ;; Python 2:
-          "print" "exec"
-          ;; Python 3:
           ;; False, None, and True are listed as keywords on the Python 3
           ;; documentation, but since they also qualify as constants they are
           ;; fontified like that in order to keep font-lock consistent between
@@ -1521,7 +1518,10 @@ Returns nil if point is not in a def or class."
       (python-util-forward-comment -1)
       (forward-line 1)
       ;; Ensure point moves forward.
-      (and (> beg-pos (point)) (goto-char beg-pos)))))
+      (and (> beg-pos (point)) (goto-char beg-pos))
+      ;; Return non-nil if we did something (because then we were in a
+      ;; def/class).
+      (/= beg-pos (point)))))
 
 (defun python-nav--syntactically (fn poscompfn &optional contextfn)
   "Move point using FN avoiding places with specific context.
@@ -2727,20 +2727,12 @@ goes wrong and syntax highlighting in the shell gets messed up."
              (deactivate-mark nil)
              (start-pos prompt-end)
              (buffer-undo-list t)
-             (font-lock-buffer-pos nil)
              (replacement
               (python-shell-font-lock-with-font-lock-buffer
-                (delete-region (line-beginning-position)
-                               (point-max))
-                (setq font-lock-buffer-pos (point))
+                (delete-region (point-min) (point-max))
                 (insert input)
-                ;; Ensure buffer is fontified, keeping it
-                ;; compatible with Emacs < 24.4.
-                (if (fboundp 'font-lock-ensure)
-                    (funcall 'font-lock-ensure)
-                  (font-lock-default-fontify-buffer))
-                (buffer-substring font-lock-buffer-pos
-                                  (point-max))))
+                (font-lock-ensure)
+                (buffer-string)))
              (replacement-length (length replacement))
              (i 0))
         ;; Inject text properties to get input fontified.
@@ -3714,6 +3706,8 @@ def __PYTHON_EL_native_completion_setup():
             readline.parse_and_bind('tab: complete')
             # Require just one tab to send output.
             readline.parse_and_bind('set show-all-if-ambiguous on')
+            # Avoid replacing common prefix with ellipsis.
+            readline.parse_and_bind('set completion-prefix-display-length 0')
 
         print ('python.el: native completion setup loaded')
     except:
@@ -3811,7 +3805,7 @@ With argument MSG show activation/deactivation message."
                   (comint-redirect-perform-sanity-check nil)
                   (comint-redirect-insert-matching-regexp t)
                   (comint-redirect-finished-regexp
-                   "1__dummy_completion__[[:space:]]*\n")
+                   "1__dummy_completion__.*\n")
                   (comint-redirect-output-buffer redirect-buffer))
               ;; Compatibility with Emacs 24.x.  Comint changed and
               ;; now `comint-redirect-filter' gets 3 args.  This
@@ -4671,7 +4665,10 @@ See `python-check-command' for the default."
                 target = obj
                 objtype = 'def'
             if target:
-                args = inspect.formatargspec(*argspec_function(target))
+                if hasattr(inspect, 'signature'):
+                    args = str(inspect.signature(target))
+                else:
+                    args = inspect.formatargspec(*argspec_function(target))
                 name = obj.__name__
                 doc = '{objtype} {name}{args}'.format(
                     objtype=objtype, name=name, args=args
@@ -4770,10 +4767,14 @@ Interactively, prompt for symbol."
   (interactive
    (let ((symbol (python-eldoc--get-symbol-at-point))
          (enable-recursive-minibuffers t))
-     (list (read-string (if symbol
-                            (format "Describe symbol (default %s): " symbol)
-                          "Describe symbol: ")
-                        nil nil symbol))))
+     (list (read-string
+            ;; `format-prompt' is new in Emacs 28.1.
+            (if (fboundp 'format-prompt)
+                (format-prompt "Describe symbol" symbol)
+              (if symbol
+                  (format "Describe symbol (default %s): " symbol)
+                "Describe symbol: "))
+            nil nil symbol))))
   (message (python-eldoc--get-doc-at-point symbol)))
 
 (defun python-describe-at-point (symbol process)

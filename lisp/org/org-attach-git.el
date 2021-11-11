@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; An extension to org-attach.  If `org-attach-id-dir' is initialized
-;; as a Git repository, then org-attach-git will automatically commit
+;; as a Git repository, then `org-attach-git' will automatically commit
 ;; changes when it sees them.  Requires git-annex.
 
 ;;; Code:
@@ -52,9 +52,25 @@ If \\='ask, prompt using `y-or-n-p'.  If t, always get.  If nil, never get."
 	  (const :tag "always get from annex if necessary" t)
 	  (const :tag "never get from annex" nil)))
 
+(defcustom org-attach-git-dir 'default
+  "Attachment directory with the Git repository to use.
+The default value is to use `org-attach-id-dir'.  When set to
+`individual-repository', then the directory attached to the
+current node, if correctly initialized as a Git repository, will
+be used instead."
+  :group 'org-attach
+  :package-version '(Org . "9.5")
+  :type '(choice
+          (const :tag "Default" default)
+          (const :tag "Individual repository" individual-repository)))
+
 (defun org-attach-git-use-annex ()
   "Return non-nil if git annex can be used."
-  (let ((git-dir (vc-git-root (expand-file-name org-attach-id-dir))))
+  (let ((git-dir (vc-git-root
+                  (cond ((eq org-attach-git-dir 'default)
+                         (expand-file-name org-attach-id-dir))
+                        ((eq org-attach-git-dir 'individual-repository)
+                         (org-attach-dir))))))
     (and org-attach-git-annex-cutoff
          (or (file-exists-p (expand-file-name "annex" git-dir))
              (file-exists-p (expand-file-name ".git/annex" git-dir))))))
@@ -62,7 +78,11 @@ If \\='ask, prompt using `y-or-n-p'.  If t, always get.  If nil, never get."
 (defun org-attach-git-annex-get-maybe (path)
   "Call git annex get PATH (via shell) if using git annex.
 Signals an error if the file content is not available and it was not retrieved."
-  (let* ((default-directory (expand-file-name org-attach-id-dir))
+  (let* ((default-directory
+           (cond ((eq org-attach-git-dir 'default)
+                  (expand-file-name org-attach-id-dir))
+                 ((eq org-attach-git-dir 'individual-repository)
+                  (org-attach-dir))))
 	 (path-relative (file-relative-name path)))
     (when (and (org-attach-git-use-annex)
 	       (not
@@ -86,7 +106,10 @@ This checks for the existence of a \".git\" directory in that directory.
 
 Takes an unused optional argument for the sake of being compatible
 with hook `org-attach-after-change-hook'."
-  (let* ((dir (expand-file-name org-attach-id-dir))
+  (let* ((dir (cond ((eq org-attach-git-dir 'default)
+                     (expand-file-name org-attach-id-dir))
+                    ((eq org-attach-git-dir 'individual-repository)
+                     (org-attach-dir))))
 	 (git-dir (vc-git-root dir))
 	 (use-annex (org-attach-git-use-annex))
 	 (changes 0))
@@ -102,7 +125,7 @@ with hook `org-attach-after-change-hook'."
                        org-attach-git-annex-cutoff))
               (call-process "git" nil nil nil "annex" "add" new-or-modified)
             (call-process "git" nil nil nil "add" new-or-modified))
-	    (cl-incf changes))
+	  (cl-incf changes))
 	(dolist (deleted
 		 (split-string
 		  (shell-command-to-string "git ls-files -z --deleted") "\0" t))

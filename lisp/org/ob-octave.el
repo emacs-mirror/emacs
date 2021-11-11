@@ -45,8 +45,8 @@
 
 (defvar org-babel-matlab-with-emacs-link nil
   "If non-nil use matlab-shell-run-region for session evaluation.
-  This will use EmacsLink if (matlab-with-emacs-link) evaluates
-  to a non-nil value.")
+This will use EmacsLink if (matlab-with-emacs-link) evaluates
+to a non-nil value.")
 
 (defvar org-babel-matlab-emacs-link-wrapper-method
   "%s
@@ -164,7 +164,7 @@ create.  Return the initialized session."
 	  (current-buffer))))))
 
 (defun org-babel-octave-evaluate
-  (session body result-type &optional matlabp)
+    (session body result-type &optional matlabp)
   "Pass BODY to the octave process in SESSION.
 If RESULT-TYPE equals `output' then return the outputs of the
 statements in BODY, if RESULT-TYPE equals `value' then return the
@@ -181,12 +181,12 @@ value of the last statement in BODY, as elisp."
     (pcase result-type
       (`output (org-babel-eval cmd body))
       (`value (let ((tmp-file (org-babel-temp-file "octave-")))
-	       (org-babel-eval
-		cmd
-		(format org-babel-octave-wrapper-method body
-			(org-babel-process-file-name tmp-file 'noquote)
-			(org-babel-process-file-name tmp-file 'noquote)))
-	       (org-babel-octave-import-elisp-from-file tmp-file))))))
+	        (org-babel-eval
+		 cmd
+		 (format org-babel-octave-wrapper-method body
+			 (org-babel-process-file-name tmp-file 'noquote)
+			 (org-babel-process-file-name tmp-file 'noquote)))
+	        (org-babel-octave-import-elisp-from-file tmp-file))))))
 
 (defun org-babel-octave-evaluate-session
     (session body result-type &optional matlabp)

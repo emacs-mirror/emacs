@@ -60,7 +60,7 @@ If the argument is nil, we return the display table to its standard state."
    (list
     (let* ((completion-ignore-case t))
       (completing-read
-       "Cyrillic language (default nil): "
+       (format-prompt "Cyrillic language" "nil")
        cyrillic-language-alist nil t nil nil nil))))
 
   (or standard-display-table

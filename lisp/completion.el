@@ -1088,7 +1088,8 @@ Must be called after `find-exact-completion'."
   #'completion-locate-db-error "27.1")
 (defun completion-locate-db-error ()
   ;; recursive error: really scrod
-  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report"))
+  (error (substitute-command-keys
+          "Completion database corrupted.  Try \\[clear-all-completions].  Send bug report")))
 
 ;; WRITES
 (defun add-completion-to-tail-if-new (string)

@@ -18,11 +18,13 @@ arguments and their values are completely ignored.  The recommended way
 to put a new function on such a hook is to call @code{add-hook}.
 @xref{Hooks}, for more information about using hooks.
 
-The variables whose names end in @samp{-functions} are usually @dfn{abnormal
-hooks} (some old code may also use the deprecated @samp{-hooks} suffix); their
-values are lists of functions, but these functions are called in a special way
-(they are passed arguments, or their return values are used).  The variables
-whose names end in @samp{-function} have single functions as their values.
+The variables whose names end in @samp{-functions} are usually
+@dfn{abnormal hooks} (some old code may also use the deprecated
+@samp{-hooks} suffix).  Their values are lists of functions, but these
+functions are called in a special way: they are either passed
+arguments, or their return values are used in some way.  The variables
+whose names end in @samp{-function} have single functions as their
+values.
 
 This is not an exhaustive list, it only covers the more general hooks.
 For example, every major mode defines a hook named
@@ -262,7 +264,6 @@ after-set-visited-file-name-hook
 auto-coding-functions
 choose-completion-string-functions
 completing-read-function
-completion-annotate-function
 completion-at-point-functions
 completion-list-insert-choice-function
 deactivate-current-input-method-function

@@ -766,12 +766,16 @@ Make the shell buffer the current buffer, and return it.
               (called-interactively-p 'any)
               (null explicit-shell-file-name)
               (null (getenv "ESHELL")))
+     ;; `expand-file-name' shall not add the MS Windows volume letter
+     ;; (Bug#49229).
      (setq-local explicit-shell-file-name
-                 (file-local-name
-                  (expand-file-name
-                   (read-file-name "Remote shell path: " default-directory
-                                   shell-file-name t shell-file-name
-                                   #'file-remote-p)))))
+                 (replace-regexp-in-string
+                  "^[[:alpha:]]:" ""
+                  (file-local-name
+                   (expand-file-name
+                    (read-file-name "Remote shell path: " default-directory
+                                    shell-file-name t shell-file-name
+                                    #'file-remote-p))))))
 
    ;; Rain or shine, BUFFER must be current by now.
    (unless (comint-check-proc buffer)
@@ -781,7 +785,8 @@ Make the shell buffer the current buffer, and return it.
             (startfile (concat "~/.emacs_" name))
             (xargs-name (intern-soft (concat "explicit-" name "-args"))))
        (unless (file-exists-p startfile)
-         (setq startfile (concat user-emacs-directory "init_" name ".sh")))
+         (setq startfile (locate-user-emacs-file
+                          (concat "init_" name ".sh"))))
        (setq-local shell--start-prog (file-name-nondirectory prog))
        (apply #'make-comint-in-buffer "shell" buffer prog
               (if (file-exists-p startfile) startfile)

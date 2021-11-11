@@ -58,3 +58,5 @@
     (dolist (c (list 10003 ?b 128 ?c ?d (max-char) ?e))
       (aset s 0 c)
       (should (equal s (make-string 1 c))))))
+
+;;; alloc-tests.el ends here

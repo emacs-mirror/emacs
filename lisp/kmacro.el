@@ -260,8 +260,12 @@ Can be set directly via `kmacro-set-format', which see.")
 Interactively, ARG defaults to 1.  With \\[universal-argument], insert
 the previous value of `kmacro-counter', and do not increment the
 current value.
+
 The previous value of the counter is the one it had before
-the last increment."
+the last increment.
+
+See Info node `(emacs) Keyboard Macro Counter' for more
+information."
   (interactive "P")
   (if kmacro-initial-counter-value
       (setq kmacro-counter kmacro-initial-counter-value
@@ -273,7 +277,24 @@ the last increment."
 
 
 (defun kmacro-set-format (format)
-  "Set the format of `kmacro-counter' to FORMAT."
+  "Set the format of `kmacro-counter' to FORMAT.
+
+The default format is \"%d\", which means to insert the number in
+decimal without any padding.  You can specify any format string
+that the `format' function accepts and that makes sense with a
+single integer extra argument.
+
+If you run this command while no keyboard macro is being defined,
+the new format affects all subsequent macro definitions.
+
+If you run this command while defining a keyboard macro, it
+affects only that macro, from that point on.
+
+Do not put the format string inside double quotes when you insert
+it in the minibuffer.
+
+See Info node `(emacs) Keyboard Macro Counter' for more
+information."
   (interactive "sMacro Counter Format: ")
   (setq kmacro-counter-format
 	(if (equal format "") "%d" format))
@@ -283,7 +304,10 @@ the last increment."
 
 
 (defun kmacro-display-counter (&optional value)
-  "Display current counter value."
+  "Display current counter value.
+
+See Info node `(emacs) Keyboard Macro Counter' for more
+information."
   (unless value (setq value kmacro-counter))
   (message "New macro counter value: %s (%d)"
            (format kmacro-counter-format value) value))
@@ -291,7 +315,10 @@ the last increment."
 (defun kmacro-set-counter (arg)
   "Set the value of `kmacro-counter' to ARG, or prompt for value if no argument.
 With \\[universal-argument] prefix, reset counter to its value prior to this iteration of the
-macro."
+macro.
+
+See Info node `(emacs) Keyboard Macro Counter' for more
+information."
   (interactive "NMacro counter value: ")
   (if (not (or defining-kbd-macro executing-kbd-macro))
       (kmacro-display-counter (setq kmacro-initial-counter-value arg))
@@ -305,7 +332,10 @@ macro."
 
 (defun kmacro-add-counter (arg)
   "Add the value of numeric prefix arg (prompt if missing) to `kmacro-counter'.
-With \\[universal-argument], restore previous counter value."
+With \\[universal-argument], restore previous counter value.
+
+See Info node `(emacs) Keyboard Macro Counter' for more
+information."
   (interactive "NAdd to macro counter: ")
   (if kmacro-initial-counter-value
       (setq kmacro-counter kmacro-initial-counter-value

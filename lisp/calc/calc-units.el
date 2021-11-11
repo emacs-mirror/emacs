@@ -486,18 +486,13 @@ If COMP or STD is non-nil, put that in the units table instead."
      (setq defunits (math-get-default-units expr))
      (unless new-units
        (setq new-units
-             (read-string (concat
+             (read-string (format-prompt
                            (if (and uoldname (not nouold))
                                (concat "Old units: "
                                        uoldname
                                        ", new units")
                              "New units")
-                           (if defunits
-                               (concat
-                                " (default "
-                                defunits
-                                "): ")
-                             ": "))))
+                           defunits)))
        (if (and
             (string= new-units "")
             defunits)
@@ -533,14 +528,7 @@ If COMP or STD is non-nil, put that in the units table instead."
      (let* ((old-units (math-extract-units expr))
             (defunits (math-get-default-units expr))
             units
-            (new-units
-             (read-string (concat "New units"
-                                  (if defunits
-                                     (concat
-                                      " (default "
-                                      defunits
-                                      "): ")
-                                   ": ")))))
+            (new-units (read-string (format-prompt "New units" defunits))))
        (if (and
             (string= new-units "")
             defunits)
@@ -596,19 +584,14 @@ If COMP or STD is non-nil, put that in the units table instead."
 	 (setq expr (math-mul expr uold)))
      (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
-                    (completing-read
-                     (concat
-                      (if uoldname
-                          (concat "Old temperature units: "
-                                  uoldname
-                                  ", new units")
-                        "New temperature units")
-                      (if defunits
-                          (concat " (default "
-                                  defunits
-                                  "): ")
-                        ": "))
-                     tempunits)))
+                    (completing-read (format-prompt
+                                      (if uoldname
+                                          (concat "Old temperature units: "
+                                                  uoldname
+                                                  ", new units")
+                                        "New temperature units")
+                                      defunits)
+                                     tempunits)))
      (setq unew (math-read-expr (if (string= unew "") defunits unew)))
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))

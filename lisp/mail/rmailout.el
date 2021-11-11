@@ -107,9 +107,8 @@ error: %S\n"
 	 (read-file
 	  (expand-file-name
 	   (read-file-name
-	    (concat "Output message to mail file (default "
-		    (file-name-nondirectory default-file)
-		    "): ")
+            (format-prompt "Output message to mail file"
+                           (file-name-nondirectory default-file))
 	    (file-name-directory default-file)
 	    (abbreviate-file-name default-file))
 	   (file-name-directory default-file))))

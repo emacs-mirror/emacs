@@ -103,7 +103,43 @@ If nil, a faster, but more primitive, buffer is used instead."
 (defvar gnus-server-mode-line-format-spec nil)
 (defvar gnus-server-killed-servers nil)
 
-(defvar gnus-server-mode-map nil)
+(defvar-keymap gnus-server-mode-map
+  :full t :suppress t
+  " " #'gnus-server-read-server-in-server-buffer
+  "\r" #'gnus-server-read-server
+  [mouse-2] #'gnus-server-pick-server
+  "q" #'gnus-server-exit
+  "l" #'gnus-server-list-servers
+  "k" #'gnus-server-kill-server
+  "y" #'gnus-server-yank-server
+  "c" #'gnus-server-copy-server
+  "a" #'gnus-server-add-server
+  "e" #'gnus-server-edit-server
+  "S" #'gnus-server-show-server
+  "s" #'gnus-server-scan-server
+
+  "O" #'gnus-server-open-server
+  "\M-o" #'gnus-server-open-all-servers
+  "C" #'gnus-server-close-server
+  "\M-c" #'gnus-server-close-all-servers
+  "D" #'gnus-server-deny-server
+  "L" #'gnus-server-offline-server
+  "R" #'gnus-server-remove-denials
+
+  "n" #'next-line
+  "p" #'previous-line
+
+  "g" #'gnus-server-regenerate-server
+
+  "G" #'gnus-group-read-ephemeral-search-group
+
+  "z" #'gnus-server-compact-server
+
+  "i" #'gnus-server-toggle-cloud-server
+  "I" #'gnus-server-set-cloud-method-server
+
+  "\C-c\C-i" #'gnus-info-find-node
+  "\C-c\C-b" #'gnus-bug)
 
 (defcustom gnus-server-menu-hook nil
   "Hook run after the creation of the server mode menu."
@@ -144,47 +180,6 @@ If nil, a faster, but more primitive, buffer is used instead."
        ["Reset All" gnus-server-remove-denials t]))
 
     (gnus-run-hooks 'gnus-server-menu-hook)))
-
-(unless gnus-server-mode-map
-  (setq gnus-server-mode-map (make-keymap))
-  (suppress-keymap gnus-server-mode-map)
-
-  (gnus-define-keys gnus-server-mode-map
-    " " gnus-server-read-server-in-server-buffer
-    "\r" gnus-server-read-server
-    [mouse-2] gnus-server-pick-server
-    "q" gnus-server-exit
-    "l" gnus-server-list-servers
-    "k" gnus-server-kill-server
-    "y" gnus-server-yank-server
-    "c" gnus-server-copy-server
-    "a" gnus-server-add-server
-    "e" gnus-server-edit-server
-    "S" gnus-server-show-server
-    "s" gnus-server-scan-server
-
-    "O" gnus-server-open-server
-    "\M-o" gnus-server-open-all-servers
-    "C" gnus-server-close-server
-    "\M-c" gnus-server-close-all-servers
-    "D" gnus-server-deny-server
-    "L" gnus-server-offline-server
-    "R" gnus-server-remove-denials
-
-    "n" next-line
-    "p" previous-line
-
-    "g" gnus-server-regenerate-server
-
-    "G" gnus-group-read-ephemeral-search-group
-
-    "z" gnus-server-compact-server
-
-    "i" gnus-server-toggle-cloud-server
-    "I" gnus-server-set-cloud-method-server
-
-    "\C-c\C-i" gnus-info-find-node
-    "\C-c\C-b" gnus-bug))
 
 (defface gnus-server-agent
   '((((class color) (background light)) (:foreground "PaleTurquoise" :bold t))
@@ -570,7 +565,7 @@ The following commands are available:
   (when (assoc to gnus-server-alist)
     (error "%s already exists" to))
   (unless (gnus-server-to-method from)
-    (error "%s: no such server" from))
+    (error "%s: No such server" from))
   (let ((to-entry (cons from (copy-tree
 			      (gnus-server-to-method from)))))
     (setcar to-entry to)
@@ -697,37 +692,31 @@ claim them."
 		function
 		(repeat function)))
 
-(defvar gnus-browse-mode-map nil)
+(defvar-keymap gnus-browse-mode-map
+  :full t :suppress t
+  " " #'gnus-browse-read-group
+  "=" #'gnus-browse-select-group
+  "n" #'gnus-browse-next-group
+  "p" #'gnus-browse-prev-group
+  "\177" #'gnus-browse-prev-group
+  [delete] #'gnus-browse-prev-group
+  "N" #'gnus-browse-next-group
+  "P" #'gnus-browse-prev-group
+  "\M-n" #'gnus-browse-next-group
+  "\M-p" #'gnus-browse-prev-group
+  "\r" #'gnus-browse-select-group
+  "u" #'gnus-browse-toggle-subscription-at-point
+  "l" #'gnus-browse-exit
+  "L" #'gnus-browse-exit
+  "q" #'gnus-browse-exit
+  "Q" #'gnus-browse-exit
+  "d" #'gnus-browse-describe-group
+  [delete] #'gnus-browse-delete-group
+  "\C-c\C-c" #'gnus-browse-exit
+  "?" #'gnus-browse-describe-briefly
 
-(unless gnus-browse-mode-map
-  (setq gnus-browse-mode-map (make-keymap))
-  (suppress-keymap gnus-browse-mode-map)
-
-  (gnus-define-keys
-      gnus-browse-mode-map
-    " " gnus-browse-read-group
-    "=" gnus-browse-select-group
-    "n" gnus-browse-next-group
-    "p" gnus-browse-prev-group
-    "\177" gnus-browse-prev-group
-    [delete] gnus-browse-prev-group
-    "N" gnus-browse-next-group
-    "P" gnus-browse-prev-group
-    "\M-n" gnus-browse-next-group
-    "\M-p" gnus-browse-prev-group
-    "\r" gnus-browse-select-group
-    "u" gnus-browse-toggle-subscription-at-point
-    "l" gnus-browse-exit
-    "L" gnus-browse-exit
-    "q" gnus-browse-exit
-    "Q" gnus-browse-exit
-    "d" gnus-browse-describe-group
-    [delete] gnus-browse-delete-group
-    "\C-c\C-c" gnus-browse-exit
-    "?" gnus-browse-describe-briefly
-
-    "\C-c\C-i" gnus-info-find-node
-    "\C-c\C-b" gnus-bug))
+  "\C-c\C-i" #'gnus-info-find-node
+  "\C-c\C-b" #'gnus-bug)
 
 (defun gnus-browse-make-menu-bar ()
   (gnus-turn-off-edit-menu 'browse)
@@ -1128,7 +1117,7 @@ Requesting compaction of %s... (this may take a long time)"
       (customize-set-variable 'gnus-cloud-method server)
       ;; Note we can't use `Custom-save' here.
       (when (gnus-yes-or-no-p
-             (format "The new cloud host server is %S now. Save it? " server))
+             (format "The new cloud host server is `%S' now.  Save it?" server))
         (customize-save-variable 'gnus-cloud-method server)))
     (when (gnus-yes-or-no-p (format "Upload Cloud data to %S now? " server))
       (gnus-message 1 "Uploading all data to Emacs Cloud server %S" server)

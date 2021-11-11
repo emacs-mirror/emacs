@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'info-xref)
 
 (defun info-xref-test-internal (body result)
@@ -96,15 +97,17 @@ text.
 (ert-deftest info-xref-test-makeinfo ()
   "Test that info-xref can parse basic makeinfo output."
   (skip-unless (executable-find "makeinfo"))
-  (let ((tempfile (make-temp-file "info-xref-test" nil ".texi"))
-        (tempfile2 (make-temp-file "info-xref-test2" nil ".texi"))
-        (errflag t))
-    (unwind-protect
-        (progn
-          ;; tempfile contains xrefs to various things, including tempfile2.
-          (info-xref-test-write-file
-           tempfile
-           (concat "\
+  (ert-with-temp-file tempfile
+    :suffix ".texi"
+    (ert-with-temp-file tempfile2
+      :suffix ".texi"
+      (let ((errflag t))
+        (unwind-protect
+            (progn
+              ;; tempfile contains xrefs to various things, including tempfile2.
+              (info-xref-test-write-file
+               tempfile
+               (concat "\
 @xref{nodename,,,missing,Missing Manual}.
 
 @xref{nodename,crossref,title,missing,Missing Manual}.
@@ -114,35 +117,36 @@ text.
 @xref{Chapter One,Something}.
 
 "
-                   (format "@xref{Chapter One,,,%s,Present Manual}.\n"
-                           (file-name-sans-extension (file-name-nondirectory
-                                                      tempfile2)))))
-          ;; Something for tempfile to xref to.
-          (info-xref-test-write-file tempfile2 "")
-          (require 'info)
-          (save-window-excursion
-            (let ((Info-directory-list
-                   (list
-                    (or (file-name-directory tempfile) ".")))
-                  Info-additional-directory-list)
-              (info-xref-check (format "%s.info" (file-name-sans-extension
-                                                  tempfile))))
-            (should (equal (list info-xref-bad info-xref-good
-                                 info-xref-unavail)
-                           '(0 1 2)))
-            (setq errflag nil)
-            ;; If there was an error, we can leave this around.
-            (kill-buffer info-xref-output-buffer)))
-      ;; Useful diagnostic in case of problems.
-      (if errflag
-          (with-temp-buffer
-            (call-process "makeinfo" nil t nil "--version")
-            (message "%s" (buffer-string))))
-      (mapc 'delete-file (list tempfile tempfile2
-                               (format "%s.info" (file-name-sans-extension
-                                                  tempfile))
-                               (format "%s.info" (file-name-sans-extension
-                                                  tempfile2)))))))
+                       (format "@xref{Chapter One,,,%s,Present Manual}.\n"
+                               (file-name-sans-extension (file-name-nondirectory
+                                                          tempfile2)))))
+              ;; Something for tempfile to xref to.
+              (info-xref-test-write-file tempfile2 "")
+              (require 'info)
+              (save-window-excursion
+                (let ((Info-directory-list
+                       (list
+                        (or (file-name-directory tempfile) ".")))
+                      Info-additional-directory-list)
+                  (info-xref-check (format "%s.info" (file-name-sans-extension
+                                             tempfile))))
+                (should (equal (list info-xref-bad info-xref-good
+                                     info-xref-unavail)
+                               '(0 1 2)))
+                (setq errflag nil)
+                ;; If there was an error, we can leave this around.
+                (kill-buffer info-xref-output-buffer)))
+          ;; Useful diagnostic in case of problems.
+          (if errflag
+              (with-temp-buffer
+                (call-process "makeinfo" nil t nil "--version")
+                (message "%s" (buffer-string))))
+          (ignore-errors
+            (delete-file (format "%s.info" (file-name-sans-extension
+                                            tempfile))))
+          (ignore-errors
+            (delete-file (format "%s.info" (file-name-sans-extension
+                                            tempfile2)))))))))
 
 (ert-deftest info-xref-test-emacs-manuals ()
   "Test that all internal links in the Emacs manuals work."
@@ -161,4 +165,4 @@ text.
                                                (line-end-position)))))))
 
 
-;;; info-xref.el ends here
+;;; info-xref-tests.el ends here

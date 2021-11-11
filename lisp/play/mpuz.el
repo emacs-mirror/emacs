@@ -153,7 +153,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(index 10)
 	elem)
     (while letters
-      (setq elem    (nth (random index) letters)
+      (setq elem    (seq-random-elt letters)
 	    letters (delq elem letters)
 	    index   (1- index))
       (aset mpuz-digit-to-letter index elem)

@@ -1507,16 +1507,14 @@ buffer containing image-dired, corresponding to the marked files.
   You can also enter Image-Dired directly by typing @kbd{M-x
 image-dired}.  This prompts for a directory; specify one that has
 image files.  This creates thumbnails for all the images in that
-directory, and displays them all in the thumbnail buffer.  This
-takes a long time if the directory contains many image files, and it
-asks for confirmation if the number of image files exceeds
-@code{image-dired-show-all-from-dir-max-files}.
+directory, and displays them all in the thumbnail buffer.  The
+thumbnails are generated in the background and are loaded as they
+become available.
 
   With point in the thumbnail buffer, you can type @key{RET}
-(@code{image-dired-display-thumbnail-original-image}) to display a
-sized version of it in another window.  This sizes the image to fit
-the window.  Use the arrow keys to move around in the buffer.  For
-easy browsing, use @key{SPC}
+(@code{image-dired-display-thumbnail-original-image}) to display the
+image in another window.  Use the arrow keys to move around in the
+thumbnail buffer.  For easy browsing, use @key{SPC}
 (@code{image-dired-display-next-thumbnail-original}) to advance and
 display the next image.  Typing @key{DEL}
 (@code{image-dired-display-previous-thumbnail-original}) backs up to

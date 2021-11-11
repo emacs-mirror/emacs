@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup outlines nil
   "Support for hierarchical outlining."
   :prefix "outline-"
@@ -272,6 +274,24 @@ in the file it applies to.")
 (defvar outline-font-lock-faces
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
+
+(defcustom outline-minor-mode-use-buttons nil
+  "If non-nil, use clickable buttons on the headings.
+Note that this feature is not meant to be used in editing
+buffers (yet) -- that will be amended in a future version.
+
+The `outline-minor-mode-buttons' variable specifies how the
+buttons should look."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom outline-minor-mode-buttons
+  '(("▶️" "🔽" outline--valid-emoji-p)
+    ("▶" "▼" outline--valid-char-p))
+  "List of close/open pairs to use if using buttons."
+  :type 'sexp
+  :version "29.1")
+
 
 (defvar outline-level #'outline-level
   "Function of no args to compute a header's nesting level in an outline.
@@ -388,6 +408,8 @@ faces to major mode's faces."
                          (goto-char (match-beginning 0))
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
+          (when outline-minor-mode-use-buttons
+            (outline--insert-open-button))
           (when outline-minor-mode-cycle
             (overlay-put overlay 'keymap outline-minor-mode-cycle-map)))
         (goto-char (match-end 0))))))
@@ -807,6 +829,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
       (overlay-put o 'isearch-open-invisible
 		   (or outline-isearch-open-invisible-function
 		       #'outline-isearch-open-invisible))))
+  (outline--fix-up-all-buttons from to)
   ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
@@ -923,10 +946,78 @@ Note that this does not hide the lines preceding the first heading line."
 
 (define-obsolete-function-alias 'show-all #'outline-show-all "25.1")
 
-(defun outline-hide-subtree ()
-  "Hide everything after this heading at deeper levels."
-  (interactive)
+(defun outline-hide-subtree (&optional event)
+  "Hide everything after this heading at deeper levels.
+If non-nil, EVENT should be a mouse event."
+  (interactive (list last-nonmenu-event))
+  (when (mouse-event-p event)
+    (mouse-set-point event))
+  (when (and outline-minor-mode-use-buttons outline-minor-mode)
+    (outline--insert-close-button))
   (outline-flag-subtree t))
+
+(defun outline--make-button (type)
+  (cl-loop for (close open test) in outline-minor-mode-buttons
+           when (and (funcall test close) (funcall test open))
+           return (concat (if (eq type 'close)
+                              close
+                            open)
+                          " " (buffer-substring (point) (1+ (point))))))
+
+(defun outline--valid-emoji-p (string)
+  (when-let ((font (and (display-multi-font-p)
+                        (car (internal-char-font nil ?😀)))))
+    (font-has-char-p font (aref string 0))))
+
+(defun outline--valid-char-p (string)
+  (char-displayable-p (aref string 0)))
+
+(defun outline--make-button-overlay (type)
+  (let ((o (seq-find (lambda (o)
+                       (overlay-get o 'outline-button))
+                     (overlays-at (point)))))
+    (unless o
+      (setq o (make-overlay (point) (1+ (point))))
+      (overlay-put o 'follow-link 'mouse-face)
+      (overlay-put o 'mouse-face 'highlight)
+      (overlay-put o 'outline-button t))
+    (overlay-put o 'display (outline--make-button type))
+    o))
+
+(defun outline--insert-open-button ()
+  (save-excursion
+    (beginning-of-line)
+    (let ((o (outline--make-button-overlay 'open)))
+      (overlay-put o 'help-echo "Click to hide")
+      (overlay-put o 'keymap
+                   (define-keymap
+                     :parent outline-minor-mode-cycle-map
+                     ["RET"] #'outline-hide-subtree
+                     ["<mouse-2>"] #'outline-hide-subtree)))))
+
+(defun outline--insert-close-button ()
+  (save-excursion
+    (beginning-of-line)
+    (let ((o (outline--make-button-overlay 'close)))
+      (overlay-put o 'help-echo "Click to show")
+      (overlay-put o 'keymap
+                   (define-keymap
+                     :parent outline-minor-mode-cycle-map
+                     ["RET"] #'outline-show-subtree
+                     ["<mouse-2>"] #'outline-show-subtree)))))
+
+(defun outline--fix-up-all-buttons (&optional from to)
+  (when from
+    (save-excursion
+      (goto-char from)
+      (setq from (line-beginning-position))))
+  (when outline-minor-mode-use-buttons
+    (outline-map-region
+     (lambda ()
+       (if (eq (outline--cycle-state) 'show-all)
+           (outline--insert-open-button)
+         (outline--insert-close-button)))
+     (or from (point-min)) (or to (point-max)))))
 
 (define-obsolete-function-alias 'hide-subtree #'outline-hide-subtree "25.1")
 
@@ -943,9 +1034,13 @@ Note that this does not hide the lines preceding the first heading line."
 
 (define-obsolete-function-alias 'hide-leaves #'outline-hide-leaves "25.1")
 
-(defun outline-show-subtree ()
+(defun outline-show-subtree (&optional event)
   "Show everything after this heading at deeper levels."
-  (interactive)
+  (interactive (list last-nonmenu-event))
+  (when (mouse-event-p event)
+    (mouse-set-point event))
+  (when (and outline-minor-mode-use-buttons outline-minor-mode)
+    (outline--insert-open-button))
   (outline-flag-subtree nil))
 
 (define-obsolete-function-alias 'show-subtree #'outline-show-subtree "25.1")
@@ -1295,7 +1390,8 @@ Return either 'hide-all, 'headings-only, or 'show-all."
      (t
       (outline-show-all)
       (setq outline--cycle-buffer-state 'show-all)
-      (message "Show all")))))
+      (message "Show all")))
+    (outline--fix-up-all-buttons)))
 
 (defvar outline-navigation-repeat-map
   (let ((map (make-sparse-keymap)))
