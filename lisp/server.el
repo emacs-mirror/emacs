@@ -1716,6 +1716,9 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
     (when server-raise-frame
       (select-frame-set-input-focus (window-frame)))))
 
+(defvar server-stop-automatically nil
+  "Internal status variable for `server-stop-automatically'.")
+
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)
   ;; Called from save-buffers-kill-terminal in files.el.
@@ -1724,27 +1727,101 @@ With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (let ((proc (frame-parameter nil 'client)))
-    (cond ((eq proc 'nowait)
-	   ;; Nowait frames have no client buffer list.
-	   (if (cdr (frame-list))
-	       (progn (save-some-buffers arg)
-		      (delete-frame))
-	     ;; If we're the last frame standing, kill Emacs.
-	     (save-buffers-kill-emacs arg)))
-	  ((processp proc)
-	   (let ((buffers (process-get proc 'buffers)))
-	     (save-some-buffers
-	      arg (if buffers
-                      ;; Only files from emacsclient file list.
-		      (lambda () (memq (current-buffer) buffers))
-                    ;; No emacsclient file list: don't override
-                    ;; `save-some-buffers-default-predicate' (unless
-                    ;; ARG is non-nil), since we're not killing
-                    ;; Emacs (unlike `save-buffers-kill-emacs').
-		    (and arg t)))
-	     (server-delete-client proc)))
-	  (t (error "Invalid client frame")))))
+  (if server-stop-automatically
+      (server-stop-automatically--handle-delete-frame (selected-frame))
+    (let ((proc (frame-parameter nil 'client)))
+      (cond ((eq proc 'nowait)
+	     ;; Nowait frames have no client buffer list.
+	     (if (cdr (frame-list))
+	         (progn (save-some-buffers arg)
+		        (delete-frame))
+	       ;; If we're the last frame standing, kill Emacs.
+	       (save-buffers-kill-emacs arg)))
+	    ((processp proc)
+	     (let ((buffers (process-get proc 'buffers)))
+	       (save-some-buffers
+	        arg (if buffers
+                        ;; Only files from emacsclient file list.
+		        (lambda () (memq (current-buffer) buffers))
+                      ;; No emacsclient file list: don't override
+                      ;; `save-some-buffers-default-predicate' (unless
+                      ;; ARG is non-nil), since we're not killing
+                      ;; Emacs (unlike `save-buffers-kill-emacs').
+		      (and arg t)))
+	       (server-delete-client proc)))
+	    (t (error "Invalid client frame"))))))
+
+(defun server-stop-automatically--handle-delete-frame (frame)
+  "Handle deletion of FRAME when `server-stop-automatically' is used."
+  (when server-stop-automatically
+    (if (if (and (processp (frame-parameter frame 'client))
+		 (eq this-command 'save-buffers-kill-terminal))
+	    (progn
+	      (dolist (f (frame-list))
+		(when (and (eq (frame-parameter frame 'client)
+			       (frame-parameter f 'client))
+			   (not (eq frame f)))
+		  (set-frame-parameter f 'client nil)
+		  (let ((server-stop-automatically nil))
+		    (delete-frame f))))
+	      (if (cddr (frame-list))
+		  (let ((server-stop-automatically nil))
+		    (delete-frame frame)
+		    nil)
+		t))
+	  (null (cddr (frame-list))))
+	(let ((server-stop-automatically nil))
+	  (save-buffers-kill-emacs)
+	  (delete-frame frame)))))
+
+(defun server-stop-automatically--maybe-kill-emacs ()
+  "Handle closing of Emacs daemon when `server-stop-automatically' is used."
+  (unless (cdr (frame-list))
+    (when (and
+	   (not (memq t (mapcar (lambda (b)
+				  (and (buffer-file-name b)
+				       (buffer-modified-p b)))
+				(buffer-list))))
+	   (not (memq t (mapcar (lambda (p)
+				  (and (memq (process-status p)
+					     '(run stop open listen))
+				       (process-query-on-exit-flag p)))
+				(process-list)))))
+      (kill-emacs))))
+
+;;;###autoload
+(defun server-stop-automatically (arg)
+  "Automatically stop server when possible.
+
+When ARG is 'empty, the server is stopped when it has no remaining
+clients, no remaining unsaved file-visiting buffers, and no
+running processes with a query-on-exit flag.
+
+When ARG is 'delete-frame, the user is asked when the last frame is
+being closed whether each unsaved file-visiting buffer must be
+saved and each running process with a query-on-exit flag can be
+stopped, and if so, the server itself is stopped.
+
+When ARG is 'kill-terminal, the user is asked when the last frame
+is being close with \\[save-buffers-kill-terminal] \
+whether each unsaved file-visiting
+buffer must be saved and each running process with a query-on-exit
+flag can be stopped, and if so, the server itself is stopped.
+
+This function is meant to be put in init files."
+  (when (daemonp)
+    (setq server-stop-automatically arg)
+    (cond
+     ((eq arg 'empty)
+      (setq server-stop-automatically nil)
+      (run-with-timer 10 2
+		      #'server-stop-automatically--maybe-kill-emacs))
+     ((eq arg 'delete-frame)
+      (add-hook 'delete-frame-functions
+		#'server-stop-automatically--handle-delete-frame))
+     ((eq arg 'kill-terminal))
+     (t
+      (error "Unexpected argument")))))
 
 (define-key ctl-x-map "#" 'server-edit)
 

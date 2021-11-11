@@ -139,6 +139,12 @@ suspicious and could be malicious.
 With this command-line option, Emacs reuses an existing graphical client
 frame if one exists; otherwise it creates a new frame.
 
++++
+*** 'server-stop-automatically' can be used to automatically stop the server.
+The Emacs server will be automatically stopped when certain conditions
+are met.  The conditions are given by the argument, which can be
+'empty', 'delete-frame' or 'kill-terminal'.
+
 * Editing Changes in Emacs 29.1
 
 ---
