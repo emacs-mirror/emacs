@@ -983,7 +983,7 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
     (xwidget-webkit-finish-search (xwidget-webkit-current-session))))
 
 (defun xwidget-webkit-isearch-yank-kill ()
-  "Pull string from kill ring and append it to the current query."
+  "Append the most recent kill from `kill-ring' to the current query."
   (interactive)
   (unless xwidget-webkit-isearch-mode
     (xwidget-webkit-isearch-mode t))
