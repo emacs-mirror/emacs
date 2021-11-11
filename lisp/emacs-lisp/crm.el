@@ -244,30 +244,29 @@ contents of the minibuffer are \"alice,bob,eve\" and point is between
 
 This function returns a list of the strings that were read,
 with empty strings removed."
-  (unwind-protect
-      (progn
-	(add-hook 'choose-completion-string-functions
-		  'crm--choose-completion-string)
-	(let* ((minibuffer-completion-table #'crm--collection-fn)
-	       (minibuffer-completion-predicate predicate)
-	       ;; see completing_read in src/minibuf.c
-	       (minibuffer-completion-confirm
-		(unless (eq require-match t) require-match))
-	       (crm-completion-table table)
-	       (map (if require-match
-			crm-local-must-match-map
-		      crm-local-completion-map))
-	       ;; If the user enters empty input, `read-from-minibuffer'
-	       ;; returns the empty string, not DEF.
-	       (input (read-from-minibuffer
-		       prompt initial-input map
-		       nil hist def inherit-input-method)))
-	  (when (and def (string-equal input ""))
-	    (setq input (if (consp def) (car def) def)))
-          ;; Remove empty strings in the list of read strings.
-	  (split-string input crm-separator t)))
-    (remove-hook 'choose-completion-string-functions
-		 'crm--choose-completion-string)))
+  (let* ((map (if require-match
+                  crm-local-must-match-map
+                crm-local-completion-map))
+         input)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (add-hook 'choose-completion-string-functions
+                    'crm--choose-completion-string nil 'local)
+          (setq-local minibuffer-completion-table #'crm--collection-fn)
+          (setq-local minibuffer-completion-predicate predicate)
+          ;; see completing_read in src/minibuf.c
+          (setq-local minibuffer-completion-confirm
+                      (unless (eq require-match t) require-match))
+          (setq-local crm-completion-table table))
+      (setq input (read-from-minibuffer
+                   prompt initial-input map
+                   nil hist def inherit-input-method)))
+    ;; If the user enters empty input, `read-from-minibuffer'
+    ;; returns the empty string, not DEF.
+    (when (and def (string-equal input ""))
+      (setq input (if (consp def) (car def) def)))
+    ;; Remove empty strings in the list of read strings.
+    (split-string input crm-separator t)))
 
 ;; testing and debugging
 ;; (defun crm-init-test-environ ()
