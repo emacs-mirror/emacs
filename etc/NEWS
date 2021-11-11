@@ -46,6 +46,11 @@ time.
 
 * Changes in Emacs 29.1
 
+** Terminal Emacs
+
+---
+*** Emacs will now use 24-bit colors on terminal that support "Tc".
+
 ** Emoji
 
 +++
