@@ -1097,11 +1097,11 @@ this problem by switching to IBus, or by using a native Emacs input
 method and disabling XIM altogether.  For example, you can add the
 following line:
 
-    Emacs.useXIM: false
+  Emacs.useXIM: false
 
 In your ~/.Xresources file, then run
 
-    $ xrdb
+  $ xrdb ~/.Xresources
 
 And restart Emacs.
 
