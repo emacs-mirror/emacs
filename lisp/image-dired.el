@@ -1660,6 +1660,7 @@ You probably want to use this together with
   special-mode "image-dired-thumbnail"
   "Browse and manipulate thumbnail images using Dired.
 Use `image-dired-minor-mode' to get a nice setup."
+  :interactive nil
   (buffer-disable-undo)
   (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t)
   (setq-local window-resize-pixelwise t)
