@@ -6804,11 +6804,22 @@ pixels, and @var{title}, a string, specifies its title.  @var{related}
 is used internally by the WebKit widget, and specifies another WebKit
 widget that the newly created widget should share settings and
 subprocesses with.
+
+The xwidget that is returned will be killed alongside its buffer
+(@pxref{Killing Buffers}).  Once it is killed, the xwidget may
+continue to exist as a Lisp object and act as a @code{display}
+property until all references to it are gone, but most actions that
+can be performed on live xwidgets will no longer be available.
 @end defun
 
 @defun xwidgetp object
 This function returns @code{t} if @var{object} is an xwidget,
 @code{nil} otherwise.
+@end defun
+
+@defun xwidget-live-p object
+This function returns @code{t} if @var{object} is an xwidget that
+hasn't been killed, and @code{nil} otherwise.
 @end defun
 
 @defun xwidget-plist xwidget
@@ -6821,7 +6832,8 @@ property list given by @var{plist}.
 @end defun
 
 @defun xwidget-buffer xwidget
-This function returns the buffer of @var{xwidget}.
+This function returns the buffer of @var{xwidget}.  If @var{xwidget}
+has been killed, it returns @code{nil}.
 @end defun
 
 @defun set-xwidget-buffer xwidget buffer

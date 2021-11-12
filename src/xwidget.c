@@ -272,6 +272,16 @@ fails.  */)
   return val;
 }
 
+DEFUN ("xwidget-live-p", Fxwidget_live_p, Sxwidget_live_p,
+       1, 1, 0, doc: /* Return t if OBJECT is an xwidget that has not been killed.
+Value is nil if OBJECT is not an xwidget or if it has been killed.  */)
+  (Lisp_Object object)
+{
+  return ((XWIDGETP (object)
+	   && !NILP (XXWIDGET (object)->buffer))
+	  ? Qt : Qnil);
+}
+
 #ifdef USE_GTK
 static void
 set_widget_if_text_view (GtkWidget *widget, void *data)
@@ -304,7 +314,7 @@ selected frame is not an X-Windows frame.  */)
   GtkWidget *temp = NULL;
 #endif
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
 
   if (!NILP (frame))
@@ -806,6 +816,9 @@ xwidget_button (struct xwidget_view *view,
 		bool down_p, int x, int y, int button,
 		int modifier_state, Time time)
 {
+  if (NILP (XXWIDGET (view->model)->buffer))
+    return;
+
   record_osr_embedder (view);
 
   if (button < 4 || button > 8)
@@ -856,22 +869,29 @@ xwidget_button (struct xwidget_view *view,
 void
 xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 {
-  GdkEvent *xg_event = gdk_event_new (event->type == MotionNotify
-				      ? GDK_MOTION_NOTIFY
-				      : (event->type == LeaveNotify
-					 ? GDK_LEAVE_NOTIFY
-					 : GDK_ENTER_NOTIFY));
+  GdkEvent *xg_event;
   struct xwidget *model = XXWIDGET (view->model);
   int x;
   int y;
-  GtkWidget *target = find_widget_at_pos (model->widgetwindow_osr,
-					  (event->type == MotionNotify
-					   ? event->xmotion.x + view->clip_left
-					   : event->xcrossing.x + view->clip_left),
-					  (event->type == MotionNotify
-					   ? event->xmotion.y + view->clip_top
-					   : event->xcrossing.y + view->clip_top),
-					  &x, &y);
+  GtkWidget *target;
+
+  if (NILP (model->buffer))
+    return;
+
+  xg_event = gdk_event_new (event->type == MotionNotify
+			    ? GDK_MOTION_NOTIFY
+			    : (event->type == LeaveNotify
+			       ? GDK_LEAVE_NOTIFY
+			       : GDK_ENTER_NOTIFY));
+
+  target = find_widget_at_pos (model->widgetwindow_osr,
+			       (event->type == MotionNotify
+				? event->xmotion.x + view->clip_left
+				: event->xcrossing.x + view->clip_left),
+			       (event->type == MotionNotify
+				? event->xmotion.y + view->clip_top
+				: event->xcrossing.y + view->clip_top),
+			       &x, &y);
 
   if (!target)
     target = model->widget_osr;
@@ -968,6 +988,13 @@ xv_do_draw (struct xwidget_view *xw, struct xwidget *w)
 {
   GtkOffscreenWindow *wnd;
   cairo_surface_t *surface;
+
+  if (NILP (w->buffer))
+    {
+      XClearWindow (xw->dpy, xw->wdesc);
+      return;
+    }
+
   block_input ();
   wnd = GTK_OFFSCREEN_WINDOW (w->widgetwindow_osr);
   surface = gtk_offscreen_window_get_surface (wnd);
@@ -1650,14 +1677,25 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
      a redraw.  It seems its possible to get out of sync with emacs
      redraws so emacs background sometimes shows up instead of the
      xwidgets background.  It's just a visual glitch though.  */
-  if (!xwidget_hidden (xv))
+  /* When xww->buffer is nil, that means the xwidget has been killed.  */
+  if (!NILP (xww->buffer))
     {
+      if (!xwidget_hidden (xv))
+	{
 #ifdef USE_GTK
-      gtk_widget_queue_draw (xww->widget_osr);
+	  gtk_widget_queue_draw (xww->widget_osr);
 #elif defined NS_IMPL_COCOA
-      nsxwidget_set_needsdisplay (xv);
+	  nsxwidget_set_needsdisplay (xv);
 #endif
+	}
     }
+#ifdef USE_GTK
+  else
+    {
+      XSetWindowBackground (xv->dpy, xv->wdesc,
+			    FRAME_BACKGROUND_PIXEL (s->f));
+    }
+#endif
 
 #ifdef USE_GTK
   unblock_input ();
@@ -1676,7 +1714,7 @@ xwidget_is_web_view (struct xwidget *xw)
 
 /* Macro that checks xwidget hold webkit web view first.  */
 #define WEBKIT_FN_INIT()						\
-  CHECK_XWIDGET (xwidget);						\
+  CHECK_LIVE_XWIDGET (xwidget);						\
   struct xwidget *xw = XXWIDGET (xwidget);				\
   if (!xwidget_is_web_view (xw))					\
     {									\
@@ -1855,7 +1893,7 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
        doc: /* Resize XWIDGET to NEW_WIDTH, NEW_HEIGHT.  */ )
   (Lisp_Object xwidget, Lisp_Object new_width, Lisp_Object new_height)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   int w = check_integer_range (new_width, 0, INT_MAX);
   int h = check_integer_range (new_height, 0, INT_MAX);
   struct xwidget *xw = XXWIDGET (xwidget);
@@ -1906,7 +1944,7 @@ This can be used to read the xwidget desired size, and resizes the
 Emacs allocated area accordingly.  */)
   (Lisp_Object xwidget)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
 #ifdef USE_GTK
   GtkRequisition requisition;
   gtk_widget_size_request (XXWIDGET (xwidget)->widget_osr, &requisition);
@@ -1941,7 +1979,7 @@ DEFUN ("xwidget-info",
 Currently [TYPE TITLE WIDTH HEIGHT].  */)
   (Lisp_Object xwidget)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   struct xwidget *xw = XXWIDGET (xwidget);
   return CALLN (Fvector, xw->type, xw->title,
 		make_fixed_natnum (xw->width), make_fixed_natnum (xw->height));
@@ -2004,7 +2042,7 @@ DEFUN ("delete-xwidget-view",
       unblock_input ();
     }
 
-  if (xw->embedder_view == xv)
+  if (xw->embedder_view == xv && !NILP (xw->buffer))
     {
       w = gtk_widget_get_window (xw->widgetwindow_osr);
 
@@ -2053,7 +2091,7 @@ DEFUN ("xwidget-plist",
        doc: /* Return the plist of XWIDGET.  */)
   (Lisp_Object xwidget)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   return XXWIDGET (xwidget)->plist;
 }
 
@@ -2073,7 +2111,7 @@ DEFUN ("set-xwidget-buffer",
        doc: /* Set XWIDGET's buffer to BUFFER.  */)
   (Lisp_Object xwidget, Lisp_Object buffer)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   CHECK_BUFFER (buffer);
 
   XXWIDGET (xwidget)->buffer = buffer;
@@ -2087,7 +2125,7 @@ DEFUN ("set-xwidget-plist",
 Returns PLIST.  */)
   (Lisp_Object xwidget, Lisp_Object plist)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   CHECK_LIST (plist);
 
   XXWIDGET (xwidget)->plist = plist;
@@ -2103,7 +2141,7 @@ exiting or killing a buffer if XWIDGET is running.
 This function returns FLAG.  */)
   (Lisp_Object xwidget, Lisp_Object flag)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   XXWIDGET (xwidget)->kill_without_query = NILP (flag);
   return flag;
 }
@@ -2114,7 +2152,7 @@ DEFUN ("xwidget-query-on-exit-flag",
        doc: /* Return the current value of the query-on-exit flag for XWIDGET.  */)
   (Lisp_Object xwidget)
 {
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   return (XXWIDGET (xwidget)->kill_without_query ? Qnil : Qt);
 }
 
@@ -2147,7 +2185,7 @@ with QUERY.  */)
 #endif
 
   CHECK_STRING (query);
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
 
 #ifdef USE_GTK
   xw = XXWIDGET (xwidget);
@@ -2191,7 +2229,7 @@ using `xwidget-webkit-search'.  */)
   WebKitFindController *controller;
 #endif
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
 
   if (!xw->find_text)
@@ -2223,7 +2261,7 @@ using `xwidget-webkit-search'.  */)
   WebKitFindController *controller;
 #endif
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
 
   if (!xw->find_text)
@@ -2255,7 +2293,7 @@ using `xwidget-webkit-search'.  */)
   WebKitFindController *controller;
 #endif
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
 
   if (!xw->find_text)
@@ -2293,7 +2331,7 @@ to "about:blank".  */)
   WebKitWebView *webview;
   char *data, *uri;
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   CHECK_STRING (text);
   if (NILP (base_uri))
     base_uri = build_string ("about:blank");
@@ -2321,7 +2359,9 @@ syms_of_xwidget (void)
 {
   defsubr (&Smake_xwidget);
   defsubr (&Sxwidgetp);
+  defsubr (&Sxwidget_live_p);
   DEFSYM (Qxwidgetp, "xwidgetp");
+  DEFSYM (Qxwidget_live_p, "xwidget-live-p");
   defsubr (&Sxwidget_view_p);
   DEFSYM (Qxwidget_view_p, "xwidget-view-p");
   defsubr (&Sxwidget_info);
@@ -2379,7 +2419,8 @@ syms_of_xwidget (void)
 
   Fprovide (intern ("xwidget-internal"), Qnil);
 
-  id_to_xwidget_map = CALLN (Fmake_hash_table, QCtest, Qeq);
+  id_to_xwidget_map = CALLN (Fmake_hash_table, QCtest, Qeq,
+			     QCweakness, Qvalue);
   staticpro (&id_to_xwidget_map);
 
 #ifdef USE_GTK
@@ -2605,9 +2646,10 @@ kill_buffer_xwidgets (Lisp_Object buffer)
       Vxwidget_list = Fdelq (xwidget, Vxwidget_list);
       /* TODO free the GTK things in xw.  */
       {
-        CHECK_XWIDGET (xwidget);
+        CHECK_LIVE_XWIDGET (xwidget);
         struct xwidget *xw = XXWIDGET (xwidget);
-	Fremhash (make_fixnum (xw->xwidget_id), id_to_xwidget_map);
+	xw->buffer = Qnil;
+
 #ifdef USE_GTK
         if (xw->widget_osr && xw->widgetwindow_osr)
           {
@@ -2624,6 +2666,10 @@ kill_buffer_xwidgets (Lisp_Object buffer)
 		xfree (xmint_pointer (XCAR (cb)));
 	      ASET (xw->script_callbacks, idx, Qnil);
 	    }
+
+	xw->widget_osr = NULL;
+	xw->widgetwindow_osr = NULL;
+	xw->find_text = NULL;
 #elif defined NS_IMPL_COCOA
         nsxwidget_kill (xw);
 #endif
