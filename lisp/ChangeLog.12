@@ -182,7 +182,7 @@
 
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
-	* calendar/todo-mode.el: Fix typo: "threshhold" -> "threshold".
+	* calendar/todo-mode.el: Fix typo for "threshold".
 
 2007-04-18  Glenn Morris  <rgm@gnu.org>
 
