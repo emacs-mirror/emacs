@@ -20,6 +20,8 @@ import argparse
 import os
 import shutil
 import re
+import functools
+import operator
 
 from subprocess import check_output
 
@@ -112,7 +114,7 @@ def ntldd_munge(out):
 ## Packages to fiddle with
 ## Source for gcc-libs is part of gcc
 SKIP_SRC_PKGS=["mingw-w64-gcc-libs"]
-SKIP_DEP_PKGS=["mingw-w64-glib2"]
+SKIP_DEP_PKGS=frozenset(["mingw-w64-x86_64-glib2"])
 MUNGE_SRC_PKGS={"mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git"}
 MUNGE_DEP_PKGS={
     "mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
@@ -124,16 +126,14 @@ ARCH_PKGS=[]
 SRC_REPO="https://sourceforge.net/projects/msys2/files/REPOS/MINGW/Sources"
 
 
-def immediate_deps(pkg):
-    package_info = check_output(["pacman", "-Si", pkg]).decode("utf-8").split("\n")
+def immediate_deps(pkgs):
+    package_info = check_output(["pacman", "-Si"] + pkgs).decode("utf-8").splitlines()
 
-    ## Extract the "Depends On" line
-    depends_on = [x for x in package_info if x.startswith("Depends On")][0]
-    ## Remove "Depends On" prefix
-    dependencies = depends_on.split(":")[1]
-
-    ## Split into dependencies
-    dependencies = dependencies.strip().split(" ")
+    ## Extract the packages listed for "Depends On:" lines.
+    dependencies = [line.split(":")[1].split() for line in package_info
+                    if line.startswith("Depends On")]
+    ## Flatten dependency lists from multiple packages into one list.
+    dependencies = functools.reduce(operator.iconcat, dependencies, [])
 
     ## Remove > signs TODO can we get any other punctuation here?
     dependencies = [d.split(">")[0] for d in dependencies if d]
@@ -149,16 +149,18 @@ def extract_deps():
     print( "Extracting deps" )
 
     # Get a list of all dependencies needed for packages mentioned above.
-    pkgs = PKG_REQ[:]
-    n = 0
-    while n < len(pkgs):
-        subdeps = immediate_deps(pkgs[n])
-        for p in subdeps:
-            if not (p in pkgs or p in SKIP_DEP_PKGS):
-                pkgs.append(p)
-        n = n + 1
+    pkgs = set(PKG_REQ)
+    newdeps = pkgs
+    print("adding...")
+    while True:
+        subdeps = frozenset(immediate_deps(list(newdeps)))
+        newdeps = subdeps - SKIP_DEP_PKGS - pkgs
+        if not newdeps:
+            break
+        print('\n'.join(newdeps))
+        pkgs |= newdeps
 
-    return sorted(pkgs)
+    return list(pkgs)
 
 
 def download_source(tarball):
@@ -255,7 +257,7 @@ DRY_RUN=args.d
 
 if( args.l ):
     print("List of dependencies")
-    print( extract_deps() )
+    print( deps )
     exit(0)
 
 if args.s:
