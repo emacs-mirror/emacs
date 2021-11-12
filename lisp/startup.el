@@ -2530,7 +2530,7 @@ nil default-directory" name)
                             (truename (file-truename file-ex)))
                        ;; We want to use the truename here if we can,
                        ;; because that makes `eval-after-load' work
-                       ;; more reliably.  But If the file is, for
+                       ;; more reliably.  But if the file is, for
                        ;; instance, /dev/stdin, the truename doesn't
                        ;; actually exist on some systems.
                        (when (file-exists-p truename)
