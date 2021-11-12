@@ -1706,26 +1706,15 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 #endif
 }
 
-static bool
-xwidget_is_web_view (struct xwidget *xw)
-{
-#ifdef USE_GTK
-  return xw->widget_osr != NULL && WEBKIT_IS_WEB_VIEW (xw->widget_osr);
-#elif defined NS_IMPL_COCOA
-  return nsxwidget_is_web_view (xw);
-#endif
-}
+#define CHECK_WEBKIT_WIDGET(xw)				\
+  if (NILP (xw->buffer) || !EQ (xw->type, Qwebkit))	\
+    error ("Not a WebKit widget")
 
 /* Macro that checks xwidget hold webkit web view first.  */
 #define WEBKIT_FN_INIT()						\
   CHECK_LIVE_XWIDGET (xwidget);						\
   struct xwidget *xw = XXWIDGET (xwidget);				\
-  if (!xwidget_is_web_view (xw))					\
-    {									\
-      fputs ("ERROR xw->widget_osr does not hold a webkit instance\n",	\
-	     stdout);							\
-      return Qnil;							\
-    }
+  CHECK_WEBKIT_WIDGET (xw)
 
 DEFUN ("xwidget-webkit-uri",
        Fxwidget_webkit_uri, Sxwidget_webkit_uri,
@@ -2195,6 +2184,8 @@ with QUERY.  */)
 
 #ifdef USE_GTK
   xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
+
   webview = WEBKIT_WEB_VIEW (xw->widget_osr);
   query = ENCODE_UTF_8 (query);
   opt = WEBKIT_FIND_OPTIONS_NONE;
@@ -2237,6 +2228,7 @@ using `xwidget-webkit-search'.  */)
 
   CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
 
   if (!xw->find_text)
     error ("Widget has no ongoing search operation");
@@ -2269,6 +2261,7 @@ using `xwidget-webkit-search'.  */)
 
   CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
 
   if (!xw->find_text)
     error ("Widget has no ongoing search operation");
@@ -2301,6 +2294,7 @@ using `xwidget-webkit-search'.  */)
 
   CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
 
   if (!xw->find_text)
     error ("Widget has no ongoing search operation");
@@ -2347,6 +2341,7 @@ to "about:blank".  */)
   base_uri = ENCODE_UTF_8 (base_uri);
   text = ENCODE_UTF_8 (text);
   xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
 
   data = SSDATA (text);
   uri = SSDATA (base_uri);
