@@ -1416,52 +1416,6 @@ enum xlfd_field
   XLFD_LAST
 };
 
-/* An enumerator for each possible slant value of a font.  Taken from
-   the XLFD specification.  */
-
-enum xlfd_slant
-{
-  XLFD_SLANT_UNKNOWN,
-  XLFD_SLANT_ROMAN,
-  XLFD_SLANT_ITALIC,
-  XLFD_SLANT_OBLIQUE,
-  XLFD_SLANT_REVERSE_ITALIC,
-  XLFD_SLANT_REVERSE_OBLIQUE,
-  XLFD_SLANT_OTHER
-};
-
-/* Relative font weight according to XLFD documentation.  */
-
-enum xlfd_weight
-{
-  XLFD_WEIGHT_UNKNOWN,
-  XLFD_WEIGHT_ULTRA_LIGHT,	/* 10 */
-  XLFD_WEIGHT_EXTRA_LIGHT,	/* 20 */
-  XLFD_WEIGHT_LIGHT,		/* 30 */
-  XLFD_WEIGHT_SEMI_LIGHT,	/* 40: SemiLight, Book, ...  */
-  XLFD_WEIGHT_MEDIUM,		/* 50: Medium, Normal, Regular, ...  */
-  XLFD_WEIGHT_SEMI_BOLD,	/* 60: SemiBold, DemiBold, ...  */
-  XLFD_WEIGHT_BOLD,		/* 70: Bold, ... */
-  XLFD_WEIGHT_EXTRA_BOLD,	/* 80: ExtraBold, Heavy, ...  */
-  XLFD_WEIGHT_ULTRA_BOLD	/* 90: UltraBold, Black, ...  */
-};
-
-/* Relative proportionate width.  */
-
-enum xlfd_swidth
-{
-  XLFD_SWIDTH_UNKNOWN,
-  XLFD_SWIDTH_ULTRA_CONDENSED,	/* 10 */
-  XLFD_SWIDTH_EXTRA_CONDENSED,	/* 20 */
-  XLFD_SWIDTH_CONDENSED,	/* 30: Condensed, Narrow, Compressed, ... */
-  XLFD_SWIDTH_SEMI_CONDENSED,	/* 40: semicondensed */
-  XLFD_SWIDTH_MEDIUM,		/* 50: Medium, Normal, Regular, ... */
-  XLFD_SWIDTH_SEMI_EXPANDED,	/* 60: SemiExpanded, DemiExpanded, ... */
-  XLFD_SWIDTH_EXPANDED,		/* 70: Expanded... */
-  XLFD_SWIDTH_EXTRA_EXPANDED,	/* 80: ExtraExpanded, Wide...  */
-  XLFD_SWIDTH_ULTRA_EXPANDED	/* 90: UltraExpanded... */
-};
-
 /* Order by which font selection chooses fonts.  The default values
    mean `first, find a best match for the font width, then for the
    font height, then for weight, then for slant.'  This variable can be
