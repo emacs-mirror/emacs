@@ -2325,7 +2325,7 @@ DEFUN ("xwidget-webkit-load-html", Fxwidget_webkit_load_html,
        doc: /* Make XWIDGET's WebKit widget render TEXT.
 XWIDGET should be a WebKit xwidget, that will receive TEXT.  TEXT
 should be a string that will be displayed by XWIDGET as HTML markup.
-BASE_URI should be a string containing a URI that is used to locate
+BASE-URI should be a string containing a URI that is used to locate
 resources with relative URLs, and if not specified, defaults
 to "about:blank".  */)
   (Lisp_Object xwidget, Lisp_Object text, Lisp_Object base_uri)
