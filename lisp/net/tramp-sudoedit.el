@@ -75,6 +75,7 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
@@ -232,7 +233,7 @@ absolute file names."
 
     (let ((t1 (tramp-sudoedit-file-name-p filename))
 	  (t2 (tramp-sudoedit-file-name-p newname))
-	  (file-times (tramp-compat-file-attribute-modification-time
+	  (file-times (file-attribute-modification-time
 		       (file-attributes filename)))
 	  (file-modes (tramp-default-file-modes filename))
 	  (attributes (and preserve-extended-attributes
@@ -246,7 +247,7 @@ absolute file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -720,11 +721,9 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (let* ((uid (or (tramp-compat-file-attribute-user-id
-		     (file-attributes filename 'integer))
+    (let* ((uid (or (file-attribute-user-id (file-attributes filename 'integer))
 		    (tramp-get-remote-uid v 'integer)))
-	   (gid (or (tramp-compat-file-attribute-group-id
-		     (file-attributes filename 'integer))
+	   (gid (or (file-attribute-group-id (file-attributes filename 'integer))
 		    (tramp-get-remote-gid v 'integer)))
 	   (flag (and (eq mustbenew 'excl) 'nofollow))
 	   (modes (tramp-default-file-modes filename flag))
@@ -735,10 +734,10 @@ ID-FORMAT valid values are `string' and `integer'."
 
 	;; Set the ownership, modes and extended attributes.  This is
 	;; not performed in `tramp-handle-write-region'.
-	(unless (and (= (tramp-compat-file-attribute-user-id
+	(unless (and (= (file-attribute-user-id
 			 (file-attributes filename 'integer))
 			uid)
-                     (= (tramp-compat-file-attribute-group-id
+                     (= (file-attribute-group-id
 			 (file-attributes filename 'integer))
 			gid))
           (tramp-set-file-uid-gid filename uid gid))

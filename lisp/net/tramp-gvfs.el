@@ -122,10 +122,7 @@
 	 (autoload 'zeroconf-init "zeroconf")
 	 (tramp-compat-funcall 'dbus-get-unique-name :system)
 	 (tramp-compat-funcall 'dbus-get-unique-name :session)
-	 (or ;; Until Emacs 25, `process-attributes' could crash Emacs
-	     ;; for some processes.  Better we don't check.
-	     (<= emacs-major-version 25)
-	     (tramp-process-running-p "gvfs-fuse-daemon")
+	 (or (tramp-process-running-p "gvfs-fuse-daemon")
 	     (tramp-process-running-p "gvfsd-fuse"))))
   "Non-nil when GVFS is available.")
 
@@ -471,8 +468,7 @@ It has been changed in GVFS 1.14.")
 ;;   </method>
 ;; </interface>
 
-;; The basic structure for GNOME Online Accounts.  We use a list :type,
-;; in order to be compatible with Emacs 25.
+;; The basic structure for GNOME Online Accounts.
 (cl-defstruct (tramp-goa-account (:type list) :named) method user host port)
 
 ;;;###tramp-autoload
@@ -672,8 +668,7 @@ It has been changed in GVFS 1.14.")
 ;;       STRING		    key (always-call-mount, is-removable, ...)
 ;;       VARIANT	    value (boolean?)
 
-;; The basic structure for media devices.  We use a list :type, in
-;; order to be compatible with Emacs 25.
+;; The basic structure for media devices.
 (cl-defstruct (tramp-media-device (:type list) :named) method host port)
 
 ;; "gvfs-<command>" utilities have been deprecated in GVFS 1.31.1.  We
@@ -761,6 +756,7 @@ It has been changed in GVFS 1.14.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
@@ -1001,7 +997,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -1101,8 +1097,7 @@ file names."
   (tramp-skeleton-delete-directory directory recursive trash
     (if (and recursive (not (file-symlink-p directory)))
 	(mapc (lambda (file)
-		(if (eq t (tramp-compat-file-attribute-type
-			   (file-attributes file)))
+		(if (eq t (file-attribute-type (file-attributes file)))
 		    (delete-directory file recursive)
 		  (delete-file file)))
 	      (directory-files
@@ -1613,9 +1608,8 @@ ID-FORMAT valid values are `string' and `integer'."
 		(tramp-get-connection-property
 		 (tramp-get-process vec) "share"
 		 (tramp-get-connection-property vec "default-location" nil))))
-      (tramp-compat-file-attribute-user-id
-       (file-attributes
-	(tramp-make-tramp-file-name vec localname) id-format)))))
+      (file-attribute-user-id
+       (file-attributes (tramp-make-tramp-file-name vec localname) id-format)))))
 
 (defun tramp-gvfs-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
@@ -1624,9 +1618,8 @@ ID-FORMAT valid values are `string' and `integer'."
 	      (tramp-get-connection-property
 	       (tramp-get-process vec) "share"
 	       (tramp-get-connection-property vec "default-location" nil))))
-    (tramp-compat-file-attribute-group-id
-     (file-attributes
-      (tramp-make-tramp-file-name vec localname) id-format))))
+    (file-attribute-group-id
+     (file-attributes (tramp-make-tramp-file-name vec localname) id-format))))
 
 (defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1864,9 +1857,9 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		    host (tramp-file-name-host v)
 		    port (tramp-file-name-port v)))))
 	(when (member method tramp-gvfs-methods)
-          (let ((v (make-tramp-file-name
-	            :method method :user user :domain domain
-	            :host host :port port)))
+	  (let ((v (make-tramp-file-name
+		    :method method :user user :domain domain
+		    :host host :port port)))
 	    (tramp-message
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))

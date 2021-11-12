@@ -83,6 +83,7 @@
     (directory-files . tramp-fuse-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
@@ -110,7 +111,7 @@
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-fuse-handle-file-readable-p)
+    (file-readable-p . tramp-rclone-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
@@ -222,7 +223,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -278,6 +279,12 @@ file names."
      #'copy-file
      (list filename newname ok-if-already-exists keep-date
 	   preserve-uid-gid preserve-extended-attributes))))
+
+(defun tramp-rclone-handle-file-readable-p (filename)
+  "Like `file-readable-p' for Tramp files."
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (with-tramp-file-property v localname "file-readable-p"
+      (file-readable-p (tramp-fuse-local-file-name filename)))))
 
 (defun tramp-rclone-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."

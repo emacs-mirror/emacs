@@ -23,16 +23,11 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 28.  This
-;; package provides compatibility functions for Emacs 25, Emacs 26 and
-;; Emacs 27.
+;; Tramp's main Emacs version for development is Emacs 29.  This
+;; package provides compatibility functions for Emacs 26, Emacs 27 and
+;; Emacs 28.
 
 ;;; Code:
-
-;; In Emacs 25, `tramp-unload-file-name-handlers' is not autoloaded.
-;; So we declare it here in order to avoid recursive load.  This will
-;; be overwritten in tramp.el.
-(defun tramp-unload-file-name-handlers () ".")
 
 (require 'auth-source)
 (require 'format-spec)
@@ -42,8 +37,6 @@
 (require 'subr-x)
 
 (declare-function tramp-error "tramp")
-;; `temporary-file-directory' as function is introduced with Emacs 26.1.
-(declare-function tramp-handle-temporary-file-directory "tramp")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
@@ -83,133 +76,19 @@ Add the extension of F, if existing."
     tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
 
-;; `temporary-file-directory' as function is introduced with Emacs 26.1.
-(defalias 'tramp-compat-temporary-file-directory-function
-  (if (fboundp 'temporary-file-directory)
-      #'temporary-file-directory
-    #'tramp-handle-temporary-file-directory))
-
-;; `file-attribute-*' are introduced in Emacs 26.1.
-
-(defalias 'tramp-compat-file-attribute-type
-  (if (fboundp 'file-attribute-type)
-      #'file-attribute-type
-    (lambda (attributes)
-      "The type field in ATTRIBUTES returned by `file-attributes'.
-The value is either t for directory, string (name linked to) for
-symbolic link, or nil."
-      (nth 0 attributes))))
-
-(defalias 'tramp-compat-file-attribute-link-number
-  (if (fboundp 'file-attribute-link-number)
-      #'file-attribute-link-number
-    (lambda (attributes)
-      "Return the number of links in ATTRIBUTES returned by `file-attributes'."
-      (nth 1 attributes))))
-
-(defalias 'tramp-compat-file-attribute-user-id
-  (if (fboundp 'file-attribute-user-id)
-      #'file-attribute-user-id
-    (lambda (attributes)
-      "The UID field in ATTRIBUTES returned by `file-attributes'.
-This is either a string or a number.  If a string value cannot be
-looked up, a numeric value, either an integer or a float, is
-returned."
-      (nth 2 attributes))))
-
-(defalias 'tramp-compat-file-attribute-group-id
-  (if (fboundp 'file-attribute-group-id)
-      #'file-attribute-group-id
-    (lambda (attributes)
-      "The GID field in ATTRIBUTES returned by `file-attributes'.
-This is either a string or a number.  If a string value cannot be
-looked up, a numeric value, either an integer or a float, is
-returned."
-      (nth 3 attributes))))
-
-(defalias 'tramp-compat-file-attribute-access-time
-  (if (fboundp 'file-attribute-access-time)
-      #'file-attribute-access-time
-    (lambda (attributes)
-      "The last access time in ATTRIBUTES returned by `file-attributes'.
-This a Lisp timestamp in the style of `current-time'."
-      (nth 4 attributes))))
-
-(defalias 'tramp-compat-file-attribute-modification-time
-  (if (fboundp 'file-attribute-modification-time)
-      #'file-attribute-modification-time
-    (lambda (attributes)
-      "The modification time in ATTRIBUTES returned by `file-attributes'.
-This is the time of the last change to the file's contents, and
-is a Lisp timestamp in the style of `current-time'."
-      (nth 5 attributes))))
-
-(defalias 'tramp-compat-file-attribute-status-change-time
-  (if (fboundp 'file-attribute-status-change-time)
-      #'file-attribute-status-change-time
-    (lambda (attributes)
-      "The status modification time in ATTRIBUTES returned by `file-attributes'.
-This is the time of last change to the file's attributes: owner
-and group, access mode bits, etc., and is a Lisp timestamp in the
-style of `current-time'."
-      (nth 6 attributes))))
-
-(defalias 'tramp-compat-file-attribute-size
-  (if (fboundp 'file-attribute-size)
-      #'file-attribute-size
-    (lambda (attributes)
-      "The size (in bytes) in ATTRIBUTES returned by `file-attributes'.
-If the size is too large for a fixnum, this is a bignum in Emacs 27
-and later, and is a float in Emacs 26 and earlier."
-      (nth 7 attributes))))
-
-(defalias 'tramp-compat-file-attribute-modes
-  (if (fboundp 'file-attribute-modes)
-      #'file-attribute-modes
-    (lambda (attributes)
-      "The file modes in ATTRIBUTES returned by `file-attributes'.
-This is a string of ten letters or dashes as in ls -l."
-      (nth 8 attributes))))
-
-;; `file-missing' is introduced in Emacs 26.1.
-(defconst tramp-file-missing
-  (if (get 'file-missing 'error-conditions) 'file-missing 'file-error)
-  "The error symbol for the `file-missing' error.")
-
-(defsubst tramp-compat-file-missing (vec file)
-  "Emit the `file-missing' error."
-  (if (get 'file-missing 'error-conditions)
-      (tramp-error vec tramp-file-missing file)
-    (tramp-error vec tramp-file-missing "No such file or directory: %s" file)))
-
-;; `file-local-name', `file-name-quoted-p', `file-name-quote' and
-;; `file-name-unquote' are introduced in Emacs 26.1.
-(defalias 'tramp-compat-file-local-name
-  (if (fboundp 'file-local-name)
-      #'file-local-name
-    (lambda (name)
-      "Return the local name component of NAME.
-It returns a file name which can be used directly as argument of
-`process-file', `start-file-process', or `shell-command'."
-      (or (file-remote-p name 'localname) name))))
-
 ;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' got
 ;; a second argument in Emacs 27.1.
 (defalias 'tramp-compat-file-name-quoted-p
-  (if (and
-       (fboundp 'file-name-quoted-p)
-       (equal (tramp-compat-funcall 'func-arity #'file-name-quoted-p) '(1 . 2)))
+  (if (equal (func-arity #'file-name-quoted-p) '(1 . 2))
       #'file-name-quoted-p
     (lambda (name &optional top)
       "Whether NAME is quoted with prefix \"/:\".
 If NAME is a remote file name and TOP is nil, check the local part of NAME."
       (let ((file-name-handler-alist (unless top file-name-handler-alist)))
-	(string-prefix-p "/:" (tramp-compat-file-local-name name))))))
+	(string-prefix-p "/:" (file-local-name name))))))
 
 (defalias 'tramp-compat-file-name-quote
-  (if (and
-       (fboundp 'file-name-quote)
-       (equal (tramp-compat-funcall 'func-arity #'file-name-quote) '(1 . 2)))
+  (if (equal (func-arity #'file-name-quote) '(1 . 2))
       #'file-name-quote
     (lambda (name &optional top)
       "Add the quotation prefix \"/:\" to file NAME.
@@ -217,20 +96,17 @@ If NAME is a remote file name and TOP is nil, the local part of NAME is quoted."
       (let ((file-name-handler-alist (unless top file-name-handler-alist)))
 	(if (tramp-compat-file-name-quoted-p name top)
             name
-	  (concat
-	   (file-remote-p name) "/:" (tramp-compat-file-local-name name)))))))
+	  (concat (file-remote-p name) "/:" (file-local-name name)))))))
 
 (defalias 'tramp-compat-file-name-unquote
-  (if (and
-       (fboundp 'file-name-unquote)
-       (equal (tramp-compat-funcall 'func-arity #'file-name-unquote) '(1 . 2)))
+  (if (equal (func-arity #'file-name-unquote) '(1 . 2))
       #'file-name-unquote
     (lambda (name &optional top)
       "Remove quotation prefix \"/:\" from file NAME.
 If NAME is a remote file name and TOP is nil, the local part of
 NAME is unquoted."
       (let* ((file-name-handler-alist (unless top file-name-handler-alist))
-             (localname (tramp-compat-file-local-name name)))
+             (localname (file-local-name name)))
 	(when (tramp-compat-file-name-quoted-p localname top)
 	  (setq
 	   localname (if (= (length localname) 2) "/" (substring localname 2))))
@@ -288,8 +164,7 @@ A nil value for either argument stands for the current time."
 
 ;; `progress-reporter-update' got argument SUFFIX in Emacs 27.1.
 (defalias 'tramp-compat-progress-reporter-update
-  (if (equal (tramp-compat-funcall 'func-arity #'progress-reporter-update)
-	     '(1 . 3))
+  (if (equal (func-arity #'progress-reporter-update) '(1 . 3))
       #'progress-reporter-update
     (lambda (reporter &optional value _suffix)
       (progress-reporter-update reporter value))))
@@ -306,19 +181,19 @@ CONDITION can also be a list of error conditions."
 ;; `file-modes', `set-file-modes' and `set-file-times' got argument
 ;; FLAG in Emacs 28.1.
 (defalias 'tramp-compat-file-modes
-  (if (equal (tramp-compat-funcall 'func-arity #'file-modes) '(1 . 2))
+  (if (equal (func-arity #'file-modes) '(1 . 2))
       #'file-modes
     (lambda (filename &optional _flag)
       (file-modes filename))))
 
 (defalias 'tramp-compat-set-file-modes
-  (if (equal (tramp-compat-funcall 'func-arity #'set-file-modes) '(2 . 3))
+  (if (equal (func-arity #'set-file-modes) '(2 . 3))
       #'set-file-modes
     (lambda (filename mode &optional _flag)
       (set-file-modes filename mode))))
 
 (defalias 'tramp-compat-set-file-times
-  (if (equal (tramp-compat-funcall 'func-arity #'set-file-times) '(1 . 3))
+  (if (equal (func-arity #'set-file-times) '(1 . 3))
       #'set-file-times
     (lambda (filename &optional timestamp _flag)
       (set-file-times filename timestamp))))
@@ -326,14 +201,13 @@ CONDITION can also be a list of error conditions."
 ;; `directory-files' and `directory-files-and-attributes' got argument
 ;; COUNT in Emacs 28.1.
 (defalias 'tramp-compat-directory-files
-  (if (equal (tramp-compat-funcall 'func-arity #'directory-files) '(1 . 5))
+  (if (equal (func-arity #'directory-files) '(1 . 5))
       #'directory-files
     (lambda (directory &optional full match nosort _count)
       (directory-files directory full match nosort))))
 
 (defalias 'tramp-compat-directory-files-and-attributes
-  (if (equal (tramp-compat-funcall 'func-arity #'directory-files-and-attributes)
-	     '(1 . 6))
+  (if (equal (func-arity #'directory-files-and-attributes) '(1 . 6))
       #'directory-files-and-attributes
     (lambda (directory &optional full match nosort id-format _count)
       (directory-files-and-attributes directory full match nosort id-format))))
@@ -409,8 +283,6 @@ CONDITION can also be a list of error conditions."
 (provide 'tramp-compat)
 
 ;;; TODO:
-;;
-;; * `func-arity' exists since Emacs 26.1.
 ;;
 ;; * Starting with Emacs 27.1, there's no need to escape open
 ;;   parentheses with a backslash in docstrings anymore.

@@ -83,6 +83,7 @@
     (directory-files . tramp-fuse-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-sshfs-handle-exec-path)
@@ -110,7 +111,7 @@
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-fuse-handle-file-readable-p)
+    (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)

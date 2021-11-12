@@ -223,6 +223,7 @@ It must be supported by libarchive(3).")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . tramp-archive-handle-not-implemented)
     (dired-uncache . tramp-archive-handle-dired-uncache)
     (exec-path . ignore)
@@ -618,7 +619,7 @@ offered."
 (defun tramp-archive-handle-file-system-info (filename)
   "Like `file-system-info' for file archives."
   (with-parsed-tramp-archive-file-name filename nil
-    (list (tramp-compat-file-attribute-size (file-attributes archive)) 0 0)))
+    (list (file-attribute-size (file-attributes archive)) 0 0)))
 
 (defun tramp-archive-handle-file-truename (filename)
   "Like `file-truename' for file archives."
@@ -658,7 +659,7 @@ offered."
   ;; mounted directory, it is returned as it.  Not what we want.
   (with-parsed-tramp-archive-file-name default-directory nil
     (let ((default-directory (file-name-directory archive)))
-      (tramp-compat-temporary-file-directory-function))))
+      (temporary-file-directory))))
 
 (defun tramp-archive-handle-not-implemented (operation &rest args)
   "Generic handler for operations not implemented for file archives."

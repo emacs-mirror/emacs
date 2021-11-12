@@ -48,7 +48,7 @@
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
-    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
+    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
   (when (file-directory-p directory)
     (setq directory (file-name-as-directory (expand-file-name directory)))
     (with-parsed-tramp-file-name directory nil
@@ -106,12 +106,6 @@
 	     (dolist (elt completion-regexp-list)
 	       (unless (string-match-p elt item) (throw 'match nil)))
 	     (setq result (cons (concat item "/") result))))))))))
-
-(defun tramp-fuse-handle-file-readable-p (filename)
-  "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-tramp-file-property v localname "file-readable-p"
-      (file-readable-p (tramp-fuse-local-file-name filename)))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory
