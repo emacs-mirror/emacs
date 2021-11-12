@@ -2074,7 +2074,10 @@ turn_on_face (struct frame *f, struct face *face)
       ts = tty->standout_mode ? tty->TS_set_background : tty->TS_set_foreground;
       if (face_tty_specified_color (fg) && ts)
 	{
-          p = tparam (ts, NULL, 0, fg, 0, 0, 0);
+	  if (tty->TF_rgb_separate)
+	    p = tparam (ts, NULL, 0, fg >> 16, (fg >> 8) & 0xFF, fg & 0xFF, 0);
+	  else
+	    p = tparam (ts, NULL, 0, fg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2082,7 +2085,10 @@ turn_on_face (struct frame *f, struct face *face)
       ts = tty->standout_mode ? tty->TS_set_foreground : tty->TS_set_background;
       if (face_tty_specified_color (bg) && ts)
 	{
-          p = tparam (ts, NULL, 0, bg, 0, 0, 0);
+	  if (tty->TF_rgb_separate)
+	    p = tparam (ts, NULL, 0, bg >> 16, (bg >> 8) & 0xFF, bg & 0xFF, 0);
+	  else
+	    p = tparam (ts, NULL, 0, bg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -4587,16 +4593,26 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 
 #ifdef TERMINFO
       {
-	const char *fg = tigetstr ("setf24");
-	const char *bg = tigetstr ("setb24");
-	/* Non-standard support for 24-bit colors. */
-	if (fg && bg
+	const char *fg;
+	const char *bg;
+	/* Our own non-standard support for 24-bit colors. */
+	if ((fg = tigetstr ("setf24")) && (bg = tigetstr ("setb24"))
 	    && fg != (char *) (intptr_t) -1
 	    && bg != (char *) (intptr_t) -1)
 	  {
 	    tty->TS_set_foreground = fg;
 	    tty->TS_set_background = bg;
 	    tty->TN_max_colors = 16777216;
+	  }
+	/* Other non-standard support for 24-bit colors. */
+	else if ((fg = tigetstr ("setrgbf")) && (bg = tigetstr ("setrgbb"))
+	    && fg != (char *) (intptr_t) -1
+	    && bg != (char *) (intptr_t) -1)
+	  {
+	    tty->TS_set_foreground = fg;
+	    tty->TS_set_background = bg;
+	    tty->TN_max_colors = 16777216;
+	    tty->TF_rgb_separate = 1;
 	  }
 	/* Standard support for 24-bit colors.  */
 	else if (tigetflag ("RGB") > 0)
