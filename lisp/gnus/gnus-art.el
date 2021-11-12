@@ -4579,7 +4579,6 @@ commands:
 	(let ((summary gnus-summary-buffer))
 	  (with-current-buffer name
             (setq-local gnus-article-edit-mode nil)
-	    (gnus-article-stop-animations)
 	    (when gnus-article-mime-handles
 	      (mm-destroy-parts gnus-article-mime-handles)
 	      (setq gnus-article-mime-handles nil))
@@ -4605,6 +4604,7 @@ commands:
 	  (current-buffer))))))
 
 (defun gnus-article-stop-animations ()
+  (declare (obsolete nil "29.1"))
   (cancel-function-timers 'image-animate-timeout))
 
 (defun gnus-stop-downloads ()
