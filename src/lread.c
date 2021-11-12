@@ -1054,7 +1054,7 @@ safe_to_load_version (Lisp_Object file, int fd)
 
   /* If the file is not regular, then we cannot safely seek it.
      Assume that it is not safe to load as a compiled file.  */
-  if (fstat(fd, &st) == 0 && !S_ISREG (st.st_mode))
+  if (fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
     return 0;
 
   /* Read the first few bytes from the file, and look for a line
@@ -1418,11 +1418,8 @@ Return t if the file exists and loads successfully.  */)
 	  struct stat s1, s2;
 	  int result;
 
-	  if (version < 0
-       && ! (version = safe_to_load_version (file, fd)))
-	    {
-	      error ("File `%s' was not compiled in Emacs", SDATA (found));
-	    }
+	  if (version < 0 && !(version = safe_to_load_version (file, fd)))
+	    error ("File `%s' was not compiled in Emacs", SDATA (found));
 
 	  compiled = 1;
 
