@@ -1612,33 +1612,30 @@ You probably want to use this together with
   '("Image-Dired"
     ["Display image" image-dired-display-thumbnail-original-image]
     ["Display in external viewer" image-dired-thumbnail-display-external]
+    ["Jump to Dired buffer" image-dired-jump-original-dired-buffer]
     "---"
-    ["Mark original" image-dired-mark-thumb-original-file]
-    ["Unmark original" image-dired-unmark-thumb-original-file]
-    ["Flag original for deletion" image-dired-flag-thumb-original-file]
-    "---"
-    ["Track original" image-dired-track-original-file]
-    ["Jump to dired buffer" image-dired-jump-original-dired-buffer]
-    ["Toggle movement tracking on/off" image-dired-toggle-movement-tracking
-     :style toggle
-     :selected image-dired-track-movement]
+    ["Mark image" image-dired-mark-thumb-original-file]
+    ["Unmark image" image-dired-unmark-thumb-original-file]
+    ["Unmark all images" image-dired-unmark-all-marks]
+    ["Flag for deletion" image-dired-flag-thumb-original-file]
+    ["Delete marked images" image-dired-delete-marked]
     "---"
     ["Rotate original right" image-dired-rotate-original-right]
     ["Rotate original left" image-dired-rotate-original-left]
     "---"
-    ["Line up thumbnails" image-dired-line-up]
-    ["Dynamic line up" image-dired-line-up-dynamic]
-    ["Refresh thumb" image-dired-refresh-thumb]
-    "---"
     ["Comment thumbnail" image-dired-comment-thumbnail]
     ["Tag current or marked thumbnails" image-dired-tag-thumbnail]
-    "---"
     ["Remove tag from current or marked thumbnails"
      image-dired-tag-thumbnail-remove]
-    ["Unmark all marks" image-dired-unmark-all-marks]
-    ["Delete marked images" image-dired-delete-marked]
-    ["Delete thumbnail from buffer" image-dired-delete-char]
     "---"
+    ("View Options"
+     ["Toggle movement tracking" image-dired-toggle-movement-tracking
+      :style toggle
+      :selected image-dired-track-movement]
+     "---"
+     ["Line up thumbnails" image-dired-line-up]
+     ["Dynamic line up" image-dired-line-up-dynamic]
+     ["Refresh thumb" image-dired-refresh-thumb])
     ["Quit" quit-window]))
 
 (defvar image-dired-display-image-mode-map
