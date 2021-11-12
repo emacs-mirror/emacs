@@ -1527,68 +1527,68 @@ You probably want to use this together with
 (defvar image-dired-thumbnail-mode-line-up-map
   (let ((map (make-sparse-keymap)))
     ;; map it to "g" so that the user can press it more quickly
-    (define-key map "g" 'image-dired-line-up-dynamic)
+    (define-key map "g" #'image-dired-line-up-dynamic)
     ;; "f" for "fixed" number of thumbs per row
-    (define-key map "f" 'image-dired-line-up)
+    (define-key map "f" #'image-dired-line-up)
     ;; "i" for "interactive"
-    (define-key map "i" 'image-dired-line-up-interactive)
+    (define-key map "i" #'image-dired-line-up-interactive)
     map)
   "Keymap for line-up commands in `image-dired-thumbnail-mode'.")
 
 (defvar image-dired-thumbnail-mode-tag-map
   (let ((map (make-sparse-keymap)))
     ;; map it to "t" so that the user can press it more quickly
-    (define-key map "t" 'image-dired-tag-thumbnail)
+    (define-key map "t" #'image-dired-tag-thumbnail)
     ;; "r" for "remove"
-    (define-key map "r" 'image-dired-tag-thumbnail-remove)
+    (define-key map "r" #'image-dired-tag-thumbnail-remove)
     map)
   "Keymap for tag commands in `image-dired-thumbnail-mode'.")
 
 (defvar image-dired-thumbnail-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [right] 'image-dired-forward-image)
-    (define-key map [left] 'image-dired-backward-image)
-    (define-key map [up] 'image-dired-previous-line)
-    (define-key map [down] 'image-dired-next-line)
-    (define-key map "\C-f" 'image-dired-forward-image)
-    (define-key map "\C-b" 'image-dired-backward-image)
-    (define-key map "\C-p" 'image-dired-previous-line)
-    (define-key map "\C-n" 'image-dired-next-line)
+    (define-key map [right] #'image-dired-forward-image)
+    (define-key map [left] #'image-dired-backward-image)
+    (define-key map [up] #'image-dired-previous-line)
+    (define-key map [down] #'image-dired-next-line)
+    (define-key map "\C-f" #'image-dired-forward-image)
+    (define-key map "\C-b" #'image-dired-backward-image)
+    (define-key map "\C-p" #'image-dired-previous-line)
+    (define-key map "\C-n" #'image-dired-next-line)
 
     (define-key map "<" #'image-dired-beginning-of-buffer)
     (define-key map ">" #'image-dired-end-of-buffer)
     (define-key map (kbd "M-<") #'image-dired-beginning-of-buffer)
     (define-key map (kbd "M->") #'image-dired-end-of-buffer)
 
-    (define-key map "d" 'image-dired-flag-thumb-original-file)
-    (define-key map [delete] 'image-dired-flag-thumb-original-file)
-    (define-key map "m" 'image-dired-mark-thumb-original-file)
-    (define-key map "u" 'image-dired-unmark-thumb-original-file)
-    (define-key map "U" 'image-dired-unmark-all-marks)
-    (define-key map "." 'image-dired-track-original-file)
-    (define-key map [tab] 'image-dired-jump-original-dired-buffer)
+    (define-key map "d" #'image-dired-flag-thumb-original-file)
+    (define-key map [delete] #'image-dired-flag-thumb-original-file)
+    (define-key map "m" #'image-dired-mark-thumb-original-file)
+    (define-key map "u" #'image-dired-unmark-thumb-original-file)
+    (define-key map "U" #'image-dired-unmark-all-marks)
+    (define-key map "." #'image-dired-track-original-file)
+    (define-key map [tab] #'image-dired-jump-original-dired-buffer)
 
     ;; add line-up map
     (define-key map "g" image-dired-thumbnail-mode-line-up-map)
     ;; add tag map
     (define-key map "t" image-dired-thumbnail-mode-tag-map)
 
-    (define-key map "\C-m" 'image-dired-display-thumbnail-original-image)
-    (define-key map [C-return] 'image-dired-thumbnail-display-external)
+    (define-key map "\C-m" #'image-dired-display-thumbnail-original-image)
+    (define-key map [C-return] #'image-dired-thumbnail-display-external)
 
-    (define-key map "L" 'image-dired-rotate-original-left)
-    (define-key map "R" 'image-dired-rotate-original-right)
+    (define-key map "L" #'image-dired-rotate-original-left)
+    (define-key map "R" #'image-dired-rotate-original-right)
 
-    (define-key map "D" 'image-dired-thumbnail-set-image-description)
+    (define-key map "D" #'image-dired-thumbnail-set-image-description)
     (define-key map "S" #'image-dired-slideshow-start)
-    (define-key map "\C-d" 'image-dired-delete-char)
-    (define-key map " " 'image-dired-display-next-thumbnail-original)
-    (define-key map (kbd "DEL") 'image-dired-display-previous-thumbnail-original)
-    (define-key map "c" 'image-dired-comment-thumbnail)
+    (define-key map "\C-d" #'image-dired-delete-char)
+    (define-key map " " #'image-dired-display-next-thumbnail-original)
+    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
+    (define-key map "c" #'image-dired-comment-thumbnail)
 
     ;; Mouse
-    (define-key map [mouse-2] 'image-dired-mouse-display-image)
-    (define-key map [mouse-1] 'image-dired-mouse-select-thumbnail)
+    (define-key map [mouse-2] #'image-dired-mouse-display-image)
+    (define-key map [mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [mouse-3] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
@@ -1603,8 +1603,8 @@ You probably want to use this together with
     ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
     ;; about C-mouse-1 not being defined afterwards. Annoying, but I
     ;; probably do not completely understand mouse events.
-    (define-key map [C-down-mouse-1] 'undefined)
-    (define-key map [C-mouse-1] 'image-dired-mouse-toggle-mark)
+    (define-key map [C-down-mouse-1] #'undefined)
+    (define-key map [C-mouse-1] #'image-dired-mouse-toggle-mark)
     map)
   "Keymap for `image-dired-thumbnail-mode'.")
 
@@ -1683,23 +1683,23 @@ Resized or in full-size."
     ;; (set-keymap-parent map dired-mode-map)
     ;; Hijack previous and next line movement. Let C-p and C-b be
     ;; though...
-    (define-key map "p" 'image-dired-dired-previous-line)
-    (define-key map "n" 'image-dired-dired-next-line)
-    (define-key map [up] 'image-dired-dired-previous-line)
-    (define-key map [down] 'image-dired-dired-next-line)
+    (define-key map "p" #'image-dired-dired-previous-line)
+    (define-key map "n" #'image-dired-dired-next-line)
+    (define-key map [up] #'image-dired-dired-previous-line)
+    (define-key map [down] #'image-dired-dired-next-line)
 
-    (define-key map (kbd "C-S-n") 'image-dired-next-line-and-display)
-    (define-key map (kbd "C-S-p") 'image-dired-previous-line-and-display)
-    (define-key map (kbd "C-S-m") 'image-dired-mark-and-display-next)
+    (define-key map (kbd "C-S-n") #'image-dired-next-line-and-display)
+    (define-key map (kbd "C-S-p") #'image-dired-previous-line-and-display)
+    (define-key map (kbd "C-S-m") #'image-dired-mark-and-display-next)
 
-    (define-key map "\C-td" 'image-dired-display-thumbs)
-    (define-key map [tab] 'image-dired-jump-thumbnail-buffer)
-    (define-key map "\C-ti" 'image-dired-dired-display-image)
-    (define-key map "\C-tx" 'image-dired-dired-display-external)
-    (define-key map "\C-ta" 'image-dired-display-thumbs-append)
-    (define-key map "\C-t." 'image-dired-display-thumb)
-    (define-key map "\C-tc" 'image-dired-dired-comment-files)
-    (define-key map "\C-tf" 'image-dired-mark-tagged-files)
+    (define-key map "\C-td" #'image-dired-display-thumbs)
+    (define-key map [tab] #'image-dired-jump-thumbnail-buffer)
+    (define-key map "\C-ti" #'image-dired-dired-display-image)
+    (define-key map "\C-tx" #'image-dired-dired-display-external)
+    (define-key map "\C-ta" #'image-dired-display-thumbs-append)
+    (define-key map "\C-t." #'image-dired-display-thumb)
+    (define-key map "\C-tc" #'image-dired-dired-comment-files)
+    (define-key map "\C-tf" #'image-dired-mark-tagged-files)
     map)
   "Keymap for `image-dired-minor-mode'.")
 
