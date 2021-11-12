@@ -146,11 +146,36 @@ in `split-window-right' with a new xwidget webkit session."
 
 (declare-function xwidget-perform-lispy-event "xwidget.c")
 
-(defun xwidget-webkit-pass-command-event ()
-  "Pass `last-command-event' to the current buffer's WebKit widget."
+(defvar xwidget-webkit--input-method-events nil
+  "Internal variable used to store input method events.")
+
+(defun xwidget-webkit-pass-command-event-with-input-method ()
+  "Handle a `with-input-method' event."
   (interactive)
-  (xwidget-perform-lispy-event (xwidget-webkit-current-session)
-                               last-command-event))
+  (let ((key (pop unread-command-events)))
+    (setq xwidget-webkit--input-method-events
+          (funcall input-method-function key))
+    (exit-minibuffer)))
+
+(defun xwidget-webkit-pass-command-event ()
+  "Pass `last-command-event' to the current buffer's WebKit widget.
+If `current-input-method' is non-nil, consult `input-method-function'
+for the actual events that will be sent."
+  (interactive)
+  (if (and current-input-method
+           (characterp last-command-event))
+      (let ((xwidget-webkit--input-method-events nil)
+            (minibuffer-local-map (make-keymap)))
+        (define-key minibuffer-local-map [with-input-method]
+          'xwidget-webkit-pass-command-event-with-input-method)
+        (push last-command-event unread-command-events)
+        (push 'with-input-method unread-command-events)
+        (read-from-minibuffer "" nil nil nil nil nil t)
+        (dolist (event xwidget-webkit--input-method-events)
+          (xwidget-perform-lispy-event (xwidget-webkit-current-session)
+                                       event)))
+    (xwidget-perform-lispy-event (xwidget-webkit-current-session)
+                                 last-command-event)))
 
 ;;todo.
 ;; - check that the webkit support is compiled in
