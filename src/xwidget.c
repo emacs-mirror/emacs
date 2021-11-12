@@ -43,6 +43,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 static Lisp_Object id_to_xwidget_map;
+static Lisp_Object internal_xwidget_view_list;
+static Lisp_Object internal_xwidget_list;
 static uint32_t xwidget_counter = 0;
 
 #ifdef USE_GTK
@@ -144,7 +146,8 @@ fails.  */)
   xw->width = XFIXNAT (width);
   xw->kill_without_query = false;
   XSETXWIDGET (val, xw);
-  Vxwidget_list = Fcons (val, Vxwidget_list);
+  internal_xwidget_list = Fcons (val, internal_xwidget_list);
+  Vxwidget_list = Fcopy_sequence (internal_xwidget_list);
   xw->plist = Qnil;
   xw->xwidget_id = ++xwidget_counter;
   xw->find_text = NULL;
@@ -448,7 +451,7 @@ BUFFER may be a buffer or the name of one.  */)
 
   xw_list = Qnil;
 
-  for (tail = Vxwidget_list; CONSP (tail); tail = XCDR (tail))
+  for (tail = internal_xwidget_list; CONSP (tail); tail = XCDR (tail))
     {
       xw = XCAR (tail);
       if (XWIDGETP (xw) && EQ (Fxwidget_buffer (xw), buffer))
@@ -498,7 +501,7 @@ find_xwidget_for_offscreen_window (GdkWindow *window)
   struct xwidget *xw;
   GdkWindow *w;
 
-  for (tem = Vxwidget_list; CONSP (tem); tem = XCDR (tem))
+  for (tem = internal_xwidget_list; CONSP (tem); tem = XCDR (tem))
     {
       if (XWIDGETP (XCAR (tem)))
 	{
@@ -750,7 +753,7 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 
   xw->hit_result = webkit_hit_test_result_get_context (res);
 
-  for (Lisp_Object tem = Vxwidget_view_list; CONSP (tem);
+  for (Lisp_Object tem = internal_xwidget_view_list; CONSP (tem);
        tem = XCDR (tem))
     {
       if (XWIDGET_VIEW_P (XCAR (tem)))
@@ -1020,7 +1023,7 @@ offscreen_damage_event (GtkWidget *widget, GdkEvent *event,
 {
   block_input ();
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
@@ -1118,7 +1121,7 @@ webkit_ready_to_show (WebKitWebView *new_view,
   Lisp_Object tem;
   struct xwidget *xw;
 
-  for (tem = Vxwidget_list; CONSP (tem); tem = XCDR (tem))
+  for (tem = internal_xwidget_list; CONSP (tem); tem = XCDR (tem))
     {
       if (XWIDGETP (XCAR (tem)))
 	{
@@ -1485,7 +1488,8 @@ xwidget_init_view (struct xwidget *xww,
   Lisp_Object val;
 
   XSETXWIDGET_VIEW (val, xv);
-  Vxwidget_view_list = Fcons (val, Vxwidget_view_list);
+  internal_xwidget_view_list = Fcons (val, internal_xwidget_view_list);
+  Vxwidget_view_list = Fcopy_sequence (internal_xwidget_view_list);
 
   XSETWINDOW (xv->w, s->w);
   XSETXWIDGET (xv->model, xww);
@@ -1916,7 +1920,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
   nsxwidget_resize (xw);
 #endif
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail); tail = XCDR (tail))
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
+       tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
         {
@@ -2055,7 +2060,8 @@ DEFUN ("delete-xwidget-view",
   nsxwidget_delete_view (xv);
 #endif
 
-  Vxwidget_view_list = Fdelq (xwidget_view, Vxwidget_view_list);
+  internal_xwidget_view_list = Fdelq (xwidget_view, internal_xwidget_view_list);
+  Vxwidget_view_list = Fcopy_sequence (internal_xwidget_view_list);
   return Qnil;
 }
 
@@ -2073,7 +2079,7 @@ Return nil if no association is found.  */)
     window = Fselected_window ();
   CHECK_WINDOW (window);
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       Lisp_Object xwidget_view = XCAR (tail);
@@ -2423,6 +2429,11 @@ syms_of_xwidget (void)
 			     QCweakness, Qvalue);
   staticpro (&id_to_xwidget_map);
 
+  internal_xwidget_list = Qnil;
+  staticpro (&internal_xwidget_list);
+  internal_xwidget_view_list = Qnil;
+  staticpro (&internal_xwidget_view_list);
+
 #ifdef USE_GTK
   x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
 
@@ -2468,7 +2479,7 @@ void
 xwidget_view_delete_all_in_window (struct window *w)
 {
   struct xwidget_view *xv = NULL;
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
@@ -2513,7 +2524,7 @@ lookup_xwidget (Lisp_Object spec)
 static void
 xwidget_start_redisplay (void)
 {
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
@@ -2584,7 +2595,7 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
 	  }
     }
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail)))
@@ -2622,7 +2633,7 @@ kill_frame_xwidget_views (struct frame *f)
 {
   Lisp_Object rem = Qnil;
 
-  for (Lisp_Object tail = Vxwidget_view_list; CONSP (tail);
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
        tail = XCDR (tail))
     {
       if (XWIDGET_VIEW_P (XCAR (tail))
@@ -2643,7 +2654,8 @@ kill_buffer_xwidgets (Lisp_Object buffer)
   for (tail = Fget_buffer_xwidgets (buffer); CONSP (tail); tail = XCDR (tail))
     {
       xwidget = XCAR (tail);
-      Vxwidget_list = Fdelq (xwidget, Vxwidget_list);
+      internal_xwidget_list = Fdelq (xwidget, internal_xwidget_list);
+      Vxwidget_list = Fcopy_sequence (internal_xwidget_list);
       /* TODO free the GTK things in xw.  */
       {
         CHECK_LIVE_XWIDGET (xwidget);
