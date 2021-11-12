@@ -2654,7 +2654,6 @@ kill_buffer_xwidgets (Lisp_Object buffer)
       xwidget = XCAR (tail);
       internal_xwidget_list = Fdelq (xwidget, internal_xwidget_list);
       Vxwidget_list = Fcopy_sequence (internal_xwidget_list);
-      /* TODO free the GTK things in xw.  */
       {
         CHECK_LIVE_XWIDGET (xwidget);
         struct xwidget *xw = XXWIDGET (xwidget);
