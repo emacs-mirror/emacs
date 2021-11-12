@@ -1045,11 +1045,17 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
    safe to load.  Only files compiled with Emacs can be loaded.  */
 
 static int
-safe_to_load_version (int fd)
+safe_to_load_version (Lisp_Object file, int fd)
 {
+  struct stat st;
   char buf[512];
   int nbytes, i;
   int version = 1;
+
+  /* If the file is not regular, then we cannot safely seek it.
+     Assume that it is not safe to load as a compiled file.  */
+  if (fstat(fd, &st) == 0 && !S_ISREG (st.st_mode))
+    return 0;
 
   /* Read the first few bytes from the file, and look for a line
      specifying the byte compiler version used.  */
@@ -1068,7 +1074,9 @@ safe_to_load_version (int fd)
 	version = 0;
     }
 
-  lseek (fd, 0, SEEK_SET);
+  if (lseek (fd, 0, SEEK_SET) < 0)
+    report_file_error ("Seeking to start of file", file);
+
   return version;
 }
 
@@ -1401,7 +1409,7 @@ Return t if the file exists and loads successfully.  */)
   if (is_elc
       /* version = 1 means the file is empty, in which case we can
 	 treat it as not byte-compiled.  */
-      || (fd >= 0 && (version = safe_to_load_version (fd)) > 1))
+      || (fd >= 0 && (version = safe_to_load_version (file, fd)) > 1))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
     {
@@ -1411,7 +1419,7 @@ Return t if the file exists and loads successfully.  */)
 	  int result;
 
 	  if (version < 0
-	      && ! (version = safe_to_load_version (fd)))
+       && ! (version = safe_to_load_version (file, fd)))
 	    {
 	      error ("File `%s' was not compiled in Emacs", SDATA (found));
 	    }
