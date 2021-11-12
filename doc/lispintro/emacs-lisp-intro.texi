@@ -5818,7 +5818,7 @@ written like this:
 @subsection The @code{let} Expression in @code{insert-buffer}
 
 After ensuring that the variable @code{buffer} refers to a buffer itself
-and not just to the name of a buffer, the @code{insert-buffer function}
+and not just to the name of a buffer, the @code{insert-buffer} function
 continues with a @code{let} expression.  This specifies three local
 variables, @code{start}, @code{end}, and @code{newmark} and binds them
 to the initial value @code{nil}.  These variables are used inside the
