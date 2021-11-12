@@ -873,6 +873,8 @@ WebKit widget."
   "The current search query.")
 (defvar-local xwidget-webkit-isearch--is-reverse nil
   "Whether or not the current isearch should be reverse.")
+(defvar xwidget-webkit-isearch--read-string-buffer nil
+  "The buffer we are reading input method text for, if any.")
 
 (defun xwidget-webkit-isearch--update (&optional only-message)
   "Update the current buffer's WebKit widget's search query.
@@ -895,13 +897,43 @@ WebKit widget.  The query will be set to the contents of
                      (- (length xwidget-webkit-isearch--string) count))))
   (xwidget-webkit-isearch--update))
 
+(defun xwidget-webkit-isearch-with-input-method ()
+  "Handle a request to use the input method to modify the search query."
+  (interactive)
+  (let ((key (car unread-command-events))
+	events)
+    (setq unread-command-events (cdr unread-command-events)
+	  events (funcall input-method-function key))
+    (dolist (k events)
+      (with-current-buffer xwidget-webkit-isearch--read-string-buffer
+        (setq xwidget-webkit-isearch--string
+              (concat xwidget-webkit-isearch--string
+                      (char-to-string k)))))
+    (exit-minibuffer)))
+
+(defun xwidget-webkit-isearch-printing-char-with-input-method (char)
+  "Handle printing char CHAR with the current input method."
+  (let ((minibuffer-local-map (make-keymap))
+        (xwidget-webkit-isearch--read-string-buffer (current-buffer)))
+    (define-key minibuffer-local-map [with-input-method]
+      'xwidget-webkit-isearch-with-input-method)
+    (setq unread-command-events
+          (cons 'with-input-method
+                (cons char unread-command-events)))
+    (read-string "Search contents: "
+                 xwidget-webkit-isearch--string
+                 'junk-hist nil t)
+    (xwidget-webkit-isearch--update)))
+
 (defun xwidget-webkit-isearch-printing-char (char &optional count)
   "Add ordinary character CHAR to the search string and search.
 With argument, add COUNT copies of CHAR."
   (interactive (list last-command-event
                      (prefix-numeric-value current-prefix-arg)))
-  (setq xwidget-webkit-isearch--string (concat xwidget-webkit-isearch--string
-                                               (make-string (or count 1) char)))
+  (if current-input-method
+      (xwidget-webkit-isearch-printing-char-with-input-method char)
+    (setq xwidget-webkit-isearch--string (concat xwidget-webkit-isearch--string
+                                                 (make-string (or count 1) char))))
   (xwidget-webkit-isearch--update))
 
 (defun xwidget-webkit-isearch-forward (count)
@@ -958,6 +990,7 @@ With argument, add COUNT copies of CHAR."
 (define-key xwidget-webkit-isearch-mode-map "\C-r" 'xwidget-webkit-isearch-backward)
 (define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
 (define-key xwidget-webkit-isearch-mode-map "\C-y" 'xwidget-webkit-isearch-yank-kill)
+(define-key xwidget-webkit-isearch-mode-map "\C-\\" 'toggle-input-method)
 (define-key xwidget-webkit-isearch-mode-map "\t" 'xwidget-webkit-isearch-printing-char)
 
 (let ((meta-map (make-keymap)))
