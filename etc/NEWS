@@ -213,7 +213,7 @@ change the terminal used on a remote host.
 ** Info
 
 ---
-*** New command 'Info-goto-node-web' and key binding 'W'.
+*** New command 'Info-goto-node-web' and key binding 'G'.
 This will take you to the gnu.org web server's version of the current
 info node.  This command only works for the Emacs and Emacs Lisp manuals.
 

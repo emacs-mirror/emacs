@@ -4086,6 +4086,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "e" 'end-of-buffer)
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
+    (define-key map "G" 'Info-goto-node-web)
     (define-key map "h" 'Info-help)
     ;; This is for compatibility with standalone info (>~ version 5.2).
     ;; Though for some time, standalone info had H and h reversed.
@@ -4107,7 +4108,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "T" 'Info-toc)
     (define-key map "u" 'Info-up)
     ;; `w' for consistency with `dired-copy-filename-as-kill'.
-    (define-key map "W" 'Info-goto-node-web)
     (define-key map "w" 'Info-copy-current-node-name)
     (define-key map "c" 'Info-copy-current-node-name)
     ;; `^' for consistency with `dired-up-directory'.
