@@ -225,8 +225,6 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     }
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
-      if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)
-	numeric = FC_WEIGHT_MEDIUM;
       FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX, make_fixnum (numeric));
     }
   if (FcPatternGetInteger (p, FC_SLANT, 0, &numeric) == FcResultMatch)
