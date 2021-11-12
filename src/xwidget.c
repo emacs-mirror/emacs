@@ -1725,7 +1725,10 @@ DEFUN ("xwidget-webkit-uri",
   WEBKIT_FN_INIT ();
 #ifdef USE_GTK
   WebKitWebView *wkwv = WEBKIT_WEB_VIEW (xw->widget_osr);
-  return build_string (webkit_web_view_get_uri (wkwv));
+  const gchar *uri = webkit_web_view_get_uri (wkwv);
+  if (!uri)
+    return build_string ("");
+  return build_string (uri);
 #elif defined NS_IMPL_COCOA
   return nsxwidget_webkit_uri (xw);
 #endif
