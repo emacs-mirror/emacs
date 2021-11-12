@@ -52,7 +52,7 @@ time.
 *** Emacs will now use 24-bit colors on terminals that support "Tc" capability.
 This is in addition to previously-supported ways of discovering 24-bit
 color support: either via the "RGB" or "setf24" capabilities, or if
-the COLORTERM environment variable is set to the value "truecolor".
+the 'COLORTERM' environment variable is set to the value "truecolor".
 
 ** Emoji
 
@@ -96,7 +96,7 @@ Jumping to source from "*Help*" buffer moves the point when the source
 buffer is already open.  Now, the old point is pushed to mark ring.
 
 +++
-*** New key bindings in *Help* buffers: 'n' and 'p'.
+*** New key bindings in "*Help*" buffers: 'n' and 'p'.
 These will take you (respectively) to the next and previous "page".
 
 ---
@@ -138,9 +138,7 @@ LRI).  The new command 'highlight-confusing-reorderings' finds and
 highlights segments of buffer text whose reordering for display is
 suspicious and could be malicious.
 
-
-
-** Emacs server and client changes.
+** Emacs server and client changes
 
 +++
 *** New command-line option '-r' for emacsclient.
@@ -221,10 +219,10 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
-Previously, if you had an SVN-covered ~/ directory, and a Git-covered
-directory in ~/foo/bar, using 'C-x v v' on a new, unregistered file
-~/foo/bar/zot would register it in the SVN repository in ~/ instead of
-in the Git repository in ~/foo/bar.  This makes this command
+Previously, if you had an SVN-covered "~/" directory, and a Git-covered
+directory in "~/foo/bar", using 'C-x v v' on a new, unregistered file
+"~/foo/bar/zot" would register it in the SVN repository in "~/" instead of
+in the Git repository in "~/foo/bar".  This makes this command
 consistent with 'vc-responsible-backend'.
 
 ** Message
@@ -239,7 +237,7 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ** HTML Mode
 
 ---
-*** HTML Mode now supports text/html and image/* yanking.
+*** HTML Mode now supports "text/html" and "image/*" yanking.
 
 ** Texinfo Mode
 
@@ -259,7 +257,7 @@ doesn't work on other systems.  Also see etc/PROBLEMS.
 +++
 *** New user option 'eww-url-transformers'.
 These are used to alter an URL before using it.  By default it removes
-the common utm_ trackers from URLs.
+the common "utm_" trackers from URLs.
 
 ** Gnus
 
@@ -375,7 +373,7 @@ The keybinding for 'image-transform-fit-to-width' is now 's i'.
 This works like 'image-transform-fit-to-window'.
 
 *** New user option 'image-auto-resize-max-scale-percent'.
-The new 'fit-window' options will never scale an image more than this
+The new 'fit-window' option will never scale an image more than this
 much (in percent).  It is nil by default.
 
 ** Image-Dired
@@ -405,13 +403,13 @@ external "exiftool" command to be available.  The user options
 ---
 *** New command for the thumbnail buffer.
 The new command 'image-dired-unmark-all-marks' has been added.  It is
-bound to "U" in the thumbnail buffer.
+bound to 'U' in the thumbnail buffer.
 
 ---
 *** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
 This standard allows sharing generated thumbnails across different
 programs.  Version 0.9.0 adds two larger thumbnail sizes: 512x512 and
-1024x1024 pixels.  See the user option `image-dired-thumbnail-storage'
+1024x1024 pixels.  See the user option 'image-dired-thumbnail-storage'
 to use it; it is not enabled by default.
 
 ---
@@ -463,7 +461,6 @@ If non-nil (which is the default), hitting 'RET' or 'mouse-1' on
 the directory components at the directory displayed at the start of
 the buffer will take you to that directory.
 
-
 ** Exif
 
 *** New function 'exif-field'.
@@ -480,7 +477,7 @@ named.
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
-web browser shotcut keys are redefined to send themselves to the
+web browser shortcut keys are redefined to send themselves to the
 WebKit widget.
 
 +++
@@ -515,11 +512,11 @@ Emacs buffers, like indentation and the like.  The new ert function
 ** Fonts
 
 ---
-*** Emacs now supports `medium' fonts.
-Emacs previously didn't distinguish between the `regular'/`normal'
-weight and the `medium' weight, but it now also supports the (heavier)
-`medium' weight.  However, this means that if you previously specified
-a weight of `normal' and the font doesn't have this weight, Emacs
+*** Emacs now supports 'medium' fonts.
+Emacs previously didn't distinguish between the 'regular'/'normal'
+weight and the 'medium' weight, but it now also supports the (heavier)
+'medium' weight.  However, this means that if you previously specified
+a weight of 'normal' and the font doesn't have this weight, Emacs
 won't find the font spec.  In these cases, replacing ":weight 'normal"
 with ":weight 'medium" should fix the issue.
 
@@ -593,7 +590,7 @@ Use 'exif-parse-file' and 'exif-field' instead.
 This returns a list of all the components of a file name.
 
 +++
-** New macro 'with-undo-amalgamate'
+** New macro 'with-undo-amalgamate'.
 It records a particular sequence of operations as a single undo step.
 
 +++
@@ -616,7 +613,7 @@ searchable data, like image data) with a 'display' text property.
 
 +++
 ** 'insert-image' now takes an INHIBIT-ISEARCH optional parameter.
-It marks the image with the 'inhibit-isearch' text parameter, which
+It marks the image with the 'inhibit-isearch' text property, which
 inhibits 'isearch' matching the STRING parameter.
 
 ---
@@ -642,7 +639,7 @@ character.
 
 ** XDG support
 
-*** New function 'xdg-state-home' returns $XDG_STATE_HOME.
+*** New function 'xdg-state-home' returns 'XDG_STATE_HOME' environment variable.
 This new location, introduced in the XDG Base Directory Specification
 version 0.8 (8th May 2021), "contains state data that should persist
 between (application) restarts, but that is not important or portable
@@ -656,7 +653,7 @@ the body takes longer to execute than the specified timeout.
 ---
 ** New function 'funcall-with-delayed-message'.
 This function is like 'funcall', but will output the specified message
-is the function take longer to execute that the specified timeout.
+if the function takes longer to execute than the specified timeout.
 
 ** Locale
 
@@ -673,7 +670,7 @@ executing code.
 
 +++
 *** A column can now be set to an image descriptor.
-The `tabulated-list-entries' variable now supports using an image
+The 'tabulated-list-entries' variable now supports using an image
 descriptor, which means to insert an image in that column instead of
 text.  See the documentation string of that variable for details.
 
@@ -756,9 +753,9 @@ an exact match, then the lowercased '[menu-bar foo\ bar]' and finally
 '[menu-bar foo-bar]'.  This further improves backwards-compatibility
 when converting menus to use 'easy-menu-define'.
 
-+++
 ** xwidgets
 
++++
 *** The function 'make-xwidget' now accepts an optional RELATED argument.
 This argument is used as another widget for the newly created WebKit
 widget to share settings and subprocesses with.  It must be another
