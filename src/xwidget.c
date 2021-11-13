@@ -791,7 +791,7 @@ run_file_chooser_cb (WebKitWebView *webview,
 		     gpointer user_data)
 {
   struct frame *f = SELECTED_FRAME ();
-  GtkWidget *chooser;
+  GtkFileChooserNative *chooser;
   GtkFileFilter *filter;
   bool select_multiple_p;
   guint response;
@@ -806,25 +806,21 @@ run_file_chooser_cb (WebKitWebView *webview,
   if (!FRAME_WINDOW_P (f))
     return TRUE;
 
-  chooser = gtk_file_chooser_dialog_new ("Select file",
+  chooser = gtk_file_chooser_native_new ("Select file",
 					 GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-					 GTK_FILE_CHOOSER_ACTION_OPEN,
-					 "Cancel",
-					 GTK_RESPONSE_CANCEL,
-					 "Select",
-					 GTK_RESPONSE_ACCEPT,
-					 NULL);
+					 GTK_FILE_CHOOSER_ACTION_OPEN, "Select",
+					 "Cancel");
   filter = webkit_file_chooser_request_get_mime_types_filter (request);
   select_multiple_p = webkit_file_chooser_request_get_select_multiple (request);
 
   gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (chooser),
 					select_multiple_p);
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (chooser), filter);
-  response = gtk_dialog_run (GTK_DIALOG (chooser));
+  response = gtk_native_dialog_run (GTK_NATIVE_DIALOG (chooser));
 
-  if (response == GTK_RESPONSE_CANCEL)
+  if (response != GTK_RESPONSE_ACCEPT)
     {
-      gtk_widget_destroy (chooser);
+      gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (chooser));
       webkit_file_chooser_request_cancel (request);
 
       return TRUE;
@@ -844,7 +840,7 @@ run_file_chooser_cb (WebKitWebView *webview,
   for (i = 0; i < len; ++i)
     g_free (files[i]);
 
-  gtk_widget_destroy (chooser);
+  gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (chooser));
 
   return TRUE;
 }
