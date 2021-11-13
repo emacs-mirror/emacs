@@ -9304,10 +9304,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    event->xbutton.button, event->xbutton.state,
 			    event->xbutton.time);
 
-	    if (!EQ (selected_window, xvw->w)
-		&& ((event->xbutton.button < 3)
-		    || (event->xbutton.button > 7)))
-	      {
+            if (!EQ (selected_window, xvw->w) && (event->xbutton.button < 4))
+              {
 		inev.ie.kind = SELECT_WINDOW_EVENT;
 		inev.ie.frame_or_window = xvw->w;
 	      }
