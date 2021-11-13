@@ -418,7 +418,7 @@ if that doesn't produce a completion match."
                 icomplete-show-matches-on-no-input t
                 icomplete-hide-common-prefix nil
                 icomplete-scroll (not (null icomplete-vertical-mode))
-                completion-styles '(flex basic)
+                completion-styles '(flex)
                 completion-flex-nospace nil
                 completion-category-defaults nil
                 completion-ignore-case t
