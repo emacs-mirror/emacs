@@ -6935,7 +6935,8 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
-  ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
   (skip-unless (not (tramp--test-emacs29-p)))
 
   (let ((default-directory tramp-test-temporary-file-directory)
@@ -6955,7 +6956,8 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
-  ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
   (skip-unless (not (tramp--test-emacs29-p)))
 
   (let ((default-directory tramp-test-temporary-file-directory)

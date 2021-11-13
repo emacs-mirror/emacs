@@ -223,7 +223,6 @@ It must be supported by libarchive(3).")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . tramp-archive-handle-not-implemented)
     (dired-uncache . tramp-archive-handle-dired-uncache)
     (exec-path . ignore)

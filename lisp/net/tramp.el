@@ -2476,28 +2476,25 @@ Must be handled by the callers."
 	    '(access-file byte-compiler-base-file-name delete-directory
 	      delete-file diff-latest-backup-file directory-file-name
 	      directory-files directory-files-and-attributes
-	      dired-uncache file-acl file-accessible-directory-p
-	      file-attributes file-directory-p file-executable-p
-	      file-exists-p file-local-copy file-modes
-	      file-name-as-directory file-name-case-insensitive-p
-	      file-name-directory file-name-nondirectory
-	      file-name-sans-versions file-notify-add-watch
-	      file-ownership-preserved-p file-readable-p
-	      file-regular-p file-remote-p file-selinux-context
-	      file-symlink-p file-truename file-writable-p
-	      find-backup-file-name get-file-buffer insert-directory
-	      insert-file-contents load make-directory
-	      make-directory-internal set-file-acl set-file-modes
-	      set-file-selinux-context set-file-times
+	      dired-compress-file dired-uncache file-acl
+	      file-accessible-directory-p file-attributes
+	      file-directory-p file-executable-p file-exists-p
+	      file-local-copy file-modes file-name-as-directory
+	      file-name-case-insensitive-p file-name-directory
+	      file-name-nondirectory file-name-sans-versions
+	      file-notify-add-watch file-ownership-preserved-p
+	      file-readable-p file-regular-p file-remote-p
+	      file-selinux-context file-symlink-p file-truename
+	      file-writable-p find-backup-file-name get-file-buffer
+	      insert-directory insert-file-contents load
+	      make-directory make-directory-internal set-file-acl
+	      set-file-modes set-file-selinux-context set-file-times
 	      substitute-in-file-name unhandled-file-name-directory
 	      vc-registered
 	      ;; Emacs 27+ only.
 	      file-system-info
 	      ;; Emacs 28+ only.
 	      file-locked-p lock-file make-lock-file-name unlock-file
-	      ;; Starting with Emacs 29.1, `dired-compress-file' isn't
-	      ;; magic anymore.
-	      dired-compress-file
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))

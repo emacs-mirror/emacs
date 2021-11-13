@@ -1007,6 +1007,7 @@ Else returns nil for success."
       (erase-buffer)
       (setq default-directory dir	; caller's default-directory
 	    err (not (eq 0 (apply #'process-file program nil t nil arguments))))
+      (dired-uncache dir)
       (if err
 	  (progn
 	    (dired-log (concat program " " (prin1-to-string arguments) "\n"))
@@ -1032,6 +1033,7 @@ Return the result of `process-file' - zero for success."
                    nil
                    shell-command-switch
                    cmd)))
+        (dired-uncache dir)
         (unless (zerop res)
           (pop-to-buffer out-buffer))
         res))))
@@ -1280,9 +1282,9 @@ Return nil if no change in files."
                (prog1 (setq newname (file-name-as-directory newname))
                  (dired-shell-command
                   (replace-regexp-in-string
-                   "%o" (shell-quote-argument newname)
+                   "%o" (shell-quote-argument (file-local-name newname))
                    (replace-regexp-in-string
-                    "%i" (shell-quote-argument file)
+                    "%i" (shell-quote-argument (file-local-name file))
                     command
                     nil t)
                    nil t)))
@@ -1293,10 +1295,10 @@ Return nil if no change in files."
                            (dired-check-process msg
                                                 (substring command 0 match)
                                                 (substring command (1+ match))
-                                                file)
+                                                (file-local-name file))
                          (dired-check-process msg
                                               command
-                                              file))
+                                              (file-local-name file)))
                  newname))))
           (t
            ;; We don't recognize the file as compressed, so compress it.
@@ -1314,7 +1316,8 @@ Return nil if no change in files."
                                (default-directory (file-name-directory file)))
                            (dired-shell-command
                             (replace-regexp-in-string
-                             "%o" (shell-quote-argument out-name)
+                             "%o" (shell-quote-argument
+                                   (file-local-name out-name))
                              (replace-regexp-in-string
                               "%i" (shell-quote-argument
                                     (file-name-nondirectory file))
@@ -1344,9 +1347,10 @@ see `dired-compress-file-alist' for the supported suffixes list"
                                 out-name)))
                           (dired-shell-command
                            (replace-regexp-in-string
-                            "%o" (shell-quote-argument out-name)
+                            "%o" (shell-quote-argument
+                                  (file-local-name out-name))
                             (replace-regexp-in-string
-                             "%i" (shell-quote-argument file)
+                             "%i" (shell-quote-argument (file-local-name file))
                              (cdr rule)
                              nil t)
                             nil t))
@@ -1361,7 +1365,8 @@ see `dired-compress-file-alist' for the supported suffixes list"
                             out-name)))))
              (file-error
               (if (not (dired-check-process (concat "Compressing " file)
-                                            "compress" "-f" file))
+                                            "compress" "-f"
+                                            (file-local-name file)))
                   ;; Don't use NEWNAME with `compress'.
                   (concat file ".Z"))))))))
 

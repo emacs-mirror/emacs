@@ -34,6 +34,8 @@
 (eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
+;; `dired-*' declarations can be removed, starting with Emacs 29.1.
+(declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
 (defvar process-file-return-signal-string)
@@ -952,7 +954,8 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-sh-handle-directory-files-and-attributes)
-    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
+    ;; Starting with Emacs 29.1, `dired-compress-file' performed by
+    ;; default handler.
     (dired-compress-file . tramp-sh-handle-dired-compress-file)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-sh-handle-exec-path)
@@ -2472,57 +2475,60 @@ The method used must be an out-of-band method."
 
 ;; Dired.
 
-;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
 (defun tramp-sh-handle-dired-compress-file (file)
   "Like `dired-compress-file' for Tramp files."
-  ;; Code stolen mainly from dired-aux.el.
-  (with-parsed-tramp-file-name file nil
-    (tramp-flush-file-properties v localname)
-    (let ((suffixes dired-compress-file-suffixes)
-	  suffix)
-      ;; See if any suffix rule matches this file name.
-      (while suffixes
-	(let (case-fold-search)
-	  (if (string-match-p (car (car suffixes)) localname)
-	      (setq suffix (car suffixes) suffixes nil))
-	  (setq suffixes (cdr suffixes))))
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
+  (if (>= emacs-major-version 29)
+      (tramp-run-real-handler #'dired-compress-file (list file))
+    ;; Code stolen mainly from dired-aux.el.
+    (with-parsed-tramp-file-name file nil
+      (tramp-flush-file-properties v localname)
+      (let ((suffixes dired-compress-file-suffixes)
+	    suffix)
+	;; See if any suffix rule matches this file name.
+	(while suffixes
+	  (let (case-fold-search)
+	    (if (string-match-p (car (car suffixes)) localname)
+		(setq suffix (car suffixes) suffixes nil))
+	    (setq suffixes (cdr suffixes))))
 
-      (cond ((file-symlink-p file) nil)
-	    ((and suffix (nth 2 suffix))
-	     ;; We found an uncompression rule.
-	     (with-tramp-progress-reporter
-                 v 0 (format "Uncompressing %s" file)
-	       (when (tramp-send-command-and-check
-		      v (if (string-match-p "%[io]" (nth 2 suffix))
-                            (replace-regexp-in-string
-                             "%i" (tramp-shell-quote-argument localname)
-                             (nth 2 suffix))
-                          (concat (nth 2 suffix) " "
-                                  (tramp-shell-quote-argument localname))))
-		 (unless (string-match-p "\\.tar\\.gz" file)
-                   (dired-remove-file file))
-		 (string-match (car suffix) file)
-		 (concat (substring file 0 (match-beginning 0))))))
-	    (t
-	     ;; We don't recognize the file as compressed, so compress it.
-	     ;; Try gzip.
-	     (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
-	       (when (tramp-send-command-and-check
-		      v (if (file-directory-p file)
-                            (format "tar -cf - %s | gzip -c9 > %s.tar.gz"
-                                    (tramp-shell-quote-argument
-                                     (file-name-nondirectory localname))
-                                    (tramp-shell-quote-argument localname))
-                          (concat "gzip -f "
-				  (tramp-shell-quote-argument localname))))
-		 (unless (file-directory-p file)
-                   (dired-remove-file file))
-		 (catch 'found nil
-                        (dolist (target (mapcar (lambda (suffix)
-                                                  (concat file suffix))
-                                                '(".tar.gz" ".gz" ".z")))
-                          (when (file-exists-p target)
-                            (throw 'found target)))))))))))
+	(cond ((file-symlink-p file) nil)
+	      ((and suffix (nth 2 suffix))
+	       ;; We found an uncompression rule.
+	       (with-tramp-progress-reporter
+                   v 0 (format "Uncompressing %s" file)
+		 (when (tramp-send-command-and-check
+			v (if (string-match-p "%[io]" (nth 2 suffix))
+                              (replace-regexp-in-string
+                               "%i" (tramp-shell-quote-argument localname)
+                               (nth 2 suffix))
+                            (concat (nth 2 suffix) " "
+                                    (tramp-shell-quote-argument localname))))
+		   (unless (string-match-p "\\.tar\\.gz" file)
+                     (dired-remove-file file))
+		   (string-match (car suffix) file)
+		   (concat (substring file 0 (match-beginning 0))))))
+	      (t
+	       ;; We don't recognize the file as compressed, so
+	       ;; compress it.  Try gzip.
+	       (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
+		 (when (tramp-send-command-and-check
+			v (if (file-directory-p file)
+                              (format "tar -cf - %s | gzip -c9 > %s.tar.gz"
+                                      (tramp-shell-quote-argument
+                                       (file-name-nondirectory localname))
+                                      (tramp-shell-quote-argument localname))
+                            (concat "gzip -f "
+				    (tramp-shell-quote-argument localname))))
+		   (unless (file-directory-p file)
+                     (dired-remove-file file))
+		   (catch 'found nil
+                          (dolist (target (mapcar (lambda (suffix)
+                                                    (concat file suffix))
+                                                  '(".tar.gz" ".gz" ".z")))
+                            (when (file-exists-p target)
+                              (throw 'found target))))))))))))
 
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
