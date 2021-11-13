@@ -1363,8 +1363,8 @@ webkit_javascript_finished_cb (GObject      *webview,
 
   if (!js_result)
     {
-      g_warning ("Error running javascript: %s", error->message);
-      g_error_free (error);
+      if (error)
+	g_error_free (error);
       return;
     }
 
