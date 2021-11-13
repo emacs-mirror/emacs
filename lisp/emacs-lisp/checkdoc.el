@@ -1116,6 +1116,7 @@ space at the end of each line."
           ";;; lisp/trampver.el.  Generated from trampver.el.in by configure."))
   "Regexp that when it matches tells `checkdoc-dired' to skip a file.")
 
+;;;###autoload
 (defun checkdoc-dired (files)
   "In Dired, run `checkdoc' on marked files.
 Skip anything that doesn't have the Emacs Lisp library file

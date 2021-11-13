@@ -328,11 +328,18 @@ may have changed) back to `save-place-alist'."
       (with-current-buffer (car buf-list)
 	;; save-place checks buffer-file-name too, but we can avoid
 	;; overhead of function call by checking here too.
-	(and (or buffer-file-name (and (derived-mode-p 'dired-mode)
-                                       (boundp 'dired-subdir-alist)
-				       dired-subdir-alist
-				       (dired-current-directory)))
-	     (save-place-to-alist))
+	(when (and (or buffer-file-name
+                       (and (derived-mode-p 'dired-mode)
+                            (boundp 'dired-subdir-alist)
+		            dired-subdir-alist
+		            (dired-current-directory)))
+                   ;; Don't save place in literally-visited file
+                   ;; because this will commonly differ from the place
+                   ;; when visiting literally (and
+                   ;; `find-file-literally' always places point at the
+                   ;; start of the buffer).
+                   (not find-file-literally))
+	  (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
 
 (defun save-place-find-file-hook ()

@@ -37,10 +37,10 @@
 ;;   up-to-date).
 ;; - Mark commits you'd like to skip, meaning to only merge their
 ;;   metadata (merge strategy 'ours').
-;; - Hit 'm' to start merging. Skipped commits will be merged separately.
+;; - Hit 'm' to start merging.  Skipped commits will be merged separately.
 ;; - If conflicts cannot be resolved automatically, you'll have to do
-;;   it manually. In that case, resolve the conflicts and restart
-;;   gitmerge, which will automatically resume. It will add resolved
+;;   it manually.  In that case, resolve the conflicts and restart
+;;   gitmerge, which will automatically resume.  It will add resolved
 ;;   files, commit the pending merge and continue merging the rest.
 ;; - Inspect master branch, and if everything looks OK, push.
 
@@ -129,7 +129,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
     (string-to-number (match-string 1))))
 
 (defun gitmerge-default-branch ()
-  "Default for branch that should be merged; eg \"origin/emacs-26\"."
+  "Default for branch that should be merged; e.g. \"origin/emacs-28\"."
   (or gitmerge-default-branch
       (format "origin/emacs-%s" (1- (gitmerge-emacs-version)))))
 
@@ -472,7 +472,7 @@ Throw an user-error if we cannot resolve automatically."
       (if (not (zerop
 		(call-process "git" nil t nil
 			      "diff" "--name-only" "--diff-filter=U")))
-	  (error "Error listing unmerged files. Resolve manually.")
+          (error "Error listing unmerged files.  Resolve manually.")
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (push (buffer-substring (point) (line-end-position)) files)

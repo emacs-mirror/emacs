@@ -5069,7 +5069,7 @@ On most systems, this will be true:
         (setq filename (and dir (directory-file-name dir)))
         ;; If there's nothing left to peel off, we're at the root and
         ;; we can stop.
-        (when (equal dir filename)
+        (when (and dir (equal dir filename))
           (push "" components)
           (setq filename nil))))
     components))

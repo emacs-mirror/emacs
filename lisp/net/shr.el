@@ -1137,7 +1137,7 @@ the mouse click event."
 
 ;; Behind display-graphic-p test.
 (declare-function image-size "image.c" (spec &optional pixels frame))
-(declare-function image-animate "image" (image &optional index limit))
+(declare-function image-animate "image" (image &optional index limit position))
 
 (defun shr-put-image (spec alt &optional flags)
   "Insert image SPEC with a string ALT.  Return image.
@@ -1174,13 +1174,14 @@ element is the data blob and the second element is the content-type."
 	  (when (and (> (current-column) 0)
 		     (> (car (image-size image t)) 400))
 	    (insert "\n"))
-	  (if (eq size 'original)
-	      (insert-sliced-image image (or alt "*") nil 20 1)
-	    (insert-image image (or alt "*")))
-	  (put-text-property start (point) 'image-size size)
-	  (when (and shr-image-animate
-                     (cdr (image-multi-frame-p image)))
-            (image-animate image nil 60)))
+          (let ((image-pos (point)))
+	    (if (eq size 'original)
+	        (insert-sliced-image image (or alt "*") nil 20 1)
+	      (insert-image image (or alt "*")))
+	    (put-text-property start (point) 'image-size size)
+	    (when (and shr-image-animate
+                       (cdr (image-multi-frame-p image)))
+              (image-animate image nil 60 image-pos))))
 	image)
     (insert (or alt ""))))
 

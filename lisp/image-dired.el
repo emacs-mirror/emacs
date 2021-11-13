@@ -1527,67 +1527,68 @@ You probably want to use this together with
 (defvar image-dired-thumbnail-mode-line-up-map
   (let ((map (make-sparse-keymap)))
     ;; map it to "g" so that the user can press it more quickly
-    (define-key map "g" 'image-dired-line-up-dynamic)
+    (define-key map "g" #'image-dired-line-up-dynamic)
     ;; "f" for "fixed" number of thumbs per row
-    (define-key map "f" 'image-dired-line-up)
+    (define-key map "f" #'image-dired-line-up)
     ;; "i" for "interactive"
-    (define-key map "i" 'image-dired-line-up-interactive)
+    (define-key map "i" #'image-dired-line-up-interactive)
     map)
   "Keymap for line-up commands in `image-dired-thumbnail-mode'.")
 
 (defvar image-dired-thumbnail-mode-tag-map
   (let ((map (make-sparse-keymap)))
     ;; map it to "t" so that the user can press it more quickly
-    (define-key map "t" 'image-dired-tag-thumbnail)
+    (define-key map "t" #'image-dired-tag-thumbnail)
     ;; "r" for "remove"
-    (define-key map "r" 'image-dired-tag-thumbnail-remove)
+    (define-key map "r" #'image-dired-tag-thumbnail-remove)
     map)
   "Keymap for tag commands in `image-dired-thumbnail-mode'.")
 
 (defvar image-dired-thumbnail-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [right] 'image-dired-forward-image)
-    (define-key map [left] 'image-dired-backward-image)
-    (define-key map [up] 'image-dired-previous-line)
-    (define-key map [down] 'image-dired-next-line)
-    (define-key map "\C-f" 'image-dired-forward-image)
-    (define-key map "\C-b" 'image-dired-backward-image)
-    (define-key map "\C-p" 'image-dired-previous-line)
-    (define-key map "\C-n" 'image-dired-next-line)
+    (define-key map [right] #'image-dired-forward-image)
+    (define-key map [left] #'image-dired-backward-image)
+    (define-key map [up] #'image-dired-previous-line)
+    (define-key map [down] #'image-dired-next-line)
+    (define-key map "\C-f" #'image-dired-forward-image)
+    (define-key map "\C-b" #'image-dired-backward-image)
+    (define-key map "\C-p" #'image-dired-previous-line)
+    (define-key map "\C-n" #'image-dired-next-line)
 
     (define-key map "<" #'image-dired-beginning-of-buffer)
     (define-key map ">" #'image-dired-end-of-buffer)
     (define-key map (kbd "M-<") #'image-dired-beginning-of-buffer)
     (define-key map (kbd "M->") #'image-dired-end-of-buffer)
 
-    (define-key map "d" 'image-dired-flag-thumb-original-file)
-    (define-key map [delete] 'image-dired-flag-thumb-original-file)
-    (define-key map "m" 'image-dired-mark-thumb-original-file)
-    (define-key map "u" 'image-dired-unmark-thumb-original-file)
-    (define-key map "U" 'image-dired-unmark-all-marks)
-    (define-key map "." 'image-dired-track-original-file)
-    (define-key map [tab] 'image-dired-jump-original-dired-buffer)
+    (define-key map "d" #'image-dired-flag-thumb-original-file)
+    (define-key map [delete] #'image-dired-flag-thumb-original-file)
+    (define-key map "m" #'image-dired-mark-thumb-original-file)
+    (define-key map "u" #'image-dired-unmark-thumb-original-file)
+    (define-key map "U" #'image-dired-unmark-all-marks)
+    (define-key map "." #'image-dired-track-original-file)
+    (define-key map [tab] #'image-dired-jump-original-dired-buffer)
 
     ;; add line-up map
     (define-key map "g" image-dired-thumbnail-mode-line-up-map)
     ;; add tag map
     (define-key map "t" image-dired-thumbnail-mode-tag-map)
 
-    (define-key map "\C-m" 'image-dired-display-thumbnail-original-image)
-    (define-key map [C-return] 'image-dired-thumbnail-display-external)
+    (define-key map "\C-m" #'image-dired-display-thumbnail-original-image)
+    (define-key map [C-return] #'image-dired-thumbnail-display-external)
 
-    (define-key map "L" 'image-dired-rotate-original-left)
-    (define-key map "R" 'image-dired-rotate-original-right)
+    (define-key map "L" #'image-dired-rotate-original-left)
+    (define-key map "R" #'image-dired-rotate-original-right)
 
-    (define-key map "D" 'image-dired-thumbnail-set-image-description)
-    (define-key map "\C-d" 'image-dired-delete-char)
-    (define-key map " " 'image-dired-display-next-thumbnail-original)
-    (define-key map (kbd "DEL") 'image-dired-display-previous-thumbnail-original)
-    (define-key map "c" 'image-dired-comment-thumbnail)
+    (define-key map "D" #'image-dired-thumbnail-set-image-description)
+    (define-key map "S" #'image-dired-slideshow-start)
+    (define-key map "\C-d" #'image-dired-delete-char)
+    (define-key map " " #'image-dired-display-next-thumbnail-original)
+    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
+    (define-key map "c" #'image-dired-comment-thumbnail)
 
     ;; Mouse
-    (define-key map [mouse-2] 'image-dired-mouse-display-image)
-    (define-key map [mouse-1] 'image-dired-mouse-select-thumbnail)
+    (define-key map [mouse-2] #'image-dired-mouse-display-image)
+    (define-key map [mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [mouse-3] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
@@ -1602,8 +1603,8 @@ You probably want to use this together with
     ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
     ;; about C-mouse-1 not being defined afterwards. Annoying, but I
     ;; probably do not completely understand mouse events.
-    (define-key map [C-down-mouse-1] 'undefined)
-    (define-key map [C-mouse-1] 'image-dired-mouse-toggle-mark)
+    (define-key map [C-down-mouse-1] #'undefined)
+    (define-key map [C-mouse-1] #'image-dired-mouse-toggle-mark)
     map)
   "Keymap for `image-dired-thumbnail-mode'.")
 
@@ -1612,37 +1613,36 @@ You probably want to use this together with
   '("Image-Dired"
     ["Display image" image-dired-display-thumbnail-original-image]
     ["Display in external viewer" image-dired-thumbnail-display-external]
+    ["Jump to Dired buffer" image-dired-jump-original-dired-buffer]
     "---"
-    ["Mark original" image-dired-mark-thumb-original-file]
-    ["Unmark original" image-dired-unmark-thumb-original-file]
-    ["Flag original for deletion" image-dired-flag-thumb-original-file]
-    "---"
-    ["Track original" image-dired-track-original-file]
-    ["Jump to dired buffer" image-dired-jump-original-dired-buffer]
-    ["Toggle movement tracking on/off" image-dired-toggle-movement-tracking
-     :style toggle
-     :selected image-dired-track-movement]
+    ["Mark image" image-dired-mark-thumb-original-file]
+    ["Unmark image" image-dired-unmark-thumb-original-file]
+    ["Unmark all images" image-dired-unmark-all-marks]
+    ["Flag for deletion" image-dired-flag-thumb-original-file]
+    ["Delete marked images" image-dired-delete-marked]
     "---"
     ["Rotate original right" image-dired-rotate-original-right]
     ["Rotate original left" image-dired-rotate-original-left]
     "---"
-    ["Line up thumbnails" image-dired-line-up]
-    ["Dynamic line up" image-dired-line-up-dynamic]
-    ["Refresh thumb" image-dired-refresh-thumb]
-    "---"
     ["Comment thumbnail" image-dired-comment-thumbnail]
     ["Tag current or marked thumbnails" image-dired-tag-thumbnail]
-    "---"
     ["Remove tag from current or marked thumbnails"
      image-dired-tag-thumbnail-remove]
-    ["Unmark all marks" image-dired-unmark-all-marks]
-    ["Delete marked images" image-dired-delete-marked]
-    ["Delete thumbnail from buffer" image-dired-delete-char]
+    ["Start slideshow" image-dired-slideshow-start]
     "---"
+    ("View Options"
+     ["Toggle movement tracking" image-dired-toggle-movement-tracking
+      :style toggle
+      :selected image-dired-track-movement]
+     "---"
+     ["Line up thumbnails" image-dired-line-up]
+     ["Dynamic line up" image-dired-line-up-dynamic]
+     ["Refresh thumb" image-dired-refresh-thumb])
     ["Quit" quit-window]))
 
 (defvar image-dired-display-image-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "S" #'image-dired-slideshow-start)
     ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
     (define-key map "o" nil) ; image-save
     (define-key map "n" nil) ; image-next-file
@@ -1660,6 +1660,7 @@ You probably want to use this together with
   special-mode "image-dired-thumbnail"
   "Browse and manipulate thumbnail images using Dired.
 Use `image-dired-minor-mode' to get a nice setup."
+  :interactive nil
   (buffer-disable-undo)
   (add-hook 'file-name-at-point-functions 'image-dired-file-name-at-point nil t)
   (setq-local window-resize-pixelwise t)
@@ -1682,23 +1683,23 @@ Resized or in full-size."
     ;; (set-keymap-parent map dired-mode-map)
     ;; Hijack previous and next line movement. Let C-p and C-b be
     ;; though...
-    (define-key map "p" 'image-dired-dired-previous-line)
-    (define-key map "n" 'image-dired-dired-next-line)
-    (define-key map [up] 'image-dired-dired-previous-line)
-    (define-key map [down] 'image-dired-dired-next-line)
+    (define-key map "p" #'image-dired-dired-previous-line)
+    (define-key map "n" #'image-dired-dired-next-line)
+    (define-key map [up] #'image-dired-dired-previous-line)
+    (define-key map [down] #'image-dired-dired-next-line)
 
-    (define-key map (kbd "C-S-n") 'image-dired-next-line-and-display)
-    (define-key map (kbd "C-S-p") 'image-dired-previous-line-and-display)
-    (define-key map (kbd "C-S-m") 'image-dired-mark-and-display-next)
+    (define-key map (kbd "C-S-n") #'image-dired-next-line-and-display)
+    (define-key map (kbd "C-S-p") #'image-dired-previous-line-and-display)
+    (define-key map (kbd "C-S-m") #'image-dired-mark-and-display-next)
 
-    (define-key map "\C-td" 'image-dired-display-thumbs)
-    (define-key map [tab] 'image-dired-jump-thumbnail-buffer)
-    (define-key map "\C-ti" 'image-dired-dired-display-image)
-    (define-key map "\C-tx" 'image-dired-dired-display-external)
-    (define-key map "\C-ta" 'image-dired-display-thumbs-append)
-    (define-key map "\C-t." 'image-dired-display-thumb)
-    (define-key map "\C-tc" 'image-dired-dired-comment-files)
-    (define-key map "\C-tf" 'image-dired-mark-tagged-files)
+    (define-key map "\C-td" #'image-dired-display-thumbs)
+    (define-key map [tab] #'image-dired-jump-thumbnail-buffer)
+    (define-key map "\C-ti" #'image-dired-dired-display-image)
+    (define-key map "\C-tx" #'image-dired-dired-display-external)
+    (define-key map "\C-ta" #'image-dired-display-thumbs-append)
+    (define-key map "\C-t." #'image-dired-display-thumb)
+    (define-key map "\C-tc" #'image-dired-dired-comment-files)
+    (define-key map "\C-tf" #'image-dired-mark-tagged-files)
     map)
   "Keymap for `image-dired-minor-mode'.")
 
@@ -1758,44 +1759,60 @@ With prefix argument ARG, create thumbnails even if they already exist
         (image-dired-create-thumb curr-file thumb-name)))))
 
 
-;;; Slideshow.
+;;; Slideshow
 
-(defvar image-dired-slideshow-timer nil
+(defcustom image-dired-slideshow-delay 5.0
+  "Seconds to wait before showing the next image in a slideshow.
+This is used by `image-dired-slideshow-start'."
+  :type 'float
+  :version "29.1")
+
+(define-obsolete-variable-alias 'image-dired-slideshow-timer
+  'image-dired--slideshow-timer "29.1")
+(defvar image-dired--slideshow-timer nil
   "Slideshow timer.")
 
-(defvar image-dired-slideshow-count 0
-  "Keeping track on number of images in slideshow.")
-
-(defvar image-dired-slideshow-times 0
-  "Number of pictures to display in slideshow.")
+(defvar image-dired--slideshow-initial nil)
 
 (defun image-dired-slideshow-step ()
-  "Step to next file, if `image-dired-slideshow-times' has not been reached."
-  (if (< image-dired-slideshow-count image-dired-slideshow-times)
-      (progn
-        (message "%s" (1+ image-dired-slideshow-count))
-        (setq image-dired-slideshow-count (1+ image-dired-slideshow-count))
-        (image-dired-next-line-and-display))
+  "Step to next image in a slideshow."
+  (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+      (with-current-buffer buf
+        (image-dired-display-next-thumbnail-original))
     (image-dired-slideshow-stop)))
 
-(defun image-dired-slideshow-start ()
-  "Start slideshow.
-Ask user for number of images to show and the delay in between."
-  (interactive)
-  (setq image-dired-slideshow-count 0)
-  (setq image-dired-slideshow-times (string-to-number (read-string "How many: ")))
-  (let ((repeat (string-to-number
-                 (read-string
-                  "Delay, in seconds. Decimals are accepted : " "1"))))
-    (setq image-dired-slideshow-timer
+(defun image-dired-slideshow-start (&optional arg)
+  "Start a slideshow.
+Wait `image-dired-slideshow-delay' seconds before showing the
+next image.
+
+With prefix argument ARG, wait that many seconds before going to
+the next image.
+
+With a negative prefix argument, prompt user for the delay."
+  (interactive "P" image-dired-thumbnail-mode image-dired-display-image-mode)
+  (let ((delay (if (> arg 0)
+                   arg
+                 (string-to-number
+                  (read-string
+                   (let ((delay (number-to-string image-dired-slideshow-delay)))
+                     (format-prompt "Delay, in seconds. Decimals are accepted" delay) delay))))))
+    (setq image-dired--slideshow-timer
           (run-with-timer
-           0 repeat
-           'image-dired-slideshow-step))))
+           0 delay
+           'image-dired-slideshow-step))
+    (add-hook 'post-command-hook 'image-dired-slideshow-stop)
+    (setq image-dired--slideshow-initial t)
+    (message "Running slideshow; use any command to stop")))
 
 (defun image-dired-slideshow-stop ()
   "Cancel slideshow."
-  (interactive)
-  (cancel-timer image-dired-slideshow-timer))
+  ;; Make sure we don't immediately stop after
+  ;; `image-dired-slideshow-start'.
+  (unless image-dired--slideshow-initial
+    (remove-hook 'post-command-hook 'image-dired-slideshow-stop)
+    (cancel-timer image-dired--slideshow-timer))
+  (setq image-dired--slideshow-initial nil))
 
 
 ;;; Thumbnail mode (cont. 3)
@@ -2977,6 +2994,14 @@ Dired."
           (setcdr image-dired-tag-file-list
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
+
+(defvar image-dired-slideshow-count 0
+  "Keeping track on number of images in slideshow.")
+(make-obsolete-variable 'image-dired-slideshow-count "no longer used." "29.1")
+
+(defvar image-dired-slideshow-times 0
+  "Number of pictures to display in slideshow.")
+(make-obsolete-variable 'image-dired-slideshow-times "no longer used." "29.1")
 
 (define-obsolete-function-alias 'image-dired-create-display-image-buffer
   #'ignore "29.1")

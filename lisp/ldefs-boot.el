@@ -10512,6 +10512,40 @@ Emerge two RCS revisions of a file, with another revision as ancestor.
 
 ;;;***
 
+;;;### (autoloads nil "emoji" "international/emoji.el" (0 0 0 0))
+;;; Generated autoloads from international/emoji.el
+
+(autoload 'emoji-insert "emoji" "\
+Choose and insert an emoji glyph.
+If TEXT (interactively, the prefix), use a textual search instead
+of a visual interface.
+
+\(fn &optional TEXT)" t nil)
+
+(autoload 'emoji-recent "emoji" "\
+Choose and insert a recently used emoji glyph." t nil)
+
+(autoload 'emoji-search "emoji" "\
+Choose and insert an emoji glyph by searching for an emoji name." t nil)
+
+(autoload 'emoji-list "emoji" "\
+List emojis and insert the one that's selected.
+The character will be inserted into the buffer that was selected
+when the command was issued." t nil)
+
+(autoload 'emoji-describe "emoji" "\
+Say what the name of the composed grapheme cluster GLYPH is.
+If it's not known, this function returns nil.
+
+Interactively, it will message what the name of the emoji (or
+character) under point is.
+
+\(fn GLYPH &optional INTERACTIVE)" t nil)
+
+(register-definition-prefixes "emoji" '("emoji-"))
+
+;;;***
+
 ;;;### (autoloads nil "enriched" "textmodes/enriched.el" (0 0 0 0))
 ;;; Generated autoloads from textmodes/enriched.el
 
@@ -11997,14 +12031,14 @@ Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'.
 
-If called with a prefix ARG, use a new buffer instead of reusing
-the default EWW buffer.
+If NEW-BUFFER is non-nil (interactively, the prefix arg), use a
+new buffer instead of reusing the default EWW buffer.
 
 If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
 killed after rendering.
 
-\(fn URL &optional ARG BUFFER)" t nil)
+\(fn URL &optional NEW-BUFFER BUFFER)" t nil)
  (defalias 'browse-web 'eww)
 
 (autoload 'eww-open-file "eww" "\
@@ -18302,7 +18336,11 @@ specifying the X and Y positions and WIDTH and HEIGHT of image area
 to insert.  A float value 0.0 - 1.0 means relative to the width or
 height of the image; integer values are taken as pixel values.
 
-\(fn IMAGE &optional STRING AREA SLICE)" nil nil)
+Normally `isearch' is able to search for STRING in the buffer
+even if it's hidden behind a displayed image.  If INHIBIT-ISEARCH
+is non-nil, this is inhibited.
+
+\(fn IMAGE &optional STRING AREA SLICE INHIBIT-ISEARCH)" nil nil)
 
 (autoload 'insert-sliced-image "image" "\
 Insert IMAGE into current buffer at point.
@@ -18487,7 +18525,7 @@ Jump to thumbnail buffer." t nil)
 (autoload 'image-dired-minor-mode "image-dired" "\
 Setup easy-to-use keybindings for the commands to be used in Dired mode.
 Note that n, p and <down> and <up> will be hijacked and bound to
-`image-dired-dired-x-line'.
+`image-dired-dired-next-line' and `image-dired-dired-previous-line'.
 
 This is a minor mode.  If called interactively, toggle the
 `Image-Dired minor mode' mode.  If the prefix argument is positive,
@@ -20982,6 +21020,12 @@ current header, calls `mail-complete-function' and passes prefix ARG if any.
 ;;;### (autoloads nil "mailcap" "net/mailcap.el" (0 0 0 0))
 ;;; Generated autoloads from net/mailcap.el
 
+(autoload 'mailcap-mime-type-to-extension "mailcap" "\
+Return a file name extension based on a mime type.
+For instance, `image/png' will result in `png'.
+
+\(fn MIME-TYPE)" nil nil)
+
 (register-definition-prefixes "mailcap" '("mailcap-"))
 
 ;;;***
@@ -22273,6 +22317,8 @@ is a one-line description of the attachment.  The DISPOSITION
 specifies how the attachment is intended to be displayed.  It can
 be either \"inline\" (displayed automatically within the message
 body) or \"attachment\" (separate from the body).
+
+Also see the `mml-attach-file-at-the-end' variable.
 
 If given a prefix interactively, no prompting will be done for
 the TYPE, DESCRIPTION or DISPOSITION values.  Instead defaults
@@ -25930,9 +25976,25 @@ Prettify the current buffer with printed representation of a Lisp object." t nil
 Output the pretty-printed representation of OBJECT, any Lisp object.
 Quoting characters are printed as needed to make output that `read'
 can handle, whenever this is possible.
+
+This function does not apply special formatting rules for Emacs
+Lisp code.  See `pp-emacs-lisp-code' instead.
+
+By default, this function won't limit the line length of lists
+and vectors.  Bind `pp-use-max-width' to a non-nil value to do so.
+
 Output stream is STREAM, or value of `standard-output' (which see).
 
 \(fn OBJECT &optional STREAM)" nil nil)
+
+(autoload 'pp-display-expression "pp" "\
+Prettify and display EXPRESSION in an appropriate way, depending on length.
+If LISP, format with `pp-emacs-lisp-code'; use `pp' otherwise.
+
+If a temporary buffer is needed for representation, it will be named
+after OUT-BUFFER-NAME.
+
+\(fn EXPRESSION OUT-BUFFER-NAME &optional LISP)" nil nil)
 
 (autoload 'pp-eval-expression "pp" "\
 Evaluate EXPRESSION and pretty-print its value.
@@ -25958,6 +26020,12 @@ With ARG, pretty-print output into current buffer.
 Ignores leading comment characters.
 
 \(fn ARG)" t nil)
+
+(autoload 'pp-emacs-lisp-code "pp" "\
+Insert SEXP into the current buffer, formatted as Emacs Lisp code.
+Use the `pp-max-width' variable to control the desired line length.
+
+\(fn SEXP)" nil nil)
 
 (register-definition-prefixes "pp" '("pp-"))
 
@@ -32419,14 +32487,14 @@ If OMIT-NULLS, empty lines will be removed from the results.
 \(fn STRING &optional OMIT-NULLS)" nil nil)
 
 (autoload 'ensure-empty-lines "subr-x" "\
-Ensure that there's LINES number of empty lines before point.
-If LINES is nil or missing, a this ensures that there's a single
-empty line before point.
+Ensure that there are LINES number of empty lines before point.
+If LINES is nil or omitted, ensure that there is a single empty
+line before point.
 
-Interactively, this command uses the numerical prefix for LINES.
+If called interactively, LINES is given by the prefix argument.
 
-If there's already more empty lines before point than LINES, the
-number of blank lines will be reduced.
+If there are more than LINES empty lines before point, the number
+of empty lines is reduced to LINES.
 
 If point is not at the beginning of a line, a newline character
 is inserted before adjusting the number of empty lines.
@@ -36539,6 +36607,10 @@ For old-style locking-based version control systems, like RCS:
   If every file is locked by you and unchanged, unlock them.
   If every file is locked by someone else, offer to steal the lock.
 
+When using this command to register a new file (or files), it
+will automatically deduce which VC repository to register it
+with, using the most specific one.
+
 \(fn VERBOSE)" t nil)
 
 (autoload 'vc-register "vc" "\
@@ -39345,7 +39417,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 (autoload 'xref-find-backend "xref" nil nil nil)
 
-(defalias 'xref-pop-marker-stack #'xref-go-back)
+(define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 
 (autoload 'xref-go-back "xref" "\
 Go back to the previous position in xref history.
@@ -39525,6 +39597,33 @@ Interactively, URL defaults to the string looking like a url around point.
 
 ;;;***
 
+;;;### (autoloads nil "yank-media" "yank-media.el" (0 0 0 0))
+;;; Generated autoloads from yank-media.el
+
+(autoload 'yank-media "yank-media" "\
+Yank media (images, HTML and the like) from the clipboard.
+This command depends on the current major mode having support for
+accepting the media type.  The mode has to register itself using
+the `yank-media-handler' mechanism.
+
+Also see `yank-media-types' for a command that lets you explore
+all the different selection types." t nil)
+
+(autoload 'yank-media-handler "yank-media" "\
+Register HANDLER for dealing with `yank-media' actions for TYPES.
+TYPES should be a MIME media type symbol, a regexp, or a list
+that can contain both symbols and regexps.
+
+HANDLER is a function that will be called with two arguments: The
+MIME type (a symbol on the form `image/png') and the selection
+data (a string).
+
+\(fn TYPES HANDLER)" nil nil)
+
+(register-definition-prefixes "yank-media" '("yank-media-"))
+
+;;;***
+
 ;;;### (autoloads nil "yenc" "mail/yenc.el" (0 0 0 0))
 ;;; Generated autoloads from mail/yenc.el
 
@@ -39558,57 +39657,59 @@ Zone out, completely." t nil)
 ;;;***
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
-;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
-;;;;;;  "calc/calc-yank.el" "calendar/cal-loaddefs.el" "calendar/diary-loaddefs.el"
-;;;;;;  "calendar/hol-loaddefs.el" "case-table.el" "cedet/ede/base.el"
-;;;;;;  "cedet/ede/config.el" "cedet/ede/cpp-root.el" "cedet/ede/custom.el"
-;;;;;;  "cedet/ede/dired.el" "cedet/ede/emacs.el" "cedet/ede/files.el"
-;;;;;;  "cedet/ede/generic.el" "cedet/ede/linux.el" "cedet/ede/locate.el"
-;;;;;;  "cedet/ede/make.el" "cedet/ede/shell.el" "cedet/ede/speedbar.el"
-;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
-;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
-;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
-;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
-;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
-;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
-;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
-;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
-;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
-;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
-;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
-;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
-;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-loaddefs.el"
+;;;;;;  "calc/calc-misc.el" "calc/calc-yank.el" "calendar/cal-loaddefs.el"
+;;;;;;  "calendar/diary-loaddefs.el" "calendar/hol-loaddefs.el" "case-table.el"
+;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
+;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
+;;;;;;  "cedet/ede/linux.el" "cedet/ede/loaddefs.el" "cedet/ede/locate.el"
+;;;;;;  "cedet/ede/make.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
+;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
+;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
+;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
+;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
+;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
+;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
+;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
+;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
+;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
+;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
+;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
+;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
+;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
-;;;;;;  "cedet/semantic/mru-bookmark.el" "cedet/semantic/scope.el"
-;;;;;;  "cedet/semantic/senator.el" "cedet/semantic/sort.el" "cedet/semantic/symref.el"
-;;;;;;  "cedet/semantic/symref/cscope.el" "cedet/semantic/symref/global.el"
-;;;;;;  "cedet/semantic/symref/grep.el" "cedet/semantic/symref/idutils.el"
-;;;;;;  "cedet/semantic/symref/list.el" "cedet/semantic/tag-file.el"
-;;;;;;  "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
+;;;;;;  "cedet/semantic/loaddefs.el" "cedet/semantic/mru-bookmark.el"
+;;;;;;  "cedet/semantic/scope.el" "cedet/semantic/senator.el" "cedet/semantic/sort.el"
+;;;;;;  "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
+;;;;;;  "cedet/semantic/symref/global.el" "cedet/semantic/symref/grep.el"
+;;;;;;  "cedet/semantic/symref/idutils.el" "cedet/semantic/symref/list.el"
+;;;;;;  "cedet/semantic/tag-file.el" "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
 ;;;;;;  "cedet/semantic/tag.el" "cedet/semantic/texi.el" "cedet/semantic/util-modes.el"
 ;;;;;;  "cedet/semantic/wisent/java-tags.el" "cedet/semantic/wisent/javascript.el"
 ;;;;;;  "cedet/semantic/wisent/javat-wy.el" "cedet/semantic/wisent/js-wy.el"
 ;;;;;;  "cedet/semantic/wisent/python-wy.el" "cedet/semantic/wisent/python.el"
 ;;;;;;  "cedet/srecode/compile.el" "cedet/srecode/cpp.el" "cedet/srecode/document.el"
 ;;;;;;  "cedet/srecode/el.el" "cedet/srecode/expandproto.el" "cedet/srecode/getset.el"
-;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
-;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
-;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
-;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
+;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/loaddefs.el"
+;;;;;;  "cedet/srecode/map.el" "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el"
+;;;;;;  "cedet/srecode/srt.el" "cedet/srecode/template.el" "cedet/srecode/texi.el"
+;;;;;;  "composite.el" "cus-face.el" "cus-load.el" "cus-start.el"
+;;;;;;  "custom.el" "dired-aux.el" "dired-loaddefs.el" "dired-x.el"
 ;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
-;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
-;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-compat.el"
-;;;;;;  "emacs-lisp/eieio-custom.el" "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el"
-;;;;;;  "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el"
-;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el"
-;;;;;;  "emacs-lisp/syntax.el" "emacs-lisp/timer.el" "env.el" "epa-hook.el"
-;;;;;;  "erc/erc-autoaway.el" "erc/erc-button.el" "erc/erc-capab.el"
-;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
+;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-loaddefs.el" "emacs-lisp/cl-macs.el"
+;;;;;;  "emacs-lisp/cl-preloaded.el" "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el"
+;;;;;;  "emacs-lisp/eieio-compat.el" "emacs-lisp/eieio-custom.el"
+;;;;;;  "emacs-lisp/eieio-loaddefs.el" "emacs-lisp/eieio-opt.el"
+;;;;;;  "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el"
+;;;;;;  "emacs-lisp/macroexp.el" "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el"
+;;;;;;  "emacs-lisp/shorthands.el" "emacs-lisp/syntax.el" "emacs-lisp/timer.el"
+;;;;;;  "env.el" "epa-hook.el" "erc/erc-autoaway.el" "erc/erc-button.el"
+;;;;;;  "erc/erc-capab.el" "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
 ;;;;;;  "erc/erc-ezbounce.el" "erc/erc-fill.el" "erc/erc-identd.el"
-;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el"
-;;;;;;  "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
+;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-loaddefs.el"
+;;;;;;  "erc/erc-log.el" "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
 ;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
 ;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
 ;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
@@ -39619,13 +39720,25 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
 ;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
-;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
-;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
-;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "eshell/em-xtra.el" "eshell/esh-groups.el" "faces.el" "files.el"
+;;;;;;  "finder-inf.el" "font-core.el" "font-lock.el" "format.el"
+;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "htmlfontify-loaddefs.el"
+;;;;;;  "ibuf-ext.el" "ibuffer-loaddefs.el" "indent.el" "international/characters.el"
+;;;;;;  "international/charprop.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-labels.el"
+;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
-;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
+;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
+;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
+;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
+;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
+;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
+;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
+;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
+;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
@@ -39652,30 +39765,33 @@ Zone out, completely." t nil)
 ;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
 ;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
 ;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmailedit.el" "mail/rmailkwd.el"
-;;;;;;  "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
-;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el"
-;;;;;;  "mh-e/mh-loaddefs.el" "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el"
-;;;;;;  "newcomment.el" "obarray.el" "org/ob-core.el" "org/ob-lob.el"
-;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el"
-;;;;;;  "org/ol-irc.el" "org/ol.el" "org/org-archive.el" "org/org-attach.el"
-;;;;;;  "org/org-clock.el" "org/org-colview.el" "org/org-compat.el"
-;;;;;;  "org/org-datetree.el" "org/org-duration.el" "org/org-element.el"
-;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-goto.el"
-;;;;;;  "org/org-id.el" "org/org-indent.el" "org/org-install.el"
-;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmail-loaddefs.el"
+;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
+;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
+;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
+;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
+;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
+;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
+;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
+;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
+;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
+;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
+;;;;;;  "org/org-list.el" "org/org-loaddefs.el" "org/org-macs.el"
 ;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
 ;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
 ;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
 ;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
 ;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
-;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
-;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
-;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
-;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
-;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/texnfo-upd.el"
+;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "ps-print-loaddefs.el"
+;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
+;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
+;;;;;;  "textmodes/makeinfo.el" "textmodes/page.el" "textmodes/paragraphs.el"
+;;;;;;  "textmodes/reftex-auc.el" "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el"
+;;;;;;  "textmodes/reftex-global.el" "textmodes/reftex-index.el"
+;;;;;;  "textmodes/reftex-loaddefs.el" "textmodes/reftex-parse.el"
+;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
+;;;;;;  "textmodes/texinfo-loaddefs.el" "textmodes/texnfo-upd.el"
 ;;;;;;  "textmodes/text-mode.el" "uniquify.el" "vc/ediff-hook.el"
 ;;;;;;  "vc/vc-hooks.el" "version.el" "widget.el" "window.el") (0
 ;;;;;;  0 0 0))

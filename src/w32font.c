@@ -1974,10 +1974,11 @@ w32_decode_weight (int fnweight)
   if (fnweight >= FW_EXTRABOLD)  return 205;
   if (fnweight >= FW_BOLD)       return 200;
   if (fnweight >= FW_SEMIBOLD)   return 180;
-  if (fnweight >= FW_NORMAL)     return 100;
-  if (fnweight >= FW_LIGHT)      return 50;
-  if (fnweight >= FW_EXTRALIGHT) return 40;
-  if (fnweight >  FW_THIN)       return 20;
+  if (fnweight >= FW_MEDIUM)     return 100;
+  if (fnweight >= FW_NORMAL)     return  80;
+  if (fnweight >= FW_LIGHT)      return  50;
+  if (fnweight >= FW_EXTRALIGHT) return  40;
+  if (fnweight >= FW_THIN)       return  20;
   return 0;
 }
 
@@ -1988,10 +1989,11 @@ w32_encode_weight (int n)
   if (n >= 205) return FW_EXTRABOLD;
   if (n >= 200) return FW_BOLD;
   if (n >= 180) return FW_SEMIBOLD;
-  if (n >= 100) return FW_NORMAL;
-  if (n >= 50)  return FW_LIGHT;
-  if (n >= 40)  return FW_EXTRALIGHT;
-  if (n >= 20)  return FW_THIN;
+  if (n >= 100) return FW_MEDIUM;
+  if (n >=  80) return FW_NORMAL;
+  if (n >=  50) return FW_LIGHT;
+  if (n >=  40) return FW_EXTRALIGHT;
+  if (n >=  20) return FW_THIN;
   return 0;
 }
 
@@ -2000,14 +2002,15 @@ w32_encode_weight (int n)
 static Lisp_Object
 w32_to_fc_weight (int n)
 {
-  if (n >= FW_HEAVY)     return Qblack;
-  if (n >= FW_EXTRABOLD) return Qextra_bold;
-  if (n >= FW_BOLD)      return Qbold;
-  if (n >= FW_SEMIBOLD)  return intern ("demibold");
-  if (n >= FW_NORMAL)    return Qmedium;
-  if (n >= FW_LIGHT)     return Qlight;
+  if (n >= FW_HEAVY)      return Qblack;
+  if (n >= FW_EXTRABOLD)  return Qextra_bold;
+  if (n >= FW_BOLD)       return Qbold;
+  if (n >= FW_SEMIBOLD)   return Qsemi_bold;
+  if (n >= FW_MEDIUM)     return Qmedium;
+  if (n >= FW_NORMAL)     return Qnormal;
+  if (n >= FW_LIGHT)      return Qlight;
   if (n >= FW_EXTRALIGHT) return Qextra_light;
-  return intern ("thin");
+  return Qthin;
 }
 
 /* Fill in all the available details of LOGFONT from FONT_SPEC.  */

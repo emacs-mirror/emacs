@@ -8574,7 +8574,7 @@ from the list of completions and default values."
   (let ((rbts-completion-table (internal-complete-buffer-except)))
     (minibuffer-with-setup-hook
         (lambda ()
-          (setq minibuffer-completion-table rbts-completion-table)
+          (setq-local minibuffer-completion-table rbts-completion-table)
           ;; Since rbts-completion-table is built dynamically, we
           ;; can't just add it to the default value of
           ;; icomplete-with-completion-tables, so we add it

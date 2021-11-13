@@ -1087,6 +1087,24 @@ The solution is to remove the corresponding lines from the appropriate
 'fonts.alias' file, then run 'mkfontdir' in that directory, and then run
 'xset fp rehash'.
 
+** fcitx input methods don't work with xwidgets.
+
+fcitx-based input methods might not work when xwidgets are displayed,
+such as inside an xwidget-webkit buffer.  This manifests as the pre-edit
+window of the input method disappearing, and the Emacs frame losing
+input focus as soon as you try to type anything.  You can work around
+this problem by switching to IBus, or by using a native Emacs input
+method and disabling XIM altogether.  For example, you can add the
+following line:
+
+  Emacs.useXIM: false
+
+In your ~/.Xresources file, then run
+
+  $ xrdb ~/.Xresources
+
+And restart Emacs.
+
 * X runtime problems
 
 ** X keyboard problems
@@ -2749,7 +2767,7 @@ its path available to Emacs.  Errors such as:
     Error: Internal native compiler error failed to compile
 
 indicate Emacs can't find the library in running time.  One can set
-the "LIBRARY_PATH" environment variable in the early initalization
+the "LIBRARY_PATH" environment variable in the early initialization
 file; for example:
 
 (setenv "LIBRARY_PATH"

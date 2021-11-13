@@ -628,7 +628,7 @@ REGEDIT4
 @node Swap Caps 98
 @subsubsection Windows 95/98/ME
 
-Microsoft has a tool called keyremap that is part of their Kernel Toys add ons
+Microsoft has a tool called keyremap that is part of their Kernel Toys add-ons
 for Windows 95.  The tool has also been confirmed to work on Windows 98.
 
 @node Make Emacs like a Windows app

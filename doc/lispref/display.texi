@@ -6804,11 +6804,22 @@ pixels, and @var{title}, a string, specifies its title.  @var{related}
 is used internally by the WebKit widget, and specifies another WebKit
 widget that the newly created widget should share settings and
 subprocesses with.
+
+The xwidget that is returned will be killed alongside its buffer
+(@pxref{Killing Buffers}).  Once it is killed, the xwidget may
+continue to exist as a Lisp object and act as a @code{display}
+property until all references to it are gone, but most actions that
+can be performed on live xwidgets will no longer be available.
 @end defun
 
 @defun xwidgetp object
 This function returns @code{t} if @var{object} is an xwidget,
 @code{nil} otherwise.
+@end defun
+
+@defun xwidget-live-p object
+This function returns @code{t} if @var{object} is an xwidget that
+hasn't been killed, and @code{nil} otherwise.
 @end defun
 
 @defun xwidget-plist xwidget
@@ -6821,7 +6832,8 @@ property list given by @var{plist}.
 @end defun
 
 @defun xwidget-buffer xwidget
-This function returns the buffer of @var{xwidget}.
+This function returns the buffer of @var{xwidget}.  If @var{xwidget}
+has been killed, it returns @code{nil}.
 @end defun
 
 @defun set-xwidget-buffer xwidget buffer
@@ -6941,6 +6953,16 @@ document when its beginning is reached.
 Finish a search operation started with @code{xwidget-webkit-search} in
 @var{xwidget}.  If there is no query currently ongoing, this function
 signals an error.
+@end defun
+
+@defun xwidget-webkit-load-html xwidget text &optional base-uri
+Load @var{text}, a string, into @var{xwidget}, which should be a
+WebKit xwidget.  Any HTML markup in @var{text} will be processed
+by @var{xwidget} while rendering the text.
+
+Optional argument @var{base-uri}, which should be a string, specifies
+the absolute location of the web resources referenced by @var{text},
+to be used for resolving relative links in @var{text}.
 @end defun
 
 @node Buttons

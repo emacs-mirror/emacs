@@ -1028,7 +1028,7 @@ GROUP is a string for decoration purposes and XREF is an
   (run-hooks 'xref-after-update-hook))
 
 (defun xref--group-name-for-display (group project-root)
-  "Return GROUP formatted in the prefered style.
+  "Return GROUP formatted in the preferred style.
 
 The style is determined by the value of `xref-file-name-display'.
 If GROUP looks like a file name, its value is formatted according

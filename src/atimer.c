@@ -316,6 +316,13 @@ set_alarm (void)
 	      exit = true;
 	    }
 # endif
+
+# ifdef CYGWIN
+	  /* Don't start both timerfd and alarms on Cygwin; this
+	     causes a slowdown (bug#51734). */
+	  if (exit)
+	    return;
+# endif
 	  if (alarm_timer_ok
 	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
 	    exit = true;

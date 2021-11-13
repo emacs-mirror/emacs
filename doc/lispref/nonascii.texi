@@ -1048,9 +1048,9 @@ Alternativnyj, and KOI8.
   Every coding system specifies a particular set of character code
 conversions, but the coding system @code{undecided} is special: it
 leaves the choice unspecified, to be chosen heuristically for each
-file, based on the file's data.  The coding system @code{prefer-utf-8}
-is like @code{undecided}, but it prefers to choose @code{utf-8} when
-possible.
+file or string, based on the file's or string's data, when they are
+decoded or encoded.  The coding system @code{prefer-utf-8} is like
+@code{undecided}, but it prefers to choose @code{utf-8} when possible.
 
   In general, a coding system doesn't guarantee roundtrip identity:
 decoding a byte sequence using a coding system, then encoding the
@@ -1921,9 +1921,24 @@ length of the decoded text.  If that buffer is a unibyte buffer
 the decoded text (@pxref{Text Representations}) is inserted into the
 buffer as individual bytes.
 
+@cindex @code{charset}, text property on buffer text
 This command puts a @code{charset} text property on the decoded text.
 The value of the property states the character set used to decode the
 original text.
+
+@cindex undecided coding-system, when decoding
+This command detects the encoding of the text if necessary.  If
+@var{coding-system} is @code{undecided}, the command detects the
+encoding of the text based on the byte sequences it finds in the text,
+and also detects the type of end-of-line convention used by the text
+(@pxref{Lisp and Coding Systems, eol type}).  If @var{coding-system}
+is @code{undecided-@var{eol-type}}, where @var{eol-type} is
+@code{unix}, @code{dos}, or @code{mac}, then the command detects only
+the encoding of the text.  Any @var{coding-system} that doesn't
+specify @var{eol-type}, as in @code{utf-8}, causes the command to
+detect the end-of-line convention; specify the encoding completely, as
+in @code{utf-8-unix}, if the EOL convention used by the text is known
+in advance, to prevent any automatic detection.
 @end deffn
 
 @defun decode-coding-string string coding-system &optional nocopy buffer
@@ -1936,13 +1951,16 @@ trivial.  To make explicit decoding useful, the contents of
 values, but a multibyte string is also acceptable (assuming it
 contains 8-bit bytes in their multibyte form).
 
+This function detects the encoding of the string if needed, like
+@code{decode-coding-region} does.
+
 If optional argument @var{buffer} specifies a buffer, the decoded text
 is inserted in that buffer after point (point does not move).  In this
 case, the return value is the length of the decoded text.  If that
 buffer is a unibyte buffer, the internal representation of the decoded
 text is inserted into it as individual bytes.
 
-@cindex @code{charset}, text property
+@cindex @code{charset}, text property on strings
 This function puts a @code{charset} text property on the decoded text.
 The value of the property states the character set used to decode the
 original text:

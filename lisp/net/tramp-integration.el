@@ -85,13 +85,6 @@ special handling of `substitute-in-file-name'."
   "An overlay covering the shadowed part of the filename."
   (format "[^%s/~]*\\(/\\|~\\)" tramp-postfix-host-format))
 
-;; Package rfn-eshadow is preloaded in Emacs, but for some reason,
-;; it only did (defvar rfn-eshadow-overlay) without giving it a global
-;; value, so it was only declared as dynamically-scoped within the
-;; rfn-eshadow.el file.  This is now fixed in Emacs>26.1 but we still need
-;; this defvar here for older releases.
-(defvar rfn-eshadow-overlay)
-
 (defun tramp-rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
 This is intended to be used as a minibuffer `post-command-hook' for
@@ -281,22 +274,18 @@ NAME must be equal to `tramp-current-connection'."
 	      (remove-hook 'compilation-start-hook
 			   #'tramp-compile-disable-ssh-controlmaster-options))))
 
-;;; Default connection-local variables for Tramp:
-;; `connection-local-set-profile-variables' and
-;; `connection-local-set-profiles' exists since Emacs 26.1.
+;;; Default connection-local variables for Tramp.
 
 (defconst tramp-connection-local-default-system-variables
   '((path-separator . ":")
     (null-device . "/dev/null"))
   "Default connection-local system variables for remote connections.")
 
-(tramp-compat-funcall
- 'connection-local-set-profile-variables
+(connection-local-set-profile-variables
  'tramp-connection-local-default-system-profile
  tramp-connection-local-default-system-variables)
 
-(tramp-compat-funcall
- 'connection-local-set-profiles
+(connection-local-set-profiles
  '(:application tramp)
  'tramp-connection-local-default-system-profile)
 
@@ -305,14 +294,12 @@ NAME must be equal to `tramp-current-connection'."
     (shell-command-switch . "-c"))
   "Default connection-local shell variables for remote connections.")
 
-(tramp-compat-funcall
- 'connection-local-set-profile-variables
+(connection-local-set-profile-variables
  'tramp-connection-local-default-shell-profile
  tramp-connection-local-default-shell-variables)
 
 (with-eval-after-load 'shell
-  (tramp-compat-funcall
-   'connection-local-set-profiles
+  (connection-local-set-profiles
    '(:application tramp)
    'tramp-connection-local-default-shell-profile))
 

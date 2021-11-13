@@ -138,8 +138,15 @@ struct xwidget_view
 #define XXWIDGET(a) (eassert (XWIDGETP (a)), \
 		     XUNTAG (a, Lisp_Vectorlike, struct xwidget))
 
+#define XWIDGET_LIVE_P(w) (!NILP ((w)->buffer))
+
 #define CHECK_XWIDGET(x) \
   CHECK_TYPE (XWIDGETP (x), Qxwidgetp, x)
+
+#define CHECK_LIVE_XWIDGET(x)				\
+  CHECK_TYPE ((XWIDGETP (x)				\
+	       && XWIDGET_LIVE_P (XXWIDGET (x))),	\
+	      Qxwidget_live_p, x)
 
 /* Test for xwidget_view pseudovector.  */
 #define XWIDGET_VIEW_P(x) PSEUDOVECTORP (x, PVEC_XWIDGET_VIEW)

@@ -32,7 +32,7 @@
 ;; Running manually:
 ;;
 ;; for test in lisp/so-long-tests/*-tests.el; do make ${test%.el}; done \
-;; 2>&1 | egrep -v '^(Loading|Source file|make|Changed to so-long-mode)'
+;; 2>&1 | grep -E -v '^(Loading|Source file|make|Changed to so-long-mode)'
 ;;
 ;; Which is equivalent to:
 ;;
@@ -41,7 +41,7 @@
 ;; "../src/emacs" --no-init-file --no-site-file --no-site-lisp \
 ;; -L ":." -l ert -l "$test" --batch --eval \
 ;; '(ert-run-tests-batch-and-exit (quote (not (tag :unstable))))'; \
-;; done 2>&1 | egrep -v '^(Loading|Source file|Changed to so-long-mode)'
+;; done 2>&1 | grep -E -v '^(Loading|Source file|Changed to so-long-mode)'
 ;;
 ;; See also `ert-run-tests-batch-and-exit'.
 

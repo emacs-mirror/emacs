@@ -2238,8 +2238,7 @@ preserves the path value, which can be used to update
 shell supports the login argument @samp{-l}.
 @end defopt
 
-Starting with @w{Emacs 26}, @code{tramp-remote-path} can be set per
-host via connection-local
+@code{tramp-remote-path} can also be set per host via connection-local
 @ifinfo
 variables, @xref{Connection Variables, , , emacs}.
 @end ifinfo
@@ -3533,9 +3532,8 @@ ensures the correct name of the remote shell program.
 When @code{explicit-shell-file-name} is equal to @code{nil}, calling
 @code{shell} interactively will prompt for a shell name.
 
-Starting with @w{Emacs 26}, you could use connection-local variables
-for setting different values of @code{explicit-shell-file-name} for
-different remote hosts.
+You could use connection-local variables for setting different values
+of @code{explicit-shell-file-name} for different remote hosts.
 @ifinfo
 @xref{Connection Variables, , , emacs}.
 @end ifinfo
@@ -4347,8 +4345,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 25}, @w{Emacs 26}, @w{Emacs
-27}, and @w{Emacs 28}.
+The package works successfully on @w{Emacs 26}, @w{Emacs 27}, @w{Emacs
+28}, and @w{Emacs 29}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as

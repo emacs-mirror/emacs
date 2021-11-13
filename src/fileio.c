@@ -3827,6 +3827,7 @@ restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
 	Lisp_Object car = XCAR (window_markers);
 	Lisp_Object marker = XCAR (car);
 	Lisp_Object oldpos = XCDR (car);
+	ptrdiff_t newpos;
 	if (MARKERP (marker) && FIXNUMP (oldpos)
 	    && XFIXNUM (oldpos) > same_at_start
 	    && XFIXNUM (oldpos) < same_at_end)
@@ -3834,10 +3835,12 @@ restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
 	    ptrdiff_t oldsize = same_at_end - same_at_start;
 	    ptrdiff_t newsize = inserted;
 	    double growth = newsize / (double)oldsize;
-	    ptrdiff_t newpos
-	      = same_at_start + growth * (XFIXNUM (oldpos) - same_at_start);
-	    Fset_marker (marker, make_fixnum (newpos), Qnil);
+	    newpos = same_at_start
+	      + growth * (XFIXNUM (oldpos) - same_at_start);
 	  }
+	else
+	  newpos = XFIXNUM (oldpos);
+	Fset_marker (marker, make_fixnum (newpos), Qnil);
       }
 }
 

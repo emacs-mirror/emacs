@@ -486,6 +486,7 @@ command 'other-tab-prefix'.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
++++
 *** The tab bar now supports more mouse commands.
 Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
 with items that operate on the clicked tab.  Dragging the tab with
@@ -506,7 +507,7 @@ frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
 This allows enabling/disabling the tab bar independently on different
 frames.
 
----
++++
 *** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
@@ -515,14 +516,14 @@ aligned to the right on the tab bar instead of on the mode line.
 When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
----
++++
 *** New optional key binding for 'tab-last'.
 If you customize the user option 'tab-bar-select-tab-modifiers' to
 allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
 is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
 is any of the modifiers in the list that is the value of
-'tab-bar-select-tab-modifiers'.  You can also use negative indices,
-which count from the last tab: -1 is the last tab, -2 the one before
+'tab-bar-select-tab-modifiers'.  You can also use positive indices,
+which count from the last tab: 1 is the last tab, 2 the one before
 that, etc.
 
 ---
@@ -1398,7 +1399,6 @@ keys, add the following to your init file:
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
 
-
 +++
 ** Emacs 28.1 comes with Org v9.5.
 See the file ORG-NEWS for user-visible changes in Org.
@@ -1532,16 +1532,6 @@ When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 ---
-*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
-The interactive bookmark list will now benefit from features in
-'tabulated-list-mode' like sorting columns or changing column width.
-
-Support for the optional "inline" header line, allowing for a header
-without using 'header-line-format', has been dropped.  Consequently,
-the variables 'bookmark-bmenu-use-header-line' and
-'bookmark-bmenu-inline-header-height' are now declared obsolete.
-
----
 *** New user option 'bookmark-set-fringe-mark'.
 If non-nil, setting a bookmark will set a fringe mark on the current
 line, and jumping to a bookmark will also set this mark.
@@ -1553,6 +1543,16 @@ confirmation when you type 'x' to execute the deletion of bookmarks
 that have been marked for deletion.  However, if this new option is
 non-nil then Emacs will require confirmation with 'yes-or-no-p' before
 deleting.
+
+---
+*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a
+header without using 'header-line-format', has been dropped.
+The variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now obsolete.
 
 ** Recentf
 
@@ -1854,7 +1854,7 @@ The command 'next-error-no-select' is now bound to 'n' and
 'previous-error-no-select' is bound to 'p'.
 
 ---
-*** The new command 'recenter-current-error'.
+*** New command 'recenter-current-error'.
 It is bound to 'l' in Occur or compilation buffers, and recenters the
 current displayed occurrence/error.
 

@@ -952,6 +952,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-sh-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . tramp-sh-handle-dired-compress-file)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-sh-handle-exec-path)
@@ -1334,7 +1335,7 @@ component is used as the target of the symlink."
       (with-parsed-tramp-file-name f nil
 	(let* ((remote-file-name-inhibit-cache t)
 	       (attr (file-attributes f))
-	       (modtime (or (tramp-compat-file-attribute-modification-time attr)
+	       (modtime (or (file-attribute-modification-time attr)
 			    tramp-time-doesnt-exist)))
 	  (setq coding-system-used last-coding-system-used)
 	  (if (not (tramp-compat-time-equal-p modtime tramp-time-dont-know))
@@ -1372,7 +1373,7 @@ of."
 	(with-parsed-tramp-file-name f nil
 	  (let* ((remote-file-name-inhibit-cache t)
 		 (attr (file-attributes f))
-		 (modtime (tramp-compat-file-attribute-modification-time attr))
+		 (modtime (file-attribute-modification-time attr))
 		 (mt (visited-file-modtime)))
 
 	    (cond
@@ -1620,14 +1621,14 @@ ID-FORMAT valid values are `string' and `integer'."
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
 	    (and
-	     (= (tramp-compat-file-attribute-user-id attributes)
+	     (= (file-attribute-user-id attributes)
 		(tramp-get-remote-uid v 'integer))
 	     (or (not group)
 		 ;; On BSD-derived systems files always inherit the
                  ;; parent directory's group, so skip the group-gid
                  ;; test.
                  (tramp-check-remote-uname v "BSD\\|DragonFly\\|Darwin")
-		 (= (tramp-compat-file-attribute-group-id attributes)
+		 (= (file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
 ;; Directory listings.
@@ -1637,8 +1638,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `directory-files-and-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (unless (file-exists-p directory)
-    (tramp-compat-file-missing
-     (tramp-dissect-file-name directory) directory))
+    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
   (when (file-directory-p directory)
     (setq directory (expand-file-name directory))
     (let* ((temp
@@ -1858,7 +1858,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	target)
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
       (unless (file-exists-p dirname)
-	(tramp-compat-file-missing v dirname))
+	(tramp-error v 'file-missing dirname))
 
       ;; `copy-directory-create-symlink' exists since Emacs 28.1.
       (if (and (bound-and-true-p copy-directory-create-symlink)
@@ -1952,7 +1952,7 @@ file names."
 
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
-	  (length (tramp-compat-file-attribute-size
+	  (length (file-attribute-size
 		   (file-attributes (file-truename filename))))
 	  (attributes (and preserve-extended-attributes
 			   (file-extended-attributes filename)))
@@ -1960,7 +1960,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -2052,7 +2052,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   ;; Check, whether file is too large.  Emacs checks in `insert-file-1'
   ;; and `find-file-noselect', but that's not called here.
   (abort-if-file-too-large
-   (tramp-compat-file-attribute-size (file-attributes (file-truename filename)))
+   (file-attribute-size (file-attributes (file-truename filename)))
    (symbol-name op) filename)
   ;; We must disable multibyte, because binary data shall not be
   ;; converted.  We don't want the target file to be compressed, so we
@@ -2074,8 +2074,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   (when keep-date
     (tramp-compat-set-file-times
      newname
-     (tramp-compat-file-attribute-modification-time
-      (file-attributes filename))
+     (file-attribute-modification-time (file-attributes filename))
      (unless ok-if-already-exists 'nofollow)))
   ;; Set the mode.
   (set-file-modes newname (tramp-default-file-modes filename))
@@ -2094,7 +2093,7 @@ as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid from FILENAME."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
-	(file-times (tramp-compat-file-attribute-modification-time
+	(file-times (file-attribute-modification-time
 		     (file-attributes filename)))
 	(file-modes (tramp-default-file-modes filename)))
     (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -2419,8 +2418,7 @@ The method used must be an out-of-band method."
 	(when (and keep-date (not copy-keep-date))
 	  (tramp-compat-set-file-times
 	   newname
-	   (tramp-compat-file-attribute-modification-time
-	    (file-attributes filename))
+	   (file-attribute-modification-time (file-attributes filename))
 	   (unless ok-if-already-exists 'nofollow)))
 
 	;; Set the mode.
@@ -2474,6 +2472,7 @@ The method used must be an out-of-band method."
 
 ;; Dired.
 
+;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
 (defun tramp-sh-handle-dired-compress-file (file)
   "Like `dired-compress-file' for Tramp files."
   ;; Code stolen mainly from dired-aux.el.
@@ -3199,9 +3198,9 @@ implementation will be used."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (unless (file-exists-p (file-truename filename))
-      (tramp-compat-file-missing v filename))
+      (tramp-error v 'file-missing filename))
 
-    (let* ((size (tramp-compat-file-attribute-size
+    (let* ((size (file-attribute-size
 		  (file-attributes (file-truename filename))))
 	   (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
 	   (loc-dec (tramp-get-inline-coding v "local-decoding" size))
@@ -3288,11 +3287,9 @@ implementation will be used."
       (tramp-error v 'file-already-exists filename))
 
     (let ((file-locked (eq (file-locked-p lockname) t))
-	  (uid (or (tramp-compat-file-attribute-user-id
-		    (file-attributes filename 'integer))
+	  (uid (or (file-attribute-user-id (file-attributes filename 'integer))
 		   (tramp-get-remote-uid v 'integer)))
-	  (gid (or (tramp-compat-file-attribute-group-id
-		    (file-attributes filename 'integer))
+	  (gid (or (file-attribute-group-id (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
 
       ;; Lock file.
@@ -3371,8 +3368,7 @@ implementation will be used."
 	  ;; specified.  However, if the method _also_ specifies an
 	  ;; encoding function, then that is used for encoding the
 	  ;; contents of the tmp file.
-	  (let* ((size (tramp-compat-file-attribute-size
-			(file-attributes tmpfile)))
+	  (let* ((size (file-attribute-size (file-attributes tmpfile)))
 		 (rem-dec (tramp-get-inline-coding v "remote-decoding" size))
 		 (loc-enc (tramp-get-inline-coding v "local-encoding" size)))
 	    (cond
@@ -3507,10 +3503,10 @@ implementation will be used."
              ;; We must pass modtime explicitly, because FILENAME can
              ;; be different from (buffer-file-name), f.e. if
              ;; `file-precious-flag' is set.
-	     (or (tramp-compat-file-attribute-modification-time file-attr)
+	     (or (file-attribute-modification-time file-attr)
 		 (current-time)))
-            (when (and (= (tramp-compat-file-attribute-user-id file-attr) uid)
-                       (= (tramp-compat-file-attribute-group-id file-attr) gid))
+            (when (and (= (file-attribute-user-id file-attr) uid)
+                       (= (file-attribute-group-id file-attr) gid))
               (setq need-chown nil))))
 
 	;; Set the ownership.
