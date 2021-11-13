@@ -2759,10 +2759,31 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	  continue;
 	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
-	if (FIXNUMP (AREF (spec, prop))
-	    && ((XFIXNUM (AREF (spec, prop)) >> 8)
-		!= (XFIXNUM (AREF (entity, prop)) >> 8)))
-	  prop = FONT_SPEC_MAX;
+	{
+	  if (FIXNUMP (AREF (spec, prop)))
+	    {
+	      int required = XFIXNUM (AREF (spec, prop)) >> 8;
+	      int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
+
+	      if (candidate != required
+#ifdef HAVE_NTGUI
+		  /* A kludge for w32 font search, where listing a
+		     family returns only 4 standard weights: regular,
+		     italic, bold, bold-italic.  For other values one
+		     must specify the font, not just the family in the
+		     :family attribute of the face.  But specifying
+		     :family in the face attributes looks for regular
+		     weight, so if we require exact match, the
+		     non-regular font will be rejected.  So we relax
+		     the accuracy of the match here, and let
+		     font_sort_entities find the best match.  */
+		  && (prop != FONT_WEIGHT_INDEX
+		      || eabs (candidate - required) > 100)
+#endif
+		  )
+		prop = FONT_SPEC_MAX;
+	    }
+	}
       if (prop < FONT_SPEC_MAX
 	  && size
 	  && XFIXNUM (AREF (entity, FONT_SIZE_INDEX)) > 0)
