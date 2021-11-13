@@ -1328,9 +1328,11 @@ Return nil if the key sequence is too long."
 
 (defun help--describe-command (definition &optional translation)
   (cond ((symbolp definition)
-         (insert-text-button (symbol-name definition)
-                             'type 'help-function
-                             'help-args (list definition))
+         (if (fboundp definition)
+             (insert-text-button (symbol-name definition)
+                                 'type 'help-function
+                                 'help-args (list definition))
+           (insert (symbol-name definition)))
          (insert "\n"))
         ((or (stringp definition) (vectorp definition))
          (if translation
