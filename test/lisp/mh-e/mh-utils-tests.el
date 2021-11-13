@@ -152,7 +152,7 @@ select which."
 (defun mh-test-utils-setup ()
   "Set dynamically bound variables needed by mock and/or variants.
 Call `mh-variant-set' to look through the directories named by
-envionment variable `TEST_MH_PATH' (default: `mh-path' and `mh-sys-path')
+environment variable `TEST_MH_PATH' (default: `mh-path' and `mh-sys-path')
 to find the MH variant to use, if any.
 Return the name of the root of the created directory tree, if any."
   (when (getenv "TEST_MH_PATH")

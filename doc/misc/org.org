@@ -16556,7 +16556,7 @@ identifying a reference in the bibliography.
 - Each key starts with the character =@=.
 
 - Each key can be qualified by a /prefix/ (e.g.\nbsp{}"see ") and/or
-  a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving informations useful or necessary
+  a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving information useful or necessary
   fo the comprehension of the citation but not included in the
   reference.
 

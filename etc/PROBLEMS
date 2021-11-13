@@ -2767,7 +2767,7 @@ its path available to Emacs.  Errors such as:
     Error: Internal native compiler error failed to compile
 
 indicate Emacs can't find the library in running time.  One can set
-the "LIBRARY_PATH" environment variable in the early initalization
+the "LIBRARY_PATH" environment variable in the early initialization
 file; for example:
 
 (setenv "LIBRARY_PATH"

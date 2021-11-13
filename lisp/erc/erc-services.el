@@ -492,7 +492,7 @@ Returns t if the message could be sent, nil otherwise."
 Identification will either use NICK or the current nick if not
 provided, and some password obtained through
 `erc-nickserv-get-password' (which see).  If no password can be
-found, an error is reported trough `erc-error'.
+found, an error is reported through `erc-error'.
 
 Interactively, the user will be prompted for NICK, an empty
 string meaning to default to the current nick.
