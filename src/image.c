@@ -5088,7 +5088,7 @@ xpm_load_image (struct frame *f,
     }
 
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0)
-#if !defined(HAVE_NS)
+#ifndef HAVE_NS
       || !image_create_x_image_and_pixmap (f, img, width, height, 1,
 					   &mask_img, 1)
 #endif
@@ -5216,7 +5216,7 @@ xpm_load_image (struct frame *f,
 
 	  PUT_PIXEL (ximg, x, y,
 		     FIXNUMP (color_val) ? XFIXNUM (color_val) : frame_fg);
-#if !defined(HAVE_NS)
+#ifndef HAVE_NS
 	  PUT_PIXEL (mask_img, x, y,
 		     (!EQ (color_val, Qt) ? PIX_MASK_DRAW
 		      : (have_mask = true, PIX_MASK_RETAIN)));
@@ -5237,7 +5237,7 @@ xpm_load_image (struct frame *f,
     IMAGE_BACKGROUND (img, f, ximg);
 
   image_put_x_image (f, img, ximg, 0);
-#if !defined(HAVE_NS)
+#ifndef HAVE_NS
   if (have_mask)
     {
       /* Fill in the background_transparent field while we have the
@@ -5968,7 +5968,7 @@ image_disable_image (struct frame *f, struct image *img)
   if (n_planes < 2 || cross_disabled_images)
     {
 #ifndef HAVE_NTGUI
-#if !defined(HAVE_NS)  /* TODO: NS support, however this not needed for toolbars */
+#ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
 #ifndef USE_CAIRO
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
@@ -6046,7 +6046,7 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
     image_clear_image_1 (f, img, CLEAR_IMAGE_MASK);
 
 #ifndef HAVE_NTGUI
-#if !defined HAVE_NS
+#ifndef HAVE_NS
   /* Create an image and pixmap serving as mask.  */
   if (! image_create_x_image_and_pixmap (f, img, img->width, img->height, 1,
 					 &mask_img, 1))
@@ -6108,7 +6108,7 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
       if (XGetPixel (ximg, x, y) == bg)
         ns_set_alpha (ximg, x, y, 0);
 #endif /* HAVE_NS */
-#if !defined HAVE_NS
+#ifndef HAVE_NS
   /* Fill in the background_transparent field while we have the mask handy. */
   image_background_transparent (img, f, mask_img);
 
