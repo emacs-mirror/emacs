@@ -6812,6 +6812,13 @@ comment at the start of cc-engine.el for more info."
 (defvar c-found-types nil)
 (make-variable-buffer-local 'c-found-types)
 
+;; Dynamically bound variable that instructs `c-forward-type' to
+;; record the ranges of types that only are found.  Behaves otherwise
+;; like `c-record-type-identifiers'.  Also when this variable is non-nil,
+;; `c-fontify-new-found-type' doesn't get called (yet) for the purported
+;; type.
+(defvar c-record-found-types nil)
+
 (defsubst c-clear-found-types ()
   ;; Clears `c-found-types'.
   (setq c-found-types
@@ -6825,7 +6832,10 @@ comment at the start of cc-engine.el for more info."
   (let ((type (c-syntactic-content from to c-recognize-<>-arglists)))
     (unless (gethash type c-found-types)
       (puthash type t c-found-types)
-      (when (and (eq (string-match c-symbol-key type) 0)
+      (when (and (not c-record-found-types) ; Only call `c-fontify-new-fount-type'
+					; when we haven't "bound" c-found-types
+					; to itself in c-forward-<>-arglist.
+		 (eq (string-match c-symbol-key type) 0)
 		 (eq (match-end 0) (length type)))
 	(c-fontify-new-found-type type)))))
 
@@ -8225,11 +8235,6 @@ multi-line strings (but not C++, for example)."
 	   (setq c-record-ref-identifiers
 		 (cons range c-record-ref-identifiers))))))
 
-;; Dynamically bound variable that instructs `c-forward-type' to
-;; record the ranges of types that only are found.  Behaves otherwise
-;; like `c-record-type-identifiers'.
-(defvar c-record-found-types nil)
-
 (defmacro c-forward-keyword-prefixed-id (type)
   ;; Used internally in `c-forward-keyword-clause' to move forward
   ;; over a type (if TYPE is 'type) or a name (otherwise) which
@@ -8459,6 +8464,11 @@ multi-line strings (but not C++, for example)."
 		(c-forward-<>-arglist-recur all-types)))
 	(progn
 	  (when (consp c-record-found-types)
+	    (let ((cur c-record-found-types))
+	      (while (consp (car-safe cur))
+		(c-fontify-new-found-type
+		 (buffer-substring-no-properties (caar cur) (cdar cur)))
+		(setq cur (cdr cur))))
 	    (setq c-record-type-identifiers
 		  ;; `nconc' doesn't mind that the tail of
 		  ;; `c-record-found-types' is t.
@@ -9184,6 +9194,12 @@ multi-line strings (but not C++, for example)."
 
 		(when (and (eq res t)
 			   (consp c-record-found-types))
+		  ;; Cause the confirmed types to get fontified.
+		  (let ((cur c-record-found-types))
+		    (while (consp (car-safe cur))
+		      (c-fontify-new-found-type
+		       (buffer-substring-no-properties (caar cur) (cdar cur)))
+		      (setq cur (cdr cur))))
 		  ;; Merge in the ranges of any types found by the second
 		  ;; `c-forward-type'.
 		  (setq c-record-type-identifiers
