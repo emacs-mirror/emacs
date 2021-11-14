@@ -796,6 +796,16 @@ elnlisp := \
 	international/charscript.eln \
 	emacs-lisp/comp.eln \
 	emacs-lisp/comp-cstr.eln \
+	emacs-lisp/cl-macs.eln \
+	emacs-lisp/rx.eln \
+	emacs-lisp/cl-seq.eln \
+	help-mode.eln \
+	emacs-lisp/cl-extra.eln \
+	emacs-lisp/gv.eln \
+	emacs-lisp/seq.eln \
+	emacs-lisp/cl-lib.eln \
+	emacs-lisp/warnings.eln \
+	emacs-lisp/subr-x.eln \
 	international/emoji-zwj.eln
 elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 
