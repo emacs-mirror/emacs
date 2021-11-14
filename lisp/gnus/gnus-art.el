@@ -6897,8 +6897,8 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key (cons (read-key-sequence nil t)
-			      (this-single-command-raw-keys))
+	  (describe-key (list (cons (read-key-sequence nil t)
+			            (this-single-command-raw-keys)))
 			(current-buffer))))
     (describe-key key)))
 
@@ -6922,8 +6922,8 @@ KEY is a string or a vector."
 	       unread-command-events))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
-	  (describe-key-briefly (cons (read-key-sequence nil t)
-				      (this-single-command-raw-keys))
+	  (describe-key-briefly (list (cons (read-key-sequence nil t)
+				            (this-single-command-raw-keys)))
 				insert (current-buffer))))
     (describe-key-briefly key insert)))
 
