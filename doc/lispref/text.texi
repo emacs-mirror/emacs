@@ -3650,13 +3650,14 @@ property is obsolete; use the @code{cursor-intangible} property instead.
 @item cursor-intangible
 @kindex cursor-intangible @r{(text property)}
 @findex cursor-intangible-mode
+@cindex rear-nonsticky, and cursor-intangible property
 When the minor mode @code{cursor-intangible-mode} is turned on, point
 is moved away from any position that has a non-@code{nil}
 @code{cursor-intangible} property, just before redisplay happens.
-Note that @code{rear-nonsticky} is taken into account when computing
-allowed cursor positions, so (for instance) to insert a stretch of
-five @samp{x} characters you can't put point on, you have to do
-something like:
+Note that ``stickiness'' of the property (@pxref{Sticky Properties})
+is taken into account when computing allowed cursor positions, so (for
+instance) to insert a stretch of five @samp{x} characters into which
+the cursor can't enter, you should do something like:
 
 @lisp
 (insert
@@ -3960,6 +3961,8 @@ of the kill ring.  To insert with inheritance, use the special
 primitives described in this section.  Self-inserting characters
 inherit properties because they work using these primitives.
 
+@cindex front-sticky text property
+@cindex rear-nonsticky text property
   When you do insertion with inheritance, @emph{which} properties are
 inherited, and from where, depends on which properties are @dfn{sticky}.
 Insertion after a character inherits those of its properties that are
