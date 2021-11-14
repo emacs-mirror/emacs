@@ -2643,19 +2643,16 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
 		     xwidget_end_redisplay (w->current_matrix);  */
 		  struct xwidget_view *xv
 		    = xwidget_view_lookup (xwidget_from_id (glyph->u.xwidget), w);
-#ifdef USE_GTK
-		  /* FIXME: Is it safe to assume xwidget_view_lookup
-		     always succeeds here?  If so, this comment can be removed.
-		     If not, the code probably needs fixing.  */
-		  eassume (xv);
-		  xwidget_touch (xv);
-#elif defined NS_IMPL_COCOA
-                  /* In NS xwidget, xv can be NULL for the second or
+
+		  /* In NS xwidget, xv can be NULL for the second or
                      later views for a model, the result of 1 to 1
-                     model view relation enforcement.  */
+                     model view relation enforcement.  `xwidget_view_lookup'
+		     has also been observed to return NULL here on X-Windows
+		     at least once, so stay safe and only touch it if it's
+		     not NULL.  */
+
                   if (xv)
                     xwidget_touch (xv);
-#endif
 		}
 	  }
     }
