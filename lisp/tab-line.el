@@ -893,7 +893,14 @@ sight of the tab line."
 (define-minor-mode tab-line-mode
   "Toggle display of tab line in the windows displaying the current buffer."
   :lighter nil
-  (setq tab-line-format (when tab-line-mode '(:eval (tab-line-format)))))
+  (let ((default-value '(:eval (tab-line-format))))
+    (if tab-line-mode
+        ;; Preserve the existing tab-line set outside of this mode
+        (unless tab-line-format
+          (setq tab-line-format default-value))
+      ;; Reset only values set by this mode
+      (when (equal tab-line-format default-value)
+        (setq tab-line-format nil)))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)
