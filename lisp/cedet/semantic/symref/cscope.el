@@ -43,7 +43,7 @@ the hit list.
 See the function `cedet-cscope-search' for more details.")
 
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-cscope))
-  "Perform a search with GNU Global."
+  "Perform a search with CScope."
   (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
 		     (ede-toplevel)))
 	 (default-directory (if rootproj
