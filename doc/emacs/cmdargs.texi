@@ -756,6 +756,10 @@ On MS-Windows, if you set this variable, Emacs will load and initialize
 the network library at startup, instead of waiting until the first
 time it is required.
 
+@item WAYLAND_DISPLAY
+Pgtk Emacs (built with @option{--with-pgtk}) can run on Wayland natively.
+@env{WAYLAND_DISPLAY} specifies the connection to the compositor.
+
 @item emacs_dir
 On MS-Windows, @env{emacs_dir} is a special environment variable, which
 indicates the full path of the directory in which Emacs is installed.
