@@ -1427,6 +1427,13 @@ marks the next defun after the ones already marked."
 
 ;;; Navigation
 
+(defcustom python-forward-sexp-function #'python-nav-forward-sexp
+  "Function to use when navigating between expressions."
+  :version "28.1"
+  :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
+                 (const :tag "CC-mode like" nil)
+                 function))
+
 (defvar python-nav-beginning-of-defun-regexp
   (python-rx line-start (* space) defun (+ space) (group symbol-name))
   "Regexp matching class or function definition.
@@ -5571,13 +5578,6 @@ By default messages are considered errors."
   :group 'python-flymake
   :type '(alist :key-type (regexp)
                 :value-type (symbol)))
-
-(defcustom python-forward-sexp-function #'python-nav-forward-sexp
-  "Function to use when navigating between expressions."
-  :version "28.1"
-  :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
-                 (const :tag "CC-mode like" nil)
-                 function))
 
 (defvar-local python--flymake-proc nil)
 
