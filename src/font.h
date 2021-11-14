@@ -69,9 +69,10 @@ INLINE_HEADER_BEGIN
 
 enum font_property_index
   {
-    /* FONT-TYPE is a symbol indicating a font backend; currently `x'
-       and `xft' are available on X, `uniscribe' and `gdi' on
-       Windows, and `ns' under Cocoa / GNUstep.  */
+    /* FONT-TYPE is a symbol indicating a font backend; currently `x',
+       `xft', `xfthb', `ftrc', and `ftcrhb' are available on X;
+       `harfbuzz', `uniscribe', and `gdi' on Windows, and `ns' under
+       Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
