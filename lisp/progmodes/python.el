@@ -1429,7 +1429,7 @@ marks the next defun after the ones already marked."
 
 (defcustom python-forward-sexp-function #'python-nav-forward-sexp
   "Function to use when navigating between expressions."
-  :version "28.1"
+  :version "29.1"
   :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
                  (const :tag "CC-mode like" nil)
                  function))
