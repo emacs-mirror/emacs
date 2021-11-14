@@ -2583,7 +2583,7 @@ that, an interactive form can specified."
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
 		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive ,interactive-spec)
+         (interactive (list ,interactive-spec))
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
