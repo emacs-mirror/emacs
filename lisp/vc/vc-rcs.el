@@ -294,7 +294,7 @@ to the RCS command."
 	         file
 	       (file-name-directory file))))
     (and (file-directory-p (expand-file-name "RCS" dir))
-         dir)))
+         (file-name-directory (expand-file-name "RCS" dir)))))
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."

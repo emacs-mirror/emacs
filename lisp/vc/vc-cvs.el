@@ -313,7 +313,7 @@ to the CVS command."
 	         file
 	       (file-name-directory file))))
     (and (file-directory-p (expand-file-name "CVS" dir))
-         dir)))
+         (file-name-directory (expand-file-name "CVS" dir)))))
 
 (defun vc-cvs-could-register (file)
   "Return non-nil if FILE could be registered in CVS.

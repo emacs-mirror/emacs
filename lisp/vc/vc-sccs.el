@@ -216,7 +216,7 @@ to the SCCS command."
   ;; TODO: check for all the patterns in vc-sccs-master-templates
   (or (and (file-directory-p
             (expand-file-name "SCCS" (file-name-directory file)))
-           file)
+           (file-name-directory file))
       (let ((dir (vc-sccs-search-project-dir (or (file-name-directory file) "")
 					     (file-name-nondirectory file))))
         (and (stringp dir)
