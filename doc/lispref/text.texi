@@ -3653,6 +3653,16 @@ property is obsolete; use the @code{cursor-intangible} property instead.
 When the minor mode @code{cursor-intangible-mode} is turned on, point
 is moved away from any position that has a non-@code{nil}
 @code{cursor-intangible} property, just before redisplay happens.
+Note that @code{rear-nonsticky} is taken into account when computing
+allowed cursor positions, so (for instance) to insert a stretch of
+five @samp{x} characters you can't put point on, you have to do
+something like:
+
+@lisp
+(insert
+ (propertize "xxxx" 'cursor-intangible t)
+ (propertize "x" 'cursor-intangible t 'rear-nonsticky t))
+@end lisp
 
 @vindex cursor-sensor-inhibit
 When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
