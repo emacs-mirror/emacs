@@ -535,8 +535,11 @@ ns_init_locale (void)
 
   NSTRACE ("ns_init_locale");
 
-  @try
+  /* If we were run from a terminal then assume an unset LANG variable
+     is intentional and don't try to "fix" it.  */
+  if (!isatty (STDIN_FILENO))
     {
+      char *oldLocale = setlocale (LC_ALL, NULL);
       /* It seems macOS should probably use UTF-8 everywhere.
          'localeIdentifier' does not specify the encoding, and I can't
          find any way to get the OS to tell us which encoding to use,
@@ -544,12 +547,12 @@ ns_init_locale (void)
       NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
                                      [locale localeIdentifier]];
 
-      /* Set LANG to locale, but not if LANG is already set.  */
-      setenv("LANG", [localeID UTF8String], 0);
-    }
-  @catch (NSException *e)
-    {
-      NSLog (@"Locale detection failed: %@: %@", [e name], [e reason]);
+      /* Check the locale ID is valid and if so set LANG, but not if
+         it is already set.  */
+      if (setlocale (LC_ALL, [localeID UTF8String]))
+        setenv("LANG", [localeID UTF8String], 0);
+
+      setlocale (LC_ALL, oldLocale);
     }
 }
 
