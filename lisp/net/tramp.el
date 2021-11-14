@@ -2552,13 +2552,20 @@ Must be handled by the callers."
   (when (tramp-tramp-file-p filename)
     (let ((handler tramp-foreign-file-name-handler-alist)
           (vec (tramp-dissect-file-name filename))
-	  elt res)
+	  elt func res)
       (while handler
 	(setq elt (car handler)
 	      handler (cdr handler))
         ;; Previously, this function was called with FILENAME, but now
         ;; it's called with the VEC.
-        (when (with-demoted-errors "Error: %S" (funcall (car elt) vec))
+        (when (condition-case nil
+		  (funcall (setq func (car elt)) vec)
+		(error
+		 (setcar elt #'ignore)
+		 (unless (member 'remote-file-error debug-ignored-errors)
+		   (tramp-error
+		    vec 'remote-file-error
+		    "Not a valid Tramp file name function `%s'" func))))
 	  (setq handler nil
 		res (cdr elt))))
       res)))

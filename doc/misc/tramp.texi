@@ -5223,6 +5223,28 @@ time being you can suppress this error by the following code in your
 
 
 @item
+I get an error @samp{Remote file error: Not a valid Tramp file name
+function `tramp-FOO-file-name-p'}
+
+@value{tramp} has changed the signature of an internal function.
+External packages implementing an own @value{tramp} backend must
+follow this change.  Please report this problem to the author of that
+package.
+
+For the running session, @value{tramp} disables the external package,
+and you can continue to work.  If you don't want to see this error
+while activating @value{tramp}, you can suppress it by the same code
+as above in your @file{~/.emacs}:
+
+@lisp
+@group
+(setq debug-ignored-errors
+      (cons 'remote-file-error debug-ignored-errors))
+@end group
+@end lisp
+
+
+@item
 How to disable other packages from calling @value{tramp}?
 
 There are packages that call @value{tramp} without the user ever
