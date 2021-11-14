@@ -136,10 +136,10 @@ It should return a status of either 0 (no differences found), or
   "Find the version control state of all files in DIR in a fast way."
   )
 
-(defun vc-dav-responsible-p (_url)
+(defun vc-dav-responsible-p (url)
   "Return non-nil if DAV considers itself `responsible' for URL."
   ;; Check for DAV support on the web server.
-  t)
+  (and t url))
 
 ;;; Unimplemented functions
 ;;
