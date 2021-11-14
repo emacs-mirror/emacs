@@ -76,6 +76,8 @@ allocate_xwidget_view (void)
 
 static struct xwidget_view *xwidget_view_lookup (struct xwidget *,
 						 struct window *);
+static void kill_xwidget (struct xwidget *);
+
 #ifdef USE_GTK
 static void webkit_view_load_changed_cb (WebKitWebView *,
                                          WebKitLoadEvent,
@@ -2386,6 +2388,25 @@ using `xwidget-webkit-search'.  */)
   return Qnil;
 }
 
+DEFUN ("kill-xwidget", Fkill_xwidget, Skill_xwidget,
+       1, 1, 0,
+       doc: /* Kill the specified XWIDGET.
+This releases all window system resources associated with XWIDGET,
+removes it from `xwidget-list', and detaches it from its buffer.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+
+  CHECK_LIVE_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+
+  block_input ();
+  kill_xwidget (xw);
+  unblock_input ();
+
+  return Qnil;
+}
+
 #ifdef USE_GTK
 DEFUN ("xwidget-webkit-load-html", Fxwidget_webkit_load_html,
        Sxwidget_webkit_load_html, 2, 3, 0,
@@ -2468,6 +2489,7 @@ syms_of_xwidget (void)
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
 #endif
+  defsubr (&Skill_xwidget);
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");
@@ -2708,6 +2730,40 @@ kill_frame_xwidget_views (struct frame *f)
 }
 #endif
 
+static void
+kill_xwidget (struct xwidget *xw)
+{
+#ifdef USE_GTK
+  xw->buffer = Qnil;
+
+  if (xw->widget_osr && xw->widgetwindow_osr)
+    {
+      gtk_widget_destroy (xw->widget_osr);
+      gtk_widget_destroy (xw->widgetwindow_osr);
+    }
+
+  if (xw->find_text)
+    xfree (xw->find_text);
+
+  if (!NILP (xw->script_callbacks))
+    {
+      for (ptrdiff_t idx = 0; idx < ASIZE (xw->script_callbacks); idx++)
+	{
+	  Lisp_Object cb = AREF (xw->script_callbacks, idx);
+	  if (!NILP (cb))
+	    xfree (xmint_pointer (XCAR (cb)));
+	  ASET (xw->script_callbacks, idx, Qnil);
+	}
+    }
+
+  xw->widget_osr = NULL;
+  xw->widgetwindow_osr = NULL;
+  xw->find_text = NULL;
+#elif defined NS_IMPL_COCOA
+  nsxwidget_kill (xw);
+#endif
+}
+
 /* Kill all xwidget in BUFFER.  */
 void
 kill_buffer_xwidgets (Lisp_Object buffer)
@@ -2721,31 +2777,8 @@ kill_buffer_xwidgets (Lisp_Object buffer)
       {
         CHECK_LIVE_XWIDGET (xwidget);
         struct xwidget *xw = XXWIDGET (xwidget);
-	xw->buffer = Qnil;
 
-#ifdef USE_GTK
-        if (xw->widget_osr && xw->widgetwindow_osr)
-          {
-            gtk_widget_destroy (xw->widget_osr);
-            gtk_widget_destroy (xw->widgetwindow_osr);
-          }
-	if (xw->find_text)
-	  xfree (xw->find_text);
-	if (!NILP (xw->script_callbacks))
-	  for (ptrdiff_t idx = 0; idx < ASIZE (xw->script_callbacks); idx++)
-	    {
-	      Lisp_Object cb = AREF (xw->script_callbacks, idx);
-	      if (!NILP (cb))
-		xfree (xmint_pointer (XCAR (cb)));
-	      ASET (xw->script_callbacks, idx, Qnil);
-	    }
-
-	xw->widget_osr = NULL;
-	xw->widgetwindow_osr = NULL;
-	xw->find_text = NULL;
-#elif defined NS_IMPL_COCOA
-        nsxwidget_kill (xw);
-#endif
+	kill_xwidget (xw);
       }
     }
 }

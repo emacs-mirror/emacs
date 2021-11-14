@@ -6806,10 +6806,11 @@ widget that the newly created widget should share settings and
 subprocesses with.
 
 The xwidget that is returned will be killed alongside its buffer
-(@pxref{Killing Buffers}).  Once it is killed, the xwidget may
-continue to exist as a Lisp object and act as a @code{display}
-property until all references to it are gone, but most actions that
-can be performed on live xwidgets will no longer be available.
+(@pxref{Killing Buffers}).  You can also kill it using
+@code{xwidget-kill}.  Once it is killed, the xwidget may continue to
+exist as a Lisp object and act as a @code{display} property until all
+references to it are gone, but most actions that can be performed on
+live xwidgets will no longer be available.
 @end defun
 
 @defun xwidgetp object
@@ -6820,6 +6821,11 @@ This function returns @code{t} if @var{object} is an xwidget,
 @defun xwidget-live-p object
 This function returns @code{t} if @var{object} is an xwidget that
 hasn't been killed, and @code{nil} otherwise.
+@end defun
+
+@defun kill-xwidget xwidget
+This function kills @var{xwidget}, by removing it from its buffer and
+releasing window system resources it holds.
 @end defun
 
 @defun xwidget-plist xwidget
