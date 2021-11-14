@@ -67,7 +67,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define FRAME_CR_CONTEXT(f) ((f)->output_data.pgtk->cr_context)
 #define FRAME_CR_ACTIVE_CONTEXT(f)	((f)->output_data.pgtk->cr_active)
-#define FRAME_CR_SURFACE(f) (cairo_get_target(FRAME_CR_CONTEXT(f)))
+#define FRAME_CR_SURFACE(f) (cairo_get_target (FRAME_CR_CONTEXT (f)))
 #define FRAME_CR_SURFACE_DESIRED_WIDTH(f)		\
   ((f)->output_data.pgtk->cr_surface_desired_width)
 #define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
@@ -829,7 +829,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
       GtkWidget *fixed = FRAME_GTK_WIDGET (f);
 
       GtkAllocation alloc;
-      gtk_widget_get_allocation(fixed, &alloc);
+      gtk_widget_get_allocation (fixed, &alloc);
       g_object_ref (fixed);
 
       GtkCssProvider *provider = FRAME_X_OUTPUT (f)->border_color_css_provider;
@@ -3545,7 +3545,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			  p->wd, p->h, p->x, p->y, p->overlay_p);
     }
 
-  pgtk_end_cr_clip(f);
+  pgtk_end_cr_clip (f);
 }
 
 static struct atimer *hourglass_atimer = NULL;
@@ -5368,7 +5368,7 @@ pgtk_handle_draw (GtkWidget * widget, cairo_t * cr, gpointer * data)
 	  PGTK_TRACE ("  garbaged=%d", f->garbaged);
 	  PGTK_TRACE ("  scroll_bar_width=%f",
 		      (double) PGTK_SCROLL_BAR_WIDTH (f));
-	  // PGTK_TRACE("  scroll_bar_adjust=%d", PGTK_SCROLL_BAR_ADJUST(f));
+	  // PGTK_TRACE("  scroll_bar_adjust=%d", PGTK_SCROLL_BAR_ADJUST (f));
 	  PGTK_TRACE ("  scroll_bar_cols=%d", FRAME_SCROLL_BAR_COLS (f));
 	  PGTK_TRACE ("  column_width=%d", FRAME_COLUMN_WIDTH (f));
 	  cairo_set_source_surface (cr, src, 0, 0);
@@ -6611,7 +6611,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = make_fixnum(nlines);
+	  inev.ie.arg = make_fixnum (nlines);
 	  dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
 	}
       else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line)
@@ -6619,7 +6619,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = make_fixnum(nlines);
+	  inev.ie.arg = make_fixnum (nlines);
 	  dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
 	}
       else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char)
@@ -6627,7 +6627,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = make_fixnum(nchars);
+	  inev.ie.arg = make_fixnum (nchars);
 	  dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
 	}
       else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
@@ -6635,7 +6635,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = make_fixnum(nchars);
+	  inev.ie.arg = make_fixnum (nchars);
 	  dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
 	}
     }
@@ -6806,7 +6806,7 @@ same_x_server (const char *name1, const char *name2)
 
 #define GNOME_INTERFACE_SCHEMA "org.gnome.desktop.interface"
 
-static gdouble pgtk_text_scaling_factor(void)
+static gdouble pgtk_text_scaling_factor (void)
 {
   GSettingsSchemaSource *schema_source = g_settings_schema_source_get_default ();
   if (schema_source != NULL)
@@ -6999,7 +6999,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     if (dpi < 0)
 	dpi = 96.0;
 
-    dpi *= pgtk_text_scaling_factor();
+    dpi *= pgtk_text_scaling_factor ();
     dpyinfo->resx = dpi;
     dpyinfo->resy = dpi;
   }

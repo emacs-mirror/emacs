@@ -151,9 +151,9 @@ xg_set_screen (GtkWidget *w, struct frame *f)
         gtk_window_set_screen (GTK_WINDOW (w), gscreen);
     }
 #else
-  if (FRAME_X_DISPLAY(f) != DEFAULT_GDK_DISPLAY ())
+  if (FRAME_X_DISPLAY (f) != DEFAULT_GDK_DISPLAY ())
     {
-      GdkScreen *gscreen = gdk_display_get_default_screen (FRAME_X_DISPLAY(f));
+      GdkScreen *gscreen = gdk_display_get_default_screen (FRAME_X_DISPLAY (f));
 
       if (GTK_IS_MENU (w))
        gtk_menu_set_screen (GTK_MENU (w), gscreen);
@@ -1425,7 +1425,7 @@ xg_create_frame_widgets (struct frame *f)
       type = GTK_WINDOW_POPUP;
     }
   wtop = gtk_window_new (type);
-  gtk_widget_add_events(wtop, GDK_ALL_EVENTS_MASK);
+  gtk_widget_add_events (wtop, GDK_ALL_EVENTS_MASK);
 #endif
 
   /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
@@ -1626,7 +1626,7 @@ xg_create_frame_outer_widgets (struct frame *f)
   block_input ();
 
   wtop = gtk_window_new (type);
-  gtk_widget_add_events(wtop, GDK_ALL_EVENTS_MASK);
+  gtk_widget_add_events (wtop, GDK_ALL_EVENTS_MASK);
 
   xg_set_screen (wtop, f);
 
@@ -2582,7 +2582,7 @@ xg_get_file_name (struct frame *f,
 
 #ifdef HAVE_PGTK
   if (!FRAME_GTK_OUTER_WIDGET (f))
-    error("Can't open dialog from child frames");
+    error ("Can't open dialog from child frames");
 #endif
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
@@ -2684,7 +2684,7 @@ xg_get_font (struct frame *f, const char *default_name)
 
 #ifdef HAVE_PGTK
   if (!FRAME_GTK_OUTER_WIDGET (f))
-    error("Can't open dialog from child frames");
+    error ("Can't open dialog from child frames");
 #endif
 
   w = gtk_font_chooser_dialog_new
@@ -4437,7 +4437,7 @@ xg_update_scrollbar_pos (struct frame *f,
 	  /* Don't obscure any child frames.  */
 	  XLowerWindow (FRAME_X_DISPLAY (f), GTK_WIDGET_TO_X_WIN (webox));
 #else
-	  gdk_window_lower (gtk_widget_get_window(webox));
+	  gdk_window_lower (gtk_widget_get_window (webox));
 #endif
 	}
 

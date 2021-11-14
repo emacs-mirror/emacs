@@ -70,7 +70,7 @@ pgtk_get_monitor_scale_factor (const char *model)
     return 0.0;
 
   Lisp_Object mdl = build_string (model);
-  Lisp_Object tem = Fassoc(mdl, monitor_scale_factor_alist, Qnil);
+  Lisp_Object tem = Fassoc (mdl, monitor_scale_factor_alist, Qnil);
   if (NILP (tem))
     return 0;
   Lisp_Object cdr = Fcdr (tem);
@@ -134,10 +134,10 @@ check_pgtk_display_info (Lisp_Object object)
  * display.
  */
 static Lisp_Object
-is_wayland_display(Lisp_Object dpyname)
+is_wayland_display (Lisp_Object dpyname)
 {
   const char *p = SSDATA (dpyname);
-  if (strncmp(p, "wayland-", 8) != 0)
+  if (strncmp (p, "wayland-", 8) != 0)
     return Qnil;
   p += 8;
   do {
@@ -156,7 +156,7 @@ pgtk_display_info_for_name (Lisp_Object name)
 
   CHECK_STRING (name);
 
-  if (!NILP (is_wayland_display(name)))
+  if (!NILP (is_wayland_display (name)))
     {
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
 	if (!NILP (is_wayland_display (XCAR (dpyinfo->name_list_element))))
@@ -1615,7 +1615,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
 
 #define INSTALL_CURSOR(FIELD, NAME) \
-  FRAME_X_OUTPUT(f)->FIELD = gdk_cursor_new_for_display(FRAME_X_DISPLAY(f), GDK_ ## NAME)
+  FRAME_X_OUTPUT (f)->FIELD = gdk_cursor_new_for_display (FRAME_X_DISPLAY (f), GDK_ ## NAME)
 
   INSTALL_CURSOR (text_cursor, XTERM);
   INSTALL_CURSOR (nontext_cursor, LEFT_PTR);
@@ -1693,13 +1693,12 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       unblock_input ();
     }
 
-  if (FRAME_GTK_OUTER_WIDGET (f)) {
-    GList *w = gtk_container_get_children(GTK_CONTAINER(FRAME_GTK_OUTER_WIDGET (f)));
-    for (; w != NULL; w = w->next)
-      {
-	gtk_widget_show_all (GTK_WIDGET(w->data));
-      }
-  }
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
+      GList *w = gtk_container_get_children (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)));
+      for (; w != NULL; w = w->next)
+	gtk_widget_show_all (GTK_WIDGET (w->data));
+    }
 
   gui_default_parameter (f, parms, Qno_focus_on_map, Qnil,
 			 NULL, NULL, RES_TYPE_BOOLEAN);
@@ -2204,7 +2203,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
       int mm = gdk_monitor_get_height_mm (monitor);
 
       if (rec.y == 0)
-	height_mm_at_0 = max(height_mm_at_0, mm);
+	height_mm_at_0 = max (height_mm_at_0, mm);
       else
 	height_mm_at_other += mm;
     }
@@ -2245,7 +2244,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
       int mm = gdk_monitor_get_width_mm (monitor);
 
       if (rec.x == 0)
-	width_mm_at_0 = max(width_mm_at_0, mm);
+	width_mm_at_0 = max (width_mm_at_0, mm);
       else
 	width_mm_at_other += mm;
     }
@@ -2572,7 +2571,7 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
       rec.width = rec.width * scale + 0.5;
       rec.height = rec.height * scale + 0.5;
 
-      width = max(width, rec.x + rec.width);
+      width = max (width, rec.x + rec.width);
     }
 
   unblock_input ();
@@ -2618,7 +2617,7 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
       rec.width = rec.width * scale + 0.5;
       rec.height = rec.height * scale + 0.5;
 
-      height = max(height, rec.y + rec.height);
+      height = max (height, rec.y + rec.height);
     }
 
   unblock_input ();

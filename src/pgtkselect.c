@@ -249,48 +249,48 @@ pgtk_selection_usable (void)
    *
    * static GtkWidget *top1, *top2;
    *
-   * int main(int argc, char **argv)
+   * int main (int argc, char **argv)
    * {
    *     GtkWidget *w;
    *     GtkTextBuffer *buf;
    *
-   *     gtk_init(&argc, &argv);
+   *     gtk_init (&argc, &argv);
    *
    *     static char *text = "\
    * It is fine today.\n\
    * It will be fine tomorrow too.\n\
    * It is too hot.";
    *
-   *     top1 = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-   *     gtk_window_set_title(GTK_WINDOW(top1), "default");
-   *     gtk_widget_show(top1);
-   *     w = gtk_text_view_new();
-   *     gtk_container_add(GTK_CONTAINER(top1), w);
-   *     gtk_widget_show(w);
-   *     buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(w));
-   *     gtk_text_buffer_insert_at_cursor(buf, text, strlen(text));
-   *     gtk_text_buffer_add_selection_clipboard(buf, gtk_widget_get_clipboard(w, GDK_SELECTION_PRIMARY));
+   *     top1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   *     gtk_window_set_title (GTK_WINDOW (top1), "default");
+   *     gtk_widget_show (top1);
+   *     w = gtk_text_view_new ();
+   *     gtk_container_add (GTK_CONTAINER (top1), w);
+   *     gtk_widget_show (w);
+   *     buf = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
+   *     gtk_text_buffer_insert_at_cursor (buf, text, strlen (text));
+   *     gtk_text_buffer_add_selection_clipboard (buf, gtk_widget_get_clipboard (w, GDK_SELECTION_PRIMARY));
    *
-   *     unsetenv("GDK_BACKEND");
+   *     unsetenv ("GDK_BACKEND");
    *     GdkDisplay *gdpy;
    *     const char *dpyname2;
-   *     if (strcmp(G_OBJECT_TYPE_NAME(gtk_widget_get_window(top1)), "GdkWaylandWindow") == 0)
+   *     if (strcmp (G_OBJECT_TYPE_NAME (gtk_widget_get_window (top1)), "GdkWaylandWindow") == 0)
    *         dpyname2 = ":0";
    *     else
    *         dpyname2 = "wayland-0";
    *     gdpy = gdk_display_open (dpyname2);
    *     top2 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-   *     gtk_window_set_title(GTK_WINDOW(top2), dpyname2);
-   *     gtk_window_set_screen (GTK_WINDOW (top2), gdk_display_get_default_screen(gdpy));
+   *     gtk_window_set_title (GTK_WINDOW (top2), dpyname2);
+   *     gtk_window_set_screen (GTK_WINDOW (top2), gdk_display_get_default_screen (gdpy));
    *     gtk_widget_show (top2);
-   *     w = gtk_text_view_new();
-   *     gtk_container_add(GTK_CONTAINER(top2), w);
-   *     gtk_widget_show(w);
-   *     buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(w));
-   *     gtk_text_buffer_insert_at_cursor(buf, text, strlen(text));
-   *     gtk_text_buffer_add_selection_clipboard(buf, gtk_widget_get_clipboard(w, GDK_SELECTION_PRIMARY));
+   *     w = gtk_text_view_new ();
+   *     gtk_container_add (GTK_CONTAINER (top2), w);
+   *     gtk_widget_show (w);
+   *     buf = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
+   *     gtk_text_buffer_insert_at_cursor (buf, text, strlen (text));
+   *     gtk_text_buffer_add_selection_clipboard (buf, gtk_widget_get_clipboard (w, GDK_SELECTION_PRIMARY));
    *
-   *     gtk_main();
+   *     gtk_main ();
    *
    *     return 0;
    * }
@@ -376,8 +376,8 @@ nil, it defaults to the selected frame. */)
 
       {
 	/* text/plain: Strings encoded by Gtk are not correctly decoded by Chromium(Wayland). */
-	GdkAtom atom_text_plain = gdk_atom_intern("text/plain", false);
-	gtk_target_list_remove(list, atom_text_plain);
+	GdkAtom atom_text_plain = gdk_atom_intern ("text/plain", false);
+	gtk_target_list_remove (list, atom_text_plain);
       }
 
       targets = gtk_target_table_new_from_list (list, &n_targets);
@@ -575,11 +575,11 @@ On PGTK, TIME-STAMP is unused.  */)
 	 property `foreign-selection' so that the caller of
 	 x-get-selection-internal (usually x-get-selection) can know
 	 that the string must be decode.  */
-      if (sd_type == gdk_atom_intern("COMPOUND_TEXT", false))
+      if (sd_type == gdk_atom_intern ("COMPOUND_TEXT", false))
 	lispy_type = QCOMPOUND_TEXT;
-      else if (sd_type == gdk_atom_intern("UTF8_STRING", false))
+      else if (sd_type == gdk_atom_intern ("UTF8_STRING", false))
 	lispy_type = QUTF8_STRING;
-      else if (sd_type == gdk_atom_intern("text/plain;charset=utf-8", false))
+      else if (sd_type == gdk_atom_intern ("text/plain;charset=utf-8", false))
 	lispy_type = Qtext_plain_charset_utf_8;
       else
 	lispy_type = QSTRING;

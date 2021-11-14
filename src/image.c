@@ -585,15 +585,15 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #ifdef HAVE_PGTK
   GError *err = NULL;
   ptrdiff_t id;
-  void * bitmap = gdk_pixbuf_new_from_file(SSDATA(file), &err);
+  void * bitmap = gdk_pixbuf_new_from_file (SSDATA (file), &err);
 
   if (!bitmap)
     {
-      g_error_free(err);
+      g_error_free (err);
       return -1;
     }
 
-  id = image_allocate_bitmap_record(f);
+  id = image_allocate_bitmap_record (f);
 
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
@@ -5034,7 +5034,7 @@ xpm_load_image (struct frame *f,
   Lisp_Object (*get_color_table) (Lisp_Object, const char *, int);
   Lisp_Object frame, color_symbols, color_table;
   int best_key;
-#if !defined(HAVE_NS)
+#if !defined (HAVE_NS)
   bool have_mask = false;
 #endif
   Emacs_Pix_Container ximg = NULL, mask_img = NULL;

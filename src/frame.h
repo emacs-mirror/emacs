@@ -1684,7 +1684,7 @@ extern const char *x_get_resource_string (const char *, const char *);
 extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
-#if !defined(HAVE_NS) && !defined(HAVE_PGTK)
+#if !defined (HAVE_NS) && !defined (HAVE_PGTK)
 
 /* Set F's bitmap icon, if specified among F's parameters.  */
 

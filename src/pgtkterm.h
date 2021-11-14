@@ -44,9 +44,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 extern void
 pgtk_log (const char *file, int lineno, const char *fmt, ...)
 ATTRIBUTE_FORMAT_PRINTF (3, 4);
-#define PGTK_TRACE(fmt, ...) pgtk_log(__FILE__, __LINE__, fmt, ## __VA_ARGS__)
+#define PGTK_TRACE(fmt, ...) pgtk_log (__FILE__, __LINE__, fmt, ## __VA_ARGS__)
      extern void pgtk_backtrace (const char *file, int lineno);
-#define PGTK_BACKTRACE() pgtk_backtrace(__FILE__, __LINE__)
+#define PGTK_BACKTRACE() pgtk_backtrace (__FILE__, __LINE__)
 #else
 #define PGTK_TRACE(fmt, ...) ((void) 0)
 #define PGTK_BACKTRACE() ((void) 0)
@@ -434,26 +434,26 @@ enum
 #define FRAME_X_OUTPUT(f)         ((f)->output_data.pgtk)
 #define FRAME_OUTPUT_DATA(f)      FRAME_X_OUTPUT (f)
 
-#define FRAME_DISPLAY_INFO(f)     (FRAME_X_OUTPUT(f)->display_info)
-#define FRAME_FOREGROUND_COLOR(f) (FRAME_X_OUTPUT(f)->foreground_color)
-#define FRAME_BACKGROUND_COLOR(f) (FRAME_X_OUTPUT(f)->background_color)
-#define FRAME_CURSOR_COLOR(f)     (FRAME_X_OUTPUT(f)->cursor_color)
-#define FRAME_POINTER_TYPE(f)     (FRAME_X_OUTPUT(f)->current_pointer)
-#define FRAME_FONT(f)             (FRAME_X_OUTPUT(f)->font)
-#define FRAME_GTK_OUTER_WIDGET(f) (FRAME_X_OUTPUT(f)->widget)
-#define FRAME_GTK_WIDGET(f)       (FRAME_X_OUTPUT(f)->edit_widget)
-#define FRAME_WIDGET(f)           (FRAME_GTK_OUTER_WIDGET(f) ?		\
-                                   FRAME_GTK_OUTER_WIDGET(f) :		\
-                                   FRAME_GTK_WIDGET(f))
+#define FRAME_DISPLAY_INFO(f)     (FRAME_X_OUTPUT (f)->display_info)
+#define FRAME_FOREGROUND_COLOR(f) (FRAME_X_OUTPUT (f)->foreground_color)
+#define FRAME_BACKGROUND_COLOR(f) (FRAME_X_OUTPUT (f)->background_color)
+#define FRAME_CURSOR_COLOR(f)     (FRAME_X_OUTPUT (f)->cursor_color)
+#define FRAME_POINTER_TYPE(f)     (FRAME_X_OUTPUT (f)->current_pointer)
+#define FRAME_FONT(f)             (FRAME_X_OUTPUT (f)->font)
+#define FRAME_GTK_OUTER_WIDGET(f) (FRAME_X_OUTPUT (f)->widget)
+#define FRAME_GTK_WIDGET(f)       (FRAME_X_OUTPUT (f)->edit_widget)
+#define FRAME_WIDGET(f)           (FRAME_GTK_OUTER_WIDGET (f) ?		\
+                                   FRAME_GTK_OUTER_WIDGET (f) :		\
+                                   FRAME_GTK_WIDGET (f))
 
 /* aliases */
-#define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET(f)
-#define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET(f)
-#define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW(FRAME_X_WINDOW(f))
+#define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET (f)
+#define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET (f)
+#define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW (FRAME_X_WINDOW (f))
 
-#define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO(f)->gdpy)
+#define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO (f)->gdpy)
 
-#define DEFAULT_GDK_DISPLAY() gdk_display_get_default()
+#define DEFAULT_GDK_DISPLAY() gdk_display_get_default ()
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
@@ -495,7 +495,7 @@ enum
    (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
     - PGTK_SCROLL_BAR_HEIGHT (f)) : 0)
 
-#define FRAME_MENUBAR_HEIGHT(f) (FRAME_X_OUTPUT(f)->menubar_height)
+#define FRAME_MENUBAR_HEIGHT(f) (FRAME_X_OUTPUT (f)->menubar_height)
 
 /* Calculate system coordinates of the left and top of the parent
    window or, if there is no parent window, the screen. */
@@ -521,9 +521,9 @@ enum
 #define FRAME_TOOLBAR_WIDTH(f) \
   (FRAME_TOOLBAR_LEFT_WIDTH (f) + FRAME_TOOLBAR_RIGHT_WIDTH (f))
 
-#define FRAME_FONTSET(f) (FRAME_X_OUTPUT(f)->fontset)
+#define FRAME_FONTSET(f) (FRAME_X_OUTPUT (f)->fontset)
 
-#define FRAME_BASELINE_OFFSET(f) (FRAME_X_OUTPUT(f)->baseline_offset)
+#define FRAME_BASELINE_OFFSET(f) (FRAME_X_OUTPUT (f)->baseline_offset)
 #define BLACK_PIX_DEFAULT(f) 0x000000
 #define WHITE_PIX_DEFAULT(f) 0xFFFFFF
 

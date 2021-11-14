@@ -6145,7 +6145,7 @@ garbage_collect (void)
   mark_kboards ();
   mark_threads ();
 #ifdef HAVE_PGTK
-  mark_pgtkterm();
+  mark_pgtkterm ();
 #endif
 
 #ifdef USE_GTK
