@@ -309,10 +309,11 @@ to the CVS command."
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
-  (file-directory-p (expand-file-name "CVS"
-				      (if (file-directory-p file)
-					  file
-					(file-name-directory file)))))
+  (let ((dir (if (file-directory-p file)
+	         file
+	       (file-name-directory file))))
+    (and (file-directory-p (expand-file-name "CVS" dir))
+         dir)))
 
 (defun vc-cvs-could-register (file)
   "Return non-nil if FILE could be registered in CVS.
