@@ -309,23 +309,28 @@ set_alarm (void)
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
+	  if (alarm_timer_ok
+	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
+	    exit = true;
+
+	  /* Don't start both timerfd and POSIX timers on Cygwin; this
+	     causes a slowdown (bug#51734).  Prefer POSIX timers
+	     because the timerfd notifications aren't delivered while
+	     Emacs is busy, which prevents things like the hourglass
+	     pointer from being displayed reliably (bug#19776). */
+# ifdef CYGWIN
+	  if (exit)
+	    return;
+# endif
+
 # ifdef HAVE_TIMERFD
-	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
+	  if (0 <= timerfd
+	      && timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
 	    {
 	      add_timer_wait_descriptor (timerfd);
 	      exit = true;
 	    }
 # endif
-
-# ifdef CYGWIN
-	  /* Don't start both timerfd and alarms on Cygwin; this
-	     causes a slowdown (bug#51734). */
-	  if (exit)
-	    return;
-# endif
-	  if (alarm_timer_ok
-	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
-	    exit = true;
 
 	  if (exit)
 	    return;
