@@ -230,6 +230,7 @@
     (gnu "foo.c:8:23:information: message" 1 23 8 "foo.c")
     (gnu "foo.c:8.23-45: Informational: message" 1 (23 . 45) (8 . nil) "foo.c")
     (gnu "foo.c:8-23: message" 1 nil (8 . 23) "foo.c")
+    (gnu "   |foo.c:8: message" 1 nil 8 "foo.c")
     ;; The next one is not in the GNU standards AFAICS.
     ;; Here we seem to interpret it as LINE1-LINE2.COL2.
     (gnu "foo.c:8-45.3: message" 1 (nil . 3) (8 . 45) "foo.c")
