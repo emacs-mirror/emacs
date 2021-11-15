@@ -1256,7 +1256,10 @@ log entries."
 
 (defun vc-git-mergebase (rev1 &optional rev2)
   (unless rev2 (setq rev2 "HEAD"))
-  (string-trim-right (vc-git--run-command-string nil "merge-base" rev1 rev2)))
+  (let ((base (vc-git--run-command-string nil "merge-base" rev1 rev2)))
+    (if base
+        (string-trim-right base)
+      (error "No common ancestor for merge base"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)

@@ -2239,6 +2239,7 @@ directory."
           (dired-mode))
       (insert-file-contents-literally file)
       (set-visited-file-name file)
+      (set-buffer-modified-p nil)
       (when (string-match "\\.tar\\'" file) (tar-mode)))
     (package-install-from-buffer)))
 

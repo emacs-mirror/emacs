@@ -218,7 +218,7 @@ can use the variables @code{flymake-mode-line-format} and
 
 @cindex disabled backends
 @cindex backends, disabled
-As Flymake supports multiple simutaneously active external backends,
+As Flymake supports multiple simultaneously active external backends,
 is becomes useful to monitor their status.  For example, some backends
 may take longer than others to respond or complete, and some may
 decide to @emph{disable} themselves if they are not suitable for the
@@ -343,7 +343,7 @@ The following sections discuss each approach in detail.
 To customize the appearance of error types, the user must set
 properties on the symbols associated with each diagnostic type.
 
-The three standard diagnostic keyowrd symbols -- @code{:error},
+The three standard diagnostic keyword symbols -- @code{:error},
 @code{:warning} and @code{:note} -- have pre-configured appearances.
 However a backend may define more (@pxref{Backend functions}).
 

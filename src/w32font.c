@@ -2019,13 +2019,9 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
   if (FIXNUMP (tmp))
-    {
-      dpi = XFIXNUM (tmp);
-    }
+    dpi = XFIXNUM (tmp);
   else if (FLOATP (tmp))
-    {
-      dpi = (int) (XFLOAT_DATA (tmp) + 0.5);
-    }
+    dpi = (int) (XFLOAT_DATA (tmp) + 0.5);
 
   /* Height  */
   tmp = AREF (font_spec, FONT_SIZE_INDEX);
