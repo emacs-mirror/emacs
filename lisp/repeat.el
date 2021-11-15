@@ -402,12 +402,17 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                (length commands)
                (length (delete-dups keymaps))))))
 
+(defvar repeat--prev-mb '(0)
+  "Previous minibuffer state.")
+
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (let ((was-in-progress repeat-in-progress))
     (setq repeat-in-progress nil)
     (when repeat-mode
       (let ((rep-map (or repeat-map
+                         (and (symbolp this-command)
+                              (get this-command 'repeat-map))
                          (and (symbolp real-this-command)
                               (get real-this-command 'repeat-map)))))
         (when rep-map
@@ -415,11 +420,16 @@ See `describe-repeat-maps' for a list of all repeatable commands."
             (setq rep-map (symbol-value rep-map)))
           (let ((map (copy-keymap rep-map)))
 
-            ;; Exit when the last char is not among repeatable keys,
-            ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-            (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
-                       (or (lookup-key map (this-command-keys-vector))
-                           prefix-arg))
+            (when (and
+                   ;; Detect changes in the minibuffer state to allow repetitions
+                   ;; in the same minibuffer, but not when the minibuffer is activated
+                   ;; in the middle of repeating sequence (bug#47566).
+                   (or (< (minibuffer-depth) (car repeat--prev-mb))
+                       (eq current-minibuffer-command (cdr repeat--prev-mb)))
+                   ;; Exit when the last char is not among repeatable keys,
+                   ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
+                   (or (lookup-key map (this-command-keys-vector))
+                       prefix-arg))
 
               ;; Messaging
               (unless prefix-arg
@@ -449,6 +459,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                            (funcall repeat-echo-function nil)))))))))))
 
     (setq repeat-map nil)
+    (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
     (when (and was-in-progress (not repeat-in-progress))
       (when repeat-exit-timer
         (cancel-timer repeat-exit-timer)
