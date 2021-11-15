@@ -654,30 +654,15 @@ See `rcirc-connect' for more details on these variables.")
 
 (defun rcirc-get-server-method (server)
   "Return authentication method for SERVER."
-  (catch 'method
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (method (cadr i)))
-	(when (string-match server-i server)
-          (throw 'method method))))))
+  (cadr (assoc server rcirc-authinfo #'string-match)))
 
 (defun rcirc-get-server-password (server)
   "Return password for SERVER."
-  (catch 'pass
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (args (cdddr i)))
-	(when (string-match server-i server)
-          (throw 'pass (car args)))))))
+  (cadddr (assoc server rcirc-authinfo #'string-match)))
 
 (defun rcirc-get-server-cert (server)
   "Return a list of key and certificate for SERVER."
-  (catch 'cert
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-            (args (cddr i)))
-        (when (string-match server-i server)
-          (throw 'cert args))))))
+  (cddr (assoc server rcirc-authinfo #'string-match)))
 
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
