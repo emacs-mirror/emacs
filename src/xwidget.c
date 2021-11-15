@@ -2506,7 +2506,7 @@ LIMIT is not specified or nil, it is treated as `50'.  */)
 
   if (parent)
     {
-      for (i = 1, tem = parent; parent; parent = parent->next, ++i)
+      for (i = 1, tem = parent; tem; tem = tem->next, ++i)
 	{
 	  item = tem->data;
 	  item_title = webkit_back_forward_list_item_get_title (item);
@@ -2524,7 +2524,7 @@ LIMIT is not specified or nil, it is treated as `50'.  */)
 
   if (parent)
     {
-      for (i = 1, tem = parent; parent; parent = parent->next, ++i)
+      for (i = 1, tem = parent; tem; tem = tem->next, ++i)
 	{
 	  item = tem->data;
 	  item_title = webkit_back_forward_list_item_get_title (item);
