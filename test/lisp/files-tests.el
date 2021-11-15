@@ -465,6 +465,15 @@ unquoted file names."
   (let (file-name-handler-alist)
     (concat (file-name-sans-extension name) part (file-name-extension name t))))
 
+(ert-deftest files-tests-file-name-non-special-abbreviate-file-name ()
+  (let* ((homedir temporary-file-directory)
+         (process-environment (cons (format "HOME=%s" homedir)
+                                    process-environment))
+         (abbreviated-home-dir nil))
+    ;; Check that abbreviation doesn't occur for quoted file names.
+    (should (equal (concat "/:" homedir "foo/bar")
+                   (abbreviate-file-name (concat "/:" homedir "foo/bar"))))))
+
 (ert-deftest files-tests-file-name-non-special-access-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     ;; Both versions of the file name work.
