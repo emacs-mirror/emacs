@@ -507,10 +507,13 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                                             repeat-echo-mode-line-string)))
     (force-mode-line-update t)))
 
+(declare-function help-fns--analyze-function "help-fns" (function))
+
 (defun describe-repeat-maps ()
   "Describe mappings of commands repeatable by symbol property `repeat-map'.
 Used in `repeat-mode'."
   (interactive)
+  (require 'help-fns)
   (help-setup-xref (list #'describe-repeat-maps)
                    (called-interactively-p 'interactive))
   (let ((keymaps nil))
@@ -527,7 +530,12 @@ Used in `repeat-mode'."
           (princ (format-message "`%s' keymap is repeatable by these commands:\n"
                                  (car keymap)))
           (dolist (command (sort (cdr keymap) 'string-lessp))
-            (princ (format-message " `%s'\n" command)))
+            (let* ((info (help-fns--analyze-function command))
+                   (map (list (symbol-value (car keymap))))
+                   (desc (key-description
+                          (or (where-is-internal command map t)
+                              (where-is-internal (nth 3 info) map t)))))
+              (princ (format-message " `%s' (bound to '%s')\n" command desc))))
           (princ "\n"))))))
 
 (provide 'repeat)
