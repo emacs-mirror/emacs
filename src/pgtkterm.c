@@ -3350,7 +3350,7 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
 	}
     }
 
-  /* f1 can be a terminal frame. */
+  /* f1 can be a terminal frame. Bug#50322 */
   if (f1 == NULL || !FRAME_PGTK_P (f1))
     {
       unblock_input ();
