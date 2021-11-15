@@ -633,6 +633,13 @@ Use this symbol if you want to use @acronym{SASL} authentication.  The
 necessary arguments are the nickname you want to use this for, and the
 password to use.
 
+@item certfp
+@cindex certfp authentication
+Use this symbol if you want to use CertFP authentication.  The
+necessary arguments are the path to the client certificate key and
+password.  The CertFP authentication requires a @acronym{TLS}
+connection.
+
 @end table
 
 @end table
