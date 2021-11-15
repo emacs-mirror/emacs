@@ -446,10 +446,11 @@ If not set, `default-directory' will be used."
   :type 'integer
   :group 'mime-display)
 
-(defcustom mm-external-terminal-program "xterm"
-  "The program to start an external terminal."
-  :version "22.1"
-  :type 'string
+(defcustom mm-external-terminal-program '("xterm" "-e")
+  "The program to start an external terminal.
+This should be a list of strings."
+  :version "29.1"
+  :type '(choice string (repeat string))
   :group 'mime-display)
 
 ;;; Internal variables.
@@ -957,10 +958,16 @@ external if displayed external."
 	      (unwind-protect
 		  (if window-system
 		      (set-process-sentinel
-		       (start-process "*display*" nil
-				      mm-external-terminal-program
-				      "-e" shell-file-name
-				      shell-command-switch command)
+		       (apply #'start-process "*display*" nil
+                              (append
+                               (if (listp mm-external-terminal-program)
+                                   mm-external-terminal-program
+                                 ;; Be backwards-compatible.
+                                 (list mm-external-terminal-program
+                                       "-e"))
+                               (list shell-file-name
+				     shell-command-switch
+                                     command)))
 		       (lambda (process _state)
 			 (if (eq 'exit (process-status process))
 			     (run-at-time

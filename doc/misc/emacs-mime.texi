@@ -454,7 +454,8 @@ setting this option to non-@code{nil}.  The default value is @code{t}.
 
 @item mm-external-terminal-program
 @vindex mm-external-terminal-program
-The program used to start an external terminal.
+This should be a list of strings; typically something like
+@samp{("xterm" "-e")} or @samp{("gnome-terminal" "--")}.
 
 @item mm-enable-external
 @vindex mm-enable-external
