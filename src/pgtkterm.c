@@ -3350,6 +3350,13 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
 	}
     }
 
+  /* f1 can be a terminal frame. */
+  if (f1 == NULL || !FRAME_PGTK_P (f1))
+    {
+      unblock_input ();
+      return;
+    }
+
   /* 2. get the display and the device. */
   win = gtk_widget_get_window (FRAME_GTK_WIDGET (f1));
   GdkDisplay *gdpy = gdk_window_get_display (win);
