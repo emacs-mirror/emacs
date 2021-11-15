@@ -1014,7 +1014,10 @@ If non-nil, EVENT should be a mouse event."
   (when outline-minor-mode-use-buttons
     (outline-map-region
      (lambda ()
-       (if (eq (outline--cycle-state) 'show-all)
+       ;; `outline--cycle-state' will fail if we're in a totally
+       ;; collapsed buffer -- but in that case, we're not in a
+       ;; `show-all' situation.
+       (if (eq (ignore-errors (outline--cycle-state)) 'show-all)
            (outline--insert-open-button)
          (outline--insert-close-button)))
      (or from (point-min)) (or to (point-max)))))
