@@ -4707,7 +4707,7 @@ pgtk_focus_frame (struct frame *f, bool noactivate)
   if (dpyinfo->x_focus_frame != f && wid != NULL)
     {
       block_input ();
-      gtk_widget_grab_focus(wid);
+      gtk_widget_grab_focus (wid);
       unblock_input ();
     }
 }
@@ -6460,7 +6460,7 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 	    {
 	      block_input ();
-	      gtk_widget_grab_focus(FRAME_GTK_WIDGET(f));
+	      gtk_widget_grab_focus (FRAME_GTK_WIDGET (f));
 	      if (FRAME_GTK_OUTER_WIDGET (f))
 		{
 		  gtk_window_present (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));

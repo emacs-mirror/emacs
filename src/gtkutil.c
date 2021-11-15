@@ -2000,8 +2000,8 @@ xg_set_no_accept_focus (struct frame *f, Lisp_Object no_accept_focus)
 #ifdef HAVE_PGTK
   if (!FRAME_GTK_OUTER_WIDGET (f))
     {
-      if (FRAME_WIDGET(f))
-	gtk_widget_set_can_focus (FRAME_WIDGET(f), g_no_accept_focus);
+      if (FRAME_WIDGET (f))
+	gtk_widget_set_can_focus (FRAME_WIDGET (f), g_no_accept_focus);
       return;
     }
 #endif
