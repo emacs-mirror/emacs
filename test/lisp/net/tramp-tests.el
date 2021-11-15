@@ -2289,6 +2289,31 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should (string-equal (file-name-directory file) file))
 	  (should (string-equal (file-name-nondirectory file) "")))))))
 
+(ert-deftest tramp-test07-abbreviate-file-name ()
+  "Check that Tramp abbreviates file names correctly."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-emacs29-p))
+
+  (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
+         (home-dir (expand-file-name (concat remote-host "~"))))
+    ;; Check home-dir abbreviation.
+    (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
+                   (concat remote-host "~/foo/bar")))
+    (should (equal (abbreviate-file-name (concat remote-host
+                                                 "/nowhere/special"))
+                   (concat remote-host "/nowhere/special")))
+    ;; Check `directory-abbrev-alist' abbreviation.
+    (let ((directory-abbrev-alist
+           `((,(concat "\\`" (regexp-quote home-dir) "/foo")
+              . ,(concat home-dir "/f"))
+             (,(concat "\\`" (regexp-quote remote-host) "/nowhere")
+              . ,(concat remote-host "/nw")))))
+      (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
+                     (concat remote-host "~/f/bar")))
+      (should (equal (abbreviate-file-name (concat remote-host
+                                                   "/nowhere/special"))
+                     (concat remote-host "/nw/special"))))))
+
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
   (skip-unless (tramp--test-enabled))

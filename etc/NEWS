@@ -497,6 +497,14 @@ The newly created buffer will be displayed via 'display-buffer', which
 can be customized through the usual mechanism of 'display-buffer-alist'
 and friends.
 
+** Tramp
+
+---
+*** Tramp supports abbreviating remote home directories now.
+When calling 'abbreviate-file-name' on a Tramp filename, the result
+will abbreviate the user's home directory, for example by abbreviating
+"/ssh:user@host:/home/user" to "/ssh:user@host:~".
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -631,6 +639,9 @@ but applies formatting rules appropriate for Emacs Lisp code.
 This convenience function is useful when writing code that parses
 files at run-time, and allows Lisp programs to re-parse files only
 when they have changed.
+
++++
+** 'abbreviate-file-name' now respects magic file name handlers.
 
 ---
 ** New function 'font-has-char-p'.

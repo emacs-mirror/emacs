@@ -68,6 +68,31 @@ a regexp matching the name it is linked to."
   :group 'abbrev
   :group 'find-file)
 
+(defun directory-abbrev-make-regexp (directory)
+  "Create a regexp to match DIRECTORY for `directory-abbrev-alist'."
+  (let ((regexp
+         ;; We include a slash at the end, to avoid spurious
+         ;; matches such as `/usr/foobar' when the home dir is
+         ;; `/usr/foo'.
+         (concat "\\`" (regexp-quote directory) "\\(/\\|\\'\\)")))
+    ;; The value of regexp could be multibyte or unibyte.  In the
+    ;; latter case, we need to decode it.
+    (if (multibyte-string-p regexp)
+        regexp
+      (decode-coding-string regexp
+                            (if (eq system-type 'windows-nt)
+                                'utf-8
+                              locale-coding-system)))))
+
+(defun directory-abbrev-apply (filename)
+  "Apply the abbreviations in `directory-abbrev-alist' to FILENAME.
+Note that when calling this, you should set `case-fold-search' as
+appropriate for the filesystem used for FILENAME."
+  (dolist (dir-abbrev directory-abbrev-alist filename)
+    (when (string-match (car dir-abbrev) filename)
+         (setq filename (concat (cdr dir-abbrev)
+                                (substring filename (match-end 0)))))))
+
 (defcustom make-backup-files t
   "Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
@@ -2015,73 +2040,54 @@ if you want to permanently change your home directory after having
 started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data                      ;FIXME: Why?
-    (if (and automount-dir-prefix
-	     (string-match automount-dir-prefix filename)
-	     (file-exists-p (file-name-directory
-			     (substring filename (1- (match-end 0))))))
-	(setq filename (substring filename (1- (match-end 0)))))
-    ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
-    (let ((case-fold-search (file-name-case-insensitive-p filename)))
-      ;; If any elt of directory-abbrev-alist matches this name,
-      ;; abbreviate accordingly.
-      (dolist (dir-abbrev directory-abbrev-alist)
-	(if (string-match (car dir-abbrev) filename)
-	    (setq filename
-		  (concat (cdr dir-abbrev)
-			  (substring filename (match-end 0))))))
-      ;; Compute and save the abbreviated homedir name.
-      ;; We defer computing this until the first time it's needed, to
-      ;; give time for directory-abbrev-alist to be set properly.
-      ;; We include a slash at the end, to avoid spurious matches
-      ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
-      (unless abbreviated-home-dir
-        (put 'abbreviated-home-dir 'home (expand-file-name "~"))
-        (setq abbreviated-home-dir
-              (let* ((abbreviated-home-dir "\\`\\'.") ;Impossible regexp.
-                     (regexp
-                      (concat "\\`"
-                              (regexp-quote
-                               (abbreviate-file-name
-                                (get 'abbreviated-home-dir 'home)))
-                              "\\(/\\|\\'\\)")))
-                ;; Depending on whether default-directory does or
-                ;; doesn't include non-ASCII characters, the value
-                ;; of abbreviated-home-dir could be multibyte or
-                ;; unibyte.  In the latter case, we need to decode
-                ;; it.  Note that this function is called for the
-                ;; first time (from startup.el) when
-                ;; locale-coding-system is already set up.
-                (if (multibyte-string-p regexp)
-                    regexp
-                  (decode-coding-string regexp
-                                        (if (eq system-type 'windows-nt)
-                                            'utf-8
-                                          locale-coding-system))))))
+    (if-let ((handler (find-file-name-handler filename 'abbreviate-file-name)))
+        (funcall handler 'abbreviate-file-name filename)
+      (if (and automount-dir-prefix
+               (string-match automount-dir-prefix filename)
+               (file-exists-p (file-name-directory
+                               (substring filename (1- (match-end 0))))))
+          (setq filename (substring filename (1- (match-end 0)))))
+      ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
+      (let ((case-fold-search (file-name-case-insensitive-p filename)))
+        ;; If any elt of directory-abbrev-alist matches this name,
+        ;; abbreviate accordingly.
+        (setq filename (directory-abbrev-apply filename))
 
-      ;; If FILENAME starts with the abbreviated homedir,
-      ;; and ~ hasn't changed since abbreviated-home-dir was set,
-      ;; make it start with `~' instead.
-      ;; If ~ has changed, we ignore abbreviated-home-dir rather than
-      ;; invalidating it, on the assumption that a change in HOME
-      ;; is likely temporary (eg for testing).
-      ;; FIXME Is it even worth caching abbreviated-home-dir?
-      ;; Ref: https://debbugs.gnu.org/19657#20
-      (let (mb1)
-        (if (and (string-match abbreviated-home-dir filename)
-                 (setq mb1 (match-beginning 1))
-	         ;; If the home dir is just /, don't change it.
-	         (not (and (= (match-end 0) 1)
-			   (= (aref filename 0) ?/)))
-	         ;; MS-DOS root directories can come with a drive letter;
-	         ;; Novell Netware allows drive letters beyond `Z:'.
-	         (not (and (memq system-type '(ms-dos windows-nt cygwin))
-			   (string-match "\\`[a-zA-`]:/\\'" filename)))
-                 (equal (get 'abbreviated-home-dir 'home)
-                        (expand-file-name "~")))
-	    (setq filename
-		  (concat "~"
-			  (substring filename mb1))))
-        filename))))
+        ;; Compute and save the abbreviated homedir name.
+        ;; We defer computing this until the first time it's needed, to
+        ;; give time for directory-abbrev-alist to be set properly.
+        (unless abbreviated-home-dir
+          (put 'abbreviated-home-dir 'home (expand-file-name "~"))
+          (setq abbreviated-home-dir
+                (directory-abbrev-make-regexp
+                 (let ((abbreviated-home-dir "\\`\\'.")) ;Impossible regexp.
+                   (abbreviate-file-name
+                    (get 'abbreviated-home-dir 'home))))))
+
+        ;; If FILENAME starts with the abbreviated homedir,
+        ;; and ~ hasn't changed since abbreviated-home-dir was set,
+        ;; make it start with `~' instead.
+        ;; If ~ has changed, we ignore abbreviated-home-dir rather than
+        ;; invalidating it, on the assumption that a change in HOME
+        ;; is likely temporary (eg for testing).
+        ;; FIXME Is it even worth caching abbreviated-home-dir?
+        ;; Ref: https://debbugs.gnu.org/19657#20
+        (let (mb1)
+          (if (and (string-match abbreviated-home-dir filename)
+                   (setq mb1 (match-beginning 1))
+                   ;; If the home dir is just /, don't change it.
+                   (not (and (= (match-end 0) 1)
+                             (= (aref filename 0) ?/)))
+                   ;; MS-DOS root directories can come with a drive letter;
+                   ;; Novell Netware allows drive letters beyond `Z:'.
+                   (not (and (memq system-type '(ms-dos windows-nt cygwin))
+                             (string-match "\\`[a-zA-`]:/\\'" filename)))
+                   (equal (get 'abbreviated-home-dir 'home)
+                          (expand-file-name "~")))
+              (setq filename
+                    (concat "~"
+                            (substring filename mb1))))
+          filename)))))
 
 (defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
@@ -7836,10 +7842,11 @@ only these files will be asked to be saved."
 	;; Get a list of the indices of the args that are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			'(;; The first seven are special because they
+			'(;; The first eight are special because they
 			  ;; return a file name.  We want to include
 			  ;; the /: in the return value.  So just
 			  ;; avoid stripping it in the first place.
+                          (abbreviate-file-name)
                           (directory-file-name)
                           (expand-file-name)
                           (file-name-as-directory)

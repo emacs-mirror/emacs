@@ -942,7 +942,8 @@ Format specifiers \"%s\" are replaced before the script is used.")
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-sh-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '((abbreviate-file-name . tramp-handle-abbreviate-file-name)
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-sh-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-sh-handle-copy-directory)

@@ -2495,6 +2495,8 @@ Must be handled by the callers."
 	      file-system-info
 	      ;; Emacs 28+ only.
 	      file-locked-p lock-file make-lock-file-name unlock-file
+	      ;; Emacs 29+ only.
+	      abbreviate-file-name
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
@@ -3281,6 +3283,23 @@ User is always nil."
 
 (defvar tramp-handle-write-region-hook nil
   "Normal hook to be run at the end of `tramp-*-handle-write-region'.")
+
+(defun tramp-handle-abbreviate-file-name (filename)
+  "Like `abbreviate-file-name' for Tramp files."
+  (let* ((case-fold-search (file-name-case-insensitive-p filename))
+         (home-dir
+          (with-parsed-tramp-file-name filename nil
+            (with-tramp-connection-property v "home-directory"
+              (directory-abbrev-apply (expand-file-name
+                                       (tramp-make-tramp-file-name v "~")))))))
+    ;; If any elt of directory-abbrev-alist matches this name,
+    ;; abbreviate accordingly.
+    (setq filename (directory-abbrev-apply filename))
+    (if (string-match (directory-abbrev-make-regexp home-dir) filename)
+        (with-parsed-tramp-file-name filename nil
+          (tramp-make-tramp-file-name
+           v (concat "~" (substring filename (match-beginning 1)))))
+      filename)))
 
 (defun tramp-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
