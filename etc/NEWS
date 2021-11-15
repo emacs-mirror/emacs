@@ -498,6 +498,11 @@ This mode acts similarly to incremental search, and allows to search
 the contents of a WebKit widget.  In xwidget-webkit mode, it is bound
 to 'C-s' and 'C-r'.
 
++++
+*** New command 'xwidget-webkit-browse-history'.
+This command displays a buffer containing the page load history of
+the current WebKit widget, and allows you to navigate it.
+
 ---
 *** On X11, the WebKit inspector is now available inside xwidgets.
 To access the inspector, right click on the widget and select "Inspect

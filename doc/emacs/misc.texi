@@ -3011,6 +3011,14 @@ the WebKit widget to display the next search result, while typing
 
 To leave incremental search, you can type @kbd{C-g}.
 
+@findex xwidget-webkit-browse-history
+@cindex history of webkit buffers
+  The command @code{xwidget-webkit-browse-history} displays a buffer
+containing a list of pages previously loaded by the current WebKit
+buffer, and lets you navigate to those pages by hitting @kbd{RET}.
+
+It is bound to @kbd{H}.
+
 @node Browse-URL
 @subsection  Following URLs
 @cindex World Wide Web

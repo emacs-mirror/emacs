@@ -55,6 +55,7 @@
 (declare-function delete-xwidget-view "xwidget.c" (xwidget-view))
 (declare-function get-buffer-xwidgets "xwidget.c" (buffer))
 (declare-function xwidget-query-on-exit-flag "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-back-forward-list "xwidget.c" (xwidget &optional limit))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -194,6 +195,7 @@ for the actual events that will be sent."
     (define-key map "e" 'xwidget-webkit-edit-mode)
     (define-key map "\C-r" 'xwidget-webkit-isearch-mode)
     (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
+    (define-key map "H" 'xwidget-webkit-browse-history)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
@@ -228,6 +230,7 @@ for the actual events that will be sent."
         ["Back" xwidget-webkit-back t]
         ["Forward" xwidget-webkit-forward t]
         ["Reload" xwidget-webkit-reload t]
+        ["History" xwidget-webkit-browse-history t]
         ["Insert String" xwidget-webkit-insert-string
          :active t
          :help "Insert a string into the currently active field"]
@@ -396,6 +399,9 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
              (when (or (string-equal (nth 3 last-input-event)
                                      "load-finished")
                        (> (length title) 0))
+               (when-let ((buffer (get-buffer "*Xwidget WebKit History*")))
+                 (with-current-buffer buffer
+                   (revert-buffer)))
                (with-current-buffer (xwidget-buffer xwidget)
                  (setq xwidget-webkit--title title)
                  (force-mode-line-update)
@@ -775,6 +781,7 @@ Return the buffer."
          (callback #'xwidget-webkit-callback)
          (buffer (get-buffer-create bufname)))
     (with-current-buffer buffer
+      (setq xwidget-webkit-last-session-buffer buffer)
       (save-excursion
         (erase-buffer)
         (insert ".")
@@ -820,6 +827,15 @@ Return the buffer."
   (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
     (message "URL: %s" (kill-new (or url "")))))
+
+(defun xwidget-webkit-browse-history ()
+  "Display a buffer containing the history of page loads."
+  (interactive)
+  (setq xwidget-webkit-last-session-buffer (current-buffer))
+  (let ((buffer (get-buffer-create "*Xwidget WebKit History*")))
+    (with-current-buffer buffer
+      (xwidget-webkit-history-mode))
+    (display-buffer buffer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun xwidget-webkit-get-selection (proc)
@@ -1059,6 +1075,66 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
         (concat xwidget-webkit-isearch--string
                 (current-kill 0)))
   (xwidget-webkit-isearch--update))
+
+(defvar-local xwidget-webkit-history--session nil
+  "The xwidget this history buffer controls.")
+
+(define-button-type 'xwidget-webkit-history 'action #'xwidget-webkit-history-select-item)
+
+(defun xwidget-webkit-history--insert-item (item)
+  "Insert specified ITEM into the current buffer."
+  (let ((idx (car item))
+        (title (cadr item))
+        (uri (caddr item)))
+    (push (list idx (vector (list (number-to-string idx)
+                                  :type 'xwidget-webkit-history)
+                            (list title :type 'xwidget-webkit-history)
+                            (list uri :type 'xwidget-webkit-history)))
+          tabulated-list-entries)))
+
+(defun xwidget-webkit-history-select-item (pos)
+  "Navigate to the history item underneath POS."
+  (interactive "P")
+  (let ((id (tabulated-list-get-id pos)))
+    (xwidget-webkit-goto-history xwidget-webkit-history--session id))
+  (xwidget-webkit-history-reload))
+
+(defun xwidget-webkit-history-reload (&rest ignored)
+  "Reload the current history buffer."
+  (interactive)
+  (setq tabulated-list-entries nil)
+  (let* ((back-forward-list
+          (xwidget-webkit-back-forward-list xwidget-webkit-history--session))
+         (back-list (car back-forward-list))
+         (here (cadr back-forward-list))
+         (forward-list (caddr back-forward-list)))
+    (mapc #'xwidget-webkit-history--insert-item (nreverse forward-list))
+    (xwidget-webkit-history--insert-item here)
+    (mapc #'xwidget-webkit-history--insert-item back-list)
+    (tabulated-list-print t nil)
+    (goto-char (point-min))
+    (let ((position (line-beginning-position (1+ (length back-list)))))
+      (goto-char position)
+      (setq-local overlay-arrow-position (make-marker))
+      (set-marker overlay-arrow-position position))))
+
+(define-derived-mode xwidget-webkit-history-mode tabulated-list-mode
+  "Xwidget Webkit History"
+  "Major mode for browsing the history of an Xwidget Webkit buffer.
+Each line describes an entry in history."
+  (setq truncate-lines t)
+  (setq buffer-read-only t)
+  (setq tabulated-list-format [("Index" 10 nil)
+                               ("Title" 50 nil)
+                               ("URL" 100 nil)])
+  (setq tabulated-list-entries nil)
+  (setq xwidget-webkit-history--session (xwidget-webkit-current-session))
+  (xwidget-webkit-history-reload)
+  (setq-local revert-buffer-function #'xwidget-webkit-history-reload)
+  (tabulated-list-init-header))
+
+(define-key xwidget-webkit-history-mode-map (kbd "RET")
+  #'xwidget-webkit-history-select-item)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar xwidget-view-list)              ; xwidget.c
