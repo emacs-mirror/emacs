@@ -6423,7 +6423,10 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     else
       face_id = lookup_basic_face (w, f, DEFAULT_FACE_ID);
 
-    default_face = FACE_FROM_ID (f, face_id);
+    default_face = FACE_FROM_ID_OR_NULL (f, face_id);
+    if (!default_face)
+      default_face = FACE_FROM_ID (f,
+				   lookup_basic_face (w, f, DEFAULT_FACE_ID));
   }
 
   /* Optimize common cases where we can use the default face.  */
