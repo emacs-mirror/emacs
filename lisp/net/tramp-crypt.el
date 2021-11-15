@@ -157,7 +157,8 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-crypt-file-name-handler-alist
-  '((access-file . tramp-crypt-handle-access-file)
+  '(;; `abbreviate-file-name' performed by default handler.
+    (access-file . tramp-crypt-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)

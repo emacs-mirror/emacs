@@ -2297,11 +2297,13 @@ This checks also `file-name-as-directory', `file-name-directory',
   (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
          (home-dir (expand-file-name (concat remote-host "~"))))
     ;; Check home-dir abbreviation.
-    (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
-                   (concat remote-host "~/foo/bar")))
-    (should (equal (abbreviate-file-name (concat remote-host
-                                                 "/nowhere/special"))
-                   (concat remote-host "/nowhere/special")))
+    (unless (string-suffix-p "~" home-dir)
+      (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
+                     (concat remote-host "~/foo/bar")))
+      (should (equal (abbreviate-file-name
+		      (concat remote-host "/nowhere/special"))
+                     (concat remote-host "/nowhere/special"))))
+
     ;; Check `directory-abbrev-alist' abbreviation.
     (let ((directory-abbrev-alist
            `((,(concat "\\`" (regexp-quote home-dir) "/foo")
@@ -2310,8 +2312,8 @@ This checks also `file-name-as-directory', `file-name-directory',
               . ,(concat remote-host "/nw")))))
       (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
                      (concat remote-host "~/f/bar")))
-      (should (equal (abbreviate-file-name (concat remote-host
-                                                   "/nowhere/special"))
+      (should (equal (abbreviate-file-name
+		      (concat remote-host "/nowhere/special"))
                      (concat remote-host "/nw/special"))))))
 
 (ert-deftest tramp-test07-file-exists-p ()
@@ -3327,7 +3329,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (while (not (or (eobp)
 			      (string-equal
-			       (dired-get-filename 'localp 'no-error)
+			       (dired-get-filename 'no-dir 'no-error)
 			       (file-name-nondirectory tmp-name2))))
 		(forward-line 1))
 	      (should-not (eobp))
@@ -3337,14 +3339,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      ;; Point shall still be the recent file.
 	      (should
 	       (string-equal
-		(dired-get-filename 'localp 'no-error)
+		(dired-get-filename 'no-dir 'no-error)
 		(file-name-nondirectory tmp-name2)))
 	      (should-not (re-search-forward "dired" nil t))
 	      ;; The copied file has been inserted the line before.
 	      (forward-line -1)
 	      (should
 	       (string-equal
-		(dired-get-filename 'localp 'no-error)
+		(dired-get-filename 'no-dir 'no-error)
 		(file-name-nondirectory tmp-name3))))
 	    (kill-buffer buffer))
 
@@ -6329,7 +6331,7 @@ This requires restrictions of file name syntax."
 		(setq buffer (dired-noselect tmp-name1 "--dired -al"))
 	      (goto-char (point-min))
 	      (while (not (eobp))
-		(when-let ((name (dired-get-filename 'localp 'no-error)))
+		(when-let ((name (dired-get-filename 'no-dir 'no-error)))
 		  (unless
 		      (string-match-p name directory-files-no-dot-files-regexp)
 		    (should (member name files))))

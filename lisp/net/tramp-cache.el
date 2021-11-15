@@ -224,7 +224,9 @@ Return VALUE."
 (defun tramp-flush-file-upper-properties (key file)
   "Remove some properties of FILE's upper directory."
   (when (file-name-absolute-p file)
-    (let ((file (directory-file-name (file-name-directory file))))
+    ;; `file-name-directory' can return nil, for example for "~".
+    (when-let ((file (file-name-directory file))
+	       (file (directory-file-name file)))
       ;; Unify localname.  Remove hop from `tramp-file-name' structure.
       (setq file (tramp-compat-file-name-unquote file)
 	    key (copy-tramp-file-name key))

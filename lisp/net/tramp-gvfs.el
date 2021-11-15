@@ -744,7 +744,8 @@ It has been changed in GVFS 1.14.")
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-gvfs-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '(;; `abbreviate-file-name' performed by default handler.
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)

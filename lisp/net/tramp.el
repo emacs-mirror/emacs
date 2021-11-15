@@ -1677,6 +1677,8 @@ If it's not a Tramp filename, return nil."
    ((tramp-tramp-file-p vec-or-filename)
     (tramp-dissect-file-name vec-or-filename))))
 
+(put #'tramp-ensure-dissected-file-name 'tramp-suppress-trace t)
+
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
 See `tramp-dissect-file-name' for details."
@@ -1924,7 +1926,9 @@ The outline level is equal to the verbosity of the Tramp message."
                   `(t (eval ,tramp-debug-font-lock-keywords t)
                       ,(eval tramp-debug-font-lock-keywords t)))
       ;; Do not edit the debug buffer.
-      (use-local-map special-mode-map))
+      (use-local-map special-mode-map)
+      ;; For debugging purposes.
+      (define-key (current-local-map) "\M-n" 'clone-buffer))
     (current-buffer)))
 
 (put #'tramp-get-debug-buffer 'tramp-suppress-trace t)
@@ -3284,21 +3288,26 @@ User is always nil."
 (defvar tramp-handle-write-region-hook nil
   "Normal hook to be run at the end of `tramp-*-handle-write-region'.")
 
+;; `directory-abbrev-apply' and `directory-abbrev-make-regexp' exists
+;; since Emacs 29.1.  Since this handler isn't called for older
+;; Emacsen, it is save to invoke them via `tramp-compat-funcall'.
 (defun tramp-handle-abbreviate-file-name (filename)
   "Like `abbreviate-file-name' for Tramp files."
   (let* ((case-fold-search (file-name-case-insensitive-p filename))
+	 (vec (tramp-dissect-file-name filename))
          (home-dir
-          (with-parsed-tramp-file-name filename nil
-            (with-tramp-connection-property v "home-directory"
-              (directory-abbrev-apply (expand-file-name
-                                       (tramp-make-tramp-file-name v "~")))))))
-    ;; If any elt of directory-abbrev-alist matches this name,
+          (with-tramp-connection-property vec "home-directory"
+            (tramp-compat-funcall
+	     'directory-abbrev-apply
+	     (expand-file-name (tramp-make-tramp-file-name vec "~"))))))
+    ;; If any elt of `directory-abbrev-alist' matches this name,
     ;; abbreviate accordingly.
-    (setq filename (directory-abbrev-apply filename))
-    (if (string-match (directory-abbrev-make-regexp home-dir) filename)
-        (with-parsed-tramp-file-name filename nil
-          (tramp-make-tramp-file-name
-           v (concat "~" (substring filename (match-beginning 1)))))
+    (setq filename (tramp-compat-funcall 'directory-abbrev-apply filename))
+    ;; Abbreviate home directory.
+    (if (string-match
+	 (tramp-compat-funcall 'directory-abbrev-make-regexp home-dir) filename)
+        (tramp-make-tramp-file-name
+	 vec (concat "~" (substring filename (match-beginning 1))))
       filename)))
 
 (defun tramp-handle-access-file (filename string)
