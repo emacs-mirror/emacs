@@ -1631,7 +1631,9 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
     }
 #endif
 
-  window_box (s->w, TEXT_AREA, &text_area_x, &text_area_y,
+  xv->area = s->area;
+
+  window_box (s->w, xv->area, &text_area_x, &text_area_y,
               &text_area_width, &text_area_height);
 
   clip_left = max (0, text_area_x - x);

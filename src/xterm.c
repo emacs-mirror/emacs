@@ -4439,7 +4439,7 @@ x_scroll_run (struct window *w, struct run *run)
 		  int text_area_x, text_area_y, text_area_width, text_area_height;
 		  int clip_top, clip_bottom;
 
-		  window_box (w, TEXT_AREA, &text_area_x, &text_area_y,
+		  window_box (w, view->area, &text_area_x, &text_area_y,
 			      &text_area_width, &text_area_height);
 
 		  view->y = y;

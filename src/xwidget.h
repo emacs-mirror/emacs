@@ -104,6 +104,8 @@ struct xwidget_view
   /* The "live" instance isn't drawn.  */
   bool hidden;
 
+  enum glyph_row_area area;
+
 #if defined (USE_GTK)
   Display *dpy;
   Window wdesc;
