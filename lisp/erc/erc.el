@@ -1479,6 +1479,7 @@ Defaults to the server buffer."
 
 (define-derived-mode erc-mode fundamental-mode "ERC"
   "Major mode for Emacs IRC."
+  :interactive nil
   (setq local-abbrev-table erc-mode-abbrev-table)
   (setq-local next-line-add-newlines nil)
   (setq line-move-ignore-invisible t)
