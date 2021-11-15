@@ -22,6 +22,7 @@
 (require 'ert)
 (require 'ert-x)
 (require 'dired)
+(require 'dired-x)
 (require 'wdired)
 
 (defvar dired-query)                    ; Pacify byte compiler.
@@ -124,10 +125,6 @@ wdired-mode."
               (set-buffer-modified-p nil)
               (kill-buffer buf))))))))
 
-(defvar server-socket-dir)
-(declare-function dired-smart-shell-command "dired-x"
-                  (command &optional output-buffer error-buffer))
-
 (ert-deftest wdired-test-bug34915 ()
   "Test editing when dired-listing-switches includes -F.
 Appended file indicators should not count as part of the file
@@ -137,10 +134,10 @@ suffices to compare the return values of dired-get-filename and
 wdired-get-filename before and after editing."
   ;; FIXME: Add a test for a door (indicator ">") only under Solaris?
   (ert-with-temp-directory test-dir
-    (let* ((server-socket-dir test-dir)
-           (dired-listing-switches "-Fl")
+    (let* ((dired-listing-switches "-Fl")
            (dired-ls-F-marks-symlinks (eq system-type 'darwin))
-           (buf (find-file-noselect test-dir)))
+           (buf (find-file-noselect test-dir))
+           proc)
       (unwind-protect
           (progn
             (with-current-buffer buf
@@ -148,11 +145,12 @@ wdired-get-filename before and after editing."
               (set-file-modes "foo" (file-modes-symbolic-to-number "+x"))
               (make-symbolic-link "foo" "bar")
               (make-directory "foodir")
-              (require 'dired-x)
               (dired-smart-shell-command "mkfifo foopipe")
-              (server-force-delete)
-              ;; FIXME?  This seems a heavy-handed way of making a socket.
-              (server-start)             ; Add a socket file.
+              (setq proc (make-network-process
+                          :name "foo"
+                          :family 'local
+                          :server t
+                          :service (expand-file-name "foosocket" test-dir)))
               (kill-buffer buf))
             (dired test-dir)
             (dired-toggle-read-only)
@@ -172,7 +170,7 @@ wdired-get-filename before and after editing."
                             (setq dir (dired-get-filename 'no-dir t)))
                   (should (equal dir (pop names)))))))
         (kill-buffer (get-buffer test-dir))
-        (server-force-delete)))))
+        (ignore-errors (delete-process proc))))))
 
 (ert-deftest wdired-test-bug39280 ()
   "Test for https://debbugs.gnu.org/39280."
