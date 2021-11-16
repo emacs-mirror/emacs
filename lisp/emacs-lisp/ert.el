@@ -77,6 +77,37 @@
 Use nil for no limit (caution: backtrace lines can be very long)."
   :type '(choice (const :tag "No truncation" nil) integer))
 
+(defvar ert-batch-print-length 10
+  "`print-length' setting used in `ert-run-tests-batch'.
+
+When formatting lists in test conditions, `print-length' will be
+temporarily set to this value.  See also
+`ert-batch-backtrace-line-length' for its effect on stack
+traces.")
+
+(defvar ert-batch-print-level 5
+  "`print-level' setting used in `ert-run-tests-batch'.
+
+When formatting lists in test conditions, `print-level' will be
+temporarily set to this value.  See also
+`ert-batch-backtrace-line-length' for its effect on stack
+traces.")
+
+(defvar ert-batch-backtrace-line-length t
+  "Target length for lines in ERT batch backtraces.
+
+Even modest settings for `print-length' and `print-level' can
+produce extremely long lines in backtraces and lengthy delays in
+forming them.  This variable governs the target maximum line
+length by manipulating these two variables while printing stack
+traces.  Setting this variable to t will re-use the value of
+`backtrace-line-length' while print stack traces in ERT batch
+mode.  A value of nil will short-circuit this mechanism; line
+lengths will be completely determined by `ert-batch-line-length'
+and `ert-batch-line-level'.  Any other value will be temporarily
+bound to `backtrace-line-length' when producing stack traces
+in batch mode.")
+
 (defface ert-test-result-expected '((((class color) (background light))
                                      :background "green1")
                                     (((class color) (background dark))
@@ -1402,8 +1433,7 @@ Returns the stats object."
                                       (ert-reason-for-test-result result)
                                     ""))))
               (message "%s" "")))))
-       (test-started
-        )
+       (test-started)
        (test-ended
         (cl-destructuring-bind (stats test result) event-args
           (unless (ert-test-result-expected-p test result)
@@ -1413,8 +1443,18 @@ Returns the stats object."
               (ert-test-result-with-condition
                (message "Test %S backtrace:" (ert-test-name test))
                (with-temp-buffer
-                 (insert (backtrace-to-string
-                          (ert-test-result-with-condition-backtrace result)))
+                 (let ((backtrace-line-length
+                        (cond
+                         ((eq ert-batch-backtrace-line-length t)
+                          backtrace-line-length)
+                         ((eq ert-batch-backtrace-line-length nil)
+                          nil)
+                         (t
+                          ert-batch-backtrace-line-length)))
+                       (print-level ert-batch-print-level)
+                       (print-length ert-batch-print-length))
+                   (insert (backtrace-to-string
+                            (ert-test-result-with-condition-backtrace result))))
                  (if (not ert-batch-backtrace-right-margin)
                      (message "%s"
                               (buffer-substring-no-properties (point-min)
@@ -1433,8 +1473,8 @@ Returns the stats object."
                  (ert--insert-infos result)
                  (insert "    ")
                  (let ((print-escape-newlines t)
-                       (print-level 5)
-                       (print-length 10))
+                       (print-level ert-batch-print-level)
+                       (print-length ert-batch-print-length))
                    (ert--pp-with-indentation-and-newline
                     (ert-test-result-with-condition-condition result)))
                  (goto-char (1- (point-max)))
@@ -1962,13 +2002,13 @@ otherwise."
   (ewoc-refresh ert--results-ewoc)
   (font-lock-default-function enabledp))
 
-(defun ert--setup-results-buffer (stats listener buffer-name)
+(defvar ert--output-buffer-name "*ert*")
+
+(defun ert--setup-results-buffer (stats listener)
   "Set up a test results buffer.
 
-STATS is the stats object; LISTENER is the results listener;
-BUFFER-NAME, if non-nil, is the buffer name to use."
-  (unless buffer-name (setq buffer-name "*ert*"))
-  (let ((buffer (get-buffer-create buffer-name)))
+STATS is the stats object; LISTENER is the results listener."
+  (let ((buffer (get-buffer-create ert--output-buffer-name)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
@@ -2000,18 +2040,11 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
 (defvar ert--selector-history nil
   "List of recent test selectors read from terminal.")
 
-;; Should OUTPUT-BUFFER-NAME and MESSAGE-FN really be arguments here?
-;; They are needed only for our automated self-tests at the moment.
-;; Or should there be some other mechanism?
 ;;;###autoload
-(defun ert-run-tests-interactively (selector
-                                    &optional output-buffer-name message-fn)
+(defun ert-run-tests-interactively (selector)
   "Run the tests specified by SELECTOR and display the results in a buffer.
 
-SELECTOR works as described in `ert-select-tests'.
-OUTPUT-BUFFER-NAME and MESSAGE-FN should normally be nil; they
-are used for automated self-tests and specify which buffer to use
-and how to display message."
+SELECTOR works as described in `ert-select-tests'."
   (interactive
    (list (let ((default (if ert--selector-history
                             ;; Can't use `first' here as this form is
@@ -2024,23 +2057,17 @@ and how to display message."
                              obarray #'ert-test-boundp nil nil
                              'ert--selector-history default nil)))
          nil))
-  (unless message-fn (setq message-fn 'message))
-  (let ((output-buffer-name output-buffer-name)
-        buffer
-        listener
-        (message-fn message-fn))
+  (let (buffer listener)
     (setq listener
           (lambda (event-type &rest event-args)
             (cl-ecase event-type
               (run-started
                (cl-destructuring-bind (stats) event-args
-                 (setq buffer (ert--setup-results-buffer stats
-                                                         listener
-                                                         output-buffer-name))
+                 (setq buffer (ert--setup-results-buffer stats listener))
                  (pop-to-buffer buffer)))
               (run-ended
                (cl-destructuring-bind (stats abortedp) event-args
-                 (funcall message-fn
+                 (message
                           "%sRan %s tests, %s results were as expected%s%s"
                           (if (not abortedp)
                               ""
@@ -2394,7 +2421,7 @@ To be used in the ERT results buffer."
   (interactive nil ert-results-mode)
   (cl-assert (eql major-mode 'ert-results-mode))
   (let ((selector (ert--stats-selector ert--results-stats)))
-    (ert-run-tests-interactively selector (buffer-name))))
+    (ert-run-tests-interactively selector)))
 
 (defun ert-results-rerun-test-at-point ()
   "Re-run the test at point.

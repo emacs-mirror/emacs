@@ -54,6 +54,13 @@ This is in addition to previously-supported ways of discovering 24-bit
 color support: either via the "RGB" or "setf24" capabilities, or if
 the 'COLORTERM' environment variable is set to the value "truecolor".
 
++++
+** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
+These variables will override 'print-length' and 'print-level' when
+printing Lisp values in ERT batch test results.
+
+** Emacs now supports Unicode Standard version 14.0.
+
 ** Emoji
 
 +++
