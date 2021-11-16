@@ -146,11 +146,12 @@ wdired-get-filename before and after editing."
               (make-symbolic-link "foo" "bar")
               (make-directory "foodir")
               (dired-smart-shell-command "mkfifo foopipe")
-              (setq proc (make-network-process
-                          :name "foo"
-                          :family 'local
-                          :server t
-                          :service (expand-file-name "foosocket" test-dir)))
+              (when (featurep 'make-network-process '(:family local))
+                (setq proc (make-network-process
+                            :name "foo"
+                            :family 'local
+                            :server t
+                            :service (expand-file-name "foosocket" test-dir))))
               (kill-buffer buf))
             (dired test-dir)
             (dired-toggle-read-only)
