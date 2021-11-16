@@ -437,8 +437,7 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-08-plus-slash ()
   "Test `mh-folder-completion-function' with `+/'."
-  :expected-result :failed              ;to be fixed in a patch by mkupfer
-  (mh-test-folder-completion-1 "+/" "+/" "tmp/" nil)
+  (mh-test-folder-completion-1 "+/" "+/" "tmp/" t)
     ;; case "bb"
     (with-mh-test-env
       (should (equal nil
@@ -447,8 +446,7 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-09-plus-slash-tmp ()
   "Test `mh-folder-completion-function' with `+/tmp'."
-  :expected-result :failed              ;to be fixed in a patch by mkupfer
-  (mh-test-folder-completion-1 "+/tmp" "+/tmp" "tmp/" t))
+  (mh-test-folder-completion-1 "+/tmp" "+/tmp/" "tmp/" t))
 
 (ert-deftest mh-folder-completion-function-10-plus-slash-abs-folder ()
   "Test `mh-folder-completion-function' with `+/abso-folder'."

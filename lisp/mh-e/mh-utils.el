@@ -531,7 +531,12 @@ results of the actual folders call.
 If optional argument ADD-TRAILING-SLASH-FLAG is non-nil then a
 slash is added to each of the sub-folder names that may have
 nested folders within them."
-  (let* ((folder (mh-normalize-folder-name folder nil nil t))
+  ;; In most cases we want to remove a trailing slash.  We keep the
+  ;; slash for "+/", because it refers to folders in the system root
+  ;; directory, whereas "+" refers to the user's top-level folders.
+  (let* ((folder (mh-normalize-folder-name folder nil
+                                           (string= folder "+/")
+                                           t))
          (match (gethash folder mh-sub-folders-cache 'no-result))
          (sub-folders (cond ((eq match 'no-result)
                              (setf (gethash folder mh-sub-folders-cache)
