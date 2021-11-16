@@ -1626,53 +1626,105 @@ return the binding in the parent, and with a nil @var{def}, the
 lookups will return @code{nil}.
 @end defun
 
-There's a number of other legacy key definition functions.  Below is a
-list of them, with the equivalent modern function to use instead.
+Here are other legacy key definition functions and commands, with the
+equivalent modern function to use instead in new code.
 
-@table @code
-@findex global-set-key
-@item global-set-key
-Use @code{keymap-global-set} instead.
+@deffn Command global-set-key key binding
+This function sets the binding of @var{key} in the current global map
+to @var{binding}.  Use @code{keymap-global-set} instead.
+@end deffn
 
-@findex local-set-key
-@item local-set-key
-Use @code{keymap-local-set} instead.
+@deffn Command global-unset-key key
+This function removes the binding of @var{key} from the current
+global map.  Use @code{keymap-global-unset} instead.
+@end deffn
 
-@findex global-unset-key
-@item global-unset-key
-Use @code{keymap-global-unset} instead.
+@deffn Command local-set-key key binding
+This function sets the binding of @var{key} in the current local
+keymap to @var{binding}.  Use @code{keymap-local-set} instead.
+@end deffn
 
-@findex local-unset-key
-@item local-unset-key
-Use @code{keymap-local-unset} instead.
+@deffn Command local-unset-key key
+This function removes the binding of @var{key} from the current
+local map.  Use @code{keymap-local-unset} instead.
+@end deffn
 
-@findex substitute-key-definition
-@item substitute-key-definition
-Use @code{keymap-substitute} instead.
+@defun substitute-key-definition olddef newdef keymap &optional oldmap
+This function replaces @var{olddef} with @var{newdef} for any keys in
+@var{keymap} that were bound to @var{olddef}.  In other words,
+@var{olddef} is replaced with @var{newdef} wherever it appears.  The
+function returns @code{nil}.  Use @code{keymap-substitute} instead.
+@end defun
 
-@findex define-key-after
-@item define-key-after
-Use @code{keymap-set-after} instead.
+@defun define-key-after map key binding &optional after
+Define a binding in @var{map} for @var{key}, with value @var{binding},
+just like @code{define-key}, but position the binding in @var{map} after
+the binding for the event @var{after}.  The argument @var{key} should be
+of length one---a vector or string with just one element.  But
+@var{after} should be a single event type---a symbol or a character, not
+a sequence.  The new binding goes after the binding for @var{after}.  If
+@var{after} is @code{t} or is omitted, then the new binding goes last, at
+the end of the keymap.  However, new bindings are added before any
+inherited keymap.  Use @code{keymap-set-after} instead of this function.
+@end defun
 
-@findex keyboard-translate
-@item keyboard-translate
-Use @code{key-translate} instead.
+@defun keyboard-translate from to
+This function modifies @code{keyboard-translate-table} to translate
+character code @var{from} into character code @var{to}.  It creates
+the keyboard translate table if necessary.  Use @code{key-translate}
+instead.
+@end defun
 
-@findex lookup-keymap
-@findex key-binding
-@item lookup-keymap
-@itemx key-binding
-Use @code{keymap-lookup} instead.
+@defun key-binding key &optional accept-defaults no-remap position
+This function returns the binding for @var{key} according to the
+current active keymaps.  The result is @code{nil} if @var{key} is
+undefined in the keymaps.  The argument @var{accept-defaults} controls
+checking for default bindings, as in @code{lookup-key}
+(@pxref{Functions for Key Lookup}).  If @var{no-remap} is
+non-@code{nil}, @code{key-binding} ignores command remappings
+(@pxref{Remapping Commands}) and returns the binding directly
+specified for @var{key}.  The optional argument @var{position} should
+be either a buffer position or an event position like the value of
+@code{event-start}; it tells the function to consult the maps
+determined based on that @var{position}.
 
-@findex local-key-binding
-@item local-key-binding
-Use @code{keymap-local-lookup} instead.
+Emacs signals an error if @var{key} is not a string or a vector.
 
-@findex global-key-binding
-@item gobal-key-binding
-Use @code{keymap-global-lookup} instead.
-@end table
+Use @code{keymap-lookup} instead of this function.
+@end defun
 
+@defun lookup-key keymap key &optional accept-defaults
+This function returns the definition of @var{key} in @var{keymap}.  If
+the string or vector @var{key} is not a valid key sequence according
+to the prefix keys specified in @var{keymap}, it must be too long and
+have extra events at the end that do not fit into a single key
+sequence.  Then the value is a number, the number of events at the
+front of @var{key} that compose a complete key.
+
+If @var{accept-defaults} is non-@code{nil}, then @code{lookup-key}
+considers default bindings as well as bindings for the specific events
+in @var{key}.  Otherwise, @code{lookup-key} reports only bindings for
+the specific sequence @var{key}, ignoring default bindings except when
+you explicitly ask about them.
+
+Use @code{keymap-lookup} instead of this function.
+@end defun
+
+@defun local-key-binding key &optional accept-defaults
+This function returns the binding for @var{key} in the current
+local keymap, or @code{nil} if it is undefined there.
+
+The argument @var{accept-defaults} controls checking for default bindings,
+as in @code{lookup-key} (above).
+@end defun
+
+@defun global-key-binding key &optional accept-defaults
+This function returns the binding for command @var{key} in the
+current global keymap, or @code{nil} if it is undefined there.
+
+The argument @var{accept-defaults} controls checking for default bindings,
+as in @code{lookup-key} (above).
+@end defun
 
 @node Remapping Commands
 @section Remapping Commands
