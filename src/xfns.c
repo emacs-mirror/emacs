@@ -8085,6 +8085,7 @@ eliminated in future versions of Emacs.  */);
 
 #ifdef HAVE_XINPUT2
   DEFSYM (Qxinput2, "xinput2");
+
   Fprovide (Qxinput2, Qnil);
 #endif
 

@@ -556,6 +556,7 @@ xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id)
     {
       valuator = &device->valuators[i];
       valuator->invalid_p = true;
+      valuator->emacs_value = 0.0;
     }
 
   return;
@@ -9921,8 +9922,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 	    goto XI_OTHER;
 	  case XI_Motion:
-	    /* First test if there is some kind of scroll event
-	       here! */
 	    states = &xev->valuators;
 	    values = states->values;
 
@@ -9932,10 +9931,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		if (XIMaskIsSet (states->mask, i))
 		  {
-		    block_input ();
-
 		    struct xi_scroll_valuator_t *val;
-		    double delta;
+		    double delta, scroll_unit;
 
 		    delta = x_get_scroll_valuator_delta (dpyinfo, xev->deviceid,
 							 i, *values, &val);
@@ -9943,6 +9940,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    if (delta != DBL_MAX)
 		      {
 			f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+			scroll_unit = pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
 			found_valuator = true;
 
 			if (signbit (delta) != signbit (val->emacs_value))
@@ -9950,15 +9948,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			val->emacs_value += delta;
 
+			if (x_coalesce_scroll_events
+			    && (fabs (val->emacs_value) < 1))
+			  continue;
+
 			if (!f)
 			  {
 			    f = x_any_window_to_frame (dpyinfo, xev->event);
 
 			    if (!f)
-			      {
-				unblock_input ();
-				goto XI_OTHER;
-			      }
+			      goto XI_OTHER;
 			  }
 
 			bool s = signbit (val->emacs_value);
@@ -9975,13 +9974,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			inev.ie.modifiers
 			  |= x_x_to_emacs_modifiers (dpyinfo,
 						     xev->mods.effective);
-			inev.ie.arg = Qnil;
+
+			if (val->horizontal)
+			  {
+			    inev.ie.arg
+			      = list3 (Qnil,
+				       make_float (val->emacs_value
+						   * scroll_unit),
+				       make_float (0));
+			  }
+                        else
+			  {
+			    inev.ie.arg = list3 (Qnil, make_float (0),
+						 make_float (val->emacs_value
+							     * scroll_unit));
+			  }
 
 			kbd_buffer_store_event_hold (&inev.ie, hold_quit);
 
 			val->emacs_value = 0;
 		      }
-		    unblock_input ();
 		    values++;
 		  }
 
@@ -15048,4 +15060,11 @@ gtk_window_move to set or store frame positions and disables some time
 consuming frame position adjustments.  In newer versions of GTK, Emacs
 always uses gtk_window_move and ignores the value of this variable.  */);
   x_gtk_use_window_move = true;
+
+  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
+	       doc: /* Non-nil means send a wheel event only for scrolling at least one screen line.
+Otherwise, a wheel event will be sent every time the mouse wheel is
+moved.  This option is only effective when Emacs is built with XInput
+2.  */);
+  x_coalesce_scroll_events = true;
 }

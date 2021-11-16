@@ -5980,7 +5980,11 @@ make_lispy_event (struct input_event *event)
 				      ASIZE (wheel_syms));
 	}
 
-        if (NUMBERP (event->arg))
+	if (CONSP (event->arg))
+	  return list5 (head, position, make_fixnum (double_click_count),
+			XCAR (event->arg), Fcons (XCAR (XCDR (event->arg)),
+						  XCAR (XCDR (XCDR (event->arg)))));
+        else if (NUMBERP (event->arg))
           return list4 (head, position, make_fixnum (double_click_count),
                         event->arg);
 	else if (event->modifiers & (double_modifier | triple_modifier))
