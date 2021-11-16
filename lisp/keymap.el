@@ -119,7 +119,7 @@ a key in a child map, it will still shadow the same key in the
 parent keymap.  Removing the binding will allow the key in the
 parent keymap to be used."
   (keymap--check key)
-  (define-key keymap key nil remove))
+  (define-key keymap (key-parse key) nil remove))
 
 (defun keymap-substitute (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
