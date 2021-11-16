@@ -479,7 +479,10 @@ See user option `bookmark-set-fringe'."
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (equal filename buffer-file-name)
-            (setq overlays (overlays-in pos (1+ pos)))
+            (setq overlays
+                  (save-excursion
+                    (goto-char pos)
+                    (overlays-in (point-at-bol) (1+ (point-at-bol)))))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))

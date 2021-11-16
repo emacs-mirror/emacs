@@ -4646,8 +4646,8 @@ You can set this option through Custom, if you carefully read the
 last paragraph below.  However, usually it is simpler to write
 something like the following in your init file:
 
-\(setq custom-file \"~/.emacs-custom.el\")
-\(load custom-file)
+(setq custom-file \"~/.config/emacs-custom.el\")
+(load custom-file)
 
 Note that both lines are necessary: the first line tells Custom to
 save all customizations in this file, but does not load it.
