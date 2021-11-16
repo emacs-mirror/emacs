@@ -188,6 +188,7 @@ extern struct xwidget *xwidget_from_id (uint32_t id);
 #ifdef HAVE_X_WINDOWS
 struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
+extern void lower_frame_xwidget_views (struct frame *f);
 extern void kill_frame_xwidget_views (struct frame *f);
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);

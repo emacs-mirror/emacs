@@ -2811,6 +2811,20 @@ xwidget_end_redisplay (struct window *w, struct glyph_matrix *matrix)
 
 #ifdef USE_GTK
 void
+lower_frame_xwidget_views (struct frame *f)
+{
+  struct xwidget_view *xv;
+
+  for (Lisp_Object tail = internal_xwidget_view_list; CONSP (tail);
+       tail = XCDR (tail))
+    {
+      xv = XXWIDGET_VIEW (XCAR (tail));
+      if (xv->frame == f && xv->wdesc != None)
+	XLowerWindow (xv->dpy, xv->wdesc);
+    }
+}
+
+void
 kill_frame_xwidget_views (struct frame *f)
 {
   Lisp_Object rem = Qnil;

@@ -11723,6 +11723,13 @@ x_lower_frame (struct frame *f)
       XFlush (FRAME_X_DISPLAY (f));
       unblock_input ();
     }
+#ifdef HAVE_XWIDGETS
+  /* Make sure any X windows owned by xwidget views of the parent
+     still display below the lowered frame.  */
+
+  if (FRAME_PARENT_FRAME (f))
+    lower_frame_xwidget_views (FRAME_PARENT_FRAME (f));
+#endif
 }
 
 static void
