@@ -911,8 +911,8 @@ WebKit widget.  The query will be set to the contents of
                            (xwidget-webkit-current-session)
                            t xwidget-webkit-isearch--is-reverse t))
   (let ((message-log-max nil))
-    (message (concat (propertize "Search contents: " 'face 'minibuffer-prompt)
-                     xwidget-webkit-isearch--string))))
+    (message "%s" (concat (propertize "Search contents: " 'face 'minibuffer-prompt)
+                          xwidget-webkit-isearch--string))))
 
 (defun xwidget-webkit-isearch-erasing-char (count)
   "Erase the last COUNT characters of the current query."
