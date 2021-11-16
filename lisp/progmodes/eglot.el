@@ -1,6 +1,6 @@
 ;;; eglot.el --- Client for Language Server Protocol (LSP) servers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Version: 1.7
 ;; Author: João Távora <joaotavora@gmail.com>
@@ -1603,7 +1603,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
                      :key #'eglot--major-mode)
             (and eglot-extend-to-xref
                  buffer-file-name
-                 (gethash (expand-file-name buffer-file-name) 
+                 (gethash (expand-file-name buffer-file-name)
                           eglot--servers-by-xrefed-file)))))
 
 (defun eglot--current-server-or-lose ()
@@ -1808,7 +1808,8 @@ COMMAND is a symbol naming the command."
                                 (point-at-eol
                                  (1+ (plist-get (plist-get range :end) :line)))))))
                      (eglot--make-diag (current-buffer) beg end
-                                       (cond ((<= sev 1) 'eglot-error)
+                                       (cond ((null sev) 'eglot-error)
+					     ((<= sev 1) 'eglot-error)
                                              ((= sev 2)  'eglot-warning)
                                              (t          'eglot-note))
                                        message `((eglot-lsp-diag . ,diag-spec)))))
