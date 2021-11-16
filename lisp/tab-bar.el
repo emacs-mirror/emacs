@@ -91,9 +91,10 @@
 (defcustom tab-bar-select-tab-modifiers '()
   "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  Pressing one of the modifiers in the list and a digit selects
-the tab whose number equals the digit.  Negative numbers count from
-the end of the tab bar.  The digit 9 selects the last (rightmost) tab.
+`alt'.  Pressing one of the modifiers in the list and a digit selects the
+tab whose number equals the digit (see `tab-bar-select-tab').
+The digit 9 selects the last (rightmost) tab (see `tab-last').
+The digit 0 selects the most recently visited tab (see `tab-recent').
 For easier selection of tabs by their numbers, consider customizing
 `tab-bar-tab-hints', which will show tab numbers alongside the tab name."
   :type '(set :tag "Tab selection modifier keys"
@@ -1060,11 +1061,14 @@ inherits the current tab's `explicit-name' parameter."
 
 (defun tab-bar-select-tab (&optional tab-number)
   "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
-When this command is bound to a numeric key (with a prefix or modifier key
+When this command is bound to a numeric key (with a key prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of
-the tab bar."
+Also the prefix argument TAB-NUMBER can be used to override
+the numeric key, so it takes precedence over the bound digit key.
+For example, `<MODIFIER>-2' will select the second tab, but `C-u 15
+<MODIFIER>-2' will select the 15th tab.  TAB-NUMBER counts from 1.
+Negative TAB-NUMBER counts tabs from the end of the tab bar."
   (interactive "P")
   (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
@@ -1161,7 +1165,8 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 (defun tab-bar-switch-to-last-tab (&optional arg)
   "Switch to the last tab or ARGth tab from the end of the tab bar.
 Interactively, ARG is the prefix numeric argument; it defaults to 1,
-which means the last tab on the tab bar."
+which means the last tab on the tab bar.  For example, `C-u 2
+<MODIFIER>-9' selects the tab before the last tab."
   (interactive "p")
   (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
                          (1- (or arg 1)))))
