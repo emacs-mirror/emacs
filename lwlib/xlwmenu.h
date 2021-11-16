@@ -56,6 +56,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define XtCResizeToPreferred "ResizeToPreferred"
 #define XtNallowResize "allowResize"
 #define XtCAllowResize "AllowResize"
+#define XtNborderThickness "borderThickness"
+#define XtCBorderThickness "BorderThickness"
 
 /* Motif-compatible resource names */
 #define XmNshadowThickness	"shadowThickness"

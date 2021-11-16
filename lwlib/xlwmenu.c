@@ -157,6 +157,9 @@ xlwMenuResources[] =
      offset(menu.cursor_shape), XtRString, (XtPointer)"right_ptr"},
   {XtNhorizontal, XtCHorizontal, XtRInt, sizeof(int),
      offset(menu.horizontal), XtRImmediate, (XtPointer)True},
+  {XtNborderThickness, XtCBorderThickness, XtRDimension,
+     sizeof (Dimension), offset (menu.border_thickness),
+     XtRImmediate, (XtPointer)1}
 };
 #undef offset
 
@@ -635,7 +638,7 @@ draw_shadow_rectangle (XlwMenuWidget mw,
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
-  int thickness = mw->menu.shadow_thickness;
+  int thickness = !x && !y ? mw->menu.border_thickness : mw->menu.shadow_thickness;
   XPoint points [4];
 
   if (!erase_p && down_p)

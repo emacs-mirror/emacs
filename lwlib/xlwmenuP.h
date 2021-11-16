@@ -75,6 +75,7 @@ typedef struct _XlwMenu_part
   Dimension	vertical_spacing;
   Dimension	arrow_spacing;
   Dimension	shadow_thickness;
+  Dimension	border_thickness;
   Pixel 	top_shadow_color;
   Pixel 	bottom_shadow_color;
   Pixmap	top_shadow_pixmap;

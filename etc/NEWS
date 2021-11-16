@@ -46,6 +46,11 @@ time.
 
 * Changes in Emacs 29.1
 
++++
+** New X resource: "borderThickness".
+This controls the thickness of the external borders of the menu bars
+and pop-up menus.
+
 ** Terminal Emacs
 
 ---
