@@ -593,11 +593,61 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+** Keymaps and key definitions
+
 +++
-** 'define-key' now takes an optional REMOVE argument.
+*** New functions for defining and manipulating keystrokes have been added.
+These all take just the syntax defined by 'key-valid-p'.  None of the
+older functions have been depreciated or altered, but are deemphasised
+in the documentation.
+
++++
+*** Use 'keymap-set' instead of 'define-key'.
+
++++
+*** Use 'keymap-global-set' instead of 'global-set-key'.
+
++++
+*** Use 'keymap-local-set' instead of 'local-set-key'.
+
++++
+*** Use 'keymap-global-unset' instead of 'global-unset-key'.
+
++++
+*** Use 'keymap-local-unset' instead of 'local-unset-key'.
+
++++
+*** Use 'keymap-substitute' instead of 'substitute-key-definition'.
+
++++
+*** Use 'keymap-set-after' instead of 'define-key-after'.
+
++++
+*** Use 'keymap-lookup' instead of 'lookup-keymap' and 'key-binding'.
+
++++
+*** Use 'keymap-local-lookup' instead of 'local-key-binding'.
+
++++
+*** Use 'keymap-global-lookup' instead of 'global-key-binding'.
+
++++
+*** 'define-key' now takes an optional REMOVE argument.
 If non-nil, remove the definition from the keymap.  This is subtly
 different from setting a definition to nil (when the keymap has a
 parent).
+
++++
+*** New function 'key-valid-p'.
+The 'kbd' function is quite permissive, and will try to return
+something usable even if the syntax of the argument isn't completely
+correct.  The 'key-valid-p' predicate does a stricter check of the
+syntax.
+
+---
+*** New function 'key-parse'.
+This is like 'kbd', but only returns vectors instead of a mix of
+vectors and strings.
 
 +++
 ** New function 'file-name-split'.
@@ -692,13 +742,6 @@ descriptor, which means to insert an image in that column instead of
 text.  See the documentation string of that variable for details.
 
 +++
-** 'define-key' now understands a new strict 'kbd' representation for keys.
-The '(define-key map ["C-c M-f"] #'some-command)' syntax is now
-supported, and is like the 'kbd' representation, but is stricter.  If
-the string doesn't represent a valid key sequence, an error is
-signalled (both when evaluating and byte compiling).
-
-+++
 ** :keys in 'menu-item' can now be a function.
 If so, it is called whenever the menu is computed, and can be used to
 calculate the keys dynamically.
@@ -733,13 +776,6 @@ This macro allows defining keymap variables more conveniently.
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
-
-+++
-** New function 'kbd-valid-p'.
-The 'kbd' function is quite permissive, and will try to return
-something usable even if the syntax of the argument isn't completely
-correct.  The 'kbd-valid-p' predicate does a stricter check of the
-syntax.
 
 +++
 ** New function 'image-at-point-p'.

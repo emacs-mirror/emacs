@@ -1222,6 +1222,39 @@ There can be any number of :example/:result elements."
   (text-property-search-backward
    :no-eval (text-property-search-backward 'face nil t)))
 
+(define-short-documentation-group keymaps
+  "Defining keymaps"
+  (define-keymap
+    :no-eval (define-keymap "C-c C-c" #'quit-buffer))
+  (defvar-keymap
+      :no-eval (defvar-keymap my-keymap "C-c C-c" map #'quit-buffer))
+  "Setting keys"
+  (keymap-set
+   :no-eval (keymap-set map "C-c C-c" #'quit-buffer))
+  (keymap-local-set
+   :no-eval (keymap-local-set "C-c C-c" #'quit-buffer))
+  (keymap-global-set
+   :no-eval (keymap-global-set "C-c C-c" #'quit-buffer))
+  (keymap-unset
+   :no-eval (keymap-unset map "C-c C-c"))
+  (keymap-local-unset
+   :no-eval (keymap-local-unset "C-c C-c"))
+  (keymap-global-unset
+   :no-eval (keymap-global-unset "C-c C-c"))
+  (keymap-substitute
+   :no-eval (keymap-substitute "C-c C-c" "M-a" map))
+  (keymap-set-after
+   :no-eval (keymap-set-after map "<separator-2>" menu-bar-separator))
+  "Predicates"
+  (keymapp
+   :eval (keymapp (define-keymap)))
+  (key-valid-p
+   :eval (key-valid-p "C-c C-c")
+   :eval (key-valid-p "C-cC-c"))
+  "Lookup"
+  (keymap-lookup
+   :eval (keymap-lookup (current-global-map) "C-x x g")))
+
 ;;;###autoload
 (defun shortdoc-display-group (group &optional function)
   "Pop to a buffer with short documentation summary for functions in GROUP.

@@ -131,6 +131,7 @@
 (load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
 (load "subr")
+(load "keymap")
 
 ;; Do it after subr, since both after-load-functions and add-hook are
 ;; implemented in subr.el.

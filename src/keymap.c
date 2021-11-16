@@ -1053,16 +1053,16 @@ possibly_translate_key_sequence (Lisp_Object key, ptrdiff_t *length)
     {
       /* KEY is on the ["C-c"] format, so translate to internal
 	 format.  */
-      if (NILP (Ffboundp (Qkbd_valid_p)))
+      if (NILP (Ffboundp (Qkey_valid_p)))
 	xsignal2 (Qerror,
-		  build_string ("`kbd-valid-p' is not defined, so this syntax can't be used: %s"),
+		  build_string ("`key-valid-p' is not defined, so this syntax can't be used: %s"),
 		  key);
-      if (NILP (call1 (Qkbd_valid_p, AREF (key, 0))))
-	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
-      key = call1 (Qkbd, AREF (key, 0));
+      if (NILP (call1 (Qkey_valid_p, AREF (key, 0))))
+	xsignal2 (Qerror, build_string ("Invalid `key-parse' syntax: %S"), key);
+      key = call1 (Qkey_parse, AREF (key, 0));
       *length = CHECK_VECTOR_OR_STRING (key);
       if (*length == 0)
-	xsignal2 (Qerror, build_string ("Invalid `kbd' syntax: %S"), key);
+	xsignal2 (Qerror, build_string ("Invalid `key-parse' syntax: %S"), key);
     }
 
   return key;
@@ -3458,6 +3458,6 @@ that describe key bindings.  That is why the default is nil.  */);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
 
-  DEFSYM (Qkbd, "kbd");
-  DEFSYM (Qkbd_valid_p, "kbd-valid-p");
+  DEFSYM (Qkey_parse, "key-parse");
+  DEFSYM (Qkey_valid_p, "key-valid-p");
 }

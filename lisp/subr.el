@@ -925,69 +925,6 @@ side-effects, and the argument LIST is not modified."
 
 ;;;; Keymap support.
 
-(defun kbd-valid-p (keys)
-  "Say whether KEYS is a valid `kbd' sequence.
-A `kbd' sequence is a string consisting of one and more key
-strokes.  The key strokes are separated by a space character.
-
-Each key stroke is either a single character, or the name of an
-event, surrounded by angle brackets.  In addition, any key stroke
-may be preceded by one or more modifier keys.  Finally, a limited
-number of characters have a special shorthand syntax.
-
-Here's some example key sequences.
-
-  \"f\"           (the key 'f')
-  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
-  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
-                 and then the key 'o')
-  \"H-<left>\"    (the key named \"left\" with the hyper modifier)
-  \"M-RET\"       (the \"return\" key with a meta modifier)
-  \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
-
-These are the characters that have shorthand syntax:
-NUL, RET, TAB, LFD, ESC, SPC, DEL.
-
-Modifiers have to be specified in this order:
-
-   A-C-H-M-S-s
-
-which is
-
-   Alt-Control-Hyper-Meta-Shift-super"
-  (declare (pure t) (side-effect-free t))
-  (and (stringp keys)
-       (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
-       (save-match-data
-         (catch 'exit
-           (let ((prefixes
-                  "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?")
-                 (case-fold-search nil))
-             (dolist (key (split-string keys " "))
-               ;; Every key might have these modifiers, and they should be
-               ;; in this order.
-               (when (string-match (concat "\\`" prefixes) key)
-                 (setq key (substring key (match-end 0))))
-               (unless (or (and (= (length key) 1)
-                                ;; Don't accept control characters as keys.
-                                (not (< (aref key 0) ?\s))
-                                ;; Don't accept Meta'd characters as keys.
-                                (or (multibyte-string-p key)
-                                    (not (<= 127 (aref key 0) 255))))
-                           (and (string-match-p "\\`<[-_A-Za-z0-9]+>\\'" key)
-                                ;; Don't allow <M-C-down>.
-                                (= (progn
-                                     (string-match
-                                      (concat "\\`<" prefixes) key)
-                                     (match-end 0))
-                                   1))
-                           (string-match-p
-                            "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
-                            key))
-                 ;; Invalid.
-                 (throw 'exit nil)))
-             t)))))
-
 (defun kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such
@@ -1006,110 +943,15 @@ Here's some example key sequences:
 
 For an approximate inverse of this, see `key-description'."
   (declare (pure t) (side-effect-free t))
-  ;; A pure function is expected to preserve the match data.
-  (save-match-data
-    (let ((case-fold-search nil)
-          (len (length keys)) ; We won't alter keys in the loop below.
-          (pos 0)
-          (res []))
-      (while (and (< pos len)
-                  (string-match "[^ \t\n\f]+" keys pos))
-        (let* ((word-beg (match-beginning 0))
-               (word-end (match-end 0))
-               (word (substring keys word-beg len))
-               (times 1)
-               key)
-          ;; Try to catch events of the form "<as df>".
-          (if (string-match "\\`<[^ <>\t\n\f][^>\t\n\f]*>" word)
-              (setq word (match-string 0 word)
-                    pos (+ word-beg (match-end 0)))
-            (setq word (substring keys word-beg word-end)
-                  pos word-end))
-          (when (string-match "\\([0-9]+\\)\\*." word)
-            (setq times (string-to-number (substring word 0 (match-end 1))))
-            (setq word (substring word (1+ (match-end 1)))))
-          (cond ((string-match "^<<.+>>$" word)
-                 (setq key (vconcat (if (eq (key-binding [?\M-x])
-                                            'execute-extended-command)
-                                        [?\M-x]
-                                      (or (car (where-is-internal
-                                                'execute-extended-command))
-                                          [?\M-x]))
-                                    (substring word 2 -2) "\r")))
-                ((and (string-match "^\\(\\([ACHMsS]-\\)*\\)<\\(.+\\)>$" word)
-                      (progn
-                        (setq word (concat (match-string 1 word)
-                                           (match-string 3 word)))
-                        (not (string-match
-                              "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$"
-                              word))))
-                 (setq key (list (intern word))))
-                ((or (equal word "REM") (string-match "^;;" word))
-                 (setq pos (string-match "$" keys pos)))
-                (t
-                 (let ((orig-word word) (prefix 0) (bits 0))
-                   (while (string-match "^[ACHMsS]-." word)
-                     (setq bits (+ bits (cdr (assq (aref word 0)
-                                                   '((?A . ?\A-\^@) (?C . ?\C-\^@)
-                                                     (?H . ?\H-\^@) (?M . ?\M-\^@)
-                                                     (?s . ?\s-\^@) (?S . ?\S-\^@))))))
-                     (setq prefix (+ prefix 2))
-                     (setq word (substring word 2)))
-                   (when (string-match "^\\^.$" word)
-                     (setq bits (+ bits ?\C-\^@))
-                     (setq prefix (1+ prefix))
-                     (setq word (substring word 1)))
-                   (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
-                                              ("LFD" . "\n") ("TAB" . "\t")
-                                              ("ESC" . "\e") ("SPC" . " ")
-                                              ("DEL" . "\177")))))
-                     (when found (setq word (cdr found))))
-                   (when (string-match "^\\\\[0-7]+$" word)
-                     (let ((n 0))
-                       (dolist (ch (cdr (string-to-list word)))
-                         (setq n (+ (* n 8) ch -48)))
-                       (setq word (vector n))))
-                   (cond ((= bits 0)
-                          (setq key word))
-                         ((and (= bits ?\M-\^@) (stringp word)
-                               (string-match "^-?[0-9]+$" word))
-                          (setq key (mapcar (lambda (x) (+ x bits))
-                                            (append word nil))))
-                         ((/= (length word) 1)
-                          (error "%s must prefix a single character, not %s"
-                                 (substring orig-word 0 prefix) word))
-                         ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
-                               ;; We used to accept . and ? here,
-                               ;; but . is simply wrong,
-                               ;; and C-? is not used (we use DEL instead).
-                               (string-match "[@-_a-z]" word))
-                          (setq key (list (+ bits (- ?\C-\^@)
-                                             (logand (aref word 0) 31)))))
-                         (t
-                          (setq key (list (+ bits (aref word 0)))))))))
-          (when key
-            (dolist (_ (number-sequence 1 times))
-              (setq res (vconcat res key))))))
-      (when (and (>= (length res) 4)
-                 (eq (aref res 0) ?\C-x)
-                 (eq (aref res 1) ?\()
-                 (eq (aref res (- (length res) 2)) ?\C-x)
-                 (eq (aref res (- (length res) 1)) ?\)))
-        (setq res (apply #'vector (let ((lres (append res nil)))
-                                    ;; Remove the first and last two elements.
-                                    (setq lres (cdr (cdr lres)))
-                                    (nreverse lres)
-                                    (setq lres (cdr (cdr lres)))
-                                    (nreverse lres)
-                                    lres))))
-      (if (not (memq nil (mapcar (lambda (ch)
-                                   (and (numberp ch)
-                                        (<= 0 ch 127)))
-                                 res)))
-          ;; Return a string.
-          (concat (mapcar #'identity res))
-        ;; Return a vector.
-        res))))
+  (let ((res (key-parse keys)))
+    (if (not (memq nil (mapcar (lambda (ch)
+                                 (and (numberp ch)
+                                      (<= 0 ch 127)))
+                               res)))
+        ;; Return a string.
+        (concat (mapcar #'identity res))
+      ;; Return a vector.
+      res)))
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
@@ -1160,6 +1002,9 @@ PARENT if non-nil should be a keymap."
 
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
+This is a legacy function; see `keymap-set-after' for the
+recommended function to use instead.
+
 This is like `define-key' except that the binding for KEY is placed
 just after the binding for the event AFTER, instead of at the beginning
 of the map.  Note that AFTER must be an event type (like KEY), NOT a command
@@ -1330,6 +1175,9 @@ Subkeymaps may be modified but are not canonicalized."
 
 (defun keyboard-translate (from to)
   "Translate character FROM to TO on the current terminal.
+This is a legacy function; see `keymap-translate' for the
+recommended function to use instead.
+
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
   (or (char-table-p keyboard-translate-table)
@@ -1341,6 +1189,9 @@ and then modifies one entry in it."
 
 (defun global-set-key (key command)
   "Give KEY a global binding as COMMAND.
+This is a legacy function; see `keymap-global-set' for the
+recommended function to use instead.
+
 COMMAND is the command definition to use; usually it is
 a symbol naming an interactively-callable function.
 KEY is a key sequence; noninteractively, it is a string or vector
@@ -1362,6 +1213,9 @@ that you make with this function."
 
 (defun local-set-key (key command)
   "Give KEY a local binding as COMMAND.
+This is a legacy function; see `keymap-local-set' for the
+recommended function to use instead.
+
 COMMAND is the command definition to use; usually it is
 a symbol naming an interactively-callable function.
 KEY is a key sequence; noninteractively, it is a string or vector
@@ -1380,12 +1234,18 @@ cases is shared with all other buffers in the same major mode."
 
 (defun global-unset-key (key)
   "Remove global binding of KEY.
+This is a legacy function; see `keymap-global-unset' for the
+recommended function to use instead.
+
 KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key globally: ")
   (global-set-key key nil))
 
 (defun local-unset-key (key)
   "Remove local binding of KEY.
+This is a legacy function; see `keymap-local-unset' for the
+recommended function to use instead.
+
 KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key locally: ")
   (if (current-local-map)
@@ -1394,6 +1254,9 @@ KEY is a string or vector representing a sequence of keystrokes."
 
 (defun local-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current local keymap only.
+This is a legacy function; see `keymap-local-binding' for the
+recommended function to use instead.
+
 KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 
@@ -1405,6 +1268,9 @@ about this."
 
 (defun global-key-binding (keys &optional accept-default)
   "Return the binding for command KEYS in current global keymap only.
+This is a legacy function; see `keymap-global-binding' for the
+recommended function to use instead.
+
 KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 This function's return values are the same as those of `lookup-key'
@@ -1423,6 +1289,9 @@ about this."
 
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
+This is a legacy function; see `keymap-substitute' for the
+recommended function to use instead.
+
 In other words, OLDDEF is replaced with NEWDEF wherever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine
 in KEYMAP as NEWDEF those keys that are defined as OLDDEF in OLDMAP.
@@ -6683,7 +6552,7 @@ pairs.  Available keywords are:
              command (see `define-prefix-command').  If this is the case,
              this symbol is returned instead of the map itself.
 
-KEY/DEFINITION pairs are as KEY and DEF in `define-key'.  KEY can
+KEY/DEFINITION pairs are as KEY and DEF in `keymap-set'.  KEY can
 also be the special symbol `:menu', in which case DEFINITION
 should be a MENU form as accepted by `easy-menu-define'.
 
@@ -6735,7 +6604,7 @@ should be a MENU form as accepted by `easy-menu-define'.
           (let ((def (pop definitions)))
             (if (eq key :menu)
                 (easy-menu-define nil keymap "" def)
-              (define-key keymap key def)))))
+              (keymap-set keymap key def)))))
       keymap)))
 
 (defmacro defvar-keymap (variable-name &rest defs)
