@@ -1976,7 +1976,6 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
 #ifdef USE_GTK
   if (xw->widget_osr)
     {
-#ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (xw->widgetwindow_osr), xw->width,
                          xw->height);
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
