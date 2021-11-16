@@ -73,7 +73,8 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
-static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object,
+				    bool);
 
 static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
 static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
@@ -130,7 +131,8 @@ in case you use it as a menu with `x-popup-menu'.  */)
 void
 initial_define_lispy_key (Lisp_Object keymap, const char *keyname, const char *defname)
 {
-  store_in_keymap (keymap, intern_c_string (keyname), intern_c_string (defname));
+  store_in_keymap (keymap, intern_c_string (keyname),
+		   intern_c_string (defname), Qnil);
 }
 
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
@@ -729,7 +731,8 @@ get_keyelt (Lisp_Object object, bool autoload)
 }
 
 static Lisp_Object
-store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
+store_in_keymap (Lisp_Object keymap, register Lisp_Object idx,
+		 Lisp_Object def, bool remove)
 {
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil;
@@ -805,21 +808,26 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	  }
 	else if (CHAR_TABLE_P (elt))
 	  {
+	    Lisp_Object sdef = def;
+	    if (remove)
+	      sdef = Qnil;
+	    /* nil has a special meaning for char-tables, so
+	       we use something else to record an explicitly
+	       unbound entry.  */
+	    else if (NILP (sdef))
+	      sdef = Qt;
+
 	    /* Character codes with modifiers
 	       are not included in a char-table.
 	       All character codes without modifiers are included.  */
 	    if (FIXNATP (idx) && !(XFIXNAT (idx) & CHAR_MODIFIER_MASK))
 	      {
-		Faset (elt, idx,
-		       /* nil has a special meaning for char-tables, so
-			  we use something else to record an explicitly
-			  unbound entry.  */
-		       NILP (def) ? Qt : def);
+		Faset (elt, idx, sdef);
 		return def;
 	      }
 	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
 	      {
-		Fset_char_table_range (elt, idx, NILP (def) ? Qt : def);
+		Fset_char_table_range (elt, idx, sdef);
 		return def;
 	      }
 	    insertion_point = tail;
@@ -838,7 +846,12 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	    else if (EQ (idx, XCAR (elt)))
 	      {
 		CHECK_IMPURE (elt, XCONS (elt));
-		XSETCDR (elt, def);
+		if (remove)
+		  /* Remove the element. */
+		  insertion_point = Fdelq (elt, insertion_point);
+		else
+		  /* Just set the definition. */
+		  XSETCDR (elt, def);
 		return def;
 	      }
 	    else if (CONSP (idx)
@@ -851,7 +864,10 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 		if (from <= XFIXNAT (XCAR (elt))
 		    && to >= XFIXNAT (XCAR (elt)))
 		  {
-		    XSETCDR (elt, def);
+		    if (remove)
+		      insertion_point = Fdelq (elt, insertion_point);
+		    else
+		      XSETCDR (elt, def);
 		    if (from == to)
 		      return def;
 		  }
@@ -1054,8 +1070,11 @@ possibly_translate_key_sequence (Lisp_Object key, ptrdiff_t *length)
 
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
+DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 4, 0,
        doc: /* In KEYMAP, define key sequence KEY as DEF.
+This is a legacy function; see `keymap-set' for the recommended
+function to use instead.
+
 KEYMAP is a keymap.
 
 KEY is a string or a vector of symbols and characters, representing a
@@ -1082,10 +1101,16 @@ DEF is anything that can be a key's definition:
  or an extended menu item definition.
  (See info node `(elisp)Extended Menu Items'.)
 
+If REMOVE is non-nil, the definition will be removed.  This is almost
+the same as setting the definition to nil, but makes a difference if
+the KEYMAP has a parent, and KEY is shadowing the same binding in the
+parent.  With REMOVE, subsequent lookups will return the binding in
+the parent, and with a nil DEF, the lookups will return nil.
+
 If KEYMAP is a sparse keymap with a binding for KEY, the existing
 binding is altered.  If there is no binding for KEY, the new pair
 binding KEY to DEF is added at the front of KEYMAP.  */)
-  (Lisp_Object keymap, Lisp_Object key, Lisp_Object def)
+  (Lisp_Object keymap, Lisp_Object key, Lisp_Object def, Lisp_Object remove)
 {
   bool metized = false;
 
@@ -1155,7 +1180,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       if (idx == length)
-	return store_in_keymap (keymap, c, def);
+	return store_in_keymap (keymap, c, def, !NILP (remove));
 
       Lisp_Object cmd = access_keymap (keymap, c, 0, 1, 1);
 
@@ -1260,6 +1285,9 @@ lookup_key_1 (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
        doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
+This is a legacy function; see `keymap-lookup' for the recommended
+function to use instead.
+
 A value of nil means undefined.  See doc of `define-key'
 for kinds of definitions.
 
@@ -1413,7 +1441,7 @@ static Lisp_Object
 define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 {
   Lisp_Object cmd = Fmake_sparse_keymap (Qnil);
-  store_in_keymap (keymap, c, cmd);
+  store_in_keymap (keymap, c, cmd, Qnil);
 
   return cmd;
 }

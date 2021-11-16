@@ -594,6 +594,12 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'define-key' now takes an optional REMOVE argument.
+If non-nil, remove the definition from the keymap.  This is subtly
+different from setting a definition to nil (when the keymap has a
+parent).
+
++++
 ** New function 'file-name-split'.
 This returns a list of all the components of a file name.
 

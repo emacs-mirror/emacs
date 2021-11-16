@@ -373,6 +373,40 @@ g .. h		foo
   (should (eq (lookup-key (current-global-map) ["C-x C-f"]) 'find-file))
   (should (eq (lookup-key (current-global-map) [?\C-x ?\C-f]) 'find-file)))
 
+(ert-deftest keymap-removal ()
+  ;; Set to nil.
+  (let ((map (define-keymap "a" 'foo)))
+    (should (equal map '(keymap (97 . foo))))
+    (define-key map "a" nil)
+    (should (equal map '(keymap (97)))))
+  ;; Remove.
+  (let ((map (define-keymap "a" 'foo)))
+    (should (equal map '(keymap (97 . foo))))
+    (define-key map "a" nil t)
+    (should (equal map '(keymap)))))
+
+(ert-deftest keymap-removal-inherit ()
+  ;; Set to nil.
+  (let ((parent (make-sparse-keymap))
+        (child (make-keymap)))
+    (set-keymap-parent child parent)
+    (define-key parent [?a] 'foo)
+    (define-key child  [?a] 'bar)
+
+    (should (eq (lookup-key child [?a]) 'bar))
+    (define-key child [?a] nil)
+    (should (eq (lookup-key child [?a]) nil)))
+  ;; Remove.
+  (let ((parent (make-sparse-keymap))
+        (child (make-keymap)))
+    (set-keymap-parent child parent)
+    (define-key parent [?a] 'foo)
+    (define-key child  [?a] 'bar)
+
+    (should (eq (lookup-key child [?a]) 'bar))
+    (define-key child [?a] nil t)
+    (should (eq (lookup-key child [?a]) 'foo))))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here
