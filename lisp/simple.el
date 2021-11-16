@@ -541,9 +541,9 @@ Other major modes are defined by comparison with this one."
 (defvar-keymap special-mode-map
   :suppress t
   "q" #'quit-window
-  " " #'scroll-up-command
-  [?\S-\ ] #'scroll-down-command
-  "\C-?" #'scroll-down-command
+  "SPC" #'scroll-up-command
+  "S-SPC" #'scroll-down-command
+  "DEL" #'scroll-down-command
   "?" #'describe-mode
   "h" #'describe-mode
   ">" #'end-of-buffer

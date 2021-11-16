@@ -369,13 +369,13 @@ only affect the Gcc copy, but not the original message."
   "m" #'gnus-summary-mail-other-window
   "u" #'gnus-uu-post-news
   "A" #'gnus-summary-attach-article
-  "\M-c" #'gnus-summary-mail-crosspost-complaint
-  "Br" #'gnus-summary-reply-broken-reply-to
-  "BR" #'gnus-summary-reply-broken-reply-to-with-original
-  "om" #'gnus-summary-mail-forward
-  "op" #'gnus-summary-post-forward
-  "Om" #'gnus-uu-digest-mail-forward
-  "Op" #'gnus-uu-digest-post-forward
+  "M-c" #'gnus-summary-mail-crosspost-complaint
+  "B r" #'gnus-summary-reply-broken-reply-to
+  "B R" #'gnus-summary-reply-broken-reply-to-with-original
+  "o m" #'gnus-summary-mail-forward
+  "o p" #'gnus-summary-post-forward
+  "O m" #'gnus-uu-digest-mail-forward
+  "O p" #'gnus-uu-digest-post-forward
 
   "D" (define-keymap :prefix 'gnus-send-bounce-map
         "b" #'gnus-summary-resend-bounced-mail

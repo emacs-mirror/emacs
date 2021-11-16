@@ -212,7 +212,7 @@ annotation.")
 
 ;; Save the "b" binding for a future `back'. Maybe?
 (define-keymap :keymap mh-folder-mode-map
-  " "           #'mh-page-msg
+  "SPC"         #'mh-page-msg
   "!"           #'mh-refile-or-write-again
   "'"           #'mh-toggle-tick
   ","           #'mh-header-display
@@ -223,15 +223,15 @@ annotation.")
   "?"           #'mh-help
   "E"           #'mh-extract-rejected-mail
   "M"           #'mh-modify
-  "\177"        #'mh-previous-page
-  "\C-d"        #'mh-delete-msg-no-motion
-  "\t"          #'mh-index-next-folder
-  [backtab]     #'mh-index-previous-folder
-  "\M-\t"       #'mh-index-previous-folder
-  "\e<"         #'mh-first-msg
-  "\e>"         #'mh-last-msg
-  "\ed"         #'mh-redistribute
-  "\r"          #'mh-show
+  "DEL"         #'mh-previous-page
+  "C-d"         #'mh-delete-msg-no-motion
+  "TAB"         #'mh-index-next-folder
+  "<backtab>"   #'mh-index-previous-folder
+  "C-M-i"       #'mh-index-previous-folder
+  "ESC <"       #'mh-first-msg
+  "ESC >"       #'mh-last-msg
+  "ESC d"       #'mh-redistribute
+  "RET"         #'mh-show
   "^"           #'mh-alt-refile-msg
   "c"           #'mh-copy-msg
   "d"           #'mh-delete-msg
@@ -242,10 +242,10 @@ annotation.")
   "k"           #'mh-delete-subject-or-thread
   "m"           #'mh-alt-send
   "n"           #'mh-next-undeleted-msg
-  "\M-n"        #'mh-next-unread-msg
+  "M-n"         #'mh-next-unread-msg
   "o"           #'mh-refile-msg
   "p"           #'mh-previous-undeleted-msg
-  "\M-p"        #'mh-previous-unread-msg
+  "M-p"         #'mh-previous-unread-msg
   "q"           #'mh-quit
   "r"           #'mh-reply
   "s"           #'mh-send
@@ -324,9 +324,9 @@ annotation.")
         "u"           #'mh-store-msg)   ;uuencode
 
   "D" (define-keymap :prefix 'mh-digest-map
-        " "           #'mh-page-digest
+        "SPC"         #'mh-page-digest
         "?"           #'mh-prefix-help
-        "\177"        #'mh-page-digest-backwards
+        "DEL"         #'mh-page-digest-backwards
         "b"           #'mh-burst-digest)
 
   "K" (define-keymap :prefix 'mh-mime-map
@@ -337,11 +337,11 @@ annotation.")
         "o"           #'mh-folder-save-mime-part
         "t"           #'mh-toggle-mime-buttons
         "v"           #'mh-folder-toggle-mime-part
-        "\t"          #'mh-next-button
-        [backtab]     #'mh-prev-button
-        "\M-\t"       #'mh-prev-button)
+        "TAB"         #'mh-next-button
+        "<backtab>"   #'mh-prev-button
+        "C-M-i"       #'mh-prev-button)
 
-  [mouse-2] #'mh-show-mouse)
+  "<mouse-2>" #'mh-show-mouse)
 
 ;; "C-c /" prefix is used in mh-folder-mode by pgp.el and mailcrypt
 

@@ -115,67 +115,67 @@
 
 ;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
 (define-keymap :keymap mh-letter-mode-map
-  " "                   #'mh-letter-complete-or-space
+  "SPC"                 #'mh-letter-complete-or-space
   ","                   #'mh-letter-confirm-address
-  "\C-c?"               #'mh-help
-  "\C-c\C-\\"           #'mh-fully-kill-draft ;if no C-q
-  "\C-c\C-^"            #'mh-insert-signature ;if no C-s
-  "\C-c\C-c"            #'mh-send-letter
-  "\C-c\C-d"            #'mh-insert-identity
-  "\C-c\C-e"            #'mh-mh-to-mime
-  "\C-c\C-f\C-a"        #'mh-to-field
-  "\C-c\C-f\C-b"        #'mh-to-field
-  "\C-c\C-f\C-c"        #'mh-to-field
-  "\C-c\C-f\C-d"        #'mh-to-field
-  "\C-c\C-f\C-f"        #'mh-to-fcc
-  "\C-c\C-f\C-l"        #'mh-to-field
-  "\C-c\C-f\C-m"        #'mh-to-field
-  "\C-c\C-f\C-r"        #'mh-to-field
-  "\C-c\C-f\C-s"        #'mh-to-field
-  "\C-c\C-f\C-t"        #'mh-to-field
-  "\C-c\C-fa"           #'mh-to-field
-  "\C-c\C-fb"           #'mh-to-field
-  "\C-c\C-fc"           #'mh-to-field
-  "\C-c\C-fd"           #'mh-to-field
-  "\C-c\C-ff"           #'mh-to-fcc
-  "\C-c\C-fl"           #'mh-to-field
-  "\C-c\C-fm"           #'mh-to-field
-  "\C-c\C-fr"           #'mh-to-field
-  "\C-c\C-fs"           #'mh-to-field
-  "\C-c\C-ft"           #'mh-to-field
-  "\C-c\C-i"            #'mh-insert-letter
-  "\C-c\C-m\C-e"        #'mh-mml-secure-message-encrypt
-  "\C-c\C-m\C-f"        #'mh-compose-forward
-  "\C-c\C-m\C-g"        #'mh-mh-compose-anon-ftp
-  "\C-c\C-m\C-i"        #'mh-compose-insertion
-  "\C-c\C-m\C-m"        #'mh-mml-to-mime
-  "\C-c\C-m\C-n"        #'mh-mml-unsecure-message
-  "\C-c\C-m\C-s"        #'mh-mml-secure-message-sign
-  "\C-c\C-m\C-t"        #'mh-mh-compose-external-compressed-tar
-  "\C-c\C-m\C-u"        #'mh-mh-to-mime-undo
-  "\C-c\C-m\C-x"        #'mh-mh-compose-external-type
-  "\C-c\C-mee"          #'mh-mml-secure-message-encrypt
-  "\C-c\C-mes"          #'mh-mml-secure-message-signencrypt
-  "\C-c\C-mf"           #'mh-compose-forward
-  "\C-c\C-mg"           #'mh-mh-compose-anon-ftp
-  "\C-c\C-mi"           #'mh-compose-insertion
-  "\C-c\C-mm"           #'mh-mml-to-mime
-  "\C-c\C-mn"           #'mh-mml-unsecure-message
-  "\C-c\C-mse"          #'mh-mml-secure-message-signencrypt
-  "\C-c\C-mss"          #'mh-mml-secure-message-sign
-  "\C-c\C-mt"           #'mh-mh-compose-external-compressed-tar
-  "\C-c\C-mu"           #'mh-mh-to-mime-undo
-  "\C-c\C-mx"           #'mh-mh-compose-external-type
-  "\C-c\C-o"            #'mh-open-line
-  "\C-c\C-q"            #'mh-fully-kill-draft
-  "\C-c\C-s"            #'mh-insert-signature
-  "\C-c\C-t"            #'mh-letter-toggle-header-field-display
-  "\C-c\C-w"            #'mh-check-whom
-  "\C-c\C-y"            #'mh-yank-cur-msg
-  "\C-c\M-d"            #'mh-insert-auto-fields
-  "\M-\t"               #'completion-at-point
-  "\t"                  #'mh-letter-next-header-field-or-indent
-  [backtab]             #'mh-letter-previous-header-field)
+  "C-c ?"               #'mh-help
+  "C-c C-\\"            #'mh-fully-kill-draft ;if no C-q
+  "C-c C-^"             #'mh-insert-signature ;if no C-s
+  "C-c C-c"             #'mh-send-letter
+  "C-c C-d"             #'mh-insert-identity
+  "C-c C-e"             #'mh-mh-to-mime
+  "C-c C-f C-a"         #'mh-to-field
+  "C-c C-f C-b"         #'mh-to-field
+  "C-c C-f C-c"         #'mh-to-field
+  "C-c C-f C-d"         #'mh-to-field
+  "C-c C-f C-f"         #'mh-to-fcc
+  "C-c C-f C-l"         #'mh-to-field
+  "C-c C-f C-m"         #'mh-to-field
+  "C-c C-f C-r"         #'mh-to-field
+  "C-c C-f C-s"         #'mh-to-field
+  "C-c C-f C-t"         #'mh-to-field
+  "C-c C-f a"           #'mh-to-field
+  "C-c C-f b"           #'mh-to-field
+  "C-c C-f c"           #'mh-to-field
+  "C-c C-f d"           #'mh-to-field
+  "C-c C-f f"           #'mh-to-fcc
+  "C-c C-f l"           #'mh-to-field
+  "C-c C-f m"           #'mh-to-field
+  "C-c C-f r"           #'mh-to-field
+  "C-c C-f s"           #'mh-to-field
+  "C-c C-f t"           #'mh-to-field
+  "C-c C-i"             #'mh-insert-letter
+  "C-c C-m C-e"         #'mh-mml-secure-message-encrypt
+  "C-c C-m C-f"         #'mh-compose-forward
+  "C-c C-m C-g"         #'mh-mh-compose-anon-ftp
+  "C-c C-m TAB"         #'mh-compose-insertion
+  "C-c C-m C-m"         #'mh-mml-to-mime
+  "C-c C-m C-n"         #'mh-mml-unsecure-message
+  "C-c C-m C-s"         #'mh-mml-secure-message-sign
+  "C-c C-m C-t"         #'mh-mh-compose-external-compressed-tar
+  "C-c C-m C-u"         #'mh-mh-to-mime-undo
+  "C-c C-m C-x"         #'mh-mh-compose-external-type
+  "C-c C-m e e"         #'mh-mml-secure-message-encrypt
+  "C-c C-m e s"         #'mh-mml-secure-message-signencrypt
+  "C-c C-m f"           #'mh-compose-forward
+  "C-c C-m g"           #'mh-mh-compose-anon-ftp
+  "C-c C-m i"           #'mh-compose-insertion
+  "C-c C-m m"           #'mh-mml-to-mime
+  "C-c C-m n"           #'mh-mml-unsecure-message
+  "C-c C-m s e"         #'mh-mml-secure-message-signencrypt
+  "C-c C-m s s"         #'mh-mml-secure-message-sign
+  "C-c C-m t"           #'mh-mh-compose-external-compressed-tar
+  "C-c C-m u"           #'mh-mh-to-mime-undo
+  "C-c C-m x"           #'mh-mh-compose-external-type
+  "C-c C-o"             #'mh-open-line
+  "C-c C-q"             #'mh-fully-kill-draft
+  "C-c C-s"             #'mh-insert-signature
+  "C-c C-t"             #'mh-letter-toggle-header-field-display
+  "C-c C-w"             #'mh-check-whom
+  "C-c C-y"             #'mh-yank-cur-msg
+  "C-c M-d"             #'mh-insert-auto-fields
+  "C-M-i"               #'completion-at-point
+  "TAB"                 #'mh-letter-next-header-field-or-indent
+  "<backtab>"           #'mh-letter-previous-header-field)
 
 ;; "C-c /" prefix is used in mh-letter-mode by pgp.el and mailcrypt.el.
 

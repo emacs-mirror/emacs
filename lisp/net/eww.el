@@ -314,11 +314,11 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar-keymap eww-link-keymap
   :parent shr-map
-  "\r" #'eww-follow-link)
+  "RET" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
   :parent shr-map
-  "\r" #'eww-follow-link)
+  "RET" #'eww-follow-link)
 
 (defun eww-suggested-uris nil
   "Return the list of URIs to suggest at the `eww' prompt.
@@ -1045,11 +1045,11 @@ the like."
 (defvar-keymap eww-mode-map
   "g" #'eww-reload             ;FIXME: revert-buffer-function instead!
   "G" #'eww
-  [?\M-\r] #'eww-open-in-new-buffer
-  [?\t] #'shr-next-link
-  [?\M-\t] #'shr-previous-link
-  [backtab] #'shr-previous-link
-  [delete] #'scroll-down-command
+  "M-RET" #'eww-open-in-new-buffer
+  "TAB" #'shr-next-link
+  "C-M-i" #'shr-previous-link
+  "<backtab>" #'shr-previous-link
+  "<delete>" #'scroll-down-command
   "l" #'eww-back-url
   "r" #'eww-forward-url
   "n" #'eww-next-url
@@ -1068,16 +1068,16 @@ the like."
   "S" #'eww-list-buffers
   "F" #'eww-toggle-fonts
   "D" #'eww-toggle-paragraph-direction
-  [(meta C)] #'eww-toggle-colors
-  [(meta I)] #'eww-toggle-images
+  "M-C" #'eww-toggle-colors
+  "M-I" #'eww-toggle-images
 
   "b" #'eww-add-bookmark
   "B" #'eww-list-bookmarks
-  [(meta n)] #'eww-next-bookmark
-  [(meta p)] #'eww-previous-bookmark
+  "M-n" #'eww-next-bookmark
+  "M-p" #'eww-previous-bookmark
 
-  [(mouse-8)] #'eww-back-url
-  [(mouse-9)] #'eww-forward-url
+  "<mouse-8>" #'eww-back-url
+  "<mouse-9>" #'eww-forward-url
 
   :menu '("Eww"
           ["Exit" quit-window t]
@@ -1300,42 +1300,42 @@ just re-display the HTML already fetched."
 (defvar eww-form nil)
 
 (defvar-keymap eww-submit-map
-  "\r" #'eww-submit
-  [(control c) (control c)] #'eww-submit)
+  "RET" #'eww-submit
+  "C-c C-c" #'eww-submit)
 
 (defvar-keymap eww-submit-file
-  "\r" #'eww-select-file
-  [(control c) (control c)] #'eww-submit)
+  "RET" #'eww-select-file
+  "C-c C-c" #'eww-submit)
 
 (defvar-keymap eww-checkbox-map
-  " " #'eww-toggle-checkbox
-  "\r" #'eww-toggle-checkbox
-  [(control c) (control c)] #'eww-submit)
+  "SPC" #'eww-toggle-checkbox
+  "RET" #'eww-toggle-checkbox
+  "C-c C-c" #'eww-submit)
 
 (defvar-keymap eww-text-map
   :full t :parent text-mode-map
-  "\r" #'eww-submit
-  [(control a)] #'eww-beginning-of-text
-  [(control c) (control c)] #'eww-submit
-  [(control e)] #'eww-end-of-text
-  [?\t] #'shr-next-link
-  [?\M-\t] #'shr-previous-link
-  [backtab] #'shr-previous-link)
+  "RET" #'eww-submit
+  "C-a" #'eww-beginning-of-text
+  "C-c C-c" #'eww-submit
+  "C-e" #'eww-end-of-text
+  "TAB" #'shr-next-link
+  "M-TAB" #'shr-previous-link
+  "<backtab>" #'shr-previous-link)
 
 (defvar-keymap eww-textarea-map
   :full t :parent text-mode-map
-  "\r" #'forward-line
-  [(control c) (control c)] #'eww-submit
-  [?\t] #'shr-next-link
-  [?\M-\t] #'shr-previous-link
-  [backtab] #'shr-previous-link)
+  "RET" #'forward-line
+  "C-c C-c" #'eww-submit
+  "TAB" #'shr-next-link
+  "M-TAB" #'shr-previous-link
+  "<backtab>" #'shr-previous-link)
 
 (defvar-keymap eww-select-map
   :doc "Map for select buttons"
-  "\r" #'eww-change-select
-  [follow-link] 'mouse-face
-  [mouse-2] #'eww-change-select
-  [(control c) (control c)] #'eww-submit)
+  "RET" #'eww-change-select
+  "<follow-link>" 'mouse-face
+  "<mouse-2>" #'eww-change-select
+  "C-c C-c" #'eww-submit)
 
 (defun eww-beginning-of-text ()
   "Move to the start of the input field."
@@ -2171,9 +2171,9 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
     (eww-browse-url (plist-get bookmark :url))))
 
 (defvar-keymap eww-bookmark-mode-map
-  [(control k)] #'eww-bookmark-kill
-  [(control y)] #'eww-bookmark-yank
-  "\r" #'eww-bookmark-browse
+  "C-k" #'eww-bookmark-kill
+  "C-y" #'eww-bookmark-yank
+  "RET" #'eww-bookmark-browse
   :menu '("Eww Bookmark"
           ["Exit" quit-window t]
           ["Browse" eww-bookmark-browse
@@ -2247,7 +2247,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
     (eww-restore-history history)))
 
 (defvar-keymap eww-history-mode-map
-  "\r" #'eww-history-browse
+  "RET" #'eww-history-browse
   "n" #'next-line
   "p" #'previous-line
   :menu '("Eww History"
@@ -2366,8 +2366,8 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
   (eww-buffer-show))
 
 (defvar-keymap eww-buffers-mode-map
-  [(control k)] #'eww-buffer-kill
-  "\r" #'eww-buffer-select
+  "C-k" #'eww-buffer-kill
+  "RET" #'eww-buffer-select
   "n" #'eww-buffer-show-next
   "p" #'eww-buffer-show-previous
   :menu '("Eww Buffers"

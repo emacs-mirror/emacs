@@ -4419,36 +4419,36 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (define-keymap :keymap gnus-article-mode-map :suppress t
   :parent button-buffer-map
-  " " #'gnus-article-goto-next-page
-  [?\S-\ ] #'gnus-article-goto-prev-page
-  "\177" #'gnus-article-goto-prev-page
-  [delete] #'gnus-article-goto-prev-page
-  "\C-c^" #'gnus-article-refer-article
+  "SPC" #'gnus-article-goto-next-page
+  "S-SPC" #'gnus-article-goto-prev-page
+  "DEL" #'gnus-article-goto-prev-page
+  "<delete>" #'gnus-article-goto-prev-page
+  "C-c ^" #'gnus-article-refer-article
   "h" #'gnus-article-show-summary
   "s" #'gnus-article-show-summary
-  "\C-c\C-m" #'gnus-article-mail
+  "C-c C-m" #'gnus-article-mail
   "?" #'gnus-article-describe-briefly
   "<" #'beginning-of-buffer
   ">" #'end-of-buffer
-  "\C-c\C-i" #'gnus-info-find-node
-  "\C-c\C-b" #'gnus-bug
+  "C-c TAB" #'gnus-info-find-node
+  "C-c C-b" #'gnus-bug
   "R" #'gnus-article-reply-with-original
   "F" #'gnus-article-followup-with-original
-  "\C-hk" #'gnus-article-describe-key
-  "\C-hc" #'gnus-article-describe-key-briefly
-  "\C-hb" #'gnus-article-describe-bindings
+  "C-h k" #'gnus-article-describe-key
+  "C-h c" #'gnus-article-describe-key-briefly
+  "C-h b" #'gnus-article-describe-bindings
 
   "e" #'gnus-article-read-summary-keys
-  "\C-d" #'gnus-article-read-summary-keys
-  "\C-c\C-f" #'gnus-summary-mail-forward
-  "\M-*" #'gnus-article-read-summary-keys
-  "\M-#" #'gnus-article-read-summary-keys
-  "\M-^" #'gnus-article-read-summary-keys
-  "\M-g" #'gnus-article-read-summary-keys
+  "C-d" #'gnus-article-read-summary-keys
+  "C-c C-f" #'gnus-summary-mail-forward
+  "M-*" #'gnus-article-read-summary-keys
+  "M-#" #'gnus-article-read-summary-keys
+  "M-^" #'gnus-article-read-summary-keys
+  "M-g" #'gnus-article-read-summary-keys
 
   "S" (define-keymap :prefix 'gnus-article-send-map
         "W" #'gnus-article-wide-reply-with-original
-        [t] #'gnus-article-read-summary-send-keys))
+        "<t>" #'gnus-article-read-summary-send-keys))
 
 (substitute-key-definition
  #'undefined #'gnus-article-read-summary-keys gnus-article-mode-map)
@@ -7254,41 +7254,40 @@ other groups."
 
 (defvar-keymap gnus-article-edit-mode-map
   :full t :parent text-mode-map
-  "\C-c?" #'describe-mode
-  "\C-c\C-c" #'gnus-article-edit-done
-  "\C-c\C-k" #'gnus-article-edit-exit
-  "\C-c\C-f\C-t" #'message-goto-to
-  "\C-c\C-f\C-o" #'message-goto-from
-  "\C-c\C-f\C-b" #'message-goto-bcc
-  ;;"\C-c\C-f\C-w" message-goto-fcc
-  "\C-c\C-f\C-c" #'message-goto-cc
-  "\C-c\C-f\C-s" #'message-goto-subject
-  "\C-c\C-f\C-r" #'message-goto-reply-to
-  "\C-c\C-f\C-n" #'message-goto-newsgroups
-  "\C-c\C-f\C-d" #'message-goto-distribution
-  "\C-c\C-f\C-f" #'message-goto-followup-to
-  "\C-c\C-f\C-m" #'message-goto-mail-followup-to
-  "\C-c\C-f\C-k" #'message-goto-keywords
-  "\C-c\C-f\C-u" #'message-goto-summary
-  "\C-c\C-f\C-i" #'message-insert-or-toggle-importance
-  "\C-c\C-f\C-a" #'message-generate-unsubscribed-mail-followup-to
-  "\C-c\C-b" #'message-goto-body
-  "\C-c\C-i" #'message-goto-signature
+  "C-c ?" #'describe-mode
+  "C-c C-c" #'gnus-article-edit-done
+  "C-c C-k" #'gnus-article-edit-exit
+  "C-c C-f C-t" #'message-goto-to
+  "C-c C-f C-o" #'message-goto-from
+  "C-c C-f C-b" #'message-goto-bcc
+  "C-c C-f C-c" #'message-goto-cc
+  "C-c C-f C-s" #'message-goto-subject
+  "C-c C-f C-r" #'message-goto-reply-to
+  "C-c C-f C-n" #'message-goto-newsgroups
+  "C-c C-f C-d" #'message-goto-distribution
+  "C-c C-f C-f" #'message-goto-followup-to
+  "C-c C-f RET" #'message-goto-mail-followup-to
+  "C-c C-f C-k" #'message-goto-keywords
+  "C-c C-f C-u" #'message-goto-summary
+  "C-c C-f TAB" #'message-insert-or-toggle-importance
+  "C-c C-f C-a" #'message-generate-unsubscribed-mail-followup-to
+  "C-c C-b" #'message-goto-body
+  "C-c TAB" #'message-goto-signature
 
-  "\C-c\C-t" #'message-insert-to
-  "\C-c\C-n" #'message-insert-newsgroups
-  "\C-c\C-o" #'message-sort-headers
-  "\C-c\C-e" #'message-elide-region
-  "\C-c\C-v" #'message-delete-not-region
-  "\C-c\C-z" #'message-kill-to-signature
-  "\M-\r" #'message-newline-and-reformat
-  "\C-c\C-a" #'mml-attach-file
-  "\C-a" #'message-beginning-of-line
-  "\t" #'message-tab
-  "\M-;" #'comment-region
+  "C-c C-t" #'message-insert-to
+  "C-c C-n" #'message-insert-newsgroups
+  "C-c C-o" #'message-sort-headers
+  "C-c C-e" #'message-elide-region
+  "C-c C-v" #'message-delete-not-region
+  "C-c C-z" #'message-kill-to-signature
+  "M-RET" #'message-newline-and-reformat
+  "C-c C-a" #'mml-attach-file
+  "C-a" #'message-beginning-of-line
+  "TAB" #'message-tab
+  "M-;" #'comment-region
 
-  "\C-c\C-w" (define-keymap :prefix 'gnus-article-edit-wash-map
-               "f" #'gnus-article-edit-full-stops))
+  "C-c C-w" (define-keymap :prefix 'gnus-article-edit-wash-map
+              "f" #'gnus-article-edit-full-stops))
 
 (easy-menu-define
   gnus-article-edit-mode-field-menu gnus-article-edit-mode-map ""

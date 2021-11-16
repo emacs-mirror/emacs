@@ -251,17 +251,17 @@ and other things:
   "a" #'shr-show-alt-text
   "i" #'shr-browse-image
   "z" #'shr-zoom-image
-  [?\t] #'shr-next-link
-  [?\M-\t] #'shr-previous-link
-  [follow-link] 'mouse-face
-  [mouse-2] #'shr-browse-url
-  [C-down-mouse-1] #'shr-mouse-browse-url-new-window
+  "TAB" #'shr-next-link
+  "C-M-i" #'shr-previous-link
+  "<follow-link>" 'mouse-face
+  "<mouse-2>" #'shr-browse-url
+  "C-<down-mouse-1>" #'shr-mouse-browse-url-new-window
   "I" #'shr-insert-image
   "w" #'shr-maybe-probe-and-copy-url
   "u" #'shr-maybe-probe-and-copy-url
   "v" #'shr-browse-url
   "O" #'shr-save-contents
-  "\r" #'shr-browse-url)
+  "RET" #'shr-browse-url)
 
 (defvar shr-image-map
   (let ((map (copy-keymap shr-map)))

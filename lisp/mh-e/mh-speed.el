@@ -86,7 +86,7 @@
 (define-keymap :keymap mh-folder-speedbar-key-map
   "+"           #'mh-speed-expand-folder
   "-"           #'mh-speed-contract-folder
-  "\r"          #'mh-speed-view
+  "RET"         #'mh-speed-view
   "r"           #'mh-speed-refresh)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)

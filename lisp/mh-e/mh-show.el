@@ -560,7 +560,7 @@ still visible.\n")
 ;;; MH-Show Keys
 
 (define-keymap :keymap mh-show-mode-map
-  " "    #'mh-show-page-msg
+  "SPC"  #'mh-show-page-msg
   "!"    #'mh-show-refile-or-write-again
   "'"    #'mh-show-toggle-tick
   ","    #'mh-show-header-display
@@ -570,12 +570,12 @@ still visible.\n")
   "?"    #'mh-help
   "E"    #'mh-show-extract-rejected-mail
   "M"    #'mh-show-modify
-  "\177" #'mh-show-previous-page
-  "\C-d" #'mh-show-delete-msg-no-motion
-  "\t"   #'mh-show-next-button
-  [backtab] #'mh-show-prev-button
-  "\M-\t" #'mh-show-prev-button
-  "\ed"  #'mh-show-redistribute
+  "DEL"  #'mh-show-previous-page
+  "C-d"  #'mh-show-delete-msg-no-motion
+  "TAB"   #'mh-show-next-button
+  "<backtab>" #'mh-show-prev-button
+  "C-M-i" #'mh-show-prev-button
+  "ESC d" #'mh-show-redistribute
   "^"    #'mh-show-refile-msg
   "c"    #'mh-show-copy-msg
   "d"    #'mh-show-delete-msg
@@ -586,10 +586,10 @@ still visible.\n")
   "k"    #'mh-show-delete-subject-or-thread
   "m"    #'mh-show-send
   "n"    #'mh-show-next-undeleted-msg
-  "\M-n" #'mh-show-next-unread-msg
+  "M-n"  #'mh-show-next-unread-msg
   "o"    #'mh-show-refile-msg
   "p"    #'mh-show-previous-undeleted-msg
-  "\M-p" #'mh-show-previous-unread-msg
+  "M-p"  #'mh-show-previous-unread-msg
   "q"    #'mh-show-quit
   "r"    #'mh-show-reply
   "s"    #'mh-show-send
@@ -670,8 +670,8 @@ still visible.\n")
 
   "D" (define-keymap :prefix 'mh-show-digest-map
         "?"    #'mh-prefix-help
-        " "    #'mh-show-page-digest
-        "\177" #'mh-show-page-digest-backwards
+        "SPC"  #'mh-show-page-digest
+        "DEL"  #'mh-show-page-digest-backwards
         "b"    #'mh-show-burst-digest)
 
   "K" (define-keymap :prefix 'mh-show-mime-map
@@ -682,9 +682,9 @@ still visible.\n")
         "o"           #'mh-show-save-mime-part
         "i"           #'mh-show-inline-mime-part
         "t"           #'mh-show-toggle-mime-buttons
-        "\t"          #'mh-show-next-button
-        [backtab]     #'mh-show-prev-button
-        "\M-\t"       #'mh-show-prev-button))
+        "TAB"         #'mh-show-next-button
+        "<backtab>"   #'mh-show-prev-button
+        "C-M-i"       #'mh-show-prev-button))
 
 
 

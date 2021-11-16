@@ -2875,75 +2875,75 @@ Consider adding this function to `message-header-setup-hook'"
 (defvar-keymap message-mode-map
   :full t :parent text-mode-map
   :doc "Message Mode keymap."
-  "\C-c?" #'describe-mode
+  "C-c ?" #'describe-mode
 
-  "\C-c\C-f\C-t" #'message-goto-to
-  "\C-c\C-f\C-o" #'message-goto-from
-  "\C-c\C-f\C-b" #'message-goto-bcc
-  "\C-c\C-f\C-w" #'message-goto-fcc
-  "\C-c\C-f\C-c" #'message-goto-cc
-  "\C-c\C-f\C-s" #'message-goto-subject
-  "\C-c\C-f\C-r" #'message-goto-reply-to
-  "\C-c\C-f\C-n" #'message-goto-newsgroups
-  "\C-c\C-f\C-d" #'message-goto-distribution
-  "\C-c\C-f\C-f" #'message-goto-followup-to
-  "\C-c\C-f\C-m" #'message-goto-mail-followup-to
-  "\C-c\C-f\C-k" #'message-goto-keywords
-  "\C-c\C-f\C-u" #'message-goto-summary
-  "\C-c\C-f\C-i" #'message-insert-or-toggle-importance
-  "\C-c\C-f\C-a" #'message-generate-unsubscribed-mail-followup-to
+  "C-c C-f C-t" #'message-goto-to
+  "C-c C-f C-o" #'message-goto-from
+  "C-c C-f C-b" #'message-goto-bcc
+  "C-c C-f C-w" #'message-goto-fcc
+  "C-c C-f C-c" #'message-goto-cc
+  "C-c C-f C-s" #'message-goto-subject
+  "C-c C-f C-r" #'message-goto-reply-to
+  "C-c C-f C-n" #'message-goto-newsgroups
+  "C-c C-f C-d" #'message-goto-distribution
+  "C-c C-f C-f" #'message-goto-followup-to
+  "C-c C-f C-m" #'message-goto-mail-followup-to
+  "C-c C-f C-k" #'message-goto-keywords
+  "C-c C-f C-u" #'message-goto-summary
+  "C-c C-f C-i" #'message-insert-or-toggle-importance
+  "C-c C-f C-a" #'message-generate-unsubscribed-mail-followup-to
 
   ;; modify headers (and insert notes in body)
-  "\C-c\C-fs"    #'message-change-subject
+  "C-c C-f s"    #'message-change-subject
   ;;
-  "\C-c\C-fx"    #'message-cross-post-followup-to
+  "C-c C-f x"    #'message-cross-post-followup-to
   ;; prefix+message-cross-post-followup-to = same w/o cross-post
-  "\C-c\C-ft"    #'message-reduce-to-to-cc
-  "\C-c\C-fa"    #'message-add-archive-header
+  "C-c C-f t"    #'message-reduce-to-to-cc
+  "C-c C-f a"    #'message-add-archive-header
   ;; mark inserted text
-  "\C-c\M-m" #'message-mark-inserted-region
-  "\C-c\M-f" #'message-mark-insert-file
+  "C-c M-m" #'message-mark-inserted-region
+  "C-c M-f" #'message-mark-insert-file
 
-  "\C-c\C-b" #'message-goto-body
-  "\C-c\C-i" #'message-goto-signature
+  "C-c C-b" #'message-goto-body
+  "C-c C-i" #'message-goto-signature
 
-  "\C-c\C-t" #'message-insert-to
-  "\C-c\C-fw" #'message-insert-wide-reply
-  "\C-c\C-n" #'message-insert-newsgroups
-  "\C-c\C-l" #'message-to-list-only
-  "\C-c\C-f\C-e" #'message-insert-expires
-  "\C-c\C-u" #'message-insert-or-toggle-importance
-  "\C-c\M-n" #'message-insert-disposition-notification-to
+  "C-c C-t" #'message-insert-to
+  "C-c C-f w" #'message-insert-wide-reply
+  "C-c C-n" #'message-insert-newsgroups
+  "C-c C-l" #'message-to-list-only
+  "C-c C-f C-e" #'message-insert-expires
+  "C-c C-u" #'message-insert-or-toggle-importance
+  "C-c M-n" #'message-insert-disposition-notification-to
 
-  "\C-c\C-y" #'message-yank-original
-  "\C-c\M-\C-y" #'message-yank-buffer
-  "\C-c\C-q" #'message-fill-yanked-message
-  "\C-c\C-w" #'message-insert-signature
-  "\C-c\M-h" #'message-insert-headers
-  "\C-c\C-r" #'message-caesar-buffer-body
-  "\C-c\C-o" #'message-sort-headers
-  "\C-c\M-r" #'message-rename-buffer
+  "C-c C-y" #'message-yank-original
+  "C-c C-M-y" #'message-yank-buffer
+  "C-c C-q" #'message-fill-yanked-message
+  "C-c C-w" #'message-insert-signature
+  "C-c M-h" #'message-insert-headers
+  "C-c C-r" #'message-caesar-buffer-body
+  "C-c C-o" #'message-sort-headers
+  "C-c M-r" #'message-rename-buffer
 
-  "\C-c\C-c" #'message-send-and-exit
-  "\C-c\C-s" #'message-send
-  "\C-c\C-k" #'message-kill-buffer
-  "\C-c\C-d" #'message-dont-send
-  "\C-c\n" #'gnus-delay-article
+  "C-c C-c" #'message-send-and-exit
+  "C-c C-s" #'message-send
+  "C-c C-k" #'message-kill-buffer
+  "C-c C-d" #'message-dont-send
+  "C-c C-j" #'gnus-delay-article
 
-  "\C-c\M-k" #'message-kill-address
-  "\C-c\C-e" #'message-elide-region
-  "\C-c\C-v" #'message-delete-not-region
-  "\C-c\C-z" #'message-kill-to-signature
-  "\M-\r" #'message-newline-and-reformat
-  [remap split-line]  #'message-split-line
+  "C-c M-k" #'message-kill-address
+  "C-c C-e" #'message-elide-region
+  "C-c C-v" #'message-delete-not-region
+  "C-c C-z" #'message-kill-to-signature
+  "M-RET" #'message-newline-and-reformat
+  "<remap> <split-line>"  #'message-split-line
 
-  "\C-c\C-a" #'mml-attach-file
-  "\C-c\C-p" #'message-insert-screenshot
+  "C-c C-a" #'mml-attach-file
+  "C-c C-p" #'message-insert-screenshot
 
-  "\C-a" #'message-beginning-of-line
-  "\t" #'message-tab
+  "C-a" #'message-beginning-of-line
+  "TAB" #'message-tab
 
-  "\M-n" #'message-display-abbrev)
+  "M-n" #'message-display-abbrev)
 
 (easy-menu-define
   message-mode-menu message-mode-map "Message Menu."

@@ -574,79 +574,79 @@ simple manner."
 ;;;
 
 (define-keymap :keymap gnus-group-mode-map
-  " " #'gnus-group-read-group
+  "SPC" #'gnus-group-read-group
   "=" #'gnus-group-select-group
-  "\r" #'gnus-group-select-group
-  "\M-\r" #'gnus-group-quick-select-group
-  "\M- " #'gnus-group-visible-select-group
-  [(meta control return)] #'gnus-group-select-group-ephemerally
+  "RET" #'gnus-group-select-group
+  "M-RET" #'gnus-group-quick-select-group
+  "M-SPC" #'gnus-group-visible-select-group
+  "C-M-<return>" #'gnus-group-select-group-ephemerally
   "j" #'gnus-group-jump-to-group
   "n" #'gnus-group-next-unread-group
   "p" #'gnus-group-prev-unread-group
-  "\177" #'gnus-group-prev-unread-group
-  [delete] #'gnus-group-prev-unread-group
+  "DEL" #'gnus-group-prev-unread-group
+  "<delete>" #'gnus-group-prev-unread-group
   "N" #'gnus-group-next-group
   "P" #'gnus-group-prev-group
-  "\M-n" #'gnus-group-next-unread-group-same-level
-  "\M-p" #'gnus-group-prev-unread-group-same-level
+  "M-n" #'gnus-group-next-unread-group-same-level
+  "M-p" #'gnus-group-prev-unread-group-same-level
   "," #'gnus-group-best-unread-group
   "." #'gnus-group-first-unread-group
   "u" #'gnus-group-toggle-subscription-at-point
   "U" #'gnus-group-toggle-subscription
   "c" #'gnus-group-catchup-current
   "C" #'gnus-group-catchup-current-all
-  "\M-c" #'gnus-group-clear-data
+  "M-c" #'gnus-group-clear-data
   "l" #'gnus-group-list-groups
   "L" #'gnus-group-list-all-groups
   "m" #'gnus-group-mail
   "i" #'gnus-group-news
   "g" #'gnus-group-get-new-news
-  "\M-g" #'gnus-group-get-new-news-this-group
+  "M-g" #'gnus-group-get-new-news-this-group
   "R" #'gnus-group-restart
   "r" #'gnus-group-read-init-file
   "B" #'gnus-group-browse-foreign-server
   "b" #'gnus-group-check-bogus-groups
   "F" #'gnus-group-find-new-groups
-  "\C-c\C-d" #'gnus-group-describe-group
-  "\M-d" #'gnus-group-describe-all-groups
-  "\C-c\C-a" #'gnus-group-apropos
-  "\C-c\M-\C-a" #'gnus-group-description-apropos
+  "C-c C-d" #'gnus-group-describe-group
+  "M-d" #'gnus-group-describe-all-groups
+  "C-c C-a" #'gnus-group-apropos
+  "C-c C-M-a" #'gnus-group-description-apropos
   "a" #'gnus-group-post-news
-  "\ek" #'gnus-group-edit-local-kill
-  "\eK" #'gnus-group-edit-global-kill
-  "\C-k" #'gnus-group-kill-group
-  "\C-y" #'gnus-group-yank-group
-  "\C-w" #'gnus-group-kill-region
-  "\C-x\C-t" #'gnus-group-transpose-groups
-  "\C-c\C-l" #'gnus-group-list-killed
-  "\C-c\C-x" #'gnus-group-expire-articles
-  "\C-c\M-\C-x" #'gnus-group-expire-all-groups
+  "ESC k" #'gnus-group-edit-local-kill
+  "ESC K" #'gnus-group-edit-global-kill
+  "C-k" #'gnus-group-kill-group
+  "C-y" #'gnus-group-yank-group
+  "C-w" #'gnus-group-kill-region
+  "C-x C-t" #'gnus-group-transpose-groups
+  "C-c C-l" #'gnus-group-list-killed
+  "C-c C-x" #'gnus-group-expire-articles
+  "C-c C-M-x" #'gnus-group-expire-all-groups
   "V" #'gnus-version
   "s" #'gnus-group-save-newsrc
   "z" #'gnus-group-suspend
   "q" #'gnus-group-exit
   "Q" #'gnus-group-quit
   "?" #'gnus-group-describe-briefly
-  "\C-c\C-i" #'gnus-info-find-node
-  "\M-e" #'gnus-group-edit-group-method
+  "C-c C-i" #'gnus-info-find-node
+  "M-e" #'gnus-group-edit-group-method
   "^" #'gnus-group-enter-server-mode
-  [mouse-2] #'gnus-mouse-pick-group
-  [follow-link] 'mouse-face
+  "<mouse-2>" #'gnus-mouse-pick-group
+  "<follow-link>" 'mouse-face
   "<" #'beginning-of-buffer
   ">" #'end-of-buffer
-  "\C-c\C-b" #'gnus-bug
-  "\C-c\C-s" #'gnus-group-sort-groups
+  "C-c C-b" #'gnus-bug
+  "C-c C-s" #'gnus-group-sort-groups
   "t" #'gnus-topic-mode
-  "\C-c\M-g" #'gnus-activate-all-groups
-  "\M-&" #'gnus-group-universal-argument
+  "C-c M-g" #'gnus-activate-all-groups
+  "M-&" #'gnus-group-universal-argument
   "#" #'gnus-group-mark-group
-  "\M-#" #'gnus-group-unmark-group
+  "M-#" #'gnus-group-unmark-group
 
   "~" (define-keymap :prefix 'gnus-group-cloud-map
         "u" #'gnus-cloud-upload-all-data
         "~" #'gnus-cloud-upload-all-data
         "d" #'gnus-cloud-download-all-data
-        "\r" #'gnus-cloud-download-all-data)
+        "RET" #'gnus-cloud-download-all-data)
 
   "M" (define-keymap :prefix 'gnus-group-mark-map
         "m" #'gnus-group-mark-group
@@ -682,8 +682,8 @@ simple manner."
         "c" #'gnus-group-customize
         "z" #'gnus-group-compact-group
         "x" #'gnus-group-expunge-group
-        "\177" #'gnus-group-delete-group
-        [delete] #'gnus-group-delete-group
+        "DEL" #'gnus-group-delete-group
+        "<delete>" #'gnus-group-delete-group
 
         "S" (define-keymap :prefix 'gnus-group-sort-map
               "s" #'gnus-group-sort-groups
@@ -774,7 +774,7 @@ simple manner."
         "k" #'gnus-group-kill-group
         "y" #'gnus-group-yank-group
         "w" #'gnus-group-kill-region
-        "\C-k" #'gnus-group-kill-level
+        "C-k" #'gnus-group-kill-level
         "z" #'gnus-group-kill-all-zombies))
 
 (defun gnus-topic-mode-p ()

@@ -992,8 +992,8 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'keymap
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
-                     ["RET"] #'outline-hide-subtree
-                     ["<mouse-2>"] #'outline-hide-subtree)))))
+                     "RET" #'outline-hide-subtree
+                     "<mouse-2>" #'outline-hide-subtree)))))
 
 (defun outline--insert-close-button ()
   (save-excursion
@@ -1003,8 +1003,8 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'keymap
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
-                     ["RET"] #'outline-show-subtree
-                     ["<mouse-2>"] #'outline-show-subtree)))))
+                     "RET" #'outline-show-subtree
+                     "<mouse-2>" #'outline-show-subtree)))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when from

@@ -164,33 +164,33 @@
   "z"              #'kill-this-buffer
   "F"              #'cvs-mode-set-flags
   "!"              #'cvs-mode-force-command
-  ["C-c C-c"]      #'cvs-mode-kill-process
+  "C-c C-c"        #'cvs-mode-kill-process
   ;; marking
   "m"              #'cvs-mode-mark
   "M"              #'cvs-mode-mark-all-files
   "S"              #'cvs-mode-mark-on-state
   "u"              #'cvs-mode-unmark
-  ["DEL"]          #'cvs-mode-unmark-up
+  "DEL"            #'cvs-mode-unmark-up
   "%"              #'cvs-mode-mark-matching-files
   "T"              #'cvs-mode-toggle-marks
-  ["M-DEL"]        #'cvs-mode-unmark-all-files
+  "M-DEL"          #'cvs-mode-unmark-all-files
   ;; navigation keys
-  " "              #'cvs-mode-next-line
+  "SPC"            #'cvs-mode-next-line
   "n"              #'cvs-mode-next-line
   "p"              #'cvs-mode-previous-line
-  "\t"             #'cvs-mode-next-line
-  [backtab]        #'cvs-mode-previous-line
+  "TAB"            #'cvs-mode-next-line
+  "<backtab>"      #'cvs-mode-previous-line
   ;; M- keys are usually those that operate on modules
-  ["M-c"]          #'cvs-checkout
-  ["M-e"]          #'cvs-examine
+  "M-c"            #'cvs-checkout
+  "M-e"            #'cvs-examine
   "g"              #'cvs-mode-revert-buffer
-  ["M-u"]          #'cvs-update
-  ["M-s"]          #'cvs-status
+  "M-u"            #'cvs-update
+  "M-s"            #'cvs-status
   ;; diff commands
   "="              #'cvs-mode-diff
   "d"              cvs-mode-diff-map
   ;; keys that operate on individual files
-  ["C-k"]          #'cvs-mode-acknowledge
+  "C-k"            #'cvs-mode-acknowledge
   "A"              #'cvs-mode-add-change-log-entry-other-window
   "C"              #'cvs-mode-commit-setup
   "O"              #'cvs-mode-update
@@ -202,7 +202,7 @@
   "c"              #'cvs-mode-commit
   "e"              #'cvs-mode-examine
   "f"              #'cvs-mode-find-file
-  ["RET"]          #'cvs-mode-find-file
+  "RET"            #'cvs-mode-find-file
   "i"              #'cvs-mode-ignore
   "l"              #'cvs-mode-log
   "o"              #'cvs-mode-find-file-other-window
@@ -214,12 +214,12 @@
   ;; cvstree bindings
   "+"              #'cvs-mode-tree
   ;; mouse bindings
-  [mouse-2]        #'cvs-mode-find-file
-  [follow-link]    (lambda (pos)
+  "<mouse-2>"      #'cvs-mode-find-file
+  "<follow-link>"  (lambda (pos)
                      (eq (get-char-property pos 'face) 'cvs-filename))
-  [(down-mouse-3)] #'cvs-menu
+  "<down-mouse-3>" #'cvs-menu
   ;; dired-like bindings
-  "\C-o"           #'cvs-mode-display-file)
+  "C-o"            #'cvs-mode-display-file)
 
 (easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
   '("CVS"
@@ -266,9 +266,10 @@
 ;;;; CVS-Minor mode
 ;;;;
 
-(defcustom cvs-minor-mode-prefix "\C-xc"
+(defcustom cvs-minor-mode-prefix "C-x c"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
   :type 'string
+  :version "29.1"
   :group 'pcl-cvs)
 
 (defvar-keymap cvs-minor-mode-map

@@ -156,16 +156,17 @@ Used in `smerge-diff-base-upper' and related functions."
   "E" #'smerge-ediff
   "C" #'smerge-combine-with-next
   "R" #'smerge-refine
-  ["C-m"] #'smerge-keep-current
+  "C-m" #'smerge-keep-current
   "=" (define-keymap :name "Diff"
         "<" (cons "base-upper" #'smerge-diff-base-upper)
         ">" (cons "base-lower" #'smerge-diff-base-lower)
         "=" (cons "upper-lower" #'smerge-diff-upper-lower)))
 
-(defcustom smerge-command-prefix "\C-c^"
+(defcustom smerge-command-prefix "C-c ^"
   "Prefix for `smerge-mode' commands."
+  :version "29.1"
   :type '(choice (const :tag "ESC"   "\e")
-		 (const :tag "C-c ^" "\C-c^" )
+		 (const :tag "C-c ^" "C-c ^")
 		 (const :tag "none"  "")
 		 string))
 
