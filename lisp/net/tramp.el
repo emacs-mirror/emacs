@@ -1904,31 +1904,55 @@ The outline level is equal to the verbosity of the Tramp message."
 
 (put #'tramp-debug-outline-level 'tramp-suppress-trace t)
 
+;; This function takes action since Emacs 28.1, when
+;; `read-extended-command-predicate' is set to
+;; `command-completion-default-include-p'.
+(defun tramp-debug-buffer-command-completion-p (_symbol buffer)
+  "A predicate for Tramp interactive commands.
+They are completed by \"M-x TAB\" only in Tramp debug buffers."
+  (with-current-buffer buffer
+    (string-equal (buffer-substring 1 10) ";; Emacs:")))
+
+(put #'tramp-debug-buffer-command-completion-p 'tramp-suppress-trace t)
+
+(defun tramp-setup-debug-buffer ()
+  "Function to setup debug buffers."
+  ;; (declare (completion tramp-debug-buffer-command-completion-p))
+  (interactive)
+  (set-buffer-file-coding-system 'utf-8)
+  (setq buffer-undo-list t)
+  ;; Activate `outline-mode'.  This runs `text-mode-hook' and
+  ;; `outline-mode-hook'.  We must prevent that local processes die.
+  ;; Yes: I've seen `flyspell-mode', which starts "ispell".
+  ;; `(custom-declare-variable outline-minor-mode-prefix ...)'  raises
+  ;; on error in `(outline-mode)', we don't want to see it in the
+  ;; traces.
+  (let ((default-directory tramp-compat-temporary-file-directory))
+    (outline-mode))
+  (setq-local outline-level 'tramp-debug-outline-level)
+  (setq-local font-lock-keywords
+              ;; FIXME: This `(t FOO . BAR)' representation in
+              ;; `font-lock-keywords' is supposed to be an internal
+              ;; implementation "detail".  Don't abuse it here!
+              `(t (eval ,tramp-debug-font-lock-keywords t)
+                  ,(eval tramp-debug-font-lock-keywords t)))
+  ;; Do not edit the debug buffer.
+  (use-local-map special-mode-map)
+  ;; For debugging purposes.
+  (local-set-key "\M-n" 'clone-buffer)
+  (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
+
+(put #'tramp-setup-debug-buffer 'tramp-suppress-trace t)
+
+(function-put
+ #'tramp-setup-debug-buffer 'completion-predicate
+ #'tramp-debug-buffer-command-completion-p)
+
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
   (with-current-buffer (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
-      (set-buffer-file-coding-system 'utf-8)
-      (setq buffer-undo-list t)
-      ;; Activate `outline-mode'.  This runs `text-mode-hook' and
-      ;; `outline-mode-hook'.  We must prevent that local processes
-      ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell".
-      ;; `(custom-declare-variable outline-minor-mode-prefix ...)'
-      ;; raises on error in `(outline-mode)', we don't want to see it
-      ;; in the traces.
-      (let ((default-directory tramp-compat-temporary-file-directory))
-	(outline-mode))
-      (setq-local outline-level 'tramp-debug-outline-level)
-      (setq-local font-lock-keywords
-                  ;; FIXME: This `(t FOO . BAR)' representation in
-                  ;; `font-lock-keywords' is supposed to be an
-                  ;; internal implementation "detail".  Don't abuse it here!
-                  `(t (eval ,tramp-debug-font-lock-keywords t)
-                      ,(eval tramp-debug-font-lock-keywords t)))
-      ;; Do not edit the debug buffer.
-      (use-local-map special-mode-map)
-      ;; For debugging purposes.
-      (define-key (current-local-map) "\M-n" 'clone-buffer))
+      (tramp-setup-debug-buffer))
     (current-buffer)))
 
 (put #'tramp-get-debug-buffer 'tramp-suppress-trace t)

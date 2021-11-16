@@ -2314,7 +2314,16 @@ This checks also `file-name-as-directory', `file-name-directory',
                      (concat remote-host "~/f/bar")))
       (should (equal (abbreviate-file-name
 		      (concat remote-host "/nowhere/special"))
-                     (concat remote-host "/nw/special"))))))
+                     (concat remote-host "/nw/special"))))
+
+    ;; Check that home-dir abbreviation doesn't occur when home-dir is just "/".
+    (setq home-dir (concat remote-host "/"))
+    ;; The remote home directory is kept in the connection property
+    ;; "home-directory".  We fake this setting.
+    (tramp-set-connection-property tramp-test-vec "home-directory" home-dir)
+    (should (equal (concat home-dir "foo/bar")
+                   (abbreviate-file-name (concat home-dir "foo/bar"))))
+    (tramp-flush-connection-property tramp-test-vec "home-directory")))
 
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
