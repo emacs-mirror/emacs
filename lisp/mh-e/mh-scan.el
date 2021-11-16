@@ -327,7 +327,11 @@ Note that columns in Emacs start with 0.")
 (defvar mh-scan-cmd-note-width 1
   "Number of columns consumed by the cmd-note field in `mh-scan-format'.
 
-This column will have one of the values: \" \", \"^\", \"D\", \"B\", \"A\", \"+\", where
+This column will have one of the values:
+
+  \" \", \"^\", \"D\", \"B\", \"A\", \"+\"
+
+where
 
   \" \" is the default value,
   \"^\" is the `mh-note-refiled' character,
