@@ -1575,13 +1575,14 @@ Modes}); then its keymap will automatically inherit from
 
 @node Low-Level Key Binding
 @section Low-Level Key Binding
+@cindex low-level key bindings
 
   Historically, Emacs has supported a number of different syntaxes for
 defining keys.  The documented way to bind a key today is to use the
 syntax supported by @code{key-valid-p}, which is what all the
 functions like @code{keymap-set} and @code{keymap-lookup} supports.
-This section of the manual documents the old syntax and interface
-functions, and should not be used in new code.
+This section documents the old-style syntax and interface functions;
+they should not be used in new code.
 
 @cindex meta character key constants
 @cindex control character key constants
@@ -1595,20 +1596,21 @@ character or function key name).  For example, @code{[(control ?a)
 (meta b)]} is equivalent to @kbd{C-a M-b} and @code{[(hyper control
 left)]} is equivalent to @kbd{C-H-left}.
 
-@item A string with control and meta characters.
+@item A string of characters with modifiers
 Internally, key sequences are often represented as strings using the
-special escape sequences for control and meta characters
+special escape sequences for shift, control and meta modifiers
 (@pxref{String Type}), but this representation can also be used by
 users when rebinding keys.  A string like @code{"\M-x"} is read as
 containing a single @kbd{M-x}, @code{"\C-f"} is read as containing a
 single @kbd{C-f}, and @code{"\M-\C-x"} and @code{"\C-\M-x"} are both
 read as containing a single @kbd{C-M-x}.
 
-@item a vector of characters.
-This is the other internal representation of key sequences, and
-supports a fuller range of modifiers than the string representation.
-One example is @samp{[?\C-\H-x home]}, which represents the @kbd{C-H-x
-home} key sequence.  @xref{Character Type}.
+@item A vector of characters and key symbols
+This is the other internal representation of key sequences.  It
+supports a fuller range of modifiers than the string representation,
+and also support function keys.  An example is @w{@samp{[?\C-\H-x
+home]}}, which represents the @w{@kbd{C-H-x @key{home}}} key sequence.
+@xref{Character Type}.
 @end table
 
 @defun define-key keymap key binding &optional remove
