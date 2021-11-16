@@ -451,7 +451,7 @@ reads and discards the following up-event.  You can get access to that
 up-event with the @samp{U} code character.
 
 This kind of input is used by commands such as @code{describe-key} and
-@code{global-set-key}.
+@code{keymap-global-set}.
 
 @item K
 A key sequence on a form that can be used as input to functions like
@@ -2147,7 +2147,7 @@ bind it to the @code{signal usr1} event sequence:
 (defun usr1-handler ()
   (interactive)
   (message "Got USR1 signal"))
-(global-set-key [signal usr1] 'usr1-handler)
+(keymap-global-set "<signal> <usr1>" 'usr1-handler)
 @end smallexample
 
 @node Classifying Events
@@ -3016,7 +3016,7 @@ supplied to input methods (@pxref{Input Methods}).  Use
 if you want to translate characters after input methods operate.
 @end defvar
 
-@defun keyboard-translate from to
+@defun key-translate from to
 This function modifies @code{keyboard-translate-table} to translate
 character code @var{from} into character code @var{to}.  It creates
 the keyboard translate table if necessary.
@@ -3027,12 +3027,12 @@ make @kbd{C-x}, @kbd{C-c} and @kbd{C-v} perform the cut, copy and paste
 operations:
 
 @example
-(keyboard-translate ?\C-x 'control-x)
-(keyboard-translate ?\C-c 'control-c)
-(keyboard-translate ?\C-v 'control-v)
-(global-set-key [control-x] 'kill-region)
-(global-set-key [control-c] 'kill-ring-save)
-(global-set-key [control-v] 'yank)
+(key-translate "C-x" "<control-x>")
+(key-translate "C-c" "<control-c>")
+(key-translate "C-v" "<control-v>")
+(keymap-global-set "<control-x>" 'kill-region)
+(keymap-global-set "<control-c>" 'kill-ring-save)
+(keymap-global-set "<control-v>" 'yank)
 @end example
 
 @noindent

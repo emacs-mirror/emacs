@@ -30,6 +30,7 @@ is found.  The whole process is called @dfn{key lookup}.
 * Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
+* Low-Level Key Binding::       Legacy key syntax description.
 * Remapping Commands::          A keymap can translate one command to another.
 * Translation Keymaps::         Keymaps for translating sequences of events.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
@@ -95,21 +96,11 @@ Manual}.
 (kbd "C-M-<down>") @result{} [C-M-down]
 @end example
 
-@findex kbd-valid-p
+@findex key-valid-p
 The @code{kbd} function is very permissive, and will try to return
 something sensible even if the syntax used isn't completely
 conforming.  To check whether the syntax is actually valid, use the
-@code{kbd-valid-p} function.
-
-@code{define-key} also supports using the shorthand syntax
-@samp{["..."]} syntax to define a key.  The string has to be a
-strictly valid @code{kbd} sequence, and if it's not valid, an error
-will be signalled.  For instance, to bind @key{C-c f}, you can say:
-
-@lisp
-(define-key global-map ["C-c f"] #'find-file-literally)
-@end lisp
-
+@code{key-valid-p} function.
 @end defun
 
 
@@ -627,16 +618,16 @@ active keymap.
     @result{} nil
 @end group
 @group
-(local-set-key "\C-p" ctl-x-map)
+(keymap-local-set "C-p" ctl-x-map)
     @result{} nil
 @end group
 @group
-(key-binding "\C-p\C-f")
+(keymap-binding "C-p C-f")
     @result{} find-file
 @end group
 
 @group
-(key-binding "\C-p6")
+(keymap-binding "C-p 6")
     @result{} nil
 @end group
 @end example
@@ -699,7 +690,7 @@ use, in place of the buffer's default local keymap.
 @cindex major mode keymap
   The local keymap is normally set by the buffer's major mode, and
 every buffer with the same major mode shares the same local keymap.
-Hence, if you call @code{local-set-key} (@pxref{Key Binding Commands})
+Hence, if you call @code{keymap-local-set} (@pxref{Key Binding Commands})
 to change the local keymap in one buffer, that also affects the local
 keymaps in other buffers with the same major mode.
 
@@ -733,39 +724,7 @@ Normally it ignores @code{overriding-local-map} and
 then it pays attention to them.  @var{position} can optionally be either
 an event position as returned by @code{event-start} or a buffer
 position, and may change the keymaps as described for
-@code{key-binding}.
-@end defun
-
-@defun key-binding key &optional accept-defaults no-remap position
-This function returns the binding for @var{key} according to the
-current active keymaps.  The result is @code{nil} if @var{key} is
-undefined in the keymaps.
-
-The argument @var{accept-defaults} controls checking for default
-bindings, as in @code{lookup-key} (@pxref{Functions for Key Lookup}).
-
-When commands are remapped (@pxref{Remapping Commands}),
-@code{key-binding} normally processes command remappings so as to
-return the remapped command that will actually be executed.  However,
-if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
-remappings and returns the binding directly specified for @var{key}.
-
-If @var{key} starts with a mouse event (perhaps following a prefix
-event), the maps to be consulted are determined based on the event's
-position.  Otherwise, they are determined based on the value of point.
-However, you can override either of them by specifying @var{position}.
-If @var{position} is non-@code{nil}, it should be either a buffer
-position or an event position like the value of @code{event-start}.
-Then the maps consulted are determined based on @var{position}.
-
-Emacs signals an error if @var{key} is not a string or a vector.
-
-@example
-@group
-(key-binding "\C-x\C-f")
-    @result{} find-file
-@end group
-@end example
+@code{keymap-binding}.
 @end defun
 
 @node Searching Keymaps
@@ -1042,7 +1001,7 @@ keymap.
   Let's use the term @dfn{keymap entry} to describe the value found by
 looking up an event type in a keymap.  (This doesn't include the item
 string and other extra elements in a keymap element for a menu item, because
-@code{lookup-key} and other key lookup functions don't include them in
+@code{keymap-lookup} and other key lookup functions don't include them in
 the returned value.)  While any Lisp object may be stored in a keymap
 as a keymap entry, not all make sense for key lookup.  Here is a table
 of the meaningful types of keymap entries:
@@ -1193,7 +1152,7 @@ Used in keymaps to undefine keys.  It calls @code{ding}, but does
 not cause an error.
 @end deffn
 
-@defun local-key-binding key &optional accept-defaults
+@defun keymap-local-binding key &optional accept-defaults
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
 
@@ -1201,7 +1160,7 @@ The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
 @end defun
 
-@defun global-key-binding key &optional accept-defaults
+@defun keymap-global-binding key &optional accept-defaults
 This function returns the binding for command @var{key} in the
 current global keymap, or @code{nil} if it is undefined there.
 
@@ -1284,65 +1243,55 @@ change a binding in the global keymap, the change is effective in all
 buffers (though it has no direct effect in buffers that shadow the
 global binding with a local one).  If you change the current buffer's
 local map, that usually affects all buffers using the same major mode.
-The @code{global-set-key} and @code{local-set-key} functions are
+The @code{keymap-global-set} and @code{keymap-local-set} functions are
 convenient interfaces for these operations (@pxref{Key Binding
-Commands}).  You can also use @code{define-key}, a more general
+Commands}).  You can also use @code{keymap-set}, a more general
 function; then you must explicitly specify the map to change.
 
   When choosing the key sequences for Lisp programs to rebind, please
 follow the Emacs conventions for use of various keys (@pxref{Key
 Binding Conventions}).
 
-@cindex meta character key constants
-@cindex control character key constants
-  @code{define-key} (and other functions that are used to rebind keys)
-understand a number of different syntaxes for the keys.
+  The functions below signal an error if @var{keymap} is not a keymap,
+or if @var{key} is not a valid key.
 
-@table @asis
-@item A vector containing a single string.
-This is the preferred way to represent a key sequence.  Here's a
-couple of examples:
+@var{key} is a string representing a single key or a series of key
+strokes.  Key strokes are separated by a single space character.
 
-@example
-["C-c M-f"]
-["S-<home>"]
-@end example
+Each key stroke is either a single character, or the name of an
+event, surrounded by angle brackets.  In addition, any key stroke
+may be preceded by one or more modifier keys.  Finally, a limited
+number of characters have a special shorthand syntax.  Here's some
+example key sequences:
 
-The syntax is the same as the one used by Emacs when displaying key
-bindings, for instance in @samp{*Help*} buffers and help texts.
+@table @kbd
+@item f
+The key @kbd{f}.
 
-If the syntax isn't valid, an error will be raised when running
-@code{define-key}, or when byte-compiling code that has these calls.
+@item S o m
+A three key sequence of the keys @kbd{S}, @kbd{o} and @kbd{m}.
 
-@item A vector containing lists of keys.
-You can use a list containing modifier names plus one base event (a
-character or function key name).  For example, @code{[(control ?a)
-(meta b)]} is equivalent to @kbd{C-a M-b} and @code{[(hyper control
-left)]} is equivalent to @kbd{C-H-left}.
+@item C-c o
+A two key sequence of the keys @kbd{c} with the control modifier and
+then the key @kbd{o}
 
-@item A string with control and meta characters.
-Internally, key sequences are often represented as strings using the
-special escape sequences for control and meta characters
-(@pxref{String Type}), but this representation can also be used by
-users when rebinding keys.  A string like @code{"\M-x"} is read as
-containing a single @kbd{M-x}, @code{"\C-f"} is read as containing a
-single @kbd{C-f}, and @code{"\M-\C-x"} and @code{"\C-\M-x"} are both
-read as containing a single @kbd{C-M-x}.
+@item H-<left>
+The key named @kbd{left} with the hyper modifier.
 
-@item a vector of characters.
-This is the other internal representation of key sequences, and
-supports a fuller range of modifiers than the string representation.
-One example is @samp{[?\C-\H-x home]}, which represents the @kbd{C-H-x
-home} key sequence.  @xref{Character Type}.
+@item M-RET
+The @kbd{return} key with a meta modifier.
+
+@item C-M-<space>
+The @kbd{space} key with both the control and meta modifiers.
 @end table
 
-  The functions below signal an error if @var{keymap} is not a keymap,
-or if @var{key} is not a string or vector representing a key sequence.
-You can use event types (symbols) as shorthand for events that are
-lists.  The @code{kbd} function (@pxref{Key Sequences}) is a
-convenient way to specify the key sequence.
+The only keys that have a special shorthand syntax are @kbd{NUL},
+@kbd{RET}, @kbd{TAB}, @kbd{LFD}, @kbd{ESC}, @kbd{SPC} and @kbd{DEL}.
 
-@defun define-key keymap key binding
+The modifiers have to be specified in alphabetical order:
+@samp{A-C-H-M-S-s}, which is @samp{Alt-Control-Hyper-Meta-Shift-super}.
+
+@defun keymap-set keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
 @var{key} is more than one event long, the change is actually made
 in another keymap reached from @var{keymap}.)  The argument
@@ -1350,7 +1299,7 @@ in another keymap reached from @var{keymap}.)  The argument
 meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
 The value returned by @code{define-key} is @var{binding}.
 
-If @var{key} is @code{[t]}, this sets the default binding in
+If @var{key} is @kbd{<t>}, this sets the default binding in
 @var{keymap}.  When an event has no binding of its own, the Emacs
 command loop uses the keymap's default binding, if there is one.
 
@@ -1358,7 +1307,7 @@ command loop uses the keymap's default binding, if there is one.
 @cindex key sequence error
 Every prefix of @var{key} must be a prefix key (i.e., bound to a keymap)
 or undefined; otherwise an error is signaled.  If some prefix of
-@var{key} is undefined, then @code{define-key} defines it as a prefix
+@var{key} is undefined, then @code{keymap-set} defines it as a prefix
 key so that the rest of @var{key} can be defined as specified.
 
 If there was previously no binding for @var{key} in @var{keymap}, the
@@ -1376,7 +1325,7 @@ bindings in it:
     @result{} (keymap)
 @end group
 @group
-(define-key map ["C-f"] 'forward-char)
+(keymap-set map "C-f" 'forward-char)
     @result{} forward-char
 @end group
 @group
@@ -1386,7 +1335,7 @@ map
 
 @group
 ;; @r{Build sparse submap for @kbd{C-x} and bind @kbd{f} in that.}
-(define-key map ["C-x f"] 'forward-word)
+(keymap-set map "C-x f" 'forward-word)
     @result{} forward-word
 @end group
 @group
@@ -1399,14 +1348,14 @@ map
 
 @group
 ;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
-(define-key map ["C-p"] ctl-x-map)
+(keymap-set map "C-p" ctl-x-map)
 ;; @code{ctl-x-map}
 @result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
 @end group
 
 @group
 ;; @r{Bind @kbd{C-f} to @code{foo} in the @code{ctl-x-map}.}
-(define-key map ["C-p C-f"] 'foo)
+(keymap-set map "C-p C-f" 'foo)
 @result{} 'foo
 @end group
 @group
@@ -1426,9 +1375,9 @@ changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
 default global map.
 
 @defun define-keymap &key options... &rest pairs...
-@code{define-key} is the general work horse for defining a key in a
+@code{keymap-set} is the general work horse for defining a key in a
 keymap.  When writing modes, however, you frequently have to bind a
-large number of keys at once, and using @code{define-key} on them all
+large number of keys at once, and using @code{keymap-set} on them all
 can be tedious and error-prone.  Instead you can use
 @code{define-keymap}, which creates a keymaps and binds a number of
 keys.  Here's a very basic example:
@@ -1437,14 +1386,14 @@ keys.  Here's a very basic example:
 (define-keymap
   "n" #'forward-line
   "f" #'previous-line
-  ["C-c C-c"] #'quit-window)
+  "C-c C-c" #'quit-window)
 @end lisp
 
 This function creates a new sparse keymap, defines the two keystrokes
 in @var{pairs}, and returns the new keymap.
 
 @var{pairs} is a list of alternating key bindings and key definitions,
-as accepted by @code{define-key}.  In addition the key can be the
+as accepted by @code{keymap-set}.  In addition the key can be the
 special symbol @code{:menu}, in which case the definition should be a
 menu definition as accepted by @code{easy-menu-define} (@pxref{Easy
 Menu}).  Here's a brief example:
@@ -1513,8 +1462,8 @@ Here's an example:
 @lisp
 (defvar-keymap eww-textarea-map
   :parent text-mode-map
-  "\r" #'forward-line
-  [?\t] #'shr-next-link)
+  "RET" #'forward-line
+  "TAB" #'shr-next-link)
 @end lisp
 @end defmac
 
@@ -1617,12 +1566,111 @@ Modes}); then its keymap will automatically inherit from
 (defvar special-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'quit-window)
+    (keymap-set map "q" 'quit-window)
     @dots{}
     map))
 @end group
 @end smallexample
 @end defun
+
+@node Low-Level Key Binding
+@section Low-Level Key Binding
+
+  Historically, Emacs has supported a number of different syntaxes for
+defining keys.  The documented way to bind a key today is to use the
+syntax supported by @code{key-valid-p}, which is what all the
+functions like @code{keymap-set} and @code{keymap-lookup} supports.
+This section of the manual documents the old syntax and interface
+functions, and should not be used in new code.
+
+@cindex meta character key constants
+@cindex control character key constants
+  @code{define-key} (and other low-level functions that are used to
+rebind keys) understand a number of different syntaxes for the keys.
+
+@table @asis
+@item A vector containing lists of keys.
+You can use a list containing modifier names plus one base event (a
+character or function key name).  For example, @code{[(control ?a)
+(meta b)]} is equivalent to @kbd{C-a M-b} and @code{[(hyper control
+left)]} is equivalent to @kbd{C-H-left}.
+
+@item A string with control and meta characters.
+Internally, key sequences are often represented as strings using the
+special escape sequences for control and meta characters
+(@pxref{String Type}), but this representation can also be used by
+users when rebinding keys.  A string like @code{"\M-x"} is read as
+containing a single @kbd{M-x}, @code{"\C-f"} is read as containing a
+single @kbd{C-f}, and @code{"\M-\C-x"} and @code{"\C-\M-x"} are both
+read as containing a single @kbd{C-M-x}.
+
+@item a vector of characters.
+This is the other internal representation of key sequences, and
+supports a fuller range of modifiers than the string representation.
+One example is @samp{[?\C-\H-x home]}, which represents the @kbd{C-H-x
+home} key sequence.  @xref{Character Type}.
+@end table
+
+@defun define-key keymap key binding &optional remove
+This function is like @code{keymap-set} (@pxref{Changing Key
+Bindings}, but understands only the legacy key syntaxes.
+
+In addition, this function also has a @var{remove} argument.  If it is
+non-@code{nil}, the definition will be removed.  This is almost the
+same as setting the definition to @code{nil}, but makes a difference
+if the @var{keymap} has a parent, and @var{key} is shadowing the same
+binding in the parent.  With @var{remove}, subsequent lookups will
+return the binding in the parent, and with a nil @var{def}, the
+lookups will return @code{nil}.
+@end defun
+
+There's a number of other legacy key definition functions.  Below is a
+list of them, with the equivalent modern function to use instead.
+
+@table @code
+@findex global-set-key
+@item global-set-key
+Use @code{keymap-global-set} instead.
+
+@findex local-set-key
+@item local-set-key
+Use @code{keymap-local-set} instead.
+
+@findex global-unset-key
+@item global-unset-key
+Use @code{keymap-global-unset} instead.
+
+@findex local-unset-key
+@item local-unset-key
+Use @code{keymap-local-unset} instead.
+
+@findex substitute-key-definition
+@item substitute-key-definition
+Use @code{keymap-substitute} instead.
+
+@findex define-key-after
+@item define-key-after
+Use @code{keymap-set-after} instead.
+
+@findex keyboard-translate
+@item keyboard-translate
+Use @code{key-translate} instead.
+
+@findex lookup-keymap
+@findex key-binding
+@item lookup-keymap
+@itemx key-binding
+Use @code{keymap-lookup} instead.
+
+@findex local-key-binding
+@item local-key-binding
+Use @code{keymap-local-lookup} instead.
+
+@findex global-key-binding
+@item gobal-key-binding
+Use @code{keymap-global-lookup} instead.
+@end table
+
 
 @node Remapping Commands
 @section Remapping Commands
@@ -1834,32 +1882,18 @@ problematic suffixes/prefixes are @kbd{@key{ESC}}, @kbd{M-O} (which is really
   This section describes some convenient interactive interfaces for
 changing key bindings.  They work by calling @code{define-key}.
 
-  People often use @code{global-set-key} in their init files
+  People often use @code{keymap-global-set} in their init files
 (@pxref{Init File}) for simple customization.  For example,
 
 @smallexample
-(global-set-key (kbd "C-x C-\\") 'next-line)
-@end smallexample
-
-@noindent
-or
-
-@smallexample
-(global-set-key [?\C-x ?\C-\\] 'next-line)
-@end smallexample
-
-@noindent
-or
-
-@smallexample
-(global-set-key [(control ?x) (control ?\\)] 'next-line)
+(keymap-global-set "C-x C-\\" 'next-line)
 @end smallexample
 
 @noindent
 redefines @kbd{C-x C-\} to move down a line.
 
 @smallexample
-(global-set-key [M-mouse-1] 'mouse-set-point)
+(keymap-global-set "M-<mouse-1>" 'mouse-set-point)
 @end smallexample
 
 @noindent
@@ -1873,14 +1907,7 @@ they usually will be in a Lisp file (@pxref{Loading Non-ASCII}), you
 must type the keys as multibyte too.  For instance, if you use this:
 
 @smallexample
-(global-set-key "ö" 'my-function) ; bind o-umlaut
-@end smallexample
-
-@noindent
-or
-
-@smallexample
-(global-set-key ?ö 'my-function) ; bind o-umlaut
+(keymap-global-set "ö" 'my-function) ; bind o-umlaut
 @end smallexample
 
 @noindent
@@ -1891,20 +1918,20 @@ binding, you need to teach Emacs how to decode the keyboard by using an
 appropriate input method (@pxref{Input Methods, , Input Methods, emacs, The GNU
 Emacs Manual}).
 
-@deffn Command global-set-key key binding
+@deffn Command keymap-global-set key binding
 This function sets the binding of @var{key} in the current global map
 to @var{binding}.
 
 @smallexample
 @group
-(global-set-key @var{key} @var{binding})
+(keymap-global-set @var{key} @var{binding})
 @equiv{}
-(define-key (current-global-map) @var{key} @var{binding})
+(keymap-set (current-global-map) @var{key} @var{binding})
 @end group
 @end smallexample
 @end deffn
 
-@deffn Command global-unset-key key
+@deffn Command keymap-global-unset key
 @cindex unbinding keys
 This function removes the binding of @var{key} from the current
 global map.
@@ -1915,50 +1942,32 @@ that uses @var{key} as a prefix---which would not be allowed if
 
 @smallexample
 @group
-(global-unset-key "\C-l")
+(keymap-global-unset "C-l")
     @result{} nil
 @end group
 @group
-(global-set-key "\C-l\C-l" 'redraw-display)
+(keymap-global-set "C-l C-l" 'redraw-display)
     @result{} nil
-@end group
-@end smallexample
-
-This function is equivalent to using @code{define-key} as follows:
-
-@smallexample
-@group
-(global-unset-key @var{key})
-@equiv{}
-(define-key (current-global-map) @var{key} nil)
 @end group
 @end smallexample
 @end deffn
 
-@deffn Command local-set-key key binding
+@deffn Command keymap-local-set key binding
 This function sets the binding of @var{key} in the current local
 keymap to @var{binding}.
 
 @smallexample
 @group
-(local-set-key @var{key} @var{binding})
+(keymap-local-set @var{key} @var{binding})
 @equiv{}
-(define-key (current-local-map) @var{key} @var{binding})
+(keymap-set (current-local-map) @var{key} @var{binding})
 @end group
 @end smallexample
 @end deffn
 
-@deffn Command local-unset-key key
+@deffn Command keymap-local-unset key
 This function removes the binding of @var{key} from the current
 local map.
-
-@smallexample
-@group
-(local-unset-key @var{key})
-@equiv{}
-(define-key (current-local-map) @var{key} nil)
-@end group
-@end smallexample
 @end deffn
 
 @node Scanning Keymaps
@@ -2813,9 +2822,9 @@ using an indirection through @code{tool-bar-map}.
 By default, the global map binds @code{[tool-bar]} as follows:
 
 @example
-(global-set-key [tool-bar]
-                `(menu-item ,(purecopy "tool bar") ignore
-                            :filter tool-bar-make-keymap))
+(keymap-global-set "<tool-bar>"
+                   `(menu-item ,(purecopy "tool bar") ignore
+                               :filter tool-bar-make-keymap))
 @end example
 
 @noindent
