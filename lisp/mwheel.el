@@ -55,18 +55,24 @@
     (mouse-wheel-mode 1)))
 
 (defcustom mouse-wheel-down-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win) (featurep 'pgtk))
-      'wheel-up
-    'mouse-4)
+  (cond ((or (featurep 'w32-win) (featurep 'ns-win))
+         'wheel-up)
+        ((featurep 'pgtk-win)
+         '(mouse-4 wheel-up))
+        (t
+         'mouse-4))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win) (featurep 'pgtk))
-      'wheel-down
-    'mouse-5)
+  (cond ((or (featurep 'w32-win) (featurep 'ns-win))
+         'wheel-down)
+        ((featurep 'pgtk-win)
+         '(mouse-5 wheel-down))
+        (t
+         'mouse-5))
   "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
@@ -221,15 +227,21 @@ Also see `mouse-wheel-tilt-scroll'."
   "Function that does the job of scrolling right.")
 
 (defvar mouse-wheel-left-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win) (featurep 'pgtk))
-      'wheel-left
-    'mouse-6)
+  (cond ((or (featurep 'w32-win) (featurep 'ns-win))
+         'wheel-left)
+        ((featurep 'pgtk-win)
+         '(mouse-6 wheel-left))
+        (t
+         'mouse-6))
   "Event used for scrolling left.")
 
 (defvar mouse-wheel-right-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win) (featurep 'pgtk))
-      'wheel-right
-    'mouse-7)
+  (cond ((or (featurep 'w32-win) (featurep 'ns-win))
+         'wheel-right)
+        ((featurep 'pgtk-win)
+         '(mouse-7 wheel-right))
+        (t
+         'mouse-7))
   "Event used for scrolling right.")
 
 (defun mouse-wheel--get-scroll-window (event)
@@ -258,6 +270,18 @@ active window."
                      (throw 'found window-1))))
                frame nil t)))))
       (mwheel-event-window event)))
+
+(defun mouse-wheel--button-eq (btn lst)
+  "Test whether BTN is included in LST."
+  (cond ((listp lst)
+         (memq btn lst))
+        (t
+         (eq lst btn))
+        ))
+
+(defun mouse-wheel--button-flatten (&rest arg)
+  "Flatten ARG."
+  (flatten-list arg))
 
 (defun mwheel-scroll (event &optional arg)
   "Scroll up or down according to the EVENT.
@@ -296,14 +320,14 @@ value of ARG, and the command uses it in subsequent scrolls."
     (condition-case nil
         (unwind-protect
 	    (let ((button (mwheel-event-button event)))
-              (cond ((and (eq amt 'hscroll) (eq button mouse-wheel-down-event))
+              (cond ((and (eq amt 'hscroll) (mouse-wheel--button-eq button mouse-wheel-down-event))
                      (when (and (natnump arg) (> arg 0))
                        (setq mouse-wheel-scroll-amount-horizontal arg))
                      (funcall (if mouse-wheel-flip-direction
                                   mwheel-scroll-left-function
                                 mwheel-scroll-right-function)
                               mouse-wheel-scroll-amount-horizontal))
-                    ((eq button mouse-wheel-down-event)
+                    ((mouse-wheel--button-eq button mouse-wheel-down-event)
                      (condition-case nil (funcall mwheel-scroll-down-function amt)
                        ;; Make sure we do indeed scroll to the beginning of
                        ;; the buffer.
@@ -318,14 +342,14 @@ value of ARG, and the command uses it in subsequent scrolls."
                           ;; for a reason that escapes me.  This problem seems
                           ;; to only affect scroll-down.  --Stef
                           (set-window-start (selected-window) (point-min))))))
-                    ((and (eq amt 'hscroll) (eq button mouse-wheel-up-event))
+                    ((and (eq amt 'hscroll) (mouse-wheel--button-eq button mouse-wheel-up-event))
                      (when (and (natnump arg) (> arg 0))
                        (setq mouse-wheel-scroll-amount-horizontal arg))
                      (funcall (if mouse-wheel-flip-direction
                                   mwheel-scroll-right-function
                                 mwheel-scroll-left-function)
                               mouse-wheel-scroll-amount-horizontal))
-                    ((eq button mouse-wheel-up-event)
+                    ((mouse-wheel--button-eq button mouse-wheel-up-event)
                      (condition-case nil (funcall mwheel-scroll-up-function amt)
                        ;; Make sure we do indeed scroll to the end of the buffer.
                        (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
@@ -378,9 +402,9 @@ value of ARG, and the command uses it in subsequent scrolls."
         (button (mwheel-event-button event)))
     (select-window scroll-window 'mark-for-redisplay)
     (unwind-protect
-        (cond ((eq button mouse-wheel-down-event)
+        (cond ((mouse-wheel--button-eq button mouse-wheel-down-event)
                (text-scale-increase 1))
-              ((eq button mouse-wheel-up-event)
+              ((mouse-wheel--button-eq button mouse-wheel-up-event)
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
@@ -432,13 +456,16 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
     (cond
      ;; Bindings for changing font size.
      ((and (consp binding) (eq (cdr binding) 'text-scale))
-      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+      (dolist (event (mouse-wheel--button-flatten mouse-wheel-down-event
+                                                 mouse-wheel-up-event))
         (mouse-wheel--add-binding `[,(list (caar binding) event)]
                                   'mouse-wheel-text-scale)))
      ;; Bindings for scrolling.
      (t
-      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
-                           mouse-wheel-left-event mouse-wheel-right-event))
+      (dolist (event (mouse-wheel--button-flatten mouse-wheel-down-event
+                                                 mouse-wheel-up-event
+                                                 mouse-wheel-left-event
+                                                 mouse-wheel-right-event))
         (dolist (key (mouse-wheel--create-scroll-keys binding event))
           (mouse-wheel--add-binding key 'mwheel-scroll)))))))
 
