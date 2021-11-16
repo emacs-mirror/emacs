@@ -132,7 +132,7 @@ void
 initial_define_lispy_key (Lisp_Object keymap, const char *keyname, const char *defname)
 {
   store_in_keymap (keymap, intern_c_string (keyname),
-		   intern_c_string (defname), Qnil);
+		   intern_c_string (defname), false);
 }
 
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
@@ -1441,7 +1441,7 @@ static Lisp_Object
 define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 {
   Lisp_Object cmd = Fmake_sparse_keymap (Qnil);
-  store_in_keymap (keymap, c, cmd, Qnil);
+  store_in_keymap (keymap, c, cmd, false);
 
   return cmd;
 }
