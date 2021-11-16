@@ -1096,7 +1096,11 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
         ;; its value of window-configuration is unreadable,
         ;; so restore its saved window-state.
         (cond
-         ((window-configuration-p wc)
+         ((and (window-configuration-p wc)
+               ;; Check for such cases as cloning a frame with tabs.
+               ;; When tabs were cloned to another frame, then fall back
+               ;; to using `window-state-put' below.
+               (eq (window-configuration-frame wc) (selected-frame)))
           (let ((wc-point (alist-get 'wc-point to-tab))
                 (wc-bl  (seq-filter #'buffer-live-p (alist-get 'wc-bl to-tab)))
                 (wc-bbl (seq-filter #'buffer-live-p (alist-get 'wc-bbl to-tab)))
