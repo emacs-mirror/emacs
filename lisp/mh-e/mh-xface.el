@@ -73,8 +73,7 @@ in this order is used."
         (when (re-search-forward "^from:" (point-max) t)
           (if (eq type 'url)
               (mh-x-image-url-display url)
-            (mh-funcall-if-exists
-             insert-image (create-image
+            (insert-image (create-image
                            raw type t
                            :foreground
                            (face-foreground 'mh-show-xface nil t)

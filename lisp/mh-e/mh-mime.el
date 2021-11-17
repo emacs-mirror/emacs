@@ -700,8 +700,7 @@ buttons for alternative parts that are usually suppressed."
                   ;; Delete the button and displayed part (if any)
                   (let ((region (get-text-property point 'mh-region)))
                     (when region
-                      (mh-funcall-if-exists
-                       remove-images (car region) (cdr region)))
+                      (remove-images (car region) (cdr region)))
                     (mm-display-part handle)
                     (when region
                       (delete-region (car region) (cdr region))))

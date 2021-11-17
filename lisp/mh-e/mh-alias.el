@@ -258,15 +258,7 @@ Blind aliases or users from /etc/passwd are not expanded."
       (read-string prompt)
     (let* ((minibuffer-local-completion-map mh-alias-read-address-map)
            (completion-ignore-case mh-alias-completion-ignore-case-flag)
-           (the-answer
-            (cond ((fboundp 'completing-read-multiple)
-                   (mh-funcall-if-exists
-                    completing-read-multiple prompt mh-alias-alist nil nil))
-                  ((featurep 'multi-prompt)
-                   (mh-funcall-if-exists
-                    multi-prompt "," nil prompt mh-alias-alist nil nil))
-                  (t (split-string
-                      (completing-read prompt mh-alias-alist nil nil) ",")))))
+           (the-answer (completing-read-multiple prompt mh-alias-alist nil nil)))
       (if (not mh-alias-expand-aliases-flag)
           (mapconcat #'identity the-answer ", ")
         ;; Loop over all elements, checking if in passwd alias or blind first

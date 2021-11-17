@@ -139,8 +139,7 @@ Ignores case when searching for OLD."
      0 2
      `(display ,(or mh-logo-cache
                     (setq mh-logo-cache
-                          (mh-funcall-if-exists
-                           find-image '(( :type xpm :ascent center
+                          (find-image '(( :type xpm :ascent center
                                           :file "mh-logo.xpm" ))))))
      (car mode-line-buffer-identification))))
 

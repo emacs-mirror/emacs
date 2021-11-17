@@ -631,7 +631,7 @@ perform the operation on all messages in that region.
   (add-hook 'write-file-functions #'mh-execute-commands nil t)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'hl-line-mode)   ; avoid pollution
-  (mh-funcall-if-exists hl-line-mode 1)
+  (hl-line-mode 1)
   (setq revert-buffer-function #'mh-undo-folder)
   (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
   (mh-inc-spool-make)
