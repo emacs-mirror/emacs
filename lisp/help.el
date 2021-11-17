@@ -1226,8 +1226,8 @@ Otherwise, return a new string."
         (buffer-string)))))
 
 (defvar help--keymaps-seen nil)
-(defun describe-map-tree (startmap partial shadow prefix title no-menu
-                                   transl always-title mention-shadow)
+(defun describe-map-tree (startmap &optional partial shadow prefix title
+                                   no-menu transl always-title mention-shadow)
   "Insert a description of the key bindings in STARTMAP.
 This is followed by the key bindings of all maps reachable
 through STARTMAP.
