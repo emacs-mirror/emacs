@@ -1739,8 +1739,6 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 `image-dired-dired-next-line' and `image-dired-dired-previous-line'."
   :keymap image-dired-minor-mode-map)
 
-(declare-function clear-image-cache "image.c" (&optional filter))
-
 (defun image-dired-create-thumbs (&optional arg)
   "Create thumbnail images for all marked files in Dired.
 With prefix argument ARG, create thumbnails even if they already exist
