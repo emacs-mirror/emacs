@@ -5588,6 +5588,15 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = make_timespec (0, 0);
 #endif
 
+#ifndef USABLE_SIGIO
+	  /* If we're polling for input, don't get stuck in select for
+	     more than 25 msec. */
+	  struct timespec short_timeout = make_timespec (0, 25000000);
+	  if ((read_kbd || !NILP (wait_for_cell))
+	      && timespec_cmp (short_timeout, timeout) < 0)
+	    timeout = short_timeout;
+#endif
+
 	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
