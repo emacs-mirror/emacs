@@ -46,29 +46,23 @@
 
 ;;; Code:
 
-(defvar rot13-display-table
-  (let ((table (make-display-table))
-	(i 0))
-    (while (< i 26)
+(defconst rot13-display-table
+  (let ((table (make-display-table)))
+    (dotimes (i 26)
       (aset table (+ i ?a) (vector (+ (% (+ i 13) 26) ?a)))
-      (aset table (+ i ?A) (vector (+ (% (+ i 13) 26) ?A)))
-      (setq i (1+ i)))
+      (aset table (+ i ?A) (vector (+ (% (+ i 13) 26) ?A))))
     table)
   "Char table for ROT13 display.")
 
-(defvar rot13-translate-table
-  (let ((str (make-string 127 0))
-	(i 0))
-    (while (< i 127)
-      (aset str i i)
-      (setq i (1+ i)))
-    (setq i 0)
-    (while (< i 26)
-      (aset str (+ i ?a) (+ (% (+ i 13) 26) ?a))
-      (aset str (+ i ?A) (+ (% (+ i 13) 26) ?A))
-      (setq i (1+ i)))
-    str)
-  "String table for ROT13 translation.")
+(put 'plain-char-table 'char-table-extra-slots 0)
+
+(defconst rot13-translate-table
+  (let ((table (make-char-table 'translation-table)))
+    (dotimes (i 26)
+      (aset table (+ i ?a) (+ (% (+ i 13) 26) ?a))
+      (aset table (+ i ?A) (+ (% (+ i 13) 26) ?A)))
+    table)
+  "Char table for ROT13 translation.")
 
 ;;;###autoload
 (defun rot13 (object &optional start end)
