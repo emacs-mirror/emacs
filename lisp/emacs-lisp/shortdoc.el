@@ -1242,7 +1242,7 @@ There can be any number of :example/:result elements."
   (keymap-global-unset
    :no-eval (keymap-global-unset "C-c C-c"))
   (keymap-substitute
-   :no-eval (keymap-substitute "C-c C-c" "M-a" map))
+   :no-eval (keymap-substitute map "C-c C-c" "M-a"))
   (keymap-set-after
    :no-eval (keymap-set-after map "<separator-2>" menu-bar-separator))
   "Predicates"

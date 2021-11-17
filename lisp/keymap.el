@@ -121,7 +121,7 @@ parent keymap to be used."
   (keymap--check key)
   (define-key keymap (key-parse key) nil remove))
 
-(defun keymap-substitute (olddef newdef keymap &optional oldmap prefix)
+(defun keymap-substitute (keymap olddef newdef &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF wherever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine

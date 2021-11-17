@@ -5066,7 +5066,7 @@ binding slots have been popped."
    (keymap-unset 2)
    (keymap-global-unset 1)
    (keymap-local-unset 1)
-   (keymap-substitute 1 2)
+   (keymap-substitute 2 3)
    (keymap-set-after 2)
    (key-translate 1 2)
    (keymap-lookup 2)
