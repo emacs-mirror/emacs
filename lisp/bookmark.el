@@ -812,7 +812,7 @@ CODING is the symbol of the coding-system in which the file is encoded."
 
 (defvar-keymap bookmark-minibuffer-read-name-map
   :parent minibuffer-local-map
-  ["C-w"] #'bookmark-yank-word)
+  "C-w" #'bookmark-yank-word)
 
 (defun bookmark-set-internal (prompt name overwrite-or-push)
   "Set a bookmark using specified NAME or prompting with PROMPT.
@@ -990,7 +990,7 @@ It takes one argument, the name of the bookmark, as a string.")
 (defvar-keymap bookmark-edit-annotation-mode-map
   :doc "Keymap for editing an annotation of a bookmark."
   :parent text-mode-map
-  ["C-c C-c"] #'bookmark-send-edited-annotation)
+  "C-c C-c" #'bookmark-send-edited-annotation)
 
 (defun bookmark-insert-annotation (bookmark-name-or-record)
   "Insert annotation for BOOKMARK-NAME-OR-RECORD at point."
@@ -1702,20 +1702,20 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
   "2" #'bookmark-bmenu-2-window
   "1" #'bookmark-bmenu-1-window
   "j" #'bookmark-bmenu-this-window
-  ["C-c C-c"] #'bookmark-bmenu-this-window
+  "C-c C-c" #'bookmark-bmenu-this-window
   "f" #'bookmark-bmenu-this-window
-  ["C-m"] #'bookmark-bmenu-this-window
+  "C-m" #'bookmark-bmenu-this-window
   "o" #'bookmark-bmenu-other-window
-  ["C-o"] #'bookmark-bmenu-switch-other-window
+  "C-o" #'bookmark-bmenu-switch-other-window
   "s" #'bookmark-bmenu-save
-  ["C-x C-s"] #'bookmark-bmenu-save
+  "C-x C-s" #'bookmark-bmenu-save
   "k" #'bookmark-bmenu-delete
-  ["C-d"] #'bookmark-bmenu-delete-backwards
+  "C-d" #'bookmark-bmenu-delete-backwards
   "x" #'bookmark-bmenu-execute-deletions
   "d" #'bookmark-bmenu-delete
   "D" #'bookmark-bmenu-delete-all
-  [? ] #'next-line
-  "\177" #'bookmark-bmenu-backup-unmark
+  "SPC" #'next-line
+  "DEL" #'bookmark-bmenu-backup-unmark
   "u" #'bookmark-bmenu-unmark
   "U" #'bookmark-bmenu-unmark-all
   "m" #'bookmark-bmenu-mark
@@ -1728,7 +1728,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
   "A" #'bookmark-bmenu-show-all-annotations
   "e" #'bookmark-bmenu-edit-annotation
   "/" #'bookmark-bmenu-search
-  [mouse-2] #'bookmark-bmenu-other-window-with-mouse)
+  "<mouse-2>" #'bookmark-bmenu-other-window-with-mouse)
 
 (easy-menu-define bookmark-menu bookmark-bmenu-mode-map
   "Menu for `bookmark-bmenu'."
