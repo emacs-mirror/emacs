@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 #include "termhooks.h"
 #include "window.h"
+#include "process.h"
 
 /* Include xwidget bottom end headers.  */
 #ifdef USE_GTK
@@ -189,14 +190,12 @@ fails.  */)
 	    {
 	      xw->widget_osr = webkit_web_view_new ();
 
+	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
+					"about:blank");
 	      /* webkitgtk uses GSubprocess which sets sigaction causing
 		 Emacs to not catch SIGCHLD with its usual handle setup in
 		 'catch_child_signal'.  This resets the SIGCHLD sigaction.  */
-	      struct sigaction old_action;
-	      sigaction (SIGCHLD, NULL, &old_action);
-	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
-					"about:blank");
-	      sigaction (SIGCHLD, &old_action, NULL);
+	      catch_child_signal ();
 	    }
 	  else
 	    {
@@ -1841,6 +1840,7 @@ DEFUN ("xwidget-webkit-goto-uri",
   uri = ENCODE_FILE (uri);
 #ifdef USE_GTK
   webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr), SSDATA (uri));
+  catch_child_signal ();
 #elif defined NS_IMPL_COCOA
   nsxwidget_webkit_goto_uri (xw, SSDATA (uri));
 #endif
