@@ -5588,7 +5588,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = make_timespec (0, 0);
 #endif
 
-#ifndef USABLE_SIGIO
+#if !defined USABLE_SIGIO && !defined WINDOWSNT
 	  /* If we're polling for input, don't get stuck in select for
 	     more than 25 msec. */
 	  struct timespec short_timeout = make_timespec (0, 25000000);

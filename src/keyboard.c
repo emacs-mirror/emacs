@@ -7180,6 +7180,7 @@ tty_read_avail_input (struct terminal *terminal,
 static void
 handle_async_input (void)
 {
+#ifndef DOS_NT
   while (1)
     {
       int nread = gobble_input ();
@@ -7189,6 +7190,7 @@ handle_async_input (void)
       if (nread <= 0)
 	break;
     }
+#endif
 }
 
 void
