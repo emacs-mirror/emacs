@@ -437,15 +437,17 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-08-plus-slash ()
   "Test `mh-folder-completion-function' with `+/'."
+  :tags '(:unstable)
   (mh-test-folder-completion-1 "+/" "+/" "tmp/" t)
-    ;; case "bb"
-    (with-mh-test-env
-      (should (equal nil
-                     (member (format "+%s/" mh-test-rel-folder)
-                             (mh-folder-completion-function "+/" nil t))))))
+  ;; case "bb"
+  (with-mh-test-env
+    (should (equal nil
+                   (member (format "+%s/" mh-test-rel-folder)
+                           (mh-folder-completion-function "+/" nil t))))))
 
 (ert-deftest mh-folder-completion-function-09-plus-slash-tmp ()
   "Test `mh-folder-completion-function' with `+/tmp'."
+  :tags '(:unstable)
   (mh-test-folder-completion-1 "+/tmp" "+/tmp/" "tmp/" t))
 
 (ert-deftest mh-folder-completion-function-10-plus-slash-abs-folder ()
