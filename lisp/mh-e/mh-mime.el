@@ -39,6 +39,7 @@
 ;;; Code:
 
 (require 'mh-e)
+(require 'mh-acros)
 (require 'mh-gnus)                      ;needed because mh-gnus.el not compiled
 
 (require 'font-lock)
