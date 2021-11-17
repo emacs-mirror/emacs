@@ -114,6 +114,7 @@ struct xwidget_view
 
   cairo_surface_t *cr_surface;
   cairo_t *cr_context;
+  int just_resized;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   XvWindow *xvWindow;
