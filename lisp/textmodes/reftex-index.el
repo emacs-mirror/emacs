@@ -29,9 +29,7 @@
 
 (require 'reftex)
 
-;; START remove for XEmacs release
 (defvar TeX-master)
-;; END remove for XEmacs release
 
 ;;;###autoload
 (defun reftex-index-selection-or-word (&optional arg phrase)

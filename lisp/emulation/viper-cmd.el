@@ -2311,7 +2311,6 @@ problems."
   (viper-downgrade-to-insert))
 
 (defun viper-start-R-mode ()
-  ;; Leave arg as 1, not t: XEmacs insists that it must be a pos number
   (overwrite-mode 1)
   (add-hook
    'viper-post-command-hooks #'viper-R-state-post-command-sentinel t 'local)

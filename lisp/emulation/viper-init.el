@@ -44,7 +44,6 @@
 
 (define-obsolete-function-alias 'viper-device-type #'window-system "27.1")
 
-;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun viper-window-display-p ()
   (and window-system (not (memq window-system '(tty stream pc)))))
 
