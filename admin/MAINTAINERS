@@ -138,6 +138,9 @@ Andrea Corallo
 	    lisp/emacs-lisp/comp-cstr.el
 	    test/src/comp-*.el
 
+Stefan Kangas
+        admin/automerge
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
