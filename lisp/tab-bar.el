@@ -1802,10 +1802,19 @@ Interactively, prompt for GROUP-NAME."
 (defvar tab-bar-history-old nil
   "Window configuration before the current command.")
 
+(defvar tab-bar-history-pre-command nil
+  "Command set to `this-command' by `pre-command-hook'.")
+
+(defvar tab-bar-history-done-command nil
+  "Command handled by `window-configuration-change-hook'.")
+
 (defvar tab-bar-history-old-minibuffer-depth 0
   "Minibuffer depth before the current command.")
 
 (defun tab-bar--history-pre-change ()
+  ;; Reset before the command could set it
+  (setq tab-bar-history-omit nil)
+  (setq tab-bar-history-pre-command this-command)
   (setq tab-bar-history-old-minibuffer-depth (minibuffer-depth))
   ;; Store window-configuration before possibly entering the minibuffer.
   (when (zerop tab-bar-history-old-minibuffer-depth)
@@ -1814,8 +1823,10 @@ Interactively, prompt for GROUP-NAME."
             (wc-point . ,(point-marker))))))
 
 (defun tab-bar--history-change ()
-  (when (and (not tab-bar-history-omit)
-             tab-bar-history-old
+  (when (and (not tab-bar-history-omit) tab-bar-history-old
+             ;; Don't register changes performed by the same command
+             ;; repeated in sequence, such as incremental window resizing.
+             (not (eq tab-bar-history-done-command tab-bar-history-pre-command))
              ;; Store window-configuration before possibly entering
              ;; the minibuffer.
              (zerop tab-bar-history-old-minibuffer-depth))
@@ -1824,8 +1835,8 @@ Interactively, prompt for GROUP-NAME."
                              (gethash (selected-frame) tab-bar-history-back))
                        tab-bar-history-limit)
              tab-bar-history-back))
-  (when tab-bar-history-omit
-    (setq tab-bar-history-omit nil)))
+  (setq tab-bar-history-old nil)
+  (setq tab-bar-history-done-command tab-bar-history-pre-command))
 
 (defun tab-bar-history-back ()
   "Restore a previous window configuration used in the current tab.
