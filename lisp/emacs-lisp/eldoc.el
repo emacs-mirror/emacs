@@ -385,7 +385,8 @@ Also store it in `eldoc-last-message' and return that value."
            ;; The following configuration shows "Matches..." in the
            ;; echo area when point is after a closing bracket, which
            ;; conflicts with eldoc.
-           (and show-paren-context-when-offscreen
+           (and (boundp 'show-paren-context-when-offscreen)
+                show-paren-context-when-offscreen
                 (not (pos-visible-in-window-p
                       (overlay-end show-paren--overlay)))))))
 
