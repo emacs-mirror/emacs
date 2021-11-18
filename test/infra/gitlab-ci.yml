@@ -302,9 +302,7 @@ test-native-comp-speed0:
   extends: [.job-template, .test-template, .native-comp-template]
   variables:
     target: emacs-native-comp-speed0
-    make_params: >-
-      -C test check EXCLUDE_TESTS=%emacs-module-tests.el
-         SELECTOR='(not (tag :unstable))'
+    make_params: "-C test check SELECTOR='(not (tag :unstable))'"
 
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
@@ -317,7 +315,7 @@ test-all-inotify:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
   variables:
     target: emacs-inotify
-    make_params: check-expensive EXCLUDE_TESTS=%emacs-module-tests.el
+    make_params: check-expensive
     # Two hours.
     EMACS_TEST_TIMEOUT: 7200
 
