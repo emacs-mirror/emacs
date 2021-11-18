@@ -101,12 +101,10 @@ produce extremely long lines in backtraces and lengthy delays in
 forming them.  This variable governs the target maximum line
 length by manipulating these two variables while printing stack
 traces.  Setting this variable to t will re-use the value of
-`backtrace-line-length' while print stack traces in ERT batch
-mode.  A value of nil will short-circuit this mechanism; line
-lengths will be completely determined by `ert-batch-line-length'
-and `ert-batch-line-level'.  Any other value will be temporarily
-bound to `backtrace-line-length' when producing stack traces
-in batch mode.")
+`backtrace-line-length' while printing stack traces in ERT batch
+mode.  Any other value will be temporarily bound to
+`backtrace-line-length' when producing stack traces in batch
+mode.")
 
 (defface ert-test-result-expected '((((class color) (background light))
                                      :background "green1")
@@ -1451,13 +1449,9 @@ Returns the stats object."
                (message "Test %S backtrace:" (ert-test-name test))
                (with-temp-buffer
                  (let ((backtrace-line-length
-                        (cond
-                         ((eq ert-batch-backtrace-line-length t)
-                          backtrace-line-length)
-                         ((eq ert-batch-backtrace-line-length nil)
-                          nil)
-                         (t
-                          ert-batch-backtrace-line-length)))
+                        (if (eq ert-batch-backtrace-line-length t)
+                            backtrace-line-length
+                          ert-batch-backtrace-line-length))
                        (print-level ert-batch-print-level)
                        (print-length ert-batch-print-length))
                    (insert (backtrace-to-string
@@ -2062,8 +2056,7 @@ SELECTOR works as described in `ert-select-tests'."
            (read
             (completing-read (format-prompt "Run tests" default)
                              obarray #'ert-test-boundp nil nil
-                             'ert--selector-history default nil)))
-         nil))
+                             'ert--selector-history default nil)))))
   (let (buffer listener)
     (setq listener
           (lambda (event-type &rest event-args)
