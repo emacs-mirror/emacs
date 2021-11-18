@@ -533,10 +533,12 @@ Used in `repeat-mode'."
           (dolist (command (sort (cdr keymap) 'string-lessp))
             (let* ((info (help-fns--analyze-function command))
                    (map (list (symbol-value (car keymap))))
-                   (desc (key-description
-                          (or (where-is-internal command map t)
-                              (where-is-internal (nth 3 info) map t)))))
-              (princ (format-message " `%s' (bound to '%s')\n" command desc))))
+                   (desc (mapconcat (lambda (key)
+                                      (format-message "`%s'" (key-description key)))
+                                    (or (where-is-internal command map)
+                                        (where-is-internal (nth 3 info) map))
+                                    ", ")))
+              (princ (format-message " `%s' (bound to %s)\n" command desc))))
           (princ "\n"))))))
 
 (provide 'repeat)
