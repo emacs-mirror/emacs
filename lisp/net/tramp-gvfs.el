@@ -744,7 +744,7 @@ It has been changed in GVFS 1.14.")
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-gvfs-file-name-handler-alist
-  '(;; `abbreviate-file-name' performed by default handler.
+  '((abbreviate-file-name . tramp-handle-abbreviate-file-name)
     (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
@@ -1149,15 +1149,12 @@ file names."
 	   (make-tramp-file-name
 	    :method method :user user :domain domain
 	    :host host :port port :localname "/" :hop hop)))
-	(setq localname
-	      (replace-match
-	       (tramp-get-connection-property v "default-location" "~")
-	       nil t localname 1)))
-      ;; Tilde expansion is not possible.
-      (when (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
-	(tramp-error
-	 v 'file-error
-	 "Cannot expand tilde in file `%s'" name))
+	(unless (string-empty-p
+		 (tramp-get-connection-property v "default-location" ""))
+	  (setq localname
+		(replace-match
+		 (tramp-get-connection-property v "default-location" "~")
+		 nil t localname 1))))
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
       ;; We do not pass "/..".
@@ -1172,10 +1169,12 @@ file names."
       ;; Do not keep "/..".
       (when (string-match-p "^/\\.\\.?$" localname)
 	(setq localname "/"))
-      ;; No tilde characters in file name, do normal
-      ;; `expand-file-name' (this does "/./" and "/../").
+      ;; Do normal `expand-file-name' (this does "/./" and "/../"),
+      ;; unless there are tilde characters in file name.
       (tramp-make-tramp-file-name
-       v (tramp-run-real-handler #'expand-file-name (list localname))))))
+       v (if (string-match-p "\\`~" localname)
+	     localname
+	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
 
 (defun tramp-gvfs-get-directory-attributes (directory)
   "Return GVFS attributes association list of all files in DIRECTORY."

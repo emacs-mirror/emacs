@@ -2295,7 +2295,10 @@ This checks also `file-name-as-directory', `file-name-directory',
   (skip-unless (tramp--test-emacs29-p))
 
   (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
-         (home-dir (expand-file-name (concat remote-host "~"))))
+	 ;; Not all methods can expand "~".
+         (home-dir (ignore-errors (expand-file-name (concat remote-host "~")))))
+    (skip-unless home-dir)
+
     ;; Check home-dir abbreviation.
     (unless (string-suffix-p "~" home-dir)
       (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
