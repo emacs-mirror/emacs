@@ -151,6 +151,10 @@ in batch mode.")
     ;; Note that nil is still a valid value for the `name' slot in
     ;; ert-test objects.  It designates an anonymous test.
     (error "Attempt to define a test named nil"))
+  (when (and noninteractive (get symbol 'ert--test))
+    ;; Make sure duplicated tests are discovered since the older test would
+    ;; be ignored silently otherwise.
+    (error "Test `%s' redefined" symbol))
   (define-symbol-prop symbol 'ert--test definition)
   definition)
 
@@ -205,6 +209,9 @@ description of valid values for RESULT-TYPE.
 Macros in BODY are expanded when the test is defined, not when it
 is run.  If a macro (possibly with side effects) is to be tested,
 it has to be wrapped in `(eval (quote ...))'.
+
+If NAME is already defined as a test and Emacs is running
+in batch mode, an error is signalled.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] BODY...)"

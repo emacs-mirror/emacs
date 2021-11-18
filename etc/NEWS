@@ -64,6 +64,13 @@ the 'COLORTERM' environment variable is set to the value "truecolor".
 These variables will override 'print-length' and 'print-level' when
 printing Lisp values in ERT batch test results.
 
+---
+** Redefining an ERT test in batch mode now signals an error
+Executing 'ert-deftest' with the same name as an existing test causes
+the previous definition to be discarded, which was probably not
+intended when this occurs in batch mode.  To remedy the error, rename
+tests so that they all have unique names.
+
 ** Emacs now supports Unicode Standard version 14.0.
 
 ** Emoji
