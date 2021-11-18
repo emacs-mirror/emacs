@@ -2928,7 +2928,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     {
       if (s->hl == DRAW_CURSOR)
         {
-	  CGColorRef *colorref = get_cgcolor_from_nscolor (FRAME_CURSOR_COLOR (f), f);
+	  CGColorRef colorref = get_cgcolor_from_nscolor (FRAME_CURSOR_COLOR (f), f);
 	  CGContextSetFillColorWithColor (context, colorref);
 	  CGColorRelease (colorref);
         }
@@ -2944,7 +2944,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextScaleCTM (context, 1, -1);
       if (s->hl == DRAW_CURSOR)
         {
-	  CGColorRef *colorref = get_cgcolor_from_nscolor (FRAME_BACKGROUND_COLOR (f), f);
+	  CGColorRef colorref = get_cgcolor_from_nscolor (FRAME_BACKGROUND_COLOR (f), f);
 	  CGContextSetFillColorWithColor (context, colorref);
 	  CGColorRelease (colorref);
         }
