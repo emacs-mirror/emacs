@@ -1697,7 +1697,7 @@ The preference is a float determined from `shr-prefer-media-type'."
             (xwidget-webkit-execute-script
              widget (format "document.body.innerHTML = %S;"
                             (format
-                             "<style>body { margin: 0px; }</style><div style='background: black; height: 100%%; display: flex; align-items: center; justify-content: center;'><video autoplay loop muted controls style='max-width: 100%%; max-height: 100%%;'><source src=%S type='video/mp4\'></source></video></div>"
+                             "<style>body { margin: 0px; }</style><div style='background: black; height: 100%%; display: flex; align-items: center; justify-content: center;'><video autoplay loop muted controls style='max-width: 100%%; max-height: 100%%;'><source src=%S type='video/mp4'></source></video></div>"
                              url)))))
       ;; No xwidgets.
       (if (> (length image) 0)

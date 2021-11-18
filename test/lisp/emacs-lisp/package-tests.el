@@ -383,7 +383,7 @@ but with a different end of line convention (bug#48137)."
         (mapc #'delete-file
               (directory-files-recursively dir "\\`[^\\.].*\\.elc\\'"))
         (mapc (lambda (f) (call-process "gunzip" nil nil nil f))
-              (directory-files-recursively dir "\\`[^\\.].*\\.el.gz\\'"))))))
+              (directory-files-recursively dir "\\`[^\\.].*\\.el\\.gz\\'"))))))
 
 (ert-deftest package-test-install-two-dependencies ()
   "Install a package which includes a dependency."
