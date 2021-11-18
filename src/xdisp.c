@@ -35205,7 +35205,9 @@ line number may be omitted from the mode line.  */);
   line_number_display_limit_width = 200;
 
   DEFVAR_BOOL ("highlight-nonselected-windows", highlight_nonselected_windows,
-    doc: /* Non-nil means highlight region even in nonselected windows.  */);
+    doc: /* Non-nil means highlight active region even in nonselected windows.
+When nil (the default), the active region is only highlighted when
+the window is selected.  */);
   highlight_nonselected_windows = false;
 
   DEFVAR_BOOL ("multiple-frames", multiple_frames,
