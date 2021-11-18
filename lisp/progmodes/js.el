@@ -91,7 +91,7 @@ name.")
 
 (defconst js--plain-method-re
   (concat "^\\s-*?\\(" js--dotted-name-re "\\)\\.prototype"
-          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
+          "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(\\(:?async[ \t\n]+\\)function\\)\\_>")
   "Regexp matching an explicit JavaScript prototype \"method\" declaration.
 Group 1 is a (possibly-dotted) class name, group 2 is a method name,
 and group 3 is the `function' keyword.")
@@ -914,9 +914,10 @@ This puts point at the `function' keyword.
 If this is a syntactically-correct non-expression function,
 return the name of the function, or t if the name could not be
 determined.  Otherwise, return nil."
-  (cl-assert (looking-at "\\_<function\\_>"))
+  (unless (looking-at "\\(\\_<async\\_>[ \t\n]+\\)?\\_<function\\_>")
+    (error "Invalid position"))
   (let ((name t))
-    (forward-word-strictly)
+    (goto-char (match-end 0))
     (forward-comment most-positive-fixnum)
     (when (eq (char-after) ?*)
       (forward-char)
@@ -952,14 +953,17 @@ If POS is not in a function prologue, return nil."
           (goto-char (match-end 0))))
 
       (skip-syntax-backward "w_")
-      (and (or (looking-at "\\_<function\\_>")
-               (js--re-search-backward "\\_<function\\_>" nil t))
-
-           (save-match-data (goto-char (match-beginning 0))
-                            (js--forward-function-decl))
-
-           (<= pos (point))
-           (or prologue-begin (match-beginning 0))))))
+      (let ((start nil))
+        (and (or (looking-at "\\_<function\\_>")
+                 (js--re-search-backward "\\_<function\\_>" nil t))
+             (progn
+               (setq start (match-beginning 0))
+               (goto-char start)
+               (when (looking-back "\\_<async\\_>[ \t\n]+" (- (point) 30))
+                 (setq start (match-beginning 0)))
+               (js--forward-function-decl))
+             (<= pos (point))
+             (or prologue-begin start))))))
 
 (defun js--beginning-of-defun-raw ()
   "Helper function for `js-beginning-of-defun'.
@@ -1229,7 +1233,6 @@ LIMIT defaults to point."
                        ;; Regular function declaration
                        ((and (looking-at "\\_<function\\_>")
                              (setq name (js--forward-function-decl)))
-
                         (when (eq name t)
                           (setq name (js--guess-function-name orig-match-end))
                           (if name
@@ -1241,6 +1244,11 @@ LIMIT defaults to point."
 
                         (cl-assert (eq (char-after) ?{))
                         (forward-char)
+                        (save-excursion
+                          (goto-char orig-match-start)
+                          (when (looking-back "\\_<async\\_>[ \t\n]+"
+                                              (- (point) 3))
+                            (setq orig-match-start (match-beginning 0))))
                         (make-js--pitem
                          :paren-depth orig-depth
                          :h-begin orig-match-start
