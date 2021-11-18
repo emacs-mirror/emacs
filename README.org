@@ -175,7 +175,8 @@
    - =which-key-show-major-mode= will show the currently active major-mode
      bindings. It's similar to =C-h m= but in a which-key format. It is also
      aware of evil commands defined using =evil-define-key=.
-   - =which-key-show-next-page= is the command used for paging.
+   - =which-key-show-next-page-cycle= / =which-key-show-previous-page-cycle= will flip pages in a circle.
+   - =which-key-show-next-page-no-cycle= / =which-key-show-previous-page-no-cycle= will flip pages and stop at first/last page.
    - =which-key-undo= can be used to undo the last keypress when in the middle
      of a key sequence.
 
