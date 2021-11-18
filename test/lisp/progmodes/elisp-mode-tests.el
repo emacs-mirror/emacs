@@ -109,7 +109,7 @@
         (should (member "backup-inhibited" comps))
         (should-not (member "backup-buffer" comps))))))
 
-(ert-deftest elisp-completes-functions-after-let-bindings ()
+(ert-deftest elisp-completes-functions-after-let-bindings-2 ()
   (with-temp-buffer
     (emacs-lisp-mode)
     (insert "(let ((bar 1) (baz 2)) (ba")

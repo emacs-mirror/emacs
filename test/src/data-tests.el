@@ -419,7 +419,7 @@ comparing the subr with a much slower Lisp implementation."
   "Test setting a keyword constant."
   (with-no-warnings (should-error (setq :keyword 'bob) :type 'setting-constant)))
 
-(ert-deftest binding-test-set-constant-nil ()
+(ert-deftest binding-test-set-constant-itself ()
   "Test setting a keyword to itself."
   (with-no-warnings (should (setq :keyword :keyword))))
 
@@ -690,7 +690,7 @@ comparing the subr with a much slower Lisp implementation."
   (let ((n (* 2 most-negative-fixnum)))
     (should (= (logand -1 n) n))))
 
-(ert-deftest data-tests-logcount ()
+(ert-deftest data-tests-logcount-2 ()
   (should (= (logcount (read "#xffffffffffffffffffffffffffffffff")) 128)))
 
 (ert-deftest data-tests-logior ()

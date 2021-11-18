@@ -174,7 +174,7 @@ M-g M-c		switch-to-completions
    (let ((text-quoting-style 'grave))
      (test "\\=`x\\='" "`x'"))))
 
-(ert-deftest help-tests-substitute-command-keys/no-change ()
+(ert-deftest help-tests-substitute-command-keys/no-change-2 ()
   (with-substitute-command-keys-test
    (test "\\[foobar" "\\[foobar")
    (test "\\=" "\\=")))

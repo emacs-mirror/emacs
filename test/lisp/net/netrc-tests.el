@@ -48,7 +48,7 @@
     (should (equal (netrc-credentials "ftp.example.org")
                    '("jrh" "*baz*")))))
 
-(ert-deftest test-netrc-credentials ()
+(ert-deftest test-netrc-credentials-2 ()
   (let ((netrc-file (ert-resource-file "netrc-folding")))
     (should
      (equal (netrc-parse netrc-file)

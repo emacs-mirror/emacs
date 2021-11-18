@@ -550,16 +550,6 @@ baz\"\""
                 (electric-indent-mode 1)
                 (electric-layout-mode 1)))
 
-(define-electric-pair-test js-mode-braces-with-layout-and-indent
-  "" "{" :expected-string "{\n    \n}" :expected-point 7
-  :modes '(js-mode)
-  :test-in-comments nil
-  :test-in-strings nil
-  :fixture-fn (lambda ()
-                (electric-pair-mode 1)
-                (electric-indent-mode 1)
-                (electric-layout-mode 1)))
-
 
 ;;; Backspacing
 ;;; TODO: better tests
