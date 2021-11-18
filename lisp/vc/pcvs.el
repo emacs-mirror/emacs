@@ -266,14 +266,13 @@
 ;;;; CVS-Minor mode
 ;;;;
 
-(defcustom cvs-minor-mode-prefix "C-x c"
+(defcustom cvs-minor-mode-prefix "\C-xc"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
   :type 'string
-  :version "29.1"
-  :group 'pcl-cvs)
+   :group 'pcl-cvs)
 
 (defvar-keymap cvs-minor-mode-map
-  cvs-minor-mode-prefix 'cvs-mode-map
+  (key-description cvs-minor-mode-prefix) 'cvs-mode-map
   "e" '(menu-item nil cvs-mode-edit-log
 	          :filter (lambda (x)
                             (and (derived-mode-p 'log-view-mode) x))))

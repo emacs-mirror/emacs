@@ -264,15 +264,14 @@ and hunk-based syntax highlighting otherwise as a fallback."
      :help "Go to the next count'th file"]
     ))
 
-(defcustom diff-minor-mode-prefix "C-c ="
+(defcustom diff-minor-mode-prefix "\C-c =="
   "Prefix key for `diff-minor-mode' commands."
   :type '(choice (string "ESC")
-                 (string "C-c =") string)
-  :version "29.1")
+                 (string "\C-c=") string))
 
 (defvar-keymap diff-minor-mode-map
   :doc "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'."
-  diff-minor-mode-prefix diff-mode-shared-map)
+  (key-description diff-minor-mode-prefix) diff-mode-shared-map)
 
 (define-minor-mode diff-auto-refine-mode
   "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).

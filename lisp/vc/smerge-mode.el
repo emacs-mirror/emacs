@@ -162,16 +162,15 @@ Used in `smerge-diff-base-upper' and related functions."
         ">" (cons "base-lower" #'smerge-diff-base-lower)
         "=" (cons "upper-lower" #'smerge-diff-upper-lower)))
 
-(defcustom smerge-command-prefix "C-c ^"
+(defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
-  :version "29.1"
   :type '(choice (const :tag "ESC"   "\e")
-		 (const :tag "C-c ^" "C-c ^")
+		 (const :tag "C-c ^" "\C-c^")
 		 (const :tag "none"  "")
 		 string))
 
 (defvar-keymap smerge-mode-map
-  smerge-command-prefix smerge-basic-map)
+  (key-description smerge-command-prefix) smerge-basic-map)
 
 (defvar-local smerge-check-cache nil)
 (defun smerge-check (n)
