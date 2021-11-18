@@ -179,7 +179,7 @@ are found on the stack and therefore not garbage collected."
   "Remove the Lisp reference to the byte-compiled object."
   (setf (symbol-function #'eval-tests-33014-func) nil))
 
-(defun eval-tests-19790-backquote-comma-dot-substitution ()
+(ert-deftest eval-tests-19790-backquote-comma-dot-substitution ()
   "Regression test for Bug#19790.
 Don't handle destructive splicing in backquote expressions (like
 in Common Lisp).  Instead, make sure substitution in backquote
