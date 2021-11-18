@@ -284,7 +284,8 @@ existing tab."
     (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
-    (unless (or (eq (car item) 'add-tab) (nth 2 item))
+    (unless (or (memq (car item) '(add-tab history-back history-forward))
+                (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
         (unless (eq tab-number t)
@@ -298,7 +299,8 @@ regardless of where you click on it.  Also add a new tab."
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
-     ((and (eq (car item) 'add-tab) (functionp (nth 1 item)))
+     ((and (memq (car item) '(add-tab history-back history-forward))
+           (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
       (tab-bar-close-tab tab-number)))))
