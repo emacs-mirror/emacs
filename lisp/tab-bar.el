@@ -980,10 +980,11 @@ on the tab bar instead."
       (wc-point . ,(point-marker))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
-      (wc-history-back . ,(gethash (or frame (selected-frame))
-                                   tab-bar-history-back))
-      (wc-history-forward . ,(gethash (or frame (selected-frame))
-                                      tab-bar-history-forward))
+      ,@(when tab-bar-history-mode
+          `((wc-history-back . ,(gethash (or frame (selected-frame))
+                                         tab-bar-history-back))
+            (wc-history-forward . ,(gethash (or frame (selected-frame))
+                                            tab-bar-history-forward))))
       ;; Copy other possible parameters
       ,@(mapcan (lambda (param)
                   (unless (memq (car param)
@@ -1124,19 +1125,21 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
             (when wc-bl  (set-frame-parameter nil 'buffer-list wc-bl))
             (when wc-bbl (set-frame-parameter nil 'buried-buffer-list wc-bbl))
 
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-back)))
-                          wc-history-back)
-                     tab-bar-history-back)
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-forward)))
-                          wc-history-forward)
-                     tab-bar-history-forward)))
+            (when tab-bar-history-mode
+              (puthash (selected-frame)
+                       (and (window-configuration-p (alist-get 'wc (car wc-history-back)))
+                            wc-history-back)
+                       tab-bar-history-back)
+              (puthash (selected-frame)
+                       (and (window-configuration-p (alist-get 'wc (car wc-history-forward)))
+                            wc-history-forward)
+                       tab-bar-history-forward))))
 
          (ws
           (window-state-put ws nil 'safe)))
 
-        (setq tab-bar-history-omit t)
+        (when tab-bar-history-mode
+          (setq tab-bar-history-omit t))
 
         (when from-index
           (setf (nth from-index tabs) from-tab))
@@ -1385,6 +1388,11 @@ After the tab is created, the hooks in
       (when (eq to-index 0)
         ;; `pushnew' handles the head of tabs but not frame-parameter
         (tab-bar-tabs-set tabs))
+
+      (when tab-bar-history-mode
+        (puthash (selected-frame) nil tab-bar-history-back)
+        (puthash (selected-frame) nil tab-bar-history-forward)
+        (setq tab-bar-history-omit t))
 
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
