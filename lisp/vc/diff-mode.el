@@ -264,7 +264,7 @@ and hunk-based syntax highlighting otherwise as a fallback."
      :help "Go to the next count'th file"]
     ))
 
-(defcustom diff-minor-mode-prefix "\C-c =="
+(defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
   :type '(choice (string "ESC")
                  (string "\C-c=") string))
