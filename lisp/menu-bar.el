@@ -2715,7 +2715,7 @@ could provide `global-map' where items are limited to the global map only."
              ;; sorting.
              (push (cons pos menu-item) menu-end)
            (push menu-item menu-bar))))
-     (lookup-key (or keymap (menu-bar-current-active-maps)) [menu-bar]))
+     (or keymap (lookup-key (menu-bar-current-active-maps) [menu-bar])))
     `(keymap ,@(nreverse menu-bar)
              ,@(mapcar #'cdr (sort menu-end
                                    (lambda (a b)
