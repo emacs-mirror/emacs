@@ -414,19 +414,29 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
-(defvar xref--history (cons nil nil)
-  "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
-
 (make-obsolete-variable 'xref-marker-ring nil "29.1")
 
 (defun xref-set-marker-ring-length (_var _val)
   (declare (obsolete nil "29.1"))
   nil)
 
+(defvar xref--history (cons nil nil)
+  "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
+
+(defun xref--push-backward (m)
+  "Push marker M onto the backward history stack."
+  (unless (equal m (caar xref--history))
+    (push m (car xref--history))))
+
+(defun xref--push-forward (m)
+  "Push marker M onto the forward history stack."
+  (unless (equal m (cadr xref--history))
+    (push m (cdr xref--history))))
+
 (defun xref-push-marker-stack (&optional m)
   "Add point M (defaults to `point-marker') to the marker stack.
 The future stack is erased."
-  (push (or m (point-marker)) (car xref--history))
+  (xref--push-backward (or m (point-marker)))
   (dolist (mk (cdr xref--history))
     (set-marker mk nil nil))
   (setcdr xref--history nil))
@@ -442,7 +452,7 @@ To undo, use \\[xref-go-forward]."
   (if (null (car xref--history))
       (user-error "At start of xref history")
     (let ((marker (pop (car xref--history))))
-      (push (point-marker) (cdr xref--history))
+      (xref--push-forward (point-marker))
       (switch-to-buffer (or (marker-buffer marker)
                             (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
@@ -456,7 +466,7 @@ To undo, use \\[xref-go-forward]."
   (if (null (cdr xref--history))
       (user-error "At end of xref history")
     (let ((marker (pop (cdr xref--history))))
-      (push (point-marker) (car xref--history))
+      (xref--push-backward (point-marker))
       (switch-to-buffer (or (marker-buffer marker)
                             (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
