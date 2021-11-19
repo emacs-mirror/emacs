@@ -56,6 +56,7 @@
 (declare-function get-buffer-xwidgets "xwidget.c" (buffer))
 (declare-function xwidget-query-on-exit-flag "xwidget.c" (xwidget))
 (declare-function xwidget-webkit-back-forward-list "xwidget.c" (xwidget &optional limit))
+(declare-function xwidget-webkit-estimated-load-progress "xwidget.c" (xwidget))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -106,9 +107,6 @@ It can use the following special constructs:
   :type 'string
   :version "29.1")
 
-(defvar-local xwidget-webkit--title ""
-  "The title of the WebKit widget, used for the header line.")
-
 ;;;###autoload
 (defun xwidget-webkit-browse-url (url &optional new-session)
   "Ask xwidget-webkit to browse URL.
@@ -149,6 +147,12 @@ in `split-window-right' with a new xwidget webkit session."
 
 (defvar xwidget-webkit--input-method-events nil
   "Internal variable used to store input method events.")
+
+(defvar-local xwidget-webkit--loading-p nil
+  "Whether or not a page is being loaded.")
+
+(defvar-local xwidget-webkit--progress-update-timer nil
+  "Timer that updates the display of page load progress in the header line.")
 
 (defun xwidget-webkit-pass-command-event-with-input-method ()
   "Handle a `with-input-method' event."
@@ -384,6 +388,11 @@ If N is omitted or nil, scroll backwards by one char."
     (when xwidget-callback
       (funcall xwidget-callback xwidget xwidget-event-type))))
 
+(defun xwidget-webkit--update-progress-timer-function (xwidget)
+  "Force an update of the header line of XWIDGET's buffer."
+  (with-current-buffer (xwidget-buffer xwidget)
+    (force-mode-line-update)))
+
 (defun xwidget-webkit-callback (xwidget xwidget-event-type)
   "Callback for xwidgets.
 XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
@@ -396,6 +405,17 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
              (when-let ((buffer (get-buffer "*Xwidget WebKit History*")))
                (with-current-buffer buffer
                  (revert-buffer)))
+             (with-current-buffer (xwidget-buffer xwidget)
+               (if (string-equal (nth 3 last-input-event)
+                                 "load-finished")
+                   (progn
+                     (setq xwidget-webkit--loading-p nil)
+                     (cancel-timer xwidget-webkit--progress-update-timer))
+                 (unless xwidget-webkit--loading-p
+                   (setq xwidget-webkit--loading-p t
+                         xwidget-webkit--progress-update-timer
+                         (run-at-time 0.5 0.5 #'xwidget-webkit--update-progress-timer-function
+                                      xwidget)))))
              ;; This funciton will be called multi times, so only
              ;; change buffer name when the load actually completes
              ;; this can limit buffer-name flicker in mode-line.
@@ -403,7 +423,6 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                                      "load-finished")
                        (> (length title) 0))
                (with-current-buffer (xwidget-buffer xwidget)
-                 (setq xwidget-webkit--title title)
                  (force-mode-line-update)
                  (xwidget-log "webkit finished loading: %s" title)
                  ;; Do not adjust webkit size to window here, the
@@ -447,7 +466,17 @@ If non-nil, plugins are enabled.  Otherwise, disabled."
   (setq-local tool-bar-map xwidget-webkit-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
-  (setq-local header-line-format 'xwidget-webkit--title)
+  (setq-local header-line-format
+              (list "WebKit: "
+                    '(:eval
+                      (xwidget-webkit-title (xwidget-webkit-current-session)))
+                    '(:eval
+                      (when xwidget-webkit--loading-p
+                        (let ((session (xwidget-webkit-current-session)))
+                          (format " [%d%%%%]"
+                                  (* 100
+                                     (xwidget-webkit-estimated-load-progress
+                                      session))))))))
   ;; Keep track of [vh]scroll when switching buffers
   (image-mode-setup-winprops))
 
