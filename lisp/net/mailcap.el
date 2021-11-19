@@ -55,7 +55,7 @@ you have an entry for \"image/*\" in your ~/.mailcap file."
   "A syntax table for parsing SGML attributes.")
 
 (defvar mailcap-print-command
-  (mapconcat 'identity
+  (mapconcat #'identity
 	     (cons (if (boundp 'lpr-command)
 		       lpr-command
 		     "lpr")
@@ -116,8 +116,7 @@ is consulted."
 	   (regexp :tag "MIME Type")
 	   (sexp :tag "Test (optional)")))
   :get #'mailcap--get-user-mime-data
-  :set #'mailcap--set-user-mime-data
-  :group 'mailcap)
+  :set #'mailcap--set-user-mime-data)
 
 ;; Postpone using defcustom for this as it's so big and we essentially
 ;; have to have two copies of the data around then.  Perhaps just
@@ -344,8 +343,7 @@ Same format as `mailcap-mime-data'.")
   "Directory to which `mailcap-save-binary-file' downloads files by default.
 nil means your home directory."
   :type '(choice (const :tag "Home directory" nil)
-		 directory)
-  :group 'mailcap)
+		 directory))
 
 (defvar mailcap-poor-system-types
   '(ms-dos windows-nt)
@@ -439,6 +437,8 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
               ("/etc/mailcap" system)
               ("/usr/etc/mailcap" system)
 	      ("/usr/local/etc/mailcap" system)))))
+    (when (stringp path)
+      (setq path (mapcar #'list (split-string path path-separator t))))
     (when (seq-some (lambda (f)
                       (file-has-changed-p (car f) 'mail-parse-mailcaps))
                     path)
@@ -451,14 +451,9 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
                do (cl-loop for (minor . entry) in minors
                            do (mailcap-add-mailcap-entry major minor entry)))
       ;; The ~/.mailcap entries will end up first in the resulting data.
-      (dolist (spec (reverse
-		     (if (stringp path)
-			 (split-string path path-separator t)
-		       path)))
-	(let ((source (and (consp spec) (cadr spec)))
-	      (file-name (if (stringp spec)
-			     spec
-			   (car spec))))
+      (dolist (spec (reverse path))
+	(let ((source (cadr spec))
+	      (file-name (car spec)))
 	  (when (and (file-readable-p file-name)
 		     (file-regular-p file-name))
 	    (mailcap-parse-mailcap file-name source)))))
@@ -639,7 +634,7 @@ the test clause will be unchanged."
      ((and (listp test) (symbolp (car test))) test)
      ((or (stringp test)
 	  (and (listp test) (stringp (car test))
-	       (setq test (mapconcat 'identity test " "))))
+	       (setq test (mapconcat #'identity test " "))))
       (with-temp-buffer
 	(insert test)
 	(goto-char (point-min))
@@ -710,12 +705,12 @@ to supply to the test."
 	      (symbol-value test))
 	     ((and (listp test)		; List to be eval'd
 		   (symbolp (car test)))
-	      (eval test))
+	      (eval test t))
 	     (t
 	      (setq test (mailcap-unescape-mime-test test type-info)
 		    test (list shell-file-name nil nil nil
 			       shell-command-switch test)
-		    status (apply 'call-process test))
+		    status (apply #'call-process test))
 	      (eq 0 status))))
 	   (push (list otest result) mailcap-viewer-test-cache)
 	   result))))
@@ -840,7 +835,7 @@ If NO-DECODE is non-nil, don't decode STRING."
             (dolist (entry viewers)
               (when (mailcap-viewer-passes-test entry info)
                 (push entry passed)))
-            (setq passed (sort (nreverse passed) 'mailcap-viewer-lessp))
+            (setq passed (sort (nreverse passed) #'mailcap-viewer-lessp))
             ;; When we want to prefer entries from the user's
             ;; ~/.mailcap file, then we filter out the system entries
             ;; and see whether we have anything left.
@@ -1070,7 +1065,7 @@ For instance, \"foo.png\" will result in \"image/png\"."
 
 ;;;###autoload
 (defun mailcap-mime-type-to-extension (mime-type)
-  "Return a file name extension based on a mime type.
+  "Return a file name extension based on a MIME-TYPE.
 For instance, `image/png' will result in `png'."
   (intern (cadr (split-string (if (symbolp mime-type)
                                   (symbol-name mime-type)
@@ -1082,7 +1077,7 @@ For instance, `image/png' will result in `png'."
   (mailcap-parse-mimetypes)
   (delete-dups
    (nconc
-    (mapcar 'cdr mailcap-mime-extensions)
+    (mapcar #'cdr mailcap-mime-extensions)
     (let (res type)
       (dolist (data mailcap--computed-mime-data)
         (dolist (info (cdr data))
