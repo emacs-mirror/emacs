@@ -43,6 +43,7 @@ For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   "Encode STRING according to the IDNA/punycode algorithm.
 This is used to encode non-ASCII domain names.
 For instance, \"bücher\" => \"xn--bcher-kva\"."
+  (setq string (downcase (string-glyph-compose string)))
   (let ((ascii (seq-filter (lambda (char)
                              (< char 128))
                            string)))
