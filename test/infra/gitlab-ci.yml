@@ -235,7 +235,7 @@ build-image-inotify:
 #     make_params: "-C test check"
 
 generator:
-  stage: generate
+  stage: .pre
   script:
    - ./test-jobs-generator.sh > test-jobs.yml
   artifacts:
