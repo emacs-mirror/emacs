@@ -234,7 +234,7 @@ build-image-inotify:
 #     target: emacs-inotify
 #     make_params: "-C test check"
 
-generator:
+test-jobs-generator:
   stage: .pre
   script:
    - ./test-jobs-generator.sh > test-jobs.yml
@@ -243,11 +243,11 @@ generator:
       - test-jobs.yml
 
 test-jobs-pipeline:
-  stage: trigger
+  stage: .pre
   trigger:
     include:
       - artifact: test-jobs.yml
-        job: generator
+        job: test-jobs-generator
     strategy: depend
 
 # test-lisp-inotify:
