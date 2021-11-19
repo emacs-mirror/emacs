@@ -26,52 +26,29 @@
 # Maintainer: Michael Albinus <michael.albinus@gmx.de>
 # URL: https://emba.gnu.org/emacs/emacs
 
-for target in $(cd ..; make -s subdir-targets); do
+SUBDIRS=$(cd test && \
+          (find lib-src lisp misc src -type d \
+           ! \( -path "*resources*" -o -path "*auto-save-list" \) \
+           -print | sort -))
+
+for subdir in $SUBDIRS; do
+    target=check-$(echo $subdir | tr '/' '-')
+
     case $target in
-        check-lib-src)
+        check*-src)
             changes="
-        - lib-src/*.{h,c}
-        - test/lib-src/*.el"
-            ;;
-        check-lisp-emacs-lisp)
-            changes="
-        - lisp/emacs-lisp/*.el
-        - test/lisp/emacs-lisp/*.el"
-            ;;
-        check-lisp-emacs-lisp-eieio-tests)
-            changes="
-        - lisp/emacs-lisp/eieio-tests/*.el
-        - test/lisp/emacs-lisp/eieio-tests/*.el"
-            ;;
-        check-lisp-emacs-lisp-faceup-tests)
-            changes="
-        - lisp/emacs-lisp/faceup-tests/*.el
-        - test/lisp/emacs-lisp/faceup-tests/*.el"
-            ;;
-        check-lisp-mh-e)
-            changes="
-        - lisp/mh-e/*.el
-        - test/lisp/mh-e/*.el"
-            ;;
-        check-lisp-so-long-tests)
-            changes="
-        - lisp/so-long-tests/*.el
-        - test/lisp/so-long-tests/*.el"
+        - $subdir/*.{h,c}
+        - test/$subdir/*.el"
             ;;
         check-misc)
             changes="
         - admin/*.el
-        - test/misc/*.el"
-            ;;
-        check-src)
-            changes="
-        - src/*.{h,c}
-        - test/src/*.el"
+        - test/$subdir/*.el"
             ;;
         *)
             changes="
-        - $(echo -n ${target##check-}/*.el | tr '-' '/')
-        - $(echo -n test${target##check}/*.el | tr '-' '/')"
+        - $subdir/*.el
+        - test/$subdir/*.el"
             ;;
     esac
 

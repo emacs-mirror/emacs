@@ -239,7 +239,8 @@ build-image-inotify:
 test-jobs-generator:
   stage: generator
   script:
-   - ./test-jobs-generator.sh > test-jobs.yml
+    - pwd
+    - test/infra/test-jobs-generator.sh > test-jobs.yml
   artifacts:
     paths:
       - test-jobs.yml
