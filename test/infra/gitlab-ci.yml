@@ -213,6 +213,8 @@ default:
 
 stages:
   - build-images
+  - generator
+  - trigger
 #  - fast
   - normal
   - platform-images
@@ -235,7 +237,7 @@ build-image-inotify:
 #     make_params: "-C test check"
 
 test-jobs-generator:
-  stage: .pre
+  stage: generator
   script:
    - ./test-jobs-generator.sh > test-jobs.yml
   artifacts:
@@ -243,7 +245,7 @@ test-jobs-generator:
       - test-jobs.yml
 
 test-jobs-pipeline:
-  stage: .pre
+  stage: trigger
   trigger:
     include:
       - artifact: test-jobs.yml
