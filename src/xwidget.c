@@ -2567,7 +2567,7 @@ is to completely loading its page.  */)
   WebKitWebView *webview;
   double value;
 
-  CHECK_XWIDGET (xwidget);
+  CHECK_LIVE_XWIDGET (xwidget);
   xw = XXWIDGET (xwidget);
   CHECK_WEBKIT_WIDGET (xw);
 
