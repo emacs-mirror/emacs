@@ -2160,7 +2160,7 @@ The word checked is the word at the mouse position."
   (interactive "e")
   (let ((save (point)))
     (mouse-set-point event)
-    (flyspell-correct-word-before-point event save)))
+    (flyspell-correct-word-before-point (and (consp event) event) save)))
 
 (defun flyspell-correct-word-before-point (&optional event opoint)
   "Pop up a menu of possible corrections for misspelled word before point.

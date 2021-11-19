@@ -364,7 +364,7 @@ Some context functions add menu items below the separator."
                 (when (consp binding)
                   (define-key-after menu (vector key)
                     (copy-sequence binding))))
-              (menu-bar-keymap global-map))
+              (menu-bar-keymap (lookup-key global-map [menu-bar])))
   menu)
 
 (defun context-menu-local (menu _click)
@@ -377,7 +377,7 @@ Some context functions add menu items below the separator."
                     (when (consp binding)
                       (define-key-after menu (vector key)
                         (copy-sequence binding))))
-                  keymap)))
+                  (menu-bar-keymap keymap))))
   menu)
 
 (defun context-menu-minor (menu _click)
@@ -541,8 +541,11 @@ activates the menu whose contents depends on its surrounding context."
   "Start key navigation of the context menu.
 This is the keyboard interface to \\[context-menu-map]."
   (interactive)
-  (let ((inhibit-mouse-event-check t))
-    (popup-menu (context-menu-map) (point))))
+  (let ((inhibit-mouse-event-check t)
+        (map (context-menu-map)))
+    (if (commandp map)
+        (call-interactively map)
+      (popup-menu map (point)))))
 
 (global-set-key [S-f10] 'context-menu-open)
 
