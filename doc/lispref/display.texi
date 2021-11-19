@@ -7012,6 +7012,18 @@ loaded.
 The value returned is a float ranging between 0.0 and 1.0.
 @end defun
 
+@defun xwidget-webkit-set-cookie-storage-file xwidget file
+Make the WebKit widget @var{xwidget} store cookies in @var{file}.
+
+@var{file} must be an absolute file path.  The new setting will also
+take effect on any xwidget that was created with @var{xwidget} as the
+@code{related} argument to @code{make-xwidget}, and widgets related to
+those as well.
+
+If this function is not called at least once on @var{xwidget} or a
+related widget, @var{xwidget} will not store cookies on disk at all.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers

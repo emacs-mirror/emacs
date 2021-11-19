@@ -493,6 +493,11 @@ This is a convenience function to extract the field data from
 Using this option you can control how the xwidget-webkit buffers are
 named.
 
+---
+*** New user option 'xwidget-webkit-cookie-file'.
+Using this option you can set where and if the xwidget-webkit buffers
+save cookies set by web pages.
+
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
@@ -881,6 +886,11 @@ commits to the load.
 These events are sent whenever an xwidget requests that Emacs display
 another xwidget.  The only argument to this event is the xwidget that
 should be displayed.
+
++++
+*** New function 'xwidget-webkit-set-cookie-storage-file'.
+This function is used to control where and if an xwidget stores
+cookies set by web pages on disk.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

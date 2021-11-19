@@ -57,6 +57,7 @@
 (declare-function xwidget-query-on-exit-flag "xwidget.c" (xwidget))
 (declare-function xwidget-webkit-back-forward-list "xwidget.c" (xwidget &optional limit))
 (declare-function xwidget-webkit-estimated-load-progress "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-set-cookie-storage-file "xwidget.c" (xwidget file))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -104,6 +105,15 @@ It can use the following special constructs:
 
   %T -- the title of the Web page loaded by the xwidget.
   %U -- the URI of the Web page loaded by the xwidget."
+  :type 'string
+  :version "29.1")
+
+(defcustom xwidget-webkit-cookie-file
+  (file-name-concat user-emacs-directory
+                    "xwidget-webkit-cookies.txt")
+  "A path to the file where xwidget-webkit-browse-url will store cookies.
+They will be stored as plain text in Mozilla `cookies.txt'
+format.  If nil, cookies will not be stored."
   :type 'string
   :version "29.1")
 
@@ -794,6 +804,9 @@ For example, use this to display an anchor."
                 (xwidget-window-inside-pixel-width (selected-window))
                 (xwidget-window-inside-pixel-height (selected-window))
                 nil current-session)))
+    (when xwidget-webkit-cookie-file
+      (xwidget-webkit-set-cookie-storage-file
+       xw (expand-file-name xwidget-webkit-cookie-file)))
     (xwidget-put xw 'callback callback)
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))

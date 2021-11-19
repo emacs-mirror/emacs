@@ -188,7 +188,9 @@ fails.  */)
 	      || !XWIDGETP (related)
 	      || !EQ (XXWIDGET (related)->type, Qwebkit))
 	    {
-	      xw->widget_osr = webkit_web_view_new ();
+	      WebKitWebContext *ctx = webkit_web_context_new ();
+	      xw->widget_osr = webkit_web_view_new_with_context (ctx);
+	      g_object_unref (ctx);
 
 	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
 					"about:blank");
@@ -2580,6 +2582,39 @@ is to completely loading its page.  */)
 }
 #endif
 
+DEFUN ("xwidget-webkit-set-cookie-storage-file",
+       Fxwidget_webkit_set_cookie_storage_file, Sxwidget_webkit_set_cookie_storage_file,
+       2, 2, 0, doc: /* Make the WebKit widget XWIDGET load and store cookies in FILE.
+
+Cookies will be stored as plain text in FILE, which must be an
+absolute file path.  All xwidgets related to XWIDGET will also be
+changed to store and load cookies in FILE.  */)
+  (Lisp_Object xwidget, Lisp_Object file)
+{
+#ifdef USE_GTK
+  struct xwidget *xw;
+  WebKitWebView *webview;
+  WebKitWebContext *context;
+  WebKitCookieManager *manager;
+
+  CHECK_LIVE_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
+  CHECK_STRING (file);
+
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  context = webkit_web_view_get_context (webview);
+  manager = webkit_web_context_get_cookie_manager (context);
+  webkit_cookie_manager_set_persistent_storage (manager,
+						SSDATA (ENCODE_UTF_8 (file)),
+						WEBKIT_COOKIE_PERSISTENT_STORAGE_TEXT);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
 void
 syms_of_xwidget (void)
 {
@@ -2620,6 +2655,7 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_webkit_next_result);
   defsubr (&Sxwidget_webkit_previous_result);
   defsubr (&Sset_xwidget_buffer);
+  defsubr (&Sxwidget_webkit_set_cookie_storage_file);
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
   defsubr (&Sxwidget_webkit_back_forward_list);
