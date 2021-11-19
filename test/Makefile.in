@@ -31,7 +31,7 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-abs_top_srcdir=@abs_top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
 top_builddir = @top_builddir@
 VPATH = $(srcdir)
 
@@ -67,7 +67,7 @@ elpa_opts = $(foreach el,$(elpa_els),$(and $(wildcard $(el)),-L $(dir $(el)) -l 
 # directory, we can use emacs --chdir.
 EMACS = ../src/emacs
 
-EMACS_EXTRAOPT=
+EMACS_EXTRAOPT =
 
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
@@ -252,9 +252,12 @@ endef
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
-SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d ! -path "*resources*" -print))
+SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d \
+                 ! \( -path "*resources*" -o -path "*auto-save-list" \) -print))
+SUBDIR_TARGETS =
 
 define subdir_template
+  SUBDIR_TARGETS += check-$(subst /,-,$(1))
   .PHONY: check-$(subst /,-,$(1))
   check-$(subst /,-,$(1)):
 	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
@@ -367,3 +370,8 @@ maintainer-clean: distclean bootstrap-clean
 check-declare:
 	$(emacs) -l check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'
+
+.PHONY: subdir-targets
+
+subdir-targets:
+	@echo $(SUBDIR_TARGETS)

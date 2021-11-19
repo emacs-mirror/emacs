@@ -47,7 +47,7 @@ variables:
   # Three hours, see below.
   EMACS_TEST_TIMEOUT: 10800
   EMACS_TEST_VERBOSE: 1
-  # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
+  # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
   # DOCKER_TLS_CERTDIR: "/certs"
   # Put the configuration for each run in a separate directory to
@@ -57,6 +57,8 @@ variables:
   # We don't use ${CI_COMMIT_SHA} to be able to do one bootstrap
   # across multiple builds.
   BUILD_TAG: ${CI_COMMIT_REF_SLUG}
+  # Disable if you don't need it, it can be a security risk.
+  CI_DEBUG_TRACE: "true"
 
 default:
   image: docker:19.03.12
@@ -224,8 +226,6 @@ build-image-inotify:
   extends: [.job-template, .build-template]
   variables:
     target: emacs-inotify
-# Temporarily.
-  timeout: 8 hours
 
 # test-fast-inotify:
 #   stage: fast
@@ -234,19 +234,35 @@ build-image-inotify:
 #     target: emacs-inotify
 #     make_params: "-C test check"
 
-test-lisp-inotify:
-  stage: normal
-  extends: [.job-template, .test-template]
-  variables:
-    target: emacs-inotify
-    make_params: "-C test check-lisp"
+generator:
+  stage: generate
+  script:
+   - ./test-jobs-generator.sh > test-jobs.yml
+  artifacts:
+    paths:
+      - test-jobs.yml
 
-test-lisp-net-inotify:
-  stage: normal
-  extends: [.job-template, .test-template]
-  variables:
-    target: emacs-inotify
-    make_params: "-C test check-lisp-net"
+test-jobs-pipeline:
+  stage: trigger
+  trigger:
+    include:
+      - artifact: test-jobs.yml
+        job: generator
+    strategy: depend
+
+# test-lisp-inotify:
+#   stage: normal
+#   extends: [.job-template, .test-template]
+#   variables:
+#     target: emacs-inotify
+#     make_params: "-C test check-lisp"
+
+# test-lisp-net-inotify:
+#   stage: normal
+#   extends: [.job-template, .test-template]
+#   variables:
+#     target: emacs-inotify
+#     make_params: "-C test check-lisp-net"
 
 build-image-filenotify-gio:
   stage: platform-images
