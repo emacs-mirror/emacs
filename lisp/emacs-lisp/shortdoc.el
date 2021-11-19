@@ -159,8 +159,6 @@ There can be any number of :example/:result elements."
    :eval (split-string-and-unquote "foo \"bar zot\""))
   (split-string-shell-command
    :eval (split-string-shell-command "ls /tmp/'foo bar'"))
-  (string-glyph-split
-   :eval (string-glyph-split "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))
@@ -198,6 +196,13 @@ There can be any number of :example/:result elements."
    :eval (substring-no-properties (propertize "foobar" 'face 'bold) 0 3))
   (try-completion
    :eval (try-completion "foo" '("foobar" "foozot" "gazonk")))
+  "Unicode Strings"
+  (string-glyph-split
+   :eval (string-glyph-split "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻"))
+  (string-glyph-compose
+   :eval (string-glyph-compose "Å"))
+  (string-glyph-decompose
+   :eval (string-glyph-decompose "Å"))
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))

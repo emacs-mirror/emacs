@@ -536,55 +536,88 @@ COMPOSITION-PREDICATE will be used to compose region."
      (,ucs-normalize-region (point-min) (point-max))
      (buffer-string)))
 
-;;;###autoload
 (defun ucs-normalize-NFD-region (from to)
-  "Normalize the current region by the Unicode NFD."
+  "Decompose the current region according to the Unicode NFD.
+This is the canonical decomposed form."
   (interactive "r")
   (ucs-normalize-region from to
                         ucs-normalize-nfd-quick-check-regexp
                         'ucs-normalize-nfd-table nil))
-;;;###autoload
+
 (defun ucs-normalize-NFD-string (str)
-  "Normalize the string STR by the Unicode NFD."
+  "Decompose the string STR according to the Unicode NFD.
+This is the canonical decomposed form.  For instance:
+
+  (ucs-normalize-NFD-string \"Å\") => \"Å\""
   (ucs-normalize-string ucs-normalize-NFD-region))
 
-;;;###autoload
 (defun ucs-normalize-NFC-region (from to)
-  "Normalize the current region by the Unicode NFC."
+  "Compose the current region according to the Unicode NFC.
+This is the canonical composed form."
   (interactive "r")
   (ucs-normalize-region from to
                         ucs-normalize-nfc-quick-check-regexp
                         'ucs-normalize-nfd-table t))
-;;;###autoload
-(defun ucs-normalize-NFC-string (str)
-  "Normalize the string STR by the Unicode NFC."
-  (ucs-normalize-string ucs-normalize-NFC-region))
 
 ;;;###autoload
+(defun string-glyph-compose (string)
+  "Compose the string STR by according to the Unicode NFC.
+This is the canonical composed form.  For instance:
+
+  (string-glyph-compose \"Å\") => \"Å\""
+  (ucs-normalize-NFC-string string))
+
+;;;###autoload
+(defun string-glyph-decompose (string)
+  "Decompose the string STR according to the Unicode NFD.
+This is the canonical decomposed form.  For instance:
+
+  (string-glyph-decompose \"Å\") => \"Å\""
+  (ucs-normalize-NFD-string string))
+
+(defun ucs-normalize-NFC-string (str)
+  "Compose the string STR by according to the Unicode NFC.
+This is the canonical composed form.  For instance:
+
+  (ucs-normalize-NFC-string \"Å\") => \"Å\""
+  (ucs-normalize-string ucs-normalize-NFC-region))
+
 (defun ucs-normalize-NFKD-region (from to)
-  "Normalize the current region by the Unicode NFKD."
+  "Decompose the current region according to the Unicode NFKD.
+This is the compatibility decomposed form."
   (interactive "r")
   (ucs-normalize-region from to
                         ucs-normalize-nfkd-quick-check-regexp
                         'ucs-normalize-nfkd-table nil))
-;;;###autoload
+
 (defun ucs-normalize-NFKD-string (str)
-  "Normalize the string STR by the Unicode NFKD."
+  "Decompose the string STR according to the Unicode NFKD.
+This is the compatibility decomposed form.  This is much like the
+NFD (canonical decomposed) form, but mainly differs in glyphs
+with formatting distinctions.  For instance:
+
+  (ucs-normalize-NFD-string \"ﬁ\") => \"ﬁ\"
+  (ucs-normalize-NFKD-string \"ﬁ\") = \"fi\""
   (ucs-normalize-string ucs-normalize-NFKD-region))
 
-;;;###autoload
 (defun ucs-normalize-NFKC-region (from to)
-  "Normalize the current region by the Unicode NFKC."
+  "Compose the current region according to the Unicode NFKC.
+The is the compatibility composed form."
   (interactive "r")
   (ucs-normalize-region from to
                         ucs-normalize-nfkc-quick-check-regexp
                         'ucs-normalize-nfkd-table t))
-;;;###autoload
+
 (defun ucs-normalize-NFKC-string (str)
-  "Normalize the string STR by the Unicode NFKC."
+  "Compose the string STR according to the Unicode NFKC.
+This is the compatibility composed form.  This is much like the
+NFC (canonical composed) form, but mainly differs in glyphs
+with formatting distinctions.  For instance:
+
+  (ucs-normalize-NFC-string \"ﬁ\") => \"ﬁ\"
+  (ucs-normalize-NFKC-string \"ﬁ\") = \"fi\""
   (ucs-normalize-string ucs-normalize-NFKC-region))
 
-;;;###autoload
 (defun ucs-normalize-HFS-NFD-region (from to)
   "Normalize the current region by the Unicode NFD and Mac OS's HFS Plus."
   (interactive "r")
@@ -592,18 +625,18 @@ COMPOSITION-PREDICATE will be used to compose region."
                         ucs-normalize-hfs-nfd-quick-check-regexp
                         'ucs-normalize-hfs-nfd-table
                         'ucs-normalize-hfs-nfd-comp-p))
-;;;###autoload
+
 (defun ucs-normalize-HFS-NFD-string (str)
   "Normalize the string STR by the Unicode NFD and Mac OS's HFS Plus."
   (ucs-normalize-string ucs-normalize-HFS-NFD-region))
-;;;###autoload
+
 (defun ucs-normalize-HFS-NFC-region (from to)
   "Normalize the current region by the Unicode NFC and Mac OS's HFS Plus."
   (interactive "r")
   (ucs-normalize-region from to
                         ucs-normalize-hfs-nfc-quick-check-regexp
                         'ucs-normalize-hfs-nfd-table t))
-;;;###autoload
+
 (defun ucs-normalize-HFS-NFC-string (str)
   "Normalize the string STR by the Unicode NFC and Mac OS's HFS Plus."
   (ucs-normalize-string ucs-normalize-HFS-NFC-region))
