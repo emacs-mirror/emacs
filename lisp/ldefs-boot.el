@@ -1,4 +1,5 @@
 ;;; loaddefs.el --- automatically extracted autoloads  -*- lexical-binding: t -*-
+;; This file will be copied to ldefs-boot.el and checked in periodically.
 ;;
 ;;; Code:
 
@@ -2381,12 +2382,7 @@ a reflection.
  (define-key ctl-x-r-map "M" 'bookmark-set-no-overwrite)
  (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
 
-(defvar bookmark-map (let ((map (make-sparse-keymap))) (define-key map "x" 'bookmark-set) (define-key map "m" 'bookmark-set) (define-key map "M" 'bookmark-set-no-overwrite) (define-key map "j" 'bookmark-jump) (define-key map "g" 'bookmark-jump) (define-key map "o" 'bookmark-jump-other-window) (define-key map "5" 'bookmark-jump-other-frame) (define-key map "i" 'bookmark-insert) (define-key map "e" 'edit-bookmarks) (define-key map "f" 'bookmark-insert-location) (define-key map "r" 'bookmark-rename) (define-key map "d" 'bookmark-delete) (define-key map "D" 'bookmark-delete-all) (define-key map "l" 'bookmark-load) (define-key map "w" 'bookmark-write) (define-key map "s" 'bookmark-save) map) "\
-Keymap containing bindings to bookmark functions.
-It is not bound to any key by default: to bind it
-so that you have a bookmark prefix, just use `global-set-key' and bind a
-key of your choice to variable `bookmark-map'.  All interactive bookmark
-functions have a binding in this keymap.")
+(defvar-keymap bookmark-map :doc "Keymap containing bindings to bookmark functions.\nIt is not bound to any key by default: to bind it\nso that you have a bookmark prefix, just use `global-set-key' and bind a\nkey of your choice to variable `bookmark-map'.  All interactive bookmark\nfunctions have a binding in this keymap." "x" #'bookmark-set "m" #'bookmark-set "M" #'bookmark-set-no-overwrite "j" #'bookmark-jump "g" #'bookmark-jump "o" #'bookmark-jump-other-window "5" #'bookmark-jump-other-frame "i" #'bookmark-insert "e" #'edit-bookmarks "f" #'bookmark-insert-location "r" #'bookmark-rename "d" #'bookmark-delete "D" #'bookmark-delete-all "l" #'bookmark-load "w" #'bookmark-write "s" #'bookmark-save)
  (fset 'bookmark-map bookmark-map)
 
 (autoload 'bookmark-set "bookmark" "\
@@ -4772,6 +4768,14 @@ space at the end of each line.
 
 \(fn &optional NO-ERROR)" t nil)
 
+(autoload 'checkdoc-dired "checkdoc" "\
+In Dired, run `checkdoc' on marked files.
+Skip anything that doesn't have the Emacs Lisp library file
+extension (\".el\").
+When called from Lisp, FILES is a list of filenames.
+
+\(fn FILES)" '(dired-mode) nil)
+
 (autoload 'checkdoc-ispell "checkdoc" "\
 Check the style and spelling of everything interactively.
 Calls `checkdoc' with spell-checking turned on.
@@ -6755,7 +6759,7 @@ You can set this option through Custom, if you carefully read the
 last paragraph below.  However, usually it is simpler to write
 something like the following in your init file:
 
-\(setq custom-file \"~/.emacs-custom.el\")
+\(setq custom-file \"~/.config/emacs-custom.el\")
 \(load custom-file)
 
 Note that both lines are necessary: the first line tells Custom to
@@ -11135,6 +11139,9 @@ Macros in BODY are expanded when the test is defined, not when it
 is run.  If a macro (possibly with side effects) is to be tested,
 it has to be wrapped in `(eval (quote ...))'.
 
+If NAME is already defined as a test and Emacs is running
+in batch mode, an error is signalled.
+
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
 
 (function-put 'ert-deftest 'doc-string-elt '3)
@@ -11167,11 +11174,8 @@ the tests).
 Run the tests specified by SELECTOR and display the results in a buffer.
 
 SELECTOR works as described in `ert-select-tests'.
-OUTPUT-BUFFER-NAME and MESSAGE-FN should normally be nil; they
-are used for automated self-tests and specify which buffer to use
-and how to display message.
 
-\(fn SELECTOR &optional OUTPUT-BUFFER-NAME MESSAGE-FN)" t nil)
+\(fn SELECTOR)" t nil)
 
 (defalias 'ert #'ert-run-tests-interactively)
 
@@ -13301,7 +13305,7 @@ retrieval with `flymake-diagnostic-data'.
 If LOCUS is a buffer BEG and END should be buffer positions
 inside it.  If LOCUS designates a file, BEG and END should be a
 cons (LINE . COL) indicating a file position.  In this second
-case, END may be ommited in which case the region is computed
+case, END may be omitted in which case the region is computed
 using `flymake-diag-region' if the diagnostic is appended to an
 actual buffer.
 
@@ -30412,6 +30416,29 @@ only these files will be asked to be saved.
 
 \(fn ARG)" nil nil)
 
+(autoload 'server-stop-automatically "server" "\
+Automatically stop server as specified by ARG.
+
+If ARG is the symbol `empty', stop the server when it has no
+remaining clients, no remaining unsaved file-visiting buffers,
+and no running processes with a `query-on-exit' flag.
+
+If ARG is the symbol `delete-frame', ask the user when the last
+frame is deleted whether each unsaved file-visiting buffer must
+be saved and each running process with a `query-on-exit' flag
+can be stopped, and if so, stop the server itself.
+
+If ARG is the symbol `kill-terminal', ask the user when the
+terminal is killed with \\[save-buffers-kill-terminal] whether each unsaved file-visiting
+buffer must be saved and each running process with a `query-on-exit'
+flag can be stopped, and if so, stop the server itself.
+
+Any other value of ARG will cause this function to signal an error.
+
+This function is meant to be called from the user init file.
+
+\(fn ARG)" nil nil)
+
 (register-definition-prefixes "server" '("server-"))
 
 ;;;***
@@ -30748,7 +30775,7 @@ If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 
 \(fn GROUP &optional FUNCTION)" t nil)
 
-(register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
+(register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "keymaps" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
 
 ;;;***
 
@@ -35146,7 +35173,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 ;;;;;;  0))
 ;;; Generated autoloads from net/tramp-compat.el
 
-(register-definition-prefixes "tramp-compat" '("tramp-"))
+(register-definition-prefixes "tramp-compat" '("tramp-compat-"))
 
 ;;;***
 
@@ -35232,7 +35259,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 2 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 6 0 -1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -35555,65 +35582,21 @@ You might need to set `uce-mail-reader' before using this.
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from international/ucs-normalize.el
 
-(autoload 'ucs-normalize-NFD-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFD.
+(autoload 'string-glyph-compose "ucs-normalize" "\
+Compose the string STR by according to the Unicode NFC.
+This is the canonical composed form.  For instance:
 
-\(fn FROM TO)" t nil)
+  (ucs-normalize-NFC-string \"Å\") => \"Å\"
 
-(autoload 'ucs-normalize-NFD-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFD.
+\(fn STRING)" nil nil)
 
-\(fn STR)" nil nil)
+(autoload 'string-glyph-decompose "ucs-normalize" "\
+Decompose the string STR according to the Unicode NFD.
+This is the canonical decomposed form.  For instance:
 
-(autoload 'ucs-normalize-NFC-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFC.
+  (ucs-normalize-NFD-string \"Å\") => \"Å\"
 
-\(fn FROM TO)" t nil)
-
-(autoload 'ucs-normalize-NFC-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFC.
-
-\(fn STR)" nil nil)
-
-(autoload 'ucs-normalize-NFKD-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFKD.
-
-\(fn FROM TO)" t nil)
-
-(autoload 'ucs-normalize-NFKD-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFKD.
-
-\(fn STR)" nil nil)
-
-(autoload 'ucs-normalize-NFKC-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFKC.
-
-\(fn FROM TO)" t nil)
-
-(autoload 'ucs-normalize-NFKC-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFKC.
-
-\(fn STR)" nil nil)
-
-(autoload 'ucs-normalize-HFS-NFD-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFD and Mac OS's HFS Plus.
-
-\(fn FROM TO)" t nil)
-
-(autoload 'ucs-normalize-HFS-NFD-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFD and Mac OS's HFS Plus.
-
-\(fn STR)" nil nil)
-
-(autoload 'ucs-normalize-HFS-NFC-region "ucs-normalize" "\
-Normalize the current region by the Unicode NFC and Mac OS's HFS Plus.
-
-\(fn FROM TO)" t nil)
-
-(autoload 'ucs-normalize-HFS-NFC-string "ucs-normalize" "\
-Normalize the string STR by the Unicode NFC and Mac OS's HFS Plus.
-
-\(fn STR)" nil nil)
+\(fn STRING)" nil nil)
 
 (register-definition-prefixes "ucs-normalize" '("ucs-normalize-" "utf-8-hfs"))
 
@@ -39738,7 +39721,7 @@ Zone out, completely." t nil)
 ;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
 ;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
 ;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "jka-cmpr-hook.el" "keymap.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
