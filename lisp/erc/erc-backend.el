@@ -200,6 +200,9 @@ active, use the `erc-server-process-alive' function instead.")
 (defvar-local erc-server-reconnect-count 0
   "Number of times we have failed to reconnect to the current server.")
 
+(defvar-local erc--server-last-reconnect-count 0
+  "Snapshot of reconnect count when the connection was established.")
+
 (defvar-local erc-server-quitting nil
   "Non-nil if the user requests a quit.")
 
