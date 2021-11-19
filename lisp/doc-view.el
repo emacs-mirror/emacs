@@ -493,24 +493,69 @@ Typically \"page-%s.png\".")
 (easy-menu-define doc-view-menu doc-view-mode-map
   "Menu for Doc View mode."
   '("DocView"
-    ["Toggle display"		doc-view-toggle-display]
-    ("Continuous"
-     ["Off"                     (setq doc-view-continuous nil)
-      :style radio :selected    (eq doc-view-continuous nil)]
-     ["On"		        (setq doc-view-continuous t)
-      :style radio :selected    (eq doc-view-continuous t)]
+    ["Next page"                doc-view-next-page
+     :help                      "Go to the next page"]
+    ["Previous page"            doc-view-previous-page
+     :help                      "Go to the previous page"]
+    ("Other Navigation"
+     ["Go to page..."           doc-view-goto-page
+      :help                     "Go to specific page"]
      "---"
-     ["Save as Default"
-      (customize-save-variable 'doc-view-continuous doc-view-continuous) t]
+     ["First page"              doc-view-first-page
+      :help                     "View the first page"]
+     ["Last page"               doc-view-last-page
+      :help                     "View the last page"]
+     "---"
+     ["Move forward"            doc-view-scroll-up-or-next-page
+      :help                     "Scroll page up or go to next page"]
+     ["Move backward"           doc-view-scroll-down-or-previous-page
+      :help                     "Scroll page down or go to previous page"])
+    ("Continuous Scrolling"
+     ["Off"                     (setq doc-view-continuous nil)
+      :style radio :selected    (eq doc-view-continuous nil)
+      :help                     "Scrolling stops at page beginning and end"]
+     ["On"		        (setq doc-view-continuous t)
+      :style radio :selected    (eq doc-view-continuous t)
+      :help                     "Scrolling continues to next or previous page"]
+     "---"
+     ["Save as Default"         (customize-save-variable 'doc-view-continuous doc-view-continuous)
+      :help                     "Save current continuous scrolling option as default"]
      )
     "---"
-    ["Set Slice"		doc-view-set-slice-using-mouse]
-    ["Set Slice (BoundingBox)"  doc-view-set-slice-from-bounding-box]
-    ["Set Slice (manual)"	doc-view-set-slice]
-    ["Reset Slice"		doc-view-reset-slice]
+    ("Toggle edit/display"
+     ["Edit document"           doc-view-toggle-display
+      :style radio :selected    (eq major-mode 'doc-view--text-view-mode)]
+     ["Display document"        (lambda ()) ; ignore but show no keybinding
+      :style radio :selected    (eq major-mode 'doc-view-mode)])
+    ("Adjust Display"
+     ["Fit to window"           doc-view-fit-page-to-window
+      :help                     "Fit the image to the window"]
+     ["Fit width"               doc-view-fit-width-to-window
+      :help                     "Fit the image width to the window width"]
+     ["Fit height"              doc-view-fit-height-to-window
+      :help                     "Fit the image height to the window height"]
+     "---"
+     ["Enlarge"                 doc-view-enlarge
+      :help                     "Enlarge the document"]
+     ["Shrink"                  doc-view-shrink
+      :help                     "Shrink the document"]
+     "---"
+     ["Set Slice"               doc-view-set-slice-using-mouse
+      :help                     "Set the slice of the images that should be displayed"]
+     ["Set Slice (BoundingBox)" doc-view-set-slice-from-bounding-box
+      :help                     "Set the slice from the document's BoundingBox information"]
+     ["Set Slice (manual)"	doc-view-set-slice
+      :help                     "Set the slice of the images that should be displayed"]
+     ["Reset Slice"		doc-view-reset-slice
+      :help                     "Reset the current slice"
+      :enabled                  (image-mode-window-get 'slice)])
     "---"
-    ["Search"			doc-view-search]
-    ["Search Backwards"         doc-view-search-backward]
+    ["New Search"               (doc-view-search t)
+     :help                      "Initiate a new search"]
+    ["Search Forward"           doc-view-search
+     :help                      "Jump to the next match or initiate a new search"]
+    ["Search Backward"          doc-view-search-backward
+     :help                      "Jump to the previous match or initiate a new search"]
     ))
 
 (defvar doc-view-minor-mode-map
@@ -519,6 +564,16 @@ Typically \"page-%s.png\".")
     (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
     map)
   "Keymap used by `doc-view-minor-mode'.")
+
+(easy-menu-define doc-view-minor-mode-menu doc-view-minor-mode-map
+  "Menu for Doc View minor mode."
+  '("DocView (edit)"
+    ("Toggle edit/display"
+     ["Edit document"           (lambda ()) ; ignore but show no keybinding
+      :style radio :selected    (eq major-mode 'doc-view--text-view-mode)]
+     ["Display document"        doc-view-toggle-display
+      :style radio :selected    (eq major-mode 'doc-view-mode)])
+    ["Exit DocView Mode" doc-view-minor-mode]))
 
 ;;;; Navigation Commands
 
