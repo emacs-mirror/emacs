@@ -55,7 +55,6 @@
 (declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-chmod-h "tramp-sh")
-(declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
