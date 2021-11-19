@@ -17,19 +17,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-# GNU Emacs support for the GitLab-specific build of Docker images.
+# GNU Emacs support for the gitlab-ci.yml template generation.
 
 # The presence of this file does not imply any FSF/GNU endorsement of
-# Docker or any other particular tool.  Also, it is intended for
+# GitLab or any other particular tool.  Also, it is intended for
 # evaluation purposes, thus possibly temporary.
 
 # Maintainer: Michael Albinus <michael.albinus@gmx.de>
 # URL: https://emba.gnu.org/emacs/emacs
 
-SUBDIRS=$(cd test && \
-          (find lib-src lisp misc src -type d \
-           ! \( -path "*resources*" -o -path "*auto-save-list" \) \
-           -print | sort -))
+cd test
+SUBDIRS=\
+$(find lib-src lisp misc src -type d \
+  ! \( -path "*resources*" -o -path "*auto-save-list" \) -print | sort -)
 
 for subdir in $SUBDIRS; do
     target=check-$(echo $subdir | tr '/' '-')
@@ -55,7 +55,7 @@ for subdir in $SUBDIRS; do
     cat <<EOF
 test${target##check}-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  # extends: [.job-template, .test-template]
   rules:
     - changes: $changes
   variables:
