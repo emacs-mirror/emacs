@@ -561,7 +561,7 @@ This is the canonical composed form."
 
 ;;;###autoload
 (defun string-glyph-compose (string)
-  "Compose the string STR by according to the Unicode NFC.
+  "Compose the string STR according to the Unicode NFC.
 This is the canonical composed form.  For instance:
 
   (string-glyph-compose \"Å\") => \"Å\""
