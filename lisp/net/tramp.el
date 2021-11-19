@@ -2493,6 +2493,8 @@ Must be handled by the callers."
 	      file-system-info
 	      ;; Emacs 28+ only.
 	      file-locked-p lock-file make-lock-file-name unlock-file
+	      ;; Emacs 29+ only.
+	      abbreviate-file-name
 	      ;; Tramp internal magic file name function.
 	      tramp-set-file-uid-gid))
     (if (file-name-absolute-p (nth 0 args))
