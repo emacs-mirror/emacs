@@ -6807,7 +6807,7 @@ subprocesses with.
 
 The xwidget that is returned will be killed alongside its buffer
 (@pxref{Killing Buffers}).  You can also kill it using
-@code{xwidget-kill}.  Once it is killed, the xwidget may continue to
+@code{kill-xwidget}.  Once it is killed, the xwidget may continue to
 exist as a Lisp object and act as a @code{display} property until all
 references to it are gone, but most actions that can be performed on
 live xwidgets will no longer be available.
