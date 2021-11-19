@@ -111,9 +111,9 @@ It can use the following special constructs:
 (defcustom xwidget-webkit-cookie-file
   (file-name-concat user-emacs-directory
                     "xwidget-webkit-cookies.txt")
-  "A path to the file where xwidget-webkit-browse-url will store cookies.
-They will be stored as plain text in Mozilla `cookies.txt'
-format.  If nil, cookies will not be stored."
+  "The name of the file where `xwidget-webkit-browse-url' will store cookies.
+They will be stored as plain text in Mozilla \"cookies.txt\"
+format.  If nil, do not store cookies."
   :type 'string
   :version "29.1")
 

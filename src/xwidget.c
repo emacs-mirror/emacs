@@ -2587,8 +2587,8 @@ DEFUN ("xwidget-webkit-set-cookie-storage-file",
        2, 2, 0, doc: /* Make the WebKit widget XWIDGET load and store cookies in FILE.
 
 Cookies will be stored as plain text in FILE, which must be an
-absolute file path.  All xwidgets related to XWIDGET will also be
-changed to store and load cookies in FILE.  */)
+absolute file name.  All xwidgets related to XWIDGET will also
+store cookies in FILE and load them from there.  */)
   (Lisp_Object xwidget, Lisp_Object file)
 {
 #ifdef USE_GTK
