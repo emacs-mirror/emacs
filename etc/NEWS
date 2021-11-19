@@ -864,6 +864,11 @@ This function is used to obtain the history of page-loads in a given
 WebKit xwidget.
 
 +++
+*** New function 'xwidget-webkit-estimated-load-progress'.
+This function is used to obtain the estimated progress of page loading
+in a given WebKit xwidget.
+
++++
 *** 'load-changed' xwidget events are now more detailed.
 In particular, they can now have different arguments based on the
 state of the WebKit widget.  'load-finished' is sent when a load has

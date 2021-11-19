@@ -7004,6 +7004,14 @@ manually to reach a specific history item.  Instead, @var{idx} should
 be passed as an index to @code{xwidget-webkit-goto-history}.
 @end defun
 
+@defun xwidget-webkit-estimated-load-progress xwidget
+Return an estimate of how much data is remaining to be transferred
+before the page displayed by the WebKit widget @var{xwidget} is fully
+loaded.
+
+The value returned is a float ranging between 0.0 and 1.0.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers

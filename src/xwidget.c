@@ -2555,6 +2555,29 @@ LIMIT is not specified or nil, it is treated as `50'.  */)
 
   return list3 (back, here, forward);
 }
+
+DEFUN ("xwidget-webkit-estimated-load-progress",
+       Fxwidget_webkit_estimated_load_progress, Sxwidget_webkit_estimated_load_progress,
+       1, 1, 0, doc: /* Get the estimated load progress of XWIDGET, a WebKit widget.
+Return a value ranging from 0.0 to 1.0, based on how close XWIDGET
+is to completely loading its page.  */)
+  (Lisp_Object xwidget)
+{
+  struct xwidget *xw;
+  WebKitWebView *webview;
+  double value;
+
+  CHECK_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
+
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  value = webkit_web_view_get_estimated_load_progress (webview);
+  unblock_input ();
+
+  return make_float (value);
+}
 #endif
 
 void
@@ -2600,6 +2623,7 @@ syms_of_xwidget (void)
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
   defsubr (&Sxwidget_webkit_back_forward_list);
+  defsubr (&Sxwidget_webkit_estimated_load_progress);
 #endif
   defsubr (&Skill_xwidget);
 
