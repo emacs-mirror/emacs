@@ -6224,8 +6224,7 @@ of `file-has-changed-p' always returns non-nil when FILE exists.
 The optional argument TAG, which must be a symbol, can be used to
 limit the comparison to invocations with identical tags; it can be
 the symbol of the calling function, for example."
-  (let* (;; FIXME: Shall we use `file-truename'?
-         (file (directory-file-name file))
+  (let* ((file (directory-file-name (expand-file-name file)))
          (remote-file-name-inhibit-cache t)
          (fileattr (file-attributes file 'integer))
 	 (attr (and fileattr
