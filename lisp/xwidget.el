@@ -112,7 +112,7 @@ It can use the following special constructs:
   "The name of the file where `xwidget-webkit-browse-url' will store cookies.
 They will be stored as plain text in Mozilla \"cookies.txt\"
 format.  If nil, do not store cookies."
-  :type 'string
+  :type '(choice (const :tag "Do not store cookies" nil) file)
   :version "29.1")
 
 ;;;###autoload
