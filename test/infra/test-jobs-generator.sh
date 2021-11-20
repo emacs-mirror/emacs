@@ -56,6 +56,9 @@ for subdir in $SUBDIRS; do
 include:
   - local: '/test/infra/default-gitlab-ci.yml'
 
+stages:
+  - test
+
 EOF
 
     cat <<EOF
