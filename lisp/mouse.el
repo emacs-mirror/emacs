@@ -1618,7 +1618,11 @@ The region will be defined with mark and point."
       (goto-char (nth 1 range)))
 
     (setf (terminal-parameter nil 'mouse-drag-start) start-event)
-    (setq track-mouse t)
+    ;; Set 'track-mouse' to something neither nil nor t, so that mouse
+    ;; events are not reported to have happened on the tool bar or the
+    ;; tab bar, as that breaks drag events that originate on the window
+    ;; body below these bars; see make_lispy_position and bug#51794.
+    (setq track-mouse 'drag-tracking)
     (setq auto-hscroll-mode nil)
 
     (set-transient-map
