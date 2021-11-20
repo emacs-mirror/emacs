@@ -611,12 +611,13 @@ indirectly `mapbacktrace'."
 (ert-deftest subr-tests--dolist--wrong-number-of-args ()
   "Test that `dolist' doesn't accept wrong types or length of SPEC,
 cf. Bug#25477."
-  (should-error (eval '(dolist (a)))
-                :type 'wrong-number-of-arguments)
-  (should-error (eval '(dolist (a () 'result 'invalid)) t)
-                :type 'wrong-number-of-arguments)
-  (should-error (eval '(dolist "foo") t)
-                :type 'wrong-type-argument))
+  (dolist (lb '(nil t))
+    (should-error (eval '(dolist (a)) lb)
+                  :type 'wrong-number-of-arguments)
+    (should-error (eval '(dolist (a () 'result 'invalid)) lb)
+                  :type 'wrong-number-of-arguments)
+    (should-error (eval '(dolist "foo") lb)
+                  :type 'wrong-type-argument)))
 
 (ert-deftest subr-tests-bug22027 ()
   "Test for https://debbugs.gnu.org/22027 ."

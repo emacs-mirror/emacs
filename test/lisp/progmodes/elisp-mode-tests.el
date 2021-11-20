@@ -610,7 +610,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-eval
-  (elisp--xref-find-definitions (eval '(cl-defgeneric stephe-leake-cl-defgeneric ())))
+  (elisp--xref-find-definitions (eval '(cl-defgeneric stephe-leake-cl-defgeneric ()) t))
   nil)
 
 ;; Define some mode-local overloadable/overridden functions for xref to find
@@ -712,7 +712,7 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))))
 
 (xref-elisp-deftest find-defs-defun-eval
-  (elisp--xref-find-definitions (eval '(defun stephe-leake-defun ())))
+  (elisp--xref-find-definitions (eval '(defun stephe-leake-defun ()) t))
   nil)
 
 (xref-elisp-deftest find-defs-defun-c
@@ -797,7 +797,7 @@ to (xref-elisp-test-descr-to-target xref)."
     "DEFVAR_PER_BUFFER (\"default-directory\"")))
 
 (xref-elisp-deftest find-defs-defvar-eval
-  (elisp--xref-find-definitions (eval '(defvar stephe-leake-defvar nil)))
+  (elisp--xref-find-definitions (eval '(defvar stephe-leake-defvar nil) t))
   nil)
 
 (xref-elisp-deftest find-defs-face-el
@@ -815,7 +815,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-face-eval
-  (elisp--xref-find-definitions (eval '(defface stephe-leake-defface nil "")))
+  (elisp--xref-find-definitions (eval '(defface stephe-leake-defface nil "") t))
   nil)
 
 (xref-elisp-deftest find-defs-feature-el
@@ -830,7 +830,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-feature-eval
-  (elisp--xref-find-definitions (eval '(provide 'stephe-leake-feature)))
+  (elisp--xref-find-definitions (eval '(provide 'stephe-leake-feature) t))
   nil)
 
 (ert-deftest elisp--preceding-sexp--char-name ()

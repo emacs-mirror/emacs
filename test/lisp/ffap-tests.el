@@ -132,7 +132,7 @@ left alone when opening a URL in an external browser."
       ;; Macros in BODY are expanded when the test is defined, not when it
       ;; is run.  If a macro (possibly with side effects) is to be tested,
       ;; it has to be wrapped in `(eval (quote ...))'.
-      (eval (quote (ido-everywhere)))
+      (eval (quote (ido-everywhere)) t)
       (let ((read-file-name-function (lambda (&rest args)
                                        (expand-file-name
                                         (nth 4 args)

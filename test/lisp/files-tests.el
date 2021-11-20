@@ -136,7 +136,7 @@ form.")
 	  ;; Prevent any dir-locals file interfering with the tests.
 	  (enable-dir-local-variables nil))
       (hack-local-variables)
-      (eval (nth 2 test-settings)))))
+      (eval (nth 2 test-settings) t))))
 
 (ert-deftest files-tests-local-variables ()
   "Test the file-local variables implementation."

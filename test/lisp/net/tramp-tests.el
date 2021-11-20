@@ -6609,7 +6609,7 @@ Use the \"ls\" command."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
-	     (stringp (setq x (eval (get-language-info (car x) 'sample-text))))
+             (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
 		       (unencodable-char-position

@@ -97,8 +97,8 @@
                 (with-temp-buffer
                   (cl-progv
                       ;; FIXME: avoid `eval'
-                      (mapcar #'car (eval bindings))
-                      (mapcar #'cdr (eval bindings))
+                      (mapcar #'car (eval bindings t))
+                      (mapcar #'cdr (eval bindings t))
                     (dlet ((python-indent-guess-indent-offset-verbose nil))
                       (funcall mode)
                       (insert fixture)
@@ -187,7 +187,7 @@ The buffer's contents should %s:
           (fixture-fn '#'electric-pair-mode))
   `(progn
      ,@(cl-loop
-        for mode in (eval modes) ;FIXME: avoid `eval'
+        for mode in (eval modes t) ;FIXME: avoid `eval'
         append
         (cl-loop
          for (prefix suffix extra-desc) in

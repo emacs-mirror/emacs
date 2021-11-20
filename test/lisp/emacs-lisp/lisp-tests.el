@@ -235,7 +235,7 @@
     (should (or (not mark-active) (mark)))))
 
 (ert-deftest core-elisp-tests-3-backquote ()
-  (should (eq 3 (eval ``,,'(+ 1 2)))))
+  (should (eq 3 (eval ``,,'(+ 1 2) t))))
 
 ;; Test up-list and backward-up-list.
 (defun lisp-run-up-list-test (fn data start instructions)
@@ -324,7 +324,7 @@ start."
   (declare (indent 1) (debug (def-form body)))
   (let* ((var-pos nil)
          (text (with-temp-buffer
-                 (insert (eval contents))
+                 (insert (eval contents t))
                  (goto-char (point-min))
                  (while (re-search-forward elisp-test-point-position-regex nil t)
                    (push (list (intern (match-string-no-properties 1))
