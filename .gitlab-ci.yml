@@ -15,7 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-# GNU Emacs support for the GitLab protocol for CI
+# GNU Emacs support for the GitLab protocol for CI.
 
 # The presence of this file does not imply any FSF/GNU endorsement of
 # any particular service that uses that protocol.  Also, it is intended for

@@ -20,7 +20,7 @@
 # GNU Emacs support for the gitlab-ci.yml template generation.
 
 # The presence of this file does not imply any FSF/GNU endorsement of
-# GitLab or any other particular tool.  Also, it is intended for
+# any particular service that uses that protocol.  Also, it is intended for
 # evaluation purposes, thus possibly temporary.
 
 # Maintainer: Michael Albinus <michael.albinus@gmx.de>
@@ -53,9 +53,15 @@ for subdir in $SUBDIRS; do
     esac
 
     cat <<EOF
+stages:
+  - normal
+
+EOF
+
+    cat <<EOF
 test${target##check}-inotify:
   stage: normal
-  # extends: [.job-template, .test-template]
+  extends: [.job-template, .test-template]
   rules:
     - changes: $changes
   variables:
