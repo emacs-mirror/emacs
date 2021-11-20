@@ -183,6 +183,11 @@ temporarily blinks with this face."
   "Face for <abbr> elements."
   :version "27.1")
 
+(defface shr-sup
+  '((t :height 0.8))
+  "Face for <sup> and <sub> elements."
+  :version "29.1")
+
 (defface shr-h1
   '((t :height 1.3 :weight bold))
   "Face for <h1> elements."
@@ -1464,12 +1469,14 @@ ones, in case fg and bg are nil."
 (defun shr-tag-sup (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise 0.2))))
+    (put-text-property start (point) 'display '(raise 0.2))
+    (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise -0.2))))
+    (put-text-property start (point) 'display '(raise -0.2))
+    (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-p (dom)
   (shr-ensure-paragraph)
