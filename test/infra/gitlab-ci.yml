@@ -64,7 +64,6 @@ test-jobs-pipeline:
   stage: trigger
   trigger:
     include:
-      - local: '/test/infra/default-gitlab-ci.yml'
       - artifact: test-jobs.yml
         job: test-jobs-generator
     strategy: depend

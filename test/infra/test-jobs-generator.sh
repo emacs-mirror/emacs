@@ -53,6 +53,9 @@ for subdir in $SUBDIRS; do
     esac
 
     cat <<EOF
+include:
+  - local: '/test/infra/default-gitlab-ci.yml'
+
 stages:
   - normal
 
