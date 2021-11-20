@@ -9939,7 +9939,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    if (delta != DBL_MAX)
 		      {
-			f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+			if (!f)
+			  {
+			    f = x_any_window_to_frame (dpyinfo, xev->event);
+
+			    if (!f)
+			      goto XI_OTHER;
+			  }
+
 			scroll_unit = pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
 			found_valuator = true;
 
@@ -9951,14 +9958,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			if (x_coalesce_scroll_events
 			    && (fabs (val->emacs_value) < 1))
 			  continue;
-
-			if (!f)
-			  {
-			    f = x_any_window_to_frame (dpyinfo, xev->event);
-
-			    if (!f)
-			      goto XI_OTHER;
-			  }
 
 			bool s = signbit (val->emacs_value);
 			inev.ie.kind = (val->horizontal
