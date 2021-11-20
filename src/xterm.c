@@ -14273,7 +14273,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   int minor = 3;
 #elif defined XI_TouchBegin /* XInput 2.2 */
   int minor = 2;
-#elif defined XIScrollClass /* XInput 1.1 */
+#elif defined XIScrollClass /* XInput 2.1 */
   int minor = 1;
 #else /* Some old version of XI2 we're not interested in. */
   int minor = 0;
