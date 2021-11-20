@@ -58,6 +58,7 @@
 (declare-function xwidget-webkit-back-forward-list "xwidget.c" (xwidget &optional limit))
 (declare-function xwidget-webkit-estimated-load-progress "xwidget.c" (xwidget))
 (declare-function xwidget-webkit-set-cookie-storage-file "xwidget.c" (xwidget file))
+(declare-function xwidget-live-p "xwidget.c" (xwidget))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -77,12 +78,9 @@ This returns the result of `make-xwidget'."
 
 (defun xwidget-at (pos)
   "Return xwidget at POS."
-  ;; TODO this function is a bit tedious because the C layer isn't well
-  ;; protected yet and xwidgetp apparently doesn't work yet.
   (let* ((disp (get-text-property pos 'display))
-         (xw (car (cdr (cdr  disp)))))
-    ;;(if (xwidgetp  xw) xw nil)
-    (if (equal 'xwidget (car disp)) xw)))
+         (xw (car (cdr (cdr disp)))))
+    (when (xwidget-live-p xw) xw)))
 
 
 
