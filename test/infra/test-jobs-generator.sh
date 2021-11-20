@@ -60,7 +60,7 @@ EOF
 
     cat <<EOF
 test${target##check}-inotify:
-  stage: normal
+  stage: test
   extends: [.job-template, .test-template]
   rules:
     - changes: $changes
