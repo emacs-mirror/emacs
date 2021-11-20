@@ -113,7 +113,7 @@ It can use the following special constructs:
 They will be stored as plain text in Mozilla \"cookies.txt\"
 format.  If nil, do not store cookies.  You must kill all xwidget-webkit
 buffers for this setting to take effect after setting it to nil."
-  :type 'string
+  :type '(choice (const :tag "Do not store cookies" nil) file)
   :version "29.1")
 
 ;;;###autoload
