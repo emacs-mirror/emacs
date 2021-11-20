@@ -138,7 +138,7 @@ in the current window."
 	;; Make sure buffer is displayed starting at the beginning.
 	(set-window-start nil 1)
 	;; Display it, and wait just a little while.
-        (sit-for (/ animate-total-added-delay (max animate-n-steps 1)))
+        (sit-for (/ (float animate-total-added-delay) (max animate-n-steps 1)))
 	;; Now undo the changes we made in the buffer.
 	(setq list-to-undo buffer-undo-list)
 	(while list-to-undo
