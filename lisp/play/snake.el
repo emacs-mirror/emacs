@@ -160,31 +160,28 @@ and then start moving it leftwards.")
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar snake-mode-map
-  (let ((map (make-sparse-keymap 'snake-mode-map)))
+(defvar-keymap snake-mode-map
+  :doc "Keymap for Snake games."
+  :name 'snake-mode-map
+  "n"       #'snake-start-game
+  "q"       #'snake-end-game
+  "p"       #'snake-pause-game
 
-    (define-key map "n"		'snake-start-game)
-    (define-key map "q"		'snake-end-game)
-    (define-key map "p"		'snake-pause-game)
+  "<left>"  #'snake-move-left
+  "<right>" #'snake-move-right
+  "<up>"    #'snake-move-up
+  "<down>"  #'snake-move-down
 
-    (define-key map [left]	'snake-move-left)
-    (define-key map [right]	'snake-move-right)
-    (define-key map [up]	'snake-move-up)
-    (define-key map [down]	'snake-move-down)
+  "C-b"     #'snake-move-left
+  "C-f"     #'snake-move-right
+  "C-p"     #'snake-move-up
+  "C-n"     #'snake-move-down)
 
-    (define-key map "\C-b"	'snake-move-left)
-    (define-key map "\C-f"	'snake-move-right)
-    (define-key map "\C-p"	'snake-move-up)
-    (define-key map "\C-n"	'snake-move-down)
-    map)
-  "Keymap for Snake games.")
-
-(defvar snake-null-map
-  (let ((map (make-sparse-keymap 'snake-null-map)))
-    (define-key map "n"		'snake-start-game)
-    (define-key map "q"         'quit-window)
-    map)
-  "Keymap for finished Snake games.")
+(defvar-keymap snake-null-map
+  :doc "Keymap for finished Snake games."
+  :name 'snake-null-map
+  "n"       #'snake-start-game
+  "q"       #'quit-window)
 
 (defconst snake--menu-def
   '("Snake"
