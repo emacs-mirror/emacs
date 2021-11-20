@@ -111,8 +111,9 @@ It can use the following special constructs:
 (defcustom xwidget-webkit-cookie-file nil
   "The name of the file where `xwidget-webkit-browse-url' will store cookies.
 They will be stored as plain text in Mozilla \"cookies.txt\"
-format.  If nil, do not store cookies."
-  :type '(choice (const :tag "Do not store cookies" nil) file)
+format.  If nil, do not store cookies.  You must kill all xwidget-webkit
+buffers for this setting to take effect after setting it to nil."
+  :type 'string
   :version "29.1")
 
 ;;;###autoload
