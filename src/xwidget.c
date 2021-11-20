@@ -226,8 +226,9 @@ fails.  */)
 
       gtk_widget_show (xw->widget_osr);
       gtk_widget_show (xw->widgetwindow_osr);
+#ifndef HAVE_XINPUT2
       synthesize_focus_in_event (xw->widgetwindow_osr);
-
+#endif
 
       g_signal_connect (G_OBJECT (gtk_widget_get_window (xw->widgetwindow_osr)),
 			"from-embedder", G_CALLBACK (from_embedder), NULL);
@@ -326,6 +327,10 @@ selected frame is not an X-Windows frame.  */)
   GtkContainerClass *klass;
   GtkWidget *widget;
   GtkWidget *temp = NULL;
+#ifdef HAVE_XINPUT2
+  GdkWindow *embedder;
+  GdkWindow *osw;
+#endif
 #endif
 
   CHECK_LIVE_XWIDGET (xwidget);
@@ -337,6 +342,16 @@ selected frame is not an X-Windows frame.  */)
     f = SELECTED_FRAME ();
 
 #ifdef USE_GTK
+#ifdef HAVE_XINPUT2
+  /* XI2 GDK devices crash if we try this without an embedder set.  */
+  if (!f)
+    return Qnil;
+
+  osw = gtk_widget_get_window (xw->widgetwindow_osr);
+  embedder = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+
+  gdk_offscreen_window_set_embedder (osw, embedder);
+#endif
   widget = gtk_window_get_focus (GTK_WINDOW (xw->widgetwindow_osr));
 
   if (!widget)
@@ -1012,7 +1027,7 @@ synthesize_focus_in_event (GtkWidget *offscreen_window)
   wnd = gtk_widget_get_window (offscreen_window);
 
   focus_event = gdk_event_new (GDK_FOCUS_CHANGE);
-  focus_event->any.window = wnd;
+  focus_event->focus_change.window = wnd;
   focus_event->focus_change.in = TRUE;
 
   if (FRAME_WINDOW_P (SELECTED_FRAME ()))
@@ -1779,6 +1794,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
       XSetWindowBackground (xv->dpy, xv->wdesc,
 			    FRAME_BACKGROUND_PIXEL (s->f));
     }
+#endif
+
+#ifdef HAVE_XINPUT2
+  record_osr_embedder (xv);
+  synthesize_focus_in_event (xww->widget_osr);
 #endif
 
 #ifdef USE_GTK
