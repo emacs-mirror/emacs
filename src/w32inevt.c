@@ -470,6 +470,9 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   DWORD but_change, mask, flags = event->dwEventFlags;
   int i;
 
+  /* Mouse didn't move unless MOUSE_MOVED says it did.  */
+  SELECTED_FRAME ()->mouse_moved = 0;
+
   switch (flags)
     {
     case MOUSE_MOVED:
