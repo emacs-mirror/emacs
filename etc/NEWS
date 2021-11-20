@@ -497,8 +497,6 @@ named.
 *** New user option 'xwidget-webkit-cookie-file'.
 Using this option you can control whether the xwidget-webkit buffers
 save cookies set by web pages, and if so, in which file to save them.
-the default is the file 'xwidget-webkit-cookies.txt' under
-'~/.emacs.d' directory.
 
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
