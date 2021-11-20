@@ -182,6 +182,7 @@ ID
 # Executables.
 *.exe
 a.out
+lib-src/be-resources
 lib-src/blessmail
 lib-src/ctags
 lib-src/ebrowse
@@ -203,6 +204,7 @@ nextstep/GNUstep/Emacs.base/Resources/Info-gnustep.plist
 src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
+src/Emacs
 src/temacs
 src/dmpstruct.h
 src/*.pdmp

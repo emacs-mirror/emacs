@@ -14959,7 +14959,7 @@ selected window or cursor position is preserved.  */);
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
-With MS Windows or Nextstep, the value is t.  */);
+With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_MOTIF
   Vx_toolkit_scroll_bars = intern_c_string ("motif");

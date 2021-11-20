@@ -138,13 +138,21 @@ verify (BITS_WORD_MAX >> (BITS_PER_BITS_WORD - 1) == 1);
    buffers and strings.  Emacs never allocates objects larger than
    PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
    In C99, pD can always be "t"; configure it here for the sake of
-   pre-C99 libraries such as glibc 2.0 and Solaris 8.  */
+   pre-C99 libraries such as glibc 2.0 and Solaris 8.
+
+   On Haiku, the size of ptrdiff_t is inconsistent with the value of
+   PTRDIFF_MAX.  In that case, "t" should be sufficient. */
+
+#ifndef HAIKU
 #if PTRDIFF_MAX == INT_MAX
 # define pD ""
 #elif PTRDIFF_MAX == LONG_MAX
 # define pD "l"
 #elif PTRDIFF_MAX == LLONG_MAX
 # define pD "ll"
+#else
+# define pD "t"
+#endif
 #else
 # define pD "t"
 #endif
@@ -3330,7 +3338,7 @@ struct frame;
 
 /* Define if the windowing system provides a menu bar.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-  || defined (HAVE_NS) || defined (USE_GTK)
+  || defined (HAVE_NS) || defined (USE_GTK) || defined (HAVE_HAIKU)
 #define HAVE_EXT_MENU_BAR true
 #endif
 
@@ -4429,7 +4437,7 @@ extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tab_bar_items (Lisp_Object, int *);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern void discard_mouse_events (void);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 void handle_input_available_signal (int);
 #endif
 extern Lisp_Object pending_funcalls;

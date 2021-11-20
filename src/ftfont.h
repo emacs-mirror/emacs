@@ -29,6 +29,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include FT_BDF_H
 #endif
 
+#ifdef USE_BE_CAIRO
+#include <cairo.h>
+#endif
+
 #ifdef HAVE_HARFBUZZ
 #include <hb.h>
 #include <hb-ft.h>
@@ -62,7 +66,7 @@ struct font_info
   hb_font_t *hb_font;
 #endif  /* HAVE_HARFBUZZ */
 
-#ifdef USE_CAIRO
+#if defined (USE_CAIRO) || defined (USE_BE_CAIRO)
   cairo_scaled_font_t *cr_scaled_font;
   /* Scale factor from the bitmap strike metrics in 1/64 pixels, used
      as the hb_position_t value in HarfBuzz, to those in (scaled)

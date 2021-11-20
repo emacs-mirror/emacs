@@ -134,6 +134,13 @@ typedef Emacs_Pixmap Emacs_Pix_Context;
 #define FACE_COLOR_TO_PIXEL(face_color, frame) face_color
 #endif
 
+#ifdef HAVE_HAIKU
+#include "haikugui.h"
+typedef struct haiku_display_info Display_Info;
+typedef Emacs_Pixmap Emacs_Pix_Container;
+typedef Emacs_Pixmap Emacs_Pix_Context;
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 # include <time.h>
 # include "fontset.h"
@@ -3011,7 +3018,7 @@ struct redisplay_interface
 #ifdef HAVE_WINDOW_SYSTEM
 
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NS || defined HAVE_NTGUI)
+      || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU)
 #  define HAVE_NATIVE_TRANSFORMS
 # endif
 
@@ -3049,6 +3056,14 @@ struct image
 #endif	/* HAVE_X_WINDOWS */
 #ifdef HAVE_NTGUI
   XFORM xform;
+#endif
+#ifdef HAVE_HAIKU
+  /* Non-zero if the image has not yet been transformed for display.  */
+  int have_be_transforms_p;
+
+  double be_rotate;
+  double be_scale_x;
+  double be_scale_y;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
@@ -3489,7 +3504,8 @@ bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS \
+  || defined HAVE_HAIKU
 #define RGB_PIXEL_COLOR unsigned long
 #endif
 

@@ -511,6 +511,12 @@ otherwise for the first of 'inotify', 'kqueue' or 'gfile' that is usable.])
 OPTION_DEFAULT_OFF([xwidgets],
   [enable use of xwidgets in Emacs buffers (requires gtk3 or macOS Cocoa)])
 
+OPTION_DEFAULT_OFF([be-app],
+  [enable use of Haiku's Application Kit as a window system])
+
+OPTION_DEFAULT_OFF([be-cairo],
+  [enable use of cairo under Haiku's Application Kit])
+
 ## Makefile.in needs the cache file name.
 AC_SUBST(cache_file)
 
@@ -787,6 +793,10 @@ case "${canonical}" in
     LDFLAGS="-N2M $LDFLAGS"
   ;;
 
+  *-haiku )
+    opsys=haiku
+  ;;
+
   ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     case "${canonical}" in
@@ -908,7 +918,9 @@ if test "$ac_test_CFLAGS" != set; then
     if test $emacs_cv_prog_cc_g3 != yes; then
       CFLAGS=$emacs_save_CFLAGS
     fi
-    if test $opsys = mingw32; then
+    # Haiku also needs -gdwarf-2 because its GDB is too old
+    # to understand newer formats.
+    if test $opsys = mingw32 || test $opsys = haiku; then
       CFLAGS="$CFLAGS -gdwarf-2"
     fi
   fi
@@ -1575,6 +1587,8 @@ case "$opsys" in
 
   ## Motif needs -lgen.
   unixware) LIBS_SYSTEM="-lsocket -lnsl -lelf -lgen" ;;
+
+  haiku) LIBS_SYSTEM="-lnetwork" ;;
 esac
 
 AC_SUBST(LIBS_SYSTEM)
@@ -2080,6 +2094,22 @@ if test "${HAVE_NS}" = yes; then
    fi
 fi
 
+HAVE_BE_APP=no
+if test "${opsys}" = "haiku" && test "${with_be_app}" = "yes"; then
+   dnl Only GCC is supported.  Clang might work, but it's
+   dnl not reliable, so don't check for it here.
+   AC_PROG_CXX([gcc g++])
+   CXXFLAGS="$CXXFLAGS $emacs_g3_CFLAGS"
+   AC_LANG_PUSH([C++])
+   AC_CHECK_HEADER([app/Application.h], [HAVE_BE_APP=yes],
+                   [AC_MSG_ERROR([The Application Kit headers required for building
+with the Application Kit were not found or cannot be compiled. Either fix this, or
+re-configure with the option '--without-be-app'.])])
+   AC_LANG_POP([C++])
+fi
+
+AC_SUBST(HAVE_BE_APP)
+
 HAVE_W32=no
 W32_OBJ=
 W32_LIBS=
@@ -2201,6 +2231,39 @@ if test "${HAVE_W32}" = "yes"; then
   with_xft=no
 fi
 
+HAIKU_OBJ=
+HAIKU_CXX_OBJ=
+HAIKU_LIBS=
+HAIKU_CFLAGS=
+
+if test "$opsys" = "haiku"; then
+  HAIKU_OBJ="$HAIKU_OBJ haiku.o"
+fi
+
+if test "${HAVE_BE_APP}" = "yes"; then
+  AC_DEFINE([HAVE_HAIKU], 1,
+      [Define if Emacs will be built with Haiku windowing support])
+fi
+
+if test "${HAVE_BE_APP}" = "yes"; then
+  window_system=haiku
+  with_xft=no
+  HAIKU_OBJ="$HAIKU_OBJ haikufns.o haikuterm.o haikumenu.o haikufont.o haikuselect.o haiku_io.o"
+  HAIKU_CXX_OBJ="haiku_support.o haiku_font_support.o haiku_draw_support.o haiku_select.o"
+  HAIKU_LIBS="-lbe -lgame -ltranslation -ltracker" # -lgame is needed for set_mouse_position.
+
+  if test "${with_native_image_api}" = yes; then
+     AC_DEFINE(HAVE_NATIVE_IMAGE_API, 1, [Define to use native OS APIs for images.])
+     NATIVE_IMAGE_API="yes (haiku)"
+     HAIKU_OBJ="$HAIKU_OBJ haikuimage.o"
+  fi
+fi
+
+AC_SUBST(HAIKU_LIBS)
+AC_SUBST(HAIKU_OBJ)
+AC_SUBST(HAIKU_CXX_OBJ)
+AC_SUBST(HAIKU_CFLAGS)
+
 ## $window_system is now set to the window system we will
 ## ultimately use.
 
@@ -2239,6 +2302,9 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
   ;;
   w32 )
     term_header=w32term.h
+  ;;
+  haiku )
+    term_header=haikuterm.h
   ;;
 esac
 
@@ -2571,7 +2637,8 @@ fi
 
 ### Use -lrsvg-2 if available, unless '--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${opsys}" = "mingw32"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" \
+   || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.14.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -2595,7 +2662,8 @@ fi
 HAVE_WEBP=no
 if test "${with_webp}" != "no"; then
    if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
-   || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes"; then
+   || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
+   || test "${HAVE_BE_APP}" = "yes"; then
       WEBP_REQUIRED=0.6.0
       WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
 
@@ -2614,7 +2682,8 @@ if test "${with_webp}" != "no"; then
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes" || \
+   test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
     if test -n "$BREW"; then
       # Homebrew doesn't link ImageMagick 6 by default, so make sure
@@ -3264,6 +3333,9 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
   elif test "${HAVE_W32}" = "yes"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
+  elif test "${HAVE_BE_APP}" = "yes"; then
+    AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+    USE_TOOLKIT_SCROLL_BARS=yes
   fi
 fi
 
@@ -3344,6 +3416,22 @@ if test "${HAVE_X11}" = "yes"; then
     EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
     if test $HAVE_CAIRO = yes; then
       AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+      CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+      LIBS="$LIBS $CAIRO_LIBS"
+      AC_SUBST(CAIRO_CFLAGS)
+      AC_SUBST(CAIRO_LIBS)
+    else
+      AC_MSG_WARN([cairo requested but not found.])
+    fi
+  fi
+fi
+if test "${HAVE_BE_APP}" = "yes"; then
+  if test "${with_be_cairo}" != "no"; then
+    CAIRO_REQUIRED=1.8.0
+    CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
+    EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
+    if test $HAVE_CAIRO = yes; then
+      AC_DEFINE(USE_BE_CAIRO, 1, [Define to 1 if using cairo on Haiku.])
       CFLAGS="$CFLAGS $CAIRO_CFLAGS"
       LIBS="$LIBS $CAIRO_LIBS"
       AC_SUBST(CAIRO_CFLAGS)
@@ -3502,6 +3590,58 @@ if test "${HAVE_X11}" = "yes" && test "${HAVE_FREETYPE}" = "yes" \
   fi
 fi
 
+### Start of font-backend (under Haiku) selectionn.
+if test "${HAVE_BE_APP}" = "yes"; then
+  if test $HAVE_CAIRO = "yes"; then
+      EMACS_CHECK_MODULES([FREETYPE], [freetype2 >= 2.5.0])
+      test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(cairo on Haiku requires libfreetype)
+      EMACS_CHECK_MODULES([FONTCONFIG], [fontconfig >= 2.2.0])
+      test "$HAVE_FONTCONFIG" = "no" && AC_MSG_ERROR(cairo on Haiku requires libfontconfig)
+  fi
+
+  HAVE_LIBOTF=no
+
+  if test "${HAVE_FREETYPE}" = "yes"; then
+    AC_DEFINE(HAVE_FREETYPE, 1,
+	      [Define to 1 if using the freetype and fontconfig libraries.])
+    OLD_CFLAGS=$CFLAGS
+    OLD_LIBS=$LIBS
+    CFLAGS="$CFLAGS $FREETYPE_CFLAGS"
+    LIBS="$FREETYPE_LIBS $LIBS"
+    AC_CHECK_FUNCS(FT_Face_GetCharVariantIndex)
+    CFLAGS=$OLD_CFLAGS
+    LIBS=$OLD_LIBS
+    if test "${with_libotf}" != "no"; then
+      EMACS_CHECK_MODULES([LIBOTF], [libotf])
+      if test "$HAVE_LIBOTF" = "yes"; then
+	AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+	AC_CHECK_LIB(otf, OTF_get_variation_glyphs,
+		     HAVE_OTF_GET_VARIATION_GLYPHS=yes,
+		     HAVE_OTF_GET_VARIATION_GLYPHS=no)
+	if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
+	  AC_DEFINE(HAVE_OTF_GET_VARIATION_GLYPHS, 1,
+		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
+	fi
+	if ! $PKG_CONFIG --atleast-version=0.9.16 libotf; then
+	  AC_DEFINE(HAVE_OTF_KANNADA_BUG, 1,
+[Define to 1 if libotf is affected by https://debbugs.gnu.org/28110.])
+	fi
+      fi
+    fi
+  dnl FIXME should there be an error if HAVE_FREETYPE != yes?
+  dnl Does the new font backend require it, or can it work without it?
+  fi
+fi
+
+if test "${HAVE_BE_APP}" = "yes" && test "${HAVE_FREETYPE}" = "yes"; then
+  if test "${with_harfbuzz}" != "no"; then
+    EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= $harfbuzz_required_ver])
+    if test "$HAVE_HARFBUZZ" = "yes"; then
+      AC_DEFINE(HAVE_HARFBUZZ, 1, [Define to 1 if using HarfBuzz.])
+    fi
+  fi
+fi
+
 ### End of font-backend section.
 
 AC_SUBST(FREETYPE_CFLAGS)
@@ -3623,7 +3763,7 @@ AC_SUBST(LIBXPM)
 HAVE_JPEG=no
 LIBJPEG=
 if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-   || test "${HAVE_NS}" = "yes"; then
+   || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     AC_CACHE_CHECK([for jpeglib 6b or later],
       [emacs_cv_jpeglib],
@@ -3941,7 +4081,7 @@ if test "${with_png}" != no; then
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-       || test "${HAVE_NS}" = "yes"; then
+       || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
     EMACS_CHECK_MODULES([PNG], [libpng >= 1.0.0])
     if test $HAVE_PNG = yes; then
       LIBPNG=$PNG_LIBS
@@ -4016,7 +4156,7 @@ if test "${opsys}" = "mingw32"; then
     AC_DEFINE(HAVE_TIFF, 1, [Define to 1 if you have the tiff library (-ltiff).])
   fi
 elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-     || test "${HAVE_NS}" = "yes"; then
+     || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER(tiffio.h,
       [tifflibs="-lz -lm"
@@ -4045,7 +4185,8 @@ if test "${opsys}" = "mingw32"; then
     AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have a gif (or ungif) library.])
   fi
 elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
-        || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes"; then
+        || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
+	|| test "${HAVE_BE_APP}" = "yes"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs, but version 5.0 removes EGifPutExtensionLast.
@@ -4482,6 +4623,13 @@ case $with_unexec,$canonical in
       [AC_MSG_ERROR([Non-ELF systems are not supported on this platform.])]);;
 esac
 
+if test "$with_unexec" = yes && test "$opsys" = "haiku"; then
+  dnl A serious attempt was actually made to port unexec to Haiku.
+  dnl Something in libstdc++ seems to prevent it from working.
+  AC_MSG_ERROR([Haiku is not supported by the legacy unexec dumper.
+Please use the portable dumper instead.])
+fi
+
 # Dump loading
 AC_CHECK_FUNCS([posix_madvise])
 
@@ -4835,7 +4983,7 @@ CFLAGS="$OLDCFLAGS"
 LIBS="$OLDLIBS"])
 if test "${emacs_cv_links_glib}" = "yes"; then
   AC_DEFINE(HAVE_GLIB, 1, [Define to 1 if GLib is linked in.])
-  if test "$HAVE_NS" = no;then
+  if test "$HAVE_NS" = no ; then
     XGSELOBJ=xgselect.o
   fi
 fi
@@ -5090,7 +5238,7 @@ dnl It would have Emacs fork off a separate process
 dnl to read the input and send it to the true Emacs process
 dnl through a pipe.
 case $opsys in
-  darwin | gnu-linux | gnu-kfreebsd )
+  darwin | gnu-linux | gnu-kfreebsd)
     AC_DEFINE(INTERRUPT_INPUT, 1, [Define to read input using SIGIO.])
   ;;
 esac
@@ -5185,6 +5333,14 @@ case $opsys in
     dnl Comments are as per solaris.
     AC_DEFINE(PTY_OPEN, [fd = open (pty_name, O_RDWR | O_NONBLOCK)])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
+    ;;
+
+  haiku*)
+    AC_DEFINE(FIRST_PTY_LETTER, ['s'])
+    AC_DEFINE(PTY_NAME_SPRINTF, [])
+    dnl on Haiku pty names aren't distinctive, thus the use of posix_openpt
+    AC_DEFINE(PTY_OPEN, [fd = posix_openpt (O_RDWR | O_NONBLOCK)])
+    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 esac
 
@@ -5407,7 +5563,24 @@ case $opsys in
     AC_DEFINE(USG, [])
     AC_DEFINE(USG5_4, [])
     ;;
+
+  haiku)
+    AC_DEFINE(HAIKU, [], [Define if the system is Haiku.])
+    ;;
 esac
+
+AC_SYS_POSIX_TERMIOS
+if test $ac_cv_sys_posix_termios = yes; then
+  AC_CHECK_SIZEOF([speed_t], [], [#include <termios.h>])
+  dnl on Haiku, and possibly other platforms, speed_t is defined to
+  dnl unsigned char, even when speeds greater than 200 baud are
+  dnl defined.
+
+  if test ${ac_cv_sizeof_speed_t} -lt 2; then
+    AC_DEFINE([HAVE_TINY_SPEED_T], [1],
+        [Define to 1 if speed_t has some sort of nonsensically tiny size.])
+  fi
+fi
 
 AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
   [case $opsys in
@@ -5449,6 +5622,22 @@ if test $emacs_cv_usable_FIONREAD = yes; then
       [emacs_cv_usable_SIGIO=no])
     if test $emacs_cv_usable_SIGIO = yes; then
       AC_DEFINE([USABLE_SIGIO], [1], [Define to 1 if SIGIO is usable.])
+    fi
+  fi
+
+  if test $emacs_broken_SIGIO = no && test $emacs_cv_usable_SIGIO = no; then
+    AC_CACHE_CHECK([for usable SIGPOLL], [emacs_cv_usable_SIGPOLL],
+      [AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([[#include <fcntl.h>
+			    #include <signal.h>
+			  ]],
+			  [[int foo = SIGPOLL | F_SETFL;]])],
+	 [emacs_cv_usable_SIGPOLL=yes],
+	 [emacs_cv_usable_SIGPOLL=no])],
+      [emacs_cv_usable_SIGPOLL=yes],
+      [emacs_cv_usable_SIGPOLL=no])
+    if test $emacs_cv_usable_SIGPOLL = yes; then
+      AC_DEFINE([USABLE_SIGPOLL], [1], [Define to 1 if SIGPOLL is usable but SIGIO is not.])
     fi
   fi
 fi
@@ -5563,6 +5752,17 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
     FONT_OBJ="$FONT_OBJ ftfont.o"
   fi
 fi
+
+if test "${HAVE_BE_APP}" = "yes" ; then
+  if test "${HAVE_FREETYPE}" = "yes" || \
+     test "${HAVE_CAIRO}" = "yes"; then
+     FONT_OBJ="$FONT_OBJ ftfont.o"
+  fi
+  if test "${HAVE_CAIRO}" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftcrfont.o"
+  fi
+fi
+
 if test "${HAVE_HARFBUZZ}" = "yes" ; then
   FONT_OBJ="$FONT_OBJ hbfont.o"
 fi
@@ -5951,7 +6151,7 @@ Configured for '${canonical}'.
 #### Please respect alphabetical ordering when making additions.
 optsep=
 emacs_config_features=
-for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
+for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
  M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PNG RSVG SECCOMP \
  SOUND THREADS TIFF TOOLKIT_SCROLL_BARS \

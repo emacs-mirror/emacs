@@ -303,6 +303,11 @@
       (load "term/common-win")
       (load "term/x-win")))
 
+(if (featurep 'haiku)
+    (progn
+      (load "term/common-win")
+      (load "term/haiku-win")))
+
 (if (or (eq system-type 'windows-nt)
         (featurep 'w32))
     (progn
@@ -558,6 +563,7 @@ lost after dumping")))
               (delete-file output)))))
       ;; Recompute NAME now, so that it isn't set when we dump.
       (if (not (or (eq system-type 'ms-dos)
+                   (eq system-type 'haiku) ;; BFS doesn't support hard links
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (member dump-mode '("pbootstrap" "bootstrap"))))

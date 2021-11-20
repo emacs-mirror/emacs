@@ -102,6 +102,8 @@ HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
 USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
 
+HAVE_BE_APP = @HAVE_BE_APP@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
@@ -521,7 +523,13 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	$(MAKE) -C lib-src install
 ifeq (${ns_self_contained},no)
 	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)"
+ifeq (${HAVE_BE_APP},yes)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/Emacs "$(DESTDIR)${prefix}/apps/Emacs"
+endif
 ifeq (${DUMPING},pdumper)
+ifeq (${HAVE_BE_APP},yes)
+	${INSTALL_DATA} src/Emacs.pdmp "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}"/Emacs.pdmp
+endif
 	${INSTALL_DATA} src/emacs.pdmp "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}"/emacs-${EMACS_PDMP}
 endif
 	-chmod 755 "$(DESTDIR)${bindir}/$(EMACSFULL)"

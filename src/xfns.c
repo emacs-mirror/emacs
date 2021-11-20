@@ -4461,7 +4461,8 @@ For GNU and Unix system, the first 2 numbers are the version of the X
 Protocol used on TERMINAL and the 3rd number is the distributor-specific
 release number.  For MS Windows, the 3 numbers report the OS major and
 minor version and build number.  For Nextstep, the first 2 numbers are
-hard-coded and the 3rd represents the OS version.
+hard-coded and the 3rd represents the OS version.  For Haiku, all 3
+numbers are hard-coded.
 
 See also the function `x-server-vendor'.
 
@@ -7419,7 +7420,7 @@ Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.
 
-This function is defined only on NS, MS Windows, and X Windows with the
+This function is defined only on NS, Haiku, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can select only directories.
 On MS Windows 7 and later, the file selection dialog "remembers" the last

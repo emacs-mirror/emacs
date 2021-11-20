@@ -6149,6 +6149,10 @@ garbage_collect (void)
   xg_mark_data ();
 #endif
 
+#ifdef HAVE_HAIKU
+  mark_haiku_display ();
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
 #endif

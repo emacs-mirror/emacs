@@ -3865,7 +3865,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       gobble_input ();
 #endif
       if (kbd_fetch_ptr != kbd_store_ptr)
@@ -6156,7 +6156,6 @@ make_lispy_event (struct input_event *event)
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,
 		      event->arg, event->frame_or_window);
-
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
       emacs_abort ();
@@ -7247,7 +7246,7 @@ totally_unblock_input (void)
   unblock_input_to (0);
 }
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 
 void
 handle_input_available_signal (int sig)
@@ -7263,7 +7262,7 @@ deliver_input_available_signal (int sig)
 {
   deliver_process_signal (sig, handle_input_available_signal);
 }
-#endif /* USABLE_SIGIO */
+#endif /* defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)  */
 
 
 /* User signal events.  */
@@ -7333,7 +7332,7 @@ handle_user_signal (int sig)
           }
 
 	p->npending++;
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 	if (interrupt_input)
 	  handle_input_available_signal (sig);
 	else
@@ -11103,7 +11102,7 @@ See also `current-input-mode'.  */)
   (Lisp_Object interrupt)
 {
   bool new_interrupt_input;
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 #ifdef HAVE_X_WINDOWS
   if (x_display_list != NULL)
     {
@@ -11114,9 +11113,9 @@ See also `current-input-mode'.  */)
   else
 #endif /* HAVE_X_WINDOWS */
     new_interrupt_input = !NILP (interrupt);
-#else /* not USABLE_SIGIO */
+#else /* not USABLE_SIGIO || USABLE_SIGPOLL */
   new_interrupt_input = false;
-#endif /* not USABLE_SIGIO */
+#endif /* not USABLE_SIGIO || USABLE_SIGPOLL */
 
   if (new_interrupt_input != interrupt_input)
     {
@@ -11545,12 +11544,16 @@ init_keyboard (void)
       sigaction (SIGQUIT, &action, 0);
 #endif /* not DOS_NT */
     }
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   if (!noninteractive)
     {
       struct sigaction action;
       emacs_sigaction_init (&action, deliver_input_available_signal);
+#ifdef USABLE_SIGIO
       sigaction (SIGIO, &action, 0);
+#else
+      sigaction (SIGPOLL, &action, 0);
+#endif
     }
 #endif
 

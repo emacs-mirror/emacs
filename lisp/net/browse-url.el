@@ -39,6 +39,7 @@
 ;; browse-url-chrome                  Chrome      47.0.2526.111
 ;; browse-url-chromium                Chromium    3.0
 ;; browse-url-epiphany                Epiphany    Don't know
+;; browse-url-webpositive             WebPositive 1.2-alpha (Haiku R1/beta3)
 ;; browse-url-w3                      w3          0
 ;; browse-url-text-*	              Any text browser     0
 ;; browse-url-generic                 arbitrary
@@ -156,6 +157,7 @@
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
     (function-item :tag "Epiphany" :value  browse-url-epiphany)
+    (function-item :tag "WebPositive" :value browse-url-webpositive)
     (function-item :tag "Text browser in an xterm window"
 		   :value browse-url-text-xterm)
     (function-item :tag "Text browser in an Emacs window"
@@ -365,6 +367,11 @@ Defaults to the value of `browse-url-galeon-arguments' at the time
 Defaults to the value of `browse-url-epiphany-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument")))
+
+(defcustom browse-url-webpositive-program "WebPositive"
+  "The name by which to invoke WebPositive."
+  :type 'string
+  :version "28.1")
 
 ;; GNOME means of invoking either Mozilla or Netscape.
 (defvar browse-url-gnome-moz-program "gnome-moz-remote")
@@ -1050,6 +1057,7 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
 ;;;    ((executable-find browse-url-netscape-program) 'browse-url-netscape)
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
+    ((executable-find browse-url-webpositive-program) 'browse-url-webpositive)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
@@ -1375,6 +1383,18 @@ used instead of `browse-url-new-window-flag'."
 	       (append browse-url-epiphany-startup-arguments (list url))))))
 
 (defvar url-handler-regexp)
+
+;;;###autoload
+(defun browse-url-webpositive (url &optional _new-window)
+  "Ask the WebPositive WWW browser to load URL.
+Default to the URL around or before point.
+The optional argument NEW-WINDOW is not used."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((process-environment (browse-url-process-environment)))
+    (start-process (concat "WebPositive " url) nil "WebPositive" url)))
+
+(function-put 'browse-url-webpositive 'browse-url-browser-kind 'external)
 
 ;;;###autoload
 (defun browse-url-emacs (url &optional same-window)

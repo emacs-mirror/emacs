@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <fcntl.h>
+#include <math.h>
 #include <unistd.h>
 
 /* Include this before including <setjmp.h> to work around bugs with
@@ -133,6 +134,27 @@ typedef struct ns_bitmap_record Bitmap_Record;
      && ! (defined HAVE_NTGUI || defined USE_CAIRO || defined HAVE_NS))
 /* W32_TODO : Color tables on W32.  */
 # define COLOR_TABLE_SUPPORT 1
+#endif
+
+#ifdef HAVE_HAIKU
+#include "haiku_support.h"
+typedef struct haiku_bitmap_record Bitmap_Record;
+
+#define GET_PIXEL(ximg, x, y) haiku_get_pixel (ximg, x, y)
+#define PUT_PIXEL haiku_put_pixel
+#define NO_PIXMAP 0
+
+#define PIX_MASK_RETAIN	0
+#define PIX_MASK_DRAW	1
+
+#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
+#define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
+#define BLUE_FROM_ULONG(color)	((color) & 0xff)
+#define RED16_FROM_ULONG(color)		(RED_FROM_ULONG (color) * 0x101)
+#define GREEN16_FROM_ULONG(color)	(GREEN_FROM_ULONG (color) * 0x101)
+#define BLUE16_FROM_ULONG(color)	(BLUE_FROM_ULONG (color) * 0x101)
+
 #endif
 
 static void image_disable_image (struct frame *, struct image *);
@@ -430,9 +452,19 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
       return -1;
 #endif
 
+#ifdef HAVE_HAIKU
+  void *bitmap = BBitmap_new (width, height, 1);
+  BBitmap_import_mono_bits (bitmap, bits, width, height);
+#endif
+
   id = image_allocate_bitmap_record (f);
 
 #ifdef HAVE_NS
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+#endif
+
+#ifdef HAVE_HAIKU
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].depth = 1;
 #endif
@@ -465,7 +497,7 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 ptrdiff_t
 image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
-#ifdef HAVE_NTGUI
+#if defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
   return -1;  /* W32_TODO : bitmap support */
 #else
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -559,6 +591,10 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 
 #ifdef HAVE_NS
   ns_release_object (bm->img);
+#endif
+
+#ifdef HAVE_HAIKU
+  BBitmap_free (bm->img);
 #endif
 
   if (bm->file)
@@ -1834,6 +1870,11 @@ image_size_in_bytes (struct image *img)
   if (img->mask)
     size += w32_image_size (img->mask);
 
+#elif defined HAVE_HAIKU
+  if (img->pixmap)
+    size += BBitmap_bytes_length (img->pixmap);
+  if (img->mask)
+    size += BBitmap_bytes_length (img->mask);
 #endif
 
   return size;
@@ -2173,6 +2214,7 @@ compute_image_size (size_t width, size_t height,
    single step, but the maths for each element is much more complex
    and performing the steps separately makes for more readable code.  */
 
+#ifndef HAVE_HAIKU
 typedef double matrix3x3[3][3];
 
 static void
@@ -2187,6 +2229,7 @@ matrix3x3_mult (matrix3x3 a, matrix3x3 b, matrix3x3 result)
 	result[i][j] = sum;
       }
 }
+#endif /* not HAVE_HAIKU */
 
 static void
 compute_image_rotation (struct image *img, double *rotation)
@@ -2244,6 +2287,7 @@ image_set_transform (struct frame *f, struct image *img)
   double rotation = 0.0;
   compute_image_rotation (img, &rotation);
 
+#ifndef HAVE_HAIKU
 # if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
@@ -2414,6 +2458,34 @@ image_set_transform (struct frame *f, struct image *img)
   img->xform.eDx  = matrix[2][0];
   img->xform.eDy  = matrix[2][1];
 # endif
+#else
+  if (rotation != 0 &&
+      rotation != 90 &&
+      rotation != 180 &&
+      rotation != 270 &&
+      rotation != 360)
+    {
+      image_error ("No native support for rotation by %g degrees",
+		   make_float (rotation));
+      return;
+    }
+
+  rotation = fmod (rotation, 360.0);
+
+  if (rotation == 90 || rotation == 270)
+    {
+      int w = width;
+      width = height;
+      height = w;
+    }
+
+  img->have_be_transforms_p = rotation != 0 || (img->width != width) || (img->height != height);
+  img->be_rotate = rotation;
+  img->be_scale_x = 1.0 / (img->width / (double) width);
+  img->be_scale_y = 1.0 / (img->height / (double) height);
+  img->width = width;
+  img->height = height;
+#endif /* not HAVE_HAIKU */
 }
 
 #endif /* HAVE_IMAGEMAGICK || HAVE_NATIVE_TRANSFORMS */
@@ -2820,6 +2892,30 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   return 1;
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef HAVE_HAIKU
+  if (depth == 0)
+    depth = 24;
+
+  if (depth != 24 && depth != 1)
+    {
+      *pimg = NULL;
+      image_error ("Invalid image bit depth specified");
+      return 0;
+    }
+
+  *pixmap = BBitmap_new (width, height, depth == 1);
+
+  if (*pixmap == NO_PIXMAP)
+    {
+      *pimg = NULL;
+      image_error ("Unable to create pixmap", Qnil, Qnil);
+      return 0;
+    }
+
+  *pimg = *pixmap;
+  return 1;
+#endif
+
 #ifdef HAVE_NTGUI
 
   BITMAPINFOHEADER *header;
@@ -2960,7 +3056,7 @@ static void
 gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
                  Emacs_Pixmap pixmap, int width, int height)
 {
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined HAVE_HAIKU
   eassert (pimg == pixmap);
 #elif defined HAVE_X_WINDOWS
   GC gc;
@@ -3087,7 +3183,7 @@ image_unget_x_image_or_dc (struct image *img, bool mask_p,
 static Emacs_Pix_Container
 image_get_x_image (struct frame *f, struct image *img, bool mask_p)
 {
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined (HAVE_HAIKU)
   return !mask_p ? img->pixmap : img->mask;
 #elif defined HAVE_X_WINDOWS
   XImage *ximg_in_img = !mask_p ? img->ximg : img->mask_img;
@@ -4036,7 +4132,7 @@ xbm_load (struct frame *f, struct image *img)
 #endif /* not HAVE_NTGUI */
 #endif /* HAVE_XPM */
 
-#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS
+#if defined HAVE_XPM || defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
 
 /* Indices of image specification fields in xpm_format, below.  */
 
@@ -4056,7 +4152,7 @@ enum xpm_keyword_index
   XPM_LAST
 };
 
-#if defined HAVE_XPM || defined HAVE_NS
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
@@ -4074,7 +4170,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
-#endif	/* HAVE_XPM || HAVE_NS */
+#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU */
 
 #if defined HAVE_X_WINDOWS && !defined USE_CAIRO
 
@@ -4298,7 +4394,7 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
-#if defined HAVE_XPM || defined HAVE_NS
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU
 /* Value is true if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -4334,9 +4430,9 @@ xpm_image_p (Lisp_Object object)
 	  && (! fmt[XPM_COLOR_SYMBOLS].count
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
-#endif	/* HAVE_XPM || HAVE_NS */
+#endif	/* HAVE_XPM || HAVE_NS || HAVE_HAIKU */
 
-#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS */
+#endif /* HAVE_XPM || USE_CAIRO || HAVE_NS || HAVE_HAIKU */
 
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 ptrdiff_t
@@ -4705,9 +4801,10 @@ xpm_load (struct frame *f, struct image *img)
 #endif /* HAVE_XPM && !USE_CAIRO */
 
 #if (defined USE_CAIRO && defined HAVE_XPM)	\
-  || (defined HAVE_NS && !defined HAVE_XPM)
+  || (defined HAVE_NS && !defined HAVE_XPM)	\
+  || (defined HAVE_HAIKU && !defined HAVE_XPM)
 
-/* XPM support functions for NS where libxpm is not available, and for
+/* XPM support functions for NS and Haiku where libxpm is not available, and for
    Cairo.  Only XPM version 3 (without any extensions) is supported.  */
 
 static void xpm_put_color_table_v (Lisp_Object, const char *,
@@ -5444,7 +5541,7 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
 {
 #ifdef HAVE_NTGUI
   return PALETTERGB (r >> 8, g >> 8, b >> 8);
-#elif defined USE_CAIRO || defined HAVE_NS
+#elif defined USE_CAIRO || defined HAVE_NS || defined HAVE_HAIKU
   return RGB_TO_ULONG (r >> 8, g >> 8, b >> 8);
 #else
   xsignal1 (Qfile_error,
@@ -5517,7 +5614,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   p = colors;
   for (y = 0; y < img->height; ++y)
     {
-#if !defined USE_CAIRO && !defined HAVE_NS
+#if !defined USE_CAIRO && !defined HAVE_NS && !defined HAVE_HAIKU
       Emacs_Color *row = p;
       for (x = 0; x < img->width; ++x, ++p)
 	p->pixel = GET_PIXEL (ximg, x, y);
@@ -5525,7 +5622,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
         {
           FRAME_TERMINAL (f)->query_colors (f, row, img->width);
         }
-#else  /* USE_CAIRO || HAVE_NS */
+#else  /* USE_CAIRO || HAVE_NS || HAVE_HAIKU */
       for (x = 0; x < img->width; ++x, ++p)
 	{
 	  p->pixel = GET_PIXEL (ximg, x, y);
@@ -5839,6 +5936,7 @@ image_disable_image (struct frame *f, struct image *img)
     {
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
+#ifndef HAVE_HAIKU
 
 #ifndef USE_CAIRO
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
@@ -5856,6 +5954,7 @@ image_disable_image (struct frame *f, struct image *img)
       if (img->mask)
 	image_pixmap_draw_cross (f, img->mask, 0, 0, img->width, img->height,
 				 MaskForeground (f));
+#endif /* !HAVE_HAIKU */
 #endif /* !HAVE_NS */
 #else
       HDC hdc, bmpdc;
@@ -6413,6 +6512,8 @@ image_can_use_native_api (Lisp_Object type)
   return w32_can_use_native_image_api (type);
 # elif defined HAVE_NS
   return ns_can_use_native_image_api (type);
+# elif defined HAVE_HAIKU
+  return haiku_can_use_native_image_api (type);
 # else
   return false;
 # endif
@@ -6486,6 +6587,9 @@ native_image_load (struct frame *f, struct image *img)
 # elif defined HAVE_NS
   return ns_load_image (f, img, image_file,
                         image_spec_value (img->spec, QCdata, NULL));
+# elif defined HAVE_HAIKU
+  return haiku_load_image (f, img, image_file,
+			   image_spec_value (img->spec, QCdata, NULL));
 # else
   return 0;
 # endif
@@ -9635,7 +9739,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
 
-#if defined (HAVE_MAGICKEXPORTIMAGEPIXELS) && ! defined (HAVE_NS)
+#if defined (HAVE_MAGICKEXPORTIMAGEPIXELS) && \
+  ! defined (HAVE_NS) && ! defined (HAVE_HAIKU)
   if (imagemagick_render_type != 0)
     {
       /* Magicexportimage is normally faster than pixelpushing.  This
@@ -10925,7 +11030,8 @@ The list of capabilities can include one or more of the following:
   if (FRAME_WINDOW_P (f))
     {
 #ifdef HAVE_NATIVE_TRANSFORMS
-# if defined HAVE_IMAGEMAGICK || defined (USE_CAIRO) || defined (HAVE_NS)
+# if defined HAVE_IMAGEMAGICK || defined (USE_CAIRO) || defined (HAVE_NS) \
+  || defined (HAVE_HAIKU)
       return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
       int event_basep, error_basep;
@@ -11015,7 +11121,7 @@ static struct image_type const image_types[] =
  { SYMBOL_INDEX (Qjpeg), jpeg_image_p, jpeg_load, image_clear_image,
    IMAGE_TYPE_INIT (init_jpeg_functions) },
 #endif
-#if defined HAVE_XPM || defined HAVE_NS
+#if defined HAVE_XPM || defined HAVE_NS || defined HAVE_HAIKU
  { SYMBOL_INDEX (Qxpm), xpm_image_p, xpm_load, image_clear_image,
    IMAGE_TYPE_INIT (init_xpm_functions) },
 #endif
@@ -11163,7 +11269,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qxbm, "xbm");
   add_image_type (Qxbm);
 
-#if defined (HAVE_XPM) || defined (HAVE_NS)
+#if defined (HAVE_XPM) || defined (HAVE_NS) || defined (HAVE_HAIKU)
   DEFSYM (Qxpm, "xpm");
   add_image_type (Qxpm);
 #endif

@@ -947,6 +947,9 @@ actually Linux is just the kernel, not the whole system.)
 @item gnu/kfreebsd
 A GNU (glibc-based) system with a FreeBSD kernel.
 
+@item haiku
+The Haiku operating system, a derivative of the Be Operating System.
+
 @item hpux
 Hewlett-Packard HPUX operating system.
 

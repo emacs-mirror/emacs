@@ -24,6 +24,27 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
+** Emacs has been ported to the Haiku operating system.
+The configuration process should automatically detect and build for
+Haiku.  There is also an optional window-system port to Haiku, which
+can be enabled by configuring Emacs with the option '--with-be-app',
+which will require the Haiku Application Kit development headers and a
+C++ compiler to be present on your system.  If Emacs is not built with
+the option '--with-be-app', the resulting Emacs will only run in
+text-mode terminals.
+
++++
+*** Cairo drawing support has been enabled for Haiku builds.
+To enable Cairo support, ensure that the Cairo and FreeType
+development files are present on your system, and configure Emacs with
+'--with-be-cairo'.
+
+---
+*** Double buffering is now enabled on the Haiku operating system.
+Unlike X, there is no compile-time option to enable or disable
+double-buffering.  If you wish to disable double-buffering, change the
+frame parameter `inhibit-double-buffering' instead.
+
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
 "...dir/libexec/emacs/29.1/x86_64-pc-linux-gnu/emacs-<fingerprint>.pdmp".

@@ -6146,7 +6146,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
     wrong_type_argument (Qnumberp, timeout);
 
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   gobble_input ();
 #endif
 
@@ -6449,6 +6449,15 @@ init_display_interactive (void)
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_fixnum (10);
+      return;
+    }
+#endif
+
+#ifdef HAVE_HAIKU
+  if (!inhibit_window_system && !will_dump_p ())
+    {
+      Vinitial_window_system = Qhaiku;
+      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif

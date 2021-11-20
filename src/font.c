@@ -5751,6 +5751,9 @@ match.  */);
 #ifdef HAVE_NTGUI
   syms_of_w32font ();
 #endif	/* HAVE_NTGUI */
+#ifdef USE_BE_CAIRO
+  syms_of_ftcrfont ();
+#endif
 #endif	/* HAVE_WINDOW_SYSTEM */
 }
 

@@ -1022,6 +1022,15 @@ modern fonts are used, such as Noto Emoji or Ebrima.
 The solution is to switch to a configuration that uses HarfBuzz as its
 shaping engine, where these problems don't exist.
 
+** On Haiku, some proportionally-spaced fonts display with artifacting.
+
+This is a Haiku bug: https://dev.haiku-os.org/ticket/17229, which can
+be remedied by using a different font that does not exhibit this
+problem, or by configuring Emacs '--with-be-cairo'.
+
+So far, Bitstream Charter and Noto Sans have been known to exhibit
+this problem, while Noto Sans Display is known to not do so.
+
 * Internationalization problems
 
 ** M-{ does not work on a Spanish PC keyboard.
@@ -1104,6 +1113,13 @@ In your ~/.Xresources file, then run
   $ xrdb ~/.Xresources
 
 And restart Emacs.
+
+** On Haiku, BeCJK doesn't work properly with Emacs
+
+Some popular Haiku input methods such BeCJK are known to behave badly
+when interacting with Emacs, in ways such as stealing input focus and
+displaying popup windows that don't disappear.  If you are affected,
+you should use an Emacs input method instead.
 
 * X runtime problems
 

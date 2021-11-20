@@ -226,6 +226,7 @@ Value is:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `haiku` for an Emacs frame running in Haiku.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {
@@ -244,6 +245,8 @@ See also `frame-live-p'.  */)
       return Qpc;
     case output_ns:
       return Qns;
+    case output_haiku:
+      return Qhaiku;
     default:
       emacs_abort ();
     }
@@ -6020,6 +6023,7 @@ syms_of_frame (void)
   DEFSYM (Qw32, "w32");
   DEFSYM (Qpc, "pc");
   DEFSYM (Qns, "ns");
+  DEFSYM (Qhaiku, "haiku");
   DEFSYM (Qvisible, "visible");
   DEFSYM (Qbuffer_predicate, "buffer-predicate");
   DEFSYM (Qbuffer_list, "buffer-list");

@@ -829,7 +829,11 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
-	     (font-use-system-font font-selection boolean "23.2")))
+	     (font-use-system-font font-selection boolean "23.2")
+             ;; haikuterm.c
+             (haiku-debug-on-fatal-error debug boolean "29.1")
+             ;; haikufns.c
+             (haiku-use-system-tooltips tooltip boolean "29.1")))
     (setq ;; If we did not specify any standard value expression above,
 	  ;; use the current value as the standard value.
 	  standard (if (setq prop (memq :standard rest))
@@ -846,6 +850,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'windows-nt))
 		      ((string-match "\\`ns-" (symbol-name symbol))
 		       (featurep 'ns))
+                      ((string-match "\\`haiku-" (symbol-name symbol))
+                       (featurep 'haiku))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "clipboard-manager" (symbol-name symbol))

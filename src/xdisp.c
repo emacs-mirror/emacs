@@ -15657,6 +15657,11 @@ redisplay_internal (void)
     }
 #endif
 
+#if defined (HAVE_HAIKU)
+  if (popup_activated_p)
+    return;
+#endif
+
   /* I don't think this happens but let's be paranoid.  */
   if (redisplaying_p)
     return;
@@ -25247,6 +25252,11 @@ display_menu_bar (struct window *w)
     return;
 #endif /* HAVE_NS */
 
+#ifdef HAVE_HAIKU
+  if (FRAME_HAIKU_P (f))
+    return;
+#endif /* HAVE_HAIKU */
+
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   eassert (!FRAME_WINDOW_P (f));
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
@@ -33695,6 +33705,11 @@ note_mouse_highlight (struct frame *f, int x, int y)
   /* When a menu is active, don't highlight because this looks odd.  */
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) || defined (MSDOS)
   if (popup_activated ())
+    return;
+#endif
+
+#if defined (HAVE_HAIKU)
+  if (popup_activated_p)
     return;
 #endif
 

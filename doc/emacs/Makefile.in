@@ -140,6 +140,7 @@ EMACSSOURCES= \
 	${srcdir}/xresources.texi \
 	${srcdir}/anti.texi \
 	${srcdir}/macos.texi \
+	$(srcdir)/haiku.texi \
 	${srcdir}/msdos.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \

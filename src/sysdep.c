@@ -678,6 +678,9 @@ sys_subshell (void)
 #ifdef USABLE_SIGIO
   saved_handlers[3].code = SIGIO;
   saved_handlers[4].code = 0;
+#elif defined (USABLE_SIGPOLL)
+  saved_handlers[3].code = SIGPOLL;
+  saved_handlers[4].code = 0;
 #else
   saved_handlers[3].code = 0;
 #endif
@@ -788,6 +791,7 @@ init_sigio (int fd)
 }
 
 #ifndef DOS_NT
+#ifdef F_SETOWN
 static void
 reset_sigio (int fd)
 {
@@ -795,12 +799,13 @@ reset_sigio (int fd)
   fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
 #endif
 }
+#endif /* F_SETOWN */
 #endif
 
 void
 request_sigio (void)
 {
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   sigset_t unblocked;
 
   if (noninteractive)
@@ -810,7 +815,11 @@ request_sigio (void)
 # ifdef SIGWINCH
   sigaddset (&unblocked, SIGWINCH);
 # endif
+# ifdef USABLE_SIGIO
   sigaddset (&unblocked, SIGIO);
+# else
+  sigaddset (&unblocked, SIGPOLL);
+# endif
   pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
 
   interrupts_deferred = 0;
@@ -820,7 +829,7 @@ request_sigio (void)
 void
 unrequest_sigio (void)
 {
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   sigset_t blocked;
 
   if (noninteractive)
@@ -830,7 +839,11 @@ unrequest_sigio (void)
 # ifdef SIGWINCH
   sigaddset (&blocked, SIGWINCH);
 # endif
+# ifdef USABLE_SIGIO
   sigaddset (&blocked, SIGIO);
+# else
+  sigaddset (&blocked, SIGPOLL);
+# endif
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
   interrupts_deferred = 1;
 #endif
@@ -1256,9 +1269,12 @@ init_sys_modes (struct tty_display_info *tty_out)
   /* This code added to insure that, if flow-control is not to be used,
      we have an unlocked terminal at the start. */
 
+#ifndef HAIKU /* On Haiku, TCXONC is a no-op and causes spurious
+		 compiler warnings. */
 #ifdef TCXONC
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TCXONC, 1);
 #endif
+#endif /* HAIKU */
 #ifdef TIOCSTART
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TIOCSTART, 0);
 #endif
@@ -1674,6 +1690,8 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
       sigaddset (&action->sa_mask, SIGQUIT);
 #ifdef USABLE_SIGIO
       sigaddset (&action->sa_mask, SIGIO);
+#elif defined (USABLE_SIGPOLL)
+      sigaddset (&action->sa_mask, SIGPOLL);
 #endif
     }
 
@@ -2772,6 +2790,7 @@ static const struct speed_struct speeds[] =
 #ifdef B150
     { 150, B150 },
 #endif
+#ifndef HAVE_TINY_SPEED_T
 #ifdef B200
     { 200, B200 },
 #endif
@@ -2859,6 +2878,7 @@ static const struct speed_struct speeds[] =
 #ifdef B4000000
     { 4000000, B4000000 },
 #endif
+#endif /* HAVE_TINY_SPEED_T */
   };
 
 /* Convert a numerical speed (e.g., 9600) to a Bnnn constant (e.g.,
@@ -3120,8 +3140,9 @@ list_system_processes (void)
 }
 
 /* The WINDOWSNT implementation is in w32.c.
-   The MSDOS implementation is in dosfns.c.  */
-#elif !defined (WINDOWSNT) && !defined (MSDOS)
+   The MSDOS implementation is in dosfns.c.
+   The Haiku implementation is in haiku.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS) && !defined (HAIKU)
 
 Lisp_Object
 list_system_processes (void)
@@ -4200,8 +4221,9 @@ system_process_attributes (Lisp_Object pid)
 }
 
 /* The WINDOWSNT implementation is in w32.c.
-   The MSDOS implementation is in dosfns.c.  */
-#elif !defined (WINDOWSNT) && !defined (MSDOS)
+   The MSDOS implementation is in dosfns.c.
+   The HAIKU implementation is in haiku.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS) && !defined (HAIKU)
 
 Lisp_Object
 system_process_attributes (Lisp_Object pid)

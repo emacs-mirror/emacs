@@ -246,6 +246,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
+
+#ifdef HAVE_HAIKU
+#define GCGraphicsExposures 0
+#endif /* HAVE_HAIKU */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
@@ -555,8 +559,8 @@ x_free_gc (struct frame *f, Emacs_GC *gc)
 
 #endif  /* HAVE_NTGUI */
 
-#ifdef HAVE_NS
-/* NS emulation of GCs */
+#if defined (HAVE_NS) || defined (HAVE_HAIKU)
+/* NS and Haiku emulation of GCs */
 
 static Emacs_GC *
 x_create_gc (struct frame *f,

@@ -109,6 +109,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "getpagesize.h"
 #include "gnutls.h"
 
+#ifdef HAVE_HAIKU
+#include <kernel/OS.h>
+#endif
+
 #ifdef PROFILING
 # include <sys/gmon.h>
 extern void moncontrol (int mode);
@@ -2207,6 +2211,18 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NS */
 
+#ifdef HAVE_HAIKU
+      syms_of_haikuterm ();
+      syms_of_haikufns ();
+      syms_of_haikumenu ();
+      syms_of_haikufont ();
+      syms_of_haikuselect ();
+#ifdef HAVE_NATIVE_IMAGE_API
+      syms_of_haikuimage ();
+#endif
+      syms_of_fontset ();
+#endif /* HAVE_HAIKU */
+
       syms_of_gnutls ();
 
 #ifdef HAVE_INOTIFY
@@ -2260,6 +2276,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
       globals_of_w32select ();
+#endif
+
+#ifdef HAVE_HAIKU
+      init_haiku_select ();
 #endif
     }
 
@@ -2728,6 +2748,9 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* Don't update display from now on.  */
   Vinhibit_redisplay = Qt;
 
+#ifdef HAVE_HAIKU
+  be_app_quit ();
+#endif
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   pid_t tpgrp = tcgetpgrp (STDIN_FILENO);
@@ -2737,6 +2760,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       if (sig && sig != SIGTERM)
 	{
 	  static char const fmt[] = "Fatal error %d: %n%s\n";
+#ifdef HAVE_HAIKU
+	  if (haiku_debug_on_fatal_error)
+	    debugger ("Fatal error in Emacs");
+#endif
 	  char buf[max ((sizeof fmt - sizeof "%d%n%s\n"
 			 + INT_STRLEN_BOUND (int) + 1),
 			min (PIPE_BUF, MAX_ALLOCA))];
@@ -3229,6 +3256,7 @@ Special values:
   `ms-dos'       compiled as an MS-DOS application.
   `windows-nt'   compiled as a native W32 application.
   `cygwin'       compiled using the Cygwin library.
+  `haiku'        compiled for a Haiku system.
 Anything else (in Emacs 26, the possibilities are: aix, berkeley-unix,
 hpux, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
