@@ -1886,6 +1886,15 @@ This event is sent whenever some kind of update occurs in
 @var{xwidget}.  There are several types of updates, identified by
 their @var{kind}.
 
+@cindex xwidget callbacks
+It is a special event (@pxref{Special Events}), which should be
+handled by adding a callback to an xwidget that is called whenever an
+xwidget event for @var{xwidget} is received.
+
+You can add a callback by setting the @code{callback} of an xwidget's
+property list, which should be a function that accepts @var{xwidget}
+and @var{kind} as arguments.
+
 @table @code
 @cindex @code{load-changed} xwidget event
 @item load-changed

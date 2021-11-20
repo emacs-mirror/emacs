@@ -6828,6 +6828,7 @@ This function kills @var{xwidget}, by removing it from its buffer and
 releasing window system resources it holds.
 @end defun
 
+@cindex xwidget property list
 @defun xwidget-plist xwidget
 This function returns the property list of @var{xwidget}.
 @end defun

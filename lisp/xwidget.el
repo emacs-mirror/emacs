@@ -372,10 +372,13 @@ If N is omitted or nil, scroll backwards by one char."
    (xwidget-webkit-current-session)
    "window.scrollTo(pageXOffset, window.document.body.scrollHeight);"))
 
-;; The xwidget event needs to go into a higher level handler
-;; since the xwidget can generate an event even if it's offscreen.
-;; TODO this needs to use callbacks and consider different xwidget event types.
-(define-key (current-global-map) [xwidget-event] #'xwidget-event-handler)
+;; The xwidget event needs to go in the special map.  To receive
+;; xwidget events, you should place a callback in the property list of
+;; the xwidget, instead of handling these events manually.
+;;
+;; See `xwidget-webkit-new-session' for an example of how to do this.
+(define-key special-event-map [xwidget-event] #'xwidget-event-handler)
+
 (defun xwidget-log (&rest msg)
   "Log MSG to a buffer."
   (let ((buf (get-buffer-create " *xwidget-log*")))
