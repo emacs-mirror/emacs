@@ -200,7 +200,6 @@ for the actual events that will be sent."
     (define-key map "b" 'xwidget-webkit-back)
     (define-key map "f" 'xwidget-webkit-forward)
     (define-key map "r" 'xwidget-webkit-reload)
-    (define-key map "t" (lambda () (interactive) (message "o"))) ;FIXME: ?!?
     (define-key map "\C-m" 'xwidget-webkit-insert-string)
     (define-key map "w" 'xwidget-webkit-current-url)
     (define-key map "+" 'xwidget-webkit-zoom-in)
