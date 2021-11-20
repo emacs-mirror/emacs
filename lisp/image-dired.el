@@ -520,14 +520,14 @@ Return the last form in BODY."
      ,@body))
 
 (defun image-dired-dir ()
-  "Return the current thumbnails directory (from variable `image-dired-dir').
-Create the thumbnails directory if it does not exist."
+  "Return the current thumbnail directory (from variable `image-dired-dir').
+Create the thumbnail directory if it does not exist."
   (let ((image-dired-dir (file-name-as-directory
-                    (expand-file-name image-dired-dir))))
+               (expand-file-name image-dired-dir))))
     (unless (file-directory-p image-dired-dir)
       (with-file-modes #o700
         (make-directory image-dired-dir t))
-      (message "Creating thumbnails directory"))
+      (message "Thumbnail directory created: %s" image-dired-dir))
     image-dired-dir))
 
 (defun image-dired-insert-image (file type relief margin)
@@ -743,9 +743,9 @@ and remove the cached thumbnail files between each trial run.")
          (thumbnail-dir (file-name-directory thumbnail-file))
          process)
     (when (not (file-exists-p thumbnail-dir))
-      (message "Creating thumbnail directory")
       (with-file-modes #o700
-	(make-directory thumbnail-dir t)))
+        (make-directory thumbnail-dir t))
+      (message "Thumbnail directory created: %s" thumbnail-dir))
 
     ;; Thumbnail file creation processes begin here and are marshaled
     ;; in a queue by `image-dired-create-thumb'.
@@ -2013,7 +2013,7 @@ With prefix argument ARG, display image in its original size."
              (cons ?o (expand-file-name file))
              (cons ?t image-dired-temp-rotate-image-file))))
       (unless (eq 'jpeg (image-type file))
-        (error "Only JPEG images can be rotated!"))
+        (user-error "Only JPEG images can be rotated"))
       (if (not (= 0 (apply #'call-process image-dired-cmd-rotate-original-program
                            nil nil nil
                            (mapcar (lambda (arg) (format-spec arg spec))
