@@ -2615,6 +2615,30 @@ store cookies in FILE and load them from there.  */)
   return Qnil;
 }
 
+DEFUN ("xwidget-webkit-stop-loading", Fxwidget_webkit_stop_loading,
+       Sxwidget_webkit_stop_loading,
+       1, 1, 0, doc: /* Stop loading data in the WebKit widget XWIDGET.
+This will stop any data transfer that may still be in progress inside
+XWIDGET as part of loading a page.  */)
+  (Lisp_Object xwidget)
+{
+#ifdef USE_GTK
+  struct xwidget *xw;
+  WebKitWebView *webview;
+
+  CHECK_LIVE_XWIDGET (xwidget);
+  xw = XXWIDGET (xwidget);
+  CHECK_WEBKIT_WIDGET (xw);
+
+  block_input ();
+  webview = WEBKIT_WEB_VIEW (xw->widget_osr);
+  webkit_web_view_stop_loading (webview);
+  unblock_input ();
+#endif
+
+  return Qnil;
+}
+
 void
 syms_of_xwidget (void)
 {
@@ -2656,6 +2680,7 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_webkit_previous_result);
   defsubr (&Sset_xwidget_buffer);
   defsubr (&Sxwidget_webkit_set_cookie_storage_file);
+  defsubr (&Sxwidget_webkit_stop_loading);
 #ifdef USE_GTK
   defsubr (&Sxwidget_webkit_load_html);
   defsubr (&Sxwidget_webkit_back_forward_list);

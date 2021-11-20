@@ -7025,6 +7025,12 @@ If this function is not called at least once on @var{xwidget} or a
 related widget, @var{xwidget} will not store cookies on disk at all.
 @end defun
 
+@defun xwidget-webkit-stop-loading xwidget
+Terminate any data transfer still in progress in the WebKit widget
+@var{xwidget} as part of a page-loading operation.  If a page is not
+being loaded, this function does nothing.
+@end defun
+
 @node Buttons
 @section Buttons
 @cindex buttons in buffers
