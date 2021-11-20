@@ -1247,7 +1247,7 @@ LIMIT defaults to point."
                         (save-excursion
                           (goto-char orig-match-start)
                           (when (looking-back "\\_<async\\_>[ \t\n]+"
-                                              (- (point) 3))
+                                              (- (point) 30))
                             (setq orig-match-start (match-beginning 0))))
                         (make-js--pitem
                          :paren-depth orig-depth
