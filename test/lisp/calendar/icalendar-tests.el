@@ -1635,26 +1635,30 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
 
 (ert-deftest icalendar-tests--decode-isodatetime ()
   "Test `icalendar--decode-isodatetime'."
-  (should (equal (icalendar-test--format "20040917T050910-0200")
+  (should (equal (icalendar-test--format "20040917T050910-02:00")
                  "2004-09-17T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910")
-                 "2004-09-17T03:09:10+0000"))
+  (let ((orig (icalendar-test--format "20040917T050910")))
+    (unwind-protect
+        (progn
+          (set-time-zone-rule "UTC-02:00")
+          (should (equal (icalendar-test--format "20040917T050910")
+                         "2004-09-17T03:09:10+0000"))
+          (should (equal (icalendar-test--format "20040917T0509")
+                         "2004-09-17T03:09:00+0000"))
+          (should (equal (icalendar-test--format "20040917")
+                         "2004-09-16T22:00:00+0000"))
+          (should (equal (icalendar-test--format "20040917T050910" 1)
+                         "2004-09-18T03:09:10+0000"))
+          (should (equal (icalendar-test--format "20040917T050910" 30)
+                         "2004-10-17T03:09:10+0000")))
+      (set-time-zone-rule 'wall) ;; (set-time-zone-rule nil) is broken
+      (should (equal orig (icalendar-test--format "20040917T050910")))))
   (should (equal (icalendar-test--format "20040917T050910Z")
                  "2004-09-17T05:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T0509")
-                 "2004-09-17T03:09:00+0000"))
-  (should (equal (icalendar-test--format "20040917")
-                 "2004-09-16T22:00:00+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" 1)
-                 "2004-09-18T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" 30)
-                 "2004-10-17T03:09:10+0000"))
-  (should (equal (icalendar-test--format "20040917T050910" -1)
-                 "2004-09-16T03:09:10+0000"))
-
+  (should (equal (icalendar-test--format "20040917T050910" -1 0)
+                 "2004-09-16T05:09:10+0000"))
   (should (equal (icalendar-test--format "20040917T050910" nil -3600)
                  "2004-09-17T06:09:10+0000")))
-
 
 (provide 'icalendar-tests)
 ;;; icalendar-tests.el ends here
