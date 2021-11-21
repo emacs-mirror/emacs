@@ -5103,19 +5103,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 #endif
       )
     {
-      /* FIXME: While track_mouse is non-nil, we do not report this
+      /* While 'track-mouse' is neither nil nor t, do not report this
 	 event as something that happened on the tool or tab bar since
-	 that would break mouse dragging operations that originate from
-	 an ordinary window beneath and expect the window to auto-scroll
-	 as soon as the mouse cursor appears above or beneath it
-	 (Bug#50993).  Since this "fix" might break track_mouse based
-	 operations originating from the tool or tab bar itself, such
-	 operations should set track_mouse to some special value that
-	 would be recognized by the following check.
+	 that would break mouse drag operations that originate from an
+	 ordinary window beneath that bar and expect the window to
+	 auto-scroll as soon as the mouse cursor appears above or
+	 beneath it (Bug#50993).  We do allow reports for t, because
+	 applications may have set 'track-mouse' to t and still expect a
+	 click on the tool or tab bar to get through (Bug#51794).
 
-	 This issue should be properly handled by 'mouse-drag-track' and
-	 friends, so the below is only a temporary workaround.  */
-      if (NILP (track_mouse))
+	 FIXME: This is a preliminary fix for the bugs cited above and
+	 awaits a solution that includes a convention for all special
+	 values of 'track-mouse' and their documentation in the Elisp
+	 manual.  */
+      if (NILP (track_mouse) || EQ (track_mouse, Qt))
 	posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
       /* Kludge alert: for mouse events on the tab bar and tool bar,
 	 keyboard.c wants the frame, not the special-purpose window

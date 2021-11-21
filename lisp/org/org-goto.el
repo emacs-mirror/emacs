@@ -203,40 +203,39 @@ When nil, you can use these keybindings to navigate the buffer:
   "Let the user select a location in current buffer.
 This function uses a recursive edit.  It returns the selected
 position or nil."
-  (org-no-popups
-   (let ((isearch-mode-map org-goto-local-auto-isearch-map)
-	 (isearch-hide-immediately nil)
-	 (isearch-search-fun-function
-	  (lambda () #'org-goto--local-search-headings))
-	 (help (or help org-goto-help)))
-     (save-excursion
-       (save-window-excursion
-	 (delete-other-windows)
-	 (and (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
-	 (pop-to-buffer-same-window
-	  (condition-case nil
-	      (make-indirect-buffer (current-buffer) "*org-goto*" t)
-	    (error (make-indirect-buffer (current-buffer) "*org-goto*" t))))
-	 (let (temp-buffer-show-function temp-buffer-show-hook)
-	   (with-output-to-temp-buffer "*Org Help*"
-	     (princ (format help (if org-goto-auto-isearch
-				     "  Just type for auto-isearch."
-				   "  n/p/f/b/u to navigate, q to quit.")))))
-	 (org-fit-window-to-buffer (get-buffer-window "*Org Help*"))
-	 (org-overview)
-	 (setq buffer-read-only t)
-	 (if (and (boundp 'org-goto-start-pos)
-		  (integer-or-marker-p org-goto-start-pos))
-	     (progn (goto-char org-goto-start-pos)
-		    (when (org-invisible-p)
-		      (org-show-set-visibility 'lineage)))
-	   (goto-char (point-min)))
-	 (let (org-special-ctrl-a/e) (org-beginning-of-line))
-	 (message "Select location and press RET")
-	 (use-local-map org-goto-map)
-	 (recursive-edit)))
-     (kill-buffer "*org-goto*")
-     (cons org-goto-selected-point org-goto-exit-command))))
+  (let ((isearch-mode-map org-goto-local-auto-isearch-map)
+	(isearch-hide-immediately nil)
+	(isearch-search-fun-function
+	 (lambda () #'org-goto--local-search-headings))
+	(help (or help org-goto-help)))
+    (save-excursion
+      (save-window-excursion
+	(delete-other-windows)
+	(and (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
+	(pop-to-buffer-same-window
+	 (condition-case nil
+	     (make-indirect-buffer (current-buffer) "*org-goto*" t)
+	   (error (make-indirect-buffer (current-buffer) "*org-goto*" t))))
+	(let (temp-buffer-show-function temp-buffer-show-hook)
+	  (with-output-to-temp-buffer "*Org Help*"
+	    (princ (format help (if org-goto-auto-isearch
+				    "  Just type for auto-isearch."
+				  "  n/p/f/b/u to navigate, q to quit.")))))
+	(org-fit-window-to-buffer (get-buffer-window "*Org Help*"))
+	(org-overview)
+	(setq buffer-read-only t)
+	(if (and (boundp 'org-goto-start-pos)
+		 (integer-or-marker-p org-goto-start-pos))
+	    (progn (goto-char org-goto-start-pos)
+		   (when (org-invisible-p)
+		     (org-show-set-visibility 'lineage)))
+	  (goto-char (point-min)))
+	(let (org-special-ctrl-a/e) (org-beginning-of-line))
+	(message "Select location and press RET")
+	(use-local-map org-goto-map)
+	(recursive-edit)))
+    (kill-buffer "*org-goto*")
+    (cons org-goto-selected-point org-goto-exit-command)))
 
 ;;;###autoload
 (defun org-goto (&optional alternative-interface)

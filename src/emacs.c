@@ -2334,6 +2334,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
 	Vtop_level = list2 (Qload, build_string ("loadup.el"));
+
+#ifdef HAVE_NATIVE_COMP
+      /* If we are going to load stuff in a non-initialized Emacs,
+	 update the value of native-comp-eln-load-path, so that the
+	 *.eln files will be found if they are there.  */
+      if (!NILP (Vtop_level) && !temacs)
+	Vnative_comp_eln_load_path =
+	  Fcons (Fexpand_file_name (XCAR (Vnative_comp_eln_load_path),
+				    Vinvocation_directory),
+		 Qnil);
+#endif
     }
 
   /* Set up for profiling.  This is known to work on FreeBSD,
