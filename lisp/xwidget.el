@@ -59,6 +59,7 @@
 (declare-function xwidget-webkit-estimated-load-progress "xwidget.c" (xwidget))
 (declare-function xwidget-webkit-set-cookie-storage-file "xwidget.c" (xwidget file))
 (declare-function xwidget-live-p "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-stop-loading "xwidget.c" (xwidget))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -256,11 +257,17 @@ for the actual events that will be sent."
          :help "Save the browser's selection in the kill ring"]
         ["Incremental Search" xwidget-webkit-isearch-mode
          :active (not xwidget-webkit-isearch-mode)
-         :help "Perform incremental search inside the WebKit widget"]))
+         :help "Perform incremental search inside the WebKit widget"]
+        ["Stop Loading" xwidget-webkit-stop
+         :active xwidget-webkit--loading-p]))
 
 (defvar xwidget-webkit-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
+      (tool-bar-local-item-from-menu 'xwidget-webkit-stop
+                                     "cancel"
+                                     map
+                                     xwidget-webkit-mode-map)
       (tool-bar-local-item-from-menu 'xwidget-webkit-back
                                      "left-arrow"
                                      map
@@ -561,6 +568,10 @@ The latter might be nil."
   (let ((size (xwidget-size-request xw)))
     (xwidget-resize xw (car size) (cadr size))))
 
+(defun xwidget-webkit-stop ()
+  "Stop trying to load the current page."
+  (interactive)
+  (xwidget-webkit-stop-loading (xwidget-webkit-current-session)))
 
 (defvar xwidget-webkit-activeelement-js"
 function findactiveelement(doc){
