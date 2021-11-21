@@ -195,6 +195,12 @@ extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
 extern void xwidget_motion_or_crossing (struct xwidget_view *,
 					const XEvent *);
+#ifdef HAVE_XINPUT2
+extern void xwidget_motion_notify (struct xwidget_view *, double,
+				   double, uint, Time);
+extern void xwidget_scroll (struct xwidget_view *, double, double,
+                            double, double, uint, Time);
+#endif
 #endif
 #else
 INLINE_HEADER_BEGIN

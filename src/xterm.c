@@ -9927,6 +9927,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 
+#ifdef HAVE_XWIDGETS
+	    struct xwidget_view *xv = xwidget_view_from_window (xev->event);
+	    double xv_total_x = 0.0;
+	    double xv_total_y = 0.0;
+#endif
+
 	    for (int i = 0; i < states->mask_len * 8; i++)
 	      {
 		if (XIMaskIsSet (states->mask, i))
@@ -9939,6 +9945,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    if (delta != DBL_MAX)
 		      {
+#ifdef HAVE_XWIDGETS
+			if (xv)
+			  {
+			    if (val->horizontal)
+			      xv_total_x += delta;
+			    else
+			      xv_total_y += -delta;
+
+			    found_valuator = true;
+			    continue;
+			  }
+#endif
 			if (!f)
 			  {
 			    f = x_any_window_to_frame (dpyinfo, xev->event);
@@ -9999,6 +10017,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		inev.ie.kind = NO_EVENT;
 	      }
 
+#ifdef HAVE_XWIDGETS
+	    if (xv)
+	      {
+		if (found_valuator)
+		  xwidget_scroll (xv, xev->event_x, xev->event_y,
+				  xv_total_x, xv_total_y, xev->mods.effective,
+				  xev->time);
+		else
+		  xwidget_motion_notify (xv, xev->event_x, xev->event_y,
+					 xev->mods.effective, xev->time);
+
+		goto XI_OTHER;
+	      }
+#endif
 	    if (found_valuator)
 	      goto XI_OTHER;
 
