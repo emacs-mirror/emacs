@@ -10350,6 +10350,104 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), state);
 		  inev.ie.timestamp = xev->time;
 
+#ifdef HAVE_X_I18N
+		  XKeyPressedEvent xkey;
+
+		  memset (&xkey, 0, sizeof xkey);
+
+		  xkey.type = KeyPress;
+		  xkey.serial = 0;
+		  xkey.send_event = xev->send_event;
+		  xkey.display = xev->display;
+		  xkey.window = xev->event;
+		  xkey.root = xev->root;
+		  xkey.subwindow = xev->child;
+		  xkey.time = xev->time;
+		  xkey.state = state;
+		  xkey.keycode = keycode;
+		  xkey.same_screen = True;
+
+		  if (x_filter_event (dpyinfo, (XEvent *) &xkey))
+		    goto xi_done_keysym;
+
+		  if (FRAME_XIC (f))
+		    {
+		      Status status_return;
+		      nbytes = XmbLookupString (FRAME_XIC (f),
+						&xkey, (char *) copy_bufptr,
+						copy_bufsiz, &keysym,
+						&status_return);
+
+		      if (status_return == XBufferOverflow)
+			{
+			  copy_bufsiz = nbytes + 1;
+			  copy_bufptr = alloca (copy_bufsiz);
+			  nbytes = XmbLookupString (FRAME_XIC (f),
+						    &xkey, (char *) copy_bufptr,
+						    copy_bufsiz, &keysym,
+						    &status_return);
+			}
+
+		      if (status_return == XLookupNone)
+			goto xi_done_keysym;
+		      else if (status_return == XLookupChars)
+			{
+			  keysym = NoSymbol;
+			  state = 0;
+			}
+		      else if (status_return != XLookupKeySym
+			       && status_return != XLookupBoth)
+			emacs_abort ();
+		    }
+		  else
+		    {
+#endif
+#ifdef HAVE_XKB
+		      int overflow = 0;
+		      KeySym sym = keysym;
+
+		      if (dpyinfo->xkb_desc)
+			{
+			  if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
+							     state & ~mods_rtrn, copy_bufptr,
+							     copy_bufsiz, &overflow)))
+			    goto XI_OTHER;
+			}
+		      else
+#else
+			{
+			  block_input ();
+			  char *str = XKeysymToString (keysym);
+			  if (!str)
+			    {
+			      unblock_input ();
+			      goto XI_OTHER;
+			    }
+			  nbytes = strlen (str) + 1;
+			  copy_bufptr = alloca (nbytes);
+			  strcpy (copy_bufptr, str);
+			  unblock_input ();
+			}
+#endif
+#ifdef HAVE_XKB
+		      if (overflow)
+			{
+			  overflow = 0;
+			  copy_bufptr = alloca (copy_bufsiz + overflow);
+			  keysym = sym;
+			  if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
+							     state & ~mods_rtrn, copy_bufptr,
+							     copy_bufsiz + overflow, &overflow)))
+			    goto XI_OTHER;
+
+			  if (overflow)
+			    goto XI_OTHER;
+			}
+#endif
+#ifdef HAVE_X_I18N
+		    }
+#endif
+
 		  /* First deal with keysyms which have defined
 		     translations to characters.  */
 		  if (keysym >= 32 && keysym < 128)
@@ -10466,49 +10564,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      goto xi_done_keysym;
 		    }
 
-#ifdef HAVE_XKB
-		  int overflow = 0;
-		  KeySym sym = keysym;
-
-		  if (dpyinfo->xkb_desc)
-		    {
-		      if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-							 state & ~mods_rtrn, copy_bufptr,
-							 copy_bufsiz, &overflow)))
-			goto XI_OTHER;
-		    }
-		  else
-#else
-		    {
-		      block_input ();
-		      char *str = XKeysymToString (keysym);
-		      if (!str)
-			{
-			  unblock_input ();
-			  goto XI_OTHER;
-			}
-		      nbytes = strlen (str) + 1;
-		      copy_bufptr = alloca (nbytes);
-		      strcpy (copy_bufptr, str);
-		      unblock_input ();
-		    }
-#endif
-#ifdef HAVE_XKB
-		  if (overflow)
-		    {
-		      overflow = 0;
-		      copy_bufptr = alloca (copy_bufsiz + overflow);
-		      keysym = sym;
-		      if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-							 state & ~mods_rtrn, copy_bufptr,
-							 copy_bufsiz + overflow, &overflow)))
-			goto XI_OTHER;
-
-		      if (overflow)
-			goto XI_OTHER;
-		    }
-#endif
-
 		  for (i = 0, nchars = 0; i < nbytes; i++)
 		    {
 		      if (ASCII_CHAR_P (copy_bufptr[i]))
@@ -10574,6 +10629,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    goto XI_OTHER;
 	  }
       xi_done_keysym:
+#ifdef HAVE_X_I18N
+	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+	  xic_set_statusarea (f);
+#endif
 	if (must_free_data)
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
 	goto done_keysym;
