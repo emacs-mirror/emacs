@@ -3025,7 +3025,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 				  make_float (py));
 		XSETFRAME (inev.frame_or_window, f);
 
-		inev.modifiers |= signbit (py) ? up_modifier : down_modifier;
+		inev.modifiers |= (signbit (inev.kind == HORIZ_WHEEL_EVENT
+					    ? px : py)
+				   ? up_modifier
+				   : down_modifier);
 		py = 0.0f;
 		px = 0.0f;
 	      }
