@@ -56,9 +56,6 @@ the system, and those known to Emacs.  The variables that allow for
 that are described below.
 
 @cindex modifier key customization (Haiku)
-You can customize which Emacs modifiers the various system modifier
-keys correspond to through the following variables:
-
 @table @code
 @vindex haiku-meta-keysym
 @item haiku-meta-keysym
@@ -126,8 +123,7 @@ several different font backends.  You can specify font backends by
 specifying @kbd{-xrm Emacs.fontBackend:BACKEND} on the command line
 used to invoke Emacs, where @kbd{BACKEND} is one of the backends
 specified below, or on a per-frame basis by changing the
-@code{font-backend} frame parameter. (@pxref{Parameter Access,,,
-elisp, The Emacs Lisp Reference Manual}).
+@code{font-backend} frame parameter.
 
   Two of these backends, @code{ftcr} and @code{ftcrhb} are identical
 to their counterparts on the X Window System.  There is also a
