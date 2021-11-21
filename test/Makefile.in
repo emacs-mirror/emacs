@@ -371,7 +371,13 @@ check-declare:
 	$(emacs) -l check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'
 
-.PHONY: subdir-targets
+.PHONY: subdirs subdir-targets generate-test-jobs
+
+subdirs:
+	@echo $(SUBDIRS)
 
 subdir-targets:
 	@echo $(SUBDIR_TARGETS)
+
+generate-test-jobs:
+	@$(MAKE) -C infra generate-test-jobs SUBDIRS="$(SUBDIRS)"

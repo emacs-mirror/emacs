@@ -6309,6 +6309,13 @@ if test -f "$srcdir/$opt_makefile.in"; then
   dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
   AC_CONFIG_FILES([test/Makefile])
 fi
+opt_makefile=test/infra/Makefile
+if test -f "$srcdir/$opt_makefile.in"; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+  dnl Again, it's best not to use a variable.  Though you can add
+  dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
+  AC_CONFIG_FILES([test/infra/Makefile])
+fi
 
 
 dnl The admin/ directory used to be excluded from tarfiles.
