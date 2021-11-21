@@ -3185,12 +3185,16 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
       if (inev.kind != NO_EVENT)
 	{
+	  if (inev.kind != HELP_EVENT)
+	    inev.timestamp = time (NULL);
 	  kbd_buffer_store_event_hold (&inev, hold_quit);
 	  ++message_count;
 	}
 
       if (inev2.kind != NO_EVENT)
 	{
+	  if (inev.kind != HELP_EVENT)
+	    inev.timestamp = time (NULL);
 	  kbd_buffer_store_event_hold (&inev2, hold_quit);
 	  ++message_count;
 	}
