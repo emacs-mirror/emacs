@@ -631,8 +631,8 @@ public:
 	if (msg->FindFloat ("be:wheel_delta_x", &dx) == B_OK &&
 	    msg->FindFloat ("be:wheel_delta_y", &dy) == B_OK)
 	  {
-	    rq.delta_x = dx * 10;
-	    rq.delta_y = dy * 10;
+	    rq.delta_x = dx;
+	    rq.delta_y = dy;
 
 	    haiku_write (WHEEL_MOVE_EVENT, &rq);
 	  };
