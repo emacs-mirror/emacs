@@ -64,6 +64,7 @@ static gboolean webkit_script_dialog_cb (WebKitWebView *, WebKitScriptDialog *,
 static void record_osr_embedder (struct xwidget_view *);
 static void from_embedder (GdkWindow *, double, double, gpointer, gpointer, gpointer);
 static void to_embedder (GdkWindow *, double, double, gpointer, gpointer, gpointer);
+static GdkWindow *pick_embedded_child (GdkWindow *, double, double, gpointer);
 #endif
 
 static struct xwidget *
@@ -243,6 +244,8 @@ fails.  */)
 			"from-embedder", G_CALLBACK (from_embedder), NULL);
       g_signal_connect (G_OBJECT (gtk_widget_get_window (xw->widgetwindow_osr)),
 			"to-embedder", G_CALLBACK (to_embedder), NULL);
+      g_signal_connect (G_OBJECT (gtk_widget_get_window (xw->widgetwindow_osr)),
+			"pick-embedded-child", G_CALLBACK (pick_embedded_child), NULL);
 
       /* Store some xwidget data in the gtk widgets for convenient
          retrieval in the event handlers.  */
@@ -510,6 +513,32 @@ xwidget_from_id (uint32_t id)
 }
 
 #ifdef USE_GTK
+static GdkWindow *
+pick_embedded_child (GdkWindow *window, double x, double y,
+		     gpointer user_data)
+{
+  GtkWidget *widget;
+  GtkWidget *child;
+  GdkEvent event;
+  int xout, yout;
+
+  event.any.window = window;
+  event.any.type = GDK_NOTHING;
+
+  widget = gtk_get_event_widget (&event);
+
+  if (!widget)
+    return NULL;
+
+  child = find_widget_at_pos (widget, lrint (x), lrint (y),
+			      &xout, &yout);
+
+  if (!child)
+    return NULL;
+
+  return gtk_widget_get_window (child);
+}
+
 static void
 record_osr_embedder (struct xwidget_view *view)
 {
