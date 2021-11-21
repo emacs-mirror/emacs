@@ -69,6 +69,7 @@
   "Alternative wheel down event to consider."
   :group 'mouse
   :type 'symbol
+  :version "29.1"
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-event
@@ -86,6 +87,7 @@
   "Alternative wheel up event to consider."
   :group 'mouse
   :type 'symbol
+  :version "29.1"
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-click-event 'mouse-2
