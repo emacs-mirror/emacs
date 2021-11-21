@@ -1113,7 +1113,7 @@ into menu items.  */)
 Lisp_Object
 x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
-  Lisp_Object keymap, tem, tem2;
+  Lisp_Object keymap, tem, tem2 = Qnil;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
   const char *error_name = NULL;
@@ -1252,8 +1252,21 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	CHECK_LIVE_WINDOW (window);
 	f = XFRAME (WINDOW_FRAME (win));
 
-	xpos = WINDOW_LEFT_EDGE_X (win);
-	ypos = WINDOW_TOP_EDGE_Y (win);
+	if (FIXNUMP (tem2))
+	  {
+	    /* Clicks in the text area, where TEM2 is a buffer
+	       position, are relative to the top-left edge of the text
+	       area, see keyboard.c:make_lispy_position.  */
+	    xpos = window_box_left (win, TEXT_AREA);
+	    ypos = (WINDOW_TOP_EDGE_Y (win)
+		    + WINDOW_TAB_LINE_HEIGHT (win)
+		    + WINDOW_HEADER_LINE_HEIGHT (win));
+	  }
+	else
+	  {
+	    xpos = WINDOW_LEFT_EDGE_X (win);
+	    ypos = WINDOW_TOP_EDGE_Y (win);
+	  }
       }
     else
       /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
