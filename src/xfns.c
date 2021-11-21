@@ -2938,6 +2938,13 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_Leave);
   XISetMask (m, XI_FocusIn);
   XISetMask (m, XI_FocusOut);
+  XISelectEvents (FRAME_X_DISPLAY (f),
+		  FRAME_X_WINDOW (f),
+		  &mask, 1);
+
+  memset (m, 0, l);
+  mask.deviceid = XIAllDevices;
+
   XISetMask (m, XI_PropertyEvent);
   XISetMask (m, XI_HierarchyChanged);
   XISetMask (m, XI_DeviceChanged);
