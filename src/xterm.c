@@ -15155,6 +15155,6 @@ always uses gtk_window_move and ignores the value of this variable.  */);
 	       doc: /* Non-nil means send a wheel event only for scrolling at least one screen line.
 Otherwise, a wheel event will be sent every time the mouse wheel is
 moved.  This option is only effective when Emacs is built with XInput
-2.  */);
+2 or with Haiku windowing support.  */);
   x_coalesce_scroll_events = true;
 }
