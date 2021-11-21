@@ -10145,6 +10145,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		| xev->mods.effective
 		| xev->mods.latched
 		| xev->mods.locked;
+	      bv.time = xev->time;
 
 	      memset (&compose_status, 0, sizeof (compose_status));
 	      dpyinfo->last_mouse_glyph_frame = NULL;
