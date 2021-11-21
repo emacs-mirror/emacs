@@ -1838,11 +1838,14 @@ a face or button specification."
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
-  (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
-		       "\nThis is "
-		       (emacs-version)
-		       "\n"
-		       :face '(variable-pitch (:height 0.8))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
+		         "\nThis is "
+		         (emacs-version)
+		         "\n")
+    (fill-region (point-min) (point-max)))
+  (fancy-splash-insert :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
   (when auto-save-list-file-prefix
@@ -2121,8 +2124,11 @@ To quit a partially entered command, type Control-g.\n")
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
 
-  (insert "\n" (emacs-version)
-	  "\n" emacs-copyright))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright))
 
 (defun normal-no-mouse-startup-screen ()
   "Show a splash screen suitable for displays without mouse support."
@@ -2202,7 +2208,11 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
                                        (startup--get-buffer-create-scratch)))
 		 'follow-link t)
   (insert "\n")
-  (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright "\n")
   (insert (substitute-command-keys
 	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
