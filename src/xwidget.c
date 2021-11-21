@@ -197,6 +197,10 @@ fails.  */)
 	      xw->widget_osr = webkit_web_view_new_with_context (ctx);
 	      g_object_unref (ctx);
 
+	      g_signal_connect (G_OBJECT (ctx),
+				"download-started",
+				G_CALLBACK (webkit_download_cb), xw);
+
 	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
 					"about:blank");
 	      /* webkitgtk uses GSubprocess which sets sigaction causing
@@ -251,10 +255,6 @@ fails.  */)
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "load-changed",
                             G_CALLBACK (webkit_view_load_changed_cb), xw);
-
-          g_signal_connect (G_OBJECT (webkit_context),
-                            "download-started",
-                            G_CALLBACK (webkit_download_cb), xw);
 
           g_signal_connect (G_OBJECT (xw->widget_osr),
                             "decide-policy",
