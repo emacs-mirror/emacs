@@ -96,13 +96,16 @@ If nil, the function `gitmerge-default-branch' guesses.")
 (defvar gitmerge-log-regexp
   "^\\([A-Z ]\\)\\s-*\\([0-9a-f]+\\) \\(.+?\\): \\(.*\\)$")
 
-(defvar-keymap gitmerge-mode-map
-  :doc "Keymap for gitmerge major mode."
-  "l" #'gitmerge-show-log
-  "d" #'gitmerge-show-diff
-  "f" #'gitmerge-show-files
-  "s" #'gitmerge-toggle-skip
-  "m" #'gitmerge-start-merge)
+(defvar gitmerge-mode-map
+  (let ((map (make-keymap)))
+    (define-key map [(l)] 'gitmerge-show-log)
+    (define-key map [(d)] 'gitmerge-show-diff)
+    (define-key map [(f)] 'gitmerge-show-files)
+    (define-key map [(s)] 'gitmerge-toggle-skip)
+    (define-key map [(m)] 'gitmerge-start-merge)
+    map)
+  "Keymap for gitmerge major mode.")
+
 
 (defvar gitmerge-mode-font-lock-keywords
   `((,gitmerge-log-regexp
