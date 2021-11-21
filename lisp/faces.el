@@ -2883,13 +2883,17 @@ Note: Other faces cannot inherit from the cursor face."
      ;; making the characters wider, which then would cause unpleasant
      ;; horizontal shifts of the cursor during C-n/C-p movement
      ;; through a line with this face.
-     :box (:line-width (-1 . -1) :color "grey80"))
+     :box (:line-width (-1 . -1) :color "grey80")
+     :inherit fixed-pitch)
     (((class color) (min-colors 88) (background dark))
      :background "grey19" :foreground "LightBlue"
-     :box (:line-width (-1 . -1) :color "grey35"))
-    (((class color grayscale) (background light)) :background "grey90")
-    (((class color grayscale) (background dark)) :background "grey25")
-    (t :background "grey90"))
+     :box (:line-width (-1 . -1) :color "grey35")
+     :inherit fixed-pitch)
+    (((class color grayscale) (background light)) :background "grey90"
+     :inherit fixed-pitch)
+    (((class color grayscale) (background dark)) :background "grey25"
+     :inherit fixed-pitch)
+    (t :background "grey90" :inherit fixed-pitch))
   "Face for keybindings in *Help* buffers.
 
 This face is added by `substitute-command-keys', which see.
