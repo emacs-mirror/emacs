@@ -3005,14 +3005,16 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (signbit (py) != signbit (b->delta_y))
 	      py = 0;
 
-	    px += b->delta_x * pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
-	    py += b->delta_y * pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
+	    px += (b->delta_x
+		   * powf (FRAME_PIXEL_HEIGHT (f), 2.0f / 3.0f));
+	    py += (b->delta_y
+		   * powf (FRAME_PIXEL_HEIGHT (f), 2.0f / 3.0f));
 
 	    if (fabsf (py) >= FRAME_LINE_HEIGHT (f)
 		|| fabsf (px) >= FRAME_COLUMN_WIDTH (f)
 		|| !x_coalesce_scroll_events)
 	      {
-		inev.kind = (fabsf (px) > fabs (py)
+		inev.kind = (fabsf (px) > fabsf (py)
 			     ? HORIZ_WHEEL_EVENT
 			     : WHEEL_EVENT);
 		inev.code = 0;
