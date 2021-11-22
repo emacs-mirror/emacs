@@ -70,7 +70,6 @@ define subdir_template
 	@echo >>$(FILE)
 	@echo 'test-$(subst /,-,$(1))-inotify:' >>$(FILE)
 	@echo '  stage: normal' >>$(FILE)
-	@echo '  needs: [build-image-inotify]' >>$(FILE)
 	@echo '  extends: [.job-template, .test-template]' >>$(FILE)
 	@echo '  rules:' >>$(FILE)
 	@echo '    - changes:' >>$(FILE)
