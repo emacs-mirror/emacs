@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "dispextern.h"
 #include "font.h"
+#include "systime.h"
 
 #define C_FRAME struct frame *
 #define C_FONT struct font *
@@ -107,6 +108,8 @@ struct haiku_display_info
   haiku display;
 
   double resx, resy;
+
+  Time last_mouse_movement_time;
 };
 
 struct haiku_output

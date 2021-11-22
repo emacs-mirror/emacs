@@ -2386,9 +2386,10 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		      enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		      Time *timestamp)
 {
-  block_input ();
   if (!fp)
     return;
+
+  block_input ();
   Lisp_Object frame, tail;
   struct frame *f1 = NULL;
   FOR_EACH_FRAME (tail, frame)
@@ -2428,6 +2429,7 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	  *bar_window = Qnil;
 	  *part = scroll_bar_above_handle;
 	  *fp = f1;
+	  *timestamp = x_display_list->last_mouse_movement_time;
 	  XSETINT (*x, sx);
 	  XSETINT (*y, sy);
 	}
@@ -2578,6 +2580,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   static void *buf = NULL;
   ssize_t b_size;
   struct unhandled_event *unhandled_events = NULL;
+  int button_or_motion_p;
 
   if (!buf)
     buf = xmalloc (200);
@@ -2596,6 +2599,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       inev2.kind = NO_EVENT;
       inev.arg = Qnil;
       inev2.arg = Qnil;
+
+      button_or_motion_p = 0;
 
       haiku_read (&type, buf, b_size);
 
@@ -2721,6 +2726,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
 
+	    x_display_list->last_mouse_movement_time = time (NULL);
+	    button_or_motion_p = 1;
+
 	    if (b->just_exited_p)
 	      {
 		Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
@@ -2748,9 +2756,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		previous_help_echo_string = help_echo_string;
 		help_echo_string = Qnil;
 
-		if (f != dpyinfo->last_mouse_glyph_frame ||
-		    b->x < r.x || b->x >= r.x + r.width - 1 || b->y < r.y ||
-		    b->y >= r.y + r.height - 1)
+		if (f != dpyinfo->last_mouse_glyph_frame
+		    || b->x < r.x || b->x >= r.x + r.width
+		    || b->y < r.y || b->y >= r.y + r.height)
 		  {
 		    f->mouse_moved = true;
 		    dpyinfo->last_mouse_scroll_bar = NULL;
@@ -2805,6 +2813,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 
 	    x_display_list->last_mouse_glyph_frame = 0;
+	    x_display_list->last_mouse_movement_time = time (NULL);
+	    button_or_motion_p = 1;
 
 	    /* Is this in the tab-bar?  */
 	    if (WINDOWP (f->tab_bar_window)
@@ -2857,6 +2867,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      inev.kind = MOUSE_CLICK_EVENT;
 	    inev.arg = tab_bar_arg;
 	    inev.code = b->btn_no;
+
+	    f->mouse_moved = false;
 
 	    XSETINT (inev.x, b->x);
 	    XSETINT (inev.y, b->y);
@@ -3183,15 +3195,19 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       if (inev.kind != NO_EVENT)
 	{
 	  if (inev.kind != HELP_EVENT)
-	    inev.timestamp = time (NULL);
+	    inev.timestamp = (button_or_motion_p
+			      ? x_display_list->last_mouse_movement_time
+			      : time (NULL));
 	  kbd_buffer_store_event_hold (&inev, hold_quit);
 	  ++message_count;
 	}
 
       if (inev2.kind != NO_EVENT)
 	{
-	  if (inev.kind != HELP_EVENT)
-	    inev.timestamp = time (NULL);
+	  if (inev2.kind != HELP_EVENT)
+	    inev2.timestamp = (button_or_motion_p
+			       ? x_display_list->last_mouse_movement_time
+			       : time (NULL));
 	  kbd_buffer_store_event_hold (&inev2, hold_quit);
 	  ++message_count;
 	}
