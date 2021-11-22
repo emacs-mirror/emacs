@@ -13,8 +13,9 @@ test-lib-src-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lib-src/*.log
-      - **core
+      - ${test_name}/test/lib-src/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -34,8 +35,9 @@ test-lisp-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/*.log
-      - **core
+      - ${test_name}/test/lisp/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -55,8 +57,9 @@ test-lisp-calc-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/calc/*.log
-      - **core
+      - ${test_name}/test/lisp/calc/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -76,8 +79,9 @@ test-lisp-calendar-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/calendar/*.log
-      - **core
+      - ${test_name}/test/lisp/calendar/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -97,8 +101,9 @@ test-lisp-cedet-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/cedet/*.log
-      - **core
+      - ${test_name}/test/lisp/cedet/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -118,8 +123,9 @@ test-lisp-cedet-semantic-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/cedet/semantic/*.log
-      - **core
+      - ${test_name}/test/lisp/cedet/semantic/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -139,8 +145,9 @@ test-lisp-cedet-semantic-bovine-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/cedet/semantic/bovine/*.log
-      - **core
+      - ${test_name}/test/lisp/cedet/semantic/bovine/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -160,8 +167,9 @@ test-lisp-cedet-srecode-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/cedet/srecode/*.log
-      - **core
+      - ${test_name}/test/lisp/cedet/srecode/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -181,8 +189,9 @@ test-lisp-emacs-lisp-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/emacs-lisp/*.log
-      - **core
+      - ${test_name}/test/lisp/emacs-lisp/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -202,8 +211,9 @@ test-lisp-emacs-lisp-eieio-tests-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/emacs-lisp/eieio-tests/*.log
-      - **core
+      - ${test_name}/test/lisp/emacs-lisp/eieio-tests/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -223,8 +233,9 @@ test-lisp-emacs-lisp-faceup-tests-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/emacs-lisp/faceup-tests/*.log
-      - **core
+      - ${test_name}/test/lisp/emacs-lisp/faceup-tests/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -244,8 +255,9 @@ test-lisp-emulation-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/emulation/*.log
-      - **core
+      - ${test_name}/test/lisp/emulation/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -265,8 +277,9 @@ test-lisp-erc-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/erc/*.log
-      - **core
+      - ${test_name}/test/lisp/erc/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -286,8 +299,9 @@ test-lisp-eshell-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/eshell/*.log
-      - **core
+      - ${test_name}/test/lisp/eshell/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -307,8 +321,9 @@ test-lisp-gnus-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/gnus/*.log
-      - **core
+      - ${test_name}/test/lisp/gnus/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -328,8 +343,9 @@ test-lisp-image-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/image/*.log
-      - **core
+      - ${test_name}/test/lisp/image/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -349,8 +365,9 @@ test-lisp-international-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/international/*.log
-      - **core
+      - ${test_name}/test/lisp/international/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -370,8 +387,9 @@ test-lisp-mail-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/mail/*.log
-      - **core
+      - ${test_name}/test/lisp/mail/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -391,8 +409,9 @@ test-lisp-mh-e-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/mh-e/*.log
-      - **core
+      - ${test_name}/test/lisp/mh-e/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -412,8 +431,9 @@ test-lisp-net-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/net/*.log
-      - **core
+      - ${test_name}/test/lisp/net/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -433,8 +453,9 @@ test-lisp-nxml-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/nxml/*.log
-      - **core
+      - ${test_name}/test/lisp/nxml/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -454,8 +475,9 @@ test-lisp-obsolete-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/obsolete/*.log
-      - **core
+      - ${test_name}/test/lisp/obsolete/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -475,8 +497,9 @@ test-lisp-org-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/org/*.log
-      - **core
+      - ${test_name}/test/lisp/org/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -496,8 +519,9 @@ test-lisp-play-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/play/*.log
-      - **core
+      - ${test_name}/test/lisp/play/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -517,8 +541,9 @@ test-lisp-progmodes-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/progmodes/*.log
-      - **core
+      - ${test_name}/test/lisp/progmodes/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -538,8 +563,9 @@ test-lisp-so-long-tests-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/so-long-tests/*.log
-      - **core
+      - ${test_name}/test/lisp/so-long-tests/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -559,8 +585,9 @@ test-lisp-term-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/term/*.log
-      - **core
+      - ${test_name}/test/lisp/term/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -580,8 +607,9 @@ test-lisp-textmodes-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/textmodes/*.log
-      - **core
+      - ${test_name}/test/lisp/textmodes/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -601,8 +629,9 @@ test-lisp-url-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/url/*.log
-      - **core
+      - ${test_name}/test/lisp/url/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -622,8 +651,9 @@ test-lisp-vc-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/lisp/vc/*.log
-      - **core
+      - ${test_name}/test/lisp/vc/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -643,8 +673,9 @@ test-misc-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/misc/*.log
-      - **core
+      - ${test_name}/test/misc/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
@@ -664,8 +695,9 @@ test-src-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - test/src/*.log
-      - **core
+      - ${test_name}/test/src/*.log
+      - ${test_name}/**/core
+      - ${test_name}/core
     when: always
   variables:
     target: emacs-inotify
