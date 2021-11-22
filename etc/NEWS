@@ -721,8 +721,8 @@ vectors and strings.
 
 +++
 ** New substitution in docstrings and 'substitute-command-keys'.
-Use "\\`KEYSEQ'" to insert a literal key sequence "KEYSEQ"
-(e.g. "C-k") in a docstring or when calling 'substitute-command-keys',
+Use \\`KEYSEQ' to insert a literal key sequence "KEYSEQ" (for example
+\\`C-k') in a docstring or when calling 'substitute-command-keys',
 which will use the same face as a command substitution.  This should
 be used only when a key sequence has no corresponding command, for
 example when it is read directly with 'read-key-sequence'.  It must be
