@@ -717,6 +717,15 @@ This is like 'kbd', but only returns vectors instead of a mix of
 vectors and strings.
 
 +++
+** New substitution in docstrings and 'substitute-command-keys'.  Use
+Use "\\`KEYSEQ'" to insert a literal key sequence "KEYSEQ"
+(e.g. "C-k") in a docstring or when calling 'substitute-command-keys',
+which will use the same face as a command substitution.  This should
+be used only when a key sequence has no corresponding command, for
+example when it is read directly with 'read-key-sequence'.  It must be
+a valid key sequence according to 'key-valid-p'.
+
++++
 ** New function 'file-name-split'.
 This returns a list of all the components of a file name.
 

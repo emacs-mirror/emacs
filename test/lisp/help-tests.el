@@ -88,6 +88,25 @@
    (test "\\[emacs-version]\\[next-line]" "M-x emacs-versionC-n")
    (test-re "\\[emacs-version]`foo'" "M-x emacs-version[`'‘]foo['’]")))
 
+(ert-deftest help-tests-substitute-command-keys/literal-key-sequence ()
+  "Literal replacement."
+  (with-substitute-command-keys-test
+   (test "\\`C-m'" "C-m")
+   (test "\\`C-m'\\`C-j'" "C-mC-j")
+   (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")))
+
+(ert-deftest help-tests-substitute-command-keys/literal-key-sequence-errors ()
+  (should-error (substitute-command-keys "\\`'"))
+  (should-error (substitute-command-keys "\\`c-c'"))
+  (should-error (substitute-command-keys "\\`<foo bar baz>'")))
+
+(ert-deftest help-tests-substitute-key-bindings/face-help-key-binding ()
+  (should (eq (get-text-property 0 'face (substitute-command-keys "\\[next-line]"))
+              'help-key-binding))
+  (should (eq (get-text-property 0 'face (substitute-command-keys "\\`f'"))
+              'help-key-binding)))
+
+
 (ert-deftest help-tests-substitute-command-keys/keymaps ()
   (with-substitute-command-keys-test
    (test-re "\\{minibuffer-local-must-match-map}"

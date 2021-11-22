@@ -333,6 +333,13 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
+@item \`@var{KEYSEQ}'
+stands for a key sequence @var{KEYSEQ}, which will use the same face
+as a command substitution.  This should be used only when a key
+sequence has no corresponding command, for example when it is read
+directly with @code{read-key-sequence}.  It must be a valid key
+sequence according to @code{key-valid-p}.
+
 @item `
 (grave accent) stands for a left quote.
 This generates a left single quotation mark, an apostrophe, or a grave

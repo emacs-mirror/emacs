@@ -1078,6 +1078,9 @@ Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
 is not on any keys.  Keybindings will use the face `help-key-binding'.
 
+Each substring of the form \\\\=`KEYBINDING' will be replaced by
+KEYBINDING and use the `help-key-binding' face.
+
 Each substring of the form \\\\={MAPVAR} is replaced by a summary of
 the value of MAPVAR as a keymap.  This summary is similar to the one
 produced by ‘describe-bindings’.  The summary ends in two newlines
@@ -1130,6 +1133,23 @@ Otherwise, return a new string."
                 (delete-char 2)
                 (ignore-errors
                   (forward-char 1)))
+               ((and (= (following-char) ?`)
+                     (save-excursion
+                       (prog1 (search-forward "'" nil t)
+                         (setq end-point (- (point) 2)))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (goto-char (1- end-point))
+                (delete-char 1)
+                ;; (backward-char 1)
+                (let ((k (buffer-substring-no-properties orig-point (point))))
+                  (cond ((= (length k) 0)
+                         (error "Empty key sequence in substitution"))
+                        ((not (key-valid-p k))
+                         (error "Invalid key sequence in substitution: `%s'" k))))
+                (add-text-properties orig-point (point)
+                                     '( face help-key-binding
+                                        font-lock-face help-key-binding)))
                ;; 1C. \[foo] is replaced with the keybinding.
                ((and (= (following-char) ?\[)
                      (save-excursion
