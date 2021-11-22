@@ -2270,17 +2270,8 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-emacs-popup (event poss word)
   "The Emacs popup menu."
-  (if (and (not event)
-           (display-mouse-p))
-      (let* ((mouse-pos  (mouse-position))
-	     (mouse-pos  (if (nth 1 mouse-pos)
-			     mouse-pos
-			   (set-mouse-position (car mouse-pos)
-				 	       (/ (frame-width) 2) 2)
-			   (mouse-position))))
-	(setq event (list (list (car (cdr mouse-pos))
-				(1+ (cdr (cdr mouse-pos))))
-			  (car mouse-pos)))))
+  (unless event
+    (setq event (popup-menu-normalize-position (point))))
   (let* ((corrects   (flyspell-sort (car (cdr (cdr poss))) word))
 	 (cor-menu   (if (consp corrects)
 			 (mapcar (lambda (correct)
