@@ -2858,9 +2858,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    inev.arg = tab_bar_arg;
 	    inev.code = b->btn_no;
 
-	    inev.modifiers |= type == BUTTON_UP ?
-	      up_modifier : down_modifier;
-
 	    XSETINT (inev.x, b->x);
 	    XSETINT (inev.y, b->y);
 
