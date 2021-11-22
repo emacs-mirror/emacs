@@ -5806,13 +5806,13 @@ of the directory that was default during command invocation."
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
-You can answer `y' or SPC to save, `n' or DEL not to save, `C-r'
+You can answer \\`y' or \\`SPC' to save, \\`n' or \\`DEL' not to save, \\`C-r'
 to look at the buffer in question with `view-buffer' before
-deciding, `d' to view the differences using
-`diff-buffer-with-file', `!' to save the buffer and all remaining
-buffers without any further querying, `.' to save only the
-current buffer and skip the remaining ones and `q' or RET to exit
-the function without saving any more buffers.  `C-h' displays a
+deciding, \\`d' to view the differences using
+`diff-buffer-with-file', \\`!' to save the buffer and all remaining
+buffers without any further querying, \\`.' to save only the
+current buffer and skip the remaining ones and \\`q' or \\`RET' to exit
+the function without saving any more buffers.  \\`C-h' displays a
 help message describing these options.
 
 This command first saves any buffers where `buffer-save-without-query' is

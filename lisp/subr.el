@@ -3120,7 +3120,7 @@ Optional argument CHARS, if non-nil, should be a list of characters;
 the function will ignore any input that is not one of CHARS.
 Optional argument HISTORY, if non-nil, should be a symbol that
 specifies the history list variable to use for navigating in input
-history using `M-p' and `M-n', with `RET' to select a character from
+history using \\`M-p' and \\`M-n', with \\`RET' to select a character from
 history.
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'

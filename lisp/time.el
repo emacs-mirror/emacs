@@ -343,7 +343,7 @@ Switches from the 1 to 5 to 15 minute load average, and then back to 1."
   "Update the `display-time' info for the mode line.
 However, don't redisplay right now.
 
-This is used for things like Rmail `g' that want to force an
+This is used for things like Rmail \\`g' that want to force an
 update which can wait for the next redisplay."
   (let* ((now (current-time))
          (time (current-time-string now))

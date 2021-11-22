@@ -1257,7 +1257,9 @@ Otherwise, toggle lock status."
   "Unmark all buffers with mark MARK."
   (interactive "cRemove marks (RET means all):")
   (if (= (ibuffer-count-marked-lines t) 0)
-      (message "No buffers marked; use `m' to mark a buffer")
+      (message (substitute-command-keys
+                "No buffers marked; use \\<ibuffer-mode-map>\
+\\[ibuffer-mark-forward] to mark a buffer"))
     (let ((fn (lambda (_buf mk)
                 (unless (eq mk ?\s)
                   (ibuffer-set-mark-1 ?\s)) t)))

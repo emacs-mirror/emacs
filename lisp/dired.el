@@ -345,11 +345,11 @@ When `file', the region marking is based on the file name.
 This means don't mark the file if the end of the region is
 before the file name displayed on the Dired line, so the file name
 is visually outside the region.  This behavior is consistent with
-marking files without the region using the key `m' that advances
+marking files without the region using the key \\`m' that advances
 point to the next line after marking the file.  Thus the number
 of keys used to mark files is the same as the number of keys
-used to select the region, e.g. `M-2 m' marks 2 files, and
-`C-SPC M-2 n m' marks 2 files, and `M-2 S-down m' marks 2 files.
+used to select the region, for example \\`M-2 m' marks 2 files, and
+\\`C-SPC M-2 n m' marks 2 files, and \\`M-2 S-<down> m' marks 2 files.
 
 When `line', the region marking is based on Dired lines,
 so include the file into marking if the end of the region
@@ -4102,9 +4102,9 @@ Type \\[help-command] at that time for help."
 	   (inhibit-read-only t) case-fold-search
            dired-unmark-all-files-query
 	   (string (format "\n%c" mark))
-	   (help-form "\
-Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
-`!' to unmark all remaining files with no more questions."))
+           (help-form (substitute-command-keys "\
+Type \\`SPC' or \\`y' to unmark one file, \\`DEL' or \\`n' to skip to next,
+\\`!' to unmark all remaining files with no more questions.")))
       (goto-char (point-min))
       (while (if (eq mark ?\r)
 		 (re-search-forward dired-re-mark nil t)

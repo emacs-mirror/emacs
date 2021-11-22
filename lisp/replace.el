@@ -2402,20 +2402,20 @@ To be added to `context-menu-functions'."
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.
 (defconst query-replace-help
-  "Type Space or `y' to replace one match, Delete or `n' to skip to next,
-RET or `q' to exit, Period to replace one match and exit,
-Comma to replace but not move point immediately,
-C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
-C-w to delete match and recursive edit,
-C-l to clear the screen, redisplay, and offer same replacement again,
-! to replace all remaining matches in this buffer with no more questions,
-^ to move point back to previous match,
-u to undo previous replacement,
-U to undo all replacements,
-E to edit the replacement string.
-In multi-buffer replacements type `Y' to replace all remaining
+  "Type \\`SPC' or \\`y' to replace one match, Delete or \\`n' to skip to next,
+\\`RET' or \\`q' to exit, Period to replace one match and exit,
+\\`,' to replace but not move point immediately,
+\\`C-r' to enter recursive edit (\\[exit-recursive-edit] to get out again),
+\\`C-w' to delete match and recursive edit,
+\\`C-l' to clear the screen, redisplay, and offer same replacement again,
+\\`!' to replace all remaining matches in this buffer with no more questions,
+\\`^' to move point back to previous match,
+\\`u' to undo previous replacement,
+\\`U' to undo all replacements,
+\\`E' to edit the replacement string.
+In multi-buffer replacements type \\`Y' to replace all remaining
 matches in all remaining buffers with no more questions,
-`N' to skip to the next buffer without replacing remaining matches
+\\`N' to skip to the next buffer without replacing remaining matches
 in the current buffer."
   "Help message while in `query-replace'.")
 

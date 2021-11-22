@@ -1989,11 +1989,12 @@ or with the current marker character if MARKER-CHAR is t."
           (let* ((overwrite (file-exists-p to))
                  (dired-overwrite-confirmed ; for dired-handle-overwrite
                   (and overwrite
-                       (let ((help-form (format-message "\
-Type SPC or `y' to overwrite file `%s',
-DEL or `n' to skip to next,
-ESC or `q' to not overwrite any of the remaining files,
-`!' to overwrite all remaining files with no more questions." to)))
+                       (let ((help-form (format-message
+                                         (substitute-command-keys "\
+Type \\`SPC' or \\`y' to overwrite file `%s',
+\\`DEL' or \\`n' to skip to next,
+\\`ESC' or \\`q' to not overwrite any of the remaining files,
+\\`!' to overwrite all remaining files with no more questions.") to)))
                          (dired-query 'overwrite-query
                                       "Overwrite `%s'?" to))))
                  ;; must determine if FROM is marked before file-creator
@@ -2486,11 +2487,12 @@ Also see `dired-do-revert-buffer'."
   ;; Optional arg MARKER-CHAR as in dired-create-files.
   (let* ((fn-list (dired-get-marked-files nil arg))
 	 (operation-prompt (concat operation " `%s' to `%s'?"))
-	 (rename-regexp-help-form (format-message "\
-Type SPC or `y' to %s one match, DEL or `n' to skip to next,
-`!' to %s all remaining matches with no more questions."
-						  (downcase operation)
-						  (downcase operation)))
+         (rename-regexp-help-form (format-message
+                                   (substitute-command-keys "\
+Type \\`SPC' or \\`y' to %s one match, \\`DEL' or \\`n' to skip to next,
+\\`!' to %s all remaining matches with no more questions.")
+                                   (downcase operation)
+                                   (downcase operation)))
 	 (regexp-name-constructor
 	  ;; Function to construct new filename using REGEXP and NEWNAME:
 	  (if whole-name		; easy (but rare) case
@@ -2611,11 +2613,12 @@ See function `dired-do-rename-regexp' for more info."
        (let ((to (concat (file-name-directory from)
 			 (funcall basename-constructor
 				  (file-name-nondirectory from)))))
-	 (and (let ((help-form (format-message "\
-Type SPC or `y' to %s one file, DEL or `n' to skip to next,
-`!' to %s all remaining matches with no more questions."
-					       (downcase operation)
-					       (downcase operation))))
+         (and (let ((help-form (format-message
+                                (substitute-command-keys "\
+Type \\`SPC' or \\`y' to %s one file, \\`DEL' or \\`n' to skip to next,
+\\`!' to %s all remaining matches with no more questions.")
+                                (downcase operation)
+                                (downcase operation))))
 		(dired-query 'rename-non-directory-query
 			     (concat operation " `%s' to `%s'")
 			     (dired-make-relative from)

@@ -1621,7 +1621,8 @@ See calc-keypad for details."
 		    (stringp (nth 1 err))
 		    (string-match "max-specpdl-size\\|max-lisp-eval-depth"
 				  (nth 1 err)))
-	       (error "Computation got stuck or ran too long.  Type `M' to increase the limit")
+               (error (substitute-command-keys
+                       "Computation got stuck or ran too long.  Type \\`M' to increase the limit"))
 	     (setq calc-aborted-prefix nil)
 	     (signal (car err) (cdr err)))))
       (when calc-aborted-prefix

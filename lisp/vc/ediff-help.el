@@ -227,7 +227,9 @@ the value of this variable and the variables `ediff-help-message-*' in
 	    ((string= cmd "s") (re-search-forward "^['`‘]s['’]"))
 	    ((string= cmd "+") (re-search-forward "^['`‘]\\+['’]"))
 	    ((string= cmd "=") (re-search-forward "^['`‘]=['’]"))
-	    (t (user-error "Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer")))
+            (t (user-error (substitute-command-keys
+                            "Undocumented command! Type \\`G' in Ediff Control \
+Panel to drop a note to the Ediff maintainer"))))
       ) ; let case-fold-search
     ))
 

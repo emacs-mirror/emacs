@@ -8912,7 +8912,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally.
 
 When called interactively, the user is prompted for VARIABLE and
 then VALUE.  The current value of VARIABLE will be put in the
-minibuffer history so that it can be accessed with `M-n', which
+minibuffer history so that it can be accessed with \\`M-n', which
 makes it easier to edit it."
   (interactive
    (let* ((default-var (variable-at-point))

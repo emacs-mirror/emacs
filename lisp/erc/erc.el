@@ -2405,7 +2405,8 @@ If ARG is non-nil, show the *erc-protocol* buffer."
                      (concat "This buffer displays all IRC protocol "
                              "traffic exchanged with servers."))
                     (erc-make-notice "Kill it to disable logging.")
-                    (erc-make-notice "Press `t' to toggle."))))
+                    (erc-make-notice (substitute-command-keys
+                                      "Press \\`t' to toggle.")))))
           (insert (string-join msg "\r\n")))
         (use-local-map (make-sparse-keymap))
         (local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))

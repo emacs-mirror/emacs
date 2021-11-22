@@ -210,7 +210,8 @@ KEYS is a list of `epa-ks-key' structures, as parsed by
       (with-current-buffer buf
         (setq tabulated-list-entries entries)
         (tabulated-list-print t t))
-      (message "Press `f' to mark a key, `x' to fetch all marked keys."))))
+      (message (substitute-command-keys
+                "Press \\`f' to mark a key, \\`x' to fetch all marked keys.")))))
 
 (defun epa-ks--restart-search ()
   (when epa-ks-last-query

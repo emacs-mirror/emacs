@@ -403,7 +403,7 @@ argument."
 
 (defun expand-region-abbrevs (start end &optional noquery)
   "For abbrev occurrence in the region, offer to expand it.
-The user is asked to type `y' or `n' for each occurrence.
+The user is asked to type \\`y' or \\`n' for each occurrence.
 A prefix argument means don't query; expand all abbrevs."
   (interactive "r\nP")
   (save-excursion

@@ -148,8 +148,10 @@ No active TAGS table is required."
     (erase-buffer)
     (insert "                MULTIPLE LABELS IN CURRENT DOCUMENT:\n")
     (insert
-     " Move point to label and type `r' to run a query-replace on the label\n"
-     " and its references.  Type `q' to exit this buffer.\n\n")
+     (substitute-command-keys
+      " Move point to label and type \\`r' to run a query-replace on the label\n")
+     (substitute-command-keys
+      " and its references.  Type \\`q' to exit this buffer.\n\n"))
     (insert " LABEL               FILE\n")
     (insert " -------------------------------------------------------------\n")
     (use-local-map (make-sparse-keymap))

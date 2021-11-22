@@ -216,26 +216,28 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C)."
 (defun calc-help ()
   (interactive)
   (let ((msgs
-	 '("Press `h' for complete help; press `?' repeatedly for a summary"
-	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
-	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
-	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
-	   "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
-	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
-	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
-	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-	   "Other keys: \\=' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
-	   "Other keys: SPC/RET (enter/dup), LFD (over); < > (scroll horiz)"
-	   "Other keys: DEL (drop), M-DEL (drop-above); { } (scroll vert)"
-	   "Other keys: TAB (swap/roll-dn), M-TAB (roll-up)"
-	   "Other keys: [ , ; ] (vector), ( , ) (complex), ( ; ) (polar)"
-	   "Prefix keys: Algebra, Binary/business, Convert, Display"
-	   "Prefix keys: Functions, Graphics, Help, J (select)"
-	   "Prefix keys: Kombinatorics/statistics, Modes, Store/recall"
-	   "Prefix keys: Trail/time, Units/statistics, Vector/matrix"
-	   "Prefix keys: Z (user), SHIFT + Z (define)"
-	   "Prefix keys: prefix + ? gives further help for that prefix"
-           "  Calc by Dave Gillespie, daveg@synaptics.com")))
+         ;; FIXME: Change these to `substitute-command-keys' syntax.
+         (mapcar #'substitute-command-keys
+          '("Press \\`h' for complete help; press \\`?' repeatedly for a summary"
+            "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
+            "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
+            "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
+            "Letter keys: SHIFT + Floor, Round; Abs, conJ, arG; Pi"
+            "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
+            "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
+            "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
+            "Other keys: \\=' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
+            "Other keys: \\`SPC'/\\`RET' (enter/dup), LFD (over); < > (scroll horiz)"
+            "Other keys: \\`DEL' (drop), \\`M-DEL' (drop-above); { } (scroll vert)"
+            "Other keys: \\`TAB' (swap/roll-dn), \\`M-TAB' (roll-up)"
+            "Other keys: [ , ; ] (vector), ( , ) (complex), ( ; ) (polar)"
+            "Prefix keys: Algebra, Binary/business, Convert, Display"
+            "Prefix keys: Functions, Graphics, Help, J (select)"
+            "Prefix keys: Kombinatorics/statistics, Modes, Store/recall"
+            "Prefix keys: Trail/time, Units/statistics, Vector/matrix"
+            "Prefix keys: Z (user), SHIFT + Z (define)"
+            "Prefix keys: prefix + ? gives further help for that prefix"
+            "  Calc by Dave Gillespie, daveg@synaptics.com"))))
     (if calc-full-help-flag
 	msgs
       (if (or calc-inverse-flag calc-hyperbolic-flag)

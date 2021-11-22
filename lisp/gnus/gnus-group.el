@@ -62,7 +62,7 @@
 
 (defcustom gnus-keep-same-level nil
   "Non-nil means that the newsgroup after this one will be on the same level.
-When you type, for instance, `n' after reading the last article in the
+When you type, for instance, \\`n' after reading the last article in the
 current newsgroup, you will go to the next newsgroup.  If this variable
 is nil, the next newsgroup will be the next from the group
 buffer.

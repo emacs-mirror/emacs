@@ -4763,23 +4763,25 @@ Valid types are `send', `return', `exit', `kill' and `postpone'."
                 t
                 "\
 The message size, "
-                (/ (buffer-size) 1000) "KB, is too large.
+                (/ (buffer-size) 1000)
+                (substitute-command-keys "KB, is too large.
 
 Some mail gateways (MTA's) bounce large messages.  To avoid the
-problem, answer `y', and the message will be split into several
-smaller pieces, the size of each is about "
+problem, answer \\`y', and the message will be split into several
+smaller pieces, the size of each is about ")
                 (/ message-send-mail-partially-limit 1000)
-                "KB except the last
+                (substitute-command-keys
+                 "KB except the last
 one.
 
 However, some mail readers (MUA's) can't read split messages, i.e.,
-mails in message/partially format.  Answer `n', and the message
+mails in message/partially format.  Answer \\`n', and the message
 will be sent in one piece.
 
 The size limit is controlled by `message-send-mail-partially-limit'.
 If you always want Gnus to send messages in one piece, set
 `message-send-mail-partially-limit' to nil.
-")))
+"))))
       (progn
         (message "Sending via mail...")
         (if message-send-mail-real-function

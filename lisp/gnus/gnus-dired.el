@@ -204,7 +204,8 @@ If ARG is non-nil, open it in a new buffer."
 	  (find-file file-name)))
     (if (file-symlink-p file-name)
 	(error "File is a symlink to a nonexistent target")
-      (error "File no longer exists; type `g' to update Dired buffer"))))
+      (error (substitute-command-keys
+              "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (defun gnus-dired-print (&optional file-name print-to)
   "In dired, print FILE-NAME according to the mailcap file.
@@ -244,9 +245,10 @@ of the file to save in."
 	    (error "MIME print only implemented via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
-     (error "File is a symlink to a nonexistent target"))
-    (t
-     (error "File no longer exists; type `g' to update Dired buffer"))))
+    (error "File is a symlink to a nonexistent target"))
+   (t
+    (error (substitute-command-keys
+            "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (provide 'gnus-dired)
 
