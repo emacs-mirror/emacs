@@ -1,4 +1,4 @@
-### test/infra/Makefile.  Generated from Makefile.in by configure.
+### @configure_input@
 
 # Copyright (C) 2021 Free Software Foundation, Inc.
 
@@ -33,6 +33,7 @@ top_builddir = @top_builddir@
 SUBDIRS ?= $(shell make -s -C .. subdirs)
 SUBDIR_TARGETS =
 FILE = test-jobs.yml
+tn = $$$${test_name}
 
 define subdir_template
   $(eval target = check-$(subst /,-,$(1)))
@@ -41,41 +42,59 @@ define subdir_template
   $(eval
     ifeq ($(findstring src, $(1)), src)
     define changes
-	@echo "        - $(1)/*.{h,c}" >>$(FILE)
-	@echo "        - test/$(1)/*.el" >>$(FILE)
+	@echo '        - $(1)/*.{h,c}' >>$(FILE)
+    endef
+    else ifeq ($(findstring eieio, $(1)), eieio)
+    define changes
+	@echo '        - lisp/emacs-lisp/eieio*.el' >>$(FILE)
+    endef
+    else ifeq ($(findstring faceup, $(1)), faceup)
+    define changes
+	@echo '        - lisp/emacs-lisp/faceup*.el' >>$(FILE)
+    endef
+    else ifeq ($(findstring so-long, $(1)), so-long)
+    define changes
+	@echo '        - lisp/so-long*.el' >>$(FILE)
     endef
     else ifeq ($(findstring misc, $(1)), misc)
     define changes
-	@echo "        - admin/*.el" >>$(FILE)
-	@echo "        - test/$(1)/*.el" >>$(FILE)
+	@echo '        - admin/*.el' >>$(FILE)
     endef
     else
     define changes
-	@echo "        - $(1)/*.el" >>$(FILE)
-	@echo "        - test/$(1)/*.el" >>$(FILE)
+	@echo '        - $(1)/*.el' >>$(FILE)
     endef
     endif)
 
-  .PHONY: $(target)
-
   $(target):
-	@echo "test-$(subst /,-,$(1))-inotify:" >>$(FILE)
-	@echo "  stage: normal" >>$(FILE)
-	@echo "  extends: [.job-template, .test-template]" >>$(FILE)
-	@echo "  rules:" >>$(FILE)
-	@echo "    - changes:" >>$(FILE)
-	$(changes)
-	@echo "  variables:" >>$(FILE)
-	@echo "    target: emacs-inotify" >>$(FILE)
-	@echo "    make_params: \"-C test $(target)\"" >>$(FILE)
 	@echo >>$(FILE)
+	@echo 'test-$(subst /,-,$(1))-inotify:' >>$(FILE)
+	@echo '  stage: normal' >>$(FILE)
+	@echo '  needs: [build-image-inotify]' >>$(FILE)
+	@echo '  extends: [.job-template, .test-template]' >>$(FILE)
+	@echo '  rules:' >>$(FILE)
+	@echo '    - changes:' >>$(FILE)
+	$(changes)
+	@echo '        - test/$(1)/*.el' >>$(FILE)
+	@echo '        - test/$(1)/*resources/**' >>$(FILE)
+	@echo '  artifacts:' >>$(FILE)
+	@echo '    name: $(tn)' >>$(FILE)
+	@echo '    public: true' >>$(FILE)
+	@echo '    expire_in: 1 week' >>$(FILE)
+	@echo '    paths:' >>$(FILE)
+	@echo '      - test/$(1)/*.log' >>$(FILE)
+	@echo '      - **core' >>$(FILE)
+	@echo '    when: always' >>$(FILE)
+	@echo '  variables:' >>$(FILE)
+	@echo '    target: emacs-inotify' >>$(FILE)
+	@echo '    make_params: "-C test $(target)"' >>$(FILE)
 endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
 all: generate-test-jobs
 
-.PHONY: generate-test-jobs $(FILE)
+.PHONY: generate-test-jobs $(FILE) $(SUBDIR_TARGETS)
 
 generate-test-jobs: clean $(FILE) $(SUBDIR_TARGETS)
 

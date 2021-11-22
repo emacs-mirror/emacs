@@ -1,362 +1,672 @@
+
 test-lib-src-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lib-src/*.{h,c}
         - test/lib-src/*.el
+        - test/lib-src/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lib-src/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lib-src"
 
 test-lisp-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/*.el
         - test/lisp/*.el
+        - test/lisp/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp"
 
 test-lisp-calc-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/calc/*.el
         - test/lisp/calc/*.el
+        - test/lisp/calc/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/calc/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-calc"
 
 test-lisp-calendar-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/calendar/*.el
         - test/lisp/calendar/*.el
+        - test/lisp/calendar/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/calendar/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-calendar"
 
 test-lisp-cedet-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/cedet/*.el
         - test/lisp/cedet/*.el
+        - test/lisp/cedet/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/cedet/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-cedet"
 
 test-lisp-cedet-semantic-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/cedet/semantic/*.el
         - test/lisp/cedet/semantic/*.el
+        - test/lisp/cedet/semantic/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/cedet/semantic/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-cedet-semantic"
 
 test-lisp-cedet-semantic-bovine-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/cedet/semantic/bovine/*.el
         - test/lisp/cedet/semantic/bovine/*.el
+        - test/lisp/cedet/semantic/bovine/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/cedet/semantic/bovine/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-cedet-semantic-bovine"
 
 test-lisp-cedet-srecode-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/cedet/srecode/*.el
         - test/lisp/cedet/srecode/*.el
+        - test/lisp/cedet/srecode/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/cedet/srecode/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-cedet-srecode"
 
 test-lisp-emacs-lisp-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/emacs-lisp/*.el
         - test/lisp/emacs-lisp/*.el
+        - test/lisp/emacs-lisp/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/emacs-lisp/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-emacs-lisp"
 
 test-lisp-emacs-lisp-eieio-tests-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
-        - lisp/emacs-lisp/eieio-tests/*.el
+        - lisp/emacs-lisp/eieio*.el
         - test/lisp/emacs-lisp/eieio-tests/*.el
+        - test/lisp/emacs-lisp/eieio-tests/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/emacs-lisp/eieio-tests/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-emacs-lisp-eieio-tests"
 
 test-lisp-emacs-lisp-faceup-tests-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
-        - lisp/emacs-lisp/faceup-tests/*.el
+        - lisp/emacs-lisp/faceup*.el
         - test/lisp/emacs-lisp/faceup-tests/*.el
+        - test/lisp/emacs-lisp/faceup-tests/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/emacs-lisp/faceup-tests/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-emacs-lisp-faceup-tests"
 
 test-lisp-emulation-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/emulation/*.el
         - test/lisp/emulation/*.el
+        - test/lisp/emulation/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/emulation/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-emulation"
 
 test-lisp-erc-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/erc/*.el
         - test/lisp/erc/*.el
+        - test/lisp/erc/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/erc/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-erc"
 
 test-lisp-eshell-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/eshell/*.el
         - test/lisp/eshell/*.el
+        - test/lisp/eshell/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/eshell/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-eshell"
 
 test-lisp-gnus-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/gnus/*.el
         - test/lisp/gnus/*.el
+        - test/lisp/gnus/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/gnus/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-gnus"
 
 test-lisp-image-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/image/*.el
         - test/lisp/image/*.el
+        - test/lisp/image/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/image/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-image"
 
 test-lisp-international-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/international/*.el
         - test/lisp/international/*.el
+        - test/lisp/international/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/international/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-international"
 
-test-lisp-legacy-inotify:
-  stage: normal
-  extends: [.job-template, .test-template]
-  rules:
-    - changes:
-        - lisp/legacy/*.el
-        - test/lisp/legacy/*.el
-  variables:
-    target: emacs-inotify
-    make_params: "-C test check-lisp-legacy"
-
 test-lisp-mail-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/mail/*.el
         - test/lisp/mail/*.el
+        - test/lisp/mail/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/mail/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-mail"
 
 test-lisp-mh-e-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/mh-e/*.el
         - test/lisp/mh-e/*.el
+        - test/lisp/mh-e/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/mh-e/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-mh-e"
 
 test-lisp-net-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/net/*.el
         - test/lisp/net/*.el
+        - test/lisp/net/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/net/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-net"
 
 test-lisp-nxml-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/nxml/*.el
         - test/lisp/nxml/*.el
+        - test/lisp/nxml/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/nxml/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-nxml"
 
 test-lisp-obsolete-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/obsolete/*.el
         - test/lisp/obsolete/*.el
+        - test/lisp/obsolete/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/obsolete/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-obsolete"
 
 test-lisp-org-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/org/*.el
         - test/lisp/org/*.el
+        - test/lisp/org/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/org/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-org"
 
 test-lisp-play-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/play/*.el
         - test/lisp/play/*.el
+        - test/lisp/play/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/play/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-play"
 
 test-lisp-progmodes-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/progmodes/*.el
         - test/lisp/progmodes/*.el
+        - test/lisp/progmodes/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/progmodes/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-progmodes"
 
 test-lisp-so-long-tests-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
-        - lisp/so-long-tests/*.el
+        - lisp/so-long*.el
         - test/lisp/so-long-tests/*.el
+        - test/lisp/so-long-tests/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/so-long-tests/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-so-long-tests"
 
 test-lisp-term-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/term/*.el
         - test/lisp/term/*.el
+        - test/lisp/term/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/term/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-term"
 
 test-lisp-textmodes-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/textmodes/*.el
         - test/lisp/textmodes/*.el
+        - test/lisp/textmodes/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/textmodes/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-textmodes"
 
 test-lisp-url-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/url/*.el
         - test/lisp/url/*.el
+        - test/lisp/url/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/url/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-url"
 
 test-lisp-vc-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - lisp/vc/*.el
         - test/lisp/vc/*.el
+        - test/lisp/vc/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/lisp/vc/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-vc"
 
 test-misc-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - admin/*.el
         - test/misc/*.el
+        - test/misc/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/misc/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-misc"
 
 test-src-inotify:
   stage: normal
+  needs: [build-image-inotify]
   extends: [.job-template, .test-template]
   rules:
     - changes:
         - src/*.{h,c}
         - test/src/*.el
+        - test/src/*resources/**
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - test/src/*.log
+      - **core
+    when: always
   variables:
     target: emacs-inotify
     make_params: "-C test check-src"

@@ -236,31 +236,11 @@ build-image-inotify:
 
 include: '/test/infra/test-jobs.yml'
 
-# test-lisp-inotify:
-#   stage: normal
-#   extends: [.job-template, .test-template]
-#   variables:
-#     target: emacs-inotify
-#     make_params: "-C test check-lisp"
-
-# test-lisp-net-inotify:
-#   stage: normal
-#   extends: [.job-template, .test-template]
-#   variables:
-#     target: emacs-inotify
-#     make_params: "-C test check-lisp-net"
-
 build-image-filenotify-gio:
   stage: platform-images
   extends: [.job-template, .build-template, .filenotify-gio-template]
   variables:
     target: emacs-filenotify-gio
-
-build-image-gnustep:
-  stage: platform-images
-  extends: [.job-template, .build-template, .gnustep-template]
-  variables:
-    target: emacs-gnustep
 
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
@@ -270,6 +250,12 @@ test-filenotify-gio:
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
+
+build-image-gnustep:
+  stage: platform-images
+  extends: [.job-template, .build-template, .gnustep-template]
+  variables:
+    target: emacs-gnustep
 
 test-gnustep:
   # This tests the GNUstep build process.
