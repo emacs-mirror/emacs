@@ -1316,16 +1316,18 @@ store_xwidget_js_callback_event (struct xwidget *xw,
 
 #ifdef USE_GTK
 static void
-store_xwidget_display_event (struct xwidget *xw)
+store_xwidget_display_event (struct xwidget *xw,
+			     struct xwidget *src)
 {
   struct input_event evt;
-  Lisp_Object val;
+  Lisp_Object val, src_val;
 
   XSETXWIDGET (val, xw);
+  XSETXWIDGET (src_val, src);
   EVENT_INIT (evt);
   evt.kind = XWIDGET_DISPLAY_EVENT;
   evt.frame_or_window = Qnil;
-  evt.arg = val;
+  evt.arg = list2 (val, src_val);
   kbd_buffer_store_event (&evt);
 }
 
@@ -1335,6 +1337,9 @@ webkit_ready_to_show (WebKitWebView *new_view,
 {
   Lisp_Object tem;
   struct xwidget *xw;
+  struct xwidget *src;
+
+  src = find_xwidget_for_offscreen_window (GDK_WINDOW (user_data));
 
   for (tem = internal_xwidget_list; CONSP (tem); tem = XCDR (tem))
     {
@@ -1344,14 +1349,21 @@ webkit_ready_to_show (WebKitWebView *new_view,
 
 	  if (EQ (xw->type, Qwebkit)
 	      && WEBKIT_WEB_VIEW (xw->widget_osr) == new_view)
-	    store_xwidget_display_event (xw);
+	    {
+	      /* The source widget was destroyed before we had a
+		 chance to display the new widget.  */
+	      if (!src)
+		kill_xwidget (xw);
+	      else
+		store_xwidget_display_event (xw, src);
+	    }
 	}
     }
 }
 
 static GtkWidget *
 webkit_create_cb_1 (WebKitWebView *webview,
-		    struct xwidget_view *xv)
+		    struct xwidget *xv)
 {
   Lisp_Object related;
   Lisp_Object xwidget;
@@ -1369,7 +1381,8 @@ webkit_create_cb_1 (WebKitWebView *webview,
   widget = XXWIDGET (xwidget)->widget_osr;
 
   g_signal_connect (G_OBJECT (widget), "ready-to-show",
-		    G_CALLBACK (webkit_ready_to_show), NULL);
+		    G_CALLBACK (webkit_ready_to_show),
+		    gtk_widget_get_window (xv->widgetwindow_osr));
 
   return widget;
 }
@@ -1591,7 +1604,7 @@ webkit_decide_policy_cb (WebKitWebView *webView,
       newview = WEBKIT_WEB_VIEW (XXWIDGET (new_xwidget)->widget_osr);
       webkit_web_view_load_request (newview, request);
 
-      store_xwidget_display_event (XXWIDGET (new_xwidget));
+      store_xwidget_display_event (XXWIDGET (new_xwidget), xw);
       return TRUE;
     }
   case WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION:
@@ -3106,6 +3119,11 @@ kill_frame_xwidget_views (struct frame *f)
 static void
 kill_xwidget (struct xwidget *xw)
 {
+  Lisp_Object val;
+  XSETXWIDGET (val, xw);
+
+  internal_xwidget_list = Fdelq (val, internal_xwidget_list);
+  Vxwidget_list = Fcopy_sequence (internal_xwidget_list);
 #ifdef USE_GTK
   xw->buffer = Qnil;
 
@@ -3145,8 +3163,6 @@ kill_buffer_xwidgets (Lisp_Object buffer)
   for (tail = Fget_buffer_xwidgets (buffer); CONSP (tail); tail = XCDR (tail))
     {
       xwidget = XCAR (tail);
-      internal_xwidget_list = Fdelq (xwidget, internal_xwidget_list);
-      Vxwidget_list = Fcopy_sequence (internal_xwidget_list);
       {
         CHECK_LIVE_XWIDGET (xwidget);
         struct xwidget *xw = XXWIDGET (xwidget);

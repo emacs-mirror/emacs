@@ -818,6 +818,7 @@ For example, use this to display an anchor."
       (xwidget-webkit-set-cookie-storage-file
        xw (expand-file-name xwidget-webkit-cookie-file)))
     (xwidget-put xw 'callback callback)
+    (xwidget-put xw 'display-callback #'xwidget-webkit-display-callback)
     (xwidget-webkit-mode)
     (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
 
@@ -840,16 +841,26 @@ Return the buffer."
         (put-text-property (point-min) (point-max)
                            'display (list 'xwidget :xwidget xwidget)))
       (xwidget-put xwidget 'callback callback)
+      (xwidget-put xwidget 'display-callback
+                   #'xwidget-webkit-display-callback)
       (set-xwidget-buffer xwidget buffer)
       (xwidget-webkit-mode))
     buffer))
 
 (defun xwidget-webkit-display-event (event)
-  "Import the xwidget inside EVENT and display it."
+  "Trigger display callback for EVENT."
   (interactive "e")
-  (display-buffer (xwidget-webkit-import-widget (nth 1 event))))
+  (let ((xwidget (cadr event))
+        (source (caddr event)))
+    (when (xwidget-get source 'display-callback)
+      (funcall (xwidget-get source 'display-callback)
+               xwidget source))))
 
-(global-set-key [xwidget-display-event] 'xwidget-webkit-display-event)
+(defun xwidget-webkit-display-callback (xwidget _source)
+  "Import XWIDGET and display it."
+  (display-buffer (xwidget-webkit-import-widget xwidget)))
+
+(define-key special-event-map [xwidget-display-event] 'xwidget-webkit-display-event)
 
 (defun xwidget-webkit-goto-url (url)
   "Goto URL with xwidget webkit."

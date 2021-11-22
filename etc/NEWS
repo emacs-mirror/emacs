@@ -927,8 +927,8 @@ commits to the load.
 +++
 *** New event type 'xwidget-display-event'.
 These events are sent whenever an xwidget requests that Emacs display
-another xwidget.  The only argument to this event is the xwidget that
-should be displayed.
+another xwidget.  The only arguments to this event are the xwidget
+that should be displayed, and the xwidget that asked to display it.
 
 +++
 *** New function 'xwidget-webkit-set-cookie-storage-file'.

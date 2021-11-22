@@ -1950,9 +1950,15 @@ internally by @code{xwidget-webkit-execute-script}.
 @end table
 
 @cindex @code{xwidget-display-event} event
-@item (xwidget-display-event @var{xwidget})
+@item (xwidget-display-event @var{xwidget} @var{source})
 This event is sent whenever an xwidget requests that another xwidget
-be displayed.  @var{xwidget} is the xwidget that should be displayed.
+be displayed.  @var{xwidget} is the xwidget that should be displayed,
+and @var{source} is the xwidget that asked to display @var{xwidget}.
+
+It is also a special event which should be handled through callbacks.
+You can add such a callback by setting the @code{display-callback} of
+@var{source}'s property list, which should be a function that accepts
+@var{xwidget} and @var{source} as arguments.
 
 @var{xwidget}'s buffer will be set to a temporary buffer.  When
 displaying the widget, care should be taken to replace the buffer with

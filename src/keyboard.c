@@ -6141,7 +6141,7 @@ make_lispy_event (struct input_event *event)
       return Fcons (Qxwidget_event, event->arg);
 
     case XWIDGET_DISPLAY_EVENT:
-      return list2 (Qxwidget_display_event, event->arg);
+      return Fcons (Qxwidget_display_event, event->arg);
 #endif
 
 #ifdef USE_FILE_NOTIFY
