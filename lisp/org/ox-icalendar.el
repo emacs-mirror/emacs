@@ -280,6 +280,7 @@ re-read the iCalendar file.")
 		     (footnote-definition . ignore)
 		     (footnote-reference . ignore)
 		     (headline . org-icalendar-entry)
+                     (inner-template . org-icalendar-inner-template)
 		     (inlinetask . ignore)
 		     (planning . ignore)
 		     (section . ignore)
@@ -804,6 +805,11 @@ END:VALARM\n"
 
 
 ;;;; Template
+
+(defun org-icalendar-inner-template (contents _)
+  "Return document body string after iCalendar conversion.
+CONTENTS is the transcoded contents string."
+  contents)
 
 (defun org-icalendar-template (contents info)
   "Return complete document string after iCalendar conversion.

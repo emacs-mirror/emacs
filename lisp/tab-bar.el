@@ -91,9 +91,10 @@
 (defcustom tab-bar-select-tab-modifiers '()
   "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  Pressing one of the modifiers in the list and a digit selects
-the tab whose number equals the digit.  Negative numbers count from
-the end of the tab bar.  The digit 9 selects the last (rightmost) tab.
+`alt'.  Pressing one of the modifiers in the list and a digit selects the
+tab whose number equals the digit (see `tab-bar-select-tab').
+The digit 9 selects the last (rightmost) tab (see `tab-last').
+The digit 0 selects the most recently visited tab (see `tab-recent').
 For easier selection of tabs by their numbers, consider customizing
 `tab-bar-tab-hints', which will show tab numbers alongside the tab name."
   :type '(set :tag "Tab selection modifier keys"
@@ -283,7 +284,8 @@ existing tab."
     (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
-    (unless (or (eq (car item) 'add-tab) (nth 2 item))
+    (unless (or (memq (car item) '(add-tab history-back history-forward))
+                (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
         (unless (eq tab-number t)
@@ -297,7 +299,8 @@ regardless of where you click on it.  Also add a new tab."
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
-     ((and (eq (car item) 'add-tab) (functionp (nth 1 item)))
+     ((and (memq (car item) '(add-tab history-back history-forward))
+           (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
       (tab-bar-close-tab tab-number)))))
@@ -1060,11 +1063,14 @@ inherits the current tab's `explicit-name' parameter."
 
 (defun tab-bar-select-tab (&optional tab-number)
   "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
-When this command is bound to a numeric key (with a prefix or modifier key
+When this command is bound to a numeric key (with a key prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of
-the tab bar."
+Also the prefix argument TAB-NUMBER can be used to override
+the numeric key, so it takes precedence over the bound digit key.
+For example, `<MODIFIER>-2' will select the second tab, but `C-u 15
+<MODIFIER>-2' will select the 15th tab.  TAB-NUMBER counts from 1.
+Negative TAB-NUMBER counts tabs from the end of the tab bar."
   (interactive "P")
   (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
@@ -1092,7 +1098,11 @@ the tab bar."
         ;; its value of window-configuration is unreadable,
         ;; so restore its saved window-state.
         (cond
-         ((window-configuration-p wc)
+         ((and (window-configuration-p wc)
+               ;; Check for such cases as cloning a frame with tabs.
+               ;; When tabs were cloned to another frame, then fall back
+               ;; to using `window-state-put' below.
+               (eq (window-configuration-frame wc) (selected-frame)))
           (let ((wc-point (alist-get 'wc-point to-tab))
                 (wc-bl  (seq-filter #'buffer-live-p (alist-get 'wc-bl to-tab)))
                 (wc-bbl (seq-filter #'buffer-live-p (alist-get 'wc-bbl to-tab)))
@@ -1161,7 +1171,8 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 (defun tab-bar-switch-to-last-tab (&optional arg)
   "Switch to the last tab or ARGth tab from the end of the tab bar.
 Interactively, ARG is the prefix numeric argument; it defaults to 1,
-which means the last tab on the tab bar."
+which means the last tab on the tab bar.  For example, `C-u 2
+<MODIFIER>-9' selects the tab before the last tab."
   (interactive "p")
   (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
                          (1- (or arg 1)))))

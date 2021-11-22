@@ -282,6 +282,8 @@ To test this function, evaluate:
     (setq window-last-row (- (window-height) 2)
 	  window-last-col (- (window-width) 2))
     (track-mouse
+      ;; Set 'track-mouse' to something neither nil nor t (Bug#51794).
+      (setq track-mouse 'drag-dragging)
       (while (progn
 	       (setq event (read--potential-mouse-event)
 		     end (event-end event)
