@@ -1677,7 +1677,7 @@ URLs."
      ;; For literal key sequence substitutions (e.g. "\\`C-h'"), just
      ;; remove the markup as `substitute-command-keys' would.
      (replace-regexp-in-string
-      (rx "\\" (seq "`" (group (* (not "]"))) "'"))
+      (rx "\\" (seq "`" (group (* (not "'"))) "'"))
       "\\1"
       docstring)))))
 
