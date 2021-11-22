@@ -2140,6 +2140,21 @@ height of all of these lines, if present, in the return value.
 whole and does not care about the size of individual lines.  The
 following function does.
 
+@defun buffer-text-pixel-size &optional buffer-or-name window from to x-limit y-limit
+This is much like @code{window-text-pixel-size}, but can be used when
+the buffer isn't shown in a window.  (@code{window-text-pixel-size} is
+faster when it is, so this function shouldn't be used in that case.)
+
+@var{buffer-or-name} must specify a live buffer or the name of a live
+buffer and defaults to the current buffer.  @var{window} must be a
+live window and defaults to the selected one.  The return value is a
+cons of the maximum pixel-width of any text line and the pixel-height
+of all the text lines of the buffer specified by @var{buffer-or-name}.
+
+The optional arguments @var{x-limit} and @var{y-limit} have the same
+meaning as with @code{window-text-pixel-size}.
+@end defun
+
 @defun window-lines-pixel-dimensions &optional window first last body inverse left
 This function calculates the pixel dimensions of each line displayed in
 the specified @var{window}.  It does so by walking @var{window}'s

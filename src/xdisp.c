@@ -10626,76 +10626,20 @@ in_display_vector_p (struct it *it)
 	  && it->dpvec + it->current.dpvec_index != it->dpend);
 }
 
-DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 6, 0,
-       doc: /* Return the size of the text of WINDOW's buffer in pixels.
-WINDOW can be any live window and defaults to the selected one.  The
-return value is a cons of the maximum pixel-width of any text line
-and the pixel-height of all the text lines in the accessible portion
-of buffer text.
-WINDOW can also be a buffer, in which case the selected window is used,
-and the function behaves as if that window was displaying this buffer.
-
-This function exists to allow Lisp programs to adjust the dimensions
-of WINDOW to the buffer text it needs to display.
-
-The optional argument FROM, if non-nil, specifies the first text
-position to consider, and defaults to the minimum accessible position
-of the buffer.  If FROM is t, it stands for the minimum accessible
-position that starts a non-empty line.  TO, if non-nil, specifies the
-last text position and defaults to the maximum accessible position of
-the buffer.  If TO is t, it stands for the maximum accessible position
-that ends a non-empty line.
-
-The optional argument X-LIMIT, if non-nil, specifies the maximum X
-coordinate beyond which the text should be ignored.  It is therefore
-also the maximum width that the function can return.  X-LIMIT nil or
-omitted means to use the pixel-width of WINDOW's body.  This default
-means text of truncated lines wider than the window will be ignored;
-specify a large value for X-LIMIT if lines are truncated and you need
-to account for the truncated text.  Use nil for X-LIMIT if you want to
-know how high WINDOW should become in order to fit all of its buffer's
-text with the width of WINDOW unaltered.  Use the maximum width WINDOW
-may assume if you intend to change WINDOW's width.  Since calculating
-the width of long lines can take some time, it's always a good idea to
-make this argument as small as possible; in particular, if the buffer
-contains long lines that shall be truncated anyway.
-
-The optional argument Y-LIMIT, if non-nil, specifies the maximum Y
-coordinate beyond which the text is to be ignored; it is therefore
-also the maximum height that the function can return (excluding the
-height of the mode- or header-line, if any).  Y-LIMIT nil or omitted
-means consider all of the accessible portion of buffer text up to the
-position specified by TO.  Since calculating the text height of a
-large buffer can take some time, it makes sense to specify this
-argument if the size of the buffer is large or unknown.
-
-Optional argument MODE-LINES nil or omitted means do not include the
-height of the mode-, tab- or header-line of WINDOW in the return value.
-If it is the symbol `mode-line', 'tab-line' or `header-line', include
-only the height of that line, if present, in the return value.  If t,
-include the height of any of these, if present, in the return value.  */)
-  (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
-   Lisp_Object y_limit, Lisp_Object mode_lines)
+/* This is like Fwindow_text_pixel_size but assumes that WINDOW's buffer
+   is the current buffer.  Fbuffer_text_pixel_size calls it after it has
+   set WINDOW's buffer to the buffer specified by its BUFFER_OR_NAME
+   argument.  */
+static Lisp_Object
+window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
+			Lisp_Object y_limit, Lisp_Object mode_lines)
 {
-  struct window *w = BUFFERP (window) ? XWINDOW (selected_window)
-                     : decode_live_window (window);
-  Lisp_Object buffer = BUFFERP (window) ? window : w->contents;
-  struct buffer *b;
+  struct window *w = decode_live_window (window);
   struct it it;
-  struct buffer *old_b = NULL;
   ptrdiff_t start, end, bpos;
   struct text_pos startp;
   void *itdata = NULL;
   int c, max_x = 0, max_y = 0, x = 0, y = 0;
-
-  CHECK_BUFFER (buffer);
-  b = XBUFFER (buffer);
-
-  if (b != current_buffer)
-    {
-      old_b = current_buffer;
-      set_buffer_internal (b);
-    }
 
   if (NILP (from))
     {
@@ -10755,8 +10699,10 @@ include the height of any of these, if present, in the return value.  */)
   else
     end = clip_to_bounds (start, fix_position (to), ZV);
 
-  if (!NILP (x_limit) && RANGED_FIXNUMP (0, x_limit, INT_MAX))
+  if (RANGED_FIXNUMP (0, x_limit, INT_MAX))
     max_x = XFIXNUM (x_limit);
+  else if (!NILP (x_limit))
+    max_x = INT_MAX;
 
   if (NILP (y_limit))
     max_y = INT_MAX;
@@ -10889,11 +10835,127 @@ include the height of any of these, if present, in the return value.  */)
 
   bidi_unshelve_cache (itdata, false);
 
-  if (old_b)
-    set_buffer_internal (old_b);
-
   return Fcons (make_fixnum (x - start_x), make_fixnum (y));
 }
+
+DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 6, 0,
+       doc: /* Return the size of the text of WINDOW's buffer in pixels.
+WINDOW must be a live window and defaults to the selected one.  The
+return value is a cons of the maximum pixel-width of any text line
+and the pixel-height of all the text lines in the accessible portion
+of buffer text.
+
+This function exists to allow Lisp programs to adjust the dimensions
+of WINDOW to the buffer text it needs to display.
+
+The optional argument FROM, if non-nil, specifies the first text
+position to consider, and defaults to the minimum accessible position
+of the buffer.  If FROM is t, it stands for the minimum accessible
+position that starts a non-empty line.  TO, if non-nil, specifies the
+last text position and defaults to the maximum accessible position of
+the buffer.  If TO is t, it stands for the maximum accessible position
+that ends a non-empty line.
+
+The optional argument X-LIMIT, if non-nil, specifies the maximum X
+coordinate beyond which the text should be ignored.  It is therefore
+also the maximum width that the function can return.  X-LIMIT nil or
+omitted means to use the pixel-width of WINDOW's body.  This default
+means text of truncated lines wider than the window will be ignored;
+specify a non-nil value for X-LIMIT if lines are truncated and you need
+to account for the truncated text.
+
+Use nil for X-LIMIT if you want to know how high WINDOW should become in
+order to fit all of its buffer's text with the width of WINDOW
+unaltered.  Use the maximum width WINDOW may assume if you intend to
+change WINDOW's width.  Use t for the maximum possible value.  Since
+calculating the width of long lines can take some time, it's always a
+good idea to make this argument as small as possible; in particular, if
+the buffer contains long lines that shall be truncated anyway.
+
+The optional argument Y-LIMIT, if non-nil, specifies the maximum Y
+coordinate beyond which the text is to be ignored; it is therefore
+also the maximum height that the function can return (excluding the
+height of the mode- or header-line, if any).  Y-LIMIT nil or omitted
+means consider all of the accessible portion of buffer text up to the
+position specified by TO.  Since calculating the text height of a
+large buffer can take some time, it makes sense to specify this
+argument if the size of the buffer is large or unknown.
+
+Optional argument MODE-LINES nil or omitted means do not include the
+height of the mode-, tab- or header-line of WINDOW in the return value.
+If it is the symbol `mode-line', 'tab-line' or `header-line', include
+only the height of that line, if present, in the return value.  If t,
+include the height of any of these, if present, in the return value.  */)
+  (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
+   Lisp_Object y_limit, Lisp_Object mode_lines)
+{
+  struct window *w = decode_live_window (window);
+  struct buffer *b = XBUFFER (w->contents);
+  struct buffer *old_b = NULL;
+  Lisp_Object value;
+
+  if (b != current_buffer)
+    {
+      old_b = current_buffer;
+      set_buffer_internal_1 (b);
+    }
+
+  value = window_text_pixel_size (window, from, to, x_limit, y_limit, mode_lines);
+
+  if (old_b)
+    set_buffer_internal_1 (old_b);
+
+  return value;
+}
+
+DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
+       doc: /* Return size of whole text of BUFFER-OR-NAME in WINDOW.
+BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
+and defaults to the current buffer.  WINDOW must be a live window and
+defaults to the selected one.  The return value is a cons of the maximum
+pixel-width of any text line and the pixel-height of all the text lines
+of the buffer specified by BUFFER-OR-NAME.
+
+The optional arguments X-LIMIT and Y-LIMIT have the same meaning as with
+`window-text-pixel-size'.
+
+Do not use this function if the buffer specified by BUFFER-OR-NAME is
+already displayed in WINDOW.  `window-text-pixel-size' is cheaper in
+that case because it does not have to temporarily show that buffer in
+WINDOW.  */)
+  (Lisp_Object buffer_or_name, Lisp_Object window, Lisp_Object x_limit,
+   Lisp_Object y_limit)
+{
+  struct window *w = decode_live_window (window);
+  struct buffer *b = (NILP (buffer_or_name)
+		      ? current_buffer
+		      : XBUFFER (Fget_buffer (buffer_or_name)));
+  Lisp_Object buffer, value;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  XSETBUFFER (buffer, b);
+
+  /* The unwind form of with_echo_area_buffer is what we need here to
+     make WINDOW temporarily show our buffer.  */
+  record_unwind_protect (unwind_with_echo_area_buffer,
+			 with_echo_area_buffer_unwind_data (w));
+
+  set_buffer_internal_1 (b);
+
+  if (!EQ (buffer, w->contents))
+    {
+      wset_buffer (w, buffer);
+      set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
+      set_marker_both (w->old_pointm, buffer, BEG, BEG_BYTE);
+    }
+
+  value = window_text_pixel_size (window, Qnil, Qnil, x_limit, y_limit, Qnil);
+
+  unbind_to (count, Qnil);
+
+  return value;
+}
+
 
 DEFUN ("display--line-is-continued-p", Fdisplay__line_is_continued_p,
        Sdisplay__line_is_continued_p, 0, 0, 0,
@@ -35040,6 +35102,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   defsubr (&Sinvisible_p);
   defsubr (&Scurrent_bidi_paragraph_direction);
   defsubr (&Swindow_text_pixel_size);
+  defsubr (&Sbuffer_text_pixel_size);
   defsubr (&Smove_point_visually);
   defsubr (&Sbidi_find_overridden_directionality);
   defsubr (&Sdisplay__line_is_continued_p);

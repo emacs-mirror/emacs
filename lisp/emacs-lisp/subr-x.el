@@ -446,8 +446,7 @@ is inserted before adjusting the number of empty lines."
   "Return the width of STRING in pixels."
   (with-temp-buffer
     (insert string)
-    (car (window-text-pixel-size
-          (current-buffer) (point-min) (point)))))
+    (car (buffer-text-pixel-size nil nil t))))
 
 ;;;###autoload
 (defun string-glyph-split (string)

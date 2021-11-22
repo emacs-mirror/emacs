@@ -76,6 +76,11 @@ time.
 * Changes in Emacs 29.1
 
 +++
+** New function 'buffer-text-pixel-size'.
+This is similar to 'window-text-pixel-size', but can be used when the
+buffer isn't displayed.
+
++++
 ** New X resource: "borderThickness".
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
