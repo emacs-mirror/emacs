@@ -9059,7 +9059,7 @@ webp_load (struct frame *f, struct image *img)
     }
 
   /* Create the x image and pixmap.  */
-  Emacs_Pix_Container ximg, mask_img;
+  Emacs_Pix_Container ximg, mask_img = NULL;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, false))
     goto webp_error2;
 
