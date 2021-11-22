@@ -737,8 +737,7 @@ position clicked before acting.
 This function returns a list (URL NEW-WINDOW-FLAG)
 for use in `interactive'."
   (let ((event (elt (this-command-keys) 0)))
-    (when (mouse-event-p event)
-      (mouse-set-point event)))
+    (mouse-set-point event))
   (list (read-string prompt (or (and transient-mark-mode mark-active
 				     ;; rfc2396 Appendix E.
 				     (replace-regexp-in-string
