@@ -10937,6 +10937,7 @@ WINDOW.  */)
 
   /* The unwind form of with_echo_area_buffer is what we need here to
      make WINDOW temporarily show our buffer.  */
+  /* FIXME: Can we move this into the `if (!EQ (buffer, w->contents))`?  */
   record_unwind_protect (unwind_with_echo_area_buffer,
 			 with_echo_area_buffer_unwind_data (w));
 

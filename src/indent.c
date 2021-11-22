@@ -2051,6 +2051,7 @@ window_column_x (struct window *w, Lisp_Object window,
 
 /* Restore window's buffer and point.  */
 
+/* FIXME: Merge with `with_echo_area_buffer_unwind_data`?  */
 static void
 restore_window_buffer (Lisp_Object list)
 {
