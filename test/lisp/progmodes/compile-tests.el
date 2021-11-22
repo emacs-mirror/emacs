@@ -492,7 +492,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 96))
+      (should (eq compilation-num-errors-found 97))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 
