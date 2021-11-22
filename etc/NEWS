@@ -181,6 +181,11 @@ For example, a 'display-buffer-alist' entry of
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' in combination with 'body-lines'.
 
+** Tab Bars and Tab Lines
+
+---
+*** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
+
 ** Better detection of text suspiciously reordered on display.
 The function 'bidi-find-overridden-directionality' has been extended
 to detect reordering effects produced by embeddings and isolates

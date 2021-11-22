@@ -1196,7 +1196,9 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 Default values are tab names sorted by recency, so you can use \
 \\<minibuffer-local-map>\\[next-history-element]
 to get the name of the most recently visited tab, the second
-most recent, and so on."
+most recent, and so on.
+When the tab with that NAME doesn't exist, create a new tab
+and rename it to NAME."
   (interactive
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
@@ -1204,7 +1206,11 @@ most recent, and so on."
      (list (completing-read (format-prompt "Switch to tab by name"
                                            (car recent-tabs))
                             recent-tabs nil nil nil nil recent-tabs))))
-  (tab-bar-select-tab (1+ (or (tab-bar--tab-index-by-name name) 0))))
+  (let ((tab-index (tab-bar--tab-index-by-name name)))
+    (if tab-index
+        (tab-bar-select-tab (1+ tab-index))
+      (tab-bar-new-tab)
+      (tab-bar-rename-tab name))))
 
 (defalias 'tab-bar-select-tab-by-name 'tab-bar-switch-to-tab)
 
