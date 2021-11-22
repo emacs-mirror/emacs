@@ -10649,6 +10649,25 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  case XI_KeyRelease:
 	    x_display_set_last_user_time (dpyinfo, xev->time);
+#ifdef HAVE_X_I18N
+	    XKeyPressedEvent xkey;
+
+	    memset (&xkey, 0, sizeof xkey);
+
+	    xkey.type = KeyRelease;
+	    xkey.serial = 0;
+	    xkey.send_event = xev->send_event;
+	    xkey.display = xev->display;
+	    xkey.window = xev->event;
+	    xkey.root = xev->root;
+	    xkey.subwindow = xev->child;
+	    xkey.time = xev->time;
+	    xkey.state = xev->mods.effective;
+	    xkey.keycode = xev->detail;
+	    xkey.same_screen = True;
+
+	    x_filter_event (dpyinfo, (XEvent *) &xkey);
+#endif
 	    goto XI_OTHER;
 	  case XI_PropertyEvent:
 	  case XI_HierarchyChanged:
