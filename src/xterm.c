@@ -10128,11 +10128,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bool tool_bar_p = false;
 	      struct xi_device_t *device;
 
+#ifdef XIPointerEmulated
 	      /* Ignore emulated scroll events when XI2 native
 		 scroll events are present.  */
-	      if (dpyinfo->xi2_version >= 1 && xev->detail >= 4
-		  && xev->detail <= 8)
+	      if (dpyinfo->xi2_version >= 1
+		  && xev->detail >= 4
+		  && xev->detail <= 8
+		  && xev->flags & XIPointerEmulated)
 		goto XI_OTHER;
+#endif
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
