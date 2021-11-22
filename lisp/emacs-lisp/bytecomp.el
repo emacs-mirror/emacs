@@ -1672,7 +1672,7 @@ URLs."
     ;; known at compile time.  So instead, we assume that these
     ;; substitutions are of some length N.
     (replace-regexp-in-string
-     (rx "\\" (or (seq "[" (* (not "]")) "]")))
+     (rx "\\" (seq "[" (* (not "]")) "]"))
      (make-string byte-compile--wide-docstring-substitution-len ?x)
      ;; For literal key sequence substitutions (e.g. "\\`C-h'"), just
      ;; remove the markup as `substitute-command-keys' would.
