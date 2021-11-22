@@ -10292,10 +10292,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  case XI_KeyPress:
 	    {
-	      int state = xev->mods.base
-		| xev->mods.effective
-		| xev->mods.latched
-		| xev->mods.locked;
+	      int state = xev->mods.effective;
 	      Lisp_Object c;
 #ifdef HAVE_XKB
 	      unsigned int mods_rtrn;
