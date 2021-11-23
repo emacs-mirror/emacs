@@ -2287,10 +2287,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#ifdef USE_GTK
-#ifndef HAVE_PGTK
+#if defined(USE_GTK) && !defined(HAVE_PGTK)
   init_xterm ();
-#endif
 #endif
 
   /* This can create a thread that may call getenv, so it must follow
