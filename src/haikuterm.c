@@ -2843,8 +2843,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		tool_bar_p = EQ (window, f->tool_bar_window);
 
 		if (tool_bar_p)
-		  handle_tool_bar_click
-		    (f, x, y, type == BUTTON_DOWN, inev.modifiers);
+		  {
+		    handle_tool_bar_click
+		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
+		    redisplay ();
+		  }
 	      }
 
 	    if (type == BUTTON_UP)
