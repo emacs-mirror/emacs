@@ -6391,12 +6391,7 @@ With some window managers you may have to set this to non-nil in order
 to set the size of a frame in pixels, to maximize frames or to make them
 fullscreen.  To resize your initial frame pixelwise, set this option to
 a non-nil value in your init file.  */);
-#ifndef HAVE_PGTK
   frame_resize_pixelwise = 0;
-#else
-  /* https://gitlab.gnome.org/GNOME/mutter/-/issues/396 */
-  frame_resize_pixelwise = true;
-#endif
 
   DEFVAR_LISP ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
 	       doc: /* Whether frames should be resized implicitly.
