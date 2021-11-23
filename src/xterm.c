@@ -10310,9 +10310,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      char copy_buffer[81];
 	      char *copy_bufptr = copy_buffer;
 	      unsigned char *copy_ubufptr;
-#ifdef HAVE_XKB
 	      int copy_bufsiz = sizeof (copy_buffer);
-#endif
 	      ptrdiff_t i;
 	      int nchars, len;
 
