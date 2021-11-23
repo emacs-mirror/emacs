@@ -10324,7 +10324,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      memset (&xkey, 0, sizeof xkey);
 
 	      xkey.type = KeyPress;
-	      xkey.serial = 0;
+	      xkey.serial = xev->serial;
 	      xkey.send_event = xev->send_event;
 	      xkey.display = xev->display;
 	      xkey.window = xev->event;
@@ -10439,53 +10439,38 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			emacs_abort ();
 		    }
 		  else
-		    {
 #endif
+		    {
 #ifdef HAVE_XKB
 		      int overflow = 0;
 		      KeySym sym = keysym;
 
 		      if (dpyinfo->xkb_desc)
 			{
-			  if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-							     state & ~mods_rtrn, copy_bufptr,
-							     copy_bufsiz, &overflow)))
-			    goto XI_OTHER;
+			  nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
+						       state & ~mods_rtrn, copy_bufptr,
+						       copy_bufsiz, &overflow);
+			  if (overflow)
+			    {
+			      copy_bufptr = alloca ((copy_bufsiz += overflow)
+						    * sizeof *copy_bufptr);
+			      overflow = 0;
+			      nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
+							   state & ~mods_rtrn, copy_bufptr,
+							   copy_bufsiz, &overflow);
+
+			      if (overflow)
+				nbytes = 0;
+			    }
 			}
 		      else
-#else
-			{
-			  block_input ();
-			  char *str = XKeysymToString (keysym);
-			  if (!str)
-			    {
-			      unblock_input ();
-			      goto XI_OTHER;
-			    }
-			  nbytes = strlen (str) + 1;
-			  copy_bufptr = alloca (nbytes);
-			  strcpy (copy_bufptr, str);
-			  unblock_input ();
-			}
 #endif
-#ifdef HAVE_XKB
-		      if (overflow)
 			{
-			  overflow = 0;
-			  copy_bufptr = alloca (copy_bufsiz + overflow);
-			  keysym = sym;
-			  if (!(nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
-							     state & ~mods_rtrn, copy_bufptr,
-							     copy_bufsiz + overflow, &overflow)))
-			    goto XI_OTHER;
-
-			  if (overflow)
-			    goto XI_OTHER;
+			  nbytes = XLookupString (&xkey, copy_bufptr,
+						  copy_bufsiz, &keysym,
+						  &compose_status);
 			}
-#endif
-#ifdef HAVE_X_I18N
 		    }
-#endif
 
 		  /* First deal with keysyms which have defined
 		     translations to characters.  */
