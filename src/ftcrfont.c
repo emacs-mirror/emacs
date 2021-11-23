@@ -136,9 +136,7 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   filename = XCAR (val);
   size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
-  {
     size = pixel_size;
-  }
 
   block_input ();
 
