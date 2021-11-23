@@ -9870,7 +9870,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
-	    xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
+
+	    if (enter->detail != XINotifyInferior
+		&& enter->mode != XINotifyPassiveUngrab
+		&& enter->mode != XINotifyUngrab && any)
+	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
+
 	    f = any;
 
 	    if (f && x_mouse_click_focus_ignore_position)
@@ -9895,7 +9900,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
-	    xi_reset_scroll_valuators_for_device_id (dpyinfo, leave->deviceid);
 
 	    f = x_top_window_to_frame (dpyinfo, leave->event);
 	    if (f)
