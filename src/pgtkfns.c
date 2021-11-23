@@ -222,13 +222,11 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (FRAME_VISIBLE_P (f))
     pgtk_clear_frame (f);
 
-  PGTK_TRACE ("x_set_background_color: col.pixel=%08lx.", bg);
   FRAME_X_OUTPUT (f)->background_color = bg;
 
   xg_set_background_color (f, bg);
   update_face_from_frame_parameter (f, Qbackground_color, arg);
 
-  PGTK_TRACE ("visible_p=%d.", FRAME_VISIBLE_P (f));
   if (FRAME_VISIBLE_P (f))
     SET_FRAME_GARBAGED (f);
 }
@@ -311,8 +309,6 @@ pgtk_set_name_internal (struct frame *f, Lisp_Object name)
 static void
 pgtk_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
-  PGTK_TRACE ("pgtk_set_name");
-
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
   if (explicit)
@@ -352,7 +348,6 @@ pgtk_set_name (struct frame *f, Lisp_Object name, int explicit)
 static void
 x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  PGTK_TRACE ("x_explicitly_set_name");
   pgtk_set_name (f, arg, true);
 }
 
@@ -364,7 +359,6 @@ void
 pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg,
 			  Lisp_Object oldval)
 {
-  PGTK_TRACE ("x_implicitly_set_name");
   pgtk_set_name (f, arg, false);
 }
 
@@ -375,7 +369,6 @@ pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg,
 static void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
-  PGTK_TRACE ("x_set_title");
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
     return;
@@ -1670,7 +1663,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
       block_input ();
 
-      PGTK_TRACE ("x_set_parent_frame x: %d, y: %d", f->left_pos, f->top_pos);
       GtkWidget *fixed = FRAME_GTK_WIDGET (f);
       GtkWidget *fixed_of_p = FRAME_GTK_WIDGET (p);
       GtkWidget *whbox_of_f = gtk_widget_get_parent (fixed);
@@ -3726,7 +3718,6 @@ The coordinates X and Y are interpreted in pixels relative to a position
   GdkSeat *seat = gdk_display_get_default_seat (gdpy);
   GdkDevice *device = gdk_seat_get_pointer (seat);
 
-  PGTK_TRACE ("pgtk-set-mouse-absolute-pixel-position:");
   gdk_device_warp (device, gscr, XFIXNUM (x), XFIXNUM (y));	/* No effect on wayland. */
 
   return Qnil;
@@ -4127,67 +4118,5 @@ eliminated in future versions of Emacs.  */);
   DEFSYM (Qreverse_portrait, "reverse-portrait");
   DEFSYM (Qreverse_landscape, "reverse-landscape");
 }
-
-
-#ifdef PGTK_DEBUG
-#include <stdarg.h>
-#include <time.h>
-void
-pgtk_log (const char *file, int lineno, const char *fmt, ...)
-{
-  struct timespec ts;
-  struct tm tm;
-  char timestr[32];
-  va_list ap;
-
-  clock_gettime (CLOCK_REALTIME, &ts);
-
-  localtime_r (&ts.tv_sec, &tm);
-  strftime (timestr, sizeof timestr, "%H:%M:%S", &tm);
-
-  fprintf (stderr, "%s.%06ld %.10s:%04d ", timestr, ts.tv_nsec / 1000, file,
-	   lineno);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-  fputc ('\n', stderr);
-}
-
-void
-pgtk_backtrace (const char *file, int lineno)
-{
-  Lisp_Object bt = make_uninit_vector (10);
-  for (int i = 0; i < 10; i++)
-    ASET (bt, i, Qnil);
-
-  struct timespec ts;
-  struct tm tm;
-  char timestr[32];
-
-  clock_gettime (CLOCK_REALTIME, &ts);
-
-  localtime_r (&ts.tv_sec, &tm);
-  strftime (timestr, sizeof timestr, "%H:%M:%S", &tm);
-
-  fprintf (stderr, "%s.%06ld %.10s:%04d ********\n", timestr,
-	   ts.tv_nsec / 1000, file, lineno);
-
-  get_backtrace (bt);
-  for (int i = 0; i < 10; i++)
-    {
-      Lisp_Object stk = AREF (bt, i);
-      if (!NILP (stk))
-	{
-	  Lisp_Object args[2] = { build_string ("%S"), stk };
-	  Lisp_Object str = Fformat (2, args);
-	  fprintf (stderr, "%s %.10s:%04d %s\n", timestr, file, lineno,
-		   SSDATA (str));
-	}
-    }
-
-  fprintf (stderr, "%s %.10s:%04d ********\n", timestr, file, lineno);
-}
-
-#endif
 
 #endif

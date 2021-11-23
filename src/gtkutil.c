@@ -51,9 +51,6 @@ typedef struct pgtk_output xp_output;
 #include "termhooks.h"
 #include "keyboard.h"
 #include "coding.h"
-#ifndef PGTK_TRACE
-#define PGTK_TRACE(fmt, ...) ((void) 0)
-#endif
 
 #include <gdk/gdkkeysyms.h>
 
@@ -1408,7 +1405,6 @@ xg_create_frame_widgets (struct frame *f)
   GtkWindowType type = GTK_WINDOW_TOPLEVEL;
   char *title = 0;
 
-  PGTK_TRACE ("xg_create_frame_widgets.");
   block_input ();
 
 #ifndef HAVE_PGTK  // gtk_plug not found.
@@ -1622,7 +1618,6 @@ xg_create_frame_outer_widgets (struct frame *f)
   GtkWindowType type = GTK_WINDOW_TOPLEVEL;
   char *title = 0;
 
-  PGTK_TRACE ("xg_create_frame_outer_widgets.");
   block_input ();
 
   wtop = gtk_window_new (type);
@@ -1814,7 +1809,6 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 1) + FRAME_TOOLBAR_WIDTH (f);
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
-  PGTK_TRACE ("base: %dx%d\n", base_width, base_height);
 
   size_hints.base_width = base_width;
   size_hints.base_height = base_height;
@@ -4569,8 +4563,6 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
-  PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: ----------------------------------");
-  PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: %p, %d, %d, %d.", bar, portion, position, whole);
   if (wscroll && bar->dragging == -1)
     {
       GtkAdjustment *adj;
@@ -4602,26 +4594,17 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
           top = (gdouble) position / whole;
           shown = (gdouble) portion / whole;
         }
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: position=%d, portion=%d, whole=%d", position, portion, whole);
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: top=%f, shown=%f", top, shown);
 
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: shown*range=%f", shown * XG_SB_RANGE);
       size = clip_to_bounds (1, shown * XG_SB_RANGE, XG_SB_RANGE);
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: size=%d.", size);
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: top*range=%f.", top * XG_SB_RANGE);
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: max-size=%d.", XG_SB_MAX - size);
       value = clip_to_bounds (XG_SB_MIN, top * XG_SB_RANGE, XG_SB_MAX - size);
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: value=%d.", value);
 
       /* Assume all lines are of equal size.  */
       new_step = size / max (1, FRAME_LINES (f));
 
       old_size = gtk_adjustment_get_page_size (adj);
-      PGTK_TRACE("xg_set_toolkit_scroll_bar_thumb: old_size=%d, size=%d", old_size, size);
       if (old_size != size)
 	{
 	  int old_step = gtk_adjustment_get_step_increment (adj);
-	  PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: old_step=%d, new_step=%d", old_step, new_step);
 	  if (old_step != new_step)
 	    {
 	      gtk_adjustment_set_page_size (adj, size);
@@ -4632,8 +4615,6 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 	    }
 	}
 
-      PGTK_TRACE ("xg_set_toolkit_scroll_bar_thumb: changed=%d, old=%d, value=%d.",
-		  changed, int_gtk_range_get_value (GTK_RANGE (wscroll)), value);
       if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
         block_input ();

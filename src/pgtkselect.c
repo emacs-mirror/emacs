@@ -165,7 +165,6 @@ static void
 get_func (GtkClipboard * cb, GtkSelectionData * data, guint info,
 	  gpointer user_data_or_owner)
 {
-  PGTK_TRACE ("get_func:");
   GObject *obj = G_OBJECT (user_data_or_owner);
   const char *str;
   int size;
@@ -176,14 +175,12 @@ get_func (GtkClipboard * cb, GtkSelectionData * data, guint info,
 
   str = g_object_get_qdata (obj, quark_data);
   size = GPOINTER_TO_SIZE (g_object_get_qdata (obj, quark_size));
-  PGTK_TRACE ("get_func: str: %s", str);
   gtk_selection_data_set_text (data, str, size);
 }
 
 static void
 clear_func (GtkClipboard * cb, gpointer user_data_or_owner)
 {
-  PGTK_TRACE ("clear_func:");
   GObject *obj = G_OBJECT (user_data_or_owner);
   GQuark quark_data, quark_size;
 
@@ -224,7 +221,6 @@ pgtk_selection_lost (GtkWidget * widget, GdkEventSelection * event,
 		     gpointer user_data)
 {
   GQuark quark_data, quark_size;
-  PGTK_TRACE ("pgtk_selection_lost:");
 
   selection_type_to_quarks (event->selection, &quark_data, &quark_size);
 
@@ -340,7 +336,6 @@ FRAME should be a frame that should own the selection.  If omitted or
 nil, it defaults to the selected frame. */)
   (Lisp_Object selection, Lisp_Object value, Lisp_Object frame)
 {
-  PGTK_TRACE ("pgtk-own-selection-internal.");
   Lisp_Object successful_p = Qnil;
   Lisp_Object target_symbol, rest;
   GtkClipboard *cb;
@@ -392,18 +387,12 @@ nil, it defaults to the selected frame. */)
       g_object_set_qdata_full (G_OBJECT (widget), quark_size,
 			       GSIZE_TO_POINTER (size), NULL);
 
-      PGTK_TRACE ("set_with_owner: owner=%p", FRAME_GTK_WIDGET (f));
       if (gtk_clipboard_set_with_owner (cb,
 					targets, n_targets,
 					get_func, clear_func,
 					G_OBJECT (FRAME_GTK_WIDGET (f))))
 	{
-	  PGTK_TRACE ("set_with_owner succeeded..");
 	  successful_p = Qt;
-	}
-      else
-	{
-	  PGTK_TRACE ("set_with_owner failed.");
 	}
       gtk_clipboard_set_can_store (cb, NULL, 0);
 
@@ -439,8 +428,6 @@ On MS-DOS, all this does is return non-nil if we own the selection.
 On PGTK, the TIME-OBJECT is unused.  */)
   (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
 {
-  PGTK_TRACE ("pgtk-disown-selection-internal.");
-
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
 
@@ -472,7 +459,6 @@ frame's display, or the first available X display.
 On Nextstep, TERMINAL is unused.  */)
   (Lisp_Object selection, Lisp_Object terminal)
 {
-  PGTK_TRACE ("pgtk-selection-exists-p.");
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
 
@@ -503,7 +489,6 @@ frame's display, or the first available X display.
 On Nextstep, TERMINAL is unused.  */)
   (Lisp_Object selection, Lisp_Object terminal)
 {
-  PGTK_TRACE ("pgtk-selection-owner-p.");
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
   GObject *obj;
@@ -598,14 +583,11 @@ On PGTK, TIME-STAMP is unused.  */)
 void
 nxatoms_of_pgtkselect (void)
 {
-  PGTK_TRACE ("nxatoms_of_pgtkselect");
 }
 
 void
 syms_of_pgtkselect (void)
 {
-  PGTK_TRACE ("syms_of_pgtkselect");
-
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QTEXT, "TEXT");
