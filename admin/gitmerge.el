@@ -68,8 +68,7 @@ bump Emacs version\\|Auto-commit"))
 (defvar gitmerge-minimum-missing 10
   "Minimum number of missing commits to consider merging in batch mode.")
 
-(defvar gitmerge-status-file (expand-file-name "gitmerge-status"
-					       user-emacs-directory)
+(defvar gitmerge-status-file (locate-user-emacs-file "gitmerge-status")
   "File where missing commits will be saved between sessions.")
 
 (defvar gitmerge-ignore-branches-regexp
