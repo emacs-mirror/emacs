@@ -51,6 +51,9 @@ static void emacs_fixed_get_preferred_width  (GtkWidget *widget,
 static void emacs_fixed_get_preferred_height (GtkWidget *widget,
                                               gint      *minimum,
                                               gint      *natural);
+#ifndef HAVE_PGTK
+static GType emacs_fixed_get_type (void);
+#endif
 G_DEFINE_TYPE (EmacsFixed, emacs_fixed, GTK_TYPE_FIXED)
 
 static EmacsFixed *
