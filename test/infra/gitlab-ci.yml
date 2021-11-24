@@ -127,21 +127,6 @@ default:
     - docker build --pull --target ${target} -t ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} -f test/infra/Dockerfile.emba .
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
-.test-template:
-  needs: []
-  # Do not run fast and normal test jobs when scheduled.
-  rules:
-    - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
-      when: never
-    - when: always
-  artifacts:
-    name: ${test_name}
-    public: true
-    expire_in: 1 week
-    paths:
-      - "**.log"
-    when: always
-
 .gnustep-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
@@ -204,11 +189,21 @@ include: '/test/infra/test-jobs.yml'
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     # Note there's no "changes" section, so this always runs on a schedule.
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - "**/*.log"
+    when: always
   variables:
     target: emacs-inotify
     make_params: check-expensive
@@ -222,8 +217,10 @@ build-image-filenotify-gio:
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
-  extends: [.job-template, .test-template, .filenotify-gio-template]
-  needs: [build-image-filenotify-gio]
+  extends: [.job-template, .filenotify-gio-template]
+  needs:
+    - job: build-image-filenotify-gio
+      optional: true
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
@@ -238,7 +235,9 @@ test-gnustep:
   # This tests the GNUstep build process.
   stage: platforms
   extends: [.job-template, .gnustep-template]
-  needs: [build-image-gnustep]
+  needs:
+    - job: build-image-gnustep
+      optional: true
   variables:
     target: emacs-gnustep
     make_params: install
@@ -263,8 +262,10 @@ build-native-comp-speed2:
 
 test-native-comp-speed0:
   stage: native-comp
-  extends: [.job-template, .test-template, .native-comp-template]
-  needs: [build-native-comp-speed0]
+  extends: [.job-template, .native-comp-template]
+  needs:
+    - job: build-native-comp-speed0
+      optional: true
   variables:
     target: emacs-native-comp-speed0
     make_params: "-C test check SELECTOR='(not (tag :unstable))'"

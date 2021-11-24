@@ -1,7 +1,10 @@
 
 test-lib-src-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -22,7 +25,10 @@ test-lib-src-inotify:
 
 test-lisp-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -43,7 +49,10 @@ test-lisp-inotify:
 
 test-lisp-calc-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -64,7 +73,10 @@ test-lisp-calc-inotify:
 
 test-lisp-calendar-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -85,7 +97,10 @@ test-lisp-calendar-inotify:
 
 test-lisp-cedet-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -106,7 +121,10 @@ test-lisp-cedet-inotify:
 
 test-lisp-cedet-semantic-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -127,7 +145,10 @@ test-lisp-cedet-semantic-inotify:
 
 test-lisp-cedet-semantic-bovine-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -148,7 +169,10 @@ test-lisp-cedet-semantic-bovine-inotify:
 
 test-lisp-cedet-srecode-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -169,7 +193,10 @@ test-lisp-cedet-srecode-inotify:
 
 test-lisp-emacs-lisp-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -190,7 +217,10 @@ test-lisp-emacs-lisp-inotify:
 
 test-lisp-emacs-lisp-eieio-tests-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -211,7 +241,10 @@ test-lisp-emacs-lisp-eieio-tests-inotify:
 
 test-lisp-emacs-lisp-faceup-tests-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -232,7 +265,10 @@ test-lisp-emacs-lisp-faceup-tests-inotify:
 
 test-lisp-emulation-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -253,7 +289,10 @@ test-lisp-emulation-inotify:
 
 test-lisp-erc-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -274,7 +313,10 @@ test-lisp-erc-inotify:
 
 test-lisp-eshell-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -295,7 +337,10 @@ test-lisp-eshell-inotify:
 
 test-lisp-gnus-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -316,7 +361,10 @@ test-lisp-gnus-inotify:
 
 test-lisp-image-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -337,7 +385,10 @@ test-lisp-image-inotify:
 
 test-lisp-international-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -358,7 +409,10 @@ test-lisp-international-inotify:
 
 test-lisp-mail-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -379,7 +433,10 @@ test-lisp-mail-inotify:
 
 test-lisp-mh-e-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -400,7 +457,10 @@ test-lisp-mh-e-inotify:
 
 test-lisp-net-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -421,7 +481,10 @@ test-lisp-net-inotify:
 
 test-lisp-nxml-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -442,7 +505,10 @@ test-lisp-nxml-inotify:
 
 test-lisp-obsolete-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -463,7 +529,10 @@ test-lisp-obsolete-inotify:
 
 test-lisp-org-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -484,7 +553,10 @@ test-lisp-org-inotify:
 
 test-lisp-play-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -505,7 +577,10 @@ test-lisp-play-inotify:
 
 test-lisp-progmodes-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -526,7 +601,10 @@ test-lisp-progmodes-inotify:
 
 test-lisp-so-long-tests-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -547,7 +625,10 @@ test-lisp-so-long-tests-inotify:
 
 test-lisp-term-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -568,7 +649,10 @@ test-lisp-term-inotify:
 
 test-lisp-textmodes-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -589,7 +673,10 @@ test-lisp-textmodes-inotify:
 
 test-lisp-url-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -610,7 +697,10 @@ test-lisp-url-inotify:
 
 test-lisp-vc-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -631,7 +721,10 @@ test-lisp-vc-inotify:
 
 test-misc-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
@@ -652,7 +745,10 @@ test-misc-inotify:
 
 test-src-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       when: never
