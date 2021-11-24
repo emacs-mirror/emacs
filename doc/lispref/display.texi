@@ -5180,19 +5180,21 @@ be an integer or float.  Characters other than spaces are not affected
 at all; in particular, this has no effect on tab characters.
 
 @item (min-width (@var{width}))
-This display specification adds padding to the end of the text if the
-text is shorter than @var{width}.  The text is partitioned using the
-identity of the parameter, which is why the parameter is a list with
-one element.  For instance:
+This display specification ensures the text that has it takes at least
+@var{width} space on display, by adding a stretch of white space to
+the end of the text if the text is shorter than @var{width}.  The text
+is partitioned using the identity of the parameter, which is why the
+parameter is a list with one element.  For instance:
 
 @lisp
 (insert (propertize "foo" '(display (min-width (6.0)))))
 @end lisp
 
 This will add padding after @samp{foo} bringing the total width up to
-the width of six normal characters.  Note that the ``range'' is
-identified by the @code{(6.0)} list, compared with @code{eq}.  The
-width can be either a character width or a pixel specification
+the width of six normal characters.  Note that the affected characters
+are identified by the @code{(6.0)} list in the display property,
+compared with @code{eq}.  The element @var{width} can be either an
+integer or a float specifying the required minimum width of the text
 (@pxref{Pixel Specification}).
 
 @item (height @var{height})
