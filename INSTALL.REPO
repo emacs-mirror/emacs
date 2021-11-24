@@ -8,9 +8,15 @@ directory on your local machine:
 
 To build the repository code, simply run 'make' in the 'emacs'
 directory.  This should work if your files are freshly checked out
-from the repository, and if you have the proper tools installed.  If
-it doesn't work, or if you have special build requirements, the
-following information may be helpful.
+from the repository, and if you have the proper tools installed; the
+default configuration options will be used.  Other configuration
+options can be specified by setting a 'configure' variable, for
+example:
+
+  $ make configure="--prefix=/opt/emacs CFLAGS='-O0 -g3'"
+
+If the above doesn't work, or if you have special build requirements,
+the following information may be helpful.
 
 Building Emacs from the source-code repository requires some tools
 that are not needed when building from a release.  You will need:
@@ -58,7 +64,16 @@ To update loaddefs.el (and similar files), do:
 
 If either of the above partial procedures fails, try 'make bootstrap'.
 If CPU time is not an issue, 'make bootstrap' is a more thorough way
-to rebuild, avoiding spurious problems.
+to rebuild, avoiding spurious problems.  'make bootstrap' rebuilds
+Emacs with the same configuration options as the previous build; it
+can also be used to rebuild Emacs with other configuration options by
+setting a 'configure' variable, for example:
+
+  $ make bootstrap configure="CFLAGS='-O0 -g3'"
+
+To rebuild Emacs with the default configuration options, you can use:
+
+  $ make bootstrap configure=default
 
 Occasionally, there are changes that 'make bootstrap' won't be able to
 handle.  The most thorough cleaning can be achieved by 'git clean -fdx'

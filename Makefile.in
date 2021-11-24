@@ -1145,14 +1145,23 @@ check-info: info
 
 .PHONY: bootstrap
 
-# Bootstrapping does the following:
+# Without a 'configure' variable, bootstrapping does the following:
 #  * Remove files to start from a bootstrap-clean slate.
 #  * Run autogen.sh.
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
-bootstrap: bootstrap-clean
+# With a 'configure' variable, bootstrapping does the following:
+#  * Remove files to start from an extraclean slate.
+#  * Do the actual build, during which the 'configure' variable is
+#    used (see the Makefile goal in GNUmakefile).
+bootstrap:
+ifndef configure
+	$(MAKE) bootstrap-clean
 	cd $(srcdir) && ./autogen.sh autoconf
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
+else
+	$(MAKE) extraclean
+endif
 	$(MAKE) all
 
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
