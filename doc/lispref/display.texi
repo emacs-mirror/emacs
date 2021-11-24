@@ -4904,6 +4904,31 @@ with @code{get-char-property}, for instance (@pxref{Examining
 Properties}).
 @end defun
 
+@defun add-display-text-property start end prop value &optional append object
+Add @code{display} property @var{prop} of @var{value} to the text from
+@var{start} to @var{end}.
+
+If any text in the region has a non-@code{nil} @code{display}
+property, those properties are retained.  For instance:
+
+@lisp
+(add-display-text-property 4 8 'height 2.0)
+(add-display-text-property 2 12 'raise 0.5)
+@end lisp
+
+After doing this, the region from 2 to 4 will have the @code{raise}
+@code{display} property, the region from 4 to 8 will have both the
+@code{raise} and @code{height} @code{display} properties, and finally
+the region from 8 to 12 will only have the @code{raise} @code{display}
+property.
+
+If @var{append} is non-@code{nil}, append to the list of display
+properties; otherwise prepend.
+
+If @var{object} is non-@code{nil}, it should be a string or a buffer.
+If @code{nil}, this defaults to the current buffer.
+@end defun
+
 @cindex display property, unsafe evaluation
 @cindex security, and display specifications
   Some of the display specifications allow inclusion of Lisp forms,

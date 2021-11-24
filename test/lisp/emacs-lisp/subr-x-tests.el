@@ -676,5 +676,23 @@
       (buffer-string))
     "foo\n")))
 
+(ert-deftest test-add-display-text-property ()
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (add-display-text-property 4 8 'height 2.0)
+    (add-display-text-property 2 12 'raise 0.5)
+    (should (equal (get-text-property 2 'display) '(raise 0.5)))
+    (should (equal (get-text-property 5 'display)
+                   '((raise 0.5) (height 2.0))))
+    (should (equal (get-text-property 9 'display) '(raise 0.5))))
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (put-text-property 4 8 'display [(height 2.0)])
+    (add-display-text-property 2 12 'raise 0.5)
+    (should (equal (get-text-property 2 'display) '(raise 0.5)))
+    (should (equal (get-text-property 5 'display)
+                   [(raise 0.5) (height 2.0)]))
+    (should (equal (get-text-property 9 'display) '(raise 0.5)))))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

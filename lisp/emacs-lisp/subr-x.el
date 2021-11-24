@@ -469,6 +469,51 @@ This takes into account combining characters and grapheme clusters."
         (setq start (1+ start))))
     (nreverse result)))
 
+;;;###autoload
+(defun add-display-text-property (start end prop value
+                                        &optional append object)
+  "Add display property PROP with VALUE to the text from START to END.
+If any text in the region has a non-nil `display' property, those
+properties are retained.
+
+If APPEND is non-nil, append to the list of display properties;
+otherwise prepend.
+
+If OBJECT is non-nil, it should be a string or a buffer.  If nil,
+this defaults to the current buffer."
+  (let ((sub-start start)
+        (sub-end 0)
+        disp)
+    (while (< sub-end end)
+      (setq sub-end (next-single-property-change sub-start 'display object
+                                                 (if (stringp object)
+                                                     (min (length object) end)
+                                                   (min end (point-max)))))
+      (if (not (setq disp (get-text-property sub-start 'display object)))
+          ;; No old properties in this range.
+          (put-text-property sub-start sub-end 'display (list prop value))
+        ;; We have old properties.
+        (let ((vector nil))
+          ;; Make disp into a list.
+          (setq disp
+                (cond
+                 ((vectorp disp)
+                  (setq vector t)
+                  (seq-into disp 'list))
+                 ((not (consp (car disp)))
+                  (list disp))
+                 (t
+                  disp)))
+          (setq disp
+                (if append
+                    (append disp (list (list prop value)))
+                  (append (list (list prop value)) disp)))
+          (when vector
+            (setq disp (seq-into disp 'vector)))
+          ;; Finally update the range.
+          (put-text-property sub-start sub-end 'display disp)))
+      (setq sub-start sub-end))))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here
