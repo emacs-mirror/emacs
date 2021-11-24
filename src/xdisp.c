@@ -5352,7 +5352,8 @@ handle_display_prop (struct it *it)
 					   Qdisplay, object, &overlay);
 
   /* Handle min-width ends. */
-  if (!NILP (it->min_width_property))
+  if (!NILP (it->min_width_property)
+      && NILP (find_display_property (propval, Qmin_width)))
     display_min_width (it, bufpos, object, Qnil);
 
   if (NILP (propval))
