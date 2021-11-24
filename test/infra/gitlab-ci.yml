@@ -71,32 +71,6 @@ default:
 .job-template:
   variables:
     test_name: ${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}
-  rules:
-    - changes:
-        - "**Makefile.in"
-        - .gitlab-ci.yml
-        - aclocal.m4
-        - autogen.sh
-        - configure.ac
-        - lib/*.{h,c}
-        - lisp/**.el
-        - src/*.{h,c}
-        - test/infra/*
-        - test/lib-src/*.el
-        - test/lisp/**.el
-        - test/misc/*.el
-        - test/src/*.el
-    - changes:
-        # gfilemonitor, kqueue
-        - src/gfilenotify.c
-        - src/kqueue.c
-        # MS Windows
-        - "**w32*"
-        # GNUstep
-        - lisp/term/ns-win.el
-        - src/ns*.{h,m}
-        - src/macfont.{h,m}
-      when: never
   # These will be cached across builds.
   cache:
     key: ${CI_COMMIT_SHA}
@@ -127,15 +101,17 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
     - changes:
-        - "**Makefile.in"
-        - .gitlab-ci.yml
+        - "**.in"
+        - "**.yml"
+        - GNUmakefile
         - aclocal.m4
         - autogen.sh
         - configure.ac
         - lib/*.{h,c}
+        - lib/malloc/*.{h,c}
         - lisp/emacs-lisp/*.el
         - src/*.{h,c}
-        - test/infra/*
+        - test/infra/Dockerfile.emba
     - changes:
         # gfilemonitor, kqueue
         - src/gfilenotify.c
@@ -152,6 +128,7 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
+  needs: []
   # Do not run fast and normal test jobs when scheduled.
   rules:
     - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
@@ -162,9 +139,7 @@ default:
     public: true
     expire_in: 1 week
     paths:
-      - ${test_name}/**/*.log
-      - ${test_name}/**/core
-      - ${test_name}/core
+      - "**.log"
     when: always
 
 .gnustep-template:
@@ -172,27 +147,26 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**Makefile.in"
-        - .gitlab-ci.yml
-        - configure.ac
+        - "**.in"
+        - "**.yml"
         - src/ns*.{h,m}
         - src/macfont.{h,m}
         - lisp/term/ns-win.el
         - nextstep/**
-        - test/infra/*
+        - test/infra/Dockerfile.emba
 
 .filenotify-gio-template:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**Makefile.in"
-        - .gitlab-ci.yml
+        - "**.in"
+        - "**.yml"
         - lisp/autorevert.el
         - lisp/filenotify.el
         - lisp/net/tramp-sh.el
         - src/gfilenotify.c
-        - test/infra/*
+        - test/infra/Dockerfile.emba
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
 
@@ -201,25 +175,23 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
-        - "**Makefile.in"
-        - .gitlab-ci.yml
+        - "**.in"
+        - "**.yml"
         - lisp/emacs-lisp/comp.el
         - lisp/emacs-lisp/comp-cstr.el
         - src/comp.{h,m}
-        - test/infra/*
+        - test/infra/Dockerfile.emba
         - test/src/comp-resources/*.el
         - test/src/comp-tests.el
   timeout: 8 hours
 
 stages:
   - build-images
-#  - fast
   - normal
   - platform-images
   - platforms
   - native-comp-images
   - native-comp
-  - slow
 
 build-image-inotify:
   stage: build-images
@@ -227,14 +199,19 @@ build-image-inotify:
   variables:
     target: emacs-inotify
 
-# test-fast-inotify:
-#   stage: fast
-#   extends: [.job-template, .test-template]
-#   variables:
-#     target: emacs-inotify
-#     make_params: "-C test check"
-
 include: '/test/infra/test-jobs.yml'
+
+test-all-inotify:
+  # This tests also file monitor libraries inotify and inotifywatch.
+  stage: normal
+  extends: [.job-template, .test-template]
+  rules:
+    # Note there's no "changes" section, so this always runs on a schedule.
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  variables:
+    target: emacs-inotify
+    make_params: check-expensive
 
 build-image-filenotify-gio:
   stage: platform-images
@@ -245,8 +222,8 @@ build-image-filenotify-gio:
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
-  needs: [build-image-filenotify-gio]
   extends: [.job-template, .test-template, .filenotify-gio-template]
+  needs: [build-image-filenotify-gio]
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
@@ -260,8 +237,8 @@ build-image-gnustep:
 test-gnustep:
   # This tests the GNUstep build process.
   stage: platforms
-  needs: [build-image-gnustep]
   extends: [.job-template, .gnustep-template]
+  needs: [build-image-gnustep]
   variables:
     target: emacs-gnustep
     make_params: install
@@ -286,26 +263,11 @@ build-native-comp-speed2:
 
 test-native-comp-speed0:
   stage: native-comp
-  needs: [build-native-comp-speed0]
   extends: [.job-template, .test-template, .native-comp-template]
+  needs: [build-native-comp-speed0]
   variables:
     target: emacs-native-comp-speed0
     make_params: "-C test check SELECTOR='(not (tag :unstable))'"
-
-test-all-inotify:
-  # This tests also file monitor libraries inotify and inotifywatch.
-  stage: slow
-  needs: [build-image-inotify]
-  extends: [.job-template, .test-template]
-  rules:
-    # Note there's no "changes" section, so this always runs on a schedule.
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-  variables:
-    target: emacs-inotify
-    make_params: check-expensive
-    # Two hours.
-    EMACS_TEST_TIMEOUT: 7200
 
 # Local Variables:
 # add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"

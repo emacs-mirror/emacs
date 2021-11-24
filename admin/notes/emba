@@ -35,7 +35,7 @@ The Emacs jobset is defined in the Emacs source tree, file
 A jobset on Gitlab is called pipeline.  Emacs pipelines run through
 the stages 'build-images', 'platform-images' and 'native-comp-images'
 (create an Emacs instance by 'make bootstrap' with different
-configuration parameters) as well as 'normal', 'slow', 'platforms' and
+configuration parameters) as well as 'normal', 'platforms' and
 'native-comp' (run respective test jobs based on the produced images).
 
 The jobs for stage 'normal' are contained in the file

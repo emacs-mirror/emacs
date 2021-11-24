@@ -3,6 +3,8 @@ test-lib-src-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lib-src/*.{h,c}
         - test/lib-src/*.el
@@ -22,6 +24,8 @@ test-lisp-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/*.el
         - test/lisp/*.el
@@ -41,6 +45,8 @@ test-lisp-calc-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/calc/*.el
         - test/lisp/calc/*.el
@@ -60,6 +66,8 @@ test-lisp-calendar-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/calendar/*.el
         - test/lisp/calendar/*.el
@@ -79,6 +87,8 @@ test-lisp-cedet-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/cedet/*.el
         - test/lisp/cedet/*.el
@@ -98,6 +108,8 @@ test-lisp-cedet-semantic-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/cedet/semantic/*.el
         - test/lisp/cedet/semantic/*.el
@@ -117,6 +129,8 @@ test-lisp-cedet-semantic-bovine-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/cedet/semantic/bovine/*.el
         - test/lisp/cedet/semantic/bovine/*.el
@@ -136,6 +150,8 @@ test-lisp-cedet-srecode-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/cedet/srecode/*.el
         - test/lisp/cedet/srecode/*.el
@@ -155,6 +171,8 @@ test-lisp-emacs-lisp-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/emacs-lisp/*.el
         - test/lisp/emacs-lisp/*.el
@@ -174,6 +192,8 @@ test-lisp-emacs-lisp-eieio-tests-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/emacs-lisp/eieio*.el
         - test/lisp/emacs-lisp/eieio-tests/*.el
@@ -193,6 +213,8 @@ test-lisp-emacs-lisp-faceup-tests-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/emacs-lisp/faceup*.el
         - test/lisp/emacs-lisp/faceup-tests/*.el
@@ -212,6 +234,8 @@ test-lisp-emulation-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/emulation/*.el
         - test/lisp/emulation/*.el
@@ -231,6 +255,8 @@ test-lisp-erc-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/erc/*.el
         - test/lisp/erc/*.el
@@ -250,6 +276,8 @@ test-lisp-eshell-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/eshell/*.el
         - test/lisp/eshell/*.el
@@ -269,6 +297,8 @@ test-lisp-gnus-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/gnus/*.el
         - test/lisp/gnus/*.el
@@ -288,6 +318,8 @@ test-lisp-image-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/image/*.el
         - test/lisp/image/*.el
@@ -307,6 +339,8 @@ test-lisp-international-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/international/*.el
         - test/lisp/international/*.el
@@ -326,6 +360,8 @@ test-lisp-mail-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/mail/*.el
         - test/lisp/mail/*.el
@@ -345,6 +381,8 @@ test-lisp-mh-e-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/mh-e/*.el
         - test/lisp/mh-e/*.el
@@ -364,6 +402,8 @@ test-lisp-net-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/net/*.el
         - test/lisp/net/*.el
@@ -383,6 +423,8 @@ test-lisp-nxml-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/nxml/*.el
         - test/lisp/nxml/*.el
@@ -402,6 +444,8 @@ test-lisp-obsolete-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/obsolete/*.el
         - test/lisp/obsolete/*.el
@@ -421,6 +465,8 @@ test-lisp-org-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/org/*.el
         - test/lisp/org/*.el
@@ -440,6 +486,8 @@ test-lisp-play-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/play/*.el
         - test/lisp/play/*.el
@@ -459,6 +507,8 @@ test-lisp-progmodes-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/progmodes/*.el
         - test/lisp/progmodes/*.el
@@ -478,6 +528,8 @@ test-lisp-so-long-tests-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/so-long*.el
         - test/lisp/so-long-tests/*.el
@@ -497,6 +549,8 @@ test-lisp-term-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/term/*.el
         - test/lisp/term/*.el
@@ -516,6 +570,8 @@ test-lisp-textmodes-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/textmodes/*.el
         - test/lisp/textmodes/*.el
@@ -535,6 +591,8 @@ test-lisp-url-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/url/*.el
         - test/lisp/url/*.el
@@ -554,6 +612,8 @@ test-lisp-vc-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - lisp/vc/*.el
         - test/lisp/vc/*.el
@@ -573,6 +633,8 @@ test-misc-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - admin/*.el
         - test/misc/*.el
@@ -592,6 +654,8 @@ test-src-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   rules:
+    - if: I_PIPELINE_SOURCE == "schedule"
+      when: never
     - changes:
         - src/*.{h,c}
         - test/src/*.el

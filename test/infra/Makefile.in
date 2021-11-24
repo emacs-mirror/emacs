@@ -72,6 +72,8 @@ define subdir_template
 	@echo '  stage: normal' >>$(FILE)
 	@echo '  extends: [.job-template, .test-template]' >>$(FILE)
 	@echo '  rules:' >>$(FILE)
+	@echo '    - if: $CI_PIPELINE_SOURCE == "schedule"' >>$(FILE)
+	@echo '      when: never' >>$(FILE)
 	@echo '    - changes:' >>$(FILE)
 	$(changes)
 	@echo '        - test/$(1)/*.el' >>$(FILE)
