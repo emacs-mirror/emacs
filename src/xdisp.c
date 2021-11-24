@@ -5214,7 +5214,7 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
       if (!it->glyph_row)
 	return;
 
-      /* When called form display_string (i.e., the mode line),
+      /* When called from display_string (i.e., the mode line),
 	 we're being called with a string as the object, and we
 	 may be called with many sub-strings belonging to the same
 	 :propertize run. */
