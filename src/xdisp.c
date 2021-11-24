@@ -5214,11 +5214,18 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
       if (!it->glyph_row)
 	return;
 
-      /* Check that we're really right after the sequence of
-	 characters covered by this `min-width'.  */
-      if (bufpos > BEGV
-	  && EQ (it->min_width_property,
-		 get_display_property (bufpos - 1, Qmin_width, object)))
+      /* When called form display_string (i.e., the mode line),
+	 we're being called with a string as the object, and we
+	 may be called with many sub-strings belonging to the same
+	 :propertize run. */
+      if ((bufpos == 0
+	   && !EQ (it->min_width_property,
+		   get_display_property (0, Qmin_width, object)))
+	  /* In a buffer -- check that we're really right after the
+	     sequence of characters covered by this `min-width'.  */
+	  || (bufpos > BEGV
+	      && EQ (it->min_width_property,
+		     get_display_property (bufpos - 1, Qmin_width, object))))
 	{
 	  Lisp_Object w = Qnil;
 	  double width;
@@ -5258,6 +5265,11 @@ display_min_width (struct it *it, ptrdiff_t bufpos,
   if (CONSP (width_spec))
     {
       if (bufpos == BEGV
+	  /* Mode line (see above).  */
+	  || (bufpos == 0
+	      && !EQ (it->min_width_property,
+		      get_display_property (0, Qmin_width, object)))
+	  /* Buffer.  */
 	  || (bufpos > BEGV
 	      && !EQ (width_spec,
 		      get_display_property (bufpos - 1, Qmin_width, object))))
