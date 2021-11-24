@@ -415,8 +415,8 @@ value of ARG, and the command uses it in subsequent scrolls."
         (cond ((memq button (list mouse-wheel-down-event
                                   mouse-wheel-down-alternate-event))
                (text-scale-increase 1))
-              ((eq button (list mouse-wheel-up-event
-                                mouse-wheel-up-alternate-event))
+              ((memq button (list mouse-wheel-up-event
+                                  mouse-wheel-up-alternate-event))
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
