@@ -3620,9 +3620,6 @@ Setting it to any other value is equivalent to `shift'.  */);
   staticpro (&rdb);
 
   Fprovide (Qhaiku, Qnil);
-#ifdef HAVE_BE_FREETYPE
-  Fprovide (Qfreetype, Qnil);
-#endif
 #ifdef USE_BE_CAIRO
   Fprovide (intern_c_string ("cairo"), Qnil);
 #endif
