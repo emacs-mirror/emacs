@@ -610,7 +610,7 @@ By default, this shows the information specified by `global-mode-string'.")
 	            'mode-line-client
 	            'mode-line-modified
 	            'mode-line-remote)
-              'display '(min-width (4.0)))
+              'display '(min-width (5.0)))
 	     'mode-line-frame-identification
 	     'mode-line-buffer-identification
 	     "   "
