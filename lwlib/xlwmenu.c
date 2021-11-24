@@ -1657,7 +1657,6 @@ make_drawing_gcs (XlwMenuWidget mw)
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
 
   /* Allocate color for disabled menu-items.  */
-  mw->menu.disabled_foreground = mw->menu.foreground;
   if (BRIGHTNESS(mw->menu.foreground) < BRIGHTNESS(mw->core.background_pixel))
     scale = 2.3;
   else
