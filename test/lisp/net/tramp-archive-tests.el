@@ -265,21 +265,20 @@ variables, so we check the Emacs version directly."
 	       (concat
 		(tramp-gvfs-url-file-name
 		 (tramp-make-tramp-file-name
-		  tramp-archive-method
-		  ;; User and Domain.
-		  nil nil
-		  ;; Host.
-		  (url-hexify-string
-		   (concat
-		    "file://"
-		    ;; `directory-file-name' does not leave file
-		    ;; archive boundaries.  So we must cut the
-		    ;; trailing slash ourselves.
-		    (substring
-		     (file-name-directory
-		      (tramp-archive-test-file-archive-hexlified))
-		     0 -1)))
-		  nil "/"))
+		  (make-tramp-file-name
+		   :method tramp-archive-method
+		   :host
+		   (url-hexify-string
+		    (concat
+		     "file://"
+		     ;; `directory-file-name' does not leave file
+		     ;; archive boundaries.  So we must cut the
+		     ;; trailing slash ourselves.
+		     (substring
+		      (file-name-directory
+		       (tramp-archive-test-file-archive-hexlified))
+		      0 -1)))
+		   :localname "/")))
 		(file-name-nondirectory tramp-archive-test-file-archive)))))
 	    (should-not port)
 	    (should (string-equal localname "/bar"))

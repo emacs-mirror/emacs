@@ -110,7 +110,7 @@
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-fuse-handle-file-readable-p)
+    (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
