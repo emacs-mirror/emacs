@@ -221,7 +221,7 @@ in the file it applies to.")
 (defvar outline-font-lock-keywords
   '(
     ;; Highlight headings according to the level.
-    (eval . (list (concat "^\\(?:" outline-regexp "\\).+")
+    (eval . (list (concat "^\\(?:" outline-regexp "\\).*")
                   0 '(if outline-minor-mode
                          (if outline-minor-mode-cycle
                              (if outline-minor-mode-highlight
