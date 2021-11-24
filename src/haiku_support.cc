@@ -664,8 +664,8 @@ public:
   {
     struct haiku_resize_event rq;
     rq.window = this;
-    rq.px_heightf = newHeight;
-    rq.px_widthf = newWidth;
+    rq.px_heightf = newHeight + 1.0f;
+    rq.px_widthf = newWidth + 1.0f;
 
     haiku_write (FRAME_RESIZED, &rq);
     BDirectWindow::FrameResized (newWidth, newHeight);
@@ -755,8 +755,8 @@ public:
     rq.x = o.x;
     rq.y = o.y;
 
-    rq.width = w;
-    rq.height = h;
+    rq.width = w + 1;
+    rq.height = h + 1;
 
     if (fullscreen_p)
       MakeFullscreen (0);
