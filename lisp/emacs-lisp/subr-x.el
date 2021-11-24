@@ -471,13 +471,10 @@ This takes into account combining characters and grapheme clusters."
 
 ;;;###autoload
 (defun add-display-text-property (start end prop value
-                                        &optional append object)
+                                        &optional object)
   "Add display property PROP with VALUE to the text from START to END.
 If any text in the region has a non-nil `display' property, those
 properties are retained.
-
-If APPEND is non-nil, append to the list of display properties;
-otherwise prepend.
 
 If OBJECT is non-nil, it should be a string or a buffer.  If nil,
 this defaults to the current buffer."
@@ -504,10 +501,10 @@ this defaults to the current buffer."
                   (list disp))
                  (t
                   disp)))
-          (setq disp
-                (if append
-                    (append disp (list (list prop value)))
-                  (append (list (list prop value)) disp)))
+          ;; Remove any old instances.
+          (when-let ((old (assoc prop disp)))
+            (setq disp (delete old disp)))
+          (setq disp (cons (list prop value) disp))
           (when vector
             (setq disp (seq-into disp 'vector)))
           ;; Finally update the range.

@@ -4904,7 +4904,7 @@ with @code{get-char-property}, for instance (@pxref{Examining
 Properties}).
 @end defun
 
-@defun add-display-text-property start end prop value &optional append object
+@defun add-display-text-property start end prop value &optional object
 Add @code{display} property @var{prop} of @var{value} to the text from
 @var{start} to @var{end}.
 
@@ -4921,9 +4921,6 @@ After doing this, the region from 2 to 4 will have the @code{raise}
 @code{raise} and @code{height} @code{display} properties, and finally
 the region from 8 to 12 will only have the @code{raise} @code{display}
 property.
-
-If @var{append} is non-@code{nil}, append to the list of display
-properties; otherwise prepend.
 
 If @var{object} is non-@code{nil}, it should be a string or a buffer.
 If @code{nil}, this defaults to the current buffer.
