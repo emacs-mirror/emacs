@@ -792,7 +792,9 @@ Its effect is the same as using the `previous-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-prev-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
@@ -816,7 +818,9 @@ Its effect is the same as using the `next-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-next-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
