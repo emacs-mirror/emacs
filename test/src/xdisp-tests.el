@@ -154,4 +154,20 @@ int main () {
                                                      nil)
                 138))))
 
+(ert-deftest test-get-display-property ()
+  (with-temp-buffer
+    (insert (propertize "foo" 'face 'bold 'display '(height 2.0)))
+    (should (equal (get-display-property 2 'height) 2.0)))
+  (with-temp-buffer
+    (insert (propertize "foo" 'face 'bold 'display '((height 2.0)
+                                                     (space-width 2.0))))
+    (should (equal (get-display-property 2 'height) 2.0))
+    (should (equal (get-display-property 2 'space-width) 2.0)))
+  (with-temp-buffer
+    (insert (propertize "foo bar" 'face 'bold
+                        'display '[(height 2.0)
+                                   (space-width 20)]))
+    (should (equal (get-display-property 2 'height) 2.0))
+    (should (equal (get-display-property 2 'space-width) 20))))
+
 ;;; xdisp-tests.el ends here

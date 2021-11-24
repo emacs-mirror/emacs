@@ -2746,6 +2746,12 @@ struct it
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
   bidi_dir_t paragraph_embedding;
+
+  /* For handling the :min-width property.  The object is the text
+     property we're testing the `eq' of (nil if none), and the integer
+     is the x position of the start of the run of glyphs. */
+  Lisp_Object min_width_property;
+  int min_width_start;
 };
 
 

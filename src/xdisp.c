@@ -822,6 +822,9 @@ bool help_echo_showing_p;
 /* Functions to mark elements as needing redisplay.  */
 enum { REDISPLAY_SOME = 2};	/* Arbitrary choice.  */
 
+static bool calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
+					struct font *, bool, int *);
+
 void
 redisplay_other_windows (void)
 {
@@ -5141,6 +5144,149 @@ setup_for_ellipsis (struct it *it, int len)
   it->ellipsis_p = true;
 }
 
+
+static Lisp_Object
+find_display_property (Lisp_Object disp, Lisp_Object prop)
+{
+  if (NILP (disp))
+    return Qnil;
+  /* We have a vector of display specs. */
+  if (VECTORP (disp))
+    {
+      for (ptrdiff_t i = 0; i < ASIZE (disp); i++)
+	{
+	  Lisp_Object elem = AREF (disp, i);
+	  if (CONSP (elem)
+	      && CONSP (XCDR (elem))
+	      && EQ (XCAR (elem), prop))
+	    return XCAR (XCDR (elem));
+	}
+      return Qnil;
+    }
+  /* We have a list of display specs. */
+  else if (CONSP (disp)
+	   && CONSP (XCAR (disp)))
+    {
+      while (!NILP (disp))
+	{
+	  Lisp_Object elem = XCAR (disp);
+	  if (CONSP (elem)
+	      && CONSP (XCDR (elem))
+	      && EQ (XCAR (elem), prop))
+	    return XCAR (XCDR (elem));
+
+	  /* Check that we have a proper list before going to the next
+	     element. */
+	  if (CONSP (XCDR (disp)))
+	    disp = XCDR (disp);
+	  else
+	    disp = Qnil;
+	}
+      return Qnil;
+    }
+  /* A simple display spec. */
+  else if (CONSP (disp)
+	   && CONSP (XCDR (disp))
+	   && EQ (XCAR (disp), prop))
+    return XCAR (XCDR (disp));
+  else
+    return Qnil;
+}
+
+static Lisp_Object get_display_property (ptrdiff_t bufpos, Lisp_Object prop,
+					 Lisp_Object object)
+{
+  return find_display_property (Fget_text_property (make_fixnum (bufpos),
+
+						    Qdisplay, object),
+				prop);
+}
+
+static void
+display_min_width (struct it *it, ptrdiff_t bufpos,
+		   Lisp_Object object, Lisp_Object width_spec)
+{
+  /* We're being called at the end of the `min-width' sequence,
+     probably. */
+  if (!NILP (it->min_width_property)
+      && !EQ (width_spec, it->min_width_property))
+    {
+      if (!it->glyph_row)
+	return;
+
+      /* Check that we're really right after the sequence of
+	 characters covered by this `min-width'.  */
+      if (bufpos > BEGV
+	  && EQ (it->min_width_property,
+		 get_display_property (bufpos - 1, Qmin_width, object)))
+	{
+	  Lisp_Object w = Qnil;
+	  double width;
+#ifdef HAVE_WINDOW_SYSTEM
+	  if (FRAME_WINDOW_P (it->f))
+	    {
+	      struct font *font = NULL;
+	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+	      font = face->font ? face->font : FRAME_FONT (it->f);
+	      calc_pixel_width_or_height (&width, it,
+					  XCAR (it->min_width_property),
+					  font, true, NULL);
+	      width -= it->current_x - it->min_width_start;
+	      w = list1 (make_int (width));
+	    }
+	  else
+#endif
+	    {
+	      calc_pixel_width_or_height (&width, it,
+					  XCAR (it->min_width_property),
+					  NULL, true, NULL);
+	      width -= (it->current_x - it->min_width_start) /
+		FRAME_COLUMN_WIDTH (it->f);
+	      w = make_int (width);
+	    }
+
+	  /* Insert the stretch glyph.  */
+	  it->object = list3 (Qspace, QCwidth, w);
+	  produce_stretch_glyph (it);
+	  it->min_width_property = Qnil;
+	}
+    }
+
+  /* We're at the start of a `min-width' sequence -- record the
+     position and the property, so that we can later see if we're at
+     the end.  */
+  if (CONSP (width_spec))
+    {
+      if (bufpos == BEGV
+	  || (bufpos > BEGV
+	      && !EQ (width_spec,
+		      get_display_property (bufpos - 1, Qmin_width, object))))
+	{
+	  it->min_width_property = width_spec;
+	  it->min_width_start = it->current_x;
+	}
+    }
+}
+
+DEFUN ("get-display-property", Fget_display_property,
+       Sget_display_property, 2, 4, 0,
+       doc: /* Get the `display' property PROP at POSITION.
+If OBJECT, this should be a buffer or string where the property is
+fetched from.  This defaults to the current buffer.
+
+If PROPERTIES, use those properties instead of the properties at
+POSITION.  */)
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object,
+   Lisp_Object properties)
+{
+  if (NILP (properties))
+    properties = Fget_text_property (position, Qdisplay, object);
+  else
+    CHECK_LIST (properties);
+
+  return find_display_property (properties, prop);
+}
+
 
 
 /***********************************************************************
@@ -5187,15 +5333,21 @@ handle_display_prop (struct it *it)
   if (!it->string_from_display_prop_p)
     it->area = TEXT_AREA;
 
+  if (!STRINGP (it->string))
+    object = it->w->contents;
+
   propval = get_char_property_and_overlay (make_fixnum (position->charpos),
 					   Qdisplay, object, &overlay);
+
+  /* Handle min-width ends. */
+  if (! NILP (it->min_width_property)
+      && NILP (find_display_property (propval, Qmin_width)))
+    display_min_width (it, bufpos, object, Qnil);
+
   if (NILP (propval))
     return HANDLED_NORMALLY;
   /* Now OVERLAY is the overlay that gave us this property, or nil
      if it was a text property.  */
-
-  if (!STRINGP (it->string))
-    object = it->w->contents;
 
   display_replaced = handle_display_spec (it, propval, object, overlay,
 					  position, bufpos,
@@ -5250,6 +5402,7 @@ handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && !(CONSP (XCAR (spec)) && EQ (XCAR (XCAR (spec)), Qmargin))
       && !EQ (XCAR (spec), Qleft_fringe)
       && !EQ (XCAR (spec), Qright_fringe)
+      && !EQ (XCAR (spec), Qmin_width)
       && !NILP (XCAR (spec)))
     {
       for (; CONSP (spec); spec = XCDR (spec))
@@ -5480,6 +5633,17 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    it->space_width = value;
 	}
 
+      return 0;
+    }
+
+  /* Handle `(min-width (WIDTH))'.  */
+  if (CONSP (spec)
+      && EQ (XCAR (spec), Qmin_width)
+      && CONSP (XCDR (spec))
+      && CONSP (XCAR (XCDR (spec))))
+    {
+      if (it)
+	display_min_width (it, bufpos, object, XCAR (XCDR (spec)));
       return 0;
     }
 
@@ -7186,6 +7350,7 @@ reseat_1 (struct it *it, struct text_pos pos, bool set_stop_p)
     }
   /* This make the information stored in it->cmp_it invalidate.  */
   it->cmp_it.id = -1;
+  it->min_width_property = Qnil;
 }
 
 
@@ -35121,6 +35286,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   defsubr (&Smove_point_visually);
   defsubr (&Sbidi_find_overridden_directionality);
   defsubr (&Sdisplay__line_is_continued_p);
+  defsubr (&Sget_display_property);
 
   DEFSYM (Qmenu_bar_update_hook, "menu-bar-update-hook");
   DEFSYM (Qoverriding_terminal_local_map, "overriding-terminal-local-map");

@@ -668,6 +668,13 @@ Use 'exif-parse-file' and 'exif-field' instead.
 
 * Lisp Changes in Emacs 29.1
 
+** New function 'get-display-property'.
+This is like 'get-text-property', but works on the 'display' text
+property.
+
+** New 'min-width' 'display' property.
+This allows setting a minimum width for a region.
+
 ** Keymaps and key definitions
 
 +++

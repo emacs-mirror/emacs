@@ -4874,15 +4874,35 @@ window on a minibuffer-less frame.
 
   The @code{display} text property (or overlay property) is used to
 insert images into text, and to control other aspects of how text
-displays.  The value of the @code{display} property should be a
-display specification, or a list or vector containing several display
-specifications.  Display specifications in the same @code{display}
+displays.  Display specifications in the same @code{display}
 property value generally apply in parallel to the text they cover.
 
   If several sources (overlays and/or a text property) specify values
 for the @code{display} property, only one of the values takes effect,
 following the rules of @code{get-char-property}.  @xref{Examining
 Properties}.
+
+  The value of the @code{display} property should be a display
+specification, or a list or vector containing several display
+specifications.
+
+@defun get-display-property position prop &optional object properties
+This convenience function can be used to get a specific display
+property, no matter whether the @code{display} property is a vector, a
+list or a simple property.  This is like @code{get-text-property}
+(@pxref{Examining Properties}), but works on the @code{display}
+property only.
+
+@var{position} is the position in the buffer or string to examine, and
+@var{prop} is the @code{display} property to return.  The optional
+@var{object} argument should be either a string or a buffer, and
+defaults to the current buffer.  If the optional @var{properties}
+argument is non-@code{nil}, it should be a @code{display} property,
+and in that case, @var{position} and @var{object} are ignored.  (This
+can be useful if you've already gotten the @code{display} property
+with @code{get-char-property}, for instance (@pxref{Examining
+Properties}).
+@end defun
 
 @cindex display property, unsafe evaluation
 @cindex security, and display specifications
@@ -5158,6 +5178,22 @@ text that has the specification.  It displays all of these spaces
 @var{factor} times as wide as normal.  The element @var{factor} should
 be an integer or float.  Characters other than spaces are not affected
 at all; in particular, this has no effect on tab characters.
+
+@item (min-width (@var{width}))
+This display specification adds padding to the end of the text if the
+text is shorter than @var{width}.  The text is partitioned using the
+identity of the parameter, which is why the parameter is a list with
+one element.  For instance:
+
+@lisp
+(insert (propertize "foo" '(display (min-width (6.0)))))
+@end lisp
+
+This will add padding after @samp{foo} bringing the total width up to
+the width of six normal characters.  Note that the ``range'' is
+identified by the @code{(6.0)} list, compared with @code{eq}.  The
+width can be either a character width or a pixel specification
+(@pxref{Pixel Specification}).
 
 @item (height @var{height})
 This display specification makes the text taller or shorter.
