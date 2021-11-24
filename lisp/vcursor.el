@@ -788,9 +788,9 @@ out how much to copy."
 
   (vcursor-check)
   (with-current-buffer (overlay-buffer vcursor-overlay)
-    (let ((start (goto-char (overlay-start vcursor-overlay))))
-      (- (progn (apply func args) (point)) start)))
-  )
+    (save-excursion
+      (let ((start (goto-char (overlay-start vcursor-overlay))))
+        (- (progn (apply func args) (point)) start)))))
 
 ;; Make sure the virtual cursor is active.  Unless arg is non-nil,
 ;; report an error if it is not.
