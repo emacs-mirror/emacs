@@ -198,6 +198,7 @@ This should ideally, be a \"catch-all\" coding system, like
 
 The function should take one argument, which is the text to filter."
   :type '(choice (function "Function")
+                 (function-item erc-stamp-prefix-log-filter)
 		 (const :tag "No filtering" nil)))
 
 

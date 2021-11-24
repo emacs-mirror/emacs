@@ -68,7 +68,7 @@
          (erc-display-message nil 'notice (current-buffer) "begin"))
        (goto-char (point-min))
        (should (search-forward-regexp
-                (rx "begin" (+ "\t") (* " ") " [") nil t))
+                (rx "begin" (+ "\t") (* " ") "[") nil t))
        ;; Field includes intervening spaces
        (should (eql ?n (char-before (field-beginning (point)))))
        ;; Timestamp extends to the end of the line
@@ -85,9 +85,9 @@
              (erc-timestamp-right-column 20))
          (erc-display-message nil 'notice (current-buffer)
                               "twenty characters"))
-       (should (search-forward-regexp (rx bol (+ "\t") (* " ") " [") nil t))
+       (should (search-forward-regexp (rx bol (+ "\t") (* " ") "[") nil t))
        ;; Field excludes leading whitespace (arguably undesirable).
-       (should (eql ?\s (char-after (field-beginning (point)))))
+       (should (eql ?\[ (char-after (field-beginning (point)))))
        ;; Timestamp extends to the end of the line.
        (should (eql ?\n (char-after (field-end (point)))))))))
 
@@ -101,7 +101,7 @@
            (erc-display-message nil nil (current-buffer) msg)))
        (goto-char (point-min))
        ;; Exactly two spaces, one from format, one added by erc-stamp.
-       (should (search-forward "msg one  [" nil t))
+       (should (search-forward "msg one [" nil t))
        ;; Field covers space between.
        (should (eql ?e (char-before (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point))))))
@@ -112,9 +112,67 @@
          (let ((msg (erc-format-privmessage "bob" "tttt wwww oooo" nil t)))
            (erc-display-message nil nil (current-buffer) msg)))
        ;; Indented to pos (this is arguably a bug).
-       (should (search-forward-regexp (rx bol (+ "\t") (* " ") " [") nil t))
+       (should (search-forward-regexp (rx bol (+ "\t") (* " ") "[") nil t))
        ;; Field starts *after* leading space (arguably bad).
-       (should (eql ?\[ (char-after (1+ (field-beginning (point))))))
+       (should (eql ?\[ (char-after (field-beginning (point)))))
+       (should (eql ?\n (char-after (field-end (point)))))))))
+
+(ert-deftest erc-timestamp-use-align-to--integer ()
+  (erc-stamp-tests--insert-right
+   (lambda ()
+
+     (ert-info ("integer, normal")
+       (let ((erc-timestamp-use-align-to 1))
+         (let ((msg (erc-format-privmessage "bob" "msg one" nil t)))
+           (erc-display-message nil nil (current-buffer) msg)))
+       (goto-char (point-min))
+       ;; Space not added because included in format string.
+       (should (search-forward "msg one [" nil t))
+       ;; Field covers space between.
+       (should (eql ?e (char-before (field-beginning (point)))))
+       (should (eql ?\n (char-after (field-end (point))))))
+
+     (ert-info ("integer, overlong (hard wrap)")
+       (let ((erc-timestamp-use-align-to 1)
+             (erc-timestamp-right-column 20))
+         (let ((msg (erc-format-privmessage "bob" "tttt wwww oooo" nil t)))
+           (erc-display-message nil nil (current-buffer) msg)))
+       ;; No hard wrap
+       (should (search-forward "oooo [" nil t))
+       ;; Field starts at leading space.
+       (should (eql ?\s (char-after (field-beginning (point)))))
+       (should (eql ?\n (char-after (field-end (point)))))))))
+
+(ert-deftest erc-timestamp-use-align-to--margin ()
+  (erc-stamp-tests--insert-right
+   (lambda ()
+     (erc-stamp--display-margin-mode +1)
+
+     (ert-info ("margin, normal")
+       (let ((erc-timestamp-use-align-to 'margin))
+         (let ((msg (erc-format-privmessage "bob" "msg one" nil t)))
+           (put-text-property 0 (length msg) 'wrap-prefix 10 msg)
+           (erc-display-message nil nil (current-buffer) msg)))
+       (goto-char (point-min))
+       ;; Space not added (treated as opaque string).
+       (should (search-forward "msg one[" nil t))
+       ;; Field covers stamp alone
+       (should (eql ?e (char-before (field-beginning (point)))))
+       ;; Vanity props extended
+       (should (get-text-property (field-beginning (point)) 'wrap-prefix))
+       (should (get-text-property (1+ (field-beginning (point))) 'wrap-prefix))
+       (should (get-text-property (1- (field-end (point))) 'wrap-prefix))
+       (should (eql ?\n (char-after (field-end (point))))))
+
+     (ert-info ("margin, overlong (hard wrap)")
+       (let ((erc-timestamp-use-align-to 'margin)
+             (erc-timestamp-right-column 20))
+         (let ((msg (erc-format-privmessage "bob" "tttt wwww oooo" nil t)))
+           (erc-display-message nil nil (current-buffer) msg)))
+       ;; No hard wrap
+       (should (search-forward "oooo[" nil t))
+       ;; Field starts at format string (right bracket)
+       (should (eql ?\[ (char-after (field-beginning (point)))))
        (should (eql ?\n (char-after (field-end (point)))))))))
 
 ;; This concerns a proposed partial reversal of the changes resulting

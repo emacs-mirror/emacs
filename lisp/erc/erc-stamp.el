@@ -253,14 +253,110 @@ the correct column."
 	  (integer :tag "Column number")
 	  (const :tag "Unspecified" nil)))
 
-(defcustom erc-timestamp-use-align-to (eq window-system 'x)
+(defcustom erc-timestamp-use-align-to (and (display-graphic-p) t)
   "If non-nil, use the :align-to display property to align the stamp.
 This gives better results when variable-width characters (like
 Asian language characters and math symbols) precede a timestamp.
 
-A side effect of enabling this is that there will only be one
-space before a right timestamp in any saved logs."
-  :type 'boolean)
+This option only matters when `erc-insert-timestamp-function' is
+set to `erc-insert-timestamp-right' or that option's default,
+`erc-insert-timestamp-left-and-right'.  If the value is a
+positive integer, alignment occurs that many columns from the
+right edge.  If the value is `margin', the stamp appears in the
+right margin when visible.
+
+Enabling this option produces a side effect in that stamps aren't
+indented in saved logs.  When its value is an integer, this
+option adds a space after the end of a message if the stamp
+doesn't already start with one.  And when its value is t, it adds
+a single space, unconditionally.  And while this option never
+adds a space when its value is `margin', ERC does offer a
+workaround in `erc-stamp-prefix-log-filter', which strips
+trailing stamps from messages and puts them before every line."
+  :type '(choice boolean integer (const margin))
+  :package-version '(ERC . "5.6")) ; FIXME sync on release
+
+(defcustom erc-stamp-right-margin-width nil
+  "Width in columns of the right margin.
+When this option is nil, pretend its value is one column greater
+than the `string-width' of the formatted `erc-timestamp-format'.
+This option only matters when `erc-timestamp-use-align-to' is set
+to `margin'."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
+  :type '(choice (const nil) integer))
+
+(defun erc-stamp--display-margin-force (orig &rest r)
+  (let ((erc-timestamp-use-align-to 'margin))
+    (apply orig r)))
+
+(defun erc-stamp--adjust-right-margin (cols)
+  "Adjust right margin by COLS.
+When COLS is zero, reset width to `erc-stamp-right-margin-width'
+or one col more than the `string-width' of
+`erc-timestamp-format'."
+  (let ((width
+         (if (zerop cols)
+             (or erc-stamp-right-margin-width
+                 (1+ (string-width (or erc-timestamp-last-inserted-right
+                                       (erc-format-timestamp
+                                        (current-time)
+                                        erc-timestamp-format)))))
+           (+ right-margin-width cols))))
+    (setq right-margin-width width
+          right-fringe-width 0)
+    (set-window-margins nil left-margin-width width)
+    (set-window-fringes nil left-fringe-width 0)))
+
+;;;###autoload
+(defun erc-stamp-prefix-log-filter (text)
+  "Prefix every message in the buffer with a stamp.
+Remove trailing stamps as well.  For now, hard code the format to
+\"ZNC\"-log style, which is [HH:MM:SS].  Expect to be used as a
+`erc-log-filter-function' when `erc-timestamp-use-align-to' is
+non-nil."
+  (insert text)
+  (goto-char (point-min))
+  (while
+      (progn
+        (when-let* (((< (point) (pos-eol)))
+                    (end (1- (pos-eol)))
+                    ((eq 'erc-timestamp (field-at-pos end)))
+                    (beg (field-beginning end))
+                    ;; Skip a line that's just a timestamp.
+                    ((> beg (point))))
+          (delete-region beg (1+ end)))
+        (when-let (time (get-text-property (point) 'erc-timestamp))
+          (insert (format-time-string "[%H:%M:%S] " time)))
+        (zerop (forward-line))))
+  "")
+
+(declare-function erc--remove-text-properties "erc" (string))
+
+;; If people want to use this directly, we can convert it into
+;; a local module.
+(define-minor-mode erc-stamp--display-margin-mode
+  "Internal minor mode for built-in modules integrating with `stamp'.
+It binds `erc-timestamp-use-align-to' to `margin' around calls to
+`erc-insert-timestamp-function' in the current buffer, and sets
+the right window margin to `erc-stamp-right-margin-width'.  It
+also arranges to remove most text properties when a user kills
+message text so that stamps will be visible when yanked."
+  :interactive nil
+  (if erc-stamp--display-margin-mode
+      (progn
+        (erc-stamp--adjust-right-margin 0)
+        (add-function :filter-return (local 'filter-buffer-substring-function)
+                      #'erc--remove-text-properties)
+        (add-function :around (local 'erc-insert-timestamp-function)
+                      #'erc-stamp--display-margin-force))
+    (remove-function (local 'filter-buffer-substring-function)
+                     #'erc--remove-text-properties)
+    (remove-function (local 'erc-insert-timestamp-function)
+                     #'erc-stamp--display-margin-force)
+    (kill-local-variable 'right-margin-width)
+    (kill-local-variable 'right-fringe-width)
+    (set-window-margins nil left-margin-width nil)
+    (set-window-fringes nil left-fringe-width nil)))
 
 (defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."
@@ -279,6 +375,7 @@ space before a right timestamp in any saved logs."
 
 If `erc-timestamp-use-align-to' is t, use the :align-to display
 property to get to the POSth column."
+  (declare (obsolete "inlined and removed from client code path" "30.1"))
   (if (not erc-timestamp-use-align-to)
       (indent-to pos)
     (insert " ")
@@ -288,6 +385,8 @@ property to get to the POSth column."
 
 ;; Silence byte-compiler
 (defvar erc-fill-column)
+
+(defvar erc-stamp--inherited-props '(line-prefix wrap-prefix))
 
 (defun erc-insert-timestamp-right (string)
   "Insert timestamp on the right side of the screen.
@@ -340,12 +439,29 @@ printed just after each line's text (no alignment)."
       ;; some margin of error if what is displayed on the line differs
       ;; from the number of characters on the line.
       (setq col (+ col (ceiling (/ (- col (- (point) (line-beginning-position))) 1.6))))
-      (if (< col pos)
-	  (erc-insert-aligned string pos)
-	(newline)
-	(indent-to pos)
-	(setq from (point))
-	(insert string))
+      ;; For compatibility reasons, the `erc-timestamp' field includes
+      ;; intervening white space unless a hard break is warranted.
+      (pcase erc-timestamp-use-align-to
+        ((and 't (guard (< col pos)))
+         (insert " ")
+         (put-text-property from (point) 'display `(space :align-to ,pos)))
+        ((pred integerp) ; (cl-type (integer 0 *))
+         (insert " ")
+         (when (eq ?\s (aref string 0))
+           (setq string (substring string 1)))
+         (let ((s (+ erc-timestamp-use-align-to (string-width string))))
+           (put-text-property from (point) 'display
+                              `(space :align-to (- right ,s)))))
+        ('margin
+         (put-text-property 0 (length string)
+                            'display `((margin right-margin) ,string)
+                            string))
+        ((guard (>= col pos)) (newline) (indent-to pos) (setq from (point)))
+        (_ (indent-to pos)))
+      (insert string)
+      (dolist (p erc-stamp--inherited-props)
+        (when-let ((v (get-text-property (1- from) p)))
+          (put-text-property from (point) p v)))
       (erc-put-text-property from (point) 'field 'erc-timestamp)
       (erc-put-text-property from (point) 'rear-nonsticky t)
       (when erc-timestamp-intangible
