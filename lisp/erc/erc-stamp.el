@@ -166,7 +166,7 @@ from entering them and instead jump over them."
 
 This function is meant to be called from `erc-insert-modify-hook'
 or `erc-send-modify-hook'."
-  (unless (get-text-property (point) 'invisible)
+  (unless (get-text-property (point-min) 'invisible)
     (let ((ct (current-time)))
       (if (fboundp erc-insert-timestamp-function)
 	  (funcall erc-insert-timestamp-function
@@ -178,12 +178,12 @@ or `erc-send-modify-hook'."
 		 (not erc-timestamp-format))
 	(funcall erc-insert-away-timestamp-function
 		 (erc-format-timestamp ct erc-away-timestamp-format)))
-      (add-text-properties (point-min) (point-max)
+      (add-text-properties (point-min) (1- (point-max))
 			   ;; It's important for the function to
 			   ;; be different on different entries (bug#22700).
 			   (list 'cursor-sensor-functions
-				 (list (lambda (_window _before dir)
-					 (erc-echo-timestamp dir ct))))))))
+                                 ;; Regions are no longer contiguous ^
+                                 '(erc--echo-ts-csf) 'erc-timestamp ct)))))
 
 (defvar-local erc-timestamp-last-window-width nil
   "The width of the last window that showed the current buffer.
@@ -404,10 +404,15 @@ enabled when the message was inserted."
 
 (defun erc-echo-timestamp (dir stamp)
   "Print timestamp text-property of an IRC message."
-  (when (and erc-echo-timestamps (eq 'entered dir))
+  ;; Could also pass an &optional `zone' arg to `format-time-string'.
+  (interactive (list 'entered (get-text-property (point) 'erc-timestamp)))
+  (when (eq 'entered dir)
     (when stamp
       (message "%s" (format-time-string erc-echo-timestamp-format
 					stamp)))))
+
+(defun erc--echo-ts-csf (_window _before dir)
+  (erc-echo-timestamp dir (get-text-property (point) 'erc-timestamp)))
 
 (provide 'erc-stamp)
 
