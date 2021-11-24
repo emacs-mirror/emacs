@@ -86,15 +86,19 @@ If TYPE is nil, return \"text/plain\"."
   (cond
    ((memq type '(TEXT COMPOUND_TEXT STRING UTF8_STRING)) "text/plain")
    ((stringp type) type)
+   ((symbolp type) (symbol-name type))
    (t "text/plain")))
 
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
-  (haiku-selection-data type (haiku--selection-type-to-mime data-type)))
+  (if (eq data-type 'TARGETS)
+      (apply #'vector (mapcar #'intern
+                              (haiku-selection-targets type)))
+    (haiku-selection-data type (haiku--selection-type-to-mime data-type))))
 
 (cl-defmethod gui-backend-set-selection (type value
                                               &context (window-system haiku))
-  (haiku-selection-put type "text/plain" value))
+  (haiku-selection-put type "text/plain" value t))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
                                               &context (window-system haiku))

@@ -46,15 +46,25 @@ extern "C"
   BClipboard_find_secondary_selection_data (const char *type, ssize_t *len);
 
   extern void
-  BClipboard_set_system_data (const char *type, const char *data, ssize_t len);
+  BClipboard_set_system_data (const char *type, const char *data, ssize_t len,
+			      bool clear);
 
   extern void
   BClipboard_set_primary_selection_data (const char *type, const char *data,
-					 ssize_t len);
+					 ssize_t len, bool clear);
 
   extern void
   BClipboard_set_secondary_selection_data (const char *type, const char *data,
-					   ssize_t len);
+					   ssize_t len, bool clear);
+
+  extern void
+  BClipboard_system_targets (char **buf, int len);
+
+  extern void
+  BClipboard_primary_targets (char **buf, int len);
+
+  extern void
+  BClipboard_secondary_targets (char **buf, int len);
 
   /* Free the returned data.  */
   extern void BClipboard_free_data (void *ptr);

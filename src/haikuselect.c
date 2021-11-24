@@ -24,6 +24,46 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haikuselect.h"
 #include "haikuterm.h"
 
+static Lisp_Object
+haiku_selection_data_1 (Lisp_Object clipboard)
+{
+  Lisp_Object result = Qnil;
+  char *targets[256];
+
+  block_input ();
+  if (EQ (clipboard, QPRIMARY))
+    BClipboard_primary_targets ((char **) &targets, 256);
+  else if (EQ (clipboard, QSECONDARY))
+    BClipboard_secondary_targets ((char **) &targets, 256);
+  else if (EQ (clipboard, QCLIPBOARD))
+    BClipboard_system_targets ((char **) &targets, 256);
+  else
+    {
+      unblock_input ();
+      signal_error ("Bad clipboard", clipboard);
+    }
+
+  for (int i = 0; targets[i]; ++i)
+    {
+      result = Fcons (build_unibyte_string (targets[i]),
+		      result);
+      free (targets[i]);
+    }
+  unblock_input ();
+
+  return result;
+}
+
+DEFUN ("haiku-selection-targets", Fhaiku_selection_targets,
+       Shaiku_selection_targets, 1, 1, 0,
+       doc: /* Find the types of data available from CLIPBOARD.
+CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or `CLIPBOARD'.
+Return the available types as a list of strings.  */)
+  (Lisp_Object clipboard)
+{
+  return haiku_selection_data_1 (clipboard);
+}
+
 DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
        2, 2, 0,
        doc: /* Retrieve content typed as NAME from the clipboard
@@ -78,15 +118,17 @@ fetch.  */)
 }
 
 DEFUN ("haiku-selection-put", Fhaiku_selection_put, Shaiku_selection_put,
-       3, 3, 0,
+       3, 4, 0,
        doc: /* Add or remove content from the clipboard CLIPBOARD.
 CLIPBOARD is the symbol `PRIMARY', `SECONDARY' or `CLIPBOARD'.  NAME
 is a MIME type denoting the type of the data to add.  DATA is the
 string that will be placed in the clipboard, or nil if the content is
-to be removed.  If NAME is the string `text/utf-8' or the string
-`text/plain', encode it as UTF-8 before storing it into the
+to be removed.  If NAME is the string "text/utf-8" or the string
+"text/plain", encode it as UTF-8 before storing it into the clipboard.
+CLEAR, if non-nil, means to erase all the previous contents of the
 clipboard.  */)
-  (Lisp_Object clipboard, Lisp_Object name, Lisp_Object data)
+  (Lisp_Object clipboard, Lisp_Object name, Lisp_Object data,
+   Lisp_Object clear)
 {
   CHECK_SYMBOL (clipboard);
   CHECK_STRING (name);
@@ -105,11 +147,13 @@ clipboard.  */)
   ptrdiff_t len = !NILP (data) ? SBYTES (data) : 0;
 
   if (EQ (clipboard, QPRIMARY))
-    BClipboard_set_primary_selection_data (SSDATA (name), dat, len);
+    BClipboard_set_primary_selection_data (SSDATA (name), dat, len,
+					   !NILP (clear));
   else if (EQ (clipboard, QSECONDARY))
-    BClipboard_set_secondary_selection_data (SSDATA (name), dat, len);
+    BClipboard_set_secondary_selection_data (SSDATA (name), dat, len,
+					     !NILP (clear));
   else if (EQ (clipboard, QCLIPBOARD))
-    BClipboard_set_system_data (SSDATA (name), dat, len);
+    BClipboard_set_system_data (SSDATA (name), dat, len, !NILP (clear));
   else
     {
       unblock_input ();
@@ -128,7 +172,9 @@ syms_of_haikuselect (void)
   DEFSYM (QSTRING, "STRING");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
   DEFSYM (Qforeign_selection, "foreign-selection");
+  DEFSYM (QTARGETS, "TARGETS");
 
   defsubr (&Shaiku_selection_data);
   defsubr (&Shaiku_selection_put);
+  defsubr (&Shaiku_selection_targets);
 }

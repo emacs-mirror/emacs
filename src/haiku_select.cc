@@ -64,12 +64,62 @@ BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
 }
 
 static void
+BClipboard_get_targets (BClipboard *cb, char **buf, int buf_size)
+{
+  BMessage *data;
+  char *name;
+  int32 count_found;
+  type_code type;
+  int32 i;
+  int index;
+
+  if (!cb->Lock ())
+    {
+      buf[0] = NULL;
+      return;
+    }
+
+  data = cb->Data ();
+  index = 0;
+
+  if (!data)
+    {
+      buf[0] = NULL;
+      cb->Unlock ();
+      return;
+    }
+
+  for (i = 0; (data->GetInfo (B_ANY_TYPE, i, &name,
+			     &type, &count_found)
+	       == B_OK); ++i)
+    {
+      if (type == B_MIME_TYPE)
+	{
+	  if (index < (buf_size - 1))
+	    {
+	      buf[index++] = strdup (name);
+
+	      if (!buf[index - 1])
+		break;
+	    }
+	}
+    }
+
+  buf[index] = NULL;
+
+  cb->Unlock ();
+}
+
+static void
 BClipboard_set_data (BClipboard *cb, const char *type, const char *dat,
-		     ssize_t len)
+		     ssize_t len, bool clear)
 {
   if (!cb->Lock ())
     return;
-  cb->Clear ();
+
+  if (clear)
+    cb->Clear ();
+
   BMessage *mdat = cb->Data ();
   if (!mdat)
     {
@@ -78,7 +128,13 @@ BClipboard_set_data (BClipboard *cb, const char *type, const char *dat,
     }
 
   if (dat)
-    mdat->AddData (type, B_MIME_TYPE, dat, len);
+    {
+      if (mdat->ReplaceData (type, B_MIME_TYPE, dat, len)
+	  == B_NAME_NOT_FOUND)
+	mdat->AddData (type, B_MIME_TYPE, dat, len);
+    }
+  else
+    mdat->RemoveName (type);
   cb->Commit ();
   cb->Unlock ();
 }
@@ -112,38 +168,56 @@ BClipboard_find_secondary_selection_data (const char *type, ssize_t *len)
 
 void
 BClipboard_set_system_data (const char *type, const char *data,
-			    ssize_t len)
+			    ssize_t len, bool clear)
 {
   if (!system_clipboard)
     return;
 
-  BClipboard_set_data (system_clipboard, type, data, len);
+  BClipboard_set_data (system_clipboard, type, data, len, clear);
 }
 
 void
 BClipboard_set_primary_selection_data (const char *type, const char *data,
-				       ssize_t len)
+				       ssize_t len, bool clear)
 {
   if (!primary)
     return;
 
-  BClipboard_set_data (primary, type, data, len);
+  BClipboard_set_data (primary, type, data, len, clear);
 }
 
 void
 BClipboard_set_secondary_selection_data (const char *type, const char *data,
-					 ssize_t len)
+					 ssize_t len, bool clear)
 {
   if (!secondary)
     return;
 
-  BClipboard_set_data (secondary, type, data, len);
+  BClipboard_set_data (secondary, type, data, len, clear);
 }
 
 void
 BClipboard_free_data (void *ptr)
 {
   std::free (ptr);
+}
+
+void
+BClipboard_system_targets (char **buf, int len)
+{
+  BClipboard_get_targets (system_clipboard, buf, len);
+}
+
+void
+BClipboard_primary_targets (char **buf, int len)
+{
+  BClipboard_get_targets (primary, buf, len);
+}
+
+void
+BClipboard_secondary_targets (char **buf, int len)
+{
+  BClipboard_get_targets (secondary, buf, len);
 }
 
 void
