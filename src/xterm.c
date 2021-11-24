@@ -10149,10 +10149,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bv.x = lrint (xev->event_x);
 	      bv.y = lrint (xev->event_y);
 	      bv.window = xev->event;
-	      bv.state = xev->mods.base
-		| xev->mods.effective
-		| xev->mods.latched
-		| xev->mods.locked;
+	      bv.state = xev->mods.effective;
 	      bv.time = xev->time;
 
 	      memset (&compose_status, 0, sizeof (compose_status));
