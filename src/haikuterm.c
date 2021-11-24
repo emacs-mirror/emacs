@@ -2626,8 +2626,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    int width = (int) b->px_widthf;
-	    int height = (int) b->px_heightf;
+	    int width = lrint (b->px_widthf);
+	    int height = lrint (b->px_heightf);
 
 	    BView_draw_lock (FRAME_HAIKU_VIEW (f));
 	    BView_resize_to (FRAME_HAIKU_VIEW (f), width, height);
