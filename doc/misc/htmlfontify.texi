@@ -633,7 +633,7 @@ Convert an Emacs :foreground property to a CSS color property.
 (hfy-flatten-style @var{style})
 @end lisp
 
-Take @var{style} (see @ref{hfy-face-to-style-i}, @ref{hfy-face-to-style})
+Take @var{style} (@pxref{hfy-face-to-style-i}, @pxref{hfy-face-to-style})
 and merge any multiple attributes appropriately.  Currently only font-size is
 merged down to a single occurrence---others may need special handling, but I
 haven't encountered them yet.  Returns a @ref{hfy-style-assoc}.
@@ -841,7 +841,7 @@ See @ref{hfy-display-class} for details of valid values for @var{class}.
 @end lisp
 
 Find face in effect at point P@.  If overlays are to be considered
-(see @ref{hfy-optimizations}) then this may return a @code{defface} style
+(@pxref{hfy-optimizations}) then this may return a @code{defface} style
 list of face properties instead of a face symbol.
 
 @item hfy-bgcol

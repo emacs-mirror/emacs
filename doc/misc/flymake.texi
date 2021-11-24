@@ -1145,7 +1145,7 @@ file are parsed.
 For @file{file.h}, the include directives to look for are
 @code{#include "file.h"}, @code{#include "../file.h"}, etc.  Each
 include is checked against a list of include directories
-(see @ref{Getting the include directories}) to be sure it points to the
+(@pxref{Getting the include directories}) to be sure it points to the
 correct @file{file.h}.
 
 First matching master file found stops the search.  The master file is then

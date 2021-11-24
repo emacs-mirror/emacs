@@ -524,8 +524,8 @@ you can use in PCL-CVS@.  They are grouped together by type.
 Most commands in PCL-CVS require that you have a @file{*cvs*}
 buffer.  The commands that you use to get one are listed below.
 For each, a @samp{cvs} process will be run, the output will be parsed by
-PCL-CVS, and the result will be printed in the @file{*cvs*} buffer (see
-@ref{Buffer contents}, for a description of the buffer's contents).
+PCL-CVS, and the result will be printed in the @file{*cvs*} buffer
+(@pxref{Buffer contents}, for a description of the buffer's contents).
 
 @table @kbd
 @item M-x cvs-update

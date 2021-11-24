@@ -151,7 +151,7 @@ and @key{Meta}
 
 @item
 @key{DEL}: @key{Delete}, usually @strong{not} the same as
-@key{Backspace}; same as @kbd{C-?} (see @ref{Backspace invokes help}, if
+@key{Backspace}; same as @kbd{C-?} (@pxref{Backspace invokes help}, if
 deleting invokes Emacs help)
 
 @item
@@ -793,7 +793,7 @@ informational files about Emacs and relevant aspects of the GNU project
 are available for you to read.
 
 The following files (and others) are available in the @file{etc}
-directory of the Emacs distribution (see @ref{File-name conventions}, if
+directory of the Emacs distribution (@pxref{File-name conventions}, if
 you're not sure where that is).  Many of these files are available via
 the Emacs @samp{Help} menu, or by typing @kbd{C-h ?} (@kbd{M-x
 help-for-help}).

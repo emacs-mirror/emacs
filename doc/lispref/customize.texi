@@ -737,7 +737,7 @@ If omitted, @var{key-type} and @var{value-type} default to
 
 The user can add any key matching the specified key type, but you can
 give some keys a preferential treatment by specifying them with the
-@code{:options} (see @ref{Variable Definitions}).  The specified keys
+@code{:options} (@pxref{Variable Definitions}).  The specified keys
 will always be shown in the customize buffer (together with a suitable
 value), with a checkbox to include or exclude or disable the key/value
 pair from the alist.  The user will not be able to edit the keys
