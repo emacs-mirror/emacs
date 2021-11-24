@@ -310,6 +310,9 @@ G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 {standard input}:27041: Warning: end of file not at end of a line; newline inserted
 boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contexts, use -ftemplate-backtrace-limit=0 to disable ]
+   |
+   |board.h:60:21:
+   |   60 | #define I(b, C) ((C).y * (b)->width + (C).x)
 
 
 * Guile backtrace, 2.0.11
