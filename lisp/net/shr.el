@@ -162,6 +162,10 @@ cid: URL as the argument.")
 (defvar shr-put-image-function #'shr-put-image
   "Function called to put image and alt string.")
 
+(defface shr-text '((t :inherit variable-pitch))
+  "Face used for rendering text."
+  :version "29.1")
+
 (defface shr-strike-through '((t :strike-through t))
   "Face for <s> elements."
   :version "24.1")
@@ -742,7 +746,7 @@ size, and full-buffer size."
 	  (when shr-use-fonts
 	    (put-text-property font-start (point)
 			       'face
-			       (or shr-current-font 'variable-pitch)))))))))
+			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
   (if (<= shr-internal-width 0)
