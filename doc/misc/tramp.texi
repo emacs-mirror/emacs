@@ -3388,8 +3388,8 @@ returns the exit code for it.  When the user option
 indication that the process has been interrupted, and returns a
 corresponding string.
 
-This remote process handling does not apply to @acronym{GVFS} (see
-@ref{GVFS-based methods}) because the remote file system is mounted on
+This remote process handling does not apply to @acronym{GVFS}
+(@pxref{GVFS-based methods}) because the remote file system is mounted on
 the local host and @value{tramp} accesses it by changing the
 @code{default-directory}.
 
@@ -3410,7 +3410,7 @@ might also add their name to this environment variable, like
 For @value{tramp} to find the command on the remote, it must be
 accessible through the default search path as setup by @value{tramp}
 upon first connection.  Alternatively, use an absolute path or extend
-@code{tramp-remote-path} (see @ref{Remote programs}):
+@code{tramp-remote-path} (@pxref{Remote programs}):
 
 @lisp
 @group

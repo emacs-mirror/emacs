@@ -363,7 +363,7 @@ where you are in Emacs.
 @cindex evaluation error
 @cindex infinite recursion
 This variable defines the limit on the total number of local variable
-bindings and @code{unwind-protect} cleanups (see @ref{Cleanups,,
+bindings and @code{unwind-protect} cleanups (@pxref{Cleanups,,
 Cleaning Up from Nonlocal Exits}) that are allowed before Emacs
 signals an error (with data @code{"Variable binding depth exceeds
 max-specpdl-size"}).

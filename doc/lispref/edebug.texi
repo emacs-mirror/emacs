@@ -1267,7 +1267,7 @@ balanced parentheses, recursive processing of forms, and recursion via
 indirect specifications.
 
 Here's a table of the possible elements of a specification list, with
-their meanings (see @ref{Specification Examples}, for the referenced
+their meanings (@pxref{Specification Examples}, for the referenced
 examples):
 
 @table @code
