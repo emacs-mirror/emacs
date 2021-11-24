@@ -664,8 +664,8 @@ public:
   {
     struct haiku_resize_event rq;
     rq.window = this;
-    rq.px_heightf = newHeight + 1.0f;
-    rq.px_widthf = newWidth + 1.0f;
+    rq.px_heightf = newHeight;
+    rq.px_widthf = newWidth;
 
     haiku_write (FRAME_RESIZED, &rq);
     BDirectWindow::FrameResized (newWidth, newHeight);
