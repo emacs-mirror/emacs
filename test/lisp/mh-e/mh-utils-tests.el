@@ -307,6 +307,14 @@ if `mh-test-utils-debug-mocks' is non-nil."
       (message "file-directory-p: %S -> %s" filename result))
     result))
 
+(defun mh-test-variant-handles-plus-slash (variant)
+  "Returns non-nil if this MH variant handles \"folders +/\".
+Mailutils 3.5, 3.7, and 3.13 are known not to."
+  (cond ((not (stringp variant)))       ;our mock handles it
+        ((string-search "GNU Mailutils" variant)
+         nil)
+        (t)))                           ;no other known failures
+
 
 (ert-deftest mh-sub-folders-actual ()
   "Test `mh-sub-folders-actual'."
@@ -314,14 +322,15 @@ if `mh-test-utils-debug-mocks' is non-nil."
   ;; already been normalized with
   ;; (mh-normalize-folder-name folder nil nil t)
   (with-mh-test-env
-    (should (equal
+    (should (member
              mh-test-rel-folder
-             (car (assoc mh-test-rel-folder (mh-sub-folders-actual nil)))))
+             (mapcar (lambda (x) (car x)) (mh-sub-folders-actual nil))))
     ;; Empty string and "+" not tested since mh-normalize-folder-name
     ;; would change them to nil.
-    (should (equal "foo"
-                   (car (assoc "foo" (mh-sub-folders-actual
-                                      (format "+%s" mh-test-rel-folder))))))
+    (should (member "foo"
+                    (mapcar (lambda (x) (car x))
+                            (mh-sub-folders-actual
+                             (format "+%s" mh-test-rel-folder)))))
     ;; Folder with trailing slash not tested since
     ;; mh-normalize-folder-name would strip it.
     (should (equal
@@ -331,6 +340,10 @@ if `mh-test-utils-debug-mocks' is non-nil."
     (should (equal
              (list (list "bar") (list "foo") (list "food"))
              (mh-sub-folders-actual (format "+%s" mh-test-abs-folder))))
+
+    (when (mh-test-variant-handles-plus-slash mh-variant-in-use)
+      (should (member "tmp" (mapcar (lambda (x) (car x))
+                                    (mh-sub-folders-actual "+/")))))
 
     ;; FIXME: mh-sub-folders-actual doesn't (yet) expect to be given a
     ;; nonexistent folder.
@@ -343,13 +356,12 @@ if `mh-test-utils-debug-mocks' is non-nil."
 (ert-deftest mh-sub-folders ()
   "Test `mh-sub-folders'."
   (with-mh-test-env
-    (should (equal mh-test-rel-folder
-                   (car (assoc mh-test-rel-folder (mh-sub-folders nil)))))
-    (should (equal mh-test-rel-folder
-                   (car (assoc mh-test-rel-folder (mh-sub-folders "")))))
-    (should (equal nil
-                   (car (assoc mh-test-no-such-folder (mh-sub-folders
-                                                       "+")))))
+    (should (member mh-test-rel-folder
+                   (mapcar (lambda (x) (car x)) (mh-sub-folders nil))))
+    (should (member mh-test-rel-folder
+                    (mapcar (lambda (x) (car x)) (mh-sub-folders ""))))
+    (should-not (member mh-test-no-such-folder
+                        (mapcar (lambda (x) (car x)) (mh-sub-folders "+"))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
                    (mh-sub-folders (format "+%s" mh-test-rel-folder))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
@@ -360,6 +372,9 @@ if `mh-test-utils-debug-mocks' is non-nil."
                    (mh-sub-folders (format "+%s/foo" mh-test-rel-folder))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
                    (mh-sub-folders (format "+%s" mh-test-abs-folder))))
+    (when (mh-test-variant-handles-plus-slash mh-variant-in-use)
+      (should (member "tmp"
+                      (mapcar (lambda (x) (car x)) (mh-sub-folders "+/")))))
 
     ;; FIXME: mh-sub-folders doesn't (yet) expect to be given a
     ;; nonexistent folder.
@@ -441,10 +456,8 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-08-plus-slash ()
   "Test `mh-folder-completion-function' with `+/'."
-  ;; This test fails with Mailutils 3.5, 3.7, and 3.13.
   (with-mh-test-env
-    (skip-unless (not (and (stringp mh-variant-in-use)
-                           (string-search "GNU Mailutils" mh-variant-in-use)))))
+    (skip-unless (mh-test-variant-handles-plus-slash mh-variant-in-use)))
   (mh-test-folder-completion-1 "+/" "+/" "tmp/" t)
   ;; case "bb"
   (with-mh-test-env
@@ -454,10 +467,8 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-09-plus-slash-tmp ()
   "Test `mh-folder-completion-function' with `+/tmp'."
-  ;; This test fails with Mailutils 3.5, 3.7, and 3.13.
   (with-mh-test-env
-    (skip-unless (not (and (stringp mh-variant-in-use)
-                           (string-search "GNU Mailutils" mh-variant-in-use)))))
+    (skip-unless (mh-test-variant-handles-plus-slash mh-variant-in-use)))
   (mh-test-folder-completion-1 "+/tmp" "+/tmp/" "tmp/" t))
 
 (ert-deftest mh-folder-completion-function-10-plus-slash-abs-folder ()
