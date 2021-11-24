@@ -979,7 +979,7 @@ public:
    }
 
   void
-  AfterResize (float newWidth, float newHeight)
+  AfterResize (void)
   {
     if (offscreen_draw_view)
       {
@@ -1657,7 +1657,7 @@ BView_resize_to (void *view, int width, int height)
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view for resize");
   vw->ResizeTo (width, height);
-  vw->AfterResize (width, height);
+  vw->AfterResize ();
   vw->UnlockLooper ();
 }
 
