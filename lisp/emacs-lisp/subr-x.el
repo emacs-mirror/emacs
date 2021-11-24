@@ -456,7 +456,12 @@ This takes into account combining characters and grapheme clusters."
         (start 0)
         comp)
     (while (< start (length string))
-      (if (setq comp (find-composition-internal start nil string nil))
+      (if (setq comp (find-composition-internal
+                      start
+                      ;; Don't search backward in the string for the
+                      ;; start of the composition.
+                      (min (length string) (1+ start))
+                      string nil))
           (progn
             (push (substring string (car comp) (cadr comp)) result)
             (setq start (cadr comp)))

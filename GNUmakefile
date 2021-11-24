@@ -104,8 +104,13 @@ configure:
 
 Makefile: configure
 	@echo >&2 'There seems to be no Makefile in this directory.'
+ifeq ($(configure),default)
 	@echo >&2 'Running ./configure ...'
 	./configure
+else
+	@echo >&2 'Running ./configure '$(configure)'...'
+	./configure $(configure)
+endif
 	@echo >&2 'Makefile built.'
 
 # 'make bootstrap' in a fresh checkout needn't run 'configure' twice.
