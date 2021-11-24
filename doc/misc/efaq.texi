@@ -1086,7 +1086,7 @@ Emacs Lisp form at point.
 @cindex pasting text on text terminals
 @cindex bracketed paste mode
 @item
-On text terminals that support the ``bracketed paste mode'' EMacs now
+On text terminals that support the ``bracketed paste mode'' Emacs now
 uses that mode by default.  This mode allows Emacs to distinguish
 between pasted text and text typed by the user.
 
@@ -2542,12 +2542,12 @@ load @code{dired-x} by adding the following to your @file{.emacs} file:
   (require 'dired-x))
 @end lisp
 
-With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
+With @code{dired-x} loaded, @kbd{C-x M-o} toggles omitting in each dired buffer.
 You can make omitting the default for new dired buffers by putting the
 following in your @file{.emacs}:
 
 @lisp
-(add-hook 'dired-mode-hook 'dired-omit-toggle)
+(add-hook 'dired-mode-hook 'dired-omit-mode)
 @end lisp
 
 If you're tired of seeing backup files whenever you do an @samp{ls} at
