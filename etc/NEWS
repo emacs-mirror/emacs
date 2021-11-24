@@ -75,6 +75,10 @@ time.
 
 * Changes in Emacs 29.1
 
+---
+** The mode line now uses a proportional font by default.
+To get the old monospaced mode line back, customize the 'mode-line' face.
+
 +++
 ** New function 'buffer-text-pixel-size'.
 This is similar to 'window-text-pixel-size', but can be used when the

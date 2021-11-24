@@ -2611,9 +2611,11 @@ non-nil."
 (defface mode-line
   '((((class color) (min-colors 88))
      :box (:line-width -1 :style released-button)
+     :inherit 'variable-pitch
      :background "grey75" :foreground "black")
     (t
-     :inverse-video t))
+     :inverse-video t
+     :inherit 'variable-pitch))
   "Basic mode line face for selected window."
   :version "21.1"
   :group 'mode-line-faces

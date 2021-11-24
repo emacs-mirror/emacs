@@ -503,6 +503,7 @@ mouse-1: Display Line and Column Mode Menu"))
   `((:propertize
      mode-line-percent-position
      local-map ,mode-line-column-line-number-mode-map
+     display (min-width (5.0))
      mouse-face mode-line-highlight
      ;; XXX needs better description
      help-echo "Window Scroll Percentage
@@ -521,26 +522,31 @@ mouse-1: Display Line and Column Mode Menu")))
         (10
          (:propertize
           mode-line-position-column-line-format
+          display (min-width (10.0))
           ,@mode-line-position--column-line-properties))
         (10
          (:propertize
           (:eval (string-replace
                   "%c" "%C" (car mode-line-position-column-line-format)))
+          display (min-width (10.0))
           ,@mode-line-position--column-line-properties)))
        (6
         (:propertize
 	 mode-line-position-line-format
+         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))))
      (column-number-mode
       (column-number-indicator-zero-based
        (6
         (:propertize
          mode-line-position-column-format
+         display (min-width (6.0))
          (,@mode-line-position--column-line-properties)))
        (6
         (:propertize
          (:eval (string-replace
                  "%c" "%C" (car mode-line-position-column-format)))
+         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))))))
   "Mode line construct for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
@@ -597,10 +603,14 @@ By default, this shows the information specified by `global-mode-string'.")
 (let ((standard-mode-line-format
        (list "%e"
 	     'mode-line-front-space
-	     'mode-line-mule-info
-	     'mode-line-client
-	     'mode-line-modified
-	     'mode-line-remote
+             (list
+              :propertize
+              (list ""
+	            'mode-line-mule-info
+	            'mode-line-client
+	            'mode-line-modified
+	            'mode-line-remote)
+              'display '(min-width (4.0)))
 	     'mode-line-frame-identification
 	     'mode-line-buffer-identification
 	     "   "
