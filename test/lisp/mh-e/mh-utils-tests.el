@@ -80,6 +80,52 @@
                  (mh-normalize-folder-name "+inbox////../news/" nil t)))
   (should (equal "+inbox/news" (mh-normalize-folder-name "+inbox////./news"))))
 
+(ert-deftest mh-sub-folders-parse-no-folder ()
+  "Test `mh-sub-folders-parse' with no starting folder."
+  (let (others-position)
+    (with-temp-buffer
+      (insert "lines without has-string are ignored\n")
+      (insert "onespace has no messages.\n")
+      (insert "twospace  has no messages.\n")
+      (insert "  precedingblanks  has no messages.\n")
+      (insert ".leadingdot  has no messages.\n")
+      (insert "#leadinghash  has no messages.\n")
+      (insert ",leadingcomma  has no messages.\n")
+      (insert "withothers  has no messages ; (others)")
+      (setq others-position (point))
+      (insert ".\n")
+      (insert "curf   has  no messages.\n")
+      (insert "curf+  has 123 messages.\n")
+      (insert "curf2+ has  17 messages.\n")
+      (insert "\ntotal after blank line is ignored  has no messages.\n")
+      (should (equal
+               (mh-sub-folders-parse nil "curf+")
+               (list '("onespace") '("twospace") '("precedingblanks")
+                     (cons "withothers" others-position)
+                     '("curf") '("curf") '("curf2+")))))))
+
+(ert-deftest mh-sub-folders-parse-relative-folder ()
+  "Test `mh-sub-folders-parse' with folder."
+  (let (others-position)
+    (with-temp-buffer
+      (insert "testf+  has no messages.\n")
+      (insert "testf/sub1  has no messages.\n")
+      (insert "testf/sub2  has no messages ; (others)")
+      (setq others-position (point))
+      (insert ".\n")
+      (should (equal
+               (mh-sub-folders-parse "+testf" "testf+")
+               (list '("sub1") (cons "sub2" others-position)))))))
+
+(ert-deftest mh-sub-folders-parse-root-folder ()
+  "Test `mh-sub-folders-parse' with root folder."
+  (with-temp-buffer
+    (insert "/+  has no messages.\n")
+    (insert "//nmh-style  has no messages.\n")
+    (should (equal
+             (mh-sub-folders-parse "+/" "inbox+")
+             '(("nmh-style"))))))
+
 
 ;; Folder names that are used by the following tests.
 (defvar mh-test-rel-folder "rela-folder")

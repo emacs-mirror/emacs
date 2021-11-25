@@ -562,7 +562,6 @@ Expects FOLDER to have already been normalized with
   (let ((arg-list `(,(expand-file-name "folders" mh-progs)
                     nil (t nil) nil "-noheader" "-norecurse" "-nototal"
                     ,@(if (stringp folder) (list folder) ())))
-        (results ())
         (current-folder (concat
                          (with-temp-buffer
                            (call-process (expand-file-name "folder" mh-progs)
@@ -571,29 +570,37 @@ Expects FOLDER to have already been normalized with
                          "+")))
     (with-temp-buffer
       (apply #'call-process arg-list)
-      (goto-char (point-min))
-      (while (not (and (eolp) (bolp)))
-        (goto-char (line-end-position))
-        (let ((start-pos (line-beginning-position))
-              (has-pos (search-backward " has "
-                                        (line-beginning-position) t)))
-          (when (integerp has-pos)
-            (while (equal (char-after has-pos) ? )
-              (cl-decf has-pos))
-            (cl-incf has-pos)
-            (while (equal (char-after start-pos) ? )
-              (cl-incf start-pos))
-            (let* ((name (buffer-substring start-pos has-pos))
-                   (first-char (aref name 0))
-                   (last-char (aref name (1- (length name)))))
-              (unless (member first-char '(?. ?# ?,))
-                (when (and (equal last-char ?+) (equal name current-folder))
-                  (setq name (substring name 0 (1- (length name)))))
-                (push
-                 (cons name
-                       (search-forward "(others)" (line-end-position) t))
-                 results))))
-          (forward-line 1))))
+      (mh-sub-folders-parse folder current-folder))))
+
+(defun mh-sub-folders-parse (folder current-folder)
+  "Parse the results of \"folders FOLDER\" and return a list of sub-folders.
+CURRENT-FOLDER is the result of \"folder -fast\".
+FOLDER will be nil or start with '+'; CURRENT-FOLDER will end with '+'.
+This function is a testable helper of `mh-sub-folders-actual'."
+  (let ((results ()))
+    (goto-char (point-min))
+    (while (not (and (eolp) (bolp)))
+      (goto-char (line-end-position))
+      (let ((start-pos (line-beginning-position))
+            (has-pos (search-backward " has "
+                                      (line-beginning-position) t)))
+        (when (integerp has-pos)
+          (while (equal (char-after has-pos) ? )
+            (cl-decf has-pos))
+          (cl-incf has-pos)
+          (while (equal (char-after start-pos) ? )
+            (cl-incf start-pos))
+          (let* ((name (buffer-substring start-pos has-pos))
+                 (first-char (aref name 0))
+                 (last-char (aref name (1- (length name)))))
+            (unless (member first-char '(?. ?# ?,))
+              (when (and (equal last-char ?+) (equal name current-folder))
+                (setq name (substring name 0 (1- (length name)))))
+              (push
+               (cons name
+                     (search-forward "(others)" (line-end-position) t))
+               results))))
+        (forward-line 1)))
     (setq results (nreverse results))
     (when (stringp folder)
       (setq results (cdr results))
