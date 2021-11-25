@@ -10648,7 +10648,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    memset (&xkey, 0, sizeof xkey);
 
 	    xkey.type = KeyRelease;
-	    xkey.serial = 0;
+	    xkey.serial = xev->serial;
 	    xkey.send_event = xev->send_event;
 	    xkey.display = xev->display;
 	    xkey.window = xev->event;
