@@ -60,6 +60,8 @@ struct table_entry
   const char *names[6];
 };
 
+/* The following tables should be in sync with 'custom-face-attributes'.  */
+
 /* Table of weight numeric values and their names.  This table must be
    sorted by numeric values in ascending order and the numeric values
    must approximately match the weights in the font files.  */
