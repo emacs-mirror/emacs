@@ -265,7 +265,7 @@ Initialization options:\n\
 #endif
 #if SECCOMP_USABLE
     "\
---sandbox=FILE              read Seccomp BPF filter from FILE\n\
+--seccomp=FILE              read Seccomp BPF filter from FILE\n\
 "
 #endif
     "\
