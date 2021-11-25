@@ -416,7 +416,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                          (and (symbolp real-this-command)
                               (get real-this-command 'repeat-map)))))
         (when rep-map
-          (when (boundp rep-map)
+          (when (and (symbolp rep-map) (boundp rep-map))
             (setq rep-map (symbol-value rep-map)))
           (let ((map (copy-keymap rep-map)))
 
