@@ -215,7 +215,7 @@ ns_get_local_selection (Lisp_Object selection_name,
 static Lisp_Object
 ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
 {
-  NSDictionary<NSString *, NSString *> *typeLookup;
+  NSDictionary *typeLookup;
   id pb;
   pb = ns_symbol_to_pb (symbol);
 
@@ -229,10 +229,14 @@ ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
 #else
              @"text/plain",        NSFilenamesPboardType,
 #endif
-             @"text/html",         NSPasteboardTypeHTML,
+#ifdef NS_IMPL_COCOA
+             /* FIXME: I believe these are actually available in recent
+                versions of GNUstep.  */
              @"text/plain",        NSPasteboardTypeMultipleTextSelection,
-             @"application/pdf",   NSPasteboardTypePDF,
              @"image/png",         NSPasteboardTypePNG,
+#endif
+             @"text/html",         NSPasteboardTypeHTML,
+             @"application/pdf",   NSPasteboardTypePDF,
              @"application/rtf",   NSPasteboardTypeRTF,
              @"application/rtfd",  NSPasteboardTypeRTFD,
              @"STRING",            NSPasteboardTypeString,
@@ -272,7 +276,7 @@ ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
           = [typeLookup allKeysForObject:
                           [NSString stringWithLispString:SYMBOL_NAME (target)]];
       else
-        availableTypes = @[NSPasteboardTypeString];
+        availableTypes = [NSArray arrayWithObject:NSPasteboardTypeString];
 
       t = [pb availableTypeFromArray:availableTypes];
 

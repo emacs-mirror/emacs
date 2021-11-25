@@ -1346,9 +1346,18 @@ enum NSWindowTabbingMode
 
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_14)
 /* Deprecated in macOS 10.14.  */
+/* FIXME: Some of these new names, if not all, are actually available
+   in some recent version of GNUstep.  */
 #define NSPasteboardTypeString NSStringPboardType
 #define NSPasteboardTypeTabularText NSTabularTextPboardType
 #define NSPasteboardTypeURL NSURLPboardType
+#define NSPasteboardTypeHTML NSHTMLPboardType
+#define NSPasteboardTypeMultipleTextSelection NSMultipleTextSelectionPboardType
+#define NSPasteboardTypePDF NSPDFPboardType
+#define NSPasteboardTypePNG NSPNGPboardType
+#define NSPasteboardTypeRTF NSRTFPboardType
+#define NSPasteboardTypeRTFD NSRTFDPboardType
+#define NSPasteboardTypeTIFF NSTIFFPboardType
 #define NSControlStateValueOn NSOnState
 #define NSControlStateValueOff NSOffState
 #define NSBezelStyleRounded NSRoundedBezelStyle
