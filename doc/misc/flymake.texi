@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo; coding: utf-8 -*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
 @set VERSION 1.2
