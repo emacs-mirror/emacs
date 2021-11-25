@@ -4896,9 +4896,16 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\(^\\| \\)see"
+                        (cond ((save-match-data (looking-back "\\(^\\|[ (]\\)see"
                                                               (- (point) 4)))
 			       "")
+                              ;; We want "Also *note" to produce
+                              ;; "Also see", but "See also *note" to produce
+                              ;; "See also", so match case-sensitively.
+                              ((save-match-data (let ((case-fold-search nil))
+                                                  (looking-back "\\(^\\| \\)also"
+                                                              (- (point) 5))))
+                               "")
 			      ((save-match-data (looking-back "\\(^\\| \\)in"
                                                               (- (point) 3)))
 			       "")
