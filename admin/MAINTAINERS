@@ -231,6 +231,7 @@ Michael Albinus
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el
+	test/infra/*
         test/lisp/autorevert-tests.el
         test/lisp/files-tests.el (file-name-non-special)
 	test/lisp/shadowfile-tests.el
