@@ -2393,6 +2393,7 @@ A fancy display is used on graphic displays, normal otherwise."
                ;; and long versions of what's on command-switch-alist.
                (longopts
                 (append '("--funcall" "--load" "--insert" "--kill"
+                          "--dump-file" "--seccomp"
                           "--directory" "--eval" "--execute" "--no-splash"
                           "--find-file" "--visit" "--file" "--no-desktop")
                         (mapcar (lambda (elt) (concat "-" (car elt)))
@@ -2553,6 +2554,11 @@ nil default-directory" name)
                      (or (stringp tem)
                          (error "File name omitted from `-insert' option"))
                      (insert-file-contents (command-line-normalize-file-name tem)))
+
+                    ((or (equal argi "-dump-file")
+                         (equal argi "-seccomp"))
+                     ;; This was processed in C.
+                     (or argval (pop command-line-args-left)))
 
                     ((equal argi "-kill")
                      (kill-emacs t))
