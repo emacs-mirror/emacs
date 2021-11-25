@@ -81,7 +81,7 @@ To get the old monospaced mode line back, customize the 'mode-line'
 face not to inherit from the 'variable-pitch' face, or add this to
 your ~/.emacs:
 
-  (set-face-attribute 'mode-line t :inherit nil)
+  (set-face-attribute 'mode-line nil :inherit 'default)
 
 +++
 ** New function 'buffer-text-pixel-size'.
