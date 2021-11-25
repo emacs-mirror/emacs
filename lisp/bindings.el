@@ -501,7 +501,7 @@ mouse-1: Display Line and Column Mode Menu"))
 
 (defvar mode-line-position
   `((:propertize
-     mode-line-percent-position
+     (" " mode-line-percent-position)
      local-map ,mode-line-column-line-number-mode-map
      display (min-width (5.0))
      mouse-face mode-line-highlight
