@@ -121,10 +121,12 @@
   "Test `mh-sub-folders-parse' with root folder."
   (with-temp-buffer
     (insert "/+  has no messages.\n")
+    (insert "/   has no messages.\n")
     (insert "//nmh-style  has no messages.\n")
+    (insert "/mu-style  has no messages.\n")
     (should (equal
              (mh-sub-folders-parse "+/" "inbox+")
-             '(("nmh-style"))))))
+             '(("") ("nmh-style") ("mu-style"))))))
 
 
 ;; Folder names that are used by the following tests.
@@ -259,8 +261,8 @@ The tests use this method if no configured MH variant is found."
              "/abso-folder/food  has no messages."))
            (("folders" "-noheader" "-norecurse" "-nototal" "+/") .
             ("/+             has no messages ; (others)."
-             "//abso-folder  has no messages ; (others)."
-             "//tmp          has no messages ; (others)."))
+             "/abso-folder   has no messages ; (others)."
+             "/tmp           has no messages ; (others)."))
            ))
         (arglist (cons (file-name-base program) args)))
     (let ((response-list-cons (assoc arglist argument-responses)))
@@ -358,7 +360,8 @@ if `mh-test-utils-debug-mocks' is non-nil."
 Mailutils 3.5, 3.7, and 3.13 are known not to."
   (cond ((not (stringp variant)))       ;our mock handles it
         ((string-search "GNU Mailutils" variant)
-         nil)
+         (let ((mu-version (string-remove-prefix "GNU Mailutils " variant)))
+           (version<= "3.13.91" mu-version)))
         (t)))                           ;no other known failures
 
 

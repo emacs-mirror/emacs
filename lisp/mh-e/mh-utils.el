@@ -592,10 +592,14 @@ This function is a testable helper of `mh-sub-folders-actual'."
             (cl-incf start-pos))
           (let* ((name (buffer-substring start-pos has-pos))
                  (first-char (aref name 0))
+                 (second-char (and (length> name 1) (aref name 1)))
                  (last-char (aref name (1- (length name)))))
             (unless (member first-char '(?. ?# ?,))
               (when (and (equal last-char ?+) (equal name current-folder))
                 (setq name (substring name 0 (1- (length name)))))
+              ;; nmh outputs double slash in root folder, e.g., "//tmp"
+              (when (and (equal first-char ?/) (equal second-char ?/))
+                (setq name (substring name 1)))
               (push
                (cons name
                      (search-forward "(others)" (line-end-position) t))
@@ -605,6 +609,9 @@ This function is a testable helper of `mh-sub-folders-actual'."
     (when (stringp folder)
       (setq results (cdr results))
       (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
+        (when (equal "+/" folder)
+          ;; folder "+/" includes a trailing slash
+          (cl-decf folder-name-len))
         (setq results (mapcar (lambda (f)
                                 (cons (substring (car f) folder-name-len)
                                       (cdr f)))
