@@ -6604,7 +6604,10 @@ not_in_argv (NSString *arg)
 
                   lines = abs (totalDeltaX / lineHeight);
 		  x = totalDeltaX;
-		  totalDeltaX = totalDeltaX % lineHeight;
+		  if (!x_coalesce_scroll_events)
+		    totalDeltaX = 0;
+		  else
+		    totalDeltaX = totalDeltaX % lineHeight;
                   totalDeltaY = 0;
                 }
               else if (abs (totalDeltaY) >= abs (totalDeltaX)
@@ -6616,7 +6619,10 @@ not_in_argv (NSString *arg)
 
                   lines = abs (totalDeltaY / lineHeight);
 		  y = totalDeltaY;
-                  totalDeltaY = totalDeltaY % lineHeight;
+		  if (!x_coalesce_scroll_events)
+		    totalDeltaY = 0;
+		  else
+		    totalDeltaY = totalDeltaY % lineHeight;
                   totalDeltaX = 0;
                 }
 
