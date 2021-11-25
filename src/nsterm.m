@@ -6529,6 +6529,7 @@ not_in_argv (NSString *arg)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
+  int x = 0, y = 0;
 
   NSTRACE ("[EmacsView mouseDown:]");
 
@@ -6595,22 +6596,26 @@ not_in_argv (NSString *arg)
                * reset the total delta for the direction we're NOT
                * scrolling so that small movements don't add up.  */
               if (abs (totalDeltaX) > abs (totalDeltaY)
-                  && abs (totalDeltaX) > lineHeight)
+                  && (!x_coalesce_scroll_events
+		      || abs (totalDeltaX) > lineHeight))
                 {
                   horizontal = YES;
                   scrollUp = totalDeltaX > 0;
 
                   lines = abs (totalDeltaX / lineHeight);
-                  totalDeltaX = totalDeltaX % lineHeight;
+		  x = totalDeltaX;
+		  totalDeltaX = totalDeltaX % lineHeight;
                   totalDeltaY = 0;
                 }
               else if (abs (totalDeltaY) >= abs (totalDeltaX)
-                       && abs (totalDeltaY) > lineHeight)
+                       && (!x_coalesce_scroll_events
+			   || abs (totalDeltaY) > lineHeight))
                 {
                   horizontal = NO;
                   scrollUp = totalDeltaY > 0;
 
                   lines = abs (totalDeltaY / lineHeight);
+		  y = totalDeltaY;
                   totalDeltaY = totalDeltaY % lineHeight;
                   totalDeltaX = 0;
                 }
@@ -6637,13 +6642,17 @@ not_in_argv (NSString *arg)
                 ? ceil (fabs (delta)) : 1;
 
               scrollUp = delta > 0;
+	      x = [theEvent scrollingDeltaX];
+	      y = [theEvent scrollingDeltaY];
             }
 
-          if (lines == 0)
+          if (lines == 0 && x_coalesce_scroll_events)
             return;
 
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
-          emacs_event->arg = (make_fixnum (lines));
+          emacs_event->arg = list3 (make_fixnum (lines),
+				    make_float (x),
+				    make_float (y));
 
           emacs_event->code = 0;
           emacs_event->modifiers = EV_MODIFIERS (theEvent) |
@@ -10005,6 +10014,11 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
+
+  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
+	       doc: /* SKIP: real doc in xterm.c.  */);
+  x_coalesce_scroll_events = true;
+
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 
   /* Tell Emacs about this window system.  */
