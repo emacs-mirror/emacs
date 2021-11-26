@@ -202,7 +202,7 @@ test-all-inotify:
     public: true
     expire_in: 1 week
     paths:
-      - "**/*.log"
+      - "${test_name}/**/*.log"
     when: always
   variables:
     target: emacs-inotify
@@ -221,6 +221,13 @@ test-filenotify-gio:
   needs:
     - job: build-image-filenotify-gio
       optional: true
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - "${test_name}/**/*.log"
+    when: always
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
@@ -238,6 +245,13 @@ test-gnustep:
   needs:
     - job: build-image-gnustep
       optional: true
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - "${test_name}/**/*.log"
+    when: always
   variables:
     target: emacs-gnustep
     make_params: install
@@ -266,6 +280,13 @@ test-native-comp-speed0:
   needs:
     - job: build-native-comp-speed0
       optional: true
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - "${test_name}/**/*.log"
+    when: always
   variables:
     target: emacs-native-comp-speed0
     make_params: "-C test check SELECTOR='(not (tag :unstable))'"
