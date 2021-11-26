@@ -27,14 +27,23 @@
 
 (require 'ert)
 (require 'ert-x)
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'comp))
+(eval-and-compile
+  (require 'comp-cstr)          ;in eval-and-compile for its defstruct
+  (defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
+  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
+  (defconst comp-test-pure-src (ert-resource-file "comp-test-pure.el"))
+  (defconst comp-test-45603-src (ert-resource-file "comp-test-45603.el"))
+  ;; Load the test code here so the compiler can check the function
+  ;; names used in this file.
+  (load comp-test-src nil t)
+  (load comp-test-dyn-src nil t)
+  (load comp-test-pure-src nil t)
+  (load comp-test-45603-src nil t))
 
-(defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
-
-(defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
-
-(when (featurep 'native-compile)
-  (require 'comp)
+(when (native-comp-available-p)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))
   (load (native-compile comp-test-dyn-src)))
@@ -352,6 +361,8 @@ Check that the resulting binaries do not differ."
                                  comp-test-interactive-form2-f)))
   (should-not (commandp #'comp-tests-doc-f)))
 
+(declare-function comp-tests-free-fun-f nil)
+
 (comp-deftest free-fun ()
   "Check we are able to compile a single function."
   (eval '(defun comp-tests-free-fun-f ()
@@ -368,6 +379,8 @@ Check that the resulting binaries do not differ."
   (should (commandp #'comp-tests-free-fun-f))
   (should (equal (interactive-form #'comp-tests-free-fun-f)
                  '(interactive))))
+
+(declare-function comp-tests/free\fun-f nil)
 
 (comp-deftest free-fun-silly-name ()
   "Check we are able to compile a single function."
@@ -493,7 +506,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (comp-deftest 45603-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01994.html>"
-  (load (native-compile (ert-resource-file "comp-test-45603.el")))
+  (load (native-compile comp-test-45603-src))
   (should (fboundp #'comp-test-45603--file-local-name)))
 
 (comp-deftest 46670-1 ()
@@ -786,6 +799,8 @@ Return a list of results."
            (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-tco-f "F" t)
                                    insn)))))))
 
+(declare-function comp-tests-tco-f nil)
+
 (comp-deftest tco ()
   "Check for tail recursion elimination."
   (let ((native-comp-speed 3)
@@ -813,6 +828,8 @@ Return a list of results."
      (lambda (insn)
        (or (comp-tests-mentioned-p 'concat insn)
            (comp-tests-mentioned-p 'length insn)))))))
+
+(declare-function comp-tests-fw-prop-1-f nil)
 
 (comp-deftest fw-prop-1 ()
   "Some tests for forward propagation."
@@ -1404,7 +1421,7 @@ folded."
   (let ((native-comp-speed 3)
         (comp-post-pass-hooks '((comp-final comp-tests-pure-checker-1
                                             comp-tests-pure-checker-2))))
-    (load (native-compile (ert-resource-file "comp-test-pure.el")))
+    (load (native-compile comp-test-pure-src))
 
     (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-caller-f)))
     (should (= (comp-tests-pure-caller-f) 4))
