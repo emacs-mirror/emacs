@@ -102,7 +102,7 @@
 	     (const :tag "semi-light" semi-light)
 	     (const :tag "demilight" semi-light)
 	     (const :tag "normal" normal)
-	     (const :tag "regular" normal)
+	     (const :tag "regular" regular)
 	     (const :tag "book" normal)
 	     (const :tag "medium" medium)
 	     (const :tag "semibold" semi-bold)
