@@ -67,7 +67,6 @@
 	     (const :tag "extra-condensed" extra-condensed)
 	     (const :tag "extraexpanded" extra-expanded)
 	     (const :tag "extra-expanded" extra-expanded)
-	     (const :tag "medium" normal)
 	     (const :tag "narrow" condensed)
 	     (const :tag "normal" normal)
 	     (const :tag "medium" normal)
