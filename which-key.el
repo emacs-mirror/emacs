@@ -2379,7 +2379,10 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                                      " 1..9"
                                      which-key-separator "digit-arg"))
                                    'face 'which-key-note-face)))
-                  (key (string (read-key prompt)))
+                  (key (let ((key (read-key prompt)))
+                         (if (numberp key)
+                             (string key)
+                           (vector key))))
                   (cmd (lookup-key which-key-C-h-map key))
                   (which-key-inhibit t))
              (if cmd (funcall cmd key) (which-key-turn-page 0)))))))
