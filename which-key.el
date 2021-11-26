@@ -1973,6 +1973,13 @@ is the width of the live window."
             (or prefix-title
                 (which-key--maybe-get-prefix-title
                  (key-description prefix-keys))))
+      (when (and (= (which-key--pages-num-pages result) 1)
+                 (> which-key-min-display-lines
+                    (which-key--pages-height result)))
+        ;; result is shorter than requested, so we artificially increase the
+        ;; height. See #325. Note this only has an effect if
+        ;; `which-key-allow-imprecise-window-fit' is non-nil.
+        (setf (which-key--pages-height result) which-key-min-display-lines))
       (which-key--debug-message "Frame height: %s
 Minibuffer height: %s
 Max dimensions: (%s,%s)
