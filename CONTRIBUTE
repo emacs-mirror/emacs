@@ -342,7 +342,9 @@ Documentation fixes (in doc strings, in manuals, in NEWS, and in
 comments) should always go to the release branch, if the documentation
 to be fixed exists and is relevant to the release-branch codebase.
 Doc fixes are always considered "safe" -- even when a release branch
-is in feature freeze, it can still receive doc fixes.
+is in feature freeze, it can still receive doc fixes.  However, this
+rule is limited to fixing real problems in the documentation; cleanups
+and stylistic changes are excluded.
 
 When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can

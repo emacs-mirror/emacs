@@ -1356,6 +1356,39 @@ main (int argc, char **argv)
   init_standard_fds ();
   atexit (close_output_streams);
 
+  /* Command-line argument processing.
+
+     The arguments in the argv[] array are sorted in the descending
+     order of their priority as defined in the standard_args[] array
+     below.  Then the sorted arguments are processed from the highest
+     to the lowest priority.  Each command-line argument that is
+     recognized by 'main', if found in argv[], causes skip_args to be
+     incremented, effectively removing the processed argument from the
+     command line.
+
+     Then init_cmdargs is called, and conses a list of the unprocessed
+     command-line arguments, as strings, in 'command-line-args'.  It
+     ignores all the arguments up to the one indexed by skip_args, as
+     those were already processed.
+
+     The arguments in 'command-line-args' are further processed by
+     startup.el, functions 'command-line' and 'command-line-1'.  The
+     first of them handles the arguments which need to be processed
+     before loading the user init file and initializing the
+     window-system.  The second one processes the arguments that are
+     related to the GUI system, like -font, -geometry, and -title, and
+     then processes the rest of arguments whose priority is below
+     those that are related to the GUI system.  The arguments
+     porcessed by 'command-line' are removed from 'command-line-args';
+     the arguments processed by 'command-line-1' aren't, they are only
+     removed from 'command-line-args-left'.
+
+     'command-line-1' emits an error message for any argument it
+     doesn't recognize, so any command-line arguments processed in C
+     below whose priority is below the GUI system related switches
+     should be explicitly recognized, ignored, and removed from
+     'command-line-args-left' in 'command-line-1'.  */
+
   sort_args (argc, argv);
   argc = 0;
   while (argv[argc]) argc++;

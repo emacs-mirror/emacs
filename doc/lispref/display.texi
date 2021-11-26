@@ -2052,14 +2052,14 @@ means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
 
-@group
 @example
+@group
 (truncate-string-to-width "\tab\t" 12 4)
      @result{} "ab"
 (truncate-string-to-width "\tab\t" 12 4 ?\s)
      @result{} "    ab  "
-@end example
 @end group
+@end example
 
 This function uses @code{string-width} and @code{char-width} to find
 the suitable truncation point when @var{string} is too wide, so it
