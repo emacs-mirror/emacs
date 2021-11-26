@@ -6529,7 +6529,6 @@ not_in_argv (NSString *arg)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
-  int x = 0, y = 0;
 
   NSTRACE ("[EmacsView mouseDown:]");
 
@@ -6561,6 +6560,7 @@ not_in_argv (NSString *arg)
            */
           bool horizontal;
           int lines = 0;
+          int x = 0, y = 0;
           int scrollUp = NO;
 
           /* FIXME: At the top or bottom of the buffer we should
