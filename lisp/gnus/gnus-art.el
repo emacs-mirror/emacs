@@ -768,28 +768,37 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
 
+(defface gnus-header
+  '((t nil))
+  "Base face used for all Gnus header faces.
+All the other `gnus-header-' faces inherit from this face."
+  :version "29.1"
+  :group 'gnus-article-headers
+  :group 'gnus-article-highlight)
+
 (defface gnus-header-from
   '((((class color)
       (background dark))
-     (:foreground "PaleGreen1"))
+     (:foreground "PaleGreen1" :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "red3"))
+     (:foreground "red3" :inherit gnus-header))
     (t
-     (:italic t)))
+     (:italic t :inherit gnus-header)))
   "Face used for displaying from headers."
+  :version "29.1"
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
 
 (defface gnus-header-subject
   '((((class color)
       (background dark))
-     (:foreground "SeaGreen1"))
+     (:foreground "SeaGreen1" :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "red4"))
+     (:foreground "red4" :inherit gnus-header))
     (t
-     (:bold t :italic t)))
+     (:bold t :italic t :inherit gnus-header)))
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -797,7 +806,7 @@ Obsolete; use the face `gnus-signature' for customizations instead."
 (defface gnus-header-newsgroups
   '((((class color)
       (background dark))
-     (:foreground "yellow" :italic t))
+     (:foreground "yellow" :italic t :inherit gnus-header))
     (((class color)
       (background light))
      (:foreground "MidnightBlue" :italic t))
@@ -812,12 +821,12 @@ articles."
 (defface gnus-header-name
   '((((class color)
       (background dark))
-     (:foreground "SpringGreen2"))
+     (:foreground "SpringGreen2" :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "maroon"))
+     (:foreground "maroon" :inherit gnus-header))
     (t
-     (:bold t)))
+     (:bold t :inherit gnus-header)))
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -825,12 +834,13 @@ articles."
 (defface gnus-header-content
   '((((class color)
       (background dark))
-     (:foreground "SpringGreen1" :italic t))
+     (:foreground "SpringGreen1" :italic t :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "indianred4" :italic t))
+     (:foreground "indianred4" :italic t :inherit gnus-header))
     (t
-     (:italic t)))  "Face used for displaying header content."
+     (:italic t :inherit gnus-header)))
+  "Face used for displaying header content."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
 
