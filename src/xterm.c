@@ -345,6 +345,7 @@ x_extension_initialize (struct x_display_info *dpyinfo)
   dpyinfo->ext_codes = ext_codes;
 }
 
+#endif /* HAVE_CAIRO */
 
 #ifdef HAVE_XINPUT2
 
@@ -563,6 +564,8 @@ xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id)
 }
 
 #endif
+
+#ifdef USE_CAIRO
 
 void
 x_cr_destroy_frame_context (struct frame *f)
