@@ -101,11 +101,11 @@ and pop-up menus.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
-When enabled, you can scroll the display up or down by individual
-pixels in a way that corresponds with the movement of your mouse
-wheel, if supported by the mouse wheel.  Unlike 'pixel-scroll-mode',
-this mode scrolls the display pixel-by-pixel, as opposed to only
-animating line-by-line scrolls.
+When enabled, and if your mouse supports it, you can scroll the
+display up or down at pixel resolution, according to what your mouse
+wheel reports.  Unlike 'pixel-scroll-mode', this mode scrolls the
+display pixel-by-pixel, as opposed to only animating line-by-line
+scrolls.
 
 ** Terminal Emacs
 
