@@ -3033,8 +3033,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		XSETINT (inev.x, x);
 		XSETINT (inev.y, y);
-		inev.arg = list3 (Qnil, make_float (px),
-				  make_float (py));
+		inev.arg = list3 (Qnil, make_float (-px),
+				  make_float (-py));
 		XSETFRAME (inev.frame_or_window, f);
 
 		inev.modifiers |= (signbit (inev.kind == HORIZ_WHEEL_EVENT
