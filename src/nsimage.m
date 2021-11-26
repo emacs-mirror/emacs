@@ -76,6 +76,8 @@ ns_can_use_native_image_api (Lisp_Object type)
     imageType = @"public.tiff";
   else if (EQ (type, Qsvg))
     imageType = @"public.svg-image";
+  else if (EQ (type, Qheic))
+    imageType = @"public.heic";
 
   /* NSImage also supports a host of other types such as PDF and BMP,
      but we don't yet support these in image.c.  */

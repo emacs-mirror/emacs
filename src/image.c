@@ -11481,6 +11481,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #endif /* HAVE_NTGUI  */
 #endif /* HAVE_RSVG  */
 
+#ifdef HAVE_NS
+  DEFSYM (Qheic, "heic");
+  add_image_type (Qheic);
+#endif
+
 #if HAVE_NATIVE_IMAGE_API
   DEFSYM (Qnative_image, "native-image");
 # ifdef HAVE_NTGUI

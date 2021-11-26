@@ -58,7 +58,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
 		"\\(?:!DOCTYPE[ \t\r\n]+[^>]*>[ \t\r\n]*<[ \t\r\n]*" comment-re "*\\)?"
 		"[Ss][Vv][Gg]"))
      . svg)
-    )
+    ("\\`....ftyp\\(heic\\|heix\\|hevc\\|heim\\|heis\\|hevm\\|hevs\\|mif1\\|msf1\\)" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
@@ -78,7 +78,7 @@ a non-nil value, TYPE is the image's type.")
     ("\\.ps\\'" . postscript)
     ("\\.tiff?\\'" . tiff)
     ("\\.svgz?\\'" . svg)
-    )
+    ("\\.hei[cf]s?\\'" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to identify image files.
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
@@ -97,7 +97,8 @@ be of image type IMAGE-TYPE.")
     (tiff . maybe)
     (svg . maybe)
     (webp . maybe)
-    (postscript . nil))
+    (postscript . nil)
+    (heic . maybe))
   "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
 \(See `image-type-auto-detected-p').
 
