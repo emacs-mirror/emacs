@@ -94,10 +94,12 @@ This controls the thickness of the external borders of the menu bars
 and pop-up menus.
 
 ---
-** New minor mode 'better-pixel-scroll-mode'.
-When enabled, using this mode with a capable scroll wheel will result
-in the display being scrolled precisely according to the turning of
-that wheel.
+** New minor mode 'pixel-scroll-precision-mode'.
+When enabled, you can scroll the display up or down by individual
+pixels in a way that corresponds with the movement of your mouse
+wheel, if supported by the mouse wheel.  Unlike 'pixel-scroll-mode',
+this mode scrolls the display pixel-by-pixel, as opposed to only
+animating line-by-line scrolls.
 
 ** Terminal Emacs
 

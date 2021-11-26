@@ -67,6 +67,7 @@
 ;;; Code:
 
 (require 'mwheel)
+(require 'subr-x)
 
 (defvar pixel-wait 0
   "Idle time on each step of pixel scroll specified in second.
@@ -89,6 +90,15 @@ is always with pixel resolution.")
 
 (defvar pixel-last-scroll-time 0
   "Time when the last scrolling was made, in second since the epoch.")
+
+(defvar x-coalesce-scroll-events)
+
+(defvar pixel-scroll-precision-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [wheel-down] #'pixel-scroll-precision)
+    (define-key map [wheel-up] #'pixel-scroll-precision)
+    map)
+  "The key map used by `pixel-scroll-precision-mode'.")
 
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
@@ -353,6 +363,117 @@ engine use that particular position as the window-start point.
 Otherwise, redisplay will reset the window's vscroll."
   (set-window-start nil (pixel-point-at-unseen-line) t)
   (set-window-vscroll nil vscroll t))
+
+;; FIXME: This doesn't work when DELTA is larger than the height
+;; of the current window, and someone should probably fix that
+;; at some point.
+(defun pixel-scroll-precision-scroll-down (delta)
+  "Scroll the current window down by DELTA pixels.
+Note that this function doesn't work if DELTA is larger than
+the height of the current window."
+  (when-let* ((posn (posn-at-point))
+	      (current-y (cdr (posn-x-y posn)))
+	      (min-y (+ (frame-char-height)
+                        (window-tab-line-height)
+		        (window-header-line-height)))
+              (cursor-height (line-pixel-height))
+              (window-height (window-text-height nil t))
+              (next-height (save-excursion
+                             (vertical-motion 1)
+                             (line-pixel-height))))
+    (if (and (> delta 0)
+             (<= cursor-height window-height))
+	(while (< (- current-y min-y) delta)
+	  (vertical-motion 1)
+          (setq current-y (+ current-y
+                             (line-pixel-height)))
+	  (when (eobp)
+	    (signal 'end-of-buffer nil)))
+      (when (< (- (cdr (posn-object-width-height posn))
+                  (cdr (posn-object-x-y posn)))
+               (- window-height next-height))
+        (vertical-motion 1)
+        (setq posn (posn-at-point)
+              current-y (cdr (posn-x-y posn)))
+        (while (< (- current-y min-y) delta)
+	  (vertical-motion 1)
+          (setq current-y (+ current-y
+                             (line-pixel-height)))
+	  (when (eobp)
+	    (signal 'end-of-buffer nil)))))
+    (let* ((desired-pos (posn-at-x-y 0 (+ delta
+					  (window-tab-line-height)
+					  (window-header-line-height))))
+	   (desired-start (posn-point desired-pos))
+	   (desired-vscroll (cdr (posn-object-x-y desired-pos))))
+      (unless (eq (window-start) desired-start)
+        (set-window-start nil desired-start t))
+      (set-window-vscroll nil desired-vscroll t))))
+
+(defun pixel-scroll-precision-scroll-up (delta)
+  "Scroll the current window up by DELTA pixels."
+  (when-let* ((max-y (- (window-text-height nil t)
+                        (frame-char-height)
+		        (window-tab-line-height)
+		        (window-header-line-height)))
+	      (posn (posn-at-point))
+	      (current-y (+ (cdr (posn-x-y posn))
+		            (line-pixel-height))))
+    (while (< (- max-y current-y) delta)
+      (vertical-motion -1)
+      (setq current-y (- current-y (line-pixel-height)))))
+  (let ((current-vscroll (window-vscroll nil t)))
+    (setq delta (- delta current-vscroll))
+    (set-window-vscroll nil 0 t))
+  (while (> delta 0)
+    (set-window-start nil (save-excursion
+                            (goto-char (window-start))
+                            (when (zerop (vertical-motion -1))
+			      (set-window-vscroll nil 0)
+			      (signal 'beginning-of-buffer nil))
+                            (setq delta (- delta (line-pixel-height)))
+                            (point))
+		      t))
+  (when (< delta 0)
+    (when-let* ((desired-pos (posn-at-x-y 0 (+ (- delta)
+					  (window-tab-line-height)
+					  (window-header-line-height))))
+	        (desired-start (posn-point desired-pos))
+	        (desired-vscroll (cdr (posn-object-x-y desired-pos))))
+      (unless (eq (window-start) desired-start)
+        (set-window-start nil desired-start t))
+      (set-window-vscroll nil desired-vscroll t))))
+
+;; FIXME: This doesn't work when there's an image above the current
+;; line that is taller than the window.
+(defun pixel-scroll-precision (event)
+  "Scroll the display vertically by pixels according to EVENT.
+Move the display up or down by the pixel deltas in EVENT to
+scroll the display according to the user's turning the mouse
+wheel."
+  (interactive "e")
+  (let ((window (mwheel-event-window event)))
+    (if (and (nth 4 event)
+             (zerop (window-hscroll window)))
+        (let ((delta (round (cdr (nth 4 event)))))
+          (if (> (abs delta) (window-text-height window t))
+              (mwheel-scroll event nil)
+            (with-selected-window window
+              (if (< delta 0)
+	          (pixel-scroll-precision-scroll-down (- delta))
+                (pixel-scroll-precision-scroll-up delta)))))
+      (mwheel-scroll event nil))))
+
+;;;###autoload
+(define-minor-mode pixel-scroll-precision-mode
+  "Toggle pixel scrolling.
+When enabled, this minor mode allows to scroll the display
+precisely, according to the turning of the mouse wheel."
+  :global t
+  :group 'mouse
+  :keymap pixel-scroll-precision-mode-map
+  (setq x-coalesce-scroll-events
+        (not pixel-scroll-precision-mode)))
 
 (provide 'pixel-scroll)
 ;;; pixel-scroll.el ends here
