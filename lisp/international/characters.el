@@ -1618,31 +1618,36 @@ function (`update-glyphless-char-display'), which updates
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))
   :options '((c0-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (c1-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (format-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (variation-selectors
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (no-font
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value hex-code
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
