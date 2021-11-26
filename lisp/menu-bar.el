@@ -1347,14 +1347,13 @@ mail status in mode line"))
                               (frame-parameter (menu-bar-frame-for-menubar)
                                                'menu-bar-lines)))))
 
-    (unless (featurep 'ns)
-      (bindings--define-key menu [showhide-tab-bar]
-        '(menu-item "Tab Bar" toggle-tab-bar-mode-from-frame
-                    :help "Turn tab bar on/off"
-                    :button
-                    (:toggle . (menu-bar-positive-p
-                                (frame-parameter (menu-bar-frame-for-menubar)
-                                                 'tab-bar-lines))))))
+    (bindings--define-key menu [showhide-tab-bar]
+      '(menu-item "Tab Bar" toggle-tab-bar-mode-from-frame
+                  :help "Turn tab bar on/off"
+                  :button
+                  (:toggle . (menu-bar-positive-p
+                              (frame-parameter (menu-bar-frame-for-menubar)
+                                               'tab-bar-lines)))))
 
     (if (and (boundp 'menu-bar-showhide-tool-bar-menu)
              (keymapp menu-bar-showhide-tool-bar-menu))
