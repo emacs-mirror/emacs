@@ -93,6 +93,12 @@ buffer isn't displayed.
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
 
+---
+** New minor mode 'better-pixel-scroll-mode'.
+When enabled, using this mode with a capable scroll wheel will result
+in the display being scrolled precisely according to the turning of
+that wheel.
+
 ** Terminal Emacs
 
 ---
