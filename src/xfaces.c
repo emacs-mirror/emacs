@@ -4857,7 +4857,7 @@ lookup_basic_face (struct window *w, struct frame *f, int face_id)
   switch (face_id)
     {
     case DEFAULT_FACE_ID:		name = Qdefault;		break;
-    case MODE_LINE_FACE_ID:		name = Qmode_line;		break;
+    case MODE_LINE_ACTIVE_FACE_ID:	name = Qmode_line_active;      	break;
     case MODE_LINE_INACTIVE_FACE_ID:	name = Qmode_line_inactive;	break;
     case HEADER_LINE_FACE_ID:		name = Qheader_line;		break;
     case TAB_LINE_FACE_ID:		name = Qtab_line;		break;
@@ -5569,6 +5569,7 @@ realize_basic_faces (struct frame *f)
   if (realize_default_face (f))
     {
       realize_named_face (f, Qmode_line, MODE_LINE_FACE_ID);
+      realize_named_face (f, Qmode_line_active, MODE_LINE_ACTIVE_FACE_ID);
       realize_named_face (f, Qmode_line_inactive, MODE_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qfringe, FRINGE_FACE_ID);
@@ -6945,6 +6946,7 @@ syms_of_xfaces (void)
   DEFSYM (Qborder, "border");
   DEFSYM (Qmouse, "mouse");
   DEFSYM (Qmode_line_inactive, "mode-line-inactive");
+  DEFSYM (Qmode_line_active, "mode-line-active");
   DEFSYM (Qvertical_border, "vertical-border");
   DEFSYM (Qwindow_divider, "window-divider");
   DEFSYM (Qwindow_divider_first_pixel, "window-divider-first-pixel");

@@ -1285,8 +1285,8 @@ window_box_height (struct window *w)
 	  if (ml_row && ml_row->mode_line_p)
 	    height -= ml_row->height;
 	  else
-	    height -= estimate_mode_line_height (f,
-						 CURRENT_MODE_LINE_FACE_ID (w));
+	    height -= estimate_mode_line_height
+	      (f, CURRENT_MODE_LINE_ACTIVE_FACE_ID (w));
 	}
     }
 
@@ -1691,7 +1691,7 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 	= window_parameter (w, Qmode_line_format);
 
       w->mode_line_height
-	= display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
+	= display_mode_line (w, CURRENT_MODE_LINE_ACTIVE_FACE_ID (w),
 			     NILP (window_mode_line_format)
 			     ? BVAR (current_buffer, mode_line_format)
 			     : window_mode_line_format);
@@ -3146,11 +3146,11 @@ CHECK_WINDOW_END (struct window *w)
    will produce glyphs in that row.
 
    BASE_FACE_ID is the id of a base face to use.  It must be one of
-   DEFAULT_FACE_ID for normal text, MODE_LINE_FACE_ID,
+   DEFAULT_FACE_ID for normal text, MODE_LINE_ACTIVE_FACE_ID,
    MODE_LINE_INACTIVE_FACE_ID, or HEADER_LINE_FACE_ID for displaying
    mode lines, or TOOL_BAR_FACE_ID for displaying the tool-bar.
 
-   If ROW is null and BASE_FACE_ID is equal to MODE_LINE_FACE_ID,
+   If ROW is null and BASE_FACE_ID is equal to MODE_LINE_ACTIVE_FACE_ID,
    MODE_LINE_INACTIVE_FACE_ID, or HEADER_LINE_FACE_ID, the iterator
    will be initialized to use the corresponding mode line glyph row of
    the desired matrix of W.  */
@@ -3196,7 +3196,7 @@ init_iterator (struct it *it, struct window *w,
      appropriate.  */
   if (row == NULL)
     {
-      if (base_face_id == MODE_LINE_FACE_ID
+      if (base_face_id == MODE_LINE_ACTIVE_FACE_ID
 	  || base_face_id == MODE_LINE_INACTIVE_FACE_ID)
 	row = MATRIX_MODE_LINE_ROW (w->desired_matrix);
       else if (base_face_id == TAB_LINE_FACE_ID)
@@ -11020,7 +11020,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to, Li
       Lisp_Object window_mode_line_format
 	= window_parameter (w, Qmode_line_format);
 
-      y = y + display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
+      y = y + display_mode_line (w, CURRENT_MODE_LINE_ACTIVE_FACE_ID (w),
 				 NILP (window_mode_line_format)
 				 ? BVAR (current_buffer, mode_line_format)
 				 : window_mode_line_format);
@@ -25813,7 +25813,8 @@ display_mode_lines (struct window *w)
       struct window *sel_w = XWINDOW (old_selected_window);
 
       /* Select mode line face based on the real selected window.  */
-      display_mode_line (w, CURRENT_MODE_LINE_FACE_ID_3 (sel_w, sel_w, w),
+      display_mode_line (w,
+			 CURRENT_MODE_LINE_ACTIVE_FACE_ID_3 (sel_w, sel_w, w),
 			 NILP (window_mode_line_format)
 			 ? BVAR (current_buffer, mode_line_format)
 			 : window_mode_line_format);
@@ -25852,11 +25853,11 @@ display_mode_lines (struct window *w)
 }
 
 
-/* Display mode or header/tab line of window W.  FACE_ID specifies which
-   line to display; it is either MODE_LINE_FACE_ID, HEADER_LINE_FACE_ID or
-   TAB_LINE_FACE_ID.  FORMAT is the mode/header/tab line format to
-   display.  Value is the pixel height of the mode/header/tab line
-   displayed.  */
+/* Display mode or header/tab line of window W.  FACE_ID specifies
+   which line to display; it is either MODE_LINE_ACTIVE_FACE_ID,
+   HEADER_LINE_FACE_ID or TAB_LINE_FACE_ID.  FORMAT is the
+   mode/header/tab line format to display.  Value is the pixel height
+   of the mode/header/tab line displayed.  */
 
 static int
 display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
@@ -26649,8 +26650,8 @@ are the selected window and the WINDOW's buffer).  */)
 
   face_id = (NILP (face) || EQ (face, Qdefault)) ? DEFAULT_FACE_ID
     : EQ (face, Qt) ? (EQ (window, selected_window)
-		       ? MODE_LINE_FACE_ID : MODE_LINE_INACTIVE_FACE_ID)
-    : EQ (face, Qmode_line) ? MODE_LINE_FACE_ID
+		       ? MODE_LINE_ACTIVE_FACE_ID : MODE_LINE_INACTIVE_FACE_ID)
+    : EQ (face, Qmode_line_active) ? MODE_LINE_ACTIVE_FACE_ID
     : EQ (face, Qmode_line_inactive) ? MODE_LINE_INACTIVE_FACE_ID
     : EQ (face, Qheader_line) ? HEADER_LINE_FACE_ID
     : EQ (face, Qtab_line) ? TAB_LINE_FACE_ID
