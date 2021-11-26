@@ -118,16 +118,17 @@ according to the user's turning the mouse wheel.  If EVENT does
 not have precise scrolling deltas, call `mwheel-scroll' instead.
 ARG is passed to `mwheel-scroll', should that be called."
   (interactive (list last-input-event current-prefix-arg))
-  (if (nth 4 event)
-      (let ((delta (round (cdr (nth 4 event))))
-            (window (mwheel-event-window event)))
-        (if (> (abs delta) (window-text-height window t))
-            (mwheel-scroll event arg)
-          (with-selected-window window
+  (let ((window (mwheel-event-window event)))
+    (if (and (nth 4 event)
+             (zerop (window-hscroll window)))
+        (let ((delta (round (cdr (nth 4 event)))))
+          (if (> (abs delta) (window-text-height window t))
+              (mwheel-scroll event arg)
+            (with-selected-window window
               (if (< delta 0)
 	          (better-pixel-scroll-scroll-down (- delta))
                 (better-pixel-scroll-scroll-up delta)))))
-    (mwheel-scroll event arg)))
+      (mwheel-scroll event arg))))
 
 ;;;###autoload
 (define-minor-mode better-pixel-scroll-mode
