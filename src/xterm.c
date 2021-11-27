@@ -10085,6 +10085,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    ev.x = lrint (xev->event_x);
 	    ev.y = lrint (xev->event_y);
 	    ev.window = xev->event;
+	    ev.time = xev->time;
 
 	    previous_help_echo_string = help_echo_string;
 	    help_echo_string = Qnil;
