@@ -333,12 +333,14 @@ returns nil."
         (setq pos-list (cdr pos-list))))
     visible-pos))
 
-(defun pixel-point-at-unseen-line ()
-  "Return the character position of line above the selected window.
-The returned value is the position of the first character on the
-unseen line just above the scope of current window."
+(defun pixel-point-and-height-at-unseen-line ()
+  "Return the position and pixel height of line above the selected window.
+The returned value is a cons of the position of the first
+character on the unseen line just above the scope of current
+window, and the pixel height of that line."
   (let* ((pos0 (window-start))
          (vscroll0 (window-vscroll nil t))
+         (line-height nil)
          (pos
           (save-excursion
             (goto-char pos0)
@@ -350,11 +352,18 @@ unseen line just above the scope of current window."
                     (tem (beginning-of-visual-line 0)))
                 (if (eq tem ppos)
                     (vertical-motion -1))
+                (setq line-height (line-pixel-height))
                 (point))))))
     ;; restore initial position
     (set-window-start nil pos0 t)
     (set-window-vscroll nil vscroll0 t)
-    pos))
+    (cons pos line-height)))
+
+(defun pixel-point-at-unseen-line ()
+  "Return the character position of line above the selected window.
+The returned value is the position of the first character on the
+unseen line just above the scope of current window."
+  (car (pixel-point-and-height-at-unseen-line)))
 
 (defun pixel-scroll-down-and-set-window-vscroll (vscroll)
   "Scroll down a line and set VSCROLL in pixels.
@@ -426,14 +435,9 @@ the height of the current window."
     (setq delta (- delta current-vscroll))
     (set-window-vscroll nil 0 t))
   (while (> delta 0)
-    (set-window-start nil (save-excursion
-                            (goto-char (window-start))
-                            (when (zerop (vertical-motion -1))
-			      (set-window-vscroll nil 0)
-			      (signal 'beginning-of-buffer nil))
-                            (setq delta (- delta (line-pixel-height)))
-                            (point))
-		      t))
+    (let ((position (pixel-point-and-height-at-unseen-line)))
+      (set-window-start nil (car position) t)
+      (setq delta (- delta (cdr position)))))
   (when (< delta 0)
     (when-let* ((desired-pos (posn-at-x-y 0 (+ (- delta)
 					  (window-tab-line-height)
