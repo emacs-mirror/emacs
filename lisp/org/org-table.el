@@ -4436,7 +4436,7 @@ Optional argument NEW may specify text to replace the current field content."
 	  (col (org-table-current-column)))
       (when (> col 0)
 	(skip-chars-backward "^|")
-	(if (not (looking-at " *\\([^|\n]*?\\) *\\(|\\|$\\)"))
+	(if (not (looking-at " *\\(?:\\([^|\n]*?\\) *\\(|\\)\\|\\([^|\n]+?\\) *\\($\\)\\)"))
 	    (setq org-table-may-need-update t)
 	  (let* ((align (nth (1- col) org-table-last-alignment))
 		 (width (nth (1- col) org-table-last-column-widths))
