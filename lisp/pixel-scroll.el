@@ -408,11 +408,18 @@ the height of the current window."
     (let* ((desired-pos (posn-at-x-y 0 (+ delta
 					  (window-tab-line-height)
 					  (window-header-line-height))))
+           (object (posn-object desired-pos))
 	   (desired-start (posn-point desired-pos))
 	   (desired-vscroll (cdr (posn-object-x-y desired-pos))))
-      (unless (eq (window-start) desired-start)
-        (set-window-start nil desired-start t))
-      (set-window-vscroll nil desired-vscroll t))))
+      (if (or (consp object) (stringp object))
+          ;; We are either on an overlay or a string, so set vscroll
+          ;; directly.
+          (set-window-vscroll nil (+ (window-vscroll nil t)
+                                     delta)
+                              t)
+        (unless (eq (window-start) desired-start)
+          (set-window-start nil desired-start t))
+        (set-window-vscroll nil desired-vscroll t)))))
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
