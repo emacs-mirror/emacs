@@ -595,8 +595,12 @@
      ;; incorrectly nested parens do not crash us
      (should-not (equal (time-stamp-string "%(stuffB" ref-time3) May))
      (should-not (equal (time-stamp-string "%)B" ref-time3) May))
+     ;; unterminated format does not crash us
+     (should-not (equal (time-stamp-string "%" ref-time3) May))
      ;; not all punctuation is allowed
-     (should-not (equal (time-stamp-string "%&B" ref-time3) May)))))
+     (should-not (equal (time-stamp-string "%&B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%/B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%;B" ref-time3) May)))))
 
 (ert-deftest time-stamp-format-non-conversions ()
   "Test that without a %, the text is copied literally."
@@ -635,8 +639,8 @@
                      (concat Mon "." Monday "." Mon)))
       (should (equal (time-stamp-string "%5z.%5::z.%5z" ref-time1)
                      "+0000.+00:00:00.+0000"))
-      ;; format letter is independent
-      (should (equal (time-stamp-string "%H:%M" ref-time1) "15:04")))))
+      ;; format character is independent
+      (should (equal (time-stamp-string "%H:%M%%%S" ref-time1) "15:04%05")))))
 
 (ert-deftest time-stamp-format-string-width ()
   "Test time-stamp string width modifiers."
