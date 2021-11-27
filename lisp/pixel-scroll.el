@@ -346,14 +346,9 @@ window, and the pixel height of that line."
             (goto-char pos0)
             (if (bobp)
                 (point-min)
-              ;; When there's an overlay string at window-start,
-              ;; (beginning-of-visual-line 0) stays put.
-              (let ((ppos (point))
-                    (tem (beginning-of-visual-line 0)))
-                (if (eq tem ppos)
-                    (vertical-motion -1))
-                (setq line-height (line-pixel-height))
-                (point))))))
+              (vertical-motion -1)
+              (setq line-height (line-pixel-height))
+              (point)))))
     ;; restore initial position
     (set-window-start nil pos0 t)
     (set-window-vscroll nil vscroll0 t)
