@@ -910,6 +910,8 @@ xwidget_button_1 (struct xwidget_view *view,
 #ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo;
   struct xi_device_t *xi_device;
+  GdkSeat *seat;
+  GdkDevice *device;
 #endif
 
   /* X and Y should be relative to the origin of view->wdesc.  */
@@ -936,11 +938,19 @@ xwidget_button_1 (struct xwidget_view *view,
 
 #ifdef HAVE_XINPUT2
   dpyinfo = FRAME_DISPLAY_INFO (view->frame);
+  device = xg_event->button.device;
+
   for (int idx = 0; idx < dpyinfo->num_devices; ++idx)
     {
       xi_device = &dpyinfo->devices[idx];
 
       XIUngrabDevice (view->dpy, xi_device->device_id, CurrentTime);
+    }
+
+  if (device)
+    {
+      seat = gdk_device_get_seat (device);
+      gdk_seat_ungrab (seat);
     }
 #endif
 
