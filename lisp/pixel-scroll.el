@@ -456,9 +456,14 @@ the height of the current window."
 					           (window-header-line-height))))
 	            (desired-start (posn-point desired-pos))
 	            (desired-vscroll (cdr (posn-object-x-y desired-pos))))
-          (unless (eq (window-start) desired-start)
-            (set-window-start nil desired-start t))
-          (set-window-vscroll nil desired-vscroll t))))))
+          (let ((object (posn-object desired-pos)))
+            (if (or (consp object) (stringp object))
+                (set-window-vscroll nil (+ (window-vscroll nil t)
+                                           (- delta))
+                                    t)
+              (unless (eq (window-start) desired-start)
+                (set-window-start nil desired-start t))
+              (set-window-vscroll nil desired-vscroll t))))))))
 
 ;; FIXME: This doesn't work when there's an image above the current
 ;; line that is taller than the window.
