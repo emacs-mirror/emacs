@@ -44,8 +44,7 @@ workflow:
 variables:
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
-  # Three hours, see below.
-  EMACS_TEST_TIMEOUT: 10800
+  EMACS_TEST_TIMEOUT: 3600
   EMACS_TEST_VERBOSE: 1
   # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   # DOCKER_HOST: tcp://docker:2376
@@ -91,9 +90,11 @@ default:
     # - docker ps -a
     # - printenv
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
+    # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    # - ls -alR ${test_name}
+    - find ${test_name} ! -name "*.log" -type f -delete
+    - find ${test_name} -empty -type d -delete
 
 .build-template:
   needs: []
@@ -133,7 +134,7 @@ default:
     public: true
     expire_in: 1 week
     paths:
-      - "${test_name}/**/*.log"
+      - ${test_name}/
     when: always
 
 .gnustep-template:
