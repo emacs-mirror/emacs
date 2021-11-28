@@ -134,6 +134,7 @@ The return value of this function is not used."
              :autoload-end
              (eval-and-compile
                (defun ,cfname (,@(car data) ,@args)
+                 (ignore ,@(remq '&rest (remq '&optional args)))
                  ,@(cdr data))))))))
 
 (defalias 'byte-run--set-doc-string
