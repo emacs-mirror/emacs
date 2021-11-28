@@ -853,7 +853,11 @@ xg_is_menu_window (Display *dpy, Window wdesc)
     {
       GtkWidget *fw = gtk_bin_get_child (GTK_BIN (gwdesc));
       if (GTK_IS_MENU (fw))
-	return true;
+	{
+	  GtkWidget *parent
+	    = gtk_menu_shell_get_parent_shell (GTK_MENU_SHELL (fw));
+	  return GTK_IS_MENU_BAR (parent);
+	}
     }
 
   return false;

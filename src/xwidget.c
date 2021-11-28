@@ -907,6 +907,10 @@ xwidget_button_1 (struct xwidget_view *view,
   GdkEvent *xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
   struct xwidget *model = XXWIDGET (view->model);
   GtkWidget *target;
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo;
+  struct xi_device_t *xi_device;
+#endif
 
   /* X and Y should be relative to the origin of view->wdesc.  */
   x += view->clip_left;
@@ -929,6 +933,16 @@ xwidget_button_1 (struct xwidget_view *view,
   xg_event->button.state = modifier_state;
   xg_event->button.time = time;
   xg_event->button.device = find_suitable_pointer (view->frame);
+
+#ifdef HAVE_XINPUT2
+  dpyinfo = FRAME_DISPLAY_INFO (view->frame);
+  for (int idx = 0; idx < dpyinfo->num_devices; ++idx)
+    {
+      xi_device = &dpyinfo->devices[idx];
+
+      XIUngrabDevice (view->dpy, xi_device->device_id, CurrentTime);
+    }
+#endif
 
   gtk_main_do_event (xg_event);
   gdk_event_free (xg_event);
