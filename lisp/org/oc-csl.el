@@ -283,7 +283,8 @@ Label is in match group 1.")
 ;;; Internal functions
 (defun org-cite-csl--barf-without-citeproc ()
   "Raise an error if Citeproc library is not loaded."
-  (unless (featurep 'citeproc) "Citeproc library is not loaded"))
+  (unless (featurep 'citeproc)
+    (error "Citeproc library is not loaded")))
 
 (defun org-cite-csl--note-style-p (info)
   "Non-nil when bibliography style implies wrapping citations in footnotes.

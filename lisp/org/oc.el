@@ -1141,17 +1141,14 @@ and must return either a string, an object, or a secondary string."
 
 
 ;;; Internal interface with fontification (activate capability)
-(defun org-cite-fontify-default (datum)
-  "Fontify DATUM with `org-cite' and `org-cite-key' face.
-DATUM is a citation object, or a citation reference.  In any case, apply
-`org-cite' face on the whole citation, and `org-cite-key' face on each key."
-  (let* ((cite (if (eq 'citation-reference (org-element-type datum))
-                   (org-element-property :parent datum)
-                 datum))
-         (beg (org-element-property :begin cite))
-         (end (org-with-point-at (org-element-property :end cite)
-                (skip-chars-backward " \t")
-                (point))))
+(defun org-cite-fontify-default (cite)
+  "Fontify CITE with `org-cite' and `org-cite-key' faces.
+CITE is a citation object.  The function applies `org-cite' face
+on the whole citation, and `org-cite-key' face on each key."
+  (let ((beg (org-element-property :begin cite))
+        (end (org-with-point-at (org-element-property :end cite)
+               (skip-chars-backward " \t")
+               (point))))
     (add-text-properties beg end '(font-lock-multiline t))
     (add-face-text-property beg end 'org-cite)
     (dolist (reference (org-cite-get-references cite))
@@ -1163,16 +1160,20 @@ DATUM is a citation object, or a citation reference.  In any case, apply
   "Activate citations from up to LIMIT buffer position.
 Each citation encountered is activated using the appropriate function
 from the processor set in `org-cite-activate-processor'."
-  (let ((name org-cite-activate-processor))
-    (let ((activate
-           (or (and name
-                    (org-cite-processor-has-capability-p name 'activate)
-                    (org-cite-processor-activate (org-cite--get-processor name)))
-               #'org-cite-fontify-default)))
-      (while (re-search-forward org-element-citation-prefix-re limit t)
-        (let ((cite (org-with-point-at (match-beginning 0)
-                      (org-element-citation-parser))))
-          (when cite (save-excursion (funcall activate cite))))))))
+  (let* ((name org-cite-activate-processor)
+         (activate
+          (or (and name
+                   (org-cite-processor-has-capability-p name 'activate)
+                   (org-cite-processor-activate (org-cite--get-processor name)))
+              #'org-cite-fontify-default)))
+    (when (re-search-forward org-element-citation-prefix-re limit t)
+      (let ((cite (org-with-point-at (match-beginning 0)
+                    (org-element-citation-parser))))
+        (when cite
+          (funcall activate cite)
+          ;; Move after cite object and make sure to return
+          ;; a non-nil value.
+          (goto-char (org-element-property :end cite)))))))
 
 
 ;;; Internal interface with Org Export library (export capability)
