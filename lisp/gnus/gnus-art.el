@@ -4440,7 +4440,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   "?" #'gnus-article-describe-briefly
   "<" #'beginning-of-buffer
   ">" #'end-of-buffer
-  "C-c TAB" #'gnus-info-find-node
+  "C-c C-i" #'gnus-info-find-node
   "C-c C-b" #'gnus-bug
   "R" #'gnus-article-reply-with-original
   "F" #'gnus-article-followup-with-original
