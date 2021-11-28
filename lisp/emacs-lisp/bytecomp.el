@@ -5051,69 +5051,6 @@ binding slots have been popped."
 
 
 
-;; Key syntax warnings.
-
-(mapc
- (lambda (elem)
-   (put (car elem) 'byte-hunk-handler
-        (lambda (form)
-          (dolist (idx (cdr elem))
-            (let ((key (elt form idx)))
-              (when (or (vectorp key)
-                        (and (stringp key)
-                             (not (key-valid-p key))))
-                (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
-          form)))
- ;; Functions and the place(s) for the key definition(s).
- '((keymap-set 2)
-   (keymap-global-set 1)
-   (keymap-local-set 1)
-   (keymap-unset 2)
-   (keymap-global-unset 1)
-   (keymap-local-unset 1)
-   (keymap-substitute 2 3)
-   (keymap-set-after 2)
-   (key-translate 1 2)
-   (keymap-lookup 2)
-   (keymap-global-lookup 1)
-   (keymap-local-lookup 1)))
-
-(put 'define-keymap 'byte-hunk-handler #'byte-compile-define-keymap)
-(defun byte-compile-define-keymap (form)
-  (let ((result nil)
-        (orig-form form))
-    (push (pop form) result)
-    (while (and form
-                (keywordp (car form))
-                (not (eq (car form) :menu)))
-      (unless (memq (car form)
-                    '(:full :keymap :parent :suppress :name :prefix))
-        (byte-compile-warn "Invalid keyword: %s" (car form)))
-      (push (pop form) result)
-      (when (null form)
-        (byte-compile-warn "Uneven number of keywords in %S" form))
-      (push (pop form) result))
-    ;; Bindings.
-    (while form
-      (let ((key (pop form)))
-        (when (stringp key)
-          (unless (key-valid-p key)
-            (byte-compile-warn "Invalid `kbd' syntax: %S" key)))
-          ;; No improvement.
-        (push key result))
-      (when (null form)
-        (byte-compile-warn "Uneven number of key bindings in %S" form))
-      (push (pop form) result))
-    orig-form))
-
-(put 'define-keymap--define 'byte-hunk-handler
-     #'byte-compile-define-keymap--define)
-(defun byte-compile-define-keymap--define (form)
-  (when (consp (nth 1 form))
-    (byte-compile-define-keymap (nth 1 form)))
-  form)
-
-
 ;;; tags
 
 ;; Note: Most operations will strip off the 'TAG, but it speeds up

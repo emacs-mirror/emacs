@@ -6525,6 +6525,28 @@ not a list, return a one-element list containing OBJECT."
       object
     (list object)))
 
+(defun define-keymap--compile (form &rest args)
+  ;; This compiler macro is only there for compile-time
+  ;; error-checking; it does not change the call in any way.
+  (while (and args
+              (keywordp (car args))
+              (not (eq (car args) :menu)))
+    (unless (memq (car args) '(:full :keymap :parent :suppress :name :prefix))
+      (byte-compile-warn "Invalid keyword: %s" (car args)))
+    (setq args (cdr args))
+    (when (null args)
+      (byte-compile-warn "Uneven number of keywords in %S" form))
+    (setq args (cdr args)))
+  ;; Bindings.
+  (while args
+    (let ((key (pop args)))
+      (when (and (stringp key) (not (key-valid-p key)))
+        (byte-compile-warn "Invalid `kbd' syntax: %S" key)))
+    (when (null args)
+      (byte-compile-warn "Uneven number of key bindings in %S" form))
+    (setq args (cdr args)))
+  form)
+
 (defun define-keymap (&rest definitions)
   "Create a new keymap and define KEY/DEFEFINITION pairs as key sequences.
 The new keymap is returned.
@@ -6557,10 +6579,8 @@ also be the special symbol `:menu', in which case DEFINITION
 should be a MENU form as accepted by `easy-menu-define'.
 
 \(fn &key FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
-  (declare (indent defun))
-  (define-keymap--define definitions))
-
-(defun define-keymap--define (definitions)
+  (declare (indent defun)
+           (compiler-macro define-keymap--compile))
   (let (full suppress parent name prefix keymap)
     ;; Handle keywords.
     (while (and definitions
@@ -6632,7 +6652,7 @@ as the variable documentation string.
     (unless (zerop (% (length defs) 2))
       (error "Uneven number of key/definition pairs: %s" defs))
     `(defvar ,variable-name
-       (define-keymap--define (list ,@(nreverse opts) ,@defs))
+       (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))
 
 (defmacro with-delayed-message (args &rest body)

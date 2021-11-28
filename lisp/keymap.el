@@ -31,6 +31,12 @@
   (unless (key-valid-p key)
     (error "%S is not a valid key definition; see `key-valid-p'" key)))
 
+(defun keymap--compile-check (&rest keys)
+  (dolist (key keys)
+    (when (or (vectorp key)
+              (and (stringp key) (not (key-valid-p key))))
+      (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
+
 (defun keymap-set (keymap key definition)
   "Set key sequence KEY to DEFINITION in KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
@@ -50,6 +56,7 @@ DEFINITION is anything that can be a key's definition:
  or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
  or an extended menu item definition.
  (See info node `(elisp)Extended Menu Items'.)"
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (define-key keymap (key-parse key) definition))
 
@@ -63,6 +70,7 @@ KEY is a string that satisfies `key-valid-p'.
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (let* ((menu-prompting nil)
           (key (read-key-sequence "Set key globally: " nil t)))
@@ -80,6 +88,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 The binding goes in the current buffer's local map, which in most
 cases is shared with all other buffers in the same major mode."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive "KSet key locally: \nCSet key %s locally to command: ")
   (let ((map (current-local-map)))
     (unless map
@@ -92,6 +101,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Set key locally: "))
          current-prefix-arg))
@@ -103,6 +113,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Unset key locally: "))
          current-prefix-arg))
@@ -118,6 +129,7 @@ makes a difference when there's a parent keymap.  When unsetting
 a key in a child map, it will still shadow the same key in the
 parent keymap.  Removing the binding will allow the key in the
 parent keymap to be used."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (define-key keymap (key-parse key) nil remove))
 
@@ -131,6 +143,8 @@ If you don't specify OLDMAP, you can usually get the same results
 in a cleaner way with command remapping, like this:
   (define-key KEYMAP [remap OLDDEF] NEWDEF)
 \n(fn OLDDEF NEWDEF KEYMAP &optional OLDMAP)"
+  (declare (compiler-macro
+            (lambda (form) (keymap--compile-check olddef newdef) form)))
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -170,7 +184,8 @@ Bindings are always added before any inherited map.
 
 The order of bindings in a keymap matters only when it is used as
 a menu, so this function is not useful for non-menu keymaps."
-  (declare (indent defun))
+  (declare (indent defun)
+           (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (when after
     (keymap--check after))
@@ -350,6 +365,8 @@ This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
 Both KEY and TO are strings that satisfy `key-valid-p'."
+  (declare (compiler-macro
+            (lambda (form) (keymap--compile-check from to) form)))
   (keymap--check from)
   (keymap--check to)
   (or (char-table-p keyboard-translate-table)
@@ -389,6 +406,7 @@ position as returned by `event-start' and `event-end', and the lookup
 occurs in the keymaps associated with it instead of KEY.  It can also
 be a number or marker, in which case the keymap properties at the
 specified buffer position instead of point are used."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (when (and keymap (not position))
     (error "Can't pass in both keymap and position"))
@@ -408,6 +426,7 @@ The binding is probably a symbol with a function definition.
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `keymap-lookup' for more details
 about this."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
   (when-let ((map (current-local-map)))
     (keymap-lookup map keys accept-default)))
 
@@ -424,6 +443,7 @@ bindings; see the description of `keymap-lookup' for more details
 about this.
 
 If MESSAGE (and interactively), message the result."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
   (interactive
    (list (key-description (read-key-sequence "Look up key in global keymap: "))
          nil t))
