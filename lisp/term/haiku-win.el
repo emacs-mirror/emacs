@@ -49,6 +49,7 @@
 (declare-function x-handle-args "common-win")
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
+(declare-function haiku-selection-targets "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
