@@ -992,6 +992,9 @@ that should be displayed, and the xwidget that asked to display it.
 This function is used to control where and if an xwidget stores
 cookies set by web pages on disk.
 
+** New variable 'help-buffer-under-preparation'.
+This variable is bound to t during the preparation of a *Help* buffer.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

@@ -249,7 +249,8 @@ handling of autoloaded functions."
   ;; calling that.
   (let ((describe-function-orig-buffer
          (or describe-function-orig-buffer
-             (current-buffer))))
+             (current-buffer)))
+        (help-buffer-under-preparation t))
 
     (help-setup-xref
      (list (lambda (function buffer)
@@ -1078,7 +1079,8 @@ it is displayed along with the global value."
                 (if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (let (file-name)
+  (let (file-name
+        (help-buffer-under-preparation t))
     (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
     (unless (frame-live-p frame) (setq frame (selected-frame)))
     (if (not (symbolp variable))
@@ -1461,77 +1463,78 @@ If FRAME is omitted or nil, use the selected frame."
   (interactive (list (read-face-name "Describe face"
                                      (or (face-at-point t) 'default)
                                      t)))
-  (help-setup-xref (list #'describe-face face)
-		   (called-interactively-p 'interactive))
-  (unless face
-    (setq face 'default))
-  (if (not (listp face))
-      (setq face (list face)))
-  (with-help-window (help-buffer)
-    (with-current-buffer standard-output
-      (dolist (f face (buffer-string))
-	(if (stringp f) (setq f (intern f)))
-	;; We may get called for anonymous faces (i.e., faces
-	;; expressed using prop-value plists).  Those can't be
-	;; usefully customized, so ignore them.
-	(when (symbolp f)
-	  (insert "Face: " (symbol-name f))
-	  (if (not (facep f))
-	      (insert "   undefined face.\n")
-	    (let ((customize-label "customize this face")
-		  file-name)
-	      (insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
-	      (princ (concat " (" customize-label ")\n"))
-	      ;; FIXME not sure how much of this belongs here, and
-	      ;; how much in `face-documentation'.  The latter is
-	      ;; not used much, but needs to return nil for
-	      ;; undocumented faces.
-	      (let ((alias (get f 'face-alias))
-		    (face f)
-		    obsolete)
-		(when alias
-		  (setq face alias)
-		  (insert
-		   (format-message
-                    "\n  %s is an alias for the face `%s'.\n%s"
-                    f alias
-                    (if (setq obsolete (get f 'obsolete-face))
-                        (format-message
-                         "  This face is obsolete%s; use `%s' instead.\n"
-                         (if (stringp obsolete)
-                             (format " since %s" obsolete)
-                           "")
-                         alias)
-                      ""))))
-		(insert "\nDocumentation:\n"
-                        (substitute-command-keys
-                         (or (face-documentation face)
-                             "Not documented as a face."))
-			"\n\n"))
-	      (with-current-buffer standard-output
-		(save-excursion
-		  (re-search-backward
-		   (concat "\\(" customize-label "\\)") nil t)
-		  (help-xref-button 1 'help-customize-face f)))
-	      (setq file-name (find-lisp-object-file-name f 'defface))
-	      (if (not file-name)
-                  (setq help-mode--current-data (list :symbol f))
-                (setq help-mode--current-data (list :symbol f
-                                                    :file file-name))
-		(princ (substitute-command-keys "Defined in `"))
-		(princ (help-fns-short-filename file-name))
-		(princ (substitute-command-keys "'"))
-		;; Make a hyperlink to the library.
-		(save-excursion
-		  (re-search-backward
-                   (substitute-command-keys "`\\([^`']+\\)'") nil t)
-		  (help-xref-button 1 'help-face-def f file-name))
-		(princ ".")
-		(terpri)
-		(terpri))))
-	  (terpri)
-          (help-fns--run-describe-functions
-           help-fns-describe-face-functions f frame))))))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'describe-face face)
+		     (called-interactively-p 'interactive))
+    (unless face
+      (setq face 'default))
+    (if (not (listp face))
+        (setq face (list face)))
+    (with-help-window (help-buffer)
+      (with-current-buffer standard-output
+        (dolist (f face (buffer-string))
+	  (if (stringp f) (setq f (intern f)))
+	  ;; We may get called for anonymous faces (i.e., faces
+	  ;; expressed using prop-value plists).  Those can't be
+	  ;; usefully customized, so ignore them.
+	  (when (symbolp f)
+	    (insert "Face: " (symbol-name f))
+	    (if (not (facep f))
+	        (insert "   undefined face.\n")
+	      (let ((customize-label "customize this face")
+		    file-name)
+	        (insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
+	        (princ (concat " (" customize-label ")\n"))
+	        ;; FIXME not sure how much of this belongs here, and
+	        ;; how much in `face-documentation'.  The latter is
+	        ;; not used much, but needs to return nil for
+	        ;; undocumented faces.
+	        (let ((alias (get f 'face-alias))
+		      (face f)
+		      obsolete)
+		  (when alias
+		    (setq face alias)
+		    (insert
+		     (format-message
+                      "\n  %s is an alias for the face `%s'.\n%s"
+                      f alias
+                      (if (setq obsolete (get f 'obsolete-face))
+                          (format-message
+                           "  This face is obsolete%s; use `%s' instead.\n"
+                           (if (stringp obsolete)
+                               (format " since %s" obsolete)
+                             "")
+                           alias)
+                        ""))))
+		  (insert "\nDocumentation:\n"
+                          (substitute-command-keys
+                           (or (face-documentation face)
+                               "Not documented as a face."))
+			  "\n\n"))
+	        (with-current-buffer standard-output
+		  (save-excursion
+		    (re-search-backward
+		     (concat "\\(" customize-label "\\)") nil t)
+		    (help-xref-button 1 'help-customize-face f)))
+	        (setq file-name (find-lisp-object-file-name f 'defface))
+	        (if (not file-name)
+                    (setq help-mode--current-data (list :symbol f))
+                  (setq help-mode--current-data (list :symbol f
+                                                      :file file-name))
+		  (princ (substitute-command-keys "Defined in `"))
+		  (princ (help-fns-short-filename file-name))
+		  (princ (substitute-command-keys "'"))
+		  ;; Make a hyperlink to the library.
+		  (save-excursion
+		    (re-search-backward
+                     (substitute-command-keys "`\\([^`']+\\)'") nil t)
+		    (help-xref-button 1 'help-face-def f file-name))
+		  (princ ".")
+		  (terpri)
+		  (terpri))))
+	    (terpri)
+            (help-fns--run-describe-functions
+             help-fns-describe-face-functions f frame)))))))
 
 (add-hook 'help-fns-describe-face-functions
           #'help-fns--face-custom-version-info)
@@ -1602,43 +1605,44 @@ current buffer and the selected frame, respectively."
 				(if found (symbol-name v-or-f)))))
      (list (if (equal val "")
 	       (or v-or-f "") (intern val)))))
-  (if (not (symbolp symbol))
-      (user-error "You didn't specify a function or variable"))
-  (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
-  (unless (frame-live-p frame) (setq frame (selected-frame)))
-  (with-current-buffer (help-buffer)
-    ;; Push the previous item on the stack before clobbering the output buffer.
-    (help-setup-xref nil nil)
-    (let* ((docs
-            (nreverse
-             (delq nil
-                   (mapcar (pcase-lambda (`(,name ,testfn ,descfn))
-                             (when (funcall testfn symbol)
-                               ;; Don't record the current entry in the stack.
-                               (setq help-xref-stack-item nil)
-                               (cons name
-                                     (funcall descfn symbol buffer frame))))
-                           describe-symbol-backends))))
-           (single (null (cdr docs))))
-      (while (cdr docs)
-        (goto-char (point-min))
-        (let ((inhibit-read-only t)
-              (name (caar docs))        ;Name of doc currently at BOB.
-              (doc (cdr (cadr docs))))  ;Doc to add at BOB.
-          (when doc
-            (insert doc)
-            (delete-region (point)
-                           (progn (skip-chars-backward " \t\n") (point)))
-            (insert "\n\n" (make-separator-line) "\n")
-            (when name
-              (insert (symbol-name symbol)
-                      " is also a " name "." "\n\n"))))
-        (setq docs (cdr docs)))
-      (unless single
-        ;; Don't record the `describe-variable' item in the stack.
-        (setq help-xref-stack-item nil)
-        (help-setup-xref (list #'describe-symbol symbol) nil))
-      (goto-char (point-min)))))
+  (let ((help-buffer-under-preparation t))
+    (if (not (symbolp symbol))
+        (user-error "You didn't specify a function or variable"))
+    (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
+    (unless (frame-live-p frame) (setq frame (selected-frame)))
+    (with-current-buffer (help-buffer)
+      ;; Push the previous item on the stack before clobbering the output buffer.
+      (help-setup-xref nil nil)
+      (let* ((docs
+              (nreverse
+               (delq nil
+                     (mapcar (pcase-lambda (`(,name ,testfn ,descfn))
+                               (when (funcall testfn symbol)
+                                 ;; Don't record the current entry in the stack.
+                                 (setq help-xref-stack-item nil)
+                                 (cons name
+                                       (funcall descfn symbol buffer frame))))
+                             describe-symbol-backends))))
+             (single (null (cdr docs))))
+        (while (cdr docs)
+          (goto-char (point-min))
+          (let ((inhibit-read-only t)
+                (name (caar docs))        ;Name of doc currently at BOB.
+                (doc (cdr (cadr docs))))  ;Doc to add at BOB.
+            (when doc
+              (insert doc)
+              (delete-region (point)
+                             (progn (skip-chars-backward " \t\n") (point)))
+              (insert "\n\n" (make-separator-line) "\n")
+              (when name
+                (insert (symbol-name symbol)
+                        " is also a " name "." "\n\n"))))
+          (setq docs (cdr docs)))
+        (unless single
+          ;; Don't record the `describe-variable' item in the stack.
+          (setq help-xref-stack-item nil)
+          (help-setup-xref (list #'describe-symbol symbol) nil))
+        (goto-char (point-min))))))
 
 ;;;###autoload
 (defun describe-syntax (&optional buffer)
@@ -1647,15 +1651,16 @@ The descriptions are inserted in a help buffer, which is then displayed.
 BUFFER defaults to the current buffer."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-syntax buffer)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (let ((table (with-current-buffer buffer (syntax-table))))
-      (with-current-buffer standard-output
-	(describe-vector table 'internal-describe-syntax-value)
-	(while (setq table (char-table-parent table))
-	  (insert "\nThe parent syntax table is:")
-	  (describe-vector table 'internal-describe-syntax-value))))))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'describe-syntax buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (let ((table (with-current-buffer buffer (syntax-table))))
+        (with-current-buffer standard-output
+	  (describe-vector table 'internal-describe-syntax-value)
+	  (while (setq table (char-table-parent table))
+	    (insert "\nThe parent syntax table is:")
+	    (describe-vector table 'internal-describe-syntax-value)))))))
 
 (defun help-describe-category-set (value)
   (insert (cond
@@ -1672,59 +1677,60 @@ The descriptions are inserted in a buffer, which is then displayed.
 If BUFFER is non-nil, then describe BUFFER's category table instead.
 BUFFER should be a buffer or a buffer name."
   (interactive)
-  (setq buffer (or buffer (current-buffer)))
-  (help-setup-xref (list #'describe-categories buffer)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (let* ((table (with-current-buffer buffer (category-table)))
-	   (docs (char-table-extra-slot table 0)))
-      (if (or (not (vectorp docs)) (/= (length docs) 95))
-	  (error "Invalid first extra slot in this category table\n"))
-      (with-current-buffer standard-output
-        (setq-default help-button-cache (make-marker))
-	(insert "Legend of category mnemonics ")
-        (insert-button "(longer descriptions at the bottom)"
-                       'action help-button-cache
-                       'follow-link t
-                       'help-echo "mouse-2, RET: show full legend")
-        (insert "\n")
-	(let ((pos (point)) (items 0) lines n)
-	  (dotimes (i 95)
-	    (if (aref docs i) (setq items (1+ items))))
-	  (setq lines (1+ (/ (1- items) 4)))
-	  (setq n 0)
+  (let ((help-buffer-under-preparation t))
+    (setq buffer (or buffer (current-buffer)))
+    (help-setup-xref (list #'describe-categories buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (let* ((table (with-current-buffer buffer (category-table)))
+	     (docs (char-table-extra-slot table 0)))
+        (if (or (not (vectorp docs)) (/= (length docs) 95))
+	    (error "Invalid first extra slot in this category table\n"))
+        (with-current-buffer standard-output
+          (setq-default help-button-cache (make-marker))
+	  (insert "Legend of category mnemonics ")
+          (insert-button "(longer descriptions at the bottom)"
+                         'action help-button-cache
+                         'follow-link t
+                         'help-echo "mouse-2, RET: show full legend")
+          (insert "\n")
+	  (let ((pos (point)) (items 0) lines n)
+	    (dotimes (i 95)
+	      (if (aref docs i) (setq items (1+ items))))
+	    (setq lines (1+ (/ (1- items) 4)))
+	    (setq n 0)
+	    (dotimes (i 95)
+	      (let ((elt (aref docs i)))
+	        (when elt
+		  (string-match ".*" elt)
+		  (setq elt (match-string 0 elt))
+		  (if (>= (length elt) 17)
+		      (setq elt (concat (substring elt 0 14) "...")))
+		  (if (< (point) (point-max))
+		      (move-to-column (* 20 (/ n lines)) t))
+		  (insert (+ i ?\s) ?: elt)
+		  (if (< (point) (point-max))
+		      (forward-line 1)
+		    (insert "\n"))
+		  (setq n (1+ n))
+		  (if (= (% n lines) 0)
+		      (goto-char pos))))))
+	  (goto-char (point-max))
+	  (insert "\n"
+		  "character(s)\tcategory mnemonics\n"
+		  "------------\t------------------")
+	  (describe-vector table 'help-describe-category-set)
+          (set-marker help-button-cache (point))
+	  (insert "Legend of category mnemonics:\n")
 	  (dotimes (i 95)
 	    (let ((elt (aref docs i)))
 	      (when elt
-		(string-match ".*" elt)
-		(setq elt (match-string 0 elt))
-		(if (>= (length elt) 17)
-		    (setq elt (concat (substring elt 0 14) "...")))
-		(if (< (point) (point-max))
-		    (move-to-column (* 20 (/ n lines)) t))
-		(insert (+ i ?\s) ?: elt)
-		(if (< (point) (point-max))
-		    (forward-line 1)
-		  (insert "\n"))
-		(setq n (1+ n))
-		(if (= (% n lines) 0)
-		    (goto-char pos))))))
-	(goto-char (point-max))
-	(insert "\n"
-		"character(s)\tcategory mnemonics\n"
-		"------------\t------------------")
-	(describe-vector table 'help-describe-category-set)
-        (set-marker help-button-cache (point))
-	(insert "Legend of category mnemonics:\n")
-	(dotimes (i 95)
-	  (let ((elt (aref docs i)))
-	    (when elt
-	      (if (string-match "\n" elt)
-		  (setq elt (substring elt (match-end 0))))
-	      (insert (+ i ?\s) ": " elt "\n"))))
-	(while (setq table (char-table-parent table))
-	  (insert "\nThe parent category table is:")
-	  (describe-vector table 'help-describe-category-set))))))
+	        (if (string-match "\n" elt)
+		    (setq elt (substring elt (match-end 0))))
+	        (insert (+ i ?\s) ": " elt "\n"))))
+	  (while (setq table (char-table-parent table))
+	    (insert "\nThe parent category table is:")
+	    (describe-vector table 'help-describe-category-set)))))))
 
 (defun help-fns-find-keymap-name (keymap)
   "Find the name of the variable with value KEYMAP.
@@ -1778,7 +1784,8 @@ keymap value."
      (unless (and km (keymapp (symbol-value km)))
        (user-error "Not a keymap: %s" km))
      (list km)))
-  (let (used-gentemp)
+  (let (used-gentemp
+        (help-buffer-under-preparation t))
     (unless (and (symbolp keymap)
                  (boundp keymap)
                  (keymapp (symbol-value keymap)))
@@ -1844,106 +1851,107 @@ whose documentation describes the minor mode.
 If called from Lisp with a non-nil BUFFER argument, display
 documentation for the major and minor modes of that buffer."
   (interactive "@")
-  (unless buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-mode buffer)
-		   (called-interactively-p 'interactive))
-  ;; For the sake of help-do-xref and help-xref-go-back,
-  ;; don't switch buffers before calling `help-buffer'.
-  (with-help-window (help-buffer)
-    (with-current-buffer buffer
-      (let (minors)
-	;; Older packages do not register in minor-mode-list but only in
-	;; minor-mode-alist.
-	(dolist (x minor-mode-alist)
-	  (setq x (car x))
-	  (unless (memq x minor-mode-list)
-	    (push x minor-mode-list)))
-	;; Find enabled minor mode we will want to mention.
-	(dolist (mode minor-mode-list)
-	  ;; Document a minor mode if it is listed in minor-mode-alist,
-	  ;; non-nil, and has a function definition.
-	  (let ((fmode (or (get mode :minor-mode-function) mode)))
-	    (and (boundp mode) (symbol-value mode)
-		 (fboundp fmode)
-		 (let ((pretty-minor-mode
-			(if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
-					  (symbol-name fmode))
-			    (capitalize
-			     (substring (symbol-name fmode)
-					0 (match-beginning 0)))
-			  fmode)))
-		   (push (list fmode pretty-minor-mode
-			       (format-mode-line (assq mode minor-mode-alist)))
-			 minors)))))
-	;; Narrowing is not a minor mode, but its indicator is part of
-	;; mode-line-modes.
-	(when (buffer-narrowed-p)
-	  (push '(narrow-to-region "Narrow" " Narrow") minors))
-	(setq minors
-	      (sort minors
-		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
-	(when minors
-	  (princ "Enabled minor modes:\n")
-	  (make-local-variable 'help-button-cache)
-	  (with-current-buffer standard-output
-	    (dolist (mode minors)
-	      (let ((mode-function (nth 0 mode))
-		    (pretty-minor-mode (nth 1 mode))
-		    (indicator (nth 2 mode)))
-		(save-excursion
-		  (goto-char (point-max))
-		  (princ "\n\f\n")
-		  (push (point-marker) help-button-cache)
-		  ;; Document the minor modes fully.
-                  (insert-text-button
-                   pretty-minor-mode 'type 'help-function
-                   'help-args (list mode-function)
-                   'button '(t))
-		  (princ (format " minor mode (%s):\n"
-				 (if (zerop (length indicator))
-				     "no indicator"
-				   (format "indicator%s"
-					   indicator))))
-		  (princ (help-split-fundoc (documentation mode-function)
-                                            nil 'doc)))
-		(insert-button pretty-minor-mode
-			       'action (car help-button-cache)
-			       'follow-link t
-			       'help-echo "mouse-2, RET: show full information")
-		(newline)))
-	    (forward-line -1)
-	    (fill-paragraph nil)
-	    (forward-line 1))
-
-	  (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
-	;; Document the major mode.
-	(let ((mode mode-name))
-	  (with-current-buffer standard-output
-            (let ((start (point)))
-              (insert (format-mode-line mode nil nil buffer))
-              (add-text-properties start (point) '(face bold)))))
-	(princ " mode")
-	(let* ((mode major-mode)
-	       (file-name (find-lisp-object-file-name mode nil)))
-	  (if (not file-name)
-              (setq help-mode--current-data (list :symbol mode))
-	    (princ (format-message " defined in `%s'"
-                                   (help-fns-short-filename file-name)))
-	    ;; Make a hyperlink to the library.
+  (let ((help-buffer-under-preparation t))
+    (unless buffer (setq buffer (current-buffer)))
+    (help-setup-xref (list #'describe-mode buffer)
+		     (called-interactively-p 'interactive))
+    ;; For the sake of help-do-xref and help-xref-go-back,
+    ;; don't switch buffers before calling `help-buffer'.
+    (with-help-window (help-buffer)
+      (with-current-buffer buffer
+	(let (minors)
+	  ;; Older packages do not register in minor-mode-list but only in
+	  ;; minor-mode-alist.
+	  (dolist (x minor-mode-alist)
+	    (setq x (car x))
+	    (unless (memq x minor-mode-list)
+	      (push x minor-mode-list)))
+	  ;; Find enabled minor mode we will want to mention.
+	  (dolist (mode minor-mode-list)
+	    ;; Document a minor mode if it is listed in minor-mode-alist,
+	    ;; non-nil, and has a function definition.
+	    (let ((fmode (or (get mode :minor-mode-function) mode)))
+	      (and (boundp mode) (symbol-value mode)
+		   (fboundp fmode)
+		   (let ((pretty-minor-mode
+			  (if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
+					    (symbol-name fmode))
+			      (capitalize
+			       (substring (symbol-name fmode)
+					  0 (match-beginning 0)))
+			    fmode)))
+		     (push (list fmode pretty-minor-mode
+				 (format-mode-line (assq mode minor-mode-alist)))
+			   minors)))))
+	  ;; Narrowing is not a minor mode, but its indicator is part of
+	  ;; mode-line-modes.
+	  (when (buffer-narrowed-p)
+	    (push '(narrow-to-region "Narrow" " Narrow") minors))
+	  (setq minors
+		(sort minors
+		      (lambda (a b) (string-lessp (cadr a) (cadr b)))))
+	  (when minors
+	    (princ "Enabled minor modes:\n")
+	    (make-local-variable 'help-button-cache)
 	    (with-current-buffer standard-output
-	      (save-excursion
-		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
-                                    nil t)
-                (setq help-mode--current-data (list :symbol mode
-                                                    :file file-name))
-                (help-xref-button 1 'help-function-def mode file-name)))))
-        (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
-          (with-current-buffer standard-output
-            (insert ":\n")
-            (insert fundoc)
-            (insert (help-fns--list-local-commands)))))))
-  ;; For the sake of IELM and maybe others
-  nil)
+	      (dolist (mode minors)
+		(let ((mode-function (nth 0 mode))
+		      (pretty-minor-mode (nth 1 mode))
+		      (indicator (nth 2 mode)))
+		  (save-excursion
+		    (goto-char (point-max))
+		    (princ "\n\f\n")
+		    (push (point-marker) help-button-cache)
+		    ;; Document the minor modes fully.
+                    (insert-text-button
+                     pretty-minor-mode 'type 'help-function
+                     'help-args (list mode-function)
+                     'button '(t))
+		    (princ (format " minor mode (%s):\n"
+				   (if (zerop (length indicator))
+				       "no indicator"
+				     (format "indicator%s"
+					     indicator))))
+		    (princ (help-split-fundoc (documentation mode-function)
+                                              nil 'doc)))
+		  (insert-button pretty-minor-mode
+				 'action (car help-button-cache)
+				 'follow-link t
+				 'help-echo "mouse-2, RET: show full information")
+		  (newline)))
+	      (forward-line -1)
+	      (fill-paragraph nil)
+	      (forward-line 1))
+
+	    (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
+	  ;; Document the major mode.
+	  (let ((mode mode-name))
+	    (with-current-buffer standard-output
+              (let ((start (point)))
+		(insert (format-mode-line mode nil nil buffer))
+		(add-text-properties start (point) '(face bold)))))
+	  (princ " mode")
+	  (let* ((mode major-mode)
+		 (file-name (find-lisp-object-file-name mode nil)))
+	    (if (not file-name)
+		(setq help-mode--current-data (list :symbol mode))
+	      (princ (format-message " defined in `%s'"
+                                     (help-fns-short-filename file-name)))
+	      ;; Make a hyperlink to the library.
+	      (with-current-buffer standard-output
+		(save-excursion
+		  (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
+                                      nil t)
+                  (setq help-mode--current-data (list :symbol mode
+                                                      :file file-name))
+                  (help-xref-button 1 'help-function-def mode file-name)))))
+          (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
+            (with-current-buffer standard-output
+              (insert ":\n")
+              (insert fundoc)
+              (insert (help-fns--list-local-commands))))))))
+    ;; For the sake of IELM and maybe others
+    nil)
 
 (defun help-fns--list-local-commands ()
   (let ((functions nil))
@@ -1998,7 +2006,8 @@ one of them returns non-nil."
              (event-end key))
             ((eq key ?\C-g) (signal 'quit nil))
             (t (user-error "You didn't specify a widget"))))))
-  (let (buf)
+  (let (buf
+        (help-buffer-under-preparation t))
     ;; Allow describing a widget in a different window.
     (when (posnp pos)
       (setq buf (window-buffer (posn-window pos))

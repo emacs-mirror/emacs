@@ -515,31 +515,32 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 Used in `repeat-mode'."
   (interactive)
   (require 'help-fns)
-  (help-setup-xref (list #'describe-repeat-maps)
-                   (called-interactively-p 'interactive))
-  (let ((keymaps nil))
-    (all-completions
-     "" obarray (lambda (s)
-                  (and (commandp s)
-                       (get s 'repeat-map)
-                       (push s (alist-get (get s 'repeat-map) keymaps)))))
-    (with-help-window (help-buffer)
-      (with-current-buffer standard-output
-        (princ "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'describe-repeat-maps)
+                     (called-interactively-p 'interactive))
+    (let ((keymaps nil))
+      (all-completions
+       "" obarray (lambda (s)
+                    (and (commandp s)
+                         (get s 'repeat-map)
+                         (push s (alist-get (get s 'repeat-map) keymaps)))))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (princ "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
 
-        (dolist (keymap (sort keymaps (lambda (a b) (string-lessp (car a) (car b)))))
-          (princ (format-message "`%s' keymap is repeatable by these commands:\n"
-                                 (car keymap)))
-          (dolist (command (sort (cdr keymap) 'string-lessp))
-            (let* ((info (help-fns--analyze-function command))
-                   (map (list (symbol-value (car keymap))))
-                   (desc (mapconcat (lambda (key)
-                                      (format-message "`%s'" (key-description key)))
-                                    (or (where-is-internal command map)
-                                        (where-is-internal (nth 3 info) map))
-                                    ", ")))
-              (princ (format-message " `%s' (bound to %s)\n" command desc))))
-          (princ "\n"))))))
+          (dolist (keymap (sort keymaps (lambda (a b) (string-lessp (car a) (car b)))))
+            (princ (format-message "`%s' keymap is repeatable by these commands:\n"
+                                   (car keymap)))
+            (dolist (command (sort (cdr keymap) 'string-lessp))
+              (let* ((info (help-fns--analyze-function command))
+                     (map (list (symbol-value (car keymap))))
+                     (desc (mapconcat (lambda (key)
+                                        (format-message "`%s'" (key-description key)))
+                                      (or (where-is-internal command map)
+                                          (where-is-internal (nth 3 info) map))
+                                      ", ")))
+                (princ (format-message " `%s' (bound to %s)\n" command desc))))
+            (princ "\n")))))))
 
 (provide 'repeat)
 

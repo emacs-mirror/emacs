@@ -93,7 +93,8 @@ and then returns."
      "Help command."
      (interactive)
      (let ((line-prompt
-            (substitute-command-keys ,help-line)))
+            (substitute-command-keys ,help-line))
+           (help-buffer-under-preparation t))
        (when three-step-help
          (message "%s" line-prompt))
        (let* ((help-screen ,help-text)
