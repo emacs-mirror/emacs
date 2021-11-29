@@ -32953,7 +32953,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   hlinfo->mouse_face_face_id
     = face_at_buffer_position (w, mouse_charpos, &ignore,
 			       mouse_charpos + 1,
-			       !hlinfo->mouse_face_hidden, -1, 0);
+                               !hlinfo->mouse_face_hidden, -1, 0);
   show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
 }
 
