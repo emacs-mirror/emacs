@@ -106,8 +106,17 @@ valid THING.
 
 Return a cons cell (START . END) giving the start and end
 positions of the thing found."
-  (if (get thing 'bounds-of-thing-at-point)
-      (funcall (get thing 'bounds-of-thing-at-point))
+  (cond
+   ((get thing 'bounds-of-thing-at-point)
+    (funcall (get thing 'bounds-of-thing-at-point)))
+   ;; If the buffer is totally empty, give up.
+   ((and (not (eq thing 'whitespace))
+         (save-excursion
+           (goto-char (point-min))
+           (not (re-search-forward "[^\t\n ]" nil t))))
+    nil)
+   ;; Find the thing.
+   (t
     (let ((orig (point)))
       (ignore-errors
 	(save-excursion
@@ -149,7 +158,7 @@ positions of the thing found."
 			    (lambda () (forward-thing thing -1))))
 		       (point))))
 		(if (and (<= real-beg orig) (<= orig end) (< real-beg end))
-		    (cons real-beg end))))))))))
+		    (cons real-beg end)))))))))))
 
 ;;;###autoload
 (defun thing-at-point (thing &optional no-properties)
