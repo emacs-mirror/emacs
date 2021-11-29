@@ -1602,7 +1602,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 #endif
 
   /* Create the X widget or window.  */
-  // x_window (f);
+  /* x_window (f); */
   xg_create_frame_widgets (f);
   pgtk_set_event_handler (f);
 
@@ -3591,7 +3591,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
   tab_bar_width = (tab_bar_height
 		   ? native_width - 2 * internal_border_width : 0);
-  // inner_top += tab_bar_height;
+  /* inner_top += tab_bar_height; */
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
