@@ -279,9 +279,9 @@ With those granted, bear in mind a couple of technical points on
 
 2. The functions will run the ~modus-themes-after-load-theme-hook~ as
    their final step.  This can be employed for bespoke configurations
-   ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization (do-it-yourself)]]).  Experienced users may not
-   wish to rely on such a hook and the functions that run it: they may
-   prefer a custom solution ([[#h:86f6906b-f090-46cc-9816-1fe8aeb38776][A theme-agnostic hook for theme loading]]).
+   ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]]).  Experienced users may not wish to rely
+   on such a hook and the functions that run it: they may prefer a
+   custom solution ([[#h:86f6906b-f090-46cc-9816-1fe8aeb38776][A theme-agnostic hook for theme loading]]).
 
 ** Sample configuration for use-package
 :properties:
@@ -483,7 +483,7 @@ currently active Modus theme.
 
 Enable this behaviour by setting this variable to ~nil~.
 
-** Option for color-coding success state (deuteranopia)
+** Option for color-coding success state
 :properties:
 :alt_title: Success' color-code
 :description: Toggle blue color for success or done states
@@ -1056,7 +1056,7 @@ NOTE: The placement of the straight underline, though not the wave
 style, is controlled by the built-in variables ~underline-minimum-offset~,
 ~x-underline-at-descent-line~, ~x-use-underline-position-properties~.
 
-** Option for line highlighting (hl-line-mode)
+** Option for line highlighting
 :properties:
 :alt_title: Line highlighting
 :description: Choose style of current line (hl-line-mode)
@@ -1108,7 +1108,7 @@ with underlines.
 This style affects several packages that enable ~hl-line-mode~, such as
 =elfeed=, =notmuch=, and =mu4e=.
 
-** Option for line numbers (display-line-numbers-mode)
+** Option for line numbers
 :properties:
 :alt_title: Line numbers
 :description: Toggle subtle style for line numbers
@@ -1137,7 +1137,7 @@ Instead they retain the primary background of the theme, blending with
 the rest of the buffer.  Foreground values for all relevant faces are
 updated to accommodate this aesthetic.
 
-** Option for parenthesis matching (show-paren-mode)
+** Option for parenthesis matching
 :properties:
 :alt_title: Matching parentheses
 :description: Choose between various styles for matching delimiters/parentheses
@@ -1723,7 +1723,7 @@ With a non-nil value (~t~) apply a proportionately spaced typeface, else
 
 [[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
 
-* Advanced customization (do-it-yourself)
+* Advanced customization
 :properties:
 :custom_id: h:f4651d55-8c07-46aa-b52b-bed1e53463bb
 :end:
@@ -1738,7 +1738,7 @@ their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
 they are labelled as "do-it-yourself" or "DIY".
 
-** Per-theme customization settings (DIY)
+** Per-theme customization settings
 :properties:
 :custom_id: h:a897b302-8e10-4a26-beab-3caaee1e1193
 :end:
@@ -1773,7 +1773,7 @@ equivalent the themes provide.
 For a more elaborate design, it is better to inspect the source code of
 ~modus-themes-toggle~ and relevant functions.
 
-** Case-by-case face specs using the themes' palette (DIY)
+** Case-by-case face specs using the themes' palette
 :properties:
 :custom_id: h:1487c631-f4fe-490d-8d58-d72ffa3bd474
 :end:
@@ -1877,7 +1877,7 @@ Take the previous example with the ~cursor~ face:
 (set-face-attribute 'cursor nil :background (modus-themes-color-alts 'blue 'red))
 #+end_src
 
-** Face specs at scale using the themes' palette (DIY)
+** Face specs at scale using the themes' palette
 :properties:
 :custom_id: h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae
 :end:
@@ -1992,7 +1992,7 @@ the previous section.  Adapt the above example like this:
    ...))
 #+end_src
 
-** Remap face with local value (DIY)
+** Remap face with local value
 :properties:
 :custom_id: h:7a93cb6f-4eca-4d56-a85c-9dcd813d6b0f
 :end:
@@ -2054,7 +2054,7 @@ Perhaps you may wish to generalise those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
-** Cycle through arbitrary colors (DIY)
+** Cycle through arbitrary colors
 :properties:
 :custom_id: h:77dc4a30-b96a-4849-85a8-fee3c2995305
 :end:
@@ -2218,7 +2218,7 @@ Must become this:
  ...)
 #+end_src
 
-** Override colors (DIY)
+** Override colors
 :properties:
 :custom_id: h:307d95dd-8dbd-4ece-a543-10ae86f155a6
 :end:
@@ -2334,7 +2334,7 @@ that we provide: [[#h:02e25930-e71a-493d-828a-8907fc80f874][test color combinati
 ratio between two color values, so it can help in overriding the palette
 (or a subset thereof) without making the end result inaccessible.
 
-** Override color saturation (DIY)
+** Override color saturation
 :properties:
 :custom_id: h:4589acdc-2505-41fc-9f5e-699cfc45ab00
 :end:
@@ -2454,7 +2454,7 @@ inspiration from the ~modus-themes-toggle~ we already provide:
     ('modus-vivendi (modus-themes-load-vivendi))))
 #+end_src
 
-** Font configurations for Org and others (DIY)
+** Font configurations for Org and others
 :properties:
 :custom_id: h:defcf4fc-8fa8-4c29-b12e-7119582cc929
 :end:
@@ -2511,9 +2511,9 @@ importance: it ensures that all fonts can scale gracefully when using
 something like the ~text-scale-adjust~ command which only operates on the
 base font size (i.e. the ~default~ face's absolute height).
 
-[[#h:e6c5451f-6763-4be7-8fdb-b4706a422a4c][Note for EWW and Elfeed fonts (SHR fonts)]].
+[[#h:e6c5451f-6763-4be7-8fdb-b4706a422a4c][Note for EWW and Elfeed fonts]].
 
-** Configure bold and italic faces (DIY)
+** Configure bold and italic faces
 :properties:
 :custom_id: h:2793a224-2109-4f61-a106-721c57c01375
 :end:
@@ -2605,7 +2605,7 @@ themes).
 (add-hook 'modus-themes-after-load-theme-hook #'my-modes-themes-bold-italic-faces)
 #+end_src
 
-** Custom Org user faces (DIY)
+** Custom Org user faces
 :properties:
 :custom_id: h:89f0678d-c5c3-4a57-a526-668b2bb2d7ad
 :end:
@@ -2693,7 +2693,7 @@ it if you plan to control face attributes.
 
 [[#h:02e25930-e71a-493d-828a-8907fc80f874][Check color combinations]].
 
-** Update Org block delimiter fontification (DIY)
+** Update Org block delimiter fontification
 :properties:
 :custom_id: h:f44cc6e3-b0f1-4a5e-8a90-9e48fa557b50
 :end:
@@ -2735,7 +2735,7 @@ Run this function at the post theme load phase, such as with the
     (font-lock-flush)))
 #+end_src
 
-** Measure color contrast (DIY)
+** Measure color contrast
 :properties:
 :custom_id: h:02e25930-e71a-493d-828a-8907fc80f874
 :end:
@@ -2808,7 +2808,7 @@ minutia and relevant commentary.
 Such knowledge may prove valuable while attempting to override some of
 the themes' colors: [[#h:307d95dd-8dbd-4ece-a543-10ae86f155a6][Override colors]].
 
-** Load theme depending on time of day (DIY)
+** Load theme depending on time of day
 :properties:
 :custom_id: h:1d1ef4b4-8600-4a09-993c-6de3af0ddd26
 :end:
@@ -2835,7 +2835,7 @@ package:
   (circadian-setup))
 #+end_src
 
-** Backdrop for pdf-tools (DIY)
+** Backdrop for pdf-tools
 :properties:
 :custom_id: h:ff69dfe1-29c0-447a-915c-b5ff7c5509cd
 :end:
@@ -2897,7 +2897,7 @@ With those in place, PDFs have a distinct backdrop for their page, while
 they automatically switch to their dark mode when ~modus-themes-toggle~ is
 called from inside a buffer whose major-mode is ~pdf-view-mode~.
 
-** A theme-agnostic hook for theme loading (DIY)
+** A theme-agnostic hook for theme loading
 :properties:
 :custom_id: h:86f6906b-f090-46cc-9816-1fe8aeb38776
 :end:
@@ -3509,7 +3509,7 @@ of the techniques that are discussed at length in the various
 "Do-It-Yourself" (DIY) sections, which provide insight into the more
 advanced customization options of the themes.
 
-[[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization (do-it-yourself)]].
+[[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
 
 In the following example, we are assuming that the user wants to (i)
 re-use color variables provided by the themes, (ii) be able to retain
@@ -3775,12 +3775,12 @@ examples with the 4, 8, 16 colors):
 :custom_id: h:4da1d515-3e05-47ef-9e45-8251fc7e986a
 :end:
 
-The ~god-mode~ library does not provide faces that could be configured by
-the Modus themes.  Users who would like to get some visual feedback on
-the status of {{{kbd(M-x god-mode)}}} are instead encouraged by upstream to
-set up their own configurations, such as by changing the ~mode-line~ face
-([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization (do-it-yourself)]]).  This is an adaptation of the
-approach followed in the upstream README:
+The ~god-mode~ library does not provide faces that could be configured
+by the Modus themes.  Users who would like to get some visual feedback
+on the status of {{{kbd(M-x god-mode)}}} are instead encouraged by upstream
+to set up their own configurations, such as by changing the ~mode-line~
+face ([[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]]).  This is an adaptation of the approach
+followed in the upstream README:
 
 #+begin_src emacs-lisp
 (defun my-god-mode-update-mode-line ()
@@ -3874,7 +3874,7 @@ specifications the webpage provides.
 
 Consult {{{kbd(C-h v shr-use-colors)}}}.
 
-** Note on EWW and Elfeed fonts (SHR fonts)
+** Note on EWW and Elfeed fonts
 :properties:
 :custom_id: h:e6c5451f-6763-4be7-8fdb-b4706a422a4c
 :end:
@@ -3988,7 +3988,7 @@ you've customized any faces.
             "-draw"       "text %X,%Y '%c'"))))
 #+end_src
 
-* Frequently Asked Questions (FAQ)
+* Frequently Asked Questions
 :properties:
 :custom_id: h:b3384767-30d3-4484-ba7f-081729f03a47
 :end:
