@@ -2811,6 +2811,13 @@ used instead of `browse-url-new-window-flag'.
 
 (make-obsolete 'browse-url-galeon 'nil '"25.1")
 
+(autoload 'browse-url-webpositive "browse-url" "\
+Ask the WebPositive WWW browser to load URL.
+Default to the URL around or before point.
+The optional argument NEW-WINDOW is not used.
+
+\(fn URL &optional NEW-WINDOW)" t nil)
+
 (autoload 'browse-url-emacs "browse-url" "\
 Ask Emacs to load URL into a buffer and show it in another window.
 Optional argument SAME-WINDOW non-nil means show the URL in the
@@ -17342,9 +17349,7 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
-
-(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
+\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
 
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
@@ -17356,11 +17361,7 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
-
-(function-put 'define-ibuffer-sorter 'lisp-indent-function '1)
-
-(function-put 'define-ibuffer-sorter 'doc-string-elt '2)
+\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
 
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
@@ -17400,11 +17401,7 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
-
-(function-put 'define-ibuffer-op 'lisp-indent-function '2)
-
-(function-put 'define-ibuffer-op 'doc-string-elt '3)
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
 
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
@@ -17420,11 +17417,7 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
-
-(function-put 'define-ibuffer-filter 'lisp-indent-function '2)
-
-(function-put 'define-ibuffer-filter 'doc-string-elt '2)
+\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
 
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
@@ -19542,24 +19535,24 @@ Display a list of the options available when a misspelling is encountered.
 
 Selections are:
 
-DIGIT: Replace the word with a digit offered in the *Choices* buffer.
-SPC:   Accept word this time.
-`i':   Accept word and insert into private dictionary.
-`a':   Accept word for this session.
-`A':   Accept word and place in `buffer-local dictionary'.
-`r':   Replace word with typed-in value.  Rechecked.
-`R':   Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
-`?':   Show these commands.
-`x':   Exit spelling buffer.  Move cursor to original point.
-`X':   Exit spelling buffer.  Leaves cursor at the current point, and permits
+\\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
+\\`SPC'   Accept word this time.
+\\`i'     Accept word and insert into private dictionary.
+\\`a'     Accept word for this session.
+\\`A'     Accept word and place in `buffer-local dictionary'.
+\\`r'     Replace word with typed-in value.  Rechecked.
+\\`R'     Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
+\\`?'     Show these commands.
+\\`x'     Exit spelling buffer.  Move cursor to original point.
+\\`X'     Exit spelling buffer.  Leaves cursor at the current point, and permits
         the aborted check to be completed later.
-`q':   Quit spelling session (Kills ispell process).
-`l':   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-`u':   Like `i', but the word is lower-cased first.
-`m':   Place typed-in value in personal dictionary, then recheck current word.
-`C-l':  Redraw screen.
-`C-r':  Recursive edit.
-`C-z':  Suspend Emacs or iconify frame." nil nil)
+\\`q'     Quit spelling session (Kills ispell process).
+\\`l'     Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+\\`u'     Like \\`i', but the word is lower-cased first.
+\\`m'     Place typed-in value in personal dictionary, then recheck current word.
+\\`C-l'   Redraw screen.
+\\`C-r'   Recursive edit.
+\\`C-z'   Suspend Emacs or iconify frame." nil nil)
 
 (autoload 'ispell-kill-ispell "ispell" "\
 Kill current Ispell process (so that you may start a fresh one).
@@ -19666,8 +19659,8 @@ Don't check spelling of message headers except the Subject field.
 Don't check included messages.
 
 To abort spell checking of a message region and send the message anyway,
-use the `x' command.  (Any subsequent regions will be checked.)
-The `X' command aborts sending the message so that you can edit the buffer.
+use the \\`x' command.  (Any subsequent regions will be checked.)
+The \\`X' command aborts sending the message so that you can edit the buffer.
 
 To spell-check whenever a message is sent, include the appropriate lines
 in your init file:
@@ -21025,7 +21018,7 @@ current header, calls `mail-complete-function' and passes prefix ARG if any.
 ;;; Generated autoloads from net/mailcap.el
 
 (autoload 'mailcap-mime-type-to-extension "mailcap" "\
-Return a file name extension based on a mime type.
+Return a file name extension based on a MIME-TYPE.
 For instance, `image/png' will result in `png'.
 
 \(fn MIME-TYPE)" nil nil)
@@ -24164,7 +24157,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5)) package--builtin-versions)
+(push (purecopy '(org 9 5 1)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -25894,6 +25887,38 @@ mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
 evaluate `(default-value \\='pixel-scroll-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+\(fn &optional ARG)" t nil)
+
+(defvar pixel-scroll-precision-mode nil "\
+Non-nil if Pixel-Scroll-Precision mode is enabled.
+See the `pixel-scroll-precision-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `pixel-scroll-precision-mode'.")
+
+(custom-autoload 'pixel-scroll-precision-mode "pixel-scroll" nil)
+
+(autoload 'pixel-scroll-precision-mode "pixel-scroll" "\
+Toggle pixel scrolling.
+When enabled, this minor mode allows to scroll the display
+precisely, according to the turning of the mouse wheel.
+
+This is a minor mode.  If called interactively, toggle the
+`Pixel-Scroll-Precision mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable the
+mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='pixel-scroll-precision-mode)'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
@@ -27680,11 +27705,11 @@ If ARG is non-nil, instead prompt for connection parameters.
 (autoload 'rcirc-connect "rcirc" "\
 Connect to SERVER.
 The arguments PORT, NICK, USER-NAME, FULL-NAME, PASSWORD,
-ENCRYPTION, SERVER-ALIAS are interpreted as in
+ENCRYPTION, CERTFP, SERVER-ALIAS are interpreted as in
 `rcirc-server-alist'.  STARTUP-CHANNELS is a list of channels
 that are joined after authentication.
 
-\(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION SERVER-ALIAS)" nil nil)
+\(fn SERVER &optional PORT NICK USER-NAME FULL-NAME STARTUP-CHANNELS PASSWORD ENCRYPTION CERTFP SERVER-ALIAS)" nil nil)
 
 (defvar rcirc-track-minor-mode nil "\
 Non-nil if Rcirc-Track minor mode is enabled.
@@ -32539,6 +32564,16 @@ This takes into account combining characters and grapheme clusters.
 
 \(fn STRING)" nil nil)
 
+(autoload 'add-display-text-property "subr-x" "\
+Add display property PROP with VALUE to the text from START to END.
+If any text in the region has a non-nil `display' property, those
+properties are retained.
+
+If OBJECT is non-nil, it should be a string or a buffer.  If nil,
+this defaults to the current buffer.
+
+\(fn START END PROP VALUE &optional OBJECT)" nil nil)
+
 (register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*" "with-memoization"))
 
 ;;;***
@@ -35583,16 +35618,20 @@ You might need to set `uce-mail-reader' before using this.
 ;;; Generated autoloads from international/ucs-normalize.el
 
 (autoload 'string-glyph-compose "ucs-normalize" "\
-Compose the string STR by according to the Unicode NFC.
-This is the canonical composed form.  For instance:
+Compose STRING according to the Unicode NFC.
+This returns a new string obtained by canonical decomposition
+of STRING (see `ucs-normalize-NFC-string') followed by canonical
+composition, a.k.a. the \"Unicode Normalization Form C\" of STRING.
+For instance:
 
-  (ucs-normalize-NFC-string \"Å\") => \"Å\"
+  (string-glyph-compose \"Å\") => \"Å\"
 
 \(fn STRING)" nil nil)
 
 (autoload 'string-glyph-decompose "ucs-normalize" "\
-Decompose the string STR according to the Unicode NFD.
-This is the canonical decomposed form.  For instance:
+Decompose STRING according to the Unicode NFD.
+This returns a new string that is the canonical decomposition of STRING,
+a.k.a. the \"Unicode Normalization Form D\" of STRING.  For instance:
 
   (ucs-normalize-NFD-string \"Å\") => \"Å\"
 
@@ -36460,7 +36499,7 @@ Report an ERROR that occurred while unlocking a file.
 
 \(fn ERROR)" nil nil)
 
-(register-definition-prefixes "userlock" '("ask-user-about-" "file-" "userlock--"))
+(register-definition-prefixes "userlock" '("ask-user-about-" "file-" "userlock--check-content-unchanged"))
 
 ;;;***
 
@@ -39173,7 +39212,7 @@ where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
 a single modifier.
 If PREFIX is `none', no prefix is used.  If MODIFIERS is `none',
 the keybindings are directly bound to the arrow keys.
-Default value of PREFIX is `C-x' and MODIFIERS is `shift'.
+Default value of PREFIX is \\`C-x' and MODIFIERS is `shift'.
 
 \(fn &optional PREFIX MODIFIERS)" t nil)
 
