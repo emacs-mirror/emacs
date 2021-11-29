@@ -811,9 +811,10 @@ OpenDocument format)."
 		  (and doc-view-dvipdfm-program
 		       (executable-find doc-view-dvipdfm-program)))))
 	((memq type '(postscript ps eps pdf))
-	 ;; FIXME: allow mupdf here
-	 (and doc-view-ghostscript-program
-	      (executable-find doc-view-ghostscript-program)))
+	 (or (and doc-view-ghostscript-program
+	          (executable-find doc-view-ghostscript-program))
+             (and doc-view-pdfdraw-program
+                  (executable-find doc-view-pdfdraw-program))))
 	((eq type 'odf)
 	 (and doc-view-odf->pdf-converter-program
 	      (executable-find doc-view-odf->pdf-converter-program)
