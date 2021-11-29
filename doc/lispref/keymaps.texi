@@ -367,7 +367,7 @@ I.e., something like:
 @group
 (let ((map (make-sparse-keymap)))
   (set-keymap-parent map <theirmap>)
-  (define-key map ...)
+  (keymap-set map ...)
   ...)
 @end group
 @end example
@@ -420,10 +420,10 @@ The effect is that this keymap inherits all the bindings of
 but can add to them or override them with @var{elements}.
 
 If you change the bindings in @var{parent-keymap} using
-@code{define-key} or other key-binding functions, these changed
+@code{keymap-set} or other key-binding functions, these changed
 bindings are visible in the inheriting keymap, unless shadowed by the
 bindings made by @var{elements}.  The converse is not true: if you use
-@code{define-key} to change bindings in the inheriting keymap, these
+@code{keymap-set} to change bindings in the inheriting keymap, these
 changes are recorded in @var{elements}, but have no effect on
 @var{parent-keymap}.
 
@@ -797,7 +797,7 @@ out with.
 This function returns the current global keymap.  This is the same as
 the value of @code{global-map} unless you change one or the other.
 The return value is a reference, not a copy; if you use
-@code{define-key} or other functions on it you will alter global
+@code{keymap-set} or other functions on it you will alter global
 bindings.
 
 @example
@@ -833,7 +833,7 @@ keymap.
 @end defun
 
 @code{current-local-map} returns a reference to the local keymap, not
-a copy of it; if you use @code{define-key} or other functions on it
+a copy of it; if you use @code{keymap-set} or other functions on it
 you will alter local bindings.
 
 @defun current-minor-mode-maps
@@ -1297,7 +1297,7 @@ This function sets the binding for @var{key} in @var{keymap}.  (If
 in another keymap reached from @var{keymap}.)  The argument
 @var{binding} can be any Lisp object, but only certain types are
 meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
-The value returned by @code{define-key} is @var{binding}.
+The value returned by @code{keymap-set} is @var{binding}.
 
 If @var{key} is @kbd{<t>}, this sets the default binding in
 @var{keymap}.  When an event has no binding of its own, the Emacs
@@ -1726,6 +1726,21 @@ The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
 @end defun
 
+@defun event-convert-list list
+This function converts a list of modifier names and a basic event type
+to an event type which specifies all of them.  The basic event type
+must be the last element of the list.  For example,
+
+@example
+(event-convert-list '(control ?a))
+     @result{} 1
+(event-convert-list '(control meta ?a))
+     @result{} -134217727
+(event-convert-list '(control super f1))
+     @result{} C-s-f1
+@end example
+@end defun
+
 @node Remapping Commands
 @section Remapping Commands
 @cindex remapping commands
@@ -1744,7 +1759,7 @@ definition for a key binding).
 the following remapping:
 
 @smallexample
-(define-key my-mode-map [remap kill-line] 'my-kill-line)
+(keymap-set my-mode-map "<remap> <kill-line>" 'my-kill-line)
 @end smallexample
 
 @noindent
@@ -1759,8 +1774,8 @@ In addition, remapping only works through a single level; in the
 following example,
 
 @smallexample
-(define-key my-mode-map [remap kill-line] 'my-kill-line)
-(define-key my-mode-map [remap my-kill-line] 'my-other-kill-line)
+(keymap-set my-mode-map "<remap> <kill-line>" 'my-kill-line)
+(keymap-set my-mode-map "<remap> <my-kill-line>" 'my-other-kill-line)
 @end smallexample
 
 @noindent
@@ -1772,7 +1787,7 @@ remapped to @code{my-kill-line}; if an ordinary binding specifies
 To undo the remapping of a command, remap it to @code{nil}; e.g.,
 
 @smallexample
-(define-key my-mode-map [remap kill-line] nil)
+(keymap-set my-mode-map "<remap> <kill-line>" nil)
 @end smallexample
 
 @defun command-remapping command &optional position keymaps
@@ -1904,7 +1919,7 @@ to turn the character that follows into a Hyper character:
         symbol
       (cons symbol (cdr e)))))
 
-(define-key local-function-key-map "\C-ch" 'hyperify)
+(keymap-set local-function-key-map "C-c h" 'hyperify)
 @end group
 @end example
 
@@ -1934,7 +1949,7 @@ problematic suffixes/prefixes are @kbd{@key{ESC}}, @kbd{M-O} (which is really
 @section Commands for Binding Keys
 
   This section describes some convenient interactive interfaces for
-changing key bindings.  They work by calling @code{define-key}.
+changing key bindings.  They work by calling @code{keymap-set}.
 
   People often use @code{keymap-global-set} in their init files
 (@pxref{Init File}) for simple customization.  For example,
