@@ -32,7 +32,7 @@ Haiku-specific application metadata, with the name @code{Emacs}.
 @cindex tty Emacs in haiku
   If you are launching Emacs from the Tracker, or want to make the
 Tracker open files using Emacs, you should use the binary named
-@code{Emacs}; ff you are going to use Emacs in the terminal, or wish
+@code{Emacs}; if you are going to use Emacs in the terminal, or wish
 to launch separate instances of Emacs, or do not care for the
 aforementioned system integration features, use the binary named
 @code{emacs} instead.
