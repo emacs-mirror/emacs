@@ -1210,6 +1210,15 @@ current project, it will be killed."
   :group 'project
   :package-version '(project . "0.6.0"))
 
+(defcustom project-kill-buffers-display-buffer-list nil
+  "Non-nil to display list of buffers to kill before killing project buffers.
+Used by `project-kill-buffers'."
+  :type 'boolean
+  :version "29.1"
+  :group 'project
+  :package-version '(project . "0.8.1")
+  :safe #'booleanp)
+
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
   (let ((conn (file-remote-p (project-root pr)))
@@ -1276,14 +1285,35 @@ NO-CONFIRM is always nil when the command is invoked
 interactively."
   (interactive)
   (let* ((pr (project-current t))
-         (bufs (project--buffers-to-kill pr)))
+         (bufs (project--buffers-to-kill pr))
+         (query-user (lambda ()
+                       (yes-or-no-p
+                        (format "Kill %d buffers in %s? "
+                                (length bufs)
+                                (project-root pr))))))
     (cond (no-confirm
            (mapc #'kill-buffer bufs))
           ((null bufs)
            (message "No buffers to kill"))
-          ((yes-or-no-p (format "Kill %d buffers in %s? "
-                                (length bufs)
-                                (project-root pr)))
+          (project-kill-buffers-display-buffer-list
+           (when
+               (with-current-buffer-window
+                   (get-buffer-create "*Buffer List*")
+                   `(display-buffer--maybe-at-bottom
+                     (dedicated . t)
+                     (window-height . (fit-window-to-buffer))
+                     (preserve-size . (nil . t))
+                     (body-function
+                      . ,#'(lambda (_window)
+                             (list-buffers-noselect nil bufs))))
+                   #'(lambda (window _value)
+                       (with-selected-window window
+                         (unwind-protect
+                             (funcall query-user)
+                           (when (window-live-p window)
+                             (quit-restore-window window 'kill))))))
+             (mapc #'kill-buffer bufs)))
+          ((funcall query-user)
            (mapc #'kill-buffer bufs)))))
 
 
