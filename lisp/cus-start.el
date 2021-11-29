@@ -857,6 +857,11 @@ since it could result in memory overflow and make Emacs crash."
 		       (featurep 'gtk))
 		      ((string-match "clipboard-manager" (symbol-name symbol))
 		       (boundp 'x-select-enable-clipboard-manager))
+                      ((or (equal "scroll-bar-adjust-thumb-portion"
+			          (symbol-name symbol))
+                           (equal "x-scroll-event-delta-factor"
+                                  (symbol-name symbol)))
+		       (featurep 'x))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))
@@ -877,11 +882,6 @@ since it could result in memory overflow and make Emacs crash."
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
-		      ((or (equal "scroll-bar-adjust-thumb-portion"
-			          (symbol-name symbol))
-                           (equal "x-scroll-event-delta-factor"
-                                  (symbol-name symbol)))
-		       (featurep 'x))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
