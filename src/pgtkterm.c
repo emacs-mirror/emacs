@@ -3578,9 +3578,6 @@ pgtk_flash (struct frame *f)
     cairo_set_source_rgb (cr, 1, 1, 1);
     cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE);
 
-#define XFillRectangle(d, win, gc, x, y, w, h) \
-    ( cairo_rectangle (cr, x, y, w, h), cairo_fill (cr) )
-
     {
       /* Get the height not including a menu bar widget.  */
       int height = FRAME_PIXEL_HEIGHT (f);
@@ -3595,23 +3592,28 @@ pgtk_flash (struct frame *f)
       /* If window is tall, flash top and bottom line.  */
       if (height > 3 * FRAME_LINE_HEIGHT (f))
 	{
-	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			  flash_left,
-			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOP_MARGIN_HEIGHT (f)),
-			  width, flash_height);
-	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			  flash_left,
-			  (height - flash_height
-			   - FRAME_INTERNAL_BORDER_WIDTH (f)),
-			  width, flash_height);
+	  cairo_rectangle (cr,
+			   flash_left,
+			   (FRAME_INTERNAL_BORDER_WIDTH (f)
+			    + FRAME_TOP_MARGIN_HEIGHT (f)),
+			   width, flash_height);
+	  cairo_fill (cr);
 
+	  cairo_rectangle (cr,
+			   flash_left,
+			   (height - flash_height
+			    - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			   width, flash_height);
+	  cairo_fill (cr);
 	}
       else
-	/* If it is short, flash it all.  */
-	XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
-			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+	{
+	  /* If it is short, flash it all.  */
+	  cairo_rectangle (cr,
+			   flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			   width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+	  cairo_fill (cr);
+	}
 
       FRAME_X_OUTPUT (f)->cr_surface_visible_bell = surface;
       {
@@ -3625,7 +3627,6 @@ pgtk_flash (struct frame *f)
 	  start_atimer (ATIMER_RELATIVE, delay, recover_from_visible_bell, f);
       }
 
-#undef XFillRectangle
     }
 
     cairo_destroy (cr);
