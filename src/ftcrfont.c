@@ -539,13 +539,19 @@ ftcrfont_draw (struct glyph_string *s,
       return 0;
     }
   BView_cr_dump_clipping (FRAME_HAIKU_VIEW (f), cr);
+
+  if (s->left_overhang && s->clip_head && !s->for_overlaps)
+    {
+      cairo_rectangle (cr, s->clip_head->x, 0,
+		       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+      cairo_clip (cr);
+    }
 #endif
 
   if (with_background)
     {
 #ifndef USE_BE_CAIRO
       x_set_cr_source_with_gc_background (f, s->gc);
-      s->background_filled_p = 1;
 #else
       struct face *face = s->face;
 
@@ -556,6 +562,7 @@ ftcrfont_draw (struct glyph_string *s,
 			    GREEN_FROM_ULONG (col) / 255.0,
 			    BLUE_FROM_ULONG (col) / 255.0);
 #endif
+      s->background_filled_p = 1;
       cairo_rectangle (cr, x, y - FONT_BASE (face->font),
 		       s->width, FONT_HEIGHT (face->font));
       cairo_fill (cr);
