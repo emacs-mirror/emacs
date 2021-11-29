@@ -9813,6 +9813,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           x_find_modifier_meanings (dpyinfo);
 	  FALLTHROUGH;
         case MappingKeyboard:
+#ifdef HAVE_XKB
+	  if (dpyinfo->xkb_desc)
+	    XkbGetUpdatedMap (dpyinfo->display, XkbAllComponentsMask,
+			      dpyinfo->xkb_desc);
+#endif
           XRefreshKeyboardMapping ((XMappingEvent *) &event->xmapping);
         }
       goto OTHER;
