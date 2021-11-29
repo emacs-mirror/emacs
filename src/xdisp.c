@@ -29341,16 +29341,6 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
   return x_reached;
 }
 
-static int draw_glyphs_debug (const char *file, int lineno,
-			     struct window *w, int x, struct glyph_row *row,
-			     enum glyph_row_area area, ptrdiff_t start, ptrdiff_t end,
-			     enum draw_glyphs_face hl, int overlaps)
-{
-  return draw_glyphs(w, x, row, area, start, end, hl, overlaps);
-}
-#define draw_glyphs(w, x, r, a, s, e, h, o) \
-  draw_glyphs_debug (__FILE__, __LINE__, w, x, r, a, s, e, h, o)
-
 /* Find the first glyph in the run of underlined glyphs preceding the
    beginning of glyph string S, and return its font (which could be
    NULL).  This is needed because that font determines the underline
