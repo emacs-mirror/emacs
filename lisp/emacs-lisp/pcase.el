@@ -940,6 +940,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (let ((code (pcase--u1 matches code vars rest)))
           (if (eq upat '_) code
             (macroexp-warn-and-return
+             ;; upat
              "Pattern t is deprecated.  Use `_' instead"
              code))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)

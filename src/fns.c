@@ -2569,6 +2569,13 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	}
     }
 
+  /* A symbol with position compares the contained symbol, and is
+     `equal' to the corresponding ordinary symbol.  */
+  if (SYMBOL_WITH_POS_P (o1))
+    o1 = SYMBOL_WITH_POS_SYM (o1);
+  if (SYMBOL_WITH_POS_P (o2))
+    o2 = SYMBOL_WITH_POS_SYM (o2);
+
   if (EQ (o1, o2))
     return true;
   if (XTYPE (o1) != XTYPE (o2))
@@ -4479,7 +4486,10 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object *hash)
 {
   ptrdiff_t start_of_bucket, i;
 
-  Lisp_Object hash_code = h->test.hashfn (key, h);
+  Lisp_Object hash_code;
+  if (SYMBOL_WITH_POS_P (key))
+    key = SYMBOL_WITH_POS_SYM (key);
+  hash_code = h->test.hashfn (key, h);
   if (hash)
     *hash = hash_code;
 
