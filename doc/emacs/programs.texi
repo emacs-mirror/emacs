@@ -1827,7 +1827,7 @@ sure the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-m"
+  (keymap-set c-mode-base-map "RET"
               'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
 @end example

@@ -105,7 +105,7 @@ following line into your @file{_emacs} file:
 
 @smallexample
 ;; @r{Make the @key{ENTER} key from the numeric keypad act as @kbd{C-j}.}
-(define-key function-key-map [kp-enter] [?\C-j])
+(keymap-set function-key-map "<kp-enter>" "C-j")
 @end smallexample
 
 @node MS-DOS Mouse
