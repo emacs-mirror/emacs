@@ -684,6 +684,10 @@ With a numeric prefix argument N, sort the Nth column.
 If the numeric prefix is -1, restore order the list was
 originally displayed in."
   (interactive "P")
+  (when (and n
+             (or (>= n (length tabulated-list-format))
+                 (< n -1)))
+    (user-error "Invalid column number"))
   (if (equal n -1)
       ;; Restore original order.
       (progn
