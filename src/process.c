@@ -5588,19 +5588,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = make_timespec (0, 0);
 #endif
 
-#if defined HAVE_PGTK
-	  nfds = pgtk_select (max_desc + 1,
-			      &Available, (check_write ? &Writeok : 0),
-			      NULL, &timeout, NULL);
-#elif !defined USABLE_SIGIO && !defined WINDOWSNT
+#if !defined USABLE_SIGIO && !defined WINDOWSNT
 	  /* If we're polling for input, don't get stuck in select for
 	     more than 25 msec. */
 	  struct timespec short_timeout = make_timespec (0, 25000000);
 	  if ((read_kbd || !NILP (wait_for_cell))
 	      && timespec_cmp (short_timeout, timeout) < 0)
 	    timeout = short_timeout;
-#elif defined HAVE_GLIB && !defined HAVE_NS
+#endif
+
 	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
+#if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
 			    NULL, &timeout, NULL);

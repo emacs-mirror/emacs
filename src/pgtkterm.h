@@ -571,9 +571,6 @@ extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
 				   Lisp_Object old_value);
 extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
 			   Lisp_Object old_value);
-extern int pgtk_select (int nfds, fd_set * readfds, fd_set * writefds,
-			fd_set * exceptfds, struct timespec *timeout,
-			sigset_t * sigmask);
 
 /* Cairo related functions implemented in pgtkterm.c */
 extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int);

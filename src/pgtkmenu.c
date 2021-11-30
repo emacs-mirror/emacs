@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "menu.h"
 #include "pdumper.h"
+#include "xgselect.h"
 
 #include "gtkutil.h"
 #include <gtk/gtk.h>
@@ -82,7 +83,7 @@ pgtk_menu_wait_for_event (void *data)
   /* Gtk3 have arrows on menus when they don't fit.  When the
      pointer is over an arrow, a timeout scrolls it a bit.  Use
      xg_select so that timeout gets triggered.  */
-  pgtk_select (0, NULL, NULL, NULL, ntp, NULL);
+  xg_select (0, NULL, NULL, NULL, ntp, NULL);
 }
 
 DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
