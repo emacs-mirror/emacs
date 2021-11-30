@@ -294,26 +294,25 @@ DYNAMIC-VAR bound to STATIC-VAR."
     (`(,(or 'let 'let*) () . ,body)
       (cps--transform-1 `(progn ,@body) next-state))
 
-    (`(let (,binding) . ,body)
-      (cps--transform-1 `(let* (,binding) ,@body) next-state))
-
     ;; Transform multi-variable `let' into `let*':
     ;;    (let ((v1 e1) ... (vN eN)) BODY)
-    ;; -> (let* ((t1 e1) ... (tN eN) (v1 t1) (vN tN)) BODY)
+    ;; -> (let* ((t1 e1) ... (tN-1 eN-1) (vN eN) (v1 t1) (vN-1 tN-1)) BODY)
 
     (`(let ,bindings . ,body)
       (let* ((bindings (cl-loop for binding in bindings
                           collect (if (symbolp binding)
                                       (list binding nil)
                                     binding)))
-             (temps (cl-loop for (var _value-form) in bindings
+             (butlast-bindings (butlast bindings))
+             (temps (cl-loop for (var _value-form) in butlast-bindings
                        collect (cps--add-binding var))))
         (cps--transform-1
          `(let* ,(append
-                  (cl-loop for (_var value-form) in bindings
+                  (cl-loop for (_var value-form) in butlast-bindings
                      for temp in temps
                      collect (list temp value-form))
-                  (cl-loop for (var _binding) in bindings
+                  (last bindings)
+                  (cl-loop for (var _binding) in butlast-bindings
                      for temp in temps
                      collect (list var temp)))
             ,@body)
