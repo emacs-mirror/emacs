@@ -77,7 +77,7 @@
 
 (defcustom mouse-wheel-up-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
-          (featurep 'haiku-win) (feautrep 'pgtk-win))
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-down
     'mouse-5)
   "Event used for scrolling up."

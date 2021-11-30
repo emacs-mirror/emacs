@@ -61,7 +61,7 @@ enum output_method
   output_msdos_raw,
   output_w32,
   output_ns,
-  output_pgtk
+  output_pgtk,
   output_haiku
 };
 

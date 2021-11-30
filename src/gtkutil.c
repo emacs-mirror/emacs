@@ -4793,7 +4793,6 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
                || event->type == GDK_MOTION_NOTIFY)
 #endif
 	   )
-               || event->type == MotionNotify))
 #endif /* HAVE_XINPUT2 */
     {
       /* If we are releasing or moving the scroll bar, it has the grab.  */
