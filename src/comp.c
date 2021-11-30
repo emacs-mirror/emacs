@@ -4786,10 +4786,6 @@ register_native_comp_unit (Lisp_Object comp_u)
 /* Deferred compilation mechanism. */
 /***********************************/
 
-/* List of sources we'll compile and load after having conventionally
-   loaded the compiler and its dependencies.  */
-static Lisp_Object delayed_sources;
-
 /* Queue an asynchronous compilation for the source file defining
    FUNCTION_NAME and perform a late load.
 
@@ -4846,30 +4842,16 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 
   /* This is so deferred compilation is able to compile comp
      dependencies breaking circularity.  */
-  if (!NILP (Ffeaturep (Qcomp, Qnil)))
+  if (comp__loadable)
     {
-      /* Comp already loaded.  */
-      if (!NILP (delayed_sources))
-	{
-	  CALLN (Ffuncall, intern_c_string ("native--compile-async"),
-		 delayed_sources, Qnil, Qlate);
-	  delayed_sources = Qnil;
-	}
+      /* Startup is done, comp is usable.  */
+      Frequire (Qcomp, Qnil, Qnil);
       Fputhash (function_name, definition, Vcomp_deferred_pending_h);
       CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 	     src, Qnil, Qlate);
     }
   else
-    {
-      delayed_sources = Fcons (src, delayed_sources);
-      /* Require comp only once.  */
-      static bool comp_required = false;
-      if (!comp_required)
-	{
-	  comp_required = true;
-	  Frequire (Qcomp, Qnil, Qnil);
-	}
-    }
+    Vcomp__delayed_sources = Fcons (src, Vcomp__delayed_sources);
 }
 
 
@@ -5328,6 +5310,13 @@ void
 syms_of_comp (void)
 {
 #ifdef HAVE_NATIVE_COMP
+  DEFVAR_LISP ("comp--delayed-sources", Vcomp__delayed_sources,
+	       doc: /* List of sources to be native compiled when
+		       startup is finished.  For internal use.  */);
+  DEFVAR_BOOL ("comp--loadable",
+	       comp__loadable,
+	       doc: /* Non-nil when comp.el can be loaded.  For
+		       internal use. */);
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("native-comp-deferred-compilation",
 	       native_comp_deferred_compilation,
@@ -5468,8 +5457,6 @@ compiled one.  */);
   staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
-  staticpro (&delayed_sources);
-  delayed_sources = Qnil;
   staticpro (&loadsearch_re_list);
   loadsearch_re_list = Qnil;
 
