@@ -70,8 +70,9 @@ If WINDOW is nil, this defaults to the current window."
 This will attempt to reformat the text in the region to have no
 lines that are visually wider than PIXEL-WIDTH.
 
-If START isn't at the start of a line, that pixel position will
-be used as the indentation prefix on subsequent lines."
+If START isn't at the start of a line, the horizontal position of
+START, converted to pixel units, will be used as the indentation
+prefix on subsequent lines."
   (save-excursion
     (goto-char start)
     (let ((indentation
