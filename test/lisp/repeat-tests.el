@@ -47,7 +47,7 @@
     map)
   "Keymap for repeating sequences.")
 (put 'repeat-tests-call-a 'repeat-map 'repeat-tests-repeat-map)
-(put 'repeat-tests-call-b 'repeat-map 'repeat-tests-repeat-map)
+(put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
 
 (defmacro with-repeat-mode (&rest body)
   "Create environment for testing `repeat-mode'."
