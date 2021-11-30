@@ -4600,7 +4600,9 @@ overlay arrow in source buffer."
   (let ((frame (gdb-mi--field (gdb-mi--partial-output) 'frame)))
     (when frame
       (setq gdb-selected-frame (gdb-mi--field frame 'func))
-      (setq gdb-selected-file (file-local-name (gdb-mi--field frame 'fullname)))
+      (setq gdb-selected-file
+            (when-let ((full (gdb-mi--field frame 'fullname)))
+              (file-local-name full)))
       (setq gdb-frame-number (gdb-mi--field frame 'level))
       (setq gdb-frame-address (gdb-mi--field frame 'addr))
       (let ((line (gdb-mi--field frame 'line)))
