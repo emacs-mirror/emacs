@@ -6034,8 +6034,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
 	  inev.ie.arg = list3 (make_fixnum (nlines),
-			       make_float (-dpyinfo->scroll.acc_x * 10),
-			       make_float (-dpyinfo->scroll.acc_y * 10));
+			       make_float (-dpyinfo->scroll.acc_x * 100),
+			       make_float (-dpyinfo->scroll.acc_y * 100));
 	  if (!x_coalesce_scroll_events)
 	    {
 	      dpyinfo->scroll.acc_y = 0;
@@ -6053,8 +6053,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
 	  inev.ie.arg = list3 (make_fixnum (nlines),
-			       make_float (-dpyinfo->scroll.acc_x * 10),
-			       make_float (-dpyinfo->scroll.acc_y * 10));
+			       make_float (-dpyinfo->scroll.acc_x * 100),
+			       make_float (-dpyinfo->scroll.acc_y * 100));
 
 	  if (!x_coalesce_scroll_events)
 	    {
@@ -6071,8 +6071,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
 	  inev.ie.arg = list3 (make_fixnum (nchars),
-			       make_float (-dpyinfo->scroll.acc_x * 10),
-			       make_float (-dpyinfo->scroll.acc_y * 10));
+			       make_float (-dpyinfo->scroll.acc_x * 100),
+			       make_float (-dpyinfo->scroll.acc_y * 100));
 
 	  if (x_coalesce_scroll_events)
 	    dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
@@ -6088,8 +6088,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
 	  inev.ie.arg = list3 (make_fixnum (nchars),
-			       make_float (-dpyinfo->scroll.acc_x * 10),
-			       make_float (-dpyinfo->scroll.acc_y * 10));
+			       make_float (-dpyinfo->scroll.acc_x * 100),
+			       make_float (-dpyinfo->scroll.acc_y * 100));
 
 	  if (x_coalesce_scroll_events)
 	    dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
