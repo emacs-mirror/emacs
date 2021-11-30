@@ -424,15 +424,15 @@ the height of the current window."
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
   (let* ((edges (window-edges nil t nil t))
-         (max-y (- (nth 3 edges)
+         (max-y (- (nth 3 edges) 1
                    (window-tab-line-height)
                    (window-header-line-height)))
          (usable-height (- max-y (nth 1 edges))))
     (when-let* ((posn (posn-at-point))
 	        (current-y (+ (cdr (posn-x-y posn))
 		              (line-pixel-height))))
-      (while (and (< (- max-y current-y) delta)
-                  (< (cdr (posn-object-width-height posn))
+      (while (and (<= (- max-y current-y) delta)
+                  (<= (cdr (posn-object-width-height posn))
                      usable-height))
         (vertical-motion -1)
         (setq current-y (- current-y (line-pixel-height))))
