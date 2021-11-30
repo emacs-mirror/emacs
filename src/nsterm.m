@@ -10044,7 +10044,7 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 
   DEFVAR_LISP ("ns-scroll-event-delta-factor", Vns_scroll_event_delta_factor,
-	       doc: /* A delta to apply to pixel deltas reported in scroll events.
+	       doc: /* A factor to apply to pixel deltas reported in scroll events.
  This is only effective for pixel deltas generated from touch pads or
  mice with smooth scrolling capability.  */);
   Vns_scroll_event_delta_factor = make_float (1.0);
