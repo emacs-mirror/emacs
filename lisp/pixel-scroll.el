@@ -480,9 +480,15 @@ wheel."
           (if (> (abs delta) (window-text-height window t))
               (mwheel-scroll event nil)
             (with-selected-window window
-              (if (< delta 0)
-	          (pixel-scroll-precision-scroll-down (- delta))
-                (pixel-scroll-precision-scroll-up delta)))))
+              (condition-case nil
+                  (if (< delta 0)
+	              (pixel-scroll-precision-scroll-down (- delta))
+                    (pixel-scroll-precision-scroll-up delta))
+                ;; Do not ding at buffer limits.  Show a message instead.
+                (beginning-of-buffer
+                 (message (error-message-string '(beginning-of-buffer))))
+                (end-of-buffer
+                 (message (error-message-string '(end-of-buffer))))))))
       (mwheel-scroll event nil))))
 
 ;;;###autoload
