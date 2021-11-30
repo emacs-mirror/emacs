@@ -6665,6 +6665,12 @@ not_in_argv (NSString *arg)
           if (lines == 0 && x_coalesce_scroll_events)
             return;
 
+	  if (NUMBERP (Vns_scroll_event_delta_factor))
+	    {
+	      x *= XFLOATINT (Vns_scroll_event_delta_factor);
+	      y *= XFLOATINT (Vns_scroll_event_delta_factor);
+	    }
+
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
           emacs_event->arg = list3 (make_fixnum (lines),
 				    make_float (x),
@@ -10036,6 +10042,12 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   x_coalesce_scroll_events = true;
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  DEFVAR_LISP ("ns-scroll-event-delta-factor", Vns_scroll_event_delta_factor,
+	       doc: /* A delta to apply to pixel deltas reported in scroll events.
+ This is only effective for pixel deltas generated from touch pads or
+ mice with smooth scrolling capability.  */);
+  Vns_scroll_event_delta_factor = make_float (1.0);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);

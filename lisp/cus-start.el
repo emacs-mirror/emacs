@@ -572,6 +572,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (ns-use-native-fullscreen ns boolean "24.4")
              (ns-use-fullscreen-animation ns boolean "25.1")
              (ns-use-srgb-colorspace ns boolean "24.4")
+             (ns-scroll-event-delta-factor ns float "29.1")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
