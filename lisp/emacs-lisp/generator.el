@@ -291,8 +291,15 @@ DYNAMIC-VAR bound to STATIC-VAR."
                         (cps--transform-1 `(progn ,@rest)
                                           next-state)))
 
-    ;; Process `let' in a helper function that transforms it into a
-    ;; let* with temporaries.
+    (`(,(or 'let 'let*) () . ,body)
+      (cps--transform-1 `(progn ,@body) next-state))
+
+    (`(let (,binding) . ,body)
+      (cps--transform-1 `(let* (,binding) ,@body) next-state))
+
+    ;; Transform multi-variable `let' into `let*':
+    ;;    (let ((v1 e1) ... (vN eN)) BODY)
+    ;; -> (let* ((t1 e1) ... (tN eN) (v1 t1) (vN tN)) BODY)
 
     (`(let ,bindings . ,body)
       (let* ((bindings (cl-loop for binding in bindings
@@ -314,9 +321,6 @@ DYNAMIC-VAR bound to STATIC-VAR."
 
     ;; Process `let*' binding: process one binding at a time.  Flatten
     ;; lexical bindings.
-
-    (`(let* () . ,body)
-      (cps--transform-1 `(progn ,@body) next-state))
 
     (`(let* (,binding . ,more-bindings) . ,body)
       (let* ((var (if (symbolp binding) binding (car binding)))
