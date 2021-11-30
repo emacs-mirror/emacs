@@ -5311,12 +5311,12 @@ syms_of_comp (void)
 {
 #ifdef HAVE_NATIVE_COMP
   DEFVAR_LISP ("comp--delayed-sources", Vcomp__delayed_sources,
-	       doc: /* List of sources to be native compiled when
-		       startup is finished.  For internal use.  */);
+	       doc: /* List of sources to be native-compiled when startup is finished.
+For internal use.  */);
   DEFVAR_BOOL ("comp--loadable",
 	       comp__loadable,
-	       doc: /* Non-nil when comp.el can be loaded.  For
-		       internal use. */);
+	       doc: /* Non-nil when comp.el can be loaded.
+For internal use. */);
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("native-comp-deferred-compilation",
 	       native_comp_deferred_compilation,
