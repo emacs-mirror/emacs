@@ -6032,37 +6032,77 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
     {
       dpyinfo->scroll.acc_x += delta_x;
       dpyinfo->scroll.acc_y += delta_y;
-      if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line)
+      if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line
+	  || !x_coalesce_scroll_events)
 	{
 	  int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = make_fixnum (nlines);
-	  dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
+	  inev.ie.arg = list3 (make_fixnum (nlines),
+			       make_float (-dpyinfo->scroll.acc_x * 10),
+			       make_float (-dpyinfo->scroll.acc_y * 10));
+	  if (!x_coalesce_scroll_events)
+	    {
+	      dpyinfo->scroll.acc_y = 0;
+	      dpyinfo->scroll.acc_x = 0;
+	    }
+	  else
+	    {
+	      dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
+	    }
 	}
-      else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line)
+      else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line
+	       || !x_coalesce_scroll_events)
 	{
 	  int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
 	  inev.ie.kind = WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = make_fixnum (nlines);
-	  dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
+	  inev.ie.arg = list3 (make_fixnum (nlines),
+			       make_float (-dpyinfo->scroll.acc_x * 10),
+			       make_float (-dpyinfo->scroll.acc_y * 10));
+
+	  if (!x_coalesce_scroll_events)
+	    {
+	      dpyinfo->scroll.acc_y = 0;
+	      dpyinfo->scroll.acc_x = 0;
+	    }
+	  else
+	    dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
 	}
-      else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char)
+      else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char
+	       || !x_coalesce_scroll_events)
 	{
 	  int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = make_fixnum (nchars);
-	  dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
+	  inev.ie.arg = list3 (make_fixnum (nchars),
+			       make_float (-dpyinfo->scroll.acc_x * 10),
+			       make_float (-dpyinfo->scroll.acc_y * 10));
+
+	  if (x_coalesce_scroll_events)
+	    dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
+	  else
+	    {
+	      dpyinfo->scroll.acc_x = 0;
+	      dpyinfo->scroll.acc_y = 0;
+	    }
 	}
       else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
 	{
 	  int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
 	  inev.ie.kind = HORIZ_WHEEL_EVENT;
 	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = make_fixnum (nchars);
-	  dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
+	  inev.ie.arg = list3 (make_fixnum (nchars),
+			       make_float (-dpyinfo->scroll.acc_x * 10),
+			       make_float (-dpyinfo->scroll.acc_y * 10));
+
+	  if (x_coalesce_scroll_events)
+	    dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
+	  else
+	    {
+	      dpyinfo->scroll.acc_x = 0;
+	      dpyinfo->scroll.acc_y = 0;
+	    }
 	}
     }
 
@@ -6710,6 +6750,10 @@ If set to a non-float value, there will be no wait at all.  */);
 
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);
+
+  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
+	       doc: /* SKIP: real doc in xterm.c.  */);
+  x_coalesce_scroll_events = true;
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qpgtk, Qnil);
