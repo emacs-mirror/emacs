@@ -51,6 +51,9 @@
 ;; pgtkterm.c.
 (defvar pgtk-input-file)
 
+(declare-function pgtk-use-im-context "pgtkim.c")
+(defvar pgtk-use-im-context-on-new-connection)
+
 (defun pgtk-handle-nxopen (_switch &optional temp)
   (setq unread-command-events (append unread-command-events
                                       (if temp '(pgtk-open-temp-file)
