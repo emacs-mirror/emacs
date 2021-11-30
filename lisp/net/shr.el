@@ -40,6 +40,7 @@
 (require 'image)
 (require 'puny)
 (require 'url-cookie)
+(require 'pixel-fill)
 (require 'text-property-search)
 
 (defgroup shr nil
@@ -240,7 +241,6 @@ and other things:
 (defvar shr-internal-width nil)
 (defvar shr-list-mode nil)
 (defvar shr-content-cache nil)
-(defvar shr-kinsoku-shorten nil)
 (defvar shr-table-depth 0)
 (defvar shr-stylesheet nil)
 (defvar shr-base nil)
@@ -641,28 +641,6 @@ size, and full-buffer size."
 	(shr-fill-lines (point-min) (point-max))
 	(buffer-string)))))
 
-(define-inline shr-char-breakable-p (char)
-  "Return non-nil if a line can be broken before and after CHAR."
-  (inline-quote (aref fill-find-break-point-function-table ,char)))
-(define-inline shr-char-nospace-p (char)
-  "Return non-nil if no space is required before and after CHAR."
-  (inline-quote (aref fill-nospace-between-words-table ,char)))
-
-;; KINSOKU is a Japanese word meaning a rule that should not be violated.
-;; In Emacs, it is a term used for characters, e.g. punctuation marks,
-;; parentheses, and so on, that should not be placed in the beginning
-;; of a line or the end of a line.
-(define-inline shr-char-kinsoku-bol-p (char)
-  "Return non-nil if a line ought not to begin with CHAR."
-  (inline-letevals (char)
-    (inline-quote (and (not (eq ,char ?'))
-                       (aref (char-category-set ,char) ?>)))))
-(define-inline shr-char-kinsoku-eol-p (char)
-  "Return non-nil if a line ought not to end with CHAR."
-  (inline-quote (aref (char-category-set ,char) ?<)))
-(unless (shr-char-kinsoku-bol-p (make-char 'japanese-jisx0208 33 35))
-  (load "kinsoku" nil t))
-
 (defun shr-pixel-column ()
   (if (not shr-use-fonts)
       (current-column)
@@ -676,6 +654,7 @@ size, and full-buffer size."
       (car (window-text-pixel-size nil (line-beginning-position) (point))))))
 
 (defun shr-pixel-region ()
+  (declare (obsolete nil "29.1"))
   (- (shr-pixel-column)
      (save-excursion
        (goto-char (mark))
@@ -795,7 +774,7 @@ size, and full-buffer size."
       (while (not (eolp))
         ;; We have to do some folding.  First find the first
         ;; previous point suitable for folding.
-        (if (or (not (shr-find-fill-point (line-beginning-position)))
+        (if (or (not (pixel-fill-find-fill-point (line-beginning-position)))
 	        (= (point) start))
 	    ;; We had unbreakable text (for this width), so just go to
 	    ;; the first space and carry on.
@@ -835,84 +814,6 @@ size, and full-buffer size."
         (shr-vertical-motion shr-internal-width)
         (when (looking-at " $")
 	  (delete-region (point) (line-end-position)))))))
-
-(defun shr-find-fill-point (start)
-  (let ((bp (point))
-	(end (point))
-	failed)
-    (while (not (or (setq failed (<= (point) start))
-		    (eq (preceding-char) ? )
-		    (eq (following-char) ? )
-		    (shr-char-breakable-p (preceding-char))
-		    (shr-char-breakable-p (following-char))
-		    (and (shr-char-kinsoku-bol-p (preceding-char))
-			 (shr-char-breakable-p (following-char))
-			 (not (shr-char-kinsoku-bol-p (following-char))))
-		    (shr-char-kinsoku-eol-p (following-char))
-		    (bolp)))
-      (backward-char 1))
-    (if failed
-	;; There's no breakable point, so we give it up.
-	(let (found)
-	  (goto-char bp)
-          ;; Don't overflow the window edge, even if
-          ;; shr-kinsoku-shorten is nil.
-	  (unless (or shr-kinsoku-shorten (null shr-width))
-	    (while (setq found (re-search-forward
-				"\\(\\c>\\)\\| \\|\\c<\\|\\c|"
-				(line-end-position) 'move)))
-	    (if (and found
-		     (not (match-beginning 1)))
-		(goto-char (match-beginning 0)))))
-      (or
-       (eolp)
-       ;; Don't put kinsoku-bol characters at the beginning of a line,
-       ;; or kinsoku-eol characters at the end of a line.
-       (cond
-        ;; Don't overflow the window edge, even if shr-kinsoku-shorten
-        ;; is nil.
-	((or shr-kinsoku-shorten (null shr-width))
-	 (while (and (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-		     (or (shr-char-kinsoku-eol-p (preceding-char))
-                         (shr-char-kinsoku-bol-p (following-char))))
-	   (backward-char 1))
-	 (when (setq failed (<= (point) start))
-	   ;; There's no breakable point that doesn't violate kinsoku,
-	   ;; so we look for the second best position.
-	   (while (and (progn
-			 (forward-char 1)
-			 (<= (point) end))
-		       (progn
-			 (setq bp (point))
-			 (shr-char-kinsoku-eol-p (following-char)))))
-	   (goto-char bp)))
-	((shr-char-kinsoku-eol-p (preceding-char))
-	 ;; Find backward the point where kinsoku-eol characters begin.
-	 (let ((count 4))
-	   (while
-	       (progn
-		 (backward-char 1)
-		 (and (> (setq count (1- count)) 0)
-		      (not (memq (preceding-char) (list ?\C-@ ?\n ? )))
-		      (or (shr-char-kinsoku-eol-p (preceding-char))
-			  (shr-char-kinsoku-bol-p (following-char)))))))
-	 (when (setq failed (<= (point) start))
-	   ;; There's no breakable point that doesn't violate kinsoku,
-	   ;; so we go to the second best position.
-	   (if (looking-at "\\(\\c<+\\)\\c<")
-	       (goto-char (match-end 1))
-	     (forward-char 1))))
-	((shr-char-kinsoku-bol-p (following-char))
-	 ;; Find forward the point where kinsoku-bol characters end.
-	 (let ((count 4))
-	   (while (progn
-		    (forward-char 1)
-		    (and (>= (setq count (1- count)) 0)
-			 (shr-char-kinsoku-bol-p (following-char))
-			 (shr-char-breakable-p (following-char))))))))
-       (when (eq (following-char) ? )
-	 (forward-char 1))))
-    (not failed)))
 
 (defun shr-parse-base (url)
   ;; Always chop off anchors.
@@ -2077,7 +1978,8 @@ BASE is the URL of the HTML being rendered."
   (setq dom (or (dom-child-by-tag dom 'tbody) dom))
   (let* ((shr-inhibit-images t)
 	 (shr-table-depth (1+ shr-table-depth))
-	 (shr-kinsoku-shorten t)
+         ;; Fill hard in CJK languages.
+	 (pixel-fill-respect-kinsoku nil)
 	 ;; Find all suggested widths.
 	 (columns (shr-column-specs dom))
 	 ;; Compute how many pixels wide each TD should be.

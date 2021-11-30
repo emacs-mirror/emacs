@@ -295,6 +295,13 @@ received.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** pixel-fill
+
+*** This is a new package that deals with filling variable-pitch text.
+
+*** New function 'pixel-fill-region'.
+This fills the region to be no wider than a specified pixel width.
+
 ** Info
 
 ---
