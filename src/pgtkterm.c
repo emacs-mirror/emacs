@@ -63,6 +63,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pgtkselect.h"
 #include "emacsgtkfixed.h"
 
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
+
 #define STORE_KEYSYM_FOR_DEBUG(keysym) ((void)0)
 
 #define FRAME_CR_CONTEXT(f) ((f)->output_data.pgtk->cr_context)
@@ -4320,6 +4324,11 @@ pgtk_delete_terminal (struct terminal *terminal)
       dpyinfo->gdpy = NULL;
     }
 
+  if (dpyinfo->connection >= 0)
+    emacs_close (dpyinfo->connection);
+
+  dpyinfo->connection = -1;
+
   delete_keyboard_wait_descriptor (0);
 
   pgtk_delete_display (dpyinfo);
@@ -6285,6 +6294,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   static int x_initialized = 0;
   static unsigned x_display_id = 0;
   static char *initial_display = NULL;
+  static dynlib_handle_ptr *handle = NULL;
   char *dpy_name;
   Lisp_Object lisp_dpy_name = Qnil;
 
@@ -6455,6 +6465,49 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   /* smooth scroll setting */
   dpyinfo->scroll.x_per_char = 2;
   dpyinfo->scroll.y_per_line = 2;
+
+  dpyinfo->connection = -1;
+
+  if (!handle)
+    handle = dynlib_open (NULL);
+
+#ifdef GDK_WINDOWING_X11
+  if (!strcmp (G_OBJECT_TYPE_NAME (dpy), "GdkX11Display") && handle)
+    {
+      void *(*gdk_x11_display_get_xdisplay) (GdkDisplay *)
+	= dynlib_sym (handle, "gdk_x11_display_get_xdisplay");
+      int (*x_connection_number) (void *)
+	= dynlib_sym (handle, "XConnectionNumber");
+
+      if (x_connection_number
+	  && gdk_x11_display_get_xdisplay)
+	dpyinfo->connection
+	  = x_connection_number (gdk_x11_display_get_xdisplay (dpy));
+    }
+#endif
+
+#ifdef GDK_WINDOWING_WAYLAND
+  if (GDK_IS_WAYLAND_DISPLAY (dpy) && handle)
+    {
+      struct wl_display *wl_dpy = gdk_wayland_display_get_wl_display (dpy);
+      int (*display_get_fd) (struct wl_display *)
+	= dynlib_sym (handle, "wl_display_get_fd");
+
+      if (display_get_fd)
+	dpyinfo->connection = display_get_fd (wl_dpy);
+    }
+#endif
+
+  if (dpyinfo->connection >= 0)
+    {
+      add_keyboard_wait_descriptor (dpyinfo->connection);
+#ifdef F_SETOWN
+      fcntl (dpyinfo->connection, F_SETOWN, getpid ());
+#endif /* ! defined (F_SETOWN) */
+
+      if (interrupt_input)
+	init_sigio (dpyinfo->connection);
+    }
 
   x_setup_pointer_blanking (dpyinfo);
 

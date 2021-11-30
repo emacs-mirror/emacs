@@ -238,6 +238,8 @@ struct pgtk_display_info
     double acc_x, acc_y;
     double x_per_char, y_per_line;
   } scroll;
+
+  int connection;
 };
 
 /* This is a chain of structures for all the PGTK displays currently in use.  */
