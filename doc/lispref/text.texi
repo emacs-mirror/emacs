@@ -1661,7 +1661,7 @@ of text between @var{start} and @var{end} at pixel granularity, so
 text using variable-pitch fonts or several different fonts looks
 filled regardless of different character sizes.  The argument
 @var{pixel-width} specifies the maximum pixel width a line is allowed
-to have aftder filling; it is the pixel-resolution equivalent of the
+to have after filling; it is the pixel-resolution equivalent of the
 @code{fill-column} in @code{fill-region}.  For instance, this Lisp
 snippet will insert text using a proportional font, and then fill this
 to be no wider than 300 pixels:
