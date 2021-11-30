@@ -3218,7 +3218,7 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
 	f1 = pgtk_any_window_to_frame (win);
       else
 	{
-	  // crossing display server?
+	  /* crossing display server? */
 	  f1 = SELECTED_FRAME ();
 	}
     }
@@ -3488,8 +3488,8 @@ static struct redisplay_interface pgtk_redisplay_interface = {
   gui_clear_end_of_line,
   pgtk_scroll_run,
   pgtk_after_update_window_line,
-  NULL, // gui_update_window_begin,
-  NULL, // gui_update_window_end,
+  NULL, /* gui_update_window_begin, */
+  NULL, /* gui_update_window_end, */
   pgtk_flush_display,
   gui_clear_window_mouse_face,
   gui_get_glyph_overhangs,
@@ -3505,7 +3505,7 @@ static struct redisplay_interface pgtk_redisplay_interface = {
   pgtk_draw_window_cursor,
   pgtk_draw_vertical_window_border,
   pgtk_draw_window_divider,
-  NULL,				// pgtk_shift_glyphs_for_insert,
+  NULL,				/* pgtk_shift_glyphs_for_insert, */
   pgtk_show_hourglass,
   pgtk_hide_hourglass,
   pgtk_default_font_parameter,
@@ -3527,7 +3527,7 @@ pgtk_clear_frame (struct frame *f)
   if (!FRAME_DEFAULT_FACE (f))
     return;
 
-  // mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
+  /* mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f))); */
 
   block_input ();
 
@@ -3578,9 +3578,6 @@ pgtk_flash (struct frame *f)
     cairo_set_source_rgb (cr, 1, 1, 1);
     cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE);
 
-#define XFillRectangle(d, win, gc, x, y, w, h) \
-    ( cairo_rectangle (cr, x, y, w, h), cairo_fill (cr) )
-
     {
       /* Get the height not including a menu bar widget.  */
       int height = FRAME_PIXEL_HEIGHT (f);
@@ -3595,23 +3592,28 @@ pgtk_flash (struct frame *f)
       /* If window is tall, flash top and bottom line.  */
       if (height > 3 * FRAME_LINE_HEIGHT (f))
 	{
-	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			  flash_left,
-			  (FRAME_INTERNAL_BORDER_WIDTH (f)
-			   + FRAME_TOP_MARGIN_HEIGHT (f)),
-			  width, flash_height);
-	  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			  flash_left,
-			  (height - flash_height
-			   - FRAME_INTERNAL_BORDER_WIDTH (f)),
-			  width, flash_height);
+	  cairo_rectangle (cr,
+			   flash_left,
+			   (FRAME_INTERNAL_BORDER_WIDTH (f)
+			    + FRAME_TOP_MARGIN_HEIGHT (f)),
+			   width, flash_height);
+	  cairo_fill (cr);
 
+	  cairo_rectangle (cr,
+			   flash_left,
+			   (height - flash_height
+			    - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			   width, flash_height);
+	  cairo_fill (cr);
 	}
       else
-	/* If it is short, flash it all.  */
-	XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-			flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
-			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+	{
+	  /* If it is short, flash it all.  */
+	  cairo_rectangle (cr,
+			   flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			   width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+	  cairo_fill (cr);
+	}
 
       FRAME_X_OUTPUT (f)->cr_surface_visible_bell = surface;
       {
@@ -3625,7 +3627,6 @@ pgtk_flash (struct frame *f)
 	  start_atimer (ATIMER_RELATIVE, delay, recover_from_visible_bell, f);
       }
 
-#undef XFillRectangle
     }
 
     cairo_destroy (cr);
@@ -4794,10 +4795,10 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->update_begin_hook = pgtk_update_begin;
   terminal->update_end_hook = pgtk_update_end;
   terminal->read_socket_hook = pgtk_read_socket;
-  // terminal->frame_up_to_date_hook = pgtk_frame_up_to_date;
+  /* terminal->frame_up_to_date_hook = pgtk_frame_up_to_date; */
   terminal->mouse_position_hook = pgtk_mouse_position;
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
-  // terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
+  /* terminal->frame_raise_lower_hook = pgtk_frame_raise_lower; */
   terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
   terminal->menu_show_hook = pgtk_menu_show;
@@ -4838,7 +4839,7 @@ struct pgtk_window_is_of_frame_recursive_t
 {
   GdkWindow *window;
   bool result;
-  GtkWidget *emacs_gtk_fixed;	// stop on emacsgtkfixed other than this.
+  GtkWidget *emacs_gtk_fixed;	/* stop on emacsgtkfixed other than this. */
 };
 
 static void
@@ -5487,7 +5488,7 @@ key_press_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	    evq_enqueue (&inev);
 	  }
 
-	// count += nchars;
+	/* count += nchars; */
 
 	inev.ie.kind = NO_EVENT;	/* Already stored above.  */
 
@@ -5501,7 +5502,7 @@ done:
     {
       XSETFRAME (inev.ie.frame_or_window, f);
       evq_enqueue (&inev);
-      // count++;
+      /* count++; */
     }
 
   SAFE_FREE ();
@@ -6831,7 +6832,7 @@ A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
 X toolkit.  Possible values are: gtk, motif, xaw, or xaw3d.
 With MS Windows or Nextstep, the value is t.  */ );
-  // Vx_toolkit_scroll_bars = Qt;
+  /* Vx_toolkit_scroll_bars = Qt; */
   Vx_toolkit_scroll_bars = intern_c_string ("gtk");
 
   DEFVAR_BOOL ("x-use-underline-position-properties", x_use_underline_position_properties,

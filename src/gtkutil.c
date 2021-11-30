@@ -1432,7 +1432,7 @@ xg_create_frame_widgets (struct frame *f)
 
   block_input ();
 
-#ifndef HAVE_PGTK  // gtk_plug not found.
+#ifndef HAVE_PGTK  /* gtk_plug not found. */
   if (FRAME_X_EMBEDDED_P (f))
     {
       GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
