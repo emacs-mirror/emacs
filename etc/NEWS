@@ -306,8 +306,10 @@ For instance, to enable jumping to the *Messages* buffer with
 
 ** pixel-fill
 
++++
 *** This is a new package that deals with filling variable-pitch text.
 
++++
 *** New function 'pixel-fill-region'.
 This fills the region to be no wider than a specified pixel width.
 

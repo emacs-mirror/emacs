@@ -1651,6 +1651,39 @@ The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
 @end deffn
 
+@defun pixel-fill-region start end pixel-width
+Most Emacs buffers use monospaced text, so all the filling functions
+(like @code{fill-region}) work based on the number of characters and
+@code{char-width}.  However, Emacs can render other types of things,
+like text that contains images and using proportional fonts, and the
+@code{pixel-fill-region} exists to handle that.  For instance, this
+Lisp snippet will insert text using a proportional font, and then fill
+this to be no wider than 300 pixels:
+
+@lisp
+(insert (propertize
+	 "This is a sentence that's ends here."
+	 'face 'variable-pitch))
+(pixel-fill-region (point) (point-max) 300)
+@end lisp
+
+If @var{start} isn't at the start of a line, that pixel position will
+be used as the indentation prefix on subsequent lines.
+
+The @code{pixel-fill-width} helper function can be used to compute the
+pixel width to use.  If given no arguments, it'll return a value
+slightly less than the width of the current window.  The first
+optional value, @var{columns}, specifies the number of columns using
+the standard, monospaced fonts, e.g. @code{fill-column}.  The second
+optional value is the window to use.  You'd typically use it like
+this:
+
+@lisp
+(pixel-fill-region
+  start end (pixel-fill-width fill-column))
+@end lisp
+@end defun
+
 @deffn Command fill-individual-paragraphs start end &optional justify citation-regexp
 This command fills each paragraph in the region according to its
 individual fill prefix.  Thus, if the lines of a paragraph were indented
