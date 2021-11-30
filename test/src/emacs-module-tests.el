@@ -247,6 +247,7 @@ must evaluate to a regular expression string."
 
 (ert-deftest module--test-assertions--load-non-live-object ()
   "Check that -module-assertions verify that non-live objects aren't accessed."
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (or (file-executable-p mod-test-emacs)
                    (and (eq system-type 'windows-nt)
                         (file-executable-p (concat mod-test-emacs ".exe")))))
@@ -265,6 +266,7 @@ must evaluate to a regular expression string."
 This differs from `module--test-assertions-load-non-live-object'
 in that it stows away a global reference.  The module assertions
 should nevertheless detect the invalid load."
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (or (file-executable-p mod-test-emacs)
                    (and (eq system-type 'windows-nt)
                         (file-executable-p (concat mod-test-emacs ".exe")))))
@@ -281,6 +283,7 @@ should nevertheless detect the invalid load."
 (ert-deftest module--test-assertions--call-emacs-from-gc ()
   "Check that -module-assertions prevents calling Emacs functions
 during garbage collection."
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (or (file-executable-p mod-test-emacs)
                    (and (eq system-type 'windows-nt)
                         (file-executable-p (concat mod-test-emacs ".exe")))))
@@ -292,7 +295,8 @@ during garbage collection."
 (ert-deftest module--test-assertions--globref-invalid-free ()
   "Check that -module-assertions detects invalid freeing of a
 local reference."
-    (skip-unless (or (file-executable-p mod-test-emacs)
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
+  (skip-unless (or (file-executable-p mod-test-emacs)
                    (and (eq system-type 'windows-nt)
                         (file-executable-p (concat mod-test-emacs ".exe")))))
   (module--test-assertion

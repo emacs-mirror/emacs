@@ -104,6 +104,8 @@ struct xwidget_view
   /* The "live" instance isn't drawn.  */
   bool hidden;
 
+  enum glyph_row_area area;
+
 #if defined (USE_GTK)
   Display *dpy;
   Window wdesc;
@@ -112,6 +114,7 @@ struct xwidget_view
 
   cairo_surface_t *cr_surface;
   cairo_t *cr_context;
+  int just_resized;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   XvWindow *xvWindow;
@@ -186,11 +189,18 @@ extern struct xwidget *xwidget_from_id (uint32_t id);
 #ifdef HAVE_X_WINDOWS
 struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
+extern void lower_frame_xwidget_views (struct frame *f);
 extern void kill_frame_xwidget_views (struct frame *f);
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
 extern void xwidget_motion_or_crossing (struct xwidget_view *,
 					const XEvent *);
+#ifdef HAVE_XINPUT2
+extern void xwidget_motion_notify (struct xwidget_view *, double,
+				   double, uint, Time);
+extern void xwidget_scroll (struct xwidget_view *, double, double,
+                            double, double, uint, Time);
+#endif
 #endif
 #else
 INLINE_HEADER_BEGIN

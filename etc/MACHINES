@@ -103,6 +103,34 @@ the list at the end of this file.
     ./configure CC='gcc -m64'  # GCC
     ./configure CC='cc -m64'   # Oracle Developer Studio
 
+** Haiku
+
+  On 32-bit Haiku it is required that the newer GCC 8 be used, instead
+  of the legacy GCC 2 used by default.  This can be achieved by
+  invoking configure inside a shell launched by the 'setarch' program
+  invoked as 'setarch x86'.
+
+  When building with packages discovered through pkg-config, such as
+  libpng, on a GCC 2/GCC 8 hybrid system, simply evaluating 'setarch
+  x86' is insufficient to ensure that all required libraries are found
+  at their correct locations.  To avoid this problem, set the
+  environment variable 'PKG_CONFIG_PATH' to the GCC 8 pkg-config
+  directory at '/system/develop/lib/x86/pkgconfig/' before configuring
+  Emacs.
+
+  If GCC complains about not being able to resolve symbols such as
+  "BHandler::LockLooper", you are almost certainly experiencing this
+  problem.
+
+  Haiku running on non-x86 systems has not been tested.  It is
+  anticipated that Haiku running on big-endian systems will experience
+  problems when Emacs is built with Haiku windowing support, but there
+  doesn't seem to be any reliable way to get Haiku running on a
+  big-endian system at present.
+
+  The earliest release of Haiku that will successfully compile Emacs
+  is R1/Beta2.  For windowing support, R1/Beta3 or later is required.
+
 
 * Obsolete platforms
 

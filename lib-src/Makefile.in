@@ -27,7 +27,9 @@ EMACSOPT = -batch --no-site-file --no-site-lisp
 # ==================== Things 'configure' will edit ====================
 
 CC=@CC@
+CXX=@CXX@
 CFLAGS=@CFLAGS@
+CXXFLAGS=@CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 
@@ -130,6 +132,11 @@ MKDIR_P = @MKDIR_P@
 
 # ========================== Lists of Files ===========================
 
+## Haiku build-time support
+HAVE_BE_APP=@HAVE_BE_APP@
+HAIKU_LIBS=@HAIKU_LIBS@
+HAIKU_CFLAGS=@HAIKU_CFLAGS@
+
 # emacsclientw.exe for MinGW, empty otherwise
 CLIENTW = @CLIENTW@
 
@@ -143,7 +150,11 @@ UTILITIES = hexl${EXEEXT} 			 	 \
 	    $(if $(with_mailutils), , movemail${EXEEXT}) \
             $(and $(use_gamedir), update-game-score${EXEEXT})
 
+ifeq ($(HAVE_BE_APP),yes)
+DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT} be-resources
+else
 DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
+endif
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -230,6 +241,10 @@ WINDRES = @WINDRES@
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
 
+# Flags that could be in WARN_CFLAGS, but are invalid for C++.
+NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+  -Wstrict-prototypes -Wno-override-init
+
 BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 	      $(WARN_CFLAGS) $(WERROR_CFLAGS) \
 	      -I. -I../src -I../lib \
@@ -237,6 +252,9 @@ BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
+
+ALL_CXXFLAGS = $(filter-out ${NON_CXX_CFLAGS},${BASE_CFLAGS}) \
+  ${PROFILING_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS} ${CXXFLAGS} ${HAIKU_CFLAGS}
 
 # Configuration files for .o files to depend on.
 config_h = ../src/config.h $(srcdir)/../src/conf_post.h
@@ -406,6 +424,9 @@ emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows $< \
 	   $(LOADLIBES) \
 	   $(LIB_WSOCK32) $(LIB_EACCESS) $(LIBS_ECLIENT) -o $@
+
+be-resources: ${srcdir}/be_resources.cc ${config_h}
+	$(AM_V_CXXLD)$(CXX) ${ALL_CXXFLAGS} ${HAIKU_LIBS} $< -o $@
 
 NTINC = ${srcdir}/../nt/inc
 NTDEPS = $(NTINC)/ms-w32.h $(NTINC)/sys/stat.h $(NTINC)/inttypes.h \

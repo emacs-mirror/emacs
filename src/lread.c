@@ -2709,7 +2709,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	c = read_escape (readcharfun, 0);
       if ((c & ~CHAR_MODIFIER_MASK) == '?')
 	return 0177 | (c & CHAR_MODIFIER_MASK);
-      else if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+      else if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
 	return c | ctrl_modifier;
       /* ASCII control chars are made from letters (both cases),
 	 as well as the non-letters within 0100...0137.  */

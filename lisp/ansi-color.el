@@ -91,7 +91,7 @@ as a PDF file."
   :group 'processes)
 
 (defface ansi-color-bold
-  '((t :inherit 'bold))
+  '((t :inherit bold))
   "Face used to render bold text."
   :group 'ansi-colors
   :version "28.1")
@@ -103,13 +103,13 @@ as a PDF file."
   :version "28.1")
 
 (defface ansi-color-italic
-  '((t :inherit 'italic))
+  '((t :inherit italic))
   "Face used to render italic text."
   :group 'ansi-colors
   :version "28.1")
 
 (defface ansi-color-underline
-  '((t :inherit 'underline))
+  '((t :inherit underline))
   "Face used to render underlined text."
   :group 'ansi-colors
   :version "28.1")

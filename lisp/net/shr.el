@@ -162,6 +162,10 @@ cid: URL as the argument.")
 (defvar shr-put-image-function #'shr-put-image
   "Function called to put image and alt string.")
 
+(defface shr-text '((t :inherit variable-pitch))
+  "Face used for rendering text."
+  :version "29.1")
+
 (defface shr-strike-through '((t :strike-through t))
   "Face for <s> elements."
   :version "24.1")
@@ -182,6 +186,11 @@ temporarily blinks with this face."
   '((t :inherit underline :underline (:style wave)))
   "Face for <abbr> elements."
   :version "27.1")
+
+(defface shr-sup
+  '((t :height 0.8))
+  "Face for <sup> and <sub> elements."
+  :version "29.1")
 
 (defface shr-h1
   '((t :height 1.3 :weight bold))
@@ -251,17 +260,17 @@ and other things:
   "a" #'shr-show-alt-text
   "i" #'shr-browse-image
   "z" #'shr-zoom-image
-  [?\t] #'shr-next-link
-  [?\M-\t] #'shr-previous-link
-  [follow-link] 'mouse-face
-  [mouse-2] #'shr-browse-url
-  [C-down-mouse-1] #'shr-mouse-browse-url-new-window
+  "TAB" #'shr-next-link
+  "C-M-i" #'shr-previous-link
+  "<follow-link>" 'mouse-face
+  "<mouse-2>" #'shr-browse-url
+  "C-<down-mouse-1>" #'shr-mouse-browse-url-new-window
   "I" #'shr-insert-image
   "w" #'shr-maybe-probe-and-copy-url
   "u" #'shr-maybe-probe-and-copy-url
   "v" #'shr-browse-url
   "O" #'shr-save-contents
-  "\r" #'shr-browse-url)
+  "RET" #'shr-browse-url)
 
 (defvar shr-image-map
   (let ((map (copy-keymap shr-map)))
@@ -737,7 +746,7 @@ size, and full-buffer size."
 	  (when shr-use-fonts
 	    (put-text-property font-start (point)
 			       'face
-			       (or shr-current-font 'variable-pitch)))))))))
+			       (or shr-current-font 'shr-text)))))))))
 
 (defun shr-fill-lines (start end)
   (if (<= shr-internal-width 0)
@@ -1464,12 +1473,14 @@ ones, in case fg and bg are nil."
 (defun shr-tag-sup (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise 0.2))))
+    (put-text-property start (point) 'display '(raise 0.2))
+    (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-sub (dom)
   (let ((start (point)))
     (shr-generic dom)
-    (put-text-property start (point) 'display '(raise -0.2))))
+    (put-text-property start (point) 'display '(raise -0.2))
+    (add-face-text-property start (point) 'shr-sup)))
 
 (defun shr-tag-p (dom)
   (shr-ensure-paragraph)
@@ -1697,7 +1708,7 @@ The preference is a float determined from `shr-prefer-media-type'."
             (xwidget-webkit-execute-script
              widget (format "document.body.innerHTML = %S;"
                             (format
-                             "<style>body { margin: 0px; }</style><div style='background: black; height: 100%%; display: flex; align-items: center; justify-content: center;'><video autoplay loop muted controls style='max-width: 100%%; max-height: 100%%;'><source src=%S type='video/mp4\'></source></video></div>"
+                             "<style>body { margin: 0px; }</style><div style='background: black; height: 100%%; display: flex; align-items: center; justify-content: center;'><video autoplay loop muted controls style='max-width: 100%%; max-height: 100%%;'><source src=%S type='video/mp4'></source></video></div>"
                              url)))))
       ;; No xwidgets.
       (if (> (length image) 0)

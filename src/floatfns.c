@@ -347,6 +347,21 @@ int
 double_integer_scale (double d)
 {
   int exponent = ilogb (d);
+#ifdef HAIKU
+  /* On Haiku, the values returned by ilogb are nonsensical when
+     confronted with tiny numbers, inf, or NaN, which breaks the trick
+     used by code on other platforms, so we have to test for each case
+     manually, and return the appropriate value.  */
+  if (exponent == FP_ILOGB0)
+    {
+      if (isnan (d))
+	return (DBL_MANT_DIG - DBL_MIN_EXP) + 2;
+      if (isinf (d))
+	return (DBL_MANT_DIG - DBL_MIN_EXP) + 1;
+
+      return (DBL_MANT_DIG - DBL_MIN_EXP);
+    }
+#endif
   return (DBL_MIN_EXP - 1 <= exponent && exponent < INT_MAX
 	  ? DBL_MANT_DIG - 1 - exponent
 	  : (DBL_MANT_DIG - DBL_MIN_EXP

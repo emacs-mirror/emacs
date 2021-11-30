@@ -135,7 +135,7 @@ the programmers should be trusted to know what they are doing.
 
 @item
 We deleted several features of the @code{pcase} macro, in accordance
-with our general plane to remove @code{pcase} from Emacs:
+with our general plan to remove @code{pcase} from Emacs:
 
 @itemize @minus
 @item

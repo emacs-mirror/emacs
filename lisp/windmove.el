@@ -700,7 +700,7 @@ where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
 a single modifier.
 If PREFIX is `none', no prefix is used.  If MODIFIERS is `none',
 the keybindings are directly bound to the arrow keys.
-Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
+Default value of PREFIX is \\`C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))
   (when (eq prefix 'none) (setq prefix nil))

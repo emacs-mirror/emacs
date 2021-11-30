@@ -1584,7 +1584,7 @@ which overrides the global definitions of some keys.
 self-inserting because the global keymap binds it to the command
 @code{self-insert-command}.  The standard Emacs editing characters
 such as @kbd{C-a} also get their standard meanings from the global
-keymap.  Commands to rebind keys, such as @kbd{M-x global-set-key},
+keymap.  Commands to rebind keys, such as @kbd{M-x keymap-global-set},
 work by storing the new binding in the proper place in the global map
 (@pxref{Rebinding}).  To view the current key bindings, use the
 @kbd{C-h b} command.
@@ -1736,8 +1736,8 @@ them, it may be convenient to disable completion on those keys by
 putting this in your init file:
 
 @lisp
-(define-key minibuffer-local-completion-map " " 'self-insert-command)
-(define-key minibuffer-local-completion-map "?" 'self-insert-command)
+(keymap-set minibuffer-local-completion-map "SPC" 'self-insert-command)
+(keymap-set minibuffer-local-completion-map "?" 'self-insert-command)
 @end lisp
 
 @node Rebinding
@@ -1756,19 +1756,19 @@ local keymap, which affects all buffers using the same major mode.
 Emacs session.  @xref{Init Rebinding}, for a description of how to
 make key rebindings affect future Emacs sessions.
 
-@findex global-set-key
-@findex local-set-key
-@findex global-unset-key
-@findex local-unset-key
+@findex keymap-global-set
+@findex keymap-local-set
+@findex keymap-global-unset
+@findex keymap-local-unset
 @table @kbd
-@item M-x global-set-key @key{RET} @var{key} @var{cmd} @key{RET}
+@item M-x keymap-global-set @key{RET} @var{key} @var{cmd} @key{RET}
 Define @var{key} globally to run @var{cmd}.
-@item M-x local-set-key @key{RET} @var{key} @var{cmd} @key{RET}
+@item M-x keymap-local-set @key{RET} @var{key} @var{cmd} @key{RET}
 Define @var{key} locally (in the major mode now in effect) to run
 @var{cmd}.
-@item M-x global-unset-key @key{RET} @var{key}
+@item M-x keymap-global-unset @key{RET} @var{key}
 Make @var{key} undefined in the global map.
-@item M-x local-unset-key @key{RET} @var{key}
+@item M-x keymap-local-unset @key{RET} @var{key}
 Make @var{key} undefined locally (in the major mode now in effect).
 @end table
 
@@ -1777,11 +1777,11 @@ command (@pxref{Interactive Shell}), replacing the normal global
 definition of @kbd{C-z}:
 
 @example
-M-x global-set-key @key{RET} C-z shell @key{RET}
+M-x keymap-global-set @key{RET} C-z shell @key{RET}
 @end example
 
 @noindent
-The @code{global-set-key} command reads the command name after the
+The @code{keymap-global-set} command reads the command name after the
 key.  After you press the key, a message like this appears so that you
 can confirm that you are binding the key you want:
 
@@ -1802,7 +1802,7 @@ reads another character; if that is @kbd{4}, another prefix character,
 it reads one more character, and so on.  For example,
 
 @example
-M-x global-set-key @key{RET} C-x 4 $ spell-other-window @key{RET}
+M-x keymap-global-set @key{RET} C-x 4 $ spell-other-window @key{RET}
 @end example
 
 @noindent
@@ -1810,8 +1810,8 @@ redefines @kbd{C-x 4 $} to run the (fictitious) command
 @code{spell-other-window}.
 
   You can remove the global definition of a key with
-@code{global-unset-key}.  This makes the key @dfn{undefined}; if you
-type it, Emacs will just beep.  Similarly, @code{local-unset-key} makes
+@code{keymap-global-unset}.  This makes the key @dfn{undefined}; if you
+type it, Emacs will just beep.  Similarly, @code{keymap-local-unset} makes
 a key undefined in the current major mode keymap, which makes the global
 definition (or lack of one) come back into effect in that major mode.
 
@@ -1844,11 +1844,11 @@ you can specify them in your initialization file by writing Lisp code.
 simplest is to use the @code{kbd} function, which converts a textual
 representation of a key sequence---similar to how we have written key
 sequences in this manual---into a form that can be passed as an
-argument to @code{global-set-key}.  For example, here's how to bind
+argument to @code{keymap-global-set}.  For example, here's how to bind
 @kbd{C-z} to the @code{shell} command (@pxref{Interactive Shell}):
 
 @example
-(global-set-key (kbd "C-z") 'shell)
+(keymap-global-set "C-z" 'shell)
 @end example
 
 @noindent
@@ -1861,69 +1861,24 @@ causes an error; it certainly isn't what you want.
 and mouse events:
 
 @example
-(global-set-key (kbd "C-c y") 'clipboard-yank)
-(global-set-key (kbd "C-M-q") 'query-replace)
-(global-set-key (kbd "<f5>") 'flyspell-mode)
-(global-set-key (kbd "C-<f5>") 'display-line-numbers-mode)
-(global-set-key (kbd "C-<right>") 'forward-sentence)
-(global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
-@end example
-
-  Instead of using @code{kbd}, you can use a Lisp string or vector to
-specify the key sequence.  Using a string is simpler, but only works
-for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
-characters.  For example, here's how to bind @kbd{C-x M-l} to
-@code{make-symbolic-link} (@pxref{Copying and Naming}):
-
-@example
-(global-set-key "\C-x\M-l" 'make-symbolic-link)
-@end example
-
-  To bind a key sequence including @key{TAB}, @key{RET}, @key{ESC}, or
-@key{DEL}, the string should contain the Emacs Lisp escape sequence
-@samp{\t}, @samp{\r}, @samp{\e}, or @samp{\d} respectively.  Here is
-an example which binds @kbd{C-x @key{TAB}} to @code{indent-rigidly}
-(@pxref{Indentation}):
-
-@example
-(global-set-key "\C-x\t" 'indent-rigidly)
-@end example
-
-  When the key sequence includes function keys or mouse button events,
-or non-@acronym{ASCII} characters such as @code{C-=} or @code{H-a},
-you can use a vector to specify the key sequence.  Each element in the
-vector stands for an input event; the elements are separated by spaces
-and surrounded by a pair of square brackets.  If a vector element is a
-character, write it as a Lisp character constant: @samp{?} followed by
-the character as it would appear in a string.  Function keys are
-represented by symbols (@pxref{Function Keys}); simply write the
-symbol's name, with no other delimiters or punctuation.  Here are some
-examples:
-
-@example
-(global-set-key [?\C-=] 'make-symbolic-link)
-(global-set-key [?\M-\C-=] 'make-symbolic-link)
-(global-set-key [?\H-a] 'make-symbolic-link)
-(global-set-key [f7] 'make-symbolic-link)
-(global-set-key [C-mouse-1] 'make-symbolic-link)
-@end example
-
-@noindent
-You can use a vector for the simple cases too:
-
-@example
-(global-set-key [?\C-z ?\M-l] 'make-symbolic-link)
+(keymap-global-set "C-c y" 'clipboard-yank)
+(keymap-global-set "C-M-q" 'query-replace)
+(keymap-global-set "<f5>" 'flyspell-mode)
+(keymap-global-set "C-<f5>" 'display-line-numbers-mode)
+(keymap-global-set "C-<right>" 'forward-sentence)
+(keymap-global-set "<mouse-2>" 'mouse-save-then-kill)
 @end example
 
   Language and coding systems may cause problems with key bindings for
 non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
-@findex define-key
+@findex keymap-set
+@findex keymap-unset
   As described in @ref{Local Keymaps}, major modes and minor modes can
 define local keymaps.  These keymaps are constructed when the mode is
-loaded for the first time in a session.  The function @code{define-key}
-can be used to make changes in a specific keymap.  This function can
-also unset keys, when passed @code{nil} as the binding.
+loaded for the first time in a session.  The function @code{keymap-set}
+can be used to make changes in a specific keymap.  To remove a key
+binding, use @code{keymap-unset}.
 
   Since a mode's keymaps are not constructed until it has been loaded,
 you must delay running code which modifies them, e.g., by putting it
@@ -1935,11 +1890,11 @@ the one for @kbd{C-c C-x x} in Texinfo mode:
 @example
 (add-hook 'texinfo-mode-hook
           (lambda ()
-            (define-key texinfo-mode-map "\C-cp"
+            (keymap-set texinfo-mode-map "C-c p"
                         'backward-paragraph)
-            (define-key texinfo-mode-map "\C-cn"
+            (keymap-set texinfo-mode-map "C-c n"
                         'forward-paragraph)))
-            (define-key texinfo-mode-map "\C-c\C-xx" nil)
+            (keymap-set texinfo-mode-map "C-c C-x x" nil)
 @end example
 
 @node Modifier Keys
@@ -1961,7 +1916,7 @@ between those keystrokes.  However, you can bind shifted @key{Control}
 alphabetical keystrokes in GUI frames:
 
 @lisp
-(global-set-key (kbd "C-S-n") #'previous-line)
+(keymap-global-set "C-S-n" #'previous-line)
 @end lisp
 
   For all other modifiers, you can make the modified alphabetical
@@ -2115,7 +2070,7 @@ button, @code{mouse-2} for the next, and so on.  Here is how you can
 redefine the second mouse button to split the current window:
 
 @example
-(global-set-key [mouse-2] 'split-window-below)
+(keymap-global-set "<mouse-2>" 'split-window-below)
 @end example
 
   The symbols for drag events are similar, but have the prefix
@@ -2198,7 +2153,7 @@ Thus, here is how to define the command for clicking the first button in
 a mode line to run @code{scroll-up-command}:
 
 @example
-(global-set-key [mode-line mouse-1] 'scroll-up-command)
+(keymap-global-set "<mode-line> <mouse-1>" 'scroll-up-command)
 @end example
 
   Here is the complete list of these dummy prefix keys and their
@@ -2589,13 +2544,13 @@ Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}
 (@pxref{Init Rebinding}).
 
 @example
-(global-set-key "\C-xl" 'make-symbolic-link)
+(keymap-global-set "C-x l" 'make-symbolic-link)
 @end example
 
 or
 
 @example
-(define-key global-map "\C-xl" 'make-symbolic-link)
+(keymap-set global-map "C-x l" 'make-symbolic-link)
 @end example
 
 Note once again the single-quote used to refer to the symbol
@@ -2605,7 +2560,7 @@ Note once again the single-quote used to refer to the symbol
 Do the same thing for Lisp mode only.
 
 @example
-(define-key lisp-mode-map "\C-xl" 'make-symbolic-link)
+(keymap-set lisp-mode-map "C-x l" 'make-symbolic-link)
 @end example
 
 @item
@@ -2622,7 +2577,7 @@ so that they run @code{forward-line} instead.
 Make @kbd{C-x C-v} undefined.
 
 @example
-(global-unset-key "\C-x\C-v")
+(keymap-global-unset "C-x C-v")
 @end example
 
 One reason to undefine a key is so that you can make it a prefix.
@@ -2797,18 +2752,6 @@ file which use such strings, possibly leading Emacs to decode those
 strings incorrectly.  You should then avoid adding Emacs Lisp code
 that modifies the coding system in other ways, such as calls to
 @code{set-language-environment}.
-
-  To bind non-@acronym{ASCII} keys, you must use a vector (@pxref{Init
-Rebinding}).  The string syntax cannot be used, since the
-non-@acronym{ASCII} characters will be interpreted as meta keys.  For
-instance:
-
-@example
-(global-set-key [?@var{char}] 'some-function)
-@end example
-
-@noindent
-Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 
 @node Early Init File
 @subsection The Early Init File

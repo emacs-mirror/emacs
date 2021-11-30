@@ -446,8 +446,7 @@ is inserted before adjusting the number of empty lines."
   "Return the width of STRING in pixels."
   (with-temp-buffer
     (insert string)
-    (car (window-text-pixel-size
-          (current-buffer) (point-min) (point)))))
+    (car (buffer-text-pixel-size nil nil t))))
 
 ;;;###autoload
 (defun string-glyph-split (string)
@@ -457,13 +456,60 @@ This takes into account combining characters and grapheme clusters."
         (start 0)
         comp)
     (while (< start (length string))
-      (if (setq comp (find-composition-internal start nil string nil))
+      (if (setq comp (find-composition-internal
+                      start
+                      ;; Don't search backward in the string for the
+                      ;; start of the composition.
+                      (min (length string) (1+ start))
+                      string nil))
           (progn
             (push (substring string (car comp) (cadr comp)) result)
             (setq start (cadr comp)))
         (push (substring string start (1+ start)) result)
         (setq start (1+ start))))
     (nreverse result)))
+
+;;;###autoload
+(defun add-display-text-property (start end prop value
+                                        &optional object)
+  "Add display property PROP with VALUE to the text from START to END.
+If any text in the region has a non-nil `display' property, those
+properties are retained.
+
+If OBJECT is non-nil, it should be a string or a buffer.  If nil,
+this defaults to the current buffer."
+  (let ((sub-start start)
+        (sub-end 0)
+        disp)
+    (while (< sub-end end)
+      (setq sub-end (next-single-property-change sub-start 'display object
+                                                 (if (stringp object)
+                                                     (min (length object) end)
+                                                   (min end (point-max)))))
+      (if (not (setq disp (get-text-property sub-start 'display object)))
+          ;; No old properties in this range.
+          (put-text-property sub-start sub-end 'display (list prop value))
+        ;; We have old properties.
+        (let ((vector nil))
+          ;; Make disp into a list.
+          (setq disp
+                (cond
+                 ((vectorp disp)
+                  (setq vector t)
+                  (seq-into disp 'list))
+                 ((not (consp (car disp)))
+                  (list disp))
+                 (t
+                  disp)))
+          ;; Remove any old instances.
+          (when-let ((old (assoc prop disp)))
+            (setq disp (delete old disp)))
+          (setq disp (cons (list prop value) disp))
+          (when vector
+            (setq disp (seq-into disp 'vector)))
+          ;; Finally update the range.
+          (put-text-property sub-start sub-end 'display disp)))
+      (setq sub-start sub-end))))
 
 (provide 'subr-x)
 

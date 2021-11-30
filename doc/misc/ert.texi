@@ -390,12 +390,37 @@ summary as shown below:
 emacs -batch -l ert -f ert-summarize-tests-batch-and-exit output.log
 @end example
 
+@vindex ert-batch-print-level
+@vindex ert-batch-print-length
+ERT attempts to limit the output size for failed tests by choosing
+conservative values for @code{print-level} and @code{print-length}
+when printing Lisp values.  This can in some cases make it difficult
+to see which portions of those values are incorrect.  Use
+@code{ert-batch-print-level} and @code{ert-batch-print-length}
+to customize that:
+
+@example
+emacs -batch -l ert -l my-tests.el \
+      --eval "(let ((ert-batch-print-level 10) \
+                    (ert-batch-print-length 120)) \
+                (ert-run-tests-batch-and-exit))"
+@end example
+
+@vindex ert-batch-backtrace-line-length
+Even modest settings for @code{print-level} and @code{print-length} can
+produce extremely long lines in backtraces, however, with attendant
+pauses in execution progress.  Set
+@code{ert-batch-backtrace-line-length} to t to use the value of
+@code{backtrace-line-length}, @code{nil} to stop any limitations on backtrace
+line lengths (that is, to get full backtraces), or a positive integer to
+limit backtrace line length to that number.
+
 @vindex ert-quiet
 By default, ERT in batch mode is quite verbose, printing a line with
 result after each test.  This gives you progress information: how many
 tests have been executed and how many there are.  However, in some
 cases this much output may be undesirable.  In this case, set
-@code{ert-quiet} variable to a non-nil value:
+@code{ert-quiet} variable to a non-@code{nil} value:
 
 @example
 emacs -batch -l ert -l my-tests.el \

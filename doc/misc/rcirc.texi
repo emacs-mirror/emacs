@@ -609,12 +609,6 @@ Use this symbol if you need to identify yourself in the Bitlbee channel
 as follows: @code{identify secret}.  The necessary arguments are the
 nickname you want to use this for, and the password to use.
 
-@item sasl
-@cindex sasl authentication
-Use this symbol if you want to use @acronym{SASL} authentication.  The
-necessary arguments are the nickname you want to use this for, and the
-password to use.
-
 @cindex gateway to other IM services
 @cindex instant messaging, other services
 @cindex Jabber
@@ -632,6 +626,19 @@ Later, you will tell Bitlbee about your accounts and passwords on all
 the other instant messaging services, and Bitlbee will log you in.  All
 @code{rcirc} needs to know, is the login to your Bitlbee account.  Don't
 confuse the Bitlbee account with all the other accounts.
+
+@item sasl
+@cindex sasl authentication
+Use this symbol if you want to use @acronym{SASL} authentication.  The
+necessary arguments are the nickname you want to use this for, and the
+password to use.
+
+@item certfp
+@cindex certfp authentication
+Use this symbol if you want to use CertFP authentication.  The
+necessary arguments are the path to the client certificate key and
+password.  The CertFP authentication requires a @acronym{TLS}
+connection.
 
 @end table
 

@@ -60,6 +60,8 @@ struct table_entry
   const char *names[6];
 };
 
+/* The following tables should be in sync with 'custom-face-attributes'.  */
+
 /* Table of weight numeric values and their names.  This table must be
    sorted by numeric values in ascending order and the numeric values
    must approximately match the weights in the font files.  */
@@ -2759,10 +2761,31 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	  continue;
 	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
-	if (FIXNUMP (AREF (spec, prop))
-	    && ((XFIXNUM (AREF (spec, prop)) >> 8)
-		!= (XFIXNUM (AREF (entity, prop)) >> 8)))
-	  prop = FONT_SPEC_MAX;
+	{
+	  if (FIXNUMP (AREF (spec, prop)))
+	    {
+	      int required = XFIXNUM (AREF (spec, prop)) >> 8;
+	      int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
+
+	      if (candidate != required
+#ifdef HAVE_NTGUI
+		  /* A kludge for w32 font search, where listing a
+		     family returns only 4 standard weights: regular,
+		     italic, bold, bold-italic.  For other values one
+		     must specify the font, not just the family in the
+		     :family attribute of the face.  But specifying
+		     :family in the face attributes looks for regular
+		     weight, so if we require exact match, the
+		     non-regular font will be rejected.  So we relax
+		     the accuracy of the match here, and let
+		     font_sort_entities find the best match.  */
+		  && (prop != FONT_WEIGHT_INDEX
+		      || eabs (candidate - required) > 100)
+#endif
+		  )
+		prop = FONT_SPEC_MAX;
+	    }
+	}
       if (prop < FONT_SPEC_MAX
 	  && size
 	  && XFIXNUM (AREF (entity, FONT_SIZE_INDEX)) > 0)
@@ -3162,8 +3185,9 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
   attrs[LFACE_FONT_INDEX] = font;
 }
 
-/* Select a font from ENTITIES (list of font-entity vectors) that
-   supports C and is the best match for ATTRS and PIXEL_SIZE.  */
+/* Select a font from ENTITIES (list of one or more font-entity
+   vectors) that supports the character C (if non-negative) and is the
+   best match for ATTRS and PIXEL_SIZE.  */
 
 static Lisp_Object
 font_select_entity (struct frame *f, Lisp_Object entities,
@@ -3173,6 +3197,7 @@ font_select_entity (struct frame *f, Lisp_Object entities,
   Lisp_Object prefer;
   int i;
 
+  /* If we have a single candidate, return it if it supports C.  */
   if (NILP (XCDR (entities))
       && ASIZE (XCAR (entities)) == 1)
     {
@@ -3182,7 +3207,10 @@ font_select_entity (struct frame *f, Lisp_Object entities,
       return Qnil;
     }
 
-  /* Sort fonts by properties specified in ATTRS.  */
+  /* If we have several candidates, find the best match by sorting
+     them by properties specified in ATTRS.  Style attributes (weight,
+     slant, width, and size) are taken from the font spec in ATTRS (if
+     that is non-nil), or from ATTRS, or left as nil.  */
   prefer = scratch_font_prefer;
 
   for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
@@ -3219,6 +3247,8 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
   int i, j, k, l;
   USE_SAFE_ALLOCA;
 
+  /* Registry specification alternatives: from the most specific to
+     the least specific and finally an unspecified one.  */
   registry[0] = AREF (spec, FONT_REGISTRY_INDEX);
   if (NILP (registry[0]))
     {
@@ -3255,6 +3285,9 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 	pixel_size = 1;
     }
   ASET (work, FONT_SIZE_INDEX, Qnil);
+
+  /* Foundry specification alternatives: from the most specific to the
+     least specific and finally an unspecified one.  */
   foundry[0] = AREF (work, FONT_FOUNDRY_INDEX);
   if (! NILP (foundry[0]))
     foundry[1] = zero_vector;
@@ -3268,6 +3301,8 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
   else
     foundry[0] = Qnil, foundry[1] = zero_vector;
 
+  /* Additional style specification alternatives: from the most
+     specific to the least specific and finally an unspecified one.  */
   adstyle[0] = AREF (work, FONT_ADSTYLE_INDEX);
   if (! NILP (adstyle[0]))
     adstyle[1] = zero_vector;
@@ -3288,6 +3323,8 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
     adstyle[0] = Qnil, adstyle[1] = zero_vector;
 
 
+  /* Family specification alternatives: from the most specific to
+     the least specific and finally an unspecified one.  */
   val = AREF (work, FONT_FAMILY_INDEX);
   if (NILP (val) && STRINGP (attrs[LFACE_FAMILY_INDEX]))
     {
@@ -3327,6 +3364,8 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 	}
     }
 
+  /* Now look up suitable fonts, from the most specific spec to the
+     least specific spec.  Accept the first one that matches.  */
   for (i = 0; SYMBOLP (family[i]); i++)
     {
       ASET (work, FONT_FAMILY_INDEX, family[i]);
@@ -3339,9 +3378,12 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 	      for (l = 0; SYMBOLP (adstyle[l]); l++)
 		{
 		  ASET (work, FONT_ADSTYLE_INDEX, adstyle[l]);
+		  /* Produce the list of candidates for the spec in WORK.  */
 		  entities = font_list_entities (f, work);
 		  if (! NILP (entities))
 		    {
+		      /* If there are several candidates, select the
+			 best match for PIXEL_SIZE and attributes in ATTRS.  */
 		      val = font_select_entity (f, entities,
 						attrs, pixel_size, c);
 		      if (! NILP (val))
@@ -5715,6 +5757,9 @@ match.  */);
 #ifdef HAVE_NTGUI
   syms_of_w32font ();
 #endif	/* HAVE_NTGUI */
+#ifdef USE_BE_CAIRO
+  syms_of_ftcrfont ();
+#endif
 #endif	/* HAVE_WINDOW_SYSTEM */
 }
 

@@ -39,10 +39,6 @@
 
 (define-error 'file-locked "File is locked" 'file-error)
 
-(defun userlock--fontify-key (key)
-  "Add the `help-key-binding' face to string KEY."
-  (propertize key 'face 'help-key-binding))
-
 ;;;###autoload
 (defun ask-user-about-lock (file opponent)
   "Ask user what to do when he wants to edit FILE but it is locked by OPPONENT.
@@ -68,12 +64,9 @@ in any way you like."
 			  (match-string 0 opponent)))
 	      opponent))
       (while (null answer)
-        (message "%s locked by %s: (%s, %s, %s, %s)? "
-                 short-file short-opponent
-                 (userlock--fontify-key "s")
-                 (userlock--fontify-key "q")
-                 (userlock--fontify-key "p")
-                 (userlock--fontify-key "?"))
+        (message (substitute-command-keys
+                  "%s locked by %s: (\\`s', \\`q', \\`p', \\`?'? ")
+                 short-file short-opponent)
 	(if noninteractive (error "Cannot resolve lock conflict in batch mode"))
 	(let ((tem (let ((inhibit-quit t)
 			 (cursor-in-echo-area t))
@@ -88,12 +81,9 @@ in any way you like."
 				      (?? . help))))
 	    (cond ((null answer)
 		   (beep)
-                   (message "Please type %s, %s, or %s; or %s for help"
-                            (userlock--fontify-key "q")
-                            (userlock--fontify-key "s")
-                            (userlock--fontify-key "p")
-                            ;; FIXME: Why do we use "?" here and "C-h" below?
-                            (userlock--fontify-key "?"))
+                   ;; FIXME: Why do we use "?" here and "C-h" below?
+                   (message (substitute-command-keys
+                             "Please type \\`q', \\`s', or \\`p'; or \\`?' for help"))
 		   (sit-for 3))
 		  ((eq (cdr answer) 'help)
 		   (ask-user-about-lock-help)
@@ -106,17 +96,14 @@ in any way you like."
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
       (insert
-       (format
+       (substitute-command-keys
         "It has been detected that you want to modify a file that someone else has
 already started modifying in Emacs.
 
-You can <%s>teal the file; the other user becomes the
+You can <\\`s'>teal the file; the other user becomes the
   intruder if (s)he ever unmodifies the file and then changes it again.
-You can <%s>roceed; you edit at your own (and the other user's) risk.
-You can <%s>uit; don't modify this file."
-        (userlock--fontify-key "s")
-        (userlock--fontify-key "p")
-        (userlock--fontify-key "q")))
+You can <\\`p'>roceed; you edit at your own (and the other user's) risk.
+You can <\\`q'>uit; don't modify this file."))
       (help-mode))))
 
 (define-error 'file-supersession nil 'file-error)
@@ -169,14 +156,11 @@ The buffer in question is current when this function is called."
   (discard-input)
   (save-window-excursion
     (let ((prompt
-	   (format "%s changed on disk; \
-really edit the buffer? (%s, %s, %s or %s) "
-                   (file-name-nondirectory filename)
-                   (userlock--fontify-key "y")
-                   (userlock--fontify-key "n")
-                   (userlock--fontify-key "r")
-                   ;; FIXME: Why do we use "C-h" here and "?" above?
-                   (userlock--fontify-key "C-h")))
+           ;; FIXME: Why do we use "C-h" here and "?" above?
+           (format (substitute-command-keys
+                    "%s changed on disk; \
+really edit the buffer? (\\`y', \\`n', \\`r' or \\`C-h') ")
+                   (file-name-nondirectory filename)))
 	  (choices '(?y ?n ?r ?? ?\C-h))
 	  answer)
       (when noninteractive
@@ -205,22 +189,18 @@ really edit the buffer? (%s, %s, %s or %s) "
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
       (insert
-       (format
+       (substitute-command-keys
         "You want to modify a buffer whose disk file has changed
 since you last read it in or saved it with this buffer.
 
-If you say %s to go ahead and modify this buffer,
+If you say \\`y' to go ahead and modify this buffer,
 you risk ruining the work of whoever rewrote the file.
-If you say %s to revert, the contents of the buffer are refreshed
+If you say \\`r' to revert, the contents of the buffer are refreshed
 from the file on disk.
-If you say %s, the change you started to make will be aborted.
+If you say \\`n', the change you started to make will be aborted.
 
-Usually, you should type %s to get the latest version of the
-file, then make the change again."
-        (userlock--fontify-key "y")
-        (userlock--fontify-key "r")
-        (userlock--fontify-key "n")
-        (userlock--fontify-key "r")))
+Usually, you should type \\`r' to get the latest version of the
+file, then make the change again."))
       (help-mode))))
 
 ;;;###autoload

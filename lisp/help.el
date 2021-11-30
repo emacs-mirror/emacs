@@ -1078,6 +1078,9 @@ Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
 is not on any keys.  Keybindings will use the face `help-key-binding'.
 
+Each substring of the form \\\\=`KEYBINDING' will be replaced by
+KEYBINDING and use the `help-key-binding' face.
+
 Each substring of the form \\\\={MAPVAR} is replaced by a summary of
 the value of MAPVAR as a keymap.  This summary is similar to the one
 produced by ‘describe-bindings’.  The summary ends in two newlines
@@ -1130,6 +1133,23 @@ Otherwise, return a new string."
                 (delete-char 2)
                 (ignore-errors
                   (forward-char 1)))
+               ((and (= (following-char) ?`)
+                     (save-excursion
+                       (prog1 (search-forward "'" nil t)
+                         (setq end-point (- (point) 2)))))
+                (goto-char orig-point)
+                (delete-char 2)
+                (goto-char (1- end-point))
+                (delete-char 1)
+                ;; (backward-char 1)
+                (let ((k (buffer-substring-no-properties orig-point (point))))
+                  (cond ((= (length k) 0)
+                         (error "Empty key sequence in substitution"))
+                        ((not (key-valid-p k))
+                         (error "Invalid key sequence in substitution: `%s'" k))))
+                (add-text-properties orig-point (point)
+                                     '( face help-key-binding
+                                        font-lock-face help-key-binding)))
                ;; 1C. \[foo] is replaced with the keybinding.
                ((and (= (following-char) ?\[)
                      (save-excursion
@@ -1226,8 +1246,8 @@ Otherwise, return a new string."
         (buffer-string)))))
 
 (defvar help--keymaps-seen nil)
-(defun describe-map-tree (startmap partial shadow prefix title no-menu
-                                   transl always-title mention-shadow)
+(defun describe-map-tree (startmap &optional partial shadow prefix title
+                                   no-menu transl always-title mention-shadow)
   "Insert a description of the key bindings in STARTMAP.
 This is followed by the key bindings of all maps reachable
 through STARTMAP.
@@ -1328,9 +1348,11 @@ Return nil if the key sequence is too long."
 
 (defun help--describe-command (definition &optional translation)
   (cond ((symbolp definition)
-         (insert-text-button (symbol-name definition)
-                             'type 'help-function
-                             'help-args (list definition))
+         (if (fboundp definition)
+             (insert-text-button (symbol-name definition)
+                                 'type 'help-function
+                                 'help-args (list definition))
+           (insert (symbol-name definition)))
          (insert "\n"))
         ((or (stringp definition) (vectorp definition))
          (if translation
@@ -1831,13 +1853,13 @@ Return VALUE."
 	 (cond
 	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
-	   "Type \"q\" to delete help window")
+           "Type \\<help-map>\\[help-quit] to delete help window")
 	  ((eq help-setup 'frame)
 	   ;; ... on a new frame, ...
-	   "Type \"q\" to quit the help frame")
+           "Type \\<help-map>\\[help-quit] to quit the help frame")
 	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
-	   "Type \"q\" to restore previous buffer"))
+           "Type \\<help-map>\\[help-quit] to restore previous buffer"))
 	 window t))
        ((and (eq (window-frame window) help-window-old-frame)
 	     (= (length (window-list nil 'no-mini)) 2))
@@ -1848,7 +1870,7 @@ Return VALUE."
 	  ((eq help-setup 'window)
 	   "Type \\[delete-other-windows] to delete the help window")
 	  ((eq help-setup 'other)
-	   "Type \"q\" in help window to restore its previous buffer"))
+           "Type \\<help-map>\\[help-quit] in help window to restore its previous buffer"))
 	 window 'other))
        (t
 	;; The help window is not selected ...
@@ -1856,10 +1878,10 @@ Return VALUE."
 	 (cond
 	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
-	   "Type \"q\" in help window to delete it")
+           "Type \\<help-map>\\[help-quit] in help window to delete it")
 	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
-	   "Type \"q\" in help window to restore previous buffer"))
+           "Type \\<help-map>\\[help-quit] in help window to restore previous buffer"))
 	 window))))
     ;; Return VALUE.
     value))

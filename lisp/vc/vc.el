@@ -944,8 +944,10 @@ use."
           bk)
       (dolist (backend vc-handled-backends)
         (when (not (vc-call-backend backend 'registered file))
-          (let* ((path (vc-call-backend backend 'responsible-p file))
-                 (len (length path)))
+          (let* ((dir-name (vc-call-backend backend 'responsible-p file))
+                 (len (and dir-name
+                           (length (file-name-split
+                                    (expand-file-name dir-name))))))
             (when (and len (> len max))
               (setq max len bk backend)))))
       (when bk
@@ -977,7 +979,7 @@ use."
 		 (message "arg %s" arg)
 		 (and (file-directory-p arg)
 		      (string-prefix-p (expand-file-name arg) def-dir)))))))
-	   (let ((default-directory repo-dir))
+      (let ((default-directory repo-dir))
 	(vc-call-backend bk 'create-repo))
       (throw 'found bk))))
 

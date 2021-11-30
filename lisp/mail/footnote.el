@@ -898,7 +898,7 @@ play around with the following keys:
     (make-local-variable 'footnote-end-tag)
     (make-local-variable 'adaptive-fill-function)
 
-    ;; Filladapt was an XEmacs package which is now in GNU ELPA.
+    ;; Filladapt is a GNU ELPA package.
     (when (boundp 'filladapt-token-table)
       ;; add tokens to filladapt to match footnotes
       ;; 1] xxxxxxxxxxx x x x or [1] x x x x x x x

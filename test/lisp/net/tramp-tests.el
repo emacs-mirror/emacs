@@ -57,7 +57,6 @@
 (declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-chmod-h "tramp-sh")
-(declare-function tramp-get-remote-gid "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
@@ -2289,6 +2288,46 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should (string-equal (file-name-directory file) file))
 	  (should (string-equal (file-name-nondirectory file) "")))))))
 
+(ert-deftest tramp-test07-abbreviate-file-name ()
+  "Check that Tramp abbreviates file names correctly."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-emacs29-p))
+  (skip-unless (tramp--test-ange-ftp-p))
+
+  (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
+	 ;; Not all methods can expand "~".
+         (home-dir (ignore-errors (expand-file-name (concat remote-host "~")))))
+    (skip-unless home-dir)
+
+    ;; Check home-dir abbreviation.
+    (unless (string-suffix-p "~" home-dir)
+      (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
+                     (concat remote-host "~/foo/bar")))
+      (should (equal (abbreviate-file-name
+		      (concat remote-host "/nowhere/special"))
+                     (concat remote-host "/nowhere/special"))))
+
+    ;; Check `directory-abbrev-alist' abbreviation.
+    (let ((directory-abbrev-alist
+           `((,(concat "\\`" (regexp-quote home-dir) "/foo")
+              . ,(concat home-dir "/f"))
+             (,(concat "\\`" (regexp-quote remote-host) "/nowhere")
+              . ,(concat remote-host "/nw")))))
+      (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
+                     (concat remote-host "~/f/bar")))
+      (should (equal (abbreviate-file-name
+		      (concat remote-host "/nowhere/special"))
+                     (concat remote-host "/nw/special"))))
+
+    ;; Check that home-dir abbreviation doesn't occur when home-dir is just "/".
+    (setq home-dir (concat remote-host "/"))
+    ;; The remote home directory is kept in the connection property
+    ;; "home-directory".  We fake this setting.
+    (tramp-set-connection-property tramp-test-vec "home-directory" home-dir)
+    (should (equal (concat home-dir "foo/bar")
+                   (abbreviate-file-name (concat home-dir "foo/bar"))))
+    (tramp-flush-connection-property tramp-test-vec "home-directory")))
+
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
   (skip-unless (tramp--test-enabled))
@@ -3302,7 +3341,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (while (not (or (eobp)
 			      (string-equal
-			       (dired-get-filename 'localp 'no-error)
+			       (dired-get-filename 'no-dir 'no-error)
 			       (file-name-nondirectory tmp-name2))))
 		(forward-line 1))
 	      (should-not (eobp))
@@ -3312,14 +3351,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      ;; Point shall still be the recent file.
 	      (should
 	       (string-equal
-		(dired-get-filename 'localp 'no-error)
+		(dired-get-filename 'no-dir 'no-error)
 		(file-name-nondirectory tmp-name2)))
 	      (should-not (re-search-forward "dired" nil t))
 	      ;; The copied file has been inserted the line before.
 	      (forward-line -1)
 	      (should
 	       (string-equal
-		(dired-get-filename 'localp 'no-error)
+		(dired-get-filename 'no-dir 'no-error)
 		(file-name-nondirectory tmp-name3))))
 	    (kill-buffer buffer))
 
@@ -6304,7 +6343,7 @@ This requires restrictions of file name syntax."
 		(setq buffer (dired-noselect tmp-name1 "--dired -al"))
 	      (goto-char (point-min))
 	      (while (not (eobp))
-		(when-let ((name (dired-get-filename 'localp 'no-error)))
+		(when-let ((name (dired-get-filename 'no-dir 'no-error)))
 		  (unless
 		      (string-match-p name directory-files-no-dot-files-regexp)
 		    (should (member name files))))
@@ -6570,7 +6609,7 @@ Use the \"ls\" command."
 	  ;; Use all available language specific snippets.
 	  (lambda (x)
 	    (and
-	     (stringp (setq x (eval (get-language-info (car x) 'sample-text))))
+             (stringp (setq x (eval (get-language-info (car x) 'sample-text) t)))
 	     ;; Filter out strings which use unencodable characters.
 	     (not (and (or (tramp--test-gvfs-p) (tramp--test-smb-p))
 		       (unencodable-char-position
@@ -6935,7 +6974,8 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
-  ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
   (skip-unless (not (tramp--test-emacs29-p)))
 
   (let ((default-directory tramp-test-temporary-file-directory)
@@ -6955,7 +6995,8 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
-  ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
   (skip-unless (not (tramp--test-emacs29-p)))
 
   (let ((default-directory tramp-test-temporary-file-directory)

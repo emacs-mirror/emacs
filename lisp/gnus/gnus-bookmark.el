@@ -423,16 +423,16 @@ That is, all information but the name."
   :full t
   :suppress 'nodigits
   "q" #'quit-window
-  "\C-m" #'gnus-bookmark-bmenu-select
+  "RET" #'gnus-bookmark-bmenu-select
   "v" #'gnus-bookmark-bmenu-select
   "d" #'gnus-bookmark-bmenu-delete
   "k" #'gnus-bookmark-bmenu-delete
-  "\C-d" #'gnus-bookmark-bmenu-delete-backwards
+  "C-d" #'gnus-bookmark-bmenu-delete-backwards
   "x" #'gnus-bookmark-bmenu-execute-deletions
-  " " #'next-line
+  "SPC" #'next-line
   "n" #'next-line
   "p" #'previous-line
-  "\177" #'gnus-bookmark-bmenu-backup-unmark
+  "DEL" #'gnus-bookmark-bmenu-backup-unmark
   "?" #'describe-mode
   "u" #'gnus-bookmark-bmenu-unmark
   "m" #'gnus-bookmark-bmenu-mark
@@ -440,7 +440,7 @@ That is, all information but the name."
   "s" #'gnus-bookmark-bmenu-save
   "t" #'gnus-bookmark-bmenu-toggle-infos
   "a" #'gnus-bookmark-bmenu-show-details
-  [mouse-2] #'gnus-bookmark-bmenu-select-by-mouse)
+  "<mouse-2>" #'gnus-bookmark-bmenu-select-by-mouse)
 
 ;; Bookmark Buffer Menu mode is suitable only for specially formatted
 ;; data.

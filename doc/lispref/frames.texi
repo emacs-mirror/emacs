@@ -214,7 +214,8 @@ The terminal and keyboard coding systems used on the terminal.
 @item
 The kind of display associated with the terminal.  This is the symbol
 returned by the function @code{terminal-live-p} (i.e., @code{x},
-@code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
+@code{t}, @code{w32}, @code{ns}, @code{pc}, or @code{haiku}).
+@xref{Frames}.
 
 @item
 A list of terminal parameters.  @xref{Terminal Parameters}.
@@ -680,7 +681,7 @@ indicate that position for the various builds:
 @itemize @w{}
 @item (1) non-toolkit and terminal frames
 
-@item (2) Lucid, Motif and MS-Windows frames
+@item (2) Lucid, Motif, MS-Windows, and Haiku frames
 
 @item (3) GTK+ and NS frames
 @end itemize
@@ -1729,7 +1730,9 @@ fit will be clipped by the window manager.
 @item fullscreen
 This parameter specifies whether to maximize the frame's width, height
 or both.  Its value can be @code{fullwidth}, @code{fullheight},
-@code{fullboth}, or @code{maximized}.  A @dfn{fullwidth} frame is as
+@code{fullboth}, or @code{maximized}.@footnote{On Haiku, setting
+@code{fullscreen} to @code{fullwidth} or @code{fullheight} has no
+effect.}  A @dfn{fullwidth} frame is as
 wide as possible, a @dfn{fullheight} frame is as tall as possible, and
 a @dfn{fullboth} frame is both as wide and as tall as possible.  A
 @dfn{maximized} frame is like a ``fullboth'' frame, except that it usually
@@ -2191,7 +2194,10 @@ either via @code{focus-follows-mouse} (@pxref{Input Focus}) or
 @code{mouse-autoselect-window} (@pxref{Mouse Window Auto-selection}).
 This may have the unwanted side-effect that a user cannot scroll a
 non-selected frame with the mouse.  Some window managers may not honor
-this parameter.
+this parameter.  On Haiku, it also has the side-effect that the window
+will not be able to receive any keyboard input from the user, not even
+if the user switches to the frame using the key combination
+@kbd{Alt-@key{TAB}}.
 
 @vindex undecorated@r{, a frame parameter}
 @item undecorated
@@ -2352,7 +2358,10 @@ driver for OTF and TTF fonts with text shaping by the Uniscribe
 engine), and @code{harfbuzz} (font driver for OTF and TTF fonts with
 HarfBuzz text shaping) (@pxref{Windows Fonts,,, emacs, The GNU Emacs
 Manual}).  The @code{harfbuzz} driver is similarly recommended.  On
-other systems, there is only one available font backend, so it does
+Haiku, there can be several font drivers (@pxref{Haiku Fonts,,, emacs,
+The GNU Emacs Manual}).
+
+On other systems, there is only one available font backend, so it does
 not make sense to modify this frame parameter.
 
 @vindex background-mode@r{, a frame parameter}
@@ -3141,8 +3150,10 @@ raises @var{frame} above all other child frames of its parent.
 @deffn Command lower-frame &optional frame
 This function lowers frame @var{frame} (default, the selected frame)
 below all other frames belonging to the same or a higher z-group as
-@var{frame}.  If @var{frame} is a child frame (@pxref{Child Frames}),
-this lowers @var{frame} below all other child frames of its parent.
+@var{frame}.@footnote{Lowering frames is not supported on Haiku, due
+to limitations imposed by the system.}  If @var{frame} is a child
+frame (@pxref{Child Frames}), this lowers @var{frame} below all other
+child frames of its parent.
 @end deffn
 
 @defun frame-restack frame1 frame2 &optional above
@@ -3152,7 +3163,8 @@ that if both frames are visible and their display areas overlap,
 third argument @var{above} is non-@code{nil}, this function restacks
 @var{frame1} above @var{frame2}.  This means that if both frames are
 visible and their display areas overlap, @var{frame1} will (partially)
-obscure @var{frame2}.
+obscure @var{frame2}.@footnote{Restacking frames is not supported on
+Haiku, due to limitations imposed by the system.}
 
 Technically, this function may be thought of as an atomic action
 performed in two steps: The first step removes @var{frame1}'s
@@ -3247,12 +3259,16 @@ parent frame's window-system window.
 
 @cindex reparent frame
 @cindex nest frame
-  The @code{parent-frame} parameter can be changed at any time.  Setting
-it to another frame @dfn{reparents} the child frame.  Setting it to
-another child frame makes the frame a @dfn{nested} child frame.  Setting
-it to @code{nil} restores the frame's status as a top-level frame---a
-frame whose window-system window is a child of its display's root
-window.
+  The @code{parent-frame} parameter can be changed at any time.
+Setting it to another frame @dfn{reparents} the child frame.  Setting
+it to another child frame makes the frame a @dfn{nested} child frame.
+Setting it to @code{nil} restores the frame's status as a top-level
+frame---a frame whose window-system window is a child of its display's
+root window.@footnote{On Haiku, child frames are only visible when a
+parent frame is active, owing to a limitation of the Haiku windowing
+system.  Owing to the same limitation, child frames are only
+guaranteed to appear above their top-level parent; that is to say, the
+top-most frame in the hierarchy, which does not have a parent frame.}
 
   Since child frames can be arbitrarily nested, a frame can be both a
 child and a parent frame.  Also, the relative roles of child and parent

@@ -586,6 +586,7 @@ struct frame
     struct w32_output *w32;     /* From w32term.h.  */
     struct ns_output *ns;       /* From nsterm.h.  */
     struct pgtk_output *pgtk; /* From pgtkterm.h. */
+    struct haiku_output *haiku; /* From haikuterm.h. */
   }
   output_data;
 
@@ -858,6 +859,11 @@ default_pixels_per_inch_y (void)
 #else
 #define FRAME_PGTK_P(f) ((f)->output_method == output_pgtk)
 #endif
+#ifndef HAVE_HAIKU
+#define FRAME_HAIKU_P(f) false
+#else
+#define FRAME_HAIKU_P(f) ((f)->output_method == output_haiku)
+#endif
 
 /* FRAME_WINDOW_P tests whether the frame is a graphical window system
    frame.  */
@@ -872,6 +878,9 @@ default_pixels_per_inch_y (void)
 #endif
 #ifdef HAVE_PGTK
 #define FRAME_WINDOW_P(f) FRAME_PGTK_P(f)
+#endif
+#ifdef HAVE_HAIKU
+#define FRAME_WINDOW_P(f) FRAME_HAIKU_P (f)
 #endif
 #ifndef FRAME_WINDOW_P
 #define FRAME_WINDOW_P(f) ((void) (f), false)

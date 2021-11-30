@@ -529,7 +529,7 @@ collection clause."
   (should-error
    ;; Use `eval' so the error is signaled when running the test rather than
    ;; when macroexpanding it.
-   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0)))))
+   (eval '(let ((l (list 1))) (cl-symbol-macrolet ((x 1)) (setq (car l) 0))) t))
   ;; Make sure `gv-synthetic-place' isn't macro-expanded before `setf' gets to
   ;; see its `gv-expander'.
   (should (equal (let ((l '(0)))

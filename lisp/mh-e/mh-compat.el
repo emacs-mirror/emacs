@@ -46,10 +46,9 @@
 ;; cl-letf. This macro is based upon gmm-flet from Gnus.
 (defmacro mh-flet (bindings &rest body)
   "Make temporary overriding function definitions.
-This is an analogue of a dynamically scoped `let' that operates on
-the function cell of FUNCs rather than their value cell.
-
-\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+That is, temporarily rebind the functions listed in BINDINGS and then
+execute BODY.  BINDINGS is a list containing one or more lists of the
+form (FUNCNAME ARGLIST BODY...), similar to defun."
   (declare (indent 1) (debug ((&rest (sexp sexp &rest form)) &rest form)))
   (if (fboundp 'cl-letf)
       `(cl-letf ,(mapcar (lambda (binding)
@@ -138,7 +137,7 @@ This is taken from RFC 2396.")
   #'window-full-height-p "29.1")
 
 (defmacro mh-write-file-functions ()
-  "Return `write-file-functions'. "
+  "Return `write-file-functions'."
   (declare (obsolete nil "29.1"))
   ''write-file-functions)
 

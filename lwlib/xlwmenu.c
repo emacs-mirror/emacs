@@ -157,6 +157,9 @@ xlwMenuResources[] =
      offset(menu.cursor_shape), XtRString, (XtPointer)"right_ptr"},
   {XtNhorizontal, XtCHorizontal, XtRInt, sizeof(int),
      offset(menu.horizontal), XtRImmediate, (XtPointer)True},
+  {XtNborderThickness, XtCBorderThickness, XtRDimension,
+     sizeof (Dimension), offset (menu.border_thickness),
+     XtRImmediate, (XtPointer)1}
 };
 #undef offset
 
@@ -635,8 +638,23 @@ draw_shadow_rectangle (XlwMenuWidget mw,
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
-  int thickness = mw->menu.shadow_thickness;
+  int thickness = !x && !y ? mw->menu.border_thickness : mw->menu.shadow_thickness;
   XPoint points [4];
+
+  if (!erase_p && width == height && width == toggle_button_width (mw))
+    {
+      points [0].x = x;
+      points [0].y = y;
+      points [1].x = x + width;
+      points [1].y = y;
+      points [2].x = x + width;
+      points [2].y = y + height;
+      points [3].x = x;
+      points [3].y = y + height;
+      XFillPolygon (dpy, window,
+                    down_p ? mw->menu.button_gc : mw->menu.inactive_button_gc,
+                    points, 4, Convex, CoordModeOrigin);
+    }
 
   if (!erase_p && down_p)
     {
@@ -700,6 +718,21 @@ draw_shadow_rhombus (XlwMenuWidget mw,
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = mw->menu.shadow_thickness;
   XPoint points [4];
+
+  if (!erase_p && width == height && width == radio_button_width (mw))
+    {
+      points [0].x = x;
+      points [0].y = y + width / 2;
+      points [1].x = x + height / 2;
+      points [1].y = y + width;
+      points [2].x = x + height;
+      points [2].y = y + width / 2;
+      points [3].x = x + height / 2;
+      points [3].y = y;
+      XFillPolygon (dpy, window,
+                    down_p ? mw->menu.button_gc : mw->menu.inactive_button_gc,
+                    points, 4, Convex, CoordModeOrigin);
+    }
 
   if (!erase_p && down_p)
     {
@@ -1624,7 +1657,6 @@ make_drawing_gcs (XlwMenuWidget mw)
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
 
   /* Allocate color for disabled menu-items.  */
-  mw->menu.disabled_foreground = mw->menu.foreground;
   if (BRIGHTNESS(mw->menu.foreground) < BRIGHTNESS(mw->core.background_pixel))
     scale = 2.3;
   else

@@ -447,6 +447,8 @@ possible return values.  */)
       return Qns;
     case output_pgtk:
       return Qpgtk;
+    case output_haiku:
+      return Qhaiku;
     default:
       emacs_abort ();
     }

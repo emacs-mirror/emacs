@@ -395,6 +395,8 @@ Background color.
 Foreground color for a selected item.
 @item foreground
 Foreground color.
+@item disabledForeground
+Foreground color for a disabled menu item.
 @ifnottex
 @item horizontalSpacing
 Horizontal spacing in pixels between items.  Default is 3.
@@ -406,6 +408,12 @@ the associated text.  Default is 10.
 @item shadowThickness
 Thickness of shadow lines for 3D buttons, arrows, and other graphical
 elements.  Default is 1.
+@item borderThickness
+Thickness of the external borders of the menu bars and pop-up menus.
+Default is 1.
+@item cursor
+Name of the cursor to use in the menu bars and pop-up menus.  Default
+is @code{"right_ptr"}.
 @end ifnottex
 @item margin
 Margin of the menu bar, in characters.  Default is 1.

@@ -415,7 +415,9 @@ other files, enter `/dev/null'.
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
 		      (fundamental-mode))
-		    (princ (format-message "
+                    (with-current-buffer standard-output
+                      (insert (format-message
+                              (substitute-command-keys "
 Ediff has inferred that
 	%s
 	%s
@@ -423,10 +425,10 @@ are two possible targets for applying the patch.
 Both files seem to be plausible alternatives.
 
 Please advise:
-    Type `y' to use %s as the target;
-    Type `n' to use %s as the target.
-"
-				   file1 file2 file1 file2)))
+    Type \\`y' to use %s as the target;
+    Type \\`n' to use %s as the target.
+")
+                                            file1 file2 file1 file2))))
 		  (setcar session-file-object
 			  (if (y-or-n-p (format "Use %s ? " file1))
 			      (progn
@@ -823,7 +825,8 @@ you can still examine the changes via M-x ediff-files"
 	    ediff-patch-diagnostics patch-diagnostics))
 
     (bury-buffer patch-diagnostics)
-    (message "Type `P', if you need to see patch diagnostics")
+    (message (substitute-command-keys
+              "Type \\`P', if you need to see patch diagnostics"))
     ctl-buf))
 
 (defun ediff-multi-patch-internal (patch-buf &optional startup-hooks)

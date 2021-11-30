@@ -215,9 +215,78 @@ ns_get_local_selection (Lisp_Object selection_name,
 static Lisp_Object
 ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
 {
+  NSDictionary *typeLookup;
   id pb;
   pb = ns_symbol_to_pb (symbol);
-  return pb != nil ? ns_string_from_pasteboard (pb) : Qnil;
+
+  /* Dictionary for looking up NS types from MIME types, and vice versa.  */
+  typeLookup
+    = [NSDictionary
+           dictionaryWithObjectsAndKeys:
+             @"text/plain",        NSPasteboardTypeURL,
+#if NS_USE_NSPasteboardTypeFileURL
+             @"text/plain",        NSPasteboardTypeFileURL,
+#else
+             @"text/plain",        NSFilenamesPboardType,
+#endif
+#ifdef NS_IMPL_COCOA
+             /* FIXME: I believe these are actually available in recent
+                versions of GNUstep.  */
+             @"text/plain",        NSPasteboardTypeMultipleTextSelection,
+             @"image/png",         NSPasteboardTypePNG,
+#endif
+             @"text/html",         NSPasteboardTypeHTML,
+             @"application/pdf",   NSPasteboardTypePDF,
+             @"application/rtf",   NSPasteboardTypeRTF,
+             @"application/rtfd",  NSPasteboardTypeRTFD,
+             @"STRING",            NSPasteboardTypeString,
+             @"text/plain",        NSPasteboardTypeTabularText,
+             @"image/tiff",        NSPasteboardTypeTIFF,
+             nil];
+
+  if (EQ (target, QTARGETS))
+    {
+      NSMutableArray *types = [NSMutableArray arrayWithCapacity:3];
+
+      NSString *type;
+      NSEnumerator *e = [[pb types] objectEnumerator];
+      while (type = [e nextObject])
+        {
+          NSString *val = [typeLookup valueForKey:type];
+          if (val && ! [types containsObject:val])
+            [types addObject:val];
+        }
+
+      Lisp_Object v = Fmake_vector (make_fixnum ([types count]+1), Qnil);
+      ASET (v, 0, QTARGETS);
+
+      for (int i = 0 ; i < [types count] ; i++)
+        ASET (v, i+1, intern ([[types objectAtIndex:i] UTF8String]));
+
+      return v;
+    }
+  else
+    {
+      NSData *d;
+      NSArray *availableTypes;
+      NSString *result, *t;
+
+      if (!NILP (target))
+        availableTypes
+          = [typeLookup allKeysForObject:
+                          [NSString stringWithLispString:SYMBOL_NAME (target)]];
+      else
+        availableTypes = [NSArray arrayWithObject:NSPasteboardTypeString];
+
+      t = [pb availableTypeFromArray:availableTypes];
+
+      result = [pb stringForType:t];
+      if (result)
+        return [result lispString];
+
+      d = [pb dataForType:t];
+      return make_string ([d bytes], [d length]);
+    }
 }
 
 
@@ -234,8 +303,6 @@ Lisp_Object
 ns_string_from_pasteboard (id pb)
 {
   NSString *type, *str;
-  const char *utfStr;
-  int length;
 
   type = [pb availableTypeFromArray: ns_return_types];
   if (type == nil)
@@ -259,6 +326,14 @@ ns_string_from_pasteboard (id pb)
           return Qnil;
         }
     }
+
+  /* FIXME: Is the below EOL conversion even needed?  I've removed it
+     for now so we can see if it causes problems.  */
+  return [str lispString];
+
+#if 0
+  const char *utfStr;
+  int length;
 
   /* assume UTF8 */
   NS_DURING
@@ -294,6 +369,7 @@ ns_string_from_pasteboard (id pb)
   NS_ENDHANDLER
 
     return make_string (utfStr, length);
+#endif
 }
 
 
@@ -490,6 +566,8 @@ syms_of_nsselect (void)
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QTEXT, "TEXT");
   DEFSYM (QFILE_NAME, "FILE_NAME");
+
+  DEFSYM (QTARGETS, "TARGETS");
 
   defsubr (&Sns_disown_selection_internal);
   defsubr (&Sns_get_selection);

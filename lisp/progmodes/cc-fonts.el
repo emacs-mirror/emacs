@@ -101,6 +101,7 @@
 (cc-bytecomp-defun c-font-lock-objc-method)
 (cc-bytecomp-defun c-font-lock-invalid-string)
 (cc-bytecomp-defun c-before-context-fl-expand-region)
+(cc-bytecomp-defun c-font-lock-fontify-region)
 
 
 ;; Note that font-lock in XEmacs doesn't expand face names as
@@ -2428,6 +2429,7 @@ higher."
 (defun c-force-redisplay (start end)
   ;; Force redisplay immediately.  This assumes `font-lock-support-mode' is
   ;; 'jit-lock-mode.  Set the variable `c-re-redisplay-timer' to nil.
+  (save-excursion (c-font-lock-fontify-region start end))
   (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
   (setq c-re-redisplay-timer nil))
 
@@ -2436,7 +2438,8 @@ higher."
   ;; buffer.  If TYPE is currently displayed in a window, cause redisplay to
   ;; happen "instantaneously".  These actions are done only when jit-lock-mode
   ;; is active.
-  (when (and (boundp 'font-lock-support-mode)
+  (when (and font-lock-mode
+	     (boundp 'font-lock-support-mode)
 	     (eq font-lock-support-mode 'jit-lock-mode))
     (c-save-buffer-state
 	((window-boundaries
@@ -2455,7 +2458,6 @@ higher."
 	    (dolist (win-boundary window-boundaries)
 	      (when (and (< (match-beginning 0) (cdr win-boundary))
 			 (> (match-end 0) (car win-boundary))
-			 (c-get-char-property (match-beginning 0) 'fontified)
 			 (not c-re-redisplay-timer))
 		(setq c-re-redisplay-timer
 		      (run-with-timer 0 nil #'c-force-redisplay

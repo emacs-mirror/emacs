@@ -28,16 +28,22 @@
 (require 'ert)
 (require 'ert-x)
 (require 'cl-lib)
+(require 'comp)
+(require 'comp-cstr)
 
-(defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
+(eval-and-compile
+  (defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
+  (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el")))
 
-(defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
-
-(when (featurep 'native-compile)
-  (require 'comp)
+(when (native-comp-available-p)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))
   (load (native-compile comp-test-dyn-src)))
+
+;; Load the test code here so the compiler can check the function
+;; names used in this file.
+(require 'comp-test-funcs comp-test-src)
+(require 'comp-test-dyn-funcs comp-test-dyn-src) ;Non-standard feature name!
 
 (defmacro comp-deftest (name args &rest docstring-and-body)
   "Define a test for the native compiler tagging it as :nativecomp."
@@ -66,7 +72,7 @@ Check that the resulting binaries do not differ."
         (copy-file comp-src comp2-src t)
         (let ((load-no-native t))
           (load (concat comp-src "c") nil nil t t))
-        (should-not (subr-native-elisp-p (symbol-function #'native-compile)))
+        (should-not (subr-native-elisp-p (symbol-function 'native-compile)))
         (message "Compiling stage1...")
         (let* ((t0 (current-time))
                (comp1-eln (native-compile comp1-src)))
@@ -352,6 +358,8 @@ Check that the resulting binaries do not differ."
                                  comp-test-interactive-form2-f)))
   (should-not (commandp #'comp-tests-doc-f)))
 
+(declare-function comp-tests-free-fun-f nil)
+
 (comp-deftest free-fun ()
   "Check we are able to compile a single function."
   (eval '(defun comp-tests-free-fun-f ()
@@ -361,7 +369,7 @@ Check that the resulting binaries do not differ."
         t)
   (native-compile #'comp-tests-free-fun-f)
 
-  (should (subr-native-elisp-p (symbol-function #'comp-tests-free-fun-f)))
+  (should (subr-native-elisp-p (symbol-function 'comp-tests-free-fun-f)))
   (should (= (comp-tests-free-fun-f) 3))
   (should (string= (documentation #'comp-tests-free-fun-f)
                    "Some doc."))
@@ -369,11 +377,13 @@ Check that the resulting binaries do not differ."
   (should (equal (interactive-form #'comp-tests-free-fun-f)
                  '(interactive))))
 
+(declare-function comp-tests/free\fun-f nil)
+
 (comp-deftest free-fun-silly-name ()
   "Check we are able to compile a single function."
   (eval '(defun comp-tests/free\fun-f ()) t)
   (native-compile #'comp-tests/free\fun-f)
-  (should (subr-native-elisp-p (symbol-function #'comp-tests/free\fun-f))))
+  (should (subr-native-elisp-p (symbol-function 'comp-tests/free\fun-f))))
 
 (comp-deftest bug-40187 ()
   "Check function name shadowing.
@@ -384,7 +394,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest speed--1 ()
   "Check that at speed -1 we do not native compile."
   (should (= (comp-test-speed--1-f) 3))
-  (should-not (subr-native-elisp-p (symbol-function #'comp-test-speed--1-f))))
+  (should-not (subr-native-elisp-p (symbol-function 'comp-test-speed--1-f))))
 
 (comp-deftest bug-42360 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-07/msg00418.html>."
@@ -433,7 +443,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest primitive-redefine ()
   "Test effectiveness of primitive redefinition."
   (cl-letf ((comp-test-primitive-redefine-args nil)
-            ((symbol-function #'-)
+            ((symbol-function '-)
              (lambda (&rest args)
 	       (setq comp-test-primitive-redefine-args args)
                'xxx)))
@@ -454,11 +464,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (comp-deftest comp-test-defsubst ()
   ;; Bug#42664, Bug#43280, Bug#44209.
-  (should-not (subr-native-elisp-p (symbol-function #'comp-test-defsubst-f))))
+  (should-not (subr-native-elisp-p (symbol-function 'comp-test-defsubst-f))))
 
 (comp-deftest primitive-redefine-compile-44221 ()
   "Test the compiler still works while primitives are redefined (bug#44221)."
-  (cl-letf (((symbol-function #'delete-region)
+  (cl-letf (((symbol-function 'delete-region)
              (lambda (_ _))))
     (should (subr-native-elisp-p
              (native-compile
@@ -494,12 +504,12 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest 45603-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01994.html>"
   (load (native-compile (ert-resource-file "comp-test-45603.el")))
-  (should (fboundp #'comp-test-45603--file-local-name)))
+  (should (fboundp 'comp-test-45603--file-local-name)))
 
 (comp-deftest 46670-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01413.html>"
   (should (string= (comp-test-46670-2-f "foo") "foo"))
-  (should (equal (subr-type (symbol-function #'comp-test-46670-2-f))
+  (should (equal (subr-type (symbol-function 'comp-test-46670-2-f))
                  '(function (t) t))))
 
 (comp-deftest 46824-1 ()
@@ -729,7 +739,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 (comp-deftest dynamic-help-arglist ()
   "Test `help-function-arglist' works on lisp/d (bug#42572)."
   (should (equal (help-function-arglist
-                  (symbol-function #'comp-tests-ffuncall-callee-opt-rest-dyn-f)
+                  (symbol-function 'comp-tests-ffuncall-callee-opt-rest-dyn-f)
                   t)
                  '(a b &optional c &rest d))))
 
@@ -786,6 +796,8 @@ Return a list of results."
            (comp-tests-mentioned-p (comp-c-func-name 'comp-tests-tco-f "F" t)
                                    insn)))))))
 
+(declare-function comp-tests-tco-f nil)
+
 (comp-deftest tco ()
   "Check for tail recursion elimination."
   (let ((native-comp-speed 3)
@@ -800,7 +812,7 @@ Return a list of results."
                (comp-tests-tco-f (+ a b) a (- count 1))))
           t)
     (native-compile #'comp-tests-tco-f)
-    (should (subr-native-elisp-p (symbol-function #'comp-tests-tco-f)))
+    (should (subr-native-elisp-p (symbol-function 'comp-tests-tco-f)))
     (should (= (comp-tests-tco-f 1 0 10) 55))))
 
 (defun comp-tests-fw-prop-checker-1 (_)
@@ -814,6 +826,8 @@ Return a list of results."
        (or (comp-tests-mentioned-p 'concat insn)
            (comp-tests-mentioned-p 'length insn)))))))
 
+(declare-function comp-tests-fw-prop-1-f nil)
+
 (comp-deftest fw-prop-1 ()
   "Some tests for forward propagation."
   (let ((native-comp-speed 2)
@@ -825,7 +839,7 @@ Return a list of results."
                (length c))) ; <= has to optimize
           t)
     (native-compile #'comp-tests-fw-prop-1-f)
-    (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
+    (should (subr-native-elisp-p (symbol-function 'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
 (defun comp-tests-check-ret-type-spec (func-form ret-type)
@@ -1405,11 +1419,13 @@ folded."
         (comp-post-pass-hooks '((comp-final comp-tests-pure-checker-1
                                             comp-tests-pure-checker-2))))
     (load (native-compile (ert-resource-file "comp-test-pure.el")))
+    (declare-function comp-tests-pure-caller-f nil)
+    (declare-function comp-tests-pure-fibn-entry-f nil)
 
-    (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-caller-f)))
+    (should (subr-native-elisp-p (symbol-function 'comp-tests-pure-caller-f)))
     (should (= (comp-tests-pure-caller-f) 4))
 
-    (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-fibn-entry-f)))
+    (should (subr-native-elisp-p (symbol-function 'comp-tests-pure-fibn-entry-f)))
     (should (= (comp-tests-pure-fibn-entry-f) 6765))))
 
 (defvar comp-tests-cond-rw-checked-function nil

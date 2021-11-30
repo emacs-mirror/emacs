@@ -369,13 +369,13 @@ only affect the Gcc copy, but not the original message."
   "m" #'gnus-summary-mail-other-window
   "u" #'gnus-uu-post-news
   "A" #'gnus-summary-attach-article
-  "\M-c" #'gnus-summary-mail-crosspost-complaint
-  "Br" #'gnus-summary-reply-broken-reply-to
-  "BR" #'gnus-summary-reply-broken-reply-to-with-original
-  "om" #'gnus-summary-mail-forward
-  "op" #'gnus-summary-post-forward
-  "Om" #'gnus-uu-digest-mail-forward
-  "Op" #'gnus-uu-digest-post-forward
+  "M-c" #'gnus-summary-mail-crosspost-complaint
+  "B r" #'gnus-summary-reply-broken-reply-to
+  "B R" #'gnus-summary-reply-broken-reply-to-with-original
+  "o m" #'gnus-summary-mail-forward
+  "o p" #'gnus-summary-post-forward
+  "O m" #'gnus-uu-digest-mail-forward
+  "O p" #'gnus-uu-digest-post-forward
 
   "D" (define-keymap :prefix 'gnus-send-bounce-map
         "b" #'gnus-summary-resend-bounced-mail
@@ -1305,7 +1305,7 @@ For the \"inline\" alternatives, also see the variable
   (gnus-inews-insert-gcc)
   (let ((gcc (message-unquote-tokens
 	       (message-tokenize-header (mail-fetch-field "gcc" nil t)
-					" ,")))
+					",")))
 	(self (with-current-buffer gnus-summary-buffer
 		gnus-gcc-self-resent-messages)))
     (message-remove-header "gcc")
@@ -1572,7 +1572,7 @@ this is a reply."
 	  (message-remove-header "gcc")
 	  (widen)
 	  (setq groups (message-unquote-tokens
-			(message-tokenize-header gcc " ,\n\t")))
+			(message-tokenize-header gcc ",\n\t")))
 	  ;; Copy the article over to some group(s).
 	  (while (setq group (pop groups))
 	    (setq method (gnus-inews-group-method group))

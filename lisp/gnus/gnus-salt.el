@@ -65,11 +65,11 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 ;;; Internal variables.
 
 (defvar-keymap gnus-pick-mode-map
-  " " #'gnus-pick-next-page
+  "SPC" #'gnus-pick-next-page
   "u" #'gnus-pick-unmark-article-or-thread
   "." #'gnus-pick-article-or-thread
-  [down-mouse-2] #'gnus-pick-mouse-pick-region
-  "\r" #'gnus-pick-start-reading)
+  "<down-mouse-2>" #'gnus-pick-mouse-pick-region
+  "RET" #'gnus-pick-start-reading)
 
 (defun gnus-pick-make-menu-bar ()
   (unless (boundp 'gnus-pick-menu)
@@ -420,12 +420,12 @@ Two predefined functions are available:
 
 (defvar-keymap gnus-tree-mode-map
   :full t :suppress t
-  "\r" #'gnus-tree-select-article
-  [mouse-2] #'gnus-tree-pick-article
-  "\C-?" #'gnus-tree-read-summary-keys
+  "RET" #'gnus-tree-select-article
+  "<mouse-2>" #'gnus-tree-pick-article
+  "DEL" #'gnus-tree-read-summary-keys
   "h" #'gnus-tree-show-summary
 
-  "\C-c\C-i" #'gnus-info-find-node)
+  "C-c C-i" #'gnus-info-find-node)
 
 (substitute-key-definition 'undefined #'gnus-tree-read-summary-keys
                            gnus-tree-mode-map)

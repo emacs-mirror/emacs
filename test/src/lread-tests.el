@@ -115,6 +115,10 @@
   (should-error (read "#24r") :type 'invalid-read-syntax)
   (should-error (read "#") :type 'invalid-read-syntax))
 
+(ert-deftest lread-char-modifiers ()
+  (should (eq ?\C-\M-é (+ (- ?\M-a ?a) ?\C-é)))
+  (should (eq (- ?\C-ŗ ?ŗ) (- ?\C-é ?é))))
+
 (ert-deftest lread-record-1 ()
   (should (equal '(#s(foo) #s(foo))
                  (read "(#1=#s(foo) #1#)"))))

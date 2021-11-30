@@ -1594,12 +1594,14 @@ GROUP must be one of these symbols:
                     such as U+200C (ZWNJ), U+200E (LRM), but
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
-  `variation-selectors': U+FE00..U+FE0F, used for choosing between
-                         glyph variations (e.g. Emoji vs Text
-                         presentation).
-  `no-font':        characters for which no suitable font is found.
-                    For character terminals, characters that cannot
-                    be encoded by `terminal-coding-system'.
+  `variation-selectors':
+                    Characters in the range U+FE00..U+FE0F, used for
+                    selecting alternate glyph presentations, such as
+                    Emoji vs Text presentation, of the preceding
+                    character(s).
+  `no-font':        For GUI frames, characters for which no suitable
+                    font is found; for text-mode frames, characters
+                    that cannot be encoded by `terminal-coding-system'.
 
 METHOD must be one of these symbols:
   `zero-width': don't display.
@@ -1618,31 +1620,36 @@ function (`update-glyphless-char-display'), which updates
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))
   :options '((c0-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (c1-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (format-control
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (variation-selectors
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value thin-space
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)
 		      (const :tag "Display hex code in a box" hex-code)))
 	     (no-font
-	      (choice (const :tag "Don't display" zero-width)
+	      (choice :value hex-code
+                      (const :tag "Don't display" zero-width)
 		      (const :tag "Display as thin space" thin-space)
 		      (const :tag "Display as empty box" empty-box)
 		      (const :tag "Display acronym" acronym)

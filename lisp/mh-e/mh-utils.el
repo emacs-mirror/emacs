@@ -139,8 +139,7 @@ Ignores case when searching for OLD."
      0 2
      `(display ,(or mh-logo-cache
                     (setq mh-logo-cache
-                          (mh-funcall-if-exists
-                           find-image '(( :type xpm :ascent center
+                          (find-image '(( :type xpm :ascent center
                                           :file "mh-logo.xpm" ))))))
      (car mode-line-buffer-identification))))
 
@@ -531,7 +530,12 @@ results of the actual folders call.
 If optional argument ADD-TRAILING-SLASH-FLAG is non-nil then a
 slash is added to each of the sub-folder names that may have
 nested folders within them."
-  (let* ((folder (mh-normalize-folder-name folder nil nil t))
+  ;; In most cases we want to remove a trailing slash.  We keep the
+  ;; slash for "+/", because it refers to folders in the system root
+  ;; directory, whereas "+" refers to the user's top-level folders.
+  (let* ((folder (mh-normalize-folder-name folder nil
+                                           (string= folder "+/")
+                                           t))
          (match (gethash folder mh-sub-folders-cache 'no-result))
          (sub-folders (cond ((eq match 'no-result)
                              (setf (gethash folder mh-sub-folders-cache)
@@ -558,7 +562,6 @@ Expects FOLDER to have already been normalized with
   (let ((arg-list `(,(expand-file-name "folders" mh-progs)
                     nil (t nil) nil "-noheader" "-norecurse" "-nototal"
                     ,@(if (stringp folder) (list folder) ())))
-        (results ())
         (current-folder (concat
                          (with-temp-buffer
                            (call-process (expand-file-name "folder" mh-progs)
@@ -567,33 +570,48 @@ Expects FOLDER to have already been normalized with
                          "+")))
     (with-temp-buffer
       (apply #'call-process arg-list)
-      (goto-char (point-min))
-      (while (not (and (eolp) (bolp)))
-        (goto-char (line-end-position))
-        (let ((start-pos (line-beginning-position))
-              (has-pos (search-backward " has "
-                                        (line-beginning-position) t)))
-          (when (integerp has-pos)
-            (while (equal (char-after has-pos) ? )
-              (cl-decf has-pos))
-            (cl-incf has-pos)
-            (while (equal (char-after start-pos) ? )
-              (cl-incf start-pos))
-            (let* ((name (buffer-substring start-pos has-pos))
-                   (first-char (aref name 0))
-                   (last-char (aref name (1- (length name)))))
-              (unless (member first-char '(?. ?# ?,))
-                (when (and (equal last-char ?+) (equal name current-folder))
-                  (setq name (substring name 0 (1- (length name)))))
-                (push
-                 (cons name
-                       (search-forward "(others)" (line-end-position) t))
-                 results))))
-          (forward-line 1))))
+      (mh-sub-folders-parse folder current-folder))))
+
+(defun mh-sub-folders-parse (folder current-folder)
+  "Parse the results of \"folders FOLDER\" and return a list of sub-folders.
+CURRENT-FOLDER is the result of \"folder -fast\".
+FOLDER will be nil or start with '+'; CURRENT-FOLDER will end with '+'.
+This function is a testable helper of `mh-sub-folders-actual'."
+  (let ((results ()))
+    (goto-char (point-min))
+    (while (not (and (eolp) (bolp)))
+      (goto-char (line-end-position))
+      (let ((start-pos (line-beginning-position))
+            (has-pos (search-backward " has "
+                                      (line-beginning-position) t)))
+        (when (integerp has-pos)
+          (while (equal (char-after has-pos) ? )
+            (cl-decf has-pos))
+          (cl-incf has-pos)
+          (while (equal (char-after start-pos) ? )
+            (cl-incf start-pos))
+          (let* ((name (buffer-substring start-pos has-pos))
+                 (first-char (aref name 0))
+                 (second-char (and (length> name 1) (aref name 1)))
+                 (last-char (aref name (1- (length name)))))
+            (unless (member first-char '(?. ?# ?,))
+              (when (and (equal last-char ?+) (equal name current-folder))
+                (setq name (substring name 0 (1- (length name)))))
+              ;; nmh outputs double slash in root folder, e.g., "//tmp"
+              (when (and (equal first-char ?/) (equal second-char ?/))
+                (setq name (substring name 1)))
+              (push
+               (cons name
+                     (search-forward "(others)" (line-end-position) t))
+               results))))
+        (forward-line 1)))
     (setq results (nreverse results))
     (when (stringp folder)
       (setq results (cdr results))
       (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
+        (when (equal "+/" folder)
+          ;; folder "+/" includes a trailing slash
+          (cl-decf folder-name-len))
         (setq results (mapcar (lambda (f)
                                 (cons (substring (car f) folder-name-len)
                                       (cdr f)))

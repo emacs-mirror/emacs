@@ -476,15 +476,15 @@ manipulated as follows:
 		    (intern (format "gnus-agent-%s-mode-hook" buffer)))))
 
 (defvar-keymap gnus-agent-group-mode-map
-  "Ju" #'gnus-agent-fetch-groups
-  "Jc" #'gnus-enter-category-buffer
-  "Jj" #'gnus-agent-toggle-plugged
-  "Js" #'gnus-agent-fetch-session
-  "JY" #'gnus-agent-synchronize-flags
-  "JS" #'gnus-group-send-queue
-  "Ja" #'gnus-agent-add-group
-  "Jr" #'gnus-agent-remove-group
-  "Jo" #'gnus-agent-toggle-group-plugged)
+  "J u" #'gnus-agent-fetch-groups
+  "J c" #'gnus-enter-category-buffer
+  "J j" #'gnus-agent-toggle-plugged
+  "J s" #'gnus-agent-fetch-session
+  "J Y" #'gnus-agent-synchronize-flags
+  "J S" #'gnus-group-send-queue
+  "J a" #'gnus-agent-add-group
+  "J r" #'gnus-agent-remove-group
+  "J o" #'gnus-agent-toggle-group-plugged)
 
 (defun gnus-agent-group-make-menu-bar ()
   (unless (boundp 'gnus-agent-group-menu)
@@ -504,14 +504,14 @@ manipulated as follows:
        ))))
 
 (defvar-keymap gnus-agent-summary-mode-map
-  "Jj" #'gnus-agent-toggle-plugged
-  "Ju" #'gnus-agent-summary-fetch-group
-  "JS" #'gnus-agent-fetch-group
-  "Js" #'gnus-agent-summary-fetch-series
-  "J#" #'gnus-agent-mark-article
-  "J\M-#" #'gnus-agent-unmark-article
+  "J j" #'gnus-agent-toggle-plugged
+  "J u" #'gnus-agent-summary-fetch-group
+  "J S" #'gnus-agent-fetch-group
+  "J s" #'gnus-agent-summary-fetch-series
+  "J #" #'gnus-agent-mark-article
+  "J M-#" #'gnus-agent-unmark-article
   "@" #'gnus-agent-toggle-mark
-  "Jc" #'gnus-agent-catchup)
+  "J c" #'gnus-agent-catchup)
 
 (defun gnus-agent-summary-make-menu-bar ()
   (unless (boundp 'gnus-agent-summary-menu)
@@ -526,9 +526,9 @@ manipulated as follows:
        ["Catchup undownloaded" gnus-agent-catchup t]))))
 
 (defvar-keymap gnus-agent-server-mode-map
-  "Jj" #'gnus-agent-toggle-plugged
-  "Ja" #'gnus-agent-add-server
-  "Jr" #'gnus-agent-remove-server)
+  "J j" #'gnus-agent-toggle-plugged
+  "J a" #'gnus-agent-add-server
+  "J r" #'gnus-agent-remove-server)
 
 (defun gnus-agent-server-make-menu-bar ()
   (unless (boundp 'gnus-agent-server-menu)
@@ -2606,8 +2606,8 @@ General format specifiers can also be used.  See Info node
   "s" #'gnus-category-edit-score
   "l" #'gnus-category-list
 
-  "\C-c\C-i" #'gnus-info-find-node
-  "\C-c\C-b" #'gnus-bug)
+  "C-c C-i" #'gnus-info-find-node
+  "C-c C-b" #'gnus-bug)
 
 (defcustom gnus-category-menu-hook nil
   "Hook run after the creation of the menu."

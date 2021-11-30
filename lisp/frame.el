@@ -1634,6 +1634,7 @@ live frame and defaults to the selected one."
 (declare-function w32-frame-geometry "w32fns.c" (&optional frame))
 (declare-function ns-frame-geometry "nsfns.m" (&optional frame))
 (declare-function pgtk-frame-geometry "pgtkfns.c" (&optional frame))
+(declare-function haiku-frame-geometry "haikufns.c" (&optional frame))
 
 (defun frame-geometry (&optional frame)
   "Return geometric attributes of FRAME.
@@ -1685,6 +1686,8 @@ and width values are in pixels.
       (ns-frame-geometry frame))
      ((eq frame-type 'pgtk)
       (pgtk-frame-geometry frame))
+     ((eq frame-type 'haiku)
+      (haiku-frame-geometry frame))
      (t
       (list
        '(outer-position 0 . 0)
@@ -1810,6 +1813,7 @@ of frames like calls to map a frame or change its visibility."
 (declare-function w32-frame-edges "w32fns.c" (&optional frame type))
 (declare-function ns-frame-edges "nsfns.m" (&optional frame type))
 (declare-function pgtk-frame-edges "pgtkfns.c" (&optional frame type))
+(declare-function haiku-frame-edges "haikufns.c" (&optional frame type))
 
 (defun frame-edges (&optional frame type)
   "Return coordinates of FRAME's edges.
@@ -1835,6 +1839,8 @@ FRAME."
       (ns-frame-edges frame type))
      ((eq frame-type 'pgtk)
       (pgtk-frame-edges frame type))
+     ((eq frame-type 'haiku)
+      (haiku-frame-edges frame type))
      (t
       (list 0 0 (frame-width frame) (frame-height frame))))))
 
@@ -1842,6 +1848,7 @@ FRAME."
 (declare-function x-mouse-absolute-pixel-position "xfns.c")
 (declare-function ns-mouse-absolute-pixel-position "nsfns.m")
 (declare-function pgtk-mouse-absolute-pixel-position "pgtkfns.c")
+(declare-function haiku-mouse-absolute-pixel-position "haikufns.c")
 
 (defun mouse-absolute-pixel-position ()
   "Return absolute position of mouse cursor in pixels.
@@ -1858,6 +1865,8 @@ position (0, 0) of the selected frame's terminal."
       (ns-mouse-absolute-pixel-position))
      ((eq frame-type 'pgtk)
       (pgtk-mouse-absolute-pixel-position))
+     ((eq frame-type 'haiku)
+      (haiku-mouse-absolute-pixel-position))
      (t
       (cons 0 0)))))
 
@@ -1865,6 +1874,7 @@ position (0, 0) of the selected frame's terminal."
 (declare-function ns-set-mouse-absolute-pixel-position "nsfns.m" (x y))
 (declare-function w32-set-mouse-absolute-pixel-position "w32fns.c" (x y))
 (declare-function x-set-mouse-absolute-pixel-position "xfns.c" (x y))
+(declare-function haiku-set-mouse-absolute-pixel-position "haikufns.c" (x y))
 
 (defun set-mouse-absolute-pixel-position (x y)
   "Move mouse pointer to absolute pixel position (X, Y).
@@ -1879,7 +1889,9 @@ position (0, 0) of the selected frame's terminal."
      ((eq frame-type 'x)
       (x-set-mouse-absolute-pixel-position x y))
      ((eq frame-type 'w32)
-      (w32-set-mouse-absolute-pixel-position x y)))))
+      (w32-set-mouse-absolute-pixel-position x y))
+     ((eq frame-type 'haiku)
+      (haiku-set-mouse-absolute-pixel-position x y)))))
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.
@@ -1973,6 +1985,7 @@ workarea attribute."
 (declare-function w32-frame-list-z-order "w32fns.c" (&optional display))
 (declare-function ns-frame-list-z-order "nsfns.m" (&optional display))
 (declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
+(declare-function haiku-frame-list-z-order "haikufns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
   "Return list of Emacs' frames, in Z (stacking) order.
@@ -1994,7 +2007,9 @@ Return nil if DISPLAY contains no Emacs frame."
      ((eq frame-type 'ns)
       (ns-frame-list-z-order display))
      ((eq frame-type 'pgtk)
-      (pgtk-frame-list-z-order display)))))
+      (pgtk-frame-list-z-order display))
+     ((eq frame-type 'haiku)
+      (haiku-frame-list-z-order display)))))
 
 (declare-function x-frame-restack "xfns.c" (frame1 frame2 &optional above))
 (declare-function w32-frame-restack "w32fns.c" (frame1 frame2 &optional above))
@@ -2078,8 +2093,8 @@ frame's display)."
      ((eq frame-type 'w32)
       (with-no-warnings
        (> w32-num-mouse-buttons 0)))
-     ((memq frame-type '(x ns pgtk))
-      t)    ;; We assume X and NeXTstep *always* have a pointing device
+     ((memq frame-type '(x ns haiku pgtk))
+      t)    ;; We assume X, NeXTstep, GTK, and Haiku *always* have a pointing device
      (t
       (or (and (featurep 'xt-mouse)
 	       xterm-mouse-mode)
@@ -2104,7 +2119,7 @@ frames and several different fonts at once.  This is true for displays
 that use a window system such as X, and false for text-only terminals.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
-  (not (null (memq (framep-on-display display) '(x w32 ns pgtk)))))
+  (not (null (memq (framep-on-display display) '(x w32 ns haiku haiku)))))
 
 (defun display-images-p (&optional display)
   "Return non-nil if DISPLAY can display images.
@@ -2155,7 +2170,7 @@ DISPLAY should be either a frame or a display name (a string).
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-screens display))
      (t
       1))))
@@ -2175,7 +2190,7 @@ with DISPLAY.  To get information for each physical monitor, use
 `display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-pixel-height display))
      (t
       (frame-height (if (framep display) display (selected-frame)))))))
@@ -2195,7 +2210,7 @@ with DISPLAY.  To get information for each physical monitor, use
 `display-monitor-attributes-list'."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-pixel-width display))
      (t
       (frame-width (if (framep display) display (selected-frame)))))))
@@ -2233,7 +2248,7 @@ For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the height in millimeters for all physical monitors
 associated with DISPLAY.  To get information for each physical
 monitor, use `display-monitor-attributes-list'."
-  (and (memq (framep-on-display display) '(x w32 ns pgtk))
+  (and (memq (framep-on-display display) '(x w32 ns haiku pgtk))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
 	   (cddr (assoc t display-mm-dimensions-alist))
@@ -2254,7 +2269,7 @@ For graphical terminals, note that on \"multi-monitor\" setups this
 refers to the width in millimeters for all physical monitors
 associated with DISPLAY.  To get information for each physical
 monitor, use `display-monitor-attributes-list'."
-  (and (memq (framep-on-display display) '(x w32 ns pgtk))
+  (and (memq (framep-on-display display) '(x w32 ns haiku pgtk))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
 			display-mm-dimensions-alist))
 	   (cadr (assoc t display-mm-dimensions-alist))
@@ -2272,7 +2287,7 @@ DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-backing-store display))
      (t
       'not-useful))))
@@ -2285,7 +2300,7 @@ DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-save-under display))
      (t
       'not-useful))))
@@ -2298,7 +2313,7 @@ DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-planes display))
      ((eq frame-type 'pc)
       4)
@@ -2313,7 +2328,7 @@ DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-color-cells display))
      ((eq frame-type 'pc)
       16)
@@ -2330,7 +2345,7 @@ DISPLAY can be a display name or a frame.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32 ns pgtk))
+     ((memq frame-type '(x w32 ns haiku pgtk))
       (x-display-visual-class display))
      ((and (memq frame-type '(pc t))
 	   (tty-display-color-p display))

@@ -32,12 +32,12 @@
 ;;; Mailing list minor mode
 
 (defvar-keymap gnus-mailing-list-mode-map
-  "\C-c\C-nh" #'gnus-mailing-list-help
-  "\C-c\C-ns" #'gnus-mailing-list-subscribe
-  "\C-c\C-nu" #'gnus-mailing-list-unsubscribe
-  "\C-c\C-np" #'gnus-mailing-list-post
-  "\C-c\C-no" #'gnus-mailing-list-owner
-  "\C-c\C-na" #'gnus-mailing-list-archive)
+  "C-c C-n h" #'gnus-mailing-list-help
+  "C-c C-n s" #'gnus-mailing-list-subscribe
+  "C-c C-n u" #'gnus-mailing-list-unsubscribe
+  "C-c C-n p" #'gnus-mailing-list-post
+  "C-c C-n o" #'gnus-mailing-list-owner
+  "C-c C-n a" #'gnus-mailing-list-archive)
 
 (defvar gnus-mailing-list-menu)
 

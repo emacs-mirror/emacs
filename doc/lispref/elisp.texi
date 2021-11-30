@@ -840,6 +840,7 @@ Keymaps
 * Key Lookup::              Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::   Redefining a key in a keymap.
+* Low-Level Key Binding::   Legacy key syntax description.
 * Remapping Commands::      A keymap can translate one command to another.
 * Translation Keymaps::     Keymaps for translating sequences of events.
 * Key Binding Commands::    Interactive interfaces for redefining keys.

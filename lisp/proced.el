@@ -1333,11 +1333,12 @@ It is converted to the corresponding attribute key.
 This command updates the variable `proced-sort'.
 Prefix ARG controls sort order, see `proced-sort-interactive'."
   (interactive (list last-input-event (or last-prefix-arg 'no-arg)) proced-mode)
-  (let ((start (event-start event))
-        col key)
+  (let* ((start (event-start event))
+         (obj (posn-object start))
+         col key)
     (save-selected-window
       (select-window (posn-window start))
-      (setq col (+ (1- (car (posn-actual-col-row start)))
+      (setq col (+ (if obj (cdr obj) (posn-point start))
                    (window-hscroll)))
       (when (and (<= 0 col) (< col (length proced-header-line)))
         (setq key (get-text-property col 'proced-key proced-header-line))

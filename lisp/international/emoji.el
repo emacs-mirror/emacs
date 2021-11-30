@@ -184,10 +184,10 @@ character) under point is."
       (get-char-code-property (aref glyph 0) 'name)))
 
 (defvar-keymap emoji-list-mode-map
-  ["RET"] #'emoji-list-select
-  ["<mouse-2>"] #'emoji-list-select
+  "RET" #'emoji-list-select
+  "<mouse-2>" #'emoji-list-select
   "h" #'emoji-list-help
-  [follow-link] 'mouse-face)
+  "<follow-link>" 'mouse-face)
 
 (define-derived-mode emoji-list-mode special-mode "Emoji"
   "Mode to display emojis."

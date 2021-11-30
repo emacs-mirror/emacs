@@ -219,7 +219,7 @@ identical output."
     (should (eql (iter-next it -1) 42))
     (should (eql (iter-next it -1) -1))))
 
-(ert-deftest cps-loop ()
+(ert-deftest cps-loop-2 ()
   (should
    (equal (cl-loop for x iter-by (mygenerator 42)
              collect x)

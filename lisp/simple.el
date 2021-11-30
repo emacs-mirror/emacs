@@ -541,9 +541,9 @@ Other major modes are defined by comparison with this one."
 (defvar-keymap special-mode-map
   :suppress t
   "q" #'quit-window
-  " " #'scroll-up-command
-  [?\S-\ ] #'scroll-down-command
-  "\C-?" #'scroll-down-command
+  "SPC" #'scroll-up-command
+  "S-SPC" #'scroll-down-command
+  "DEL" #'scroll-down-command
   "?" #'describe-mode
   "h" #'describe-mode
   ">" #'end-of-buffer
@@ -8912,7 +8912,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally.
 
 When called interactively, the user is prompted for VARIABLE and
 then VALUE.  The current value of VARIABLE will be put in the
-minibuffer history so that it can be accessed with `M-n', which
+minibuffer history so that it can be accessed with \\`M-n', which
 makes it easier to edit it."
   (interactive
    (let* ((default-var (variable-at-point))

@@ -956,6 +956,10 @@ byte-compiled.  Run with dynamic binding."
  "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore-substitutions.el"
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
+
+(bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore.el"
  "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 

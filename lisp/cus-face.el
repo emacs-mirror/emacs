@@ -54,6 +54,7 @@
      (string :tag "Font Foundry"
 	     :help-echo "Font foundry name."))
 
+    ;; The width, weight, and slant should be in sync with font.c.
     (:width
      (choice :tag "Width"
 	     :help-echo "Font width."
@@ -63,15 +64,21 @@
 	     (const :tag "demiexpanded" semi-expanded)
 	     (const :tag "expanded" expanded)
 	     (const :tag "extracondensed" extra-condensed)
+	     (const :tag "extra-condensed" extra-condensed)
 	     (const :tag "extraexpanded" extra-expanded)
-	     (const :tag "medium" normal)
+	     (const :tag "extra-expanded" extra-expanded)
 	     (const :tag "narrow" condensed)
 	     (const :tag "normal" normal)
+	     (const :tag "medium" normal)
 	     (const :tag "regular" normal)
 	     (const :tag "semicondensed" semi-condensed)
+	     (const :tag "demicondensed" semi-condensed)
+	     (const :tag "semi-condensed" semi-condensed)
 	     (const :tag "semiexpanded" semi-expanded)
 	     (const :tag "ultracondensed" ultra-condensed)
+	     (const :tag "ultra-condensed" ultra-condensed)
 	     (const :tag "ultraexpanded" ultra-expanded)
+	     (const :tag "ultra-expanded" ultra-expanded)
 	     (const :tag "wide" extra-expanded)))
 
     (:height
@@ -85,22 +92,32 @@
      (choice :tag "Weight"
 	     :help-echo "Font weight."
 	     :value normal		; default
-	     (const :tag "ultralight" ultra-light)
-	     (const :tag "extralight" extra-light)
-	     (const :tag "light" light)
 	     (const :tag "thin" thin)
+	     (const :tag "ultralight" ultra-light)
+	     (const :tag "ultra-light" ultra-light)
+	     (const :tag "extralight" ultra-light)
+	     (const :tag "extra-light" ultra-light)
+	     (const :tag "light" light)
 	     (const :tag "semilight" semi-light)
-	     (const :tag "book" semi-light)
+	     (const :tag "semi-light" semi-light)
+	     (const :tag "demilight" semi-light)
 	     (const :tag "normal" normal)
-	     (const :tag "regular" normal)
-	     (const :tag "medium" normal)
+	     (const :tag "regular" regular)
+	     (const :tag "book" normal)
+	     (const :tag "medium" medium)
 	     (const :tag "semibold" semi-bold)
+	     (const :tag "semi-bold" semi-bold)
 	     (const :tag "demibold" semi-bold)
+	     (const :tag "demi-bold" semi-bold)
 	     (const :tag "bold" bold)
 	     (const :tag "extrabold" extra-bold)
-	     (const :tag "heavy" extra-bold)
-	     (const :tag "ultrabold" ultra-bold)
-	     (const :tag "black" ultra-bold)))
+	     (const :tag "extra-bold" extra-bold)
+	     (const :tag "ultrabold" extra-bold)
+	     (const :tag "ultra-bold" extra-bold)
+	     (const :tag "heavy" heavy)
+	     (const :tag "black" heavy)
+             (const :tag "ultra-heavy" ultra-heavy)
+             (const :tag "ultraheavy" ultra-heavy)))
 
     (:slant
      (choice :tag "Slant"

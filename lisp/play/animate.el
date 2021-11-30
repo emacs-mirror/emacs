@@ -93,9 +93,17 @@
   (unless (eolp) (delete-char 1))
   (insert-char char 1))
 
-(defcustom animate-n-steps 10
+(defcustom animate-n-steps 20
   "Number of steps `animate-string' will place a char before its last position."
-  :type 'integer)
+  :type 'natnum
+  :version "29.1")
+
+(defcustom animate-total-added-delay 0.5
+  "Total number of seconds to wait in between steps.
+This is added to the total time it takes to run `animate-string'
+to ensure that the animation is not too fast to be seen."
+  :type 'float
+  :version "29.1")
 
 (defvar animation-buffer-name nil
   "String naming the default buffer for animations.
@@ -130,7 +138,7 @@ in the current window."
 	;; Make sure buffer is displayed starting at the beginning.
 	(set-window-start nil 1)
 	;; Display it, and wait just a little while.
-	(sit-for .05)
+        (sit-for (/ (float animate-total-added-delay) (max animate-n-steps 1)))
 	;; Now undo the changes we made in the buffer.
 	(setq list-to-undo buffer-undo-list)
 	(while list-to-undo

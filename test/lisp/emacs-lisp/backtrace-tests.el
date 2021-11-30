@@ -49,7 +49,7 @@
            (setq backtrace-frames (seq-subseq backtrace-frames 0 (1+ this-index))))
          (backtrace-print))))
 
-  (eval backtrace-tests--uncompiled-functions))
+  (eval backtrace-tests--uncompiled-functions t))
 
 (defun backtrace-tests--backtrace-lines ()
   (if debugger-stack-frame-as-list

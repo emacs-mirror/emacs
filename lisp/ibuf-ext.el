@@ -1597,7 +1597,10 @@ to move by.  The default is `ibuffer-marked-char'."
   "Hide all of the currently marked lines."
   (interactive)
   (if (= (ibuffer-count-marked-lines) 0)
-      (message "No buffers marked; use `m' to mark a buffer")
+      (message (substitute-command-keys
+                (concat
+                 "No buffers marked; use \\<ibuffer-mode-map>"
+                 "\\[ibuffer-mark-forward] to mark a buffer")))
     (let ((count
 	   (ibuffer-map-marked-lines
             (lambda (_buf _mark)

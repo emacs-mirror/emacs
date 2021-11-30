@@ -50,8 +50,8 @@
 
 (defvar-keymap gnus-edit-form-mode-map
   :parent emacs-lisp-mode-map
-  "\C-c\C-c" #'gnus-edit-form-done
-  "\C-c\C-k" #'gnus-edit-form-exit)
+  "C-c C-c" #'gnus-edit-form-done
+  "C-c C-k" #'gnus-edit-form-exit)
 
 (defun gnus-edit-form-make-menu-bar ()
   (unless (boundp 'gnus-edit-form-menu)

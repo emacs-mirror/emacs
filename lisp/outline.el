@@ -221,7 +221,7 @@ in the file it applies to.")
 (defvar outline-font-lock-keywords
   '(
     ;; Highlight headings according to the level.
-    (eval . (list (concat "^\\(?:" outline-regexp "\\).+")
+    (eval . (list (concat "^\\(?:" outline-regexp "\\).*")
                   0 '(if outline-minor-mode
                          (if outline-minor-mode-cycle
                              (if outline-minor-mode-highlight
@@ -992,8 +992,8 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'keymap
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
-                     ["RET"] #'outline-hide-subtree
-                     ["<mouse-2>"] #'outline-hide-subtree)))))
+                     "RET" #'outline-hide-subtree
+                     "<mouse-2>" #'outline-hide-subtree)))))
 
 (defun outline--insert-close-button ()
   (save-excursion
@@ -1003,8 +1003,8 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'keymap
                    (define-keymap
                      :parent outline-minor-mode-cycle-map
-                     ["RET"] #'outline-show-subtree
-                     ["<mouse-2>"] #'outline-show-subtree)))))
+                     "RET" #'outline-show-subtree
+                     "<mouse-2>" #'outline-show-subtree)))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when from
@@ -1014,7 +1014,10 @@ If non-nil, EVENT should be a mouse event."
   (when outline-minor-mode-use-buttons
     (outline-map-region
      (lambda ()
-       (if (eq (outline--cycle-state) 'show-all)
+       ;; `outline--cycle-state' will fail if we're in a totally
+       ;; collapsed buffer -- but in that case, we're not in a
+       ;; `show-all' situation.
+       (if (eq (ignore-errors (outline--cycle-state)) 'show-all)
            (outline--insert-open-button)
          (outline--insert-close-button)))
      (or from (point-min)) (or to (point-max)))))

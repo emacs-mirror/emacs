@@ -1908,129 +1908,129 @@ increase the score of each group you read."
 ;; Non-orthogonal keys
 
 (define-keymap :keymap gnus-summary-mode-map
-  " " #'gnus-summary-next-page
-  [?\S-\ ] #'gnus-summary-prev-page
-  "\177" #'gnus-summary-prev-page
-  [delete] #'gnus-summary-prev-page
-  "\r" #'gnus-summary-scroll-up
-  "\M-\r" #'gnus-summary-scroll-down
+  "SPC" #'gnus-summary-next-page
+  "S-SPC" #'gnus-summary-prev-page
+  "DEL" #'gnus-summary-prev-page
+  "<delete>" #'gnus-summary-prev-page
+  "RET" #'gnus-summary-scroll-up
+  "M-RET" #'gnus-summary-scroll-down
   "n" #'gnus-summary-next-unread-article
   "p" #'gnus-summary-prev-unread-article
   "N" #'gnus-summary-next-article
   "P" #'gnus-summary-prev-article
-  "\M-\C-n" #'gnus-summary-next-same-subject
-  "\M-\C-p" #'gnus-summary-prev-same-subject
-  "\M-n" #'gnus-summary-next-unread-subject
-  "\M-p" #'gnus-summary-prev-unread-subject
+  "C-M-n" #'gnus-summary-next-same-subject
+  "C-M-p" #'gnus-summary-prev-same-subject
+  "M-n" #'gnus-summary-next-unread-subject
+  "M-p" #'gnus-summary-prev-unread-subject
   "." #'gnus-summary-first-unread-article
   "," #'gnus-summary-best-unread-article
   "[" #'gnus-summary-prev-unseen-article
   "]" #'gnus-summary-next-unseen-article
-  "\M-s\M-s" #'gnus-summary-search-article-forward
-  "\M-s\M-r" #'gnus-summary-search-article-backward
-  "\M-r" #'gnus-summary-search-article-backward
-  "\M-S" #'gnus-summary-repeat-search-article-forward
-  "\M-R" #'gnus-summary-repeat-search-article-backward
+  "M-s M-s" #'gnus-summary-search-article-forward
+  "M-s M-r" #'gnus-summary-search-article-backward
+  "M-r" #'gnus-summary-search-article-backward
+  "M-S" #'gnus-summary-repeat-search-article-forward
+  "M-R" #'gnus-summary-repeat-search-article-backward
   "<" #'gnus-summary-beginning-of-article
   ">" #'gnus-summary-end-of-article
   "j" #'gnus-summary-goto-article
   "^" #'gnus-summary-refer-parent-article
-  "\M-^" #'gnus-summary-refer-article
+  "M-^" #'gnus-summary-refer-article
   "u" #'gnus-summary-tick-article-forward
   "!" #'gnus-summary-tick-article-forward
   "U" #'gnus-summary-tick-article-backward
   "d" #'gnus-summary-mark-as-read-forward
   "D" #'gnus-summary-mark-as-read-backward
   "E" #'gnus-summary-mark-as-expirable
-  "\M-u" #'gnus-summary-clear-mark-forward
-  "\M-U" #'gnus-summary-clear-mark-backward
+  "M-u" #'gnus-summary-clear-mark-forward
+  "M-U" #'gnus-summary-clear-mark-backward
   "k" #'gnus-summary-kill-same-subject-and-select
-  "\C-k" #'gnus-summary-kill-same-subject
-  "\M-\C-k" #'gnus-summary-kill-thread
-  "\M-\C-l" #'gnus-summary-lower-thread
+  "C-k" #'gnus-summary-kill-same-subject
+  "C-M-k" #'gnus-summary-kill-thread
+  "C-M-l" #'gnus-summary-lower-thread
   "e" #'gnus-summary-edit-article
   "#" #'gnus-summary-mark-as-processable
-  "\M-#" #'gnus-summary-unmark-as-processable
-  "\M-\C-t" #'gnus-summary-toggle-threads
-  "\M-\C-s" #'gnus-summary-show-thread
-  "\M-\C-h" #'gnus-summary-hide-thread
-  "\M-\C-f" #'gnus-summary-next-thread
-  "\M-\C-b" #'gnus-summary-prev-thread
-  [(meta down)] #'gnus-summary-next-thread
-  [(meta up)] #'gnus-summary-prev-thread
-  "\M-\C-u" #'gnus-summary-up-thread
-  "\M-\C-d" #'gnus-summary-down-thread
+  "M-#" #'gnus-summary-unmark-as-processable
+  "C-M-t" #'gnus-summary-toggle-threads
+  "C-M-s" #'gnus-summary-show-thread
+  "C-M-h" #'gnus-summary-hide-thread
+  "C-M-f" #'gnus-summary-next-thread
+  "C-M-b" #'gnus-summary-prev-thread
+  "M-<down>" #'gnus-summary-next-thread
+  "M-<up>" #'gnus-summary-prev-thread
+  "C-M-u" #'gnus-summary-up-thread
+  "C-M-d" #'gnus-summary-down-thread
   "&" #'gnus-summary-execute-command
   "c" #'gnus-summary-catchup-and-exit
-  "\C-w" #'gnus-summary-mark-region-as-read
-  "\C-t" #'toggle-truncate-lines
+  "C-w" #'gnus-summary-mark-region-as-read
+  "C-t" #'toggle-truncate-lines
   "?" #'gnus-summary-mark-as-dormant
-  "\C-c\M-\C-s" #'gnus-summary-limit-include-expunged
-  "\C-c\C-s\C-n" #'gnus-summary-sort-by-number
-  "\C-c\C-s\C-m\C-n" #'gnus-summary-sort-by-most-recent-number
-  "\C-c\C-s\C-l" #'gnus-summary-sort-by-lines
-  "\C-c\C-s\C-c" #'gnus-summary-sort-by-chars
-  "\C-c\C-s\C-m\C-m" #'gnus-summary-sort-by-marks
-  "\C-c\C-s\C-a" #'gnus-summary-sort-by-author
-  "\C-c\C-s\C-t" #'gnus-summary-sort-by-recipient
-  "\C-c\C-s\C-s" #'gnus-summary-sort-by-subject
-  "\C-c\C-s\C-d" #'gnus-summary-sort-by-date
-  "\C-c\C-s\C-m\C-d" #'gnus-summary-sort-by-most-recent-date
-  "\C-c\C-s\C-i" #'gnus-summary-sort-by-score
-  "\C-c\C-s\C-o" #'gnus-summary-sort-by-original
-  "\C-c\C-s\C-r" #'gnus-summary-sort-by-random
-  "\C-c\C-s\C-u" #'gnus-summary-sort-by-newsgroups
-  "\C-c\C-s\C-x" #'gnus-summary-sort-by-extra
+  "C-c C-M-s" #'gnus-summary-limit-include-expunged
+  "C-c C-s C-n" #'gnus-summary-sort-by-number
+  "C-c C-s C-m C-n" #'gnus-summary-sort-by-most-recent-number
+  "C-c C-s C-l" #'gnus-summary-sort-by-lines
+  "C-c C-s C-c" #'gnus-summary-sort-by-chars
+  "C-c C-s C-m C-m" #'gnus-summary-sort-by-marks
+  "C-c C-s C-a" #'gnus-summary-sort-by-author
+  "C-c C-s C-t" #'gnus-summary-sort-by-recipient
+  "C-c C-s C-s" #'gnus-summary-sort-by-subject
+  "C-c C-s C-d" #'gnus-summary-sort-by-date
+  "C-c C-s C-m C-d" #'gnus-summary-sort-by-most-recent-date
+  "C-c C-s C-i" #'gnus-summary-sort-by-score
+  "C-c C-s C-o" #'gnus-summary-sort-by-original
+  "C-c C-s C-r" #'gnus-summary-sort-by-random
+  "C-c C-s C-u" #'gnus-summary-sort-by-newsgroups
+  "C-c C-s C-x" #'gnus-summary-sort-by-extra
   "=" #'gnus-summary-expand-window
-  "\C-x\C-s" #'gnus-summary-reselect-current-group
-  "\M-g" #'gnus-summary-rescan-group
-  "\C-c\C-r" #'gnus-summary-caesar-message
+  "C-x C-s" #'gnus-summary-reselect-current-group
+  "M-g" #'gnus-summary-rescan-group
+  "C-c C-r" #'gnus-summary-caesar-message
   "f" #'gnus-summary-followup
   "F" #'gnus-summary-followup-with-original
   "C" #'gnus-summary-cancel-article
   "r" #'gnus-summary-reply
   "R" #'gnus-summary-reply-with-original
-  "\C-c\C-f" #'gnus-summary-mail-forward
+  "C-c C-f" #'gnus-summary-mail-forward
   "o" #'gnus-summary-save-article
-  "\C-o" #'gnus-summary-save-article-mail
+  "C-o" #'gnus-summary-save-article-mail
   "|" #'gnus-summary-pipe-output
-  "\M-k" #'gnus-summary-edit-local-kill
-  "\M-K" #'gnus-summary-edit-global-kill
+  "M-k" #'gnus-summary-edit-local-kill
+  "M-K" #'gnus-summary-edit-global-kill
   ;; "V" gnus-version
-  "\C-c\C-d" #'gnus-summary-describe-group
-  "\C-c\C-p" #'gnus-summary-make-group-from-search
+  "C-c C-d" #'gnus-summary-describe-group
+  "C-c C-p" #'gnus-summary-make-group-from-search
   "q" #'gnus-summary-exit
   "Q" #'gnus-summary-exit-no-update
-  "\C-c\C-i" #'gnus-info-find-node
-  [mouse-2] #'gnus-mouse-pick-article
-  [follow-link] 'mouse-face
+  "C-c C-i" #'gnus-info-find-node
+  "<mouse-2>" #'gnus-mouse-pick-article
+  "<follow-link>" 'mouse-face
   "m" #'gnus-summary-mail-other-window
   "a" #'gnus-summary-post-news
   "x" #'gnus-summary-limit-to-unread
   "s" #'gnus-summary-isearch-article
-  "\t" #'gnus-summary-button-forward
-  [backtab] #'gnus-summary-button-backward
+  "TAB" #'gnus-summary-button-forward
+  "<backtab>" #'gnus-summary-button-backward
   "w" #'gnus-summary-browse-url
   "t" #'gnus-summary-toggle-header
   "g" #'gnus-summary-show-article
   "l" #'gnus-summary-goto-last-article
-  "\C-c\C-v\C-v" #'gnus-uu-decode-uu-view
-  "\C-d" #'gnus-summary-enter-digest-group
-  "\M-\C-d" #'gnus-summary-read-document
-  "\M-\C-e" #'gnus-summary-edit-parameters
-  "\M-\C-a" #'gnus-summary-customize-parameters
-  "\C-c\C-b" #'gnus-bug
+  "C-c C-v C-v" #'gnus-uu-decode-uu-view
+  "C-d" #'gnus-summary-enter-digest-group
+  "C-M-d" #'gnus-summary-read-document
+  "C-M-e" #'gnus-summary-edit-parameters
+  "C-M-a" #'gnus-summary-customize-parameters
+  "C-c C-b" #'gnus-bug
   "*" #'gnus-cache-enter-article
-  "\M-*" #'gnus-cache-remove-article
-  "\M-&" #'gnus-summary-universal-argument
-  "\C-l" #'gnus-recenter
+  "M-*" #'gnus-cache-remove-article
+  "M-&" #'gnus-summary-universal-argument
+  "C-l" #'gnus-recenter
   "I" #'gnus-summary-increase-score
   "L" #'gnus-summary-lower-score
-  "\M-i" #'gnus-symbolic-argument
+  "M-i" #'gnus-symbolic-argument
   "h" #'gnus-summary-select-article-buffer
 
   "b" #'gnus-article-view-part
-  "\M-t" #'gnus-summary-toggle-display-buttonized
+  "M-t" #'gnus-summary-toggle-display-buttonized
 
   "S" #'gnus-summary-send-map
 
@@ -2041,19 +2041,19 @@ increase the score of each group you read."
         "d" #'gnus-summary-mark-as-read-forward
         "r" #'gnus-summary-mark-as-read-forward
         "c" #'gnus-summary-clear-mark-forward
-        " " #'gnus-summary-clear-mark-forward
+        "SPC" #'gnus-summary-clear-mark-forward
         "e" #'gnus-summary-mark-as-expirable
         "x" #'gnus-summary-mark-as-expirable
         "?" #'gnus-summary-mark-as-dormant
         "b" #'gnus-summary-set-bookmark
         "B" #'gnus-summary-remove-bookmark
         "#" #'gnus-summary-mark-as-processable
-        "\M-#" #'gnus-summary-unmark-as-processable
+        "M-#" #'gnus-summary-unmark-as-processable
         "S" #'gnus-summary-limit-include-expunged
         "C" #'gnus-summary-catchup
         "H" #'gnus-summary-catchup-to-here
         "h" #'gnus-summary-catchup-from-here
-        "\C-c" #'gnus-summary-catchup-all
+        "C-c" #'gnus-summary-catchup-all
         "k" #'gnus-summary-kill-same-subject-and-select
         "K" #'gnus-summary-kill-same-subject
 
@@ -2118,10 +2118,10 @@ increase the score of each group you read."
         "p" #'gnus-summary-prev-unread-article
         "N" #'gnus-summary-next-article
         "P" #'gnus-summary-prev-article
-        "\C-n" #'gnus-summary-next-same-subject
-        "\C-p" #'gnus-summary-prev-same-subject
-        "\M-n" #'gnus-summary-next-unread-subject
-        "\M-p" #'gnus-summary-prev-unread-subject
+        "C-n" #'gnus-summary-next-same-subject
+        "C-p" #'gnus-summary-prev-same-subject
+        "M-n" #'gnus-summary-next-unread-subject
+        "M-p" #'gnus-summary-prev-unread-subject
         "f" #'gnus-summary-first-unread-article
         "b" #'gnus-summary-best-unread-article
         "u" #'gnus-summary-next-unseen-article
@@ -2139,7 +2139,7 @@ increase the score of each group you read."
         "T" #'gnus-summary-toggle-threads
         "t" #'gnus-summary-rethread-current
         "^" #'gnus-summary-reparent-thread
-        "\M-^" #'gnus-summary-reparent-children
+        "M-^" #'gnus-summary-reparent-children
         "s" #'gnus-summary-show-thread
         "S" #'gnus-summary-show-all-threads
         "h" #'gnus-summary-hide-thread
@@ -2150,7 +2150,7 @@ increase the score of each group you read."
         "o" #'gnus-summary-top-thread
         "d" #'gnus-summary-down-thread
         "#" #'gnus-uu-mark-thread
-        "\M-#" #'gnus-uu-unmark-thread)
+        "M-#" #'gnus-uu-unmark-thread)
 
   "Y" (define-keymap :prefix 'gnus-summary-buffer-map
         "g" #'gnus-summary-prepare
@@ -2173,14 +2173,14 @@ increase the score of each group you read."
         "P" #'gnus-summary-prev-group)
 
   "A" (define-keymap :prefix 'gnus-summary-article-map
-        " " #'gnus-summary-next-page
+        "SPC" #'gnus-summary-next-page
         "n" #'gnus-summary-next-page
-        [?\S-\ ] #'gnus-summary-prev-page
-        "\177" #'gnus-summary-prev-page
-        [delete] #'gnus-summary-prev-page
+        "S-SPC" #'gnus-summary-prev-page
+        "DEL" #'gnus-summary-prev-page
+        "<delete>" #'gnus-summary-prev-page
         "p" #'gnus-summary-prev-page
-        "\r" #'gnus-summary-scroll-up
-        "\M-\r" #'gnus-summary-scroll-down
+        "RET" #'gnus-summary-scroll-up
+        "M-RET" #'gnus-summary-scroll-down
         "<" #'gnus-summary-beginning-of-article
         ">" #'gnus-summary-end-of-article
         "b" #'gnus-summary-beginning-of-article
@@ -2194,8 +2194,8 @@ increase the score of each group you read."
         "W" #'gnus-warp-to-article
         "g" #'gnus-summary-show-article
         "s" #'gnus-summary-isearch-article
-        "\t" #'gnus-summary-button-forward
-        [backtab] #'gnus-summary-button-backward
+        "TAB" #'gnus-summary-button-forward
+        "<backtab>" #'gnus-summary-button-backward
         "w" #'gnus-summary-browse-url
         "P" #'gnus-summary-print-article
         "S" #'gnus-sticky-article
@@ -2250,7 +2250,7 @@ increase the score of each group you read."
               "l" #'gnus-article-hide-list-identifiers
               "B" #'gnus-article-strip-banner
               "P" #'gnus-article-hide-pem
-              "\C-c" #'gnus-article-hide-citation-maybe)
+              "C-c" #'gnus-article-hide-citation-maybe)
 
         "H" (define-keymap :prefix 'gnus-summary-wash-highlight-map
               "a" #'gnus-article-highlight
@@ -2312,10 +2312,10 @@ increase the score of each group you read."
 
   "B" (define-keymap :prefix 'gnus-summary-backend-map
         "e" #'gnus-summary-expire-articles
-        "\M-\C-e" #'gnus-summary-expire-articles-now
-        "\177" #'gnus-summary-delete-article
-        [delete] #'gnus-summary-delete-article
-        [backspace] #'gnus-summary-delete-article
+        "C-M-e" #'gnus-summary-expire-articles-now
+        "DEL" #'gnus-summary-delete-article
+        "<delete>" #'gnus-summary-delete-article
+        "<backspace>" #'gnus-summary-delete-article
         "m" #'gnus-summary-move-article
         "r" #'gnus-summary-respool-article
         "w" #'gnus-summary-edit-article

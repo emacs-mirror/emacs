@@ -80,6 +80,54 @@
                  (mh-normalize-folder-name "+inbox////../news/" nil t)))
   (should (equal "+inbox/news" (mh-normalize-folder-name "+inbox////./news"))))
 
+(ert-deftest mh-sub-folders-parse-no-folder ()
+  "Test `mh-sub-folders-parse' with no starting folder."
+  (let (others-position)
+    (with-temp-buffer
+      (insert "lines without has-string are ignored\n")
+      (insert "onespace has no messages.\n")
+      (insert "twospace  has no messages.\n")
+      (insert "  precedingblanks  has no messages.\n")
+      (insert ".leadingdot  has no messages.\n")
+      (insert "#leadinghash  has no messages.\n")
+      (insert ",leadingcomma  has no messages.\n")
+      (insert "withothers  has no messages ; (others)")
+      (setq others-position (point))
+      (insert ".\n")
+      (insert "curf   has  no messages.\n")
+      (insert "curf+  has 123 messages.\n")
+      (insert "curf2+ has  17 messages.\n")
+      (insert "\ntotal after blank line is ignored  has no messages.\n")
+      (should (equal
+               (mh-sub-folders-parse nil "curf+")
+               (list '("onespace") '("twospace") '("precedingblanks")
+                     (cons "withothers" others-position)
+                     '("curf") '("curf") '("curf2+")))))))
+
+(ert-deftest mh-sub-folders-parse-relative-folder ()
+  "Test `mh-sub-folders-parse' with folder."
+  (let (others-position)
+    (with-temp-buffer
+      (insert "testf+  has no messages.\n")
+      (insert "testf/sub1  has no messages.\n")
+      (insert "testf/sub2  has no messages ; (others)")
+      (setq others-position (point))
+      (insert ".\n")
+      (should (equal
+               (mh-sub-folders-parse "+testf" "testf+")
+               (list '("sub1") (cons "sub2" others-position)))))))
+
+(ert-deftest mh-sub-folders-parse-root-folder ()
+  "Test `mh-sub-folders-parse' with root folder."
+  (with-temp-buffer
+    (insert "/+  has no messages.\n")
+    (insert "/   has no messages.\n")
+    (insert "//nmh-style  has no messages.\n")
+    (insert "/mu-style  has no messages.\n")
+    (should (equal
+             (mh-sub-folders-parse "+/" "inbox+")
+             '(("") ("nmh-style") ("mu-style"))))))
+
 
 ;; Folder names that are used by the following tests.
 (defvar mh-test-rel-folder "rela-folder")
@@ -211,6 +259,10 @@ The tests use this method if no configured MH variant is found."
              "/abso-folder/bar   has no messages."
              "/abso-folder/foo   has no messages."
              "/abso-folder/food  has no messages."))
+           (("folders" "-noheader" "-norecurse" "-nototal" "+/") .
+            ("/+             has no messages ; (others)."
+             "/abso-folder   has no messages ; (others)."
+             "/tmp           has no messages ; (others)."))
            ))
         (arglist (cons (file-name-base program) args)))
     (let ((response-list-cons (assoc arglist argument-responses)))
@@ -303,6 +355,15 @@ if `mh-test-utils-debug-mocks' is non-nil."
       (message "file-directory-p: %S -> %s" filename result))
     result))
 
+(defun mh-test-variant-handles-plus-slash (variant)
+  "Returns non-nil if this MH variant handles \"folders +/\".
+Mailutils 3.5, 3.7, and 3.13 are known not to."
+  (cond ((not (stringp variant)))       ;our mock handles it
+        ((string-search "GNU Mailutils" variant)
+         (let ((mu-version (string-remove-prefix "GNU Mailutils " variant)))
+           (version<= "3.13.91" mu-version)))
+        (t)))                           ;no other known failures
+
 
 (ert-deftest mh-sub-folders-actual ()
   "Test `mh-sub-folders-actual'."
@@ -310,14 +371,15 @@ if `mh-test-utils-debug-mocks' is non-nil."
   ;; already been normalized with
   ;; (mh-normalize-folder-name folder nil nil t)
   (with-mh-test-env
-    (should (equal
+    (should (member
              mh-test-rel-folder
-             (car (assoc mh-test-rel-folder (mh-sub-folders-actual nil)))))
+             (mapcar (lambda (x) (car x)) (mh-sub-folders-actual nil))))
     ;; Empty string and "+" not tested since mh-normalize-folder-name
     ;; would change them to nil.
-    (should (equal "foo"
-                   (car (assoc "foo" (mh-sub-folders-actual
-                                      (format "+%s" mh-test-rel-folder))))))
+    (should (member "foo"
+                    (mapcar (lambda (x) (car x))
+                            (mh-sub-folders-actual
+                             (format "+%s" mh-test-rel-folder)))))
     ;; Folder with trailing slash not tested since
     ;; mh-normalize-folder-name would strip it.
     (should (equal
@@ -327,6 +389,10 @@ if `mh-test-utils-debug-mocks' is non-nil."
     (should (equal
              (list (list "bar") (list "foo") (list "food"))
              (mh-sub-folders-actual (format "+%s" mh-test-abs-folder))))
+
+    (when (mh-test-variant-handles-plus-slash mh-variant-in-use)
+      (should (member "tmp" (mapcar (lambda (x) (car x))
+                                    (mh-sub-folders-actual "+/")))))
 
     ;; FIXME: mh-sub-folders-actual doesn't (yet) expect to be given a
     ;; nonexistent folder.
@@ -339,13 +405,12 @@ if `mh-test-utils-debug-mocks' is non-nil."
 (ert-deftest mh-sub-folders ()
   "Test `mh-sub-folders'."
   (with-mh-test-env
-    (should (equal mh-test-rel-folder
-                   (car (assoc mh-test-rel-folder (mh-sub-folders nil)))))
-    (should (equal mh-test-rel-folder
-                   (car (assoc mh-test-rel-folder (mh-sub-folders "")))))
-    (should (equal nil
-                   (car (assoc mh-test-no-such-folder (mh-sub-folders
-                                                       "+")))))
+    (should (member mh-test-rel-folder
+                   (mapcar (lambda (x) (car x)) (mh-sub-folders nil))))
+    (should (member mh-test-rel-folder
+                    (mapcar (lambda (x) (car x)) (mh-sub-folders ""))))
+    (should-not (member mh-test-no-such-folder
+                        (mapcar (lambda (x) (car x)) (mh-sub-folders "+"))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
                    (mh-sub-folders (format "+%s" mh-test-rel-folder))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
@@ -356,6 +421,9 @@ if `mh-test-utils-debug-mocks' is non-nil."
                    (mh-sub-folders (format "+%s/foo" mh-test-rel-folder))))
     (should (equal (list (list "bar") (list "foo") (list "food"))
                    (mh-sub-folders (format "+%s" mh-test-abs-folder))))
+    (when (mh-test-variant-handles-plus-slash mh-variant-in-use)
+      (should (member "tmp"
+                      (mapcar (lambda (x) (car x)) (mh-sub-folders "+/")))))
 
     ;; FIXME: mh-sub-folders doesn't (yet) expect to be given a
     ;; nonexistent folder.
@@ -437,18 +505,20 @@ and the `should' macro requires idempotent evaluation anyway."
 
 (ert-deftest mh-folder-completion-function-08-plus-slash ()
   "Test `mh-folder-completion-function' with `+/'."
-  :expected-result :failed              ;to be fixed in a patch by mkupfer
-  (mh-test-folder-completion-1 "+/" "+/" "tmp/" nil)
-    ;; case "bb"
-    (with-mh-test-env
-      (should (equal nil
-                     (member (format "+%s/" mh-test-rel-folder)
-                             (mh-folder-completion-function "+/" nil t))))))
+  (with-mh-test-env
+    (skip-unless (mh-test-variant-handles-plus-slash mh-variant-in-use)))
+  (mh-test-folder-completion-1 "+/" "+/" "tmp/" t)
+  ;; case "bb"
+  (with-mh-test-env
+    (should (equal nil
+                   (member (format "+%s/" mh-test-rel-folder)
+                           (mh-folder-completion-function "+/" nil t))))))
 
 (ert-deftest mh-folder-completion-function-09-plus-slash-tmp ()
   "Test `mh-folder-completion-function' with `+/tmp'."
-  :expected-result :failed              ;to be fixed in a patch by mkupfer
-  (mh-test-folder-completion-1 "+/tmp" "+/tmp" "tmp/" t))
+  (with-mh-test-env
+    (skip-unless (mh-test-variant-handles-plus-slash mh-variant-in-use)))
+  (mh-test-folder-completion-1 "+/tmp" "+/tmp/" "tmp/" t))
 
 (ert-deftest mh-folder-completion-function-10-plus-slash-abs-folder ()
   "Test `mh-folder-completion-function' with `+/abso-folder'."

@@ -236,26 +236,24 @@ each one of its four blocks.")
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-mode-map
-  (let ((map (make-sparse-keymap 'tetris-mode-map)))
-    (define-key map "n"		'tetris-start-game)
-    (define-key map "q"		'tetris-end-game)
-    (define-key map "p"		'tetris-pause-game)
+(defvar-keymap tetris-mode-map
+  :doc "Keymap for Tetris games."
+  :name 'tetris-mode-map
+  "n"       #'tetris-start-game
+  "q"       #'tetris-end-game
+  "p"       #'tetris-pause-game
 
-    (define-key map " "		'tetris-move-bottom)
-    (define-key map [left]	'tetris-move-left)
-    (define-key map [right]	'tetris-move-right)
-    (define-key map [up]	'tetris-rotate-prev)
-    (define-key map [down]	'tetris-move-down)
-    map)
-  "Keymap for Tetris games.")
+  "SPC"     #'tetris-move-bottom
+  "<left>"  #'tetris-move-left
+  "<right>" #'tetris-move-right
+  "<up>"    #'tetris-rotate-prev
+  "<down>"  #'tetris-move-down)
 
-(defvar tetris-null-map
-  (let ((map (make-sparse-keymap 'tetris-null-map)))
-    (define-key map "n"		'tetris-start-game)
-    (define-key map "q"         'quit-window)
-    map)
-  "Keymap for finished Tetris games.")
+(defvar-keymap tetris-null-map
+  :doc "Keymap for finished Tetris games."
+  :name 'tetris-null-map
+  "n"       #'tetris-start-game
+  "q"       #'quit-window)
 
 (defconst tetris--menu-def
   '("Tetris"

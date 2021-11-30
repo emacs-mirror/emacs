@@ -1048,6 +1048,7 @@ BACKEND is a structure with `org-export-backend' type."
   (unless (org-export-backend-p backend)
     (error "Unknown \"%s\" back-end: Aborting export" backend)))
 
+;;;###autoload
 (defun org-export-derived-backend-p (backend &rest backends)
   "Non-nil if BACKEND is derived from one of BACKENDS.
 BACKEND is an export back-end, as returned by, e.g.,
@@ -1858,6 +1859,7 @@ INFO is a plist containing export directives."
       (let ((transcoder (cdr (assq type (plist-get info :translate-alist)))))
 	(and (functionp transcoder) transcoder)))))
 
+;;;###autoload
 (defun org-export-data (data info)
   "Convert DATA into current back-end format.
 
@@ -4586,6 +4588,7 @@ objects of the same type."
 ;; `org-export-raw-string' builds a pseudo-object out of a string
 ;; that any export back-end returns as-is.
 
+;;;###autoload
 (defun org-export-raw-string (s)
   "Return a raw object containing string S.
 A raw string is exported as-is, with no additional processing

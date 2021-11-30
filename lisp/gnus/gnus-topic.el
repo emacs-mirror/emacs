@@ -1059,26 +1059,26 @@ articles in the topic and its subtopics."
 (defvar-keymap gnus-topic-mode-map
   ;; Override certain group mode keys.
   "=" #'gnus-topic-select-group
-  "\r" #'gnus-topic-select-group
-  " " #'gnus-topic-read-group
-  "\C-c\C-x" #'gnus-topic-expire-articles
+  "RET" #'gnus-topic-select-group
+  "SPC" #'gnus-topic-read-group
+  "C-c C-x" #'gnus-topic-expire-articles
   "c" #'gnus-topic-catchup-articles
-  "\C-k" #'gnus-topic-kill-group
-  "\C-y" #'gnus-topic-yank-group
-  "\M-g" #'gnus-topic-get-new-news-this-topic
-  "AT" #'gnus-topic-list-active
-  "Gp" #'gnus-topic-edit-parameters
+  "C-k" #'gnus-topic-kill-group
+  "C-y" #'gnus-topic-yank-group
+  "M-g" #'gnus-topic-get-new-news-this-topic
+  "A T" #'gnus-topic-list-active
+  "G p" #'gnus-topic-edit-parameters
   "#" #'gnus-topic-mark-topic
-  "\M-#" #'gnus-topic-unmark-topic
-  [tab] #'gnus-topic-indent
-  [(meta tab)] #'gnus-topic-unindent
-  "\C-i" #'gnus-topic-indent
-  "\M-\C-i" #'gnus-topic-unindent
-  [mouse-2] #'gnus-mouse-pick-topic
+  "M-#" #'gnus-topic-unmark-topic
+  "<tab>" #'gnus-topic-indent
+  "M-<tab>" #'gnus-topic-unindent
+  "TAB" #'gnus-topic-indent
+  "C-M-i" #'gnus-topic-unindent
+  "<mouse-2>" #'gnus-mouse-pick-topic
 
   "T" (define-keymap :prefix 'gnus-group-topic-map
         "#" #'gnus-topic-mark-topic
-        "\M-#" #'gnus-topic-unmark-topic
+        "M-#" #'gnus-topic-unmark-topic
         "n" #'gnus-topic-create-topic
         "m" #'gnus-topic-move-group
         "D" #'gnus-topic-remove-group
@@ -1088,13 +1088,13 @@ articles in the topic and its subtopics."
         "j" #'gnus-topic-jump-to-topic
         "M" #'gnus-topic-move-matching
         "C" #'gnus-topic-copy-matching
-        "\M-p" #'gnus-topic-goto-previous-topic
-        "\M-n" #'gnus-topic-goto-next-topic
-        "\C-i" #'gnus-topic-indent
-        [tab] #'gnus-topic-indent
+        "M-p" #'gnus-topic-goto-previous-topic
+        "M-n" #'gnus-topic-goto-next-topic
+        "TAB" #'gnus-topic-indent
+        "<tab>" #'gnus-topic-indent
         "r" #'gnus-topic-rename
-        "\177" #'gnus-topic-delete
-        [delete] #'gnus-topic-delete
+        "DEL" #'gnus-topic-delete
+        "<delete>" #'gnus-topic-delete
         "H" #'gnus-topic-toggle-display-empty-topics
 
         "S" (define-keymap :prefix 'gnus-topic-sort-map

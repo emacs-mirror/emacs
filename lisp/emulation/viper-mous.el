@@ -198,8 +198,7 @@ is ignored."
 
 	 (setq result (buffer-substring word-beg (point))))
        ) ; if
-     ;; XEmacs doesn't have set-text-properties, but there buffer-substring
-     ;; doesn't return properties together with the string, so it's not needed.
+     ;; FIXME: Use `buffer-substring-no-properties' above instead?
      (set-text-properties 0 (length result) nil result)
      result))
 

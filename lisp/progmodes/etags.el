@@ -1992,7 +1992,8 @@ see the doc of that variable if you want to add names to the list."
       (setq set-list (delete (car set-list) set-list)))
     (goto-char (point-min))
     (insert-before-markers
-     "Type `t' to select a tags table or set of tags tables:\n\n")
+     (substitute-command-keys
+      "Type \\`t' to select a tags table or set of tags tables:\n\n"))
     (if desired-point
 	(goto-char desired-point))
     (set-window-start (selected-window) 1 t))

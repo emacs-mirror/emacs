@@ -140,6 +140,13 @@ typedef Emacs_Pixmap Emacs_Pix_Context;
 typedef struct pgtk_display_info Display_Info;
 typedef Emacs_Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
+#endif /* HAVE_PGTK */
+
+#ifdef HAVE_HAIKU
+#include "haikugui.h"
+typedef struct haiku_display_info Display_Info;
+typedef Emacs_Pixmap Emacs_Pix_Container;
+typedef Emacs_Pixmap Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1481,21 +1488,23 @@ struct glyph_string
    compared against minibuf_window (if SELW doesn't match), and SCRW
    which is compared against minibuf_selected_window (if MBW matches).  */
 
-#define CURRENT_MODE_LINE_FACE_ID_3(SELW, MBW, SCRW)		\
+#define CURRENT_MODE_LINE_ACTIVE_FACE_ID_3(SELW, MBW, SCRW)    	\
      ((!mode_line_in_non_selected_windows			\
        || (SELW) == XWINDOW (selected_window)			\
        || (minibuf_level > 0					\
            && !NILP (minibuf_selected_window)			\
            && (MBW) == XWINDOW (minibuf_window)			\
            && (SCRW) == XWINDOW (minibuf_selected_window)))	\
-      ? MODE_LINE_FACE_ID					\
+      ? MODE_LINE_ACTIVE_FACE_ID				\
       : MODE_LINE_INACTIVE_FACE_ID)
 
 
 /* Return the desired face id for the mode line of window W.  */
 
-#define CURRENT_MODE_LINE_FACE_ID(W)		\
-	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
+#define CURRENT_MODE_LINE_ACTIVE_FACE_ID(W)		\
+	(CURRENT_MODE_LINE_ACTIVE_FACE_ID_3((W),        \
+					    XWINDOW (selected_window), \
+					    (W)))
 
 /* Return the current height of the mode line of window W.  If not known
    from W->mode_line_height, look at W's current glyph matrix, or return
@@ -1508,7 +1517,7 @@ struct glyph_string
       = (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)			\
 	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
 	 : estimate_mode_line_height					\
-	     (XFRAME ((W)->frame), CURRENT_MODE_LINE_FACE_ID (W)))))
+	 (XFRAME ((W)->frame), CURRENT_MODE_LINE_ACTIVE_FACE_ID (W)))))
 
 /* Return the current height of the header line of window W.  If not known
    from W->header_line_height, look at W's current glyph matrix, or return
@@ -1822,7 +1831,7 @@ face_tty_specified_color (unsigned long color)
 enum face_id
 {
   DEFAULT_FACE_ID,
-  MODE_LINE_FACE_ID,
+  MODE_LINE_ACTIVE_FACE_ID,
   MODE_LINE_INACTIVE_FACE_ID,
   TOOL_BAR_FACE_ID,
   FRINGE_FACE_ID,
@@ -1840,6 +1849,7 @@ enum face_id
   CHILD_FRAME_BORDER_FACE_ID,
   TAB_BAR_FACE_ID,
   TAB_LINE_FACE_ID,
+  MODE_LINE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -2549,7 +2559,8 @@ struct it
   enum line_wrap_method line_wrap;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
-     MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
+     MODE_LINE_ACTIVE_FACE_ID, etc, depending on what we are
+     displaying.  */
   int base_face_id;
 
   /* If `what' == IT_CHARACTER, the character and the length in bytes
@@ -2750,6 +2761,12 @@ struct it
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
   bidi_dir_t paragraph_embedding;
+
+  /* For handling the :min-width property.  The object is the text
+     property we're testing the `eq' of (nil if none), and the integer
+     is the x position of the start of the run of glyphs. */
+  Lisp_Object min_width_property;
+  int min_width_start;
 };
 
 
@@ -3022,7 +3039,7 @@ struct redisplay_interface
 #ifdef HAVE_WINDOW_SYSTEM
 
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NS || defined HAVE_NTGUI)
+      || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU)
 #  define HAVE_NATIVE_TRANSFORMS
 # endif
 
@@ -3060,6 +3077,14 @@ struct image
 #endif	/* HAVE_X_WINDOWS */
 #ifdef HAVE_NTGUI
   XFORM xform;
+#endif
+#ifdef HAVE_HAIKU
+  /* Non-zero if the image has not yet been transformed for display.  */
+  int have_be_transforms_p;
+
+  double be_rotate;
+  double be_scale_x;
+  double be_scale_y;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
@@ -3500,7 +3525,8 @@ bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS \
+  || defined HAVE_HAIKU
 #define RGB_PIXEL_COLOR unsigned long
 #endif
 

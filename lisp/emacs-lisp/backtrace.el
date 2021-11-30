@@ -55,9 +55,9 @@ order to debug the code that does fontification."
 (defcustom backtrace-line-length 5000
   "Target length for lines in Backtrace buffers.
 Backtrace mode will attempt to abbreviate printing of backtrace
-frames to make them shorter than this, but success is not
-guaranteed.  If set to nil or zero, Backtrace mode will not
-abbreviate the forms it prints."
+frames by setting `print-level' and `print-length' to make them
+shorter than this, but success is not guaranteed.  If set to nil
+or zero, backtrace mode will not abbreviate the forms it prints."
   :type 'integer
   :group 'backtrace
   :version "27.1")
@@ -751,6 +751,13 @@ property for use by navigation."
     (insert (make-string (- backtrace--flags-width (- (point) beg)) ?\s))
     (put-text-property beg (point) 'backtrace-section 'func)))
 
+(defun backtrace--line-length-or-nil ()
+  "Return `backtrace-line-length' if valid, nil else."
+  ;; mirror the logic in `cl-print-to-string-with-limits'
+  (and (natnump backtrace-line-length)
+       (not (zerop backtrace-line-length))
+       backtrace-line-length))
+
 (defun backtrace--print-func-and-args (frame _view)
   "Print the function, arguments and buffer position of a backtrace FRAME.
 Format it according to VIEW."
@@ -769,11 +776,16 @@ Format it according to VIEW."
       (if (atom fun)
           (funcall backtrace-print-function fun)
         (insert
-         (backtrace--print-to-string fun (when args (/ backtrace-line-length 2)))))
+         (backtrace--print-to-string
+          fun
+          (when (and args (backtrace--line-length-or-nil))
+            (/ backtrace-line-length 2)))))
       (if args
           (insert (backtrace--print-to-string
-                   args (max (truncate (/ backtrace-line-length 5))
-                             (- backtrace-line-length (- (point) beg)))))
+                   args
+                   (if (backtrace--line-length-or-nil)
+                       (max (truncate (/ backtrace-line-length 5))
+                            (- backtrace-line-length (- (point) beg))))))
         ;; The backtrace-form property is so that backtrace-multi-line
         ;; will find it.  backtrace-multi-line doesn't do anything
         ;; useful with it, just being consistent.

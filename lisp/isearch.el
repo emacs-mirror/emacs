@@ -488,9 +488,9 @@ and doesn't remove full-buffer highlighting after a search."
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Type \\<isearch-help-map>\\[help-quit] to exit the Help command.)
 
-\\[isearch-describe-bindings]           Display all Isearch key bindings.
-\\[isearch-describe-key] KEYS      Display full documentation of Isearch key sequence.
-\\[isearch-describe-mode]           Display documentation of Isearch mode.
+  \\[isearch-describe-bindings]	Display all Isearch key bindings.
+  \\[isearch-describe-key]	Display full documentation of Isearch key sequence.
+  \\[isearch-describe-mode]	Display documentation of Isearch mode.
 
 You can't type here other help keys available in the global help map,
 but outside of this help window when you type them in Isearch mode,

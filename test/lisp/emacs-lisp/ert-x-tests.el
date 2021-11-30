@@ -103,23 +103,27 @@
 
 (ert-deftest ert-test-run-tests-interactively-2 ()
   :tags '(:causes-redisplay)
-  (let* ((passing-test (make-ert-test :name 'passing-test
-                                      :body (lambda () (ert-pass))))
-         (failing-test (make-ert-test :name 'failing-test
-                                      :body (lambda ()
-                                              (ert-info ((propertize "foo\nbar"
-                                                                     'a 'b))
-                                                (ert-fail
-                                                 "failure message")))))
-         (skipped-test (make-ert-test :name 'skipped-test
-                                      :body (lambda () (ert-skip
-							"skip message"))))
-         (ert-debug-on-error nil)
-         (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
-         (messages nil)
-         (mock-message-fn
-          (lambda (format-string &rest args)
-            (push (apply #'format format-string args) messages))))
+  (cl-letf* ((passing-test (make-ert-test
+                            :name 'passing-test
+                            :body (lambda () (ert-pass))))
+             (failing-test (make-ert-test
+                            :name 'failing-test
+                            :body (lambda ()
+                                    (ert-info ((propertize "foo\nbar"
+                                                           'a 'b))
+                                              (ert-fail
+                                               "failure message")))))
+             (skipped-test (make-ert-test
+                            :name 'skipped-test
+                            :body (lambda () (ert-skip
+					      "skip message"))))
+             (ert-debug-on-error nil)
+             (messages nil)
+             (buffer-name (generate-new-buffer-name "*ert-test-run-tests*"))
+             ((symbol-function 'message)
+              (lambda (format-string &rest args)
+                (push (apply #'format format-string args) messages)))
+             (ert--output-buffer-name buffer-name))
     (cl-flet ((expected-string (with-font-lock-p)
                 (ert-propertized-string
                  "Selector: (member <passing-test> <failing-test> "
@@ -152,14 +156,12 @@
                  "failing-test"
                  nil "\n    Info: " '(a b) "foo\n"
                  nil "          " '(a b) "bar"
-                 nil "\n    (ert-test-failed \"failure message\")\n\n\n"
-                 )))
+                 nil "\n    (ert-test-failed \"failure message\")\n\n\n")))
       (save-window-excursion
         (unwind-protect
             (let ((case-fold-search nil))
               (ert-run-tests-interactively
-               `(member ,passing-test ,failing-test ,skipped-test) buffer-name
-               mock-message-fn)
+               `(member ,passing-test ,failing-test ,skipped-test))
               (should (equal messages `(,(concat
                                           "Ran 3 tests, 1 results were "
                                           "as expected, 1 unexpected, "

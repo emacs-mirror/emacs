@@ -82,7 +82,7 @@
 
 (ert-deftest let-alist-list-to-sexp ()
   "Check that multiple dots are handled correctly."
-  (should (= 1 (eval (let-alist--list-to-sexp '(a b c d) ''((d (c (b (a . 1)))))))))
+  (should (= 1 (eval (let-alist--list-to-sexp '(a b c d) ''((d (c (b (a . 1)))))) t)))
   (should (equal (let-alist--access-sexp '.foo.bar.baz 'var)
                  '(cdr (assq 'baz (cdr (assq 'bar (cdr (assq 'foo var))))))))
   (should (equal (let-alist--access-sexp '..foo.bar.baz 'var) '.foo.bar.baz)))

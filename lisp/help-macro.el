@@ -140,6 +140,7 @@ and then returns."
                    (insert (substitute-command-keys help-screen)))
                  (let ((minor-mode-map-alist new-minor-mode-map-alist))
                    (help-mode)
+                   (variable-pitch-mode)
                    (setq new-minor-mode-map-alist minor-mode-map-alist))
                  (goto-char (point-min))
                  (while (or (memq char (append help-event-list

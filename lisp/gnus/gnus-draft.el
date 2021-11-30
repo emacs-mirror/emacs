@@ -34,11 +34,11 @@
 ;;; Draft minor mode
 
 (defvar-keymap gnus-draft-mode-map
-  "Dt" #'gnus-draft-toggle-sending
+  "D t" #'gnus-draft-toggle-sending
   "e" #' gnus-draft-edit-message ;; Use `B w' for `gnus-summary-edit-article'
-  "De" #'gnus-draft-edit-message
-  "Ds" #'gnus-draft-send-message
-  "DS" #'gnus-draft-send-all-messages)
+  "D e" #'gnus-draft-edit-message
+  "D s" #'gnus-draft-send-message
+  "D S" #'gnus-draft-send-all-messages)
 
 (defun gnus-draft-make-menu-bar ()
   (unless (boundp 'gnus-draft-menu)

@@ -817,7 +817,7 @@ IDL has currently stepped.")
 
    Command history, searching of previous commands, command line
    editing are available via the comint-mode key bindings, by default
-   mostly on the key `C-c'.  Command history is also available with
+   mostly on the key \\`C-c'.  Command history is also available with
    the arrow keys UP and DOWN.
 
 2. Completion
@@ -1327,7 +1327,7 @@ See also the variable `idlwave-shell-input-mode-spells'."
 Characters are sent one by one, without newlines.  The loop is blocking
 and intercepts all input events to Emacs.  You can use this command
 to interact with the IDL command GET_KBRD.
-The loop can be aborted by typing `C-g'.  The loop also exits automatically
+The loop can be aborted by typing \\[keyboard-quit].  The loop also exits automatically
 when the IDL prompt gets displayed again after the current IDL command."
   (interactive)
 
@@ -1342,7 +1342,8 @@ when the IDL prompt gets displayed again after the current IDL command."
 	(funcall errf "No IDL program seems to be waiting for input"))
 
     ;; OK, start the loop
-    (message "Character mode on:  Sending single chars (`C-g' to exit)")
+    (message (substitute-command-keys
+              "Character mode on:  Sending single chars (\\[keyboard-quit] to exit)"))
     (message
      (catch 'exit
        (while t

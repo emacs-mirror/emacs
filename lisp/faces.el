@@ -1172,9 +1172,8 @@ an integer value."
            (:height
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32
-                 (mapcar (lambda (f)
-                           (cons (file-name-base f) f))
+            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32 or haiku
+                 (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
@@ -2615,14 +2614,23 @@ non-nil."
      :background "grey75" :foreground "black")
     (t
      :inverse-video t))
-  "Basic mode line face for selected window."
+  "Face for the mode lines (for the selected window) as well as header lines.
+See `mode-line-display' for the face used on mode lines."
   :version "21.1"
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
+(defface mode-line-active
+  '((t :inherit (mode-line variable-pitch)))
+  "Face for the selected mode line.
+This inherits from the `mode-line' face."
+  :version "29.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
 (defface mode-line-inactive
   '((default
-     :inherit mode-line)
+     :inherit (mode-line variable-pitch))
     (((class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
@@ -2823,7 +2831,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns pgtk) (class color))
+    (((type x w32 ns haiku pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))
@@ -2884,13 +2892,17 @@ Note: Other faces cannot inherit from the cursor face."
      ;; making the characters wider, which then would cause unpleasant
      ;; horizontal shifts of the cursor during C-n/C-p movement
      ;; through a line with this face.
-     :box (:line-width (-1 . -1) :color "grey80"))
+     :box (:line-width (-1 . -1) :color "grey80")
+     :inherit fixed-pitch)
     (((class color) (min-colors 88) (background dark))
      :background "grey19" :foreground "LightBlue"
-     :box (:line-width (-1 . -1) :color "grey35"))
-    (((class color grayscale) (background light)) :background "grey90")
-    (((class color grayscale) (background dark)) :background "grey25")
-    (t :background "grey90"))
+     :box (:line-width (-1 . -1) :color "grey35")
+     :inherit fixed-pitch)
+    (((class color grayscale) (background light)) :background "grey90"
+     :inherit fixed-pitch)
+    (((class color grayscale) (background dark)) :background "grey25"
+     :inherit fixed-pitch)
+    (t :background "grey90" :inherit fixed-pitch))
   "Face for keybindings in *Help* buffers.
 
 This face is added by `substitute-command-keys', which see.

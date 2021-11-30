@@ -1672,9 +1672,14 @@ URLs."
     ;; known at compile time.  So instead, we assume that these
     ;; substitutions are of some length N.
     (replace-regexp-in-string
-     (rx "\\" (or (seq "[" (* (not "]")) "]")))
+     (rx "\\[" (* (not "]")) "]")
      (make-string byte-compile--wide-docstring-substitution-len ?x)
-     docstring))))
+     ;; For literal key sequence substitutions (e.g. "\\`C-h'"), just
+     ;; remove the markup as `substitute-command-keys' would.
+     (replace-regexp-in-string
+      (rx "\\`" (group (* (not "'"))) "'")
+      "\\1"
+      docstring)))))
 
 (defcustom byte-compile-docstring-max-column 80
   "Recommended maximum width of doc string lines.
@@ -5043,6 +5048,8 @@ binding slots have been popped."
        nil))
 
     (_ (byte-compile-keep-pending form))))
+
+
 
 ;;; tags
 

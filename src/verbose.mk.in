@@ -23,7 +23,9 @@ ifeq (${V},1)
 AM_V_AR =
 AM_V_at =
 AM_V_CC =
+AM_V_CXX =
 AM_V_CCLD =
+AM_V_CXXLD =
 AM_V_ELC =
 AM_V_ELN =
 AM_V_GEN =
@@ -34,7 +36,9 @@ else
 AM_V_AR = @echo "  AR      " $@;
 AM_V_at = @
 AM_V_CC = @echo "  CC      " $@;
+AM_V_CXX = @echo "  CXX     " $@;
 AM_V_CCLD = @echo "  CCLD    " $@;
+AM_V_CXXLD = @echo "  CXXLD   " $@;
 ifeq ($(HAVE_NATIVE_COMP),yes)
 ifeq ($(NATIVE_DISABLED),1)
 AM_V_ELC = @echo "  ELC     " $@;

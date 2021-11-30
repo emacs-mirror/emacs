@@ -1688,7 +1688,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (let ((stash (completing-read
                  prompt
                  (split-string
-                  (or (vc-git--run-command-string nil "stash" "list") "") "\n")
+                  (or (vc-git--run-command-string nil "stash" "list") "") "\n" t)
                  nil :require-match nil 'vc-git-stash-read-history)))
     (if (string-equal stash "")
         (user-error "Not a stash")
@@ -1733,12 +1733,11 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-stash-list ()
   (when-let ((out (vc-git--run-command-string nil "stash" "list")))
-    (delete
-     ""
-     (split-string
-      (replace-regexp-in-string
-       "^stash@" "             " out)
-      "\n"))))
+    (split-string
+     (replace-regexp-in-string
+      "^stash@" "             " out)
+     "\n"
+     t)))
 
 (defun vc-git-stash-get-at-point (point)
   (save-excursion

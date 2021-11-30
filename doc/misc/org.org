@@ -10811,6 +10811,18 @@ To turn off fontification for marked up text, you can set
 ~org-fontify-emphasized-text~ to ~nil~.  To narrow down the list of
 available markup syntax, you can customize ~org-emphasis-alist~.
 
+Sometimes, when marked text also contains the marker character itself,
+the result may be unsettling.  For example,
+
+#+begin_example
+/One may expect this whole sentence to be italicized, but the
+following ~user/?variable~ contains =/= character, which effectively
+stops emphasis there./
+#+end_example
+
+You can use zero width space to help Org sorting out the ambiguity.
+See [[*Escape Character]] for more details.
+
 ** Subscripts and Superscripts
 :PROPERTIES:
 :DESCRIPTION: Simple syntax for raising/lowering text.

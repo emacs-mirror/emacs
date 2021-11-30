@@ -24,11 +24,40 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
+** Emacs has been ported to the Haiku operating system.
+The configuration process should automatically detect and build for
+Haiku.  There is also an optional window-system port to Haiku, which
+can be enabled by configuring Emacs with the option '--with-be-app',
+which will require the Haiku Application Kit development headers and a
+C++ compiler to be present on your system.  If Emacs is not built with
+the option '--with-be-app', the resulting Emacs will only run in
+text-mode terminals.
+
++++
+*** Cairo drawing support has been enabled for Haiku builds.
+To enable Cairo support, ensure that the Cairo and FreeType
+development files are present on your system, and configure Emacs with
+'--with-be-cairo'.
+
+---
+*** Double buffering is now enabled on the Haiku operating system.
+Unlike X, there is no compile-time option to enable or disable
+double-buffering.  If you wish to disable double-buffering, change the
+frame parameter `inhibit-double-buffering' instead.
+
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
 "...dir/libexec/emacs/29.1/x86_64-pc-linux-gnu/emacs-<fingerprint>.pdmp".
 If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
+
+** Emacs now supports use of XInput 2 for input events.
+If your X server has support and you have the XInput 2 development headers
+installed, you can configure Emacs with the option '--with-xinput2' to enable
+this support.
+
+The named feature `xinput2' can be used to test for the presence of
+XInput 2 support from Lisp programs.
 
 
 * Startup Changes in Emacs 29.1
@@ -46,6 +75,38 @@ time.
 
 * Changes in Emacs 29.1
 
++++
+** New face 'mode-line-active'.
+This inherits from the 'mode-line' face, but is the face actually used
+on the mode lines (along with 'mode-line-inactive').
+
+---
+** The mode line now uses a proportional font by default.
+To get the old monospaced mode line back, customize the
+'mode-line-active' and 'mode-line-inactive' faces not to inherit from
+the 'variable-pitch' face, or add this to your ~/.emacs:
+
+  (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
+  (set-face-attribute 'mode-line-inactive nil :inherit 'mode-line)
+
++++
+** New function 'buffer-text-pixel-size'.
+This is similar to 'window-text-pixel-size', but can be used when the
+buffer isn't displayed.
+
++++
+** New X resource: "borderThickness".
+This controls the thickness of the external borders of the menu bars
+and pop-up menus.
+
+---
+** New minor mode 'pixel-scroll-precision-mode'.
+When enabled, and if your mouse supports it, you can scroll the
+display up or down at pixel resolution, according to what your mouse
+wheel reports.  Unlike 'pixel-scroll-mode', this mode scrolls the
+display pixel-by-pixel, as opposed to only animating line-by-line
+scrolls.
+
 ** Terminal Emacs
 
 ---
@@ -53,6 +114,18 @@ time.
 This is in addition to previously-supported ways of discovering 24-bit
 color support: either via the "RGB" or "setf24" capabilities, or if
 the 'COLORTERM' environment variable is set to the value "truecolor".
+
++++
+** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
+These variables will override 'print-length' and 'print-level' when
+printing Lisp values in ERT batch test results.
+
+---
+** Redefining an ERT test in batch mode now signals an error
+Executing 'ert-deftest' with the same name as an existing test causes
+the previous definition to be discarded, which was probably not
+intended when this occurs in batch mode.  To remedy the error, rename
+tests so that they all have unique names.
 
 ** Emoji
 
@@ -130,6 +203,11 @@ For example, a 'display-buffer-alist' entry of
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' in combination with 'body-lines'.
 
+** Tab Bars and Tab Lines
+
+---
+*** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
+
 ** Better detection of text suspiciously reordered on display.
 The function 'bidi-find-overridden-directionality' has been extended
 to detect reordering effects produced by embeddings and isolates
@@ -205,6 +283,15 @@ The user option 'comint-terminfo-terminal' and variable
 'system-uses-terminfo' can now be set as connection-local variables to
 change the terminal used on a remote host.
 
+** Mwheel
+
+---
+*** New user options for alternate wheel events.
+The options 'mouse-wheel-down-alternate-event', 'mouse-wheel-up-alternate-event',
+'mouse-wheel-left-alternate-event', and 'mouse-wheel-right-alternate-event' have
+been added to better support systems where two kinds of wheel events can be
+received.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
@@ -260,6 +347,10 @@ These are used to alter an URL before using it.  By default it removes
 the common "utm_" trackers from URLs.
 
 ** Gnus
+
+---
+*** New face 'gnus-header'.
+All other 'gnus-header-*' faces inherit from this face now.
 
 +++
 *** New user option 'gnus-treat-emojize-symbols'.
@@ -374,7 +465,7 @@ This works like 'image-transform-fit-to-window'.
 
 *** New user option 'image-auto-resize-max-scale-percent'.
 The new 'fit-window' option will never scale an image more than this
-much (in percent).  It is nil by default.
+much (in percent).  It is nil by default, which means no limit.
 
 ** Image-Dired
 
@@ -474,6 +565,11 @@ This is a convenience function to extract the field data from
 Using this option you can control how the xwidget-webkit buffers are
 named.
 
+---
+*** New user option 'xwidget-webkit-cookie-file'.
+Using this option you can control whether the xwidget-webkit buffers
+save cookies set by web pages, and if so, in which file to save them.
+
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
 When this mode is enabled, self-inserting characters and other common
@@ -482,9 +578,14 @@ WebKit widget.
 
 +++
 *** New minor mode 'xwidget-webkit-isearch-mode'.
-This mode acts similarly to incremental search, and allows to search
+This mode acts similarly to incremental search, and allows searching
 the contents of a WebKit widget.  In xwidget-webkit mode, it is bound
 to 'C-s' and 'C-r'.
+
++++
+*** New command 'xwidget-webkit-browse-history'.
+This command displays a buffer containing the page load history of
+the current WebKit widget, and allows you to navigate it.
 
 ---
 *** On X11, the WebKit inspector is now available inside xwidgets.
@@ -496,6 +597,14 @@ Element".
 The newly created buffer will be displayed via 'display-buffer', which
 can be customized through the usual mechanism of 'display-buffer-alist'
 and friends.
+
+** Tramp
+
+---
+*** Tramp supports abbreviating remote home directories now.
+When calling 'abbreviate-file-name' on a Tramp filename, the result
+will abbreviate the user's home directory, for example by abbreviating
+"/ssh:user@host:/home/user" to "/ssh:user@host:~".
 
 
 * New Modes and Packages in Emacs 29.1
@@ -586,6 +695,85 @@ Use 'exif-parse-file' and 'exif-field' instead.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'get-display-property'.
+This is like 'get-text-property', but works on the 'display' text
+property.
+
++++
+** New function 'add-text-display-property'.
+This is like 'put-text-property', but works on the 'display' text
+property.
+
++++
+** New 'min-width' 'display' property.
+This allows setting a minimum display width for a region of text.
+
+** Keymaps and key definitions
+
++++
+*** New functions for defining and manipulating keystrokes have been added.
+These all take just the syntax defined by 'key-valid-p'.  None of the
+older functions have been depreciated or altered, but are deemphasised
+in the documentation.
+
++++
+*** Use 'keymap-set' instead of 'define-key'.
+
++++
+*** Use 'keymap-global-set' instead of 'global-set-key'.
+
++++
+*** Use 'keymap-local-set' instead of 'local-set-key'.
+
++++
+*** Use 'keymap-global-unset' instead of 'global-unset-key'.
+
++++
+*** Use 'keymap-local-unset' instead of 'local-unset-key'.
+
++++
+*** Use 'keymap-substitute' instead of 'substitute-key-definition'.
+
++++
+*** Use 'keymap-set-after' instead of 'define-key-after'.
+
++++
+*** Use 'keymap-lookup' instead of 'lookup-keymap' and 'key-binding'.
+
++++
+*** Use 'keymap-local-lookup' instead of 'local-key-binding'.
+
++++
+*** Use 'keymap-global-lookup' instead of 'global-key-binding'.
+
++++
+*** 'define-key' now takes an optional REMOVE argument.
+If non-nil, remove the definition from the keymap.  This is subtly
+different from setting a definition to nil (when the keymap has a
+parent).
+
++++
+*** New function 'key-valid-p'.
+The 'kbd' function is quite permissive, and will try to return
+something usable even if the syntax of the argument isn't completely
+correct.  The 'key-valid-p' predicate does a stricter check of the
+syntax.
+
+---
+*** New function 'key-parse'.
+This is like 'kbd', but only returns vectors instead of a mix of
+vectors and strings.
+
++++
+** New substitution in docstrings and 'substitute-command-keys'.
+Use \\`KEYSEQ' to insert a literal key sequence "KEYSEQ" (for example
+\\`C-k') in a docstring or when calling 'substitute-command-keys',
+which will use the same face as a command substitution.  This should
+be used only when a key sequence has no corresponding command, for
+example when it is read directly with 'read-key-sequence'.  It must be
+a valid key sequence according to 'key-valid-p'.
+
++++
 ** New function 'file-name-split'.
 This returns a list of all the components of a file name.
 
@@ -632,6 +820,9 @@ This convenience function is useful when writing code that parses
 files at run-time, and allows Lisp programs to re-parse files only
 when they have changed.
 
++++
+** 'abbreviate-file-name' now respects magic file name handlers.
+
 ---
 ** New function 'font-has-char-p'.
 This can be used to check whether a specific font has a glyph for a
@@ -675,13 +866,6 @@ descriptor, which means to insert an image in that column instead of
 text.  See the documentation string of that variable for details.
 
 +++
-** 'define-key' now understands a new strict 'kbd' representation for keys.
-The '(define-key map ["C-c M-f"] #'some-command)' syntax is now
-supported, and is like the 'kbd' representation, but is stricter.  If
-the string doesn't represent a valid key sequence, an error is
-signalled (both when evaluating and byte compiling).
-
-+++
 ** :keys in 'menu-item' can now be a function.
 If so, it is called whenever the menu is computed, and can be used to
 calculate the keys dynamically.
@@ -716,13 +900,6 @@ This macro allows defining keymap variables more conveniently.
 ---
 ** 'kbd' can now be used in built-in, preloaded libraries.
 It no longer depends on edmacro.el and cl-lib.el.
-
-+++
-** New function 'kbd-valid-p'.
-The 'kbd' function is quite permissive, and will try to return
-something usable even if the syntax of the argument isn't completely
-correct.  The 'kbd-valid-p' predicate does a stricter check of the
-syntax.
 
 +++
 ** New function 'image-at-point-p'.
@@ -782,6 +959,21 @@ Some new functions, such as 'xwidget-webkit-search', have been added
 for performing searches on WebKit xwidgets.
 
 +++
+*** New function 'xwidget-webkit-back-forward-list'.
+This function is used to obtain the history of page-loads in a given
+WebKit xwidget.
+
++++
+*** New function 'xwidget-webkit-estimated-load-progress'.
+This function is used to obtain the estimated progress of page loading
+in a given WebKit xwidget.
+
++++
+*** New function 'xwidget-webkit-stop-loading'.
+This function is used to terminate all data transfer during page loads
+in a given WebKit xwidget.
+
++++
 *** 'load-changed' xwidget events are now more detailed.
 In particular, they can now have different arguments based on the
 state of the WebKit widget.  'load-finished' is sent when a load has
@@ -792,8 +984,13 @@ commits to the load.
 +++
 *** New event type 'xwidget-display-event'.
 These events are sent whenever an xwidget requests that Emacs display
-another xwidget.  The only argument to this event is the xwidget that
-should be displayed.
+another xwidget.  The only arguments to this event are the xwidget
+that should be displayed, and the xwidget that asked to display it.
+
++++
+*** New function 'xwidget-webkit-set-cookie-storage-file'.
+This function is used to control where and if an xwidget stores
+cookies set by web pages on disk.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

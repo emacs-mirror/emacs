@@ -123,7 +123,7 @@ MUNGE_DEP_PKGS={
 
 ## Currently no packages seem to require this!
 ARCH_PKGS=[]
-SRC_REPO="https://sourceforge.net/projects/msys2/files/REPOS/MINGW/Sources"
+SRC_REPO="https://repo.msys2.org/mingw/sources"
 
 
 def immediate_deps(pkgs):
@@ -169,7 +169,7 @@ def download_source(tarball):
     if not os.path.exists("../emacs-src-cache/{}".format(tarball)):
         print("Downloading {}...".format(tarball))
         check_output_maybe(
-            "wget -a ../download.log -O ../emacs-src-cache/{} {}/{}/download"
+            "wget -a ../download.log -O ../emacs-src-cache/{} {}/{}"
             .format(tarball, SRC_REPO, tarball),
             shell=True
         )

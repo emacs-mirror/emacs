@@ -308,7 +308,7 @@ and the hook `eshell-exit-hook'."
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
       (setq-local mode-line-format fmt))
-    (let ((mode-line-elt (memq 'mode-line-modified mode-line-format)))
+    (let ((mode-line-elt (cdr (memq 'mode-line-front-space mode-line-format))))
       (if mode-line-elt
 	  (setcar mode-line-elt 'eshell-command-running-string))))
 

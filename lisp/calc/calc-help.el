@@ -50,25 +50,25 @@
       (beep))))
 
 (defun calc-help-for-help (arg)
-  "You have typed `h', the Calc help character.  Type a Help option:
+  "You have typed \\`h', the Calc help character.  Type a Help option:
 
-B  calc-describe-bindings.  Display a table of all key bindings.
-H  calc-full-help.  Display all `?' key messages at once.
+\\`B'  calc-describe-bindings.  Display a table of all key bindings.
+\\`H'  calc-full-help.  Display all \\`?' key messages at once.
 
-I  calc-info.  Read the Calc manual using the Info system.
-T  calc-tutorial.  Read the Calc tutorial using the Info system.
-S  calc-info-summary.  Read the Calc summary using the Info system.
+\\`I'  calc-info.  Read the Calc manual using the Info system.
+\\`T'  calc-tutorial.  Read the Calc tutorial using the Info system.
+\\`S'  calc-info-summary.  Read the Calc summary using the Info system.
 
-C  calc-describe-key-briefly.  Look up the command name for a given key.
-K  calc-describe-key.  Look up a key's documentation in the manual.
-F  calc-describe-function.  Look up a function's documentation in the manual.
-V  calc-describe-variable.  Look up a variable's documentation in the manual.
+\\`C'  calc-describe-key-briefly.  Look up the command name for a given key.
+\\`K'  calc-describe-key.  Look up a key's documentation in the manual.
+\\`F'  calc-describe-function.  Look up a function's documentation in the manual.
+\\`V'  calc-describe-variable.  Look up a variable's documentation in the manual.
 
-N  calc-view-news.  Display Calc history of changes.
+\\`N'  calc-view-news.  Display Calc history of changes.
 
-C-c  Describe conditions for copying Calc.
-C-d  Describe how you can get a new copy of Calc or report a bug.
-C-w  Describe how there is no warranty for Calc."
+\\`C-c'  Describe conditions for copying Calc.
+\\`C-d'  Describe how you can get a new copy of Calc or report a bug.
+\\`C-w'  Describe how there is no warranty for Calc."
   (interactive "P")
   (if calc-dispatch-help
       (let (key)

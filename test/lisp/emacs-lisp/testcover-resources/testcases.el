@@ -424,7 +424,7 @@
 (defmacro testcover-testcase-nth-case (arg vec)
   (declare (indent 1)
            (debug (form (vector &rest form))))
-  `(eval (aref ,vec%%% ,arg%%%))%%%)
+  `(eval (aref ,vec%%% ,arg%%%) t)%%%)
 
 (defun testcover-testcase-use-nth-case (choice val)
   (testcover-testcase-nth-case choice

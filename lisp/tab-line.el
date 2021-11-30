@@ -792,7 +792,9 @@ Its effect is the same as using the `previous-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-prev-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
@@ -816,7 +818,9 @@ Its effect is the same as using the `next-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-next-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
@@ -893,7 +897,14 @@ sight of the tab line."
 (define-minor-mode tab-line-mode
   "Toggle display of tab line in the windows displaying the current buffer."
   :lighter nil
-  (setq tab-line-format (when tab-line-mode '(:eval (tab-line-format)))))
+  (let ((default-value '(:eval (tab-line-format))))
+    (if tab-line-mode
+        ;; Preserve the existing tab-line set outside of this mode
+        (unless tab-line-format
+          (setq tab-line-format default-value))
+      ;; Reset only values set by this mode
+      (when (equal tab-line-format default-value)
+        (setq tab-line-format nil)))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)

@@ -227,6 +227,7 @@ Value is:
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame,
  `pgtk' for an Emacs frame running on pure GTK.
+ `haiku' for an Emacs frame running in Haiku.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {
@@ -247,6 +248,8 @@ See also `frame-live-p'.  */)
       return Qns;
     case output_pgtk:
       return Qpgtk;
+    case output_haiku:
+      return Qhaiku;
     default:
       emacs_abort ();
     }
@@ -6036,6 +6039,7 @@ syms_of_frame (void)
   DEFSYM (Qpc, "pc");
   DEFSYM (Qns, "ns");
   DEFSYM (Qpgtk, "pgtk");
+  DEFSYM (Qhaiku, "haiku");
   DEFSYM (Qvisible, "visible");
   DEFSYM (Qbuffer_predicate, "buffer-predicate");
   DEFSYM (Qbuffer_list, "buffer-list");

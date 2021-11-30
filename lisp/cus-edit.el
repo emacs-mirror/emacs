@@ -2176,7 +2176,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button
-  '((((type x w32 ns pgtk) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
@@ -2184,7 +2184,7 @@ and `face'."
   :group 'custom-faces)
 
 (defface custom-button-mouse
-  '((((type x w32 ns pgtk) (class color))
+  '((((type x w32 ns haiku pgtk) (class color))
      :box (:line-width 2 :style released-button)
      :background "grey90" :foreground "black")
     (t
@@ -2209,7 +2209,7 @@ and `face'."
       (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
-  '((((type x w32 ns pgtk) (class color))
+  '((((type x w32 ns haiku pgtk) (class color))
      :box (:line-width 2 :style pressed-button)
      :background "lightgrey" :foreground "black")
     (t :inverse-video t))
@@ -4650,8 +4650,8 @@ You can set this option through Custom, if you carefully read the
 last paragraph below.  However, usually it is simpler to write
 something like the following in your init file:
 
-\(setq custom-file \"~/.emacs-custom.el\")
-\(load custom-file)
+(setq custom-file \"~/.config/emacs-custom.el\")
+(load custom-file)
 
 Note that both lines are necessary: the first line tells Custom to
 save all customizations in this file, but does not load it.

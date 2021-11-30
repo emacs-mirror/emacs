@@ -1467,11 +1467,11 @@ address was listed in gnus-group-split Addresses (see below).")
  :variable-group gnus-group-parameter
  :parameter-type '(gnus-email-address :tag "To List")
  :parameter-document "\
-This address will be used when doing a `a' in the group.
+This address will be used when doing a \\`a' in the group.
 
 It is totally ignored when doing a followup--except that if it is
 present in a news group, you'll get mail group semantics when doing
-`f'.
+\\`f'.
 
 The gnus-group-split mail splitting mechanism will behave as if this
 address was listed in gnus-group-split Addresses (see below).")
@@ -2749,7 +2749,7 @@ with some simple extensions.
 %F          Contents of the From: header (string)
 %f          Contents of the From: or To: headers (string)
 %x          Contents of the Xref: header (string)
-%D          Date of the article (string)
+%D          Contents of the Date: header article (string)
 %d          Date of the article (string) in DD-MMM format
 %o          Date of the article (string) in YYYYMMDD`T'HHMMSS
             format

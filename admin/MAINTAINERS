@@ -138,6 +138,9 @@ Andrea Corallo
 	    lisp/emacs-lisp/comp-cstr.el
 	    test/src/comp-*.el
 
+Stefan Kangas
+        admin/automerge
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -228,6 +231,7 @@ Michael Albinus
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el
+	test/infra/*
         test/lisp/autorevert-tests.el
         test/lisp/files-tests.el (file-name-non-special)
 	test/lisp/shadowfile-tests.el

@@ -596,7 +596,7 @@ If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
 resume it in a later session.
 
 Type \\<dired-mode-map>\\[revert-buffer] \
-in the Virtual Dired buffer and answer `y' to convert
+in the Virtual Dired buffer and answer \\`y' to convert
 the virtual to a real Dired buffer again.  You don't have to do this, though:
 you can relist single subdirs using \\[dired-do-redisplay]."
 

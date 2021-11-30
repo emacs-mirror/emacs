@@ -353,13 +353,6 @@
   (should (= 5 (cl-fifth '(1 2 3 4 5 6))))
   (should-error (cl-fifth "12345") :type 'wrong-type-argument))
 
-(ert-deftest cl-lib-test-fifth ()
-  (should (null (cl-fifth '())))
-  (should (null (cl-fifth '(1 2 3 4))))
-  (should (= 5 (cl-fifth '(1 2 3 4 5))))
-  (should (= 5 (cl-fifth '(1 2 3 4 5 6))))
-  (should-error (cl-fifth "12345") :type 'wrong-type-argument))
-
 (ert-deftest cl-lib-test-sixth ()
   (should (null (cl-sixth '())))
   (should (null (cl-sixth '(1 2 3 4 5))))

@@ -63,7 +63,8 @@ See `tramp-actions-before-shell' for more info.")
 
 ;;;###tramp-autoload
 (defconst tramp-sudoedit-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '((abbreviate-file-name . tramp-handle-abbreviate-file-name)
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-sudoedit-handle-add-name-to-file)
     (byte-compiler-base-file-name . ignore)
     (copy-directory . tramp-handle-copy-directory)
@@ -75,7 +76,6 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    ;; Starting with Emacs 29.1, `dired-compress-file' isn't magic anymore.
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)

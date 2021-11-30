@@ -3108,6 +3108,10 @@ syms_of_ftfont (void)
   Fput (Qfreetype, Qfont_driver_superseded_by, Qfreetypehb);
 #endif	/* HAVE_HARFBUZZ */
 
+#ifdef HAVE_HAIKU
+  DEFSYM (Qmono, "mono");
+#endif
+
   /* Fontconfig's generic families and their aliases.  */
   DEFSYM (Qmonospace, "monospace");
   DEFSYM (Qsans_serif, "sans-serif");

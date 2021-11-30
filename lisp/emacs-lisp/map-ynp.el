@@ -215,12 +215,12 @@ The function's value is the number of actions taken."
                                    (action  (or (nth 2 help) "act on")))
 			       (concat
                                 (format-message
-                                 "\
-Type SPC or `y' to %s the current %s;
-DEL or `n' to skip the current %s;
-RET or `q' to skip the current and all remaining %s;
-C-g to quit (cancel the whole command);
-! to %s all remaining %s;\n"
+                                 (substitute-command-keys "\
+Type \\`SPC' or \\`y' to %s the current %s;
+\\`DEL' or \\`n' to skip the current %s;
+\\`RET' or \\`q' to skip the current and all remaining %s;
+\\`C-g' to quit (cancel the whole command);
+\\`!' to %s all remaining %s;\n")
                                  action object object objects action objects)
                                 (mapconcat (lambda (elt)
                                              (format "%s to %s;\n"

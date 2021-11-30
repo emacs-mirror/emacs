@@ -787,6 +787,7 @@ have written output."
                            (list (list process "finished\n"))))))))))
 
 (ert-deftest process-tests/multiple-threads-waiting ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (fboundp 'make-thread))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
