@@ -686,7 +686,7 @@ entire computation of the value into the @code{defvar}, like this:
 @example
 (defvar my-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-a" 'my-command)
+    (keymap-set map "C-c C-a" 'my-command)
     @dots{}
     map)
   @var{docstring})
@@ -701,25 +701,6 @@ file once the variable is initialized will not alter it; that is
 important if the user has run hooks to alter part of the contents
 (such as, to rebind keys).  Third, evaluating the @code{defvar} form
 with @kbd{C-M-x} will reinitialize the map completely.
-
-  Putting so much code in the @code{defvar} form has one disadvantage:
-it puts the documentation string far away from the line which names the
-variable.  Here's a safe way to avoid that:
-
-@example
-(defvar my-mode-map nil
-  @var{docstring})
-(unless my-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-a" 'my-command)
-    @dots{}
-    (setq my-mode-map map)))
-@end example
-
-@noindent
-This has all the same advantages as putting the initialization inside
-the @code{defvar}, except that you must type @kbd{C-M-x} twice, once on
-each form, if you do want to reinitialize the variable.
 
 @node Accessing Variables
 @section Accessing Variable Values

@@ -2968,7 +2968,8 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
   "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
   :copy 'widget-types-copy
-  :format ":\n%v"
+  :format (concat (propertize ":" 'display "")
+                  "\n%v")
   :value-create 'widget-group-value-create
   :value-get 'widget-editable-list-value-get
   :default-get 'widget-group-default-get

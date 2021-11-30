@@ -10045,8 +10045,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			scroll_unit = pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
 
-			if (FLOATP (Vx_scroll_event_delta_factor))
-			  scroll_unit *= XFLOAT_DATA (Vx_scroll_event_delta_factor);
+			if (NUMBERP (Vx_scroll_event_delta_factor))
+			  scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);
 
 			if (val->horizontal)
 			  {

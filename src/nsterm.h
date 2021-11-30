@@ -1352,9 +1352,7 @@ enum NSWindowTabbingMode
 #define NSPasteboardTypeTabularText NSTabularTextPboardType
 #define NSPasteboardTypeURL NSURLPboardType
 #define NSPasteboardTypeHTML NSHTMLPboardType
-#define NSPasteboardTypeMultipleTextSelection NSMultipleTextSelectionPboardType
 #define NSPasteboardTypePDF NSPDFPboardType
-#define NSPasteboardTypePNG NSPNGPboardType
 #define NSPasteboardTypeRTF NSRTFPboardType
 #define NSPasteboardTypeRTFD NSRTFDPboardType
 #define NSPasteboardTypeTIFF NSTIFFPboardType

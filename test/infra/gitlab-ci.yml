@@ -93,8 +93,8 @@ default:
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    - /usr/bin/find ${test_name} ! -name "*.log" -type f -delete
-    - /usr/bin/find ${test_name} -empty -type d -delete
+    - find ${test_name} ! -name "*.log" -type f -delete
+    - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
 
 .build-template:
   needs: []

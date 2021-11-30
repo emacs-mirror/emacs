@@ -4195,7 +4195,7 @@ position.  The action code is always @code{t}.
 For example, here is how Info mode handles @key{mouse-1}:
 
 @smallexample
-(define-key Info-mode-map [follow-link] 'mouse-face)
+(keymap-set Info-mode-map "<follow-link>" 'mouse-face)
 @end smallexample
 
 @item a function
@@ -4208,9 +4208,9 @@ For example, here is how pcvs enables @kbd{mouse-1} to follow links on
 file names only:
 
 @smallexample
-(define-key map [follow-link]
-  (lambda (pos)
-    (eq (get-char-property pos 'face) 'cvs-filename-face)))
+(keymap-set map "<follow-link>"
+            (lambda (pos)
+              (eq (get-char-property pos 'face) 'cvs-filename-face)))
 @end smallexample
 
 @item anything else

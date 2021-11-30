@@ -916,10 +916,8 @@ which in turn may have been changed in a mode hook.
 Here is a hypothetical example:
 
 @example
-(defvar hypertext-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-3] 'do-hyper-link)
-    map))
+(defvar-keymap hypertext-mode-map
+  "<down-mouse-3>" #'do-hyper-link)
 
 (define-derived-mode hypertext-mode
   text-mode "Hypertext"
@@ -1344,11 +1342,9 @@ the conventions listed above:
 
 ;; @r{Create the keymap for this mode.}
 @group
-(defvar text-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\t" 'ispell-complete-word)
-    @dots{}
-    map)
+(defvar-keymap text-mode-map
+  "C-M-i" #'ispell-complete-word
+  @dots{})
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and
 `indented-text-mode', inherit all the commands defined in this map.")
@@ -1421,13 +1417,11 @@ common.  The following code sets up the common commands:
 
 @smallexample
 @group
-(defvar lisp-mode-shared-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map prog-mode-map)
-    (define-key map "\e\C-q" 'indent-sexp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    map)
-  "Keymap for commands shared by all sorts of Lisp modes.")
+(defvar-keymap lisp-mode-shared-map
+  :parent prog-mode-map
+  :doc "Keymap for commands shared by all sorts of Lisp modes."
+  "C-M-q" #'indent-sexp
+  "DEL" #'backward-delete-char-untabify)
 @end group
 @end smallexample
 
@@ -1436,16 +1430,12 @@ And here is the code to set up the keymap for Lisp mode:
 
 @smallexample
 @group
-(defvar lisp-mode-map
-  (let ((map (make-sparse-keymap))
-        (menu-map (make-sparse-keymap "Lisp")))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\C-x" 'lisp-eval-defun)
-    (define-key map "\C-c\C-z" 'run-lisp)
-    @dots{}
-    map)
-  "Keymap for ordinary Lisp mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap lisp-mode-map
+  :doc "Keymap for ordinary Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map
+  "C-M-x" #'lisp-eval-defun
+  "C-c C-z" #'run-lisp)
 @end group
 @end smallexample
 

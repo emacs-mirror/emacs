@@ -393,7 +393,7 @@ FILE's name."
     (concat ";;; " basename
             " --- automatically extracted " (or type "autoloads")
             "  -*- lexical-binding: t -*-\n"
-            (when (equal basename "loaddefs.el")
+            (when (string-match "/lisp/loaddefs\\.el\\'" file)
               ";; This file will be copied to ldefs-boot.el and checked in periodically.\n")
 	    ";;\n"
 	    ";;; Code:\n\n"

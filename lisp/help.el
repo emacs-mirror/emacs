@@ -50,6 +50,11 @@
 (defvar help-window-old-frame nil
   "Frame selected at the time `with-help-window' is invoked.")
 
+(defvar help-buffer-under-preparation nil
+  "Whether a *Help* buffer is being prepared.
+This variable is bound to t during the preparation of a *Help*
+buffer.")
+
 (defvar help-map
   (let ((map (make-sparse-keymap)))
     (define-key map (char-to-string help-char) 'help-for-help)
@@ -524,30 +529,31 @@ See `lossage-size' to update the number of recorded keystrokes.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
-  (help-setup-xref (list #'view-lossage)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (princ " ")
-    (princ (mapconcat (lambda (key)
-			(cond
-			 ((and (consp key) (null (car key)))
-			  (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
-					      "anonymous-command")))
-			 ((or (integerp key) (symbolp key) (listp key))
-			  (single-key-description key))
-			 (t
-			  (prin1-to-string key nil))))
-		      (recent-keys 'include-cmds)
-		      " "))
-    (with-current-buffer standard-output
-      (goto-char (point-min))
-      (let ((comment-start ";; ")
-            (comment-column 24))
-        (while (not (eobp))
-          (comment-indent)
-	  (forward-line 1)))
-      ;; Show point near the end of "lossage", as we did in Emacs 24.
-      (set-marker help-window-point-marker (point)))))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'view-lossage)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (princ " ")
+      (princ (mapconcat (lambda (key)
+			  (cond
+			   ((and (consp key) (null (car key)))
+			    (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
+						"anonymous-command")))
+			   ((or (integerp key) (symbolp key) (listp key))
+			    (single-key-description key))
+			   (t
+			    (prin1-to-string key nil))))
+			(recent-keys 'include-cmds)
+			" "))
+      (with-current-buffer standard-output
+	(goto-char (point-min))
+	(let ((comment-start ";; ")
+              (comment-column 24))
+          (while (not (eobp))
+            (comment-indent)
+	    (forward-line 1)))
+	;; Show point near the end of "lossage", as we did in Emacs 24.
+	(set-marker help-window-point-marker (point))))))
 
 
 ;; Key bindings
@@ -579,31 +585,32 @@ The optional argument BUFFER specifies which buffer's bindings
 to display (default, the current buffer).  BUFFER can be a buffer
 or a buffer name."
   (interactive)
-  (or buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-bindings prefix buffer)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (with-current-buffer (help-buffer)
-      (describe-buffer-bindings buffer prefix)
+  (let ((help-buffer-under-preparation t))
+    (or buffer (setq buffer (current-buffer)))
+    (help-setup-xref (list #'describe-bindings prefix buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer (help-buffer)
+	(describe-buffer-bindings buffer prefix)
 
-      (when describe-bindings-outline
-        (setq-local outline-regexp ".*:$")
-        (setq-local outline-heading-end-regexp ":\n")
-        (setq-local outline-level (lambda () 1))
-        (setq-local outline-minor-mode-cycle t
-                    outline-minor-mode-highlight t)
-        (setq-local outline-minor-mode-use-buttons t)
-        (outline-minor-mode 1)
-        (save-excursion
-          (goto-char (point-min))
-          (let ((inhibit-read-only t))
-            ;; Hide the longest body.
-            (when (re-search-forward "Key translations" nil t)
-              (outline-hide-subtree))
-            ;; Hide ^Ls.
-            (while (search-forward "\n\f\n" nil t)
-              (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
-                                 'invisible t))))))))
+	(when describe-bindings-outline
+          (setq-local outline-regexp ".*:$")
+          (setq-local outline-heading-end-regexp ":\n")
+          (setq-local outline-level (lambda () 1))
+          (setq-local outline-minor-mode-cycle t
+                      outline-minor-mode-highlight t)
+          (setq-local outline-minor-mode-use-buttons t)
+          (outline-minor-mode 1)
+          (save-excursion
+            (goto-char (point-min))
+            (let ((inhibit-read-only t))
+              ;; Hide the longest body.
+              (when (re-search-forward "Key translations" nil t)
+		(outline-hide-subtree))
+              ;; Hide ^Ls.
+              (while (search-forward "\n\f\n" nil t)
+		(put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+                                   'invisible t)))))))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
@@ -907,7 +914,8 @@ current buffer."
       (let ((raw (if (numberp buffer) (this-single-command-raw-keys) buffer)))
         (setf (cdar (last key-list)) raw)))
     (setq buffer nil))
-  (let* ((buf (or buffer (current-buffer)))
+  (let* ((help-buffer-under-preparation t)
+         (buf (or buffer (current-buffer)))
          (on-link
           (mapcar (lambda (kr)
                     (let ((raw (cdr kr)))
@@ -1181,6 +1189,7 @@ Otherwise, return a new string."
                     (delete-char (- end-point (point)))
                     (let ((key (help--key-description-fontified key)))
                       (insert (if (and help-link-key-to-documentation
+                                       help-buffer-under-preparation
                                        (functionp fun))
                                   ;; The `fboundp' fixes bootstrap.
                                   (if (fboundp 'help-mode--add-function-link)

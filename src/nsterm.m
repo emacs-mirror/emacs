@@ -3307,16 +3307,17 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
   if (s->hl == DRAW_CURSOR)
     [FRAME_BACKGROUND_COLOR (s->f) set];
-  else if (face->underline_defaulted_p)
-    [defaultCol set];
   else
-    [ns_lookup_indexed_color (face->underline_color, s->f) set];
+    [defaultCol set];
 
   /* Do underline.  */
   if (face->underline)
     {
       if (s->face->underline == FACE_UNDER_WAVE)
         {
+          if (!face->underline_defaulted_p)
+            [ns_lookup_indexed_color (face->underline_color, s->f) set];
+
           ns_draw_underwave (s, width, x);
         }
       else if (s->face->underline == FACE_UNDER_LINE)
@@ -3387,6 +3388,9 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           s->underline_position = position;
 
           r = NSMakeRect (x, s->ybase + position, width, thickness);
+
+          if (!face->underline_defaulted_p)
+            [ns_lookup_indexed_color (face->underline_color, s->f) set];
           NSRectFill (r);
         }
     }
@@ -3396,6 +3400,10 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
     {
       NSRect r;
       r = NSMakeRect (x, s->y, width, 1);
+
+      if (!face->overline_color_defaulted_p)
+        [ns_lookup_indexed_color (face->overline_color, s->f) set];
+
       NSRectFill (r);
     }
 
@@ -3417,6 +3425,9 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
       dy = lrint ((glyph_height - h) / 2);
       r = NSMakeRect (x, glyph_y + dy, width, 1);
+
+      if (!face->strike_through_color_defaulted_p)
+        [ns_lookup_indexed_color (face->strike_through_color, s->f) set];
 
       NSRectFill (r);
     }
@@ -4066,7 +4077,6 @@ ns_draw_glyph_string (struct glyph_string *s)
 			  ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face),
 						     s->f)
 			  : FRAME_FOREGROUND_COLOR (s->f));
-	  [col set];
 
 	  /* Draw underline, overline, strike-through. */
 	  ns_draw_text_decoration (s, s->face, col, s->width, s->x);
@@ -6654,6 +6664,12 @@ not_in_argv (NSString *arg)
 
           if (lines == 0 && x_coalesce_scroll_events)
             return;
+
+	  if (NUMBERP (Vns_scroll_event_delta_factor))
+	    {
+	      x *= XFLOATINT (Vns_scroll_event_delta_factor);
+	      y *= XFLOATINT (Vns_scroll_event_delta_factor);
+	    }
 
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
           emacs_event->arg = list3 (make_fixnum (lines),
@@ -10026,6 +10042,12 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   x_coalesce_scroll_events = true;
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  DEFVAR_LISP ("ns-scroll-event-delta-factor", Vns_scroll_event_delta_factor,
+	       doc: /* A delta to apply to pixel deltas reported in scroll events.
+ This is only effective for pixel deltas generated from touch pads or
+ mice with smooth scrolling capability.  */);
+  Vns_scroll_event_delta_factor = make_float (1.0);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);

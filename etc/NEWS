@@ -295,6 +295,13 @@ received.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** pixel-fill
+
+*** This is a new package that deals with filling variable-pitch text.
+
+*** New function 'pixel-fill-region'.
+This fills the region to be no wider than a specified pixel width.
+
 ** Info
 
 ---
@@ -426,6 +433,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
+
+*** 'project-kill-buffers' can display the list of buffers to kill.
+Customize the user option 'project-kill-buffers-display-buffer-list'
+to enable the display of the buffer list.
 
 +++
 *** New command 'xref-go-forward'.
@@ -991,6 +1002,9 @@ that should be displayed, and the xwidget that asked to display it.
 *** New function 'xwidget-webkit-set-cookie-storage-file'.
 This function is used to control where and if an xwidget stores
 cookies set by web pages on disk.
+
+** New variable 'help-buffer-under-preparation'.
+This variable is bound to t during the preparation of a *Help* buffer.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

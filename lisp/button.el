@@ -604,7 +604,8 @@ When called from Lisp, pass BUTTON-OR-POS as the button to describe, or a
 buffer position where a button is present.  If BUTTON-OR-POS is nil, the
 button at point is the button to describe."
   (interactive "d")
-  (let* ((button (cond ((integer-or-marker-p button-or-pos)
+  (let* ((help-buffer-under-preparation t)
+         (button (cond ((integer-or-marker-p button-or-pos)
                         (button-at button-or-pos))
                        ((null button-or-pos) (button-at (point)))
                        ((overlayp button-or-pos) button-or-pos)))

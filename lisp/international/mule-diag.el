@@ -299,65 +299,66 @@ meanings of these arguments."
 (defun describe-character-set (charset)
   "Display information about built-in character set CHARSET."
   (interactive (list (read-charset "Charset: ")))
-  (or (charsetp charset)
-      (error "Invalid charset: %S" charset))
-  (help-setup-xref (list #'describe-character-set charset)
-		   (called-interactively-p 'interactive))
-  (with-output-to-temp-buffer (help-buffer)
-    (with-current-buffer standard-output
-      (insert "Character set: " (symbol-name charset))
-      (let ((name (get-charset-property charset :name)))
-	(if (not (eq name charset))
-	    (insert " (alias of " (symbol-name name) ?\))))
-      (insert "\n\n" (charset-description charset) "\n\n")
-      (insert "Number of contained characters: ")
-      (dotimes (i (charset-dimension charset))
-	(unless (= i 0)
-	  (insert ?x))
-	(insert (format "%d" (charset-chars charset (1+ i)))))
-      (insert ?\n)
-      (let ((char (charset-iso-final-char charset)))
-	(when (> char 0)
-	  (insert "Final char of ISO2022 designation sequence: ")
-	  (insert (format-message "`%c'\n" char))))
-      (let (aliases)
-	(dolist (c charset-list)
-	  (if (and (not (eq c charset))
-		   (eq charset (get-charset-property c :name)))
-	      (push c aliases)))
-	(if aliases
-	    (insert "Aliases: " (mapconcat #'symbol-name aliases ", ") ?\n)))
+  (let ((help-buffer-under-preparation t))
+    (or (charsetp charset)
+	(error "Invalid charset: %S" charset))
+    (help-setup-xref (list #'describe-character-set charset)
+		     (called-interactively-p 'interactive))
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
+	(insert "Character set: " (symbol-name charset))
+	(let ((name (get-charset-property charset :name)))
+	  (if (not (eq name charset))
+	      (insert " (alias of " (symbol-name name) ?\))))
+	(insert "\n\n" (charset-description charset) "\n\n")
+	(insert "Number of contained characters: ")
+	(dotimes (i (charset-dimension charset))
+	  (unless (= i 0)
+	    (insert ?x))
+	  (insert (format "%d" (charset-chars charset (1+ i)))))
+	(insert ?\n)
+	(let ((char (charset-iso-final-char charset)))
+	  (when (> char 0)
+	    (insert "Final char of ISO2022 designation sequence: ")
+	    (insert (format-message "`%c'\n" char))))
+	(let (aliases)
+	  (dolist (c charset-list)
+	    (if (and (not (eq c charset))
+		     (eq charset (get-charset-property c :name)))
+		(push c aliases)))
+	  (if aliases
+	      (insert "Aliases: " (mapconcat #'symbol-name aliases ", ") ?\n)))
 
-      (dolist (elt `((:ascii-compatible-p "ASCII compatible." nil)
-		     (:map "Map file: " identity)
-		     (:unify-map "Unification map file: " identity)
-		     (:invalid-code
-		      nil
-		      ,(lambda (c)
-			 (format "Invalid character: %c (code %d)" c c)))
-		     (:emacs-mule-id "Id in emacs-mule coding system: "
-				     number-to-string)
-		     (:parents "Parents: "
-			       (lambda (parents)
-				 (mapconcat ,(lambda (elt)
-					       (format "%s" elt))
-					    parents
-					    ", ")))
-		     (:code-space "Code space: " ,(lambda (c)
-						    (format "%s" c)))
-		     (:code-offset "Code offset: " number-to-string)
-		     (:iso-revision-number "ISO revision number: "
-					   number-to-string)
-		     (:supplementary-p
-		      "Used only as a parent or a subset of some other charset,
+	(dolist (elt `((:ascii-compatible-p "ASCII compatible." nil)
+		       (:map "Map file: " identity)
+		       (:unify-map "Unification map file: " identity)
+		       (:invalid-code
+			nil
+			,(lambda (c)
+			   (format "Invalid character: %c (code %d)" c c)))
+		       (:emacs-mule-id "Id in emacs-mule coding system: "
+				       number-to-string)
+		       (:parents "Parents: "
+				 (lambda (parents)
+				   (mapconcat ,(lambda (elt)
+						 (format "%s" elt))
+					      parents
+					      ", ")))
+		       (:code-space "Code space: " ,(lambda (c)
+						      (format "%s" c)))
+		       (:code-offset "Code offset: " number-to-string)
+		       (:iso-revision-number "ISO revision number: "
+					     number-to-string)
+		       (:supplementary-p
+			"Used only as a parent or a subset of some other charset,
 or provided just for backward compatibility." nil)))
-	(let ((val (get-charset-property charset (car elt))))
-	  (when val
-	    (if (cadr elt) (insert (cadr elt)))
-	    (if (nth 2 elt)
-		(let ((print-length 10) (print-level 2))
-		  (princ (funcall (nth 2 elt) val) (current-buffer))))
-	    (insert ?\n)))))))
+	  (let ((val (get-charset-property charset (car elt))))
+	    (when val
+	      (if (cadr elt) (insert (cadr elt)))
+	      (if (nth 2 elt)
+		  (let ((print-length 10) (print-level 2))
+		    (princ (funcall (nth 2 elt) val) (current-buffer))))
+	      (insert ?\n))))))))
 
 ;;; CODING-SYSTEM
 
@@ -406,89 +407,90 @@ or provided just for backward compatibility." nil)))
 (defun describe-coding-system (coding-system)
   "Display information about CODING-SYSTEM."
   (interactive "zDescribe coding system (default current choices): ")
-  (if (null coding-system)
-      (describe-current-coding-system)
-    (help-setup-xref (list #'describe-coding-system coding-system)
-		     (called-interactively-p 'interactive))
-    (with-output-to-temp-buffer (help-buffer)
-      (print-coding-system-briefly coding-system 'doc-string)
-      (let ((type (coding-system-type coding-system))
-	    ;; Fixme: use this
-	    ;; (extra-spec (coding-system-plist coding-system))
-	    )
-	(princ "Type: ")
-	(princ type)
-	(cond ((eq type 'undecided)
-	       (princ " (do automatic conversion)"))
-	      ((eq type 'utf-8)
-	       (princ " (UTF-8: Emacs internal multibyte form)"))
-	      ((eq type 'utf-16)
-	       ;; (princ " (UTF-16)")
-	       )
-	      ((eq type 'shift-jis)
-	       (princ " (Shift-JIS, MS-KANJI)"))
-	      ((eq type 'iso-2022)
-	       (princ " (variant of ISO-2022)\n")
-	       (princ "Initial designations:\n")
-	       (print-designation (coding-system-get coding-system
-						     :designation))
+  (let ((help-buffer-under-preparation t))
+    (if (null coding-system)
+	(describe-current-coding-system)
+      (help-setup-xref (list #'describe-coding-system coding-system)
+		       (called-interactively-p 'interactive))
+      (with-output-to-temp-buffer (help-buffer)
+	(print-coding-system-briefly coding-system 'doc-string)
+	(let ((type (coding-system-type coding-system))
+	      ;; Fixme: use this
+	      ;; (extra-spec (coding-system-plist coding-system))
+	      )
+	  (princ "Type: ")
+	  (princ type)
+	  (cond ((eq type 'undecided)
+		 (princ " (do automatic conversion)"))
+		((eq type 'utf-8)
+		 (princ " (UTF-8: Emacs internal multibyte form)"))
+		((eq type 'utf-16)
+		 ;; (princ " (UTF-16)")
+		 )
+		((eq type 'shift-jis)
+		 (princ " (Shift-JIS, MS-KANJI)"))
+		((eq type 'iso-2022)
+		 (princ " (variant of ISO-2022)\n")
+		 (princ "Initial designations:\n")
+		 (print-designation (coding-system-get coding-system
+						       :designation))
 
-	       (when (coding-system-get coding-system :flags)
-		 (princ "Other specifications: \n  ")
-		 (apply #'print-list
-			(coding-system-get coding-system :flags))))
-	      ((eq type 'charset)
-	       (princ " (charset)"))
-	      ((eq type 'ccl)
-	       (princ " (do conversion by CCL program)"))
-	      ((eq type 'raw-text)
-	       (princ " (text with random binary characters)"))
-	      ((eq type 'emacs-mule)
-	       (princ " (Emacs 21 internal encoding)"))
-	      ((eq type 'big5))
-	      (t (princ ": invalid coding-system.")))
-	(princ "\nEOL type: ")
-	(let ((eol-type (coding-system-eol-type coding-system)))
-	  (cond ((vectorp eol-type)
-		 (princ "Automatic selection from:\n\t")
-		 (princ eol-type)
-		 (princ "\n"))
-		((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
-		((eq eol-type 1) (princ "CRLF\n"))
-		((eq eol-type 2) (princ "CR\n"))
-		(t (princ "invalid\n")))))
-      (let ((postread (coding-system-get coding-system :post-read-conversion)))
-	(when postread
-	  (princ "After decoding text normally,")
-	  (princ " perform post-conversion using the function: ")
-	  (princ "\n  ")
-	  (princ postread)
-	  (princ "\n")))
-      (let ((prewrite (coding-system-get coding-system :pre-write-conversion)))
-	(when prewrite
-	  (princ "Before encoding text normally,")
-	  (princ " perform pre-conversion using the function: ")
-	  (princ "\n  ")
-	  (princ prewrite)
-	  (princ "\n")))
-      (with-current-buffer standard-output
-	(let ((charsets (coding-system-charset-list coding-system)))
-	  (when (and (not (eq (coding-system-base coding-system) 'raw-text))
-		     charsets)
-	    (cond
-	     ((eq charsets 'iso-2022)
-	      (insert "This coding system can encode all ISO 2022 charsets."))
-	     ((eq charsets 'emacs-mule)
-	      (insert "This coding system can encode all emacs-mule charsets\
+		 (when (coding-system-get coding-system :flags)
+		   (princ "Other specifications: \n  ")
+		   (apply #'print-list
+			  (coding-system-get coding-system :flags))))
+		((eq type 'charset)
+		 (princ " (charset)"))
+		((eq type 'ccl)
+		 (princ " (do conversion by CCL program)"))
+		((eq type 'raw-text)
+		 (princ " (text with random binary characters)"))
+		((eq type 'emacs-mule)
+		 (princ " (Emacs 21 internal encoding)"))
+		((eq type 'big5))
+		(t (princ ": invalid coding-system.")))
+	  (princ "\nEOL type: ")
+	  (let ((eol-type (coding-system-eol-type coding-system)))
+	    (cond ((vectorp eol-type)
+		   (princ "Automatic selection from:\n\t")
+		   (princ eol-type)
+		   (princ "\n"))
+		  ((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
+		  ((eq eol-type 1) (princ "CRLF\n"))
+		  ((eq eol-type 2) (princ "CR\n"))
+		  (t (princ "invalid\n")))))
+	(let ((postread (coding-system-get coding-system :post-read-conversion)))
+	  (when postread
+	    (princ "After decoding text normally,")
+	    (princ " perform post-conversion using the function: ")
+	    (princ "\n  ")
+	    (princ postread)
+	    (princ "\n")))
+	(let ((prewrite (coding-system-get coding-system :pre-write-conversion)))
+	  (when prewrite
+	    (princ "Before encoding text normally,")
+	    (princ " perform pre-conversion using the function: ")
+	    (princ "\n  ")
+	    (princ prewrite)
+	    (princ "\n")))
+	(with-current-buffer standard-output
+	  (let ((charsets (coding-system-charset-list coding-system)))
+	    (when (and (not (eq (coding-system-base coding-system) 'raw-text))
+		       charsets)
+	      (cond
+	       ((eq charsets 'iso-2022)
+		(insert "This coding system can encode all ISO 2022 charsets."))
+	       ((eq charsets 'emacs-mule)
+		(insert "This coding system can encode all emacs-mule charsets\
 ."""))
-	     (t
-	      (insert "This coding system encodes the following charsets:\n ")
-	      (while charsets
-		(insert " " (symbol-name (car charsets)))
-		(search-backward (symbol-name (car charsets)))
-		(help-xref-button 0 'help-character-set (car charsets))
-		(goto-char (point-max))
-		(setq charsets (cdr charsets)))))))))))
+	       (t
+		(insert "This coding system encodes the following charsets:\n ")
+		(while charsets
+		  (insert " " (symbol-name (car charsets)))
+		  (search-backward (symbol-name (car charsets)))
+		  (help-xref-button 0 'help-character-set (car charsets))
+		  (goto-char (point-max))
+		  (setq charsets (cdr charsets))))))))))))
 
 ;;;###autoload
 (defun describe-current-coding-system-briefly ()
@@ -845,7 +847,8 @@ The IGNORED argument is ignored."
   (or (and window-system (fboundp 'fontset-list))
       (error "No fonts being used"))
   (let ((xref-item (list #'describe-font fontname))
-        font-info)
+        font-info
+	(help-buffer-under-preparation t))
     (if (or (not fontname) (= (length fontname) 0))
 	(setq fontname (face-attribute 'default :font)))
     (setq font-info (font-info fontname))
@@ -1006,14 +1009,15 @@ This shows which font is used for which character(s)."
        (list (completing-read
               (format-prompt "Fontset" "used by the current frame")
 	      fontset-list nil t)))))
-  (if (= (length fontset) 0)
-      (setq fontset (face-attribute 'default :fontset))
-    (setq fontset (query-fontset fontset)))
-  (help-setup-xref (list #'describe-fontset fontset)
-		   (called-interactively-p 'interactive))
-  (with-output-to-temp-buffer (help-buffer)
-    (with-current-buffer standard-output
-      (print-fontset fontset t))))
+  (let ((help-buffer-under-preparation t))
+    (if (= (length fontset) 0)
+	(setq fontset (face-attribute 'default :fontset))
+      (setq fontset (query-fontset fontset)))
+    (help-setup-xref (list #'describe-fontset fontset)
+		     (called-interactively-p 'interactive))
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
+	(print-fontset fontset t)))))
 
 (declare-function fontset-plain-name "fontset" (fontset))
 
@@ -1024,39 +1028,41 @@ This shows the name, size, and style of each fontset.
 With prefix arg, also list the fonts contained in each fontset;
 see the function `describe-fontset' for the format of the list."
   (interactive "P")
-  (if (not (and window-system (fboundp 'fontset-list)))
-      (error "No fontsets being used")
-    (help-setup-xref (list #'list-fontsets arg)
-		     (called-interactively-p 'interactive))
-    (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer standard-output
-	;; This code is duplicated near the end of mule-diag.
-	(let ((fontsets
-	       (sort (fontset-list)
-		     (lambda (x y)
-		       (string< (fontset-plain-name x)
-				(fontset-plain-name y))))))
-	  (while fontsets
-	    (if arg
-		(print-fontset (car fontsets) nil)
-	      (insert "Fontset: " (car fontsets) "\n"))
-	    (setq fontsets (cdr fontsets))))))))
+  (let ((help-buffer-under-preparation t))
+    (if (not (and window-system (fboundp 'fontset-list)))
+	(error "No fontsets being used")
+      (help-setup-xref (list #'list-fontsets arg)
+		       (called-interactively-p 'interactive))
+      (with-output-to-temp-buffer (help-buffer)
+	(with-current-buffer standard-output
+	  ;; This code is duplicated near the end of mule-diag.
+	  (let ((fontsets
+		 (sort (fontset-list)
+		       (lambda (x y)
+			 (string< (fontset-plain-name x)
+				  (fontset-plain-name y))))))
+	    (while fontsets
+	      (if arg
+		  (print-fontset (car fontsets) nil)
+		(insert "Fontset: " (car fontsets) "\n"))
+	      (setq fontsets (cdr fontsets)))))))))
 
 ;;;###autoload
 (defun list-input-methods ()
   "Display information about all input methods."
   (interactive)
-  (help-setup-xref '(list-input-methods)
-		   (called-interactively-p 'interactive))
-  (with-output-to-temp-buffer (help-buffer)
-    (list-input-methods-1)
-    (with-current-buffer standard-output
-      (save-excursion
-	(goto-char (point-min))
-	(while (re-search-forward
-		(substitute-command-keys "^  \\([^ ]+\\) (`.*' in mode line)$")
-                nil t)
-	  (help-xref-button 1 'help-input-method (match-string 1)))))))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref '(list-input-methods)
+		     (called-interactively-p 'interactive))
+    (with-output-to-temp-buffer (help-buffer)
+      (list-input-methods-1)
+      (with-current-buffer standard-output
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (re-search-forward
+		  (substitute-command-keys "^  \\([^ ]+\\) (`.*' in mode line)$")
+                  nil t)
+	    (help-xref-button 1 'help-input-method (match-string 1))))))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)

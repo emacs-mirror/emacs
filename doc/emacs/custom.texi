@@ -2567,10 +2567,9 @@ Do the same thing for Lisp mode only.
 Redefine all keys which now run @code{next-line} in Fundamental mode
 so that they run @code{forward-line} instead.
 
-@findex substitute-key-definition
+@findex keymap-substitute
 @example
-(substitute-key-definition 'next-line 'forward-line
-                           global-map)
+(keymap-substitute global-map 'next-line 'forward-line)
 @end example
 
 @item

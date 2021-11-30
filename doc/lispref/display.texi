@@ -7777,16 +7777,14 @@ The string is formatted #RRGGBB (hash followed by six hex digits)."
   (kill-buffer nil))
 
 (setq colorcomp-mode-map
-      (let ((m (make-sparse-keymap)))
-        (suppress-keymap m)
-        (define-key m "i" 'colorcomp-R-less)
-        (define-key m "o" 'colorcomp-R-more)
-        (define-key m "k" 'colorcomp-G-less)
-        (define-key m "l" 'colorcomp-G-more)
-        (define-key m "," 'colorcomp-B-less)
-        (define-key m "." 'colorcomp-B-more)
-        (define-key m " " 'colorcomp-copy-as-kill-and-exit)
-        m))
+      (define-keymap :suppress t
+        "i" 'colorcomp-R-less
+        "o" 'colorcomp-R-more
+        "k" 'colorcomp-G-less
+        "l" 'colorcomp-G-more
+        "," 'colorcomp-B-less
+        "." 'colorcomp-B-more
+        "SPC" 'colorcomp-copy-as-kill-and-exit))
 @end smallexample
 
 Note that we never modify the data in each node, which is fixed when the

@@ -552,7 +552,7 @@ An autoloaded keymap loads automatically during key lookup when a prefix
 key's binding is the symbol @var{function}.  Autoloading does not occur
 for other kinds of access to the keymap.  In particular, it does not
 happen when a Lisp program gets the keymap from the value of a variable
-and calls @code{define-key}; not even if the variable name is the same
+and calls @code{keymap-set}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
@@ -1156,7 +1156,7 @@ You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(with-eval-after-load "js" (define-key js-mode-map "\C-c\C-c" 'js-eval))
+(with-eval-after-load "js" (keymap-set js-mode-map "C-c C-c" 'js-eval))
 @end example
 
 To restrict which files can trigger the evaluation, include a

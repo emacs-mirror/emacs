@@ -455,7 +455,7 @@ This kind of input is used by commands such as @code{describe-key} and
 
 @item K
 A key sequence on a form that can be used as input to functions like
-@code{define-key}.  This works like @samp{k}, except that it
+@code{keymap-set}.  This works like @samp{k}, except that it
 suppresses, for the last input event in the key sequence, the
 conversions that are normally used (when necessary) to convert an
 undefined key into a defined one (@pxref{Key Sequence Input}), so this
@@ -1315,12 +1315,9 @@ actually treated as the meta key, not this.)
   It is best to avoid mentioning specific bit numbers in your program.
 To test the modifier bits of a character, use the function
 @code{event-modifiers} (@pxref{Classifying Events}).  When making key
-bindings, you can use the read syntax for characters with modifier bits
-(@samp{\C-}, @samp{\M-}, and so on).  For making key bindings with
-@code{define-key}, you can use lists such as @code{(control hyper ?x)} to
-specify the characters (@pxref{Changing Key Bindings}).  The function
-@code{event-convert-list} converts such a list into an event type
-(@pxref{Classifying Events}).
+bindings with @code{keymap-set}, you specify these events using
+strings like @samp{C-H-x} instead (for ``control hyper x'')
+(@pxref{Changing Key Bindings}).
 
 @node Function Keys
 @subsection Function Keys
@@ -2078,7 +2075,7 @@ example:
   (interactive)
   (message "Caught signal %S" last-input-event))
 
-(define-key special-event-map [sigusr1] 'sigusr-handler)
+(keymap-set special-event-map "<sigusr1>" 'sigusr-handler)
 @end smallexample
 
 To test the signal handler, you can make Emacs send a signal to itself:
@@ -2282,21 +2279,6 @@ in @code{event-modifiers}.  For example:
 @defun mouse-movement-p object
 This function returns non-@code{nil} if @var{object} is a mouse movement
 event.  @xref{Motion Events}.
-@end defun
-
-@defun event-convert-list list
-This function converts a list of modifier names and a basic event type
-to an event type which specifies all of them.  The basic event type
-must be the last element of the list.  For example,
-
-@example
-(event-convert-list '(control ?a))
-     @result{} 1
-(event-convert-list '(control meta ?a))
-     @result{} -134217727
-(event-convert-list '(control super f1))
-     @result{} C-s-f1
-@end example
 @end defun
 
 @node Accessing Mouse
@@ -2518,25 +2500,14 @@ characters in a string is a complex matter, for reasons of historical
 compatibility, and it is not always possible.
 
   We recommend that new programs avoid dealing with these complexities
-by not storing keyboard events in strings.  Here is how to do that:
+by not storing keyboard events in strings containing control
+characters or the like, but instead store them in the common Emacs
+format as understood by @code{key-valid-p}.
 
-@itemize @bullet
-@item
-Use vectors instead of strings for key sequences, when you plan to use
-them for anything other than as arguments to @code{lookup-key} and
-@code{define-key}.  For example, you can use
-@code{read-key-sequence-vector} instead of @code{read-key-sequence}, and
-@code{this-command-keys-vector} instead of @code{this-command-keys}.
-
-@item
-Use vectors to write key sequence constants containing meta characters,
-even when passing them directly to @code{define-key}.
-
-@item
-When you have to look at the contents of a key sequence that might be a
-string, use @code{listify-key-sequence} (@pxref{Event Input Misc})
-first, to convert it to a list.
-@end itemize
+  If you read a key sequence with @code{read-key-sequence-vector} (or
+@code{read-key-sequence}), or access a key sequence with
+@code{this-command-keys-vector} (or @code{this-command-keys}), you can
+transform this to the recommended format by using @code{key-description}.
 
   The complexities stem from the modifier bits that keyboard input
 characters can include.  Aside from the Meta modifier, none of these

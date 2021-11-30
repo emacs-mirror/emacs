@@ -58,6 +58,11 @@ DEFINITION is anything that can be a key's definition:
  (See info node `(elisp)Extended Menu Items'.)"
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
+  ;; If we're binding this key to another key, then parse that other
+  ;; key, too.
+  (when (stringp definition)
+    (keymap--check definition)
+    (setq definition (key-parse definition)))
   (define-key keymap (key-parse key) definition))
 
 (defun keymap-global-set (key command)
@@ -143,8 +148,6 @@ If you don't specify OLDMAP, you can usually get the same results
 in a cleaner way with command remapping, like this:
   (define-key KEYMAP [remap OLDDEF] NEWDEF)
 \n(fn OLDDEF NEWDEF KEYMAP &optional OLDMAP)"
-  (declare (compiler-macro
-            (lambda (form) (keymap--compile-check olddef newdef) form)))
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -154,10 +157,6 @@ in a cleaner way with command remapping, like this:
   ;; original key, with PREFIX added at the front.
   (unless prefix
     (setq prefix ""))
-  (keymap--check olddef)
-  (keymap--check newdef)
-  (setq olddef (key-parse olddef))
-  (setq newdef (key-parse newdef))
   (let* ((scan (or oldmap keymap))
 	 (prefix1 (vconcat prefix [nil]))
 	 (key-substitution-in-progress

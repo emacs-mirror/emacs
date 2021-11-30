@@ -647,7 +647,7 @@ follows:
 
 @smallexample
 @group
-(define-key global-map (string help-char) 'help-command)
+(keymap-set global-map (key-description (string help-char)) 'help-command)
 (fset 'help-command help-map)
 @end group
 @end smallexample
