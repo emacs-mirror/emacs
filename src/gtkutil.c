@@ -3141,6 +3141,20 @@ xg_create_one_menuitem (widget_value *item,
   return w;
 }
 
+#ifdef HAVE_PGTK
+static gboolean
+menu_bar_button_pressed_cb (GtkWidget *widget, GdkEvent *event,
+			    gpointer user_data)
+{
+  struct frame *f = user_data;
+
+  if (event->button.button < 4)
+    set_frame_menubar (f, true);
+
+  return false;
+}
+#endif
+
 /* Create a full menu tree specified by DATA.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
@@ -3198,6 +3212,10 @@ create_menus (widget_value *data,
       else
         {
           wmenu = gtk_menu_bar_new ();
+#ifdef HAVE_PGTK
+	  g_signal_connect (G_OBJECT (wmenu), "button-press-event",
+			    G_CALLBACK (menu_bar_button_pressed_cb), f);
+#endif
           /* Set width of menu bar to a small value so it doesn't enlarge
              a small initial frame size.  The width will be set to the
              width of the frame later on when it is added to a container.
