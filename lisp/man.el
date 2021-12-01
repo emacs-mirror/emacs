@@ -1334,7 +1334,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 
 (defun Man-highlight-references0 (start-section regexp button-pos target type)
   ;; Based on `Man-build-references-alist'
-  (when (or (null start-section)        ;; Search regardless of sections.
+  (when (or (null start-section) ;; Search regardless of sections.
             ;; Section header is in this chunk.
             (Man-find-section start-section))
     (let ((end (if start-section
@@ -1347,18 +1347,24 @@ default type, `Man-xref-man-page' is used for the buttons."
 		 (goto-char (point-min))
 		 nil)))
       (while (re-search-forward regexp end t)
-	;; An overlay button is preferable because the underlying text
-	;; may have text property highlights (Bug#7881).
-	(make-button
-	 (match-beginning button-pos)
-	 (match-end button-pos)
-	 'type type
-	 'Man-target-string (cond
-			     ((numberp target)
-			      (match-string target))
-			     ((functionp target)
-			      target)
-			     (t nil)))))))
+        (let ((b (match-beginning button-pos))
+              (e (match-end button-pos))
+              (match (match-string button-pos)))
+          ;; Some lists of references end with ", and ...".  Chop the
+          ;; "and" bit off before making a button.
+          (when (string-match "\\`and +" match)
+            (setq b (+ b (- (match-end 0) (match-beginning 0)))))
+	  ;; An overlay button is preferable because the underlying text
+	  ;; may have text property highlights (Bug#7881).
+	  (make-button
+	   b e
+	   'type type
+	   'Man-target-string (cond
+			       ((numberp target)
+			        (match-string target))
+			       ((functionp target)
+			        target)
+			       (t nil))))))))
 
 (defun Man-cleanup-manpage (&optional interactive)
   "Remove overstriking and underlining from the current buffer.
