@@ -41,10 +41,14 @@ files.")
 (defconst authors-aliases
   '(
     (nil "A\\. N\\. Other")  ; unknown author 2014-12-03, later removed
+    (nil "Anticrisis")
+    (nil "akater")
     ("Aaron S. Hawley" "Aaron Hawley")
     ("Alan Third" "Alan J Third")
+    ("Alexander Gramiak" "Alex Gramiak")
     ("Alexandru Harsanyi" "Alex Harsanyi")
     ("Álvar Jesús Ibeas Martín" "Álvar Ibeas")
+    ("Andrea Corallo" "AndreaCorallo")
     ("Andrew Csillag" "Drew Csillag")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Aurélien Aptel" "Aurelien Aptel")
@@ -61,6 +65,7 @@ files.")
     ("Brian Sniffen" "Brian T. Sniffen")
     (nil "castor@my-dejanews")
     (nil "chengang31@gmail.com")
+    (nil "chuntaro")
     ("David Abrahams" "Dave Abrahams")
     ("David J. Biesack" "David Biesack")
     ("David De La Harpe Golden" "David Golden")
@@ -70,8 +75,10 @@ files.")
     ("David M. Koppelman" "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
     ("David O'Toole" "David T. O'Toole")
+    (nil "dalanicolai")
     (nil "deech@deech")
     ("Deepak Goel" "D. Goel")
+    ("Earl Hyatt" "Earl" "ej32u@protonmail.com")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed\\(ward\\( M\\)?\\)? Reingold" "Reingold Edward M")
     ("Emilio C. Lopes" "Emilio Lopes")
@@ -93,22 +100,27 @@ files.")
     (nil "immerrr")
     (nil "aaa bbb")
     (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header
+    (nil "jakanakaevangeli")
+    ("J. Alexander Branham" "Alex Branham")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Djärv" "Jan D." "Jan Djarv")
     ("Jay K. Adams" "Jay Adams")
     ("Jérôme Marant" "Jérôme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
+    ("Jimmy Aguilar Mena" "Ergus")
     ("Johan Bockgård" "Johan Bockgard")
     ("John F. Carr" "John F Carr")
     ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Jorgen Schäfer" "Jorgen Schaefer")
+    ("Jose A. Ortega Ruiz" "Jose A Ortega Ruiz")
     ("Joseph Arceneaux" "Joe Arceneaux")
     ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("Jürgen Hötzel" "Juergen Hoetzel")
+    (nil "k3tu0isui")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Großjohann" "Kai Grossjohann")
     ("Karl Berry" "K. Berry")
@@ -120,15 +132,18 @@ files.")
     ("Kim F. Storm" "Kim Storm")
     ("Kyle Jones" "Kyle E. Jones")
     ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
+    (nil "leo")
     (nil "LynX@bk.ru")
     (nil "lu4nx")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
     ("Mark E. Shoulson" "Mark Shoulson")
     ("Marko Kohtala" "Kohtala Marko")
+    ("Maxim Nikulin" "Max Nikulin")
     ("Agustín Martín" "Agustin Martin" "Agustín Martín Domingo")
     ("Martin Lorentzon" "Martin Lorentzson")
     ("Matt Swift" "Matthew Swift")
+    (nil "Madhu")
     (nil "mu@magi.net.ru")
     ("Maxime Edouard Robert Froumentin" "Max Froumentin")
     ("Michael R. Mauger" "Michael Mauger")
@@ -137,11 +152,13 @@ files.")
     ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, p/BSG")
     ("Michael R. Cook" "Michael Cook")
     ("Michael Sperber" "Mike Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
+    ("Michalis V" "mvar")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Noorul Islam" "Noorul Islam K M")
 ;;;    ("Tetsurou Okazaki" "OKAZAKI Tetsurou") ; FIXME?
     ("Óscar Fuentes" "Oscar Fuentes")
+    (nil "pillule")
     (nil "psyberbits@gmail.com")
     ("Paul Eggert" "Paul R\\. Eggert")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik")
@@ -151,8 +168,10 @@ files.")
     ("Peter J. Weisberg" "PJ Weisberg")
     ("Peter S. Galbraith" "Peter S Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
+    ("Philip Kaludercic" "Philip K\\." "Philip K")
     ("Philipp Stephani" "Philipp .*phst@google")
     ("Piotr Zieliński" "Piotr Zielinski")
+    ("Po Lu" "Po Lu Via")               ; looks like a mistake
     ("Przemysław Wojnowski" "Przemyslaw Wojnowski")
     ("R. Bernstein" "rb@dustyfeet.com")
     ("Rainer Schöpf" "Rainer Schoepf")
@@ -187,6 +206,7 @@ files.")
     ("Takaaki Ota" "Tak Ota")
     ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
+    (nil "TEC")
     (nil "The PCL-CVS Trust")
     ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
@@ -212,7 +232,7 @@ files.")
     ("Carlos Pita" "memeplex")
     ("Vinicius Jose Latorre" "viniciusjl")
     ("Gaby Launay" "galaunay")
-    ("Dick R. Chiang" "dickmao")
+    ("Dick R. Chiang" "dickmao" "dick")
     )
   "Alist of author aliases.
 
@@ -328,7 +348,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "install.sh" "install-sh" "missing" "mkinstalldirs"
     "termcap.dat" "termcap.src" "termcap.ucb" "termcap"
     "ChangeLog.nextstep" "Emacs.clr" "spec.txt"
-    "gfdl.1"
+    "gfdl.1" "ledit.l"
     "texi/Makefile.in"
     "autodeps.mk"
     "lwlib/autodeps.mk"
@@ -350,6 +370,8 @@ Changes to files matching one of the regexps in this list are not listed.")
     "cedet/tests/test.py"
     "cedet/tests/teststruct.cpp"
     "subdirs.el"
+    "etc/facemenu-removal.txt"
+    "src/bytecode.h"
     "*.el"
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el" "loaddefs-boot.el"
@@ -365,6 +387,10 @@ Changes to files matching one of the regexps in this list are not listed.")
     ;; Only existed briefly, then renamed:
     "images/icons/allout-widgets-dark-bg"
     "images/icons/allout-widgets-light-bg"
+    "lisp/shorthand.el"
+    "test/lisp/shorthand-tests.el"
+    "lisp/net/link.el"
+    "lisp/net/connection.el"
     ;; Never had any meaningful changes logged, now deleted:
     "lib/stdarg.in.h" "lib/stdbool.in.h"
     "unidata/bidimirror.awk" "unidata/biditype.awk"
@@ -424,6 +450,10 @@ Changes to files matching one of the regexps in this list are not listed.")
     "info/dir"
     ;; Not in gnulib anymore
     "lib/qset-acl.c" "lib/qcopy-acl.c" "lib/file-has-acl.c" "lib/secure_getenv.c"
+    "lib/malloca.c" "lib/malloca.h"
+    ;; Briefly added to repository from gnulib, but not used
+    "lib/localtime-buffer.c"
+    "lib/localtime-buffer.h"
     ;; files from old MS Windows build procedures
     "nt/gnulib-modules-to-delete.cfg"
     "makefile.w32-in"
@@ -468,6 +498,9 @@ Changes to files matching one of the regexps in this list are not listed.")
     "WHY-FREE"
     "MORE.STUFF"
     "notes/font-backend"
+    "src/ftxfont.c"
+    "src/ptr-bounds.h"
+    "obsolete/options.el"
     ;; ada-mode has been deleted, now in GNU ELPA
     "ada-mode.texi"
     "doc/misc/ada-mode.texi"
@@ -485,6 +518,16 @@ Changes to files matching one of the regexps in this list are not listed.")
     "src/mini-gmp-emacs.c"
     "lib/dosname.h"
     "lib/putenv.c"
+    ;; Moved to the org-contrib repo
+    "ob-asymptote.el"
+    "ob-shen.el"
+    "ob-picolisp.el"
+    "ob-io.el"
+    "ob-mscgen.el"
+    "ob-ledger.el"
+    "lisp/org/ob-abc.el"
+    "lisp/org/ob-ebnf.el"
+    "lisp/org/ob-J.el"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -1140,6 +1183,11 @@ in the repository.")
     ("src/mini-gmp.c" . "lib/mini-gmp.c")
     ("src/mini-gmp.h" . "lib/mini-gmp.h")
     ("sysdep.c" . "src/sysdep.c")
+    ("lisp/gnus/nnir.el" . "nnir.el")
+    ("src/regex.c" . "emacs-regex.c")
+    ("src/regex.h" . "emacs-regex.h")
+    ("erc-compat.el" . "erc-compat.el")
+    ("semantic-utest-fmt.el" . "format-tests.el")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
