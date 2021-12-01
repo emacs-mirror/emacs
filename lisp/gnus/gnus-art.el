@@ -769,7 +769,7 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   :group 'gnus-article-signature)
 
 (defface gnus-header
-  '((t nil))
+  '((t :inherit variable-pitch))
   "Base face used for all Gnus header faces.
 All the other `gnus-header-' faces inherit from this face."
   :version "29.1"
@@ -2212,6 +2212,13 @@ unfolded."
 		(replace-match " " t t))))
 	  (goto-char (point-max)))))))
 
+(defun gnus--variable-pitch-p (face)
+  (or (eq face 'variable-pitch)
+      (let ((parent (face-attribute face :inherit)))
+        (if (eq parent 'unspecified)
+            nil
+          (seq-some #'gnus--variable-pitch-p (ensure-list parent))))))
+
 (defun gnus-article-treat-fold-headers ()
   "Fold message headers."
   (interactive nil gnus-article-mode gnus-summary-mode)
@@ -2219,7 +2226,10 @@ unfolded."
     (while (not (eobp))
       (save-restriction
 	(mail-header-narrow-to-field)
-	(mail-header-fold-field)
+        (if (not (gnus--variable-pitch-p (get-text-property (point) 'face)))
+	    (mail-header-fold-field)
+          (forward-char 1)
+          (pixel-fill-region (point) (point-max) (pixel-fill-width)))
 	(goto-char (point-max))))))
 
 (defun gnus-treat-smiley ()
