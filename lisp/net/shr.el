@@ -163,7 +163,7 @@ cid: URL as the argument.")
 (defvar shr-put-image-function #'shr-put-image
   "Function called to put image and alt string.")
 
-(defface shr-text '((t :inherit variable-pitch))
+(defface shr-text '((t :inherit variable-pitch-text))
   "Face used for rendering text."
   :version "29.1")
 

@@ -76,6 +76,13 @@ time.
 * Changes in Emacs 29.1
 
 +++
+** New face 'variable-pitch-text'.
+This face is like 'variable-pitch' (from which it inherits), but is
+slightly larger, which should help with the visual size differences
+between the default, non-proportional font and proportional fonts when
+mixed.
+
++++
 ** New face 'mode-line-active'.
 This inherits from the 'mode-line' face, but is the face actually used
 on the mode lines (along with 'mode-line-inactive').
