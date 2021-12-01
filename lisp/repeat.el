@@ -354,8 +354,26 @@ of the specified number of seconds."
 (defvar repeat-exit-timer nil
   "Timer activated after the last key typed in the repeating key sequence.")
 
-(defcustom repeat-keep-prefix t
+(defcustom repeat-keep-prefix nil
   "Whether to keep the prefix arg of the previous command when repeating."
+  :type 'boolean
+  :group 'convenience
+  :version "28.1")
+
+(defcustom repeat-check-key t
+  "Whether to check that the last key exists in the repeat map.
+When non-nil and the last typed key (with or without modifiers)
+doesn't exist in the keymap attached by the `repeat-map' property,
+then don't activate that keymap for the next command.  So only the
+same keys among repeatable keys are allowed in the repeating sequence.
+For example, with a non-nil value, only `C-x u u' repeats undo,
+whereas `C-/ u' doesn't.
+
+You can also set the property `repeat-check-key' on the command symbol.
+This property can override the value of this variable.
+When the variable value is non-nil, but the property value is `no',
+then don't check the last key.  Also when the variable value is nil,
+but the property value is `t', then check the last key."
   :type 'boolean
   :group 'convenience
   :version "28.1")
@@ -405,16 +423,26 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 (defvar repeat--prev-mb '(0)
   "Previous minibuffer state.")
 
+(defun repeat--command-property (property)
+  (or (and (symbolp this-command)
+           (get this-command property))
+      (and (symbolp real-this-command)
+           (get real-this-command property))))
+
+(defun repeat-check-key (key map)
+  "Check if the last key is suitable to activate the repeating MAP."
+  (let ((property (repeat--command-property 'repeat-check-key)))
+    (or (if repeat-check-key (eq property 'no) (not (eq property t)))
+        (lookup-key map (vector key))
+        ;; Try without modifiers:
+        (lookup-key map (vector (event-basic-type key))))))
+
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (let ((was-in-progress repeat-in-progress))
     (setq repeat-in-progress nil)
     (when repeat-mode
-      (let ((rep-map (or repeat-map
-                         (and (symbolp this-command)
-                              (get this-command 'repeat-map))
-                         (and (symbolp real-this-command)
-                              (get real-this-command 'repeat-map)))))
+      (let ((rep-map (or repeat-map (repeat--command-property 'repeat-map))))
         (when rep-map
           (when (and (symbolp rep-map) (boundp rep-map))
             (setq rep-map (symbol-value rep-map)))
@@ -426,10 +454,8 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                    ;; in the middle of repeating sequence (bug#47566).
                    (or (< (minibuffer-depth) (car repeat--prev-mb))
                        (eq current-minibuffer-command (cdr repeat--prev-mb)))
-                   ;; Exit when the last char is not among repeatable keys,
-                   ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-                   (or (lookup-key map (this-command-keys-vector))
-                       prefix-arg))
+                   (or (not repeat-keep-prefix) prefix-arg)
+                   (repeat-check-key last-command-event map))
 
               ;; Messaging
               (unless prefix-arg

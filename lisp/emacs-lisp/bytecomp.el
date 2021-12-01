@@ -344,6 +344,7 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
        (or (symbolp v)
            (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
+;;;###autoload
 (defun byte-compile-warning-enabled-p (warning &optional symbol)
   "Return non-nil if WARNING is enabled, according to `byte-compile-warnings'."
   (let ((suppress nil))
