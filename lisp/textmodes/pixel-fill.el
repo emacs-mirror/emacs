@@ -77,20 +77,28 @@ prefix on subsequent lines."
     (goto-char start)
     (let ((indentation
            (car (window-text-pixel-size nil (line-beginning-position)
-                                        (point)))))
+                                        (point))))
+          (newline-end nil))
       (when (> indentation pixel-width)
         (error "The indentation (%s) is wider than the fill width (%s)"
                indentation pixel-width))
       (save-restriction
         (narrow-to-region start end)
-        (goto-char start)
+        (goto-char (point-max))
+        (when (looking-back "\n[ \t]*" (point-min))
+          (setq newline-end t))
+        (goto-char (point-min))
         ;; First replace all whitespace with space.
         (while (re-search-forward "[ \t\n]+" nil t)
-          (if (= (match-beginning 0) start)
+          (if (or (= (match-beginning 0) start)
+                  (= (match-end 0) end))
               (delete-region (match-beginning 0) (match-end 0))
             (replace-match " ")))
         (goto-char start)
-        (pixel-fill--fill-line pixel-width indentation)))))
+        (pixel-fill--fill-line pixel-width indentation)
+        (goto-char (point-max))
+        (when newline-end
+          (insert "\n"))))))
 
 (defun pixel-fill--goto-pixel (width)
   (vertical-motion (cons (/ width (frame-char-width)) 0)))

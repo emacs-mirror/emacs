@@ -367,6 +367,16 @@ the common "utm_" trackers from URLs.
 ** Gnus
 
 ---
+*** Gnus now uses a variable-pitch font in the headers by default.
+To get the monospace font back, you can put something like the
+following in your .gnus file:
+
+  (set-face-attribute 'gnus-header nil :inherit 'unspecified)
+
+---
+*** The default value of 'gnus-treat-fold-headers' is now 'head'.
+
+---
 *** New face 'gnus-header'.
 All other 'gnus-header-*' faces inherit from this face now.
 

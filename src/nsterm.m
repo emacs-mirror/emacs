@@ -6606,7 +6606,7 @@ not_in_argv (NSString *arg)
                * reset the total delta for the direction we're NOT
                * scrolling so that small movements don't add up.  */
               if (abs (totalDeltaX) > abs (totalDeltaY)
-                  && (!x_coalesce_scroll_events
+                  && (!mwheel_coalesce_scroll_events
 		      || abs (totalDeltaX) > lineHeight))
                 {
                   horizontal = YES;
@@ -6614,14 +6614,14 @@ not_in_argv (NSString *arg)
 
                   lines = abs (totalDeltaX / lineHeight);
 		  x = totalDeltaX;
-		  if (!x_coalesce_scroll_events)
+		  if (!mwheel_coalesce_scroll_events)
 		    totalDeltaX = 0;
 		  else
 		    totalDeltaX = totalDeltaX % lineHeight;
                   totalDeltaY = 0;
                 }
               else if (abs (totalDeltaY) >= abs (totalDeltaX)
-                       && (!x_coalesce_scroll_events
+                       && (!mwheel_coalesce_scroll_events
 			   || abs (totalDeltaY) > lineHeight))
                 {
                   horizontal = NO;
@@ -6629,7 +6629,7 @@ not_in_argv (NSString *arg)
 
                   lines = abs (totalDeltaY / lineHeight);
 		  y = totalDeltaY;
-		  if (!x_coalesce_scroll_events)
+		  if (!mwheel_coalesce_scroll_events)
 		    totalDeltaY = 0;
 		  else
 		    totalDeltaY = totalDeltaY % lineHeight;
@@ -6662,7 +6662,7 @@ not_in_argv (NSString *arg)
 	      y = [theEvent scrollingDeltaY];
             }
 
-          if (lines == 0 && x_coalesce_scroll_events)
+          if (lines == 0 && mwheel_coalesce_scroll_events)
             return;
 
 	  if (NUMBERP (Vns_scroll_event_delta_factor))
@@ -10036,10 +10036,6 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
-
-  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
-	       doc: /* SKIP: real doc in xterm.c.  */);
-  x_coalesce_scroll_events = true;
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 

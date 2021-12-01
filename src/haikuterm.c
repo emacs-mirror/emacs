@@ -3024,7 +3024,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    if (fabsf (py) >= FRAME_LINE_HEIGHT (f)
 		|| fabsf (px) >= FRAME_COLUMN_WIDTH (f)
-		|| !x_coalesce_scroll_events)
+		|| !mwheel_coalesce_scroll_events)
 	      {
 		inev.kind = (fabsf (px) > fabsf (py)
 			     ? HORIZ_WHEEL_EVENT
@@ -3564,10 +3564,6 @@ syms_of_haikuterm (void)
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
      doc: /* SKIP: real doc in xterm.c.  */);
   Vx_toolkit_scroll_bars = Qt;
-
-  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
-	       doc: /* SKIP: real doc in xterm.c.  */);
-  x_coalesce_scroll_events = true;
 
   DEFVAR_BOOL ("haiku-debug-on-fatal-error", haiku_debug_on_fatal_error,
      doc: /* If non-nil, Emacs will launch the system debugger upon a fatal error.  */);
