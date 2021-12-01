@@ -446,10 +446,7 @@ Return them as multiple value."
                                                        ext-range)
                             ext-range)
               (neg dst) nil)
-      (setf (typeset dst) (typeset old-dst)
-            (valset dst) (valset old-dst)
-            (range dst) (range old-dst)
-            (neg dst) (neg old-dst)))))
+      (comp-cstr-shallow-copy dst old-dst))))
 
 (defmacro comp-cstr-set-range-for-arithm (dst src1 src2 &rest range-body)
   ;; Prevent some code duplication for `comp-cstr-add-2'
@@ -589,10 +586,8 @@ DST is returned."
                                                     (when (range pos)
                                                       '(integer)))))
                                  (typeset neg)))
-              (setf (typeset dst) (typeset pos)
-                    (valset dst) (valset pos)
-                    (range dst) (range pos)
-                    (neg dst) nil)
+              (comp-cstr-shallow-copy dst pos)
+              (setf (neg dst) nil)
               (cl-return-from comp-cstr-union-1-no-mem dst))
 
             ;; Verify disjoint condition between positive types and
@@ -639,15 +634,9 @@ DST is returned."
                         (comp-range-negation (range neg))
                         (range pos))))))
 
-            (if (comp-cstr-empty-p neg)
-                (setf (typeset dst) (typeset pos)
-                      (valset dst) (valset pos)
-                      (range dst) (range pos)
-                      (neg dst) nil)
-              (setf (typeset dst) (typeset neg)
-                    (valset dst) (valset neg)
-                    (range dst) (range neg)
-                    (neg dst) (neg neg)))))
+            (comp-cstr-shallow-copy dst (if (comp-cstr-empty-p neg)
+                                            pos
+                                          neg))))
 
         ;; (not null) => t
         (when (and (neg dst)
@@ -671,10 +660,7 @@ DST is returned."
                      (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-union-1-no-mem range srcs)
                      mem-h))))
-      (setf (typeset dst) (typeset res)
-            (valset dst) (valset res)
-            (range dst) (range res)
-            (neg dst) (neg res))
+      (comp-cstr-shallow-copy dst res)
       res)))
 
 (cl-defun comp-cstr-intersection-homogeneous (dst &rest srcs)
@@ -761,10 +747,8 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
             ;; In case pos is not relevant return directly the content
             ;; of neg.
             (when (equal (typeset pos) '(t))
-              (setf (typeset dst) (typeset neg)
-                    (valset dst) (valset neg)
-                    (range dst) (range neg)
-                    (neg dst) t)
+              (comp-cstr-shallow-copy dst neg)
+              (setf (neg dst) t)
 
               ;; (not t) => nil
               (when (and (null (valset dst))
@@ -808,10 +792,8 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                   (cl-set-difference (valset pos) (valset neg)))
 
             ;; Return a non negated form.
-            (setf (typeset dst) (typeset pos)
-                  (valset dst) (valset pos)
-                  (range dst) (range pos)
-                  (neg dst) nil)))
+            (comp-cstr-shallow-copy dst pos)
+            (setf (neg dst) nil)))
         dst))))
 
 
@@ -1016,10 +998,7 @@ DST is returned."
                      (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-intersection-no-mem srcs)
                      mem-h))))
-      (setf (typeset dst) (typeset res)
-            (valset dst) (valset res)
-            (range dst) (range res)
-            (neg dst) (neg res))
+      (comp-cstr-shallow-copy dst res)
       res)))
 
 (defun comp-cstr-intersection-no-hashcons (dst &rest srcs)
@@ -1075,10 +1054,9 @@ DST is returned."
             (valset dst) ()
             (range dst) nil
             (neg dst) nil))
-     (t (setf (typeset dst) (typeset src)
-              (valset dst) (valset src)
-              (range dst) (range src)
-              (neg dst) (not (neg src)))))
+     (t
+      (comp-cstr-shallow-copy dst src)
+      (setf (neg dst) (not (neg src)))))
     dst))
 
 (defun comp-cstr-value-negation (dst src)
