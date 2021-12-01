@@ -90,10 +90,17 @@ prefix on subsequent lines."
         (goto-char (point-min))
         ;; First replace all whitespace with space.
         (while (re-search-forward "[ \t\n]+" nil t)
-          (if (or (= (match-beginning 0) start)
-                  (= (match-end 0) end))
-              (delete-region (match-beginning 0) (match-end 0))
-            (replace-match " ")))
+          (cond
+           ((or (= (match-beginning 0) start)
+                (= (match-end 0) end))
+            (delete-region (match-beginning 0) (match-end 0)))
+           ;; If there's just a single space here, don't replace.
+           ((not (and (= (- (match-end 0) (match-beginning 0)) 1)
+                      (= (char-after (match-beginning 0)) ?\s)))
+            (replace-match
+             ;; We need to use a space that has an appropriate width.
+             (propertize " " 'face
+                         (get-text-property (match-beginning 0) 'face))))))
         (goto-char start)
         (pixel-fill--fill-line pixel-width indentation)
         (goto-char (point-max))
