@@ -1522,7 +1522,7 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 This function updates the char-table `glyphless-char-display',
 and is intended to be used in the `:set' attribute of the
 option `glyphless-char-display'."
-  (when value
+  (when variable
     (set-default variable value))
   (dolist (elt value)
     (let ((target (car elt))
