@@ -1195,6 +1195,21 @@ executing body forms.")
 (easy-menu-add-item (current-global-map)
                     '("menu-bar" "tools") table-global-menu-map)
 
+;;;###autoload
+(define-minor-mode table-fixed-width-mode
+  "Cell width is fixed when this is non-nil.
+Normally it should be nil for allowing automatic cell width expansion
+that widens a cell when it is necessary.  When non-nil, typing in a
+cell does not automatically expand the cell width.  A word that is too
+long to fit in a cell is chopped into multiple lines.  The chopped
+location is indicated by `table-word-continuation-char'.  This
+variable's value can be toggled by \\[table-fixed-width-mode] at
+run-time."
+  :tag "Fix Cell Width"
+  :group 'table
+  (table--finish-delayed-tasks)
+  (table--update-cell-face))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Macros
@@ -1219,43 +1234,49 @@ original buffer's point is moved to the location that corresponds to
 the last cache point coordinate."
   (declare (debug (body)) (indent 0))
   (let ((height-expansion (make-symbol "height-expansion-var-symbol"))
-	(width-expansion (make-symbol "width-expansion-var-symbol")))
-    `(let (,height-expansion ,width-expansion)
+	(width-expansion (make-symbol "width-expansion-var-symbol"))
+        (fixed-width (make-symbol "fixed-width")))
+    `(let ((,fixed-width table-fixed-width-mode)
+           ,height-expansion ,width-expansion)
        ;; make sure cache has valid data unless it is explicitly inhibited.
        (unless table-inhibit-update
 	 (table-recognize-cell))
        (with-current-buffer (get-buffer-create table-cache-buffer-name)
-	 ;; goto the cell coordinate based on `table-cell-cache-point-coordinate'.
-	 (set-mark (table--goto-coordinate table-cell-cache-mark-coordinate))
-	 (table--goto-coordinate table-cell-cache-point-coordinate)
-	 (table--untabify-line)
-	 ;; always reset before executing body forms because auto-fill behavior is the default.
-	 (setq table-inhibit-auto-fill-paragraph nil)
-	 ;; do the body
-	 ,@body
-	 ;; fill paragraph unless the body does not want to by setting `table-inhibit-auto-fill-paragraph'.
-	 (unless table-inhibit-auto-fill-paragraph
-	   (if (and table-cell-info-justify
-		    (not (eq table-cell-info-justify 'left)))
-	       (table--fill-region (point-min) (point-max))
-	     (table--fill-region
-	      (save-excursion (forward-paragraph -1) (point))
-	      (save-excursion (forward-paragraph 1) (point)))))
-	 ;; keep the updated cell coordinate.
-	 (setq table-cell-cache-point-coordinate (table--get-coordinate))
-	 ;; determine the cell width expansion.
-	 (setq ,width-expansion (table--measure-max-width))
-	 (if (<= ,width-expansion table-cell-info-width) nil
-	   (table--fill-region (point-min) (point-max) ,width-expansion)
-	   ;; keep the updated cell coordinate.
-	   (setq table-cell-cache-point-coordinate (table--get-coordinate)))
-	 (setq ,width-expansion (- ,width-expansion table-cell-info-width))
-	 ;; determine the cell height expansion.
-	 (if (looking-at "\\s *\\'") nil
-	   (goto-char (point-min))
-	   (if (re-search-forward "\\(\\s *\\)\\'" nil t)
-	       (goto-char (match-beginning 1))))
-	 (setq ,height-expansion (- (cdr (table--get-coordinate)) (1- table-cell-info-height))))
+         (let ((table-fixed-width-mode ,fixed-width))
+	   ;; Go to the cell coordinate based on
+	   ;; `table-cell-cache-point-coordinate'.
+	   (set-mark (table--goto-coordinate table-cell-cache-mark-coordinate))
+	   (table--goto-coordinate table-cell-cache-point-coordinate)
+	   (table--untabify-line)
+	   ;; Always reset before executing body forms because
+	   ;; auto-fill behavior is the default.
+	   (setq table-inhibit-auto-fill-paragraph nil)
+	   ;; Do the body
+	   ,@body
+	   ;; Fill paragraph unless the body does not want to by
+	   ;; setting `table-inhibit-auto-fill-paragraph'.
+	   (unless table-inhibit-auto-fill-paragraph
+	     (if (and table-cell-info-justify
+		      (not (eq table-cell-info-justify 'left)))
+	         (table--fill-region (point-min) (point-max))
+	       (table--fill-region
+	        (save-excursion (forward-paragraph -1) (point))
+	        (save-excursion (forward-paragraph 1) (point)))))
+	   ;; Keep the updated cell coordinate.
+	   (setq table-cell-cache-point-coordinate (table--get-coordinate))
+	   ;; Determine the cell width expansion.
+	   (setq ,width-expansion (table--measure-max-width))
+	   (if (<= ,width-expansion table-cell-info-width) nil
+	     (table--fill-region (point-min) (point-max) ,width-expansion)
+	     ;; Keep the updated cell coordinate.
+	     (setq table-cell-cache-point-coordinate (table--get-coordinate)))
+	   (setq ,width-expansion (- ,width-expansion table-cell-info-width))
+	   ;; Determine the cell height expansion.
+	   (if (looking-at "\\s *\\'") nil
+	     (goto-char (point-min))
+	     (if (re-search-forward "\\(\\s *\\)\\'" nil t)
+	         (goto-char (match-beginning 1))))
+	   (setq ,height-expansion (- (cdr (table--get-coordinate)) (1- table-cell-info-height)))))
        ;; now back to the table buffer.
        ;; expand the cell width in the table buffer if necessary.
        (if (> ,width-expansion 0)
@@ -2821,21 +2842,6 @@ or `top', `middle', `bottom' or `none' for vertical."
 	  (goto-char (car cell))
 	  (table-recognize-cell 'force)
 	  (table--justify-cell-contents justify))))))
-
-;;;###autoload
-(define-minor-mode table-fixed-width-mode
-  "Cell width is fixed when this is non-nil.
-Normally it should be nil for allowing automatic cell width expansion
-that widens a cell when it is necessary.  When non-nil, typing in a
-cell does not automatically expand the cell width.  A word that is too
-long to fit in a cell is chopped into multiple lines.  The chopped
-location is indicated by `table-word-continuation-char'.  This
-variable's value can be toggled by \\[table-fixed-width-mode] at
-run-time."
-  :tag "Fix Cell Width"
-  :group 'table
-  (table--finish-delayed-tasks)
-  (table--update-cell-face))
 
 ;;;###autoload
 (defun table-query-dimension (&optional where)
