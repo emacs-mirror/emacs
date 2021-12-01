@@ -7132,7 +7132,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2021-10-08T15:12:46Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2021-11-13T15:12:42Z
 // This list is auto-generated, don't edit it manually.
 // aaa : 2015-02-26 American Automobile Association, Inc.
 aaa
@@ -7647,7 +7647,7 @@ cars
 // casa : 2013-11-21 Registry Services, LLC
 casa
 
-// case : 2015-09-03 CNH Industrial N.V.
+// case : 2015-09-03 Helium TLDs Ltd
 case
 
 // cash : 2014-03-06 Binky Moon, LLC
@@ -10317,9 +10317,6 @@ xin
 // xn--3ds443g : 2013-09-08 TLD REGISTRY LIMITED OY
 在线
 
-// xn--3oq18vl8pn36a : 2015-07-02 Volkswagen (China) Investment Co., Ltd.
-大众汽车
-
 // xn--3pxu8k : 2015-01-15 VeriSign Sarl
 点看
 
@@ -10785,10 +10782,6 @@ s3-website.eu-west-2.amazonaws.com
 s3-website.eu-west-3.amazonaws.com
 s3-website.us-east-2.amazonaws.com
 
-// Amsterdam Wireless: https://www.amsterdamwireless.nl/
-// Submitted by Imre Jonk <hostmaster@amsterdamwireless.nl>
-amsw.nl
-
 // Amune : https://amune.org/
 // Submitted by Team Amune <cert@amune.org>
 t3l3p0rt.net
@@ -10982,7 +10975,6 @@ za.com
 // No longer operated by CentralNic, these entries should be adopted and/or removed by current operators
 // Submitted by Gavin Brown <gavin.brown@centralnic.com>
 ar.com
-gb.com
 hu.com
 kr.com
 no.com
@@ -11035,10 +11027,6 @@ cx.ua
 // Submitted by Rishabh Nambiar & Michael Brown <team@discourse.org>
 discourse.group
 discourse.team
-
-// ClearVox : http://www.clearvox.nl/
-// Submitted by Leon Rowland <leon@clearvox.nl>
-virtueeldomein.nl
 
 // Clever Cloud : https://www.clever-cloud.com/
 // Submitted by Quentin Adam <noc@clever-cloud.com>
@@ -11642,12 +11630,6 @@ blogsite.xyz
 // Submitted by Dominik Menke <dom@digineo.de>
 dynv6.net
 
-// Ellucian : https://ellucian.com
-// Submitted by Josue Colon <CloudOps-Network@ellucian.com>
-elluciancrmadvance.com
-elluciancrmadvise.com
-elluciancrmrecruit.com
-
 // E4YOU spol. s.r.o. : https://e4you.cz/
 // Submitted by Vladimir Dudr <info@e4you.cz>
 e4.cz
@@ -11914,6 +11896,11 @@ fireweb.app
 // FLAP : https://www.flap.cloud
 // Submitted by Louis Chemineau <louis@chmn.me>
 flap.id
+
+// FlashDrive : https://flashdrive.io
+// Submitted by Eric Chan <support@flashdrive.io>
+onflashdrive.app
+fldrv.com
 
 // fly.io: https://fly.io
 // Submitted by Kurt Mackey <kurt@fly.io>
