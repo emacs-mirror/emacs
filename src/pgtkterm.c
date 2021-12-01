@@ -1978,7 +1978,8 @@ x_draw_image_relief (struct glyph_string *s)
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p && s->slice.x == 0)
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
     x += max (s->face->box_vertical_line_width, 0);
 
   /* If there is a margin around the image, adjust x- and y-position
@@ -1988,13 +1989,17 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->slice.y == 0)
     y += s->img->vmargin;
 
-  if (s->hl == DRAW_IMAGE_SUNKEN || s->hl == DRAW_IMAGE_RAISED)
+  if (s->hl == DRAW_IMAGE_SUNKEN
+      || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = (tab_bar_button_relief < 0
-	       ? DEFAULT_TAB_BAR_BUTTON_RELIEF
-	       : (tool_bar_button_relief < 0
-		  ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		  : min (tool_bar_button_relief, 1000000)));
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -2013,23 +2018,23 @@ x_draw_image_relief (struct glyph_string *s)
 	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
 	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
 	{
-	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin));
-	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
 	}
       else if (FIXNUMP (Vtab_bar_button_margin))
-	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin);
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
     }
 
   if (s->face->id == TOOL_BAR_FACE_ID)
     {
       if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
 	{
 	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
 	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
 	}
-      else if (INTEGERP (Vtool_bar_button_margin))
+      else if (FIXNUMP (Vtool_bar_button_margin))
 	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
     }
 
@@ -5848,6 +5853,7 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
      by the rest of Emacs, we put it here.  */
   bool tab_bar_p = false;
   bool tool_bar_p = false;
+  Lisp_Object tab_bar_arg = Qnil;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -5914,8 +5920,8 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  window = window_from_coordinates (f, x, y, 0, true, true);
 	  tab_bar_p = EQ (window, f->tab_bar_window);
 
-	  if (tab_bar_p && event->button.button < 4)
-	    handle_tab_bar_click
+	  if (tab_bar_p)
+	    tab_bar_arg = handle_tab_bar_click
 	      (f, x, y, event->type == GDK_BUTTON_PRESS,
 	       pgtk_gtk_to_emacs_modifiers (dpyinfo, event->button.state));
 	}
@@ -5923,7 +5929,7 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 
   if (f)
     {
-      if (!tab_bar_p && !tool_bar_p)
+      if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
 	{
 	  if (ignore_next_mouse_click_timeout)
 	    {
@@ -5938,6 +5944,9 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	    }
 	  else
 	    construct_mouse_click (&inev.ie, &event->button, f);
+
+	  if (!NILP (tab_bar_arg))
+	    inev.ie.arg = tab_bar_arg;
 	}
 #if 0
       if (FRAME_X_EMBEDDED_P (f))
