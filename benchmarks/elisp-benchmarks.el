@@ -4,7 +4,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
-;; Version: 1.12
+;; Version: 1.13
 ;; Keywords: languages, lisp
 ;; Package-Type: multi
 ;; Created: 2019-01-12
@@ -92,7 +92,7 @@ RECOMPILE all the benchmark folder when non nil."
    (when current-prefix-arg
      (list (read-regexp "Run benchmark matching: "))))
   (let* ((native-comp-speed elb-speed)
-	 (compile-function (if (fboundp 'native-compile)
+	 (compile-function (if (featurep 'native-compile)
 			       #'native-compile
 			     #'byte-compile-file))
 	 (res (make-hash-table :test #'equal))
