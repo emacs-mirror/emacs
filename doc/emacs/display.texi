@@ -1673,6 +1673,12 @@ characters more prominent on display.  @xref{Glyphless Chars,,
 Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
 for details.
 
+@findex glyphless-display-mode
+  The @code{glyphless-display-mode} minor mode can be used to toggle
+the display of glyphless characters in the current buffer.  The
+glyphless characters will be displayed as boxes with acronyms of their
+names inside.
+
 @cindex curly quotes, and terminal capabilities
 @cindex curved quotes, and terminal capabilities
 @cindex @code{homoglyph} face

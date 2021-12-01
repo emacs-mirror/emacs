@@ -8193,7 +8193,14 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
+@vindex glyphless-display-mode
+The @code{glyphless-display-mode} minor mode can be used to toggle
+displaying glyphless characters in a convenient manner in the current
+buffer.  If this mode is enabled, all the glyphless characters are
+displayed as boxes that display acronyms of their character names.
+
 @defvar glyphless-char-display
+For more fine-grained (and global) control, this variable can be used.
 The value of this variable is a char-table which defines glyphless
 characters and how they are displayed.  Each entry must be one of the
 following display methods:
