@@ -345,7 +345,9 @@ For example, you can set it to <return> like `isearch-exit'."
 (defcustom repeat-exit-timeout nil
   "Break the repetition chain of keys after specified timeout.
 When a number, exit the transient repeating mode after idle time
-of the specified number of seconds."
+of the specified number of seconds.
+You can also set the property `repeat-exit-timeout' on the command symbol.
+This property can override the value of this variable."
   :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
                  (number :tag "Timeout in seconds to exit repeating"))
   :group 'convenience
@@ -431,8 +433,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 
 (defun repeat-check-key (key map)
   "Check if the last key is suitable to activate the repeating MAP."
-  (let ((property (repeat--command-property 'repeat-check-key)))
-    (or (if repeat-check-key (eq property 'no) (not (eq property t)))
+  (let* ((prop (repeat--command-property 'repeat-check-key))
+         (check-key (unless (eq prop 'no) (or prop repeat-check-key))))
+    (or (not check-key)
         (lookup-key map (vector key))
         ;; Try without modifiers:
         (lookup-key map (vector (event-basic-type key))))))
@@ -475,14 +478,16 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                   (cancel-timer repeat-exit-timer)
                   (setq repeat-exit-timer nil))
 
-                (when repeat-exit-timeout
-                  (setq repeat-exit-timer
-                        (run-with-idle-timer
-                         repeat-exit-timeout nil
-                         (lambda ()
-                           (setq repeat-in-progress nil)
-                           (funcall exitfun)
-                           (funcall repeat-echo-function nil)))))))))))
+                (let* ((prop (repeat--command-property 'repeat-exit-timeout))
+                       (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
+                  (when timeout
+                    (setq repeat-exit-timer
+                          (run-with-idle-timer
+                           timeout nil
+                           (lambda ()
+                             (setq repeat-in-progress nil)
+                             (funcall exitfun)
+                             (funcall repeat-echo-function nil))))))))))))
 
     (setq repeat-map nil)
     (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
