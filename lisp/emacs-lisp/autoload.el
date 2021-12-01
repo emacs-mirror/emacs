@@ -32,7 +32,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'lisp-mnt)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defvar generated-autoload-file nil
   "File into which to write autoload definitions.
