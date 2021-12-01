@@ -12571,6 +12571,12 @@ other similar functions ignore input events in `while-no-input-ignore-events'.
 This flag may eventually be removed once this behavior is deemed safe.  */);
   input_pending_p_filter_events = true;
 
+  DEFVAR_BOOL ("mwheel-coalesce-scroll-events", mwheel_coalesce_scroll_events,
+	       doc: /* Non-nil means send a wheel event only for scrolling at least one screen line.
+Otherwise, a wheel event will be sent every time the mouse wheel is
+moved.  */);
+  mwheel_coalesce_scroll_events = true;
+
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }
 

@@ -5173,6 +5173,13 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
 
+    case WM_SETTINGCHANGE:
+      /* Inform the Lisp thread that some system-wide setting has
+	 changed, so if Emacs is interested in some of them, it could
+	 update its internal values.  */
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      goto dflt;
+
     case WM_SETFOCUS:
       dpyinfo->faked_key = 0;
       reset_modifiers ();

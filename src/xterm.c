@@ -10024,7 +10024,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			val->emacs_value += delta;
 
-			if (x_coalesce_scroll_events
+			if (mwheel_coalesce_scroll_events
 			    && (fabs (val->emacs_value) < 1))
 			  continue;
 
@@ -15213,13 +15213,6 @@ gtk_window_move to set or store frame positions and disables some time
 consuming frame position adjustments.  In newer versions of GTK, Emacs
 always uses gtk_window_move and ignores the value of this variable.  */);
   x_gtk_use_window_move = true;
-
-  DEFVAR_BOOL ("x-coalesce-scroll-events", x_coalesce_scroll_events,
-	       doc: /* Non-nil means send a wheel event only for scrolling at least one screen line.
-Otherwise, a wheel event will be sent every time the mouse wheel is
-moved.  This option is only effective when Emacs is built with XInput
-2, with Haiku windowing support, or with NS.  */);
-  x_coalesce_scroll_events = true;
 
   DEFVAR_LISP ("x-scroll-event-delta-factor", Vx_scroll_event_delta_factor,
 	       doc: /* A scale to apply to pixel deltas reported in scroll events.
