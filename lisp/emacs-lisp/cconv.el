@@ -258,11 +258,11 @@ Returns a form where all lambdas don't have any free variables."
               ;; unused vars.
               (not (intern-soft var))
               (eq ?_ (aref (symbol-name var) 0))
-	      ;; As a special exception, ignore "ignore".
+	      ;; As a special exception, ignore "ignored".
 	      (eq var 'ignored))
        (let ((suggestions (help-uni-confusable-suggestions (symbol-name var))))
          (format "Unused lexical %s `%S'%s"
-                 varkind var
+                 varkind (bare-symbol var)
                  (if suggestions (concat "\n  " suggestions) "")))))
 
 (define-inline cconv--var-classification (binder form)
@@ -286,7 +286,7 @@ of converted forms."
               (let (and (pred stringp) msg)
                 (cconv--warn-unused-msg arg "argument")))
          (if (assq arg env) (push `(,arg . nil) env)) ;FIXME: Is it needed?
-         (push (lambda (body) (macroexp--warn-wrap msg body 'lexical)) wrappers))
+         (push (lambda (body) (macroexp--warn-wrap body msg body 'lexical)) wrappers))
         (_
          (if (assq arg env) (push `(,arg . nil) env)))))
     (setq funcbody (mapcar (lambda (form)
@@ -414,11 +414,14 @@ places where they originally did not directly appear."
                        ;; Declared variable is unused.
                        (if (assq var new-env)
                            (push `(,var) new-env)) ;FIXME:Needed?
-                       (let ((newval
-                              `(ignore ,(cconv-convert value env extend)))
-                             (msg (cconv--warn-unused-msg var "variable")))
+                       (let* ((Ignore (if (symbol-with-pos-p var)
+                                          (position-symbol 'ignore var)
+                                        'ignore))
+                              (newval `(,Ignore
+                                        ,(cconv-convert value env extend)))
+                              (msg (cconv--warn-unused-msg var "variable")))
                          (if (null msg) newval
-                           (macroexp--warn-wrap msg newval 'lexical))))
+                           (macroexp--warn-wrap var msg newval 'lexical))))
 
                       ;; Normal default case.
                       (_
@@ -517,7 +520,7 @@ places where they originally did not directly appear."
             (newprotform (cconv-convert protected-form env extend)))
        `(condition-case ,var
             ,(if msg
-                 (macroexp--warn-wrap msg newprotform 'lexical)
+                 (macroexp--warn-wrap var msg newprotform 'lexical)
                newprotform)
           ,@(mapcar
              (lambda (handler)

@@ -128,9 +128,8 @@ static ptrdiff_t read_from_string_index;
 static ptrdiff_t read_from_string_index_byte;
 static ptrdiff_t read_from_string_limit;
 
-/* Number of characters read in the current call to Fread or
-   Fread_from_string.  */
-static EMACS_INT readchar_count;
+/* Position in object from which characters are being read by `readchar'.  */
+static EMACS_INT readchar_offset;
 
 /* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
@@ -213,7 +212,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
   if (multibyte)
     *multibyte = 0;
 
-  readchar_count++;
+  readchar_offset++;
 
   if (BUFFERP (readcharfun))
     {
@@ -424,7 +423,7 @@ skip_dyn_eof (Lisp_Object readcharfun)
 static void
 unreadchar (Lisp_Object readcharfun, int c)
 {
-  readchar_count--;
+  readchar_offset--;
   if (c == -1)
     /* Don't back up the pointer if we're unreading the end-of-input mark,
        since readchar didn't advance it when we read it.  */
@@ -2518,7 +2517,7 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
 {
   Lisp_Object retval;
 
-  readchar_count = 0;
+  readchar_offset = BUFFERP (stream) ? XBUFFER (stream)->pt : 0;
   /* We can get called from readevalloop which may have set these
      already.  */
   if (! HASH_TABLE_P (read_objects_map)
@@ -3773,7 +3772,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	char *p = read_buffer;
 	char *end = read_buffer + read_buffer_size;
 	bool quoted = false;
-	EMACS_INT start_position = readchar_count - 1;
+	EMACS_INT start_position = readchar_offset - 1;
 
 	do
 	  {

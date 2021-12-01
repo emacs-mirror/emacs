@@ -1326,7 +1326,7 @@ Return nil if such is not found."
                         (goto-char byte-compile-last-position)
                         (setq old-l (1+ (count-lines (point-min) (point-at-bol)))
                               old-c (1+ (current-column)))
-                        (goto-char (+ byte-compile-read-position offset))
+                        (goto-char offset)
                         (setq new-l (1+ (count-lines (point-min) (point-at-bol)))
                               new-c (1+ (current-column)))
                         (format "%d:%d:%d:%d:" old-l old-c new-l new-c)))
@@ -1435,12 +1435,7 @@ function directly; use `byte-compile-warn' or
 
 (defun byte-compile-warn (format &rest args)
   "Issue a byte compiler warning; use (format-message FORMAT ARGS...) for message."
-  (setq args
-        (mapcar (lambda (arg)
-                  (if (symbolp arg)
-                      (bare-symbol arg)
-                    arg))
-                args))
+  (setq args (mapcar #'byte-compile-strip-symbol-positions args))
   (setq format (apply #'format-message format args))
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it

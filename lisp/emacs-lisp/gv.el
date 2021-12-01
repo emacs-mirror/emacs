@@ -595,7 +595,7 @@ binding mode."
             (eq (car-safe code) 'cons))
         code
       (macroexp-warn-and-return
-       ;; org-place
+       org-place
        "Use of gv-ref probably requires lexical-binding"
        code))))
 

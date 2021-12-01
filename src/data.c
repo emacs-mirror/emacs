@@ -776,7 +776,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
 
 DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
        doc: /* Extract, if need be, the bare symbol from SYM, a symbol.  */)
-       (register Lisp_Object sym)
+  (register Lisp_Object sym)
 {
   if (BARE_SYMBOL_P (sym))
     return sym;
@@ -786,10 +786,21 @@ DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
 
 DEFUN ("symbol-with-pos-pos", Fsymbol_with_pos_pos, Ssymbol_with_pos_pos, 1, 1, 0,
        doc: /* Extract the position from a symbol with position.  */)
-       (register Lisp_Object ls)
+  (register Lisp_Object ls)
 {
   /* Type checking is done in the following macro. */
   return SYMBOL_WITH_POS_POS (ls);
+}
+
+DEFUN ("remove-pos-from-symbol", Fremove_pos_from_symbol,
+       Sremove_pos_from_symbol, 1, 1, 0,
+       doc: /* If ARG is a symbol with position, return it without the position.
+Otherwise, return ARG unchanged.  Compare with `bare-symbol'.  */)
+  (register Lisp_Object arg)
+{
+  if (SYMBOL_WITH_POS_P (arg))
+    return (SYMBOL_WITH_POS_SYM (arg));
+  return arg;
 }
 
 DEFUN ("position-symbol", Fposition_symbol, Sposition_symbol, 2, 2, 0,
@@ -4193,6 +4204,7 @@ syms_of_data (void)
   defsubr (&Ssymbol_name);
   defsubr (&Sbare_symbol);
   defsubr (&Ssymbol_with_pos_pos);
+  defsubr (&Sremove_pos_from_symbol);
   defsubr (&Sposition_symbol);
   defsubr (&Smakunbound);
   defsubr (&Sfmakunbound);

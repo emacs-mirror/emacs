@@ -366,7 +366,7 @@ typedef EMACS_INT Lisp_Word;
 
 #define lisp_h_PSEUDOVECTORP(a,code)                            \
   (lisp_h_VECTORLIKEP((a)) &&                                   \
-   ((XUNTAG ((a), Lisp_Vectorlike, union vectorlike_header)->size       \
+   ((XUNTAG ((a), Lisp_Vectorlike, union vectorlike_header)->size     \
      & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))                    \
     == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS))))
 
@@ -382,13 +382,13 @@ typedef EMACS_INT Lisp_Word;
   || (symbols_with_pos_enabled    \
   && (SYMBOL_WITH_POS_P ((x))                        \
       ? BARE_SYMBOL_P ((y))                               \
-        ? (XSYMBOL_WITH_POS((x)))->sym == (y)          \
+        ? XLI (XSYMBOL_WITH_POS((x))->sym) == XLI (y)           \
         : SYMBOL_WITH_POS_P((y))                       \
-          && ((XSYMBOL_WITH_POS((x)))->sym                   \
-              == (XSYMBOL_WITH_POS((y)))->sym)               \
+          && (XLI (XSYMBOL_WITH_POS((x))->sym)                   \
+              == XLI (XSYMBOL_WITH_POS((y))->sym))               \
       : (SYMBOL_WITH_POS_P ((y))                     \
          && BARE_SYMBOL_P ((x))                           \
-         && ((x) == ((XSYMBOL_WITH_POS ((y)))->sym))))))
+         && (XLI (x) == XLI ((XSYMBOL_WITH_POS ((y)))->sym))))))
 
 #define lisp_h_FIXNUMP(x) \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \

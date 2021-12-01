@@ -242,7 +242,8 @@ This method is obsolete."
 
     `(progn
        ,@(mapcar (lambda (w)
-                   (macroexp-warn-and-return w `(progn ',w) nil 'compile-only))
+                   (macroexp-warn-and-return w ; W is probably a poor choice for a position.
+                    w `(progn ',w) nil 'compile-only))
                  warnings)
        ;; This test must be created right away so we can have self-
        ;; referencing classes.  ei, a class whose slot can contain only
@@ -292,7 +293,7 @@ This method is obsolete."
                          (if (not (stringp (car slots)))
                              whole
                            (macroexp-warn-and-return
-                            ;; (car slots)
+                            (car slots)
                             (format "Obsolete name arg %S to constructor %S"
                                     (car slots) (car whole))
                             ;; Keep the name arg, for backward compatibility,
