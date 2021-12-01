@@ -313,12 +313,12 @@ such calls."
       (`(internal-get-closed-var . ,_)
        ;; The variable is captured.
        mapping)
-      (`(car-safe (internal-get-closed-var . ,_))
+      (`(car-safe ,exp)
        ;; The variable is mutably captured; skip
        ;; the indirection step because the variable is
        ;; passed "by reference" to the λ-lifted function.
-       (cadr mapping))
-      ((or '() `(car-safe ,(pred symbolp)))
+       exp)
+      (_
        ;; The variable is not captured; use the (shadowed) variable value.
        ;; (If the mapping is `(car-safe SYMBOL)', SYMBOL is always VAR.
        var))))
