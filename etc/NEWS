@@ -589,6 +589,13 @@ updating the thumbnail file.
 
 ** Dired
 
+*** New user option 'dired-free-space'.
+Dired will now, by default, include the free space in the first line
+instead of having it on a separate line.  To get the previous
+behaviour back, say:
+
+    (setq dired-free-space 'separate)
+
 ---
 *** New user option 'dired-make-directory-clickable'.
 If non-nil (which is the default), hitting 'RET' or 'mouse-1' on
