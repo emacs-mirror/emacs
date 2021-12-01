@@ -374,6 +374,9 @@ following in your .gnus file:
   (set-face-attribute 'gnus-header nil :inherit 'unspecified)
 
 ---
+*** The default value of 'gnus-treat-fold-headers' is now 'head'.
+
+---
 *** New face 'gnus-header'.
 All other 'gnus-header-*' faces inherit from this face now.
 

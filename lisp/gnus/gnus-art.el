@@ -1383,11 +1383,11 @@ This variable has no effect if `gnus-treat-unfold-headers' is nil."
 		 (const :tag "all" t)
 		 (regexp)))
 
-(defcustom gnus-treat-fold-headers nil
+(defcustom gnus-treat-fold-headers 'head
   "Fold headers.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "22.1"
+  :version "29.1"
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
