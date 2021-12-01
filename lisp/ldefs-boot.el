@@ -17349,7 +17349,9 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
+\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
+
+(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
 
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
@@ -17361,7 +17363,11 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
+\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
+
+(function-put 'define-ibuffer-sorter 'lisp-indent-function '1)
+
+(function-put 'define-ibuffer-sorter 'doc-string-elt '2)
 
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
@@ -17401,7 +17407,11 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
+
+(function-put 'define-ibuffer-op 'lisp-indent-function '2)
+
+(function-put 'define-ibuffer-op 'doc-string-elt '3)
 
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
@@ -17417,7 +17427,11 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
+\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
+
+(function-put 'define-ibuffer-filter 'lisp-indent-function '2)
+
+(function-put 'define-ibuffer-filter 'doc-string-elt '2)
 
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
@@ -25858,6 +25872,14 @@ they are not by default assigned to keys." t nil)
 ;;; Generated autoloads from language/pinyin.el
 
 (register-definition-prefixes "pinyin" '("pinyin-character-map"))
+
+;;;***
+
+;;;### (autoloads nil "pixel-fill" "textmodes/pixel-fill.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from textmodes/pixel-fill.el
+
+(register-definition-prefixes "pixel-fill" '("pixel-fill-"))
 
 ;;;***
 
@@ -39679,59 +39701,57 @@ Zone out, completely." t nil)
 ;;;***
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
-;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-loaddefs.el"
-;;;;;;  "calc/calc-misc.el" "calc/calc-yank.el" "calendar/cal-loaddefs.el"
-;;;;;;  "calendar/diary-loaddefs.el" "calendar/hol-loaddefs.el" "case-table.el"
-;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
-;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
-;;;;;;  "cedet/ede/linux.el" "cedet/ede/loaddefs.el" "cedet/ede/locate.el"
-;;;;;;  "cedet/ede/make.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
-;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
-;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
-;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
-;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
-;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
-;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
-;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
-;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
-;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
-;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
-;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
-;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
-;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
+;;;;;;  "calc/calc-yank.el" "calendar/cal-loaddefs.el" "calendar/diary-loaddefs.el"
+;;;;;;  "calendar/hol-loaddefs.el" "case-table.el" "cedet/ede/base.el"
+;;;;;;  "cedet/ede/config.el" "cedet/ede/cpp-root.el" "cedet/ede/custom.el"
+;;;;;;  "cedet/ede/dired.el" "cedet/ede/emacs.el" "cedet/ede/files.el"
+;;;;;;  "cedet/ede/generic.el" "cedet/ede/linux.el" "cedet/ede/locate.el"
+;;;;;;  "cedet/ede/make.el" "cedet/ede/shell.el" "cedet/ede/speedbar.el"
+;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
+;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
+;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
+;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
+;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
+;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
+;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
+;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
+;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
+;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
+;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
+;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
+;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
-;;;;;;  "cedet/semantic/loaddefs.el" "cedet/semantic/mru-bookmark.el"
-;;;;;;  "cedet/semantic/scope.el" "cedet/semantic/senator.el" "cedet/semantic/sort.el"
-;;;;;;  "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
-;;;;;;  "cedet/semantic/symref/global.el" "cedet/semantic/symref/grep.el"
-;;;;;;  "cedet/semantic/symref/idutils.el" "cedet/semantic/symref/list.el"
-;;;;;;  "cedet/semantic/tag-file.el" "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
+;;;;;;  "cedet/semantic/mru-bookmark.el" "cedet/semantic/scope.el"
+;;;;;;  "cedet/semantic/senator.el" "cedet/semantic/sort.el" "cedet/semantic/symref.el"
+;;;;;;  "cedet/semantic/symref/cscope.el" "cedet/semantic/symref/global.el"
+;;;;;;  "cedet/semantic/symref/grep.el" "cedet/semantic/symref/idutils.el"
+;;;;;;  "cedet/semantic/symref/list.el" "cedet/semantic/tag-file.el"
+;;;;;;  "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
 ;;;;;;  "cedet/semantic/tag.el" "cedet/semantic/texi.el" "cedet/semantic/util-modes.el"
 ;;;;;;  "cedet/semantic/wisent/java-tags.el" "cedet/semantic/wisent/javascript.el"
 ;;;;;;  "cedet/semantic/wisent/javat-wy.el" "cedet/semantic/wisent/js-wy.el"
 ;;;;;;  "cedet/semantic/wisent/python-wy.el" "cedet/semantic/wisent/python.el"
 ;;;;;;  "cedet/srecode/compile.el" "cedet/srecode/cpp.el" "cedet/srecode/document.el"
 ;;;;;;  "cedet/srecode/el.el" "cedet/srecode/expandproto.el" "cedet/srecode/getset.el"
-;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/loaddefs.el"
-;;;;;;  "cedet/srecode/map.el" "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el"
-;;;;;;  "cedet/srecode/srt.el" "cedet/srecode/template.el" "cedet/srecode/texi.el"
-;;;;;;  "composite.el" "cus-face.el" "cus-load.el" "cus-start.el"
-;;;;;;  "custom.el" "dired-aux.el" "dired-loaddefs.el" "dired-x.el"
+;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
+;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
+;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
+;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
 ;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
-;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-loaddefs.el" "emacs-lisp/cl-macs.el"
-;;;;;;  "emacs-lisp/cl-preloaded.el" "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el"
-;;;;;;  "emacs-lisp/eieio-compat.el" "emacs-lisp/eieio-custom.el"
-;;;;;;  "emacs-lisp/eieio-loaddefs.el" "emacs-lisp/eieio-opt.el"
-;;;;;;  "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el"
-;;;;;;  "emacs-lisp/macroexp.el" "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el"
-;;;;;;  "emacs-lisp/shorthands.el" "emacs-lisp/syntax.el" "emacs-lisp/timer.el"
-;;;;;;  "env.el" "epa-hook.el" "erc/erc-autoaway.el" "erc/erc-button.el"
-;;;;;;  "erc/erc-capab.el" "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
+;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
+;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-compat.el"
+;;;;;;  "emacs-lisp/eieio-custom.el" "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el"
+;;;;;;  "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el"
+;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el"
+;;;;;;  "emacs-lisp/syntax.el" "emacs-lisp/timer.el" "env.el" "epa-hook.el"
+;;;;;;  "erc/erc-autoaway.el" "erc/erc-button.el" "erc/erc-capab.el"
+;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
 ;;;;;;  "erc/erc-ezbounce.el" "erc/erc-fill.el" "erc/erc-identd.el"
-;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-loaddefs.el"
-;;;;;;  "erc/erc-log.el" "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
+;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el"
+;;;;;;  "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
 ;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
 ;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
 ;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
@@ -39742,52 +39762,40 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
 ;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
-;;;;;;  "eshell/em-xtra.el" "eshell/esh-groups.el" "faces.el" "files.el"
-;;;;;;  "finder-inf.el" "font-core.el" "font-lock.el" "format.el"
-;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "htmlfontify-loaddefs.el"
-;;;;;;  "ibuf-ext.el" "ibuffer-loaddefs.el" "indent.el" "international/characters.el"
-;;;;;;  "international/charprop.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-labels.el"
-;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
+;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "keymap.el" "language/burmese.el" "language/cham.el"
-;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
-;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
-;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
-;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
-;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
-;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
-;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
-;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
-;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
-;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
-;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
-;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
-;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
-;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/cham.el"
-;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
-;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/georgian.el"
-;;;;;;  "leim/quail/greek.el" "leim/quail/hanja-jis.el" "leim/quail/hanja.el"
-;;;;;;  "leim/quail/hanja3.el" "leim/quail/hebrew.el" "leim/quail/ipa-praat.el"
-;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
-;;;;;;  "leim/quail/latin-pre.el" "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
-;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
-;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
-;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
-;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
-;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmail-loaddefs.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "keymap.el" "language/burmese.el"
+;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
+;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
+;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
+;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
+;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
+;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
+;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
+;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
+;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
+;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
+;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
+;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
+;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
+;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
+;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
+;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
+;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
+;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
+;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
+;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
+;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
+;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
+;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
+;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
+;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
 ;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
 ;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
 ;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
@@ -39799,21 +39807,19 @@ Zone out, completely." t nil)
 ;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
 ;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
 ;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
-;;;;;;  "org/org-list.el" "org/org-loaddefs.el" "org/org-macs.el"
-;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
-;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
-;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "ps-print-loaddefs.el"
-;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
-;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
-;;;;;;  "textmodes/makeinfo.el" "textmodes/page.el" "textmodes/paragraphs.el"
-;;;;;;  "textmodes/reftex-auc.el" "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el"
-;;;;;;  "textmodes/reftex-global.el" "textmodes/reftex-index.el"
-;;;;;;  "textmodes/reftex-loaddefs.el" "textmodes/reftex-parse.el"
-;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
-;;;;;;  "textmodes/texinfo-loaddefs.el" "textmodes/texnfo-upd.el"
+;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
+;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
+;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
+;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
+;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
+;;;;;;  "paren.el" "progmodes/elisp-mode.el" "progmodes/prog-mode.el"
+;;;;;;  "ps-mule.el" "register.el" "replace.el" "rfn-eshadow.el"
+;;;;;;  "select.el" "simple.el" "startup.el" "subdirs.el" "subr.el"
+;;;;;;  "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
+;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
+;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
+;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
+;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/texnfo-upd.el"
 ;;;;;;  "textmodes/text-mode.el" "uniquify.el" "vc/ediff-hook.el"
 ;;;;;;  "vc/vc-hooks.el" "version.el" "widget.el" "window.el") (0
 ;;;;;;  0 0 0))
