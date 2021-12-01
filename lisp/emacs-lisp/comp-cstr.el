@@ -70,7 +70,7 @@
                                        (irange &aux
                                                (range (list irange))
                                                (typeset ())))
-                         (:copier comp-cstr-shallow-copy))
+                         (:copier nil))
   "Internal representation of a type/value constraint."
   (typeset '(t) :type list
            :documentation "List of possible types the mvar can assume.
@@ -132,6 +132,14 @@ Integer values are handled in the `range' slot.")
                     :valset (copy-sequence (valset cstr))
                     :range (copy-tree (range cstr))
                     :neg (neg cstr))))
+
+(defsubst comp-cstr-shallow-copy (dst src)
+  "Copy the content of SRC into DST."
+  (with-comp-cstr-accessors
+    (setf (range dst) (range src)
+          (valset dst) (valset src)
+          (typeset dst) (typeset src)
+          (neg dst) (neg src))))
 
 (defsubst comp-cstr-empty-p (cstr)
   "Return t if CSTR is equivalent to the nil type specifier or nil otherwise."
@@ -883,7 +891,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
   "Constraint OP1 being = OP2 setting the result into DST."
   (with-comp-cstr-accessors
     (cl-flet ((relax-cstr (cstr)
-                (setf cstr (comp-cstr-shallow-copy cstr))
+                (setf cstr (copy-sequence cstr))
                 ;; If can be any float extend it to all integers.
                 (when (memq 'float (typeset cstr))
                   (setf (range cstr) '((- . +))))
