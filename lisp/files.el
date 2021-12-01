@@ -7211,11 +7211,18 @@ DIRNAME is globbed by the shell if necessary.
 Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
-  (interactive (let ((pfx current-prefix-arg))
-		 (list (read-directory-name (if pfx "List directory (verbose): "
-					 "List directory (brief): ")
-				       nil default-directory nil)
-		       pfx)))
+  (interactive
+   (let ((pfx current-prefix-arg))
+     (list (read-file-name
+            (if pfx "List directory (verbose): "
+	      "List directory (brief): ")
+	    nil default-directory t
+            nil
+            (lambda (file)
+              (or (file-directory-p file)
+                  (insert-directory-wildcard-in-dir-p
+                   (expand-file-name file)))))
+           pfx)))
   (let ((switches (if verbose list-directory-verbose-switches
 		    list-directory-brief-switches))
 	buffer)
