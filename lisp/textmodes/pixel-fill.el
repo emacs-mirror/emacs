@@ -127,10 +127,11 @@ prefix on subsequent lines."
       ;; Success; continue.
       (when (= (preceding-char) ?\s)
 	(delete-char -1))
-      (insert ?\n)
-      (when (> indentation 0)
-        (insert (propertize " " 'display
-                            (list 'space :align-to (list indentation)))))
+      (unless (eobp)
+        (insert ?\n)
+        (when (> indentation 0)
+          (insert (propertize " " 'display
+                              (list 'space :align-to (list indentation))))))
       (setq start (point))
       (pixel-fill--goto-pixel width))))
 
