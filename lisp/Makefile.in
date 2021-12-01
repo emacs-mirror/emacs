@@ -205,6 +205,9 @@ autoloads-force:
 	rm -f $(lisp)/loaddefs.el
 	$(MAKE) autoloads
 
+ldefs-boot.el: autoloads-force
+	cp  $(lisp)/loaddefs.el $(lisp)/ldefs-boot.el
+
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
