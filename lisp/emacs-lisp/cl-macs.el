@@ -3050,7 +3050,7 @@ To see the documentation for a defined struct type, use
                             `(,predicate cl-x))))
     (when pred-form
       (push `(,defsym ,predicate (cl-x)
-               (declare (side-effect-free error-free))
+               (declare (side-effect-free error-free) (pure t))
                ,(if (eq (car pred-form) 'and)
                     (append pred-form '(t))
                   `(and ,pred-form t)))
