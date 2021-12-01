@@ -91,7 +91,7 @@ is always with pixel resolution.")
 (defvar pixel-last-scroll-time 0
   "Time when the last scrolling was made, in second since the epoch.")
 
-(defvar x-coalesce-scroll-events)
+(defvar mwheel-coalesce-scroll-events)
 
 (defvar pixel-scroll-precision-mode-map
   (let ((map (make-sparse-keymap)))
@@ -490,7 +490,7 @@ precisely, according to the turning of the mouse wheel."
   :global t
   :group 'mouse
   :keymap pixel-scroll-precision-mode-map
-  (setq x-coalesce-scroll-events
+  (setq mwheel-coalesce-scroll-events
         (not pixel-scroll-precision-mode)))
 
 (provide 'pixel-scroll)
