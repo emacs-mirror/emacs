@@ -1992,3 +1992,16 @@ or right of the current screen position, moving to the next or
 previous screen line as appropriate.  Note that this might potentially
 move point many buffer positions away, depending on the surrounding
 bidirectional context.
+
+@cindex bidi formatting control characters
+  Bidirectional text sometimes uses special formatting characters to
+affect the reordering of text for display.  The @sc{lrm} and @sc{rlm}
+characters, mentioned above, are two such characters, but there are
+more of them.  They are by default displayed as thin space glyphs on
+GUI frames, and as simple spaces on text-mode frames.  If you want to
+be aware of these special control characters, so that their effect on
+display does not come as a surprise, you can turn on the
+@code{glyphless-display-mode} (@pxref{Text Display}).  This minor mode
+will cause these formatting characters to be displayed as acronyms
+inside a small box, so that they stand out on display, and make their
+effect easier to understand.
