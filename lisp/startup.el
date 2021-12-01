@@ -519,6 +519,19 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
+(defvar comp--delayed-sources)
+(defvar comp--loadable)
+(declare-function native--compile-async "comp.el"
+                  (files &optional recursively load selector))
+(defun startup--honor-delayed-native-compilations ()
+  "Honor pending delayed deferred native compilations."
+  (when (and (native-comp-available-p)
+             comp--delayed-sources)
+    (require 'comp)
+    (setq comp--loadable t)
+    (native--compile-async comp--delayed-sources nil 'late)
+    (setq comp--delayed-sources nil)))
+
 (defvar native-comp-eln-load-path)
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
@@ -785,7 +798,8 @@ It is the default value of the variable `top-level'."
           (if (string-match "\\`DISPLAY=" varval)
               (setq display varval))))
       (when display
-        (delete display process-environment)))))
+        (delete display process-environment))))
+  (startup--honor-delayed-native-compilations))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 ;; Command-line options supported by tty's:

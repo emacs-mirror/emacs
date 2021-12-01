@@ -295,10 +295,21 @@ received.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Registers
+
++++
+*** Buffer names can now be stored in registers.
+For instance, to enable jumping to the *Messages* buffer with
+`C-x r j m':
+
+    (set-register ?m '(buffer . "*Messages*"))
+
 ** pixel-fill
 
++++
 *** This is a new package that deals with filling variable-pitch text.
 
++++
 *** New function 'pixel-fill-region'.
 This fills the region to be no wider than a specified pixel width.
 

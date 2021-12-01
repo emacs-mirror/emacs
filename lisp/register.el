@@ -279,6 +279,8 @@ ARG is the value of the prefix argument or nil."
     (goto-char (cadr val)))
    ((eq (car val) 'file)
     (find-file (cdr val)))
+   ((eq (car val) 'buffer)
+    (switch-to-buffer (cdr val)))
    ((eq (car val) 'file-query)
     (or (find-buffer-visiting (nth 1 val))
 	(y-or-n-p (format "Visit file %s again? " (nth 1 val)))
@@ -414,6 +416,11 @@ Interactively, reads the register using `register-read-with-preview'."
 
    ((eq (car val) 'file)
     (princ "the file ")
+    (prin1 (cdr val))
+    (princ "."))
+
+   ((eq (car val) 'buffer)
+    (princ "the buffer ")
     (prin1 (cdr val))
     (princ "."))
 

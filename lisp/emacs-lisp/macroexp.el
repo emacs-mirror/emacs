@@ -216,10 +216,11 @@ is executed without being compiled first."
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp-warn-and-return
-           (macroexp--obsolete-warning
-            fun obsolete
-            (if (symbolp (symbol-function fun))
-                "alias" "macro"))
+           (and (byte-compile-warning-enabled-p 'obsolete fun)
+                (macroexp--obsolete-warning
+                 fun obsolete
+                 (if (symbolp (symbol-function fun))
+                     "alias" "macro")))
            new-form 'obsolete))
       new-form)))
 

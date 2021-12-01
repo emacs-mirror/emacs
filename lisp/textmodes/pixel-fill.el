@@ -43,13 +43,36 @@ of a line or the end of a line."
   :type 'boolean
   :version "29.1")
 
+(defun pixel-fill-width (&optional columns window)
+  "Return the pixel width corresponding to COLUMNS in WINDOW.
+If COLUMNS in nil, use the enture window width.
+
+If WINDOW is nil, this defaults to the current window."
+  (unless window
+    (setq window (selected-window)))
+  (let ((frame (window-frame window)))
+    (if columns
+        (* (frame-char-width frame) columns)
+      (- (window-body-width nil t)
+         (* 2 (frame-char-width frame))
+         ;; We need to adjust the available width for when the user
+         ;; disables the fringes, which will cause the display
+         ;; engine usurp one column for the continuation glyph.
+         (if (and (fboundp 'fringe-columns)
+                  (or (not (zerop (fringe-columns 'right)))
+                      (not (zerop (fringe-columns 'left)))))
+             0
+           (* (frame-char-width frame) 2))
+         1))))
+
 (defun pixel-fill-region (start end pixel-width)
   "Fill the region between START and END.
 This will attempt to reformat the text in the region to have no
 lines that are visually wider than PIXEL-WIDTH.
 
-If START isn't at the start of a line, that pixel position will
-be used as the indentation prefix on subsequent lines."
+If START isn't at the start of a line, the horizontal position of
+START, converted to pixel units, will be used as the indentation
+prefix on subsequent lines."
   (save-excursion
     (goto-char start)
     (let ((indentation
