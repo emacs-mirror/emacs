@@ -6736,7 +6736,7 @@ You can set this option through Custom, if you carefully read the
 last paragraph below.  However, usually it is simpler to write
 something like the following in your init file:
 
-\(setq custom-file \"~/.emacs-custom.el\")
+\(setq custom-file \"~/.config/emacs-custom.el\")
 \(load custom-file)
 
 Note that both lines are necessary: the first line tells Custom to
@@ -13226,7 +13226,7 @@ retrieval with `flymake-diagnostic-data'.
 If LOCUS is a buffer BEG and END should be buffer positions
 inside it.  If LOCUS designates a file, BEG and END should be a
 cons (LINE . COL) indicating a file position.  In this second
-case, END may be ommited in which case the region is computed
+case, END may be omitted in which case the region is computed
 using `flymake-diag-region' if the diagnostic is appended to an
 actual buffer.
 
@@ -24054,7 +24054,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5)) package--builtin-versions)
+(push (purecopy '(org 9 5 1)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
