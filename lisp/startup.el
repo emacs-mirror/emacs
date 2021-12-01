@@ -1840,18 +1840,22 @@ a face or button specification."
   (unless concise
     (fancy-splash-insert
      :face 'variable-pitch
-     "\nTo start...     "
+     "\nTo start...\t"
      :link `("Open a File"
 	     ,(lambda (_button) (call-interactively 'find-file))
 	     "Specify a new file's name, to edit the file")
-     "     "
+     "\t\t"
      :link `("Open Home Directory"
 	     ,(lambda (_button) (dired "~"))
 	     "Open your home directory, to operate on its files")
-     "     "
+     "\n\t"
      :link `("Customize Startup"
 	     ,(lambda (_button) (customize-group 'initialization))
 	     "Change initialization settings including this screen")
+     "\t"
+     :link `("Explore Packages"
+	     ,(lambda (_button) (call-interactively 'package-list-packages))
+	     "Explore, install and remove Emacs packages (requires Internet connection)")
      "\n"))
   (fancy-splash-insert
    :face 'variable-pitch "To quit a partially entered command, type "
