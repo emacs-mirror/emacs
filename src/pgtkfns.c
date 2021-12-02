@@ -3908,6 +3908,52 @@ If omitted or nil, that stands for the selected frame's display.  */)
   return build_string (type_name);
 }
 
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font using a GTK dialog and return a font spec.
+
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
+  (Lisp_Object frame, Lisp_Object ignored)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  Lisp_Object font;
+  Lisp_Object font_param;
+  char *default_name = NULL;
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  if (popup_activated ())
+    error ("Trying to use a menu from within a menu-entry");
+  else
+    pgtk_menu_set_in_use (true);
+
+  /* Prevent redisplay.  */
+  specbind (Qinhibit_redisplay, Qt);
+  record_unwind_protect_void (clean_up_dialog);
+
+  block_input ();
+
+  XSETFONT (font, FRAME_FONT (f));
+  font_param = Ffont_get (font, QCname);
+  if (STRINGP (font_param))
+    default_name = xlispstrdup (font_param);
+  else
+    {
+      font_param = Fframe_parameter (frame, Qfont_parameter);
+      if (STRINGP (font_param))
+        default_name = xlispstrdup (font_param);
+    }
+
+  font = xg_get_font (f, default_name);
+  xfree (default_name);
+
+  unblock_input ();
+
+  if (NILP (font))
+    quit ();
+
+  return unbind_to (count, font);
+}
+
 /* ==========================================================================
 
     Lisp interface declaration
@@ -4032,6 +4078,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Spgtk_set_monitor_scale_factor);
 
   defsubr (&Sx_file_dialog);
+  defsubr (&Sx_select_font);
 
   as_status = 0;
   as_script = Qnil;
