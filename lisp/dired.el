@@ -210,12 +210,13 @@ If a character, new links are unconditionally marked with that character."
   :group 'dired-mark)
 
 (defcustom dired-free-space 'first
-  "Whether to display free disk space in dired buffers.
+  "Whether and how to display the amount of free disk space in Dired buffers.
 If nil, don't display.
 If `separate', display on a separate line (along with used count).
-If `first', display the free disk space on the first line."
+If `first', display only the free disk space on the first line,
+following the directory name."
   :type '(choice (const :tag "On a separate line" separate)
-                 (const :tag "On the first line" first)
+                 (const :tag "On the first line, after directory name" first)
                  (const :tag "Don't display" nil))
   :version "29.1"
   :group 'dired)
@@ -1658,7 +1659,10 @@ see `dired-use-ls-dired' for more details.")
           (point))
          ((eq dired-free-space 'first)
           (goto-char beg)
-          (when (and (looking-at " */")
+          (when (and (looking-at
+                      (if (memq system-type '(windows-nt ms-dos))
+                          " *[A-Za-z]:/"
+                        " */"))
                      (progn
                        (end-of-line)
                        (eq (char-after (1- (point))) ?:)))
