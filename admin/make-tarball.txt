@@ -5,7 +5,7 @@ Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
 
 Steps to take before starting on the first pretest in any release sequence:
 
-0.  The release branch (e.g. emacs-26) should already have been made
+0.  The release branch (e.g. emacs-28) should already have been made
     and you should use it for all that follows.  Diffs from this
     branch should be going to the emacs-diffs mailing list.
 
@@ -14,12 +14,13 @@ Steps to take before starting on the first pretest in any release sequence:
 
 2.  Consider increasing the value of the variable
     'customize-changed-options-previous-release' in cus-edit.el to
-    refer to a newer version of Emacs.  (This is probably needed only
-    when preparing the first pretest for a major Emacs release.)
+    refer to a newer version of Emacs.  (This is now done when cutting
+    the release branch, see admin/release-branch.txt.)
     Commit cus-edit.el if changed.
 
 3.  Remove any old pretests from https://alpha.gnu.org/gnu/emacs/pretest.
     You can use 'gnupload --delete' (see below for more gnupload details).
+    (We currently don't bother with this.)
 
 General steps (for each step, check for possible errors):
 
@@ -89,7 +90,7 @@ General steps (for each step, check for possible errors):
     admin/release-process must be completed.
 
     Set the version number to that of the actual release (commit in
-    one, as described above). Pick a date about a week from now when
+    one, as described above).  Pick a date about a week from now when
     you intend to make the release.  Use M-x add-release-logs to add
     entries to etc/HISTORY and the ChangeLog file.  It's best not to
     commit these files until the release is actually made.  Merge the
@@ -163,8 +164,15 @@ General steps (for each step, check for possible errors):
 
     If this is the first pretest of a major release, just comparing
     with the previous release may overlook many new files.  You can try
-    something like 'find . | sort' in a clean repository, and compare the
-    results against the new tar contents.
+    something like 'find . | sort' in a clean repository, and
+    compare the results against the new tar contents.  Another
+    alternative is using something like:
+
+     tar cf - emacs-NEW | tar t -C /tmp | grep -Ev "\.(o|d)$" | sort
+
+    Where emacs-NEW is the directory containing your clean repository.
+    The output of this command might be easier to compare to the
+    tarball than the one you get from find.
 
 7.   tar -xf emacs-NEW.tar; cd emacs-NEW
      ./configure --prefix=/tmp/emacs && make check && make install
@@ -193,6 +201,14 @@ General steps (for each step, check for possible errors):
 
      git tag -a TAG -m "Emacs TAG" SHA1
      git push --tags
+
+    In the past, we were not always consistent with the annotation
+    (i.e. -m "Emacs TAG").  The preferred format is like this for a
+    pretest, release candidate and final release:
+
+     git tag -a emacs-28.0.90  -m "Emacs 28.0.90 pretest"
+     git tag -a emacs-28.1-rc1 -m "Emacs 28.1 RC1"
+     git tag -a emacs-28.1     -m "Emacs 28.1 release"
 
 9. Decide what compression schemes to offer.
     For a release, at least gz and xz:
@@ -255,6 +271,11 @@ General steps (for each step, check for possible errors):
     (You can also put it in the Subject, but this is not as good
     because replies that invariably are not announcements also get
     sent out as if they were.)
+
+    To create the included SHA1 and SHA256 checksums, run:
+
+     sha1sum emacs-NEW.tar.xz
+     sha256sum emacs-NEW.tar.xz
 
 12. After a release, update the Emacs pages as described below.
 
