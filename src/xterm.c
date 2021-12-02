@@ -10025,11 +10025,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			val->emacs_value += delta;
 
 			if (mwheel_coalesce_scroll_events
-			    && (fabs (val->emacs_value) < 1))
+			    && (fabs (val->emacs_value) < 1)
+			    && (fabs (delta) > 0))
 			  continue;
 
 			bool s = signbit (val->emacs_value);
-			inev.ie.kind = (delta != 0.0
+			inev.ie.kind = (fabs (delta) > 0
 					? (val->horizontal
 					   ? HORIZ_WHEEL_EVENT
 					   : WHEEL_EVENT)
@@ -10040,17 +10041,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			XSETINT (inev.ie.y, lrint (xev->event_y));
 			XSETFRAME (inev.ie.frame_or_window, f);
 
-			inev.ie.modifiers = !s ? up_modifier : down_modifier;
-			inev.ie.modifiers
-			  |= x_x_to_emacs_modifiers (dpyinfo,
-						     xev->mods.effective);
+			if (fabs (delta) > 0)
+			  {
+			    inev.ie.modifiers = !s ? up_modifier : down_modifier;
+			    inev.ie.modifiers
+			      |= x_x_to_emacs_modifiers (dpyinfo,
+							 xev->mods.effective);
+			  }
 
 			scroll_unit = pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
 
 			if (NUMBERP (Vx_scroll_event_delta_factor))
 			  scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);
 
-			if (delta != 0.0)
+			if (fabs (delta) > 0)
 			  {
 			    if (val->horizontal)
 			      {
