@@ -1493,8 +1493,8 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (aset char-acronym-table #x202D "LRO")	   ; LEFT-TO-RIGHT OVERRIDE
 (aset char-acronym-table #x202E "RLO")	   ; RIGHT-TO-LEFT OVERRIDE
 (aset char-acronym-table #x2060 "WJ")	   ; WORD JOINER
-(aset char-acronym-table #x2066 "LTRI")	   ; LEFT-TO-RIGHT ISOLATE
-(aset char-acronym-table #x2067 "RTLI")	   ; RIGHT-TO-LEFT ISOLATE
+(aset char-acronym-table #x2066 "LRI")	   ; LEFT-TO-RIGHT ISOLATE
+(aset char-acronym-table #x2067 "RLI")	   ; RIGHT-TO-LEFT ISOLATE
 (aset char-acronym-table #x2069 "PDI")	   ; POP DIRECTIONAL ISOLATE
 (aset char-acronym-table #x206A "ISS")	   ; INHIBIT SYMMETRIC SWAPPING
 (aset char-acronym-table #x206B "ASS")	   ; ACTIVATE SYMMETRIC SWAPPING
@@ -1628,8 +1628,8 @@ GROUP must be one of these symbols:
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
   `bidi-control':   A subset of `format-control', but only characters
-                    that are relevant for bi-directional control, like
-                    U+2069 (PDI) and U+202B (RLE).
+                    that are relevant for bidirectional formatting controls,
+                    like U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
                     Characters in the range U+FE00..U+FE0F, used for
                     selecting alternate glyph presentations, such as
