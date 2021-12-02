@@ -75,6 +75,10 @@ time.
 
 * Changes in Emacs 29.1
 
+** New user option 'process-error-pause-time'.
+This determines how long to pause Emacs after a process
+filter/sentinel error has been handled.
+
 +++
 ** New face 'variable-pitch-text'.
 This face is like 'variable-pitch' (from which it inherits), but is
