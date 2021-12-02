@@ -758,6 +758,11 @@ property.
 ** New 'min-width' 'display' property.
 This allows setting a minimum display width for a region of text.
 
++++
+** New event type 'touch-end'.
+This event is sent whenever the user's finger moves off the mouse
+wheel on some mice, and when the user's finger moves off the touchpad.
+
 ** Keymaps and key definitions
 
 +++

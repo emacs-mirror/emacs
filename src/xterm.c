@@ -10029,9 +10029,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  continue;
 
 			bool s = signbit (val->emacs_value);
-			inev.ie.kind = (val->horizontal
-					? HORIZ_WHEEL_EVENT
-					: WHEEL_EVENT);
+			inev.ie.kind = (delta != 0.0
+					? (val->horizontal
+					   ? HORIZ_WHEEL_EVENT
+					   : WHEEL_EVENT)
+					: TOUCH_END_EVENT);
 			inev.ie.timestamp = xev->time;
 
 			XSETINT (inev.ie.x, lrint (xev->event_x));
@@ -10048,19 +10050,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			if (NUMBERP (Vx_scroll_event_delta_factor))
 			  scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);
 
-			if (val->horizontal)
+			if (delta != 0.0)
 			  {
-			    inev.ie.arg
-			      = list3 (Qnil,
-				       make_float (val->emacs_value
-						   * scroll_unit),
-				       make_float (0));
+			    if (val->horizontal)
+			      {
+				inev.ie.arg
+				  = list3 (Qnil,
+					   make_float (val->emacs_value
+						       * scroll_unit),
+					   make_float (0));
+			      }
+			    else
+			      {
+				inev.ie.arg = list3 (Qnil, make_float (0),
+						     make_float (val->emacs_value
+								 * scroll_unit));
+			      }
 			  }
-                        else
+			else
 			  {
-			    inev.ie.arg = list3 (Qnil, make_float (0),
-						 make_float (val->emacs_value
-							     * scroll_unit));
+			    inev.ie.arg = Qnil;
 			  }
 
 			kbd_buffer_store_event_hold (&inev.ie, hold_quit);

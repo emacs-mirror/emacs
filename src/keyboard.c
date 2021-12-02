@@ -5994,6 +5994,21 @@ make_lispy_event (struct input_event *event)
 	  return list2 (head, position);
       }
 
+    case TOUCH_END_EVENT:
+      {
+	Lisp_Object position;
+
+	/* Build the position as appropriate for this mouse click.  */
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	if (! FRAME_LIVE_P (f))
+	  return Qnil;
+
+	position = make_lispy_position (f, event->x, event->y,
+					event->timestamp);
+
+	return list2 (Qtouch_end, position);
+      }
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
@@ -11744,6 +11759,8 @@ syms_of_keyboard (void)
 #ifdef USE_FILE_NOTIFY
   DEFSYM (Qfile_notify, "file-notify");
 #endif /* USE_FILE_NOTIFY */
+
+  DEFSYM (Qtouch_end, "touch-end");
 
   /* Menu and tool bar item parts.  */
   DEFSYM (QCenable, ":enable");

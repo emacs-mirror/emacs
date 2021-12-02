@@ -267,6 +267,13 @@ enum event_kind
   /* File or directory was changed.  */
   , FILE_NOTIFY_EVENT
 #endif
+
+  /* Either the mouse wheel has been released without it being
+     clicked, or the user has lifted his finger from a touchpad.
+
+     In the future, this may take into account other multi-touch
+     events generated from touchscreens and such.  */
+  , TOUCH_END_EVENT
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */
