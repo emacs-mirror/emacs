@@ -521,14 +521,14 @@ This is like `describe-bindings', but displays only Isearch keys."
   (interactive)
   (let ((display-buffer-overriding-action isearch--display-help-action))
     (call-interactively 'describe-key))
-  (isearch-update))
+  (when isearch-mode (isearch-update)))
 
 (defun isearch-describe-mode ()
   "Display documentation of Isearch mode."
   (interactive)
   (let ((display-buffer-overriding-action isearch--display-help-action))
     (describe-function 'isearch-forward))
-  (isearch-update))
+  (when isearch-mode (isearch-update)))
 
 (defalias 'isearch-mode-help 'isearch-describe-mode)
 
