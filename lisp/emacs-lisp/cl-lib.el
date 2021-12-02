@@ -560,4 +560,9 @@ of record objects."
    (t
     (advice-remove 'type-of #'cl--old-struct-type-of))))
 
+(defun cl-constantly (value)
+  "Return a function that takes any number of arguments, but returns VALUE."
+  (lambda (&rest _)
+    value))
+
 ;;; cl-lib.el ends here
