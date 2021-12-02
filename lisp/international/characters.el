@@ -1628,7 +1628,7 @@ GROUP must be one of these symbols:
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
   `bidi-control':   A subset of `format-control', but only characters
-                    that are relevant for bidirectional formatting controls,
+                    that are relevant for bidirectional formatting control,
                     like U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
                     Characters in the range U+FE00..U+FE0F, used for
