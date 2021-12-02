@@ -8280,6 +8280,15 @@ Characters of Unicode General Category [Cf], such as U+200E
 @sc{left-to-right mark}, but excluding characters that have graphic
 images, such as U+00AD @sc{soft hyphen}.
 
+@item bidi-control
+This is a subset of @code{format-control}, but only includes
+characters that are related to bi-directional control, like U+2069
+@sc{pop directional isolate} and U+202A @sc{left-to-right embedding}.
+
+Characters of Unicode General Category [Cf], such as U+200E
+@sc{left-to-right mark}, but excluding characters that have graphic
+images, such as U+00AD @sc{soft hyphen}.
+
 @item variation-selectors
 Unicode VS-1 through VS-16 (U+FE00 through U+FE0F), which are used to
 select between different glyphs for the same codepoints (typically

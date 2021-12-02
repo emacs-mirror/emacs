@@ -34,6 +34,7 @@ The value can be any of the groups supported by
                          (const :tag "C0 Control" c0-control)
                          (const :tag "C1 Control" c1-control)
                          (const :tag "Format Control" format-control)
+                         (const :tag "Bi-directional Control" bidi-control)
                          (const :tag "Variation Selectors" variation-selectors)
                          (const :tag "No Font" no-font)))
   :group 'display)

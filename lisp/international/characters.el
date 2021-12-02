@@ -1493,6 +1493,9 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (aset char-acronym-table #x202D "LRO")	   ; LEFT-TO-RIGHT OVERRIDE
 (aset char-acronym-table #x202E "RLO")	   ; RIGHT-TO-LEFT OVERRIDE
 (aset char-acronym-table #x2060 "WJ")	   ; WORD JOINER
+(aset char-acronym-table #x2066 "LTRI")	   ; LEFT-TO-RIGHT ISOLATE
+(aset char-acronym-table #x2067 "RTLI")	   ; RIGHT-TO-LEFT ISOLATE
+(aset char-acronym-table #x2069 "PDI")	   ; POP DIRECTIONAL ISOLATE
 (aset char-acronym-table #x206A "ISS")	   ; INHIBIT SYMMETRIC SWAPPING
 (aset char-acronym-table #x206B "ASS")	   ; ACTIVATE SYMMETRIC SWAPPING
 (aset char-acronym-table #x206C "IAFS")    ; INHIBIT ARABIC FORM SHAPING
@@ -1517,6 +1520,17 @@ Setup `char-width-table' appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
+(defvar glyphless--bidi-control-characters
+  '( ?\N{left-to-right embedding}
+     ?\N{right-to-left embedding}
+     ?\N{left-to-right override}
+     ?\N{right-to-left override}
+     ?\N{left-to-right isolate}
+     ?\N{right-to-left isolate}
+     ?\N{first strong isolate}
+     ?\N{pop directional formatting}
+     ?\N{pop directional isolate}))
+
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
 This function updates the char-table `glyphless-char-display',
@@ -1527,8 +1541,9 @@ option `glyphless-char-display'."
   (dolist (elt value)
     (let ((target (car elt))
 	  (method (cdr elt)))
-      (or (memq method '(zero-width thin-space empty-box acronym hex-code))
-	  (error "Invalid glyphless character display method: %s" method))
+      (unless (memq method '( zero-width thin-space empty-box
+                              acronym hex-code bidi-control))
+	(error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
 	     (glyphless-set-char-table-range glyphless-char-display
 					     #x00 #x1F method)
@@ -1543,24 +1558,29 @@ option `glyphless-char-display'."
 	    ((eq target 'variation-selectors)
 	     (glyphless-set-char-table-range glyphless-char-display
 					     #xFE00 #xFE0F method))
-	    ((eq target 'format-control)
+	    ((or (eq target 'format-control)
+                 (eq target 'bidi-control))
 	     (when unicode-category-table
 	       (map-char-table
                 (lambda (char category)
-                  (if (eq category 'Cf)
-                      (let ((this-method method)
-                            from to)
-                        (if (consp char)
-                            (setq from (car char) to (cdr char))
-                          (setq from char to char))
-                        (while (<= from to)
-                          (when (/= from #xAD)
-                            (if (eq method 'acronym)
-                                (setq this-method
-                                      (aref char-acronym-table from)))
+                  (when (eq category 'Cf)
+                    (let ((this-method method)
+                          from to)
+                      (if (consp char)
+                          (setq from (car char) to (cdr char))
+                        (setq from char to char))
+                      (while (<= from to)
+                        (when (/= from #xAD)
+                          (when (eq method 'acronym)
+                            (setq this-method
+                                  (or (aref char-acronym-table from)
+                                      "UNK")))
+                          (when (or (eq target 'format-control)
+                                    (memq from
+                                          glyphless--bidi-control-characters))
                             (set-char-table-range glyphless-char-display
-                                                  from this-method))
-                          (setq from (1+ from))))))
+                                                  from this-method)))
+                        (setq from (1+ from))))))
 		unicode-category-table)))
 	    ((eq target 'no-font)
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
@@ -1607,6 +1627,9 @@ GROUP must be one of these symbols:
                     such as U+200C (ZWNJ), U+200E (LRM), but
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
+  `bidi-control':   A subset of `format-control', but only characters
+                    that are relevant for bi-directional control, like
+                    U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
                     Characters in the range U+FE00..U+FE0F, used for
                     selecting alternate glyph presentations, such as
@@ -1635,6 +1658,7 @@ function (`update-glyphless-char-display'), which updates
   :options '((c0-control glyphless-char-display-method)
 	     (c1-control glyphless-char-display-method)
 	     (format-control glyphless-char-display-method)
+	     (bidi-control glyphless-char-display-method)
 	     (variation-selectors glyphless-char-display-method)
 	     (no-font (glyphless-char-display-method :value hex-code)))
   :set 'update-glyphless-char-display
