@@ -383,7 +383,7 @@ the height of the current window."
 	 (desired-vscroll (cdr (posn-object-x-y desired-pos)))
          (next-pos (save-excursion
                      (goto-char desired-start)
-                     (when (zerop (vertical-motion 1))
+                     (when (zerop (vertical-motion (1+ scroll-margin)))
                        (signal 'end-of-buffer nil))
                      (point))))
     (if (and (< (point) next-pos)
@@ -419,7 +419,7 @@ the height of the current window."
          (point (posn-point posn))
          (up-point (save-excursion
                      (goto-char point)
-                     (vertical-motion -1)
+                     (vertical-motion (- (1+ scroll-margin)))
                      (point))))
     (when (> (point) up-point)
       (when (let ((pos-visible (pos-visible-in-window-p up-point nil t)))
