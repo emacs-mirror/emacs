@@ -2381,6 +2381,15 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "The basic variable-pitch face."
   :group 'basic-faces)
 
+(defface variable-pitch-text
+  '((t :inherit variable-pitch
+       :height 1.1))
+  "The proportional face used for longer texts.
+This is like the `variable-pitch' face, but is slightly bigger by
+default."
+  :version "29.1"
+  :group 'basic-faces)
+
 (defface shadow
   '((((class color grayscale) (min-colors 88) (background light))
      :foreground "grey50")

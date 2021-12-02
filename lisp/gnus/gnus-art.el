@@ -769,7 +769,7 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   :group 'gnus-article-signature)
 
 (defface gnus-header
-  '((t :inherit variable-pitch))
+  '((t :inherit variable-pitch-text))
   "Base face used for all Gnus header faces.
 All the other `gnus-header-' faces inherit from this face."
   :version "29.1"

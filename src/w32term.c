@@ -3251,10 +3251,10 @@ w32_construct_mouse_wheel (struct input_event *result, W32Msg *msg,
       int scroll_unit = max (w32_wheel_scroll_lines, 1), nlines;
       double value_to_report;
 
-      /* w32_wheel_scroll_lines == INT_MAX means the user asked for
+      /* w32_wheel_scroll_lines == UINT_MAX means the user asked for
 	 "entire page" to be the scroll unit.  We interpret that as
 	 the height of the window under the mouse pointer.  */
-      if (w32_wheel_scroll_lines == INT_MAX)
+      if (w32_wheel_scroll_lines == UINT_MAX)
 	{
 	  Lisp_Object window = window_from_coordinates (f, p.x, p.y, NULL,
 							false, false);

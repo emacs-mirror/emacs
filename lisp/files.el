@@ -7211,11 +7211,18 @@ DIRNAME is globbed by the shell if necessary.
 Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
-  (interactive (let ((pfx current-prefix-arg))
-		 (list (read-directory-name (if pfx "List directory (verbose): "
-					 "List directory (brief): ")
-				       nil default-directory nil)
-		       pfx)))
+  (interactive
+   (let ((pfx current-prefix-arg))
+     (list (read-file-name
+            (if pfx "List directory (verbose): "
+	      "List directory (brief): ")
+	    nil default-directory t
+            nil
+            (lambda (file)
+              (or (file-directory-p file)
+                  (insert-directory-wildcard-in-dir-p
+                   (expand-file-name file)))))
+           pfx)))
   (let ((switches (if verbose list-directory-verbose-switches
 		    list-directory-brief-switches))
 	buffer)
@@ -7666,21 +7673,7 @@ normally equivalent short `-D' option is just passed on to
 					    (if val coding-no-eol coding))
 		      (if val
 			  (put-text-property pos (point)
-					     'dired-filename t)))))))
-
-	  (if full-directory-p
-	      ;; Try to insert the amount of free space.
-	      (save-excursion
-		(goto-char beg)
-		;; First find the line to put it on.
-		(when (re-search-forward "^ *\\(total\\)" nil t)
-		  ;; Replace "total" with "total used in directory" to
-		  ;; avoid confusion.
-		  (replace-match "total used in directory" nil nil nil 1)
-		  (let ((available (get-free-disk-space file)))
-		    (when available
-		      (end-of-line)
-		      (insert " available " available))))))))))
+					     'dired-filename t)))))))))))
 
 (defun insert-directory-adj-pos (pos error-lines)
   "Convert `ls --dired' file name position value POS to a buffer position.

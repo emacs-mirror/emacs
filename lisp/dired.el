@@ -209,6 +209,17 @@ If a character, new links are unconditionally marked with that character."
 		 (character :tag "Mark"))
   :group 'dired-mark)
 
+(defcustom dired-free-space 'first
+  "Whether to display free disk space in dired buffers.
+If nil, don't display.
+If `separate', display on a separate line (along with used count).
+If `first', display the free disk space on the first line."
+  :type '(choice (const :tag "On a separate line" separate)
+                 (const :tag "On the first line" first)
+                 (const :tag "Don't display" nil))
+  :version "29.1"
+  :group 'dired)
+
 (defcustom dired-dwim-target nil
   "If non-nil, Dired tries to guess a default target directory.
 This means: if there is a Dired buffer displayed in some window,
@@ -1614,14 +1625,50 @@ see `dired-use-ls-dired' for more details.")
 	  ;; by its expansion, so it does not matter whether what we insert
 	  ;; here is fully expanded, but it should be absolute.
 	  (insert "  " (or (car-safe (insert-directory-wildcard-in-dir-p dir))
-                           (directory-file-name (file-name-directory dir))) ":\n")
+                           (directory-file-name (file-name-directory dir)))
+                  ":\n")
 	  (setq content-point (point)))
 	(when wildcard
 	  ;; Insert "wildcard" line where "total" line would be for a full dir.
 	  (insert "  wildcard " (or (cdr-safe (insert-directory-wildcard-in-dir-p dir))
                                     (file-name-nondirectory dir))
-                  "\n")))
+                  "\n"))
+        (setq content-point (dired--insert-disk-space opoint dir)))
       (dired-insert-set-properties content-point (point)))))
+
+(defun dired--insert-disk-space (beg file)
+  ;; Try to insert the amount of free space.
+  (save-excursion
+    (goto-char beg)
+    ;; First find the line to put it on.
+    (if (not (re-search-forward "^ *\\(total\\)" nil t))
+        beg
+      (if (or (not dired-free-space)
+              (eq dired-free-space 'first))
+          (delete-region (match-beginning 0) (line-beginning-position 2))
+        ;; Replace "total" with "total used in directory" to
+        ;; avoid confusion.
+        (replace-match "total used in directory" nil nil nil 1))
+      (when-let ((available (get-free-disk-space file)))
+        (cond
+         ((eq dired-free-space 'separate)
+	  (end-of-line)
+	  (insert " available " available)
+          (forward-line 1)
+          (point))
+         ((eq dired-free-space 'first)
+          (goto-char beg)
+          (when (and (looking-at " */")
+                     (progn
+                       (end-of-line)
+                       (eq (char-after (1- (point))) ?:)))
+            (put-text-property (1- (point)) (point)
+                               'display
+                               (concat ": (" available " available)")))
+          (forward-line 1)
+          (point))
+         (t
+          beg))))))
 
 (defun dired-insert-set-properties (beg end)
   "Add various text properties to the lines in the region, from BEG to END."

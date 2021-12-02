@@ -76,6 +76,13 @@ time.
 * Changes in Emacs 29.1
 
 +++
+** New face 'variable-pitch-text'.
+This face is like 'variable-pitch' (from which it inherits), but is
+slightly larger, which should help with the visual size differences
+between the default, non-proportional font and proportional fonts when
+mixed.
+
++++
 ** New face 'mode-line-active'.
 This inherits from the 'mode-line' face, but is the face actually used
 on the mode lines (along with 'mode-line-inactive').
@@ -294,6 +301,10 @@ received.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
+
+** New minor mode 'glyphless-display-mode'.
+This allows an easy way to toggle seeing all glyphless characters in
+the current buffer.
 
 ** Registers
 
@@ -577,6 +588,13 @@ thumbnail, or 'M-x image-rotate' to rotate the thumbnail without
 updating the thumbnail file.
 
 ** Dired
+
+*** New user option 'dired-free-space'.
+Dired will now, by default, include the free space in the first line
+instead of having it on a separate line.  To get the previous
+behaviour back, say:
+
+    (setq dired-free-space 'separate)
 
 ---
 *** New user option 'dired-make-directory-clickable'.
