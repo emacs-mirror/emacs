@@ -1840,44 +1840,6 @@ Some window managers may refuse to restack windows.  */)
   return Qt;
 }
 
-DEFUN ("pgtk-popup-font-panel", Fpgtk_popup_font_panel, Spgtk_popup_font_panel,
-       0, 1, "",
-       doc: /* Pop up the font panel.  */)
-     (Lisp_Object frame)
-{
-  struct frame *f = decode_window_system_frame (frame);
-
-  Lisp_Object font;
-  Lisp_Object font_param;
-  char *default_name = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  block_input ();
-
-  XSETFONT (font, FRAME_FONT (f));
-  font_param = Ffont_get (font, QCname);
-  if (STRINGP (font_param))
-    default_name = xlispstrdup (font_param);
-  else
-    {
-      font_param = Fframe_parameter (frame, Qfont_parameter);
-      if (STRINGP (font_param))
-        default_name = xlispstrdup (font_param);
-    }
-
-  font = xg_get_font (f, default_name);
-  xfree (default_name);
-
-  unblock_input ();
-
-  if (NILP (font))
-    quit ();
-
-  return unbind_to (count, font);
-}
-
-
-
 #ifdef HAVE_GSETTINGS
 
 #define RESOURCE_KEY_MAX_LEN 128
@@ -4047,7 +4009,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Spgtk_frame_geometry);
   defsubr (&Spgtk_frame_edges);
   defsubr (&Spgtk_frame_restack);
-  defsubr (&Spgtk_popup_font_panel);
   defsubr (&Spgtk_set_mouse_absolute_pixel_position);
   defsubr (&Spgtk_mouse_absolute_pixel_position);
   defsubr (&Sx_display_mm_width);
