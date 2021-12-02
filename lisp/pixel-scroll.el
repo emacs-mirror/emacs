@@ -109,6 +109,18 @@ This is only effective if supported by your mouse or touchpad."
   :type 'boolean
   :version "29.1")
 
+(defcustom pixel-scroll-precision-momentum-tick 0.16
+  "Number of seconds between each momentum scroll."
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
+(defcustom pixel-scroll-precision-momentum-factor 0.95
+  "Factor by which to reduce scroll velocity on each momentum scroll"
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
 When scrolling request is delivered soon after the previous one,
@@ -501,14 +513,14 @@ wheel."
 It is a vector of the form [ VELOCITY TIME ]."
   (or (window-parameter nil 'kinetic-state)
       (set-window-parameter nil 'kinetic-state
-                            (vector (make-ring 4) nil))))
+                            (vector (make-ring 10) nil))))
 
 (defun pixel-scroll-accumulate-velocity (delta)
   "Accumulate DELTA into the current window's kinetic scroll state."
   (let* ((state (pixel-scroll-kinetic-state))
          (time (aref state 1)))
     (when (and time (> (- (float-time) time) 0.5))
-      (aset state 0 (make-ring 45)))
+      (aset state 0 (make-ring 10)))
     (ring-insert (aref state 0)
                  (cons (aset state 1 (float-time))
                        delta))))
@@ -532,23 +544,26 @@ It is a vector of the form [ VELOCITY TIME ]."
           (state nil))
       (with-selected-window window
         (setq state (pixel-scroll-kinetic-state))
-        (when (aref state 1)
+        (when (and (aref state 1)
+                   (listp (aref state 0)))
           (unwind-protect (progn
                             (aset state 0
-                                  (pixel-scroll-calculate-velocity state))
+                                  (/ (pixel-scroll-calculate-velocity state) 2))
                             (let ((velocity (aref state 0)))
                               (if (> velocity 0)
-                                  (while (> velocity 0)
-                                    (pixel-scroll-precision-scroll-up 1)
-                                    (setq velocity (1- velocity))
-                                    (sit-for 0.1)
-                                    (redisplay t))
-                                (while (< velocity 0)
-                                  (pixel-scroll-precision-scroll-down 1)
-                                  (setq velocity (1+ velocity))
-                                  (sit-for 0.1)
-                                  (redisplay t)))))
-            (aset state 0 (make-ring 45))
+                                  (while (> velocity 1)
+                                    (pixel-scroll-precision-scroll-up (round velocity))
+                                    (setq velocity (* velocity
+                                                      pixel-scroll-precision-momentum-factor))
+                                    (redisplay t)
+                                    (sit-for pixel-scroll-precision-momentum-tick)))
+                              (while (< velocity -1)
+                                (pixel-scroll-precision-scroll-down (round (abs velocity)))
+                                (setq velocity (* velocity
+                                                  pixel-scroll-precision-momentum-factor))
+                                (redisplay t)
+                                (sit-for pixel-scroll-precision-momentum-tick))))
+            (aset state 0 (make-ring 10))
             (aset state 1 nil)))))))
 
 ;;;###autoload
