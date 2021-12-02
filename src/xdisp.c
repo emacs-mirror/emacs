@@ -35660,7 +35660,8 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
 If this is non-nil characters displayed on GUI frames will be
 aligned to produce straight columns.  This is achieved by
 enlarging the pixel width of characters to an integral
-multiple of pixels taken by ASCII characters of the same face.  */);
+multiple of pixels taken by ASCII characters of the same face.
+This affects only fixed-pitch fonts.  */);
     align_columns_display = false;
 
 #ifdef GLYPH_DEBUG
