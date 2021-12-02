@@ -57,8 +57,7 @@ It is filled with some text."
       (end-of-line)
       (forward-word -1)
 
-      (setq f (srecode-field "Test"
-			     :name "TEST"
+      (setq f (srecode-field :name "TEST"
 			     :start 6
 			     :end 8))
 
@@ -99,19 +98,17 @@ It is filled with some text."
 	   (reg nil)
 	   (fields
 	    (list
-	     (srecode-field "Test1" :name "TEST-1" :start 5 :end 10)
-	     (srecode-field "Test2" :name "TEST-2" :start 15 :end 20)
-	     (srecode-field "Test3" :name "TEST-3" :start 25 :end 30)
+	     (srecode-field :name "TEST-1" :start 5 :end 10)
+	     (srecode-field :name "TEST-2" :start 15 :end 20)
+	     (srecode-field :name "TEST-3" :start 25 :end 30)
 
-	     (srecode-field "Test4" :name "TEST-4" :start 35 :end 35))
-	    ))
+	     (srecode-field :name "TEST-4" :start 35 :end 35))))
 
       (when (not (= (length srecode-field-archive) 4))
 	(error "Region Test: Found %d fields.  Expected 4"
 	       (length srecode-field-archive)))
 
-      (setq reg (srecode-template-inserted-region "REG"
-						  :start 4
+      (setq reg (srecode-template-inserted-region :start 4
 						  :end 40))
 
       (srecode-overlaid-activate reg)
@@ -183,10 +180,10 @@ It is filled with some text."
 
     ;; Test variable linkage.
     (let* ((srecode-field-archive nil)
-	   (f1 (srecode-field "Test1" :name "TEST" :start 6 :end 8))
-	   (f2 (srecode-field "Test2" :name "TEST" :start 28 :end 30))
-	   (f3 (srecode-field "Test3" :name "NOTTEST" :start 35 :end 40))
-           (reg (srecode-template-inserted-region "REG" :start 4 :end 40)))
+	   (f1 (srecode-field :name "TEST" :start 6 :end 8))
+	   (f2 (srecode-field :name "TEST" :start 28 :end 30))
+	   (f3 (srecode-field :name "NOTTEST" :start 35 :end 40))
+           (reg (srecode-template-inserted-region :start 4 :end 40)))
       (srecode-overlaid-activate reg)
 
       (when (not (string= (srecode-overlaid-text f1)
