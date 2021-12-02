@@ -1520,16 +1520,18 @@ Setup `char-width-table' appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
+;; We can't use the \N{name} things here, because this file is used
+;; too early in the build process.
 (defvar glyphless--bidi-control-characters
-  '( ?\N{left-to-right embedding}
-     ?\N{right-to-left embedding}
-     ?\N{left-to-right override}
-     ?\N{right-to-left override}
-     ?\N{left-to-right isolate}
-     ?\N{right-to-left isolate}
-     ?\N{first strong isolate}
-     ?\N{pop directional formatting}
-     ?\N{pop directional isolate}))
+  '(#x202a			     ; ?\N{left-to-right embedding}
+    #x202b			     ; ?\N{right-to-left embedding}
+    #x202d			     ; ?\N{left-to-right override}
+    #x202e			     ; ?\N{right-to-left override}
+    #x2066			     ; ?\N{left-to-right isolate}
+    #x2067			     ; ?\N{right-to-left isolate}
+    #x2068			     ; ?\N{first strong isolate}
+    #x202c			     ; ?\N{pop directional formatting}
+    #x2069))                         ; ?\N{pop directional isolate})
 
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
