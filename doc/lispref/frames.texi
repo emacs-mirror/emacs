@@ -214,7 +214,7 @@ The terminal and keyboard coding systems used on the terminal.
 @item
 The kind of display associated with the terminal.  This is the symbol
 returned by the function @code{terminal-live-p} (i.e., @code{x},
-@code{t}, @code{w32}, @code{ns}, @code{pc}, or @code{haiku}).
+@code{t}, @code{w32}, @code{ns}, @code{pc}, @code{haiku}, or @code{pgtk}).
 @xref{Frames}.
 
 @item
