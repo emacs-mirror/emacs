@@ -2213,11 +2213,12 @@ unfolded."
 	  (goto-char (point-max)))))))
 
 (defun gnus--variable-pitch-p (face)
-  (or (eq face 'variable-pitch)
-      (let ((parent (face-attribute face :inherit)))
-        (if (eq parent 'unspecified)
-            nil
-          (seq-some #'gnus--variable-pitch-p (ensure-list parent))))))
+  (when face
+    (or (eq face 'variable-pitch)
+        (let ((parent (face-attribute face :inherit)))
+          (if (eq parent 'unspecified)
+              nil
+            (seq-some #'gnus--variable-pitch-p (ensure-list parent)))))))
 
 (defun gnus-article-treat-fold-headers ()
   "Fold message headers."
