@@ -137,7 +137,9 @@ Other uses risk returning non-nil value that point to the wrong file."
 
 (defun macroexp--warn-wrap (msg form category)
   (let ((when-compiled (lambda ()
-                         (when (byte-compile-warning-enabled-p category)
+                         (when (if (listp category)
+                                   (apply #'byte-compile-warning-enabled-p category)
+                                 (byte-compile-warning-enabled-p category))
                            (byte-compile-warn "%s" msg)))))
     `(progn
        (macroexp--funcall-if-compiled ',when-compiled)
@@ -216,12 +218,11 @@ is executed without being compiled first."
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp-warn-and-return
-           (and (byte-compile-warning-enabled-p 'obsolete fun)
-                (macroexp--obsolete-warning
-                 fun obsolete
-                 (if (symbolp (symbol-function fun))
-                     "alias" "macro")))
-           new-form 'obsolete))
+           (macroexp--obsolete-warning
+            fun obsolete
+            (if (symbolp (symbol-function fun))
+                "alias" "macro"))
+           new-form (list 'obsolete fun)))
       new-form)))
 
 (defun macroexp--unfold-lambda (form &optional name)

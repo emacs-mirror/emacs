@@ -551,4 +551,9 @@
     (should cl-old-struct-compat-mode)
     (cl-old-struct-compat-mode (if saved 1 -1))))
 
+(ert-deftest cl-constantly ()
+  (should (equal (mapcar (cl-constantly 3) '(a b c d))
+                 '(3 3 3 3))))
+
+
 ;;; cl-lib-tests.el ends here

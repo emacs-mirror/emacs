@@ -68,6 +68,7 @@
 
 (require 'mwheel)
 (require 'subr-x)
+(require 'ring)
 
 (defvar pixel-wait 0
   "Idle time on each step of pixel scroll specified in second.
@@ -97,8 +98,16 @@ is always with pixel resolution.")
   (let ((map (make-sparse-keymap)))
     (define-key map [wheel-down] #'pixel-scroll-precision)
     (define-key map [wheel-up] #'pixel-scroll-precision)
+    (define-key map [touch-end] #'pixel-scroll-start-momentum)
     map)
   "The key map used by `pixel-scroll-precision-mode'.")
+
+(defcustom pixel-scroll-precision-use-momentum nil
+  "If non-nil, continue to scroll the display after wheel movement stops.
+This is only effective if supported by your mouse or touchpad."
+  :group 'mouse
+  :type 'boolean
+  :version "29.1")
 
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
@@ -383,7 +392,7 @@ the height of the current window."
 	 (desired-vscroll (cdr (posn-object-x-y desired-pos)))
          (next-pos (save-excursion
                      (goto-char desired-start)
-                     (when (zerop (vertical-motion 1))
+                     (when (zerop (vertical-motion (1+ scroll-margin)))
                        (signal 'end-of-buffer nil))
                      (point))))
     (if (and (< (point) next-pos)
@@ -419,7 +428,7 @@ the height of the current window."
          (point (posn-point posn))
          (up-point (save-excursion
                      (goto-char point)
-                     (vertical-motion -1)
+                     (vertical-motion (- (1+ scroll-margin)))
                      (point))))
     (when (> (point) up-point)
       (when (let ((pos-visible (pos-visible-in-window-p up-point nil t)))
@@ -475,15 +484,72 @@ wheel."
                 (mwheel-scroll event nil)
               (with-selected-window window
                 (condition-case nil
-                    (if (< delta 0)
-	                (pixel-scroll-precision-scroll-down (- delta))
-                      (pixel-scroll-precision-scroll-up delta))
+                    (progn
+                      (if (< delta 0)
+	                  (pixel-scroll-precision-scroll-down (- delta))
+                        (pixel-scroll-precision-scroll-up delta))
+                      (pixel-scroll-accumulate-velocity delta))
                   ;; Do not ding at buffer limits.  Show a message instead.
                   (beginning-of-buffer
                    (message (error-message-string '(beginning-of-buffer))))
                   (end-of-buffer
                    (message (error-message-string '(end-of-buffer)))))))))
       (mwheel-scroll event nil))))
+
+(defun pixel-scroll-kinetic-state ()
+  "Return the kinetic scroll state of the current window.
+It is a vector of the form [ VELOCITY TIME ]."
+  (or (window-parameter nil 'kinetic-state)
+      (set-window-parameter nil 'kinetic-state
+                            (vector (make-ring 4) nil))))
+
+(defun pixel-scroll-accumulate-velocity (delta)
+  "Accumulate DELTA into the current window's kinetic scroll state."
+  (let* ((state (pixel-scroll-kinetic-state))
+         (time (aref state 1)))
+    (when (and time (> (- (float-time) time) 0.5))
+      (aset state 0 (make-ring 45)))
+    (ring-insert (aref state 0)
+                 (cons (aset state 1 (float-time))
+                       delta))))
+
+(defun pixel-scroll-calculate-velocity (state)
+  "Calculate velocity from the kinetic state vector STATE."
+  (let* ((ring (aref state 0))
+         (elts (ring-elements ring))
+         (total 0))
+    (dolist (tem elts)
+      (setq total (+ total (cdr tem))))
+    (/ total (* (- (caar elts)
+                   (caar (last elts)))
+                100))))
+
+(defun pixel-scroll-start-momentum (event)
+  "Start kinetic scrolling for the touch event EVENT."
+  (interactive "e")
+  (when pixel-scroll-precision-use-momentum
+    (let ((window (mwheel-event-window event))
+          (state nil))
+      (with-selected-window window
+        (setq state (pixel-scroll-kinetic-state))
+        (when (aref state 1)
+          (unwind-protect (progn
+                            (aset state 0
+                                  (pixel-scroll-calculate-velocity state))
+                            (let ((velocity (aref state 0)))
+                              (if (> velocity 0)
+                                  (while (> velocity 0)
+                                    (pixel-scroll-precision-scroll-up 1)
+                                    (setq velocity (1- velocity))
+                                    (sit-for 0.1)
+                                    (redisplay t))
+                                (while (< velocity 0)
+                                  (pixel-scroll-precision-scroll-down 1)
+                                  (setq velocity (1+ velocity))
+                                  (sit-for 0.1)
+                                  (redisplay t)))))
+            (aset state 0 (make-ring 45))
+            (aset state 1 nil)))))))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode

@@ -1261,6 +1261,8 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key global-map [kp-9]		'function-key-error)
 ;; (define-key global-map [kp-equal]	'function-key-error)
 
+(define-key global-map [touch-end] 'ignore)
+
 ;; X11 distinguishes these keys from the non-kp keys.
 ;; Make them behave like the non-kp keys unless otherwise bound.
 ;; FIXME: rather than list such mappings for every modifier-combination,

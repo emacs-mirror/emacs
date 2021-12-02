@@ -1992,6 +1992,13 @@ This kind of event indicates that the user deiconified @var{frame} using
 the window manager.  Its standard definition is @code{ignore}; since the
 frame has already been made visible, Emacs has no work to do.
 
+@cindex @code{touch-end} event
+@item (touch-end (@var{position}))
+This kind of event indicates that the user's finger moved off the
+mouse wheel or the touchpad.  The @var{position} element is a mouse
+position list (@pxref{Click Events}), specifying the position of the
+mouse cursor when the finger moved off the mouse wheel.
+
 @cindex @code{wheel-up} event
 @cindex @code{wheel-down} event
 @item (wheel-up @var{position} @var{clicks} @var{lines} @var{pixel-delta})
