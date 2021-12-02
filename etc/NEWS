@@ -43,7 +43,7 @@ development files are present on your system, and configure Emacs with
 *** Double buffering is now enabled on the Haiku operating system.
 Unlike X, there is no compile-time option to enable or disable
 double-buffering.  If you wish to disable double-buffering, change the
-frame parameter `inhibit-double-buffering' instead.
+frame parameter 'inhibit-double-buffering' instead.
 
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
@@ -56,7 +56,7 @@ If your X server has support and you have the XInput 2 development headers
 installed, you can configure Emacs with the option '--with-xinput2' to enable
 this support.
 
-The named feature `xinput2' can be used to test for the presence of
+The named feature 'xinput2' can be used to test for the presence of
 XInput 2 support from Lisp programs.
 
 
@@ -101,7 +101,7 @@ on the mode lines (along with 'mode-line-inactive').
 ** The mode line now uses a proportional font by default.
 To get the old monospaced mode line back, customize the
 'mode-line-active' and 'mode-line-inactive' faces not to inherit from
-the 'variable-pitch' face, or add this to your ~/.emacs:
+the 'variable-pitch' face, or add this to your "~/.emacs":
 
   (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
   (set-face-attribute 'mode-line-inactive nil :inherit 'mode-line)
@@ -132,13 +132,15 @@ This is in addition to previously-supported ways of discovering 24-bit
 color support: either via the "RGB" or "setf24" capabilities, or if
 the 'COLORTERM' environment variable is set to the value "truecolor".
 
+** ERT
+
 +++
-** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
+*** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
 These variables will override 'print-length' and 'print-level' when
 printing Lisp values in ERT batch test results.
 
 ---
-** Redefining an ERT test in batch mode now signals an error
+*** Redefining an ERT test in batch mode now signals an error.
 Executing 'ert-deftest' with the same name as an existing test causes
 the previous definition to be discarded, which was probably not
 intended when this occurs in batch mode.  To remedy the error, rename
@@ -178,7 +180,7 @@ command also works for non-Emoji characters.)
 
 ---
 *** 'C-h b' uses outlining by default.
-Set 'describe-bindings-outline' to nil to get the old behaviour.
+Set 'describe-bindings-outline' to nil to get the old behavior.
 
 ---
 *** Jumping to function/variable source now saves mark before moving point.
@@ -320,8 +322,8 @@ the current buffer.
 
 +++
 *** Buffer names can now be stored in registers.
-For instance, to enable jumping to the *Messages* buffer with
-`C-x r j m':
+For instance, to enable jumping to the "*Messages*" buffer with
+'C-x r j m':
 
     (set-register ?m '(buffer . "*Messages*"))
 
@@ -392,7 +394,7 @@ the common "utm_" trackers from URLs.
 To get the monospace font back, you can put something like the
 following in your .gnus file:
 
-  (set-face-attribute 'gnus-header nil :inherit 'unspecified)
+    (set-face-attribute 'gnus-header nil :inherit 'unspecified)
 
 ---
 *** The default value of 'gnus-treat-fold-headers' is now 'head'.
@@ -601,8 +603,8 @@ updating the thumbnail file.
 
 *** New user option 'dired-free-space'.
 Dired will now, by default, include the free space in the first line
-instead of having it on a separate line.  To get the previous
-behaviour back, say:
+instead of having it on a separate line.  To get the previous behavior
+back, say:
 
     (setq dired-free-space 'separate)
 
@@ -751,6 +753,10 @@ with recent versions of Firefox.
 ** The function 'image-dired-get-exif-data' is now obsolete.
 Use 'exif-parse-file' and 'exif-field' instead.
 
+---
+** 'insert-directory' alternatives should not change the free disk space line.
+This change is now applied in 'dired-insert-directory'.
+
 
 * Lisp Changes in Emacs 29.1
 
@@ -771,7 +777,7 @@ This allows setting a minimum display width for a region of text.
 +++
 ** New event type 'touch-end'.
 This event is sent whenever the user's finger moves off the mouse
-wheel on some mice, and when the user's finger moves off the touchpad.
+wheel on some mice, or when the user's finger moves off the touchpad.
 
 ** Keymaps and key definitions
 
@@ -1058,7 +1064,7 @@ This function is used to control where and if an xwidget stores
 cookies set by web pages on disk.
 
 ** New variable 'help-buffer-under-preparation'.
-This variable is bound to t during the preparation of a *Help* buffer.
+This variable is bound to t during the preparation of a "*Help*" buffer.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
