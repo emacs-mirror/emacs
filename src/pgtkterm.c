@@ -4277,6 +4277,7 @@ set_fullscreen_state (struct frame *f)
     case FULLSCREEN_WIDTH:
     case FULLSCREEN_HEIGHT:
       /* Not supported by gtk. Ignore them. */
+      break;
     }
 
   f->want_fullscreen = FULLSCREEN_NONE;
