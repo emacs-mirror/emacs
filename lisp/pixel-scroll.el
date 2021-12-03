@@ -549,7 +549,8 @@ It is a vector of the form [ VELOCITY TIME ]."
           (unwind-protect (progn
                             (aset state 0
                                   (/ (pixel-scroll-calculate-velocity state) 2))
-                            (let ((velocity (aref state 0)))
+                            (let ((velocity (* (aref state 0)
+                                               pixel-scroll-precision-momentum-tick)))
                               (if (> velocity 0)
                                   (while (> velocity 1)
                                     (pixel-scroll-precision-scroll-up (round velocity))
