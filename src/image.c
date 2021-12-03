@@ -10484,6 +10484,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       viewbox_height = viewbox.height;
     }
   else
+    viewbox_width = viewbox_height = 0;
+
+  if (viewbox_width == 0 || viewbox_height == 0)
     {
       /* We haven't found a usable set of sizes, so try working out
          the visible area.  */
