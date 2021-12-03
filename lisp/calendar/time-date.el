@@ -158,7 +158,10 @@ If DATE lacks timezone information, GMT is assumed."
   (encode-time
     (decoded-time-set-defaults
       (condition-case err
-          (parse-time-string date)
+          (let ((time (parse-time-string date)))
+            (prog1 time
+              ;; Cause an error if data `parse-time-string' returns is invalid.
+              (setq time (encode-time time))))
         (error
          (let ((overflow-error '(error "Specified time is not representable")))
            (if (or (equal err overflow-error)
