@@ -575,6 +575,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
              (ns-scroll-event-delta-factor ns float "29.1")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
+             (process-error-pause-time processes-basics integer "29.1")
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)

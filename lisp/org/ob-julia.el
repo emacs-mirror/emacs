@@ -1,7 +1,7 @@
 ;;; ob-julia.el --- org-babel functions for julia code evaluation  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
-;; Authors: G. Jay Kerns, based on ob-R.el by Eric Schulte and Dan Davison
+;; Authors: G. Jay Kerns
 ;; Maintainer: Pedro Bruel <pedro.bruel@gmail.com>
 ;; Keywords: literate programming, reproducible research, scientific computing
 ;; Homepage: https://github.com/phrb/ob-julia
@@ -24,6 +24,8 @@
 ;;; Commentary:
 
 ;; Org-Babel support for evaluating julia code
+;;
+;; Based on ob-R.el by Eric Schulte and Dan Davison.
 
 ;;; Code:
 (require 'cl-lib)

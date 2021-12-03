@@ -966,6 +966,15 @@ use the function @code{process-tty-name} (@pxref{Process
 Information}).
 @end defvar
 
+@defvar process-error-pause-time
+If a process sentinel/filter function has an error, Emacs will (by
+default) pause Emacs for @code{process-error-pause-time} seconds after
+displaying this error, so that users will see the error in question.
+However, this can lead to situations where Emacs becomes unresponsive
+(if there's a lot of these errors happening), so this can be disabled
+by setting @code{process-error-pause-time} to 0.
+@end defvar
+
 @node Deleting Processes
 @section Deleting Processes
 @cindex deleting processes

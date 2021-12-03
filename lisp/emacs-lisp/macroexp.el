@@ -136,11 +136,12 @@ Other uses risk returning non-nil value that point to the wrong file."
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
 (defun macroexp--warn-wrap (msg form category)
-  (let ((when-compiled (lambda ()
-                         (when (if (listp category)
-                                   (apply #'byte-compile-warning-enabled-p category)
-                                 (byte-compile-warning-enabled-p category))
-                           (byte-compile-warn "%s" msg)))))
+  (let ((when-compiled
+	 (lambda ()
+           (when (if (consp category)
+                     (apply #'byte-compile-warning-enabled-p category)
+                   (byte-compile-warning-enabled-p category))
+             (byte-compile-warn "%s" msg)))))
     `(progn
        (macroexp--funcall-if-compiled ',when-compiled)
        ,form)))

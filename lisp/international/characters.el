@@ -1493,8 +1493,8 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (aset char-acronym-table #x202D "LRO")	   ; LEFT-TO-RIGHT OVERRIDE
 (aset char-acronym-table #x202E "RLO")	   ; RIGHT-TO-LEFT OVERRIDE
 (aset char-acronym-table #x2060 "WJ")	   ; WORD JOINER
-(aset char-acronym-table #x2066 "LTRI")	   ; LEFT-TO-RIGHT ISOLATE
-(aset char-acronym-table #x2067 "RTLI")	   ; RIGHT-TO-LEFT ISOLATE
+(aset char-acronym-table #x2066 "LRI")	   ; LEFT-TO-RIGHT ISOLATE
+(aset char-acronym-table #x2067 "RLI")	   ; RIGHT-TO-LEFT ISOLATE
 (aset char-acronym-table #x2069 "PDI")	   ; POP DIRECTIONAL ISOLATE
 (aset char-acronym-table #x206A "ISS")	   ; INHIBIT SYMMETRIC SWAPPING
 (aset char-acronym-table #x206B "ASS")	   ; ACTIVATE SYMMETRIC SWAPPING
@@ -1520,16 +1520,18 @@ Setup `char-width-table' appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
+;; We can't use the \N{name} things here, because this file is used
+;; too early in the build process.
 (defvar glyphless--bidi-control-characters
-  '( ?\N{left-to-right embedding}
-     ?\N{right-to-left embedding}
-     ?\N{left-to-right override}
-     ?\N{right-to-left override}
-     ?\N{left-to-right isolate}
-     ?\N{right-to-left isolate}
-     ?\N{first strong isolate}
-     ?\N{pop directional formatting}
-     ?\N{pop directional isolate}))
+  '(#x202a			     ; ?\N{left-to-right embedding}
+    #x202b			     ; ?\N{right-to-left embedding}
+    #x202d			     ; ?\N{left-to-right override}
+    #x202e			     ; ?\N{right-to-left override}
+    #x2066			     ; ?\N{left-to-right isolate}
+    #x2067			     ; ?\N{right-to-left isolate}
+    #x2068			     ; ?\N{first strong isolate}
+    #x202c			     ; ?\N{pop directional formatting}
+    #x2069))                         ; ?\N{pop directional isolate})
 
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
@@ -1628,8 +1630,8 @@ GROUP must be one of these symbols:
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
   `bidi-control':   A subset of `format-control', but only characters
-                    that are relevant for bi-directional control, like
-                    U+2069 (PDI) and U+202B (RLE).
+                    that are relevant for bidirectional formatting control,
+                    like U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
                     Characters in the range U+FE00..U+FE0F, used for
                     selecting alternate glyph presentations, such as

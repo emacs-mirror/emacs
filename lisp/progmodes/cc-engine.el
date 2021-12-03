@@ -10009,7 +10009,12 @@ This function might do hidden buffer changes."
 		(save-excursion
 		  (goto-char type-start)
 		  (let ((c-promote-possible-types t))
-		    (c-forward-type)))))
+		    (c-forward-type))))
+
+	      ;; Signal a type declaration for "struct foo {".
+	      (when (and backup-at-type-decl
+			 (eq (char-after) ?{))
+		(setq at-type-decl t)))
 
 	    (setq backup-at-type at-type
 		  backup-type-start type-start

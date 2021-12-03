@@ -580,7 +580,9 @@ files in the active region if `dired-mark-region' is non-nil."
 
 (defalias 'virtual-dired 'dired-virtual)
 (defun dired-virtual (dirname &optional switches)
-  "Try to make the current buffer into a Dired buffer.
+  "Treat the current buffer as a Dired buffer showing directory DIRNAME.
+Interactively, prompt for DIRNAME.
+
 This command is rarely useful, but may be convenient if you want
 to peruse and move around in the output you got from \"ls
 -lR\" (or something similar), without having access to the actual
@@ -588,8 +590,8 @@ file system.
 
 Most Dired commands that don't consult the file system will work
 as advertised, but commands that try to alter the file system
-will usually fail.  (If the output is from the current system,
-most of those commands, too, will work fine.)
+will usually fail.  (However, if the output is from the current
+system, most of those commands will work fine.)
 
 If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
 resume it in a later session.

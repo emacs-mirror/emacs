@@ -44,7 +44,7 @@ PD=${0%/*}
 [ "$PD" = "$0" ] && PD=.        # if PATH includes PWD
 
 ## This should be the admin directory.
-cd $PD
+cd $PD || exit
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
@@ -53,7 +53,7 @@ cd ../
 usage ()
 {
     cat 1>&2 <<EOF
-Usage: ${PN} [-f] [-c] [-q] [-A dir] [-I] [-L] [-C] [-- make-flags]
+Usage: ${PN} [-f] [-c] [-q] [-A dir] [-L] [-C] [-- make-flags]
 Update some auto-generated files in the Emacs tree.
 By default, only does the versioned loaddefs-like files in lisp/.
 This requires a build.  Passes any non-option args to make (eg -- -j2).
@@ -63,7 +63,6 @@ Options:
     commit them (caution).
 -q: be quiet; only give error messages, not status messages.
 -A: only update autotools files, copying into specified dir.
--H: also update ChangeLog.${changelog_n}
 -L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
 EOF
@@ -80,13 +79,10 @@ clean=
 autogendir=                     # was "autogen"
 ldefs_flag=1
 lboot_flag=
-changelog_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
-changelog_n=$(sed -n 's/CHANGELOG_HISTORY_INDEX_MAX *= *//p' Makefile.in)
-changelog_files="ChangeLog.$changelog_n"
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
 ## Everything:
@@ -106,10 +102,10 @@ done
 
 tempfile=/tmp/$PN.$$
 
-trap "rm -f $tempfile 2> /dev/null" EXIT
+trap 'rm -f $tempfile 2> /dev/null' EXIT
 
 
-while getopts ":hcfqA:HCIL" option ; do
+while getopts ":hcfqA:CL" option ; do
     case $option in
         (h) usage ;;
 
@@ -124,8 +120,6 @@ while getopts ":hcfqA:HCIL" option ; do
             ;;
 
         (C) clean=1 ;;
-
-        (H) changelog_flag=1 ;;
 
         (L) lboot_flag=1 ;;
 
@@ -319,14 +313,6 @@ modified=$(status $genfiles $ldefs_out $grammar_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"
-
-
-## Less important than the other stuff, so do it last.
-[ ! "$changelog_flag" ] || {
-    make change-history-nocommit || die "make change-history error"
-    modified=$(status $changelog_files) || die
-    commit "ChangeLog" $modified || die "commit error"
-}
 
 
 exit 0

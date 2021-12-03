@@ -704,18 +704,14 @@ in the selected window."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers))
                         " at that spot" ""))
-         ;; Use `mouse-set-point' to handle the case when a menu item
+         ;; Use `posn-set-point' to handle the case when a menu item
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
-         ;; When no mouse was involved, don't use `mouse-set-point'.
-         (defn (if (or buffer
-                       ;; Clicks on the menu bar produce "event" that
-                       ;; is just '(menu-bar)', for which
-                       ;; `mouse-set-point' is not useful.
-                       (and (not (windowp (posn-window (event-start event))))
-                            (not (framep (posn-window (event-start event))))))
+         ;; When no mouse was involved, don't use `posn-set-point'.
+         (defn (if buffer
                    (key-binding key t)
-                 (save-excursion (mouse-set-point event) (key-binding key t)))))
+                 (save-excursion (posn-set-point (event-end event))
+                                 (key-binding key t)))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
