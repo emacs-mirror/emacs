@@ -5426,6 +5426,7 @@ case $opsys in
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
   || defined __alpha__ || defined __mips__ || defined __s390__ \
   || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+  || defined __x86_64__ \
   || defined __ia64__ || defined __sh__
 /* ok */
 #else
