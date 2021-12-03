@@ -621,8 +621,9 @@ call."
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
-You can use \\<image-mode-map>\\[image-toggle-display] or \\<image-mode-map>\\[image-toggle-hex-display]
-to toggle between display as an image and display as text or hex.
+You can use \\<image-mode-map>\\[image-toggle-display] or \
+\\[image-toggle-hex-display] to toggle between display
+as an image and display as text or hex.
 
 Key bindings:
 \\{image-mode-map}"
