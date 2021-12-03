@@ -1265,13 +1265,21 @@ sure that a trailing letter in STR is one of BKkMGTPEZY."
   (let* ((val (string-to-number str))
          (u (unless (zerop val)
               (aref str (1- (length str))))))
-    (when (and u (> u ?9))
-      (when (= u ?k)
-        (setq u ?K))
-      (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
-        (while (and units (/= (pop units) u))
-          (setq val (* 1024.0 val)))))
-    val))
+    ;; If we don't have a unit at the end, but we have some
+    ;; non-numeric strings in the string, then the string may be
+    ;; something like "4.134" or "4,134" meant to represent 4134
+    ;; (seen in some locales).
+    (if (and u
+             (<= ?0 u ?9)
+             (string-match-p "[^0-9]" str))
+        (string-to-number (replace-regexp-in-string "[^0-9]+" "" str))
+      (when (and u (> u ?9))
+        (when (= u ?k)
+          (setq u ?K))
+        (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
+          (while (and units (/= (pop units) u))
+            (setq val (* 1024.0 val)))))
+      val)))
 
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
