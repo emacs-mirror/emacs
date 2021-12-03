@@ -898,9 +898,9 @@ conventions}).
 @cindex Repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
-number with two components (e.g., @samp{24.5}) indicates a released
+number with two components (e.g., @samp{28.1}) indicates a released
 version; three components indicate a development
-version (e.g., @samp{28.0.50} is what will eventually become @samp{28.1}).
+version (e.g., @samp{29.0.50} is what will eventually become @samp{29.1}).
 
 Emacs is under active development, hosted at
 @uref{https://savannah.gnu.org/projects/emacs/, Savannah}.
