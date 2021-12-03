@@ -1123,8 +1123,6 @@ END is the limit of the search."
 ;;;; Define major mode
 ;;;;
 
-(define-obsolete-variable-alias 'semantic-grammar-syntax-table
-  'semantic-grammar-mode-syntax-table "24.1")
 (defvar semantic-grammar-mode-syntax-table
   (let ((table (make-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?\: "."     table) ;; COLON
@@ -1197,8 +1195,6 @@ END is the limit of the search."
   semantic-grammar-mode-keywords-1
   "Font Lock keywords used to highlight Semantic grammar buffers.")
 
-(define-obsolete-variable-alias 'semantic-grammar-map
-  'semantic-grammar-mode-map "24.1")
 (defvar semantic-grammar-mode-map
   (let ((km (make-sparse-keymap)))
 

@@ -239,12 +239,8 @@ comma-separated list, and return the pruned list."
   ;; Or just set the default directly in the defcustom.
   (if (null mail-dont-reply-to-names)
       (setq mail-dont-reply-to-names
-	     ;; `rmail-default-dont-reply-to-names' is obsolete.
-	    (let ((a (bound-and-true-p rmail-default-dont-reply-to-names))
-		  (b (if (> (length user-mail-address) 0)
-			 (concat "\\`" (regexp-quote user-mail-address) "\\'"))))
-	      (cond ((and a b) (concat a "\\|" b))
-		    ((or a b))))))
+            (if (> (length user-mail-address) 0)
+                (concat "\\`" (regexp-quote user-mail-address) "\\'"))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
@@ -280,9 +276,6 @@ comma-separated list, and return the pruned list."
   (if (string-match "\\(\\s \\|,\\)*" destinations)
       (substring destinations (match-end 0))
     destinations))
-
-;; Legacy name
-(define-obsolete-function-alias 'rmail-dont-reply-to #'mail-dont-reply-to "24.1")
 
 
 ;;;###autoload

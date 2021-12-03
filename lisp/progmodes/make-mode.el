@@ -1170,7 +1170,6 @@ and adds all qualifying names to the list of known targets."
                       (goto-char (match-end 0))
                     (insert suffix))))))))
 
-(define-obsolete-function-alias 'makefile-complete 'completion-at-point "24.1")
 
 
 ;; Backslashification.  Stolen from cc-mode.el.

@@ -33,7 +33,6 @@
 (make-obsolete-variable 'Info-edit-mode-hook
 			"editing Info nodes by hand is not recommended." "24.4")
 
-(define-obsolete-variable-alias 'Info-edit-map 'Info-edit-mode-map "24.1")
 (defvar Info-edit-mode-map (let ((map (make-sparse-keymap)))
                              (set-keymap-parent map text-mode-map)
                              (define-key map "\C-c\C-c" #'Info-cease-edit)

@@ -1171,9 +1171,6 @@ as returned by `x-server-vendor'."
 
 ;;;; Selections
 
-(define-obsolete-function-alias 'x-cut-buffer-or-selection-value
-  'x-selection-value "24.1")
-
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 
 (defun x-clipboard-yank ()

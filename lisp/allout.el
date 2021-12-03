@@ -733,8 +733,6 @@ Set this var to the bullet you want to use for file cross-references."
 (put 'allout-presentation-padding 'safe-local-variable #'integerp)
 
 ;;;_  = allout-flattened-numbering-abbreviation
-(define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
-  'allout-flattened-numbering-abbreviation "24.1")
 (defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
@@ -1350,11 +1348,6 @@ their settings before `allout-mode' was started."
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
   "Hook run when allout mode starts.")
-;;;_   = allout-mode-deactivate-hook
-(define-obsolete-variable-alias 'allout-mode-deactivate-hook
-  'allout-mode-off-hook "24.1")
-(defvar allout-mode-deactivate-hook nil
-  "Hook run when allout mode ends.")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
@@ -1779,7 +1772,6 @@ hooks, by which independent code can cooperate with allout
 without changes to the allout core.  Here are key ones:
 
 `allout-mode-hook'
-`allout-mode-deactivate-hook' (deprecated)
 `allout-mode-off-hook'
 `allout-exposure-change-functions'
 `allout-structure-added-functions'

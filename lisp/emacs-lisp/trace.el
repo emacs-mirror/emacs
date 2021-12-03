@@ -275,10 +275,9 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
      (list
       (read-buffer "Output to buffer" trace-buffer)
       (let ((exp
-             (let ((minibuffer-completing-symbol t))
-               (read-from-minibuffer "Context expression: "
-                                     nil read-expression-map t
-                                     'read-expression-history))))
+             (read-from-minibuffer "Context expression: "
+                                   nil read-expression-map t
+                                   'read-expression-history)))
         (lambda ()
           (let ((print-circle t)
                 (print-escape-newlines t))

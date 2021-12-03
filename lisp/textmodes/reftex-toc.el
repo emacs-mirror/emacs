@@ -28,7 +28,6 @@
 (require 'reftex)
 ;;;
 
-(define-obsolete-variable-alias 'reftex-toc-map 'reftex-toc-mode-map "24.1")
 (defvar reftex-toc-mode-map
   (let ((map (make-sparse-keymap)))
 

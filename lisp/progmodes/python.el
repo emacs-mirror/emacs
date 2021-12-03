@@ -248,7 +248,6 @@
 (eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
 
 ;; Avoid compiler warnings
-(defvar view-return-to-alist)
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
 

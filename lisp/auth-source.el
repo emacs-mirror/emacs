@@ -164,8 +164,6 @@ Overrides `password-cache-expiry' through a let-binding."
 (defvar auth-source-creation-prompts nil
   "Default prompts for token values.  Usually let-bound.")
 
-(make-obsolete 'auth-source-hide-passwords nil "24.1")
-
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
   :version "23.2" ;; No Gnus
@@ -2324,89 +2322,6 @@ See `auth-source-search' for details on SPEC."
                  (auth-source-json-check host user port require item))
         (push item all)))
     (nreverse all)))
-
-;;; older API
-
-;; (auth-source-user-or-password '("login" "password") "imap.myhost.com" t "tzz")
-
-;; deprecate the old interface
-(make-obsolete 'auth-source-user-or-password
-               'auth-source-search "24.1")
-(make-obsolete 'auth-source-forget-user-or-password
-               'auth-source-forget "24.1")
-
-(defun auth-source-user-or-password
-  (mode host port &optional username create-missing delete-existing)
-  "Find MODE (string or list of strings) matching HOST and PORT.
-
-DEPRECATED in favor of `auth-source-search'!
-
-USERNAME is optional and will be used as \"login\" in a search
-across the Secret Service API (see secrets.el) if the resulting
-items don't have a username.  This means that if you search for
-username \"joe\" and it matches an item but the item doesn't have
-a :user attribute, the username \"joe\" will be returned.
-
-A non-nil DELETE-EXISTING means deleting any matching password
-entry in the respective sources.  This is useful only when
-CREATE-MISSING is non-nil as well; the intended use case is to
-remove wrong password entries.
-
-If no matching entry is found, and CREATE-MISSING is non-nil,
-the password will be retrieved interactively, and it will be
-stored in the password database which matches best (see
-`auth-sources').
-
-MODE can be \"login\" or \"password\"."
-  (auth-source-do-debug
-   "auth-source-user-or-password: DEPRECATED get %s for %s (%s) + user=%s"
-   mode host port username)
-
-  (let* ((listy (listp mode))
-         (mode (if listy mode (list mode)))
-         ;; (cname (if username
-         ;;            (format "%s %s:%s %s" mode host port username)
-         ;;          (format "%s %s:%s" mode host port)))
-         (search (list :host host :port port))
-         (search (if username (append search (list :user username)) search))
-         (search (if create-missing
-                     (append search (list :create t))
-                   search))
-         (search (if delete-existing
-                     (append search (list :delete t))
-                   search))
-         ;; (found (if (not delete-existing)
-         ;;            (gethash cname auth-source-cache)
-         ;;          (remhash cname auth-source-cache)
-         ;;          nil)))
-         (found nil))
-    (if found
-        (progn
-          (auth-source-do-debug
-           "auth-source-user-or-password: DEPRECATED cached %s=%s for %s (%s) + %s"
-           mode
-           ;; don't show the password
-           (if (and (member "password" mode) t)
-               "SECRET"
-             found)
-           host port username)
-          found)                        ; return the found data
-      ;; else, if not found, search with a max of 1
-      (let ((choice (nth 0 (apply #'auth-source-search
-                                  (append '(:max 1) search)))))
-        (when choice
-          (dolist (m mode)
-            (cond
-             ((equal "password" m)
-              (push (if (plist-get choice :secret)
-                        (funcall (plist-get choice :secret))
-                      nil) found))
-             ((equal "login" m)
-              (push (plist-get choice :user) found)))))
-        (setq found (nreverse found))
-        (setq found (if listy found (car-safe found)))))
-
-    found))
 
 (defun auth-source-user-and-password (host &optional user)
   (let* ((auth-info (car

@@ -1305,9 +1305,6 @@ command_loop_1 (void)
       /* If there are warnings waiting, process them.  */
       if (!NILP (Vdelayed_warnings_list))
         safe_run_hooks (Qdelayed_warnings_hook);
-
-      if (!NILP (Vdeferred_action_list))
-	safe_run_hooks (Qdeferred_action_function);
     }
 
   /* Do this after running Vpost_command_hook, for consistency.  */
@@ -1536,8 +1533,6 @@ command_loop_1 (void)
       /* If there are warnings waiting, process them.  */
       if (!NILP (Vdelayed_warnings_list))
         safe_run_hooks (Qdelayed_warnings_hook);
-
-      safe_run_hooks (Qdeferred_action_function);
 
       kset_last_command (current_kboard, Vthis_command);
       kset_real_last_command (current_kboard, Vreal_this_command);
@@ -12089,7 +12084,6 @@ syms_of_keyboard (void)
   DEFSYM (Qundo_auto__undoably_changed_buffers,
           "undo-auto--undoably-changed-buffers");
 
-  DEFSYM (Qdeferred_action_function, "deferred-action-function");
   DEFSYM (Qdelayed_warnings_hook, "delayed-warnings-hook");
   DEFSYM (Qfunction_key, "function-key");
 
@@ -12807,17 +12801,6 @@ This keymap works like `input-decode-map', but comes after `function-key-map'.
 Another difference is that it is global rather than terminal-local.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("deferred-action-list", Vdeferred_action_list,
-	       doc: /* List of deferred actions to be performed at a later time.
-The precise format isn't relevant here; we just check whether it is nil.  */);
-  Vdeferred_action_list = Qnil;
-
-  DEFVAR_LISP ("deferred-action-function", Vdeferred_action_function,
-	       doc: /* Function to call to handle deferred actions, after each command.
-This function is called with no arguments after each command
-whenever `deferred-action-list' is non-nil.  */);
-  Vdeferred_action_function = Qnil;
-
   DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
                doc: /* List of warnings to be displayed after this command.
 Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
@@ -13072,7 +13055,6 @@ syms_of_keyboard_for_pdumper (void)
   PDUMPER_RESET (num_input_keys, 0);
   PDUMPER_RESET (num_nonmacro_input_events, 0);
   PDUMPER_RESET_LV (Vlast_event_frame, Qnil);
-  PDUMPER_RESET_LV (Vdeferred_action_list, Qnil);
   PDUMPER_RESET_LV (Vdelayed_warnings_list, Qnil);
 
   /* Create the initial keyboard.  Qt means 'unset'.  */

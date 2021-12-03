@@ -943,14 +943,7 @@ character."
 (defun field-complete (table &optional predicate)
   (declare (obsolete completion-in-region "24.4"))
   (let ((minibuffer-completion-table table)
-        (minibuffer-completion-predicate predicate)
-        ;; This made sense for lisp-complete-symbol, but for
-        ;; field-complete, this is out of place.  --Stef
-        ;; (completion-annotate-function
-        ;;  (unless (eq predicate 'fboundp)
-        ;;    (lambda (str)
-        ;;      (if (fboundp (intern-soft str)) " <f>"))))
-        )
+        (minibuffer-completion-predicate predicate))
     (call-interactively 'minibuffer-complete)))
 
 (defun lisp-complete-symbol (&optional _predicate)

@@ -290,7 +290,6 @@ auto-fill-function
 command-error-function
 compose-chars-after-function
 composition-function-table
-deferred-action-function
 input-method-function
 load-read-function
 load-source-file-function

@@ -81,8 +81,7 @@ Intended to be used in the `interactive' spec of
     (let ((default (format "%S"
                            (cond ((eq variable 'unibyte) t)
                                  ((boundp variable)
-                                  (symbol-value variable)))))
-          (minibuffer-completing-symbol t))
+                                  (symbol-value variable))))))
       (read-from-minibuffer (format "Add %s with value: " variable)
                             nil read-expression-map t
                             'set-variable-value-history

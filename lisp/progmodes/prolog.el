@@ -742,14 +742,6 @@ Relevant only when `prolog-imenu-flag' is non-nil."
   :group 'prolog-other
   :type 'boolean)
 
-(defcustom prolog-char-quote-workaround nil
-  "If non-nil, declare 0 as a quote character to handle 0'<char>.
-This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
-  :version "24.1"
-  :group 'prolog-other
-  :type 'boolean)
-(make-obsolete-variable 'prolog-char-quote-workaround nil "24.1")
-
 
 ;;-------------------------------------------------------------------
 ;; Internal variables
@@ -1303,7 +1295,7 @@ To find out what version of Prolog mode you are running, enter
         (t t)))
 
 ;; This statement was missing in Emacs 24.1, 24.2, 24.3.
-(define-obsolete-function-alias 'switch-to-prolog 'run-prolog "24.1")
+(define-obsolete-function-alias 'switch-to-prolog 'run-prolog "24.1") ; "24.4" ; for grep
 ;;;###autoload
 (defun run-prolog (arg)
   "Run an inferior Prolog process, input and output via buffer *prolog*.

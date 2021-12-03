@@ -1531,13 +1531,6 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
                         nil (file-name-nondirectory guess)))
     (read-file-name prompt default-directory)))
 
-(define-obsolete-function-alias 'read-filename-at-point
-  'dired-x-read-filename-at-point "24.1") ; is this even needed?
-
-
-;;; Epilog
-
-(define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
 (define-obsolete-function-alias 'dired-man #'dired-do-man "29.1")
 (define-obsolete-function-alias 'dired-info #'dired-do-info "29.1")
 

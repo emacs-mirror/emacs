@@ -1031,8 +1031,6 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (help-mode)
     (help-print-return-message)))
 
-(define-obsolete-function-alias 'strokes-report-bug #'report-emacs-bug "24.1")
-
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.
 This is based on the last time `strokes-window-configuration' was updated."

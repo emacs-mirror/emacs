@@ -353,9 +353,6 @@ This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
   :set #'msb-custom-set)
 
-(define-obsolete-variable-alias 'msb-after-load-hooks
-  'msb-after-load-hook "24.1")
-
 (defcustom msb-after-load-hook nil
   "Hook run after the msb package has been loaded."
   :type 'hook

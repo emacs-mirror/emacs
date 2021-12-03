@@ -239,14 +239,6 @@ will do all lineups."
 	      (const :tag "Declarations" declaration)
               (const :tag "Case statements" case)))
 
-(defvar pascal-toggle-completions nil
-  "If non-nil, `pascal-complete-word' tries all possible completions.
-Repeated use of \\[pascal-complete-word] then shows all
-completions in turn, instead of displaying a list of all possible
-completions.")
-(make-obsolete-variable 'pascal-toggle-completions
-                        'completion-cycle-threshold "24.1")
-
 (defcustom pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
   "Keywords for types used when completing a word in a declaration or parmlist.
@@ -1296,13 +1288,6 @@ indent of the current line in parameterlist."
 	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point))))
     (when (> e b)
       (list b e #'pascal-completion))))
-
-(define-obsolete-function-alias 'pascal-complete-word
-  'completion-at-point "24.1")
-
-(define-obsolete-function-alias 'pascal-show-completions
-  'completion-help-at-point "24.1")
-
 
 (defun pascal-get-default-symbol ()
   "Return symbol around current point as a string."

@@ -797,13 +797,6 @@ w32_default_color_map (void)
   return (cmap);
 }
 
-DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
-       0, 0, 0, doc: /* Return the default color map.  */)
-  (void)
-{
-  return w32_default_color_map ();
-}
-
 static Lisp_Object
 w32_color_map_lookup (const char *colorname)
 {
@@ -10879,7 +10872,6 @@ keys when IME input is received.  */);
   /* W32 specific functions */
 
   defsubr (&Sw32_define_rgb_color);
-  defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_display_monitor_attributes_list);
   defsubr (&Sw32_send_sys_command);
   defsubr (&Sw32_shell_execute);

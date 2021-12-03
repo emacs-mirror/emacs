@@ -3161,9 +3161,6 @@ major mode MODE.
 
 See also `auto-mode-alist'.")
 
-(define-obsolete-variable-alias 'inhibit-first-line-modes-regexps
-  'inhibit-file-local-variables-regexps "24.1")
-
 ;; TODO really this should be a list of modes (eg tar-mode), not regexps,
 ;; because we are duplicating info from auto-mode-alist.
 ;; TODO many elements of this list are also in auto-coding-alist.
@@ -3183,9 +3180,6 @@ specifications, but are not really, or they may be containers for
 member files with their own local variable sections, which are
 not appropriate for the containing file.
 The function `inhibit-local-variables-p' uses this.")
-
-(define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
-  'inhibit-local-variables-suffixes "24.1")
 
 (defvar inhibit-local-variables-suffixes nil
   "List of regexps matching suffixes to remove from file names.

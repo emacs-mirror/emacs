@@ -112,18 +112,6 @@ If nil that means use half the window size.")
 
 (defvar-local view-last-regexp nil) ; Global is better???
 
-(defvar-local view-return-to-alist nil
-  "What to do with used windows and where to go when finished viewing buffer.
-This is local in each buffer being viewed.
-It is added to by `view-mode-enter' when starting to view a buffer and
-subtracted from by `view-mode-exit' when finished viewing the buffer.
-
-See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
-`view-return-to-alist'.")
-(make-obsolete-variable
- 'view-return-to-alist "this variable is no longer used." "24.1")
-(put 'view-return-to-alist 'permanent-local t)
-
 (defvar-local view-exit-action nil
   "If non-nil, a function called when finished viewing.
 The function should take one argument (a buffer).
@@ -475,40 +463,6 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
       (kill-local-variable 'view-read-only))
   (if buffer-read-only
       (setq buffer-read-only view-old-buffer-read-only)))
-
-;;;###autoload
-(defun view-return-to-alist-update (buffer &optional item)
-  "Update `view-return-to-alist' of buffer BUFFER.
-Remove from `view-return-to-alist' all entries referencing dead
-windows.  Optional argument ITEM non-nil means add ITEM to
-`view-return-to-alist' after purging.  For a description of items
-that can be added see the RETURN-TO-ALIST argument of the
-function `view-mode-exit'.  If `view-return-to-alist' contains an
-entry for the selected window, purge that entry from
-`view-return-to-alist' before adding ITEM."
-  (declare (obsolete "this function has no effect." "24.1"))
-  (with-current-buffer buffer
-    (when view-return-to-alist
-      (let* ((list view-return-to-alist)
-	     entry entry-window last)
-	(while list
-	  (setq entry (car list))
-	  (setq entry-window (car entry))
-	  (if (and (windowp entry-window)
-		   (or (and item (eq entry-window (selected-window)))
-		       (not (window-live-p entry-window))))
-	      ;; Remove that entry.
-	      (if last
-		  (setcdr last (cdr list))
-		(setq view-return-to-alist
-		      (cdr view-return-to-alist)))
-	    ;; Leave entry alone.
-	    (setq last entry))
-	  (setq list (cdr list)))))
-    ;; Add ITEM.
-    (when item
-      (setq view-return-to-alist
-	    (cons item view-return-to-alist)))))
 
 ;;;###autoload
 (defun view-mode-enter (&optional quit-restore exit-action)

@@ -63,7 +63,6 @@
 (eval-when-compile (require 'cl-generic))
 
 ;;; Code:
-(define-obsolete-variable-alias 'chart-map 'chart-mode-map "24.1")
 (defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
 
 (defvar-local chart-local-object nil

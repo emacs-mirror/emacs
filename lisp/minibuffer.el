@@ -2225,25 +2225,6 @@ These include:
      `exact'    - text is a valid completion but may be further
                   completed.")
 
-(defvar completion-annotate-function
-  nil
-  ;; Note: there's a lot of scope as for when to add annotations and
-  ;; what annotations to add.  E.g. completing-help.el allowed adding
-  ;; the first line of docstrings to M-x completion.  But there's
-  ;; a tension, since such annotations, while useful at times, can
-  ;; actually drown the useful information.
-  ;; So completion-annotate-function should be used parsimoniously, or
-  ;; else only used upon a user's request (e.g. we could add a command
-  ;; to completion-list-mode to add annotations to the current
-  ;; completions).
-  "Function to add annotations in the *Completions* buffer.
-The function takes a completion and should either return nil, or a string that
-will be displayed next to the completion.  The function can access the
-completion table and predicates via `minibuffer-completion-table' and related
-variables.")
-(make-obsolete-variable 'completion-annotate-function
-                        'completion-extra-properties "24.1")
-
 (defun completion--done (string &optional finished message)
   (let* ((exit-fun (plist-get completion-extra-properties :exit-function))
          (pre-msg (and exit-fun (current-message))))
@@ -2314,8 +2295,7 @@ variables.")
                                            minibuffer-completion-predicate))
              (ann-fun (or (completion-metadata-get all-md 'annotation-function)
                           (plist-get completion-extra-properties
-                                     :annotation-function)
-                          completion-annotate-function))
+                                     :annotation-function)))
              (aff-fun (or (completion-metadata-get all-md 'affixation-function)
                           (plist-get completion-extra-properties
                                      :affixation-function)))
@@ -2789,9 +2769,6 @@ The completion method is determined by `completion-at-point-functions'."
 Gets combined either with `minibuffer-local-completion-map' or
 with `minibuffer-local-must-match-map'."
   "SPC" nil)
-
-(defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
-(make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
 (defvar-keymap minibuffer-local-ns-map
   :doc "Local keymap for the minibuffer when spaces are not allowed."

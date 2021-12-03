@@ -3299,10 +3299,6 @@ Magic characters are those in `comint-file-name-quote-list'."
 (defun comint-completion-at-point ()
   (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
 
-(define-obsolete-function-alias
-  'comint-dynamic-complete
-  'completion-at-point "24.1")
-
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
 Completes if after a filename.
@@ -3383,13 +3379,6 @@ See `completion-table-with-quoting' and `comint-unquote-function'.")
                      (goto-char (match-end 0))
                    (insert filesuffix)))))))))
 
-(defun comint-dynamic-complete-as-filename ()
-  "Dynamically complete at point as a filename.
-See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (declare (obsolete comint-filename-completion "24.1"))
-  (let ((data (comint--complete-file-name-data)))
-    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
-
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
 Replace the filename with an expanded, canonicalized and
@@ -3403,65 +3392,6 @@ filename absolute.  For expansion see `expand-file-name' and
     (when filename
       (replace-match (expand-file-name filename) t t)
       (comint-dynamic-complete-filename))))
-
-
-(defun comint-dynamic-simple-complete (stub candidates)
-  "Dynamically complete STUB from CANDIDATES list.
-This function inserts completion characters at point by
-completing STUB from the strings in CANDIDATES.  If completion is
-ambiguous, possibly show a completions listing in a separate
-buffer.
-
-Return nil if no completion was inserted.
-Return `sole' if completed with the only completion match.
-Return `shortest' if completed with the shortest match.
-Return `partial' if completed as far as possible.
-Return `listed' if a completion listing was shown.
-
-See also `comint-dynamic-complete-filename'."
-  (declare (obsolete completion-in-region "24.1"))
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
-	 (minibuffer-p (window-minibuffer-p))
-	 (suffix (cond ((not comint-completion-addsuffix) "")
-		       ((not (consp comint-completion-addsuffix)) " ")
-		       (t (cdr comint-completion-addsuffix))))
-	 (completions (all-completions stub candidates)))
-    (cond ((null completions)
-	   (if minibuffer-p
-	       (minibuffer-message "No completions of %s" stub)
-	     (message "No completions of %s" stub))
-	   nil)
-	  ((= 1 (length completions))	; Gotcha!
-	   (let ((completion (car completions)))
-	     (if (string-equal completion stub)
-		 (unless minibuffer-p
-		   (message "Sole completion"))
-	       (insert (substring completion (length stub)))
-	       (unless minibuffer-p
-		 (message "Completed")))
-	     (insert suffix)
-	     'sole))
-	  (t				; There's no unique completion.
-	   (let ((completion (try-completion stub candidates)))
-	     ;; Insert the longest substring.
-	     (insert (substring completion (length stub)))
-	     (cond ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal stub completion)
-			 (member completion completions))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert suffix)
-		    (unless minibuffer-p
-		      (message "Completed shortest"))
-		    'shortest)
-		   ((or comint-completion-autolist
-			(string-equal stub completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-completions completions stub)
-		    'listed)
-		   (t
-		    (unless minibuffer-p
-		      (message "Partially completed"))
-		    'partial)))))))
 
 (defun comint-dynamic-list-filename-completions ()
   "Display a list of possible completions for the filename at point."

@@ -316,8 +316,6 @@ If parsing fails, try to set this variable to nil."
                                        (option (choice :tag "Alternative" :value nil
                                                        (const nil) integer)))))))
 
-(define-obsolete-variable-alias 'bibtex-entry-field-alist
-  'bibtex-BibTeX-entry-alist "24.1")
 (defcustom bibtex-BibTeX-entry-alist
   '(("Article" "Article in Journal"
      (("author")
@@ -3673,14 +3671,6 @@ if that value is non-nil.
     (if (not (consp (nth 1 (car entry-alist))))
         ;; new format
         entry-alist
-      ;; Convert old format of `bibtex-entry-field-alist'
-      (unless (get var 'entry-list-format)
-        (put var 'entry-list-format "pre-24")
-        (message "Old format of `%s' (pre GNU Emacs 24).
-Please convert to the new format."
-                 (if (eq (indirect-variable 'bibtex-entry-field-alist) var)
-                     'bibtex-entry-field-alist var))
-        (sit-for 3))
       (let (lst)
         (dolist (entry entry-alist)
           (let ((fl (nth 1 entry)) req xref opt)
@@ -5318,7 +5308,6 @@ entries from minibuffer."
     (goto-char (point-max))
     (message "Buffer is now parsable.  Please save it.")))
 
-(define-obsolete-function-alias 'bibtex-complete #'completion-at-point "24.1")
 (defun bibtex-completion-at-point-function ()
   (let ((pnt (point))
         (case-fold-search t)

@@ -438,8 +438,6 @@ If the list was changed, sort the list and remove duplicates first."
                    (insert close)))))))
       (nth 1 entry))))
 
-(define-obsolete-function-alias 'meta-complete-symbol
-  'completion-at-point "24.1")
 
 ;;; Indentation.
 
@@ -803,7 +801,6 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
-(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Comment Paragraphs:

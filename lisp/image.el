@@ -446,15 +446,6 @@ type if we can't otherwise guess it."
     (error "Invalid image type `%s'" type))
   type)
 
-
-(if (fboundp 'image-metadata)           ; eg not --without-x
-    (define-obsolete-function-alias 'image-extension-data
-      'image-metadata "24.1"))
-
-(define-obsolete-variable-alias
-    'image-library-alist
-    'dynamic-library-alist "24.1")
-
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return t if image type TYPE is available.

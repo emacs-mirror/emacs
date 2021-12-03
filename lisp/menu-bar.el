@@ -584,9 +584,6 @@
 
     menu))
 
-(define-obsolete-function-alias
-  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
-
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
 

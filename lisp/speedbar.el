@@ -703,8 +703,6 @@ If you want to change this while speedbar is active, either use
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
-(define-obsolete-variable-alias
-  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 (defvar speedbar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Turn off paren matching around here.
@@ -719,8 +717,6 @@ If you want to change this while speedbar is active, either use
     st)
   "Syntax-table used on the speedbar.")
 
-
-(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)

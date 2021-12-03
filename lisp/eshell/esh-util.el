@@ -301,15 +301,6 @@ Prepend remote identification of `default-directory', if any."
       (setq text (replace-match " " t t text)))
     text))
 
-(defmacro eshell-for (for-var for-list &rest forms)
-  "Iterate through a list."
-  (declare (obsolete dolist "24.1") (indent 2))
-  `(let ((list-iter ,for-list))
-     (while list-iter
-       (let ((,for-var (car list-iter)))
-	 ,@forms)
-       (setq list-iter (cdr list-iter)))))
-
 (define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
 (defun eshell-stringify (object)

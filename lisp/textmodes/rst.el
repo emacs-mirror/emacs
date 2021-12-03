@@ -3584,124 +3584,45 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-block-face 'rst-block
-  "All syntax marking up a special block."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-block-face
-                        "customize the face `rst-block' instead."
-                        "24.1")
-
 (defface rst-external '((t :inherit font-lock-type-face))
   "Face used for field names and interpreted text."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-external-face 'rst-external
-  "Field names and interpreted text."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-external-face
-                        "customize the face `rst-external' instead."
-                        "24.1")
 
 (defface rst-definition '((t :inherit font-lock-function-name-face))
   "Face used for all other defining constructs."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-definition-face 'rst-definition
-  "All other defining constructs."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-definition-face
-                        "customize the face `rst-definition' instead."
-                        "24.1")
-
 (defface rst-directive '((t :inherit font-lock-builtin-face))
   "Face used for directives and roles."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-directive-face 'rst-directive
-  "Directives and roles."
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-directive-face
-                        "customize the face `rst-directive' instead."
-                        "24.1")
 
 (defface rst-comment '((t :inherit font-lock-comment-face))
   "Face used for comments."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-comment-face 'rst-comment
-  "Comments."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-comment-face
-                        "customize the face `rst-comment' instead."
-                        "24.1")
-
 (defface rst-emphasis1 '((t :inherit italic))
   "Face used for simple emphasis."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-emphasis1-face 'rst-emphasis1
-  "Simple emphasis."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-emphasis1-face
-                        "customize the face `rst-emphasis1' instead."
-                        "24.1")
 
 (defface rst-emphasis2 '((t :inherit bold))
   "Face used for double emphasis."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-emphasis2-face 'rst-emphasis2
-  "Double emphasis."
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-emphasis2-face
-                        "customize the face `rst-emphasis2' instead."
-                        "24.1")
-
 (defface rst-literal '((t :inherit font-lock-string-face))
   "Face used for literal text."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-literal-face 'rst-literal
-  "Literal text."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-literal-face
-                        "customize the face `rst-literal' instead."
-                        "24.1")
-
 (defface rst-reference '((t :inherit font-lock-variable-name-face))
   "Face used for references to a definition."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-reference-face 'rst-reference
-  "References to a definition."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-reference-face
-                        "customize the face `rst-reference' instead."
-                        "24.1")
 
 (defface rst-transition '((t :inherit font-lock-keyword-face))
   "Face used for a transition."
@@ -3794,23 +3715,23 @@ of your own."
     ;; `Bullet Lists`_
     ;; FIXME: A bullet directly after a field name is not recognized.
     (,(rst-re 'lin-beg '(:grp bul-sta))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Enumerated Lists`_
     (,(rst-re 'lin-beg '(:grp enmany-sta))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Definition Lists`_
     ;; FIXME: missing.
     ;; `Field Lists`_
     (,(rst-re 'lin-beg '(:grp fld-tag) 'bli-sfx)
-     1 rst-external-face)
+     1 'rst-external)
     ;; `Option Lists`_
     (,(rst-re 'lin-beg '(:grp opt-tag (:shy optsep-tag opt-tag) "*")
 	      '(:alt "$" (:seq hws-prt "\\{2\\}")))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Line Blocks`_
     ;; Only for lines containing no more bar - to distinguish from tables.
     (,(rst-re 'lin-beg '(:grp "|" bli-sfx) "[^|\n]*$")
-     1 rst-block-face)
+     1 'rst-block)
 
     ;; `Tables`_
     ;; FIXME: missing
@@ -3818,22 +3739,22 @@ of your own."
     ;; All the `Explicit Markup Blocks`_
     ;; `Footnotes`_ / `Citations`_
     (,(rst-re 'lin-beg 'fnc-sta-2)
-     (1 rst-definition-face)
-     (2 rst-definition-face))
+     (1 'rst-definition)
+     (2 'rst-definition))
     ;; `Directives`_ / `Substitution Definitions`_
     (,(rst-re 'lin-beg 'dir-sta-3)
-     (1 rst-directive-face)
-     (2 rst-definition-face)
-     (3 rst-directive-face))
+     (1 'rst-directive)
+     (2 'rst-definition)
+     (3 'rst-directive))
     ;; `Hyperlink Targets`_
     (,(rst-re 'lin-beg
 	      '(:grp exm-sta "_" (:alt
 				  (:seq "`" ilcbkqdef-tag "`")
 				  (:seq (:alt "[^:\\\n]" "\\\\.") "+")) ":")
 	      'bli-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     (,(rst-re 'lin-beg '(:grp "__") 'bli-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
 
     ;; All `Inline Markup`_
     ;; Most of them may be multiline though this is uninteresting.
@@ -3841,16 +3762,16 @@ of your own."
     ;; FIXME: Condition 5 preventing fontification of e.g. "*" not implemented
     ;;        `Strong Emphasis`_.
     (,(rst-re 'ilm-pfx '(:grp "\\*\\*" ilcast-tag "\\*\\*") 'ilm-sfx)
-     1 rst-emphasis2-face)
+     1 'rst-emphasis2)
     ;; `Emphasis`_
     (,(rst-re 'ilm-pfx '(:grp "\\*" ilcast-tag "\\*") 'ilm-sfx)
-     1 rst-emphasis1-face)
+     1 'rst-emphasis1)
     ;; `Inline Literals`_
     (,(rst-re 'ilm-pfx '(:grp "``" ilcbkq-tag "``") 'ilm-sfx)
-     1 rst-literal-face)
+     1 'rst-literal)
     ;; `Inline Internal Targets`_
     (,(rst-re 'ilm-pfx '(:grp "_`" ilcbkq-tag "`") 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     ;; `Hyperlink References`_
     ;; FIXME: `Embedded URIs and Aliases`_ not considered.
     ;; FIXME: Directly adjacent marked up words are not fontified correctly
@@ -3858,28 +3779,28 @@ of your own."
     (,(rst-re 'ilm-pfx '(:grp (:alt (:seq "`" ilcbkq-tag "`")
 				    (:seq "\\sw" (:alt "\\sw" "-") "+\\sw"))
 			      "__?") 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Interpreted Text`_
     (,(rst-re 'ilm-pfx '(:grp (:shy ":" sym-tag ":") "?")
 	      '(:grp "`" ilcbkq-tag "`")
 	      '(:grp (:shy ":" sym-tag ":") "?") 'ilm-sfx)
-     (1 rst-directive-face)
-     (2 rst-external-face)
-     (3 rst-directive-face))
+     (1 'rst-directive)
+     (2 'rst-external)
+     (3 'rst-directive))
     ;; `Footnote References`_ / `Citation References`_
     (,(rst-re 'ilm-pfx '(:grp fnc-tag "_") 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Substitution References`_
     ;; FIXME: References substitutions like |this|_ or |this|__ are not
     ;;        fontified correctly.
     (,(rst-re 'ilm-pfx '(:grp sub-tag) 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Standalone Hyperlinks`_
     ;; FIXME: This takes it easy by using a whitespace as delimiter.
     (,(rst-re 'ilm-pfx '(:grp uri-tag ":\\S +") 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     (,(rst-re 'ilm-pfx '(:grp sym-tag "@" sym-tag ) 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
 
     ;; Do all block fontification as late as possible so 'append works.
 
@@ -3906,18 +3827,18 @@ of your own."
     ;; `Comments`_
     ;; This is multiline.
     (,(rst-re 'lin-beg 'cmt-sta-1)
-     (1 rst-comment-face)
+     (1 'rst-comment)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit (match-end 1))
       nil
-      (0 rst-comment-face append)))
+      (0 'rst-comment append)))
     (,(rst-re 'lin-beg '(:grp exm-tag) '(:grp hws-tag) "$")
-     (1 rst-comment-face)
-     (2 rst-comment-face)
+     (1'rst-comment)
+     (2'rst-comment)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit 'next)
       nil
-      (0 rst-comment-face append)))
+      (0 'rst-comment append)))
 
     ;; FIXME: This is not rendered as comment::
     ;;        .. .. list-table::
@@ -3941,11 +3862,11 @@ of your own."
     ;; `Indented Literal Blocks`_
     ;; This is multiline.
     (,(rst-re 'lin-beg 'lit-sta-2)
-     (2 rst-block-face)
+     (2 'rst-block)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit t)
       nil
-      (0 rst-literal-face append)))
+      (0 'rst-literal append)))
 
     ;; FIXME: `Quoted Literal Blocks`_ missing.
     ;; This is multiline.
@@ -3972,8 +3893,8 @@ of your own."
     ;;
     ;;   Indentation is not required for doctest blocks.
     (,(rst-re 'lin-beg '(:grp (:alt ">>>" ell-tag)) '(:grp ".+"))
-     (1 rst-block-face)
-     (2 rst-literal-face)))
+     (1 'rst-block)
+     (2 'rst-literal)))
   "Keywords to highlight in rst mode.")
 
 (defvar font-lock-beg)

@@ -3520,9 +3520,6 @@ The full list of keys can be viewed with \\[describe-mode]."
   (message (mapconcat #'package--prettify-quick-help-key
                       package--quick-help-keys "\n")))
 
-(define-obsolete-function-alias
-  'package-menu-view-commentary 'package-menu-describe-package "24.1")
-
 (defun package-menu-get-status ()
   "Return status text of package at point in Package Menu."
   (package--ensure-package-menu-mode)

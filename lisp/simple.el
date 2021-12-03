@@ -1732,8 +1732,6 @@ from Lisp."
 	     words (if (= words 1) "" "s")
 	     chars (if (= chars 1) "" "s"))))
 
-(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
-
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
@@ -1951,10 +1949,6 @@ Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `X'.
   (eval (read--expression prompt initial-contents)))
 
-(defvar minibuffer-completing-symbol nil
-  "Non-nil means completing a Lisp symbol in the minibuffer.")
-(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1" 'get)
-
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.
 The functions `read-from-minibuffer' and `completing-read' bind
@@ -2015,20 +2009,19 @@ display the result of expression evaluation."
 
 PROMPT and optional argument INITIAL-CONTENTS do the same as in
 function `read-from-minibuffer'."
-  (let ((minibuffer-completing-symbol t))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          ;; FIXME: instead of just applying the syntax table, maybe
-          ;; use a special major mode tailored to reading Lisp
-          ;; expressions from the minibuffer? (`emacs-lisp-mode'
-          ;; doesn't preserve the necessary keybindings.)
-          (set-syntax-table emacs-lisp-mode-syntax-table)
-          (add-hook 'completion-at-point-functions
-                    #'elisp-completion-at-point nil t)
-          (run-hooks 'eval-expression-minibuffer-setup-hook))
-      (read-from-minibuffer prompt initial-contents
-                            read-expression-map t
-                            'read-expression-history))))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        ;; FIXME: instead of just applying the syntax table, maybe
+        ;; use a special major mode tailored to reading Lisp
+        ;; expressions from the minibuffer? (`emacs-lisp-mode'
+        ;; doesn't preserve the necessary keybindings.)
+        (set-syntax-table emacs-lisp-mode-syntax-table)
+        (add-hook 'completion-at-point-functions
+                  #'elisp-completion-at-point nil t)
+        (run-hooks 'eval-expression-minibuffer-setup-hook))
+    (read-from-minibuffer prompt initial-contents
+                          read-expression-map t
+                          'read-expression-history)))
 
 (defun read--expression-try-read ()
   "Try to read an Emacs Lisp expression in the minibuffer.

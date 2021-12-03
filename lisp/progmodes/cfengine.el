@@ -793,14 +793,6 @@ bundle agent rcfiles
                       (cdr (assq 'functions cfengine3-fallback-syntax)))
               'symbols))
 
-(defcustom cfengine-mode-abbrevs nil
-  "Abbrevs for CFEngine2 mode."
-  :type '(repeat (list (string :tag "Name")
-		       (string :tag "Expansion")
-		       (choice  :tag "Hook" (const nil) function))))
-
-(make-obsolete-variable 'cfengine-mode-abbrevs 'edit-abbrevs "24.1")
-
 ;; Taken from the doc for pre-release 2.1.
 (eval-and-compile
   (defconst cfengine2-actions
@@ -1409,7 +1401,6 @@ to the action header."
   (setq-local outline-regexp "[ \t]*\\(\\sw\\|\\s_\\)+:+")
   (setq-local outline-level #'cfengine2-outline-level)
   (setq-local fill-paragraph-function #'cfengine-fill-paragraph)
-  (define-abbrev-table 'cfengine2-mode-abbrev-table cfengine-mode-abbrevs)
   (setq font-lock-defaults
         '(cfengine2-font-lock-keywords nil nil nil beginning-of-line))
   ;; Fixme: set the args of functions in evaluated classes to string

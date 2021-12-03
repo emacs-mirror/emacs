@@ -269,8 +269,6 @@ will prompt for other arguments."
     (and newtag (cdr cell) (not (member newtag (cdr cell)))
          (push newtag (cdr cell)))))
 
-(define-obsolete-variable-alias
-  'reftex-index-map 'reftex-index-mode-map "24.1")
 (defvar reftex-index-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Index map
@@ -1198,8 +1196,6 @@ This gets refreshed in every phrases command.")
   '((reftex-index-phrases-font-lock-keywords)
     nil t nil beginning-of-line)
   "Font lock defaults for `reftex-index-phrases-mode'.")
-(define-obsolete-variable-alias
-  'reftex-index-phrases-map 'reftex-index-phrases-mode-map "24.1")
 (defvar reftex-index-phrases-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Keybindings and Menu for phrases buffer

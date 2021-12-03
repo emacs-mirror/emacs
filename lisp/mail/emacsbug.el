@@ -42,9 +42,6 @@
   :group 'maint
   :group 'mail)
 
-(define-obsolete-variable-alias 'report-emacs-bug-pretest-address
-  'report-emacs-bug-address "24.1")
-
 (defcustom report-emacs-bug-no-confirmation nil
   "If non-nil, suppress the confirmations asked for the sake of novice users."
   :type 'boolean)
