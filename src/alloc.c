@@ -3152,26 +3152,26 @@ cleanup_vector (struct Lisp_Vector *vector)
       module_finalize_function (function);
     }
 #endif
-  else if (NATIVE_COMP_FLAG
-	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
+#ifdef HAVE_NATIVE_COMP
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
     {
       struct Lisp_Native_Comp_Unit *cu =
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       unload_comp_unit (cu);
     }
-  else if (NATIVE_COMP_FLAG
-	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
     {
       struct Lisp_Subr *subr =
 	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (!NILP (subr->native_comp_u[0]))
+      if (!NILP (subr->native_comp_u))
 	{
 	  /* FIXME Alternative and non invasive solution to this
 	     cast?  */
 	  xfree ((char *)subr->symbol_name);
-	  xfree (subr->native_c_name[0]);
+	  xfree (subr->native_c_name);
 	}
     }
+#endif
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -6773,15 +6773,17 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
 	    if (SUBR_NATIVE_COMPILEDP (obj))
 	      {
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
 		mark_object (subr->native_intspec);
-		mark_object (subr->native_comp_u[0]);
-		mark_object (subr->lambda_list[0]);
-		mark_object (subr->type[0]);
+		mark_object (subr->native_comp_u);
+		mark_object (subr->lambda_list);
+		mark_object (subr->type);
 	      }
+#endif
 	    break;
 
 	  case PVEC_FREE:

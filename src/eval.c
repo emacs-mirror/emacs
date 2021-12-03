@@ -219,17 +219,14 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Local Variables").  */
-  if (!NATIVE_COMP_FLAG)
-    {
-      max_specpdl_size = 1800; /* See bug#46818.  */
-      max_lisp_eval_depth = 800;
-    }
-  else
-    {
-      /* Original values increased for comp.el.  */
-      max_specpdl_size = 2500;
-      max_lisp_eval_depth = 1600;
-    }
+#ifndef HAVE_NATIVE_COMP
+  max_specpdl_size = 1800; /* See bug#46818.  */
+  max_lisp_eval_depth = 800;
+#else
+  /* Original values increased for comp.el.  */
+  max_specpdl_size = 2500;
+  max_lisp_eval_depth = 1600;
+#endif
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -3236,11 +3233,13 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else if (MODULE_FUNCTIONP (fun))
     return funcall_module (fun, nargs, arg_vector);
 #endif
+#ifdef HAVE_NATIVE_COMP
   else if (SUBR_NATIVE_COMPILED_DYNP (fun))
     {
-      syms_left = XSUBR (fun)->lambda_list[0];
+      syms_left = XSUBR (fun)->lambda_list;
       lexenv = Qnil;
     }
+#endif
   else
     emacs_abort ();
 
