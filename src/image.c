@@ -10469,14 +10469,12 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   else if (has_width && has_viewbox)
     {
       viewbox_width = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size);
-      viewbox_height = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size)
-        * viewbox.height / viewbox.width;
+      viewbox_height = viewbox_width * viewbox.height / viewbox.width;
     }
   else if (has_height && has_viewbox)
     {
       viewbox_height = svg_css_length_to_pixels (iheight, dpi, img->face_font_size);
-      viewbox_width = svg_css_length_to_pixels (iheight, dpi, img->face_font_size)
-        * viewbox.width / viewbox.height;
+      viewbox_width = viewbox_height * viewbox.width / viewbox.height;
     }
   else if (has_viewbox)
     {
