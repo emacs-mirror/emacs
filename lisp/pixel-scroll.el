@@ -109,8 +109,14 @@ This is only effective if supported by your mouse or touchpad."
   :type 'boolean
   :version "29.1")
 
-(defcustom pixel-scroll-precision-momentum-tick 0.16
+(defcustom pixel-scroll-precision-momentum-tick 0.01
   "Number of seconds between each momentum scroll."
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
+(defcustom pixel-scroll-precision-momentum-seconds 1.75
+  "The maximum duration in seconds of momentum scrolling."
   :group 'mouse
   :type 'float
   :version "29.1")
@@ -546,25 +552,31 @@ It is a vector of the form [ VELOCITY TIME ]."
         (setq state (pixel-scroll-kinetic-state))
         (when (and (aref state 1)
                    (listp (aref state 0)))
-          (unwind-protect (progn
-                            (aset state 0
-                                  (/ (pixel-scroll-calculate-velocity state) 2))
-                            (let ((velocity (aref state 0)))
-                              (if (> velocity 0)
-                                  (while (> velocity 1)
-                                    (pixel-scroll-precision-scroll-up (round velocity))
-                                    (setq velocity (* velocity
-                                                      pixel-scroll-precision-momentum-factor))
-                                    (redisplay t)
-                                    (sit-for pixel-scroll-precision-momentum-tick)))
-                              (while (< velocity -1)
-                                (pixel-scroll-precision-scroll-down (round (abs velocity)))
-                                (setq velocity (* velocity
-                                                  pixel-scroll-precision-momentum-factor))
-                                (redisplay t)
-                                (sit-for pixel-scroll-precision-momentum-tick))))
-            (aset state 0 (make-ring 10))
-            (aset state 1 nil)))))))
+          (while-no-input
+            (unwind-protect (progn
+                              (aset state 0 (pixel-scroll-calculate-velocity state))
+                              (let ((velocity (/ (aref state 0) 3))
+                                    (time-spent 0))
+                                (if (> velocity 0)
+                                    (while (and (> velocity 0.2)
+                                                (<= time-spent pixel-scroll-precision-momentum-seconds))
+                                      (pixel-scroll-precision-scroll-up (ceiling velocity))
+                                      (setq velocity (* velocity pixel-scroll-precision-momentum-factor))
+                                      (redisplay t)
+                                      (sit-for pixel-scroll-precision-momentum-tick)
+                                      (setq time-spent (+ time-spent
+                                                          pixel-scroll-precision-momentum-tick))))
+                                (while (and (< velocity -0.4)
+                                            (<= time-spent
+                                                pixel-scroll-precision-momentum-seconds))
+                                  (pixel-scroll-precision-scroll-down (floor (abs velocity)))
+                                  (setq velocity (* velocity pixel-scroll-precision-momentum-factor))
+                                  (redisplay t)
+                                  (sit-for pixel-scroll-precision-momentum-tick)
+                                  (setq time-spent (+ time-spent
+                                                      pixel-scroll-precision-momentum-tick)))))
+              (aset state 0 (make-ring 10))
+              (aset state 1 nil))))))))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode
