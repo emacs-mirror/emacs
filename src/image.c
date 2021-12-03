@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <setjmp.h>
 
+#include <math.h>
 #include <stdint.h>
 #include <c-ctype.h>
 #include <flexmember.h>
@@ -2016,14 +2017,16 @@ postprocess_image (struct frame *f, struct image *img)
    safely rounded and clipped to int range.  */
 
 static int
-scale_image_size (int size, size_t divisor, size_t multiplier)
+scale_image_size (int size, double divisor, double multiplier)
 {
   if (divisor != 0)
     {
-      double s = size;
-      double scaled = s * multiplier / divisor + 0.5;
+      double scaled = size * multiplier / divisor;
       if (scaled < INT_MAX)
-	return scaled;
+	{
+	  /* Use ceil, as rounding can discard fractional SVG pixels.  */
+	  return ceil (scaled);
+	}
     }
   return INT_MAX;
 }
@@ -2044,84 +2047,77 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
   if (FIXNATP (value))
     return min (XFIXNAT (value), INT_MAX);
   if (CONSP (value) && NUMBERP (CAR (value)) && EQ (Qem, CDR (value)))
-    return min (img->face_font_size * XFLOATINT (CAR (value)), INT_MAX);
+    return scale_image_size (img->face_font_size, 1, XFLOATINT (CAR (value)));
 
   return -1;
 }
 
 /* Compute the desired size of an image with native size WIDTH x HEIGHT.
-   Use SPEC to deduce the size.  Store the desired size into
+   Use IMG to deduce the size.  Store the desired size into
    *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
 static void
-compute_image_size (size_t width, size_t height,
+compute_image_size (double width, double height,
 		    struct image *img,
 		    int *d_width, int *d_height)
 {
-  Lisp_Object value;
-  int int_value;
-  int desired_width = -1, desired_height = -1, max_width = -1, max_height = -1;
   double scale = 1;
-
-  value = image_spec_value (img->spec, QCscale, NULL);
+  Lisp_Object value = image_spec_value (img->spec, QCscale, NULL);
   if (NUMBERP (value))
-    scale = XFLOATINT (value);
-
-  int_value = image_get_dimension (img, QCmax_width);
-  if (int_value >= 0)
-    max_width = int_value;
-
-  int_value = image_get_dimension (img, QCmax_height);
-  if (int_value >= 0)
-    max_height = int_value;
+    {
+      double dval = XFLOATINT (value);
+      if (0 <= dval)
+	scale = dval;
+    }
 
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
-  int_value = image_get_dimension (img, QCwidth);
-  if (int_value >= 0)
+  int desired_width = image_get_dimension (img, QCwidth), max_width;
+  if (desired_width < 0)
+    max_width = image_get_dimension (img, QCmax_width);
+  else
     {
-      desired_width = int_value * scale;
+      desired_width = scale_image_size (desired_width, 1, scale);
       /* :width overrides :max-width. */
       max_width = -1;
     }
 
-  int_value = image_get_dimension (img, QCheight);
-  if (int_value >= 0)
+  int desired_height = image_get_dimension (img, QCheight), max_height;
+  if (desired_height < 0)
+    max_height = image_get_dimension (img, QCmax_height);
+  else
     {
-      desired_height = int_value * scale;
+      desired_height = scale_image_size (desired_height, 1, scale);
       /* :height overrides :max-height. */
       max_height = -1;
     }
 
   /* If we have both width/height set explicitly, we skip past all the
      aspect ratio-preserving computations below. */
-  if (desired_width != -1 && desired_height != -1)
+  if (0 <= desired_width && 0 <= desired_height)
     goto out;
 
-  width = width * scale;
-  height = height * scale;
-
-  if (desired_width != -1)
+  if (0 <= desired_width)
     /* Width known, calculate height. */
     desired_height = scale_image_size (desired_width, width, height);
-  else if (desired_height != -1)
+  else if (0 <= desired_height)
     /* Height known, calculate width. */
     desired_width = scale_image_size (desired_height, height, width);
   else
     {
-      desired_width = width;
-      desired_height = height;
+      desired_width = scale_image_size (width, 1, scale);
+      desired_height = scale_image_size (height, 1, scale);
     }
 
-  if (max_width != -1 && desired_width > max_width)
+  if (0 <= max_width && max_width < desired_width)
     {
       /* The image is wider than :max-width. */
       desired_width = max_width;
       desired_height = scale_image_size (desired_width, width, height);
     }
 
-  if (max_height != -1 && desired_height > max_height)
+  if (0 <= max_height && max_height < desired_height)
     {
       /* The image is higher than :max-height. */
       desired_height = max_height;
@@ -10484,7 +10480,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   else
     viewbox_width = viewbox_height = 0;
 
-  if (viewbox_width == 0 || viewbox_height == 0)
+  if (! (0 < viewbox_width && 0 < viewbox_height))
     {
       /* We haven't found a usable set of sizes, so try working out
          the visible area.  */
@@ -10505,8 +10501,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   compute_image_size (viewbox_width, viewbox_height, img,
                       &width, &height);
 
-  width *= FRAME_SCALE_FACTOR (f);
-  height *= FRAME_SCALE_FACTOR (f);
+  width = scale_image_size (width, 1, FRAME_SCALE_FACTOR (f));
+  height = scale_image_size (height, 1, FRAME_SCALE_FACTOR (f));
 
   if (! check_image_size (f, width, height))
     {
