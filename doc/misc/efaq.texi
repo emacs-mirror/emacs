@@ -1052,8 +1052,8 @@ Emacs 26.2 comes with data files imported from the latest Unicode
 Standard version 11.0.0.
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 26.
+Consult the Emacs @file{NEWS.26} file for the full list of changes in
+Emacs 26.
 
 @node New in Emacs 25
 @section What is different about Emacs 25?
@@ -1152,8 +1152,8 @@ provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
 
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 25.
+Consult the Emacs @file{NEWS.25} file for the full list of changes in
+Emacs 25.
 
 @node New in Emacs 24
 @section What is different about Emacs 24?
@@ -1226,7 +1226,8 @@ Much more flexibility in the handling of windows and buffer display.
 
 @end itemize
 
-As always, consult the @file{NEWS} file for more information.
+Consult the Emacs @file{NEWS.24} file for the full list of changes in
+Emacs 24.
 
 
 @node New in Emacs 23
@@ -1284,6 +1285,9 @@ new Visual Line mode for line-motion; improved completion; a new mode
 (@samp{DocView}) for viewing of PDF, PostScript, and DVI documents; nXML
 mode (for editing XML documents) is included; VC has been updated for
 newer version control systems; etc.
+
+Consult the Emacs @file{NEWS.23} file for the full list of changes in
+Emacs 23.
 
 
 @node New in Emacs 22
@@ -1381,6 +1385,9 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 (@pxref{Emacs Lisp documentation}) and the Emacs Lisp Intro.
 @end itemize
 
+Consult the Emacs @file{NEWS.22} file for the full list of changes in
+Emacs 22.
+
 
 @node New in Emacs 21
 @section What is different about Emacs 21?
@@ -1403,6 +1410,9 @@ In addition, Emacs 21 supports faces on text-only terminals.  This means
 that you can now have colors when you run Emacs on a GNU/Linux console
 and on @code{xterm} with @kbd{emacs -nw}.
 
+Consult the Emacs @file{NEWS.21} file for the full list of changes in
+Emacs 21.
+
 
 @node New in Emacs 20
 @section What is different about Emacs 20?
@@ -1419,6 +1429,10 @@ of MULE code for languages that use non-Latin characters and for mixing
 several languages in the same document; the ``Customize'' facility for
 modifying variables without having to use Lisp; and automatic conversion
 of files from Macintosh, Microsoft, and Unix platforms.
+
+Consult the Emacs @file{NEWS.20} file for the full list of changes in
+Emacs 20.
+
 
 @node What was XEmacs?
 @section What was XEmacs?
