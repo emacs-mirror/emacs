@@ -78,7 +78,7 @@ time.
 ---
 ** 'write-file' will now copy some file mode bits.
 If the current buffer is visiting a file that is executable, the
-'C-c C-w' command will now make the new file executable, too.
+'C-x C-w' command will now make the new file executable, too.
 
 +++
 ** New user option 'process-error-pause-time'.
