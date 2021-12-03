@@ -891,9 +891,11 @@ function or t otherwise.  */)
 {
   CHECK_SUBR (subr);
 
-  return SUBR_NATIVE_COMPILED_DYNP (subr)
-    ? XSUBR (subr)->lambda_list[0]
-    : Qt;
+#ifdef HAVE_NATIVE_COMP
+  if (SUBR_NATIVE_COMPILED_DYNP (subr))
+    return XSUBR (subr)->lambda_list;
+#endif
+  return Qt;
 }
 
 DEFUN ("subr-type", Fsubr_type,
@@ -917,7 +919,7 @@ DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
   (Lisp_Object subr)
 {
   CHECK_SUBR (subr);
-  return XSUBR (subr)->native_comp_u[0];
+  return XSUBR (subr)->native_comp_u;
 }
 
 DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,
