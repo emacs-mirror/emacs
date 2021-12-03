@@ -522,6 +522,12 @@ This works like 'image-transform-fit-to-window'.
 The new 'fit-window' option will never scale an image more than this
 much (in percent).  It is nil by default, which means no limit.
 
+---
+*** New user option 'image-text-based-formats'.
+This controls whether or not to show a message when opening certain
+image formats saying how to edit it as text.  The default is to show
+this message for SVG and XPM.
+
 ** Image-Dired
 
 +++
