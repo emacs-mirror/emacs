@@ -6008,6 +6008,13 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   XSETFRAME (inev.ie.frame_or_window, f);
   inev.ie.arg = Qnil;
 
+  if (gdk_event_is_scroll_stop_event (event))
+    {
+      inev.ie.kind = TOUCH_END_EVENT;
+      evq_enqueue (&inev);
+      return TRUE;
+    }
+
   if (gdk_event_get_scroll_direction (event, &dir))
     {
       switch (dir)
