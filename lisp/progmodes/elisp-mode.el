@@ -283,7 +283,7 @@ Comments in the form will be lost."
                      (:propertize "/d"
                       help-echo "Using old dynamic scoping mode\n\
 mouse-1: Enable lexical-binding mode"
-                      face error
+		      face warning
 		      mouse-face mode-line-highlight
                       local-map ,elisp--dynlex-modeline-map)))
   "Major mode for editing Lisp code to run in Emacs.
