@@ -767,6 +767,9 @@ Use 'exif-parse-file' and 'exif-field' instead.
 ** 'insert-directory' alternatives should not change the free disk space line.
 This change is now applied in 'dired-insert-directory'.
 
+** Some functions obsolete since Emacs 23 have been removed:
+'unify-8859-on-encoding-mode', 'unify-8859-on-decoding-mode'.
+
 
 * Lisp Changes in Emacs 29.1
 
