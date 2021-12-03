@@ -849,6 +849,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 28::
 * New in Emacs 27::
 * New in Emacs 26::
 * New in Emacs 25::
@@ -919,6 +920,50 @@ Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
 
+@node New in Emacs 28
+@section What is different about Emacs 28?
+@cindex Differences between Emacs 27 and Emacs 28
+@cindex Emacs 28, new features in
+
+Emacs 28 has too many new features and changes to list all of them
+here.  We list below a small selection; consult the Emacs @file{NEWS}
+file (@kbd{C-h n}) for the full list of changes in Emacs 28.
+
+@itemize
+@cindex native compilation of Lisp files
+@item
+Emacs now optionally supports native compilation of Lisp files.  This
+can improves performance significantly in some cases.  To enable this,
+configure Emacs with the '--with-native-compilation' option.
+
+@item
+The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
+Thus, packages on NonGNU ELPA will appear by default in the list shown
+by the @code{list-packages} command.
+
+@item
+The Cairo graphics library is now used by default if present.
+
+@item
+The new themes @samp{modus-vivendi} and @samp{modus-operandi} have
+been added.  They are designed to conform with the highest standard
+for color-contrast accessibility (WCAG AAA).
+
+@item
+On capable systems, Emacs now correctly displays Emoji and Emoji
+sequences by default, provided that a suitable font is available.
+
+@item
+New system for displaying documentation for groups of functions
+(@kbd{M-x shortdoc-display-group RET}).
+
+@item
+Among the many internal changes in this release, we would like to
+highlight that all files in the tree now use @code{lexical-binding}.
+
+@end itemize
+
+
 @node New in Emacs 27
 @section What is different about Emacs 27?
 @cindex Differences between Emacs 26 and Emacs 27
@@ -973,8 +1018,8 @@ Built-in support for tabs (tab bar and tab line).
 Support for resizing and rotating of images without ImageMagick.
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 27.
+Consult the Emacs @file{NEWS.27} file for the full list of changes in
+Emacs 27.
 
 @node New in Emacs 26
 @section What is different about Emacs 26?
