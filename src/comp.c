@@ -5136,21 +5136,29 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   if (CONSP (minarg))
     {
       /* Dynamic code.  */
-      x->s.lambda_list[0] = maxarg;
+#ifdef HAVE_NATIVE_COMP
+      x->s.lambda_list = maxarg;
+#endif
       maxarg = XCDR (minarg);
       minarg = XCAR (minarg);
     }
   else
-    x->s.lambda_list[0] = Qnil;
+    {
+#ifdef HAVE_NATIVE_COMP
+      x->s.lambda_list = Qnil;
+#endif
+    }
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (symbol_name));
   x->s.native_intspec = intspec;
   x->s.doc = XFIXNUM (doc_idx);
-  x->s.native_comp_u[0] = comp_u;
-  x->s.native_c_name[0] = xstrdup (SSDATA (c_name));
-  x->s.type[0] = type;
+#ifdef HAVE_NATIVE_COMP
+  x->s.native_comp_u = comp_u;
+  x->s.native_c_name = xstrdup (SSDATA (c_name));
+  x->s.type = type;
+#endif
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
 

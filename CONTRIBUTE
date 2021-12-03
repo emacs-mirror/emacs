@@ -185,20 +185,26 @@ ChangeLog file, where they can be corrected.  It saves time to get
 them right the first time, so here are guidelines for formatting them:
 
 - Start with a single unindented summary line explaining the change;
-  do not end this line with a period.  If that line starts with a
-  semicolon and a space "; ", the commit message will be ignored when
-  generating the ChangeLog file.  Use this for minor commits that do
-  not need separate ChangeLog entries, such as changes in etc/NEWS.
+  do not end this line with a period.  If possible, try to keep the
+  summary line to 50 characters or fewer; this is for compatibility
+  with certain Git commands that print that line in width-constrained
+  contexts.
 
-- After the summary line, there should be an empty line, then
-  unindented ChangeLog entries.
+  If the summary line starts with a semicolon and a space "; ", the
+  commit message will be ignored when generating the ChangeLog file.
+  Use this for minor commits that do not need separate ChangeLog
+  entries, such as changes in etc/NEWS.
+
+- After the summary line, there should be an empty line.
+
+- Unindented ChangeLog entries normally come next.  However, if the
+  commit couldn't be properly summarized in the brief summary line,
+  you can put a paragraph (after the empty line and before the
+  individual ChangeLog entries) that further describes the commit.
 
 - Limit lines in commit messages to 78 characters, unless they consist
   of a single word of at most 140 characters; this is enforced by a
-  commit hook.  It's nicer to limit the summary line to 50 characters;
-  this isn't enforced.  If the change can't be summarized so briefly,
-  add a paragraph after the empty line and before the individual file
-  descriptions.
+  commit hook.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
