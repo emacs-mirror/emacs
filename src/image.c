@@ -10066,6 +10066,10 @@ DEF_DLL_FN (gboolean, rsvg_handle_close, (RsvgHandle *, GError **));
 DEF_DLL_FN (void, rsvg_handle_set_dpi_x_y,
 	    (RsvgHandle * handle, double dpi_x, double dpi_y));
 
+#  if LIBRSVG_CHECK_VERSION (2, 52, 1)
+DEF_DLL_FN (void, rsvg_handle_get_intrinsic_size_in_pixels,
+            (RsvgHandle *, gdouble *, gdouble *));
+#  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 DEF_DLL_FN (void, rsvg_handle_get_intrinsic_dimensions,
             (RsvgHandle *, gboolean *, RsvgLength *, gboolean *,
@@ -10129,6 +10133,9 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_close);
 #endif
   LOAD_DLL_FN (library, rsvg_handle_set_dpi_x_y);
+#if LIBRSVG_CHECK_VERSION (2, 52, 1)
+  LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_size_in_pixels);
+#endif
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
   LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
@@ -10172,6 +10179,9 @@ init_svg_functions (void)
 #  undef g_clear_error
 #  undef g_object_unref
 #  undef g_type_init
+#  if LIBRSVG_CHECK_VERSION (2, 52, 1)
+#   undef rsvg_handle_get_intrinsic_size_in_pixels
+#  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 #   undef rsvg_handle_get_intrinsic_dimensions
 #   undef rsvg_handle_get_geometry_for_layer
@@ -10206,6 +10216,10 @@ init_svg_functions (void)
 #  define g_object_unref fn_g_object_unref
 #  if ! GLIB_CHECK_VERSION (2, 36, 0)
 #   define g_type_init fn_g_type_init
+#  endif
+#  if LIBRSVG_CHECK_VERSION (2, 52, 1)
+#   define rsvg_handle_get_intrinsic_size_in_pixels \
+	fn_rsvg_handle_get_intrinsic_size_in_pixels
 #  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
 #   define rsvg_handle_get_intrinsic_dimensions \
@@ -10444,51 +10458,71 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Get the image dimensions.  */
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
-  RsvgRectangle zero_rect, viewbox, out_logical_rect;
+  gdouble gviewbox_width, gviewbox_height;
+  gboolean has_viewbox = FALSE;
+# if LIBRSVG_CHECK_VERSION (2, 52, 1)
+  has_viewbox = rsvg_handle_get_intrinsic_size_in_pixels (rsvg_handle,
+							  &gviewbox_width,
+							  &gviewbox_height);
+# endif
 
-  /* Try the intrinsic dimensions first.  */
-  gboolean has_width, has_height, has_viewbox;
-  RsvgLength iwidth, iheight;
-  double dpi = FRAME_DISPLAY_INFO (f)->resx;
-
-  rsvg_handle_get_intrinsic_dimensions (rsvg_handle,
-                                        &has_width, &iwidth,
-                                        &has_height, &iheight,
-                                        &has_viewbox, &viewbox);
-
-  if (has_width && has_height)
+  if (has_viewbox)
     {
-      /* Success!  We can use these values directly.  */
-      viewbox_width = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size);
-      viewbox_height = svg_css_length_to_pixels (iheight, dpi, img->face_font_size);
-    }
-  else if (has_width && has_viewbox)
-    {
-      viewbox_width = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size);
-      viewbox_height = viewbox_width * viewbox.height / viewbox.width;
-    }
-  else if (has_height && has_viewbox)
-    {
-      viewbox_height = svg_css_length_to_pixels (iheight, dpi, img->face_font_size);
-      viewbox_width = viewbox_height * viewbox.width / viewbox.height;
-    }
-  else if (has_viewbox)
-    {
-      viewbox_width = viewbox.width;
-      viewbox_height = viewbox.height;
+      viewbox_width = gviewbox_width;
+      viewbox_height = gviewbox_height;
     }
   else
-    viewbox_width = viewbox_height = 0;
-
-  if (! (0 < viewbox_width && 0 < viewbox_height))
     {
-      /* We haven't found a usable set of sizes, so try working out
-         the visible area.  */
-      rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
-                                          &zero_rect, &viewbox,
-                                          &out_logical_rect, NULL);
-      viewbox_width = viewbox.x + viewbox.width;
-      viewbox_height = viewbox.y + viewbox.height;
+      RsvgRectangle zero_rect, viewbox, out_logical_rect;
+
+      /* Try the intrinsic dimensions first.  */
+      gboolean has_width, has_height;
+      RsvgLength iwidth, iheight;
+      double dpi = FRAME_DISPLAY_INFO (f)->resx;
+
+      rsvg_handle_get_intrinsic_dimensions (rsvg_handle,
+					    &has_width, &iwidth,
+					    &has_height, &iheight,
+					    &has_viewbox, &viewbox);
+
+      if (has_width && has_height)
+	{
+	  /* Success!  We can use these values directly.  */
+	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
+						    img->face_font_size);
+	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
+						     img->face_font_size);
+	}
+      else if (has_width && has_viewbox)
+	{
+	  viewbox_width = svg_css_length_to_pixels (iwidth, dpi,
+						    img->face_font_size);
+	  viewbox_height = viewbox_width * viewbox.height / viewbox.width;
+	}
+      else if (has_height && has_viewbox)
+	{
+	  viewbox_height = svg_css_length_to_pixels (iheight, dpi,
+						     img->face_font_size);
+	  viewbox_width = viewbox_height * viewbox.width / viewbox.height;
+	}
+      else if (has_viewbox)
+	{
+	  viewbox_width = viewbox.width;
+	  viewbox_height = viewbox.height;
+	}
+      else
+	viewbox_width = viewbox_height = 0;
+
+      if (! (0 < viewbox_width && 0 < viewbox_height))
+	{
+	  /* We haven't found a usable set of sizes, so try working out
+	     the visible area.  */
+	  rsvg_handle_get_geometry_for_layer (rsvg_handle, NULL,
+					      &zero_rect, &viewbox,
+					      &out_logical_rect, NULL);
+	  viewbox_width = viewbox.x + viewbox.width;
+	  viewbox_height = viewbox.y + viewbox.height;
+	}
     }
 #else
   /* In librsvg before 2.46.0, guess the viewbox from the image dimensions.  */
