@@ -2860,13 +2860,18 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
-  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
+#ifdef HAVE_NATIVE_COMP
+  bool native_comp = !NILP (subr->native_comp_u);
+#else
+  bool native_comp = false;
+#endif
+  if (native_comp)
     out.function.a0 = NULL;
   else
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
+  if (native_comp)
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
       dump_remember_cold_op (ctx,
@@ -2880,19 +2885,16 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
     }
   DUMP_FIELD_COPY (&out, subr, doc);
-  if (NATIVE_COMP_FLAG)
-    {
-      dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
-      if (!NILP (subr->native_comp_u[0]))
-	dump_field_fixup_later (ctx, &out, subr, &subr->native_c_name[0]);
+#ifdef HAVE_NATIVE_COMP
+  dump_field_lv (ctx, &out, subr, &subr->native_comp_u, WEIGHT_NORMAL);
+  if (!NILP (subr->native_comp_u))
+    dump_field_fixup_later (ctx, &out, subr, &subr->native_c_name);
 
-      dump_field_lv (ctx, &out, subr, &subr->lambda_list[0], WEIGHT_NORMAL);
-      dump_field_lv (ctx, &out, subr, &subr->type[0], WEIGHT_NORMAL);
-    }
+  dump_field_lv (ctx, &out, subr, &subr->lambda_list, WEIGHT_NORMAL);
+  dump_field_lv (ctx, &out, subr, &subr->type, WEIGHT_NORMAL);
+#endif
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
-  if (NATIVE_COMP_FLAG
-      && ctx->flags.dump_object_contents
-      && !NILP (subr->native_comp_u[0]))
+  if (native_comp && ctx->flags.dump_object_contents)
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
@@ -3422,9 +3424,9 @@ dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
 
   dump_remember_fixup_ptr_raw
     (ctx,
-     subr_offset + dump_offsetof (struct Lisp_Subr, native_c_name[0]),
+     subr_offset + dump_offsetof (struct Lisp_Subr, native_c_name),
      ctx->offset);
-  const char *c_name = XSUBR (subr)->native_c_name[0];
+  const char *c_name = XSUBR (subr)->native_c_name;
   dump_write (ctx, c_name, 1 + strlen (c_name));
 }
 #endif
@@ -5361,20 +5363,16 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       }
     case RELOC_NATIVE_SUBR:
       {
-	if (!NATIVE_COMP_FLAG)
-	  /* This cannot happen.  */
-	  emacs_abort ();
-
 	/* When resurrecting from a dump given non all the original
 	   native compiled subrs may be still around we can't rely on
 	   a 'top_level_run' mechanism, we revive them one-by-one
 	   here.  */
 	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
 	struct Lisp_Native_Comp_Unit *comp_u =
-	  XNATIVE_COMP_UNIT (subr->native_comp_u[0]);
+	  XNATIVE_COMP_UNIT (subr->native_comp_u);
 	if (!comp_u->handle)
 	  error ("NULL handle in compilation unit %s", SSDATA (comp_u->file));
-	const char *c_name = subr->native_c_name[0];
+	const char *c_name = subr->native_c_name;
 	eassert (c_name);
 	void *func = dynlib_sym (comp_u->handle, c_name);
 	if (!func)

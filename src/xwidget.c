@@ -1098,6 +1098,9 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   xg_event->scroll.delta_y = dy;
   xg_event->scroll.device = find_suitable_pointer (view->frame);
 
+  if (!(fabs (dx) > 0) || !(fabs (dy) > 0))
+    xg_event->scroll.is_stop = TRUE;
+
   g_object_ref (xg_event->any.window);
 
   gtk_main_do_event (xg_event);

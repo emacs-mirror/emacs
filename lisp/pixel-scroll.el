@@ -109,14 +109,26 @@ This is only effective if supported by your mouse or touchpad."
   :type 'boolean
   :version "29.1")
 
-(defcustom pixel-scroll-precision-momentum-tick 0.16
+(defcustom pixel-scroll-precision-momentum-tick 0.01
   "Number of seconds between each momentum scroll."
   :group 'mouse
   :type 'float
   :version "29.1")
 
-(defcustom pixel-scroll-precision-momentum-factor 0.95
-  "Factor by which to reduce scroll velocity on each momentum scroll"
+(defcustom pixel-scroll-precision-momentum-seconds 1.75
+  "The maximum duration in seconds of momentum scrolling."
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
+(defcustom pixel-scroll-precision-momentum-min-velocity 10.0
+  "The minimum scrolled pixels per second before momentum scrolling starts."
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
+(defcustom pixel-scroll-precision-initial-velocity-factor 0.25
+  "Factor applied to the initial velocity before momentum scrolling begins."
   :group 'mouse
   :type 'float
   :version "29.1")
@@ -518,8 +530,13 @@ It is a vector of the form [ VELOCITY TIME ]."
 (defun pixel-scroll-accumulate-velocity (delta)
   "Accumulate DELTA into the current window's kinetic scroll state."
   (let* ((state (pixel-scroll-kinetic-state))
+         (ring (aref state 0))
          (time (aref state 1)))
-    (when (and time (> (- (float-time) time) 0.5))
+    (when (or (and time (> (- (float-time) time) 0.5))
+              (and (not (ring-empty-p ring))
+                   (not (eq (< delta 0)
+                            (< (cdr (ring-ref ring 0))
+                               0)))))
       (aset state 0 (make-ring 10)))
     (ring-insert (aref state 0)
                  (cons (aset state 1 (float-time))
@@ -532,8 +549,7 @@ It is a vector of the form [ VELOCITY TIME ]."
          (total 0))
     (dolist (tem elts)
       (setq total (+ total (cdr tem))))
-    (/ total (* (- (caar elts)
-                   (caar (last elts)))
+    (/ total (* (- (float-time) (caar elts))
                 100))))
 
 (defun pixel-scroll-start-momentum (event)
@@ -546,25 +562,45 @@ It is a vector of the form [ VELOCITY TIME ]."
         (setq state (pixel-scroll-kinetic-state))
         (when (and (aref state 1)
                    (listp (aref state 0)))
-          (unwind-protect (progn
-                            (aset state 0
-                                  (/ (pixel-scroll-calculate-velocity state) 2))
-                            (let ((velocity (aref state 0)))
-                              (if (> velocity 0)
-                                  (while (> velocity 1)
-                                    (pixel-scroll-precision-scroll-up (round velocity))
-                                    (setq velocity (* velocity
-                                                      pixel-scroll-precision-momentum-factor))
+          (while-no-input
+            (unwind-protect (progn
+                              (aset state 0 (pixel-scroll-calculate-velocity state))
+                              (when (> (abs (aref state 0))
+                                       pixel-scroll-precision-momentum-min-velocity)
+                                (let* ((velocity (* (aref state 0)
+                                                    pixel-scroll-precision-initial-velocity-factor))
+                                       (original-velocity velocity)
+                                       (time-spent 0))
+                                  (if (> velocity 0)
+                                      (while (and (> velocity 0)
+                                                  (<= time-spent
+                                                      pixel-scroll-precision-momentum-seconds))
+                                        (when (> (round velocity) 0)
+                                          (pixel-scroll-precision-scroll-up (round velocity)))
+                                        (setq velocity (- velocity
+                                                          (/ original-velocity
+                                                             (/ pixel-scroll-precision-momentum-seconds
+                                                                pixel-scroll-precision-momentum-tick))))
+                                        (redisplay t)
+                                        (sit-for pixel-scroll-precision-momentum-tick)
+                                        (setq time-spent (+ time-spent
+                                                            pixel-scroll-precision-momentum-tick))))
+                                  (while (and (< velocity 0)
+                                              (<= time-spent
+                                                  pixel-scroll-precision-momentum-seconds))
+                                    (when (> (round (abs velocity)) 0)
+                                      (pixel-scroll-precision-scroll-down (round
+                                                                           (abs velocity))))
+                                    (setq velocity (+ velocity
+                                                      (/ (abs original-velocity)
+                                                         (/ pixel-scroll-precision-momentum-seconds
+                                                            pixel-scroll-precision-momentum-tick))))
                                     (redisplay t)
-                                    (sit-for pixel-scroll-precision-momentum-tick)))
-                              (while (< velocity -1)
-                                (pixel-scroll-precision-scroll-down (round (abs velocity)))
-                                (setq velocity (* velocity
-                                                  pixel-scroll-precision-momentum-factor))
-                                (redisplay t)
-                                (sit-for pixel-scroll-precision-momentum-tick))))
-            (aset state 0 (make-ring 10))
-            (aset state 1 nil)))))))
+                                    (sit-for pixel-scroll-precision-momentum-tick)
+                                    (setq time-spent (+ time-spent
+                                                        pixel-scroll-precision-momentum-tick))))))
+              (aset state 0 (make-ring 10))
+              (aset state 1 nil))))))))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode
