@@ -274,8 +274,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
   ;; Pull in packages as needed
-  (cond ((eq reb-re-syntax 'rx)            ; rx-to-string is autoloaded
-         (require 'rx)))                   ; require rx anyway
+  (when (eq reb-re-syntax 'rx)          ; rx-to-string is autoloaded
+    (require 'rx))                      ; require rx anyway
   (reb-mode-common))
 
 (defvar reb-subexp-mode-map
@@ -606,9 +606,9 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
-  (cond ((eq reb-re-syntax 'rx)
-	 (rx-to-string (eval (car (read-from-string re)))))
-	(t re)))
+  (if (eq reb-re-syntax 'rx)
+      (rx-to-string (eval (car (read-from-string re))))
+    re))
 
 (defun reb-update-regexp ()
   "Update the regexp for the target buffer.
