@@ -3144,12 +3144,21 @@ pgtk_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 static void
 pgtk_update_end (struct frame *f)
 {
-  GtkWidget *widget = FRAME_GTK_WIDGET (f);
   /* Mouse highlight may be displayed again.  */
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
+}
 
-  gtk_widget_queue_draw (widget);
-  flip_cr_context (f);
+static void
+pgtk_frame_up_to_date (struct frame *f)
+{
+  block_input ();
+  FRAME_MOUSE_UPDATE (f);
+  if (!buffer_flipping_blocked_p ())
+    {
+      flip_cr_context (f);
+      gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+    }
+  unblock_input ();
 }
 
 /* Return the current position of the mouse.
@@ -4612,6 +4621,15 @@ x_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
   pgtk_frame_rehighlight (dpyinfo);
 }
 
+static void
+pgtk_buffer_flipping_unblocked_hook (struct frame *f)
+{
+  block_input ();
+  flip_cr_context (f);
+  gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+  unblock_input ();
+}
+
 static struct terminal *
 pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
 /* --------------------------------------------------------------------------
@@ -4631,9 +4649,10 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->update_begin_hook = pgtk_update_begin;
   terminal->update_end_hook = pgtk_update_end;
   terminal->read_socket_hook = pgtk_read_socket;
-  /* terminal->frame_up_to_date_hook = pgtk_frame_up_to_date; */
+  terminal->frame_up_to_date_hook = pgtk_frame_up_to_date;
   terminal->mouse_position_hook = pgtk_mouse_position;
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
+  terminal->buffer_flipping_unblocked_hook = pgtk_buffer_flipping_unblocked_hook;
   /* terminal->frame_raise_lower_hook = pgtk_frame_raise_lower; */
   terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
@@ -5555,8 +5574,8 @@ enter_notify_event (GtkWidget * widget, GdkEvent * event,
 }
 
 static gboolean
-leave_notify_event (GtkWidget * widget, GdkEvent * event,
-		    gpointer * user_data)
+leave_notify_event (GtkWidget *widget, GdkEvent *event,
+		    gpointer *user_data)
 {
   union buffered_input_event inev;
   struct frame *frame =
@@ -5567,6 +5586,15 @@ leave_notify_event (GtkWidget * widget, GdkEvent * event,
   struct frame *focus_frame = dpyinfo->x_focus_frame;
   int focus_state
     = focus_frame ? focus_frame->output_data.pgtk->focus_state : 0;
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (frame);
+
+  if (frame == hlinfo->mouse_face_mouse_frame)
+    {
+      /* If we move outside the frame, then we're
+	 certainly no longer on any text in the frame.  */
+      clear_mouse_face (hlinfo);
+      hlinfo->mouse_face_mouse_frame = 0;
+    }
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
