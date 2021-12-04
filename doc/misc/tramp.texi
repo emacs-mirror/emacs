@@ -3389,8 +3389,8 @@ indication that the process has been interrupted, and returns a
 corresponding string.
 
 This remote process handling does not apply to @acronym{GVFS}
-(@pxref{GVFS-based methods}) because the remote file system is mounted on
-the local host and @value{tramp} accesses it by changing the
+(@pxref{GVFS-based methods}) because the remote file system is mounted
+on the local host and @value{tramp} accesses it by changing the
 @code{default-directory}.
 
 @value{tramp} starts a remote process when a command is executed in a
@@ -4058,6 +4058,11 @@ Microsoft Windows cabinets
 CPIO archives
 @cindex @file{cpio} file archive suffix
 @cindex file archive suffix @file{cpio}
+
+@item @samp{.crate} ---
+Cargo (Rust) packages
+@cindex @file{crate} file archive suffix
+@cindex file archive suffix @file{crate}
 
 @item @samp{.deb} ---
 Debian packages
