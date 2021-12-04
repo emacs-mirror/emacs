@@ -693,6 +693,10 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
+** User option 'mail-source-ignore-errors' is now obsolete
+The whole mechanism for prompting users to continue in case of
+mail-source errors has been removed, so this option is no longer
+needed.
 ** Fonts
 
 ---

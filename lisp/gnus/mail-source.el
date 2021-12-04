@@ -224,12 +224,9 @@ Leave mails for this many days" :value 14)))))
 					   (const :format "" :value :plugged)
 					   (boolean :tag "Plugged"))))))))
 
-(defcustom mail-source-ignore-errors nil
-  "Ignore errors when querying mail sources.
-If nil, the user will be prompted when an error occurs.  If non-nil,
-the error will be ignored."
-  :version "22.1"
-  :type 'boolean)
+(make-obsolete-variable 'mail-source-ignore-errors
+                        "configure `gnus-verbose' instead"
+                        "29.1")
 
 (defcustom mail-source-primary-source nil
   "Primary source for incoming mail.
@@ -554,18 +551,16 @@ Return the number of files that were found."
 		 (condition-case err
 		     (funcall function source callback)
 		   (error
-		    (if (and (not mail-source-ignore-errors)
-			     (not
-			      (yes-or-no-p
-			       (format "Mail source %s error (%s).  Continue? "
+                    (gnus-error
+                     5
+                     (format "Mail source %s error (%s)"
 				       (if (memq ':password source)
 					   (let ((s (copy-sequence source)))
 					     (setcar (cdr (memq ':password s))
 						     "********")
 					     s)
 					 source)
-				       (cadr err)))))
-		      (error "Cannot get new mail"))
+				       (cadr err)))
 		    0)))))))))
 
 (declare-function gnus-message "gnus-util" (level &rest args))

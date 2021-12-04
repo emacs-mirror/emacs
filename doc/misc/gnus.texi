@@ -15447,10 +15447,6 @@ If non-@code{nil}, ask for confirmation before deleting old incoming
 files.  This variable only applies when
 @code{mail-source-delete-incoming} is a positive number.
 
-@item mail-source-ignore-errors
-@vindex mail-source-ignore-errors
-If non-@code{nil}, ignore errors when reading mail from a mail source.
-
 @item mail-source-directory
 @vindex mail-source-directory
 Directory where incoming mail source files (if any) will be stored.  The
