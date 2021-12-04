@@ -1748,7 +1748,7 @@ this is a reply."
 			    (concat "\"" str "\"")
 			  str)))
 	      (when groups
-		(insert ", ")))
+		(insert ",")))
 	    (insert "\n")))))))
 
 (defun gnus-mailing-list-followup-to ()
