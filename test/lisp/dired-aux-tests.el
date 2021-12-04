@@ -64,7 +64,7 @@
 
 (ert-deftest dired-test-bug28834 ()
   "test for https://debbugs.gnu.org/28834 ."
-  (let (from to-cp to-mv)
+  (let (to-cp to-mv)
     ;; `dired-create-destination-dirs' set to 'always.
     (with-dired-bug28834-test
      'always nil
