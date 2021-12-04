@@ -407,10 +407,10 @@ be a number or marker, in which case the keymap properties at the
 specified buffer position instead of point are used."
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
-  (when (and keymap (not position))
+  (when (and keymap position)
     (error "Can't pass in both keymap and position"))
   (if keymap
-      (let ((value (lookup-key (key-parse key) keymap accept-default)))
+      (let ((value (lookup-key keymap (key-parse key) accept-default)))
         (when (and (not no-remap)
                    (symbolp value))
           (or (command-remapping value) value)))
