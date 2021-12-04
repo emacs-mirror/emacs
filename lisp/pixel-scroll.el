@@ -439,7 +439,8 @@ the height of the current window."
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
-  (let ((max-height (window-text-height nil t)))
+  (let ((max-height (- (window-text-height nil t)
+                       (frame-char-height))))
     (while (> delta max-height)
       (pixel-scroll-precision-scroll-down-page max-height)
       (setq delta (- delta max-height)))
@@ -499,7 +500,8 @@ the height of the current window."
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
-  (let ((max-height (window-text-height nil t)))
+  (let ((max-height (- (window-text-height nil t)
+                       (frame-char-height))))
     (while (> delta max-height)
       (pixel-scroll-precision-scroll-up-page max-height)
       (setq delta (- delta max-height)))
