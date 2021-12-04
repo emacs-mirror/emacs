@@ -589,7 +589,7 @@ calls `w3m-toggle-inline-image'.  It works only if
 (defun newsticker-close-buffer ()
   "Close the newsticker buffer."
   (interactive)
-  (newsticker--cache-update t)
+  (newsticker--cache-save)
   (bury-buffer))
 
 (defun newsticker-next-new-item (&optional do-not-wrap-at-eob)
@@ -748,7 +748,7 @@ Return new buffer position."
       (newsticker--cache-replace-age newsticker--cache feed 'new 'old)
       (newsticker--cache-replace-age newsticker--cache feed 'obsolete
                                      'old)
-      (newsticker--cache-update)
+      (newsticker--cache-save)
       (newsticker--buffer-set-uptodate nil)
       (newsticker--ticker-text-setup)
       (newsticker-buffer-update)
@@ -879,7 +879,7 @@ not get changed."
     (newsticker--cache-replace-age newsticker--cache 'any 'new 'old)
     (newsticker--buffer-set-uptodate nil)
     (newsticker--ticker-text-setup)
-    (newsticker--cache-update)
+    (newsticker--cache-save)
     (newsticker-buffer-update)))
 
 (defun newsticker-hide-extra ()

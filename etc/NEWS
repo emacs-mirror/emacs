@@ -771,10 +771,9 @@ Use 'exif-parse-file' and 'exif-field' instead.
 This change is now applied in 'dired-insert-directory'.
 
 ** Some functions and variables obsolete since Emacs 23 have been removed:
-'find-emacs-lisp-shadows', 'newsticker--cache-read-version1',
-'newsticker--cache-save-version1', 'newsticker--cache-update',
-'newsticker-cache-filename', 'unify-8859-on-decoding-mode',
-'unify-8859-on-encoding-mode', 'vc-arch-command'.
+'find-emacs-lisp-shadows', 'newsticker-cache-filename',
+'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
+'vc-arch-command'.
 
 
 * Lisp Changes in Emacs 29.1
