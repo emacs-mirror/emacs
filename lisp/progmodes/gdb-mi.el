@@ -1266,7 +1266,7 @@ Used by Speedbar."
   :version "22.1")
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
-(define-key global-map (vconcat gud-key-prefix "\C-w") 'gud-watch)
+(keymap-set gud-global-map "C-w" 'gud-watch)
 
 (declare-function tooltip-identifier-from-point "tooltip" (point))
 

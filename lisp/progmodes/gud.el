@@ -90,8 +90,10 @@ pdb (Python), and jdb."
   "Prefix of all GUD commands valid in C buffers."
   :type 'key-sequence)
 
-(global-set-key (vconcat gud-key-prefix "\C-l") #'gud-refresh)
-;; (define-key ctl-x-map " " 'gud-break); backward compatibility hack
+(defvar-keymap gud-global-map
+  "C-l" #'gud-refresh)
+
+(global-set-key gud-key-prefix gud-global-map)
 
 (defvar gud-marker-filter nil)
 (put 'gud-marker-filter 'permanent-local t)
@@ -433,7 +435,7 @@ we're in the GUD buffer)."
 	    ;; Unused lexical warning if cmd does not use "arg".
 	    cmd))))
      ,(if key `(local-set-key ,(concat "\C-c" key) #',func))
-     ,(if key `(global-set-key (vconcat gud-key-prefix ,key) #',func))))
+     ,(if key `(define-key gud-global-map ,key #',func))))
 
 ;; Where gud-display-frame should put the debugging arrow; a cons of
 ;; (filename . line-number).  This is set by the marker-filter, which scans
