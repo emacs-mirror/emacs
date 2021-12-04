@@ -52,9 +52,6 @@
 ;; or a character translatable to such a character (i.e a character
 ;; for which `encode-char' will return non-nil).
 ;;
-;; Using unify-8859-on-decoding-mode is probably a good idea here
-;; (and generally with XML and other Unicode-oriented formats).
-;;
 ;; Unfortunately, this means that this package is currently useless
 ;; for CJK characters, since there's no mule-unicode charset for the
 ;; CJK ranges of Unicode.  We should devise a workaround for this

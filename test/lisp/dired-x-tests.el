@@ -60,5 +60,15 @@
     (should (equal (dired-guess-default '("/tmp/foo.png" "/tmp/foo.txt"))
                    nil))))
 
+(ert-deftest dired-x--string-to-number ()
+  (should (= (dired-x--string-to-number "2.4K") 2457.6))
+  (should (= (dired-x--string-to-number "2400") 2400))
+  (should (= (dired-x--string-to-number "123.4M") 129394278.4))
+  (should (= (dired-x--string-to-number "123.40000M") 129394278.4))
+  (should (= (dired-x--string-to-number "4.134") 4134))
+  (should (= (dired-x--string-to-number "4,134") 4134))
+  (should (= (dired-x--string-to-number "4 134") 4134))
+  (should (= (dired-x--string-to-number "41,52,134") 4152134)))
+
 (provide 'dired-x-tests)
 ;;; dired-x-tests.el ends here

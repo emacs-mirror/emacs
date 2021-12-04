@@ -151,9 +151,6 @@ See the documentation for `list-load-path-shadows' for further information."
     ;; Return the list of shadowings.
     shadows))
 
-(define-obsolete-function-alias 'find-emacs-lisp-shadows
-  'load-path-shadows-find "23.3")
-
 ;; Return true if neither file exists, or if both exist and have identical
 ;; contents.
 (defun load-path-shadows-same-file-or-nonexistent (f1 f2)

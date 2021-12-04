@@ -1120,12 +1120,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		   (setcar x (concat (car x) "*"))))))
 	     entries))
 
-	  ;; Insert size information.
-	  (when full-directory-p
-	    (insert
-	     (if avail
-		 (format "total used in directory %s available %s\n" used avail)
-	       (format "total %s\n" used))))
+	  ;; Insert size information.  This is moved to
+	  ;; `dired-insert-directory' in Emacs 29.1.
+	  (unless (boundp 'dired-free-space)
+	    (when full-directory-p
+	      (insert
+	       (if avail
+		   (format "total used in directory %s available %s\n" used avail)
+		 (format "total %s\n" used)))))
 
 	  ;; Print entries.
 	  (mapc

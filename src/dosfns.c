@@ -58,8 +58,8 @@ DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
 Return the updated REGISTER vector.
 
 INTERRUPT should be an integer in the range 0 to 255.
-REGISTERS should be a vector produced by `make-register' and
-`set-register-value'.  */)
+REGISTERS should be a vector produced by `dos-make-register' and
+`dos-set-register-value'.  */)
   (Lisp_Object interrupt, Lisp_Object registers)
 {
   register int i;

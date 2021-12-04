@@ -351,19 +351,27 @@ This function is called, by name, directly by the C code."
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
 REPEAT may be an integer or floating point number.
 TIME should be one of:
+
 - a string giving today's time like \"11:23pm\"
   (the acceptable formats are HHMM, H:MM, HH:MM, HHam, HHAM,
   HHpm, HHPM, HH:MMam, HH:MMAM, HH:MMpm, or HH:MMPM;
   a period `.' can be used instead of a colon `:' to separate
   the hour and minute parts);
+
 - a string giving a relative time like \"90\" or \"2 hours 35 minutes\"
   (the acceptable forms are a number of seconds without units
   or some combination of values using units in `timer-duration-words');
+
 - nil, meaning now;
+
 - a number of seconds from now;
+
 - a value from `encode-time';
-- or t (with non-nil REPEAT) meaning the next integral
-  multiple of REPEAT.
+
+- or t (with non-nil REPEAT) meaning the next integral multiple
+  of REPEAT.  This is handy when you want the function to run at
+  a certain \"round\" number.  For instance, (run-at-time t 60 ...)
+  will run at 11:04:00, 11:05:00, etc.
 
 The action is to call FUNCTION with arguments ARGS.
 

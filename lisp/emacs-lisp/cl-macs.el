@@ -3365,6 +3365,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (integer	. integerp)
                  (keyword	. keywordp)
                  (list		. listp)
+                 (natnum	. natnump)
                  (number	. numberp)
                  (null		. null)
                  (real		. numberp)
