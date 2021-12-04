@@ -10067,7 +10067,7 @@ DEF_DLL_FN (void, rsvg_handle_set_dpi_x_y,
 	    (RsvgHandle * handle, double dpi_x, double dpi_y));
 
 #  if LIBRSVG_CHECK_VERSION (2, 52, 1)
-DEF_DLL_FN (void, rsvg_handle_get_intrinsic_size_in_pixels,
+DEF_DLL_FN (gboolean, rsvg_handle_get_intrinsic_size_in_pixels,
             (RsvgHandle *, gdouble *, gdouble *));
 #  endif
 #  if LIBRSVG_CHECK_VERSION (2, 46, 0)
