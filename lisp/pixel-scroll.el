@@ -434,7 +434,13 @@ the height of the current window."
                                    delta)
                             t)
       (unless (eq (window-start) desired-start)
-        (set-window-start nil desired-start t))
+        (set-window-start nil (if (zerop (window-hscroll))
+                                  desired-start
+                                (save-excursion
+                                  (goto-char desired-start)
+                                  (beginning-of-visual-line)
+                                  (point)))
+                          t))
       (set-window-vscroll nil desired-vscroll t))))
 
 (defun pixel-scroll-precision-scroll-down (delta)
@@ -494,7 +500,13 @@ the height of the current window."
 	            (desired-start (posn-point desired-pos))
 	            (desired-vscroll (cdr (posn-object-x-y desired-pos))))
               (progn
-                (set-window-start nil desired-start t)
+                (set-window-start nil (if (zerop (window-hscroll))
+                                          desired-start
+                                        (save-excursion
+                                          (goto-char desired-start)
+                                          (beginning-of-visual-line)
+                                          (point)))
+                                  t)
                 (set-window-vscroll nil desired-vscroll t))
             (set-window-vscroll nil (abs delta) t)))))))
 
@@ -517,8 +529,7 @@ scroll the display according to the user's turning the mouse
 wheel."
   (interactive "e")
   (let ((window (mwheel-event-window event)))
-    (if (and (nth 4 event)
-             (zerop (window-hscroll window)))
+    (if (and (nth 4 event))
         (let ((delta (round (cdr (nth 4 event)))))
           (unless (zerop delta)
             (if (> (abs delta) (window-text-height window t))
