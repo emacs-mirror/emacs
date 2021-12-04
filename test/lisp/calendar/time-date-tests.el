@@ -41,6 +41,13 @@
                    (encode-time-value 1 2 3 4 3))
                  '(1 2 3 4))))
 
+(ert-deftest test-date-to-time ()
+  (should (equal (format-time-string "%F %T" (date-to-time "2021-12-04"))
+                 "2021-12-04 00:00:00")))
+
+(ert-deftest test-days-between ()
+  (should (equal (days-between "2021-10-22" "2020-09-29") 388)))
+
 (ert-deftest test-leap-year ()
   (should-not (date-leap-year-p 1999))
   (should-not (date-leap-year-p 1900))
