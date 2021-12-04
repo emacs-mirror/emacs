@@ -74,7 +74,7 @@ identical output."
 (cps-testcase cps-prog1-b (prog1 1))
 (cps-testcase cps-prog1-c (prog2 1 2 3))
 (cps-testcase cps-quote (progn 'hello))
-(cps-testcase cps-function (progn #'hello))
+(cps-testcase cps-function (progn #'message))
 
 (cps-testcase cps-and-fail (and 1 nil 2))
 (cps-testcase cps-and-succeed (and 1 2 3))
@@ -307,6 +307,7 @@ identical output."
                                             (1+ it)))))))
                  -2)))
 
+(defun generator-tests-edebug ()) ; silence byte-compiler
 (ert-deftest generator-tests-edebug ()
   "Check that Bug#40434 is fixed."
   (with-temp-buffer

@@ -172,7 +172,7 @@
   ;; Check that generic-p works
   (should (generic-p 'generic1))
 
-  (defmethod generic1 ((c class-a))
+  (defmethod generic1 ((_c class-a))
     "Method on generic1."
     'monkey)
 
@@ -240,12 +240,12 @@ Argument C is the class bound to this static method."
   (should (make-instance 'class-a :water 'cho))
   (should (make-instance 'class-b)))
 
-(defmethod class-cn ((a class-a))
+(defmethod class-cn ((_a class-a))
   "Try calling `call-next-method' when there isn't one.
 Argument A is object of type symbol `class-a'."
   (call-next-method))
 
-(defmethod no-next-method ((a class-a) &rest args)
+(defmethod no-next-method ((_a class-a) &rest _args)
   "Override signal throwing for variable `class-a'.
 Argument A is the object of class variable `class-a'."
   'moose)
@@ -254,7 +254,7 @@ Argument A is the object of class variable `class-a'."
   ;; Play with call-next-method
   (should (eq (class-cn eitest-ab) 'moose)))
 
-(defmethod no-applicable-method ((b class-b) method &rest args)
+(defmethod no-applicable-method ((_b class-b) _method &rest _args)
   "No need.
 Argument B is for booger.
 METHOD is the method that was attempting to be called."
@@ -264,38 +264,38 @@ METHOD is the method that was attempting to be called."
   ;; Non-existing methods.
   (should (eq (class-cn eitest-b) 'moose)))
 
-(defmethod class-fun ((a class-a))
+(defmethod class-fun ((_a class-a))
   "Fun with class A."
   'moose)
 
-(defmethod class-fun ((b class-b))
+(defmethod class-fun ((_b class-b))
   "Fun with class B."
   (error "Class B fun should not be called")
   )
 
-(defmethod class-fun-foo ((b class-b))
+(defmethod class-fun-foo ((_b class-b))
   "Foo Fun with class B."
   'moose)
 
-(defmethod class-fun2 ((a class-a))
+(defmethod class-fun2 ((_a class-a))
   "More fun with class A."
   'moose)
 
-(defmethod class-fun2 ((b class-b))
+(defmethod class-fun2 ((_b class-b))
   "More fun with class B."
   (error "Class B fun2 should not be called")
   )
 
-(defmethod class-fun2 ((ab class-ab))
+(defmethod class-fun2 ((_ab class-ab))
   "More fun with class AB."
   (call-next-method))
 
 ;; How about if B is the only slot?
-(defmethod class-fun3 ((b class-b))
+(defmethod class-fun3 ((_b class-b))
   "Even More fun with class B."
   'moose)
 
-(defmethod class-fun3 ((ab class-ab))
+(defmethod class-fun3 ((_ab class-ab))
   "Even More fun with class AB."
   (call-next-method))
 
@@ -314,17 +314,17 @@ METHOD is the method that was attempting to be called."
 
 
 (defvar class-fun-value-seq '())
-(defmethod class-fun-value :BEFORE ((a class-a))
+(defmethod class-fun-value :BEFORE ((_a class-a))
   "Return `before', and push `before' in `class-fun-value-seq'."
   (push 'before class-fun-value-seq)
   'before)
 
-(defmethod class-fun-value :PRIMARY ((a class-a))
+(defmethod class-fun-value :PRIMARY ((_a class-a))
   "Return `primary', and push `primary' in `class-fun-value-seq'."
   (push 'primary class-fun-value-seq)
   'primary)
 
-(defmethod class-fun-value :AFTER ((a class-a))
+(defmethod class-fun-value :AFTER ((_a class-a))
   "Return `after', and push `after' in `class-fun-value-seq'."
   (push 'after class-fun-value-seq)
   'after)
@@ -343,14 +343,14 @@ METHOD is the method that was attempting to be called."
 ;;
 
 (ert-deftest eieio-test-13-init-methods ()
-  (defmethod initialize-instance ((a class-a) &rest slots)
+  (defmethod initialize-instance ((a class-a) &rest _slots)
     "Initialize the slots of class-a."
     (call-next-method)
     (if (/= (oref a test-tag) 1)
 	(error "shared-initialize test failed."))
     (oset a test-tag 2))
 
-  (defmethod shared-initialize ((a class-a) &rest slots)
+  (defmethod shared-initialize ((a class-a) &rest _slots)
     "Shared initialize method for class-a."
     (call-next-method)
     (oset a test-tag 1))
@@ -369,7 +369,7 @@ METHOD is the method that was attempting to be called."
 
 (ert-deftest eieio-test-15-slot-missing ()
 
-  (defmethod slot-missing ((ab class-ab) &rest foo)
+  (defmethod slot-missing ((_ab class-ab) &rest _foo)
     "If a slot in AB is unbound, return something cool.  FOO."
     'moose)
 
@@ -425,7 +425,7 @@ METHOD is the method that was attempting to be called."
 
 (ert-deftest eieio-test-18-slot-unbound ()
 
-  (defmethod slot-unbound ((a class-a) &rest foo)
+  (defmethod slot-unbound ((_a class-a) &rest _foo)
     "If a slot in A is unbound, ignore FOO."
     'moose)
 
@@ -448,7 +448,7 @@ METHOD is the method that was attempting to be called."
   (should (eq (oref (class-a) water) 'penguin))
 
   ;; Revert the above
-  (defmethod slot-unbound ((a class-a) &rest foo)
+  (defmethod slot-unbound ((_a class-a) &rest _foo)
     "If a slot in A is unbound, ignore FOO."
     ;; Disable the old slot-unbound so we can run this test
     ;; more than once

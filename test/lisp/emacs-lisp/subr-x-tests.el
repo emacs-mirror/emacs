@@ -169,13 +169,13 @@
              "no")
            "no"))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (if-let* (z (a 1) (b 2) (c 3))
                  "yes"
                "no"))
            "no"))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (if-let* ((a 1) (b 2) (c 3) d)
                  "yes"
                "no"))
@@ -191,7 +191,7 @@
 
 (ert-deftest subr-x-test-if-let*-and-laziness-is-preserved ()
   "Test `if-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a nil)
                        (b (setq b-called t))
@@ -199,7 +199,7 @@
                  "yes"
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
                        (b nil)
@@ -207,12 +207,12 @@
                  "yes"
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
-                      (b (setq b-called t))
-                      (c nil)
-                      (d (setq c-called t)))
+                       (b (setq b-called t))
+                       (c nil)
+                       (d (setq c-called t)))
                  "yes"
                (list a-called b-called c-called))
              (list t t nil)))))
@@ -329,12 +329,12 @@
              "no")
            nil))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (when-let* (z (a 1) (b 2) (c 3))
                "no"))
            nil))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (when-let* ((a 1) (b 2) (c 3) d)
                "no"))
            nil)))
@@ -348,7 +348,7 @@
 
 (ert-deftest subr-x-test-when-let*-and-laziness-is-preserved ()
   "Test `when-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a nil)
@@ -357,7 +357,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))
@@ -366,7 +366,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))

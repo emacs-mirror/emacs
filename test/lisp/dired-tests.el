@@ -543,10 +543,12 @@ path's data to use."
                          ((equal "." path) default-directory)
                          (path)))
              (return-size
-              (car (files-tests--look-up-free-data path))))
+              ;; It is always defined but this silences the byte-compiler:
+              (when (fboundp 'files-tests--look-up-free-data)
+                (car (files-tests--look-up-free-data path)))))
         (list return-size return-size return-size))))
 
-  (defun files-tests--insert-directory-output (dir &optional verbose)
+  (defun files-tests--insert-directory-output (dir &optional _verbose)
     "Run `insert-directory' and return its output."
     (with-current-buffer-window "files-tests--insert-directory" nil nil
       (let ((dired-free-space 'separate))
@@ -555,35 +557,46 @@ path's data to use."
 
   (ert-deftest files-tests-insert-directory-shows-files ()
     "Verify `insert-directory' reports the files in the directory."
-    (let* ((test-dir (car test-files))
-           (files (cdr test-files))
-           (output (files-tests--insert-directory-output test-dir)))
-      (dolist (file files)
-        (should (string-match-p file output)))))
+    ;; It is always defined but this silences the byte-compiler:
+    (when (fboundp 'files-tests--insert-directory-output)
+      (let* ((test-dir (car test-files))
+             (files (cdr test-files))
+             (output (files-tests--insert-directory-output test-dir)))
+        (dolist (file files)
+          (should (string-match-p file output))))))
 
   (defun files-tests--insert-directory-shows-given-free (dir &optional
                                                              info-func)
     "Run `insert-directory' and verify it reports the correct available space.
 Stub `file-system-info' to ensure the available space is consistent,
 either with the given stub function or a default one using test data."
-    (cl-letf (((symbol-function 'file-system-info)
-               (or info-func
-                   (files-tests--make-file-system-info-stub))))
-      (should (string-match-p (cadr
-                               (files-tests--look-up-free-data dir))
-                              (files-tests--insert-directory-output dir t)))))
+    ;; It is always defined but this silences the byte-compiler:
+    (when (and (fboundp 'files-tests--make-file-system-info-stub)
+               (fboundp 'files-tests--look-up-free-data)
+               (fboundp 'files-tests--insert-directory-output))
+      (cl-letf (((symbol-function 'file-system-info)
+                 (or info-func
+                     (files-tests--make-file-system-info-stub))))
+        (should (string-match-p (cadr
+                                 (files-tests--look-up-free-data dir))
+                                (files-tests--insert-directory-output dir t))))))
 
   (ert-deftest files-tests-insert-directory-shows-free ()
     "Test that verbose `insert-directory' shows the correct available space."
-    (files-tests--insert-directory-shows-given-free
-     test-dir
-     (files-tests--make-file-system-info-stub test-dir)))
+    ;; It is always defined but this silences the byte-compiler:
+    (when (and (fboundp 'files-tests--insert-directory-shows-given-free)
+               (fboundp 'files-tests--make-file-system-info-stub))
+      (files-tests--insert-directory-shows-given-free
+       test-dir
+       (files-tests--make-file-system-info-stub test-dir))))
 
   (ert-deftest files-tests-bug-50630 ()
     "Verify verbose `insert-directory' shows free space of the target directory.
 The current directory at call time should not affect the result (Bug#50630)."
-    (let ((default-directory test-dir-other))
-      (files-tests--insert-directory-shows-given-free test-dir))))
+    ;; It is always defined but this silences the byte-compiler:
+    (when (fboundp 'files-tests--insert-directory-shows-given-free)
+      (let ((default-directory test-dir-other))
+        (files-tests--insert-directory-shows-given-free test-dir)))))
 
 (provide 'dired-tests)
 ;;; dired-tests.el ends here

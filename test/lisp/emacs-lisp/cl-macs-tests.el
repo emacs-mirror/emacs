@@ -668,6 +668,10 @@ collection clause."
                      #'len))
             (`(function (lambda (,_ ,_) . ,_)) t))))
 
+(with-suppressed-warnings ((lexical test) (lexical test1) (lexical test2))
+  (defvar test)
+  (defvar test1)
+  (defvar test2))
 (ert-deftest cl-macs--progv ()
   (should (= (cl-progv '(test test) '(1 2) test) 2))
   (should (equal (cl-progv '(test1 test2) '(1 2) (list test1 test2))

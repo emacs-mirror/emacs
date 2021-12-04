@@ -599,11 +599,12 @@ bound to HIGHLIGHT-LOCUS."
     (with-temp-buffer
       (insert before)
       (goto-char (point-min))
-      (replace-regexp
-       "\\(\\(L\\)\\|\\(R\\)\\)"
-       '(replace-eval-replacement
-         replace-quote
-         (if (match-string 2) "R" "L")))
+      (with-suppressed-warnings ((interactive-only replace-regexp))
+        (replace-regexp
+         "\\(\\(L\\)\\|\\(R\\)\\)"
+         '(replace-eval-replacement
+           replace-quote
+           (if (match-string 2) "R" "L"))))
       (should (equal (buffer-string) after)))))
 
 (ert-deftest test-count-matches ()

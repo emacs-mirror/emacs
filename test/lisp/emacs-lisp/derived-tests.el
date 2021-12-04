@@ -24,13 +24,13 @@
 (define-derived-mode derived-tests--parent-mode prog-mode "P"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFP=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFP=%s " (let ((x "D")) x (funcall f)))))
   (insert "PB "))
 
 (define-derived-mode derived-tests--child-mode derived-tests--parent-mode "C"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFC=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFC=%s " (let ((x "D")) x (funcall f)))))
   (insert "CB "))
 
 (ert-deftest derived-tests-after-hook-lexical ()

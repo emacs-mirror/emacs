@@ -213,6 +213,7 @@
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
 
 ;; Test some core Elisp rules.
+(defvar c-e-x)
 (ert-deftest core-elisp-tests-1-defvar-in-let ()
   "Test some core Elisp rules."
   (with-temp-buffer

@@ -172,17 +172,23 @@ Evaluate BODY for each created sequence.
   (should-not (seq-find #'null '(1 2 3)))
   (should (seq-find #'null '(1 2 3) 'sentinel)))
 
+;; Hack to work around the ERT limitation that we can't reliably use
+;; `with-suppressed-warnings' inside an `ert-deftest'.  (Bug#36568)
+(defun seq--contains (&rest args)
+  (with-suppressed-warnings ((obsolete seq-contains))
+    (apply #'seq-contains args)))
+
 (ert-deftest test-seq-contains ()
   (with-test-sequences (seq '(3 4 5 6))
-    (should (seq-contains seq 3))
-    (should-not (seq-contains seq 7)))
+    (should (seq--contains seq 3))
+    (should-not (seq--contains seq 7)))
   (with-test-sequences (seq '())
-    (should-not (seq-contains seq 3))
-    (should-not (seq-contains seq nil))))
+    (should-not (seq--contains seq 3))
+    (should-not (seq--contains seq nil))))
 
 (ert-deftest test-seq-contains-should-return-the-elt ()
   (with-test-sequences (seq '(3 4 5 6))
-    (should (= 5 (seq-contains seq 5)))))
+    (should (= 5 (seq--contains seq 5)))))
 
 (ert-deftest test-seq-contains-p ()
   (with-test-sequences (seq '(3 4 5 6))
@@ -404,7 +410,7 @@ Evaluate BODY for each created sequence.
   (let ((seq '(1 (2 (3 (4))))))
     (seq-let (_ (_ (_ (a)))) seq
       (should (= a 4))))
-  (let (seq)
+  (let ((seq nil))
     (seq-let (a b c) seq
       (should (null a))
       (should (null b))
@@ -428,7 +434,7 @@ Evaluate BODY for each created sequence.
         (seq '(1 (2 (3 (4))))))
     (seq-setq (_ (_ (_ (a)))) seq)
     (should (= a 4)))
-  (let (seq a b c)
+  (let ((seq nil) a b c)
     (seq-setq (a b c) seq)
     (should (null a))
     (should (null b))
