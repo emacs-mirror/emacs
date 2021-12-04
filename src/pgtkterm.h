@@ -398,6 +398,13 @@ struct pgtk_output
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
+
+  /* Keep track of scale factor.  If monitor's scale factor is changed, or
+     monitor is switched and scale factor is changed, then recreate cairo_t
+     and cairo_surface_t.  I need GTK's such signal, but there isn't, so
+     I watch it periodically with atimer. */
+  double watched_scale_factor;
+  struct atimer *scale_factor_atimer;
 };
 
 /* this dummy decl needed to support TTYs */
@@ -521,6 +528,10 @@ enum
   (! (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)) ? 0	\
    : FRAME_SCROLL_BAR_COLS (f))
 
+#define FRAME_CR_SURFACE_DESIRED_WIDTH(f)		\
+  ((f)->output_data.pgtk->cr_surface_desired_width)
+#define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
+  ((f)->output_data.pgtk->cr_surface_desired_height)
 
 /* Display init/shutdown functions implemented in pgtkterm.c */
 extern struct pgtk_display_info *pgtk_term_init (Lisp_Object display_name,
@@ -575,7 +586,7 @@ extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
 			   Lisp_Object old_value);
 
 /* Cairo related functions implemented in pgtkterm.c */
-extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int);
+extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int, bool);
 extern cairo_t *pgtk_begin_cr_clip (struct frame *f);
 extern void pgtk_end_cr_clip (struct frame *f);
 extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f,

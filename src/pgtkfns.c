@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 #include "xsettings.h"
+#include "atimer.h"
 
 
 #ifdef HAVE_PGTK
@@ -1179,6 +1180,21 @@ pgtk_default_font_parameter (struct frame *f, Lisp_Object parms)
 			 RES_TYPE_STRING);
 }
 
+static void update_watched_scale_factor(struct atimer *timer)
+{
+  struct frame *f = timer->client_data;
+
+  double scale_factor = FRAME_SCALE_FACTOR (f);
+  if (scale_factor != FRAME_X_OUTPUT (f)->watched_scale_factor)
+    {
+      FRAME_X_OUTPUT (f)->watched_scale_factor = scale_factor;
+      pgtk_cr_update_surface_desired_size (f,
+					   FRAME_CR_SURFACE_DESIRED_WIDTH (f),
+					   FRAME_CR_SURFACE_DESIRED_HEIGHT (f),
+					   true);
+    }
+}
+
 /* ==========================================================================
 
     Lisp definitions
@@ -1773,6 +1789,12 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
   FRAME_X_OUTPUT (f)->cr_surface_visible_bell = NULL;
   FRAME_X_OUTPUT (f)->atimer_visible_bell = NULL;
+  FRAME_X_OUTPUT (f)->watched_scale_factor = 1.0;
+  struct timespec ts = make_timespec (1, 0);
+  FRAME_X_OUTPUT (f)->scale_factor_atimer = start_atimer(ATIMER_CONTINUOUS,
+							 ts,
+							 update_watched_scale_factor,
+							 f);
 
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */
@@ -3481,7 +3503,7 @@ Text larger than the specified size is clipped.  */)
   gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (tip_f)), root_x, root_y);
   unblock_input ();
 
-  pgtk_cr_update_surface_desired_size (tip_f, width, height);
+  pgtk_cr_update_surface_desired_size (tip_f, width, height, false);
 
   w->must_be_updated_p = true;
   update_single_window (w);

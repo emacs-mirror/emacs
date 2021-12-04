@@ -72,10 +72,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define FRAME_CR_CONTEXT(f) ((f)->output_data.pgtk->cr_context)
 #define FRAME_CR_ACTIVE_CONTEXT(f)	((f)->output_data.pgtk->cr_active)
 #define FRAME_CR_SURFACE(f) (cairo_get_target (FRAME_CR_CONTEXT (f)))
-#define FRAME_CR_SURFACE_DESIRED_WIDTH(f)		\
-  ((f)->output_data.pgtk->cr_surface_desired_width)
-#define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
-  ((f)->output_data.pgtk->cr_surface_desired_height)
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -214,6 +210,12 @@ x_free_frame_resources (struct frame *f)
   block_input ();
 
   free_frame_faces (f);
+
+  if (FRAME_X_OUTPUT (f)->scale_factor_atimer != NULL)
+    {
+      cancel_atimer (FRAME_X_OUTPUT (f)->scale_factor_atimer);
+      FRAME_X_OUTPUT (f)->scale_factor_atimer = NULL;
+    }
 
 #define CLEAR_IF_EQ(FIELD)	\
   do { if (f == dpyinfo->FIELD) dpyinfo->FIELD = 0; } while (false)
@@ -4845,7 +4847,7 @@ size_allocate (GtkWidget * widget, GtkAllocation * alloc,
   if (f)
     {
       xg_frame_resized (f, alloc->width, alloc->height);
-      pgtk_cr_update_surface_desired_size (f, alloc->width, alloc->height);
+      pgtk_cr_update_surface_desired_size (f, alloc->width, alloc->height, false);
     }
 }
 
@@ -6820,10 +6822,11 @@ If set to a non-float value, there will be no wait at all.  */);
  * until a redrawn frame is completed.
  */
 void
-pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height)
+pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height, bool force)
 {
   if (FRAME_CR_SURFACE_DESIRED_WIDTH (f) != width
-      || FRAME_CR_SURFACE_DESIRED_HEIGHT (f) != height)
+      || FRAME_CR_SURFACE_DESIRED_HEIGHT (f) != height
+      || force)
     {
       pgtk_cr_destroy_frame_context (f);
       FRAME_CR_SURFACE_DESIRED_WIDTH (f) = width;
