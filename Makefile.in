@@ -427,6 +427,10 @@ epaths-force-ns-self-contained: epaths-force
 	  -e 's;${ns_appdir}/;;') &&			\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
+ifneq ($(NTDIR),)
+$(NTDIR): lib
+endif
+
 lib-src src: $(NTDIR) lib
 
 src: lib-src
