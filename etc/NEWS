@@ -423,7 +423,7 @@ representation as emojis.
 ** EIEIO
 
 +++
-*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects.
+*** 'slot-value' can now be used to access slots of 'cl-defstruct' objects.
 
 ** align
 

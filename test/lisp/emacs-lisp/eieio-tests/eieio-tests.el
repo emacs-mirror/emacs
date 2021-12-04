@@ -971,7 +971,7 @@ Subclasses to override slot attributes.")
 
 ;;;; Interaction with defstruct
 
-(cl-defstruct eieio-test--struct a b c)
+(cl-defstruct eieio-test--struct a b (c nil :read-only t))
 
 (ert-deftest eieio-test-defstruct-slot-value ()
   (let ((x (make-eieio-test--struct :a 'A :b 'B :c 'C)))
@@ -980,7 +980,10 @@ Subclasses to override slot attributes.")
     (should (eq (eieio-test--struct-b x)
                 (slot-value x 'b)))
     (should (eq (eieio-test--struct-c x)
-                (slot-value x 'c)))))
+                (slot-value x 'c)))
+    (setf (slot-value x 'a) 1)
+    (should (eq (eieio-test--struct-a x) 1))
+    (should-error (setf (slot-value x 'c) 3) :type 'eieio-read-only)))
 
 (provide 'eieio-tests)
 

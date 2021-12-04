@@ -703,8 +703,7 @@ This function retrieves the value of @var{slot} from @var{object}.
 It can also be used on objects defined by @code{cl-defstruct}.
 
 This is a generalized variable that can be used with @code{setf} to
-modify the value stored in @var{slot}, tho not for objects defined by
-@code{cl-defstruct}.
+modify the value stored in @var{slot}.
 @xref{Generalized Variables,,,elisp,GNU Emacs Lisp Reference Manual}.
 @end defun
 
