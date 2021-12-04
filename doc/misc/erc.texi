@@ -285,7 +285,7 @@ Go to beginning of line or end of prompt.
 @item @key{RET} (@code{erc-send-current-line})
 Send the current line
 
-@item @key{TAB} (@code{erc-complete-word})
+@item @key{TAB} (@code{completion-at-point} or @code{erc-button-next})
 If at prompt, complete the current word.
 Otherwise, move to the next link or button.
 

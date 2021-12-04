@@ -2189,9 +2189,7 @@ Hugh Daschbach: changed dbus-tests.el dbus.el org.gnu.Emacs.TestDBus.xml
 
 Hynek Schlawack: changed gnus-art.el gnus-sum.el
 
-Ian D: changed doc-view.el image-mode.el
-
-Ian Dunn: changed eww.el vc-hg.el
+Ian Dunn: changed eww.el doc-view.el image-mode.el vc-hg.el
 
 Ian Eure: changed sql.el url-util.el
 
@@ -2473,11 +2471,10 @@ Jay McCarthy: changed org-colview.el
 
 Jay Sachs: changed gnus-score.el gnus-win.el
 
-Jd Smith: co-wrote idlw-help.el idlw-shell.el idlwave.el
-
-J.D. Smith: changed idlwave.el idlw-shell.el idlw-help.el idlw-rinfo.el
-  idlw-toolbar.el comint.el idlwave.texi vc.el bibtex.el files.texi
-  hideshow.el idlw-complete-structtag.el misc.texi mouse.el
+J.D. Smith: co-wrote idlw-help.el idlw-shell.el idlwave.el
+and changed idlw-rinfo.el idlw-toolbar.el comint.el idlwave.texi vc.el
+  bibtex.el files.texi hideshow.el idlw-complete-structtag.el misc.texi
+  mouse.el
 
 Jean-Christophe Helary: changed emacs-lisp-intro.texi ns-win.el
   package-tests.el package.el strings.texi subr-x.el ucs-normalize.el
@@ -2530,10 +2527,9 @@ Jens Krinke: changed smime.el
 
 Jens Lautenbacher: changed gnus.el
 
-Jens Lechtenboerger: changed mml-sec.el gnus-util.el message.texi
-  mml-smime.el mml1991.el mml2015.el message.el package.el package.texi
-
 Jens Lechtenbörger: wrote gnus-util-tests.el mml-sec-tests.el
+and changed mml-sec.el gnus-util.el message.texi mml-smime.el mml1991.el
+  mml2015.el message.el package.el package.texi
 
 Jens Petersen: wrote find-func.el
 and changed mule-cmds.el pcmpl-rpm.el
@@ -2547,17 +2543,13 @@ Jens Uwe Schmidt: changed edebug.el
 
 Jeramey Crawford: changed amdx86-64.h configure.ac
 
-Jeremie Courreges-Anglas: changed kqueue.c
-
-Jérémie Courrèges-Anglas: changed org.texi ox-latex.el
+Jérémie Courrèges-Anglas: changed kqueue.c org.texi ox-latex.el
 
 Jeremy Bertram Maitin-Shepard: changed erc.el erc-backend.el
   erc-button.el erc-track.el mml.el
 
-Jeremy Compostella: changed mml.el
-
-Jérémy Compostella: changed tramp-sh.el battery.el keyboard.c windmove.el
-  window.el xdisp.c
+Jérémy Compostella: changed tramp-sh.el mml.el battery.el keyboard.c
+  windmove.el window.el xdisp.c
 
 Jeremy Moore: changed hideif.el
 
@@ -2660,8 +2652,6 @@ and changed flymake.el icomplete.el minibuffer.el flymake-proc.el
   electric.el elisp-mode-tests.el lread.c flymake-ui.el
   progmodes/python.el text.texi xref.el json-tests.el project.el
   tex-mode.el buffers.texi cfengine.el and 55 other files
-
-João Tãvora: changed jsonrpc.el
 
 Jochen Hein: changed gnus-art.el
 

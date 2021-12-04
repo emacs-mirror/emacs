@@ -401,10 +401,7 @@ Otherwise, redisplay will reset the window's vscroll."
   (set-window-start nil (pixel-point-at-unseen-line) t)
   (set-window-vscroll nil vscroll t))
 
-;; FIXME: This doesn't work when DELTA is larger than the height
-;; of the current window, and someone should probably fix that
-;; at some point.
-(defun pixel-scroll-precision-scroll-down (delta)
+(defun pixel-scroll-precision-scroll-down-page (delta)
   "Scroll the current window down by DELTA pixels.
 Note that this function doesn't work if DELTA is larger than
 the height of the current window."
@@ -437,11 +434,28 @@ the height of the current window."
                                    delta)
                             t)
       (unless (eq (window-start) desired-start)
-        (set-window-start nil desired-start t))
+        (set-window-start nil (if (zerop (window-hscroll))
+                                  desired-start
+                                (save-excursion
+                                  (goto-char desired-start)
+                                  (beginning-of-visual-line)
+                                  (point)))
+                          t))
       (set-window-vscroll nil desired-vscroll t))))
 
-(defun pixel-scroll-precision-scroll-up (delta)
-  "Scroll the current window up by DELTA pixels."
+(defun pixel-scroll-precision-scroll-down (delta)
+  "Scroll the current window down by DELTA pixels."
+  (let ((max-height (- (window-text-height nil t)
+                       (frame-char-height))))
+    (while (> delta max-height)
+      (pixel-scroll-precision-scroll-down-page max-height)
+      (setq delta (- delta max-height)))
+    (pixel-scroll-precision-scroll-down-page delta)))
+
+(defun pixel-scroll-precision-scroll-up-page (delta)
+  "Scroll the current window up by DELTA pixels.
+Note that this function doesn't work if DELTA is larger than
+the height of the current window."
   (let* ((edges (window-edges nil t nil t))
          (max-y (- (nth 3 edges)
                    (nth 1 edges)))
@@ -486,9 +500,24 @@ the height of the current window."
 	            (desired-start (posn-point desired-pos))
 	            (desired-vscroll (cdr (posn-object-x-y desired-pos))))
               (progn
-                (set-window-start nil desired-start t)
+                (set-window-start nil (if (zerop (window-hscroll))
+                                          desired-start
+                                        (save-excursion
+                                          (goto-char desired-start)
+                                          (beginning-of-visual-line)
+                                          (point)))
+                                  t)
                 (set-window-vscroll nil desired-vscroll t))
             (set-window-vscroll nil (abs delta) t)))))))
+
+(defun pixel-scroll-precision-scroll-up (delta)
+  "Scroll the current window up by DELTA pixels."
+  (let ((max-height (- (window-text-height nil t)
+                       (frame-char-height))))
+    (while (> delta max-height)
+      (pixel-scroll-precision-scroll-up-page max-height)
+      (setq delta (- delta max-height)))
+    (pixel-scroll-precision-scroll-up-page delta)))
 
 ;; FIXME: This doesn't _always_ work when there's an image above the
 ;; current line that is taller than the window, and scrolling can
@@ -500,8 +529,7 @@ scroll the display according to the user's turning the mouse
 wheel."
   (interactive "e")
   (let ((window (mwheel-event-window event)))
-    (if (and (nth 4 event)
-             (zerop (window-hscroll window)))
+    (if (and (nth 4 event))
         (let ((delta (round (cdr (nth 4 event)))))
           (unless (zerop delta)
             (if (> (abs delta) (window-text-height window t))
