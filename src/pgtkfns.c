@@ -1180,11 +1180,12 @@ pgtk_default_font_parameter (struct frame *f, Lisp_Object parms)
 			 RES_TYPE_STRING);
 }
 
-static void update_watched_scale_factor(struct atimer *timer)
+static void
+update_watched_scale_factor (struct atimer *timer)
 {
   struct frame *f = timer->client_data;
-
   double scale_factor = FRAME_SCALE_FACTOR (f);
+
   if (scale_factor != FRAME_X_OUTPUT (f)->watched_scale_factor)
     {
       FRAME_X_OUTPUT (f)->watched_scale_factor = scale_factor;
