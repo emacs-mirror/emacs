@@ -934,7 +934,7 @@ file (@kbd{C-h n}) for the full list of changes in Emacs 28.
 @item
 Emacs now optionally supports native compilation of Lisp files.  This
 can improves performance significantly in some cases.  To enable this,
-configure Emacs with the '--with-native-compilation' option.
+configure Emacs with the @option{--with-native-compilation} option.
 
 @item
 The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
@@ -943,6 +943,13 @@ by the @code{list-packages} command.
 
 @item
 The Cairo graphics library is now used by default if present.
+
+@item
+On GNU/Linux, Emacs now supports loading Secure Computing filters.  To
+use this feature, invoke Emacs with the @option{--seccomp=@var{file}}
+command-line switch, where @var{file} names a binary file that defines
+the filtering.  See the manual page of the @code{seccomp} system call
+for more details.
 
 @item
 The new themes @samp{modus-vivendi} and @samp{modus-operandi} have
@@ -958,9 +965,49 @@ New system for displaying documentation for groups of functions
 (@kbd{M-x shortdoc-display-group RET}).
 
 @item
+Emacs can now support 24-bit color text-mode terminals even if their
+terminfo database doesn't state this support in a standard way.  Set
+the @env{COLORTERM} environment variable to the value @samp{truecolor}
+to activate this.
+
+@item
+The @code{strike-through} face attribute is now supported on capable
+text-mode terminals.
+
+@item
+@code{xterm-mouse-mode} supports TTY menus.
+
+@item
+A new minor mode @code{context-menu-mode} causes @code{mouse-3}
+(a.k.a.@: ``right-clicks'') of the mouse to pop up context-dependent
+menus.
+
+@item
+Prefix commands to control the display of the results of the next
+command.  @kbd{C-x 4 4 @var{command}} displays the result of
+@var{command} in a new window.  @kbd{C-x 5 5 @var{command}} displays
+the results of @var{command} in a new frame.
+
+@item
+Emacs now supports ``transient'' input methods.  A transient input
+method is enabled for inserting a single character, and is then
+automatically disabled.  Select a transient input method with @kbd{C-u
+C-x \}; enable it (for inserting a single character) with @kbd{C-x \}.
+New input methods @code{compose} (based on X Window System Multi_key
+sequences) and @code{iso-transl} are especially convenient with this
+feature, when you need to insert a single special character.
+
+@item
+@kbd{M-y}, when invoked after a command that is not a yank command,
+allows selection of one of the previous kills.
+
+@item
+New minor mode @code{repeat-mode} allows to repeat commands with fewer
+keystrokes.
+
+@item
 Among the many internal changes in this release, we would like to
 highlight that all files in the tree now use @code{lexical-binding}.
-
 @end itemize
 
 
