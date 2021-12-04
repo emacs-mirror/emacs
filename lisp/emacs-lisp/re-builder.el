@@ -274,8 +274,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
   ;; Pull in packages as needed
-  (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
-	 (require 'rx)))                   ; require rx anyway
+  (when (eq reb-re-syntax 'rx)          ; rx-to-string is autoloaded
+    (require 'rx))                      ; require rx anyway
   (reb-mode-common))
 
 (defvar reb-subexp-mode-map
@@ -307,8 +307,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (eq 'color (frame-parameter nil 'display-type)))
 
 (defsubst reb-lisp-syntax-p ()
-  "Return non-nil if RE Builder uses a Lisp syntax."
-  (memq reb-re-syntax '(sregex rx)))
+  "Return non-nil if RE Builder uses `rx' syntax."
+  (eq reb-re-syntax 'rx))
 
 (defmacro reb-target-binding (symbol)
   "Return binding for SYMBOL in the RE Builder target buffer."
@@ -483,11 +483,11 @@ Optional argument SYNTAX must be specified if called non-interactively."
    (list (intern
 	  (completing-read
 	   (format-prompt "Select syntax" reb-re-syntax)
-	   '(read string sregex rx)
+           '(read string rx)
 	   nil t nil nil (symbol-name reb-re-syntax)
            'reb-change-syntax-hist))))
 
-  (if (memq syntax '(read string sregex rx))
+  (if (memq syntax '(read string rx))
       (let ((buffer (get-buffer reb-buffer)))
 	(setq reb-re-syntax syntax)
 	(when buffer
@@ -606,9 +606,9 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
-  (cond ((memq reb-re-syntax '(sregex rx))
-	 (rx-to-string (eval (car (read-from-string re)))))
-	(t re)))
+  (if (eq reb-re-syntax 'rx)
+      (rx-to-string (eval (car (read-from-string re))))
+    re))
 
 (defun reb-update-regexp ()
   "Update the regexp for the target buffer.

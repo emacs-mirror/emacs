@@ -1650,7 +1650,7 @@ see `dired-use-ls-dired' for more details.")
         ;; Replace "total" with "total used in directory" to
         ;; avoid confusion.
         (replace-match "total used in directory" nil nil nil 1))
-      (when-let ((available (get-free-disk-space file)))
+      (if-let ((available (get-free-disk-space file)))
         (cond
          ((eq dired-free-space 'separate)
 	  (end-of-line)
@@ -1672,7 +1672,8 @@ see `dired-use-ls-dired' for more details.")
           (forward-line 1)
           (point))
          (t
-          beg))))))
+          beg))
+        beg))))
 
 (defun dired-insert-set-properties (beg end)
   "Add various text properties to the lines in the region, from BEG to END."

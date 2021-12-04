@@ -457,6 +457,15 @@ call."
 
 ;;; Image Mode setup
 
+(defcustom image-text-based-formats '(svg xpm)
+  "List of image formats that use a plain text format.
+For such formats, display a message that explains how to edit the
+image as text, when opening such images in `image-mode'."
+  :type '(choice (const :tag "Disable completely" nil)
+                 (repeat :tag "List of formats" sexp))
+  :version "29.1"
+  :group 'image)
+
 (defvar-local image-type nil
   "The image type for the current Image mode buffer.")
 
@@ -621,8 +630,9 @@ call."
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
-You can use \\<image-mode-map>\\[image-toggle-display] or \\<image-mode-map>\\[image-toggle-hex-display]
-to toggle between display as an image and display as text or hex.
+You can use \\<image-mode-map>\\[image-toggle-display] or \
+\\[image-toggle-hex-display] to toggle between display
+as an image and display as text or hex.
 
 Key bindings:
 \\{image-mode-map}"
@@ -694,12 +704,10 @@ Key bindings:
 
   (run-mode-hooks 'image-mode-hook)
   (let ((image (image-get-display-property))
-	(msg1 (substitute-command-keys
-               "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as "))
-	animated)
+        msg animated)
     (cond
      ((null image)
-      (message "%s" (concat msg1 "an image.")))
+      (setq msg "an image"))
      ((setq animated (image-multi-frame-p image))
       (setq image-multi-frame t
 	    mode-line-process
@@ -717,10 +725,13 @@ Key bindings:
 			  keymap
 			  (down-mouse-1 . image-next-frame)
 			  (down-mouse-3 . image-previous-frame)))))))
-      (message "%s"
-	       (concat msg1 "text.  This image has multiple frames.")))
+      (setq msg "text.  This image has multiple frames"))
      (t
-      (message "%s" (concat msg1 "text or hex."))))))
+      (setq msg "text")))
+    (when (memq (plist-get (cdr image) :type) image-text-based-formats)
+      (message (substitute-command-keys
+                "Type \\[image-toggle-display] to view the image as %s")
+               msg))))
 
 ;;;###autoload
 (define-minor-mode image-minor-mode
@@ -767,11 +778,11 @@ on these modes."
   (image-mode-to-text)
   ;; Turn on hexl-mode
   (hexl-mode)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-hex-display] or \\[image-toggle-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "hex" "an image or text") ".")))
+  (message (substitute-command-keys
+            "Type \\[image-toggle-hex-display] or \
+\\[image-toggle-display] to view the image as %s")
+           (if (image-get-display-property)
+               "hex" "an image or text")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
@@ -787,11 +798,10 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "text" "an image or hex") ".")))
+  (message (substitute-command-keys
+            "Type \\[image-toggle-display] to view the image as %s")
+           (if (image-get-display-property)
+               "text" "an image")))
 
 (defun image-toggle-display-text ()
   "Show the image file as text.

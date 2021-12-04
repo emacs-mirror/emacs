@@ -27,6 +27,8 @@
 
 (defgroup image ()
   "Image support."
+  :prefix "image-"
+  :link '(info-link "(emacs) Image Mode")
   :group 'multimedia)
 
 (declare-function image-flush "image.c" (spec &optional frame))

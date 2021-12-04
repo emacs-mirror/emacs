@@ -327,12 +327,21 @@ the function `context-menu-filter-function'."
                           (setq menu (funcall fun menu click))
                           nil)))
 
-    ;; Remove duplicate separators
-    (let ((l menu))
-      (while (consp l)
-        (if (and (equal (cdr-safe (car l)) menu-bar-separator)
-                 (equal (cdr-safe (cadr l)) menu-bar-separator))
+    ;; Remove duplicate separators as well as ones at the beginning or
+    ;; end of the menu.
+    (let ((l menu) saw-first-item)
+      (while (consp (cdr l))
+        ;; If the next item is a separator, remove it if 1) we haven't
+        ;; seen any other items yet, or 2) it's followed by either
+        ;; another separator or the end of the list.
+        (if (and (equal (cdr-safe (cadr l)) menu-bar-separator)
+                 (or (not saw-first-item)
+                     (null (caddr l))
+                     (equal (cdr-safe (caddr l)) menu-bar-separator)))
             (setcdr l (cddr l))
+          ;; The "first item" is any cons cell; this excludes the
+          ;; `keymap' symbol and the menu name.
+          (when (consp (cadr l)) (setq saw-first-item t))
           (setq l (cdr l)))))
 
     (when (functionp context-menu-filter-function)

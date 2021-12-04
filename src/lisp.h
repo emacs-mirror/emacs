@@ -259,6 +259,11 @@ DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 # define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
 DEFINE_GDB_SYMBOL_END (VALMASK)
 
+/* Ignore 'alignas' on compilers lacking it.  */
+#if !defined alignas && !defined __alignas_is_defined
+# define alignas(a)
+#endif
+
 /* Minimum alignment requirement for Lisp objects, imposed by the
    internal representation of tagged pointers.  It is 2**GCTYPEBITS if
    USE_LSB_TAG, 1 otherwise.  It must be a literal integer constant,

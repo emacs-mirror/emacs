@@ -402,13 +402,6 @@ headline after it has been retrieved for the first time."
   "Miscellaneous newsticker settings."
   :group 'newsticker)
 
-(defcustom newsticker-cache-filename
-  "~/.newsticker-cache"
-  "Name of the newsticker cache file."
-  :type 'string
-  :group 'newsticker-miscellaneous)
-(make-obsolete-variable 'newsticker-cache-filename 'newsticker-dir "23.1")
-
 (defcustom newsticker-dir
   (locate-user-emacs-file "newsticker/" ".newsticker/")
   "Directory where newsticker saves data."
@@ -2115,28 +2108,6 @@ well."
                  (throw 'result t)))))
     (< (or (newsticker--pos item1) 0) (or (newsticker--pos item2) 0))))
 
-(defun newsticker--cache-save-version1 ()
-  "Update and save newsticker cache file."
-  (interactive)
-  (newsticker--cache-update t))
-
-(defun newsticker--cache-update (&optional save)
-  "Update newsticker cache file.
-If optional argument SAVE is not nil the cache file is saved to disk."
-  (save-excursion
-    (unless (file-directory-p newsticker-dir)
-      (make-directory newsticker-dir t))
-    (let ((coding-system-for-write 'utf-8)
-          (buf (find-file-noselect newsticker-cache-filename)))
-      (when buf
-        (set-buffer buf)
-        (setq buffer-undo-list t)
-        (erase-buffer)
-        (insert ";; -*- coding: utf-8 -*-\n")
-        (insert (prin1-to-string newsticker--cache))
-        (when save
-          (save-buffer))))))
-
 (defun newsticker--cache-get-feed (feed)
   "Return the cached data for the feed FEED.
 FEED is a symbol!"
@@ -2163,30 +2134,11 @@ FEED is a symbol!"
         (insert ";; -*- coding: utf-8 -*-\n")
         (insert (prin1-to-string (cdr feed)))))))
 
-(defun newsticker--cache-read-version1 ()
-  "Read version1 cache data."
-  (let ((coding-system-for-read 'utf-8))
-    (when (file-exists-p newsticker-cache-filename)
-      (with-temp-buffer
-        (insert-file-contents newsticker-cache-filename)
-        (goto-char (point-min))
-        (condition-case nil
-            (setq newsticker--cache (read (current-buffer)))
-          (error
-           (message "Error while reading newsticker cache file!")
-           (setq newsticker--cache nil)))))))
-
 (defun newsticker--cache-read ()
   "Read cache data."
   (setq newsticker--cache nil)
-  (if (file-exists-p newsticker-cache-filename)
-      (progn
-        (when (y-or-n-p "Old newsticker cache file exists.  Read it? ")
-          (newsticker--cache-read-version1))
-        (when (y-or-n-p "Delete old newsticker cache file? ")
-          (delete-file newsticker-cache-filename)))
-    (dolist (f (append newsticker-url-list-defaults newsticker-url-list))
-      (newsticker--cache-read-feed (car f)))))
+  (dolist (f (append newsticker-url-list-defaults newsticker-url-list))
+    (newsticker--cache-read-feed (car f))))
 
 (defun newsticker--cache-read-feed (feed-name)
   "Read cache data for feed named FEED-NAME."

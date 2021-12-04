@@ -28817,21 +28817,6 @@ normal_char_height (struct font *font, int c)
   return ascent + descent;
 }
 
-/* Return the "standard" pixel width of a character from FACE's font,
-   if the font is fixed-pitch, zero otherwise.  */
-static int
-get_normal_width (struct face *face)
-{
-  struct font *ascii_font = face->ascii_face->font;
-  /* Heuristics: fixed-pitch fonts have the value of MAX-WIDTH not
-     much larger than AVERAGE-WIDTH. */
-  bool fixed_pitch =
-    ascii_font->average_width == ascii_font->space_width
-    && ascii_font->average_width != 0
-    && ascii_font->max_width < 3 * ascii_font->average_width;
-  return fixed_pitch ? ascii_font->space_width : 0;
-}
-
 /* EXPORT for RIF:
    Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
    frame F.  Overhangs of glyphs other than type CHAR_GLYPH are
@@ -30929,17 +30914,6 @@ gui_produce_glyphs (struct it *it)
 	      it->phys_ascent = pcm->ascent + boff;
 	      it->phys_descent = pcm->descent - boff;
 	      it->pixel_width = pcm->width;
-	      if (align_columns_display)
-		{
-		  int unit_width = get_normal_width (face);
-		  if (unit_width > 0)
-		    {
-		      int ncolumns =
-			(it->pixel_width - 1 + unit_width) / unit_width;
-
-		      it->pixel_width = ncolumns * unit_width;
-		    }
-		}
 	      /* Don't use font-global values for ascent and descent
 		 if they result in an exceedingly large line height.  */
 	      if (it->override_ascent < 0)
@@ -31517,17 +31491,6 @@ gui_produce_glyphs (struct it *it)
 	it->glyph_row->contains_overlapping_glyphs_p = true;
 
       it->pixel_width = cmp->pixel_width;
-      if (align_columns_display)
-	{
-	  int unit_width = get_normal_width (face);
-	  if (unit_width > 0)
-	    {
-	      int ncolumns =
-		(it->pixel_width - 1 + unit_width) / unit_width;
-
-	      it->pixel_width = ncolumns * unit_width;
-	    }
-	}
       it->ascent = it->phys_ascent = cmp->ascent;
       it->descent = it->phys_descent = cmp->descent;
       IT_APPLY_FACE_BOX(it, face);
@@ -31573,17 +31536,6 @@ gui_produce_glyphs (struct it *it)
 	    it->glyph_row->contains_overlapping_glyphs_p = true;
 	  it->ascent = it->phys_ascent = metrics.ascent;
 	  it->descent = it->phys_descent = metrics.descent;
-	  if (align_columns_display)
-	    {
-	      int unit_width = get_normal_width (face);
-	      if (unit_width > 0)
-		{
-		  int ncolumns =
-		    (it->pixel_width - 1 + unit_width) / unit_width;
-
-		  it->pixel_width = ncolumns * unit_width;
-		}
-	    }
 	}
       IT_APPLY_FACE_BOX(it, face);
 
@@ -35659,15 +35611,6 @@ variable are ignored and the default 0.25 is used instead.  */);
     doc: /* Pixels per inch value for non-window system displays.
 Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   Vdisplay_pixels_per_inch = make_float (72.0);
-
-  DEFVAR_BOOL ("align-columns-display", align_columns_display,
-    doc: /* Whether to align columns on GUI frames.
-If this is non-nil characters displayed on GUI frames will be
-aligned to produce straight columns.  This is achieved by
-enlarging the pixel width of characters to an integral
-multiple of pixels taken by ASCII characters of the same face.
-This affects only fixed-pitch fonts.  */);
-    align_columns_display = false;
 
 #ifdef GLYPH_DEBUG
   DEFVAR_INT ("debug-end-pos", debug_end_pos, doc: /* Don't ask.  */);
