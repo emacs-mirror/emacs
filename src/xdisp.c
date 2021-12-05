@@ -30391,7 +30391,8 @@ produce_stretch_glyph (struct it *it)
   if (width > 0 && height > 0 && it->glyph_row)
     {
       Lisp_Object o_object = it->object;
-      Lisp_Object object = it->stack[it->sp - 1].string;
+      Lisp_Object object =
+	it->sp > 0 ? it->stack[it->sp - 1].string : it->string;
       int n = width;
 
       if (!STRINGP (object))
