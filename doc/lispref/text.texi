@@ -3647,14 +3647,14 @@ Consecutive characters with the same @code{field} property constitute a
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the beginning or the end of any
 overlay and text property strings present at the current buffer
-position.  You can place the cursor on any desired character of these
-strings by giving that character a non-@code{nil} @code{cursor} text
-property.  In addition, if the value of the @code{cursor} property is
-an integer, it specifies the number of buffer's character
-positions, starting with the position where the overlay or the
-@code{display} property begins, for which the cursor should be
-displayed on that character.  Specifically, if the value of the
-@code{cursor} property of a character is the number @var{n}, the
+position.  You can instead tell Emacs to place the cursor on any
+desired character of these strings by giving that character a
+non-@code{nil} @code{cursor} text property.  In addition, if the value
+of the @code{cursor} property is an integer, it specifies the number
+of buffer's character positions, starting with the position where the
+overlay or the @code{display} property begins, for which the cursor
+should be displayed on that character.  Specifically, if the value of
+the @code{cursor} property of a character is the number @var{n}, the
 cursor will be displayed on this character for any buffer position in
 the range @code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos}
 is the overlay's starting position given by @code{overlay-start}
@@ -3663,14 +3663,23 @@ text property begins in the buffer.
 
 In other words, the string character with the @code{cursor} property
 of any non-@code{nil} value is the character where to display the
-cursor.  The value of the property says for which buffer positions to
-display the cursor there.  If the value is an integer @var{n},
-the cursor is displayed there when point is anywhere between the
-beginning of the overlay or @code{display} property and @var{n}
-positions after that.  If the value is anything else and
-non-@code{nil}, the cursor is displayed there only when point is at
-the beginning of the @code{display} property or at
-@code{overlay-start}.
+cursor when the overlay or display string make point not visible on
+display.  The value of the property says for which buffer positions to
+display the cursor there.  If the value is an integer @var{n}, the
+cursor is displayed there when point is anywhere between the beginning
+of the overlay or @code{display} property and @var{n} positions after
+that.  If the value is anything else and non-@code{nil}, the cursor is
+displayed there only when point is at the buffer position that is the
+beginning of the @code{display} property, or at @code{overlay-start}
+if that position is not visible on display.  Note that an integer
+value of the @code{cursor} property could mean that the cursor is
+displayed on that character even when point is visible on display.
+
+One subtlety of this property is that it doesn't work to put this
+property on a newline character that is part of a display or overlay
+string.  That's because the newline doesn't have a graphic
+representation on the screen for Emacs to find when it looks for a
+character on display with that @code{cursor} property.
 
 @cindex cursor position for @code{display} properties and overlays
 When the buffer has many overlay strings (e.g., @pxref{Overlay
