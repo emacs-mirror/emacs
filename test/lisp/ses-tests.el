@@ -24,6 +24,10 @@
 (require 'ert)
 (require 'ses)
 
+;; Silence byte-compiler.
+(with-suppressed-warnings ((lexical A2) (lexical A3))
+  (defvar A2)
+  (defvar A3))
 
 ;; PLAIN FORMULA TESTS
 ;; ======================================================================

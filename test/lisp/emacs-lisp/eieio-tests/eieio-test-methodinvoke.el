@@ -85,37 +85,40 @@
 (defclass eitest-B-base2 () ())
 (defclass eitest-B (eitest-B-base1 eitest-B-base2) ())
 
-(defmethod eitest-F :BEFORE ((_p eitest-B-base1))
-  (eieio-test-method-store :BEFORE 'eitest-B-base1))
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete call-next-method)
+                           (obsolete next-method-p))
+  (defmethod eitest-F :BEFORE ((_p eitest-B-base1))
+    (eieio-test-method-store :BEFORE 'eitest-B-base1))
 
-(defmethod eitest-F :BEFORE ((_p eitest-B-base2))
-  (eieio-test-method-store :BEFORE 'eitest-B-base2))
+  (defmethod eitest-F :BEFORE ((_p eitest-B-base2))
+    (eieio-test-method-store :BEFORE 'eitest-B-base2))
 
-(defmethod eitest-F :BEFORE ((_p eitest-B))
-  (eieio-test-method-store :BEFORE 'eitest-B))
+  (defmethod eitest-F :BEFORE ((_p eitest-B))
+    (eieio-test-method-store :BEFORE 'eitest-B))
 
-(defmethod eitest-F ((_p eitest-B))
-  (eieio-test-method-store :PRIMARY 'eitest-B)
-  (call-next-method))
-
-(defmethod eitest-F ((_p eitest-B-base1))
-  (eieio-test-method-store :PRIMARY 'eitest-B-base1)
-  (call-next-method))
-
-(defmethod eitest-F ((_p eitest-B-base2))
-  (eieio-test-method-store :PRIMARY 'eitest-B-base2)
-  (when (next-method-p)
+  (defmethod eitest-F ((_p eitest-B))
+    (eieio-test-method-store :PRIMARY 'eitest-B)
     (call-next-method))
-  )
 
-(defmethod eitest-F :AFTER ((_p eitest-B-base1))
-  (eieio-test-method-store :AFTER 'eitest-B-base1))
+  (defmethod eitest-F ((_p eitest-B-base1))
+    (eieio-test-method-store :PRIMARY 'eitest-B-base1)
+    (call-next-method))
 
-(defmethod eitest-F :AFTER ((_p eitest-B-base2))
-  (eieio-test-method-store :AFTER 'eitest-B-base2))
+  (defmethod eitest-F ((_p eitest-B-base2))
+    (eieio-test-method-store :PRIMARY 'eitest-B-base2)
+    (when (next-method-p)
+      (call-next-method)))
 
-(defmethod eitest-F :AFTER ((_p eitest-B))
-  (eieio-test-method-store :AFTER 'eitest-B))
+  (defmethod eitest-F :AFTER ((_p eitest-B-base1))
+    (eieio-test-method-store :AFTER 'eitest-B-base1))
+
+  (defmethod eitest-F :AFTER ((_p eitest-B-base2))
+    (eieio-test-method-store :AFTER 'eitest-B-base2))
+
+  (defmethod eitest-F :AFTER ((_p eitest-B))
+    (eieio-test-method-store :AFTER 'eitest-B)))
 
 (ert-deftest eieio-test-method-order-list-3 ()
   (let ((eieio-test-method-order-list nil)
@@ -138,9 +141,11 @@
 
 ;;; Test static invocation
 ;;
-(defmethod eitest-H :STATIC ((_class eitest-A))
-  "No need to do work in here."
-  'moose)
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric))
+  (defmethod eitest-H :STATIC ((_class eitest-A))
+    "No need to do work in here."
+    'moose))
 
 (ert-deftest eieio-test-method-order-list-4 ()
   ;; Both of these situations should succeed.
@@ -149,17 +154,19 @@
 
 ;;; Return value from :PRIMARY
 ;;
-(defmethod eitest-I :BEFORE ((_a eitest-A))
-  (eieio-test-method-store :BEFORE 'eitest-A)
-  ":before")
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric))
+  (defmethod eitest-I :BEFORE ((_a eitest-A))
+    (eieio-test-method-store :BEFORE 'eitest-A)
+    ":before")
 
-(defmethod eitest-I :PRIMARY ((_a eitest-A))
-  (eieio-test-method-store :PRIMARY 'eitest-A)
-  ":primary")
+  (defmethod eitest-I :PRIMARY ((_a eitest-A))
+    (eieio-test-method-store :PRIMARY 'eitest-A)
+    ":primary")
 
-(defmethod eitest-I :AFTER ((_a eitest-A))
-  (eieio-test-method-store :AFTER 'eitest-A)
-  ":after")
+  (defmethod eitest-I :AFTER ((_a eitest-A))
+    (eieio-test-method-store :AFTER 'eitest-A)
+    ":after"))
 
 (ert-deftest eieio-test-method-order-list-5 ()
   (let ((eieio-test-method-order-list nil)
@@ -175,16 +182,18 @@
 (defclass C-base2 () ())
 (defclass C (C-base1 C-base2) ())
 
-;; Just use the obsolete name once, to make sure it also works.
-(defmethod constructor :STATIC ((_p C-base1) &rest _args)
-  (eieio-test-method-store :STATIC 'C-base1)
-  (if (next-method-p) (call-next-method))
-  )
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  ;; Just use the obsolete name once, to make sure it also works.
+  (defmethod constructor :STATIC ((_p C-base1) &rest _args)
+    (eieio-test-method-store :STATIC 'C-base1)
+    (if (next-method-p) (call-next-method)))
 
-(defmethod make-instance :STATIC ((_p C-base2) &rest _args)
-  (eieio-test-method-store :STATIC 'C-base2)
-  (if (next-method-p) (call-next-method))
-  )
+  (defmethod make-instance :STATIC ((_p C-base2) &rest _args)
+    (eieio-test-method-store :STATIC 'C-base2)
+    (if (next-method-p) (call-next-method))))
 
 (cl-defmethod make-instance ((_p (subclass C)) &rest _args)
   (eieio-test-method-store :STATIC 'C)
@@ -215,29 +224,32 @@
 (defclass D-base2 (D-base0) () :method-invocation-order :depth-first)
 (defclass D (D-base1 D-base2) () :method-invocation-order :depth-first)
 
-(defmethod eitest-F ((_p D))
-  "D"
-  (eieio-test-method-store :PRIMARY 'D)
-  (call-next-method))
-
-(defmethod eitest-F ((_p D-base0))
-  "D-base0"
-  (eieio-test-method-store :PRIMARY 'D-base0)
-  ;; This should have no next
-  ;; (when (next-method-p) (call-next-method))
-  )
-
-(defmethod eitest-F ((_p D-base1))
-  "D-base1"
-  (eieio-test-method-store :PRIMARY 'D-base1)
-  (call-next-method))
-
-(defmethod eitest-F ((_p D-base2))
-  "D-base2"
-  (eieio-test-method-store :PRIMARY 'D-base2)
-  (when (next-method-p)
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete call-next-method)
+                           (obsolete next-method-p))
+  (defmethod eitest-F ((_p D))
+    "D"
+    (eieio-test-method-store :PRIMARY 'D)
     (call-next-method))
-  )
+
+  (defmethod eitest-F ((_p D-base0))
+    "D-base0"
+    (eieio-test-method-store :PRIMARY 'D-base0)
+    ;; This should have no next
+    ;; (when (next-method-p) (call-next-method))
+    )
+
+  (defmethod eitest-F ((_p D-base1))
+    "D-base1"
+    (eieio-test-method-store :PRIMARY 'D-base1)
+    (call-next-method))
+
+  (defmethod eitest-F ((_p D-base2))
+    "D-base2"
+    (eieio-test-method-store :PRIMARY 'D-base2)
+    (when (next-method-p)
+      (call-next-method))))
 
 (ert-deftest eieio-test-method-order-list-7 ()
   (let ((eieio-test-method-order-list nil)
@@ -258,25 +270,27 @@
 (defclass E-base2 (E-base0) () :method-invocation-order :breadth-first)
 (defclass E (E-base1 E-base2) () :method-invocation-order :breadth-first)
 
-(defmethod eitest-F ((_p E))
-  (eieio-test-method-store :PRIMARY 'E)
-  (call-next-method))
-
-(defmethod eitest-F ((_p E-base0))
-  (eieio-test-method-store :PRIMARY 'E-base0)
-  ;; This should have no next
-  ;; (when (next-method-p) (call-next-method))
-  )
-
-(defmethod eitest-F ((_p E-base1))
-  (eieio-test-method-store :PRIMARY 'E-base1)
-  (call-next-method))
-
-(defmethod eitest-F ((_p E-base2))
-  (eieio-test-method-store :PRIMARY 'E-base2)
-  (when (next-method-p)
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  (defmethod eitest-F ((_p E))
+    (eieio-test-method-store :PRIMARY 'E)
     (call-next-method))
-  )
+
+  (defmethod eitest-F ((_p E-base0))
+    (eieio-test-method-store :PRIMARY 'E-base0)
+    ;; This should have no next
+    ;; (when (next-method-p) (call-next-method))
+    )
+
+  (defmethod eitest-F ((_p E-base1))
+    (eieio-test-method-store :PRIMARY 'E-base1)
+    (call-next-method))
+
+  (defmethod eitest-F ((_p E-base2))
+    (eieio-test-method-store :PRIMARY 'E-base2)
+    (when (next-method-p)
+      (call-next-method))))
 
 (ert-deftest eieio-test-method-order-list-8 ()
   (let ((eieio-test-method-order-list nil)
@@ -295,24 +309,31 @@
 (defclass eitest-Ja ()
   ())
 
-(defmethod initialize-instance :after ((_this eitest-Ja) &rest _slots)
-  ;(message "+Ja")
-  ;; FIXME: Using next-method-p in an after-method is invalid!
-  (when (next-method-p)
-    (call-next-method))
-  ;(message "-Ja")
-  )
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  (defmethod initialize-instance :after ((_this eitest-Ja) &rest _slots)
+    ;;(message "+Ja")
+    ;; FIXME: Using next-method-p in an after-method is invalid!
+    (when (next-method-p)
+      (call-next-method))
+    ;;(message "-Ja")
+    ))
 
 (defclass eitest-Jb ()
   ())
 
-(defmethod initialize-instance :after ((_this eitest-Jb) &rest _slots)
-  ;(message "+Jb")
-  ;; FIXME: Using next-method-p in an after-method is invalid!
-  (when (next-method-p)
-    (call-next-method))
-  ;(message "-Jb")
-  )
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  (defmethod initialize-instance :after ((_this eitest-Jb) &rest _slots)
+    ;;(message "+Jb")
+    ;; FIXME: Using next-method-p in an after-method is invalid!
+    (when (next-method-p)
+      (call-next-method))
+    ;;(message "-Jb")
+    ))
 
 (defclass eitest-Jc (eitest-Jb)
   ())
@@ -320,12 +341,16 @@
 (defclass eitest-Jd (eitest-Jc eitest-Ja)
   ())
 
-(defmethod initialize-instance ((_this eitest-Jd) &rest _slots)
-  ;(message "+Jd")
-  (when (next-method-p)
-    (call-next-method))
-  ;(message "-Jd")
-  )
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  (defmethod initialize-instance ((_this eitest-Jd) &rest _slots)
+    ;;(message "+Jd")
+    (when (next-method-p)
+      (call-next-method))
+    ;;(message "-Jd")
+    ))
 
 (ert-deftest eieio-test-method-order-list-9 ()
   (should (eitest-Jd)))
@@ -345,32 +370,36 @@
 (defclass CNM-2 (CNM-1-1 CNM-1-2)
   ())
 
-(defmethod CNM-M ((this CNM-0) args)
-  (push (cons 'CNM-0 (copy-sequence args))
-	eieio-test-call-next-method-arguments)
-  (when (next-method-p)
-    (call-next-method
-     this (cons 'CNM-0 args))))
+(with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
+                           (obsolete next-method-p)
+                           (obsolete call-next-method))
+  (defmethod CNM-M ((this CNM-0) args)
+    (push (cons 'CNM-0 (copy-sequence args))
+          eieio-test-call-next-method-arguments)
+    (when (next-method-p)
+      (call-next-method
+       this (cons 'CNM-0 args))))
 
-(defmethod CNM-M ((this CNM-1-1) args)
-  (push (cons 'CNM-1-1 (copy-sequence args))
-	eieio-test-call-next-method-arguments)
-  (when (next-method-p)
-    (call-next-method
-     this (cons 'CNM-1-1 args))))
+  (defmethod CNM-M ((this CNM-1-1) args)
+    (push (cons 'CNM-1-1 (copy-sequence args))
+          eieio-test-call-next-method-arguments)
+    (when (next-method-p)
+      (call-next-method
+       this (cons 'CNM-1-1 args))))
 
-(defmethod CNM-M ((_this CNM-1-2) args)
-  (push (cons 'CNM-1-2 (copy-sequence args))
-	eieio-test-call-next-method-arguments)
-  (when (next-method-p)
-    (call-next-method)))
+  (defmethod CNM-M ((_this CNM-1-2) args)
+    (push (cons 'CNM-1-2 (copy-sequence args))
+          eieio-test-call-next-method-arguments)
+    (when (next-method-p)
+      (call-next-method)))
 
-(defmethod CNM-M ((this CNM-2) args)
-  (push (cons 'CNM-2 (copy-sequence args))
-	eieio-test-call-next-method-arguments)
-  (when (next-method-p)
-    (call-next-method
-     this (cons 'CNM-2 args))))
+  (defmethod CNM-M ((this CNM-2) args)
+    (push (cons 'CNM-2 (copy-sequence args))
+          eieio-test-call-next-method-arguments)
+    (when (next-method-p)
+      (call-next-method
+       this (cons 'CNM-2 args)))))
 
 (ert-deftest eieio-test-method-order-list-10 ()
   (let ((eieio-test-call-next-method-arguments nil))

@@ -153,28 +153,22 @@ it is assumed that PICO was omitted and should be treated as zero."
   "Parse a string DATE that represents a date-time and return a time value.
 DATE should be in one of the forms recognized by `parse-time-string'.
 If DATE lacks timezone information, GMT is assumed."
-  ;; Pass the result of parsing through decoded-time-set-defaults
-  ;; because encode-time signals if HH:MM:SS are not filled in.
-  (encode-time
-    (decoded-time-set-defaults
-      (condition-case err
-          (let ((time (parse-time-string date)))
-            (prog1 time
-              ;; Cause an error if data `parse-time-string' returns is invalid.
-              (setq time (encode-time time))))
-        (error
-         (let ((overflow-error '(error "Specified time is not representable")))
-           (if (or (equal err overflow-error)
-                   ;; timezone-make-date-arpa-standard misbehaves if
-                   ;; not given at least HH:MM as part of the date.
-                   (not (string-match ":" date)))
-               (signal (car err) (cdr err))
-             (condition-case err
-                 (parse-time-string (timezone-make-date-arpa-standard date))
-               (error
-                (if (equal err overflow-error)
-                    (signal (car err) (cdr err))
-                  (error "Invalid date: %s" date)))))))))))
+  (condition-case err
+      (let ((parsed (parse-time-string date)))
+	(when (decoded-time-year parsed)
+	  (decoded-time-set-defaults parsed))
+	(encode-time parsed))
+    (error
+     (let ((overflow-error '(error "Specified time is not representable")))
+       (if (equal err overflow-error)
+	   (signal (car err) (cdr err))
+	 (condition-case err
+	     (encode-time (parse-time-string
+			   (timezone-make-date-arpa-standard date)))
+	   (error
+	    (if (equal err overflow-error)
+		(signal (car err) (cdr err))
+	      (error "Invalid date: %s" date)))))))))
 
 ;;;###autoload
 (defalias 'time-to-seconds 'float-time)

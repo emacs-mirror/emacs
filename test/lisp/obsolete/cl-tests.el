@@ -25,12 +25,11 @@
   (require 'cl))
 (require 'ert)
 
-
-
 (ert-deftest labels-function-quoting ()
   "Test that #'foo does the right thing in `labels'." ; Bug#31792.
-  (should (eq (funcall (labels ((foo () t))
-                         #'foo))
-              t)))
+  (with-suppressed-warnings ((obsolete labels))
+    (should (eq (funcall (labels ((foo () t))
+                                 #'foo))
+                t))))
 
 ;;; cl-tests.el ends here

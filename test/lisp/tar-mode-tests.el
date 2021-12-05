@@ -32,7 +32,8 @@
                      (cons 1024 "-----S---")
                      (cons 2048 "--S------"))))
     (dolist (x alist)
-      (should (equal (cdr x) (tar-grind-file-mode (car x)))))))
+      (with-suppressed-warnings ((obsolete tar-grind-file-mode))
+        (should (equal (cdr x) (tar-grind-file-mode (car x))))))))
 
 (ert-deftest tar-mode-test-tar-extract-gz ()
   (skip-unless (executable-find "gzip"))

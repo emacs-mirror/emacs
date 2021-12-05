@@ -926,6 +926,7 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should-not (apropos-internal "^next-line$" #'keymapp)))
 
 
+(defvar test-global-boundp)
 (ert-deftest test-buffer-local-boundp ()
   (let ((buf (generate-new-buffer "boundp")))
     (with-current-buffer buf

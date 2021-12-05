@@ -860,7 +860,8 @@ test and possibly others should be updated."
    (let ((inhibit-read-only t))
      (delete-region (point-min) (point-max))
      (insert  "`1"))
-   (edebug-eval-defun nil)
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (edebug-eval-defun nil))
    ;; `eval-defun' outputs its message to the echo area in a rather
    ;; funny way, so the "1" and the " (#o1, #x1, ?\C-a)" end up placed
    ;; there in separate pieces (via `print' rather than via `message').
@@ -870,7 +871,8 @@ test and possibly others should be updated."
 
    (setq edebug-initial-mode 'go)
    ;; In Bug#23651 Edebug would hang reading `1.
-   (edebug-eval-defun t)))
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (edebug-eval-defun t))))
 
 (ert-deftest edebug-tests-trivial-comma ()
   "Edebug can read a trivial comma expression (Bug#23651)."
@@ -879,7 +881,8 @@ test and possibly others should be updated."
    (delete-region (point-min) (point-max))
    (insert  ",1")
    (read-only-mode)
-   (should-error (edebug-eval-defun t))))
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (should-error (edebug-eval-defun t)))))
 
 (ert-deftest edebug-tests-circular-read-syntax ()
   "Edebug can instrument code using circular read object syntax (Bug#23660)."

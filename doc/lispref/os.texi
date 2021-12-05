@@ -1724,7 +1724,8 @@ This function parses the time-string @var{string} and returns the
 corresponding Lisp timestamp.  The argument @var{string} should represent
 a date-time, and should be in one of the forms recognized by
 @code{parse-time-string} (see below).  This function assumes Universal
-Time if @var{string} lacks explicit time zone information.
+Time if @var{string} lacks explicit time zone information,
+and assumes earliest values if @var{string} lacks month, day, or time.
 The operating system limits the range of time and zone values.
 @end defun
 

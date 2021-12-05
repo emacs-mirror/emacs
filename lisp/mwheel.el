@@ -255,7 +255,7 @@ Also see `mouse-wheel-tilt-scroll'."
   (if (featurep 'xinput2)
       'wheel-left
     (unless (featurep 'x)
-      'mouse-8))
+      'mouse-6))
   "Alternative wheel left event to consider.")
 
 (defvar mouse-wheel-right-event
