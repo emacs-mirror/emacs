@@ -15571,7 +15571,7 @@ for usage and configuration details.
 :DESCRIPTION: Fine-tuning the export output.
 :END:
 
-*** Hooks
+*** Export hooks
 :PROPERTIES:
 :UNNUMBERED: notoc
 :END:
@@ -18203,7 +18203,7 @@ expanded anyway.
   #+kindex: C-c C-v f
   Choose a file to tangle.  Bound to {{{kbd(C-c C-v f)}}}.
 
-*** Hooks
+*** Tangle hooks
 :PROPERTIES:
 :UNNUMBERED: notoc
 :END:
