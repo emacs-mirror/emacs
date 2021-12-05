@@ -8970,7 +8970,7 @@ webp_load (struct frame *f, struct image *img)
 {
   ptrdiff_t size = 0;
   uint8_t *contents;
-  Lisp_Object file;
+  Lisp_Object file = Qnil;
 
   /* Open the WebP file.  */
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -9007,7 +9007,7 @@ webp_load (struct frame *f, struct image *img)
   /* Validate the WebP image header.  */
   if (!WebPGetInfo (contents, size, NULL, NULL))
     {
-      if (NILP (specified_data))
+      if (! NILP (file))
 	image_error ("Not a WebP file: `%s'", file);
       else
 	image_error ("Invalid header in WebP image data");
@@ -9030,7 +9030,7 @@ webp_load (struct frame *f, struct image *img)
     case VP8_STATUS_USER_ABORT:
     default:
       /* Error out in all other cases.  */
-      if (NILP (specified_data))
+      if (! NILP (file))
 	image_error ("Error when interpreting WebP image data: `%s'", file);
       else
 	image_error ("Error when interpreting WebP image data");
