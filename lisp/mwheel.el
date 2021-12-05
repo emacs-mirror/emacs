@@ -65,7 +65,10 @@
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-down-alternate-event
-  (when (featurep 'xinput2) 'wheel-up)
+  (if (featurep 'xinput2)
+      'wheel-up
+    (unless (featurep 'x)
+      'mouse-4))
   "Alternative wheel down event to consider."
   :group 'mouse
   :type 'symbol
@@ -83,7 +86,10 @@
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-alternate-event
-  (when (featurep 'xinput2) 'wheel-down)
+  (if (featurep 'xinput2)
+      'wheel-down
+    (unless (featurep 'x)
+      'mouse-5))
   "Alternative wheel up event to consider."
   :group 'mouse
   :type 'symbol
@@ -246,7 +252,10 @@ Also see `mouse-wheel-tilt-scroll'."
   "Event used for scrolling left.")
 
 (defvar mouse-wheel-left-alternate-event
-  (when (featurep 'xinput2) 'wheel-left)
+  (if (featurep 'xinput2)
+      'wheel-left
+    (unless (featurep 'x)
+      'mouse-6))
   "Alternative wheel left event to consider.")
 
 (defvar mouse-wheel-right-event
@@ -257,7 +266,10 @@ Also see `mouse-wheel-tilt-scroll'."
   "Event used for scrolling right.")
 
 (defvar mouse-wheel-right-alternate-event
-  (when (featurep 'xinput2) 'wheel-right)
+  (if (featurep 'xinput2)
+      'wheel-right
+    (unless (featurep 'x)
+      'mouse-7))
   "Alternative wheel right event to consider.")
 
 (defun mouse-wheel--get-scroll-window (event)
