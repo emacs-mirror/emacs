@@ -30289,7 +30289,8 @@ produce_stretch_glyph (struct it *it)
 	 Compute the width of the characters having this `display'
 	 property.  */
       struct it it2;
-      Lisp_Object object = it->stack[it->sp - 1].string;
+      Lisp_Object object =
+	it->sp > 0 ? it->stack[it->sp - 1].string : it->string;
       unsigned char *p = (STRINGP (object)
 			  ? SDATA (object) + IT_STRING_BYTEPOS (*it)
 			  : BYTE_POS_ADDR (IT_BYTEPOS (*it)));
