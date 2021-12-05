@@ -24,12 +24,6 @@
 (defvar tar-mode-tests-data-directory
   (expand-file-name "test/data/decompress" source-directory))
 
-;; Hack to work around the ERT limitation that we can't reliably use
-;; `with-suppressed-warnings' inside an `ert-deftest'.  (Bug#36568)
-(defun tar-mode-tests--tar-grind-file-mode (&rest args)
-  (with-suppressed-warnings ((obsolete tar-grind-file-mode))
-    (apply #'tar-grind-file-mode args)))
-
 (ert-deftest tar-mode-test-tar-grind-file-mode ()
   (let ((alist (list (cons 448 "rwx------")
                      (cons 420 "rw-r--r--")
@@ -38,7 +32,8 @@
                      (cons 1024 "-----S---")
                      (cons 2048 "--S------"))))
     (dolist (x alist)
-      (should (equal (cdr x) (tar-mode-tests--tar-grind-file-mode (car x)))))))
+      (with-suppressed-warnings ((obsolete tar-grind-file-mode))
+        (should (equal (cdr x) (tar-grind-file-mode (car x))))))))
 
 (ert-deftest tar-mode-test-tar-extract-gz ()
   (skip-unless (executable-find "gzip"))

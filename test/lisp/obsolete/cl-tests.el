@@ -25,17 +25,11 @@
   (require 'cl))
 (require 'ert)
 
-
-
-;; Hack to work around the ERT limitation that we can't reliably use
-;; `with-suppressed-warnings' inside an `ert-deftest'.  (Bug#36568)
-(defun cl-tests-labels-test ()
-  (with-suppressed-warnings ((obsolete labels))
-    (funcall (labels ((foo () t))
-                     #'foo))))
-
 (ert-deftest labels-function-quoting ()
   "Test that #'foo does the right thing in `labels'." ; Bug#31792.
-  (should (eq (cl-tests-labels-test) t)))
+  (with-suppressed-warnings ((obsolete labels))
+    (should (eq (funcall (labels ((foo () t))
+                                 #'foo))
+                t))))
 
 ;;; cl-tests.el ends here
