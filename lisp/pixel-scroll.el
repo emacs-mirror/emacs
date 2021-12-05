@@ -133,6 +133,14 @@ This is only effective if supported by your mouse or touchpad."
   :type 'float
   :version "29.1")
 
+(defcustom pixel-scroll-precision-large-scroll-height 70
+  "Pixels that must be scrolled before an animation is performed.
+Nil means to not interpolate such scrolls."
+  :group 'mouse
+  :type '(choice (const :tag "Do not interpolate large scrolls" nil)
+                 number)
+  :version "29.1")
+
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
 When scrolling request is delivered soon after the previous one,
@@ -518,6 +526,28 @@ the height of the current window."
                 (set-window-vscroll nil desired-vscroll t))
             (set-window-vscroll nil (abs delta) t)))))))
 
+(defun pixel-scroll-precision-interpolate (delta)
+  "Interpolate a scroll of DELTA pixels.
+This results in the window being scrolled by DELTA pixels with an
+animation."
+  (while-no-input
+    (let ((percentage 0)
+          (total-time 0.01)
+          (time-elapsed 0.0)
+          (between-scroll 0.001))
+      (while (< percentage 1)
+        (sit-for between-scroll)
+        (setq time-elapsed (+ time-elapsed between-scroll)
+              percentage (/ time-elapsed total-time))
+        (if (< delta 0)
+            (pixel-scroll-precision-scroll-down
+             (ceiling (abs (* delta
+                              (/ between-scroll total-time)))))
+          (pixel-scroll-precision-scroll-up
+           (ceiling (* delta
+                       (/ between-scroll total-time)))))
+        (redisplay t)))))
+
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
   (let ((max-height (- (window-text-height nil t)
@@ -543,17 +573,32 @@ wheel."
             (if (> (abs delta) (window-text-height window t))
                 (mwheel-scroll event nil)
               (with-selected-window window
-                (condition-case nil
+                (if (and pixel-scroll-precision-large-scroll-height
+                         (> (abs delta)
+                            pixel-scroll-precision-large-scroll-height)
+                         (let* ((kin-state (pixel-scroll-kinetic-state))
+                                (ring (aref kin-state 0))
+                                (time (aref kin-state 1)))
+                           (or (null time)
+                               (> (- (float-time) time) 1.0)
+                               (and (consp ring)
+                                    (ring-empty-p ring)))))
                     (progn
-                      (if (< delta 0)
-	                  (pixel-scroll-precision-scroll-down (- delta))
-                        (pixel-scroll-precision-scroll-up delta))
-                      (pixel-scroll-accumulate-velocity delta))
-                  ;; Do not ding at buffer limits.  Show a message instead.
-                  (beginning-of-buffer
-                   (message (error-message-string '(beginning-of-buffer))))
-                  (end-of-buffer
-                   (message (error-message-string '(end-of-buffer)))))))))
+                      (let ((kin-state (pixel-scroll-kinetic-state)))
+                        (aset kin-state 0 (make-ring 10))
+                        (aset kin-state 1 nil))
+                      (pixel-scroll-precision-interpolate delta))
+                  (condition-case nil
+                      (progn
+                        (if (< delta 0)
+	                    (pixel-scroll-precision-scroll-down (- delta))
+                          (pixel-scroll-precision-scroll-up delta))
+                        (pixel-scroll-accumulate-velocity delta))
+                    ;; Do not ding at buffer limits.  Show a message instead.
+                    (beginning-of-buffer
+                     (message (error-message-string '(beginning-of-buffer))))
+                    (end-of-buffer
+                     (message (error-message-string '(end-of-buffer))))))))))
       (mwheel-scroll event nil))))
 
 (defun pixel-scroll-kinetic-state ()
