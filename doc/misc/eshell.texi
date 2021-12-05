@@ -317,27 +317,36 @@ command reverts to the system's definition of @command{cat}.
 @item cd
 @cmindex cd
 This command changes the current working directory.  Usually, it is
-invoked as @samp{cd foo} where @file{foo} is the new working directory.
-But @command{cd} knows about a few special arguments:
+invoked as @kbd{cd @var{dir}} where @file{@var{dir}} is the new
+working directory.  But @command{cd} knows about a few special
+arguments:
 
+@itemize @minus{}
+@item
 When it receives no argument at all, it changes to the home directory.
 
-Giving the command @samp{cd -} changes back to the previous working
-directory (this is the same as @samp{cd $-}).
+@item
+Giving the command @kbd{cd -} changes back to the previous working
+directory (this is the same as @kbd{cd $-}).
 
-The command @samp{cd =} shows the directory stack.  Each line is
+@item
+The command @kbd{cd =} shows the directory stack.  Each line is
 numbered.
 
-With @samp{cd =foo}, Eshell searches the directory stack for a directory
-matching the regular expression @samp{foo} and changes to that
+@item
+With @kbd{cd =foo}, Eshell searches the directory stack for a directory
+matching the regular expression @samp{foo}, and changes to that
 directory.
 
-With @samp{cd -42}, you can access the directory stack by number.
+@item
+With @kbd{cd -42}, you can access the directory stack slots by number.
 
+@item
 If @code{eshell-cd-shows-directory} is non-@code{nil}, @command{cd}
 will report the directory it changes to.  If
 @code{eshell-list-files-after-cd} is non-@code{nil}, then @command{ls}
 is called with any remaining arguments after changing directories.
+@end itemize
 
 @item clear
 @cmindex clear
@@ -398,7 +407,7 @@ Summarize disk usage for each file.
 
 @item echo
 @cmindex echo
-Echos its input.  If @code{eshell-plain-echo-behavior} is
+Echoes its input.  If @code{eshell-plain-echo-behavior} is
 non-@code{nil}, @command{echo} will try to behave more like a plain
 shell's @command{echo}.
 
@@ -461,7 +470,8 @@ reader.
 
 @item intersection
 @cmindex intersection
-A wrapper around the function @code{cl-intersection}.  This command
+A wrapper around the function @code{cl-intersection} (@pxref{Lists as
+Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
 can be used for comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
@@ -509,11 +519,12 @@ Lists the contents of directories.
 If @code{eshell-ls-use-colors} is non-@code{nil}, the contents of a
 directory is color-coded according to file type and status.  These
 colors and the regexps used to identify their corresponding files can
-be customized via @samp{M-x customize-group RET eshell-ls RET}.
+be customized via @w{@kbd{M-x customize-group @key{RET} eshell-ls @key{RET}}}.
 
 The user option @code{eshell-ls-date-format} determines how the date
 is displayed when using the @option{-l} option.  The date is produced
-using the function @code{format-time-string}.
+using the function @code{format-time-string} (@pxref{Time Parsing,,,
+elisp, GNU Emacs Lisp Reference Manual}).
 
 The user option @code{eshell-ls-initial-args} contains a list of
 arguments to include with any call to @command{ls}.  For example, you
@@ -537,8 +548,9 @@ Display Man pages using the Emacs @code{man} command.
 
 @item mismatch
 @cmindex mismatch
-A wrapper around the function @code{cl-mismatch}.  This command can be
-used for comparing lists of strings.
+A wrapper around the function @code{cl-mismatch} (@pxref{Searching
+Sequences,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
+be used for comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
 disabled by default.
@@ -572,8 +584,8 @@ Print the arguments separated by newlines.
 
 @item pushd
 @cmindex pushd
-Change to a directory and push that directory onto the directory
-stack.
+Push the current directory onto the directory stack, then change to
+another directory.
 
 If @code{eshell-pushd-dunique} is non-@code{nil}, then only unique
 directories will be added to the stack.  If
@@ -601,7 +613,8 @@ Removes directories if they are empty.
 
 @item set-difference
 @cmindex set-difference
-A wrapper around the function @code{cl-set-difference}.  This command
+A wrapper around the function @code{cl-set-difference} (@pxref{Lists as
+Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command
 can be used for comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
@@ -609,8 +622,9 @@ disabled by default.
 
 @item set-exclusive-or
 @cmindex set-exclusive-or
-A wrapper around the function @code{cl-set-exclusive-or}.  This
-command can be used for comparing lists of strings.
+A wrapper around the function @code{cl-set-exclusive-or} (@pxref{Lists
+as Sets,,, cl, GNU Emacs Common Lisp Emulation}).  This command can be
+used for comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
 disabled by default.
@@ -618,6 +632,7 @@ disabled by default.
 @item setq
 @cmindex setq
 Set variable values, using the function @code{setq} like a command.
+@xref{Setting variables,,, elisp, GNU Emacs Lisp Reference Manual}.
 
 @item source
 @cmindex source
@@ -636,7 +651,8 @@ are in the eshell-tramp module, which is disabled by default.
 
 @item substitute
 @cmindex substitute
-A wrapper around the function @code{cl-substitute}.  This command can
+A wrapper around the function @code{cl-substitute} (@pxref{Sequence
+Functions,,, cl, GNU Emacs Common Lisp Emulation}).  This command can
 be used for comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
@@ -653,8 +669,9 @@ directories.
 
 @item union
 @cmindex union
-A wrapper around the function @code{cl-union}.  This command can be
-used for comparing lists of strings.
+A wrapper around the function @code{cl-union} (@pxref{Lists as Sets,,,
+cl, GNU Emacs Common Lisp Emulation}).  This command can be used for
+comparing lists of strings.
 
 This command can be loaded as part of the eshell-xtra module, which is
 disabled by default.
