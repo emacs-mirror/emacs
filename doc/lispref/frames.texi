@@ -167,10 +167,11 @@ argument, the frame just created.
 @end defvar
 
 Note that any functions added to these hooks by your initial file are
-usually not run for the initial frame.  However, if the initial frame
-is specified to use a separate minibuffer frame (@pxref{Minibuffers
-and Frames}), the functions will be run for both, the minibuffer-less
-and the minibuffer frame.
+usually not run for the initial frame, since Emacs reads the initial
+file only after creating that frame.  However, if the initial frame is
+specified to use a separate minibuffer frame (@pxref{Minibuffers and
+Frames}), the functions will be run for both, the minibuffer-less and
+the minibuffer frame.
 
 @defvar frame-inherited-parameters
 This variable specifies the list of frame parameters that a newly
