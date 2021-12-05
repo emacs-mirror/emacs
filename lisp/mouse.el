@@ -330,7 +330,8 @@ the function `context-menu-filter-function'."
     ;; Remove duplicate separators as well as ones at the beginning or
     ;; end of the menu.
     (let ((l menu) saw-first-item)
-      (while (consp (cdr l))
+      (while (and (consp l)
+                  (consp (cdr l)))
         ;; If the next item is a separator, remove it if 1) we haven't
         ;; seen any other items yet, or 2) it's followed by either
         ;; another separator or the end of the list.
