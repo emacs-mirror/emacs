@@ -115,7 +115,9 @@ The Lisp code is executed when the node is selected.")
 (defface info-menu-star
   '((((class color)) :foreground "red1")
     (t :underline t))
-  "Face for every third `*' in an Info menu.")
+  "Face used to emphasize `*' in an Info menu.
+The face is assigned to the third, sixth, and ninth `*' for easier
+orientation.  See `Info-nth-menu-item'.")
 
 (defface info-xref
   '((t :inherit link))
