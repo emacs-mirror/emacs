@@ -3706,7 +3706,7 @@ Return PDF file's name."
   (let ((outfile (org-export-output-file-name ".tex" subtreep)))
     (org-export-to-file 'latex outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 (defun org-latex-compile (texfile &optional snippet)
   "Compile a TeX file.

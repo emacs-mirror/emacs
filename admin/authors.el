@@ -398,8 +398,12 @@ Changes to files matching one of the regexps in this list are not listed.")
     "images/icons/allout-widgets-light-bg"
     "lisp/shorthand.el"
     "test/lisp/shorthand-tests.el"
+    "lisp/shorthands.el"
+    "test/src/comp-test-funcs.el"
     "lisp/net/link.el"
     "lisp/net/connection.el"
+    "lisp/net/dictionary-link.el"
+    "test/src/comp-test-funcs-dyn.el"
     ;; Never had any meaningful changes logged, now deleted:
     "lib/stdarg.in.h" "lib/stdbool.in.h"
     "unidata/bidimirror.awk" "unidata/biditype.awk"
@@ -537,6 +541,8 @@ Changes to files matching one of the regexps in this list are not listed.")
     "lisp/org/ob-abc.el"
     "lisp/org/ob-ebnf.el"
     "lisp/org/ob-J.el"
+    ;; Removed -- for now.
+    "test/src/doc-tests.el"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -999,6 +1005,7 @@ in the repository.")
     ("DIFF" . "OTHER.EMACSES")
     ("CCADIFF" . "OTHER.EMACSES")
     ("GOSDIFF" . "OTHER.EMACSES")
+    ("emacs.appdata.xml" . "emacs.metainfo.xml")
     ;; Nextstep
     ("nextstep/Cocoa/Emacs.base/Contents/Info.plist" . "nextstep/templates/Info.plist.in")
     ;; Moved from lisp/tpu-doc.el to etc/tpu-edt.doc in Emacs 19.29.
@@ -1053,6 +1060,12 @@ in the repository.")
     ("lisp/gnus/messcompat.el" . "messcompat.el")
     ("html2text.el" . "html2text.el")
     ("lisp/net/html2text.el" . "html2text.el")
+    ;; Obsolete in 28.1.
+    ("inversion.el" . "inversion.el")
+    ("test/lisp/cedet/inversion-tests.el" . "inversion-tests.el")
+    ("test/lisp/mail/rfc2368-tests.el" . "rfc2368-tests.el")
+    ;; This file was briefly obsolete:
+    ("lisp/obsolete/erc-compat.el" . "erc-compat.el")
     ;; From lisp to etc/forms.
     ("forms-d2.el" . "forms-d2.el")
     ("forms-pass.el" . "forms-pass.el")
@@ -1195,8 +1208,12 @@ in the repository.")
     ("lisp/gnus/nnir.el" . "nnir.el")
     ("src/regex.c" . "emacs-regex.c")
     ("src/regex.h" . "emacs-regex.h")
-    ("erc-compat.el" . "erc-compat.el")
-    ("semantic-utest-fmt.el" . "format-tests.el")
+    ("test/manual/rmailmm.el" . "rmailmm-tests.el")
+    ("test/lisp/cedet/semantic-utest-fmt.el" . "format-tests.el")
+    ("test/lisp/emacs-lisp/tabulated-list-test.el" . "tabulated-list-tests.el")
+    ("test/lisp/url/url-handlers-test.el" . "url-handlers-tests.el")
+    ("test/src/dired-tests.el" . "dired-tests.el")
+    (".dir-locals.el" . ".dir-locals.el")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
