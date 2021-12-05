@@ -1651,7 +1651,11 @@ Each element in the list should be a list of strings or pairs
      " operating system.\n"
      :face (variable-pitch font-lock-builtin-face)
      "\n"
-     ,(lambda () (emacs-version))
+     ,(lambda ()
+        (with-temp-buffer
+          (insert (emacs-version))
+          (fill-region (point-min) (point-max))
+          (buffer-string)))
      "\n"
      :face (variable-pitch (:height 0.8))
      ,(lambda () emacs-copyright)
