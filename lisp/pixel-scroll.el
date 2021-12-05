@@ -411,23 +411,23 @@ the height of the current window."
          (object (posn-object desired-pos))
 	 (desired-start (posn-point desired-pos))
 	 (desired-vscroll (cdr (posn-object-x-y desired-pos)))
+         (edges (window-edges nil t))
+         (usable-height (- (nth 3 edges)
+                           (nth 1 edges)))
          (next-pos (save-excursion
                      (goto-char desired-start)
                      (when (zerop (vertical-motion (1+ scroll-margin)))
                        (signal 'end-of-buffer nil))
-                     (point))))
-    (if (and (< (point) next-pos)
-             (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
-               (and pos-visibility
-                    (or (eq (length pos-visibility) 2)
-                        (when-let* ((posn (posn-at-point next-pos))
-                                    (edges (window-edges nil t))
-                                    (usable-height (- (nth 3 edges)
-                                                      (nth 1 edges))))
-                          (> (cdr (posn-object-width-height posn))
-                             usable-height))))))
-        (goto-char next-pos))
-    (if (or (consp object) (stringp object))
+                     (point)))
+         (end-pos (posn-at-x-y 0 (+ usable-height
+                                    (window-tab-line-height)
+				    (window-header-line-height)))))
+    (if (or (overlayp object)
+            (stringp object)
+            (and (consp object)
+                 (stringp (car object)))
+            (and (consp (posn-object end-pos))
+                 (> (cdr (posn-object-x-y end-pos)) 0)))
         ;; We are either on an overlay or a string, so set vscroll
         ;; directly.
         (set-window-vscroll nil (+ (window-vscroll nil t)
@@ -441,7 +441,15 @@ the height of the current window."
                                   (beginning-of-visual-line)
                                   (point)))
                           t))
-      (set-window-vscroll nil desired-vscroll t))))
+      (set-window-vscroll nil desired-vscroll t))
+    (if (and (or (< (point) next-pos))
+             (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
+               (and pos-visibility
+                    (or (eq (length pos-visibility) 2)
+                        (when-let* ((posn (posn-at-point next-pos)))
+                          (> (cdr (posn-object-width-height posn))
+                             usable-height))))))
+        (goto-char next-pos))))
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
