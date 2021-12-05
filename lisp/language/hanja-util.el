@@ -6573,8 +6573,8 @@ The value is a hanja character that is selected interactively."
            (hanja-filter (lambda (x) (car x))
                          (mapcar (lambda (c)
                                    (if (listp c)
-                                       (cons (decode-char 'ucs (car c)) (cdr c))
-				     (list (decode-char 'ucs c))))
+                                       (cons (car c) (cdr c))
+                                     (list c)))
                                  (aref hanja-table char)))))
     (unwind-protect
 	(when (aref hanja-conversions 2)

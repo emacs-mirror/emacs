@@ -369,7 +369,7 @@ OVERRIDE is either nil, require or t."
     (while (re-search-forward "\\\\x+{\\([[:xdigit:]]+\\)}"
 			      (point-max)
 			      t)
-      (let* ((ch (decode-char 'ucs (string-to-number (match-string 1) 16))))
+      (let* ((ch (string-to-number (match-string 1) 16)))
 	(if (and ch (> ch 0))
 	    (let ((begin (match-beginning 0))
 		  (end (match-end 0)))

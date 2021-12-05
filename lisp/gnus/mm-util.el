@@ -31,7 +31,7 @@
 
 (defun mm-ucs-to-char (codepoint)
   "Convert Unicode codepoint to character."
-  (or (decode-char 'ucs codepoint) ?#))
+  (or codepoint ?#))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()
