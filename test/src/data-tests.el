@@ -433,26 +433,27 @@ comparing the subr with a much slower Lisp implementation."
   ;; More specifically, test the problem seen in bug#41029 where setting
   ;; the default value of a variable takes time proportional to the
   ;; number of buffers.
-  (let* ((fun #'error)
-         (test (lambda ()
-                 (with-temp-buffer
-                   (let ((st (car (current-cpu-time))))
-                     (dotimes (_ 1000)
-                       (let ((case-fold-search 'data-test))
-                         ;; Use an indirection through a mutable var
-                         ;; to try and make sure the byte-compiler
-                         ;; doesn't optimize away the let bindings.
-                         (funcall fun)))
-                     ;; FIXME: Handle the wraparound, if any.
-                     (- (car (current-cpu-time)) st)))))
-         (_ (setq fun #'ignore))
-         (time1 (funcall test))
-         (bufs (mapcar (lambda (_) (generate-new-buffer " data-test"))
-                       (make-list 1000 nil)))
-         (time2 (funcall test)))
-    (mapc #'kill-buffer bufs)
-    ;; Don't divide one time by the other since they may be 0.
-    (should (< time2 (* time1 5)))))
+  (when (fboundp 'current-cpu-time)     ; silence byte-compiler
+    (let* ((fun #'error)
+           (test (lambda ()
+                   (with-temp-buffer
+                     (let ((st (car (current-cpu-time))))
+                       (dotimes (_ 1000)
+                         (let ((case-fold-search 'data-test))
+                           ;; Use an indirection through a mutable var
+                           ;; to try and make sure the byte-compiler
+                           ;; doesn't optimize away the let bindings.
+                           (funcall fun)))
+                       ;; FIXME: Handle the wraparound, if any.
+                       (- (car (current-cpu-time)) st)))))
+           (_ (setq fun #'ignore))
+           (time1 (funcall test))
+           (bufs (mapcar (lambda (_) (generate-new-buffer " data-test"))
+                         (make-list 1000 nil)))
+           (time2 (funcall test)))
+      (mapc #'kill-buffer bufs)
+      ;; Don't divide one time by the other since they may be 0.
+      (should (< time2 (* time1 5))))))
 
 ;; More tests to write -
 ;; kill-local-variable

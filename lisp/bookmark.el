@@ -510,8 +510,9 @@ If DEFAULT is nil then return empty string for empty input."
 
 (defmacro bookmark-maybe-historicize-string (string)
   "Put STRING into the bookmark prompt history, if caller non-interactive.
-We need this because sometimes bookmark functions are invoked from
-menus, so `completing-read' never gets a chance to set `bookmark-history'."
+We need this because sometimes bookmark functions are invoked
+from other commands that pass in the bookmark name, so
+`completing-read' never gets a chance to set `bookmark-history'."
   `(or
     (called-interactively-p 'interactive)
     (setq bookmark-history (cons ,string bookmark-history))))

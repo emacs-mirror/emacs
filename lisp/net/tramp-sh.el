@@ -2678,17 +2678,15 @@ The method used must be an out-of-band method."
 	     (point-min) 'noerror)
 	    (replace-match (file-relative-name filename) t))
 
-	  ;; Try to insert the amount of free space.  This is moved to
-	  ;; `dired-insert-directory' in Emacs 29.1.
-	  (unless (boundp 'dired-free-space)
-	    (goto-char (point-min))
-	    ;; First find the line to put it on.
-	    (when (re-search-forward "^\\([[:space:]]*total\\)" nil t)
-	      (when-let ((available (get-free-disk-space ".")))
-		;; Replace "total" with "total used", to avoid confusion.
-		(replace-match "\\1 used in directory")
-		(end-of-line)
-		(insert " available " available)))))
+	  ;; Try to insert the amount of free space.
+	  (goto-char (point-min))
+	  ;; First find the line to put it on.
+	  (when (re-search-forward "^\\([[:space:]]*total\\)" nil t)
+	    (when-let ((available (get-free-disk-space ".")))
+	      ;; Replace "total" with "total used", to avoid confusion.
+	      (replace-match "\\1 used in directory")
+	      (end-of-line)
+	      (insert " available " available))))
 
 	(prog1 (goto-char end-marker)
 	  (set-marker beg-marker nil)
@@ -6024,5 +6022,8 @@ function cell is returned to be applied on a buffer."
 ;;   be to stipulate, as a directory or connection-local variable, an
 ;;   additional rc file on the remote machine that is sourced every
 ;;   time Tramp connects.  <https://emacs.stackexchange.com/questions/62306>
+;;
+;; * Support hostname canonicalization in ~/.ssh/config.
+;;   <https://stackoverflow.com/questions/70205232/>
 
 ;;; tramp-sh.el ends here

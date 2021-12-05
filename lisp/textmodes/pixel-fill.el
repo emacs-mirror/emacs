@@ -116,15 +116,13 @@ prefix on subsequent lines."
     (while (not (eolp))
       ;; We have to do some folding.  First find the first previous
       ;; point suitable for folding.
-      (if (or (not (pixel-fill-find-fill-point (line-beginning-position)))
-	      (= (point) start))
-	  ;; We had unbreakable text (for this width), so just go to
-	  ;; the first space and carry on.
-	  (progn
-	    (beginning-of-line)
-	    (skip-chars-forward " ")
-	    (search-forward " " (line-end-position) 'move)))
-      ;; Success; continue.
+      (when (or (not (pixel-fill-find-fill-point (line-beginning-position)))
+	        (= (point) start))
+	;; We had unbreakable text (for this width), so just go to
+	;; the first space and carry on.
+	(beginning-of-line)
+	(skip-chars-forward " ")
+	(search-forward " " (line-end-position) 'move))
       (when (= (preceding-char) ?\s)
 	(delete-char -1))
       (unless (eobp)
@@ -133,7 +131,8 @@ prefix on subsequent lines."
           (insert (propertize " " 'display
                               (list 'space :align-to (list indentation))))))
       (setq start (point))
-      (pixel-fill--goto-pixel width))))
+      (unless (eobp)
+        (pixel-fill--goto-pixel width)))))
 
 (define-inline pixel-fill--char-breakable-p (char)
   "Return non-nil if a line can be broken before and after CHAR."

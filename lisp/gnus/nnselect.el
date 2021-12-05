@@ -779,6 +779,10 @@ Return an article list."
 	(args (alist-get 'nnselect-args specs)))
     (condition-case-unless-debug err
 	(funcall func args)
+      ;; Don't swallow gnus-search errors; the user should be made
+      ;; aware of them.
+      (gnus-search-error
+       (signal (car err) (cdr err)))
       (error (gnus-error 3 "nnselect-run: %s on %s gave error %s" func args err)
 	     []))))
 

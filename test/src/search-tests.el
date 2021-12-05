@@ -28,7 +28,7 @@
       (setq ov-set (make-overlay 3 5))
       (overlay-put
        ov-set 'modification-hooks
-       (list (lambda (o after &rest _args)
+       (list (lambda (_o after &rest _args)
 	       (when after
 		 (let ((inhibit-modification-hooks t))
 		   (save-excursion

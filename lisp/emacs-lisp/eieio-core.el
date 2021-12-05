@@ -450,7 +450,7 @@ See `defclass' for more information."
 	))
 
     ;; Now that everything has been loaded up, all our lists are backwards!
-    ;; Fix that up now and then them into vectors.
+    ;; Fix that up now and turn them into vectors.
     (cl-callf (lambda (slots) (apply #'vector (nreverse slots)))
         (eieio--class-slots newc))
     (cl-callf nreverse (eieio--class-initarg-tuples newc))
@@ -704,11 +704,15 @@ an error."
       nil
     ;; Trim off object IDX junk added in for the object index.
     (setq slot-idx (- slot-idx (eval-when-compile eieio--object-num-slots)))
-    (let ((st (cl--slot-descriptor-type (aref (eieio--class-slots class)
-                                              slot-idx))))
-      (if (not (eieio--perform-slot-validation st value))
-	  (signal 'invalid-slot-type
-                  (list (eieio--class-name class) slot st value))))))
+    (let* ((sd (aref (eieio--class-slots class)
+                     slot-idx))
+           (st (cl--slot-descriptor-type sd)))
+      (cond
+       ((not (eieio--perform-slot-validation st value))
+	(signal 'invalid-slot-type
+                (list (eieio--class-name class) slot st value)))
+       ((alist-get :read-only (cl--slot-descriptor-props sd))
+        (signal 'eieio-read-only (list (eieio--class-name class) slot)))))))
 
 (defun eieio--validate-class-slot-value (class slot-idx value slot)
   "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
@@ -813,7 +817,7 @@ Fills in CLASS's SLOT with its default value."
 (defun eieio-oset (obj slot value)
   "Do the work for the macro `oset'.
 Fills in OBJ's SLOT with VALUE."
-  (cl-check-type obj eieio-object)
+  (cl-check-type obj (or eieio-object cl-structure-object))
   (cl-check-type slot symbol)
   (let* ((class (eieio--object-class obj))
          (c (eieio--slot-name-index class slot)))
@@ -1063,6 +1067,7 @@ method invocation orders of the involved classes."
 ;;
 (define-error 'invalid-slot-name "Invalid slot name")
 (define-error 'invalid-slot-type "Invalid slot type")
+(define-error 'eieio-read-only "Read-only slot")
 (define-error 'unbound-slot "Unbound slot")
 (define-error 'inconsistent-class-hierarchy "Inconsistent class hierarchy")
 

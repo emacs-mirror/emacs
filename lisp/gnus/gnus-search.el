@@ -105,9 +105,13 @@
 
 (gnus-add-shutdown #'gnus-search-shutdown 'gnus)
 
-(define-error 'gnus-search-parse-error "Gnus search parsing error")
+(define-error 'gnus-search-error "Gnus search error")
 
-(define-error 'gnus-search-config-error "Gnus search configuration error")
+(define-error 'gnus-search-parse-error "Gnus search parsing error"
+              'gnus-search-error)
+
+(define-error 'gnus-search-config-error "Gnus search configuration error"
+              'gnus-search-error)
 
 ;;; User Customizable Variables:
 
@@ -1927,7 +1931,7 @@ Assume \"size\" key is equal to \"larger\"."
 	      (apply #'nnheader-message 4
 		     "Search engine for %s improperly configured: %s"
 		     server (cdr err))
-	    (signal 'gnus-search-config-error err)))))
+	    (signal (car err) (cdr err))))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is

@@ -423,7 +423,7 @@ representation as emojis.
 ** EIEIO
 
 +++
-*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects.
+*** 'slot-value' can now be used to access slots of 'cl-defstruct' objects.
 
 ** align
 
@@ -1084,6 +1084,10 @@ cookies set by web pages on disk.
 ** New variable 'help-buffer-under-preparation'.
 This variable is bound to t during the preparation of a "*Help*" buffer.
 
++++
+** 'date-to-time' now assumes earliest values if its argument lacks
+month, day, or time.  For example, (date-to-time "2021-12-04") now
+assumes a time of 00:00 instead of signaling an error.
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

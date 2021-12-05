@@ -54,7 +54,8 @@
           (kill-buffer buf)
           (setq buf (dired (nconc (list dir) files)))
           (should (looking-at "src"))
-          (next-line) ; File names must be aligned.
+          (with-suppressed-warnings ((interactive-only next-line))
+            (next-line)) ; File names must be aligned.
           (should (looking-at "src")))
       (when (buffer-live-p buf) (kill-buffer buf)))))
 

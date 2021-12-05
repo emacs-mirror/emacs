@@ -56,7 +56,7 @@
 
 (ert-deftest format-spec-do-flags-truncate ()
   "Test `format-spec--do-flags' truncation."
-  (let (flags)
+  (let ((flags nil))
     (should (equal (format-spec--do-flags "" flags nil 0) ""))
     (should (equal (format-spec--do-flags "" flags nil 1) ""))
     (should (equal (format-spec--do-flags "a" flags nil 0) ""))
@@ -75,7 +75,7 @@
 
 (ert-deftest format-spec-do-flags-pad ()
   "Test `format-spec--do-flags' padding."
-  (let (flags)
+  (let ((flags nil))
     (should (equal (format-spec--do-flags "" flags 0 nil) ""))
     (should (equal (format-spec--do-flags "" flags 1 nil) " "))
     (should (equal (format-spec--do-flags "a" flags 0 nil) "a"))
