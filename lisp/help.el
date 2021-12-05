@@ -1353,7 +1353,8 @@ Return nil if the key sequence is too long."
 
 (defun help--describe-command (definition &optional translation)
   (cond ((symbolp definition)
-         (if (fboundp definition)
+         (if (and (fboundp definition)
+                  help-buffer-under-preparation)
              (insert-text-button (symbol-name definition)
                                  'type 'help-function
                                  'help-args (list definition))

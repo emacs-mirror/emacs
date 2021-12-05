@@ -271,7 +271,29 @@ Some of the built-in commands have different behavior from their
 external counterparts, and some have no external counterpart.  Most of
 these will print a usage message when given the @code{--help} option.
 
+In some cases, a built-in command's behavior can be configured via
+user settings, some of which are mentioned below.  For example,
+certain commands have two user settings to allow them to overwrite
+files without warning and to ensure that they always prompt before
+overwriting files.  If both settings are non-@code{nil}, the commands
+always prompt.  If both settings are @code{nil} (the default), the
+commands signal an error.
+
+Several commands observe the value of
+@code{eshell-default-target-is-dot}.  If non-@code{nil}, then the
+default target for the commands @command{cp}, @command{mv}, and
+@command{ln} is the current directory.
+
+A few commands are wrappers for more niche Emacs features, and can be
+loaded as part of the eshell-xtra module.  @xref{Extension modules}.
+
 @table @code
+
+@item .
+@cmindex .
+Source an Eshell file in the current environment.  This is not to be
+confused with the command @command{source}, which sources a file in a
+subshell environment.
 
 @item addpath
 @cmindex addpath
@@ -282,81 +304,15 @@ with no arguments, prints the current paths in this variable.
 @cmindex alias
 Define an alias (@pxref{Aliases}).  This adds it to the aliases file.
 
-@item clear
-@cmindex clear
-Scrolls the contents of the eshell window out of sight, leaving a blank window.
-If provided with an optional non-nil argument, the scrollback contents are
-cleared instead.
+@item basename
+@cmindex basename
+Return a file name without its directory.
 
-@item date
-@cmindex date
-Similar to, but slightly different from, the GNU Coreutils
-@command{date} command.
-
-@item define
-@cmindex define
-Define a varalias.
-@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
-
-@item diff
-@cmindex diff
-Use Emacs's internal @code{diff} (not to be confused with
-@code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs Manual}.
-
-@item grep
-@cmindex grep
-@itemx agrep
-@cmindex agrep
-@itemx egrep
-@cmindex egrep
-@itemx fgrep
-@cmindex fgrep
-@itemx glimpse
-@cmindex glimpse
-The @command{grep} commands are compatible with GNU @command{grep}, but
-use Emacs's internal @code{grep} instead.
-
-@item info
-@cmindex info
-Same as the external @command{info} command, but uses Emacs's internal
-Info reader.
-
-@item jobs
-@cmindex jobs
-List subprocesses of the Emacs process, if any, using the function
-@code{list-processes}.
-
-@item kill
-@cmindex kill
-Kill processes.  Takes a PID or a process object and an optional
-signal specifier which can either be a number or a signal name.
-
-@item listify
-@cmindex listify
-Eshell version of @code{list}.  Allows you to create a list using Eshell
-syntax, rather than Elisp syntax.  For example, @samp{listify foo bar}
-and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
-
-@item locate
-@cmindex locate
-Alias to Emacs's @code{locate} function, which simply runs the external
-@command{locate} command and parses the results.
-@xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
-
-@item make
-@cmindex make
-Run @command{make} through @code{compile} when run asynchronously
-(e.g., @samp{make &}).  @xref{Compilation, , , emacs, The GNU Emacs
-Manual}.  Otherwise call the external @command{make} command.
-
-@item occur
-@cmindex occur
-Alias to Emacs's @code{occur}.
-@xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
-
-@item printnl
-@cmindex printnl
-Print the arguments separated by newlines.
+@item cat
+@cmindex cat
+Concatenate file contents into standard output.  If in a pipeline, or
+if the file is not a regular file, directory, or symlink, then this
+command reverts to the system's definition of @command{cat}.
 
 @item cd
 @cmindex cd
@@ -378,6 +334,297 @@ directory.
 
 With @samp{cd -42}, you can access the directory stack by number.
 
+If @code{eshell-cd-shows-directory} is non-@code{nil}, @command{cd}
+will report the directory it changes to.  If
+@code{eshell-list-files-after-cd} is non-@code{nil}, then @command{ls}
+is called with any remaining arguments after changing directories.
+
+@item clear
+@cmindex clear
+Scrolls the contents of the Eshell window out of sight, leaving a
+blank window.  If provided with an optional non-@code{nil} argument,
+the scrollback contents are cleared instead.
+
+@item clear-scrollback
+@cmindex clear-scrollback
+Clear the scrollback contents of the Eshell window.  Unlike the
+command @command{clear}, this command deletes content in the Eshell
+buffer.
+
+@item cp
+@cmindex cp
+Copy a file to a new location or copy multiple files to the same
+directory.
+
+If @code{eshell-cp-overwrite-files} is non-@code{nil}, then
+@command{cp} will overwrite files without warning.  If
+@code{eshell-cp-interactive-query} is non-@code{nil}, then
+@command{cp} will ask before overwriting anything.
+
+@item date
+@cmindex date
+Print the current local time as a human-readable string.  This command
+is similar to, but slightly different from, the GNU Coreutils
+@command{date} command.
+
+@item define
+@cmindex define
+Define a variable alias.
+@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
+
+@item diff
+@cmindex diff
+Compare files using Emacs's internal @code{diff} (not to be confused
+with @code{ediff}).  @xref{Comparing Files, , , emacs, The GNU Emacs
+Manual}.
+
+If @code{eshell-plain-diff-behavior} is non-@code{nil}, then this
+command does not use Emacs's internal @code{diff}.  This is the same
+as using @samp{alias diff '*diff $*'}.
+
+@item dirname
+@cmindex dirname
+Return the directory component of a file name.
+
+@item dirs
+@cmindex dirs
+Prints the directory stack.  Directories can be added or removed from
+the stack using the commands @command{pushd} and @command{popd},
+respectively.
+
+@item du
+@cmindex du
+Summarize disk usage for each file.
+
+@item echo
+@cmindex echo
+Echos its input.  If @code{eshell-plain-echo-behavior} is
+non-@code{nil}, @command{echo} will try to behave more like a plain
+shell's @command{echo}.
+
+@item env
+@cmindex env
+Prints the current environment variables.  Unlike in Bash, this
+command does not yet support running commands with a modified
+environment.
+
+@item exit
+@cmindex exit
+Exit Eshell and save the history.  By default, this command kills the
+Eshell buffer, but if @code{eshell-kill-on-exit} is @code{nil}, then
+the buffer is merely buried instead.
+
+@item export
+@cmindex export
+Set environment variables using input like Bash's @command{export}, as
+in @samp{export @var{var1}=@var{val1} @var{var2}=@var{val2} @dots{}}.
+
+@item expr
+@cmindex expr
+An implementation of @command{expr} using the Calc package.
+@xref{Top,,, calc, The GNU Emacs Calculator}.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item grep
+@cmindex grep
+@itemx agrep
+@cmindex agrep
+@itemx egrep
+@cmindex egrep
+@itemx fgrep
+@cmindex fgrep
+@itemx glimpse
+@cmindex glimpse
+The @command{grep} commands are compatible with GNU @command{grep},
+but use Emacs's internal @code{grep} instead.
+@xref{Grep Searching, , , emacs, The GNU Emacs Manual}.
+
+If @code{eshell-plain-grep-behavior} is non-@code{nil}, then these
+commands do not use Emacs's internal @code{grep}.  This is the same as
+using @samp{alias grep '*grep $*'}, though this setting applies to all
+of the built-in commands for which you would need to create a separate
+alias.
+
+@item history
+@cmindex history
+Prints Eshell's input history.  With a numeric argument @var{N}, this
+command prints the @var{N} most recent items in the history.
+
+@item info
+@cmindex info
+Browse the available Info documentation.  This command is the same as
+the external @command{info} command, but uses Emacs's internal Info
+reader.
+@xref{Misc Help, , , emacs, The GNU Emacs Manual}.
+
+@item intersection
+@cmindex intersection
+A wrapper around the function @code{cl-intersection}.  This command
+can be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item jobs
+@cmindex jobs
+List subprocesses of the Emacs process, if any, using the function
+@code{list-processes}.
+
+@item kill
+@cmindex kill
+Kill processes.  Takes a PID or a process object and an optional
+signal specifier which can either be a number or a signal name.
+
+@item listify
+@cmindex listify
+Eshell version of @code{list}.  Allows you to create a list using Eshell
+syntax, rather than Elisp syntax.  For example, @samp{listify foo bar}
+and @code{("foo" "bar")} both evaluate to @code{("foo" "bar")}.
+
+@item ln
+@cmindex ln
+Create links to files.
+
+If @code{eshell-ln-overwrite-files} is non-@code{nil}, @command{ln}
+will overwrite files without warning.  If
+@code{eshell-ln-interactive-query} is non-@code{nil}, then
+@command{ln} will ask before overwriting files.
+
+@item locate
+@cmindex locate
+Alias to Emacs's @code{locate} function, which simply runs the external
+@command{locate} command and parses the results.
+@xref{Dired and Find, , , emacs, The GNU Emacs Manual}.
+
+If @code{eshell-plain-locate-behavior} is non-@code{nil}, then Emacs's
+internal @code{locate} is not used.  This is the same as using
+@samp{alias locate '*locate $*'}.
+
+@item ls
+@cmindex ls
+Lists the contents of directories.
+
+If @code{eshell-ls-use-colors} is non-@code{nil}, the contents of a
+directory is color-coded according to file type and status.  These
+colors and the regexps used to identify their corresponding files can
+be customized via @samp{M-x customize-group RET eshell-ls RET}.
+
+The user option @code{eshell-ls-date-format} determines how the date
+is displayed when using the @option{-l} option.  The date is produced
+using the function @code{format-time-string}.
+
+The user option @code{eshell-ls-initial-args} contains a list of
+arguments to include with any call to @command{ls}.  For example, you
+can include the option @option{-h} to always use a more human-readable
+format.
+
+The user option @code{eshell-ls-default-blocksize} determines the
+default blocksize used when displaying file sizes with the option
+@option{-s}.
+
+@item make
+@cmindex make
+Run @command{make} through @code{compile} when run asynchronously
+(e.g., @samp{make &}).  @xref{Compilation, , , emacs, The GNU Emacs
+Manual}.  Otherwise call the external @command{make} command.
+
+@item man
+@cmindex man
+Display Man pages using the Emacs @code{man} command.
+@xref{Man Page, , , emacs, The GNU Emacs Manual}.
+
+@item mismatch
+@cmindex mismatch
+A wrapper around the function @code{cl-mismatch}.  This command can be
+used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item mkdir
+@cmindex mkdir
+Make new directories.
+
+@item mv
+@cmindex mv
+Move or rename files.
+
+If @code{eshell-mv-overwrite-files} is non-@code{nil}, @command{mv}
+will overwrite files without warning.  If
+@code{eshell-mv-interactive-query} is non-@code{nil}, @command{mv}
+will prompt before overwriting anything.
+
+@item occur
+@cmindex occur
+Alias to Emacs's @code{occur}.
+@xref{Other Repeating Search, , , emacs, The GNU Emacs Manual}.
+
+@item popd
+@cmindex popd
+Pop a directory from the directory stack and switch to a another place
+in the stack.
+
+@item printnl
+@cmindex printnl
+Print the arguments separated by newlines.
+
+@item pushd
+@cmindex pushd
+Change to a directory and push that directory onto the directory
+stack.
+
+If @code{eshell-pushd-dunique} is non-@code{nil}, then only unique
+directories will be added to the stack.  If
+@code{eshell-pushd-dextract} is non-@code{nil}, then @samp{pushd
++@var{n}} will pop the @var{n}th directory to the top of the stack.
+
+@item pwd
+@cmindex pwd
+Prints the current working directory.
+
+@item rm
+@cmindex rm
+Removes files, buffers, processes, or Emacs Lisp symbols, depending on
+the argument.
+
+If @code{eshell-rm-interactive-query} is non-@code{nil}, @command{rm}
+will prompt before removing anything.  If
+@code{eshell-rm-removes-directories} is non-@code{nil}, then
+@command{rm} can also remove directories.  Otherwise, @command{rmdir}
+is required.
+
+@item rmdir
+@cmindex rmdir
+Removes directories if they are empty.
+
+@item set-difference
+@cmindex set-difference
+A wrapper around the function @code{cl-set-difference}.  This command
+can be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item set-exclusive-or
+@cmindex set-exclusive-or
+A wrapper around the function @code{cl-set-exclusive-or}.  This
+command can be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item setq
+@cmindex setq
+Set variable values, using the function @code{setq} like a command.
+
+@item source
+@cmindex source
+Source an Eshell file in a subshell environment.  This is not to be
+confused with the command @command{.}, which sources a file in the
+current environment.
+
 @item su
 @cmindex su
 @itemx sudo
@@ -386,6 +633,48 @@ Uses TRAMP's @command{su} or @command{sudo} method @pxref{Inline methods, , , tr
 to run a command via @command{su} or @command{sudo}.  These commands
 are in the eshell-tramp module, which is disabled by default.
 
+
+@item substitute
+@cmindex substitute
+A wrapper around the function @code{cl-substitute}.  This command can
+be used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item time
+@cmindex time
+Show the time elapsed during a command's execution.
+
+@item umask
+@cmindex umask
+Set or view the default file permissions for newly created files and
+directories.
+
+@item union
+@cmindex union
+A wrapper around the function @code{cl-union}.  This command can be
+used for comparing lists of strings.
+
+This command can be loaded as part of the eshell-xtra module, which is
+disabled by default.
+
+@item unset
+@cmindex unset
+Unset an environment variable.
+
+@item wait
+@cmindex wait
+Wait until a process has successfully completed.
+
+@item which
+@cmindex which
+Identify a command and its location.
+
+@item whoami
+@cmindex whoami
+Print the current user.  This Eshell version of @command{whoami}
+supports Tramp.
 @end table
 
 @subsection Built-in variables

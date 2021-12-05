@@ -87,6 +87,28 @@ Advanced Usage
 @node Introduction
 @chapter Introduction
 
+IRC is short for Internet Relay Chat.  When using IRC, you can
+communicate with other users on the same IRC network.  There are
+several of these networks available---if you search for ``IRC
+networks'' in your favorite search engine, you are likely to find
+up-to-date lists of IRC networks catering to various interests and
+topics.
+
+In order to use IRC, you need an IRC client such as ERC.  Using the
+client, you connect to an IRC server.  Once you've done that, you will
+have access to all available channels on that server's network.  A
+channel is basically a chat room, and what you type in a channel will
+be shown to all other users in that channel, and you can be in several
+channels at the same time---most clients will show each channel in its
+own window.  IRC channel names always begin with a @samp{#} character.
+For example, the Emacs channel on Libera.Chat is @samp{#emacs}, and
+the ERC channel is @samp{#erc}.  Do not confuse them with the hashtags
+used on many social media platforms.
+
+It is also possible to send private messages to other IRC
+users on the same network, regardless of whether or not they are in
+the same channel as you.
+
 ERC is a powerful, modular, and extensible IRC client for Emacs.
 It is distributed with Emacs since version 22.1.
 
@@ -114,7 +136,11 @@ It comes with the following capabilities enabled by default.
 @cindex settings
 
 The command @kbd{M-x erc} will start ERC and prompt for the server to
-connect to.
+connect to.  If you're unsure of which server or network to connect
+to, we suggest you start with ``irc.libera.chat''.  There you will
+find the @samp{#emacs} channels where you can chat with other Emacs
+and users, and if you're having trouble with ERC, you can join the
+@samp{#erc} channel and ask for help there.
 
 If you want to place ERC settings in their own file, you can place them
 in @file{~/.emacs.d/.ercrc.el}, creating it if necessary.
