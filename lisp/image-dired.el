@@ -540,7 +540,7 @@ Create the thumbnail directory if it does not exist."
 
 (defun image-dired-get-thumbnail-image (file)
   "Return the image descriptor for a thumbnail of image file FILE."
-  (unless (string-match (image-file-name-regexp) file)
+  (unless (string-match-p (image-file-name-regexp) file)
     (error "%s is not a valid image file" file))
   (let* ((thumb-file (image-dired-thumb-name file))
 	 (thumb-attr (file-attributes thumb-file)))
