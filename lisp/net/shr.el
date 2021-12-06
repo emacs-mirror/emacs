@@ -1431,9 +1431,7 @@ ones, in case fg and bg are nil."
 
 (defun shr-parse-style (style)
   (when style
-    (save-match-data
-      (when (string-search "\n" style)
-        (setq style (replace-match " " t t style))))
+    (setq style (replace-regexp-in-string "\n" " " style))
     (let ((plist nil))
       (dolist (elem (split-string style ";"))
 	(when elem
