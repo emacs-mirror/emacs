@@ -242,4 +242,16 @@ a fixed place on the right and are padded on the left."
           (should (= xdiv (float-time (time-convert xdiv t))))))
       (setq x (* x 2)))))
 
+(ert-deftest time-convert-forms ()
+  ;; These computations involve numbers that should have exact
+  ;; representations on any Emacs platform.
+  (dolist (time '(-86400 -1 0 1 86400))
+    (dolist (delta '(0 0.0 0.25 3.25 1000 1000.25))
+      (let ((time+ (+ time delta))
+	    (time- (- time delta)))
+	(dolist (form '(nil t list 4 1000 1000000 1000000000))
+	  (should (time-equal-p time (time-convert time form)))
+	  (should (time-equal-p time- (time-convert time- form)))
+	  (should (time-equal-p time+ (time-convert time+ form))))))))
+
 ;;; timefns-tests.el ends here
