@@ -298,12 +298,14 @@ included in the completions."
              (vc-git--run-command-string nil "version")))
         (setq vc-git--program-version
               (if (and version-string
-                       ;; Git for Windows appends ".windows.N" to the
-                       ;; numerical version reported by Git.
-                       (string-match
-                        "git version \\([0-9.]+\\)\\(\\.windows\\.[0-9]+\\)?$"
-                        version-string))
-                  (match-string 1 version-string)
+                       ;; Some Git versions append additional strings
+                       ;; to the numerical version string. E.g., Git
+                       ;; for Windows appends ".windows.N", while Git
+                       ;; for Mac appends " (Apple Git-N)". Capture
+                       ;; numerical version and ignore the rest.
+                       (string-match "git version \\([0-9][0-9.]+\\)"
+                                     version-string))
+                  (string-trim-right (match-string 1 version-string) "\\.")
                 "0")))))
 
 (defun vc-git--git-status-to-vc-state (code-list)
