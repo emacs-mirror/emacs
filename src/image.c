@@ -3064,14 +3064,6 @@ gui_put_x_image (struct frame *f, Emacs_Pix_Container pimg,
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_NTGUI
-#if 0  /* I don't think this is necessary looking at where it is used.  */
-  HDC hdc = get_frame_dc (f);
-  SetDIBits (hdc, pixmap, 0, height, pimg->data, &(pimg->info), DIB_RGB_COLORS);
-  release_frame_dc (f, hdc);
-#endif
-#endif /* HAVE_NTGUI */
-
 #ifdef HAVE_NS
   eassert (pimg == pixmap);
   ns_retain_object (pimg);
@@ -10983,16 +10975,6 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 	  free_color_table ();
 #endif
 	  XDestroyImage (ximg);
-
-#if 0 /* This doesn't seem to be the case.  If we free the colors
-	 here, we get a BadAccess later in image_clear_image when
-	 freeing the colors.  */
-	  /* We have allocated colors once, but Ghostscript has also
-	     allocated colors on behalf of us.  So, to get the
-	     reference counts right, free them once.  */
-	  if (img->ncolors)
-	    x_free_colors (f, img->colors, img->ncolors);
-#endif
 	}
       else
 	image_error ("Cannot get X image of `%s'; colors will not be freed",
