@@ -805,7 +805,8 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
 	gtk_container_remove (GTK_CONTAINER (whbox_of_f), fixed);
 
 	GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
-	gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (provider));
+	if (provider)
+	  gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (provider));
 
 	if (FRAME_GTK_OUTER_WIDGET (f))
 	  {
@@ -843,17 +844,19 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
 	}
 
       GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
-      gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (provider),
-				      GTK_STYLE_PROVIDER_PRIORITY_USER);
+      if (provider)
+	gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (provider),
+					GTK_STYLE_PROVIDER_PRIORITY_USER);
 
       g_object_unref (fixed);
 
-      if (FRAME_GTK_OUTER_WIDGET (f)) {
-	if (EQ (x_gtk_resize_child_frames, Qresize_mode))
-	  gtk_container_set_resize_mode
-	    (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
-	     p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
-      }
+      if (FRAME_GTK_OUTER_WIDGET (f))
+	{
+	  if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	    gtk_container_set_resize_mode
+	      (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
+	       p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+	}
 
       unblock_input ();
 
@@ -3037,10 +3040,11 @@ pgtk_bitmap_icon (struct frame *f, Lisp_Object file)
 bool
 pgtk_text_icon (struct frame *f, const char *icon_name)
 {
-  if (FRAME_GTK_OUTER_WIDGET (f)) {
-    gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), NULL);
-    gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), icon_name);
-  }
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
+      gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), NULL);
+      gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), icon_name);
+    }
 
   return false;
 }
@@ -5366,13 +5370,17 @@ done:
 }
 
 static gboolean
-key_release_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+key_release_event (GtkWidget *widget,
+		   GdkEvent *event,
+		   gpointer *user_data)
 {
   return TRUE;
 }
 
 static gboolean
-configure_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+configure_event (GtkWidget *widget,
+		 GdkEvent *event,
+		 gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->configure.window);
   if (f && widget == FRAME_GTK_OUTER_WIDGET (f))
@@ -5392,7 +5400,9 @@ configure_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 }
 
 static gboolean
-map_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+map_event (GtkWidget *widget,
+	   GdkEvent *event,
+	   gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->any.window);
   union buffered_input_event inev;
@@ -5439,8 +5449,9 @@ map_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 }
 
 static gboolean
-window_state_event (GtkWidget * widget, GdkEvent * event,
-		    gpointer * user_data)
+window_state_event (GtkWidget *widget,
+		    GdkEvent *event,
+		    gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->window_state.window);
   union buffered_input_event inev;
@@ -5473,7 +5484,8 @@ window_state_event (GtkWidget * widget, GdkEvent * event,
 }
 
 static gboolean
-delete_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+delete_event (GtkWidget *widget,
+	      GdkEvent *event, gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->any.window);
   union buffered_input_event inev;
@@ -5548,8 +5560,8 @@ x_focus_changed (gboolean is_enter, int state,
 }
 
 static gboolean
-enter_notify_event (GtkWidget * widget, GdkEvent * event,
-		    gpointer * user_data)
+enter_notify_event (GtkWidget *widget, GdkEvent *event,
+		    gpointer *user_data)
 {
   union buffered_input_event inev;
   struct frame *frame =
