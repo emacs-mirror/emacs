@@ -979,7 +979,7 @@ byte-compiled.  Run with dynamic binding."
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than .* characters")
+ "Warning: docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"
