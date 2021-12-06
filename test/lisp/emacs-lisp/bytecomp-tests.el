@@ -851,8 +851,7 @@ byte-compiled.  Run with dynamic binding."
        (byte-compile-file ,(ert-resource-file file))
        (ert-info ((buffer-string) :prefix "buffer: ")
          (,(if reverse 'should-not 'should)
-          (re-search-forward ,(string-replace " " "[ \n]+" re-warning)
-                             nil t))))))
+          (re-search-forward ,re-warning nil t))))))
 
 (bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
                             "add-hook.*lexical var")
