@@ -1872,6 +1872,16 @@ Returns nil if not possible."
                                                       (1- (point-max)))))))
          (and name (not (string= name "undefined")) name))))
 
+(defvar-keymap vc-dir-git-mode-map
+  "z c" #'vc-git-stash
+  "z s" #'vc-git-stash-snapshot)
+
+(define-minor-mode vc-dir-git-mode
+  "A minor mode for git-specific commands in `vc-dir-mode' buffers.
+Also note that there are git stash commands available in the
+\"Stash\" section at the head of the buffer."
+  :lighter " Git")
+
 (provide 'vc-git)
 
 ;;; vc-git.el ends here
