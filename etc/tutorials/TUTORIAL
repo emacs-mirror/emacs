@@ -1102,14 +1102,14 @@ The manual also describes many other Emacs features.
 * INSTALLING PACKAGES
 ---------------------
 
-Emacs has a rich set of packages written by the community, which
-extends Emacs' capabilities.  These features include support for new
-languages, additional themes, plugins for integrating with external
-applications and much, much more.
+There's a rich set of packages for Emacs written by the community,
+which extend Emacs' capabilities.  These packages include support for
+new languages, additional themes, plugins for integrating with
+external applications, and much, much more.
 
 To see a list of all available packages, type M-x list-packages.  In
-this mode, you can install or uninstall packages, as well as read
-packages' descriptions.  For more information about package
+the display this shows, you can install or uninstall packages, as well
+as read packages' descriptions.  For more information about package
 management, consult the manual.
 
 
