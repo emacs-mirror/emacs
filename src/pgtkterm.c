@@ -798,14 +798,18 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
       gtk_widget_get_allocation (fixed, &alloc);
       g_object_ref (fixed);
 
+      /* Remember the css provider, and restore it later. */
       GtkCssProvider *provider = FRAME_X_OUTPUT (f)->border_color_css_provider;
+      FRAME_X_OUTPUT (f)->border_color_css_provider = NULL;
+      {
+	GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
+	gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (provider));
+      }
 
       {
 	GtkWidget *whbox_of_f = gtk_widget_get_parent (fixed);
+	/* Here, unhighlight can be called and may change border_color_css_provider. */
 	gtk_container_remove (GTK_CONTAINER (whbox_of_f), fixed);
-
-	GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
-	gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (provider));
 
 	if (FRAME_GTK_OUTER_WIDGET (f))
 	  {
@@ -842,9 +846,17 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
 	  gtk_widget_show_all (fixed);
 	}
 
+      /* Restore css provider. */
       GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
+      GtkCssProvider *old = FRAME_X_OUTPUT (f)->border_color_css_provider;
+      FRAME_X_OUTPUT (f)->border_color_css_provider = provider;
       gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (provider),
 				      GTK_STYLE_PROVIDER_PRIORITY_USER);
+      if (old != NULL)
+	{
+	  gtk_style_context_remove_provider (ctxt, GTK_STYLE_PROVIDER (old));
+	  g_object_unref(old);
+	}
 
       g_object_unref (fixed);
 
