@@ -85,7 +85,8 @@
                  "foo@example.org\\|bar@example.org\\|baz@example.org")))
 
 (ert-deftest mail-utils-tests-mail-rfc822-time-zone ()
-  (should (stringp (mail-rfc822-time-zone (current-time)))))
+  (with-suppressed-warnings ((obsolete mail-rfc822-time-zone))
+    (should (stringp (mail-rfc822-time-zone (current-time))))))
 
 (ert-deftest mail-utils-test-mail-rfc822-date/contains-year ()
   (should (string-match (rx " 20" digit digit " ")
