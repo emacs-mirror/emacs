@@ -716,8 +716,8 @@ that are joined after authentication."
         (setq rcirc-nick-table (make-hash-table :test 'equal))
         (setq rcirc-nick nick)
         (setq rcirc-startup-channels startup-channels)
-        (setq rcirc-last-server-message-time (current-time))
         (setq rcirc-last-connect-time (current-time))
+	(setq rcirc-last-server-message-time rcirc-last-connect-time)
 
         ;; Check if the immediate process state
         (sit-for .1)

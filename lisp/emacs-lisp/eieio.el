@@ -992,11 +992,6 @@ of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
 (define-obsolete-function-alias 'change-class #'eieio-change-class "26.1")
 
-;; Hook ourselves into help system for describing classes and methods.
-;; FIXME: This is not actually needed any more since we can click on the
-;; hyperlink from the constructor's docstring to see the type definition.
-(add-hook 'help-fns-describe-function-functions #'eieio-help-constructor)
-
 (provide 'eieio)
 
 ;;; eieio.el ends here

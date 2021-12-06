@@ -127,7 +127,7 @@ This expects `auto-revert--messages' to be bound by
 `ert-with-message-capture' before calling."
   ;; Remote files do not cooperate well with timers.  So we count ourselves.
   (let ((ct (current-time)))
-    (while (and (< (float-time (time-subtract (current-time) ct))
+    (while (and (< (float-time (time-subtract nil ct))
                    (auto-revert--timeout))
                 (null (string-match
                        (format-message
@@ -167,7 +167,7 @@ This expects `auto-revert--messages' to be bound by
 
 (defun auto-revert-tests--write-file (text file time-delta &optional append)
   (write-region text nil file append 'no-message)
-  (set-file-times file (time-subtract (current-time) time-delta)))
+  (set-file-times file (time-subtract nil time-delta)))
 
 (ert-deftest auto-revert-test00-auto-revert-mode ()
   "Check autorevert for a file."
@@ -453,7 +453,7 @@ This expects `auto-revert--messages' to be bound by
 (defun auto-revert-test--wait-for (pred max-wait)
   "Wait until PRED is true, or MAX-WAIT seconds elapsed."
   (let ((ct (current-time)))
-    (while (and (< (float-time (time-subtract (current-time) ct)) max-wait)
+    (while (and (< (float-time (time-subtract nil ct)) max-wait)
                 (not (funcall pred)))
       (read-event nil nil 0.1))))
 

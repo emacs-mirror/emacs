@@ -55,13 +55,13 @@
   (should (date-leap-year-p 2004)))
 
 (ert-deftest test-days-to-time ()
-  (should (equal (days-to-time 0) '(0 0)))
-  (should (equal (days-to-time 1) '(1 20864)))
-  (should (equal (days-to-time 999) '(1317 2688)))
-  (should (equal (days-to-time 0.0) '(0 0 0 0)))
-  (should (equal (days-to-time 0.5) '(0 43200 0 0)))
-  (should (equal (days-to-time 1.0) '(1 20864 0 0)))
-  (should (equal (days-to-time 999.0) '(1317 2688 0 0))))
+  (should (time-equal-p (days-to-time 0) '(0 0)))
+  (should (time-equal-p (days-to-time 1) '(1 20864)))
+  (should (time-equal-p (days-to-time 999) '(1317 2688)))
+  (should (time-equal-p (days-to-time 0.0) '(0 0 0 0)))
+  (should (time-equal-p (days-to-time 0.5) '(0 43200 0 0)))
+  (should (time-equal-p (days-to-time 1.0) '(1 20864 0 0)))
+  (should (time-equal-p (days-to-time 999.0) '(1317 2688 0 0))))
 
 (ert-deftest test-seconds-to-string ()
   (should (equal (seconds-to-string 0) "0s"))
@@ -170,7 +170,8 @@
 
 (ert-deftest test-time-since ()
   (should (time-equal-p 0 (time-since nil)))
-  (should (= (cadr (time-since (time-subtract (current-time) 1))) 1)))
+  (should (time-equal-p 1 (time-convert (time-since (time-subtract nil 1))
+                                        'integer))))
 
 (ert-deftest test-time-decoded-period ()
   (should (equal (decoded-time-period '(nil nil 1 nil nil nil nil nil nil))

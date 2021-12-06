@@ -572,9 +572,7 @@ REL-DATE, or (current-time) if REL-DATE is nil."
   ;; Time parsing doesn't seem to work with slashes.
   (let ((value (string-replace "/" "-" value))
 	(now (append '(0 0 0)
-		     (seq-subseq (decode-time (or rel-date
-						  (current-time)))
-				 3))))
+		     (seq-subseq (decode-time rel-date) 3))))
     ;; Check for relative time parsing.
     (if (string-match "\\([[:digit:]]+\\)\\([dwmy]\\)" value)
 	(seq-subseq
@@ -1239,8 +1237,7 @@ nil (except that (dd nil yyyy) is not allowed).  Massage those
 numbers into the most recent past occurrence of whichever date
 elements are present."
   (pcase-let ((`(,nday ,nmonth ,nyear)
-	       (seq-subseq (decode-time (current-time))
-			   3 6))
+	       (seq-subseq (decode-time) 3 6))
 	      (`(,dday ,dmonth ,dyear) date))
     (unless (and dday dmonth dyear)
       (unless dday (setq dday 1))

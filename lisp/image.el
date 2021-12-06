@@ -953,9 +953,9 @@ for the animation speed.  A negative value means to animate in reverse."
 		   (progn
 		     (message "Stopping animation; animation possibly too big")
 		     nil)))
-      (image-show-frame image n t)
-      (let* ((speed (image-animate-get-speed image))
-	     (time (current-time))
+      (let* ((time (prog1 (current-time)
+		     (image-show-frame image n t)))
+	     (speed (image-animate-get-speed image))
 	     (time-to-load-image (time-since time))
 	     (stated-delay-time
               (/ (or (cdr (plist-get (cdr image) :animate-multi-frame-data))

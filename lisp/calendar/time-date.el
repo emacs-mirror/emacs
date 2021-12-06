@@ -69,7 +69,7 @@ list (HIGH LOW MICRO PICO)."
 		     (pop elt)))
 	     (time-value (car elt))
 	     (gensym (make-symbol "time")))
-	`(let* ,(append `((,gensym (or ,time-value (current-time)))
+	`(let* ,(append `((,gensym (or ,time-value (time-convert nil 'list)))
 			  (,gensym
 			   (cond
 			    ((integerp ,gensym)

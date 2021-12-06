@@ -540,7 +540,7 @@ Create the thumbnail directory if it does not exist."
 
 (defun image-dired-get-thumbnail-image (file)
   "Return the image descriptor for a thumbnail of image file FILE."
-  (unless (string-match (image-file-name-regexp) file)
+  (unless (string-match-p (image-file-name-regexp) file)
     (error "%s is not a valid image file" file))
   (let* ((thumb-file (image-dired-thumb-name file))
 	 (thumb-attr (file-attributes thumb-file)))
@@ -768,7 +768,7 @@ and remove the cached thumbnail files between each trial run.")
               (image-dired-debug-message
                (format-time-string
                 "Generated thumbnails in %s.%3N seconds"
-                (time-subtract (current-time)
+		(time-subtract nil
                                image-dired--generate-thumbs-start))))
             (if (not (and (eq (process-status process) 'exit)
                           (zerop (process-exit-status process))))
@@ -1593,11 +1593,6 @@ You probably want to use this together with
     (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-3] #'image-dired-mouse-select-thumbnail)
-    ;; Let's disable mouse dragging, as it currently doesn't do
-    ;; anything useful.
-    (define-key map [drag-mouse-1] #'ignore)
-    (define-key map [drag-mouse-2] #'ignore)
-    (define-key map [drag-mouse-3] #'ignore)
     ;; Seems I must first set C-down-mouse-1 to undefined, or else it
     ;; will trigger the buffer menu. If I try to instead bind
     ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message

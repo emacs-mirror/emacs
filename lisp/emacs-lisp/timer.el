@@ -314,7 +314,7 @@ This function is called, by name, directly by the C code."
                          (not (timer--idle-delay timer)))
                 (setf (timer--time timer)
                       (timer-next-integral-multiple-of-time
-                       (current-time) (timer--repeat-delay timer))))
+		       nil (timer--repeat-delay timer))))
               ;; Place it back on the timer-list before running
               ;; timer--function, so it can cancel-timer itself.
               (timer-activate timer t cell)
@@ -391,7 +391,7 @@ This function returns a timer object which you can use in
 
     ;; Special case: t means the next integral multiple of REPEAT.
     (when (and (eq time t) repeat)
-      (setq time (timer-next-integral-multiple-of-time (current-time) repeat))
+      (setq time (timer-next-integral-multiple-of-time nil repeat))
       (setf (timer--integral-multiple timer) t))
 
     ;; Handle numbers as relative times in seconds.

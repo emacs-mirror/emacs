@@ -67,8 +67,7 @@ Return t if any file listed in the Aliasfile MH profile component has
 been modified since the timestamp.
 If ARG is non-nil, set timestamp with the current time."
   (if arg
-      (let ((time (current-time)))
-        (setq mh-alias-tstamp (list (nth 0 time) (nth 1 time))))
+      (setq mh-alias-tstamp (current-time))
     (let ((stamp))
       (car (memq t (mapcar
                     (lambda (file)
