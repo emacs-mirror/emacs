@@ -241,7 +241,7 @@ is greater than 10.
 	 (progn ,@body)
        (tramp--test-message
 	"%s %f sec"
-	,message (float-time (time-subtract (current-time) start))))))
+	,message (float-time (time-subtract nil start))))))
 
 ;; `always' is introduced with Emacs 28.1.
 (defalias 'tramp--test-always

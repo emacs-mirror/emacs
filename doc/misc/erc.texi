@@ -72,7 +72,7 @@ and modified without restriction.
 
 Getting Started
 
-* Sample Session::              Example of connecting to the #emacs channel
+* Sample Session::              Example of connecting to the @samp{#emacs} channel
 * Special Features::            Differences from standalone IRC clients
 
 Advanced Usage
@@ -87,32 +87,31 @@ Advanced Usage
 @node Introduction
 @chapter Introduction
 
-IRC is short for Internet Relay Chat.  When using IRC, you can
-communicate with other users on the same IRC network.  There are
-several of these networks available---if you search for ``IRC
-networks'' in your favorite search engine, you are likely to find
-up-to-date lists of IRC networks catering to various interests and
-topics.
-
-In order to use IRC, you need an IRC client such as ERC.  Using the
-client, you connect to an IRC server.  Once you've done that, you will
-have access to all available channels on that server's network.  A
-channel is basically a chat room, and what you type in a channel will
-be shown to all other users in that channel, and you can be in several
-channels at the same time---most clients will show each channel in its
-own window.  IRC channel names always begin with a @samp{#} character.
-For example, the Emacs channel on Libera.Chat is @samp{#emacs}, and
-the ERC channel is @samp{#erc}.  Do not confuse them with the hashtags
-used on many social media platforms.
-
-It is also possible to send private messages to other IRC
-users on the same network, regardless of whether or not they are in
-the same channel as you.
-
 ERC is a powerful, modular, and extensible IRC client for Emacs.
 It is distributed with Emacs since version 22.1.
 
-It comes with the following capabilities enabled by default.
+IRC is short for Internet Relay Chat.  When using IRC, you can
+communicate with other users on the same IRC network.  There are many
+different networks---if you search for ``IRC networks'' in your
+favorite search engine, you will find up-to-date lists of IRC networks
+catering to various interests and topics.
+
+To use IRC, you need an IRC client such as ERC.  Using the client, you
+connect to an IRC server.  Once you've done that, you will have access
+to all available channels on that server's network.  A channel is
+basically a chat room, and what you type in a channel will be shown to
+all other users in that channel.  You can be in several channels at
+the same time---ERC will show each channel in its own buffer.
+
+IRC channel names always begin with a @samp{#} character.  For
+example, the Emacs channel on Libera.Chat is @samp{#emacs}, and the
+ERC channel is @samp{#erc}.  Do not confuse them with the hashtags
+used on many social media platforms.
+
+You can also send private messages to other IRC users on the same
+network, even if they are not in the same channels as you.
+
+ERC comes with the following capabilities enabled by default.
 
 @itemize @bullet
 @item Flood control
@@ -137,10 +136,10 @@ It comes with the following capabilities enabled by default.
 
 The command @kbd{M-x erc} will start ERC and prompt for the server to
 connect to.  If you're unsure of which server or network to connect
-to, we suggest you start with ``irc.libera.chat''.  There you will
-find the @samp{#emacs} channels where you can chat with other Emacs
-and users, and if you're having trouble with ERC, you can join the
-@samp{#erc} channel and ask for help there.
+to, we suggest starting with ``irc.libera.chat''.  There you will find
+the @samp{#emacs} channels where you can chat with other Emacs users,
+and if you're having trouble with ERC, you can join the @samp{#erc}
+channel and ask for help there.
 
 If you want to place ERC settings in their own file, you can place them
 in @file{~/.emacs.d/.ercrc.el}, creating it if necessary.
@@ -160,14 +159,15 @@ customize-variable @key{RET} erc-modules @key{RET}}.
 @section Sample Session
 
 This is an example ERC session which shows how to connect to the
-#emacs channel on Libera.Chat.  Another IRC channel on Libera.Chat
-that may be of interest is #erc, which is a channel where ERC users
-and developers hang out.  These channels used to live on the Freenode
-IRC network until June 2021, when they---along with the official IRC
-channels of the GNU Project, the Free Software Foundation, and many
-other free software communities---relocated to the Libera.Chat network
-in the aftermath of changes in governance and policies of Freenode in
-May and June 2021.  GNU and FSF's announcements about this are at
+@samp{#emacs} channel on Libera.Chat.  Another IRC channel on
+Libera.Chat that may be of interest is @samp{#erc}, which is a channel
+where ERC users and developers hang out.  These channels used to live
+on the Freenode IRC network until June 2021, when they---along with
+the official IRC channels of the GNU Project, the Free Software
+Foundation, and many other free software communities---relocated to
+the Libera.Chat network in the aftermath of changes in governance and
+policies of Freenode in May and June 2021.  GNU and FSF's
+announcements about this are at
 @uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html},
 @uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html},
 and
@@ -177,7 +177,7 @@ and
 
 @item Connect to Libera.Chat
 
-Run @kbd{M-x erc}.  Use ``irc.libera.chat as the IRC server, ``6667''
+Run @kbd{M-x erc}.  Use ``irc.libera.chat'' as the IRC server, ``6667''
 as the port, and choose a nickname.
 
 @item Get used to the interface
@@ -292,7 +292,7 @@ new command in capital letters.
 If the connection goes away at some point, ERC will try to reconnect
 automatically.  If it fails to reconnect, and you want to try to
 manually reestablish the connection at some later point, switch to an
-ERC  buffer and run the @code{/RECONNECT} command.
+ERC buffer and run the @code{/RECONNECT} command.
 
 @end itemize
 
@@ -959,7 +959,7 @@ over the project entirely.''
 So we happily hacked away on ERC, and soon after (September 2001)
 released the next "stable" version, 2.1.
 
-Most of the development of the new ERC happened on #emacs on
+Most of the development of the new ERC happened on @samp{#emacs} on
 irc.openprojects.net.  Over time, many people contributed code, ideas,
 bugfixes, and a lot of alpha/beta/gamma testing.
 

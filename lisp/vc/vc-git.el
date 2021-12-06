@@ -298,12 +298,14 @@ included in the completions."
              (vc-git--run-command-string nil "version")))
         (setq vc-git--program-version
               (if (and version-string
-                       ;; Git for Windows appends ".windows.N" to the
-                       ;; numerical version reported by Git.
-                       (string-match
-                        "git version \\([0-9.]+\\)\\(\\.windows\\.[0-9]+\\)?$"
-                        version-string))
-                  (match-string 1 version-string)
+                       ;; Some Git versions append additional strings
+                       ;; to the numerical version string. E.g., Git
+                       ;; for Windows appends ".windows.N", while Git
+                       ;; for Mac appends " (Apple Git-N)". Capture
+                       ;; numerical version and ignore the rest.
+                       (string-match "git version \\([0-9][0-9.]+\\)"
+                                     version-string))
+                  (string-trim-right (match-string 1 version-string) "\\.")
                 "0")))))
 
 (defun vc-git--git-status-to-vc-state (code-list)
@@ -1869,6 +1871,16 @@ Returns nil if not possible."
                       (buffer-substring-no-properties (point-min)
                                                       (1- (point-max)))))))
          (and name (not (string= name "undefined")) name))))
+
+(defvar-keymap vc-dir-git-mode-map
+  "z c" #'vc-git-stash
+  "z s" #'vc-git-stash-snapshot)
+
+(define-minor-mode vc-dir-git-mode
+  "A minor mode for git-specific commands in `vc-dir-mode' buffers.
+Also note that there are git stash commands available in the
+\"Stash\" section at the head of the buffer."
+  :lighter " Git")
 
 (provide 'vc-git)
 

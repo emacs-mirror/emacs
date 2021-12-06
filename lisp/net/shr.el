@@ -582,7 +582,7 @@ size, and full-buffer size."
         (setq shr-warning
               "Not rendering the complete page because of too-deep nesting")
       (when style
-	(if (string-match "color\\|display\\|border-collapse" style)
+	(if (string-match-p "color\\|display\\|border-collapse" style)
 	    (setq shr-stylesheet (nconc (shr-parse-style style)
 					shr-stylesheet))
 	  (setq style nil)))
@@ -685,7 +685,7 @@ size, and full-buffer size."
 	(goto-char (point-max)))))
    (t
     (let ((font-start (point)))
-      (when (and (string-match "\\`[ \t\n\r]" text)
+      (when (and (string-match-p "\\`[ \t\n\r]" text)
 		 (not (bolp))
 		 (not (eq (char-after (1- (point))) ? )))
 	(insert " "))
@@ -843,7 +843,7 @@ size, and full-buffer size."
   (cond ((zerop (length url))
          (nth 3 base))
         ((or (not base)
-	     (string-match "\\`[a-z]*:" url))
+	     (string-match-p "\\`[a-z]*:" url))
 	 ;; Absolute or empty URI
 	 url)
 	((eq (aref url 0) ?/)
@@ -1028,7 +1028,7 @@ the mouse click event."
     (let ((param (match-string 4 data))
 	  (payload (url-unhex-string (match-string 5 data))))
       (when (and param
-                 (string-match "^.*\\(;[ \t]*base64\\)$" param))
+                 (string-match-p "^.*\\(;[ \t]*base64\\)$" param))
 	(setq payload (ignore-errors
                         (base64-decode-string payload))))
       payload)))
@@ -1345,7 +1345,7 @@ ones, in case fg and bg are nil."
 	    ;; Filter out blocked elements inside the SVG image.
 	    (not (setq url (dom-attr elem ':xlink:href)))
 	    (not shr-blocked-images)
-	    (not (string-match shr-blocked-images url)))
+	    (not (string-match-p shr-blocked-images url)))
 	(insert " ")
 	(shr-dom-print elem)))))
   (insert (format "</%s>" (dom-tag dom))))
@@ -1432,7 +1432,7 @@ ones, in case fg and bg are nil."
 (defun shr-parse-style (style)
   (when style
     (save-match-data
-      (when (string-match "\n" style)
+      (when (string-search "\n" style)
         (setq style (replace-match " " t t style))))
     (let ((plist nil))
       (dolist (elem (split-string style ";"))
@@ -1491,7 +1491,7 @@ ones, in case fg and bg are nil."
     (let ((start (point))
 	  url multimedia image)
       (when-let* ((type (dom-attr dom 'type)))
-	(when (string-match "\\`image/svg" type)
+	(when (string-match-p "\\`image/svg" type)
 	  (setq url (dom-attr dom 'data)
 		image t)))
       (dolist (child (dom-non-text-children dom))
@@ -1654,7 +1654,7 @@ The preference is a float determined from `shr-prefer-media-type'."
                        (list :width width :height height)))))
 	 ((or shr-inhibit-images
 	      (and shr-blocked-images
-		   (string-match shr-blocked-images url)))
+		   (string-match-p shr-blocked-images url)))
 	  (setq shr-start (point))
           (shr-insert alt))
 	 ((and (not shr-ignore-cache)
@@ -2463,7 +2463,7 @@ flags that control whether to collect or render objects."
 	  (max-width 0)
 	  natural-width)
       (when style
-	(setq style (and (string-match "color" style)
+	(setq style (and (string-search "color" style)
 			 (shr-parse-style style))))
       (when bgcolor
 	(setq style (nconc (list (cons 'background-color bgcolor))

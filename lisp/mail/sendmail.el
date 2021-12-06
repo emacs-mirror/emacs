@@ -1391,8 +1391,7 @@ just append to the file, in Babyl format if necessary."
   (unless (markerp header-end)
     (error "Value of `header-end' must be a marker"))
   (let (fcc-list
-	(mailbuf (current-buffer))
-	(time (current-time)))
+	(mailbuf (current-buffer)))
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search t))
@@ -1408,14 +1407,11 @@ just append to the file, in Babyl format if necessary."
       (with-temp-buffer
 	;; This initial newline is not written out if we create a new
 	;; file (see below).
-	(insert "\nFrom " (user-login-name) " " (current-time-string time) "\n")
-	;; Insert the time zone before the year.
-	(forward-char -1)
-	(forward-word-strictly -1)
 	(require 'mail-utils)
-	(insert (mail-rfc822-time-zone time) " ")
-	(goto-char (point-max))
-	(insert "Date: " (message-make-date) "\n")
+	(insert "\nFrom " (user-login-name) " "
+		(let ((system-time-locale "C"))
+		  (format-time-string "%a %b %e %T %z %Y"))
+		"\nDate: " (message-make-date) "\n")
 	(insert-buffer-substring mailbuf)
 	;; Make sure messages are separated.
 	(goto-char (point-max))

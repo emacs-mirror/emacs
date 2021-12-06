@@ -1787,12 +1787,45 @@ Special value `always' suppresses confirmation."
   "Whether Dired should create destination dirs when copying/removing files.
 If nil, don't create them.
 If `always', create them without asking.
-If `ask', ask for user confirmation."
+If `ask', ask for user confirmation.
+
+Also see `dired-create-destination-dirs-on-trailing-dirsep'."
   :type '(choice (const :tag "Never create non-existent dirs" nil)
 		 (const :tag "Always create non-existent dirs" always)
 		 (const :tag "Ask for user confirmation" ask))
   :group 'dired
   :version "27.1")
+
+(defcustom dired-create-destination-dirs-on-trailing-dirsep nil
+  "If non-nil, treat a trailing slash at queried destination dir specially.
+
+If this variable is non-nil and a single destination filename is
+queried which ends in a directory separator (/), it will be
+treated as a non-existent directory and acted on according to
+`dired-create-destination-dirs'.
+
+This option is only relevant if `dired-create-destination-dirs'
+is non-nil, too.
+
+For example, if both `dired-create-destination-dirs' and this
+option are non-nil, renaming a directory named `old_name' to
+`new_name/' (note the trailing directory separator) where
+`new_name' does not exists already, it will be created and
+`old_name' be moved into it.  If only `new_name' (without the
+trailing /) is given or this option or
+`dired-create-destination-dirs' is `nil', `old_name' will be
+renamed to `new_name'."
+  :type '(choice
+          (const :tag
+                 (concat "Do not treat destination dirs with a "
+                         "trailing directory separator specially")
+                 nil)
+          (const :tag
+                 (concat "Treat destination dirs with trailing "
+                         "directory separator specially")
+                 t))
+  :group 'dired
+  :version "29.1")
 
 (defun dired-maybe-create-dirs (dir)
   "Create DIR if doesn't exist according to `dired-create-destination-dirs'."
@@ -2163,7 +2196,12 @@ Optional arg HOW-TO determines how to treat the target.
 		     target-dir op-symbol arg rfn-list default))))
 	 (into-dir
           (progn
-            (unless dired-one-file (dired-maybe-create-dirs target))
+            (when
+                (or
+                 (not dired-one-file)
+                 (and dired-create-destination-dirs-on-trailing-dirsep
+                      (directory-name-p target)))
+              (dired-maybe-create-dirs target))
             (cond ((null how-to)
 		   ;; Allow users to change the letter case of
 		   ;; a directory on a case-insensitive

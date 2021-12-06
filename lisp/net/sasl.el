@@ -174,21 +174,24 @@ It contain at least 64 bits of entropy."
 
 ;; stolen (and renamed) from message.el
 (defun sasl-unique-id-function ()
-  ;; Don't use microseconds from (current-time), they may be unsupported.
+  ;; Don't use fractional seconds from timestamp; they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq sasl-unique-id-char
-	(% (1+ (or sasl-unique-id-char (logand (random) (1- (ash 1 20)))))
-	   ;; (current-time) returns 16-bit ints,
-	   ;; and 2^16*25 just fits into 4 digits i base 36.
-	   (* 25 25)))
-  (let ((tm (current-time)))
+	;; 2^16 * 25 just fits into 4 digits i base 36.
+	(let ((base (* 25 25)))
+	  (if sasl-unique-id-char
+	      (% (1+ sasl-unique-id-char) base)
+	    (random base))))
+  (let ((tm (time-convert nil 'integer)))
     (concat
      (sasl-unique-id-number-base36
-      (+ (car   tm)
-	 (ash (% sasl-unique-id-char 25) 16)) 4)
+      (+ (ash tm -16)
+	 (ash (% sasl-unique-id-char 25) 16))
+      4)
      (sasl-unique-id-number-base36
-      (+ (nth 1 tm)
-	 (ash (/ sasl-unique-id-char 25) 16)) 4))))
+      (+ (logand tm #xffff)
+	 (ash (/ sasl-unique-id-char 25) 16))
+      4))))
 
 (defun sasl-unique-id-number-base36 (num len)
   (if (if (< len 0)

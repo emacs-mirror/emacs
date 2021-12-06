@@ -808,19 +808,12 @@ also select the new frame."
     new-frame))
 
 (defvar before-make-frame-hook nil
-  "Functions to run before `make-frame' creates a new frame.
-Note that these functions are usually not run for the initial
-frame, except when the initial frame is created from an Emacs
-daemon.")
+  "Functions to run before `make-frame' creates a new frame.")
 
 (defvar after-make-frame-functions nil
   "Functions to run after `make-frame' created a new frame.
 The functions are run with one argument, the newly created
-frame.
-
-Note that these functions are usually not run for the initial
-frame, except when the initial frame is created from an Emacs
-daemon.")
+frame.")
 
 (defvar after-setting-font-hook nil
   "Functions to run after a frame's font has been changed.")

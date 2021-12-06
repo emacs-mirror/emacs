@@ -368,19 +368,12 @@ matches may be returned from the message body."
   labels)
 
 (defun mail-rfc822-time-zone (time)
-  (let* ((sec (or (car (current-time-zone time)) 0))
-	 (absmin (/ (abs sec) 60)))
-    (format "%c%02d%02d" (if (< sec 0) ?- ?+) (/ absmin 60) (% absmin 60))))
+  (declare (obsolete format-time-string "29.1"))
+  (format-time-string "%z" time))
 
 (defun mail-rfc822-date ()
-  (let* ((time (current-time))
-	 (s (current-time-string time)))
-    (string-match "[^ ]+ +\\([^ ]+\\) +\\([^ ]+\\) \\([^ ]+\\) \\([^ ]+\\)" s)
-    (concat (substring s (match-beginning 2) (match-end 2)) " "
-	    (substring s (match-beginning 1) (match-end 1)) " "
-	    (substring s (match-beginning 4) (match-end 4)) " "
-	    (substring s (match-beginning 3) (match-end 3)) " "
-	    (mail-rfc822-time-zone time))))
+  (let ((system-time-locale "C"))
+    (format-time-string "%-d %b %Y %T %z")))
 
 (defun mail-mbox-from ()
   "Return an mbox \"From \" line for the current message.

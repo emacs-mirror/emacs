@@ -368,7 +368,7 @@ maintainer-clean: distclean bootstrap-clean
 .PHONY: check-declare
 
 check-declare:
-	$(emacs) -l check-declare \
+	$(emacs) --batch -l check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'
 
 .PHONY: subdirs subdir-targets generate-test-jobs

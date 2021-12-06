@@ -1749,7 +1749,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'after
 		  match-func 'string<
 		  match (gnus-time-iso8601
-			 (time-subtract (current-time)
+			 (time-subtract nil
 					(* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
@@ -1758,7 +1758,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'before
 		  match-func 'gnus-string>
 		  match (gnus-time-iso8601
-			 (time-subtract (current-time)
+			 (time-subtract nil
 					(* 86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=

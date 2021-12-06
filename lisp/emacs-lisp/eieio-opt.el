@@ -130,6 +130,7 @@ are not abstract."
 ;;;###autoload
 (defun eieio-help-constructor (ctr)
   "Describe CTR if it is a class constructor."
+  (declare (obsolete "use `describe-function' or `cl--describe-class'." "29.1"))
   (when (class-p ctr)
     (erase-buffer)
     (let ((location (find-lisp-object-file-name ctr 'define-type))

@@ -1595,7 +1595,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       "%s" (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       (current-time)
+	       nil
 	     time)))))
 
 (defun tramp-gvfs-handle-get-remote-uid (vec id-format)
