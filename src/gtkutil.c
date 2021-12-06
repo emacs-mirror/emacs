@@ -684,8 +684,13 @@ xg_check_special_colors (struct frame *f,
   block_input ();
   {
 #ifdef HAVE_GTK3
+#ifndef HAVE_PGTK
     GtkStyleContext *gsty
       = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+#else
+    GtkStyleContext *gsty
+      = gtk_widget_get_style_context (FRAME_WIDGET (f));
+#endif
     GdkRGBA col;
     char buf[sizeof "rgb://rrrr/gggg/bbbb"];
     int state = GTK_STATE_FLAG_SELECTED|GTK_STATE_FLAG_FOCUSED;
