@@ -742,6 +742,15 @@ never creates such missing directories;  the value @code{always},
 means Dired automatically creates them; the value @code{ask}
 means Dired asks you for confirmation before creating them.
 
+@vindex dired-create-destination-dirs-on-trailing-dirsep
+If the option @code{dired-create-destination-dirs-on-trailing-dirsep}
+is non-@code{nil} in addition to @code{dired-create-destination-dirs},
+a trailing directory separator at the destination directory is treated
+specially.  In that case, when copying to @samp{test/} and no
+directory @samp{test} exists already, it will be created and the
+specified source files or directories are copied into the newly
+created directory.
+
 @vindex dired-copy-preserve-time
 If @code{dired-copy-preserve-time} is non-@code{nil}, then copying
 with this command preserves the modification time of the old file in
@@ -783,6 +792,14 @@ which to move the files (this is like the shell command @command{mv}).
 
 The option @code{dired-create-destination-dirs} controls whether Dired
 should create non-existent directories in @var{new}.
+
+The option @code{dired-create-destination-dirs-on-trailing-dirsep},
+when set in addition to @code{dired-create-destination-dirs}, controls
+wether a trailing directory separator at the destination is treated
+specially.  In that case, when renaming a directory @samp{old} to
+@samp{new/} and no directory @samp{new} exists already, it will be
+created and @samp{old} is moved into the newly created directory.
+Otherwise, @samp{old} is renamed to @samp{new}.
 
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
