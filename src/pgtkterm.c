@@ -860,12 +860,13 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
 
       g_object_unref (fixed);
 
-      if (FRAME_GTK_OUTER_WIDGET (f)) {
-	if (EQ (x_gtk_resize_child_frames, Qresize_mode))
-	  gtk_container_set_resize_mode
-	    (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
-	     p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
-      }
+      if (FRAME_GTK_OUTER_WIDGET (f))
+	{
+	  if (EQ (x_gtk_resize_child_frames, Qresize_mode))
+	    gtk_container_set_resize_mode
+	      (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
+	       p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+	}
 
       unblock_input ();
 
