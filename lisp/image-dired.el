@@ -768,7 +768,7 @@ and remove the cached thumbnail files between each trial run.")
               (image-dired-debug-message
                (format-time-string
                 "Generated thumbnails in %s.%3N seconds"
-                (time-subtract (current-time)
+		(time-subtract nil
                                image-dired--generate-thumbs-start))))
             (if (not (and (eq (process-status process) 'exit)
                           (zerop (process-exit-status process))))

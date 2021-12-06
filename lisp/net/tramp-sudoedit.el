@@ -534,7 +534,7 @@ the result will be a local, non-Tramp, file name."
 	   (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       (current-time)
+	       nil
 	     time)))
       (tramp-sudoedit-send-command
        v "env" "TZ=UTC" "touch" "-t"

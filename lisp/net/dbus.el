@@ -2102,7 +2102,7 @@ has been handled by this function."
 	   (interface (dbus-event-interface-name event))
 	   (member (dbus-event-member-name event))
            (arguments (dbus-event-arguments event))
-           (time (time-to-seconds (current-time))))
+	   (time (float-time)))
       (save-excursion
         ;; Check for matching method-call.
         (goto-char (point-max))
