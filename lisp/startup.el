@@ -1989,8 +1989,9 @@ splash screen in another window."
       (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22)
       (setq buffer-read-only t)
+      ;; Place point somewhere it doesn't cover a character.
       (goto-char (point-min))
-      (forward-line 3))))
+      (re-search-forward "\n$" nil nil 2))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.

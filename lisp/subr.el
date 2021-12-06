@@ -61,7 +61,8 @@ must be the first non-whitespace on a line.
 For more information, see Info node `(elisp)Declaring Functions'."
   (declare (advertised-calling-convention
 	    (fn file &optional arglist fileonly) nil))
-  ;; Does nothing - byte-compile-declare-function does the work.
+  ;; Does nothing - `byte-compile-macroexpand-declare-function' does
+  ;; the work.
   nil)
 
 
