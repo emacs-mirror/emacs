@@ -5948,12 +5948,9 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 
 (defun message-make-expires ()
   "Return an Expires header based on `message-expires'."
-  (let ((current (current-time))
-	(future (* 1.0 message-expires 60 60 24)))
+  (let ((future (* 60 60 24 message-expires)))
     ;; Add the future to current.
-    (setcar current (+ (car current) (round (/ future (expt 2 16)))))
-    (setcar (cdr current) (+ (nth 1 current) (% (round future) (expt 2 16))))
-    (message-make-date current)))
+    (message-make-date (time-add nil future))))
 
 (defun message-make-path ()
   "Return uucp path."
