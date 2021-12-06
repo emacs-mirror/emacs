@@ -288,7 +288,7 @@ mnemonics of the following coding systems:
 Value is used for `mode-line-frame-identification', which see."
   (if (or (null window-system)
 	  (eq window-system 'pc))
-      "-%F  "
+      " %F  "
     "  "))
 
 ;; We need to defer the call to mode-line-frame-control to the time
