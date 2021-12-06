@@ -1456,7 +1456,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 `file-notify' events."
   (let* ((events (process-get proc 'events))
 	 (rest-string (process-get proc 'rest-string))
-	 (dd (with-current-buffer (process-buffer proc) default-directory))
+	 (dd (tramp-get-default-directory (process-buffer proc)))
 	 (ddu (regexp-quote (tramp-gvfs-url-file-name dd))))
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))

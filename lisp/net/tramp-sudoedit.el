@@ -453,12 +453,13 @@ the result will be a local, non-Tramp, file name."
 	  (if (file-directory-p (expand-file-name f directory))
 	      (file-name-as-directory f)
 	    f))
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (l) (and (not (string-match-p "^[[:space:]]*$" l)) l))
-	    (split-string (buffer-string) "\n" 'omit)))))))))
+	(delq
+	 nil
+	 (mapcar
+	  (lambda (l) (and (not (string-match-p "^[[:space:]]*$" l)) l))
+	  (split-string
+	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	   "\n" 'omit))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."

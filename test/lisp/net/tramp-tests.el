@@ -219,8 +219,7 @@ is greater than 10.
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (untrace-all)
 	 (dolist (buf (tramp-list-tramp-buffers))
-	   (with-current-buffer buf
-	     (message ";; %s\n%s" buf (buffer-string)))
+	   (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
 	   (kill-buffer buf))))))
 
 (defsubst tramp--test-message (fmt-string &rest arguments)
@@ -5054,8 +5053,8 @@ INPUT, if non-nil, is a string sent to the process."
 		   "echo foo >&2; echo bar" (current-buffer) stderr)
 		  (should (string-equal "bar\n" (buffer-string)))
 		  ;; Check stderr.
-		  (with-current-buffer stderr
-		    (should (string-equal "foo\n" (buffer-string)))))
+		  (should
+		   (string-equal "foo\n" (tramp-get-buffer-string stderr))))
 
 	      ;; Cleanup.
 	      (ignore-errors (kill-buffer stderr))))))

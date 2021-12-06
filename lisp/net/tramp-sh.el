@@ -2601,7 +2601,7 @@ The method used must be an out-of-band method."
 	;; We cannot use `insert-buffer-substring' because the Tramp
 	;; buffer changes its contents before insertion due to calling
 	;; `expand-file-name' and alike.
-	(insert (with-current-buffer (tramp-get-buffer v) (buffer-string)))
+	(insert (tramp-get-buffer-string (tramp-get-buffer v)))
 
 	;; We must enable unibyte strings, because the "--dired"
 	;; output counts in bytes.
@@ -3160,8 +3160,7 @@ implementation will be used."
 	    (when outbuf
 	      (with-current-buffer outbuf
                 (insert
-                 (with-current-buffer (tramp-get-connection-buffer v)
-                   (buffer-string))))
+		 (tramp-get-buffer-string (tramp-get-connection-buffer v))))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
@@ -3475,8 +3474,7 @@ implementation will be used."
 			 (not
 			  (string-equal
 			   (buffer-string)
-			   (with-current-buffer (tramp-get-buffer v)
-			     (buffer-string))))
+			   (tramp-get-buffer-string (tramp-get-buffer v))))
 			 (tramp-error
 			  v 'file-error
 			  (concat "Couldn't write region to `%s',"
@@ -3770,8 +3768,7 @@ Fall back to normal file name handler if no Tramp handler exists."
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'events))
 	(remote-prefix
-	 (with-current-buffer (process-buffer proc)
-	   (file-remote-p default-directory)))
+	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
 	(rest-string (process-get proc 'rest-string))
 	pos)
     (when rest-string
