@@ -159,7 +159,7 @@ the current date/time, buffer name, how many seconds ago it was
 displayed (can be nil if the buffer was never displayed) and its
 lifetime, i.e., its \"age\" when it will be purged."
   (interactive)
-  (let ((tm (current-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
+  (let* ((tm (current-time)) bts (ts (format-time-string "%Y-%m-%d %T" tm))
         delay cbld bn)
     (dolist (buf (buffer-list))
       (when (buffer-live-p buf)
