@@ -133,7 +133,7 @@ This is only effective if supported by your mouse or touchpad."
   :type 'float
   :version "29.1")
 
-(defcustom pixel-scroll-precision-large-scroll-height 70
+(defcustom pixel-scroll-precision-large-scroll-height nil
   "Pixels that must be scrolled before an animation is performed.
 Nil means to not interpolate such scrolls."
   :group 'mouse
@@ -441,14 +441,13 @@ the height of the current window."
         (set-window-vscroll nil (+ (window-vscroll nil t)
                                    delta)
                             t)
-      (unless (eq (window-start) desired-start)
-        (set-window-start nil (if (zerop (window-hscroll))
-                                  desired-start
-                                (save-excursion
-                                  (goto-char desired-start)
-                                  (beginning-of-visual-line)
-                                  (point)))
-                          t))
+      (set-window-start nil (if (zerop (window-hscroll))
+                                desired-start
+                              (save-excursion
+                                (goto-char desired-start)
+                                (beginning-of-visual-line)
+                                (point)))
+                        t)
       (set-window-vscroll nil desired-vscroll t))
     (if (and (or (< (point) next-pos))
              (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
