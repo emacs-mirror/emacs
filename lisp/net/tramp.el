@@ -1866,6 +1866,20 @@ version, the function does nothing."
        :user        ,(file-remote-p default-directory 'user)
        :machine     ,(file-remote-p default-directory 'host)))))
 
+(defsubst tramp-get-default-directory (buffer)
+  "Return `default-directory' of BUFFER."
+  (buffer-local-value 'default-directory buffer))
+
+(put #'tramp-get-default-directory 'tramp-suppress-trace t)
+
+(defsubst tramp-get-buffer-string (&optional buffer)
+  "Return contents of BUFFER.
+If BUFFER is not a buffer, return the contents of `current-buffer'."
+  (with-current-buffer (if (bufferp buffer) buffer (current-buffer))
+    (substring-no-properties (buffer-string))))
+
+(put #'tramp-get-buffer-string 'tramp-suppress-trace t)
+
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."
   (let ((method (tramp-file-name-method vec))
@@ -2084,12 +2098,15 @@ applicable)."
 	  ;; Append connection buffer for error messages, if exists.
 	  (when (= level 1)
 	    (ignore-errors
-	      (with-current-buffer
-		  (if (processp vec-or-proc)
-		      (process-buffer vec-or-proc)
-		    (tramp-get-connection-buffer vec-or-proc 'dont-create))
-		(setq fmt-string (concat fmt-string "\n%s")
-		      arguments (append arguments (list (buffer-string)))))))
+	      (setq fmt-string (concat fmt-string "\n%s")
+		    arguments
+		    (append
+		     arguments
+		     `(,(tramp-get-buffer-string
+			 (if (processp vec-or-proc)
+			     (process-buffer vec-or-proc)
+			   (tramp-get-connection-buffer
+			    vec-or-proc 'dont-create))))))))
 	  ;; Translate proc to vec.
 	  (when (processp vec-or-proc)
 	    (setq vec-or-proc (process-get vec-or-proc 'vector))))
@@ -2151,8 +2168,8 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 		    (and (tramp-file-name-p vec-or-proc)
 			 (tramp-get-connection-buffer vec-or-proc))))
 	   (vec (or (and (tramp-file-name-p vec-or-proc) vec-or-proc)
-		    (and buf (with-current-buffer buf
-			       (tramp-dissect-file-name default-directory))))))
+		    (and buf (tramp-dissect-file-name
+			      (tramp-get-default-directory buf))))))
       (unwind-protect
 	  (apply #'tramp-error vec-or-proc signal fmt-string arguments)
 	;; Save exit.
@@ -2567,8 +2584,7 @@ Must be handled by the callers."
    ;; PROC.
    ((member operation '(file-notify-rm-watch file-notify-valid-p))
     (when (processp (nth 0 args))
-      (with-current-buffer (process-buffer (nth 0 args))
-	default-directory)))
+      (tramp-get-default-directory (process-buffer (nth 0 args)))))
    ;; VEC.
    ((member operation '(tramp-get-remote-gid tramp-get-remote-uid))
     (tramp-make-tramp-file-name (nth 0 args)))
@@ -2845,7 +2861,7 @@ whether HANDLER is to be called.  Add operations defined in
 (defun tramp-command-completion-p (_symbol buffer)
   "A predicate for Tramp interactive commands.
 They are completed by \"M-x TAB\" only if the current buffer is remote."
-  (with-current-buffer buffer (tramp-tramp-file-p default-directory)))
+  (tramp-tramp-file-p (tramp-get-default-directory buffer)))
 
 (defun tramp-connectable-p (vec-or-filename)
   "Check, whether it is possible to connect the remote host w/o side-effects.
@@ -4705,8 +4721,8 @@ of."
 		    (save-window-excursion
 		      (pop-to-buffer (tramp-get-connection-buffer vec))
 		      (read-string (match-string 0)))))))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 6 "\n%s" (buffer-string)))
+    (tramp-message
+     vec 6 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
     (tramp-message vec 3 "Sending login name `%s'" user)
     (tramp-send-string vec (concat user tramp-local-end-of-line)))
   t)
@@ -4749,8 +4765,8 @@ See also `tramp-action-yn'."
     (unless (yes-or-no-p (match-string 0))
       (kill-process proc)
       (throw 'tramp-action 'permission-denied))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 6 "\n%s" (buffer-string)))
+    (tramp-message
+     vec 6 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
     (tramp-send-string vec (concat "yes" tramp-local-end-of-line)))
   t)
 
@@ -4763,8 +4779,8 @@ See also `tramp-action-yesno'."
     (unless (y-or-n-p (match-string 0))
       (kill-process proc)
       (throw 'tramp-action 'permission-denied))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 6 "\n%s" (buffer-string)))
+    (tramp-message
+     vec 6 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
     (tramp-send-string vec (concat "y" tramp-local-end-of-line)))
   t)
 
@@ -4772,15 +4788,15 @@ See also `tramp-action-yesno'."
   "Tell the remote host which terminal type to use.
 The terminal type can be configured with `tramp-terminal-type'."
   (tramp-message vec 5 "Setting `%s' as terminal type." tramp-terminal-type)
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (tramp-message vec 6 "\n%s" (buffer-string)))
+  (tramp-message
+   vec 6 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
   (tramp-send-string vec (concat tramp-terminal-type tramp-local-end-of-line))
   t)
 
 (defun tramp-action-confirm-message (_proc vec)
   "Return RET in order to confirm the message."
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (tramp-message vec 6 "\n%s" (buffer-string)))
+  (tramp-message
+   vec 6 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
   (tramp-send-string vec tramp-local-end-of-line)
   t)
 
@@ -5068,8 +5084,8 @@ nil."
     ;; The process could have timed out, for example due to session
     ;; timeout of sudo.  The process buffer does not exist any longer then.
     (ignore-errors
-      (with-current-buffer (process-buffer proc)
-	(tramp-message proc 6 "\n%s" (buffer-string))))
+      (tramp-message
+       proc 6 "\n%s" (tramp-get-buffer-string (process-buffer proc))))
     (unless found
       (if timeout
 	  (tramp-error
@@ -5590,14 +5606,12 @@ are written with verbosity of 6."
 	(with-temp-buffer
 	  (setq result
 		(apply
-		 #'call-process program infile (or destination t) display args))
+		 #'call-process program infile (or destination t) display args)
+		output (tramp-get-buffer-string destination))
 	  ;; `result' could also be an error string.
 	  (when (stringp result)
 	    (setq error result
-		  result 1))
-	  (with-current-buffer
-	      (if (bufferp destination) destination (current-buffer))
-	    (setq output (buffer-string))))
+		  result 1)))
       (error
        (setq error (error-message-string err)
 	     result 1)))
@@ -5628,10 +5642,10 @@ are written with verbosity of 6."
 	  ;; `result' could also be an error string.
 	  (when (stringp result)
 	    (signal 'file-error (list result)))
-	  (with-current-buffer (if (bufferp buffer) buffer (current-buffer))
-            (if (zerop result)
-                (tramp-message vec 6 "%d" result)
-              (tramp-message vec 6 "%d\n%s" result (buffer-string)))))
+          (if (zerop result)
+              (tramp-message vec 6 "%d" result)
+            (tramp-message
+	     vec 6 "%d\n%s" result (tramp-get-buffer-string buffer))))
       (error
        (setq result 1)
        (tramp-message vec 6 "%d\n%s" result (error-message-string err))))
@@ -5696,7 +5710,7 @@ Invokes `password-read' if available, `read-passwd' else."
 		(format "%s for %s " (capitalize (match-string 1)) key))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
 	 ;; Use connection-local value.
-	 (auth-sources (with-current-buffer (process-buffer proc) auth-sources))
+	 (auth-sources (buffer-local-value 'auth-sources (process-buffer proc)))
 	 ;; We suspend the timers while reading the password.
          (stimers (with-timeout-suspend))
 	 auth-info auth-passwd)
@@ -5922,5 +5936,11 @@ BODY is the backend specific code."
 ;;   and friends, for most of the handlers this is the major
 ;;   difference between the different backends.  Other handlers but
 ;;   *-process-file would profit from this as well.
+;;
+;; * Implement file name abbreviation for a different user.  That is,
+;;   (abbreviate-file-name "/ssh:user1@host:/home/user2") =>
+;;   "/ssh:user1@host:~user2".
+;;
+;; * Implement file name abbreviation for user and host names.
 
 ;;; tramp.el ends here
