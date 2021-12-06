@@ -95,10 +95,7 @@ if nil, the local time zone is assumed."
 Optional argument TIMEZONE specifies a time zone."
   (let ((zone
 	 (if (listp timezone)
-	     (let* ((m (timezone-zone-to-minute timezone))
-		    (absm (if (< m 0) (- m) m)))
-	       (format "%c%02d%02d"
-		       (if (< m 0) ?- ?+) (/ absm 60) (% absm 60)))
+	     (format-time-string "%z" 0 (or timezone 0))
 	   timezone)))
     (format "%02d %s %04d %s %s"
 	    day
