@@ -170,8 +170,7 @@ extension beyond end of line was not controllable."
   (defsubst file-attribute-modification-time (attributes)
     "The modification time in ATTRIBUTES returned by `file-attributes'.
 This is the time of the last change to the file's contents, and
-is a list of integers (HIGH LOW USEC PSEC) in the same style
-as (current-time)."
+is a Lisp timestamp in the same style as `current-time'."
     (nth 5 attributes)))
 
 (unless (fboundp 'file-attribute-size)
