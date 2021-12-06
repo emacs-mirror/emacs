@@ -1122,10 +1122,10 @@ Manualen beskriver även många andra funktioner i Emacs.
 * INSTALLERA PAKET
 ------------------
 
-Emacs har en stor uppsättning paket skrivna av användare, som utökar
-Emacs funktionalitet. Detta kan innefatta stöd för nya språk, fler
-teman, insticksmoduler för integration med externa program och mycket,
-mycket annat.
+Det finns en stor mängd paket för Emacs skrivna av användare, som
+utökar Emacs funktionalitet. Detta kan innefatta stöd för nya språk,
+fler teman, insticksmoduler för integration med externa program och
+mycket, mycket annat.
 
 Skriv M-x list-packages för att se en lista över alla tillgängliga
 paket. I detta läge kan du installera eller avinstallera paket samt
