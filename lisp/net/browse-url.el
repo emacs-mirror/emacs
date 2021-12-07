@@ -307,26 +307,6 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :version "24.1")
 
-(defcustom browse-url-galeon-program "galeon"
-  "The name by which to invoke Galeon."
-  :type 'string)
-
-(make-obsolete-variable 'browse-url-galeon-program nil "25.1")
-
-(defcustom browse-url-galeon-arguments nil
-  "A list of strings to pass to Galeon as arguments."
-  :type '(repeat (string :tag "Argument")))
-
-(make-obsolete-variable 'browse-url-galeon-arguments nil "25.1")
-
-(defcustom browse-url-galeon-startup-arguments browse-url-galeon-arguments
-  "A list of strings to pass to Galeon when it starts up.
-Defaults to the value of `browse-url-galeon-arguments' at the time
-`browse-url' is loaded."
-  :type '(repeat (string :tag "Argument")))
-
-(make-obsolete-variable 'browse-url-galeon-startup-arguments nil "25.1")
-
 (defcustom browse-url-epiphany-program "epiphany"
   "The name by which to invoke Epiphany."
   :type 'string)
@@ -378,14 +358,6 @@ If non-nil, then open the URL in a new buffer rather than a new window if
   :type 'boolean)
 
 (make-obsolete-variable 'browse-url-conkeror-new-window-is-buffer nil "28.1")
-
-(defcustom browse-url-galeon-new-window-is-tab nil
-  "Whether to open up new windows in a tab or a new window.
-If non-nil, then open the URL in a new tab rather than a new window if
-`browse-url-galeon' is asked to open it in a new window."
-  :type 'boolean)
-
-(make-obsolete-variable 'browse-url-galeon-new-window-is-tab nil "25.1")
 
 (defcustom browse-url-epiphany-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
@@ -1007,7 +979,6 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
     ((executable-find browse-url-chromium-program) 'browse-url-chromium)
-;;;    ((executable-find browse-url-galeon-program) 'browse-url-galeon)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-webpositive-program) 'browse-url-webpositive)
@@ -1161,56 +1132,6 @@ The optional argument NEW-WINDOW is not used."
 	    (list url)))))
 
 (function-put 'browse-url-chrome 'browse-url-browser-kind 'external)
-
-;;;###autoload
-(defun browse-url-galeon (url &optional new-window)
-  "Ask the Galeon WWW browser to load URL.
-Default to the URL around or before point.  The strings in variable
-`browse-url-galeon-arguments' are also passed to Galeon.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new Galeon window, otherwise use a
-random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-flag'.
-
-If `browse-url-galeon-new-window-is-tab' is non-nil, then whenever a
-document would otherwise be loaded in a new window, it is loaded in a
-new tab in an existing window instead.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'."
-  (declare (obsolete nil "25.1"))
-  (interactive (browse-url-interactive-arg "URL: "))
-  (setq url (browse-url-encode-url url))
-  (let* ((process-environment (browse-url-process-environment))
-         (process (apply #'start-process
-			 (concat "galeon " url)
-			 nil
-			 browse-url-galeon-program
-			 (append
-			  browse-url-galeon-arguments
-                          (if (browse-url-maybe-new-window new-window)
-			      (if browse-url-galeon-new-window-is-tab
-				  '("--new-tab")
-				'("--new-window" "--noraise"))
-                            '("--existing"))
-                          (list url)))))
-    (set-process-sentinel process
-			  (lambda (process _change)
-			    (browse-url-galeon-sentinel process url)))))
-
-(function-put 'browse-url-galeon 'browse-url-browser-kind 'external)
-
-(defun browse-url-galeon-sentinel (process url)
-  "Handle a change to the process communicating with Galeon."
-  (declare (obsolete nil "25.1"))
-  (or (eq (process-exit-status process) 0)
-      (let* ((process-environment (browse-url-process-environment)))
-	;; Galeon is not running - start it
-	(message "Starting %s..." browse-url-galeon-program)
-	(apply #'start-process (concat "galeon " url) nil
-	       browse-url-galeon-program
-	       (append browse-url-galeon-startup-arguments (list url))))))
 
 (defun browse-url-epiphany (url &optional new-window)
   "Ask the Epiphany WWW browser to load URL.
