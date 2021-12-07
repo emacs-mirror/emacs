@@ -632,7 +632,7 @@ disabled by default.
 @item setq
 @cmindex setq
 Set variable values, using the function @code{setq} like a command.
-@xref{Setting variables,,, elisp, GNU Emacs Lisp Reference Manual}.
+@xref{Setting Variables,,, elisp, GNU Emacs Lisp Reference Manual}.
 
 @item source
 @cmindex source
