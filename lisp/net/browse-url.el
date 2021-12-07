@@ -258,11 +258,13 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument")))
 
+(defun browse-url--find-executable (candidates default)
+  (while (and candidates (not (executable-find (car candidates))))
+    (setq candidates (cdr candidates)))
+  (or (car candidates) default))
+
 (defcustom browse-url-firefox-program
-  (let ((candidates '("icecat" "iceweasel" "firefox")))
-    (while (and candidates (not (executable-find (car candidates))))
-      (setq candidates (cdr candidates)))
-    (or (car candidates) "firefox"))
+  (browse-url--find-executable '("icecat" "iceweasel") "firefox")
   "The name by which to invoke Firefox or a variant of it."
   :type 'string)
 
@@ -280,10 +282,8 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
                         "it no longer has any effect." "24.5")
 
 (defcustom browse-url-chrome-program
-  (let ((candidates '("google-chrome-stable" "google-chrome")))
-    (while (and candidates (not (executable-find (car candidates))))
-      (setq candidates (cdr candidates)))
-    (or (car candidates) "chromium"))
+  (browse-url--find-executable '("google-chrome-stable" "google-chrome")
+                               "chromium")
   "The name by which to invoke the Chrome browser."
   :type 'string
   :version "25.1")
@@ -294,10 +294,7 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :version "25.1")
 
 (defcustom browse-url-chromium-program
-  (let ((candidates '("chromium" "chromium-browser")))
-    (while (and candidates (not (executable-find (car candidates))))
-      (setq candidates (cdr candidates)))
-    (or (car candidates) "chromium"))
+  (browse-url--find-executable '("chromium" "chromium-browser") "chromium")
   "The name by which to invoke Chromium."
   :type 'string
   :version "24.1")
