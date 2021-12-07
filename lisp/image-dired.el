@@ -1445,11 +1445,20 @@ for.  The default is to look for `dired-marker-char'."
   "In Dired, return t if file on current line is flagged for deletion."
   (image-dired-dired-file-marked-p dired-del-marker))
 
+(defmacro image-dired--with-thumbnail-buffer (&rest body)
+  (declare (indent defun) (debug t))
+  `(if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+       (with-current-buffer buf
+         (if-let ((win (get-buffer-window buf)))
+             (with-selected-window win
+               ,@body)
+           ,@body))
+     (user-error "No such buffer: %s" image-dired-thumbnail-buffer)))
+
 (defmacro image-dired--on-file-in-dired-buffer (&rest body)
   "Run BODY with point on file at point in Dired buffer.
 Should be called from commands in `image-dired-thumbnail-mode'."
-  (declare (indent defun)
-           (debug 1))
+  (declare (indent defun) (debug t))
   `(let ((file-name (image-dired-original-file-name))
          (dired-buf (image-dired-associated-dired-buffer)))
      (if (not (and dired-buf file-name))
@@ -1461,40 +1470,45 @@ Should be called from commands in `image-dired-thumbnail-mode'."
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-mark 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired--on-file-in-dired-buffer
+      (dired-mark 1))
+    (image-dired-forward-image)))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-unmark 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired--on-file-in-dired-buffer
+      (dired-unmark 1))
+    (image-dired-forward-image)))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-flag-file-deletion 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired--on-file-in-dired-buffer
+      (dired-flag-file-deletion 1))
+    (image-dired-forward-image)))
 
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (if (image-dired-dired-file-marked-p)
-        (dired-unmark 1)
-      (dired-mark 1))))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired--on-file-in-dired-buffer
+      (if (image-dired-dired-file-marked-p)
+          (dired-unmark 1)
+        (dired-mark 1)))))
 
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files in associated Dired buffer.
 Also update the marks in the thumbnail buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (with-current-buffer (image-dired-associated-dired-buffer)
-    (dired-unmark-all-marks))
-  (image-dired-thumb-update-marks))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (with-current-buffer (image-dired-associated-dired-buffer)
+      (dired-unmark-all-marks))
+    (image-dired-thumb-update-marks)))
 
 (defun image-dired-jump-original-dired-buffer ()
   "Jump to the Dired buffer associated with the current image file.
@@ -1638,16 +1652,16 @@ You probably want to use this together with
 (defvar image-dired-display-image-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "S" #'image-dired-slideshow-start)
+    (define-key map (kbd "SPC") #'image-dired-display-next-thumbnail-original)
+    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
+    (define-key map "n" #'image-dired-display-next-thumbnail-original)
+    (define-key map "p" #'image-dired-display-previous-thumbnail-original)
+    (define-key map "m" #'image-dired-mark-thumb-original-file)
+    (define-key map "d" #'image-dired-flag-thumb-original-file)
+    (define-key map "u" #'image-dired-unmark-thumb-original-file)
+    (define-key map "U" #'image-dired-unmark-all-marks)
     ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
     (define-key map "o" nil) ; image-save
-    (define-key map "n" nil) ; image-next-file
-    (define-key map "p" nil) ; image-previous-file
-    ;; FIXME: Should be replaced with image-dired commands.
-    (define-key map (kbd "DEL") nil) ; image-next-file
-    (define-key map (kbd "SPC") nil) ; image-next-file
-    ;; FIXME: Should be replaced with image-dired commands.
-    (define-key map "m" nil) ; image-mode-mark-file
-    (define-key map "u" nil) ; image-mode-unmark-file
     map)
   "Keymap for `image-dired-display-image-mode'.")
 
@@ -2129,16 +2143,17 @@ function.  The result is a couple of new files in
 ;;; Thumbnail mode (cont.)
 
 (defun image-dired-display-next-thumbnail-original (&optional arg)
-  "In thumbnail buffer, move to next thumbnail and display the image.
+  "Move to the next image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode)
-  (image-dired-forward-image arg t)
-  (image-dired-display-thumbnail-original-image))
+  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired-forward-image arg t)
+    (image-dired-display-thumbnail-original-image)))
 
 (defun image-dired-display-previous-thumbnail-original (arg)
-  "In thumbnail buffer, move to previous thumbnail and display image.
+  "Move to the previous image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode)
+  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
   (image-dired-display-next-thumbnail-original (- arg)))
 
 

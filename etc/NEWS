@@ -553,6 +553,16 @@ user options that are no longer needed are now obsolete:
 'image-dired-temp-image-file'.
 
 ---
+*** Navigation and marking commands now work in image display buffer.
+The following new bindings have been added:
+
+  n / SPC   image-dired-display-previous-thumbnail-original
+  p / DEL   image-dired-display-next-thumbnail-original
+  m         image-dired-mark-thumb-original-file
+  d         image-dired-flag-thumb-original-file
+  u         image-dired-unmark-thumb-original-file
+
+---
 *** Reduce dependency on external "exiftool" command.
 The 'image-dired-copy-with-exif-file-name' no longer requires an
 external "exiftool" command to be available.  The user options
@@ -562,7 +572,7 @@ external "exiftool" command to be available.  The user options
 ---
 *** New command for the thumbnail buffer.
 The new command 'image-dired-unmark-all-marks' has been added.  It is
-bound to 'U' in the thumbnail buffer.
+bound to 'U' in the thumbnail and display buffer.
 
 ---
 *** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
