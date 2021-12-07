@@ -1874,7 +1874,8 @@ Returns nil if not possible."
 
 (defvar-keymap vc-dir-git-mode-map
   "z c" #'vc-git-stash
-  "z s" #'vc-git-stash-snapshot)
+  "z s" #'vc-git-stash-snapshot
+  "z p" #'vc-git-stash-pop)
 
 (define-minor-mode vc-dir-git-mode
   "A minor mode for git-specific commands in `vc-dir-mode' buffers.
