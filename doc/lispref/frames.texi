@@ -171,7 +171,9 @@ usually not run for the initial frame, since Emacs reads the initial
 file only after creating that frame.  However, if the initial frame is
 specified to use a separate minibuffer frame (@pxref{Minibuffers and
 Frames}), the functions will be run for both, the minibuffer-less and
-the minibuffer frame.
+the minibuffer frame.  Alternatively, you can add functions to these
+hooks in your ``early init file'' (@pxref{Init File}), in which case
+they will be in effect for the initial frame as well.
 
 @defvar frame-inherited-parameters
 This variable specifies the list of frame parameters that a newly
