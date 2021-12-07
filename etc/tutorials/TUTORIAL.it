@@ -1178,14 +1178,27 @@ quei file.  Dired è descritta nel manuale Emacs nel nodo chiamato
 Il manuale descrive molte altre funzionalità di Emacs.
 
 
+* INSTALLAZIONE DI ULTERIORI PACCHETTI
+
+Ci sono tantissimi pacchetti che estendono le funzionalità di Emacs,
+scritti dalla comunità.  Questi pacchetti includono il supporto a
+nuovi linguaggi, aggiungono temi addizionali, rendono possibile
+interoperare con applicazioni esterne e molto, molto altro.
+
+Per vedere una lista di tutti i pacchetti disponibili, inserisci
+M-x list-packages.  Nell'elenco che viene mostrato, puoi installare o
+disinstallare pacchetti, o leggerne la descrizione.  Consulta il
+manuale per ulteriori informazioni sulla gestione dei pacchetti.
+
+
 * CONCLUSIONI
 -------------
 
 Per chiudere una sessione di Emacs si usa C-x C-c.
 
-Questo documento è stato creato per essere utile a tutti i nuovi
-utenti, se qualcosa per te è stato poco chiaro non dare la colpa a te
-stesso: lamentati!
+Questo documento è pensato per essere comprensibile a tutti i nuovi
+utenti, quindi se hai trovato qualcosa di poco chiaro, non dare la
+colpa a te stesso: lamentati!
 
 
 * COPIA
