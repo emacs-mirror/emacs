@@ -1331,7 +1331,7 @@ used instead of `browse-url-new-window-flag'."
 (defun browse-url-epiphany (url &optional new-window)
   "Ask the Epiphany WWW browser to load URL.
 Default to the URL around or before point.  The strings in variable
-`browse-url-galeon-arguments' are also passed to Epiphany.
+`browse-url-epiphany-arguments' are also passed to Epiphany.
 
 When called interactively, if variable `browse-url-new-window-flag' is
 non-nil, load the document in a new Epiphany window, otherwise use a
