@@ -66,8 +66,6 @@
 
 (defalias 'semantic-mode-line-update #'force-mode-line-update)
 
-;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
-;; run major mode hooks.
 (define-obsolete-function-alias 'semantic-run-mode-hooks #'run-mode-hooks "28.1")
 
 ;; Fancy compat usage now handled in cedet-compat

@@ -1607,7 +1607,7 @@ on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
 \"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
 You can use \"xbuffy\" to automate the incorporation of this mail
-using the Emacs 22 command \"emacsclient\" as follows:
+using \"emacsclient\" as follows:
 
     box ~/mail/mh-e
         title mh-e
