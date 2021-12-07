@@ -60,15 +60,11 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - t, meaning to scale the image down to fit in the window.
  - `fit-window', meaning to fit the image to the window.
- - `fit-height', meaning to fit the image to the window height.
- - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 1).
 
 Resizing will always preserve the aspect ratio of the image."
   :type '(choice (const :tag "No resizing" nil)
                  (const :tag "Fit to window" fit-window)
-                 (const :tag "Fit to window height" fit-height)
-                 (const :tag "Fit to window width" fit-width)
                  (other :tag "Scale down to fit window" t)
                  (number :tag "Scale factor" 1))
   :version "29.1"
@@ -78,7 +74,7 @@ Resizing will always preserve the aspect ratio of the image."
   "Max size (in percent) to scale up to when `image-auto-resize' is `fit-window'.
 Can be either a number larger than 100, or nil, which means no
 max size."
-  :type '(choice (const nil "No max")
+  :type '(choice (const :tag "No max" nil)
                  natnum)
   :version "29.1"
   :group 'image)
@@ -100,9 +96,11 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - t, meaning to scale the image down to fit in the window.
  - `fit-window', meaning to fit the image to the window.
+ - A number, which is a scale factor (the default size is 1).
+
+There is also support for these values, obsolete since Emacs 29.1:
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 1).
 
 Resizing will always preserve the aspect ratio of the image.")
 
