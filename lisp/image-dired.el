@@ -1777,21 +1777,22 @@ This is used by `image-dired-slideshow-start'."
     (image-dired-slideshow-stop)))
 
 (defun image-dired-slideshow-start (&optional arg)
-  "Start a slideshow.
-Wait `image-dired-slideshow-delay' seconds before showing the
-next image.
+  "Start a slideshow, waiting `image-dired-slideshow-delay' between images.
 
 With prefix argument ARG, wait that many seconds before going to
 the next image.
 
 With a negative prefix argument, prompt user for the delay."
   (interactive "P" image-dired-thumbnail-mode image-dired-display-image-mode)
-  (let ((delay (if (> arg 0)
-                   arg
-                 (string-to-number
-                  (read-string
-                   (let ((delay (number-to-string image-dired-slideshow-delay)))
-                     (format-prompt "Delay, in seconds. Decimals are accepted" delay) delay))))))
+  (let ((delay (if (not arg)
+                   image-dired-slideshow-delay
+                 (if (> arg 0)
+                     arg
+                   (string-to-number
+                    (let ((delay (number-to-string image-dired-slideshow-delay)))
+                      (read-string
+                       (format-prompt "Delay, in seconds. Decimals are accepted" delay))
+                      delay))))))
     (setq image-dired--slideshow-timer
           (run-with-timer
            0 delay

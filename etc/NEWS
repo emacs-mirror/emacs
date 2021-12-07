@@ -583,13 +583,16 @@ used for images that are flagged for deletion in the Dired buffer
 associated with Image-Dired.
 
 ---
-*** The 'image-dired-slideshow-start' command has been revamped.
+*** 'image-dired-slideshow-start' is now bound to 'S'.
+It is bound in both the thumbnail and display buffer.
+
+---
+*** The 'image-dired-slideshow-start' command no longer prompts.
 It no longer inconveniently prompts for a number of images and a
 delay: it runs indefinitely, but stops automatically on any command.
 You can set the delay with a prefix argument, or a negative prefix
-argument to prompt anyways.  Customize the user option
-'image-dired-slideshow-delay' to change the default, which is 5
-seconds.  It is bound to 'S' in the thumbnail and display buffer.
+argument to prompt for a delay.  Customize the user option
+'image-dired-slideshow-delay' to change the default from 5 seconds.
 
 ---
 *** Support for bookmark.el.
