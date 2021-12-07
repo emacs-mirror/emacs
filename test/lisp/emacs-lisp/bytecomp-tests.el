@@ -851,8 +851,7 @@ byte-compiled.  Run with dynamic binding."
        (byte-compile-file ,(ert-resource-file file))
        (ert-info ((buffer-string) :prefix "buffer: ")
          (,(if reverse 'should-not 'should)
-          (re-search-forward ,(string-replace " " "[ \n]+" re-warning)
-                             nil t))))))
+          (re-search-forward ,re-warning nil t))))))
 
 (bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
                             "add-hook.*lexical var")
@@ -980,7 +979,7 @@ byte-compiled.  Run with dynamic binding."
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than .* characters")
+ "Warning: docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"

@@ -847,7 +847,8 @@ Overrides existing keywords with FORCE set non-nil."
 (defun gnus-registry-register-message-ids ()
   "Register the Message-ID of every article in the group."
   (unless (or (gnus-parameter-registry-ignore gnus-newsgroup-name)
-	      (null gnus-registry-register-all))
+	      (null gnus-registry-register-all)
+              (null (eieio-object-p gnus-registry-db)))
     (dolist (article gnus-newsgroup-articles)
       (let* ((id (gnus-registry-fetch-message-id-fast article))
              (groups (gnus-registry-get-id-key id 'group)))

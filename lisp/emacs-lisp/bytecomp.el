@@ -1712,10 +1712,10 @@ It is too wide if it has any lines longer than the largest of
                           (nth 2 form)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
-      (setq name (if name (format " `%s'" name) ""))
+      (setq name (if name (format " `%s' " name) ""))
       (when (and kind docs (stringp docs)
                  (byte-compile--wide-docstring-p docs col))
-        (byte-compile-warn "%s%s docstring wider than %s characters"
+        (byte-compile-warn "%s%sdocstring wider than %s characters"
                            kind name col))))
   form)
 

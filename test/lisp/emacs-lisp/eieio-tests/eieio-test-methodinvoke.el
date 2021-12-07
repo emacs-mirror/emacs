@@ -325,6 +325,7 @@
   ())
 
 (with-suppressed-warnings ((obsolete defmethod)
+                           (obsolete defgeneric)
                            (obsolete next-method-p)
                            (obsolete call-next-method))
   (defmethod initialize-instance :after ((_this eitest-Jb) &rest _slots)
