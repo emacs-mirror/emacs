@@ -489,14 +489,15 @@ Some context functions add menu items below the separator."
       `(menu-item "All"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'buffer))
                   :help "Mark the whole buffer for a subsequent cut/copy"))
-    (when (let* ((pos (posn-point (event-end click)))
-                 (char (when pos (char-after pos))))
-            (or (and char (eq (char-syntax char) ?\"))
-                (nth 3 (save-excursion (syntax-ppss pos)))))
-      (define-key-after submenu [mark-string]
-        `(menu-item "String"
-                    ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'string))
-                    :help "Mark the string at click for a subsequent cut/copy")))
+    (with-current-buffer (window-buffer (posn-window (event-end click)))
+      (when (let* ((pos (posn-point (event-end click)))
+                   (char (when pos (char-after pos))))
+              (or (and char (eq (char-syntax char) ?\"))
+                  (nth 3 (save-excursion (syntax-ppss pos)))))
+        (define-key-after submenu [mark-string]
+          `(menu-item "String"
+                      ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'string))
+                      :help "Mark the string at click for a subsequent cut/copy"))))
     (define-key-after submenu [mark-line]
       `(menu-item "Line"
                   ,(lambda (e) (interactive "e") (mark-thing-at-mouse e 'line))
