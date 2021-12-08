@@ -541,24 +541,23 @@ the height of the current window."
   "Interpolate a scroll of DELTA pixels.
 This results in the window being scrolled by DELTA pixels with an
 animation."
-  (while-no-input
-    (let ((percentage 0)
-          (total-time pixel-scroll-precision-interpolation-total-time)
-          (factor pixel-scroll-precision-interpolation-factor)
-          (time-elapsed 0.0)
-          (between-scroll 0.001))
-      (while (< percentage 1)
-        (sit-for between-scroll)
-        (setq time-elapsed (+ time-elapsed between-scroll)
-              percentage (/ time-elapsed total-time))
-        (if (< delta 0)
-            (pixel-scroll-precision-scroll-down
-             (ceiling (abs (* (* delta factor)
-                              (/ between-scroll total-time)))))
-          (pixel-scroll-precision-scroll-up
-           (ceiling (* (* delta factor)
-                       (/ between-scroll total-time)))))
-        (redisplay t)))))
+  (let ((percentage 0)
+        (total-time pixel-scroll-precision-interpolation-total-time)
+        (factor pixel-scroll-precision-interpolation-factor)
+        (time-elapsed 0.0)
+        (between-scroll 0.001))
+    (while (< percentage 1)
+      (sit-for between-scroll)
+      (setq time-elapsed (+ time-elapsed between-scroll)
+            percentage (/ time-elapsed total-time))
+      (if (< delta 0)
+          (pixel-scroll-precision-scroll-down
+           (ceiling (abs (* (* delta factor)
+                            (/ between-scroll total-time)))))
+        (pixel-scroll-precision-scroll-up
+         (ceiling (* (* delta factor)
+                     (/ between-scroll total-time)))))
+      (redisplay t))))
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
