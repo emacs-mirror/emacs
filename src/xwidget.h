@@ -199,7 +199,7 @@ extern void xwidget_motion_or_crossing (struct xwidget_view *,
 extern void xwidget_motion_notify (struct xwidget_view *, double,
 				   double, uint, Time);
 extern void xwidget_scroll (struct xwidget_view *, double, double,
-                            double, double, uint, Time);
+                            double, double, uint, Time, bool);
 #endif
 #endif
 #else

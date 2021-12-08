@@ -9851,6 +9851,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	XIValuatorState *states;
 	double *values;
 	bool found_valuator = false;
+	bool any_stop_p = false;
 
 	/* A fake XMotionEvent for x_note_mouse_movement. */
 	XMotionEvent ev;
@@ -10003,9 +10004,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    if (val->horizontal)
 			      xv_total_x += delta;
 			    else
-			      xv_total_y += -delta;
+			      xv_total_y += delta;
 
 			    found_valuator = true;
+
+			    if (delta == 0.0)
+			      any_stop_p = true;
+
 			    continue;
 			  }
 #endif
@@ -10092,7 +10097,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (found_valuator)
 		  xwidget_scroll (xv, xev->event_x, xev->event_y,
 				  xv_total_x, xv_total_y, xev->mods.effective,
-				  xev->time);
+				  xev->time, any_stop_p);
 		else
 		  xwidget_motion_notify (xv, xev->event_x, xev->event_y,
 					 xev->mods.effective, xev->time);
