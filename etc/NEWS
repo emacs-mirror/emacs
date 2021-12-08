@@ -610,6 +610,12 @@ The command 'bookmark-set' (bound to 'C-x r m') is now supported in
 the thumbnail view, and will create a bookmark that opens the current
 directory in Image-Dired.
 
+---
+*** New user option 'image-dired-marking-shows-next'.
+If this option is non-nil (the default), marking, unmarking or
+flagging an image in either the thumbnail or display buffer shows the
+next image.
+
 +++
 *** 'image-dired-show-all-from-dir-max-files' has been increased to 500.
 This option controls asking for confirmation when starting Image-Dired

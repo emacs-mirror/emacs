@@ -490,6 +490,17 @@ variable is nil, it will never ask."
                  (const :tag "Disable warning" nil))
   :version "29.1")
 
+(defcustom image-dired-marking-shows-next t
+  "If non-nil, marking, unmarking or flagging an image shows the next image.
+
+This affects the following commands:
+\\<image-dired-thumbnail-mode-map>
+    `image-dired-flag-thumb-original-file'   (bound to \\[image-dired-flag-thumb-original-file])
+    `image-dired-mark-thumb-original-file'   (bound to \\[image-dired-mark-thumb-original-file])
+    `image-dired-unmark-thumb-original-file' (bound to \\[image-dired-unmark-thumb-original-file])"
+  :type 'boolean
+  :version "29.1")
+
 
 ;;; Util functions
 
@@ -1459,46 +1470,53 @@ Should be called from commands in `image-dired-thumbnail-mode'."
            ,@body
            (image-dired-thumb-update-marks))))))
 
+(defmacro image-dired--do-mark-command (maybe-next &rest body)
+  "Helper macro for the mark, unmark and flag commands.
+Run BODY in Dired buffer.
+If optional argument MAYBE-NEXT is non-nil, show next image
+according to `image-dired-marking-shows-next'."
+  (declare (indent defun) (debug t))
+  `(image-dired--with-thumbnail-buffer
+     (image-dired--on-file-in-dired-buffer
+       ,@body)
+     ,(when maybe-next
+        '(if image-dired-marking-shows-next
+             (image-dired-display-next-thumbnail-original)
+           (image-dired-next-line)))))
+
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired--with-thumbnail-buffer
-    (image-dired--on-file-in-dired-buffer
-      (dired-mark 1))
-    (image-dired-forward-image)))
+  (image-dired--do-mark-command t
+    (dired-mark 1)))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired--with-thumbnail-buffer
-    (image-dired--on-file-in-dired-buffer
-      (dired-unmark 1))
-    (image-dired-forward-image)))
+  (image-dired--do-mark-command t
+    (dired-unmark 1)))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired--with-thumbnail-buffer
-    (image-dired--on-file-in-dired-buffer
-      (dired-flag-file-deletion 1))
-    (image-dired-forward-image)))
+  (image-dired--do-mark-command t
+    (dired-flag-file-deletion 1)))
 
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired--with-thumbnail-buffer
-    (image-dired--on-file-in-dired-buffer
-      (if (image-dired-dired-file-marked-p)
-          (dired-unmark 1)
-        (dired-mark 1)))))
+  (image-dired--do-mark-command nil
+    (if (image-dired-dired-file-marked-p)
+        (dired-unmark 1)
+      (dired-mark 1))))
 
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files in associated Dired buffer.
 Also update the marks in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command nil
+    (dired-unmark-all-marks))
   (image-dired--with-thumbnail-buffer
-    (with-current-buffer (image-dired-associated-dired-buffer)
-      (dired-unmark-all-marks))
     (image-dired-thumb-update-marks)))
 
 (defun image-dired-jump-original-dired-buffer ()
