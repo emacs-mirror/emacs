@@ -103,9 +103,6 @@
 ;; TODO
 ;; ====
 ;;
-;; * Some sort of auto-rotate function based on rotate info in the
-;;   EXIF data.
-;;
 ;; * Investigate if it is possible to also write the tags to the image
 ;;   files.
 ;;
@@ -113,12 +110,6 @@
 ;;   for thumbnail directory.
 ;;
 ;; * From thumbs.el: Add setroot function.
-;;
-;; * From thumbs.el: Add image resizing, if useful (image-dired's automatic
-;;  "image fit" might be enough)
-;;
-;; * From thumbs.el: Add the "modify" commands (emboss, negate,
-;;   monochrome etc).
 ;;
 ;; * Add `image-dired-display-thumbs-ring' and functions to cycle that.  Find out
 ;;   which is best, saving old batch just before inserting new, or
