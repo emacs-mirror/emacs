@@ -9039,6 +9039,12 @@ webp_load (struct frame *f, struct image *img)
     /* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
     decoded = WebPDecodeRGB (contents, size, &width, &height);
 
+  if (!decoded)
+    {
+      image_error ("Error when interpreting WebP image data");
+      goto webp_error1;
+    }
+
   if (!(width <= INT_MAX && height <= INT_MAX
 	&& check_image_size (f, width, height)))
     {
