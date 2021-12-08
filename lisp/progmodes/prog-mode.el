@@ -93,7 +93,9 @@
     'mark-whole-buffer)
 
   ;; Include text-mode select menu only in strings and comments.
-  (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
+  (when (nth 8 (save-excursion
+                 (with-current-buffer (window-buffer (posn-window (event-end click)))
+                   (syntax-ppss (posn-point (event-end click))))))
     (text-mode-context-menu menu click))
 
   menu)

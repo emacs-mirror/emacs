@@ -9170,6 +9170,12 @@ webp_load (struct frame *f, struct image *img)
     /* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
     decoded = WebPDecodeRGB (contents, size, &width, &height);
 
+  if (!decoded)
+    {
+      image_error ("Error when interpreting WebP image data");
+      goto webp_error1;
+    }
+
   if (!(width <= INT_MAX && height <= INT_MAX
 	&& check_image_size (f, width, height)))
     {
@@ -10591,7 +10597,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Get the image dimensions.  */
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
-  gdouble gviewbox_width, gviewbox_height;
+  gdouble gviewbox_width = 0, gviewbox_height = 0;
   gboolean has_viewbox = FALSE;
 # if LIBRSVG_CHECK_VERSION (2, 52, 1)
   has_viewbox = rsvg_handle_get_intrinsic_size_in_pixels (rsvg_handle,

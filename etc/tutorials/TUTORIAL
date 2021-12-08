@@ -304,8 +304,8 @@ position, type <DEL>.  This is the key on the keyboard usually labeled
 "Backspace"--the same one you normally use, outside Emacs, to delete
 the last character typed.
 
-There may also be another key on your keyboard labeled <Delete>, but
-that's not the one we refer to as <DEL>.
+There is usually another key on your keyboard labeled <Delete>, but
+that's not the one we refer to as <DEL> in Emacs.
 
 >> Do this now--type a few characters, then delete them by
    typing <DEL> a few times.  Don't worry about this file

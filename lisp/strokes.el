@@ -1395,14 +1395,19 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 	      (strokes-load-user-strokes))
 	 (add-hook 'kill-emacs-query-functions
 		   #'strokes-prompt-user-save-strokes)
-	 (add-hook 'select-frame-hook
-		   #'strokes-update-window-configuration)
+         ;; FIXME: Should this be something like `focus-in-hook'?
+         ;; That variable is obsolete, but `select-frame-hook' has
+         ;; never existed in Emacs.
+         ;;(add-hook 'select-frame-hook
+         ;;          #'strokes-update-window-configuration)
 	 (strokes-update-window-configuration))
 	(t				; turn off strokes
 	 (if (get-buffer strokes-buffer-name)
-	     (kill-buffer (get-buffer strokes-buffer-name)))
-	 (remove-hook 'select-frame-hook
-		      #'strokes-update-window-configuration))))
+             (kill-buffer (get-buffer strokes-buffer-name)))
+         ;; FIXME: Same as above.
+         ;;(remove-hook 'select-frame-hook
+         ;;             #'strokes-update-window-configuration)
+         )))
 
 
 ;;;; strokes-xpm stuff (later may be separate)...

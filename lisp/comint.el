@@ -730,6 +730,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
               (or (file-remote-p default-directory) ""))
   (setq-local comint-accum-marker (make-marker))
   (setq-local font-lock-defaults '(nil t))
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'comint--unmark-string-as-output)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
   (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
@@ -1815,7 +1817,8 @@ Ignore duplicates if `comint-input-ignoredups' is non-nil."
     (ring-insert comint-input-ring cmd)))
 
 (defconst comint--prompt-rear-nonsticky
-  '(field inhibit-line-move-field-capture read-only font-lock-face)
+  '( field inhibit-line-move-field-capture read-only font-lock-face
+     insert-in-front-hooks)
   "Text properties we set on the prompt and don't want to leak past it.")
 
 (defun comint-send-input (&optional no-newline artificial)
@@ -2152,14 +2155,7 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process)) ; In case a filter moved it.
 
 	    (unless comint-use-prompt-regexp
-              (with-silent-modifications
-                (add-text-properties comint-last-output-start (point)
-                                     `(rear-nonsticky
-				       ,comint--prompt-rear-nonsticky
-				       front-sticky
-				       (field inhibit-line-move-field-capture)
-				       field output
-				       inhibit-line-move-field-capture t))))
+              (comint--mark-as-output comint-last-output-start (point)))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
@@ -2190,6 +2186,46 @@ Make backspaces delete the previous character."
 	                           `(rear-nonsticky
 	                             ,comint--prompt-rear-nonsticky)))
 	    (goto-char saved-point)))))))
+
+(defun comint--mark-as-output (beg end)
+  (with-silent-modifications
+    (add-text-properties
+     beg end
+     `(rear-nonsticky
+       ,comint--prompt-rear-nonsticky
+       front-sticky
+       (field inhibit-line-move-field-capture)
+       field output
+       inhibit-line-move-field-capture t
+       ;; Text inserted by a user in the middle of process output
+       ;; should be marked as output.  This is needed for commands
+       ;; such as `yank' or `just-one-space' which don't use
+       ;; `insert-and-inherit' and thus bypass default text property
+       ;; inheritance.
+       insert-in-front-hooks
+       (,#'comint--mark-as-output ,#'comint--mark-yanked-as-output)))))
+
+(defun comint--mark-yanked-as-output (beg end)
+  ;; `yank' removes the field text property from the text it inserts
+  ;; due to `yank-excluded-properties', so arrange for this text
+  ;; property to be reapplied in the `after-change-functions'.
+  (let (fun)
+    (setq
+     fun
+     (lambda (beg1 end1 _len1)
+       (remove-hook 'after-change-functions fun t)
+       (when (and (= beg beg1)
+                  (= end end1))
+         (comint--mark-as-output beg1 end1))))
+    (add-hook 'after-change-functions fun nil t)))
+
+(defun comint--unmark-string-as-output (string)
+  (remove-list-of-text-properties
+   0 (length string)
+   '( rear-nonsticky front-sticky field
+      inhibit-line-move-field-capture insert-in-front-hooks)
+   string)
+  string)
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.

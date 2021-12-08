@@ -2230,8 +2230,7 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
 	(byte-compile-output nil)
-	;; This allows us to get the positions of symbols read; it's
-	;; new in Emacs 22.1.
+        ;; This allows us to get the positions of symbols read.
 	(read-with-symbol-positions inbuffer)
 	(read-symbol-positions-list nil)
 	;;	  #### This is bound in b-c-close-variables.

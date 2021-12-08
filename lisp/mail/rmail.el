@@ -4125,10 +4125,8 @@ typically for purposes of moderating a list."
   "A regexp that matches the separator before the text of a failed message.")
 
 (defvar mail-mime-unsent-header "^Content-Type: message/rfc822 *$"
- "A regexp that matches the header of a MIME body part with a failed message.")
+  "A regexp that matches the header of a MIME body part with a failed message.")
 
-;; This is a cut-down version of rmail-clear-headers from Emacs 22.
-;; It doesn't have the same functionality, hence the name change.
 (defun rmail-delete-headers (regexp)
   "Delete any mail headers matching REGEXP.
 The message should be narrowed to just the headers."
@@ -4136,10 +4134,6 @@ The message should be narrowed to just the headers."
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (beginning-of-line)
-      ;; This code from Emacs 22 doesn't seem right, since r-n-h is
-      ;; just for display.
-;;;      (if (looking-at rmail-nonignored-headers)
-;;;	  (forward-line 1)
       (delete-region (point)
 		     (save-excursion
 		       (if (re-search-forward "\n[^ \t]" nil t)

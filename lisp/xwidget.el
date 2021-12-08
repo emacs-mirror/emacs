@@ -409,6 +409,11 @@ If N is omitted or nil, scroll backwards by one char."
   (with-current-buffer (xwidget-buffer xwidget)
     (force-mode-line-update)))
 
+(defun xwidget-webkit-buffer-kill ()
+  "Clean up an xwidget-webkit buffer before it is killed."
+  (when (timerp xwidget-webkit--progress-update-timer)
+    (cancel-timer xwidget-webkit--progress-update-timer)))
+
 (defun xwidget-webkit-callback (xwidget xwidget-event-type)
   "Callback for xwidgets.
 XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
@@ -479,6 +484,7 @@ If non-nil, plugins are enabled.  Otherwise, disabled."
 (define-derived-mode xwidget-webkit-mode special-mode "xwidget-webkit"
   "Xwidget webkit view mode."
   (setq buffer-read-only t)
+  (add-hook 'kill-buffer-hook #'xwidget-webkit-buffer-kill)
   (setq-local tool-bar-map xwidget-webkit-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
