@@ -145,13 +145,13 @@ Nil means to not interpolate such scrolls."
   "The total time in seconds to spend interpolating a large scroll."
   :group 'mouse
   :type 'float
-  :version 29.1)
+  :version "29.1")
 
 (defcustom pixel-scroll-precision-interpolation-factor 2.0
   "A factor to apply to the distance of an interpolated scroll."
   :group 'mouse
   :type 'float
-  :version 29.1)
+  :version "29.1")
 
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
