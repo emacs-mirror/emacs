@@ -1204,8 +1204,7 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 0.91 specification see URL `http://backend.userland.com/rss091'
-or URL `http://my.netscape.com/publish/formats/rss-spec-0.91.html'."
+For the RSS 0.91 specification see URL `http://backend.userland.com/rss091'."
   (newsticker--debug-msg "Parsing RSS 0.91 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)

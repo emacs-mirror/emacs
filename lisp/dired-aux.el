@@ -992,12 +992,14 @@ prompted for the shell command to use interactively."
 
 
 (defun dired-check-process (msg program &rest arguments)
-  "Display MSG while running PROGRAM, and check for output.
-Remaining arguments are strings passed as command arguments to PROGRAM.
-On error, insert output
-in a log buffer and return the offending ARGUMENTS or PROGRAM.
-Caller can cons up a list of failed args.
-Else returns nil for success."
+  "Display MSG, then run PROGRAM, and log any error messages from it.
+ARGUMENTS should be strings to be passed to PROGRAM as command-line
+arguments.
+
+If PROGRAM exits successfully, display \"MSG...done\" and return nil.
+If PROGRAM exits abnormally, save in `dired-log-buffer' the command
+that invoked PROGRAM and the messages it emitted, and return either
+the offending ARGUMENTS or PROGRAM if no ARGUMENTS were provided."
   (let (err-buffer err (dir default-directory))
     (message "%s..." msg)
     (save-excursion

@@ -38,7 +38,7 @@
 ;; browse-url-firefox                 Firefox     Don't know (tried with 1.0.1)
 ;; browse-url-chrome                  Chrome      47.0.2526.111
 ;; browse-url-chromium                Chromium    3.0
-;; browse-url-epiphany                Epiphany    Don't know
+;; browse-url-epiphany                GNOME Web (Epiphany)    Don't know
 ;; browse-url-webpositive             WebPositive 1.2-alpha (Haiku R1/beta3)
 ;; browse-url-w3                      w3          0
 ;; browse-url-text-*	              Any text browser     0
@@ -156,7 +156,7 @@
     (function-item :tag "Firefox" :value browse-url-firefox)
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
-    (function-item :tag "Epiphany" :value  browse-url-epiphany)
+    (function-item :tag "GNOME Web (Epiphany)" :value  browse-url-epiphany)
     (function-item :tag "WebPositive" :value browse-url-webpositive)
     (function-item :tag "Text browser in an xterm window"
 		   :value browse-url-text-xterm)
@@ -305,15 +305,15 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :version "24.1")
 
 (defcustom browse-url-epiphany-program "epiphany"
-  "The name by which to invoke Epiphany."
+  "The name by which to invoke GNOME Web (Epiphany)."
   :type 'string)
 
 (defcustom browse-url-epiphany-arguments nil
-  "A list of strings to pass to Epiphany as arguments."
+  "A list of strings to pass to GNOME Web (Epiphany) as arguments."
   :type '(repeat (string :tag "Argument")))
 
 (defcustom browse-url-epiphany-startup-arguments browse-url-epiphany-arguments
-  "A list of strings to pass to Epiphany when it starts up.
+  "A list of strings to pass to GNOME Web (Epiphany) when it starts up.
 Defaults to the value of `browse-url-epiphany-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument")))
@@ -1131,12 +1131,12 @@ The optional argument NEW-WINDOW is not used."
 (function-put 'browse-url-chrome 'browse-url-browser-kind 'external)
 
 (defun browse-url-epiphany (url &optional new-window)
-  "Ask the Epiphany WWW browser to load URL.
+  "Ask the GNOME Web (Epiphany) WWW browser to load URL.
 Default to the URL around or before point.  The strings in variable
-`browse-url-galeon-arguments' are also passed to Epiphany.
+`browse-url-epiphany-arguments' are also passed to GNOME Web.
 
 When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new Epiphany window, otherwise use a
+non-nil, load the document in a new GNOME Web window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
@@ -1168,10 +1168,10 @@ used instead of `browse-url-new-window-flag'."
 (function-put 'browse-url-epiphany 'browse-url-browser-kind 'external)
 
 (defun browse-url-epiphany-sentinel (process url)
-  "Handle a change to the process communicating with Epiphany."
+  "Handle a change to the process communicating with GNOME Web (Epiphany)."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
-	;; Epiphany is not running - start it
+        ;; GNOME Web is not running - start it
 	(message "Starting %s..." browse-url-epiphany-program)
 	(apply #'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
