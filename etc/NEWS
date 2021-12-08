@@ -85,8 +85,8 @@ To get the old monospaced mode line back, customize the
 'mode-line-active' and 'mode-line-inactive' faces not to inherit from
 the 'variable-pitch' face, or add this to your "~/.emacs":
 
-  (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
-  (set-face-attribute 'mode-line-inactive nil :inherit 'mode-line)
+    (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
+    (set-face-attribute 'mode-line-inactive nil :inherit 'mode-line)
 
 
 * Changes in Emacs 29.1
@@ -556,8 +556,8 @@ user options that are no longer needed are now obsolete:
 *** Navigation and marking commands now work in image display buffer.
 The following new bindings have been added:
 
-  n / SPC   image-dired-display-previous-thumbnail-original
-  p / DEL   image-dired-display-next-thumbnail-original
+  n / SPC   image-dired-display-next-thumbnail-original
+  p / DEL   image-dired-display-previous-thumbnail-original
   m         image-dired-mark-thumb-original-file
   d         image-dired-flag-thumb-original-file
   u         image-dired-unmark-thumb-original-file
@@ -718,10 +718,11 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
-** User option 'mail-source-ignore-errors' is now obsolete
+** User option 'mail-source-ignore-errors' is now obsolete.
 The whole mechanism for prompting users to continue in case of
 mail-source errors has been removed, so this option is no longer
 needed.
+
 ** Fonts
 
 ---
