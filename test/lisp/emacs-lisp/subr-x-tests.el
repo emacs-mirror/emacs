@@ -676,7 +676,7 @@
       (buffer-string))
     "foo\n")))
 
-(ert-deftest test-add-display-text-property ()
+(ert-deftest subr-x-test-add-display-text-property ()
   (with-temp-buffer
     (insert "Foo bar zot gazonk")
     (add-display-text-property 4 8 'height 2.0)
@@ -693,6 +693,24 @@
     (should (equal (get-text-property 5 'display)
                    [(raise 0.5) (height 2.0)]))
     (should (equal (get-text-property 9 'display) '(raise 0.5)))))
+
+(ert-deftest subr-x-named-let ()
+  (let ((funs ()))
+    (named-let loop
+        ((rest '(1 42 3))
+         (sum 0))
+      (when rest
+        ;; Here, we make sure that the variables are distinct in every
+        ;; iteration, since a naive tail-call optimization would tend to end up
+        ;; with a single `sum' variable being shared by all the closures.
+        (push (lambda () sum) funs)
+        ;; Here we add a dummy `sum' variable which shadows the `sum' iteration
+        ;; variable since a naive tail-call optimization could also trip here
+        ;; thinking it can `(setq sum ...)' to set the iteration
+        ;; variable's value.
+        (let ((sum sum))
+          (loop (cdr rest) (+ sum (car rest))))))
+    (should (equal (mapcar #'funcall funs) '(43 1 0)))))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here
