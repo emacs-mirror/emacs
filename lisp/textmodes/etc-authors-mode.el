@@ -115,12 +115,10 @@ With a prefix arg ARG, move point that many authors backward."
   (interactive "p" etc-authors-mode)
   (etc-authors-next-author (- arg)))
 
-(defvar etc-authors-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "n" #'etc-authors-next-author)
-    (define-key map "p" #'etc-authors-prev-author)
-    map)
-  "Keymap for `etc-authors-mode'.")
+(defvar-keymap etc-authors-mode-map
+  :doc "Keymap for `etc-authors-mode'."
+  "n" #'etc-authors-next-author
+  "p" #'etc-authors-prev-author)
 
 ;;;###autoload
 (define-derived-mode etc-authors-mode special-mode "Authors View"
