@@ -635,7 +635,9 @@ This works like 'C-u M-x apropos-command' but is more discoverable.
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
 This face is added by 'substitute-command-keys' to any "\[command]"
 substitution.  The return value of that function should consequently
-be assumed to be a propertized string.
+be assumed to be a propertized string.  To prevent the function from
+adding the 'help-key-binding' face, call 'substitute-command-keys'
+with the new optional argument NO-FACE non-nil.
 
 Note that the new face will also be used in tooltips.  When using the
 GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.

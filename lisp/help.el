@@ -1060,11 +1060,12 @@ is currently activated with completion."
     result))
 
 
-(defun substitute-command-keys (string)
+(defun substitute-command-keys (string &optional no-face)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
-is not on any keys.  Keybindings will use the face `help-key-binding'.
+is not on any keys.  Keybindings will use the face `help-key-binding',
+unless the optional argument NO-FACE is non-nil.
 
 Each substring of the form \\\\={MAPVAR} is replaced by a summary of
 the value of MAPVAR as a keymap.  This summary is similar to the one
@@ -1141,13 +1142,17 @@ Otherwise, return a new string."
                       (let ((op (point)))
                         (insert "M-x ")
                         (goto-char (+ end-point 3))
-                        (add-text-properties op (point)
-                                             '( face help-key-binding
-                                                font-lock-face help-key-binding))
+                        (or no-face
+                            (add-text-properties
+                             op (point)
+                             '( face help-key-binding
+                                font-lock-face help-key-binding)))
                         (delete-char 1))
                     ;; Function is on a key.
                     (delete-char (- end-point (point)))
-                    (insert (help--key-description-fontified key)))))
+                    (insert (if no-face
+                                (key-description key)
+                              (help--key-description-fontified key))))))
                ;; 1D. \{foo} is replaced with a summary of the keymap
                ;;            (symbol-value foo).
                ;;     \<foo> just sets the keymap used for \[cmd].
