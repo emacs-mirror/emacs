@@ -550,7 +550,8 @@ animation."
         (rem (window-parameter nil 'interpolated-scroll-remainder))
         (time (window-parameter nil 'interpolated-scroll-remainder-time)))
     (when (and rem time
-               (< (- (float-time) time) 1.0))
+               (< (- (float-time) time) 1.0)
+               (eq (< delta 0) (< rem 0)))
       (setq delta (+ delta rem)))
     (while-no-input
       (unwind-protect
@@ -568,11 +569,18 @@ animation."
                (ceiling (* (* delta factor)
                            (/ between-scroll total-time)))))
             (setq last-time (float-time)))
-        (when (< percentage 1)
-          (set-window-parameter nil 'interpolated-scroll-remainder
-                                (* delta (- 1 percentage)))
-          (set-window-parameter nil 'interpolated-scroll-remainder-time
-                                (float-time)))))))
+        (if (< percentage 1)
+            (progn
+              (set-window-parameter nil 'interpolated-scroll-remainder
+                                    (* delta (- 1 percentage)))
+              (set-window-parameter nil 'interpolated-scroll-remainder-time
+                                    (float-time)))
+          (set-window-parameter nil
+                                'interpolated-scroll-remainder
+                                nil)
+          (set-window-parameter nil
+                                'interpolated-scroll-remainder-time
+                                nil))))))
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
