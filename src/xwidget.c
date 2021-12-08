@@ -1062,7 +1062,8 @@ xwidget_motion_notify (struct xwidget_view *view,
 
 void
 xwidget_scroll (struct xwidget_view *view, double x, double y,
-		double dx, double dy, uint state, Time time)
+		double dx, double dy, uint state, Time time,
+		bool stop_p)
 {
   GdkEvent *xg_event;
   GtkWidget *target;
@@ -1097,9 +1098,7 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   xg_event->scroll.delta_x = dx;
   xg_event->scroll.delta_y = dy;
   xg_event->scroll.device = find_suitable_pointer (view->frame);
-
-  if (!(fabs (dx) > 0) || !(fabs (dy) > 0))
-    xg_event->scroll.is_stop = TRUE;
+  xg_event->scroll.is_stop = stop_p;
 
   g_object_ref (xg_event->any.window);
 
