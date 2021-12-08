@@ -1267,22 +1267,22 @@ calc-kill calc-kill-region calc-yank))))
 
 
 (defvar-keymap calc-help-map
-  "b"   #'calc-describe-bindings
-  "c"   #'calc-describe-key-briefly
-  "f"   #'calc-describe-function
-  "h"   #'calc-full-help
-  "i"   #'calc-info
-  "k"   #'calc-describe-key
-  "n"   #'calc-view-news
-  "s"   #'calc-info-summary
-  "t"   #'calc-tutorial
-  "v"   #'calc-describe-variable
-  "C-c" #'calc-describe-copying
-  "C-d" #'calc-describe-distribution
-  "C-n" #'calc-view-news
-  "C-w" #'calc-describe-no-warranty
-  "?"   #'calc-help-for-help
-  "C-h" #'calc-help-for-help)
+  "b"   'calc-describe-bindings
+  "c"   'calc-describe-key-briefly
+  "f"   'calc-describe-function
+  "h"   'calc-full-help
+  "i"   'calc-info
+  "k"   'calc-describe-key
+  "n"   'calc-view-news
+  "s"   'calc-info-summary
+  "t"   'calc-tutorial
+  "v"   'calc-describe-variable
+  "C-c" 'calc-describe-copying
+  "C-d" 'calc-describe-distribution
+  "C-n" 'calc-view-news
+  "C-w" 'calc-describe-no-warranty
+  "?"   'calc-help-for-help
+  "C-h" 'calc-help-for-help)
 
 (defvar calc-prefix-help-retry nil)
 (defvar calc-prefix-help-phase 0)
