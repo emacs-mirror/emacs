@@ -10456,7 +10456,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Get the image dimensions.  */
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
-  gdouble gviewbox_width, gviewbox_height;
+  gdouble gviewbox_width = 0, gviewbox_height = 0;
   gboolean has_viewbox = FALSE;
 # if LIBRSVG_CHECK_VERSION (2, 52, 1)
   has_viewbox = rsvg_handle_get_intrinsic_size_in_pixels (rsvg_handle,
