@@ -163,19 +163,19 @@
 			     tag (and (not val) 1))
 	   (message "Variable \"%s\" changed" (calc-var-name var)))))))
 
-(defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
-(if calc-var-name-map
-    ()
-  (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
-  (define-key calc-var-name-map " " 'self-insert-command)
-  (mapc (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-            'calcVar-digit))
-	"0123456789")
-  (mapc (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-            'calcVar-oper))
-	"+-*/^|"))
+(defvar calc-var-name-map
+  (let ((map (copy-keymap minibuffer-local-completion-map)))
+    (define-key map " " #'self-insert-command)
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-digit))
+          "0123456789")
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-oper))
+          "+-*/^|")
+    map)
+  "Keymap for reading Calc variable names.")
 
 (defvar calc-store-opers)
 

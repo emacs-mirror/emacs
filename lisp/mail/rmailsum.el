@@ -1480,13 +1480,11 @@ argument says to read a file name and use that file as the inbox."
 (declare-function rmail-output-read-file-name "rmailout" ())
 (declare-function mail-send-and-exit "sendmail" (&optional arg))
 
-(defvar rmail-summary-edit-map nil)
-(if rmail-summary-edit-map
-    nil
-  (setq rmail-summary-edit-map
-	(nconc (make-sparse-keymap) text-mode-map))
-  (define-key rmail-summary-edit-map "\C-c\C-c" 'rmail-cease-edit)
-  (define-key rmail-summary-edit-map "\C-c\C-]" 'rmail-abort-edit))
+(defvar rmail-summary-edit-map
+  (let ((map (nconc (make-sparse-keymap) text-mode-map)))
+    (define-key map "\C-c\C-c" #'rmail-cease-edit)
+    (define-key map "\C-c\C-]" #'rmail-abort-edit)
+    map))
 
 (defun rmail-summary-edit-current-message ()
   "Edit the contents of this message."

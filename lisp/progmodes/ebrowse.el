@@ -4045,23 +4045,27 @@ NUMBER-OF-STATIC-VARIABLES:"
 (defvar ebrowse-global-map nil
   "Keymap for Ebrowse commands.")
 
-
 (defvar ebrowse-global-prefix-key "\C-c\C-m"
   "Prefix key for Ebrowse commands.")
 
+(defvar-keymap ebrowse-global-submap-4
+  :doc "Keymap used for `ebrowse-global-prefix' followed by `4'."
+  "." #'ebrowse-tags-find-definition-other-window
+  "f" #'ebrowse-tags-find-definition-other-window
+  "v" #'ebrowse-tags-find-declaration-other-window
+  "F" #'ebrowse-tags-view-definition-other-window
+  "V" #'ebrowse-tags-view-declaration-other-window)
 
-(defvar ebrowse-global-submap-4 nil
-  "Keymap used for `ebrowse-global-prefix' followed by `4'.")
-
-
-(defvar ebrowse-global-submap-5 nil
-  "Keymap used for `ebrowse-global-prefix' followed by `5'.")
-
+(defvar-keymap ebrowse-global-submap-5
+  :doc "Keymap used for `ebrowse-global-prefix' followed by `5'."
+  "." #'ebrowse-tags-find-definition-other-frame
+  "f" #'ebrowse-tags-find-definition-other-frame
+  "v" #'ebrowse-tags-find-declaration-other-frame
+  "F" #'ebrowse-tags-view-definition-other-frame
+  "V" #'ebrowse-tags-view-declaration-other-frame)
 
 (unless ebrowse-global-map
   (setq ebrowse-global-map (make-sparse-keymap))
-  (setq ebrowse-global-submap-4 (make-sparse-keymap))
-  (setq ebrowse-global-submap-5 (make-sparse-keymap))
   (define-key ebrowse-global-map "a" 'ebrowse-tags-apropos)
   (define-key ebrowse-global-map "b" 'ebrowse-pop-to-browser-buffer)
   (define-key ebrowse-global-map "-" 'ebrowse-back-in-position-stack)
@@ -4082,17 +4086,7 @@ NUMBER-OF-STATIC-VARIABLES:"
   (define-key ebrowse-global-map " " 'ebrowse-electric-buffer-list)
   (define-key ebrowse-global-map "\t" 'ebrowse-tags-complete-symbol)
   (define-key ebrowse-global-map "4" ebrowse-global-submap-4)
-  (define-key ebrowse-global-submap-4 "." 'ebrowse-tags-find-definition-other-window)
-  (define-key ebrowse-global-submap-4 "f" 'ebrowse-tags-find-definition-other-window)
-  (define-key ebrowse-global-submap-4 "v" 'ebrowse-tags-find-declaration-other-window)
-  (define-key ebrowse-global-submap-4 "F" 'ebrowse-tags-view-definition-other-window)
-  (define-key ebrowse-global-submap-4 "V" 'ebrowse-tags-view-declaration-other-window)
   (define-key ebrowse-global-map "5" ebrowse-global-submap-5)
-  (define-key ebrowse-global-submap-5 "." 'ebrowse-tags-find-definition-other-frame)
-  (define-key ebrowse-global-submap-5 "f" 'ebrowse-tags-find-definition-other-frame)
-  (define-key ebrowse-global-submap-5 "v" 'ebrowse-tags-find-declaration-other-frame)
-  (define-key ebrowse-global-submap-5 "F" 'ebrowse-tags-view-definition-other-frame)
-  (define-key ebrowse-global-submap-5 "V" 'ebrowse-tags-view-declaration-other-frame)
   (define-key global-map ebrowse-global-prefix-key ebrowse-global-map))
 
 
