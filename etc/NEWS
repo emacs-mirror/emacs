@@ -3275,11 +3275,11 @@ The user option 'repeat-exit-timeout' (default nil, which means
 forever) specifies the number of seconds of idle time after which to
 break the repetition chain automatically.
 
-When user option 'repeat-keep-prefix' is non-nil (the default), the
-prefix arg of the previous command is kept.  This can be used to
-e.g. reverse the window navigation direction with 'C-x o M-- o o' or
-to set a new step with 'C-x { C-5 { { {', which will set the window
-resizing step to 5 columns.
+When user option 'repeat-keep-prefix' is non-nil, the prefix arg of
+the previous command is kept.  This can be used to e.g. reverse the
+window navigation direction with 'C-x o M-- o o' or to set a new step
+with 'C-x { C-5 { { {', which will set the window resizing step to 5
+columns.
 
 'M-x describe-repeat-maps' will display a buffer showing
 which commands are repeatable in 'repeat-mode'.
