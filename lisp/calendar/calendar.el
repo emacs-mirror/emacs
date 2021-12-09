@@ -1723,7 +1723,8 @@ COMMAND is a command to run, ECHO is the help-echo text, KEY
 is COMMAND's keybinding, STRING describes the binding."
   (propertize (or key
                   (substitute-command-keys
-                   (format "\\<calendar-mode-map>\\[%s] %s" command string)))
+                   (format "\\<calendar-mode-map>\\[%s] %s" command string)
+                   'hands-off-my-face))
               'help-echo (format "mouse-1: %s" echo)
               'mouse-face 'mode-line-highlight
               'keymap (make-mode-line-mouse-map 'mouse-1 command)))

@@ -635,7 +635,9 @@ This works like 'C-u M-x apropos-command' but is more discoverable.
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
 This face is added by 'substitute-command-keys' to any "\[command]"
 substitution.  The return value of that function should consequently
-be assumed to be a propertized string.
+be assumed to be a propertized string.  To prevent the function from
+adding the 'help-key-binding' face, call 'substitute-command-keys'
+with the new optional argument NO-FACE non-nil.
 
 Note that the new face will also be used in tooltips.  When using the
 GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
@@ -3273,11 +3275,11 @@ The user option 'repeat-exit-timeout' (default nil, which means
 forever) specifies the number of seconds of idle time after which to
 break the repetition chain automatically.
 
-When user option 'repeat-keep-prefix' is non-nil (the default), the
-prefix arg of the previous command is kept.  This can be used to
-e.g. reverse the window navigation direction with 'C-x o M-- o o' or
-to set a new step with 'C-x { C-5 { { {', which will set the window
-resizing step to 5 columns.
+When user option 'repeat-keep-prefix' is non-nil, the prefix arg of
+the previous command is kept.  This can be used to e.g. reverse the
+window navigation direction with 'C-x o M-- o o' or to set a new step
+with 'C-x { C-5 { { {', which will set the window resizing step to 5
+columns.
 
 'M-x describe-repeat-maps' will display a buffer showing
 which commands are repeatable in 'repeat-mode'.
