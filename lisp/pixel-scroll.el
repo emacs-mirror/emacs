@@ -459,6 +459,14 @@ the height of the current window."
         (set-window-vscroll nil (+ (window-vscroll nil t)
                                    delta)
                             t)
+      (when (and (or (< (point) next-pos))
+                 (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
+                   (and pos-visibility
+                        (or (eq (length pos-visibility) 2)
+                            (when-let* ((posn (posn-at-point next-pos)))
+                              (> (cdr (posn-object-width-height posn))
+                                 usable-height))))))
+        (goto-char next-pos))
       (set-window-start nil (if (zerop (window-hscroll))
                                 desired-start
                               (save-excursion
@@ -466,15 +474,7 @@ the height of the current window."
                                 (beginning-of-visual-line)
                                 (point)))
                         t)
-      (set-window-vscroll nil desired-vscroll t))
-    (if (and (or (< (point) next-pos))
-             (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
-               (and pos-visibility
-                    (or (eq (length pos-visibility) 2)
-                        (when-let* ((posn (posn-at-point next-pos)))
-                          (> (cdr (posn-object-width-height posn))
-                             usable-height))))))
-        (goto-char next-pos))))
+      (set-window-vscroll nil desired-vscroll t))))
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
