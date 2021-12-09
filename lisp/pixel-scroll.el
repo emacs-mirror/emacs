@@ -406,7 +406,9 @@ window, and the pixel height of that line."
             (if (bobp)
                 (point-min)
               (vertical-motion -1)
-              (setq line-height (line-pixel-height))
+              (setq line-height
+                    (cdr (window-text-pixel-size nil (point)
+                                                 pos0)))
               (point)))))
     ;; restore initial position
     (set-window-start nil pos0 t)
@@ -530,21 +532,7 @@ the height of the current window."
               (goto-char (car position)))
             (setq delta (- delta (cdr position)))))
         (when (< delta 0)
-          (if-let* ((desired-pos (posn-at-x-y 0 (+ (- delta)
-					           (window-tab-line-height)
-					           (window-header-line-height))))
-	            (desired-start (posn-point desired-pos))
-	            (desired-vscroll (cdr (posn-object-x-y desired-pos))))
-              (progn
-                (set-window-start nil (if (zerop (window-hscroll))
-                                          desired-start
-                                        (save-excursion
-                                          (goto-char desired-start)
-                                          (beginning-of-visual-line)
-                                          (point)))
-                                  t)
-                (set-window-vscroll nil desired-vscroll t))
-            (set-window-vscroll nil (abs delta) t)))))))
+          (set-window-vscroll nil (- delta) t))))))
 
 (defun pixel-scroll-precision-interpolate (delta)
   "Interpolate a scroll of DELTA pixels.
