@@ -1379,14 +1379,18 @@ scroll the window of possible completions."
    ;; and this command is repeated, scroll that window.
    ((and (window-live-p minibuffer-scroll-window)
          (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-    (let ((window minibuffer-scroll-window))
+    (let ((window minibuffer-scroll-window)
+          (reverse (equal (this-command-keys) [backtab])))
       (with-current-buffer (window-buffer window)
-        (if (pos-visible-in-window-p (point-max) window)
-            ;; If end is in view, scroll up to the beginning.
-            (set-window-start window (point-min) nil)
+        (if (pos-visible-in-window-p (if reverse (point-min) (point-max)) window)
+            ;; If end or beginning is in view, scroll up to the
+            ;; beginning or end respectively.
+            (if reverse
+                (set-window-point window (point-max))
+              (set-window-start window (point-min) nil))
           ;; Else scroll down one screen.
           (with-selected-window window
-	    (scroll-up)))
+            (if reverse (scroll-down) (scroll-up))))
         nil)))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
@@ -2651,6 +2655,7 @@ The completion method is determined by `completion-at-point-functions'."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\t" 'minibuffer-complete)
+    (define-key map [backtab] 'minibuffer-complete)
     ;; M-TAB is already abused for many other purposes, so we should find
     ;; another binding for it.
     ;; (define-key map "\e\t" 'minibuffer-force-complete)
