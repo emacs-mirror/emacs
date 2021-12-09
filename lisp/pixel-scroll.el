@@ -153,6 +153,12 @@ Nil means to not interpolate such scrolls."
   :type 'float
   :version "29.1")
 
+(defcustom pixel-scroll-precision-interpolation-between-scroll 0.001
+  "The number of seconds between each step of an interpolated scroll."
+  :group 'mouse
+  :type 'float
+  :version "29.1")
+
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
 When scrolling request is delivered soon after the previous one,
@@ -546,7 +552,7 @@ animation."
         (factor pixel-scroll-precision-interpolation-factor)
         (last-time (float-time))
         (time-elapsed 0.0)
-        (between-scroll 0.001)
+        (between-scroll pixel-scroll-precision-interpolation-between-scroll)
         (rem (window-parameter nil 'interpolated-scroll-remainder))
         (time (window-parameter nil 'interpolated-scroll-remainder-time)))
     (when (and rem time
