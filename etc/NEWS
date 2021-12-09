@@ -616,6 +616,10 @@ If this option is non-nil (the default), marking, unmarking or
 flagging an image in either the thumbnail or display buffer shows the
 next image.
 
+---
+*** Now shows image information in the header line.
+This replaces the message shown at the bottom of the screen.
+
 +++
 *** 'image-dired-show-all-from-dir-max-files' has been increased to 500.
 This option controls asking for confirmation when starting Image-Dired
