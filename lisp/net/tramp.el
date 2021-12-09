@@ -2233,10 +2233,14 @@ the resulting error message."
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
-  (if (tramp-tramp-file-p default-directory)
-      (apply #'tramp-message
-	     (tramp-dissect-file-name default-directory) 0 fmt-string arguments)
-    (apply #'message fmt-string arguments)))
+  (cond
+   ((tramp-tramp-file-p default-directory)
+    (apply #'tramp-message
+	   (tramp-dissect-file-name default-directory) 0 fmt-string arguments))
+   ((tramp-file-name-p (car tramp-current-connection))
+    (apply #'tramp-message
+	   (car tramp-current-connection) 0 fmt-string arguments))
+   (t (apply #'message fmt-string arguments))))
 
 (put #'tramp-test-message 'tramp-suppress-trace t)
 
@@ -3958,16 +3962,19 @@ Return nil when there is no lockfile."
 	       (insert-file-contents-literally lockname)
 	       (buffer-string))))))
 
+(defvar tramp-lock-pid nil
+  "A random nunber local for every connection.
+Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'")
+
 (defun tramp-get-lock-pid (file)
   "Determine pid for lockfile of FILE."
-  ;; Some Tramp methods do not offer a connection process, but just a
-  ;; network process as a place holder.  Those processes use the
-  ;; "lock-pid" connection property as fake pid, in fact it is the
-  ;; time stamp the process is created.
-  (let ((p (tramp-get-process  (tramp-dissect-file-name file))))
-    (number-to-string
-     (or (process-id p)
-	 (tramp-get-connection-property p "lock-pid" (emacs-pid))))))
+  ;; Not all Tramp methods use an own process.  So we use a random
+  ;; number, which is as good as a process id.
+  (with-current-buffer
+      (tramp-get-connection-buffer (tramp-dissect-file-name file))
+    (or tramp-lock-pid
+	(setq-local
+	 tramp-lock-pid (number-to-string (random most-positive-fixnum))))))
 
 (defconst tramp-lock-file-info-regexp
   ;; USER@HOST.PID[:BOOT_TIME]

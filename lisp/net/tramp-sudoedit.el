@@ -336,7 +336,7 @@ absolute file names."
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
       (unless (tramp-sudoedit-send-command
-	       v "rm" (tramp-compat-file-name-unquote localname))
+	       v "rm" "-f" (tramp-compat-file-name-unquote localname))
 	;; Propagate the error.
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
@@ -787,9 +787,6 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
-
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)
