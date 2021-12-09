@@ -1266,27 +1266,23 @@ calc-kill calc-kill-region calc-yank))))
 	   (math-normalize val)))))
 
 
-(defvar calc-help-map nil)
-
-(if calc-help-map
-    nil
-  (setq calc-help-map (make-keymap))
-  (define-key calc-help-map "b" 'calc-describe-bindings)
-  (define-key calc-help-map "c" 'calc-describe-key-briefly)
-  (define-key calc-help-map "f" 'calc-describe-function)
-  (define-key calc-help-map "h" 'calc-full-help)
-  (define-key calc-help-map "i" 'calc-info)
-  (define-key calc-help-map "k" 'calc-describe-key)
-  (define-key calc-help-map "n" 'calc-view-news)
-  (define-key calc-help-map "s" 'calc-info-summary)
-  (define-key calc-help-map "t" 'calc-tutorial)
-  (define-key calc-help-map "v" 'calc-describe-variable)
-  (define-key calc-help-map "\C-c" 'calc-describe-copying)
-  (define-key calc-help-map "\C-d" 'calc-describe-distribution)
-  (define-key calc-help-map "\C-n" 'calc-view-news)
-  (define-key calc-help-map "\C-w" 'calc-describe-no-warranty)
-  (define-key calc-help-map "?" 'calc-help-for-help)
-  (define-key calc-help-map "\C-h" 'calc-help-for-help))
+(defvar-keymap calc-help-map
+  "b"   'calc-describe-bindings
+  "c"   'calc-describe-key-briefly
+  "f"   'calc-describe-function
+  "h"   'calc-full-help
+  "i"   'calc-info
+  "k"   'calc-describe-key
+  "n"   'calc-view-news
+  "s"   'calc-info-summary
+  "t"   'calc-tutorial
+  "v"   'calc-describe-variable
+  "C-c" 'calc-describe-copying
+  "C-d" 'calc-describe-distribution
+  "C-n" 'calc-view-news
+  "C-w" 'calc-describe-no-warranty
+  "?"   'calc-help-for-help
+  "C-h" 'calc-help-for-help)
 
 (defvar calc-prefix-help-retry nil)
 (defvar calc-prefix-help-phase 0)

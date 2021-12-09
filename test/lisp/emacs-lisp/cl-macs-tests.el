@@ -668,13 +668,13 @@ collection clause."
                      #'len))
             (`(function (lambda (,_ ,_) . ,_)) t))))
 
-(with-suppressed-warnings ((lexical test) (lexical test1) (lexical test2))
-  (defvar test)
-  (defvar test1)
-  (defvar test2))
 (ert-deftest cl-macs--progv ()
-  (should (= (cl-progv '(test test) '(1 2) test) 2))
-  (should (equal (cl-progv '(test1 test2) '(1 2) (list test1 test2))
+  (defvar cl-macs--test)
+  (defvar cl-macs--test1)
+  (defvar cl-macs--test2)
+  (should (= (cl-progv '(cl-macs--test cl-macs--test) '(1 2) cl-macs--test) 2))
+  (should (equal (cl-progv '(cl-macs--test1 cl-macs--test2) '(1 2)
+                   (list cl-macs--test1 cl-macs--test2))
                  '(1 2))))
 
 ;;; cl-macs-tests.el ends here

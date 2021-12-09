@@ -1423,14 +1423,12 @@ Example:
         (setq slist (cdr slist)))
       (setcdr slist (cons elem (cdr slist))))))
 
-(defvar shortdoc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'shortdoc-next)
-    (define-key map (kbd "p") 'shortdoc-previous)
-    (define-key map (kbd "C-c C-n") 'shortdoc-next-section)
-    (define-key map (kbd "C-c C-p") 'shortdoc-previous-section)
-    map)
-  "Keymap for `shortdoc-mode'.")
+(defvar-keymap shortdoc-mode-map
+  :doc "Keymap for `shortdoc-mode'."
+  "n"       #'shortdoc-next
+  "p"       #'shortdoc-previous
+  "C-c C-n" #'shortdoc-next-section
+  "C-c C-p" #'shortdoc-previous-section)
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc."

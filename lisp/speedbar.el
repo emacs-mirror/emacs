@@ -3694,26 +3694,20 @@ regular expression EXPR."
 
 ;;; BUFFER DISPLAY mode.
 ;;
-(defvar speedbar-buffers-key-map nil
+(defvar speedbar-buffers-key-map
+  (let ((map (speedbar-make-specialized-keymap)))
+    ;; Basic tree features
+    (define-key map "e" #'speedbar-edit-line)
+    (define-key map "\C-m" #'speedbar-edit-line)
+    (define-key map "+" #'speedbar-expand-line)
+    (define-key map "=" #'speedbar-expand-line)
+    (define-key map "-" #'speedbar-contract-line)
+    (define-key map " " #'speedbar-toggle-line-expansion)
+    ;; Buffer specific keybindings
+    (define-key map "k" #'speedbar-buffer-kill-buffer)
+    (define-key map "r" #'speedbar-buffer-revert-buffer)
+    map)
   "Keymap used when in the buffers display mode.")
-
-(if speedbar-buffers-key-map
-    nil
-  (setq speedbar-buffers-key-map (speedbar-make-specialized-keymap))
-
-  ;; Basic tree features
-  (define-key speedbar-buffers-key-map "e" 'speedbar-edit-line)
-  (define-key speedbar-buffers-key-map "\C-m" 'speedbar-edit-line)
-  (define-key speedbar-buffers-key-map "+" 'speedbar-expand-line)
-  (define-key speedbar-buffers-key-map "=" 'speedbar-expand-line)
-  (define-key speedbar-buffers-key-map "-" 'speedbar-contract-line)
-  (define-key speedbar-buffers-key-map " " 'speedbar-toggle-line-expansion)
-
-  ;; Buffer specific keybindings
-  (define-key speedbar-buffers-key-map "k" 'speedbar-buffer-kill-buffer)
-  (define-key speedbar-buffers-key-map "r" 'speedbar-buffer-revert-buffer)
-
-  )
 
 (defvar speedbar-buffer-easymenu-definition
   '(["Jump to buffer" speedbar-edit-line t]

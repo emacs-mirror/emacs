@@ -141,17 +141,17 @@ Nil means to not interpolate such scrolls."
                  number)
   :version "29.1")
 
-(defcustom pixel-scroll-precision-interpolation-total-time 0.01
+(defcustom pixel-scroll-precision-interpolation-total-time 0.1
   "The total time in seconds to spend interpolating a large scroll."
   :group 'mouse
   :type 'float
-  :version 29.1)
+  :version "29.1")
 
-(defcustom pixel-scroll-precision-interpolation-factor 2.0
+(defcustom pixel-scroll-precision-interpolation-factor 4.0
   "A factor to apply to the distance of an interpolated scroll."
   :group 'mouse
   :type 'float
-  :version 29.1)
+  :version "29.1")
 
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
@@ -544,20 +544,43 @@ animation."
   (let ((percentage 0)
         (total-time pixel-scroll-precision-interpolation-total-time)
         (factor pixel-scroll-precision-interpolation-factor)
+        (last-time (float-time))
         (time-elapsed 0.0)
-        (between-scroll 0.001))
-    (while (< percentage 1)
-      (sit-for between-scroll)
-      (setq time-elapsed (+ time-elapsed between-scroll)
-            percentage (/ time-elapsed total-time))
-      (if (< delta 0)
-          (pixel-scroll-precision-scroll-down
-           (ceiling (abs (* (* delta factor)
-                            (/ between-scroll total-time)))))
-        (pixel-scroll-precision-scroll-up
-         (ceiling (* (* delta factor)
-                     (/ between-scroll total-time)))))
-      (redisplay t))))
+        (between-scroll 0.001)
+        (rem (window-parameter nil 'interpolated-scroll-remainder))
+        (time (window-parameter nil 'interpolated-scroll-remainder-time)))
+    (when (and rem time
+               (< (- (float-time) time) 1.0)
+               (eq (< delta 0) (< rem 0)))
+      (setq delta (+ delta rem)))
+    (while-no-input
+      (unwind-protect
+          (while (< percentage 1)
+            (redisplay t)
+            (sleep-for between-scroll)
+            (setq time-elapsed (+ time-elapsed
+                                  (- (float-time) last-time))
+                  percentage (/ time-elapsed total-time))
+            (if (< delta 0)
+                (pixel-scroll-precision-scroll-down
+                 (ceiling (abs (* (* delta factor)
+                                  (/ between-scroll total-time)))))
+              (pixel-scroll-precision-scroll-up
+               (ceiling (* (* delta factor)
+                           (/ between-scroll total-time)))))
+            (setq last-time (float-time)))
+        (if (< percentage 1)
+            (progn
+              (set-window-parameter nil 'interpolated-scroll-remainder
+                                    (* delta (- 1 percentage)))
+              (set-window-parameter nil 'interpolated-scroll-remainder-time
+                                    (float-time)))
+          (set-window-parameter nil
+                                'interpolated-scroll-remainder
+                                nil)
+          (set-window-parameter nil
+                                'interpolated-scroll-remainder-time
+                                nil))))))
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."

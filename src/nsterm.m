@@ -6658,8 +6658,10 @@ not_in_argv (NSString *arg)
                 ? ceil (fabs (delta)) : 1;
 
               scrollUp = delta > 0;
-	      x = [theEvent scrollingDeltaX];
-	      y = [theEvent scrollingDeltaY];
+	      x = ([theEvent scrollingDeltaX]
+		   * FRAME_COLUMN_WIDTH (emacsframe));
+	      y = ([theEvent scrollingDeltaY]
+		   * FRAME_LINE_HEIGHT (emacsframe));
             }
 
           if (lines == 0 && mwheel_coalesce_scroll_events)

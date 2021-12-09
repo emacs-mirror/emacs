@@ -43,8 +43,7 @@
 ;; are contained in "RSS" (RDF Site Summary) or "Atom" files.  Newsticker
 ;; should work with the following RSS formats:
 ;;  * RSS 0.91
-;;    (see http://backend.userland.com/rss091 or
-;;    http://my.netscape.com/publish/formats/rss-spec-0.91.html)
+;;    (see http://backend.userland.com/rss091)
 ;;  * RSS 0.92
 ;;    (see http://backend.userland.com/rss092)
 ;;  * RSS 1.0
