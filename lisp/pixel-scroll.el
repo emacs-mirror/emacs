@@ -436,7 +436,10 @@ the height of the current window."
 					(window-header-line-height))))
          (object (posn-object desired-pos))
 	 (desired-start (posn-point desired-pos))
-	 (desired-vscroll (cdr (posn-object-x-y desired-pos)))
+         (scroll-area-total-height (cdr (window-text-pixel-size nil
+                                                                (window-start)
+                                                                (1- desired-start))))
+	 (desired-vscroll (- delta scroll-area-total-height))
          (edges (window-edges nil t))
          (usable-height (- (nth 3 edges)
                            (nth 1 edges)))
