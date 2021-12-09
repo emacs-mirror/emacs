@@ -239,8 +239,7 @@ is greater than 10.
      (unwind-protect
 	 (progn ,@body)
        (tramp--test-message
-	"%s %f sec"
-	,message (float-time (time-subtract nil start))))))
+	"%s %f sec" ,message (float-time (time-subtract nil start))))))
 
 ;; `always' is introduced with Emacs 28.1.
 (defalias 'tramp--test-always
@@ -2291,7 +2290,7 @@ This checks also `file-name-as-directory', `file-name-directory',
   "Check that Tramp abbreviates file names correctly."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-emacs29-p))
-  (skip-unless (tramp--test-ange-ftp-p))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
 
   (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
 	 ;; Not all methods can expand "~".
