@@ -2588,22 +2588,11 @@ Finally, show the buffer."
 (defun which-key--this-command-keys ()
   "Version of `this-single-command-keys' corrected for key-chords and god-mode."
   (let ((this-command-keys (this-single-command-keys)))
-    (when (and (equal this-command-keys [key-chord])
+    (when (and (vectorp this-command-keys)
+               (> (length this-command-keys) 0)
+               (eq (aref this-command-keys 0) 'key-chord)
                (bound-and-true-p key-chord-mode))
-      (setq this-command-keys
-            (condition-case nil
-                (let ((rkeys (recent-keys)))
-                  (vector 'key-chord
-                          ;; Take the two preceding the last one, because the
-                          ;; read-event call in key-chord seems to add a
-                          ;; spurious key press to this list. Note this is
-                          ;; different from guide-key's method which didn't work
-                          ;; for me.
-                          (aref rkeys (- (length rkeys) 3))
-                          (aref rkeys (- (length rkeys) 2))))
-              (error (progn
-                       (message "which-key error in key-chord handling")
-                       [key-chord])))))
+      (setq this-command-keys (this-single-command-raw-keys)))
     (when (and which-key--god-mode-support-enabled
                (bound-and-true-p god-local-mode)
                (eq this-command 'god-mode-self-insert))
