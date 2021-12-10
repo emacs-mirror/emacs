@@ -2066,12 +2066,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ":v" 'epa-dired-do-verify)
     (define-key map ":s" 'epa-dired-do-sign)
     (define-key map ":e" 'epa-dired-do-encrypt)
-
-    ;; No need to do this, now that top-level items are fewer.
-    ;;;;
-    ;; Get rid of the Edit menu bar item to save space.
-    ;;(define-key map [menu-bar edit] 'undefined)
-
     map)
   "Local keymap for Dired mode buffers.")
 
