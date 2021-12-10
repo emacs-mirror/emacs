@@ -714,8 +714,6 @@ precisely, according to the turning of the mouse wheel."
   :group 'mouse
   :keymap pixel-scroll-precision-mode-map
   (setq mwheel-coalesce-scroll-events
-        (not pixel-scroll-precision-mode)
-        make-cursor-line-fully-visible
         (not pixel-scroll-precision-mode)))
 
 (provide 'pixel-scroll)
