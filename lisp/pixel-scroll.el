@@ -436,7 +436,6 @@ the height of the current window."
   (let* ((desired-pos (posn-at-x-y 0 (+ delta
 					(window-tab-line-height)
 					(window-header-line-height))))
-         (object (posn-object desired-pos))
 	 (desired-start (posn-point desired-pos))
          (current-vs (window-vscroll nil t))
          (start-posn (unless (eq desired-start (window-start))
@@ -451,10 +450,7 @@ the height of the current window."
                      (goto-char desired-start)
                      (when (zerop (vertical-motion (1+ scroll-margin)))
                        (signal 'end-of-buffer nil))
-                     (point)))
-         (end-pos (posn-at-x-y 0 (+ usable-height
-                                    (window-tab-line-height)
-				    (window-header-line-height)))))
+                     (point))))
     (when (and (or (< (point) next-pos))
                (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
                  (and pos-visibility
