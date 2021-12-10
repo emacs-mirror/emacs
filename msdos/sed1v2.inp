@@ -55,6 +55,10 @@ s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
 s/ *@LIBGIF@//
 s/ *@LIBXPM@//
+/^HAVE_NATIVE_COMP *=/s/@HAVE_NATIVE_COMP@/no/
+/^HAVE_PDUMPER *=/s/@HAVE_PDUMPER@/no/
+/^CHECK_STRUCTS *=/s/@CHECK_STRUCTS@//
+/^RUN_TEMACS \=/s/temacs/temacs.exe/
 /^XFT_LIBS *=/s/@XFT_LIBS@//
 /^XCB_LIBS *=/s/@XCB_LIBS@//
 /^FONTCONFIG_CFLAGS *=/s/@FONTCONFIG_CFLAGS@//
@@ -150,6 +154,18 @@ s/ *@LIBXPM@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^W32_OBJ *=/s/@W32_OBJ@//
 /^W32_LIBS *=/s/@W32_LIBS@//
+/^JSON_OBJ *=/s/@JSON_OBJ@//
+/^JSON_CFLAGS *=/s/@JSON_CFLAGS@//
+/^JSON_LIBS *=/s/@JSON_LIBS@//
+/^LIBGCCJIT_OBJ *=/s/@LIBGCCJIT_OBJ@//
+/^LIBGCCJIT_CFLAGS *=/s/@LIBGCCJIT_CFLAGS@//
+/^LIBGCCJIT_LIBS *=/s/@LIBGCCJIT_LIBS@//
+/^HARFBUZZ_CFLAGS *=/s/@HARFBUZZ_CFLAGS@//
+/^HARFBUZZ_LIBS *=/s/@HARFBUZZ_LIBS@//
+/^LCMS2_CFLAGS *=/s/@LCMS2_CFLAGS@//
+/^LCMS2_LIBS *=/s/@LCMS2_LIBS@//
+/^LIBGMP *=/s/@LIBGMP@//
+/^DYNLIB_OBJ *=/s/@DYNLIB_OBJ@//
 /^version *=/s/@[^@\n]*@//
 /^EMACSRES *=/s/@EMACSRES@//
 /^W32_RES_LINK *=/s/@W32_RES_LINK@//
@@ -162,6 +178,7 @@ s/ *@LIBXPM@//
 /^AUTO_DEPEND *=/s/@AUTO_DEPEND@/yes/
 /^PAXCTL_dumped *=/s/=.*$/=/
 /^PAXCTL_notdumped *=/s/=.*$/=/
+/^DUMPING *=/s/@DUMPING@/unexec/
 /^lisp\.mk:/,/^$/c\
 lisp.mk: $(lispsource)/loadup.el\
 	@rm -f $@\
@@ -183,6 +200,7 @@ lisp.mk: $(lispsource)/loadup.el\
 /^	 *ifneq (\$(PAXCTL_dumped),)/,/^	 *endif/d
 /^	 *ln /s/ln /cp /
 /^	fi/d
+/ifeq (\$(HAVE_NATIVE_COMP):\$(NATIVE_DISABLED),yes:)/,/endif/d
 /^	 *\$(RUN_TEMACS) /i\
 	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
@@ -214,8 +232,8 @@ s/echo.*buildobj.lst/dj&/
 /^	-\{0,1\}rm -f/s/\\#/#/
 /^	echo.* buildobj.h/s|echo |djecho |
 /^buildobj\.h:/,/^	 *\$(AM_V_at)mv /{
-  /^	 *\$(AM_V_GEN)for /,/^	 *done /c\
-	djecho "$(ALLOBJS)" | sed -e 's/^ */"/' -e 's/ *$$/"/' -e 's/  */", "/g' >>$@.tmp
+  /^	 *\$(AM_V_GEN)for /,/mv \$@.tmp \$@/c\
+	djecho "$(ALLOBJS)" | sed -e 's/^ */"/' -e 's/ *$$/"/' -e 's/  */", "/g' >>$@
 }
 # Remove or replace dependencies we cannot have
 /^\.PRECIOUS: /s!\.\./config.status !!
@@ -236,3 +254,5 @@ s| -I\$(srcdir)/\.\./lib||
 s| -I\$(top_srcdir)/lib||
 s| -I\. -I\$(srcdir)| -I.|
 /^	 *test "X/d
+/\$(CC) -o \$@.tmp/s/\$@.tmp/\$@/
+/mv \$@.tmp \$@/d

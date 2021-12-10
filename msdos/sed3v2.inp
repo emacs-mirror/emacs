@@ -34,6 +34,7 @@
 /^LIBS_SYSTEM *=/s/@[^@\n]*@//g
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
+/^LIB_GETRANDOM *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^CPPFLAGS *=/s/@CPPFLAGS@//
 /^LDFLAGS *=/s/@LDFLAGS@//

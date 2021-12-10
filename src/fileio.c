@@ -2286,6 +2286,7 @@ permissions.  */)
       off_t insize = st.st_size;
       ssize_t copied;
 
+#ifndef MSDOS
       for (newsize = 0; newsize < insize; newsize += copied)
 	{
 	  /* Copy at most COPY_MAX bytes at a time; this is min
@@ -2300,6 +2301,7 @@ permissions.  */)
 	    break;
 	  maybe_quit ();
 	}
+#endif /* MSDOS */
 
       /* Fall back on read+write if copy_file_range failed, or if the
 	 input is empty and so could be a /proc file.  read+write will

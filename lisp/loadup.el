@@ -549,7 +549,9 @@ lost after dumping")))
                    (lexical-binding nil))
                (if (member tmp-dump-mode '("pdump" "pbootstrap"))
                    (dump-emacs-portable (expand-file-name output invocation-directory))
-                 (dump-emacs output "temacs")
+                 (dump-emacs output (if (eq system-type 'ms-dos)
+                                        "temacs.exe"
+                                      "temacs"))
                  (message "%d pure bytes used" pure-bytes-used))
                (setq success t))
           (unless success
