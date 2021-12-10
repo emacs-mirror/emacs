@@ -4896,25 +4896,6 @@ result of this, point is placed at the beginning of the buffer and mark
 is set at the end of the buffer.  The whole buffer is, therefore, the
 region.
 
-@c FIXME: the definition of append-to-buffer has been changed (in
-@c 2010-03-30).
-@c In Bug#8275, Stefan Monner <monnier@iro.umontreal.ca> writes:
-@c >> Do you want to fix this, or shall I try?  The problem is that
-@c >> append-to-buffer now uses let* and with-current-buffer, so this might
-@c >> break the flow of the text.  At this point in the book, let* and
-@c >> with-current-buffer are not yet introduced.
-@c >
-@c > Here are some thoughts:
-@c > - I don't think it's of any importance that the example code be
-@c >   identical to the currently used code.
-@c > - append-to-buffer might not be the best example since AFAICT copying
-@c >   text from one buffer to another is not a common operation and in most
-@c >   cases this is done via buffer-substring + insert (often with some
-@c >   processing on the string between the two) rather than with
-@c >   insert-buffer-substring which is a rarely used function.
-@c > - yes, I think the text would benefit from some rethink to try and present
-@c >   with-current-buffer in preference to set-buffer, but it's not
-@c >   a simple fix.
 @node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
@@ -4949,8 +4930,9 @@ buffer to which the text will go, the window it comes from and goes
 to, and the region that will be copied.
 
 @need 1250
-Here is the complete text of the function:
+Here is a possible implementation of the function:
 
+@c GNU Emacs 22
 @smallexample
 @group
 (defun append-to-buffer (buffer start end)
@@ -5017,7 +4999,9 @@ name.  (The function can handle either.)
 Since the @code{append-to-buffer} function will be used interactively,
 the function must have an @code{interactive} expression.  (For a
 review of @code{interactive}, see @ref{Interactive, , Making a
-Function Interactive}.)  The expression reads as follows:
+Function Interactive}.)
+
+The expression reads as follows:
 
 @smallexample
 @group
@@ -5046,7 +5030,7 @@ for true.
 
 The first argument to @code{other-buffer}, the exception, is yet
 another function, @code{current-buffer}.  That is not going to be
-returned.  The second argument is the symbol for true, @code{t}. that
+returned.  The second argument is the symbol for true, @code{t}.  That
 tells @code{other-buffer} that it may show visible buffers (except in
 this case, it will not show the current buffer, which makes sense).
 
@@ -5082,33 +5066,6 @@ point and mark.  That argument worked fine.)
 @node append-to-buffer body
 @subsection The Body of @code{append-to-buffer}
 
-@ignore
-in GNU Emacs 22   in    /usr/local/src/emacs/lisp/simple.el
-
-(defun append-to-buffer (buffer start end)
-  "Append to specified buffer the text of the region.
-It is inserted into that buffer before its point.
-
-When calling from a program, give three arguments:
-BUFFER (or buffer name), START and END.
-START and END specify the portion of the current buffer to be copied."
-  (interactive
-   (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
-         (region-beginning) (region-end)))
-  (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (let* ((append-to (get-buffer-create buffer))
-             (windows (get-buffer-window-list append-to t t))
-             point)
-        (set-buffer append-to)
-        (setq point (point))
-        (barf-if-buffer-read-only)
-        (insert-buffer-substring oldbuf start end)
-        (dolist (window windows)
-          (when (= (window-point window) point)
-            (set-window-point window (point))))))))
-@end ignore
-
 The body of the @code{append-to-buffer} function begins with @code{let}.
 
 As we have seen before (@pxref{let, , @code{let}}), the purpose of a
@@ -5127,7 +5084,7 @@ whole by showing a template for @code{append-to-buffer} with the
   "@var{documentation}@dots{}"
   (interactive @dots{})
   (let ((@var{variable} @var{value}))
-        @var{body}@dots{})
+        @var{body}@dots{}))
 @end group
 @end smallexample
 
@@ -5247,19 +5204,39 @@ of filling in the slots of a template:
 
 @need 1200
 @noindent
+@anchor{let* introduced}
+@findex let*
 In this function, the body of the @code{save-excursion} contains only
 one expression, the @code{let*} expression.  You know about a
-@code{let} function.  The @code{let*} function is different.  It has a
-@samp{*} in its name.  It enables Emacs to set each variable in its
-varlist in sequence, one after another.
+@code{let} function.  The @code{let*} function is different.  It
+enables Emacs to set each variable in its varlist in sequence, one
+after another; such that variables in the latter part of the varlist
+can make use of the values to which Emacs set variables earlier in the
+varlist.
 
-Its critical feature is that variables later in the varlist can make
-use of the values to which Emacs set variables earlier in the varlist.
-@xref{fwd-para let, , The @code{let*} expression}.
+Looking at the @code{let*} expression in @code{append-to-buffer}:
 
-We will skip functions like @code{let*} and focus on two: the
-@code{set-buffer} function and the @code{insert-buffer-substring}
-function.
+@smallexample
+@group
+(let* ((append-to (get-buffer-create buffer))
+       (windows (get-buffer-window-list append-to t t))
+       point)
+  BODY...)
+@end group
+@end smallexample
+
+@noindent
+we see that @code{append-to} is bound to the value returned by the
+@w{@code{(get-buffer-create buffer)}}. On the next line,
+@code{append-to} is used as an argument to
+@code{get-buffer-window-list}; this would not be possible with the
+@code{let} expression.  Note that @code{point} is automatically bound
+to @code{nil}, the same way as it would be done in the @code{let}
+statement.
+
+Now let's focus on the functions @code{set-buffer} and
+@code{insert-buffer-substring} in the body of the @code{let*}
+expression.
 
 @need 1250
 In the old days, the @code{set-buffer} expression was simply
@@ -5277,27 +5254,8 @@ but now it is
 @end smallexample
 
 @noindent
-@code{append-to} is bound to @code{(get-buffer-create buffer)} earlier
-on in the @code{let*} expression.  That extra binding would not be
-necessary except for that @code{append-to} is used later in the
-varlist as an argument to @code{get-buffer-window-list}.
-
-@ignore
-in GNU Emacs 22
-
-  (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (let* ((append-to (get-buffer-create buffer))
-             (windows (get-buffer-window-list append-to t t))
-             point)
-        (set-buffer append-to)
-        (setq point (point))
-        (barf-if-buffer-read-only)
-        (insert-buffer-substring oldbuf start end)
-        (dolist (window windows)
-          (when (= (window-point window) point)
-            (set-window-point window (point))))))))
-@end ignore
+This is because @code{append-to} was bound to @code{(get-buffer-create
+buffer)} earlier on in the @code{let*} expression.
 
 The @code{append-to-buffer} function definition inserts text from the
 buffer in which you are currently to a named buffer.  It happens that
@@ -5393,6 +5351,12 @@ an argument and insert the region into the current buffer.
 
 @item mark-whole-buffer
 Mark the whole buffer as a region.  Normally bound to @kbd{C-x h}.
+
+@item let*
+Declare a list of variables and give them an initial value; then
+evaluate the rest of the expressions in the body of @code{let*}.  The
+values of the variables can be used to bind ensuing variables in the
+list.
 
 @item set-buffer
 Switch the attention of Emacs to another buffer, but do not change the
@@ -12896,25 +12860,12 @@ familiar part of this function.
 @node fwd-para let
 @unnumberedsubsec The @code{let*} expression
 
-The next line of the @code{forward-paragraph} function begins a
-@code{let*} expression.  This is different from @code{let}.  The
-symbol is @code{let*} not @code{let}.
-
 @findex let*
-The @code{let*} special form is like @code{let} except that Emacs sets
-each variable in sequence, one after another, and variables in the
-latter part of the varlist can make use of the values to which Emacs
-set variables in the earlier part of the varlist.
-
-@ignore
-( refappend save-excursion, , code save-excursion in code append-to-buffer .)
-@end ignore
-
-(@ref{append save-excursion, , @code{save-excursion} in @code{append-to-buffer}}.)
-
-In the @code{let*} expression in this function, Emacs binds a total of
-seven variables:  @code{opoint}, @code{fill-prefix-regexp},
-@code{parstart}, @code{parsep}, @code{sp-parstart}, @code{start}, and
+The next line of the @code{forward-paragraph} function begins a
+@code{let*} expression (@pxref{let* introduced,,@code{let*}
+introduced}), in which Emacs binds a total of seven variables:
+@code{opoint}, @code{fill-prefix-regexp}, @code{parstart},
+@code{parsep}, @code{sp-parstart}, @code{start}, and
 @code{found-start}.
 
 The variable @code{parsep} appears twice, first, to remove instances
