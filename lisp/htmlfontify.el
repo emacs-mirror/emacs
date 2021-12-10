@@ -77,6 +77,7 @@
 ;; Changes: moved to changelog (CHANGES) file.
 
 ;;; Code:
+
 (eval-when-compile (require 'cl-lib))
 (require 'cus-edit)
 
@@ -2306,10 +2307,6 @@ See also `hfy-tags-cache', `hfy-tags-rmap'."
 See also `hfy-load-tags-cache'."
   (interactive "D source directory: ")
   (hfy-load-tags-cache (directory-file-name srcdir)))
-
-;;(defun hfy-test-read-args (foo bar)
-;;  (interactive "D source directory: \nD target directory: ")
-;;  (message "foo: %S\nbar: %S" foo bar))
 
 (defun hfy-save-kill-buffers (buffer-list &optional dstdir)
   (dolist (B buffer-list)
