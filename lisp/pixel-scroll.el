@@ -399,7 +399,8 @@ character on the unseen line just above the scope of current
 window, and the pixel height of that line."
   (let* ((pos0 (save-excursion
                  (goto-char (window-start))
-                 (beginning-of-visual-line)
+                 (unless (bobp)
+                   (beginning-of-visual-line))
                  (point)))
          (vscroll0 (window-vscroll nil t))
          (line-height nil)
