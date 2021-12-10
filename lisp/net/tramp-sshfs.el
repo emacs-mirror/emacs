@@ -345,9 +345,6 @@ connection if a previous connection has died for some reason."
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
 
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
-
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)))
 

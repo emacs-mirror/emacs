@@ -1282,7 +1282,7 @@ but the other way around."
         (when found
           (if (setq window (image-dired-thumbnail-window))
               (set-window-point window (point)))
-          (image-dired-display-thumb-properties))))))
+          (image-dired-update-header-line))))))
 
 (defun image-dired-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
@@ -1309,7 +1309,7 @@ With prefix argument, move ARG lines."
       (when (and (equal (current-buffer) old-buf)
                  (= (point) old-point))
         (ignore-errors
-          (image-dired-display-thumb-properties))))))
+          (image-dired-update-header-line))))))
 
 (defun image-dired-forward-image (&optional arg wrap-around)
   "Move to next image and display properties.
@@ -1332,13 +1332,13 @@ point is on the last image, move to the last one and vice versa."
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
           (progn (goto-char pos)
-                 (image-dired-display-thumb-properties))
+                 (image-dired-update-header-line))
         (if wrap-around
             (progn (goto-char (if (> arg 0)
                                   (point-min)
                                 ;; There are two spaces after the last image.
                                 (- (point-max) 2)))
-                   (image-dired-display-thumb-properties))
+                   (image-dired-update-header-line))
           (message "At %s image" (if (> arg 0) "last" "first"))
           (run-at-time 1 nil (image-dired--display-thumb-properties-fun))))))
   (when image-dired-track-movement
@@ -1363,7 +1363,7 @@ On reaching end or beginning of buffer, stop and show a message."
       (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 
 (defun image-dired-previous-line ()
@@ -1380,7 +1380,7 @@ On reaching end or beginning of buffer, stop and show a message."
       (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-beginning-of-buffer ()
   "Move to the first image in the buffer and display properties."
@@ -1391,7 +1391,7 @@ On reaching end or beginning of buffer, stop and show a message."
     (forward-char 1))
   (when image-dired-track-movement
     (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-end-of-buffer ()
   "Move to the last image in the buffer and display properties."
@@ -1402,7 +1402,7 @@ On reaching end or beginning of buffer, stop and show a message."
     (forward-char -1))
   (when image-dired-track-movement
     (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-format-properties-string (buf file props comment)
   "Format display properties.
@@ -1417,21 +1417,23 @@ comment."
     (cons ?t (or props ""))
     (cons ?c (or comment "")))))
 
-(defun image-dired-display-thumb-properties ()
-  "Display thumbnail properties in the echo area."
-  (if (not (eobp))
-      (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
-            (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
-            (props (mapconcat #'identity (get-text-property (point) 'tags) ", "))
-            (comment (get-text-property (point) 'comment))
-            (message-log-max nil))
-        (if file-name
-             (message "%s"
-             (image-dired-format-properties-string
-              dired-buf
-              file-name
-              props
-              comment))))))
+(defun image-dired-update-header-line ()
+  "Update image information in the header line."
+  (when (and (not (eobp))
+             (memq major-mode '(image-dired-thumbnail-mode
+                                image-dired-display-image-mode)))
+    (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
+          (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
+          (props (mapconcat #'identity (get-text-property (point) 'tags) ", "))
+          (comment (get-text-property (point) 'comment))
+          (message-log-max nil))
+      (if file-name
+          (setq header-line-format
+                (image-dired-format-properties-string
+                 dired-buf
+                 file-name
+                 props
+                 comment))))))
 
 (defun image-dired-dired-file-marked-p (&optional marker)
   "In Dired, return t if file on current line is marked.
@@ -2231,7 +2233,7 @@ FILE-COMMENTS is an alist on the following form:
          (comment (image-dired-read-comment file)))
     (image-dired-write-comments (list (cons file comment)))
     (image-dired-update-property 'comment comment))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-read-comment (&optional file)
   "Read comment for an image.
@@ -2324,7 +2326,7 @@ non-nil."
     (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 
 
@@ -3014,6 +3016,11 @@ Dired."
           (setcdr image-dired-tag-file-list
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
+
+(defun image-dired-display-thumb-properties ()
+  "Display thumbnail properties in the echo area."
+  (declare (obsolete image-dired-update-header-line "29.1"))
+  (image-dired-update-header-line))
 
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")

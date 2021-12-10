@@ -1076,11 +1076,12 @@ strings done by `substitute-command-keys'."
   :version "29.1"
   :group 'help)
 
-(defun substitute-command-keys (string)
+(defun substitute-command-keys (string &optional no-face)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
-is not on any keys.  Keybindings will use the face `help-key-binding'.
+is not on any keys.  Keybindings will use the face `help-key-binding',
+unless the optional argument NO-FACE is non-nil.
 
 Each substring of the form \\\\=`KEYBINDING' will be replaced by
 KEYBINDING and use the `help-key-binding' face.
@@ -1177,21 +1178,27 @@ Otherwise, return a new string."
                       (let ((op (point)))
                         (insert "M-x ")
                         (goto-char (+ end-point 3))
-                        (add-text-properties op (point)
-                                             '( face help-key-binding
-                                                font-lock-face help-key-binding))
+                        (or no-face
+                            (add-text-properties
+                             op (point)
+                             '( face help-key-binding
+                                font-lock-face help-key-binding)))
                         (delete-char 1))
                     ;; Function is on a key.
                     (delete-char (- end-point (point)))
-                    (let ((key (help--key-description-fontified key)))
-                      (insert (if (and help-link-key-to-documentation
-                                       help-buffer-under-preparation
-                                       (functionp fun))
-                                  ;; The `fboundp' fixes bootstrap.
-                                  (if (fboundp 'help-mode--add-function-link)
-                                      (help-mode--add-function-link key fun)
-                                    key)
-                                key))))))
+
+                    (insert
+                     (if no-face
+                         (key-description key)
+                       (let ((key (help--key-description-fontified key)))
+                         (if (and help-link-key-to-documentation
+                                  help-buffer-under-preparation
+                                  (functionp fun))
+                             ;; The `fboundp' fixes bootstrap.
+                             (if (fboundp 'help-mode--add-function-link)
+                                 (help-mode--add-function-link key fun)
+                               key)
+                           key)))))))
                ;; 1D. \{foo} is replaced with a summary of the keymap
                ;;            (symbol-value foo).
                ;;     \<foo> just sets the keymap used for \[cmd].

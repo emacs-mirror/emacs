@@ -4306,12 +4306,12 @@ deleted unconditionally.  Otherwise, the fate of the frame is
 determined by calling @code{frame-auto-hide-function} (see below) with
 that frame as sole argument.
 
-If the third element of the @code{quit-restore} parameter is a list of
-buffer, window start (@pxref{Window Start and End}), and point
-(@pxref{Window Point}), and that buffer is still live, the buffer will
-be displayed, and start and point set accordingly.  If, in addition,
-@var{window}'s buffer was temporarily resized, this function will also
-try to restore the original height of @var{window}.
+If the second element of the @code{quit-restore} parameter is a list
+of a buffer, a window start (@pxref{Window Start and End}) and a
+window point (@pxref{Window Point}), and that buffer is still live,
+the buffer will be displayed, and start and point set accordingly.
+If, in addition, @var{window}'s buffer was temporarily resized, this
+function will also try to restore the original height of @var{window}.
 
 Otherwise, if @var{window} was previously used for displaying other
 buffers (@pxref{Window History}), the most recent buffer in that

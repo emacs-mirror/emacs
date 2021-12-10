@@ -203,7 +203,7 @@ by `grep-compute-defaults'; to change the default value, use
   :version "22.1")
 
 (defcustom grep-files-aliases
-  '(("all" .   "* .[!.]* ..?*") ;; Don't match `..'. See bug#22577
+  '(("all" .   "* .*")
     ("el" .    "*.el")
     ("ch" .    "*.[ch]")
     ("c" .     "*.c")
