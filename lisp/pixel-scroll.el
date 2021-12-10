@@ -438,10 +438,12 @@ the height of the current window."
 					(window-header-line-height))))
          (object (posn-object desired-pos))
 	 (desired-start (posn-point desired-pos))
-         (scroll-area-total-height (cdr (window-text-pixel-size nil
-                                                                (window-start)
-                                                                (1- desired-start))))
-	 (desired-vscroll (- delta scroll-area-total-height))
+         (current-vs (window-vscroll nil t))
+         (start-posn (unless (eq desired-start (window-start))
+                       (posn-at-point desired-start)))
+	 (desired-vscroll (if start-posn
+                              (- delta (cdr (posn-x-y start-posn)))
+                            (+ current-vs delta)))
          (edges (window-edges nil t))
          (usable-height (- (nth 3 edges)
                            (nth 1 edges)))
@@ -453,33 +455,22 @@ the height of the current window."
          (end-pos (posn-at-x-y 0 (+ usable-height
                                     (window-tab-line-height)
 				    (window-header-line-height)))))
-    (if (or (overlayp object)
-            (stringp object)
-            (and (consp object)
-                 (stringp (car object)))
-            (and (consp (posn-object end-pos))
-                 (> (cdr (posn-object-x-y end-pos)) 0)))
-        ;; We are either on an overlay or a string, so set vscroll
-        ;; directly.
-        (set-window-vscroll nil (+ (window-vscroll nil t)
-                                   delta)
-                            t)
-      (when (and (or (< (point) next-pos))
-                 (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
-                   (and pos-visibility
-                        (or (eq (length pos-visibility) 2)
-                            (when-let* ((posn (posn-at-point next-pos)))
-                              (> (cdr (posn-object-width-height posn))
-                                 usable-height))))))
-        (goto-char next-pos))
-      (set-window-start nil (if (zerop (window-hscroll))
-                                desired-start
-                              (save-excursion
-                                (goto-char desired-start)
-                                (beginning-of-visual-line)
-                                (point)))
-                        t)
-      (set-window-vscroll nil desired-vscroll t))))
+    (when (and (or (< (point) next-pos))
+               (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
+                 (and pos-visibility
+                      (or (eq (length pos-visibility) 2)
+                          (when-let* ((posn (posn-at-point next-pos)))
+                            (> (cdr (posn-object-width-height posn))
+                               usable-height))))))
+      (goto-char next-pos))
+    (set-window-start nil (if (zerop (window-hscroll))
+                              desired-start
+                            (save-excursion
+                              (goto-char desired-start)
+                              (beginning-of-visual-line)
+                              (point)))
+                      t)
+    (set-window-vscroll nil desired-vscroll t)))
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
@@ -558,13 +549,14 @@ animation."
             (setq time-elapsed (+ time-elapsed
                                   (- (float-time) last-time))
                   percentage (/ time-elapsed total-time))
-            (if (< delta 0)
-                (pixel-scroll-precision-scroll-down
-                 (ceiling (abs (* (* delta factor)
-                                  (/ between-scroll total-time)))))
-              (pixel-scroll-precision-scroll-up
-               (ceiling (* (* delta factor)
-                           (/ between-scroll total-time)))))
+            (let ((throw-on-input nil))
+              (if (< delta 0)
+                  (pixel-scroll-precision-scroll-down
+                   (ceiling (abs (* (* delta factor)
+                                    (/ between-scroll total-time)))))
+                (pixel-scroll-precision-scroll-up
+                 (ceiling (* (* delta factor)
+                             (/ between-scroll total-time))))))
             (setq last-time (float-time)))
         (if (< percentage 1)
             (progn
