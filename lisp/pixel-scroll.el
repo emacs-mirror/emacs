@@ -397,7 +397,10 @@ returns nil."
 The returned value is a cons of the position of the first
 character on the unseen line just above the scope of current
 window, and the pixel height of that line."
-  (let* ((pos0 (window-start))
+  (let* ((pos0 (save-excursion
+                 (goto-char (window-start))
+                 (beginning-of-visual-line)
+                 (point)))
          (vscroll0 (window-vscroll nil t))
          (line-height nil)
          (pos
@@ -407,8 +410,7 @@ window, and the pixel height of that line."
                 (point-min)
               (vertical-motion -1)
               (setq line-height
-                    (cdr (window-text-pixel-size nil (point)
-                                                 pos0)))
+                    (cdr (window-text-pixel-size nil (point) pos0)))
               (point)))))
     ;; restore initial position
     (set-window-start nil pos0 t)
