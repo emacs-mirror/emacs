@@ -453,7 +453,9 @@ the height of the current window."
                      (goto-char desired-start)
                      (when (zerop (vertical-motion (1+ scroll-margin)))
                        (signal 'end-of-buffer nil))
-                     (point))))
+                     (point)))
+         (scroll-preserve-screen-position nil)
+         (auto-window-vscroll nil))
     (when (and (or (< (point) next-pos))
                (let ((pos-visibility (pos-visible-in-window-p next-pos nil t)))
                  (and pos-visibility
