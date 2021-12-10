@@ -526,11 +526,9 @@ If the value is t instead of an alist, use the value of
   '((t :inherit font-lock-variable-name-face))
   "Face for time zone label in `world-clock' buffer.")
 
-(defvar world-clock-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "n" #'next-line)
-    (define-key map "p" #'previous-line)
-    map))
+(defvar-keymap world-clock-mode-map
+  "n" #'next-line
+  "p" #'previous-line)
 
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
