@@ -60,7 +60,7 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # The example above is just for developers, it should not be used by default.
 
 # Those automatically generated autoload files that need special rules
-# to build; ie not including things created via generated-autoload-file
+# to build; i.e. not including things created via generated-autoload-file
 # (eg calc/calc-loaddefs.el).
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 	$(lisp)/calendar/diary-loaddefs.el \
