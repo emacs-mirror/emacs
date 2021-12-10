@@ -411,9 +411,10 @@ specified buffer position instead of point are used."
     (error "Can't pass in both keymap and position"))
   (if keymap
       (let ((value (lookup-key keymap (key-parse key) accept-default)))
-        (when (and (not no-remap)
+        (if (and (not no-remap)
                    (symbolp value))
-          (or (command-remapping value) value)))
+            (or (command-remapping value) value)
+          value))
     (key-binding (kbd key) accept-default no-remap position)))
 
 (defun keymap-local-lookup (keys &optional accept-default)
