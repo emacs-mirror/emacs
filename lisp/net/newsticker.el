@@ -4,7 +4,7 @@
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
-;; URL:         http://www.nongnu.org/newsticker
+;; URL:         https://www.nongnu.org/newsticker
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
 

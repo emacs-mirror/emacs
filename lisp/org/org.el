@@ -693,7 +693,7 @@ defined in org-duration.el.")
 If a description starts with <C>, the file is not part of Emacs and Org mode,
 so loading it will require that you have properly installed org-contrib
 package from NonGNU Emacs Lisp Package Archive
-http://elpa.nongnu.org/nongnu/org-contrib.html
+https://elpa.nongnu.org/nongnu/org-contrib.html
 
 You can also use this system to load external packages (i.e. neither Org
 core modules, nor org-contrib modules).  Just add symbols
@@ -773,7 +773,7 @@ For export specific modules, see also `org-export-backends'."
 If a description starts with <C>, the file is not part of Emacs and Org mode,
 so loading it will require that you have properly installed org-contrib
 package from NonGNU Emacs Lisp Package Archive
-http://elpa.nongnu.org/nongnu/org-contrib.html
+https://elpa.nongnu.org/nongnu/org-contrib.html
 
 Unlike to `org-modules', libraries in this list will not be
 loaded along with Org, but only once the export framework is
