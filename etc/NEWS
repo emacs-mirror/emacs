@@ -95,6 +95,10 @@ the 'variable-pitch' face, or add this to your "~/.emacs":
 ** Emacs now comes with optional built-in support for sqlite3.
 This allows you to examine/manipulate sqlite3 databases.
 
+** New command 'sqlite-mode-open-file' for examining an sqlite3 file.
+This uses the new 'sqlite-mode' which allows listing the tables
+in a file, the columns, and the contents of the tables.
+
 ---
 ** 'write-file' will now copy some file mode bits.
 If the current buffer is visiting a file that is executable, the
