@@ -888,8 +888,8 @@ Return ICS file name."
     (org-export-to-file 'icalendar outfile
       async subtreep visible-only body-only
       '(:ascii-charset utf-8 :ascii-links-to-notes nil)
-      (lambda (file)
-	(run-hook-with-args 'org-icalendar-after-save-hook file) nil))))
+      '(lambda (file)
+	 (run-hook-with-args 'org-icalendar-after-save-hook file) nil))))
 
 ;;;###autoload
 (defun org-icalendar-export-agenda-files (&optional async)

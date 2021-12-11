@@ -368,7 +368,7 @@ Return value as a string."
 	    date)
 	(unwind-protect
 	    (progn
-	      (vc-call print-log file buf nil nil 1)
+	      (vc-call print-log (list file) buf nil nil 1)
 	      (with-current-buffer buf
 		(vc-exec-after
 		 (lambda ()
