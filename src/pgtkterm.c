@@ -5947,10 +5947,9 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	    {
 	      block_input ();
 	      gtk_widget_grab_focus (FRAME_GTK_WIDGET (f));
+
 	      if (FRAME_GTK_OUTER_WIDGET (f))
-		{
-		  gtk_window_present (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
-		}
+		gtk_window_present (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 	      unblock_input ();
 	    }
 	}
