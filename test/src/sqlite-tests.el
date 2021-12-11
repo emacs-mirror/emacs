@@ -79,7 +79,9 @@
     (should (equal (sqlite-next set)
                    '("bar" 2)))
     (should-not (sqlite-next set))
-    (should-not (sqlite-more-p set))))
+    (should-not (sqlite-more-p set))
+    (sqlite-finalize set)
+    (should-error (sqlite-next set))))
 
 (ert-deftest sqlite-chars ()
   (skip-unless (sqlite-available-p))

@@ -290,7 +290,7 @@ DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
   check_sqlite (db, false);
   sqlite3_close (XSQLITE (db)->db);
   XSQLITE (db)->db = NULL;
-  return Qnil;
+  return Qt;
 }
 
 /* Bind values in a statement like
@@ -647,6 +647,7 @@ This will free the resources held by SET.  */)
 {
   check_sqlite (set, true);
   sqlite3_finalize (XSQLITE (set)->stmt);
+  XSQLITE (set)->db = NULL;
   return Qt;
 }
 
