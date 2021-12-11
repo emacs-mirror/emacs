@@ -1,4 +1,4 @@
-;;; sqlite.el --- Tests for empty.el  -*- lexical-binding: t; -*-
+;;; sqlite.el --- Functions for interacting with sqlite3 databases  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021 Free Software Foundation, Inc.
 
