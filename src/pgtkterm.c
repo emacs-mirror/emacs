@@ -195,6 +195,42 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
 }
 
+/* Raise frame F.  */
+
+static void
+pgtk_raise_frame (struct frame *f)
+{
+  /* This works only for non-child frames on X.
+     It does not work for child frames on X, and it does not work
+     on Wayland too. */
+  block_input ();
+  if (FRAME_VISIBLE_P (f))
+    gdk_window_raise (gtk_widget_get_window (FRAME_WIDGET (f)));
+  unblock_input ();
+}
+
+/* Lower frame F.  */
+
+static void
+pgtk_lower_frame (struct frame *f)
+{
+  if (FRAME_VISIBLE_P (f))
+    {
+      block_input ();
+      gdk_window_lower (gtk_widget_get_window (FRAME_WIDGET (f)));
+      unblock_input ();
+    }
+}
+
+static void
+pgtk_frame_raise_lower (struct frame *f, bool raise_flag)
+{
+  if (raise_flag)
+    pgtk_raise_frame (f);
+  else
+    pgtk_lower_frame (f);
+}
+
 /* Free X resources of frame F.  */
 
 void
@@ -4671,7 +4707,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->mouse_position_hook = pgtk_mouse_position;
   terminal->frame_rehighlight_hook = XTframe_rehighlight;
   terminal->buffer_flipping_unblocked_hook = pgtk_buffer_flipping_unblocked_hook;
-  /* terminal->frame_raise_lower_hook = pgtk_frame_raise_lower; */
+  terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
   terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
   terminal->menu_show_hook = pgtk_menu_show;
