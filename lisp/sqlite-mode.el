@@ -36,11 +36,9 @@
   :interactive nil
   (buffer-disable-undo)
   (setq-local buffer-read-only t
-              truncate-lines t
-              sqlite-mode--statements nil))
+              truncate-lines t))
 
 (defvar sqlite--db nil)
-(defvar sqlite-mode--statements nil)
 
 ;;;###autoload
 (defun sqlite-mode-open-file (file)
@@ -138,9 +136,7 @@
                   (get-text-property (point) 'sqlite--row))))
     (unless row
       (user-error "No table under point"))
-    (let ((stmt (sqlite-select sqlite--db
-                               (format "select * from %s" (car row)) nil 'set))
-          (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       (save-excursion
         (forward-line 1)
         (if (looking-at " ")
@@ -148,8 +144,7 @@
             (delete-region (point) (if (re-search-forward "^[^ ]" nil t)
                                        (match-beginning 0)
                                      (point-max)))
-          (sqlite--mode--list-data (list stmt (car row)))
-          (push stmt sqlite-mode--statements))))))
+          (sqlite--mode--list-data (list (car row) 0)))))))
 
 (defun sqlite-mode--more-data (stmt)
   (let ((inhibit-read-only t))
@@ -158,16 +153,30 @@
     (sqlite--mode--list-data stmt)))
 
 (defun sqlite--mode--list-data (data)
-  (let* ((stmt (car data))
-         (table (cadr data))
-         (rows
-          (cl-loop for i from 0 upto 1000
-                   for row = (sqlite-next stmt)
-                   while row
-                   collect row)))
-    (sqlite-mode--tablify (sqlite-columns stmt) rows (cons 'row table) "  ")
-    (when (sqlite-more-p stmt)
-      (insert (buttonize "  More data...\n" #'sqlite-mode--more-data data)))))
+  (let* ((table (car data))
+         (rowid (cadr data))
+         stmt)
+    (unwind-protect
+        (progn
+          (setq stmt
+                (sqlite-select
+                 sqlite--db
+                 (format "select rowid, * from %s where rowid >= ?" table)
+                 (list rowid)
+                 'set))
+          (sqlite-mode--tablify (sqlite-columns stmt)
+                                (cl-loop for i from 0 upto 1000
+                                         for row = (sqlite-next stmt)
+                                         while row
+                                         do (setq rowid (car row))
+                                         collect row)
+                                (cons 'row table)
+                                "  ")
+          (when (sqlite-more-p stmt)
+            (insert (buttonize "  More data...\n" #'sqlite-mode--more-data
+                               (list table rowid)))))
+      (when stmt
+        (sqlite-finalize stmt)))))
 
 (defun sqlite-mode-delete ()
   "Delete the row under point."
@@ -178,19 +187,6 @@
     (when (or (not (consp table))
               (not (eq (car table) 'row)))
       (user-error "No row under point"))
-    ;; We have to remove all open statements before we can delete
-    ;; something.  FIXME -- perhaps this should be changed not to use
-    ;; long-lived statements, since this presumably locks the file for
-    ;; other users, too.
-    (dolist (stmt sqlite-mode--statements)
-      (ignore-errors (sqlite-finalize stmt)))
-    (setq sqlite-mode--statements nil)
-    (save-excursion
-      (goto-char (point-min))
-      (let (match)
-        (while (setq match (text-property-search-forward 'button-data))
-          (delete-region (prop-match-beginning match)
-                         (prop-match-end match)))))
     (sqlite-execute
      sqlite--db
      (format "delete from %s where %s"
@@ -198,7 +194,7 @@
              (string-join
               (mapcar (lambda (column)
                         (format "%s = ?" (car (split-string column " "))))
-                      (sqlite-mode--column-names (cdr table)))
+                      (cons "rowid" (sqlite-mode--column-names (cdr table))))
               " and "))
      row)
     (delete-region (line-beginning-position) (progn (forward-line 1) (point)))))
