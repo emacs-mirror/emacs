@@ -187,6 +187,8 @@
     (when (or (not (consp table))
               (not (eq (car table) 'row)))
       (user-error "No row under point"))
+    (unless (yes-or-no-p "Really delete the row under point? ")
+      (error "Not deleting"))
     (sqlite-execute
      sqlite--db
      (format "delete from %s where %s"
