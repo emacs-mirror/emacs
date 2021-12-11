@@ -151,43 +151,32 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_prepare_v2);
   return true;
 }
-
-static bool
-sqlite_loaded_p (void)
-{
-  Lisp_Object found = Fassq (Qsqlite3, Vlibrary_cache);
-
-  return CONSP (found) && EQ (XCDR (found), Qt);
-}
 #endif /* WINDOWSNT */
 
 static bool
 init_sqlite_functions (void)
 {
 #ifdef WINDOWSNT
-  if (sqlite_loaded_p ())
-    return true;
-  else
+  static bool sqlite3_initialized;
+
+  if (!sqlite3_initialized)
     {
-      HMODULE library;
+      HMODULE library = w32_delayed_load (Qsqlite3);
 
-      if (!(library = w32_delayed_load (Qsqlite3)))
+      if (!library)
+	message1 ("sqlite3 library was not found");
+      else if (load_dll_functions (library))
 	{
-	  message1 ("sqlite3 library not found");
-	  return false;
+	  sqlite3_initialized = true;
+	  Vlibrary_cache = Fcons (Fcons (Qsqlite3, Qt), Vlibrary_cache);
 	}
-
-      if (! load_dll_functions (library))
-	goto bad_library;
-
-      Vlibrary_cache = Fcons (Fcons (Qsqlite3, Qt), Vlibrary_cache);
-      return true;
+      else
+	{
+	  message1 ("sqlite3 library was found, but could not be loaded successfully");
+	  Vlibrary_cache = Fcons (Fcons (Qsqlite3, Qnil), Vlibrary_cache);
+	}
     }
-
- bad_library:
-  Vlibrary_cache = Fcons (Fcons (Qsqlite3, Qnil), Vlibrary_cache);
-
-  return false;
+  return sqlite3_initialized;
 #else  /* !WINDOWSNT */
   return true;
 #endif	/* !WINDOWSNT */
@@ -674,12 +663,7 @@ DEFUN ("sqlite-available-p", Fsqlite_available_p, Ssqlite_available_p, 0, 0, 0,
   if (CONSP (found))
     return XCDR (found);
   else
-    {
-      Lisp_Object status;
-      status = init_sqlite_functions () ? Qt : Qnil;
-      Vlibrary_cache = Fcons (Fcons (Qsqlite3, status), Vlibrary_cache);
-      return status;
-    }
+    return init_sqlite_functions () ? Qt : Qnil;
 # else
   return Qt;
 #endif
