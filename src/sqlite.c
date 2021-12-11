@@ -525,7 +525,7 @@ which means that we return a set object that can be queried with
   /* Return a handle to get the data.  */
   if (EQ (return_type, Qset))
     {
-      retval = make_sqlite (true, db, stmt, XSQLITE (db)->name);
+      retval = make_sqlite (true, sdb, stmt, XSQLITE (db)->name);
       goto exit;
     }
 
