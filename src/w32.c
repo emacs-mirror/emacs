@@ -8548,7 +8548,7 @@ fcntl (int s, int cmd, int options)
 int
 sys_close (int fd)
 {
-  int rc;
+  int rc = -1;
 
   if (fd < 0)
     {
@@ -8603,14 +8603,31 @@ sys_close (int fd)
 	}
     }
 
-  if (fd >= 0 && fd < MAXDESC)
-    fd_info[fd].flags = 0;
-
   /* Note that sockets do not need special treatment here (at least on
      NT and Windows 95 using the standard tcp/ip stacks) - it appears that
      closesocket is equivalent to CloseHandle, which is to be expected
      because socket handles are fully fledged kernel handles. */
-  rc = _close (fd);
+  if (fd < MAXDESC)
+    {
+      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0)
+	{
+	  fd_info[fd].flags = 0;
+	  rc = _close (fd);
+	}
+      else
+	{
+	  /* We don't close here descriptors open by pipe processes
+	     for reading from the pipe, because the reader thread
+	     might be stuck in _sys_read_ahead, and then we will hang
+	     here.  If the reader thread exits normally, it will close
+	     the descriptor; otherwise we will leave a zombie thread
+	     hanging around.  */
+	  rc = 0;
+	  /* Leave the flag set for the reader thread to close the
+	     descriptor.  */
+	  fd_info[fd].flags = FILE_DONT_CLOSE;
+	}
+    }
 
   return rc;
 }
@@ -10898,6 +10915,7 @@ register_aux_fd (int infd)
     }
   fd_info[ infd ].cp = cp;
   fd_info[ infd ].hnd = (HANDLE) _get_osfhandle (infd);
+  fd_info[ infd ].flags |= FILE_DONT_CLOSE;
 }
 
 #ifdef HAVE_GNUTLS
