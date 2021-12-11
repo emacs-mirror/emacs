@@ -91,6 +91,10 @@ the 'variable-pitch' face, or add this to your "~/.emacs":
 
 * Changes in Emacs 29.1
 
++++
+** Emacs now comes with optional built-in support for sqlite3.
+This allows you to examine/manipulate sqlite3 databases.
+
 ---
 ** 'write-file' will now copy some file mode bits.
 If the current buffer is visiting a file that is executable, the
