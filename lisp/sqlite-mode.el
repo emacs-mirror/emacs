@@ -178,7 +178,10 @@
     (when (or (not (consp table))
               (not (eq (car table) 'row)))
       (user-error "No row under point"))
-    ;; We have to remove all open statements before we can delete something.
+    ;; We have to remove all open statements before we can delete
+    ;; something.  FIXME -- perhaps this should be changed not to use
+    ;; long-lived statements, since this presumably locks the file for
+    ;; other users, too.
     (dolist (stmt sqlite-mode--statements)
       (ignore-errors (sqlite-finalize stmt)))
     (setq sqlite-mode--statements nil)
