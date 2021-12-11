@@ -510,7 +510,7 @@ Return the compile-time value of FORM."
                               ;; whether to compile as byte-compile-form
                               ;; or byte-compile-file-form.
                               (let ((expanded
-                                     (macroexpand-all
+                                     (macroexpand--all-toplevel
                                       form
                                       macroexpand-all-environment)))
                                 (eval expanded lexical-binding)

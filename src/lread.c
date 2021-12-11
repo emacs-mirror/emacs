@@ -2209,6 +2209,7 @@ readevalloop (Lisp_Object readcharfun,
   specbind (Qinternal_interpreter_environment,
 	    (NILP (lex_bound) || EQ (lex_bound, Qunbound)
 	     ? Qnil : list1 (Qt)));
+  specbind (Qmacroexp__dynvars, Vmacroexp__dynvars);
 
   /* Ensure sourcename is absolute, except whilst preloading.  */
   if (!will_dump_p ()
@@ -5469,4 +5470,10 @@ This variable's value can only be set via file-local variables.
 See Info node `(elisp)Shorthands' for more details.  */);
   Vread_symbol_shorthands = Qnil;
   DEFSYM (Qobarray_cache, "obarray-cache");
+
+  DEFSYM (Qmacroexp__dynvars, "macroexp--dynvars");
+  DEFVAR_LISP ("macroexp--dynvars", Vmacroexp__dynvars,
+        doc:   /* List of variables declared dynamic in the current scope.
+Only valid during macro-expansion.  Internal use only. */);
+  Vmacroexp__dynvars = Qnil;
 }

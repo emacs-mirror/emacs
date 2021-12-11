@@ -2608,6 +2608,19 @@ eval_sub (Lisp_Object form)
 	     interpreted using lexical-binding or not.  */
 	  specbind (Qlexical_binding,
 		    NILP (Vinternal_interpreter_environment) ? Qnil : Qt);
+
+	  /* Make the macro aware of any defvar declarations in scope. */
+	  Lisp_Object dynvars = Vmacroexp__dynvars;
+	  for (Lisp_Object p = Vinternal_interpreter_environment;
+	       !NILP (p); p = XCDR(p))
+	    {
+	      Lisp_Object e = XCAR (p);
+	      if (SYMBOLP (e))
+		dynvars = Fcons(e, dynvars);
+	    }
+	  if (!EQ (dynvars, Vmacroexp__dynvars))
+	    specbind (Qmacroexp__dynvars, dynvars);
+
 	  exp = apply1 (Fcdr (fun), original_args);
 	  exp = unbind_to (count1, exp);
 	  val = eval_sub (exp);

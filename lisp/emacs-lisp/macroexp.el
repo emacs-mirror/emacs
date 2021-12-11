@@ -289,6 +289,16 @@ is executed without being compiled first."
           `(let ,(nreverse bindings) . ,body)
         (macroexp-progn body)))))
 
+(defun macroexp--dynamic-variable-p (var)
+  "Whether the variable VAR is dynamically scoped.
+Only valid during macro-expansion."
+  (defvar byte-compile-bound-variables)
+  (or (not lexical-binding)
+      (special-variable-p var)
+      (memq var macroexp--dynvars)
+      (and (boundp 'byte-compile-bound-variables)
+           (memq var byte-compile-bound-variables))))
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
@@ -316,28 +326,32 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                         (cddr form))
                         (cdr form))
         form))
-      (`(,(or 'defvar 'defconst) . ,_) (macroexp--all-forms form 2))
+      (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
+       (push name macroexp--dynvars)
+       (macroexp--all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
-       (macroexp--cons 'function
-                       (macroexp--cons (macroexp--all-forms f 2)
-                                       nil
-                                       (cdr form))
-                       form))
+       (let ((macroexp--dynvars macroexp--dynvars))
+         (macroexp--cons 'function
+                         (macroexp--cons (macroexp--all-forms f 2)
+                                         nil
+                                         (cdr form))
+                         form)))
       (`(,(or 'function 'quote) . ,_) form)
       (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                            pcase--dontcare))
-       (macroexp--cons
-        fun
-        (macroexp--cons
-         (macroexp--all-clauses bindings 1)
-         (if (null body)
-             (macroexp-unprogn
-              (macroexp-warn-and-return
-               (format "Empty %s body" fun)
-               nil nil 'compile-only))
-           (macroexp--all-forms body))
-         (cdr form))
-        form))
+       (let ((macroexp--dynvars macroexp--dynvars))
+         (macroexp--cons
+          fun
+          (macroexp--cons
+           (macroexp--all-clauses bindings 1)
+           (if (null body)
+               (macroexp-unprogn
+                (macroexp-warn-and-return
+                 (format "Empty %s body" fun)
+                 nil nil 'compile-only))
+             (macroexp--all-forms body))
+           (cdr form))
+          form)))
       (`(,(and fun `(lambda . ,_)) . ,args)
        ;; Embedded lambda in function position.
        ;; If the byte-optimizer is loaded, try to unfold this,
@@ -421,6 +435,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
 If no macros are expanded, FORM is returned unchanged.
 The second optional arg ENVIRONMENT specifies an environment of macro
 definitions to shadow the loaded ones for use in file byte-compilation."
+  (let ((macroexpand-all-environment environment)
+        (macroexp--dynvars macroexp--dynvars))
+    (macroexp--expand-all form)))
+
+;; This function is like `macroexpand-all' but for use with top-level
+;; forms.  It does not dynbind `macroexp--dynvars' because we want
+;; top-level `defvar' declarations to be recorded in that variable.
+(defun macroexpand--all-toplevel (form &optional environment)
   (let ((macroexpand-all-environment environment))
     (macroexp--expand-all form)))
 
@@ -706,7 +728,7 @@ test of free variables in the following ways:
         (let ((macroexp--pending-eager-loads
                (cons load-file-name macroexp--pending-eager-loads)))
           (if full-p
-              (macroexpand-all form)
+              (macroexpand--all-toplevel form)
             (macroexpand form)))
       (error
        ;; Hopefully this shouldn't happen thanks to the cycle detection,
