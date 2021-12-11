@@ -578,7 +578,7 @@ DEFUN ("sqlite-rollback", Fsqlite_rollback, Ssqlite_rollback, 1, 1, 0,
 
 DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        Ssqlite_load_extension, 2, 2, 0,
-       doc: /* Load a an SQlite module into DB.
+       doc: /* Load an SQlite module into DB.
 MODULE should be the file name of an SQlite module .so file.  */)
   (Lisp_Object db, Lisp_Object module)
 {
@@ -622,7 +622,7 @@ DEFUN ("sqlite-columns", Fsqlite_columns, Ssqlite_columns, 1, 1, 0,
 }
 
 DEFUN ("sqlite-more-p", Fsqlite_more_p, Ssqlite_more_p, 1, 1, 0,
-       doc: /* Say whether there's any further results in SET.  */)
+       doc: /* Say whether there are any further results in SET.  */)
   (Lisp_Object set)
 {
   check_sqlite (set, true);

@@ -53,8 +53,6 @@
       (sqlite-select  db "select * from test1" nil 'full)
       '(("col1" "col2" "col3" "col4") ("foo" 2 9.45 "bar"))))))
 
-;; (setq db (sqlite-open))
-
 (ert-deftest sqlite-set ()
   (skip-unless (sqlite-available-p))
   (let ((db (sqlite-open))
