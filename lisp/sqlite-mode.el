@@ -76,7 +76,7 @@
     (when prefix
       (insert prefix))
     (dotimes (i (length widths))
-      (insert (propertize (format (format "%%-%ds" (nth i widths))
+      (insert (propertize (format (format "%%-%ds " (nth i widths))
                                   (nth i columns))
                           'face 'header-line)))
     (insert "\n")
@@ -85,11 +85,14 @@
         (when prefix
           (insert prefix))
         (dotimes (i (length widths))
-          (insert (format (format "%%%s%ds"
-                                  (if (numberp (nth i row))
-                                      "" "-")
-                                  (nth i widths))
-                          (or (nth i row) ""))))
+          (let ((elem (nth i row)))
+            (insert (format (format "%%%s%ds "
+                                    (if (numberp elem)
+                                        "" "-")
+                                    (nth i widths))
+                            (if (numberp elem)
+                                (nth i row)
+                              (string-replace "\n" " " (or elem "")))))))
         (put-text-property start (point) 'sqlite--row row)
         (insert "\n")))))
 
