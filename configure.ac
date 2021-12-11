@@ -2695,6 +2695,11 @@ if test "${with_sqlite3}" != "no"; then
      if test "${opsys}" = "mingw32"; then
         SQLITE3_LIBS=
      fi
+     AC_CHECK_LIB(sqlite3, sqlite3_load_extension,
+         HAVE_SQLITE3_LOAD_EXTENSION=yes, HAVE_SQLITE3_LOAD_EXTENSION=no)
+     if test "$HAVE_SQLITE3_LOAD_EXTENSION" = "yes"; then
+       AC_DEFINE(HAVE_SQLITE3_LOAD_EXTENSION, 1, [Define to 1 if sqlite3 supports loading extensions.])
+     fi
    fi
 fi
 

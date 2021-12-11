@@ -65,10 +65,15 @@ DEF_DLL_FN (SQLITE_API const char*, sqlite3_column_name, (sqlite3_stmt*, int));
 DEF_DLL_FN (SQLITE_API int, sqlite3_exec,
 	    (sqlite3*, const char*, int (*callback)(void*,int,char**,char**),
 	     void*, char**));
-DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
-	    (sqlite3*, const char*, const char*, char**));
 DEF_DLL_FN (SQLITE_API int, sqlite3_prepare_v2,
 	    (sqlite3*, const char*, int, sqlite3_stmt**, const char**));
+
+# ifdef HAVE_SQLITE3_LOAD_EXTENSION
+DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
+	    (sqlite3*, const char*, const char*, char**));
+#  undef sqlite3_load_extension
+#  define sqlite3_load_extension fn_sqlite3_load_extension
+# endif
 
 # undef sqlite3_finalize
 # undef sqlite3_close
@@ -91,7 +96,6 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_prepare_v2,
 # undef sqlite3_column_text
 # undef sqlite3_column_name
 # undef sqlite3_exec
-# undef sqlite3_load_extension
 # undef sqlite3_prepare_v2
 
 # define sqlite3_finalize fn_sqlite3_finalize
@@ -115,7 +119,6 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_prepare_v2,
 # define sqlite3_column_text fn_sqlite3_column_text
 # define sqlite3_column_name fn_sqlite3_column_name
 # define sqlite3_exec fn_sqlite3_exec
-# define sqlite3_load_extension fn_sqlite3_load_extension
 # define sqlite3_prepare_v2 fn_sqlite3_prepare_v2
 
 static bool
@@ -142,7 +145,9 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_column_text);
   LOAD_DLL_FN (library, sqlite3_column_name);
   LOAD_DLL_FN (library, sqlite3_exec);
+# ifdef HAVE_SQLITE3_LOAD_EXTENSION
   LOAD_DLL_FN (library, sqlite3_load_extension);
+# endif
   LOAD_DLL_FN (library, sqlite3_prepare_v2);
   return true;
 }
@@ -576,6 +581,7 @@ DEFUN ("sqlite-rollback", Fsqlite_rollback, Ssqlite_rollback, 1, 1, 0,
   return sqlite_exec (XSQLITE (db)->db, "rollback");
 }
 
+#ifdef HAVE_SQLITE3_LOAD_EXTENSION
 DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        Ssqlite_load_extension, 2, 2, 0,
        doc: /* Load an SQlite module into DB.
@@ -593,6 +599,7 @@ MODULE should be the file name of an SQlite module .so file.  */)
     return Qt;
   return Qnil;
 }
+#endif /* HAVE_SQLITE3_LOAD_EXTENSION */
 
 DEFUN ("sqlite-next", Fsqlite_next, Ssqlite_next, 1, 1, 0,
        doc: /* Return the next result set from SET.  */)
@@ -691,7 +698,9 @@ syms_of_sqlite (void)
   defsubr (&Ssqlite_transaction);
   defsubr (&Ssqlite_commit);
   defsubr (&Ssqlite_rollback);
+#ifdef HAVE_SQLITE3_LOAD_EXTENSION
   defsubr (&Ssqlite_load_extension);
+#endif
   defsubr (&Ssqlite_next);
   defsubr (&Ssqlite_columns);
   defsubr (&Ssqlite_more_p);
