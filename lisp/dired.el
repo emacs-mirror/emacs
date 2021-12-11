@@ -1265,8 +1265,7 @@ The return value is the target column for the file names."
            ;; Don't try to find a wildcard as a subdirectory.
 	   (string-equal dirname (file-name-directory dirname)))
       (let* ((cur-buf (current-buffer))
-	     (buffers (nreverse
-		       (dired-buffers-for-dir (expand-file-name dirname))))
+	     (buffers (nreverse (dired-buffers-for-dir dirname)))
 	     (cur-buf-matches (and (memq cur-buf buffers)
 				   ;; Wildcards must match, too:
 				   (equal dired-directory dirname))))
@@ -2067,12 +2066,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ":v" 'epa-dired-do-verify)
     (define-key map ":s" 'epa-dired-do-sign)
     (define-key map ":e" 'epa-dired-do-encrypt)
-
-    ;; No need to do this, now that top-level items are fewer.
-    ;;;;
-    ;; Get rid of the Edit menu bar item to save space.
-    ;;(define-key map [menu-bar edit] 'undefined)
-
     map)
   "Local keymap for Dired mode buffers.")
 
@@ -2967,7 +2960,7 @@ directories below DIR.
 The list is in reverse order of buffer creation, most recent last.
 As a side effect, killed dired buffers for DIR are removed from
 `dired-buffers'."
-  (setq dir (file-name-as-directory dir))
+  (setq dir (file-name-as-directory (expand-file-name dir)))
   (let (result buf)
     (dolist (elt dired-buffers)
       (setq buf (cdr elt))
@@ -3518,7 +3511,7 @@ If the buffer has a wildcard pattern, check that it matches FILE.
 FILE may be nil, in which case ignore it.
 Return list of buffers where FUN succeeded (i.e., returned non-nil)."
   (let (success-list)
-    (dolist (buf (dired-buffers-for-dir (expand-file-name directory) file))
+    (dolist (buf (dired-buffers-for-dir directory file))
       (with-current-buffer buf
 	(when (apply fun args)
 	  (push (buffer-name buf) success-list))))
@@ -3567,8 +3560,7 @@ confirmation.  To disable the confirmation, see
                                      (file-name-nondirectory fn))))
                (not dired-clean-confirm-killing-deleted-buffers))
            (kill-buffer buf)))
-    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn)
-                                           nil 'subdirs)))
+    (let ((buf-list (dired-buffers-for-dir fn nil 'subdirs)))
       (and buf-list
            (or (and dired-clean-confirm-killing-deleted-buffers
                     (y-or-n-p

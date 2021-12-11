@@ -80,6 +80,10 @@ all interactive commands to see if they are only relevant in one
 particular mode.  This requires care as some commands might be useful
 outside of the mode they were written for.
 
+** Convert defvar foo-mode-map to defvar-keymap
+Verify the conversion by comparing the value of the keymap before
+converting it and after (you can see the value in 'C-h v').
+
 ** Write more tests
 Pick a fixed bug from the database, write a test case to make sure it
 stays fixed.  Or pick your favorite programming major-mode, and write

@@ -2768,35 +2768,33 @@ either a full name or nil, and EMAIL is a valid email address."
 
 ;;;; Package menu mode.
 
-(defvar package-menu-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "\C-m" 'package-menu-describe-package)
-    (define-key map "u" 'package-menu-mark-unmark)
-    (define-key map "\177" 'package-menu-backup-unmark)
-    (define-key map "d" 'package-menu-mark-delete)
-    (define-key map "i" 'package-menu-mark-install)
-    (define-key map "U" 'package-menu-mark-upgrades)
-    (define-key map "r" 'revert-buffer)
-    (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
-    (define-key map "w" 'package-browse-url)
-    (define-key map "x" 'package-menu-execute)
-    (define-key map "h" 'package-menu-quick-help)
-    (define-key map "H" #'package-menu-hide-package)
-    (define-key map "?" 'package-menu-describe-package)
-    (define-key map "(" #'package-menu-toggle-hiding)
-    (define-key map (kbd "/ /") 'package-menu-clear-filter)
-    (define-key map (kbd "/ a") 'package-menu-filter-by-archive)
-    (define-key map (kbd "/ d") 'package-menu-filter-by-description)
-    (define-key map (kbd "/ k") 'package-menu-filter-by-keyword)
-    (define-key map (kbd "/ N") 'package-menu-filter-by-name-or-description)
-    (define-key map (kbd "/ n") 'package-menu-filter-by-name)
-    (define-key map (kbd "/ s") 'package-menu-filter-by-status)
-    (define-key map (kbd "/ v") 'package-menu-filter-by-version)
-    (define-key map (kbd "/ m") 'package-menu-filter-marked)
-    (define-key map (kbd "/ u") 'package-menu-filter-upgradable)
-    map)
-  "Local keymap for `package-menu-mode' buffers.")
+(defvar-keymap package-menu-mode-map
+  :doc "Local keymap for `package-menu-mode' buffers."
+  :parent tabulated-list-mode-map
+  "C-m"   #'package-menu-describe-package
+  "u"     #'package-menu-mark-unmark
+  "DEL"   #'package-menu-backup-unmark
+  "d"     #'package-menu-mark-delete
+  "i"     #'package-menu-mark-install
+  "U"     #'package-menu-mark-upgrades
+  "r"     #'revert-buffer
+  "~"     #'package-menu-mark-obsolete-for-deletion
+  "w"     #'package-browse-url
+  "x"     #'package-menu-execute
+  "h"     #'package-menu-quick-help
+  "H"     #'package-menu-hide-package
+  "?"     #'package-menu-describe-package
+  "("     #'package-menu-toggle-hiding
+  "/ /"   #'package-menu-clear-filter
+  "/ a"   #'package-menu-filter-by-archive
+  "/ d"   #'package-menu-filter-by-description
+  "/ k"   #'package-menu-filter-by-keyword
+  "/ N"   #'package-menu-filter-by-name-or-description
+  "/ n"   #'package-menu-filter-by-name
+  "/ s"   #'package-menu-filter-by-status
+  "/ v"   #'package-menu-filter-by-version
+  "/ m"   #'package-menu-filter-marked
+  "/ u"   #'package-menu-filter-upgradable)
 
 (easy-menu-define package-menu-mode-menu package-menu-mode-map
   "Menu for `package-menu-mode'."

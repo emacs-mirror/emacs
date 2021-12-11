@@ -617,8 +617,9 @@ flagging an image in either the thumbnail or display buffer shows the
 next image.
 
 ---
-*** Now shows image information in the header line.
-This replaces the message shown at the bottom of the screen.
+*** Image information is now shown in the header line.
+This replaces the message most navigation commands in the thumbnail
+buffer used to show at the bottom of the screen.
 
 +++
 *** 'image-dired-show-all-from-dir-max-files' has been increased to 500.
