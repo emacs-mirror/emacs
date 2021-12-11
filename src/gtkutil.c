@@ -928,15 +928,18 @@ xg_show_tooltip (struct frame *f,
 		 Lisp_Object string)
 {
   Lisp_Object encoded_string = ENCODE_UTF_8 (string);
-  gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f), SSDATA (encoded_string));
+  gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f)
+			       ? FRAME_GTK_OUTER_WIDGET (f)
+			       : FRAME_GTK_WIDGET (f),
+			       SSDATA (encoded_string));
 }
 
 bool
 xg_hide_tooltip (struct frame *f)
 {
-  if (gtk_widget_get_tooltip_text (FRAME_GTK_OUTER_WIDGET (f)) == NULL)
-    return FALSE;
-  gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f), NULL);
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f), NULL);
+  gtk_widget_set_tooltip_text (FRAME_GTK_WIDGET (f), NULL);
   return TRUE;
 }
 
