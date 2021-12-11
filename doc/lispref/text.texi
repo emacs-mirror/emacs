@@ -60,6 +60,7 @@ the character after point.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
+* Database::         Interacting with an SQL database.
 * Parsing HTML/XML:: Parsing HTML and XML.
 * Parsing JSON::     Parsing and generating JSON values.
 * JSONRPC::          JSON Remote Procedure Call protocol
@@ -5133,6 +5134,151 @@ and was invalid.
 
 On success, it returns a list of a binary string (the output) and the
 IV used.
+@end defun
+
+@node Database
+@section Database
+
+  Emacs can be compiled with built-in SQLite support.
+
+@defun sqlite-available-p
+The function returns non-@code{nil} if built-in SQLite support is
+available in this Emacs session.
+@end defun
+
+When SQLite support is available, the following functions can be used.
+
+@defun sqlite-open &optional file
+This function opens @var{file} as a database file.  If it doesn't
+exist, a new database will be created and stored there.  If this
+argument is missing or @code{nil}, a new in-memory database is created
+instead.
+
+The return value is a @dfn{database object} that can be used as the
+argument to most of the subsequent functions in this section of the
+manual.
+@end defun
+
+@defun sqlitep
+The database object returned by the @code{sqlite-open} function
+satisfies this predicate.
+@end defun
+
+@defun sqlite-close db
+Close the database @var{db}.  It's usually not necessary to call this
+function explicitly---the database will automatically be closed if
+Emacs shuts down or the database object is garbage collected.
+@end defun
+
+@defun sqlite-execute db statement &optional values
+Execute the @acronym{SQL} @var{statement}.  For instance:
+
+@lisp
+(sqlite-execute db "insert into foo values ('bar', 2)")
+@end lisp
+
+If the optional @var{values} parameter is present, it should be either
+a list or a vector of values to bind while executing the statement.
+For instance:
+
+@lisp
+(sqlite-execute db "insert into foo values (?, ?)" '("bar" 2))
+@end lisp
+
+This has exactly the same effect as the first form, but is more
+efficient and safer (because it doesn't involve any string parsing or
+interpolation).
+
+The number of affected rows is returned.  For instance, an
+@samp{insert} statement will return @samp{1}, but an @samp{update}
+statement may return zero or a higher number.
+@end defun
+
+@defun sqlite-select db query &optional values result-type
+Select some data from @var{db} and return them.  For instance:
+
+@lisp
+(sqlite-select db "select * from foo where key = 2")
+  @result{} (("bar" 2))
+@end lisp
+
+As with the @code{sqlite-execute} command, you can pass in a list or a
+vector of values that will be bound before executing the select:
+
+@lisp
+(sqlite-select db "select * from foo where key = ?" [2])
+  @result{} (("bar" 2))
+@end lisp
+
+This is usually more efficient and safer than the first method.
+
+This function, by default, returns a list of matching rows, where each
+row is a list of column values.  If @var{return-type} is @code{full},
+the names of the columns (as a list of strings) will be returned as
+the first element in the return value.
+
+If @var{return-type} is @code{set}, this function will return a
+@dfn{statement object} instead.  This object can be interrogated by
+the @code{sqlite-next}, @code{sqlite-columns} and @code{sqlite-more-p}
+functions.  If the result set is small, it's often more convenient to
+just return the data directly, but if the result set is large (or if
+you won't be using all the data from the set), using the @code{set}
+method will allocate a lot less data, and therefore be more efficient.
+@end defun
+
+@defun sqlite-next statement
+This function returns the next row in the result set returned by
+@code{sqlite-select}.
+
+@lisp
+(sqlite-next stmt)
+    @result{} ("bar" 2)
+@end lisp
+@end defun
+
+@defun sqlite-columns statement
+This function returns the column names of the result set returned by
+@code{sqlite-select}.
+
+@lisp
+(sqlite-columns stmt)
+    @result{} ("name" "issue")
+@end lisp
+@end defun
+
+@defun sqlite-more-p statement
+This predicate says whether there is more data to be fetched in the
+result set returned by @code{sqlite-select}.
+@end defun
+
+@defun sqlite-finalize statement
+If @var{statement} is not going to be used any more, calling this
+function will free the resources bound by @var{statement}.  This is
+usually not necessary---when the statement object is
+garbage-collected, this will happen automatically.
+@end defun
+
+@defun sqlite-transaction db
+Start a transaction in @var{db}.  When in a transaction, other readers
+of the database won't access the results until the transaction has
+been committed.
+@end defun
+
+@defun sqlite-commit db
+End a transaction and write the data out to file.
+@end defun
+
+@defun sqlite-rollback db
+End a transaction and discard any changes that have been made.
+@end defun
+
+@defmac with-sqlite-transaction db &body body
+Like @code{progn}, but executes @var{body} with a transaction held,
+and do a commit at the end.
+@end defmac
+
+@defun sqlite-load-extension db module
+Load an extension into @var{db}.  Extensions are usually @file{.so} files.
 @end defun
 
 @node Parsing HTML/XML

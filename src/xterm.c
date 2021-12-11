@@ -9851,7 +9851,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	XIValuatorState *states;
 	double *values;
 	bool found_valuator = false;
+#ifdef HAVE_XWIDGETS
 	bool any_stop_p = false;
+#endif /* HAVE_XWIDGETS */
 
 	/* A fake XMotionEvent for x_note_mouse_movement. */
 	XMotionEvent ev;
@@ -9988,6 +9990,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  {
 		    struct xi_scroll_valuator_t *val;
 		    double delta, scroll_unit;
+		    int scroll_height;
+		    Lisp_Object window;
 
 
 		    /* See the comment on top of
@@ -10054,7 +10058,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							 xev->mods.effective);
 			  }
 
-			scroll_unit = pow (FRAME_PIXEL_HEIGHT (f), 2.0 / 3.0);
+			window = window_from_coordinates (f, xev->event_x,
+							  xev->event_y, NULL,
+							  false, false);
+
+			if (WINDOWP (window))
+			  scroll_height = XWINDOW (window)->pixel_height;
+			else
+			  /* EVENT_X and EVENT_Y can be outside the
+			     frame if F holds the input grab, so fall
+			     back to the height of the frame instead.  */
+			  scroll_height = FRAME_PIXEL_HEIGHT (f);
+
+			scroll_unit = pow (scroll_height, 2.0 / 3.0);
 
 			if (NUMBERP (Vx_scroll_event_delta_factor))
 			  scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);

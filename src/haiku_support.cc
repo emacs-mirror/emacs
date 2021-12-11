@@ -2663,10 +2663,8 @@ be_app_quit (void)
 {
   if (be_app)
     {
-      status_t e;
       while (!be_app->Lock ());
       be_app->Quit ();
-      wait_for_thread (app_thread, &e);
     }
 }
 
