@@ -241,12 +241,14 @@ If FILE is nil, an in-memory database will be opened instead.  */)
   (Lisp_Object file)
 {
   char *name;
-  init_sqlite_functions ();
+  if (!init_sqlite_functions ())
+    xsignal1 (Qerror, build_string ("sqlite support is not available"));
 
   if (!NILP (file))
     {
       CHECK_STRING (file);
-      name = xstrdup (SSDATA (Fexpand_file_name (file, Qnil)));
+      file = encode_string (Fexpand_file_name (file, Qnil));
+      name = xstrdup (SSDATA (file));
     }
   else
     /* In-memory database.  These have to have different names to
@@ -273,7 +275,7 @@ If FILE is nil, an in-memory database will be opened instead.  */)
 }
 
 DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
-       doc: /* Close the database DB.  */)
+       doc: /* Close the sqlite database DB.  */)
   (Lisp_Object db)
 {
   check_sqlite (db, false);
@@ -341,12 +343,12 @@ bind_values (sqlite3 *db, sqlite3_stmt *stmt, Lisp_Object values)
 
 DEFUN ("sqlite-execute", Fsqlite_execute, Ssqlite_execute, 2, 3, 0,
        doc: /* Execute a non-select SQL statement.
-If VALUES is non-nil, it should be a list of values to bind when
-executing a statement like
+If VALUES is non-nil, it should be a vector or a list of values
+to bind when executing a statement like
 
    insert into foo values (?, ?, ...)
 
-The number of affected rows is returned.  */)
+Value is the number of affected rows.  */)
   (Lisp_Object db, Lisp_Object query, Lisp_Object values)
 {
   check_sqlite (db, false);
@@ -463,8 +465,8 @@ column_names (sqlite3_stmt *stmt)
 
 DEFUN ("sqlite-select", Fsqlite_select, Ssqlite_select, 2, 4, 0,
        doc: /* Select data from the database DB that matches QUERY.
-If VALUES is non-nil, they are values that will be interpolated into a
-parametrised statement.
+If VALUES is non-nil, it should be a list or a vector specifying the
+values that will be interpolated into a parameterized statement.
 
 By default, the return value is a list where the first element is a
 list of column names, and the rest of the elements are the matching data.
@@ -573,16 +575,18 @@ DEFUN ("sqlite-rollback", Fsqlite_rollback, Ssqlite_rollback, 1, 1, 0,
 #ifdef HAVE_SQLITE3_LOAD_EXTENSION
 DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        Ssqlite_load_extension, 2, 2, 0,
-       doc: /* Load an SQlite module into DB.
-MODULE should be the file name of an SQlite module .so file.  */)
+       doc: /* Load an SQlite MODULE into DB.
+MODULE should be the name of an SQlite module's file, a
+shared library in the system-dependent format and having a
+system-dependent file-name extension.  */)
   (Lisp_Object db, Lisp_Object module)
 {
   check_sqlite (db, false);
   CHECK_STRING (module);
+  Lisp_Object module_encoded = encode_string (Fexpand_file_name (module, Qnil));
 
   sqlite3 *sdb = XSQLITE (db)->db;
-  int result = sqlite3_load_extension (sdb,
-				       SSDATA (Fexpand_file_name (module, Qnil)),
+  int result = sqlite3_load_extension (sdb, SSDATA (module_encoded),
 				       NULL, NULL);
   if (result ==  SQLITE_OK)
     return Qt;
