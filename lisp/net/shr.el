@@ -610,7 +610,7 @@ size, and full-buffer size."
               (insert ? )
               (shr-mark-fill start))
             (put-text-property (1- (point)) (point) 'display ""))
-          (put-text-property start (1+ start) 'shr-target-id id))
+          (put-text-property (1- (point)) (point) 'shr-target-id id))
 	;; If style is set, then this node has set the color.
 	(when style
 	  (shr-colorize-region
