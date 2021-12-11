@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defvar-keymap sqlite-mode-map
   "g" #'sqlite-mode-list-tables
   "c" #'sqlite-mode-list-columns
@@ -45,7 +47,7 @@
                   (format "*SQLite %s*" (file-name-nondirectory file))))
   (sqlite-mode)
   (setq-local sqlite--db (sqlite-open file))
-  (sqlite-list-tables))
+  (sqlite-mode-list-tables))
 
 (defun sqlite-mode-list-tables ()
   "Re-list the tables from the currently selected database."
