@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
++++
+** Emacs can be built with built-in support for accessing SQLite databases.
+This uses the popular sqlite3 library, and can be disabled by using
+the '--without-sqlite3' option to the 'configure' script.
+
 ** Emacs has been ported to the Haiku operating system.
 The configuration process should automatically detect and build for
 Haiku.  There is also an optional window-system port to Haiku, which
@@ -91,13 +96,10 @@ the 'variable-pitch' face, or add this to your "~/.emacs":
 
 * Changes in Emacs 29.1
 
-+++
-** Emacs now comes with optional built-in support for sqlite3.
-This allows you to examine and manipulate sqlite3 databases.
-
 ** New command 'sqlite-mode-open-file' for examining an sqlite3 file.
-This uses the new 'sqlite-mode' which allows listing the tables
-in a file, the columns, and the contents of the tables.
+This uses the new 'sqlite-mode' which allows listing the tables in a
+DB file, and examining and modifying the columns and the contents of
+those tables.
 
 ---
 ** 'write-file' will now copy some file mode bits.
