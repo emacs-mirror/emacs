@@ -428,8 +428,8 @@ row_to_value (sqlite3_stmt *stmt)
 	case SQLITE_BLOB:
 	  v =
 	    code_convert_string_norecord
-	    (make_string (sqlite3_column_blob (stmt, i),
-			  sqlite3_column_bytes (stmt, i)),
+	    (make_unibyte_string (sqlite3_column_blob (stmt, i),
+				  sqlite3_column_bytes (stmt, i)),
 	     Qutf_8, false);
 	  break;
 
@@ -440,8 +440,8 @@ row_to_value (sqlite3_stmt *stmt)
 	case SQLITE_TEXT:
 	  v =
 	    code_convert_string_norecord
-	    (make_string ((const char*)sqlite3_column_text (stmt, i),
-			  sqlite3_column_bytes (stmt, i)),
+	    (make_unibyte_string ((const char *)sqlite3_column_text (stmt, i),
+				  sqlite3_column_bytes (stmt, i)),
 	     Qutf_8, false);
 	  break;
 	}
