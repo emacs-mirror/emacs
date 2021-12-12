@@ -26,6 +26,7 @@
 
 (eval-and-compile
   (put 'char-fold-table 'char-table-extra-slots 1)
+  (defconst char-fold--default-override nil)
   (defconst char-fold--default-include
     '((?\" "＂" "“" "”" "”" "„" "⹂" "〞" "‟" "‟" "❞" "❝" "❠" "“" "„" "〝" "〟" "🙷" "🙶" "🙸" "«" "»")
       (?' "❟" "❛" "❜" "‘" "’" "‚" "‛" "‚" "󠀢" "❮" "❯" "‹" "›")
@@ -40,7 +41,8 @@
       ))
   (defconst char-fold--default-symmetric nil)
   (defvar char-fold--previous
-    (list char-fold--default-include
+    (list char-fold--default-override
+          char-fold--default-include
           char-fold--default-exclude
           char-fold--default-symmetric)))
 
@@ -67,48 +69,50 @@
       ;; - A single char of the decomp might be allowed to match the
       ;;   character.
       ;; Some examples in the comments below.
-      (map-char-table
-       (lambda (char decomp)
-         (when (consp decomp)
-           ;; Skip trivial cases like ?a decomposing to (?a).
-           (unless (and (not (cdr decomp))
-                        (eq char (car decomp)))
-             (if (symbolp (car decomp))
-                 ;; Discard a possible formatting tag.
-                 (setq decomp (cdr decomp))
-               ;; If there's no formatting tag, ensure that char matches
-               ;; its decomp exactly.  This is because we want 'ä' to
-               ;; match 'ä', but we don't want '¹' to match '1'.
-               (aset equiv char
-                     (cons (apply #'string decomp)
-                           (aref equiv char))))
+      (unless (or (bound-and-true-p char-fold-override)
+                  char-fold--default-override)
+        (map-char-table
+         (lambda (char decomp)
+           (when (consp decomp)
+             ;; Skip trivial cases like ?a decomposing to (?a).
+             (unless (and (not (cdr decomp))
+                          (eq char (car decomp)))
+               (if (symbolp (car decomp))
+                   ;; Discard a possible formatting tag.
+                   (setq decomp (cdr decomp))
+                 ;; If there's no formatting tag, ensure that char matches
+                 ;; its decomp exactly.  This is because we want 'ä' to
+                 ;; match 'ä', but we don't want '¹' to match '1'.
+                 (aset equiv char
+                       (cons (apply #'string decomp)
+                             (aref equiv char))))
 
-             ;; Allow the entire decomp to match char.  If decomp has
-             ;; multiple characters, this is done by adding an entry
-             ;; to the alist of the first character in decomp.  This
-             ;; allows 'ff' to match 'ﬀ', 'ä' to match 'ä', and '1' to
-             ;; match '¹'.
-             (let ((make-decomp-match-char
-                    (lambda (decomp char)
-                      (if (cdr decomp)
-                          (aset equiv-multi (car decomp)
-                                (cons (cons (apply #'string (cdr decomp))
-                                            (regexp-quote (string char)))
-                                      (aref equiv-multi (car decomp))))
-                        (aset equiv (car decomp)
-                              (cons (char-to-string char)
-                                    (aref equiv (car decomp))))))))
-               (funcall make-decomp-match-char decomp char)
-               ;; Check to see if the first char of the decomposition
-               ;; has a further decomposition.  If so, add a mapping
-               ;; back from that second decomposition to the original
-               ;; character.  This allows e.g. 'ι' (GREEK SMALL LETTER
-               ;; IOTA) to match both the Basic Greek block and
-               ;; Extended Greek block variants of IOTA +
-               ;; diacritical(s).  Repeat until there are no more
-               ;; decompositions.
-               (let ((dec decomp)
-                     next-decomp)
+               ;; Allow the entire decomp to match char.  If decomp has
+               ;; multiple characters, this is done by adding an entry
+               ;; to the alist of the first character in decomp.  This
+               ;; allows 'ff' to match 'ﬀ', 'ä' to match 'ä', and '1' to
+               ;; match '¹'.
+               (let ((make-decomp-match-char
+                      (lambda (decomp char)
+                        (if (cdr decomp)
+                            (aset equiv-multi (car decomp)
+                                  (cons (cons (apply #'string (cdr decomp))
+                                              (regexp-quote (string char)))
+                                        (aref equiv-multi (car decomp))))
+                          (aset equiv (car decomp)
+                                (cons (char-to-string char)
+                                      (aref equiv (car decomp))))))))
+                 (funcall make-decomp-match-char decomp char)
+                 ;; Check to see if the first char of the decomposition
+                 ;; has a further decomposition.  If so, add a mapping
+                 ;; back from that second decomposition to the original
+                 ;; character.  This allows e.g. 'ι' (GREEK SMALL LETTER
+                 ;; IOTA) to match both the Basic Greek block and
+                 ;; Extended Greek block variants of IOTA +
+                 ;; diacritical(s).  Repeat until there are no more
+                 ;; decompositions.
+                 (let ((dec decomp)
+                       next-decomp)
                    (while dec
                      (setq next-decomp (char-table-range table (car dec)))
                      (when (consp next-decomp)
@@ -118,24 +122,24 @@
                                     (car next-decomp)))
                            (funcall make-decomp-match-char (list (car next-decomp)) char)))
                      (setq dec next-decomp)))
-               ;; Do it again, without the non-spacing characters.
-               ;; This allows 'a' to match 'ä'.
-               (let ((simpler-decomp nil)
-                     (found-one nil))
-                 (dolist (c decomp)
-                   (if (> (get-char-code-property c 'canonical-combining-class) 0)
-                       (setq found-one t)
-                     (push c simpler-decomp)))
-                 (when (and simpler-decomp found-one)
-                   (funcall make-decomp-match-char simpler-decomp char)
-                   ;; Finally, if the decomp only had one spacing
-                   ;; character, we allow this character to match the
-                   ;; decomp.  This is to let 'a' match 'ä'.
-                   (unless (cdr simpler-decomp)
-                     (aset equiv (car simpler-decomp)
-                           (cons (apply #'string decomp)
-                                 (aref equiv (car simpler-decomp)))))))))))
-       table)
+                 ;; Do it again, without the non-spacing characters.
+                 ;; This allows 'a' to match 'ä'.
+                 (let ((simpler-decomp nil)
+                       (found-one nil))
+                   (dolist (c decomp)
+                     (if (> (get-char-code-property c 'canonical-combining-class) 0)
+                         (setq found-one t)
+                       (push c simpler-decomp)))
+                   (when (and simpler-decomp found-one)
+                     (funcall make-decomp-match-char simpler-decomp char)
+                     ;; Finally, if the decomp only had one spacing
+                     ;; character, we allow this character to match the
+                     ;; decomp.  This is to let 'a' match 'ä'.
+                     (unless (cdr simpler-decomp)
+                       (aset equiv (car simpler-decomp)
+                             (cons (apply #'string decomp)
+                                   (aref equiv (car simpler-decomp)))))))))))
+         table))
 
       ;; Add some entries to default decomposition
       (dolist (it (or (bound-and-true-p char-fold-include)
@@ -232,7 +236,9 @@ Exceptionally for the space character (32), ALIST is ignored.")
 
 (defun char-fold-update-table ()
   "Update char-fold-table only when one of the options changes its value."
-  (let ((new (list (or (bound-and-true-p char-fold-include)
+  (let ((new (list (or (bound-and-true-p char-fold-override)
+                       char-fold--default-override)
+                   (or (bound-and-true-p char-fold-include)
                        char-fold--default-include)
                    (or (bound-and-true-p char-fold-exclude)
                        char-fold--default-exclude)
@@ -241,6 +247,22 @@ Exceptionally for the space character (32), ALIST is ignored.")
     (unless (equal char-fold--previous new)
       (setq char-fold-table (char-fold--make-table)
             char-fold--previous new))))
+
+(defcustom char-fold-override char-fold--default-override
+  "Non-nil means to override all default folding characters.
+When nil (the default value), the equivalence table is populated
+with the default set of equivalent chars, and you can remove unneeded
+characters using `char-fold-exclude', and add own characters using
+`char-fold-include'.  But when this variable is customized to non-nil,
+you start with an empty table where you can add only own characters
+using `char-fold-include'."
+  :type 'boolean
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (char-fold-update-table))
+  :group 'isearch
+  :version "29.1")
 
 (defcustom char-fold-include char-fold--default-include
   "Additional character foldings to include.
