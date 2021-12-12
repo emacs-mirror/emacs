@@ -536,162 +536,6 @@ haiku_draw_relief_rect (struct glyph_string *s,
 }
 
 static void
-haiku_draw_string_box (struct glyph_string *s, int clip_p)
-{
-  int hwidth, vwidth, left_x, right_x, top_y, bottom_y, last_x;
-  bool raised_p, left_p, right_p;
-  struct glyph *last_glyph;
-  struct haiku_rect clip_rect;
-
-  struct face *face = s->face;
-
-  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
-	    ? WINDOW_RIGHT_EDGE_X (s->w)
-	    : window_box_right (s->w, s->area));
-
-  /* The glyph that may have a right box line.  For static
-     compositions and images, the right-box flag is on the first glyph
-     of the glyph string; for other types it's on the last glyph.  */
-  if (s->cmp || s->img)
-    last_glyph = s->first_glyph;
-  else if (s->first_glyph->type == COMPOSITE_GLYPH
-	   && s->first_glyph->u.cmp.automatic)
-    {
-      /* For automatic compositions, we need to look up the last glyph
-	 in the composition.  */
-        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
-	struct glyph *g = s->first_glyph;
-	for (last_glyph = g++;
-	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
-	       && g->slice.cmp.to < s->cmp_to;
-	     last_glyph = g++)
-	  ;
-    }
-  else
-    last_glyph = s->first_glyph + s->nchars - 1;
-
-  vwidth = eabs (face->box_vertical_line_width);
-  hwidth = eabs (face->box_horizontal_line_width);
-  raised_p = face->box == FACE_RAISED_BOX;
-  left_x = s->x;
-  right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
-	     ? last_x - 1
-	     : min (last_x, s->x + s->background_width) - 1);
-
-  top_y = s->y;
-  bottom_y = top_y + s->height - 1;
-
-  left_p = (s->first_glyph->left_box_line_p
-	    || (s->hl == DRAW_MOUSE_FACE
-		&& (s->prev == NULL
-		    || s->prev->hl != s->hl)));
-  right_p = (last_glyph->right_box_line_p
-	     || (s->hl == DRAW_MOUSE_FACE
-		 && (s->next == NULL
-		     || s->next->hl != s->hl)));
-
-  get_glyph_string_clip_rect (s, &clip_rect);
-
-  if (face->box == FACE_SIMPLE_BOX)
-    haiku_draw_box_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
-			 vwidth, left_p, right_p, &clip_rect);
-  else
-    haiku_draw_relief_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
-			    vwidth, raised_p, true, true, left_p, right_p,
-			    &clip_rect, 1);
-
-  if (clip_p)
-    {
-      void *view = FRAME_HAIKU_VIEW (s->f);
-      BView_ClipToInverseRect (view, left_x, top_y, right_x - left_x + 1, hwidth);
-      if (left_p)
-	BView_ClipToInverseRect (view, left_x, top_y, vwidth, bottom_y - top_y + 1);
-      BView_ClipToInverseRect (view, left_x, bottom_y - hwidth + 1,
-			       right_x - left_x + 1, hwidth);
-      if (right_p)
-	BView_ClipToInverseRect (view, right_x - vwidth + 1,
-				 top_y, vwidth, bottom_y - top_y + 1);
-    }
-}
-
-static void
-haiku_draw_plain_background (struct glyph_string *s, struct face *face,
-			     int box_line_hwidth, int box_line_vwidth)
-{
-  void *view = FRAME_HAIKU_VIEW (s->f);
-  BView_StartClip (view);
-  if (s->hl == DRAW_CURSOR)
-    BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
-  else
-    BView_SetHighColor (view, face->background_defaulted_p ?
-			FRAME_BACKGROUND_PIXEL (s->f) :
-		      face->background);
-
-  BView_FillRectangle (view, s->x,
-		       s->y + box_line_hwidth,
-		       s->background_width,
-		       s->height - 2 * box_line_hwidth);
-  BView_EndClip (view);
-}
-
-static void
-haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
-			       int box_line_hwidth, int box_line_vwidth)
-{
-}
-
-static void
-haiku_maybe_draw_background (struct glyph_string *s, int force_p)
-{
-  if ((s->first_glyph->type != IMAGE_GLYPH) && !s->background_filled_p)
-    {
-      struct face *face = s->face;
-      int box_line_width = max (face->box_horizontal_line_width, 0);
-      int box_vline_width = max (face->box_vertical_line_width, 0);
-
-      if (FONT_HEIGHT (s->font) < s->height - 2 * box_vline_width
-	  || FONT_TOO_HIGH (s->font)
-          || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
-	{
-	  if (!face->stipple)
-	    haiku_draw_plain_background (s, face, box_line_width,
-					 box_vline_width);
-	  else
-	    haiku_draw_stipple_background (s, face, box_line_width,
-					   box_vline_width);
-	  s->background_filled_p = 1;
-	}
-    }
-}
-
-static void
-haiku_mouse_face_colors (struct glyph_string *s, uint32_t *fg,
-			 uint32_t *bg)
-{
-  int face_id;
-  struct face *face;
-
-  /* What face has to be used last for the mouse face?  */
-  face_id = MOUSE_HL_INFO (s->f)->mouse_face_face_id;
-  face = FACE_FROM_ID_OR_NULL (s->f, face_id);
-  if (face == NULL)
-    face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-
-  if (s->first_glyph->type == CHAR_GLYPH)
-    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch, -1, Qnil);
-  else
-    face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
-
-  face = FACE_FROM_ID (s->f, face_id);
-  prepare_face_for_display (s->f, s->face);
-
-  if (fg)
-    *fg = face->foreground;
-  if (bg)
-    *bg = face->background;
-}
-
-static void
 haiku_draw_underwave (struct glyph_string *s, int width, int x)
 {
   int wave_height = 3, wave_length = 2;
@@ -873,6 +717,164 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 
   BView_EndClip (view);
   BView_draw_unlock (view);
+}
+
+static void
+haiku_draw_string_box (struct glyph_string *s, int clip_p)
+{
+  int hwidth, vwidth, left_x, right_x, top_y, bottom_y, last_x;
+  bool raised_p, left_p, right_p;
+  struct glyph *last_glyph;
+  struct haiku_rect clip_rect;
+
+  struct face *face = s->face;
+
+  last_x = ((s->row->full_width_p && !s->w->pseudo_window_p)
+	    ? WINDOW_RIGHT_EDGE_X (s->w)
+	    : window_box_right (s->w, s->area));
+
+  /* The glyph that may have a right box line.  For static
+     compositions and images, the right-box flag is on the first glyph
+     of the glyph string; for other types it's on the last glyph.  */
+  if (s->cmp || s->img)
+    last_glyph = s->first_glyph;
+  else if (s->first_glyph->type == COMPOSITE_GLYPH
+	   && s->first_glyph->u.cmp.automatic)
+    {
+      /* For automatic compositions, we need to look up the last glyph
+	 in the composition.  */
+        struct glyph *end = s->row->glyphs[s->area] + s->row->used[s->area];
+	struct glyph *g = s->first_glyph;
+	for (last_glyph = g++;
+	     g < end && g->u.cmp.automatic && g->u.cmp.id == s->cmp_id
+	       && g->slice.cmp.to < s->cmp_to;
+	     last_glyph = g++)
+	  ;
+    }
+  else
+    last_glyph = s->first_glyph + s->nchars - 1;
+
+  vwidth = eabs (face->box_vertical_line_width);
+  hwidth = eabs (face->box_horizontal_line_width);
+  raised_p = face->box == FACE_RAISED_BOX;
+  left_x = s->x;
+  right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
+	     ? last_x - 1
+	     : min (last_x, s->x + s->background_width) - 1);
+
+  top_y = s->y;
+  bottom_y = top_y + s->height - 1;
+
+  left_p = (s->first_glyph->left_box_line_p
+	    || (s->hl == DRAW_MOUSE_FACE
+		&& (s->prev == NULL
+		    || s->prev->hl != s->hl)));
+  right_p = (last_glyph->right_box_line_p
+	     || (s->hl == DRAW_MOUSE_FACE
+		 && (s->next == NULL
+		     || s->next->hl != s->hl)));
+
+  get_glyph_string_clip_rect (s, &clip_rect);
+
+  if (face->box == FACE_SIMPLE_BOX)
+    haiku_draw_box_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
+			 vwidth, left_p, right_p, &clip_rect);
+  else
+    haiku_draw_relief_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
+			    vwidth, raised_p, true, true, left_p, right_p,
+			    &clip_rect, 1);
+
+  if (clip_p)
+    {
+      void *view = FRAME_HAIKU_VIEW (s->f);
+
+      haiku_draw_text_decoration (s, face, face->foreground, s->width, s->x);
+      BView_ClipToInverseRect (view, left_x, top_y, right_x - left_x + 1, hwidth);
+      if (left_p)
+	BView_ClipToInverseRect (view, left_x, top_y, vwidth, bottom_y - top_y + 1);
+      BView_ClipToInverseRect (view, left_x, bottom_y - hwidth + 1,
+			       right_x - left_x + 1, hwidth);
+      if (right_p)
+	BView_ClipToInverseRect (view, right_x - vwidth + 1,
+				 top_y, vwidth, bottom_y - top_y + 1);
+    }
+}
+
+static void
+haiku_draw_plain_background (struct glyph_string *s, struct face *face,
+			     int box_line_hwidth, int box_line_vwidth)
+{
+  void *view = FRAME_HAIKU_VIEW (s->f);
+  BView_StartClip (view);
+  if (s->hl == DRAW_CURSOR)
+    BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
+  else
+    BView_SetHighColor (view, face->background_defaulted_p ?
+			FRAME_BACKGROUND_PIXEL (s->f) :
+		      face->background);
+
+  BView_FillRectangle (view, s->x,
+		       s->y + box_line_hwidth,
+		       s->background_width,
+		       s->height - 2 * box_line_hwidth);
+  BView_EndClip (view);
+}
+
+static void
+haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
+			       int box_line_hwidth, int box_line_vwidth)
+{
+}
+
+static void
+haiku_maybe_draw_background (struct glyph_string *s, int force_p)
+{
+  if ((s->first_glyph->type != IMAGE_GLYPH) && !s->background_filled_p)
+    {
+      struct face *face = s->face;
+      int box_line_width = max (face->box_horizontal_line_width, 0);
+      int box_vline_width = max (face->box_vertical_line_width, 0);
+
+      if (FONT_HEIGHT (s->font) < s->height - 2 * box_vline_width
+	  || FONT_TOO_HIGH (s->font)
+          || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
+	{
+	  if (!face->stipple)
+	    haiku_draw_plain_background (s, face, box_line_width,
+					 box_vline_width);
+	  else
+	    haiku_draw_stipple_background (s, face, box_line_width,
+					   box_vline_width);
+	  s->background_filled_p = 1;
+	}
+    }
+}
+
+static void
+haiku_mouse_face_colors (struct glyph_string *s, uint32_t *fg,
+			 uint32_t *bg)
+{
+  int face_id;
+  struct face *face;
+
+  /* What face has to be used last for the mouse face?  */
+  face_id = MOUSE_HL_INFO (s->f)->mouse_face_face_id;
+  face = FACE_FROM_ID_OR_NULL (s->f, face_id);
+  if (face == NULL)
+    face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+
+  if (s->first_glyph->type == CHAR_GLYPH)
+    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch, -1, Qnil);
+  else
+    face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
+
+  face = FACE_FROM_ID (s->f, face_id);
+  prepare_face_for_display (s->f, s->face);
+
+  if (fg)
+    *fg = face->foreground;
+  if (bg)
+    *bg = face->background;
 }
 
 static void
@@ -1557,14 +1559,11 @@ haiku_draw_glyph_string (struct glyph_string *s)
 
   if (!box_filled_p && face->box != FACE_NO_BOX)
     haiku_draw_string_box (s, 1);
+  else
+    haiku_draw_text_decoration (s, face, face->foreground, s->width, s->x);
 
   if (!s->for_overlaps)
     {
-      uint32_t dcol;
-      dcol = face->foreground;
-
-      haiku_draw_text_decoration (s, face, dcol, s->width, s->x);
-
       if (s->prev)
 	{
 	  struct glyph_string *prev;
