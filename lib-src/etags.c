@@ -5782,9 +5782,9 @@ TEX_decode_env (const char *evarname, const char *defenv)
   else
     env = concat (env, defenv, "");
 
-  /* If the environment variable starts with a colon, increase the
-     length of the token table.  */
-  if (*env == ':')
+  /* If the environment variable doesn't start with a colon, increase
+     the length of the token table.  */
+  if (*env != ':')
     len++;
 
   /* Allocate a token table */
