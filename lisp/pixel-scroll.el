@@ -542,35 +542,43 @@ animation."
                (< (- (float-time) time) 1.0)
                (eq (< delta 0) (< rem 0)))
       (setq delta (+ delta rem)))
-    (while-no-input
-      (unwind-protect
-          (while (< percentage 1)
-            (redisplay t)
-            (sleep-for between-scroll)
-            (setq time-elapsed (+ time-elapsed
-                                  (- (float-time) last-time))
-                  percentage (/ time-elapsed total-time))
-            (let ((throw-on-input nil))
-              (if (< delta 0)
-                  (pixel-scroll-precision-scroll-down
-                   (ceiling (abs (* (* delta factor)
-                                    (/ between-scroll total-time)))))
-                (pixel-scroll-precision-scroll-up
-                 (ceiling (* (* delta factor)
-                             (/ between-scroll total-time))))))
-            (setq last-time (float-time)))
-        (if (< percentage 1)
-            (progn
-              (set-window-parameter nil 'interpolated-scroll-remainder
-                                    (* delta (- 1 percentage)))
-              (set-window-parameter nil 'interpolated-scroll-remainder-time
-                                    (float-time)))
-          (set-window-parameter nil
-                                'interpolated-scroll-remainder
-                                nil)
-          (set-window-parameter nil
-                                'interpolated-scroll-remainder-time
-                                nil))))))
+    (if (or (null rem)
+            (eq (< delta 0) (< rem 0)))
+        (while-no-input
+          (unwind-protect
+              (while (< percentage 1)
+                (redisplay t)
+                (sleep-for between-scroll)
+                (setq time-elapsed (+ time-elapsed
+                                      (- (float-time) last-time))
+                      percentage (/ time-elapsed total-time))
+                (let ((throw-on-input nil))
+                  (if (< delta 0)
+                      (pixel-scroll-precision-scroll-down
+                       (ceiling (abs (* (* delta factor)
+                                        (/ between-scroll total-time)))))
+                    (pixel-scroll-precision-scroll-up
+                     (ceiling (* (* delta factor)
+                                 (/ between-scroll total-time))))))
+                (setq last-time (float-time)))
+            (if (< percentage 1)
+                (progn
+                  (set-window-parameter nil 'interpolated-scroll-remainder
+                                        (* delta (- 1 percentage)))
+                  (set-window-parameter nil 'interpolated-scroll-remainder-time
+                                        (float-time)))
+              (set-window-parameter nil
+                                    'interpolated-scroll-remainder
+                                    nil)
+              (set-window-parameter nil
+                                    'interpolated-scroll-remainder-time
+                                    nil))))
+      (set-window-parameter nil
+                            'interpolated-scroll-remainder
+                            nil)
+      (set-window-parameter nil
+                            'interpolated-scroll-remainder-time
+                            nil))))
 
 (defun pixel-scroll-precision-scroll-up (delta)
   "Scroll the current window up by DELTA pixels."
