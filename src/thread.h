@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef MSDOS
+#include <time.h>               /* struct rpl_timespec */
 #include <signal.h>		/* sigset_t */
 #endif
 

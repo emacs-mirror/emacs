@@ -3858,10 +3858,14 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       NSRectFill (glyphRect);
 
-      /* Draw overlining, etc. on the stretch glyph (or the part
-         of the stretch glyph after the cursor). */
-      ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
-                               NSMinX (glyphRect));
+      /* Draw overlining, etc. on the stretch glyph (or the part of
+         the stretch glyph after the cursor).  If the glyph has a box,
+         then decorations will be drawn after drawing the box in
+         ns_draw_glyph_string, in order to prevent them from being
+         overwritten by the box.  */
+      if (s->face->box != FACE_NO_BOX)
+	ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
+				 NSMinX (glyphRect));
 
       s->background_filled_p = 1;
     }
@@ -4104,6 +4108,16 @@ ns_draw_glyph_string (struct glyph_string *s)
   /* Draw box if not done already.  */
   if (!s->for_overlaps && !box_drawn_p && s->face->box != FACE_NO_BOX)
     ns_dumpglyphs_box_or_relief (s);
+
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->type == STRETCH_GLYPH)
+    {
+      NSColor *fg_color;
+
+      fg_color = ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face), s->f);
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
 
   ns_unfocus (s->f);
 

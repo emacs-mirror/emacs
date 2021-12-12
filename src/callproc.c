@@ -25,6 +25,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef MSDOS
+extern char **environ;
+#endif
+
 #include <sys/file.h>
 #include <fcntl.h>
 
@@ -1199,6 +1203,11 @@ static CHILD_SETUP_TYPE
 child_setup (int in, int out, int err, char **new_argv, char **env,
 	     const char *current_dir)
 {
+#ifdef MSDOS
+  char *pwd_var;
+  char *temp;
+  ptrdiff_t i;
+#endif
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
@@ -1251,6 +1260,22 @@ child_setup (int in, int out, int err, char **new_argv, char **env,
   exec_failed (new_argv[0], errnum);
 
 #else /* MSDOS */
+  i = strlen (current_dir);
+  pwd_var = xmalloc (i + 5);
+  temp = pwd_var + 4;
+  memcpy (pwd_var, "PWD=", 4);
+  stpcpy (temp, current_dir);
+
+  if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
+    {
+      temp += 2;
+      i -= 2;
+    }
+
+  /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
+  while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
+    temp[--i] = 0;
+
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
   xfree (pwd_var);
   if (pid == -1)
@@ -1582,11 +1607,13 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
       signal (SIGPROF, SIG_DFL);
 #endif
 
+#ifdef subprocesses
       /* Stop blocking SIGCHLD in the child.  */
       unblock_child_signal (oldset);
 
       if (pty_flag)
 	child_setup_tty (std_out);
+#endif
 
       if (std_err < 0)
 	std_err = std_out;

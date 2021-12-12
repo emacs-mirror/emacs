@@ -63,11 +63,11 @@ has no effect."
 Setting this to nil is offered as an aid to debugging only."
   :type 'boolean)
 
-(defcustom eshell-private-file-modes 384 ; umask 177
+(defcustom eshell-private-file-modes #o600 ; umask 177
   "The file-modes value to use for creating \"private\" files."
   :type 'integer)
 
-(defcustom eshell-private-directory-modes 448 ; umask 077
+(defcustom eshell-private-directory-modes #o700 ; umask 077
   "The file-modes value to use for creating \"private\" directories."
   :type 'integer)
 

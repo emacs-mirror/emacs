@@ -26,6 +26,16 @@
 (require 'ert)
 (require 'ert-x)
 
+(declare-function sqlite-execute "sqlite.c")
+(declare-function sqlite-close "sqlite.c")
+(declare-function sqlitep "sqlite.c")
+(declare-function sqlite-available-p "sqlite.c")
+(declare-function sqlite-finalize "sqlite.c")
+(declare-function sqlite-next "sqlite.c")
+(declare-function sqlite-more-p "sqlite.c")
+(declare-function sqlite-select "sqlite.c")
+(declare-function sqlite-open "sqlite.c")
+
 (ert-deftest sqlite-select ()
   (skip-unless (sqlite-available-p))
   (let ((db (sqlite-open)))

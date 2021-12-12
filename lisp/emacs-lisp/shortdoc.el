@@ -1232,7 +1232,7 @@ There can be any number of :example/:result elements."
   (define-keymap
     :no-eval (define-keymap "C-c C-c" #'quit-buffer))
   (defvar-keymap
-      :no-eval (defvar-keymap my-keymap "C-c C-c" map #'quit-buffer))
+      :no-eval (defvar-keymap my-keymap "C-c C-c" #'quit-buffer))
   "Setting keys"
   (keymap-set
    :no-eval (keymap-set map "C-c C-c" #'quit-buffer))

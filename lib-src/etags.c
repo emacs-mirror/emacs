@@ -5773,7 +5773,7 @@ static void
 TEX_decode_env (const char *evarname, const char *defenv)
 {
   const char *env, *p;
-  ptrdiff_t len;
+  ptrdiff_t len = 1;
 
   /* Append default string to environment. */
   env = getenv (evarname);
@@ -5782,8 +5782,13 @@ TEX_decode_env (const char *evarname, const char *defenv)
   else
     env = concat (env, defenv, "");
 
+  /* If the environment variable doesn't start with a colon, increase
+     the length of the token table.  */
+  if (*env != ':')
+    len++;
+
   /* Allocate a token table */
-  for (len = 1, p = env; (p = strchr (p, ':')); )
+  for (p = env; (p = strchr (p, ':')); )
     if (*++p)
       len++;
   TEX_toktab = xnew (len, linebuffer);

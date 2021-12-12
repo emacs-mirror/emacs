@@ -25,6 +25,14 @@
 
 (require 'cl-lib)
 
+(declare-function sqlite-execute "sqlite.c")
+(declare-function sqlite-more-p "sqlite.c")
+(declare-function sqlite-next "sqlite.c")
+(declare-function sqlite-columns "sqlite.c")
+(declare-function sqlite-finalize "sqlite.c")
+(declare-function sqlite-select "sqlite.c")
+(declare-function sqlite-open "sqlite.c")
+
 (defvar-keymap sqlite-mode-map
   "g" #'sqlite-mode-list-tables
   "c" #'sqlite-mode-list-columns
@@ -44,6 +52,8 @@
 (defun sqlite-mode-open-file (file)
   "Browse the contents of an sqlite file."
   (interactive "fSQLite file name: ")
+  (unless (sqlite-available-p)
+    (error "This Emacs doesn't have SQLite support, so it can't view SQLite files"))
   (pop-to-buffer (get-buffer-create
                   (format "*SQLite %s*" (file-name-nondirectory file))))
   (sqlite-mode)
@@ -57,7 +67,7 @@
         (db sqlite--db)
         (entries nil))
     (erase-buffer)
-    (dolist (table (sqlite-select db "select name from sqlite_schema where type = 'table' and name not like 'sqlite_%' order by name"))
+    (dolist (table (sqlite-select db "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' order by name"))
       (push (list (car table)
                   (caar (sqlite-select db (format "select count(*) from %s"
                                                   (car table)))))
@@ -188,7 +198,7 @@
               (not (eq (car table) 'row)))
       (user-error "No row under point"))
     (unless (yes-or-no-p "Really delete the row under point? ")
-      (error "Not deleting"))
+      (user-error "Not deleting"))
     (sqlite-execute
      sqlite--db
      (format "delete from %s where %s"

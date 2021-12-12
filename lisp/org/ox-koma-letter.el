@@ -982,7 +982,7 @@ Return PDF file's name."
         (org-koma-letter-special-contents))
     (org-export-to-file 'koma-letter file
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 
 (provide 'ox-koma-letter)

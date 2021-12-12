@@ -40,7 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#endif	/* subprocesses */
+#else
+#define PIPECONN_P(p) false
+#define PIPECONN1_P(p) false
+#endif
 
 #ifdef HAVE_SETRLIMIT
 # include <sys/resource.h>
@@ -152,6 +155,7 @@ static bool kbd_is_on_hold;
    when exiting.  */
 bool inhibit_sentinels;
 
+#ifdef subprocesses
 union u_sockaddr
 {
   struct sockaddr sa;
@@ -163,8 +167,6 @@ union u_sockaddr
   struct sockaddr_un un;
 #endif
 };
-
-#ifdef subprocesses
 
 #ifndef SOCK_CLOEXEC
 # define SOCK_CLOEXEC 0
@@ -6536,6 +6538,9 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	  /* Send this batch, using one or more write calls.  */
 	  ptrdiff_t written = 0;
 	  int outfd = p->outfd;
+          if (outfd < 0)
+            error ("Output file descriptor of %s is closed",
+                   SDATA (p->name));
 	  eassert (0 <= outfd && outfd < FD_SETSIZE);
 #ifdef DATAGRAM_SOCKETS
 	  if (DATAGRAM_CHAN_P (outfd))
@@ -8257,9 +8262,13 @@ If optional argument QUERY is `current', ignore OMP_NUM_THREADS.
 If QUERY is `all', also count processors not available.  */)
   (Lisp_Object query)
 {
+#ifndef MSDOS
   return make_uint (num_processors (EQ (query, Qall) ? NPROC_ALL
 				    : EQ (query, Qcurrent) ? NPROC_CURRENT
 				    : NPROC_CURRENT_OVERRIDABLE));
+#else
+  return make_fixnum (1);
+#endif
 }
 
 #ifdef subprocesses
@@ -8304,10 +8313,15 @@ open_channel_for_module (Lisp_Object process)
 {
   CHECK_PROCESS (process);
   CHECK_TYPE (PIPECONN_P (process), Qpipe_process_p, process);
+#ifndef MSDOS
   int fd = dup (XPROCESS (process)->open_fd[SUBPROCESS_STDOUT]);
   if (fd == -1)
     report_file_error ("Cannot duplicate file descriptor", Qnil);
   return fd;
+#else
+  /* PIPECONN_P returning true shouldn't be possible on MSDOS.  */
+  emacs_abort ();
+#endif
 }
 
 

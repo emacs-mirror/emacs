@@ -26,16 +26,17 @@
 (defmacro with-sqlite-transaction (db &rest body)
   "Execute BODY while holding a transaction for DB."
   (declare (indent 1) (debug (form body)))
-  (let ((db-var (gensym)))
-    `(let ((,db-var ,db))
+  (let ((db-var (gensym))
+        (func-var (gensym)))
+    `(let ((,db-var ,db)
+           (,func-var (lambda () ,@body)))
        (if (sqlite-available-p)
            (unwind-protect
                (progn
                  (sqlite-transaction ,db-var)
-                 ,@body)
+                 (funcall ,func-var))
              (sqlite-commit ,db-var))
-         (progn
-           ,@body)))))
+         (funcall ,func-var)))))
 
 (provide 'sqlite)
 
