@@ -68,24 +68,6 @@ pgtk_menu_set_in_use (bool in_use)
   }
 }
 
-/* Wait for an X event to arrive or for a timer to expire.  */
-
-static void
-pgtk_menu_wait_for_event (void *data)
-{
-  struct timespec next_time = timer_check (), *ntp;
-
-  if (!timespec_valid_p (next_time))
-    ntp = 0;
-  else
-    ntp = &next_time;
-
-  /* Gtk3 have arrows on menus when they don't fit.  When the
-     pointer is over an arrow, a timeout scrolls it a bit.  Use
-     xg_select so that timeout gets triggered.  */
-  xg_select (0, NULL, NULL, NULL, ntp, NULL);
-}
-
 DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
        This initially opens the first menu bar item and you can then navigate with the
@@ -131,11 +113,7 @@ popup_widget_loop (bool do_timers, GtkWidget * widget)
 
   /* Process events in the Gtk event loop until done.  */
   while (popup_activated_flag)
-    {
-      if (do_timers)
-	pgtk_menu_wait_for_event (0);
-      gtk_main_iteration ();
-    }
+    gtk_main_iteration ();
 }
 
 void
