@@ -5148,7 +5148,7 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 		 || xi_event->evtype == XI_Leave)
 		&& (((XIEnterEvent *) xi_event)->detail
 		    != XINotifyInferior)
-		&& (focus_state & FOCUS_EXPLICIT))
+		&& !(focus_state & FOCUS_EXPLICIT))
 	       || xi_event->evtype == XI_FocusIn
 	       || xi_event->evtype == XI_FocusOut)))
 	  x_focus_changed ((xi_event->evtype == XI_Enter
