@@ -25,6 +25,14 @@
 
 (require 'cl-lib)
 
+(declare-function sqlite-execute "sqlite.c")
+(declare-function sqlite-more-p "sqlite.c")
+(declare-function sqlite-next "sqlite.c")
+(declare-function sqlite-columns "sqlite.c")
+(declare-function sqlite-finalize "sqlite.c")
+(declare-function sqlite-select "sqlite.c")
+(declare-function sqlite-open "sqlite.c")
+
 (defvar-keymap sqlite-mode-map
   "g" #'sqlite-mode-list-tables
   "c" #'sqlite-mode-list-columns
