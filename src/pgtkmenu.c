@@ -107,7 +107,7 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
    Used for popup menus and dialogs. */
 
 static void
-popup_widget_loop (bool do_timers, GtkWidget * widget)
+popup_widget_loop (bool do_timers, GtkWidget *widget)
 {
   ++popup_activated_flag;
 
@@ -130,7 +130,7 @@ pgtk_activate_menubar (struct frame *f)
    used and has been unposted.  */
 
 static void
-popup_deactivate_callback (GtkWidget * widget, gpointer client_data)
+popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
   popup_activated_flag = 0;
 }
@@ -139,7 +139,7 @@ popup_deactivate_callback (GtkWidget * widget, gpointer client_data)
    for that widget.
    F is the frame if known, or NULL if not known.  */
 static void
-show_help_event (struct frame *f, GtkWidget * widget, Lisp_Object help)
+show_help_event (struct frame *f, GtkWidget *widget, Lisp_Object help)
 {
   /* Don't show this tooltip.
    * Tooltips are always tied to main widget, so stacking order
@@ -175,7 +175,7 @@ show_help_event (struct frame *f, GtkWidget * widget, Lisp_Object help)
    unhighlighting.  */
 
 static void
-menu_highlight_callback (GtkWidget * widget, gpointer call_data)
+menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 {
   xg_menu_item_cb_data *cb_data;
   Lisp_Object help;
@@ -207,7 +207,7 @@ static bool xg_crazy_callback_abort;
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
 static void
-menubar_selection_callback (GtkWidget * widget, gpointer client_data)
+menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = client_data;
 
@@ -531,7 +531,7 @@ initialize_frame_menubar (struct frame *f)
 static Lisp_Object *volatile menu_item_selection;
 
 static void
-popup_selection_callback (GtkWidget * widget, gpointer client_data)
+popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = client_data;
 
@@ -876,7 +876,7 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
 }
 
 static void
-dialog_selection_callback (GtkWidget * widget, gpointer client_data)
+dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
@@ -890,7 +890,7 @@ dialog_selection_callback (GtkWidget * widget, gpointer client_data)
    dialog pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_dialog (struct frame *f, widget_value * first_wv)
+create_and_show_dialog (struct frame *f, widget_value *first_wv)
 {
   GtkWidget *menu;
 
