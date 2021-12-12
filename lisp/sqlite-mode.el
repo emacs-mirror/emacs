@@ -57,7 +57,7 @@
         (db sqlite--db)
         (entries nil))
     (erase-buffer)
-    (dolist (table (sqlite-select db "select name from sqlite_schema where type = 'table' and name not like 'sqlite_%' order by name"))
+    (dolist (table (sqlite-select db "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' order by name"))
       (push (list (car table)
                   (caar (sqlite-select db (format "select count(*) from %s"
                                                   (car table)))))
