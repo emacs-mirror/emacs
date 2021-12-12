@@ -605,10 +605,10 @@ property list."
     (with-temp-buffer
       (save-excursion (insert output))
       (when (search-forward "\\begin{document}" nil t)
-        ;; Ensure that \citeprocitem is defined for citeproc-el
+        (goto-char (match-beginning 0))
+        ;; Ensure that \citeprocitem is defined for citeproc-el.
         (insert "\\makeatletter\n\\newcommand{\\citeprocitem}[2]{\\hyper@linkstart{cite}{citeproc_bib_item_#1}#2\\hyper@linkend}\n\\makeatother\n\n")
         ;; Ensure there is a \usepackage{hanging} somewhere or add one.
-        (goto-char (match-beginning 0))
         (let ((re (rx "\\usepackage" (opt "[" (*? nonl) "]") "{hanging}")))
           (unless (re-search-backward re nil t)
             (insert "\\usepackage[notquote]{hanging}\n"))))

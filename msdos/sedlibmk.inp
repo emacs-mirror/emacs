@@ -144,7 +144,7 @@ s/@PACKAGE@/emacs/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^CCDEPMODE *=/s/@[^@\n]*@/depmode=gcc3/
-/^CFLAGS *=/s/@[^@\n]*@/-g -O2/
+/^CFLAGS *=/s/@[^@\n]*@/-g -O2 -I$\(srcdir\)\/..\/msdos/
 /^CYGPATH_W *=/s/@[^@\n]*@//
 /^CYGWIN_OBJ *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
@@ -170,28 +170,28 @@ s/@PACKAGE@/emacs/
 /^BITSIZEOF_WCHAR_T *=/s/@BITSIZEOF_WCHAR_T@/16/
 /^BITSIZEOF_WINT_T *=/s/@BITSIZEOF_WINT_T@/32/
 /^APPLE_UNIVERSAL_BUILD *=/s/@APPLE_UNIVERSAL_BUILD@/0/
-#
-# Most GNULIB_* are replaced with zero even though DJGPP does not have
-# these features.  That's because the gnulib replacements cannot
+# Most GL_GNULIB_* are replaced with zero even though DJGPP does not
+# have these features.  That's because the gnulib replacements cannot
 # possibly work for DJGPP, so we prefer to fail the link than have a
 # subtly botched executable.  Those replacements that _are_ needed
 # should be before the last catch-all rule.
-/^GNULIB_ATOLL *=/s/@GNULIB_ATOLL@/1/
-/^GNULIB_DUP3 *=/s/@GNULIB_DUP3@/1/
-/^GNULIB_ENVIRON *=/s/@GNULIB_ENVIRON@/1/
-/^GNULIB_FDATASYNC *=/s/@GNULIB_FDATASYNC@/1/
-/^GNULIB_GETLOADAVG *=/s/@GNULIB_GETLOADAVG@/1/
-/^GNULIB_GL_UNISTD_H_GETOPT *=/s/@GNULIB_GL_UNISTD_H_GETOPT@/1/
-/^GNULIB_MEMRCHR *=/s/@GNULIB_MEMRCHR@/1/
-/^GNULIB_MKOSTEMP *=/s/@GNULIB_MKOSTEMP@/1/
-/^GNULIB_MKTIME *=/s/@GNULIB_MKTIME@/1/
-/^GNULIB_TIME_R *=/s/@GNULIB_TIME_R@/1/
-/^GNULIB_TIMEGM *=/s/@GNULIB_TIMEGM@/1/
-/^GNULIB_TIME_RZ *=/s/@GNULIB_TIME_RZ@/1/
-/^GNULIB_UNSETENV *=/s/@GNULIB_UNSETENV@/1/
-/^GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
-/^GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
-/^GSETTINGS_LIBS *=/s/@[^@\n]*@//
+/^GL_GNULIB_ATOLL *=/s/@GL_GNULIB_ATOLL@/1/
+/^GL_GNULIB_DUP3 *=/s/@GL_GNULIB_DUP3@/1/
+/^GL_GNULIB_ENVIRON *=/s/@GL_GNULIB_ENVIRON@/1/
+/^GL_GNULIB_FDATASYNC *=/s/@GL_GNULIB_FDATASYNC@/1/
+/^GL_GNULIB_GETLOADAVG *=/s/@GL_GNULIB_GETLOADAVG@/1/
+/^GL_GNULIB_UNISTD_H_GETOPT *=/s/@GL_GNULIB_UNISTD_H_GETOPT@/1/
+/^GL_GNULIB_MEMRCHR *=/s/@GL_GNULIB_MEMRCHR@/1/
+/^GL_GNULIB_MEMPCPY *=/s/@GL_GNULIB_MEMPCPY@/1/
+/^GL_GNULIB_MKOSTEMP *=/s/@GL_GNULIB_MKOSTEMP@/1/
+/^GL_GNULIB_MKTIME *=/s/@GL_GNULIB_MKTIME@/1/
+/^GL_GNULIB_TIME_R *=/s/@GL_GNULIB_TIME_R@/1/
+/^GL_GNULIB_TIMEGM *=/s/@GL_GNULIB_TIMEGM@/1/
+/^GL_GNULIB_TIME_RZ *=/s/@GL_GNULIB_TIME_RZ@/1/
+/^GL_GNULIB_UNSETENV *=/s/@GL_GNULIB_UNSETENV@/1/
+/^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
+/^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
+/^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
 #
 # Edit the HAVE_foo variables
 /^HAVE_ATOLL *=/s/@HAVE_ATOLL@/0/
@@ -253,6 +253,7 @@ s/@PACKAGE@/emacs/
 /^HAVE_USLEEP *=/s/@HAVE_USLEEP@/1/
 /^HAVE_WCHAR_H *=/s/@HAVE_WCHAR_H@/1/
 /^HAVE_WCHAR_T *=/s/@HAVE_WCHAR_T@/1/
+/^HAVE_LIBGMP *=/s/@HAVE_LIBGMP@/0/
 /^HAVE__BOOL *=/s/@HAVE__BOOL@/1/
 /^HAVE__EXIT *=/s/@HAVE__EXIT@/1/
 /^HAVE_[^ =]* *= *@/s/@[^@\n]*@/0/
@@ -265,7 +266,9 @@ s/@PACKAGE@/emacs/
 /^LIBS *=/s/@[^@\n]*@//
 /^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
 # MKDIR_P lines are edited further below
-/^MKDIR_P *=/s/@MKDIR_P@//
+# MKDIR_P is only used to create lib/malloc, and the folder is
+# already present in the distribution, so this should work fine.
+/^MKDIR_P *=/s/@MKDIR_P@/echo/
 /^NEXT_AS_FIRST_DIRECTIVE_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
@@ -309,6 +312,7 @@ s/@PACKAGE@/emacs/
 /^REPLACE_MKTIME *=/s/@[^@\n]*@/1/
 # We don't want any other gnulib replacement functions
 /^REPLACE_[^ =]* *= *@/s/@[^@\n]*@/0/
+/^LIB_GETRANDOM[^ =]* *= *@/s/@[^@\n]*@//
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^ALLOCA_H *=/s/@[^@\n]*@/alloca.h/
@@ -317,18 +321,23 @@ s/@PACKAGE@/emacs/
 /^ERRNO_H *=/s/@[^@\n]*@//
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
 /^GETOPT_CDEFS_H *=/s/@[^@\n]*@/getopt-cdefs.h/
+/^GMP_H *=/s/@[^@\n]*@/gmp.h/
 /^LIMITS_H *=/s/@[^@\n]*@/limits.h/
+/^IEEE754_H *=/s/@[^@\n]*@/ieee754.h/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
+/^TIME_H_DEFINES_TIME_UTC *=/s/@[^@\n]*@/0/
+/^UNISTD_H_HAVE_SYS_RANDOM_H *=/s/@[^@\n]*@/0/
 /^UNISTD_H_HAVE_WINSOCK2_H *=/s/@[^@\n]*@/0/
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^UNISTD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^UNDEFINE_STRTOK_R *=/s/@UNDEFINE_STRTOK_R@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
+/^GNULIBHEADERS_OVERRIDE_WINT_T *=/s/@[^@\n]*@/0/
 /^WINDOWS_64_BIT_OFF_T *=/s/@WINDOWS_64_BIT_OFF_T@/0/
 /^WINDOWS_64_BIT_ST_SIZE *=/s/@WINDOWS_64_BIT_ST_SIZE@/0/
 /^WINDOWS_STAT_INODES *=/s/@WINDOWS_STAT_INODES@/0/
@@ -337,7 +346,7 @@ s/@PACKAGE@/emacs/
 /am__append_[1-9][0-9]* *=.*gettext\.h/s/@[^@\n]*@/\#/
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^@gl_GNULIB_ENABLED_tempname_TRUE@/s/@[^@\n]*@//
-/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o memrchr.o sig2str.o time_r.o time_rz.o timegm.o mktime.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o fdatasync.o execinfo.o/
+/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o getrandom.o memrchr.o mempcpy.o regex.o memmem.o sig2str.o sigdescr_np.o time_r.o time_rz.o timegm.o mktime.o mini-gmp-gnulib.o getloadavg.o pthread_sigmask.o mkostemp.o fpending.o execinfo.o tempname.o/
 /^am__append_[1-9][0-9]* *=/,/^[^ 	]/{
   s/ *inttypes\.h//
   s| *sys/select\.h||
@@ -394,15 +403,19 @@ s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho /
 #
 # Determine which headers to generate
-s/= @GL_GENERATE_ALLOCA_H@/= 1/
+s/= @GL_GENERATE_ALLOCA_H_TRUE@/= 1/
 s/= @GL_GENERATE_BYTESWAP_H@/= 1/
 s/= @GL_GENERATE_EXECINFO_H@/= 1/
+s/= @GL_GENERATE_IEEE754_H@/= 1/
 s/= @GL_GENERATE_STDALIGN_H@/= 1/
 s/= @GL_GENERATE_STDDEF_H@/= 1/
 s/= @GL_GENERATE_STDINT_H@/= 1/
 s/= @GL_GENERATE_LIMITS_H@/= 1/
 s/= @GL_GENERATE_ERRNO_H@/= /
 s/= @GL_GENERATE_LIMITS_H@/= /
+s/= @GL_GENERATE_GMP_GMP_H@/= 1/
+s/= @GL_GENERATE_MINI_GMP_H@/= 1/
+s/\$\(MKDIR_P\) malloc//
 #
 # Determine which modules to build and which to omit
 /^noinst_LIBRARIES /a\
@@ -413,6 +426,7 @@ OMIT_GNULIB_MODULE_careadlinkat = true\
 OMIT_GNULIB_MODULE_cloexec = true\
 OMIT_GNULIB_MODULE_dirent = true\
 OMIT_GNULIB_MODULE_dirfd = true\
+OMIT_GNULIB_MODULE_scratch_buffer = true\
 OMIT_GNULIB_MODULE_dup2 = true\
 OMIT_GNULIB_MODULE_errno = true\
 OMIT_GNULIB_MODULE_euidaccess = true\
@@ -439,7 +453,8 @@ OMIT_GNULIB_MODULE_strtoimax = true\
 OMIT_GNULIB_MODULE_strtoll = true\
 OMIT_GNULIB_MODULE_symlink = true\
 OMIT_GNULIB_MODULE_sys_select = true\
-OMIT_GNULIB_MODULE_sys_time = true
+OMIT_GNULIB_MODULE_sys_time = true\
+OMIT_GNULIB_MODULE_crypto\/md5 = true
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@

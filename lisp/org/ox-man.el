@@ -1117,7 +1117,7 @@ Return PDF file's name."
   (let ((outfile (org-export-output-file-name ".man" subtreep)))
     (org-export-to-file 'man outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 (defun org-man-compile (file)
   "Compile a Groff file.

@@ -1701,7 +1701,7 @@ Return INFO file's name."
 	(org-export-coding-system org-texinfo-coding-system))
     (org-export-to-file 'texinfo outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-texinfo-compile file)))))
+      #'org-texinfo-compile)))
 
 ;;;###autoload
 (defun org-texinfo-publish-to-texinfo (plist filename pub-dir)

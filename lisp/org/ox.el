@@ -6373,7 +6373,11 @@ use it to set a major mode there, e.g,
     (&optional async subtreep visible-only body-only ext-plist)
     (interactive)
     (org-export-to-buffer \\='latex \"*Org LATEX Export*\"
-      async subtreep visible-only body-only ext-plist (lambda () (LaTeX-mode))))
+      async subtreep visible-only body-only ext-plist
+      #'LaTeX-mode))
+
+When expressed as an anonymous function, using `lambda',
+POST-PROCESS needs to be quoted.
 
 This function returns BUFFER."
   (declare (indent 2))
@@ -6436,7 +6440,10 @@ to send the output file through additional processing, e.g,
     (let ((outfile (org-export-output-file-name \".tex\" subtreep)))
       (org-export-to-file \\='latex outfile
         async subtreep visible-only body-only ext-plist
-        (lambda (file) (org-latex-compile file)))
+        #'org-latex-compile)))
+
+When expressed as an anonymous function, using `lambda',
+POST-PROCESS needs to be quoted.
 
 The function returns either a file name returned by POST-PROCESS,
 or FILE."
