@@ -331,6 +331,10 @@ received.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Isearch and Replace
+
+*** New user option 'char-fold-override' omits the default character-folding.
+
 ** New minor mode 'glyphless-display-mode'.
 This allows an easy way to toggle seeing all glyphless characters in
 the current buffer.
