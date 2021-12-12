@@ -2503,6 +2503,10 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      /* Draw relief if not yet drawn.  */
+      if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
+	x_draw_glyph_string_box (s);
+
       /* Draw underline.  */
       if (s->face->underline)
 	{
@@ -2616,10 +2620,6 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 				   glyph_y + dy, s->width, h);
 	    }
 	}
-
-      /* Draw relief if not yet drawn.  */
-      if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
-	x_draw_glyph_string_box (s);
 
       if (s->prev)
 	{
