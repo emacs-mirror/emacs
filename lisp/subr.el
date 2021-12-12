@@ -4057,7 +4057,7 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
- with any buffer
+ with any buffer.
 COMMAND is the shell command to run."
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.

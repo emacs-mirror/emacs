@@ -1206,6 +1206,7 @@ static DWORD WINAPI
 reader_thread (void *arg)
 {
   child_process *cp;
+  int fd;
 
   /* Our identity */
   cp = (child_process *)arg;
@@ -1220,12 +1221,13 @@ reader_thread (void *arg)
     {
       int rc;
 
-      if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_CONNECT) != 0)
-	rc = _sys_wait_connect (cp->fd);
-      else if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_LISTEN) != 0)
-	rc = _sys_wait_accept (cp->fd);
+      fd = cp->fd;
+      if (fd >= 0 && (fd_info[fd].flags & FILE_CONNECT) != 0)
+	rc = _sys_wait_connect (fd);
+      else if (fd >= 0 && (fd_info[fd].flags & FILE_LISTEN) != 0)
+	rc = _sys_wait_accept (fd);
       else
-	rc = _sys_read_ahead (cp->fd);
+	rc = _sys_read_ahead (fd);
 
       /* Don't bother waiting for the event if we already have been
 	 told to exit by delete_child.  */
@@ -1238,7 +1240,7 @@ reader_thread (void *arg)
         {
 	  DebPrint (("reader_thread.SetEvent(0x%x) failed with %lu for fd %ld (PID %d)\n",
 		     (DWORD_PTR)cp->char_avail, GetLastError (),
-		     cp->fd, cp->pid));
+		     fd, cp->pid));
 	  return 1;
 	}
 
@@ -1265,6 +1267,13 @@ reader_thread (void *arg)
 	 us to exit.  */
       if (cp->status == STATUS_READ_ERROR)
 	break;
+    }
+  /* If this thread was reading from a pipe process, close the
+     descriptor used for reading, as sys_close doesn't in that case.  */
+  if (fd_info[fd].flags == FILE_DONT_CLOSE)
+    {
+      fd_info[fd].flags = 0;
+      _close (fd);
     }
   return 0;
 }

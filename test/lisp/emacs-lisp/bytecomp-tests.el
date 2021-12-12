@@ -686,6 +686,12 @@ inner loops respectively."
                  (let* ((x 'a))
                    (list x (funcall g) (funcall h)))))))
       (funcall (funcall f 'b)))
+
+    ;; Test constant-propagation of access to captured variables.
+    (let* ((x 2)
+           (f (lambda ()
+                (let ((y x)) (list y 3 y)))))
+      (funcall f))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

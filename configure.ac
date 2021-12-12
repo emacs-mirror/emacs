@@ -2704,7 +2704,7 @@ if test "${with_sqlite3}" != "no"; then
      AC_SUBST(SQLITE3_LIBS)
      LIBS="$SQLITE3_LIBS $LIBS"
      AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the libsqlite3 library (-lsqlite).])
-     # Windows loads libwebp dynamically
+     # Windows loads libsqlite dynamically
      if test "${opsys}" = "mingw32"; then
         SQLITE3_LIBS=
      fi

@@ -342,8 +342,12 @@ for speeding up processing.")
       (numberp expr)
       (stringp expr)
       (and (consp expr)
-           (memq (car expr) '(quote function))
-           (symbolp (cadr expr)))
+           (or (and (memq (car expr) '(quote function))
+                    (symbolp (cadr expr)))
+               ;; (internal-get-closed-var N) can be considered constant for
+               ;; const-prop purposes.
+               (and (eq (car expr) 'internal-get-closed-var)
+                    (integerp (cadr expr)))))
       (keywordp expr)))
 
 (defmacro byte-optimize--pcase (exp &rest cases)

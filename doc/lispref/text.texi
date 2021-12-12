@@ -5138,8 +5138,11 @@ IV used.
 
 @node Database
 @section Database
+@cindex database access, SQLite
 
-  Emacs can be compiled with built-in SQLite support.
+  Emacs can be compiled with built-in support for accessing SQLite
+databases.  This section describes the facilities available for
+accessing SQLite databases from Lisp programs.
 
 @defun sqlite-available-p
 The function returns non-@code{nil} if built-in SQLite support is
@@ -5148,20 +5151,21 @@ available in this Emacs session.
 
 When SQLite support is available, the following functions can be used.
 
+@cindex database object
 @defun sqlite-open &optional file
-This function opens @var{file} as a database file.  If it doesn't
-exist, a new database will be created and stored there.  If this
-argument is missing or @code{nil}, a new in-memory database is created
-instead.
+This function opens @var{file} as an SQLite database file.  If
+@var{file} doesn't exist, a new database will be created and stored in
+that file.  If @var{file} is omitted or @code{nil}, a new in-memory
+database is created instead.
 
 The return value is a @dfn{database object} that can be used as the
-argument to most of the subsequent functions in this section of the
-manual.
+argument to most of the subsequent functions described below.
 @end defun
 
-@defun sqlitep
-The database object returned by the @code{sqlite-open} function
-satisfies this predicate.
+@defun sqlitep object
+This predicate returns non-@code{nil} if @var{object} is an SQLite
+database object.  The database object returned by the
+@code{sqlite-open} function satisfies this predicate.
 @end defun
 
 @defun sqlite-close db
@@ -5185,13 +5189,13 @@ For instance:
 (sqlite-execute db "insert into foo values (?, ?)" '("bar" 2))
 @end lisp
 
-This has exactly the same effect as the first form, but is more
+This has exactly the same effect as the previous example, but is more
 efficient and safer (because it doesn't involve any string parsing or
 interpolation).
 
-The number of affected rows is returned.  For instance, an
-@samp{insert} statement will return @samp{1}, but an @samp{update}
-statement may return zero or a higher number.
+@code{sqlite-execute} returns the number of affected rows.  For
+instance, an @samp{insert} statement will return @samp{1}, whereas an
+@samp{update} statement may return zero or a higher number.
 @end defun
 
 @defun sqlite-select db query &optional values result-type
@@ -5202,33 +5206,36 @@ Select some data from @var{db} and return them.  For instance:
   @result{} (("bar" 2))
 @end lisp
 
-As with the @code{sqlite-execute} command, you can pass in a list or a
-vector of values that will be bound before executing the select:
+As with the @code{sqlite-execute}, you can optionally pass in a list
+or a vector of values that will be bound before executing the select:
 
 @lisp
 (sqlite-select db "select * from foo where key = ?" [2])
   @result{} (("bar" 2))
 @end lisp
 
-This is usually more efficient and safer than the first method.
+This is usually more efficient and safer than the method used by the
+previous example.
 
-This function, by default, returns a list of matching rows, where each
+By default, this function returns a list of matching rows, where each
 row is a list of column values.  If @var{return-type} is @code{full},
 the names of the columns (as a list of strings) will be returned as
 the first element in the return value.
 
+@cindex statement object
 If @var{return-type} is @code{set}, this function will return a
-@dfn{statement object} instead.  This object can be interrogated by
+@dfn{statement object} instead.  This object can be examined by using
 the @code{sqlite-next}, @code{sqlite-columns} and @code{sqlite-more-p}
 functions.  If the result set is small, it's often more convenient to
 just return the data directly, but if the result set is large (or if
 you won't be using all the data from the set), using the @code{set}
-method will allocate a lot less data, and therefore be more efficient.
+method will allocate a lot less memory, and is therefore more
+memory-efficient.
 @end defun
 
 @defun sqlite-next statement
-This function returns the next row in the result set returned by
-@code{sqlite-select}.
+This function returns the next row in the result set @var{statement},
+typically an object returned by @code{sqlite-select}.
 
 @lisp
 (sqlite-next stmt)
@@ -5237,8 +5244,8 @@ This function returns the next row in the result set returned by
 @end defun
 
 @defun sqlite-columns statement
-This function returns the column names of the result set returned by
-@code{sqlite-select}.
+This function returns the column names of the result set
+@var{statement}, typically an object returned by @code{sqlite-select}.
 
 @lisp
 (sqlite-columns stmt)
@@ -5247,38 +5254,42 @@ This function returns the column names of the result set returned by
 @end defun
 
 @defun sqlite-more-p statement
-This predicate says whether there is more data to be fetched in the
-result set returned by @code{sqlite-select}.
+This predicate says whether there is more data to be fetched from the
+result set @var{statement}, typically an object returned by
+@code{sqlite-select}.
 @end defun
 
 @defun sqlite-finalize statement
 If @var{statement} is not going to be used any more, calling this
-function will free the resources bound by @var{statement}.  This is
-usually not necessary---when the statement object is
-garbage-collected, this will happen automatically.
+function will free the resources used by @var{statement}.  This is
+usually not necessary---when the @var{statement} object is
+garbage-collected, Emacs will automatically free its resources.
 @end defun
 
 @defun sqlite-transaction db
 Start a transaction in @var{db}.  When in a transaction, other readers
 of the database won't access the results until the transaction has
-been committed.
+been committed by @code{sqlite-commit}.
 @end defun
 
 @defun sqlite-commit db
-End a transaction and write the data out to file.
+End a transaction in @var{db} and write the data out to its file.
 @end defun
 
 @defun sqlite-rollback db
-End a transaction and discard any changes that have been made.
+End a transaction in @var{db} and discard any changes that have been
+made by the transaction.
 @end defun
 
-@defmac with-sqlite-transaction db &body body
-Like @code{progn}, but executes @var{body} with a transaction held,
-and do a commit at the end.
+@defmac with-sqlite-transaction db body@dots{}
+Like @code{progn} (@pxref{Sequencing}), but executes @var{body} with a
+transaction held, and commits the transaction at the end.
 @end defmac
 
 @defun sqlite-load-extension db module
-Load an extension into @var{db}.  Extensions are usually @file{.so} files.
+Load the named extension @var{module} into the database @var{db}.
+Extensions are usually shared-library files; on GNU and Unix systems,
+they have the @file{.so} file-name extension.
 @end defun
 
 @node Parsing HTML/XML

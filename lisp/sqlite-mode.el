@@ -130,7 +130,7 @@
      (split-string (replace-regexp-in-string "^.*(\\|)$" "" sql) ","))))
 
 (defun sqlite-mode-list-data ()
-  "List the data from the table under poing."
+  "List the data from the table under point."
   (interactive nil sqlite-mode)
   (let ((row (and (eq (get-text-property (point) 'sqlite--type) 'table)
                   (get-text-property (point) 'sqlite--row))))

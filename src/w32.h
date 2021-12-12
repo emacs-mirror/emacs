@@ -135,6 +135,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_SOCKET             0x0200
 #define FILE_NDELAY             0x0400
 #define FILE_SERIAL             0x0800
+#define FILE_DONT_CLOSE         0x1000
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
