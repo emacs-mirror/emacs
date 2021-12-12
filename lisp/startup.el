@@ -1570,17 +1570,22 @@ If this is nil, no message will be displayed."
   `((:face (variable-pitch font-lock-comment-face)
      "Welcome to "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button)
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
             `("GNU/Linux"
-              ,(lambda (_button) (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+              ,(lambda (_button)
+                 (let ((browse-url-browser-function 'eww-browse-url))
+                   (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
           `("GNU" ,(lambda (_button)
-		     (browse-url "https://www.gnu.org/gnu/thegnuproject.html"))
+		     (let ((browse-url-browser-function 'eww-browse-url))
+                       (browse-url "https://www.gnu.org/gnu/thegnuproject.html")))
 	    "Browse https://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
@@ -1613,7 +1618,8 @@ If this is nil, no message will be displayed."
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1637,7 +1643,8 @@ Each element in the list should be a list of strings or pairs
      "This is "
      :link ("GNU Emacs"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
      ", a text editor and more.\nIt's a component of the "
      :link
@@ -1645,9 +1652,12 @@ Each element in the list should be a list of strings or pairs
        (if (eq system-type 'gnu/linux)
 	   `("GNU/Linux"
 	     ,(lambda (_button)
-                (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+                (let ((browse-url-browser-function 'eww-browse-url))
+                  (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
-	 `("GNU" ,(lambda (_button) (describe-gnu-project))
+	 `("GNU" ,(lambda (_button)
+                    (let ((browse-url-browser-function 'eww-browse-url))
+                      (describe-gnu-project)))
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (variable-pitch font-lock-builtin-face)
@@ -1671,7 +1681,9 @@ Each element in the list should be a list of strings or pairs
 	    ,(lambda (_button) (info "(emacs)Contributing")))
      "\tHow to report bugs and contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" ,(lambda (_button) (describe-gnu-project)))
+     :link ("GNU and Freedom" ,(lambda (_button)
+                                 (let ((browse-url-browser-function 'eww-browse-url))
+                                   (describe-gnu-project))))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
@@ -1709,7 +1721,8 @@ Each element in the list should be a list of strings or pairs
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org\n"
      :link ("Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1831,7 +1844,9 @@ a face or button specification."
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
 		     'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
-		     'action (lambda (_button) (browse-url "https://www.gnu.org/"))
+		     'action (lambda (_button)
+                               (let ((browse-url-browser-function 'eww-browse-url))
+                                 (browse-url "https://www.gnu.org/")))
 		     'follow-link t)
 	(insert "\n\n")))))
 
@@ -1952,7 +1967,6 @@ splash screen in another window."
 	(insert "\n")
 	(fancy-startup-tail concise))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22
 	    buffer-read-only t)
       (set-buffer-modified-p nil)
@@ -1990,7 +2004,6 @@ splash screen in another window."
 	(goto-char (point-min))
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22)
       (setq buffer-read-only t)
       ;; Place point somewhere it doesn't cover a character.
@@ -2276,7 +2289,9 @@ Type \\[describe-distribution] for information on "))
   (insert "\tHow to report bugs and contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (_button) (describe-gnu-project))
+		 'action (lambda (_button)
+                           (let ((browse-url-browser-function 'eww-browse-url))
+                             (describe-gnu-project)))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
