@@ -52,6 +52,8 @@
 (defun sqlite-mode-open-file (file)
   "Browse the contents of an sqlite file."
   (interactive "fSQLite file name: ")
+  (unless (sqlite-available-p)
+    (error "This Emacs doesn't have SQLite support, so it can't view SQLite files"))
   (pop-to-buffer (get-buffer-create
                   (format "*SQLite %s*" (file-name-nondirectory file))))
   (sqlite-mode)
