@@ -713,9 +713,8 @@ for all those different tags in the method-cache.")
                   (list (cl--generic-name generic)))
         f))))
 
-(defun cl--generic-no-next-method-function (generic method)
-  (lambda (&rest args)
-    (apply #'cl-no-next-method generic method args)))
+(fcr-defstruct cl--generic-nnm
+  "Special type for `call-next-method's that just call `no-next-method'.")
 
 (defun cl-generic-call-method (generic method &optional fun)
   "Return a function that calls METHOD.
@@ -723,9 +722,7 @@ FUN is the function that should be called when METHOD calls
 `call-next-method'."
   (if (not (cl--generic-method-uses-cnm method))
       (cl--generic-method-function method)
-    (let ((met-fun (cl--generic-method-function method))
-          (next (or fun (cl--generic-no-next-method-function
-                         generic method))))
+    (let ((met-fun (cl--generic-method-function method)))
       (lambda (&rest args)
         (apply met-fun
                ;; FIXME: This sucks: passing just `next' would
@@ -733,8 +730,12 @@ FUN is the function that should be called when METHOD calls
                ;; quasi-η, but we need this to implement the
                ;; "if call-next-method is called with no
                ;; arguments, then use the previous arguments".
-               (lambda (&rest cnm-args)
-                 (apply next (or cnm-args args)))
+               (if fun
+                   (lambda (&rest cnm-args)
+                     (apply fun (or cnm-args args)))
+                 (fcr-make cl--generic-nnm () (&rest cnm-args)
+                   (apply #'cl-no-next-method generic method
+                          (or cnm-args args))))
                args)))))
 
 ;; Standard CLOS name.
@@ -892,36 +893,9 @@ those methods.")
   "Standard support for :after, :before, :around, and `:extra NAME' qualifiers."
   (cl--generic-standard-method-combination generic methods))
 
-(defconst cl--generic-nnm-sample (cl--generic-no-next-method-function t t))
-(defconst cl--generic-cnm-sample
-  (funcall (cl--generic-build-combined-method
-            nil (list (cl--generic-make-method () () t #'identity)))))
-
 (defun cl--generic-isnot-nnm-p (cnm)
   "Return non-nil if CNM is the function that calls `cl-no-next-method'."
-  ;; ¡Big Gross Ugly Hack!
-  ;; `next-method-p' just sucks, we should let it die.  But EIEIO did support
-  ;; it, and some packages use it, so we need to support it.
-  (catch 'found
-    (cl-assert (function-equal cnm cl--generic-cnm-sample))
-    (if (byte-code-function-p cnm)
-        (let ((cnm-constants (aref cnm 2))
-              (sample-constants (aref cl--generic-cnm-sample 2)))
-          (dotimes (i (length sample-constants))
-            (when (function-equal (aref sample-constants i)
-                                  cl--generic-nnm-sample)
-              (throw 'found
-                     (not (function-equal (aref cnm-constants i)
-                                          cl--generic-nnm-sample))))))
-      (cl-assert (eq 'closure (car-safe cl--generic-cnm-sample)))
-      (let ((cnm-env (cadr cnm)))
-        (dolist (vb (cadr cl--generic-cnm-sample))
-          (when (function-equal (cdr vb) cl--generic-nnm-sample)
-            (throw 'found
-                   (not (function-equal (cdar cnm-env)
-                                        cl--generic-nnm-sample))))
-          (setq cnm-env (cdr cnm-env)))))
-    (error "Haven't found no-next-method-sample in cnm-sample")))
+  (not (eq (fcr-type cnm) 'cl--generic-nnm)))
 
 ;;; Define some pre-defined generic functions, used internally.
 

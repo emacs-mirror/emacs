@@ -179,11 +179,11 @@
 
 (defun fcr--define (class pred)
   (let* ((name (cl--class-name class))
-         (predname (intern (format "fcr--%s-p" name))))
+         (predname (intern (format "fcr--%s-p" name)))
+         (type `(satisfies ,predname)))
     (setf (cl--find-class name) class)
     (defalias predname pred)
-    ;; Yuck!
-    (eval `(cl-deftype ,name () '(satisfies ,predname)) t)))
+    (put name 'cl-deftype-handler (lambda () type))))
 
 (defmacro fcr-make (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
@@ -226,8 +226,6 @@
             (if t nil ,@(mapcar #'car fields))
             ,@body))))))
 
-(defvar fcr--type-sym (make-symbol ":type"))
-
 (defun fcr--fix-type (fcr)
   (if (byte-code-function-p fcr)
       fcr
@@ -239,7 +237,7 @@
     ;; marker so we can distinguish this entry from actual variables.
     (cl-assert (eq 'closure (car-safe fcr)))
     (let ((typename (documentation fcr 'raw)))
-      (push (cons fcr--type-sym (intern typename))
+      (push (cons :type (intern typename))
             (cadr fcr))
       fcr)))
 
@@ -247,7 +245,7 @@
   (if (byte-code-function-p fcr)
       (apply #'make-closure fcr args)
     (cl-assert (eq 'closure (car-safe fcr)))
-    (cl-assert (eq fcr--type-sym (caar (cadr fcr))))
+    (cl-assert (eq :type (caar (cadr fcr))))
     (let ((env (cadr fcr)))
       `(closure
            (,(car env)
@@ -263,7 +261,7 @@
       (let ((csts (aref fcr 2)))
         (aref csts index))
     (cl-assert (eq 'closure (car-safe fcr)))
-    (cl-assert (eq fcr--type-sym (caar (cadr fcr))))
+    (cl-assert (eq :type (caar (cadr fcr))))
     (cdr (nth (1+ index) (cadr fcr)))))
 
 (defun fcr-type (fcr)
@@ -272,7 +270,7 @@
       (let ((type (and (> (length fcr) 4) (aref fcr 4))))
         (if (symbolp type) type))
     (and (eq 'closure (car-safe fcr))
-         (eq fcr--type-sym (caar (cadr fcr)))
+         (eq :type (caar (cadr fcr)))
          (cdar (cadr fcr)))))
 
 (provide 'fcr)
