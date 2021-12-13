@@ -1293,6 +1293,33 @@ Used internally for the (major-mode MODE) context specializers."
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
 
+;;; Dispatch on OClosure type
+
+(defun cl--generic-oclosure-tag (name &rest _)
+  `(oclosure-type ,name))
+
+(defun cl-generic--oclosure-specializers (tag &rest _)
+  (and (symbolp tag)
+       (let ((class (cl--find-class tag)))
+         (when (cl-typep class 'oclosure--class)
+           (cl--generic-class-parents class)))))
+
+(cl-generic-define-generalizer cl-generic--oclosure-generalizer
+  50 #'cl--generic-oclosure-tag
+  #'cl-generic--oclosure-specializers)
+
+(cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
+  "Support for dispatch on types defined by `oclosure-define'."
+  (or
+   (when (symbolp type)
+     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
+     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
+     ;; take place without requiring cl-lib.
+     (let ((class (cl--find-class type)))
+       (and (cl-typep class 'oclosure--class)
+            (list cl-generic--oclosure-generalizer))))
+   (cl-call-next-method)))
+
 ;;; Support for unloading.
 
 (cl-defmethod loadhist-unload-element ((x (head cl-defmethod)))

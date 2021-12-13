@@ -41,7 +41,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
 
 (cl-defstruct (oclosure--class
@@ -251,7 +251,10 @@
     (let ((env (cadr oclosure)))
       `(closure
            (,(car env)
-            ,@(cl-mapcar (lambda (b v) (cons (car b) v)) (cdr env) args)
+            ,@(named-let loop ((env (cdr env)) (args args))
+                (when args
+                  (cons (cons (caar env) (car args))
+                        (loop (cdr env) (cdr args)))))
             ,@(nthcdr (1+ (length args)) env))
            ,@(nthcdr 2 oclosure)))))
 
@@ -271,35 +274,6 @@
     (and (eq 'closure (car-safe oclosure))
          (eq oclosure--type-sym (caar (cadr oclosure)))
          (cdar (cadr oclosure)))))
-
-;;; Support for cl-generic
-
-(defun oclosure--struct-tag (name &rest _)
-  `(oclosure-type ,name))
-
-(defun oclosure--struct-specializers (tag &rest _)
-  (and (symbolp tag)
-       (let ((class (cl--find-class tag)))
-         (when (cl-typep class 'oclosure--class)
-           (cl--generic-class-parents class)))))
-
-(cl-generic-define-generalizer oclosure--struct-generalizer
-  50 #'oclosure--struct-tag
-  #'oclosure--struct-specializers)
-
-(cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
-  "Support for dispatch on types defined by `oclosure-define'."
-  (or
-   (when (symbolp type)
-     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
-     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
-     ;; take place without requiring cl-lib.
-     (let ((class (cl--find-class type)))
-       (and (cl-typep class 'oclosure--class)
-            (list oclosure--struct-generalizer))))
-   (cl-call-next-method)))
-
-
 
 (provide 'oclosure)
 ;;; oclosure.el ends here
