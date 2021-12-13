@@ -143,8 +143,7 @@ the CPS state machinery."
          (setf ,static-var ,dynamic-var)))))
 
 (defmacro cps--with-dynamic-binding (dynamic-var static-var &rest body)
-  "Evaluate BODY such that generated atomic evaluations run with
-DYNAMIC-VAR bound to STATIC-VAR."
+  "Run BODY's atomic evaluations run with DYNAMIC-VAR bound to STATIC-VAR."
   (declare (indent 2))
   `(cps--with-value-wrapper
        (cps--make-dynamic-binding-wrapper ,dynamic-var ,static-var)
@@ -645,12 +644,11 @@ modified copy."
                          (iter-close iterator)))))
          iterator))))
 
-(defun iter-yield (value)
+(defun iter-yield (_value)
   "When used inside a generator, yield control to caller.
 The caller of `iter-next' receives VALUE, and the next call to
 `iter-next' resumes execution with the form immediately following this
 `iter-yield' call."
-  (identity value)
   (error "`iter-yield' used outside a generator"))
 
 (defmacro iter-yield-from (value)
