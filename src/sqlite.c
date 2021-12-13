@@ -400,7 +400,9 @@ Value is the number of affected rows.  */)
 
  exit:
   if (errmsg != NULL)
-    xsignal1 (Qerror, build_string (errmsg));
+    xsignal1 (ret == SQLITE_LOCKED || ret == SQLITE_BUSY?
+	      Qsqlite_locked_error: Qerror,
+	      build_string (errmsg));
 
   return retval;
 }
@@ -698,8 +700,15 @@ syms_of_sqlite (void)
   DEFSYM (Qfull, "full");
 #endif
   defsubr (&Ssqlitep);
-  DEFSYM (Qsqlitep, "sqlitep");
   defsubr (&Ssqlite_available_p);
+
+  DEFSYM (Qsqlite_locked_error, "sqlite-locked-error");
+  Fput (Qsqlite_locked_error, Qerror_conditions,
+	Fpurecopy (list2 (Qsqlite_locked_error, Qerror)));
+  Fput (Qsqlite_locked_error, Qerror_message,
+	build_pure_c_string ("Database locked"));
+
+  DEFSYM (Qsqlitep, "sqlitep");
   DEFSYM (Qfalse, "false");
   DEFSYM (Qsqlite, "sqlite");
   DEFSYM (Qsqlite3, "sqlite3");
