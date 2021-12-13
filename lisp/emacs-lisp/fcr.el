@@ -41,7 +41,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
 
 (cl-defstruct (fcr--class
@@ -251,7 +251,10 @@
     (let ((env (cadr fcr)))
       `(closure
            (,(car env)
-            ,@(cl-mapcar (lambda (b v) (cons (car b) v)) (cdr env) args)
+            ,@(named-let loop ((env (cdr env)) (args args))
+                (when args
+                  (cons (cons (caar env) (car args))
+                        (loop (cdr env) (cdr args)))))
             ,@(nthcdr (1+ (length args)) env))
            ,@(nthcdr 2 fcr)))))
 
@@ -271,35 +274,6 @@
     (and (eq 'closure (car-safe fcr))
          (eq fcr--type-sym (caar (cadr fcr)))
          (cdar (cadr fcr)))))
-
-;;; Support for cl-generic
-
-(defun fcr--struct-tag (name &rest _)
-  `(fcr-type ,name))
-
-(defun fcr--struct-specializers (tag &rest _)
-  (and (symbolp tag)
-       (let ((class (cl--find-class tag)))
-         (when (cl-typep class 'fcr--class)
-           (cl--generic-class-parents class)))))
-
-(cl-generic-define-generalizer fcr--struct-generalizer
-  50 #'fcr--struct-tag
-  #'fcr--struct-specializers)
-
-(cl-defmethod cl-generic-generalizers :extra "fcr-struct" (type)
-  "Support for dispatch on types defined by `fcr-defstruct'."
-  (or
-   (when (symbolp type)
-     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
-     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
-     ;; take place without requiring cl-lib.
-     (let ((class (cl--find-class type)))
-       (and (cl-typep class 'fcr--class)
-            (list fcr--struct-generalizer))))
-   (cl-call-next-method)))
-
-
 
 (provide 'fcr)
 ;;; fcr.el ends here

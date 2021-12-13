@@ -1293,6 +1293,33 @@ Used internally for the (major-mode MODE) context specializers."
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
 
+;;; Dispatch on FCR type
+
+(defun cl--generic-fcr-tag (name &rest _)
+  `(fcr-type ,name))
+
+(defun cl-generic--fcr-specializers (tag &rest _)
+  (and (symbolp tag)
+       (let ((class (cl--find-class tag)))
+         (when (cl-typep class 'fcr--class)
+           (cl--generic-class-parents class)))))
+
+(cl-generic-define-generalizer cl-generic--fcr-generalizer
+  50 #'cl--generic-fcr-tag
+  #'cl-generic--fcr-specializers)
+
+(cl-defmethod cl-generic-generalizers :extra "fcr-struct" (type)
+  "Support for dispatch on types defined by `fcr-defstruct'."
+  (or
+   (when (symbolp type)
+     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
+     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
+     ;; take place without requiring cl-lib.
+     (let ((class (cl--find-class type)))
+       (and (cl-typep class 'fcr--class)
+            (list cl-generic--fcr-generalizer))))
+   (cl-call-next-method)))
+
 ;;; Support for unloading.
 
 (cl-defmethod loadhist-unload-element ((x (head cl-defmethod)))
