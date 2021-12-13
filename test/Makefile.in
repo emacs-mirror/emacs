@@ -353,6 +353,7 @@ mostlyclean:
 
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
+	find . '(' -name '*.xml' -a ! -path '*resources*' ')' $(FIND_DELETE)
 	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
 	  $(test_module_dir)/*.dll

@@ -63,6 +63,10 @@ They can be downloaded from the server, visiting the URL
 <https://emba.gnu.org/emacs/emacs/-/pipelines>, and selecting the job
 in question.
 
+Every pipeline generates a JUnit test report for the respective test
+jobs, which can be inspected on the pipeline web page.  This test
+report counts completed ERT tests, aborted tests are not counted.
+
 * Emba configuration
 
 The emba configuration files are hosted on

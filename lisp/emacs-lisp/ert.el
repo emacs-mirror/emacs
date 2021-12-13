@@ -65,6 +65,8 @@
 (require 'pp)
 (require 'map)
 
+(autoload 'xml-escape-string "xml.el")
+
 ;;; UI customization options.
 
 (defgroup ert ()
@@ -246,7 +248,6 @@ in batch mode, an error is signalled.
           find-function-space-re
           "%s\\(\\s-\\|$\\)")
   "The regexp the `find-function' mechanisms use for finding test definitions.")
-
 
 (define-error 'ert-test-failed "Test failed")
 (define-error 'ert-test-skipped "Test skipped")
@@ -675,7 +676,6 @@ and is displayed in front of the value of MESSAGE-FORM."
 	   (indent 1))
   `(let ((ert--infos (cons (cons ,prefix-form ,message-form) ert--infos)))
      ,@body))
-
 
 
 ;;; Facilities for running a single test.
@@ -1437,7 +1437,9 @@ Returns the stats object."
                                   (if (getenv "EMACS_TEST_VERBOSE")
                                       (ert-reason-for-test-result result)
                                     ""))))
-              (message "%s" "")))))
+              (message "%s" ""))
+            (when (getenv "EMACS_TEST_JUNIT_REPORT")
+              (ert-write-junit-test-report stats)))))
        (test-started)
        (test-ended
         (cl-destructuring-bind (stats test result) event-args
@@ -1525,6 +1527,128 @@ the tests)."
           (backtrace))
       (kill-emacs 2))))
 
+(defun ert-write-junit-test-report (stats)
+  "Write a JUnit test report, generated from STATS."
+  ;; https://www.ibm.com/docs/de/developer-for-zos/14.1.0?topic=formats-junit-xml-format
+  ;; https://llg.cubic.org/docs/junit/
+  (unless (zerop (length (ert--stats-tests stats)))
+    (when-let ((test-file
+                (symbol-file
+                 (ert-test-name (aref (ert--stats-tests stats) 0)) 'ert--test)))
+      (with-temp-file (file-name-with-extension test-file "xml")
+        (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+        (insert (format "<testsuites name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+                        (file-name-nondirectory test-file)
+                        (ert-stats-total stats)
+                        (ert-stats-completed-unexpected stats)
+                        (ert-stats-skipped stats)
+                        (float-time
+                         (time-subtract
+                          (ert--stats-end-time stats)
+                          (ert--stats-start-time stats)))))
+        (insert (format "  <testsuite id=\"0\" name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\" timestamp=\"%s\">\n"
+                        (file-name-nondirectory test-file)
+                        (ert-stats-total stats)
+                        (ert-stats-completed-unexpected stats)
+                        (ert-stats-skipped stats)
+                        (float-time
+                         (time-subtract
+                          (ert--stats-end-time stats)
+                          (ert--stats-start-time stats)))
+                        (ert--format-time-iso8601 (ert--stats-end-time stats))))
+        (insert "    <properties>\n"
+                (format "      <property name=\"selector\" value=\"%s\"/>\n"
+                        (ert--stats-selector stats))
+                "    </properties>\n")
+        (cl-loop for test across (ert--stats-tests stats)
+                 for result = (ert-test-most-recent-result test) do
+                 (insert (format "    <testcase name=\"%s\" status=\"%s\" time=\"%s\""
+                                 (xml-escape-string
+                                  (symbol-name (ert-test-name test)))
+                                 (ert-string-for-test-result
+                                  result
+                                  (ert-test-result-expected-p test result))
+                                 (ert-test-result-duration result)))
+                 (if (and (ert-test-result-expected-p test result)
+                          (not (ert-test-skipped-p result))
+                          (zerop (length (ert-test-result-messages result))))
+                     (insert "/>\n")
+                   (insert ">\n")
+                   (if (ert-test-skipped-p result)
+                       (insert (format "      <skipped message=\"%s\" type=\"%s\">\n"
+                                       (xml-escape-string
+                                        (string-trim
+                                         (ert-reason-for-test-result result)))
+                                       (ert-string-for-test-result
+                                        result
+                                        (ert-test-result-expected-p
+                                         test result)))
+                               (xml-escape-string
+                                (string-trim
+                                 (ert-reason-for-test-result result)))
+                               "\n"
+                               "      </skipped>\n")
+                     (unless
+                         (ert-test-result-type-p
+                          result (ert-test-expected-result-type test))
+                       (insert (format "      <failure message=\"%s\" type=\"%s\">\n"
+                                       (xml-escape-string
+                                        (string-trim
+                                         (ert-reason-for-test-result result)))
+                                       (ert-string-for-test-result
+                                        result
+                                        (ert-test-result-expected-p
+                                         test result)))
+                               (xml-escape-string
+                                (string-trim
+                                 (ert-reason-for-test-result result)))
+                               "\n"
+                               "      </failure>\n")))
+                   (unless (zerop (length (ert-test-result-messages result)))
+                     (insert "      <system-out>\n"
+                             (xml-escape-string
+                              (ert-test-result-messages result))
+                             "      </system-out>\n"))
+                   (insert "    </testcase>\n")))
+        (insert "  </testsuite>\n")
+        (insert "</testsuites>\n")))))
+
+(defun ert-write-junit-test-summary-report (&rest logfiles)
+  "Write a JUnit summary test report, generated from LOGFILES."
+  (let ((report (file-name-with-extension
+                 (getenv "EMACS_TEST_JUNIT_REPORT") "xml"))
+        (tests 0) (failures 0) (skipped 0) (time 0) (id 0))
+    (with-temp-file report
+      (dolist (logfile logfiles)
+        (let ((test-file (file-name-with-extension logfile "xml")))
+          (when (file-readable-p test-file)
+            (insert-file-contents-literally test-file)
+            (when (looking-at-p
+                   (regexp-quote "<?xml version=\"1.0\" encoding=\"utf-8\"?>"))
+              (delete-region (point) (line-beginning-position 2)))
+            (when (looking-at
+                   "<testsuites name=\".+\" tests=\"\\(.+\\)\" failures=\"\\(.+\\)\" skipped=\"\\(.+\\)\" time=\"\\(.+\\)\">")
+              (cl-incf tests (string-to-number (match-string 1)))
+              (cl-incf failures  (string-to-number (match-string 2)))
+              (cl-incf skipped (string-to-number (match-string 3)))
+              (cl-incf time (string-to-number (match-string 4)))
+              (delete-region (point) (line-beginning-position 2)))
+            (when (looking-at "  <testsuite id=\"\\(0\\)\"")
+              (replace-match (number-to-string id) nil nil nil 1)
+              (cl-incf id 1))
+            (goto-char (point-max))
+            (beginning-of-line 0)
+            (when (looking-at-p "</testsuites>")
+              (delete-region (point) (line-beginning-position 2)))
+            (narrow-to-region (point-max) (point-max)))))
+
+      (insert "</testsuites>\n")
+      (widen)
+      (goto-char (point-min))
+      (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+      (insert (format "<testsuites name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+                      (file-name-nondirectory report)
+                      tests failures skipped time)))))
 
 (defun ert-summarize-tests-batch-and-exit (&optional high)
   "Summarize the results of testing.
@@ -1540,6 +1664,8 @@ If HIGH is a natural number, the HIGH long lasting tests are summarized."
   ;; behavior.
   (setq attempt-stack-overflow-recovery nil
         attempt-orderly-shutdown-on-fatal-signal nil)
+  (when (getenv "EMACS_TEST_JUNIT_REPORT")
+    (apply #'ert-write-junit-test-summary-report command-line-args-left))
   (let ((nlogs (length command-line-args-left))
         (ntests 0) (nrun 0) (nexpected 0) (nunexpected 0) (nskipped 0)
         nnotrun logfile notests badtests unexpected skipped tests)
@@ -1855,7 +1981,6 @@ Also sets `ert--results-progress-bar-button-begin'."
      ;; should test it again.)
      "\n")))
 
-
 (defvar ert-test-run-redisplay-interval-secs .1
   "How many seconds ERT should wait between redisplays while running tests.
 
@@ -2036,7 +2161,6 @@ STATS is the stats object; LISTENER is the results listener."
           (ert--results-update-ewoc-hf ert--results-ewoc ert--results-stats)
           (goto-char (1- (point-max)))
           buffer)))))
-
 
 (defvar ert--selector-history nil
   "List of recent test selectors read from terminal.")
