@@ -247,7 +247,7 @@ If FILE is nil, an in-memory database will be opened instead.  */)
   if (!NILP (file))
     {
       CHECK_STRING (file);
-      file = encode_string (Fexpand_file_name (file, Qnil));
+      file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
       name = xstrdup (SSDATA (file));
     }
   else
@@ -596,7 +596,7 @@ system-dependent file-name extension.  */)
 {
   check_sqlite (db, false);
   CHECK_STRING (module);
-  Lisp_Object module_encoded = encode_string (Fexpand_file_name (module, Qnil));
+  Lisp_Object module_encoded = ENCODE_FILE (Fexpand_file_name (module, Qnil));
 
   sqlite3 *sdb = XSQLITE (db)->db;
   int result = sqlite3_load_extension (sdb, SSDATA (module_encoded),
