@@ -811,6 +811,10 @@ If kbd macro currently being defined end it before activating it."
 ;; letters and digits, provided that we inhibit the keymap while
 ;; executing the macro later on (but that's controversial...)
 
+(oclosure-define kmacro-function
+  "Function form of keyboard macros."
+  mac)
+
 ;;;###autoload
 (defun kmacro-lambda-form (mac &optional counter format)
   "Create lambda form for macro bound to symbol or key."
@@ -819,34 +823,40 @@ If kbd macro currently being defined end it before activating it."
   ;; or only `mac' is provided, as a list (MAC COUNTER FORMAT).
   ;; The first is used from `insert-kbd-macro' and `edmacro-finish-edit',
   ;; while the second is used from within this file.
-  (let ((mac (if counter (list mac counter format) mac)))
-    ;; FIXME: This should be a "funcallable struct"!
-    (lambda (&optional arg)
-      "Keyboard macro."
-      ;; We put an "unused prompt" as a special marker so
-      ;; `kmacro-extract-lambda' can see it's "one of us".
-      (interactive "pkmacro")
-      (if (eq arg 'kmacro--extract-lambda)
-          (cons 'kmacro--extract-lambda mac)
-        (kmacro-exec-ring-item mac arg)))))
+  (oclosure-make kmacro-function ((mac (if counter (list mac counter format) mac)))
+            (&optional arg)
+    (interactive "p")
+    (kmacro-exec-ring-item mac arg)))
 
 (defun kmacro-extract-lambda (mac)
   "Extract kmacro from a kmacro lambda form."
-  (let ((mac (cond
-              ((eq (car-safe mac) 'lambda)
-               (let ((e (assoc 'kmacro-exec-ring-item mac)))
-                 (car-safe (cdr-safe (car-safe (cdr-safe e))))))
-              ((and (functionp mac)
-                    (equal (interactive-form mac) '(interactive "pkmacro")))
-               (let ((r (funcall mac 'kmacro--extract-lambda)))
-                 (and (eq (car-safe r) 'kmacro--extract-lambda) (cdr r)))))))
-    (and (consp mac)
-         (= (length mac) 3)
-         (arrayp (car mac))
-         mac)))
+  (when (kmacro-p mac)
+    (let ((mac (kmacro-function--mac mac)))
+      (and (consp mac)
+           (= (length mac) 3)
+           (arrayp (car mac))
+           mac))))
 
-(defalias 'kmacro-p #'kmacro-extract-lambda
-  "Return non-nil if MAC is a kmacro keyboard macro.")
+(defun kmacro-p (x)
+  "Return non-nil if MAC is a kmacro keyboard macro."
+  (cl-typep x 'kmacro-function))
+
+(cl-defmethod cl-print-object ((object kmacro-function) stream)
+  (princ "#<kmacro " stream)
+  (require 'macros)
+  (declare-function macros--insert-vector-macro "macros" (definition))
+  (pcase-let ((`(,vecdef ,counter ,format)
+               (kmacro-extract-lambda object)))
+    (princ
+     (with-temp-buffer
+       (macros--insert-vector-macro vecdef)
+       (buffer-string))
+     stream)
+    (princ " " stream)
+    (prin1 counter stream)
+    (princ " " stream)
+    (prin1 format stream)
+    (princ ">" stream)))
 
 (defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.

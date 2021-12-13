@@ -825,6 +825,11 @@ This is a regression for item 7 in Bug#24991."
                                 :macro-result "x")
     (kmacro-tests-simulate-command '(beginning-of-line))))
 
+(ert-deftest kmacro-tests--cl-print ()
+  (should (equal (cl-prin1-to-string
+                  (kmacro-lambda-form [?a ?b backspace backspace] 0 "%d"))
+                 "#<kmacro [?a ?b backspace backspace] 0 \"%d\">")))
+
 (cl-defun kmacro-tests-run-step-edit
     (macro &key events sequences result macro-result)
   "Set up and run a test of `kmacro-step-edit-macro'.

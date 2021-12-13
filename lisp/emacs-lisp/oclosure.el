@@ -143,6 +143,7 @@
            parent-names))
          (slotdescs (append
                      parent-slots
+                     ;; FIXME: Catch duplicate slot names.
                      (mapcar (lambda (field)
                                (cl--make-slot-descriptor field nil nil
                                                          '((:read-only . t))))
@@ -190,6 +191,7 @@
   ;; FIXME: Provide the fields in the order specified by `type'.
   (let* ((class (cl--find-class type))
          (slots (oclosure--class-slots class))
+         (prebody '())
          (slotbinds (nreverse
                      (mapcar (lambda (slot)
                                (list (cl--slot-descriptor-name slot)))
@@ -208,6 +210,11 @@
                              (setcdr bind (list temp))
                              (cons temp (cdr field)))))))
                      fields)))
+    ;; FIXME: Since we use the docstring internally to store the
+    ;; type we can't handle actual docstrings.  We could fix this by adding
+    ;; a docstring slot to OClosures.
+    (while (memq (car-safe (car-safe body)) '(interactive declare))
+      (push (pop body) prebody))
     ;; FIXME: Optimize temps away when they're provided in the right order!
     ;; FIXME: Slots not specified in `fields' tend to emit "Variable FOO left
     ;; uninitialized"!
@@ -221,6 +228,7 @@
          (oclosure--fix-type
           (lambda ,args
             (:documentation ',type)
+            ,@prebody
             ;; Add dummy code which accesses the field's vars to make sure
             ;; they're captured in the closure.
             (if t nil ,@(mapcar #'car fields))
