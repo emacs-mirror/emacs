@@ -449,12 +449,15 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; dispatching code.
   )
 
-(cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
+(cl-defgeneric xref-elisp-generic-co-located-default (_arg1 _arg2)
   "Doc string generic co-located-default."
   "co-located default")
 
 (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
   "Doc string generic co-located-default xref-elisp-root-type."
+  ;; The test needs the above line to contain "this" and "arg2"
+  ;; without underscores, so we silence the warning with `ignore'.
+  (ignore this arg2)
   "non-default for co-located-default")
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)

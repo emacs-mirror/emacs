@@ -260,7 +260,7 @@ or nil, use a compact 80-column format."
 			  (push key keys)
 			  (let ((b (key-binding key)))
 			    (and b (commandp b) (not (arrayp b))
-				 (not (kmacro-extract-lambda b))
+				 (not (kmacro-p b))
 				 (or (not (fboundp b))
 				     (not (or (arrayp (symbol-function b))
 					      (get b 'kmacro))))
