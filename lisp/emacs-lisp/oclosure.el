@@ -179,11 +179,11 @@
 
 (defun oclosure--define (class pred)
   (let* ((name (cl--class-name class))
-         (predname (intern (format "oclosure--%s-p" name))))
+         (predname (intern (format "oclosure--%s-p" name)))
+         (type `(satisfies ,predname)))
     (setf (cl--find-class name) class)
     (defalias predname pred)
-    ;; Yuck!
-    (eval `(cl-deftype ,name () '(satisfies ,predname)) t)))
+    (put name 'cl-deftype-handler (lambda () type))))
 
 (defmacro oclosure-make (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
@@ -226,8 +226,6 @@
             (if t nil ,@(mapcar #'car fields))
             ,@body))))))
 
-(defvar oclosure--type-sym (make-symbol ":type"))
-
 (defun oclosure--fix-type (oclosure)
   (if (byte-code-function-p oclosure)
       oclosure
@@ -239,7 +237,7 @@
     ;; marker so we can distinguish this entry from actual variables.
     (cl-assert (eq 'closure (car-safe oclosure)))
     (let ((typename (documentation oclosure 'raw)))
-      (push (cons oclosure--type-sym (intern typename))
+      (push (cons :type (intern typename))
             (cadr oclosure))
       oclosure)))
 
@@ -247,7 +245,7 @@
   (if (byte-code-function-p oclosure)
       (apply #'make-closure oclosure args)
     (cl-assert (eq 'closure (car-safe oclosure)))
-    (cl-assert (eq oclosure--type-sym (caar (cadr oclosure))))
+    (cl-assert (eq :type (caar (cadr oclosure))))
     (let ((env (cadr oclosure)))
       `(closure
            (,(car env)
@@ -263,7 +261,7 @@
       (let ((csts (aref oclosure 2)))
         (aref csts index))
     (cl-assert (eq 'closure (car-safe oclosure)))
-    (cl-assert (eq oclosure--type-sym (caar (cadr oclosure))))
+    (cl-assert (eq :type (caar (cadr oclosure))))
     (cdr (nth (1+ index) (cadr oclosure)))))
 
 (defun oclosure-type (oclosure)
@@ -272,7 +270,7 @@
       (let ((type (and (> (length oclosure) 4) (aref oclosure 4))))
         (if (symbolp type) type))
     (and (eq 'closure (car-safe oclosure))
-         (eq oclosure--type-sym (caar (cadr oclosure)))
+         (eq :type (caar (cadr oclosure)))
          (cdar (cadr oclosure)))))
 
 (provide 'oclosure)
