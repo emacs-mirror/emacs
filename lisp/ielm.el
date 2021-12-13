@@ -148,7 +148,9 @@ such as `edebug-defun' to work with such inputs."
 This variable is buffer-local.")
 
 (defvar ielm-header
-  "*** Welcome to IELM ***  Type (describe-mode) for help.\n"
+  (substitute-command-keys
+   "*** Welcome to IELM ***  Type (describe-mode) or press \
+\\[describe-mode] for help.\n")
   "Message to display when IELM is started.")
 
 (defvaralias 'inferior-emacs-lisp-mode-map 'ielm-map)
