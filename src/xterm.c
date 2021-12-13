@@ -5144,19 +5144,23 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
         int focus_state
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
-	if (((((xi_event->evtype == XI_Enter
-		|| xi_event->evtype == XI_Leave)
-	       && (((XIEnterEvent *) xi_event)->detail
-		   != XINotifyInferior)
-	       && !(focus_state & FOCUS_EXPLICIT))
-	      || xi_event->evtype == XI_FocusIn
-	      || xi_event->evtype == XI_FocusOut)))
-	  x_focus_changed ((xi_event->evtype == XI_Enter
-			    || xi_event->evtype == XI_FocusIn
+#ifdef USE_GTK
+	if (xi_event->evtype == XI_FocusIn
+	    || xi_event->evtype == XI_FocusOut)
+	  x_focus_changed ((xi_event->evtype == XI_FocusIn
 			    ? FocusIn : FocusOut),
-			   (xi_event->evtype == XI_Enter
-			    || xi_event->evtype == XI_Leave
-			    ? FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+			   FOCUS_EXPLICIT,
+			   dpyinfo, frame, bufp);
+	else
+#endif
+	  if ((xi_event->evtype == XI_Enter
+	       || xi_event->evtype == XI_Leave)
+	      && (((XIEnterEvent *) xi_event)->detail
+		  != XINotifyInferior)
+	      && !(focus_state & FOCUS_EXPLICIT))
+	  x_focus_changed ((xi_event->evtype == XI_Enter
+			    ? FocusIn : FocusOut),
+			   FOCUS_IMPLICIT,
 			   dpyinfo, frame, bufp);
 	break;
       }

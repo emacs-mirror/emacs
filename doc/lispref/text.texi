@@ -5286,6 +5286,21 @@ Like @code{progn} (@pxref{Sequencing}), but executes @var{body} with a
 transaction held, and commits the transaction at the end.
 @end defmac
 
+@defun sqlite-pragma db pragma
+Execute @var{pragma} in @var{db}.  A @dfn{pragma} is usually a command
+that affects the database overall, instead of any particular table.
+For instance, to make SQLite automatically garbage collect data that's
+no longer needed, you can say:
+
+@lisp
+(sqlite-pragma db "auto_vacuum = FULL")
+@end lisp
+
+This function returns non-@code{nil} on success and @code{nil} if the
+pragma failed.  Many pragmas can only be issued when the database is
+brand new and empty.
+@end defun
+
 @defun sqlite-load-extension db module
 Load the named extension @var{module} into the database @var{db}.
 Extensions are usually shared-library files; on GNU and Unix systems,

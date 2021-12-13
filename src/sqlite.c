@@ -400,7 +400,9 @@ Value is the number of affected rows.  */)
 
  exit:
   if (errmsg != NULL)
-    xsignal1 (Qerror, build_string (errmsg));
+    xsignal1 (ret == SQLITE_LOCKED || ret == SQLITE_BUSY?
+	      Qsqlite_locked_error: Qerror,
+	      build_string (errmsg));
 
   return retval;
 }
@@ -572,6 +574,17 @@ DEFUN ("sqlite-rollback", Fsqlite_rollback, Ssqlite_rollback, 1, 1, 0,
   return sqlite_exec (XSQLITE (db)->db, "rollback");
 }
 
+DEFUN ("sqlite-pragma", Fsqlite_pragma, Ssqlite_pragma, 2, 2, 0,
+       doc: /* Execute PRAGMA in DB.  */)
+  (Lisp_Object db, Lisp_Object pragma)
+{
+  check_sqlite (db, false);
+  CHECK_STRING (pragma);
+
+  return sqlite_exec (XSQLITE (db)->db,
+		      SSDATA (concat2 (build_string ("PRAGMA "), pragma)));
+}
+
 #ifdef HAVE_SQLITE3_LOAD_EXTENSION
 DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        Ssqlite_load_extension, 2, 2, 0,
@@ -687,6 +700,7 @@ syms_of_sqlite (void)
   defsubr (&Ssqlite_transaction);
   defsubr (&Ssqlite_commit);
   defsubr (&Ssqlite_rollback);
+  defsubr (&Ssqlite_pragma);
 #ifdef HAVE_SQLITE3_LOAD_EXTENSION
   defsubr (&Ssqlite_load_extension);
 #endif
@@ -698,8 +712,15 @@ syms_of_sqlite (void)
   DEFSYM (Qfull, "full");
 #endif
   defsubr (&Ssqlitep);
-  DEFSYM (Qsqlitep, "sqlitep");
   defsubr (&Ssqlite_available_p);
+
+  DEFSYM (Qsqlite_locked_error, "sqlite-locked-error");
+  Fput (Qsqlite_locked_error, Qerror_conditions,
+	Fpurecopy (list2 (Qsqlite_locked_error, Qerror)));
+  Fput (Qsqlite_locked_error, Qerror_message,
+	build_pure_c_string ("Database locked"));
+
+  DEFSYM (Qsqlitep, "sqlitep");
   DEFSYM (Qfalse, "false");
   DEFSYM (Qsqlite, "sqlite");
   DEFSYM (Qsqlite3, "sqlite3");
