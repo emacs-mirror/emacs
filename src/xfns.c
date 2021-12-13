@@ -2936,8 +2936,10 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_Motion);
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
+#if 0
   XISetMask (m, XI_FocusIn);
   XISetMask (m, XI_FocusOut);
+#endif
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
