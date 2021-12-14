@@ -1423,7 +1423,7 @@ commands given here will actually operate on the *Calculator* stack."
     (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
 
-(defcustom calc-make-windows-dedicated t
+(defcustom calc-make-windows-dedicated nil
   "If non-nil, windows displaying Calc buffers will be marked dedicated.
 See `window-dedicated-p' for what that means."
   :version "28.1"
