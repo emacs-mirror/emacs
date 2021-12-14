@@ -148,7 +148,7 @@
                                (cl--make-slot-descriptor field nil nil
                                                          '((:read-only . t))))
                              slots)))
-         (allparents (apply #'append (mapcar #'cl--generic-class-parents
+         (allparents (apply #'append (mapcar #'cl--class-allparents
                                              parents)))
          (class (fcr--class-make name docstring slotdescs parents
                                  (delete-dups
