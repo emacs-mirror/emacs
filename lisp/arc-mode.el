@@ -431,12 +431,8 @@ be added."
     ;; Let mouse-1 follow the link.
     (define-key map [follow-link] 'mouse-face)
 
-    (if (fboundp 'command-remapping)
-        (progn
-          (define-key map [remap advertised-undo] 'archive-undo)
-          (define-key map [remap undo] 'archive-undo))
-      (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
-      (substitute-key-definition 'undo 'archive-undo map global-map))
+    (define-key map [remap advertised-undo] #'archive-undo)
+    (define-key map [remap undo] #'archive-undo)
 
     (define-key map [mouse-2] 'archive-extract)
 
