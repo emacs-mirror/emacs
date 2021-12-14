@@ -1,6 +1,6 @@
 ;;; which-key.el --- Display available keybindings in popup  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021  Free Software Foundation, Inc.
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
@@ -742,11 +742,10 @@ problems at github.")
 (defvar which-key--god-mode-key-string nil
   "Holds key string to use for god-mode support.")
 
-(defadvice god-mode-lookup-command
-    (around which-key--god-mode-lookup-command-advice disable)
-  (setq which-key--god-mode-key-string (ad-get-arg 0))
+(defun which-key--god-mode-lookup-command-advice (orig-fun arg1 &rest args)
+  (setq which-key--god-mode-key-string arg1)
   (unwind-protect
-      ad-do-it
+      (apply orig-fun arg1 args)
     (when (bound-and-true-p which-key-mode)
       (which-key--hide-popup))))
 
@@ -758,13 +757,10 @@ disable support."
   (interactive "P")
   (setq which-key--god-mode-support-enabled (null disable))
   (if disable
-      (ad-disable-advice
-       'god-mode-lookup-command
-       'around 'which-key--god-mode-lookup-command-advice)
-    (ad-enable-advice
-     'god-mode-lookup-command
-     'around 'which-key--god-mode-lookup-command-advice))
-  (ad-activate 'god-mode-lookup-command))
+      (advice-remove 'god-mode-lookup-command
+                     #'which-key--god-mode-lookup-command-advice)
+    (advice-add 'god-mode-lookup-command :around
+                #'which-key--god-mode-lookup-command-advice)))
 
 ;;; Mode
 
@@ -796,7 +792,7 @@ disable support."
           (add-hook 'pre-command-hook #'which-key--lighter-restore))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'window-size-change-functions
-                  'which-key--hide-popup-on-frame-size-change)
+                  #'which-key--hide-popup-on-frame-size-change)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (when which-key--prefix-help-cmd-backup
@@ -805,7 +801,7 @@ disable support."
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
     (remove-hook 'window-size-change-functions
-                 'which-key--hide-popup-on-frame-size-change)
+                 #'which-key--hide-popup-on-frame-size-change)
     (which-key--stop-timer)))
 
 (defun which-key--init-buffer ()
@@ -1561,8 +1557,9 @@ If KEY contains any \"special keys\" defined in
 `which-key-special-key-face'."
   (let ((key-w-face (which-key--propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
-                        (mapconcat 'identity which-key-special-keys
-                                   "\\|") "\\)"))
+                        (mapconcat #'identity which-key-special-keys
+                                   "\\|")
+                        "\\)"))
         case-fold-search)
     (save-match-data
       (if (and which-key-special-keys
@@ -2025,7 +2022,7 @@ max-lines max-width avl-lines avl-width (which-key--pages-height result))
 (eval-and-compile
   (if (fboundp 'universal-argument--description)
       (defalias 'which-key--universal-argument--description
-        'universal-argument--description)
+        #'universal-argument--description)
     (defun which-key--universal-argument--description ()
       ;; Backport of the definition of universal-argument--description in
       ;; emacs25 on 2015-12-04
@@ -2313,7 +2310,7 @@ PREFIX should be a string suitable for `kbd'."
            (which-key--create-buffer-and-show (apply #'vector key-lst)))
           (t (setq which-key--automatic-display nil)
              (which-key-show-top-level)))))
-(defalias 'which-key-undo 'which-key-undo-key)
+(defalias 'which-key-undo #'which-key-undo-key)
 
 (defun which-key-abort (&optional _)
   "Abort key sequence."
@@ -2474,7 +2471,7 @@ KEYMAP is selected interactively by mode in
          (intern
           (completing-read
            "Minor Mode: "
-           (mapcar 'car
+           (mapcar #'car
                    (cl-remove-if-not
                     (lambda (entry)
                       (and (symbol-value (car entry))
