@@ -447,7 +447,7 @@ mode---only the names of the failed tests are listed.  If the
 @env{EMACS_TEST_VERBOSE} environment variable is set, the failure
 summaries will also include the data from the failing test.
 
-@vindex EMACS_TEST_JUNIT_REPORT{, environment variable}
+@vindex EMACS_TEST_JUNIT_REPORT@r{, environment variable}
 ERT can produce JUnit test reports in batch mode.  If the environment
 variable @env{EMACS_TEST_JUNIT_REPORT} is set, ERT will produce for
 every test package @file{my-tests.el} a corresponding JUnit test
