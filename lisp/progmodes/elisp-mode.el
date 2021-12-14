@@ -45,15 +45,13 @@ It has `lisp-mode-abbrev-table' as its parent."
     table)
   "Syntax table used in `emacs-lisp-mode'.")
 
-(defvar emacs-lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\t" 'completion-at-point)
-    (define-key map "\e\C-x" 'eval-defun)
-    (define-key map "\e\C-q" 'indent-pp-sexp)
-    map)
-  "Keymap for Emacs Lisp mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap emacs-lisp-mode-map
+  :doc "Keymap for Emacs Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map
+  "M-TAB" #'completion-at-point
+  "C-M-x" #'eval-defun
+  "C-M-q" #'indent-pp-sexp)
 
 (easy-menu-define emacs-lisp-mode-menu emacs-lisp-mode-map
   "Menu for Emacs Lisp mode."
@@ -270,10 +268,8 @@ Comments in the form will be lost."
       (setq-local lexical-binding t)
       (add-file-local-variable-prop-line 'lexical-binding t interactive))))
 
-(defvar elisp--dynlex-modeline-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1] 'elisp-enable-lexical-binding)
-    map))
+(defvar-keymap elisp--dynlex-modeline-map
+  "<mode-line> <mouse-1>" #'elisp-enable-lexical-binding)
 
 ;;;###autoload
 (define-derived-mode emacs-lisp-mode lisp-data-mode
@@ -1200,16 +1196,14 @@ namespace but with lower confidence."
 
 ;;; Elisp Interaction mode
 
-(defvar lisp-interaction-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\C-x" 'eval-defun)
-    (define-key map "\e\C-q" 'indent-pp-sexp)
-    (define-key map "\e\t" 'completion-at-point)
-    (define-key map "\n" 'eval-print-last-sexp)
-    map)
-  "Keymap for Lisp Interaction mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap lisp-interaction-mode-map
+  :doc "Keymap for Lisp Interaction mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map
+  "C-M-x" #'eval-defun
+  "C-M-q" #'indent-pp-sexp
+  "M-TAB" #'completion-at-point
+  "C-j"   #'eval-print-last-sexp)
 
 (easy-menu-define lisp-interaction-mode-menu lisp-interaction-mode-map
   "Menu for Lisp Interaction mode."
