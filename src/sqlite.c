@@ -591,16 +591,42 @@ DEFUN ("sqlite-load-extension", Fsqlite_load_extension,
        doc: /* Load an SQlite MODULE into DB.
 MODULE should be the name of an SQlite module's file, a
 shared library in the system-dependent format and having a
-system-dependent file-name extension.  */)
+system-dependent file-name extension.
+
+Only modules on Emacs' list of allowed modules can be loaded.  */)
   (Lisp_Object db, Lisp_Object module)
 {
   check_sqlite (db, false);
   CHECK_STRING (module);
-  Lisp_Object module_encoded = ENCODE_FILE (Fexpand_file_name (module, Qnil));
 
-  sqlite3 *sdb = XSQLITE (db)->db;
-  int result = sqlite3_load_extension (sdb, SSDATA (module_encoded),
-				       NULL, NULL);
+  /* Add names of useful and free modules here.  */
+  const char *allowlist[3] = { "pcre", "csvtable", NULL };
+  char *name = SSDATA (Ffile_name_nondirectory (module));
+  /* Possibly skip past a common prefix.  */
+  const char *prefix = "libsqlite3_mod_";
+  if (!strncmp (name, prefix, strlen (prefix)))
+    name += strlen (prefix);
+
+  bool do_allow = false;
+  for (const char **allow = allowlist; *allow; allow++)
+    {
+      if (strlen (*allow) < strlen (name)
+	  && !strncmp (*allow, name, strlen (*allow))
+	  && (!strcmp (name + strlen (*allow), ".so")
+	      || !strcmp (name + strlen (*allow), ".DLL")))
+	{
+	  do_allow = true;
+	  break;
+	}
+    }
+
+  if (!do_allow)
+    xsignal (Qerror, build_string ("Module name not on allowlist"));
+
+  int result = sqlite3_load_extension
+		       (XSQLITE (db)->db,
+			SSDATA (ENCODE_FILE (Fexpand_file_name (module, Qnil))),
+			NULL, NULL);
   if (result ==  SQLITE_OK)
     return Qt;
   return Qnil;
