@@ -133,15 +133,10 @@ respective `allout-mode' keybinding variables, `allout-command-prefix',
     (when (boundp 'allout-unprefixed-keybindings)
       (dolist (entry allout-unprefixed-keybindings)
         (define-key map (car (read-from-string (car entry))) (cadr entry))))
-    (substitute-key-definition #'beginning-of-line #'allout-beginning-of-line
-                               map global-map)
-    (substitute-key-definition #'move-beginning-of-line
-                               #'allout-beginning-of-line
-                               map global-map)
-    (substitute-key-definition #'end-of-line #'allout-end-of-line
-                               map global-map)
-    (substitute-key-definition #'move-end-of-line #'allout-end-of-line
-                               map global-map)
+    (define-key map [remap beginning-of-line]      #'allout-beginning-of-line)
+    (define-key map [remap move-beginning-of-line] #'allout-beginning-of-line)
+    (define-key map [remap end-of-line]            #'allout-end-of-line)
+    (define-key map [remap move-end-of-line]       #'allout-end-of-line)
     (allout-institute-keymap map)))
 ;;;_  > allout-institute-keymap (map)
 (defun allout-institute-keymap (map)
