@@ -68,6 +68,7 @@
 
 (require 'bibtex)
 (require 'json)
+(require 'map)
 (require 'oc)
 (require 'seq)
 
@@ -704,11 +705,18 @@ Return chosen style as a string."
 
 (defun org-cite-basic--key-completion-table ()
   "Return completion table for cite keys, as a hash table.
-In this hash table, keys are a strings with author, date, and title of the
-reference.  Values are the cite key."
-  (let ((cache-key (mapcar #'car org-cite-basic--bibliography-cache)))
-    (if (gethash cache-key org-cite-basic--completion-cache)
-        org-cite-basic--completion-cache
+
+In this hash table, keys are a strings with author, date, and
+title of the reference.  Values are the cite keys.
+
+Return nil if there are no bibliography files or no entries."
+  ;; Populate bibliography cache.
+  (let ((entries (org-cite-basic--parse-bibliography)))
+    (cond
+     ((null entries) nil)               ;no bibliography files
+     ((gethash entries org-cite-basic--completion-cache)
+      org-cite-basic--completion-cache)
+     (t
       (clrhash org-cite-basic--completion-cache)
       (dolist (key (org-cite-basic--all-keys))
         (let ((completion
@@ -725,14 +733,16 @@ reference.  Values are the cite key."
                 org-cite-basic-column-separator
                 (org-cite-basic--get-field 'title key nil t))))
           (puthash completion key org-cite-basic--completion-cache)))
-      (puthash cache-key t org-cite-basic--completion-cache)
-      org-cite-basic--completion-cache)))
+      (unless (map-empty-p org-cite-basic--completion-cache) ;no key
+        (puthash entries t org-cite-basic--completion-cache)
+        org-cite-basic--completion-cache)))))
 
 (defun org-cite-basic--complete-key (&optional multiple)
   "Prompt for a reference key and return a citation reference string.
 
-When optional argument MULTIPLE is non-nil, prompt for multiple keys, until one
-of them is nil.  Then return the list of reference strings selected.
+When optional argument MULTIPLE is non-nil, prompt for multiple
+keys, until one of them is nil.  Then return the list of
+reference strings selected.
 
 Raise an error when no bibliography is set in the buffer."
   (let* ((table
@@ -748,9 +758,9 @@ Raise an error when no bibliography is set in the buffer."
              (build-prompt
               (lambda ()
                 (if keys
-                    (format "Key (\"\" to exit) %s: "
+                    (format "Key (empty input exits) %s: "
                             (mapconcat #'identity (reverse keys) ";"))
-                  "Key (\"\" to exit): "))))
+                  "Key (empty input exits): "))))
         (let ((key (funcall prompt (funcall build-prompt))))
           (while (org-string-nw-p key)
             (push (gethash key table) keys)

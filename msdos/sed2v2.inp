@@ -37,6 +37,7 @@
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
 /^#undef HAVE_TZSET *$/s/^.*$/#define HAVE_TZSET 1/
+/^#undef HAVE_UNEXEC *$/s/^.*$/#define HAVE_UNEXEC 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
 /^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
@@ -66,7 +67,7 @@
 /^#undef PACKAGE_NAME/s/^.*$/#define PACKAGE_NAME ""/
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
-/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION "28.0.60"/
+/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION "28.0.90"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/

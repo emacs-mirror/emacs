@@ -4585,6 +4585,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-enc)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
@@ -4602,6 +4604,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-dec)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message

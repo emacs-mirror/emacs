@@ -86,6 +86,8 @@ typedef int GC;
 typedef int Pixmap;
 typedef int Display;
 typedef int Window;
+
+#define FRAME_X_DISPLAY(ignored) NULL
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 

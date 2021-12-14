@@ -20,16 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef COMP_H
 #define COMP_H
 
-/* To keep ifdefs under control.  */
-enum {
-  NATIVE_COMP_FLAG =
-#ifdef HAVE_NATIVE_COMP
-  1
-#else
-  0
-#endif
-};
-
 #include <dynlib.h>
 
 struct Lisp_Native_Comp_Unit

@@ -2146,9 +2146,10 @@ number---the number of characters the location is from the beginning
 of the buffer.)  In Emacs Lisp, @code{+} can be used to add the
 numeric value of marker positions as numbers.
 
+@cindex @samp{predicate} defined
 The @samp{p} of @code{number-or-marker-p} is the embodiment of a
 practice started in the early days of Lisp programming.  The @samp{p}
-stands for ``predicate''.  In the jargon used by the early Lisp
+stands for @dfn{predicate}.  In the jargon used by the early Lisp
 researchers, a predicate refers to a function to determine whether some
 property is true or false.  So the @samp{p} tells us that
 @code{number-or-marker-p} is the name of a function that determines

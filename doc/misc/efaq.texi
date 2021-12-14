@@ -849,6 +849,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 28::
 * New in Emacs 27::
 * New in Emacs 26::
 * New in Emacs 25::
@@ -898,9 +899,9 @@ conventions}).
 @cindex Repository, Emacs
 
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
-number with two components (e.g., @samp{24.5}) indicates a released
+number with two components (e.g., @samp{28.1}) indicates a released
 version; three components indicate a development
-version (e.g., @samp{28.0.50} is what will eventually become @samp{28.1}).
+version (e.g., @samp{29.0.50} is what will eventually become @samp{29.1}).
 
 Emacs is under active development, hosted at
 @uref{https://savannah.gnu.org/projects/emacs/, Savannah}.
@@ -918,6 +919,97 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
+
+@node New in Emacs 28
+@section What is different about Emacs 28?
+@cindex Differences between Emacs 27 and Emacs 28
+@cindex Emacs 28, new features in
+
+Emacs 28 has too many new features and changes to list all of them
+here.  We list below a small selection; consult the Emacs @file{NEWS}
+file (@kbd{C-h n}) for the full list of changes in Emacs 28.
+
+@itemize
+@cindex native compilation of Lisp files
+@item
+Emacs now optionally supports native compilation of Lisp files.  This
+can improves performance significantly in some cases.  To enable this,
+configure Emacs with the @option{--with-native-compilation} option.
+
+@item
+The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
+Thus, packages on NonGNU ELPA will appear by default in the list shown
+by the @code{list-packages} command.
+
+@item
+The Cairo graphics library is now used by default if present.
+
+@item
+On GNU/Linux, Emacs now supports loading Secure Computing filters.  To
+use this feature, invoke Emacs with the @option{--seccomp=@var{file}}
+command-line switch, where @var{file} names a binary file that defines
+the filtering.  See the manual page of the @code{seccomp} system call
+for more details.
+
+@item
+The new themes @samp{modus-vivendi} and @samp{modus-operandi} have
+been added.  They are designed to conform with the highest standard
+for color-contrast accessibility (WCAG AAA).
+
+@item
+On capable systems, Emacs now correctly displays Emoji and Emoji
+sequences by default, provided that a suitable font is available.
+
+@item
+New system for displaying documentation for groups of functions
+(@kbd{M-x shortdoc-display-group RET}).
+
+@item
+Emacs can now support 24-bit color text-mode terminals even if their
+terminfo database doesn't state this support in a standard way.  Set
+the @env{COLORTERM} environment variable to the value @samp{truecolor}
+to activate this.
+
+@item
+The @code{strike-through} face attribute is now supported on capable
+text-mode terminals.
+
+@item
+@code{xterm-mouse-mode} supports TTY menus.
+
+@item
+A new minor mode @code{context-menu-mode} causes @code{mouse-3}
+(a.k.a.@: ``right-clicks'') of the mouse to pop up context-dependent
+menus.
+
+@item
+Prefix commands to control the display of the results of the next
+command.  @kbd{C-x 4 4 @var{command}} displays the result of
+@var{command} in a new window.  @kbd{C-x 5 5 @var{command}} displays
+the results of @var{command} in a new frame.
+
+@item
+Emacs now supports ``transient'' input methods.  A transient input
+method is enabled for inserting a single character, and is then
+automatically disabled.  Select a transient input method with @kbd{C-u
+C-x \}; enable it (for inserting a single character) with @kbd{C-x \}.
+New input methods @code{compose} (based on X Window System Multi_key
+sequences) and @code{iso-transl} are especially convenient with this
+feature, when you need to insert a single special character.
+
+@item
+@kbd{M-y}, when invoked after a command that is not a yank command,
+allows selection of one of the previous kills.
+
+@item
+New minor mode @code{repeat-mode} allows to repeat commands with fewer
+keystrokes.
+
+@item
+Among the many internal changes in this release, we would like to
+highlight that all files in the tree now use @code{lexical-binding}.
+@end itemize
+
 
 @node New in Emacs 27
 @section What is different about Emacs 27?
@@ -973,8 +1065,8 @@ Built-in support for tabs (tab bar and tab line).
 Support for resizing and rotating of images without ImageMagick.
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 27.
+Consult the Emacs @file{NEWS.27} file for the full list of changes in
+Emacs 27.
 
 @node New in Emacs 26
 @section What is different about Emacs 26?
@@ -1052,8 +1144,8 @@ Emacs 26.2 comes with data files imported from the latest Unicode
 Standard version 11.0.0.
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 26.
+Consult the Emacs @file{NEWS.26} file for the full list of changes in
+Emacs 26.
 
 @node New in Emacs 25
 @section What is different about Emacs 25?
@@ -1086,7 +1178,7 @@ Emacs Lisp form at point.
 @cindex pasting text on text terminals
 @cindex bracketed paste mode
 @item
-On text terminals that support the ``bracketed paste mode'' EMacs now
+On text terminals that support the ``bracketed paste mode'' Emacs now
 uses that mode by default.  This mode allows Emacs to distinguish
 between pasted text and text typed by the user.
 
@@ -1152,8 +1244,8 @@ provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
 
 @end itemize
 
-Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
-changes in Emacs 25.
+Consult the Emacs @file{NEWS.25} file for the full list of changes in
+Emacs 25.
 
 @node New in Emacs 24
 @section What is different about Emacs 24?
@@ -1226,7 +1318,8 @@ Much more flexibility in the handling of windows and buffer display.
 
 @end itemize
 
-As always, consult the @file{NEWS} file for more information.
+Consult the Emacs @file{NEWS.24} file for the full list of changes in
+Emacs 24.
 
 
 @node New in Emacs 23
@@ -1284,6 +1377,9 @@ new Visual Line mode for line-motion; improved completion; a new mode
 (@samp{DocView}) for viewing of PDF, PostScript, and DVI documents; nXML
 mode (for editing XML documents) is included; VC has been updated for
 newer version control systems; etc.
+
+Consult the Emacs @file{NEWS.23} file for the full list of changes in
+Emacs 23.
 
 
 @node New in Emacs 22
@@ -1381,6 +1477,9 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 (@pxref{Emacs Lisp documentation}) and the Emacs Lisp Intro.
 @end itemize
 
+Consult the Emacs @file{NEWS.22} file for the full list of changes in
+Emacs 22.
+
 
 @node New in Emacs 21
 @section What is different about Emacs 21?
@@ -1403,6 +1502,9 @@ In addition, Emacs 21 supports faces on text-only terminals.  This means
 that you can now have colors when you run Emacs on a GNU/Linux console
 and on @code{xterm} with @kbd{emacs -nw}.
 
+Consult the Emacs @file{NEWS.21} file for the full list of changes in
+Emacs 21.
+
 
 @node New in Emacs 20
 @section What is different about Emacs 20?
@@ -1419,6 +1521,10 @@ of MULE code for languages that use non-Latin characters and for mixing
 several languages in the same document; the ``Customize'' facility for
 modifying variables without having to use Lisp; and automatic conversion
 of files from Macintosh, Microsoft, and Unix platforms.
+
+Consult the Emacs @file{NEWS.20} file for the full list of changes in
+Emacs 20.
+
 
 @node What was XEmacs?
 @section What was XEmacs?
@@ -2542,12 +2648,12 @@ load @code{dired-x} by adding the following to your @file{.emacs} file:
   (require 'dired-x))
 @end lisp
 
-With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
+With @code{dired-x} loaded, @kbd{C-x M-o} toggles omitting in each dired buffer.
 You can make omitting the default for new dired buffers by putting the
 following in your @file{.emacs}:
 
 @lisp
-(add-hook 'dired-mode-hook 'dired-omit-toggle)
+(add-hook 'dired-mode-hook 'dired-omit-mode)
 @end lisp
 
 If you're tired of seeing backup files whenever you do an @samp{ls} at

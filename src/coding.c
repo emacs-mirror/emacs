@@ -9454,8 +9454,9 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
        3, 4, "r\nzCoding system: ",
-       doc: /* Decode the current region from the specified coding system.
-Interactively, prompt for the coding system to decode the region.
+       doc: /* Decode the current region using the specified coding system.
+Interactively, prompt for the coding system to decode the region, and
+replace the region with the decoded text.
 
 \"Decoding\" means transforming bytes into readable text (characters).
 If, for instance, you have a region that contains data that represents
@@ -9485,7 +9486,9 @@ not fully specified.)  */)
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 4, "r\nzCoding system: ",
-       doc: /* Encode the current region by specified coding system.
+       doc: /* Encode the current region using th specified coding system.
+Interactively, prompt for the coding system to encode the region, and
+replace the region with the bytes that are the result of the encoding.
 
 What's meant by \"encoding\" is transforming textual data (characters)
 into bytes.  If, for instance, you have a region that contains the

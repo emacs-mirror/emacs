@@ -70,7 +70,7 @@ and modified without restriction.
 
 Getting Started
 
-* Sample Session::              Example of connecting to the #emacs channel
+* Sample Session::              Example of connecting to the @samp{#emacs} channel
 * Special Features::            Differences from standalone IRC clients
 
 Advanced Usage
@@ -132,14 +132,15 @@ customize-variable @key{RET} erc-modules @key{RET}}.
 @section Sample Session
 
 This is an example ERC session which shows how to connect to the
-#emacs channel on Libera.Chat.  Another IRC channel on Libera.Chat
-that may be of interest is #erc, which is a channel where ERC users
-and developers hang out.  These channels used to live on the Freenode
-IRC network until June 2021, when they---along with the official IRC
-channels of the GNU Project, the Free Software Foundation, and many
-other free software communities---relocated to the Libera.Chat network
-in the aftermath of changes in governance and policies of Freenode in
-May and June 2021.  GNU and FSF's announcements about this are at
+@samp{#emacs} channel on Libera.Chat.  Another IRC channel on
+Libera.Chat that may be of interest is @samp{#erc}, which is a channel
+where ERC users and developers hang out.  These channels used to live
+on the Freenode IRC network until June 2021, when they---along with
+the official IRC channels of the GNU Project, the Free Software
+Foundation, and many other free software communities---relocated to
+the Libera.Chat network in the aftermath of changes in governance and
+policies of Freenode in May and June 2021.  GNU and FSF's
+announcements about this are at
 @uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html},
 @uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html},
 and
@@ -149,7 +150,7 @@ and
 
 @item Connect to Libera.Chat
 
-Run @kbd{M-x erc}.  Use ``irc.libera.chat as the IRC server, ``6667''
+Run @kbd{M-x erc}.  Use ``irc.libera.chat'' as the IRC server, ``6667''
 as the port, and choose a nickname.
 
 @item Get used to the interface
@@ -264,7 +265,7 @@ new command in capital letters.
 If the connection goes away at some point, ERC will try to reconnect
 automatically.  If it fails to reconnect, and you want to try to
 manually reestablish the connection at some later point, switch to an
-ERC  buffer and run the @code{/RECONNECT} command.
+ERC buffer and run the @code{/RECONNECT} command.
 
 @end itemize
 
@@ -283,7 +284,7 @@ Go to beginning of line or end of prompt.
 @item @key{RET} (@code{erc-send-current-line})
 Send the current line
 
-@item @key{TAB} (@code{erc-complete-word})
+@item @key{TAB} (@code{completion-at-point} or @code{erc-button-next})
 If at prompt, complete the current word.
 Otherwise, move to the next link or button.
 
@@ -931,7 +932,7 @@ over the project entirely.''
 So we happily hacked away on ERC, and soon after (September 2001)
 released the next "stable" version, 2.1.
 
-Most of the development of the new ERC happened on #emacs on
+Most of the development of the new ERC happened on @samp{#emacs} on
 irc.openprojects.net.  Over time, many people contributed code, ideas,
 bugfixes, and a lot of alpha/beta/gamma testing.
 

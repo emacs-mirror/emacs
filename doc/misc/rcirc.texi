@@ -464,7 +464,7 @@ your status as ``being back'' if you do not.  People can use the
 @cindex help about irc
 Typical IRC servers implement many more commands.  You can read more
 about the fantastic world of IRC online at
-@uref{http://www.irchelp.org/, the Internet Relay Chat (IRC) help
+@uref{https://www.irchelp.org/, the Internet Relay Chat (IRC) help
 archive}.
 
 @node Configuration

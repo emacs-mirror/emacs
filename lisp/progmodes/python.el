@@ -2994,8 +2994,9 @@ killed."
                   (mapconcat #'identity args " ")))
             (with-current-buffer buffer
               (inferior-python-mode))
-            (when show (display-buffer buffer))
             (and internal (set-process-query-on-exit-flag process nil))))
+        (when show
+          (pop-to-buffer proc-buffer-name))
         proc-buffer-name))))
 
 ;;;###autoload
@@ -3027,7 +3028,6 @@ process buffer for a list of commands.)"
          (python-shell-make-comint
           (or cmd (python-shell-calculate-command))
           (python-shell-get-process-name dedicated) show)))
-    (set-buffer buffer)
     (get-buffer-process buffer)))
 
 (defun run-python-internal ()

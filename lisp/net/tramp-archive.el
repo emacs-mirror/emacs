@@ -103,7 +103,7 @@
 ;; It is even possible to access file archives in file archives, as
 
 ;;   (find-file
-;;    "http://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control")
+;;    "https://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control")
 
 ;;; Code:
 

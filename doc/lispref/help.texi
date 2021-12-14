@@ -372,11 +372,15 @@ quotes.  You can customize it freely according to your personal
 preference.
 @end defopt
 
-@defun substitute-command-keys string
+@defun substitute-command-keys string &optional no-face
+@vindex help-key-binding@r{ (face)}
 This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
 This permits display of documentation that refers accurately to the
-user's own customized key bindings.
+user's own customized key bindings.  By default, the key bindings are
+given a special face @code{help-key-binding}, but if the optional
+argument @var{no-face} is non-@code{nil}, the function doesn't add
+this face to the produced string.
 
 @cindex advertised binding
 If a command has multiple bindings, this function normally uses the

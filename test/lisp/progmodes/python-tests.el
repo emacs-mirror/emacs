@@ -5448,15 +5448,21 @@ buffer with overlapping strings."
                     (python-nav-end-of-statement)))
     (should (eolp))))
 
-;; After call `run-python' the buffer running the python process is current.
-(ert-deftest python-tests--bug31398 ()
-  "Test for https://debbugs.gnu.org/31398 ."
+;; Interactively, `run-python' focuses the buffer running the
+;; interpreter.
+(ert-deftest python-tests--run-python-selects-window ()
+  "Test for bug#31398.  See also bug#44421 and bug#52380."
   (skip-unless (executable-find python-tests-shell-interpreter))
-  (let ((buffer (process-buffer (run-python nil nil 'show))))
-    (should (eq buffer (current-buffer)))
+  (let* ((buffer (process-buffer (run-python nil nil 'show)))
+         (window (get-buffer-window buffer)))
+    ;; We look at `selected-window' rather than `current-buffer'
+    ;; because as `(elisp)Current buffer' says, the latter will only
+    ;; be synchronized with the former when returning to the "command
+    ;; loop"; until then, `current-buffer' can change arbitrarily.
+    (should (eq window (selected-window)))
     (pop-to-buffer (other-buffer))
     (run-python nil nil 'show)
-    (should (eq buffer (current-buffer)))))
+    (should (eq window (selected-window)))))
 
 (ert-deftest python-tests--fill-long-first-line ()
   (should

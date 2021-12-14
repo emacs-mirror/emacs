@@ -924,7 +924,11 @@ of the main Emacs process.  This leaves the main Emacs process free to
 use while the compilation runs in the background.  This is the method
 used by Emacs to natively-compile any Lisp file or byte-compiled Lisp
 file that is loaded into Emacs, when no natively-compiled file for it
-is available.
+is available.  Note that because of this use of a subprocess, native
+compilation may produce warning and errors which byte-compilation does
+not, and lisp code may thus need to be modified to work correctly.  See
+@code{native-comp-async-report-warnings-errors} in @pxref{Native-Compilation
+Variables} for more details.
 
 @defun native-compile-async files &optional recursively load selector
 This function compiles the named @var{files} asynchronously.  The
@@ -1038,6 +1042,12 @@ Emacs session in a buffer named @file{*Warnings*}.  The default value
 @code{t} means display the resulting buffer.  To log warnings without
 popping up the @file{*Warnings*} buffer, set this variable to
 @code{silent}.
+
+  A common cause for asynchronous native-compilation to produce
+warnings is compiling a file that is missing some @code{require} of a
+necessary feature.  The feature may be loaded into the main emacs, but
+because native compilation always starts from a subprocess with a
+pristine environment, that may not be true for the subprocess.
 @end defopt
 
 @defopt native-comp-async-query-on-exit

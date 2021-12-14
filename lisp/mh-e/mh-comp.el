@@ -638,6 +638,8 @@ See also `mh-compose-forward-as-mime-flag',
 (defun mh-forwarded-letter-subject (from subject)
   "Return a Subject suitable for a forwarded message.
 Original message has headers FROM and SUBJECT."
+  ;; Join continued lines.
+  (setq from (replace-regexp-in-string "\\s *\n\\s +" " " from))
   (let ((addr-start (string-search "<" from))
         (comment (string-search "(" from)))
     (cond ((and addr-start (> addr-start 0))

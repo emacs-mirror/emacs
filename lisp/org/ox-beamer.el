@@ -1059,7 +1059,7 @@ Return PDF file's name."
   (let ((file (org-export-output-file-name ".tex" subtreep)))
     (org-export-to-file 'beamer file
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 ;;;###autoload
 (defun org-beamer-select-environment ()

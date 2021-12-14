@@ -41,7 +41,7 @@
 ;;
 ;;  I briefly tried out thumbs.el, and although it seemed more
 ;; powerful than this package, it did not work the way I wanted to.  It
-;; was too slow to created thumbnails of all files in a directory (I
+;; was too slow to create thumbnails of all files in a directory (I
 ;; currently keep all my 2000+ images in the same directory) and
 ;; browsing the thumbnail buffer was slow too.  image-dired.el will not
 ;; create thumbnails until they are needed and the browsing is done

@@ -469,7 +469,7 @@ just FUNCTION is printed."
     (funcall orig-fun nil)))
 
 (defun edebug-eval-defun (edebug-it)
-  (declare (obsolete "use eval-defun or edebug--eval-defun instead" "28.1"))
+  (declare (obsolete "use `eval-defun' or `edebug--eval-defun' instead" "28.1"))
   (interactive "P")
   (if (advice-member-p #'edebug--eval-defun 'eval-defun)
       (eval-defun edebug-it)

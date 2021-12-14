@@ -55,7 +55,7 @@
 ;;
 ;; (("GNU"    . "https://www.gnu.org/")
 ;;  ("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
-;;  ("emacs"  . "http://www.emacs.org/")
+;;  ("emacs"  . "https://www.emacs.org/")
 ;;  ("davep"    "http://www.davep.org/" "Dave's homepage"))
 ;;
 ;; In case you're wondering about the mixture of cons cells and lists,

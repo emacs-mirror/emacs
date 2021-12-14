@@ -165,14 +165,18 @@ and then returns."
                    (let ((cursor-in-echo-area t)
                          (overriding-local-map local-map))
                      (setq key (read-key-sequence
-                                (format "Type one of the options listed%s: "
+                                (format "Type one of listed options%s: "
                                         (if (pos-visible-in-window-p
                                              (point-max))
                                             ""
                                           (concat  ", or "
                                                    (help--key-description-fontified (kbd "<PageDown>"))
-                                                   " or "
+                                                   "/"
                                                    (help--key-description-fontified (kbd "<PageUp>"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "SPC"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "DEL"))
                                                    " to scroll"))))
                            char (aref key 0)))
 

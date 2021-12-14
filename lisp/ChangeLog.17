@@ -10766,7 +10766,7 @@
 	* emacs-lisp/find-gc.el (find-gc-source-directory): Give it a value.
 	(find-gc-source-files): Update some names.
 	(trace-call-tree): Simplify and update.
-	Avoid predictable temp-file names.  (http://bugs.debian.org/747100)
+	Avoid predictable temp-file names.  (https://bugs.debian.org/747100)
 	This is CVE-2014-3422.
 
 2014-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -17742,7 +17742,7 @@
 2013-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/sh-script.el (sh-mark-line, sh-learn-buffer-indent):
-	Occur buffers are read-only.  http://bugs.debian.org/720775
+	Occur buffers are read-only.  https://bugs.debian.org/720775
 
 	* emacs-lisp/authors.el (authors-fixed-entries):
 	Comment out old alpha stuff.

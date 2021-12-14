@@ -1700,7 +1700,6 @@ circumstances.
 @vindex minibuffer-local-completion-map
 @vindex minibuffer-local-must-match-map
 @vindex minibuffer-local-filename-completion-map
-@vindex minibuffer-local-filename-must-match-map
   The minibuffer has its own set of local keymaps; they contain various
 completion and exit commands.
 
@@ -1716,10 +1715,9 @@ just like @key{RET}.
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
 @item
-@code{minibuffer-local-filename-completion-map} and
-@code{minibuffer-local-filename-must-match-map} are like the two
-previous ones, but they are specifically for file name completion.
-They do not bind @key{SPC}.
+@code{minibuffer-local-filename-completion-map} is like the two
+previous ones, but specifically for file name completion.
+It does not bind @key{SPC}.
 @end itemize
 
 By default, @key{TAB}, @key{SPC} and @key{?} do completion in

@@ -591,9 +591,13 @@ If you cannot figure out the cause for the problem using the above,
 native-compile the problematic file after setting the variable
 'comp-libgccjit-reproducer' to a non-nil value.  That should produce a
 file named ELNFILENAME_libgccjit_repro.c, where ELNFILENAME is the
-name of the problematic .eln file, in the same directory where the
-.eln file is produced.  Then attach that reproducer C file to your bug
-report.
+name of the problematic .eln file, either in the same directory where
+the .eln file is produced, or under your ~/.emacs.d/eln-cache (which
+one depends on how the native-compilation is invoked).  It is also
+possible that the reproducer file's name will be something like
+subr--trampoline-XXXXXXX_FUNCTION_libgccjit_repro.c, where XXXXXXX is
+a long string of hex digits and FUNCTION is some function from the
+compiled .el file.  Attach that reproducer C file to your bug report.
 
 ** Following longjmp call.
 
