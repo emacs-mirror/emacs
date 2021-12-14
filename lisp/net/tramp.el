@@ -1874,8 +1874,9 @@ version, the function does nothing."
 
 (defsubst tramp-get-buffer-string (&optional buffer)
   "Return contents of BUFFER.
-If BUFFER is not a buffer, return the contents of `current-buffer'."
-  (with-current-buffer (if (bufferp buffer) buffer (current-buffer))
+If BUFFER is not a buffer or a buffer name, return the contents
+of `current-buffer'."
+  (with-current-buffer (or buffer (current-buffer))
     (substring-no-properties (buffer-string))))
 
 (put #'tramp-get-buffer-string 'tramp-suppress-trace t)
@@ -3964,7 +3965,7 @@ Return nil when there is no lockfile."
 
 (defvar tramp-lock-pid nil
   "A random nunber local for every connection.
-Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'")
+Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-get-lock-pid (file)
   "Determine pid for lockfile of FILE."
@@ -3985,9 +3986,11 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'")
   "Like `file-locked-p' for Tramp files."
   (when-let ((info (tramp-get-lock-file file))
 	     (match (string-match tramp-lock-file-info-regexp info)))
-    (or (and (string-equal (match-string 1 info) (user-login-name))
+    (or ; Locked by me.
+        (and (string-equal (match-string 1 info) (user-login-name))
 	     (string-equal (match-string 2 info) (system-name))
 	     (string-equal (match-string 3 info) (tramp-get-lock-pid file)))
+	; User name.
 	(match-string 1 info))))
 
 (defun tramp-handle-lock-file (file)
