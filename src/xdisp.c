@@ -10423,11 +10423,12 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 
 /* Move iterator IT backward by a specified y-distance DY, DY >= 0.
 
-   If DY > 0, move IT backward at least that many pixels.  DY = 0
-   means move IT backward to the preceding line start or BEGV.  This
-   function may move over more than DY pixels if IT->current_y - DY
-   ends up in the middle of a line; in this case IT->current_y will be
-   set to the top of the line moved to.  */
+   If DY > 0, move IT backward that many pixels.
+   DY = 0 means move IT backward to the preceding line start or to BEGV.
+   This function may move over less or more than DY pixels if
+   IT->current_y - DY ends up in the middle of a line; in this case
+   IT->current_y will be set to the top of the line either before or
+   after the exact pixel coordinate.  */
 
 void
 move_it_vertically_backward (struct it *it, int dy)

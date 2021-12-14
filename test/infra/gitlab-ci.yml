@@ -44,6 +44,7 @@ workflow:
 variables:
   GIT_STRATEGY: fetch
   EMACS_EMBA_CI: 1
+  EMACS_TEST_JUNIT_REPORT: junit-test-report.xml
   EMACS_TEST_TIMEOUT: 3600
   EMACS_TEST_VERBOSE: 1
   # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
@@ -85,7 +86,7 @@ default:
     # TODO: with make -j4 several of the tests were failing, for
     # example shadowfile-tests, but passed without it.
     - 'export PWD=$(pwd)'
-    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
   after_script:
     # - docker ps -a
     # - printenv
@@ -93,7 +94,8 @@ default:
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    - find ${test_name} ! -name "*.log" -type f -delete
+    - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} \) -type f -delete
+    # BusyBox find does not know -empty.
     - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
 
 .build-template:
@@ -103,7 +105,6 @@ default:
       when: always
     - changes:
         - "**.in"
-        - "**.yml"
         - GNUmakefile
         - aclocal.m4
         - autogen.sh
@@ -112,7 +113,7 @@ default:
         - lib/malloc/*.{h,c}
         - lisp/emacs-lisp/*.el
         - src/*.{h,c}
-        - test/infra/Dockerfile.emba
+        - test/infra/*
     - changes:
         # gfilemonitor, kqueue
         - src/gfilenotify.c
@@ -133,9 +134,11 @@ default:
     name: ${test_name}
     public: true
     expire_in: 1 week
+    when: always
     paths:
       - ${test_name}/
-    when: always
+    reports:
+      junit: ${test_name}/${EMACS_TEST_JUNIT_REPORT}
 
 .gnustep-template:
   rules:
@@ -143,12 +146,11 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
-        - "**.yml"
         - src/ns*.{h,m}
         - src/macfont.{h,m}
         - lisp/term/ns-win.el
         - nextstep/**
-        - test/infra/Dockerfile.emba
+        - test/infra/*
 
 .filenotify-gio-template:
   rules:
@@ -156,12 +158,11 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
-        - "**.yml"
         - lisp/autorevert.el
         - lisp/filenotify.el
         - lisp/net/tramp-sh.el
         - src/gfilenotify.c
-        - test/infra/Dockerfile.emba
+        - test/infra/*
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
 
@@ -171,11 +172,10 @@ default:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
       changes:
         - "**.in"
-        - "**.yml"
         - lisp/emacs-lisp/comp.el
         - lisp/emacs-lisp/comp-cstr.el
         - src/comp.{h,m}
-        - test/infra/Dockerfile.emba
+        - test/infra/*
         - test/src/comp-resources/*.el
         - test/src/comp-tests.el
   timeout: 8 hours

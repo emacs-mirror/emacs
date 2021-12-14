@@ -574,9 +574,8 @@ See also the commands \\[xscheme-yank-pop] and \\[xscheme-yank-push]."
   (if (consp arg)
       (exchange-point-and-mark)))
 
-;; Old name, to avoid errors in users' init files.
-(fset 'xscheme-yank-previous-send
-      'xscheme-yank)
+(define-obsolete-function-alias 'xscheme-yank-previous-send
+  #'xscheme-yank "29.1")
 
 (defun xscheme-yank-pop (arg)
   "Insert or replace a just-yanked expression with an older expression.

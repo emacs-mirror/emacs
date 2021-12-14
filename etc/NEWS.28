@@ -1588,9 +1588,9 @@ and the result is not truncated in any way.
 It no longer has lower precedence than '+' and '-'.
 
 ---
-*** Calc now marks its windows dedicated.
-The new user option 'calc-make-windows-dedicated' controls this.  It
-is t by default; set to nil to get back the old behavior.
+*** New user option 'calc-make-windows-dedicated'.
+When this user option is non-nil, Calc will mark its windows as
+dedicated.
 
 ** Calendar
 

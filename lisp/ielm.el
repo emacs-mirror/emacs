@@ -148,28 +148,28 @@ such as `edebug-defun' to work with such inputs."
 This variable is buffer-local.")
 
 (defvar ielm-header
-  "*** Welcome to IELM ***  Type (describe-mode) for help.\n"
+  (substitute-command-keys
+   "*** Welcome to IELM ***  Type (describe-mode) or press \
+\\[describe-mode] for help.\n")
   "Message to display when IELM is started.")
 
 (defvaralias 'inferior-emacs-lisp-mode-map 'ielm-map)
-(defvar ielm-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'ielm-tab)
-    (define-key map "\C-m" 'ielm-return)
-    (define-key map "\e\C-m" 'ielm-return-for-effect)
-    (define-key map "\C-j" 'ielm-send-input)
-    (define-key map "\e\C-x" 'eval-defun)         ; for consistency with
-    (define-key map "\e\t" 'completion-at-point)  ; lisp-interaction-mode
-    ;; These bindings are from `lisp-mode-shared-map' -- can you inherit
-    ;; from more than one keymap??
-    (define-key map "\e\C-q" 'indent-sexp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    ;; Some convenience bindings for setting the working buffer
-    (define-key map "\C-c\C-b" 'ielm-change-working-buffer)
-    (define-key map "\C-c\C-f" 'ielm-display-working-buffer)
-    (define-key map "\C-c\C-v" 'ielm-print-working-buffer)
-    map)
-  "Keymap for IELM mode.")
+(defvar-keymap ielm-map
+  :doc "Keymap for IELM mode."
+  "TAB"     #'ielm-tab
+  "RET"     #'ielm-return
+  "M-RET"   #'ielm-return-for-effect
+  "C-j"     #'ielm-send-input
+  "C-M-x"   #'eval-defun                ; for consistency with
+  "M-TAB"   #'completion-at-point       ; lisp-interaction-mode
+  ;; These bindings are from `lisp-mode-shared-map' -- can you inherit
+  ;; from more than one keymap??
+  "C-M-q"   #'indent-sexp
+  "DEL"     #'backward-delete-char-untabify
+  ;; Some convenience bindings for setting the working buffer
+  "C-c C-b" #'ielm-change-working-buffer
+  "C-c C-f" #'ielm-display-working-buffer
+  "C-c C-v" #'ielm-print-working-buffer)
 
 (easy-menu-define ielm-menu ielm-map
   "IELM mode menu."

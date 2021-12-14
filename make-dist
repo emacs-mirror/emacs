@@ -299,13 +299,6 @@ if [ $check = yes ]; then
     echo "${bogosities}"
   fi
 
-  ## This exits with non-zero status if any .info files need
-  ## rebuilding.
-  if [ -r Makefile ] && [ "$with_info" = "yes" ]; then
-      echo "Checking to see if info files are up-to-date..."
-      make --question info || error=yes
-  fi
-
   ## Is this a release?
   case $version in
       [1-9][0-9].[0-9])
@@ -392,9 +385,11 @@ manifest=MANIFEST
 # other way when adding or deleting a distributed file while not using Git.
 # TODO: maybe this should ignore $update, and always update MANIFEST
 # if .git is present.
+# Filter out the files in msdos/autogen/, as they aren't useful in the
+# tarball, and get in the way during the build of the MSDOS port.
 if ( [ $update = yes ] || [ ! -f $manifest ] ) && [ -r .git ]; then
   echo "Updating $manifest"
-  git ls-files > $manifest || exit
+  git ls-files | sed -e '/^msdos\/autogen\//d' > $manifest || exit
   printf '%s\n' $possibly_non_vc_files $info_files >>$manifest || exit
   sort -u -o $manifest $manifest || exit
 fi

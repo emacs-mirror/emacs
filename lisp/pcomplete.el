@@ -680,8 +680,8 @@ user actually typed in."
 	(match-string which arg)
       (throw 'pcompleted nil))))
 
-(defalias 'pcomplete-match-beginning 'match-beginning)
-(defalias 'pcomplete-match-end 'match-end)
+(define-obsolete-function-alias 'pcomplete-match-beginning #'match-beginning "29.1")
+(define-obsolete-function-alias 'pcomplete-match-end #'match-end "29.1")
 
 (defsubst pcomplete--test (pred arg)
   "Perform a programmable completion predicate match."
@@ -1006,7 +1006,7 @@ Arguments NO-GANGING and ARGS-FOLLOW are currently ignored."
 			     ((eq arg-char ?*) (pcomplete-executables))
 			     ((eq arg-char ??) nil)
 			     ((eq arg-char ?.) (pcomplete-entries))
-			     ((eq arg-char ?\() (eval result))))))
+			     ((eq arg-char ?\() (eval result t))))))
 	    (setq index (1+ index))))))))
 
 (defun pcomplete--here (&optional form stub paring form-only)
@@ -1040,7 +1040,7 @@ See the documentation for `pcomplete-here'."
                (funcall form)
              ;; Old calling convention, might still be used by files
              ;; byte-compiled with the older code.
-             (eval form)))))
+             (eval form t)))))
 
 
 (defmacro pcomplete-here* (&optional form stub form-only)
@@ -1062,9 +1062,9 @@ See the documentation for `pcomplete-here'."
 	pcomplete-window-restore-timer nil))
 
 (define-obsolete-function-alias 'pcomplete-event-matches-key-specifier-p
-  'eq "27.1")
+  #'eq "27.1")
 
-(define-obsolete-function-alias 'pcomplete-read-event 'read-event "27.1")
+(define-obsolete-function-alias 'pcomplete-read-event #'read-event "27.1")
 
 (defun pcomplete-show-completions (completions)
   "List in help buffer sorted COMPLETIONS.
@@ -1244,7 +1244,7 @@ If specific documentation can't be given, be generic."
 		    (fboundp 'Info-goto-node))
 	       (listp pcomplete-help)))
       (if (listp pcomplete-help)
-	  (message "%s" (eval pcomplete-help))
+	  (message "%s" (eval pcomplete-help t))
 	(save-window-excursion (info))
 	(declare-function Info-goto-node
 	                  "info" (nodename &optional fork strict-case))

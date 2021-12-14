@@ -1178,7 +1178,7 @@ which means the last tab on the tab bar.  For example, `C-u 2
 <MODIFIER>-9' selects the tab before the last tab."
   (interactive "p")
   (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
-                         (1- (or arg 1)))))
+                         (1- (abs (or arg 1))))))
 
 (defun tab-bar-switch-to-recent-tab (&optional arg)
   "Switch to ARGth most recently visited tab.

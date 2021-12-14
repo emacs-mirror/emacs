@@ -4229,97 +4229,48 @@ action alist entry (@pxref{Buffer Display Action Alists}).
 
 @node Quitting Windows
 @section Quitting Windows
+@cindex quitting windows
 
-When you want to get rid of a window used for displaying a buffer, you
-can call @code{delete-window} or @code{delete-windows-on}
-(@pxref{Deleting Windows}) to remove that window from its frame.  If the
-buffer is shown on a separate frame, you might want to call
-@code{delete-frame} (@pxref{Deleting Frames}) instead.  If, on the other
-hand, a window has been reused for displaying the buffer, you might
-prefer showing the buffer previously shown in that window, by calling the
-function @code{switch-to-prev-buffer} (@pxref{Window History}).
-Finally, you might want to either bury (@pxref{Buffer List}) or kill
-(@pxref{Killing Buffers}) the window's buffer.
+After a command uses @code{display-buffer} to put a buffer on the
+screen, the user may decide to hide it and return to the previous
+configuration of the Emacs display.  We call that @dfn{quitting the
+window}.  The way to do this is to call @code{quit-window} while the
+window used by @code{display-buffer} is the selected window.
 
-   The following command uses information on how the window for
-displaying the buffer was obtained in the first place, thus attempting
-to automate the above decisions for you.
+The right way to restore the previous configuration of the display
+depends on what was done to the window where the buffer now appears.
+It might be right to delete that window, or delete its frame, or just
+display another buffer in that window.  One complication is that the
+user may have changed the window configuration since the act of
+displaying that buffer, and it would be undesirable to undo the user's
+explicitly requested changes.
+
+To enable @code{quit-window} to do the right thing,
+@code{display-buffer} saves information about what it did in the
+window's @code{quit-restore} parameter (@pxref{Window Parameters}).
 
 @deffn Command quit-window &optional kill window
 This command quits @var{window} and buries its buffer.  The argument
 @var{window} must be a live window and defaults to the selected one.
 With prefix argument @var{kill} non-@code{nil}, it kills the buffer
-instead of burying it.  It calls the function @code{quit-restore-window}
-described next to deal with the window and its buffer.
+instead of burying it.
 
 @vindex quit-window-hook
-The functions in @code{quit-window-hook} are run before doing anything
-else.
+The function @code{quit-window} first runs @code{quit-window-hook}.
+Then it calls the function @code{quit-restore-window}, described next,
+which does the hard work.
 @end deffn
+
+You can get more control by calling @code{quit-restore-window} instead.
 
 @defun quit-restore-window &optional window bury-or-kill
 This function handles @var{window} and its buffer after quitting.  The
 optional argument @var{window} must be a live window and defaults to
-the selected one. The function's behavior is determined by the four
-elements of the list specified by @var{window}'s @code{quit-restore}
-parameter (@pxref{Window Parameters}).
-
-The first element of the @code{quit-restore} parameter is one of the
-symbols @code{window}, meaning that the window has been specially
-created by @code{display-buffer}; @code{frame}, a separate frame has
-been created; @code{same}, the window has only ever displayed this
-buffer; or @code{other}, the window showed another buffer before.
-@code{frame} and @code{window} affect how the window is quit, while
-@code{same} and @code{other} affect the redisplay of buffers
-previously shown in @var{window}.
-
-The parameter's second element is either one of the symbols
-@code{window} or @code{frame}, or a list whose elements are the buffer
-shown in @var{window} before, that buffer's window start and window
-point positions, and @var{window}'s height at that time.  If that
-buffer is still live when @var{window} is quit, then this function may
-reuse @var{window} to display it.
-
-The third element is the window selected at the time the parameter was
-created.  If this function deletes @var{window}, it subsequently tries
-to reselect the window named by that element.
-
-The fourth element is the buffer whose display caused the creation of
-this parameter.  This function may delete @var{window} if and only if
-it still shows that buffer.
-
-This function will try to delete @var{window} if and only if (1) the
-first element of its @code{quit-restore} parameter is either
-@code{window} or @code{frame}, (2) the window has no history of
-previously-displayed buffers and (3) the fourth element of the
-@code{quit-restore} parameter specifies the buffer currently displayed
-in @var{window}.  If @var{window} is part of an atomic window
-(@pxref{Atomic Windows}), it will try to delete the root of that
-atomic window instead.  In either case, it tries to avoid signaling an
-error when @var{window} cannot be deleted.
-
-If @var{window} shall be deleted, is the only window on its frame and
-there are other frames on that frame's terminal, the value of the
-optional argument @var{bury-or-kill} determines how to proceed with
-the window.  If @var{bury-or-kill} equals @code{kill}, the frame is
-deleted unconditionally.  Otherwise, the fate of the frame is
-determined by calling @code{frame-auto-hide-function} (see below) with
-that frame as sole argument.
-
-If the second element of the @code{quit-restore} parameter is a list
-of a buffer, a window start (@pxref{Window Start and End}) and a
-window point (@pxref{Window Point}), and that buffer is still live,
-the buffer will be displayed, and start and point set accordingly.
-If, in addition, @var{window}'s buffer was temporarily resized, this
-function will also try to restore the original height of @var{window}.
-
-Otherwise, if @var{window} was previously used for displaying other
-buffers (@pxref{Window History}), the most recent buffer in that
-history will be displayed.  In either case, if @var{window} is not
-deleted, its @code{quit-restore} parameter is reset to @code{nil}.
+the selected one.  The function takes account of the @var{window}'s
+@code{quit-restore} parameter.
 
 The optional argument @var{bury-or-kill} specifies how to deal with
-@var{window}'s buffer.  The following values are handled:
+@var{window}'s buffer.  The following values are meaningful:
 
 @table @code
 @item nil
@@ -4329,25 +4280,106 @@ consequence, if @var{window} is not deleted, invoking
 
 @item append
 This means that if @var{window} is not deleted, its buffer is moved to
-the end of @var{window}'s list of previous buffers, so it's less likely
-that a future invocation of @code{switch-to-prev-buffer} will switch to
-it.  Also, it moves the buffer to the end of the frame's buffer list.
+the end of @var{window}'s list of previous buffers (@pxref{Window
+History}), so it's less likely that future invocations of
+@code{switch-to-prev-buffer} will switch to it.  Also, it moves the
+buffer to the end of the frame's buffer list (@pxref{Buffer List}).
 
 @item bury
 This means that if @var{window} is not deleted, its buffer is removed
-from @var{window}'s list of previous buffers.  Also, it moves the buffer
-to the end of the frame's buffer list.  This value provides the most
-reliable remedy to not have @code{switch-to-prev-buffer} switch to this
-buffer again without killing the buffer.
+from @var{window}'s list of previous buffers.  Also, it moves the
+buffer to the end of the frame's buffer list.  This is the most
+reliable way to prevent @code{switch-to-prev-buffer} from switching to
+this buffer again, short of killing the buffer.
 
 @item kill
 This means to kill @var{window}'s buffer.
 @end table
 
+The argument @var{bury-or-kill} also specifies what to do with
+@var{window}'s frame when @var{window} should be deleted, if it is the
+only window on its frame, and there are other frames on that frame's
+terminal.  If @var{bury-or-kill} equals @code{kill}, it means to
+delete the frame.  Otherwise, the fate of the frame is determined by
+calling @code{frame-auto-hide-function} (see below) with that frame as
+sole argument.
+
+This function always sets @var{window}'s @code{quit-restore} parameter
+to @code{nil} unless it deletes the window.
+@end defun
+
+The window @var{window}'s @code{quit-restore} parameter (@pxref{Window
+Parameters}) should be @code{nil} or a list of four elements:
+@c FIXME: describe what quit-restore-window does if this is nil.
+
+@lisp
+(@var{method} @var{obuffer} @var{owindow} @var{this-buffer})
+@end lisp
+
+The first element, @var{method}, is one of the four symbols
+@code{window}, @code{frame}, @code{same} and @code{other}.
+@code{frame} and @code{window} control how to delete @var{window},
+while @code{same} and @code{other} control displaying some other
+buffer in it.
+
+Specifically, @code{window} means that the window has been specially
+created by @code{display-buffer}; @code{frame} means that a separate
+frame has been created; @code{same}, that the window has only ever
+displayed this buffer; @code{other}, that the window showed another
+buffer before.
+
+The second element, @var{obuffer}, is either one of the symbols
+@code{window} or @code{frame}, or a list of the form
+
+@lisp
+(@var{prev-buffer} @var{prev-window-start} @var{prev-window-point} @var{height})
+@end lisp
+
+@noindent
+which says which buffer was shown in @var{window} before, that
+buffer's window start (@pxref{Window Start and End}) and window point
+(@pxref{Window Point}) positions at that time, and
+@var{window}'s height at that time.  If @var{prev-buffer} is still
+live when quitting @var{window}, quitting the window may reuse
+@var{window} to display @var{prev-buffer}.
+
+The third element, @var{owindow}, is the window that was selected
+just before the displaying was done.  If quitting deletes
+@var{window}, it tries to select @var{owindow}.
+
+The fourth element, @var{this-buffer}, is the buffer whose displaying
+set the @code{quit-restore} parameter.  Quitting @var{window} may delete
+that window only if it still shows that buffer.
+
+Quitting @var{window} tries to delete it if and only if (1)
+@var{method} is either @code{window} or @code{frame}, (2) the window
+has no history of previously-displayed buffers and (3)
+@var{this-buffer} equals the buffer currently displayed in
+@var{window}.  If @var{window} is part of an atomic window
+(@pxref{Atomic Windows}), quitting will try to delete the root of that
+atomic window instead.  In either case, it tries to avoid signaling an
+error when @var{window} cannot be deleted.
+
+If @var{obuffer} is a list, and @var{prev-buffer} is still live,
+quitting displays @var{prev-buffer} in @var{window} according to the
+rest of the elements of @var{obuffer}.  This includes resizing the
+window to @var{height} if it was temporarily resized to display
+@var{this-buffer}.
+
+Otherwise, if @var{window} was previously used for displaying other
+buffers (@pxref{Window History}), the most recent buffer in that
+history will be displayed.
+
+@ignore
+@c FIXME: Should we document display-buffer-reuse-window?
+If we document display-buffer-record-window, it should be with @defun.
+And maybe not here.
+
+
 Typically, the display routines run by @code{display-buffer} will set
-the @code{quit-restore} window parameter correctly.  It's also
-possible to set it manually, using the following code for displaying
-@var{buffer} in @var{window}:
+the @code{quit-restore} window parameter correctly.  You can also set
+it manually, using the following code for displaying @var{buffer} in
+@var{window}:
 
 @example
 @group
@@ -4361,11 +4393,10 @@ possible to set it manually, using the following code for displaying
 
 Setting the window history to @code{nil} ensures that a future call to
 @code{quit-window} can delete the window altogether.
+@end ignore
 
-@end defun
-
-The following option specifies how to deal with a frame containing just
-one window that should be either quit, or whose buffer should be buried.
+The following option specifies a function to do the right thing with a
+frame containing one window when quitting that window.
 
 @defopt frame-auto-hide-function
 The function specified by this option is called to automatically hide
@@ -4393,7 +4424,6 @@ For a particular frame, the value specified here may be overridden by
 that frame's @code{auto-hide-function} frame parameter (@pxref{Frame
 Interaction Parameters}).
 @end defopt
-
 
 @node Side Windows
 @section Side Windows
