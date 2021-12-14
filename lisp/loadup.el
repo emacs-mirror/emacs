@@ -195,8 +195,9 @@
   (setq definition-prefixes new))
 
 (load "button")                  ;After loaddefs, because of define-minor-mode!
-(load "emacs-lisp/nadvice")
 (load "emacs-lisp/cl-preloaded")
+(load "emacs-lisp/oclosure")          ;Used by cl-generic and nadvice
+(load "emacs-lisp/nadvice")
 (load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
@@ -247,7 +248,6 @@
 (load "language/cham")
 
 (load "indent")
-(load "emacs-lisp/oclosure")          ;Used by cl-generic
 (let ((max-specpdl-size (max max-specpdl-size 1800)))
   ;; A particularly demanding file to load; 1600 does not seem to be enough.
   (load "emacs-lisp/cl-generic"))

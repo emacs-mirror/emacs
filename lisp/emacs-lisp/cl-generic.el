@@ -1040,7 +1040,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                  (let ((sclass (cl--find-class specializer))
                        (tclass (cl--find-class type)))
                    (when (and sclass tclass)
-                     (member specializer (cl--generic-class-parents tclass))))))
+                     (member specializer (cl--class-allparents tclass))))))
            (setq applies t)))
     applies))
 
@@ -1169,22 +1169,14 @@ These match if the argument is `eql' to VAL."
   ;; Use exactly the same code as for `typeof'.
   `(if ,name (type-of ,name) 'null))
 
-(defun cl--generic-class-parents (class)
-  (let ((parents ())
-        (classes (list class)))
-    ;; BFS precedence.  FIXME: Use a topological sort.
-    (while (let ((class (pop classes)))
-             (cl-pushnew (cl--class-name class) parents)
-             (setq classes
-                   (append classes
-                           (cl--class-parents class)))))
-    (nreverse parents)))
+(define-obsolete-function-alias 'cl--generic-class-parents
+  #'cl--class-allparents "29.1")
 
 (defun cl--generic-struct-specializers (tag &rest _)
   (and (symbolp tag)
        (let ((class (get tag 'cl--class)))
          (when (cl-typep class 'cl-structure-class)
-           (cl--generic-class-parents class)))))
+           (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl--generic-struct-generalizer
   50 #'cl--generic-struct-tag
@@ -1276,7 +1268,7 @@ Used internally for the (major-mode MODE) context specializers."
   (and (symbolp tag)
        (let ((class (cl--find-class tag)))
          (when (cl-typep class 'oclosure--class)
-           (cl--generic-class-parents class)))))
+           (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl-generic--oclosure-generalizer
   50 #'cl--generic-oclosure-tag
