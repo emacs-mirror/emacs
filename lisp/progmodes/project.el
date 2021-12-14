@@ -1218,7 +1218,7 @@ Used by `project-kill-buffers'."
   :type 'boolean
   :version "29.1"
   :group 'project
-  :package-version '(project . "0.8.1")
+  :package-version '(project . "0.8.2")
   :safe #'booleanp)
 
 (defun project--buffer-list (pr)
