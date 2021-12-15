@@ -10234,7 +10234,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && xev->detail >= 4
 		  && xev->detail <= 8
 		  && xev->flags & XIPointerEmulated)
-		goto XI_OTHER;
+		{
+		  *finish = X_EVENT_DROP;
+		  goto XI_OTHER;
+		}
 #endif
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
