@@ -1529,26 +1529,29 @@ the tests)."
 
 (defun ert-write-junit-test-report (stats)
   "Write a JUnit test report, generated from STATS."
-  ;; https://www.ibm.com/docs/de/developer-for-zos/14.1.0?topic=formats-junit-xml-format
+  ;; https://www.ibm.com/docs/en/developer-for-zos/14.1.0?topic=formats-junit-xml-format
   ;; https://llg.cubic.org/docs/junit/
   (unless (zerop (length (ert--stats-tests stats)))
     (when-let ((test-file
                 (symbol-file
-                 (ert-test-name (aref (ert--stats-tests stats) 0)) 'ert--test)))
-      (with-temp-file (file-name-with-extension test-file "xml")
+                 (ert-test-name (aref (ert--stats-tests stats) 0)) 'ert--test))
+               (test-report (file-name-with-extension test-file "xml")))
+      (with-temp-file test-report
         (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-        (insert (format "<testsuites name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
-                        (file-name-nondirectory test-file)
+        (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+                        (file-name-nondirectory test-report)
                         (ert-stats-total stats)
+                        (if (ert--stats-aborted-p stats) 1 0)
                         (ert-stats-completed-unexpected stats)
                         (ert-stats-skipped stats)
                         (float-time
                          (time-subtract
                           (ert--stats-end-time stats)
                           (ert--stats-start-time stats)))))
-        (insert (format "  <testsuite id=\"0\" name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\" timestamp=\"%s\">\n"
-                        (file-name-nondirectory test-file)
+        (insert (format "  <testsuite id=\"0\" name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\" timestamp=\"%s\">\n"
+                        (file-name-nondirectory test-report)
                         (ert-stats-total stats)
+                        (if (ert--stats-aborted-p stats) 1 0)
                         (ert-stats-completed-unexpected stats)
                         (ert-stats-skipped stats)
                         (float-time
@@ -1570,40 +1573,52 @@ the tests)."
                                   (ert-test-result-expected-p test result))
                                  (ert-test-result-duration result)))
                  (if (and (ert-test-result-expected-p test result)
+                          (not (ert-test-aborted-with-non-local-exit-p result))
                           (not (ert-test-skipped-p result))
                           (zerop (length (ert-test-result-messages result))))
                      (insert "/>\n")
                    (insert ">\n")
-                   (if (ert-test-skipped-p result)
-                       (insert (format "      <skipped message=\"%s\" type=\"%s\">\n"
-                                       (xml-escape-string
-                                        (string-trim
-                                         (ert-reason-for-test-result result)))
-                                       (ert-string-for-test-result
-                                        result
-                                        (ert-test-result-expected-p
-                                         test result)))
-                               (xml-escape-string
-                                (string-trim
-                                 (ert-reason-for-test-result result)))
-                               "\n"
-                               "      </skipped>\n")
-                     (unless
-                         (ert-test-result-type-p
-                          result (ert-test-expected-result-type test))
-                       (insert (format "      <failure message=\"%s\" type=\"%s\">\n"
-                                       (xml-escape-string
-                                        (string-trim
-                                         (ert-reason-for-test-result result)))
-                                       (ert-string-for-test-result
-                                        result
-                                        (ert-test-result-expected-p
-                                         test result)))
-                               (xml-escape-string
-                                (string-trim
-                                 (ert-reason-for-test-result result)))
-                               "\n"
-                               "      </failure>\n")))
+                   (cond
+                    ((ert-test-skipped-p result)
+                     (insert (format "      <skipped message=\"%s\" type=\"%s\">\n"
+                                     (xml-escape-string
+                                      (string-trim
+                                       (ert-reason-for-test-result result)))
+                                     (ert-string-for-test-result
+                                      result
+                                      (ert-test-result-expected-p
+                                       test result)))
+                             (xml-escape-string
+                              (string-trim
+                               (ert-reason-for-test-result result)))
+                             "\n"
+                             "      </skipped>\n"))
+                    ((ert-test-aborted-with-non-local-exit-p result)
+                     (insert (format "      <error message=\"%s\" type=\"%s\">\n"
+                                     (file-name-nondirectory test-report)
+                                     (ert-string-for-test-result
+                                      result
+                                      (ert-test-result-expected-p
+                                       test result)))
+                             (format "Test %s aborted with non-local exit\n"
+                                     (xml-escape-string
+                                      (symbol-name (ert-test-name test))))
+                             "      </error>\n"))
+                    ((not (ert-test-result-type-p
+                           result (ert-test-expected-result-type test)))
+                     (insert (format "      <failure message=\"%s\" type=\"%s\">\n"
+                                     (xml-escape-string
+                                      (string-trim
+                                       (ert-reason-for-test-result result)))
+                                     (ert-string-for-test-result
+                                      result
+                                      (ert-test-result-expected-p
+                                       test result)))
+                             (xml-escape-string
+                              (string-trim
+                               (ert-reason-for-test-result result)))
+                             "\n"
+                             "      </failure>\n")))
                    (unless (zerop (length (ert-test-result-messages result)))
                      (insert "      <system-out>\n"
                              (xml-escape-string
@@ -1617,21 +1632,41 @@ the tests)."
   "Write a JUnit summary test report, generated from LOGFILES."
   (let ((report (file-name-with-extension
                  (getenv "EMACS_TEST_JUNIT_REPORT") "xml"))
-        (tests 0) (failures 0) (skipped 0) (time 0) (id 0))
+        (tests 0) (errors 0) (failures 0) (skipped 0) (time 0) (id 0))
     (with-temp-file report
       (dolist (logfile logfiles)
-        (let ((test-file (file-name-with-extension logfile "xml")))
-          (when (file-readable-p test-file)
-            (insert-file-contents-literally test-file)
+        (let ((test-report (file-name-with-extension logfile "xml")))
+          (if (not (file-readable-p test-report))
+              (let ((logfile (file-name-with-extension logfile "log")))
+                (insert (format "  <testsuite id=\"%s\" name=\"%s\" tests=\"1\" errors=\"1\" failures=\"0\" skipped=\"0\" time=\"0\" timestamp=\"%s\">\n"
+                                id test-report
+                                (ert--format-time-iso8601 (current-time))))
+                (insert (format "    <testcase name=\"Test report missing %s\" status=\"error\" time=\"0\">\n"
+                                (file-name-nondirectory test-report)))
+                (insert (format "      <error message=\"Test report missing %s\" type=\"error\">\n"
+                                (file-name-nondirectory test-report)))
+                (when (file-readable-p logfile)
+                  (insert (xml-escape-string
+                           (with-temp-buffer
+                             (insert-file-contents-literally logfile)
+                             (buffer-string)))))
+                (insert "      </error>\n"
+                        "    </testcase>\n"
+                        "  </testsuite>\n")
+                (cl-incf errors 1)
+                (cl-incf id 1))
+
+            (insert-file-contents-literally test-report)
             (when (looking-at-p
                    (regexp-quote "<?xml version=\"1.0\" encoding=\"utf-8\"?>"))
               (delete-region (point) (line-beginning-position 2)))
             (when (looking-at
-                   "<testsuites name=\".+\" tests=\"\\(.+\\)\" failures=\"\\(.+\\)\" skipped=\"\\(.+\\)\" time=\"\\(.+\\)\">")
+                   "<testsuites name=\".+\" tests=\"\\(.+\\)\" errors=\"\\(.+\\)\" failures=\"\\(.+\\)\" skipped=\"\\(.+\\)\" time=\"\\(.+\\)\">")
               (cl-incf tests (string-to-number (match-string 1)))
-              (cl-incf failures  (string-to-number (match-string 2)))
-              (cl-incf skipped (string-to-number (match-string 3)))
-              (cl-incf time (string-to-number (match-string 4)))
+              (cl-incf errors  (string-to-number (match-string 2)))
+              (cl-incf failures  (string-to-number (match-string 3)))
+              (cl-incf skipped (string-to-number (match-string 4)))
+              (cl-incf time (string-to-number (match-string 5)))
               (delete-region (point) (line-beginning-position 2)))
             (when (looking-at "  <testsuite id=\"\\(0\\)\"")
               (replace-match (number-to-string id) nil nil nil 1)
@@ -1639,16 +1674,17 @@ the tests)."
             (goto-char (point-max))
             (beginning-of-line 0)
             (when (looking-at-p "</testsuites>")
-              (delete-region (point) (line-beginning-position 2)))
-            (narrow-to-region (point-max) (point-max)))))
+              (delete-region (point) (line-beginning-position 2))))
+
+          (narrow-to-region (point-max) (point-max))))
 
       (insert "</testsuites>\n")
       (widen)
       (goto-char (point-min))
       (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-      (insert (format "<testsuites name=\"%s\" tests=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+      (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
                       (file-name-nondirectory report)
-                      tests failures skipped time)))))
+                      tests errors failures skipped time)))))
 
 (defun ert-summarize-tests-batch-and-exit (&optional high)
   "Summarize the results of testing.
