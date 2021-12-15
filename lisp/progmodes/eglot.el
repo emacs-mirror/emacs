@@ -2416,6 +2416,13 @@ is not active."
                      (kind (alist-get (plist-get lsp-item :kind)
                                       eglot--kind-names)))
            (intern (downcase kind))))
+       :company-docsig
+       ;; FIXME: autoImportText is specific to the pyright language server
+       (lambda (proxy)
+         (when-let* ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy))
+                     (data (plist-get (funcall resolve-maybe lsp-comp) :data))
+                     (import-text (plist-get data :autoImportText)))
+           import-text))
        :company-doc-buffer
        (lambda (proxy)
          (let* ((documentation
