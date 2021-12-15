@@ -310,7 +310,9 @@ let the buffer grow forever."
     (5 . "Field") (6 . "Variable") (7 . "Class") (8 . "Interface")
     (9 . "Module") (10 . "Property") (11 . "Unit") (12 . "Value")
     (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
-    (17 . "File") (18 . "Reference")))
+    (17 . "File") (18 . "Reference") (19 . "Folder") (20 . "EnumMember")
+    (21 . "Constant") (22 . "Struct") (23 . "Event") (24 . "Operator")
+    (25 . "TypeParameter")))
 
 (defconst eglot--{} (make-hash-table) "The empty JSON object.")
 
