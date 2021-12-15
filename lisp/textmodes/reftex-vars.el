@@ -70,12 +70,16 @@
       ("tabwindow" ?f nil nil 1)))
 
     (rotating    "Sidewaysfigure and table"
-     (("sidewaysfigure" ?f nil nil caption)
-      ("sidewaystable"  ?t nil nil caption)))
+     (("sidewaysfigure"  ?f nil nil caption)
+      ("sidewaysfigure*" ?f nil nil caption)
+      ("sidewaystable"   ?t nil nil caption)
+      ("sidewaystable*"  ?t nil nil caption)))
 
-    (sidecap      "CSfigure and SCtable"
-     (("SCfigure"       ?f nil nil caption)
-      ("SCtable"        ?t nil nil caption)))
+    (sidecap      "SCfigure and SCtable"
+     (("SCfigure"  ?f nil nil caption)
+      ("SCfigure*" ?f nil nil caption)
+      ("SCtable"   ?t nil nil caption)
+      ("SCtable*"  ?t nil nil caption)))
 
     (subfigure   "Subfigure environments/macro"
      (("subfigure"   ?f nil nil caption)
