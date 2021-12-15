@@ -46,15 +46,8 @@
 ;;; Code:
 
 (require 'wid-edit)
-
 (require 'cl-lib)
-
-(unless (fboundp 'custom-menu-create)
-  (autoload 'custom-menu-create "cus-edit"))
-
 (require 'eudc-vars)
-
-
 
 ;;{{{      Internal cooking
 

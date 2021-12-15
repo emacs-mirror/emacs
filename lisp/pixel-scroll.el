@@ -417,7 +417,8 @@ window, and the pixel height of that line."
     (set-window-start nil pos0 t)
     (set-window-vscroll nil vscroll0 t)
     (when (and line-height
-               (> (car (posn-x-y (posn-at-point pos0))) 0))
+               (> (car (posn-x-y (posn-at-point pos0)))
+                  (line-number-display-width t)))
       (setq line-height (- line-height
                            (save-excursion
                              (goto-char pos0)

@@ -1173,7 +1173,9 @@ displayed."
          (not (major-mode . help-mode)))
     (derived-mode . compilation-mode)
     (derived-mode . dired-mode)
-    (derived-mode . diff-mode))
+    (derived-mode . diff-mode)
+    (derived-mode . comint-mode)
+    (derived-mode . change-log-mode))
   "List of conditions to kill buffers related to a project.
 This list is used by `project-kill-buffers'.
 Each condition is either:
@@ -1206,9 +1208,9 @@ current project, it will be killed."
                                (const and) sexp)
                          (cons :tag "Disjunction"
                                (const or) sexp)))
-  :version "28.1"
+  :version "29.1"
   :group 'project
-  :package-version '(project . "0.6.0"))
+  :package-version '(project . "0.8.2"))
 
 (defcustom project-kill-buffers-display-buffer-list nil
   "Non-nil to display list of buffers to kill before killing project buffers.
@@ -1216,7 +1218,7 @@ Used by `project-kill-buffers'."
   :type 'boolean
   :version "29.1"
   :group 'project
-  :package-version '(project . "0.8.1")
+  :package-version '(project . "0.8.2")
   :safe #'booleanp)
 
 (defun project--buffer-list (pr)

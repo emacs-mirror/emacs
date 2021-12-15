@@ -109,6 +109,7 @@ Appendix
 @end menu
 @end ifnottex
 
+
 @node Introduction
 @chapter Introduction
 @cindex introduction to ERT
@@ -123,7 +124,7 @@ commands to run them to verify whether the definitions that are
 currently loaded in Emacs pass the tests.
 
 Some Lisp files have comments like the following (adapted from the
-package @code{pp.el}):
+package @file{pp.el}):
 
 @lisp
 ;; (pp-to-string '(quote quote))          ; expected: "'quote"
@@ -358,6 +359,7 @@ Prompt for a test and then show its documentation.
 
 @end table
 
+
 @node Running Tests in Batch Mode
 @section Running Tests in Batch Mode
 @cindex running tests in batch mode
@@ -375,7 +377,7 @@ emacs -batch -l ert -l my-tests.el -f ert-run-tests-batch-and-exit
 @end example
 
 This command will start up Emacs in batch mode, load ERT, load
-@code{my-tests.el}, and run all tests defined in it.  It will exit
+@file{my-tests.el}, and run all tests defined in it.  It will exit
 with a zero exit status if all tests passed, or nonzero if any tests
 failed or if anything else went wrong.  It will also print progress
 messages and error diagnostics to standard output.
@@ -439,10 +441,21 @@ emacs -batch -l ert -l my-tests.el \
       -eval '(ert-run-tests-batch-and-exit "to-match")'
 @end example
 
+@vindex EMACS_TEST_VERBOSE@r{, environment variable}
 By default, ERT test failure summaries are quite brief in batch
 mode---only the names of the failed tests are listed.  If the
-EMACS_TEST_VERBOSE environment variable is set, the failure summaries
-will also include the data from the failing test.
+@env{EMACS_TEST_VERBOSE} environment variable is set, the failure
+summaries will also include the data from the failing test.
+
+@vindex EMACS_TEST_JUNIT_REPORT@r{, environment variable}
+ERT can produce JUnit test reports in batch mode.  If the environment
+variable @env{EMACS_TEST_JUNIT_REPORT} is set, ERT will produce for
+every test package @file{my-tests.el} a corresponding JUnit test
+report @file{my-tests.xml}.  The function
+@code{ert-summarize-tests-batch-and-exit} collects all these package
+test reports into a new JUnit test report, with the respective name of
+that environment variable.
+
 
 @node Test Selectors
 @section Test Selectors
@@ -513,6 +526,7 @@ to find where a test was defined if the test was loaded from a file.
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
 @end menu
+
 
 @node The @code{should} Macro
 @section The @code{should} Macro
@@ -793,6 +807,7 @@ code is to restructure the code slightly to provide better interfaces
 for testing.  Usually, this makes the interfaces easier to use as
 well.
 
+
 @node erts files
 @section erts files
 
@@ -906,6 +921,7 @@ non-@code{nil} value, the test will be skipped.
 
 If you need to use the literal line single line @samp{=-=} in a test
 section, you can quote it with a @samp{\} character.
+
 
 @node How to Debug Tests
 @chapter How to Debug Tests
@@ -1108,6 +1124,7 @@ For information on mocks, stubs, fixtures, or test suites, see below.
 * Fixtures and Test Suites::  How ERT differs from tools for other languages.
 @end menu
 
+
 @node Mocks and Stubs
 @section Other Tools for Emacs Lisp
 @cindex mocks and stubs
@@ -1182,10 +1199,12 @@ e.g., to run quick tests during interactive development and slow tests less
 often.  This can be achieved with the @code{:tag} argument to
 @code{ert-deftest} and @code{tag} test selectors.
 
+
 @node Index
 @unnumbered Index
 
 @printindex cp
+
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

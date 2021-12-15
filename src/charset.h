@@ -249,6 +249,7 @@ extern Lisp_Object Vcharset_hash_table;
 /* Table of struct charset.  */
 extern struct charset *charset_table;
 extern int charset_table_size;
+extern int charset_table_used;
 
 #define CHARSET_FROM_ID(id) (charset_table + (id))
 
