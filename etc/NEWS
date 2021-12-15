@@ -1011,20 +1011,6 @@ file:
 
     (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
 
-** Xref migrated from EIEIO to cl-defstruct for its core objects.
-This means that 'oref' and 'with-slots' no longer works on them, and
-'make-instance' can no longer be used to create those instances (which
-wasn't recommended anyway).  Packages should restrict themselves to
-using functions like 'xref-make', 'xref-make-match',
-'xref-make-*-location', as well as accessor functions
-'xref-item-summary' and 'xref-item-location'.
-
-Among the benefits are better performance (noticeable when there are a
-lot of matches) and improved flexibility: 'xref-match-item' instances
-do not require that 'location' inherits from 'xref-location' anymore
-(that class was removed), so packages can create new location types to
-use with "match items" without adding EIEIO as a dependency.
-
 
 * Editing Changes in Emacs 28.1
 
@@ -3723,6 +3709,20 @@ user option has been renamed to 'find-library-source-path', and
 
 ---
 ** The macro 'vc-call' no longer evaluates its second argument twice.
+
+** Xref migrated from EIEIO to cl-defstruct for its core objects.
+This means that 'oref' and 'with-slots' no longer works on them, and
+'make-instance' can no longer be used to create those instances (which
+wasn't recommended anyway).  Packages should restrict themselves to
+using functions like 'xref-make', 'xref-make-match',
+'xref-make-*-location', as well as accessor functions
+'xref-item-summary' and 'xref-item-location'.
+
+Among the benefits are better performance (noticeable when there are a
+lot of matches) and improved flexibility: 'xref-match-item' instances
+do not require that 'location' inherits from 'xref-location' anymore
+(that class was removed), so packages can create new location types to
+use with "match items" without adding EIEIO as a dependency.
 
 
 * Lisp Changes in Emacs 28.1
