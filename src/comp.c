@@ -5278,16 +5278,16 @@ LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
 	Fmake_temp_file_internal (filename, Qnil, build_string (".eln.tmp"),
 				  Qnil);
       if (NILP (Ffile_writable_p (tmp_filename)))
-	comp_u->handle = dynlib_open (SSDATA (encoded_filename));
+	comp_u->handle = dynlib_open_for_eln (SSDATA (encoded_filename));
       else
 	{
 	  Frename_file (filename, tmp_filename, Qt);
-	  comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (tmp_filename)));
+	  comp_u->handle = dynlib_open_for_eln (SSDATA (ENCODE_FILE (tmp_filename)));
 	  Frename_file (tmp_filename, filename, Qnil);
 	}
     }
   else
-    comp_u->handle = dynlib_open (SSDATA (encoded_filename));
+    comp_u->handle = dynlib_open_for_eln (SSDATA (encoded_filename));
 
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, filename,

@@ -5353,7 +5353,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	   their file names through expand-file-name and
 	   decode-coding-string.  */
 	comp_u->file = eln_fname;
-	comp_u->handle = dynlib_open (SSDATA (eln_fname));
+	comp_u->handle = dynlib_open_for_eln (SSDATA (eln_fname));
 	if (!comp_u->handle)
 	  {
 	    fprintf (stderr, "Error using execdir %s:\n",
