@@ -181,30 +181,24 @@ Effective only if `hide-ifdef-expand-reinclusion-guard' is t."
   :type 'regexp
   :version "25.1")
 
-(defvar hide-ifdef-mode-submap
+(defvar-keymap hide-ifdef-mode-submap
+  :doc "Keymap used by `hide-ifdef-mode' under `hide-ifdef-mode-prefix-key'."
   ;; Set up the submap that goes after the prefix key.
-  (let ((map (make-sparse-keymap)))
-    (define-key map "d" 'hide-ifdef-define)
-    (define-key map "u" 'hide-ifdef-undef)
-    (define-key map "D" 'hide-ifdef-set-define-alist)
-    (define-key map "U" 'hide-ifdef-use-define-alist)
-
-    (define-key map "h" 'hide-ifdefs)
-    (define-key map "s" 'show-ifdefs)
-    (define-key map "\C-d" 'hide-ifdef-block)
-    (define-key map "\C-s" 'show-ifdef-block)
-    (define-key map "e" 'hif-evaluate-macro)
-    (define-key map "C" 'hif-clear-all-ifdef-defined)
-
-    (define-key map "\C-q" 'hide-ifdef-toggle-read-only)
-    (define-key map "\C-w" 'hide-ifdef-toggle-shadowing)
-    (substitute-key-definition
-     'read-only-mode 'hide-ifdef-toggle-outside-read-only map)
-    ;; `toggle-read-only' is obsoleted by `read-only-mode'.
-    (substitute-key-definition
-     'toggle-read-only 'hide-ifdef-toggle-outside-read-only map)
-    map)
-  "Keymap used by `hide-ifdef-mode' under `hide-ifdef-mode-prefix-key'.")
+  "d"   #'hide-ifdef-define
+  "u"   #'hide-ifdef-undef
+  "D"   #'hide-ifdef-set-define-alist
+  "U"   #'hide-ifdef-use-define-alist
+  "h"   #'hide-ifdefs
+  "s"   #'show-ifdefs
+  "C-d" #'hide-ifdef-block
+  "C-s" #'show-ifdef-block
+  "e"   #'hif-evaluate-macro
+  "C"   #'hif-clear-all-ifdef-defined
+  "C-q" #'hide-ifdef-toggle-read-only
+  "C-w" #'hide-ifdef-toggle-shadowing
+  "<remap> <read-only-mode>" #'hide-ifdef-toggle-outside-read-only
+  ;; `toggle-read-only' is obsoleted by `read-only-mode'.
+  "<remap> <toggle-read-only>" #'hide-ifdef-toggle-outside-read-only)
 
 (defcustom hide-ifdef-mode-prefix-key "\C-c@"
   "Prefix key for all Hide-Ifdef mode commands."
