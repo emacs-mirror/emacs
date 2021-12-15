@@ -3177,7 +3177,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
   DUMP_FIELD_COPY (&out, cs, hash_index);
   DUMP_FIELD_COPY (&out, cs, dimension);
   memcpy (out.code_space, &cs->code_space, sizeof (cs->code_space));
-  if (cs->code_space_mask)
+  if (cs_i < charset_table_used && cs->code_space_mask)
     dump_field_fixup_later (ctx, &out, cs, &cs->code_space_mask);
   DUMP_FIELD_COPY (&out, cs, code_linear_p);
   DUMP_FIELD_COPY (&out, cs, iso_chars_96);
@@ -3198,7 +3198,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
   memcpy (out.fast_map, &cs->fast_map, sizeof (cs->fast_map));
   DUMP_FIELD_COPY (&out, cs, code_offset);
   dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
-  if (cs->code_space_mask)
+  if (cs_i < charset_table_used && cs->code_space_mask)
     dump_remember_cold_op (ctx, COLD_OP_CHARSET,
                            Fcons (dump_off_to_lisp (cs_i),
                                   dump_off_to_lisp (offset)));

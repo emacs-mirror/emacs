@@ -63,7 +63,7 @@ Lisp_Object Vcharset_hash_table;
 /* Table of struct charset.  */
 struct charset *charset_table;
 int charset_table_size;
-static int charset_table_used;
+int charset_table_used;
 
 /* Special charsets corresponding to symbols.  */
 int charset_ascii;
