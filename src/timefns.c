@@ -1651,12 +1651,11 @@ saving flag to be guessed.
 
 As an obsolescent calling convention, if this function is called with
 6 or more arguments, the first 6 arguments are SECOND, MINUTE, HOUR,
-DAY, MONTH, and YEAR, and specify the components of a decoded time,
-where DST assumed to be -1 and FORM is omitted.  If there are more
-than 6 arguments the *last* argument is used as ZONE and any other
-extra arguments are ignored, so that (apply #\\='encode-time
-(decode-time ...)) works.  In this obsolescent convention, DST and
-ZONE default to -1 and nil respectively.
+DAY, MONTH, and YEAR, and specify the components of a decoded time.
+If there are more than 6 arguments the *last* argument is used as ZONE
+and any other extra arguments are ignored, so that (apply
+#\\='encode-time (decode-time ...)) works.  In this obsolescent
+convention, DST and ZONE default to -1 and nil respectively.
 
 Years before 1970 are not guaranteed to work.  On some systems,
 year values as low as 1901 do work.
