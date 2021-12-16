@@ -252,15 +252,22 @@ DOC should be a doc string, and ARGS are keywords as applicable to
   (url-hexify-string name))
 
 (defun multisession--update-file-value (file object)
-  (with-temp-buffer
-    (let* ((time (file-attribute-modification-time
-                  (file-attributes file)))
-           (coding-system-for-read 'utf-8))
-      (insert-file-contents file)
-      (let ((stored (read (current-buffer))))
-        (setf (multisession--cached-value object) stored
-              (multisession--cached-sequence object) time)
-        stored))))
+  (condition-case nil
+      (with-temp-buffer
+        (let* ((time (file-attribute-modification-time
+                      (file-attributes file)))
+               (coding-system-for-read 'utf-8))
+          (insert-file-contents file)
+          (let ((stored (read (current-buffer))))
+            (setf (multisession--cached-value object) stored
+                  (multisession--cached-sequence object) time)
+            stored)))
+    ;; If the file is contended (could happen with file locking in
+    ;; Windws) or unreadable, just return the current value.
+    (error
+     (if (eq (multisession--cached-value object) multisession--unbound)
+         (multisession--initial-value object)
+       (multisession--cached-value object)))))
 
 (defun multisession--object-file-name (object)
   (expand-file-name
