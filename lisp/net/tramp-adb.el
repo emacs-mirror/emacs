@@ -416,9 +416,9 @@ Emacs dired can't find files."
   "Sort \"ls\" output by time, descending."
   (let (time-a time-b)
     (string-match tramp-adb-ls-date-regexp a)
-    (setq time-a (apply #'encode-time (parse-time-string (match-string 0 a))))
+    (setq time-a (encode-time (parse-time-string (match-string 0 a))))
     (string-match tramp-adb-ls-date-regexp b)
-    (setq time-b (apply #'encode-time (parse-time-string (match-string 0 b))))
+    (setq time-b (encode-time (parse-time-string (match-string 0 b))))
     (time-less-p time-b time-a)))
 
 (defun tramp-adb-ls-output-name-less-p (a b)
