@@ -1140,8 +1140,7 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 	     upwards by multiplying the normalized numerator and denominator
 	     so that the resulting denominator becomes at least hzmin.
 	     This rescaling avoids returning a timestamp that is less precise
-	     than both a and b, or a timestamp that looks obsolete when that
-	     might be a problem.  */
+	     than both a and b.  */
 	  if (!FASTER_TIMEFNS || mpz_cmp (*ihz, *hzmin) < 0)
 	    {
 	      /* Rescale straightforwardly.  Although this might not
