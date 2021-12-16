@@ -283,6 +283,7 @@ buffers (yet) -- that will be amended in a future version.
 The `outline-minor-mode-buttons' variable specifies how the
 buttons should look."
   :type 'boolean
+  :safe #'booleanp
   :version "29.1")
 
 (defcustom outline-minor-mode-buttons
@@ -376,8 +377,8 @@ When point is on a heading line, then typing `TAB' cycles between `hide all',
 a heading line cycles the whole buffer (`outline-cycle-buffer').
 Typing these keys anywhere outside heading lines uses their default bindings."
   :type 'boolean
+  :safe #'booleanp
   :version "28.1")
-;;;###autoload(put 'outline-minor-mode-cycle 'safe-local-variable 'booleanp)
 
 (defcustom outline-minor-mode-highlight nil
   "Highlight headings in `outline-minor-mode' using font-lock keywords.
@@ -391,8 +392,8 @@ faces to major mode's faces."
                  (const :tag "Overwrite major mode faces" override)
                  (const :tag "Append outline faces to major mode faces" append)
                  (const :tag "Highlight separately from major mode faces" t))
+  :safe #'symbolp
   :version "28.1")
-;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'symbolp)
 
 (defun outline-minor-mode-highlight-buffer ()
   ;; Fallback to overlays when font-lock is unsupported.

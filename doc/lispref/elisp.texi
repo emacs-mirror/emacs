@@ -526,6 +526,7 @@ Variables
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 * Generalized Variables::   Extending the concept of variables.
+* Multisession Variables::  Variables that survive restarting Emacs.
 
 Scoping Rules for Variable Bindings
 
@@ -546,6 +547,10 @@ Generalized Variables
 
 * Setting Generalized Variables::   The @code{setf} macro.
 * Adding Generalized Variables::    Defining new @code{setf} forms.
+
+Multisession Variables
+
+* Multisession Variables::      Variables that survive restarting Emacs.
 
 Functions
 
