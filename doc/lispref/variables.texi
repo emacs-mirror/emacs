@@ -44,6 +44,7 @@ representing the variable.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 * Generalized Variables::       Extending the concept of variables.
+* Multisession Variables::      Variables that survive restarting Emacs.
 @end menu
 
 @node Global Variables
@@ -2752,3 +2753,139 @@ form that has not already had an appropriate expansion defined.  In
 Common Lisp, this is not an error since the function @code{(setf
 @var{func})} might be defined later.
 @end quotation
+
+@node Multisession Variables
+@section Multisession Variables
+
+@cindex multisession variable
+  When you set a variable to a value and then close Emacs and restart
+Emacs, this value won't be automatically restored.  Users usually set
+normal variables in their startup files, or use Customize to set a
+user option permanently, and various packages have various files that
+they store the data in (Gnus stores this in @file{.newsrc.eld} and the
+URL library stores cookies in @file{~/.emacs.d/url/cookies}.
+
+For things in between these two extremes (i.e., configuration which
+goes in the startup file, and massive application state that goes into
+separate files), Emacs provides a facility to replicate data between
+sessions called @dfn{multisession variables}.  (This may not be
+available on all systems.)  To give you an idea of how these are meant
+to be used, here's a small example:
+
+@lisp
+(define-multisession-variable foo-var 0)
+(defun my-adder (num)
+  (interactive "nAdd number: ")
+  (setf (multisession-value foo)
+        (+ (multisession-value foo) num))
+  (message "The new number is: %s" (multisession-value foo)))
+@end lisp
+
+This defines the variable @code{foo-var} and binds it to a special
+multisession object which is initialized with the value @samp{0} (if
+the variable doesn't already exist from a previous session).  The
+@code{my-adder} command queries the user for a number, adds this to
+the old (possibly saved value), and then saves the new value.
+
+This facility isn't meant to be used for huge data structures, but
+should be performant for most values.
+
+@defmac define-multisession-variable name initial-value &optional doc &rest args
+This macro defines @var{name} as a multisession variable, with using
+@var{initial-value} is this variable hasn't been stored earlier.
+@var{doc} is the doc string, and some keyword arguments are possible:
+
+@table @code
+@item :package symbol
+This keyword says what package a multisession variable belongs to.
+The combination of @var{package} and @var{name} has to be unique.  If
+@var{package} isn't given, this will default to the first ``section''
+of the @var{name} symbol name.  For instance, if @var{name} is
+@code{foo-var} and @var{package} isn't given, @var{package} will
+default to @code{foo}.
+
+@item :synchronized bool
+Multisession variables can be @dfn{synchronized} if this keyword is
+non-@code{nil}.  This means that if there's two concurrent Emacs
+instances running, and the other Emacs changes the multisession
+variable @code{foo-var}, the current Emacs instance will retrieve that
+data when accessing the value.  If @var{synchronized} is @code{nil} or
+missing, this won't happen, and the variable in all Emacs sessions
+will be independent.
+
+@item :storage storage
+The storage method to use.  This can be either @code{sqlite} (on Emacs
+versions with SQLite support) or @code{files}.  If not given, this
+defaults to the value of the @code{multisession-storage} variable.
+@end table
+@end defmac
+
+@defun multisession-value variable
+This function returns the current value of @var{variable}.  If this
+variable hasn't been accessed before in this Emacs session, or if it's
+changed externally, it will be read in from external storage.  If not,
+the current value in this session is returned as is.
+
+Values retrieved via @code{multisession-value} may or may not be
+@code{eq} to each other, but they will always be @code{equal}.
+
+This is a generalized variable (@pxref{Generalized Variables}), so the
+way to update a variable is to say, for instance:
+
+@lisp
+(setf (multisession-value foo-bar) 'zot)
+@end lisp
+
+Only Emacs Lisp values that have a readable print syntax can be saved
+this way.
+
+If the multisession variable is synchronized, setting it may update
+the value first.  For instance:
+
+@lisp
+(cl-incf (multisession-value foo-bar))
+@end lisp
+
+This will first check whether the value has changed in a different
+Emacs instance, retrieve that value, and then add 1 to that value, and
+then store it.  But note that this is done without locking, so if many
+instances are updating the value at the same time, it's unpredictable
+which instance ``wins''.
+@end defun
+
+@defun multisession-delete object
+This function will delete the value from the backend storage.
+@end defun
+
+@defun make-multisession
+You can also make persistent values that aren't tied to a specific
+variable, but is tied to an explicit package and key.
+
+@example
+(setq foo (make-multisession :package "mail"
+                             :key "friends"))
+(setf (multisession-value foo) 'everybody)
+@end example
+
+This supports the same keywords as
+@code{define-multisession-variable}, but also supports a
+@code{:initial-value} keyword, which specifies the default value.
+@end defun
+
+@defopt multisession-storage
+This variable controls how the multisession variables are stored.  This
+value defaults to @code{files}, which means that the values are stored
+inin a one-file-per-value structure.  If this value is @code{sqlite}
+instead, the values are stored in an SQLite database instead.
+@end defopt
+
+@defopt multisession-directory
+The multisession variables are stored under this directory, and it
+defaults to @file{multisession/} under @code{user-emacs-directory},
+typically @file{~/.emacs.d/multisession/}.
+@end defopt
+
+@defun list-multisession-values
+This function will pop up a new window that lists all multisession
+variables, and allows you to delete and edit them.
+@end defun

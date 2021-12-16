@@ -840,6 +840,12 @@ This change is now applied in 'dired-insert-directory'.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New facility for handling session state: 'multisession-value'.
+This can be used as a convenient way to store (simple) application
+state, and 'M-x list-multisession-values' allows users to list
+(and edit) this data.
+
++++
 ** New function 'get-display-property'.
 This is like 'get-text-property', but works on the 'display' text
 property.
