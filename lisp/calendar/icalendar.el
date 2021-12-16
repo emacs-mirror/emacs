@@ -645,10 +645,10 @@ FIXME: multiple comma-separated values should be allowed!"
           (setq second (read (substring isodatetimestring 13 15))))
 	;; FIXME: Support subseconds.
         (when (> (length isodatetimestring) 15)
-          (cl-case (aref isodatetimestring 15)
+	  (pcase (aref isodatetimestring 15)
             (?Z
              (setq source-zone t))
-            ((?- ?+)
+	    ((or ?- ?+)
              (setq source-zone
                    (concat "UTC" (substring isodatetimestring 15))))))
         ;; shift if necessary
