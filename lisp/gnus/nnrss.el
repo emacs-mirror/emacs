@@ -450,7 +450,7 @@ nnrss: %s: Not valid XML %s and libxml-parse-html-region doesn't work %s"
 This function handles the ISO 8601 date format described in
 URL `https://www.w3.org/TR/NOTE-datetime', and also the RFC 822 style
 which RSS 2.0 allows."
-  (let (case-fold-search vector year month day time zone cts given)
+  (let (case-fold-search vector year month day time zone given)
     (cond ((null date))			; do nothing for this case
 	  ;; if the date is just digits (unix time stamp):
 	  ((string-match "^[0-9]+$" date)
@@ -481,13 +481,13 @@ which RSS 2.0 allows."
 			    0
 			  (decoded-time-zone decoded))))))
     (if month
-	(progn
-	  (setq cts (current-time-string (encode-time 0 0 0 day month year)))
-	  (format "%s, %02d %s %04d %s%s"
-		  (substring cts 0 3) day (substring cts 4 7) year time
-		  (if zone
-		      (concat " " (format-time-string "%z" nil zone))
-		    "")))
+	(concat (let ((system-time-locale "C"))
+		  (format-time-string "%a, %d %b %Y "
+				      (encode-time 0 0 0 day month year)))
+		time
+		(if zone
+		    (format-time-string " %z" nil zone)
+		  ""))
       (message-make-date given))))
 
 ;;; data functions
