@@ -127,11 +127,12 @@ preserve the setting."
   :group 'vc)
 
 (defcustom vc-command-messages nil
-  "If non-nil, display and log run messages from back-end commands.
-If `log', messages are logged to the *Messages* buffer but not displayed."
+  "If non-nil, display and log messages about running back-end commands.
+If the value is `log', messages about running VC back-end commands are
+logged in the *Messages* buffer, but not displayed."
   :type '(choice (const :tag "No messages" nil)
                  (const :tag "Display and log messages" t)
-                 (const :tag "Log messages" log))
+                 (const :tag "Log messages, but don't display" log))
   :group 'vc)
 
 (defcustom vc-suppress-confirm nil
