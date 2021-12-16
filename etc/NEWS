@@ -1152,6 +1152,12 @@ cookies set by web pages on disk.
 This variable is bound to t during the preparation of a "*Help*" buffer.
 
 +++
+** Timestamps like (1 . 1000) now work without warnings being generated.
+For example, (time-add nil '(1 . 1000)) no longer warns that the
+(1 . 1000) acts like (1000 . 1000000).  This warning, which was a
+temporary transition aid for Emacs 27, has served its purpose.
+
++++
 ** 'date-to-time' now assumes earliest values if its argument lacks
 month, day, or time.  For example, (date-to-time "2021-12-04") now
 assumes a time of 00:00 instead of signaling an error.

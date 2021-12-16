@@ -80,8 +80,7 @@ struct lisp_time
   /* Clock count as a Lisp integer.  */
   Lisp_Object ticks;
 
-  /* Clock frequency (ticks per second) as a positive Lisp integer.
-     (TICKS . HZ) is a valid Lisp timestamp unless HZ < 65536.  */
+  /* Clock frequency (ticks per second) as a positive Lisp integer.  */
   Lisp_Object hz;
 };
 
