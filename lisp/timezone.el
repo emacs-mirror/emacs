@@ -299,11 +299,10 @@ Return a list in the same format as `current-time-zone's result,
 or nil if the local time zone could not be computed.
 DATE is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-   (and (fboundp 'current-time-zone)
-	(let ((utc-time (timezone-time-from-absolute date seconds)))
-	  (and utc-time
-	       (let ((zone (current-time-zone utc-time)))
-		 (and (car zone) zone))))))
+  (let ((utc-time (timezone-time-from-absolute date seconds)))
+    (and utc-time
+	 (let ((zone (current-time-zone utc-time)))
+	   (and (car zone) zone)))))
 
 (defun timezone-fix-time (date local timezone)
   "Convert DATE (default timezone LOCAL) to YYYY-MM-DD-HH-MM-SS-ZONE vector.
