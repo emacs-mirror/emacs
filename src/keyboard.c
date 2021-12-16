@@ -6010,6 +6010,46 @@ make_lispy_event (struct input_event *event)
 	return list2 (Qtouch_end, position);
       }
 
+    case TOUCHSCREEN_BEGIN_EVENT:
+    case TOUCHSCREEN_END_EVENT:
+      {
+	Lisp_Object x, y, id, position;
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	id = event->arg;
+	x = event->x;
+	y = event->y;
+
+	position = make_lispy_position (f, x, y, event->timestamp);
+
+	return list2 (((event->kind
+			== TOUCHSCREEN_BEGIN_EVENT)
+		       ? Qtouchscreen_begin
+		       : Qtouchscreen_end),
+		      Fcons (id, position));
+      }
+
+    case TOUCHSCREEN_UPDATE_EVENT:
+      {
+	Lisp_Object x, y, id, position, tem, it, evt;
+	struct frame *f = XFRAME (event->frame_or_window);
+	evt = Qnil;
+
+	for (tem = event->arg; CONSP (tem); tem = XCDR (tem))
+	  {
+	    it = XCAR (tem);
+
+	    x = XCAR (it);
+	    y = XCAR (XCDR (it));
+	    id = XCAR (XCDR (XCDR (it)));
+
+	    position = make_lispy_position (f, x, y, event->timestamp);
+	    evt = Fcons (Fcons (id, position), evt);
+	  }
+
+	return list2 (Qtouchscreen_update, evt);
+      }
+
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
       /* We don't have down and up events if using toolkit scroll bars,
@@ -12257,6 +12297,9 @@ See also `pre-command-hook'.  */);
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
   DEFSYM (Qecho_area_clear_hook, "echo-area-clear-hook");
+  DEFSYM (Qtouchscreen_begin, "touchscreen-begin");
+  DEFSYM (Qtouchscreen_end, "touchscreen-end");
+  DEFSYM (Qtouchscreen_update, "touchscreen-update");
   Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,

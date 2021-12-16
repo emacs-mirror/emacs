@@ -274,6 +274,19 @@ enum event_kind
      In the future, this may take into account other multi-touch
      events generated from touchscreens and such.  */
   , TOUCH_END_EVENT
+
+  /* In a TOUCHSCREEN_UPDATE_EVENT, ARG is a list of elements of the
+     form (X Y ID), where X and Y are the coordinates of the
+     touchpoint relative to the top-left corner of the frame, and ID
+     is a unique number identifying the touchpoint.
+
+     In TOUCHSCREEN_BEGIN_EVENT and TOUCHSCREEN_END_EVENT, ARG is the
+     unique ID of the touchpoint, and X and Y are the frame-relative
+     positions of the touchpoint.  */
+
+  , TOUCHSCREEN_UPDATE_EVENT
+  , TOUCHSCREEN_BEGIN_EVENT
+  , TOUCHSCREEN_END_EVENT
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

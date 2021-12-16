@@ -1162,6 +1162,12 @@ temporary transition aid for Emacs 27, has served its purpose.
 month, day, or time.  For example, (date-to-time "2021-12-04") now
 assumes a time of 00:00 instead of signaling an error.
 
++++
+** New events for taking advantage of touchscreen devices.
+The events 'touchscreen-down', 'touchscreen-update' and
+'touchscreen-end' have been added to take better advantage of
+touch-capable display panels.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
