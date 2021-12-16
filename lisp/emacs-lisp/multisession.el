@@ -324,6 +324,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
             (create-lockfiles nil)
             (temp (make-temp-name file)))
         (write-region (point-min) (point-max) temp nil 'silent)
+        (set-file-times temp time)
         (rename-file temp file t)))
     (setf (multisession--cached-sequence object) time
           (multisession--cached-value object) value)))
