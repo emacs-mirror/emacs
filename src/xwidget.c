@@ -149,6 +149,8 @@ fails.  */)
   if (!EQ (type, Qwebkit))
     error ("Bad xwidget type");
 
+  Frequire (Qxwidget, Qnil, Qnil);
+
   struct xwidget *xw = allocate_xwidget ();
   Lisp_Object val;
   xw->type = type;
