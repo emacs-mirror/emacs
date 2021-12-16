@@ -184,6 +184,7 @@
 
 (ert-deftest sqlite-load-extension ()
   (skip-unless (sqlite-available-p))
+  (skip-unless (fboundp 'sqlite-load-extension))
   (let (db)
     (setq db (sqlite-open))
     (should-error
