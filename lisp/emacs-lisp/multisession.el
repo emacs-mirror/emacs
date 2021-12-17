@@ -157,7 +157,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
          multisession--db
          "create unique index multisession_idx on multisession (package, key)")))))
 
-(cl-defmethod multisession-backend-value ((_type (eql sqlite)) object)
+(cl-defmethod multisession-backend-value ((_type (eql 'sqlite)) object)
   (multisession--ensure-db)
   (let ((id (list (multisession--package object)
                   (multisession--key object))))
@@ -197,7 +197,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
      (t
       (multisession--cached-value object)))))
 
-(cl-defmethod multisession--backend-set-value ((_type (eql sqlite))
+(cl-defmethod multisession--backend-set-value ((_type (eql 'sqlite))
                                                object value)
   (catch 'done
     (let ((i 0))
@@ -233,13 +233,13 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                    id)))
       (setf (multisession--cached-value object) value))))
 
-(cl-defmethod multisession--backend-values ((_type (eql sqlite)))
+(cl-defmethod multisession--backend-values ((_type (eql 'sqlite)))
   (multisession--ensure-db)
   (sqlite-select
    multisession--db
    "select package, key, value from multisession order by package, key"))
 
-(cl-defmethod multisession--backend-delete ((_type (eql sqlite)) object)
+(cl-defmethod multisession--backend-delete ((_type (eql 'sqlite)) object)
   (sqlite-execute multisession--db
                   "delete from multisession where package = ? and key = ?"
                   (list (multisession--package object)
@@ -277,7 +277,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            ".value")
    multisession-directory))
 
-(cl-defmethod multisession-backend-value ((_type (eql files)) object)
+(cl-defmethod multisession-backend-value ((_type (eql 'files)) object)
   (let ((file (multisession--object-file-name object)))
     (cond
      ;; We have no value yet; see whether it's stored.
@@ -300,7 +300,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
      (t
       (multisession--cached-value object)))))
 
-(cl-defmethod multisession--backend-set-value ((_type (eql files))
+(cl-defmethod multisession--backend-set-value ((_type (eql 'files))
                                                object value)
   (let ((file (multisession--object-file-name object))
         (time (current-time)))
@@ -329,7 +329,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
     (setf (multisession--cached-sequence object) time
           (multisession--cached-value object) value)))
 
-(cl-defmethod multisession--backend-values ((_type (eql files)))
+(cl-defmethod multisession--backend-values ((_type (eql 'files)))
   (mapcar (lambda (file)
             (let ((bits (file-name-split file)))
               (list (url-unhex-string (car (last bits 2)))
@@ -343,7 +343,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            (expand-file-name "files" multisession-directory)
            "\\.value\\'")))
 
-(cl-defmethod multisession--backend-delete ((_type (eql files)) object)
+(cl-defmethod multisession--backend-delete ((_type (eql 'files)) object)
   (let ((file (multisession--object-file-name object)))
     (when (file-exists-p file)
       (delete-file file))))
