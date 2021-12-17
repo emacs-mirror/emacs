@@ -26,7 +26,6 @@
 (require 'cl-lib)
 (require 'eieio)
 (require 'sqlite)
-(require 'url)
 (require 'tabulated-list)
 
 (defcustom multisession-storage 'files
