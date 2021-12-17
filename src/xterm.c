@@ -10890,6 +10890,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  xi_link_touch_point (device, xev->detail, xev->event_x,
 				       xev->event_y);
 
+#ifdef HAVE_GTK3
 		  if (FRAME_X_OUTPUT (f)->menubar_widget
 		      && xg_event_is_for_menubar (f, event))
 		    {
@@ -10902,6 +10903,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      set_frame_menubar (f, true);
 		      waiting_for_input = was_waiting_for_input;
 		    }
+#endif
 
 		  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 		  inev.ie.timestamp = xev->time;
