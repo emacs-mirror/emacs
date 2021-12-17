@@ -2916,7 +2916,7 @@ initial_set_up_x_back_buffer (struct frame *f)
   unblock_input ();
 }
 
-#if defined HAVE_XINPUT2 && !defined USE_GTK
+#if defined HAVE_XINPUT2
 static void
 setup_xi_event_mask (struct frame *f)
 {
@@ -2927,6 +2927,9 @@ setup_xi_event_mask (struct frame *f)
   mask.mask = m = alloca (l);
   memset (m, 0, l);
   mask.mask_len = l;
+
+  block_input ();
+#ifndef USE_GTK
   mask.deviceid = XIAllMasterDevices;
 
   XISetMask (m, XI_ButtonPress);
@@ -2945,14 +2948,25 @@ setup_xi_event_mask (struct frame *f)
 		  &mask, 1);
 
   memset (m, 0, l);
+#endif /* !USE_GTK */
+
   mask.deviceid = XIAllDevices;
 
   XISetMask (m, XI_PropertyEvent);
   XISetMask (m, XI_HierarchyChanged);
   XISetMask (m, XI_DeviceChanged);
+#ifdef XI_TouchBegin
+  if (FRAME_DISPLAY_INFO (f)->xi2_version >= 2)
+    {
+      XISetMask (m, XI_TouchBegin);
+      XISetMask (m, XI_TouchUpdate);
+      XISetMask (m, XI_TouchEnd);
+    }
+#endif
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
+  unblock_input ();
 }
 #endif
 
@@ -3248,6 +3262,11 @@ x_window (struct frame *f)
       }
     unblock_input ();
   }
+#endif
+
+#ifdef HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    setup_xi_event_mask (f);
 #endif
 }
 

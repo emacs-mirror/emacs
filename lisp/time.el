@@ -355,7 +355,7 @@ update which can wait for the next redisplay."
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
-         (time-zone (car (cdr (current-time-zone now))))
+	 (time-zone (format-time-string "%Z" now))
          (day (substring time 8 10))
          (year (format-time-string "%Y" now))
          (monthname (substring time 4 7))

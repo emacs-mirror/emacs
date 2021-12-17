@@ -617,12 +617,8 @@ OLDMODE will be modified accordingly just like chmod(2) would have done."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let* ((time (list high low))
-	 (str (current-time-string time)))
-    (format "%s-%s-%s"
-	    (substring str 8 10)
-	    (substring str 4 7)
-	    (format-time-string "%Y" time))))
+  (let ((system-time-locale "C"))
+    (format-time-string "%e-%b-%Y" (list high low))))
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."

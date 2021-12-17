@@ -467,8 +467,8 @@ checksum before doing the check."
 
 (defun tar-clip-time-string (time)
   (declare (obsolete format-time-string "27.1"))
-  (let ((str (current-time-string time)))
-    (concat " " (substring str 4 16) (format-time-string " %Y" time))))
+  (let ((system-time-locale "C"))
+    (format-time-string " %b %e %H:%M %Y" time)))
 
 (defun tar-grind-file-mode (mode)
   "Construct a `rw-r--r--' string indicating MODE.

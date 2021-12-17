@@ -1352,7 +1352,7 @@ may change as higher-resolution clocks become available.
 
 @cindex time value
   Function arguments, e.g., the @var{time} argument to
-@code{current-time-string}, accept a more-general @dfn{time value}
+@code{format-time-string}, accept a more-general @dfn{time value}
 format, which can be a Lisp timestamp, @code{nil} for the current
 time, a single floating-point number for seconds, or a list
 @code{(@var{high} @var{low} @var{micro})} or @code{(@var{high}
@@ -1507,10 +1507,7 @@ The optional @var{form} argument specifies the timestamp form to be
 returned.  If @var{form} is the symbol @code{integer}, this function
 returns an integer count of seconds.  If @var{form} is a positive
 integer, it specifies a clock frequency and this function returns an
-integer-pair timestamp @code{(@var{ticks}
-. @var{form})}.@footnote{Currently a positive integer @var{form}
-should be at least 65536 if the returned value is intended to be given
-to standard functions expecting Lisp timestamps.}  If @var{form} is
+integer-pair timestamp @code{(@var{ticks} . @var{form})}.  If @var{form} is
 @code{t}, this function treats it as a positive integer suitable for
 representing the timestamp; for example, it is treated as 1000000000
 if @var{time} is nil and the platform timestamp has nanosecond

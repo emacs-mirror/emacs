@@ -179,13 +179,24 @@ struct xi_scroll_valuator_t
   int horizontal;
 };
 
+struct xi_touch_point_t
+{
+  struct xi_touch_point_t *next;
+
+  int number;
+  double x, y;
+};
+
 struct xi_device_t
 {
   int device_id;
   int scroll_valuator_count;
   int grab;
+  bool master_p;
+  bool direct_p;
 
   struct xi_scroll_valuator_t *valuators;
+  struct xi_touch_point_t *touchpoints;
 };
 #endif
 

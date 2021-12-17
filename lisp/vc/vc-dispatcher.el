@@ -127,8 +127,12 @@ preserve the setting."
   :group 'vc)
 
 (defcustom vc-command-messages nil
-  "If non-nil, display run messages from back-end commands."
-  :type 'boolean
+  "If non-nil, display and log messages about running back-end commands.
+If the value is `log', messages about running VC back-end commands are
+logged in the *Messages* buffer, but not displayed."
+  :type '(choice (const :tag "No messages" nil)
+                 (const :tag "Display and log messages" t)
+                 (const :tag "Log messages, but don't display" log))
   :group 'vc)
 
 (defcustom vc-suppress-confirm nil
@@ -311,7 +315,10 @@ case, and the process object in the asynchronous case."
 		      (substring command 0 -1)
 		    command)
 		  " " (vc-delistify flags)
-		  " " (vc-delistify files))))
+		  " " (vc-delistify files)))
+	 (vc-inhibit-message
+	  (or (eq vc-command-messages 'log)
+	      (eq (selected-window) (active-minibuffer-window)))))
     (save-current-buffer
       (unless (or (eq buffer t)
 		  (and (stringp buffer)
@@ -335,7 +342,7 @@ case, and the process object in the asynchronous case."
 		       (apply #'start-file-process command (current-buffer)
                               command squeezed))))
 		(when vc-command-messages
-		  (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+		  (let ((inhibit-message vc-inhibit-message))
 		    (message "Running in background: %s" full-command)))
                 ;; Get rid of the default message insertion, in case we don't
                 ;; set a sentinel explicitly.
@@ -345,11 +352,11 @@ case, and the process object in the asynchronous case."
 		(when vc-command-messages
 		  (vc-run-delayed
 		    (let ((message-truncate-lines t)
-			  (inhibit-message (eq (selected-window) (active-minibuffer-window))))
+			  (inhibit-message vc-inhibit-message))
 		      (message "Done in background: %s" full-command)))))
 	    ;; Run synchronously
 	    (when vc-command-messages
-	      (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+	      (let ((inhibit-message vc-inhibit-message))
 		(message "Running in foreground: %s" full-command)))
 	    (let ((buffer-undo-list t))
 	      (setq status (apply #'process-file command nil t nil squeezed)))
@@ -364,7 +371,7 @@ case, and the process object in the asynchronous case."
 		     (if (integerp status) (format "status %d" status) status)
 		     full-command))
 	    (when vc-command-messages
-	      (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
+	      (let ((inhibit-message vc-inhibit-message))
 		(message "Done (status=%d): %s" status full-command)))))
 	(vc-run-delayed
 	  (run-hook-with-args 'vc-post-command-functions

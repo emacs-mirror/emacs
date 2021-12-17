@@ -718,10 +718,9 @@ representing leap seconds."
                 second)
               minute hour day month year second-fraction datatype time-zone)
       (let ((time
-             (apply
-              #'encode-time (list
-                             (if new-decode-time new-decode-time-second second)
-                             minute hour day month year nil nil time-zone))))
+	     (encode-time (list
+			   (if new-decode-time new-decode-time-second second)
+			   minute hour day month year nil nil time-zone))))
         (if new-decode-time
             (with-no-warnings (decode-time time nil t))
           (decode-time time))))))

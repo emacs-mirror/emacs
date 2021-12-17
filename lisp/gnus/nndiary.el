@@ -1308,7 +1308,7 @@ all.  This may very well take some time.")
   (let ((minute (nndiary-max (nth 0 sched)))
 	(hour (nndiary-max (nth 1 sched)))
 	(year (nndiary-max (nth 4 sched)))
-	(time-zone (or (and (nth 6 sched) (car (nth 6 sched)))
+	(time-zone (or (car (nth 6 sched))
 		       (current-time-zone))))
     (when year
       (or minute (setq minute 59))
@@ -1405,7 +1405,7 @@ all.  This may very well take some time.")
 		  t))
 	 (dow-list (nth 5 sched))
 	 (year (1- this-year))
-	 (time-zone (or (and (nth 6 sched) (car (nth 6 sched)))
+	 (time-zone (or (car (nth 6 sched))
 			(current-time-zone))))
     ;; Special case: an asterisk in one of the days specifications means that
     ;; only the other should be taken into account. If both are unspecified,
