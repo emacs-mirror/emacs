@@ -10074,6 +10074,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device || !device->master_p)
 		goto XI_OTHER;
 
+#ifdef XI_TouchBegin
+	      if (xev->flags & XIPointerEmulated
+		  && dpyinfo->xi2_version >= 2)
+		goto XI_OTHER;
+#endif
+
 	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 #ifdef HAVE_XWIDGETS
