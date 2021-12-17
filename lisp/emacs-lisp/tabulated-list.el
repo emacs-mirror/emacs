@@ -378,7 +378,7 @@ Optional arg POS is a buffer position where to look for a fake header;
 defaults to `point-min'."
   (overlays-at (or pos (point-min))))
 
-(defun tabulated-list-revert (&rest ignored)
+(defun tabulated-list-revert (&rest _)
   "The `revert-buffer-function' for `tabulated-list-mode'.
 It runs `tabulated-list-revert-hook', then calls `tabulated-list-print'."
   (interactive)

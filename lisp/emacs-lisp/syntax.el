@@ -487,7 +487,7 @@ These are valid when the buffer has no restriction.")
 
 (define-obsolete-function-alias 'syntax-ppss-after-change-function
   #'syntax-ppss-flush-cache "27.1")
-(defun syntax-ppss-flush-cache (beg &rest ignored)
+(defun syntax-ppss-flush-cache (beg &rest _)
   "Flush the cache of `syntax-ppss' starting at position BEG."
   ;; Set syntax-propertize to refontify anything past beg.
   (unless syntax-propertize--inhibit-flush

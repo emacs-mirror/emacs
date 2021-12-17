@@ -379,9 +379,9 @@ the specializer used will be the one returned by BODY."
                                    . ,(lambda () spec-args))
                                  macroexpand-all-environment)))
       (require 'cl-lib)        ;Needed to expand `cl-flet' and `cl-function'.
-      (when (interactive-form (cadr fun))
+      (when (assq 'interactive body)
         (message "Interactive forms unsupported in generic functions: %S"
-                 (interactive-form (cadr fun))))
+                 (assq 'interactive body)))
       ;; First macroexpand away the cl-function stuff (e.g. &key and
       ;; destructuring args, `declare' and whatnot).
       (pcase (macroexpand fun macroenv)
@@ -507,12 +507,11 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
     (pcase-let* ((`(,uses-cnm . ,fun) (cl--generic-lambda args body)))
       `(progn
          ,(and (get name 'byte-obsolete-info)
-               (or (not (fboundp 'byte-compile-warning-enabled-p))
-                   (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
                  (macroexp-warn-and-return
                   (macroexp--obsolete-warning name obsolete "generic function")
-                  nil)))
+                  nil
+                  (list 'obsolete name))))
          ;; You could argue that `defmethod' modifies rather than defines the
          ;; function, so warnings like "not known to be defined" are fair game.
          ;; But in practice, it's common to use `cl-defmethod'
@@ -600,6 +599,15 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 (defvar cl--generic-dispatchers (make-hash-table :test #'equal))
 
+
+(defvar cl--generic-compiler
+  ;; Don't byte-compile the dispatchers if cl-generic itself is not
+  ;; byte compiled.  Otherwise the byte-compiler and all the code on
+  ;; which it depends needs to be usable before cl-generic is loaded,
+  ;; which imposes a significant burden on the bootstrap.
+  (if (byte-code-function-p (lambda (x) (+ x 1)))
+      #'byte-compile (lambda (exp) (eval exp t))))
+
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
       (gethash dispatch cl--generic-dispatchers)
@@ -642,7 +650,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       ;; FIXME: For generic functions with a single method (or with 2 methods,
       ;; one of which always matches), using a tagcode + hash-table is
       ;; overkill: better just use a `cl-typep' test.
-      (byte-compile
+      (funcall
+       cl--generic-compiler
        `(lambda (generic dispatches-left methods)
           ;; FIXME: We should find a way to expand `with-memoize' once
           ;; and forall so we don't need `subr-x' when we get here.
@@ -875,7 +884,12 @@ those methods.")
               `(,arg-or-context
                 ,@(apply #'append
                          (mapcar #'cl-generic-generalizers specializers))
-                ,cl--generic-t-generalizer))))
+                ,cl--generic-t-generalizer)))
+        ;; When compiling `cl-generic' during bootstrap, make sure
+        ;; we prefill with compiled dispatchers even though the loaded
+        ;; `cl-generic' is still interpreted.
+        (cl--generic-compiler
+         (if (featurep 'bytecomp) #'byte-compile cl--generic-compiler)))
     ;; Recompute dispatch at run-time, since the generalizers may be slightly
     ;; different (e.g. byte-compiled rather than interpreted).
     ;; FIXME: There is a risk that the run-time generalizer is not equivalent

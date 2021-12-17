@@ -29,6 +29,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
@@ -2323,6 +2324,57 @@ maps."
            execute-extended-command--last-typed)))
   (with-suppressed-warnings ((interactive-only execute-extended-command))
     (execute-extended-command prefixarg command-name typed)))
+
+(cl-defgeneric function-docstring (function)
+  "Extract the raw docstring info from FUNCTION.
+FUNCTION is expected to be a function value rather than, say, a mere symbol."
+  (pcase function
+   ((pred byte-code-function-p)
+    (if (> (length function) 4) (aref function 4)))
+   ((or (pred stringp) (pred vectorp)) "Keyboard macro.")
+   (`(keymap . ,_)
+    "Prefix command (definition is a keymap associating keystrokes with commands).")
+   ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
+        `(autoload ,_file . ,body))
+    (let ((doc (car body)))
+      (when (and (or (stringp doc)
+                     (fixnump doc) (fixnump (cdr-safe doc)))
+	         ;; Handle a doc reference--but these never come last
+	         ;; in the function body, so reject them if they are last.
+                 (cdr body))
+        doc)))
+   (_ (signal 'invalid-function))))
+
+(cl-defgeneric interactive-form (cmd)
+  "Return the interactive form of CMD or nil if none.
+If CMD is not a command, the return value is nil.
+Value, if non-nil, is a list (interactive SPEC)."
+  (let ((fun (indirect-function cmd)))  ;Check cycles.
+    (when fun
+      (named-let loop ((fun cmd))
+        (pcase fun
+         ((pred symbolp)
+          (or (get fun 'interactive-form)
+              (loop (symbol-function fun))))
+         ((pred byte-code-function-p)
+          (when (> (length fun) 5)
+            (let ((form (aref fun 5)))
+              (if (vectorp form)
+	          ;; The vector form is the new form, where the first
+	          ;; element is the interactive spec, and the second is the
+	          ;; command modes.
+	          (list 'interactive (aref form 0))
+	        (list 'interactive form)))))
+	 ((pred autoloadp)
+          (interactive-form (autoload-do-load fun cmd)))
+         ((or `(lambda ,_args . ,body)
+              `(closure ,_env ,_args . ,body))
+          (let ((spec (assq 'interactive body)))
+            (if (cddr spec)
+                ;; Drop the "applicable modes" info.
+                (list 'interactive (cadr spec))
+              spec)))
+         (_ (internal--interactive-form fun)))))))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
