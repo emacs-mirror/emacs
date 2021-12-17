@@ -823,8 +823,8 @@ If kbd macro currently being defined end it before activating it."
   ;; or only `mac' is provided, as a list (MAC COUNTER FORMAT).
   ;; The first is used from `insert-kbd-macro' and `edmacro-finish-edit',
   ;; while the second is used from within this file.
-  (oclosure-make kmacro-function ((mac (if counter (list mac counter format) mac)))
-            (&optional arg)
+  (oclosure-lambda kmacro-function ((mac (if counter (list mac counter format) mac)))
+              (&optional arg)
     (interactive "p")
     (kmacro-exec-ring-item mac arg)))
 

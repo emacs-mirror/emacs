@@ -742,7 +742,7 @@ FUN is the function that should be called when METHOD calls
                (if fun
                    (lambda (&rest cnm-args)
                      (apply fun (or cnm-args args)))
-                 (oclosure-make cl--generic-nnm () (&rest cnm-args)
+                 (oclosure-lambda cl--generic-nnm () (&rest cnm-args)
                    (apply #'cl-no-next-method generic method
                           (or cnm-args args))))
                args)))))

@@ -186,7 +186,7 @@
     (defalias predname pred)
     (put name 'cl-deftype-handler (lambda () type))))
 
-(defmacro oclosure-make (type fields args &rest body)
+(defmacro oclosure-lambda (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Provide the fields in the order specified by `type'.
   (let* ((class (cl--find-class type))
