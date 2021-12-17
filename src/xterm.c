@@ -10890,6 +10890,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  xi_link_touch_point (device, xev->detail, xev->event_x,
 				       xev->event_y);
 
+		  if (FRAME_X_OUTPUT (f)->menubar_widget
+		      && xg_event_is_for_menubar (f, event))
+		    {
+		      bool was_waiting_for_input = waiting_for_input;
+		      /* This hack was adopted from the NS port.  Whether
+			 or not it is actually safe is a different story
+			 altogether.  */
+		      if (waiting_for_input)
+			waiting_for_input = 0;
+		      set_frame_menubar (f, true);
+		      waiting_for_input = was_waiting_for_input;
+		    }
+
 		  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 		  inev.ie.timestamp = xev->time;
 		  XSETFRAME (inev.ie.frame_or_window, f);
