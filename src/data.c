@@ -945,29 +945,12 @@ DEFUN ("native-comp-unit-set-file", Fnative_comp_unit_set_file,
 
 #endif
 
-DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
-       doc: /* Return the interactive form of CMD or nil if none.
+DEFUN ("internal--interactive-form", Finternal__interactive_form, Sinternal__interactive_form, 1, 1, 0,
+       doc: /* Return the interactive form of FUN or nil if none.
 If CMD is not a command, the return value is nil.
 Value, if non-nil, is a list (interactive SPEC).  */)
-  (Lisp_Object cmd)
+  (Lisp_Object fun)
 {
-  Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
-
-  if (NILP (fun))
-    return Qnil;
-
-  /* Use an `interactive-form' property if present, analogous to the
-     function-documentation property.  */
-  fun = cmd;
-  while (SYMBOLP (fun))
-    {
-      Lisp_Object tmp = Fget (fun, Qinteractive_form);
-      if (!NILP (tmp))
-	return tmp;
-      else
-	fun = Fsymbol_function (fun);
-    }
-
   if (SUBRP (fun))
     {
       if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->native_intspec))
@@ -979,21 +962,6 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 		      (*spec != '(') ? build_string (spec) :
 		      Fcar (Fread_from_string (build_string (spec), Qnil, Qnil)));
     }
-  else if (COMPILEDP (fun))
-    {
-      if (PVSIZE (fun) > COMPILED_INTERACTIVE)
-	{
-	  Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
-	  if (VECTORP (form))
-	    /* The vector form is the new form, where the first
-	       element is the interactive spec, and the second is the
-	       command modes. */
-	    return list2 (Qinteractive, AREF (form, 0));
-	  else
-	    /* Old form -- just the interactive spec. */
-	    return list2 (Qinteractive, form);
-	}
-    }
 #ifdef HAVE_MODULES
   else if (MODULE_FUNCTIONP (fun))
     {
@@ -1003,24 +971,6 @@ Value, if non-nil, is a list (interactive SPEC).  */)
         return form;
     }
 #endif
-  else if (AUTOLOADP (fun))
-    return Finteractive_form (Fautoload_do_load (fun, cmd, Qnil));
-  else if (CONSP (fun))
-    {
-      Lisp_Object funcar = XCAR (fun);
-      if (EQ (funcar, Qclosure)
-	  || EQ (funcar, Qlambda))
-	{
-	  Lisp_Object form = Fcdr (XCDR (fun));
-	  if (EQ (funcar, Qclosure))
-	    form = Fcdr (form);
-	  Lisp_Object spec = Fassq (Qinteractive, form);
-	  if (NILP (Fcdr (Fcdr (spec))))
-	    return spec;
-	  else
-	    return list2 (Qinteractive, Fcar (Fcdr (spec)));
-	}
-    }
   return Qnil;
 }
 
@@ -4078,7 +4028,7 @@ syms_of_data (void)
   DEFSYM (Qbyte_code_function_p, "byte-code-function-p");
 
   defsubr (&Sindirect_variable);
-  defsubr (&Sinteractive_form);
+  defsubr (&Sinternal__interactive_form);
   defsubr (&Scommand_modes);
   defsubr (&Seq);
   defsubr (&Snull);

@@ -2171,14 +2171,78 @@ then strings and vectors are not accepted.  */)
   (Lisp_Object function, Lisp_Object for_call_interactively)
 {
   register Lisp_Object fun;
-  register Lisp_Object funcar;
-  Lisp_Object if_prop = Qnil;
+  bool genfun = false;
 
   fun = function;
 
   fun = indirect_function (fun); /* Check cycles.  */
   if (NILP (fun))
     return Qnil;
+
+  /* Emacs primitives are interactive if their DEFUN specifies an
+     interactive spec.  */
+  if (SUBRP (fun))
+    {
+      if (XSUBR (fun)->intspec)
+        return Qt;
+    }
+  /* Bytecode objects are interactive if they are long enough to
+     have an element whose index is COMPILED_INTERACTIVE, which is
+     where the interactive spec is stored.  */
+  else if (COMPILEDP (fun))
+    {
+      if (PVSIZE (fun) > COMPILED_INTERACTIVE)
+        return Qt;
+      else if (PVSIZE (fun) > COMPILED_DOC_STRING)
+        genfun = true;
+    }
+
+#ifdef HAVE_MODULES
+  /* Module functions are interactive if their `interactive_form'
+     field is non-nil. */
+  else if (MODULE_FUNCTIONP (fun))
+    {
+      if (!NILP (module_function_interactive_form (XMODULE_FUNCTION (fun))))
+        return Qt;
+    }
+#endif
+
+  /* Strings and vectors are keyboard macros.  */
+  else if (STRINGP (fun) || VECTORP (fun))
+    return (NILP (for_call_interactively) ? Qt : Qnil);
+
+  /* Lists may represent commands.  */
+  else if (!CONSP (fun))
+    return Qnil;
+  else
+    {
+      Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qautoload))
+        {
+          if (!NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))))
+            return Qt;
+        }
+      else
+        {
+          Lisp_Object body = CDR_SAFE (XCDR (fun));
+          if (EQ (funcar, Qclosure))
+            body = CDR_SAFE (body);
+          else if (!EQ (funcar, Qlambda))
+	    return Qnil;
+	  if (!NILP (Fassq (Qinteractive, body)))
+	    return Qt;
+	  else
+	    {
+	      body = CAR_SAFE (body);
+	      if (!NILP (CDR_SAFE (body))
+	          && (STRINGP (body) || FIXNUMP (body) ||
+	              FIXNUMP (CDR_SAFE (body))))
+	        genfun = true;
+	    }
+	}
+    }
+
+  /* By now, if it's not a function we already returned nil.  */
 
   /* Check an `interactive-form' property if present, analogous to the
      function-documentation property.  */
@@ -2187,45 +2251,20 @@ then strings and vectors are not accepted.  */)
     {
       Lisp_Object tmp = Fget (fun, Qinteractive_form);
       if (!NILP (tmp))
-	if_prop = Qt;
+	return Qt;
       fun = Fsymbol_function (fun);
     }
 
-  /* Emacs primitives are interactive if their DEFUN specifies an
-     interactive spec.  */
-  if (SUBRP (fun))
-    return XSUBR (fun)->intspec ? Qt : if_prop;
-
-  /* Bytecode objects are interactive if they are long enough to
-     have an element whose index is COMPILED_INTERACTIVE, which is
-     where the interactive spec is stored.  */
-  else if (COMPILEDP (fun))
-    return (PVSIZE (fun) > COMPILED_INTERACTIVE ? Qt : if_prop);
-
-#ifdef HAVE_MODULES
-  /* Module functions are interactive if their `interactive_form'
-     field is non-nil. */
-  else if (MODULE_FUNCTIONP (fun))
-    return NILP (module_function_interactive_form (XMODULE_FUNCTION (fun)))
-             ? if_prop
-             : Qt;
-#endif
-
-  /* Strings and vectors are keyboard macros.  */
-  if (STRINGP (fun) || VECTORP (fun))
-    return (NILP (for_call_interactively) ? Qt : Qnil);
-
-  /* Lists may represent commands.  */
-  if (!CONSP (fun))
-    return Qnil;
-  funcar = XCAR (fun);
-  if (EQ (funcar, Qclosure))
-    return (!NILP (Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun)))))
-	    ? Qt : if_prop);
-  else if (EQ (funcar, Qlambda))
-    return !NILP (Fassq (Qinteractive, Fcdr (XCDR (fun)))) ? Qt : if_prop;
-  else if (EQ (funcar, Qautoload))
-    return !NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
+  /* If there's no immdiate interactive form but there's a docstring,
+     then delegate to the generic-function in case it's an FCR with
+     a type-specific interactive-form.  */
+  if (genfun
+      /* Avoid burping during bootstrap.  */
+      && !NILP (Fsymbol_function (Qinteractive_form)))
+    {
+      Lisp_Object iform = call1 (Qinteractive_form, fun);
+      return NILP (iform) ? Qnil : Qt;
+    }
   else
     return Qnil;
 }

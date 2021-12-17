@@ -702,18 +702,11 @@ test of free variables in the following ways:
       (push 'skip macroexp--pending-eager-loads)
       form))
    (t
-    (condition-case err
-        (let ((macroexp--pending-eager-loads
-               (cons load-file-name macroexp--pending-eager-loads)))
-          (if full-p
-              (macroexpand-all form)
-            (macroexpand form)))
-      (error
-       ;; Hopefully this shouldn't happen thanks to the cycle detection,
-       ;; but in case it does happen, let's catch the error and give the
-       ;; code a chance to macro-expand later.
-       (message "Eager macro-expansion failure: %S" err)
-       form)))))
+    (let ((macroexp--pending-eager-loads
+           (cons load-file-name macroexp--pending-eager-loads)))
+      (if full-p
+          (macroexpand-all form)
+        (macroexpand form))))))
 
 ;; ¡¡¡ Big Ugly Hack !!!
 ;; src/bootstrap-emacs is mostly used to compile .el files, so it needs

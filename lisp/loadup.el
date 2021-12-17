@@ -200,8 +200,6 @@
 (load "emacs-lisp/nadvice")
 (load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
-(load "simple")
-
 (load "help")
 
 (load "jka-cmpr-hook")
@@ -251,6 +249,7 @@
 (let ((max-specpdl-size (max max-specpdl-size 1800)))
   ;; A particularly demanding file to load; 1600 does not seem to be enough.
   (load "emacs-lisp/cl-generic"))
+(load "simple")
 (load "minibuffer") ;Needs cl-generic (and define-minor-mode).
 (load "frame")
 (load "startup")
