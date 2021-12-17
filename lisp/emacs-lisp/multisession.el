@@ -321,7 +321,8 @@ DOC should be a doc string, and ARGS are keywords as applicable to
       ;; file for somewhat better atomicity.
       (let ((coding-system-for-write 'utf-8)
             (create-lockfiles nil)
-            (temp (make-temp-name file)))
+            (temp (make-temp-name file))
+            (write-region-inhibit-fsync nil))
         (write-region (point-min) (point-max) temp nil 'silent)
         (set-file-times temp time)
         (rename-file temp file t)))
