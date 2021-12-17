@@ -2343,7 +2343,7 @@ FUNCTION is expected to be a function value rather than, say, a mere symbol."
 	         ;; in the function body, so reject them if they are last.
                  (cdr body))
         doc)))
-   (_ (signal 'invalid-function))))
+   (_ (signal 'invalid-function (list function)))))
 
 (cl-defgeneric interactive-form (cmd)
   "Return the interactive form of CMD or nil if none.

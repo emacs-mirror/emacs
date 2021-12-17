@@ -180,11 +180,10 @@
 
 (defun oclosure--define (class pred)
   (let* ((name (cl--class-name class))
-         (predname (intern (format "oclosure--%s-p" name)))
-         (type `(satisfies ,predname)))
+         (predname (intern (format "oclosure--%s-p" name))))
     (setf (cl--find-class name) class)
     (defalias predname pred)
-    (put name 'cl-deftype-handler (lambda () type))))
+    (put name 'cl-deftype-satisfies predname)))
 
 (defmacro oclosure-lambda (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))

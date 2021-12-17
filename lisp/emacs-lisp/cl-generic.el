@@ -880,16 +880,20 @@ those methods.")
     (setq arg-or-context `(&context . ,arg-or-context)))
   (unless (fboundp 'cl--generic-get-dispatcher)
     (require 'cl-generic))
-  (let ((fun (cl--generic-get-dispatcher
-              `(,arg-or-context
-                ,@(apply #'append
-                         (mapcar #'cl-generic-generalizers specializers))
-                ,cl--generic-t-generalizer)))
-        ;; When compiling `cl-generic' during bootstrap, make sure
-        ;; we prefill with compiled dispatchers even though the loaded
-        ;; `cl-generic' is still interpreted.
-        (cl--generic-compiler
-         (if (featurep 'bytecomp) #'byte-compile cl--generic-compiler)))
+  (let ((fun
+         ;; Let-bind cl--generic-dispatchers so we *re*compute the function
+         ;; from scratch, since the one in the cache may be non-compiled!
+         (let ((cl--generic-dispatchers (make-hash-table))
+               ;; When compiling `cl-generic' during bootstrap, make sure
+               ;; we prefill with compiled dispatchers even though the loaded
+               ;; `cl-generic' is still interpreted.
+               (cl--generic-compiler
+                (if (featurep 'bytecomp) #'byte-compile cl--generic-compiler)))
+           (cl--generic-get-dispatcher
+            `(,arg-or-context
+              ,@(apply #'append
+                       (mapcar #'cl-generic-generalizers specializers))
+              ,cl--generic-t-generalizer)))))
     ;; Recompute dispatch at run-time, since the generalizers may be slightly
     ;; different (e.g. byte-compiled rather than interpreted).
     ;; FIXME: There is a risk that the run-time generalizer is not equivalent
