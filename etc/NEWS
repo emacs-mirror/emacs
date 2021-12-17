@@ -1164,7 +1164,7 @@ assumes a time of 00:00 instead of signaling an error.
 
 +++
 ** New events for taking advantage of touchscreen devices.
-The events 'touchscreen-down', 'touchscreen-update' and
+The events 'touchscreen-begin, 'touchscreen-update', and
 'touchscreen-end' have been added to take better advantage of
 touch-capable display panels.
 
