@@ -180,11 +180,10 @@
 
 (defun fcr--define (class pred)
   (let* ((name (cl--class-name class))
-         (predname (intern (format "fcr--%s-p" name)))
-         (type `(satisfies ,predname)))
+         (predname (intern (format "fcr--%s-p" name))))
     (setf (cl--find-class name) class)
     (defalias predname pred)
-    (put name 'cl-deftype-handler (lambda () type))))
+    (put name 'cl-deftype-satisfies predname)))
 
 (defmacro fcr-lambda (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
