@@ -1175,6 +1175,7 @@ displayed."
     (derived-mode . dired-mode)
     (derived-mode . diff-mode)
     (derived-mode . comint-mode)
+    (derived-mode . eshell-mode)
     (derived-mode . change-log-mode))
   "List of conditions to kill buffers related to a project.
 This list is used by `project-kill-buffers'.
