@@ -10074,6 +10074,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device || !device->master_p)
 		goto XI_OTHER;
 
+#ifdef XI_TouchBegin
+	      if (xev->flags & XIPointerEmulated
+		  && dpyinfo->xi2_version >= 2)
+		goto XI_OTHER;
+#endif
+
 	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 #ifdef HAVE_XWIDGETS
@@ -10884,6 +10890,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  xi_link_touch_point (device, xev->detail, xev->event_x,
 				       xev->event_y);
 
+#ifdef HAVE_GTK3
+		  if (FRAME_X_OUTPUT (f)->menubar_widget
+		      && xg_event_is_for_menubar (f, event))
+		    {
+		      bool was_waiting_for_input = waiting_for_input;
+		      /* This hack was adopted from the NS port.  Whether
+			 or not it is actually safe is a different story
+			 altogether.  */
+		      if (waiting_for_input)
+			waiting_for_input = 0;
+		      set_frame_menubar (f, true);
+		      waiting_for_input = was_waiting_for_input;
+		    }
+#endif
+
 		  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
 		  inev.ie.timestamp = xev->time;
 		  XSETFRAME (inev.ie.frame_or_window, f);
@@ -10914,7 +10935,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      touchpoint = xi_find_touch_point (device, xev->detail);
 
 	      if (!touchpoint)
-		emacs_abort ();
+		goto XI_OTHER;
 
 	      touchpoint->x = xev->event_x;
 	      touchpoint->y = xev->event_y;

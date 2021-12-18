@@ -2571,6 +2571,25 @@ haiku_make_fullscreen_consistent (struct frame *f)
   store_frame_param (f, Qfullscreen, lval);
 }
 
+static void
+flush_dirty_back_buffers (void)
+{
+  block_input ();
+  Lisp_Object tail, frame;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_LIVE_P (f) &&
+          FRAME_HAIKU_P (f) &&
+          FRAME_HAIKU_WINDOW (f) &&
+          !FRAME_GARBAGED_P (f) &&
+          !buffer_flipping_blocked_p () &&
+          FRAME_DIRTY_P (f))
+        haiku_flip_buffers (f);
+    }
+  unblock_input ();
+}
+
 static int
 haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
@@ -2580,6 +2599,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   ssize_t b_size;
   struct unhandled_event *unhandled_events = NULL;
   int button_or_motion_p;
+  int need_flush = 0;
 
   if (!buf)
     buf = xmalloc (200);
@@ -2827,8 +2847,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		tab_bar_p = EQ (window, f->tab_bar_window);
 
 		if (tab_bar_p)
-		  tab_bar_arg = handle_tab_bar_click
-		    (f, x, y, type == BUTTON_DOWN, inev.modifiers);
+		  {
+		    tab_bar_arg = handle_tab_bar_click
+		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
+		    need_flush = 1;
+		  }
 	      }
 
 	    if (WINDOWP (f->tool_bar_window)
@@ -2845,7 +2868,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  {
 		    handle_tool_bar_click
 		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
-		    redisplay ();
+		    need_flush = 1;
 		  }
 	      }
 
@@ -3222,6 +3245,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       ev = old->next;
       xfree (old);
     }
+
+  if (need_flush)
+    flush_dirty_back_buffers ();
 
   unblock_input ();
   return message_count;
