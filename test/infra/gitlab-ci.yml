@@ -226,7 +226,8 @@ test-filenotify-gio:
       optional: true
   variables:
     target: emacs-filenotify-gio
-    make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
+    # This is needed in order to get a JUnit test report.
+    make_params: '-k -C test check-expensive LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"'
 
 build-image-gnustep:
   stage: platform-images
@@ -271,7 +272,7 @@ test-native-comp-speed0:
       optional: true
   variables:
     target: emacs-native-comp-speed0
-    make_params: "-C test check SELECTOR='(not (tag :unstable))'"
+    make_params: "-k -C test check SELECTOR='(not (tag :unstable))'"
 
 # Local Variables:
 # add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"

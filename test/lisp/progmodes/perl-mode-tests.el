@@ -37,4 +37,6 @@
                               (file-name-directory (or load-file-name
                                                        buffer-file-name)))))
 
+(setq ert-load-file-name load-file-name)
+
 ;;; perl-mode-tests.el ends here
