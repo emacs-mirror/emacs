@@ -243,7 +243,8 @@
     ;; stuff it into the environment part of the closure with a special
     ;; marker so we can distinguish this entry from actual variables.
     (cl-assert (eq 'closure (car-safe fcr)))
-    (let ((typename (documentation fcr 'raw)))
+    (let ((typename (nth 3 fcr))) ;; The "docstring".
+      (cl-assert (stringp typename))
       (push (cons :type (intern typename))
             (cadr fcr))
       fcr)))
@@ -277,8 +278,10 @@
       (let ((type (and (> (length fcr) 4) (aref fcr 4))))
         (if (symbolp type) type))
     (and (eq 'closure (car-safe fcr))
-         (eq :type (caar (cadr fcr)))
-         (cdar (cadr fcr)))))
+         (let* ((env (car-safe (cdr fcr)))
+                (first-var (car-safe env)))
+           (and (eq :type (car-safe first-var))
+                (cdr first-var))))))
 
 (provide 'fcr)
 ;;; fcr.el ends here
