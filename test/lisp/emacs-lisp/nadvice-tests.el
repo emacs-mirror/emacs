@@ -153,13 +153,13 @@ function being an around advice."
 
 (ert-deftest advice-test-call-interactively ()
   "Check interaction between advice on call-interactively and called-interactively-p."
-  (defun sm-test7.4 () (interactive) (cons 1 (called-interactively-p)))
-  (let ((old (symbol-function 'call-interactively)))
+  (let ((sm-test7.4 (lambda () (interactive) (cons 1 (called-interactively-p))))
+        (old (symbol-function 'call-interactively)))
     (unwind-protect
         (progn
           (advice-add 'call-interactively :before #'ignore)
-          (should (equal (sm-test7.4) '(1 . nil)))
-          (should (equal (call-interactively 'sm-test7.4) '(1 . t))))
+          (should (equal (funcall sm-test7.4) '(1 . nil)))
+          (should (equal (call-interactively sm-test7.4) '(1 . t))))
       (advice-remove 'call-interactively #'ignore)
       (should (eq (symbol-function 'call-interactively) old)))))
 

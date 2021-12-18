@@ -1304,6 +1304,8 @@ Used internally for the (major-mode MODE) context specializers."
             (list cl-generic--fcr-generalizer))))
    (cl-call-next-method)))
 
+(cl--generic-prefill-dispatchers 0 advice)
+
 ;;; Support for unloading.
 
 (cl-defmethod loadhist-unload-element ((x (head cl-defmethod)))

@@ -2345,36 +2345,42 @@ FUNCTION is expected to be a function value rather than, say, a mere symbol."
         doc)))
    (_ (signal 'invalid-function (list function)))))
 
-(cl-defgeneric interactive-form (cmd)
+(cl-defgeneric interactive-form (cmd &optional original-name)
   "Return the interactive form of CMD or nil if none.
 If CMD is not a command, the return value is nil.
-Value, if non-nil, is a list (interactive SPEC)."
-  (let ((fun (indirect-function cmd)))  ;Check cycles.
-    (when fun
-      (named-let loop ((fun cmd))
-        (pcase fun
-         ((pred symbolp)
-          (or (get fun 'interactive-form)
-              (loop (symbol-function fun))))
-         ((pred byte-code-function-p)
-          (when (> (length fun) 5)
-            (let ((form (aref fun 5)))
-              (if (vectorp form)
-	          ;; The vector form is the new form, where the first
-	          ;; element is the interactive spec, and the second is the
-	          ;; command modes.
-	          (list 'interactive (aref form 0))
-	        (list 'interactive form)))))
-	 ((pred autoloadp)
-          (interactive-form (autoload-do-load fun cmd)))
-         ((or `(lambda ,_args . ,body)
-              `(closure ,_env ,_args . ,body))
-          (let ((spec (assq 'interactive body)))
-            (if (cddr spec)
-                ;; Drop the "applicable modes" info.
-                (list 'interactive (cadr spec))
-              spec)))
-         (_ (internal--interactive-form fun)))))))
+Value, if non-nil, is a list (interactive SPEC).
+ORIGINAL-NAME is used internally only."
+  (pcase cmd
+    ((pred symbolp)
+     (let ((fun (indirect-function cmd)))  ;Check cycles.
+       (when fun
+         (or (get cmd 'interactive-form)
+             (interactive-form (symbol-function cmd) (or original-name cmd))))))
+    ((pred byte-code-function-p)
+     (when (> (length cmd) 5)
+       (let ((form (aref cmd 5)))
+         (if (vectorp form)
+	     ;; The vector form is the new form, where the first
+	     ;; element is the interactive spec, and the second is the
+	     ;; command modes.
+	     (list 'interactive (aref form 0))
+	   (list 'interactive form)))))
+    ((pred autoloadp)
+     (interactive-form (autoload-do-load cmd original-name)))
+    ((or `(lambda ,_args . ,body)
+         `(closure ,_env ,_args . ,body))
+     (let ((spec (assq 'interactive body)))
+       (if (cddr spec)
+           ;; Drop the "applicable modes" info.
+           (list 'interactive (cadr spec))
+         spec)))
+    (_ (internal--interactive-form cmd))))
+
+(cl-defmethod interactive-form ((function advice) &optional _)
+  ;; This should ideally be in `nadvice.el' but `nadvice.el' is loaded before
+  ;; `cl-generic.el' so it can't use `cl-defmethod'.
+  ;; FIXME: η-reduce!
+  (advice--get-interactive-form function))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
