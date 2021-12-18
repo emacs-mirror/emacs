@@ -7169,7 +7169,8 @@ Text larger than the specified size is clipped.  */)
   try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
-				  make_fixnum (w->pixel_height), Qnil);
+				  make_fixnum (w->pixel_height), Qnil,
+				  Qnil);
   /* Add the frame's internal border to calculated size.  */
   width = XFIXNUM (Fcar (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
   height = XFIXNUM (Fcdr (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
