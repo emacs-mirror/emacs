@@ -5855,7 +5855,7 @@ fi
 
 if test "${HAVE_BE_APP}" = "yes" ; then
   if test "${HAVE_CAIRO}" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftcrfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o ftcrfont.o"
   fi
 fi
 
