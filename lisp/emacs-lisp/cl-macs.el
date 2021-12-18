@@ -309,11 +309,11 @@ FORM is of the form (ARGS . BODY)."
                       ;; apparently harmless computation, so it should not
                       ;; touch the match-data.
                       (save-match-data
-                        (cons (help-add-fundoc-usage
+                        (cons (docstring-add-fundoc-usage
                                (if (stringp (car header)) (pop header))
                                ;; Be careful with make-symbol and (back)quote,
                                ;; see bug#12884.
-                               (help--docstring-quote
+                               (docstring--quote
                                 (let ((print-gensym nil) (print-quoted t)
                                       (print-escape-newlines t))
                                   (format "%S" (cons 'fn (cl--make-usage-args

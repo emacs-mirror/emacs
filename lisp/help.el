@@ -1944,10 +1944,8 @@ Most of this is done by `help-window-setup', which see."
 	  (princ msg)))))
 
 
-(defun help--docstring-quote (string)
-  "Return a doc string that represents STRING.
-The result, when formatted by `substitute-command-keys', should equal STRING."
-  (replace-regexp-in-string "['\\`‘’]" "\\\\=\\&" string))
+(define-obsolete-function-alias 'help--docstring-quote
+  #'docstring--quote "29.1")
 
 ;; The following functions used to be in help-fns.el, which is not preloaded.
 ;; But for various reasons, they are more widely needed, so they were
@@ -1987,24 +1985,7 @@ When SECTION is \\='usage or \\='doc, return only that part."
       (`usage usage)
       (`doc doc))))
 
-(defun help-add-fundoc-usage (docstring arglist)
-  "Add the usage info to DOCSTRING.
-If DOCSTRING already has a usage info, then just return it unchanged.
-The usage info is built from ARGLIST.  DOCSTRING can be nil.
-ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
-  (unless (stringp docstring) (setq docstring ""))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)
-          (eq arglist t))
-      docstring
-    (concat docstring
-	    (if (string-match "\n?\n\\'" docstring)
-		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
-	      "\n\n")
-	    (if (stringp arglist)
-                (if (string-match "\\`[^ ]+\\(.*\\))\\'" arglist)
-                    (concat "(fn" (match-string 1 arglist) ")")
-                  (error "Unrecognized usage format"))
-	      (help--make-usage-docstring 'fn arglist)))))
+(defalias 'help-add-fundoc-usage #'docstring-add-fundoc-usage)
 
 (declare-function subr-native-lambda-list "data.c")
 
@@ -2061,32 +2042,13 @@ the same names as used in the original source code, when possible."
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
-(defun help--make-usage (function arglist)
-  (cons (if (symbolp function) function 'anonymous)
-	(mapcar (lambda (arg)
-		  (cond
-                   ;; Parameter name.
-                   ((symbolp arg)
-		    (let ((name (symbol-name arg)))
-		      (cond
-                       ((string-match "\\`&" name) arg)
-                       ((string-match "\\`_." name)
-                        (intern (upcase (substring name 1))))
-                       (t (intern (upcase name))))))
-                   ;; Parameter with a default value (from
-                   ;; cl-defgeneric etc).
-                   ((and (consp arg)
-                         (symbolp (car arg)))
-                    (cons (intern (upcase (symbol-name (car arg)))) (cdr arg)))
-                   ;; Something else.
-                   (t arg)))
-		arglist)))
+(define-obsolete-function-alias 'help--make-usage
+  #'docstring--make-usage "29.1")
 
 (define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")
 
-(defun help--make-usage-docstring (fn arglist)
-  (let ((print-escape-newlines t))
-    (help--docstring-quote (format "%S" (help--make-usage fn arglist)))))
+(define-obsolete-function-alias 'help--make-usage-docstring
+  #'docstring--make-usage-docstring "29.1")
 
 
 

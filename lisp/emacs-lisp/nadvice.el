@@ -42,48 +42,44 @@
 ;; as this one), so we have to do it by hand!
 (push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
+(oclosure-define (advice
+                (:copier advice--copy))
+  car cdr where props)
+
 ;;;; Lightweight advice/hook
 (defvar advice--where-alist
-  '((:around "\300\301\302\003#\207" 5)
-    (:before "\300\301\002\"\210\300\302\002\"\207" 4)
-    (:after "\300\302\002\"\300\301\003\"\210\207" 5)
-    (:override "\300\301\002\"\207" 4)
-    (:after-until "\300\302\002\"\206\013\000\300\301\002\"\207" 4)
-    (:after-while "\300\302\002\"\205\013\000\300\301\002\"\207" 4)
-    (:before-until "\300\301\002\"\206\013\000\300\302\002\"\207" 4)
-    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4)
-    (:filter-args "\300\302\301\003!\"\207" 5)
-    (:filter-return "\301\300\302\003\"!\207" 5))
+  `((:around ,(oclosure-lambda advice ((where :around)) (&rest args)
+                (apply car cdr args)))
+    (:before ,(oclosure-lambda advice ((where :before)) (&rest args)
+                (apply car args) (apply cdr args)))
+    (:after ,(oclosure-lambda advice ((where :after)) (&rest args)
+               (apply cdr args) (apply car args)))
+    (:override ,(oclosure-lambda advice ((where :override)) (&rest args)
+                  (apply car args)))
+    (:after-until ,(oclosure-lambda advice ((where :after-until)) (&rest args)
+                     (or (apply cdr args) (apply car args))))
+    (:after-while ,(oclosure-lambda advice ((where :after-while)) (&rest args)
+                     (and (apply cdr args) (apply car args))))
+    (:before-until ,(oclosure-lambda advice ((where :before-until)) (&rest args)
+                     (or (apply car args) (apply cdr args))))
+    (:before-while ,(oclosure-lambda advice ((where :before-while)) (&rest args)
+                     (and (apply car args) (apply cdr args))))
+    (:filter-args ,(oclosure-lambda advice ((where :filter-args)) (&rest args)
+                     (apply cdr (funcall cdr args))))
+    (:filter-return ,(oclosure-lambda advice ((where :filter-return)) (&rest args)
+                       (funcall car (apply cdr args)))))
   "List of descriptions of how to add a function.
-Each element has the form (WHERE BYTECODE STACK) where:
-  WHERE is a keyword indicating where the function is added.
-  BYTECODE is the corresponding byte-code that will be used.
-  STACK is the amount of stack space needed by the byte-code.")
-
-(defvar advice--bytecodes (mapcar #'cadr advice--where-alist))
+Each element has the form (WHERE OCL) where OCL is a \"prototype\"
+function of type `advice'.")
 
 (defun advice--p (object)
-  (and (byte-code-function-p object)
-       (eq 128 (aref object 0))
-       (memq (length object) '(5 6))
-       (memq (aref object 1) advice--bytecodes)
-       (eq #'apply (aref (aref object 2) 0))))
-
-(defsubst advice--car   (f) (aref (aref f 2) 1))
-(defsubst advice--cdr   (f) (aref (aref f 2) 2))
-(defsubst advice--props (f) (aref (aref f 2) 3))
+  ;; (eq (oclosure-type object) 'advice)
+  (cl-typep object 'advice))
 
 (defun advice--cd*r (f)
   (while (advice--p f)
     (setq f (advice--cdr f)))
   f)
-
-(defun advice--where (f)
-  (let ((bytecode (aref f 1))
-        (where nil))
-    (dolist (elem advice--where-alist)
-      (if (eq bytecode (cadr elem)) (setq where (car elem))))
-    where))
 
 (defun advice--make-single-doc (flist function macrop)
   (let ((where (advice--where flist)))
@@ -137,7 +133,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
                         ;; "[Arg list not available until function
                         ;; definition is loaded]", bug#21299
                         (if (stringp arglist) t
-                          (help--make-usage-docstring function arglist)))
+                          (docstring--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
       (help-add-fundoc-usage (concat origdoc
                                      (if (string-suffix-p "\n" origdoc)
@@ -180,18 +176,6 @@ Each element has the form (WHERE BYTECODE STACK) where:
         `(funcall ',fspec ',(cadr ifm))
       (cadr (or iff ifm)))))
 
-(defun advice--make-1 (byte-code stack-depth function main props)
-  "Build a function value that adds FUNCTION to MAIN."
-  (let ((adv-sig (gethash main advertised-signature-table))
-        (advice
-         (apply #'make-byte-code 128 byte-code
-                (vector #'apply function main props) stack-depth nil
-                (and (or (commandp function) (commandp main))
-                     (list (advice--make-interactive-form
-                            function main))))))
-    (when adv-sig (puthash advice adv-sig advertised-signature-table))
-    advice))
-
 (defun advice--make (where function main props)
   "Build a function value that adds FUNCTION to MAIN at WHERE.
 WHERE is a symbol to select an entry in `advice--where-alist'."
@@ -201,12 +185,11 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (if (and md (> fd md))
         ;; `function' should go deeper.
         (let ((rest (advice--make where function (advice--cdr main) props)))
-          (advice--make-1 (aref main 1) (aref main 3)
-                          (advice--car main) rest (advice--props main)))
-      (let ((desc (assq where advice--where-alist)))
-        (unless desc (error "Unknown add-function location `%S'" where))
-        (advice--make-1 (nth 1 desc) (nth 2 desc)
-                        function main props)))))
+          (advice--copy main :cdr rest))
+      (let ((proto (assq where advice--where-alist)))
+        (unless proto (error "Unknown add-function location `%S'" where))
+        (advice--copy (cadr proto)
+                      :car function :cdr main :where where :props props)))))
 
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
@@ -232,8 +215,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (if val (car val)
           (let ((nrest (advice--tweak rest tweaker)))
             (if (eq rest nrest) flist
-              (advice--make-1 (aref flist 1) (aref flist 3)
-                              first nrest props))))))))
+              (advice--copy flist :cdr nrest))))))))
 
 ;;;###autoload
 (defun advice--remove-function (flist function)
