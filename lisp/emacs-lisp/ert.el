@@ -1527,13 +1527,20 @@ the tests)."
           (backtrace))
       (kill-emacs 2))))
 
+(defvar ert-load-file-name nil
+  "The name of the loaded ERT test file, a string.
+Usually, it is not needed to be defined, but if different ERT
+test packages depend on each other, it might be helpful.")
+
 (defun ert-write-junit-test-report (stats)
   "Write a JUnit test report, generated from STATS."
   ;; https://www.ibm.com/docs/en/developer-for-zos/14.1.0?topic=formats-junit-xml-format
   ;; https://llg.cubic.org/docs/junit/
   (when-let ((symbol (car (apropos-internal "" #'ert-test-boundp)))
              (test-file (symbol-file symbol 'ert--test))
-             (test-report (file-name-with-extension test-file "xml")))
+             (test-report
+              (file-name-with-extension
+               (or ert-load-file-name test-file) "xml")))
     (with-temp-file test-report
       (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
       (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
@@ -1557,15 +1564,19 @@ the tests)."
                         (ert--stats-end-time stats)
                         (ert--stats-start-time stats)))
                       (ert--format-time-iso8601 (ert--stats-end-time stats))))
-      (insert "    <properties>\n"
-              (format "      <property name=\"selector\" value=\"%s\"/>\n"
-                      (ert--stats-selector stats))
-              "    </properties>\n")
+      ;; If the test has aborted, `ert--stats-selector' might return
+      ;; huge junk.  Skip this.
+      (when (< (length (format "%s" (ert--stats-selector stats))) 1024)
+        (insert "    <properties>\n"
+                (format "      <property name=\"selector\" value=\"%s\"/>\n"
+                        (xml-escape-string
+                         (format "%s" (ert--stats-selector stats)) 'noerror))
+                "    </properties>\n"))
       (cl-loop for test across (ert--stats-tests stats)
                for result = (ert-test-most-recent-result test) do
                (insert (format "    <testcase name=\"%s\" status=\"%s\" time=\"%s\""
                                (xml-escape-string
-                                (symbol-name (ert-test-name test)))
+                                (symbol-name (ert-test-name test)) 'noerror)
                                (ert-string-for-test-result
                                 result
                                 (ert-test-result-expected-p test result))
@@ -1581,14 +1592,16 @@ the tests)."
                    (insert (format "      <skipped message=\"%s\" type=\"%s\">\n"
                                    (xml-escape-string
                                     (string-trim
-                                     (ert-reason-for-test-result result)))
+                                     (ert-reason-for-test-result result))
+                                    'noerror)
                                    (ert-string-for-test-result
                                     result
                                     (ert-test-result-expected-p
                                      test result)))
                            (xml-escape-string
                             (string-trim
-                             (ert-reason-for-test-result result)))
+                             (ert-reason-for-test-result result))
+                            'noerror)
                            "\n"
                            "      </skipped>\n"))
                   ((ert-test-aborted-with-non-local-exit-p result)
@@ -1600,27 +1613,29 @@ the tests)."
                                      test result)))
                            (format "Test %s aborted with non-local exit\n"
                                    (xml-escape-string
-                                    (symbol-name (ert-test-name test))))
+                                    (symbol-name (ert-test-name test)) 'noerror))
                            "      </error>\n"))
                   ((not (ert-test-result-type-p
                          result (ert-test-expected-result-type test)))
                    (insert (format "      <failure message=\"%s\" type=\"%s\">\n"
                                    (xml-escape-string
                                     (string-trim
-                                     (ert-reason-for-test-result result)))
+                                     (ert-reason-for-test-result result))
+                                    'noerror)
                                    (ert-string-for-test-result
                                     result
                                     (ert-test-result-expected-p
                                      test result)))
                            (xml-escape-string
                             (string-trim
-                             (ert-reason-for-test-result result)))
+                             (ert-reason-for-test-result result))
+                            'noerror)
                            "\n"
                            "      </failure>\n")))
                  (unless (zerop (length (ert-test-result-messages result)))
                    (insert "      <system-out>\n"
                            (xml-escape-string
-                            (ert-test-result-messages result))
+                            (ert-test-result-messages result) 'noerror)
                            "      </system-out>\n"))
                  (insert "    </testcase>\n")))
       (insert "  </testsuite>\n")
@@ -1653,7 +1668,7 @@ the tests)."
                   (insert (format "      <error message=\"Test report missing %s\" type=\"error\">\n"
                                   (file-name-nondirectory test-report)))
                   (when logfile-contents
-                    (insert (xml-escape-string logfile-contents)))
+                    (insert (xml-escape-string logfile-contents 'noerror)))
                   (insert "      </error>\n"
                           "    </testcase>\n"
                           "  </testsuite>\n")

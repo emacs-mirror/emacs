@@ -35,12 +35,12 @@
           (multisession-directory dir))
       (unwind-protect
           (progn
-            (define-multisession-variable foo 0
+            (define-multisession-variable multisession--foo 0
               ""
               :synchronized t)
-            (should (= (multisession-value foo) 0))
-            (cl-incf (multisession-value foo))
-            (should (= (multisession-value foo) 1))
+            (should (= (multisession-value multisession--foo) 0))
+            (cl-incf (multisession-value multisession--foo))
+            (should (= (multisession-value multisession--foo) 1))
             (call-process
              (concat invocation-directory invocation-name)
              nil t nil
@@ -51,11 +51,11 @@
                           (let ((multisession-directory ,dir)
                                 (multisession-storage 'sqlite)
                                 (user-init-file "/tmp/foo.el"))
-                            (define-multisession-variable foo 0
+                            (define-multisession-variable multisession--foo 0
                               ""
                               :synchronized t)
-                            (cl-incf (multisession-value foo))))))
-            (should (= (multisession-value foo) 2)))
+                            (cl-incf (multisession-value multisession--foo))))))
+            (should (= (multisession-value multisession--foo) 2)))
         (sqlite-close multisession--db)
         (setq multisession--db nil)))))
 
@@ -69,12 +69,12 @@
           proc)
       (unwind-protect
           (progn
-            (define-multisession-variable bar 0
+            (define-multisession-variable multisession--bar 0
               ""
               :synchronized t)
-            (should (= (multisession-value bar) 0))
-            (cl-incf (multisession-value bar))
-            (should (= (multisession-value bar) 1))
+            (should (= (multisession-value multisession--bar) 0))
+            (cl-incf (multisession-value multisession--bar))
+            (should (= (multisession-value multisession--bar) 1))
             (setq proc
                   (start-process
                    "other-emacs"
@@ -87,18 +87,18 @@
                                 (let ((multisession-directory ,dir)
                                       (multisession-storage 'sqlite)
                                       (user-init-file "/tmp/bar.el"))
-                                  (define-multisession-variable bar 0
+                                  (define-multisession-variable multisession--bar 0
                                     "" :synchronized t)
                                   (dotimes (i 100)
-                                    (cl-incf (multisession-value bar))))))))
+                                    (cl-incf (multisession-value multisession--bar))))))))
             (while (process-live-p proc)
               (ignore-error 'sqlite-locked-error
-                (message "bar %s" (multisession-value bar))
-                ;;(cl-incf (multisession-value bar))
+                (message "multisession--bar %s" (multisession-value multisession--bar))
+                ;;(cl-incf (multisession-value multisession--bar))
                 )
               (sleep-for 0.1))
-            (message "bar ends up as %s" (multisession-value bar))
-            (should (< (multisession-value bar) 1003)))
+            (message "multisession--bar ends up as %s" (multisession-value multisession--bar))
+            (should (< (multisession-value multisession--bar) 1003)))
         (sqlite-close multisession--db)
         (setq multisession--db nil)))))
 
@@ -108,12 +108,12 @@
     (let ((user-init-file "/tmp/sfoo.el")
           (multisession-storage 'files)
           (multisession-directory dir))
-      (define-multisession-variable sfoo 0
+      (define-multisession-variable multisession--sfoo 0
         ""
         :synchronized t)
-      (should (= (multisession-value sfoo) 0))
-      (cl-incf (multisession-value sfoo))
-      (should (= (multisession-value sfoo) 1))
+      (should (= (multisession-value multisession--sfoo) 0))
+      (cl-incf (multisession-value multisession--sfoo))
+      (should (= (multisession-value multisession--sfoo) 1))
       (call-process
        (concat invocation-directory invocation-name)
        nil t nil
@@ -124,11 +124,11 @@
                     (let ((multisession-directory ,dir)
                           (multisession-storage 'files)
                           (user-init-file "/tmp/sfoo.el"))
-                      (define-multisession-variable sfoo 0
+                      (define-multisession-variable multisession--sfoo 0
                         ""
                         :synchronized t)
-                      (cl-incf (multisession-value sfoo))))))
-      (should (= (multisession-value sfoo) 2)))))
+                      (cl-incf (multisession-value multisession--sfoo))))))
+      (should (= (multisession-value multisession--sfoo) 2)))))
 
 (ert-deftest multi-test-files-busy ()
   (skip-unless (and t (sqlite-available-p)))
@@ -138,12 +138,12 @@
           (multisession-storage 'files)
           (multisession-directory dir)
           proc)
-      (define-multisession-variable sbar 0
+      (define-multisession-variable multisession--sbar 0
         ""
         :synchronized t)
-      (should (= (multisession-value sbar) 0))
-      (cl-incf (multisession-value sbar))
-      (should (= (multisession-value sbar) 1))
+      (should (= (multisession-value multisession--sbar) 0))
+      (cl-incf (multisession-value multisession--sbar))
+      (should (= (multisession-value multisession--sbar) 1))
       (setq proc
             (start-process
              "other-emacs"
@@ -156,16 +156,16 @@
                           (let ((multisession-directory ,dir)
                                 (multisession-storage 'files)
                                 (user-init-file "/tmp/sbar.el"))
-                            (define-multisession-variable sbar 0
+                            (define-multisession-variable multisession--sbar 0
                               "" :synchronized t)
                             (dotimes (i 1000)
-                              (cl-incf (multisession-value sbar))))))))
+                              (cl-incf (multisession-value multisession--sbar))))))))
       (while (process-live-p proc)
-        (message "sbar %s" (multisession-value sbar))
-        ;;(cl-incf (multisession-value sbar))
+        (message "multisession--sbar %s" (multisession-value multisession--sbar))
+        ;;(cl-incf (multisession-value multisession--sbar))
         (sleep-for 0.1))
-      (message "sbar ends up as %s" (multisession-value sbar))
-      (should (< (multisession-value sbar) 2000)))))
+      (message "multisession--sbar ends up as %s" (multisession-value multisession--sbar))
+      (should (< (multisession-value multisession--sbar) 2000)))))
 
 (ert-deftest multi-test-files-some-values ()
   (ert-with-temp-file dir
@@ -173,29 +173,29 @@
     (let ((user-init-file "/tmp/sfoo.el")
           (multisession-storage 'files)
           (multisession-directory dir))
-      (define-multisession-variable foo1 nil)
-      (should (eq (multisession-value foo1) nil))
-      (setf (multisession-value foo1) nil)
-      (should (eq (multisession-value foo1) nil))
-      (setf (multisession-value foo1) t)
-      (should (eq (multisession-value foo1) t))
+      (define-multisession-variable multisession--foo1 nil)
+      (should (eq (multisession-value multisession--foo1) nil))
+      (setf (multisession-value multisession--foo1) nil)
+      (should (eq (multisession-value multisession--foo1) nil))
+      (setf (multisession-value multisession--foo1) t)
+      (should (eq (multisession-value multisession--foo1) t))
 
-      (define-multisession-variable foo2 t)
-      (setf (multisession-value foo2) nil)
-      (should (eq (multisession-value foo2) nil))
-      (setf (multisession-value foo2) t)
-      (should (eq (multisession-value foo2) t))
+      (define-multisession-variable multisession--foo2 t)
+      (setf (multisession-value multisession--foo2) nil)
+      (should (eq (multisession-value multisession--foo2) nil))
+      (setf (multisession-value multisession--foo2) t)
+      (should (eq (multisession-value multisession--foo2) t))
 
-      (define-multisession-variable foo3 t)
-      (should-error (setf (multisession-value foo3) (make-marker)))
+      (define-multisession-variable multisession--foo3 t)
+      (should-error (setf (multisession-value multisession--foo3) (make-marker)))
 
       (let ((string (with-temp-buffer
                       (set-buffer-multibyte nil)
                       (insert 0 1 2)
                       (buffer-string))))
         (should-not (multibyte-string-p string))
-        (define-multisession-variable foo4 nil)
-        (setf (multisession-value foo4) string)
-        (should (equal (multisession-value foo4) string))))))
+        (define-multisession-variable multisession--foo4 nil)
+        (setf (multisession-value multisession--foo4) string)
+        (should (equal (multisession-value multisession--foo4) string))))))
 
 ;;; multisession-tests.el ends here
