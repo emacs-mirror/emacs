@@ -787,6 +787,8 @@ See `browse-url' for details."
 
 ;; A generic command to call the current browse-url-browser-function
 
+(declare-function pgtk-backend-display-class "pgtkfns.c" (&optional terminal))
+
 ;;;###autoload
 (defun browse-url (url &rest args)
   "Open URL using a configurable method.
