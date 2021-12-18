@@ -5361,9 +5361,6 @@ handle_display_prop (struct it *it)
   if (!it->string_from_display_prop_p)
     it->area = TEXT_AREA;
 
-  if (!STRINGP (it->string))
-    object = it->w->contents;
-
   propval = get_char_property_and_overlay (make_fixnum (position->charpos),
 					   Qdisplay, object, &overlay);
 
@@ -5376,6 +5373,9 @@ handle_display_prop (struct it *it)
     return HANDLED_NORMALLY;
   /* Now OVERLAY is the overlay that gave us this property, or nil
      if it was a text property.  */
+
+  if (!STRINGP (it->string))
+    object = it->w->contents;
 
   display_replaced = handle_display_spec (it, propval, object, overlay,
 					  position, bufpos,
