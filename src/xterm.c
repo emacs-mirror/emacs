@@ -579,7 +579,7 @@ xi_link_touch_point (struct xi_device_t *device,
   device->touchpoints = touchpoint;
 }
 
-static void
+static bool
 xi_unlink_touch_point (int detail,
 		       struct xi_device_t *device)
 {
@@ -596,9 +596,11 @@ xi_unlink_touch_point (int detail,
 	    last->next = tem->next;
 
 	  xfree (tem);
-	  return;
+	  return true;
 	}
     }
+
+  return false;
 }
 
 static struct xi_touch_point_t *
@@ -10887,37 +10889,45 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f && device->direct_p)
 		{
-		  xi_link_touch_point (device, xev->detail, xev->event_x,
-				       xev->event_y);
-
-#ifdef HAVE_GTK3
-		  if (FRAME_X_OUTPUT (f)->menubar_widget
-		      && xg_event_is_for_menubar (f, event))
-		    {
-		      bool was_waiting_for_input = waiting_for_input;
-		      /* This hack was adopted from the NS port.  Whether
-			 or not it is actually safe is a different story
-			 altogether.  */
-		      if (waiting_for_input)
-			waiting_for_input = 0;
-		      set_frame_menubar (f, true);
-		      waiting_for_input = was_waiting_for_input;
-		    }
-#endif
-
-		  inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
-		  inev.ie.timestamp = xev->time;
-		  XSETFRAME (inev.ie.frame_or_window, f);
-		  XSETINT (inev.ie.x, lrint (xev->event_x));
-		  XSETINT (inev.ie.y, lrint (xev->event_y));
-		  XSETINT (inev.ie.arg, xev->detail);
-
+		  x_catch_errors (dpyinfo->display);
 		  XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
 				      xev->detail, xev->event, XIAcceptTouch);
+		  if (!x_had_errors_p (dpyinfo->display))
+		    {
+		      xi_link_touch_point (device, xev->detail, xev->event_x,
+					   xev->event_y);
+
+#ifdef HAVE_GTK3
+		      if (FRAME_X_OUTPUT (f)->menubar_widget
+			  && xg_event_is_for_menubar (f, event))
+			{
+			  bool was_waiting_for_input = waiting_for_input;
+			  /* This hack was adopted from the NS port.  Whether
+			     or not it is actually safe is a different story
+			     altogether.  */
+			  if (waiting_for_input)
+			    waiting_for_input = 0;
+			  set_frame_menubar (f, true);
+			  waiting_for_input = was_waiting_for_input;
+			}
+#endif
+
+		      inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
+		      inev.ie.timestamp = xev->time;
+		      XSETFRAME (inev.ie.frame_or_window, f);
+		      XSETINT (inev.ie.x, lrint (xev->event_x));
+		      XSETINT (inev.ie.y, lrint (xev->event_y));
+		      XSETINT (inev.ie.arg, xev->detail);
+		    }
+		  x_uncatch_errors_after_check ();
 		}
 	      else
-		XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-				    xev->detail, xev->event, XIRejectTouch);
+		{
+		  x_catch_errors (dpyinfo->display);
+		  XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
+				      xev->detail, xev->event, XIRejectTouch);
+		  x_uncatch_errors ();
+		}
 
 	      goto XI_OTHER;
 	    }
@@ -10965,24 +10975,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_TouchEnd:
 	    {
 	      struct xi_device_t *device;
+	      bool unlinked_p;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
 	      if (!device)
 		goto XI_OTHER;
 
-	      xi_unlink_touch_point (xev->detail, device);
+	      unlinked_p = xi_unlink_touch_point (xev->detail, device);
 
-	      f = x_any_window_to_frame (dpyinfo, xev->event);
-
-	      if (f && device->direct_p)
+	      if (unlinked_p)
 		{
-		  inev.ie.kind = TOUCHSCREEN_END_EVENT;
-		  inev.ie.timestamp = xev->time;
-		  XSETFRAME (inev.ie.frame_or_window, f);
-		  XSETINT (inev.ie.x, lrint (xev->event_x));
-		  XSETINT (inev.ie.y, lrint (xev->event_y));
-		  XSETINT (inev.ie.arg, xev->detail);
+		  f = x_any_window_to_frame (dpyinfo, xev->event);
+
+		  if (f && device->direct_p)
+		    {
+		      inev.ie.kind = TOUCHSCREEN_END_EVENT;
+		      inev.ie.timestamp = xev->time;
+		      XSETFRAME (inev.ie.frame_or_window, f);
+		      XSETINT (inev.ie.x, lrint (xev->event_x));
+		      XSETINT (inev.ie.y, lrint (xev->event_y));
+		      XSETINT (inev.ie.arg, xev->detail);
+		    }
 		}
 
 	      goto XI_OTHER;
