@@ -66,8 +66,9 @@
 ;;;###autoload
 (defun emoji-insert (&optional text)
   "Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix), use a textual search instead
-of a visual interface."
+If TEXT (interactively, the prefix argument), choose the emoji
+by typing its Unicode Standard name (with completion), instead
+of selecting from emoji display."
   (interactive "*P")
   (emoji--init)
   (if text
@@ -78,7 +79,7 @@ of a visual interface."
 
 ;;;###autoload
 (defun emoji-recent ()
-  "Choose and insert a recently used emoji glyph."
+  "Choose and insert one of the recently-used emoji glyphs."
   (interactive "*")
   (emoji--init)
   (unless (fboundp 'emoji--command-Emoji)
@@ -88,7 +89,9 @@ of a visual interface."
 
 ;;;###autoload
 (defun emoji-search ()
-  "Choose and insert an emoji glyph by searching for an emoji name."
+  "Choose and insert an emoji glyph by typing its Unicode name.
+This command prompts for an emoji name, with completion, and inserts it.
+It recognizes the Unicode Standard names of emoji."
   (interactive "*")
   (emoji--init)
   (emoji--choose-emoji))
@@ -96,8 +99,9 @@ of a visual interface."
 ;;;###autoload
 (defun emoji-list ()
   "List emojis and insert the one that's selected.
-The character will be inserted into the buffer that was selected
-when the command was issued."
+Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
+The glyph will be inserted into the buffer that was current
+when the command was invoked."
   (interactive "*")
   (let ((buf (current-buffer)))
     (emoji--init)
@@ -113,11 +117,13 @@ when the command was issued."
 
 ;;;###autoload
 (defun emoji-describe (glyph &optional interactive)
-  "Say what the name of the composed grapheme cluster GLYPH is.
-If it's not known, this function returns nil.
+  "Display the name of the grapheme cluster composed from GLYPH.
+GLYPH should be a string of one or more characters which together
+produce an emoji.  Interactively, GLYPH is the emoji at point (it
+could also be any character, not just emoji).
 
-Interactively, it will message what the name of the emoji (or
-character) under point is."
+If called from Lisp, return the name as a string; return nil if
+the name is not known."
   (interactive
    (list (if (eobp)
              (error "No glyph under point")
@@ -224,14 +230,14 @@ character) under point is."
                                     nil end-func)))))))
 
 (defun emoji-list-help ()
-  "Say what the emoji under point is."
+  "Display the name of the emoji at point."
   (interactive nil emoji-list-mode)
   (let ((glyph (get-text-property (point) 'emoji-glyph)))
     (unless glyph
-      (error "No emoji under point"))
+      (error "No emoji here"))
     (let ((name (emoji--name glyph)))
       (if (not name)
-          (error "Unknown name")
+          (error "Emoji name is unknown")
         (message "%s" name)))))
 
 (defun emoji--init (&optional force inhibit-adjust)
