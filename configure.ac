@@ -3474,6 +3474,23 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 fi
+
+if test "$window_system" = "pgtk"; then
+  CAIRO_REQUIRED=1.12.0
+  CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
+  EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
+  if test $HAVE_CAIRO = yes; then
+    AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+  else
+    AC_MSG_ERROR([cairo required but not found.])
+  fi
+
+  CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+  LIBS="$LIBS $CAIRO_LIBS"
+  AC_SUBST(CAIRO_CFLAGS)
+  AC_SUBST(CAIRO_LIBS)
+fi
+
 if test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_be_cairo}" != "no"; then
     CAIRO_REQUIRED=1.8.0
@@ -3728,25 +3745,6 @@ AC_SUBST(LIBOTF_CFLAGS)
 AC_SUBST(LIBOTF_LIBS)
 AC_SUBST(M17N_FLT_CFLAGS)
 AC_SUBST(M17N_FLT_LIBS)
-
-HAVE_CAIRO=no
-if test "${HAVE_X11}" = "yes" -o "$window_system" = pgtk; then
-  if test "${with_cairo}" != "no"; then
-    CAIRO_REQUIRED=1.12.0
-    CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
-    EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
-    if test $HAVE_CAIRO = yes; then
-      AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
-    else
-      AC_MSG_ERROR([cairo requested but not found.])
-    fi
-
-    CFLAGS="$CFLAGS $CAIRO_CFLAGS"
-    LIBS="$LIBS $CAIRO_LIBS"
-    AC_SUBST(CAIRO_CFLAGS)
-    AC_SUBST(CAIRO_LIBS)
-  fi
-fi
 
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/Xlib-xcb.h,
@@ -5850,15 +5848,12 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
     FONT_OBJ="$FONT_OBJ ftfont.o"
   fi
 fi
+
 if test "${window_system}" = "pgtk"; then
    FONT_OBJ="ftfont.o ftcrfont.o"
 fi
 
 if test "${HAVE_BE_APP}" = "yes" ; then
-  if test "${HAVE_FREETYPE}" = "yes" || \
-     test "${HAVE_CAIRO}" = "yes"; then
-     FONT_OBJ="$FONT_OBJ ftfont.o"
-  fi
   if test "${HAVE_CAIRO}" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftcrfont.o"
   fi
