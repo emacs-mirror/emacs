@@ -10832,8 +10832,9 @@ in_display_vector_p (struct it *it)
    set WINDOW's buffer to the buffer specified by its BUFFER_OR_NAME
    argument.  */
 static Lisp_Object
-window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
-			Lisp_Object y_limit, Lisp_Object mode_lines, Lisp_Object ignore_line_at_end)
+window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
+			Lisp_Object x_limit, Lisp_Object y_limit,
+			Lisp_Object mode_lines, Lisp_Object ignore_line_at_end)
 {
   struct window *w = decode_live_window (window);
   struct it it;
@@ -10973,10 +10974,8 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to, Li
 
 	  /* DTRT if ignore_line_at_end is t.  */
 	  if (!NILP (ignore_line_at_end))
-	    {
-	      doff = (max (it.max_ascent, it.ascent)
-		      + max (it.max_descent, it.descent));
-	    }
+	    doff = (max (it.max_ascent, it.ascent)
+		    + max (it.max_descent, it.descent));
 	  else
 	    {
 	      it.max_ascent = max (it.max_ascent, it.ascent);
@@ -11105,8 +11104,8 @@ If it is the symbol `mode-line', 'tab-line' or `header-line', include
 only the height of that line, if present, in the return value.  If t,
 include the height of any of these, if present, in the return value.
 
-IGNORE-LINE-AT-END means to not add the height of the screen line at
-TO to the returned height.  */)
+IGNORE-LINE-AT-END, if non-nil, means to not add the height of the
+screen line that includes TO to the returned height of the text.  */)
   (Lisp_Object window, Lisp_Object from, Lisp_Object to, Lisp_Object x_limit,
    Lisp_Object y_limit, Lisp_Object mode_lines, Lisp_Object ignore_line_at_end)
 {

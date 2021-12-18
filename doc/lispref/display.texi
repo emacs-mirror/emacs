@@ -2138,7 +2138,9 @@ height of all of these lines, if present, in the return value.
 
 The optional argument @var{ignore-line-at-end} controls whether or
 not to count the height of text in @var{to}'s screen line as part of
-the returned pixel-height.
+the returned pixel-height.  This is useful if your Lisp program is
+only interested in the dimensions of text up to and excluding the
+visual beginning of @var{to}'s screen line.
 
 @code{window-text-pixel-size} treats the text displayed in a window as a
 whole and does not care about the size of individual lines.  The

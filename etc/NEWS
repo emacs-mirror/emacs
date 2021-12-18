@@ -985,9 +985,10 @@ This can be used to check whether a specific font has a glyph for a
 character.
 
 +++
-** 'window-text-pixel-size' now accepts a new argument `ignore-line-at-end'.
-This controls whether or not the screen line at the end of the
-measured area will be counted during the height calculation.
+** 'window-text-pixel-size' now accepts a new argument 'ignore-line-at-end'.
+This controls whether or not the last screen line of the text being
+measured will be counted for the purpose of calculating the text
+dimensions.
 
 ** XDG support
 
