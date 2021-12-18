@@ -10935,7 +10935,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      touchpoint = xi_find_touch_point (device, xev->detail);
 
 	      if (!touchpoint)
-		emacs_abort ();
+		goto XI_OTHER;
 
 	      touchpoint->x = xev->event_x;
 	      touchpoint->y = xev->event_y;
