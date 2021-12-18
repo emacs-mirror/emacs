@@ -1100,15 +1100,18 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 		       &gwidth, &gheight);
 #else
-  if (FRAME_GTK_OUTER_WIDGET (f)) {
-    gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 &gwidth, &gheight);
-  } else {
-    GtkAllocation alloc;
-    gtk_widget_get_allocation (FRAME_GTK_WIDGET (f), &alloc);
-    gwidth = alloc.width;
-    gheight = alloc.height;
-  }
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
+      gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			   &gwidth, &gheight);
+    }
+  else
+    {
+      GtkAllocation alloc;
+      gtk_widget_get_allocation (FRAME_GTK_WIDGET (f), &alloc);
+      gwidth = alloc.width;
+      gheight = alloc.height;
+    }
 #endif
 
   /* Do this before resize, as we don't know yet if we will be resized.  */
@@ -1182,13 +1185,16 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			     outer_width, outer_height);
 #else
-	  if (FRAME_GTK_OUTER_WIDGET (f)) {
-	    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			       outer_width, outer_height);
-	  } else {
-	    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-					 outer_width, outer_height);
-	  }
+	  if (FRAME_GTK_OUTER_WIDGET (f))
+	    {
+	      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+				 outer_width, outer_height);
+	    }
+	  else
+	    {
+	      gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+					   outer_width, outer_height);
+	    }
 #endif
 
           if (hide_child_frame)
@@ -1211,13 +1217,16 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 outer_width, outer_height);
 #else
-      if (FRAME_GTK_OUTER_WIDGET (f)) {
-	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   outer_width, outer_height);
-      } else {
-	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     outer_width, outer_height);
-      }
+      if (FRAME_GTK_OUTER_WIDGET (f))
+	{
+	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     outer_width, outer_height);
+	}
+      else
+	{
+	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				       outer_width, outer_height);
+	}
 #endif
       fullscreen = Qnil;
     }
