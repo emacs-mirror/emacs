@@ -921,7 +921,7 @@ xg_hide_tooltip (struct frame *f)
   return FALSE;
 }
 
-#else
+#else  /* HAVE_PGTK */
 
 void
 xg_show_tooltip (struct frame *f,
@@ -943,7 +943,7 @@ xg_hide_tooltip (struct frame *f)
   return TRUE;
 }
 
-#endif
+#endif	/* HAVE_PGTK */
 
 
 /***********************************************************************

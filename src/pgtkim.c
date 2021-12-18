@@ -1,4 +1,4 @@
-/* Pure Gtk+-3 communication module.      -*- coding: utf-8 -*-
+/* Pure Gtk+-3 communication module.
 
 Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2020 Free Software
 Foundation, Inc.

@@ -102,13 +102,11 @@ static unsigned long image_alloc_image_color (struct frame *, struct image *,
 #endif	/* USE_CAIRO */
 
 #if defined HAVE_PGTK && defined HAVE_IMAGEMAGICK
-/* On pgtk, we don't want to create scaled image.
- * If we create scaled image on scale=2.0 environment,
- * the created image is half size and Gdk scales it back,
- * and the result is blurry.
- * To avoid this, we hold original size image as far as
- * we can, and let Gdk to scale it when it is shown.
- */
+/* In pgtk, we don't want to create scaled image.  If we create scaled
+ * image on scale=2.0 environment, the created image is half size and
+ * Gdk scales it back, and the result is blurry.  To avoid this, we
+ * hold original size image as far as we can, and let Gdk to scale it
+ * when it is shown.  */
 # define DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
 #endif
 

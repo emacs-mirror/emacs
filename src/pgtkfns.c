@@ -41,8 +41,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_PGTK
 
-//static EmacsTooltip *pgtk_tooltip = nil;
-
 /* Static variables to handle applescript execution.  */
 static Lisp_Object as_script, *as_result;
 static int as_status;
@@ -55,7 +53,7 @@ static struct pgtk_display_info *pgtk_display_info_for_name (Lisp_Object);
 
 static const char *pgtk_app_name = "Emacs";
 
-/* scale factor manually set per monitor */
+/* Scale factor manually set per monitor.  */
 static Lisp_Object monitor_scale_factor_alist;
 
 /* ==========================================================================
@@ -78,13 +76,9 @@ pgtk_get_monitor_scale_factor (const char *model)
   if (NILP (cdr))
     return 0;
   if (FIXNUMP (cdr))
-    {
-      return XFIXNUM (cdr);
-    }
+    return XFIXNUM (cdr);
   else if (FLOATP (cdr))
-    {
-      return XFLOAT_DATA (cdr);
-    }
+    return XFLOAT_DATA (cdr);
   else
     error ("unknown type of scale-factor");
 }
@@ -125,15 +119,12 @@ check_pgtk_display_info (Lisp_Object object)
   return dpyinfo;
 }
 
-/* On Wayland,
- * even if without WAYLAND_DISPLAY, --display DISPLAY works, but
- * gdk_display_get_name() always return "wayland-0", which may be
- * different from DISPLAY.
- * If with WAYLAND_DISPLAY, then it always returns WAYLAND_DISPLAY.
- * So pgtk emacs is confused and enter multi display environment.
- * To workaround this situation, treat all the wayland-* as the same
- * display.
- */
+/* On Wayland, even if without WAYLAND_DISPLAY, --display DISPLAY
+   works, but gdk_display_get_name always return "wayland-0", which
+   may be different from DISPLAY.  If with WAYLAND_DISPLAY, then it
+   always returns WAYLAND_DISPLAY.  So pgtk Emacs is confused and
+   enters multi display environment.  To workaround this situation,
+   treat all the wayland-* as the same display.  */
 static Lisp_Object
 is_wayland_display (Lisp_Object dpyname)
 {
@@ -204,7 +195,6 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (FRAME_GTK_WIDGET (f))
     {
       update_face_from_frame_parameter (f, Qforeground_color, arg);
-      /*recompute_basic_faces (f); */
       if (FRAME_VISIBLE_P (f))
 	SET_FRAME_GARBAGED (f);
     }
@@ -219,7 +209,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
   FRAME_BACKGROUND_PIXEL (f) = bg;
 
-  /* clear the frame */
+  /* Clear the frame.  */
   if (FRAME_VISIBLE_P (f))
     pgtk_clear_frame (f);
 
@@ -405,7 +395,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     return;
 
   if (TYPE_RANGED_FIXNUMP (int, value))
-      nlines = XFIXNUM (value);
+    nlines = XFIXNUM (value);
   else
     nlines = 0;
 
@@ -530,8 +520,7 @@ x_change_tool_bar_height (struct frame *f, int height)
     }
 }
 
-
-/* toolbar support */
+/* Toolbar support.  */
 static void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -569,7 +558,6 @@ x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object ol
 
 }
 
-
 static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
@@ -587,7 +575,6 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg,
 	}
     }
 }
-
 
 static void
 x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -618,7 +605,6 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   unblock_input ();
 }
-
 
 static void
 x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -1239,9 +1225,7 @@ scale factor. */ )
 					    monitor_scale_factor_alist);
     }
   else
-    {
-      Fsetcdr (tem, scale_factor);
-    }
+    Fsetcdr (tem, scale_factor);
 
   return scale_factor;
 }
@@ -2382,7 +2366,7 @@ font descriptor.  If string contains `fontset' and not
 
    ========================================================================== */
 
-/* called from frame.c */
+/* Called from frame.c.  */
 struct pgtk_display_info *
 check_x_display_info (Lisp_Object frame)
 {
@@ -2410,7 +2394,7 @@ pgtk_set_scroll_bar_default_height (struct frame *f)
   FRAME_CONFIG_SCROLL_BAR_LINES (f) = (min_height + height - 1) / height;
 }
 
-/* terms impl this instead of x-get-resource directly */
+/* Terminals implement this instead of x-get-resource directly.  */
 const char *
 pgtk_get_string_resource (XrmDatabase rdb, const char *name,
 			  const char *class)
@@ -3888,7 +3872,7 @@ value of DIR as in previous invocations; this is standard MS Windows behavior.  
 }
 
 DEFUN ("pgtk-backend-display-class", Fpgtk_backend_display_class, Spgtk_backend_display_class, 0, 1, "",
-       doc: /* Returns the name of the Gdk backend display class of the TERMINAL.
+       doc: /* Return the name of the Gdk backend display class of TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
