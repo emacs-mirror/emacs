@@ -25,6 +25,11 @@ AC_PREREQ(2.65)
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT(GNU Emacs, 29.0.50, bug-gnu-emacs@gnu.org, , https://www.gnu.org/software/emacs/)
 
+AC_MSG_ERROR([[The feature/pgtk branch has been integrated into master.
+Please clone Emacs like this:
+    git clone git://git.sv.gnu.org/emacs.git
+And build Emacs from there instead.]])
+
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
 dnl and then quoted again for a C string.  Separate options with spaces.
 dnl Add some environment variables, if they were passed via the environment
