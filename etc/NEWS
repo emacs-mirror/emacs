@@ -984,6 +984,11 @@ when they have changed.
 This can be used to check whether a specific font has a glyph for a
 character.
 
++++
+** 'window-text-pixel-size' now accepts a new argument `ignore-line-at-end'.
+This controls whether or not the screen line at the end of the
+measured area will be counted during the height calculation.
+
 ** XDG support
 
 *** New function 'xdg-state-home' returns 'XDG_STATE_HOME' environment variable.
