@@ -65,7 +65,7 @@
     (:before-while ,(oclosure-lambda advice ((where :before-while)) (&rest args)
                      (and (apply car args) (apply cdr args))))
     (:filter-args ,(oclosure-lambda advice ((where :filter-args)) (&rest args)
-                     (apply cdr (funcall cdr args))))
+                     (apply cdr (funcall car args))))
     (:filter-return ,(oclosure-lambda advice ((where :filter-return)) (&rest args)
                        (funcall car (apply cdr args)))))
   "List of descriptions of how to add a function.
@@ -175,6 +175,14 @@ function of type `advice'.")
     (if (functionp fspec)
         `(funcall ',fspec ',(cadr ifm))
       (cadr (or iff ifm)))))
+
+
+;; This is the `advice' method of `interactive-form'.
+(defun advice--get-interactive-form (ad)
+  (let ((car (advice--car ad))
+        (cdr (advice--cdr ad)))
+    (when (or (commandp car) (commandp cdr))
+      `(interactive ,(advice--make-interactive-form car cdr)))))
 
 (defun advice--make (where function main props)
   "Build a function value that adds FUNCTION to MAIN at WHERE.

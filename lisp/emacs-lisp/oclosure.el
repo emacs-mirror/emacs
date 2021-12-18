@@ -214,23 +214,22 @@
     ;; a docstring slot to OClosures.
     (while (memq (car-safe (car-safe body)) '(interactive declare))
       (push (pop body) prebody))
-    ;; FIXME: Optimize temps away when they're provided in the right order!
+    ;; FIXME: Optimize temps away when they're provided in the right order?
     ;; FIXME: Slots not specified in `fields' tend to emit "Variable FOO left
     ;; uninitialized"!
     `(let ,tempbinds
-       (let ,slotbinds
-         ;; FIXME: Prevent store-conversion for fields vars!
-         ;; FIXME: Set the object's *type*!
-         ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
-         ;; just value/variable-propagated by the optimizer (tho I think our
-         ;; optimizer is too naive to be a problem currently).
-         (oclosure--fix-type
+       ;; FIXME: Prevent store-conversion for fields vars!
+       ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
+       ;; just value/variable-propagated by the optimizer (tho I think our
+       ;; optimizer is too naive to be a problem currently).
+       (oclosure--fix-type
+        (let ,slotbinds
           (lambda ,args
             (:documentation ',type)
             ,@prebody
             ;; Add dummy code which accesses the field's vars to make sure
             ;; they're captured in the closure.
-            (if t nil ,@(mapcar #'car fields))
+            (if t nil ,@(mapcar #'car slotbinds))
             ,@body))))))
 
 (defun oclosure--fix-type (oclosure)
