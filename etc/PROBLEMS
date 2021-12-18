@@ -1328,6 +1328,12 @@ A better approach might be to avoid navigation from Nautilus to Emacs
 for such files, and instead to open the file in Emacs using Tramp
 remote file name syntax.
 
+*** Gnome: GTK builds with XInput2 freeze when making a frame fullscreen.
+
+This problem exists with GTK 3.24.30 in GNOME 41.1 and possibly other
+versions.  The solution is to upgrade GNOME Shell to the version that
+comes with GNOME 41.2.
+
 *** KDE: When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
 
