@@ -250,23 +250,30 @@ DOC should be a doc string, and ARGS are keywords as applicable to
 (defun multisession--encode-file-name (name)
   (url-hexify-string name))
 
-(defun multisession--update-file-value (file object)
-  (condition-case nil
-      (with-temp-buffer
-        (let* ((time (file-attribute-modification-time
-                      (file-attributes file)))
-               (coding-system-for-read 'utf-8))
-          (insert-file-contents file)
-          (let ((stored (read (current-buffer))))
-            (setf (multisession--cached-value object) stored
-                  (multisession--cached-sequence object) time)
-            stored)))
-    ;; If the file is contended (could happen with file locking in
-    ;; Windws) or unreadable, just return the current value.
-    (error
-     (if (eq (multisession--cached-value object) multisession--unbound)
-         (multisession--initial-value object)
-       (multisession--cached-value object)))))
+(defun multisession--read-file-value (file object)
+  (catch 'done
+    (let ((i 0)
+          last-error)
+      (while (< i 10)
+        (condition-case err
+            (throw 'done
+                   (with-temp-buffer
+                     (let* ((time (file-attribute-modification-time
+                                   (file-attributes file)))
+                            (coding-system-for-read 'utf-8))
+                       (insert-file-contents file)
+                       (let ((stored (read (current-buffer))))
+                         (setf (multisession--cached-value object) stored
+                               (multisession--cached-sequence object) time)
+                         stored))))
+          ;; Windows uses OS-level file locking that may preclude
+          ;; reading the file in some circumstances.  So when that
+          ;; happens, wait a bit and try again.
+          (file-error
+           (setq i (1+ i)
+                 last-error err)
+           (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
+      (signal (car last-error) (cdr last-error)))))
 
 (defun multisession--object-file-name (object)
   (expand-file-name
@@ -283,7 +290,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
      ;; We have no value yet; see whether it's stored.
      ((eq (multisession--cached-value object) multisession--unbound)
       (if (file-exists-p file)
-          (multisession--update-file-value file object)
+          (multisession--read-file-value file object)
         ;; Nope; return the initial value.
         (multisession--initial-value object)))
      ;; We have a value, but we want to update in case some other
@@ -293,7 +300,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                (time-less-p (multisession--cached-sequence object)
                             (file-attribute-modification-time
                              (file-attributes file))))
-          (multisession--update-file-value file object)
+          (multisession--read-file-value file object)
         ;; Nothing, return the cached value.
         (multisession--cached-value object)))
      ;; Just return the cached value.
