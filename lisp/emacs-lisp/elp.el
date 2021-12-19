@@ -301,7 +301,7 @@ For example, to instrument all ELP functions, do the following:
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to restore: ") ;FIXME: Doesn't work!?
+  (interactive)
   (mapcar #'elp-restore-function (or list elp-function-list)))
 
 (defun elp-restore-all ()
@@ -323,7 +323,7 @@ Use optional LIST if provided instead."
 (defun elp-reset-list (&optional list)
   "Reset the profiling information for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
-  (interactive "PList of functions to reset: ") ;FIXME: Doesn't work!?
+  (interactive)
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-reset-function list)))
 
