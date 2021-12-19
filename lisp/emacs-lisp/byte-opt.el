@@ -1464,6 +1464,7 @@ See Info node `(elisp) Integer Basics'."
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
 	 assq
+         base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-count-consecutive bool-vector-count-population
          bool-vector-subsetp
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
@@ -1620,6 +1621,7 @@ See Info node `(elisp) Integer Basics'."
          assq rassq rassoc
          plist-get lax-plist-get plist-member
          aref elt
+         base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-subsetp
          bool-vector-count-population bool-vector-count-consecutive
          )))
