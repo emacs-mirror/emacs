@@ -402,39 +402,36 @@ This is buffer-local in every such buffer.")
     (rpm . (,sh-mode-syntax-table ?\' ".")))
   "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
-(defvar sh-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c(" 'sh-function)
-    (define-key map "\C-c\C-w" 'sh-while)
-    (define-key map "\C-c\C-u" 'sh-until)
-    (define-key map "\C-c\C-t" 'sh-tmp-file)
-    (define-key map "\C-c\C-s" 'sh-select)
-    (define-key map "\C-c\C-r" 'sh-repeat)
-    (define-key map "\C-c\C-o" 'sh-while-getopts)
-    (define-key map "\C-c\C-l" 'sh-indexed-loop)
-    (define-key map "\C-c\C-i" 'sh-if)
-    (define-key map "\C-c\C-f" 'sh-for)
-    (define-key map "\C-c\C-c" 'sh-case)
-    (define-key map "\C-c?" #'smie-config-show-indent)
-    (define-key map "\C-c=" #'smie-config-set-indent)
-    (define-key map "\C-c<" #'smie-config-set-indent)
-    (define-key map "\C-c>" #'smie-config-guess)
-    (define-key map "\C-c\C-\\" 'sh-backslash-region)
+(defvar-keymap sh-mode-map
+  :doc "Keymap used in Shell-Script mode."
+  "C-c ("    #'sh-function
+  "C-c C-w"  #'sh-while
+  "C-c C-u"  #'sh-until
+  "C-c C-t"  #'sh-tmp-file
+  "C-c C-s"  #'sh-select
+  "C-c C-r"  #'sh-repeat
+  "C-c C-o"  #'sh-while-getopts
+  "C-c C-l"  #'sh-indexed-loop
+  "C-c C-i"  #'sh-if
+  "C-c C-f"  #'sh-for
+  "C-c C-c"  #'sh-case
+  "C-c ?"    #'smie-config-show-indent
+  "C-c ="    #'smie-config-set-indent
+  "C-c <"    #'smie-config-set-indent
+  "C-c >"    #'smie-config-guess
+  "C-c C-\\" #'sh-backslash-region
 
-    (define-key map "\C-c+" 'sh-add)
-    (define-key map "\C-\M-x" 'sh-execute-region)
-    (define-key map "\C-c\C-x" 'executable-interpret)
-    (define-key map "\C-c\C-n" 'sh-send-line-or-region-and-step)
-    (define-key map "\C-c\C-d" 'sh-cd-here)
-    (define-key map "\C-c\C-z" 'sh-show-shell)
+  "C-c +"    #'sh-add
+  "C-M-x"    #'sh-execute-region
+  "C-c C-x"  #'executable-interpret
+  "C-c C-n"  #'sh-send-line-or-region-and-step
+  "C-c C-d"  #'sh-cd-here
+  "C-c C-z"  #'sh-show-shell
+  "C-c :"    #'sh-set-shell
 
-    (define-key map [remap delete-backward-char]
-      'backward-delete-char-untabify)
-    (define-key map "\C-c:" 'sh-set-shell)
-    (define-key map [remap backward-sentence] 'sh-beginning-of-command)
-    (define-key map [remap forward-sentence] 'sh-end-of-command)
-    map)
-  "Keymap used in Shell-Script mode.")
+  "<remap> <delete-backward-char>" #'backward-delete-char-untabify
+  "<remap> <backward-sentence>"    #'sh-beginning-of-command
+  "<remap> <forward-sentence>"     #'sh-end-of-command)
 
 (easy-menu-define sh-mode-menu sh-mode-map
   "Menu for Shell-Script mode."
