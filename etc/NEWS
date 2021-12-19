@@ -410,6 +410,11 @@ It narrows to the current node.
 ** eww/shr
 
 +++
+*** New user option 'shr-allowed-images'.
+This complements 'shr-blocked-images', but allows specifying just the
+allowed images.
+
++++
 *** New user option 'shr-use-xwidgets-for-media'.
 If non-nil (and Emacs has been built with support for xwidgets),
 display <video> elements with an xwidget.  Note that this is

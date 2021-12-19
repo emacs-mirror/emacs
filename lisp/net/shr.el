@@ -57,8 +57,15 @@ fit these criteria."
   :version "24.1"
   :type 'float)
 
+(defcustom shr-allowed-images nil
+  "If non-nil, only images that match this regexp are displayed.
+If nil, all URLs are allowed.  Also see `shr-blocked-images'."
+  :version "29.1"
+  :type '(choice (const nil) regexp))
+
 (defcustom shr-blocked-images nil
-  "Images that have URLs matching this regexp will be blocked."
+  "Images that have URLs matching this regexp will be blocked.
+If nil, no images are blocked.  Also see `shr-allowed-images'."
   :version "24.1"
   :type '(choice (const nil) regexp))
 
@@ -551,6 +558,12 @@ size, and full-buffer size."
     (if (stringp sub)
 	(shr-insert sub)
       (shr-descend sub))))
+
+(defun shr-image-blocked-p (url)
+  (or (and shr-blocked-images
+           (string-match shr-blocked-images url))
+      (and shr-allowed-images
+           (not (string-match shr-allowed-images url)))))
 
 (defun shr-indirect-call (tag-name dom &rest args)
   (let ((function (intern (concat "shr-tag-" (symbol-name tag-name)) obarray))
@@ -1165,7 +1178,7 @@ Return a string with image data."
     ;; SVG images may contain references to further images that we may
     ;; want to block.  So special-case these by parsing the XML data
     ;; and remove anything that looks like a blocked bit.
-    (when (and shr-blocked-images
+    (when (and (or shr-allowed-images shr-blocked-images)
                (eq content-type 'image/svg+xml))
       (setq data
             ;; Note that libxml2 doesn't parse everything perfectly,
@@ -1344,8 +1357,7 @@ ones, in case fg and bg are nil."
        ((or (not (eq (dom-tag elem) 'image))
 	    ;; Filter out blocked elements inside the SVG image.
 	    (not (setq url (dom-attr elem ':xlink:href)))
-	    (not shr-blocked-images)
-	    (not (string-match-p shr-blocked-images url)))
+	    (not (shr-image-blocked-p url)))
 	(insert " ")
 	(shr-dom-print elem)))))
   (insert (format "</%s>" (dom-tag dom))))
@@ -1651,8 +1663,7 @@ The preference is a float determined from `shr-prefer-media-type'."
 	      (funcall shr-put-image-function image alt
                        (list :width width :height height)))))
 	 ((or shr-inhibit-images
-	      (and shr-blocked-images
-		   (string-match-p shr-blocked-images url)))
+	      (shr-image-blocked-p url))
 	  (setq shr-start (point))
           (shr-insert alt))
 	 ((and (not shr-ignore-cache)
