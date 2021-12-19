@@ -3343,20 +3343,22 @@ are handy (@pxref{Window Parameters}).  These allow to remove an
 unwanted mode line (when @code{drag-with-header-line} is chosen) and to
 remove mouse-sensitive areas which might interfere with frame dragging.
 
-  When the mouse cursor overshoots, it's easy to drag a frame out of the
-screen area of its parent.  Retrieving such a frame can be hairy once
-the mouse button has been released.  To prevent such a situation, it is
-advisable to set the frame's @code{top-visible} or @code{bottom-visible}
-parameter (@pxref{Mouse Dragging Parameters}).
+  When the user drags a frame with a mouse and overshoots, it's easy
+to drag a frame out of the screen area of its parent.  Retrieving such
+a frame can be hairy once the mouse button has been released.  To
+prevent such a situation, it is advisable to set the frame's
+@code{top-visible} or @code{bottom-visible} parameter (@pxref{Mouse
+Dragging Parameters}).
 
-  Set the @code{top-visible} parameter of a child frame to a number when
-you intend to drag that frame via its header line.  This inhibits
-dragging the top edge of the child frame above the top edge of its
-parent.  Set the @code{bottom-visible} parameter to a number when you
-intend to drag that frame via its mode line.  This inhibits dragging the
-bottom edge of the child frame beneath the bottom edge of its parent.
-In either case, that number also specifies width and height (in pixels)
-of the area of the child frame that remains visible during dragging.
+  Set the @code{top-visible} parameter of a child frame to a number
+when you intend to allow the user dragging that frame by its header
+line.  Setting @code{top-visible} to a number inhibits dragging the
+top edge of the child frame above the top edge of its parent.  Set the
+@code{bottom-visible} parameter to a number when you intend to drag
+that frame via its mode line; this inhibits dragging the bottom edge
+of the child frame beneath the bottom edge of its parent.  In either
+case, that number also specifies width and height (in pixels) of the
+area of the child frame that remains visible during dragging.
 
   When a child frame is used for displaying a buffer via
 @code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
