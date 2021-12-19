@@ -2036,7 +2036,7 @@ the start, the cdr to the end of the last prompt recognized.")
 Freezes the `font-lock-face' text property in place."
   (when comint-last-prompt
     (with-silent-modifications
-      (font-lock-prepend-text-property
+      (font-lock-append-text-property
        (car comint-last-prompt)
        (cdr comint-last-prompt)
        'font-lock-face 'comint-highlight-prompt))
