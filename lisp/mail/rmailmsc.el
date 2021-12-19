@@ -54,8 +54,4 @@ This applies only to the current session."
       (setq rmail-inbox-list inbox-list)))
   (rmail-show-message-1 rmail-current-message))
 
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
-
 ;;; rmailmsc.el ends here

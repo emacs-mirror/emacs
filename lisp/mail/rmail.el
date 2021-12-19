@@ -41,8 +41,6 @@
 (require 'rfc2047)
 (require 'auth-source)
 
-(require 'rmail-loaddefs)
-
 (declare-function compilation--message->loc "compile" (cl-x) t)
 (declare-function epa--find-coding-system-for-mime-charset "epa" (mime-charset))
 

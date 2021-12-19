@@ -1569,8 +1569,4 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
 
 (provide 'rmailmm)
 
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
-
 ;;; rmailmm.el ends here

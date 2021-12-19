@@ -484,8 +484,4 @@ HEADER-DIFF should be a return value from `rmail-edit-diff-headers'."
 
 (provide 'rmailedit)
 
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
-
 ;;; rmailedit.el ends here
