@@ -2328,22 +2328,25 @@ maps."
 (cl-defgeneric function-docstring (function)
   "Extract the raw docstring info from FUNCTION.
 FUNCTION is expected to be a function value rather than, say, a mere symbol."
-  (pcase function
-   ((pred byte-code-function-p)
-    (if (> (length function) 4) (aref function 4)))
-   ((or (pred stringp) (pred vectorp)) "Keyboard macro.")
-   (`(keymap . ,_)
-    "Prefix command (definition is a keymap associating keystrokes with commands).")
-   ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
-        `(autoload ,_file . ,body))
-    (let ((doc (car body)))
-      (when (and (or (stringp doc)
-                     (fixnump doc) (fixnump (cdr-safe doc)))
-	         ;; Handle a doc reference--but these never come last
-	         ;; in the function body, so reject them if they are last.
-                 (cdr body))
-        doc)))
-   (_ (signal 'invalid-function (list function)))))
+  (let ((docstring-p (lambda (doc) (or (stringp doc)
+                                  (fixnump doc) (fixnump (cdr-safe doc))))))
+    (pcase function
+      ((pred byte-code-function-p)
+       (when (> (length function) 4)
+         (let ((doc (aref function 4)))
+           (when (funcall docstring-p doc) doc))))
+      ((or (pred stringp) (pred vectorp)) "Keyboard macro.")
+      (`(keymap . ,_)
+       "Prefix command (definition is a keymap associating keystrokes with commands).")
+      ((or `(lambda ,_args . ,body) `(closure ,_env ,_args . ,body)
+           `(autoload ,_file . ,body))
+       (let ((doc (car body)))
+	 (when (and (funcall docstring-p doc)
+	            ;; Handle a doc reference--but these never come last
+	            ;; in the function body, so reject them if they are last.
+	            (cdr body))
+           doc)))
+      (_ (signal 'invalid-function (list function))))))
 
 (cl-defgeneric interactive-form (cmd &optional original-name)
   "Return the interactive form of CMD or nil if none.

@@ -184,6 +184,20 @@ function of type `advice'.")
     (when (or (commandp car) (commandp cdr))
       `(interactive ,(advice--make-interactive-form car cdr)))))
 
+(defun advice--cl-print-object (object stream)
+  (cl-assert (advice--p object))
+  (princ "#f(advice " stream)
+  (cl-print-object (advice--car object) stream)
+  (princ " " stream)
+  (princ (advice--where object) stream)
+  (princ " " stream)
+  (cl-print-object (advice--cdr object) stream)
+  (let ((props (advice--props object)))
+    (when props
+      (princ " " stream)
+      (cl-print-object props stream)))
+  (princ ")" stream))
+
 (defun advice--make (where function main props)
   "Build a function value that adds FUNCTION to MAIN at WHERE.
 WHERE is a symbol to select an entry in `advice--where-alist'."

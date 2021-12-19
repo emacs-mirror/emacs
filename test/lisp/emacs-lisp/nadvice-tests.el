@@ -204,6 +204,17 @@ function being an around advice."
     (remove-function (var sm-test10) sm-advice)
     (should (equal (funcall sm-test10 5) 15))))
 
+(ert-deftest advice-test-print ()
+  (let ((x (list 'cdr)))
+    (add-function :after (car x) 'car)
+    (should (equal (cl-prin1-to-string (car x))
+                   "#f(advice car :after cdr)"))
+    (add-function :before (car x) 'first)
+    (should (equal (cl-prin1-to-string (car x))
+                   "#f(advice first :before #f(advice car :after cdr))"))
+    (should (equal (cl-prin1-to-string (cadar advice--where-alist))
+                   "#f(advice nil :around nil)"))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
