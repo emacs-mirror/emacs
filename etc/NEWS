@@ -64,6 +64,13 @@ this support.
 The named feature 'xinput2' can be used to test for the presence of
 XInput 2 support from Lisp programs.
 
+** Emacs now supports being built with pure GTK.
+To use this option, make sure the GTK 3 and Cairo development files
+are installed, and configure Emacs with the option '--with-pgtk'.
+Unlike the default X and GTK build, the resulting Emacs binary will
+work on any underlying window system supported by GDK, such as
+Wayland and Broadway.
+
 
 * Startup Changes in Emacs 29.1
 
