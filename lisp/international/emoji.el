@@ -412,18 +412,26 @@ the name is not known."
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)
-  (let* ((base (replace-regexp-in-string ":.*" "" name))
-         (non-binary (replace-regexp-in-string "\\`\\(man\\|woman\\) " ""
-                                               base)))
-    ;; If we have (for instance) "person golfing", and we're adding
-    ;; "man golfing", make the latter a derivation of the former.
-    (cond
-     ((gethash (concat "person " non-binary) derivations)
-      (concat "person " non-binary))
-     ((gethash non-binary derivations)
-      non-binary)
-     (t
-      base))))
+  (let* ((base (replace-regexp-in-string ":.*" "" name)))
+    (catch 'found
+      ;; If we have (for instance) "person golfing", and we're adding
+      ;; "man golfing", make the latter a derivation of the former.
+      (let ((non-binary (replace-regexp-in-string
+                         "\\`\\(m[ae]n\\|wom[ae]n\\) " "" base)))
+        (dolist (prefix '("person " "people " ""))
+          (let ((key (concat prefix non-binary)))
+            (when (gethash key derivations)
+              (throw 'found key)))))
+      ;; We can also have the gender at the end of the string, like
+      ;; "merman" and "pregnant woman".
+      (let ((non-binary (replace-regexp-in-string
+                         "\\(m[ae]n\\|wom[ae]n\\|maid\\)\\'" "" base)))
+        (dolist (suffix '(" person" "person" ""))
+          (let ((key (concat non-binary suffix)))
+            (when (gethash key derivations)
+              (throw 'found key)))))
+      ;; Just return the base.
+      base)))
 
 (defun emoji--split-subgroup (subgroup)
   (let ((prefixes '("face" "hand" "person" "animal" "plant"
