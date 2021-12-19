@@ -40,10 +40,10 @@
 ;; Set up some test classes
 (defclass class-a ()
   ((water :initarg :water
-	  :initform h20
+          :initform 'h20
 	  :type symbol
 	  :documentation "Detail about water.")
-   (classslot :initform penguin
+   (classslot :initform 'penguin
 	      :type symbol
 	      :documentation "A class allocated slot."
 	      :allocation :class)
@@ -68,7 +68,7 @@
 
 (defclass class-c ()
   ((slot-1 :initarg :moose
-	   :initform moose
+           :initform 'moose
 	   :type symbol
 	   :allocation :instance
 	   :documentation "First slot testing slot arguments."
@@ -87,7 +87,7 @@
 	   :accessor get-slot-2
 	   :protection :private)
    (slot-3 :initarg :emu
-	   :initform emu
+           :initform 'emu
 	   :type symbol
 	   :allocation :class
 	   :documentation "Third slot test class allocated accessor"
@@ -519,7 +519,7 @@ METHOD is the method that was attempting to be called."
 
 (defclass inittest nil
   ((staticval :initform 1)
-   (symval :initform eieio-test-permuting-value)
+   (symval :initform 'eieio-test-permuting-value)
    (evalval :initform (symbol-value 'eieio-test-permuting-value))
    (evalnow :initform (symbol-value 'eieio-test-permuting-value)
 	    :allocation :class)
@@ -763,7 +763,7 @@ Do not override for `prot-2'."
   (should (eq (oref eitest-II3 slot3) 'penguin)))
 
 (defclass slotattr-base ()
-  ((initform :initform init)
+  ((initform :initform 'init)
    (type :type list)
    (initarg :initarg :initarg)
    (protection :protection :private)
@@ -778,7 +778,7 @@ Do not override for `prot-2'."
 Subclasses to override slot attributes.")
 
 (defclass slotattr-ok (slotattr-base)
-  ((initform :initform no-init)
+  ((initform :initform 'no-init)
    (initarg :initarg :initblarg)
    (custom :custom string
 	   :label "One String"
@@ -814,7 +814,7 @@ Subclasses to override slot attributes.")
 
 (defclass slotattr-class-base ()
   ((initform :allocation :class
-	     :initform init)
+             :initform 'init)
    (type :allocation :class
 	 :type list)
    (initarg :allocation :class
@@ -833,7 +833,7 @@ Subclasses to override slot attributes.")
 Subclasses to override slot attributes.")
 
 (defclass slotattr-class-ok (slotattr-class-base)
-  ((initform :initform no-init)
+  ((initform :initform 'no-init)
    (initarg :initarg :initblarg)
    (custom :custom string
 	   :label "One String"
@@ -895,7 +895,7 @@ Subclasses to override slot attributes.")
   (should (setq eitest-CLONETEST2 (clone eitest-CLONETEST1))))
 
 (defclass IT (eieio-instance-tracker)
-  ((tracking-symbol :initform IT-list)
+  ((tracking-symbol :initform 'IT-list)
    (slot1 :initform 'die))
   "Instance Tracker test object.")
 

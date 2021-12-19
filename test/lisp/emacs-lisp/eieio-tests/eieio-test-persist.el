@@ -99,7 +99,7 @@ This is usually a symbol that starts with `:'."
 (defclass persist-simple (eieio-persistent)
   ((slot1 :initarg :slot1
 	  :type symbol
-	  :initform moose)
+          :initform 'moose)
    (slot2 :initarg :slot2
 	  :initform "foo")
    (slot3 :initform 2))
