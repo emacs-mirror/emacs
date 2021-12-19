@@ -710,7 +710,7 @@ The renaming scheme is performed in accordance with
 	 (shr-target-id
 	  (goto-char (point-min))
           (let ((match (text-property-search-forward
-                        'shr-target-id shr-target-id t)))
+                        'shr-target-id shr-target-id #'member)))
             (when match
               (goto-char (prop-match-beginning match)))))
 	 (t

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2021-04-25.21}
+\def\texinfoversion{2021-11-01.16}
 %
 % Copyright 1985, 1986, 1988, 1990-2021 Free Software Foundation, Inc.
 %
@@ -3613,6 +3613,9 @@ $$%
 \def\guilsinglright{{\ecfont \char"0F}}
 \def\quotedblbase{{\ecfont \char"12}}
 \def\quotesinglbase{{\ecfont \char"0D}}
+%
+\def\L{{\ecfont \char"8A}} % L with stroke
+\def\l{{\ecfont \char"AA}} % l with stroke
 %
 % This positioning is not perfect (see the ogonek LaTeX package), but
 % we have the precomposed glyphs for the most common cases.  We put the
@@ -7592,6 +7595,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\printdefunline#1#2{%
   \begingroup
+    \plainfrenchspacing
     % call \deffnheader:
     #1#2 \endheader
     % common ending:
@@ -9402,7 +9406,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi\fi
   %
   \ifimagevmode
-    \nobreak\medskip
+    \medskip
     % Usually we'll have text after the image which will insert
     % \parskip glue, so insert it here too to equalize the space
     % above and below.
@@ -11599,11 +11603,9 @@ directory should work if nowhere else does.}
 @setregularquotes
 
 @c Local variables:
-@c eval: (add-hook 'before-save-hook 'time-stamp)
+@c eval: (add-hook 'before-save-hook 'time-stamp nil t)
+@c time-stamp-pattern: "texinfoversion{%Y-%02m-%02d.%02H}"
 @c page-delimiter: "^\\\\message\\|emacs-page"
-@c time-stamp-start: "def\\\\texinfoversion{"
-@c time-stamp-format: "%:y-%02m-%02d.%02H"
-@c time-stamp-end: "}"
 @c End:
 
 @c vim:sw=2:

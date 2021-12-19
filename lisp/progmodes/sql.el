@@ -3318,7 +3318,7 @@ function like this: (sql-get-login \\='user \\='password \\='database)."
          (sql-get-login-ext 'sql-server "Server" 'sql-server-history plist))
 
         ('database
-         (sql-get-login-ext 'sql-database "Database"
+         (sql-get-login-ext 'sql-database "Database: "
                             'sql-database-history plist))
 
         ('port

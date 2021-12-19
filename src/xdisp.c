@@ -5209,9 +5209,8 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
     return Qnil;
 }
 
-static
-Lisp_Object get_display_property (ptrdiff_t bufpos, Lisp_Object prop,
-				  Lisp_Object object)
+static Lisp_Object
+get_display_property (ptrdiff_t bufpos, Lisp_Object prop, Lisp_Object object)
 {
   return find_display_property (Fget_text_property (make_fixnum (bufpos),
 						    Qdisplay, object),
@@ -5364,6 +5363,10 @@ handle_display_prop (struct it *it)
   propval = get_char_property_and_overlay (make_fixnum (position->charpos),
 					   Qdisplay, object, &overlay);
 
+  /* Rest of the code must have OBJECT be either a string or a buffer.  */
+  if (!STRINGP (it->string))
+    object = it->w->contents;
+
   /* Handle min-width ends. */
   if (!NILP (it->min_width_property)
       && NILP (find_display_property (propval, Qmin_width)))
@@ -5373,9 +5376,6 @@ handle_display_prop (struct it *it)
     return HANDLED_NORMALLY;
   /* Now OVERLAY is the overlay that gave us this property, or nil
      if it was a text property.  */
-
-  if (!STRINGP (it->string))
-    object = it->w->contents;
 
   display_replaced = handle_display_spec (it, propval, object, overlay,
 					  position, bufpos,

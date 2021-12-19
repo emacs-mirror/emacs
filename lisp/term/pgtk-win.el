@@ -497,6 +497,18 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 	     (and value (cdr value))))
 	 x-gtk-stock-cache))))
 
+(declare-function accelerate-menu "pgtkmenu.c" (&optional frame) t)
+
+(defun pgtk-menu-bar-open (&optional frame)
+  "Open the menu bar if it is shown.
+`popup-menu' is used if it is off."
+  (interactive "i")
+  (cond
+   ((and (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0)))
+	 (fboundp 'accelerate-menu))
+    (accelerate-menu frame))
+   (t
+    (popup-menu (mouse-menu-bar-map) last-nonmenu-event))))
 
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)

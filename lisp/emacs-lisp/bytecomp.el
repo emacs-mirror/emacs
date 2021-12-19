@@ -2677,15 +2677,6 @@ list that represents a doc string reference.
   (prog1 (byte-compile-keep-pending form)
     (apply 'make-obsolete (mapcar 'eval (cdr form)))))
 
-;; This handler is not necessary, but it makes the output from dont-compile
-;; and similar macros cleaner.
-(put 'eval 'byte-hunk-handler 'byte-compile-file-form-eval)
-(defun byte-compile-file-form-eval (form)
-  (if (and (eq (car-safe (nth 1 form)) 'quote)
-           (equal (nth 2 form) lexical-binding))
-      (nth 1 (nth 1 form))
-    (byte-compile-keep-pending form)))
-
 (defun byte-compile-file-form-defmumble (name macro arglist body rest)
   "Process a `defalias' for NAME.
 If MACRO is non-nil, the definition is known to be a macro.

@@ -4,7 +4,7 @@
 
 # shellcheck disable=SC2006,SC2268 # see below for rationale
 
-timestamp='2021-08-14'
+timestamp='2021-10-27'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -1304,7 +1304,7 @@ esac
 if test x$basic_os != x
 then
 
-# First recognize some ad-hoc caes, or perhaps split kernel-os, or else just
+# First recognize some ad-hoc cases, or perhaps split kernel-os, or else just
 # set os.
 case $basic_os in
 	gnu/linux*)
@@ -1748,7 +1748,8 @@ case $os in
 	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
-	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr*)
+	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
+	     | fiwix* )
 		;;
 	# This one is extra strict with allowed versions
 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)

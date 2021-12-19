@@ -395,8 +395,7 @@ If this variable is nil, or if the provided function returns nil,
 	    (gnus-search-run-query
 	     (list
 	      (cons 'search-query-spec
-		    (list (cons 'query `((id . ,article)))
-			  (cons 'criteria "")  (cons 'shortcut t)))
+		    (list (cons 'query (format "id:%s" article))))
 	      (cons 'search-group-spec servers))))
       (unless (zerop (nnselect-artlist-length artlist))
 	(setq
@@ -905,7 +904,7 @@ article came from is also searched."
 		;; make sure
 		(setq list
 		      (sort (map-merge
-			     'list list
+			     'alist list
 			     (alist-get type (gnus-info-marks group-info)))
 			    (lambda (elt1 elt2)
 			      (< (car elt1) (car elt2))))))

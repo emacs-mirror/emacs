@@ -1198,8 +1198,8 @@ fi)
 
 dnl Automake replacements.
 AC_DEFUN([AM_CONDITIONAL],
-  [$2 && $1=1 || $1=
-   AC_SUBST([$1])])
+  [$2 && $1_CONDITION=1 || $1_CONDITION=
+   AC_SUBST([$1_CONDITION])])
 
 dnl Prefer silent make output.  For verbose output, use
 dnl 'configure --disable-silent-rules' or 'make V=1' .
@@ -2315,6 +2315,8 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
     term_header=pgtkterm.h
     with_gtk3=yes
     USE_X_TOOLKIT=none
+    HAVE_PGTK=yes
+    AC_DEFINE([HAVE_PGTK], 1, [Define to 1 if you have pure Gtk+-3.])
   ;;
   haiku )
     term_header=haikuterm.h
@@ -2677,7 +2679,7 @@ HAVE_WEBP=no
 if test "${with_webp}" != "no"; then
    if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
    || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
-   || test "${HAVE_BE_APP}" = "yes"; then
+   || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes"; then
       WEBP_REQUIRED=0.6.0
       WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
 
@@ -2950,8 +2952,6 @@ PGTK_LIBS=
 if test "$window_system" = "pgtk"; then
   PGTK_OBJ="pgtkfns.o pgtkterm.o pgtkselect.o pgtkmenu.o pgtkim.o xsettings.o"
   PGTK_LIBS="$GTK_LIBS"
-  HAVE_PGTK=yes
-  AC_DEFINE([HAVE_PGTK], 1, [Define to 1 if you have pure Gtk+-3.])
 fi
 AC_SUBST(PGTK_OBJ)
 AC_SUBST(PGTK_LIBS)

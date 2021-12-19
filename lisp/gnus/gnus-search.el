@@ -1060,7 +1060,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 	       q-string)))
 
       (while (and (setq group (pop grouplist))
-		  (or (null single-search) (null artlist)))
+		  (or (null single-search) (= 0 (length artlist))))
 	(when (nnimap-change-group
 	       (gnus-group-short-name group) server)
 	  (with-current-buffer (nnimap-buffer)

@@ -49,11 +49,8 @@ AC_DEFUN([gl_STDALIGN_H],
        [gl_cv_header_working_stdalign_h=no])])
 
   if test $gl_cv_header_working_stdalign_h = yes; then
-    STDALIGN_H=''
+    GL_GENERATE_STDALIGN_H=false
   else
-    STDALIGN_H='stdalign.h'
+    GL_GENERATE_STDALIGN_H=true
   fi
-
-  AC_SUBST([STDALIGN_H])
-  AM_CONDITIONAL([GL_GENERATE_STDALIGN_H], [test -n "$STDALIGN_H"])
 ])

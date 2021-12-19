@@ -27,18 +27,15 @@ AC_DEFUN_ONCE([gl_LIMITS_H],
        [gl_cv_header_limits_width=yes],
        [gl_cv_header_limits_width=no])])
   if test "$gl_cv_header_limits_width" = yes; then
-    LIMITS_H=
+    GL_GENERATE_LIMITS_H=false
   else
-    LIMITS_H=limits.h
+    GL_GENERATE_LIMITS_H=true
   fi
-  AC_SUBST([LIMITS_H])
-  AM_CONDITIONAL([GL_GENERATE_LIMITS_H], [test -n "$LIMITS_H"])
 ])
 
 dnl Unconditionally enables the replacement of <limits.h>.
 AC_DEFUN([gl_REPLACE_LIMITS_H],
 [
   AC_REQUIRE([gl_LIMITS_H])
-  LIMITS_H='limits.h'
-  AM_CONDITIONAL([GL_GENERATE_LIMITS_H], [test -n "$LIMITS_H"])
+  GL_GENERATE_LIMITS_H=true
 ])

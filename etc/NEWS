@@ -64,6 +64,13 @@ this support.
 The named feature 'xinput2' can be used to test for the presence of
 XInput 2 support from Lisp programs.
 
+** Emacs now supports being built with pure GTK.
+To use this option, make sure the GTK 3 and Cairo development files
+are installed, and configure Emacs with the option '--with-pgtk'.
+Unlike the default X and GTK build, the resulting Emacs binary will
+work on any underlying window system supported by GDK, such as
+Wayland and Broadway.
+
 
 * Startup Changes in Emacs 29.1
 
@@ -401,6 +408,11 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 It narrows to the current node.
 
 ** eww/shr
+
++++
+*** New user option 'shr-allowed-images'.
+This complements 'shr-blocked-images', but allows specifying just the
+allowed images.
 
 +++
 *** New user option 'shr-use-xwidgets-for-media'.
