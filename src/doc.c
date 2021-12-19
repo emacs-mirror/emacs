@@ -465,7 +465,11 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      if (PVSIZE (fun) > COMPILED_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there,
+           * such as is used in FCRs.  */
+	  && (FIXNUMP (AREF (fun, COMPILED_DOC_STRING))
+	      || CONSP (AREF (fun, COMPILED_DOC_STRING))))
 	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
       else
 	{
