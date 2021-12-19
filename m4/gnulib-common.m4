@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 67
+# gnulib-common.m4 serial 69
 dnl Copyright (C) 2007-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -877,6 +877,36 @@ AC_DEFUN([gl_CXX_ALLOW_WARNINGS],
     GL_CXXFLAG_ALLOW_WARNINGS=''
   fi
   AC_SUBST([GL_CXXFLAG_ALLOW_WARNINGS])
+])
+
+dnl gl_CONDITIONAL_HEADER([foo.h])
+dnl takes a shell variable GL_GENERATE_FOO_H (with value true or false) as input
+dnl and produces
+dnl   - an AC_SUBSTed variable FOO_H that is either a file name or empty, based
+dnl     on whether GL_GENERATE_FOO_H is true or false,
+dnl   - an Automake conditional GL_GENERATE_FOO_H that evaluates to the value of
+dnl     the shell variable GL_GENERATE_FOO_H.
+AC_DEFUN([gl_CONDITIONAL_HEADER],
+[
+  m4_pushdef([gl_header_name], AS_TR_SH(m4_toupper($1)))
+  m4_pushdef([gl_generate_var], [GL_GENERATE_]AS_TR_SH(m4_toupper($1)))
+  m4_pushdef([gl_generate_cond], [GL_GENERATE_]AS_TR_SH(m4_toupper($1)))
+  case "$gl_generate_var" in
+    false) gl_header_name='' ;;
+    true)
+      dnl It is OK to use a .h file in lib/ from within tests/, but not vice
+      dnl versa.
+      if test -z "$gl_header_name"; then
+        gl_header_name="${gl_source_base_prefix}$1"
+      fi
+      ;;
+    *) echo "*** gl_generate_var is not set correctly" 1>&2; exit 1 ;;
+  esac
+  AC_SUBST(gl_header_name)
+  AM_CONDITIONAL(gl_generate_cond, [$gl_generate_var])
+  m4_popdef([gl_generate_cond])
+  m4_popdef([gl_generate_var])
+  m4_popdef([gl_header_name])
 ])
 
 dnl Expands to some code for use in .c programs that, on native Windows, defines

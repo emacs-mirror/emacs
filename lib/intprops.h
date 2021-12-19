@@ -229,18 +229,18 @@
 
 /* True if __builtin_add_overflow (A, B, P) and __builtin_sub_overflow
    (A, B, P) work when P is non-null.  */
+#if defined __has_builtin
+# define _GL_HAS_BUILTIN_ADD_OVERFLOW __has_builtin (__builtin_add_overflow)
 /* __builtin_{add,sub}_overflow exists but is not reliable in GCC 5.x and 6.x,
    see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98269>.  */
-#if 7 <= __GNUC__ && !defined __ICC
+#elif 7 <= __GNUC__ && !defined __EDG__
 # define _GL_HAS_BUILTIN_ADD_OVERFLOW 1
-#elif defined __has_builtin
-# define _GL_HAS_BUILTIN_ADD_OVERFLOW __has_builtin (__builtin_add_overflow)
 #else
 # define _GL_HAS_BUILTIN_ADD_OVERFLOW 0
 #endif
 
 /* True if __builtin_mul_overflow (A, B, P) works when P is non-null.  */
-#ifdef __clang__
+#if defined __clang_major_ && __clang_major__ < 14
 /* Work around Clang bug <https://bugs.llvm.org/show_bug.cgi?id=16404>.  */
 # define _GL_HAS_BUILTIN_MUL_OVERFLOW 0
 #else
@@ -249,9 +249,8 @@
 
 /* True if __builtin_add_overflow_p (A, B, C) works, and similarly for
    __builtin_sub_overflow_p and __builtin_mul_overflow_p.  */
-#if defined __clang__ || defined __ICC
-/* Clang 11 lacks __builtin_mul_overflow_p, and even if it did it
-   would presumably run afoul of Clang bug 16404.  ICC 2021.1's
+#ifdef __EDG__
+/* In EDG-based compilers like ICC 2021.3 and earlier,
    __builtin_add_overflow_p etc. are not treated as integral constant
    expressions even when all arguments are.  */
 # define _GL_HAS_BUILTIN_OVERFLOW_P 0
@@ -400,7 +399,7 @@
 #if _GL_HAS_BUILTIN_MUL_OVERFLOW
 # if ((9 < __GNUC__ + (3 <= __GNUC_MINOR__) \
        || (__GNUC__ == 8 && 4 <= __GNUC_MINOR__)) \
-      && !defined __ICC)
+      && !defined __EDG__)
 #  define INT_MULTIPLY_WRAPV(a, b, r) __builtin_mul_overflow (a, b, r)
 # else
    /* Work around GCC bug 91450.  */

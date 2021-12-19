@@ -22,7 +22,7 @@
 # define HAVE_TZNAME 1
 # include "../locale/localeinfo.h"
 #else
-# include <config.h>
+# include <libc-config.h>
 # if FPRINTFTIME
 #  include "fprintftime.h"
 # else
@@ -367,10 +367,7 @@ tm_diff (const struct tm *a, const struct tm *b)
 #define ISO_WEEK1_WDAY 4 /* Thursday */
 #define YDAY_MINIMUM (-366)
 static int iso_week_days (int, int);
-#if defined __GNUC__ || defined __clang__
-__inline__
-#endif
-static int
+static __inline int
 iso_week_days (int yday, int wday)
 {
   /* Add enough to the first operand of % to make it nonnegative.  */
@@ -428,9 +425,7 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
                               0, -1, &tzset_called extra_args LOCALE_ARG);
 }
-#if defined _LIBC && ! FPRINTFTIME
 libc_hidden_def (my_strftime)
-#endif
 
 /* Just like my_strftime, above, but with more parameters.
    UPCASE indicates that the result should be converted to upper case.

@@ -67,11 +67,9 @@ static reg_errcode_t set_regs (const regex_t *preg,
 			       bool fl_backtrack);
 static reg_errcode_t free_fail_stack_return (struct re_fail_stack_t *fs);
 
-#ifdef RE_ENABLE_I18N
 static int sift_states_iter_mb (const re_match_context_t *mctx,
 				re_sift_context_t *sctx,
 				Idx node_idx, Idx str_idx, Idx max_str_idx);
-#endif /* RE_ENABLE_I18N */
 static reg_errcode_t sift_states_backward (const re_match_context_t *mctx,
 					   re_sift_context_t *sctx);
 static reg_errcode_t build_sifted_states (const re_match_context_t *mctx,
@@ -123,10 +121,8 @@ static re_dfastate_t *transit_state_sb (reg_errcode_t *err,
 					re_match_context_t *mctx,
 					re_dfastate_t *pstate);
 #endif
-#ifdef RE_ENABLE_I18N
 static reg_errcode_t transit_state_mb (re_match_context_t *mctx,
 				       re_dfastate_t *pstate);
-#endif /* RE_ENABLE_I18N */
 static reg_errcode_t transit_state_bkref (re_match_context_t *mctx,
 					  const re_node_set *nodes);
 static reg_errcode_t get_subexp (re_match_context_t *mctx,
@@ -156,14 +152,12 @@ static reg_errcode_t expand_bkref_cache (re_match_context_t *mctx,
 					 re_node_set *cur_nodes, Idx cur_str,
 					 Idx subexp_num, int type);
 static bool build_trtable (const re_dfa_t *dfa, re_dfastate_t *state);
-#ifdef RE_ENABLE_I18N
 static int check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 				    const re_string_t *input, Idx idx);
-# ifdef _LIBC
+#ifdef _LIBC
 static unsigned int find_collation_sequence_value (const unsigned char *mbs,
 						   size_t name_len);
-# endif /* _LIBC */
-#endif /* RE_ENABLE_I18N */
+#endif
 static Idx group_nodes_into_DFAstates (const re_dfa_t *dfa,
 				       const re_dfastate_t *state,
 				       re_node_set *states_node,
@@ -758,10 +752,9 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
 
 		  offset = match_first - mctx.input.raw_mbs_idx;
 		}
-	      /* If MATCH_FIRST is out of the buffer, leave it as '\0'.
-		 Note that MATCH_FIRST must not be smaller than 0.  */
-	      ch = (match_first >= length
-		    ? 0 : re_string_byte_at (&mctx.input, offset));
+	      /* Use buffer byte if OFFSET is in buffer, otherwise '\0'.  */
+	      ch = (offset < mctx.input.valid_len
+		    ? re_string_byte_at (&mctx.input, offset) : 0);
 	      if (fastmap[ch])
 		break;
 	      match_first += incr;
@@ -780,12 +773,10 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
       if (__glibc_unlikely (err != REG_NOERROR))
 	goto free_return;
 
-#ifdef RE_ENABLE_I18N
-     /* Don't consider this char as a possible match start if it part,
-	yet isn't the head, of a multibyte character.  */
+      /* Don't consider this char as a possible match start if it part,
+         yet isn't the head, of a multibyte character.  */
       if (!sb && !re_string_first_byte (&mctx.input, 0))
 	continue;
-#endif
 
       /* It seems to be appropriate one, then use the matcher.  */
       /* We assume that the matching starts from 0.  */
@@ -859,7 +850,6 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
       for (reg_idx = 0; reg_idx < nmatch; ++reg_idx)
 	if (pmatch[reg_idx].rm_so != -1)
 	  {
-#ifdef RE_ENABLE_I18N
 	    if (__glibc_unlikely (mctx.input.offsets_needed != 0))
 	      {
 		pmatch[reg_idx].rm_so =
@@ -871,9 +861,6 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
 		   ? mctx.input.valid_raw_len
 		   : mctx.input.offsets[pmatch[reg_idx].rm_eo]);
 	      }
-#else
-	    DEBUG_ASSERT (mctx.input.offsets_needed == 0);
-#endif
 	    pmatch[reg_idx].rm_so += match_first;
 	    pmatch[reg_idx].rm_eo += match_first;
 	  }
@@ -997,8 +984,7 @@ prune_impossible_nodes (re_match_context_t *mctx)
    We must select appropriate initial state depending on the context,
    since initial states may have constraints like "\<", "^", etc..  */
 
-static inline re_dfastate_t *
-__attribute__ ((always_inline))
+static __always_inline re_dfastate_t *
 acquire_init_state_context (reg_errcode_t *err, const re_match_context_t *mctx,
 			    Idx idx)
 {
@@ -1262,12 +1248,9 @@ proceed_next_node (const re_match_context_t *mctx, Idx nregs, regmatch_t *regs,
       Idx naccepted = 0;
       re_token_type_t type = dfa->nodes[node].type;
 
-#ifdef RE_ENABLE_I18N
       if (dfa->nodes[node].accept_mb)
 	naccepted = check_node_accept_bytes (dfa, node, &mctx->input, *pidx);
-      else
-#endif /* RE_ENABLE_I18N */
-      if (type == OP_BACK_REF)
+      else if (type == OP_BACK_REF)
 	{
 	  Idx subexp_idx = dfa->nodes[node].opr.idx + 1;
 	  if (subexp_idx < nregs)
@@ -1635,12 +1618,10 @@ build_sifted_states (const re_match_context_t *mctx, re_sift_context_t *sctx,
       bool ok;
       DEBUG_ASSERT (!IS_EPSILON_NODE (dfa->nodes[prev_node].type));
 
-#ifdef RE_ENABLE_I18N
       /* If the node may accept "multi byte".  */
       if (dfa->nodes[prev_node].accept_mb)
 	naccepted = sift_states_iter_mb (mctx, sctx, prev_node,
 					 str_idx, sctx->last_str_idx);
-#endif /* RE_ENABLE_I18N */
 
       /* We don't check backreferences here.
 	 See update_cur_sifted_state().  */
@@ -1689,6 +1670,7 @@ clean_state_log_if_needed (re_match_context_t *mctx, Idx next_state_log_idx)
 
   if (top < next_state_log_idx)
     {
+      DEBUG_ASSERT (mctx->state_log != NULL);
       memset (mctx->state_log + top + 1, '\0',
 	      sizeof (re_dfastate_t *) * (next_state_log_idx - top));
       mctx->state_log_top = next_state_log_idx;
@@ -2177,7 +2159,6 @@ sift_states_bkref (const re_match_context_t *mctx, re_sift_context_t *sctx,
 }
 
 
-#ifdef RE_ENABLE_I18N
 static int
 sift_states_iter_mb (const re_match_context_t *mctx, re_sift_context_t *sctx,
 		     Idx node_idx, Idx str_idx, Idx max_str_idx)
@@ -2197,8 +2178,6 @@ sift_states_iter_mb (const re_match_context_t *mctx, re_sift_context_t *sctx,
      'naccepted' bytes input.  */
   return naccepted;
 }
-#endif /* RE_ENABLE_I18N */
-
 
 /* Functions for state transition.  */
 
@@ -2216,7 +2195,6 @@ transit_state (reg_errcode_t *err, re_match_context_t *mctx,
   re_dfastate_t **trtable;
   unsigned char ch;
 
-#ifdef RE_ENABLE_I18N
   /* If the current state can accept multibyte.  */
   if (__glibc_unlikely (state->accept_mb))
     {
@@ -2224,7 +2202,6 @@ transit_state (reg_errcode_t *err, re_match_context_t *mctx,
       if (__glibc_unlikely (*err != REG_NOERROR))
 	return NULL;
     }
-#endif /* RE_ENABLE_I18N */
 
   /* Then decide the next state with the single byte.  */
 #if 0
@@ -2445,7 +2422,6 @@ transit_state_sb (reg_errcode_t *err, re_match_context_t *mctx,
 }
 #endif
 
-#ifdef RE_ENABLE_I18N
 static reg_errcode_t
 transit_state_mb (re_match_context_t *mctx, re_dfastate_t *pstate)
 {
@@ -2513,7 +2489,6 @@ transit_state_mb (re_match_context_t *mctx, re_dfastate_t *pstate)
     }
   return REG_NOERROR;
 }
-#endif /* RE_ENABLE_I18N */
 
 static reg_errcode_t
 transit_state_bkref (re_match_context_t *mctx, const re_node_set *nodes)
@@ -3003,9 +2978,7 @@ check_arrival_add_next_nodes (re_match_context_t *mctx, Idx str_idx,
   const re_dfa_t *const dfa = mctx->dfa;
   bool ok;
   Idx cur_idx;
-#ifdef RE_ENABLE_I18N
   reg_errcode_t err = REG_NOERROR;
-#endif
   re_node_set union_set;
   re_node_set_init_empty (&union_set);
   for (cur_idx = 0; cur_idx < cur_nodes->nelem; ++cur_idx)
@@ -3014,7 +2987,6 @@ check_arrival_add_next_nodes (re_match_context_t *mctx, Idx str_idx,
       Idx cur_node = cur_nodes->elems[cur_idx];
       DEBUG_ASSERT (!IS_EPSILON_NODE (dfa->nodes[cur_node].type));
 
-#ifdef RE_ENABLE_I18N
       /* If the node may accept "multi byte".  */
       if (dfa->nodes[cur_node].accept_mb)
 	{
@@ -3052,7 +3024,7 @@ check_arrival_add_next_nodes (re_match_context_t *mctx, Idx str_idx,
 		}
 	    }
 	}
-#endif /* RE_ENABLE_I18N */
+
       if (naccepted
 	  || check_node_accept (mctx, dfa->nodes + cur_node, str_idx))
 	{
@@ -3476,18 +3448,15 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
 	}
       else if (type == OP_PERIOD)
 	{
-#ifdef RE_ENABLE_I18N
 	  if (dfa->mb_cur_max > 1)
 	    bitset_merge (accepts, dfa->sb_char);
 	  else
-#endif
 	    bitset_set_all (accepts);
 	  if (!(dfa->syntax & RE_DOT_NEWLINE))
 	    bitset_clear (accepts, '\n');
 	  if (dfa->syntax & RE_DOT_NOT_NULL)
 	    bitset_clear (accepts, '\0');
 	}
-#ifdef RE_ENABLE_I18N
       else if (type == OP_UTF8_PERIOD)
 	{
 	  if (ASCII_CHARS % BITSET_WORD_BITS == 0)
@@ -3499,7 +3468,6 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
 	  if (dfa->syntax & RE_DOT_NOT_NULL)
 	    bitset_clear (accepts, '\0');
 	}
-#endif
       else
 	continue;
 
@@ -3530,12 +3498,10 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
 		  bitset_empty (accepts);
 		  continue;
 		}
-#ifdef RE_ENABLE_I18N
 	      if (dfa->mb_cur_max > 1)
 		for (j = 0; j < BITSET_WORDS; ++j)
 		  any_set |= (accepts[j] &= (dfa->word_char[j] | ~dfa->sb_char[j]));
 	      else
-#endif
 		for (j = 0; j < BITSET_WORDS; ++j)
 		  any_set |= (accepts[j] &= dfa->word_char[j]);
 	      if (!any_set)
@@ -3549,12 +3515,10 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
 		  bitset_empty (accepts);
 		  continue;
 		}
-#ifdef RE_ENABLE_I18N
 	      if (dfa->mb_cur_max > 1)
 		for (j = 0; j < BITSET_WORDS; ++j)
 		  any_set |= (accepts[j] &= ~(dfa->word_char[j] & dfa->sb_char[j]));
 	      else
-#endif
 		for (j = 0; j < BITSET_WORDS; ++j)
 		  any_set |= (accepts[j] &= ~dfa->word_char[j]);
 	      if (!any_set)
@@ -3631,7 +3595,6 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
   return -1;
 }
 
-#ifdef RE_ENABLE_I18N
 /* Check how many bytes the node 'dfa->nodes[node_idx]' accepts.
    Return the number of the bytes the node accepts.
    STR_IDX is the current index of the input string.
@@ -3640,9 +3603,9 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
    one collating element like '.', '[a-z]', opposite to the other nodes
    can only accept one byte.  */
 
-# ifdef _LIBC
-#  include <locale/weight.h>
-# endif
+#ifdef _LIBC
+# include <locale/weight.h>
+#endif
 
 static int
 check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
@@ -3726,12 +3689,12 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
   if (node->type == COMPLEX_BRACKET)
     {
       const re_charset_t *cset = node->opr.mbcset;
-# ifdef _LIBC
+#ifdef _LIBC
       const unsigned char *pin
 	= ((const unsigned char *) re_string_get_buffer (input) + str_idx);
       Idx j;
       uint32_t nrules;
-# endif /* _LIBC */
+#endif
       int match_len = 0;
       wchar_t wc = ((cset->nranges || cset->nchar_classes || cset->nmbchars)
 		    ? re_string_wchar_at (input, str_idx) : 0);
@@ -3754,7 +3717,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 	    }
 	}
 
-# ifdef _LIBC
+#ifdef _LIBC
       nrules = _NL_CURRENT_WORD (LC_COLLATE, _NL_COLLATE_NRULES);
       if (nrules != 0)
 	{
@@ -3843,7 +3806,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 	    }
 	}
       else
-# endif /* _LIBC */
+#endif /* _LIBC */
 	{
 	  /* match with range expression?  */
 	  for (i = 0; i < cset->nranges; ++i)
@@ -3869,7 +3832,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
   return 0;
 }
 
-# ifdef _LIBC
+#ifdef _LIBC
 static unsigned int
 find_collation_sequence_value (const unsigned char *mbs, size_t mbs_len)
 {
@@ -3927,8 +3890,7 @@ find_collation_sequence_value (const unsigned char *mbs, size_t mbs_len)
       return UINT_MAX;
     }
 }
-# endif /* _LIBC */
-#endif /* RE_ENABLE_I18N */
+#endif /* _LIBC */
 
 /* Check whether the node accepts the byte which is IDX-th
    byte of the INPUT.  */
@@ -3951,12 +3913,10 @@ check_node_accept (const re_match_context_t *mctx, const re_token_t *node,
         return false;
       break;
 
-#ifdef RE_ENABLE_I18N
     case OP_UTF8_PERIOD:
       if (ch >= ASCII_CHARS)
         return false;
       FALLTHROUGH;
-#endif
     case OP_PERIOD:
       if ((ch == '\n' && !(mctx->dfa->syntax & RE_DOT_NEWLINE))
 	  || (ch == '\0' && (mctx->dfa->syntax & RE_DOT_NOT_NULL)))
@@ -4017,7 +3977,6 @@ extend_buffers (re_match_context_t *mctx, int min_len)
   /* Then reconstruct the buffers.  */
   if (pstr->icase)
     {
-#ifdef RE_ENABLE_I18N
       if (pstr->mb_cur_max > 1)
 	{
 	  ret = build_wcs_upper_buffer (pstr);
@@ -4025,16 +3984,13 @@ extend_buffers (re_match_context_t *mctx, int min_len)
 	    return ret;
 	}
       else
-#endif /* RE_ENABLE_I18N  */
 	build_upper_buffer (pstr);
     }
   else
     {
-#ifdef RE_ENABLE_I18N
       if (pstr->mb_cur_max > 1)
 	build_wcs_buffer (pstr);
       else
-#endif /* RE_ENABLE_I18N  */
 	{
 	  if (pstr->trans != NULL)
 	    re_string_translate_buffer (pstr);

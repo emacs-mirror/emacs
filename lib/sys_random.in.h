@@ -23,8 +23,10 @@
 
 #if @HAVE_SYS_RANDOM_H@
 
-/* On uClibc, <sys/random.h> assumes prior inclusion of <stddef.h>.  */
-# if defined __UCLIBC__
+/* On uClibc < 1.0.35, <sys/random.h> assumes prior inclusion of <stddef.h>.
+   Do not use __UCLIBC__ here, as it might not be defined yet.
+   But avoid namespace pollution on glibc systems.  */
+# ifndef __GLIBC__
 #  include <stddef.h>
 # endif
 /* On Mac OS X 10.5, <sys/random.h> assumes prior inclusion of <sys/types.h>.
