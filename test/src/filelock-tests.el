@@ -123,7 +123,7 @@ the case)."
      (filelock-tests--spoil-lock-file buffer-file-truename)
      (let ((err (should-error (file-locked-p (buffer-file-name)))))
        (should (equal (seq-subseq err 0 2)
-                      '(file-error "Testing file lock")))))))
+                      '(permission-denied "Testing file lock")))))))
 
 (ert-deftest filelock-tests-unlock-spoiled ()
   "Check that `unlock-buffer' fails if the lockfile is \"spoiled\"."
@@ -144,7 +144,7 @@ the case)."
                   (lambda (err) (push err errors))))
          (unlock-buffer))
        (should (consp errors))
-       (should (equal '(file-error "Unlocking file")
+       (should (equal '(permission-denied "Unlocking file")
                       (seq-subseq (car errors) 0 2)))
        (should (equal (length errors) 1))))))
 
@@ -174,7 +174,7 @@ the case)."
                   (lambda (err) (push err errors))))
          (kill-buffer))
        (should (consp errors))
-       (should (equal '(file-error "Unlocking file")
+       (should (equal '(permission-denied "Unlocking file")
                       (seq-subseq (car errors) 0 2)))
        (should (equal (length errors) 1))))))
 

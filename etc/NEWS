@@ -1186,6 +1186,12 @@ The events 'touchscreen-begin, 'touchscreen-update', and
 'touchscreen-end' have been added to take better advantage of
 touch-capable display panels.
 
++++
+** New error symbol 'permission-denied'.
+This is a subcategory of 'file-error', and is signaled when some file
+operation fails because the OS doesn't allow Emacs to access a file or
+a directory.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

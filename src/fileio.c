@@ -195,7 +195,11 @@ get_file_errno_data (char const *string, Lisp_Object name, int errorno)
   if (errorno == EEXIST)
     return Fcons (Qfile_already_exists, errdata);
   else
-    return Fcons (errorno == ENOENT ? Qfile_missing : Qfile_error,
+    return Fcons (errorno == ENOENT
+		  ? Qfile_missing
+		  : (errorno == EACCES
+		     ? Qpermission_denied
+		     : Qfile_error),
 		  Fcons (build_string (string), errdata));
 }
 
@@ -6380,6 +6384,7 @@ syms_of_fileio (void)
   DEFSYM (Qfile_already_exists, "file-already-exists");
   DEFSYM (Qfile_date_error, "file-date-error");
   DEFSYM (Qfile_missing, "file-missing");
+  DEFSYM (Qpermission_denied, "permission-denied");
   DEFSYM (Qfile_notify_error, "file-notify-error");
   DEFSYM (Qremote_file_error, "remote-file-error");
   DEFSYM (Qexcl, "excl");
@@ -6437,6 +6442,11 @@ behaves as if file names were encoded in `utf-8'.  */);
 	Fpurecopy (list3 (Qfile_missing, Qfile_error, Qerror)));
   Fput (Qfile_missing, Qerror_message,
 	build_pure_c_string ("File is missing"));
+
+  Fput (Qpermission_denied, Qerror_conditions,
+	Fpurecopy (list3 (Qpermission_denied, Qfile_error, Qerror)));
+  Fput (Qpermission_denied, Qerror_message,
+	build_pure_c_string ("Cannot access file or directory"));
 
   Fput (Qfile_notify_error, Qerror_conditions,
 	Fpurecopy (list3 (Qfile_notify_error, Qfile_error, Qerror)));

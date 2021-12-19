@@ -98,6 +98,10 @@ Lisp reader, not to file I/O@.  @xref{Input Functions}.
 @item file-already-exists
 This is a subcategory of @code{file-error}.  @xref{Writing to Files}.
 
+@item permission-denied
+This is a subcategory of @code{file-error}, which occurs when the OS
+doesn't allow Emacs to access a file or a directory for some reason.
+
 @item file-date-error
 This is a subcategory of @code{file-error}.  It occurs when
 @code{copy-file} tries and fails to set the last-modification time of
