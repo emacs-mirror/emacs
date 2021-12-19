@@ -4335,6 +4335,43 @@ Instead, just auto-save the buffer and then bury it."
 
 (autoload 'mml-secure-bcc-is-safe "mml-sec")
 
+(defcustom message-server-alist nil
+  "Alist of rules to generate \"X-Message-SMTP-Method\" headers.
+If any entry of the form (COND . METHOD) matches, the header will
+be inserted just before the message is sent.  If COND is a
+string, METHOD will be inserted if the \"From\" header matches
+COND.  If COND is a function, METHOD will be inserted if COND
+returns a non-nil value, when called in the message buffer
+without any arguments.  If METHOD is nil in the last case, the
+return value of the function will be returned instead.  None of
+this applies if the buffer already has a\"X-Message-SMTP-Method\"
+header."
+  :type '(alist :key-type '(choice
+                            (string :tag "From Address")
+                            (function :tag "Predicate"))
+                :value-type 'string)
+  :version "29.1"
+  :group 'message-sending)
+
+(defun message-update-smtp-method-header ()
+  "Check `message-server-alist' to insert a SMTP-Method header."
+  (unless (message-fetch-field "X-Message-SMTP-Method")
+    (let ((from (mail-extract-address-components (message-fetch-field "From")))
+          method)
+      (catch 'exit
+        (dolist (server message-server-alist)
+          (cond ((functionp (car server))
+                 (let ((res (funcall (car server))))
+                   (when res
+                     (setq method (or (cdr server) res))
+                     (throw 'exit nil))))
+                ((and (stringp (car server))
+                      (string= (car server) from))
+                 (setq method (cdr server))
+                 (throw 'exit nil)))))
+      (when method
+        (message-add-header (concat "X-Message-SMTP-Method: " method))))))
+
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
 If `message-interactive' is non-nil, wait for success indication or
@@ -4348,6 +4385,7 @@ It should typically alter the sending method in some way or other."
   (undo-boundary)
   (let ((inhibit-read-only t))
     (put-text-property (point-min) (point-max) 'read-only nil))
+  (message-update-smtp-method-header)
   (message-fix-before-sending)
   (run-hooks 'message-send-hook)
   (mml-secure-bcc-is-safe)

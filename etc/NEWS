@@ -401,6 +401,11 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** Message Mode now supports image yanking.
 
+---
+*** New user option 'message-server-alist'
+Enables automatically inserting "X-Message-SMTP-Method" before sending
+a message.
+
 ** HTML Mode
 
 ---

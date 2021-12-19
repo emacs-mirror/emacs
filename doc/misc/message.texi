@@ -2553,6 +2553,15 @@ if @code{nil} let the mailer mail back a message to report errors.
 When non-@code{nil}, Gnus will ask for confirmation when sending a
 message.
 
+@item message-server-alist
+@vindex message-server-alist
+An alist describing how to insert a @code{X-Message-SMTP-Method}
+header before sending out a new message.  The key has to be a string,
+that will be matched with the @code{From} header, and will insert the
+value as the SMTP Method if these are equal.  Alternatively, the key
+may be a function that will be called in the message buffer without
+any arguments, and matches if a non-nil value is returned.
+
 @end table
 
 
