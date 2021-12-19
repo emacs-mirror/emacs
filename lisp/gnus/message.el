@@ -2053,7 +2053,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'gnus-groups-from-server "gnus")
 (autoload 'gnus-open-server "gnus-int")
 (autoload 'gnus-output-to-mail "gnus-util")
-(autoload 'gnus-output-to-rmail "gnus-util")
+(autoload 'gnus-output-to-rmail "gnus-rmail")
 (autoload 'gnus-request-post "gnus-int")
 (autoload 'gnus-server-string "gnus")
 (autoload 'message-setup-toolbar "messagexmas")

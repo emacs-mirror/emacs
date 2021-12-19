@@ -2528,14 +2528,6 @@ are always t.")
      ("babel" babel-as-string)
      ("nnmail" nnmail-split-fancy nnmail-article-group)
      ("nnvirtual" nnvirtual-catchup-group nnvirtual-convert-headers)
-     ;; This is only used in message.el, which has an autoload.
-     ("rmailout" rmail-output)
-     ;; Next two used in gnus-util, which has autoloads, and contrib/sendmail.
-     ("rmail" rmail-count-new-messages rmail-show-message
-      ;; Next two only used in gnus-util.
-      rmail-summary-exists rmail-select-summary)
-     ;; Only used in gnus-util, which has an autoload.
-     ("rmailsum" rmail-update-summary)
      ("gnus-xmas" gnus-xmas-splash)
      ("score-mode" :interactive t gnus-score-mode gnus-score-edit-all-score)
      ("gnus-mh" gnus-summary-save-article-folder
