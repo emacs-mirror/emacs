@@ -361,7 +361,8 @@ the name is not known."
                derivations))))
 
 (defun emoji--score (string)
-  (if (string-match-p "person\\|people" string)
+  (if (string-match-p "person\\|people"
+                      (replace-regexp-in-string ":.*" "" string))
       0
     1))
 
