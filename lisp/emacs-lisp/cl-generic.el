@@ -1279,6 +1279,9 @@ Used internally for the (major-mode MODE) context specializers."
 
 ;;; Dispatch on FCR type
 
+;; It would make sense to put this into `fcr.el' except that when
+;; `fcr.el' is loaded `cl-defmethod' is not available yet.
+
 (defun cl--generic-fcr-tag (name &rest _)
   `(fcr-type ,name))
 
@@ -1289,7 +1292,11 @@ Used internally for the (major-mode MODE) context specializers."
            (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl-generic--fcr-generalizer
-  50 #'cl--generic-fcr-tag
+  ;; Give slightly higher priority than the struct specializer, so that
+  ;; for a generic function with methods dispatching structs and on FCRs,
+  ;; we first try `fcr-type' before `type-of' since `type-of' will return
+  ;; non-nil for an FCR as well.
+  51 #'cl--generic-fcr-tag
   #'cl-generic--fcr-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "fcr-struct" (type)
