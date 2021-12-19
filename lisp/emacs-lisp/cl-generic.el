@@ -1279,6 +1279,9 @@ Used internally for the (major-mode MODE) context specializers."
 
 ;;; Dispatch on OClosure type
 
+;; It would make sense to put this into `oclosure.el' except that when
+;; `oclosure.el' is loaded `cl-defmethod' is not available yet.
+
 (defun cl--generic-oclosure-tag (name &rest _)
   `(oclosure-type ,name))
 
@@ -1289,7 +1292,11 @@ Used internally for the (major-mode MODE) context specializers."
            (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl-generic--oclosure-generalizer
-  50 #'cl--generic-oclosure-tag
+  ;; Give slightly higher priority than the struct specializer, so that
+  ;; for a generic function with methods dispatching structs and on OClosures,
+  ;; we first try `oclosure-type' before `type-of' since `type-of' will return
+  ;; non-nil for an OClosure as well.
+  51 #'cl--generic-oclosure-tag
   #'cl-generic--oclosure-specializers)
 
 (cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
