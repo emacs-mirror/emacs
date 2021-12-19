@@ -440,7 +440,7 @@ This is buffer-local in every such buffer.")
   "Menu for Shell-Script mode."
   '("Sh-Script"
     ["Backslash region" sh-backslash-region
-     :help "Insert, align, or delete end-of-line backslashes on the lines in the region."]
+     :help "Insert, align, or delete end-of-line backslashes on the lines in the region"]
     ["Set shell type..." sh-set-shell
      :help "Set this buffer's shell to SHELL (a string)"]
     ["Execute script..." executable-interpret
@@ -458,7 +458,7 @@ This is buffer-local in every such buffer.")
     ["Select Statement" sh-select
      :help "Insert a select statement "]
     ["Indexed Loop" sh-indexed-loop
-     :help "Insert an indexed loop from 1 to n."]
+     :help "Insert an indexed loop from 1 to n"]
     ["Options Loop" sh-while-getopts
      :help "Insert a while getopts loop."]
     ["While Loop" sh-while
@@ -482,7 +482,7 @@ This is buffer-local in every such buffer.")
     ["Show indentation" smie-config-show-indent
      :help "Show the how the current line would be indented"]
     ["Learn buffer indentation" smie-config-guess
-     :help "Learn how to indent the buffer the way it currently is."]))
+     :help "Learn how to indent the buffer the way it currently is"]))
 
 (defvar sh-skeleton-pair-default-alist '((?\( _ ?\)) (?\))
 				      (?\[ ?\s _ ?\s ?\]) (?\])
