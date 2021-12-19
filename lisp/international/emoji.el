@@ -417,10 +417,13 @@ the name is not known."
                                                base)))
     ;; If we have (for instance) "person golfing", and we're adding
     ;; "man golfing", make the latter a derivation of the former.
-    (if (or (gethash (concat "person " non-binary) derivations)
-            (gethash non-binary derivations))
-        non-binary
-      base)))
+    (cond
+     ((gethash (concat "person " non-binary) derivations)
+      (concat "person " non-binary))
+     ((gethash non-binary derivations)
+      non-binary)
+     (t
+      base))))
 
 (defun emoji--split-subgroup (subgroup)
   (let ((prefixes '("face" "hand" "person" "animal" "plant"
