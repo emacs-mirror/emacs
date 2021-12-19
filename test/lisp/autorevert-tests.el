@@ -281,9 +281,9 @@ This expects `auto-revert--messages' to be bound by
 (ert-deftest auto-revert-test02-auto-revert-deleted-file ()
   "Check autorevert for a deleted file."
   ;; Repeated unpredictable failures, bug#32645.
-  ;; Unlikely to be hydra-specific?
-                                        ;  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   :tags '(:unstable)
+  ;; Unlikely to be hydra-specific?
+  ;; (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   (with-auto-revert-test
    (ert-with-temp-file tmpfile
      (let (;; Try to catch bug#32645.
@@ -484,8 +484,6 @@ This expects `auto-revert--messages' to be bound by
        (ert-with-temp-file file-3
          (let* ((auto-revert-use-notify t)
                 (auto-revert-avoid-polling t)
-                (auto-revert-debug (getenv "EMACS_EMBA_CI"))
-                (file-notify-debug (getenv "EMACS_EMBA_CI"))
                 (was-in-global-auto-revert-mode global-auto-revert-mode)
                 (file-2b (concat file-2 "-b"))
                 require-final-newline buf-1 buf-2 buf-3)
@@ -531,28 +529,16 @@ This expects `auto-revert--messages' to be bound by
                  (should (equal (auto-revert-test--buffer-string buf-3) "3-a"))
 
                  ;; Delete a visited file, and re-create it with new contents.
-                 (when auto-revert-debug (message "Hallo0"))
                  (delete-file file-1)
-                 (when auto-revert-debug (message "Hallo1"))
                  (should (equal (auto-revert-test--buffer-string buf-1) "1-a"))
-                 (when auto-revert-debug (message "Hallo2"))
                  (auto-revert-test--write-file "1-b" file-1)
-                 (when auto-revert-debug (message "Hallo3"))
+                 ;; Since the file is deleted, it needs at least
+                 ;; `autorevert-interval' to recognize the new file,
+                 ;; while polling.  So increase the timeout.
                  (auto-revert-test--wait-for-buffer-text
-                  buf-1 "1-b" (auto-revert--timeout))
-                 ;; On emba, `buf-1' is a killed buffer.
-                 (when auto-revert-debug
-                   (message
-                    "Hallo4 %s %s %s %s %s %s %s"
-                    buf-1 (buffer-name buf-1) (buffer-live-p buf-1)
-                    file-1 (get-file-buffer file-1)
-                    (buffer-name (get-file-buffer file-1))
-                    (buffer-live-p (get-file-buffer file-1)))
-                   (with-current-buffer buf-1
-                     (message "Hallo5\n%s" (buffer-local-variables))))
+                  buf-1 "1-b" (* 2 (auto-revert--timeout)))
                  (should (buffer-local-value
                           'auto-revert-notify-watch-descriptor buf-1))
-                 (when auto-revert-debug (message "Hallo6"))
 
                  ;; Write a buffer to a new file, then modify the new file on disk.
                  (with-current-buffer buf-2
