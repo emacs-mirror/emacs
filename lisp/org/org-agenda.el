@@ -6765,7 +6765,7 @@ Any match of REMOVE-RE will be removed from TXT."
 	    (setq duration (- (org-duration-to-minutes s2)
 			      (org-duration-to-minutes s1))))
           ;; Format S1 and S2 for display.
-	  (when s1 (setq s1 (org-get-time-of-day s1 'overtime)))
+	  (when s1 (setq s1 (format "%5s" (org-get-time-of-day s1 'overtime))))
 	  (when s2 (setq s2 (org-get-time-of-day s2 'overtime))))
 	(when (string-match org-tag-group-re txt)
 	  ;; Tags are in the string
