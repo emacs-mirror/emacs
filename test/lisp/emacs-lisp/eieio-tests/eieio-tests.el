@@ -31,6 +31,11 @@
 
 (eval-when-compile (require 'cl-lib))
 
+;; Silence byte-compiler.
+(eval-when-compile
+  (dolist (slot '(:a :b ooga-booga :derived-value missing-slot))
+    (cl-pushnew slot eieio--known-slot-names)))
+
 ;;; Code:
 ;; Set up some test classes
 (defclass class-a ()
