@@ -298,6 +298,14 @@ For example, to instrument all ELP functions, do the following:
     'intern
     (all-completions prefix obarray 'elp-profilable-p))))
 
+(defun elp-restore-package (prefix)
+  "Remove instrumentation from functions with names starting with PREFIX."
+  (interactive "SPrefix: ")
+  (elp-restore-list
+   (mapcar #'intern
+           (all-completions (symbol-name prefix)
+                            obarray 'elp-profilable-p))))
+
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
 Use optional LIST if provided instead."
