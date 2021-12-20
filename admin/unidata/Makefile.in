@@ -63,21 +63,21 @@ unidata.txt: ${srcdir}/UnicodeData.txt
 ## pretend that it does since other Makefiles assume that if charprop
 ## is up-to-date, the unifiles are too.
 ${unidir}/charprop.el: ${unifiles} ${srcdir}/unidata-gen.el | ${srcdir}/unidata-gen.elc
-	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
-	$(AM_V_GEN)${emacs} -L ${srcdir} -l unidata-gen \
+	$(AM_V_GEN)[ ! -f $@ ] || chmod +w $@
+	$(AM_V_at)${emacs} -L ${srcdir} -l unidata-gen \
 	  -f unidata-gen-charprop $@
 
 ${unifiles}: ${srcdir}/unidata-gen.el \
   ${srcdir}/UnicodeData.txt ${srcdir}/BidiMirroring.txt \
   ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
-	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
+	$(AM_V_GEN)[ ! -f $@ ] || chmod +w $@
 	$(AM_V_at)${emacs} -L ${srcdir} -l unidata-gen \
 	  -f unidata-gen-file $@ ${srcdir}
 
 ${unidir}/emoji-labels.el: ${unidir}/../international/emoji.el \
 	  ${srcdir}/emoji-test.txt
-	$(AM_V_at)${emacs} -l emoji.el -f emoji--generate-file $@
+	$(AM_V_GEN)${emacs} -l emoji.el -f emoji--generate-file $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el
@@ -120,4 +120,3 @@ gen-clean:
 ## ref: https://lists.gnu.org/r/emacs-devel/2013-11/msg01029.html
 
 maintainer-clean: gen-clean distclean
-

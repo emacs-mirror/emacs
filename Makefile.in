@@ -1074,8 +1074,8 @@ info_dir_deps = \
 ## but then we would need to depend on ${INFOS}, which would
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
-	$(AM_V_at)${MKDIR_P} ${srcdir}/info
-	$(AM_V_GEN)(cd ${srcdir}/doc && \
+	$(AM_V_GEN)${MKDIR_P} ${srcdir}/info
+	$(AM_V_at)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
 	) >$@.tmp && mv $@.tmp $@
 

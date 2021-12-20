@@ -255,9 +255,9 @@ ${ETAGS}: FORCE
 ## compile-main.  But maybe this is not even necessary any more now
 ## that this uses relative filenames.
 TAGS: ${ETAGS} ${tagsfiles}
-	$(AM_V_at)rm -f $@
+	$(AM_V_GEN)rm -f $@
 	$(AM_V_at)touch $@
-	$(AM_V_GEN)ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
+	$(AM_V_at)ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
 
 
 # The src/Makefile.in has its own set of dependencies and when they decide

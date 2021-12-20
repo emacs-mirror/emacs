@@ -525,11 +525,11 @@ endif
 ## but the second one seems like it could be more future-proof.
 shortlisp =
 lisp.mk: $(lispsource)/loadup.el
-	@rm -f $@
 	${AM_V_GEN}( printf 'shortlisp = \\\n'; \
 	sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | \
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
-	echo "" ) > $@
+	echo "" ) > $@.tmp
+	$(AM_V_at)mv -f $@.tmp $@
 
 -include lisp.mk
 shortlisp_filter = leim/leim-list.el site-load.elc site-init.elc
@@ -617,8 +617,8 @@ endif
 
 ifeq ($(HAVE_BE_APP),yes)
 Emacs: emacs$(EXEEXT)
-	cp -f emacs$(EXEEXT) $@
-	$(AM_V_GEN) $(libsrc)/be-resources \
+	$(AM_V_GEN) cp -f emacs$(EXEEXT) $@
+	$(AM_V_at) $(libsrc)/be-resources \
 	  $(etc)/images/icons/hicolor/32x32/apps/emacs.png $@
 Emacs.pdmp: $(pdmp)
 	$(AM_V_GEN) cp -f $(pdmp) $@
