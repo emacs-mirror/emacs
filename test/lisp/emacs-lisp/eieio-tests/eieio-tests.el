@@ -139,19 +139,19 @@
 
 (ert-deftest eieio-test-01-mix-alloc-initarg ()
   ;; Only run this test if the message framework thingy works.
-  (when (and (message "foo") (string= "foo" (current-message)))
+  (skip-unless (and (message "foo") (string= "foo" (current-message))))
 
-    ;; Defining this class should generate a warning(!) message that
-    ;; you should not mix :initarg with class allocated slots.
-    (defclass class-alloc-initarg ()
-      ((throwwarning :initarg :throwwarning
-		     :allocation :class))
-      "Throw a warning mixing allocation class and an initarg.")
+  ;; Defining this class should generate a warning(!) message that
+  ;; you should not mix :initarg with class allocated slots.
+  (defclass class-alloc-initarg ()
+    ((throwwarning :initarg :throwwarning
+                   :allocation :class))
+    "Throw a warning mixing allocation class and an initarg.")
 
-    ;; Check that message is there
-    (should (current-message))
-    (should (string-match "Class allocated slots do not need :initarg"
-			  (current-message)))))
+  ;; Check that message is there
+  (should (current-message))
+  (should (string-match "Class allocated slots do not need :initarg"
+                        (current-message))))
 
 (defclass abstract-class ()
   ((some-slot :initarg :some-slot
