@@ -155,26 +155,24 @@ nonexistent directory will fail."
   :version "26.1"
   :type 'boolean)
 
-(defvar wdired-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" #'wdired-finish-edit)
-    (define-key map "\C-c\C-c" #'wdired-finish-edit)
-    (define-key map "\C-c\C-k" #'wdired-abort-changes)
-    (define-key map "\C-c\C-[" #'wdired-abort-changes)
-    (define-key map "\C-x\C-q" #'wdired-exit)
-    (define-key map "\C-m"     #'undefined)
-    (define-key map "\C-j"     #'undefined)
-    (define-key map "\C-o"     #'undefined)
-    (define-key map [up]       #'wdired-previous-line)
-    (define-key map "\C-p"     #'wdired-previous-line)
-    (define-key map [down]     #'wdired-next-line)
-    (define-key map "\C-n"     #'wdired-next-line)
-    (define-key map [remap upcase-word] #'wdired-upcase-word)
-    (define-key map [remap capitalize-word] #'wdired-capitalize-word)
-    (define-key map [remap downcase-word] #'wdired-downcase-word)
-    (define-key map [remap self-insert-command] #'wdired--self-insert)
-    map)
-  "Keymap used in `wdired-mode'.")
+(defvar-keymap wdired-mode-map
+  :doc "Keymap used in `wdired-mode'."
+  "C-x C-s" #'wdired-finish-edit
+  "C-c C-c" #'wdired-finish-edit
+  "C-c C-k" #'wdired-abort-changes
+  "C-c C-[" #'wdired-abort-changes
+  "C-x C-q" #'wdired-exit
+  "RET"     #'undefined
+  "C-j"     #'undefined
+  "C-o"     #'undefined
+  "<up>"    #'wdired-previous-line
+  "C-p"     #'wdired-previous-line
+  "<down>"  #'wdired-next-line
+  "C-n"     #'wdired-next-line
+  "<remap> <upcase-word>"         #'wdired-upcase-word
+  "<remap> <capitalize-word>"     #'wdired-capitalize-word
+  "<remap> <downcase-word>"       #'wdired-downcase-word
+  "<remap> <self-insert-command>" #'wdired--self-insert)
 
 (easy-menu-define wdired-mode-menu wdired-mode-map
   "Menu for `wdired-mode'."
@@ -872,21 +870,19 @@ Like original function but it skips read-only words."
 ;; The following code deals with changing the access bits (or
 ;; permissions) of the files.
 
-(defvar wdired-perm-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " #'wdired-toggle-bit)
-    (define-key map "r" #'wdired-set-bit)
-    (define-key map "w" #'wdired-set-bit)
-    (define-key map "x" #'wdired-set-bit)
-    (define-key map "-" #'wdired-set-bit)
-    (define-key map "S" #'wdired-set-bit)
-    (define-key map "s" #'wdired-set-bit)
-    (define-key map "T" #'wdired-set-bit)
-    (define-key map "t" #'wdired-set-bit)
-    (define-key map "s" #'wdired-set-bit)
-    (define-key map "l" #'wdired-set-bit)
-    (define-key map [mouse-1] #'wdired-mouse-toggle-bit)
-    map))
+(defvar-keymap wdired-perm-mode-map
+  "SPC" #'wdired-toggle-bit
+  "r"   #'wdired-set-bit
+  "w"   #'wdired-set-bit
+  "x"   #'wdired-set-bit
+  "-"   #'wdired-set-bit
+  "S"   #'wdired-set-bit
+  "s"   #'wdired-set-bit
+  "T"   #'wdired-set-bit
+  "t"   #'wdired-set-bit
+  "s"   #'wdired-set-bit
+  "l"   #'wdired-set-bit
+  "<mouse-1>" #'wdired-mouse-toggle-bit)
 
 ;; Put a keymap property to the permission bits of the files, and store the
 ;; original name and permissions as a property
