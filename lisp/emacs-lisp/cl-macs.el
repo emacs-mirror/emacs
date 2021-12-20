@@ -2145,8 +2145,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
                       (not (memq var shadowings))
                       ;; If any of the new bindings is a dynamic
                       ;; variable, the body is not in tail position.
-                      (not (cl-some #'macroexp--dynamic-variable-p
-                                    shadowings))))))
+                      (not (delq nil (mapcar #'macroexp--dynamic-variable-p
+                                             shadowings)))))))
              `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
             ((and `(condition-case ,err-var ,bodyform . ,handlers)
                   (guard (not (eq err-var var))))
