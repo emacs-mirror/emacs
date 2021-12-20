@@ -286,7 +286,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
          (progn
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
-             ,(help-add-fundoc-usage doc args))
+             ,(if (consp doc)           ;An expression rather than a constant.
+                  `(help-add-fundoc-usage ,doc ',args)
+                (help-add-fundoc-usage doc args)))
            :autoload-end
            ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
                      (nreverse methods)))

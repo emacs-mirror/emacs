@@ -690,8 +690,10 @@ of values.  Callers can retrieve each value using `iter-next'."
   (declare (indent defun)
            (debug (&define lambda-list lambda-doc &rest sexp)))
   (cl-assert lexical-binding)
-  `(lambda ,arglist
-     ,(cps-generate-evaluator body)))
+  (pcase-let* ((`(,declarations . ,exps) (macroexp-parse-body body)))
+    `(lambda ,arglist
+       ,@declarations
+       ,(cps-generate-evaluator exps))))
 
 (defmacro iter-make (&rest body)
   "Return a new iterator."

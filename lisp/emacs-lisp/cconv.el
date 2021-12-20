@@ -293,15 +293,10 @@ of converted forms."
                              (cconv-convert form env nil))
                            funcbody))
     (if wrappers
-        (let ((special-forms '()))
-          ;; Keep special forms at the beginning of the body.
-          (while (or (and (cdr funcbody) (stringp (car funcbody))) ;docstring.
-                     (memq (car-safe (car funcbody))
-                           '(interactive declare :documentation)))
-            (push (pop funcbody) special-forms))
-          (let ((body (macroexp-progn funcbody)))
+        (pcase-let ((`(,decls . ,body) (macroexp-parse-body funcbody)))
+          (let ((body (macroexp-progn body)))
             (dolist (wrapper wrappers) (setq body (funcall wrapper body)))
-            `(,@(nreverse special-forms) ,@(macroexp-unprogn body))))
+            `(,@decls ,@(macroexp-unprogn body))))
       funcbody)))
 
 (defun cconv--lifted-arg (var env)
