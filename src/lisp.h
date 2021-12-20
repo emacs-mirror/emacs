@@ -954,7 +954,7 @@ typedef EMACS_UINT Lisp_Word_tag;
                        ? ((y) - 1 + (x)) & ~ ((y) - 1)			\
                        : ((y) - 1 + (x)) - ((y) - 1 + (x)) % (y))
 
-#include "globals.h"
+#include <globals.h>
 
 /* Header of vector-like objects.  This documents the layout constraints on
    vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
