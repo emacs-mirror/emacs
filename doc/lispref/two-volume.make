@@ -35,7 +35,7 @@ vol1.pdf: elisp1med-fns-ready elisp1med-aux-ready elisp1med-toc-ready
 	$(tex1)
 #
 vol2.pdf: elisp2med-fns-ready elisp2med-aux-ready elisp2med-toc-ready
-	@echo "Final TeX run for volume 2..."
+	$(info Final TeX run for volume 2...)
 	cp elisp2med-toc-ready elisp2-toc-ready.toc
 	cp elisp2med-fns-ready vol2.fns
 	cp elisp2med-aux-ready vol2.aux
@@ -123,7 +123,7 @@ elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready $(texinfo
 	mv vol1.toc elisp1med-toc
 #
 elisp2med-init: elisp2-fns-ready elisp2-aux-ready elisp2init-toc-ready $(texinfodir)/texinfo.tex
-	@echo "Final TeX run for volume 2..."
+	$(info Final TeX run for volume 2...)
 	cp elisp2init-toc-ready elisp2-toc-ready.toc
 	cp elisp2-fns-ready vol2.fns
 	cp elisp2-aux-ready vol2.aux
@@ -211,7 +211,7 @@ elisp1-init: elisp.texi
 	touch $@
 #
 elisp2-init: elisp.texi
-	@echo "Initial TeX run for volume 2..."
+	$(info Initial TeX run for volume 2...)
 	rm -f vol2.aux vol2.toc
 	$(tex2)
 	texindex vol2.??

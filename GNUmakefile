@@ -36,31 +36,31 @@
 
 ifeq (help,$(filter help,$(MAKECMDGOALS)))
 help:
-	@echo "NOTE:  This is a brief summary of some common make targets."
-	@echo "For more detailed information, please read the files INSTALL,"
-	@echo "INSTALL.REPO, Makefile or visit this URL:"
-	@echo "https://www.gnu.org/prep/standards/html_node/Standard-Targets.html"
-	@echo ""
-	@echo "make all              -- compile and build Emacs"
-	@echo "make install          -- install Emacs"
-	@echo "make TAGS             -- update tags tables"
-	@echo "make clean            -- delete built files but preserve configuration"
-	@echo "make mostlyclean      -- like 'make clean', but leave those files that"
-	@echo "                         usually do not need to be recompiled"
-	@echo "make distclean        -- delete all build and configuration files,"
-	@echo "                         leave only files included in source distribution"
-	@echo "make maintainer-clean -- delete almost everything that can be regenerated"
-	@echo "make extraclean       -- like maintainer-clean, and also delete"
-	@echo "                         backup and autosave files"
-	@echo "make bootstrap        -- delete all compiled files to force a new bootstrap"
-	@echo "                         from a clean slate, then build in the normal way"
-	@echo "make uninstall        -- remove files installed by 'make install'"
-	@echo "make check            -- run the Emacs test suite"
-	@echo "make docs             -- generate Emacs documentation in info format"
-	@echo "make html             -- generate documentation in html format"
-	@echo "make ps               -- generate documentation in ps format"
-	@echo "make pdf              -- generate documentation in pdf format "
-	@exit
+	$(info $ NOTE:  This is a brief summary of some common make targets.)
+	$(info $ For more detailed information, please read the files INSTALL,)
+	$(info $ INSTALL.REPO, Makefile or visit this URL:)
+	$(info $ https://www.gnu.org/prep/standards/html_node/Standard-Targets.html)
+	$(info $ )
+	$(info $ make all              -- compile and build Emacs)
+	$(info $ make install          -- install Emacs)
+	$(info $ make TAGS             -- update tags tables)
+	$(info $ make clean            -- delete built files but preserve configuration)
+	$(info $ make mostlyclean      -- like 'make clean', but leave those files that)
+	$(info $                          usually do not need to be recompiled)
+	$(info $ make distclean        -- delete all build and configuration files,)
+	$(info $                          leave only files included in source distribution)
+	$(info $ make maintainer-clean -- delete almost everything that can be regenerated)
+	$(info $ make extraclean       -- like maintainer-clean, and also delete)
+	$(info $                          backup and autosave files)
+	$(info $ make bootstrap        -- delete all compiled files to force a new bootstrap)
+	$(info $                          from a clean slate, then build in the normal way)
+	$(info $ make uninstall        -- remove files installed by 'make install')
+	$(info $ make check            -- run the Emacs test suite)
+	$(info $ make docs             -- generate Emacs documentation in info format)
+	$(info $ make html             -- generate documentation in html format)
+	$(info $ make ps               -- generate documentation in ps format)
+	$(info $ make pdf              -- generate documentation in pdf format )
+	@:
 
 .PHONY: help
 
@@ -79,7 +79,7 @@ else
 ifeq ($(filter-out %clean,$(or $(MAKECMDGOALS),default)),)
 
 $(MAKECMDGOALS):
-	@echo >&2 'No Makefile; skipping $@.'
+	$(warning No Makefile; skipping $@.)
 
 else
 
@@ -97,18 +97,18 @@ default $(ORDINARY_GOALS): Makefile
 .NOTPARALLEL:
 
 configure:
-	@echo >&2 'There seems to be no "configure" file in this directory.'
-	@echo >&2 Running ./autogen.sh ...
+	$(warning There seems to be no "configure" file in this directory.)
+	$(warning Running ./autogen.sh ...)
 	./autogen.sh
 	@echo >&2 '"configure" file built.'
 
 Makefile: configure
-	@echo >&2 'There seems to be no Makefile in this directory.'
+	$(warning There seems to be no Makefile in this directory.)
 ifeq ($(configure),default)
-	@echo >&2 'Running ./configure ...'
+	$(warning Running ./configure ...)
 	./configure
 else
-	@echo >&2 'Running ./configure '$(configure)'...'
+	$(warning Running ./configure $(configure)...)
 	./configure $(configure)
 endif
 	@echo >&2 'Makefile built.'

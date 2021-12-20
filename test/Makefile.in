@@ -375,10 +375,10 @@ check-declare:
 .PHONY: subdirs subdir-targets generate-test-jobs
 
 subdirs:
-	@echo $(SUBDIRS)
+	@: $(info $(SUBDIRS))
 
 subdir-targets:
-	@echo $(SUBDIR_TARGETS)
+	@: $(info $(SUBDIR_TARGETS))
 
 generate-test-jobs:
 	@$(MAKE) -C infra generate-test-jobs SUBDIRS="$(SUBDIRS)"

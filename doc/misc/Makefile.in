@@ -130,12 +130,12 @@ info: $(INFO_TARGETS)
 
 ## Used by top-level Makefile.
 ## Base file names of output info files.
+INFO_BASES = $(patsubst %.info,%,$(notdir $(INFO_INSTALL)))
 echo-info:
-	@echo "$(INFO_INSTALL) " | \
-	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */.info /g"
+	@: $(info $(addsuffix .info,$(INFO_BASES)))
 
 echo-sources:
-	@echo ${SOURCES}
+	@: $(info $(SOURCES))
 
 dvi: $(DVI_TARGETS)
 

@@ -297,8 +297,8 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 ## up if chown or chgrp fails, as the package responsible for
 ## installing Emacs can fix this problem later.
 $(DESTDIR)${archlibdir}: all
-	@echo
-	@echo "Installing utilities run internally by Emacs."
+	$(info $ )
+	$(info Installing utilities run internally by Emacs.)
 	umask 022 && ${MKDIR_P} "$(DESTDIR)${archlibdir}"
 	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
 	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
@@ -339,8 +339,8 @@ $(DESTDIR)${archlibdir}: all
 .PHONY: bootstrap-clean check tags
 
 install: $(DESTDIR)${archlibdir}
-	@echo
-	@echo "Installing utilities for users to run."
+	$(info $ )
+	$(info Installing utilities for users to run.)
 	umask 022 && ${MKDIR_P} "$(DESTDIR)${bindir}"
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $(INSTALL_STRIP) $${file} \
@@ -375,7 +375,7 @@ bootstrap-clean maintainer-clean: distclean
 
 ## Test the contents of the directory.
 check:
-	@echo "We don't have any tests for the lib-src/ directory yet."
+	$(info We don't have any tests for the lib-src/ directory yet.)
 
 tagsfiles = $(wildcard ${srcdir}/*.[ch])
 
