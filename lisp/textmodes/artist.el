@@ -338,7 +338,8 @@ Example:
 (defvar artist-pointer-shape (if (eq window-system 'x) x-pointer-crosshair nil)
   "If in X Windows, use this pointer shape while drawing with the mouse.")
 
-(defvaralias 'artist-text-renderer 'artist-text-renderer-function)
+(define-obsolete-variable-alias 'artist-text-renderer
+  'artist-text-renderer-function "29.1")
 
 (defcustom artist-text-renderer-function 'artist-figlet
   "Function for doing text rendering."

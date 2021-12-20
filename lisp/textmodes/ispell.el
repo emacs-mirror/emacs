@@ -296,7 +296,8 @@ The following values are supported:
   "Non-nil means suppress messages in `ispell-word'."
   :type 'boolean)
 
-(defvaralias 'ispell-format-word 'ispell-format-word-function)
+(define-obsolete-variable-alias 'ispell-format-word
+  'ispell-format-word-function "29.1")
 
 (defcustom ispell-format-word-function (function upcase)
   "Formatting function for displaying word being spell checked.

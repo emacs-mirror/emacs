@@ -1211,8 +1211,8 @@ See `bibtex-generate-autokey' for details."
   :type '(repeat (cons (regexp :tag "Old")
                        (string :tag "New"))))
 
-(defvaralias 'bibtex-autokey-name-case-convert
-  'bibtex-autokey-name-case-convert-function)
+(define-obsolete-variable-alias 'bibtex-autokey-name-case-convert
+  'bibtex-autokey-name-case-convert-function "29.1")
 
 (defcustom bibtex-autokey-name-case-convert-function #'downcase
   "Function called for each name to perform case conversion.
@@ -1286,8 +1286,8 @@ Case is significant.  See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
-(defvaralias 'bibtex-autokey-titleword-case-convert
-  'bibtex-autokey-titleword-case-convert-function)
+(define-obsolete-variable-alias 'bibtex-autokey-titleword-case-convert
+  'bibtex-autokey-titleword-case-convert-function "29.1")
 
 (defcustom bibtex-autokey-titleword-case-convert-function #'downcase
   "Function called for each titleword to perform case conversion.

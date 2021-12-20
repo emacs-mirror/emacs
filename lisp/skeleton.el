@@ -37,7 +37,8 @@
 ;; page 2:	paired insertion
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
-(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
+(define-obsolete-variable-alias 'skeleton-transformation
+  'skeleton-transformation-function "29.1")
 
 (defvar skeleton-transformation-function 'identity
   "If non-nil, function applied to literal strings before they are inserted.
@@ -65,7 +66,8 @@ region.")
   "Hook called at end of skeleton but before going to point of interest.
 The variables `v1' and `v2' are still set when calling this.")
 
-(defvaralias 'skeleton-filter 'skeleton-filter-function)
+(define-obsolete-variable-alias 'skeleton-filter
+  'skeleton-filter-function "29.1")
 
 ;;;###autoload
 (defvar skeleton-filter-function 'identity

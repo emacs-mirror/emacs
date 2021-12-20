@@ -542,8 +542,8 @@ not be enclosed in { } or ( )."
 This should identify a `make' command that can handle the `-q' option."
   :type 'string)
 
-(defvaralias 'makefile-query-one-target-method
-  'makefile-query-one-target-method-function)
+(define-obsolete-variable-alias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function "29.1")
 
 (defcustom makefile-query-one-target-method-function
   'makefile-query-by-make-minus-q
