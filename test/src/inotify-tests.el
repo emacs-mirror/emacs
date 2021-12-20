@@ -28,6 +28,7 @@
 
 (declare-function inotify-add-watch "inotify.c" (file-name aspect callback))
 (declare-function inotify-rm-watch "inotify.c" (watch-descriptor))
+(declare-function inotify-valid-p "inotify.c" (watch-descriptor))
 
 (ert-deftest inotify-valid-p-simple ()
   "Simple tests for `inotify-valid-p'."
