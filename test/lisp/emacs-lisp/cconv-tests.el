@@ -83,9 +83,6 @@
   (iter-yield 'cl-iter-defun-result))
 (ert-deftest cconv-tests-cl-iter-defun-:documentation ()
   "Docstring for cl-iter-defun can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :tags '(:unstable)
-  :expected-result :failed
   (should (string= (documentation 'cconv-tests-cl-iter-defun)
                    "cl-iter-defun documentation"))
   (should (eq (iter-next (cconv-tests-cl-iter-defun))
@@ -96,17 +93,12 @@
   (iter-yield 'iter-defun-result))
 (ert-deftest cconv-tests-iter-defun-:documentation ()
   "Docstring for iter-defun can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :tags '(:unstable)
-  :expected-result :failed
   (should (string= (documentation 'cconv-tests-iter-defun)
                    "iter-defun documentation"))
   (should (eq (iter-next (cconv-tests-iter-defun)) 'iter-defun-result)))
 
 (ert-deftest cconv-tests-iter-lambda-:documentation ()
   "Docstring for iter-lambda can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((iter-fun
          (iter-lambda ()
            (:documentation (concat "iter-lambda" " documentation"))
@@ -116,13 +108,11 @@
 
 (ert-deftest cconv-tests-cl-function-:documentation ()
   "Docstring for cl-function can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((fun (cl-function (lambda (&key arg)
                             (:documentation (concat "cl-function"
                                                     " documentation"))
                             (list arg 'cl-function-result)))))
-    (should (string= (documentation fun) "cl-function documentation"))
+    (should (string-match "\\`cl-function documentation$" (documentation fun)))
     (should (equal (funcall fun :arg t) '(t cl-function-result)))))
 
 (ert-deftest cconv-tests-function-:documentation ()
@@ -142,8 +132,6 @@
   (+ 1 n))
 (ert-deftest cconv-tests-cl-defgeneric-:documentation ()
   "Docstring for cl-defgeneric can be specified with :documentation."
-  ;; FIXME: See Bug#28557.
-  :expected-result :failed
   (let ((descr (describe-function 'cconv-tests-cl-defgeneric)))
     (set-text-properties 0 (length descr) nil descr)
     (should (string-match-p "cl-defgeneric documentation" descr))

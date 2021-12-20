@@ -187,33 +187,34 @@
 
 (defmacro oclosure-lambda (type fields args &rest body)
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
-  ;; FIXME: Provide the fields in the order specified by `type'.
-  (let* ((class (cl--find-class type))
-         (slots (oclosure--class-slots class))
-         (prebody '())
-         (slotbinds (nreverse
-                     (mapcar (lambda (slot)
-                               (list (cl--slot-descriptor-name slot)))
-                             slots)))
-         (tempbinds (mapcar
-                     (lambda (field)
-                       (let* ((name (car field))
-                              (bind (assq name slotbinds)))
-                         (cond
-                          ((not bind)
-                           (error "Unknown slots: %S" name))
-                          ((cdr bind)
-                           (error "Duplicate slots: %S" name))
-                          (t
-                           (let ((temp (gensym "temp")))
-                             (setcdr bind (list temp))
-                             (cons temp (cdr field)))))))
-                     fields)))
-    ;; FIXME: Since we use the docstring internally to store the
-    ;; type we can't handle actual docstrings.  We could fix this by adding
-    ;; a docstring slot to OClosures.
-    (while (memq (car-safe (car-safe body)) '(interactive declare))
-      (push (pop body) prebody))
+  ;; FIXME: Should `oclosure-define' distinguish "optional" from
+  ;; "mandatory" slots, and/or provide default values for slots missing
+  ;; from `fields'?
+  (pcase-let*
+      ((class (cl--find-class type))
+       (slots (oclosure--class-slots class))
+       ;; FIXME: Since we use the docstring internally to store the
+       ;; type we can't handle actual docstrings.  We could fix this by adding
+       ;; a docstring slot to OClosures.
+       (`(,prebody . ,body) (macroexp-parse-body body))
+       (slotbinds (nreverse
+                   (mapcar (lambda (slot)
+                             (list (cl--slot-descriptor-name slot)))
+                           slots)))
+       (tempbinds (mapcar
+                   (lambda (field)
+                     (let* ((name (car field))
+                            (bind (assq name slotbinds)))
+                       (cond
+                        ((not bind)
+                         (error "Unknown slots: %S" name))
+                        ((cdr bind)
+                         (error "Duplicate slots: %S" name))
+                        (t
+                         (let ((temp (gensym "temp")))
+                           (setcdr bind (list temp))
+                           (cons temp (cdr field)))))))
+                   fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
     ;; FIXME: Slots not specified in `fields' tend to emit "Variable FOO left
     ;; uninitialized"!
