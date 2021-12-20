@@ -316,7 +316,7 @@ FORM is of the form (ARGS . BODY)."
                   (cl-decf slen))
                 (setq header
                       (cond
-                       ((eq :documentation (caar header))
+                       ((eq :documentation (car-safe (car header)))
                         `((:documentation (docstring-add-fundoc-usage
                                            ,(cadr (car header))
                                            ,usage-str))

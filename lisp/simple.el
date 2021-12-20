@@ -2362,19 +2362,20 @@ ORIGINAL-NAME is used internally only."
     ((pred byte-code-function-p)
      (when (> (length cmd) 5)
        (let ((form (aref cmd 5)))
-         (if (vectorp form)
-	     ;; The vector form is the new form, where the first
-	     ;; element is the interactive spec, and the second is the
-	     ;; command modes.
-	     (list 'interactive (aref form 0))
-	   (list 'interactive form)))))
+         (list 'interactive
+	       (if (vectorp form)
+	           ;; The vector form is the new form, where the first
+	           ;; element is the interactive spec, and the second
+	           ;; is the "command modes" info.
+	           (aref form 0)
+	         form)))))
     ((pred autoloadp)
      (interactive-form (autoload-do-load cmd original-name)))
     ((or `(lambda ,_args . ,body)
          `(closure ,_env ,_args . ,body))
      (let ((spec (assq 'interactive body)))
        (if (cddr spec)
-           ;; Drop the "applicable modes" info.
+           ;; Drop the "command modes" info.
            (list 'interactive (cadr spec))
          spec)))
     (_ (internal--interactive-form cmd))))
