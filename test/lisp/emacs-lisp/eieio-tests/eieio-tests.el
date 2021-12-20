@@ -139,8 +139,8 @@
 ;;      )))
 
 ;; Silence byte-compiler.
-(defun eitest-subordinate--eieio-childp ())
-(defun class-alloc-initarg--eieio-childp ())
+(declare-function eitest-subordinate--eieio-childp nil)
+(declare-function class-alloc-initarg--eieio-childp nil)
 (ert-deftest eieio-test-01-mix-alloc-initarg ()
   ;; Only run this test if the message framework thingy works.
   (skip-unless (and (message "foo") (string= "foo" (current-message))))
@@ -213,8 +213,8 @@ Argument C is the class bound to this static method."
     (oset-default c some-slot value)))
 
 ;; Silence byte-compiler.
-(defun static-method-class-2 ())
-(defun static-method-class-2--eieio-childp ())
+(declare-function static-method-class-2 nil)
+(declare-function static-method-class-2--eieio-childp nil)
 (ert-deftest eieio-test-04-static-method ()
   ;; Call static method on a class and see if it worked
   (static-method-class-method 'static-method-class 'class)
@@ -546,8 +546,8 @@ METHOD is the method that was attempting to be called."
 
 ;; Silence byte-compiler.
 (defvar eitest-tests nil)
-(defun eitest-superior ())
-(defun eitest-superior--eieio-childp ())
+(declare-function eitest-superior nil)
+(declare-function eitest-superior--eieio-childp nil)
 (ert-deftest eieio-test-22-init-forms-dont-match-runnable ()
   ;; Init forms with types that don't match the runnable.
   (defclass eitest-subordinate nil
@@ -597,8 +597,8 @@ METHOD is the method that was attempting to be called."
 
 ;; Silence byte-compiler.
 (defvar eitest-t1 nil)
-(defun eieio-tests-initform-not-evaluated-when-initarg-is-present ())
-(defun eieio-tests-initform-not-evaluated-when-initarg-is-present--eieio-childp ())
+(declare-function eieio-tests-initform-not-evaluated-when-initarg-is-present nil)
+(declare-function eieio-tests-initform-not-evaluated-when-initarg-is-present--eieio-childp nil)
 (ert-deftest eieio-test-25-slot-tests ()
   (setq eitest-t1 (class-c))
   ;; Slot initialization
