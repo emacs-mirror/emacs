@@ -437,6 +437,27 @@ find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
 
   after_field
     = get_char_property_and_overlay (pos, Qfield, Qnil, NULL);
+
+  /* We're not in a field, so find the prev/next area with a field
+     property.  */
+  if (NILP (after_field))
+    {
+      if (beg)
+	{
+	  Lisp_Object p = Fprevious_single_char_property_change (pos, Qfield,
+								 Qnil,
+								 beg_limit);
+	  *beg = NILP (p) ? BEGV : XFIXNAT (p);
+	}
+      if (end)
+	{
+	  Lisp_Object p = Fnext_single_char_property_change (pos, Qfield, Qnil,
+							     end_limit);
+	  *end = NILP (p) ? ZV : XFIXNAT (p);
+	}
+      return;
+    }
+
   before_field
     = (XFIXNAT (pos) > BEGV
        ? get_char_property_and_overlay (make_fixnum (XFIXNUM (pos) - 1),
