@@ -269,7 +269,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
           ;; Windows uses OS-level file locking that may preclude
           ;; reading the file in some circumstances.  So when that
           ;; happens, wait a bit and try again.
-          (file-error
+          (permission-denied
            (setq i (1+ i)
                  last-error err)
            (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
