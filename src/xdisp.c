@@ -27640,6 +27640,21 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	                           0, &endptr, it->base_face_id, false, 0);
       face = FACE_FROM_ID (it->f, it->face_id);
       it->face_box_p = face->box != FACE_NO_BOX;
+
+      /* If we have a display spec, but there's no Lisp being
+	 displayed, then check whether we've got one from the
+	 :propertize being passed in and use that.  */
+      if (NILP (lisp_string))
+	{
+	  Lisp_Object display = Fget_text_property (make_fixnum (0), Qdisplay,
+						    face_string);
+	  if (!NILP (display))
+	    {
+	      Lisp_Object min_width = Fplist_get (display, Qmin_width);
+	      if (!NILP (min_width))
+		display_min_width (it, 0, face_string, min_width);
+	    }
+	}
     }
 
   /* Set max_x to the maximum allowed X position.  Don't let it go
