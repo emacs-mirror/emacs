@@ -137,6 +137,9 @@
 ;;      (error "invalid-slot-type thrown when eieio-error-unsupported-class-tags is nil")
 ;;      )))
 
+;; Silence byte-compiler.
+(defun eitest-subordinate--eieio-childp ())
+(defun class-alloc-initarg--eieio-childp ())
 (ert-deftest eieio-test-01-mix-alloc-initarg ()
   ;; Only run this test if the message framework thingy works.
   (skip-unless (and (message "foo") (string= "foo" (current-message))))
@@ -207,6 +210,9 @@ Argument C is the class bound to this static method."
     (if (eieio-object-p c) (setq c (eieio-object-class c)))
     (oset-default c some-slot value)))
 
+;; Silence byte-compiler.
+(defun static-method-class-2 ())
+(defun static-method-class-2--eieio-childp ())
 (ert-deftest eieio-test-04-static-method ()
   ;; Call static method on a class and see if it worked
   (static-method-class-method 'static-method-class 'class)
@@ -536,8 +542,10 @@ METHOD is the method that was attempting to be called."
   (should (eq (oref eitest-pvinit evalval) 2))
   (should (eq (oref eitest-pvinit evalnow) 1)))
 
+;; Silence byte-compiler.
 (defvar eitest-tests nil)
-
+(defun eitest-superior ())
+(defun eitest-superior--eieio-childp ())
 (ert-deftest eieio-test-22-init-forms-dont-match-runnable ()
   ;; Init forms with types that don't match the runnable.
   (defclass eitest-subordinate nil
@@ -585,7 +593,10 @@ METHOD is the method that was attempting to be called."
     (should-not (cl-typep listooa '(list-of class-b)))
     (should-not (cl-typep listoob '(list-of class-a)))))
 
+;; Silence byte-compiler.
 (defvar eitest-t1 nil)
+(defun eieio-tests-initform-not-evaluated-when-initarg-is-present ())
+(defun eieio-tests-initform-not-evaluated-when-initarg-is-present--eieio-childp ())
 (ert-deftest eieio-test-25-slot-tests ()
   (setq eitest-t1 (class-c))
   ;; Slot initialization
