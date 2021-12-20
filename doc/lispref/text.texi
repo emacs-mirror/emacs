@@ -4793,9 +4793,8 @@ converting to and from this code.
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
 signaled if a character in the region is multibyte, i.e., in a
-multibyte buffer the region must contain only characters from the
-charsets @code{ascii}, @code{eight-bit-control} and
-@code{eight-bit-graphic}.
+multibyte buffer the region must contain only ASCII characters or raw
+bytes.
 
 Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument

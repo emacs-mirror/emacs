@@ -318,7 +318,10 @@
   (should (equal (base64-encode-string "fooba") "Zm9vYmE="))
   (should (equal (base64-encode-string "foobar") "Zm9vYmFy"))
   (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l+"))
-  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/")))
+  (should (equal (base64-encode-string "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/"))
+
+  (should-error (base64-encode-string "ƒ"))
+  (should-error (base64-encode-string "ü")))
 
 (ert-deftest fns-test-base64url-encode-region ()
   ;; url variant with padding
@@ -360,7 +363,11 @@
   (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t)
                  (fns-tests--string-repeat "FPucA9l-" 10)))
   (should (equal (fns-tests--with-region base64url-encode-region (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t)
-                 (fns-tests--string-repeat "FPucA9l_" 10))))
+                 (fns-tests--string-repeat "FPucA9l_" 10)))
+
+  (should-error (fns-tests--with-region base64url-encode-region "ƒ"))
+  (should-error (fns-tests--with-region base64url-encode-region "ü")))
+
 
 (ert-deftest fns-test-base64url-encode-string ()
   ;; url variant with padding
@@ -394,7 +401,10 @@
   (should (equal (base64url-encode-string (fns-tests--string-repeat "fooba" 15) t) (fns-tests--string-repeat "Zm9vYmFmb29iYWZvb2Jh" 5)))
   (should (equal (base64url-encode-string (fns-tests--string-repeat "foobar" 15) t) (concat (fns-tests--string-repeat "Zm9vYmFyZm9vYmFy" 7) "Zm9vYmFy")))
   (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7e" 10) t) (fns-tests--string-repeat "FPucA9l-" 10)))
-  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t) (fns-tests--string-repeat "FPucA9l_" 10))))
+  (should (equal (base64url-encode-string (fns-tests--string-repeat "\x14\xfb\x9c\x03\xd9\x7f" 10) t) (fns-tests--string-repeat "FPucA9l_" 10)))
+
+  (should-error (base64url-encode-string "ƒ"))
+  (should-error (base64url-encode-string "ü")))
 
 (ert-deftest fns-tests-base64-decode-string ()
   ;; standard variant RFC2045
