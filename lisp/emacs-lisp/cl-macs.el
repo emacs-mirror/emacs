@@ -301,24 +301,33 @@ FORM is of the form (ARGS . BODY)."
              (t ;; `simple-args' doesn't handle all the parsing that we need,
               ;; so we pass the rest to cl--do-arglist which will do
               ;; "manual" parsing.
-              (let ((slen (length simple-args)))
-                (when (memq '&optional simple-args)
-                  (cl-decf slen))
-                (setq header
+              (let ((slen (length simple-args))
+                    (usage-str
                       ;; Macro expansion can take place in the middle of
                       ;; apparently harmless computation, so it should not
                       ;; touch the match-data.
                       (save-match-data
+                        (docstring--quote
+                         (let ((print-gensym nil) (print-quoted t)
+                               (print-escape-newlines t))
+                           (format "%S" (cons 'fn (cl--make-usage-args
+                                                   orig-args))))))))
+                (when (memq '&optional simple-args)
+                  (cl-decf slen))
+                (setq header
+                      (cond
+                       ((eq :documentation (caar header))
+                        `((:documentation (docstring-add-fundoc-usage
+                                           ,(cadr (car header))
+                                           ,usage-str))
+                          ,@(cdr header)))
+                       (t
                         (cons (docstring-add-fundoc-usage
                                (if (stringp (car header)) (pop header))
                                ;; Be careful with make-symbol and (back)quote,
                                ;; see bug#12884.
-                               (docstring--quote
-                                (let ((print-gensym nil) (print-quoted t)
-                                      (print-escape-newlines t))
-                                  (format "%S" (cons 'fn (cl--make-usage-args
-                                                          orig-args))))))
-                              header)))
+                               usage-str)
+                              header))))
                 ;; FIXME: we'd want to choose an arg name for the &rest param
                 ;; and pass that as `expr' to cl--do-arglist, but that ends up
                 ;; generating code with a redundant let-binding, so we instead
