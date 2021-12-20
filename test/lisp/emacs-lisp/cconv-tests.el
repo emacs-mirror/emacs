@@ -107,23 +107,25 @@
   "Docstring for iter-lambda can be specified with :documentation."
   ;; FIXME: See Bug#28557.
   :expected-result :failed
-  (let ((iter-fun
-         (iter-lambda ()
-           (:documentation (concat "iter-lambda" " documentation"))
-           (iter-yield 'iter-lambda-result))))
-    (should (string= (documentation iter-fun) "iter-lambda documentation"))
-    (should (eq (iter-next (funcall iter-fun)) 'iter-lambda-result))))
+  (with-no-warnings ; disable warnings for now as test is expected to fail
+    (let ((iter-fun
+           (iter-lambda ()
+             (:documentation (concat "iter-lambda" " documentation"))
+             (iter-yield 'iter-lambda-result))))
+      (should (string= (documentation iter-fun) "iter-lambda documentation"))
+      (should (eq (iter-next (funcall iter-fun)) 'iter-lambda-result)))))
 
 (ert-deftest cconv-tests-cl-function-:documentation ()
   "Docstring for cl-function can be specified with :documentation."
   ;; FIXME: See Bug#28557.
   :expected-result :failed
-  (let ((fun (cl-function (lambda (&key arg)
-                            (:documentation (concat "cl-function"
-                                                    " documentation"))
-                            (list arg 'cl-function-result)))))
-    (should (string= (documentation fun) "cl-function documentation"))
-    (should (equal (funcall fun :arg t) '(t cl-function-result)))))
+  (with-no-warnings ; disable warnings for now as test is expected to fail
+    (let ((fun (cl-function (lambda (&key arg)
+                              (:documentation (concat "cl-function"
+                                                      " documentation"))
+                              (list arg 'cl-function-result)))))
+      (should (string= (documentation fun) "cl-function documentation"))
+      (should (equal (funcall fun :arg t) '(t cl-function-result))))))
 
 (ert-deftest cconv-tests-function-:documentation ()
   "Docstring for lambda inside function can be specified with :documentation."
