@@ -2139,9 +2139,14 @@ Like `cl-flet' but the definitions can refer to previous ones.
                    ;; setq the fresh new `ofargs' vars instead ;-)
                    (let ((shadowings
                           (mapcar (lambda (b) (if (consp b) (car b) b)) bindings)))
-                     ;; If `var' is shadowed, then it clearly can't be
-                     ;; tail-called any more.
-                     (not (memq var shadowings)))))
+                     (and
+                      ;; If `var' is shadowed, then it clearly can't be
+                      ;; tail-called any more.
+                      (not (memq var shadowings))
+                      ;; If any of the new bindings is a dynamic
+                      ;; variable, the body is not in tail position.
+                      (not (cl-some #'macroexp--dynamic-variable-p
+                                    shadowings))))))
              `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
             ((and `(condition-case ,err-var ,bodyform . ,handlers)
                   (guard (not (eq err-var var))))
