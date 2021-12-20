@@ -66,40 +66,41 @@
 	      :documentation "Detail about amphibian on land and water."))
   "Class A and B combined.")
 
-(defclass class-c ()
-  ((slot-1 :initarg :moose
-           :initform 'moose
-	   :type symbol
-	   :allocation :instance
-	   :documentation "First slot testing slot arguments."
-	   :custom symbol
-	   :label "Wild Animal"
-	   :group borg
-	   :protection :public)
-   (slot-2 :initarg :penguin
-	   :initform "penguin"
-	   :type string
-	   :allocation :instance
-	   :documentation "Second slot testing slot arguments."
-	   :custom string
-	   :label "Wild bird"
-	   :group vorlon
-	   :accessor get-slot-2
-	   :protection :private)
-   (slot-3 :initarg :emu
-           :initform 'emu
-	   :type symbol
-	   :allocation :class
-	   :documentation "Third slot test class allocated accessor"
-	   :custom symbol
-	   :label "Fuzz"
-	   :group tokra
-	   :accessor get-slot-3
-	   :protection :private)
-   )
-  (:custom-groups (foo))
-  "A class for testing slot arguments."
-  )
+(with-no-warnings ; FIXME: Make more specific.
+  (defclass class-c ()
+    ((slot-1 :initarg :moose
+             :initform 'moose
+             :type symbol
+             :allocation :instance
+             :documentation "First slot testing slot arguments."
+             :custom symbol
+             :label "Wild Animal"
+             :group borg
+             :protection :public)
+     (slot-2 :initarg :penguin
+             :initform "penguin"
+             :type string
+             :allocation :instance
+             :documentation "Second slot testing slot arguments."
+             :custom string
+             :label "Wild bird"
+             :group vorlon
+             :accessor get-slot-2
+             :protection :private)
+     (slot-3 :initarg :emu
+             :initform 'emu
+             :type symbol
+             :allocation :class
+             :documentation "Third slot test class allocated accessor"
+             :custom symbol
+             :label "Fuzz"
+             :group tokra
+             :accessor get-slot-3
+             :protection :private)
+     )
+    (:custom-groups (foo))
+    "A class for testing slot arguments."
+    ))
 
 (defclass class-subc (class-c)
   ((slot-1 ;; :initform moose  - don't override this
@@ -146,10 +147,11 @@
 
   ;; Defining this class should generate a warning(!) message that
   ;; you should not mix :initarg with class allocated slots.
-  (defclass class-alloc-initarg ()
-    ((throwwarning :initarg :throwwarning
-                   :allocation :class))
-    "Throw a warning mixing allocation class and an initarg.")
+  (with-no-warnings ; FIXME: Make more specific.
+    (defclass class-alloc-initarg ()
+      ((throwwarning :initarg :throwwarning
+                     :allocation :class))
+      "Throw a warning mixing allocation class and an initarg."))
 
   ;; Check that message is there
   (should (current-message))
@@ -823,25 +825,26 @@ Subclasses to override slot attributes.")
   (let ((obj (slotattr-ok)))
     (should (eq (oref obj initform) 'no-init))))
 
-(defclass slotattr-class-base ()
-  ((initform :allocation :class
-             :initform 'init)
-   (type :allocation :class
-	 :type list)
-   (initarg :allocation :class
-	    :initarg :initarg)
-   (protection :allocation :class
-	       :protection :private)
-   (custom :allocation :class
-	   :custom (repeat string)
-	   :label "Custom Strings"
-	   :group moose)
-   (docstring :allocation :class
-	      :documentation
-	      "Replace the doc-string for this property.")
-   )
-  "Baseclass we will attempt to subclass.
-Subclasses to override slot attributes.")
+(with-no-warnings ; FIXME: Make more specific.
+  (defclass slotattr-class-base ()
+    ((initform :allocation :class
+               :initform 'init)
+     (type :allocation :class
+           :type list)
+     (initarg :allocation :class
+              :initarg :initarg)
+     (protection :allocation :class
+                 :protection :private)
+     (custom :allocation :class
+             :custom (repeat string)
+             :label "Custom Strings"
+             :group moose)
+     (docstring :allocation :class
+                :documentation
+                "Replace the doc-string for this property.")
+     )
+    "Baseclass we will attempt to subclass.
+Subclasses to override slot attributes."))
 
 (defclass slotattr-class-ok (slotattr-class-base)
   ((initform :initform 'no-init)
@@ -967,7 +970,12 @@ Subclasses to override slot attributes.")
 (ert-deftest eieio-test-37-obsolete-name-in-constructor ()
   ;; FIXME repeated intermittent failures on hydra and elsewhere (bug#24503).
   :tags '(:unstable)
-  (should (equal (eieio--testing "toto") '("toto" 2))))
+  ;; Disable byte-compiler "Warning: Obsolete name arg "toto" to
+  ;; constructor eieio--testing".  This could be made more specific
+  ;; with changes to `with-suppressed-warnings', but it's not worth
+  ;; the hassle for just this one test.
+  (with-no-warnings
+    (should (equal (eieio--testing "toto") '("toto" 2)))))
 
 (ert-deftest eieio-autoload ()
   "Tests to see whether reftex-auc has been autoloaded"

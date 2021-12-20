@@ -449,13 +449,15 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; dispatching code.
   )
 
-(cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
-  "Doc string generic co-located-default."
-  "co-located default")
+(with-no-warnings ; FIXME: Make more specific.
+  (cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
+    "Doc string generic co-located-default."
+    "co-located default"))
 
-(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
-  "Doc string generic co-located-default xref-elisp-root-type."
-  "non-default for co-located-default")
+(with-no-warnings ; FIXME: Make more specific.
+  (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
+    "Doc string generic co-located-default xref-elisp-root-type."
+    "non-default for co-located-default"))
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
   "Doc string generic separate-default."
