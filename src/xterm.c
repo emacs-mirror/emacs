@@ -10891,7 +10891,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f = x_any_window_to_frame (dpyinfo, xev->event);
 
 #ifdef HAVE_GTK3
-	      menu_bar_p = (FRAME_X_OUTPUT (f)->menubar_widget
+	      menu_bar_p = (f && FRAME_X_OUTPUT (f)->menubar_widget
 			    && xg_event_is_for_menubar (f, event));
 #endif
 
@@ -10917,6 +10917,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 		      x_uncatch_errors_after_check ();
 		    }
+#ifndef HAVE_GTK3
 		  else
 		    {
 		      x_catch_errors (dpyinfo->display);
@@ -10924,7 +10925,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					  xev->detail, xev->event, XIRejectTouch);
 		      x_uncatch_errors ();
 		    }
-
+#endif
 		}
 	      else
 		{
