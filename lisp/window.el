@@ -5167,7 +5167,10 @@ nil means to not handle the buffer in a particular way.  This
     (cond
      ;; First try to delete dedicated windows that are not side windows.
      ((and dedicated (not (eq dedicated 'side))
-           (window--delete window 'dedicated (eq bury-or-kill 'kill))))
+           (window--delete window 'dedicated (eq bury-or-kill 'kill)))
+      ;; If the previously selected window is still alive, select it.
+      (when (window-live-p (nth 2 quit-restore))
+        (select-window (nth 2 quit-restore))))
      ((and (not prev-buffer)
 	   (eq (nth 1 quit-restore) 'tab)
 	   (eq (nth 3 quit-restore) buffer))
