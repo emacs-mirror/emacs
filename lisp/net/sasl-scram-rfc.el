@@ -90,6 +90,8 @@
 		     (sasl-mechanism-name (sasl-client-mechanism client))
 		     (sasl-client-name client))))
 	   (salt (base64-decode-string salt-base64))
+           (string-xor (lambda (a b)
+                         (apply #'unibyte-string (cl-mapcar #'logxor a b))))
 	   (salted-password
 	    ;; Hi(str, salt, i):
 	    (let ((digest (concat salt (string 0 0 0 1)))
@@ -98,7 +100,7 @@
 		(setq digest (funcall hmac-fun digest password))
 		(setq xored (if (null xored)
 				digest
-			      (cl-map 'string 'logxor xored digest))))))
+                              (funcall string-xor xored digest))))))
 	   (client-key
 	    (funcall hmac-fun "Client Key" salted-password))
 	   (stored-key (decode-hex-string (funcall hash-fun client-key)))
@@ -108,7 +110,7 @@
 	     step-data ","
 	     client-final-message-without-proof))
 	   (client-signature (funcall hmac-fun (encode-coding-string auth-message 'utf-8) stored-key))
-	   (client-proof (cl-map 'string 'logxor client-key client-signature))
+	   (client-proof (funcall string-xor client-key client-signature))
 	   (client-final-message
 	    (concat client-final-message-without-proof ","
 		    "p=" (base64-encode-string client-proof))))
