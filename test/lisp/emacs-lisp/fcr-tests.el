@@ -47,29 +47,58 @@
          (fcr2 (fcr-lambda fcr-test ((name (cl-incf i)) (fst (cl-incf i)))
                            ()
                  (list fst snd 152 i))))
-    (message "hello-1")
     (should (equal (list (fcr-test--fst fcr1)
                          (fcr-test--snd fcr1)
                          (fcr-test--name fcr1))
                    '(1 2 "hi")))
-    (message "hello-2")
     (should (equal (list (fcr-test--fst fcr2)
                          (fcr-test--snd fcr2)
                          (fcr-test--name fcr2))
                    '(44 nil 43)))
-    (message "hello-3")
     (should (equal (funcall fcr1) '(1 2 44)))
-    (message "hello-4")
     (should (equal (funcall fcr2) '(44 nil 152 44)))
-    (message "hello-5")
     (should (equal (funcall (fcr-test-copy fcr1 :fst 7)) '(7 2 44)))
-    (message "hello-6")
     (should (cl-typep fcr1 'fcr-test))
-    (message "hello-7")
     (should (cl-typep fcr1 'fcr-object))
     (should (member (fcr-test-gen fcr1)
                     '("#<fcr-test:#<fcr:#<cons>>>"
                       "#<fcr-test:#<fcr:#<bytecode>>>")))
     ))
+
+(ert-deftest fcr-tests--limits ()
+  (should
+   (condition-case err
+       (let ((lexical-binding t)
+             (byte-compile-debug t))
+         (byte-compile '(lambda ()
+                          (let ((inc-where nil))
+                            (fcr-lambda advice ((where 'foo)) ()
+                              (setq inc-where (lambda () (setq where (1+ where))))
+                              where))))
+         nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "where.*mutated" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(fcr-defstruct fcr--foo a a))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot name: a$" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(fcr-defstruct (fcr--foo (:parent advice)) where))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot name: where$" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(fcr-lambda advice ((where 1) (where 2)) () where))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot: where$" (cadr err)))))))
 
 ;;; fcr-tests.el ends here.

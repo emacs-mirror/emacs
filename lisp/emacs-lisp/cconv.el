@@ -604,6 +604,14 @@ places where they originally did not directly appear."
 
     (`(declare . ,_) form)              ;The args don't contain code.
 
+    (`(fcr--fix-type (ignore . ,vars) ,exp)
+     (dolist (var vars)
+       (let ((x (assq var env)))
+         (pcase (cdr x)
+           (`(car-safe . ,_) (error "Slot %S should not be mutated" var))
+           (_ (cl-assert (null (cdr x)))))))
+     (cconv-convert exp env extend))
+
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
      ;; if, catch, progn, prog1, while, until

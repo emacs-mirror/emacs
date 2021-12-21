@@ -41,6 +41,20 @@
 
 ;;; Code:
 
+;; Slots are currently immutable, tho they can be updated functionally
+;; via the "copiers": we could relax this restriction by either allowing
+;; the function itself to mutate the captured variable/slot or by providing
+;; `setf' accessors to the slots (or both), but this comes with some problems:
+;; - mutation from within the function currently would cause cconv
+;;   to perform store-conversion on the variable, so we'd either have
+;;   to prevent cconv from doing it (which might require a new bytecode op
+;;   to update the in-closure variable), or we'd have to keep track of which
+;;   slots have been store-converted so `fcr-get' can access their value
+;;   correctly.
+;; - If the mutated variable/slot is captured by another (nested) closure
+;;   store-conversion is indispensable, so if we want to avoid store-conversion
+;;   we'd have to disallow such capture.
+
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
 
@@ -143,7 +157,6 @@
            parent-names))
          (slotdescs (append
                      parent-slots
-                     ;; FIXME: Catch duplicate slot names.
                      (mapcar (lambda (field)
                                (cl--make-slot-descriptor field nil nil
                                                          '((:read-only . t))))
@@ -152,8 +165,9 @@
                                              parents)))
          (class (fcr--class-make name docstring slotdescs parents
                                  (delete-dups
-                                  (cons name allparents)))))
-    ;; FIXME: Use an intermediate function like `cl-struct-define'.
+                                  (cons name allparents))))
+         (it (make-hash-table :test #'eq)))
+    (setf (cl--class-index-table class) it)
     `(progn
        ,(when options (macroexp-warn-and-return
                        (format "Ignored options: %S" options)
@@ -169,12 +183,15 @@
            (mapcar (lambda (desc)
                      (let ((slot (cl--slot-descriptor-name desc)))
                        (cl-incf i)
+                       (when (gethash slot it)
+                         (error "Duplicate slot name: %S" slot))
+                       (setf (gethash slot it) i)
                        ;; Always use a double hyphen: if the user wants to
                        ;; make it public, it can do so with an alias.
                        `(defun ,(intern (format "%S--%S" name slot)) (fcr)
-                        ,(format "Return slot `%S' of FCR, of type `%S'."
-                                 slot name)
-                        (fcr-get fcr ,i))))
+                          ,(format "Return slot `%S' of FCR, of type `%S'."
+                                   slot name)
+                          (fcr-get fcr ,i))))
                    slotdescs))
        ,@(fcr--defstruct-make-copiers copiers slots name))))
 
@@ -186,6 +203,12 @@
     (put name 'cl-deftype-satisfies predname)))
 
 (defmacro fcr-lambda (type fields args &rest body)
+  ;; FIXME: Fundamentally `fcr-lambda' should be a special form.
+  ;; We define it here as a macro which expands to something that
+  ;; looks like "normal code" in order to avoid backward compatibility
+  ;; issues with third party macros that do "code walks" and would
+  ;; likely mishandle such a new special form (e.g. `generator.el').
+  ;; But don't be fooled: this macro is tightly bound to `cconv.el'.
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Should `fcr-defstruct' distinguish "optional" from
   ;; "mandatory" slots, and/or provide default values for slots missing
@@ -207,24 +230,31 @@
                             (bind (assq name slotbinds)))
                        (cond
                         ((not bind)
-                         (error "Unknown slots: %S" name))
+                         (error "Unknown slot: %S" name))
                         ((cdr bind)
-                         (error "Duplicate slots: %S" name))
+                         (error "Duplicate slot: %S" name))
                         (t
                          (let ((temp (gensym "temp")))
                            (setcdr bind (list temp))
                            (cons temp (cdr field)))))))
                    fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
-    ;; FIXME: Slots not specified in `fields' tend to emit "Variable FOO left
-    ;; uninitialized"!
     `(let ,tempbinds
-       ;; FIXME: Prevent store-conversion for fields vars!
-       ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
-       ;; just value/variable-propagated by the optimizer (tho I think our
-       ;; optimizer is too naive to be a problem currently).
-       (fcr--fix-type
-        (let ,slotbinds
+       (let ,(mapcar (lambda (bind)
+                       (if (cdr bind) bind
+                         ;; Bind to something that doesn't look
+                         ;; like a value to avoid the "Variable
+                         ;; ‘foo’ left uninitialized" warning.
+                         `(,(car bind) (progn nil))))
+                     slotbinds)
+         ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
+         ;; just value/variable-propagated by the optimizer (tho I think our
+         ;; optimizer is too naive to be a problem currently).
+         (fcr--fix-type
+          ;; This `fcr--fix-type' + `ignore' call is used by the compiler (in
+          ;; `cconv.el') to detect and signal an error in case of
+          ;; store-conversion (i.e. if a variable/slot is mutated).
+          (ignore ,@(mapcar #'car slotbinds))
           (lambda ,args
             (:documentation ',type)
             ,@prebody
@@ -233,8 +263,10 @@
             (if t nil ,@(mapcar #'car slotbinds))
             ,@body))))))
 
-(defun fcr--fix-type (fcr)
+(defun fcr--fix-type (_ignore fcr)
   (if (byte-code-function-p fcr)
+      ;; Actually, this should never happen since the `cconv.el' should have
+      ;; optimized away the call to this function.
       fcr
     ;; For byte-coded functions, we store the type as a symbol in the docstring
     ;; slot.  For interpreted functions, there's no specific docstring slot
