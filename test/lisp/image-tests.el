@@ -82,7 +82,8 @@
 (ert-deftest image-type/from-filename ()
   ;; On emba, `image-types' and `image-load-path' do not exist.
   (skip-unless (and (bound-and-true-p image-types)
-                    (bound-and-true-p image-load-path)))
+                    (bound-and-true-p image-load-path)
+                    (image-type-available-p 'jpeg)))
   (should (eq (image-type "foo.jpg") 'jpeg)))
 
 (defun image-tests--type-from-file-header (type)
