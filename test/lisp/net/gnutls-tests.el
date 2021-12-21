@@ -30,6 +30,14 @@
 (require 'gnutls)
 (require 'hex-util)
 
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-symmetric-encrypt "gnutls.c")
+(declare-function gnutls-hash-mac "gnutls.c")
+(declare-function gnutls-hash-digest "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
+(declare-function gnutls-digests "gnutls.c")
+(declare-function gnutls-macs "gnutls.c")
+
 (defvar gnutls-tests-message-prefix "")
 
 (defsubst gnutls-tests-message (format-string &rest args)

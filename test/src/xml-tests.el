@@ -27,6 +27,8 @@
 
 (require 'ert)
 
+(declare-function libxml-parse-xml-region "xml.c")
+
 (defvar libxml-tests--data-comments-preserved
   `(;; simple case
     ("<?xml version=\"1.0\"?><foo baz=\"true\">bar</foo>"

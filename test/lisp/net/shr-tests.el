@@ -27,6 +27,8 @@
 (require 'ert-x)
 (require 'shr)
 
+(declare-function libxml-parse-html-region "xml.c")
+
 (defun shr-test (name)
   (with-temp-buffer
     (insert-file-contents (format (concat (ert-resource-directory) "/%s.html") name))

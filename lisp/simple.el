@@ -4702,6 +4702,8 @@ File name handlers might not support pty association, if PROGRAM is nil."
         (forward-line -1)
       (beginning-of-line))))
 
+(declare-function thread-name "thread.c")
+
 (defun list-processes--refresh ()
   "Recompute the list of processes for the Process List buffer.
 Also, delete any process that is exited or signaled."

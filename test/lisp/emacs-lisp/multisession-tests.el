@@ -26,6 +26,8 @@
 (require 'ert-x)
 (require 'cl-lib)
 
+(declare-function sqlite-close "sqlite.c")
+
 (ert-deftest multi-test-sqlite-simple ()
   (skip-unless (sqlite-available-p))
   (ert-with-temp-file dir

@@ -32,6 +32,8 @@
 ;; it pulls in nsm, which then makes the :nowait t' tests fail unless
 ;; we disable the nsm, which we do by binding 'network-security-level'
 
+(declare-function gnutls-peer-status "gnutls.c")
+
 (ert-deftest make-local-unix-server ()
   (skip-unless (featurep 'make-network-process '(:family local)))
   (let* ((file (make-temp-name "/tmp/server-test"))

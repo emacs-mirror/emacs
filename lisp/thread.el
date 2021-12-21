@@ -30,6 +30,13 @@
 (eval-when-compile (require 'pcase))
 (eval-when-compile (require 'subr-x))
 
+(declare-function thread-name "thread.c")
+(declare-function thread-signal "thread.c")
+(declare-function thread--blocker "thread.c")
+(declare-function current-thread "thread.c")
+(declare-function thread-live-p "thread.c")
+(declare-function all-threads "thread.c")
+
 ;;;###autoload
 (defun thread-handle-event (event)
   "Handle thread events, propagated by `thread-signal'.

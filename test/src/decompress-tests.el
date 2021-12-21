@@ -23,6 +23,8 @@
 
 (require 'ert)
 
+(declare-function zlib-decompress-region "decompress.c")
+
 (defvar zlib-tests-data-directory
   (expand-file-name "data/decompress" (getenv "EMACS_TEST_DIRECTORY"))
   "Directory containing zlib test data.")

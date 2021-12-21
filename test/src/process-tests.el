@@ -31,6 +31,10 @@
 (require 'dns)
 (require 'url-http)
 
+(declare-function thread-last-error "thread.c")
+(declare-function thread-join "thread.c")
+(declare-function make-thread "thread.c")
+
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
 

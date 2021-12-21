@@ -45,6 +45,9 @@
 (require 'cl-lib)
 (require 'eieio)
 
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
+
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
 (autoload 'secrets-get-alias "secrets")
