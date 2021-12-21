@@ -55,6 +55,9 @@
    )
   "Class A.")
 
+;; Silence compiler warning about `water' not being a class-allocated slot.
+(defclass eieio-tests--dummy () ((water :allocation :class)))
+
 (defclass class-b ()
   ((land :initform "Sc"
 	 :type string
@@ -555,7 +558,7 @@ METHOD is the method that was attempting to be called."
     "Test class that will be a calculated value.")
 
   (defclass eitest-superior nil
-    ((sub :initform (eitest-subordinate)
+    ((sub :initform (funcall #'eitest-subordinate)
 	  :type eitest-subordinate))
     "A class with an initform that creates a class.")
 
