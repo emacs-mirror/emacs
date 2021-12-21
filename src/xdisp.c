@@ -27641,7 +27641,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
       face = FACE_FROM_ID (it->f, it->face_id);
       it->face_box_p = face->box != FACE_NO_BOX;
 
-      /* If we have a display spec, but there's no Lisp being
+      /* If we have a display spec, but there's no Lisp string being
 	 displayed, then check whether we've got one from the
 	 :propertize being passed in and use that.  */
       if (NILP (lisp_string))
