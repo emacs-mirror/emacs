@@ -78,9 +78,6 @@ shaping, so 'configure' now recommends that combination.
 at build time.
 
 ---
-** Support for building with Motif has been removed.
-
----
 ** The configure option '--without-makeinfo' has been removed.
 This was only ever relevant when building from a repository checkout.
 This now requires makeinfo, which is part of the texinfo package.
