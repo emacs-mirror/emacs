@@ -10899,7 +10899,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (f && FRAME_X_OUTPUT (f)->toolbar_widget)
 		{
 		  test_rect.x = xev->event_x;
-		  test_rect.y = xev->event_x;
+		  test_rect.y = xev->event_y;
 		  test_rect.width = 1;
 		  test_rect.height = 1;
 
