@@ -47,29 +47,58 @@
          (ocl2 (oclosure-lambda oclosure-test ((name (cl-incf i)) (fst (cl-incf i)))
                            ()
                  (list fst snd 152 i))))
-    (message "hello-1")
     (should (equal (list (oclosure-test--fst ocl1)
                          (oclosure-test--snd ocl1)
                          (oclosure-test--name ocl1))
                    '(1 2 "hi")))
-    (message "hello-2")
     (should (equal (list (oclosure-test--fst ocl2)
                          (oclosure-test--snd ocl2)
                          (oclosure-test--name ocl2))
                    '(44 nil 43)))
-    (message "hello-3")
     (should (equal (funcall ocl1) '(1 2 44)))
-    (message "hello-4")
     (should (equal (funcall ocl2) '(44 nil 152 44)))
-    (message "hello-5")
     (should (equal (funcall (oclosure-test-copy ocl1 :fst 7)) '(7 2 44)))
-    (message "hello-6")
     (should (cl-typep ocl1 'oclosure-test))
-    (message "hello-7")
     (should (cl-typep ocl1 'oclosure-object))
     (should (member (oclosure-test-gen ocl1)
                     '("#<oclosure-test:#<oclosure:#<cons>>>"
                       "#<oclosure-test:#<oclosure:#<bytecode>>>")))
     ))
+
+(ert-deftest oclosure-tests--limits ()
+  (should
+   (condition-case err
+       (let ((lexical-binding t)
+             (byte-compile-debug t))
+         (byte-compile '(lambda ()
+                          (let ((inc-where nil))
+                            (oclosure-lambda advice ((where 'foo)) ()
+                              (setq inc-where (lambda () (setq where (1+ where))))
+                              where))))
+         nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "where.*mutated" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(oclosure-define oclosure--foo a a))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot name: a$" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(oclosure-define (oclosure--foo (:parent advice)) where))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot name: where$" (cadr err))))))
+  (should
+   (condition-case err
+       (progn (macroexpand '(oclosure-lambda advice ((where 1) (where 2)) () where))
+              nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Duplicate slot: where$" (cadr err)))))))
 
 ;;; oclosure-tests.el ends here.
