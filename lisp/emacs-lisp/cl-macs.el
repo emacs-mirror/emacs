@@ -315,19 +315,17 @@ FORM is of the form (ARGS . BODY)."
                 (when (memq '&optional simple-args)
                   (cl-decf slen))
                 (setq header
-                      (cond
-                       ((eq :documentation (car-safe (car header)))
-                        `((:documentation (docstring-add-fundoc-usage
-                                           ,(cadr (car header))
-                                           ,usage-str))
-                          ,@(cdr header)))
-                       (t
-                        (cons (docstring-add-fundoc-usage
-                               (if (stringp (car header)) (pop header))
-                               ;; Be careful with make-symbol and (back)quote,
-                               ;; see bug#12884.
-                               usage-str)
-                              header))))
+                      (cons
+                       (if (eq :documentation (car-safe (car header)))
+                           `(:documentation (docstring-add-fundoc-usage
+                                             ,(cadr (pop header))
+                                             ,usage-str))
+                         (docstring-add-fundoc-usage
+                          (if (stringp (car header)) (pop header))
+                          ;; Be careful with make-symbol and (back)quote,
+                          ;; see bug#12884.
+                          usage-str))
+                       header))
                 ;; FIXME: we'd want to choose an arg name for the &rest param
                 ;; and pass that as `expr' to cl--do-arglist, but that ends up
                 ;; generating code with a redundant let-binding, so we instead
