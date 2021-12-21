@@ -4805,7 +4805,13 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 #else
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
 #endif
+#ifndef HAVE_XINPUT2
       retval = gwin != gtk_widget_get_window (f->output_data.xp->edit_widget);
+#else
+      retval = (gwin
+		&& (gwin
+		    != gtk_widget_get_window (f->output_data.xp->edit_widget)));
+#endif
 #ifdef HAVE_XINPUT2
       GtkWidget *grab = gtk_grab_get_current ();
       if (event->type == GenericEvent
