@@ -10879,6 +10879,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      struct xi_device_t *device;
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -10939,6 +10940,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      Lisp_Object arg = Qnil;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -10979,6 +10981,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bool unlinked_p;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
 		goto XI_OTHER;
