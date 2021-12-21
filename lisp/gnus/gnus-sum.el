@@ -8658,20 +8658,20 @@ these articles."
 	(gnus-fetch-old-headers nil)
 	(gnus-build-sparse-threads nil))
     (prog1
-	(gnus-summary-limit (if thread-only articles
-			      (nconc articles gnus-newsgroup-limit)))
-      (gnus-summary-limit-include-matching-articles
-       "subject"
-       (regexp-quote (gnus-general-simplify-subject
-		      (mail-header-subject (gnus-id-to-header id)))))
-      ;; the previous two calls each push a limit onto the limit
-      ;; stack. the first pop remove the articles that match the
-      ;; subject, while the second pop gets us back to the state
-      ;; before we started to deal with the thread. presumably we want
-      ;; to think of the thread and its associated subject matches as
-      ;; a single thing so that we need to pop only once to get back
-      ;; to the original view.
-      (pop gnus-newsgroup-limits)
+        (gnus-summary-limit (if thread-only articles
+                              (nconc articles gnus-newsgroup-limit)))
+      (let ((matching-subject (gnus-general-simplify-subject
+		               (mail-header-subject (gnus-id-to-header id)))))
+        (when matching-subject
+          (gnus-summary-limit-include-matching-articles
+           "subject"
+           matching-subject)
+          ;; Each of the previous two limit calls push a limit onto
+          ;; the limit stack. Presumably we want to think of the
+          ;; thread and its associated subject matches as a single
+          ;; thing so we probably want a single pop to restore the
+          ;; original view. Hence we pop this last limit off.
+          (pop gnus-newsgroup-limits)))
       (gnus-summary-position-point))))
 
 (defun gnus-summary-limit-include-matching-articles (header regexp)
