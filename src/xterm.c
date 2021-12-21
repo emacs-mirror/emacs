@@ -10878,7 +10878,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_TouchBegin:
 	    {
 	      struct xi_device_t *device;
-	      bool menu_bar_p = false;
+	      bool menu_bar_p = false, tool_bar_p = false;
+#ifdef HAVE_GTK3
+	      GdkRectangle test_rect;
+#endif
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time);
 
@@ -10893,9 +10896,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_GTK3
 	      menu_bar_p = (f && FRAME_X_OUTPUT (f)->menubar_widget
 			    && xg_event_is_for_menubar (f, event));
+	      if (f && FRAME_X_OUTPUT (f)->toolbar_widget)
+		{
+		  test_rect.x = xev->event_x;
+		  test_rect.y = xev->event_x;
+		  test_rect.width = 1;
+		  test_rect.height = 1;
+
+		  tool_bar_p = gtk_widget_intersect (FRAME_X_OUTPUT (f)->toolbar_widget,
+						     &test_rect, NULL);
+		}
 #endif
 
-	      if (!menu_bar_p)
+	      if (!menu_bar_p && !tool_bar_p)
 		{
 		  if (f && device->direct_p)
 		    {
