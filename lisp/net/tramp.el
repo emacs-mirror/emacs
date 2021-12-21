@@ -3363,8 +3363,8 @@ User is always nil."
 	     (if (file-directory-p filename)
 		 #'file-accessible-directory-p #'file-readable-p)
 	     filename)
-	  (tramp-error
-	   v 'file-error (format "%s: Permission denied, %s" string filename)))
+	  (tramp-compat-permission-denied
+	   v (format "%s: Permission denied, %s" string filename)))
       (tramp-error
        v 'file-missing
        (format "%s: No such file or directory, %s" string filename)))))

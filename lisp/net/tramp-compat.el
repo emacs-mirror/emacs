@@ -272,6 +272,17 @@ CONDITION can also be a list of error conditions."
                          (car components))
 	         (cdr components)))))))
 
+;; `permission-denied' is introduced in Emacs 29.1.
+(defconst tramp-permission-denied
+  (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
+  "The error symbol for the `permission-denied' error.")
+
+(defsubst tramp-compat-permission-denied (vec file)
+  "Emit the `permission-denied' error."
+  (if (get 'permission-denied 'error-conditions)
+      (tramp-error vec tramp-permission-denied file)
+    (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

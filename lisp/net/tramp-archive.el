@@ -575,9 +575,8 @@ offered."
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for file archives."
   (when (tramp-archive-file-name-p newname)
-    (tramp-error
-     (tramp-archive-dissect-file-name newname) 'file-error
-      "Permission denied: %s" newname))
+    (tramp-compat-permission-denied
+     (tramp-archive-dissect-file-name newname) newname))
   (copy-file
    (tramp-archive-gvfs-file-name filename) newname ok-if-already-exists
    keep-date preserve-uid-gid preserve-extended-attributes))
