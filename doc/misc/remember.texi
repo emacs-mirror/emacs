@@ -313,7 +313,7 @@ Save (if it is modified) and bury the current buffer.
 @node Keystrokes
 @chapter Keystroke Reference
 
-@file{remember.el} defines the following keybindings by default:
+@file{remember.el} defines the following key bindings by default:
 
 @table @kbd
 

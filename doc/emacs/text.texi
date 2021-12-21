@@ -474,8 +474,8 @@ insert a curved quote even when Electric Quote is disabled or
 inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
 @t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
 @xref{Inserting Text}.  Note that the value of
-@code{electric-quote-chars} does not affect these keybindings, they
-are not keybindings of @code{electric-quote-mode} but bound in
+@code{electric-quote-chars} does not affect these key bindings, they
+are not key bindings of @code{electric-quote-mode} but bound in
 @code{global-map}.
 
 @node Filling

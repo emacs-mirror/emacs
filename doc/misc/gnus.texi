@@ -4499,7 +4499,7 @@ command or better use it as a prefix key.  For example:
     (gnus-group-jump-to-group "nndraft:drafts")))
 @end lisp
 
-On keys reserved for users in Emacs and on keybindings in general
+On keys reserved for users in Emacs and on key bindings in general
 @xref{Keymaps, Keymaps, , emacs, The Emacs Editor}.
 
 @item ^
@@ -13477,7 +13477,7 @@ Also @pxref{Formatting Variables}.
 @subsection Server Commands
 @cindex server commands
 
-The following keybinding are available in the server buffer.  Be aware
+The following key binding are available in the server buffer.  Be aware
 that some of the commands will only work on servers that you've added
 through this interface (with @kbd{a}), not with servers you've defined
 in your init files.

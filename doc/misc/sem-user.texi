@@ -145,7 +145,7 @@ this means moving to the parent of the current tag.
 @item C-c , @key{SPC}
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a
-special set of keybindings for choosing a completion: @key{RET}
+special set of key bindings for choosing a completion: @key{RET}
 accepts the current completion, @kbd{M-n} and @kbd{M-p} cycle through
 possible completions, @key{TAB} completes as far as possible and then
 cycles, and @kbd{C-g} or any other key aborts the completion.
@@ -655,7 +655,7 @@ usual summary if the text at point has one of these faces.
 
 Semantic Idle Completions mode is a minor mode for performing
 @dfn{code completions} during idle time.  The completions are
-displayed inline, with keybindings that allow you to cycle through
+displayed inline, with key bindings that allow you to cycle through
 different alternatives.
 
 Semantic Idle Completions mode performs completion based on the
@@ -681,7 +681,7 @@ besselj [1 of 6 matches]
 @end example
 
 @noindent
-While the completion is being displayed, the following keybindings
+While the completion is being displayed, the following key bindings
 take effect:
 
 @table @kbd
@@ -785,7 +785,7 @@ Most of the other commands documented in this section call
 This command is bound to @kbd{C-c , @key{SPC}} when Semantic mode is
 enabled (@pxref{Semantic mode user commands}).  It displays a list of
 possible completions for the symbol at point, and activates a special
-set of keybindings for choosing a completion.
+set of key bindings for choosing a completion.
 
 You can type @key{RET} to accept the current completion, @kbd{M-n} and
 @kbd{M-p} to cycle through the possible completions, @key{TAB} to
@@ -1122,7 +1122,7 @@ that @code{grep} is much slower than the others.
 
 The commands to display symbol references are @kbd{C-c , g}
 (@code{semantic-symref-symbol} and @kbd{C-c , G}
-(@code{semantic-symref}).  These keybindings are available whenever
+(@code{semantic-symref}).  These key bindings are available whenever
 Semantic mode is enabled (@pxref{Semantic mode user commands}).
 
 @deffn Command semantic-symref-symbol sym

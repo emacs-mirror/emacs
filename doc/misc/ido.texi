@@ -476,13 +476,13 @@ M-x customize-variable @key{RET} ido-xxxxx @key{RET}
 @end example
 
 @vindex ido-setup-hook
-To modify the keybindings, use the @code{ido-setup-hook}.  For example:
+To modify the key bindings, use the @code{ido-setup-hook}.  For example:
 
 @example
 (add-hook 'ido-setup-hook 'ido-my-keys)
 
 (defun ido-my-keys ()
- "Add my keybindings for Ido."
+ "Add my key bindings for Ido."
  (define-key ido-completion-map " " 'ido-next-match))
 @end example
 

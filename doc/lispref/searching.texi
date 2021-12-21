@@ -2854,7 +2854,7 @@ Display some help, then ask again.
 
 @defvar multi-query-replace-map
 This variable holds a keymap that extends @code{query-replace-map} by
-providing additional keybindings that are useful in multi-buffer
+providing additional key bindings that are useful in multi-buffer
 replacements.  The additional bindings are:
 
 @table @code

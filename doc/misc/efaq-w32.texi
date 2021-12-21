@@ -687,9 +687,9 @@ question also.
 @node CUA
 @subsection Standard Windows key bindings
 @findex cua-mode
-@cindex CUA keybindings
+@cindex CUA key bindings
 @cindex shift key, selecting with
-@cindex standard Windows keybindings
+@cindex standard Windows key bindings
 @cindex paste with C-v
 @cindex cut with C-x
 @cindex copy with C-c
@@ -697,7 +697,7 @@ question also.
 @cindex C-x to cut
 @cindex C-v to paste
 
-The keybindings of Emacs predate modern GUIs, and the keys that were
+The key bindings of Emacs predate modern GUIs, and the keys that were
 chosen by later GUIs for cut and copy were given important functions
 as extended keymaps in Emacs.  CUA mode attempts to let both bindings
 co-exist by defining C-x and C-c as @code{kill-region} and

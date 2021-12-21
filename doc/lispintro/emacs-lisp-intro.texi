@@ -688,7 +688,7 @@ Your @file{.emacs} File
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
-* Keybindings::                 Create some personal keybindings.
+* Key Bindings::                Create some personal key bindings.
 * Keymaps::                     More about key binding.
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
@@ -3358,7 +3358,7 @@ Both the examples just mentioned work identically to move point forward
 three sentences.  (Since @code{multiply-by-seven} is not bound to a key,
 it could not be used as an example of key binding.)
 
-(@xref{Keybindings, , Some Keybindings}, to learn how to bind a command
+(@xref{Key Bindings, , Some Key Bindings}, to learn how to bind a command
 to a key.)
 
 A @dfn{prefix argument} is passed to an interactive function by typing the
@@ -13662,7 +13662,7 @@ syntax table determines which characters these are."
 @end ifinfo
 
 @need 1000
-If you wish, you can also install this keybinding by evaluating it:
+If you wish, you can also install this key binding by evaluating it:
 
 @smallexample
 (global-set-key "\C-c=" '@value{COUNT-WORDS})
@@ -14614,7 +14614,7 @@ almost the same code as for the recursive version of
 
 @need 800
 @noindent
-Let's re-use @kbd{C-c =} as a convenient keybinding:
+Let's re-use @kbd{C-c =} as a convenient key binding:
 
 @smallexample
 (global-set-key "\C-c=" 'count-words-defun)
@@ -14622,7 +14622,7 @@ Let's re-use @kbd{C-c =} as a convenient keybinding:
 
 Now we can try out @code{count-words-defun}: install both
 @code{count-words-in-defun} and @code{count-words-defun}, and set the
-keybinding.  Then copy the following to an Emacs Lisp buffer (like,
+key binding.  Then copy the following to an Emacs Lisp buffer (like,
 for instance, @file{*scratch*}), place the cursor within the
 definition, and use the @kbd{C-c =} command.
 
@@ -15964,7 +15964,7 @@ placing point somewhere in the buffer, typing @kbd{M-:}, typing the
 and then typing @key{RET}.  This causes Emacs to evaluate the
 expression in the minibuffer, but to use as the value of point the
 position of point in the @file{*scratch*} buffer.  (@kbd{M-:}  is the
-keybinding for @code{eval-expression}. Also, @code{nil} does not
+key binding for @code{eval-expression}. Also, @code{nil} does not
 appear in the @file{*scratch*} buffer since the expression is
 evaluated in the minibuffer.)
 
@@ -16531,7 +16531,7 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
-* Keybindings::                 Create some personal keybindings.
+* Key Bindings::                Create some personal key bindings.
 * Keymaps::                     More about key binding.
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
@@ -17075,10 +17075,10 @@ Files'' in @cite{The GNU Emacs Manual}.
 @end iftex
 
 @need 1700
-@node Keybindings
-@section Some Keybindings
+@node Key Bindings
+@section Some Key Bindings
 
-Now for some personal keybindings:
+Now for some personal key bindings:
 
 @smallexample
 @group
@@ -17100,10 +17100,10 @@ This also shows how to set a key globally, for all modes.
 @cindex Key setting globally
 @findex global-set-key
 The command is @code{global-set-key}.  It is followed by the
-keybinding.  In a @file{.emacs} file, the keybinding is written as
+key binding.  In a @file{.emacs} file, the keybinding is written as
 shown: @code{\C-c} stands for Control-C, which means to press the
 control key and the @kbd{c} key at the same time.  The @code{w} means
-to press the @kbd{w} key.  The keybinding is surrounded by double
+to press the @kbd{w} key.  The key binding is surrounded by double
 quotation marks.  In documentation, you would write this as
 @w{@kbd{C-c w}}.  (If you were binding a @key{META} key, such as
 @kbd{M-c}, rather than a @key{CTRL} key, you would write
@@ -17117,26 +17117,26 @@ would first try to evaluate the symbol to determine its value.
 
 These three things, the double quotation marks, the backslash before
 the @samp{C}, and the single-quote are necessary parts of
-keybinding that I tend to forget.  Fortunately, I have come to
+key binding that I tend to forget.  Fortunately, I have come to
 remember that I should look at my existing @file{.emacs} file, and
 adapt what is there.
 
-As for the keybinding itself: @kbd{C-c w}.  This combines the prefix
+As for the key binding itself: @kbd{C-c w}.  This combines the prefix
 key, @kbd{C-c}, with a single character, in this case, @kbd{w}.  This
 set of keys, @kbd{C-c} followed by a single character, is strictly
 reserved for individuals' own use.  (I call these @dfn{own} keys, since
 these are for my own use.)  You should always be able to create such a
-keybinding for your own use without stomping on someone else's
-keybinding.  If you ever write an extension to Emacs, please avoid
+key binding for your own use without stomping on someone else's
+key binding.  If you ever write an extension to Emacs, please avoid
 taking any of these keys for public use.  Create a key like @kbd{C-c
 C-w} instead.  Otherwise, we will run out of own keys.
 
 @need 1250
-Here is another keybinding, with a comment:
+Here is another key binding, with a comment:
 
 @smallexample
 @group
-;;; Keybinding for 'occur'
+;;; Key binding for 'occur'
 ; I use occur a lot, so let's bind it to a key:
 (global-set-key "\C-co" 'occur)
 @end group
@@ -17196,8 +17196,8 @@ but moves point into that window.
 @cindex Rebinding keys
 
 Emacs uses @dfn{keymaps} to record which keys call which commands.
-When you use @code{global-set-key} to set the keybinding for a single
-command in all parts of Emacs, you are specifying the keybinding in
+When you use @code{global-set-key} to set the key binding for a single
+command in all parts of Emacs, you are specifying the key binding in
 @code{current-global-map}.
 
 Specific modes, such as C mode or Text mode, have their own keymaps;
@@ -17452,7 +17452,7 @@ Here is the definition:
 @end smallexample
 
 @need 1250
-Now for the keybinding.
+Now for the key binding.
 
 Function keys as well as mouse button events and non-@sc{ascii}
 characters are written within square brackets, without quotation
@@ -17757,7 +17757,7 @@ Some systems bind keys unpleasantly.  Sometimes, for example, the
 @key{CTRL} key appears in an awkward spot rather than at the far left
 of the home row.
 
-Usually, when people fix these sorts of keybindings, they do not
+Usually, when people fix these sorts of key bindings, they do not
 change their @file{~/.emacs} file.  Instead, they bind the proper keys
 on their consoles with the @code{loadkeys} or @code{install-keymap}
 commands in their boot script and then include @code{xmodmap} commands

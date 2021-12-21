@@ -1218,4 +1218,3 @@ Two good values are @code{nil} and @code{statictag}.
 
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
-@c  LocalWords:  keybindings

@@ -928,7 +928,7 @@ If you want to customize indentation, here you go:
   (setq tab-width 8
         ;; this will make sure spaces are used instead of tabs
         indent-tabs-mode nil)
-  ;; keybindings for VHDL are put in vhdl-mode-map
+  ;; key bindings for VHDL are put in vhdl-mode-map
   (define-key vhdl-mode-map "\C-m" 'newline-and-indent)
   )
 

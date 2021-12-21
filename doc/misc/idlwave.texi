@@ -2670,7 +2670,7 @@ As a special case, any error message in the output will be displayed
 @node Debugging IDL Programs
 @section Debugging IDL Programs
 @cindex Debugging
-@cindex Keybindings for debugging
+@cindex Key bindings for debugging
 @cindex Toolbar
 
 Programs can be compiled, run, and debugged directly from the source

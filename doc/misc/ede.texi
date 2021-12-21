@@ -99,7 +99,7 @@ learn and adopt GNU ways of doing things.
 @chapter @ede{} Project Concepts
 
 @ede{} is a generic interface for managing projects.  It specifies a
-single set of menus and keybindings, while supporting multiple ways to
+single set of menus and key bindings, while supporting multiple ways to
 express a project via a build system.
 
 In the subsequent chapters, we will describe the different project
@@ -144,7 +144,7 @@ init file:
 
 Activating @ede{} adds a menu named @samp{Development} to the menu
 bar.  This menu provides several menu items for high-level @ede{}
-commands.  These menu items, and their corresponding keybindings, are
+commands.  These menu items, and their corresponding key bindings, are
 independent of the type of project you are actually working on.
 
 @node Quick Start
@@ -271,7 +271,7 @@ Projects.  You can create targets either from a buffer, or from a
 @code{dired} directory buffer.
 
 Note: If for some reason a directory list buffer, or file does not have the
-@samp{Project} menu item, or if @ede{} keybindings don't work, just
+@samp{Project} menu item, or if @ede{} key bindings don't work, just
 use @kbd{M-x revert-buffer @key{RET}} to force a refresh.  Sometimes
 creating a new project doesn't restart buffers correctly.
 
@@ -1059,7 +1059,7 @@ examples.
 @menu
 * Development Overview::
 * Detecting a Project::
-* User interface methods::      Methods associated with keybindings
+* User interface methods::      Methods associated with key bindings
 * Base project methods::        The most basic methods on @ede{} objects.
 * Sourcecode objects::          Defining new sourcecode classes.
 * Compiler and Linker objects::  Defining new compilers and linkers.

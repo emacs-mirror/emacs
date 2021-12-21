@@ -293,14 +293,14 @@ If the variable @code{srecode-takeover-INS-key} is set, then the key
 The most important key is bound to @code{srecode-insert} which is
 @kbd{C-c / /}, or @kbd{@key{INSERT} @key{INSERT}}.  @ref{Quick Start}.
 
-Major keybindings are:
+Major key bindings are:
 
 @table @kbd
 @item C-c / /
 Insert a template whose name is typed into the minibuffer.
 @item C-c / <lower case letter>
 Reserved for direct binding of simple templates to keys using a
-keybinding command in the template file.
+key binding command in the template file.
 @item C-c / <upper case letter>
 Reserved for template applications (Such as comment or get/set inserter.)
 @item C-c / E

@@ -240,7 +240,7 @@ entering Octave commands at the prompt.  The buffer is in Inferior
 Octave mode, which is derived from the standard Comint mode, a major
 mode for interacting with an inferior interpreter.  See the
 documentation for @code{comint-mode} for more details, and use
-@kbd{C-h b} to find out about available special keybindings.
+@kbd{C-h b} to find out about available special key bindings.
 
 You can also communicate with an inferior Octave process from within
 files with Octave code (i.e., buffers in Octave mode), using the

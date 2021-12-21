@@ -706,7 +706,7 @@ active keymaps, except for the global keymap.  Secondly, the
 terminal-local variable @code{overriding-terminal-local-map} specifies
 a keymap that takes precedence over @emph{all} other keymaps
 (including @code{overriding-local-map}); this is normally used for
-modal/transient keybindings (the function @code{set-transient-map}
+modal/transient key bindings (the function @code{set-transient-map}
 provides a convenient interface for this).  @xref{Controlling Active
 Maps}, for details.
 
@@ -1969,7 +1969,7 @@ redefines @kbd{C-x C-\} to move down a line.
 redefines the first (leftmost) mouse button, entered with the Meta key, to
 set point where you click.
 
-@cindex non-@acronym{ASCII} text in keybindings
+@cindex non-@acronym{ASCII} text in key bindings
   Be careful when using non-@acronym{ASCII} text characters in Lisp
 specifications of keys to bind.  If these are read as multibyte text, as
 they usually will be in a Lisp file (@pxref{Loading Non-ASCII}), you
