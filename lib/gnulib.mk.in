@@ -1328,7 +1328,6 @@ BUILT_SOURCES += $(ALLOCA_H)
 ifneq (,$(GL_GENERATE_ALLOCA_H_CONDITION))
 alloca.h: alloca.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''HAVE_ALLOCA_H''@|$(HAVE_ALLOCA_H)|g' < $(srcdir)/alloca.in.h; \
 	} > $@-t && \
@@ -1391,7 +1390,6 @@ BUILT_SOURCES += $(BYTESWAP_H)
 ifneq (,$(GL_GENERATE_BYTESWAP_H_CONDITION))
 byteswap.h: byteswap.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  cat $(srcdir)/byteswap.in.h; \
 	} > $@-t && \
@@ -1572,7 +1570,6 @@ BUILT_SOURCES += dirent.h
 # doesn't have one that works with the given compiler.
 dirent.h: dirent.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''HAVE_DIRENT_H''@|$(HAVE_DIRENT_H)|g' \
@@ -1665,8 +1662,8 @@ ifneq (,$(gl_GNULIB_ENABLED_dynarray_CONDITION))
 BUILT_SOURCES += malloc/dynarray.gl.h malloc/dynarray-skeleton.gl.h
 
 malloc/dynarray.gl.h: malloc/dynarray.h
-	$(AM_V_at)$(MKDIR_P) 'malloc'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e '/libc_hidden_proto/d' < $(srcdir)/malloc/dynarray.h; \
 	} > $@-t && \
@@ -1674,8 +1671,8 @@ malloc/dynarray.gl.h: malloc/dynarray.h
 MOSTLYCLEANFILES += malloc/dynarray.gl.h malloc/dynarray.gl.h-t
 
 malloc/dynarray-skeleton.gl.h: malloc/dynarray-skeleton.c
-	$(AM_V_at)$(MKDIR_P) 'malloc'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|<malloc/dynarray\.h>|<malloc/dynarray.gl.h>|g' \
 	      -e 's|__attribute_maybe_unused__|_GL_ATTRIBUTE_MAYBE_UNUSED|g' \
@@ -1719,7 +1716,6 @@ BUILT_SOURCES += $(ERRNO_H)
 ifneq (,$(GL_GENERATE_ERRNO_H_CONDITION))
 errno.h: errno.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -1769,7 +1765,6 @@ BUILT_SOURCES += $(EXECINFO_H)
 ifneq (,$(GL_GENERATE_EXECINFO_H_CONDITION))
 execinfo.h: execinfo.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  cat $(srcdir)/execinfo.in.h; \
 	} > $@-t && \
@@ -1840,7 +1835,6 @@ BUILT_SOURCES += fcntl.h
 # doesn't have one that works with the given compiler.
 fcntl.h: fcntl.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -2045,7 +2039,6 @@ BUILT_SOURCES += $(GETOPT_H) $(GETOPT_CDEFS_H)
 ifneq (,$(GL_GENERATE_GETOPT_H_CONDITION))
 getopt.h: getopt.in.h $(top_builddir)/config.status $(ARG_NONNULL_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''HAVE_GETOPT_H''@|$(HAVE_GETOPT_H)|g' \
@@ -2164,7 +2157,6 @@ BUILT_SOURCES += $(IEEE754_H)
 ifneq (,$(GL_GENERATE_IEEE754_H_CONDITION))
 ieee754.h: ieee754.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's/ifndef _GL_GNULIB_HEADER/if 0/g' \
 	    $(srcdir)/ieee754.in.h; \
@@ -2208,7 +2200,6 @@ BUILT_SOURCES += inttypes.h
 # doesn't have one that works with the given compiler.
 inttypes.h: inttypes.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(WARN_ON_USE_H) $(ARG_NONNULL_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's/@''HAVE_INTTYPES_H''@/$(HAVE_INTTYPES_H)/g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -2310,7 +2301,6 @@ BUILT_SOURCES += $(LIMITS_H)
 ifneq (,$(GL_GENERATE_LIMITS_H_CONDITION))
 limits.h: limits.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -2612,8 +2602,8 @@ ifneq (,$(gl_GNULIB_ENABLED_scratch_buffer_CONDITION))
 BUILT_SOURCES += malloc/scratch_buffer.gl.h
 
 malloc/scratch_buffer.gl.h: malloc/scratch_buffer.h
-	$(AM_V_at)$(MKDIR_P) 'malloc'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'malloc'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|__always_inline|inline _GL_ATTRIBUTE_ALWAYS_INLINE|g' \
 	      -e 's|__glibc_likely|_GL_LIKELY|g' \
@@ -2663,7 +2653,6 @@ BUILT_SOURCES += signal.h
 # doesn't have a complete one.
 signal.h: signal.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -2775,7 +2764,6 @@ BUILT_SOURCES += $(STDALIGN_H)
 ifneq (,$(GL_GENERATE_STDALIGN_H_CONDITION))
 stdalign.h: stdalign.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  cat $(srcdir)/stdalign.in.h; \
 	} > $@-t && \
@@ -2801,7 +2789,6 @@ BUILT_SOURCES += $(STDDEF_H)
 ifneq (,$(GL_GENERATE_STDDEF_H_CONDITION))
 stddef.h: stddef.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -2835,7 +2822,6 @@ BUILT_SOURCES += $(STDINT_H)
 ifneq (,$(GL_GENERATE_STDINT_H_CONDITION))
 stdint.h: stdint.in.h $(top_builddir)/config.status
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's/@''HAVE_STDINT_H''@/$(HAVE_STDINT_H)/g' \
@@ -2887,7 +2873,6 @@ BUILT_SOURCES += stdio.h
 # doesn't have one that works with the given compiler.
 stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3026,7 +3011,6 @@ BUILT_SOURCES += stdlib.h
 stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
   $(_NORETURN_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3183,7 +3167,6 @@ BUILT_SOURCES += string.h
 # doesn't have one that works with the given compiler.
 string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3344,8 +3327,8 @@ BUILT_SOURCES += sys/random.h
 # We need the following in order to create <sys/random.h> when the system
 # doesn't have one.
 sys/random.h: sys_random.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
-	$(AM_V_at)$(MKDIR_P) 'sys'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'sys'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3378,8 +3361,8 @@ BUILT_SOURCES += sys/select.h
 # We need the following in order to create <sys/select.h> when the system
 # doesn't have one that works with the given compiler.
 sys/select.h: sys_select.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(WARN_ON_USE_H)
-	$(AM_V_at)$(MKDIR_P) 'sys'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'sys'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3414,8 +3397,8 @@ BUILT_SOURCES += sys/stat.h
 # We need the following in order to create <sys/stat.h> when the system
 # has one that is incomplete.
 sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
-	$(AM_V_at)$(MKDIR_P) 'sys'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'sys'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3489,8 +3472,8 @@ BUILT_SOURCES += sys/time.h
 # We need the following in order to create <sys/time.h> when the system
 # doesn't have one that works with the given compiler.
 sys/time.h: sys_time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
-	$(AM_V_at)$(MKDIR_P) 'sys'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'sys'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's/@''HAVE_SYS_TIME_H''@/$(HAVE_SYS_TIME_H)/g' \
@@ -3525,8 +3508,8 @@ BUILT_SOURCES += sys/types.h
 # We need the following in order to create <sys/types.h> when the system
 # doesn't have one that works with the given compiler.
 sys/types.h: sys_types.in.h $(top_builddir)/config.status
-	$(AM_V_at)$(MKDIR_P) 'sys'
-	$(AM_V_GEN)rm -f $@-t $@ && \
+	$(AM_V_GEN)$(MKDIR_P) 'sys'
+	$(AM_V_at)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3564,7 +3547,6 @@ BUILT_SOURCES += time.h
 # doesn't have one that works with the given compiler.
 time.h: time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
@@ -3695,7 +3677,6 @@ libgnu_a_SOURCES += unistd.c
 # <unistd.h> when the system doesn't have one.
 unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
-	$(MKDIR_P) '.' && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
 	      -e 's|@''HAVE_UNISTD_H''@|$(HAVE_UNISTD_H)|g' \

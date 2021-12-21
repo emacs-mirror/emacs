@@ -240,7 +240,7 @@
 #endif
 
 /* True if __builtin_mul_overflow (A, B, P) works when P is non-null.  */
-#if defined __clang_major_ && __clang_major__ < 14
+#if defined __clang_major__ && __clang_major__ < 14
 /* Work around Clang bug <https://bugs.llvm.org/show_bug.cgi?id=16404>.  */
 # define _GL_HAS_BUILTIN_MUL_OVERFLOW 0
 #else
