@@ -10891,6 +10891,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f && device->direct_p)
 		{
+		  *finish = X_EVENT_DROP;
 		  x_catch_errors (dpyinfo->display);
 		  XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
 				      xev->detail, xev->event, XIAcceptTouch);
