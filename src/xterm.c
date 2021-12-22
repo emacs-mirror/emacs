@@ -9704,6 +9704,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		inev.ie.kind = SELECT_WINDOW_EVENT;
 		inev.ie.frame_or_window = xvw->w;
 	      }
+
+	    *finish = X_EVENT_DROP;
 	    goto OTHER;
 	  }
 #endif
