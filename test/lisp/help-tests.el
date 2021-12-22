@@ -122,6 +122,7 @@ SPC		minibuffer-complete-word
 C-<tab>		file-cache-minibuffer-complete
 <XF86Back>	previous-history-element
 <XF86Forward>	next-history-element
+<backtab>	minibuffer-complete
 <down>		next-line-or-history-element
 <next>		next-history-element
 <prior>		switch-to-completions
