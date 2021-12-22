@@ -6141,8 +6141,8 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  inev.ie.modifiers |= (inev.ie.kind == HORIZ_WHEEL_EVENT
 				? (delta_x >= 0 ? down_modifier : up_modifier)
 				: (delta_y >= 0 ? down_modifier : up_modifier));
-	  inev.ie.arg = list3 (Qnil, make_float (delta_x),
-			       make_float (-delta_y));
+	  inev.ie.arg = list3 (Qnil, make_float (delta_x * 100),
+			       make_float (-delta_y * 100));
 	}
       else
 	{
