@@ -426,9 +426,9 @@ the name is not known."
 ;; no-update-autoloads: t
 ;; End:
 
-(provide 'emoji-labels)
+\(provide 'emoji-labels)
 
-;;; emoji-labels.el ends here\n")
+\;;; emoji-labels.el ends here\n")
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)
