@@ -102,9 +102,7 @@ is not given."
   (let ((request-ident (concat "NTLMSSP" (make-string 1 0)))
 	(request-msgType (concat (make-string 1 1) (make-string 3 0)))
 					;0x01 0x00 0x00 0x00
-	(request-flags (concat (make-string 1 7) (make-string 1 130)
-			       (make-string 1 8) (make-string 1 0)))
-					;0x07 0x82 0x08 0x00
+	(request-flags (unibyte-string #x07 #x82 #x08 #x00))
 	)
     (when (and user (string-match "@" user))
       (unless domain
@@ -245,9 +243,7 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	 ;;(msgType (substring rchallenge 8 12))	;msgType, 4 bytes
 	 (uDomain (substring rchallenge 12 20))	;uDomain, 8 bytes
 	 ;; match default setting in `ntlm-build-auth-request'
-	 (request-flags (concat (make-string 1 7) (make-string 1 130)
-				(make-string 1 8) (make-string 1 0)))
-					;0x07 0x82 0x08 0x00
+	 (request-flags (unibyte-string #x07 #x82 #x08 #x00))
 	 (flags (substring rchallenge 20 24))	;flags, 4 bytes
 	 (challengeData (substring rchallenge 24 32)) ;challengeData, 8 bytes
          ;; Extract domain string from challenge string.
