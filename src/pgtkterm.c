@@ -6142,7 +6142,7 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 				? (delta_x >= 0 ? down_modifier : up_modifier)
 				: (delta_y >= 0 ? down_modifier : up_modifier));
 	  inev.ie.arg = list3 (Qnil, make_float (delta_x),
-			       make_float (delta_y));
+			       make_float (-delta_y));
 	}
       else
 	{
