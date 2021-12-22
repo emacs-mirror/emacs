@@ -223,12 +223,4 @@ position to retrieve THING.")
   (should (equal (test--number "0xf00" 2) 3840))
   (should (equal (test--number "0xf00" 3) 3840)))
 
-(ert-deftest test-fields ()
-  (with-temp-buffer
-    (insert (propertize "foo" 'field 1) "bar" (propertize "zot" 'field 2))
-    (goto-char 1)
-    (should (eq (symbol-at-point) 'foo))
-    (goto-char 5)
-    (should (eq (symbol-at-point) 'bar))))
-
 ;;; thingatpt-tests.el ends here

@@ -162,30 +162,24 @@ Possibilities include `symbol', `list', `sexp', `defun',
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
 
-If the current buffer uses fields (see Info node `(elisp)Fields'),
-this function will narrow to the field before identifying the
-thing at point.
-
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
-  (save-restriction
-    (narrow-to-region (field-beginning) (field-end))
-    (let ((text
-           (cond
-            ((cl-loop for (pthing . function) in thing-at-point-provider-alist
-                      when (eq pthing thing)
-                      for result = (funcall function)
-                      when result
-                      return result))
-            ((get thing 'thing-at-point)
-             (funcall (get thing 'thing-at-point)))
-            (t
-             (let ((bounds (bounds-of-thing-at-point thing)))
-               (when bounds
-                 (buffer-substring (car bounds) (cdr bounds))))))))
-      (when (and text no-properties (sequencep text))
-        (set-text-properties 0 (length text) nil text))
-      text)))
+  (let ((text
+         (cond
+          ((cl-loop for (pthing . function) in thing-at-point-provider-alist
+                    when (eq pthing thing)
+                    for result = (funcall function)
+                    when result
+                    return result))
+          ((get thing 'thing-at-point)
+           (funcall (get thing 'thing-at-point)))
+          (t
+           (let ((bounds (bounds-of-thing-at-point thing)))
+             (when bounds
+               (buffer-substring (car bounds) (cdr bounds))))))))
+    (when (and text no-properties (sequencep text))
+      (set-text-properties 0 (length text) nil text))
+    text))
 
 ;;;###autoload
 (defun bounds-of-thing-at-mouse (event thing)

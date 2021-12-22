@@ -3038,7 +3038,6 @@ checkdoc will now check the format of 'yes-or-no-p'.
 *** New command 'checkdoc-dired'.
 This can be used to run checkdoc on files from a Dired buffer.
 
----
 *** No longer checks for 'A-' modifiers.
 Checkdoc recommends usage of command substitutions ("\\[foo-command]")
 in favor of writing keybindings like 'C-c f'.  It now no longer warns
