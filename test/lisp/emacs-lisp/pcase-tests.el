@@ -107,8 +107,11 @@
   (should (equal (pcase 1
                    ((cl-type (integer 0 2)) 'integer-0<=n<=2))
                  'integer-0<=n<=2))
-  (should-error (pcase 1
-                  ((cl-type notatype) 'integer))))
+  (should-error
+   ;; Avoid error at compile time due to compiler macro.
+   (eval '(pcase 1
+            ((cl-type notatype) 'integer))
+         t)))
 
 (ert-deftest pcase-tests-setq ()
   (should (equal (let (a b)
