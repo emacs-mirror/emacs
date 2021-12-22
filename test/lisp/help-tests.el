@@ -106,11 +106,34 @@
   (should (eq (get-text-property 0 'face (substitute-command-keys "\\`f'"))
               'help-key-binding)))
 
+(defvar-keymap help-tests--test-keymap
+  :doc "Just some keymap for testing."
+  "C-g"           #'abort-minibuffers
+  "TAB"           #'minibuffer-complete
+  "C-j"           #'minibuffer-complete-and-exit
+  "RET"           #'minibuffer-complete-and-exit
+  "SPC"           #'minibuffer-complete-word
+  "?"             #'minibuffer-completion-help
+  "C-<tab>"       #'file-cache-minibuffer-complete
+  "<XF86Back>"    #'previous-history-element
+  "<XF86Forward>" #'next-history-element
+  "<backtab>"     #'minibuffer-complete
+  "<down>"        #'next-line-or-history-element
+  "<next>"        #'next-history-element
+  "<prior>"       #'switch-to-completions
+  "<up>"          #'previous-line-or-history-element
+  "M-v"           #'switch-to-completions
+  "M-<"           #'minibuffer-beginning-of-buffer
+  "M-n"           #'next-history-element
+  "M-p"           #'previous-history-element
+  "M-r"           #'previous-matching-history-element
+  "M-s"           #'next-matching-history-element
+  "M-g M-c"       #'switch-to-completions)
 
 (ert-deftest help-tests-substitute-command-keys/keymaps ()
   (with-substitute-command-keys-test
-   (test-re "\\{minibuffer-local-must-match-map}"
-         "
+   (test-re "\\{help-tests--test-keymap}"
+            "
 Key             Binding
 -+
 C-g		abort-minibuffers
@@ -128,13 +151,12 @@ C-<tab>		file-cache-minibuffer-complete
 <prior>		switch-to-completions
 <up>		previous-line-or-history-element
 
-M-v		switch-to-completions
-
 M-<		minibuffer-beginning-of-buffer
 M-n		next-history-element
 M-p		previous-history-element
 M-r		previous-matching-history-element
 M-s		next-matching-history-element
+M-v		switch-to-completions
 
 M-g M-c		switch-to-completions
 ")))
