@@ -2338,8 +2338,10 @@ This checks also `file-name-as-directory', `file-name-directory',
       (delete-file tmp-name)
       (should-not (file-exists-p tmp-name))
 
-      ;; Trashing files doesn't work on MS Windows, and for crypted remote files.
-      (unless (or (tramp--test-windows-nt-p) (tramp--test-crypt-p))
+      ;; Trashing files doesn't work when `system-move-file-to-trash'
+      ;; is defined (on MS Windows and macOS), and for crypted remote
+      ;; files.
+      (unless (or (fboundp 'system-move-file-to-trash) (tramp--test-crypt-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -2858,9 +2860,12 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       (should-not (file-directory-p tmp-name1))
 
       ;; Trashing directories works only since Emacs 27.1.  It doesn't
-      ;; work on MS Windows, for crypted remote directories and for ange-ftp.
-      (when (and (not  (tramp--test-windows-nt-p)) (not (tramp--test-crypt-p))
-		 (not (tramp--test-ftp-p)) (tramp--test-emacs27-p))
+      ;; work when `system-move-file-to-trash' is defined (on MS
+      ;; Windows and macOS), for crypted remote directories and for
+      ;; ange-ftp.
+      (when (and (not (fboundp 'system-move-file-to-trash))
+		 (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
+		 (tramp--test-emacs27-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -4586,8 +4591,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; "telnet" and "sshfs" do not cooperate with disabled filter.
-      (unless (or (tramp--test-telnet-p) (tramp--test-sshfs-p))
+      ;; Disabled process filter.  "sshfs" does not cooperate.
+      (unless (tramp--test-sshfs-p)
 	(unwind-protect
 	    (with-temp-buffer
 	      (setq proc (start-file-process "test3" (current-buffer) "cat"))
@@ -4596,8 +4601,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (set-process-filter proc t)
 	      (process-send-string proc "foo\n")
 	      (process-send-eof proc)
-	      ;; Read output.
-	      (with-timeout (10 (tramp--test-timeout-handler))
+	      ;; Read output.  There shouldn't be any.
+	      (with-timeout (10)
 		(while (process-live-p proc)
 		  (while (accept-process-output proc 0 nil t))))
 	      ;; No output due to process filter.
@@ -4778,8 +4783,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
 
-      ;; "telnet" and "sshfs" do not cooperate with disabled filter.
-      (unless (or (tramp--test-telnet-p) (tramp--test-sshfs-p))
+      ;; Disabled process filter.  "sshfs" does not cooperate.
+      (unless (tramp--test-sshfs-p)
 	(unwind-protect
 	    (with-temp-buffer
 	      (setq proc
@@ -4792,8 +4797,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      (should (equal (process-status proc) 'run))
 	      (process-send-string proc "foo\n")
 	      (process-send-eof proc)
-	      ;; Read output.
-	      (with-timeout (10 (tramp--test-timeout-handler))
+	      ;; Read output.  There shouldn't be any.
+	      (with-timeout (10)
 		(while (process-live-p proc)
 		  (while (accept-process-output proc 0 nil t))))
 	      ;; No output due to process filter.
