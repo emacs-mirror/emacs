@@ -5643,8 +5643,23 @@ The coordinates X and Y are interpreted in pixels relative to a position
   int yval = check_integer_range (y, INT_MIN, INT_MAX);
 
   block_input ();
-  XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
-		0, 0, 0, 0, xval, yval);
+#ifdef HAVE_XINPUT2
+  int deviceid;
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      if (XIGetClientPointer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			      &deviceid))
+	{
+	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
+			 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+			 0, 0, 0, 0, xval, yval);
+	}
+    }
+  else
+#endif
+    XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
+		  0, 0, 0, 0, xval, yval);
   unblock_input ();
 
   return Qnil;

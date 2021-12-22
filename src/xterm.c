@@ -13223,9 +13223,24 @@ void
 frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
   block_input ();
+#ifdef HAVE_XINPUT2
+  int deviceid;
 
-  XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
-		0, 0, 0, 0, pix_x, pix_y);
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      if (XIGetClientPointer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			      &deviceid))
+	{
+	  XIWarpPointer (FRAME_X_DISPLAY (f),
+			 deviceid, None,
+			 FRAME_X_WINDOW (f),
+			 0, 0, 0, 0, pix_x, pix_y);
+	}
+    }
+  else
+#endif
+    XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
+		  0, 0, 0, 0, pix_x, pix_y);
   unblock_input ();
 }
 
