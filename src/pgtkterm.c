@@ -6133,78 +6133,64 @@ scroll_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
     }
   else if (gdk_event_get_scroll_deltas (event, &delta_x, &delta_y))
     {
-      dpyinfo->scroll.acc_x += delta_x;
-      dpyinfo->scroll.acc_y += delta_y;
-      if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line
-	  || !mwheel_coalesce_scroll_events)
+      if (!mwheel_coalesce_scroll_events)
 	{
-	  int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
-	  inev.ie.kind = WHEEL_EVENT;
-	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = list3 (make_fixnum (nlines),
-			       make_float (-dpyinfo->scroll.acc_x * 100),
-			       make_float (-dpyinfo->scroll.acc_y * 100));
-	  if (!mwheel_coalesce_scroll_events)
+	  inev.ie.kind = ((fabs (delta_x) > fabs (delta_y))
+			  ? HORIZ_WHEEL_EVENT
+			  : WHEEL_EVENT);
+	  inev.ie.modifiers |= (inev.ie.kind == HORIZ_WHEEL_EVENT
+				? (delta_x >= 0 ? down_modifier : up_modifier)
+				: (delta_y >= 0 ? down_modifier : up_modifier));
+	  inev.ie.arg = list3 (Qnil, make_float (delta_x),
+			       make_float (delta_y));
+	}
+      else
+	{
+	  dpyinfo->scroll.acc_x += delta_x;
+	  dpyinfo->scroll.acc_y += delta_y;
+	  if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line)
 	    {
-	      dpyinfo->scroll.acc_y = 0;
-	      dpyinfo->scroll.acc_x = 0;
-	    }
-	  else
-	    {
+	      int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
+	      inev.ie.kind = WHEEL_EVENT;
+	      inev.ie.modifiers |= down_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nlines),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
 	      dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
 	    }
-	}
-      else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line
-	       || !mwheel_coalesce_scroll_events)
-	{
-	  int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
-	  inev.ie.kind = WHEEL_EVENT;
-	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = list3 (make_fixnum (nlines),
-			       make_float (-dpyinfo->scroll.acc_x * 100),
-			       make_float (-dpyinfo->scroll.acc_y * 100));
-
-	  if (!mwheel_coalesce_scroll_events)
+	  else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line)
 	    {
-	      dpyinfo->scroll.acc_y = 0;
-	      dpyinfo->scroll.acc_x = 0;
+	      int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
+	      inev.ie.kind = WHEEL_EVENT;
+	      inev.ie.modifiers |= up_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nlines),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
+
+	      dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
 	    }
-	  else
-	    dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
-	}
-      else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char
-	       || !mwheel_coalesce_scroll_events)
-	{
-	  int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
-	  inev.ie.kind = HORIZ_WHEEL_EVENT;
-	  inev.ie.modifiers |= up_modifier;
-	  inev.ie.arg = list3 (make_fixnum (nchars),
-			       make_float (-dpyinfo->scroll.acc_x * 100),
-			       make_float (-dpyinfo->scroll.acc_y * 100));
-
-	  if (mwheel_coalesce_scroll_events)
-	    dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
-	  else
+	  else if (dpyinfo->scroll.acc_x >= dpyinfo->scroll.x_per_char
+		   || !mwheel_coalesce_scroll_events)
 	    {
-	      dpyinfo->scroll.acc_x = 0;
-	      dpyinfo->scroll.acc_y = 0;
+	      int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
+	      inev.ie.kind = HORIZ_WHEEL_EVENT;
+	      inev.ie.modifiers |= up_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nchars),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
+
+	      dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
 	    }
-	}
-      else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
-	{
-	  int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
-	  inev.ie.kind = HORIZ_WHEEL_EVENT;
-	  inev.ie.modifiers |= down_modifier;
-	  inev.ie.arg = list3 (make_fixnum (nchars),
-			       make_float (-dpyinfo->scroll.acc_x * 100),
-			       make_float (-dpyinfo->scroll.acc_y * 100));
-
-	  if (mwheel_coalesce_scroll_events)
-	    dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
-	  else
+	  else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
 	    {
-	      dpyinfo->scroll.acc_x = 0;
-	      dpyinfo->scroll.acc_y = 0;
+	      int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
+	      inev.ie.kind = HORIZ_WHEEL_EVENT;
+	      inev.ie.modifiers |= down_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nchars),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
+
+	      dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
 	    }
 	}
     }
