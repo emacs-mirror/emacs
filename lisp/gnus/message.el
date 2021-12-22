@@ -4356,7 +4356,7 @@ header."
 (defun message-update-smtp-method-header ()
   "Check `message-server-alist' to insert a SMTP-Method header."
   (unless (message-fetch-field "X-Message-SMTP-Method")
-    (let ((from (mail-extract-address-components (message-fetch-field "From")))
+    (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
           method)
       (catch 'exit
         (dolist (server message-server-alist)
