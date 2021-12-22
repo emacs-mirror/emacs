@@ -301,9 +301,10 @@ case keys.
 This command increases (or decreases) the number of empty lines before
 point.
 
-** The *Completions* buffer can now be automatically selected
+** The *Completions* buffer can now be automatically selected.
 To enable this behavior, customize the option 'completion-auto-select'
-to t.
+to t.  Then pressing TAB will switch to the *Completions* buffer when
+it pops up that buffer.
 
 ---
 *** Improved mouse behavior with auto-scrolling modes.
