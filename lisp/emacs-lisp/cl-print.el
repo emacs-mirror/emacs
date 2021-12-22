@@ -229,6 +229,10 @@ into a button whose action shows the function's disassembly.")
   ;; FIXME: η-reduce!
   (advice--cl-print-object object stream))
 
+(cl-defmethod cl-print-object ((object accessor) stream)
+  ;; FIXME: η-reduce!
+  (oclosure--accessor-cl-print object stream))
+
 (cl-defmethod cl-print-object ((object cl-structure-object) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
