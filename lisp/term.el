@@ -1532,7 +1532,7 @@ commands to use in that buffer.
 					     shell-file-name))))
   (set-buffer (make-term "terminal" program))
   (term-char-mode)
-  (switch-to-buffer "*terminal*"))
+  (pop-to-buffer-same-window "*terminal*"))
 
 (defun term-exec (buffer name command startfile switches)
   "Start up a process in buffer for term modes.
