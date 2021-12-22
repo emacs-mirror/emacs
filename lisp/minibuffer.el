@@ -2448,14 +2448,12 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
         (completion-in-region-mode 1))
       (completion--in-region-1 start end))))
 
-(defvar completion-in-region-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; FIXME: Only works if completion-in-region-mode was activated via
-    ;; completion-at-point called directly.
-    (define-key map "\M-?" 'completion-help-at-point)
-    (define-key map "\t" 'completion-at-point)
-    map)
-  "Keymap activated during `completion-in-region'.")
+(defvar-keymap completion-in-region-mode-map
+  :doc "Keymap activated during `completion-in-region'."
+  ;; FIXME: Only works if completion-in-region-mode was activated via
+  ;; completion-at-point called directly.
+  "M-?" #'completion-help-at-point
+  "TAB" #'completion-at-point)
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
 ;; the *Completions*).  Here's how previous packages did it:
@@ -2651,49 +2649,41 @@ The completion method is determined by `completion-at-point-functions'."
   (define-key map "\n" 'exit-minibuffer)
   (define-key map "\r" 'exit-minibuffer))
 
-(defvar minibuffer-local-completion-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\t" 'minibuffer-complete)
-    (define-key map [backtab] 'minibuffer-complete)
-    ;; M-TAB is already abused for many other purposes, so we should find
-    ;; another binding for it.
-    ;; (define-key map "\e\t" 'minibuffer-force-complete)
-    (define-key map " " 'minibuffer-complete-word)
-    (define-key map "?" 'minibuffer-completion-help)
-    (define-key map [prior] 'switch-to-completions)
-    (define-key map "\M-v"  'switch-to-completions)
-    (define-key map "\M-g\M-c"  'switch-to-completions)
-    map)
-  "Local keymap for minibuffer input with completion.")
+(defvar-keymap minibuffer-local-completion-map
+  :doc "Local keymap for minibuffer input with completion."
+  :parent minibuffer-local-map
+  "TAB"       #'minibuffer-complete
+  "<backtab>" #'minibuffer-complete
+  ;; M-TAB is already abused for many other purposes, so we should find
+  ;; another binding for it.
+  ;; "M-TAB"  #'minibuffer-force-complete
+  "SPC"       #'minibuffer-complete-word
+  "?"         #'minibuffer-completion-help
+  "<prior>"   #'switch-to-completions
+  "M-v"       #'switch-to-completions
+  "M-g M-c"   #'switch-to-completions)
 
-(defvar minibuffer-local-must-match-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    (define-key map "\r" 'minibuffer-complete-and-exit)
-    (define-key map "\n" 'minibuffer-complete-and-exit)
-    map)
-  "Local keymap for minibuffer input with completion, for exact match.")
+(defvar-keymap minibuffer-local-must-match-map
+  :doc "Local keymap for minibuffer input with completion, for exact match."
+  :parent minibuffer-local-completion-map
+  "RET" #'minibuffer-complete-and-exit
+  "C-j" #'minibuffer-complete-and-exit)
 
-(defvar minibuffer-local-filename-completion-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " nil)
-    map)
-  "Local keymap for minibuffer input with completion for filenames.
+(defvar-keymap minibuffer-local-filename-completion-map
+  :doc "Local keymap for minibuffer input with completion for filenames.
 Gets combined either with `minibuffer-local-completion-map' or
-with `minibuffer-local-must-match-map'.")
+with `minibuffer-local-must-match-map'."
+  "SPC" nil)
 
 (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
 (make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
-(defvar minibuffer-local-ns-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map " "  #'exit-minibuffer)
-    (define-key map "\t" #'exit-minibuffer)
-    (define-key map "?"  #'self-insert-and-exit)
-    map)
-  "Local keymap for the minibuffer when spaces are not allowed.")
+(defvar-keymap minibuffer-local-ns-map
+  :doc "Local keymap for the minibuffer when spaces are not allowed."
+  :parent minibuffer-local-map
+  "SPC" #'exit-minibuffer
+  "TAB" #'exit-minibuffer
+  "?"   #'self-insert-and-exit)
 
 (defun read-no-blanks-input (prompt &optional initial inherit-input-method)
   "Read a string from the terminal, not allowing blanks.
@@ -2714,24 +2704,23 @@ If `inhibit-interaction' is non-nil, this function will signal an
 
 ;;; Major modes for the minibuffer
 
-(defvar minibuffer-inactive-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map "e" 'find-file-other-frame)
-    (define-key map "f" 'find-file-other-frame)
-    (define-key map "b" 'switch-to-buffer-other-frame)
-    (define-key map "i" 'info)
-    (define-key map "m" 'mail)
-    (define-key map "n" 'make-frame)
-    (define-key map [mouse-1] 'view-echo-area-messages)
-    ;; So the global down-mouse-1 binding doesn't clutter the execution of the
-    ;; above mouse-1 binding.
-    (define-key map [down-mouse-1] #'ignore)
-    map)
-  "Keymap for use in the minibuffer when it is not active.
+(defvar-keymap minibuffer-inactive-mode-map
+  :doc "Keymap for use in the minibuffer when it is not active.
 The non-mouse bindings in this keymap can only be used in minibuffer-only
 frames, since the minibuffer can normally not be selected when it is
-not active.")
+not active."
+  :full t
+  :suppress t
+  "e" #'find-file-other-frame
+  "f" #'find-file-other-frame
+  "b" #'switch-to-buffer-other-frame
+  "i" #'info
+  "m" #'mail
+  "n" #'make-frame
+  "<mouse-1>"      #'view-echo-area-messages
+  ;; So the global down-mouse-1 binding doesn't clutter the execution of the
+  ;; above mouse-1 binding.
+  "<down-mouse-1>" #'ignore)
 
 (define-derived-mode minibuffer-inactive-mode nil "InactiveMinibuffer"
   :abbrev-table nil          ;abbrev.el is not loaded yet during dump.
