@@ -88,14 +88,13 @@ SPC to try the command just this once, but leave it disabled.
         ;;   (help-mode))
         )
      (fit-window-to-buffer (get-buffer-window "*Disabled Command*"))
-     (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
-       (while (progn (setq char (read-event))
+       (while (progn (setq char (read-event
+                                 "Type y, n, ! or SPC (the space bar): "))
 		     (or (not (numberp char))
 			 (not (memq (downcase char)
 				    '(?! ?y ?n ?\s ?\C-g)))))
-	 (ding)
-	 (message "Please type y, n, ! or SPC (the space bar): "))))
+	 (ding))))
     (setq char (downcase char))
     (pcase char
      (?\C-g (setq quit-flag t))
