@@ -195,13 +195,14 @@
                        (setf (gethash slot it) i)
                        ;; Always use a double hyphen: if users wants to
                        ;; make it public, they can do so with an alias.
-                       ;; FIXME: Use a copier!
                        `(defalias ',(intern (format "%S--%S" name slot))
-                          (oclosure-lambda accessor ((type ',name) (slot ',slot))
-                                      (oclosure)
-                            (oclosure-get oclosure ,i)))))
+                          ;; We use `oclosure--copy' instead of `oclosure--accessor-copy'
+                          ;; here to circumvent bootstrapping problems.
+                          (oclosure--copy oclosure--accessor-prototype
+                                     ',name ',slot ,i))))
                    slotdescs))
-       ,@(oclosure--defstruct-make-copiers copiers slots name))))
+       ,@(oclosure--defstruct-make-copiers
+          copiers (mapcar #'cl--slot-descriptor-name slotdescs) name))))
 
 (defun oclosure--define (class pred)
   (let* ((name (cl--class-name class))
@@ -210,13 +211,51 @@
     (defalias predname pred)
     (put name 'cl-deftype-satisfies predname)))
 
-(defmacro oclosure-lambda (type fields args &rest body)
+(defmacro oclosure--lambda (type bindings args &rest body)
+  "Low level construction of an OClosure object.
+TYPE is expected to be a symbol that is (or will be) defined as an OClosure type.
+BINDINGS should list all the slots expected by this type, in the proper order.
+No checking is performed,"
+  (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
   ;; We define it here as a macro which expands to something that
   ;; looks like "normal code" in order to avoid backward compatibility
   ;; issues with third party macros that do "code walks" and would
   ;; likely mishandle such a new special form (e.g. `generator.el').
   ;; But don't be fooled: this macro is tightly bound to `cconv.el'.
+  (pcase-let*
+      ;; FIXME: Since we use the docstring internally to store the
+      ;; type we can't handle actual docstrings.  We could fix this by adding
+      ;; a docstring slot to OClosures.
+      ((`(,prebody . ,body) (macroexp-parse-body body)))
+    `(let ,(mapcar (lambda (bind)
+                     (if (cdr bind) bind
+                       ;; Bind to something that doesn't look
+                       ;; like a value to avoid the "Variable
+                       ;; ‘foo’ left uninitialized" warning.
+                       `(,(car bind) (progn nil))))
+                   (reverse bindings))
+       ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
+       ;; just value/variable-propagated by the optimizer (tho I think our
+       ;; optimizer is too naive to be a problem currently).
+       (oclosure--fix-type
+        ;; This `oclosure--fix-type' + `ignore' call is used by the compiler (in
+        ;; `cconv.el') to detect and signal an error in case of
+        ;; store-conversion (i.e. if a variable/slot is mutated).
+        (ignore ,@(mapcar #'car bindings))
+        (lambda ,args
+          (:documentation ',type)
+          ,@prebody
+          ;; Add dummy code which accesses the field's vars to make sure
+          ;; they're captured in the closure.
+          (if t nil ,@(mapcar #'car bindings))
+          ,@body)))))
+
+(defmacro oclosure-lambda (type fields args &rest body)
+  "Define anonymous OClosure function.
+TYPE should be an OClosure type.
+FIELDS is a let-style list of bindings for the various slots of TYPE.
+ARGS is and BODY are the same as for `lambda'."
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Should `oclosure-define' distinguish "optional" from
   ;; "mandatory" slots, and/or provide default values for slots missing
@@ -224,14 +263,9 @@
   (pcase-let*
       ((class (cl--find-class type))
        (slots (oclosure--class-slots class))
-       ;; FIXME: Since we use the docstring internally to store the
-       ;; type we can't handle actual docstrings.  We could fix this by adding
-       ;; a docstring slot to OClosures.
-       (`(,prebody . ,body) (macroexp-parse-body body))
-       (slotbinds (nreverse
-                   (mapcar (lambda (slot)
-                             (list (cl--slot-descriptor-name slot)))
-                           slots)))
+       (slotbinds (mapcar (lambda (slot)
+                            (list (cl--slot-descriptor-name slot)))
+                          slots))
        (tempbinds (mapcar
                    (lambda (field)
                      (let* ((name (car field))
@@ -248,28 +282,7 @@
                    fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
     `(let ,tempbinds
-       (let ,(mapcar (lambda (bind)
-                       (if (cdr bind) bind
-                         ;; Bind to something that doesn't look
-                         ;; like a value to avoid the "Variable
-                         ;; ‘foo’ left uninitialized" warning.
-                         `(,(car bind) (progn nil))))
-                     slotbinds)
-         ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
-         ;; just value/variable-propagated by the optimizer (tho I think our
-         ;; optimizer is too naive to be a problem currently).
-         (oclosure--fix-type
-          ;; This `oclosure--fix-type' + `ignore' call is used by the compiler (in
-          ;; `cconv.el') to detect and signal an error in case of
-          ;; store-conversion (i.e. if a variable/slot is mutated).
-          (ignore ,@(mapcar #'car slotbinds))
-          (lambda ,args
-            (:documentation ',type)
-            ,@prebody
-            ;; Add dummy code which accesses the field's vars to make sure
-            ;; they're captured in the closure.
-            (if t nil ,@(mapcar #'car slotbinds))
-            ,@body))))))
+       (oclosure--lambda ,type ,slotbinds ,args ,@body))))
 
 (defun oclosure--fix-type (_ignore oclosure)
   (if (byte-code-function-p oclosure)
@@ -323,8 +336,14 @@
            (and (eq :type (car-safe first-var))
                 (cdr first-var))))))
 
+(defconst oclosure--accessor-prototype
+  ;; Use `oclosure--lambda' to circumvent a bootstrapping problem:
+  ;; `oclosure-accessor' is not yet defined at this point but
+  ;; `oclosure--accessor-prototype' is needed when defining `oclosure-accessor'.
+  (oclosure--lambda oclosure-accessor ((type) (slot) (index)) (oclosure) (oclosure-get oclosure index)))
+
 (oclosure-define accessor
-  "OClosure to access the field of an object."
+  "OClosure function to access a specific slot of an object."
   type slot)
 
 (defun oclosure--accessor-cl-print (object stream)
@@ -339,6 +358,12 @@
 
 \(fn OBJ)"
           (accessor--slot f) (accessor--type f)))
+
+(oclosure-define (oclosure-accessor
+                (:parent accessor)
+                (:copier oclosure--accessor-copy (type slot index)))
+  "OClosure function to access a specific slot of an OClosure function."
+  index)
 
 (provide 'oclosure)
 ;;; oclosure.el ends here
