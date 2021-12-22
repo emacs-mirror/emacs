@@ -38,6 +38,8 @@
 ;;   simply has an additional `docstring' slot.
 ;; - commands: this could be a subtype of documented functions, which simply
 ;;   has an additional `interactive-form' slot.
+;; - auto-generate docstrings for slot accessors instead of storing them
+;;   in the accessor itself?
 
 ;;; Code:
 
@@ -54,6 +56,11 @@
 ;; - If the mutated variable/slot is captured by another (nested) closure
 ;;   store-conversion is indispensable, so if we want to avoid store-conversion
 ;;   we'd have to disallow such capture.
+
+;; FIXME:
+;; - Snarf-documentation leaves bogus fixnums in place in`create-file-buffer'.
+;; - `fcr-cl-defun', `fcr-cl-defsubst', `fcr-defsubst', `fcr-define-inline'?
+;; - Use accessor in cl-defstruct
 
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
@@ -186,12 +193,13 @@
                        (when (gethash slot it)
                          (error "Duplicate slot name: %S" slot))
                        (setf (gethash slot it) i)
-                       ;; Always use a double hyphen: if the user wants to
-                       ;; make it public, it can do so with an alias.
-                       `(defun ,(intern (format "%S--%S" name slot)) (fcr)
-                          ,(format "Return slot `%S' of FCR, of type `%S'."
-                                   slot name)
-                          (fcr-get fcr ,i))))
+                       ;; Always use a double hyphen: if users wants to
+                       ;; make it public, they can do so with an alias.
+                       ;; FIXME: Use a copier!
+                       `(defalias ',(intern (format "%S--%S" name slot))
+                          (fcr-lambda accessor ((type ',name) (slot ',slot))
+                                      (fcr)
+                            (fcr-get fcr ,i)))))
                    slotdescs))
        ,@(fcr--defstruct-make-copiers copiers slots name))))
 
@@ -314,6 +322,23 @@
                 (first-var (car-safe env)))
            (and (eq :type (car-safe first-var))
                 (cdr first-var))))))
+
+(fcr-defstruct accessor
+  "FCR to access the field of an object."
+  type slot)
+
+(defun fcr--accessor-cl-print (object stream)
+  (princ "#f(accessor " stream)
+  (prin1 (accessor--type object) stream)
+  (princ "." stream)
+  (prin1 (accessor--slot object) stream)
+  (princ ")" stream))
+
+(defun fcr--accessor-docstring (f)
+  (format "Access slot \"%S\" of OBJ of type `%S'.
+
+\(fn OBJ)"
+          (accessor--slot f) (accessor--type f)))
 
 (provide 'fcr)
 ;;; fcr.el ends here
