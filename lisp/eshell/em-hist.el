@@ -149,9 +149,9 @@ whitespace."
 
 (defcustom eshell-hist-match-partial t
   "If non-nil, movement through history is constrained by current input.
-Otherwise, typing <M-p> and <M-n> will always go to the next history
+Otherwise, typing \\`M-p' and \\`M-n' will always go to the next history
 element, regardless of any text on the command line.  In that case,
-<C-c M-r> and <C-c M-s> still offer that functionality."
+\\`C-c M-r' and \\`C-c M-s' still offer that functionality."
   :type 'boolean
   :set 'eshell-hist--update-keymap)
 
