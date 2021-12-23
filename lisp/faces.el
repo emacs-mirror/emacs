@@ -2630,7 +2630,7 @@ See `mode-line-display' for the face used on mode lines."
   :group 'basic-faces)
 
 (defface mode-line-active
-  '((t :inherit (mode-line variable-pitch)))
+  '((t :inherit mode-line))
   "Face for the selected mode line.
 This inherits from the `mode-line' face."
   :version "29.1"
@@ -2639,7 +2639,7 @@ This inherits from the `mode-line' face."
 
 (defface mode-line-inactive
   '((default
-     :inherit (mode-line variable-pitch))
+     :inherit mode-line)
     (((class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
