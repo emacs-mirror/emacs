@@ -209,10 +209,8 @@ environment of created subprocesses."
 
 (put 'eshell-variable-aliases-list 'risky-local-variable t)
 
-(defvar eshell-var-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-v") #'eshell-insert-envvar)
-    map))
+(defvar-keymap eshell-var-mode-map
+  "C-c M-v" #'eshell-insert-envvar)
 
 ;;; Functions:
 

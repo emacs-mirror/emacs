@@ -101,15 +101,13 @@ information, for example."
 (defvar eshell-process-list nil
   "A list of the current status of subprocesses.")
 
-(defvar eshell-proc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-i") #'eshell-insert-process)
-    (define-key map (kbd "C-c C-c") #'eshell-interrupt-process)
-    (define-key map (kbd "C-c C-k") #'eshell-kill-process)
-    (define-key map (kbd "C-c C-d") #'eshell-send-eof-to-process)
-    (define-key map (kbd "C-c C-s") #'list-processes)
-    (define-key map (kbd "C-c C-\\") #'eshell-quit-process)
-    map))
+(defvar-keymap eshell-proc-mode-map
+  "C-c M-i"  #'eshell-insert-process
+  "C-c C-c"  #'eshell-interrupt-process
+  "C-c C-k"  #'eshell-kill-process
+  "C-c C-d"  #'eshell-send-eof-to-process
+  "C-c C-s"  #'list-processes
+  "C-c C-\\" #'eshell-quit-process)
 
 ;;; Functions:
 

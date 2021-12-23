@@ -260,31 +260,28 @@ This is used by `eshell-watch-for-password-prompt'."
      (standard-syntax-table))
     st))
 
-(defvar eshell-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c)] 'eshell-command-map)
-    (define-key map "\r" #'eshell-send-input)
-    (define-key map "\M-\r" #'eshell-queue-input)
-    (define-key map [(meta control ?l)] #'eshell-show-output)
-    (define-key map [(control ?a)] #'eshell-bol)
-    map))
+(defvar-keymap eshell-mode-map
+  "C-c"   'eshell-command-map
+  "RET"   #'eshell-send-input
+  "M-RET" #'eshell-queue-input
+  "C-M-l" #'eshell-show-output
+  "C-a"   #'eshell-bol)
 
-(defvar eshell-command-map
-  (let ((map (define-prefix-command 'eshell-command-map)))
-    (define-key map [(meta ?o)] #'eshell-mark-output)
-    (define-key map [(meta ?d)] #'eshell-toggle-direct-send)
-    (define-key map [(control ?a)] #'eshell-bol)
-    (define-key map [(control ?b)] #'eshell-backward-argument)
-    (define-key map [(control ?e)] #'eshell-show-maximum-output)
-    (define-key map [(control ?f)] #'eshell-forward-argument)
-    (define-key map [(control ?m)] #'eshell-copy-old-input)
-    (define-key map [(control ?o)] #'eshell-kill-output)
-    (define-key map [(control ?r)] #'eshell-show-output)
-    (define-key map [(control ?t)] #'eshell-truncate-buffer)
-    (define-key map [(control ?u)] #'eshell-kill-input)
-    (define-key map [(control ?w)] #'backward-kill-word)
-    (define-key map [(control ?y)] #'eshell-repeat-argument)
-    map))
+(defvar-keymap eshell-command-map
+  :prefix 'eshell-command-map
+  "M-o" #'eshell-mark-output
+  "M-d" #'eshell-toggle-direct-send
+  "C-a" #'eshell-bol
+  "C-b" #'eshell-backward-argument
+  "C-e" #'eshell-show-maximum-output
+  "C-f" #'eshell-forward-argument
+  "C-m" #'eshell-copy-old-input
+  "C-o" #'eshell-kill-output
+  "C-r" #'eshell-show-output
+  "C-t" #'eshell-truncate-buffer
+  "C-u" #'eshell-kill-input
+  "C-w" #'backward-kill-word
+  "C-y" #'eshell-repeat-argument)
 
 ;;; User Functions:
 

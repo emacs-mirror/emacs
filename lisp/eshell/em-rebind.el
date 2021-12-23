@@ -136,10 +136,8 @@ This is default behavior of shells like bash."
   :type '(repeat function)
   :group 'eshell-rebind)
 
-(defvar eshell-rebind-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-l") #'eshell-lock-local-map)
-    map))
+(defvar-keymap eshell-rebind-mode-map
+  "C-c M-l" #'eshell-lock-local-map)
 
 ;; Internal Variables:
 

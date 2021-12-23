@@ -152,10 +152,8 @@ treated as a literal character."
   :type 'hook
   :group 'eshell-arg)
 
-(defvar eshell-arg-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-b") #'eshell-insert-buffer-name)
-    map))
+(defvar-keymap eshell-arg-mode-map
+  "C-c M-b" #'eshell-insert-buffer-name)
 
 ;;; Functions:
 

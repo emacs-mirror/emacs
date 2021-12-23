@@ -225,11 +225,9 @@ FOR LISTS OF ARGUMENTS:
 EXAMPLES:
   *.c(:o)  sorted list of .c files")
 
-(defvar eshell-pred-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-q") #'eshell-display-predicate-help)
-    (define-key map (kbd "C-c M-m") #'eshell-display-modifier-help)
-    map))
+(defvar-keymap eshell-pred-mode-map
+  "C-c M-q" #'eshell-display-predicate-help
+  "C-c M-m" #'eshell-display-modifier-help)
 
 ;;; Functions:
 

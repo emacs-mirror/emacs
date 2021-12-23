@@ -199,31 +199,28 @@ element, regardless of any text on the command line.  In that case,
 (defvar eshell-matching-input-from-input-string "")
 (defvar eshell-save-history-index nil)
 
-(defvar eshell-isearch-map
-  (let ((map (copy-keymap isearch-mode-map)))
-    (define-key map [(control ?m)] 'eshell-isearch-return)
-    (define-key map [(control ?r)] 'eshell-isearch-repeat-backward)
-    (define-key map [(control ?s)] 'eshell-isearch-repeat-forward)
-    (define-key map [(control ?g)] 'eshell-isearch-abort)
-    (define-key map [backspace] 'eshell-isearch-delete-char)
-    (define-key map [delete] 'eshell-isearch-delete-char)
-    (define-key map "\C-c\C-c" 'eshell-isearch-cancel)
-    map)
-  "Keymap used in isearch in Eshell.")
+(defvar-keymap eshell-isearch-map
+  :doc "Keymap used in isearch in Eshell."
+  :parent isearch-mode-map
+  "C-m"         #'eshell-isearch-return
+  "C-r"         #'eshell-isearch-repeat-backward
+  "C-s"         #'eshell-isearch-repeat-forward
+  "C-g"         #'eshell-isearch-abort
+  "<backspace>" #'eshell-isearch-delete-char
+  "<delete>"    #'eshell-isearch-delete-char
+  "C-c C-c"     #'eshell-isearch-cancel)
 
-(defvar eshell-hist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [up] #'eshell-previous-matching-input-from-input)
-    (define-key map [down] #'eshell-next-matching-input-from-input)
-    (define-key map [(control up)] #'eshell-previous-input)
-    (define-key map [(control down)] #'eshell-next-input)
-    (define-key map [(meta ?r)] #'eshell-previous-matching-input)
-    (define-key map [(meta ?s)] #'eshell-next-matching-input)
-    (define-key map (kbd "C-c M-r") #'eshell-previous-matching-input-from-input)
-    (define-key map (kbd "C-c M-s") #'eshell-next-matching-input-from-input)
-    (define-key map (kbd "C-c C-l") #'eshell-list-history)
-    (define-key map (kbd "C-c C-x") #'eshell-get-next-from-history)
-    map))
+(defvar-keymap eshell-hist-mode-map
+  "<up>"     #'eshell-previous-matching-input-from-input
+  "<down>"   #'eshell-next-matching-input-from-input
+  "C-<up>"   #'eshell-previous-input
+  "C-<down>" #'eshell-next-input
+  "M-r"      #'eshell-previous-matching-input
+  "M-s"      #'eshell-next-matching-input
+  "C-c M-r"  #'eshell-previous-matching-input-from-input
+  "C-c M-s"  #'eshell-next-matching-input-from-input
+  "C-c C-l"  #'eshell-list-history
+  "C-c C-x"  #'eshell-get-next-from-history)
 ;; Update `eshell-hist-mode-map' for `eshell-hist-match-partial'.
 (eshell-hist--update-keymap 'eshell-hist-match-partial
                             eshell-hist-match-partial)

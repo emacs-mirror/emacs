@@ -226,19 +226,17 @@ to writing a completion function."
   (let ((completion-at-point-functions '(elisp-completion-at-point)))
     (completion-at-point)))
 
-(defvar eshell-cmpl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?i)] #'completion-at-point)
-    ;; jww (1999-10-19): Will this work on anything but X?
-    (define-key map [backtab] #'pcomplete-reverse)
-    (define-key map [(meta ??)] #'completion-help-at-point)
-    (define-key map [(meta control ?i)] #'eshell-complete-lisp-symbol)
-    ;; C-c prefix:
-    (define-key map (kbd "C-c M-h") #'eshell-completion-help)
-    (define-key map (kbd "C-c TAB") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c C-i") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c SPC") #'pcomplete-expand)
-    map))
+(defvar-keymap eshell-cmpl-mode-map
+  "C-i"       #'completion-at-point
+  ;; jww (1999-10-19): Will this work on anything but X?
+  "<backtab>" #'pcomplete-reverse
+  "M-?"       #'completion-help-at-point
+  "C-M-i"     #'eshell-complete-lisp-symbol
+  ;; C-c prefix:
+  "C-c M-h"   #'eshell-completion-help
+  "C-c TAB"   #'pcomplete-expand-and-complete
+  "C-c C-i"   #'pcomplete-expand-and-complete
+  "C-c SPC"   #'pcomplete-expand)
 
 (define-minor-mode eshell-cmpl-mode
   "Minor mode that provides a keymap when `eshell-cmpl' active.
