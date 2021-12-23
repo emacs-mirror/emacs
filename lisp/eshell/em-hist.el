@@ -129,12 +129,31 @@ whitespace."
 
 (put 'eshell-input-filter 'risky-local-variable t)
 
+(defun eshell-hist--update-keymap (symbol value)
+  "Update `eshell-hist-mode-map' for `eshell-hist-match-partial'."
+  ;; Don't try to set this before it is bound.  See below.
+  (when (and (boundp 'eshell-hist-mode-map)
+             (eq symbol 'eshell-hist-match-partial))
+    (dolist (keyb
+             (if value
+                 `(("M-p"     . ,#'eshell-previous-matching-input-from-input)
+                   ("M-n"     . ,#'eshell-next-matching-input-from-input)
+                   ("C-c M-p" . ,#'eshell-previous-input)
+                   ("C-c M-n" . ,#'eshell-next-input))
+               `(("M-p"     . ,#'eshell-previous-input)
+                 ("M-n"     . ,#'eshell-next-input)
+                 ("C-c M-p" . ,#'eshell-previous-matching-input-from-input)
+                 ("C-c M-n" . ,#'eshell-next-matching-input-from-input))))
+      (keymap-set eshell-hist-mode-map (car keyb) (cdr keyb))))
+  (set-default symbol value))
+
 (defcustom eshell-hist-match-partial t
   "If non-nil, movement through history is constrained by current input.
 Otherwise, typing <M-p> and <M-n> will always go to the next history
 element, regardless of any text on the command line.  In that case,
 <C-c M-r> and <C-c M-s> still offer that functionality."
-  :type 'boolean)
+  :type 'boolean
+  :set 'eshell-hist--update-keymap)
 
 (defcustom eshell-hist-move-to-end t
   "If non-nil, move to the end of the buffer before cycling history."
@@ -202,21 +221,12 @@ element, regardless of any text on the command line.  In that case,
     (define-key map [(meta ?s)] #'eshell-next-matching-input)
     (define-key map (kbd "C-c M-r") #'eshell-previous-matching-input-from-input)
     (define-key map (kbd "C-c M-s") #'eshell-next-matching-input-from-input)
-    ;; FIXME: Relies on `eshell-hist-match-partial' being set _before_
-    ;; em-hist is loaded and won't respect changes.
-    (if eshell-hist-match-partial
-	(progn
-	  (define-key map [(meta ?p)] 'eshell-previous-matching-input-from-input)
-	  (define-key map [(meta ?n)] 'eshell-next-matching-input-from-input)
-	  (define-key map (kbd "C-c M-p") #'eshell-previous-input)
-	  (define-key map (kbd "C-c M-n") #'eshell-next-input))
-      (define-key map [(meta ?p)] #'eshell-previous-input)
-      (define-key map [(meta ?n)] #'eshell-next-input)
-      (define-key map (kbd "C-c M-p") #'eshell-previous-matching-input-from-input)
-      (define-key map (kbd "C-c M-n") #'eshell-next-matching-input-from-input))
     (define-key map (kbd "C-c C-l") #'eshell-list-history)
     (define-key map (kbd "C-c C-x") #'eshell-get-next-from-history)
     map))
+;; Update `eshell-hist-mode-map' for `eshell-hist-match-partial'.
+(eshell-hist--update-keymap 'eshell-hist-match-partial
+                            eshell-hist-match-partial)
 
 (defvar eshell-rebind-keys-alist)
 
