@@ -1011,6 +1011,11 @@ This controls whether or not the last screen line of the text being
 measured will be counted for the purpose of calculating the text
 dimensions.
 
++++
+** 'window-text-pixel-size' understands a new meaning of 'from'.
+Specifying a cons as the from argument allows to start measuring text
+from a specified amount of pixels above or below a position.
+
 ** XDG support
 
 *** New function 'xdg-state-home' returns 'XDG_STATE_HOME' environment variable.

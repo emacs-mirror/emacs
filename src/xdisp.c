@@ -10841,8 +10841,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
   ptrdiff_t start, end, bpos;
   struct text_pos startp;
   void *itdata = NULL;
-  int c, max_x = 0, max_y = 0, x = 0, y = 0;
-  int doff = 0;
+  int c, max_x = 0, max_y = 0, x = 0, y = 0, vertical_offset = 0, doff = 0;
 
   if (NILP (from))
     {
@@ -10867,6 +10866,13 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 	  if (!(c == ' ' || c == '\t'))
 	    break;
 	}
+    }
+  else if (CONSP (from))
+    {
+      start = clip_to_bounds (BEGV, fix_position (XCAR (from)), ZV);
+      bpos = CHAR_TO_BYTE (start);
+      CHECK_FIXNUM (XCDR (from));
+      vertical_offset = XFIXNUM (XCDR (from));
     }
   else
     {
@@ -10914,7 +10920,9 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 
   itdata = bidi_shelve_cache ();
   start_display (&it, w, startp);
+
   int start_y = it.current_y;
+
   /* It makes no sense to measure dimensions of region of text that
      crosses the point where bidi reordering changes scan direction.
      By using unidirectional movement here we at least support the use
@@ -10923,13 +10931,50 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
      same directionality.  */
   it.bidi_p = false;
 
-  /* Start at the beginning of the line containing FROM.  Otherwise
-     IT.current_x will be incorrectly set to zero at some arbitrary
-     non-zero X coordinate.  */
-  reseat_at_previous_visible_line_start (&it);
-  it.current_x = it.hpos = 0;
-  if (IT_CHARPOS (it) != start)
-    move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+  if (vertical_offset != 0)
+    {
+      int last_y;
+      it.current_y = 0;
+
+      move_it_by_lines (&it, 0);
+
+      /* `move_it_vertically_backward' is called by move_it_vertically
+         to move by a negative value (upwards), but it is not always
+         guaranteed to leave the iterator at or above the position
+         given by the offset, which this loop ensures.  */
+      if (vertical_offset < 0)
+	{
+	  while (it.current_y > vertical_offset)
+	    {
+	      last_y = it.current_y;
+	      move_it_vertically_backward (&it,
+					   (abs (vertical_offset)
+					    + it.current_y));
+
+	      if (it.current_y == last_y)
+		break;
+	    }
+	}
+      else
+	{
+	  move_it_vertically (&it, vertical_offset);
+	}
+
+      it.current_y = (WINDOW_TAB_LINE_HEIGHT (w)
+		      + WINDOW_HEADER_LINE_HEIGHT (w));
+      start = clip_to_bounds (BEGV, IT_CHARPOS (it), ZV);
+      start_y = it.current_y;
+    }
+  else
+    {
+      /* Start at the beginning of the line containing FROM.  Otherwise
+	 IT.current_x will be incorrectly set to zero at some arbitrary
+	 non-zero X coordinate.  */
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = 0;
+      if (IT_CHARPOS (it) != start)
+	move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+    }
 
   /* Now move to TO.  */
   int start_x = it.current_x;
@@ -11052,26 +11097,34 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 
   bidi_unshelve_cache (itdata, false);
 
-  return Fcons (make_fixnum (x - start_x), make_fixnum (y));
+  return (!vertical_offset
+	  ? Fcons (make_fixnum (x - start_x), make_fixnum (y))
+	  : list3i (x - start_x, y, start));
 }
 
 DEFUN ("window-text-pixel-size", Fwindow_text_pixel_size, Swindow_text_pixel_size, 0, 7, 0,
        doc: /* Return the size of the text of WINDOW's buffer in pixels.
 WINDOW must be a live window and defaults to the selected one.  The
-return value is a cons of the maximum pixel-width of any text line
-and the pixel-height of all the text lines in the accessible portion
-of buffer text.
+return value is a cons of the maximum pixel-width of any text line and
+the pixel-height of all the text lines in the accessible portion of
+buffer text.
+
+If FROM is a cons cell, the return value includes, in addition to the
+dimensions, also a third element that provides the buffer position
+from which measuring of the text dimensions was actually started.
 
 This function exists to allow Lisp programs to adjust the dimensions
 of WINDOW to the buffer text it needs to display.
 
 The optional argument FROM, if non-nil, specifies the first text
 position to consider, and defaults to the minimum accessible position
-of the buffer.  If FROM is t, it stands for the minimum accessible
-position that starts a non-empty line.  TO, if non-nil, specifies the
-last text position and defaults to the maximum accessible position of
-the buffer.  If TO is t, it stands for the maximum accessible position
-that ends a non-empty line.
+of the buffer.  If FROM is a cons, its car specifies a buffer
+position, and its cdr specifies the vertical offset in pixels from
+that position to the first screen line to be measured.  If FROM is t,
+it stands for the minimum accessible position that starts a non-empty
+line.  TO, if non-nil, specifies the last text position and defaults
+to the maximum accessible position of the buffer.  If TO is t, it
+stands for the maximum accessible position that ends a non-empty line.
 
 The optional argument X-LIMIT, if non-nil, specifies the maximum X
 coordinate beyond which the text should be ignored.  It is therefore
