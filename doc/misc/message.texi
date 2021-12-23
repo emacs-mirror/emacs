@@ -2555,12 +2555,19 @@ message.
 
 @item message-server-alist
 @vindex message-server-alist
-An alist describing how to insert a @code{X-Message-SMTP-Method}
-header before sending out a new message.  The key has to be a string,
-that will be matched with the @code{From} header, and will insert the
-value as the SMTP Method if these are equal.  Alternatively, the key
-may be a function that will be called in the message buffer without
-any arguments, and matches if a non-nil value is returned.
+An alist describing the rules for generating the
+@code{X-Message-SMTP-Method} header to insert before sending out a new
+message, if the message doesn't yet have such a header.  Each element
+of the alist should be of the form
+@w{@code{(@var{cond} . @var{method})}}.  If @var{cond} is a string, it
+will be compared with the @code{From} header, and if they compare
+equal, the corresponding @var{method} will be inserted as a string
+into the message headers as the SMTP Method.  If @var{cond} is a
+function, it will be called in the message buffer without any
+arguments, and the corresponding @var{method} will be inserted into
+the message headers as the SMTP Method if the function returns a
+non-@code{nil} value; if @var{method} is nil, the value returned by
+the function @code{cond} is used instead.
 
 @end table
 

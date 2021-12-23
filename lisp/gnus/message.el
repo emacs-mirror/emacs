@@ -4336,16 +4336,17 @@ Instead, just auto-save the buffer and then bury it."
 (autoload 'mml-secure-bcc-is-safe "mml-sec")
 
 (defcustom message-server-alist nil
-  "Alist of rules to generate \"X-Message-SMTP-Method\" headers.
-If any entry of the form (COND . METHOD) matches, the header will
-be inserted just before the message is sent.  If COND is a
-string, METHOD will be inserted if the \"From\" header matches
-COND.  If COND is a function, METHOD will be inserted if COND
-returns a non-nil value, when called in the message buffer
-without any arguments.  If METHOD is nil in the last case, the
-return value of the function will be returned instead.  None of
-this applies if the buffer already has a\"X-Message-SMTP-Method\"
-header."
+  "Alist of rules to generate \"X-Message-SMTP-Method\" header.
+The header will be inserted just before the message is sent.
+Elements should be of the form (COND . METHOD).
+If COND is a string, METHOD will be inserted if the \"From\"
+address compares equal with COND.
+If COND is a function, METHOD will be inserted if COND returns
+a non-nil value when called in the message buffer without any
+arguments.  If METHOD is nil in this case, the return value of
+the function will be inserted instead.
+If the buffer already has a\"X-Message-SMTP-Method\" header,
+it is left unchanged."
   :type '(alist :key-type '(choice
                             (string :tag "From Address")
                             (function :tag "Predicate"))
@@ -4354,7 +4355,7 @@ header."
   :group 'message-sending)
 
 (defun message-update-smtp-method-header ()
-  "Check `message-server-alist' to insert a SMTP-Method header."
+  "Insert an X-Message-SMTP-Method header according to `message-server-alist'."
   (unless (message-fetch-field "X-Message-SMTP-Method")
     (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
           method)
