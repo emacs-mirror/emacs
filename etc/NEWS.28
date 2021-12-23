@@ -78,9 +78,6 @@ shaping, so 'configure' now recommends that combination.
 at build time.
 
 ---
-** Support for building with Motif has been removed.
-
----
 ** The configure option '--without-makeinfo' has been removed.
 This was only ever relevant when building from a repository checkout.
 This now requires makeinfo, which is part of the texinfo package.
@@ -3041,7 +3038,6 @@ checkdoc will now check the format of 'yes-or-no-p'.
 *** New command 'checkdoc-dired'.
 This can be used to run checkdoc on files from a Dired buffer.
 
----
 *** No longer checks for 'A-' modifiers.
 Checkdoc recommends usage of command substitutions ("\\[foo-command]")
 in favor of writing keybindings like 'C-c f'.  It now no longer warns
