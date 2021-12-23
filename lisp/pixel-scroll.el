@@ -459,6 +459,7 @@ the height of the current window."
          (next-pos (save-excursion
                      (goto-char desired-start)
                      (when (zerop (vertical-motion (1+ scroll-margin)))
+                       (set-window-start nil desired-start)
                        (signal 'end-of-buffer nil))
                      (point)))
          (scroll-preserve-screen-position nil)
