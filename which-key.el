@@ -93,6 +93,11 @@ Also adds \"..\". If nil, disable any truncation."
   :group 'which-key
   :type '(choice integer (const :tag "Disable truncation" nil)))
 
+(defcustom which-key-min-column-description-width 0
+  "Every column should at least have this width."
+  :group 'which-key
+  :type 'integer)
+
 (defcustom which-key-add-column-padding 0
   "Additional padding (number of spaces) to add to the left of
 each key column."
@@ -1843,12 +1848,12 @@ non-nil, then bindings are collected recursively for all prefixes."
          (rows (apply #'cl-mapcar #'list padded)))
     (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
 
-(defsubst which-key--max-len (keys index)
+(defsubst which-key--max-len (keys index &optional initial-value)
   "Internal function for finding the max length of the INDEX
 element in each list element of KEYS."
   (cl-reduce
    (lambda (x y) (max x (which-key--string-width (nth index y))))
-   keys :initial-value 0))
+   keys :initial-value (if initial-value initial-value 0)))
 
 (defun which-key--pad-column (col-keys)
   "Take a column of (key separator description) COL-KEYS,
@@ -1857,7 +1862,7 @@ that width."
   (let* ((col-key-width  (+ which-key-add-column-padding
                             (which-key--max-len col-keys 0)))
          (col-sep-width  (which-key--max-len col-keys 1))
-         (col-desc-width (which-key--max-len col-keys 2))
+         (col-desc-width (which-key--max-len col-keys 2 which-key-min-column-description-width))
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
     (cons col-width
           (mapcar (lambda (k)
