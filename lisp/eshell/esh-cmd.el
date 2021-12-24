@@ -258,9 +258,8 @@ the command."
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
   "A list of `let' bindings for subcommand environments."
-  :type 'sexp)
-
-(put 'risky-local-variable 'eshell-subcommand-bindings t)
+  :type 'sexp
+  :risky t)
 
 (defvar eshell-ensure-newline-p nil
   "If non-nil, ensure that a newline is emitted after a Lisp form.

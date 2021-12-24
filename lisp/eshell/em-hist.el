@@ -125,9 +125,8 @@ the input history list.  Default is to save anything that isn't all
 whitespace."
   :type '(radio (function-item eshell-input-filter-default)
                 (function-item eshell-input-filter-initial-space)
-                (function :tag "Other function")))
-
-(put 'eshell-input-filter 'risky-local-variable t)
+                (function :tag "Other function"))
+  :risky t)
 
 (defun eshell-hist--update-keymap (symbol value)
   "Update `eshell-hist-mode-map' for `eshell-hist-match-partial'."

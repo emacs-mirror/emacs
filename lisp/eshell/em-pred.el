@@ -107,9 +107,8 @@ ordinary strings."
 The format of each entry is
 
   (CHAR . PREDICATE-FUNC-SEXP)"
-  :type '(repeat (cons character sexp)))
-
-(put 'eshell-predicate-alist 'risky-local-variable t)
+  :type '(repeat (cons character sexp))
+  :risky t)
 
 (defcustom eshell-modifier-alist
   '((?E . (lambda (lst)
@@ -144,9 +143,8 @@ The format of each entry is
 The format of each entry is
 
   (CHAR ENTRYWISE-P MODIFIER-FUNC-SEXP)"
-  :type '(repeat (cons character sexp)))
-
-(put 'eshell-modifier-alist 'risky-local-variable t)
+  :type '(repeat (cons character sexp))
+  :risky t)
 
 (defvar eshell-predicate-help-string
   "Eshell predicate quick reference:
