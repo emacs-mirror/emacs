@@ -3793,7 +3793,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
          then decorations will be drawn after drawing the box in
          ns_draw_glyph_string, in order to prevent them from being
          overwritten by the box.  */
-      if (s->face->box != FACE_NO_BOX)
+      if (s->face->box == FACE_NO_BOX)
 	ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
 				 NSMinX (glyphRect));
 
