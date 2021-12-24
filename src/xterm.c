@@ -637,7 +637,11 @@ xi_grab_or_ungrab_device (struct xi_device_t *device,
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
 
-  if (device->grab)
+  if (device->grab
+#ifdef USE_MOTIF
+      && !popup_activated ()
+#endif
+      )
     {
       XIGrabDevice (dpyinfo->display, device->device_id, window,
 		    CurrentTime, None, GrabModeAsync,

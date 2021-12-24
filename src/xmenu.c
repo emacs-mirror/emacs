@@ -51,6 +51,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 #ifdef HAVE_X_WINDOWS
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -444,6 +448,18 @@ x_activate_menubar (struct frame *f)
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
 #else
+#ifdef USE_MOTIF
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  /* Clear the XI2 grab so Motif can set a core grab.  Otherwise some
+     versions of Motif will emit a warning and hang.  */
+
+  if (dpyinfo->num_devices)
+    {
+      for (int i = 0; i < dpyinfo->num_devices; ++i)
+	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			CurrentTime);
+    }
+#endif
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   unblock_input ();
