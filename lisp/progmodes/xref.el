@@ -44,7 +44,7 @@
 ;;
 ;; The last three methods operate with "xref" and "location" values.
 ;;
-;; One would usually call `make-xref' and `xref-make-file-location',
+;; One would usually call `xref-make' and `xref-make-file-location',
 ;; `xref-make-buffer-location' or `xref-make-bogus-location' to create
 ;; them.  More generally, a location must be an instance of a type for
 ;; which methods `xref-location-group' and `xref-location-marker' are
@@ -206,7 +206,19 @@ is not known."
                   (:constructor xref-make (summary location))
                   (:noinline t))
   "An xref item describes a reference to a location somewhere."
-  summary location)
+  (summary nil :documentation "String which describes the location.
+
+When `xref-location-line' returns non-nil (a number), the summary
+is implied to be the contents of a file or buffer line containing
+the location.  When multiple locations in a row report the same
+line, in the same group (corresponding to the case of multiple
+locations on one line), the summaries are concatenated in the
+Xref output buffer.  Consequently, any code that creates xref
+values should take care to slice the summary values when several
+locations point to the same line.
+
+This behavior is new in Emacs 28.")
+  location)
 
 (xref--defstruct (xref-match-item
                   (:include xref-item)
