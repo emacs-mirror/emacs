@@ -85,31 +85,22 @@
 (defvar bb-balls-placed nil
   "List of already placed balls.")
 
-;; This is used below to remap existing bindings for cursor motion to
-;; blackbox-specific bindings in blackbox-mode-map.  This is so that
-;; users who prefer non-default key bindings for cursor motion don't
-;; lose that when they play Blackbox.
-(defun blackbox-redefine-key (map oldfun newfun)
-  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
-  (define-key map (vector 'remap oldfun) newfun))
-
-
 (defvar blackbox-mode-map
-  (let ((map (make-keymap)))
+  (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (blackbox-redefine-key map 'backward-char 'bb-left)
-    (blackbox-redefine-key map 'left-char 'bb-left)
-    (blackbox-redefine-key map 'forward-char 'bb-right)
-    (blackbox-redefine-key map 'right-char 'bb-right)
-    (blackbox-redefine-key map 'previous-line 'bb-up)
-    (blackbox-redefine-key map 'next-line 'bb-down)
-    (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
-    (blackbox-redefine-key map 'move-beginning-of-line 'bb-bol)
     (define-key map " " 'bb-romp)
     (define-key map "q" 'bury-buffer)
     (define-key map [insert] 'bb-romp)
     (define-key map [return] 'bb-done)
-    (blackbox-redefine-key map 'newline 'bb-done)
+    (define-key map [remap backward-char]          #'bb-left)
+    (define-key map [remap left-char]              #'bb-left)
+    (define-key map [remap forward-char]           #'bb-right)
+    (define-key map [remap right-char]             #'bb-right)
+    (define-key map [remap previous-line]          #'bb-up)
+    (define-key map [remap next-line]              #'bb-down)
+    (define-key map [remap move-end-of-line]       #'bb-eol)
+    (define-key map [remap move-beginning-of-line] #'bb-bol)
+    (define-key map [remap newline]                #'bb-done)
     map))
 
 ;; Blackbox mode is suitable only for specially formatted data.
@@ -425,6 +416,11 @@ a reflection."
     (delete-char (length c))
     (insert c)
     (backward-char 1)))
+
+(defun blackbox-redefine-key (map oldfun newfun)
+  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
+  (declare (obsolete define-key "29.1"))
+  (define-key map (vector 'remap oldfun) newfun))
 
 (provide 'blackbox)
 
