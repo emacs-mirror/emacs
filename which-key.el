@@ -128,6 +128,15 @@ the default is \" : \"."
   :group 'which-key
   :type 'string)
 
+(defcustom which-key-elipsis
+  (if which-key-dont-use-unicode ".." "…")
+  "Elipsis to use when truncating. Default is \"…\", unless
+`which-key-dont-use-unicode' is non nil, in which case
+the default is \"..\"."
+  :group 'which-key
+  :type 'string)
+
+
 (defcustom which-key-prefix-prefix "+"
   "String to insert in front of prefix commands (i.e., commands
 that represent a sub-map). Default is \"+\"."
@@ -1575,7 +1584,7 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-         (dots (which-key--propertize ".." 'face last-face)))
+         (dots (which-key--propertize which-key-elipsis 'face last-face)))
     (if (and which-key-max-description-length
              (> (length desc) which-key-max-description-length))
         (concat (substring desc 0 which-key-max-description-length) dots)
