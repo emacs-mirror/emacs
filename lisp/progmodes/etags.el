@@ -2084,14 +2084,15 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
         (definitions (etags--xref-find-definitions symbol))
         same-file-definitions)
     (when (and etags-xref-prefer-current-file file)
-      (cl-delete-if
-       (lambda (definition)
-         (when (equal file
-                      (xref-location-group
-                       (xref-item-location definition)))
-           (push definition same-file-definitions)
-           t))
-       definitions)
+      (setq definitions
+            (cl-delete-if
+             (lambda (definition)
+               (when (equal file
+                            (xref-location-group
+                             (xref-item-location definition)))
+                 (push definition same-file-definitions)
+                 t))
+             definitions))
       (setq definitions (nconc (nreverse same-file-definitions)
                                definitions)))
     definitions))
