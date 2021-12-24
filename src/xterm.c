@@ -10015,7 +10015,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	       been changed elsewhere.  */
 	    if (enter->detail != XINotifyInferior
 		&& enter->mode != XINotifyPassiveUngrab
-		&& enter->mode != XINotifyUngrab && any)
+		/* See the comment under FocusIn in
+		   `x_detect_focus_change'.  The main relevant culprit
+		   these days seems to be XFCE.  */
+		&& enter->mode != XINotifyUngrab
+		&& any && enter->event == FRAME_X_WINDOW (any))
 	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
 
 	    f = any;
