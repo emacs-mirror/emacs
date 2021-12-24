@@ -634,12 +634,9 @@ If MODE is not set, try to find mode automatically."
 		 (context (epg-make-context 'CMS)))
 	     (prog1
 		 (epg-verify-string context part)
-	       (let ((result (car (epg-context-result-for context 'verify))))
+	       (let ((result (epg-context-result-for context 'verify)))
 		 (mm-sec-status
-		  'gnus-info (epg-signature-status result)
-		  'gnus-details
-		  (format "%s:%s" (epg-signature-validity result)
-			  (epg-signature-key-id result))))))))
+		  'gnus-info (epg-verify-result-to-string result)))))))
       (with-temp-buffer
 	(insert "MIME-Version: 1.0\n")
 	(mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
@@ -659,7 +656,11 @@ If MODE is not set, try to find mode automatically."
       ;; Use EPG/gpgsm
       (let ((part (base64-decode-string (buffer-string))))
 	(erase-buffer)
-	(insert (epg-decrypt-string (epg-make-context 'CMS) part)))
+	(insert
+         (let ((context (epg-make-context 'CMS)))
+           (prog1
+               (epg-decrypt-string context part)
+             (mm-sec-status 'gnus-info "OK")))))
     ;; Use openssl
     (insert "MIME-Version: 1.0\n")
     (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")

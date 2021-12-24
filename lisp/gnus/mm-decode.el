@@ -474,6 +474,7 @@ The file will be saved in the directory `mm-tmp-directory'.")
 (autoload 'mml2015-verify-test "mml2015")
 (autoload 'mml-smime-verify "mml-smime")
 (autoload 'mml-smime-verify-test "mml-smime")
+(autoload 'mm-view-pkcs7-verify "mm-view")
 
 (defvar mm-verify-function-alist
   '(("application/pgp-signature" mml2015-verify "PGP" mml2015-verify-test)
@@ -482,7 +483,15 @@ The file will be saved in the directory `mm-tmp-directory'.")
     ("application/pkcs7-signature" mml-smime-verify "S/MIME"
      mml-smime-verify-test)
     ("application/x-pkcs7-signature" mml-smime-verify "S/MIME"
-     mml-smime-verify-test)))
+     mml-smime-verify-test)
+    ("application/x-pkcs7-signature" mml-smime-verify "S/MIME"
+     mml-smime-verify-test)
+    ;; these are only used for security-buttons and contain the
+    ;; smime-type after the underscore
+    ("application/pkcs7-mime_signed-data" mm-view-pkcs7-verify "S/MIME"
+     nil)
+    ("application/x-pkcs7-mime_signed-data" mml-view-pkcs7-verify "S/MIME"
+     nil)))
 
 (defcustom mm-verify-option 'never
   "Option of verifying signed parts.
@@ -501,11 +510,17 @@ result of the verification."
 
 (autoload 'mml2015-decrypt "mml2015")
 (autoload 'mml2015-decrypt-test "mml2015")
+(autoload 'mm-view-pkcs7-decrypt "mm-view")
 
 (defvar mm-decrypt-function-alist
   '(("application/pgp-encrypted" mml2015-decrypt "PGP" mml2015-decrypt-test)
     ("application/x-gnus-pgp-encrypted" mm-uu-pgp-encrypted-extract-1 "PGP"
-     mm-uu-pgp-encrypted-test)))
+     mm-uu-pgp-encrypted-test)
+    ;; these are only used for security-buttons and contain the
+    ;; smime-type after the underscore
+    ("application/pkcs7-mime_enveloped-data" mm-view-pkcs7-decrypt "S/MIME" nil)
+    ("application/x-pkcs7-mime_enveloped-data"
+     mm-view-pkcs7-decrypt "S/MIME" nil)))
 
 (defcustom mm-decrypt-option nil
   "Option of decrypting encrypted parts.
@@ -682,18 +697,35 @@ MIME-Version header before proceeding."
 					'start start)
 				  (car ctl))
 	     (cons (car ctl) (mm-dissect-multipart ctl from))))
-	  (t
-	   (mm-possibly-verify-or-decrypt
-	    (mm-dissect-singlepart
-	     ctl
-	     (and cte (intern (downcase (mail-header-strip-cte cte))))
-	     no-strict-mime
-	     (and cd (mail-header-parse-content-disposition cd))
-	     description id)
-	    ctl from))))
-	(when id
-	  (when (string-match " *<\\(.*\\)> *" id)
-	    (setq id (match-string 1 id)))
+          (t
+           (let* ((handle
+                   (mm-dissect-singlepart
+                    ctl
+                    (and cte (intern (downcase (mail-header-strip-cte cte))))
+                    no-strict-mime
+                    (and cd (mail-header-parse-content-disposition cd))
+                    description id))
+                  (intermediate-result
+                   (mm-possibly-verify-or-decrypt handle ctl from)))
+             (when (and (equal type "application")
+                        (or (equal subtype "pkcs7-mime")
+                            (equal subtype "x-pkcs7-mime")))
+               (add-text-properties
+                0 (length (car ctl))
+                (list 'protocol
+                      (concat (substring-no-properties (car ctl))
+                              "_"
+                              (cdr (assoc 'smime-type ctl))))
+                (car ctl))
+               ;; If this is a pkcs7-mime lets treat this special and
+               ;; more like multipart so the pkcs7-mime part does not
+               ;; get ignored.
+               (setq intermediate-result
+                     (cons (car ctl) (list intermediate-result))))
+             intermediate-result))))
+        (when id
+          (when (string-match " *<\\(.*\\)> *" id)
+            (setq id (match-string 1 id)))
 	  (push (cons id result) mm-content-id-alist))
 	result))))
 
@@ -1677,43 +1709,40 @@ If RECURSIVE, search recursively."
     (cond
      ((or (equal type "application/x-pkcs7-mime")
 	  (equal type "application/pkcs7-mime"))
-      (with-temp-buffer
-	(when (and (cond
-		    ((equal smime-type "signed-data") t)
-		    ((eq mm-decrypt-option 'never) nil)
-		    ((eq mm-decrypt-option 'always) t)
-		    ((eq mm-decrypt-option 'known) t)
-		    (t (y-or-n-p "Decrypt (S/MIME) part? ")))
-		   (mm-view-pkcs7 parts from))
-	  (goto-char (point-min))
-	  ;; The encrypted document is a MIME part, and may use either
-	  ;; CRLF (Outlook and the like) or newlines for end-of-line
-	  ;; markers.  Translate from CRLF.
-	  (while (search-forward "\r\n" nil t)
-	    (replace-match "\n"))
-	  ;; Normally there will be a Content-type header here, but
-	  ;; some mailers don't add that to the encrypted part, which
-	  ;; makes the subsequent re-dissection fail here.
-	  (save-restriction
-	    (mail-narrow-to-head)
-	    (unless (mail-fetch-field "content-type")
-	      (goto-char (point-max))
-	      (insert "Content-type: text/plain\n\n")))
-	  (setq parts
-		(if (equal smime-type "signed-data")
-		    (list (propertize
-			   "multipart/signed"
-			   'protocol "application/pkcs7-signature"
-			   'gnus-info
-			   (format
-			    "%s:%s"
-			    (get-text-property 0 'gnus-info
-					       (car mm-security-handle))
-			    (get-text-property 0 'gnus-details
-					       (car mm-security-handle))))
-			  (mm-dissect-buffer t)
-			  parts)
-		  (mm-dissect-buffer t))))))
+      (add-text-properties 0 (length (car ctl))
+                           (list 'buffer (car parts))
+                           (car ctl))
+      (let* ((envelope-p (string= smime-type "enveloped-data"))
+             (decrypt-or-verify-option (if envelope-p
+                                           mm-decrypt-option
+                                         mm-verify-option))
+             (question (if envelope-p
+                           "Decrypt (S/MIME) part? "
+                         "Verify signed (S/MIME) part? ")))
+        (with-temp-buffer
+	  (when (and (cond
+		      ((equal smime-type "signed-data") t)
+		      ((eq decrypt-or-verify-option 'never) nil)
+		      ((eq decrypt-or-verify-option 'always) t)
+		      ((eq decrypt-or-verify-option 'known) t)
+		      (t (y-or-n-p (format question))))
+                     (mm-view-pkcs7 parts from))
+
+	    (goto-char (point-min))
+	    ;; The encrypted document is a MIME part, and may use either
+	    ;; CRLF (Outlook and the like) or newlines for end-of-line
+	    ;; markers.  Translate from CRLF.
+	    (while (search-forward "\r\n" nil t)
+	      (replace-match "\n"))
+	    ;; Normally there will be a Content-type header here, but
+	    ;; some mailers don't add that to the encrypted part, which
+	    ;; makes the subsequent re-dissection fail here.
+	    (save-restriction
+	      (mail-narrow-to-head)
+	      (unless (mail-fetch-field "content-type")
+	        (goto-char (point-max))
+	        (insert "Content-type: text/plain\n\n")))
+	    (setq parts (mm-dissect-buffer t))))))
      ((equal subtype "signed")
       (unless (and (setq protocol
 			 (mm-handle-multipart-ctl-parameter ctl 'protocol))

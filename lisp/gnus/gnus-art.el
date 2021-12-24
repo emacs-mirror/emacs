@@ -6084,6 +6084,34 @@ If nil, don't show those extra buttons."
    ((equal (car handle) "multipart/encrypted")
     (gnus-add-wash-type 'encrypted)
     (gnus-mime-display-security handle))
+   ;; pkcs7-mime handling:
+   ;;
+   ;; although not really multipart these are structured internally by
+   ;; mm-dissect-buffer like multipart to not discard the decryption
+   ;; and verification results
+   ;;
+   ;; application/pkcs7-mime
+   ((and (equal (car handle) "application/pkcs7-mime")
+         (equal (mm-handle-multipart-ctl-parameter handle 'protocol)
+                "application/pkcs7-mime_signed-data"))
+    (gnus-add-wash-type 'signed)
+    (gnus-mime-display-security handle))
+   ((and (equal (car handle) "application/pkcs7-mime")
+         (equal (mm-handle-multipart-ctl-parameter handle 'protocol)
+                "application/pkcs7-mime_enveloped-data"))
+    (gnus-add-wash-type 'encrypted)
+    (gnus-mime-display-security handle))
+   ;; application/x-pkcs7-mime
+   ((and (equal (car handle) "application/x-pkcs7-mime")
+         (equal (mm-handle-multipart-ctl-parameter handle 'protocol)
+                "application/x-pkcs7-mime_signed-data"))
+    (gnus-add-wash-type 'signed)
+    (gnus-mime-display-security handle))
+   ((and (equal (car handle) "application/x-pkcs7-mime")
+         (equal (mm-handle-multipart-ctl-parameter handle 'protocol)
+                "application/x-pkcs7-mime_enveloped-data"))
+    (gnus-add-wash-type 'encrypted)
+    (gnus-mime-display-security handle))
    ;; Other multiparts are handled like multipart/mixed.
    (t
     (gnus-mime-display-mixed (cdr handle)))))
@@ -8833,11 +8861,19 @@ For example:
     (setq point (point))
     (with-current-buffer (mm-handle-multipart-original-buffer handle)
       (let* ((mm-verify-option 'known)
-	     (mm-decrypt-option 'known)
-	     (nparts (mm-possibly-verify-or-decrypt (cdr handle) handle)))
-	(unless (eq nparts (cdr handle))
-	  (mm-destroy-parts (cdr handle))
-	  (setcdr handle nparts))))
+             (mm-decrypt-option 'known)
+             (pkcs7-mime-p (or (equal (car handle) "application/pkcs7-mime")
+                               (equal (car handle) "application/x-pkcs7-mime")))
+             (nparts (if pkcs7-mime-p
+                         (list (mm-possibly-verify-or-decrypt
+                                (cadr handle) (cadadr handle)))
+                       (mm-possibly-verify-or-decrypt (cdr handle) handle))))
+        (unless (eq nparts (cdr handle))
+          ;; if pkcs7-mime don't destroy the parts as the buffer in
+          ;; the cdr still needs to be accessible
+          (when (not pkcs7-mime-p)
+            (mm-destroy-parts (cdr handle)))
+          (setcdr handle nparts))))
     (gnus-mime-display-security handle)
     (when region
       (delete-region (point) (cdr region))
@@ -8891,14 +8927,35 @@ For example:
   (let* ((protocol (mm-handle-multipart-ctl-parameter handle 'protocol))
 	 (gnus-tmp-type
 	  (concat
-	   (or (nth 2 (assoc protocol mm-verify-function-alist))
-	       (nth 2 (assoc protocol mm-decrypt-function-alist))
-	       "Unknown")
-	   (if (equal (car handle) "multipart/signed")
-	       " Signed" " Encrypted")
-	   " Part"))
-	 (gnus-tmp-info
-	  (or (mm-handle-multipart-ctl-parameter handle 'gnus-info)
+           (or (nth 2 (assoc protocol mm-verify-function-alist))
+               (nth 2 (assoc protocol mm-decrypt-function-alist))
+               "Unknown")
+           (cond ((equal (car handle) "multipart/signed") " Signed")
+                 ((equal (car handle) "multipart/encrypted") " Encrypted")
+                 ((and (equal (car handle) "application/pkcs7-mime")
+                       (equal
+                        (mm-handle-multipart-ctl-parameter handle 'protocol)
+                        "application/pkcs7-mime_signed-data"))
+                  " Signed")
+                 ((and (equal (car handle) "application/pkcs7-mime")
+                       (equal
+                        (mm-handle-multipart-ctl-parameter handle 'protocol)
+                        "application/pkcs7-mime_enveloped-data"))
+                  " Encrypted")
+                 ;; application/x-pkcs7-mime
+                 ((and (equal (car handle) "application/x-pkcs7-mime")
+                       (equal
+                        (mm-handle-multipart-ctl-parameter handle 'protocol)
+                        "application/x-pkcs7-mime_signed-data"))
+                  " Signed")
+                 ((and (equal (car handle) "application/x-pkcs7-mime")
+                       (equal
+                        (mm-handle-multipart-ctl-parameter handle 'protocol)
+                        "application/x-pkcs7-mime_enveloped-data"))
+                  " Encrypted"))
+           " Part"))
+         (gnus-tmp-info
+          (or (mm-handle-multipart-ctl-parameter handle 'gnus-info)
 	      "Undecided"))
 	 (gnus-tmp-details
 	  (mm-handle-multipart-ctl-parameter handle 'gnus-details))
