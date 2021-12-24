@@ -2798,6 +2798,17 @@ file; for example:
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
+* Runtime problems specific to PGTK
+
+** Some modifier keys doesn't work if Emacs is started in a systemd unit file.
+
+Environment variables may be different if there is a difference in the
+behavior of keys between when started in the systemd unit file and
+when started from the command line.
+
+Especially, PGTK Emacs needs environment variables LANG and
+GTK_IM_MODULE.
+
 * Build-time problems
 
 ** Configuration
