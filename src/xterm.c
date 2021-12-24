@@ -10230,7 +10230,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 	      if (found_valuator)
-		goto XI_OTHER;
+		{
+#ifdef USE_GTK
+		  if (f && xg_event_is_for_scrollbar (f, event))
+		    *finish = X_EVENT_DROP;
+#endif
+		  goto XI_OTHER;
+		}
 
 	      ev.x = lrint (xev->event_x);
 	      ev.y = lrint (xev->event_y);
