@@ -5648,6 +5648,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
 
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
     {
+      XGrabServer (FRAME_X_DISPLAY (f));
       if (XIGetClientPointer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			      &deviceid))
 	{
@@ -5655,6 +5656,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
 			 DefaultRootWindow (FRAME_X_DISPLAY (f)),
 			 0, 0, 0, 0, xval, yval);
 	}
+      XUngrabServer (FRAME_X_DISPLAY (f));
     }
   else
 #endif

@@ -13242,6 +13242,7 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
     {
+      XGrabServer (FRAME_X_DISPLAY (f));
       if (XIGetClientPointer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			      &deviceid))
 	{
@@ -13250,6 +13251,7 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 			 FRAME_X_WINDOW (f),
 			 0, 0, 0, 0, pix_x, pix_y);
 	}
+      XUngrabServer (FRAME_X_DISPLAY (f));
     }
   else
 #endif
