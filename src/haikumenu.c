@@ -59,10 +59,17 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
   menus[0] = first_menu;
 
   void *window = NULL;
+  void *view = NULL;
   if (FRAMEP (Vmenu_updating_frame) &&
       FRAME_LIVE_P (XFRAME (Vmenu_updating_frame)) &&
       FRAME_HAIKU_P (XFRAME (Vmenu_updating_frame)))
-    window = FRAME_HAIKU_WINDOW (XFRAME (Vmenu_updating_frame));
+    {
+      window = FRAME_HAIKU_WINDOW (XFRAME (Vmenu_updating_frame));
+      view = FRAME_HAIKU_VIEW (XFRAME (Vmenu_updating_frame));
+    }
+
+  if (view)
+    BView_draw_lock (view);
 
   while (i < menu_items_used)
     {
@@ -161,6 +168,9 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
+
+  if (view)
+    BView_draw_unlock (view);
 }
 
 static Lisp_Object
