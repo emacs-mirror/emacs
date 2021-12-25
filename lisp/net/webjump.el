@@ -61,6 +61,13 @@
 
 ;;; Code:
 
+;; TODO:
+;; - Add a menu bar and tool bar for this library.
+;; - Add commands to create/delete link from the hotlist.
+;; - Add something like a bookmark folder in modern browsers.
+;;    - Add a command that can open/follow all links in a folder.
+;; - Add tags for Web sites in the hotlist.
+
 ;;-------------------------------------------------------- Package Dependencies
 
 (require 'browse-url)
