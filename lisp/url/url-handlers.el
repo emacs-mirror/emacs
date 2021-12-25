@@ -396,7 +396,8 @@ if it had been inserted from a file named URL."
 (url-handlers-create-wrapper file-writable-p (url))
 (url-handlers-create-wrapper file-directory-p (url))
 (url-handlers-create-wrapper file-executable-p (url))
-(url-handlers-create-wrapper directory-files (url &optional full match nosort))
+(url-handlers-create-wrapper
+ directory-files (url &optional full match nosort count))
 (url-handlers-create-wrapper file-truename (url &optional counter prev-dirs))
 
 (add-hook 'find-file-hook #'url-handlers-set-buffer-mode)
