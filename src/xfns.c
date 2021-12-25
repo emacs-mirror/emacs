@@ -4516,9 +4516,9 @@ major and minor versions of the X Input Extension extension running on
 that server.  */)
   (Lisp_Object terminal)
 {
+#ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-#ifdef HAVE_XINPUT2
   return (dpyinfo->supports_xi2
 	  ? list2i (2, dpyinfo->xi2_version)
 	  : Qnil);
