@@ -25,6 +25,33 @@
 
 (require 'seq)
 
+(defun rmc--add-key-description (elem)
+  (let* ((name (cadr elem))
+         (pos (seq-position name (car elem)))
+         (altered-name
+          (cond
+           ;; Not in the name string.
+           ((not pos)
+            (format "[%c] %s" (car elem) name))
+           ;; The prompt character is in the name, so highlight
+           ;; it on graphical terminals.
+           ((display-supports-face-attributes-p
+             '(:underline t) (window-frame))
+            (setq name (copy-sequence name))
+            (put-text-property pos (1+ pos)
+                               'face 'read-multiple-choice-face
+                               name)
+            name)
+           ;; And put it in [bracket] on non-graphical terminals.
+           (t
+            (concat
+             (substring name 0 pos)
+             "["
+             (upcase (substring name pos (1+ pos)))
+             "]"
+             (substring name (1+ pos)))))))
+    (cons (car elem) altered-name)))
+
 ;;;###autoload
 (defun read-multiple-choice (prompt choices &optional help-string)
   "Ask user to select an entry from CHOICES, promting with PROMPT.
@@ -67,42 +94,13 @@ Usage example:
                       \\='((?a \"always\")
                         (?s \"session only\")
                         (?n \"no\")))"
-  (let* ((altered-names nil)
+  (let* ((altered-names (mapcar #'rmc--add-key-description
+                                (append choices '((?? "?")))))
          (full-prompt
           (format
            "%s (%s): "
            prompt
-           (mapconcat
-            (lambda (elem)
-              (let* ((name (cadr elem))
-                     (pos (seq-position name (car elem)))
-                     (altered-name
-                      (cond
-                       ;; Not in the name string.
-                       ((not pos)
-                        (format "[%c] %s" (car elem) name))
-                       ;; The prompt character is in the name, so highlight
-                       ;; it on graphical terminals...
-                       ((display-supports-face-attributes-p
-                         '(:underline t) (window-frame))
-                        (setq name (copy-sequence name))
-                        (put-text-property pos (1+ pos)
-                                           'face 'read-multiple-choice-face
-                                           name)
-                        name)
-                       ;; And put it in [bracket] on non-graphical terminals.
-                       (t
-                        (concat
-                         (substring name 0 pos)
-                         "["
-                         (upcase (substring name pos (1+ pos)))
-                         "]"
-                         (substring name (1+ pos)))))))
-                (push (cons (car elem) altered-name)
-                      altered-names)
-                altered-name))
-            (append choices '((?? "?")))
-            ", ")))
+           (mapconcat (lambda (e) (cdr e)) altered-names ", ")))
          tchar buf wrong-char answer)
     (save-window-excursion
       (save-excursion

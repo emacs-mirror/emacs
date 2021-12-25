@@ -28,8 +28,30 @@
 
 (require 'ert)
 (require 'rmc)
+(require 'cl-lib)
 (eval-when-compile (require 'cl-lib))
 
+(ert-deftest test-rmc--add-key-description ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
+    (should (equal (rmc--add-key-description '(?y "yes"))
+                   '(?y . "yes")))
+    (should (equal (rmc--add-key-description '(?n "foo"))
+                   '(?n . "[n] foo")))))
+
+(ert-deftest test-rmc--add-key-description/with-attributes ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?y "yes"))
+             `(?y . ,(concat (propertize "y" 'face 'read-multiple-choice-face) "es"))))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?n "foo"))
+             '(?n . "[n] foo")))))
+
+(ert-deftest test-rmc--add-key-description/non-graphical-display ()
+  (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) nil)))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?y "yes"))
+             '(?y . "[Y]es")))))
 
 (ert-deftest test-read-multiple-choice ()
   (dolist (char '(?y ?n))
