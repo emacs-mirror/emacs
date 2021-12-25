@@ -22,8 +22,6 @@
 
 ;;; Commentary:
 
-;;
-
 ;;; Code:
 
 (require 'ert)
@@ -45,13 +43,16 @@
              `(?y . ,(concat (propertize "y" 'face 'read-multiple-choice-face) "es"))))
     (should (equal-including-properties
              (rmc--add-key-description '(?n "foo"))
-             '(?n . "[n] foo")))))
+             `(?n . ,(concat "[" (propertize "n" 'face 'read-multiple-choice-face) "] foo"))))))
 
 (ert-deftest test-rmc--add-key-description/non-graphical-display ()
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) nil)))
     (should (equal-including-properties
              (rmc--add-key-description '(?y "yes"))
-             '(?y . "[Y]es")))))
+             '(?y . "[Y]es")))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?n "foo"))
+             '(?n . "[n] foo")))))
 
 (ert-deftest test-read-multiple-choice ()
   (dolist (char '(?y ?n))
@@ -59,7 +60,6 @@
                (str (if (eq char ?y) "yes" "no")))
       (should (equal (list char str)
                      (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
-
 
 (provide 'rmc-tests)
 ;;; rmc-tests.el ends here

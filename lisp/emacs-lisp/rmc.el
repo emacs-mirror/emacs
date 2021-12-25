@@ -28,15 +28,22 @@
 (defun rmc--add-key-description (elem)
   (let* ((name (cadr elem))
          (pos (seq-position name (car elem)))
+         (graphical-terminal
+          (display-supports-face-attributes-p
+           '(:underline t) (window-frame)))
          (altered-name
           (cond
            ;; Not in the name string.
            ((not pos)
-            (format "[%c] %s" (car elem) name))
+            (let ((ch (char-to-string (car elem))))
+              (format "[%s] %s"
+                      (if graphical-terminal
+                          (propertize ch 'face 'read-multiple-choice-face)
+                        ch)
+                      name)))
            ;; The prompt character is in the name, so highlight
            ;; it on graphical terminals.
-           ((display-supports-face-attributes-p
-             '(:underline t) (window-frame))
+           (graphical-terminal
             (setq name (copy-sequence name))
             (put-text-property pos (1+ pos)
                                'face 'read-multiple-choice-face
