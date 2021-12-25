@@ -823,7 +823,7 @@ If kbd macro currently being defined end it before activating it."
   ;; or only `mac' is provided, as a list (MAC COUNTER FORMAT).
   ;; The first is used from `insert-kbd-macro' and `edmacro-finish-edit',
   ;; while the second is used from within this file.
-  (fcr-lambda kmacro-function ((mac (if counter (list mac counter format) mac)))
+  (fcr-lambda (kmacro-function (mac (if counter (list mac counter format) mac)))
               (&optional arg)
     (interactive "p")
     (kmacro-exec-ring-item mac arg)))
@@ -842,7 +842,7 @@ If kbd macro currently being defined end it before activating it."
   (cl-typep x 'kmacro-function))
 
 (cl-defmethod cl-print-object ((object kmacro-function) stream)
-  (princ "#<kmacro " stream)
+  (princ "#f(kmacro " stream)
   (require 'macros)
   (declare-function macros--insert-vector-macro "macros" (definition))
   (pcase-let ((`(,vecdef ,counter ,format)
@@ -856,7 +856,7 @@ If kbd macro currently being defined end it before activating it."
     (prin1 counter stream)
     (princ " " stream)
     (prin1 format stream)
-    (princ ">" stream)))
+    (princ ")" stream)))
 
 (defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.

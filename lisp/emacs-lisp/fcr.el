@@ -25,21 +25,24 @@
 ;; with a notion of type (e.g. for defmethod dispatch) as well as the
 ;; ability to have some fields that are accessible from the outside.
 
-;; Here are some cases of "callable objects" where FCRs might be useful:
+;; Here are some cases of "callable objects" where FCRs are used:
 ;; - nadvice.el
-;; - iterators (generator.el), thunks (thunk.el), streams (stream.el).
 ;; - kmacros (for cl-print and for `kmacro-extract-lambda')
+;; - cl-generic: turn `cl--generic-isnot-nnm-p' into a mere type test
+;;   (by putting the no-next-methods into their own class).
+;; - FCR accessor functions, where the type-dispatch is used to
+;;   dynamically compute the docstring, and also to pretty them.
+;; Here are other cases of "callable objects" where FCRs could be used:
+;; - iterators (generator.el), thunks (thunk.el), streams (stream.el).
 ;; - PEG rules: they're currently just functions, but they should carry
 ;;   their original (macro-expanded) definition (and should be printed
 ;;   differently from functions)!
-;; - cl-generic: turn `cl--generic-isnot-nnm-p' into a mere type test
-;;   (by putting the no-next-methods into their own class).
 ;; - documented functions: this could be a subtype of normal functions, which
 ;;   simply has an additional `docstring' slot.
 ;; - commands: this could be a subtype of documented functions, which simply
 ;;   has an additional `interactive-form' slot.
-;; - auto-generate docstrings for slot accessors instead of storing them
-;;   in the accessor itself?
+;; - auto-generate docstrings for cl-defstruct slot accessors instead of
+;;   storing them in the accessor itself?
 
 ;;; Code:
 
@@ -251,17 +254,19 @@ No checking is performed,"
           (if t nil ,@(mapcar #'car bindings))
           ,@body)))))
 
-(defmacro fcr-lambda (type fields args &rest body)
+(defmacro fcr-lambda (type-and-slots args &rest body)
   "Define anonymous FCR function.
-TYPE should be an FCR type.
-FIELDS is a let-style list of bindings for the various slots of TYPE.
-ARGS is and BODY are the same as for `lambda'."
-  (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
+TYPE-AND-SLOTS should be of the form (TYPE . SLOTS)
+where TYPE is an FCR type name and
+SLOTS is a let-style list of bindings for the various slots of TYPE.
+ARGS and BODY are the same as for `lambda'."
+  (declare (indent 2) (debug ((sexp &rest (sexp form)) sexp def-body)))
   ;; FIXME: Should `fcr-defstruct' distinguish "optional" from
   ;; "mandatory" slots, and/or provide default values for slots missing
   ;; from `fields'?
   (pcase-let*
-      ((class (cl--find-class type))
+      ((`(,type . ,fields) type-and-slots)
+       (class (cl--find-class type))
        (slots (fcr--class-slots class))
        (slotbinds (mapcar (lambda (slot)
                             (list (cl--slot-descriptor-name slot)))
