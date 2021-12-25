@@ -14764,7 +14764,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->supports_xi2 = false;
   int rc;
   int major = 2;
-#ifdef XI_BarrierHit /* XInput 2.3 */
+#ifdef XI_GesturePinchBegin /* XInput 2.4 */
+  int minor = 4;
+#elif XI_BarrierHit /* XInput 2.3 */
   int minor = 3;
 #elif defined XI_TouchBegin /* XInput 2.2 */
   int minor = 2;
