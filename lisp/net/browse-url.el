@@ -701,8 +701,10 @@ interactively.  Turn the filename into a URL with function
 	  (cond ((not (buffer-modified-p)))
 		(browse-url-save-file (save-buffer))
 		(t (message "%s modified since last save" file))))))
-  (when (file-remote-p file)
-    (setq file (file-local-copy file)))
+  (when (and (file-remote-p file)
+             (not browse-url-temp-file-name))
+    (setq browse-url-temp-file-name (file-local-copy file)
+          file browse-url-temp-file-name))
   (browse-url (browse-url-file-url file))
   (run-hooks 'browse-url-of-file-hook))
 
