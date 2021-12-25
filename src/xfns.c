@@ -4506,6 +4506,27 @@ If omitted or nil, that stands for the selected frame's display.  */)
 		 VendorRelease (dpy));
 }
 
+DEFUN ("x-server-input-version", Fx_server_input_version,
+       Sx_server_input_version, 0, 1, 0,
+       doc: /* Return the version of the X Input Extension supported by TERMINAL.
+The value is nil if TERMINAL's X server doesn't support the X Input
+Extension extension, or if Emacs doesn't support the version present
+on that server.  Otherwise, the return value is a list of the the
+major and minor versions of the X Input Extension extension running on
+that server.  */)
+  (Lisp_Object terminal)
+{
+  struct x_display_info *dpyinfo = check_x_display_info (terminal);
+
+#ifdef HAVE_XINPUT2
+  return (dpyinfo->supports_xi2
+	  ? list2i (2, dpyinfo->xi2_version)
+	  : Qnil);
+#else
+  return Qnil;
+#endif
+}
+
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        doc: /* Return the number of screens on the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
@@ -8193,6 +8214,7 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
+  defsubr (&Sx_server_input_version);
   defsubr (&Sx_display_pixel_width);
   defsubr (&Sx_display_pixel_height);
   defsubr (&Sx_display_mm_width);
