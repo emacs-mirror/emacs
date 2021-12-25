@@ -2913,9 +2913,6 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
   gtk_window_set_decorated (GTK_WINDOW (tip_window), FALSE);
   gtk_window_set_type_hint (GTK_WINDOW (tip_window), GDK_WINDOW_TYPE_HINT_TOOLTIP);
   f->output_data.pgtk->current_cursor = f->output_data.pgtk->text_cursor;
-  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
-  gdk_window_set_cursor (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
-			 f->output_data.pgtk->current_cursor);
 
 #if 0
   x_make_gc (f);
@@ -3451,6 +3448,11 @@ Text larger than the specified size is clipped.  */)
   block_input ();
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (tip_f)), width, height);
   gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (tip_f)), root_x, root_y);
+  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (tip_f));
+  SET_FRAME_VISIBLE (tip_f, 1);
+  gdk_window_set_cursor (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (tip_f)),
+			 f->output_data.pgtk->current_cursor);
+
   unblock_input ();
 
   pgtk_cr_update_surface_desired_size (tip_f, width, height, false);
