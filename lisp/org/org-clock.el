@@ -1747,7 +1747,7 @@ Optional argument N tells to change by that many units."
   (org-clock-timestamps-change 'up n))
 
 (defun org-clock-timestamps-down (&optional n)
-  "Increase CLOCK timestamps at cursor.
+  "Decrease CLOCK timestamps at cursor.
 Optional argument N tells to change by that many units."
   (interactive "P")
   (org-clock-timestamps-change 'down n))
