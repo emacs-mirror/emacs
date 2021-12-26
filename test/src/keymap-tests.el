@@ -276,15 +276,11 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
     (should (equal (where-is-internal 'foo map t) [?y]))
     (should (equal (where-is-internal 'bar map t) [?y]))))
 
-(defvar keymap-tests-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "x" 'keymap-tests--command-2)
-    map))
+(defvar-keymap keymap-tests-minor-mode-map
+  "x" 'keymap-tests--command-2)
 
-(defvar keymap-tests-major-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "x" 'keymap-tests--command-1)
-    map))
+(defvar-keymap keymap-tests-major-mode-map
+  "x" 'keymap-tests--command-1)
 
 (define-minor-mode keymap-tests-minor-mode "Test.")
 

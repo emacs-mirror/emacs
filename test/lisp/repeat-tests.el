@@ -34,20 +34,16 @@
   (interactive "p")
   (push `(,arg b) repeat-tests-calls))
 
-(defvar repeat-tests-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-x w a") 'repeat-tests-call-a)
-    (define-key map (kbd "M-C-a") 'repeat-tests-call-a)
-    (define-key map (kbd "M-C-z") 'repeat-tests-call-a)
-    map)
-  "Keymap for keys that initiate repeating sequences.")
+(defvar-keymap repeat-tests-map
+  :doc "Keymap for keys that initiate repeating sequences."
+  "C-x w a" 'repeat-tests-call-a
+  "C-M-a"   'repeat-tests-call-a
+  "C-M-z"   'repeat-tests-call-a)
 
-(defvar repeat-tests-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'repeat-tests-call-a)
-    (define-key map "b" 'repeat-tests-call-b)
-    map)
-  "Keymap for repeating sequences.")
+(defvar-keymap repeat-tests-repeat-map
+  :doc "Keymap for repeating sequences."
+  "a" 'repeat-tests-call-a
+  "b" 'repeat-tests-call-b)
 (put 'repeat-tests-call-a 'repeat-map 'repeat-tests-repeat-map)
 (put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
 

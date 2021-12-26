@@ -53,22 +53,20 @@ Since `should' failures which happen inside `post-command-hook' will
 be trapped by the command loop, this preserves them until we get
 back to the top level.")
 
-(defvar edebug-tests-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "@"     'edebug-tests-call-instrumented-func)
-    (define-key map "C-u"   'universal-argument)
-    (define-key map "C-p"   'previous-line)
-    (define-key map "C-n"   'next-line)
-    (define-key map "C-b"   'backward-char)
-    (define-key map "C-a"   'move-beginning-of-line)
-    (define-key map "C-e"   'move-end-of-line)
-    (define-key map "C-k"   'kill-line)
-    (define-key map "M-x"   'execute-extended-command)
-    (define-key map "C-M-x" 'eval-defun)
-    (define-key map "C-x X b" 'edebug-set-breakpoint)
-    (define-key map "C-x X w" 'edebug-where)
-    map)
-  "Keys used by the keyboard macros in Edebug's tests.")
+(defvar-keymap edebug-tests-keymap
+  :doc "Keys used by the keyboard macros in Edebug's tests."
+  "@"       'edebug-tests-call-instrumented-func
+  "C-u"     'universal-argument
+  "C-p"     'previous-line
+  "C-n"     'next-line
+  "C-b"     'backward-char
+  "C-a"     'move-beginning-of-line
+  "C-e"     'move-end-of-line
+  "C-k"     'kill-line
+  "M-x"     'execute-extended-command
+  "C-M-x"   'eval-defun
+  "C-x X b" 'edebug-set-breakpoint
+  "C-x X w" 'edebug-where)
 
 ;;; Macros for defining tests:
 
