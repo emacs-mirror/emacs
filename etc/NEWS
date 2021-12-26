@@ -312,7 +312,6 @@ effectively dragged.
 Customize this option to limit the number of entries in the menu
 "Edit->Paste from Kill Menu".  The default is 60.
 
----
 ** Performing a pinch gesture on a touchpad now increases the text scale.
 
 ** show-paren-mode
@@ -890,8 +889,9 @@ wheel on some mice, or when the user's finger moves off the touchpad.
 
 +++
 ** New event type 'pinch'.
-This event is sent when a user peforms a two-finger pinch gesture on a
-touchpad.
+This event is sent when a user peforms a pinch gesture on a touchpad,
+which is comprised of placing two fingers on the touchpad and moving
+them towards or away from each other.
 
 ** Keymaps and key definitions
 
