@@ -3013,8 +3013,8 @@ If INTERACTIVE, prompt user for details."
               (t "config_linux"))))
            (workspace
             (expand-file-name (md5 (project-root (eglot--current-project)))
-                              (concat user-emacs-directory
-                                      "eglot-eclipse-jdt-cache"))))
+                              (locate-user-emacs-file
+                               "eglot-eclipse-jdt-cache"))))
       (unless jar
         (setq jar
               (cl-find-if #'is-the-jar
