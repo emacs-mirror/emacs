@@ -938,6 +938,10 @@ different from setting a definition to nil (when the keymap has a
 parent).
 
 +++
+*** 'read-multiple-choice' now takes an optional SHOW-HELP argument.
+If non-nil, show the help buffer immediately, before any user input.
+
++++
 *** New function 'key-valid-p'.
 The 'kbd' function is quite permissive, and will try to return
 something usable even if the syntax of the argument isn't completely
