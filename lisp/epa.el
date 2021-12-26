@@ -235,11 +235,6 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap "q" 'epa-exit-buffer)
     keymap))
 
-(defvar epa-info-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "q" 'delete-window)
-    keymap))
-
 (defvar epa-exit-buffer-function #'quit-window)
 
 (defun epa--button-key-text (key)
