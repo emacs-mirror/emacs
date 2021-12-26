@@ -3000,7 +3000,7 @@ causes it to evaluate @code{help-form} and display the result.  It
 then continues to wait for a valid input character, or keyboard-quit.
 @end defun
 
-@defun read-multiple-choice prompt choices
+@defun read-multiple-choice prompt choices &optional help-string
 Ask user a multiple choice question.  @var{prompt} should be a string
 that will be displayed as the prompt.
 
@@ -3009,6 +3009,11 @@ character to be entered, the second element is a short name for the
 entry to be displayed while prompting (if there's room, it might be
 shortened), and the third, optional entry is a longer explanation that
 will be displayed in a help buffer if the user requests more help.
+
+If optional argument @var{help-string} is non-@code{nil}, it should be
+a string with a more detailed description of all choices.  It will be
+displayed in a help buffer instead of the default auto-generated
+description when the user types @kbd{?}.
 
 The return value is the matching value from @var{choices}.
 
