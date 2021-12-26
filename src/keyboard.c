@@ -65,6 +65,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
 
 #include <ignore-value.h>
 
@@ -4037,6 +4038,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 	     and build a real event from the queue entry.  */
 	  if (NILP (obj))
 	    {
+	      double pinch_dx, pinch_dy, pinch_angle;
+
 	      /* Pinch events are often sent in rapid succession, so
 		 large amounts of such events have the potential to
 		 queue up inside the keyboard buffer.  In that case,
@@ -4048,11 +4051,16 @@ kbd_buffer_get_event (KBOARD **kbp,
 		     These events should always be sent so that we
 		     never miss a sequence starting, and they don't
 		     have the potential to queue up.  */
-		  && (XFLOAT_DATA (XCAR (event->ie.arg)) != 0.0
+		  && ((pinch_dx
+		       = XFLOAT_DATA (XCAR (event->ie.arg))) != 0.0
 		      || XFLOAT_DATA (XCAR (XCDR (event->ie.arg))) != 0.0
-		      || XFLOAT_DATA (XCAR (XCDR (XCDR (event->ie.arg)))) != 1.0))
+		      || XFLOAT_DATA (Fnth (make_fixnum (3), event->ie.arg)) != 0.0))
 		{
 		  union buffered_input_event *maybe_event = next_kbd_event (event);
+
+		  pinch_dy = XFLOAT_DATA (XCAR (XCDR (event->ie.arg)));
+		  pinch_angle = XFLOAT_DATA (Fnth (make_fixnum (3), event->ie.arg));
+
 		  while (maybe_event != kbd_store_ptr
 			 && maybe_event->ie.kind == PINCH_EVENT
 			 /* Make sure we never miss an event that has
@@ -4066,9 +4074,21 @@ kbd_buffer_get_event (KBOARD **kbp,
 			    of a new pinch gesture sequence.  */
 			 && (XFLOAT_DATA (XCAR (maybe_event->ie.arg)) != 0.0
 			     || XFLOAT_DATA (XCAR (XCDR (maybe_event->ie.arg))) != 0.0
-			     || XFLOAT_DATA (XCAR (XCDR (XCDR (maybe_event->ie.arg)))) != 1.0))
+			     || XFLOAT_DATA (Fnth (make_fixnum (3),
+						   maybe_event->ie.arg)) != 0.0))
 		    {
 		      event = maybe_event;
+		      /* Add up relative deltas inside events we skip.  */
+		      pinch_dx += XFLOAT_DATA (XCAR (maybe_event->ie.arg));
+		      pinch_dy += XFLOAT_DATA (XCAR (XCDR (maybe_event->ie.arg)));
+		      pinch_angle += XFLOAT_DATA (Fnth (make_fixnum (3),
+							maybe_event->ie.arg));
+
+		      XSETCAR (maybe_event->ie.arg, make_float (pinch_dx));
+		      XSETCAR (XCDR (maybe_event->ie.arg), make_float (pinch_dy));
+		      XSETCAR (Fnthcdr (make_fixnum (3),
+					maybe_event->ie.arg),
+			       make_float (fmod (pinch_angle, 360.0)));
 		      maybe_event = next_kbd_event (event);
 		    }
 		}
