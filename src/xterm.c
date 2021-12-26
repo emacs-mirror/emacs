@@ -11050,6 +11050,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_GesturePinchBegin:
 	  case XI_GesturePinchUpdate:
 	    {
+#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
 
@@ -11070,6 +11071,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				       make_float (pev->scale),
 				       make_float (pev->delta_angle));
 		}
+#endif
 	      /* Once again GTK seems to crash when confronted by
 		 events it doesn't understand.  */
 	      *finish = X_EVENT_DROP;
