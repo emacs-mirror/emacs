@@ -407,6 +407,21 @@ g .. h		foo
     (define-key child [?a] nil t)
     (should (eq (lookup-key child [?a]) 'foo))))
 
+(ert-deftest keymap-text-char-description ()
+  (should (equal (text-char-description ?a) "a"))
+  (should (equal (text-char-description ?\s) " "))
+  (should (equal (text-char-description ?\t) "^I"))
+  (should (equal (text-char-description ?\^C) "^C"))
+  (should (equal (text-char-description ?\^?) "^?"))
+  (should (equal (text-char-description #x80) ""))
+  (should (equal (text-char-description ?å) "å"))
+  (should (equal (text-char-description ?Ş) "Ş"))
+  (should (equal (text-char-description ?Ā) "Ā"))
+  (should-error (text-char-description "c"))
+  (should-error (text-char-description [?\C-x ?l]))
+  (should-error (text-char-description ?\M-c))
+  (should-error (text-char-description ?\s-c)))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here
