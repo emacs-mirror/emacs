@@ -380,8 +380,8 @@ variables in the Lisp expression:
 `group-age': Time in seconds since the group was last read
            (see info node `(gnus)Group Timestamp')."
   :group 'gnus-group-visual
-  :type '(repeat (cons (sexp :tag "Form") face)))
-(put 'gnus-group-highlight 'risky-local-variable t)
+  :type '(repeat (cons (sexp :tag "Form") face))
+  :risky t)
 
 (defcustom gnus-new-mail-mark ?%
   "Mark used for groups with new mail."
@@ -409,8 +409,8 @@ requires an understanding of Lisp expressions.  Hopefully this will
 change in a future release.  For now, you can use the same
 variables in the Lisp expression as in `gnus-group-highlight'."
   :group 'gnus-group-icons
-  :type '(repeat (cons (sexp :tag "Form") file)))
-(put 'gnus-group-icon-list 'risky-local-variable t)
+  :type '(repeat (cons (sexp :tag "Form") file))
+  :risky t)
 
 (defcustom gnus-group-name-charset-method-alist nil
   "Alist of method and the charset for group names.

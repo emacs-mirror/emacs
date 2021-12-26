@@ -101,9 +101,9 @@ version, you could use `autoload-coding-system' here."
   :type '(list (repeat :inline t
 		       :tag "Other options"
 		       (cons (symbol :tag "charset")
-			     (symbol :tag "form"))))
+                             (symbol :tag "form"))))
+  :risky t
   :group 'mime)
-(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-charset-override-alist)
 
