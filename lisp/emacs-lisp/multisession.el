@@ -260,7 +260,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                    (with-temp-buffer
                      (let* ((time (file-attribute-modification-time
                                    (file-attributes file)))
-                            (coding-system-for-read 'utf-8-emacs))
+                            (coding-system-for-read 'utf-8-emacs-unix))
                        (insert-file-contents file)
                        (let ((stored (read (current-buffer))))
                          (setf (multisession--cached-value object) stored
@@ -329,7 +329,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
         (error (error "Unable to store unreadable value: %s" (buffer-string))))
       ;; Write to a temp file in the same directory and rename to the
       ;; file for somewhat better atomicity.
-      (let ((coding-system-for-write 'utf-8-emacs)
+      (let ((coding-system-for-write 'utf-8-emacs-unix)
             (create-lockfiles nil)
             (temp (make-temp-name file))
             (write-region-inhibit-fsync nil))
@@ -346,7 +346,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                     (url-unhex-string
                      (file-name-sans-extension (car (last bits))))
                     (with-temp-buffer
-                      (let ((coding-system-for-read 'utf-8-emacs))
+                      (let ((coding-system-for-read 'utf-8-emacs-unix))
                         (insert-file-contents file)
                         (read (current-buffer)))))))
           (directory-files-recursively
