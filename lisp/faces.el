@@ -2963,7 +2963,7 @@ It is used for characters of no fonts too."
   :group 'basic-faces)
 
 (defface read-multiple-choice-face
-  '((t (:inherit underline
+  '((t (:inherit (help-key-binding underline)
         :weight bold)))
   "Face for the symbol name in `read-multiple-choice' output."
   :group 'basic-faces
