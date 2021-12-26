@@ -2095,7 +2095,7 @@ when the event occurred, @var{dx} is the change in the horizontal
 distance between the fingers since the last event in the same sequence,
 @var{dy} is the vertical movement of the fingers since the last event
 in the same sequence, @var{scale} is the ratio of the current distance
-between the fingers and that distance at the start of the sequence, and
+between the fingers to that distance at the start of the sequence, and
 @var{angle} is the angular difference in degrees between the direction
 of the line connecting the fingers in this event and the direction of
 that line in the last event of the same sequence.
@@ -2109,10 +2109,13 @@ All arguments after @var{position} are floating point numbers.
 This event is usually sent as part of a sequence, which begins with
 the user placing two fingers on the touchpad, and ends with the user
 removing those fingers.  @var{dx}, @var{dy}, and @var{angle} will be
-@code{0.0} in the first event sent after a sequence begins.
+@code{0.0} in the first event of a sequence; subsequent events will
+report non-zero values for these members of the event structure.
 
-@var{dx} and @var{dy} are represented in imaginary units, in which
-@code{1.0} is the width and height of the touchpad respectively.
+@var{dx} and @var{dy} are reported in imaginary relative units, in
+which @code{1.0} is the width and height of the touchpad
+respectively.  They are usually interpreted as being relative to the
+size of the object beneath the gesture: image, window, etc.
 
 @cindex @code{drag-n-drop} event
 @item (drag-n-drop @var{position} @var{files})
