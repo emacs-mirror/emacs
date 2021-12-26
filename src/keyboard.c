@@ -4037,6 +4037,42 @@ kbd_buffer_get_event (KBOARD **kbp,
 	     and build a real event from the queue entry.  */
 	  if (NILP (obj))
 	    {
+	      /* Pinch events are often sent in rapid succession, so
+		 large amounts of such events have the potential to
+		 queue up inside the keyboard buffer.  In that case,
+		 find the last pinch event in succession on the same
+		 frame with the same modifiers, and send that instead.  */
+
+	      if (event->ie.kind == PINCH_EVENT
+		  /* Ignore if this is the start of a pinch sequence.
+		     These events should always be sent so that we
+		     never miss a sequence starting, and they don't
+		     have the potential to queue up.  */
+		  && (XFLOAT_DATA (XCAR (event->ie.arg)) != 0.0
+		      || XFLOAT_DATA (XCAR (XCDR (event->ie.arg))) != 0.0
+		      || XFLOAT_DATA (XCAR (XCDR (XCDR (event->ie.arg)))) != 1.0))
+		{
+		  union buffered_input_event *maybe_event = next_kbd_event (event);
+		  while (maybe_event != kbd_store_ptr
+			 && maybe_event->ie.kind == PINCH_EVENT
+			 /* Make sure we never miss an event that has
+			    different modifiers.  */
+			 && maybe_event->ie.modifiers == event->ie.modifiers
+			 /* Make sure that the event is for the same
+			    frame.  */
+			 && EQ (maybe_event->ie.frame_or_window,
+				event->ie.frame_or_window)
+			 /* Make sure that the event isn't the start
+			    of a new pinch gesture sequence.  */
+			 && (XFLOAT_DATA (XCAR (maybe_event->ie.arg)) != 0.0
+			     || XFLOAT_DATA (XCAR (XCDR (maybe_event->ie.arg))) != 0.0
+			     || XFLOAT_DATA (XCAR (XCDR (XCDR (maybe_event->ie.arg)))) != 1.0))
+		    {
+		      event = maybe_event;
+		      maybe_event = next_kbd_event (event);
+		    }
+		}
+
 	      obj = make_lispy_event (&event->ie);
 
 #ifdef HAVE_EXT_MENU_BAR
