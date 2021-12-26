@@ -26,21 +26,23 @@
 (require 'seq)
 
 (defun rmc--add-key-description (elem)
-  (let* ((name (cadr elem))
-         (pos (seq-position name (car elem)))
+  (let* ((char (car elem))
+         (name (cadr elem))
+         (pos (seq-position name char))
+         (desc (key-description (char-to-string char)))
          (graphical-terminal
           (display-supports-face-attributes-p
            '(:underline t) (window-frame)))
          (altered-name
           (cond
-           ;; Not in the name string.
-           ((not pos)
-            (let ((ch (char-to-string (car elem))))
-              (format "[%s] %s"
-                      (if graphical-terminal
-                          (propertize ch 'face 'read-multiple-choice-face)
-                        ch)
-                      name)))
+           ;; Not in the name string, or a special character.
+           ((or (not pos)
+                (member desc '("ESC" "TAB" "RET" "DEL" "SPC")))
+            (format "[%s] %s"
+                    (if graphical-terminal
+                        (propertize desc 'face 'read-multiple-choice-face)
+                      desc)
+                    name))
            ;; The prompt character is in the name, so highlight
            ;; it on graphical terminals.
            (graphical-terminal
@@ -57,7 +59,7 @@
              (upcase (substring name pos (1+ pos)))
              "]"
              (substring name (1+ pos)))))))
-    (cons (car elem) altered-name)))
+    (cons char altered-name)))
 
 (defun rmc--show-help (prompt help-string show-help choices altered-names)
   (let* ((buf-name (if (stringp show-help)

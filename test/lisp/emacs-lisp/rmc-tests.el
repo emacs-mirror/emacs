@@ -34,7 +34,9 @@
     (should (equal (rmc--add-key-description '(?y "yes"))
                    '(?y . "yes")))
     (should (equal (rmc--add-key-description '(?n "foo"))
-                   '(?n . "[n] foo")))))
+                   '(?n . "[n] foo")))
+    (should (equal (rmc--add-key-description '(?\s "foo bar"))
+                   `(?\s . "[SPC] foo bar")))))
 
 (ert-deftest test-rmc--add-key-description/with-attributes ()
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
@@ -43,7 +45,10 @@
              `(?y . ,(concat (propertize "y" 'face 'read-multiple-choice-face) "es"))))
     (should (equal-including-properties
              (rmc--add-key-description '(?n "foo"))
-             `(?n . ,(concat "[" (propertize "n" 'face 'read-multiple-choice-face) "] foo"))))))
+             `(?n . ,(concat "[" (propertize "n" 'face 'read-multiple-choice-face) "] foo"))))
+    (should (equal-including-properties
+             (rmc--add-key-description '(?\s "foo bar"))
+             `(?\s . ,(concat "[" (propertize "SPC" 'face 'read-multiple-choice-face) "] foo bar"))))))
 
 (ert-deftest test-rmc--add-key-description/non-graphical-display ()
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) nil)))
