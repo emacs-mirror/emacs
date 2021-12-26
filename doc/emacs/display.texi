@@ -903,6 +903,20 @@ prefix argument.
 @code{text-scale-mode} if the current font scaling is other than 1,
 and disable it otherwise.
 
+@cindex pinch to scale
+@findex text-scale-pinch
+  The command @code{text-scale-pinch} increases or decreases the text
+scale based on the distance between fingers on a touchpad when a pinch
+gesture is performed by placing two fingers on a touchpad and moving
+them towards or apart from each other.  This is only available on some
+systems with supported hardware.
+
+@findex mouse-wheel-text-scale
+  The command @code{mouse-wheel-text-scale} also changes the text
+scale.  Normally, it is run when you press @key{Ctrl} while moving the
+mouse wheel.  The text scale is increased when the wheel is moved
+downwards, and it is decreased when the wheel is moved upwards.
+
 @node Font Lock
 @section Font Lock mode
 @cindex Font Lock mode
