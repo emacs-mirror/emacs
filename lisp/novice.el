@@ -43,70 +43,65 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 ;; because we won't get called otherwise.
 ;;;###autoload
 (defun disabled-command-function (&optional cmd keys)
-  (unless cmd (setq cmd this-command))
-  (unless keys (setq keys (this-command-keys)))
-  (let (char)
-    (save-window-excursion
-      (with-output-to-temp-buffer "*Disabled Command*" ;; (help-buffer)
-	 (if (or (eq (aref keys 0)
-		     (if (stringp keys)
-			 (aref "\M-x" 0)
-		       ?\M-x))
-		 (and (>= (length keys) 2)
-		      (eq (aref keys 0) meta-prefix-char)
-		      (eq (aref keys 1) ?x)))
-	    (princ (format "You have invoked the disabled command %s.\n" cmd))
-	   (princ (format "You have typed %s, invoking disabled command %s.\n"
-			 (key-description keys) cmd)))
-       ;; Print any special message saying why the command is disabled.
-	(if (stringp (get cmd 'disabled))
-	    (princ (get cmd 'disabled))
-	 (princ "It is disabled because new users often find it confusing.\n")
-	 (princ (substitute-command-keys
-		 "Here's the first part of its description:\n\n"))
-	 ;; Keep only the first paragraph of the documentation.
-          (with-current-buffer "*Disabled Command*" ;; standard-output
-	   (goto-char (point-max))
-	   (let ((start (point)))
-	     (save-excursion
-	       (princ (or (condition-case ()
-			       (documentation cmd)
-			    (error nil))
-			  "<< not documented >>")))
-	     (if (search-forward "\n\n" nil t)
-		 (delete-region (match-beginning 0) (point-max)))
-	     (goto-char (point-max))
-	     (indent-rigidly start (point) 3))))
-       (princ "\n\nDo you want to use this command anyway?\n\n")
-       (princ (substitute-command-keys "You can now type
-y   to try it and enable it (no questions if you use it again).
-n   to cancel--don't try the command, and it remains disabled.
-SPC to try the command just this once, but leave it disabled.
-!   to try it, and enable all disabled commands for this session only."))
-        ;; Redundant since with-output-to-temp-buffer will do it anyway.
-        ;; (with-current-buffer standard-output
-        ;;   (help-mode))
-        )
-     (fit-window-to-buffer (get-buffer-window "*Disabled Command*"))
-     (let ((cursor-in-echo-area t))
-       (while (progn (setq char (read-event
-                                 "Type y, n, ! or SPC (the space bar): "))
-		     (or (not (numberp char))
-			 (not (memq (downcase char)
-				    '(?! ?y ?n ?\s ?\C-g)))))
-	 (ding))))
-    (setq char (downcase char))
+  (let* ((cmd (or cmd this-command))
+         (keys (or keys (this-command-keys)))
+         (help-string
+          (concat
+           (if (or (eq (aref keys 0)
+                       (if (stringp keys)
+                           (aref "\M-x" 0)
+                         ?\M-x))
+                   (and (>= (length keys) 2)
+                        (eq (aref keys 0) meta-prefix-char)
+                        (eq (aref keys 1) ?x)))
+               (format "You have invoked the disabled command %s.\n" cmd)
+             (substitute-command-keys
+              (format "You have typed \\`%s', invoking disabled command %s.\n"
+                      (key-description keys) cmd)))
+           ;; Any special message saying why the command is disabled.
+           (if (stringp (get cmd 'disabled))
+               (get cmd 'disabled)
+             (concat
+              "It is disabled because new users often find it confusing.\n"
+              (substitute-command-keys
+               "Here's the first part of its description:\n\n")
+              ;; Keep only the first paragraph of the documentation.
+              (with-temp-buffer
+                (insert (condition-case ()
+                            (documentation cmd)
+                          (error "<< not documented >>")))
+                (goto-char (point-min))
+                (when (search-forward "\n\n" nil t)
+                  (delete-region (match-beginning 0) (point-max)))
+                (indent-rigidly (point-min) (point-max) 3)
+                (buffer-string))))
+           (substitute-command-keys "\n
+Do you want to use this command anyway?
+
+You can now type:
+ \\`y'    to try it and enable it (no questions if you use it again).
+ \\`n'    to cancel--don't try the command, and it remains disabled.
+ \\`SPC'  to try the command just this once, but leave it disabled.
+ \\`!'    to try it, and enable all disabled commands for this session only.")))
+         (char
+          (car (read-multiple-choice "Use this command?"
+                                     '((?y "yes")
+                                       (?n "no")
+                                       (?! "yes; enable for session")
+                                       (?\s "yes; once"))
+                                     help-string
+                                     "*Disabled Command*"))))
     (pcase char
-     (?\C-g (setq quit-flag t))
-     (?! (setq disabled-command-function nil))
-     (?y
-	(if (and user-init-file
-		 (not (string= "" user-init-file))
-		 (y-or-n-p "Enable command for future editing sessions also? "))
-	  (enable-command cmd)
-	(put cmd 'disabled nil))))
-    (or (char-equal char ?n)
-        (call-interactively cmd))))
+      (?\C-g (setq quit-flag t))
+      (?! (setq disabled-command-function nil))
+      (?y
+       (if (and user-init-file
+                (not (string= "" user-init-file))
+                (y-or-n-p "Enable command for future editing sessions also? "))
+           (enable-command cmd)
+         (put cmd 'disabled nil))))
+    (unless (char-equal char ?n)
+      (call-interactively cmd))))
 
 (defun en/disable-command (command disable)
   (unless (commandp command)
