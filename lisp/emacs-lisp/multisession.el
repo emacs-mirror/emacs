@@ -260,16 +260,19 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                    (with-temp-buffer
                      (let* ((time (file-attribute-modification-time
                                    (file-attributes file)))
-                            (coding-system-for-read 'utf-8))
+                            (coding-system-for-read 'utf-8-emacs))
                        (insert-file-contents file)
                        (let ((stored (read (current-buffer))))
                          (setf (multisession--cached-value object) stored
                                (multisession--cached-sequence object) time)
                          stored))))
           ;; Windows uses OS-level file locking that may preclude
-          ;; reading the file in some circumstances.  So when that
-          ;; happens, wait a bit and try again.
-          (permission-denied
+          ;; reading the file in some circumstances.  In addition,
+          ;; rename-file is not an atomic operation on MS-Windows,
+          ;; when the target file already exists, so there could be a
+          ;; small race window when the file to read doesn't yet
+          ;; exist.  So when these problems happen, wait a bit and retry.
+          ((permission-denied file-missing)
            (setq i (1+ i)
                  last-error err)
            (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
@@ -326,7 +329,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
         (error (error "Unable to store unreadable value: %s" (buffer-string))))
       ;; Write to a temp file in the same directory and rename to the
       ;; file for somewhat better atomicity.
-      (let ((coding-system-for-write 'utf-8)
+      (let ((coding-system-for-write 'utf-8-emacs)
             (create-lockfiles nil)
             (temp (make-temp-name file))
             (write-region-inhibit-fsync nil))
@@ -343,7 +346,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
                     (url-unhex-string
                      (file-name-sans-extension (car (last bits))))
                     (with-temp-buffer
-                      (let ((coding-system-for-read 'utf-8))
+                      (let ((coding-system-for-read 'utf-8-emacs))
                         (insert-file-contents file)
                         (read (current-buffer)))))))
           (directory-files-recursively
