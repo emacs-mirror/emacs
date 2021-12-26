@@ -2961,6 +2961,14 @@ setup_xi_event_mask (struct frame *f)
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
+#ifdef XI_GesturePinchBegin
+      if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
+	{
+	  XISetMask (m, XI_GesturePinchBegin);
+	  XISetMask (m, XI_GesturePinchUpdate);
+	  XISetMask (m, XI_GesturePinchEnd);
+	}
+#endif
     }
 #endif
   XISelectEvents (FRAME_X_DISPLAY (f),

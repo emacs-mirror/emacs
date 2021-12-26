@@ -4466,6 +4466,7 @@ static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
 static Lisp_Object wheel_syms;
 static Lisp_Object drag_n_drop_syms;
+static Lisp_Object pinch_syms;
 
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
@@ -6030,6 +6031,22 @@ make_lispy_event (struct input_event *event)
 		       ? Qtouchscreen_begin
 		       : Qtouchscreen_end),
 		      Fcons (id, position));
+      }
+
+    case PINCH_EVENT:
+      {
+	Lisp_Object x, y, position;
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	x = event->x;
+	y = event->y;
+
+	position = make_lispy_position (f, x, y, event->timestamp);
+
+	return Fcons (modify_event_symbol (0, event->modifiers, Qpinch,
+					   Qnil, (const char *[]) {"pinch"},
+					   &pinch_syms, 1),
+		      Fcons (position, event->arg));
       }
 
     case TOUCHSCREEN_UPDATE_EVENT:
@@ -11970,6 +11987,9 @@ syms_of_keyboard (void)
   drag_n_drop_syms = Qnil;
   staticpro (&drag_n_drop_syms);
 
+  pinch_syms = Qnil;
+  staticpro (&pinch_syms);
+
   unread_switch_frame = Qnil;
   staticpro (&unread_switch_frame);
 
@@ -12309,6 +12329,7 @@ See also `pre-command-hook'.  */);
   DEFSYM (Qtouchscreen_begin, "touchscreen-begin");
   DEFSYM (Qtouchscreen_end, "touchscreen-end");
   DEFSYM (Qtouchscreen_update, "touchscreen-update");
+  DEFSYM (Qpinch, "pinch");
   Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,

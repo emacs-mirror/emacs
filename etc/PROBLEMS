@@ -1681,6 +1681,18 @@ This happens on the proprietary X server ASTEC-X when the number of
 monitors is changed after the server has started.  A workaround is to
 restart the X server after the monitor configuration has been changed.
 
+*** Touchpad gestures don't work and emit warning messages.
+
+When pinching or swiping on your touchpad, you might see a warning
+message that looks like:
+
+  XInputWireToCookie: Unknown generic event. type 28
+
+This happens when your XInput headers support XInput 2.4, but the
+actual version of libXi installed does not.  The solution is to
+upgrade your libXi binaries to libXi 1.8.0 or later, to correspond
+with your XInput headers.
+
 * Runtime problems on character terminals
 
 *** With X forwarding, mouse highlighting can make Emacs slow.

@@ -293,6 +293,21 @@ enum event_kind
   , TOUCHSCREEN_UPDATE_EVENT
   , TOUCHSCREEN_BEGIN_EVENT
   , TOUCHSCREEN_END_EVENT
+
+  /* In a PINCH_EVENT, X and Y are the position of the pointer
+     relative to the top-left corner of the frame, and arg is a list
+     of (DX DY SCALE ANGLE), in which:
+
+       - DX and DY are the difference between the positions of the
+         fingers comprising the current gesture and the last such
+         gesture in the same sequence.
+       - SCALE is the division of the current distance between the
+         fingers and the distance at the start of the gesture.
+       - DELTA-ANGLE is the delta between the angle of the current
+         event and the last event in the same sequence, in degrees.  A
+         positive delta represents a change clockwise, and a negative
+         delta represents a change counter-clockwise.  */
+  , PINCH_EVENT
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

@@ -11045,6 +11045,39 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      goto XI_OTHER;
 	    }
 #endif
+#ifdef XI_GesturePinchBegin
+	  case XI_GesturePinchBegin:
+	  case XI_GesturePinchUpdate:
+	    {
+	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
+	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
+
+	      if (!device || !device->master_p)
+		goto XI_OTHER;
+
+	      any = x_any_window_to_frame (dpyinfo, pev->event);
+	      if (any)
+		{
+		  inev.ie.kind = PINCH_EVENT;
+		  inev.ie.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (any),
+							      pev->mods.effective);
+		  XSETINT (inev.ie.x, lrint (pev->event_x));
+		  XSETINT (inev.ie.y, lrint (pev->event_y));
+		  XSETFRAME (inev.ie.frame_or_window, any);
+		  inev.ie.arg = list4 (make_float (pev->delta_x),
+				       make_float (pev->delta_y),
+				       make_float (pev->scale),
+				       make_float (pev->delta_angle));
+		}
+	      /* Once again GTK seems to crash when confronted by
+		 events it doesn't understand.  */
+	      *finish = X_EVENT_DROP;
+	      goto XI_OTHER;
+	    }
+	  case XI_GesturePinchEnd:
+	    *finish = X_EVENT_DROP;
+	    goto XI_OTHER;
+#endif
 	  default:
 	    goto XI_OTHER;
 	  }
