@@ -6549,10 +6549,10 @@ not a list, return a one-element list containing OBJECT."
   form)
 
 (defun define-keymap (&rest definitions)
-  "Create a new keymap and define KEY/DEFEFINITION pairs as key sequences.
+  "Create a new keymap and define KEY/DEFINITION pairs as key sequences.
 The new keymap is returned.
 
-Options can be given as keywords before the KEY/DEFEFINITION
+Options can be given as keywords before the KEY/DEFINITION
 pairs.  Available keywords are:
 
 :full      If non-nil, create a chartable alist (see `make-keymap').
