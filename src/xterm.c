@@ -638,7 +638,7 @@ xi_grab_or_ungrab_device (struct xi_device_t *device,
   XISetMask (m, XI_Leave);
 
   if (device->grab
-#ifdef USE_MOTIF
+#if defined USE_MOTIF || defined USE_LUCID
       && !popup_activated ()
 #endif
       )
