@@ -958,7 +958,7 @@ The example for Makefiles looks like this:
   ((buildfile :initform "Makefile"))
   "Generic Project for makefiles.")
 
-(defmethod ede-generic-setup-configuration ((proj ede-generic-makefile-project) config)
+(cl-defmethod ede-generic-setup-configuration ((proj ede-generic-makefile-project) config)
   "Set up a configuration for Make."
   (oset config build-command "make -k")
   (oset config debug-command "gdb "))

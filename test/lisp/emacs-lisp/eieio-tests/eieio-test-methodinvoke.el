@@ -55,6 +55,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'eieio-compat)
 (require 'ert)
 
 (defvar eieio-test-method-order-list nil

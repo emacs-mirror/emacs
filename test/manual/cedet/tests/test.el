@@ -63,11 +63,11 @@
 
 ;;; Methods
 ;;
-(defmethod a-method ((obj some-class) &optional arg2)
+(cl-defmethod a-method ((obj some-class) &optional arg2)
   "Doc String for a method."
   (call-next-method))
 
-(defgeneric a-generic (arg1 arg2)
+(cl-defgeneric a-generic (arg1 arg2)
   "General description of a-generic.")
 
 ;;; Advice

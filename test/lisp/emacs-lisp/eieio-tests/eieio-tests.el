@@ -27,6 +27,7 @@
 (require 'ert)
 (require 'eieio)
 (require 'eieio-base)
+(require 'eieio-compat)
 (require 'eieio-opt)
 
 (eval-when-compile (require 'cl-lib))
