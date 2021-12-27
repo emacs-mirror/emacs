@@ -370,6 +370,10 @@ items should not live longer than Emacs.  The session collection can
 be specified either by the string @code{"session"}, or by @code{nil},
 whenever a collection parameter is needed in the following functions.
 
+However, not all Secret Service provider create this temporary
+@code{"session"} collection, like KeePassXC.  You shall check first
+that this collection exists, before you use it.
+
 @defun secrets-list-items collection
 Returns all the item labels of @var{collection} as a list.
 @end defun
@@ -382,7 +386,7 @@ pairs set for the created item.  The keys are keyword symbols,
 starting with a colon.  Example:
 
 @example
-;;; The session is "session", the label is "my item"
+;;; The collection is "session", the label is "my item"
 ;;; and the secret (password) is "geheim".
 (secrets-create-item "session" "my item" "geheim"
  :method "sudo" :user "joe" :host "remote-host")

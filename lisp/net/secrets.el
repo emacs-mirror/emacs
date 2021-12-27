@@ -263,6 +263,7 @@ It returns t if not."
 ;;   </signal>
 ;; </interface>
 
+;; This is not guaranteed to exist.  For example, KeePassXC does not offer this.
 (defconst secrets-session-collection-path
   "/org/freedesktop/secrets/collection/session"
   "The D-Bus temporary session collection object path.")
@@ -311,43 +312,8 @@ It returns t if not."
 (defconst secrets-interface-item-type-generic "org.freedesktop.Secret.Generic"
   "The default item type we are using.")
 
-;; We cannot use introspection, because some servers, like
-;; mate-keyring-daemon, don't provide relevant data.  Once the dust
-;; has settled, we shall assume the new interface, and get rid of the test.
-(defconst secrets-struct-secret-content-type
-  (ignore-errors
-    (let ((content-type "text/plain")
-	  (path (cadr
-		 (dbus-call-method
-		  :session secrets-service secrets-path
-		  secrets-interface-service
-		  "OpenSession" "plain" '(:variant ""))))
-	  result)
-      ;; Create a dummy item.
-      (setq result
-	    (dbus-call-method
-	     :session secrets-service secrets-session-collection-path
-	     secrets-interface-collection "CreateItem"
-	     ;; Properties.
-	     `(:array
-	       (:dict-entry ,(concat secrets-interface-item ".Label")
-			    (:variant " ")))
-	     ;; Secret.
-	     `(:struct :object-path ,path
-		       (:array :signature "y")
-		       ,(dbus-string-to-byte-array " ")
-		       :string ,content-type)
-	     ;; Don't replace.
-	     nil))
-      ;; Remove it.
-      (dbus-call-method
-       :session secrets-service (car result)
-       secrets-interface-item "Delete")
-      ;; Result.
-      `(,content-type)))
-  "The content_type of a secret struct.
-It must be wrapped as list, because we add it via `append'.  This
-is an interface introduced in 2011.")
+(defconst secrets-struct-secret-content-type "text/plain"
+  "The content_type of a secret struct.")
 
 (defconst secrets-interface-session "org.freedesktop.Secret.Session"
   "A session tracks state between the service and a client application.")
@@ -696,13 +662,10 @@ The object path of the created item is returned."
 		`((:dict-entry ,(concat secrets-interface-item ".Attributes")
 			       (:variant ,(append '(:array) props))))))
 	     ;; Secret.
-	     (append
-	      `(:struct :object-path ,secrets-session-path
-			(:array :signature "y") ;; No parameters.
-			,(dbus-string-to-byte-array password))
-	      ;; We add the content_type.  In backward compatibility
-	      ;; mode, nil is appended, which means nothing.
-	      secrets-struct-secret-content-type)
+	     `(:struct :object-path ,secrets-session-path
+		       (:array :signature "y") ;; No parameters.
+		       ,(dbus-string-to-byte-array password)
+                       ,secrets-struct-secret-content-type)
 	     ;; Do not replace. Replace does not seem to work.
 	     nil))
       (secrets-prompt (cadr result))
