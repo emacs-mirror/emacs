@@ -349,7 +349,8 @@ received.
 
 ** Isearch and Replace
 
-*** New user option 'char-fold-override' omits the default character-folding.
++++
+*** New user option 'char-fold-override' disables default character equivalences.
 
 ** New minor mode 'glyphless-display-mode'.
 This allows an easy way to toggle seeing all glyphless characters in

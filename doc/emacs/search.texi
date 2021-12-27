@@ -1448,9 +1448,13 @@ letter @code{a} as well as all the other variants like @code{@'a}.
 
 @vindex char-fold-include
 @vindex char-fold-exclude
+@vindex char-fold-override
   You can add new foldings using the customizable variable
 @code{char-fold-include}, or remove the existing ones using the
-customizable variable @code{char-fold-exclude}.
+customizable variable @code{char-fold-exclude}.  Also you can
+customize @code{char-fold-override} to @code{t} to disable default
+character equivalences, so you can add only your own equivalences
+using @code{char-fold-include}.
 
 @node Replace
 @section Replacement Commands
