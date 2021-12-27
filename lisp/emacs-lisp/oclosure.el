@@ -43,6 +43,15 @@
 ;;   has an additional `interactive-form' slot.
 ;; - auto-generate docstrings for cl-defstruct slot accessors instead of
 ;;   storing them in the accessor itself?
+;; - SRFI-17's `setter'.
+;; - coercion wrappers, as in "Threesomes, with and without blame"
+;;   https://dl.acm.org/doi/10.1145/1706299.1706342, or
+;;   "On the Runtime Complexity of Type-Directed Unboxing"
+;;   http://sv.c.titech.ac.jp/minamide/papers.html
+;; - An efficient `negate' operation such that
+;;   (negate f) generally returns (lambda (x) (not (f x)))
+;;   but it can optimize (negate (negate f)) to f and (negate #'<) to
+;;   #'>=.
 
 ;; Related constructs:
 ;; - `funcallable-standard-object' (FSO) in Common-Lisp.  These are different
@@ -72,6 +81,19 @@
 ;;   additional argument (a kind of "self" arg), thus making it easier
 ;;   for the code to get data from the object's extra info, tho still
 ;;   not as easy as with OClosures.
+;; - "entities" in Lisp Machine Lisp (LML)
+;;   https://hanshuebner.github.io/lmman/fd-clo.xml
+;;   These are arguably identical to OClosures, modulo the fact that LML doesn't
+;;   have lexically-scoped closures and uses a form of closures based on
+;;   capturing (and reinstating) dynamically scoped bindings instead.
+
+;; Naming: to replace "OClosure" we could go with
+;; - open closures
+;; - disclosures
+;; - opening
+;; - object functions/closures
+;; - structured functions/closures (strunctions, strufs)
+;; - slotfuns (slotted functions)
 
 ;;; Code:
 
