@@ -680,10 +680,10 @@ wheel."
 
 (defun pixel-scroll-kinetic-state ()
   "Return the kinetic scroll state of the current window.
-It is a vector of the form [ VELOCITY TIME ]."
+It is a vector of the form [ VELOCITY TIME SIGN ]."
   (or (window-parameter nil 'kinetic-state)
       (set-window-parameter nil 'kinetic-state
-                            (vector (make-ring 10) nil))))
+                            (vector (make-ring 10) nil nil))))
 
 (defun pixel-scroll-accumulate-velocity (delta)
   "Accumulate DELTA into the current window's kinetic scroll state."
@@ -693,9 +693,9 @@ It is a vector of the form [ VELOCITY TIME ]."
     (when (or (and time (> (- (float-time) time) 0.5))
               (and (not (ring-empty-p ring))
                    (not (eq (< delta 0)
-                            (< (cdr (ring-ref ring 0))
-                               0)))))
+                            (aref state 2)))))
       (aset state 0 (make-ring 10)))
+    (aset state 2 (< delta 0))
     (ring-insert (aref state 0)
                  (cons (aset state 1 (float-time))
                        delta))))
