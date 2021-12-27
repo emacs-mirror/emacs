@@ -382,7 +382,7 @@ to writing a completion function."
                       (setq val (number-to-string val)))
                      ;; expand .../ etc that only eshell understands to
                      ;; standard ../../
-                     ((string-match "\\.\\.\\.+/" val)
+                     ((and (stringp val)) (string-match "\\.\\.\\.+/" val)
                       (setq val (eshell-expand-multiple-dots val))))
                (or val "")))
 	   args)
