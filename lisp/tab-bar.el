@@ -1884,6 +1884,10 @@ This navigates forward in the history of window configurations."
             (goto-char wc-point)))
       (message "No more tab forward history"))))
 
+(defvar-keymap tab-bar-history-mode-map
+  "C-c <left>"  #'tab-bar-history-back
+  "C-c <right>" #'tab-bar-history-forward)
+
 (define-minor-mode tab-bar-history-mode
   "Toggle tab history mode for the tab bar.
 Tab history mode remembers window configurations used in every tab,
