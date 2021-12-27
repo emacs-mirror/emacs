@@ -41,7 +41,7 @@
             (format "%s %s"
                     (if graphical-terminal
                         (propertize desc 'face 'read-multiple-choice-face)
-                      (propertize desc 'face 'help-key-name))
+                      (propertize desc 'face 'help-key-binding))
                     name))
            ;; The prompt character is in the name, so highlight
            ;; it on graphical terminals.
