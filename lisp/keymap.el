@@ -38,7 +38,7 @@
       (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
 
 (defun keymap-set (keymap key definition)
-  "Set key sequence KEY to DEFINITION in KEYMAP.
+  "Set KEY to DEFINITION in KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
 
 DEFINITION is anything that can be a key's definition:
@@ -295,9 +295,9 @@ See `kbd' for a descripion of KEYS."
         res))))
 
 (defun key-valid-p (keys)
-  "Say whether KEYS is a valid `kbd' sequence.
-A `kbd' sequence is a string consisting of one and more key
-strokes.  The key strokes are separated by a space character.
+  "Say whether KEYS is a valid key.
+A key is a string consisting of one or more key strokes.
+The key strokes are separated by a space character.
 
 Each key stroke is either a single character, or the name of an
 event, surrounded by angle brackets.  In addition, any key stroke
