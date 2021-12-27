@@ -3300,13 +3300,16 @@ Called as a buffer-local `post-command-hook' function in
 `term-char-mode' to prevent commands from putting the buffer into
 an inconsistent state by unexpectedly moving point.
 
-Mouse events are ignored so that mouse selection is unimpeded.
+Mouse and wheel events are ignored so that mouse selection and
+mouse wheel scrolling is unimpeded.
 
 Only acts when the pre-command position of point was equal to the
 process mark, and the `term-char-mode-point-at-process-mark'
 option is enabled.  See `term-set-goto-process-mark'."
   (when term-goto-process-mark
-    (unless (mouse-event-p last-command-event)
+    (unless (or (mouse-event-p last-command-event)
+                (memq (event-basic-type last-command-event)
+                      '(wheel-down wheel-up)))
       (goto-char (term-process-mark)))))
 
 (defun term-process-mark ()
