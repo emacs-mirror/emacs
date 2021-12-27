@@ -88,7 +88,7 @@ You can now type:
                                      '((?y "yes")
                                        (?n "no")
                                        (?! "yes; enable for session")
-                                       (?\s "yes; once"))
+                                       (?\s "(space bar) yes; once"))
                                      help-string
                                      "*Disabled Command*"))))
     (pcase char
