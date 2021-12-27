@@ -651,7 +651,8 @@ with a prefix argument, prompt for START-AT and FORMAT."
 (define-minor-mode rectangle-mark-mode
   "Toggle the region as rectangular.
 
-Activates the region if needed.  Only lasts until the region is deactivated."
+Activates the region if it's inactive and Transient Mark mode is
+on.  Only lasts until the region is next deactivated."
   :lighter nil
   (rectangle--reset-crutches)
   (when rectangle-mark-mode
