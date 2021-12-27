@@ -88,6 +88,9 @@ Optional argument DATE is the release date, default today."
     (kill-buffer)
     (message "No need to update `%s'" file)))
 
+(defvar admin-git-command (executable-find "git")
+  "The `git' program to use.")
+
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -96,6 +99,8 @@ Root must be the root of an Emacs source tree."
 		(read-string "Version number: " emacs-version)))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (unless admin-git-command
+    (user-error "Could not find git; please install git and move NEWS manually"))
   (message "Setting version numbers...")
   ;; There's also a "version 3" (standing for GPLv3) at the end of
   ;; `README', but since `set-version-in-file' only replaces the first
@@ -157,7 +162,13 @@ Root must be the root of an Emacs source tree."
 Documentation changes might not have been completed!"))))
     (when (and majorbump
                (not (file-exists-p oldnewsfile)))
-      (rename-file newsfile oldnewsfile)
+      (call-process admin-git-command nil nil nil
+                    "mv" newsfile oldnewsfile)
+      (when (y-or-n-p "Commit move of NEWS file?")
+        (call-process admin-git-command nil nil nil
+                      "commit" "-m" (format "; Move etc/%s to etc/%s"
+                                            (file-name-nondirectory newsfile)
+                                            (file-name-nondirectory oldnewsfile))))
       (find-file oldnewsfile)           ; to prompt you to commit it
       (copy-file oldnewsfile newsfile)
       (with-temp-buffer
