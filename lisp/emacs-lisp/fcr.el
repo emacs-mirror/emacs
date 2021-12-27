@@ -44,6 +44,35 @@
 ;; - auto-generate docstrings for cl-defstruct slot accessors instead of
 ;;   storing them in the accessor itself?
 
+;; Related constructs:
+;; - `funcallable-standard-object' (FSO) in Common-Lisp.  These are different
+;;   from FCRs in that they involve an additional indirection to get
+;;   to the actual code, and that they offer the possibility of
+;;   changing (via mutation) the code associated with
+;;   an FSO.  Also the FSO's function can't directly access the FSO's
+;;   other fields, contrary to the case with FCRs where those are directly
+;;   available as local variables.
+;; - Function objects in Javascript.
+;; - Function objects in Python.
+;; - Callable/Applicable classes in OO languages, i.e. classes with
+;;   a single method called `apply' or `call'.  The most obvious
+;;   difference with FCRs (beside the fact that Callable can be
+;;   extended with additional methods) is that all instances of
+;;   a given Callable class have to use the same method, whereas every
+;;   FCR object comes with its own code, so two FCR objects of the
+;;   same type can have different code.  Of course, you can get the
+;;   same result by turning every `fcr-lambda' into its own class
+;;   declaration creating an ad-hoc subclass of the specified type.
+;;   In this sense, FCRs are just a generalization of `lambda' which brings
+;;   some of the extra feature of Callable objects.
+;; - Apply hooks and "entities" in MIT Scheme
+;;   https://www.gnu.org/software/mit-scheme/documentation/stable/mit-scheme-ref/Application-Hooks.html
+;;   Apply hooks are basically the same as Common-Lisp's FSOs, and "entities"
+;;   are a variant of it where the inner function gets the FSO itself as
+;;   additional argument (a kind of "self" arg), thus making it easier
+;;   for the code to get data from the object's extra info, tho still
+;;   not as easy as with FCRs.
+
 ;;; Code:
 
 ;; Slots are currently immutable, tho they can be updated functionally
@@ -54,7 +83,7 @@
 ;;   to perform store-conversion on the variable, so we'd either have
 ;;   to prevent cconv from doing it (which might require a new bytecode op
 ;;   to update the in-closure variable), or we'd have to keep track of which
-;;   slots have been store-converted so `fcr-get' can access their value
+;;   slots have been store-converted so `fcr--get' can access their value
 ;;   correctly.
 ;; - If the mutated variable/slot is captured by another (nested) closure
 ;;   store-conversion is indispensable, so if we want to avoid store-conversion
@@ -86,34 +115,58 @@
       (memq 'fcr-object (fcr--class-allparents (cl--find-class type))))))
 (cl-deftype fcr-object () '(satisfies fcr--object-p))
 
-(defun fcr--defstruct-make-copiers (copiers slots name)
-  (require 'cl-macs)                    ;`cl--arglist-args' is not autoloaded.
-  (mapcar
-   (lambda (copier)
-     (pcase-let*
-         ((cname (pop copier))
-          (args (or (pop copier) `(&key ,@slots)))
-          (doc (or (pop copier)
-                   (format "Copier for objects of type `%s'." name)))
-          (obj (make-symbol "obj"))
-          (absent (make-symbol "absent"))
-          (anames (cl--arglist-args args))
-          (index -1)
-          (argvals
-           (mapcar
-	    (lambda (slot)
-	      (setq index (1+ index))
-	      (when (memq slot anames)
-		;; FIXME: Skip the `unless' test for mandatory args.
-		`(if (eq ',absent ,slot)
-		     (fcr-get ,obj ,index)
-		   ,slot)))
-	    slots)))
-       `(cl-defsubst ,cname (&cl-defs (',absent) ,obj ,@args)
-          ,doc
-          (declare (side-effect-free t))
-          (fcr--copy ,obj ,@argvals))))
-   copiers))
+(defun fcr--defstruct-make-copiers (copiers slotdescs name)
+  (require 'cl-macs)            ;`cl--arglist-args' is not autoloaded.
+  (let* ((mutables '())
+         (slots (mapcar
+                 (lambda (desc)
+	           (let ((name (cl--slot-descriptor-name desc)))
+	             (unless (alist-get :read-only
+	                                (cl--slot-descriptor-props desc))
+	               (push name mutables))
+	             name))
+	         slotdescs)))
+    (mapcar
+     (lambda (copier)
+       (pcase-let*
+           ((cname (pop copier))
+            (args (or (pop copier) `(&key ,@slots)))
+            (doc (or (pop copier)
+                     (format "Copier for objects of type `%s'." name)))
+            (obj (make-symbol "obj"))
+            (absent (make-symbol "absent"))
+            (anames (cl--arglist-args args))
+            (mnames
+             (let ((res '())
+                   (tmp args))
+               (while (and tmp
+                           (not (memq (car tmp)
+                                      cl--lambda-list-keywords)))
+                 (push (pop tmp) res))
+               res))
+            (index -1)
+            (mutlist '())
+            (argvals
+             (mapcar
+	      (lambda (slot)
+	        (setq index (1+ index))
+	        (let* ((mutable (memq slot mutables))
+	               (get `(fcr--get ,obj ,index ,(not (not mutable)))))
+	          (push mutable mutlist)
+		  (cond
+		   ((not (memq slot anames)) get)
+		   ((memq slot mnames) slot)
+		   (t
+		    `(if (eq ',absent ,slot)
+		         ,get
+		       ,slot)))))
+	      slots)))
+	 `(cl-defun ,cname (&cl-defs (',absent) ,obj ,@args)
+            ,doc
+            (declare (side-effect-free t))
+            (fcr--copy ,obj ',(if (remq nil mutlist) (nreverse mutlist))
+                       ,@argvals))))
+     copiers)))
 
 (defmacro fcr-defstruct (name &optional docstring &rest slots)
   (declare (doc-string 2) (indent 1))
@@ -165,12 +218,28 @@
                            (cons sa (merge (cdr slots-a) (cdr slots-b))))))))
                class))
            parent-names))
-         (slotdescs (append
-                     parent-slots
-                     (mapcar (lambda (field)
-                               (cl--make-slot-descriptor field nil nil
-                                                         '((:read-only . t))))
-                             slots)))
+         (slotdescs
+          (append
+           parent-slots
+           (mapcar (lambda (field)
+                     (if (not (consp field))
+                         (cl--make-slot-descriptor field nil nil
+                                                   '((:read-only . t)))
+                       (let ((name (pop field))
+                             (type nil)
+                             (read-only t)
+                             (props '()))
+                         (while field
+                           (pcase (pop field)
+                             (:mutable (setq read-only (not (car field))))
+                             (:type (setq type (car field)))
+                             (p (message "Unknown property: %S" p)
+                                (push (cons p (car field)) props)))
+                           (setq field (cdr field)))
+                         (cl--make-slot-descriptor name nil type
+                                                   `((:read-only . ,read-only)
+                                                     ,@props)))))
+                   slots)))
          (allparents (apply #'append (mapcar #'cl--class-allparents
                                              parents)))
          (class (fcr--class-make name docstring slotdescs parents
@@ -191,21 +260,36 @@
                                           (cl--find-class type))))))))
        ,@(let ((i -1))
            (mapcar (lambda (desc)
-                     (let ((slot (cl--slot-descriptor-name desc)))
+                     (let* ((slot (cl--slot-descriptor-name desc))
+                            (mutable
+                             (not (alist-get :read-only
+                                             (cl--slot-descriptor-props desc))))
+                            ;; Always use a double hyphen: if users wants to
+                            ;; make it public, they can do so with an alias.
+                            (name (intern (format "%S--%S" name slot))))
                        (cl-incf i)
                        (when (gethash slot it)
                          (error "Duplicate slot name: %S" slot))
                        (setf (gethash slot it) i)
-                       ;; Always use a double hyphen: if users wants to
-                       ;; make it public, they can do so with an alias.
-                       `(defalias ',(intern (format "%S--%S" name slot))
-                          ;; We use `fcr--copy' instead of `fcr--accessor-copy'
-                          ;; here to circumvent bootstrapping problems.
-                          (fcr--copy fcr--accessor-prototype
-                                     ',name ',slot ,i))))
+                       (if (not mutable)
+                           `(defalias ',name
+                              ;; We use `fcr--copy' instead of
+                              ;; `fcr--accessor-copy' here to circumvent
+                              ;; bootstrapping problems.
+                              (fcr--copy fcr--accessor-prototype nil
+                                         ',name ',slot ,i))
+                         `(progn
+                            (defalias ',name
+                              (fcr--accessor-copy
+                               fcr--mut-getter-prototype
+                               ',name ',slot ,i))
+                            (defalias ',(gv-setter name)
+                              (fcr--accessor-copy
+                               fcr--mut-setter-prototype
+                               ',name ',slot ,i))))))
                    slotdescs))
        ,@(fcr--defstruct-make-copiers
-          copiers (mapcar #'cl--slot-descriptor-name slotdescs) name))))
+          copiers slotdescs name))))
 
 (defun fcr--define (class pred)
   (let* ((name (cl--class-name class))
@@ -214,10 +298,12 @@
     (defalias predname pred)
     (put name 'cl-deftype-satisfies predname)))
 
-(defmacro fcr--lambda (type bindings args &rest body)
+(defmacro fcr--lambda (type bindings mutables args &rest body)
   "Low level construction of an FCR object.
 TYPE is expected to be a symbol that is (or will be) defined as an FCR type.
 BINDINGS should list all the slots expected by this type, in the proper order.
+MUTABLE is a list of symbols indicating which of the BINDINGS
+should be mutable.
 No checking is performed,"
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Fundamentally `fcr-lambda' should be a special form.
@@ -230,7 +316,10 @@ No checking is performed,"
       ;; FIXME: Since we use the docstring internally to store the
       ;; type we can't handle actual docstrings.  We could fix this by adding
       ;; a docstring slot to FCRs.
-      ((`(,prebody . ,body) (macroexp-parse-body body)))
+      ((`(,prebody . ,body) (macroexp-parse-body body))
+       (rovars (mapcar #'car bindings)))
+    (dolist (mutable mutables)
+      (setq rovars (delq mutable rovars)))
     `(let ,(mapcar (lambda (bind)
                      (if (cdr bind) bind
                        ;; Bind to something that doesn't look
@@ -245,13 +334,13 @@ No checking is performed,"
         ;; This `fcr--fix-type' + `ignore' call is used by the compiler (in
         ;; `cconv.el') to detect and signal an error in case of
         ;; store-conversion (i.e. if a variable/slot is mutated).
-        (ignore ,@(mapcar #'car bindings))
+        (ignore ,@rovars)
         (lambda ,args
           (:documentation ',type)
           ,@prebody
           ;; Add dummy code which accesses the field's vars to make sure
           ;; they're captured in the closure.
-          (if t nil ,@(mapcar #'car bindings))
+          (if t nil ,@rovars ,@(mapcar (lambda (m) `(setq ,m ,m)) mutables))
           ,@body)))))
 
 (defmacro fcr-lambda (type-and-slots args &rest body)
@@ -268,8 +357,13 @@ ARGS and BODY are the same as for `lambda'."
       ((`(,type . ,fields) type-and-slots)
        (class (cl--find-class type))
        (slots (fcr--class-slots class))
+       (mutables '())
        (slotbinds (mapcar (lambda (slot)
-                            (list (cl--slot-descriptor-name slot)))
+                            (let ((name (cl--slot-descriptor-name slot))
+                                  (props (cl--slot-descriptor-props slot)))
+                              (unless (alist-get :read-only props)
+                                (push name mutables))
+                              (list name)))
                           slots))
        (tempbinds (mapcar
                    (lambda (field)
@@ -287,7 +381,7 @@ ARGS and BODY are the same as for `lambda'."
                    fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
     `(let ,tempbinds
-       (fcr--lambda ,type ,slotbinds ,args ,@body))))
+       (fcr--lambda ,type ,slotbinds ,mutables ,args ,@body))))
 
 (defun fcr--fix-type (_ignore fcr)
   (if (byte-code-function-p fcr)
@@ -307,9 +401,12 @@ ARGS and BODY are the same as for `lambda'."
             (cadr fcr))
       fcr)))
 
-(defun fcr--copy (fcr &rest args)
+(defun fcr--copy (fcr mutlist &rest args)
   (if (byte-code-function-p fcr)
-      (apply #'make-closure fcr args)
+      (apply #'make-closure fcr
+             (if (null mutlist)
+                 args
+               (mapcar (lambda (arg) (if (pop mutlist) (list arg) arg)) args)))
     (cl-assert (eq 'closure (car-safe fcr)))
     (cl-assert (eq :type (caar (cadr fcr))))
     (let ((env (cadr fcr)))
@@ -322,13 +419,23 @@ ARGS and BODY are the same as for `lambda'."
             ,@(nthcdr (1+ (length args)) env))
            ,@(nthcdr 2 fcr)))))
 
-(defun fcr-get (fcr index)
+(defun fcr--get (fcr index mutable)
   (if (byte-code-function-p fcr)
-      (let ((csts (aref fcr 2)))
-        (aref csts index))
+      (let* ((csts (aref fcr 2))
+             (v (aref csts index)))
+        (if mutable (car v) v))
     (cl-assert (eq 'closure (car-safe fcr)))
     (cl-assert (eq :type (caar (cadr fcr))))
     (cdr (nth (1+ index) (cadr fcr)))))
+
+(defun fcr--set (v fcr index)
+  (if (byte-code-function-p fcr)
+      (let* ((csts (aref fcr 2))
+             (cell (aref csts index)))
+        (setcar cell v))
+    (cl-assert (eq 'closure (car-safe fcr)))
+    (cl-assert (eq :type (caar (cadr fcr))))
+    (setcdr (nth (1+ index) (cadr fcr)) v)))
 
 (defun fcr-type (fcr)
   "Return the type of FCR, or nil if the arg is not a FunCallableRecord."
@@ -345,7 +452,8 @@ ARGS and BODY are the same as for `lambda'."
   ;; Use `fcr--lambda' to circumvent a bootstrapping problem:
   ;; `fcr-accessor' is not yet defined at this point but
   ;; `fcr--accessor-prototype' is needed when defining `fcr-accessor'.
-  (fcr--lambda fcr-accessor ((type) (slot) (index)) (fcr) (fcr-get fcr index)))
+  (fcr--lambda fcr-accessor ((type) (slot) (index)) nil
+    (fcr) (fcr--get fcr index nil)))
 
 (fcr-defstruct accessor
   "FCR function to access a specific slot of an object."
@@ -369,6 +477,14 @@ ARGS and BODY are the same as for `lambda'."
                 (:copier fcr--accessor-copy (type slot index)))
   "FCR function to access a specific slot of an FCR function."
   index)
+
+(defconst fcr--mut-getter-prototype
+  (fcr-lambda (fcr-accessor (type) (slot) (index)) (fcr)
+    (fcr--get fcr index t)))
+(defconst fcr--mut-setter-prototype
+  ;; FIXME: The generated docstring is wrong.
+  (fcr-lambda (fcr-accessor (type) (slot) (index)) (val fcr)
+    (fcr--set val fcr index)))
 
 (provide 'fcr)
 ;;; fcr.el ends here

@@ -24,8 +24,8 @@
 (require 'cl-lib)
 
 (fcr-defstruct (fcr-test
-                ;; FIXME: Test `:parent'!
-                (:copier fcr-test-copy))
+                (:copier fcr-test-copy)
+                (:copier fcr-test-copy1 (fst)))
   "Simple FCR."
   fst snd name)
 
@@ -41,11 +41,11 @@
 
 (ert-deftest fcr-tests ()
   (let* ((i 42)
-         (fcr1 (fcr-lambda fcr-test ((fst 1) (snd 2) (name "hi"))
-                           ()
+         (fcr1 (fcr-lambda (fcr-test (fst 1) (snd 2) (name "hi"))
+                   ()
                  (list fst snd i)))
-         (fcr2 (fcr-lambda fcr-test ((name (cl-incf i)) (fst (cl-incf i)))
-                           ()
+         (fcr2 (fcr-lambda (fcr-test (name (cl-incf i)) (fst (cl-incf i)))
+                   ()
                  (list fst snd 152 i))))
     (should (equal (list (fcr-test--fst fcr1)
                          (fcr-test--snd fcr1)
@@ -58,6 +58,7 @@
     (should (equal (funcall fcr1) '(1 2 44)))
     (should (equal (funcall fcr2) '(44 nil 152 44)))
     (should (equal (funcall (fcr-test-copy fcr1 :fst 7)) '(7 2 44)))
+    (should (equal (funcall (fcr-test-copy1 fcr1 9)) '(9 2 44)))
     (should (cl-typep fcr1 'fcr-test))
     (should (cl-typep fcr1 'fcr-object))
     (should (member (fcr-test-gen fcr1)
@@ -72,7 +73,7 @@
              (byte-compile-debug t))
          (byte-compile '(lambda ()
                           (let ((inc-where nil))
-                            (fcr-lambda advice ((where 'foo)) ()
+                            (fcr-lambda (advice (where 'foo)) ()
                               (setq inc-where (lambda () (setq where (1+ where))))
                               where))))
          nil)
@@ -95,10 +96,29 @@
            (string-match "Duplicate slot name: where$" (cadr err))))))
   (should
    (condition-case err
-       (progn (macroexpand '(fcr-lambda advice ((where 1) (where 2)) () where))
+       (progn (macroexpand '(fcr-lambda (advice (where 1) (where 2)) () where))
               nil)
      (error
       (and (eq 'error (car err))
            (string-match "Duplicate slot: where$" (cadr err)))))))
+
+(fcr-defstruct (fcr-test-mut
+                (:parent fcr-test)
+                (:copier fcr-test-mut-copy))
+  "Simple FCR with a mutable field."
+  (mut :mutable t))
+
+(ert-deftest fcr-test--mutate ()
+  (let* ((f (fcr-lambda (fcr-test-mut (fst 0) (mut 3))
+                (x)
+              (+ x fst mut)))
+         (f2 (fcr-test-mut-copy f :fst 50)))
+    (should (equal (fcr-test-mut--mut f) 3))
+    (should (equal (funcall f 5) 8))
+    (should (equal (funcall f2 5) 58))
+    (cl-incf (fcr-test-mut--mut f) 7)
+    (should (equal (fcr-test-mut--mut f) 10))
+    (should (equal (funcall f 5) 15))
+    (should (equal (funcall f2 15) 68))))
 
 ;;; fcr-tests.el ends here.
