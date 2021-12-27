@@ -1873,7 +1873,7 @@ The default status is as follows:
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'utf-8)
   (setq default-file-name-coding-system (if (memq system-type
-                                                  '(window-nt ms-dos))
+                                                  '(windows-nt ms-dos))
                                             'iso-latin-1-unix
                                           'utf-8-unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
@@ -1892,9 +1892,9 @@ The default status is as follows:
 	 (condition-case nil
 	     (coding-system-change-text-conversion
 	      (cdr default-process-coding-system)
-	      (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8))
+	      (if (memq system-type '(windows-nt ms-dos)) 'iso-latin-1 'utf-8))
 	   (coding-system-error
-	    (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8)))))
+	    (if (memq system-type '(windows-nt ms-dos)) 'iso-latin-1 'utf-8)))))
     (setq default-process-coding-system
 	  (cons output-coding input-coding)))
 
