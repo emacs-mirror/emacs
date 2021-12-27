@@ -297,13 +297,8 @@ case keys.
 This command increases (or decreases) the number of empty lines before
 point.
 
-** The *Completions* buffer can now be automatically selected.
-To enable this behavior, customize the option 'completion-auto-select'
-to t.  Then pressing TAB will switch to the *Completions* buffer when
-it pops up that buffer.
-
 ---
-*** Improved mouse behavior with auto-scrolling modes.
+** Improved mouse behavior with auto-scrolling modes.
 When clicking inside the 'scroll-margin' or 'hscroll-margin' region
 the point is now moved only when releasing the mouse button.  This no
 longer results in a bogus selection, unless the mouse has been
@@ -346,6 +341,18 @@ received.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
+
+** Minibuffer and Completions
+
+*** The *Completions* buffer can now be automatically selected.
+To enable this behavior, customize the option 'completion-auto-select'
+to t.  Then pressing TAB will switch to the *Completions* buffer when
+it pops up that buffer.
+
+*** New user option 'completion-wrap-movement'.
+When non-nil, the commands 'next-completion' and 'previous-completion'
+automatically wrap around on reaching the beginning or the end of
+the *Completions* buffer.
 
 ** Isearch and Replace
 
