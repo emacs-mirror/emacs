@@ -1524,8 +1524,10 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       (when (or size free)
 	(list (and size (string-to-number size))
 	      (and free (string-to-number free))
-	      (and size used
-		   (- (string-to-number size) (string-to-number used))))))))
+	      ;; "mtp" connections do not return "filesystem::used".
+	      (or (and size used
+		       (- (string-to-number size) (string-to-number used)))
+		  (and free (string-to-number free))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."

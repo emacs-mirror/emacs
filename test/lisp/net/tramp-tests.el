@@ -3405,12 +3405,12 @@ This tests also `access-file', `file-readable-p',
 	    (when (tramp--test-supports-set-file-modes-p)
 	      (write-region "foo" nil tmp-name1)
 	      ;; A file is always accessible for user "root".
-	      (when (not (zerop (file-attribute-user-id
-				 (file-attributes tmp-name1))))
+	      (unless
+		  (zerop (file-attribute-user-id (file-attributes tmp-name1)))
 		(set-file-modes tmp-name1 0)
 		(should-error
 		 (access-file tmp-name1 "error")
-		 :type 'file-error)
+		 :type tramp-permission-denied)
 		(set-file-modes tmp-name1 #o777))
 	      (delete-file tmp-name1))
 	    (should-error
@@ -4095,7 +4095,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (file-acl tmp-name2))
 	    (should (string-equal (file-acl tmp-name1) (file-acl tmp-name2)))
 	    ;; Different permissions mean different ACLs.
-	    (when (not (tramp--test-windows-nt-or-smb-p))
+	    (unless (tramp--test-windows-nt-or-smb-p)
 	      (set-file-modes tmp-name1 #o777)
 	      (set-file-modes tmp-name2 #o444)
 	      (should-not
@@ -4297,7 +4297,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
   ;; Method and host name in completion mode.  This kind of completion
   ;; does not work on MS Windows.
-  (when (not (memq system-type '(cygwin windows-nt)))
+  (unless (memq system-type '(cygwin windows-nt))
     (let ((method (file-remote-p tramp-test-temporary-file-directory 'method))
 	  (host (file-remote-p tramp-test-temporary-file-directory 'host))
           (orig-syntax tramp-syntax))
