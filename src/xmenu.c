@@ -448,11 +448,11 @@ x_activate_menubar (struct frame *f)
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
 #else
-#ifdef USE_MOTIF
-#ifdef HAVE_XINPUT2
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  /* Clear the XI2 grab so Motif can set a core grab.  Otherwise some
-     versions of Motif will emit a warning and hang.  */
+  /* Clear the XI2 grab so Motif or lwlib can set a core grab.
+     Otherwise some versions of Motif will emit a warning and hang,
+     and lwlib will fail to destroy the menu window.  */
 
   if (dpyinfo->num_devices)
     {
@@ -460,7 +460,6 @@ x_activate_menubar (struct frame *f)
 	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
 			CurrentTime);
     }
-#endif
 #endif
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
