@@ -4812,8 +4812,44 @@ pgtk_any_window_to_frame (GdkWindow * window)
 }
 
 static gboolean
-pgtk_handle_event (GtkWidget * widget, GdkEvent * event, gpointer * data)
+pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
 {
+#if GTK_CHECK_VERSION (3, 18, 0)
+  struct frame *f;
+  union buffered_input_event inev;
+  GtkWidget *frame_widget;
+  gint x, y;
+
+  if (event->type == GDK_TOUCHPAD_PINCH
+      && (event->touchpad_pinch.phase
+	  != GDK_TOUCHPAD_GESTURE_PHASE_END))
+    {
+      f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+      frame_widget = FRAME_GTK_WIDGET (f);
+
+      gtk_widget_translate_coordinates (widget, frame_widget,
+					lrint (event->touchpad_pinch.x),
+					lrint (event->touchpad_pinch.y),
+					&x, &y);
+      if (f)
+	{
+
+	  inev.ie.kind = PINCH_EVENT;
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  XSETINT (inev.ie.x, x);
+	  XSETINT (inev.ie.y, y);
+	  inev.ie.arg = list4 (make_float (event->touchpad_pinch.dx),
+			       make_float (event->touchpad_pinch.dy),
+			       make_float (event->touchpad_pinch.scale),
+			       make_float (event->touchpad_pinch.angle_delta));
+	  inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
+							   event->touchpad_pinch.state);
+	  evq_enqueue (&inev);
+	}
+
+      return TRUE;
+    }
+#endif
   return FALSE;
 }
 
