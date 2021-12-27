@@ -191,7 +191,9 @@
      ,(concat "\\<"
               (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
                             "do" "dump" "for" "foreach" "exit" "die"
-                            "BEGIN" "END" "return" "exec" "eval") t)
+                            "BEGIN" "END" "return" "exec" "eval"
+                            "when" "given" "default")
+                          t)
               "\\>")
      ;;
      ;; Fontify declarators and prefixes as types.
@@ -212,7 +214,7 @@
 
 (eval-and-compile
   (defconst perl--syntax-exp-intro-keywords
-    '("split" "if" "unless" "until" "while" "print"
+    '("split" "if" "unless" "until" "while" "print" "printf"
       "grep" "map" "not" "or" "and" "for" "foreach" "return"))
 
   (defconst perl--syntax-exp-intro-regexp
