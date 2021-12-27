@@ -44,6 +44,35 @@
 ;; - auto-generate docstrings for cl-defstruct slot accessors instead of
 ;;   storing them in the accessor itself?
 
+;; Related constructs:
+;; - `funcallable-standard-object' (FSO) in Common-Lisp.  These are different
+;;   from OClosures in that they involve an additional indirection to get
+;;   to the actual code, and that they offer the possibility of
+;;   changing (via mutation) the code associated with
+;;   an FSO.  Also the FSO's function can't directly access the FSO's
+;;   other fields, contrary to the case with OClosures where those are directly
+;;   available as local variables.
+;; - Function objects in Javascript.
+;; - Function objects in Python.
+;; - Callable/Applicable classes in OO languages, i.e. classes with
+;;   a single method called `apply' or `call'.  The most obvious
+;;   difference with OClosures (beside the fact that Callable can be
+;;   extended with additional methods) is that all instances of
+;;   a given Callable class have to use the same method, whereas every
+;;   OClosure object comes with its own code, so two OClosure objects of the
+;;   same type can have different code.  Of course, you can get the
+;;   same result by turning every `oclosure-lambda' into its own class
+;;   declaration creating an ad-hoc subclass of the specified type.
+;;   In this sense, OClosures are just a generalization of `lambda' which brings
+;;   some of the extra feature of Callable objects.
+;; - Apply hooks and "entities" in MIT Scheme
+;;   https://www.gnu.org/software/mit-scheme/documentation/stable/mit-scheme-ref/Application-Hooks.html
+;;   Apply hooks are basically the same as Common-Lisp's FSOs, and "entities"
+;;   are a variant of it where the inner function gets the FSO itself as
+;;   additional argument (a kind of "self" arg), thus making it easier
+;;   for the code to get data from the object's extra info, tho still
+;;   not as easy as with OClosures.
+
 ;;; Code:
 
 ;; Slots are currently immutable, tho they can be updated functionally
@@ -54,7 +83,7 @@
 ;;   to perform store-conversion on the variable, so we'd either have
 ;;   to prevent cconv from doing it (which might require a new bytecode op
 ;;   to update the in-closure variable), or we'd have to keep track of which
-;;   slots have been store-converted so `oclosure-get' can access their value
+;;   slots have been store-converted so `oclosure--get' can access their value
 ;;   correctly.
 ;; - If the mutated variable/slot is captured by another (nested) closure
 ;;   store-conversion is indispensable, so if we want to avoid store-conversion
@@ -86,34 +115,58 @@
       (memq 'oclosure-object (oclosure--class-allparents (cl--find-class type))))))
 (cl-deftype oclosure-object () '(satisfies oclosure--object-p))
 
-(defun oclosure--defstruct-make-copiers (copiers slots name)
-  (require 'cl-macs)                    ;`cl--arglist-args' is not autoloaded.
-  (mapcar
-   (lambda (copier)
-     (pcase-let*
-         ((cname (pop copier))
-          (args (or (pop copier) `(&key ,@slots)))
-          (doc (or (pop copier)
-                   (format "Copier for objects of type `%s'." name)))
-          (obj (make-symbol "obj"))
-          (absent (make-symbol "absent"))
-          (anames (cl--arglist-args args))
-          (index -1)
-          (argvals
-           (mapcar
-	    (lambda (slot)
-	      (setq index (1+ index))
-	      (when (memq slot anames)
-		;; FIXME: Skip the `unless' test for mandatory args.
-		`(if (eq ',absent ,slot)
-		     (oclosure-get ,obj ,index)
-		   ,slot)))
-	    slots)))
-       `(cl-defsubst ,cname (&cl-defs (',absent) ,obj ,@args)
-          ,doc
-          (declare (side-effect-free t))
-          (oclosure--copy ,obj ,@argvals))))
-   copiers))
+(defun oclosure--defstruct-make-copiers (copiers slotdescs name)
+  (require 'cl-macs)            ;`cl--arglist-args' is not autoloaded.
+  (let* ((mutables '())
+         (slots (mapcar
+                 (lambda (desc)
+	           (let ((name (cl--slot-descriptor-name desc)))
+	             (unless (alist-get :read-only
+	                                (cl--slot-descriptor-props desc))
+	               (push name mutables))
+	             name))
+	         slotdescs)))
+    (mapcar
+     (lambda (copier)
+       (pcase-let*
+           ((cname (pop copier))
+            (args (or (pop copier) `(&key ,@slots)))
+            (doc (or (pop copier)
+                     (format "Copier for objects of type `%s'." name)))
+            (obj (make-symbol "obj"))
+            (absent (make-symbol "absent"))
+            (anames (cl--arglist-args args))
+            (mnames
+             (let ((res '())
+                   (tmp args))
+               (while (and tmp
+                           (not (memq (car tmp)
+                                      cl--lambda-list-keywords)))
+                 (push (pop tmp) res))
+               res))
+            (index -1)
+            (mutlist '())
+            (argvals
+             (mapcar
+	      (lambda (slot)
+	        (setq index (1+ index))
+	        (let* ((mutable (memq slot mutables))
+	               (get `(oclosure--get ,obj ,index ,(not (not mutable)))))
+	          (push mutable mutlist)
+		  (cond
+		   ((not (memq slot anames)) get)
+		   ((memq slot mnames) slot)
+		   (t
+		    `(if (eq ',absent ,slot)
+		         ,get
+		       ,slot)))))
+	      slots)))
+	 `(cl-defun ,cname (&cl-defs (',absent) ,obj ,@args)
+            ,doc
+            (declare (side-effect-free t))
+            (oclosure--copy ,obj ',(if (remq nil mutlist) (nreverse mutlist))
+                       ,@argvals))))
+     copiers)))
 
 (defmacro oclosure-define (name &optional docstring &rest slots)
   (declare (doc-string 2) (indent 1))
@@ -165,12 +218,28 @@
                            (cons sa (merge (cdr slots-a) (cdr slots-b))))))))
                class))
            parent-names))
-         (slotdescs (append
-                     parent-slots
-                     (mapcar (lambda (field)
-                               (cl--make-slot-descriptor field nil nil
-                                                         '((:read-only . t))))
-                             slots)))
+         (slotdescs
+          (append
+           parent-slots
+           (mapcar (lambda (field)
+                     (if (not (consp field))
+                         (cl--make-slot-descriptor field nil nil
+                                                   '((:read-only . t)))
+                       (let ((name (pop field))
+                             (type nil)
+                             (read-only t)
+                             (props '()))
+                         (while field
+                           (pcase (pop field)
+                             (:mutable (setq read-only (not (car field))))
+                             (:type (setq type (car field)))
+                             (p (message "Unknown property: %S" p)
+                                (push (cons p (car field)) props)))
+                           (setq field (cdr field)))
+                         (cl--make-slot-descriptor name nil type
+                                                   `((:read-only . ,read-only)
+                                                     ,@props)))))
+                   slots)))
          (allparents (apply #'append (mapcar #'cl--class-allparents
                                              parents)))
          (class (oclosure--class-make name docstring slotdescs parents
@@ -191,21 +260,36 @@
                                           (cl--find-class type))))))))
        ,@(let ((i -1))
            (mapcar (lambda (desc)
-                     (let ((slot (cl--slot-descriptor-name desc)))
+                     (let* ((slot (cl--slot-descriptor-name desc))
+                            (mutable
+                             (not (alist-get :read-only
+                                             (cl--slot-descriptor-props desc))))
+                            ;; Always use a double hyphen: if users wants to
+                            ;; make it public, they can do so with an alias.
+                            (name (intern (format "%S--%S" name slot))))
                        (cl-incf i)
                        (when (gethash slot it)
                          (error "Duplicate slot name: %S" slot))
                        (setf (gethash slot it) i)
-                       ;; Always use a double hyphen: if users wants to
-                       ;; make it public, they can do so with an alias.
-                       `(defalias ',(intern (format "%S--%S" name slot))
-                          ;; We use `oclosure--copy' instead of `oclosure--accessor-copy'
-                          ;; here to circumvent bootstrapping problems.
-                          (oclosure--copy oclosure--accessor-prototype
-                                     ',name ',slot ,i))))
+                       (if (not mutable)
+                           `(defalias ',name
+                              ;; We use `oclosure--copy' instead of
+                              ;; `oclosure--accessor-copy' here to circumvent
+                              ;; bootstrapping problems.
+                              (oclosure--copy oclosure--accessor-prototype nil
+                                         ',name ',slot ,i))
+                         `(progn
+                            (defalias ',name
+                              (oclosure--accessor-copy
+                               oclosure--mut-getter-prototype
+                               ',name ',slot ,i))
+                            (defalias ',(gv-setter name)
+                              (oclosure--accessor-copy
+                               oclosure--mut-setter-prototype
+                               ',name ',slot ,i))))))
                    slotdescs))
        ,@(oclosure--defstruct-make-copiers
-          copiers (mapcar #'cl--slot-descriptor-name slotdescs) name))))
+          copiers slotdescs name))))
 
 (defun oclosure--define (class pred)
   (let* ((name (cl--class-name class))
@@ -214,10 +298,12 @@
     (defalias predname pred)
     (put name 'cl-deftype-satisfies predname)))
 
-(defmacro oclosure--lambda (type bindings args &rest body)
+(defmacro oclosure--lambda (type bindings mutables args &rest body)
   "Low level construction of an OClosure object.
 TYPE is expected to be a symbol that is (or will be) defined as an OClosure type.
 BINDINGS should list all the slots expected by this type, in the proper order.
+MUTABLE is a list of symbols indicating which of the BINDINGS
+should be mutable.
 No checking is performed,"
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
   ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
@@ -230,7 +316,10 @@ No checking is performed,"
       ;; FIXME: Since we use the docstring internally to store the
       ;; type we can't handle actual docstrings.  We could fix this by adding
       ;; a docstring slot to OClosures.
-      ((`(,prebody . ,body) (macroexp-parse-body body)))
+      ((`(,prebody . ,body) (macroexp-parse-body body))
+       (rovars (mapcar #'car bindings)))
+    (dolist (mutable mutables)
+      (setq rovars (delq mutable rovars)))
     `(let ,(mapcar (lambda (bind)
                      (if (cdr bind) bind
                        ;; Bind to something that doesn't look
@@ -245,13 +334,13 @@ No checking is performed,"
         ;; This `oclosure--fix-type' + `ignore' call is used by the compiler (in
         ;; `cconv.el') to detect and signal an error in case of
         ;; store-conversion (i.e. if a variable/slot is mutated).
-        (ignore ,@(mapcar #'car bindings))
+        (ignore ,@rovars)
         (lambda ,args
           (:documentation ',type)
           ,@prebody
           ;; Add dummy code which accesses the field's vars to make sure
           ;; they're captured in the closure.
-          (if t nil ,@(mapcar #'car bindings))
+          (if t nil ,@rovars ,@(mapcar (lambda (m) `(setq ,m ,m)) mutables))
           ,@body)))))
 
 (defmacro oclosure-lambda (type-and-slots args &rest body)
@@ -268,8 +357,13 @@ ARGS and BODY are the same as for `lambda'."
       ((`(,type . ,fields) type-and-slots)
        (class (cl--find-class type))
        (slots (oclosure--class-slots class))
+       (mutables '())
        (slotbinds (mapcar (lambda (slot)
-                            (list (cl--slot-descriptor-name slot)))
+                            (let ((name (cl--slot-descriptor-name slot))
+                                  (props (cl--slot-descriptor-props slot)))
+                              (unless (alist-get :read-only props)
+                                (push name mutables))
+                              (list name)))
                           slots))
        (tempbinds (mapcar
                    (lambda (field)
@@ -287,7 +381,7 @@ ARGS and BODY are the same as for `lambda'."
                    fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
     `(let ,tempbinds
-       (oclosure--lambda ,type ,slotbinds ,args ,@body))))
+       (oclosure--lambda ,type ,slotbinds ,mutables ,args ,@body))))
 
 (defun oclosure--fix-type (_ignore oclosure)
   (if (byte-code-function-p oclosure)
@@ -307,9 +401,12 @@ ARGS and BODY are the same as for `lambda'."
             (cadr oclosure))
       oclosure)))
 
-(defun oclosure--copy (oclosure &rest args)
+(defun oclosure--copy (oclosure mutlist &rest args)
   (if (byte-code-function-p oclosure)
-      (apply #'make-closure oclosure args)
+      (apply #'make-closure oclosure
+             (if (null mutlist)
+                 args
+               (mapcar (lambda (arg) (if (pop mutlist) (list arg) arg)) args)))
     (cl-assert (eq 'closure (car-safe oclosure)))
     (cl-assert (eq :type (caar (cadr oclosure))))
     (let ((env (cadr oclosure)))
@@ -322,13 +419,23 @@ ARGS and BODY are the same as for `lambda'."
             ,@(nthcdr (1+ (length args)) env))
            ,@(nthcdr 2 oclosure)))))
 
-(defun oclosure-get (oclosure index)
+(defun oclosure--get (oclosure index mutable)
   (if (byte-code-function-p oclosure)
-      (let ((csts (aref oclosure 2)))
-        (aref csts index))
+      (let* ((csts (aref oclosure 2))
+             (v (aref csts index)))
+        (if mutable (car v) v))
     (cl-assert (eq 'closure (car-safe oclosure)))
     (cl-assert (eq :type (caar (cadr oclosure))))
     (cdr (nth (1+ index) (cadr oclosure)))))
+
+(defun oclosure--set (v oclosure index)
+  (if (byte-code-function-p oclosure)
+      (let* ((csts (aref oclosure 2))
+             (cell (aref csts index)))
+        (setcar cell v))
+    (cl-assert (eq 'closure (car-safe oclosure)))
+    (cl-assert (eq :type (caar (cadr oclosure))))
+    (setcdr (nth (1+ index) (cadr oclosure)) v)))
 
 (defun oclosure-type (oclosure)
   "Return the type of OCLOSURE, or nil if the arg is not a OClosure."
@@ -345,7 +452,8 @@ ARGS and BODY are the same as for `lambda'."
   ;; Use `oclosure--lambda' to circumvent a bootstrapping problem:
   ;; `oclosure-accessor' is not yet defined at this point but
   ;; `oclosure--accessor-prototype' is needed when defining `oclosure-accessor'.
-  (oclosure--lambda oclosure-accessor ((type) (slot) (index)) (oclosure) (oclosure-get oclosure index)))
+  (oclosure--lambda oclosure-accessor ((type) (slot) (index)) nil
+    (oclosure) (oclosure--get oclosure index nil)))
 
 (oclosure-define accessor
   "OClosure function to access a specific slot of an object."
@@ -369,6 +477,14 @@ ARGS and BODY are the same as for `lambda'."
                 (:copier oclosure--accessor-copy (type slot index)))
   "OClosure function to access a specific slot of an OClosure function."
   index)
+
+(defconst oclosure--mut-getter-prototype
+  (oclosure-lambda (oclosure-accessor (type) (slot) (index)) (oclosure)
+    (oclosure--get oclosure index t)))
+(defconst oclosure--mut-setter-prototype
+  ;; FIXME: The generated docstring is wrong.
+  (oclosure-lambda (oclosure-accessor (type) (slot) (index)) (val oclosure)
+    (oclosure--set val oclosure index)))
 
 (provide 'oclosure)
 ;;; oclosure.el ends here

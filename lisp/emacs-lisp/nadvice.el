@@ -43,7 +43,8 @@
 (push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
 (oclosure-define (advice
-                (:copier advice--copy))
+                (:copier advice--cons (cdr))
+                (:copier advice--copy (car cdr where props)))
   car cdr where props)
 
 ;;;; Lightweight advice/hook
@@ -207,11 +208,11 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
     (if (and md (> fd md))
         ;; `function' should go deeper.
         (let ((rest (advice--make where function (advice--cdr main) props)))
-          (advice--copy main :cdr rest))
+          (advice--cons main rest))
       (let ((proto (assq where advice--where-alist)))
         (unless proto (error "Unknown add-function location `%S'" where))
         (advice--copy (cadr proto)
-                      :car function :cdr main :where where :props props)))))
+                      function main where props)))))
 
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
@@ -237,7 +238,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
         (if val (car val)
           (let ((nrest (advice--tweak rest tweaker)))
             (if (eq rest nrest) flist
-              (advice--copy flist :cdr nrest))))))))
+              (advice--cons flist nrest))))))))
 
 ;;;###autoload
 (defun advice--remove-function (flist function)
