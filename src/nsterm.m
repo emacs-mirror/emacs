@@ -8435,6 +8435,15 @@ not_in_argv (NSString *arg)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   [ourView updateCollectionBehavior];
 #endif
+
+  /* Child frames are often used in ways that may mean they should
+     "disappear" into the contents of the parent frame.  macOs's
+     drop-shadows break this effect, so remove them on undecorated
+     child frames.  */
+  if (parentFrame && FRAME_UNDECORATED (ourFrame))
+    [self setHasShadow:NO];
+  else
+    [self setHasShadow:YES];
 #endif
 
 
