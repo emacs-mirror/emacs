@@ -476,34 +476,32 @@ For use on `kill-buffer-hook'."
 ;; rename-buffer and create-file-buffer.  (Setting find-file-hook isn't
 ;; sufficient.)
 
-(advice-add 'rename-buffer :around #'uniquify--rename-buffer-advice)
-(defun uniquify--rename-buffer-advice (rb-fun newname &optional unique &rest args)
+;; (advice-add 'rename-buffer :around #'uniquify--rename-buffer-advice)
+(defun uniquify--rename-buffer-advice (newname &optional unique)
+  ;; BEWARE: This is called directly from `buffer.c'!
   "Uniquify buffer names with parts of directory name."
-  (let ((retval (apply rb-fun newname unique args)))
   (uniquify-maybe-rerationalize-w/o-cb)
-    (if (null unique)
+  (if (null unique)
       ;; Mark this buffer so it won't be renamed by uniquify.
       (setq uniquify-managed nil)
     (when uniquify-buffer-name-style
       ;; Rerationalize w.r.t the new name.
       (uniquify-rationalize-file-buffer-names
-         newname
+       newname
        (uniquify-buffer-file-name (current-buffer))
-       (current-buffer))
-        (setq retval (buffer-name (current-buffer)))))
-    retval))
+       (current-buffer)))))
 
 
-(advice-add 'create-file-buffer :around #'uniquify--create-file-buffer-advice)
-(defun uniquify--create-file-buffer-advice (cfb-fun filename &rest args)
+;; (advice-add 'create-file-buffer :around #'uniquify--create-file-buffer-advice)
+(defun uniquify--create-file-buffer-advice (buf filename)
+  ;; BEWARE: This is called directly from `files.el'!
   "Uniquify buffer names with parts of directory name."
-  (let ((retval (apply cfb-fun filename args)))
-  (if uniquify-buffer-name-style
-        (let ((filename (expand-file-name (directory-file-name filename))))
-	(uniquify-rationalize-file-buffer-names
-	 (file-name-nondirectory filename)
-           (file-name-directory filename) retval)))
-    retval))
+  (when uniquify-buffer-name-style
+    (let ((filename (expand-file-name (directory-file-name filename))))
+      (uniquify-rationalize-file-buffer-names
+       (file-name-nondirectory filename)
+       (file-name-directory filename)
+       buf))))
 
 (defun uniquify-unload-function ()
   "Unload the uniquify library."
@@ -513,8 +511,6 @@ For use on `kill-buffer-hook'."
 	(set-buffer buf)
 	(when uniquify-managed
 	  (push (cons buf (uniquify-item-base (car uniquify-managed))) buffers)))
-      (advice-remove 'rename-buffer #'uniquify--rename-buffer-advice)
-      (advice-remove 'create-file-buffer #'uniquify--create-file-buffer-advice)
       (dolist (buf buffers)
 	(set-buffer (car buf))
 	(rename-buffer (cdr buf) t))))
