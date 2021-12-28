@@ -138,13 +138,6 @@ backtrace_args (union specbinding *pdl)
   return pdl->bt.args;
 }
 
-static bool
-backtrace_debug_on_exit (union specbinding *pdl)
-{
-  eassert (pdl->kind == SPECPDL_BACKTRACE);
-  return pdl->bt.debug_on_exit;
-}
-
 /* Functions to modify slots of backtrace records.  */
 
 static void
@@ -354,7 +347,7 @@ call_debugger (Lisp_Object arg)
   return unbind_to (count, val);
 }
 
-static void
+void
 do_debug_on_call (Lisp_Object code, ptrdiff_t count)
 {
   debug_on_next_call = 0;
@@ -3031,6 +3024,42 @@ FUNCTIONP (Lisp_Object object)
     }
   else
     return false;
+}
+
+Lisp_Object
+funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
+{
+  Lisp_Object original_fun = fun;
+  if (SYMBOLP (fun) && !NILP (fun)
+      && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
+
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
+    return funcall_subr (XSUBR (fun), numargs, args);
+  else if (COMPILEDP (fun)
+	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || MODULE_FUNCTIONP (fun))
+    return funcall_lambda (fun, numargs, args);
+  else
+    {
+      if (NILP (fun))
+	xsignal1 (Qvoid_function, original_fun);
+      if (!CONSP (fun))
+	xsignal1 (Qinvalid_function, original_fun);
+      Lisp_Object funcar = XCAR (fun);
+      if (!SYMBOLP (funcar))
+	xsignal1 (Qinvalid_function, original_fun);
+      if (EQ (funcar, Qlambda)
+	  || EQ (funcar, Qclosure))
+	return funcall_lambda (fun, numargs, args);
+      else if (EQ (funcar, Qautoload))
+	{
+	  Fautoload_do_load (fun, original_fun, Qnil);
+	  return funcall_general (original_fun, numargs, args);
+	}
+      else
+	xsignal1 (Qinvalid_function, original_fun);
+    }
 }
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,

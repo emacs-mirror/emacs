@@ -3343,6 +3343,13 @@ SPECPDL_INDEX (void)
   return specpdl_ptr - specpdl;
 }
 
+INLINE bool
+backtrace_debug_on_exit (union specbinding *pdl)
+{
+  eassert (pdl->kind == SPECPDL_BACKTRACE);
+  return pdl->bt.debug_on_exit;
+}
+
 /* This structure helps implement the `catch/throw' and `condition-case/signal'
    control structures.  A struct handler contains all the information needed to
    restore the state of the interpreter after a non-local jump.
@@ -4338,6 +4345,9 @@ extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
+void do_debug_on_call (Lisp_Object code, ptrdiff_t count);
+Lisp_Object funcall_general (Lisp_Object fun,
+			     ptrdiff_t numargs, Lisp_Object *args);
 
 /* Defined in unexmacosx.c.  */
 #if defined DARWIN_OS && defined HAVE_UNEXEC

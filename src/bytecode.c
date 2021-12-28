@@ -629,7 +629,53 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		  }
 	      }
 #endif
-	    TOP = Ffuncall (op + 1, &TOP);
+	    maybe_quit ();
+
+	    if (++lisp_eval_depth > max_lisp_eval_depth)
+	      {
+		if (max_lisp_eval_depth < 100)
+		  max_lisp_eval_depth = 100;
+		if (lisp_eval_depth > max_lisp_eval_depth)
+		  error ("Lisp nesting exceeds `max-lisp-eval-depth'");
+	      }
+
+	    ptrdiff_t numargs = op;
+	    Lisp_Object fun = TOP;
+	    Lisp_Object *args = &TOP + 1;
+
+	    ptrdiff_t count1 = record_in_backtrace (fun, args, numargs);
+	    maybe_gc ();
+	    if (debug_on_next_call)
+	      do_debug_on_call (Qlambda, count1);
+
+	    Lisp_Object original_fun = fun;
+	    if (SYMBOLP (fun))
+	      fun = XSYMBOL (fun)->u.s.function;
+	    Lisp_Object template;
+	    Lisp_Object bytecode;
+	    Lisp_Object val;
+	    if (COMPILEDP (fun)
+		// Lexical binding only.
+		&& (template = AREF (fun, COMPILED_ARGLIST),
+		    FIXNUMP (template))
+		// No autoloads.
+		&& (bytecode = AREF (fun, COMPILED_BYTECODE),
+		    !CONSP (bytecode)))
+	      val = exec_byte_code (bytecode,
+				    AREF (fun, COMPILED_CONSTANTS),
+				    AREF (fun, COMPILED_STACK_DEPTH),
+				    template, numargs, args);
+	    else if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
+	      val = funcall_subr (XSUBR (fun), numargs, args);
+	    else
+	      val = funcall_general (original_fun, numargs, args);
+
+	    lisp_eval_depth--;
+	    if (backtrace_debug_on_exit (specpdl + count1))
+	      val = call_debugger (list2 (Qexit, val));
+	    specpdl_ptr--;
+
+	    TOP = val;
 	    NEXT;
 	  }
 
