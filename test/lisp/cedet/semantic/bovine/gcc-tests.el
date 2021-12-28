@@ -127,8 +127,9 @@ gcc version 2.95.2 19991024 (release)"
     ;; Some macOS machines run llvm when you type gcc.  (!)
     ;; We can't even check if it's a symlink; it's a binary placed in
     ;; "/usr/bin/gcc".  So check the output and just skip this test if
-    ;; it says "Apple LLVM".
-    (unless (string-match "Apple LLVM" (car semantic-gcc-test-strings))
+    ;; it looks like that's the case.
+    (unless (string-match "Apple \\(LLVM\\|clang\\)\\|Xcode\\.app"
+                          (car semantic-gcc-test-strings))
         (semantic-gcc-test-output-parser))))
 
 ;;; gcc-tests.el ends here
