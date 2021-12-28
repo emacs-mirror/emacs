@@ -1392,23 +1392,28 @@ fit_to_screen (XlwMenuWidget mw,
 {
   int screen_width, screen_height;
   int screen_x, screen_y;
+  int prev_screen_x, prev_screen_y;
 
 #ifdef emacs
+  xlw_monitor_dimensions_at_pos (XtDisplay (mw), XtScreen (mw),
+				 previous_ws->x, previous_ws->y,
+				 &prev_screen_x, &prev_screen_y,
+				 &screen_width, &screen_height);
   xlw_monitor_dimensions_at_pos (XtDisplay (mw), XtScreen (mw),
 				 ws->x, ws->y, &screen_x, &screen_y,
 				 &screen_width, &screen_height);
 #else
   screen_width = WidthOfScreen (XtScreen (mw));
   screen_height = HeightOfScreen (XtScreen (mw));
-  screen_x = 0;
-  screen_y = 0;
+  prev_screen_x = screen_x = 0;
+  prev_screen_y = screen_y = 0;
 #endif
   /* 1 if we are unable to avoid an overlap between
      this menu and the parent menu in the X dimension.  */
   int horizontal_overlap = 0;
 
   if (ws->x < screen_x)
-    ws->x = 0;
+    ws->x = screen_x;
   else if (ws->x + ws->width > screen_x + screen_width)
     {
       if (!horizontal_p)
@@ -1417,6 +1422,7 @@ fit_to_screen (XlwMenuWidget mw,
 	   the right of the invoking menu-item; it makes the sub-menu
 	   look more `attached' to the menu-item.  */
 	ws->x = screen_x + (previous_ws->x
+			    - prev_screen_x
 			    - ws->width
 			    + mw->menu.shadow_thickness);
       else
@@ -1445,7 +1451,9 @@ fit_to_screen (XlwMenuWidget mw,
   else if (ws->y + ws->height > screen_y + screen_height)
     {
       if (horizontal_p)
-	ws->y = screen_y + (previous_ws->y - ws->height);
+	ws->y = screen_y + (previous_ws->y
+			    - prev_screen_y
+			    - ws->height);
       else
 	ws->y = screen_y + (screen_height - ws->height);
       if (ws->y < screen_y)
