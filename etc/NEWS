@@ -88,7 +88,7 @@ time.
 * Incompatible changes in Emacs 29.1
 
 ---
-** Support for old EIEIO functions is not autoloaded any more
+** Support for old EIEIO functions is not autoloaded any more.
 You need an explicit (require 'eieio-compat) to use 'defmethod'
 and 'defgeneric' (which have been made obsolete in Emacs-25 with
 'cl-defmethod' and 'cl-defgeneric').
