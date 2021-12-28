@@ -2621,6 +2621,11 @@ It is used by `query-replace-regexp', `replace-regexp',
 It is called with three arguments, as if it were
 `re-search-forward'.")
 
+(defvar replace-regexp-function nil
+  "Function to convert a search string to a regexp to replace.
+It's bound to `isearch-regexp-function' when searching
+for a string to replace.")
+
 (defun replace-search (search-string limit regexp-flag delimited-flag
 		       case-fold &optional backward)
   "Search for the next occurrence of SEARCH-STRING to replace."
@@ -2633,7 +2638,8 @@ It is called with three arguments, as if it were
   ;; outside of this function because then another I-search
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
-	 (isearch-regexp-function (or delimited-flag
+	 (isearch-regexp-function (or replace-regexp-function
+				      delimited-flag
 				      (and replace-char-fold
 					   (not regexp-flag)
 					   #'char-fold-to-regexp)))
@@ -2690,7 +2696,8 @@ It is called with three arguments, as if it were
   (if query-replace-lazy-highlight
       (let ((isearch-string search-string)
 	    (isearch-regexp regexp-flag)
-	    (isearch-regexp-function (or delimited-flag
+	    (isearch-regexp-function (or replace-regexp-function
+					 delimited-flag
 					 (and replace-char-fold
 					      (not regexp-flag)
 					      #'char-fold-to-regexp)))
