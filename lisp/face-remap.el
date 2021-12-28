@@ -417,8 +417,7 @@ a top-level keymap, `text-scale-increase' or
     (with-selected-window window
       (when (and (zerop dx)
                  (zerop dy)
-                 (zerop angle)
-                 (equal scale 1.0))
+                 (zerop angle))
         (setq text-scale--pinch-start-scale
               (if text-scale-mode text-scale-mode-amount 0)))
       (text-scale-set

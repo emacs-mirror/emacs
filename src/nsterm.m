@@ -6821,6 +6821,42 @@ not_in_argv (NSString *arg)
   [self mouseMoved: e];
 }
 
+#ifdef NS_IMPL_COCOA
+- (void) magnifyWithEvent: (NSEvent *) event
+{
+  NSPoint pt = [self convertPoint: [event locationInWindow] fromView: nil];
+  static CGFloat last_scale;
+
+  NSTRACE ("[EmacsView magnifyWithEvent]");
+  if (emacs_event)
+    {
+      emacs_event->kind = PINCH_EVENT;
+      emacs_event->modifiers = EV_MODIFIERS (event);
+      XSETINT (emacs_event->x, lrint (pt.x));
+      XSETINT (emacs_event->y, lrint (pt.y));
+      XSETFRAME (emacs_event->frame_or_window, emacsframe);
+
+      if ([event phase] == NSEventPhaseBegan)
+	{
+	  last_scale = 1.0 + [event magnification];
+	  emacs_event->arg = list4 (make_float (0.0),
+				    make_float (0.0),
+				    make_float (last_scale),
+				    make_float (0.0));
+	}
+      else
+	/* Report a tiny change so that Lisp code doesn't think this
+	   is the beginning of an event sequence.  This is the best we
+	   can do because NS doesn't report pinch events in as much
+	   detail as XInput 2 or GTK+ do.  */
+	emacs_event->arg = list4 (make_float (0.01),
+				  make_float (0.0),
+				  make_float (last_scale += [event magnification]),
+				  make_float (0.0));
+      EV_TRAILER (event);
+    }
+}
+#endif
 
 - (BOOL)windowShouldClose: (id)sender
 {
