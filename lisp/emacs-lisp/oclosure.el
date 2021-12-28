@@ -112,7 +112,6 @@
 ;;   we'd have to disallow such capture.
 
 ;; FIXME:
-;; - Snarf-documentation leaves bogus fixnums in place in`create-file-buffer'.
 ;; - `oclosure-cl-defun', `oclosure-cl-defsubst', `oclosure-defsubst', `oclosure-define-inline'?
 ;; - Use accessor in cl-defstruct
 
