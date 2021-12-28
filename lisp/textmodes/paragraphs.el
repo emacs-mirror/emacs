@@ -479,18 +479,22 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
 
-(defun repunctuate-sentences (&optional no-query)
+(defun repunctuate-sentences (&optional no-query start end)
   "Put two spaces at the end of sentences from point to the end of buffer.
-It works using `query-replace-regexp'.
+It works using `query-replace-regexp'.  In Transient Mark mode,
+if the mark is active, operate on the contents of the region.
+Second and third arg START and END specify the region to operate on.
 If optional argument NO-QUERY is non-nil, make changes without
 asking for confirmation."
-  (interactive)
+  (interactive (list nil
+                     (if (use-region-p) (region-beginning))
+                     (if (use-region-p) (region-end))))
   (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
         (to-string "\\1\\2\\3  "))
     (if no-query
         (while (re-search-forward regexp nil t)
           (replace-match to-string))
-      (query-replace-regexp regexp to-string))))
+      (query-replace-regexp regexp to-string nil start end))))
 
 
 (defun backward-sentence (&optional arg)
