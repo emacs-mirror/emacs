@@ -758,7 +758,7 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (pop-to-buffer-same-window buffer)
+  (pop-to-buffer buffer)
 
   (with-connection-local-variables
    ;; On remote hosts, the local `shell-file-name' might be useless.

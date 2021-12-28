@@ -260,7 +260,7 @@ information on Eshell, see Info node `(eshell)Top'."
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
     (cl-assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer-same-window buf)
+    (pop-to-buffer buf display-comint-buffer-action)
     (unless (derived-mode-p 'eshell-mode)
       (eshell-mode))
     buf))
