@@ -1552,7 +1552,7 @@ This does not change the name of the visited file (if any).  */)
 
   /* Catch redisplay's attention.  Unless we do this, the mode lines for
      any windows displaying current_buffer will stay unchanged.  */
-  update_mode_lines = 11;
+  bset_update_mode_line (current_buffer);
 
   XSETBUFFER (buf, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), newname);
@@ -1561,6 +1561,9 @@ This does not change the name of the visited file (if any).  */)
     call0 (intern ("rename-auto-save-file"));
 
   run_buffer_list_update_hook (current_buffer);
+
+  call2 (intern ("uniquify--rename-buffer-advice"),
+         BVAR (current_buffer, name), unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
