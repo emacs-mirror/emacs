@@ -492,8 +492,10 @@ asking for confirmation."
   (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
         (to-string "\\1\\2\\3  "))
     (if no-query
-        (while (re-search-forward regexp nil t)
-          (replace-match to-string))
+        (progn
+          (when start (goto-char start))
+          (while (re-search-forward regexp end t)
+            (replace-match to-string)))
       (query-replace-regexp regexp to-string nil start end))))
 
 
