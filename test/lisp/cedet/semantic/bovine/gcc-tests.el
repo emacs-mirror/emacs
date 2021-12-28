@@ -128,7 +128,7 @@ gcc version 2.95.2 19991024 (release)"
     ;; We can't even check if it's a symlink; it's a binary placed in
     ;; "/usr/bin/gcc".  So check the output and just skip this test if
     ;; it looks like that's the case.
-    (unless (string-match "Apple LLVM\\|Xcode.app"
+    (unless (string-match "Apple \\(LLVM\\|clang\\)\\|Xcode\\.app"
                           (car semantic-gcc-test-strings))
         (semantic-gcc-test-output-parser))))
 
