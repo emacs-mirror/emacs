@@ -112,7 +112,6 @@
 ;;   we'd have to disallow such capture.
 
 ;; FIXME:
-;; - Snarf-documentation leaves bogus fixnums in place in`create-file-buffer'.
 ;; - `fcr-cl-defun', `fcr-cl-defsubst', `fcr-defsubst', `fcr-define-inline'?
 ;; - Use accessor in cl-defstruct
 
