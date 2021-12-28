@@ -297,7 +297,7 @@ See `kbd' for a descripion of KEYS."
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.
 A key is a string consisting of one or more key strokes.
-The key strokes are separated by a space character.
+The key strokes are separated by space characters.
 
 Each key stroke is either a single character, or the name of an
 event, surrounded by angle brackets.  In addition, any key stroke
