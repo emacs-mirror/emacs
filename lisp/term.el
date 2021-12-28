@@ -3301,7 +3301,7 @@ Called as a buffer-local `post-command-hook' function in
 an inconsistent state by unexpectedly moving point.
 
 Mouse and wheel events are ignored so that mouse selection and
-mouse wheel scrolling is unimpeded.
+mouse wheel scrolling are unimpeded.
 
 Only acts when the pre-command position of point was equal to the
 process mark, and the `term-char-mode-point-at-process-mark'
