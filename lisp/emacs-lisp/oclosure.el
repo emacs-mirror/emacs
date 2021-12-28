@@ -52,6 +52,8 @@
 ;;   (negate f) generally returns (lambda (x) (not (f x)))
 ;;   but it can optimize (negate (negate f)) to f and (negate #'<) to
 ;;   #'>=.
+;; - Autoloads (tho currently our bytecode functions (and hence OClosures)
+;;   are too fat for that).
 
 ;; Related constructs:
 ;; - `funcallable-standard-object' (FSO) in Common-Lisp.  These are different
@@ -111,9 +113,10 @@
 ;;   store-conversion is indispensable, so if we want to avoid store-conversion
 ;;   we'd have to disallow such capture.
 
-;; FIXME:
+;; TODO:
 ;; - `oclosure-cl-defun', `oclosure-cl-defsubst', `oclosure-defsubst', `oclosure-define-inline'?
 ;; - Use accessor in cl-defstruct
+;; - Add pcase patterns for OClosures.
 
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
