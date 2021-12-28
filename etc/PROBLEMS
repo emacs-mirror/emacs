@@ -1236,6 +1236,15 @@ A workaround is to not use 'klipper'/'clipit'.  Upgrading 'klipper' to
 the one coming with KDE 3.3 or later might solve the problem; if it
 doesn't, set 'select-active-regions' to 'only' or nil.
 
+*** Emacs doesn't receive the key "C-.", displaying an input field instead.
+
+This is caused by the IBus Emoji input panel, which is usually bound
+to "C-.".  You can disable that panel by running the following
+command:
+
+  $ gsettings set org.freedesktop.ibus.panel.emoji hotkey "[]"
+
+
 ** Window-manager and toolkit-related problems
 
 *** Emacs built with GTK+ toolkit produces corrupted display on HiDPI screen
