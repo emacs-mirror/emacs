@@ -88,12 +88,12 @@ time.
 * Incompatible changes in Emacs 29.1
 
 ---
-** Support for old EIEIO functions not is autoloaded any more
-You need to explicitly (require 'eieio-compat) if you need to use
-the functions `defmethod` and `defgeneric` (which have been made
-obsolete in Emacs-25 with `cl-defmethod` and `cl-defgeneric`).
-Similarly files that were compiled with an old EIEIO (Emacs<25),
-will usually need (require 'eieio-compat).
+** Support for old EIEIO functions is not autoloaded any more
+You need an explicit (require 'eieio-compat) to use 'defmethod'
+and 'defgeneric' (which have been made obsolete in Emacs-25 with
+'cl-defmethod' and 'cl-defgeneric').
+Similarly you might need to (require 'eieio-compat) before loading
+files that were compiled with an old EIEIO (Emacs<25).
 
 ---
 ** 'C-x 8 .' has been moved to 'C-x 8 . .'.
