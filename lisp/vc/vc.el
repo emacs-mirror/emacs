@@ -2755,7 +2755,7 @@ to the working revision (except for keyword expansion)."
     (unwind-protect
 	(when (if vc-revert-show-diff
 		  (progn
-		    (setq diff-buffer (generate-new-buffer-name "*vc-diff*"))
+		    (setq diff-buffer (generate-new-buffer "*vc-diff*"))
 		    (vc-diff-internal vc-allow-async-revert vc-fileset
 				      nil nil nil diff-buffer))
 		;; Avoid querying the user again.
