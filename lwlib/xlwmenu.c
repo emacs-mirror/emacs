@@ -1390,27 +1390,40 @@ fit_to_screen (XlwMenuWidget mw,
                window_state *previous_ws,
                Boolean horizontal_p)
 {
-  unsigned int screen_width = WidthOfScreen (XtScreen (mw));
-  unsigned int screen_height = HeightOfScreen (XtScreen (mw));
+  int screen_width, screen_height;
+  int screen_x, screen_y;
+
+#ifdef emacs
+  xlw_monitor_dimensions_at_pos (XtDisplay (mw), XtScreen (mw),
+				 ws->x, ws->y, &screen_x, &screen_y,
+				 &screen_width, &screen_height);
+#else
+  screen_width = WidthOfScreen (XtScreen (mw));
+  screen_height = HeightOfScreen (XtScreen (mw));
+  screen_x = 0;
+  screen_y = 0;
+#endif
   /* 1 if we are unable to avoid an overlap between
      this menu and the parent menu in the X dimension.  */
   int horizontal_overlap = 0;
 
-  if (ws->x < 0)
+  if (ws->x < screen_x)
     ws->x = 0;
-  else if (ws->x + ws->width > screen_width)
+  else if (ws->x + ws->width > screen_x + screen_width)
     {
       if (!horizontal_p)
 	/* The addition of shadow-thickness for a sub-menu's position is
 	   to reflect a similar adjustment when the menu is displayed to
 	   the right of the invoking menu-item; it makes the sub-menu
 	   look more `attached' to the menu-item.  */
-	ws->x = previous_ws->x - ws->width + mw->menu.shadow_thickness;
+	ws->x = screen_x + (previous_ws->x
+			    - ws->width
+			    + mw->menu.shadow_thickness);
       else
-	ws->x = screen_width - ws->width;
-      if (ws->x < 0)
+	ws->x = screen_x + (screen_width - ws->width);
+      if (ws->x < screen_x)
 	{
-	  ws->x = 0;
+	  ws->x = screen_x;
 	  horizontal_overlap = 1;
 	}
     }
@@ -1427,16 +1440,16 @@ fit_to_screen (XlwMenuWidget mw,
 	ws->y = previous_ws->y - ws->height;
     }
 
-  if (ws->y < 0)
-    ws->y = 0;
-  else if (ws->y + ws->height > screen_height)
+  if (ws->y < screen_y)
+    ws->y = screen_y;
+  else if (ws->y + ws->height > screen_y + screen_height)
     {
       if (horizontal_p)
-	ws->y = previous_ws->y - ws->height;
+	ws->y = screen_y + (previous_ws->y - ws->height);
       else
-	ws->y = screen_height - ws->height;
-      if (ws->y < 0)
-        ws->y = 0;
+	ws->y = screen_y + (screen_height - ws->height);
+      if (ws->y < screen_y)
+        ws->y = screen_y;
     }
 }
 
@@ -2626,7 +2639,21 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   int		borderwidth = mw->menu.shadow_thickness;
   Screen*	screen = XtScreen (mw);
   Display       *display = XtDisplay (mw);
+  int		screen_x;
+  int		screen_y;
+  int 		screen_w;
+  int		screen_h;
 
+#ifdef emacs
+  xlw_monitor_dimensions_at_pos (display, screen, x, y,
+				 &screen_x, &screen_y,
+				 &screen_w, &screen_h);
+#else
+  screen_x = 0;
+  screen_y = 0;
+  screen_w = WidthOfScreen (screen);
+  screen_h = HeightOfScreen (screen);
+#endif
   next_release_must_exit = 0;
 
   mw->menu.inside_entry = NULL;
@@ -2640,14 +2667,14 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 
   x -= borderwidth;
   y -= borderwidth;
-  if (x < borderwidth)
-    x = borderwidth;
-  if (x + w + 2 * borderwidth > WidthOfScreen (screen))
-    x = WidthOfScreen (screen) - w - 2 * borderwidth;
-  if (y < borderwidth)
-    y = borderwidth;
-  if (y + h + 2 * borderwidth> HeightOfScreen (screen))
-    y = HeightOfScreen (screen) - h - 2 * borderwidth;
+  if (x < screen_x + borderwidth)
+    x = screen_x + borderwidth;
+  if (x + w + 2 * borderwidth > screen_x + screen_w)
+    x = (screen_x + screen_w) - w - 2 * borderwidth;
+  if (y < screen_y + borderwidth)
+    y = screen_y + borderwidth;
+  if (y + h + 2 * borderwidth > screen_y + screen_h)
+    y = (screen_y + screen_h) - h - 2 * borderwidth;
 
   mw->menu.popped_up = True;
   if (XtIsShell (XtParent ((Widget)mw)))

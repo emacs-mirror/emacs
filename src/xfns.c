@@ -5041,17 +5041,9 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
   (void) dpy; /* Suppress unused variable warning.  */
 
 #ifdef HAVE_XRANDR
-  int xrr_event_base, xrr_error_base;
-  bool xrr_ok = false;
-  xrr_ok = XRRQueryExtension (dpy, &xrr_event_base, &xrr_error_base);
-  if (xrr_ok)
-    {
-      XRRQueryVersion (dpy, &dpyinfo->xrandr_major_version,
-		       &dpyinfo->xrandr_minor_version);
-      xrr_ok = ((dpyinfo->xrandr_major_version == 1
-		 && dpyinfo->xrandr_minor_version >= 2)
-		|| dpyinfo->xrandr_major_version > 1);
-    }
+  bool xrr_ok = ((dpyinfo->xrandr_major_version == 1
+		  && dpyinfo->xrandr_minor_version >= 2)
+		 || dpyinfo->xrandr_major_version > 1);
 
   if (xrr_ok)
     attributes_list = x_get_monitor_attributes_xrandr (dpyinfo);
@@ -5075,6 +5067,129 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
 }
 
 #endif /* !USE_GTK */
+
+#ifdef USE_LUCID
+/* This is used by the Lucid menu widget, but it's defined here so we
+   can make use of a great deal of existing code.  */
+static void
+xlw_monitor_dimensions_at_pos_1 (struct x_display_info *dpyinfo,
+				 Screen *screen, int src_x, int src_y,
+				 int *x, int *y, int *width, int *height)
+{
+  Lisp_Object attrs, tem, val;
+#ifdef HAVE_XRANDR
+#if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
+  int num_rr_monitors;
+  XRRMonitorInfo *rr_monitors;
+
+  /* If RandR 1.5 or later is available, use that instead, as some
+     video drivers don't report correct dimensions via other versions
+     of RandR.  */
+  if (dpyinfo->xrandr_major_version > 1
+      || (dpyinfo->xrandr_major_version == 1
+	  && dpyinfo->xrandr_minor_version >= 5))
+    {
+      rr_monitors = XRRGetMonitors (dpyinfo->display,
+				    RootWindowOfScreen (screen),
+				    True, &num_rr_monitors);
+      if (!rr_monitors)
+	goto fallback;
+
+      for (int i = 0; i < num_rr_monitors; ++i)
+	{
+	  if (rr_monitors[i].x <= src_x
+	      && src_x < (rr_monitors[i].x
+			  + rr_monitors[i].width)
+	      && rr_monitors[i].y <= src_y
+	      && src_y < (rr_monitors[i].y
+			  + rr_monitors[i].height))
+	    {
+	      *x = rr_monitors[i].x;
+	      *y = rr_monitors[i].y;
+	      *width = rr_monitors[i].width;
+	      *height = rr_monitors[i].height;
+
+	      XRRFreeMonitors (rr_monitors);
+	      return;
+	    }
+	}
+      XRRFreeMonitors (rr_monitors);
+    }
+
+ fallback:
+#endif
+#endif
+
+  attrs = x_get_monitor_attributes (dpyinfo);
+
+  for (tem = attrs; CONSP (tem); tem = XCDR (tem))
+    {
+      int sx, sy, swidth, sheight;
+      val = assq_no_quit (Qgeometry, XCAR (tem));
+      if (!NILP (val))
+	{
+	  sx = XFIXNUM (XCAR (XCDR (val)));
+	  sy = XFIXNUM (XCAR (XCDR (XCDR (val))));
+	  swidth = XFIXNUM (XCAR (XCDR (XCDR (XCDR (val)))));
+	  sheight = XFIXNUM (XCAR (XCDR (XCDR (XCDR (XCDR (val))))));
+
+	  if (sx <= src_x && src_x < (sx + swidth)
+	      && sy <= src_y && src_y < (sy + swidth))
+	    {
+	      *x = sx;
+	      *y = sy;
+	      *width = swidth;
+	      *height = sheight;
+	      return;
+	    }
+	}
+    }
+
+  *x = 0;
+  *y = 0;
+  *width = WidthOfScreen (screen);
+  *height = HeightOfScreen (screen);
+}
+
+void
+xlw_monitor_dimensions_at_pos (Display *dpy, Screen *screen, int src_x,
+			       int src_y, int *x, int *y, int *width, int *height)
+{
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+  XRectangle rect, workarea, intersection;
+  int dim_x, dim_y, dim_w, dim_h;
+
+  if (!dpyinfo)
+    emacs_abort ();
+
+  block_input ();
+  xlw_monitor_dimensions_at_pos_1 (dpyinfo, screen, src_x, src_y,
+				   &dim_x, &dim_y, &dim_w, &dim_h);
+  rect.x = dim_x;
+  rect.y = dim_y;
+  rect.width = dim_w;
+  rect.height = dim_h;
+
+  if (!x_get_net_workarea (dpyinfo, &workarea))
+    memset (&workarea, 0, sizeof workarea);
+  unblock_input ();
+
+  if (!gui_intersect_rectangles (&rect, &workarea, &intersection))
+    {
+      *x = 0;
+      *y = 0;
+      *width = 0;
+      *height = 0;
+      return;
+    }
+
+  *x = intersection.x;
+  *y = intersection.y;
+  *width = intersection.width;
+  *height = intersection.height;
+}
+#endif
+
 
 DEFUN ("x-display-monitor-attributes-list", Fx_display_monitor_attributes_list,
        Sx_display_monitor_attributes_list,
