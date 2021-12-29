@@ -32,8 +32,12 @@ struct window;
 
 #if defined (USE_GTK)
 #include <gtk/gtk.h>
+#ifndef HAVE_PGTK
 #include <X11/Xlib.h>
 #include "xterm.h"
+#else
+#include "pgtkterm.h"
+#endif
 #elif defined (NS_IMPL_COCOA) && defined (__OBJC__)
 #import <AppKit/NSView.h>
 #import "nsxwidget.h"
@@ -107,8 +111,13 @@ struct xwidget_view
   enum glyph_row_area area;
 
 #if defined (USE_GTK)
+#ifndef HAVE_PGTK
   Display *dpy;
   Window wdesc;
+#else
+  struct pgtk_display_info *dpyinfo;
+  GtkWidget *widget;
+#endif
   Emacs_Cursor cursor;
   struct frame *frame;
 
@@ -190,7 +199,9 @@ extern struct xwidget *xwidget_from_id (uint32_t id);
 struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
 extern void lower_frame_xwidget_views (struct frame *f);
+#endif
 extern void kill_frame_xwidget_views (struct frame *f);
+#ifdef HAVE_X_WINDOWS
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
 extern void xwidget_motion_or_crossing (struct xwidget_view *,

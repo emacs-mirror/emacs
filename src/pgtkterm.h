@@ -17,6 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#ifndef _PGTKTERM_H_
+#define _PGTKTERM_H_
 
 #include "dispextern.h"
 #include "frame.h"
@@ -660,5 +662,7 @@ extern bool xg_set_icon_from_xpm_data (struct frame *f, const char **data);
 extern bool pgtk_text_icon (struct frame *f, const char *icon_name);
 
 extern double pgtk_frame_scale_factor (struct frame *);
+extern int pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *, int);
 
 #endif /* HAVE_PGTK */
+#endif /* _PGTKTERM_H_ */
