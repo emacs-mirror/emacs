@@ -2168,9 +2168,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
      covers the entire frame.  Clipping might have changed even if we
      haven't actually moved; try to figure out when we need to reclip
      for real.  */
+#ifndef HAVE_PGTK
   if (xv->clip_right != clip_right
       || xv->clip_bottom != clip_bottom
       || xv->clip_top != clip_top || xv->clip_left != clip_left)
+#endif
     {
 #ifdef USE_GTK
 #ifdef HAVE_X_WINDOWS
