@@ -3354,6 +3354,7 @@ lower_frame_xwidget_views (struct frame *f)
 }
 #endif
 
+#ifndef NS_IMPL_COCOA
 void
 kill_frame_xwidget_views (struct frame *f)
 {
@@ -3370,6 +3371,7 @@ kill_frame_xwidget_views (struct frame *f)
   for (; CONSP (rem); rem = XCDR (rem))
     Fdelete_xwidget_view (XCAR (rem));
 }
+#endif
 
 static void
 kill_xwidget (struct xwidget *xw)

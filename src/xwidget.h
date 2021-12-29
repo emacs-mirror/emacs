@@ -200,7 +200,9 @@ struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
 extern void lower_frame_xwidget_views (struct frame *f);
 #endif
+#ifndef NS_IMPL_COCOA
 extern void kill_frame_xwidget_views (struct frame *f);
+#endif
 #ifdef HAVE_X_WINDOWS
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
