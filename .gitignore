@@ -320,3 +320,6 @@ lib-src/seccomp-filter-exec.pfc
 
 # gsettings schema
 /etc/*.gschema.valid
+
+# Ignore directory made by admin/make-manuals.
+manual/
