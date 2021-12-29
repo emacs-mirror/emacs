@@ -341,7 +341,7 @@ fails.  */)
 
       gtk_widget_show (xw->widget_osr);
       gtk_widget_show (xw->widgetwindow_osr);
-#ifndef HAVE_XINPUT2
+#if !defined HAVE_XINPUT2 && !defined HAVE_PGTK
       synthesize_focus_in_event (xw->widgetwindow_osr);
 #endif
 
@@ -667,8 +667,11 @@ record_osr_embedder (struct xwidget_view *view)
 
   xw = XXWIDGET (view->model);
   window = gtk_widget_get_window (xw->widgetwindow_osr);
+#ifndef HAVE_PGTK
   embedder = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (view->frame));
-
+#else
+  embedder = gtk_widget_get_window (view->widget);
+#endif
   gdk_offscreen_window_set_embedder (window, embedder);
   xw->embedder = view->frame;
   xw->embedder_view = view;
@@ -703,6 +706,7 @@ from_embedder (GdkWindow *window, double x, double y,
 {
   double *xout = x_out_ptr;
   double *yout = y_out_ptr;
+#ifndef HAVE_PGTK
   struct xwidget *xw = find_xwidget_for_offscreen_window (window);
   struct xwidget_view *xvw;
   gint xoff, yoff;
@@ -726,6 +730,10 @@ from_embedder (GdkWindow *window, double x, double y,
       *xout = x - xvw->x - xoff;
       *yout = y - xvw->y - yoff;
     }
+#else
+  *xout = x;
+  *yout = y;
+#endif
 }
 
 static void
@@ -735,6 +743,7 @@ to_embedder (GdkWindow *window, double x, double y,
 {
   double *xout = x_out_ptr;
   double *yout = y_out_ptr;
+#ifndef HAVE_PGTK
   struct xwidget *xw = find_xwidget_for_offscreen_window (window);
   struct xwidget_view *xvw;
   gint xoff, yoff;
@@ -758,6 +767,10 @@ to_embedder (GdkWindow *window, double x, double y,
       *xout = x + xvw->x + xoff;
       *yout = y + xvw->y + yoff;
     }
+#else
+  *xout = x;
+  *yout = y;
+#endif
 }
 
 static GdkDevice *
@@ -2203,7 +2216,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
     }
 #endif
 
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 || defined HAVE_PGTK
   record_osr_embedder (xv);
   synthesize_focus_in_event (xww->widget_osr);
 #endif
