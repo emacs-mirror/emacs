@@ -624,6 +624,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local comment-indent-function 'sgml-comment-indent)
   (setq-local comment-line-break-function 'sgml-comment-indent-new-line)
   (setq-local skeleton-further-elements '((completion-ignore-case t)))
+  (setq-local skeleton-end-newline nil)
   (setq-local skeleton-end-hook
 	      (lambda ()
 		(or (eolp)
