@@ -10210,13 +10210,25 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XWIDGETS
 	      if (xv)
 		{
+		  uint state = xev->mods.effective;
+
+		  if (xev->buttons.mask_len)
+		    {
+		      if (XIMaskIsSet (xev->buttons.mask, 1))
+			state |= Button1Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 2))
+			state |= Button2Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 3))
+			state |= Button3Mask;
+		    }
+
 		  if (found_valuator)
 		    xwidget_scroll (xv, xev->event_x, xev->event_y,
-				    xv_total_x, xv_total_y, xev->mods.effective,
+				    xv_total_x, xv_total_y, state,
 				    xev->time, any_stop_p);
 		  else
 		    xwidget_motion_notify (xv, xev->event_x, xev->event_y,
-					   xev->mods.effective, xev->time);
+					   state, xev->time);
 
 		  goto XI_OTHER;
 		}
