@@ -2291,7 +2291,7 @@ the keymap.  Since @code{define-key} puts new bindings at the front, you
 should define the menu items starting at the bottom of the menu and
 moving to the top, if you care about the order.  When you add an item to
 an existing menu, you can specify its position in the menu using
-@code{define-key-after} (@pxref{Modifying Menus}).
+@code{keymap-set-after} (@pxref{Modifying Menus}).
 
 @menu
 * Simple Menu Items::       A simple kind of menu key binding.
@@ -3045,9 +3045,9 @@ To force recalculation of the tool bar, call
   When you insert a new item in an existing menu, you probably want to
 put it in a particular place among the menu's existing items.  If you
 use @code{define-key} to add the item, it normally goes at the front of
-the menu.  To put it elsewhere in the menu, use @code{define-key-after}:
+the menu.  To put it elsewhere in the menu, use @code{keymap-set-after}:
 
-@defun define-key-after map key binding &optional after
+@defun keymap-set-after map key binding &optional after
 Define a binding in @var{map} for @var{key}, with value @var{binding},
 just like @code{define-key}, but position the binding in @var{map} after
 the binding for the event @var{after}.  The argument @var{key} should be
@@ -3061,7 +3061,7 @@ inherited keymap.
 Here is an example:
 
 @example
-(define-key-after my-menu [drink]
+(keymap-set-after my-menu "<drink>"
   '("Drink" . drink-command) 'eat)
 @end example
 
@@ -3073,7 +3073,7 @@ Here is how to insert an item called @samp{Work} in the @samp{Signals}
 menu of Shell mode, after the item @code{break}:
 
 @example
-(define-key-after shell-mode-map [menu-bar signals work]
+(keymap-set-after shell-mode-map "<menu-bar> <signals> <work>"
   '("Work" . work-command) 'break)
 @end example
 @end defun
