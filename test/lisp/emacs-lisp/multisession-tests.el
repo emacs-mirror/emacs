@@ -130,6 +130,9 @@
                         ""
                         :synchronized t)
                       (cl-incf (multisession-value multisession--sfoo))))))
+      ;; On Windows, we don't have sub-second resolution.
+      (when (memq system-type '(windows-nt haiku))
+        (sleep-for 2))
       (should (= (multisession-value multisession--sfoo) 2)))))
 
 (ert-deftest multi-test-files-busy ()
