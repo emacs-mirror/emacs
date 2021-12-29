@@ -1240,14 +1240,15 @@ Like the normal command loop, @code{keymap-lookup} will remap the
 command resulting from looking up @var{key} by looking up the command
 in the current keymaps.  However, if the optional third argument
 @var{no-remap} is non-@code{nil}, @code{keymap-lookup} returns the
-unmapped command.
+command without remapping.
 
 If the optional argument @var{position} is non-@code{nil}, it
 specifies a mouse position as returned by @code{event-start} and
 @code{event-end}, and the lookup occurs in the keymaps associated with
-it instead of @var{key}.  It can also be a number or marker, in which
-case the keymap properties at the specified buffer position instead of
-point are used.
+that position, instead of in @var{keymap}.  @var{position} can also be
+a number or a marker, in which case it is interpreted as a buffer
+position, and the function uses the keymap properties at that position
+instead of at point.
 @end defun
 
 @deffn Command undefined
