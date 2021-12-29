@@ -2622,9 +2622,13 @@ It is called with three arguments, as if it were
 `re-search-forward'.")
 
 (defvar replace-regexp-function nil
-  "Function to convert a search string to a regexp to replace.
-It's bound to `isearch-regexp-function' when searching
-for a string to replace.")
+  "Function to convert the FROM string of query-replace commands to a regexp.
+This is used by `query-replace', `query-replace-regexp', etc. as
+the value of `isearch-regexp-function' when they search for the
+occurences of the string/regexp to be replaced.  This is intended
+to be used when the string to be replaced, as typed by the user,
+is not to be interpreted literally, but instead should be converted
+to a regexp that is actually used for the search.")
 
 (defun replace-search (search-string limit regexp-flag delimited-flag
 		       case-fold &optional backward)
