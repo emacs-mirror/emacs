@@ -373,14 +373,14 @@ number of keys.  Here's a very basic example:
   "C-c C-c" #'quit-window)
 @end lisp
 
-This function creates a new sparse keymap, defines the two keystrokes
-in @var{pairs}, and returns the new keymap.
+This function creates a new sparse keymap, defines the keystrokes in
+@var{pairs}, and returns the new keymap.
 
 @var{pairs} is a list of alternating key bindings and key definitions,
-as accepted by @code{keymap-set}.  In addition the key can be the
+as accepted by @code{keymap-set}.  In addition, the key can be the
 special symbol @code{:menu}, in which case the definition should be a
 menu definition as accepted by @code{easy-menu-define} (@pxref{Easy
-Menu}).  Here's a brief example:
+Menu}).  Here's a brief example of this usage:
 
 @lisp
 (define-keymap :full t
@@ -391,37 +391,40 @@ Menu}).  Here's a brief example:
 @end lisp
 
 A number of keywords can be used before the key/definition pairs to
-changes features of the new keymap.  If the keyword is missing, the
-default value for the feature is @code{nil}.  Here's a list of the
-available keywords:
+change features of the new keymap.  If any of the feature keywords is
+missing from the @code{define-keymap} call, the default value for that
+feature is @code{nil}.  Here's a list of the available feature
+keywords:
 
 @table @code
 @item :full
-If non-@code{nil}, create a chartable keymap (as from
+If non-@code{nil}, create a char-table keymap (as from
 @code{make-keymap}) instead of a sparse keymap (as from
 @code{make-sparse-keymap} (@pxref{Creating Keymaps}).  A sparse keymap
 is the default.
 
 @item :parent
-If non-@code{nil}, this should be a keymap to use as the parent
+If non-@code{nil}, the value should be a keymap to use as the parent
 (@pxref{Inheritance and Keymaps}).
 
 @item :keymap
-If non-@code{nil}, this should be a keymap.  Instead of creating a new
-keymap, this keymap is modified instead.
+If non-@code{nil}, the value should be a keymap.  Instead of creating
+a new keymap, the specified keymap is modified instead.
 
 @item :suppress
 If non-@code{nil}, the keymap will be suppressed with
-@code{suppress-keymap} (@pxref{Changing Key Bindings}).  If
-@code{nodigits}, treat digits like other chars.
+@code{suppress-keymap} (@pxref{Changing Key Bindings}).  By default,
+digits and the minus sign are exempt from suppressing, but if the
+value is @code{nodigits}, this suppresses digits and minus-sign like
+it does with other characters.
 
 @item :name
-If non-@code{nil}, this should be a string to use as the menu for the
-keymap if you use it as a menu with @code{x-popup-menu} (@pxref{Pop-Up
-Menus}).
+If non-@code{nil}, the value should be a string to use as the menu for
+the keymap if you use it as a menu with @code{x-popup-menu}
+(@pxref{Pop-Up Menus}).
 
 @item :prefix
-If non-@code{nil}, this should be a symbol to be used as a prefix
+If non-@code{nil}, the value should be a symbol to be used as a prefix
 command (@pxref{Prefix Keys}).  If this is the case, this symbol is
 returned by @code{define-keymap} instead of the map itself.
 @end table
@@ -433,13 +436,13 @@ By far, the most common thing to do with a keymap is to bind it to a
 variable.  This is what virtually all modes do---a mode called
 @code{foo} almost always has a variable called @code{foo-mode-map}.
 
-This macro defines @var{name} as a variable, and passes @var{options}
-and @var{pars} to @code{define-keymap}, and uses the result as the
+This macro defines @var{name} as a variable, passes @var{options}
+and @var{pairs} to @code{define-keymap}, and uses the result as the
 default value for the variable.
 
-@var{options} is like the keywords in @code{define-keymap}, but adds a
-@code{:doc} keyword that says what the doc string for the @var{name}
-variable should be.
+@var{options} is like the keywords in @code{define-keymap}, but
+there's an additional @code{:doc} keyword that provides the doc
+string for the defined variable.
 
 Here's an example:
 
@@ -1483,7 +1486,7 @@ keymap.  When writing modes, however, you frequently have to bind a
 large number of keys at once, and using @code{keymap-set} on them all
 can be tedious and error-prone.  Instead you can use
 @code{define-keymap}, which creates a keymap and binds a number of
-keys.  @xref{Creating Keymaps} for details.
+keys.  @xref{Creating Keymaps}, for details.
 
 The function @code{substitute-key-definition} scans a keymap for
 keys that have a certain binding and rebinds them with a different
