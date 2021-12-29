@@ -3180,8 +3180,8 @@ Note that Java specific rules are currently applied to tell this from
       (append
        (c-lang-const c-flat-decl-block-kwds)
        (if (c-lang-const c-recognize-<>-arglists)
-	   '("{" "}" ";" "," ")" ":" "<")
-	 '("{" "}" ";" "," ")" ":")))))
+	   '("{" "}" ";" "*" "," ")" ":" "<")
+	 '("{" "}" ";" "*" "," ")" ":")))))
 (c-lang-defvar c-brace-stack-thing-key (c-lang-const c-brace-stack-thing-key))
 
 (c-lang-defconst c-brace-stack-no-semi-key
