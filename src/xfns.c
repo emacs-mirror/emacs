@@ -7749,10 +7749,10 @@ present and mapped to the usual X keysyms.  */)
   Display *dpy = FRAME_X_DISPLAY (f);
   Lisp_Object have_keys;
 
-  block_input ();
-
   if (!FRAME_DISPLAY_INFO (f)->supports_xkb)
     return Qlambda;
+
+  block_input ();
 
   /* In this code we check that the keyboard has physical keys with names
      that start with BKSP (Backspace) and DELE (Delete), and that they
