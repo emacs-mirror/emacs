@@ -2612,19 +2612,17 @@ fixed, visit it in a buffer."
                          "\\(?:index.*\n\\)?"
                          "--- \\(?:" null-device "\\|a/\\(.*\\)\\)\n"
                          "\\+\\+\\+ \\(?:" null-device "\\|b/\\(.*\\)\\)\n"))))
-        (put-text-property (match-beginning 0)
-                           (or (match-beginning 2) (match-beginning 1))
-                           'display (propertize
-                                     (cond
-                                      ((null (match-beginning 1))
-                                       (concat "new file  " (match-string 2)))
-                                      ((null (match-beginning 2))
-                                       (concat "deleted   " (match-string 1)))
-                                      (t
-                                       (concat "modified  " (match-string 1))))
-                                     'face '(diff-file-header diff-header)))
-        (put-text-property (match-end 1) (1- (match-end 0))
-                           'display ""))))
+        (put-text-property (match-beginning 0) (1- (match-end 0))
+                           'display
+                           (propertize
+                            (cond
+                             ((null (match-string 1))
+                              (concat "new file  " (match-string 2)))
+                             ((null (match-string 2))
+                              (concat "deleted  " (match-string 1)))
+                             (t
+                              (concat "modified  " (match-string 1))))
+                            'face '(diff-file-header diff-header))))))
   nil)
 
 ;;; Syntax highlighting from font-lock
