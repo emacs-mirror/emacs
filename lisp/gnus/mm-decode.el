@@ -1869,7 +1869,7 @@ If RECURSIVE, search recursively."
   ;; Require since we bind its variables.
   (require 'shr)
   (let ((shr-width (if shr-use-fonts
-		       nil
+		       shr-width
 		     fill-column))
 	(shr-content-function (lambda (id)
 				(let ((handle (mm-get-content-id id)))
