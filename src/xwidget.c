@@ -3149,7 +3149,7 @@ syms_of_xwidget (void)
   staticpro (&internal_xwidget_view_list);
 
 #ifdef HAVE_X_WINDOWS
-  x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest,); Qeq
+  x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   staticpro (&x_window_to_xwv_map);
 #endif
