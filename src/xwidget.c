@@ -2106,6 +2106,8 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 	  mask.deviceid = XIAllMasterDevices;
 
 	  XISetMask (m, XI_Motion);
+	  XISetMask (m, XI_ButtonPress);
+	  XISetMask (m, XI_ButtonRelease);
 	  XISelectEvents (xv->dpy, xv->wdesc, &mask, 1);
 	}
 #endif
