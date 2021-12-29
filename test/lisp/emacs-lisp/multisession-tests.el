@@ -62,7 +62,7 @@
         (setq multisession--db nil)))))
 
 (ert-deftest multi-test-sqlite-busy ()
-  (skip-unless (and t (sqlite-available-p)))
+  (skip-unless (sqlite-available-p))
   (ert-with-temp-file dir
     :directory t
     (let ((user-init-file "/tmp/foo.el")
@@ -136,7 +136,7 @@
       (should (= (multisession-value multisession--sfoo) 2)))))
 
 (ert-deftest multi-test-files-busy ()
-  (skip-unless (and t (sqlite-available-p)))
+  (skip-unless (sqlite-available-p))
   (ert-with-temp-file dir
     :directory t
     (let ((user-init-file "/tmp/foo.el")
@@ -163,14 +163,14 @@
                                 (user-init-file "/tmp/sbar.el"))
                             (define-multisession-variable multisession--sbar 0
                               "" :synchronized t)
-                            (dotimes (i 1000)
+                            (dotimes (i 100)
                               (cl-incf (multisession-value multisession--sbar))))))))
       (while (process-live-p proc)
         (message "multisession--sbar %s" (multisession-value multisession--sbar))
         ;;(cl-incf (multisession-value multisession--sbar))
         (sleep-for 0.1))
       (message "multisession--sbar ends up as %s" (multisession-value multisession--sbar))
-      (should (< (multisession-value multisession--sbar) 2000)))))
+      (should (< (multisession-value multisession--sbar) 200)))))
 
 (ert-deftest multi-test-files-some-values ()
   (ert-with-temp-file dir
