@@ -9928,9 +9928,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	XIValuatorState *states;
 	double *values;
 	bool found_valuator = false;
-#ifdef HAVE_XWIDGETS
-	bool any_stop_p = false;
-#endif /* HAVE_XWIDGETS */
 
 	/* A fake XMotionEvent for x_note_mouse_movement. */
 	XMotionEvent ev;
@@ -9981,28 +9978,46 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	    {
+#ifdef HAVE_XWIDGETS
+	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
+#else
+	      bool xwidget_view = false;
+#endif
 
-	    /* One problem behind the design of XInput 2 scrolling is
-	       that valuators are not unique to each window, but only
-	       the window that has grabbed the valuator's device or
-	       the window that the device's pointer is on top of can
-	       receive motion events.  There is also no way to
-	       retrieve the value of a valuator outside of each motion
-	       event.
+	      /* One problem behind the design of XInput 2 scrolling is
+		 that valuators are not unique to each window, but only
+		 the window that has grabbed the valuator's device or
+		 the window that the device's pointer is on top of can
+		 receive motion events.  There is also no way to
+		 retrieve the value of a valuator outside of each motion
+		 event.
 
-	       As such, to prevent wildly inaccurate results when the
-	       valuators have changed outside Emacs, we reset our
-	       records of each valuator's value whenever the pointer
-	       re-enters a frame after its valuators have potentially
-	       been changed elsewhere.  */
-	    if (enter->detail != XINotifyInferior
-		&& enter->mode != XINotifyPassiveUngrab
-		/* See the comment under FocusIn in
-		   `x_detect_focus_change'.  The main relevant culprit
-		   these days seems to be XFCE.  */
-		&& enter->mode != XINotifyUngrab
-		&& any && enter->event == FRAME_X_WINDOW (any))
-	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
+		 As such, to prevent wildly inaccurate results when the
+		 valuators have changed outside Emacs, we reset our
+		 records of each valuator's value whenever the pointer
+		 re-enters a frame after its valuators have potentially
+		 been changed elsewhere.  */
+	      if (enter->detail != XINotifyInferior
+		  && enter->mode != XINotifyPassiveUngrab
+		  /* See the comment under FocusIn in
+		     `x_detect_focus_change'.  The main relevant culprit
+		     these days seems to be XFCE.  */
+		  && enter->mode != XINotifyUngrab
+		  && (xwidget_view
+		      || (any && enter->event == FRAME_X_WINDOW (any))))
+		xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
+
+#ifdef HAVE_XWIDGETS
+	      if (xwidget_view)
+		{
+		  *finish = X_EVENT_DROP;
+		  xwidget_motion_or_crossing (xwidget_view, event);
+
+		  goto XI_OTHER;
+		}
+#endif
+	    }
 
 	    f = any;
 
@@ -10025,6 +10040,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    ev.y = lrint (leave->event_y);
 	    ev.window = leave->event;
 	    any = x_any_window_to_frame (dpyinfo, leave->event);
+
+#ifdef HAVE_XWIDGETS
+	    {
+	      struct xwidget_view *xvw
+		= xwidget_view_from_window (leave->event);
+
+	      if (xvw)
+		{
+		  *finish = X_EVENT_DROP;
+		  xwidget_motion_or_crossing (xvw, event);
+
+		  goto XI_OTHER;
+		}
+	    }
+#endif
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
@@ -10105,16 +10135,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XWIDGETS
 			  if (xv)
 			    {
+			      /* FIXME: figure out what in GTK is
+				 causing interval values to jump by
+				 >100 at the end of a touch sequence
+				 when an xwidget gets a scroll event
+				 where is_stop is TRUE.  */
+			      if (fabs (delta) > 100)
+				continue;
 			      if (val->horizontal)
 				xv_total_x += delta;
 			      else
 				xv_total_y += delta;
 
 			      found_valuator = true;
-
-			      if (delta == 0.0)
-				any_stop_p = true;
-
 			      continue;
 			    }
 #endif
@@ -10224,8 +10257,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (found_valuator)
 		    xwidget_scroll (xv, xev->event_x, xev->event_y,
-				    xv_total_x, xv_total_y, state,
-				    xev->time, any_stop_p);
+				    -xv_total_x, -xv_total_y, state,
+				    xev->time, (xv_total_x == 0.0
+						&& xv_total_y == 0.0));
 		  else
 		    xwidget_motion_notify (xv, xev->event_x, xev->event_y,
 					   state, xev->time);

@@ -1052,12 +1052,6 @@ xwidget_button_1 (struct xwidget_view *view,
   GdkEvent *xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
   struct xwidget *model = XXWIDGET (view->model);
   GtkWidget *target;
-#ifdef HAVE_XINPUT2
-  struct x_display_info *dpyinfo;
-  struct xi_device_t *xi_device;
-  GdkSeat *seat;
-  GdkDevice *device;
-#endif
 
   /* X and Y should be relative to the origin of view->wdesc.  */
   x += view->clip_left;
@@ -1080,24 +1074,6 @@ xwidget_button_1 (struct xwidget_view *view,
   xg_event->button.state = modifier_state;
   xg_event->button.time = time;
   xg_event->button.device = find_suitable_pointer (view->frame);
-
-#ifdef HAVE_XINPUT2
-  dpyinfo = FRAME_DISPLAY_INFO (view->frame);
-  device = xg_event->button.device;
-
-  for (int idx = 0; idx < dpyinfo->num_devices; ++idx)
-    {
-      xi_device = &dpyinfo->devices[idx];
-
-      XIUngrabDevice (view->dpy, xi_device->device_id, CurrentTime);
-    }
-
-  if (device)
-    {
-      seat = gdk_device_get_seat (device);
-      gdk_seat_ungrab (seat);
-    }
-#endif
 
   gtk_main_do_event (xg_event);
   gdk_event_free (xg_event);
@@ -1260,24 +1236,47 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
   int x;
   int y;
   GtkWidget *target;
+#ifdef HAVE_XINPUT2
+  XIEnterEvent *xev = NULL;
+#endif
 
   if (NILP (model->buffer))
     return;
 
-  xg_event = gdk_event_new (event->type == MotionNotify
-			    ? GDK_MOTION_NOTIFY
-			    : (event->type == LeaveNotify
-			       ? GDK_LEAVE_NOTIFY
-			       : GDK_ENTER_NOTIFY));
+#ifdef HAVE_XINPUT2
+  if (event->type != GenericEvent)
+#endif
+    {
+      xg_event = gdk_event_new (event->type == MotionNotify
+				? GDK_MOTION_NOTIFY
+				: (event->type == LeaveNotify
+				   ? GDK_LEAVE_NOTIFY
+				   : GDK_ENTER_NOTIFY));
+      target = find_widget_at_pos (model->widgetwindow_osr,
+				   (event->type == MotionNotify
+				    ? event->xmotion.x + view->clip_left
+				    : event->xcrossing.x + view->clip_left),
+				   (event->type == MotionNotify
+				    ? event->xmotion.y + view->clip_top
+				    : event->xcrossing.y + view->clip_top),
+				   &x, &y);
+    }
+#ifdef HAVE_XINPUT2
+  else
+    {
+      eassert (event->xcookie.evtype == XI_Enter
+	       || event->xcookie.evtype == XI_Leave);
 
-  target = find_widget_at_pos (model->widgetwindow_osr,
-			       (event->type == MotionNotify
-				? event->xmotion.x + view->clip_left
-				: event->xcrossing.x + view->clip_left),
-			       (event->type == MotionNotify
-				? event->xmotion.y + view->clip_top
-				: event->xcrossing.y + view->clip_top),
-			       &x, &y);
+      xev = (XIEnterEvent *) event->xcookie.data;
+      xg_event = gdk_event_new (event->type == XI_Enter
+				? GDK_ENTER_NOTIFY
+				: GDK_LEAVE_NOTIFY);
+      target = find_widget_at_pos (model->widgetwindow_osr,
+				   lrint (xev->event_x + view->clip_left),
+				   lrint (xev->event_y + view->clip_top),
+				   &x, &y);
+    }
+#endif
 
   if (!target)
     target = model->widget_osr;
@@ -1297,6 +1296,18 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->motion.state = event->xmotion.state;
       xg_event->motion.device = find_suitable_pointer (view->frame);
     }
+#ifdef HAVE_XINPUT2
+  else if (event->type == GenericEvent)
+    {
+      xg_event->crossing.x = (gdouble) xev->event_x;
+      xg_event->crossing.y = (gdouble) xev->event_y;
+      xg_event->crossing.x_root = (gdouble) xev->root_x;
+      xg_event->crossing.y_root = (gdouble) xev->root_y;
+      xg_event->crossing.time = xev->time;
+      xg_event->crossing.focus = xev->focus;
+      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+    }
+#endif
   else
     {
       xg_event->crossing.detail = min (5, event->xcrossing.detail);
@@ -1305,6 +1316,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->crossing.y = y;
       xg_event->crossing.x_root = event->xcrossing.x_root;
       xg_event->crossing.y_root = event->xcrossing.y_root;
+      xg_event->crossing.focus = event->xcrossing.focus;
       gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
     }
 
@@ -2108,6 +2120,8 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 	  XISetMask (m, XI_Motion);
 	  XISetMask (m, XI_ButtonPress);
 	  XISetMask (m, XI_ButtonRelease);
+	  XISetMask (m, XI_Enter);
+	  XISetMask (m, XI_Leave);
 	  XISelectEvents (xv->dpy, xv->wdesc, &mask, 1);
 	}
 #endif
