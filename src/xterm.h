@@ -522,6 +522,7 @@ struct x_display_info
 #endif
 
 #ifdef HAVE_XKB
+  bool supports_xkb;
   XkbDescPtr xkb_desc;
 #endif
 };

@@ -14887,9 +14887,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
 #ifdef HAVE_XKB
-  dpyinfo->xkb_desc = XkbGetMap (dpyinfo->display,
-				 XkbAllComponentsMask,
-				 XkbUseCoreKbd);
+  int xkb_major, xkb_minor, xkb_op, xkb_event, xkb_error_code;
+  xkb_major = XkbMajorVersion;
+  xkb_minor = XkbMinorVersion;
+
+  if (XkbLibraryVersion (&xkb_major, &xkb_minor)
+      && XkbQueryExtension (dpyinfo->display, &xkb_op, &xkb_event,
+			    &xkb_error_code, &xkb_major, &xkb_minor))
+    {
+      dpyinfo->supports_xkb = true;
+      dpyinfo->xkb_desc = XkbGetMap (dpyinfo->display,
+				     XkbAllComponentsMask,
+				     XkbUseCoreKbd);
+    }
 #endif
 
 #if defined USE_CAIRO || defined HAVE_XFT

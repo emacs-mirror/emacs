@@ -7748,27 +7748,11 @@ present and mapped to the usual X keysyms.  */)
   struct frame *f = decode_window_system_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
   Lisp_Object have_keys;
-  int major, minor, op, event, error_code;
 
   block_input ();
 
-  /* Check library version in case we're dynamically linked.  */
-  major = XkbMajorVersion;
-  minor = XkbMinorVersion;
-  if (!XkbLibraryVersion (&major, &minor))
-    {
-      unblock_input ();
-      return Qlambda;
-    }
-
-  /* Check that the server supports XKB.  */
-  major = XkbMajorVersion;
-  minor = XkbMinorVersion;
-  if (!XkbQueryExtension (dpy, &op, &event, &error_code, &major, &minor))
-    {
-      unblock_input ();
-      return Qlambda;
-    }
+  if (!FRAME_DISPLAY_INFO (f)->supports_xkb)
+    return Qlambda;
 
   /* In this code we check that the keyboard has physical keys with names
      that start with BKSP (Backspace) and DELE (Delete), and that they
