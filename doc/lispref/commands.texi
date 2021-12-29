@@ -630,17 +630,26 @@ any modes that are derived from @code{dired-mode}).  Any number of
 modes can be added to the @code{interactive} form.
 
 @vindex read-extended-command-predicate
-Specifying modes may affect completion in @kbd{M-x}, depending on the
+Specifying modes affects command completion in @kbd{M-S-x}
+(@code{execute-extended-command-for-buffer}, @pxref{Interactive
+Call}).  It may also affect completion in @kbd{M-x}, depending on the
 value of @code{read-extended-command-predicate}.
 
 For instance, when using the
-@code{command-completion-default-include-p} predicate, @kbd{M-x} won't
-list commands that have been marked as being applicable to a specific
-mode (unless you are in a buffer that uses that mode, of course).
-This goes for both major and minor modes.
+@code{command-completion-default-include-p} predicate as the value of
+@code{read-extended-command-predicate}, @kbd{M-x} won't list commands
+that have been marked as being applicable to a specific mode (unless
+you are in a buffer that uses that mode, of course).  This goes for
+both major and minor modes.  (By contrast, @kbd{M-S-x} always omits
+inapplicable commands from the completion candidates.)
 
-Marking commands this way will also make @kbd{C-h m} list these
-commands (if they aren't bound to any keys).
+By default, @code{read-extended-command-predicate} is @code{nil}, and
+completion in @kbd{M-x} lists all the commands that match what the
+user has typed, whether those commands are or aren't marked as
+applicable to the current buffer's mode.
+
+Marking commands to be applicable to a mode will also make @kbd{C-h m}
+list these commands (if they aren't bound to any keys).
 
 If using this extended @code{interactive} form isn't convenient
 (because the code is supposed to work in older versions of Emacs that
@@ -857,13 +866,16 @@ non-@code{nil} if the command is to be included when completing in
 that buffer.
 @end deffn
 
+@kindex @kbd{M-X}
+@kindex @kbd{M-S-x}
 @deffn Command execute-extended-command-for-buffer prefix-argument
 This is like @code{execute-extended-command}, but limits the commands
 offered for completion to those commands that are of particular
 relevance to the current major mode (and enabled minor modes).  This
 includes commands that are tagged with the modes (@pxref{Using
 Interactive}), and also commands that are bound to locally active
-keymaps.
+keymaps.  This command is the normal definition of @kbd{M-S-x}
+(that's ``meta shift x'').
 @end deffn
 
 @node Distinguish Interactive

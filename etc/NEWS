@@ -3730,15 +3730,28 @@ commands as being applicable for modes derived from 'dired-mode',
 or if the mode is a minor mode, when the current buffer has that
 minor mode activated.  Note that using this form will create byte code
 that is not compatible with byte code in previous Emacs versions.
+Also note that by default these annotations have no effect, unless the
+new option 'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.
 
 +++
-** New forms to declare how completion should happen has been added.
+** New 'declare' forms to control completion of commands in 'M-x'.
 '(declare (completion PREDICATE))' can be used as a general predicate
-to say whether the command should be present when completing with
-'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
-way of saying that the command should be present when completing from
-buffers in major modes derived from MODE..., or, if it's a minor mode,
-when that minor mode is enabled in the current buffer.
+to say whether the command should be considered a completion candidate
+when completing with 'M-x TAB'.
+
+'(declare (modes MODE...))' can be used as a short-hand way of saying
+that the command should be considered a completion candidate when
+completing on commands from buffers in major modes derived from
+MODE..., or, if it's a minor mode, when that minor mode is enabled in
+the current buffer.
+
+Note that these forms will only have their effect if the
+'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.  The
+default value of 'read-extended-command-predicate' is nil, which means
+no commands that match what you have typed are excluded from being
+completion candidates.
 
 +++
 ** 'define-minor-mode'  now takes an ':interactive' argument.
