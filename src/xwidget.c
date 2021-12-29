@@ -327,6 +327,7 @@ fails.  */)
 
       gtk_widget_set_size_request (GTK_WIDGET (xw->widget_osr), xw->width,
                                    xw->height);
+      gtk_widget_queue_allocate (GTK_WIDGET (xw->widget_osr));
 
       if (EQ (xw->type, Qwebkit))
         {
@@ -2195,6 +2196,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 				   clip_bottom - clip_top);
       gtk_fixed_move (GTK_FIXED (FRAME_GTK_WIDGET (xv->frame)),
 		      xv->widget, x + clip_left, y + clip_top);
+      gtk_widget_queue_allocate (xv->widget);
 #endif
 #elif defined NS_IMPL_COCOA
       nsxwidget_resize_view (xv, clip_right - clip_left,
