@@ -53,36 +53,6 @@
   `(prog1 (car (cdr ,place))
      (setq ,place (cdr (cdr ,place)))))
 
-(defun cl-macs--strip-s-p-1 (arg)
-  "Strip all positions from symbols with position in ARG, destructively modifying ARG
-Return the modified ARG."
-  (cond
-   ((symbolp arg)
-    (bare-symbol arg))
-   ((consp arg)
-    (let ((a arg))
-      (while (consp (cdr a))
-        (setcar a (cl-macs--strip-s-p-1 (car a)))
-        (setq a (cdr a)))
-      (setcar a (cl-macs--strip-s-p-1 (car a)))
-      ;; (if (cdr a)
-      (unless (bare-symbol-p (cdr a))   ; includes (unpositioned) nil.
-          (setcdr a (cl-macs--strip-s-p-1 (cdr a)))))
-    arg)
-   ((vectorp arg)
-    (let ((i 0)
-	  (len (length arg)))
-      (while (< i len)
-	(aset arg i (cl-macs--strip-s-p-1 (aref arg i)))
-	(setq i (1+ i))))
-    arg)
-   (t arg)))
-
-(defun cl-macs--strip-symbol-positions (arg)
-  "Strip all positions from symbols (recursively) in ARG.  Don't modify ARG."
-  (let ((arg1 (copy-tree arg t)))
-    (cl-macs--strip-s-p-1 arg1)))
-
 (defvar cl--optimize-safety)
 (defvar cl--optimize-speed)
 
@@ -3534,8 +3504,9 @@ and then returning foo."
     `(eval-and-compile
        ;; Name the compiler-macro function, so that `symbol-file' can find it.
        (cl-defun ,fname ,(if (memq '&whole args) (delq '&whole args)
-                           (cons '_cl-whole-arg args))
-         ,@body)
+                           (cons '_cl-whole-arg
+                                 (macroexp-strip-symbol-positions args)))
+         ,@(macroexp-strip-symbol-positions body))
        (put ',func 'compiler-macro #',fname))))
 
 ;;;###autoload

@@ -1829,9 +1829,7 @@ and the annotation emission."
       (byte-listp auto)
       (byte-eq auto)
       (byte-memq auto)
-      (byte-not
-       (comp-emit-set-call (comp-call 'eq (comp-slot-n (comp-sp))
-                                      (make-comp-mvar :constant nil))))
+      (byte-not null)
       (byte-car auto)
       (byte-cdr auto)
       (byte-cons auto)
@@ -4017,6 +4015,7 @@ the deferred compilation mechanism."
     (let* ((data function-or-file)
            (comp-native-compiling t)
            (byte-native-qualities nil)
+           (symbols-with-pos-enabled t)
            ;; Have byte compiler signal an error when compilation fails.
            (byte-compile-debug t)
            (comp-ctxt (make-comp-ctxt :output output
@@ -4060,10 +4059,10 @@ the deferred compilation mechanism."
 	     (signal (car err) (if (consp err-val)
 			           (cons function-or-file err-val)
 			         (list function-or-file err-val)))))))
-      (if (stringp function-or-file)
-          data
-        ;; So we return the compiled function.
-        (native-elisp-load data)))))
+        (if (stringp function-or-file)
+            data
+          ;; So we return the compiled function.
+          (native-elisp-load data)))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.

@@ -2414,6 +2414,11 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
 {
   CHECK_SYMBOL (symbol);
+  if (symbols_with_pos_enabled)
+    {
+      propname = call1 (intern ("macroexp-strip-symbol-positions"), propname);
+      value = call1 (intern ("macroexp-strip-symbol-positions"), value);
+    }
   set_symbol_plist
     (symbol, Fplist_put (XSYMBOL (symbol)->u.s.plist, propname, value));
   return value;

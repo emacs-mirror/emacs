@@ -32,6 +32,64 @@
 ;; macros defined by `defmacro'.
 (defvar macroexpand-all-environment nil)
 
+(defvar byte-compile--ssp-conses-seen nil
+  "Which conses have been processed in a strip-symbol-positions operation?")
+(defvar byte-compile--ssp-vectors-seen nil
+  "Which vectors have been processed in a strip-symbol-positions operation?")
+(defvar byte-compile--ssp-records-seen nil
+  "Which records have been processed in a strip-symbol-positions operation?")
+
+(defun macroexp--strip-s-p-2 (arg)
+  "Strip all positions from symbols in ARG, destructively modifying ARG.
+Return the modified ARG."
+  (cond
+   ((symbolp arg)
+    (bare-symbol arg))
+   ((consp arg)
+    (unless (memq arg byte-compile--ssp-conses-seen)
+      ;; (push arg byte-compile--ssp-conses-seen)
+      (let ((a arg))
+        (while (consp (cdr a))
+          (setcar a (macroexp--strip-s-p-2 (car a)))
+          (setq a (cdr a)))
+        (setcar a (macroexp--strip-s-p-2 (car a)))
+        ;; (if (cdr a)
+        (unless (bare-symbol-p (cdr a)) ; includes (unpositioned) nil.
+          (setcdr a (macroexp--strip-s-p-2 (cdr a))))))
+    arg)
+   ((vectorp arg)
+    (unless (memq arg byte-compile--ssp-vectors-seen)
+      (push arg byte-compile--ssp-vectors-seen)
+      (let ((i 0)
+	    (len (length arg)))
+        (while (< i len)
+	  (aset arg i (macroexp--strip-s-p-2 (aref arg i)))
+	  (setq i (1+ i)))))
+    arg)
+   ((recordp arg)
+    (unless (memq arg byte-compile--ssp-records-seen)
+      (push arg byte-compile--ssp-records-seen)
+      (let ((i 0)
+	    (len (length arg)))
+        (while (< i len)
+	  (aset arg i (macroexp--strip-s-p-2 (aref arg i)))
+	  (setq i (1+ i)))))
+    arg)
+   (t arg)))
+
+(defun byte-compile-strip-s-p-1 (arg)
+  "Strip all positions from symbols in ARG, destructively modifying ARG.
+Return the modified ARG."
+  (setq byte-compile--ssp-conses-seen nil)
+  (setq byte-compile--ssp-vectors-seen nil)
+  (setq byte-compile--ssp-records-seen nil)
+  (macroexp--strip-s-p-2 arg))
+
+(defun macroexp-strip-symbol-positions (arg)
+  "Strip all positions from symbols (recursively) in ARG.  Don't modify ARG."
+  (let ((arg1 (copy-tree arg t)))
+    (byte-compile-strip-s-p-1 arg1)))
+
 (defun macroexp--cons (car cdr original-cons)
   "Return ORIGINAL-CONS if the car/cdr of it is `eq' to CAR and CDR, respectively.
 If not, return (CAR . CDR)."
@@ -96,10 +154,11 @@ each clause."
 
 (defun macroexp--compiler-macro (handler form)
   (condition-case-unless-debug err
-      (apply handler form (cdr form))
+      (let ((symbols-with-pos-enabled t))
+        (apply handler form (cdr form)))
     (error
-     (message "Compiler-macro error for %S: %S" (car form) err)
-           form)))
+     (message "Compiler-macro error for %S: Handler: %S\n%S" (car form) handler err)
+     form)))
 
 (defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
@@ -683,6 +742,7 @@ test of free variables in the following ways:
 
 (defun internal-macroexpand-for-load (form full-p)
   ;; Called from the eager-macroexpansion in readevalloop.
+  (setq form (macroexp-strip-symbol-positions form))
   (cond
    ;; Don't repeat the same warning for every top-level element.
    ((eq 'skip (car macroexp--pending-eager-loads)) form)
