@@ -1032,43 +1032,72 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Beqlsign):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = arithcompare (TOP, v1, ARITH_EQUAL);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      TOP = EQ (v1, v2) ? Qt : Qnil;
+	    else
+	      TOP = arithcompare (v1, v2, ARITH_EQUAL);
 	    NEXT;
 	  }
 
 	CASE (Bgtr):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = arithcompare (TOP, v1, ARITH_GRTR);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      TOP = XFIXNUM (v1) > XFIXNUM (v2) ? Qt : Qnil;
+	    else
+	      TOP = arithcompare (v1, v2, ARITH_GRTR);
 	    NEXT;
 	  }
 
 	CASE (Blss):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = arithcompare (TOP, v1, ARITH_LESS);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      TOP = XFIXNUM (v1) < XFIXNUM (v2) ? Qt : Qnil;
+	    else
+	      TOP = arithcompare (v1, v2, ARITH_LESS);
 	    NEXT;
 	  }
 
 	CASE (Bleq):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = arithcompare (TOP, v1, ARITH_LESS_OR_EQUAL);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      TOP = XFIXNUM (v1) <= XFIXNUM (v2) ? Qt : Qnil;
+	    else
+	      TOP = arithcompare (v1, v2, ARITH_LESS_OR_EQUAL);
 	    NEXT;
 	  }
 
 	CASE (Bgeq):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = arithcompare (TOP, v1, ARITH_GRTR_OR_EQUAL);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      TOP = XFIXNUM (v1) >= XFIXNUM (v2) ? Qt : Qnil;
+	    else
+	      TOP = arithcompare (v1, v2, ARITH_GRTR_OR_EQUAL);
 	    NEXT;
 	  }
 
 	CASE (Bdiff):
-	  DISCARD (1);
-	  TOP = Fminus (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    EMACS_INT res;
+	    if (FIXNUMP (v1) && FIXNUMP (v2)
+		&& (res = XFIXNUM (v1) - XFIXNUM (v2),
+		    !FIXNUM_OVERFLOW_P (res)))
+	      TOP = make_fixnum (res);
+	    else
+	      TOP = Fminus (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bnegate):
 	  TOP = (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -1077,34 +1106,83 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  NEXT;
 
 	CASE (Bplus):
-	  DISCARD (1);
-	  TOP = Fplus (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    EMACS_INT res;
+	    if (FIXNUMP (v1) && FIXNUMP (v2)
+		&& (res = XFIXNUM (v1) + XFIXNUM (v2),
+		    !FIXNUM_OVERFLOW_P (res)))
+	      TOP = make_fixnum (res);
+	    else
+	      TOP = Fplus (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bmax):
-	  DISCARD (1);
-	  TOP = Fmax (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      {
+		if (XFIXNUM (v2) > XFIXNUM (v1))
+		  TOP = v2;
+	      }
+	    else
+	      TOP = Fmax (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bmin):
-	  DISCARD (1);
-	  TOP = Fmin (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2))
+	      {
+		if (XFIXNUM (v2) < XFIXNUM (v1))
+		  TOP = v2;
+	      }
+	    else
+	      TOP = Fmin (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bmult):
-	  DISCARD (1);
-	  TOP = Ftimes (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    intmax_t res;
+	    if (FIXNUMP (v1) && FIXNUMP (v2)
+		&& !INT_MULTIPLY_WRAPV (XFIXNUM (v1), XFIXNUM (v2), &res)
+		&& !FIXNUM_OVERFLOW_P (res))
+	      TOP = make_fixnum (res);
+	    else
+	      TOP = Ftimes (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Bquo):
-	  DISCARD (1);
-	  TOP = Fquo (2, &TOP);
-	  NEXT;
+	  {
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    EMACS_INT res;
+	    if (FIXNUMP (v1) && FIXNUMP (v2) && XFIXNUM (v2) != 0
+		&& (res = XFIXNUM (v1) / XFIXNUM (v2),
+		    !FIXNUM_OVERFLOW_P (res)))
+	      TOP = make_fixnum (res);
+	    else
+	      TOP = Fquo (2, &TOP);
+	    NEXT;
+	  }
 
 	CASE (Brem):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = Frem (TOP, v1);
+	    Lisp_Object v2 = POP;
+	    Lisp_Object v1 = TOP;
+	    if (FIXNUMP (v1) && FIXNUMP (v2) && XFIXNUM (v2) != 0)
+	      TOP = make_fixnum (XFIXNUM (v1) % XFIXNUM (v2));
+	    else
+	      TOP = Frem (v1, v2);
 	    NEXT;
 	  }
 
