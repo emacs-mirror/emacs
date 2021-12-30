@@ -116,6 +116,10 @@
       (should (= (multisession-value multisession--sfoo) 0))
       (cl-incf (multisession-value multisession--sfoo))
       (should (= (multisession-value multisession--sfoo) 1))
+      ;; On Windows and Haiku, we don't have sub-second resolution, so
+      ;; let some time pass to make the "later" logic work.
+      (when (memq system-type '(windows-nt haiku))
+        (sleep-for 0.6))
       (call-process
        (concat invocation-directory invocation-name)
        nil t nil
@@ -130,9 +134,6 @@
                         ""
                         :synchronized t)
                       (cl-incf (multisession-value multisession--sfoo))))))
-      ;; On Windows, we don't have sub-second resolution.
-      (when (memq system-type '(windows-nt haiku))
-        (sleep-for 2))
       (should (= (multisession-value multisession--sfoo) 2)))))
 
 (ert-deftest multi-test-files-busy ()
