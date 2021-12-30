@@ -495,6 +495,8 @@ which the tab will represent."
     (apply 'propertize
            (concat (propertize name
                                'keymap tab-line-tab-map
+                               'help-echo (if selected-p "Current tab"
+                                            "Click to select tab")
                                ;; Don't turn mouse-1 into mouse-2 (bug#49247)
                                'follow-link 'ignore)
                    (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
