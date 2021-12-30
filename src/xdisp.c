@@ -6841,6 +6841,7 @@ pop_it (struct it *it)
   struct iterator_stack_entry *p;
   bool from_display_prop = it->from_disp_prop_p;
   ptrdiff_t prev_pos = IT_CHARPOS (*it);
+  int prev_face_id = it->face_id;
 
   eassert (it->sp > 0);
   --it->sp;
@@ -6876,9 +6877,18 @@ pop_it (struct it *it)
 
 	/* Restore the face_box_p flag, since it could have been
 	   overwritten by the face of the object that we just finished
-	   displaying.  */
+	   displaying.  Also, set the start_of_box_run_p flag if the
+	   change in faces requires that.  */
 	if (face)
-	  it->face_box_p = face->box != FACE_NO_BOX;
+	  {
+	    struct face *prev_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
+
+	    if (!(it->start_of_box_run_p && prev_face && prev_face->box))
+	      it->start_of_box_run_p = (face->box != FACE_NO_BOX
+					&& (prev_face == NULL
+					    || prev_face->box == FACE_NO_BOX));
+	    it->face_box_p = face->box != FACE_NO_BOX;
+	  }
 	it->object = it->w->contents;
       }
       break;
@@ -6888,9 +6898,18 @@ pop_it (struct it *it)
 
 	/* Restore the face_box_p flag, since it could have been
 	   overwritten by the face of the object that we just finished
-	   displaying.  */
+	   displaying.  Also, set the start_of_box_run_p flag if the
+	   change in faces requires that.  */
 	if (face)
-	  it->face_box_p = face->box != FACE_NO_BOX;
+	  {
+	    struct face *prev_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
+
+	    if (!(it->start_of_box_run_p && prev_face && prev_face->box))
+	      it->start_of_box_run_p = (face->box != FACE_NO_BOX
+					&& (prev_face == NULL
+					    || prev_face->box == FACE_NO_BOX));
+	    it->face_box_p = face->box != FACE_NO_BOX;
+	  }
 	it->object = it->string;
       }
       break;
