@@ -1015,52 +1015,42 @@ contained in UNIVERSE."
      (unless (ert-test-boundp selector)
        (signal 'ert-test-unbound (list selector)))
      (list (ert-get-test selector)))
-    (`(,operator . ,operands)
-     (cl-ecase operator
-       (member
-        (mapcar (lambda (purported-test)
-                  (pcase-exhaustive purported-test
-                    ((pred symbolp)
-                     (unless (ert-test-boundp purported-test)
-                       (signal 'ert-test-unbound
-                               (list purported-test)))
-                     (ert-get-test purported-test))
-                    ((pred ert-test-p) purported-test)))
-                operands))
-       (eql
-        (cl-assert (eql (length operands) 1))
-        (ert-select-tests `(member ,@operands) universe))
-       (and
-        ;; Do these definitions of AND, NOT and OR satisfy de
-        ;; Morgan's laws?  Should they?
-        (cl-case (length operands)
-          (0 (ert-select-tests 't universe))
-          (t (ert-select-tests `(and ,@(cdr operands))
-                               (ert-select-tests (car operands)
-                                                 universe)))))
-       (not
-        (cl-assert (eql (length operands) 1))
-        (let ((all-tests (ert-select-tests 't universe)))
-          (cl-set-difference all-tests
-                             (ert-select-tests (car operands)
-                                               all-tests))))
-       (or
-        (cl-case (length operands)
-          (0 (ert-select-tests 'nil universe))
-          (t (cl-union (ert-select-tests (car operands) universe)
-                       (ert-select-tests `(or ,@(cdr operands))
-                                         universe)))))
-       (tag
-        (cl-assert (eql (length operands) 1))
-        (let ((tag (car operands)))
-          (ert-select-tests `(satisfies
-                              ,(lambda (test)
-                                 (member tag (ert-test-tags test))))
-                            universe)))
-       (satisfies
-        (cl-assert (eql (length operands) 1))
-        (cl-remove-if-not (car operands)
-                          (ert-select-tests 't universe)))))))
+    (`(member . ,operands)
+     (mapcar (lambda (purported-test)
+               (pcase-exhaustive purported-test
+                 ((pred symbolp)
+                  (unless (ert-test-boundp purported-test)
+                    (signal 'ert-test-unbound
+                            (list purported-test)))
+                  (ert-get-test purported-test))
+                 ((pred ert-test-p) purported-test)))
+             operands))
+    (`(eql ,operand)
+     (ert-select-tests `(member ,operand) universe))
+    ;; Do these definitions of AND, NOT and OR satisfy de Morgan's
+    ;; laws?  Should they?
+    (`(and)
+     (ert-select-tests 't universe))
+    (`(and ,first . ,rest)
+     (ert-select-tests `(and ,@rest)
+                       (ert-select-tests first universe)))
+    (`(not ,operand)
+     (let ((all-tests (ert-select-tests 't universe)))
+       (cl-set-difference all-tests
+                          (ert-select-tests operand all-tests))))
+    (`(or)
+     (ert-select-tests 'nil universe))
+    (`(or ,first . ,rest)
+     (cl-union (ert-select-tests first universe)
+               (ert-select-tests `(or ,@rest) universe)))
+    (`(tag ,tag)
+     (ert-select-tests `(satisfies
+                         ,(lambda (test)
+                            (member tag (ert-test-tags test))))
+                       universe))
+    (`(satisfies ,predicate)
+     (cl-remove-if-not predicate
+                       (ert-select-tests 't universe)))))
 
 (define-error 'ert-test-unbound "ERT test is unbound")
 
