@@ -6829,6 +6829,27 @@ iterate_out_of_display_property (struct it *it)
     it->current.string_pos = it->position;
 }
 
+/* Restore the IT->face_box_p flag, since it could have been
+   overwritten by the face of the object that we just finished
+   displaying.  Also, set the IT->start_of_box_run_p flag if the
+   change in faces requires that.  */
+static void
+restore_face_box_flags (struct it *it, int prev_face_id)
+{
+  struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
+
+  if (face)
+    {
+      struct face *prev_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
+
+      if (!(it->start_of_box_run_p && prev_face && prev_face->box))
+	it->start_of_box_run_p = (face->box != FACE_NO_BOX
+				  && (prev_face == NULL
+				      || prev_face->box == FACE_NO_BOX));
+      it->face_box_p = face->box != FACE_NO_BOX;
+    }
+}
+
 /* Restore IT's settings from IT->stack.  Called, for example, when no
    more overlay strings must be processed, and we return to delivering
    display elements from a buffer, or when the end of a string from a
@@ -6873,43 +6894,13 @@ pop_it (struct it *it)
       break;
     case GET_FROM_BUFFER:
       {
-	struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
-
-	/* Restore the face_box_p flag, since it could have been
-	   overwritten by the face of the object that we just finished
-	   displaying.  Also, set the start_of_box_run_p flag if the
-	   change in faces requires that.  */
-	if (face)
-	  {
-	    struct face *prev_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
-
-	    if (!(it->start_of_box_run_p && prev_face && prev_face->box))
-	      it->start_of_box_run_p = (face->box != FACE_NO_BOX
-					&& (prev_face == NULL
-					    || prev_face->box == FACE_NO_BOX));
-	    it->face_box_p = face->box != FACE_NO_BOX;
-	  }
+	restore_face_box_flags (it, prev_face_id);
 	it->object = it->w->contents;
       }
       break;
     case GET_FROM_STRING:
       {
-	struct face *face = FACE_FROM_ID_OR_NULL (it->f, it->face_id);
-
-	/* Restore the face_box_p flag, since it could have been
-	   overwritten by the face of the object that we just finished
-	   displaying.  Also, set the start_of_box_run_p flag if the
-	   change in faces requires that.  */
-	if (face)
-	  {
-	    struct face *prev_face = FACE_FROM_ID_OR_NULL (it->f, prev_face_id);
-
-	    if (!(it->start_of_box_run_p && prev_face && prev_face->box))
-	      it->start_of_box_run_p = (face->box != FACE_NO_BOX
-					&& (prev_face == NULL
-					    || prev_face->box == FACE_NO_BOX));
-	    it->face_box_p = face->box != FACE_NO_BOX;
-	  }
+	restore_face_box_flags (it, prev_face_id);
 	it->object = it->string;
       }
       break;
