@@ -1156,7 +1156,8 @@ xwidget_motion_notify (struct xwidget_view *view,
   record_osr_embedder (view);
 
   target = find_widget_at_pos (model->widgetwindow_osr,
-			       lrint (x), lrint (y),
+			       lrint (x + view->clip_left),
+			       lrint (y + view->clip_top),
 			       &target_x, &target_y);
 
   if (!target)
@@ -1198,7 +1199,8 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   record_osr_embedder (view);
 
   target = find_widget_at_pos (model->widgetwindow_osr,
-			       lrint (x), lrint (y),
+			       lrint (x + view->clip_left),
+			       lrint (y + view->clip_top),
 			       &target_x, &target_y);
 
   if (!target)

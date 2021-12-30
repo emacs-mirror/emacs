@@ -60,6 +60,7 @@
 (declare-function xwidget-webkit-set-cookie-storage-file "xwidget.c" (xwidget file))
 (declare-function xwidget-live-p "xwidget.c" (xwidget))
 (declare-function xwidget-webkit-stop-loading "xwidget.c" (xwidget))
+(declare-function xwidget-info "xwidget.c" (xwidget))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -347,23 +348,36 @@ If N is omitted or nil, scroll down by one line."
 
 (defun xwidget-webkit-scroll-forward (&optional n)
   "Scroll webkit horizontally by N chars.
-The width of char is calculated with `window-font-width'.
-If N is omitted or nil, scroll forwards by one char."
+If the widget is larger than the window, hscroll by N columns
+instead.  The width of char is calculated with
+`window-font-width'.  If N is omitted or nil, scroll forwards by
+one char."
   (interactive "p" xwidget-webkit-mode)
-  (xwidget-webkit-execute-script
-   (xwidget-webkit-current-session)
-   (format "window.scrollBy(%d, 0);"
-           (* n (window-font-width)))))
+  (let ((session (xwidget-webkit-current-session)))
+    (if (> (- (aref (xwidget-info session) 2)
+              (window-text-width nil t))
+           (window-font-width))
+        (set-window-hscroll nil (+ (window-hscroll) n))
+      (xwidget-webkit-execute-script session
+                                     (format "window.scrollBy(%d, 0);"
+                                             (* n (window-font-width)))))))
 
 (defun xwidget-webkit-scroll-backward (&optional n)
   "Scroll webkit back by N chars.
-The width of char is calculated with `window-font-width'.
-If N is omitted or nil, scroll backwards by one char."
+If the widget is larger than the window, hscroll backwards by N
+columns instead.  The width of char is calculated with
+`window-font-width'.  If N is omitted or nil, scroll backwards by
+one char."
   (interactive "p" xwidget-webkit-mode)
-  (xwidget-webkit-execute-script
-   (xwidget-webkit-current-session)
-   (format "window.scrollBy(-%d, 0);"
-           (* n (window-font-width)))))
+  (let ((session (xwidget-webkit-current-session)))
+    (if (and (> (- (aref (xwidget-info session) 2)
+                   (window-text-width nil t))
+                (window-font-width))
+             (> (window-hscroll) 0))
+        (set-window-hscroll nil (- (window-hscroll) n))
+      (xwidget-webkit-execute-script session
+                                     (format "window.scrollBy(%-d, 0);"
+                                             (* n (window-font-width)))))))
 
 (defun xwidget-webkit-scroll-top ()
   "Scroll webkit to the very top."
