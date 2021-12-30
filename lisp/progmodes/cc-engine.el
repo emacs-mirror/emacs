@@ -9937,6 +9937,10 @@ This function might do hidden buffer changes."
 	;; Set when we have encountered a keyword (e.g. "extern") which
 	;; causes the following declaration to be treated as though top-level.
 	make-top
+	;; A list of found types in this declaration.  This is an association
+	;; list, the car being the buffer position, the cdr being the
+	;; identifier.
+	found-type-list
 	;; Save `c-record-type-identifiers' and
 	;; `c-record-ref-identifiers' since ranges are recorded
 	;; speculatively and should be thrown away if it turns out
@@ -10006,10 +10010,17 @@ This function might do hidden buffer changes."
 		;; If the previous identifier is a found type we
 		;; record it as a real one; it might be some sort of
 		;; alias for a prefix like "unsigned".
-		(save-excursion
-		  (goto-char type-start)
-		  (let ((c-promote-possible-types t))
-		    (c-forward-type))))
+		;; We postpone entering the new found type into c-found-types
+		;; until we are sure of it, thus preventing rapid alternation
+		;; of the fontification of the token throughout the buffer.
+		(push (cons type-start
+			    (buffer-substring-no-properties
+			     type-start
+			     (save-excursion
+			       (goto-char type-start)
+			       (c-end-of-token)
+			       (point))))
+		      found-type-list))
 
 	      ;; Signal a type declaration for "struct foo {".
 	      (when (and backup-at-type-decl
@@ -10255,13 +10266,10 @@ This function might do hidden buffer changes."
 		   (when (eq at-type 'found)
 		     ;; Remove the ostensible type from the found types list.
 		     (when type-start
-		       (c-unfind-type
-			(buffer-substring-no-properties
-			 type-start
-			 (save-excursion
-			   (goto-char type-start)
-			   (c-end-of-token)
-			   (point)))))
+		       (let ((discard-t (assq type-start found-type-list)))
+			 (when discard-t
+			   (setq found-type-list
+				 (remq discard-t found-type-list)))))
 		     t))
 	       ;; The token which we assumed to be a type is actually the
 	       ;; identifier, and we have no explicit type.
@@ -10874,6 +10882,14 @@ This function might do hidden buffer changes."
 	;; the next argument if it's set in this one, to cope with
 	;; interactive refontification.
 	(c-put-c-type-property (point) 'c-decl-arg-start))
+
+      ;; Enter all the found types into `c-found-types'.
+      (when found-type-list
+	(save-excursion
+	  (let ((c-promote-possible-types t))
+	    (dolist (ft found-type-list)
+	      (goto-char (car ft))
+	      (c-forward-type)))))
 
       ;; Record the type's coordinates in `c-record-type-identifiers' for
       ;; later fontification.
