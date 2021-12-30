@@ -1235,15 +1235,15 @@ xi_translate_notify_detail (int detail)
 {
   switch (detail)
     {
-    case NotifyInferior:
+    case XINotifyInferior:
       return GDK_NOTIFY_INFERIOR;
-    case NotifyAncestor:
+    case XINotifyAncestor:
       return GDK_NOTIFY_ANCESTOR;
-    case NotifyVirtual:
+    case XINotifyVirtual:
       return GDK_NOTIFY_VIRTUAL;
-    case NotifyNonlinear:
+    case XINotifyNonlinear:
       return GDK_NOTIFY_NONLINEAR;
-    case NotifyNonlinearVirtual:
+    case XINotifyNonlinearVirtual:
       return GDK_NOTIFY_NONLINEAR_VIRTUAL;
     default:
       emacs_abort ();
@@ -1328,6 +1328,7 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->crossing.y_root = (gdouble) xev->root_y;
       xg_event->crossing.time = xev->time;
       xg_event->crossing.focus = xev->focus;
+      xg_event->crossing.mode = xev->mode;
       xg_event->crossing.detail = xi_translate_notify_detail (xev->detail);
       xg_event->crossing.state = xev->mods.effective;
 
