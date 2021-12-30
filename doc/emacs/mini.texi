@@ -497,7 +497,10 @@ falls back on the next style.
 @vindex completion-styles
   The list variable @code{completion-styles} specifies the completion
 styles to use.  Each list element is the name of a completion style (a
-Lisp symbol).  The default completion styles are (in order):
+Lisp symbol).  The available style symbols are stored in the variable
+@code{completion-styles-alist} (@pxref{Completion Variables,,, elisp,
+The Emacs Lisp Reference Manual}).  The default completion styles are
+(in order):
 
 @table @code
 @item basic
