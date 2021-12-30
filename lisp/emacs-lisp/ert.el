@@ -39,7 +39,7 @@
 ;; but signals a different error when its condition is violated that
 ;; is caught and processed by ERT.  In addition, it analyzes its
 ;; argument form and records information that helps debugging
-;; (`assert' tries to do something similar when its second argument
+;; (`cl-assert' tries to do something similar when its second argument
 ;; SHOW-ARGS is true, but `should' is more sophisticated).  For
 ;; information on `should-not' and `should-error', see their
 ;; docstrings.  `skip-unless' skips the test immediately without
