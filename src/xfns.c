@@ -4933,6 +4933,70 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   int i, n_monitors, primary = -1;
   RROutput pxid = None;
   struct MonitorInfo *monitors;
+  bool randr15_p = false;
+
+#if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
+  XRRMonitorInfo *rr_monitors;
+
+  /* If RandR 1.5 or later is available, use that instead, as some
+     video drivers don't report correct dimensions via other versions
+     of RandR.  */
+  if (dpyinfo->xrandr_major_version > 1
+      || (dpyinfo->xrandr_major_version == 1
+	  && dpyinfo->xrandr_minor_version >= 5))
+    {
+      XRectangle workarea;
+      char *name;
+
+      rr_monitors = XRRGetMonitors (dpyinfo->display,
+				    dpyinfo->root_window,
+				    True, &n_monitors);
+      if (!rr_monitors)
+	goto fallback;
+
+      monitors = xzalloc (n_monitors * sizeof *monitors);
+
+      for (int i = 0; i < n_monitors; ++i)
+	{
+	  monitors[i].geom.x = rr_monitors[i].x;
+	  monitors[i].geom.y = rr_monitors[i].y;
+	  monitors[i].geom.width = rr_monitors[i].width;
+	  monitors[i].geom.height = rr_monitors[i].height;
+	  monitors[i].mm_width = rr_monitors[i].mwidth;
+	  monitors[i].mm_height = rr_monitors[i].mheight;
+
+	  name = XGetAtomName (dpyinfo->display, rr_monitors[i].name);
+	  if (name)
+	    {
+	      monitors[i].name = xstrdup (name);
+	      XFree (name);
+	    }
+	  else
+	    monitors[i].name = xstrdup ("Unknown Monitor");
+
+	  if (rr_monitors[i].primary)
+	    primary = i;
+
+	  if (rr_monitors[i].primary
+	      && x_get_net_workarea (dpyinfo, &workarea))
+	    {
+              monitors[i].work = workarea;
+              if (!gui_intersect_rectangles (&monitors[i].geom,
+					     &monitors[i].work,
+					     &monitors[i].work))
+		monitors[i].work = monitors[i].geom;
+	    }
+	  else
+	    monitors[i].work = monitors[i].geom;
+	}
+
+      XRRFreeMonitors (rr_monitors);
+      randr15_p = true;
+      goto out;
+    }
+
+ fallback:;
+#endif
 
 #define RANDR13_LIBRARY \
   (RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 3))
@@ -5021,12 +5085,16 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       XRRFreeOutputInfo (info);
     }
   XRRFreeScreenResources (resources);
-
+#if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
+ out:
+#endif
   attributes_list = x_make_monitor_attribute_list (monitors,
                                                    n_monitors,
                                                    primary,
                                                    dpyinfo,
-                                                   "XRandr");
+                                                   (randr15_p
+						    ? "XRandR 1.5"
+						    : "XRandr"));
   free_monitors (monitors, n_monitors);
   return attributes_list;
 }
@@ -5077,55 +5145,13 @@ xlw_monitor_dimensions_at_pos_1 (struct x_display_info *dpyinfo,
 				 int *x, int *y, int *width, int *height)
 {
   Lisp_Object attrs, tem, val;
-#ifdef HAVE_XRANDR
-#if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
-  int num_rr_monitors;
-  XRRMonitorInfo *rr_monitors;
-
-  /* If RandR 1.5 or later is available, use that instead, as some
-     video drivers don't report correct dimensions via other versions
-     of RandR.  */
-  if (dpyinfo->xrandr_major_version > 1
-      || (dpyinfo->xrandr_major_version == 1
-	  && dpyinfo->xrandr_minor_version >= 5))
-    {
-      rr_monitors = XRRGetMonitors (dpyinfo->display,
-				    RootWindowOfScreen (screen),
-				    True, &num_rr_monitors);
-      if (!rr_monitors)
-	goto fallback;
-
-      for (int i = 0; i < num_rr_monitors; ++i)
-	{
-	  if (rr_monitors[i].x <= src_x
-	      && src_x < (rr_monitors[i].x
-			  + rr_monitors[i].width)
-	      && rr_monitors[i].y <= src_y
-	      && src_y < (rr_monitors[i].y
-			  + rr_monitors[i].height))
-	    {
-	      *x = rr_monitors[i].x;
-	      *y = rr_monitors[i].y;
-	      *width = rr_monitors[i].width;
-	      *height = rr_monitors[i].height;
-
-	      XRRFreeMonitors (rr_monitors);
-	      return;
-	    }
-	}
-      XRRFreeMonitors (rr_monitors);
-    }
-
- fallback:
-#endif
-#endif
 
   attrs = x_get_monitor_attributes (dpyinfo);
 
   for (tem = attrs; CONSP (tem); tem = XCDR (tem))
     {
       int sx, sy, swidth, sheight;
-      val = assq_no_quit (Qgeometry, XCAR (tem));
+      val = assq_no_quit (Qworkarea, XCAR (tem));
       if (!NILP (val))
 	{
 	  sx = XFIXNUM (XCAR (XCDR (val)));
@@ -5156,37 +5182,15 @@ xlw_monitor_dimensions_at_pos (Display *dpy, Screen *screen, int src_x,
 			       int src_y, int *x, int *y, int *width, int *height)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-  XRectangle rect, workarea, intersection;
-  int dim_x, dim_y, dim_w, dim_h;
 
   if (!dpyinfo)
     emacs_abort ();
 
   block_input ();
   xlw_monitor_dimensions_at_pos_1 (dpyinfo, screen, src_x, src_y,
-				   &dim_x, &dim_y, &dim_w, &dim_h);
-  rect.x = dim_x;
-  rect.y = dim_y;
-  rect.width = dim_w;
-  rect.height = dim_h;
+				   x, y, width, height);
 
-  if (!x_get_net_workarea (dpyinfo, &workarea))
-    memset (&workarea, 0, sizeof workarea);
   unblock_input ();
-
-  if (!gui_intersect_rectangles (&rect, &workarea, &intersection))
-    {
-      *x = 0;
-      *y = 0;
-      *width = 0;
-      *height = 0;
-      return;
-    }
-
-  *x = intersection.x;
-  *y = intersection.y;
-  *width = intersection.width;
-  *height = intersection.height;
 }
 #endif
 
