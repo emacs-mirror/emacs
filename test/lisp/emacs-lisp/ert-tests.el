@@ -495,6 +495,12 @@ This macro is used to test if macroexpansion in `should' works."
     (should (equal (ert-select-tests '(tag b) (list test)) (list test)))
     (should (equal (ert-select-tests '(tag c) (list test)) '()))))
 
+(ert-deftest ert-test-select-undefined ()
+  (let* ((symbol (make-symbol "ert-not-a-test"))
+         (data (should-error (ert-select-tests symbol t)
+                             :type 'ert-test-unbound)))
+    (should (eq (cadr data) symbol))))
+
 
 ;;; Tests for utility functions.
 (ert-deftest ert-test-parse-keys-and-body ()

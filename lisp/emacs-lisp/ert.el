@@ -1012,7 +1012,8 @@ contained in UNIVERSE."
                           universe))))
     ((pred ert-test-p) (list selector))
     ((pred symbolp)
-     (cl-assert (ert-test-boundp selector))
+     (unless (ert-test-boundp selector)
+       (signal 'ert-test-unbound (list selector)))
      (list (ert-get-test selector)))
     (`(,operator . ,operands)
      (cl-ecase operator
@@ -1020,7 +1021,9 @@ contained in UNIVERSE."
         (mapcar (lambda (purported-test)
                   (pcase-exhaustive purported-test
                     ((pred symbolp)
-                     (cl-assert (ert-test-boundp purported-test))
+                     (unless (ert-test-boundp purported-test)
+                       (signal 'ert-test-unbound
+                               (list purported-test)))
                      (ert-get-test purported-test))
                     ((pred ert-test-p) purported-test)))
                 operands))
@@ -1058,6 +1061,8 @@ contained in UNIVERSE."
         (cl-assert (eql (length operands) 1))
         (cl-remove-if-not (car operands)
                           (ert-select-tests 't universe)))))))
+
+(define-error 'ert-test-unbound "ERT test is unbound")
 
 (defun ert--insert-human-readable-selector (selector)
   "Insert a human-readable presentation of SELECTOR into the current buffer."
