@@ -43,6 +43,10 @@ struct window;
 #import "nsxwidget.h"
 #endif
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 struct xwidget
 {
   union vectorlike_header header;
@@ -210,9 +214,12 @@ extern void xwidget_motion_or_crossing (struct xwidget_view *,
 					const XEvent *);
 #ifdef HAVE_XINPUT2
 extern void xwidget_motion_notify (struct xwidget_view *, double,
-				   double, uint, Time);
+				   double, double, double, uint, Time);
 extern void xwidget_scroll (struct xwidget_view *, double, double,
                             double, double, uint, Time, bool);
+#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+extern void xwidget_pinch (struct xwidget_view *, XIGesturePinchEvent *);
+#endif
 #endif
 #endif
 #else

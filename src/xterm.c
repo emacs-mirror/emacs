@@ -10268,7 +10268,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						&& xv_total_y == 0.0));
 		  else
 		    xwidget_motion_notify (xv, xev->event_x, xev->event_y,
-					   state, xev->time);
+					   xev->root_x, xev->root_y, state,
+					   xev->time);
 
 		  goto XI_OTHER;
 		}
@@ -11112,6 +11113,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device || !device->master_p)
 		goto XI_OTHER;
 
+#ifdef HAVE_XWIDGETS
+	      struct xwidget_view *xvw = xwidget_view_from_window (pev->event);
+
+	      if (xvw)
+		{
+		  *finish = X_EVENT_DROP;
+		  xwidget_pinch (xvw, pev);
+		  goto XI_OTHER;
+		}
+#endif
+
 	      any = x_any_window_to_frame (dpyinfo, pev->event);
 	      if (any)
 		{
@@ -11133,8 +11145,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      goto XI_OTHER;
 	    }
 	  case XI_GesturePinchEnd:
-	    *finish = X_EVENT_DROP;
-	    goto XI_OTHER;
+	    {
+#if defined HAVE_XWIDGETS && HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
+	      struct xwidget_view *xvw = xwidget_view_from_window (pev->event);
+
+	      if (xvw)
+		xwidget_pinch (xvw, pev);
+#endif
+	      *finish = X_EVENT_DROP;
+	      goto XI_OTHER;
+	    }
 #endif
 	  default:
 	    goto XI_OTHER;
