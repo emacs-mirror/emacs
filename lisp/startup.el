@@ -1057,7 +1057,7 @@ the `--debug-init' option to view a complete error backtrace."
       (setq debug-on-error debug-on-error-from-init-file))))
 
 (defvar lisp-directory nil
-  "Directory containing the Lisp files that come with GNU Emacs.")
+  "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
 
 (defun command-line ()
   "A subroutine of `normal-top-level'.

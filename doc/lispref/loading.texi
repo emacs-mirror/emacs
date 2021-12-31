@@ -293,30 +293,33 @@ directory).
 
   When Emacs starts up, it sets up the value of @code{load-path} in
 several steps.  First, it looks for the directory containing its own
-Lisp files, using default locations set when Emacs was compiled.
-It saves this directory in @code{lisp-directory}.  Normally, this
-is a directory something like
+Lisp files, using default locations set when Emacs was compiled.  It
+saves this directory in @code{lisp-directory}.  Normally, this is a
+directory where the @file{*.elc} files are installed, something like
 
 @example
 "/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-(In this and the following examples, replace @file{/usr/local} with
-the installation prefix appropriate for your Emacs.)
-These directories contain the standard Lisp files that come with
-Emacs.  If Emacs cannot find them, it will not start correctly.
+@noindent
+where @var{version} is the Emacs version.  (In this and the following
+examples, replace @file{/usr/local} with the prefix appropriate for
+your Emacs installation.)  This directory and its subdirectories
+contain the standard Lisp files that come with Emacs.  If Emacs cannot
+find its own Lisp files, it will not start correctly.
 
 If you run Emacs from the directory where it was built---that is, an
-executable that has not been formally installed---Emacs instead
-initializes @code{lisp-directory} using the @file{lisp}
-directory in the directory containing the sources from which it
-was built.
+executable that has not been installed yet---Emacs instead initializes
+@code{lisp-directory} using the @file{lisp} subdirectory of the
+directory containing the sources from which it was built.
 
-Emacs first initializes @code{load-path} with this @code{lisp-directory}.
+Emacs then initializes @code{load-path} with this @code{lisp-directory}.
 @c Though there should be no *.el files in builddir/lisp, so it's pointless.
 If you built Emacs in a separate directory from the
-sources, it also adds the lisp directories from the build directory.
-(In all cases, elements are represented as absolute file names.)
+sources, it also adds the @file{lisp} subdirectory of the build directory.
+
+All of these directories are stored in the above two variables as
+absolute file names.
 
 @cindex site-lisp directories
 Unless you start Emacs with the @option{--no-site-lisp} option,
@@ -336,12 +339,12 @@ and
 @end example
 
 @noindent
-The first one is for locally installed files for a specific Emacs
-version; the second is for locally installed files meant for use
-with all installed Emacs versions.  (If Emacs is running uninstalled,
-it also adds @file{site-lisp} directories from the source and build
-directories, if they exist.  Normally these directories do not contain
-@file{site-lisp} directories.)
+The first one is for locally installed files for the current Emacs
+@var{version}; the second is for locally installed files meant for use
+with any installed Emacs version.  (If Emacs is running uninstalled,
+it also adds @file{site-lisp} subdirectories from the source and build
+directories, if they exist.  However, normally the source and build
+directories do not contain @file{site-lisp} subdirectories.)
 
 @cindex @env{EMACSLOADPATH} environment variable
 If the environment variable @env{EMACSLOADPATH} is set, it modifies
@@ -363,9 +366,10 @@ export EMACSLOADPATH=/home/foo/.emacs.d/lisp:
 @end example
 
 An empty element in the value of the environment variable, whether
-trailing (as in the above example), leading, or embedded, is replaced
-by the default value of @code{load-path} as determined by the standard
-initialization procedure.  If there are no such empty elements, then
+trailing (as in the above example, note the trailing @samp{:}),
+leading, or embedded, is replaced by the default value of
+@code{load-path} as determined by the standard initialization
+procedure.  If there are no such empty elements, then
 @env{EMACSLOADPATH} specifies the entire @code{load-path}.  You must
 include either an empty element, or the explicit path to the directory
 containing the standard Lisp files, else Emacs will not function.
@@ -394,6 +398,9 @@ add one or more directories to @code{load-path}.  For example:
 (push "~/.emacs.d/lisp" load-path)
 @end example
 
+@noindent
+@xref{List Variables, push}, for the description of @code{push}.
+
   Dumping Emacs uses a special value of @code{load-path}.  If you use
 a @file{site-load.el} or @file{site-init.el} file to customize the
 dumped Emacs (@pxref{Building Emacs}), any changes to @code{load-path}
@@ -401,10 +408,11 @@ that these files make will be lost after dumping.
 
 @defvar lisp-directory
 This variable holds a string naming the directory which holds
-Emacs's own @code{.el} and @code{.elc} files.  This is usually the
+Emacs's own @file{*.el} and @file{*.elc} files.  This is usually the
 place where those files are located in the Emacs installation tree,
 unless Emacs is run from its build directory in which case it points
-to the @code{lisp} directory in source directory from which it was built.
+to the @file{lisp} subdirectory in the source directory from which
+Emacs was built.
 @end defvar
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
