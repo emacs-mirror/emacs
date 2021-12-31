@@ -531,6 +531,16 @@ Some context functions add menu items below the separator."
                     :help "Find file or URL from text around mouse click"))))
   menu)
 
+(defun context-menu-online-search (menu click)
+  "Populate MENU with command to search online."
+  (save-excursion
+    (mouse-set-point click)
+    (define-key-after menu [online-search-separator] menu-bar-separator)
+    (define-key-after menu [online-search-at-mouse]
+      '(menu-item "Online search" mouse-online-search-at-point
+                  :help "Search for region or word online")))
+  menu)
+
 (defvar context-menu-entry
   `(menu-item ,(purecopy "Context Menu") ,(make-sparse-keymap)
               :filter ,(lambda (_) (context-menu-map)))
@@ -3216,6 +3226,26 @@ is copied instead of being cut."
           (set-marker (nth 2 state) nil))
         (with-current-buffer (window-buffer window)
           (setq cursor-type (nth 3 state)))))))
+
+(defvar eww-search-prefix)
+(defun mouse-online-search-at-point (event)
+  "Query an online search engine at EVENT.
+If a region is active, the entire region will be sent, otherwise
+the symbol at point will be used.  This command uses EWW's
+default search engine, as configured by `eww-search-prefix'."
+  (interactive "e")
+  (require 'eww)
+  (let ((query (if (use-region-p)
+                   (buffer-substring (region-beginning)
+                                     (region-end))
+                 (save-excursion
+                   (mouse-set-point event)
+                   (thing-at-point 'symbol)))))
+    (unless query
+      (user-error "Nothing to search for"))
+    (browse-url (concat
+                 eww-search-prefix
+                 (mapconcat #'url-hexify-string (split-string query) "+")))))
 
 
 ;;; Bindings for mouse commands.
