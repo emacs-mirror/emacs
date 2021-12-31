@@ -2384,12 +2384,6 @@ ORIGINAL-NAME is used internally only."
          spec)))
     (_ (internal--interactive-form cmd))))
 
-(cl-defmethod interactive-form ((function advice) &optional _)
-  ;; This should ideally be in `nadvice.el' but `nadvice.el' is loaded before
-  ;; `cl-generic.el' so it can't use `cl-defmethod'.
-  ;; FIXME: η-reduce!
-  (advice--get-interactive-form function))
-
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
   "Execute CMD as an editor command.
@@ -6551,9 +6545,9 @@ is set to the buffer displayed in that window.")
         (with-current-buffer (window-buffer win)
           (run-hook-with-args 'pre-redisplay-functions win))))))
 
-(add-function :before pre-redisplay-function
-              #'redisplay--pre-redisplay-functions)
-
+(when (eq pre-redisplay-function #'ignore)
+  ;; Override the default set in the C code.
+  (setq pre-redisplay-function #'redisplay--pre-redisplay-functions))
 
 (defvar-local mark-ring nil
   "The list of former marks of the current buffer, most recent first.")
