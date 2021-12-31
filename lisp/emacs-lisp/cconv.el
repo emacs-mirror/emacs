@@ -201,7 +201,7 @@ Returns a form where all lambdas don't have any free variables."
          (i 0)
          (new-env ()))
     ;; Build the "formal and actual envs" for the closure-converted function.
-    ;; Hack for FCR: `nreverse' here intends to put the captured vars
+    ;; Hack for OClosure: `nreverse' here intends to put the captured vars
     ;; in the closure such that the first one is the one that is bound
     ;; most closely.
     (dolist (fv (nreverse fvs))
@@ -604,7 +604,7 @@ places where they originally did not directly appear."
 
     (`(declare . ,_) form)              ;The args don't contain code.
 
-    (`(fcr--fix-type (ignore . ,vars) ,exp)
+    (`(oclosure--fix-type (ignore . ,vars) ,exp)
      (dolist (var vars)
        (let ((x (assq var env)))
          (pcase (cdr x)

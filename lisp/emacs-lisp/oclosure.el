@@ -1,4 +1,4 @@
-;;; fcr.el --- FunCallableRecords       -*- lexical-binding: t; -*-
+;;; oclosure.el --- Open Closures       -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015, 2021  Stefan Monnier
 
@@ -20,19 +20,19 @@
 
 ;;; Commentary:
 
-;; A FunCallableRecord is an object that combines the properties of records
+;; A OClosure is an object that combines the properties of records
 ;; with those of a function.  More specifically it is a function extended
 ;; with a notion of type (e.g. for defmethod dispatch) as well as the
 ;; ability to have some fields that are accessible from the outside.
 
-;; Here are some cases of "callable objects" where FCRs are used:
+;; Here are some cases of "callable objects" where OClosures are used:
 ;; - nadvice.el
 ;; - kmacros (for cl-print and for `kmacro-extract-lambda')
 ;; - cl-generic: turn `cl--generic-isnot-nnm-p' into a mere type test
 ;;   (by putting the no-next-methods into their own class).
-;; - FCR accessor functions, where the type-dispatch is used to
+;; - OClosure accessor functions, where the type-dispatch is used to
 ;;   dynamically compute the docstring, and also to pretty them.
-;; Here are other cases of "callable objects" where FCRs could be used:
+;; Here are other cases of "callable objects" where OClosures could be used:
 ;; - iterators (generator.el), thunks (thunk.el), streams (stream.el).
 ;; - PEG rules: they're currently just functions, but they should carry
 ;;   their original (macro-expanded) definition (and should be printed
@@ -52,29 +52,29 @@
 ;;   (negate f) generally returns (lambda (x) (not (f x)))
 ;;   but it can optimize (negate (negate f)) to f and (negate #'<) to
 ;;   #'>=.
-;; - Autoloads (tho currently our bytecode functions (and hence FCRs)
+;; - Autoloads (tho currently our bytecode functions (and hence OClosures)
 ;;   are too fat for that).
 
 ;; Related constructs:
 ;; - `funcallable-standard-object' (FSO) in Common-Lisp.  These are different
-;;   from FCRs in that they involve an additional indirection to get
+;;   from OClosures in that they involve an additional indirection to get
 ;;   to the actual code, and that they offer the possibility of
 ;;   changing (via mutation) the code associated with
 ;;   an FSO.  Also the FSO's function can't directly access the FSO's
-;;   other fields, contrary to the case with FCRs where those are directly
+;;   other fields, contrary to the case with OClosures where those are directly
 ;;   available as local variables.
 ;; - Function objects in Javascript.
 ;; - Function objects in Python.
 ;; - Callable/Applicable classes in OO languages, i.e. classes with
 ;;   a single method called `apply' or `call'.  The most obvious
-;;   difference with FCRs (beside the fact that Callable can be
+;;   difference with OClosures (beside the fact that Callable can be
 ;;   extended with additional methods) is that all instances of
 ;;   a given Callable class have to use the same method, whereas every
-;;   FCR object comes with its own code, so two FCR objects of the
+;;   OClosure object comes with its own code, so two OClosure objects of the
 ;;   same type can have different code.  Of course, you can get the
-;;   same result by turning every `fcr-lambda' into its own class
+;;   same result by turning every `oclosure-lambda' into its own class
 ;;   declaration creating an ad-hoc subclass of the specified type.
-;;   In this sense, FCRs are just a generalization of `lambda' which brings
+;;   In this sense, OClosures are just a generalization of `lambda' which brings
 ;;   some of the extra feature of Callable objects.
 ;; - Apply hooks and "entities" in MIT Scheme
 ;;   https://www.gnu.org/software/mit-scheme/documentation/stable/mit-scheme-ref/Application-Hooks.html
@@ -82,14 +82,14 @@
 ;;   are a variant of it where the inner function gets the FSO itself as
 ;;   additional argument (a kind of "self" arg), thus making it easier
 ;;   for the code to get data from the object's extra info, tho still
-;;   not as easy as with FCRs.
+;;   not as easy as with OClosures.
 ;; - "entities" in Lisp Machine Lisp (LML)
 ;;   https://hanshuebner.github.io/lmman/fd-clo.xml
-;;   These are arguably identical to FCRs, modulo the fact that LML doesn't
+;;   These are arguably identical to OClosures, modulo the fact that LML doesn't
 ;;   have lexically-scoped closures and uses a form of closures based on
 ;;   capturing (and reinstating) dynamically scoped bindings instead.
 
-;; Naming: to replace "FCR" we could go with
+;; Naming: to replace "OClosure" we could go with
 ;; - open closures
 ;; - disclosures
 ;; - opening
@@ -107,39 +107,39 @@
 ;;   to perform store-conversion on the variable, so we'd either have
 ;;   to prevent cconv from doing it (which might require a new bytecode op
 ;;   to update the in-closure variable), or we'd have to keep track of which
-;;   slots have been store-converted so `fcr--get' can access their value
+;;   slots have been store-converted so `oclosure--get' can access their value
 ;;   correctly.
 ;; - If the mutated variable/slot is captured by another (nested) closure
 ;;   store-conversion is indispensable, so if we want to avoid store-conversion
 ;;   we'd have to disallow such capture.
 
 ;; TODO:
-;; - `fcr-cl-defun', `fcr-cl-defsubst', `fcr-defsubst', `fcr-define-inline'?
+;; - `oclosure-cl-defun', `oclosure-cl-defsubst', `oclosure-defsubst', `oclosure-define-inline'?
 ;; - Use accessor in cl-defstruct
-;; - Add pcase patterns for FCRs.
+;; - Add pcase patterns for OClosures.
 
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))   ;For `named-let'.
 
-(cl-defstruct (fcr--class
+(cl-defstruct (oclosure--class
                (:constructor nil)
-               (:constructor fcr--class-make ( name docstring slots parents
+               (:constructor oclosure--class-make ( name docstring slots parents
                                                allparents))
                (:include cl--class)
                (:copier nil))
-  "Metaclass for FunCallableRecord classes."
+  "Metaclass for OClosure classes."
   (allparents nil :read-only t :type (list-of symbol)))
 
-(setf (cl--find-class 'fcr-object)
-      (fcr--class-make 'fcr-object "The root parent of all FCR classes"
-                       nil nil '(fcr-object)))
-(defun fcr--object-p (fcr)
-  (let ((type (fcr-type fcr)))
+(setf (cl--find-class 'oclosure-object)
+      (oclosure--class-make 'oclosure-object "The root parent of all OClosure classes"
+                       nil nil '(oclosure-object)))
+(defun oclosure--object-p (oclosure)
+  (let ((type (oclosure-type oclosure)))
     (when type
-      (memq 'fcr-object (fcr--class-allparents (cl--find-class type))))))
-(cl-deftype fcr-object () '(satisfies fcr--object-p))
+      (memq 'oclosure-object (oclosure--class-allparents (cl--find-class type))))))
+(cl-deftype oclosure-object () '(satisfies oclosure--object-p))
 
-(defun fcr--defstruct-make-copiers (copiers slotdescs name)
+(defun oclosure--defstruct-make-copiers (copiers slotdescs name)
   (require 'cl-macs)            ;`cl--arglist-args' is not autoloaded.
   (let* ((mutables '())
          (slots (mapcar
@@ -175,7 +175,7 @@
 	      (lambda (slot)
 	        (setq index (1+ index))
 	        (let* ((mutable (memq slot mutables))
-	               (get `(fcr--get ,obj ,index ,(not (not mutable)))))
+	               (get `(oclosure--get ,obj ,index ,(not (not mutable)))))
 	          (push mutable mutlist)
 		  (cond
 		   ((not (memq slot anames)) get)
@@ -188,11 +188,11 @@
 	 `(cl-defun ,cname (&cl-defs (',absent) ,obj ,@args)
             ,doc
             (declare (side-effect-free t))
-            (fcr--copy ,obj ',(if (remq nil mutlist) (nreverse mutlist))
+            (oclosure--copy ,obj ',(if (remq nil mutlist) (nreverse mutlist))
                        ,@argvals))))
      copiers)))
 
-(defmacro fcr-defstruct (name &optional docstring &rest slots)
+(defmacro oclosure-define (name &optional docstring &rest slots)
   (declare (doc-string 2) (indent 1))
   (unless (stringp docstring)
     (push docstring slots)
@@ -215,7 +215,7 @@
 
          (parent-names (or (or (funcall get-opt :parent)
                                (funcall get-opt :include))
-                           '(fcr-object)))
+                           '(oclosure-object)))
          (copiers (funcall get-opt :copier 'all))
 
          (parent-slots '())
@@ -266,7 +266,7 @@
                    slots)))
          (allparents (apply #'append (mapcar #'cl--class-allparents
                                              parents)))
-         (class (fcr--class-make name docstring slotdescs parents
+         (class (oclosure--class-make name docstring slotdescs parents
                                  (delete-dups
                                   (cons name allparents))))
          (it (make-hash-table :test #'eq)))
@@ -276,11 +276,11 @@
                        (format "Ignored options: %S" options)
                        nil))
        (eval-and-compile
-         (fcr--define ',class
-                      (lambda (fcr)
-                        (let ((type (fcr-type fcr)))
+         (oclosure--define ',class
+                      (lambda (oclosure)
+                        (let ((type (oclosure-type oclosure)))
                           (when type
-                            (memq ',name (fcr--class-allparents
+                            (memq ',name (oclosure--class-allparents
                                           (cl--find-class type))))))))
        ,@(let ((i -1))
            (mapcar (lambda (desc)
@@ -297,40 +297,40 @@
                        (setf (gethash slot it) i)
                        (if (not mutable)
                            `(defalias ',name
-                              ;; We use `fcr--copy' instead of
-                              ;; `fcr--accessor-copy' here to circumvent
+                              ;; We use `oclosure--copy' instead of
+                              ;; `oclosure--accessor-copy' here to circumvent
                               ;; bootstrapping problems.
-                              (fcr--copy fcr--accessor-prototype nil
+                              (oclosure--copy oclosure--accessor-prototype nil
                                          ',name ',slot ,i))
                          `(progn
                             (defalias ',name
-                              (fcr--accessor-copy
-                               fcr--mut-getter-prototype
+                              (oclosure--accessor-copy
+                               oclosure--mut-getter-prototype
                                ',name ',slot ,i))
                             (defalias ',(gv-setter name)
-                              (fcr--accessor-copy
-                               fcr--mut-setter-prototype
+                              (oclosure--accessor-copy
+                               oclosure--mut-setter-prototype
                                ',name ',slot ,i))))))
                    slotdescs))
-       ,@(fcr--defstruct-make-copiers
+       ,@(oclosure--defstruct-make-copiers
           copiers slotdescs name))))
 
-(defun fcr--define (class pred)
+(defun oclosure--define (class pred)
   (let* ((name (cl--class-name class))
-         (predname (intern (format "fcr--%s-p" name))))
+         (predname (intern (format "oclosure--%s-p" name))))
     (setf (cl--find-class name) class)
     (defalias predname pred)
     (put name 'cl-deftype-satisfies predname)))
 
-(defmacro fcr--lambda (type bindings mutables args &rest body)
-  "Low level construction of an FCR object.
-TYPE is expected to be a symbol that is (or will be) defined as an FCR type.
+(defmacro oclosure--lambda (type bindings mutables args &rest body)
+  "Low level construction of an OClosure object.
+TYPE is expected to be a symbol that is (or will be) defined as an OClosure type.
 BINDINGS should list all the slots expected by this type, in the proper order.
 MUTABLE is a list of symbols indicating which of the BINDINGS
 should be mutable.
 No checking is performed,"
   (declare (indent 3) (debug (sexp (&rest (sexp form)) sexp def-body)))
-  ;; FIXME: Fundamentally `fcr-lambda' should be a special form.
+  ;; FIXME: Fundamentally `oclosure-lambda' should be a special form.
   ;; We define it here as a macro which expands to something that
   ;; looks like "normal code" in order to avoid backward compatibility
   ;; issues with third party macros that do "code walks" and would
@@ -339,7 +339,7 @@ No checking is performed,"
   (pcase-let*
       ;; FIXME: Since we use the docstring internally to store the
       ;; type we can't handle actual docstrings.  We could fix this by adding
-      ;; a docstring slot to FCRs.
+      ;; a docstring slot to OClosures.
       ((`(,prebody . ,body) (macroexp-parse-body body))
        (rovars (mapcar #'car bindings)))
     (dolist (mutable mutables)
@@ -354,8 +354,8 @@ No checking is performed,"
        ;; FIXME: Make sure the slotbinds whose value is duplicable aren't
        ;; just value/variable-propagated by the optimizer (tho I think our
        ;; optimizer is too naive to be a problem currently).
-       (fcr--fix-type
-        ;; This `fcr--fix-type' + `ignore' call is used by the compiler (in
+       (oclosure--fix-type
+        ;; This `oclosure--fix-type' + `ignore' call is used by the compiler (in
         ;; `cconv.el') to detect and signal an error in case of
         ;; store-conversion (i.e. if a variable/slot is mutated).
         (ignore ,@rovars)
@@ -367,20 +367,20 @@ No checking is performed,"
           (if t nil ,@rovars ,@(mapcar (lambda (m) `(setq ,m ,m)) mutables))
           ,@body)))))
 
-(defmacro fcr-lambda (type-and-slots args &rest body)
-  "Define anonymous FCR function.
+(defmacro oclosure-lambda (type-and-slots args &rest body)
+  "Define anonymous OClosure function.
 TYPE-AND-SLOTS should be of the form (TYPE . SLOTS)
-where TYPE is an FCR type name and
+where TYPE is an OClosure type name and
 SLOTS is a let-style list of bindings for the various slots of TYPE.
 ARGS and BODY are the same as for `lambda'."
   (declare (indent 2) (debug ((sexp &rest (sexp form)) sexp def-body)))
-  ;; FIXME: Should `fcr-defstruct' distinguish "optional" from
+  ;; FIXME: Should `oclosure-define' distinguish "optional" from
   ;; "mandatory" slots, and/or provide default values for slots missing
   ;; from `fields'?
   (pcase-let*
       ((`(,type . ,fields) type-and-slots)
        (class (cl--find-class type))
-       (slots (fcr--class-slots class))
+       (slots (oclosure--class-slots class))
        (mutables '())
        (slotbinds (mapcar (lambda (slot)
                             (let ((name (cl--slot-descriptor-name slot))
@@ -405,35 +405,35 @@ ARGS and BODY are the same as for `lambda'."
                    fields)))
     ;; FIXME: Optimize temps away when they're provided in the right order?
     `(let ,tempbinds
-       (fcr--lambda ,type ,slotbinds ,mutables ,args ,@body))))
+       (oclosure--lambda ,type ,slotbinds ,mutables ,args ,@body))))
 
-(defun fcr--fix-type (_ignore fcr)
-  (if (byte-code-function-p fcr)
+(defun oclosure--fix-type (_ignore oclosure)
+  (if (byte-code-function-p oclosure)
       ;; Actually, this should never happen since the `cconv.el' should have
       ;; optimized away the call to this function.
-      fcr
+      oclosure
     ;; For byte-coded functions, we store the type as a symbol in the docstring
     ;; slot.  For interpreted functions, there's no specific docstring slot
     ;; so `Ffunction' turns the symbol into a string.
     ;; We thus have convert it back into a symbol (via `intern') and then
     ;; stuff it into the environment part of the closure with a special
     ;; marker so we can distinguish this entry from actual variables.
-    (cl-assert (eq 'closure (car-safe fcr)))
-    (let ((typename (nth 3 fcr))) ;; The "docstring".
+    (cl-assert (eq 'closure (car-safe oclosure)))
+    (let ((typename (nth 3 oclosure))) ;; The "docstring".
       (cl-assert (stringp typename))
       (push (cons :type (intern typename))
-            (cadr fcr))
-      fcr)))
+            (cadr oclosure))
+      oclosure)))
 
-(defun fcr--copy (fcr mutlist &rest args)
-  (if (byte-code-function-p fcr)
-      (apply #'make-closure fcr
+(defun oclosure--copy (oclosure mutlist &rest args)
+  (if (byte-code-function-p oclosure)
+      (apply #'make-closure oclosure
              (if (null mutlist)
                  args
                (mapcar (lambda (arg) (if (pop mutlist) (list arg) arg)) args)))
-    (cl-assert (eq 'closure (car-safe fcr)))
-    (cl-assert (eq :type (caar (cadr fcr))))
-    (let ((env (cadr fcr)))
+    (cl-assert (eq 'closure (car-safe oclosure)))
+    (cl-assert (eq :type (caar (cadr oclosure))))
+    (let ((env (cadr oclosure)))
       `(closure
            (,(car env)
             ,@(named-let loop ((env (cdr env)) (args args))
@@ -441,74 +441,74 @@ ARGS and BODY are the same as for `lambda'."
                   (cons (cons (caar env) (car args))
                         (loop (cdr env) (cdr args)))))
             ,@(nthcdr (1+ (length args)) env))
-           ,@(nthcdr 2 fcr)))))
+           ,@(nthcdr 2 oclosure)))))
 
-(defun fcr--get (fcr index mutable)
-  (if (byte-code-function-p fcr)
-      (let* ((csts (aref fcr 2))
+(defun oclosure--get (oclosure index mutable)
+  (if (byte-code-function-p oclosure)
+      (let* ((csts (aref oclosure 2))
              (v (aref csts index)))
         (if mutable (car v) v))
-    (cl-assert (eq 'closure (car-safe fcr)))
-    (cl-assert (eq :type (caar (cadr fcr))))
-    (cdr (nth (1+ index) (cadr fcr)))))
+    (cl-assert (eq 'closure (car-safe oclosure)))
+    (cl-assert (eq :type (caar (cadr oclosure))))
+    (cdr (nth (1+ index) (cadr oclosure)))))
 
-(defun fcr--set (v fcr index)
-  (if (byte-code-function-p fcr)
-      (let* ((csts (aref fcr 2))
+(defun oclosure--set (v oclosure index)
+  (if (byte-code-function-p oclosure)
+      (let* ((csts (aref oclosure 2))
              (cell (aref csts index)))
         (setcar cell v))
-    (cl-assert (eq 'closure (car-safe fcr)))
-    (cl-assert (eq :type (caar (cadr fcr))))
-    (setcdr (nth (1+ index) (cadr fcr)) v)))
+    (cl-assert (eq 'closure (car-safe oclosure)))
+    (cl-assert (eq :type (caar (cadr oclosure))))
+    (setcdr (nth (1+ index) (cadr oclosure)) v)))
 
-(defun fcr-type (fcr)
-  "Return the type of FCR, or nil if the arg is not a FunCallableRecord."
-  (if (byte-code-function-p fcr)
-      (let ((type (and (> (length fcr) 4) (aref fcr 4))))
+(defun oclosure-type (oclosure)
+  "Return the type of OCLOSURE, or nil if the arg is not a OClosure."
+  (if (byte-code-function-p oclosure)
+      (let ((type (and (> (length oclosure) 4) (aref oclosure 4))))
         (if (symbolp type) type))
-    (and (eq 'closure (car-safe fcr))
-         (let* ((env (car-safe (cdr fcr)))
+    (and (eq 'closure (car-safe oclosure))
+         (let* ((env (car-safe (cdr oclosure)))
                 (first-var (car-safe env)))
            (and (eq :type (car-safe first-var))
                 (cdr first-var))))))
 
-(defconst fcr--accessor-prototype
-  ;; Use `fcr--lambda' to circumvent a bootstrapping problem:
-  ;; `fcr-accessor' is not yet defined at this point but
-  ;; `fcr--accessor-prototype' is needed when defining `fcr-accessor'.
-  (fcr--lambda fcr-accessor ((type) (slot) (index)) nil
-    (fcr) (fcr--get fcr index nil)))
+(defconst oclosure--accessor-prototype
+  ;; Use `oclosure--lambda' to circumvent a bootstrapping problem:
+  ;; `oclosure-accessor' is not yet defined at this point but
+  ;; `oclosure--accessor-prototype' is needed when defining `oclosure-accessor'.
+  (oclosure--lambda oclosure-accessor ((type) (slot) (index)) nil
+    (oclosure) (oclosure--get oclosure index nil)))
 
-(fcr-defstruct accessor
-  "FCR function to access a specific slot of an object."
+(oclosure-define accessor
+  "OClosure function to access a specific slot of an object."
   type slot)
 
-(defun fcr--accessor-cl-print (object stream)
+(defun oclosure--accessor-cl-print (object stream)
   (princ "#f(accessor " stream)
   (prin1 (accessor--type object) stream)
   (princ "." stream)
   (prin1 (accessor--slot object) stream)
   (princ ")" stream))
 
-(defun fcr--accessor-docstring (f)
+(defun oclosure--accessor-docstring (f)
   (format "Access slot \"%S\" of OBJ of type `%S'.
 
 \(fn OBJ)"
           (accessor--slot f) (accessor--type f)))
 
-(fcr-defstruct (fcr-accessor
+(oclosure-define (oclosure-accessor
                 (:parent accessor)
-                (:copier fcr--accessor-copy (type slot index)))
-  "FCR function to access a specific slot of an FCR function."
+                (:copier oclosure--accessor-copy (type slot index)))
+  "OClosure function to access a specific slot of an OClosure function."
   index)
 
-(defconst fcr--mut-getter-prototype
-  (fcr-lambda (fcr-accessor (type) (slot) (index)) (fcr)
-    (fcr--get fcr index t)))
-(defconst fcr--mut-setter-prototype
+(defconst oclosure--mut-getter-prototype
+  (oclosure-lambda (oclosure-accessor (type) (slot) (index)) (oclosure)
+    (oclosure--get oclosure index t)))
+(defconst oclosure--mut-setter-prototype
   ;; FIXME: The generated docstring is wrong.
-  (fcr-lambda (fcr-accessor (type) (slot) (index)) (val fcr)
-    (fcr--set val fcr index)))
+  (oclosure-lambda (oclosure-accessor (type) (slot) (index)) (val oclosure)
+    (oclosure--set val oclosure index)))
 
-(provide 'fcr)
-;;; fcr.el ends here
+(provide 'oclosure)
+;;; oclosure.el ends here

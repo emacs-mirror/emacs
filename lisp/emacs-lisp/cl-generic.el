@@ -724,7 +724,7 @@ for all those different tags in the method-cache.")
                   (list (cl--generic-name generic)))
         f))))
 
-(fcr-defstruct cl--generic-nnm
+(oclosure-define cl--generic-nnm
   "Special type for `call-next-method's that just call `no-next-method'.")
 
 (defun cl-generic-call-method (generic method &optional fun)
@@ -744,7 +744,7 @@ FUN is the function that should be called when METHOD calls
                (if fun
                    (lambda (&rest cnm-args)
                      (apply fun (or cnm-args args)))
-                 (fcr-lambda (cl--generic-nnm) (&rest cnm-args)
+                 (oclosure-lambda (cl--generic-nnm) (&rest cnm-args)
                    (apply #'cl-no-next-method generic method
                           (or cnm-args args))))
                args)))))
@@ -915,7 +915,7 @@ those methods.")
 
 (defun cl--generic-isnot-nnm-p (cnm)
   "Return non-nil if CNM is the function that calls `cl-no-next-method'."
-  (not (eq (fcr-type cnm) 'cl--generic-nnm)))
+  (not (eq (oclosure-type cnm) 'cl--generic-nnm)))
 
 ;;; Define some pre-defined generic functions, used internally.
 
@@ -1279,41 +1279,41 @@ Used internally for the (major-mode MODE) context specializers."
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
 
-;;; Dispatch on FCR type
+;;; Dispatch on OClosure type
 
-;; It would make sense to put this into `fcr.el' except that when
-;; `fcr.el' is loaded `cl-defmethod' is not available yet.
+;; It would make sense to put this into `oclosure.el' except that when
+;; `oclosure.el' is loaded `cl-defmethod' is not available yet.
 
-(defun cl--generic-fcr-tag (name &rest _)
-  `(fcr-type ,name))
+(defun cl--generic-oclosure-tag (name &rest _)
+  `(oclosure-type ,name))
 
-(defun cl-generic--fcr-specializers (tag &rest _)
+(defun cl-generic--oclosure-specializers (tag &rest _)
   (and (symbolp tag)
        (let ((class (cl--find-class tag)))
-         (when (cl-typep class 'fcr--class)
+         (when (cl-typep class 'oclosure--class)
            (cl--class-allparents class)))))
 
-(cl-generic-define-generalizer cl-generic--fcr-generalizer
+(cl-generic-define-generalizer cl-generic--oclosure-generalizer
   ;; Give slightly higher priority than the struct specializer, so that
-  ;; for a generic function with methods dispatching structs and on FCRs,
-  ;; we first try `fcr-type' before `type-of' since `type-of' will return
-  ;; non-nil for an FCR as well.
-  51 #'cl--generic-fcr-tag
-  #'cl-generic--fcr-specializers)
+  ;; for a generic function with methods dispatching structs and on OClosures,
+  ;; we first try `oclosure-type' before `type-of' since `type-of' will return
+  ;; non-nil for an OClosure as well.
+  51 #'cl--generic-oclosure-tag
+  #'cl-generic--oclosure-specializers)
 
-(cl-defmethod cl-generic-generalizers :extra "fcr-struct" (type)
-  "Support for dispatch on types defined by `fcr-defstruct'."
+(cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
+  "Support for dispatch on types defined by `oclosure-define'."
   (or
    (when (symbolp type)
      ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
      ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
      ;; take place without requiring cl-lib.
      (let ((class (cl--find-class type)))
-       (and (cl-typep class 'fcr--class)
-            (list cl-generic--fcr-generalizer))))
+       (and (cl-typep class 'oclosure--class)
+            (list cl-generic--oclosure-generalizer))))
    (cl-call-next-method)))
 
-(cl--generic-prefill-dispatchers 0 fcr-object)
+(cl--generic-prefill-dispatchers 0 oclosure-object)
 
 ;;; Support for unloading.
 

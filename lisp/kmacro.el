@@ -362,7 +362,7 @@ information."
 
 ;;; Keyboard macro ring
 
-(fcr-defstruct kmacro
+(oclosure-define kmacro
   "Keyboard macro."
   keys (counter :mutable t) format)
 
@@ -815,7 +815,7 @@ If kbd macro currently being defined end it before activating it."
 ;;;###autoload
 (defun kmacro (keys &optional counter format)
   "Create a `kmacro' for macro bound to symbol or key."
-  (fcr-lambda (kmacro (keys (if (stringp keys) (key-parse keys) keys))
+  (oclosure-lambda (kmacro (keys (if (stringp keys) (key-parse keys) keys))
                       (counter (or counter 0))
                       (format (or format "%d")))
       (&optional arg)

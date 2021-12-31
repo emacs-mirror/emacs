@@ -2350,7 +2350,7 @@ FUNCTION is expected to be a function value rather than, say, a mere symbol."
 
 (cl-defmethod function-docstring ((function accessor))
   ;; FIXME: η-reduce!
-  (fcr--accessor-docstring function))
+  (oclosure--accessor-docstring function))
 
 (cl-defgeneric interactive-form (cmd &optional original-name)
   "Return the interactive form of CMD or nil if none.

@@ -42,39 +42,39 @@
 ;; as this one), so we have to do it by hand!
 (push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
-(fcr-defstruct (advice
+(oclosure-define (advice
                 (:copier advice--cons (cdr))
                 (:copier advice--copy (car cdr where props)))
   car cdr where props)
 
 ;;;; Lightweight advice/hook
 (defvar advice--where-alist
-  `((:around ,(fcr-lambda (advice (where :around)) (&rest args)
+  `((:around ,(oclosure-lambda (advice (where :around)) (&rest args)
                 (apply car cdr args)))
-    (:before ,(fcr-lambda (advice (where :before)) (&rest args)
+    (:before ,(oclosure-lambda (advice (where :before)) (&rest args)
                 (apply car args) (apply cdr args)))
-    (:after ,(fcr-lambda (advice (where :after)) (&rest args)
+    (:after ,(oclosure-lambda (advice (where :after)) (&rest args)
                (apply cdr args) (apply car args)))
-    (:override ,(fcr-lambda (advice (where :override)) (&rest args)
+    (:override ,(oclosure-lambda (advice (where :override)) (&rest args)
                   (apply car args)))
-    (:after-until ,(fcr-lambda (advice (where :after-until)) (&rest args)
+    (:after-until ,(oclosure-lambda (advice (where :after-until)) (&rest args)
                      (or (apply cdr args) (apply car args))))
-    (:after-while ,(fcr-lambda (advice (where :after-while)) (&rest args)
+    (:after-while ,(oclosure-lambda (advice (where :after-while)) (&rest args)
                      (and (apply cdr args) (apply car args))))
-    (:before-until ,(fcr-lambda (advice (where :before-until)) (&rest args)
+    (:before-until ,(oclosure-lambda (advice (where :before-until)) (&rest args)
                      (or (apply car args) (apply cdr args))))
-    (:before-while ,(fcr-lambda (advice (where :before-while)) (&rest args)
+    (:before-while ,(oclosure-lambda (advice (where :before-while)) (&rest args)
                      (and (apply car args) (apply cdr args))))
-    (:filter-args ,(fcr-lambda (advice (where :filter-args)) (&rest args)
+    (:filter-args ,(oclosure-lambda (advice (where :filter-args)) (&rest args)
                      (apply cdr (funcall car args))))
-    (:filter-return ,(fcr-lambda (advice (where :filter-return)) (&rest args)
+    (:filter-return ,(oclosure-lambda (advice (where :filter-return)) (&rest args)
                        (funcall car (apply cdr args)))))
   "List of descriptions of how to add a function.
-Each element has the form (WHERE FCR) where FCR is a \"prototype\"
+Each element has the form (WHERE OCL) where OCL is a \"prototype\"
 function of type `advice'.")
 
 (defun advice--p (object)
-  ;; (eq (fcr-type object) 'advice)
+  ;; (eq (oclosure-type object) 'advice)
   (cl-typep object 'advice))
 
 (defun advice--cd*r (f)

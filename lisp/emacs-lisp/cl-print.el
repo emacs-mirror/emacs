@@ -221,11 +221,11 @@ into a button whose action shows the function's disassembly.")
                             'byte-code-function object)))))
   (princ ")" stream))
 
-;; This belongs in fcr.el, of course, but some load-ordering issues make it
+;; This belongs in oclosure.el, of course, but some load-ordering issues make it
 ;; complicated.
 (cl-defmethod cl-print-object ((object accessor) stream)
   ;; FIXME: η-reduce!
-  (fcr--accessor-cl-print object stream))
+  (oclosure--accessor-cl-print object stream))
 
 (cl-defmethod cl-print-object ((object cl-structure-object) stream)
   (if (and cl-print--depth (natnump print-level)
