@@ -30,7 +30,7 @@
 (require 'cl-lib)
 
 (ert-deftest finalizer-object-type ()
-  (should (equal (type-of (make-finalizer nil)) 'finalizer)))
+  (should (equal (type-of (make-finalizer #'ignore)) 'finalizer)))
 
 (ert-deftest record-1 ()
   (let ((x (record 'foo 1 2 3)))
