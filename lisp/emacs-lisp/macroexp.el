@@ -32,11 +32,11 @@
 ;; macros defined by `defmacro'.
 (defvar macroexpand-all-environment nil)
 
-(defvar byte-compile--ssp-conses-seen nil
+(defvar macroexp--ssp-conses-seen nil
   "Which conses have been processed in a strip-symbol-positions operation?")
-(defvar byte-compile--ssp-vectors-seen nil
+(defvar macroexp--ssp-vectors-seen nil
   "Which vectors have been processed in a strip-symbol-positions operation?")
-(defvar byte-compile--ssp-records-seen nil
+(defvar macroexp--ssp-records-seen nil
   "Which records have been processed in a strip-symbol-positions operation?")
 
 (defun macroexp--strip-s-p-2 (arg)
@@ -46,8 +46,10 @@ Return the modified ARG."
    ((symbolp arg)
     (bare-symbol arg))
    ((consp arg)
-    (unless (memq arg byte-compile--ssp-conses-seen)
-      ;; (push arg byte-compile--ssp-conses-seen)
+    (unless (and macroexp--ssp-conses-seen
+                 (gethash arg macroexp--ssp-conses-seen))
+      (if macroexp--ssp-conses-seen
+          (puthash arg t macroexp--ssp-conses-seen))
       (let ((a arg))
         (while (consp (cdr a))
           (setcar a (macroexp--strip-s-p-2 (car a)))
@@ -58,8 +60,10 @@ Return the modified ARG."
           (setcdr a (macroexp--strip-s-p-2 (cdr a))))))
     arg)
    ((vectorp arg)
-    (unless (memq arg byte-compile--ssp-vectors-seen)
-      (push arg byte-compile--ssp-vectors-seen)
+    (unless (and macroexp--ssp-vectors-seen
+                 (gethash arg macroexp--ssp-vectors-seen))
+      (if macroexp--ssp-vectors-seen
+          (puthash arg t macroexp--ssp-vectors-seen))
       (let ((i 0)
 	    (len (length arg)))
         (while (< i len)
@@ -67,8 +71,10 @@ Return the modified ARG."
 	  (setq i (1+ i)))))
     arg)
    ((recordp arg)
-    (unless (memq arg byte-compile--ssp-records-seen)
-      (push arg byte-compile--ssp-records-seen)
+    (unless (and macroexp--ssp-records-seen
+                 (gethash arg macroexp--ssp-records-seen))
+      (if macroexp--ssp-records-seen
+          (puthash arg t macroexp--ssp-records-seen))
       (let ((i 0)
 	    (len (length arg)))
         (while (< i len)
@@ -80,10 +86,18 @@ Return the modified ARG."
 (defun byte-compile-strip-s-p-1 (arg)
   "Strip all positions from symbols in ARG, destructively modifying ARG.
 Return the modified ARG."
-  (setq byte-compile--ssp-conses-seen nil)
-  (setq byte-compile--ssp-vectors-seen nil)
-  (setq byte-compile--ssp-records-seen nil)
-  (macroexp--strip-s-p-2 arg))
+  (condition-case err
+      (progn
+        (setq macroexp--ssp-conses-seen nil)
+        (setq macroexp--ssp-vectors-seen nil)
+        (setq macroexp--ssp-records-seen nil)
+        (macroexp--strip-s-p-2 arg))
+    (recursion-error
+     (dolist (tab '(macroexp--ssp-conses-seen macroexp--ssp-vectors-seen
+                                              macroexp--ssp-records-seen))
+       (set tab (make-hash-table :test 'eq)))
+     (macroexp--strip-s-p-2 arg))
+    (error (signal (car err) (cdr err)))))
 
 (defun macroexp-strip-symbol-positions (arg)
   "Strip all positions from symbols (recursively) in ARG.  Don't modify ARG."

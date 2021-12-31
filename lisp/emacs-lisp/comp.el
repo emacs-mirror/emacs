@@ -3576,7 +3576,7 @@ Update all insn accordingly."
   ;; Symbols imported by C inlined functions.  We do this here because
   ;; is better to add all objs to the relocation containers before we
   ;; compacting them.
-  (mapc #'comp-add-const-to-relocs '(nil t consp listp))
+  (mapc #'comp-add-const-to-relocs '(nil t consp listp symbol-with-pos-p))
 
   (let* ((d-default (comp-ctxt-d-default comp-ctxt))
          (d-default-idx (comp-data-container-idx d-default))

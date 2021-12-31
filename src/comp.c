@@ -574,6 +574,7 @@ typedef struct {
   gcc_jit_type *lisp_symbol_with_position_type;
   gcc_jit_type *lisp_symbol_with_position_ptr_type;
   gcc_jit_function *get_symbol_with_position;
+  gcc_jit_function *symbol_with_pos_sym;
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
@@ -1475,21 +1476,12 @@ emit_SYMBOL_WITH_POS_SYM (gcc_jit_rvalue *obj)
 {
   emit_comment ("SYMBOL_WITH_POS_SYM");
 
-  gcc_jit_rvalue *tmp2, *swp;
-  gcc_jit_lvalue *tmpl;
-
-  gcc_jit_rvalue *args[] = { obj };
-  swp = gcc_jit_context_new_call (comp.ctxt,
-				  NULL,
-				  comp.get_symbol_with_position,
-				  1,
-				  args);
-  tmpl = gcc_jit_rvalue_dereference (swp, gcc_jit_context_new_location (comp.ctxt, "comp.c", __LINE__, 0));
-  tmp2 = gcc_jit_lvalue_as_rvalue (tmpl);
-  return
-    gcc_jit_rvalue_access_field (tmp2,
-				 NULL,
-				 comp.lisp_symbol_with_position_sym);
+  gcc_jit_rvalue *arg [] = { obj };
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.symbol_with_pos_sym,
+				   1,
+				   arg);
 }
 
 static gcc_jit_rvalue *
@@ -1846,6 +1838,29 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
       emit_lisp_obj_rval (Qconsp),
+      x };
+
+  gcc_jit_block_add_eval (
+    comp.block,
+    NULL,
+    gcc_jit_context_new_call (comp.ctxt,
+			      NULL,
+			      comp.check_type,
+			      3,
+			      args));
+}
+
+static void
+emit_CHECK_SYMBOL_WITH_POS (gcc_jit_rvalue *x)
+{
+  emit_comment ("CHECK_SYMBOL_WITH_POS");
+
+  gcc_jit_rvalue *args[] =
+    { gcc_jit_context_new_cast (comp.ctxt,
+				NULL,
+				emit_SYMBOL_WITH_POS_P (x),
+				comp.int_type),
+      emit_lisp_obj_rval (Qsymbol_with_pos_p),
       x };
 
   gcc_jit_block_add_eval (
@@ -3886,6 +3901,48 @@ define_GET_SYMBOL_WITH_POSITION (void)
 	       1, args, false));
 }
 
+static void define_SYMBOL_WITH_POS_SYM (void)
+{
+  gcc_jit_rvalue *tmpr, *swp;
+  gcc_jit_lvalue *tmpl;
+
+  gcc_jit_param *param [] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "a") };
+  comp.symbol_with_pos_sym =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_INTERNAL,
+				  comp.lisp_obj_type,
+				  "SYMBOL_WITH_POS_SYM",
+				  1,
+				  param,
+				  0);
+
+  DECL_BLOCK (entry_block, comp.symbol_with_pos_sym);
+  comp.func = comp.symbol_with_pos_sym;
+  comp.block = entry_block;
+
+  emit_CHECK_SYMBOL_WITH_POS (gcc_jit_param_as_rvalue (param [0]));
+
+  gcc_jit_rvalue *args[] = { gcc_jit_param_as_rvalue (param [0]) };
+
+  swp = gcc_jit_context_new_call (comp.ctxt,
+				  NULL,
+				  comp.get_symbol_with_position,
+				  1,
+				  args);
+  tmpl = gcc_jit_rvalue_dereference (swp, NULL);
+  tmpr = gcc_jit_lvalue_as_rvalue (tmpl);
+  gcc_jit_block_end_with_return (entry_block,
+				 NULL,
+				 gcc_jit_rvalue_access_field (
+				   tmpr,
+				   NULL,
+				   comp.lisp_symbol_with_position_sym));
+}
+
 static void
 define_CHECK_IMPURE (void)
 {
@@ -4504,6 +4561,7 @@ Return t on success.  */)
       register_emitter (Qnumberp, emit_numperp);
       register_emitter (Qintegerp, emit_integerp);
       register_emitter (Qcomp_maybe_gc_or_quit, emit_maybe_gc_or_quit);
+      register_emitter (Qsymbol_with_pos_p, emit_SYMBOL_WITH_POS_P);
     }
 
   comp.ctxt = gcc_jit_context_acquire ();
@@ -4820,6 +4878,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   define_PSEUDOVECTORP ();
   define_GET_SYMBOL_WITH_POSITION ();
   define_CHECK_TYPE ();
+  define_SYMBOL_WITH_POS_SYM ();
   define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
   define_setcar_setcdr ();
@@ -5618,6 +5677,7 @@ compiled one.  */);
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
   DEFSYM (Qcomp_maybe_gc_or_quit, "comp-maybe-gc-or-quit");
+  DEFSYM (Qsymbol_with_pos_p, "symbol-with-pos-p");
 
   /* Allocation classes. */
   DEFSYM (Qd_default, "d-default");

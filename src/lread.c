@@ -3225,7 +3225,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	     build them using function calls.  */
 	  Lisp_Object tmp;
 	  struct Lisp_Vector *vec;
-	  tmp = read_vector (readcharfun, 1, locate_syms);
+	  tmp = read_vector (readcharfun, 1, false);
 	  vec = XVECTOR (tmp);
 	  if (! (COMPILED_STACK_DEPTH < ASIZE (tmp)
 		 && (FIXNUMP (AREF (tmp, COMPILED_ARGLIST))

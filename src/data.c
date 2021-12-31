@@ -3969,7 +3969,7 @@ A is a bool vector, B is t or nil, and I is an index into A.  */)
 void
 syms_of_data (void)
 {
-  Lisp_Object error_tail, arith_tail;
+  Lisp_Object error_tail, arith_tail, recursion_tail;
 
   DEFSYM (Qquote, "quote");
   DEFSYM (Qlambda, "lambda");
@@ -4003,6 +4003,10 @@ syms_of_data (void)
   DEFSYM (Qtext_read_only, "text-read-only");
   DEFSYM (Qmark_inactive, "mark-inactive");
   DEFSYM (Qinhibited_interaction, "inhibited-interaction");
+
+  DEFSYM (Qrecursion_error, "recursion-error");
+  DEFSYM (Qexcessive_variable_binding, "excessive-variable-binding");
+  DEFSYM (Qexcessive_lisp_nesting, "excessive-lisp-nesting");
 
   DEFSYM (Qlistp, "listp");
   DEFSYM (Qconsp, "consp");
@@ -4111,6 +4115,16 @@ syms_of_data (void)
 	     "Arithmetic overflow error");
   PUT_ERROR (Qunderflow_error, Fcons (Qrange_error, arith_tail),
 	     "Arithmetic underflow error");
+
+  recursion_tail = pure_cons (Qrecursion_error, error_tail);
+  Fput (Qrecursion_error, Qerror_conditions, recursion_tail);
+  Fput (Qrecursion_error, Qerror_message, build_pure_c_string
+	("Excessive recursive calling error"));
+
+  PUT_ERROR (Qexcessive_variable_binding, recursion_tail,
+	     "Variable binding depth exceeds max-specpdl-size");
+  PUT_ERROR (Qexcessive_lisp_nesting, recursion_tail,
+	     "Lisp nesting exceeds `max-lisp-eval-depth'");
 
   /* Types that type-of returns.  */
   DEFSYM (Qinteger, "integer");
