@@ -461,10 +461,12 @@ selected frame is not an X-Windows frame.  */)
   if (!f)
     return Qnil;
 
+  block_input ();
   osw = gtk_widget_get_window (xw->widgetwindow_osr);
   embedder = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
 
   gdk_offscreen_window_set_embedder (osw, embedder);
+  unblock_input ();
 #endif
   widget = gtk_window_get_focus (GTK_WINDOW (xw->widgetwindow_osr));
 
@@ -540,7 +542,17 @@ selected frame is not an X-Windows frame.  */)
     }
 
   if (character == -1 && keycode == -1)
-    return Qnil;
+    {
+#ifdef HAVE_XINPUT2
+      block_input ();
+      if (xw->embedder_view)
+	record_osr_embedder (xw->embedder_view);
+      else
+	gdk_offscreen_window_set_embedder (osw, NULL);
+      unblock_input ();
+#endif
+      return Qnil;
+    }
 
   block_input ();
   xg_event = gdk_event_new (GDK_KEY_PRESS);
@@ -584,6 +596,13 @@ selected frame is not an X-Windows frame.  */)
   xg_event->type = GDK_KEY_RELEASE;
   gtk_main_do_event (xg_event);
   gdk_event_free (xg_event);
+
+#ifdef HAVE_XINPUT2
+  if (xw->embedder_view)
+    record_osr_embedder (xw->embedder_view);
+  else
+    gdk_offscreen_window_set_embedder (osw, NULL);
+#endif
   unblock_input ();
 #endif
 
@@ -2612,18 +2631,18 @@ DEFUN ("delete-xwidget-view",
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
   struct xwidget_view *xv = XXWIDGET_VIEW (xwidget_view);
+
+  block_input ();
 #ifdef USE_GTK
   struct xwidget *xw = XXWIDGET (xv->model);
   GdkWindow *w;
 #ifdef HAVE_X_WINDOWS
   if (xv->wdesc != None)
     {
-      block_input ();
       cairo_destroy (xv->cr_context);
       cairo_surface_destroy (xv->cr_surface);
       XDestroyWindow (xv->dpy, xv->wdesc);
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
-      unblock_input ();
     }
 #else
   gtk_widget_destroy (xv->widget);
@@ -2644,6 +2663,7 @@ DEFUN ("delete-xwidget-view",
 
   internal_xwidget_view_list = Fdelq (xwidget_view, internal_xwidget_view_list);
   Vxwidget_view_list = Fcopy_sequence (internal_xwidget_view_list);
+  unblock_input ();
   return Qnil;
 }
 
