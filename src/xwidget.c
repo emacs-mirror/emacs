@@ -2247,9 +2247,12 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 	  XISetMask (m, XI_Enter);
 	  XISetMask (m, XI_Leave);
 #ifdef XI_GesturePinchBegin
-	  XISetMask (m, XI_GesturePinchBegin);
-	  XISetMask (m, XI_GesturePinchUpdate);
-	  XISetMask (m, XI_GesturePinchEnd);
+	  if (FRAME_DISPLAY_INFO (s->f)->xi2_version >= 4)
+	    {
+	      XISetMask (m, XI_GesturePinchBegin);
+	      XISetMask (m, XI_GesturePinchUpdate);
+	      XISetMask (m, XI_GesturePinchEnd);
+	    }
 #endif
 	  XISelectEvents (xv->dpy, xv->wdesc, &mask, 1);
 	}
