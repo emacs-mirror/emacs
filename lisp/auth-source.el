@@ -256,7 +256,7 @@ can get pretty complex."
                         (choice :tag "Authentication backend choice"
                                 (string :tag "Authentication Source (file)")
                                 (list
-                                 :tag "Secret Service API/KWallet/GNOME Keyring"
+                                 :tag "Secret Service API/KWallet/GNOME Keyring/KeyPassXC"
                                  (const :format "" :value :secrets)
                                  (choice :tag "Collection to use"
                                          (string :tag "Collection name")

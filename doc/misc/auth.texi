@@ -305,7 +305,8 @@ The @dfn{Secret Service API} is a standard from
 to securely store passwords and other confidential information.  This
 API is implemented by system daemons such as the GNOME Keyring and the
 KDE Wallet (these are GNOME and KDE packages respectively and should
-be available on most modern GNU/Linux systems).
+be available on most modern GNU/Linux systems).  It has been tested
+also with KeePassXC.
 
 The auth-source library uses the @file{secrets.el} library to connect
 through the Secret Service API@.  You can also use that library in
@@ -360,19 +361,19 @@ Collections can be created and deleted by the functions
 Usually, this is not done from within Emacs.  Do not delete standard
 collections such as @code{"login"}.
 
-The special collection @code{"session"} exists for the lifetime of the
-corresponding client session (in our case, Emacs's lifetime).  It is
-created automatically when Emacs uses the Secret Service interface and
-it is deleted when Emacs is killed.  Therefore, it can be used to
-store and retrieve secret items temporarily.  The @code{"session"}
-collection is better than a persistent collection when the secret
-items should not live longer than Emacs.  The session collection can
-be specified either by the string @code{"session"}, or by @code{nil},
-whenever a collection parameter is needed in the following functions.
+With GNOME Keyring, there exists a special collection called
+@code{"session"}, which has the lifetime of the user being logged in.
+Its data are not stored on disk and go away when the user logs out.
+Therefore, it can be used to store and retrieve secret items
+temporarily.  The @code{"session"} collection is better than a
+persistent collection when the secret items should not live
+permanently.  The @code{"session"} collection can be addressed either
+by the string @code{"session"}, or by @code{nil}, whenever a
+collection parameter is needed.
 
-However, not all Secret Service provider create this temporary
-@code{"session"} collection, like KeePassXC.  You shall check first
-that this collection exists, before you use it.
+However, other Secret Service provider don't create this temporary
+@code{"session"} collection.  You shall check first that this
+collection exists, before you use it.
 
 @defun secrets-list-items collection
 Returns all the item labels of @var{collection} as a list.
