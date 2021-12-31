@@ -72,9 +72,9 @@ work on any underlying window system supported by GDK, such as
 Wayland and Broadway.
 
 ---
-** The docstrings of preloaded files are not in etc/DOC any more.
-Instead, they're fetched from the corresponding '.elc' file, as was already
-the case for all the non-preloaded files.
+** The docstrings of preloaded files are not in 'etc/DOC' any more.
+Instead, they're fetched as needed from the corresponding '.elc' file,
+as was already the case for all the non-preloaded files.
 
 
 * Startup Changes in Emacs 29.1
