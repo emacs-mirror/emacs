@@ -1976,6 +1976,29 @@ Uses `Man-name-local-regexp'."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
+;;; Mouse support
+(defun Man-at-mouse (e)
+  "Open man manual at point."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point e)
+    (man (Man-default-man-entry))))
+
+(defun Man-context-menu (menu click)
+  "Populate MENU with commands that open a man page at point."
+  (save-excursion
+    (mouse-set-point click)
+    (when (save-excursion
+            (skip-syntax-backward "^ ")
+            (and (looking-at
+                  "[[:space:]]*\\([[:alnum:]_-]+([[:alnum:]]+)\\)")
+                  (match-string 1)))
+      (define-key-after menu [man-separator] menu-bar-separator)
+      (define-key-after menu [man-at-mouse]
+    '(menu-item "Open man page" man-at-mouse
+            :help "Open man page around mouse click"))))
+  menu)
+
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)
