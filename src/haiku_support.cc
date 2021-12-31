@@ -104,28 +104,6 @@ gui_abort (const char *msg)
   emacs_abort ();
 }
 
-#ifdef USE_BE_CAIRO
-static cairo_format_t
-cairo_format_from_color_space (color_space space)
-{
-  switch (space)
-    {
-    case B_RGBA32:
-      return CAIRO_FORMAT_ARGB32;
-    case B_RGB32:
-      return CAIRO_FORMAT_RGB24;
-    case B_RGB16:
-      return CAIRO_FORMAT_RGB16_565;
-    case B_GRAY8:
-      return CAIRO_FORMAT_A8;
-    case B_GRAY1:
-      return CAIRO_FORMAT_A1;
-    default:
-      gui_abort ("Unsupported color space");
-    }
-}
-#endif
-
 static void
 map_key (char *chars, int32 offset, uint32_t *c)
 {
@@ -242,7 +220,7 @@ public:
   }
 };
 
-class EmacsWindow : public BDirectWindow
+class EmacsWindow : public BWindow
 {
 public:
   struct child_frame
@@ -261,13 +239,8 @@ public:
   int zoomed_p = 0;
   int shown_flag = 0;
 
-#ifdef USE_BE_CAIRO
-  BLocker surface_lock;
-  cairo_surface_t *cr_surface = NULL;
-#endif
-
-  EmacsWindow () : BDirectWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
-				  B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
+  EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
+			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
   {
 
   }
@@ -284,17 +257,6 @@ public:
 
     if (this->parent)
       UnparentAndUnlink ();
-
-#ifdef USE_BE_CAIRO
-    if (!surface_lock.Lock ())
-      gui_abort ("Failed to lock cairo surface");
-    if (cr_surface)
-      {
-	cairo_surface_destroy (cr_surface);
-	cr_surface = NULL;
-      }
-    surface_lock.Unlock ();
-#endif
   }
 
   void
@@ -458,43 +420,6 @@ public:
   }
 
   void
-  DirectConnected (direct_buffer_info *info)
-  {
-#ifdef USE_BE_CAIRO
-    if (!surface_lock.Lock ())
-      gui_abort ("Failed to lock window direct cr surface");
-    if (cr_surface)
-      {
-	cairo_surface_destroy (cr_surface);
-	cr_surface = NULL;
-      }
-
-    if (info->buffer_state != B_DIRECT_STOP)
-      {
-	int left, top, right, bottom;
-	left = info->clip_bounds.left;
-	top = info->clip_bounds.top;
-	right = info->clip_bounds.right;
-	bottom = info->clip_bounds.bottom;
-
-	unsigned char *bits = (unsigned char *) info->bits;
-	if ((info->bits_per_pixel % 8) == 0)
-	  {
-	    bits += info->bytes_per_row * top;
-	    bits += (left * info->bits_per_pixel / 8);
-	    cr_surface = cairo_image_surface_create_for_data
-	      (bits,
-	       cairo_format_from_color_space (info->pixel_format),
-	       right - left + 1,
-	       bottom - top + 1,
-	       info->bytes_per_row);
-	  }
-      }
-    surface_lock.Unlock ();
-#endif
-  }
-
-  void
   MessageReceived (BMessage *msg)
   {
     int32 old_what = 0;
@@ -567,7 +492,7 @@ public:
 	haiku_write (FILE_PANEL_EVENT, &rq);
       }
     else
-      BDirectWindow::MessageReceived (msg);
+      BWindow::MessageReceived (msg);
   }
 
   void
@@ -638,7 +563,7 @@ public:
 	  };
       }
     else
-      BDirectWindow::DispatchMessage (msg, handler);
+      BWindow::DispatchMessage (msg, handler);
   }
 
   void
@@ -668,7 +593,7 @@ public:
     rq.px_widthf = newWidth + 1.0f;
 
     haiku_write (FRAME_RESIZED, &rq);
-    BDirectWindow::FrameResized (newWidth, newHeight);
+    BWindow::FrameResized (newWidth, newHeight);
   }
 
   void
@@ -684,7 +609,7 @@ public:
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoMove (f);
-    BDirectWindow::FrameMoved (newPosition);
+    BWindow::FrameMoved (newPosition);
   }
 
   void
@@ -716,7 +641,7 @@ public:
   void
   Minimize (bool minimized_p)
   {
-    BDirectWindow::Minimize (minimized_p);
+    BWindow::Minimize (minimized_p);
     struct haiku_iconification_event rq;
     rq.window = this;
     rq.iconified_p = !parent && minimized_p;
@@ -776,7 +701,7 @@ public:
 	x_before_zoom = y_before_zoom = INT_MIN;
       }
 
-    BDirectWindow::Zoom (o, w, h);
+    BWindow::Zoom (o, w, h);
   }
 
   void
@@ -2816,8 +2741,7 @@ cairo_surface_t *
 EmacsView_cairo_surface (void *view)
 {
   EmacsView *vw = (EmacsView *) view;
-  EmacsWindow *wn = (EmacsWindow *) vw->Window ();
-  return vw->cr_surface ? vw->cr_surface : wn->cr_surface;
+  return vw->cr_surface;
 }
 
 /* Transfer each clip rectangle in VIEW to the cairo context
@@ -2843,10 +2767,7 @@ BView_cr_dump_clipping (void *view, cairo_t *ctx)
 void
 EmacsWindow_begin_cr_critical_section (void *window)
 {
-  EmacsWindow *w = (EmacsWindow *) window;
-  if (!w->surface_lock.Lock ())
-    gui_abort ("Couldn't lock cairo surface");
-
+  BWindow *w = (BWindow *) window;
   BView *vw = (BView *) w->FindView ("Emacs");
   EmacsView *ev = dynamic_cast <EmacsView *> (vw);
   if (ev && !ev->cr_surface_lock.Lock ())
@@ -2857,8 +2778,7 @@ EmacsWindow_begin_cr_critical_section (void *window)
 void
 EmacsWindow_end_cr_critical_section (void *window)
 {
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->surface_lock.Unlock ();
+  BWindow *w = (BWindow *) window;
   BView *vw = (BView *) w->FindView ("Emacs");
   EmacsView *ev = dynamic_cast <EmacsView *> (vw);
   if (ev)
