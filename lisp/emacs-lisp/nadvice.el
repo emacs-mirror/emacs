@@ -178,14 +178,13 @@ function of type `advice'.")
       (cadr (or iff ifm)))))
 
 
-;; This is the `advice' method of `interactive-form'.
-(defun advice--get-interactive-form (ad)
+(cl-defmethod interactive-form ((ad advice) &optional _)
   (let ((car (advice--car ad))
         (cdr (advice--cdr ad)))
     (when (or (commandp car) (commandp cdr))
       `(interactive ,(advice--make-interactive-form car cdr)))))
 
-(defun advice--cl-print-object (object stream)
+(cl-defmethod cl-print-object ((object advice) stream)
   (cl-assert (advice--p object))
   (princ "#f(advice " stream)
   (cl-print-object (advice--car object) stream)
