@@ -346,8 +346,8 @@ public:
 	  {
 	    if (last)
 	      last->next = tem->next;
-	    if (tem == subset_windows)
-	      subset_windows = NULL;
+	    else
+	      subset_windows = tem->next;
 	    delete tem;
 	    return;
 	  }
@@ -405,9 +405,11 @@ public:
   DoMove (struct child_frame *f)
   {
     BRect frame = this->Frame ();
+    if (!f->window->LockLooper ())
+      gui_abort ("Failed to lock child frame window for move");
     f->window->MoveTo (frame.left + f->xoff,
 		       frame.top + f->yoff);
-    this->Sync ();
+    f->window->UnlockLooper ();
   }
 
   void
