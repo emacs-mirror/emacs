@@ -173,23 +173,23 @@
 
 ;;; Initialize maps
 
-(defvar pong-mode-map
-  (let ((map (make-sparse-keymap 'pong-mode-map)))
-    (define-key map [left]	 'pong-move-left)
-    (define-key map [right] 	 'pong-move-right)
-    (define-key map [up]		 'pong-move-up)
-    (define-key map [down]	 'pong-move-down)
-    (define-key map pong-left-key  'pong-move-left)
-    (define-key map pong-right-key 'pong-move-right)
-    (define-key map pong-up-key	 'pong-move-up)
-    (define-key map pong-down-key  'pong-move-down)
-    (define-key map pong-quit-key  'pong-quit)
-    (define-key map pong-pause-key 'pong-pause)
-    map)
-  "Modemap for pong-mode.")
+(defvar-keymap pong-mode-map
+  :doc "Modemap for pong-mode."
+  :name 'pong-mode-map
+  "<left>"       #'pong-move-left
+  "<right>"      #'pong-move-right
+  "<up>"         #'pong-move-up
+  "<down>"       #'pong-move-down
+  pong-left-key  #'pong-move-left
+  pong-right-key #'pong-move-right
+  pong-up-key    #'pong-move-up
+  pong-down-key  #'pong-move-down
+  pong-quit-key  #'pong-quit
+  pong-pause-key #'pong-pause)
 
-(defvar pong-null-map
-  (make-sparse-keymap 'pong-null-map) "Null map for pong-mode.")
+(defvar-keymap pong-null-map
+  :doc "Null map for pong-mode."
+  :name 'pong-null-map)
 
 
 

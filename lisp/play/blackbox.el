@@ -85,23 +85,21 @@
 (defvar bb-balls-placed nil
   "List of already placed balls.")
 
-(defvar blackbox-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
-    (define-key map " " 'bb-romp)
-    (define-key map "q" 'bury-buffer)
-    (define-key map [insert] 'bb-romp)
-    (define-key map [return] 'bb-done)
-    (define-key map [remap backward-char]          #'bb-left)
-    (define-key map [remap left-char]              #'bb-left)
-    (define-key map [remap forward-char]           #'bb-right)
-    (define-key map [remap right-char]             #'bb-right)
-    (define-key map [remap previous-line]          #'bb-up)
-    (define-key map [remap next-line]              #'bb-down)
-    (define-key map [remap move-end-of-line]       #'bb-eol)
-    (define-key map [remap move-beginning-of-line] #'bb-bol)
-    (define-key map [remap newline]                #'bb-done)
-    map))
+(defvar-keymap blackbox-mode-map
+  :suppress 'nodigits
+  "SPC"      #'bb-romp
+  "q"        #'bury-buffer
+  "<insert>" #'bb-romp
+  "<return>" #'bb-done
+  "<remap> <backward-char>"          #'bb-left
+  "<remap> <left-char>"              #'bb-left
+  "<remap> <forward-char>"           #'bb-right
+  "<remap> <right-char>"             #'bb-right
+  "<remap> <previous-line>"          #'bb-up
+  "<remap> <next-line>"              #'bb-down
+  "<remap> <move-end-of-line>"       #'bb-eol
+  "<remap> <move-beginning-of-line>" #'bb-bol
+  "<remap> <newline>"                #'bb-done)
 
 ;; Blackbox mode is suitable only for specially formatted data.
 

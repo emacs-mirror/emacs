@@ -40,48 +40,46 @@
   "Hook to run upon entry to Solitaire."
   :type 'hook)
 
-(defvar solitaire-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
+(defvar-keymap solitaire-mode-map
+  :doc "Keymap for playing Solitaire."
+  :parent special-mode-map
+  "C-f"        #'solitaire-right
+  "C-b"        #'solitaire-left
+  "C-p"        #'solitaire-up
+  "C-n"        #'solitaire-down
+  "RET"        #'solitaire-move
+  "SPC"        #'solitaire-do-check
 
-    (define-key map "\C-f" 'solitaire-right)
-    (define-key map "\C-b" 'solitaire-left)
-    (define-key map "\C-p" 'solitaire-up)
-    (define-key map "\C-n" 'solitaire-down)
-    (define-key map "\r" 'solitaire-move)
-    (define-key map [remap undo] 'solitaire-undo)
-    (define-key map " " 'solitaire-do-check)
+  "<right>"    #'solitaire-right
+  "<left>"     #'solitaire-left
+  "<up>"       #'solitaire-up
+  "<down>"     #'solitaire-down
 
-    (define-key map [right] 'solitaire-right)
-    (define-key map [left] 'solitaire-left)
-    (define-key map [up] 'solitaire-up)
-    (define-key map [down] 'solitaire-down)
+  "S-<right>"  #'solitaire-move-right
+  "S-<left>"   #'solitaire-move-left
+  "S-<up>"     #'solitaire-move-up
+  "S-<down>"   #'solitaire-move-down
 
-    (define-key map [S-right] 'solitaire-move-right)
-    (define-key map [S-left]  'solitaire-move-left)
-    (define-key map [S-up]    'solitaire-move-up)
-    (define-key map [S-down]  'solitaire-move-down)
+  "<kp-6>"     #'solitaire-right
+  "<kp-4>"     #'solitaire-left
+  "<kp-8>"     #'solitaire-up
+  "<kp-2>"     #'solitaire-down
+  "<kp-5>"     #'solitaire-center-point
 
-    (define-key map [kp-6] 'solitaire-right)
-    (define-key map [kp-4] 'solitaire-left)
-    (define-key map [kp-8] 'solitaire-up)
-    (define-key map [kp-2] 'solitaire-down)
-    (define-key map [kp-5] 'solitaire-center-point)
+  "S-<kp-6>"   #'solitaire-move-right
+  "S-<kp-4>"   #'solitaire-move-left
+  "S-<kp-8>"   #'solitaire-move-up
+  "S-<kp-2>"   #'solitaire-move-down
 
-    (define-key map [S-kp-6] 'solitaire-move-right)
-    (define-key map [S-kp-4] 'solitaire-move-left)
-    (define-key map [S-kp-8] 'solitaire-move-up)
-    (define-key map [S-kp-2] 'solitaire-move-down)
+  "<kp-enter>" #'solitaire-move
+  "<kp-0>"     #'solitaire-undo
+  "<remap> <undo>" #'solitaire-undo
 
-    (define-key map [kp-enter] 'solitaire-move)
-    (define-key map [kp-0] 'solitaire-undo)
+  ;; spoil it with s ;)
+  "s"          #'solitaire-solve
 
-    ;; spoil it with s ;)
-    (define-key map [?s] 'solitaire-solve)
-
-    ;;  (define-key map [kp-0] 'solitaire-hint) - Not yet provided ;)
-    map)
-  "Keymap for playing Solitaire.")
+  ;; "[kp-0]" #'solitaire-hint - Not yet provided ;)
+  )
 
 ;; Solitaire mode is suitable only for specially formatted data.
 (put 'solitaire-mode 'mode-class 'special)

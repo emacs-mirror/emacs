@@ -580,26 +580,20 @@ buffer, it is replaced by the new value.  See the documentation for
 
 ;;;; Key bindings
 
-(defvar gametree-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-j" 'gametree-break-line-here)
-    (define-key map "\C-c\C-v" 'gametree-insert-new-leaf)
-    (define-key map "\C-c\C-m" 'gametree-merge-line)
-    (define-key map "\C-c\C-r " 'gametree-layout-to-register)
-    (define-key map "\C-c\C-r/" 'gametree-layout-to-register)
-    (define-key map "\C-c\C-rj" 'gametree-apply-register-layout)
-    (define-key map "\C-c\C-y" 'gametree-save-and-hack-layout)
-    (define-key map "\C-c;" 'gametree-insert-score)
-    (define-key map "\C-c^" 'gametree-compute-and-insert-score)
-    (define-key map [M-down-mouse-2 M-mouse-2]
-                #'gametree-mouse-break-line-here)
-    (define-key map [S-down-mouse-1 S-mouse-1]
-                #'gametree-mouse-show-children-and-entry)
-    (define-key map [S-down-mouse-2 S-mouse-2]
-                #'gametree-mouse-show-subtree)
-    (define-key map [S-down-mouse-3 S-mouse-3]
-                #'gametree-mouse-hide-subtree)
-    map))
+(defvar-keymap gametree-mode-map
+  "C-c C-j"     #'gametree-break-line-here
+  "C-c C-v"     #'gametree-insert-new-leaf
+  "C-c C-m"     #'gametree-merge-line
+  "C-c C-r SPC" #'gametree-layout-to-register
+  "C-c C-r /"   #'gametree-layout-to-register
+  "C-c C-r j"   #'gametree-apply-register-layout
+  "C-c C-y"     #'gametree-save-and-hack-layout
+  "C-c ;"       #'gametree-insert-score
+  "C-c ^"       #'gametree-compute-and-insert-score
+  "M-<down-mouse-2> M-<mouse-2>" #'gametree-mouse-break-line-here
+  "S-<down-mouse-1> S-<mouse-1>" #'gametree-mouse-show-children-and-entry
+  "S-<down-mouse-2> S-<mouse-2>" #'gametree-mouse-show-subtree
+  "S-<down-mouse-3> S-<mouse-3>" #'gametree-mouse-hide-subtree)
 
 (define-derived-mode gametree-mode outline-mode "GameTree"
   "Major mode for managing game analysis trees.

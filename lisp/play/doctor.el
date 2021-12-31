@@ -126,11 +126,9 @@
     (set what ww)
     first))
 
-(defvar doctor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\n" 'doctor-read-print)
-    (define-key map "\r" 'doctor-ret-or-read)
-    map))
+(defvar-keymap doctor-mode-map
+  "C-j" #'doctor-read-print
+  "RET" #'doctor-ret-or-read)
 
 (define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.
