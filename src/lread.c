@@ -3237,16 +3237,20 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 		 && FIXNATP (AREF (tmp, COMPILED_STACK_DEPTH))))
 	    invalid_syntax ("Invalid byte-code object", readcharfun);
 
-	  if (STRINGP (AREF (tmp, COMPILED_BYTECODE))
-	      && STRING_MULTIBYTE (AREF (tmp, COMPILED_BYTECODE)))
+	  if (STRINGP (AREF (tmp, COMPILED_BYTECODE)))
 	    {
-	      /* BYTESTR must have been produced by Emacs 20.2 or earlier
-		 because it produced a raw 8-bit string for byte-code and
-		 now such a byte-code string is loaded as multibyte with
-		 raw 8-bit characters converted to multibyte form.
-		 Convert them back to the original unibyte form.  */
-	      ASET (tmp, COMPILED_BYTECODE,
-		    Fstring_as_unibyte (AREF (tmp, COMPILED_BYTECODE)));
+	      if (STRING_MULTIBYTE (AREF (tmp, COMPILED_BYTECODE)))
+		{
+		  /* BYTESTR must have been produced by Emacs 20.2 or earlier
+		     because it produced a raw 8-bit string for byte-code and
+		     now such a byte-code string is loaded as multibyte with
+		     raw 8-bit characters converted to multibyte form.
+		     Convert them back to the original unibyte form.  */
+		  ASET (tmp, COMPILED_BYTECODE,
+			Fstring_as_unibyte (AREF (tmp, COMPILED_BYTECODE)));
+		}
+	      // Bytecode must be immovable.
+	      pin_string (AREF (tmp, COMPILED_BYTECODE));
 	    }
 
 	  XSETPVECTYPE (vec, PVEC_COMPILED);

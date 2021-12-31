@@ -331,6 +331,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	 the original unibyte form.  */
       bytestr = Fstring_as_unibyte (bytestr);
     }
+  pin_string (bytestr);  // Bytecode must be immovable.
 
   return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
 }
@@ -358,22 +359,28 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 #endif
 
   eassert (!STRING_MULTIBYTE (bytestr));
+  eassert (string_immovable_p (bytestr));
 
   ptrdiff_t const_length = ASIZE (vector);
   ptrdiff_t bytestr_length = SCHARS (bytestr);
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
 
   unsigned char quitcounter = 1;
-  EMACS_INT stack_items = XFIXNAT (maxdepth) + 1;
+  /* Allocate two more slots than required, because... */
+  EMACS_INT stack_items = XFIXNAT (maxdepth) + 2;
   USE_SAFE_ALLOCA;
   void *alloc;
-  SAFE_ALLOCA_LISP_EXTRA (alloc, stack_items, bytestr_length);
+  SAFE_ALLOCA_LISP (alloc, stack_items);
   Lisp_Object *stack_base = alloc;
-  Lisp_Object *top = stack_base;
-  *top = vector; /* Ensure VECTOR survives GC (Bug#33014).  */
-  Lisp_Object *stack_lim = stack_base + stack_items;
-  unsigned char const *bytestr_data = memcpy (stack_lim,
-					      SDATA (bytestr), bytestr_length);
+  /* ... we plonk BYTESTR and VECTOR there to ensure that they survive
+     GC (bug#33014), since these variables aren't used directly beyond
+     the interpreter prologue and wouldn't be found in the stack frame
+     otherwise.  */
+  stack_base[0] = bytestr;
+  stack_base[1] = vector;
+  Lisp_Object *top = stack_base + 1;
+  Lisp_Object *stack_lim = top + stack_items;
+  unsigned char const *bytestr_data = SDATA (bytestr);
   unsigned char const *pc = bytestr_data;
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -1563,6 +1570,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
     }
 
  exit:
+
+  eassert (SDATA (bytestr) == bytestr_data);
 
   /* Binds and unbinds are supposed to be compiled balanced.  */
   if (SPECPDL_INDEX () != count)

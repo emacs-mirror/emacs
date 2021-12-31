@@ -1554,7 +1554,9 @@ struct Lisp_String
     struct
     {
       ptrdiff_t size;           /* MSB is used as the markbit.  */
-      ptrdiff_t size_byte;      /* Set to -1 for unibyte strings.  */
+      ptrdiff_t size_byte;      /* Set to -1 for unibyte strings,
+				   -2 for data in rodata,
+				   -3 for immovable unibyte strings.  */
       INTERVAL intervals;	/* Text properties in this string.  */
       unsigned char *data;
     } s;
@@ -1700,6 +1702,13 @@ CHECK_STRING_NULL_BYTES (Lisp_Object string)
 {
   CHECK_TYPE (memchr (SSDATA (string), '\0', SBYTES (string)) == NULL,
 	      Qfilenamep, string);
+}
+
+/* True if STR is immovable (whose data won't move during GC).  */
+INLINE bool
+string_immovable_p (Lisp_Object str)
+{
+  return XSTRING (str)->u.s.size_byte == -3;
 }
 
 /* A regular vector is just a header plus an array of Lisp_Objects.  */
@@ -4048,6 +4057,7 @@ extern Lisp_Object make_specified_string (const char *,
 					  ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
+extern void pin_string (Lisp_Object string);
 
 /* Make a string allocated in pure space, use STR as string data.  */
 
