@@ -2901,6 +2901,18 @@ BWindow_set_min_size (void *window, int width, int height)
   w->UnlockLooper ();
 }
 
+/* Synchronize WINDOW's connection to the App Server.  */
+void
+BWindow_sync (void *window)
+{
+  BWindow *w = (BWindow *) window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window looper for sync");
+  w->Sync ();
+  w->UnlockLooper ();
+}
+
 /* Set the alignment of WINDOW's dimensions.  */
 void
 BWindow_set_size_alignment (void *window, int align_width, int align_height)

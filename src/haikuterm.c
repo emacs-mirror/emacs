@@ -346,7 +346,7 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
     {
       block_input ();
       BWindow_activate (FRAME_HAIKU_WINDOW (f));
-      flush_frame (f);
+      BWindow_sync (FRAME_HAIKU_WINDOW (f));
       unblock_input ();
     }
 }

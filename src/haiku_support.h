@@ -819,6 +819,9 @@ extern "C"
   extern void
   BWindow_set_size_alignment (void *window, int align_width, int align_height);
 
+  extern void
+  BWindow_sync (void *window);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);
