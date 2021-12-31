@@ -452,7 +452,7 @@ selected frame is not an X-Windows frame.  */)
 
   if (!NILP (frame))
     f = decode_window_system_frame (frame);
-  else if (FRAME_X_P (SELECTED_FRAME ()))
+  else if (FRAME_WINDOW_P (SELECTED_FRAME ()))
     f = SELECTED_FRAME ();
 
 #ifdef USE_GTK
