@@ -291,9 +291,10 @@ a directory) or @code{nil} (which stands for the current working
 directory).
 @end defvar
 
-  When Emacs starts up, it sets up the value of @code{load-path}
-in several steps.  First, it initializes @code{load-path} using
-default locations set when Emacs was compiled.  Normally, this
+  When Emacs starts up, it sets up the value of @code{load-path} in
+several steps.  First, it looks for the directory containing its own
+Lisp files, using default locations set when Emacs was compiled.
+It saves this directory in @code{lisp-directory}.  Normally, this
 is a directory something like
 
 @example
@@ -307,9 +308,11 @@ Emacs.  If Emacs cannot find them, it will not start correctly.
 
 If you run Emacs from the directory where it was built---that is, an
 executable that has not been formally installed---Emacs instead
-initializes @code{load-path} using the @file{lisp}
+initializes @code{lisp-directory} using the @file{lisp}
 directory in the directory containing the sources from which it
 was built.
+
+Emacs first initializes @code{load-path} with this @code{lisp-directory}.
 @c Though there should be no *.el files in builddir/lisp, so it's pointless.
 If you built Emacs in a separate directory from the
 sources, it also adds the lisp directories from the build directory.
@@ -395,6 +398,14 @@ add one or more directories to @code{load-path}.  For example:
 a @file{site-load.el} or @file{site-init.el} file to customize the
 dumped Emacs (@pxref{Building Emacs}), any changes to @code{load-path}
 that these files make will be lost after dumping.
+
+@defvar lisp-directory
+This variable holds a string naming the directory which holds
+Emacs's own @code{.el} and @code{.elc} files.  This is usually the
+place where those files are located in the Emacs installation tree,
+unless Emacs is run from its build directory in which case it points
+to the @code{lisp} directory in source directory from which it was built.
+@end defvar
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
 This command finds the precise file name for library @var{library}.  It

@@ -4926,13 +4926,13 @@ binding slots have been popped."
   ;; if it weren't for the fact that we need to figure out when a defalias
   ;; defines a macro, so as to add it to byte-compile-macro-environment.
   ;;
-  ;; FIXME: we also use this hunk-handler to implement the function's dynamic
-  ;; docstring feature.  We could actually implement it more elegantly in
-  ;; byte-compile-lambda so it applies to all lambdas, but the problem is that
-  ;; the resulting .elc format will not be recognized by make-docfile, so
-  ;; either we stop using DOC for the docstrings of preloaded elc files (at the
-  ;; cost of around 24KB on 32bit hosts, double on 64bit hosts) or we need to
-  ;; build DOC in a more clever way (e.g. handle anonymous elements).
+  ;; FIXME: we also use this hunk-handler to implement the function's
+  ;; dynamic docstring feature (via byte-compile-file-form-defmumble).
+  ;; We should actually implement it (more elegantly) in
+  ;; byte-compile-lambda so it applies to all lambdas.  We did it here
+  ;; so the resulting .elc format was recognizable by make-docfile,
+  ;; but since then we stopped using DOC for the docstrings of
+  ;; preloaded elc files so that obstacle is gone.
   (let ((byte-compile-free-references nil)
         (byte-compile-free-assignments nil))
     (pcase form

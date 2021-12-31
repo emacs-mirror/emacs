@@ -1545,7 +1545,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  specbind (Qload_file_name, found_eff);
+  specbind (Qload_file_name, hist_file_name);
   specbind (Qload_true_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
@@ -3224,23 +3224,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		    Fstring_as_unibyte (AREF (tmp, COMPILED_BYTECODE)));
 	    }
 
-	  if (COMPILED_DOC_STRING < ASIZE (tmp)
-	      && EQ (AREF (tmp, COMPILED_DOC_STRING), make_fixnum (0)))
-	    {
-	      /* read_list found a docstring like '(#$ . 5521)' and treated it
-		 as 0.  This placeholder 0 would lead to accidental sharing in
-		 purecopy's hash-consing, so replace it with a (hopefully)
-		 unique integer placeholder, which is negative so that it is
-		 not confused with a DOC file offset (the USE_LSB_TAG shift
-		 relies on the fact that VALMASK is one bit narrower than
-		 INTMASK).  Eventually Snarf-documentation should replace the
-		 placeholder with the actual docstring.  */
-	      verify (INTMASK & ~VALMASK);
-	      EMACS_UINT hash = ((XHASH (tmp) >> USE_LSB_TAG)
-				 | (INTMASK - INTMASK / 2));
-	      ASET (tmp, COMPILED_DOC_STRING, make_ufixnum (hash));
-	    }
-
 	  XSETPVECTYPE (vec, PVEC_COMPILED);
 	  return tmp;
 	}
@@ -4208,31 +4191,13 @@ read_list (bool flag, Lisp_Object readcharfun)
 
       /* While building, if the list starts with #$, treat it specially.  */
       if (EQ (elt, Vload_file_name)
-	  && ! NILP (elt)
-	  && !NILP (Vpurify_flag))
+	  && ! NILP (elt))
 	{
-	  if (NILP (Vdoc_file_name))
-	    /* We have not yet called Snarf-documentation, so assume
-	       this file is described in the DOC file
-	       and Snarf-documentation will fill in the right value later.
-	       For now, replace the whole list with 0.  */
-	    doc_reference = 1;
-	  else
-	    /* We have already called Snarf-documentation, so make a relative
-	       file name for this file, so it can be found properly
-	       in the installed Lisp directory.
-	       We don't use Fexpand_file_name because that would make
-	       the directory absolute now.  */
-	    {
-	      AUTO_STRING (dot_dot_lisp, "../lisp/");
-	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
-	    }
+	  if (!NILP (Vpurify_flag))
+	    doc_reference = 0;
+	  else if (load_force_doc_strings)
+	    doc_reference = 2;
 	}
-      else if (EQ (elt, Vload_file_name)
-	       && ! NILP (elt)
-	       && load_force_doc_strings)
-	doc_reference = 2;
-
       if (ch)
 	{
 	  if (flag > 0)
@@ -4253,8 +4218,6 @@ read_list (bool flag, Lisp_Object readcharfun)
 
 	      if (ch == ')')
 		{
-		  if (doc_reference == 1)
-		    return make_fixnum (0);
 		  if (doc_reference == 2 && FIXNUMP (XCDR (val)))
 		    {
 		      char *saved = NULL;

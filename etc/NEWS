@@ -71,6 +71,11 @@ Unlike the default X and GTK build, the resulting Emacs binary will
 work on any underlying window system supported by GDK, such as
 Wayland and Broadway.
 
+---
+** The docstrings of preloaded files are not in etc/DOC any more.
+Instead, they're fetched from the corresponding '.elc' file, as was already
+the case for all the non-preloaded files.
+
 
 * Startup Changes in Emacs 29.1
 
@@ -885,6 +890,9 @@ The input must be encoded text.
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New variable 'lisp-directory' holds the directory of Emacs's own Lisp files.
 
 +++
 ** New facility for handling session state: 'multisession-value'.
