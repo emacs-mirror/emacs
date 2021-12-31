@@ -854,6 +854,25 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   ;; continue standard unloading
   nil)
 
+;;; Mouse support
+(defun hi-lock-symbol-at-mouse (event)
+  "Highlight symbol at mouse click EVENT."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point event)
+    (highlight-symbol-at-point)))
+
+(defun hi-lock-context-menu (menu click)
+  "Populate MENU with a menu item to highlight symbol at CLICK."
+  (save-excursion
+    (mouse-set-point click)
+    (when (symbol-at-point)
+      (define-key-after menu [highlight-search-separator] menu-bar-separator)
+      (define-key-after menu [highlight-search-mouse]
+        '(menu-item "Highlight Symbol" highlight-symbol-at-mouse
+                    :help "Highlight symbol at point"))))
+  menu)
+
 (provide 'hi-lock)
 
 ;;; hi-lock.el ends here
