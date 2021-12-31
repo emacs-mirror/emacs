@@ -85,6 +85,13 @@ static key_map *key_map = NULL;
 static char *key_chars = NULL;
 static BLocker key_map_lock;
 
+/* The locking semantics of BWindows running in multiple threads are
+   so complex that child frame state (which is the only state that is
+   shared between different BWindows at runtime) does best with a
+   single global lock.  */
+
+static BLocker child_frame_lock;
+
 extern "C"
 {
   extern _Noreturn void emacs_abort (void);
@@ -247,6 +254,8 @@ public:
 
   ~EmacsWindow ()
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     struct child_frame *next;
     for (struct child_frame *f = subset_windows; f; f = next)
       {
@@ -257,6 +266,7 @@ public:
 
     if (this->parent)
       UnparentAndUnlink ();
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -269,10 +279,13 @@ public:
   void
   UpwardsSubsetChildren (EmacsWindow *w)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     UpwardsSubset (w);
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       f->window->UpwardsSubsetChildren (w);
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -285,15 +298,20 @@ public:
   void
   UpwardsUnSubsetChildren (EmacsWindow *w)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     UpwardsUnSubset (w);
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       f->window->UpwardsUnSubsetChildren (w);
+    child_frame_lock.Unlock ();
   }
 
   void
   Unparent (void)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     this->SetFeel (B_NORMAL_WINDOW_FEEL);
     UpwardsUnSubsetChildren (parent);
     this->RemoveFromSubset (this);
@@ -303,13 +321,17 @@ public:
 	fullscreen_p = 0;
 	MakeFullscreen (1);
       }
+    child_frame_lock.Unlock ();
   }
 
   void
   UnparentAndUnlink (void)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     this->parent->UnlinkChild (this);
     this->Unparent ();
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -337,6 +359,9 @@ public:
   void
   ParentTo (EmacsWindow *window)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (this->parent)
       UnparentAndUnlink ();
 
@@ -352,6 +377,8 @@ public:
       }
     this->Sync ();
     window->LinkChild (this);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -393,6 +420,9 @@ public:
   MoveChild (EmacsWindow *window, int xoff, int yoff,
 	     int weak_p)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       {
@@ -402,10 +432,13 @@ public:
 	    f->yoff = yoff;
 	    if (!weak_p)
 	      DoMove (f);
+
+	    child_frame_lock.Unlock ();
 	    return;
 	  }
       }
 
+    child_frame_lock.Unlock ();
     gui_abort ("Trying to move a child frame that doesn't exist");
   }
 
@@ -606,9 +639,14 @@ public:
 
     haiku_write (MOVE_EVENT, &rq);
 
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoMove (f);
+
+    child_frame_lock.Unlock ();
     BWindow::FrameMoved (newPosition);
   }
 
@@ -623,10 +661,14 @@ public:
   void
   EmacsMoveTo (int x, int y)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (!this->parent)
       this->MoveTo (x, y);
     else
       this->parent->MoveChild (this, x, y, 0);
+    child_frame_lock.Unlock ();
   }
 
   bool
@@ -654,9 +696,14 @@ public:
   {
     if (this->IsHidden ())
       return;
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     Hide ();
     if (this->parent)
       UpwardsUnSubsetChildren (this->parent);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -664,11 +711,17 @@ public:
   {
     if (!this->IsHidden ())
       return;
+
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (this->parent)
       shown_flag = 1;
     Show ();
     if (this->parent)
       UpwardsSubsetChildren (this->parent);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -719,6 +772,9 @@ public:
   void
   GetParentWidthHeight (int *width, int *height)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (parent)
       {
 	*width = parent->Frame ().Width ();
@@ -730,11 +786,16 @@ public:
 	*width = s.Frame ().Width ();
 	*height = s.Frame ().Height ();
       }
+
+    child_frame_lock.Unlock ();
   }
 
   void
   OffsetChildRect (BRect *r, EmacsWindow *c)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     for (struct child_frame *f; f; f = f->next)
       if (f->window == c)
 	{
@@ -742,9 +803,11 @@ public:
 	  r->bottom -= f->yoff;
 	  r->left -= f->xoff;
 	  r->right -= f->xoff;
+	  child_frame_lock.Unlock ();
 	  return;
 	}
 
+    child_frame_lock.Lock ();
     gui_abort ("Trying to calculate offsets for a child frame that doesn't exist");
   }
 
@@ -753,8 +816,8 @@ public:
   {
     BScreen screen (this);
 
-      if (!screen.IsValid ())
-	gui_abort ("Trying to make a window fullscreen without a screen");
+    if (!screen.IsValid ())
+      gui_abort ("Trying to make a window fullscreen without a screen");
 
     if (make_fullscreen_p == fullscreen_p)
       return;
@@ -768,8 +831,14 @@ public:
 
 	flags |= B_NOT_MOVABLE | B_NOT_ZOOMABLE;
 	pre_fullscreen_rect = Frame ();
+
+	if (!child_frame_lock.Lock ())
+	  gui_abort ("Failed to lock child frame state lock");
+
 	if (parent)
 	  parent->OffsetChildRect (&pre_fullscreen_rect, this);
+
+	child_frame_lock.Unlock ();
 
 	int w, h;
 	EmacsMoveTo (0, 0);
@@ -1065,7 +1134,7 @@ public:
     if (looper_locked_count)
       {
 	if (!offscreen_draw_bitmap_1->Lock ())
-	  gui_abort ("Failed to lock bitmap after double buffering was set up.");
+	  gui_abort ("Failed to lock bitmap after double buffering was set up");
       }
 
     UnlockLooper ();
