@@ -1490,13 +1490,13 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
   return
     emit_OR (
       gcc_jit_context_new_comparison (
-        comp.ctxt, gcc_jit_context_new_location (comp.ctxt, "comp.c", __LINE__, 0),
+        comp.ctxt, NULL,
         GCC_JIT_COMPARISON_EQ,
         emit_XLI (x), emit_XLI (y)),
       emit_AND (
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_rvalue_dereference (comp.f_symbols_with_pos_enabled_ref,
-				      gcc_jit_context_new_location (comp.ctxt, "comp.c", __LINE__, 0))),
+				      NULL)),
         emit_OR (
           emit_AND (
             emit_SYMBOL_WITH_POS_P (x),
@@ -4561,7 +4561,6 @@ Return t on success.  */)
       register_emitter (Qnumberp, emit_numperp);
       register_emitter (Qintegerp, emit_integerp);
       register_emitter (Qcomp_maybe_gc_or_quit, emit_maybe_gc_or_quit);
-      register_emitter (Qsymbol_with_pos_p, emit_SYMBOL_WITH_POS_P);
     }
 
   comp.ctxt = gcc_jit_context_acquire ();
