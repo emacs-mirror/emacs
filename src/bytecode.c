@@ -391,8 +391,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
       bool rest = (at & 128) != 0;
       int mandatory = at & 127;
       ptrdiff_t nonrest = at >> 8;
-      ptrdiff_t maxargs = rest ? PTRDIFF_MAX : nonrest;
-      if (! (mandatory <= nargs && nargs <= maxargs))
+      if (! (mandatory <= nargs && (rest || nargs <= nonrest)))
 	Fsignal (Qwrong_number_of_arguments,
 		 list2 (Fcons (make_fixnum (mandatory), make_fixnum (nonrest)),
 			make_fixnum (nargs)));
