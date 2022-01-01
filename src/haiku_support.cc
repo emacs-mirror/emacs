@@ -245,6 +245,7 @@ public:
   int fullscreen_p = 0;
   int zoomed_p = 0;
   int shown_flag = 0;
+  volatile int was_shown_p = 0;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -725,6 +726,18 @@ public:
 
     if (!child_frame_lock.Lock ())
       gui_abort ("Failed to lock child frame state lock");
+
+    if (!was_shown_p)
+      {
+	/* This window is being shown for the first time, which means
+	   Show will unlock the looper.  In this case, it should be
+	   locked again, since the looper is unlocked when the window
+	   is first created.  */
+
+	if (!LockLooper ())
+	  gui_abort ("Failed to lock looper during first window show");
+	was_shown_p = true;
+      }
 
     if (this->parent)
       shown_flag = 1;
@@ -1560,6 +1573,14 @@ BWindow_new (void *_view)
       window->Quit ();
       return NULL;
     }
+
+  /* Windows are created locked by the current thread, but calling
+     Show for the first time causes them to be unlocked.  To avoid a
+     deadlock when a frame is created invisible in one thread, and
+     another thread later tries to lock it, the window is unlocked
+     here, and EmacsShow will lock it manually if it's being shown for
+     the first time.  */
+  window->UnlockLooper ();
   window->AddChild (vw);
   *v = vw;
   return window;
