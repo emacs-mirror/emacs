@@ -960,8 +960,9 @@ public:
       gui_abort ("Trying to attach cr surface when one already exists");
     cr_surface = cairo_image_surface_create_for_data
       ((unsigned char *) offscreen_draw_bitmap_1->Bits (),
-       CAIRO_FORMAT_ARGB32, offscreen_draw_bitmap_1->Bounds ().Width (),
-       offscreen_draw_bitmap_1->Bounds ().Height (),
+       CAIRO_FORMAT_ARGB32,
+       offscreen_draw_bitmap_1->Bounds ().IntegerWidth () + 1,
+       offscreen_draw_bitmap_1->Bounds ().IntegerHeight () + 1,
        offscreen_draw_bitmap_1->BytesPerRow ());
     if (!cr_surface)
       gui_abort ("Cr surface allocation failed for double-buffered view");

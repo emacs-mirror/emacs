@@ -310,9 +310,9 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
   if (bm->ColorSpace () == B_GRAY1)
     {
       rgb_color low_color = vw->LowColor ();
-      for (int y = 0; y <= bc.Bounds ().Height (); ++y)
+      for (int y = 0; y <= bc.Bounds ().Height () + 1; ++y)
 	{
-	  for (int x = 0; x <= bc.Bounds ().Width (); ++x)
+	  for (int x = 0; x <= bc.Bounds ().Width () + 1; ++x)
 	    {
 	      if (bits[y * (stride / 4) + x] == 0xFF000000)
 		bits[y * (stride / 4) + x] = RGB_COLOR_UINT32 (low_color);
@@ -338,9 +338,9 @@ BView_DrawMask (void *src, void *view,
   BBitmap bm (source->Bounds (), B_RGBA32);
   if (bm.InitCheck () != B_OK)
     return;
-  for (int y = 0; y <= bm.Bounds ().Height (); ++y)
+  for (int y = 0; y <= bm.Bounds ().IntegerHeight (); ++y)
     {
-      for (int x = 0; x <= bm.Bounds ().Width (); ++x)
+      for (int x = 0; x <= bm.Bounds ().IntegerWidth (); ++x)
 	{
 	  int bit = haiku_get_pixel ((void *) source, x, y);
 
@@ -443,8 +443,8 @@ BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
       vw.DrawBitmap (bm, n);
       if (mk)
 	BView_DrawMask ((void *) mk, (void *) &vw,
-			0, 0, mk->Bounds ().Width (),
-			mk->Bounds ().Height (),
+			0, 0, mk->Bounds ().Width () + 1,
+			mk->Bounds ().Height () + 1,
 			0, 0, desw, desh, m_color);
       vw.Sync ();
       vw.RemoveSelf ();
