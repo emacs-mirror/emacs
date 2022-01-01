@@ -11106,6 +11106,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_GesturePinchBegin:
 	  case XI_GesturePinchUpdate:
 	    {
+	      x_display_set_last_user_time (dpyinfo, xi_event->time);
+
 #ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
@@ -11146,6 +11148,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  case XI_GesturePinchEnd:
 	    {
+	      x_display_set_last_user_time (dpyinfo, xi_event->time);
+
 #if defined HAVE_XWIDGETS && HAVE_USABLE_XI_GESTURE_PINCH_EVENT
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xwidget_view *xvw = xwidget_view_from_window (pev->event);
