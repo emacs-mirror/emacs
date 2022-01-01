@@ -50,13 +50,16 @@
   :group 'tools)
 
 (defcustom elide-head-headers-to-hide
-  '(("is free software[:;] you can redistribute it" . ; GNU boilerplate
-     "\\(Boston, MA 0211\\(1-1307\\|0-1301\\), USA\\|\
-If not, see <https?://www\\.gnu\\.org/licenses/>\\)\\.")
-    ("The Regents of the University of California\\.  All rights reserved\\." .
-     "SUCH DAMAGE\\.")				      ; BSD
-    ("Permission is hereby granted, free of charge" . ; X11
-     "authorization from the X Consortium\\."))
+  `(("is free software[:;] you can redistribute it" . ; GNU boilerplate
+     "\\(If not, see <https?://www\\.gnu\\.org/licenses/>\\|\
+Boston, MA 0211\\(1-1307\\|0-1301\\), USA\\|\
+675 Mass Ave, Cambridge, MA 02139, USA\\)\\.")
+    (,(rx (or "The Regents of the University of California.  All rights reserved."
+              "Redistribution and use in source and binary"))
+     . "THE POSSIBILITY OF SUCH DAMAGE\\.") ; BSD
+    ("Permission is hereby granted, free of charge" .
+     ,(rx (or "authorization from the X Consortium."           ; X11
+              "THE USE OR OTHER DEALINGS IN THE SOFTWARE.")))) ; Expat
   "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
@@ -64,7 +67,8 @@ elided with an invisible overlay from the end of the line where the
 first match is found to the end of the match for the corresponding
 cdr."
   :type '(alist :key-type  (regexp :tag "Start regexp")
-		:value-type (regexp :tag "End regexp")))
+                :value-type (regexp :tag "End regexp"))
+  :version "29.1")
 
 (defvar-local elide-head-overlay nil)
 
