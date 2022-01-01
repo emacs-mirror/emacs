@@ -24054,7 +24054,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5 1)) package--builtin-versions)
+(push (purecopy '(org 9 5 2)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -27797,7 +27797,8 @@ evaluate `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-Activates the region if needed.  Only lasts until the region is deactivated.
+Activates the region if it's inactive and Transient Mark mode is
+on.  Only lasts until the region is next deactivated.
 
 \(fn &optional ARG)" t nil)
 
@@ -33965,10 +33966,6 @@ Possibilities include `symbol', `list', `sexp', `defun',
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
 
-If the current buffer uses fields (see Info node `(elisp)Fields'),
-this function will narrow to the field before identifying the
-thing at point.
-
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING.
 
@@ -35064,7 +35061,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 2 -1)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 2 28 1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -39511,21 +39508,11 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
 ;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
 ;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
-;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
-;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
