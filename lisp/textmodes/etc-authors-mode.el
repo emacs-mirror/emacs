@@ -1,6 +1,6 @@
 ;;; etc-authors-mode.el --- font-locking for etc/AUTHORS  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefan@marxist.se>
 ;; Keywords: internal

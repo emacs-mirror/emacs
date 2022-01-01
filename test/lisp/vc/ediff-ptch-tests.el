@@ -1,6 +1,6 @@
 ;;; ediff-ptch-tests.el --- Tests for ediff-ptch.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 

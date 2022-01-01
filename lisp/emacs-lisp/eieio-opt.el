@@ -1,6 +1,6 @@
 ;;; eieio-opt.el --- eieio optional functions (debug, printing, speedbar)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2021 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

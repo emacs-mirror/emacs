@@ -1,6 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 1996, 1998, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1994, 1996, 1998, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Peter Stephenson <pws@ibmth.df.unipi.it>

@@ -1,6 +1,6 @@
 ;;; erc-hecomplete.el --- Provides Nick name completion for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2002, 2004, 2006-2021 Free Software Foundation,
+;; Copyright (C) 2001-2002, 2004, 2006-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>

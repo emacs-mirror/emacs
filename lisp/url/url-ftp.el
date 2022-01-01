@@ -1,6 +1,6 @@
 ;;; url-ftp.el --- FTP wrapper  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

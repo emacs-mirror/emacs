@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1990-1993, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
