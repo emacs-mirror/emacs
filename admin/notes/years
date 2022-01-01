@@ -7,6 +7,18 @@ checkout, redirecting its output to a file, so that you could later
 examine the files that don't have copyright notices.  Inspect the
 results for plausibility, then commit them.
 
+A few known problems with the build-aux/update-copyright script:
+
+  . it doesn't update config.bat and etc/tutorials/TUTORIAL.he because
+    the "Copyright" statement begins in these two files after a prefix
+    that is more than 5 characters long
+  . it doesn't update the second Copyright notice, the one that gets
+    output into PDF and PS, in etc/refcards/ru-refcard.tex
+  . it doesn't update etc/refcards/gnus-refcard.tex because its
+    Copyright statement has a non-standard format
+
+These files need to be updated by hand.
+
 You should also run the etags test suite in test/manual/etags/.  It
 will most probably fail because the contents of the test files changes
 due to copyright years update, so you need to move each ETAGS and
