@@ -4824,7 +4824,7 @@ face_for_font (struct frame *f, Lisp_Object font_object,
                struct face *base_face)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
-  unsigned hash;
+  uintptr_t hash;
   int i;
   struct face *face;
 
