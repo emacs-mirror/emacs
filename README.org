@@ -1,4 +1,5 @@
 * which-key
+  [[https://elpa.gnu.org/packages/which-key.html][https://elpa.gnu.org/packages/which-key.svg]]
   [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
   [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 
