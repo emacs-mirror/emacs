@@ -2693,10 +2693,23 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case KEY_DOWN:
 	  {
 	    struct haiku_key_event *b = buf;
+	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    struct frame *f = haiku_window_to_frame (b->window);
 	    int non_ascii_p;
 	    if (!f)
 	      continue;
+
+	    /* If mouse-highlight is an integer, input clears out
+	       mouse highlighting.  */
+	    if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
+		&& (f == 0
+		    || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
+		    || !EQ (f->tab_bar_window, hlinfo->mouse_face_window)))
+	      {
+		clear_mouse_face (hlinfo);
+		hlinfo->mouse_face_hidden = true;
+		need_flush = 1;
+	      }
 
 	    inev.code = b->unraw_mb_char;
 
@@ -2738,6 +2751,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_mouse_motion_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
+	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 
 	    if (!f)
 	      continue;
@@ -2747,6 +2761,13 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    x_display_list->last_mouse_movement_time = time (NULL);
 	    button_or_motion_p = 1;
+
+	    if (hlinfo->mouse_face_hidden)
+	      {
+		hlinfo->mouse_face_hidden = false;
+		clear_mouse_face (hlinfo);
+		need_flush = 1;
+	      }
 
 	    if (b->just_exited_p)
 	      {
