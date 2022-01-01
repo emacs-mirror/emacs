@@ -2757,6 +2757,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		       certainly no longer on any text in the frame.  */
 		    clear_mouse_face (hlinfo);
 		    hlinfo->mouse_face_mouse_frame = 0;
+
+		    need_flush = 1;
 		  }
 
 		haiku_new_focus_frame (x_display_list->focused_frame);

@@ -259,7 +259,10 @@ public:
     struct child_frame *next;
     for (struct child_frame *f = subset_windows; f; f = next)
       {
+	if (f->window->LockLooper ())
+	  gui_abort ("Failed to lock looper for unparent");
 	f->window->Unparent ();
+	f->window->UnlockLooper ();
 	next = f->next;
 	delete f;
       }
@@ -279,6 +282,8 @@ public:
   void
   UpwardsSubsetChildren (EmacsWindow *w)
   {
+    if (!LockLooper ())
+      gui_abort ("Failed to lock looper for subset");
     if (!child_frame_lock.Lock ())
       gui_abort ("Failed to lock child frame state lock");
     UpwardsSubset (w);
@@ -286,6 +291,7 @@ public:
 	 f = f->next)
       f->window->UpwardsSubsetChildren (w);
     child_frame_lock.Unlock ();
+    UnlockLooper ();
   }
 
   void
@@ -298,6 +304,8 @@ public:
   void
   UpwardsUnSubsetChildren (EmacsWindow *w)
   {
+    if (!LockLooper ())
+      gui_abort ("Failed to lock looper for unsubset");
     if (!child_frame_lock.Lock ())
       gui_abort ("Failed to lock child frame state lock");
     UpwardsUnSubset (w);
@@ -305,6 +313,7 @@ public:
 	 f = f->next)
       f->window->UpwardsUnSubsetChildren (w);
     child_frame_lock.Unlock ();
+    UnlockLooper ();
   }
 
   void
