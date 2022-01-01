@@ -2723,27 +2723,6 @@ The optional argument IGNORED is not used.
 
 \(fn URL &optional IGNORED)" t nil)
 
-(autoload 'browse-url-netscape "browse-url" "\
-Ask the Netscape WWW browser to load URL.
-Default to the URL around or before point.  The strings in variable
-`browse-url-netscape-arguments' are also passed to Netscape.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new Netscape window, otherwise use a
-random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-flag'.
-
-If `browse-url-netscape-new-window-is-tab' is non-nil, then
-whenever a document would otherwise be loaded in a new window, it
-is loaded in a new tab in an existing window instead.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'.
-
-\(fn URL &optional NEW-WINDOW)" t nil)
-
-(make-obsolete 'browse-url-netscape 'nil '"25.1")
-
 (autoload 'browse-url-mozilla "browse-url" "\
 Ask the Mozilla WWW browser to load URL.
 Default to the URL around or before point.  The strings in variable
@@ -2790,27 +2769,6 @@ The optional argument NEW-WINDOW is not used.
 
 \(fn URL &optional NEW-WINDOW)" t nil)
 
-(autoload 'browse-url-galeon "browse-url" "\
-Ask the Galeon WWW browser to load URL.
-Default to the URL around or before point.  The strings in variable
-`browse-url-galeon-arguments' are also passed to Galeon.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new Galeon window, otherwise use a
-random existing one.  A non-nil interactive prefix argument reverses
-the effect of `browse-url-new-window-flag'.
-
-If `browse-url-galeon-new-window-is-tab' is non-nil, then whenever a
-document would otherwise be loaded in a new window, it is loaded in a
-new tab in an existing window instead.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'.
-
-\(fn URL &optional NEW-WINDOW)" t nil)
-
-(make-obsolete 'browse-url-galeon 'nil '"25.1")
-
 (autoload 'browse-url-webpositive "browse-url" "\
 Ask the WebPositive WWW browser to load URL.
 Default to the URL around or before point.
@@ -2826,7 +2784,7 @@ currently selected window instead.
 \(fn URL &optional SAME-WINDOW)" t nil)
 
 (autoload 'browse-url-gnome-moz "browse-url" "\
-Ask Mozilla/Netscape to load URL via the GNOME program `gnome-moz-remote'.
+Ask Mozilla to load URL via the GNOME program `gnome-moz-remote'.
 Default to the URL around or before point.  The strings in variable
 `browse-url-gnome-moz-arguments' are also passed.
 
@@ -5818,7 +5776,7 @@ disabled.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "completion" '("*c-def-regexp*" "*lisp-def-regexp*" "accept-completion" "add-" "cdabbrev-" "check-completion-length" "clear-all-completions" "cmpl-" "complet" "current-completion-source" "delete-completion" "enable-completion" "find-" "initialize-completions" "inside-locate-completion-entry" "interactive-completion-string-reader" "kill-" "list-all-completions" "load-completions-from-file" "make-c" "next-cdabbrev" "num-cmpl-sources" "reset-cdabbrev" "save" "set-c" "symbol-" "use-completion-"))
+(register-definition-prefixes "completion" '("*c-def-regexp*" "*lisp-def-regexp*" "accept-completion" "add-" "cdabbrev-" "check-completion-length" "clear-all-completions" "cmpl-" "complet" "current-completion-source" "delete-completion" "enable-completion" "find-" "inside-locate-completion-entry" "interactive-completion-string-reader" "kill-" "list-all-completions" "load-completions-from-file" "make-c" "next-cdabbrev" "num-cmpl-sources" "reset-cdabbrev" "save" "set-c" "symbol-" "use-completion-"))
 
 ;;;***
 
@@ -10533,28 +10491,34 @@ Emerge two RCS revisions of a file, with another revision as ancestor.
 
 (autoload 'emoji-insert "emoji" "\
 Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix), use a textual search instead
-of a visual interface.
+If TEXT (interactively, the prefix argument), choose the emoji
+by typing its Unicode Standard name (with completion), instead
+of selecting from emoji display.
 
 \(fn &optional TEXT)" t nil)
 
 (autoload 'emoji-recent "emoji" "\
-Choose and insert a recently used emoji glyph." t nil)
+Choose and insert one of the recently-used emoji glyphs." t nil)
 
 (autoload 'emoji-search "emoji" "\
-Choose and insert an emoji glyph by searching for an emoji name." t nil)
+Choose and insert an emoji glyph by typing its Unicode name.
+This command prompts for an emoji name, with completion, and inserts it.
+It recognizes the Unicode Standard names of emoji." t nil)
 
 (autoload 'emoji-list "emoji" "\
 List emojis and insert the one that's selected.
-The character will be inserted into the buffer that was selected
-when the command was issued." t nil)
+Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
+The glyph will be inserted into the buffer that was current
+when the command was invoked." t nil)
 
 (autoload 'emoji-describe "emoji" "\
-Say what the name of the composed grapheme cluster GLYPH is.
-If it's not known, this function returns nil.
+Display the name of the grapheme cluster composed from GLYPH.
+GLYPH should be a string of one or more characters which together
+produce an emoji.  Interactively, GLYPH is the emoji at point (it
+could also be any character, not just emoji).
 
-Interactively, it will message what the name of the emoji (or
-character) under point is.
+If called from Lisp, return the name as a string; return nil if
+the name is not known.
 
 \(fn GLYPH &optional INTERACTIVE)" t nil)
 
@@ -12379,6 +12343,12 @@ a top-level keymap, `text-scale-increase' or
 `text-scale-decrease' may be more appropriate.
 
 \(fn INC)" t nil)
+ (define-key global-map [pinch] 'text-scale-pinch)
+
+(autoload 'text-scale-pinch "face-remap" "\
+Adjust the height of the default face by the scale in the pinch event EVENT.
+
+\(fn EVENT)" t nil)
 
 (autoload 'buffer-face-mode "face-remap" "\
 Minor mode for a buffer-specific default face.
@@ -14341,6 +14311,35 @@ separators (like underscores) at places they belong to.
 
 ;;;***
 
+;;;### (autoloads nil "glyphless-mode" "textmodes/glyphless-mode.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from textmodes/glyphless-mode.el
+
+(autoload 'glyphless-display-mode "glyphless-mode" "\
+Minor mode for displaying glyphless characters in the current buffer.
+If enabled, all glyphless characters will be displayed as boxes
+that display their acronyms.
+
+This is a minor mode.  If called interactively, toggle the
+`Glyphless-Display mode' mode.  If the prefix argument is positive,
+enable the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `glyphless-display-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+\(fn &optional ARG)" t nil)
+
+(register-definition-prefixes "glyphless-mode" '("glyphless-mode-"))
+
+;;;***
+
 ;;;### (autoloads nil "gmm-utils" "gnus/gmm-utils.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/gmm-utils.el
 
@@ -15209,6 +15208,13 @@ Initialize the Gnus registry." t nil)
 ;;; Generated autoloads from gnus/gnus-rfc1843.el
 
 (register-definition-prefixes "gnus-rfc1843" '("rfc1843-"))
+
+;;;***
+
+;;;### (autoloads nil "gnus-rmail" "gnus/gnus-rmail.el" (0 0 0 0))
+;;; Generated autoloads from gnus/gnus-rmail.el
+
+(register-definition-prefixes "gnus-rmail" '("gnus-"))
 
 ;;;***
 
@@ -18684,8 +18690,8 @@ An image file is one whose name has an extension in
 
 (autoload 'image-mode "image-mode" "\
 Major mode for image files.
-You can use \\<image-mode-map>\\[image-toggle-display] or \\<image-mode-map>\\[image-toggle-hex-display]
-to toggle between display as an image and display as text or hex.
+You can use \\<image-mode-map>\\[image-toggle-display] or \\[image-toggle-hex-display] to toggle between display
+as an image and display as text or hex.
 
 Key bindings:
 \\{image-mode-map}" t nil)
@@ -22891,6 +22897,30 @@ QUALITY can be:
 
 ;;;***
 
+;;;### (autoloads nil "multisession" "emacs-lisp/multisession.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/multisession.el
+
+(autoload 'define-multisession-variable "multisession" "\
+Make NAME into a multisession variable initialized from INITIAL-VALUE.
+DOC should be a doc string, and ARGS are keywords as applicable to
+`make-multisession'.
+
+\(fn NAME INITIAL-VALUE &optional DOC &rest ARGS)" nil t)
+
+(function-put 'define-multisession-variable 'lisp-indent-function 'defun)
+
+(autoload 'list-multisession-values "multisession" "\
+List all values in the \"multisession\" database.
+If CHOOSE-STORAGE (interactively, the prefix), query for the
+storage method to list.
+
+\(fn &optional CHOOSE-STORAGE)" t nil)
+
+(register-definition-prefixes "multisession" '("multisession-"))
+
+;;;***
+
 ;;;### (autoloads nil "mwheel" "mwheel.el" (0 0 0 0))
 ;;; Generated autoloads from mwheel.el
 
@@ -24176,7 +24206,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5 1)) package--builtin-versions)
+(push (purecopy '(org 9 5 2)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -24850,8 +24880,6 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 `outline-mode-hook', if they are non-nil.
 
 \(fn)" t nil)
-(put 'outline-minor-mode-cycle 'safe-local-variable 'booleanp)
-(put 'outline-minor-mode-highlight 'safe-local-variable 'symbolp)
 
 (autoload 'outline-minor-mode "outline" "\
 Toggle Outline minor mode.
@@ -25144,7 +25172,9 @@ short description.
 Return the version number of the package in which this is used.
 Assumes it is used from an Elisp file placed inside the top-level directory
 of an installed ELPA package.
-The return value is a string (or nil in case we can't find it)." nil nil)
+The return value is a string (or nil in case we can't find it).
+It works in more cases if the call is in the file which contains
+the `Version:' header." nil nil)
 
 (function-put 'package-get-version 'pure 't)
 
@@ -27993,7 +28023,8 @@ evaluate `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-Activates the region if needed.  Only lasts until the region is deactivated.
+Activates the region if it's inactive and Transient Mark mode is
+on.  Only lasts until the region is next deactivated.
 
 \(fn &optional ARG)" t nil)
 
@@ -28755,6 +28786,103 @@ Set PASSWORD to be used for retrieving mail from a POP or IMAP server.
 
 ;;;***
 
+;;;### (autoloads nil "rmailedit" "mail/rmailedit.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailedit.el
+
+(autoload 'rmail-edit-current-message "rmailedit" "\
+Edit the contents of this message." t nil)
+
+(register-definition-prefixes "rmailedit" '("rmail-"))
+
+;;;***
+
+;;;### (autoloads nil "rmailkwd" "mail/rmailkwd.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailkwd.el
+
+(autoload 'rmail-add-label "rmailkwd" "\
+Add LABEL to labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-kill-label "rmailkwd" "\
+Remove LABEL from labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-read-label "rmailkwd" "\
+Read a label with completion, prompting with PROMPT.
+Completions are chosen from `rmail-label-obarray'.  The default
+is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
+according to the choice made, and returns a symbol.
+
+\(fn PROMPT)" nil nil)
+
+(autoload 'rmail-previous-labeled-message "rmailkwd" "\
+Show previous message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves backward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+(autoload 'rmail-next-labeled-message "rmailkwd" "\
+Show next message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves forward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+(register-definition-prefixes "rmailkwd" '("rmail-"))
+
+;;;***
+
+;;;### (autoloads nil "rmailmm" "mail/rmailmm.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailmm.el
+
+(autoload 'rmail-mime "rmailmm" "\
+Toggle the display of a MIME message.
+
+The actual behavior depends on the value of `rmail-enable-mime'.
+
+If `rmail-enable-mime' is non-nil (the default), this command toggles
+the display of a MIME message between decoded presentation form and
+raw data.  With optional prefix argument ARG, it toggles the display only
+of the MIME entity at point, if there is one.  The optional argument
+STATE forces a particular display state, rather than toggling.
+`raw' forces raw mode, any other non-nil value forces decoded mode.
+
+If `rmail-enable-mime' is nil, this creates a temporary \"*RMAIL*\"
+buffer holding a decoded copy of the message.  Inline content-types
+are handled according to `rmail-mime-media-type-handlers-alist'.
+By default, this displays text and multipart messages, and offers to
+download attachments as specified by `rmail-mime-attachment-dirs-alist'.
+The arguments ARG and STATE have no effect in this case.
+
+\(fn &optional ARG STATE)" t nil)
+
+(register-definition-prefixes "rmailmm" '("rmail-"))
+
+;;;***
+
+;;;### (autoloads nil "rmailmsc" "mail/rmailmsc.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailmsc.el
+
+(autoload 'set-rmail-inbox-list "rmailmsc" "\
+Set the inbox list of the current RMAIL file to FILE-NAME.
+You can specify one file name, or several names separated by commas.
+If FILE-NAME is empty, remove any existing inbox list.
+
+This applies only to the current session.
+
+\(fn FILE-NAME)" t nil)
+
+;;;***
+
 ;;;### (autoloads nil "rmailout" "mail/rmailout.el" (0 0 0 0))
 ;;; Generated autoloads from mail/rmailout.el
 (put 'rmail-output-file-alist 'risky-local-variable t)
@@ -28827,6 +28955,113 @@ than appending to it.  Deletes the message after writing if
 
 ;;;***
 
+;;;### (autoloads nil "rmailsort" "mail/rmailsort.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailsort.el
+
+(autoload 'rmail-sort-by-date "rmailsort" "\
+Sort messages of current Rmail buffer by \"Date\" header.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-subject "rmailsort" "\
+Sort messages of current Rmail buffer by \"Subject\" header.
+Ignores any \"Re: \" prefix.  If prefix argument REVERSE is
+non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-author "rmailsort" "\
+Sort messages of current Rmail buffer by author.
+This uses either the \"From\" or \"Sender\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-recipient "rmailsort" "\
+Sort messages of current Rmail buffer by recipient.
+This uses either the \"To\" or \"Apparently-To\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-correspondent "rmailsort" "\
+Sort messages of current Rmail buffer by other correspondent.
+This uses either the \"From\", \"Sender\", \"To\", or
+\"Apparently-To\" header, downcased.  Uses the first header not
+excluded by `mail-dont-reply-to-names'.  If prefix argument
+REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-lines "rmailsort" "\
+Sort messages of current Rmail buffer by the number of lines.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-labels "rmailsort" "\
+Sort messages of current Rmail buffer by labels.
+LABELS is a comma-separated list of labels.  The order of these
+labels specifies the order of messages: messages with the first
+label come first, messages with the second label come second, and
+so on.  Messages that have none of these labels come last.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE LABELS)" t nil)
+
+(register-definition-prefixes "rmailsort" '("rmail-"))
+
+;;;***
+
+;;;### (autoloads nil "rmailsum" "mail/rmailsum.el" (0 0 0 0))
+;;; Generated autoloads from mail/rmailsum.el
+
+(autoload 'rmail-summary "rmailsum" "\
+Display a summary of all messages, one line per message." t nil)
+
+(autoload 'rmail-summary-by-labels "rmailsum" "\
+Display a summary of all messages with one or more LABELS.
+LABELS should be a string containing the desired labels, separated by commas.
+
+\(fn LABELS)" t nil)
+
+(autoload 'rmail-summary-by-recipients "rmailsum" "\
+Display a summary of all messages with the given RECIPIENTS.
+Normally checks the To, From and Cc fields of headers;
+but if PRIMARY-ONLY is non-nil (prefix arg given),
+ only look in the To and From fields.
+RECIPIENTS is a regular expression.
+
+\(fn RECIPIENTS &optional PRIMARY-ONLY)" t nil)
+
+(autoload 'rmail-summary-by-regexp "rmailsum" "\
+Display a summary of all messages according to regexp REGEXP.
+If the regular expression is found in the header of the message
+\(including in the date and other lines, as well as the subject line),
+Emacs will list the message in the summary.
+
+\(fn REGEXP)" t nil)
+
+(autoload 'rmail-summary-by-topic "rmailsum" "\
+Display a summary of all messages with the given SUBJECT.
+Normally checks just the Subject field of headers; but with prefix
+argument WHOLE-MESSAGE is non-nil, looks in the whole message.
+SUBJECT is a regular expression.
+
+\(fn SUBJECT &optional WHOLE-MESSAGE)" t nil)
+
+(autoload 'rmail-summary-by-senders "rmailsum" "\
+Display a summary of all messages whose \"From\" field matches SENDERS.
+SENDERS is a regular expression.  The default for SENDERS matches the
+sender of the current message.
+
+\(fn SENDERS)" t nil)
+
+(register-definition-prefixes "rmailsum" '("rmail-"))
+
+;;;***
+
 ;;;### (autoloads nil "rmc" "emacs-lisp/rmc.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/rmc.el
 
@@ -28846,6 +29081,9 @@ the optional argument HELP-STRING.  This argument is a string that
 should contain a more detailed description of all of the possible
 choices.  `read-multiple-choice' will display that description in a
 help buffer if the user requests that.
+If optional argument SHOW-HELP is non-nil, show the help screen
+immediately, before any user input.  If SHOW-HELP is a string,
+use it as the name of the help buffer.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
@@ -28872,7 +29110,9 @@ Usage example:
                         (?s \"session only\")
                         (?n \"no\")))
 
-\(fn PROMPT CHOICES &optional HELP-STRING)" nil nil)
+\(fn PROMPT CHOICES &optional HELP-STRING SHOW-HELP)" nil nil)
+
+(register-definition-prefixes "rmc" '("rmc--"))
 
 ;;;***
 
@@ -32277,6 +32517,25 @@ Run vsql as an inferior process.
 
 ;;;***
 
+;;;### (autoloads nil "sqlite" "sqlite.el" (0 0 0 0))
+;;; Generated autoloads from sqlite.el
+
+(register-definition-prefixes "sqlite" '("with-sqlite-transaction"))
+
+;;;***
+
+;;;### (autoloads nil "sqlite-mode" "sqlite-mode.el" (0 0 0 0))
+;;; Generated autoloads from sqlite-mode.el
+
+(autoload 'sqlite-mode-open-file "sqlite-mode" "\
+Browse the contents of an sqlite file.
+
+\(fn FILE)" t nil)
+
+(register-definition-prefixes "sqlite-mode" '("sqlite-"))
+
+;;;***
+
 ;;;### (autoloads nil "srecode" "cedet/srecode.el" (0 0 0 0))
 ;;; Generated autoloads from cedet/srecode.el
 (push (purecopy '(srecode 1 2)) package--builtin-versions)
@@ -32907,6 +33166,32 @@ The variable `tab-width' controls the spacing of tab stops.
 ;;;### (autoloads nil "table" "textmodes/table.el" (0 0 0 0))
 ;;; Generated autoloads from textmodes/table.el
 
+(autoload 'table-fixed-width-mode "table" "\
+Cell width is fixed when this is non-nil.
+Normally it should be nil for allowing automatic cell width expansion
+that widens a cell when it is necessary.  When non-nil, typing in a
+cell does not automatically expand the cell width.  A word that is too
+long to fit in a cell is chopped into multiple lines.  The chopped
+location is indicated by `table-word-continuation-char'.  This
+variable's value can be toggled by \\[table-fixed-width-mode] at
+run-time.
+
+This is a minor mode.  If called interactively, toggle the
+`Table-Fixed-Width mode' mode.  If the prefix argument is positive,
+enable the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `table-fixed-width-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'table-insert "table" "\
 Insert an editable text table.
 Insert a table of specified number of COLUMNS and ROWS.  Optional
@@ -33234,32 +33519,6 @@ JUSTIFY is a symbol `left', `center' or `right' for horizontal,
 or `top', `middle', `bottom' or `none' for vertical.
 
 \(fn JUSTIFY)" t nil)
-
-(autoload 'table-fixed-width-mode "table" "\
-Cell width is fixed when this is non-nil.
-Normally it should be nil for allowing automatic cell width expansion
-that widens a cell when it is necessary.  When non-nil, typing in a
-cell does not automatically expand the cell width.  A word that is too
-long to fit in a cell is chopped into multiple lines.  The chopped
-location is indicated by `table-word-continuation-char'.  This
-variable's value can be toggled by \\[table-fixed-width-mode] at
-run-time.
-
-This is a minor mode.  If called interactively, toggle the
-`Table-Fixed-Width mode' mode.  If the prefix argument is positive,
-enable the mode, and if it is zero or negative, disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
-
-To check whether the minor mode is enabled in the current buffer,
-evaluate `table-fixed-width-mode'.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-\(fn &optional ARG)" t nil)
 
 (autoload 'table-query-dimension "table" "\
 Return the dimension of the current cell and the current table.
@@ -34221,10 +34480,6 @@ Possibilities include `symbol', `list', `sexp', `defun',
 
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
-
-If the current buffer uses fields (see Info node `(elisp)Fields'),
-this function will narrow to the field before identifying the
-thing at point.
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING.
@@ -35192,7 +35447,7 @@ Discard Tramp from loading remote files." (interactive) (ignore-errors (unload-f
 (defvar tramp-archive-enabled (featurep 'dbusbind) "\
 Non-nil when file archive support is available.")
 
-(defconst tramp-archive-suffixes '("7z" "apk" "ar" "cab" "CAB" "cpio" "deb" "depot" "exe" "iso" "jar" "lzh" "LZH" "msu" "MSU" "mtree" "odb" "odf" "odg" "odp" "ods" "odt" "pax" "rar" "rpm" "shar" "tar" "tbz" "tgz" "tlz" "txz" "tzst" "warc" "xar" "xpi" "xps" "zip" "ZIP") "\
+(defconst tramp-archive-suffixes '("7z" "apk" "ar" "cab" "CAB" "cpio" "crate" "deb" "depot" "exe" "iso" "jar" "lzh" "LZH" "msu" "MSU" "mtree" "odb" "odf" "odg" "odp" "ods" "odt" "pax" "rar" "rpm" "shar" "tar" "tbz" "tgz" "tlz" "txz" "tzst" "warc" "xar" "xpi" "xps" "zip" "ZIP") "\
 List of suffixes which indicate a file archive.
 It must be supported by libarchive(3).")
 
@@ -35235,7 +35490,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 ;;;;;;  0))
 ;;; Generated autoloads from net/tramp-compat.el
 
-(register-definition-prefixes "tramp-compat" '("tramp-compat-"))
+(register-definition-prefixes "tramp-compat" '("tramp-"))
 
 ;;;***
 
@@ -37143,7 +37398,7 @@ case, and the process object in the asynchronous case.
         (load "vc-git" nil t)
         (vc-git-registered file))))
 
-(register-definition-prefixes "vc-git" '("vc-git-"))
+(register-definition-prefixes "vc-git" '("vc-"))
 
 ;;;***
 
@@ -39642,6 +39897,13 @@ Interactively, URL defaults to the string looking like a url around point.
 
 \(fn URL &optional NEW-SESSION)" t nil)
 
+(autoload 'xwidget-webkit-bookmark-jump-handler "xwidget" "\
+Jump to the web page bookmarked by the bookmark record BOOKMARK.
+If `xwidget-webkit-bookmark-jump-new-session' is non-nil, create
+a new xwidget-webkit session, otherwise use an existing session.
+
+\(fn BOOKMARK)" nil nil)
+
 (register-definition-prefixes "xwidget" '("xwidget-"))
 
 ;;;***
@@ -39707,23 +39969,24 @@ Zone out, completely." t nil)
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
 ;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
-;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/cpp-root.el"
-;;;;;;  "cedet/ede/custom.el" "cedet/ede/dired.el" "cedet/ede/emacs.el"
-;;;;;;  "cedet/ede/files.el" "cedet/ede/generic.el" "cedet/ede/linux.el"
-;;;;;;  "cedet/ede/locate.el" "cedet/ede/make.el" "cedet/ede/speedbar.el"
-;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
-;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
-;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
-;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
-;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
-;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
-;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
-;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
-;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
-;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
-;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
-;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
-;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/base.el" "cedet/ede/config.el"
+;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
+;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
+;;;;;;  "cedet/ede/linux.el" "cedet/ede/locate.el" "cedet/ede/make.el"
+;;;;;;  "cedet/ede/shell.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
+;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
+;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
+;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
+;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
+;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
+;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
+;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
+;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
+;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
+;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
+;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
+;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
+;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
@@ -39742,78 +40005,65 @@ Zone out, completely." t nil)
 ;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
 ;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
 ;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
-;;;;;;  "cus-face.el" "cus-load.el" "cus-start.el" "custom.el" "dired-aux.el"
-;;;;;;  "dired-x.el" "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
+;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
+;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
 ;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
-;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-compat.el"
-;;;;;;  "emacs-lisp/eieio-custom.el" "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el"
-;;;;;;  "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el"
-;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el"
-;;;;;;  "emacs-lisp/syntax.el" "emacs-lisp/timer.el" "env.el" "epa-hook.el"
-;;;;;;  "erc/erc-autoaway.el" "erc/erc-button.el" "erc/erc-capab.el"
-;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
-;;;;;;  "erc/erc-ezbounce.el" "erc/erc-fill.el" "erc/erc-identd.el"
-;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el"
-;;;;;;  "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
-;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
-;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
-;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
-;;;;;;  "erc/erc-stamp.el" "erc/erc-status-sidebar.el" "erc/erc-track.el"
-;;;;;;  "erc/erc-truncate.el" "erc/erc-xdcc.el" "eshell/em-alias.el"
-;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
-;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
-;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
-;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
-;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
-;;;;;;  "eshell/em-xtra.el" "eshell/esh-groups.el" "faces.el" "files.el"
-;;;;;;  "finder-inf.el" "font-core.el" "font-lock.el" "format.el"
+;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-custom.el"
+;;;;;;  "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el"
+;;;;;;  "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el" "emacs-lisp/map-ynp.el"
+;;;;;;  "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el" "emacs-lisp/syntax.el"
+;;;;;;  "emacs-lisp/timer.el" "env.el" "epa-hook.el" "erc/erc-autoaway.el"
+;;;;;;  "erc/erc-button.el" "erc/erc-capab.el" "erc/erc-compat.el"
+;;;;;;  "erc/erc-dcc.el" "erc/erc-desktop-notifications.el" "erc/erc-ezbounce.el"
+;;;;;;  "erc/erc-fill.el" "erc/erc-identd.el" "erc/erc-imenu.el"
+;;;;;;  "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el" "erc/erc-match.el"
+;;;;;;  "erc/erc-menu.el" "erc/erc-netsplit.el" "erc/erc-notify.el"
+;;;;;;  "erc/erc-page.el" "erc/erc-pcomplete.el" "erc/erc-replace.el"
+;;;;;;  "erc/erc-ring.el" "erc/erc-services.el" "erc/erc-sound.el"
+;;;;;;  "erc/erc-speedbar.el" "erc/erc-spelling.el" "erc/erc-stamp.el"
+;;;;;;  "erc/erc-status-sidebar.el" "erc/erc-track.el" "erc/erc-truncate.el"
+;;;;;;  "erc/erc-xdcc.el" "eshell/em-alias.el" "eshell/em-banner.el"
+;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
+;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
+;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
+;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
+;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
+;;;;;;  "faces.el" "files.el" "font-core.el" "font-lock.el" "format.el"
 ;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
-;;;;;;  "international/characters.el" "international/charprop.el"
-;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/emoji-labels.el" "international/emoji-zwj.el"
-;;;;;;  "international/eucjp-ms.el" "international/iso-transl.el"
-;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
-;;;;;;  "international/mule.el" "international/uni-bidi.el" "international/uni-brackets.el"
-;;;;;;  "international/uni-category.el" "international/uni-combining.el"
-;;;;;;  "international/uni-comment.el" "international/uni-decimal.el"
-;;;;;;  "international/uni-decomposition.el" "international/uni-digit.el"
-;;;;;;  "international/uni-lowercase.el" "international/uni-mirrored.el"
-;;;;;;  "international/uni-name.el" "international/uni-numeric.el"
-;;;;;;  "international/uni-old-name.el" "international/uni-special-lowercase.el"
-;;;;;;  "international/uni-special-titlecase.el" "international/uni-special-uppercase.el"
-;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
-;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "keymap.el"
-;;;;;;  "language/burmese.el" "language/cham.el" "language/chinese.el"
-;;;;;;  "language/cyrillic.el" "language/czech.el" "language/english.el"
-;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
-;;;;;;  "language/greek.el" "language/hebrew.el" "language/indian.el"
-;;;;;;  "language/japanese.el" "language/khmer.el" "language/korean.el"
-;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
-;;;;;;  "language/sinhala.el" "language/slovak.el" "language/tai-viet.el"
-;;;;;;  "language/thai.el" "language/tibetan.el" "language/utf-8-lang.el"
-;;;;;;  "language/vietnamese.el" "ldefs-boot.el" "leim/ja-dic/ja-dic.el"
-;;;;;;  "leim/leim-list.el" "leim/quail/4Corner.el" "leim/quail/ARRAY30.el"
-;;;;;;  "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el"
-;;;;;;  "leim/quail/ECDICT.el" "leim/quail/ETZY.el" "leim/quail/PY-b5.el"
-;;;;;;  "leim/quail/PY.el" "leim/quail/Punct-b5.el" "leim/quail/Punct.el"
-;;;;;;  "leim/quail/QJ-b5.el" "leim/quail/QJ.el" "leim/quail/SW.el"
-;;;;;;  "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el"
-;;;;;;  "leim/quail/arabic.el" "leim/quail/cham.el" "leim/quail/compose.el"
-;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
-;;;;;;  "leim/quail/czech.el" "leim/quail/georgian.el" "leim/quail/greek.el"
-;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
-;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
-;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
-;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
-;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
-;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
-;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
-;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
-;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmailedit.el" "mail/rmailkwd.el"
-;;;;;;  "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
-;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el"
-;;;;;;  "minibuffer.el" "mouse.el" "newcomment.el" "obarray.el" "org/ob-core.el"
+;;;;;;  "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "keymap.el" "language/burmese.el"
+;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
+;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
+;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
+;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
+;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
+;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
+;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
+;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
+;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
+;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
+;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
+;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
+;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
+;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
+;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
+;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
+;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
+;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
+;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
+;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
+;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
+;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
+;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
+;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
+;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
+;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "minibuffer.el"
+;;;;;;  "mouse.el" "newcomment.el" "obarray.el" "org/ob-core.el"
 ;;;;;;  "org/ob-lob.el" "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el"
 ;;;;;;  "org/ol-bbdb.el" "org/ol-irc.el" "org/ol.el" "org/org-archive.el"
 ;;;;;;  "org/org-attach.el" "org/org-clock.el" "org/org-colview.el"
