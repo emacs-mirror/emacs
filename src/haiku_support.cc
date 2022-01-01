@@ -414,11 +414,8 @@ public:
   DoMove (struct child_frame *f)
   {
     BRect frame = this->Frame ();
-    if (!f->window->LockLooper ())
-      gui_abort ("Failed to lock child frame window for move");
     f->window->MoveTo (frame.left + f->xoff,
 		       frame.top + f->yoff);
-    f->window->UnlockLooper ();
   }
 
   void
@@ -652,21 +649,24 @@ public:
 
     if (!child_frame_lock.Lock ())
       gui_abort ("Failed to lock child frame state lock");
-
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoMove (f);
-
     child_frame_lock.Unlock ();
+
+    Sync ();
     BWindow::FrameMoved (newPosition);
   }
 
   void
   WorkspacesChanged (uint32_t old, uint32_t n)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frames for changing workspaces");
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoUpdateWorkspace (f);
+    child_frame_lock.Unlock ();
   }
 
   void
