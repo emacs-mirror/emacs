@@ -1,6 +1,6 @@
 ;;; mh-mime.el --- MH-E MIME support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail

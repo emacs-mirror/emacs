@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Version: 4.5

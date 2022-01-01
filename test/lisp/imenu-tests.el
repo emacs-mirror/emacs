@@ -1,6 +1,6 @@
 ;;; imenu-tests.el --- Test suite for imenu.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: tools convenience

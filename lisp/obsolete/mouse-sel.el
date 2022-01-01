@@ -1,6 +1,6 @@
 ;;; mouse-sel.el --- multi-click selection support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse

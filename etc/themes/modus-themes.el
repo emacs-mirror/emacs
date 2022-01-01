@@ -1,6 +1,6 @@
 ;;; modus-themes.el --- Highly accessible themes (WCAG AAA) -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://gitlab.com/protesilaos/modus-themes

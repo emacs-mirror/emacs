@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1997-1999, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1999, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>

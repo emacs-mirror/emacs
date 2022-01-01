@@ -1,7 +1,7 @@
 /* Get the system load averages.
 
-   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2021 Free Software
-   Foundation, Inc.
+   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2022 Free
+   Software Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with gnulib.
    Bugs can be reported to bug-gnulib@gnu.org.

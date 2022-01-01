@@ -1,6 +1,6 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2021 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>

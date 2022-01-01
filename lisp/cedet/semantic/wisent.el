@@ -1,6 +1,6 @@
 ;;; semantic/wisent.el --- Wisent - Semantic gateway  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2007, 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2007, 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 30 Aug 2001

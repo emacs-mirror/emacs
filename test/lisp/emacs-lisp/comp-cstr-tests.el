@@ -1,6 +1,6 @@
 ;;; comp-cstr-tests.el --- unit tests for src/comp.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 

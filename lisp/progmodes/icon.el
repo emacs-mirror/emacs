@@ -1,6 +1,6 @@
 ;;; icon.el --- mode for editing Icon code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89

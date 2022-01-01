@@ -1,6 +1,6 @@
 ;;; sregex.el --- symbolic regular expressions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
 ;; Maintainer: emacs-devel@gnu.org

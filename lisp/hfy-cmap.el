@@ -1,6 +1,6 @@
 ;;; hfy-cmap.el --- Fallback color name -> rgb mapping for `htmlfontify'  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2003, 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2022 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify

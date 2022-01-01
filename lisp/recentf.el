@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999

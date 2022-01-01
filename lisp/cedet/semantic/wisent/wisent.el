@@ -1,6 +1,6 @@
 ;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 30 January 2002
