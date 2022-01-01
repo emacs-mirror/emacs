@@ -739,7 +739,7 @@ public:
 	was_shown_p = true;
       }
 
-    if (this->parent && offscreen_draw_view)
+    if (this->parent)
       shown_flag = 1;
     Show ();
     if (this->parent)
@@ -994,8 +994,6 @@ public:
 	offscreen_draw_view = NULL;
 	delete offscreen_draw_bitmap_1;
 	offscreen_draw_bitmap_1 = NULL;
-
-	shown_flag = 0;
       }
    }
 
@@ -1058,7 +1056,7 @@ public:
 	return;
       }
 
-    if (w->shown_flag)
+    if (w->shown_flag && offscreen_draw_view)
       {
 	PushState ();
 	SetDrawingMode (B_OP_ERASE);
