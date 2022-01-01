@@ -3222,15 +3222,16 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
    bytecode string and constants vector, fetch them from the file first.  */
 
 static Lisp_Object
-fetch_and_exec_byte_code (Lisp_Object fun, Lisp_Object syms_left,
+fetch_and_exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 			  ptrdiff_t nargs, Lisp_Object *args)
 {
   if (CONSP (AREF (fun, COMPILED_BYTECODE)))
     Ffetch_bytecode (fun);
+
   return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
 			 AREF (fun, COMPILED_CONSTANTS),
 			 AREF (fun, COMPILED_STACK_DEPTH),
-			 syms_left, nargs, args);
+			 args_template, nargs, args);
 }
 
 static Lisp_Object
@@ -3308,7 +3309,8 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   argument-binding code below instead (as do all interpreted
 	   functions, even lexically bound ones).  */
 	{
-	  return fetch_and_exec_byte_code (fun, syms_left, nargs, arg_vector);
+	  return fetch_and_exec_byte_code (fun, XFIXNUM (syms_left),
+					   nargs, arg_vector);
 	}
       lexenv = Qnil;
     }
@@ -3394,7 +3396,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
       val = XSUBR (fun)->function.a0 ();
     }
   else
-    val = fetch_and_exec_byte_code (fun, Qnil, 0, NULL);
+    val = fetch_and_exec_byte_code (fun, 0, 0, NULL);
 
   return unbind_to (count, val);
 }

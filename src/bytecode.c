@@ -333,7 +333,7 @@ If the third argument is incorrect, Emacs may crash.  */)
     }
   pin_string (bytestr);  // Bytecode must be immovable.
 
-  return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
+  return exec_byte_code (bytestr, vector, maxdepth, 0, 0, NULL);
 }
 
 static void
@@ -344,15 +344,14 @@ bcall0 (Lisp_Object f)
 
 /* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
    MAXDEPTH is the maximum stack depth used (if MAXDEPTH is incorrect,
-   emacs may crash!).  If ARGS_TEMPLATE is non-nil, it should be a lisp
-   argument list (including &rest, &optional, etc.), and ARGS, of size
-   NARGS, should be a vector of the actual arguments.  The arguments in
-   ARGS are pushed on the stack according to ARGS_TEMPLATE before
-   executing BYTESTR.  */
+   emacs may crash!).  ARGS_TEMPLATE is the function arity encoded as an
+   integer, and ARGS, of size NARGS, should be a vector of the actual
+   arguments.  The arguments in ARGS are pushed on the stack according
+   to ARGS_TEMPLATE before executing BYTESTR.  */
 
 Lisp_Object
 exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
-		Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
+		ptrdiff_t args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
 #ifdef BYTE_CODE_METER
   int volatile this_op = 0;
@@ -384,26 +383,25 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   unsigned char const *pc = bytestr_data;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  if (!NILP (args_template))
-    {
-      eassert (FIXNUMP (args_template));
-      ptrdiff_t at = XFIXNUM (args_template);
-      bool rest = (at & 128) != 0;
-      int mandatory = at & 127;
-      ptrdiff_t nonrest = at >> 8;
-      if (! (mandatory <= nargs && (rest || nargs <= nonrest)))
-	Fsignal (Qwrong_number_of_arguments,
-		 list2 (Fcons (make_fixnum (mandatory), make_fixnum (nonrest)),
-			make_fixnum (nargs)));
-      ptrdiff_t pushedargs = min (nonrest, nargs);
-      for (ptrdiff_t i = 0; i < pushedargs; i++, args++)
-	PUSH (*args);
-      if (nonrest < nargs)
-	PUSH (Flist (nargs - nonrest, args));
-      else
-	for (ptrdiff_t i = nargs - rest; i < nonrest; i++)
-	  PUSH (Qnil);
-    }
+  /* ARGS_TEMPLATE is composed of bit fields:
+     bits 0..6    minimum number of arguments
+     bits 7       1 iff &rest argument present
+     bits 8..14   maximum number of arguments */
+  bool rest = (args_template & 128) != 0;
+  int mandatory = args_template & 127;
+  ptrdiff_t nonrest = args_template >> 8;
+  if (! (mandatory <= nargs && (rest || nargs <= nonrest)))
+    Fsignal (Qwrong_number_of_arguments,
+	     list2 (Fcons (make_fixnum (mandatory), make_fixnum (nonrest)),
+		    make_fixnum (nargs)));
+  ptrdiff_t pushedargs = min (nonrest, nargs);
+  for (ptrdiff_t i = 0; i < pushedargs; i++, args++)
+    PUSH (*args);
+  if (nonrest < nargs)
+    PUSH (Flist (nargs - nonrest, args));
+  else
+    for (ptrdiff_t i = nargs - rest; i < nonrest; i++)
+      PUSH (Qnil);
 
   while (true)
     {
@@ -671,7 +669,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      val = exec_byte_code (bytecode,
 				    AREF (fun, COMPILED_CONSTANTS),
 				    AREF (fun, COMPILED_STACK_DEPTH),
-				    template, numargs, args);
+				    XFIXNUM (template), numargs, args);
 	    else if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
 	      val = funcall_subr (XSUBR (fun), numargs, args);
 	    else

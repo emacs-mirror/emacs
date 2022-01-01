@@ -4700,7 +4700,7 @@ extern int read_bytecode_char (bool);
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, ptrdiff_t, Lisp_Object *);
+				   ptrdiff_t, ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
 
 /* Defined in macros.c.  */
