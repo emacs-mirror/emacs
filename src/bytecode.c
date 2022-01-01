@@ -1212,12 +1212,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  NEXT;
 
 	CASE (Bpoint_max):
-	  {
-	    Lisp_Object v1;
-	    XSETFASTINT (v1, ZV);
-	    PUSH (v1);
-	    NEXT;
-	  }
+	  PUSH (make_fixed_natnum (ZV));
+	  NEXT;
 
 	CASE (Bpoint_min):
 	  PUSH (make_fixed_natnum (BEGV));
