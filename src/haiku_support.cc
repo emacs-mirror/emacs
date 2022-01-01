@@ -739,7 +739,7 @@ public:
 	was_shown_p = true;
       }
 
-    if (this->parent)
+    if (this->parent && offscreen_draw_view)
       shown_flag = 1;
     Show ();
     if (this->parent)
@@ -994,6 +994,8 @@ public:
 	offscreen_draw_view = NULL;
 	delete offscreen_draw_bitmap_1;
 	offscreen_draw_bitmap_1 = NULL;
+
+	shown_flag = 0;
       }
    }
 
