@@ -618,10 +618,10 @@ the selected tab visible."
 (defvar tab-line-auto-hscroll-buffer (generate-new-buffer " *tab-line-hscroll*"))
 
 (defun tab-line--get-tab-property (prop string)
-  (or (get-text-property 1 prop string) ;; for 99% cases of 1-char separator
-      (get-text-property 0 prop string) ;; for empty separator
+  (or (get-pos-property 1 prop string) ;; for most cases of 1-char separator
+      (get-pos-property 0 prop string) ;; for empty separator
       (let ((pos (next-single-property-change 0 prop string))) ;; long separator
-        (and pos (get-text-property pos prop string)))))
+        (and pos (get-pos-property pos prop string)))))
 
 (defun tab-line-auto-hscroll (strings hscroll)
   (with-current-buffer tab-line-auto-hscroll-buffer
@@ -658,9 +658,9 @@ the selected tab visible."
             (if (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
                        (tab-prop (when point
-                                   (or (get-text-property point 'tab)
+                                   (or (get-pos-property point 'tab)
                                        (and (setq point (previous-single-property-change point 'tab))
-                                            (get-text-property point 'tab)))))
+                                            (get-pos-property point 'tab)))))
                        (new-hscroll (when tab-prop
                                       (seq-position strings tab-prop
                                                     (lambda (str tab)
@@ -685,9 +685,9 @@ the selected tab visible."
               (when (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
                        (tab-prop (when point
-                                   (or (get-text-property point 'tab)
+                                   (or (get-pos-property point 'tab)
                                        (and (setq point (previous-single-property-change point 'tab))
-                                            (get-text-property point 'tab)))))
+                                            (get-pos-property point 'tab)))))
                        (new-hscroll (when tab-prop
                                       (seq-position strings tab-prop
                                                     (lambda (str tab)

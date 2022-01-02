@@ -1384,8 +1384,9 @@ without consideration for daylight saving time.
 The value is a copy of FORMAT-STRING, but with certain constructs replaced
 by text that describes the specified date and time in TIME:
 
-%Y is the year, %y within the century, %C the century.
-%G is the year corresponding to the ISO week, %g within the century.
+%Y is the year, %y year without century, %C the century.
+%G is the year corresponding to the ISO week, %g year corresponding
+ to the ISO week, without century.
 %m is the numeric month.
 %b and %h are the locale's abbreviated month name, %B the full name.
  (%h is not supported on MS-Windows.)
@@ -1393,7 +1394,7 @@ by text that describes the specified date and time in TIME:
 %u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.
 %a is the locale's abbreviated name of the day of week, %A the full name.
 %U is the week number starting on Sunday, %W starting on Monday,
- %V according to ISO 8601.
+ %V the week number according to ISO 8601.
 %j is the day of the year.
 
 %H is the hour on a 24-hour clock, %I is on a 12-hour clock, %k is like %H

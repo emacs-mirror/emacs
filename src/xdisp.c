@@ -13873,11 +13873,15 @@ tab_bar_height (struct frame *f, int *n_rows, bool pixelwise)
                     0, 0, 0, STRING_MULTIBYTE (f->desired_tab_bar_string));
   it.paragraph_embedding = L2R;
 
+  clear_glyph_row (temp_row);
   while (!ITERATOR_AT_END_P (&it))
     {
-      clear_glyph_row (temp_row);
       it.glyph_row = temp_row;
       display_tab_bar_line (&it, -1);
+      /* If the tab-bar string includes newlines, get past it, because
+	 display_tab_bar_line doesn't.  */
+      if (ITERATOR_AT_END_OF_LINE_P (&it))
+	set_iterator_to_next (&it, true);
     }
   clear_glyph_row (temp_row);
 
@@ -14003,6 +14007,10 @@ redisplay_tab_bar (struct frame *f)
 	      extra -= h;
 	    }
 	  display_tab_bar_line (&it, height + h);
+	  /* If the tab-bar string includes newlines, get past it,
+	     because display_tab_bar_line doesn't.  */
+	  if (ITERATOR_AT_END_OF_LINE_P (&it))
+	    set_iterator_to_next (&it, true);
 	}
     }
   else
