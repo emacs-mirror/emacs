@@ -948,15 +948,39 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Baref):
 	  {
-	    Lisp_Object v1 = POP;
-	    TOP = Faref (TOP, v1);
+	    Lisp_Object idxval = POP;
+	    Lisp_Object arrayval = TOP;
+	    ptrdiff_t size;
+	    ptrdiff_t idx;
+	    if (((VECTORP (arrayval) && (size = ASIZE (arrayval), true))
+		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true)))
+		&& FIXNUMP (idxval)
+		&& (idx = XFIXNUM (idxval),
+		    idx >= 0 && idx < size))
+	      TOP = AREF (arrayval, idx);
+	    else
+	      TOP = Faref (arrayval, idxval);
 	    NEXT;
 	  }
 
 	CASE (Baset):
 	  {
-	    Lisp_Object v2 = POP, v1 = POP;
-	    TOP = Faset (TOP, v1, v2);
+	    Lisp_Object newelt = POP;
+	    Lisp_Object idxval = POP;
+	    Lisp_Object arrayval = TOP;
+	    ptrdiff_t size;
+	    ptrdiff_t idx;
+	    if (((VECTORP (arrayval) && (size = ASIZE (arrayval), true))
+		 || (RECORDP (arrayval) && (size = PVSIZE (arrayval), true)))
+		&& FIXNUMP (idxval)
+		&& (idx = XFIXNUM (idxval),
+		    idx >= 0 && idx < size))
+	      {
+		ASET (arrayval, idx, newelt);
+		TOP = newelt;
+	      }
+	    else
+	      TOP = Faset (arrayval, idxval, newelt);
 	    NEXT;
 	  }
 
