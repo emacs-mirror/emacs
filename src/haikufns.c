@@ -2236,7 +2236,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
 				   FRAME_HAIKU_WINDOW (f),
 				   !NILP (save_text) ? SSDATA (ENCODE_UTF_8 (save_text)) : NULL,
 				   SSDATA (ENCODE_UTF_8 (prompt)),
-				   block_input, unblock_input);
+				   block_input, unblock_input, maybe_quit);
 
   unbind_to (idx, Qnil);
 

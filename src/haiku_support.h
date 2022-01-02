@@ -740,7 +740,8 @@ extern "C"
 			int dir_only_p,	void *window, const char *save_text,
 			const char *prompt,
 			void (*block_input_function) (void),
-			void (*unblock_input_function) (void));
+			void (*unblock_input_function) (void),
+			void (*maybe_quit_function) (void));
 
   extern void
   record_c_unwind_protect_from_cxx (void (*) (void *), void *);
