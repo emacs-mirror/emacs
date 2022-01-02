@@ -1943,7 +1943,6 @@ and the annotation emission."
       (byte-condition-case) ;; Obsolete
       (byte-temp-output-buffer-setup-OBSOLETE)
       (byte-temp-output-buffer-show-OBSOLETE)
-      (byte-unbind-all) ;; Obsolete
       (byte-set-marker auto)
       (byte-match-beginning auto)
       (byte-match-end auto)

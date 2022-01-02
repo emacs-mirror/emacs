@@ -227,7 +227,7 @@ DEFINE (Bcondition_case, 0217)	/* Obsolete since Emacs-25.  */         \
 DEFINE (Btemp_output_buffer_setup, 0220) /* Obsolete since Emacs-24.1.  */ \
 DEFINE (Btemp_output_buffer_show, 0221)  /* Obsolete since Emacs-24.1.  */ \
 									\
-DEFINE (Bunbind_all, 0222)	/* Obsolete.  Never used.  */		\
+/* 0222 was Bunbind_all, never used. */                                 \
 									\
 DEFINE (Bset_marker, 0223)						\
 DEFINE (Bmatch_beginning, 0224)						\
@@ -701,12 +701,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  op -= Bunbind;
 	dounbind:
 	  unbind_to (SPECPDL_INDEX () - op, Qnil);
-	  NEXT;
-
-	CASE (Bunbind_all):	/* Obsolete.  Never used.  */
-	  /* To unbind back to the beginning of this frame.  Not used yet,
-	     but will be needed for tail-recursion elimination.  */
-	  unbind_to (count, Qnil);
 	  NEXT;
 
 	CASE (Bgoto):

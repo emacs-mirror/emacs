@@ -796,11 +796,7 @@ the unwind-action")
 (byte-defop 144  0 byte-temp-output-buffer-setup-OBSOLETE)
 (byte-defop 145 -1 byte-temp-output-buffer-show-OBSOLETE)
 
-;; these ops are new to v19
-
-;; To unbind back to the beginning of this frame.
-;; Not used yet, but will be needed for tail-recursion elimination.
-(byte-defop 146  0 byte-unbind-all)
+;; unused: 146
 
 ;; these ops are new to v19
 (byte-defop 147 -2 byte-set-marker)
