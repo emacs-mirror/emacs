@@ -986,6 +986,11 @@ This is like 'kbd', but only returns vectors instead of a mix of
 vectors and strings.
 
 +++
+*** New ':type' for 'defcustom' for keys.
+The new 'key' type can be used for options that should be a valid key
+according to 'key-valid-p'.  The type 'key-sequence' is now obsolete.
+
++++
 ** New substitution in docstrings and 'substitute-command-keys'.
 Use \\`KEYSEQ' to insert a literal key sequence "KEYSEQ" (for example
 \\`C-k') in a docstring or when calling 'substitute-command-keys',

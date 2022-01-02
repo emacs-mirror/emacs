@@ -3460,7 +3460,7 @@ It reads a directory name from an editable text field."
     map))
 
 (define-widget 'key-sequence 'restricted-sexp
-  "A key sequence."
+  "A key sequence.  This is obsolete; use the `key' type instead."
   :prompt-value 'widget-field-prompt-value
   :prompt-internal 'widget-symbol-prompt-internal
 ; :prompt-match 'fboundp   ;; What was this good for?  KFS
@@ -3524,6 +3524,27 @@ It reads a directory name from an editable text field."
 	  widget-key-sequence-default-value
 	(read-kbd-macro value))
     value))
+
+
+(defvar widget-key-prompt-value-history nil
+  "History of input to `widget-key-prompt-value'.")
+
+(define-widget 'key 'editable-field
+  "A key sequence."
+  :prompt-value 'widget-field-prompt-value
+  :match 'key-valid-p
+  :format "%{%t%}: %v"
+  :validate 'widget-key-validate
+  :keymap widget-key-sequence-map
+  :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
+  :tag "Key")
+
+(defun widget-key-validate (widget)
+  (unless (and (stringp (widget-value widget))
+               (key-valid-p (widget-value widget)))
+    (widget-put widget :error (format "Invalid key: %S"
+                                      (widget-value widget)))
+    widget))
 
 
 (define-widget 'sexp 'editable-field
