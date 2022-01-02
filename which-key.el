@@ -133,9 +133,9 @@ the default is \" : \"."
   :group 'which-key
   :type 'string)
 
-(defcustom which-key-elipsis
+(defcustom which-key-ellipsis
   (if which-key-dont-use-unicode ".." "…")
-  "Elipsis to use when truncating. Default is \"…\", unless
+  "Ellipsis to use when truncating. Default is \"…\", unless
 `which-key-dont-use-unicode' is non nil, in which case
 the default is \"..\"."
   :group 'which-key
@@ -1589,7 +1589,7 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-         (dots (which-key--propertize which-key-elipsis 'face last-face)))
+         (dots (which-key--propertize which-key-ellipsis 'face last-face)))
     (if (and which-key-max-description-length
              (> (length desc) which-key-max-description-length))
         (concat (substring desc 0 which-key-max-description-length) dots)
