@@ -3419,7 +3419,7 @@ if test "${HAVE_XIM}" != "no"; then
 XrmDatabase db;
 char *res_name;
 char *res_class;
-XIMProc  callback;
+XIDProc *callback;
 XPointer *client_data;
 #ifndef __GNUC__
 /* If we're not using GCC, it's probably not XFree86, and this is
