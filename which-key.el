@@ -1862,7 +1862,8 @@ that width."
   (let* ((col-key-width  (+ which-key-add-column-padding
                             (which-key--max-len col-keys 0)))
          (col-sep-width  (which-key--max-len col-keys 1))
-         (col-desc-width (which-key--max-len col-keys 2 which-key-min-column-description-width))
+         (col-desc-width (which-key--max-len
+                          col-keys 2 which-key-min-column-description-width))
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
     (cons col-width
           (mapcar (lambda (k)
