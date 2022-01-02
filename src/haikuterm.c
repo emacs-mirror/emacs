@@ -2798,6 +2798,27 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		previous_help_echo_string = help_echo_string;
 		help_echo_string = Qnil;
 
+		/* A LeaveNotify event (well, the closest equivalent on Haiku, which
+		   is a B_MOUSE_MOVED event with `transit' set to B_EXITED_VIEW) might
+		   be sent out-of-order with regards to motion events from other
+		   windows, such as when the mouse pointer rapidly moves from an
+		   undecorated child frame to its parent.  This can cause a failure to
+		   clear the mouse face on the former if an event for the latter is
+		   read by Emacs first and ends up showing the mouse face there.
+
+		   In case the `movement_locker' (also see the comment
+		   there) doesn't take care of the problem, work
+		   around it by clearing the mouse face now, if it is
+		   currently shown on a different frame.  */
+
+		if (hlinfo->mouse_face_hidden
+		    || (f != hlinfo->mouse_face_mouse_frame
+			&& !NILP (hlinfo->mouse_face_window)))
+		  {
+		    hlinfo->mouse_face_hidden = 0;
+		    clear_mouse_face (hlinfo);
+		  }
+
 		if (f != dpyinfo->last_mouse_glyph_frame
 		    || b->x < r.x || b->x >= r.x + r.width
 		    || b->y < r.y || b->y >= r.y + r.height)
@@ -2810,12 +2831,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    dpyinfo->last_mouse_glyph_frame = f;
 		    gen_help_event (help_echo_string, frame, help_echo_window,
 				    help_echo_object, help_echo_pos);
-		  }
-
-		if (MOUSE_HL_INFO (f)->mouse_face_hidden)
-		  {
-		    MOUSE_HL_INFO (f)->mouse_face_hidden = 0;
-		    clear_mouse_face (MOUSE_HL_INFO (f));
 		  }
 
 		if (!NILP (Vmouse_autoselect_window))

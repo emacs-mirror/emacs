@@ -92,6 +92,26 @@ static BLocker key_map_lock;
 
 static BLocker child_frame_lock;
 
+/* A LeaveNotify event (well, the closest equivalent on Haiku, which
+   is a B_MOUSE_MOVED event with `transit' set to B_EXITED_VIEW) might
+   be sent out-of-order with regards to motion events from other
+   windows, such as when the mouse pointer rapidly moves from an
+   undecorated child frame to its parent.  This can cause a failure to
+   clear the mouse face on the former if an event for the latter is
+   read by Emacs first and ends up showing the mouse face there.
+
+   While this lock doesn't really ensure that the events will be
+   delivered in the correct order, it makes them arrive in the correct
+   order "most of the time" on my machine, which is good enough and
+   preferable to adding a lot of extra complexity to the event
+   handling code to sort motion events by their timestamps.
+
+   Obviously this depends on the number of execution units that are
+   available, and the scheduling priority of each thread involved in
+   the input handling, but it will be good enough for most people.  */
+
+static BLocker movement_locker;
+
 extern "C"
 {
   extern _Noreturn void emacs_abort (void);
@@ -1181,7 +1201,11 @@ public:
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
 						    -(point.y - tt_absl_pos.y)));
 
-    haiku_write (MOUSE_MOTION, &rq);
+    if (movement_locker.Lock ())
+      {
+	haiku_write (MOUSE_MOTION, &rq);
+	movement_locker.Unlock ();
+      }
   }
 
   void
@@ -1570,7 +1594,7 @@ BWindow_new (void *_view)
   if (!vw)
     {
       *v = NULL;
-      window->Lock ();
+      window->LockLooper ();
       window->Quit ();
       return NULL;
     }
@@ -1590,7 +1614,7 @@ BWindow_new (void *_view)
 void
 BWindow_quit (void *window)
 {
-  ((BWindow *) window)->Lock ();
+  ((BWindow *) window)->LockLooper ();
   ((BWindow *) window)->Quit ();
 }
 
