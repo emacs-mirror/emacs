@@ -642,11 +642,13 @@ endif
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
 ##
-$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj)
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj) $(lispsource)/loaddefs.el
 	$(AM_V_GEN)$(MKDIR_P) $(etc)
 	$(AM_V_at)rm -f $(etc)/DOC
 	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
 	  $(SOME_MACHINE_OBJECTS) $(doc_obj) > $(etc)/DOC
+	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
+	  loaddefs.el
 
 $(libsrc)/make-docfile$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT): \
   $(lib)/libgnu.a
