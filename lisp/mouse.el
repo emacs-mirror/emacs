@@ -329,21 +329,29 @@ the function `context-menu-filter-function'."
 
     ;; Remove duplicate separators as well as ones at the beginning or
     ;; end of the menu.
-    (let ((l menu) saw-first-item)
+    (let ((l menu) (last-saw-separator t))
       (while (and (consp l)
                   (consp (cdr l)))
-        ;; If the next item is a separator, remove it if 1) we haven't
-        ;; seen any other items yet, or 2) it's followed by either
-        ;; another separator or the end of the list.
-        (if (and (equal (cdr-safe (cadr l)) menu-bar-separator)
-                 (or (not saw-first-item)
-                     (null (caddr l))
-                     (equal (cdr-safe (caddr l)) menu-bar-separator)))
-            (setcdr l (cddr l))
-          ;; The "first item" is any cons cell; this excludes the
-          ;; `keymap' symbol and the menu name.
-          (when (consp (cadr l)) (setq saw-first-item t))
-          (setq l (cdr l)))))
+        (if (equal (cdr-safe (cadr l)) menu-bar-separator)
+            (progn
+              ;; The next item is a separator.  Remove it if the last
+              ;; item we saw was a separator too.
+              (if last-saw-separator
+                  (setcdr l (cddr l))
+                ;; If we didn't delete this separator, update the last
+                ;; separator we saw to this one.
+                (setq last-saw-separator l
+                      l (cdr l))))
+          ;; If the next item is a cons cell, we found a non-separator
+          ;; item.  Don't remove the next separator we see.  We
+          ;; specifically check for cons cells to avoid treating the
+          ;; overall prompt string as a menu item.
+          (when (consp (cadr l))
+            (setq last-saw-separator nil))
+          (setq l (cdr l))))
+      ;; If the last item we saw was a separator, remove it.
+      (when (consp last-saw-separator)
+        (setcdr last-saw-separator (cddr last-saw-separator))))
 
     (when (functionp context-menu-filter-function)
       (setq menu (funcall context-menu-filter-function menu click)))
