@@ -326,10 +326,10 @@ struct x_display_info
      use; XK_Caps_Lock should only affect alphabetic keys.  With this
      arrangement, the lock modifier should shift the character if
      (EVENT.state & shift_lock_mask) != 0.  */
-  int meta_mod_mask, shift_lock_mask;
+  unsigned int meta_mod_mask, shift_lock_mask;
 
   /* These are like meta_mod_mask, but for different modifiers.  */
-  int alt_mod_mask, super_mod_mask, hyper_mod_mask;
+  unsigned alt_mod_mask, super_mod_mask, hyper_mod_mask;
 
   /* Communication with window managers.  */
   Atom Xatom_wm_protocols;
@@ -523,6 +523,7 @@ struct x_display_info
 
 #ifdef HAVE_XKB
   bool supports_xkb;
+  int xkb_event_type;
   XkbDescPtr xkb_desc;
 #endif
 };

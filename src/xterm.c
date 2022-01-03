@@ -5321,6 +5321,15 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   KeySym *syms;
   int syms_per_code;
   XModifierKeymap *mods;
+#ifdef HAVE_XKB
+  Atom meta;
+  Atom super;
+  Atom hyper;
+  Atom shiftlock;
+  Atom alt;
+  int i;
+  int found_meta_p = false;
+#endif
 
   dpyinfo->meta_mod_mask = 0;
   dpyinfo->shift_lock_mask = 0;
@@ -5329,6 +5338,50 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   dpyinfo->hyper_mod_mask = 0;
 
   XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
+
+#ifdef HAVE_XKB
+  if (dpyinfo->xkb_desc)
+    {
+      meta = XInternAtom (dpyinfo->display, "Meta", False);
+      super = XInternAtom (dpyinfo->display, "Super", False);
+      hyper = XInternAtom (dpyinfo->display, "Hyper", False);
+      shiftlock = XInternAtom (dpyinfo->display, "ShiftLock", False);
+      alt = XInternAtom (dpyinfo->display, "Alt", False);
+
+      for (i = 0; i < XkbNumVirtualMods; i++)
+	{
+	  uint vmodmask = dpyinfo->xkb_desc->server->vmods[i];
+
+	  if (dpyinfo->xkb_desc->names->vmods[i] == meta)
+	    {
+	      dpyinfo->meta_mod_mask |= vmodmask;
+	      found_meta_p = vmodmask;
+	    }
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == alt)
+	    dpyinfo->alt_mod_mask |= vmodmask;
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == super)
+	    dpyinfo->super_mod_mask |= vmodmask;
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == hyper)
+	    dpyinfo->hyper_mod_mask |= vmodmask;
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == shiftlock)
+	    dpyinfo->shift_lock_mask |= vmodmask;
+	}
+
+      if (!found_meta_p)
+	{
+	  dpyinfo->meta_mod_mask = dpyinfo->alt_mod_mask;
+	  dpyinfo->alt_mod_mask = 0;
+	}
+
+      if (dpyinfo->alt_mod_mask & dpyinfo->meta_mod_mask)
+	dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
+
+      if (dpyinfo->hyper_mod_mask & dpyinfo->super_mod_mask)
+	dpyinfo->hyper_mod_mask &= ~dpyinfo->super_mod_mask;
+
+      return;
+    }
+#endif
 
   syms = XGetKeyboardMapping (dpyinfo->display,
 			      min_code, max_code - min_code + 1,
@@ -5342,66 +5395,66 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
     bool found_alt_or_meta;
 
     for (row = 3; row < 8; row++)
-    {
-      found_alt_or_meta = false;
-      for (col = 0; col < mods->max_keypermod; col++)
-	{
-	  KeyCode code = mods->modifiermap[(row * mods->max_keypermod) + col];
-
-	  /* Zeroes are used for filler.  Skip them.  */
-	  if (code == 0)
-	    continue;
-
-	  /* Are any of this keycode's keysyms a meta key?  */
+      {
+	found_alt_or_meta = false;
+	for (col = 0; col < mods->max_keypermod; col++)
 	  {
-	    int code_col;
+	    KeyCode code = mods->modifiermap[(row * mods->max_keypermod) + col];
 
-	    for (code_col = 0; code_col < syms_per_code; code_col++)
-	      {
-		int sym = syms[((code - min_code) * syms_per_code) + code_col];
+	    /* Zeroes are used for filler.  Skip them.  */
+	    if (code == 0)
+	      continue;
 
-		switch (sym)
-		  {
-		  case XK_Meta_L:
-		  case XK_Meta_R:
-		    found_alt_or_meta = true;
-		    dpyinfo->meta_mod_mask |= (1 << row);
-		    break;
+	    /* Are any of this keycode's keysyms a meta key?  */
+	    {
+	      int code_col;
 
-		  case XK_Alt_L:
-		  case XK_Alt_R:
-		    found_alt_or_meta = true;
-		    dpyinfo->alt_mod_mask |= (1 << row);
-		    break;
+	      for (code_col = 0; code_col < syms_per_code; code_col++)
+		{
+		  int sym = syms[((code - min_code) * syms_per_code) + code_col];
 
-		  case XK_Hyper_L:
-		  case XK_Hyper_R:
-		    if (!found_alt_or_meta)
-		      dpyinfo->hyper_mod_mask |= (1 << row);
-		    code_col = syms_per_code;
-		    col = mods->max_keypermod;
-		    break;
+		  switch (sym)
+		    {
+		    case XK_Meta_L:
+		    case XK_Meta_R:
+		      found_alt_or_meta = true;
+		      dpyinfo->meta_mod_mask |= (1 << row);
+		      break;
 
-		  case XK_Super_L:
-		  case XK_Super_R:
-		    if (!found_alt_or_meta)
-		      dpyinfo->super_mod_mask |= (1 << row);
-		    code_col = syms_per_code;
-		    col = mods->max_keypermod;
-		    break;
+		    case XK_Alt_L:
+		    case XK_Alt_R:
+		      found_alt_or_meta = true;
+		      dpyinfo->alt_mod_mask |= (1 << row);
+		      break;
 
-		  case XK_Shift_Lock:
-		    /* Ignore this if it's not on the lock modifier.  */
-		    if (!found_alt_or_meta && ((1 << row) == LockMask))
-		      dpyinfo->shift_lock_mask = LockMask;
-		    code_col = syms_per_code;
-		    col = mods->max_keypermod;
-		    break;
-		  }
-	      }
+		    case XK_Hyper_L:
+		    case XK_Hyper_R:
+		      if (!found_alt_or_meta)
+			dpyinfo->hyper_mod_mask |= (1 << row);
+		      code_col = syms_per_code;
+		      col = mods->max_keypermod;
+		      break;
+
+		    case XK_Super_L:
+		    case XK_Super_R:
+		      if (!found_alt_or_meta)
+			dpyinfo->super_mod_mask |= (1 << row);
+		      code_col = syms_per_code;
+		      col = mods->max_keypermod;
+		      break;
+
+		    case XK_Shift_Lock:
+		      /* Ignore this if it's not on the lock modifier.  */
+		      if (!found_alt_or_meta && ((1 << row) == LockMask))
+			dpyinfo->shift_lock_mask = LockMask;
+		      code_col = syms_per_code;
+		      col = mods->max_keypermod;
+		      break;
+		    }
+		}
+	    }
 	  }
-	}
-    }
+      }
   }
 
   /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
@@ -8360,11 +8413,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-#ifdef HAVE_XINPUT2
-  if (event->type != GenericEvent)
+#ifdef HAVE_XKB
+  if (event->type != dpyinfo->xkb_event_type)
+    {
 #endif
-    any = x_any_window_to_frame (dpyinfo, event->xany.window);
 #ifdef HAVE_XINPUT2
+      if (event->type != GenericEvent)
+#endif
+	any = x_any_window_to_frame (dpyinfo, event->xany.window);
+#ifdef HAVE_XINPUT2
+      else
+	any = NULL;
+#endif
+#ifdef HAVE_XKB
+    }
   else
     any = NULL;
 #endif
@@ -9890,11 +9952,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           x_find_modifier_meanings (dpyinfo);
 	  FALLTHROUGH;
         case MappingKeyboard:
-#ifdef HAVE_XKB
-	  if (dpyinfo->xkb_desc)
-	    XkbGetUpdatedMap (dpyinfo->display, XkbAllComponentsMask,
-			      dpyinfo->xkb_desc);
-#endif
           XRefreshKeyboardMapping ((XMappingEvent *) &event->xmapping);
         }
       goto OTHER;
@@ -10624,8 +10681,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XKB
 	      if (dpyinfo->xkb_desc)
 		{
+		  uint xkb_state = state;
+		  xkb_state &= ~(1 << 13 | 1 << 14);
+		  xkb_state |= xev->group.effective << 13;
+
 		  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc, keycode,
-					    state, &mods_rtrn, &keysym))
+					    xkb_state, &mods_rtrn, &keysym))
 		    goto XI_OTHER;
 		}
 	      else
@@ -11180,6 +11241,31 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
     default:
+#ifdef HAVE_XKB
+      if (event->type == dpyinfo->xkb_event_type)
+	{
+	  XkbEvent *xkbevent = (XkbEvent *) event;
+
+	  if (xkbevent->any.xkb_type == XkbNewKeyboardNotify
+	      || xkbevent->any.xkb_type == XkbMapNotify)
+	    {
+	      if (dpyinfo->xkb_desc)
+		{
+		  XkbGetUpdatedMap (dpyinfo->display,
+				    (XkbKeySymsMask
+				     | XkbKeyTypesMask
+				     | XkbModifierMapMask
+				     | XkbVirtualModsMask),
+				    dpyinfo->xkb_desc);
+		  XkbGetNames (dpyinfo->display,
+			       XkbGroupNamesMask | XkbVirtualModNamesMask,
+			       dpyinfo->xkb_desc);
+
+		  x_find_modifier_meanings (dpyinfo);
+		}
+	    }
+	}
+#endif
     OTHER:
 #ifdef USE_X_TOOLKIT
       block_input ();
@@ -14801,8 +14887,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->x_id = ++x_display_id;
 
+#ifndef HAVE_XKB
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);
+#endif
 
   /* Get the scroll bar cursor.  */
 #ifdef USE_GTK
@@ -14918,19 +15006,35 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
 #ifdef HAVE_XKB
-  int xkb_major, xkb_minor, xkb_op, xkb_event, xkb_error_code;
+  int xkb_major, xkb_minor, xkb_op, xkb_error_code;
   xkb_major = XkbMajorVersion;
   xkb_minor = XkbMinorVersion;
 
   if (XkbLibraryVersion (&xkb_major, &xkb_minor)
-      && XkbQueryExtension (dpyinfo->display, &xkb_op, &xkb_event,
+      && XkbQueryExtension (dpyinfo->display, &xkb_op, &dpyinfo->xkb_event_type,
 			    &xkb_error_code, &xkb_major, &xkb_minor))
     {
       dpyinfo->supports_xkb = true;
       dpyinfo->xkb_desc = XkbGetMap (dpyinfo->display,
-				     XkbAllComponentsMask,
+				     (XkbKeySymsMask
+				      | XkbKeyTypesMask
+				      | XkbModifierMapMask
+				      | XkbVirtualModsMask),
 				     XkbUseCoreKbd);
+
+      if (dpyinfo->xkb_desc)
+	XkbGetNames (dpyinfo->display,
+		     XkbGroupNamesMask | XkbVirtualModNamesMask,
+		     dpyinfo->xkb_desc);
+
+      XkbSelectEvents (dpyinfo->display,
+		       XkbUseCoreKbd,
+		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
+		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
+
+  /* Figure out which modifier bits mean what.  */
+  x_find_modifier_meanings (dpyinfo);
 #endif
 
 #if defined USE_CAIRO || defined HAVE_XFT
