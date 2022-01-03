@@ -113,6 +113,10 @@ Value does not include \".\" or \"..\"."
                   (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
                        (not (bobp))))))
 	 #'battery-pmset)
+        ((and (eq system-type 'haiku)
+              ;; TODO: Support the Haiku APM battery driver.
+              (file-directory-p "/dev/power/acpi_battery"))
+         #'battery-haiku-acpi-battery)
 	((fboundp 'w32-battery-status)
 	 #'w32-battery-status))
   "Function for getting battery status information.
@@ -598,6 +602,100 @@ The following %-sequences are provided:
                      ("0" "BAT")
                      ("1" "AC")
                      (_ "N/A"))))))
+
+
+;;; `/dev/power/acpi_battery' interface for Haiku.
+
+(defun battery--search-haiku-acpi-status ()
+  "Search forward for battery status in the current buffer.
+Return a property list once all relevant properties are found.
+The following properties may be inside the list:
+
+  - `:capacity' (the current capacity of the battery.)
+  - `:voltage' (the current voltage of the battery.)
+  - `:rate', (the current rate of charge or discharge.)
+  - `:state' (the current state of the battery.)
+  - `:design-capacity' (the design capacity of the battery.)
+  - `:design-voltage' (the design voltage of the battery.)
+  - `:last-full-charge' (the capacity at the last full charge of
+    the battery.)
+
+`:capacity' and `:design-capacity' are both represented in
+terms of milliamp-hours."
+  (let ((state-regexp "State \\([[:digit:]]+\\), Current Rate \\([[:digit:]]+\\), \
+Capacity \\([[:digit:]]+\\), Voltage \\([[:digit:]]+\\)")
+        (pu-regexp "Power Unit \\([[:digit:]]\\)+, Design Capacity \\([[:digit:]]+\\), \
+Last Full Charge \\([[:digit:]]+\\)")
+        (design-regexp "Design Voltage \\([[:digit:]]+\\)")
+        power-unit last-full-charge state rate capacity
+        voltage design-capacity design-voltage)
+    (when (re-search-forward state-regexp)
+      (setq state (string-to-number (match-string 1)))
+      (setq rate (string-to-number (match-string 2)))
+      (setq capacity (string-to-number (match-string 3)))
+      (setq voltage (/ (string-to-number (match-string 4)) 1000.0)))
+    (when (re-search-forward pu-regexp)
+      (setq power-unit (string-to-number (match-string 1)))
+      (setq design-capacity (string-to-number (match-string 2)))
+      (setq last-full-charge (string-to-number (match-string 3))))
+    (when (re-search-forward design-regexp)
+      (setq design-voltage (/ (string-to-number (match-string 1)) 1000.0)))
+    ;; Convert capacity fields to milliamp-hours if they're
+    ;; specified as miliwatt-hours.
+    (when (eq power-unit 0)
+      (setq capacity (/ capacity voltage))
+      (setq design-capacity (/ design-capacity design-voltage))
+      (setq last-full-charge (/ last-full-charge voltage)))
+    (list :capacity capacity :voltage voltage
+          :rate rate :state (cond
+                             ((not (zerop (logand state 2))) 'charging)
+                             ((not (zerop (logand state 1))) 'discharging)
+                             ((not (zerop (logand state 4))) 'critical)
+                             (t 'normal))
+          :design-capacity design-capacity
+          :design-voltage design-voltage
+          :last-full-charge last-full-charge)))
+
+(defun battery-haiku-acpi-battery ()
+  "Get battery status from `/dev/power/acpi_battery'.
+This function only works on Haiku systems with an ACPI battery.
+
+The following %-sequences are provided:
+%c Current capacity (mAh)
+%r Current rate of charge or discharge
+%B Battery status (verbose)
+%b Battery status: empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%p Battery load percentage"
+  (with-temp-buffer
+    (dolist (file (battery--files "/dev/power/acpi_battery"))
+      (insert-file-contents (expand-file-name file "/dev/power/acpi_battery")))
+    ;; I don't think Haiku actually supports multiple batteries yet,
+    ;; since the code in PowerStatus doesn't take care of that
+    ;; situation.
+    (let ((list (ignore-errors (battery--search-haiku-acpi-status))))
+      (if list
+          (list (cons ?c (format "%.0f" (plist-get list :capacity)))
+                (cons ?r (format "%.0f" (plist-get list :rate)))
+                (cons ?B (symbol-name (plist-get list :state)))
+                (cons ?b (let ((state (plist-get list :state)))
+                           (cond
+                            ((eq state 'charging) "+")
+                            ((and (eq state 'discharging)
+                                  (< (/ (plist-get list :capacity)
+                                        (plist-get list :last-full-charge))
+                                     0.15))
+                             "-")
+                            ((eq state 'critical) "!")
+                            (t ""))))
+                (cons ?p (format "%.0f"
+                                 (/ (plist-get list :capacity)
+                                    (plist-get list :last-full-charge)))))
+        '((?c . "N/A")
+          (?r . "N/A")
+          (?B . "N/A")
+          (?b . "N/A")
+          (?p . "N/A"))))))
 
 
 ;;; UPower interface.
