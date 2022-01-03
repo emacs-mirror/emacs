@@ -126,9 +126,28 @@ BFont_have_char_block (void *font, int32_t beg, int32_t end)
   return ft->IncludesBlock (beg, end);
 }
 
-/* Compute bounds for MB_STR, a character in multibyte encoding,
-   used with font.  The width (in pixels) is returned in ADVANCE,
-   the left bearing in LB, and the right bearing in RB.  */
+/* Compute bounds for MB_STR, a character in multibyte encoding, used
+   with FONT.  The distance to move rightwards before reaching to the
+   next character's left escapement boundary is returned in ADVANCE,
+   the left bearing in LB, and the right bearing in RB.
+
+   The left bearing is the amount of pixels from the left escapement
+   boundary (origin) to the left-most pixel that constitutes the glyph
+   corresponding to mb_str, and RB is the amount of pixels from the
+   origin to the right-most pixel constituting the glyph.
+
+   Both the left and right bearings are positive values measured
+   towards the right, which means that the left bearing will only be
+   negative if the left-most pixel is to the left of the origin.
+
+   The bearing values correspond to X11 XCharStruct semantics, which
+   is what Emacs code operates on.  Haiku itself uses a slightly
+   different scheme, where the "left edge" is the distance from the
+   origin to the left-most pixel, where leftwards is negative and
+   rightwards is positive, and the "right edge" is the distance (where
+   leftwards is similarly negative) between the right-most pixel and
+   the right escapement boundary, which is the left escapement
+   boundary plus the advance.  */
 void
 BFont_char_bounds (void *font, const char *mb_str, int *advance,
 		   int *lb, int *rb)
@@ -140,9 +159,9 @@ BFont_char_bounds (void *font, const char *mb_str, int *advance,
 
   ft->GetEdges (mb_str, 1, &edge_info);
   ft->GetEscapements (mb_str, 1, &escapement);
-  *advance = std::lrint (escapement * size);
-  *lb = std::lrint (edge_info.left * size);
-  *rb = *advance + std::lrint (edge_info.right * size);
+  *advance = std::ceil (escapement * size);
+  *lb =  std::ceil (edge_info.left * size);
+  *rb = *advance + std::ceil (edge_info.right * size);
 }
 
 /* The same, but for a variable amount of chars.  */
