@@ -324,9 +324,8 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
     }
   digest_menu_items (menu, 0, menu_items_used, 0);
   BView_convert_to_screen (view, &x, &y);
-  unblock_input ();
-
   menu_item_selection = BMenu_run (menu, x, y);
+  unblock_input ();
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
@@ -376,7 +375,9 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 			if (!NILP (subprefix_stack[j]))
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
+		  block_input ();
 		  BPopUpMenu_delete (menu);
+		  unblock_input ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -385,10 +386,14 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
     }
   else if (!(menuflags & MENU_FOR_CLICK))
     {
+      block_input ();
       BPopUpMenu_delete (menu);
+      unblock_input ();
       quit ();
     }
+  block_input ();
   BPopUpMenu_delete (menu);
+  unblock_input ();
   return Qnil;
 }
 
