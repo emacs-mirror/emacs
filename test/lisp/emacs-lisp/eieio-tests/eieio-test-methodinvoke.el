@@ -55,7 +55,9 @@
 ;;; Code:
 
 (require 'eieio)
-(require 'eieio-compat)
+;; FIXME: See Bug#52971.
+(with-no-warnings
+  (require 'eieio-compat))
 (require 'ert)
 
 (defvar eieio-test-method-order-list nil

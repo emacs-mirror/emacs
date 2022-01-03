@@ -27,7 +27,9 @@
 (require 'ert)
 (require 'eieio)
 (require 'eieio-base)
-(require 'eieio-compat)
+;; FIXME: See Bug#52971.
+(with-no-warnings
+  (require 'eieio-compat))
 (require 'eieio-opt)
 
 (eval-when-compile (require 'cl-lib))
