@@ -55,17 +55,14 @@
      "\\(If not, see <https?://www\\.gnu\\.org/licenses/>\\|\
 Boston, MA 0211\\(1-1307\\|0-1301\\), USA\\|\
 675 Mass Ave, Cambridge, MA 02139, USA\\)\\.")
-    ;; FreeBSD license
+    ;; FreeBSD license / Modified BSD license (3-clause)
     (,(rx (or "The Regents of the University of California.  All rights reserved."
               "Redistribution and use in source and binary"))
-     . "THE POSSIBILITY OF SUCH DAMAGE\\.")
+     . "POSSIBILITY OF SUCH DAMAGE\\.")
     ;; X11 and Expat
     ("Permission is hereby granted, free of charge" .
-     ,(rx (or "authorization from the X Consortium."          ; X11
-              "THE USE OR OTHER DEALINGS IN THE SOFTWARE."))) ; Expat
-    ;; Modified BSD license (3-clause)
-    ("Redistribution and use in source and binary forms"
-     . "POSSIBILITY OF SUCH DAMAGE\\."))
+     ,(rx (or "authorization from the X Consortium."           ; X11
+              "THE USE OR OTHER DEALINGS IN THE SOFTWARE.")))) ; Expat
   "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
