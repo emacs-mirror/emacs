@@ -689,8 +689,8 @@ The following %-sequences are provided:
                             ((eq state 'critical) "!")
                             (t ""))))
                 (cons ?p (format "%.0f"
-                                 (/ (plist-get list :capacity)
-                                    (plist-get list :last-full-charge)))))
+                                 (* 100 (/ (plist-get list :capacity)
+                                           (plist-get list :last-full-charge))))))
         '((?c . "N/A")
           (?r . "N/A")
           (?B . "N/A")
