@@ -502,9 +502,10 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 /* Return the delta of the scroll valuator VALUATOR_NUMBER under
    DEVICE_ID in the display DPYINFO with VALUE.  The valuator's
    valuator will be set to VALUE afterwards.  In case no scroll
-   valuator is found, or if device_id is not known to Emacs, DBL_MAX
-   is returned.  Otherwise, the valuator is returned in
-   VALUATOR_RETURN.  */
+   valuator is found, or if the valuator state is invalid (see the
+   comment under XI_Enter in handle_one_xevent), or if device_id is
+   not known to Emacs, DBL_MAX is returned.  Otherwise, the valuator
+   is returned in VALUATOR_RETURN.  */
 static double
 x_get_scroll_valuator_delta (struct x_display_info *dpyinfo, int device_id,
 			     int valuator_number, double value,
@@ -531,7 +532,7 @@ x_get_scroll_valuator_delta (struct x_display_info *dpyinfo, int device_id,
 		      *valuator_return = sv;
 
 		      unblock_input ();
-		      return 0.0;
+		      return DBL_MAX;
 		    }
 		  else
 		    {
