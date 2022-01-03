@@ -651,7 +651,7 @@ Last Full Charge \\([[:digit:]]+\\)")
                              ((not (zerop (logand state 2))) 'charging)
                              ((not (zerop (logand state 1))) 'discharging)
                              ((not (zerop (logand state 4))) 'critical)
-                             (t 'normal))
+                             (t 'fully-charged))
           :design-capacity design-capacity
           :design-voltage design-voltage
           :last-full-charge last-full-charge)))
@@ -663,6 +663,7 @@ This function only works on Haiku systems with an ACPI battery.
 The following %-sequences are provided:
 %c Current capacity (mAh)
 %r Current rate of charge or discharge
+%L AC line status (verbose)
 %B Battery status (verbose)
 %b Battery status: empty means high, `-' means low,
    `!' means critical, and `+' means charging
@@ -688,6 +689,8 @@ The following %-sequences are provided:
                              "-")
                             ((eq state 'critical) "!")
                             (t ""))))
+                (cons ?L (if (not (eq (plist-get list :state) 'discharging))
+                             "on-line" "off-line"))
                 (cons ?p (format "%.0f"
                                  (* 100 (/ (plist-get list :capacity)
                                            (plist-get list :last-full-charge))))))
