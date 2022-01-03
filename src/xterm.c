@@ -10230,12 +10230,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  val->emacs_value += delta;
 
 			  if (mwheel_coalesce_scroll_events
-			      && (fabs (val->emacs_value) < 1))
+			      && (fabs (val->emacs_value) < 1)
+			      && (fabs (delta) > 0))
 			    continue;
 
 			  bool s = signbit (val->emacs_value);
-			  inev.ie.kind = ((mwheel_coalesce_scroll_events
-					   || fabs (delta) > 0)
+			  inev.ie.kind = (fabs (delta) > 0
 					  ? (val->horizontal
 					     ? HORIZ_WHEEL_EVENT
 					     : WHEEL_EVENT)
