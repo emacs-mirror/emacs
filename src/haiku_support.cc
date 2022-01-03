@@ -1661,7 +1661,6 @@ BWindow_set_visible (void *window, int visible_p)
 	win->Minimize (false);
       win->EmacsHide ();
     }
-  win->Sync ();
 }
 
 /* Change the title of WINDOW to the multibyte string TITLE.  */

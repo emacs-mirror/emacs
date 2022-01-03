@@ -1393,6 +1393,7 @@ haiku_visualize_frame (struct frame *f)
       if (FRAME_NO_FOCUS_ON_MAP (f) &&
 	  !FRAME_NO_ACCEPT_FOCUS (f))
 	BWindow_set_avoid_focus (FRAME_HAIKU_WINDOW (f), 0);
+      BWindow_sync (FRAME_HAIKU_WINDOW (f));
 
       haiku_set_offset (f, f->left_pos, f->top_pos, 0);
 
@@ -1409,6 +1410,7 @@ haiku_unvisualize_frame (struct frame *f)
   block_input ();
 
   BWindow_set_visible (FRAME_HAIKU_WINDOW (f), 0);
+  BWindow_sync (FRAME_HAIKU_WINDOW (f));
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, 0);
 
