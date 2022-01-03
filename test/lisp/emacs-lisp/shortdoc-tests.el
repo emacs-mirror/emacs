@@ -44,6 +44,14 @@
                 (should (shortdoc-tests--tree-contains expr fun))))
             (setq props (cddr props))))))))
 
+(ert-deftest shortdoc-all-groups-work ()
+  "Test that all defined shortdoc groups display correctly."
+  (dolist (group (mapcar (lambda (x) (car x)) shortdoc--groups))
+    (unwind-protect
+        (shortdoc-display-group group)
+      (when-let ((buf (get-buffer (format "*Shortdoc %s*" group))))
+        (kill-buffer buf)))))
+
 (provide 'shortdoc-tests)
 
 ;;; shortdoc-tests.el ends here
