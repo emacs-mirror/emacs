@@ -3165,8 +3165,7 @@ that if both frames are visible and their display areas overlap,
 third argument @var{above} is non-@code{nil}, this function restacks
 @var{frame1} above @var{frame2}.  This means that if both frames are
 visible and their display areas overlap, @var{frame1} will (partially)
-obscure @var{frame2}.@footnote{Restacking frames is not supported on
-Haiku, due to limitations imposed by the system.}
+obscure @var{frame2}.
 
 Technically, this function may be thought of as an atomic action
 performed in two steps: The first step removes @var{frame1}'s

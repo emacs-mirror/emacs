@@ -2321,6 +2321,39 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
   return Qnil;
 }
 
+DEFUN ("haiku-frame-restack", Fhaiku_frame_restack, Shaiku_frame_restack, 2, 3, 0,
+       doc: /* Restack FRAME1 below FRAME2.
+This means that if both frames are visible and the display areas of
+these frames overlap, FRAME2 (partially) obscures FRAME1.  If optional
+third argument ABOVE is non-nil, restack FRAME1 above FRAME2.  This
+means that if both frames are visible and the display areas of these
+frames overlap, FRAME1 (partially) obscures FRAME2.
+
+Some window managers may refuse to restack windows.  */)
+     (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
+{
+  struct frame *f1 = decode_live_frame (frame1);
+  struct frame *f2 = decode_live_frame (frame2);
+
+  check_window_system (f1);
+  check_window_system (f2);
+
+  block_input ();
+
+  if (NILP (above))
+    BWindow_send_behind (FRAME_HAIKU_WINDOW (f1),
+			 FRAME_HAIKU_WINDOW (f2));
+  else
+    BWindow_send_behind (FRAME_HAIKU_WINDOW (f2),
+			 FRAME_HAIKU_WINDOW (f1));
+  BWindow_sync (FRAME_HAIKU_WINDOW (f1));
+  BWindow_sync (FRAME_HAIKU_WINDOW (f2));
+
+  unblock_input ();
+
+  return Qnil;
+}
+
 frame_parm_handler haiku_frame_parm_handlers[] =
   {
     gui_set_autoraise,
@@ -2415,6 +2448,7 @@ syms_of_haikufns (void)
   defsubr (&Shaiku_put_resource);
   defsubr (&Shaiku_frame_list_z_order);
   defsubr (&Sx_display_save_under);
+  defsubr (&Shaiku_frame_restack);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

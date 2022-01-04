@@ -2990,3 +2990,15 @@ BWindow_set_size_alignment (void *window, int align_width, int align_height)
 #endif
   w->UnlockLooper ();
 }
+
+void
+BWindow_send_behind (void *window, void *other_window)
+{
+  BWindow *w = (BWindow *) window;
+  BWindow *other = (BWindow *) other_window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window in order to send it behind another");
+  w->SendBehind (other);
+  w->UnlockLooper ();
+}

@@ -2019,6 +2019,7 @@ Return nil if DISPLAY contains no Emacs frame."
 (declare-function w32-frame-restack "w32fns.c" (frame1 frame2 &optional above))
 (declare-function ns-frame-restack "nsfns.m" (frame1 frame2 &optional above))
 (declare-function pgtk-frame-restack "pgtkfns.c" (frame1 frame2 &optional above))
+(declare-function haiku-frame-restack "haikufns.c" (frame1 frame2 &optional above))
 
 (defun frame-restack (frame1 frame2 &optional above)
   "Restack FRAME1 below FRAME2.
@@ -2049,6 +2050,8 @@ Some window managers may refuse to restack windows."
           (w32-frame-restack frame1 frame2 above))
          ((eq frame-type 'ns)
           (ns-frame-restack frame1 frame2 above))
+         ((eq frame-type 'haiku)
+          (haiku-frame-restack frame1 frame2 above))
          ((eq frame-type 'pgtk)
           (pgtk-frame-restack frame1 frame2 above))))
     (error "Cannot restack frames")))
