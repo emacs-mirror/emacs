@@ -1238,7 +1238,7 @@ haiku_get_pixel (haiku bitmap, int x, int y)
   BBitmap_dimensions (bitmap, &left, &top, &right, &bottom,
 		      &bytes_per_row, &mono_p);
 
-  if (x < left || x > right || y < top || y > bottom)
+  if (x < 0 || x > right - left || y < 0 || y > bottom - top)
     emacs_abort ();
 
   if (!mono_p)
@@ -1263,7 +1263,7 @@ haiku_put_pixel (haiku bitmap, int x, int y, unsigned long pixel)
   BBitmap_dimensions (bitmap, &left, &top, &right, &bottom,
 		      &bytes_per_row, &mono_p);
 
-  if (x < left || x > right || y < top || y > bottom)
+  if (x < 0 || x > right - left || y < 0 || y > bottom - top)
     emacs_abort ();
 
   if (mono_p)
