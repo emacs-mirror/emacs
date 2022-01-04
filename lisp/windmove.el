@@ -448,6 +448,7 @@ unless `windmove-create-window' is non-nil and a new window is created."
 (defvar windmove-mode-map (make-sparse-keymap)
   "Map used by `windmove-install-defaults'.")
 
+;;;###autoload
 (define-minor-mode windmove-mode
   "Global minor mode for default windmove commands."
   :keymap windmove-mode-map
