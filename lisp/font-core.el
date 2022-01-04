@@ -66,7 +66,6 @@ Other variables include that for syntactic keyword fontification,
 functions, `font-lock-fontify-buffer-function',
 `font-lock-unfontify-buffer-function', `font-lock-fontify-region-function',
 `font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
-;;;###autoload
 (put 'font-lock-defaults 'risky-local-variable t)
 
 (defvar font-lock-function 'font-lock-default-function
