@@ -1329,8 +1329,6 @@ scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
   int c;
-  int i;
-  int flen = strlen (filename);
 
   if (generate_globals)
     fatal ("scanning lisp file when -g specified");
