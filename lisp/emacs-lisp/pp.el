@@ -24,6 +24,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (defvar font-lock-verbose)
 
 (defgroup pp nil
@@ -233,13 +234,14 @@ Use the `pp-max-width' variable to control the desired line length."
     (cons (cond
            ((consp (cdr sexp))
             (if (and (length= sexp 2)
-                     (eq (car sexp) 'quote))
+                     (memq (car sexp) '(quote function)))
                 (cond
                  ((symbolp (cadr sexp))
                   (let ((print-quoted t))
                     (prin1 sexp (current-buffer))))
                  ((consp (cadr sexp))
-                  (insert "'")
+                  (insert (if (eq (car sexp) 'quote)
+                              "'" "#'"))
                   (pp--format-list (cadr sexp)
                                    (set-marker (make-marker) (1- (point))))))
               (pp--format-list sexp)))
