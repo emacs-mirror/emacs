@@ -2280,6 +2280,7 @@ term_header=
 HAVE_X_WINDOWS=no
 HAVE_X11=no
 USE_X_TOOLKIT=none
+HAVE_PGTK=no
 
 case "${window_system}" in
   x11 )
@@ -2318,12 +2319,12 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
     USE_X_TOOLKIT=none
     HAVE_PGTK=yes
     AC_DEFINE([HAVE_PGTK], 1, [Define to 1 if you have pure Gtk+-3.])
-    AC_SUBST(HAVE_PGTK)
   ;;
   haiku )
     term_header=haikuterm.h
   ;;
 esac
+AC_SUBST(HAVE_PGTK)
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
@@ -3009,7 +3010,6 @@ if test "${HAVE_X11}" = "yes" -o "${window_system}" = "pgtk" && test "${with_gse
 
       if test "$emacs_cv_gsettings_in_gio" = "yes"; then
         AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
-	AC_SUBST(HAVE_GSETTINGS)
 	SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
 	SETTINGS_LIBS="$GSETTINGS_LIBS"
 	test "$with_gconf" = "yes" || with_gconf=no
@@ -3018,6 +3018,7 @@ if test "${HAVE_X11}" = "yes" -o "${window_system}" = "pgtk" && test "${with_gse
       LIBS=$old_LIBS
    fi
 fi
+AC_SUBST(HAVE_GSETTINGS)
 
 dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
