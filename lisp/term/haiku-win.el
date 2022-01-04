@@ -111,17 +111,17 @@ If TYPE is nil, return \"text/plain\"."
 
 (declare-function haiku-read-file-name "haikufns.c")
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+(defun x-file-dialog (prompt dir &optional default-filename mustmatch only-dir-p)
   "SKIP: real doc in xfns.c."
   (if (eq (framep-on-display (selected-frame)) 'haiku)
       (haiku-read-file-name (if (not (string-suffix-p ": " prompt))
                                 prompt
                               (substring prompt 0 (- (length prompt) 2)))
                             (selected-frame)
-                            (or dir (and default_filename
-                                         (file-name-directory default_filename)))
-                            mustmatch only_dir_p
-                            (file-name-nondirectory default_filename))
+                            (or dir (and default-filename
+                                         (file-name-directory default-filename)))
+                            mustmatch only-dir-p
+                            (file-name-nondirectory default-filename))
     (error "x-file-dialog on a tty frame")))
 
 (defun haiku-dnd-handle-drag-n-drop-event (event)
