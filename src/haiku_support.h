@@ -32,6 +32,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo.h>
 #endif
 
+#include <math.h>
+
 enum haiku_cursor
   {
     CURSOR_ID_NO_CURSOR = 12,
@@ -309,6 +311,28 @@ struct haiku_menu_bar_state_event
 #define HAIKU_ULTRA_HEAVY 900
 #define HAIKU_BLACK 1000
 #define HAIKU_MEDIUM 2000
+
+#ifdef __cplusplus
+/* Haiku's built in Height and Width functions for calculating
+   rectangle sizes are broken, probably for compatibility with BeOS:
+   they do not round up in a reasonable fashion, and they return the
+   numerical difference between the end and start sides in both
+   directions, instead of the actual size.
+
+   For example:
+
+     BRect (1, 1, 5, 5).IntegerWidth ()
+
+   Will return 4, when in reality the rectangle is 5 pixels wide,
+   since the left corner is also a pixel!
+
+   All code in Emacs should use the macros below to calculate the
+   dimensions of a BRect, instead of relying on the broken Width and
+   Height functions.  */
+
+#define BE_RECT_HEIGHT(rect) (ceil (((rect).bottom - (rect).top) + 1))
+#define BE_RECT_WIDTH(rect) (ceil (((rect).right - (rect).left) + 1))
+#endif /* __cplusplus */
 
 #ifdef __cplusplus
 extern "C"

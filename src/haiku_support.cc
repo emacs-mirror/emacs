@@ -821,8 +821,8 @@ public:
     zoomed_p = 0;
 
     EmacsMoveTo (pre_zoom_rect.left, pre_zoom_rect.top);
-    ResizeTo (pre_zoom_rect.Width (),
-	      pre_zoom_rect.Height ());
+    ResizeTo (BE_RECT_WIDTH (pre_zoom_rect),
+	      BE_RECT_HEIGHT (pre_zoom_rect));
   }
 
   void
@@ -833,14 +833,17 @@ public:
 
     if (parent)
       {
-	*width = parent->Frame ().Width ();
-	*height = parent->Frame ().Height ();
+	BRect frame = parent->Frame ();
+	*width = BE_RECT_WIDTH (frame);
+	*height = BE_RECT_HEIGHT (frame);
       }
     else
       {
 	BScreen s (this);
-	*width = s.Frame ().Width ();
-	*height = s.Frame ().Height ();
+	BRect frame = s.Frame ();
+
+	*width = BE_RECT_WIDTH (frame);
+	*height = BE_RECT_HEIGHT (frame);
       }
 
     child_frame_lock.Unlock ();
@@ -906,8 +909,8 @@ public:
 	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
 	EmacsMoveTo (pre_fullscreen_rect.left,
 		     pre_fullscreen_rect.top);
-	ResizeTo (pre_fullscreen_rect.Width (),
-		  pre_fullscreen_rect.Height ());
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect),
+		  BE_RECT_HEIGHT (pre_fullscreen_rect));
       }
     SetFlags (flags);
   }
@@ -998,11 +1001,12 @@ public:
       gui_abort ("Could not lock cr surface during attachment");
     if (cr_surface)
       gui_abort ("Trying to attach cr surface when one already exists");
+    BRect bounds = offscreen_draw_bitmap_1->Bounds ();
+
     cr_surface = cairo_image_surface_create_for_data
       ((unsigned char *) offscreen_draw_bitmap_1->Bits (),
-       CAIRO_FORMAT_ARGB32,
-       offscreen_draw_bitmap_1->Bounds ().IntegerWidth () + 1,
-       offscreen_draw_bitmap_1->Bounds ().IntegerHeight () + 1,
+       CAIRO_FORMAT_ARGB32, BE_RECT_WIDTH (bounds),
+       BE_RECT_HEIGHT (bounds),
        offscreen_draw_bitmap_1->BytesPerRow ());
     if (!cr_surface)
       gui_abort ("Cr surface allocation failed for double-buffered view");
@@ -1056,8 +1060,11 @@ public:
 	if (offscreen_draw_bitmap_1->InitCheck () != B_OK)
 	  gui_abort ("Offscreen draw bitmap initialization failed");
 
-	offscreen_draw_view->MoveTo (Frame ().left, Frame ().top);
-	offscreen_draw_view->ResizeTo (Frame ().Width (), Frame ().Height ());
+	BRect frame = Frame ();
+
+	offscreen_draw_view->MoveTo (frame.left, frame.top);
+	offscreen_draw_view->ResizeTo (BE_RECT_WIDTH (frame),
+				       BE_RECT_HEIGHT (frame));
 	offscreen_draw_bitmap_1->AddChild (offscreen_draw_view);
 #ifdef USE_BE_CAIRO
 	AttachCairoSurface ();
@@ -1446,7 +1453,7 @@ public:
       {
 	BRect r = menu->Frame ();
 	int w = menu->StringWidth (key);
-	menu->MovePenTo (BPoint (r.Width () - w - 4,
+	menu->MovePenTo (BPoint (BE_RECT_WIDTH (r) - w - 4,
 				 menu->PenLocation ().y));
 	menu->DrawString (key);
       }
@@ -2914,8 +2921,9 @@ BView_cr_dump_clipping (void *view, cairo_t *ctx)
   for (int i = 0; i < cr.CountRects (); ++i)
     {
       BRect r = cr.RectAt (i);
-      cairo_rectangle (ctx, r.left, r.top, r.Width () + 1,
-		       r.Height () + 1);
+      cairo_rectangle (ctx, r.left, r.top,
+		       BE_RECT_WIDTH (r),
+		       BE_RECT_HEIGHT (r));
     }
 
   cairo_clip (ctx);

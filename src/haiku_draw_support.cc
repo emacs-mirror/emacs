@@ -310,9 +310,10 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
   if (bm->ColorSpace () == B_GRAY1)
     {
       rgb_color low_color = vw->LowColor ();
-      for (int y = 0; y <= bc.Bounds ().Height (); ++y)
+      BRect bounds = bc.Bounds ();
+      for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
 	{
-	  for (int x = 0; x <= bc.Bounds ().Width (); ++x)
+	  for (int x = 0; x <= BE_RECT_WIDTH (bounds); ++x)
 	    {
 	      if (bits[y * (stride / 4) + x] == 0xFF000000)
 		bits[y * (stride / 4) + x] = RGB_COLOR_UINT32 (low_color);
@@ -336,11 +337,13 @@ BView_DrawMask (void *src, void *view,
 {
   BBitmap *source = (BBitmap *) src;
   BBitmap bm (source->Bounds (), B_RGBA32);
+  BRect bounds = bm.Bounds ();
+
   if (bm.InitCheck () != B_OK)
     return;
-  for (int y = 0; y <= bm.Bounds ().IntegerHeight (); ++y)
+  for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
     {
-      for (int x = 0; x <= bm.Bounds ().IntegerWidth (); ++x)
+      for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
 	{
 	  int bit = haiku_get_pixel ((void *) source, x, y);
 
@@ -364,8 +367,8 @@ rotate_bitmap_270 (BBitmap *bmp)
 			     bmp->ColorSpace (), true);
   if (bm->InitCheck () != B_OK)
     gui_abort ("Failed to init bitmap for rotate");
-  int w = bmp->Bounds ().Width () + 1;
-  int h = bmp->Bounds ().Height () + 1;
+  int w = BE_RECT_WIDTH (r);
+  int h = BE_RECT_HEIGHT (r);
 
   for (int y = 0; y < h; ++y)
     for (int x = 0; x < w; ++x)
@@ -383,8 +386,8 @@ rotate_bitmap_90 (BBitmap *bmp)
 			     bmp->ColorSpace (), true);
   if (bm->InitCheck () != B_OK)
     gui_abort ("Failed to init bitmap for rotate");
-  int w = bmp->Bounds ().Width () + 1;
-  int h = bmp->Bounds ().Height () + 1;
+  int w = BE_RECT_WIDTH (r);
+  int h = BE_RECT_HEIGHT (r);
 
   for (int y = 0; y < h; ++y)
     for (int x = 0; x < w; ++x)
@@ -419,44 +422,42 @@ BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
     }
 
   BRect r = bm->Bounds ();
-  if (r.Width () != desw || r.Height () != desh)
+  BRect n = BRect (0, 0, desw - 1, desh - 1);
+  BView vw (n, NULL, B_FOLLOW_NONE, 0);
+  BBitmap *dst = new BBitmap (n, bm->ColorSpace (), true);
+  if (dst->InitCheck () != B_OK)
+    if (bm->InitCheck () != B_OK)
+      gui_abort ("Failed to init bitmap for scale");
+  dst->AddChild (&vw);
+
+  if (!vw.LockLooper ())
+    gui_abort ("Failed to lock offscreen view for scale");
+
+  if (rot != 90 && rot != 270)
     {
-      BRect n = BRect (0, 0, desw - 1, desh - 1);
-      BView vw (n, NULL, B_FOLLOW_NONE, 0);
-      BBitmap *dst = new BBitmap (n, bm->ColorSpace (), true);
-      if (dst->InitCheck () != B_OK)
-	if (bm->InitCheck () != B_OK)
-	  gui_abort ("Failed to init bitmap for scale");
-      dst->AddChild (&vw);
-
-      if (!vw.LockLooper ())
-	gui_abort ("Failed to lock offscreen view for scale");
-
-      if (rot != 90 && rot != 270)
-	{
-	  BAffineTransform tr;
-	  tr.RotateBy (BPoint (desw / 2, desh / 2), rot * M_PI / 180.0);
-	  vw.SetTransform (tr);
-	}
-
-      vw.MovePenTo (0, 0);
-      vw.DrawBitmap (bm, n);
-      if (mk)
-	BView_DrawMask ((void *) mk, (void *) &vw,
-			0, 0, mk->Bounds ().Width () + 1,
-			mk->Bounds ().Height () + 1,
-			0, 0, desw, desh, m_color);
-      vw.Sync ();
-      vw.RemoveSelf ();
-
-      if (copied_p)
-	delete bm;
-      if (copied_p && mk)
-	delete mk;
-      return dst;
+      BAffineTransform tr;
+      tr.RotateBy (BPoint (desw / 2, desh / 2), rot * M_PI / 180.0);
+      vw.SetTransform (tr);
     }
 
-  return bm;
+  vw.MovePenTo (0, 0);
+  vw.DrawBitmap (bm, n);
+  if (mk)
+    {
+      BRect k = mk->Bounds ();
+      BView_DrawMask ((void *) mk, (void *) &vw,
+		      0, 0, BE_RECT_WIDTH (k),
+		      BE_RECT_HEIGHT (k),
+		      0, 0, desw, desh, m_color);
+    }
+  vw.Sync ();
+  vw.RemoveSelf ();
+
+  if (copied_p)
+    delete bm;
+  if (copied_p && mk)
+    delete mk;
+  return dst;
 }
 
 void
