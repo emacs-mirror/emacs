@@ -1090,6 +1090,12 @@ dimensions.
 Specifying a cons as the from argument allows to start measuring text
 from a specified amount of pixels above or below a position.
 
+---
+** 'eshell-eval-using-options' now follows POSIX/GNU argument syntax conventions.
+Built-in commands in Eshell now accept command-line options with
+values passed as a single token, such as '-oVALUE' or
+'--option=VALUE'.
+
 ** XDG support
 
 *** New function 'xdg-state-home' returns 'XDG_STATE_HOME' environment variable.
