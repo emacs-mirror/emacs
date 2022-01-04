@@ -421,7 +421,6 @@ BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
 	mk = rotate_bitmap_270 (mk);
     }
 
-  BRect r = bm->Bounds ();
   BRect n = BRect (0, 0, desw - 1, desh - 1);
   BView vw (n, NULL, B_FOLLOW_NONE, 0);
   BBitmap *dst = new BBitmap (n, bm->ColorSpace (), true);
