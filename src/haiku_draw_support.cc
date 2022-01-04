@@ -310,9 +310,9 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
   if (bm->ColorSpace () == B_GRAY1)
     {
       rgb_color low_color = vw->LowColor ();
-      for (int y = 0; y <= bc.Bounds ().Height () + 1; ++y)
+      for (int y = 0; y <= bc.Bounds ().Height (); ++y)
 	{
-	  for (int x = 0; x <= bc.Bounds ().Width () + 1; ++x)
+	  for (int x = 0; x <= bc.Bounds ().Width (); ++x)
 	    {
 	      if (bits[y * (stride / 4) + x] == 0xFF000000)
 		bits[y * (stride / 4) + x] = RGB_COLOR_UINT32 (low_color);
