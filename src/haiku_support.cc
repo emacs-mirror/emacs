@@ -3002,3 +3002,10 @@ BWindow_send_behind (void *window, void *other_window)
   w->SendBehind (other);
   w->UnlockLooper ();
 }
+
+bool
+BWindow_is_active (void *window)
+{
+  BWindow *w = (BWindow *) window;
+  return w->IsActive ();
+}

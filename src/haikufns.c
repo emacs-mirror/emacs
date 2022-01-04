@@ -2341,11 +2341,39 @@ Some window managers may refuse to restack windows.  */)
   block_input ();
 
   if (NILP (above))
-    BWindow_send_behind (FRAME_HAIKU_WINDOW (f1),
-			 FRAME_HAIKU_WINDOW (f2));
+    {
+      /* If the window that is currently active will be sent behind
+	 another window, make the window that it is being sent behind
+	 active first, to avoid both windows being moved to the back of
+	 the display.  */
+
+      if (BWindow_is_active (FRAME_HAIKU_WINDOW (f1))
+	  /* But don't do this if any of the frames involved have
+	     child frames, since they are guaranteed to be in front of
+	     their toplevel parents.  */
+	  && !FRAME_PARENT_FRAME (f1)
+	  && !FRAME_PARENT_FRAME (f2))
+	{
+	  BWindow_activate (FRAME_HAIKU_WINDOW (f2));
+	  BWindow_sync (FRAME_HAIKU_WINDOW (f2));
+	}
+
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f1),
+			   FRAME_HAIKU_WINDOW (f2));
+    }
   else
-    BWindow_send_behind (FRAME_HAIKU_WINDOW (f2),
-			 FRAME_HAIKU_WINDOW (f1));
+    {
+      if (BWindow_is_active (FRAME_HAIKU_WINDOW (f2))
+	  && !FRAME_PARENT_FRAME (f1)
+	  && !FRAME_PARENT_FRAME (f2))
+	{
+	  BWindow_activate (FRAME_HAIKU_WINDOW (f1));
+	  BWindow_sync (FRAME_HAIKU_WINDOW (f1));
+	}
+
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f2),
+			   FRAME_HAIKU_WINDOW (f1));
+    }
   BWindow_sync (FRAME_HAIKU_WINDOW (f1));
   BWindow_sync (FRAME_HAIKU_WINDOW (f2));
 

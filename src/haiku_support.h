@@ -826,6 +826,9 @@ extern "C"
   extern void
   BWindow_send_behind (void *window, void *other_window);
 
+  extern bool
+  BWindow_is_active (void *window);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);
