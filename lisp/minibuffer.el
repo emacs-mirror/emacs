@@ -900,7 +900,7 @@ If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete."
   :type '(choice (const nil) (const t) (const lazy)))
 
-(defconst completion-styles-alist
+(defvar completion-styles-alist
   '((emacs21
      completion-emacs21-try-completion completion-emacs21-all-completions
      "Simple prefix-based completion.
@@ -1076,9 +1076,10 @@ This overrides the defaults specified in `completion-category-defaults'."
          (result-and-style
           (completion--some
            (lambda (style)
-             (let ((probe (funcall (nth n (assq style
-                                                completion-styles-alist))
-                                   string table pred point)))
+             (let ((probe (funcall
+                           (or (nth n (assq style completion-styles-alist))
+                               (error "Invalid completion style %s" style))
+                           string table pred point)))
                (and probe (cons probe style))))
            (completion--styles md)))
          (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata)))
