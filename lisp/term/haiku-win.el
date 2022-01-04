@@ -114,7 +114,10 @@ If TYPE is nil, return \"text/plain\"."
 (defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
   "SKIP: real doc in xfns.c."
   (if (eq (framep-on-display (selected-frame)) 'haiku)
-      (haiku-read-file-name prompt (selected-frame)
+      (haiku-read-file-name (if (not (string-suffix-p ": " prompt))
+                                prompt
+                              (substring prompt 0 (- (length prompt) 2)))
+                            (selected-frame)
                             (or dir (and default_filename
                                          (file-name-directory default_filename)))
                             mustmatch only_dir_p

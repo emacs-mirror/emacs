@@ -2682,7 +2682,6 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
   be_popup_file_dialog_safe_set_target (panel, w);
 
   panel->Show ();
-  panel->Window ()->Show ();
   unblock_input_function ();
 
   void *buf = alloca (200);
