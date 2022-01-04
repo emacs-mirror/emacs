@@ -399,7 +399,8 @@ _GL_CXXALIASWARN (fileno);
 #endif
 
 #if @GNULIB_FOPEN@
-# if @REPLACE_FOPEN@
+# if (@GNULIB_FOPEN@ && @REPLACE_FOPEN@) \
+     || (@GNULIB_FOPEN_GNU@ && @REPLACE_FOPEN_FOR_FOPEN_GNU@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fopen
 #   define fopen rpl_fopen

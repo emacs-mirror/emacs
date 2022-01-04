@@ -88,6 +88,7 @@ timespectod (struct timespec a)
   return a.tv_sec + a.tv_nsec / 1e9;
 }
 
+long int gettime_res (void);
 struct timespec current_timespec (void);
 void gettime (struct timespec *) _GL_ARG_NONNULL ((1));
 int settime (struct timespec const *) _GL_ARG_NONNULL ((1));

@@ -1,4 +1,4 @@
-# malloc.m4 serial 27
+# malloc.m4 serial 28
 dnl Copyright (C) 2007, 2009-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -43,8 +43,9 @@ AC_DEFUN([gl_FUNC_MALLOC_GNU],
 [
   AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
   AC_REQUIRE([gl_FUNC_MALLOC_POSIX])
-  if test $REPLACE_MALLOC = 0; then
-    _AC_FUNC_MALLOC_IF([], [REPLACE_MALLOC=1])
+  REPLACE_MALLOC_FOR_MALLOC_GNU="$REPLACE_MALLOC_FOR_MALLOC_POSIX"
+  if test $REPLACE_MALLOC_FOR_MALLOC_GNU = 0; then
+    _AC_FUNC_MALLOC_IF([], [REPLACE_MALLOC_FOR_MALLOC_GNU=1])
   fi
 ])
 
@@ -56,7 +57,7 @@ AC_DEFUN([gl_FUNC_MALLOC_PTRDIFF],
 [
   AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
   AC_REQUIRE([gl_CHECK_MALLOC_PTRDIFF])
-  test "$gl_cv_malloc_ptrdiff" = yes || REPLACE_MALLOC=1
+  test "$gl_cv_malloc_ptrdiff" = yes || REPLACE_MALLOC_FOR_MALLOC_POSIX=1
 ])
 
 # Test whether malloc, realloc, calloc refuse to create objects
@@ -109,7 +110,7 @@ AC_DEFUN([gl_FUNC_MALLOC_POSIX],
     AC_DEFINE([HAVE_MALLOC_POSIX], [1],
       [Define if malloc, realloc, and calloc set errno on allocation failure.])
   else
-    REPLACE_MALLOC=1
+    REPLACE_MALLOC_FOR_MALLOC_POSIX=1
   fi
 ])
 

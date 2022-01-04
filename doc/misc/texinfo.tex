@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2021-11-01.16}
+\def\texinfoversion{2022-01-02.12}
 %
-% Copyright 1985--1986, 1988, 1990--2022 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2021 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -3193,14 +3193,9 @@ end
 %    \kern-0.4pt\hrule}%
 %  \kern-.06em\raise0.4pt\hbox{\angleright}}}}
 
-% definition of @key with no lozenge.  If the current font is already
-% monospace, don't change it; that way, we respect @kbdinputstyle.  But
-% if it isn't monospace, then use \tt.
+% definition of @key with no lozenge.
 %
-\def\key#1{{\setregularquotes
-  \nohyphenation
-  \ifmonospace\else\tt\fi
-  #1}\null}
+\def\key#1{{\setregularquotes \nohyphenation \tt #1}\null}
 
 % @clicksequence{File @click{} Open ...}
 \def\clicksequence#1{\begingroup #1\endgroup}
@@ -11246,23 +11241,6 @@ directory should work if nowhere else does.}
   \tolerance = 700
   \contentsrightmargin = 0pt
   \defbodyindent = .5cm
-}}
-
-% Use @smallerbook to reset parameters for 6x9 trim size.
-% (Just testing, parameters still in flux.)
-\def\smallerbook{{\globaldefs = 1
-  \parskip = 1.5pt plus 1pt
-  \textleading = 12pt
-  %
-  \internalpagesizes{7.4in}{4.8in}%
-                    {-.2in}{-.4in}%
-                    {0pt}{14pt}%
-                    {9in}{6in}%
-  %
-  \lispnarrowing = 0.25in
-  \tolerance = 700
-  \contentsrightmargin = 0pt
-  \defbodyindent = .4cm
 }}
 
 % Use @afourpaper to print on European A4 paper.

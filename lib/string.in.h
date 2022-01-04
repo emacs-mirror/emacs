@@ -112,12 +112,26 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 
-/* Declare 'free' if needed for _GL_ATTRIBUTE_DEALLOC_FREE.  */
-_GL_EXTERN_C void free (void *);
+/* Make _GL_ATTRIBUTE_DEALLOC_FREE work, even though <stdlib.h> may not have
+   been included yet.  */
 #if @GNULIB_FREE_POSIX@
 # if (@REPLACE_FREE@ && !defined free \
       && !(defined __cplusplus && defined GNULIB_NAMESPACE))
-#  define free rpl_free
+/* We can't do '#define free rpl_free' here.  */
+_GL_EXTERN_C void rpl_free (void *);
+#  undef _GL_ATTRIBUTE_DEALLOC_FREE
+#  define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (rpl_free, 1)
+# else
+#  if defined _MSC_VER
+_GL_EXTERN_C void __cdecl free (void *);
+#  else
+_GL_EXTERN_C void free (void *);
+#  endif
+# endif
+#else
+# if defined _MSC_VER
+_GL_EXTERN_C void __cdecl free (void *);
+# else
 _GL_EXTERN_C void free (void *);
 # endif
 #endif

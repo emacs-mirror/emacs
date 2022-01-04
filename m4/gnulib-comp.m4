@@ -103,6 +103,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module fsusage:
   # Code from module fsync:
   # Code from module futimens:
+  # Code from module gen-header:
   # Code from module getdtablesize:
   # Code from module getgroups:
   # Code from module getloadavg:
@@ -128,6 +129,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module libgmp:
   # Code from module limits-h:
   # Code from module lstat:
+  # Code from module malloc-gnu:
   # Code from module malloc-posix:
   # Code from module manywarnings:
   # Code from module memmem-simple:
@@ -624,6 +626,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
   gl_gnulib_enabled_lchmod=false
+  gl_gnulib_enabled_e80bf6f757095d2e5fc94dafb8f8fc8b=false
   gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
   gl_gnulib_enabled_open=false
@@ -759,16 +762,31 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_lchmod=true
     fi
   }
+  func_gl_gnulib_m4code_e80bf6f757095d2e5fc94dafb8f8fc8b ()
+  {
+    if ! $gl_gnulib_enabled_e80bf6f757095d2e5fc94dafb8f8fc8b; then
+      gl_FUNC_MALLOC_GNU
+      if test $REPLACE_MALLOC_FOR_MALLOC_GNU = 1; then
+        AC_LIBOBJ([malloc])
+      fi
+      gl_STDLIB_MODULE_INDICATOR([malloc-gnu])
+      gl_gnulib_enabled_e80bf6f757095d2e5fc94dafb8f8fc8b=true
+      func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866
+      if test $REPLACE_MALLOC_FOR_MALLOC_GNU = 1; then
+        func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
+      fi
+    fi
+  }
   func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866 ()
   {
     if ! $gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866; then
       AC_REQUIRE([gl_FUNC_MALLOC_POSIX])
-      if test $REPLACE_MALLOC = 1; then
+      if test $REPLACE_MALLOC_FOR_MALLOC_POSIX = 1; then
         AC_LIBOBJ([malloc])
       fi
       gl_STDLIB_MODULE_INDICATOR([malloc-posix])
       gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866=true
-      if test $REPLACE_MALLOC = 1; then
+      if test $REPLACE_MALLOC_FOR_MALLOC_POSIX = 1; then
         func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
       fi
     fi
@@ -821,26 +839,33 @@ AC_DEFUN([gl_INIT],
   {
     if ! $gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b; then
       gl_FUNC_REALLOC_GNU
-      if test $REPLACE_REALLOC = 1; then
+      if test $REPLACE_REALLOC_FOR_REALLOC_GNU = 1; then
         AC_LIBOBJ([realloc])
       fi
+      gl_STDLIB_MODULE_INDICATOR([realloc-gnu])
       gl_gnulib_enabled_d3b2383720ee0e541357aa2aac598e2b=true
+      if test $REPLACE_REALLOC_FOR_REALLOC_GNU = 1; then
+        func_gl_gnulib_m4code_e80bf6f757095d2e5fc94dafb8f8fc8b
+      fi
       func_gl_gnulib_m4code_61bcaca76b3e6f9ae55d57a1c3193bc4
+      if test $REPLACE_REALLOC_FOR_REALLOC_GNU = 1; then
+        func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
+      fi
     fi
   }
   func_gl_gnulib_m4code_61bcaca76b3e6f9ae55d57a1c3193bc4 ()
   {
     if ! $gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4; then
       gl_FUNC_REALLOC_POSIX
-      if test $REPLACE_REALLOC = 1; then
+      if test $REPLACE_REALLOC_FOR_REALLOC_POSIX = 1; then
         AC_LIBOBJ([realloc])
       fi
       gl_STDLIB_MODULE_INDICATOR([realloc-posix])
       gl_gnulib_enabled_61bcaca76b3e6f9ae55d57a1c3193bc4=true
-      if test $REPLACE_REALLOC = 1; then
+      if test $REPLACE_REALLOC_FOR_REALLOC_POSIX = 1; then
         func_gl_gnulib_m4code_ef455225c00f5049c808c2eda3e76866
       fi
-      if test $REPLACE_REALLOC = 1; then
+      if test $REPLACE_REALLOC_FOR_REALLOC_POSIX = 1; then
         func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
       fi
     fi
@@ -975,6 +1000,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_lchmod], [$gl_gnulib_enabled_lchmod])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b], [$gl_gnulib_enabled_e80bf6f757095d2e5fc94dafb8f8fc8b])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_ef455225c00f5049c808c2eda3e76866], [$gl_gnulib_enabled_ef455225c00f5049c808c2eda3e76866])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_open], [$gl_gnulib_enabled_open])

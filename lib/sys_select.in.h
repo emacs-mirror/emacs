@@ -279,9 +279,13 @@ _GL_FUNCDECL_SYS (pselect, int,
                   (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
                    struct timespec const *restrict, const sigset_t *restrict));
 #  endif
-_GL_CXXALIAS_SYS (pselect, int,
-                  (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
-                   struct timespec const *restrict, const sigset_t *restrict));
+/* Need to cast, because on AIX 7, the second, third, fourth argument may be
+                        void *restrict,   void *restrict,   void *restrict.  */
+_GL_CXXALIAS_SYS_CAST (pselect, int,
+                       (int,
+                        fd_set *restrict, fd_set *restrict, fd_set *restrict,
+                        struct timespec const *restrict,
+                        const sigset_t *restrict));
 # endif
 _GL_CXXALIASWARN (pselect);
 #elif defined GNULIB_POSIXCHECK
