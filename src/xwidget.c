@@ -245,6 +245,10 @@ xw_translate_x_modifiers (struct x_display_info *dpyinfo,
     mods |= GDK_SUPER_MASK;
   if (modifiers & dpyinfo->hyper_mod_mask)
     mods |= GDK_HYPER_MASK;
+  if (modifiers & ControlMask)
+    mods |= GDK_CONTROL_MASK;
+  if (modifiers & ShiftMask)
+    mods |= GDK_SHIFT_MASK;
 
   return mods;
 }
