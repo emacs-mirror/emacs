@@ -104,6 +104,9 @@ USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
 
 HAVE_BE_APP = @HAVE_BE_APP@
 
+HAVE_PGTK = @HAVE_PGTK@
+HAVE_GSETTINGS = @HAVE_GSETTINGS@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
@@ -213,7 +216,7 @@ icondir=$(datarootdir)/icons
 iconsrcdir=$(srcdir)/etc/images/icons
 
 # Where to install the gsettings schema file.
-gsettingsschemadir = @gsettingsschemadir@
+gsettingsschemadir = $(datadir)/glib-2.0/schemas
 
 # ==================== Emacs-specific directories ====================
 
@@ -949,7 +952,7 @@ distclean_dirs = $(clean_dirs) leim lisp admin/grammars
 
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
-distclean: $(distclean_dirs:=_distclean)
+distclean: $(distclean_dirs:=_distclean) clean-gsettings-schemas
 	${top_distclean}
 
 ### 'bootstrap-clean'
@@ -1245,9 +1248,30 @@ gitmerge:
 	  -l ${srcdir}/admin/gitmerge.el \
 	  --eval '(setq gitmerge-minimum-missing ${GITMERGE_NMIN})' -f gitmerge
 
-@GSETTINGS_RULES@
-
 install-gsettings-schemas:
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	$(MKDIR_P) "$(DESTDIR)$(gsettingsschemadir)"
+	$(INSTALL_DATA) $(srcdir)/$(gsettings_SCHEMAS) "$(DESTDIR)$(gsettingsschemadir)"
+	if [ -z "$(DESTDIR)" ]; then $(GLIB_COMPILE_SCHEMAS) $(gsettingsschemadir); fi
+endif
+
 uninstall-gsettings-schemas:
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	for x in $(gsettings_SCHEMAS); do \
+	  xx=`echo $$x | sed -e 's|.*/||'`; \
+	  rm -f "$(DESTDIR)$(gsettingsschemadir)/$${xx}"; \
+	done
+	if [ -z "$(DESTDIR)" ]; then $(GLIB_COMPILE_SCHEMAS) $(gsettingsschemadir); fi
+endif
+
 clean-gsettings-schemas:
-$(gsettings_SCHEMAS:.xml=.valid):
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	rm -f $(gsettings_SCHEMAS:.xml=.valid)
+endif
+
+$(gsettings_SCHEMAS:.xml=.valid): $(srcdir)/$(gsettings_SCHEMAS)
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	$(GLIB_COMPILE_SCHEMAS) --strict --dry-run --schema-file=$(srcdir)/$(gsettings_SCHEMAS)
+	$(MKDIR_P) $(@D)
+	touch $@
+endif
