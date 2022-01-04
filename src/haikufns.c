@@ -1291,8 +1291,8 @@ haiku_free_frame_resources (struct frame *f)
   Lisp_Object bar;
   struct scroll_bar *b;
 
-  block_input ();
   check_window_system (f);
+  block_input ();
 
   hlinfo = MOUSE_HL_INFO (f);
   window = FRAME_HAIKU_WINDOW (f);

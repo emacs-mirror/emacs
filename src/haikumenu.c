@@ -630,12 +630,12 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 }
 
 DEFUN ("haiku-menu-bar-open", Fhaiku_menu_bar_open, Shaiku_menu_bar_open, 0, 1, "i",
-       doc: /* Show the menu bar in FRAME.
-
-Move the mouse pointer onto the first element of FRAME's menu bar, and
-cause it to be opened.  If FRAME is nil or not given, use the selected
-frame.  If FRAME has no menu bar, a pop-up is displayed at the position
-of the last non-menu event instead.  */)
+       doc: /* Show and start key navigation of the menu bar in FRAME.
+This initially opens the first menu bar item and you can then navigate
+with the arrow keys, select a menu entry with the return key, or
+cancel with the escape key.  If FRAME is nil or not given, use the
+selected frame.  If FRAME has no menu bar, a pop-up is displayed at
+the position of the last non-menu event instead.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
