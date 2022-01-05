@@ -1454,9 +1454,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
     gui_default_parameter (f, parms, Qborder_width, make_fixnum (0),
 			   "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
-  /* This defaults to 1 in order to match xterm.  We recognize either
-     internalBorderWidth or internalBorder (which is what xterm calls
-     it).  */
   if (NILP (Fassq (Qinternal_border_width, parms)))
     {
       Lisp_Object value;
@@ -1468,13 +1465,18 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 	parms = Fcons (Fcons (Qinternal_border_width, value), parms);
     }
 
+  gui_default_parameter (f, parms, Qinternal_border_width,
+			 make_fixnum (0),
+			 "internalBorderWidth", "internalBorderWidth",
+			 RES_TYPE_NUMBER);
+
   /* Same for child frames.  */
   if (NILP (Fassq (Qchild_frame_border_width, parms)))
     {
       Lisp_Object value;
 
       value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
-                                   "childFrameBorderWidth", "childFrameBorderWidth",
+                                   "childFrameBorder", "childFrameBorder",
                                    RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qchild_frame_border_width, value),
@@ -1485,10 +1487,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   gui_default_parameter (f, parms, Qchild_frame_border_width,
 			 make_fixnum (0),
 			 "childFrameBorderWidth", "childFrameBorderWidth",
-			 RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qinternal_border_width,
-			 make_fixnum (0),
-			 "internalBorderWidth", "internalBorderWidth",
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
 			 NULL, NULL, RES_TYPE_NUMBER);

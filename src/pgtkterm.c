@@ -4957,7 +4957,8 @@ void
 pgtk_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0
-      && gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f)))
+      && (!FRAME_GTK_OUTER_WIDGET (f)
+	  || gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f))))
     {
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
