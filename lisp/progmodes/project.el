@@ -502,10 +502,12 @@ backend implementation of `project-external-roots'.")
 (declare-function vc-hg-command "vc-hg")
 
 (defun project--vc-list-files (dir backend extra-ignores)
+  (defvar vc-git-use-literal-pathspecs)
   (pcase backend
     (`Git
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            (args '("-z"))
+           (vc-git-use-literal-pathspecs nil)
            files)
        ;; Include unregistered.
        (setq args (append args '("-c" "-o" "--exclude-standard")))

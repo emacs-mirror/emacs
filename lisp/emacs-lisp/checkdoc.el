@@ -161,6 +161,7 @@
 
 ;;; Code:
 
+(require 'bytecomp)  ;; for byte-compile-docstring-max-column
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
