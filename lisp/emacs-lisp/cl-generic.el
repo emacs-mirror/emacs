@@ -604,7 +604,9 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
-      (gethash dispatch cl--generic-dispatchers)
+      ;; We need `copy-sequence` here because this `dispatch' object might be
+      ;; modified by side-effect in `cl-generic-define-method' (bug#46722).
+      (gethash (copy-sequence dispatch) cl--generic-dispatchers)
     ;; (message "cl--generic-get-dispatcher (%S)" dispatch)
     (let* ((dispatch-arg (car dispatch))
            (generalizers (cdr dispatch))
