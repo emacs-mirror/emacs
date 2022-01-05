@@ -481,23 +481,27 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 
 (defun repunctuate-sentences-filter (_start _end)
   "Search filter used by `repunctuate-sentences' to skip unneeded spaces.
-By default, it skips occurrences that already have two spaces.
-It is advised to put `advice-add' on this function to add more filters,
+By default, it skips occurrences that already have two spaces."
+  (/= 2 (- (point) (save-excursion (skip-chars-backward " ") (point)))))
+
+(defvar repunctuate-sentences-filter #'repunctuate-sentences-filter
+  "The default filter used by `repunctuate-sentences'.
+It is advised to use `add-function' on this to add more filters,
 for example, `(looking-back (rx (or \"e.g.\" \"i.e.\") \" \") 5)'
-with a set of predefined abbreviations to skip from adding two spaces."
-  (not (length= (match-string 4) 2)))
+with a set of predefined abbreviations to skip from adding two spaces.")
 
 (defun repunctuate-sentences (&optional no-query start end)
   "Put two spaces at the end of sentences from point to the end of buffer.
 It works using `query-replace-regexp'.  In Transient Mark mode,
 if the mark is active, operate on the contents of the region.
 Second and third arg START and END specify the region to operate on.
-If optional argument NO-QUERY is non-nil, make changes without
-asking for confirmation."
+If optional argument NO-QUERY is non-nil, make changes without asking
+for confirmation.  You can use `repunctuate-sentences-filter' to add
+filters to skip occurrences of spaces that don't need to be replaced."
   (interactive (list nil
                      (if (use-region-p) (region-beginning))
                      (if (use-region-p) (region-end))))
-  (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\)\\( +\\)")
+  (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
         (to-string "\\1\\2\\3  "))
     (if no-query
         (progn
@@ -507,10 +511,10 @@ asking for confirmation."
       (unwind-protect
           (progn
             (add-function :after-while isearch-filter-predicate
-                          #'repunctuate-sentences-filter)
+                          repunctuate-sentences-filter)
             (query-replace-regexp regexp to-string nil start end))
         (remove-function isearch-filter-predicate
-                         #'repunctuate-sentences-filter)))))
+                         repunctuate-sentences-filter)))))
 
 
 (defun backward-sentence (&optional arg)
