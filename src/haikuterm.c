@@ -1057,10 +1057,8 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	  if (!face->stipple)
 	    {
 	      uint32_t bkg;
-	      if (s->hl == DRAW_MOUSE_FACE || (s->hl == DRAW_CURSOR
-					       && s->row->mouse_face_p
-					       && cursor_in_mouse_face_p (s->w)))
-		  haiku_mouse_face_colors (s, NULL, &bkg);
+	      if (s->row->mouse_face_p && cursor_in_mouse_face_p (s->w))
+		haiku_mouse_face_colors (s, NULL, &bkg);
 	      else
 		bkg = face->background;
 
@@ -1087,9 +1085,7 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	{
 	  void *view = FRAME_HAIKU_VIEW (s->f);
 	  uint32_t bkg;
-	  if (s->hl == DRAW_MOUSE_FACE)
-	    haiku_mouse_face_colors (s, NULL, &bkg);
-	  else if (s->hl == DRAW_CURSOR)
+	  if (s->hl == DRAW_CURSOR)
 	    bkg = FRAME_CURSOR_COLOR (s->f).pixel;
 	  else
 	    bkg = s->face->background;
