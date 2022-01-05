@@ -3610,6 +3610,8 @@ kill_xwidget (struct xwidget *xw)
   xw->widget_osr = NULL;
   xw->widgetwindow_osr = NULL;
   xw->find_text = NULL;
+
+  catch_child_signal ();
 #elif defined NS_IMPL_COCOA
   nsxwidget_kill (xw);
 #endif
@@ -3630,4 +3632,6 @@ kill_buffer_xwidgets (Lisp_Object buffer)
 	kill_xwidget (xw);
       }
     }
+
+  catch_child_signal ();
 }

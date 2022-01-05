@@ -28,11 +28,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "blockinput.h"
 #include "systime.h"
+#include "process.h"
 
 static ptrdiff_t threads_holding_glib_lock;
 static GMainContext *glib_main_context;
 
-void release_select_lock (void)
+void
+release_select_lock (void)
 {
 #if GNUC_PREREQ (4, 7, 0)
   if (__atomic_sub_fetch (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
@@ -43,7 +45,8 @@ void release_select_lock (void)
 #endif
 }
 
-static void acquire_select_lock (GMainContext *context)
+static void
+acquire_select_lock (GMainContext *context)
 {
 #if GNUC_PREREQ (4, 7, 0)
   if (__atomic_fetch_add (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
@@ -181,6 +184,21 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 #else
   need_to_dispatch = true;
 #endif
+
+  /* xwidgets make heavy use of GLib subprocesses, which add their own
+     SIGCHLD handler at arbitrary locations.  That doesn't play well
+     with Emacs's own handler, so once GLib does its thing with its
+     subprocesses we restore our own SIGCHLD handler (which chains the
+     GLib handler) here.
+
+     There is an obvious race condition, but we can't really do
+     anything about that, except hope a SIGCHLD arrives soon to clear
+     up the situation.  */
+
+#ifdef HAVE_XWIDGETS
+  catch_child_signal ();
+#endif
+
   if (need_to_dispatch)
     {
       acquire_select_lock (context);
