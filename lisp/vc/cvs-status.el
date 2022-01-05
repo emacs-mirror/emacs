@@ -30,12 +30,11 @@
 
 (require 'cl-lib)
 (require 'pcvs)
-(require 'easy-mmode)
 
 ;;;
 
 (defvar-keymap cvs-status-mode-map
-  :parent     'cvs-mode-map
+  :parent     cvs-mode-map
   "n"         #'next-line
   "p"         #'previous-line
   "N"         #'cvs-status-next
