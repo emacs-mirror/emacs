@@ -397,7 +397,7 @@ ITEM is the item whose documentation to search: file name if
 TOPIC is `file', a symbol if TOPIC is `symbol', etc.
 MODE is the `major-mode' whose Info manuals to search for documentation
 of ITEM; if it's nil, the function uses `info-lookup-file-name-alist'
-andthe current buffer's file name to guess the mode.."
+and the current buffer's file name to guess the mode.."
   (or mode (setq mode (info-lookup-select-mode)))
   (setq mode (info-lookup--item-to-mode item mode))
   (if-let ((info (info-lookup->mode-value topic mode)))
