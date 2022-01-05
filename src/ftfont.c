@@ -189,6 +189,24 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     return Qnil;
   if (FcPatternGetInteger (p, FC_INDEX, 0, &idx) != FcResultMatch)
     return Qnil;
+#ifdef FC_VARIABLE
+  /* This is a virtual/meta FcPattern for a variable weight font, from
+     which it is possible to extract an FcRange value specifying the
+     minimum and maximum weights available in this file.  We don't
+     need to know that information explicitly, so skip it.  We will be
+     called with an FcPattern for each actually available, non-virtual
+     weight.
+
+     Fontconfig started generating virtual/meta patterns for variable
+     weight fonts in the same release that FC_VARIABLE was added, so
+     we conditionalize on that constant.  This also ensures that
+     FcPatternGetRange is available.  */
+  FcRange *range;
+  if (FcPatternGetRange (p, FC_WEIGHT, 0, &range) == FcResultMatch
+      && FcPatternGetBool (p, FC_VARIABLE, 0, &b) == FcResultMatch
+      && b == FcTrue)
+    return Qnil;
+#endif	/* FC_VARIABLE */
 
   file = (char *) str;
   key = Fcons (build_unibyte_string (file), make_fixnum (idx));
@@ -863,6 +881,9 @@ ftfont_list (struct frame *f, Lisp_Object spec)
 #if defined HAVE_XFT && defined FC_COLOR
                              FC_COLOR,
 #endif
+#ifdef FC_VARIABLE
+			     FC_VARIABLE,
+#endif	/* FC_VARIABLE */
 			     NULL);
   if (! objset)
     goto err;
