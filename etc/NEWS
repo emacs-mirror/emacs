@@ -1949,6 +1949,13 @@ String or list of strings specifying switches for Git log under VC.
 If you are still using it with any regularity, please file a bug
 report with some details.
 
+---
+*** New variable 'vc-git-use-literal-pathspecs'.
+The Git backend's function now treat all file names "literally", where
+some of them previously could interpret file names (pathspecs) as
+globs when they contain appropriate characters.  Functions can bind
+the aforementioned variable to nil locally to avoid this.
+
 ** Gnus
 
 +++

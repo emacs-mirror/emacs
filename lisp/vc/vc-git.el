@@ -223,6 +223,12 @@ included in the completions."
 ;; History of Git commands.
 (defvar vc-git-history nil)
 
+;; Default to t because commands which don't support literal pathspecs
+;; ignore the environment variable silently.
+(defvar vc-git-use-literal-pathspecs t
+  "Non-nil to treat pathspecs in commands literally.
+Good example of file name that needs this: \"test[56].xx\".")
+
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
 (put 'Git 'vc-functions nil)
@@ -242,20 +248,6 @@ included in the completions."
 ;;;###autoload         (load "vc-git" nil t)
 ;;;###autoload         (vc-git-registered file))))
 
-;; Good example of file name that needs this: "test[56].xx".
-(defun vc-git--literal-pathspec (file)
-  "Prepend :(literal) path magic to FILE."
-  (when file
-    ;; Expand abbreviated file names.
-    (when (file-name-absolute-p file)
-      (setq file (expand-file-name file)))
-    (concat ":(literal)" (file-local-name file))))
-
-(defun vc-git--literal-pathspecs (files)
-  "Prepend :(literal) path magic to FILES."
-  (unless (vc-git--file-list-is-rootdir files)
-    (mapcar #'vc-git--literal-pathspec files)))
-
 (defun vc-git-registered (file)
   "Check whether FILE is registered with git."
   (let ((dir (vc-git-root file)))
@@ -269,12 +261,12 @@ included in the completions."
                (name (file-relative-name file dir))
                (str (with-demoted-errors "Error: %S"
                       (cd dir)
-                      (vc-git--out-ok "ls-files" "-c" "-z" "--" (vc-git--literal-pathspec name))
+                      (vc-git--out-ok "ls-files" "-c" "-z" "--" name)
                       ;; If result is empty, use ls-tree to check for deleted
                       ;; file.
                       (when (eq (point-min) (point-max))
                         (vc-git--out-ok "ls-tree" "--name-only" "-z" "HEAD"
-                                        "--" (vc-git--literal-pathspec name)))
+                                        "--" name))
                       (buffer-string))))
           (and str
                (> (length str) (length name))
@@ -356,7 +348,7 @@ in the order given by `git status'."
             ,@(when (version<= "1.7.6.3" (vc-git--program-version))
                 '("--ignored"))
             "--"))
-        (status (apply #'vc-git--run-command-string (vc-git--literal-pathspec file) args)))
+        (status (apply #'vc-git--run-command-string file args)))
     (if (null status)
         ;; If status is nil, there was an error calling git, likely because
         ;; the file is not in a git repo.
@@ -634,28 +626,28 @@ or an empty string if none."
     (pcase (vc-git-dir-status-state->stage git-state)
       ('update-index
        (if files
-           (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files) "add" "--refresh" "--")
+           (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
          (vc-git-command (current-buffer) 'async nil
                          "update-index" "--refresh")))
       ('ls-files-added
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-c" "-s" "--"))
       ('ls-files-up-to-date
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-c" "-s" "--"))
       ('ls-files-conflict
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-u" "--"))
       ('ls-files-unknown
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-o" "--exclude-standard" "--"))
       ('ls-files-ignored
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-o" "-i" "--directory"
                        "--no-empty-directory" "--exclude-standard" "--"))
       ;; --relative added in Git 1.5.5.
       ('diff-index
-       (vc-git-command (current-buffer) 'async (vc-git--literal-pathspecs files)
+       (vc-git-command (current-buffer) 'async files
                        "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
     (vc-run-delayed
       (vc-git-after-dir-status-stage git-state))))
@@ -883,12 +875,12 @@ The car of the list is the current branch."
     (when flist
       (vc-git-command nil 0 flist "update-index" "--add" "--"))
     (when dlist
-      (vc-git-command nil 0 (vc-git--literal-pathspecs dlist) "add"))))
+      (vc-git-command nil 0 dlist "add"))))
 
 (defalias 'vc-git-responsible-p #'vc-git-root)
 
 (defun vc-git-unregister (file)
-  (vc-git-command nil 0 (vc-git--literal-pathspec file) "rm" "-f" "--cached" "--"))
+  (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
 
 (declare-function log-edit-mode "log-edit" ())
 (declare-function log-edit-toggle-header "log-edit" (header value))
@@ -954,7 +946,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
                (lambda (value) (when (equal value "yes") (list argument)))))
       ;; When operating on the whole tree, better pass "-a" than ".", since "."
       ;; fails when we're committing a merge.
-      (apply #'vc-git-command nil 0 (if only (vc-git--literal-pathspecs files))
+      (apply #'vc-git-command nil 0 (if only files)
              (nconc (if msg-file (list "commit" "-F"
                                        (file-local-name msg-file))
                       (list "commit" "-m"))
@@ -981,7 +973,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
 	 (coding-system-for-write 'binary)
 	 (fullname
 	  (let ((fn (vc-git--run-command-string
-		     (vc-git--literal-pathspec file) "ls-files" "-z" "--full-name" "--")))
+		     file "ls-files" "-z" "--full-name" "--")))
 	    ;; ls-files does not return anything when looking for a
 	    ;; revision of a file that has been renamed or removed.
 	    (if (string= fn "")
@@ -998,14 +990,14 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
 		    (vc-git-root file)))
 
 (defun vc-git-checkout (file &optional rev)
-  (vc-git-command nil 0 (vc-git--literal-pathspec file) "checkout" (or rev "HEAD")))
+  (vc-git-command nil 0 file "checkout" (or rev "HEAD")))
 
 (defun vc-git-revert (file &optional contents-done)
   "Revert FILE to the version stored in the git repository."
   (if contents-done
       (vc-git-command nil 0 file "update-index" "--")
-    (vc-git-command nil 0 (vc-git--literal-pathspec file) "reset" "-q" "--")
-    (vc-git-command nil nil (vc-git--literal-pathspec file) "checkout" "-q" "--")))
+    (vc-git-command nil 0 file "reset" "-q" "--")
+    (vc-git-command nil nil file "checkout" "-q" "--")))
 
 (defvar vc-git-error-regexp-alist
   '(("^ \\(.+\\)\\> *|" 1 nil nil 0))
@@ -1089,7 +1081,7 @@ This prompts for a branch to merge from."
 (defun vc-git-conflicted-files (directory)
   "Return the list of files with conflicts in DIRECTORY."
   (let* ((status
-          (vc-git--run-command-string (vc-git--literal-pathspec directory) "status" "--porcelain" "--"))
+          (vc-git--run-command-string directory "status" "--porcelain" "--"))
          (lines (when status (split-string status "\n" 'omit-nulls)))
          files)
     (dolist (line lines files)
@@ -1178,7 +1170,7 @@ If LIMIT is a revision string, use it as an end-revision."
     (let ((inhibit-read-only t))
       (with-current-buffer buffer
 	(apply #'vc-git-command buffer
-	       'async (vc-git--literal-pathspecs files)
+	       'async files
 	       (append
 		'("log" "--no-color")
                 (when (and vc-git-print-log-follow
@@ -1432,7 +1424,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
 	       1 ; bug#21969
-	       (vc-git--literal-pathspecs files)
+               files
                command
                "--exit-code"
                (append (vc-switches 'git 'diff)
@@ -1517,7 +1509,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (let* ((fname (file-relative-name file))
              (prev-rev (with-temp-buffer
                          (and
-                          (vc-git--out-ok "rev-list" "-2" rev "--" (vc-git--literal-pathspec fname))
+                          (vc-git--out-ok "rev-list" "-2" rev "--" fname)
                           (goto-char (point-max))
                           (bolp)
                           (zerop (forward-line -1))
@@ -1545,7 +1537,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
          (current-rev
           (with-temp-buffer
             (and
-             (vc-git--out-ok "rev-list" "-1" rev "--" (vc-git--literal-pathspec file))
+             (vc-git--out-ok "rev-list" "-1" rev "--" file)
              (goto-char (point-max))
              (bolp)
              (zerop (forward-line -1))
@@ -1557,7 +1549,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
           (and current-rev
                (with-temp-buffer
                  (and
-                  (vc-git--out-ok "rev-list" "HEAD" "--" (vc-git--literal-pathspec file))
+                  (vc-git--out-ok "rev-list" "HEAD" "--" file)
                   (goto-char (point-min))
                   (search-forward current-rev nil t)
                   (zerop (forward-line -1))
@@ -1567,13 +1559,13 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (or (vc-git-symbolic-commit next-rev) next-rev)))
 
 (defun vc-git-delete-file (file)
-  (vc-git-command nil 0 (vc-git--literal-pathspec file) "rm" "-f" "--"))
+  (vc-git-command nil 0 file "rm" "-f" "--"))
 
 (defun vc-git-rename-file (old new)
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 (defun vc-git-mark-resolved (files)
-  (vc-git-command nil 0 (vc-git--literal-pathspecs files) "add"))
+  (vc-git-command nil 0 files "add"))
 
 (defvar vc-git-extra-menu-map
   (let ((map (make-sparse-keymap)))
@@ -1796,6 +1788,8 @@ The difference to vc-do-command is that this function always invokes
         (process-environment
          (append
           `("GIT_DIR"
+            ,@(when vc-git-use-literal-pathspecs
+                '("GIT_LITERAL_PATHSPECS=1"))
             ;; Avoid repository locking during background operations
             ;; (bug#21559).
             ,@(when revert-buffer-in-progress-p
@@ -1833,6 +1827,8 @@ The difference to vc-do-command is that this function always invokes
 	(process-environment
 	 (append
 	  `("GIT_DIR"
+            ,@(when vc-git-use-literal-pathspecs
+                '("GIT_LITERAL_PATHSPECS=1"))
 	    ;; Avoid repository locking during background operations
 	    ;; (bug#21559).
 	    ,@(when revert-buffer-in-progress-p
