@@ -983,13 +983,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
       s->background_filled_p = 1;
     }
 
-  if (s->left_overhang && s->clip_head && !s->for_overlaps)
-    {
-      /* XXX: Why is this neccessary? */
-      BView_ClipToRect (view, s->clip_head->x, 0,
-			FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
-    }
-
   if (s->hl == DRAW_CURSOR)
     BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
   else

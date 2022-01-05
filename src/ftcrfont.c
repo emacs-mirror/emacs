@@ -545,13 +545,6 @@ ftcrfont_draw (struct glyph_string *s,
       return 0;
     }
   BView_cr_dump_clipping (FRAME_HAIKU_VIEW (f), cr);
-
-  if (s->left_overhang && s->clip_head && !s->for_overlaps)
-    {
-      cairo_rectangle (cr, s->clip_head->x, 0,
-		       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
-      cairo_clip (cr);
-    }
 #endif
 
   if (with_background)

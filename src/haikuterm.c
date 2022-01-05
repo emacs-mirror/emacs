@@ -145,15 +145,32 @@ haiku_clip_to_string (struct glyph_string *s)
   int n = get_glyph_string_clip_rects (s, (struct haiku_rect *) &r, 2);
 
   if (n)
-    BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[0].x, r[0].y,
-		      r[0].width, r[0].height);
-  if (n > 1)
     {
-      BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[1].x, r[1].y,
-			r[1].width, r[1].height);
+      /* If n[FOO].width is 0, it means to not draw at all, so set the
+	 clipping to some impossible value.  */
+      if (r[0].width <= 0)
+	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f),
+			  FRAME_PIXEL_WIDTH (s->f),
+			  FRAME_PIXEL_HEIGHT (s->f),
+			  10, 10);
+      else
+	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[0].x,
+			  r[0].y, r[0].width, r[0].height);
     }
 
-  s->num_clips = n;
+  if (n > 1)
+    {
+      /* If n[FOO].width is 0, it means to not draw at all, so set the
+	 clipping to some impossible value.  */
+      if (r[1].width <= 0)
+	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f),
+			  FRAME_PIXEL_WIDTH (s->f),
+			  FRAME_PIXEL_HEIGHT (s->f),
+			  10, 10);
+      else
+	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[1].x, r[1].y,
+			  r[1].width, r[1].height);
+    }
 }
 
 static void
@@ -161,7 +178,6 @@ haiku_clip_to_string_exactly (struct glyph_string *s, struct glyph_string *dst)
 {
   BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), s->x, s->y,
 		    s->width, s->height);
-  dst->num_clips = 1;
 }
 
 static void
@@ -1468,7 +1484,6 @@ haiku_draw_glyph_string (struct glyph_string *s)
 	      haiku_maybe_draw_background (s->next, 1);
             else
 	      haiku_draw_stretch_glyph_string (s->next);
-            next->num_clips = 0;
 	    haiku_end_clip (s);
           }
     }
@@ -1486,9 +1501,13 @@ haiku_draw_glyph_string (struct glyph_string *s)
       box_filled_p = 1;
       haiku_draw_string_box (s, 0);
     }
-  else if (!s->clip_head && !s->clip_tail &&
-	   ((s->prev && s->left_overhang && s->prev->hl != s->hl) ||
-	    (s->next && s->right_overhang && s->next->hl != s->hl)))
+  else if (!s->clip_head /* draw_glyphs didn't specify a clip mask. */
+	   && !s->clip_tail
+	   && ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	       || (s->next && s->next->hl != s->hl && s->right_overhang)))
+    /* We must clip just this glyph.  left_overhang part has already
+       drawn when s->prev was drawn, and right_overhang part will be
+       drawn later when s->next is drawn. */
     haiku_clip_to_string_exactly (s, s);
   else
     haiku_clip_to_string (s);
@@ -1526,15 +1545,18 @@ haiku_draw_glyph_string (struct glyph_string *s)
 	haiku_maybe_draw_background (s, 1);
       haiku_draw_glyphless_glyph_string_foreground (s);
       break;
+    default:
+      emacs_abort ();
     }
-
-  if (!box_filled_p && face->box != FACE_NO_BOX)
-    haiku_draw_string_box (s, 1);
-  else
-    haiku_draw_text_decoration (s, face, face->foreground, s->width, s->x);
 
   if (!s->for_overlaps)
     {
+      if (!box_filled_p && face->box != FACE_NO_BOX)
+	haiku_draw_string_box (s, 1);
+      else
+	haiku_draw_text_decoration (s, face, face->foreground,
+				    s->width, s->x);
+
       if (s->prev)
 	{
 	  struct glyph_string *prev;
@@ -1546,11 +1568,10 @@ haiku_draw_glyph_string (struct glyph_string *s)
 		/* As prev was drawn while clipped to its own area, we
 		   must draw the right_overhang part using s->hl now.  */
 		enum draw_glyphs_face save = prev->hl;
-		struct face *save_face = prev->face;
 
 		prev->hl = s->hl;
-		prev->face = s->face;
 		haiku_start_clip (s);
+		haiku_clip_to_string (s);
 		haiku_clip_to_string_exactly (s, prev);
 		if (prev->first_glyph->type == CHAR_GLYPH)
 		  haiku_draw_glyph_string_foreground (prev);
@@ -1558,8 +1579,6 @@ haiku_draw_glyph_string (struct glyph_string *s)
 		  haiku_draw_composite_glyph_string_foreground (prev);
 		haiku_end_clip (s);
 		prev->hl = save;
-		prev->face = save_face;
-		prev->num_clips = 0;
 	      }
 	}
 
@@ -1574,11 +1593,10 @@ haiku_draw_glyph_string (struct glyph_string *s)
 		/* As next will be drawn while clipped to its own area,
 		   we must draw the left_overhang part using s->hl now.  */
 		enum draw_glyphs_face save = next->hl;
-		struct face *save_face = next->face;
 
 		next->hl = s->hl;
-		next->face = s->face;
 		haiku_start_clip (s);
+		haiku_clip_to_string (s);
 		haiku_clip_to_string_exactly (s, next);
 		if (next->first_glyph->type == CHAR_GLYPH)
 		  haiku_draw_glyph_string_foreground (next);
@@ -1586,15 +1604,11 @@ haiku_draw_glyph_string (struct glyph_string *s)
 		  haiku_draw_composite_glyph_string_foreground (next);
 		haiku_end_clip (s);
 
-		next->background_filled_p = 0;
 		next->hl = save;
-		next->face = save_face;
-		next->clip_head = next;
-		next->num_clips = 0;
+		next->clip_head = s->next;
 	      }
 	}
     }
-  s->num_clips = 0;
   haiku_end_clip (s);
   unblock_input ();
 }
