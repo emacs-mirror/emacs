@@ -94,7 +94,10 @@ HELP-DATA is a HELP-TOPIC's public data set.
 
     (HELP-MODE REGEXP IGNORE-CASE DOC-SPEC PARSE-RULE OTHER-MODES)
 
-HELP-MODE is a mode's symbol.
+HELP-MODE is either a mode's symbol, or a cons cell of the
+form (HELP-MODE . SYMBOL-PREFIX), where SYMBOL-PREFIX is the
+prefix (the part up to the first dash) of names of symbols whose
+documentation is specified by DOC-SPEC.
 REGEXP is a regular expression matching those help items whose
  documentation can be looked up via DOC-SPEC.
 IGNORE-CASE is non-nil if help items are case insensitive.
@@ -159,8 +162,10 @@ KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
   doing so at load time, this is done when the user asks for info on
   the mode in question.
 
-ARGUMENT has a value as explained in the documentation of the
- variable `info-lookup-alist'.
+ARGUMENT is the value corresponding to KEYWORD.  The meaning of the values
+is explained in the documentation of the variable `info-lookup-alist': for
+example, the value corresponding to `:topic' is documented as HELP-TOPIC,
+the value of `:mode' as HELP-MODE, etc..
 
 If no topic or mode option has been specified, then the help topic defaults
 to `symbol', and the help mode defaults to the current major mode."
@@ -276,14 +281,19 @@ system."
 ;;;###autoload (put 'info-lookup-symbol 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-symbol (symbol &optional mode)
-  "Display the definition of SYMBOL, as found in the relevant manual.
-When this command is called interactively, it reads SYMBOL from the
-minibuffer.  In the minibuffer, use \\<minibuffer-local-completion-map>\
-\\[next-history-element] to yank the default argument
-value into the minibuffer so you can edit it.  The default symbol is the
-one found at point.
+  "Look up and display documentation of SYMBOL in the relevant Info manual.
+SYMBOL should be an identifier: a function or method, a macro, a variable,
+a data type, a class, etc.
 
-With prefix arg MODE a query for the symbol help mode is offered."
+Interactively, prompt for SYMBOL; you can use \\<minibuffer-local-completion-map>\\[next-history-element] in the minibuffer
+to yank the default argument value into the minibuffer so you can edit it.
+The default symbol is the one found at point.
+
+MODE is the major mode whose Info manuals to search for the documentation
+of SYMBOL.  It defaults to the current buffer's `major-mode'; if that
+mode doesn't have any Info manuals known to Emacs, the command will
+prompt for MODE to use, with completion.  With prefix arg, the command
+always prompts for MODE."
   (interactive
    (info-lookup-interactive-arguments 'symbol current-prefix-arg))
   (info-lookup 'symbol symbol mode))
@@ -291,20 +301,28 @@ With prefix arg MODE a query for the symbol help mode is offered."
 ;;;###autoload (put 'info-lookup-file 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-file (file &optional mode)
-  "Display the documentation of a file.
-When this command is called interactively, it reads FILE from the minibuffer.
-In the minibuffer, use \\<minibuffer-local-completion-map>\
-\\[next-history-element] to yank the default file name
-into the minibuffer so you can edit it.
+  "Look up and display documentation of FILE in the relevant Info manual.
+FILE should be the name of a file; a notable example is a standard header
+file that is part of the C or C++ standard library.
+
+Interactively, prompt for FILE; you can use \\<minibuffer-local-completion-map>\\[next-history-element] in the minibuffer
+to yank the default argument value into the minibuffer so you can edit it.
 The default file name is the one found at point.
 
-With prefix arg MODE a query for the file help mode is offered."
+MODE is the major mode whose Info manuals to search for the documentation
+of FILE.  It defaults to the current buffer's `major-mode'; if that
+mode doesn't have any Info manuals known to Emacs, the command will
+prompt for MODE to use, with completion.  With prefix arg, the command
+always prompts for MODE."
   (interactive
    (info-lookup-interactive-arguments 'file current-prefix-arg))
   (info-lookup 'file file mode))
 
 (defun info-lookup-interactive-arguments (topic &optional query)
-  "Read and return argument value (and help mode) for help topic TOPIC.
+  "Read and return argument value (and help mode) for help TOPIC.
+TOPIC should be any known symbol of a help topic, such as `file'
+or `symbol'.  See the documentation of HELP-TOPIC in the doc
+string of `info-lookup-alist'.
 If optional argument QUERY is non-nil, query for the help mode."
   (let* ((mode (cond (query
 		      (info-lookup-change-mode topic))
@@ -347,7 +365,10 @@ If optional argument QUERY is non-nil, query for the help mode."
 
 (defun info-lookup-change-mode (topic)
   (let* ((completions (mapcar (lambda (arg)
-				(cons (symbol-name (car arg)) (car arg)))
+                                (let ((mode-spec (car arg)))
+                                  (and (consp mode-spec)
+                                       (setq mode-spec (car mode-spec)))
+				  (cons (symbol-name mode-spec) mode-spec)))
 			      (info-lookup->topic-value topic)))
 	 (mode (completing-read
 		(format "Use %s help mode: " topic)
@@ -368,7 +389,15 @@ If optional argument QUERY is non-nil, query for the help mode."
       mode)))
 
 (defun info-lookup (topic item mode)
-  "Display the documentation of a help item."
+  "Display the documentation of TOPIC whose name is ITEM, using MODE's manuals.
+TOPIC should be any known symbol of a help topic type, such as `file'
+or `symbol'.  See the documentation of HELP-TOPIC in the doc
+string of `info-lookup-alist'.
+ITEM is the item whose documentation to search: file name if
+TOPIC is `file', a symbol if TOPIC is `symbol', etc.
+MODE is the `major-mode' whose Info manuals to search for documentation
+of ITEM; if it's nil, the function uses `info-lookup-file-name-alist'
+andthe current buffer's file name to guess the mode.."
   (or mode (setq mode (info-lookup-select-mode)))
   (setq mode (info-lookup--item-to-mode item mode))
   (if-let ((info (info-lookup->mode-value topic mode)))
