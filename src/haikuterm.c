@@ -413,6 +413,7 @@ haiku_draw_box_rect (struct glyph_string *s,
   struct face *face = s->face;
 
   BView_StartClip (view);
+  haiku_clip_to_string (s);
   BView_SetHighColor (view, face->box_color);
   if (clip_rect)
     BView_ClipToRect (view, clip_rect->x, clip_rect->y, clip_rect->width,
@@ -468,7 +469,7 @@ haiku_draw_relief_rect (struct glyph_string *s,
 
   void *view = FRAME_HAIKU_VIEW (s->f);
   BView_StartClip (view);
-
+  haiku_clip_to_string (s);
   BView_SetHighColor (view, raised_p ? color_white : color_black);
   if (clip_rect)
     BView_ClipToRect (view, clip_rect->x, clip_rect->y, clip_rect->width,
@@ -550,6 +551,7 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
   void *view = FRAME_HAIKU_VIEW (s->f);
 
   BView_StartClip (view);
+  haiku_clip_to_string (s);
   BView_ClipToRect (view, x, y, width, wave_height);
   ax = x - ((int) (x) % dx) + (float) 0.5;
   bx = ax + dx;
@@ -581,6 +583,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
   void *view = FRAME_HAIKU_VIEW (s->f);
   BView_draw_lock (view);
   BView_StartClip (view);
+  haiku_clip_to_string (s);
 
   if (face->underline)
     {
@@ -805,7 +808,6 @@ haiku_draw_plain_background (struct glyph_string *s, struct face *face,
 			     int box_line_hwidth, int box_line_vwidth)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
-  BView_StartClip (view);
   if (s->hl == DRAW_CURSOR)
     BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
   else
@@ -817,7 +819,6 @@ haiku_draw_plain_background (struct glyph_string *s, struct face *face,
 		       s->y + box_line_hwidth,
 		       s->background_width,
 		       s->height - 2 * box_line_hwidth);
-  BView_EndClip (view);
 }
 
 static void
@@ -893,7 +894,6 @@ haiku_draw_glyph_string_foreground (struct glyph_string *s)
 
   if (s->font_not_found_p)
     {
-      BView_StartClip (view);
       if (s->hl == DRAW_CURSOR)
 	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
       else
@@ -905,7 +905,6 @@ haiku_draw_glyph_string_foreground (struct glyph_string *s)
 				 s->height);
 	  x += g->pixel_width;
 	}
-      BView_EndClip (view);
     }
   else
     {
@@ -996,13 +995,11 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				 s->ybase + glyph->slice.glyphless.lower_yoff,
 				 false);
 	}
-      BView_StartClip (FRAME_HAIKU_VIEW (s->f));
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
 	BView_FillRectangle (FRAME_HAIKU_VIEW (s->f),
 			     x, s->ybase - glyph->ascent,
 			     glyph->pixel_width - 1,
 			     glyph->ascent + glyph->descent - 1);
-      BView_EndClip (FRAME_HAIKU_VIEW (s->f));
       x += glyph->pixel_width;
    }
 }
@@ -1044,10 +1041,8 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	x -= width;
 
       void *view = FRAME_HAIKU_VIEW (s->f);
-      BView_StartClip (view);
       BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
       BView_FillRectangle (view, x, s->y, width, s->height);
-      BView_EndClip (view);
 
       if (width < background_width)
 	{
@@ -1069,10 +1064,8 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	      else
 		bkg = face->background;
 
-	      BView_StartClip (view);
 	      BView_SetHighColor (view, bkg);
 	      BView_FillRectangle (view, x, y, w, h);
-	      BView_EndClip (view);
 	    }
 	}
     }
@@ -1093,7 +1086,6 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
       if (background_width > 0)
 	{
 	  void *view = FRAME_HAIKU_VIEW (s->f);
-	  BView_StartClip (view);
 	  uint32_t bkg;
 	  if (s->hl == DRAW_MOUSE_FACE)
 	    haiku_mouse_face_colors (s, NULL, &bkg);
@@ -1104,7 +1096,6 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 
 	  BView_SetHighColor (view, bkg);
 	  BView_FillRectangle (view, x, s->y, background_width, s->height);
-	  BView_EndClip (view);
 	}
     }
   s->background_filled_p = 1;
@@ -1183,13 +1174,11 @@ haiku_draw_composite_glyph_string_foreground (struct glyph_string *s)
 
   if (s->font_not_found_p && !s->cmp_from)
     {
-      BView_StartClip (view);
       if (s->hl == DRAW_CURSOR)
 	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
       else
 	BView_SetHighColor (view, s->face->foreground);
       BView_StrokeRectangle (view, s->x, s->y, s->width - 1, s->height - 1);
-      BView_EndClip (view);
     }
   else if (!s->first_glyph->u.cmp.automatic)
     {
@@ -1379,12 +1368,8 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 
   s->stippled_p = face->stipple != 0;
 
-  BView_draw_lock (view);
-  BView_StartClip (view);
   BView_SetHighColor (view, face->background);
   BView_FillRectangle (view, x, y, width, height);
-  BView_EndClip (view);
-  BView_draw_unlock (view);
 
   if (bitmap)
     {
@@ -1416,10 +1401,6 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 
       if (gui_intersect_rectangles (&cr, &ir, &r))
 	{
-	  BView_draw_lock (view);
-	  BView_StartClip (view);
-
-	  haiku_clip_to_string (s);
 	  if (s->img->have_be_transforms_p)
 	    {
 	      bitmap = BBitmap_transform_bitmap (bitmap,
@@ -1448,19 +1429,13 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 
 	  if (s->img->have_be_transforms_p)
 	    BBitmap_free (bitmap);
-	  BView_EndClip (view);
-	  BView_draw_unlock (view);
 	}
 
       if (s->hl == DRAW_CURSOR)
 	{
-	  BView_draw_lock (view);
-	  BView_StartClip (view);
 	  BView_SetPenSize (view, 1);
 	  BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
 	  BView_StrokeRectangle (view, r.x, r.y, r.width, r.height);
-	  BView_EndClip (view);
-	  BView_draw_unlock (view);
 	}
     }
 

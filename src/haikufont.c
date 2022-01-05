@@ -956,7 +956,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
   prepare_face_for_display (s->f, face);
 
   BView_draw_lock (view);
-  BView_StartClip (view);
   if (with_background)
     {
       int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
@@ -1022,7 +1021,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
       BView_DrawString (view, b, b_len);
       xfree (b);
     }
-  BView_EndClip (view);
   BView_draw_unlock (view);
   unblock_input ();
   return 1;
