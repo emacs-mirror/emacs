@@ -150,7 +150,7 @@ commands.")
   "M-s a C-o"   #'Buffer-menu-multi-occur
 
   "<mouse-2>"     #'Buffer-menu-mouse-select
-  "<follow-link>" #'mouse-face)
+  "<follow-link>" 'mouse-face)
 
 (easy-menu-define Buffer-menu-mode-menu Buffer-menu-mode-map
   "Menu for `Buffer-menu-mode' buffers."
