@@ -2934,21 +2934,27 @@ setup_xi_event_mask (struct frame *f)
 
   XISetMask (m, XI_ButtonPress);
   XISetMask (m, XI_ButtonRelease);
-  XISetMask (m, XI_KeyPress);
-  XISetMask (m, XI_KeyRelease);
   XISetMask (m, XI_Motion);
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
-#if 0
-  XISetMask (m, XI_FocusIn);
-  XISetMask (m, XI_FocusOut);
-#endif
+  XISetMask (m, XI_KeyPress);
+  XISetMask (m, XI_KeyRelease);
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
 
   memset (m, 0, l);
 #endif /* !USE_GTK */
+
+#ifdef USE_X_TOOLKIT
+  XISetMask (m, XI_KeyPress);
+  XISetMask (m, XI_KeyRelease);
+
+  XISelectEvents (FRAME_X_DISPLAY (f),
+		  FRAME_OUTER_WINDOW (f),
+		  &mask, 1);
+  memset (m, 0, l);
+#endif
 
   mask.deviceid = XIAllDevices;
 
@@ -3140,11 +3146,6 @@ x_window (struct frame *f, long window_prompting)
   class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (FRAME_X_DISPLAY (f), XtWindow (shell_widget), &class_hints);
 
-#ifdef HAVE_XINPUT2
-  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    setup_xi_event_mask (f);
-#endif
-
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
   if (use_xim)
@@ -3232,6 +3233,11 @@ x_window (struct frame *f, long window_prompting)
   /* This is a no-op, except under Motif.  Make sure main areas are
      set to something reasonable, in case we get an error later.  */
   lw_set_main_areas (pane_widget, 0, frame_widget);
+
+#ifdef HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    setup_xi_event_mask (f);
+#endif
 }
 
 #else /* not USE_X_TOOLKIT */
