@@ -169,6 +169,10 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   cairo_matrix_init_scale (&font_matrix, pixel_size, pixel_size);
   cairo_matrix_init_identity (&ctm);
   cairo_font_options_t *options = cairo_font_options_create ();
+#ifdef USE_BE_CAIRO
+  if (be_use_subpixel_antialiasing ())
+    cairo_font_options_set_antialias (options, CAIRO_ANTIALIAS_SUBPIXEL);
+#endif
   cairo_scaled_font_t *scaled_font
     = cairo_scaled_font_create (font_face, &font_matrix, &ctm, options);
   cairo_font_face_destroy (font_face);

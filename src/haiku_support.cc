@@ -112,6 +112,10 @@ static BLocker child_frame_lock;
 
 static BLocker movement_locker;
 
+/* This could be a private API, but it's used by (at least) the Qt
+   port, so it's probably here to stay.  */
+extern status_t get_subpixel_antialiasing (bool *);
+
 extern "C"
 {
   extern _Noreturn void emacs_abort (void);
@@ -3042,4 +3046,15 @@ BWindow_is_active (void *window)
 {
   BWindow *w = (BWindow *) window;
   return w->IsActive ();
+}
+
+bool
+be_use_subpixel_antialiasing (void)
+{
+  bool current_subpixel_antialiasing;
+
+  if (get_subpixel_antialiasing (&current_subpixel_antialiasing) != B_OK)
+    return false;
+
+  return current_subpixel_antialiasing;
 }

@@ -853,6 +853,9 @@ extern "C"
   extern bool
   BWindow_is_active (void *window);
 
+  extern bool
+  be_use_subpixel_antialiasing (void);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);
