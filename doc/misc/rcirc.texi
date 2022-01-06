@@ -935,7 +935,7 @@ how to include the date in the time stamp:
 
 @findex rcirc-when
 If you don't wish to use verbose time formatting all the time, you can
-use the @code{rcirc-when} command to printing a complete timestamp for
+use the @code{rcirc-when} command to display a complete timestamp for
 the message at point.
 
 @node Defining a new command

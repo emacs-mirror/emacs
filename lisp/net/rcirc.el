@@ -2048,7 +2048,7 @@ connection."
                             process sender response target text)))))
 
 (defun rcirc-when ()
-  "Print a message when the message at point was received."
+  "Show the time of reception of the message at point."
   (interactive)
   (if-let (time (get-text-property (point) 'rcirc-time))
       (message (format-time-string "%c" time))
