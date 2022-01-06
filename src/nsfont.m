@@ -1222,22 +1222,10 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   /* render under GNUstep using DPS */
   {
     NSGraphicsContext *context = [NSGraphicsContext currentContext];
-    DPSgsave (context);
-    if (s->clip_head)
-      {
-	DPSrectclip (context, s->clip_head->x, 0,
-		     FRAME_PIXEL_WIDTH (s->f),
-		     FRAME_PIXEL_HEIGHT (s->f));
-      }
     [font->nsfont set];
-
     [col set];
-
     DPSmoveto (context, r.origin.x, r.origin.y);
     GSShowGlyphs (context, c, len);
-    DPSstroke (context);
-
-    DPSgrestore (context);
   }
 
   unblock_input ();

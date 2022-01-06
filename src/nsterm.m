@@ -4063,19 +4063,22 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    /* As prev was drawn while clipped to its own area, we
 	       must draw the right_overhang part using s->hl now.  */
 	    enum draw_glyphs_face save = prev->hl;
-	    struct face *save_face = prev->face;
 
-	    prev->face = s->face;
+	    prev->hl = s->hl;
 	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
 	    [[NSGraphicsContext currentContext] saveGraphicsState];
 	    NSRectClip (r);
+	    if (n)
+	      NSRectClip (rc);
 #ifdef NS_IMPL_GNUSTEP
 	    DPSgsave ([NSGraphicsContext currentContext]);
 	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
 			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
 #endif
-	    prev->num_clips = 1;
-	    prev->hl = s->hl;
 	    if (prev->first_glyph->type == CHAR_GLYPH)
 	      ns_draw_glyph_string_foreground (prev);
 	    else
@@ -4085,8 +4088,6 @@ ns_draw_glyph_string (struct glyph_string *s)
 #endif
 	    [[NSGraphicsContext currentContext] restoreGraphicsState];
 	    prev->hl = save;
-	    prev->face = save_face;
-	    prev->num_clips = 0;
 	  }
       ns_unfocus (s->f);
     }
@@ -4103,19 +4104,21 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    /* As next will be drawn while clipped to its own area,
 	       we must draw the left_overhang part using s->hl now.  */
 	    enum draw_glyphs_face save = next->hl;
-	    struct face *save_face = next->face;
 
 	    next->hl = s->hl;
-	    next->face = s->face;
 	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
 	    [[NSGraphicsContext currentContext] saveGraphicsState];
 	    NSRectClip (r);
+	    NSRectClip (rc);
 #ifdef NS_IMPL_GNUSTEP
 	    DPSgsave ([NSGraphicsContext currentContext]);
 	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
 			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
 #endif
-	    next->num_clips = 1;
 	    if (next->first_glyph->type == CHAR_GLYPH)
 	      ns_draw_glyph_string_foreground (next);
 	    else
@@ -4125,10 +4128,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 #endif
 	    [[NSGraphicsContext currentContext] restoreGraphicsState];
 	    next->hl = save;
-	    next->num_clips = 0;
-	    next->face = save_face;
-	    next->clip_head = next;
-	    next->background_filled_p = 0;
+	    next->clip_head = s->next;
 	  }
       ns_unfocus (s->f);
     }
