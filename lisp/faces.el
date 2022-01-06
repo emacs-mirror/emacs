@@ -686,8 +686,10 @@ and `?' are allowed.
 
 VALUE specifies the relative proportionate width of the font to use.
 It must be one of the symbols `ultra-condensed', `extra-condensed',
-`condensed', `semi-condensed', `normal', `semi-expanded', `expanded',
-`extra-expanded', or `ultra-expanded'.
+`condensed' (a.k.a. `compressed', a.k.a. `narrow'),
+`semi-condensed' (a.k.a. `demi-condensed'), `normal' (a.k.a. `medium',
+a.k.a. `regular'), `semi-expanded' (a.k.a. `demi-expanded'),
+`expanded', `extra-expanded', or `ultra-expanded' (a.k.a. `wide').
 
 `:height'
 
@@ -703,9 +705,11 @@ for it to be relative to).
 `:weight'
 
 VALUE specifies the weight of the font to use.  It must be one of
-the symbols `ultra-heavy', `heavy', `ultra-bold', `extra-bold',
-`bold', `semi-bold', `medium', `normal', `book', `semi-light',
-`light', `extra-light', `ultra-light', or `thin'.
+the symbols `ultra-heavy', `heavy' (a.k.a. `black'),
+`ultra-bold' (a.k.a. `extra-bold'), `bold',
+`semi-bold' (a.k.a. `demi-bold'), `medium', `normal' (a.k.a. `regular',
+a.k.a. `book'), `semi-light' (a.k.a. `demi-light'),
+`light', `extra-light' (a.k.a. `ultra-light'), or `thin'.
 
 `:slant'
 
