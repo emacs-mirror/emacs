@@ -6519,6 +6519,22 @@ not_in_argv (NSString *arg)
           int x = 0, y = 0;
           int scrollUp = NO;
 
+	  static bool end_flag = false;
+
+	  if (!ns_use_mwheel_momentum && !end_flag
+	      && [theEvent momentumPhase] != NSEventPhaseNone)
+	    {
+	      emacs_event->kind = TOUCH_END_EVENT;
+	      emacs_event->arg = Qnil;
+	      end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
+	      XSETINT (emacs_event->x, lrint (p.x));
+	      XSETINT (emacs_event->y, lrint (p.y));
+	      EV_TRAILER (theEvent);
+	      return;
+	    }
+
+	  end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
+
           /* FIXME: At the top or bottom of the buffer we should
            * ignore momentum-phase events.  */
           if (! ns_use_mwheel_momentum
