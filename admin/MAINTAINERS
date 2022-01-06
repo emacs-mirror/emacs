@@ -58,10 +58,7 @@ Artur Malabarba
 
 Michael Albinus
         Tramp
-            lisp/net/tramp*.el
             lisp/url/url-tramp.el
-            doc/misc/tramp*.texi
-            test/lisp/net/tramp*-tests.el
             test/lisp/url/url-tramp-tests.el
 
         D-Bus
@@ -269,6 +266,20 @@ Amin Bandali
 	Eshell
 	    lisp/eshell/*
 	    doc/misc/eshell.texi
+
+==============================================================================
+3. Externally maintained packages.
+==============================================================================
+
+Tramp
+	Maintainer: Michael Albinus
+	Repository: git://git.savannah.gnu.org/tramp.git
+	Mailing List: tramp-devel@gnu.org
+	Bug Reports: M-x tramp-bug
+
+        lisp/net/tramp*.el
+        doc/misc/tramp*.texi
+        test/lisp/net/tramp*-tests.el
 
 
 ;;; Local Variables:
