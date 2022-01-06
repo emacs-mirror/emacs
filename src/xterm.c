@@ -11253,15 +11253,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      if (dpyinfo->xkb_desc)
 		{
-		  XkbGetUpdatedMap (dpyinfo->display,
-				    (XkbKeySymsMask
-				     | XkbKeyTypesMask
-				     | XkbModifierMapMask
-				     | XkbVirtualModsMask),
-				    dpyinfo->xkb_desc);
-		  XkbGetNames (dpyinfo->display,
-			       XkbGroupNamesMask | XkbVirtualModNamesMask,
-			       dpyinfo->xkb_desc);
+		  if (XkbGetUpdatedMap (dpyinfo->display,
+					(XkbKeySymsMask
+					 | XkbKeyTypesMask
+					 | XkbModifierMapMask
+					 | XkbVirtualModsMask),
+					dpyinfo->xkb_desc) == Success)
+		    {
+		      XkbGetNames (dpyinfo->display,
+				   XkbGroupNamesMask | XkbVirtualModNamesMask,
+				   dpyinfo->xkb_desc);
+		    }
+		  else
+		    {
+		      XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
+		      dpyinfo->xkb_desc = NULL;
+		    }
 
 		  x_find_modifier_meanings (dpyinfo);
 		}
