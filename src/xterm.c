@@ -10156,6 +10156,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_Motion:
 	    {
 	      struct xi_device_t *device;
+	      bool touch_end_event_seen = false;
 
 	      states = &xev->valuators;
 	      values = states->values;
@@ -10294,7 +10295,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      inev.ie.arg = Qnil;
 			    }
 
-			  kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+			  if (inev.ie.kind != TOUCH_END_EVENT
+			      || !touch_end_event_seen)
+			    {
+			      kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+			      touch_end_event_seen = inev.ie.kind == TOUCH_END_EVENT;
+			    }
 
 			  val->emacs_value = 0;
 			}
