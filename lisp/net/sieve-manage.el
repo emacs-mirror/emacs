@@ -79,6 +79,7 @@
 (require 'sasl)
 (autoload 'sasl-find-mechanism "sasl")
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 ;; User customizable variables:
 
@@ -230,10 +231,7 @@ Return the buffer associated with the connection."
                                           :max 1
                                           :create t))
            (user-name (or (plist-get (nth 0 auth-info) :user) ""))
-           (user-password (or (plist-get (nth 0 auth-info) :secret) ""))
-           (user-password (if (functionp user-password)
-                              (funcall user-password)
-                            user-password))
+           (user-password (or (auth-info-password (nth 0 auth-info)) ""))
            (client (sasl-make-client (sasl-find-mechanism (list mech))
                                      user-name "sieve" sieve-manage-server))
            (sasl-read-passphrase

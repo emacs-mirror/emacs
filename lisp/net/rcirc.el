@@ -560,8 +560,8 @@ If ARG is non-nil, instead prompt for connection parameters."
                      (auth (auth-source-search :host server
                                                :user user-name
                                                :port port))
-                     (fn (plist-get (car auth) :secret)))
-            (setq password (funcall fn)))
+                     (pwd (auth-info-password (car auth))))
+            (setq password pwd))
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))

@@ -554,11 +554,9 @@ for `smtpmail-try-auth-method'.")
 		      :create ask-for-password)))
          (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
-         (password (plist-get auth-info :secret))
+         (password (auth-info-password auth-info))
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function))))
-    (when (functionp password)
-      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
@@ -573,9 +571,7 @@ for `smtpmail-try-auth-method'.")
 	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
-	    password (plist-get auth-info :secret)))
-    (when (functionp password)
-      (setq password (funcall password)))
+	    password (auth-info-password auth-info)))
     (let ((result (catch 'done
                     (if (and mech user password)
 		        (smtpmail-try-auth-method process mech user password)

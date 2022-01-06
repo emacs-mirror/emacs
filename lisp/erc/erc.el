@@ -2062,19 +2062,12 @@ Returns the buffer for the given server or channel."
     ;; password stuff
     (setq erc-session-password
           (or passwd
-              (let ((secret
-                     (plist-get
-                      (nth 0
-                           (auth-source-search :host server
-                                               :max 1
-                                               :user nick
-                                               ;; secrets.el wouldn’t accept a number
-                                               :port (if (numberp port) (number-to-string port) port)
-                                               :require '(:secret)))
-                      :secret)))
-                (if (functionp secret)
-                    (funcall secret)
-                  secret))))
+              (auth-source-pick-first-password
+               :host server
+               :user nick
+               ;; secrets.el wouldn’t accept a number
+               :port (if (numberp port) (number-to-string port) port)
+               :require '(:secret))))
     ;; client certificate (only useful if connecting over TLS)
     (setq erc-session-client-certificate client-certificate)
     ;; debug output buffer
@@ -3187,16 +3180,12 @@ For a list of user commands (/join /part, ...):
 (put 'erc-cmd-HELP 'process-not-needed t)
 
 (defun erc-server-join-channel (server channel &optional secret)
-  (let* ((secret (or secret
-		     (plist-get (nth 0 (auth-source-search
-					:max 1
-					:host server
-					:port "irc"
-					:user channel))
-				:secret)))
-	 (password (if (functionp secret)
-		       (funcall secret)
-		     secret)))
+  (let ((password
+         (or secret
+             (auth-source-pick-first-password
+	      :host server
+	      :port "irc"
+	      :user channel))))
     (erc-log (format "cmd: JOIN: %s" channel))
     (erc-server-send (concat "JOIN " channel
 			     (if password

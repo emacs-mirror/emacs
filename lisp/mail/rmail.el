@@ -4489,10 +4489,7 @@ password."
                                    :max 1 :user user :host host
                                    :require '(:secret)))))
                 (if found
-                    (let ((secret (plist-get found :secret)))
-                      (if (functionp secret)
-                          (funcall secret)
-                        secret))
+                    (auth-info-password found)
                   (read-passwd (if imap
                                    "IMAP password: "
                                  "POP password: "))))))

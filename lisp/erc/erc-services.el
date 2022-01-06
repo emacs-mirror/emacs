@@ -444,15 +444,12 @@ it returns nil."
                           (cl-second (assoc network
                                             erc-nickserv-passwords)))))
             (when erc-use-auth-source-for-nickserv-password
-              (let ((secret (cl-first (auth-source-search
-                                       :max 1 :require '(:secret)
-                                       :host server
-                                       ;; Ensure a string for :port
-                                       :port (format "%s" port)
-                                       :user nick))))
-                (when secret
-                  (let ((passwd (plist-get secret :secret)))
-                    (if (functionp passwd) (funcall passwd) passwd)))))
+              (auth-source-pick-first-password
+               :require '(:secret)
+               :host server
+               ;; Ensure a string for :port
+               :port (format "%s" port)
+               :user nick))
             (when erc-prompt-for-nickserv-password
               (read-passwd
                (format "NickServ password for %s on %s (RET to cancel): "

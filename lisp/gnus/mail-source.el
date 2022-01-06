@@ -454,7 +454,7 @@ the `mail-source-keyword-map' variable."
                                                   search))))
                     :user)))
              user-auth)
-            ((and
+            ((and               ; cf. 'auth-source-pick-first-password'
               (eq keyword :password)
               (setq pass-auth
                     (plist-get
