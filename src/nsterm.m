@@ -1617,10 +1617,17 @@ ns_destroy_window (struct frame *f)
 
   /* If this frame has a parent window, detach it as not doing so can
      cause a crash in GNUStep.  */
-  if (FRAME_PARENT_FRAME (f) != NULL)
+  if (FRAME_PARENT_FRAME (f))
     {
       NSWindow *child = [FRAME_NS_VIEW (f) window];
-      NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      NSWindow *parent;
+
+      /* Pacify a incorrect GCC warning about FRAME_PARENT_FRAME (f)
+	 being NULL. */
+      if (FRAME_PARENT_FRAME (f))
+	parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      else
+	emacs_abort ();
 
       [parent removeChildWindow: child];
     }
@@ -2086,8 +2093,8 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   return 1;
 }
 
-void
-ns_query_color(void *col, Emacs_Color *color_def)
+static void
+ns_query_color (void *col, Emacs_Color *color_def)
 /* --------------------------------------------------------------------------
          Get ARGB values out of NSColor col and put them into color_def
          and set color_def pixel to the ARGB color.
@@ -4481,7 +4488,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
 #ifdef HAVE_PTHREAD
 void
-ns_run_loop_break ()
+ns_run_loop_break (void)
 /* Break out of the NS run loop in ns_select or ns_read_socket.  */
 {
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_run_loop_break");
@@ -7565,7 +7572,7 @@ not_in_argv (NSString *arg)
   EmacsWindow *w, *fw;
   BOOL onFirstScreen;
   struct frame *f;
-  NSRect r, wr;
+  NSRect r;
   NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
@@ -7584,7 +7591,6 @@ not_in_argv (NSString *arg)
   w = (EmacsWindow *)[self window];
   onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
   f = emacsframe;
-  wr = [w frame];
   col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
 				 (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
 

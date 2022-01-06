@@ -82,7 +82,9 @@ typedef struct x_bitmap_record Bitmap_Record;
 
 #if defined(USE_CAIRO) || defined(HAVE_NS)
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#ifndef HAVE_NS
 #define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
+#endif
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color)	(((color) >> 8) & 0xff)
 #define BLUE_FROM_ULONG(color)	((color) & 0xff)

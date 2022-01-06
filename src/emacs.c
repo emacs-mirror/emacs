@@ -875,9 +875,14 @@ load_pdump (int argc, char **argv)
     }
 
   /* Where's our executable?  */
-  ptrdiff_t bufsize, exec_bufsize;
+  ptrdiff_t bufsize;
+#ifndef NS_SELF_CONTAINED
+  ptrdiff_t exec_bufsize;
+#endif
   emacs_executable = load_pdump_find_executable (argv[0], &bufsize);
+#ifndef NS_SELF_CONTAINED
   exec_bufsize = bufsize;
+#endif
 
   /* If we couldn't find our executable, go straight to looking for
      the dump in the hardcoded location.  */
