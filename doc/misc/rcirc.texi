@@ -933,6 +933,11 @@ how to include the date in the time stamp:
 (setq rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
 
+@findex rcirc-when
+If you don't wish to use verbose time formatting all the time, you can
+use the @code{rcirc-when} command to printing a complete timestamp for
+the message at point.
+
 @node Defining a new command
 @section Defining a new command
 @cindex defining commands

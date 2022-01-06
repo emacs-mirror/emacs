@@ -210,7 +210,7 @@ inserted.
 
 +++
 *** New command 'emoji-describe' (bound to 'C-x 8 e d').
-This command will tell you the name of the Emoji at point.  (This
+nThis command will tell you the name of the Emoji at point.  (This
 command also works for non-Emoji characters.)
 
 ** Help
@@ -258,6 +258,11 @@ For example, a 'display-buffer-alist' entry of
 
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' in combination with 'body-lines'.
+
+** Rcirc
+
++++
+*** New command 'rcirc-when'.
 
 ** Tab Bars and Tab Lines
 

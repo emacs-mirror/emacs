@@ -2047,6 +2047,13 @@ connection."
         (run-hook-with-args 'rcirc-print-functions
                             process sender response target text)))))
 
+(defun rcirc-when ()
+  "Print a message when the message at point was received."
+  (interactive)
+  (if-let (time (get-text-property (point) 'rcirc-time))
+      (message (format-time-string "%c" time))
+    (message "No time information at point.")))
+
 (defun rcirc-generate-log-filename (process target)
   "Return filename for log file based on PROCESS and TARGET."
   (if target
