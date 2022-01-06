@@ -210,7 +210,7 @@ inserted.
 
 +++
 *** New command 'emoji-describe' (bound to 'C-x 8 e d').
-nThis command will tell you the name of the Emoji at point.  (This
+This command will tell you the name of the Emoji at point.  (This
 command also works for non-Emoji characters.)
 
 ** Help
