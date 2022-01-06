@@ -428,8 +428,6 @@ haiku_draw_box_rect (struct glyph_string *s,
   void *view = FRAME_HAIKU_VIEW (s->f);
   struct face *face = s->face;
 
-  BView_StartClip (view);
-  haiku_clip_to_string (s);
   BView_SetHighColor (view, face->box_color);
   if (clip_rect)
     BView_ClipToRect (view, clip_rect->x, clip_rect->y, clip_rect->width,
@@ -443,7 +441,6 @@ haiku_draw_box_rect (struct glyph_string *s,
   if (right_p)
     BView_FillRectangle (view, right_x - vwidth + 1,
 			 top_y, vwidth, bottom_y - top_y + 1);
-  BView_EndClip (view);
 }
 
 static void
@@ -484,8 +481,6 @@ haiku_draw_relief_rect (struct glyph_string *s,
 				 &color_corner);
 
   void *view = FRAME_HAIKU_VIEW (s->f);
-  BView_StartClip (view);
-  haiku_clip_to_string (s);
   BView_SetHighColor (view, raised_p ? color_white : color_black);
   if (clip_rect)
     BView_ClipToRect (view, clip_rect->x, clip_rect->y, clip_rect->width,
@@ -548,8 +543,6 @@ haiku_draw_relief_rect (struct glyph_string *s,
       if (right_p && bot_p)
 	BView_FillRectangle (view, right_x, bottom_y, 1, 1);
     }
-
-  BView_EndClip (view);
 }
 
 static void
@@ -598,8 +591,6 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 
   void *view = FRAME_HAIKU_VIEW (s->f);
   BView_draw_lock (view);
-  BView_StartClip (view);
-  haiku_clip_to_string (s);
 
   if (face->underline)
     {
@@ -734,7 +725,6 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       BView_FillRectangle (view, s->x, glyph_y + dy, s->width, h);
     }
 
-  BView_EndClip (view);
   BView_draw_unlock (view);
 }
 
