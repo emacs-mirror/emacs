@@ -138,6 +138,27 @@ Andrea Corallo
 Stefan Kangas
         admin/automerge
 
+Po Lu
+	The Haiku port:
+	    src/haikuterm.c
+	    src/haikufns.c
+	    src/haikuimage.c
+	    src/haikuselect.c
+	    src/haiku_io.c
+	    src/haiku.c
+	    src/haiku_select.cc
+	    src/haiku_support.cc
+	    src/haiku_font_support.cc
+	    src/haiku_draw_support.cc
+	    src/haikugui.h
+	    src/haikuterm.h
+	    src/haikuselect.h
+	    src/haiku_support.h
+	    lisp/term/haiku-win.el
+	    doc/emacs/haiku.texi
+
+	Haiku battery support in lisp/battery.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
@@ -266,6 +287,13 @@ Amin Bandali
 	Eshell
 	    lisp/eshell/*
 	    doc/misc/eshell.texi
+
+Po Lu
+	The X port
+	      src/xterm.c
+	      src/xfns.c
+	X11 and GTK xwidget support in src/xwidget.c
+	Precision pixel scrolling in lisp/pixel-scroll.el
 
 ==============================================================================
 3. Externally maintained packages.
