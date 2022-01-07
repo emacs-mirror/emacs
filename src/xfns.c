@@ -2624,8 +2624,8 @@ xic_free_xfontset (struct frame *f)
 
 static const XIMStyle supported_xim_styles[] =
   {
-    STYLE_CALLBACK,
     STYLE_NONE,
+    STYLE_CALLBACK,
     STYLE_OVERTHESPOT,
     STYLE_OFFTHESPOT,
     STYLE_ROOT
