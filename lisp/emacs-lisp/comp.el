@@ -1,6 +1,6 @@
 ;;; comp.el --- compilation of Lisp code into native code -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 ;; Keywords: lisp
@@ -1181,7 +1181,9 @@ clashes."
 	                   for i across orig-name
 	                   for byte = (format "%x" i)
 	                   do (aset str j (aref byte 0))
-	                      (aset str (1+ j) (aref byte 1))
+			      (aset str (1+ j) (if (length> byte 1)
+						   (aref byte 1)
+						 ?\_))
 	                   finally return str))
          (human-readable (string-replace
                           "-" "_" orig-name))
@@ -3086,13 +3088,6 @@ Forward propagate immediate involed in assignments." ; FIXME: Typo.  Involved or
             (`(setimm ,lval ,v)
              (setf (comp-cstr-imm lval) v))))))
 
-(defun comp-mvar-propagate (lval rval)
-  "Propagate into LVAL properties of RVAL."
-  (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval)
-        (comp-mvar-valset lval) (comp-mvar-valset rval)
-        (comp-mvar-range lval) (comp-mvar-range rval)
-        (comp-mvar-neg lval) (comp-mvar-neg rval)))
-
 (defun comp-function-foldable-p (f args)
   "Given function F called with ARGS, return non-nil when optimizable."
   (and (comp-function-pure-p f)
@@ -3142,10 +3137,7 @@ Fold the call in case."
         (when (comp-cstr-empty-p cstr)
           ;; Store it to be rewritten as non local exit.
           (setf (comp-block-lap-non-ret-insn comp-block) insn))
-        (setf (comp-mvar-range lval) (comp-cstr-range cstr)
-              (comp-mvar-valset lval) (comp-cstr-valset cstr)
-              (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
-              (comp-mvar-neg lval) (comp-cstr-neg cstr))))
+        (comp-cstr-shallow-copy lval cstr)))
     (cl-case f
       (+ (comp-cstr-add lval args))
       (- (comp-cstr-sub lval args))
@@ -3163,9 +3155,9 @@ Fold the call in case."
         (let ((f (comp-func-name (gethash f (comp-ctxt-funcs-h comp-ctxt)))))
           (comp-fwprop-call insn lval f args)))
        (_
-        (comp-mvar-propagate lval rval))))
+        (comp-cstr-shallow-copy lval rval))))
     (`(assume ,lval ,(and (pred comp-mvar-p) rval))
-     (comp-mvar-propagate lval rval))
+     (comp-cstr-shallow-copy lval rval))
     (`(assume ,lval (,kind . ,operands))
      (cl-case kind
        (and

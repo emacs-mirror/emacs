@@ -1,6 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2022 Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -54,9 +54,9 @@
 (autoload 'gnus-print-buffer "gnus-sum")
 
 (defvar-keymap gnus-dired-mode-map
-  "\C-c\C-m\C-a" #'gnus-dired-attach
-  "\C-c\C-m\C-l" #'gnus-dired-find-file-mailcap
-  "\C-c\C-m\C-p" #'gnus-dired-print)
+  "C-c C-m C-a" #'gnus-dired-attach
+  "C-c C-m C-l" #'gnus-dired-find-file-mailcap
+  "C-c C-m C-p" #'gnus-dired-print)
 
 ;; FIXME: Make it customizable, change the default to `mail-user-agent' when
 ;; this file is renamed (e.g. to `dired-mime.el').
@@ -204,7 +204,8 @@ If ARG is non-nil, open it in a new buffer."
 	  (find-file file-name)))
     (if (file-symlink-p file-name)
 	(error "File is a symlink to a nonexistent target")
-      (error "File no longer exists; type `g' to update Dired buffer"))))
+      (error (substitute-command-keys
+              "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (defun gnus-dired-print (&optional file-name print-to)
   "In dired, print FILE-NAME according to the mailcap file.
@@ -244,9 +245,10 @@ of the file to save in."
 	    (error "MIME print only implemented via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
-     (error "File is a symlink to a nonexistent target"))
-    (t
-     (error "File no longer exists; type `g' to update Dired buffer"))))
+    (error "File is a symlink to a nonexistent target"))
+   (t
+    (error (substitute-command-keys
+            "File no longer exists; type \\`g' to update Dired buffer")))))
 
 (provide 'gnus-dired)
 

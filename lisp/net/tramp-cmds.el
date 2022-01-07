@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -67,7 +67,7 @@ SYNTAX can be one of the symbols `default' (default),
    nil
    (mapcar
     (lambda (x)
-      (with-current-buffer x (when (tramp-tramp-file-p default-directory) x)))
+      (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
     (buffer-list))))
 
 ;;;###tramp-autoload
@@ -593,9 +593,8 @@ buffer in your bug report.
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
-  (let* ((reporter-eval-buffer (symbol-value 'reporter-eval-buffer))
-	 (val (with-current-buffer reporter-eval-buffer
-		(symbol-value varsym))))
+  (when-let ((reporter-eval-buffer reporter-eval-buffer)
+	     (val (buffer-local-value varsym reporter-eval-buffer)))
 
     (if (hash-table-p val)
 	;; Pretty print the cache.

@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2021 Free Software
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -259,6 +259,8 @@ for example, (type-of 1) returns `integer'.  */)
           return Qxwidget;
         case PVEC_XWIDGET_VIEW:
           return Qxwidget_view;
+        case PVEC_SQLITE:
+          return Qsqlite;
         /* "Impossible" cases.  */
 	case PVEC_MISC_PTR:
         case PVEC_OTHER:
@@ -891,9 +893,11 @@ function or t otherwise.  */)
 {
   CHECK_SUBR (subr);
 
-  return SUBR_NATIVE_COMPILED_DYNP (subr)
-    ? XSUBR (subr)->lambda_list[0]
-    : Qt;
+#ifdef HAVE_NATIVE_COMP
+  if (SUBR_NATIVE_COMPILED_DYNP (subr))
+    return XSUBR (subr)->lambda_list;
+#endif
+  return Qt;
 }
 
 DEFUN ("subr-type", Fsubr_type,
@@ -917,7 +921,7 @@ DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
   (Lisp_Object subr)
 {
   CHECK_SUBR (subr);
-  return XSUBR (subr)->native_comp_u[0];
+  return XSUBR (subr)->native_comp_u;
 }
 
 DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,

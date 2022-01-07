@@ -1,6 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -554,19 +554,46 @@ buffer, it is replaced by the new value.  See the documentation for
     (gametree-hack-file-layout))
   nil)
 
+
+;;;; Mouse commands
+
+(defun gametree-mouse-break-line-here (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (gametree-break-line-here))
+
+(defun gametree-mouse-show-children-and-entry (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (gametree-show-children-and-entry))
+
+(defun gametree-mouse-show-subtree (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (outline-show-subtree))
+
+(defun gametree-mouse-hide-subtree (event)
+  (interactive "e")
+  (mouse-set-point event)
+  (outline-hide-subtree))
+
+
 ;;;; Key bindings
-(defvar gametree-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-j" 'gametree-break-line-here)
-    (define-key map "\C-c\C-v" 'gametree-insert-new-leaf)
-    (define-key map "\C-c\C-m" 'gametree-merge-line)
-    (define-key map "\C-c\C-r " 'gametree-layout-to-register)
-    (define-key map "\C-c\C-r/" 'gametree-layout-to-register)
-    (define-key map "\C-c\C-rj" 'gametree-apply-register-layout)
-    (define-key map "\C-c\C-y" 'gametree-save-and-hack-layout)
-    (define-key map "\C-c;" 'gametree-insert-score)
-    (define-key map "\C-c^" 'gametree-compute-and-insert-score)
-    map))
+
+(defvar-keymap gametree-mode-map
+  "C-c C-j"     #'gametree-break-line-here
+  "C-c C-v"     #'gametree-insert-new-leaf
+  "C-c C-m"     #'gametree-merge-line
+  "C-c C-r SPC" #'gametree-layout-to-register
+  "C-c C-r /"   #'gametree-layout-to-register
+  "C-c C-r j"   #'gametree-apply-register-layout
+  "C-c C-y"     #'gametree-save-and-hack-layout
+  "C-c ;"       #'gametree-insert-score
+  "C-c ^"       #'gametree-compute-and-insert-score
+  "M-<down-mouse-2> M-<mouse-2>" #'gametree-mouse-break-line-here
+  "S-<down-mouse-1> S-<mouse-1>" #'gametree-mouse-show-children-and-entry
+  "S-<down-mouse-2> S-<mouse-2>" #'gametree-mouse-show-subtree
+  "S-<down-mouse-3> S-<mouse-3>" #'gametree-mouse-hide-subtree)
 
 (define-derived-mode gametree-mode outline-mode "GameTree"
   "Major mode for managing game analysis trees.
@@ -576,32 +603,6 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 \\{gametree-mode-map}"
   (auto-fill-mode 0)
   (add-hook 'write-contents-functions 'gametree-save-and-hack-layout nil t))
-
-;;;; Goodies for mousing users
-(defun gametree-mouse-break-line-here (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (gametree-break-line-here))
-(defun gametree-mouse-show-children-and-entry (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (gametree-show-children-and-entry))
-(defun gametree-mouse-show-subtree (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (outline-show-subtree))
-(defun gametree-mouse-hide-subtree (event)
-  (interactive "e")
-  (mouse-set-point event)
-  (outline-hide-subtree))
-(define-key gametree-mode-map [M-down-mouse-2 M-mouse-2]
-  'gametree-mouse-break-line-here)
-(define-key gametree-mode-map [S-down-mouse-1 S-mouse-1]
-  'gametree-mouse-show-children-and-entry)
-(define-key gametree-mode-map [S-down-mouse-2 S-mouse-2]
-  'gametree-mouse-show-subtree)
-(define-key gametree-mode-map [S-down-mouse-3 S-mouse-3]
-  'gametree-mouse-hide-subtree)
 
 (provide 'gametree)
 

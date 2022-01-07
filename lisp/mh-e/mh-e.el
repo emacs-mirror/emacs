@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2021 Free
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2022 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -1607,7 +1607,7 @@ on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
 \"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
 You can use \"xbuffy\" to automate the incorporation of this mail
-using the Emacs 22 command \"emacsclient\" as follows:
+using \"emacsclient\" as follows:
 
     box ~/mail/mh-e
         title mh-e

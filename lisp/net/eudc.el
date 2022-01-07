@@ -1,6 +1,6 @@
 ;;; eudc.el --- Emacs Unified Directory Client  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -46,15 +46,8 @@
 ;;; Code:
 
 (require 'wid-edit)
-
 (require 'cl-lib)
-
-(unless (fboundp 'custom-menu-create)
-  (autoload 'custom-menu-create "cus-edit"))
-
 (require 'eudc-vars)
-
-
 
 ;;{{{      Internal cooking
 

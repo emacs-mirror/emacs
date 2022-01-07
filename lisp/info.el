@@ -1,6 +1,6 @@
 ;;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -115,7 +115,9 @@ The Lisp code is executed when the node is selected.")
 (defface info-menu-star
   '((((class color)) :foreground "red1")
     (t :underline t))
-  "Face for every third `*' in an Info menu.")
+  "Face used to emphasize `*' in an Info menu.
+The face is assigned to the third, sixth, and ninth `*' for easier
+orientation.  See `Info-nth-menu-item'.")
 
 (defface info-xref
   '((t :inherit link))
@@ -1792,7 +1794,46 @@ of NODENAME; if none is found it then tries a case-insensitive match
       (if trim (setq nodename (substring nodename 0 trim))))
     (if transient-mark-mode (deactivate-mark))
     (Info-find-node (if (equal filename "") nil filename)
-		    (if (equal nodename "") "Top" nodename) nil strict-case)))
+                    (if (equal nodename "") "Top" nodename) nil strict-case)))
+
+(defun Info-goto-node-web (node)
+  "Use `browse-url' to go to the gnu.org web server's version of NODE.
+By default, go to the current Info node."
+  (interactive (list (Info-read-node-name
+                      "Go to node (default current page): " Info-current-node))
+               Info-mode)
+  (browse-url-button-open-url
+   (Info-url-for-node (format "(%s)%s" (file-name-sans-extension
+                                        (file-name-nondirectory
+                                         Info-current-file))
+                              node))))
+
+(defun Info-url-for-node (node)
+  "Return a URL for NODE, a node in the GNU Emacs or Elisp manual.
+NODE should be a string on the form \"(manual)Node\".  Only emacs
+and elisp manuals are supported."
+  (unless (string-match "\\`(\\(.+\\))\\(.+\\)\\'" node)
+    (error "Invalid node name %s" node))
+  (let ((manual (match-string 1 node))
+        (node (match-string 2 node)))
+    (unless (member manual '("emacs" "elisp"))
+      (error "Only emacs/elisp manuals are supported"))
+    ;; Encode a bunch of characters the way that makeinfo does.
+    (setq node
+          (mapconcat (lambda (ch)
+                       (if (or (< ch 32)        ; ^@^A-^Z^[^\^]^^^-
+                               (<= 33 ch 47)    ; !"#$%&'()*+,-./
+                               (<= 58 ch 64)    ; :;<=>?@
+                               (<= 91 ch 96)    ; [\]_`
+                               (<= 123 ch 127)) ; {|}~ DEL
+                           (format "_00%x" ch)
+                         (char-to-string ch)))
+                     node
+                     ""))
+    (concat "https://www.gnu.org/software/emacs/manual/html_node/"
+            manual "/"
+            (url-hexify-string (string-replace " " "-" node))
+            ".html")))
 
 (defvar Info-read-node-completion-table)
 
@@ -1877,7 +1918,7 @@ See `completing-read' for a description of arguments and usage."
        code Info-read-node-completion-table string predicate))))
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
-(defun Info-read-node-name (prompt)
+(defun Info-read-node-name (prompt &optional default)
   "Read an Info node name with completion, prompting with PROMPT.
 A node name can have the form \"NODENAME\", referring to a node
 in the current Info file, or \"(FILENAME)NODENAME\", referring to
@@ -1885,7 +1926,8 @@ a node in FILENAME.  \"(FILENAME)\" is a short format to go to
 the Top node in FILENAME."
   (let* ((completion-ignore-case t)
 	 (Info-read-node-completion-table (Info-build-node-completions))
-	 (nodename (completing-read prompt #'Info-read-node-name-1 nil t)))
+         (nodename (completing-read prompt #'Info-read-node-name-1 nil t nil
+                                    'Info-minibuf-history default)))
     (if (equal nodename "")
 	(Info-read-node-name prompt)
       nodename)))
@@ -4046,6 +4088,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "e" 'end-of-buffer)
     (define-key map "f" 'Info-follow-reference)
     (define-key map "g" 'Info-goto-node)
+    (define-key map "G" 'Info-goto-node-web)
     (define-key map "h" 'Info-help)
     ;; This is for compatibility with standalone info (>~ version 5.2).
     ;; Though for some time, standalone info had H and h reversed.
@@ -4855,9 +4898,16 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\(^\\| \\)see"
+                        (cond ((save-match-data (looking-back "\\(^\\|[ (]\\)see"
                                                               (- (point) 4)))
 			       "")
+                              ;; We want "Also *note" to produce
+                              ;; "Also see", but "See also *note" to produce
+                              ;; "See also", so match case-sensitively.
+                              ((save-match-data (let ((case-fold-search nil))
+                                                  (looking-back "\\(^\\| \\)also"
+                                                              (- (point) 5))))
+                               "")
 			      ((save-match-data (looking-back "\\(^\\| \\)in"
                                                               (- (point) 3)))
 			       "")

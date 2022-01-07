@@ -1,6 +1,6 @@
 ;;; lcms-tests.el --- tests for Little CMS interface -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -34,6 +34,13 @@
 
 (require 'ert)
 (require 'color)
+
+(declare-function lcms-jab->jch "lcms.c")
+(declare-function lcms-jch->jab "lcms.c")
+(declare-function lcms-xyz->jch "lcms.c")
+(declare-function lcms-jch->xyz "lcms.c")
+(declare-function lcms-temp->white-point "lcms.c")
+(declare-function lcms-cam02-ucs "lcms.c")
 
 (defconst lcms-colorspacious-d65 '(0.95047 1.0 1.08883)
   "D65 white point from colorspacious.")

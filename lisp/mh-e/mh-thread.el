@@ -1,6 +1,6 @@
 ;;; mh-thread.el --- MH-E threading support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -139,7 +139,7 @@ to the message that started everything."
     (cond (thread-root-flag
            (while (mh-thread-immediate-ancestor))
            (mh-maybe-show))
-          ((equal current-level 1)
+          ((equal current-level 0)
            (message "Message has no ancestor"))
           (t (mh-thread-immediate-ancestor)
              (mh-maybe-show)))))
@@ -242,8 +242,8 @@ sibling."
 (defun mh-thread-current-indentation-level ()
   "Find the number of spaces by which current message is indented."
   (save-excursion
-    (let ((address-start-offset (+ mh-cmd-note mh-scan-date-flag-width
-                                   mh-scan-date-width 1))
+    (let ((address-start-offset (+ mh-cmd-note
+                                   mh-scan-field-from-start-offset))
           (level 0))
       (beginning-of-line)
       (forward-char address-start-offset)
@@ -275,8 +275,8 @@ at the end."
   (beginning-of-line)
   (if (eobp)
       nil
-    (let ((address-start-offset (+ mh-cmd-note mh-scan-date-flag-width
-                                   mh-scan-date-width 1))
+    (let ((address-start-offset (+ mh-cmd-note
+                                   mh-scan-field-from-start-offset))
           (level (mh-thread-current-indentation-level))
           spaces begin)
       (setq begin (point))

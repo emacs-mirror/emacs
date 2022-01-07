@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Ken Stevens <k.stevens@ieee.org>
 
@@ -296,7 +296,8 @@ The following values are supported:
   "Non-nil means suppress messages in `ispell-word'."
   :type 'boolean)
 
-(defvaralias 'ispell-format-word 'ispell-format-word-function)
+(define-obsolete-variable-alias 'ispell-format-word
+  'ispell-format-word-function "29.1")
 
 (defcustom ispell-format-word-function (function upcase)
   "Formatting function for displaying word being spell checked.
@@ -2398,24 +2399,24 @@ Global `ispell-quit' set to start location to continue spell session."
 
 Selections are:
 
-DIGIT: Replace the word with a digit offered in the *Choices* buffer.
-SPC:   Accept word this time.
-`i':   Accept word and insert into private dictionary.
-`a':   Accept word for this session.
-`A':   Accept word and place in `buffer-local dictionary'.
-`r':   Replace word with typed-in value.  Rechecked.
-`R':   Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
-`?':   Show these commands.
-`x':   Exit spelling buffer.  Move cursor to original point.
-`X':   Exit spelling buffer.  Leaves cursor at the current point, and permits
+\\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
+\\`SPC'   Accept word this time.
+\\`i'     Accept word and insert into private dictionary.
+\\`a'     Accept word for this session.
+\\`A'     Accept word and place in `buffer-local dictionary'.
+\\`r'     Replace word with typed-in value.  Rechecked.
+\\`R'     Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
+\\`?'     Show these commands.
+\\`x'     Exit spelling buffer.  Move cursor to original point.
+\\`X'     Exit spelling buffer.  Leaves cursor at the current point, and permits
         the aborted check to be completed later.
-`q':   Quit spelling session (Kills ispell process).
-`l':   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-`u':   Like `i', but the word is lower-cased first.
-`m':   Place typed-in value in personal dictionary, then recheck current word.
-`C-l':  Redraw screen.
-`C-r':  Recursive edit.
-`C-z':  Suspend Emacs or iconify frame."
+\\`q'     Quit spelling session (Kills ispell process).
+\\`l'     Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+\\`u'     Like \\`i', but the word is lower-cased first.
+\\`m'     Place typed-in value in personal dictionary, then recheck current word.
+\\`C-l'   Redraw screen.
+\\`C-r'   Recursive edit.
+\\`C-z'   Suspend Emacs or iconify frame."
 
   (if (equal ispell-help-in-bufferp 'electric)
       (progn
@@ -2428,26 +2429,28 @@ SPC:   Accept word this time.
            ;;(if (< (window-height) 15)
            ;;	 (enlarge-window
            ;;	  (- 15 (ispell-adjusted-window-height))))
-           (princ "Selections are:
+           (princ
+            (substitute-command-keys
+             "Selections are:
 
-DIGIT: Replace the word with a digit offered in the *Choices* buffer.
-SPC:   Accept word this time.
-`i':   Accept word and insert into private dictionary.
-`a':   Accept word for this session.
-`A':   Accept word and place in `buffer-local dictionary'.
-`r':   Replace word with typed-in value.  Rechecked.
-`R':   Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
-`?':   Show these commands.
-`x':   Exit spelling buffer.  Move cursor to original point.
-`X':   Exit spelling buffer.  Leaves cursor at the current point, and permits
-        the aborted check to be completed later.
-`q':   Quit spelling session (Kills ispell process).
-`l':   Look up typed-in replacement in alternate dictionary.  Wildcards okay.
-`u':   Like `i', but the word is lower-cased first.
-`m':   Place typed-in value in personal dictionary, then recheck current word.
-`C-l':  Redraw screen.
-`C-r':  Recursive edit.
-`C-z':  Suspend Emacs or iconify frame.")
+\\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
+\\`SPC'   Accept word this time.
+\\`i'     Accept word and insert into private dictionary.
+\\`a'     Accept word for this session.
+\\`A'     Accept word and place in `buffer-local dictionary'.
+\\`r'     Replace word with typed-in value.  Rechecked.
+\\`R'     Replace word with typed-in value.  Query-replaced in buffer.  Rechecked.
+\\`?'     Show these commands.
+\\`x'     Exit spelling buffer.  Move cursor to original point.
+\\`X'     Exit spelling buffer.  Leaves cursor at the current point, and permits
+          the aborted check to be completed later.
+\\`q'     Quit spelling session (Kills ispell process).
+\\`l'     Look up typed-in replacement in alternate dictionary.  Wildcards okay.
+\\`u'     Like \\`i', but the word is lower-cased first.
+\\`m'     Place typed-in value in personal dictionary, then recheck current word.
+\\`C-l'   Redraw screen.
+\\`C-r'   Recursive edit.
+\\`C-z'   Suspend Emacs or iconify frame."))
            nil)))
 
 
@@ -3883,8 +3886,8 @@ Don't check spelling of message headers except the Subject field.
 Don't check included messages.
 
 To abort spell checking of a message region and send the message anyway,
-use the `x' command.  (Any subsequent regions will be checked.)
-The `X' command aborts sending the message so that you can edit the buffer.
+use the \\`x' command.  (Any subsequent regions will be checked.)
+The \\`X' command aborts sending the message so that you can edit the buffer.
 
 To spell-check whenever a message is sent, include the appropriate lines
 in your init file:
@@ -3975,7 +3978,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (if (re-search-forward "^Subject: *" end-of-headers t)
 		(progn
 		  (goto-char (match-end 0))
-		  (if (and (not (looking-at ".*Re\\>"))
+		  (if (and (not (looking-at ".*\\<Re\\>"))
 			   (not (looking-at "\\[")))
 		      (progn
 			(setq case-fold-search old-case-fold-search)

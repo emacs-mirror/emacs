@@ -1,6 +1,6 @@
 ;;; emoji.el --- Inserting emojis  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: fun
@@ -30,6 +30,7 @@
 (require 'cl-lib)
 (require 'cl-extra)
 (require 'transient)
+(require 'multisession)
 
 (defgroup emoji nil
   "Inserting Emojis."
@@ -59,14 +60,15 @@
 (defvar emoji--derived nil)
 (defvar emoji--names (make-hash-table :test #'equal))
 (defvar emoji--done-derived nil)
-(defvar emoji--recent (list "😀" "😖"))
+(define-multisession-variable emoji--recent (list "😀" "😖"))
 (defvar emoji--insert-buffer)
 
 ;;;###autoload
 (defun emoji-insert (&optional text)
   "Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix), use a textual search instead
-of a visual interface."
+If TEXT (interactively, the prefix argument), choose the emoji
+by typing its Unicode Standard name (with completion), instead
+of selecting from emoji display."
   (interactive "*P")
   (emoji--init)
   (if text
@@ -77,17 +79,19 @@ of a visual interface."
 
 ;;;###autoload
 (defun emoji-recent ()
-  "Choose and insert a recently used emoji glyph."
+  "Choose and insert one of the recently-used emoji glyphs."
   (interactive "*")
   (emoji--init)
   (unless (fboundp 'emoji--command-Emoji)
     (emoji--define-transient))
   (funcall (emoji--define-transient
-            (cons "Recent" emoji--recent) t)))
+            (cons "Recent" (multisession-value emoji--recent)) t)))
 
 ;;;###autoload
 (defun emoji-search ()
-  "Choose and insert an emoji glyph by searching for an emoji name."
+  "Choose and insert an emoji glyph by typing its Unicode name.
+This command prompts for an emoji name, with completion, and inserts it.
+It recognizes the Unicode Standard names of emoji."
   (interactive "*")
   (emoji--init)
   (emoji--choose-emoji))
@@ -95,8 +99,9 @@ of a visual interface."
 ;;;###autoload
 (defun emoji-list ()
   "List emojis and insert the one that's selected.
-The character will be inserted into the buffer that was selected
-when the command was issued."
+Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
+The glyph will be inserted into the buffer that was current
+when the command was invoked."
   (interactive "*")
   (let ((buf (current-buffer)))
     (emoji--init)
@@ -112,11 +117,13 @@ when the command was issued."
 
 ;;;###autoload
 (defun emoji-describe (glyph &optional interactive)
-  "Say what the name of the composed grapheme cluster GLYPH is.
-If it's not known, this function returns nil.
+  "Display the name of the grapheme cluster composed from GLYPH.
+GLYPH should be a string of one or more characters which together
+produce an emoji.  Interactively, GLYPH is the emoji at point (it
+could also be any character, not just emoji).
 
-Interactively, it will message what the name of the emoji (or
-character) under point is."
+If called from Lisp, return the name as a string; return nil if
+the name is not known."
   (interactive
    (list (if (eobp)
              (error "No glyph under point")
@@ -184,10 +191,10 @@ character) under point is."
       (get-char-code-property (aref glyph 0) 'name)))
 
 (defvar-keymap emoji-list-mode-map
-  ["RET"] #'emoji-list-select
-  ["<mouse-2>"] #'emoji-list-select
+  "RET" #'emoji-list-select
+  "<mouse-2>" #'emoji-list-select
   "h" #'emoji-list-help
-  [follow-link] 'mouse-face)
+  "<follow-link>" 'mouse-face)
 
 (define-derived-mode emoji-list-mode special-mode "Emoji"
   "Mode to display emojis."
@@ -223,14 +230,14 @@ character) under point is."
                                     nil end-func)))))))
 
 (defun emoji-list-help ()
-  "Say what the emoji under point is."
+  "Display the name of the emoji at point."
   (interactive nil emoji-list-mode)
   (let ((glyph (get-text-property (point) 'emoji-glyph)))
     (unless glyph
-      (error "No emoji under point"))
+      (error "No emoji here"))
     (let ((name (emoji--name glyph)))
       (if (not name)
-          (error "Unknown name")
+          (error "Emoji name is unknown")
         (message "%s" name)))))
 
 (defun emoji--init (&optional force inhibit-adjust)
@@ -298,6 +305,7 @@ character) under point is."
     (setq emoji--names (make-hash-table :test #'equal))
     (let ((derivations (make-hash-table :test #'equal))
           (case-fold-search t)
+          (glyphs nil)
           group subgroup)
       (while (not (eobp))
         (cond
@@ -311,33 +319,52 @@ character) under point is."
           (let* ((codes (match-string 1))
                  (qualification (match-string 2))
                  (name (match-string 3))
-                 (base (emoji--base-name name derivations))
                  (glyph (mapconcat
                          (lambda (code)
                            (string (string-to-number code 16)))
                          (split-string codes))))
-            ;; Special-case flags.
-            (when (equal base "flag")
-              (setq base name))
-            ;; Register all glyphs to that we can look up their names
-            ;; later.
-            (setf (gethash glyph emoji--names) name)
-            ;; For the interface, we only care about the fully qualified
-            ;; emojis.
-            (when (equal qualification "fully-qualified")
-              (when (equal base name)
-                (emoji--add-to-group group subgroup glyph))
-              ;; Create mapping from base glyph name to name of
-              ;; derived glyphs.
-              (setf (gethash base derivations)
-                    (nconc (gethash base derivations) (list glyph)))))))
+            (push (list name qualification group subgroup glyph) glyphs))))
         (forward-line 1))
+      ;; We sort the data so that the "person foo" variant comes
+      ;; first, so that that becomes the key.
+      (setq glyphs
+            (sort (nreverse glyphs)
+                  (lambda (g1 g2)
+                    (and (equal (nth 2 g1) (nth 2 g2))
+                         (equal (nth 3 g1) (nth 3 g2))
+                         (< (emoji--score (car g1))
+                            (emoji--score (car g2)))))))
+      ;; Get the derivations.
+      (cl-loop for (name qualification group subgroup glyph) in glyphs
+               for base = (emoji--base-name name derivations)
+               do
+               ;; Special-case flags.
+               (when (equal base "flag")
+                 (setq base name))
+               ;; Register all glyphs to that we can look up their names
+               ;; later.
+               (setf (gethash glyph emoji--names) name)
+               ;; For the interface, we only care about the fully qualified
+               ;; emojis.
+               (when (equal qualification "fully-qualified")
+                 (when (equal base name)
+                   (emoji--add-to-group group subgroup glyph))
+                 ;; Create mapping from base glyph name to name of
+                 ;; derived glyphs.
+                 (setf (gethash base derivations)
+                       (nconc (gethash base derivations) (list glyph)))))
       ;; Finally create the mapping from the base glyphs to derived ones.
       (setq emoji--derived (make-hash-table :test #'equal))
       (maphash (lambda (_k v)
                  (setf (gethash (car v) emoji--derived)
                        (cdr v)))
                derivations))))
+
+(defun emoji--score (string)
+  (if (string-match-p "person\\|people"
+                      (replace-regexp-in-string ":.*" "" string))
+      0
+    1))
 
 (defun emoji--add-to-group (group subgroup glyph)
   ;; "People & Body" is very large; split it up.
@@ -399,20 +426,31 @@ character) under point is."
 ;; no-update-autoloads: t
 ;; End:
 
-(provide 'emoji-labels)
+\(provide 'emoji-labels)
 
-;;; emoji-labels.el ends here\n")
+\;;; emoji-labels.el ends here\n")
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)
-  (let* ((base (replace-regexp-in-string ":.*" "" name))
-         (non-binary (replace-regexp-in-string "\\`\\(man\\|woman\\) " ""
-                                               base)))
-    ;; If we have (for instance) "person golfing", and we're adding
-    ;; "man golfing", make the latter a derivation of the former.
-    (if (or (gethash (concat "person " non-binary) derivations)
-            (gethash non-binary derivations))
-        non-binary
+  (let* ((base (replace-regexp-in-string ":.*" "" name)))
+    (catch 'found
+      ;; If we have (for instance) "person golfing", and we're adding
+      ;; "man golfing", make the latter a derivation of the former.
+      (let ((non-binary (replace-regexp-in-string
+                         "\\`\\(m[ae]n\\|wom[ae]n\\) " "" base)))
+        (dolist (prefix '("person " "people " ""))
+          (let ((key (concat prefix non-binary)))
+            (when (gethash key derivations)
+              (throw 'found key)))))
+      ;; We can also have the gender at the end of the string, like
+      ;; "merman" and "pregnant woman".
+      (let ((non-binary (replace-regexp-in-string
+                         "\\(m[ae]n\\|wom[ae]n\\|maid\\)\\'" "" base)))
+        (dolist (suffix '(" person" "person" ""))
+          (let ((key (concat non-binary suffix)))
+            (when (gethash key derivations)
+              (throw 'found key)))))
+      ;; Just return the base.
       base)))
 
 (defun emoji--split-subgroup (subgroup)
@@ -497,7 +535,7 @@ character) under point is."
                                          t end-function))
                                     ;; Insert the emoji.
                                     (lambda ()
-                                      (interactive)
+                                      (interactive nil not-a-mode)
                                       ;; Allow switching to the correct
                                       ;; buffer.
                                       (when end-function
@@ -510,7 +548,7 @@ character) under point is."
     ;; There's probably a better way to do this...
     (setf (symbol-function name)
           (lambda ()
-            (interactive)
+            (interactive nil not-a-mode)
             (transient-setup name)))
     (pcase-let ((`(,class ,slots ,suffixes ,docstr ,_body)
                  (transient--expand-define-args (list args))))
@@ -529,15 +567,18 @@ character) under point is."
   (lambda ()
     (interactive)
     (funcall (emoji--define-transient
-              (cons "Recent" emoji--recent) t end-function))))
+              (cons "Recent" (multisession-value emoji--recent))
+              t end-function))))
 
 (defun emoji--add-recent (glyph)
   "Add GLYPH to the set of recently used emojis."
-  (setq emoji--recent (delete glyph emoji--recent))
-  (push glyph emoji--recent)
-  ;; Shorten the list.
-  (when-let ((tail (nthcdr 30 emoji--recent)))
-    (setcdr tail nil)))
+  (let ((recent (multisession-value emoji--recent)))
+    (setq recent (delete glyph recent))
+    (push glyph recent)
+    ;; Shorten the list.
+    (when-let ((tail (nthcdr 30 recent)))
+      (setcdr tail nil))
+    (setf (multisession-value emoji--recent) recent)))
 
 (defun emoji--columnize (list columns)
   "Split LIST into COLUMN columns."

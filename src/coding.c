@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001-2021 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -9454,12 +9454,14 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
        3, 4, "r\nzCoding system: ",
-       doc: /* Decode the current region from the specified coding system.
+       doc: /* Decode the current region using the specified coding system.
+Interactively, prompt for the coding system to decode the region, and
+replace the region with the decoded text.
 
-What's meant by \"decoding\" is transforming bytes into text
-(characters).  If, for instance, you have a region that contains data
-that represents the two bytes #xc2 #xa9, after calling this function
-with the utf-8 coding system, the region will contain the single
+\"Decoding\" means transforming bytes into readable text (characters).
+If, for instance, you have a region that contains data that represents
+the two bytes #xc2 #xa9, after calling this function with the utf-8
+coding system, the region will contain the single
 character ?\\N{COPYRIGHT SIGN}.
 
 When called from a program, takes four arguments:
@@ -9484,7 +9486,9 @@ not fully specified.)  */)
 
 DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
        3, 4, "r\nzCoding system: ",
-       doc: /* Encode the current region by specified coding system.
+       doc: /* Encode the current region using th specified coding system.
+Interactively, prompt for the coding system to encode the region, and
+replace the region with the bytes that are the result of the encoding.
 
 What's meant by \"encoding\" is transforming textual data (characters)
 into bytes.  If, for instance, you have a region that contains the

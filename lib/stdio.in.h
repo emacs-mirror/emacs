@@ -1,6 +1,6 @@
 /* A GNU-like <stdio.h>.
 
-   Copyright (C) 2004, 2007-2021 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007-2022 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -399,7 +399,8 @@ _GL_CXXALIASWARN (fileno);
 #endif
 
 #if @GNULIB_FOPEN@
-# if @REPLACE_FOPEN@
+# if (@GNULIB_FOPEN@ && @REPLACE_FOPEN@) \
+     || (@GNULIB_FOPEN_GNU@ && @REPLACE_FOPEN_FOR_FOPEN_GNU@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fopen
 #   define fopen rpl_fopen

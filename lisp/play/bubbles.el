@@ -1,6 +1,6 @@
 ;;; bubbles.el --- Puzzle game for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -809,22 +809,21 @@ static char * dot3d_xpm[] = {
   (bubbles--update-faces-or-images))
 
 
-(defvar bubbles-mode-map
-  (let ((map (make-sparse-keymap 'bubbles-mode-map)))
-    ;; (suppress-keymap map t)
-    (define-key map "q" 'bubbles-quit)
-    (define-key map "\n" 'bubbles-plop)
-    (define-key map " " 'bubbles-plop)
-    (define-key map [double-down-mouse-1] 'bubbles-plop)
-    (define-key map [mouse-2] 'bubbles-plop)
-    (define-key map "\C-m" 'bubbles-plop)
-    (define-key map "u" 'bubbles-undo)
-    (define-key map "p" 'previous-line)
-    (define-key map "n" 'next-line)
-    (define-key map "f" 'forward-char)
-    (define-key map "b" 'backward-char)
-    map)
-  "Mode map for `bubbles'.")
+(defvar-keymap bubbles-mode-map
+  :doc "Mode map for `bubbles'."
+  :name 'bubbles-mode-map
+  "q"   #'bubbles-quit
+  "C-j" #'bubbles-plop
+  "SPC" #'bubbles-plop
+  "C-m" #'bubbles-plop
+  "u"   #'bubbles-undo
+  "p"   #'previous-line
+  "n"   #'next-line
+  "f"   #'forward-char
+  "b"   #'backward-char
+
+  "<double-down-mouse-1>" #'bubbles-plop
+  "<mouse-2>"             #'bubbles-plop)
 
 (easy-menu-define bubbles-menu bubbles-mode-map
   "Menu for `bubbles'."

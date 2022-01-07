@@ -10811,6 +10811,18 @@ To turn off fontification for marked up text, you can set
 ~org-fontify-emphasized-text~ to ~nil~.  To narrow down the list of
 available markup syntax, you can customize ~org-emphasis-alist~.
 
+Sometimes, when marked text also contains the marker character itself,
+the result may be unsettling.  For example,
+
+#+begin_example
+/One may expect this whole sentence to be italicized, but the
+following ~user/?variable~ contains =/= character, which effectively
+stops emphasis there./
+#+end_example
+
+You can use zero width space to help Org sorting out the ambiguity.
+See [[*Escape Character]] for more details.
+
 ** Subscripts and Superscripts
 :PROPERTIES:
 :DESCRIPTION: Simple syntax for raising/lowering text.
@@ -15559,7 +15571,7 @@ for usage and configuration details.
 :DESCRIPTION: Fine-tuning the export output.
 :END:
 
-*** Hooks
+*** Export hooks
 :PROPERTIES:
 :UNNUMBERED: notoc
 :END:
@@ -16556,7 +16568,7 @@ identifying a reference in the bibliography.
 - Each key starts with the character =@=.
 
 - Each key can be qualified by a /prefix/ (e.g.\nbsp{}"see ") and/or
-  a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving informations useful or necessary
+  a /suffix/ (e.g.\nbsp{}"p.\nbsp{}123"), giving information useful or necessary
   fo the comprehension of the citation but not included in the
   reference.
 
@@ -18191,7 +18203,7 @@ expanded anyway.
   #+kindex: C-c C-v f
   Choose a file to tangle.  Bound to {{{kbd(C-c C-v f)}}}.
 
-*** Hooks
+*** Tangle hooks
 :PROPERTIES:
 :UNNUMBERED: notoc
 :END:
@@ -21589,7 +21601,7 @@ that are mentioned in the manual.  For a more complete list, use
 
 This manual is for Org version {{{version}}}.
 
-Copyright \copy 2004--2021 Free Software Foundation, Inc.
+Copyright \copy 2004--2022 Free Software Foundation, Inc.
 
 #+begin_quote
 Permission is granted to copy, distribute and/or modify this document

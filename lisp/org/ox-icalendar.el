@@ -1,6 +1,6 @@
 ;;; ox-icalendar.el --- iCalendar Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;      Nicolas Goaziou <n dot goaziou at gmail dot com>
@@ -280,6 +280,7 @@ re-read the iCalendar file.")
 		     (footnote-definition . ignore)
 		     (footnote-reference . ignore)
 		     (headline . org-icalendar-entry)
+                     (inner-template . org-icalendar-inner-template)
 		     (inlinetask . ignore)
 		     (planning . ignore)
 		     (section . ignore)
@@ -805,6 +806,11 @@ END:VALARM\n"
 
 ;;;; Template
 
+(defun org-icalendar-inner-template (contents _)
+  "Return document body string after iCalendar conversion.
+CONTENTS is the transcoded contents string."
+  contents)
+
 (defun org-icalendar-template (contents info)
   "Return complete document string after iCalendar conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist used
@@ -818,8 +824,7 @@ as a communication channel."
    (if (not (plist-get info :with-author)) ""
      (org-export-data (plist-get info :author) info))
    ;; Timezone.
-   (if (org-string-nw-p org-icalendar-timezone) org-icalendar-timezone
-     (cadr (current-time-zone)))
+   (or (org-string-nw-p org-icalendar-timezone) (format-time-string "%Z"))
    ;; Description.
    (org-export-data (plist-get info :title) info)
    contents))
@@ -882,8 +887,8 @@ Return ICS file name."
     (org-export-to-file 'icalendar outfile
       async subtreep visible-only body-only
       '(:ascii-charset utf-8 :ascii-links-to-notes nil)
-      (lambda (file)
-	(run-hook-with-args 'org-icalendar-after-save-hook file) nil))))
+      '(lambda (file)
+	 (run-hook-with-args 'org-icalendar-after-save-hook file) nil))))
 
 ;;;###autoload
 (defun org-icalendar-export-agenda-files (&optional async)
@@ -966,7 +971,7 @@ This function assumes major mode for current buffer is
        (org-icalendar--vcalendar
 	org-icalendar-combined-name
 	user-full-name
-	(or (org-string-nw-p org-icalendar-timezone) (cadr (current-time-zone)))
+	(or (org-string-nw-p org-icalendar-timezone) (format-time-string "%Z"))
 	org-icalendar-combined-description
 	contents)))
     (run-hook-with-args 'org-icalendar-after-save-hook file)))
@@ -989,7 +994,7 @@ FILES is a list of files to build the calendar from."
 	      user-full-name
 	      ;; Timezone.
 	      (or (org-string-nw-p org-icalendar-timezone)
-		  (cadr (current-time-zone)))
+		  (format-time-string "Z"))
 	      ;; Description.
 	      org-icalendar-combined-description
 	      ;; Contents.

@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2021 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2051,6 +2051,7 @@ window_column_x (struct window *w, Lisp_Object window,
 
 /* Restore window's buffer and point.  */
 
+/* FIXME: Merge with `with_echo_area_buffer_unwind_data`?  */
 static void
 restore_window_buffer (Lisp_Object list)
 {

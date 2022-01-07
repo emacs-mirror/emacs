@@ -1,6 +1,6 @@
 ;;; shortdoc.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 ;; Package: emacs
@@ -159,8 +159,6 @@ There can be any number of :example/:result elements."
    :eval (split-string-and-unquote "foo \"bar zot\""))
   (split-string-shell-command
    :eval (split-string-shell-command "ls /tmp/'foo bar'"))
-  (string-glyph-split
-   :eval (string-glyph-split "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))
@@ -198,6 +196,13 @@ There can be any number of :example/:result elements."
    :eval (substring-no-properties (propertize "foobar" 'face 'bold) 0 3))
   (try-completion
    :eval (try-completion "foo" '("foobar" "foozot" "gazonk")))
+  "Unicode Strings"
+  (string-glyph-split
+   :eval (string-glyph-split "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻"))
+  (string-glyph-compose
+   :eval (string-glyph-compose "Å"))
+  (string-glyph-decompose
+   :eval (string-glyph-decompose "Å"))
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))
@@ -1222,6 +1227,39 @@ There can be any number of :example/:result elements."
   (text-property-search-backward
    :no-eval (text-property-search-backward 'face nil t)))
 
+(define-short-documentation-group keymaps
+  "Defining keymaps"
+  (define-keymap
+    :no-eval (define-keymap "C-c C-c" #'quit-buffer))
+  (defvar-keymap
+      :no-eval (defvar-keymap my-keymap "C-c C-c" #'quit-buffer))
+  "Setting keys"
+  (keymap-set
+   :no-eval (keymap-set map "C-c C-c" #'quit-buffer))
+  (keymap-local-set
+   :no-eval (keymap-local-set "C-c C-c" #'quit-buffer))
+  (keymap-global-set
+   :no-eval (keymap-global-set "C-c C-c" #'quit-buffer))
+  (keymap-unset
+   :no-eval (keymap-unset map "C-c C-c"))
+  (keymap-local-unset
+   :no-eval (keymap-local-unset "C-c C-c"))
+  (keymap-global-unset
+   :no-eval (keymap-global-unset "C-c C-c"))
+  (keymap-substitute
+   :no-eval (keymap-substitute map "C-c C-c" "M-a"))
+  (keymap-set-after
+   :no-eval (keymap-set-after map "<separator-2>" menu-bar-separator))
+  "Predicates"
+  (keymapp
+   :eval (keymapp (define-keymap)))
+  (key-valid-p
+   :eval (key-valid-p "C-c C-c")
+   :eval (key-valid-p "C-cC-c"))
+  "Lookup"
+  (keymap-lookup
+   :eval (keymap-lookup (current-global-map) "C-x x g")))
+
 ;;;###autoload
 (defun shortdoc-display-group (group &optional function)
   "Pop to a buffer with short documentation summary for functions in GROUP.
@@ -1385,14 +1423,12 @@ Example:
         (setq slist (cdr slist)))
       (setcdr slist (cons elem (cdr slist))))))
 
-(defvar shortdoc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'shortdoc-next)
-    (define-key map (kbd "p") 'shortdoc-previous)
-    (define-key map (kbd "C-c C-n") 'shortdoc-next-section)
-    (define-key map (kbd "C-c C-p") 'shortdoc-previous-section)
-    map)
-  "Keymap for `shortdoc-mode'.")
+(defvar-keymap shortdoc-mode-map
+  :doc "Keymap for `shortdoc-mode'."
+  "n"       #'shortdoc-next
+  "p"       #'shortdoc-previous
+  "C-c C-n" #'shortdoc-next-section
+  "C-c C-p" #'shortdoc-previous-section)
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc."

@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1997, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -580,23 +580,24 @@ files in the active region if `dired-mark-region' is non-nil."
 
 (defalias 'virtual-dired 'dired-virtual)
 (defun dired-virtual (dirname &optional switches)
-  "Put this Dired buffer into Virtual Dired mode.
+  "Treat the current buffer as a Dired buffer showing directory DIRNAME.
+Interactively, prompt for DIRNAME.
 
-In Virtual Dired mode, all commands that do not actually consult the
-filesystem will work.
+This command is rarely useful, but may be convenient if you want
+to peruse and move around in the output you got from \"ls
+-lR\" (or something similar), without having access to the actual
+file system.
 
-This is useful if you want to peruse and move around in an ls -lR
-output file, for example one you got from an ftp server.  With
-ange-ftp, you can even Dired a directory containing an ls-lR file,
-visit that file and turn on Virtual Dired mode.  But don't try to save
-this file, as `dired-virtual' indents the listing and thus changes the
-buffer.
+Most Dired commands that don't consult the file system will work
+as advertised, but commands that try to alter the file system
+will usually fail.  (However, if the output is from the current
+system, most of those commands will work fine.)
 
 If you have saved a Dired buffer in a file you can use \\[dired-virtual] to
 resume it in a later session.
 
 Type \\<dired-mode-map>\\[revert-buffer] \
-in the Virtual Dired buffer and answer `y' to convert
+in the Virtual Dired buffer and answer \\`y' to convert
 the virtual to a real Dired buffer again.  You don't have to do this, though:
 you can relist single subdirs using \\[dired-do-redisplay]."
 
@@ -1264,13 +1265,21 @@ sure that a trailing letter in STR is one of BKkMGTPEZY."
   (let* ((val (string-to-number str))
          (u (unless (zerop val)
               (aref str (1- (length str))))))
-    (when (and u (> u ?9))
-      (when (= u ?k)
-        (setq u ?K))
-      (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
-        (while (and units (/= (pop units) u))
-          (setq val (* 1024.0 val)))))
-    val))
+    ;; If we don't have a unit at the end, but we have some
+    ;; non-numeric strings in the string, then the string may be
+    ;; something like "4.134" or "4,134" meant to represent 4134
+    ;; (seen in some locales).
+    (if (and u
+             (<= ?0 u ?9)
+             (string-match-p "[^0-9]" str))
+        (string-to-number (replace-regexp-in-string "[^0-9]+" "" str))
+      (when (and u (> u ?9))
+        (when (= u ?k)
+          (setq u ?K))
+        (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
+          (while (and units (/= (pop units) u))
+            (setq val (* 1024.0 val)))))
+      val)))
 
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.

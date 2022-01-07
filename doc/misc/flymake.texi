@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo; coding: utf-8 -*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
 @set VERSION 1.2
@@ -13,7 +13,7 @@
 @copying
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 2004--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -218,7 +218,7 @@ can use the variables @code{flymake-mode-line-format} and
 
 @cindex disabled backends
 @cindex backends, disabled
-As Flymake supports multiple simutaneously active external backends,
+As Flymake supports multiple simultaneously active external backends,
 is becomes useful to monitor their status.  For example, some backends
 may take longer than others to respond or complete, and some may
 decide to @emph{disable} themselves if they are not suitable for the
@@ -343,7 +343,7 @@ The following sections discuss each approach in detail.
 To customize the appearance of error types, the user must set
 properties on the symbols associated with each diagnostic type.
 
-The three standard diagnostic keyowrd symbols -- @code{:error},
+The three standard diagnostic keyword symbols -- @code{:error},
 @code{:warning} and @code{:note} -- have pre-configured appearances.
 However a backend may define more (@pxref{Backend functions}).
 
@@ -1145,7 +1145,7 @@ file are parsed.
 For @file{file.h}, the include directives to look for are
 @code{#include "file.h"}, @code{#include "../file.h"}, etc.  Each
 include is checked against a list of include directories
-(see @ref{Getting the include directories}) to be sure it points to the
+(@pxref{Getting the include directories}) to be sure it points to the
 correct @file{file.h}.
 
 First matching master file found stops the search.  The master file is then

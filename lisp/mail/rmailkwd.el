@@ -1,6 +1,6 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1994, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1985, 1988, 1994, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -187,9 +187,5 @@ With prefix argument N moves forward N messages with these labels."
 	(rmail-show-message-1 lastwin)))))
 
 (provide 'rmailkwd)
-
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
 
 ;;; rmailkwd.el ends here

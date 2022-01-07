@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1597,7 +1597,10 @@ to move by.  The default is `ibuffer-marked-char'."
   "Hide all of the currently marked lines."
   (interactive)
   (if (= (ibuffer-count-marked-lines) 0)
-      (message "No buffers marked; use `m' to mark a buffer")
+      (message (substitute-command-keys
+                (concat
+                 "No buffers marked; use \\<ibuffer-mode-map>"
+                 "\\[ibuffer-mark-forward] to mark a buffer")))
     (let ((count
 	   (ibuffer-map-marked-lines
             (lambda (_buf _mark)

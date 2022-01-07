@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2021 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -603,9 +603,16 @@ decode_options (int argc, char **argv)
       alt_display = "ns";
 #elif defined (HAVE_NTGUI)
       alt_display = "w32";
+#elif defined (HAVE_HAIKU)
+      alt_display = "be";
 #endif
 
+#ifdef HAVE_PGTK
+      display = egetenv ("WAYLAND_DISPLAY");
+      alt_display = egetenv ("DISPLAY");
+#else
       display = egetenv ("DISPLAY");
+#endif
     }
 
   if (!display)
@@ -1467,7 +1474,6 @@ set_local_socket (char const *server_name)
   else
     {
       /* socket_name is a file name component.  */
-      sock_status = ENOENT;
       char const *xdg_runtime_dir = egetenv ("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir)
 	{
@@ -1477,7 +1483,7 @@ set_local_socket (char const *server_name)
 			 ? connect_socket (AT_FDCWD, sockname, s, 0)
 			 : ENAMETOOLONG);
 	}
-      if (sock_status == ENOENT)
+      else
 	{
 	  char const *tmpdir = egetenv ("TMPDIR");
 	  if (tmpdir)
@@ -1756,8 +1762,9 @@ start_daemon_and_retry_set_socket (void)
 	}
 
       /* Try connecting, the daemon should have started by now.  */
-      message (true,
-	       "Emacs daemon should have started, trying to connect again\n");
+      if (!quiet)
+        message (true,
+                 "Emacs daemon should have started, trying to connect again\n");
     }
   else if (dpid < 0)
     {
@@ -1848,7 +1855,7 @@ start_daemon_and_retry_set_socket (void)
   /* Try connecting, the daemon should have started by now.  */
   /* It's just a progress message, so don't pop a dialog if this is
      emacsclientw.  */
-  if (!w32_window_app ())
+  if (!quiet && !w32_window_app ())
     message (true,
 	     "Emacs daemon should have started, trying to connect again\n");
 #endif /* WINDOWSNT */

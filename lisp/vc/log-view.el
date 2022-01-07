@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -123,7 +123,7 @@
   :prefix "log-view-")
 
 (defvar-keymap log-view-mode-map
-  (kbd "RET") #'log-view-toggle-entry-display
+  "RET" #'log-view-toggle-entry-display
   "m" #'log-view-toggle-mark-entry
   "e" #'log-view-modify-change-comment
   "d" #'log-view-diff
@@ -133,12 +133,12 @@
   "f" #'log-view-find-revision
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
-  (kbd "TAB") #'log-view-msg-next
-  (kbd "<backtab>") #'log-view-msg-prev
+  "TAB" #'log-view-msg-next
+  "<backtab>" #'log-view-msg-prev
   "N" #'log-view-file-next
   "P" #'log-view-file-prev
-  (kbd "M-n") #'log-view-file-next
-  (kbd "M-p") #'log-view-file-prev)
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu."

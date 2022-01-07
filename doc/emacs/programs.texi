@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -1827,7 +1827,7 @@ sure the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
-  (define-key c-mode-base-map "\C-m"
+  (keymap-set c-mode-base-map "RET"
               'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
 @end example

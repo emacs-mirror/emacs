@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -74,7 +74,7 @@
 ;; (defvar gv--macro-environment nil
 ;;   "Macro expanders for generalized variables.")
 
-(define-error 'gv-invalid-place "%S is not a valid place expression")
+(define-error 'gv-invalid-place "Invalid place expression")
 
 ;;;###autoload
 (defun gv-get (place do)

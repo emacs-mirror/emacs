@@ -1,6 +1,6 @@
 ;;; thingatpt-tests.el --- tests for thing-at-point.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -170,21 +170,13 @@ position to retrieve THING.")
     (forward-char -1)
     (should (eq (symbol-at-point) 'bar))))
 
-(ert-deftest test-symbol-thing-2 ()
-  (with-temp-buffer
-    (insert " bar ")
-    (goto-char (point-max))
-    (should (eq (symbol-at-point) nil))
-    (forward-char -1)
-    (should (eq (symbol-at-point) 'bar))))
-
 (ert-deftest test-symbol-thing-3 ()
   (with-temp-buffer
     (insert "bar")
     (goto-char 2)
     (should (eq (symbol-at-point) 'bar))))
 
-(ert-deftest test-symbol-thing-3 ()
+(ert-deftest test-symbol-thing-4 ()
   (with-temp-buffer
     (insert "`[[`(")
     (goto-char 2)
@@ -222,13 +214,5 @@ position to retrieve THING.")
   (should (equal (test--number "0xf00" 1) 3840))
   (should (equal (test--number "0xf00" 2) 3840))
   (should (equal (test--number "0xf00" 3) 3840)))
-
-(ert-deftest test-fields ()
-  (with-temp-buffer
-    (insert (propertize "foo" 'field 1) "bar" (propertize "zot" 'field 2))
-    (goto-char 1)
-    (should (eq (symbol-at-point) 'foo))
-    (goto-char 5)
-    (should (eq (symbol-at-point) 'bar))))
 
 ;;; thingatpt-tests.el ends here

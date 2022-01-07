@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -644,13 +644,13 @@ FIXME: multiple comma-separated values should be allowed!"
           ;; seconds present
           (setq second (read (substring isodatetimestring 13 15))))
 	;; FIXME: Support subseconds.
-        (when (and (> (length isodatetimestring) 15)
-                   ;; UTC specifier present
-                   (char-equal ?Z (aref isodatetimestring 15)))
-          (setq source-zone t
-                ;; decode to local time unless result-zone is explicitly given,
-                ;; i.e. do not decode to UTC, i.e. do not (setq result-zone t)
-                ))
+        (when (> (length isodatetimestring) 15)
+	  (pcase (aref isodatetimestring 15)
+            (?Z
+             (setq source-zone t))
+	    ((or ?- ?+)
+             (setq source-zone
+                   (concat "UTC" (substring isodatetimestring 15))))))
         ;; shift if necessary
         (if day-shift
             (let ((mdy (calendar-gregorian-from-absolute

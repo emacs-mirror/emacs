@@ -1,6 +1,6 @@
 ;;; electric-tests.el --- tests for electric.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords:
@@ -97,8 +97,8 @@
                 (with-temp-buffer
                   (cl-progv
                       ;; FIXME: avoid `eval'
-                      (mapcar #'car (eval bindings))
-                      (mapcar #'cdr (eval bindings))
+                      (mapcar #'car (eval bindings t))
+                      (mapcar #'cdr (eval bindings t))
                     (dlet ((python-indent-guess-indent-offset-verbose nil))
                       (funcall mode)
                       (insert fixture)
@@ -187,7 +187,7 @@ The buffer's contents should %s:
           (fixture-fn '#'electric-pair-mode))
   `(progn
      ,@(cl-loop
-        for mode in (eval modes) ;FIXME: avoid `eval'
+        for mode in (eval modes t) ;FIXME: avoid `eval'
         append
         (cl-loop
          for (prefix suffix extra-desc) in
@@ -539,16 +539,6 @@ baz\"\""
   :fixture-fn (lambda ()
                 (electric-layout-mode 1)
                 (electric-pair-mode 1)))
-
-(define-electric-pair-test js-mode-braces-with-layout-and-indent
-  "" "{" :expected-string "{\n    \n}" :expected-point 7
-  :modes '(js-mode)
-  :test-in-comments nil
-  :test-in-strings nil
-  :fixture-fn (lambda ()
-                (electric-pair-mode 1)
-                (electric-indent-mode 1)
-                (electric-layout-mode 1)))
 
 (define-electric-pair-test js-mode-braces-with-layout-and-indent
   "" "{" :expected-string "{\n    \n}" :expected-point 7

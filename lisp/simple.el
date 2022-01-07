@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -541,9 +541,9 @@ Other major modes are defined by comparison with this one."
 (defvar-keymap special-mode-map
   :suppress t
   "q" #'quit-window
-  " " #'scroll-up-command
-  [?\S-\ ] #'scroll-down-command
-  "\C-?" #'scroll-down-command
+  "SPC" #'scroll-up-command
+  "S-SPC" #'scroll-down-command
+  "DEL" #'scroll-down-command
   "?" #'describe-mode
   "h" #'describe-mode
   ">" #'end-of-buffer
@@ -3114,7 +3114,7 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
             (let ((undo-in-progress t))
               (while (and (consp ul) (eq (car ul) nil))
                 (setq ul (cdr ul)))
-              (primitive-undo arg ul)))
+              (primitive-undo (or arg 1) ul)))
            (new-pul (undo--last-change-was-undo-p new-ul)))
       (message "Redo%s" (if undo-in-region " in region" ""))
       (setq this-command 'undo)
@@ -4701,6 +4701,8 @@ File name handlers might not support pty association, if PROGRAM is nil."
     (if (eobp)
         (forward-line -1)
       (beginning-of-line))))
+
+(declare-function thread-name "thread.c")
 
 (defun list-processes--refresh ()
   "Recompute the list of processes for the Process List buffer.
@@ -8912,7 +8914,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally.
 
 When called interactively, the user is prompted for VARIABLE and
 then VALUE.  The current value of VARIABLE will be put in the
-minibuffer history so that it can be accessed with `M-n', which
+minibuffer history so that it can be accessed with \\`M-n', which
 makes it easier to edit it."
   (interactive
    (let* ((default-var (variable-at-point))
@@ -8980,6 +8982,7 @@ makes it easier to edit it."
     (define-key map [down-mouse-2] nil)
     (define-key map "\C-m" 'choose-completion)
     (define-key map "\e\e\e" 'delete-completion-window)
+    (define-key map [remap keyboard-quit] #'delete-completion-window)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
     (define-key map [?\t] 'next-completion)
@@ -9027,38 +9030,68 @@ Go to the window from which completion was requested."
       (if (get-buffer-window buf)
 	  (select-window (get-buffer-window buf))))))
 
+(defcustom completion-wrap-movement t
+  "Non-nil means to wrap around when selecting completion options.
+This affects the commands `next-completion' and
+`previous-completion'."
+  :type 'boolean
+  :version "29.1"
+  :group 'completion)
+
 (defun previous-completion (n)
-  "Move to the previous item in the completion list."
+  "Move to the previous item in the completion list.
+With prefix argument N, move back N items (negative N means move
+forward)."
   (interactive "p")
   (next-completion (- n)))
 
 (defun next-completion (n)
   "Move to the next item in the completion list.
-With prefix argument N, move N items (negative N means move backward)."
+With prefix argument N, move N items (negative N means move
+backward)."
   (interactive "p")
   (let ((beg (point-min)) (end (point-max)))
-    (while (and (> n 0) (not (eobp)))
-      ;; If in a completion, move to the end of it.
-      (when (get-text-property (point) 'mouse-face)
-	(goto-char (next-single-property-change (point) 'mouse-face nil end)))
-      ;; Move to start of next one.
-      (unless (get-text-property (point) 'mouse-face)
-	(goto-char (next-single-property-change (point) 'mouse-face nil end)))
-      (setq n (1- n)))
-    (while (and (< n 0) (not (bobp)))
-      (let ((prop (get-text-property (1- (point)) 'mouse-face)))
-	;; If in a completion, move to the start of it.
-	(when (and prop (eq prop (get-text-property (point) 'mouse-face)))
-	  (goto-char (previous-single-property-change
-		      (point) 'mouse-face nil beg)))
-	;; Move to end of the previous completion.
-	(unless (or (bobp) (get-text-property (1- (point)) 'mouse-face))
-	  (goto-char (previous-single-property-change
-		      (point) 'mouse-face nil beg)))
-	;; Move to the start of that one.
-	(goto-char (previous-single-property-change
-		    (point) 'mouse-face nil beg))
-	(setq n (1+ n))))))
+    (catch 'bound
+      (while (> n 0)
+        ;; If in a completion, move to the end of it.
+        (when (get-text-property (point) 'mouse-face)
+          (goto-char (next-single-property-change (point) 'mouse-face nil end)))
+        ;; If at the last completion option, wrap or skip to the
+        ;; minibuffer, if requested.
+        (when (and completion-wrap-movement (eobp))
+          (if (and (member (this-command-keys) '("\t" [backtab]))
+                   completion-auto-select)
+              (throw 'bound nil)
+            (goto-char (point-min))))
+        ;; Move to start of next one.
+        (unless (get-text-property (point) 'mouse-face)
+          (goto-char (next-single-property-change (point) 'mouse-face nil end)))
+        (setq n (1- n)))
+      (while (< n 0)
+        (let ((prop (get-text-property (1- (point)) 'mouse-face)))
+          ;; If in a completion, move to the start of it.
+          (when (and prop (eq prop (get-text-property (point) 'mouse-face)))
+            (goto-char (previous-single-property-change
+                        (point) 'mouse-face nil beg)))
+          ;; Move to end of the previous completion.
+          (unless (or (bobp) (get-text-property (1- (point)) 'mouse-face))
+            (goto-char (previous-single-property-change
+                        (point) 'mouse-face nil beg)))
+          ;; If at the first completion option, wrap or skip to the
+          ;; minibuffer, if requested.
+          (when (and completion-wrap-movement (bobp))
+            (if (and (member (this-command-keys) '("\t" [backtab]))
+                     completion-auto-select)
+                (progn
+                  (goto-char (next-single-property-change (point) 'mouse-face nil end))
+                  (throw 'bound nil))
+              (goto-char (point-max))))
+          ;; Move to the start of that one.
+          (goto-char (previous-single-property-change
+                      (point) 'mouse-face nil beg))
+          (setq n (1+ n)))))
+    (when (/= 0 n)
+      (switch-to-minibuffer))))
 
 (defun choose-completion (&optional event)
   "Choose the completion at point.
@@ -9226,6 +9259,12 @@ Called from `temp-buffer-show-hook'."
   :version "22.1"
   :group 'completion)
 
+(defcustom completion-auto-select nil
+  "Non-nil means to automatically select the *Completions* buffer."
+  :type 'boolean
+  :version "29.1"
+  :group 'completion)
+
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
@@ -9262,7 +9301,9 @@ Called from `temp-buffer-show-hook'."
 	    (insert "Click on a completion to select it.\n"))
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n"))))))
+select the completion near point.\n\n")))))
+  (when completion-auto-select
+    (switch-to-completions)))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 
@@ -9275,10 +9316,16 @@ select the completion near point.\n\n"))))))
                            (get-buffer-window "*Completions*" 0)))))
     (when window
       (select-window window)
-      ;; In the new buffer, go to the first completion.
-      ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
-      (when (bobp)
-	(next-completion 1)))))
+      (cond
+       ((and (memq this-command '(completion-at-point minibuffer-complete))
+             (equal (this-command-keys) [backtab])
+             (bobp))
+        (goto-char (point-max))
+        (previous-completion 1))
+       ;; In the new buffer, go to the first completion.
+       ;; FIXME: Perhaps this should be done in `minibuffer-completion-help'.
+       ((bobp)
+        (next-completion 1))))))
 
 (defun read-expression-switch-to-completions ()
   "Select the completion list window while reading an expression."
@@ -9616,7 +9663,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
-			(memq window-system '(w32 ns))
+			(memq window-system '(w32 ns pgtk))
                         (and (eq window-system 'x)
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))
@@ -9790,24 +9837,7 @@ If it does not exist, create it and switch it to `messages-buffer-mode'."
 ;; versions together with bad values.  This is therefore not as
 ;; flexible as it could be.  See the thread:
 ;; https://lists.gnu.org/r/emacs-devel/2007-08/msg00300.html
-(defconst bad-packages-alist
-  ;; Not sure exactly which semantic versions have problems.
-  ;; Definitely 2.0pre3, probably all 2.0pre's before this.
-  '((semantic semantic-version "\\`2\\.0pre[1-3]\\'"
-              "The version of `semantic' loaded does not work in Emacs 22.
-It can cause constant high CPU load.
-Upgrade to at least Semantic 2.0pre4 (distributed with CEDET 1.0pre4).")
-    ;; CUA-mode does not work with GNU Emacs version 22.1 and newer.
-    ;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
-    ;; provided the `CUA-mode' feature.  Since this is no longer true,
-    ;; we can warn the user if the `CUA-mode' feature is ever provided.
-    (CUA-mode t nil
-"CUA-mode is now part of the standard GNU Emacs distribution,
-so you can now enable CUA via the Options menu or by customizing `cua-mode'.
-
-You have loaded an older version of CUA-mode which does not work
-correctly with this version of Emacs.  You should remove the old
-version and use the one distributed with Emacs."))
+(defconst bad-packages-alist nil
   "Alist of packages known to cause problems in this version of Emacs.
 Each element has the form (PACKAGE SYMBOL REGEXP STRING).
 PACKAGE is either a regular expression to match file names, or a
@@ -9815,9 +9845,11 @@ symbol (a feature name), like for `with-eval-after-load'.
 SYMBOL is either the name of a string variable, or t.  Upon
 loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
 warning using STRING as the message.")
+(make-obsolete-variable 'bad-packages-alist nil "29.1")
 
 (defun bad-package-check (package)
   "Run a check using the element from `bad-packages-alist' matching PACKAGE."
+  (declare (obsolete nil "29.1"))
   (condition-case nil
       (let* ((list (assoc package bad-packages-alist))
              (symbol (nth 1 list)))
@@ -9828,11 +9860,6 @@ warning using STRING as the message.")
                       (string-match-p (nth 2 list) symbol)))
              (display-warning package (nth 3 list) :warning)))
     (error nil)))
-
-(dolist (elem bad-packages-alist)
-  (let ((pkg (car elem)))
-    (with-eval-after-load pkg
-      (bad-package-check pkg))))
 
 
 ;;; Generic dispatcher commands

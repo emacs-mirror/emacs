@@ -1,6 +1,6 @@
 ;;; gnus-undo.el --- minor mode for undoing in Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -76,11 +76,11 @@
 ;;; Minor mode definition.
 
 (defvar-keymap gnus-undo-mode-map
-  "\M-\C-_" #'gnus-undo
-  "\C-_" #'gnus-undo
-  "\C-xu" #'gnus-undo
+  "C-M-_" #'gnus-undo
+  "C-_" #'gnus-undo
+  "C-x u" #'gnus-undo
   ;; many people are used to type `C-/' on GUI frames and get `C-_'.
-  [(control /)] #'gnus-undo)
+  "C-/" #'gnus-undo)
 
 (defun gnus-undo-make-menu-bar ()
   ;; This is disabled for the time being.

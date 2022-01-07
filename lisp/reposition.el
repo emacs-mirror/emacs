@@ -1,6 +1,6 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
 ;; Created: Jan 1991

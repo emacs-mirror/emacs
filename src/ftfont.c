@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2021 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -225,8 +225,6 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
     }
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
-      if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)
-	numeric = FC_WEIGHT_MEDIUM;
       FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX, make_fixnum (numeric));
     }
   if (FcPatternGetInteger (p, FC_SLANT, 0, &numeric) == FcResultMatch)
@@ -3109,6 +3107,10 @@ syms_of_ftfont (void)
   DEFSYM (Qfreetypehb, "freetypehb");
   Fput (Qfreetype, Qfont_driver_superseded_by, Qfreetypehb);
 #endif	/* HAVE_HARFBUZZ */
+
+#ifdef HAVE_HAIKU
+  DEFSYM (Qmono, "mono");
+#endif
 
   /* Fontconfig's generic families and their aliases.  */
   DEFSYM (Qmonospace, "monospace");

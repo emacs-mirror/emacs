@@ -1,6 +1,6 @@
 ;;; time-date.el --- Date and time handling functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -69,7 +69,7 @@ list (HIGH LOW MICRO PICO)."
 		     (pop elt)))
 	     (time-value (car elt))
 	     (gensym (make-symbol "time")))
-	`(let* ,(append `((,gensym (or ,time-value (current-time)))
+	`(let* ,(append `((,gensym (or ,time-value (time-convert nil 'list)))
 			  (,gensym
 			   (cond
 			    ((integerp ,gensym)
@@ -154,7 +154,10 @@ it is assumed that PICO was omitted and should be treated as zero."
 DATE should be in one of the forms recognized by `parse-time-string'.
 If DATE lacks timezone information, GMT is assumed."
   (condition-case err
-      (encode-time (parse-time-string date))
+      (let ((parsed (parse-time-string date)))
+	(when (decoded-time-year parsed)
+	  (decoded-time-set-defaults parsed))
+	(encode-time parsed))
     (error
      (let ((overflow-error '(error "Specified time is not representable")))
        (if (equal err overflow-error)

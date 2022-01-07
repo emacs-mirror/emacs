@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Files
@@ -2246,7 +2246,7 @@ and @code{file-name-nondirectory}.  For example,
 
 @defun file-name-split filename
 This function splits a file name into its components, and can be
-thought of as the inverse of @code{string-joing} with the appropriate
+thought of as the inverse of @code{string-join} with the appropriate
 directory separator.  For example,
 
 @example
@@ -3308,8 +3308,8 @@ first, before handlers for jobs such as remote file access.
 
 @ifnottex
 @noindent
-@code{access-file}, @code{add-name-to-file},
-@code{byte-compiler-base-file-name},@*
+@code{abbreviate-file-name}, @code{access-file},
+@code{add-name-to-file}, @code{byte-compiler-base-file-name},@*
 @code{copy-directory}, @code{copy-file},
 @code{delete-directory}, @code{delete-file},
 @code{diff-latest-backup-file},
@@ -3368,7 +3368,8 @@ first, before handlers for jobs such as remote file access.
 @iftex
 @noindent
 @flushleft
-@code{access-file}, @code{add-name-to-file},
+@code{abbreviate-file-name}, @code{access-file},
+@code{add-name-to-file},
 @code{byte-com@discretionary{}{}{}piler-base-file-name},
 @code{copy-directory}, @code{copy-file},
 @code{delete-directory}, @code{delete-file},

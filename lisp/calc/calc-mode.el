@@ -1,6 +1,6 @@
 ;;; calc-mode.el --- calculator modes for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -109,11 +109,14 @@
      (setq n (and (not (eq calc-auto-why t)) (if calc-auto-why t 1))))
    (calc-change-mode 'calc-auto-why n nil)
    (cond ((null n)
-	  (message "User must press `w' to explain unsimplified results"))
+	  (message (substitute-command-keys
+                    "User must press \\`w' to explain unsimplified results")))
 	 ((eq n t)
-	  (message "Automatically doing `w' to explain unsimplified results"))
+          (message (substitute-command-keys
+                    "Automatically doing \\`w' to explain unsimplified results")))
 	 (t
-	  (message "Automatically doing `w' only for unusual messages")))))
+          (message (substitute-command-keys
+                    "Automatically doing \\`w' only for unusual messages"))))))
 
 (defun calc-group-digits (n)
   (interactive "P")

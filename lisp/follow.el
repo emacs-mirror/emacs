@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 1999, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1995-1997, 1999, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Anders Lindgren
@@ -669,24 +669,30 @@ Works like `scroll-down' when not in Follow mode."
         (t
 	 (let* ((orig-point (point))
                 (windows (follow-all-followers))
-		(win (car (reverse windows)))
-		(start (window-start (car windows))))
+		(start (window-start (car windows)))
+                (lines 0))
 	   (if (eq start (point-min))
 	       (if (or (null scroll-error-top-bottom)
 		       (bobp))
 		   (signal 'beginning-of-buffer nil)
 		 (goto-char (point-min)))
-	     (select-window win)
-	     (goto-char start)
-	     (vertical-motion (- (- (window-height win)
-				    (if header-line-format 2 1) ; always mode-line
-				    (if tab-line-format 1 0)
-                                    next-screen-context-lines)))
-	     (set-window-start win (point))
-             (if (< orig-point (window-end win t))
-                 (goto-char orig-point)
-               (goto-char start)
-	       (vertical-motion (- next-screen-context-lines 1)))
+             (select-window (car windows))
+             (dolist (win windows)
+               (setq lines
+                     (+ lines
+                        (- (window-height win)
+                           (if header-line-format 2 1) ; Count mode-line, too.
+                           (if tab-line-format 1 0)))))
+             (setq lines (- lines next-screen-context-lines))
+             (goto-char start)
+             (let ((at-top (> (vertical-motion (- lines)) (- lines))))
+               (set-window-start (car windows) (point))
+               (if at-top
+                   (goto-char orig-point)
+                 (goto-char start)
+                 (vertical-motion (- next-screen-context-lines 1))
+                 (if (< orig-point (point))
+                     (goto-char orig-point))))
 	     (setq follow-internal-force-redisplay t))))))
 (put 'follow-scroll-down 'scroll-command t)
 

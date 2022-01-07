@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -136,7 +136,7 @@ form.")
 	  ;; Prevent any dir-locals file interfering with the tests.
 	  (enable-dir-local-variables nil))
       (hack-local-variables)
-      (eval (nth 2 test-settings)))))
+      (eval (nth 2 test-settings) t))))
 
 (ert-deftest files-tests-local-variables ()
   "Test the file-local variables implementation."
@@ -464,6 +464,15 @@ unquoted file names."
 (defun files-tests--new-name (name part)
   (let (file-name-handler-alist)
     (concat (file-name-sans-extension name) part (file-name-extension name t))))
+
+(ert-deftest files-tests-file-name-non-special-abbreviate-file-name ()
+  (let* ((homedir temporary-file-directory)
+         (process-environment (cons (format "HOME=%s" homedir)
+                                    process-environment))
+         (abbreviated-home-dir nil))
+    ;; Check that abbreviation doesn't occur for quoted file names.
+    (should (equal (concat "/:" homedir "foo/bar")
+                   (abbreviate-file-name (concat "/:" homedir "foo/bar"))))))
 
 (ert-deftest files-tests-file-name-non-special-access-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -1531,10 +1540,13 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      (write-file temp-file-name)
-      (erase-buffer)
-      (insert files-tests-tzu)
-      (revert-buffer t t t)
+      ;; Disable lock files, since that barfs in
+      ;; userlock--check-content-unchanged on MS-Windows.
+      (let (create-lockfiles)
+        (write-file temp-file-name)
+        (erase-buffer)
+        (insert files-tests-tzu)
+        (revert-buffer t t t))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1544,10 +1556,13 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      (write-file temp-file-name)
-      (erase-buffer)
-      (insert files-tests-tzu)
-      (should (revert-buffer-with-fine-grain t t))
+      ;; Disable lock files, since that barfs in
+      ;; userlock--check-content-unchanged on MS-Windows.
+      (let (create-lockfiles)
+        (write-file temp-file-name)
+        (erase-buffer)
+        (insert files-tests-tzu)
+        (should (revert-buffer-with-fine-grain t t)))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1800,7 +1815,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
          ;; `save-some-buffers-default-predicate' (i.e. the 2nd element) is ignored.
          (nil save-some-buffers-root ,nb-might-save))))))
 
-(defun test-file-name-split ()
+(ert-deftest test-file-name-split ()
   (should (equal (file-name-split "foo/bar") '("foo" "bar")))
   (should (equal (file-name-split "/foo/bar") '("" "foo" "bar")))
   (should (equal (file-name-split "/foo/bar/zot") '("" "foo" "bar" "zot")))

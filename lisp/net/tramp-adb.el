@@ -1,6 +1,6 @@
 ;;; tramp-adb.el --- Functions for calling Android Debug Bridge from Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Keywords: comm, processes
@@ -107,7 +107,8 @@ It is used for TCP/IP devices."
 
 ;;;###tramp-autoload
 (defconst tramp-adb-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '(;; `abbreviate-file-name' performed by default handler.
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)
@@ -191,11 +192,10 @@ It is used for TCP/IP devices."
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-adb-file-name-p (filename)
-  "Check if it's a FILENAME for ADB."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-adb-method)))
+(defsubst tramp-adb-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for ADB."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-adb-method)))
 
 ;;;###tramp-autoload
 (defun tramp-adb-file-name-handler (operation &rest args)
@@ -306,7 +306,7 @@ arguments to pass to the OPERATION."
   (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
   (unless (file-exists-p directory)
-    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
+    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
   (when (file-directory-p directory)
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (copy-tree
@@ -415,6 +415,8 @@ Emacs dired can't find files."
 (defun tramp-adb-ls-output-time-less-p (a b)
   "Sort \"ls\" output by time, descending."
   (let (time-a time-b)
+    ;; Once we can assume Emacs 27 or later, the two calls
+    ;; (apply #'encode-time X) can be replaced by (encode-time X).
     (string-match tramp-adb-ls-date-regexp a)
     (setq time-a (apply #'encode-time (parse-time-string (match-string 0 a))))
     (string-match tramp-adb-ls-date-regexp b)
@@ -499,7 +501,7 @@ Emacs dired can't find files."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (unless (file-exists-p (file-truename filename))
-      (tramp-compat-file-missing v filename))
+      (tramp-error v 'file-missing filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
@@ -591,8 +593,7 @@ Emacs dired can't find files."
       ;; Set file modification time.
       (when (or (eq visit t) (stringp visit))
 	(set-visited-file-modtime
-	 (or (tramp-compat-file-attribute-modification-time
-	      (file-attributes filename))
+	 (or (file-attribute-modification-time (file-attributes filename))
 	     (current-time))))
 
       ;; Unlock file.
@@ -660,7 +661,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -720,8 +721,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when keep-date
       (tramp-compat-set-file-times
        newname
-       (tramp-compat-file-attribute-modification-time
-	(file-attributes filename))
+       (file-attribute-modification-time (file-attributes filename))
        (unless ok-if-already-exists 'nofollow)))))
 
 (defun tramp-adb-handle-rename-file
@@ -742,7 +742,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -1349,22 +1349,18 @@ connection if a previous connection has died for some reason."
 	    ;; Mark it as connected.
 	    (tramp-set-connection-property p "connected" t)))))))
 
-;;; Default connection-local variables for Tramp:
-;; `connection-local-set-profile-variables' and
-;; `connection-local-set-profiles' exists since Emacs 26.1.
+;;; Default connection-local variables for Tramp.
 (defconst tramp-adb-connection-local-default-shell-variables
   '((shell-file-name . "/system/bin/sh")
     (shell-command-switch . "-c"))
   "Default connection-local shell variables for remote adb connections.")
 
-(tramp-compat-funcall
- 'connection-local-set-profile-variables
+(connection-local-set-profile-variables
  'tramp-adb-connection-local-default-shell-profile
  tramp-adb-connection-local-default-shell-variables)
 
 (with-eval-after-load 'shell
-  (tramp-compat-funcall
-   'connection-local-set-profiles
+  (connection-local-set-profiles
    `(:application tramp :protocol ,tramp-adb-method)
    'tramp-adb-connection-local-default-shell-profile))
 

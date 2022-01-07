@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -448,6 +448,7 @@ unless `windmove-create-window' is non-nil and a new window is created."
 (defvar windmove-mode-map (make-sparse-keymap)
   "Map used by `windmove-install-defaults'.")
 
+;;;###autoload
 (define-minor-mode windmove-mode
   "Global minor mode for default windmove commands."
   :keymap windmove-mode-map
@@ -700,7 +701,7 @@ where PREFIX is a prefix key and MODIFIERS is either a list of modifiers or
 a single modifier.
 If PREFIX is `none', no prefix is used.  If MODIFIERS is `none',
 the keybindings are directly bound to the arrow keys.
-Default value of PREFIX is `C-x' and MODIFIERS is `shift'."
+Default value of PREFIX is \\`C-x' and MODIFIERS is `shift'."
   (interactive)
   (unless prefix (setq prefix '(?\C-x)))
   (when (eq prefix 'none) (setq prefix nil))

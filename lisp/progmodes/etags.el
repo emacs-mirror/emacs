@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2021 Free
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2022 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -1992,7 +1992,8 @@ see the doc of that variable if you want to add names to the list."
       (setq set-list (delete (car set-list) set-list)))
     (goto-char (point-min))
     (insert-before-markers
-     "Type `t' to select a tags table or set of tags tables:\n\n")
+     (substitute-command-keys
+      "Type \\`t' to select a tags table or set of tags tables:\n\n"))
     (if desired-point
 	(goto-char desired-point))
     (set-window-start (selected-window) 1 t))
@@ -2087,14 +2088,15 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
         (definitions (etags--xref-find-definitions symbol))
         same-file-definitions)
     (when (and etags-xref-prefer-current-file file)
-      (cl-delete-if
-       (lambda (definition)
-         (when (equal file
-                      (xref-location-group
-                       (xref-item-location definition)))
-           (push definition same-file-definitions)
-           t))
-       definitions)
+      (setq definitions
+            (cl-delete-if
+             (lambda (definition)
+               (when (equal file
+                            (xref-location-group
+                             (xref-item-location definition)))
+                 (push definition same-file-definitions)
+                 t))
+             definitions))
       (setq definitions (nconc (nreverse same-file-definitions)
                                definitions)))
     definitions))

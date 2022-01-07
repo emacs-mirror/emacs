@@ -1,6 +1,6 @@
 ;;; thread.el --- Thread support in Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -29,6 +29,13 @@
 (require 'backtrace)
 (eval-when-compile (require 'pcase))
 (eval-when-compile (require 'subr-x))
+
+(declare-function thread-name "thread.c")
+(declare-function thread-signal "thread.c")
+(declare-function thread--blocker "thread.c")
+(declare-function current-thread "thread.c")
+(declare-function thread-live-p "thread.c")
+(declare-function all-threads "thread.c")
 
 ;;;###autoload
 (defun thread-handle-event (event)

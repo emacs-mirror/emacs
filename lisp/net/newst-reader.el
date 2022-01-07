@@ -1,10 +1,10 @@
 ;;; newst-reader.el --- Generic RSS reader functions.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-reader.el
-;; URL:         http://www.nongnu.org/newsticker
+;; URL:         https://www.nongnu.org/newsticker
 ;; Package:     newsticker
 
 ;; ======================================================================

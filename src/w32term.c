@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2021 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -164,6 +164,10 @@ int last_scroll_bar_drag_pos;
 /* Keyboard code page - may be changed by language-change events.  */
 int w32_keyboard_codepage;
 
+/* The number of screen lines to scroll for the default mouse-wheel
+   scroll amount, given by WHEEL_DELTA.  */
+static UINT w32_wheel_scroll_lines;
+
 #ifdef CYGWIN
 int w32_message_fd = -1;
 #endif /* CYGWIN */
@@ -270,6 +274,19 @@ XGetGCValues (void *ignore, XGCValues *gc,
   XChangeGC (ignore, xgcv, mask, gc);
 }
 #endif
+
+static void
+w32_get_mouse_wheel_vertical_delta (void)
+{
+  if (os_subtype != OS_SUBTYPE_NT)
+    return;
+
+  UINT scroll_lines;
+  BOOL ret = SystemParametersInfo (SPI_GETWHEELSCROLLLINES, 0,
+				   &scroll_lines, 0);
+  if (ret)
+    w32_wheel_scroll_lines = scroll_lines;
+}
 
 static void
 w32_set_clip_rectangle (HDC hdc, RECT *rect)
@@ -2523,6 +2540,10 @@ w32_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      /* Draw relief if not yet drawn.  */
+      if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
+        w32_draw_glyph_string_box (s);
+
       /* Draw underline.  */
       if (s->face->underline)
         {
@@ -2665,10 +2686,6 @@ w32_draw_glyph_string (struct glyph_string *s)
                              glyph_y + dy, s->width, h);
             }
         }
-
-      /* Draw relief if not yet drawn.  */
-      if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
-        w32_draw_glyph_string_box (s);
 
       if (s->prev)
         {
@@ -3203,32 +3220,94 @@ w32_construct_mouse_wheel (struct input_event *result, W32Msg *msg,
 {
   POINT p;
   int delta;
+  static int sum_delta_y = 0;
 
   result->kind = msg->msg.message == WM_MOUSEHWHEEL ? HORIZ_WHEEL_EVENT
                                                     : WHEEL_EVENT;
   result->code = 0;
   result->timestamp = msg->msg.time;
+  result->arg = Qnil;
 
   /* A WHEEL_DELTA positive value indicates that the wheel was rotated
      forward, away from the user (up); a negative value indicates that
      the wheel was rotated backward, toward the user (down).  */
   delta = GET_WHEEL_DELTA_WPARAM (msg->msg.wParam);
+  if (delta == 0)
+    {
+      result->kind = NO_EVENT;
+      return Qnil;
+    }
+
+  /* With multiple monitors, we can legitimately get negative
+     coordinates, so cast to short to interpret them correctly.  */
+  p.x = (short) LOWORD (msg->msg.lParam);
+  p.y = (short) HIWORD (msg->msg.lParam);
+
+  if (eabs (delta) < WHEEL_DELTA)
+    {
+      /* This is high-precision mouse wheel, which sends
+	 fine-resolution wheel events.  Produce a wheel event only if
+	 the conditions for sending such an event are fulfilled.  */
+      int scroll_unit = max (w32_wheel_scroll_lines, 1), nlines;
+      double value_to_report;
+
+      /* w32_wheel_scroll_lines == UINT_MAX means the user asked for
+	 "entire page" to be the scroll unit.  We interpret that as
+	 the height of the window under the mouse pointer.  */
+      if (w32_wheel_scroll_lines == UINT_MAX)
+	{
+	  Lisp_Object window = window_from_coordinates (f, p.x, p.y, NULL,
+							false, false);
+	  if (!WINDOWP (window))
+	    {
+	      result->kind = NO_EVENT;
+	      return Qnil;
+	    }
+	  scroll_unit = XWINDOW (window)->pixel_height;
+	  if (scroll_unit < 1)	/* paranoia */
+	    scroll_unit = 1;
+	}
+
+      /* If mwheel-coalesce-scroll-events is non-nil, report a wheel event
+	 only when we have accumulated enough delta's for WHEEL_DELTA.  */
+      if (mwheel_coalesce_scroll_events)
+	{
+	  /* If the user changed the direction, reset the accumulated
+	     deltas. */
+	  if ((delta > 0) != (sum_delta_y > 0))
+	    sum_delta_y = 0;
+	  sum_delta_y += delta;
+	  /* https://docs.microsoft.com/en-us/previous-versions/ms997498(v=msdn.10) */
+	  if (eabs (sum_delta_y) < WHEEL_DELTA)
+	    {
+	      result->kind = NO_EVENT;
+	      return Qnil;
+	    }
+	  value_to_report =
+	    ((double)FRAME_LINE_HEIGHT (f) * scroll_unit)
+	    / ((double)WHEEL_DELTA / sum_delta_y);
+	  sum_delta_y = 0;
+	}
+      else
+	value_to_report =
+	    ((double)FRAME_LINE_HEIGHT (f) * scroll_unit)
+	    / ((double)WHEEL_DELTA / delta);
+      nlines = value_to_report / FRAME_LINE_HEIGHT (f) + 0.5;
+      result->arg = list3 (make_fixnum (nlines),
+			   make_float (0.0),
+			   make_float (value_to_report));
+    }
 
   /* The up and down modifiers indicate if the wheel was rotated up or
      down based on WHEEL_DELTA value.  */
   result->modifiers = (msg->dwModifiers
                        | ((delta < 0 ) ? down_modifier : up_modifier));
 
-  /* With multiple monitors, we can legitimately get negative
-     coordinates, so cast to short to interpret them correctly.  */
-  p.x = (short) LOWORD (msg->msg.lParam);
-  p.y = (short) HIWORD (msg->msg.lParam);
   /* For the case that F's w32 window is not msg->msg.hwnd.  */
   ScreenToClient (FRAME_W32_WINDOW (f), &p);
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
   XSETFRAME (result->frame_or_window, f);
-  result->arg = Qnil;
   return Qnil;
 }
 
@@ -4903,6 +4982,14 @@ w32_read_socket (struct terminal *terminal,
 	      inev.code = w32_keyboard_codepage;
 	      inev.modifiers = msg.msg.lParam & 0xffff;
 	    }
+	  break;
+
+	case WM_SETTINGCHANGE:
+	  /* We are only interested in changes of the number of lines
+	     to scroll when the vertical mouse wheel is moved.  This
+	     is only supported on NT.  */
+	  if (msg.msg.wParam == SPI_SETWHEELSCROLLLINES)
+	    w32_get_mouse_wheel_vertical_delta ();
 	  break;
 
 	case WM_KEYDOWN:
@@ -7522,6 +7609,8 @@ w32_initialize (void)
     horizontal_scroll_bar_left_border = horizontal_scroll_bar_right_border
       = GetSystemMetrics (SM_CYHSCROLL);
   }
+
+  w32_get_mouse_wheel_vertical_delta ();
 }
 
 void

@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2022 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -237,7 +237,7 @@ is run).
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (pop-to-buffer-same-window "*scheme*"))
+  (pop-to-buffer "*scheme*" display-comint-buffer-action))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.
@@ -357,7 +357,7 @@ With argument, position cursor at end of buffer."
   (interactive "P")
   (if (or (and scheme-buffer (get-buffer scheme-buffer))
           (scheme-interactively-start-process))
-      (pop-to-buffer-same-window scheme-buffer)
+      (pop-to-buffer scheme-buffer display-comint-buffer-action)
     (error "No current process buffer.  See variable `scheme-buffer'"))
   (when eob-p
     (push-mark)

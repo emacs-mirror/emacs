@@ -1,6 +1,6 @@
 /* Font back-end driver for the GNUstep window system.
    See font.h
-   Copyright (C) 2006-2021 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1196,7 +1196,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	{
 	  if (s->hl != DRAW_CURSOR)
 	    [(NS_FACE_BACKGROUND (face) != 0
-	      ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
+	      ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
 	      : FRAME_BACKGROUND_COLOR (s->f)) set];
 	  else
 	    [FRAME_CURSOR_COLOR (s->f) set];
@@ -1216,28 +1216,16 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     col = FRAME_BACKGROUND_COLOR (s->f);
   else
     col = (NS_FACE_FOREGROUND (face) != 0
-	   ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
+	   ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)]
 	   : FRAME_FOREGROUND_COLOR (s->f));
 
   /* render under GNUstep using DPS */
   {
     NSGraphicsContext *context = [NSGraphicsContext currentContext];
-    DPSgsave (context);
-    if (s->clip_head)
-      {
-	DPSrectclip (context, s->clip_head->x, 0,
-		     FRAME_PIXEL_WIDTH (s->f),
-		     FRAME_PIXEL_HEIGHT (s->f));
-      }
     [font->nsfont set];
-
     [col set];
-
     DPSmoveto (context, r.origin.x, r.origin.y);
     GSShowGlyphs (context, c, len);
-    DPSstroke (context);
-
-    DPSgrestore (context);
   }
 
   unblock_input ();

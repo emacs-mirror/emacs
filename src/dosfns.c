@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2021 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -58,8 +58,8 @@ DEFUN ("int86", Fint86, Sint86, 2, 2, 0,
 Return the updated REGISTER vector.
 
 INTERRUPT should be an integer in the range 0 to 255.
-REGISTERS should be a vector produced by `make-register' and
-`set-register-value'.  */)
+REGISTERS should be a vector produced by `dos-make-register' and
+`dos-set-register-value'.  */)
   (Lisp_Object interrupt, Lisp_Object registers)
 {
   register int i;

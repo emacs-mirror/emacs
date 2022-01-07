@@ -1,6 +1,6 @@
 ;;; tutorial.el --- tutorial for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -423,11 +423,9 @@ where
 	       ;; Handle prefix definitions specially
 	       ;; so that a mode that rebinds some subcommands
 	       ;; won't make it appear that the whole prefix is gone.
-	       (key-fun (if (eq def-fun 'ESC-prefix)
-			    (lookup-key global-map [27])
-			  (if (eq def-fun 'Control-X-prefix)
-			      (lookup-key global-map [24])
-			    (key-binding key))))
+               (key-fun (if (keymapp def-fun)
+                            (lookup-key global-map key)
+                          (key-binding key)))
 	       (where (where-is-internal (if rem-fun rem-fun def-fun)))
 	       cwhere)
 

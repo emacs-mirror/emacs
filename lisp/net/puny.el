@@ -1,6 +1,6 @@
 ;;; puny.el --- translate non-ASCII domain names to ASCII  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, net
@@ -43,6 +43,7 @@ For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   "Encode STRING according to the IDNA/punycode algorithm.
 This is used to encode non-ASCII domain names.
 For instance, \"bücher\" => \"xn--bcher-kva\"."
+  (setq string (downcase (string-glyph-compose string)))
   (let ((ascii (seq-filter (lambda (char)
                              (< char 128))
                            string)))

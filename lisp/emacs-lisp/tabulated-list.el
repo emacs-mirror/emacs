@@ -1,6 +1,6 @@
 ;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
@@ -684,6 +684,10 @@ With a numeric prefix argument N, sort the Nth column.
 If the numeric prefix is -1, restore order the list was
 originally displayed in."
   (interactive "P")
+  (when (and n
+             (or (>= n (length tabulated-list-format))
+                 (< n -1)))
+    (user-error "Invalid column number"))
   (if (equal n -1)
       ;; Restore original order.
       (progn

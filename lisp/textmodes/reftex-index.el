@@ -1,6 +1,6 @@
 ;;; reftex-index.el --- index support with RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -29,9 +29,7 @@
 
 (require 'reftex)
 
-;; START remove for XEmacs release
 (defvar TeX-master)
-;; END remove for XEmacs release
 
 ;;;###autoload
 (defun reftex-index-selection-or-word (&optional arg phrase)

@@ -1,6 +1,6 @@
 ;;; ede-proj-prog.el --- EDE Generic Project program support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2001, 2005, 2008-2021 Free Software Foundation,
+;; Copyright (C) 1998-2001, 2005, 2008-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

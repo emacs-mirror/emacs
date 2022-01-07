@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2019-2021 Free Software Foundation, Inc.
+Copyright (C) 2019-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -76,9 +76,6 @@ shaping, so 'configure' now recommends that combination.
 ** Building without double buffering support.
 'configure --with-xdbe=no' can now be used to disable double buffering
 at build time.
-
----
-** Support for building with Motif has been removed.
 
 ---
 ** The configure option '--without-makeinfo' has been removed.
@@ -486,6 +483,7 @@ command 'other-tab-prefix'.
 +++
 *** New command 'C-x t C-r' to open file read-only in the other tab.
 
++++
 *** The tab bar now supports more mouse commands.
 Clicking 'mouse-2' closes the tab, 'mouse-3' displays the context menu
 with items that operate on the clicked tab.  Dragging the tab with
@@ -506,7 +504,7 @@ frame regardless of the values of 'tab-bar-mode' and 'tab-bar-show'.
 This allows enabling/disabling the tab bar independently on different
 frames.
 
----
++++
 *** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
@@ -515,14 +513,14 @@ aligned to the right on the tab bar instead of on the mode line.
 When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
 the tab bar displays tab groups.
 
----
++++
 *** New optional key binding for 'tab-last'.
 If you customize the user option 'tab-bar-select-tab-modifiers' to
 allow selecting tabs using their index numbers, the '<MODIFIER>-9' key
 is bound to 'tab-last', and switches to the last tab.  Here <MODIFIER>
 is any of the modifiers in the list that is the value of
-'tab-bar-select-tab-modifiers'.  You can also use negative indices,
-which count from the last tab: -1 is the last tab, -2 the one before
+'tab-bar-select-tab-modifiers'.  You can also use positive indices,
+which count from the last tab: 1 is the last tab, 2 the one before
 that, etc.
 
 ---
@@ -634,7 +632,9 @@ This works like 'C-u M-x apropos-command' but is more discoverable.
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
 This face is added by 'substitute-command-keys' to any "\[command]"
 substitution.  The return value of that function should consequently
-be assumed to be a propertized string.
+be assumed to be a propertized string.  To prevent the function from
+adding the 'help-key-binding' face, call 'substitute-command-keys'
+with the new optional argument NO-FACE non-nil.
 
 Note that the new face will also be used in tooltips.  When using the
 GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
@@ -1008,20 +1008,6 @@ file:
 
     (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
 
-** Xref migrated from EIEIO to cl-defstruct for its core objects.
-This means that 'oref' and 'with-slots' no longer works on them, and
-'make-instance' can no longer be used to create those instances (which
-wasn't recommended anyway).  Packages should restrict themselves to
-using functions like 'xref-make', 'xref-make-match',
-'xref-make-*-location', as well as accessor functions
-'xref-item-summary' and 'xref-item-location'.
-
-Among the benefits are better performance (noticeable when there are a
-lot of matches) and improved flexibility: 'xref-match-item' instances
-do not require that 'location' inherits from 'xref-location' anymore
-(that class was removed), so packages can create new location types to
-use with "match items" without adding EIEIO as a dependency.
-
 
 * Editing Changes in Emacs 28.1
 
@@ -1367,6 +1353,7 @@ Non-nil reverts the destination Dired buffer after performing one
 of these operations: 'dired-do-copy', 'dired-do-rename',
 'dired-do-symlink', 'dired-do-hardlink'.
 
+---
 *** New user option 'dired-mark-region'.
 This option affects all Dired commands that mark files.  When non-nil
 and the region is active in Transient Mark mode, then Dired commands
@@ -1374,6 +1361,7 @@ operate only on files in the active region.  The values 'file' and
 'line' of this user option define the details of marking the file at
 the end of the region.
 
++++
 *** State changing VC operations are supported in Dired.
 These operations are supported on files and directories via the new
 command 'dired-vc-next-action'.
@@ -1395,7 +1383,6 @@ keys, add the following to your init file:
 *** 'dired-query' now uses 'read-char-from-minibuffer'.
 Using it instead of 'read-char-choice' allows using 'C-x o'
 to switch to the help window displayed after typing 'C-h'.
-
 
 +++
 ** Emacs 28.1 comes with Org v9.5.
@@ -1524,19 +1511,10 @@ used instead.
 
 ** Bookmarks
 
+---
 *** Bookmarks can now be targets for new tabs.
 When the bookmark.el library is loaded, a customize choice is added
 to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
-
----
-*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
-The interactive bookmark list will now benefit from features in
-'tabulated-list-mode' like sorting columns or changing column width.
-
-Support for the optional "inline" header line, allowing for a header
-without using 'header-line-format', has been dropped.  Consequently,
-the variables 'bookmark-bmenu-use-header-line' and
-'bookmark-bmenu-inline-header-height' are now declared obsolete.
 
 ---
 *** New user option 'bookmark-set-fringe-mark'.
@@ -1550,6 +1528,16 @@ confirmation when you type 'x' to execute the deletion of bookmarks
 that have been marked for deletion.  However, if this new option is
 non-nil then Emacs will require confirmation with 'yes-or-no-p' before
 deleting.
+
+---
+*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a
+header without using 'header-line-format', has been dropped.
+The variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now obsolete.
 
 ** Recentf
 
@@ -1583,9 +1571,9 @@ and the result is not truncated in any way.
 It no longer has lower precedence than '+' and '-'.
 
 ---
-*** Calc now marks its windows dedicated.
-The new user option 'calc-make-windows-dedicated' controls this.  It
-is t by default; set to nil to get back the old behavior.
+*** New user option 'calc-make-windows-dedicated'.
+When this user option is non-nil, Calc will mark its windows as
+dedicated.
 
 ** Calendar
 
@@ -1841,17 +1829,21 @@ These options include 'windmove-default-keybindings',
 'windmove-display-default-keybindings',
 'windmove-delete-default-keybindings',
 'windmove-swap-states-default-keybindings'.
+Also new mode 'windmove-mode' enables the customized keybindings.
 
 ** Occur mode
 
+---
 *** New bindings in occur-mode.
 The command 'next-error-no-select' is now bound to 'n' and
 'previous-error-no-select' is bound to 'p'.
 
-*** The new command 'recenter-current-error'.
+---
+*** New command 'recenter-current-error'.
 It is bound to 'l' in Occur or compilation buffers, and recenters the
 current displayed occurrence/error.
 
+---
 *** Matches in target buffers are now highlighted as in 'compilation-mode'.
 The method of highlighting is specified by the user options
 'next-error-highlight' and 'next-error-highlight-no-select'.
@@ -1897,12 +1889,11 @@ To revert to the previous behavior,
 If this user option is 'kill', then the diff buffer will be killed
 after the 'vc-revert' action instead of buried.
 
+---
 *** More VC commands can be used from non-file buffers.
 The relevant commands are those that don't change the VC state.
 The non-file buffers which can use VC commands are those that have
 their 'default-directory' under VC.
-
-*** New command 'vc-dir-root' uses the root directory without asking.
 
 ---
 *** New face 'log-view-commit-body'.
@@ -1924,9 +1915,14 @@ specific (unregistered) file.  Previously, the first matching backend
 was chosen, but now the one with the most specific path is chosen (in
 case there's a directory handled by one backend inside another).
 
+---
+*** New command 'vc-dir-root' uses the root directory without asking.
+
+---
 *** New commands 'vc-dir-mark-registered-files' (bound to '* r') and
 'vc-dir-mark-unregistered-files'.
 
+---
 *** Support for bookmark.el.
 Bookmark locations can refer to VC directory buffers.
 
@@ -1948,9 +1944,17 @@ tags to be considered as well.
 *** New user option 'vc-git-log-switches'.
 String or list of strings specifying switches for Git log under VC.
 
+---
 *** Command 'vc-switch-backend' is now obsolete.
 If you are still using it with any regularity, please file a bug
 report with some details.
+
+---
+*** New variable 'vc-git-use-literal-pathspecs'.
+The Git backend's function now treat all file names "literally", where
+some of them previously could interpret file names (pathspecs) as
+globs when they contain appropriate characters.  Functions can bind
+the aforementioned variable to nil locally to avoid this.
 
 ** Gnus
 
@@ -1975,7 +1979,6 @@ instead of sets, the process mark.
 *** New user option 'gnus-process-mark-toggle'.
 If non-nil (the default), the '#' command in the Group and Summary
 buffers will toggle, instead of set, the process mark.
-
 
 +++
 *** New user option 'gnus-registry-register-all'.
@@ -2421,7 +2424,7 @@ and data svg images.
 *** 'svg-embed-base-uri-image' added to embed images.
 'svg-embed-base-uri-image' can be used to embed images located
 relatively to 'file-name-directory' of the ':base-uri' svg image property.
-This works much faster then 'svg-embed'.
+This works much faster than 'svg-embed'.
 
 +++
 *** New function 'image-cache-size'.
@@ -2509,7 +2512,8 @@ This is a regexp that can be set to alter how links are followed in eww.
 *** New user option 'eww-retrieve-command'.
 This can be used to download data via an external command.  If nil
 (the default), then 'url-retrieve' is used.  When 'sync', then
-'url-retrieve-synchronously' is used.
+'url-retrieve-synchronously' is used.  A list of strings specifies
+an external program with parameters.
 
 +++
 *** New Emacs command line convenience command.
@@ -2634,11 +2638,6 @@ via 'M-n'.
 
 ** Xref
 
----
-*** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
-So typing 'C-u RET' in the "*xref*" buffer quits its window
-before navigating to the selected location.
-
 +++
 *** New user options to automatically show the first Xref match.
 The new user option 'xref-auto-jump-to-first-definition' controls the
@@ -2687,6 +2686,11 @@ TRT.
 *** New value 'project-relative' for 'xref-file-name-display'.
 If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
+
+---
+*** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
+So typing 'C-u RET' in the "*xref*" buffer quits its window
+before navigating to the selected location.
 
 +++
 *** The 'TAB' key binding in "*xref*" buffers is obsolete.
@@ -3041,7 +3045,6 @@ checkdoc will now check the format of 'yes-or-no-p'.
 *** New command 'checkdoc-dired'.
 This can be used to run checkdoc on files from a Dired buffer.
 
----
 *** No longer checks for 'A-' modifiers.
 Checkdoc recommends usage of command substitutions ("\\[foo-command]")
 in favor of writing keybindings like 'C-c f'.  It now no longer warns
@@ -3261,11 +3264,11 @@ The user option 'repeat-exit-timeout' (default nil, which means
 forever) specifies the number of seconds of idle time after which to
 break the repetition chain automatically.
 
-When user option 'repeat-keep-prefix' is non-nil (the default), the
-prefix arg of the previous command is kept.  This can be used to
-e.g. reverse the window navigation direction with 'C-x o M-- o o' or
-to set a new step with 'C-x { C-5 { { {', which will set the window
-resizing step to 5 columns.
+When user option 'repeat-keep-prefix' is non-nil, the prefix arg of
+the previous command is kept.  This can be used to e.g. reverse the
+window navigation direction with 'C-x o M-- o o' or to set a new step
+with 'C-x { C-5 { { {', which will set the window resizing step to 5
+columns.
 
 'M-x describe-repeat-maps' will display a buffer showing
 which commands are repeatable in 'repeat-mode'.
@@ -3710,6 +3713,20 @@ user option has been renamed to 'find-library-source-path', and
 ---
 ** The macro 'vc-call' no longer evaluates its second argument twice.
 
+** Xref migrated from EIEIO to cl-defstruct for its core objects.
+This means that 'oref' and 'with-slots' no longer works on them, and
+'make-instance' can no longer be used to create those instances (which
+wasn't recommended anyway).  Packages should restrict themselves to
+using functions like 'xref-make', 'xref-make-match',
+'xref-make-*-location', as well as accessor functions
+'xref-item-summary' and 'xref-item-location'.
+
+Among the benefits are better performance (noticeable when there are a
+lot of matches) and improved flexibility: 'xref-match-item' instances
+do not require that 'location' inherits from 'xref-location' anymore
+(that class was removed), so packages can create new location types to
+use with "match items" without adding EIEIO as a dependency.
+
 
 * Lisp Changes in Emacs 28.1
 
@@ -3720,15 +3737,28 @@ commands as being applicable for modes derived from 'dired-mode',
 or if the mode is a minor mode, when the current buffer has that
 minor mode activated.  Note that using this form will create byte code
 that is not compatible with byte code in previous Emacs versions.
+Also note that by default these annotations have no effect, unless the
+new option 'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.
 
 +++
-** New forms to declare how completion should happen has been added.
+** New 'declare' forms to control completion of commands in 'M-x'.
 '(declare (completion PREDICATE))' can be used as a general predicate
-to say whether the command should be present when completing with
-'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
-way of saying that the command should be present when completing from
-buffers in major modes derived from MODE..., or, if it's a minor mode,
-when that minor mode is enabled in the current buffer.
+to say whether the command should be considered a completion candidate
+when completing with 'M-x TAB'.
+
+'(declare (modes MODE...))' can be used as a short-hand way of saying
+that the command should be considered a completion candidate when
+completing on commands from buffers in major modes derived from
+MODE..., or, if it's a minor mode, when that minor mode is enabled in
+the current buffer.
+
+Note that these forms will only have their effect if the
+'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.  The
+default value of 'read-extended-command-predicate' is nil, which means
+no commands that match what you have typed are excluded from being
+completion candidates.
 
 +++
 ** 'define-minor-mode'  now takes an ':interactive' argument.

@@ -1,6 +1,6 @@
 ;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -93,7 +93,9 @@
     'mark-whole-buffer)
 
   ;; Include text-mode select menu only in strings and comments.
-  (when (nth 8 (save-excursion (syntax-ppss (posn-point (event-end click)))))
+  (when (nth 8 (save-excursion
+                 (with-current-buffer (window-buffer (posn-window (event-end click)))
+                   (syntax-ppss (posn-point (event-end click))))))
     (text-mode-context-menu menu click))
 
   menu)

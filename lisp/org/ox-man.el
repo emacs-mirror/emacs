@@ -1,6 +1,6 @@
 ;;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;;      Luis R Anaya <papoanaya aroba hot mail punto com>
@@ -1117,7 +1117,7 @@ Return PDF file's name."
   (let ((outfile (org-export-output-file-name ".man" subtreep)))
     (org-export-to-file 'man outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 (defun org-man-compile (file)
   "Compile a Groff file.

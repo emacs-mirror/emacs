@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2021 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2022 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -88,6 +88,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include <X11/Xlib-xcb.h>
 #endif
 
+#ifdef HAVE_XKB
+#include <X11/XKBlib.h>
+#endif
+
 #include "dispextern.h"
 #include "termhooks.h"
 
@@ -162,6 +166,39 @@ struct color_name_cache_entry
   XColor rgb;
   char *name;
 };
+
+#ifdef HAVE_XINPUT2
+struct xi_scroll_valuator_t
+{
+  bool invalid_p;
+  double current_value;
+  double emacs_value;
+  double increment;
+
+  int number;
+  int horizontal;
+};
+
+struct xi_touch_point_t
+{
+  struct xi_touch_point_t *next;
+
+  int number;
+  double x, y;
+};
+
+struct xi_device_t
+{
+  int device_id;
+  int scroll_valuator_count;
+  int grab;
+  bool master_p;
+  bool direct_p;
+
+  struct xi_scroll_valuator_t *valuators;
+  struct xi_touch_point_t *touchpoints;
+};
+#endif
 
 Status x_parse_color (struct frame *f, const char *color_name,
 		      XColor *color);
@@ -289,10 +326,10 @@ struct x_display_info
      use; XK_Caps_Lock should only affect alphabetic keys.  With this
      arrangement, the lock modifier should shift the character if
      (EVENT.state & shift_lock_mask) != 0.  */
-  int meta_mod_mask, shift_lock_mask;
+  unsigned int meta_mod_mask, shift_lock_mask;
 
   /* These are like meta_mod_mask, but for different modifiers.  */
-  int alt_mod_mask, super_mod_mask, hyper_mod_mask;
+  unsigned alt_mod_mask, super_mod_mask, hyper_mod_mask;
 
   /* Communication with window managers.  */
   Atom Xatom_wm_protocols;
@@ -397,6 +434,7 @@ struct x_display_info
   XIM xim;
   XIMStyles *xim_styles;
   struct xim_inst_t *xim_callback_data;
+  XIMStyle preferred_xim_style;
 #endif
 
   /* A cache mapping color names to RGB values.  */
@@ -474,11 +512,31 @@ struct x_display_info
 #ifdef HAVE_XDBE
   bool supports_xdbe;
 #endif
+
+#ifdef HAVE_XINPUT2
+  bool supports_xi2;
+  int xi2_version;
+  int xi2_opcode;
+
+  int num_devices;
+  struct xi_device_t *devices;
+#endif
+
+#ifdef HAVE_XKB
+  bool supports_xkb;
+  int xkb_event_type;
+  XkbDescPtr xkb_desc;
+#endif
 };
 
 #ifdef HAVE_X_I18N
 /* Whether or not to use XIM if we have it.  */
 extern bool use_xim;
+#endif
+
+#ifdef HAVE_XINPUT2
+/* Defined in xmenu.c. */
+extern int popup_activated_flag;
 #endif
 
 /* This is a chain of structures for all the X displays currently in use.  */
@@ -730,6 +788,12 @@ struct x_output
   /* Width and height reported by the last ConfigureNotify event.
      They are used when creating the cairo surface next time.  */
   int cr_surface_desired_width, cr_surface_desired_height;
+#endif
+
+#ifdef HAVE_X_I18N
+  ptrdiff_t preedit_size;
+  char *preedit_chars;
+  bool preedit_active;
 #endif
 };
 
@@ -1185,6 +1249,10 @@ extern void x_change_tool_bar_height (struct frame *, int);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_scroll_bar_default_width (struct frame *);
 extern void x_set_scroll_bar_default_height (struct frame *);
+#ifdef USE_LUCID
+extern void xlw_monitor_dimensions_at_pos (Display *, Screen *, int, int,
+					   int *, int *, int *, int *);
+#endif
 
 /* Defined in xselect.c.  */
 
@@ -1264,6 +1332,13 @@ extern bool x_session_have_connection (void);
 extern void x_session_close (void);
 #endif
 
+#ifdef HAVE_X_I18N
+#define STYLE_OFFTHESPOT (XIMPreeditArea | XIMStatusArea)
+#define STYLE_OVERTHESPOT (XIMPreeditPosition | XIMStatusNothing)
+#define STYLE_ROOT (XIMPreeditNothing | XIMStatusNothing)
+#define STYLE_CALLBACK (XIMPreeditCallbacks | XIMStatusNothing)
+#define STYLE_NONE (XIMPreeditNothing | XIMStatusNothing)
+#endif
 
 /* Is the frame embedded into another application? */
 

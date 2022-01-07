@@ -1,5 +1,5 @@
 /* Compile Emacs Lisp into native code.
-   Copyright (C) 2019-2021 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <akrl@sdf.org>
 
@@ -4786,10 +4786,6 @@ register_native_comp_unit (Lisp_Object comp_u)
 /* Deferred compilation mechanism. */
 /***********************************/
 
-/* List of sources we'll compile and load after having conventionally
-   loaded the compiler and its dependencies.  */
-static Lisp_Object delayed_sources;
-
 /* Queue an asynchronous compilation for the source file defining
    FUNCTION_NAME and perform a late load.
 
@@ -4846,30 +4842,16 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 
   /* This is so deferred compilation is able to compile comp
      dependencies breaking circularity.  */
-  if (!NILP (Ffeaturep (Qcomp, Qnil)))
+  if (comp__loadable)
     {
-      /* Comp already loaded.  */
-      if (!NILP (delayed_sources))
-	{
-	  CALLN (Ffuncall, intern_c_string ("native--compile-async"),
-		 delayed_sources, Qnil, Qlate);
-	  delayed_sources = Qnil;
-	}
+      /* Startup is done, comp is usable.  */
+      Frequire (Qcomp, Qnil, Qnil);
       Fputhash (function_name, definition, Vcomp_deferred_pending_h);
       CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 	     src, Qnil, Qlate);
     }
   else
-    {
-      delayed_sources = Fcons (src, delayed_sources);
-      /* Require comp only once.  */
-      static bool comp_required = false;
-      if (!comp_required)
-	{
-	  comp_required = true;
-	  Frequire (Qcomp, Qnil, Qnil);
-	}
-    }
+    Vcomp__delayed_sources = Fcons (src, Vcomp__delayed_sources);
 }
 
 
@@ -5154,21 +5136,29 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   if (CONSP (minarg))
     {
       /* Dynamic code.  */
-      x->s.lambda_list[0] = maxarg;
+#ifdef HAVE_NATIVE_COMP
+      x->s.lambda_list = maxarg;
+#endif
       maxarg = XCDR (minarg);
       minarg = XCAR (minarg);
     }
   else
-    x->s.lambda_list[0] = Qnil;
+    {
+#ifdef HAVE_NATIVE_COMP
+      x->s.lambda_list = Qnil;
+#endif
+    }
   x->s.function.a0 = func;
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (symbol_name));
   x->s.native_intspec = intspec;
   x->s.doc = XFIXNUM (doc_idx);
-  x->s.native_comp_u[0] = comp_u;
-  x->s.native_c_name[0] = xstrdup (SSDATA (c_name));
-  x->s.type[0] = type;
+#ifdef HAVE_NATIVE_COMP
+  x->s.native_comp_u = comp_u;
+  x->s.native_c_name = xstrdup (SSDATA (c_name));
+  x->s.type = type;
+#endif
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
 
@@ -5288,16 +5278,16 @@ LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
 	Fmake_temp_file_internal (filename, Qnil, build_string (".eln.tmp"),
 				  Qnil);
       if (NILP (Ffile_writable_p (tmp_filename)))
-	comp_u->handle = dynlib_open (SSDATA (encoded_filename));
+	comp_u->handle = dynlib_open_for_eln (SSDATA (encoded_filename));
       else
 	{
 	  Frename_file (filename, tmp_filename, Qt);
-	  comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (tmp_filename)));
+	  comp_u->handle = dynlib_open_for_eln (SSDATA (ENCODE_FILE (tmp_filename)));
 	  Frename_file (tmp_filename, filename, Qnil);
 	}
     }
   else
-    comp_u->handle = dynlib_open (SSDATA (encoded_filename));
+    comp_u->handle = dynlib_open_for_eln (SSDATA (encoded_filename));
 
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, filename,
@@ -5328,6 +5318,13 @@ void
 syms_of_comp (void)
 {
 #ifdef HAVE_NATIVE_COMP
+  DEFVAR_LISP ("comp--delayed-sources", Vcomp__delayed_sources,
+	       doc: /* List of sources to be native-compiled when startup is finished.
+For internal use.  */);
+  DEFVAR_BOOL ("comp--loadable",
+	       comp__loadable,
+	       doc: /* Non-nil when comp.el can be loaded.
+For internal use. */);
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("native-comp-deferred-compilation",
 	       native_comp_deferred_compilation,
@@ -5468,8 +5465,6 @@ compiled one.  */);
   staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
-  staticpro (&delayed_sources);
-  delayed_sources = Qnil;
   staticpro (&loadsearch_re_list);
   loadsearch_re_list = Qnil;
 
@@ -5526,9 +5521,9 @@ protect the trampolines against GC.  */);
   Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
 
   DEFVAR_LISP ("comp-no-native-file-h", V_comp_no_native_file_h,
-	       doc: /* Files for which no deferred compilation has to
-be performed because the bytecode version was explicitly requested by
-the user during load.
+	       doc: /* Files for which no deferred compilation has to be performed.
+These files' compilation should not be deferred because the bytecode
+version was explicitly requested by the user during load.
 For internal use.  */);
   V_comp_no_native_file_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 

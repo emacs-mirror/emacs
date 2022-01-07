@@ -122,3 +122,9 @@ Name: code-formats11
 (lambda ()
   [(foo bar) (foo bar)])
 =-=-=
+
+Name: code-formats12
+
+=-=
+(global-set-key (kbd "s-x") #'kill-region)
+=-=-=

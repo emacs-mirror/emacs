@@ -1,6 +1,6 @@
 ;;; nnselect.el --- a virtual group backend   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Andrew Cohen <cohen@andy.bu.edu>
 ;; Keywords: news mail
@@ -395,8 +395,7 @@ If this variable is nil, or if the provided function returns nil,
 	    (gnus-search-run-query
 	     (list
 	      (cons 'search-query-spec
-		    (list (cons 'query `((id . ,article)))
-			  (cons 'criteria "")  (cons 'shortcut t)))
+		    (list (cons 'query (format "id:%s" article))))
 	      (cons 'search-group-spec servers))))
       (unless (zerop (nnselect-artlist-length artlist))
 	(setq
@@ -779,6 +778,10 @@ Return an article list."
 	(args (alist-get 'nnselect-args specs)))
     (condition-case-unless-debug err
 	(funcall func args)
+      ;; Don't swallow gnus-search errors; the user should be made
+      ;; aware of them.
+      (gnus-search-error
+       (signal (car err) (cdr err)))
       (error (gnus-error 3 "nnselect-run: %s on %s gave error %s" func args err)
 	     []))))
 
@@ -901,7 +904,7 @@ article came from is also searched."
 		;; make sure
 		(setq list
 		      (sort (map-merge
-			     'list list
+			     'alist list
 			     (alist-get type (gnus-info-marks group-info)))
 			    (lambda (elt1 elt2)
 			      (< (car elt1) (car elt2))))))

@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2021 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2022 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -157,6 +157,9 @@ xlwMenuResources[] =
      offset(menu.cursor_shape), XtRString, (XtPointer)"right_ptr"},
   {XtNhorizontal, XtCHorizontal, XtRInt, sizeof(int),
      offset(menu.horizontal), XtRImmediate, (XtPointer)True},
+  {XtNborderThickness, XtCBorderThickness, XtRDimension,
+     sizeof (Dimension), offset (menu.border_thickness),
+     XtRImmediate, (XtPointer)1}
 };
 #undef offset
 
@@ -635,8 +638,23 @@ draw_shadow_rectangle (XlwMenuWidget mw,
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
-  int thickness = mw->menu.shadow_thickness;
+  int thickness = !x && !y ? mw->menu.border_thickness : mw->menu.shadow_thickness;
   XPoint points [4];
+
+  if (!erase_p && width == height && width == toggle_button_width (mw))
+    {
+      points [0].x = x;
+      points [0].y = y;
+      points [1].x = x + width;
+      points [1].y = y;
+      points [2].x = x + width;
+      points [2].y = y + height;
+      points [3].x = x;
+      points [3].y = y + height;
+      XFillPolygon (dpy, window,
+                    down_p ? mw->menu.button_gc : mw->menu.inactive_button_gc,
+                    points, 4, Convex, CoordModeOrigin);
+    }
 
   if (!erase_p && down_p)
     {
@@ -700,6 +718,21 @@ draw_shadow_rhombus (XlwMenuWidget mw,
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = mw->menu.shadow_thickness;
   XPoint points [4];
+
+  if (!erase_p && width == height && width == radio_button_width (mw))
+    {
+      points [0].x = x;
+      points [0].y = y + width / 2;
+      points [1].x = x + height / 2;
+      points [1].y = y + width;
+      points [2].x = x + height;
+      points [2].y = y + width / 2;
+      points [3].x = x + height / 2;
+      points [3].y = y;
+      XFillPolygon (dpy, window,
+                    down_p ? mw->menu.button_gc : mw->menu.inactive_button_gc,
+                    points, 4, Convex, CoordModeOrigin);
+    }
 
   if (!erase_p && down_p)
     {
@@ -1357,27 +1390,46 @@ fit_to_screen (XlwMenuWidget mw,
                window_state *previous_ws,
                Boolean horizontal_p)
 {
-  unsigned int screen_width = WidthOfScreen (XtScreen (mw));
-  unsigned int screen_height = HeightOfScreen (XtScreen (mw));
+  int screen_width, screen_height;
+  int screen_x, screen_y;
+  int prev_screen_x, prev_screen_y;
+
+#ifdef emacs
+  xlw_monitor_dimensions_at_pos (XtDisplay (mw), XtScreen (mw),
+				 previous_ws->x, previous_ws->y,
+				 &prev_screen_x, &prev_screen_y,
+				 &screen_width, &screen_height);
+  xlw_monitor_dimensions_at_pos (XtDisplay (mw), XtScreen (mw),
+				 ws->x, ws->y, &screen_x, &screen_y,
+				 &screen_width, &screen_height);
+#else
+  screen_width = WidthOfScreen (XtScreen (mw));
+  screen_height = HeightOfScreen (XtScreen (mw));
+  prev_screen_x = screen_x = 0;
+  prev_screen_y = screen_y = 0;
+#endif
   /* 1 if we are unable to avoid an overlap between
      this menu and the parent menu in the X dimension.  */
   int horizontal_overlap = 0;
 
-  if (ws->x < 0)
-    ws->x = 0;
-  else if (ws->x + ws->width > screen_width)
+  if (ws->x < screen_x)
+    ws->x = screen_x;
+  else if (ws->x + ws->width > screen_x + screen_width)
     {
       if (!horizontal_p)
 	/* The addition of shadow-thickness for a sub-menu's position is
 	   to reflect a similar adjustment when the menu is displayed to
 	   the right of the invoking menu-item; it makes the sub-menu
 	   look more `attached' to the menu-item.  */
-	ws->x = previous_ws->x - ws->width + mw->menu.shadow_thickness;
+	ws->x = screen_x + (previous_ws->x
+			    - prev_screen_x
+			    - ws->width
+			    + mw->menu.shadow_thickness);
       else
-	ws->x = screen_width - ws->width;
-      if (ws->x < 0)
+	ws->x = screen_x + (screen_width - ws->width);
+      if (ws->x < screen_x)
 	{
-	  ws->x = 0;
+	  ws->x = screen_x;
 	  horizontal_overlap = 1;
 	}
     }
@@ -1394,16 +1446,18 @@ fit_to_screen (XlwMenuWidget mw,
 	ws->y = previous_ws->y - ws->height;
     }
 
-  if (ws->y < 0)
-    ws->y = 0;
-  else if (ws->y + ws->height > screen_height)
+  if (ws->y < screen_y)
+    ws->y = screen_y;
+  else if (ws->y + ws->height > screen_y + screen_height)
     {
       if (horizontal_p)
-	ws->y = previous_ws->y - ws->height;
+	ws->y = screen_y + (previous_ws->y
+			    - prev_screen_y
+			    - ws->height);
       else
-	ws->y = screen_height - ws->height;
-      if (ws->y < 0)
-        ws->y = 0;
+	ws->y = screen_y + (screen_height - ws->height);
+      if (ws->y < screen_y)
+        ws->y = screen_y;
     }
 }
 
@@ -1624,7 +1678,6 @@ make_drawing_gcs (XlwMenuWidget mw)
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
 
   /* Allocate color for disabled menu-items.  */
-  mw->menu.disabled_foreground = mw->menu.foreground;
   if (BRIGHTNESS(mw->menu.foreground) < BRIGHTNESS(mw->core.background_pixel))
     scale = 2.3;
   else
@@ -2594,7 +2647,21 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   int		borderwidth = mw->menu.shadow_thickness;
   Screen*	screen = XtScreen (mw);
   Display       *display = XtDisplay (mw);
+  int		screen_x;
+  int		screen_y;
+  int 		screen_w;
+  int		screen_h;
 
+#ifdef emacs
+  xlw_monitor_dimensions_at_pos (display, screen, x, y,
+				 &screen_x, &screen_y,
+				 &screen_w, &screen_h);
+#else
+  screen_x = 0;
+  screen_y = 0;
+  screen_w = WidthOfScreen (screen);
+  screen_h = HeightOfScreen (screen);
+#endif
   next_release_must_exit = 0;
 
   mw->menu.inside_entry = NULL;
@@ -2608,14 +2675,14 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 
   x -= borderwidth;
   y -= borderwidth;
-  if (x < borderwidth)
-    x = borderwidth;
-  if (x + w + 2 * borderwidth > WidthOfScreen (screen))
-    x = WidthOfScreen (screen) - w - 2 * borderwidth;
-  if (y < borderwidth)
-    y = borderwidth;
-  if (y + h + 2 * borderwidth> HeightOfScreen (screen))
-    y = HeightOfScreen (screen) - h - 2 * borderwidth;
+  if (x < screen_x + borderwidth)
+    x = screen_x + borderwidth;
+  if (x + w + 2 * borderwidth > screen_x + screen_w)
+    x = (screen_x + screen_w) - w - 2 * borderwidth;
+  if (y < screen_y + borderwidth)
+    y = screen_y + borderwidth;
+  if (y + h + 2 * borderwidth > screen_y + screen_h)
+    y = (screen_y + screen_h) - h - 2 * borderwidth;
 
   mw->menu.popped_up = True;
   if (XtIsShell (XtParent ((Widget)mw)))

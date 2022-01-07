@@ -1,6 +1,6 @@
 ;;; org-table.el --- The Table Editor for Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -2606,7 +2606,7 @@ location of point."
 		     (format-time-string
 		      (org-time-stamp-format
 		       (string-match-p "[0-9]\\{1,2\\}:[0-9]\\{2\\}" ts))
-		      (apply #'encode-time
+		      (encode-time
 			     (save-match-data (org-parse-time-string ts))))))
 		 form t t))
 
@@ -4436,7 +4436,7 @@ Optional argument NEW may specify text to replace the current field content."
 	  (col (org-table-current-column)))
       (when (> col 0)
 	(skip-chars-backward "^|")
-	(if (not (looking-at " *\\([^|\n]*?\\) *\\(|\\|$\\)"))
+	(if (not (looking-at " *\\(?:\\([^|\n]*?\\) *\\(|\\)\\|\\([^|\n]+?\\) *\\($\\)\\)"))
 	    (setq org-table-may-need-update t)
 	  (let* ((align (nth (1- col) org-table-last-alignment))
 		 (width (nth (1- col) org-table-last-column-widths))

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -947,6 +947,9 @@ actually Linux is just the kernel, not the whole system.)
 @item gnu/kfreebsd
 A GNU (glibc-based) system with a FreeBSD kernel.
 
+@item haiku
+The Haiku operating system, a derivative of the Be Operating System.
+
 @item hpux
 Hewlett-Packard HPUX operating system.
 
@@ -1349,7 +1352,7 @@ may change as higher-resolution clocks become available.
 
 @cindex time value
   Function arguments, e.g., the @var{time} argument to
-@code{current-time-string}, accept a more-general @dfn{time value}
+@code{format-time-string}, accept a more-general @dfn{time value}
 format, which can be a Lisp timestamp, @code{nil} for the current
 time, a single floating-point number for seconds, or a list
 @code{(@var{high} @var{low} @var{micro})} or @code{(@var{high}
@@ -1504,10 +1507,7 @@ The optional @var{form} argument specifies the timestamp form to be
 returned.  If @var{form} is the symbol @code{integer}, this function
 returns an integer count of seconds.  If @var{form} is a positive
 integer, it specifies a clock frequency and this function returns an
-integer-pair timestamp @code{(@var{ticks}
-. @var{form})}.@footnote{Currently a positive integer @var{form}
-should be at least 65536 if the returned value is intended to be given
-to standard functions expecting Lisp timestamps.}  If @var{form} is
+integer-pair timestamp @code{(@var{ticks} . @var{form})}.  If @var{form} is
 @code{t}, this function treats it as a positive integer suitable for
 representing the timestamp; for example, it is treated as 1000000000
 if @var{time} is nil and the platform timestamp has nanosecond
@@ -1721,7 +1721,8 @@ This function parses the time-string @var{string} and returns the
 corresponding Lisp timestamp.  The argument @var{string} should represent
 a date-time, and should be in one of the forms recognized by
 @code{parse-time-string} (see below).  This function assumes Universal
-Time if @var{string} lacks explicit time zone information.
+Time if @var{string} lacks explicit time zone information,
+and assumes earliest values if @var{string} lacks month, day, or time.
 The operating system limits the range of time and zone values.
 @end defun
 
@@ -1793,9 +1794,16 @@ This stands for the ISO 8601 date format, which is like
 @samp{%+4Y-%m-%d} except that any flags or field width override the
 @samp{+} and (after subtracting 6) the @samp{4}.
 @item %g
-This stands for the year corresponding to the ISO week within the century.
+@cindex ISO week, in time formatting
+This stands for the year without century (00--99) corresponding to the
+current @dfn{ISO week} number.  ISO weeks start on Monday and end on
+Sunday.  If an ISO week begins in one year and ends in another, the
+rules regarding which year @samp{%g} will produce are complex and will
+not be described here; however, in general, if most of the week's days
+are in the ending year, @samp{%g} will produce that year.
 @item %G
-This stands for the year corresponding to the ISO week.
+This stands for the year with century corresponding to the current ISO
+week number.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H
@@ -2180,7 +2188,13 @@ In most cases, @var{repeat} has no effect on when @emph{first} call
 takes place---@var{time} alone specifies that.  There is one exception:
 if @var{time} is @code{t}, then the timer runs whenever the time is a
 multiple of @var{repeat} seconds after the epoch.  This is useful for
-functions like @code{display-time}.
+functions like @code{display-time}.  For instance, the following will
+make @var{function} run at every ``whole'' minute (e.g.,
+@samp{11:03:00}, @samp{11:04:00}, etc):
+
+@example
+(run-at-time t 60 @var{function})
+@end example
 
 If Emacs didn't get any CPU time when the timer would have run (for
 example if the system was busy running another process or if the

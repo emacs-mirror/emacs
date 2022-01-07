@@ -1,6 +1,6 @@
 ### verbose.mk --- Makefile fragment for GNU Emacs
 
-## Copyright (C) 2021 Free Software Foundation, Inc.
+## Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -23,7 +23,9 @@ ifeq (${V},1)
 AM_V_AR =
 AM_V_at =
 AM_V_CC =
+AM_V_CXX =
 AM_V_CCLD =
+AM_V_CXXLD =
 AM_V_ELC =
 AM_V_ELN =
 AM_V_GEN =
@@ -31,24 +33,26 @@ AM_V_GLOBALS =
 AM_V_NO_PD =
 AM_V_RC =
 else
-AM_V_AR = @echo "  AR      " $@;
+AM_V_AR      = @$(info $   AR       $@)
 AM_V_at = @
-AM_V_CC = @echo "  CC      " $@;
-AM_V_CCLD = @echo "  CCLD    " $@;
+AM_V_CC      = @$(info $   CC       $@)
+AM_V_CXX     = @$(info $   CXX      $@)
+AM_V_CCLD    = @$(info $   CCLD     $@)
+AM_V_CXXLD   = @$(info $   CXXLD    $@)
 ifeq ($(HAVE_NATIVE_COMP),yes)
 ifeq ($(NATIVE_DISABLED),1)
-AM_V_ELC = @echo "  ELC     " $@;
+AM_V_ELC     = @$(info $   ELC      $@)
 AM_V_ELN =
 else
-AM_V_ELC = @echo "  ELC+ELN " $@;
-AM_V_ELN = @echo "  ELN " $@;
+AM_V_ELC     = @$(info $   ELC+ELN  $@)
+AM_V_ELN     = @$(info $   ELN      $@)
 endif
 else
-AM_V_ELC = @echo "  ELC     " $@;
+AM_V_ELC     = @$(info $   ELC      $@)
 AM_V_ELN =
 endif
-AM_V_GEN = @echo "  GEN     " $@;
-AM_V_GLOBALS = @echo "  GEN     " globals.h;
+AM_V_GEN     = @$(info $   GEN      $@)
+AM_V_GLOBALS = @$(info $   GEN      globals.h)
 AM_V_NO_PD = --no-print-directory
-AM_V_RC = @echo "  RC      " $@;
+AM_V_RC      = @$(info $   RC       $@)
 endif

@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -233,11 +233,6 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-key-mode-map
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap "q" 'epa-exit-buffer)
-    keymap))
-
-(defvar epa-info-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "q" 'delete-window)
     keymap))
 
 (defvar epa-exit-buffer-function #'quit-window)
@@ -607,7 +602,11 @@ If SECRET is non-nil, list secret keys instead of public keys."
 		       (_ "Error while executing \"%s\":\n\n"))
 		     (epg-context-program context))
 		    "\n\n"
-		    (epg-context-error-output context)))
+		    (epg-context-error-output context)
+                    (if (string-search "Unexpected error"
+                                       (epg-context-error-output context))
+                        "\n(File possibly not an encrypted file, but is perhaps a key ring file?)\n"
+                      "")))
 	  (epa-info-mode)
 	  (goto-char (point-min)))
 	(display-buffer buffer)))))

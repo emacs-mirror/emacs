@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2021 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2022 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -34,6 +34,7 @@ top_builddir = @top_builddir@
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
 CC = @CC@
+CXX = @CXX@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
@@ -237,6 +238,8 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
+SQLITE3_LIBS = @SQLITE3_LIBS@
+
 GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
 
 LCMS2_LIBS = @LCMS2_LIBS@
@@ -257,6 +260,9 @@ XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 
 XFIXES_LIBS = @XFIXES_LIBS@
 XFIXES_CFLAGS = @XFIXES_CFLAGS@
+
+XINPUT_LIBS = @XINPUT_LIBS@
+XINPUT_CFLAGS = @XINPUT_CFLAGS@
 
 XDBE_LIBS = @XDBE_LIBS@
 XDBE_CFLAGS = @XDBE_CFLAGS@
@@ -290,6 +296,9 @@ W32_OBJ=@W32_OBJ@
 ## -lwinspool if HAVE_W32,
 ## -lkernel32 if CYGWIN but not HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
+
+PGTK_OBJ=@PGTK_OBJ@
+PGTK_LIBS=@PGTK_LIBS@
 
 ## emacs.res if HAVE_W32
 EMACSRES = @EMACSRES@
@@ -343,9 +352,16 @@ BUILD_DETAILS = @BUILD_DETAILS@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
+HAIKU_OBJ = @HAIKU_OBJ@
+HAIKU_CXX_OBJ = @HAIKU_CXX_OBJ@
+HAIKU_LIBS = @HAIKU_LIBS@
+HAIKU_CFLAGS = @HAIKU_CFLAGS@
+
 DUMPING=@DUMPING@
 CHECK_STRUCTS = @CHECK_STRUCTS@
 HAVE_PDUMPER = @HAVE_PDUMPER@
+
+HAVE_BE_APP = @HAVE_BE_APP@
 
 ## ARM Macs require that all code have a valid signature.  Since pdump
 ## invalidates the signature, we must re-sign to fix it.
@@ -363,7 +379,10 @@ pdmp :=
 endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
-NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
+NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd -Wnested-externs
+# Ditto, but for C++.
+NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+  -Wstrict-prototypes -Wno-override-init
 
 # -Demacs makes some files produce the correct version for use in Emacs.
 # MYCPPFLAGS is for by-hand Emacs-specific overrides, e.g.,
@@ -374,22 +393,26 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(LIBGCCJIT_CFLAGS) $(DBUS_CFLAGS) \
   $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) $(XDBE_CFLAGS) \
-  $(WEBKIT_CFLAGS) $(WEBP_CFLAGS) $(LCMS2_CFLAGS) \
+  $(XINPUT_CFLAGS) $(WEBP_CFLAGS) $(WEBKIT_CFLAGS) $(LCMS2_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(HARFBUZZ_CFLAGS) $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
   $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
-  $(WERROR_CFLAGS)
+  $(WERROR_CFLAGS) $(HAIKU_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
   $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
   $(GNU_OBJC_CFLAGS)
+ALL_CXX_CFLAGS = $(EMACS_CFLAGS) \
+  $(filter-out $(NON_CXX_CFLAGS),$(WARN_CFLAGS)) $(CXXFLAGS)
 
-.SUFFIXES: .m
+.SUFFIXES: .m .cc
 .c.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
+.cc.o:
+	$(AM_V_CXX)$(CXX) -c $(CPPFLAGS) $(ALL_CXX_CFLAGS) $(PROFILING_CFLAGS) $<
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
@@ -408,11 +431,13 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
-	thread.o systhread.o \
+	thread.o systhread.o sqlite.o \
 	$(if $(HYBRID_MALLOC),sheap.o) \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ)
-obj = $(base_obj) $(NS_OBJC_OBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) \
+	$(HAIKU_OBJ) $(PGTK_OBJ)
+doc_obj = $(base_obj) $(NS_OBJC_OBJ)
+obj = $(doc_obj) $(HAIKU_CXX_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
@@ -426,7 +451,8 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
-  xsettings.o xgselect.o termcap.o hbfont.o
+  xsettings.o xgselect.o termcap.o hbfont.o \
+  haikuterm.o haikufns.o haikumenu.o haikufont.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -452,7 +478,11 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
+ifneq ($(HAVE_BE_APP),yes)
 all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+else
+all: Emacs Emacs.pdmp $(OTHER_FILES)
+endif
 ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
 all: ../native-lisp
 endif
@@ -495,11 +525,11 @@ endif
 ## but the second one seems like it could be more future-proof.
 shortlisp =
 lisp.mk: $(lispsource)/loadup.el
-	@rm -f $@
 	${AM_V_GEN}( printf 'shortlisp = \\\n'; \
 	sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | \
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
-	echo "" ) > $@
+	echo "" ) > $@.tmp
+	$(AM_V_at)mv -f $@.tmp $@
 
 -include lisp.mk
 shortlisp_filter = leim/leim-list.el site-load.elc site-init.elc
@@ -512,7 +542,7 @@ export LISP_PRELOADED = ${shortlisp}
 lisp = $(addprefix ${lispsource}/,${shortlisp})
 
 ## Construct full set of libraries to be linked.
-LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
    $(WEBKIT_LIBS) \
@@ -524,7 +554,8 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(HARFBUZZ_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
-   $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT_LIBS)
+   $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
+   $(SQLITE3_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,
@@ -581,6 +612,18 @@ else
 	rm -f $@ && cp -f temacs$(EXEEXT) $@
 endif
 
+## On Haiku, also produce a binary named Emacs with the appropriate
+## icon set.
+
+ifeq ($(HAVE_BE_APP),yes)
+Emacs: emacs$(EXEEXT)
+	$(AM_V_GEN) cp -f emacs$(EXEEXT) $@
+	$(AM_V_at) $(libsrc)/be-resources \
+	  $(etc)/images/icons/hicolor/32x32/apps/emacs.png $@
+Emacs.pdmp: $(pdmp)
+	$(AM_V_GEN) cp -f $(pdmp) $@
+endif
+
 ifeq ($(DUMPING),pdumper)
 $(pdmp): emacs$(EXEEXT)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
@@ -599,13 +642,13 @@ endif
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
 ##
-$(etc)/DOC: lisp.mk $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj) $(lispsource)/loaddefs.el
 	$(AM_V_GEN)$(MKDIR_P) $(etc)
 	$(AM_V_at)rm -f $(etc)/DOC
 	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
-	  $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
+	  $(SOME_MACHINE_OBJECTS) $(doc_obj) > $(etc)/DOC
 	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
-	  $(shortlisp)
+	  loaddefs.el
 
 $(libsrc)/make-docfile$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT): \
   $(lib)/libgnu.a
@@ -621,7 +664,7 @@ buildobj.h: Makefile
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > globals.tmp
+	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(doc_obj) > globals.tmp
 	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change globals.tmp globals.h
 	$(AM_V_at)echo timestamp > $@
 
@@ -646,9 +689,15 @@ endif
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
   $(charsets) $(charscript) ${emoji-zwj} $(MAKE_PDUMPER_FINGERPRINT)
-	$(AM_V_CCLD)$(CC) -o $@.tmp \
+ifeq ($(HAVE_BE_APP),yes)
+	$(AM_V_CXXLD)$(CXX) -o $@.tmp \
 	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES) -lstdc++
+else
+	$(AM_V_CCLD)$(CC) -o $@.tmp \
+	  $(ALL_CFLAGS) $(CXXFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
 	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+endif
 ifeq ($(HAVE_PDUMPER),yes)
 	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@.tmp
 ifeq ($(DO_CODESIGN),yes)
@@ -733,6 +782,7 @@ ${ETAGS}: FORCE
 # to be built before we can get TAGS.
 ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, $(wildcard ${srcdir}/*.[hc]))
 ctagsfiles2 = $(wildcard ${srcdir}/*.m)
+ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 
 ## In out-of-tree builds, TAGS are generated in the build dir, like
 ## other non-bootstrap build products (see Bug#31744).
@@ -747,7 +797,8 @@ TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
 	  $(ctagsfiles1) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(ctagsfiles2)
+	  $(ctagsfiles2) \
+	  $(ctagsfiles3)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,
 ## which the above TAGS file for the C files includes by reference.
@@ -852,6 +903,9 @@ ifeq ($(DUMPING),unexec)
 else
 	@: In the pdumper case, make compile-first after the dump
 	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
+ifeq ($(DO_CODESIGN),yes)
+	codesign -s - -f bootstrap-emacs$(EXEEXT)
+endif
 endif
 
 ifeq ($(DUMPING),pdumper)

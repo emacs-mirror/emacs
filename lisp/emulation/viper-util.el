@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -79,9 +79,6 @@
 (defmacro viper-frame-value (variable)
   "Return the value of VARIABLE local to the current frame, if there is one.
 Otherwise return the normal value."
-  ;; Frame-local variables are obsolete from Emacs 22.2 onwards,
-  ;; so we do it by hand instead.
-  ;; Buffer-local values take precedence over frame-local ones.
   `(if (local-variable-p ',variable)
        ,variable
      ;; Distinguish between no frame parameter and a frame parameter

@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -664,11 +664,11 @@ order for SpamAssassin to recognize the new registered spam."
 ;;; Key bindings for spam control.
 
 (define-keymap :keymap gnus-summary-mode-map
-  "St" #'spam-generic-score
-  "Sx" #'gnus-summary-mark-as-spam
-  "Mst" #'spam-generic-score
-  "Msx" #'gnus-summary-mark-as-spam
-  "\M-d" #'gnus-summary-mark-as-spam
+  "S t" #'spam-generic-score
+  "S x" #'gnus-summary-mark-as-spam
+  "M s t" #'spam-generic-score
+  "M s x" #'gnus-summary-mark-as-spam
+  "M-d" #'gnus-summary-mark-as-spam
   "$" #'gnus-summary-mark-as-spam)
 
 (defvar spam-cache-lookups t

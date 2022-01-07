@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2021 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -469,7 +469,7 @@ just FUNCTION is printed."
     (funcall orig-fun nil)))
 
 (defun edebug-eval-defun (edebug-it)
-  (declare (obsolete "use eval-defun or edebug--eval-defun instead" "28.1"))
+  (declare (obsolete "use `eval-defun' or `edebug--eval-defun' instead" "28.1"))
   (interactive "P")
   (if (advice-member-p #'edebug--eval-defun 'eval-defun)
       (eval-defun edebug-it)

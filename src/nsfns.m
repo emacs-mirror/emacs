@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and macOS window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2021 Free Software
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -236,7 +236,6 @@ static void
 ns_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
-  EmacsCGFloat r, g, b, alpha;
 
   /* Must block_input, because ns_lisp_to_color does block/unblock_input
      which means that col may be deallocated in its unblock_input if there
@@ -253,12 +252,7 @@ ns_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [f->output_data.ns->foreground_color release];
   f->output_data.ns->foreground_color = col;
 
-  [col getRed: &r green: &g blue: &b alpha: &alpha];
-  FRAME_FOREGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((unsigned long) (alpha * 0xff),
-                   (unsigned long) (r * 0xff),
-                   (unsigned long) (g * 0xff),
-                   (unsigned long) (b * 0xff));
+  FRAME_FOREGROUND_PIXEL (f) = [col unsignedLong];
 
   if (FRAME_NS_VIEW (f))
     {
@@ -277,7 +271,7 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  EmacsCGFloat r, g, b, alpha;
+  EmacsCGFloat alpha;
 
   block_input ();
   if (ns_lisp_to_color (arg, &col))
@@ -291,12 +285,8 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
 
-  [col getRed: &r green: &g blue: &b alpha: &alpha];
-  FRAME_BACKGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((unsigned long) (alpha * 0xff),
-                   (unsigned long) (r * 0xff),
-                   (unsigned long) (g * 0xff),
-                   (unsigned long) (b * 0xff));
+  FRAME_BACKGROUND_PIXEL (f) = [col unsignedLong];
+  alpha = [col alphaComponent];
 
   if (view != nil)
     {
@@ -310,9 +300,9 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       face = FRAME_DEFAULT_FACE (f);
       if (face)
         {
-          col = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f);
-          face->background = ns_index_color
-            ([col colorWithAlphaComponent: alpha], f);
+          col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
+          face->background = [[col colorWithAlphaComponent: alpha]
+                               unsignedLong];
 
           update_face_from_frame_parameter (f, Qbackground_color, arg);
         }
@@ -1365,6 +1355,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          NILP (Vmenu_bar_mode)
                          ? make_fixnum (0) : make_fixnum (1),
                          NULL, NULL, RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qtab_bar_lines,
+                         NILP (Vtab_bar_mode)
+                         ? make_fixnum (0) : make_fixnum (1),
+			 NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qtool_bar_lines,
                          NILP (Vtool_bar_mode)
                          ? make_fixnum (0) : make_fixnum (1),
@@ -2358,6 +2352,47 @@ ns_get_string_resource (void *_rdb, const char *name, const char *class)
    ========================================================================== */
 
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+/* Moving files to the system recycle bin.
+   Used by `move-file-to-trash' instead of the default moving to ~/.Trash  */
+DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
+       Ssystem_move_file_to_trash, 1, 1, 0,
+       doc: /* Move file or directory named FILENAME to the recycle bin.  */)
+  (Lisp_Object filename)
+{
+  Lisp_Object handler;
+  Lisp_Object operation;
+
+  operation = Qdelete_file;
+  if (!NILP (Ffile_directory_p (filename))
+      && NILP (Ffile_symlink_p (filename)))
+    {
+      operation = intern ("delete-directory");
+      filename = Fdirectory_file_name (filename);
+    }
+
+  /* Must have fully qualified file names for moving files to Trash. */
+  filename = Fexpand_file_name (filename, Qnil);
+
+  handler = Ffind_file_name_handler (filename, operation);
+  if (!NILP (handler))
+    return call2 (handler, operation, filename);
+  else
+    {
+      NSFileManager *fm = [NSFileManager defaultManager];
+      BOOL result = NO;
+      NSURL *fileURL = [NSURL fileURLWithPath:[NSString stringWithLispString:filename]
+                                  isDirectory:!NILP (Ffile_directory_p (filename))];
+      if ([fm respondsToSelector:@selector(trashItemAtURL:resultingItemURL:error:)])
+        result = [fm trashItemAtURL:fileURL resultingItemURL:nil error:nil];
+
+      if (!result)
+	report_file_error ("Removing old name", list1 (filename));
+    }
+  return Qnil;
+}
+#endif
+
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
      (Lisp_Object color, Lisp_Object frame)
@@ -3105,6 +3140,9 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
    encoded form (e.g. UTF-8).  */
 + (NSString *)stringWithLispString:(Lisp_Object)string
 {
+  if (!STRINGP (string))
+    return nil;
+
   /* Shortcut for the common case.  */
   if (all_nonzero_ascii (SDATA (string), SBYTES (string)))
     return [NSString stringWithCString: SSDATA (string)
@@ -3238,6 +3276,10 @@ Default is t.  */);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+  defsubr (&Ssystem_move_file_to_trash);
+#endif
 
   as_status = 0;
   as_script = Qnil;

@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -559,5 +559,10 @@ of record objects."
     (advice-add 'type-of :around #'cl--old-struct-type-of))
    (t
     (advice-remove 'type-of #'cl--old-struct-type-of))))
+
+(defun cl-constantly (value)
+  "Return a function that takes any number of arguments, but returns VALUE."
+  (lambda (&rest _)
+    value))
 
 ;;; cl-lib.el ends here

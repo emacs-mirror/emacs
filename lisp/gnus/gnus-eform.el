@@ -1,6 +1,6 @@
 ;;; gnus-eform.el --- a mode for editing forms for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -50,8 +50,8 @@
 
 (defvar-keymap gnus-edit-form-mode-map
   :parent emacs-lisp-mode-map
-  "\C-c\C-c" #'gnus-edit-form-done
-  "\C-c\C-k" #'gnus-edit-form-exit)
+  "C-c C-c" #'gnus-edit-form-done
+  "C-c C-k" #'gnus-edit-form-exit)
 
 (defun gnus-edit-form-make-menu-bar ()
   (unless (boundp 'gnus-edit-form-menu)

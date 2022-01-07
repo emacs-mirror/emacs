@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Package: vc
@@ -309,10 +309,11 @@ to the CVS command."
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
-  (file-directory-p (expand-file-name "CVS"
-				      (if (file-directory-p file)
-					  file
-					(file-name-directory file)))))
+  (let ((dir (if (file-directory-p file)
+	         file
+	       (file-name-directory file))))
+    (and (file-directory-p (expand-file-name "CVS" dir))
+         (file-name-directory (expand-file-name "CVS" dir)))))
 
 (defun vc-cvs-could-register (file)
   "Return non-nil if FILE could be registered in CVS.

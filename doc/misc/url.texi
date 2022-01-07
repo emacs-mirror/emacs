@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2021 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2022 Free Software
 Foundation, Inc.
 
 @quotation
@@ -90,7 +90,7 @@ can be accessed (usually over a network) in a specific way.
 
 @example
 ftp://ftp.is.co.za/rfc/rfc1808.txt
-http://www.ietf.org/rfc/rfc2396.txt
+https://www.ietf.org/rfc/rfc2396.txt
 ldap://[2001:db8::7]/c=GB?objectClass?one
 mailto:John.Doe@@example.com
 news:comp.infosystems.www.servers.unix
@@ -708,7 +708,7 @@ Well-known ports are used if the URL does not specify a port.
 @cindex rcirc
 
   The @code{irc} scheme is defined in the Internet Draft at
-@url{http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
+@url{https://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
 was never approved as an RFC).  Such URLs have the form
 
 @example
@@ -1181,7 +1181,7 @@ opened by the URL library.
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
 @c (@url{http://129.79.254.191/} works, but
-@c @url{http://www.cs.indiana.edu/} doesn't).  This used to happen on
+@c @url{https://www.cs.indiana.edu/} doesn't).  This used to happen on
 @c SunOS4 and Ultrix, but is now probably now rare.  If Emacs can't be
 @c rebuilt linked against the resolver library, it can use the external
 @c @command{nslookup} program instead.

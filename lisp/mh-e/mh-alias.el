@@ -1,6 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -67,8 +67,7 @@ Return t if any file listed in the Aliasfile MH profile component has
 been modified since the timestamp.
 If ARG is non-nil, set timestamp with the current time."
   (if arg
-      (let ((time (current-time)))
-        (setq mh-alias-tstamp (list (nth 0 time) (nth 1 time))))
+      (setq mh-alias-tstamp (current-time))
     (let ((stamp))
       (car (memq t (mapcar
                     (lambda (file)
@@ -258,15 +257,7 @@ Blind aliases or users from /etc/passwd are not expanded."
       (read-string prompt)
     (let* ((minibuffer-local-completion-map mh-alias-read-address-map)
            (completion-ignore-case mh-alias-completion-ignore-case-flag)
-           (the-answer
-            (cond ((fboundp 'completing-read-multiple)
-                   (mh-funcall-if-exists
-                    completing-read-multiple prompt mh-alias-alist nil nil))
-                  ((featurep 'multi-prompt)
-                   (mh-funcall-if-exists
-                    multi-prompt "," nil prompt mh-alias-alist nil nil))
-                  (t (split-string
-                      (completing-read prompt mh-alias-alist nil nil) ",")))))
+           (the-answer (completing-read-multiple prompt mh-alias-alist nil nil)))
       (if (not mh-alias-expand-aliases-flag)
           (mapconcat #'identity the-answer ", ")
         ;; Loop over all elements, checking if in passwd alias or blind first

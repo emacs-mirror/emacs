@@ -1,4 +1,4 @@
-Copyright (C) 2008-2021 Free Software Foundation, Inc.
+Copyright (C) 2008-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -113,6 +113,9 @@ By default, ERT test failure summaries are quite brief in batch
 mode--only the names of the failed tests are listed.  If the
 $EMACS_TEST_VERBOSE environment variable is set, the failure summaries
 will also include the data from the failing test.
+
+If the $EMACS_TEST_JUNIT_REPORT environment variable is set to a file
+name, a JUnit test report is generated under this name.
 
 Some of the tests require a remote temporary directory
 (autorevert-tests.el, filenotify-tests.el, shadowfile-tests.el and

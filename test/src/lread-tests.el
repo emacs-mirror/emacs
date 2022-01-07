@@ -1,6 +1,6 @@
 ;;; lread-tests.el --- tests for lread.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -114,6 +114,10 @@
   (should-error (read "#x") :type 'invalid-read-syntax)
   (should-error (read "#24r") :type 'invalid-read-syntax)
   (should-error (read "#") :type 'invalid-read-syntax))
+
+(ert-deftest lread-char-modifiers ()
+  (should (eq ?\C-\M-é (+ (- ?\M-a ?a) ?\C-é)))
+  (should (eq (- ?\C-ŗ ?ŗ) (- ?\C-é ?é))))
 
 (ert-deftest lread-record-1 ()
   (should (equal '(#s(foo) #s(foo))

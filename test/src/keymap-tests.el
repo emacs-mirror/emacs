@@ -1,6 +1,6 @@
 ;;; keymap-tests.el --- Test suite for src/keymap.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;;         Stefan Kangas <stefankangas@gmail.com>
@@ -276,15 +276,11 @@ commit 86c19714b097aa477d339ed99ffb5136c755a046."
     (should (equal (where-is-internal 'foo map t) [?y]))
     (should (equal (where-is-internal 'bar map t) [?y]))))
 
-(defvar keymap-tests-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "x" 'keymap-tests--command-2)
-    map))
+(defvar-keymap keymap-tests-minor-mode-map
+  "x" 'keymap-tests--command-2)
 
-(defvar keymap-tests-major-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "x" 'keymap-tests--command-1)
-    map))
+(defvar-keymap keymap-tests-major-mode-map
+  "x" 'keymap-tests--command-1)
 
 (define-minor-mode keymap-tests-minor-mode "Test.")
 
@@ -372,6 +368,55 @@ g .. h		foo
               'find-file))
   (should (eq (lookup-key (current-global-map) ["C-x C-f"]) 'find-file))
   (should (eq (lookup-key (current-global-map) [?\C-x ?\C-f]) 'find-file)))
+
+(ert-deftest keymap-removal ()
+  ;; Set to nil.
+  (let ((map (define-keymap "a" 'foo)))
+    (should (equal map '(keymap (97 . foo))))
+    (define-key map "a" nil)
+    (should (equal map '(keymap (97)))))
+  ;; Remove.
+  (let ((map (define-keymap "a" 'foo)))
+    (should (equal map '(keymap (97 . foo))))
+    (define-key map "a" nil t)
+    (should (equal map '(keymap)))))
+
+(ert-deftest keymap-removal-inherit ()
+  ;; Set to nil.
+  (let ((parent (make-sparse-keymap))
+        (child (make-keymap)))
+    (set-keymap-parent child parent)
+    (define-key parent [?a] 'foo)
+    (define-key child  [?a] 'bar)
+
+    (should (eq (lookup-key child [?a]) 'bar))
+    (define-key child [?a] nil)
+    (should (eq (lookup-key child [?a]) nil)))
+  ;; Remove.
+  (let ((parent (make-sparse-keymap))
+        (child (make-keymap)))
+    (set-keymap-parent child parent)
+    (define-key parent [?a] 'foo)
+    (define-key child  [?a] 'bar)
+
+    (should (eq (lookup-key child [?a]) 'bar))
+    (define-key child [?a] nil t)
+    (should (eq (lookup-key child [?a]) 'foo))))
+
+(ert-deftest keymap-text-char-description ()
+  (should (equal (text-char-description ?a) "a"))
+  (should (equal (text-char-description ?\s) " "))
+  (should (equal (text-char-description ?\t) "^I"))
+  (should (equal (text-char-description ?\^C) "^C"))
+  (should (equal (text-char-description ?\^?) "^?"))
+  (should (equal (text-char-description #x80) ""))
+  (should (equal (text-char-description ?å) "å"))
+  (should (equal (text-char-description ?Ş) "Ş"))
+  (should (equal (text-char-description ?Ā) "Ā"))
+  (should-error (text-char-description "c"))
+  (should-error (text-char-description [?\C-x ?l]))
+  (should-error (text-char-description ?\M-c))
+  (should-error (text-char-description ?\s-c)))
 
 (provide 'keymap-tests)
 

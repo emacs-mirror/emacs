@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2021 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -164,6 +164,27 @@ char const * nstrace_fullscreen_type_name (int fs_type)
     return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
 #endif
   return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
+}
+
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c
+{
+  EmacsCGFloat a = (double)((c >> 24) & 0xff) / 255.0;
+  EmacsCGFloat r = (double)((c >> 16) & 0xff) / 255.0;
+  EmacsCGFloat g = (double)((c >> 8) & 0xff) / 255.0;
+  EmacsCGFloat b = (double)(c & 0xff) / 255.0;
+
+  return [NSColor colorForEmacsRed:r green:g blue:b alpha:a];
+}
+
+- (unsigned long)unsignedLong
+{
+  EmacsCGFloat r, g, b, a;
+  [self getRed:&r green:&g blue:&b alpha:&a];
+
+  return (((unsigned long) (a * 255)) << 24)
+    | (((unsigned long) (r * 255)) << 16)
+    | (((unsigned long) (g * 255)) << 8)
+    | ((unsigned long) (b * 255));
 }
 
 @end
@@ -432,14 +453,6 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
     }
 
 
-/* These flags will be OR'd or XOR'd with the NSWindow's styleMask
-   property depending on what we're doing.  */
-#define FRAME_DECORATED_FLAGS (NSWindowStyleMaskTitled              \
-                               | NSWindowStyleMaskResizable         \
-                               | NSWindowStyleMaskMiniaturizable    \
-                               | NSWindowStyleMaskClosable)
-#define FRAME_UNDECORATED_FLAGS NSWindowStyleMaskBorderless
-
 /* TODO: Get rid of need for these forward declarations.  */
 static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
@@ -535,8 +548,11 @@ ns_init_locale (void)
 
   NSTRACE ("ns_init_locale");
 
-  @try
+  /* If we were run from a terminal then assume an unset LANG variable
+     is intentional and don't try to "fix" it.  */
+  if (!isatty (STDIN_FILENO))
     {
+      char *oldLocale = setlocale (LC_ALL, NULL);
       /* It seems macOS should probably use UTF-8 everywhere.
          'localeIdentifier' does not specify the encoding, and I can't
          find any way to get the OS to tell us which encoding to use,
@@ -544,14 +560,12 @@ ns_init_locale (void)
       NSString *localeID = [NSString stringWithFormat:@"%@.UTF-8",
                                      [locale localeIdentifier]];
 
-      /* Set LANG and LC_ALL to locale, but not if the variables are
-         already set.  */
-      setenv("LANG", [localeID UTF8String], 0);
-      setenv("LC_ALL", [localeID UTF8String], 0);
-    }
-  @catch (NSException *e)
-    {
-      NSLog (@"Locale detection failed: %@: %@", [e name], [e reason]);
+      /* Check the locale ID is valid and if so set LANG, but not if
+         it is already set.  */
+      if (setlocale (LC_ALL, [localeID UTF8String]))
+        setenv("LANG", [localeID UTF8String], 0);
+
+      setlocale (LC_ALL, oldLocale);
     }
 }
 
@@ -1603,10 +1617,17 @@ ns_destroy_window (struct frame *f)
 
   /* If this frame has a parent window, detach it as not doing so can
      cause a crash in GNUStep.  */
-  if (FRAME_PARENT_FRAME (f) != NULL)
+  if (FRAME_PARENT_FRAME (f))
     {
       NSWindow *child = [FRAME_NS_VIEW (f) window];
-      NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      NSWindow *parent;
+
+      /* Pacify a incorrect GCC warning about FRAME_PARENT_FRAME (f)
+	 being NULL. */
+      if (FRAME_PARENT_FRAME (f))
+	parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
+      else
+	emacs_abort ();
 
       [parent removeChildWindow: child];
     }
@@ -1948,59 +1969,6 @@ ns_fullscreen_hook (struct frame *f)
    ========================================================================== */
 
 
-NSColor *
-ns_lookup_indexed_color (unsigned long idx, struct frame *f)
-{
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  if (idx < 1 || idx >= color_table->avail)
-    return nil;
-  return color_table->colors[idx];
-}
-
-
-unsigned long
-ns_index_color (NSColor *color, struct frame *f)
-{
-  struct ns_color_table *color_table = FRAME_DISPLAY_INFO (f)->color_table;
-  ptrdiff_t idx;
-  ptrdiff_t i;
-
-  if (!color_table->colors)
-    {
-      color_table->size = NS_COLOR_CAPACITY;
-      color_table->avail = 1; /* skip idx=0 as marker */
-      color_table->colors = xmalloc (color_table->size * sizeof (NSColor *));
-      color_table->colors[0] = nil;
-      color_table->empty_indices = [[NSMutableSet alloc] init];
-    }
-
-  /* Do we already have this color?  */
-  for (i = 1; i < color_table->avail; i++)
-    if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
-      return i;
-
-  if ([color_table->empty_indices count] > 0)
-    {
-      NSNumber *index = [color_table->empty_indices anyObject];
-      [color_table->empty_indices removeObject: index];
-      idx = [index unsignedLongValue];
-    }
-  else
-    {
-      if (color_table->avail == color_table->size)
-	color_table->colors =
-	  xpalloc (color_table->colors, &color_table->size, 1,
-		   min (ULONG_MAX, PTRDIFF_MAX), sizeof *color_table->colors);
-      idx = color_table->avail++;
-    }
-
-  color_table->colors[idx] = color;
-  [color retain];
-  /* fprintf(stderr, "color_table: allocated %d\n",idx); */
-  return idx;
-}
-
-
 static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
@@ -2125,31 +2093,11 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   return 1;
 }
 
-/* Convert an index into the color table into an RGBA value.  Used in
-   xdisp.c:extend_face_to_end_of_line when comparing faces and frame
-   color values.  */
-
-unsigned long
-ns_color_index_to_rgba(int idx, struct frame *f)
-{
-  NSColor *col;
-  col = ns_lookup_indexed_color (idx, f);
-
-  EmacsCGFloat r, g, b, a;
-  [col getRed: &r green: &g blue: &b alpha: &a];
-
-  return ARGB_TO_ULONG((unsigned long) (a * 255),
-                       (unsigned long) (r * 255),
-                       (unsigned long) (g * 255),
-                       (unsigned long) (b * 255));
-}
-
-void
-ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
+static void
+ns_query_color (void *col, Emacs_Color *color_def)
 /* --------------------------------------------------------------------------
-         Get ARGB values out of NSColor col and put them into color_def.
-         If setPixel, set the pixel to a concatenated version.
-         and set color_def pixel to the resulting index.
+         Get ARGB values out of NSColor col and put them into color_def
+         and set color_def pixel to the ARGB color.
    -------------------------------------------------------------------------- */
 {
   EmacsCGFloat r, g, b, a;
@@ -2159,12 +2107,7 @@ ns_query_color(void *col, Emacs_Color *color_def, bool setPixel)
   color_def->green = g * 65535;
   color_def->blue  = b * 65535;
 
-  if (setPixel == YES)
-    color_def->pixel
-      = ARGB_TO_ULONG((unsigned long) (a * 255),
-                      (unsigned long) (r * 255),
-                      (unsigned long) (g * 255),
-                      (unsigned long) (b * 255));
+  color_def->pixel = [(NSColor *)col unsignedLong];
 }
 
 bool
@@ -2172,12 +2115,9 @@ ns_defined_color (struct frame *f,
                   const char *name,
                   Emacs_Color *color_def,
                   bool alloc,
-                  bool makeIndex)
+                  bool _makeIndex)
 /* --------------------------------------------------------------------------
          Return true if named color found, and set color_def rgb accordingly.
-         If makeIndex and alloc are nonzero put the color in the color_table,
-         and set color_def pixel to the resulting index.
-         If makeIndex is zero, set color_def pixel to ARGB.
          Return false if not found.
    -------------------------------------------------------------------------- */
 {
@@ -2190,9 +2130,7 @@ ns_defined_color (struct frame *f,
       unblock_input ();
       return 0;
     }
-  if (makeIndex && alloc)
-    color_def->pixel = ns_index_color (col, f);
-  ns_query_color (col, color_def, !makeIndex);
+  ns_query_color (col, color_def);
   unblock_input ();
   return 1;
 }
@@ -2203,7 +2141,7 @@ ns_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
      External (hook): Store F's background color into *BGCOLOR
    -------------------------------------------------------------------------- */
 {
-  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor, true);
+  ns_query_color (FRAME_BACKGROUND_COLOR (f), bgcolor);
 }
 
 static void
@@ -2622,8 +2560,8 @@ ns_clear_frame (struct frame *f)
 
   block_input ();
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-			    (FACE_FROM_ID (f, DEFAULT_FACE_ID)), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+			    (FACE_FROM_ID (f, DEFAULT_FACE_ID))] set];
   NSRectFill (r);
   ns_unfocus (f);
 
@@ -2651,7 +2589,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 
   r = NSIntersectionRect (r, [view frame]);
   ns_focus (f, &r, 1);
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   NSRectFill (r);
 
@@ -2754,8 +2692,7 @@ ns_clear_under_internal_border (struct frame *f)
         return;
 
       ns_focus (f, NULL, 1);
-      [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
-
+      [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
       NSRectFill (NSMakeRect (0, margin, width, border));
       NSRectFill (NSMakeRect (0, 0, border, height));
       NSRectFill (NSMakeRect (0, margin, width, border));
@@ -2806,7 +2743,7 @@ ns_after_update_window_line (struct window *w, struct glyph_row *desired_row)
           NSRect r = NSMakeRect (0, y, FRAME_PIXEL_WIDTH (f), height);
           ns_focus (f, &r, 1);
 
-          [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), f) set];
+          [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
           NSRectFill (NSMakeRect (0, y, width, height));
           NSRectFill (NSMakeRect (FRAME_PIXEL_WIDTH (f) - width,
                                   y, width, height));
@@ -2974,7 +2911,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       NSTRACE_RECT ("clearRect", clearRect);
 
-      [ns_lookup_indexed_color(face->background, f) set];
+      [[NSColor colorWithUnsignedLong:face->background] set];
       NSRectFill (clearRect);
     }
 
@@ -2991,9 +2928,9 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       [bmp transformUsingAffineTransform:transform];
 
       if (!p->cursor_p)
-        bm_color = ns_lookup_indexed_color(face->foreground, f);
+        bm_color = [NSColor colorWithUnsignedLong:face->foreground];
       else if (p->overlay_p)
-        bm_color = ns_lookup_indexed_color(face->background, f);
+        bm_color = [NSColor colorWithUnsignedLong:face->background];
       else
         bm_color = f->output_data.ns->cursor_color;
 
@@ -3144,7 +3081,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 
   ns_focus (f, &r, 1);
   if (face)
-    [ns_lookup_indexed_color(face->foreground, f) set];
+    [[NSColor colorWithUnsignedLong:face->foreground] set];
 
   NSRectFill(r);
   ns_unfocus (f);
@@ -3180,29 +3117,29 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     /* A vertical divider, at least three pixels wide: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, 1, y1 - y0));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0 + 1, y0, x1 - x0 - 2, y1 - y0));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x1 - 1, y0, 1, y1 - y0));
     }
   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
     /* A horizontal divider, at least three pixels high: Draw first and
        last pixels differently.  */
     {
-      [ns_lookup_indexed_color(color_first, f) set];
+      [[NSColor colorWithUnsignedLong:color_first] set];
       NSRectFill(NSMakeRect (x0, y0, x1 - x0, 1));
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(NSMakeRect (x0, y0 + 1, x1 - x0, y1 - y0 - 2));
-      [ns_lookup_indexed_color(color_last, f) set];
+      [[NSColor colorWithUnsignedLong:color_last] set];
       NSRectFill(NSMakeRect (x0, y1 - 1, x1 - x0, 1));
     }
   else
     {
       /* In any other case do not draw the first and last pixels
          differently.  */
-      [ns_lookup_indexed_color(color, f) set];
+      [[NSColor colorWithUnsignedLong:color] set];
       NSRectFill(divider);
     }
 
@@ -3306,16 +3243,17 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
   if (s->hl == DRAW_CURSOR)
     [FRAME_BACKGROUND_COLOR (s->f) set];
-  else if (face->underline_defaulted_p)
-    [defaultCol set];
   else
-    [ns_lookup_indexed_color (face->underline_color, s->f) set];
+    [defaultCol set];
 
   /* Do underline.  */
   if (face->underline)
     {
       if (s->face->underline == FACE_UNDER_WAVE)
         {
+          if (!face->underline_defaulted_p)
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
+
           ns_draw_underwave (s, width, x);
         }
       else if (s->face->underline == FACE_UNDER_LINE)
@@ -3386,6 +3324,10 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           s->underline_position = position;
 
           r = NSMakeRect (x, s->ybase + position, width, thickness);
+
+          if (!face->underline_defaulted_p)
+            [[NSColor colorWithUnsignedLong:face->underline_color] set];
+
           NSRectFill (r);
         }
     }
@@ -3395,6 +3337,10 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
     {
       NSRect r;
       r = NSMakeRect (x, s->y, width, 1);
+
+      if (!face->overline_color_defaulted_p)
+        [[NSColor colorWithUnsignedLong:face->overline_color] set];
+
       NSRectFill (r);
     }
 
@@ -3416,6 +3362,9 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
       dy = lrint ((glyph_height - h) / 2);
       r = NSMakeRect (x, glyph_y + dy, width, 1);
+
+      if (!face->strike_through_color_defaulted_p)
+        [[NSColor colorWithUnsignedLong:face->strike_through_color] set];
 
       NSRectFill (r);
     }
@@ -3474,7 +3423,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 
   if (s->face->use_box_color_for_shadows_p)
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->box_color, s->f);
+      newBaseCol = [NSColor colorWithUnsignedLong:s->face->box_color];
     }
 /*     else if (s->first_glyph->type == IMAGE_GLYPH
 	   && s->img->pixmap
@@ -3484,7 +3433,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
        } */
   else
     {
-      newBaseCol = ns_lookup_indexed_color (s->face->background, s->f);
+      newBaseCol = [NSColor colorWithUnsignedLong:s->face->background];
     }
 
   if (newBaseCol == nil)
@@ -3606,7 +3555,7 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
   if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
       ns_draw_box (r, abs (hthickness), abs (vthickness),
-                   ns_lookup_indexed_color (face->box_color, s->f),
+                   [NSColor colorWithUnsignedLong:face->box_color],
                    left_p, right_p);
     }
   else
@@ -3643,7 +3592,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 	    {
 	      if (s->hl != DRAW_CURSOR)
 		[(NS_FACE_BACKGROUND (face) != 0
-		  ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
+		  ? [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)]
 		  : FRAME_BACKGROUND_COLOR (s->f)) set];
 	      else
 		[FRAME_CURSOR_COLOR (s->f) set];
@@ -3700,7 +3649,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
      otherwise, since we composite the image under NS (instead of mucking
      with its background color), we must clear just the image area.  */
 
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  [[NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)] set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -3770,11 +3719,11 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (s->hl == DRAW_CURSOR)
     {
       [FRAME_CURSOR_COLOR (s->f) set];
-      tdCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
+      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
     }
   else
     {
-      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
     }
 
   /* Draw underline, overline, strike-through.  */
@@ -3831,8 +3780,8 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       face = s->face;
 
-      bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
-      fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+      bgCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
+      fgCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
 
       if (s->hl == DRAW_CURSOR)
 	{
@@ -3846,10 +3795,14 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
       NSRectFill (glyphRect);
 
-      /* Draw overlining, etc. on the stretch glyph (or the part
-         of the stretch glyph after the cursor). */
-      ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
-                               NSMinX (glyphRect));
+      /* Draw overlining, etc. on the stretch glyph (or the part of
+         the stretch glyph after the cursor).  If the glyph has a box,
+         then decorations will be drawn after drawing the box in
+         ns_draw_glyph_string, in order to prevent them from being
+         overwritten by the box.  */
+      if (s->face->box == FACE_NO_BOX)
+	ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
+				 NSMinX (glyphRect));
 
       s->background_filled_p = 1;
     }
@@ -4062,10 +4015,8 @@ ns_draw_glyph_string (struct glyph_string *s)
 
 	{
 	  NSColor *col = (NS_FACE_FOREGROUND (s->face) != 0
-			  ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (s->face),
-						     s->f)
+			  ? [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)]
 			  : FRAME_FOREGROUND_COLOR (s->f));
-	  [col set];
 
 	  /* Draw underline, overline, strike-through. */
 	  ns_draw_text_decoration (s, s->face, col, s->width, s->x);
@@ -4094,6 +4045,16 @@ ns_draw_glyph_string (struct glyph_string *s)
   if (!s->for_overlaps && !box_drawn_p && s->face->box != FACE_NO_BOX)
     ns_dumpglyphs_box_or_relief (s);
 
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->type == STRETCH_GLYPH)
+    {
+      NSColor *fg_color;
+
+      fg_color = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)];
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
+
   ns_unfocus (s->f);
 
   /* Draw surrounding overhangs. */
@@ -4109,19 +4070,22 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    /* As prev was drawn while clipped to its own area, we
 	       must draw the right_overhang part using s->hl now.  */
 	    enum draw_glyphs_face save = prev->hl;
-	    struct face *save_face = prev->face;
 
-	    prev->face = s->face;
+	    prev->hl = s->hl;
 	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
 	    [[NSGraphicsContext currentContext] saveGraphicsState];
 	    NSRectClip (r);
+	    if (n)
+	      NSRectClip (rc);
 #ifdef NS_IMPL_GNUSTEP
 	    DPSgsave ([NSGraphicsContext currentContext]);
 	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
 			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
 #endif
-	    prev->num_clips = 1;
-	    prev->hl = s->hl;
 	    if (prev->first_glyph->type == CHAR_GLYPH)
 	      ns_draw_glyph_string_foreground (prev);
 	    else
@@ -4131,8 +4095,6 @@ ns_draw_glyph_string (struct glyph_string *s)
 #endif
 	    [[NSGraphicsContext currentContext] restoreGraphicsState];
 	    prev->hl = save;
-	    prev->face = save_face;
-	    prev->num_clips = 0;
 	  }
       ns_unfocus (s->f);
     }
@@ -4149,19 +4111,21 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    /* As next will be drawn while clipped to its own area,
 	       we must draw the left_overhang part using s->hl now.  */
 	    enum draw_glyphs_face save = next->hl;
-	    struct face *save_face = next->face;
 
 	    next->hl = s->hl;
-	    next->face = s->face;
 	    NSRect r = NSMakeRect (s->x, s->y, s->width, s->height);
+	    NSRect rc;
+	    get_glyph_string_clip_rect (s, &rc);
 	    [[NSGraphicsContext currentContext] saveGraphicsState];
 	    NSRectClip (r);
+	    NSRectClip (rc);
 #ifdef NS_IMPL_GNUSTEP
 	    DPSgsave ([NSGraphicsContext currentContext]);
 	    DPSrectclip ([NSGraphicsContext currentContext], s->x, s->y,
 			 s->width, s->height);
+	    DPSrectclip ([NSGraphicsContext currentContext], NSMinX (rc),
+			 NSMinY (rc), NSWidth (rc), NSHeight (rc));
 #endif
-	    next->num_clips = 1;
 	    if (next->first_glyph->type == CHAR_GLYPH)
 	      ns_draw_glyph_string_foreground (next);
 	    else
@@ -4171,10 +4135,7 @@ ns_draw_glyph_string (struct glyph_string *s)
 #endif
 	    [[NSGraphicsContext currentContext] restoreGraphicsState];
 	    next->hl = save;
-	    next->num_clips = 0;
-	    next->face = save_face;
-	    next->clip_head = next;
-	    next->background_filled_p = 0;
+	    next->clip_head = s->next;
 	  }
       ns_unfocus (s->f);
     }
@@ -4527,7 +4488,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 
 #ifdef HAVE_PTHREAD
 void
-ns_run_loop_break ()
+ns_run_loop_break (void)
 /* Break out of the NS run loop in ns_select or ns_read_socket.  */
 {
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "ns_run_loop_break");
@@ -4908,8 +4869,6 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
                 && ![NSCalibratedWhiteColorSpace isEqualToString:
                                                  NSColorSpaceFromDepth (depth)];
     dpyinfo->n_planes = NSBitsPerPixelFromDepth (depth);
-    dpyinfo->color_table = xmalloc (sizeof *dpyinfo->color_table);
-    dpyinfo->color_table->colors = NULL;
     dpyinfo->root_window = 42; /* A placeholder.  */
     dpyinfo->highlight_frame = dpyinfo->ns_focus_frame = NULL;
     dpyinfo->n_fonts = 0;
@@ -5197,11 +5156,9 @@ ns_term_init (Lisp_Object display_name)
             color = XCAR (color_map);
             name = XCAR (color);
             c = XFIXNUM (XCDR (color));
+            c |= 0xFF000000;
             [cl setColor:
-                  [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
-                                      green: GREEN_FROM_ULONG (c) / 255.0
-                                       blue: BLUE_FROM_ULONG (c) / 255.0
-                                      alpha: 1.0]
+                  [NSColor colorWithUnsignedLong:c]
                   forKey: [NSString stringWithLispString: name]];
           }
 
@@ -6559,7 +6516,24 @@ not_in_argv (NSString *arg)
            */
           bool horizontal;
           int lines = 0;
+          int x = 0, y = 0;
           int scrollUp = NO;
+
+	  static bool end_flag = false;
+
+	  if (!ns_use_mwheel_momentum && !end_flag
+	      && [theEvent momentumPhase] != NSEventPhaseNone)
+	    {
+	      emacs_event->kind = TOUCH_END_EVENT;
+	      emacs_event->arg = Qnil;
+	      end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
+	      XSETINT (emacs_event->x, lrint (p.x));
+	      XSETINT (emacs_event->y, lrint (p.y));
+	      EV_TRAILER (theEvent);
+	      return;
+	    }
+
+	  end_flag = [theEvent momentumPhase] != NSEventPhaseNone;
 
           /* FIXME: At the top or bottom of the buffer we should
            * ignore momentum-phase events.  */
@@ -6594,23 +6568,33 @@ not_in_argv (NSString *arg)
                * reset the total delta for the direction we're NOT
                * scrolling so that small movements don't add up.  */
               if (abs (totalDeltaX) > abs (totalDeltaY)
-                  && abs (totalDeltaX) > lineHeight)
+                  && (!mwheel_coalesce_scroll_events
+		      || abs (totalDeltaX) > lineHeight))
                 {
                   horizontal = YES;
                   scrollUp = totalDeltaX > 0;
 
                   lines = abs (totalDeltaX / lineHeight);
-                  totalDeltaX = totalDeltaX % lineHeight;
+		  x = totalDeltaX;
+		  if (!mwheel_coalesce_scroll_events)
+		    totalDeltaX = 0;
+		  else
+		    totalDeltaX = totalDeltaX % lineHeight;
                   totalDeltaY = 0;
                 }
               else if (abs (totalDeltaY) >= abs (totalDeltaX)
-                       && abs (totalDeltaY) > lineHeight)
+                       && (!mwheel_coalesce_scroll_events
+			   || abs (totalDeltaY) > lineHeight))
                 {
                   horizontal = NO;
                   scrollUp = totalDeltaY > 0;
 
                   lines = abs (totalDeltaY / lineHeight);
-                  totalDeltaY = totalDeltaY % lineHeight;
+		  y = totalDeltaY;
+		  if (!mwheel_coalesce_scroll_events)
+		    totalDeltaY = 0;
+		  else
+		    totalDeltaY = totalDeltaY % lineHeight;
                   totalDeltaX = 0;
                 }
 
@@ -6636,13 +6620,25 @@ not_in_argv (NSString *arg)
                 ? ceil (fabs (delta)) : 1;
 
               scrollUp = delta > 0;
+	      x = ([theEvent scrollingDeltaX]
+		   * FRAME_COLUMN_WIDTH (emacsframe));
+	      y = ([theEvent scrollingDeltaY]
+		   * FRAME_LINE_HEIGHT (emacsframe));
             }
 
-          if (lines == 0)
+          if (lines == 0 && mwheel_coalesce_scroll_events)
             return;
 
+	  if (NUMBERP (Vns_scroll_event_delta_factor))
+	    {
+	      x *= XFLOATINT (Vns_scroll_event_delta_factor);
+	      y *= XFLOATINT (Vns_scroll_event_delta_factor);
+	    }
+
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
-          emacs_event->arg = (make_fixnum (lines));
+          emacs_event->arg = list3 (make_fixnum (lines),
+				    make_float (x),
+				    make_float (y));
 
           emacs_event->code = 0;
           emacs_event->modifiers = EV_MODIFIERS (theEvent) |
@@ -6848,6 +6844,42 @@ not_in_argv (NSString *arg)
   [self mouseMoved: e];
 }
 
+#ifdef NS_IMPL_COCOA
+- (void) magnifyWithEvent: (NSEvent *) event
+{
+  NSPoint pt = [self convertPoint: [event locationInWindow] fromView: nil];
+  static CGFloat last_scale;
+
+  NSTRACE ("[EmacsView magnifyWithEvent]");
+  if (emacs_event)
+    {
+      emacs_event->kind = PINCH_EVENT;
+      emacs_event->modifiers = EV_MODIFIERS (event);
+      XSETINT (emacs_event->x, lrint (pt.x));
+      XSETINT (emacs_event->y, lrint (pt.y));
+      XSETFRAME (emacs_event->frame_or_window, emacsframe);
+
+      if ([event phase] == NSEventPhaseBegan)
+	{
+	  last_scale = 1.0 + [event magnification];
+	  emacs_event->arg = list4 (make_float (0.0),
+				    make_float (0.0),
+				    make_float (last_scale),
+				    make_float (0.0));
+	}
+      else
+	/* Report a tiny change so that Lisp code doesn't think this
+	   is the beginning of an event sequence.  This is the best we
+	   can do because NS doesn't report pinch events in as much
+	   detail as XInput 2 or GTK+ do.  */
+	emacs_event->arg = list4 (make_float (0.01),
+				  make_float (0.0),
+				  make_float (last_scale += [event magnification]),
+				  make_float (0.0));
+      EV_TRAILER (event);
+    }
+}
+#endif
 
 - (BOOL)windowShouldClose: (id)sender
 {
@@ -7556,7 +7588,7 @@ not_in_argv (NSString *arg)
   EmacsWindow *w, *fw;
   BOOL onFirstScreen;
   struct frame *f;
-  NSRect r, wr;
+  NSRect r;
   NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
@@ -7575,10 +7607,8 @@ not_in_argv (NSString *arg)
   w = (EmacsWindow *)[self window];
   onFirstScreen = [[w screen] isEqual:[[NSScreen screens] objectAtIndex:0]];
   f = emacsframe;
-  wr = [w frame];
-  col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-				 (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
-                                 f);
+  col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+				 (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
 
   if (fs_state != FULLSCREEN_BOTH)
     {
@@ -8258,10 +8288,17 @@ not_in_argv (NSString *arg)
   if (fullscreen)
     styleMask = NSWindowStyleMaskBorderless;
   else if (FRAME_UNDECORATED (f))
-    styleMask = FRAME_UNDECORATED_FLAGS;
+    {
+      styleMask = NSWindowStyleMaskBorderless;
+#ifdef NS_IMPL_COCOA
+      styleMask |= NSWindowStyleMaskResizable;
+#endif
+    }
   else
-    styleMask = FRAME_DECORATED_FLAGS;
-
+    styleMask = NSWindowStyleMaskTitled
+      | NSWindowStyleMaskResizable
+      | NSWindowStyleMaskMiniaturizable
+      | NSWindowStyleMaskClosable;
 
   self = [super initWithContentRect:
                   NSMakeRect (0, 0,
@@ -8326,9 +8363,8 @@ not_in_argv (NSString *arg)
 
       f->border_width = [self borderWidth];
 
-      col = ns_lookup_indexed_color (NS_FACE_BACKGROUND
-                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID)),
-                                     f);
+      col = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND
+                                     (FACE_FROM_ID (f, DEFAULT_FACE_ID))];
       [self setBackgroundColor:col];
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
         [self setOpaque:NO];
@@ -8421,6 +8457,15 @@ not_in_argv (NSString *arg)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
   [ourView updateCollectionBehavior];
 #endif
+
+  /* Child frames are often used in ways that may mean they should
+     "disappear" into the contents of the parent frame.  macOs's
+     drop-shadows break this effect, so remove them on undecorated
+     child frames.  */
+  if (parentFrame && FRAME_UNDECORATED (ourFrame))
+    [self setHasShadow:NO];
+  else
+    [self setHasShadow:YES];
 #endif
 
 
@@ -10004,7 +10049,14 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
+
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
+
+  DEFVAR_LISP ("ns-scroll-event-delta-factor", Vns_scroll_event_delta_factor,
+	       doc: /* A factor to apply to pixel deltas reported in scroll events.
+ This is only effective for pixel deltas generated from touch pads or
+ mice with smooth scrolling capability.  */);
+  Vns_scroll_event_delta_factor = make_float (1.0);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);

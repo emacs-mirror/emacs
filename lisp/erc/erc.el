@@ -1,6 +1,6 @@
 ;;; erc.el --- An Emacs Internet Relay Chat client  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
@@ -1479,6 +1479,7 @@ Defaults to the server buffer."
 
 (define-derived-mode erc-mode fundamental-mode "ERC"
   "Major mode for Emacs IRC."
+  :interactive nil
   (setq local-abbrev-table erc-mode-abbrev-table)
   (setq-local next-line-add-newlines nil)
   (setq line-move-ignore-invisible t)
@@ -2404,7 +2405,8 @@ If ARG is non-nil, show the *erc-protocol* buffer."
                      (concat "This buffer displays all IRC protocol "
                              "traffic exchanged with servers."))
                     (erc-make-notice "Kill it to disable logging.")
-                    (erc-make-notice "Press `t' to toggle."))))
+                    (erc-make-notice (substitute-command-keys
+                                      "Press \\`t' to toggle.")))))
           (insert (string-join msg "\r\n")))
         (use-local-map (make-sparse-keymap))
         (local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))
@@ -3606,11 +3608,13 @@ other people should be displayed."
 
 (defun erc-cmd-QUERY (&optional user)
   "Open a query with USER.
-The type of query window/frame/etc will depend on the value of
-`erc-query-display'.
-
-If USER is omitted, close the current query buffer if one exists
-- except this is broken now ;-)"
+How the query is displayed (in a new window, frame, etc.) depends
+on the value of `erc-query-display'."
+  ;; FIXME: The doc string used to say at the end:
+  ;; "If USER is omitted, close the current query buffer if one exists
+  ;; - except this is broken now ;-)"
+  ;; Does it make sense to have that functionality?  What's wrong with
+  ;; `kill-buffer'?  If it makes sense, re-add it.  -- SK @ 2021-11-11
   (interactive
    (list (read-string "Start a query with: ")))
   (let ((session-buffer (erc-server-buffer))

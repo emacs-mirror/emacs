@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1749,7 +1749,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'after
 		  match-func 'string<
 		  match (gnus-time-iso8601
-			 (time-subtract (current-time)
+			 (time-subtract nil
 					(* 86400 (nth 0 kill))))))
 	   ((eq type 'before)
 	    (setq match-func 'gnus-string>
@@ -1758,7 +1758,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (setq type 'before
 		  match-func 'gnus-string>
 		  match (gnus-time-iso8601
-			 (time-subtract (current-time)
+			 (time-subtract nil
 					(* 86400 (nth 0 kill))))))
 	   ((eq type 'at)
 	    (setq match-func 'string=
@@ -2562,16 +2562,17 @@ score in `gnus-newsgroup-scored' by SCORE."
 			       (or (caddr s)
 				   gnus-score-interactive-default-score))
 			     trace))))
-	(insert
-	 "\n\nQuick help:
+        (insert
+         (substitute-command-keys
+          "\n\nQuick help:
 
-Type `e' to edit score file corresponding to the score rule on current line,
-`f' to format (pretty print) the score file and edit it,
-`t' toggle to truncate long lines in this buffer,
-`q' to quit, `k' to kill score trace buffer.
+Type \\`e' to edit score file corresponding to the score rule on current line,
+\\`f' to format (pretty print) the score file and edit it,
+\\`t' toggle to truncate long lines in this buffer,
+\\`q' to quit, \\`k' to kill score trace buffer.
 
 The first sexp on each line is the score rule, followed by the file name of
-the score file and its full name, including the directory.")
+the score file and its full name, including the directory."))
 	(goto-char (point-min))
 	(gnus-configure-windows 'score-trace)))
     (set-buffer gnus-summary-buffer)

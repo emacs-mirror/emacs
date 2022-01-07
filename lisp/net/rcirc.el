@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -262,6 +262,7 @@ The ARGUMENTS for each METHOD symbol are:
   `bitlbee': NICK PASSWORD
   `quakenet': ACCOUNT PASSWORD
   `sasl': NICK PASSWORD
+  `certfp': KEY CERT
 
 Examples:
  ((\"Libera.Chat\" nickserv \"bob\" \"p455w0rd\")
@@ -291,7 +292,11 @@ Examples:
                                     (list :tag "SASL"
                                           (const sasl)
                                           (string :tag "Nick")
-                                          (string :tag "Password")))))
+                                          (string :tag "Password"))
+                                    (list :tag "CertFP"
+                                          (const certfp)
+                                          (string :tag "Key")
+                                          (string :tag "Certificate")))))
 
 (defcustom rcirc-auto-authenticate-flag t
   "Non-nil means automatically send authentication string to server.
@@ -547,6 +552,9 @@ If ARG is non-nil, instead prompt for connection parameters."
               (password (plist-get (cdr c) :password))
               (encryption (plist-get (cdr c) :encryption))
               (server-alias (plist-get (cdr c) :server-alias))
+              (client-cert (when (eq (rcirc-get-server-method (car c))
+                                     'certfp)
+                             (rcirc-get-server-cert (car c))))
               contact)
           (when-let (((not password))
                      (auth (auth-source-search :host server
@@ -563,7 +571,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 		  (condition-case nil
 		      (let ((process (rcirc-connect server port nick user-name
                                                     full-name channels password encryption
-                                                    server-alias)))
+                                                    client-cert server-alias)))
                         (when rcirc-display-server-buffer
                           (pop-to-buffer-same-window (process-buffer process))))
 		    (quit (message "Quit connecting to %s"
@@ -646,29 +654,23 @@ See `rcirc-connect' for more details on these variables.")
 
 (defun rcirc-get-server-method (server)
   "Return authentication method for SERVER."
-  (catch 'method
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (method (cadr i)))
-	(when (string-match server-i server)
-          (throw 'method method))))))
+  (cadr (assoc server rcirc-authinfo #'string-match)))
 
 (defun rcirc-get-server-password (server)
   "Return password for SERVER."
-  (catch 'pass
-    (dolist (i rcirc-authinfo)
-      (let ((server-i (car i))
-	    (args (cdddr i)))
-	(when (string-match server-i server)
-          (throw 'pass (car args)))))))
+  (cadddr (assoc server rcirc-authinfo #'string-match)))
+
+(defun rcirc-get-server-cert (server)
+  "Return a list of key and certificate for SERVER."
+  (cddr (assoc server rcirc-authinfo #'string-match)))
 
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
                              full-name startup-channels password encryption
-                             server-alias)
+                             certfp server-alias)
   "Connect to SERVER.
 The arguments PORT, NICK, USER-NAME, FULL-NAME, PASSWORD,
-ENCRYPTION, SERVER-ALIAS are interpreted as in
+ENCRYPTION, CERTFP, SERVER-ALIAS are interpreted as in
 `rcirc-server-alist'.  STARTUP-CHANNELS is a list of channels
 that are joined after authentication."
   (save-excursion
@@ -695,6 +697,7 @@ that are joined after authentication."
       (setq process (open-network-stream
                      (or server-alias server) nil server port-number
                      :type (or encryption 'plain)
+                     :client-certificate certfp
                      :nowait t))
       (set-process-coding-system process 'raw-text 'raw-text)
       (with-current-buffer (get-buffer-create (rcirc-generate-new-buffer-name process nil))
@@ -713,8 +716,8 @@ that are joined after authentication."
         (setq rcirc-nick-table (make-hash-table :test 'equal))
         (setq rcirc-nick nick)
         (setq rcirc-startup-channels startup-channels)
-        (setq rcirc-last-server-message-time (current-time))
         (setq rcirc-last-connect-time (current-time))
+	(setq rcirc-last-server-message-time rcirc-last-connect-time)
 
         ;; Check if the immediate process state
         (sit-for .1)
@@ -2044,6 +2047,13 @@ connection."
         (run-hook-with-args 'rcirc-print-functions
                             process sender response target text)))))
 
+(defun rcirc-when ()
+  "Show the time of reception of the message at point."
+  (interactive)
+  (if-let (time (get-text-property (point) 'rcirc-time))
+      (message (format-time-string "%c" time))
+    (message "No time information at point.")))
+
 (defun rcirc-generate-log-filename (process target)
   "Return filename for log file based on PROCESS and TARGET."
   (if target
@@ -2583,7 +2593,7 @@ that, an interactive form can specified."
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
 		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive ,interactive-spec)
+         (interactive (list ,interactive-spec))
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))

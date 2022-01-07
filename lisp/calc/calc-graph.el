@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -969,7 +969,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (define-key calc-dumb-map "\C-c\C-c" 'exit-recursive-edit)))
     (use-local-map calc-dumb-map)
     (setq truncate-lines t)
-    (message "Type `q' or `C-c C-c' to return to Calc")
+    (message (substitute-command-keys
+              "Type \\`q' or \\`C-c C-c' to return to Calc"))
     (recursive-edit)
     (bury-buffer "*Gnuplot Trail*")))
 

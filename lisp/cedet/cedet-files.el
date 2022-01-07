@@ -1,6 +1,6 @@
 ;;; cedet-files.el --- Common routines dealing with file names.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet

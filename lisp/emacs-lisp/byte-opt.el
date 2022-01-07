@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -342,8 +342,12 @@ for speeding up processing.")
       (numberp expr)
       (stringp expr)
       (and (consp expr)
-           (memq (car expr) '(quote function))
-           (symbolp (cadr expr)))
+           (or (and (memq (car expr) '(quote function))
+                    (symbolp (cadr expr)))
+               ;; (internal-get-closed-var N) can be considered constant for
+               ;; const-prop purposes.
+               (and (eq (car expr) 'internal-get-closed-var)
+                    (integerp (cadr expr)))))
       (keywordp expr)))
 
 (defmacro byte-optimize--pcase (exp &rest cases)
@@ -1186,72 +1190,6 @@ See Info node `(elisp) Integer Basics'."
 
 (put 'concat 'byte-optimizer #'byte-optimize-concat)
 
-(defun byte-optimize-define-key (form)
-  "Expand key bindings in FORM."
-  (let ((key (nth 2 form)))
-    (if (and (vectorp key)
-             (= (length key) 1)
-             (stringp (aref key 0)))
-        ;; We have key on the form ["C-c C-c"].
-        (if (not (kbd-valid-p (aref key 0)))
-            (error "Invalid `kbd' syntax: %S" key)
-          (list (nth 0 form) (nth 1 form)
-                (kbd (aref key 0)) (nth 4 form)))
-      ;; No improvement.
-      form)))
-
-(put 'define-key 'byte-optimizer #'byte-optimize-define-key)
-
-(defun byte-optimize-define-keymap (form)
-  "Expand key bindings in FORM."
-  (let ((result nil)
-        (orig-form form)
-        improved)
-    (push (pop form) result)
-    (while (and form
-                (keywordp (car form))
-                (not (eq (car form) :menu)))
-      (unless (memq (car form)
-                    '(:full :keymap :parent :suppress :name :prefix))
-        (error "Invalid keyword: %s" (car form)))
-      (push (pop form) result)
-      (when (null form)
-        (error "Uneven number of keywords in %S" form))
-      (push (pop form) result))
-    ;; Bindings.
-    (while form
-      (let ((key (pop form)))
-        (if (and (vectorp key)
-                 (= (length key) 1)
-                 (stringp (aref key 0)))
-            (progn
-              (unless (kbd-valid-p (aref key 0))
-                (error "Invalid `kbd' syntax: %S" key))
-              (push (kbd (aref key 0)) result)
-              (setq improved t))
-          ;; No improvement.
-          (push key result)))
-      (when (null form)
-        (error "Uneven number of key bindings in %S" form))
-      (push (pop form) result))
-    (if improved
-        (nreverse result)
-      orig-form)))
-
-(defun byte-optimize-define-keymap--define (form)
-  "Expand key bindings in FORM."
-  (if (not (consp (nth 1 form)))
-      form
-    (let ((optimized (byte-optimize-define-keymap (nth 1 form))))
-      (if (eq optimized (nth 1 form))
-          ;; No improvement.
-          form
-        (list (car form) optimized)))))
-
-(put 'define-keymap 'byte-optimizer #'byte-optimize-define-keymap)
-(put 'define-keymap--define 'byte-optimizer
-     #'byte-optimize-define-keymap--define)
-
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
 ;; I think this may some times be necessary to reduce ie (quote 5) to 5,
@@ -1526,6 +1464,7 @@ See Info node `(elisp) Integer Basics'."
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
 	 assq
+         base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-count-consecutive bool-vector-count-population
          bool-vector-subsetp
 	 boundp buffer-file-name buffer-local-variables buffer-modified-p
@@ -1682,6 +1621,7 @@ See Info node `(elisp) Integer Basics'."
          assq rassq rassoc
          plist-get lax-plist-get plist-member
          aref elt
+         base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-subsetp
          bool-vector-count-population bool-vector-count-consecutive
          )))

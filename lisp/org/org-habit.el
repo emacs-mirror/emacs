@@ -1,6 +1,6 @@
 ;;; org-habit.el --- The habit tracking code for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -428,7 +428,8 @@ current time."
     (save-excursion
       (goto-char (if line (point-at-bol) (point-min)))
       (while (not (eobp))
-	(let ((habit (get-text-property (point) 'org-habit-p)))
+	(let ((habit (get-text-property (point) 'org-habit-p))
+              (invisible-prop (get-text-property (point) 'invisible)))
 	  (when habit
 	    (move-to-column org-habit-graph-column t)
 	    (delete-char (min (+ 1 org-habit-preceding-days
@@ -439,7 +440,12 @@ current time."
 	      habit
 	      (time-subtract moment (days-to-time org-habit-preceding-days))
 	      moment
-	      (time-add moment (days-to-time org-habit-following-days))))))
+	      (time-add moment (days-to-time org-habit-following-days))))
+            ;; Inherit invisible state of hidden entries.
+            (when invisible-prop
+              (put-text-property
+               (- (point) org-habit-graph-column) (point)
+               'invisible invisible-prop))))
 	(forward-line)))))
 
 (defun org-habit-toggle-habits ()

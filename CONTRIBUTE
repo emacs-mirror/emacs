@@ -58,7 +58,7 @@ format and whitespace are not munged in transit by the various mail
 agents.  To send just one such patch without additional remarks, it is
 also possible to use a command like
 
-  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
 
 However, we prefer the 'git format-patch' method with attachment, as
 doing so delivers patches in the correct and easily-recognizable format
@@ -185,20 +185,26 @@ ChangeLog file, where they can be corrected.  It saves time to get
 them right the first time, so here are guidelines for formatting them:
 
 - Start with a single unindented summary line explaining the change;
-  do not end this line with a period.  If that line starts with a
-  semicolon and a space "; ", the commit message will be ignored when
-  generating the ChangeLog file.  Use this for minor commits that do
-  not need separate ChangeLog entries, such as changes in etc/NEWS.
+  do not end this line with a period.  If possible, try to keep the
+  summary line to 50 characters or fewer; this is for compatibility
+  with certain Git commands that print that line in width-constrained
+  contexts.
 
-- After the summary line, there should be an empty line, then
-  unindented ChangeLog entries.
+  If the summary line starts with a semicolon and a space "; ", the
+  commit message will be ignored when generating the ChangeLog file.
+  Use this for minor commits that do not need separate ChangeLog
+  entries, such as changes in etc/NEWS.
+
+- After the summary line, there should be an empty line.
+
+- Unindented ChangeLog entries normally come next.  However, if the
+  commit couldn't be properly summarized in the brief summary line,
+  you can put a paragraph (after the empty line and before the
+  individual ChangeLog entries) that further describes the commit.
 
 - Limit lines in commit messages to 78 characters, unless they consist
   of a single word of at most 140 characters; this is enforced by a
-  commit hook.  It's nicer to limit the summary line to 50 characters;
-  this isn't enforced.  If the change can't be summarized so briefly,
-  add a paragraph after the empty line and before the individual file
-  descriptions.
+  commit hook.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
@@ -342,7 +348,9 @@ Documentation fixes (in doc strings, in manuals, in NEWS, and in
 comments) should always go to the release branch, if the documentation
 to be fixed exists and is relevant to the release-branch codebase.
 Doc fixes are always considered "safe" -- even when a release branch
-is in feature freeze, it can still receive doc fixes.
+is in feature freeze, it can still receive doc fixes.  However, this
+rule is limited to fixing real problems in the documentation; cleanups
+and stylistic changes are excluded.
 
 When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can

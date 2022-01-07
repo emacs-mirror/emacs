@@ -1,6 +1,6 @@
 ;;; cl-tests.el --- tests for emacs-lisp/cl.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -25,12 +25,11 @@
   (require 'cl))
 (require 'ert)
 
-
-
 (ert-deftest labels-function-quoting ()
   "Test that #'foo does the right thing in `labels'." ; Bug#31792.
-  (should (eq (funcall (labels ((foo () t))
-                         #'foo))
-              t)))
+  (with-suppressed-warnings ((obsolete labels))
+    (should (eq (funcall (labels ((foo () t))
+                                 #'foo))
+                t))))
 
 ;;; cl-tests.el ends here

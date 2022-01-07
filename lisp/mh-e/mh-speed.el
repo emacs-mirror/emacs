@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -86,7 +86,7 @@
 (define-keymap :keymap mh-folder-speedbar-key-map
   "+"           #'mh-speed-expand-folder
   "-"           #'mh-speed-contract-folder
-  "\r"          #'mh-speed-view
+  "RET"         #'mh-speed-view
   "r"           #'mh-speed-refresh)
 
 (defvar mh-show-speedbar-key-map mh-folder-speedbar-key-map)
@@ -535,8 +535,8 @@ be handled next."
           (insert-char char 1 t)
           (put-text-property (point) (1- (point)) 'invisible nil)
           ;; make sure we fix the image on the text here.
-          (mh-funcall-if-exists
-           speedbar-insert-image-button-maybe (- (point) 2) 3)))))
+          (when (fboundp 'speedbar-insert-image-button-maybe)
+            (speedbar-insert-image-button-maybe (- (point) 2) 3))))))
 
 ;;;###mh-autoload
 (defun mh-speed-add-folder (folder)

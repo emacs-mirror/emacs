@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -32,7 +32,7 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'lisp-mnt)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defvar generated-autoload-file nil
   "File into which to write autoload definitions.
@@ -393,6 +393,8 @@ FILE's name."
     (concat ";;; " basename
             " --- automatically extracted " (or type "autoloads")
             "  -*- lexical-binding: t -*-\n"
+            (when (string-match "/lisp/loaddefs\\.el\\'" file)
+              ";; This file will be copied to ldefs-boot.el and checked in periodically.\n")
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    (if lp
@@ -1194,9 +1196,17 @@ directory or directories specified."
 	  (goto-char (point-max))
 	  (search-backward "\f" nil t)
 	  (autoload-insert-section-header
-	   (current-buffer) nil nil no-autoloads (if autoload-timestamps
-						     no-autoloads-time
-						   autoload--non-timestamp))
+	   (current-buffer) nil nil
+           ;; Filter out the other loaddefs files, because it makes
+           ;; the list unstable (and leads to spurious changes in
+           ;; ldefs-boot.el) since the loaddef files can be created in
+           ;; any order.
+           (seq-filter (lambda (file)
+                         (not (string-match-p "[/-]loaddefs.el" file)))
+                       no-autoloads)
+           (if autoload-timestamps
+	       no-autoloads-time
+	     autoload--non-timestamp))
 	  (insert generate-autoload-section-trailer)))
 
       ;; Don't modify the file if its content has not been changed, so `make'

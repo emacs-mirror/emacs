@@ -1,6 +1,6 @@
 ;;; tab-bar.el --- frame-local tabs with named persistent window configurations -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: frames tabs
@@ -91,9 +91,10 @@
 (defcustom tab-bar-select-tab-modifiers '()
   "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
-`alt'.  Pressing one of the modifiers in the list and a digit selects
-the tab whose number equals the digit.  Negative numbers count from
-the end of the tab bar.  The digit 9 selects the last (rightmost) tab.
+`alt'.  Pressing one of the modifiers in the list and a digit selects the
+tab whose number equals the digit (see `tab-bar-select-tab').
+The digit 9 selects the last (rightmost) tab (see `tab-last').
+The digit 0 selects the most recently visited tab (see `tab-recent').
 For easier selection of tabs by their numbers, consider customizing
 `tab-bar-tab-hints', which will show tab numbers alongside the tab name."
   :type '(set :tag "Tab selection modifier keys"
@@ -283,7 +284,8 @@ existing tab."
     (setq tab-bar--dragging-in-progress t)
     ;; Don't close the tab when clicked on the close button.  Also
     ;; don't add new tab on down-mouse.  Let `tab-bar-mouse-1' do this.
-    (unless (or (eq (car item) 'add-tab) (nth 2 item))
+    (unless (or (memq (car item) '(add-tab history-back history-forward))
+                (nth 2 item))
       (if (functionp (nth 1 item))
           (call-interactively (nth 1 item))
         (unless (eq tab-number t)
@@ -297,7 +299,8 @@ regardless of where you click on it.  Also add a new tab."
   (let* ((item (tab-bar--event-to-item (event-start event)))
          (tab-number (tab-bar--key-to-number (nth 0 item))))
     (cond
-     ((and (eq (car item) 'add-tab) (functionp (nth 1 item)))
+     ((and (memq (car item) '(add-tab history-back history-forward))
+           (functionp (nth 1 item)))
       (call-interactively (nth 1 item)))
      ((and (nth 2 item) (not (eq tab-number t)))
       (tab-bar-close-tab tab-number)))))
@@ -979,10 +982,11 @@ on the tab bar instead."
       (wc-point . ,(point-marker))
       (wc-bl . ,bl)
       (wc-bbl . ,bbl)
-      (wc-history-back . ,(gethash (or frame (selected-frame))
-                                   tab-bar-history-back))
-      (wc-history-forward . ,(gethash (or frame (selected-frame))
-                                      tab-bar-history-forward))
+      ,@(when tab-bar-history-mode
+          `((wc-history-back . ,(gethash (or frame (selected-frame))
+                                         tab-bar-history-back))
+            (wc-history-forward . ,(gethash (or frame (selected-frame))
+                                            tab-bar-history-forward))))
       ;; Copy other possible parameters
       ,@(mapcan (lambda (param)
                   (unless (memq (car param)
@@ -1060,11 +1064,14 @@ inherits the current tab's `explicit-name' parameter."
 
 (defun tab-bar-select-tab (&optional tab-number)
   "Switch to the tab by its absolute position TAB-NUMBER in the tab bar.
-When this command is bound to a numeric key (with a prefix or modifier key
+When this command is bound to a numeric key (with a key prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-TAB-NUMBER counts from 1.  Negative TAB-NUMBER counts tabs from the end of
-the tab bar."
+Also the prefix argument TAB-NUMBER can be used to override
+the numeric key, so it takes precedence over the bound digit key.
+For example, `<MODIFIER>-2' will select the second tab, but `C-u 15
+<MODIFIER>-2' will select the 15th tab.  TAB-NUMBER counts from 1.
+Negative TAB-NUMBER counts tabs from the end of the tab bar."
   (interactive "P")
   (unless (integerp tab-number)
     (let ((key (event-basic-type last-command-event)))
@@ -1092,7 +1099,11 @@ the tab bar."
         ;; its value of window-configuration is unreadable,
         ;; so restore its saved window-state.
         (cond
-         ((window-configuration-p wc)
+         ((and (window-configuration-p wc)
+               ;; Check for such cases as cloning a frame with tabs.
+               ;; When tabs were cloned to another frame, then fall back
+               ;; to using `window-state-put' below.
+               (eq (window-configuration-frame wc) (selected-frame)))
           (let ((wc-point (alist-get 'wc-point to-tab))
                 (wc-bl  (seq-filter #'buffer-live-p (alist-get 'wc-bl to-tab)))
                 (wc-bbl (seq-filter #'buffer-live-p (alist-get 'wc-bbl to-tab)))
@@ -1116,19 +1127,21 @@ the tab bar."
             (when wc-bl  (set-frame-parameter nil 'buffer-list wc-bl))
             (when wc-bbl (set-frame-parameter nil 'buried-buffer-list wc-bbl))
 
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-back)))
-                          wc-history-back)
-                     tab-bar-history-back)
-            (puthash (selected-frame)
-                     (and (window-configuration-p (alist-get 'wc (car wc-history-forward)))
-                          wc-history-forward)
-                     tab-bar-history-forward)))
+            (when tab-bar-history-mode
+              (puthash (selected-frame)
+                       (and (window-configuration-p (alist-get 'wc (car wc-history-back)))
+                            wc-history-back)
+                       tab-bar-history-back)
+              (puthash (selected-frame)
+                       (and (window-configuration-p (alist-get 'wc (car wc-history-forward)))
+                            wc-history-forward)
+                       tab-bar-history-forward))))
 
          (ws
           (window-state-put ws nil 'safe)))
 
-        (setq tab-bar-history-omit t)
+        (when tab-bar-history-mode
+          (setq tab-bar-history-omit t))
 
         (when from-index
           (setf (nth from-index tabs) from-tab))
@@ -1161,10 +1174,11 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 (defun tab-bar-switch-to-last-tab (&optional arg)
   "Switch to the last tab or ARGth tab from the end of the tab bar.
 Interactively, ARG is the prefix numeric argument; it defaults to 1,
-which means the last tab on the tab bar."
+which means the last tab on the tab bar.  For example, `C-u 2
+<MODIFIER>-9' selects the tab before the last tab."
   (interactive "p")
   (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
-                         (1- (or arg 1)))))
+                         (1- (abs (or arg 1))))))
 
 (defun tab-bar-switch-to-recent-tab (&optional arg)
   "Switch to ARGth most recently visited tab.
@@ -1182,7 +1196,9 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 Default values are tab names sorted by recency, so you can use \
 \\<minibuffer-local-map>\\[next-history-element]
 to get the name of the most recently visited tab, the second
-most recent, and so on."
+most recent, and so on.
+When the tab with that NAME doesn't exist, create a new tab
+and rename it to NAME."
   (interactive
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
@@ -1190,7 +1206,11 @@ most recent, and so on."
      (list (completing-read (format-prompt "Switch to tab by name"
                                            (car recent-tabs))
                             recent-tabs nil nil nil nil recent-tabs))))
-  (tab-bar-select-tab (1+ (or (tab-bar--tab-index-by-name name) 0))))
+  (let ((tab-index (tab-bar--tab-index-by-name name)))
+    (if tab-index
+        (tab-bar-select-tab (1+ tab-index))
+      (tab-bar-new-tab)
+      (tab-bar-rename-tab name))))
 
 (defalias 'tab-bar-select-tab-by-name 'tab-bar-switch-to-tab)
 
@@ -1377,6 +1397,11 @@ After the tab is created, the hooks in
         ;; `pushnew' handles the head of tabs but not frame-parameter
         (tab-bar-tabs-set tabs))
 
+      (when tab-bar-history-mode
+        (puthash (selected-frame) nil tab-bar-history-back)
+        (puthash (selected-frame) nil tab-bar-history-forward)
+        (setq tab-bar-history-omit t))
+
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
 
@@ -1561,18 +1586,17 @@ happens interactively)."
   (let* ((tabs (funcall tab-bar-tabs-function))
          (current-index (tab-bar--current-tab-index tabs))
          (keep-index (if (integerp tab-number)
-                         (1- (max 0 (min tab-number (length tabs))))
+                         (1- (max 1 (min tab-number (length tabs))))
                        current-index))
-         (keep-tab (nth keep-index tabs))
          (index 0))
 
-    (when keep-tab
+    (when (nth keep-index tabs)
       (unless (eq keep-index current-index)
         (tab-bar-select-tab (1+ keep-index))
         (setq tabs (funcall tab-bar-tabs-function)))
 
       (dolist (tab tabs)
-        (unless (or (eq tab keep-tab)
+        (unless (or (eq index keep-index)
                     (run-hook-with-args-until-success
                      'tab-bar-tab-prevent-close-functions tab
                      ;; `last-tab-p' logically can't ever be true
@@ -1793,30 +1817,34 @@ Interactively, prompt for GROUP-NAME."
 (defvar tab-bar-history-old nil
   "Window configuration before the current command.")
 
-(defvar tab-bar-history-old-minibuffer-depth 0
-  "Minibuffer depth before the current command.")
+(defvar tab-bar-history-pre-command nil
+  "Command set to `this-command' by `pre-command-hook'.")
+
+(defvar tab-bar-history-done-command nil
+  "Command handled by `window-configuration-change-hook'.")
 
 (defun tab-bar--history-pre-change ()
-  (setq tab-bar-history-old-minibuffer-depth (minibuffer-depth))
-  ;; Store window-configuration before possibly entering the minibuffer.
-  (when (zerop tab-bar-history-old-minibuffer-depth)
+  ;; Reset before the command could set it
+  (setq tab-bar-history-omit nil)
+  (setq tab-bar-history-pre-command this-command)
+  (when (zerop (minibuffer-depth))
     (setq tab-bar-history-old
           `((wc . ,(current-window-configuration))
             (wc-point . ,(point-marker))))))
 
 (defun tab-bar--history-change ()
-  (when (and (not tab-bar-history-omit)
-             tab-bar-history-old
-             ;; Store window-configuration before possibly entering
-             ;; the minibuffer.
-             (zerop tab-bar-history-old-minibuffer-depth))
+  (when (and (not tab-bar-history-omit) tab-bar-history-old
+             ;; Don't register changes performed by the same command
+             ;; repeated in sequence, such as incremental window resizing.
+             (not (eq tab-bar-history-done-command tab-bar-history-pre-command))
+             (zerop (minibuffer-depth)))
     (puthash (selected-frame)
              (seq-take (cons tab-bar-history-old
                              (gethash (selected-frame) tab-bar-history-back))
                        tab-bar-history-limit)
-             tab-bar-history-back))
-  (when tab-bar-history-omit
-    (setq tab-bar-history-omit nil)))
+             tab-bar-history-back)
+    (setq tab-bar-history-old nil))
+  (setq tab-bar-history-done-command tab-bar-history-pre-command))
 
 (defun tab-bar-history-back ()
   "Restore a previous window configuration used in the current tab.
@@ -1855,6 +1883,10 @@ This navigates forward in the history of window configurations."
           (when (and (markerp wc-point) (marker-buffer wc-point))
             (goto-char wc-point)))
       (message "No more tab forward history"))))
+
+(defvar-keymap tab-bar-history-mode-map
+  "C-c <left>"  #'tab-bar-history-back
+  "C-c <right>" #'tab-bar-history-forward)
 
 (define-minor-mode tab-bar-history-mode
   "Toggle tab history mode for the tab bar.

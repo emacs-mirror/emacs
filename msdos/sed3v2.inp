@@ -2,7 +2,7 @@
 # Configuration script for lib-src/makefile under DJGPP v2
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996, 1998, 2000-2021 Free Software Foundation, Inc.
+# Copyright (C) 1996, 1998, 2000-2022 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -34,6 +34,7 @@
 /^LIBS_SYSTEM *=/s/@[^@\n]*@//g
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
+/^LIB_GETRANDOM *=/s/@[^@\n]*@//g
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^CPPFLAGS *=/s/@CPPFLAGS@//
 /^LDFLAGS *=/s/@LDFLAGS@//

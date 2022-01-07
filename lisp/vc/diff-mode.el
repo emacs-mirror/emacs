@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -169,49 +169,49 @@ and hunk-based syntax highlighting otherwise as a fallback."
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
   "P" #'diff-file-prev
-  ["TAB"] #'diff-hunk-next
-  [backtab] #'diff-hunk-prev
+  "TAB" #'diff-hunk-next
+  "<backtab>" #'diff-hunk-prev
   "k" #'diff-hunk-kill
   "K" #'diff-file-kill
   "}" #'diff-file-next                  ; From compilation-minor-mode.
   "{" #'diff-file-prev
-  ["RET"] #'diff-goto-source
-  [mouse-2] #'diff-goto-source
+  "RET" #'diff-goto-source
+  "<mouse-2>" #'diff-goto-source
   "W" #'widen
   "o" #'diff-goto-source                ; other-window
   "A" #'diff-ediff-patch
   "r" #'diff-restrict-view
   "R" #'diff-reverse-direction
-  [remap undo] #'diff-undo)
+  "<remap> <undo>" #'diff-undo)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
-  ["ESC"] (let ((map (define-keymap :parent diff-mode-shared-map)))
-            ;; We want to inherit most bindings from
-            ;; `diff-mode-shared-map', but not all since they may hide
-            ;; useful `M-<foo>' global bindings when editing.
-            (dolist (key '("A" "r" "R" "g" "q" "W" "z"))
-              (define-key map key nil))
-            map)
+  "ESC" (let ((map (define-keymap :parent diff-mode-shared-map)))
+          ;; We want to inherit most bindings from
+          ;; `diff-mode-shared-map', but not all since they may hide
+          ;; useful `M-<foo>' global bindings when editing.
+          (dolist (key '("A" "r" "R" "g" "q" "W" "z"))
+            (keymap-set map key nil))
+          map)
   ;; From compilation-minor-mode.
-  ["C-c C-c"] #'diff-goto-source
+  "C-c C-c" #'diff-goto-source
   ;; By analogy with the global C-x 4 a binding.
-  ["C-x 4 A"] #'diff-add-change-log-entries-other-window
+  "C-x 4 A" #'diff-add-change-log-entries-other-window
   ;; Misc operations.
-  ["C-c C-a"] #'diff-apply-hunk
-  ["C-c C-e"] #'diff-ediff-patch
-  ["C-c C-n"] #'diff-restrict-view
-  ["C-c C-s"] #'diff-split-hunk
-  ["C-c C-t"] #'diff-test-hunk
-  ["C-c C-r"] #'diff-reverse-direction
-  ["C-c C-u"] #'diff-context->unified
+  "C-c C-a" #'diff-apply-hunk
+  "C-c C-e" #'diff-ediff-patch
+  "C-c C-n" #'diff-restrict-view
+  "C-c C-s" #'diff-split-hunk
+  "C-c C-t" #'diff-test-hunk
+  "C-c C-r" #'diff-reverse-direction
+  "C-c C-u" #'diff-context->unified
   ;; `d' because it duplicates the context :-(  --Stef
-  ["C-c C-d"] #'diff-unified->context
-  ["C-c C-w"] #'diff-ignore-whitespace-hunk
+  "C-c C-d" #'diff-unified->context
+  "C-c C-w" #'diff-ignore-whitespace-hunk
   ;; `l' because it "refreshes" the hunk like C-l refreshes the screen
-  ["C-c C-l"] #'diff-refresh-hunk
-  ["C-c C-b"] #'diff-refine-hunk        ;No reason for `b' :-(
-  ["C-c C-f"] #'next-error-follow-minor-mode)
+  "C-c C-l" #'diff-refresh-hunk
+  "C-c C-b" #'diff-refine-hunk        ;No reason for `b' :-(
+  "C-c C-f" #'next-error-follow-minor-mode)
 
 (easy-menu-define diff-mode-menu diff-mode-map
   "Menu for `diff-mode'."
@@ -266,11 +266,12 @@ and hunk-based syntax highlighting otherwise as a fallback."
 
 (defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
-  :type '(choice (string "\e") (string "C-c=") string))
+  :type '(choice (string "ESC")
+                 (string "\C-c=") string))
 
 (defvar-keymap diff-minor-mode-map
   :doc "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'."
-  diff-minor-mode-prefix diff-mode-shared-map)
+  (key-description diff-minor-mode-prefix) diff-mode-shared-map)
 
 (define-minor-mode diff-auto-refine-mode
   "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).
@@ -2611,19 +2612,17 @@ fixed, visit it in a buffer."
                          "\\(?:index.*\n\\)?"
                          "--- \\(?:" null-device "\\|a/\\(.*\\)\\)\n"
                          "\\+\\+\\+ \\(?:" null-device "\\|b/\\(.*\\)\\)\n"))))
-        (put-text-property (match-beginning 0)
-                           (or (match-beginning 2) (match-beginning 1))
-                           'display (propertize
-                                     (cond
-                                      ((null (match-beginning 1))
-                                       (concat "new file  " (match-string 2)))
-                                      ((null (match-beginning 2))
-                                       (concat "deleted   " (match-string 1)))
-                                      (t
-                                       (concat "modified  " (match-string 1))))
-                                     'face '(diff-file-header diff-header)))
-        (put-text-property (match-end 1) (1- (match-end 0))
-                           'display ""))))
+        (put-text-property (match-beginning 0) (1- (match-end 0))
+                           'display
+                           (propertize
+                            (cond
+                             ((null (match-string 1))
+                              (concat "new file  " (match-string 2)))
+                             ((null (match-string 2))
+                              (concat "deleted  " (match-string 1)))
+                             (t
+                              (concat "modified  " (match-string 1))))
+                            'face '(diff-file-header diff-header))))))
   nil)
 
 ;;; Syntax highlighting from font-lock

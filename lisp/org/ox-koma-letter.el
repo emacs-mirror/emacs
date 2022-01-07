@@ -1,6 +1,6 @@
 ;;; ox-koma-letter.el --- KOMA Scrlttr2 Back-End for Org Export Engine  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou AT gmail DOT com>
 ;;         Alan Schmitt <alan.schmitt AT polytechnique DOT org>
@@ -982,7 +982,7 @@ Return PDF file's name."
         (org-koma-letter-special-contents))
     (org-export-to-file 'koma-letter file
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-latex-compile file)))))
+      #'org-latex-compile)))
 
 
 (provide 'ox-koma-letter)

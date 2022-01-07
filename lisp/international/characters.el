@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1493,6 +1493,9 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (aset char-acronym-table #x202D "LRO")	   ; LEFT-TO-RIGHT OVERRIDE
 (aset char-acronym-table #x202E "RLO")	   ; RIGHT-TO-LEFT OVERRIDE
 (aset char-acronym-table #x2060 "WJ")	   ; WORD JOINER
+(aset char-acronym-table #x2066 "LRI")	   ; LEFT-TO-RIGHT ISOLATE
+(aset char-acronym-table #x2067 "RLI")	   ; RIGHT-TO-LEFT ISOLATE
+(aset char-acronym-table #x2069 "PDI")	   ; POP DIRECTIONAL ISOLATE
 (aset char-acronym-table #x206A "ISS")	   ; INHIBIT SYMMETRIC SWAPPING
 (aset char-acronym-table #x206B "ASS")	   ; ACTIVATE SYMMETRIC SWAPPING
 (aset char-acronym-table #x206C "IAFS")    ; INHIBIT ARABIC FORM SHAPING
@@ -1517,18 +1520,32 @@ Setup `char-width-table' appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
+;; We can't use the \N{name} things here, because this file is used
+;; too early in the build process.
+(defvar glyphless--bidi-control-characters
+  '(#x202a			     ; ?\N{left-to-right embedding}
+    #x202b			     ; ?\N{right-to-left embedding}
+    #x202d			     ; ?\N{left-to-right override}
+    #x202e			     ; ?\N{right-to-left override}
+    #x2066			     ; ?\N{left-to-right isolate}
+    #x2067			     ; ?\N{right-to-left isolate}
+    #x2068			     ; ?\N{first strong isolate}
+    #x202c			     ; ?\N{pop directional formatting}
+    #x2069))                         ; ?\N{pop directional isolate})
+
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
 This function updates the char-table `glyphless-char-display',
 and is intended to be used in the `:set' attribute of the
 option `glyphless-char-display'."
-  (when value
+  (when variable
     (set-default variable value))
   (dolist (elt value)
     (let ((target (car elt))
 	  (method (cdr elt)))
-      (or (memq method '(zero-width thin-space empty-box acronym hex-code))
-	  (error "Invalid glyphless character display method: %s" method))
+      (unless (memq method '( zero-width thin-space empty-box
+                              acronym hex-code bidi-control))
+	(error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
 	     (glyphless-set-char-table-range glyphless-char-display
 					     #x00 #x1F method)
@@ -1543,24 +1560,29 @@ option `glyphless-char-display'."
 	    ((eq target 'variation-selectors)
 	     (glyphless-set-char-table-range glyphless-char-display
 					     #xFE00 #xFE0F method))
-	    ((eq target 'format-control)
+	    ((or (eq target 'format-control)
+                 (eq target 'bidi-control))
 	     (when unicode-category-table
 	       (map-char-table
                 (lambda (char category)
-                  (if (eq category 'Cf)
-                      (let ((this-method method)
-                            from to)
-                        (if (consp char)
-                            (setq from (car char) to (cdr char))
-                          (setq from char to char))
-                        (while (<= from to)
-                          (when (/= from #xAD)
-                            (if (eq method 'acronym)
-                                (setq this-method
-                                      (aref char-acronym-table from)))
+                  (when (eq category 'Cf)
+                    (let ((this-method method)
+                          from to)
+                      (if (consp char)
+                          (setq from (car char) to (cdr char))
+                        (setq from char to char))
+                      (while (<= from to)
+                        (when (/= from #xAD)
+                          (when (eq method 'acronym)
+                            (setq this-method
+                                  (or (aref char-acronym-table from)
+                                      "UNK")))
+                          (when (or (eq target 'format-control)
+                                    (memq from
+                                          glyphless--bidi-control-characters))
                             (set-char-table-range glyphless-char-display
-                                                  from this-method))
-                          (setq from (1+ from))))))
+                                                  from this-method)))
+                        (setq from (1+ from))))))
 		unicode-category-table)))
 	    ((eq target 'no-font)
 	     (set-char-table-extra-slot glyphless-char-display 0 method))
@@ -1576,6 +1598,19 @@ option `glyphless-char-display'."
     (set-char-table-range chartable (cons from to) method)))
 
 ;;; Control of displaying glyphless characters.
+(define-widget 'glyphless-char-display-method 'lazy
+  "Display method for glyphless characters."
+  :group 'mule
+  :format "%v"
+  :value 'thin-space
+  :type
+  '(choice
+    (const :tag "Don't display" zero-width)
+    (const :tag "Display as thin space" thin-space)
+    (const :tag "Display as empty box" empty-box)
+    (const :tag "Display acronym" acronym)
+    (const :tag "Display hex code in a box" hex-code)))
+
 (defcustom glyphless-char-display-control
   '((format-control . thin-space)
     (variation-selectors . thin-space)
@@ -1594,12 +1629,17 @@ GROUP must be one of these symbols:
                     such as U+200C (ZWNJ), U+200E (LRM), but
                     excluding characters that have graphic images,
                     such as U+00AD (SHY).
-  `variation-selectors': U+FE00..U+FE0F, used for choosing between
-                         glyph variations (e.g. Emoji vs Text
-                         presentation).
-  `no-font':        characters for which no suitable font is found.
-                    For character terminals, characters that cannot
-                    be encoded by `terminal-coding-system'.
+  `bidi-control':   A subset of `format-control', but only characters
+                    that are relevant for bidirectional formatting control,
+                    like U+2069 (PDI) and U+202B (RLE).
+  `variation-selectors':
+                    Characters in the range U+FE00..U+FE0F, used for
+                    selecting alternate glyph presentations, such as
+                    Emoji vs Text presentation, of the preceding
+                    character(s).
+  `no-font':        For GUI frames, characters for which no suitable
+                    font is found; for text-mode frames, characters
+                    that cannot be encoded by `terminal-coding-system'.
 
 METHOD must be one of these symbols:
   `zero-width': don't display.
@@ -1617,36 +1657,12 @@ function (`update-glyphless-char-display'), which updates
   :version "28.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))
-  :options '((c0-control
-	      (choice (const :tag "Don't display" zero-width)
-		      (const :tag "Display as thin space" thin-space)
-		      (const :tag "Display as empty box" empty-box)
-		      (const :tag "Display acronym" acronym)
-		      (const :tag "Display hex code in a box" hex-code)))
-	     (c1-control
-	      (choice (const :tag "Don't display" zero-width)
-		      (const :tag "Display as thin space" thin-space)
-		      (const :tag "Display as empty box" empty-box)
-		      (const :tag "Display acronym" acronym)
-		      (const :tag "Display hex code in a box" hex-code)))
-	     (format-control
-	      (choice (const :tag "Don't display" zero-width)
-		      (const :tag "Display as thin space" thin-space)
-		      (const :tag "Display as empty box" empty-box)
-		      (const :tag "Display acronym" acronym)
-		      (const :tag "Display hex code in a box" hex-code)))
-	     (variation-selectors
-	      (choice (const :tag "Don't display" zero-width)
-		      (const :tag "Display as thin space" thin-space)
-		      (const :tag "Display as empty box" empty-box)
-		      (const :tag "Display acronym" acronym)
-		      (const :tag "Display hex code in a box" hex-code)))
-	     (no-font
-	      (choice (const :tag "Don't display" zero-width)
-		      (const :tag "Display as thin space" thin-space)
-		      (const :tag "Display as empty box" empty-box)
-		      (const :tag "Display acronym" acronym)
-		      (const :tag "Display hex code in a box" hex-code))))
+  :options '((c0-control glyphless-char-display-method)
+	     (c1-control glyphless-char-display-method)
+	     (format-control glyphless-char-display-method)
+	     (bidi-control glyphless-char-display-method)
+	     (variation-selectors glyphless-char-display-method)
+	     (no-font (glyphless-char-display-method :value hex-code)))
   :set 'update-glyphless-char-display
   :group 'display)
 

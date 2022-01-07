@@ -1,6 +1,6 @@
 ;;; time-stamp-tests.el --- tests for time-stamp.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -595,8 +595,12 @@
      ;; incorrectly nested parens do not crash us
      (should-not (equal (time-stamp-string "%(stuffB" ref-time3) May))
      (should-not (equal (time-stamp-string "%)B" ref-time3) May))
+     ;; unterminated format does not crash us
+     (should-not (equal (time-stamp-string "%" ref-time3) May))
      ;; not all punctuation is allowed
-     (should-not (equal (time-stamp-string "%&B" ref-time3) May)))))
+     (should-not (equal (time-stamp-string "%&B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%/B" ref-time3) May))
+     (should-not (equal (time-stamp-string "%;B" ref-time3) May)))))
 
 (ert-deftest time-stamp-format-non-conversions ()
   "Test that without a %, the text is copied literally."
@@ -635,8 +639,8 @@
                      (concat Mon "." Monday "." Mon)))
       (should (equal (time-stamp-string "%5z.%5::z.%5z" ref-time1)
                      "+0000.+00:00:00.+0000"))
-      ;; format letter is independent
-      (should (equal (time-stamp-string "%H:%M" ref-time1) "15:04")))))
+      ;; format character is independent
+      (should (equal (time-stamp-string "%H:%M%%%S" ref-time1) "15:04%05")))))
 
 (ert-deftest time-stamp-format-string-width ()
   "Test time-stamp string width modifiers."
@@ -704,9 +708,10 @@
 ;;;; Setup for tests of time offset formatting with %z
 
 (defun formatz (format zone)
-  "Uses time FORMAT string to format the offset of ZONE, returning the result.
-FORMAT is \"%z\" or a variation.
-ZONE is as the ZONE argument of the `format-time-string' function."
+  "Uses FORMAT to format the offset of ZONE, returning the result.
+FORMAT must be time format \"%z\" or some variation thereof.
+ZONE is as the ZONE argument of the `format-time-string' function.
+This function is called by 99% of the `time-stamp' \"%z\" unit tests."
   (with-time-stamp-test-env
    (let ((time-stamp-time-zone zone))
      ;; Call your favorite time formatter here.
@@ -718,9 +723,9 @@ ZONE is as the ZONE argument of the `format-time-string' function."
 
 (defun format-time-offset (format offset-secs)
   "Uses FORMAT to format the time zone represented by OFFSET-SECS.
-FORMAT must be \"%z\", possibly with a flag and padding.
+FORMAT must be time format \"%z\" or some variation thereof.
 This function is a wrapper around `time-stamp-formatz-from-parsed-options'
-and is used for testing."
+and is called by some low-level `time-stamp' \"%z\" unit tests."
   ;; This wrapper adds a simple regexp-based parser that handles only
   ;; %z and variants.  In normal use, time-stamp-formatz-from-parsed-options
   ;; is called from a parser that handles all time string formats.

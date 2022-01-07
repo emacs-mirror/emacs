@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -1568,9 +1568,5 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
 (setq rmail-search-mime-message-function 'rmail-search-mime-message)
 
 (provide 'rmailmm)
-
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
 
 ;;; rmailmm.el ends here

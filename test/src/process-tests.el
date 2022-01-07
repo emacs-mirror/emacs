@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,10 @@
 (require 'subr-x)
 (require 'dns)
 (require 'url-http)
+
+(declare-function thread-last-error "thread.c")
+(declare-function thread-join "thread.c")
+(declare-function make-thread "thread.c")
 
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
@@ -787,6 +791,7 @@ have written output."
                            (list (list process "finished\n"))))))))))
 
 (ert-deftest process-tests/multiple-threads-waiting ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (fboundp 'make-thread))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes

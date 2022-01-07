@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Loading
@@ -291,29 +291,35 @@ a directory) or @code{nil} (which stands for the current working
 directory).
 @end defvar
 
-  When Emacs starts up, it sets up the value of @code{load-path}
-in several steps.  First, it initializes @code{load-path} using
-default locations set when Emacs was compiled.  Normally, this
-is a directory something like
+  When Emacs starts up, it sets up the value of @code{load-path} in
+several steps.  First, it looks for the directory containing its own
+Lisp files, using default locations set when Emacs was compiled.  It
+saves this directory in @code{lisp-directory}.  Normally, this is a
+directory where the @file{*.elc} files are installed, something like
 
 @example
 "/usr/local/share/emacs/@var{version}/lisp"
 @end example
 
-(In this and the following examples, replace @file{/usr/local} with
-the installation prefix appropriate for your Emacs.)
-These directories contain the standard Lisp files that come with
-Emacs.  If Emacs cannot find them, it will not start correctly.
+@noindent
+where @var{version} is the Emacs version.  (In this and the following
+examples, replace @file{/usr/local} with the prefix appropriate for
+your Emacs installation.)  This directory and its subdirectories
+contain the standard Lisp files that come with Emacs.  If Emacs cannot
+find its own Lisp files, it will not start correctly.
 
 If you run Emacs from the directory where it was built---that is, an
-executable that has not been formally installed---Emacs instead
-initializes @code{load-path} using the @file{lisp}
-directory in the directory containing the sources from which it
-was built.
+executable that has not been installed yet---Emacs instead initializes
+@code{lisp-directory} using the @file{lisp} subdirectory of the
+directory containing the sources from which it was built.
+
+Emacs then initializes @code{load-path} with this @code{lisp-directory}.
 @c Though there should be no *.el files in builddir/lisp, so it's pointless.
 If you built Emacs in a separate directory from the
-sources, it also adds the lisp directories from the build directory.
-(In all cases, elements are represented as absolute file names.)
+sources, it also adds the @file{lisp} subdirectory of the build directory.
+
+All of these directories are stored in the above two variables as
+absolute file names.
 
 @cindex site-lisp directories
 Unless you start Emacs with the @option{--no-site-lisp} option,
@@ -333,12 +339,12 @@ and
 @end example
 
 @noindent
-The first one is for locally installed files for a specific Emacs
-version; the second is for locally installed files meant for use
-with all installed Emacs versions.  (If Emacs is running uninstalled,
-it also adds @file{site-lisp} directories from the source and build
-directories, if they exist.  Normally these directories do not contain
-@file{site-lisp} directories.)
+The first one is for locally installed files for the current Emacs
+@var{version}; the second is for locally installed files meant for use
+with any installed Emacs version.  (If Emacs is running uninstalled,
+it also adds @file{site-lisp} subdirectories from the source and build
+directories, if they exist.  However, normally the source and build
+directories do not contain @file{site-lisp} subdirectories.)
 
 @cindex @env{EMACSLOADPATH} environment variable
 If the environment variable @env{EMACSLOADPATH} is set, it modifies
@@ -360,9 +366,10 @@ export EMACSLOADPATH=/home/foo/.emacs.d/lisp:
 @end example
 
 An empty element in the value of the environment variable, whether
-trailing (as in the above example), leading, or embedded, is replaced
-by the default value of @code{load-path} as determined by the standard
-initialization procedure.  If there are no such empty elements, then
+trailing (as in the above example, note the trailing @samp{:}),
+leading, or embedded, is replaced by the default value of
+@code{load-path} as determined by the standard initialization
+procedure.  If there are no such empty elements, then
 @env{EMACSLOADPATH} specifies the entire @code{load-path}.  You must
 include either an empty element, or the explicit path to the directory
 containing the standard Lisp files, else Emacs will not function.
@@ -391,10 +398,22 @@ add one or more directories to @code{load-path}.  For example:
 (push "~/.emacs.d/lisp" load-path)
 @end example
 
+@noindent
+@xref{List Variables, push}, for the description of @code{push}.
+
   Dumping Emacs uses a special value of @code{load-path}.  If you use
 a @file{site-load.el} or @file{site-init.el} file to customize the
 dumped Emacs (@pxref{Building Emacs}), any changes to @code{load-path}
 that these files make will be lost after dumping.
+
+@defvar lisp-directory
+This variable holds a string naming the directory which holds
+Emacs's own @file{*.el} and @file{*.elc} files.  This is usually the
+place where those files are located in the Emacs installation tree,
+unless Emacs is run from its build directory in which case it points
+to the @file{lisp} subdirectory in the source directory from which
+Emacs was built.
+@end defvar
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
 This command finds the precise file name for library @var{library}.  It
@@ -482,7 +501,7 @@ automatically.  However, if this does make a difference, you can force
 a particular Lisp file to be interpreted as unibyte by writing
 @samp{coding: raw-text} in a local variables section.  With
 that designator, the file will unconditionally be interpreted as
-unibyte.  This can matter when making keybindings to
+unibyte.  This can matter when making key bindings to
 non-@acronym{ASCII} characters written as @code{?v@var{literal}}.
 
 @node Autoload
@@ -552,7 +571,7 @@ An autoloaded keymap loads automatically during key lookup when a prefix
 key's binding is the symbol @var{function}.  Autoloading does not occur
 for other kinds of access to the keymap.  In particular, it does not
 happen when a Lisp program gets the keymap from the value of a variable
-and calls @code{define-key}; not even if the variable name is the same
+and calls @code{keymap-set}; not even if the variable name is the same
 symbol @var{function}.
 
 @cindex function cell in autoload
@@ -1156,7 +1175,7 @@ You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(with-eval-after-load "js" (define-key js-mode-map "\C-c\C-c" 'js-eval))
+(with-eval-after-load "js" (keymap-set js-mode-map "C-c C-c" 'js-eval))
 @end example
 
 To restrict which files can trigger the evaluation, include a

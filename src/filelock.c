@@ -1,6 +1,6 @@
 /* Lock files for editing.
 
-Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2021 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2022 Free Software
 Foundation, Inc.
 
 Author: Richard King
@@ -65,7 +65,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define BOOT_TIME_FILE "/var/run/random-seed"
 #endif
 
-#if !defined WTMP_FILE && !defined WINDOWSNT
+#if !defined WTMP_FILE && !defined WINDOWSNT && defined BOOT_TIME
 #define WTMP_FILE "/var/log/wtmp"
 #endif
 

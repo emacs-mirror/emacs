@@ -1,6 +1,6 @@
 ;;; derived-tests.el --- tests for derived.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,13 +24,13 @@
 (define-derived-mode derived-tests--parent-mode prog-mode "P"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFP=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFP=%s " (let ((x "D")) x (funcall f)))))
   (insert "PB "))
 
 (define-derived-mode derived-tests--child-mode derived-tests--parent-mode "C"
   :after-hook
   (let ((f (let ((x "S")) (lambda () x))))
-    (insert (format "AFC=%s " (let ((x "D")) (funcall f)))))
+    (insert (format "AFC=%s " (let ((x "D")) x (funcall f)))))
   (insert "CB "))
 
 (ert-deftest derived-tests-after-hook-lexical ()

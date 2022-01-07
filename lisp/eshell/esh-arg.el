@@ -1,6 +1,6 @@
 ;;; esh-arg.el --- argument processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -152,10 +152,8 @@ treated as a literal character."
   :type 'hook
   :group 'eshell-arg)
 
-(defvar eshell-arg-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c M-b") #'eshell-insert-buffer-name)
-    map))
+(defvar-keymap eshell-arg-mode-map
+  "C-c M-b" #'eshell-insert-buffer-name)
 
 ;;; Functions:
 

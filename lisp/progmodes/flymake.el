@@ -1,12 +1,12 @@
 ;;; flymake.el --- A universal on-the-fly syntax checker  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; Version: 1.2.1
 ;; Keywords: c languages tools
-;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0") (project "0.7.1"))
+;; Package-Requires: ((emacs "28.1") (eldoc "1.1.0") (project "0.7.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -332,7 +332,7 @@ retrieval with `flymake-diagnostic-data'.
 If LOCUS is a buffer BEG and END should be buffer positions
 inside it.  If LOCUS designates a file, BEG and END should be a
 cons (LINE . COL) indicating a file position.  In this second
-case, END may be ommited in which case the region is computed
+case, END may be omitted in which case the region is computed
 using `flymake-diag-region' if the diagnostic is appended to an
 actual buffer.
 
@@ -870,7 +870,7 @@ and other buffers."
   (dolist (d diags) (setf (flymake--diag-backend d) backend))
   (save-restriction
     (widen)
-    ;; First, clean up.  Remove diagnostics from bookeeping lists and
+    ;; First, clean up.  Remove diagnostics from bookkeeping lists and
     ;; their overlays from buffers.
     ;;
     (cond

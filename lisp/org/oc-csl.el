@@ -1,6 +1,6 @@
 ;;; oc-csl.el --- csl citation processor for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -283,7 +283,8 @@ Label is in match group 1.")
 ;;; Internal functions
 (defun org-cite-csl--barf-without-citeproc ()
   "Raise an error if Citeproc library is not loaded."
-  (unless (featurep 'citeproc) "Citeproc library is not loaded"))
+  (unless (featurep 'citeproc)
+    (error "Citeproc library is not loaded")))
 
 (defun org-cite-csl--note-style-p (info)
   "Non-nil when bibliography style implies wrapping citations in footnotes.
@@ -604,10 +605,10 @@ property list."
     (with-temp-buffer
       (save-excursion (insert output))
       (when (search-forward "\\begin{document}" nil t)
-        ;; Ensure that \citeprocitem is defined for citeproc-el
+        (goto-char (match-beginning 0))
+        ;; Ensure that \citeprocitem is defined for citeproc-el.
         (insert "\\makeatletter\n\\newcommand{\\citeprocitem}[2]{\\hyper@linkstart{cite}{citeproc_bib_item_#1}#2\\hyper@linkend}\n\\makeatother\n\n")
         ;; Ensure there is a \usepackage{hanging} somewhere or add one.
-        (goto-char (match-beginning 0))
         (let ((re (rx "\\usepackage" (opt "[" (*? nonl) "]") "{hanging}")))
           (unless (re-search-backward re nil t)
             (insert "\\usepackage[notquote]{hanging}\n"))))

@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -1308,6 +1308,7 @@ Lisp function does not specify a special indentation."
 (put 'handler-bind 'lisp-indent-function 1) ;CL
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
+(put 'closure 'lisp-indent-function 2)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.

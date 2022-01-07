@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2021 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2022 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -590,9 +590,8 @@ Compatibility function for \\[next-error] invocations."
     ["Go To Source" change-log-goto-source
      :help "Go to source location of ChangeLog tag near point"]))
 
-;; It used to be called change-log-time-zone-rule but really should be
-;; called add-log-time-zone-rule since it's only used from add-log-* code.
-(defvaralias 'change-log-time-zone-rule 'add-log-time-zone-rule)
+(define-obsolete-variable-alias 'change-log-time-zone-rule
+  'add-log-time-zone-rule "29.1")
 (defvar add-log-time-zone-rule nil
   "Time zone rule used for calculating change log time stamps.
 If nil, use local time.  If t, use Universal Time.

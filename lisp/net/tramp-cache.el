@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -49,8 +49,6 @@
 ;;   an open connection.  Examples: "scripts" keeps shell script
 ;;   definitions already sent to the remote shell, "last-cmd-time" is
 ;;   the time stamp a command has been sent to the remote process.
-;;   "lock-pid" is the timestamp a (network) process is created, it is
-;;   used instead of the pid in file locks.
 ;;
 ;; - The key is nil.  These are temporary properties related to the
 ;;   local machine.  Examples: "parse-passwd" and "parse-group" keep
@@ -224,7 +222,9 @@ Return VALUE."
 (defun tramp-flush-file-upper-properties (key file)
   "Remove some properties of FILE's upper directory."
   (when (file-name-absolute-p file)
-    (let ((file (directory-file-name (file-name-directory file))))
+    ;; `file-name-directory' can return nil, for example for "~".
+    (when-let ((file (file-name-directory file))
+	       (file (directory-file-name file)))
       ;; Unify localname.  Remove hop from `tramp-file-name' structure.
       (setq file (tramp-compat-file-name-unquote file)
 	    key (copy-tramp-file-name key))

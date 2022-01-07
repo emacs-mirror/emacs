@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2021 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -203,7 +203,7 @@ by `grep-compute-defaults'; to change the default value, use
   :version "22.1")
 
 (defcustom grep-files-aliases
-  '(("all" .   "* .[!.]* ..?*") ;; Don't match `..'. See bug#22577
+  '(("all" .   "* .*")
     ("el" .    "*.el")
     ("ch" .    "*.[ch]")
     ("c" .     "*.c")

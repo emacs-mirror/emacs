@@ -1,6 +1,6 @@
 ;;; em-banner.el --- sample module that displays a login banner  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -61,9 +61,8 @@ modules may have a simple template to begin with."
   "The banner message to be displayed when Eshell is loaded.
 This can be any sexp, and should end with at least two newlines."
   :type 'sexp
+  :risky t
   :group 'eshell-banner)
-
-(put 'eshell-banner-message 'risky-local-variable t)
 
 (defcustom eshell-banner-load-hook nil
   "A list of functions to run when `eshell-banner' is loaded."

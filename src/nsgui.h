@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008-2021 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -57,9 +57,6 @@ typedef struct _XCharStruct
   int ascent;
   int descent;
 } XCharStruct;
-
-/* Used in xdisp.c when comparing faces and frame colors.  */
-extern unsigned long ns_color_index_to_rgba(int idx, struct frame *f);
 
 #ifdef __OBJC__
 typedef id Emacs_Pixmap;

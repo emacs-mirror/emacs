@@ -1,6 +1,6 @@
 ;;; timer.el --- run a function with args at some time in future -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -314,7 +314,7 @@ This function is called, by name, directly by the C code."
                          (not (timer--idle-delay timer)))
                 (setf (timer--time timer)
                       (timer-next-integral-multiple-of-time
-                       (current-time) (timer--repeat-delay timer))))
+		       nil (timer--repeat-delay timer))))
               ;; Place it back on the timer-list before running
               ;; timer--function, so it can cancel-timer itself.
               (timer-activate timer t cell)
@@ -351,19 +351,27 @@ This function is called, by name, directly by the C code."
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
 REPEAT may be an integer or floating point number.
 TIME should be one of:
+
 - a string giving today's time like \"11:23pm\"
   (the acceptable formats are HHMM, H:MM, HH:MM, HHam, HHAM,
   HHpm, HHPM, HH:MMam, HH:MMAM, HH:MMpm, or HH:MMPM;
   a period `.' can be used instead of a colon `:' to separate
   the hour and minute parts);
+
 - a string giving a relative time like \"90\" or \"2 hours 35 minutes\"
   (the acceptable forms are a number of seconds without units
   or some combination of values using units in `timer-duration-words');
+
 - nil, meaning now;
+
 - a number of seconds from now;
+
 - a value from `encode-time';
-- or t (with non-nil REPEAT) meaning the next integral
-  multiple of REPEAT.
+
+- or t (with non-nil REPEAT) meaning the next integral multiple
+  of REPEAT.  This is handy when you want the function to run at
+  a certain \"round\" number.  For instance, (run-at-time t 60 ...)
+  will run at 11:04:00, 11:05:00, etc.
 
 The action is to call FUNCTION with arguments ARGS.
 
@@ -383,7 +391,7 @@ This function returns a timer object which you can use in
 
     ;; Special case: t means the next integral multiple of REPEAT.
     (when (and (eq time t) repeat)
-      (setq time (timer-next-integral-multiple-of-time (current-time) repeat))
+      (setq time (timer-next-integral-multiple-of-time nil repeat))
       (setf (timer--integral-multiple timer) t))
 
     ;; Handle numbers as relative times in seconds.

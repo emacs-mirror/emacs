@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)

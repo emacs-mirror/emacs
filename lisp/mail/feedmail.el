@@ -2336,19 +2336,14 @@ mapped to mostly alphanumerics for safety."
 
 ;; from a similar function in mail-utils.el
 (defun feedmail-rfc822-time-zone (time)
+  (declare (obsolete format-time-string "29.1"))
   (feedmail-say-debug ">in-> feedmail-rfc822-time-zone %s" time)
-  (let* ((sec (or (car (current-time-zone time)) 0))
-	 (absmin (/ (abs sec) 60)))
-    (format "%c%02d%02d" (if (< sec 0) ?- ?+) (/ absmin 60) (% absmin 60))))
+  (format-time-string "%z" time))
 
 (defun feedmail-rfc822-date (arg-time)
   (feedmail-say-debug ">in-> feedmail-rfc822-date %s" arg-time)
-  (let ((time (or arg-time (current-time)))
-	(system-time-locale "C"))
-    (concat
-     (format-time-string "%a, %e %b %Y %T " time)
-     (feedmail-rfc822-time-zone time)
-     )))
+  (let ((system-time-locale "C"))
+    (format-time-string "%a, %e %b %Y %T %z" arg-time)))
 
 (defun feedmail-send-it-immediately-wrapper ()
   "Wrapper to catch skip-me-i."
@@ -2847,10 +2842,9 @@ probably not appropriate for you."
     (if (and (not feedmail-queue-use-send-time-for-message-id) maybe-file)
 	(setq date-time (file-attribute-modification-time
 			 (file-attributes maybe-file))))
-    (format "<%d-%s%s%s>"
+    (format "<%d-%s%s>"
 	    (mod (random) 10000)
-	    (format-time-string "%a%d%b%Y%H%M%S" date-time)
-	    (feedmail-rfc822-time-zone date-time)
+	    (format-time-string "%a%d%b%Y%H%M%S%z" date-time)
 	    end-stuff))
   )
 

@@ -1,6 +1,6 @@
 ;;; gnus-html.el --- Render HTML in a buffer.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -79,9 +79,9 @@ fit these criteria."
 (defvar-keymap gnus-html-displayed-image-map
   "a" #'gnus-html-show-alt-text
   "i" #'gnus-html-browse-image
-  "\r" #'gnus-html-browse-url
+  "RET" #'gnus-html-browse-url
   "u" #'gnus-article-copy-string
-  [tab] #'forward-button)
+  "<tab>" #'forward-button)
 
 (defun gnus-html-encode-url (url)
   "Encode URL."

@@ -1,14 +1,14 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol  -*- lexical-binding:t -*-
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.5.2-pre
-;; Package-Requires: ((emacs "25.1"))
+;; Version: 2.6.0-pre
+;; Package-Requires: ((emacs "26.1"))
 ;; Package-Type: multi
 ;; URL: https://www.gnu.org/software/tramp/
 
@@ -40,7 +40,7 @@
 ;; ./configure" to change them.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.5.2-pre"
+(defconst tramp-version "2.6.0-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -74,9 +74,9 @@
   "The repository revision of the Tramp sources.")
 
 ;; Check for Emacs version.
-(let ((x   (if (not (string-lessp emacs-version "25.1"))
+(let ((x   (if (not (string-version-lessp emacs-version "26.1"))
       "ok"
-    (format "Tramp 2.5.2-pre is not fit for %s"
+    (format "Tramp 2.6.0-pre is not fit for %s"
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
@@ -101,7 +101,8 @@
 	 ("2.2.13.25.2" . "25.3")
          ("2.3.3" . "26.1") ("2.3.3.26.1" . "26.1") ("2.3.5.26.2" . "26.2")
          ("2.3.5.26.3" . "26.3")
-         ("2.4.3.27.1" . "27.1") ("2.4.5.27.2" . "27.2")))
+         ("2.4.3.27.1" . "27.1") ("2.4.5.27.2" . "27.2")
+         ("2.5.2.28.1" . "28.1")))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

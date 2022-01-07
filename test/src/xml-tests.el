@@ -1,6 +1,6 @@
 ;;; xml-tests.el --- Test suite for libxml parsing. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Ulf Jasper <ulf.jasper@web.de>
 ;; Keywords:       internal
@@ -26,6 +26,8 @@
 ;;; Code:
 
 (require 'ert)
+
+(declare-function libxml-parse-xml-region "xml.c")
 
 (defvar libxml-tests--data-comments-preserved
   `(;; simple case

@@ -1,6 +1,6 @@
 ;;; calc-store.el --- value storage functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -163,19 +163,19 @@
 			     tag (and (not val) 1))
 	   (message "Variable \"%s\" changed" (calc-var-name var)))))))
 
-(defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
-(if calc-var-name-map
-    ()
-  (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
-  (define-key calc-var-name-map " " 'self-insert-command)
-  (mapc (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-            'calcVar-digit))
-	"0123456789")
-  (mapc (lambda (x)
-	  (define-key calc-var-name-map (char-to-string x)
-            'calcVar-oper))
-	"+-*/^|"))
+(defvar calc-var-name-map
+  (let ((map (copy-keymap minibuffer-local-completion-map)))
+    (define-key map " " #'self-insert-command)
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-digit))
+          "0123456789")
+    (mapc (lambda (x)
+            (define-key map (char-to-string x)
+                        #'calcVar-oper))
+          "+-*/^|")
+    map)
+  "Keymap for reading Calc variable names.")
 
 (defvar calc-store-opers)
 
@@ -188,12 +188,15 @@
   (let* ((calc-store-opers store-opers)
          (var (concat
               "var-"
-              (let ((minibuffer-completion-table
-                     (mapcar (lambda (x) (substring x 4))
-                             (all-completions "var-" obarray)))
-                    (minibuffer-completion-predicate
-                     (lambda (x) (boundp (intern (concat "var-" x)))))
-                    (minibuffer-completion-confirm t))
+              (minibuffer-with-setup-hook
+                  (lambda ()
+                    (setq-local minibuffer-completion-table
+                                (mapcar (lambda (x) (substring x 4))
+                                        (all-completions "var-" obarray)))
+                    (setq-local minibuffer-completion-predicate
+                                (lambda (x)
+                                  (boundp (intern (concat "var-" x)))))
+                    (setq-local minibuffer-completion-confirm t))
                 (read-from-minibuffer
                  prompt nil calc-var-name-map nil
                  'calc-read-var-name-history)))))

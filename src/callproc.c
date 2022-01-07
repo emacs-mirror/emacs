@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2021 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -25,8 +25,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef MSDOS
+extern char **environ;
+#endif
+
 #include <sys/file.h>
 #include <fcntl.h>
+
+/* In order to be able to use `posix_spawn', it needs to support some
+   variant of `chdir' as well as `setsid'.  */
+#if defined HAVE_SPAWN_H && defined HAVE_POSIX_SPAWN        \
+  && defined HAVE_POSIX_SPAWNATTR_SETFLAGS                  \
+  && (defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR        \
+      || defined HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP) \
+  && defined HAVE_DECL_POSIX_SPAWN_SETSID                   \
+  && HAVE_DECL_POSIX_SPAWN_SETSID == 1
+# include <spawn.h>
+# define USABLE_POSIX_SPAWN 1
+#else
+# define USABLE_POSIX_SPAWN 0
+#endif
 
 #include "lisp.h"
 
@@ -1185,6 +1203,11 @@ static CHILD_SETUP_TYPE
 child_setup (int in, int out, int err, char **new_argv, char **env,
 	     const char *current_dir)
 {
+#ifdef MSDOS
+  char *pwd_var;
+  char *temp;
+  ptrdiff_t i;
+#endif
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
@@ -1237,6 +1260,22 @@ child_setup (int in, int out, int err, char **new_argv, char **env,
   exec_failed (new_argv[0], errnum);
 
 #else /* MSDOS */
+  i = strlen (current_dir);
+  pwd_var = xmalloc (i + 5);
+  temp = pwd_var + 4;
+  memcpy (pwd_var, "PWD=", 4);
+  stpcpy (temp, current_dir);
+
+  if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
+    {
+      temp += 2;
+      i -= 2;
+    }
+
+  /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
+  while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
+    temp[--i] = 0;
+
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
   xfree (pwd_var);
   if (pid == -1)
@@ -1246,6 +1285,130 @@ child_setup (int in, int out, int err, char **new_argv, char **env,
 #endif  /* MSDOS */
 #endif  /* not WINDOWSNT */
 }
+
+#if USABLE_POSIX_SPAWN
+
+/* Set up ACTIONS and ATTRIBUTES for `posix_spawn'.  Return an error
+   number.  */
+
+static int
+emacs_posix_spawn_init_actions (posix_spawn_file_actions_t *actions,
+                                int std_in, int std_out, int std_err,
+                                const char *cwd)
+{
+  int error = posix_spawn_file_actions_init (actions);
+  if (error != 0)
+    return error;
+
+  error = posix_spawn_file_actions_adddup2 (actions, std_in,
+                                            STDIN_FILENO);
+  if (error != 0)
+    goto out;
+
+  error = posix_spawn_file_actions_adddup2 (actions, std_out,
+                                            STDOUT_FILENO);
+  if (error != 0)
+    goto out;
+
+  error = posix_spawn_file_actions_adddup2 (actions,
+                                            std_err < 0 ? std_out
+                                                        : std_err,
+                                            STDERR_FILENO);
+  if (error != 0)
+    goto out;
+
+  error =
+#ifdef HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+    posix_spawn_file_actions_addchdir
+#else
+    posix_spawn_file_actions_addchdir_np
+#endif
+    (actions, cwd);
+  if (error != 0)
+    goto out;
+
+ out:
+  if (error != 0)
+    posix_spawn_file_actions_destroy (actions);
+  return error;
+}
+
+static int
+emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
+{
+  int error = posix_spawnattr_init (attributes);
+  if (error != 0)
+    return error;
+
+  error = posix_spawnattr_setflags (attributes,
+                                    POSIX_SPAWN_SETSID
+                                      | POSIX_SPAWN_SETSIGDEF
+                                      | POSIX_SPAWN_SETSIGMASK);
+  if (error != 0)
+    goto out;
+
+  sigset_t sigdefault;
+  sigemptyset (&sigdefault);
+
+#ifdef DARWIN_OS
+  /* Work around a macOS bug, where SIGCHLD is apparently
+     delivered to a vforked child instead of to its parent.  See:
+     https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
+  */
+  sigaddset (&sigdefault, SIGCHLD);
+#endif
+
+  sigaddset (&sigdefault, SIGINT);
+  sigaddset (&sigdefault, SIGQUIT);
+#ifdef SIGPROF
+  sigaddset (&sigdefault, SIGPROF);
+#endif
+
+  /* Emacs ignores SIGPIPE, but the child should not.  */
+  sigaddset (&sigdefault, SIGPIPE);
+  /* Likewise for SIGPROF.  */
+#ifdef SIGPROF
+  sigaddset (&sigdefault, SIGPROF);
+#endif
+
+  error = posix_spawnattr_setsigdefault (attributes, &sigdefault);
+  if (error != 0)
+    goto out;
+
+  /* Stop blocking SIGCHLD in the child.  */
+  sigset_t oldset;
+  error = pthread_sigmask (SIG_SETMASK, NULL, &oldset);
+  if (error != 0)
+    goto out;
+  error = posix_spawnattr_setsigmask (attributes, &oldset);
+  if (error != 0)
+    goto out;
+
+ out:
+  if (error != 0)
+    posix_spawnattr_destroy (attributes);
+
+  return error;
+}
+
+static int
+emacs_posix_spawn_init (posix_spawn_file_actions_t *actions,
+                        posix_spawnattr_t *attributes, int std_in,
+                        int std_out, int std_err, const char *cwd)
+{
+  int error = emacs_posix_spawn_init_actions (actions, std_in,
+                                              std_out, std_err, cwd);
+  if (error != 0)
+    return error;
+
+  error = emacs_posix_spawn_init_attributes (attributes);
+  if (error != 0)
+    return error;
+
+  return 0;
+}
+
+#endif
 
 /* Start a new asynchronous subprocess.  If successful, return zero
    and store the process identifier of the new process in *NEWPID.
@@ -1266,9 +1429,57 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
              char **argv, char **envp, const char *cwd,
              const char *pty, const sigset_t *oldset)
 {
+#if USABLE_POSIX_SPAWN
+  /* Prefer the simpler `posix_spawn' if available.  `posix_spawn'
+     doesn't yet support setting up pseudoterminals, so we fall back
+     to `vfork' if we're supposed to use a pseudoterminal.  */
+
+  bool use_posix_spawn = pty == NULL;
+
+  posix_spawn_file_actions_t actions;
+  posix_spawnattr_t attributes;
+
+  if (use_posix_spawn)
+    {
+      /* Initialize optional attributes before blocking. */
+      int error
+        = emacs_posix_spawn_init (&actions, &attributes, std_in,
+                                  std_out, std_err, cwd);
+      if (error != 0)
+	return error;
+    }
+#endif
+
   int pid;
+  int vfork_error;
 
   eassert (input_blocked_p ());
+
+#if USABLE_POSIX_SPAWN
+  if (use_posix_spawn)
+    {
+      vfork_error = posix_spawn (&pid, argv[0], &actions, &attributes,
+                                 argv, envp);
+      if (vfork_error != 0)
+	pid = -1;
+
+      int error = posix_spawn_file_actions_destroy (&actions);
+      if (error != 0)
+	{
+	  errno = error;
+	  emacs_perror ("posix_spawn_file_actions_destroy");
+	}
+
+      error = posix_spawnattr_destroy (&attributes);
+      if (error != 0)
+	{
+	  errno = error;
+	  emacs_perror ("posix_spawnattr_destroy");
+	}
+
+      goto fork_done;
+    }
+#endif
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -1396,11 +1607,13 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
       signal (SIGPROF, SIG_DFL);
 #endif
 
+#ifdef subprocesses
       /* Stop blocking SIGCHLD in the child.  */
       unblock_child_signal (oldset);
 
       if (pty_flag)
 	child_setup_tty (std_out);
+#endif
 
       if (std_err < 0)
 	std_err = std_out;
@@ -1413,8 +1626,11 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
 
   /* Back in the parent process.  */
 
-  int vfork_error = pid < 0 ? errno : 0;
+  vfork_error = pid < 0 ? errno : 0;
 
+#if USABLE_POSIX_SPAWN
+ fork_done:
+#endif
   if (pid < 0)
     {
       eassert (0 < vfork_error);

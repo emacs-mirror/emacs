@@ -1,6 +1,6 @@
 ;;; repeat-tests.el --- Tests for repeat.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 
@@ -34,20 +34,18 @@
   (interactive "p")
   (push `(,arg b) repeat-tests-calls))
 
-(defvar repeat-tests-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-x w a") 'repeat-tests-call-a)
-    map)
-  "Keymap for keys that initiate repeating sequences.")
+(defvar-keymap repeat-tests-map
+  :doc "Keymap for keys that initiate repeating sequences."
+  "C-x w a" 'repeat-tests-call-a
+  "C-M-a"   'repeat-tests-call-a
+  "C-M-z"   'repeat-tests-call-a)
 
-(defvar repeat-tests-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'repeat-tests-call-a)
-    (define-key map "b" 'repeat-tests-call-b)
-    map)
-  "Keymap for repeating sequences.")
+(defvar-keymap repeat-tests-repeat-map
+  :doc "Keymap for repeating sequences."
+  "a" 'repeat-tests-call-a
+  "b" 'repeat-tests-call-b)
 (put 'repeat-tests-call-a 'repeat-map 'repeat-tests-repeat-map)
-(put 'repeat-tests-call-b 'repeat-map 'repeat-tests-repeat-map)
+(put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
 
 (defmacro with-repeat-mode (&rest body)
   "Create environment for testing `repeat-mode'."
@@ -69,6 +67,38 @@
   (should (equal (nreverse repeat-tests-calls) calls))
   ;; Check for self-inserting keys
   (should (equal (buffer-string) inserted)))
+
+(ert-deftest repeat-tests-check-key ()
+  (with-repeat-mode
+   (let ((repeat-echo-function 'ignore))
+     (let ((repeat-check-key t))
+       (repeat-tests--check
+        "C-x w a b a c"
+        '((1 a) (1 b) (1 a)) "c")
+       (repeat-tests--check
+        "M-C-a b a c"
+        '((1 a) (1 b) (1 a)) "c")
+       (repeat-tests--check
+        "M-C-z b a c"
+        '((1 a)) "bac")
+       (unwind-protect
+           (progn
+             (put 'repeat-tests-call-a 'repeat-check-key 'no)
+             (repeat-tests--check
+              "M-C-z b a c"
+              '((1 a) (1 b) (1 a)) "c"))
+         (put 'repeat-tests-call-a 'repeat-check-key nil)))
+     (let ((repeat-check-key nil))
+       (repeat-tests--check
+        "M-C-z b a c"
+        '((1 a) (1 b) (1 a)) "c")
+       (unwind-protect
+           (progn
+             (put 'repeat-tests-call-a 'repeat-check-key t)
+             (repeat-tests--check
+              "M-C-z b a c"
+              '((1 a)) "bac"))
+         (put 'repeat-tests-call-a 'repeat-check-key nil))))))
 
 (ert-deftest repeat-tests-exit-key ()
   (with-repeat-mode

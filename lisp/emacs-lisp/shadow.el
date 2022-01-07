@@ -1,6 +1,6 @@
 ;;; shadow.el --- locate Emacs Lisp file shadowings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp
@@ -150,9 +150,6 @@ See the documentation for `list-load-path-shadows' for further information."
 	      (push (cons file dir) files))))))
     ;; Return the list of shadowings.
     shadows))
-
-(define-obsolete-function-alias 'find-emacs-lisp-shadows
-  'load-path-shadows-find "23.3")
 
 ;; Return true if neither file exists, or if both exist and have identical
 ;; contents.

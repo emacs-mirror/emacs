@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.6.2
@@ -161,6 +161,7 @@
 
 ;;; Code:
 
+(require 'bytecomp)  ;; for byte-compile-docstring-max-column
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
@@ -1116,6 +1117,7 @@ space at the end of each line."
           ";;; lisp/trampver.el.  Generated from trampver.el.in by configure."))
   "Regexp that when it matches tells `checkdoc-dired' to skip a file.")
 
+;;;###autoload
 (defun checkdoc-dired (files)
   "In Dired, run `checkdoc' on marked files.
 Skip anything that doesn't have the Emacs Lisp library file

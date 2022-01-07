@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -1492,7 +1492,7 @@ Emacs Lisp Reference Manual}.
 code not unlike the one produced by a C or Fortran compiler.  Native
 code runs even faster than byte-code.  Natively-compiled Emacs Lisp
 code is stored in files whose names end in @samp{.eln}.  @xref{Native
-Compilation,, Byte Compilation, elisp, the Emacs Lisp Reference Manual}.
+Compilation,, Native Compilation, elisp, the Emacs Lisp Reference Manual}.
 
 @findex load-file
   To @dfn{load} an Emacs Lisp file, type @kbd{M-x load-file}.  This

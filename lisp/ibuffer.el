@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1257,7 +1257,9 @@ Otherwise, toggle lock status."
   "Unmark all buffers with mark MARK."
   (interactive "cRemove marks (RET means all):")
   (if (= (ibuffer-count-marked-lines t) 0)
-      (message "No buffers marked; use `m' to mark a buffer")
+      (message (substitute-command-keys
+                "No buffers marked; use \\<ibuffer-mode-map>\
+\\[ibuffer-mark-forward] to mark a buffer"))
     (let ((fn (lambda (_buf mk)
                 (unless (eq mk ?\s)
                   (ibuffer-set-mark-1 ?\s)) t)))

@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

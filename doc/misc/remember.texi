@@ -10,7 +10,7 @@
 @copying
 This manual is for Remember Mode, as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2001, 2004--2005, 2007--2021 Free Software
+Copyright @copyright{} 2001, 2004--2005, 2007--2022 Free Software
 Foundation, Inc.
 
 @quotation
@@ -313,7 +313,7 @@ Save (if it is modified) and bury the current buffer.
 @node Keystrokes
 @chapter Keystroke Reference
 
-@file{remember.el} defines the following keybindings by default:
+@file{remember.el} defines the following key bindings by default:
 
 @table @kbd
 

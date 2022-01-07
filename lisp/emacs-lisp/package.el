@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -1181,13 +1181,17 @@ The return result is a `package-desc'."
             info)
         (while files
           (with-temp-buffer
-            (insert-file-contents (pop files))
-            ;; When we find the file with the data,
-            (when (setq info (ignore-errors (package-buffer-info)))
-              ;; stop looping,
-              (setq files nil)
-              ;; set the 'dir kind,
-              (setf (package-desc-kind info) 'dir))))
+            (let ((file (pop files)))
+              ;; The file may be a link to a nonexistent file; e.g., a
+              ;; lock file.
+              (when (file-exists-p file)
+                (insert-file-contents file)
+                ;; When we find the file with the data,
+                (when (setq info (ignore-errors (package-buffer-info)))
+                  ;; stop looping,
+                  (setq files nil)
+                  ;; set the 'dir kind,
+                  (setf (package-desc-kind info) 'dir))))))
         (unless info
           (error "No .el files with package headers in `%s'" default-directory))
         ;; and return the info.
@@ -2202,6 +2206,7 @@ directory."
           (dired-mode))
       (insert-file-contents-literally file)
       (set-visited-file-name file)
+      (set-buffer-modified-p nil)
       (when (string-match "\\.tar\\'" file) (tar-mode)))
     (package-install-from-buffer)))
 
@@ -2763,35 +2768,33 @@ either a full name or nil, and EMAIL is a valid email address."
 
 ;;;; Package menu mode.
 
-(defvar package-menu-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "\C-m" 'package-menu-describe-package)
-    (define-key map "u" 'package-menu-mark-unmark)
-    (define-key map "\177" 'package-menu-backup-unmark)
-    (define-key map "d" 'package-menu-mark-delete)
-    (define-key map "i" 'package-menu-mark-install)
-    (define-key map "U" 'package-menu-mark-upgrades)
-    (define-key map "r" 'revert-buffer)
-    (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
-    (define-key map "w" 'package-browse-url)
-    (define-key map "x" 'package-menu-execute)
-    (define-key map "h" 'package-menu-quick-help)
-    (define-key map "H" #'package-menu-hide-package)
-    (define-key map "?" 'package-menu-describe-package)
-    (define-key map "(" #'package-menu-toggle-hiding)
-    (define-key map (kbd "/ /") 'package-menu-clear-filter)
-    (define-key map (kbd "/ a") 'package-menu-filter-by-archive)
-    (define-key map (kbd "/ d") 'package-menu-filter-by-description)
-    (define-key map (kbd "/ k") 'package-menu-filter-by-keyword)
-    (define-key map (kbd "/ N") 'package-menu-filter-by-name-or-description)
-    (define-key map (kbd "/ n") 'package-menu-filter-by-name)
-    (define-key map (kbd "/ s") 'package-menu-filter-by-status)
-    (define-key map (kbd "/ v") 'package-menu-filter-by-version)
-    (define-key map (kbd "/ m") 'package-menu-filter-marked)
-    (define-key map (kbd "/ u") 'package-menu-filter-upgradable)
-    map)
-  "Local keymap for `package-menu-mode' buffers.")
+(defvar-keymap package-menu-mode-map
+  :doc "Local keymap for `package-menu-mode' buffers."
+  :parent tabulated-list-mode-map
+  "C-m"   #'package-menu-describe-package
+  "u"     #'package-menu-mark-unmark
+  "DEL"   #'package-menu-backup-unmark
+  "d"     #'package-menu-mark-delete
+  "i"     #'package-menu-mark-install
+  "U"     #'package-menu-mark-upgrades
+  "r"     #'revert-buffer
+  "~"     #'package-menu-mark-obsolete-for-deletion
+  "w"     #'package-browse-url
+  "x"     #'package-menu-execute
+  "h"     #'package-menu-quick-help
+  "H"     #'package-menu-hide-package
+  "?"     #'package-menu-describe-package
+  "("     #'package-menu-toggle-hiding
+  "/ /"   #'package-menu-clear-filter
+  "/ a"   #'package-menu-filter-by-archive
+  "/ d"   #'package-menu-filter-by-description
+  "/ k"   #'package-menu-filter-by-keyword
+  "/ N"   #'package-menu-filter-by-name-or-description
+  "/ n"   #'package-menu-filter-by-name
+  "/ s"   #'package-menu-filter-by-status
+  "/ v"   #'package-menu-filter-by-version
+  "/ m"   #'package-menu-filter-marked
+  "/ u"   #'package-menu-filter-upgradable)
 
 (easy-menu-define package-menu-mode-menu package-menu-mode-map
   "Menu for `package-menu-mode'."
@@ -4073,7 +4076,9 @@ The list is displayed in a buffer named `*Packages*'."
   "Return the version number of the package in which this is used.
 Assumes it is used from an Elisp file placed inside the top-level directory
 of an installed ELPA package.
-The return value is a string (or nil in case we can't find it)."
+The return value is a string (or nil in case we can't find it).
+It works in more cases if the call is in the file which contains
+the `Version:' header."
   ;; In a sense, this is a lie, but it does just what we want: precompute
   ;; the version at compile time and hardcodes it into the .elc file!
   (declare (pure t))
@@ -4092,6 +4097,7 @@ The return value is a string (or nil in case we can't find it)."
       (let* ((pkgdir (file-name-directory file))
              (pkgname (file-name-nondirectory (directory-file-name pkgdir)))
              (mainfile (expand-file-name (concat pkgname ".el") pkgdir)))
+        (unless (file-readable-p mainfile) (setq mainfile file))
         (when (file-readable-p mainfile)
           (require 'lisp-mnt)
           (with-temp-buffer
@@ -4178,6 +4184,7 @@ activations need to be changed, such as when `package-load-list' is modified."
               (replace-match (if (match-end 1) "" pfile) t t)))
           (unless (bolp) (insert "\n"))
           (insert ")\n")))
+      (pp `(defvar package-activated-list) (current-buffer))
       (pp `(setq package-activated-list
                  (append ',(mapcar #'package-desc-name package--quickstart-pkgs)
                          package-activated-list))
@@ -4195,6 +4202,7 @@ activations need to be changed, such as when `package-load-list' is modified."
 ;; Local\sVariables:
 ;; version-control: never
 ;; no-update-autoloads: t
+;; byte-compile-warnings: (not make-local)
 ;; End:
 "))
     ;; FIXME: Do it asynchronously in an Emacs subprocess, and

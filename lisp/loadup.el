@@ -1,6 +1,6 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2021 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -131,6 +131,7 @@
 (load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
 (load "subr")
+(load "keymap")
 
 ;; Do it after subr, since both after-load-functions and add-hook are
 ;; implemented in subr.el.
@@ -302,6 +303,11 @@
       (load "term/common-win")
       (load "term/x-win")))
 
+(if (featurep 'haiku)
+    (progn
+      (load "term/common-win")
+      (load "term/haiku-win")))
+
 (if (or (eq system-type 'windows-nt)
         (featurep 'w32))
     (progn
@@ -334,6 +340,13 @@
         (load "international/mule-util")
         (load "international/ucs-normalize")
         (load "term/ns-win"))))
+(if (featurep 'pgtk)
+    (progn
+      (load "term/common-win")
+      ;; Don't load ucs-normalize.el unless uni-*.el files were
+      ;; already produced, because it needs uni-*.el files that might
+      ;; not be built early enough during bootstrap.
+      (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)
     ;; Do it after loading term/foo-win.el since the value of the
     ;; mouse-wheel-*-event vars depends on those files being loaded or not.
@@ -549,7 +562,9 @@ lost after dumping")))
                    (lexical-binding nil))
                (if (member tmp-dump-mode '("pdump" "pbootstrap"))
                    (dump-emacs-portable (expand-file-name output invocation-directory))
-                 (dump-emacs output "temacs")
+                 (dump-emacs output (if (eq system-type 'ms-dos)
+                                        "temacs.exe"
+                                      "temacs"))
                  (message "%d pure bytes used" pure-bytes-used))
                (setq success t))
           (unless success
@@ -557,6 +572,7 @@ lost after dumping")))
               (delete-file output)))))
       ;; Recompute NAME now, so that it isn't set when we dump.
       (if (not (or (eq system-type 'ms-dos)
+                   (eq system-type 'haiku) ;; BFS doesn't support hard links
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (member dump-mode '("pbootstrap" "bootstrap"))))

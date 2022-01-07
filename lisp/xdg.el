@@ -1,6 +1,6 @@
 ;;; xdg.el --- XDG specification and standard support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Created: 27 January 2017
@@ -121,7 +121,7 @@ According to the XDG Base Directory Specification version
     \"$XDG_CONFIG_DIRS defines the preference-ordered set of base
     directories to search for configuration files in addition to
     the $XDG_CONFIG_HOME base directory.  The directories in
-    $XDG_CONFIG_DIRS should be seperated with a colon ':'.
+    $XDG_CONFIG_DIRS should be separated with a colon ':'.
 
     \"If $XDG_CONFIG_DIRS is either not set or empty, a value equal to
     /etc/xdg should be used.\""
@@ -139,7 +139,7 @@ According to the XDG Base Directory Specification version
     \"$XDG_DATA_DIRS defines the preference-ordered set of base
     directories to search for data files in addition to the
     $XDG_DATA_HOME base directory.  The directories in
-    $XDG_DATA_DIRS should be seperated with a colon ':'.
+    $XDG_DATA_DIRS should be separated with a colon ':'.
 
     \"If $XDG_DATA_DIRS is either not set or empty, a value equal
     to /usr/local/share/:/usr/share/ should be used.\""

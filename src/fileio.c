@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2021 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -195,7 +195,11 @@ get_file_errno_data (char const *string, Lisp_Object name, int errorno)
   if (errorno == EEXIST)
     return Fcons (Qfile_already_exists, errdata);
   else
-    return Fcons (errorno == ENOENT ? Qfile_missing : Qfile_error,
+    return Fcons (errorno == ENOENT
+		  ? Qfile_missing
+		  : (errorno == EACCES
+		     ? Qpermission_denied
+		     : Qfile_error),
 		  Fcons (build_string (string), errdata));
 }
 
@@ -2286,6 +2290,7 @@ permissions.  */)
       off_t insize = st.st_size;
       ssize_t copied;
 
+#ifndef MSDOS
       for (newsize = 0; newsize < insize; newsize += copied)
 	{
 	  /* Copy at most COPY_MAX bytes at a time; this is min
@@ -2300,6 +2305,7 @@ permissions.  */)
 	    break;
 	  maybe_quit ();
 	}
+#endif /* MSDOS */
 
       /* Fall back on read+write if copy_file_range failed, or if the
 	 input is empty and so could be a /proc file.  read+write will
@@ -2386,7 +2392,9 @@ permissions.  */)
 
   if (!NILP (keep_time))
     {
-      struct timespec ts[] = { get_stat_atime (&st), get_stat_mtime (&st) };
+      struct timespec ts[2];
+      ts[0] = get_stat_atime (&st);
+      ts[1] = get_stat_mtime (&st);
       if (futimens (ofd, ts) != 0)
 	xsignal2 (Qfile_date_error,
 		  build_string ("Cannot set file date"), newname);
@@ -3829,7 +3837,7 @@ restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
 	Lisp_Object oldpos = XCDR (car);
 	if (MARKERP (marker) && FIXNUMP (oldpos)
 	    && XFIXNUM (oldpos) > same_at_start
-	    && XFIXNUM (oldpos) < same_at_end)
+	    && XFIXNUM (oldpos) <= same_at_end)
 	  {
 	    ptrdiff_t oldsize = same_at_end - same_at_start;
 	    ptrdiff_t newsize = inserted;
@@ -6190,7 +6198,7 @@ before any other event (mouse or keypress) is handled.  */)
   (void)
 {
 #if (defined USE_GTK || defined USE_MOTIF \
-     || defined HAVE_NS || defined HAVE_NTGUI)
+     || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog
@@ -6376,6 +6384,7 @@ syms_of_fileio (void)
   DEFSYM (Qfile_already_exists, "file-already-exists");
   DEFSYM (Qfile_date_error, "file-date-error");
   DEFSYM (Qfile_missing, "file-missing");
+  DEFSYM (Qpermission_denied, "permission-denied");
   DEFSYM (Qfile_notify_error, "file-notify-error");
   DEFSYM (Qremote_file_error, "remote-file-error");
   DEFSYM (Qexcl, "excl");
@@ -6433,6 +6442,11 @@ behaves as if file names were encoded in `utf-8'.  */);
 	Fpurecopy (list3 (Qfile_missing, Qfile_error, Qerror)));
   Fput (Qfile_missing, Qerror_message,
 	build_pure_c_string ("File is missing"));
+
+  Fput (Qpermission_denied, Qerror_conditions,
+	Fpurecopy (list3 (Qpermission_denied, Qfile_error, Qerror)));
+  Fput (Qpermission_denied, Qerror_message,
+	build_pure_c_string ("Cannot access file or directory"));
 
   Fput (Qfile_notify_error, Qerror_conditions,
 	Fpurecopy (list3 (Qfile_notify_error, Qfile_error, Qerror)));

@@ -1,6 +1,6 @@
 ;;; cl-lib-tests.el --- tests for emacs-lisp/cl-lib.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -353,13 +353,6 @@
   (should (= 5 (cl-fifth '(1 2 3 4 5 6))))
   (should-error (cl-fifth "12345") :type 'wrong-type-argument))
 
-(ert-deftest cl-lib-test-fifth ()
-  (should (null (cl-fifth '())))
-  (should (null (cl-fifth '(1 2 3 4))))
-  (should (= 5 (cl-fifth '(1 2 3 4 5))))
-  (should (= 5 (cl-fifth '(1 2 3 4 5 6))))
-  (should-error (cl-fifth "12345") :type 'wrong-type-argument))
-
 (ert-deftest cl-lib-test-sixth ()
   (should (null (cl-sixth '())))
   (should (null (cl-sixth '(1 2 3 4 5))))
@@ -557,5 +550,10 @@
                       'cl-struct-foo-tags 'cl-struct-foo t)
     (should cl-old-struct-compat-mode)
     (cl-old-struct-compat-mode (if saved 1 -1))))
+
+(ert-deftest cl-constantly ()
+  (should (equal (mapcar (cl-constantly 3) '(a b c d))
+                 '(3 3 3 3))))
+
 
 ;;; cl-lib-tests.el ends here

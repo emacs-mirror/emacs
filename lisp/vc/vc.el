@@ -1,6 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1998, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -944,8 +944,10 @@ use."
           bk)
       (dolist (backend vc-handled-backends)
         (when (not (vc-call-backend backend 'registered file))
-          (let* ((path (vc-call-backend backend 'responsible-p file))
-                 (len (length path)))
+          (let* ((dir-name (vc-call-backend backend 'responsible-p file))
+                 (len (and dir-name
+                           (length (file-name-split
+                                    (expand-file-name dir-name))))))
             (when (and len (> len max))
               (setq max len bk backend)))))
       (when bk
@@ -977,7 +979,7 @@ use."
 		 (message "arg %s" arg)
 		 (and (file-directory-p arg)
 		      (string-prefix-p (expand-file-name arg) def-dir)))))))
-	   (let ((default-directory repo-dir))
+      (let ((default-directory repo-dir))
 	(vc-call-backend bk 'create-repo))
       (throw 'found bk))))
 
@@ -2753,7 +2755,7 @@ to the working revision (except for keyword expansion)."
     (unwind-protect
 	(when (if vc-revert-show-diff
 		  (progn
-		    (setq diff-buffer (generate-new-buffer-name "*vc-diff*"))
+		    (setq diff-buffer (generate-new-buffer "*vc-diff*"))
 		    (vc-diff-internal vc-allow-async-revert vc-fileset
 				      nil nil nil diff-buffer))
 		;; Avoid querying the user again.

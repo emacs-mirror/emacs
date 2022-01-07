@@ -1,6 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -2311,7 +2311,6 @@ problems."
   (viper-downgrade-to-insert))
 
 (defun viper-start-R-mode ()
-  ;; Leave arg as 1, not t: XEmacs insists that it must be a pos number
   (overwrite-mode 1)
   (add-hook
    'viper-post-command-hooks #'viper-R-state-post-command-sentinel t 'local)

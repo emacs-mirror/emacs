@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2021 Free Software Foundation, Inc.
+Copyright 2015-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -102,6 +102,12 @@ dynlib_open (const char *dll_fname)
     dynlib_last_err = GetLastError ();
 
   return (dynlib_handle_ptr) hdll;
+}
+
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *dll_fname)
+{
+  return dynlib_open (dll_fname);
 }
 
 void *
@@ -269,6 +275,12 @@ dynlib_close (dynlib_handle_ptr h)
 
 dynlib_handle_ptr
 dynlib_open (const char *path)
+{
+  return dlopen (path, RTLD_LAZY | RTLD_GLOBAL);
+}
+
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *path)
 {
   return dlopen (path, RTLD_LAZY);
 }

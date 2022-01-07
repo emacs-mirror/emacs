@@ -1,6 +1,6 @@
 ;;; tramp-rclone.el --- Tramp access functions to cloud storages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -71,7 +71,8 @@
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-rclone-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '(;; `abbreviate-file-name' performed by default handler.
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)
@@ -110,7 +111,7 @@
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-fuse-handle-file-readable-p)
+    (file-readable-p . tramp-rclone-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
@@ -156,11 +157,10 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-rclone-file-name-p (filename)
-  "Check if it's a FILENAME for rclone."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-		tramp-rclone-method)))
+(defsubst tramp-rclone-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for rclone."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-rclone-method)))
 
 ;;;###tramp-autoload
 (defun tramp-rclone-file-name-handler (operation &rest args)
@@ -223,7 +223,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -279,6 +279,12 @@ file names."
      #'copy-file
      (list filename newname ok-if-already-exists keep-date
 	   preserve-uid-gid preserve-extended-attributes))))
+
+(defun tramp-rclone-handle-file-readable-p (filename)
+  "Like `file-readable-p' for Tramp files."
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
+    (with-tramp-file-property v localname "file-readable-p"
+      (file-readable-p (tramp-fuse-local-file-name filename)))))
 
 (defun tramp-rclone-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -361,10 +367,6 @@ connection if a previous connection has died for some reason."
 		  :server t :host 'local :service t :noquery t)))
 	  (process-put p 'vector vec)
 	  (set-process-query-on-exit-flag p nil)
-
-	  ;; Mark process for filelock.
-	  (tramp-set-connection-property
-	   p "lock-pid" (truncate (time-to-seconds)))
 
 	  ;; Set connection-local variables.
 	  (tramp-set-connection-local-variables vec)))

@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -368,10 +368,15 @@ It is also called if Tooltip mode is on, for text-only displays."
      ((equal-including-properties tooltip-help-message (current-message))
       (message nil)))))
 
+(declare-function menu-or-popup-active-p "xmenu.c" ())
+
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (if (display-graphic-p)
+  (if (and (display-graphic-p)
+           (or (not (eq window-system 'haiku)) ;; On Haiku, there isn't a reliable way to show tooltips
+                                               ;; above menus.
+               (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)

@@ -25,7 +25,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001--2003, 2005--2021 Free Software
+Copyright @copyright{} 1995, 2001--2003, 2005--2022 Free Software
 Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -1018,16 +1018,16 @@ Send multimedia messages (@pxref{Adding Attachments}).
 Read HTML messages (@pxref{HTML}).
 @c -------------------------
 @item
-Use aliases and identities (see @ref{Aliases}, @pxref{Identities}).
+Use aliases and identities (@pxref{Aliases}, @pxref{Identities}).
 @c -------------------------
 @item
-Create different views of your mail (see @ref{Threading}, @pxref{Limits}).
+Create different views of your mail (@pxref{Threading}, @pxref{Limits}).
 @c -------------------------
 @item
 Deal with junk mail (@pxref{Junk}).
 @c -------------------------
 @item
-Handle signed and encrypted messages (see @ref{Reading PGP},
+Handle signed and encrypted messages (@pxref{Reading PGP},
 @pxref{Sending PGP}).
 @c -------------------------
 @item
@@ -1038,7 +1038,7 @@ Process mail that was sent with @command{shar} or @command{uuencode}
 Use sequences conveniently (@pxref{Sequences}).
 @c -------------------------
 @item
-Use the speedbar, tool bar, and menu bar (see @ref{Speedbar}, see @ref{Tool
+Use the speedbar, tool bar, and menu bar (@pxref{Speedbar}, @pxref{Tool
 Bar}, @pxref{Menu Bar}).
 @c -------------------------
 @item

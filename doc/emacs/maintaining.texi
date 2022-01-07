@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -493,7 +493,7 @@ action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
-buffer or in a VC Directory buffer.
+buffer, in a Dired buffer, or in a VC Directory buffer.
 
   Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups

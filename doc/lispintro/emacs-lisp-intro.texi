@@ -117,7 +117,7 @@ Edition @value{edition-number}, @value{update-date}
 @sp 1
 Distributed with Emacs version @value{EMACSVER}.
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2021 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2022 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -688,7 +688,7 @@ Your @file{.emacs} File
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
-* Keybindings::                 Create some personal keybindings.
+* Key Bindings::                Create some personal key bindings.
 * Keymaps::                     More about key binding.
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
@@ -2146,9 +2146,10 @@ number---the number of characters the location is from the beginning
 of the buffer.)  In Emacs Lisp, @code{+} can be used to add the
 numeric value of marker positions as numbers.
 
+@cindex @samp{predicate} defined
 The @samp{p} of @code{number-or-marker-p} is the embodiment of a
 practice started in the early days of Lisp programming.  The @samp{p}
-stands for ``predicate''.  In the jargon used by the early Lisp
+stands for @dfn{predicate}.  In the jargon used by the early Lisp
 researchers, a predicate refers to a function to determine whether some
 property is true or false.  So the @samp{p} tells us that
 @code{number-or-marker-p} is the name of a function that determines
@@ -3357,7 +3358,7 @@ Both the examples just mentioned work identically to move point forward
 three sentences.  (Since @code{multiply-by-seven} is not bound to a key,
 it could not be used as an example of key binding.)
 
-(@xref{Keybindings, , Some Keybindings}, to learn how to bind a command
+(@xref{Key Bindings, , Some Key Bindings}, to learn how to bind a command
 to a key.)
 
 A @dfn{prefix argument} is passed to an interactive function by typing the
@@ -4895,25 +4896,6 @@ result of this, point is placed at the beginning of the buffer and mark
 is set at the end of the buffer.  The whole buffer is, therefore, the
 region.
 
-@c FIXME: the definition of append-to-buffer has been changed (in
-@c 2010-03-30).
-@c In Bug#8275, Stefan Monner <monnier@iro.umontreal.ca> writes:
-@c >> Do you want to fix this, or shall I try?  The problem is that
-@c >> append-to-buffer now uses let* and with-current-buffer, so this might
-@c >> break the flow of the text.  At this point in the book, let* and
-@c >> with-current-buffer are not yet introduced.
-@c >
-@c > Here are some thoughts:
-@c > - I don't think it's of any importance that the example code be
-@c >   identical to the currently used code.
-@c > - append-to-buffer might not be the best example since AFAICT copying
-@c >   text from one buffer to another is not a common operation and in most
-@c >   cases this is done via buffer-substring + insert (often with some
-@c >   processing on the string between the two) rather than with
-@c >   insert-buffer-substring which is a rarely used function.
-@c > - yes, I think the text would benefit from some rethink to try and present
-@c >   with-current-buffer in preference to set-buffer, but it's not
-@c >   a simple fix.
 @node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
@@ -4948,8 +4930,9 @@ buffer to which the text will go, the window it comes from and goes
 to, and the region that will be copied.
 
 @need 1250
-Here is the complete text of the function:
+Here is a possible implementation of the function:
 
+@c GNU Emacs 22
 @smallexample
 @group
 (defun append-to-buffer (buffer start end)
@@ -5016,7 +4999,9 @@ name.  (The function can handle either.)
 Since the @code{append-to-buffer} function will be used interactively,
 the function must have an @code{interactive} expression.  (For a
 review of @code{interactive}, see @ref{Interactive, , Making a
-Function Interactive}.)  The expression reads as follows:
+Function Interactive}.)
+
+The expression reads as follows:
 
 @smallexample
 @group
@@ -5045,7 +5030,7 @@ for true.
 
 The first argument to @code{other-buffer}, the exception, is yet
 another function, @code{current-buffer}.  That is not going to be
-returned.  The second argument is the symbol for true, @code{t}. that
+returned.  The second argument is the symbol for true, @code{t}.  That
 tells @code{other-buffer} that it may show visible buffers (except in
 this case, it will not show the current buffer, which makes sense).
 
@@ -5081,33 +5066,6 @@ point and mark.  That argument worked fine.)
 @node append-to-buffer body
 @subsection The Body of @code{append-to-buffer}
 
-@ignore
-in GNU Emacs 22   in    /usr/local/src/emacs/lisp/simple.el
-
-(defun append-to-buffer (buffer start end)
-  "Append to specified buffer the text of the region.
-It is inserted into that buffer before its point.
-
-When calling from a program, give three arguments:
-BUFFER (or buffer name), START and END.
-START and END specify the portion of the current buffer to be copied."
-  (interactive
-   (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
-         (region-beginning) (region-end)))
-  (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (let* ((append-to (get-buffer-create buffer))
-             (windows (get-buffer-window-list append-to t t))
-             point)
-        (set-buffer append-to)
-        (setq point (point))
-        (barf-if-buffer-read-only)
-        (insert-buffer-substring oldbuf start end)
-        (dolist (window windows)
-          (when (= (window-point window) point)
-            (set-window-point window (point))))))))
-@end ignore
-
 The body of the @code{append-to-buffer} function begins with @code{let}.
 
 As we have seen before (@pxref{let, , @code{let}}), the purpose of a
@@ -5126,7 +5084,7 @@ whole by showing a template for @code{append-to-buffer} with the
   "@var{documentation}@dots{}"
   (interactive @dots{})
   (let ((@var{variable} @var{value}))
-        @var{body}@dots{})
+        @var{body}@dots{}))
 @end group
 @end smallexample
 
@@ -5246,19 +5204,39 @@ of filling in the slots of a template:
 
 @need 1200
 @noindent
+@anchor{let* introduced}
+@findex let*
 In this function, the body of the @code{save-excursion} contains only
 one expression, the @code{let*} expression.  You know about a
-@code{let} function.  The @code{let*} function is different.  It has a
-@samp{*} in its name.  It enables Emacs to set each variable in its
-varlist in sequence, one after another.
+@code{let} function.  The @code{let*} function is different.  It
+enables Emacs to set each variable in its varlist in sequence, one
+after another; such that variables in the latter part of the varlist
+can make use of the values to which Emacs set variables earlier in the
+varlist.
 
-Its critical feature is that variables later in the varlist can make
-use of the values to which Emacs set variables earlier in the varlist.
-@xref{fwd-para let, , The @code{let*} expression}.
+Looking at the @code{let*} expression in @code{append-to-buffer}:
 
-We will skip functions like @code{let*} and focus on two: the
-@code{set-buffer} function and the @code{insert-buffer-substring}
-function.
+@smallexample
+@group
+(let* ((append-to (get-buffer-create buffer))
+       (windows (get-buffer-window-list append-to t t))
+       point)
+  BODY...)
+@end group
+@end smallexample
+
+@noindent
+we see that @code{append-to} is bound to the value returned by the
+@w{@code{(get-buffer-create buffer)}}. On the next line,
+@code{append-to} is used as an argument to
+@code{get-buffer-window-list}; this would not be possible with the
+@code{let} expression.  Note that @code{point} is automatically bound
+to @code{nil}, the same way as it would be done in the @code{let}
+statement.
+
+Now let's focus on the functions @code{set-buffer} and
+@code{insert-buffer-substring} in the body of the @code{let*}
+expression.
 
 @need 1250
 In the old days, the @code{set-buffer} expression was simply
@@ -5276,27 +5254,8 @@ but now it is
 @end smallexample
 
 @noindent
-@code{append-to} is bound to @code{(get-buffer-create buffer)} earlier
-on in the @code{let*} expression.  That extra binding would not be
-necessary except for that @code{append-to} is used later in the
-varlist as an argument to @code{get-buffer-window-list}.
-
-@ignore
-in GNU Emacs 22
-
-  (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (let* ((append-to (get-buffer-create buffer))
-             (windows (get-buffer-window-list append-to t t))
-             point)
-        (set-buffer append-to)
-        (setq point (point))
-        (barf-if-buffer-read-only)
-        (insert-buffer-substring oldbuf start end)
-        (dolist (window windows)
-          (when (= (window-point window) point)
-            (set-window-point window (point))))))))
-@end ignore
+This is because @code{append-to} was bound to @code{(get-buffer-create
+buffer)} earlier on in the @code{let*} expression.
 
 The @code{append-to-buffer} function definition inserts text from the
 buffer in which you are currently to a named buffer.  It happens that
@@ -5392,6 +5351,12 @@ an argument and insert the region into the current buffer.
 
 @item mark-whole-buffer
 Mark the whole buffer as a region.  Normally bound to @kbd{C-x h}.
+
+@item let*
+Declare a list of variables and give them an initial value; then
+evaluate the rest of the expressions in the body of @code{let*}.  The
+values of the variables can be used to bind ensuing variables in the
+list.
 
 @item set-buffer
 Switch the attention of Emacs to another buffer, but do not change the
@@ -5818,7 +5783,7 @@ written like this:
 @subsection The @code{let} Expression in @code{insert-buffer}
 
 After ensuring that the variable @code{buffer} refers to a buffer itself
-and not just to the name of a buffer, the @code{insert-buffer function}
+and not just to the name of a buffer, the @code{insert-buffer} function
 continues with a @code{let} expression.  This specifies three local
 variables, @code{start}, @code{end}, and @code{newmark} and binds them
 to the initial value @code{nil}.  These variables are used inside the
@@ -12895,25 +12860,12 @@ familiar part of this function.
 @node fwd-para let
 @unnumberedsubsec The @code{let*} expression
 
-The next line of the @code{forward-paragraph} function begins a
-@code{let*} expression.  This is different from @code{let}.  The
-symbol is @code{let*} not @code{let}.
-
 @findex let*
-The @code{let*} special form is like @code{let} except that Emacs sets
-each variable in sequence, one after another, and variables in the
-latter part of the varlist can make use of the values to which Emacs
-set variables in the earlier part of the varlist.
-
-@ignore
-( refappend save-excursion, , code save-excursion in code append-to-buffer .)
-@end ignore
-
-(@ref{append save-excursion, , @code{save-excursion} in @code{append-to-buffer}}.)
-
-In the @code{let*} expression in this function, Emacs binds a total of
-seven variables:  @code{opoint}, @code{fill-prefix-regexp},
-@code{parstart}, @code{parsep}, @code{sp-parstart}, @code{start}, and
+The next line of the @code{forward-paragraph} function begins a
+@code{let*} expression (@pxref{let* introduced,,@code{let*}
+introduced}), in which Emacs binds a total of seven variables:
+@code{opoint}, @code{fill-prefix-regexp}, @code{parstart},
+@code{parsep}, @code{sp-parstart}, @code{start}, and
 @code{found-start}.
 
 The variable @code{parsep} appears twice, first, to remove instances
@@ -13710,7 +13662,7 @@ syntax table determines which characters these are."
 @end ifinfo
 
 @need 1000
-If you wish, you can also install this keybinding by evaluating it:
+If you wish, you can also install this key binding by evaluating it:
 
 @smallexample
 (global-set-key "\C-c=" '@value{COUNT-WORDS})
@@ -14662,7 +14614,7 @@ almost the same code as for the recursive version of
 
 @need 800
 @noindent
-Let's re-use @kbd{C-c =} as a convenient keybinding:
+Let's re-use @kbd{C-c =} as a convenient key binding:
 
 @smallexample
 (global-set-key "\C-c=" 'count-words-defun)
@@ -14670,7 +14622,7 @@ Let's re-use @kbd{C-c =} as a convenient keybinding:
 
 Now we can try out @code{count-words-defun}: install both
 @code{count-words-in-defun} and @code{count-words-defun}, and set the
-keybinding.  Then copy the following to an Emacs Lisp buffer (like,
+key binding.  Then copy the following to an Emacs Lisp buffer (like,
 for instance, @file{*scratch*}), place the cursor within the
 definition, and use the @kbd{C-c =} command.
 
@@ -16012,7 +15964,7 @@ placing point somewhere in the buffer, typing @kbd{M-:}, typing the
 and then typing @key{RET}.  This causes Emacs to evaluate the
 expression in the minibuffer, but to use as the value of point the
 position of point in the @file{*scratch*} buffer.  (@kbd{M-:}  is the
-keybinding for @code{eval-expression}. Also, @code{nil} does not
+key binding for @code{eval-expression}. Also, @code{nil} does not
 appear in the @file{*scratch*} buffer since the expression is
 evaluated in the minibuffer.)
 
@@ -16579,7 +16531,7 @@ expressions in Emacs Lisp you can change or extend Emacs.
 * Text and Auto-fill::          Automatically wrap lines.
 * Mail Aliases::                Use abbreviations for email addresses.
 * Indent Tabs Mode::            Don't use tabs with @TeX{}
-* Keybindings::                 Create some personal keybindings.
+* Key Bindings::                Create some personal key bindings.
 * Keymaps::                     More about key binding.
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
@@ -17123,10 +17075,10 @@ Files'' in @cite{The GNU Emacs Manual}.
 @end iftex
 
 @need 1700
-@node Keybindings
-@section Some Keybindings
+@node Key Bindings
+@section Some Key Bindings
 
-Now for some personal keybindings:
+Now for some personal key bindings:
 
 @smallexample
 @group
@@ -17148,10 +17100,10 @@ This also shows how to set a key globally, for all modes.
 @cindex Key setting globally
 @findex global-set-key
 The command is @code{global-set-key}.  It is followed by the
-keybinding.  In a @file{.emacs} file, the keybinding is written as
+key binding.  In a @file{.emacs} file, the keybinding is written as
 shown: @code{\C-c} stands for Control-C, which means to press the
 control key and the @kbd{c} key at the same time.  The @code{w} means
-to press the @kbd{w} key.  The keybinding is surrounded by double
+to press the @kbd{w} key.  The key binding is surrounded by double
 quotation marks.  In documentation, you would write this as
 @w{@kbd{C-c w}}.  (If you were binding a @key{META} key, such as
 @kbd{M-c}, rather than a @key{CTRL} key, you would write
@@ -17165,26 +17117,26 @@ would first try to evaluate the symbol to determine its value.
 
 These three things, the double quotation marks, the backslash before
 the @samp{C}, and the single-quote are necessary parts of
-keybinding that I tend to forget.  Fortunately, I have come to
+key binding that I tend to forget.  Fortunately, I have come to
 remember that I should look at my existing @file{.emacs} file, and
 adapt what is there.
 
-As for the keybinding itself: @kbd{C-c w}.  This combines the prefix
+As for the key binding itself: @kbd{C-c w}.  This combines the prefix
 key, @kbd{C-c}, with a single character, in this case, @kbd{w}.  This
 set of keys, @kbd{C-c} followed by a single character, is strictly
 reserved for individuals' own use.  (I call these @dfn{own} keys, since
 these are for my own use.)  You should always be able to create such a
-keybinding for your own use without stomping on someone else's
-keybinding.  If you ever write an extension to Emacs, please avoid
+key binding for your own use without stomping on someone else's
+key binding.  If you ever write an extension to Emacs, please avoid
 taking any of these keys for public use.  Create a key like @kbd{C-c
 C-w} instead.  Otherwise, we will run out of own keys.
 
 @need 1250
-Here is another keybinding, with a comment:
+Here is another key binding, with a comment:
 
 @smallexample
 @group
-;;; Keybinding for 'occur'
+;;; Key binding for 'occur'
 ; I use occur a lot, so let's bind it to a key:
 (global-set-key "\C-co" 'occur)
 @end group
@@ -17244,8 +17196,8 @@ but moves point into that window.
 @cindex Rebinding keys
 
 Emacs uses @dfn{keymaps} to record which keys call which commands.
-When you use @code{global-set-key} to set the keybinding for a single
-command in all parts of Emacs, you are specifying the keybinding in
+When you use @code{global-set-key} to set the key binding for a single
+command in all parts of Emacs, you are specifying the key binding in
 @code{current-global-map}.
 
 Specific modes, such as C mode or Text mode, have their own keymaps;
@@ -17500,7 +17452,7 @@ Here is the definition:
 @end smallexample
 
 @need 1250
-Now for the keybinding.
+Now for the key binding.
 
 Function keys as well as mouse button events and non-@sc{ascii}
 characters are written within square brackets, without quotation
@@ -17805,7 +17757,7 @@ Some systems bind keys unpleasantly.  Sometimes, for example, the
 @key{CTRL} key appears in an awkward spot rather than at the far left
 of the home row.
 
-Usually, when people fix these sorts of keybindings, they do not
+Usually, when people fix these sorts of key bindings, they do not
 change their @file{~/.emacs} file.  Instead, they bind the proper keys
 on their consoles with the @code{loadkeys} or @code{install-keymap}
 commands in their boot script and then include @code{xmodmap} commands

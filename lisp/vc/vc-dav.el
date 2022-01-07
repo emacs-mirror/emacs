@@ -1,6 +1,6 @@
 ;;; vc-dav.el --- vc.el support for WebDAV  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: url, vc
@@ -136,10 +136,10 @@ It should return a status of either 0 (no differences found), or
   "Find the version control state of all files in DIR in a fast way."
   )
 
-(defun vc-dav-responsible-p (_url)
+(defun vc-dav-responsible-p (url)
   "Return non-nil if DAV considers itself `responsible' for URL."
   ;; Check for DAV support on the web server.
-  t)
+  (and t url))
 
 ;;; Unimplemented functions
 ;;

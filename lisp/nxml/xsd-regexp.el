@@ -1,6 +1,6 @@
 ;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, regexp
@@ -51,9 +51,6 @@
 ;; mule-unicode-2500-33ff, mule-unicode-e000-ffff, eight-bit-control
 ;; or a character translatable to such a character (i.e a character
 ;; for which `encode-char' will return non-nil).
-;;
-;; Using unify-8859-on-decoding-mode is probably a good idea here
-;; (and generally with XML and other Unicode-oriented formats).
 ;;
 ;; Unfortunately, this means that this package is currently useless
 ;; for CJK characters, since there's no mule-unicode charset for the
@@ -290,7 +287,7 @@ and whose tail is ACCUM."
 (defun xsdre-compile-single-char (ch)
   (if (memq ch '(?. ?* ?+ ?? ?\[ ?\] ?^ ?$ ?\\))
       (string ?\\ ch)
-    (string (decode-char 'ucs ch))))
+    (string ch)))
 
 (defun xsdre-char-class-to-range-list (cc)
   "Return a range-list for a symbolic char-class CC."
@@ -407,10 +404,6 @@ consisting of a single char alternative delimited with []."
 		    (cons last chars)
 		  (cons last (cons ?- chars))))))
       (setq range-list (cdr range-list)))
-    (setq chars
-	  (mapcar (lambda (c)
-		    (decode-char 'ucs c))
-		  chars))
     (when caret
       (setq chars (cons ?^ chars)))
     (when hyphen

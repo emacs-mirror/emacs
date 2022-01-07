@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros
@@ -439,7 +439,7 @@ name to execute the last keyboard macro, in its current form.  (If you
 later add to the definition of this macro, that does not alter the
 name's definition as a macro.)  The macro name is a Lisp symbol, and
 defining it in this way makes it a valid command name for calling with
-@kbd{M-x} or for binding a key to with @code{global-set-key}
+@kbd{M-x} or for binding a key to with @code{keymap-global-set}
 (@pxref{Keymaps}).  If you specify a name that has a prior definition
 other than a keyboard macro, an error message is shown and nothing is
 changed.

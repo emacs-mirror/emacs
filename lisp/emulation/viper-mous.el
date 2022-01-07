@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -198,8 +198,7 @@ is ignored."
 
 	 (setq result (buffer-substring word-beg (point))))
        ) ; if
-     ;; XEmacs doesn't have set-text-properties, but there buffer-substring
-     ;; doesn't return properties together with the string, so it's not needed.
+     ;; FIXME: Use `buffer-substring-no-properties' above instead?
      (set-text-properties 0 (length result) nil result)
      result))
 

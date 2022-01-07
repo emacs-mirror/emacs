@@ -1,6 +1,6 @@
 ;;; seq-tests.el --- Tests for seq.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -173,16 +173,18 @@ Evaluate BODY for each created sequence.
   (should (seq-find #'null '(1 2 3) 'sentinel)))
 
 (ert-deftest test-seq-contains ()
-  (with-test-sequences (seq '(3 4 5 6))
-    (should (seq-contains seq 3))
-    (should-not (seq-contains seq 7)))
-  (with-test-sequences (seq '())
-    (should-not (seq-contains seq 3))
-    (should-not (seq-contains seq nil))))
+  (with-suppressed-warnings ((obsolete seq-contains))
+    (with-test-sequences (seq '(3 4 5 6))
+      (should (seq-contains seq 3))
+      (should-not (seq-contains seq 7)))
+    (with-test-sequences (seq '())
+      (should-not (seq-contains seq 3))
+      (should-not (seq-contains seq nil)))))
 
 (ert-deftest test-seq-contains-should-return-the-elt ()
-  (with-test-sequences (seq '(3 4 5 6))
-    (should (= 5 (seq-contains seq 5)))))
+  (with-suppressed-warnings ((obsolete seq-contains))
+    (with-test-sequences (seq '(3 4 5 6))
+      (should (= 5 (seq-contains seq 5))))))
 
 (ert-deftest test-seq-contains-p ()
   (with-test-sequences (seq '(3 4 5 6))
@@ -404,7 +406,7 @@ Evaluate BODY for each created sequence.
   (let ((seq '(1 (2 (3 (4))))))
     (seq-let (_ (_ (_ (a)))) seq
       (should (= a 4))))
-  (let (seq)
+  (let ((seq nil))
     (seq-let (a b c) seq
       (should (null a))
       (should (null b))
@@ -428,7 +430,7 @@ Evaluate BODY for each created sequence.
         (seq '(1 (2 (3 (4))))))
     (seq-setq (_ (_ (_ (a)))) seq)
     (should (= a 4)))
-  (let (seq a b c)
+  (let ((seq nil) a b c)
     (seq-setq (a b c) seq)
     (should (null a))
     (should (null b))

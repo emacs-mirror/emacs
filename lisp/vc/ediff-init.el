@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -615,8 +615,8 @@ Actually, Ediff restores the scope of visibility that existed at startup.")
 
 (defcustom ediff-keep-variants t
   "Nil means prompt to remove unmodified buffers A/B/C at session end.
-Supplying a prefix argument to the quit command `q' temporarily reverses the
-meaning of this variable."
+Supplying a prefix argument to the quit command \\`q' temporarily
+reverses the meaning of this variable."
   :type 'boolean
   :group 'ediff)
 

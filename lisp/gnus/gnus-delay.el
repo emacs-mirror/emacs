@@ -1,6 +1,6 @@
 ;;; gnus-delay.el --- Delayed posting of articles  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions

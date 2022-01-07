@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2021 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -288,7 +288,7 @@ mnemonics of the following coding systems:
 Value is used for `mode-line-frame-identification', which see."
   (if (or (null window-system)
 	  (eq window-system 'pc))
-      "-%F  "
+      " %F  "
     "  "))
 
 ;; We need to defer the call to mode-line-frame-control to the time
@@ -501,8 +501,9 @@ mouse-1: Display Line and Column Mode Menu"))
 
 (defvar mode-line-position
   `((:propertize
-     mode-line-percent-position
+     ("" mode-line-percent-position)
      local-map ,mode-line-column-line-number-mode-map
+     display (min-width (5.0))
      mouse-face mode-line-highlight
      ;; XXX needs better description
      help-echo "Window Scroll Percentage
@@ -521,26 +522,31 @@ mouse-1: Display Line and Column Mode Menu")))
         (10
          (:propertize
           mode-line-position-column-line-format
+          display (min-width (10.0))
           ,@mode-line-position--column-line-properties))
         (10
          (:propertize
           (:eval (string-replace
                   "%c" "%C" (car mode-line-position-column-line-format)))
+          display (min-width (10.0))
           ,@mode-line-position--column-line-properties)))
        (6
         (:propertize
 	 mode-line-position-line-format
+         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))))
      (column-number-mode
       (column-number-indicator-zero-based
        (6
         (:propertize
          mode-line-position-column-format
+         display (min-width (6.0))
          (,@mode-line-position--column-line-properties)))
        (6
         (:propertize
          (:eval (string-replace
                  "%c" "%C" (car mode-line-position-column-format)))
+         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))))))
   "Mode line construct for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
@@ -597,10 +603,14 @@ By default, this shows the information specified by `global-mode-string'.")
 (let ((standard-mode-line-format
        (list "%e"
 	     'mode-line-front-space
-	     'mode-line-mule-info
-	     'mode-line-client
-	     'mode-line-modified
-	     'mode-line-remote
+             (list
+              :propertize
+              (list ""
+	            'mode-line-mule-info
+	            'mode-line-client
+	            'mode-line-modified
+	            'mode-line-remote)
+              'display '(min-width (5.0)))
 	     'mode-line-frame-identification
 	     'mode-line-buffer-identification
 	     "   "
@@ -1250,6 +1260,8 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key global-map [kp-8]		'function-key-error)
 ;; (define-key global-map [kp-9]		'function-key-error)
 ;; (define-key global-map [kp-equal]	'function-key-error)
+
+(define-key global-map [touch-end] 'ignore)
 
 ;; X11 distinguishes these keys from the non-kp keys.
 ;; Make them behave like the non-kp keys unless otherwise bound.

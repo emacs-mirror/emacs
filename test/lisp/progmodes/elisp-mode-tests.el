@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -109,7 +109,7 @@
         (should (member "backup-inhibited" comps))
         (should-not (member "backup-buffer" comps))))))
 
-(ert-deftest elisp-completes-functions-after-let-bindings ()
+(ert-deftest elisp-completes-functions-after-let-bindings-2 ()
   (with-temp-buffer
     (emacs-lisp-mode)
     (insert "(let ((bar 1) (baz 2)) (ba")
@@ -438,7 +438,8 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; track down the problem.
 (cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
   "Doc string generic no-default xref-elisp-root-type."
-  "non-default for no-default")
+  "non-default for no-default"
+  (list this arg2)) ; silence byte-compiler
 
 ;; defgeneric after defmethod in file to ensure the fallback search
 ;; method of just looking for the function name will fail.
@@ -448,13 +449,15 @@ to (xref-elisp-test-descr-to-target xref)."
   ;; dispatching code.
   )
 
-(cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
-  "Doc string generic co-located-default."
-  "co-located default")
+(with-no-warnings ; FIXME: Make more specific.
+  (cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
+    "Doc string generic co-located-default."
+    "co-located default"))
 
-(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
-  "Doc string generic co-located-default xref-elisp-root-type."
-  "non-default for co-located-default")
+(with-no-warnings ; FIXME: Make more specific.
+  (cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
+    "Doc string generic co-located-default xref-elisp-root-type."
+    "non-default for co-located-default"))
 
 (cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
   "Doc string generic separate-default."
@@ -463,19 +466,23 @@ to (xref-elisp-test-descr-to-target xref)."
 
 (cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
   "Doc string generic separate-default default."
-  "separate default")
+  "separate default"
+  (list arg1 arg2)) ; silence byte-compiler
 
 (cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
   "Doc string generic separate-default xref-elisp-root-type."
-  "non-default for separate-default")
+  "non-default for separate-default"
+  (list this arg2)) ; silence byte-compiler
 
 (cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
   "Doc string generic implicit-generic default."
-  "default for implicit generic")
+  "default for implicit generic"
+  (list arg1 arg2)) ; silence byte-compiler
 
 (cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
   "Doc string generic implicit-generic xref-elisp-root-type."
-  "non-default for implicit generic")
+  "non-default for implicit generic"
+  (list this arg2)) ; silence byte-compiler
 
 
 (xref-elisp-deftest find-defs-defgeneric-no-methods
@@ -610,7 +617,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-eval
-  (elisp--xref-find-definitions (eval '(cl-defgeneric stephe-leake-cl-defgeneric ())))
+  (elisp--xref-find-definitions (eval '(cl-defgeneric stephe-leake-cl-defgeneric ()) t))
   nil)
 
 ;; Define some mode-local overloadable/overridden functions for xref to find
@@ -712,7 +719,7 @@ to (xref-elisp-test-descr-to-target xref)."
 	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))))
 
 (xref-elisp-deftest find-defs-defun-eval
-  (elisp--xref-find-definitions (eval '(defun stephe-leake-defun ())))
+  (elisp--xref-find-definitions (eval '(defun stephe-leake-defun ()) t))
   nil)
 
 (xref-elisp-deftest find-defs-defun-c
@@ -797,7 +804,7 @@ to (xref-elisp-test-descr-to-target xref)."
     "DEFVAR_PER_BUFFER (\"default-directory\"")))
 
 (xref-elisp-deftest find-defs-defvar-eval
-  (elisp--xref-find-definitions (eval '(defvar stephe-leake-defvar nil)))
+  (elisp--xref-find-definitions (eval '(defvar stephe-leake-defvar nil) t))
   nil)
 
 (xref-elisp-deftest find-defs-face-el
@@ -815,7 +822,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-face-eval
-  (elisp--xref-find-definitions (eval '(defface stephe-leake-defface nil "")))
+  (elisp--xref-find-definitions (eval '(defface stephe-leake-defface nil "") t))
   nil)
 
 (xref-elisp-deftest find-defs-feature-el
@@ -830,7 +837,7 @@ to (xref-elisp-test-descr-to-target xref)."
    ))
 
 (xref-elisp-deftest find-defs-feature-eval
-  (elisp--xref-find-definitions (eval '(provide 'stephe-leake-feature)))
+  (elisp--xref-find-definitions (eval '(provide 'stephe-leake-feature) t))
   nil)
 
 (ert-deftest elisp--preceding-sexp--char-name ()
@@ -845,7 +852,8 @@ to (xref-elisp-test-descr-to-target xref)."
     (if (stringp form)
         (insert form)
       (pp form (current-buffer)))
-    (font-lock-debug-fontify)
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
+      (font-lock-debug-fontify))
     (goto-char (point-min))
     (and (re-search-forward search nil t)
          (get-text-property (match-beginning 1) 'face))))

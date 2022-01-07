@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -47,14 +47,14 @@ are similar in spirit to registers, so they are also documented in
 this chapter.
 
 @menu
-* Position Registers::       Saving positions in registers.
-* Text Registers::           Saving text in registers.
-* Rectangle Registers::      Saving rectangles in registers.
-* Configuration Registers::  Saving window configurations in registers.
-* Number Registers::         Numbers in registers.
-* File Registers::           File names in registers.
-* Keyboard Macro Registers:: Keyboard macros in registers.
-* Bookmarks::                Bookmarks are like registers, but persistent.
+* Position Registers::        Saving positions in registers.
+* Text Registers::            Saving text in registers.
+* Rectangle Registers::       Saving rectangles in registers.
+* Configuration Registers::   Saving window configurations in registers.
+* Number Registers::          Numbers in registers.
+* File and Buffer Registers:: File and buffer names in registers.
+* Keyboard Macro Registers::  Keyboard macros in registers.
+* Bookmarks::                 Bookmarks are like registers, but persistent.
 @end menu
 
 @node Position Registers
@@ -238,9 +238,10 @@ register contents into the buffer.  @kbd{C-x r +} with no numeric
 argument increments the register value by 1; @kbd{C-x r n} with no
 numeric argument stores zero in the register.
 
-@node File Registers
-@section Keeping File Names in Registers
+@node File and Buffer Registers
+@section Keeping File and Buffer Names in Registers
 @cindex saving file name in a register
+@cindex saving buffer name in a register
 
   If you visit certain file names frequently, you can visit them more
 conveniently if you put their names in registers.  Here's the Lisp code
@@ -264,6 +265,15 @@ puts the file name shown in register @samp{z}.
   To visit the file whose name is in register @var{r}, type @kbd{C-x r j
 @var{r}}.  (This is the same command used to jump to a position or
 restore a frame configuration.)
+
+  Similarly, if there's certain buffers you visit frequently, you
+can put their names in registers.  For instance, if you visit the
+@samp{*Messages*} buffer often, you can use the following snippet to
+put that buffer into the @samp{m} register:
+
+@smallexample
+(set-register ?m '(buffer . "*Messages*"))
+@end smallexample
 
 @node Keyboard Macro Registers
 @section Keyboard Macro Registers

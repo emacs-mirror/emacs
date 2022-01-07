@@ -1,6 +1,6 @@
 ;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -214,9 +214,13 @@ to the SCCS command."
 (defun vc-sccs-responsible-p (file)
   "Return non-nil if SCCS thinks it would be responsible for registering FILE."
   ;; TODO: check for all the patterns in vc-sccs-master-templates
-  (or (file-directory-p (expand-file-name "SCCS" (file-name-directory file)))
-      (stringp (vc-sccs-search-project-dir (or (file-name-directory file) "")
-					   (file-name-nondirectory file)))))
+  (or (and (file-directory-p
+            (expand-file-name "SCCS" (file-name-directory file)))
+           (file-name-directory file))
+      (let ((dir (vc-sccs-search-project-dir (or (file-name-directory file) "")
+					     (file-name-nondirectory file))))
+        (and (stringp dir)
+             dir))))
 
 (defun vc-sccs-checkin (files comment &optional rev)
   "SCCS-specific version of `vc-backend-checkin'."

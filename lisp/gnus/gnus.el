@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2021 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1467,11 +1467,11 @@ address was listed in gnus-group-split Addresses (see below).")
  :variable-group gnus-group-parameter
  :parameter-type '(gnus-email-address :tag "To List")
  :parameter-document "\
-This address will be used when doing a `a' in the group.
+This address will be used when doing a \\`a' in the group.
 
 It is totally ignored when doing a followup--except that if it is
 present in a news group, you'll get mail group semantics when doing
-`f'.
+\\`f'.
 
 The gnus-group-split mail splitting mechanism will behave as if this
 address was listed in gnus-group-split Addresses (see below).")
@@ -2528,14 +2528,6 @@ are always t.")
      ("babel" babel-as-string)
      ("nnmail" nnmail-split-fancy nnmail-article-group)
      ("nnvirtual" nnvirtual-catchup-group nnvirtual-convert-headers)
-     ;; This is only used in message.el, which has an autoload.
-     ("rmailout" rmail-output)
-     ;; Next two used in gnus-util, which has autoloads, and contrib/sendmail.
-     ("rmail" rmail-count-new-messages rmail-show-message
-      ;; Next two only used in gnus-util.
-      rmail-summary-exists rmail-select-summary)
-     ;; Only used in gnus-util, which has an autoload.
-     ("rmailsum" rmail-update-summary)
      ("gnus-xmas" gnus-xmas-splash)
      ("score-mode" :interactive t gnus-score-mode gnus-score-edit-all-score)
      ("gnus-mh" gnus-summary-save-article-folder
@@ -2749,7 +2741,7 @@ with some simple extensions.
 %F          Contents of the From: header (string)
 %f          Contents of the From: or To: headers (string)
 %x          Contents of the Xref: header (string)
-%D          Date of the article (string)
+%D          Contents of the Date: header article (string)
 %d          Date of the article (string) in DD-MMM format
 %o          Date of the article (string) in YYYYMMDD`T'HHMMSS
             format
@@ -3150,9 +3142,9 @@ g -- Group name."
   "Check whether GROUP supports function FUNC.
 GROUP can either be a string (a group name) or a select method."
   (ignore-errors
-    (let ((method (if (stringp group)
-		      (car (gnus-find-method-for-group group))
-		    group)))
+    (when-let ((method (if (stringp group)
+		           (car (gnus-find-method-for-group group))
+		         group)))
       (unless (featurep method)
 	(require method))
       (fboundp (intern (format "%s-%s" method func))))))

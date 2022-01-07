@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -156,7 +156,7 @@ Used in `smerge-diff-base-upper' and related functions."
   "E" #'smerge-ediff
   "C" #'smerge-combine-with-next
   "R" #'smerge-refine
-  ["C-m"] #'smerge-keep-current
+  "C-m" #'smerge-keep-current
   "=" (define-keymap :name "Diff"
         "<" (cons "base-upper" #'smerge-diff-base-upper)
         ">" (cons "base-lower" #'smerge-diff-base-lower)
@@ -165,12 +165,12 @@ Used in `smerge-diff-base-upper' and related functions."
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
   :type '(choice (const :tag "ESC"   "\e")
-		 (const :tag "C-c ^" "\C-c^" )
+		 (const :tag "C-c ^" "\C-c^")
 		 (const :tag "none"  "")
 		 string))
 
 (defvar-keymap smerge-mode-map
-  smerge-command-prefix smerge-basic-map)
+  (key-description smerge-command-prefix) smerge-basic-map)
 
 (defvar-local smerge-check-cache nil)
 (defun smerge-check (n)

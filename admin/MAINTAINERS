@@ -58,10 +58,7 @@ Artur Malabarba
 
 Michael Albinus
         Tramp
-            lisp/net/tramp*.el
             lisp/url/url-tramp.el
-            doc/misc/tramp*.texi
-            test/lisp/net/tramp*-tests.el
             test/lisp/url/url-tramp-tests.el
 
         D-Bus
@@ -137,6 +134,30 @@ Andrea Corallo
 	    lisp/emacs-lisp/comp.el
 	    lisp/emacs-lisp/comp-cstr.el
 	    test/src/comp-*.el
+
+Stefan Kangas
+        admin/automerge
+
+Po Lu
+	The Haiku port:
+	    src/haikuterm.c
+	    src/haikufns.c
+	    src/haikuimage.c
+	    src/haikuselect.c
+	    src/haiku_io.c
+	    src/haiku.c
+	    src/haiku_select.cc
+	    src/haiku_support.cc
+	    src/haiku_font_support.cc
+	    src/haiku_draw_support.cc
+	    src/haikugui.h
+	    src/haikuterm.h
+	    src/haikuselect.h
+	    src/haiku_support.h
+	    lisp/term/haiku-win.el
+	    doc/emacs/haiku.texi
+
+	Haiku battery support in lisp/battery.el
 
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
@@ -228,6 +249,7 @@ Michael Albinus
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el
+	test/infra/*
         test/lisp/autorevert-tests.el
         test/lisp/files-tests.el (file-name-non-special)
 	test/lisp/shadowfile-tests.el
@@ -265,6 +287,34 @@ Amin Bandali
 	Eshell
 	    lisp/eshell/*
 	    doc/misc/eshell.texi
+
+Po Lu
+	The X port
+	      src/xterm.c
+	      src/xfns.c
+	X11 and GTK xwidget support in src/xwidget.c
+	Precision pixel scrolling in lisp/pixel-scroll.el
+
+==============================================================================
+3. Externally maintained packages.
+==============================================================================
+
+Tramp
+	Maintainer: Michael Albinus
+	Repository: git://git.savannah.gnu.org/tramp.git
+	Mailing List: tramp-devel@gnu.org
+	Bug Reports: M-x tramp-bug
+
+        lisp/net/tramp*.el
+        doc/misc/tramp*.texi
+        test/lisp/net/tramp*-tests.el
+
+Modus themes
+        Maintainer: Protesilaos Stavrou
+        Repository and issue tracker: https://gitlab.com/protesilaos/modus-themes
+
+        doc/misc/modus-themes.org
+        etc/themes/modus*.el
 
 
 ;;; Local Variables:

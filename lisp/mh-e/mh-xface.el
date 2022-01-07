@@ -1,6 +1,6 @@
 ;;; mh-xface.el --- MH-E X-Face and Face header field display  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -73,8 +73,7 @@ in this order is used."
         (when (re-search-forward "^from:" (point-max) t)
           (if (eq type 'url)
               (mh-x-image-url-display url)
-            (mh-funcall-if-exists
-             insert-image (create-image
+            (insert-image (create-image
                            raw type t
                            :foreground
                            (face-foreground 'mh-show-xface nil t)

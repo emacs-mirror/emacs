@@ -8,7 +8,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1004,7 +1004,7 @@ The fundamental building blocks of Gnus are @dfn{servers},
 @dfn{groups}, and @dfn{articles}.  Servers can be local or remote.
 Each server maintains a list of groups, and those groups contain
 articles.  Because Gnus presents a unified interface to a wide variety
-of servers, the vocabulary doesn't always quite line up (see @ref{FAQ
+of servers, the vocabulary doesn't always quite line up (@pxref{FAQ
 - Glossary}, for a more complete glossary).  Thus a local maildir is
 referred to as a ``server'' (@pxref{Finding the News}) the same as a
 Usenet or IMAP server is; ``groups'' (@pxref{Group Buffer}) might mean
@@ -4499,7 +4499,7 @@ command or better use it as a prefix key.  For example:
     (gnus-group-jump-to-group "nndraft:drafts")))
 @end lisp
 
-On keys reserved for users in Emacs and on keybindings in general
+On keys reserved for users in Emacs and on key bindings in general
 @xref{Keymaps, Keymaps, , emacs, The Emacs Editor}.
 
 @item ^
@@ -13477,7 +13477,7 @@ Also @pxref{Formatting Variables}.
 @subsection Server Commands
 @cindex server commands
 
-The following keybinding are available in the server buffer.  Be aware
+The following key bindings are available in the server buffer.  Be aware
 that some of the commands will only work on servers that you've added
 through this interface (with @kbd{a}), not with servers you've defined
 in your init files.
@@ -15446,10 +15446,6 @@ and @code{2} in released Gnusae.  @xref{Gnus Development}.
 If non-@code{nil}, ask for confirmation before deleting old incoming
 files.  This variable only applies when
 @code{mail-source-delete-incoming} is a positive number.
-
-@item mail-source-ignore-errors
-@vindex mail-source-ignore-errors
-If non-@code{nil}, ignore errors when reading mail from a mail source.
 
 @item mail-source-directory
 @vindex mail-source-directory
@@ -18052,7 +18048,7 @@ find all messages that have been received recently from certain groups:
          (list
           (cons 'query
                 (format-time-string "SENTSINCE %d-%b-%Y"
-                                    (time-subtract (current-time)
+                                    (time-subtract nil
                                                    (days-to-time (car args)))))
           (cons 'criteria "")))
         (group-spec (cadr args)))
@@ -28890,7 +28886,7 @@ gnus-agent-cache nil)} reverts to the old behavior.
 @item
 Dired integration
 
-@code{gnus-dired-minor-mode} (see @ref{Other modes}) installs key
+@code{gnus-dired-minor-mode} (@pxref{Other modes}) installs key
 bindings in dired buffers to send a file as an attachment, open a file
 using the appropriate mailcap entry, and print a file using the mailcap
 entry.

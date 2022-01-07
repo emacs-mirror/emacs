@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2022 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1019,15 +1019,9 @@ Unless KEEP, removes the old indentation."
       (define-key map [(control ?c) (control ?h) ?v]
 	;;(concat (char-to-string help-char) "v") ; does not work
 	'cperl-get-help))
-    (substitute-key-definition
-     'indent-sexp 'cperl-indent-exp
-     map global-map)
-    (substitute-key-definition
-     'indent-region 'cperl-indent-region
-     map global-map)
-    (substitute-key-definition
-     'indent-for-comment 'cperl-indent-for-comment
-     map global-map)
+    (define-key map [remap indent-sexp]        #'cperl-indent-exp)
+    (define-key map [remap indent-region]      #'cperl-indent-region)
+    (define-key map [remap indent-for-comment] #'cperl-indent-for-comment)
     map)
   "Keymap used in CPerl mode.")
 

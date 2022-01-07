@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2021 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -40,7 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#endif	/* subprocesses */
+#else
+#define PIPECONN_P(p) false
+#define PIPECONN1_P(p) false
+#endif
 
 #ifdef HAVE_SETRLIMIT
 # include <sys/resource.h>
@@ -152,6 +155,7 @@ static bool kbd_is_on_hold;
    when exiting.  */
 bool inhibit_sentinels;
 
+#ifdef subprocesses
 union u_sockaddr
 {
   struct sockaddr sa;
@@ -163,8 +167,6 @@ union u_sockaddr
   struct sockaddr_un un;
 #endif
 };
-
-#ifdef subprocesses
 
 #ifndef SOCK_CLOEXEC
 # define SOCK_CLOEXEC 0
@@ -259,7 +261,7 @@ static bool process_output_skip;
 
 static void start_process_unwind (Lisp_Object);
 static void create_process (Lisp_Object, char **, Lisp_Object);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 static bool keyboard_bit_set (fd_set *);
 #endif
 static void deactivate_process (Lisp_Object);
@@ -5588,6 +5590,15 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = make_timespec (0, 0);
 #endif
 
+#if !defined USABLE_SIGIO && !defined WINDOWSNT
+	  /* If we're polling for input, don't get stuck in select for
+	     more than 25 msec. */
+	  struct timespec short_timeout = make_timespec (0, 25000000);
+	  if ((read_kbd || !NILP (wait_for_cell))
+	      && timespec_cmp (short_timeout, timeout) < 0)
+	    timeout = short_timeout;
+#endif
+
 	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
 #if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
@@ -5721,7 +5732,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       /* If we think we have keyboard input waiting, but didn't get SIGIO,
 	 go read it.  This can happen with X on BSD after logging out.
 	 In that case, there really is no input and no SIGIO,
@@ -5729,7 +5740,11 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       if (read_kbd && interrupt_input
 	  && keyboard_bit_set (&Available) && ! noninteractive)
+#ifdef USABLE_SIGIO
 	handle_input_available_signal (SIGIO);
+#else
+	handle_input_available_signal (SIGPOLL);
+#endif
 #endif
 
       /* If checking input just got us a size-change event from X,
@@ -5981,7 +5996,8 @@ read_process_output_error_handler (Lisp_Object error_val)
   cmd_error_internal (error_val, "error in process filter: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
-  Fsleep_for (make_fixnum (2), Qnil);
+  if (process_error_pause_time > 0)
+    Fsleep_for (make_fixnum (process_error_pause_time), Qnil);
   return Qt;
 }
 
@@ -6522,6 +6538,9 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 	  /* Send this batch, using one or more write calls.  */
 	  ptrdiff_t written = 0;
 	  int outfd = p->outfd;
+          if (outfd < 0)
+            error ("Output file descriptor of %s is closed",
+                   SDATA (p->name));
 	  eassert (0 <= outfd && outfd < FD_SETSIZE);
 #ifdef DATAGRAM_SOCKETS
 	  if (DATAGRAM_CHAN_P (outfd))
@@ -7408,7 +7427,8 @@ exec_sentinel_error_handler (Lisp_Object error_val)
   cmd_error_internal (error_val, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
-  Fsleep_for (make_fixnum (2), Qnil);
+  if (process_error_pause_time > 0)
+    Fsleep_for (make_fixnum (process_error_pause_time), Qnil);
   return Qt;
 }
 
@@ -7723,7 +7743,7 @@ delete_gpm_wait_descriptor (int desc)
 
 # endif
 
-# ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 
 /* Return true if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
@@ -8242,9 +8262,13 @@ If optional argument QUERY is `current', ignore OMP_NUM_THREADS.
 If QUERY is `all', also count processors not available.  */)
   (Lisp_Object query)
 {
+#ifndef MSDOS
   return make_uint (num_processors (EQ (query, Qall) ? NPROC_ALL
 				    : EQ (query, Qcurrent) ? NPROC_CURRENT
 				    : NPROC_CURRENT_OVERRIDABLE));
+#else
+  return make_fixnum (1);
+#endif
 }
 
 #ifdef subprocesses
@@ -8289,10 +8313,15 @@ open_channel_for_module (Lisp_Object process)
 {
   CHECK_PROCESS (process);
   CHECK_TYPE (PIPECONN_P (process), Qpipe_process_p, process);
+#ifndef MSDOS
   int fd = dup (XPROCESS (process)->open_fd[SUBPROCESS_STDOUT]);
   if (fd == -1)
     report_file_error ("Cannot duplicate file descriptor", Qnil);
   return fd;
+#else
+  /* PIPECONN_P returning true shouldn't be possible on MSDOS.  */
+  emacs_abort ();
+#endif
 }
 
 
@@ -8563,6 +8592,12 @@ returns non-nil.  */);
 Enlarge the value only if the subprocess generates very large (megabytes)
 amounts of data in one go.  */);
   read_process_output_max = 4096;
+
+  DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
+	      doc: /* The number of seconds to pause after handling process errors.
+This isn't used for all process-related errors, but is used when a
+sentinel or a process filter function has an error.  */);
+  process_error_pause_time = 1;
 
   DEFSYM (Qinternal_default_interrupt_process,
 	  "internal-default-interrupt-process");

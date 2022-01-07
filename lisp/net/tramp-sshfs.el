@@ -1,6 +1,6 @@
 ;;; tramp-sshfs.el --- Tramp access functions via sshfs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -71,7 +71,8 @@
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-sshfs-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '(;; `abbreviate-file-name' performed by default handler.
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-handle-copy-directory)
@@ -110,7 +111,7 @@
     (file-notify-rm-watch . ignore)
     (file-notify-valid-p . ignore)
     (file-ownership-preserved-p . ignore)
-    (file-readable-p . tramp-fuse-handle-file-readable-p)
+    (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
     (file-selinux-context . tramp-handle-file-selinux-context)
@@ -156,11 +157,10 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
-(defsubst tramp-sshfs-file-name-p (filename)
-  "Check if it's a FILENAME for sshfs."
-  (and (tramp-tramp-file-p filename)
-       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-	        tramp-sshfs-method)))
+(defsubst tramp-sshfs-file-name-p (vec-or-filename)
+  "Check if it's a VEC-OR-FILENAME for sshfs."
+  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
+    (string= (tramp-file-name-method vec) tramp-sshfs-method)))
 
 ;;;###tramp-autoload
 (defun tramp-sshfs-file-name-handler (operation &rest args)
@@ -344,9 +344,6 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
-
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)))

@@ -1,6 +1,6 @@
 ;;; master.el --- make a buffer the master over another buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Old-Version: 1.0.2

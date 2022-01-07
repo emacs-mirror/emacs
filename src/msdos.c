@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2021 Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1874,6 +1874,7 @@ initialize_msdos_display (struct terminal *term)
   term->redeem_scroll_bar_hook = 0;
   term->judge_scroll_bars_hook = 0;
   term->read_socket_hook = &tty_read_avail_input; /* from keyboard.c */
+  term->defined_color_hook = &tty_defined_color; /* from xfaces.c */
 }
 
 int
@@ -3915,6 +3916,50 @@ readlinkat (int fd, char const *name, char *buffer, size_t buffer_size)
   return readlink (name, buffer, buffer_size);
 }
 
+
+int
+openat (int fd, const char * path, int oflag, int mode)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for openat.  */
+  char fullname[MAXPATHLEN];
+
+  if (fd != AT_FDCWD)
+    {
+      if (strlen (dir_pathname) + strlen (path) + 1 >= MAXPATHLEN)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      sprintf (fullname, "%s/%s", dir_pathname, path);
+      path = fullname;
+    }
+
+  return open (path, oflag, mode);
+}
+
+int
+fchmodat (int fd, const char *path, mode_t mode, int flags)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for openat.  */
+  char fullname[MAXPATHLEN];
+
+  if (fd != AT_FDCWD)
+    {
+      if (strlen (dir_pathname) + strlen (path) + 1 >= MAXPATHLEN)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+
+      sprintf (fullname, "%s/%s", dir_pathname, path);
+      path = fullname;
+    }
+
+  return chmod (path, mode);
+}
+
 char *
 careadlinkat (int fd, char const *filename,
               char *buffer, size_t buffer_size,
@@ -3940,6 +3985,63 @@ careadlinkat (int fd, char const *filename,
 	buffer[len + 1] = '\0';
     }
   return buffer;
+}
+
+int
+futimens (int fd, const struct timespec times[2])
+{
+  struct tm *tm;
+  struct ftime ft;
+  time_t t;
+
+  block_input ();
+  if (times[1].tv_sec == UTIME_NOW)
+    t = time (NULL);
+  else
+    t = times[1].tv_sec;
+
+  tm = localtime (&t);
+  ft.ft_tsec = min (29, tm->tm_sec / 2);
+  ft.ft_min = tm->tm_min;
+  ft.ft_hour = tm->tm_hour;
+  ft.ft_day = tm->tm_mday;
+  ft.ft_month = tm->tm_mon + 1;
+  ft.ft_year = max (0, tm->tm_year - 80);
+  unblock_input ();
+
+  return setftime (fd, &ft);
+}
+
+int
+utimensat (int dirfd, const char *pathname,
+	   const struct timespec times[2], int flags)
+{
+  int fd, ret;
+  char fullname[MAXPATHLEN];
+
+  /* Rely on a hack: dirfd in its current usage in Emacs is always
+     AT_FDCWD.  */
+
+  if (dirfd != AT_FDCWD)
+    {
+      if (strlen (dir_pathname) + strlen (pathname) + 1 >= MAXPATHLEN)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      sprintf (fullname, "%s/%s", dir_pathname, pathname);
+      pathname = fullname;
+    }
+
+  fd = open (pathname, O_WRONLY);
+
+  if (fd < 0)
+    return -1;
+
+  ret = futimens (fd, times);
+  close (fd);
+
+  return ret;
 }
 
 /* Emulate faccessat(2).  */

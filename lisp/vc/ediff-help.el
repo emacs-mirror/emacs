@@ -1,6 +1,6 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -227,7 +227,9 @@ the value of this variable and the variables `ediff-help-message-*' in
 	    ((string= cmd "s") (re-search-forward "^['`‘]s['’]"))
 	    ((string= cmd "+") (re-search-forward "^['`‘]\\+['’]"))
 	    ((string= cmd "=") (re-search-forward "^['`‘]=['’]"))
-	    (t (user-error "Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer")))
+            (t (user-error (substitute-command-keys
+                            "Undocumented command! Type \\`G' in Ediff Control \
+Panel to drop a note to the Ediff maintainer"))))
       ) ; let case-fold-search
     ))
 

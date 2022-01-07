@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ### update_autogen - update some auto-generated files in the Emacs tree
 
-## Copyright (C) 2011-2021 Free Software Foundation, Inc.
+## Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -44,7 +44,7 @@ PD=${0%/*}
 [ "$PD" = "$0" ] && PD=.        # if PATH includes PWD
 
 ## This should be the admin directory.
-cd $PD
+cd $PD || exit
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
@@ -53,7 +53,7 @@ cd ../
 usage ()
 {
     cat 1>&2 <<EOF
-Usage: ${PN} [-f] [-c] [-q] [-A dir] [-I] [-L] [-C] [-- make-flags]
+Usage: ${PN} [-f] [-c] [-q] [-A dir] [-L] [-C] [-- make-flags]
 Update some auto-generated files in the Emacs tree.
 By default, only does the versioned loaddefs-like files in lisp/.
 This requires a build.  Passes any non-option args to make (eg -- -j2).
@@ -63,8 +63,6 @@ Options:
     commit them (caution).
 -q: be quiet; only give error messages, not status messages.
 -A: only update autotools files, copying into specified dir.
--H: also update ChangeLog.${changelog_n}
--I: also update info/dir.
 -L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
 EOF
@@ -81,14 +79,10 @@ clean=
 autogendir=                     # was "autogen"
 ldefs_flag=1
 lboot_flag=
-info_flag=
-changelog_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
-changelog_n=$(sed -n 's/CHANGELOG_HISTORY_INDEX_MAX *= *//p' Makefile.in)
-changelog_files="ChangeLog.$changelog_n"
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
 ## Everything:
@@ -108,10 +102,10 @@ done
 
 tempfile=/tmp/$PN.$$
 
-trap "rm -f $tempfile 2> /dev/null" EXIT
+trap 'rm -f $tempfile 2> /dev/null' EXIT
 
 
-while getopts ":hcfqA:HCIL" option ; do
+while getopts ":hcfqA:CL" option ; do
     case $option in
         (h) usage ;;
 
@@ -126,10 +120,6 @@ while getopts ":hcfqA:HCIL" option ; do
             ;;
 
         (C) clean=1 ;;
-
-        (H) changelog_flag=1 ;;
-
-        (I) info_flag=1 ;;
 
         (L) lboot_flag=1 ;;
 
@@ -172,7 +162,7 @@ status ()
 echo "Checking input file status..."
 
 ## The lisp portion could be more permissive, eg only care about .el files.
-modified=$(status ${autogendir:+$sources} ${ldefs_flag:+lisp} ${info_flag:+doc}) || die
+modified=$(status ${autogendir:+$sources} ${ldefs_flag:+lisp}) || die
 
 [ "$modified" ] && {
     echo "Locally modified: $modified"
@@ -235,64 +225,7 @@ commit ()
 }                               # function commit
 
 
-## No longer used since info/dir is now generated at install time if needed,
-## and is not in the repository any more.
-info_dir ()
-{
-    local basefile=build-aux/dir_top outfile=info/dir
-
-    echo "Regenerating info/dir..."
-
-    ## Header contains non-printing characters, so this is more
-    ## reliable than using echo.
-    rm -f $outfile
-    cp $basefile $outfile
-
-    local topic file dircat dirent
-
-    ## FIXME inefficient looping.
-    for topic in "Texinfo documentation system" "Emacs" "GNU Emacs Lisp" \
-        "Emacs editing modes" "Emacs network features" "Emacs misc features" \
-        "Emacs lisp libraries"; do
-
-        cat - <<EOF >> $outfile
-
-$topic
-EOF
-        ## Bit faster than doc/*/*.texi.
-        for file in doc/emacs/emacs.texi doc/lispintro/*.texi \
-            doc/lispref/elisp.texi doc/misc/*.texi; do
-
-            ## FIXME do not ignore w32 if OS is w32.
-            case $file in
-                *-xtra.texi|*efaq-w32.texi) continue ;;
-            esac
-
-            dircat=$(sed -n -e 's/@value{emacsname}/Emacs/' -e 's/^@dircategory //p' $file)
-
-            ## TODO warn about unknown topics (check-info in top-level
-            ## Makefile does this).
-            [ "$dircat" = "$topic" ] || continue
-
-            sed -n -e 's/@value{emacsname}/Emacs/' \
-                -e 's/@acronym{\([A-Z]*\)}/\1/' \
-                -e '/^@direntry/,/^@end direntry/ s/^\([^@]\)/\1/p' \
-                $file >> $outfile
-
-        done
-    done
-
-    local modified
-
-    modified=$(status $outfile) || die
-
-    commit "info/dir" $modified || die "commit error"
-}                               # function info_dir
-
-
 [ "$autogendir" ] && {
-
-    oldpwd=$PWD
 
     cp $genfiles $autogendir/
 
@@ -306,9 +239,6 @@ EOF
 
     exit 0
 }                               # $autogendir
-
-
-[ "$info_flag" ] && info_dir
 
 
 [ "$ldefs_flag" ] || exit 0
@@ -383,14 +313,6 @@ modified=$(status $genfiles $ldefs_out $grammar_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"
-
-
-## Less important than the other stuff, so do it last.
-[ ! "$changelog_flag" ] || {
-    make change-history-nocommit || die "make change-history error"
-    modified=$(status $changelog_files) || die
-    commit "ChangeLog" $modified || die "commit error"
-}
 
 
 exit 0

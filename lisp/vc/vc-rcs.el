@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -290,10 +290,11 @@ to the RCS command."
 (defun vc-rcs-responsible-p (file)
   "Return non-nil if RCS thinks it would be responsible for registering FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
-  (file-directory-p (expand-file-name "RCS"
-                                      (if (file-directory-p file)
-                                          file
-                                        (file-name-directory file)))))
+  (let ((dir (if (file-directory-p file)
+	         file
+	       (file-name-directory file))))
+    (and (file-directory-p (expand-file-name "RCS" dir))
+         (file-name-directory (expand-file-name "RCS" dir)))))
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."

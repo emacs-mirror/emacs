@@ -1,6 +1,6 @@
 /* Internals of a lightweight menubar widget.
 
-Copyright (C) 2002-2021 Free Software Foundation, Inc.
+Copyright (C) 2002-2022 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -75,6 +75,7 @@ typedef struct _XlwMenu_part
   Dimension	vertical_spacing;
   Dimension	arrow_spacing;
   Dimension	shadow_thickness;
+  Dimension	border_thickness;
   Pixel 	top_shadow_color;
   Pixel 	bottom_shadow_color;
   Pixmap	top_shadow_pixmap;

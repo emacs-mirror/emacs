@@ -1,6 +1,6 @@
 ;;; alloc-tests.el --- alloc tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords:
@@ -30,7 +30,7 @@
 (require 'cl-lib)
 
 (ert-deftest finalizer-object-type ()
-  (should (equal (type-of (make-finalizer nil)) 'finalizer)))
+  (should (equal (type-of (make-finalizer #'ignore)) 'finalizer)))
 
 (ert-deftest record-1 ()
   (let ((x (record 'foo 1 2 3)))

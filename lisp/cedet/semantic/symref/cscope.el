@@ -1,6 +1,6 @@
 ;;; semantic/symref/cscope.el --- Semantic-symref support via cscope  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -43,7 +43,7 @@ the hit list.
 See the function `cedet-cscope-search' for more details.")
 
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-cscope))
-  "Perform a search with GNU Global."
+  "Perform a search with CScope."
   (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
 		     (ede-toplevel)))
 	 (default-directory (if rootproj

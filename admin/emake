@@ -13,7 +13,7 @@ cores=1
 
 # Determine the number of cores.
 if [ -f /proc/cpuinfo ]; then
-    cores=$(($(egrep "^physical id|^cpu cores" /proc/cpuinfo |\
+    cores=$(($(grep -E "^physical id|^cpu cores" /proc/cpuinfo |\
 	awk '{ print $4; }' |\
 	sed '$!N;s/\n/ /' |\
 	uniq |\
@@ -30,7 +30,7 @@ s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
 s#^make.*Error#  \\& #
 ' | \
-egrep --line-buffered -v "^make|\
+grep -E --line-buffered -v "^make|\
 ^Loading|\
 SCRAPE|\
 INFO.*Scraping.*[.] ?\$|\
@@ -93,4 +93,4 @@ done
 # changed since last time.
 make -j$cores check-maybe 2>&1 | \
     sed -n '/contained unexpected results/,$p' | \
-    egrep --line-buffered -v "^make"
+    grep -E --line-buffered -v "^make"

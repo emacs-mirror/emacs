@@ -1,6 +1,6 @@
 ;;; xdisp-tests.el --- tests for xdisp.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -153,5 +153,21 @@ int main () {
     (should (eq (bidi-find-overridden-directionality (point-min) (point-max)
                                                      nil)
                 138))))
+
+(ert-deftest test-get-display-property ()
+  (with-temp-buffer
+    (insert (propertize "foo" 'face 'bold 'display '(height 2.0)))
+    (should (equal (get-display-property 2 'height) 2.0)))
+  (with-temp-buffer
+    (insert (propertize "foo" 'face 'bold 'display '((height 2.0)
+                                                     (space-width 2.0))))
+    (should (equal (get-display-property 2 'height) 2.0))
+    (should (equal (get-display-property 2 'space-width) 2.0)))
+  (with-temp-buffer
+    (insert (propertize "foo bar" 'face 'bold
+                        'display '[(height 2.0)
+                                   (space-width 20)]))
+    (should (equal (get-display-property 2 'height) 2.0))
+    (should (equal (get-display-property 2 'space-width) 20))))
 
 ;;; xdisp-tests.el ends here

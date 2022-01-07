@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -34,6 +34,8 @@
 (eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
+;; `dired-*' declarations can be removed, starting with Emacs 29.1.
+(declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
 (defvar process-file-return-signal-string)
@@ -739,7 +741,7 @@ characters need to be doubled.")
 (defconst tramp-perl-encode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2021 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -778,7 +780,7 @@ characters need to be doubled.")
 (defconst tramp-perl-decode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2021 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -940,7 +942,8 @@ Format specifiers \"%s\" are replaced before the script is used.")
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-sh-file-name-handler-alist
-  '((access-file . tramp-handle-access-file)
+  '((abbreviate-file-name . tramp-handle-abbreviate-file-name)
+    (access-file . tramp-handle-access-file)
     (add-name-to-file . tramp-sh-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-directory . tramp-sh-handle-copy-directory)
@@ -952,6 +955,8 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-sh-handle-directory-files-and-attributes)
+    ;; Starting with Emacs 29.1, `dired-compress-file' performed by
+    ;; default handler.
     (dired-compress-file . tramp-sh-handle-dired-compress-file)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-sh-handle-exec-path)
@@ -1334,7 +1339,7 @@ component is used as the target of the symlink."
       (with-parsed-tramp-file-name f nil
 	(let* ((remote-file-name-inhibit-cache t)
 	       (attr (file-attributes f))
-	       (modtime (or (tramp-compat-file-attribute-modification-time attr)
+	       (modtime (or (file-attribute-modification-time attr)
 			    tramp-time-doesnt-exist)))
 	  (setq coding-system-used last-coding-system-used)
 	  (if (not (tramp-compat-time-equal-p modtime tramp-time-dont-know))
@@ -1372,7 +1377,7 @@ of."
 	(with-parsed-tramp-file-name f nil
 	  (let* ((remote-file-name-inhibit-cache t)
 		 (attr (file-attributes f))
-		 (modtime (tramp-compat-file-attribute-modification-time attr))
+		 (modtime (file-attribute-modification-time attr))
 		 (mt (visited-file-modtime)))
 
 	    (cond
@@ -1424,7 +1429,7 @@ of."
 	     (if (or (null time)
 		     (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		     (tramp-compat-time-equal-p time tramp-time-dont-know))
-		 (current-time)
+		 nil
 	       time)))
 	(tramp-send-command-and-check
 	 v (format
@@ -1620,14 +1625,14 @@ ID-FORMAT valid values are `string' and `integer'."
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
 	    (and
-	     (= (tramp-compat-file-attribute-user-id attributes)
+	     (= (file-attribute-user-id attributes)
 		(tramp-get-remote-uid v 'integer))
 	     (or (not group)
 		 ;; On BSD-derived systems files always inherit the
                  ;; parent directory's group, so skip the group-gid
                  ;; test.
                  (tramp-check-remote-uname v "BSD\\|DragonFly\\|Darwin")
-		 (= (tramp-compat-file-attribute-group-id attributes)
+		 (= (file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
 ;; Directory listings.
@@ -1637,8 +1642,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `directory-files-and-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
   (unless (file-exists-p directory)
-    (tramp-compat-file-missing
-     (tramp-dissect-file-name directory) directory))
+    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
   (when (file-directory-p directory)
     (setq directory (expand-file-name directory))
     (let* ((temp
@@ -1858,7 +1862,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	target)
     (with-parsed-tramp-file-name (if t1 dirname newname) nil
       (unless (file-exists-p dirname)
-	(tramp-compat-file-missing v dirname))
+	(tramp-error v 'file-missing dirname))
 
       ;; `copy-directory-create-symlink' exists since Emacs 28.1.
       (if (and (bound-and-true-p copy-directory-create-symlink)
@@ -1952,7 +1956,7 @@ file names."
 
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
-	  (length (tramp-compat-file-attribute-size
+	  (length (file-attribute-size
 		   (file-attributes (file-truename filename))))
 	  (attributes (and preserve-extended-attributes
 			   (file-extended-attributes filename)))
@@ -1960,7 +1964,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-compat-file-missing v filename))
+	  (tramp-error v 'file-missing filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -2052,7 +2056,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   ;; Check, whether file is too large.  Emacs checks in `insert-file-1'
   ;; and `find-file-noselect', but that's not called here.
   (abort-if-file-too-large
-   (tramp-compat-file-attribute-size (file-attributes (file-truename filename)))
+   (file-attribute-size (file-attributes (file-truename filename)))
    (symbol-name op) filename)
   ;; We must disable multibyte, because binary data shall not be
   ;; converted.  We don't want the target file to be compressed, so we
@@ -2074,8 +2078,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   (when keep-date
     (tramp-compat-set-file-times
      newname
-     (tramp-compat-file-attribute-modification-time
-      (file-attributes filename))
+     (file-attribute-modification-time (file-attributes filename))
      (unless ok-if-already-exists 'nofollow)))
   ;; Set the mode.
   (set-file-modes newname (tramp-default-file-modes filename))
@@ -2094,7 +2097,7 @@ as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid from FILENAME."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
-	(file-times (tramp-compat-file-attribute-modification-time
+	(file-times (file-attribute-modification-time
 		     (file-attributes filename)))
 	(file-modes (tramp-default-file-modes filename)))
     (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -2419,8 +2422,7 @@ The method used must be an out-of-band method."
 	(when (and keep-date (not copy-keep-date))
 	  (tramp-compat-set-file-times
 	   newname
-	   (tramp-compat-file-attribute-modification-time
-	    (file-attributes filename))
+	   (file-attribute-modification-time (file-attributes filename))
 	   (unless ok-if-already-exists 'nofollow)))
 
 	;; Set the mode.
@@ -2476,54 +2478,58 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-dired-compress-file (file)
   "Like `dired-compress-file' for Tramp files."
-  ;; Code stolen mainly from dired-aux.el.
-  (with-parsed-tramp-file-name file nil
-    (tramp-flush-file-properties v localname)
-    (let ((suffixes dired-compress-file-suffixes)
-	  suffix)
-      ;; See if any suffix rule matches this file name.
-      (while suffixes
-	(let (case-fold-search)
-	  (if (string-match-p (car (car suffixes)) localname)
-	      (setq suffix (car suffixes) suffixes nil))
-	  (setq suffixes (cdr suffixes))))
+  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; default handler.
+  (if (>= emacs-major-version 29)
+      (tramp-run-real-handler #'dired-compress-file (list file))
+    ;; Code stolen mainly from dired-aux.el.
+    (with-parsed-tramp-file-name file nil
+      (tramp-flush-file-properties v localname)
+      (let ((suffixes dired-compress-file-suffixes)
+	    suffix)
+	;; See if any suffix rule matches this file name.
+	(while suffixes
+	  (let (case-fold-search)
+	    (if (string-match-p (car (car suffixes)) localname)
+		(setq suffix (car suffixes) suffixes nil))
+	    (setq suffixes (cdr suffixes))))
 
-      (cond ((file-symlink-p file) nil)
-	    ((and suffix (nth 2 suffix))
-	     ;; We found an uncompression rule.
-	     (with-tramp-progress-reporter
-                 v 0 (format "Uncompressing %s" file)
-	       (when (tramp-send-command-and-check
-		      v (if (string-match-p "%[io]" (nth 2 suffix))
-                            (replace-regexp-in-string
-                             "%i" (tramp-shell-quote-argument localname)
-                             (nth 2 suffix))
-                          (concat (nth 2 suffix) " "
-                                  (tramp-shell-quote-argument localname))))
-		 (unless (string-match-p "\\.tar\\.gz" file)
-                   (dired-remove-file file))
-		 (string-match (car suffix) file)
-		 (concat (substring file 0 (match-beginning 0))))))
-	    (t
-	     ;; We don't recognize the file as compressed, so compress it.
-	     ;; Try gzip.
-	     (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
-	       (when (tramp-send-command-and-check
-		      v (if (file-directory-p file)
-                            (format "tar -cf - %s | gzip -c9 > %s.tar.gz"
-                                    (tramp-shell-quote-argument
-                                     (file-name-nondirectory localname))
-                                    (tramp-shell-quote-argument localname))
-                          (concat "gzip -f "
-				  (tramp-shell-quote-argument localname))))
-		 (unless (file-directory-p file)
-                   (dired-remove-file file))
-		 (catch 'found nil
-                        (dolist (target (mapcar (lambda (suffix)
-                                                  (concat file suffix))
-                                                '(".tar.gz" ".gz" ".z")))
-                          (when (file-exists-p target)
-                            (throw 'found target)))))))))))
+	(cond ((file-symlink-p file) nil)
+	      ((and suffix (nth 2 suffix))
+	       ;; We found an uncompression rule.
+	       (with-tramp-progress-reporter
+                   v 0 (format "Uncompressing %s" file)
+		 (when (tramp-send-command-and-check
+			v (if (string-match-p "%[io]" (nth 2 suffix))
+                              (replace-regexp-in-string
+                               "%i" (tramp-shell-quote-argument localname)
+                               (nth 2 suffix))
+                            (concat (nth 2 suffix) " "
+                                    (tramp-shell-quote-argument localname))))
+		   (unless (string-match-p "\\.tar\\.gz" file)
+                     (dired-remove-file file))
+		   (string-match (car suffix) file)
+		   (concat (substring file 0 (match-beginning 0))))))
+	      (t
+	       ;; We don't recognize the file as compressed, so
+	       ;; compress it.  Try gzip.
+	       (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
+		 (when (tramp-send-command-and-check
+			v (if (file-directory-p file)
+                              (format "tar -cf - %s | gzip -c9 > %s.tar.gz"
+                                      (tramp-shell-quote-argument
+                                       (file-name-nondirectory localname))
+                                      (tramp-shell-quote-argument localname))
+                            (concat "gzip -f "
+				    (tramp-shell-quote-argument localname))))
+		   (unless (file-directory-p file)
+                     (dired-remove-file file))
+		   (catch 'found nil
+                          (dolist (target (mapcar (lambda (suffix)
+                                                    (concat file suffix))
+                                                  '(".tar.gz" ".gz" ".z")))
+                            (when (file-exists-p target)
+                              (throw 'found target))))))))))))
 
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
@@ -2595,7 +2601,7 @@ The method used must be an out-of-band method."
 	;; We cannot use `insert-buffer-substring' because the Tramp
 	;; buffer changes its contents before insertion due to calling
 	;; `expand-file-name' and alike.
-	(insert (with-current-buffer (tramp-get-buffer v) (buffer-string)))
+	(insert (tramp-get-buffer-string (tramp-get-buffer v)))
 
 	;; We must enable unibyte strings, because the "--dired"
 	;; output counts in bytes.
@@ -3154,8 +3160,7 @@ implementation will be used."
 	    (when outbuf
 	      (with-current-buffer outbuf
                 (insert
-                 (with-current-buffer (tramp-get-connection-buffer v)
-                   (buffer-string))))
+		 (tramp-get-buffer-string (tramp-get-connection-buffer v))))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
@@ -3199,9 +3204,9 @@ implementation will be used."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (unless (file-exists-p (file-truename filename))
-      (tramp-compat-file-missing v filename))
+      (tramp-error v 'file-missing filename))
 
-    (let* ((size (tramp-compat-file-attribute-size
+    (let* ((size (file-attribute-size
 		  (file-attributes (file-truename filename))))
 	   (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
 	   (loc-dec (tramp-get-inline-coding v "local-decoding" size))
@@ -3288,11 +3293,9 @@ implementation will be used."
       (tramp-error v 'file-already-exists filename))
 
     (let ((file-locked (eq (file-locked-p lockname) t))
-	  (uid (or (tramp-compat-file-attribute-user-id
-		    (file-attributes filename 'integer))
+	  (uid (or (file-attribute-user-id (file-attributes filename 'integer))
 		   (tramp-get-remote-uid v 'integer)))
-	  (gid (or (tramp-compat-file-attribute-group-id
-		    (file-attributes filename 'integer))
+	  (gid (or (file-attribute-group-id (file-attributes filename 'integer))
 		   (tramp-get-remote-gid v 'integer))))
 
       ;; Lock file.
@@ -3371,8 +3374,7 @@ implementation will be used."
 	  ;; specified.  However, if the method _also_ specifies an
 	  ;; encoding function, then that is used for encoding the
 	  ;; contents of the tmp file.
-	  (let* ((size (tramp-compat-file-attribute-size
-			(file-attributes tmpfile)))
+	  (let* ((size (file-attribute-size (file-attributes tmpfile)))
 		 (rem-dec (tramp-get-inline-coding v "remote-decoding" size))
 		 (loc-enc (tramp-get-inline-coding v "local-encoding" size)))
 	    (cond
@@ -3472,8 +3474,7 @@ implementation will be used."
 			 (not
 			  (string-equal
 			   (buffer-string)
-			   (with-current-buffer (tramp-get-buffer v)
-			     (buffer-string))))
+			   (tramp-get-buffer-string (tramp-get-buffer v))))
 			 (tramp-error
 			  v 'file-error
 			  (concat "Couldn't write region to `%s',"
@@ -3507,10 +3508,10 @@ implementation will be used."
              ;; We must pass modtime explicitly, because FILENAME can
              ;; be different from (buffer-file-name), f.e. if
              ;; `file-precious-flag' is set.
-	     (or (tramp-compat-file-attribute-modification-time file-attr)
+	     (or (file-attribute-modification-time file-attr)
 		 (current-time)))
-            (when (and (= (tramp-compat-file-attribute-user-id file-attr) uid)
-                       (= (tramp-compat-file-attribute-group-id file-attr) gid))
+            (when (and (= (file-attribute-user-id file-attr) uid)
+                       (= (file-attribute-group-id file-attr) gid))
               (setq need-chown nil))))
 
 	;; Set the ownership.
@@ -3767,8 +3768,7 @@ Fall back to normal file name handler if no Tramp handler exists."
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'events))
 	(remote-prefix
-	 (with-current-buffer (process-buffer proc)
-	   (file-remote-p default-directory)))
+	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
 	(rest-string (process-get proc 'rest-string))
 	pos)
     (when rest-string
@@ -4597,6 +4597,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-enc)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
@@ -4614,6 +4616,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-dec)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message
@@ -6019,5 +6023,8 @@ function cell is returned to be applied on a buffer."
 ;;   be to stipulate, as a directory or connection-local variable, an
 ;;   additional rc file on the remote machine that is sourced every
 ;;   time Tramp connects.  <https://emacs.stackexchange.com/questions/62306>
+;;
+;; * Support hostname canonicalization in ~/.ssh/config.
+;;   <https://stackoverflow.com/questions/70205232/>
 
 ;;; tramp-sh.el ends here

@@ -1,6 +1,6 @@
 ;;; tab-line.el --- window-local tabs with window buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: windows tabs
@@ -495,6 +495,8 @@ which the tab will represent."
     (apply 'propertize
            (concat (propertize name
                                'keymap tab-line-tab-map
+                               'help-echo (if selected-p "Current tab"
+                                            "Click to select tab")
                                ;; Don't turn mouse-1 into mouse-2 (bug#49247)
                                'follow-link 'ignore)
                    (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
@@ -615,6 +617,12 @@ the selected tab visible."
 
 (defvar tab-line-auto-hscroll-buffer (generate-new-buffer " *tab-line-hscroll*"))
 
+(defun tab-line--get-tab-property (prop string)
+  (or (get-pos-property 1 prop string) ;; for most cases of 1-char separator
+      (get-pos-property 0 prop string) ;; for empty separator
+      (let ((pos (next-single-property-change 0 prop string))) ;; long separator
+        (and pos (get-pos-property pos prop string)))))
+
 (defun tab-line-auto-hscroll (strings hscroll)
   (with-current-buffer tab-line-auto-hscroll-buffer
     (let ((truncate-partial-width-windows nil)
@@ -636,7 +644,7 @@ the selected tab visible."
                  (not (integerp hscroll)))
         (let ((selected (seq-position strings 'selected
                                       (lambda (str prop)
-                                        (get-pos-property 1 prop str)))))
+                                        (tab-line--get-tab-property prop str)))))
           (cond
            ((null selected)
             ;; Do nothing if no tab is selected
@@ -656,7 +664,7 @@ the selected tab visible."
                        (new-hscroll (when tab-prop
                                       (seq-position strings tab-prop
                                                     (lambda (str tab)
-                                                      (eq (get-pos-property 1 'tab str) tab))))))
+                                                      (eq (tab-line--get-tab-property 'tab str) tab))))))
                   (when new-hscroll
                     (setq hscroll (float new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))
@@ -683,7 +691,7 @@ the selected tab visible."
                        (new-hscroll (when tab-prop
                                       (seq-position strings tab-prop
                                                     (lambda (str tab)
-                                                      (eq (get-pos-property 1 'tab str) tab))))))
+                                                      (eq (tab-line--get-tab-property 'tab str) tab))))))
                   (when new-hscroll
                     (setq hscroll (float new-hscroll))
                     (set-window-parameter nil 'tab-line-hscroll hscroll)))))))))
@@ -742,7 +750,7 @@ So, for example, switching to a previous tab is equivalent to
 using the `previous-buffer' command."
   (interactive "e")
   (let* ((posnp (event-start event))
-         (tab (get-pos-property 1 'tab (car (posn-string posnp))))
+         (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
          (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
     (if buffer
         (tab-line-select-tab-buffer buffer (posn-window posnp))
@@ -792,7 +800,9 @@ Its effect is the same as using the `previous-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-prev-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
@@ -816,7 +826,9 @@ Its effect is the same as using the `next-buffer' command
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (switch-to-next-buffer window)
       (with-selected-window (or window (selected-window))
-        (let* ((tabs (funcall tab-line-tabs-function))
+        (let* ((tabs (seq-filter
+                      (lambda (tab) (or (bufferp tab) (assq 'buffer tab)))
+                      (funcall tab-line-tabs-function)))
                (pos (seq-position
                      tabs (current-buffer)
                      (lambda (tab buffer)
@@ -854,7 +866,7 @@ sight of the tab line."
   (interactive (list last-nonmenu-event))
   (let* ((posnp (and (listp event) (event-start event)))
          (window (and posnp (posn-window posnp)))
-         (tab (get-pos-property 1 'tab (car (posn-string posnp))))
+         (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
          (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
          (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
     (with-selected-window (or window (selected-window))
@@ -893,7 +905,14 @@ sight of the tab line."
 (define-minor-mode tab-line-mode
   "Toggle display of tab line in the windows displaying the current buffer."
   :lighter nil
-  (setq tab-line-format (when tab-line-mode '(:eval (tab-line-format)))))
+  (let ((default-value '(:eval (tab-line-format))))
+    (if tab-line-mode
+        ;; Preserve the existing tab-line set outside of this mode
+        (unless tab-line-format
+          (setq tab-line-format default-value))
+      ;; Reset only values set by this mode
+      (when (equal tab-line-format default-value)
+        (setq tab-line-format nil)))))
 
 (defcustom tab-line-exclude-modes
   '(completion-list-mode)

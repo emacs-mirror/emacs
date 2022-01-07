@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal

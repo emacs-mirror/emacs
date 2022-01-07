@@ -8,7 +8,7 @@
 @copying
 This file documents the GNU Emacs Web Wowser (EWW) package.
 
-Copyright @copyright{} 2014--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 2014--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -229,11 +229,11 @@ in an external browser by customizing
 @findex eww-retrieve-command
   EWW normally uses @code{url-retrieve} to fetch the @acronym{HTML}
 before rendering it, and @code{url-retrieve-synchronously} when
-the value is @code{sync}.  It can sometimes be convenient to use an
-external program to do this, and @code{eww-retrieve-command} should
-then be a list that specifies a command and the parameters.  For
-instance, to use the Chromium browser, you could say something like
-this:
+the value of @code{eww-retrieve-command} is @code{sync}.  It can
+sometimes be convenient to use an external program to do this, and
+@code{eww-retrieve-command} should then be a list that specifies
+a command and the parameters.  For instance, to use the Chromium
+browser, you could say something like this:
 
 @lisp
 (setq eww-retrieve-command
@@ -305,6 +305,7 @@ state the directionality.
 
 @vindex shr-max-image-proportion
 @vindex shr-blocked-images
+@vindex shr-allowed-images
 @cindex Image Display
   Loading random images from the web can be problematic due to their
 size or content.  By customizing @code{shr-max-image-proportion} you
@@ -312,7 +313,9 @@ can set the maximal image proportion in relation to the window they
 are displayed in.  E.g., 0.7 means an image is allowed to take up 70%
 of the width and height.  If Emacs supports image scaling (ImageMagick
 support required) then larger images are scaled down.  You can block
-specific images completely by customizing @code{shr-blocked-images}.
+specific images completely by customizing @code{shr-blocked-images},
+or, if you want to only allow some specific images, customize
+@code{shr-allowed-images}.
 
 @vindex shr-inhibit-images
   You can control image display by customizing

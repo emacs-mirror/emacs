@@ -1,6 +1,6 @@
 ;;; org-colview.el --- Column View in Org            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -782,7 +782,7 @@ around it."
       (setq time-after (copy-sequence time))
       (setf (nth 3 time-before) (1- (nth 3 time)))
       (setf (nth 3 time-after) (1+ (nth 3 time)))
-      (mapcar (lambda (x) (format-time-string fmt (apply #'encode-time x)))
+      (mapcar (lambda (x) (format-time-string fmt (encode-time x)))
 	      (list time-before time time-after)))))
 
 (defun org-columns-open-link (&optional arg)

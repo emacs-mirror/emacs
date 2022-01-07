@@ -1,6 +1,6 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
@@ -85,32 +85,21 @@
 (defvar bb-balls-placed nil
   "List of already placed balls.")
 
-;; This is used below to remap existing bindings for cursor motion to
-;; blackbox-specific bindings in blackbox-mode-map.  This is so that
-;; users who prefer non-default key bindings for cursor motion don't
-;; lose that when they play Blackbox.
-(defun blackbox-redefine-key (map oldfun newfun)
-  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
-  (define-key map (vector 'remap oldfun) newfun))
-
-
-(defvar blackbox-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map t)
-    (blackbox-redefine-key map 'backward-char 'bb-left)
-    (blackbox-redefine-key map 'left-char 'bb-left)
-    (blackbox-redefine-key map 'forward-char 'bb-right)
-    (blackbox-redefine-key map 'right-char 'bb-right)
-    (blackbox-redefine-key map 'previous-line 'bb-up)
-    (blackbox-redefine-key map 'next-line 'bb-down)
-    (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
-    (blackbox-redefine-key map 'move-beginning-of-line 'bb-bol)
-    (define-key map " " 'bb-romp)
-    (define-key map "q" 'bury-buffer)
-    (define-key map [insert] 'bb-romp)
-    (define-key map [return] 'bb-done)
-    (blackbox-redefine-key map 'newline 'bb-done)
-    map))
+(defvar-keymap blackbox-mode-map
+  :suppress 'nodigits
+  "SPC"      #'bb-romp
+  "q"        #'bury-buffer
+  "<insert>" #'bb-romp
+  "<return>" #'bb-done
+  "<remap> <backward-char>"          #'bb-left
+  "<remap> <left-char>"              #'bb-left
+  "<remap> <forward-char>"           #'bb-right
+  "<remap> <right-char>"             #'bb-right
+  "<remap> <previous-line>"          #'bb-up
+  "<remap> <next-line>"              #'bb-down
+  "<remap> <move-end-of-line>"       #'bb-eol
+  "<remap> <move-beginning-of-line>" #'bb-bol
+  "<remap> <newline>"                #'bb-done)
 
 ;; Blackbox mode is suitable only for specially formatted data.
 
@@ -425,6 +414,11 @@ a reflection."
     (delete-char (length c))
     (insert c)
     (backward-char 1)))
+
+(defun blackbox-redefine-key (map oldfun newfun)
+  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
+  (declare (obsolete define-key "29.1"))
+  (define-key map (vector 'remap oldfun) newfun))
 
 (provide 'blackbox)
 

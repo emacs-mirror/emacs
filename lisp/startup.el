@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2021 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -519,6 +519,19 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
+(defvar comp--delayed-sources)
+(defvar comp--loadable)
+(declare-function native--compile-async "comp.el"
+                  (files &optional recursively load selector))
+(defun startup--honor-delayed-native-compilations ()
+  "Honor pending delayed deferred native compilations."
+  (when (and (native-comp-available-p)
+             comp--delayed-sources)
+    (require 'comp)
+    (setq comp--loadable t)
+    (native--compile-async comp--delayed-sources nil 'late)
+    (setq comp--delayed-sources nil)))
+
 (defvar native-comp-eln-load-path)
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
@@ -785,7 +798,8 @@ It is the default value of the variable `top-level'."
           (if (string-match "\\`DISPLAY=" varval)
               (setq display varval))))
       (when display
-        (delete display process-environment)))))
+        (delete display process-environment))))
+  (startup--honor-delayed-native-compilations))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 ;; Command-line options supported by tty's:
@@ -1042,6 +1056,9 @@ the `--debug-init' option to view a complete error backtrace."
     (when debug-on-error-should-be-set
       (setq debug-on-error debug-on-error-from-init-file))))
 
+(defvar lisp-directory nil
+  "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
+
 (defun command-line ()
   "A subroutine of `normal-top-level'.
 Amongst another things, it parses the command-line arguments."
@@ -1073,8 +1090,7 @@ Amongst another things, it parses the command-line arguments."
   (let ((simple-file-name
 	 ;; Look for simple.el or simple.elc and use their directory
 	 ;; as the place where all Lisp files live.
-	 (locate-file "simple" load-path (get-load-suffixes)))
-	lisp-dir)
+	 (locate-file "simple" load-path (get-load-suffixes))))
     ;; Don't abort if simple.el cannot be found, but print a warning.
     ;; Although in most usage we are going to cryptically abort a moment
     ;; later anyway, due to missing required bidi data files (eg bug#13430).
@@ -1090,12 +1106,13 @@ please check its value")
 	  (unless (file-readable-p lispdir)
 	    (princ (format "Lisp directory %s not readable?" lispdir))
 	    (terpri)))
-      (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+      (setq lisp-directory
+            (file-truename (file-name-directory simple-file-name)))
       (setq load-history
 	    (mapcar (lambda (elt)
 		      (if (and (stringp (car elt))
 			       (not (file-name-absolute-p (car elt))))
-			  (cons (concat lisp-dir
+			  (cons (concat lisp-directory
 					(car elt))
 				(cdr elt))
 			elt))
@@ -1556,17 +1573,22 @@ If this is nil, no message will be displayed."
   `((:face (variable-pitch font-lock-comment-face)
      "Welcome to "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button)
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
             `("GNU/Linux"
-              ,(lambda (_button) (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+              ,(lambda (_button)
+                 (let ((browse-url-browser-function 'eww-browse-url))
+                   (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
           `("GNU" ,(lambda (_button)
-		     (browse-url "https://www.gnu.org/gnu/thegnuproject.html"))
+		     (let ((browse-url-browser-function 'eww-browse-url))
+                       (browse-url "https://www.gnu.org/gnu/thegnuproject.html")))
 	    "Browse https://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
@@ -1599,7 +1621,8 @@ If this is nil, no message will be displayed."
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1622,22 +1645,31 @@ Each element in the list should be a list of strings or pairs
   `((:face (variable-pitch font-lock-comment-face)
      "This is "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button)
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/")))
 	    "Browse https://www.gnu.org/software/emacs/")
-     ", one component of the "
+     ", a text editor and more.\nIt's a component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
 	   `("GNU/Linux"
 	     ,(lambda (_button)
-                (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+                (let ((browse-url-browser-function 'eww-browse-url))
+                  (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html")))
 	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
-	 `("GNU" ,(lambda (_button) (describe-gnu-project))
+	 `("GNU" ,(lambda (_button)
+                    (let ((browse-url-browser-function 'eww-browse-url))
+                      (describe-gnu-project)))
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (variable-pitch font-lock-builtin-face)
      "\n"
-     ,(lambda () (emacs-version))
+     ,(lambda ()
+        (with-temp-buffer
+          (insert (emacs-version))
+          (fill-region (point-min) (point-max))
+          (buffer-string)))
      "\n"
      :face (variable-pitch (:height 0.8))
      ,(lambda () emacs-copyright)
@@ -1652,7 +1684,9 @@ Each element in the list should be a list of strings or pairs
 	    ,(lambda (_button) (info "(emacs)Contributing")))
      "\tHow to report bugs and contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" ,(lambda (_button) (describe-gnu-project)))
+     :link ("GNU and Freedom" ,(lambda (_button)
+                                 (let ((browse-url-browser-function 'eww-browse-url))
+                                   (describe-gnu-project))))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
@@ -1690,7 +1724,8 @@ Each element in the list should be a list of strings or pairs
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+               (let ((browse-url-browser-function 'eww-browse-url))
+                 (browse-url "https://www.gnu.org/software/emacs/tour/")))
 	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org\n"
      :link ("Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
@@ -1812,7 +1847,9 @@ a face or button specification."
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
 		     'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
-		     'action (lambda (_button) (browse-url "https://www.gnu.org/"))
+		     'action (lambda (_button)
+                               (let ((browse-url-browser-function 'eww-browse-url))
+                                 (browse-url "https://www.gnu.org/")))
 		     'follow-link t)
 	(insert "\n\n")))))
 
@@ -1821,28 +1858,35 @@ a face or button specification."
   (unless concise
     (fancy-splash-insert
      :face 'variable-pitch
-     "\nTo start...     "
+     "\nTo start...\t"
      :link `("Open a File"
 	     ,(lambda (_button) (call-interactively 'find-file))
 	     "Specify a new file's name, to edit the file")
-     "     "
+     "\t\t"
      :link `("Open Home Directory"
 	     ,(lambda (_button) (dired "~"))
 	     "Open your home directory, to operate on its files")
-     "     "
+     "\n\t"
      :link `("Customize Startup"
 	     ,(lambda (_button) (customize-group 'initialization))
 	     "Change initialization settings including this screen")
+     "\t"
+     :link `("Explore Packages"
+	     ,(lambda (_button) (call-interactively 'package-list-packages))
+	     "Explore, install and remove Emacs packages (requires Internet connection)")
      "\n"))
   (fancy-splash-insert
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
-  (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
-		       "\nThis is "
-		       (emacs-version)
-		       "\n"
-		       :face '(variable-pitch (:height 0.8))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
+		         "\nThis is "
+		         (emacs-version)
+		         "\n")
+    (fill-region (point-min) (point-max)))
+  (fancy-splash-insert :face '(variable-pitch (:height 0.8))
 		       emacs-copyright
 		       "\n")
   (when auto-save-list-file-prefix
@@ -1926,7 +1970,6 @@ splash screen in another window."
 	(insert "\n")
 	(fancy-startup-tail concise))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22
 	    buffer-read-only t)
       (set-buffer-modified-p nil)
@@ -1964,11 +2007,11 @@ splash screen in another window."
 	(goto-char (point-min))
 	(force-mode-line-update))
       (use-local-map splash-screen-keymap)
-      (setq-local browse-url-browser-function 'eww-browse-url)
       (setq tab-width 22)
       (setq buffer-read-only t)
+      ;; Place point somewhere it doesn't cover a character.
       (goto-char (point-min))
-      (forward-line 3))))
+      (re-search-forward "\n$" nil nil 2))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1980,6 +2023,8 @@ we put it on this frame."
     ;; frame visible.
     (if (eq (window-system) 'w32)
 	(sit-for 0 t))
+    (if (eq (window-system) 'pgtk)
+	(sit-for 0.1 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
@@ -2121,8 +2166,11 @@ To quit a partially entered command, type Control-g.\n")
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
 
-  (insert "\n" (emacs-version)
-	  "\n" emacs-copyright))
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright))
 
 (defun normal-no-mouse-startup-screen ()
   "Show a splash screen suitable for displays without mouse support."
@@ -2202,7 +2250,11 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
                                        (startup--get-buffer-create-scratch)))
 		 'follow-link t)
   (insert "\n")
-  (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
+  (save-restriction
+    (narrow-to-region (point) (point))
+    (insert "\n" (emacs-version) "\n")
+    (fill-region (point-min) (point-max)))
+  (insert emacs-copyright "\n")
   (insert (substitute-command-keys
 	   "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
@@ -2242,7 +2294,9 @@ Type \\[describe-distribution] for information on "))
   (insert "\tHow to report bugs and contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (_button) (describe-gnu-project))
+		 'action (lambda (_button)
+                           (let ((browse-url-browser-function 'eww-browse-url))
+                             (describe-gnu-project)))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
@@ -2383,6 +2437,7 @@ A fancy display is used on graphic displays, normal otherwise."
                ;; and long versions of what's on command-switch-alist.
                (longopts
                 (append '("--funcall" "--load" "--insert" "--kill"
+                          "--dump-file" "--seccomp"
                           "--directory" "--eval" "--execute" "--no-splash"
                           "--find-file" "--visit" "--file" "--no-desktop")
                         (mapcar (lambda (elt) (concat "-" (car elt)))
@@ -2526,7 +2581,15 @@ nil default-directory" name)
                      (let* ((file (command-line-normalize-file-name
                                    (or argval (pop command-line-args-left))))
                             ;; Take file from default dir.
-                            (file-ex (file-truename (expand-file-name file))))
+                            (file-ex (expand-file-name file))
+                            (truename (file-truename file-ex)))
+                       ;; We want to use the truename here if we can,
+                       ;; because that makes `eval-after-load' work
+                       ;; more reliably.  But if the file is, for
+                       ;; instance, /dev/stdin, the truename doesn't
+                       ;; actually exist on some systems.
+                       (when (file-exists-p truename)
+                         (setq file-ex truename))
                        (load file-ex nil t t)))
 
                     ((equal argi "-insert")
@@ -2535,6 +2598,11 @@ nil default-directory" name)
                      (or (stringp tem)
                          (error "File name omitted from `-insert' option"))
                      (insert-file-contents (command-line-normalize-file-name tem)))
+
+                    ((or (equal argi "-dump-file")
+                         (equal argi "-seccomp"))
+                     ;; This was processed in C.
+                     (or argval (pop command-line-args-left)))
 
                     ((equal argi "-kill")
                      (kill-emacs t))

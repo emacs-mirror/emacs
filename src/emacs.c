@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2021 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -108,6 +108,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "getpagesize.h"
 #include "gnutls.h"
+
+#ifdef HAVE_HAIKU
+#include <kernel/OS.h>
+#endif
 
 #ifdef PROFILING
 # include <sys/gmon.h>
@@ -261,7 +265,7 @@ Initialization options:\n\
 #endif
 #if SECCOMP_USABLE
     "\
---sandbox=FILE              read Seccomp BPF filter from FILE\n\
+--seccomp=FILE              read Seccomp BPF filter from FILE\n\
 "
 #endif
     "\
@@ -871,9 +875,14 @@ load_pdump (int argc, char **argv)
     }
 
   /* Where's our executable?  */
-  ptrdiff_t bufsize, exec_bufsize;
+  ptrdiff_t bufsize;
+#ifndef NS_SELF_CONTAINED
+  ptrdiff_t exec_bufsize;
+#endif
   emacs_executable = load_pdump_find_executable (argv[0], &bufsize);
+#ifndef NS_SELF_CONTAINED
   exec_bufsize = bufsize;
+#endif
 
   /* If we couldn't find our executable, go straight to looking for
      the dump in the hardcoded location.  */
@@ -1351,6 +1360,39 @@ main (int argc, char **argv)
 
   init_standard_fds ();
   atexit (close_output_streams);
+
+  /* Command-line argument processing.
+
+     The arguments in the argv[] array are sorted in the descending
+     order of their priority as defined in the standard_args[] array
+     below.  Then the sorted arguments are processed from the highest
+     to the lowest priority.  Each command-line argument that is
+     recognized by 'main', if found in argv[], causes skip_args to be
+     incremented, effectively removing the processed argument from the
+     command line.
+
+     Then init_cmdargs is called, and conses a list of the unprocessed
+     command-line arguments, as strings, in 'command-line-args'.  It
+     ignores all the arguments up to the one indexed by skip_args, as
+     those were already processed.
+
+     The arguments in 'command-line-args' are further processed by
+     startup.el, functions 'command-line' and 'command-line-1'.  The
+     first of them handles the arguments which need to be processed
+     before loading the user init file and initializing the
+     window-system.  The second one processes the arguments that are
+     related to the GUI system, like -font, -geometry, and -title, and
+     then processes the rest of arguments whose priority is below
+     those that are related to the GUI system.  The arguments
+     porcessed by 'command-line' are removed from 'command-line-args';
+     the arguments processed by 'command-line-1' aren't, they are only
+     removed from 'command-line-args-left'.
+
+     'command-line-1' emits an error message for any argument it
+     doesn't recognize, so any command-line arguments processed in C
+     below whose priority is below the GUI system related switches
+     should be explicitly recognized, ignored, and removed from
+     'command-line-args-left' in 'command-line-1'.  */
 
   sort_args (argc, argv);
   argc = 0;
@@ -1872,6 +1914,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_bignum ();
   init_threads ();
   init_eval ();
+#ifdef HAVE_PGTK
+  init_pgtkterm ();   /* before init_atimer(). */
+#endif
   running_asynch_code = 0;
   init_random ();
 
@@ -2146,6 +2191,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
       syms_of_window ();
       syms_of_xdisp ();
+      syms_of_sqlite ();
       syms_of_font ();
 #ifdef HAVE_WINDOW_SYSTEM
       syms_of_fringe ();
@@ -2207,6 +2253,27 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NS */
 
+#ifdef HAVE_PGTK
+      syms_of_pgtkterm ();
+      syms_of_pgtkfns ();
+      syms_of_pgtkselect ();
+      syms_of_pgtkmenu ();
+      syms_of_pgtkim ();
+      syms_of_fontset ();
+      syms_of_xsettings ();
+#endif /* HAVE_PGTK */
+#ifdef HAVE_HAIKU
+      syms_of_haikuterm ();
+      syms_of_haikufns ();
+      syms_of_haikumenu ();
+      syms_of_haikufont ();
+      syms_of_haikuselect ();
+#ifdef HAVE_NATIVE_IMAGE_API
+      syms_of_haikuimage ();
+#endif
+      syms_of_fontset ();
+#endif /* HAVE_HAIKU */
+
       syms_of_gnutls ();
 
 #ifdef HAVE_INOTIFY
@@ -2261,6 +2328,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined WINDOWSNT || defined HAVE_NTGUI
       globals_of_w32select ();
 #endif
+
+#ifdef HAVE_HAIKU
+      init_haiku_select ();
+#endif
     }
 
   init_charset ();
@@ -2274,7 +2345,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#ifdef USE_GTK
+#if defined(USE_GTK) && !defined(HAVE_PGTK)
   init_xterm ();
 #endif
 
@@ -2314,6 +2385,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Unless next switch is -nl, load "loadup.el" first thing.  */
       if (! no_loadup)
 	Vtop_level = list2 (Qload, build_string ("loadup.el"));
+
+#ifdef HAVE_NATIVE_COMP
+      /* If we are going to load stuff in a non-initialized Emacs,
+	 update the value of native-comp-eln-load-path, so that the
+	 *.eln files will be found if they are there.  */
+      if (!NILP (Vtop_level) && !temacs)
+	Vnative_comp_eln_load_path =
+	  Fcons (Fexpand_file_name (XCAR (Vnative_comp_eln_load_path),
+				    Vinvocation_directory),
+		 Qnil);
+#endif
     }
 
   /* Set up for profiling.  This is known to work on FreeBSD,
@@ -2728,6 +2810,9 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* Don't update display from now on.  */
   Vinhibit_redisplay = Qt;
 
+#ifdef HAVE_HAIKU
+  be_app_quit ();
+#endif
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   pid_t tpgrp = tcgetpgrp (STDIN_FILENO);
@@ -2737,6 +2822,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       if (sig && sig != SIGTERM)
 	{
 	  static char const fmt[] = "Fatal error %d: %n%s\n";
+#ifdef HAVE_HAIKU
+	  if (haiku_debug_on_fatal_error)
+	    debugger ("Fatal error in Emacs");
+#endif
 	  char buf[max ((sizeof fmt - sizeof "%d%n%s\n"
 			 + INT_STRLEN_BOUND (int) + 1),
 			min (PIPE_BUF, MAX_ALLOCA))];
@@ -3229,6 +3318,7 @@ Special values:
   `ms-dos'       compiled as an MS-DOS application.
   `windows-nt'   compiled as a native W32 application.
   `cygwin'       compiled using the Cygwin library.
+  `haiku'        compiled for a Haiku system.
 Anything else (in Emacs 26, the possibilities are: aix, berkeley-unix,
 hpux, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);

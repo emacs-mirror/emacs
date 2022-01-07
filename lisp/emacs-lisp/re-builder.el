@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -274,8 +274,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
   ;; Pull in packages as needed
-  (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
-	 (require 'rx)))                   ; require rx anyway
+  (when (eq reb-re-syntax 'rx)          ; rx-to-string is autoloaded
+    (require 'rx))                      ; require rx anyway
   (reb-mode-common))
 
 (defvar reb-subexp-mode-map
@@ -307,8 +307,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (eq 'color (frame-parameter nil 'display-type)))
 
 (defsubst reb-lisp-syntax-p ()
-  "Return non-nil if RE Builder uses a Lisp syntax."
-  (memq reb-re-syntax '(sregex rx)))
+  "Return non-nil if RE Builder uses `rx' syntax."
+  (eq reb-re-syntax 'rx))
 
 (defmacro reb-target-binding (symbol)
   "Return binding for SYMBOL in the RE Builder target buffer."
@@ -448,7 +448,8 @@ provided in the Commentary section of this library."
   (setq reb-subexp-mode t)
   (reb-update-modestring)
   (use-local-map reb-subexp-mode-map)
-  (message "`0'-`9' to display subexpressions  `q' to quit subexp mode"))
+  (message (substitute-command-keys
+            "\\`0'-\\`9' to display subexpressions  \\`q' to quit subexp mode")))
 
 (defun reb-show-subexp (subexp &optional pause)
   "Visually show limit of subexpression SUBEXP of recent search.
@@ -482,11 +483,11 @@ Optional argument SYNTAX must be specified if called non-interactively."
    (list (intern
 	  (completing-read
 	   (format-prompt "Select syntax" reb-re-syntax)
-	   '(read string sregex rx)
+           '(read string rx)
 	   nil t nil nil (symbol-name reb-re-syntax)
            'reb-change-syntax-hist))))
 
-  (if (memq syntax '(read string sregex rx))
+  (if (memq syntax '(read string rx))
       (let ((buffer (get-buffer reb-buffer)))
 	(setq reb-re-syntax syntax)
 	(when buffer
@@ -605,9 +606,9 @@ optional fourth argument FORCE is non-nil."
 
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
-  (cond ((memq reb-re-syntax '(sregex rx))
-	 (rx-to-string (eval (car (read-from-string re)))))
-	(t re)))
+  (if (eq reb-re-syntax 'rx)
+      (rx-to-string (eval (car (read-from-string re))))
+    re))
 
 (defun reb-update-regexp ()
   "Update the regexp for the target buffer.

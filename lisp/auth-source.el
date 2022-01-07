@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -44,6 +44,9 @@
 
 (require 'cl-lib)
 (require 'eieio)
+
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
 
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
@@ -253,7 +256,7 @@ can get pretty complex."
                         (choice :tag "Authentication backend choice"
                                 (string :tag "Authentication Source (file)")
                                 (list
-                                 :tag "Secret Service API/KWallet/GNOME Keyring"
+                                 :tag "Secret Service API/KWallet/GNOME Keyring/KeyPassXC"
                                  (const :format "" :value :secrets)
                                  (choice :tag "Collection to use"
                                          (string :tag "Collection name")

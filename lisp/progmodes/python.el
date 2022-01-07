@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -1426,6 +1426,13 @@ marks the next defun after the ones already marked."
 
 
 ;;; Navigation
+
+(defcustom python-forward-sexp-function #'python-nav-forward-sexp
+  "Function to use when navigating between expressions."
+  :version "28.1"
+  :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
+                 (const :tag "CC-mode like" nil)
+                 function))
 
 (defvar python-nav-beginning-of-defun-regexp
   (python-rx line-start (* space) defun (+ space) (group symbol-name))
@@ -2989,8 +2996,9 @@ killed."
                   (mapconcat #'identity args " ")))
             (with-current-buffer buffer
               (inferior-python-mode))
-            (when show (display-buffer buffer))
             (and internal (set-process-query-on-exit-flag process nil))))
+        (when show
+          (pop-to-buffer proc-buffer-name))
         proc-buffer-name))))
 
 ;;;###autoload
@@ -3022,7 +3030,6 @@ process buffer for a list of commands.)"
          (python-shell-make-comint
           (or cmd (python-shell-calculate-command))
           (python-shell-get-process-name dedicated) show)))
-    (set-buffer buffer)
     (get-buffer-process buffer)))
 
 (defun run-python-internal ()
@@ -3758,7 +3765,8 @@ With argument MSG show activation/deactivation message."
             (format "was t and %S is not part of the "
                     (file-name-nondirectory python-shell-interpreter))
             "`python-shell-completion-native-disabled-interpreters' "
-            "list.  Native completions have been disabled locally. "))
+            "list.  Native completions have been disabled locally. "
+            "Consider installing the python package \"readline\". "))
           (python-shell-completion-native-turn-off msg))))))
 
 (defun python-shell-completion-native-turn-on-maybe-with-msg ()
@@ -5570,13 +5578,6 @@ By default messages are considered errors."
   :group 'python-flymake
   :type '(alist :key-type (regexp)
                 :value-type (symbol)))
-
-(defcustom python-forward-sexp-function #'python-nav-forward-sexp
-  "Function to use when navigating between expressions."
-  :version "28.1"
-  :type '(choice (const :tag "Python blocks" python-nav-forward-sexp)
-                 (const :tag "CC-mode like" nil)
-                 function))
 
 (defvar-local python--flymake-proc nil)
 

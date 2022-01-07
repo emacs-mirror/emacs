@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2021 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2022 Free Software Foundation,
 Inc.
 
 @quotation
@@ -221,6 +221,7 @@ Appendices
 * X Resources::         X resources for customizing Emacs.
 * Antinews::            Information about Emacs version 27.
 * Mac OS / GNUstep::     Using Emacs under macOS and GNUstep.
+* Haiku::               Using Emacs on Haiku.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::           What's GNU?  Gnu's Not Unix!
 
@@ -344,14 +345,14 @@ Cut and Paste Operations on Graphical Displays
 
 Registers
 
-* Position Registers::       Saving positions in registers.
-* Text Registers::           Saving text in registers.
-* Rectangle Registers::      Saving rectangles in registers.
-* Configuration Registers::  Saving window configurations in registers.
-* Number Registers::         Numbers in registers.
-* File Registers::           File names in registers.
-* Keyboard Macro Registers:: Keyboard macros in registers.
-* Bookmarks::                Bookmarks are like registers, but persistent.
+* Position Registers::        Saving positions in registers.
+* Text Registers::            Saving text in registers.
+* Rectangle Registers::       Saving rectangles in registers.
+* Configuration Registers::   Saving window configurations in registers.
+* Number Registers::          Numbers in registers.
+* File and Buffer Registers:: File and buffer names in registers.
+* Keyboard Macro Registers::  Keyboard macros in registers.
+* Bookmarks::                 Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
@@ -1249,6 +1250,11 @@ Emacs and macOS / GNUstep
 * Mac / GNUstep Events::        How window system events are handled.
 * GNUstep Support::             Details on status of GNUstep support.
 
+Emacs and Haiku
+
+* Haiku Basics::        Basic Emacs usage and installation under Haiku.
+* Haiku Fonts::         The various options for displaying fonts on Haiku.
+
 Emacs and Microsoft Windows/MS-DOS
 
 * Windows Startup::     How to start Emacs on Windows.
@@ -1618,6 +1624,7 @@ Lisp programming.
 
 @include anti.texi
 @include macos.texi
+@include haiku.texi
 @c Includes msdos-xtra.
 @include msdos.texi
 @include gnu.texi

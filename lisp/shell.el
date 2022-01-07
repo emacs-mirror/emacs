@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2021 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -758,7 +758,7 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (pop-to-buffer-same-window buffer)
+  (pop-to-buffer buffer)
 
   (with-connection-local-variables
    ;; On remote hosts, the local `shell-file-name' might be useless.

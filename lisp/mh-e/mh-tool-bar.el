@@ -1,6 +1,6 @@
 ;;; mh-tool-bar.el --- MH-E tool bar support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -182,8 +182,7 @@ where,
             (add-to-list vector-list `(vector nil ',function t ,full-doc))
             (add-to-list
              setter `(when (member ',name ,list)
-                       (mh-funcall-if-exists
-                        tool-bar-add-item ,icon ',function ',key
+                       (tool-bar-add-item ,icon ',function ',key
                         :help ,doc :enable ',enable-expr)))
             (add-to-list mbuttons name)
             (if docs (add-to-list docs doc))))))

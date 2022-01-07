@@ -1,6 +1,6 @@
 ;;; puny-tests.el --- tests for net/puny.el  -*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -60,5 +60,12 @@
   (should-not (puny-highly-restrictive-domain-p "Ωmega.org"))
   ;; Only allowed in unrestricted.
   (should-not (puny-highly-restrictive-domain-p "I♥NY.org")))
+
+(ert-deftest puny-normalize ()
+  (should (equal (puny-encode-string (string-glyph-compose "Bä.com"))
+                 "xn--b.com-gra"))
+  (should (equal (puny-encode-string "Bä.com")
+                 "xn--b.com-gra"))
+  (should (equal (puny-encode-string "Bä.com") "xn--b.com-gra")))
 
 ;;; puny-tests.el ends here

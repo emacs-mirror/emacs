@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2021 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1045,11 +1045,17 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
    safe to load.  Only files compiled with Emacs can be loaded.  */
 
 static int
-safe_to_load_version (int fd)
+safe_to_load_version (Lisp_Object file, int fd)
 {
+  struct stat st;
   char buf[512];
   int nbytes, i;
   int version = 1;
+
+  /* If the file is not regular, then we cannot safely seek it.
+     Assume that it is not safe to load as a compiled file.  */
+  if (fstat (fd, &st) == 0 && !S_ISREG (st.st_mode))
+    return 0;
 
   /* Read the first few bytes from the file, and look for a line
      specifying the byte compiler version used.  */
@@ -1068,7 +1074,9 @@ safe_to_load_version (int fd)
 	version = 0;
     }
 
-  lseek (fd, 0, SEEK_SET);
+  if (lseek (fd, 0, SEEK_SET) < 0)
+    report_file_error ("Seeking to start of file", file);
+
   return version;
 }
 
@@ -1271,7 +1279,10 @@ Return t if the file exists and loads successfully.  */)
               || suffix_p (file, MODULES_SECONDARY_SUFFIX)
 #endif
 #endif
-              || (NATIVE_COMP_FLAG && suffix_p (file, NATIVE_ELISP_SUFFIX)))
+#ifdef HAVE_NATIVE_COMP
+              || suffix_p (file, NATIVE_ELISP_SUFFIX)
+#endif
+	      )
 	    must_suffix = Qnil;
 	  /* Don't insist on adding a suffix
 	     if the argument includes a directory name.  */
@@ -1351,8 +1362,11 @@ Return t if the file exists and loads successfully.  */)
   bool is_module = false;
 #endif
 
-  bool is_native_elisp =
-    NATIVE_COMP_FLAG && suffix_p (found, NATIVE_ELISP_SUFFIX) ? true : false;
+#ifdef HAVE_NATIVE_COMP
+  bool is_native_elisp = suffix_p (found, NATIVE_ELISP_SUFFIX);
+#else
+  bool is_native_elisp = false;
+#endif
 
   /* Check if we're stuck in a recursive load cycle.
 
@@ -1401,7 +1415,7 @@ Return t if the file exists and loads successfully.  */)
   if (is_elc
       /* version = 1 means the file is empty, in which case we can
 	 treat it as not byte-compiled.  */
-      || (fd >= 0 && (version = safe_to_load_version (fd)) > 1))
+      || (fd >= 0 && (version = safe_to_load_version (file, fd)) > 1))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
     {
@@ -1410,11 +1424,8 @@ Return t if the file exists and loads successfully.  */)
 	  struct stat s1, s2;
 	  int result;
 
-	  if (version < 0
-	      && ! (version = safe_to_load_version (fd)))
-	    {
-	      error ("File `%s' was not compiled in Emacs", SDATA (found));
-	    }
+	  if (version < 0 && !(version = safe_to_load_version (file, fd)))
+	    error ("File `%s' was not compiled in Emacs", SDATA (found));
 
 	  compiled = 1;
 
@@ -1534,7 +1545,7 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  specbind (Qload_file_name, found_eff);
+  specbind (Qload_file_name, hist_file_name);
   specbind (Qload_true_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
   specbind (Qload_in_progress, Qt);
@@ -2198,6 +2209,7 @@ readevalloop (Lisp_Object readcharfun,
   specbind (Qinternal_interpreter_environment,
 	    (NILP (lex_bound) || EQ (lex_bound, Qunbound)
 	     ? Qnil : list1 (Qt)));
+  specbind (Qmacroexp__dynvars, Vmacroexp__dynvars);
 
   /* Ensure sourcename is absolute, except whilst preloading.  */
   if (!will_dump_p ()
@@ -2704,7 +2716,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	c = read_escape (readcharfun, 0);
       if ((c & ~CHAR_MODIFIER_MASK) == '?')
 	return 0177 | (c & CHAR_MODIFIER_MASK);
-      else if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+      else if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
 	return c | ctrl_modifier;
       /* ASCII control chars are made from letters (both cases),
 	 as well as the non-letters within 0100...0137.  */
@@ -3210,23 +3222,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		 Convert them back to the original unibyte form.  */
 	      ASET (tmp, COMPILED_BYTECODE,
 		    Fstring_as_unibyte (AREF (tmp, COMPILED_BYTECODE)));
-	    }
-
-	  if (COMPILED_DOC_STRING < ASIZE (tmp)
-	      && EQ (AREF (tmp, COMPILED_DOC_STRING), make_fixnum (0)))
-	    {
-	      /* read_list found a docstring like '(#$ . 5521)' and treated it
-		 as 0.  This placeholder 0 would lead to accidental sharing in
-		 purecopy's hash-consing, so replace it with a (hopefully)
-		 unique integer placeholder, which is negative so that it is
-		 not confused with a DOC file offset (the USE_LSB_TAG shift
-		 relies on the fact that VALMASK is one bit narrower than
-		 INTMASK).  Eventually Snarf-documentation should replace the
-		 placeholder with the actual docstring.  */
-	      verify (INTMASK & ~VALMASK);
-	      EMACS_UINT hash = ((XHASH (tmp) >> USE_LSB_TAG)
-				 | (INTMASK - INTMASK / 2));
-	      ASET (tmp, COMPILED_DOC_STRING, make_ufixnum (hash));
 	    }
 
 	  XSETPVECTYPE (vec, PVEC_COMPILED);
@@ -4196,31 +4191,13 @@ read_list (bool flag, Lisp_Object readcharfun)
 
       /* While building, if the list starts with #$, treat it specially.  */
       if (EQ (elt, Vload_file_name)
-	  && ! NILP (elt)
-	  && !NILP (Vpurify_flag))
+	  && ! NILP (elt))
 	{
-	  if (NILP (Vdoc_file_name))
-	    /* We have not yet called Snarf-documentation, so assume
-	       this file is described in the DOC file
-	       and Snarf-documentation will fill in the right value later.
-	       For now, replace the whole list with 0.  */
-	    doc_reference = 1;
-	  else
-	    /* We have already called Snarf-documentation, so make a relative
-	       file name for this file, so it can be found properly
-	       in the installed Lisp directory.
-	       We don't use Fexpand_file_name because that would make
-	       the directory absolute now.  */
-	    {
-	      AUTO_STRING (dot_dot_lisp, "../lisp/");
-	      elt = concat2 (dot_dot_lisp, Ffile_name_nondirectory (elt));
-	    }
+	  if (!NILP (Vpurify_flag))
+	    doc_reference = 0;
+	  else if (load_force_doc_strings)
+	    doc_reference = 2;
 	}
-      else if (EQ (elt, Vload_file_name)
-	       && ! NILP (elt)
-	       && load_force_doc_strings)
-	doc_reference = 2;
-
       if (ch)
 	{
 	  if (flag > 0)
@@ -4241,8 +4218,6 @@ read_list (bool flag, Lisp_Object readcharfun)
 
 	      if (ch == ')')
 		{
-		  if (doc_reference == 1)
-		    return make_fixnum (0);
 		  if (doc_reference == 2 && FIXNUMP (XCDR (val)))
 		    {
 		      char *saved = NULL;
@@ -5458,4 +5433,10 @@ This variable's value can only be set via file-local variables.
 See Info node `(elisp)Shorthands' for more details.  */);
   Vread_symbol_shorthands = Qnil;
   DEFSYM (Qobarray_cache, "obarray-cache");
+
+  DEFSYM (Qmacroexp__dynvars, "macroexp--dynvars");
+  DEFVAR_LISP ("macroexp--dynvars", Vmacroexp__dynvars,
+        doc:   /* List of variables declared dynamic in the current scope.
+Only valid during macro-expansion.  Internal use only. */);
+  Vmacroexp__dynvars = Qnil;
 }

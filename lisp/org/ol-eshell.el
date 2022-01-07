@@ -1,6 +1,6 @@
 ;;; ol-eshell.el --- Links to Working Directories in Eshell  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 
@@ -46,7 +46,7 @@ followed by a colon."
          (eshell-buffer-name (car buffer-and-command))
          (command (cadr buffer-and-command)))
     (if (get-buffer eshell-buffer-name)
-	(pop-to-buffer-same-window eshell-buffer-name)
+	(pop-to-buffer eshell-buffer-name display-comint-buffer-action)
       (eshell))
     (goto-char (point-max))
     (eshell-kill-input)

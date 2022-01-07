@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1266,7 +1266,7 @@ Used by Speedbar."
   :version "22.1")
 
 (define-key gud-minor-mode-map "\C-c\C-w" 'gud-watch)
-(define-key global-map (vconcat gud-key-prefix "\C-w") 'gud-watch)
+(keymap-set gud-global-map "C-w" 'gud-watch)
 
 (declare-function tooltip-identifier-from-point "tooltip" (point))
 
@@ -4611,7 +4611,9 @@ overlay arrow in source buffer."
   (let ((frame (gdb-mi--field (gdb-mi--partial-output) 'frame)))
     (when frame
       (setq gdb-selected-frame (gdb-mi--field frame 'func))
-      (setq gdb-selected-file (file-local-name (gdb-mi--field frame 'fullname)))
+      (setq gdb-selected-file
+            (when-let ((full (gdb-mi--field frame 'fullname)))
+              (file-local-name full)))
       (setq gdb-frame-number (gdb-mi--field frame 'level))
       (setq gdb-frame-address (gdb-mi--field frame 'addr))
       (let ((line (gdb-mi--field frame 'line)))

@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,6 +86,8 @@ typedef int GC;
 typedef int Pixmap;
 typedef int Display;
 typedef int Window;
+
+#define FRAME_X_DISPLAY(ignored) NULL
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 

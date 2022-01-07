@@ -1,6 +1,6 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 ;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -44,7 +44,7 @@
 ;;
 ;; The last three methods operate with "xref" and "location" values.
 ;;
-;; One would usually call `make-xref' and `xref-make-file-location',
+;; One would usually call `xref-make' and `xref-make-file-location',
 ;; `xref-make-buffer-location' or `xref-make-bogus-location' to create
 ;; them.  More generally, a location must be an instance of a type for
 ;; which methods `xref-location-group' and `xref-location-marker' are
@@ -206,7 +206,19 @@ is not known."
                   (:constructor xref-make (summary location))
                   (:noinline t))
   "An xref item describes a reference to a location somewhere."
-  summary location)
+  (summary nil :documentation "String which describes the location.
+
+When `xref-location-line' returns non-nil (a number), the summary
+is implied to be the contents of a file or buffer line containing
+the location.  When multiple locations in a row report the same
+line, in the same group (corresponding to the case of multiple
+locations on one line), the summaries are concatenated in the
+Xref output buffer.  Consequently, any code that creates xref
+values should take care to slice the summary values when several
+locations point to the same line.
+
+This behavior is new in Emacs 28.")
+  location)
 
 (xref--defstruct (xref-match-item
                   (:include xref-item)
@@ -414,19 +426,29 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
-(defvar xref--history (cons nil nil)
-  "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
-
 (make-obsolete-variable 'xref-marker-ring nil "29.1")
 
 (defun xref-set-marker-ring-length (_var _val)
   (declare (obsolete nil "29.1"))
   nil)
 
+(defvar xref--history (cons nil nil)
+  "(BACKWARD-STACK . FORWARD-STACK) of markers to visited Xref locations.")
+
+(defun xref--push-backward (m)
+  "Push marker M onto the backward history stack."
+  (unless (equal m (caar xref--history))
+    (push m (car xref--history))))
+
+(defun xref--push-forward (m)
+  "Push marker M onto the forward history stack."
+  (unless (equal m (cadr xref--history))
+    (push m (cdr xref--history))))
+
 (defun xref-push-marker-stack (&optional m)
   "Add point M (defaults to `point-marker') to the marker stack.
 The future stack is erased."
-  (push (or m (point-marker)) (car xref--history))
+  (xref--push-backward (or m (point-marker)))
   (dolist (mk (cdr xref--history))
     (set-marker mk nil nil))
   (setcdr xref--history nil))
@@ -442,7 +464,7 @@ To undo, use \\[xref-go-forward]."
   (if (null (car xref--history))
       (user-error "At start of xref history")
     (let ((marker (pop (car xref--history))))
-      (push (point-marker) (cdr xref--history))
+      (xref--push-forward (point-marker))
       (switch-to-buffer (or (marker-buffer marker)
                             (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
@@ -456,7 +478,7 @@ To undo, use \\[xref-go-forward]."
   (if (null (cdr xref--history))
       (user-error "At end of xref history")
     (let ((marker (pop (cdr xref--history))))
-      (push (point-marker) (car xref--history))
+      (xref--push-backward (point-marker))
       (switch-to-buffer (or (marker-buffer marker)
                             (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
@@ -1028,7 +1050,7 @@ GROUP is a string for decoration purposes and XREF is an
   (run-hooks 'xref-after-update-hook))
 
 (defun xref--group-name-for-display (group project-root)
-  "Return GROUP formatted in the prefered style.
+  "Return GROUP formatted in the preferred style.
 
 The style is determined by the value of `xref-file-name-display'.
 If GROUP looks like a file name, its value is formatted according

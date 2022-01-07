@@ -1,6 +1,6 @@
 ;;; thread-tests.el --- tests for threads. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -389,6 +389,7 @@
     (should (equal (thread-last-error) '(error "Die, die, die!")))))
 
 (ert-deftest threads-test-bug33073 ()
+  (skip-unless (fboundp 'make-thread))
   (let ((th (make-thread 'ignore)))
     (should-not (equal th main-thread))))
 

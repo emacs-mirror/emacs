@@ -1,6 +1,6 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
@@ -480,6 +480,8 @@ is defined as a macro, alias, command, ..."
                           (get symbol 'advice--pending))
                          (t (symbol-function symbol)))
                   function props)
+    ;; FIXME: We could use a defmethod on `function-docstring' instead,
+    ;; except when (or (not nf) (autoloadp nf))!
     (put symbol 'function-documentation `(advice--make-docstring ',symbol))
     (add-function :around (get symbol 'defalias-fset-function)
                   #'advice--defalias-fset))

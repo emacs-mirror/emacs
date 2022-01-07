@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2021 Free Software
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
@@ -380,13 +380,17 @@ if that doesn't produce a completion match."
 (defun icomplete-fido-backward-updir ()
   "Delete char before or go up directory, like `ido-mode'."
   (interactive)
-  (if (and (eq (char-before) ?/)
-           (eq (icomplete--category) 'file))
-      (save-excursion
-        (goto-char (1- (point)))
-        (when (search-backward "/" (point-min) t)
-          (delete-region (1+ (point)) (point-max))))
-    (call-interactively 'backward-delete-char)))
+  (cond ((and (eq (char-before) ?/)
+              (eq (icomplete--category) 'file))
+         (when (string-equal (icomplete--field-string) "~/")
+           (delete-region (icomplete--field-beg) (icomplete--field-end))
+           (insert (expand-file-name "~/"))
+           (goto-char (line-end-position)))
+         (save-excursion
+           (goto-char (1- (point)))
+           (when (search-backward "/" (point-min) t)
+             (delete-region (1+ (point)) (point-max)))))
+        (t (call-interactively 'backward-delete-char))))
 
 (defvar icomplete-fido-mode-map
   (let ((map (make-sparse-keymap)))

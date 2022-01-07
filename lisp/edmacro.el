@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev
@@ -600,6 +600,12 @@ This function assumes that the events can be stored in a string."
            (when (logand (aref seq i) 128)
              (setf (aref seq i) (logand (aref seq i) 127))))
   seq)
+
+;; These are needed in a --without-x build.
+(defvar mouse-wheel-down-event)
+(defvar mouse-wheel-up-event)
+(defvar mouse-wheel-right-event)
+(defvar mouse-wheel-left-event)
 
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)

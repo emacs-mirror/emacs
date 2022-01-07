@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
@@ -214,31 +214,28 @@ A non-nil value may result in truncated bookmark names."
 ;;;###autoload (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
 
 ;;;###autoload
-(defvar bookmark-map
-  (let ((map (make-sparse-keymap)))
-    ;; Read the help on all of these functions for details...
-    (define-key map "x" 'bookmark-set)
-    (define-key map "m" 'bookmark-set) ;"m"ark
-    (define-key map "M" 'bookmark-set-no-overwrite) ;"M"aybe mark
-    (define-key map "j" 'bookmark-jump)
-    (define-key map "g" 'bookmark-jump) ;"g"o
-    (define-key map "o" 'bookmark-jump-other-window)
-    (define-key map "5" 'bookmark-jump-other-frame)
-    (define-key map "i" 'bookmark-insert)
-    (define-key map "e" 'edit-bookmarks)
-    (define-key map "f" 'bookmark-insert-location) ;"f"ind
-    (define-key map "r" 'bookmark-rename)
-    (define-key map "d" 'bookmark-delete)
-    (define-key map "D" 'bookmark-delete-all)
-    (define-key map "l" 'bookmark-load)
-    (define-key map "w" 'bookmark-write)
-    (define-key map "s" 'bookmark-save)
-    map)
-  "Keymap containing bindings to bookmark functions.
+(defvar-keymap bookmark-map
+  :doc "Keymap containing bindings to bookmark functions.
 It is not bound to any key by default: to bind it
 so that you have a bookmark prefix, just use `global-set-key' and bind a
 key of your choice to variable `bookmark-map'.  All interactive bookmark
-functions have a binding in this keymap.")
+functions have a binding in this keymap."
+  "x" #'bookmark-set
+  "m" #'bookmark-set                            ;"m"ark
+  "M" #'bookmark-set-no-overwrite               ;"M"aybe mark
+  "j" #'bookmark-jump
+  "g" #'bookmark-jump                           ;"g"o
+  "o" #'bookmark-jump-other-window
+  "5" #'bookmark-jump-other-frame
+  "i" #'bookmark-insert
+  "e" #'edit-bookmarks
+  "f" #'bookmark-insert-location                ;"f"ind
+  "r" #'bookmark-rename
+  "d" #'bookmark-delete
+  "D" #'bookmark-delete-all
+  "l" #'bookmark-load
+  "w" #'bookmark-write
+  "s" #'bookmark-save)
 
 ;;;###autoload (fset 'bookmark-map bookmark-map)
 
@@ -479,7 +476,10 @@ See user option `bookmark-set-fringe'."
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (equal filename buffer-file-name)
-            (setq overlays (overlays-in pos (1+ pos)))
+            (setq overlays
+                  (save-excursion
+                    (goto-char pos)
+                    (overlays-in (point-at-bol) (1+ (point-at-bol)))))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -510,8 +510,9 @@ If DEFAULT is nil then return empty string for empty input."
 
 (defmacro bookmark-maybe-historicize-string (string)
   "Put STRING into the bookmark prompt history, if caller non-interactive.
-We need this because sometimes bookmark functions are invoked from
-menus, so `completing-read' never gets a chance to set `bookmark-history'."
+We need this because sometimes bookmark functions are invoked
+from other commands that pass in the bookmark name, so
+`completing-read' never gets a chance to set `bookmark-history'."
   `(or
     (called-interactively-p 'interactive)
     (setq bookmark-history (cons ,string bookmark-history))))
@@ -810,11 +811,9 @@ CODING is the symbol of the coding-system in which the file is encoded."
 
 (define-obsolete-function-alias 'bookmark-maybe-message 'message "27.1")
 
-(defvar bookmark-minibuffer-read-name-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\C-w" 'bookmark-yank-word)
-    map))
+(defvar-keymap bookmark-minibuffer-read-name-map
+  :parent minibuffer-local-map
+  "C-w" #'bookmark-yank-word)
 
 (defun bookmark-set-internal (prompt name overwrite-or-push)
   "Set a bookmark using specified NAME or prompting with PROMPT.
@@ -918,7 +917,7 @@ it removes only the first instance of a bookmark with that name from
 the list of bookmarks.)"
   (interactive (list nil current-prefix-arg))
   (let ((prompt
-         (if no-overwrite "Set bookmark" "Set bookmark unconditionally")))
+         (if no-overwrite "Append bookmark named" "Set bookmark named")))
     (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))
 
 ;;;###autoload
@@ -989,12 +988,10 @@ annotations."
   "Function to return default text to use for a bookmark annotation.
 It takes one argument, the name of the bookmark, as a string.")
 
-(defvar bookmark-edit-annotation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-c\C-c" 'bookmark-send-edited-annotation)
-    map)
-  "Keymap for editing an annotation of a bookmark.")
+(defvar-keymap bookmark-edit-annotation-mode-map
+  :doc "Keymap for editing an annotation of a bookmark."
+  :parent text-mode-map
+  "C-c C-c" #'bookmark-send-edited-annotation)
 
 (defun bookmark-insert-annotation (bookmark-name-or-record)
   "Insert annotation for BOOKMARK-NAME-OR-RECORD at point."
@@ -1158,7 +1155,7 @@ and then show any annotations for this bookmark."
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-set-fringe-mark
-    (let ((overlays (overlays-in (point) (point)))
+    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))
@@ -1697,44 +1694,42 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
 
 (defvar bookmark-bmenu-hidden-bookmarks ())
 
-
-(defvar bookmark-bmenu-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "v" 'bookmark-bmenu-select)
-    (define-key map "w" 'bookmark-bmenu-locate)
-    (define-key map "5" 'bookmark-bmenu-other-frame)
-    (define-key map "2" 'bookmark-bmenu-2-window)
-    (define-key map "1" 'bookmark-bmenu-1-window)
-    (define-key map "j" 'bookmark-bmenu-this-window)
-    (define-key map "\C-c\C-c" 'bookmark-bmenu-this-window)
-    (define-key map "f" 'bookmark-bmenu-this-window)
-    (define-key map "\C-m" 'bookmark-bmenu-this-window)
-    (define-key map "o" 'bookmark-bmenu-other-window)
-    (define-key map "\C-o" 'bookmark-bmenu-switch-other-window)
-    (define-key map "s" 'bookmark-bmenu-save)
-    (define-key map "\C-x\C-s" 'bookmark-bmenu-save)
-    (define-key map "k" 'bookmark-bmenu-delete)
-    (define-key map "\C-d" 'bookmark-bmenu-delete-backwards)
-    (define-key map "x" 'bookmark-bmenu-execute-deletions)
-    (define-key map "d" 'bookmark-bmenu-delete)
-    (define-key map "D" 'bookmark-bmenu-delete-all)
-    (define-key map " " 'next-line)
-    (define-key map "\177" 'bookmark-bmenu-backup-unmark)
-    (define-key map "u" 'bookmark-bmenu-unmark)
-    (define-key map "U" 'bookmark-bmenu-unmark-all)
-    (define-key map "m" 'bookmark-bmenu-mark)
-    (define-key map "M" 'bookmark-bmenu-mark-all)
-    (define-key map "l" 'bookmark-bmenu-load)
-    (define-key map "r" 'bookmark-bmenu-rename)
-    (define-key map "R" 'bookmark-bmenu-relocate)
-    (define-key map "t" 'bookmark-bmenu-toggle-filenames)
-    (define-key map "a" 'bookmark-bmenu-show-annotation)
-    (define-key map "A" 'bookmark-bmenu-show-all-annotations)
-    (define-key map "e" 'bookmark-bmenu-edit-annotation)
-    (define-key map "/" 'bookmark-bmenu-search)
-    (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
-    map))
+(defvar-keymap bookmark-bmenu-mode-map
+  :doc "Keymap for `bookmark-bmenu-mode'."
+  :parent tabulated-list-mode-map
+  "v" #'bookmark-bmenu-select
+  "w" #'bookmark-bmenu-locate
+  "5" #'bookmark-bmenu-other-frame
+  "2" #'bookmark-bmenu-2-window
+  "1" #'bookmark-bmenu-1-window
+  "j" #'bookmark-bmenu-this-window
+  "C-c C-c" #'bookmark-bmenu-this-window
+  "f" #'bookmark-bmenu-this-window
+  "C-m" #'bookmark-bmenu-this-window
+  "o" #'bookmark-bmenu-other-window
+  "C-o" #'bookmark-bmenu-switch-other-window
+  "s" #'bookmark-bmenu-save
+  "C-x C-s" #'bookmark-bmenu-save
+  "k" #'bookmark-bmenu-delete
+  "C-d" #'bookmark-bmenu-delete-backwards
+  "x" #'bookmark-bmenu-execute-deletions
+  "d" #'bookmark-bmenu-delete
+  "D" #'bookmark-bmenu-delete-all
+  "SPC" #'next-line
+  "DEL" #'bookmark-bmenu-backup-unmark
+  "u" #'bookmark-bmenu-unmark
+  "U" #'bookmark-bmenu-unmark-all
+  "m" #'bookmark-bmenu-mark
+  "M" #'bookmark-bmenu-mark-all
+  "l" #'bookmark-bmenu-load
+  "r" #'bookmark-bmenu-rename
+  "R" #'bookmark-bmenu-relocate
+  "t" #'bookmark-bmenu-toggle-filenames
+  "a" #'bookmark-bmenu-show-annotation
+  "A" #'bookmark-bmenu-show-all-annotations
+  "e" #'bookmark-bmenu-edit-annotation
+  "/" #'bookmark-bmenu-search
+  "<mouse-2>" #'bookmark-bmenu-other-window-with-mouse)
 
 (easy-menu-define bookmark-menu bookmark-bmenu-mode-map
   "Menu for `bookmark-bmenu'."

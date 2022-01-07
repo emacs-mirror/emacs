@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -403,7 +403,7 @@ argument."
 
 (defun expand-region-abbrevs (start end &optional noquery)
   "For abbrev occurrence in the region, offer to expand it.
-The user is asked to type `y' or `n' for each occurrence.
+The user is asked to type \\`y' or \\`n' for each occurrence.
 A prefix argument means don't query; expand all abbrevs."
   (interactive "r\nP")
   (save-excursion

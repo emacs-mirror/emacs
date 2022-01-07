@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2021 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -65,6 +65,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
 
 #include <ignore-value.h>
 
@@ -3865,7 +3866,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       gobble_input ();
 #endif
       if (kbd_fetch_ptr != kbd_store_ptr)
@@ -3972,6 +3973,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  *used_mouse_menu = true;
 	FALLTHROUGH;
 #endif
+      case PREEDIT_TEXT_EVENT:
 #ifdef HAVE_NTGUI
       case END_SESSION_EVENT:
       case LANGUAGE_CHANGE_EVENT:
@@ -4034,6 +4036,61 @@ kbd_buffer_get_event (KBOARD **kbp,
 	     and build a real event from the queue entry.  */
 	  if (NILP (obj))
 	    {
+	      double pinch_dx, pinch_dy, pinch_angle;
+
+	      /* Pinch events are often sent in rapid succession, so
+		 large amounts of such events have the potential to
+		 queue up inside the keyboard buffer.  In that case,
+		 find the last pinch event in succession on the same
+		 frame with the same modifiers, and send that instead.  */
+
+	      if (event->ie.kind == PINCH_EVENT
+		  /* Ignore if this is the start of a pinch sequence.
+		     These events should always be sent so that we
+		     never miss a sequence starting, and they don't
+		     have the potential to queue up.  */
+		  && ((pinch_dx
+		       = XFLOAT_DATA (XCAR (event->ie.arg))) != 0.0
+		      || XFLOAT_DATA (XCAR (XCDR (event->ie.arg))) != 0.0
+		      || XFLOAT_DATA (Fnth (make_fixnum (3), event->ie.arg)) != 0.0))
+		{
+		  union buffered_input_event *maybe_event = next_kbd_event (event);
+
+		  pinch_dy = XFLOAT_DATA (XCAR (XCDR (event->ie.arg)));
+		  pinch_angle = XFLOAT_DATA (Fnth (make_fixnum (3), event->ie.arg));
+
+		  while (maybe_event != kbd_store_ptr
+			 && maybe_event->ie.kind == PINCH_EVENT
+			 /* Make sure we never miss an event that has
+			    different modifiers.  */
+			 && maybe_event->ie.modifiers == event->ie.modifiers
+			 /* Make sure that the event is for the same
+			    frame.  */
+			 && EQ (maybe_event->ie.frame_or_window,
+				event->ie.frame_or_window)
+			 /* Make sure that the event isn't the start
+			    of a new pinch gesture sequence.  */
+			 && (XFLOAT_DATA (XCAR (maybe_event->ie.arg)) != 0.0
+			     || XFLOAT_DATA (XCAR (XCDR (maybe_event->ie.arg))) != 0.0
+			     || XFLOAT_DATA (Fnth (make_fixnum (3),
+						   maybe_event->ie.arg)) != 0.0))
+		    {
+		      event = maybe_event;
+		      /* Add up relative deltas inside events we skip.  */
+		      pinch_dx += XFLOAT_DATA (XCAR (maybe_event->ie.arg));
+		      pinch_dy += XFLOAT_DATA (XCAR (XCDR (maybe_event->ie.arg)));
+		      pinch_angle += XFLOAT_DATA (Fnth (make_fixnum (3),
+							maybe_event->ie.arg));
+
+		      XSETCAR (maybe_event->ie.arg, make_float (pinch_dx));
+		      XSETCAR (XCDR (maybe_event->ie.arg), make_float (pinch_dy));
+		      XSETCAR (Fnthcdr (make_fixnum (3),
+					maybe_event->ie.arg),
+			       make_float (fmod (pinch_angle, 360.0)));
+		      maybe_event = next_kbd_event (event);
+		    }
+		}
+
 	      obj = make_lispy_event (&event->ie);
 
 #ifdef HAVE_EXT_MENU_BAR
@@ -4463,6 +4520,7 @@ static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
 static Lisp_Object wheel_syms;
 static Lisp_Object drag_n_drop_syms;
+static Lisp_Object pinch_syms;
 
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
@@ -5103,19 +5161,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 #endif
       )
     {
-      /* FIXME: While track_mouse is non-nil, we do not report this
+      /* While 'track-mouse' is neither nil nor t, do not report this
 	 event as something that happened on the tool or tab bar since
-	 that would break mouse dragging operations that originate from
-	 an ordinary window beneath and expect the window to auto-scroll
-	 as soon as the mouse cursor appears above or beneath it
-	 (Bug#50993).  Since this "fix" might break track_mouse based
-	 operations originating from the tool or tab bar itself, such
-	 operations should set track_mouse to some special value that
-	 would be recognized by the following check.
+	 that would break mouse drag operations that originate from an
+	 ordinary window beneath that bar and expect the window to
+	 auto-scroll as soon as the mouse cursor appears above or
+	 beneath it (Bug#50993).  We do allow reports for t, because
+	 applications may have set 'track-mouse' to t and still expect a
+	 click on the tool or tab bar to get through (Bug#51794).
 
-	 This issue should be properly handled by 'mouse-drag-track' and
-	 friends, so the below is only a temporary workaround.  */
-      if (NILP (track_mouse))
+	 FIXME: This is a preliminary fix for the bugs cited above and
+	 awaits a solution that includes a convention for all special
+	 values of 'track-mouse' and their documentation in the Elisp
+	 manual.  */
+      if (NILP (track_mouse) || EQ (track_mouse, Qt))
 	posn = EQ (window_or_frame, f->tab_bar_window) ? Qtab_bar : Qtool_bar;
       /* Kludge alert: for mouse events on the tab bar and tool bar,
 	 keyboard.c wants the frame, not the special-purpose window
@@ -5980,7 +6039,11 @@ make_lispy_event (struct input_event *event)
 				      ASIZE (wheel_syms));
 	}
 
-        if (NUMBERP (event->arg))
+	if (CONSP (event->arg))
+	  return list5 (head, position, make_fixnum (double_click_count),
+			XCAR (event->arg), Fcons (XCAR (XCDR (event->arg)),
+						  XCAR (XCDR (XCDR (event->arg)))));
+        else if (NUMBERP (event->arg))
           return list4 (head, position, make_fixnum (double_click_count),
                         event->arg);
 	else if (event->modifiers & (double_modifier | triple_modifier))
@@ -5989,6 +6052,77 @@ make_lispy_event (struct input_event *event)
 	  return list2 (head, position);
       }
 
+    case TOUCH_END_EVENT:
+      {
+	Lisp_Object position;
+
+	/* Build the position as appropriate for this mouse click.  */
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	if (! FRAME_LIVE_P (f))
+	  return Qnil;
+
+	position = make_lispy_position (f, event->x, event->y,
+					event->timestamp);
+
+	return list2 (Qtouch_end, position);
+      }
+
+    case TOUCHSCREEN_BEGIN_EVENT:
+    case TOUCHSCREEN_END_EVENT:
+      {
+	Lisp_Object x, y, id, position;
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	id = event->arg;
+	x = event->x;
+	y = event->y;
+
+	position = make_lispy_position (f, x, y, event->timestamp);
+
+	return list2 (((event->kind
+			== TOUCHSCREEN_BEGIN_EVENT)
+		       ? Qtouchscreen_begin
+		       : Qtouchscreen_end),
+		      Fcons (id, position));
+      }
+
+    case PINCH_EVENT:
+      {
+	Lisp_Object x, y, position;
+	struct frame *f = XFRAME (event->frame_or_window);
+
+	x = event->x;
+	y = event->y;
+
+	position = make_lispy_position (f, x, y, event->timestamp);
+
+	return Fcons (modify_event_symbol (0, event->modifiers, Qpinch,
+					   Qnil, (const char *[]) {"pinch"},
+					   &pinch_syms, 1),
+		      Fcons (position, event->arg));
+      }
+
+    case TOUCHSCREEN_UPDATE_EVENT:
+      {
+	Lisp_Object x, y, id, position, tem, it, evt;
+	struct frame *f = XFRAME (event->frame_or_window);
+	evt = Qnil;
+
+	for (tem = event->arg; CONSP (tem); tem = XCDR (tem))
+	  {
+	    it = XCAR (tem);
+
+	    x = XCAR (it);
+	    y = XCAR (XCDR (it));
+	    id = XCAR (XCDR (XCDR (it)));
+
+	    position = make_lispy_position (f, x, y, event->timestamp);
+	    evt = Fcons (Fcons (id, position), evt);
+	  }
+
+	return list2 (Qtouchscreen_update, evt);
+      }
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
@@ -6136,7 +6270,7 @@ make_lispy_event (struct input_event *event)
       return Fcons (Qxwidget_event, event->arg);
 
     case XWIDGET_DISPLAY_EVENT:
-      return list2 (Qxwidget_display_event, event->arg);
+      return Fcons (Qxwidget_display_event, event->arg);
 #endif
 
 #ifdef USE_FILE_NOTIFY
@@ -6152,6 +6286,9 @@ make_lispy_event (struct input_event *event)
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,
 		      event->arg, event->frame_or_window);
+
+    case PREEDIT_TEXT_EVENT:
+      return list2 (Qpreedit_text, event->arg);
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -7180,7 +7317,7 @@ tty_read_avail_input (struct terminal *terminal,
 static void
 handle_async_input (void)
 {
-#ifdef USABLE_SIGIO
+#ifndef DOS_NT
   while (1)
     {
       int nread = gobble_input ();
@@ -7243,7 +7380,7 @@ totally_unblock_input (void)
   unblock_input_to (0);
 }
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 
 void
 handle_input_available_signal (int sig)
@@ -7259,7 +7396,7 @@ deliver_input_available_signal (int sig)
 {
   deliver_process_signal (sig, handle_input_available_signal);
 }
-#endif /* USABLE_SIGIO */
+#endif /* defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)  */
 
 
 /* User signal events.  */
@@ -7329,7 +7466,7 @@ handle_user_signal (int sig)
           }
 
 	p->npending++;
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 	if (interrupt_input)
 	  handle_input_available_signal (sig);
 	else
@@ -11099,7 +11236,7 @@ See also `current-input-mode'.  */)
   (Lisp_Object interrupt)
 {
   bool new_interrupt_input;
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
 #ifdef HAVE_X_WINDOWS
   if (x_display_list != NULL)
     {
@@ -11110,9 +11247,9 @@ See also `current-input-mode'.  */)
   else
 #endif /* HAVE_X_WINDOWS */
     new_interrupt_input = !NILP (interrupt);
-#else /* not USABLE_SIGIO */
+#else /* not USABLE_SIGIO || USABLE_SIGPOLL */
   new_interrupt_input = false;
-#endif /* not USABLE_SIGIO */
+#endif /* not USABLE_SIGIO || USABLE_SIGPOLL */
 
   if (new_interrupt_input != interrupt_input)
     {
@@ -11541,12 +11678,16 @@ init_keyboard (void)
       sigaction (SIGQUIT, &action, 0);
 #endif /* not DOS_NT */
     }
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   if (!noninteractive)
     {
       struct sigaction action;
       emacs_sigaction_init (&action, deliver_input_available_signal);
+#ifdef USABLE_SIGIO
       sigaction (SIGIO, &action, 0);
+#else
+      sigaction (SIGPOLL, &action, 0);
+#endif
     }
 #endif
 
@@ -11737,6 +11878,8 @@ syms_of_keyboard (void)
   DEFSYM (Qfile_notify, "file-notify");
 #endif /* USE_FILE_NOTIFY */
 
+  DEFSYM (Qtouch_end, "touch-end");
+
   /* Menu and tool bar item parts.  */
   DEFSYM (QCenable, ":enable");
   DEFSYM (QCvisible, ":visible");
@@ -11856,6 +11999,8 @@ syms_of_keyboard (void)
   DEFSYM (Qno_record, "no-record");
   DEFSYM (Qencoded, "encoded");
 
+  DEFSYM (Qpreedit_text, "preedit-text");
+
   button_down_location = make_nil_vector (5);
   staticpro (&button_down_location);
   staticpro (&frame_relative_event_pos);
@@ -11895,6 +12040,9 @@ syms_of_keyboard (void)
 
   drag_n_drop_syms = Qnil;
   staticpro (&drag_n_drop_syms);
+
+  pinch_syms = Qnil;
+  staticpro (&pinch_syms);
 
   unread_switch_frame = Qnil;
   staticpro (&unread_switch_frame);
@@ -12232,6 +12380,10 @@ See also `pre-command-hook'.  */);
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
   DEFSYM (Qecho_area_clear_hook, "echo-area-clear-hook");
+  DEFSYM (Qtouchscreen_begin, "touchscreen-begin");
+  DEFSYM (Qtouchscreen_end, "touchscreen-end");
+  DEFSYM (Qtouchscreen_update, "touchscreen-update");
+  DEFSYM (Qpinch, "pinch");
   Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
@@ -12562,6 +12714,12 @@ If this variable is non-nil (the default), `input-pending-p' and
 other similar functions ignore input events in `while-no-input-ignore-events'.
 This flag may eventually be removed once this behavior is deemed safe.  */);
   input_pending_p_filter_events = true;
+
+  DEFVAR_BOOL ("mwheel-coalesce-scroll-events", mwheel_coalesce_scroll_events,
+	       doc: /* Non-nil means send a wheel event only for scrolling at least one screen line.
+Otherwise, a wheel event will be sent every time the mouse wheel is
+moved.  */);
+  mwheel_coalesce_scroll_events = true;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

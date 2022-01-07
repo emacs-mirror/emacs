@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org> (1997-2011)
 ;;         Boruch Baum <boruch_baum@gmx.com> (2017-)
@@ -898,7 +898,7 @@ play around with the following keys:
     (make-local-variable 'footnote-end-tag)
     (make-local-variable 'adaptive-fill-function)
 
-    ;; Filladapt was an XEmacs package which is now in GNU ELPA.
+    ;; Filladapt is a GNU ELPA package.
     (when (boundp 'filladapt-token-table)
       ;; add tokens to filladapt to match footnotes
       ;; 1] xxxxxxxxxxx x x x or [1] x x x x x x x

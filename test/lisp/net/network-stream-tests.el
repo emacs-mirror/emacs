@@ -1,6 +1,6 @@
 ;;; network-stream-tests.el --- tests for network processes       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -31,6 +31,8 @@
 ;; The require above is needed for 'open-network-stream' to work, but
 ;; it pulls in nsm, which then makes the :nowait t' tests fail unless
 ;; we disable the nsm, which we do by binding 'network-security-level'
+
+(declare-function gnutls-peer-status "gnutls.c")
 
 (ert-deftest make-local-unix-server ()
   (skip-unless (featurep 'make-network-process '(:family local)))

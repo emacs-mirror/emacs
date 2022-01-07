@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1767,7 +1767,7 @@ is determined non-interactively.  The value is queried for in the
 minibuffer exactly the same way that `set-variable' does it.
 
 You can see the current value of the variable when the minibuffer is
-querying you by typing `C-h'.  Note that the format is changed
+querying you by typing \\`C-h'.  Note that the format is changed
 slightly from that used by `set-variable' -- the current value is
 printed just after the variable's name instead of at the bottom of the
 help window."

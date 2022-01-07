@@ -1,6 +1,6 @@
 ;;; shr-tests.el --- tests for shr.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -26,6 +26,8 @@
 (require 'ert)
 (require 'ert-x)
 (require 'shr)
+
+(declare-function libxml-parse-html-region "xml.c")
 
 (defun shr-test (name)
   (with-temp-buffer

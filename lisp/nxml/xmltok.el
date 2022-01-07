@@ -1,6 +1,6 @@
 ;;; xmltok.el --- XML tokenization  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -943,7 +943,6 @@ and VALUE-END, otherwise a STRING giving the value."
 	(let ((n (string-to-number (buffer-substring-no-properties start end)
 				base)))
 	  (cond ((and (integerp n) (xmltok-valid-char-p n))
-		 (setq n (xmltok-unicode-to-char n))
 		 (and n (string n)))
 		(t
 		 (xmltok-add-error "Invalid character code" start end)
@@ -970,11 +969,6 @@ and VALUE-END, otherwise a STRING giving the value."
 	((< n #xFFFE) t)
 	(t (and (> n #xFFFF)
 		(< n #x110000)))))
-
-(defun xmltok-unicode-to-char (n)
-  "Return the character corresponding to Unicode scalar value N.
-Return nil if unsupported in Emacs."
-  (decode-char 'ucs n))
 
 ;;; Prolog parsing
 
@@ -1765,6 +1759,10 @@ and `xmltok-namespace-attributes'."
 		   (string xmltok-type)
 		 xmltok-type))
     (message "Scanned end of file")))
+
+;;; Obsolete
+
+(define-obsolete-function-alias 'xmltok-unicode-to-char #'identity "29.1")
 
 (provide 'xmltok)
 

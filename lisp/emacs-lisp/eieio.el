@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -991,11 +991,6 @@ This may create or delete slots, but does not affect the return value
 of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
 (define-obsolete-function-alias 'change-class #'eieio-change-class "26.1")
-
-;; Hook ourselves into help system for describing classes and methods.
-;; FIXME: This is not actually needed any more since we can click on the
-;; hyperlink from the constructor's docstring to see the type definition.
-(add-hook 'help-fns-describe-function-functions #'eieio-help-constructor)
 
 (provide 'eieio)
 

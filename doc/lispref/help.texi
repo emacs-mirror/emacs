@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -333,6 +333,13 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
+@item \`@var{KEYSEQ}'
+stands for a key sequence @var{KEYSEQ}, which will use the same face
+as a command substitution.  This should be used only when a key
+sequence has no corresponding command, for example when it is read
+directly with @code{read-key-sequence}.  It must be a valid key
+sequence according to @code{key-valid-p}.
+
 @item `
 (grave accent) stands for a left quote.
 This generates a left single quotation mark, an apostrophe, or a grave
@@ -372,11 +379,15 @@ quotes.  You can customize it freely according to your personal
 preference.
 @end defopt
 
-@defun substitute-command-keys string
+@defun substitute-command-keys string &optional no-face
+@vindex help-key-binding@r{ (face)}
 This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
 This permits display of documentation that refers accurately to the
-user's own customized key bindings.
+user's own customized key bindings.  By default, the key bindings are
+given a special face @code{help-key-binding}, but if the optional
+argument @var{no-face} is non-@code{nil}, the function doesn't add
+this face to the produced string.
 
 @cindex advertised binding
 If a command has multiple bindings, this function normally uses the
@@ -640,7 +651,7 @@ follows:
 
 @smallexample
 @group
-(define-key global-map (string help-char) 'help-command)
+(keymap-set global-map (key-description (string help-char)) 'help-command)
 (fset 'help-command help-map)
 @end group
 @end smallexample

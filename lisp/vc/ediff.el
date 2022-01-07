@@ -1,6 +1,6 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
@@ -983,9 +983,9 @@ STARTUP-HOOKS is a list of functions that Emacs calls without
 arguments after setting up the Ediff buffers."
   (interactive
    (let (bf)
-     (list (setq bf (read-buffer "Region's A buffer: "
+     (list (setq bf (read-buffer "Region A's buffer: "
 				 (ediff-other-buffer "") t))
-	   (read-buffer "Region's B buffer: "
+	   (read-buffer "Region B's buffer: "
 			(progn
 			  ;; realign buffers so that two visible bufs will be
 			  ;; at the top
@@ -1558,7 +1558,9 @@ With optional NODE, goes to that node."
 	  (info "ediff")
 	  (if node
 	      (Info-goto-node node)
-	    (message "Type `i' to search for a specific topic"))
+            (message (substitute-command-keys
+                      (concat "Type \\<Info-mode-map>\\[Info-index] to"
+                              " search for a specific topic"))))
 	  (raise-frame))
       (error (beep 1)
 	     (with-output-to-temp-buffer ediff-msg-buffer

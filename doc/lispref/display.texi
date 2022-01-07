@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2021 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -2052,14 +2052,14 @@ means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
 
-@group
 @example
+@group
 (truncate-string-to-width "\tab\t" 12 4)
      @result{} "ab"
 (truncate-string-to-width "\tab\t" 12 4 ?\s)
      @result{} "    ab  "
-@end example
 @end group
+@end example
 
 This function uses @code{string-width} and @code{char-width} to find
 the suitable truncation point when @var{string} is too wide, so it
@@ -2086,23 +2086,33 @@ displayed in a given window.  This function is used by
 (@pxref{Resizing Windows}) to make a window exactly as large as the text
 it contains.
 
-@defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines ignore-line-at-end
 This function returns the size of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
 of any text line and the maximum pixel-height of all text lines.  This
 function exists to allow Lisp programs to adjust the dimensions of
-@var{window} to the buffer text it needs to display.
+@var{window} to the buffer text it needs to display, and for other
+similar situations.
+
+The return value can also optionally (see below) include the buffer
+position of the first line whose dimensions were measured.
 
 The optional argument @var{from}, if non-@code{nil}, specifies the
 first text position to consider, and defaults to the minimum
 accessible position of the buffer.  If @var{from} is @code{t}, it
 stands for the minimum accessible position that is not a newline
-character.  The optional argument @var{to}, if non-@code{nil},
-specifies the last text position to consider, and defaults to the
-maximum accessible position of the buffer.  If @var{to} is @code{t},
-it stands for the maximum accessible position that is not a newline
-character.
+character.  If @var{from} is a cons, its @code{car} specifies a buffer
+position, and its @code{cdr} specifies the vertical offset in pixels
+from that position to the first screen line whose text is to be
+measured.  (The measurement will start from the visual beginning of
+that screen line.)  In that case, the return value will instead be a
+list of the pixel-width, pixel-height, and the buffer position of the
+first line that was measured.  The optional argument @var{to}, if
+non-@code{nil}, specifies the last text position to consider, and
+defaults to the maximum accessible position of the buffer.  If
+@var{to} is @code{t}, it stands for the maximum accessible position
+that is not a newline character.
 
 The optional argument @var{x-limit}, if non-@code{nil}, specifies the
 maximum X coordinate beyond which text should be ignored; it is
@@ -2135,6 +2145,12 @@ in the return value.  If it is either the symbol @code{mode-line},
 line, if present, in the return value.  If it is @code{t}, include the
 height of all of these lines, if present, in the return value.
 @end defun
+
+The optional argument @var{ignore-line-at-end} controls whether or
+not to count the height of text in @var{to}'s screen line as part of
+the returned pixel-height.  This is useful if your Lisp program is
+only interested in the dimensions of text up to and excluding the
+visual beginning of @var{to}'s screen line.
 
 @code{window-text-pixel-size} treats the text displayed in a window as a
 whole and does not care about the size of individual lines.  The
@@ -2199,6 +2215,23 @@ This function returns @code{nil} if the current glyph matrix of
 for example, when processing a command.  The value should be retrievable
 though when this function is run from an idle timer with a delay of zero
 seconds.
+@end defun
+
+@defun buffer-text-pixel-size &optional buffer-or-name window from to x-limit y-limit
+This is much like @code{window-text-pixel-size}, but can be used when
+the buffer isn't shown in a window.  (@code{window-text-pixel-size} is
+faster when it is, so this function shouldn't be used in that case.)
+
+@var{buffer-or-name} must specify a live buffer or the name of a live
+buffer and defaults to the current buffer.  @var{window} must be a
+live window and defaults to the selected one; the function will
+compute the text dimensions as if @var{buffer} is displayed in
+@var{window}.  The return value is a cons of the maximum pixel-width
+of any text line and the pixel-height of all the text lines of the
+buffer specified by @var{buffer-or-name}.
+
+The optional arguments @var{x-limit} and @var{y-limit} have the same
+meaning as with @code{window-text-pixel-size}.
 @end defun
 
 @defun string-pixel-width string
@@ -2452,8 +2485,9 @@ GNU Emacs Manual}.
 @item :width
 Relative character width.  This should be one of the symbols
 @code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
-@code{semi-condensed}, @code{normal}, @code{semi-expanded},
-@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
+@code{semi-condensed}, @code{normal}, @code{regular}, @code{medium},
+@code{semi-expanded}, @code{expanded}, @code{extra-expanded}, or
+@code{ultra-expanded}.
 
 @item :height
 The height of the font.  In the simplest case, this is an integer in
@@ -2767,8 +2801,9 @@ apply to.  Here are the possible values of @var{characteristic}:
 @item type
 The kind of window system the terminal uses---either @code{graphic}
 (any graphics-capable display), @code{x}, @code{pc} (for the MS-DOS
-console), @code{w32} (for MS Windows 9X/NT/2K/XP), or @code{tty} (a
-non-graphics-capable display).  @xref{Window Systems, window-system}.
+console), @code{w32} (for MS Windows 9X/NT/2K/XP), @code{haiku} (for
+Haiku), @code{pgtk} (for GTK), or @code{tty} (a non-graphics-capable
+display).  @xref{Window Systems, window-system}.
 
 @item class
 What kinds of colors the terminal supports---either @code{color},
@@ -4856,15 +4891,57 @@ window on a minibuffer-less frame.
 
   The @code{display} text property (or overlay property) is used to
 insert images into text, and to control other aspects of how text
-displays.  The value of the @code{display} property should be a
-display specification, or a list or vector containing several display
-specifications.  Display specifications in the same @code{display}
+displays.  Display specifications in the same @code{display}
 property value generally apply in parallel to the text they cover.
 
   If several sources (overlays and/or a text property) specify values
 for the @code{display} property, only one of the values takes effect,
 following the rules of @code{get-char-property}.  @xref{Examining
 Properties}.
+
+  The value of the @code{display} property should be a display
+specification, or a list or vector containing several display
+specifications.
+
+@defun get-display-property position prop &optional object properties
+This convenience function can be used to get a specific display
+property, no matter whether the @code{display} property is a vector, a
+list or a simple property.  This is like @code{get-text-property}
+(@pxref{Examining Properties}), but works on the @code{display}
+property only.
+
+@var{position} is the position in the buffer or string to examine, and
+@var{prop} is the @code{display} property to return.  The optional
+@var{object} argument should be either a string or a buffer, and
+defaults to the current buffer.  If the optional @var{properties}
+argument is non-@code{nil}, it should be a @code{display} property,
+and in that case, @var{position} and @var{object} are ignored.  (This
+can be useful if you've already gotten the @code{display} property
+with @code{get-char-property}, for instance (@pxref{Examining
+Properties}).
+@end defun
+
+@defun add-display-text-property start end prop value &optional object
+Add @code{display} property @var{prop} of @var{value} to the text from
+@var{start} to @var{end}.
+
+If any text in the region has a non-@code{nil} @code{display}
+property, those properties are retained.  For instance:
+
+@lisp
+(add-display-text-property 4 8 'height 2.0)
+(add-display-text-property 2 12 'raise 0.5)
+@end lisp
+
+After doing this, the region from 2 to 4 will have the @code{raise}
+@code{display} property, the region from 4 to 8 will have both the
+@code{raise} and @code{height} @code{display} properties, and finally
+the region from 8 to 12 will only have the @code{raise} @code{display}
+property.
+
+If @var{object} is non-@code{nil}, it should be a string or a buffer.
+If @code{nil}, this defaults to the current buffer.
+@end defun
 
 @cindex display property, unsafe evaluation
 @cindex security, and display specifications
@@ -5140,6 +5217,24 @@ text that has the specification.  It displays all of these spaces
 @var{factor} times as wide as normal.  The element @var{factor} should
 be an integer or float.  Characters other than spaces are not affected
 at all; in particular, this has no effect on tab characters.
+
+@item (min-width (@var{width}))
+This display specification ensures the text that has it takes at least
+@var{width} space on display, by adding a stretch of white space to
+the end of the text if the text is shorter than @var{width}.  The text
+is partitioned using the identity of the parameter, which is why the
+parameter is a list with one element.  For instance:
+
+@lisp
+(insert (propertize "foo" '(display (min-width (6.0)))))
+@end lisp
+
+This will add padding after @samp{foo} bringing the total width up to
+the width of six normal characters.  Note that the affected characters
+are identified by the @code{(6.0)} list in the display property,
+compared with @code{eq}.  The element @var{width} can be either an
+integer or a float specifying the required minimum width of the text
+(@pxref{Pixel Specification}).
 
 @item (height @var{height})
 This display specification makes the text taller or shorter.
@@ -6804,6 +6899,13 @@ pixels, and @var{title}, a string, specifies its title.  @var{related}
 is used internally by the WebKit widget, and specifies another WebKit
 widget that the newly created widget should share settings and
 subprocesses with.
+
+The xwidget that is returned will be killed alongside its buffer
+(@pxref{Killing Buffers}).  You can also kill it using
+@code{kill-xwidget}.  Once it is killed, the xwidget may continue to
+exist as a Lisp object and act as a @code{display} property until all
+references to it are gone, but most actions that can be performed on
+live xwidgets will no longer be available.
 @end defun
 
 @defun xwidgetp object
@@ -6811,6 +6913,17 @@ This function returns @code{t} if @var{object} is an xwidget,
 @code{nil} otherwise.
 @end defun
 
+@defun xwidget-live-p object
+This function returns @code{t} if @var{object} is an xwidget that
+hasn't been killed, and @code{nil} otherwise.
+@end defun
+
+@defun kill-xwidget xwidget
+This function kills @var{xwidget}, by removing it from its buffer and
+releasing window system resources it holds.
+@end defun
+
+@cindex xwidget property list
 @defun xwidget-plist xwidget
 This function returns the property list of @var{xwidget}.
 @end defun
@@ -6821,7 +6934,8 @@ property list given by @var{plist}.
 @end defun
 
 @defun xwidget-buffer xwidget
-This function returns the buffer of @var{xwidget}.
+This function returns the buffer of @var{xwidget}.  If @var{xwidget}
+has been killed, it returns @code{nil}.
 @end defun
 
 @defun set-xwidget-buffer xwidget buffer
@@ -6941,6 +7055,75 @@ document when its beginning is reached.
 Finish a search operation started with @code{xwidget-webkit-search} in
 @var{xwidget}.  If there is no query currently ongoing, this function
 signals an error.
+@end defun
+
+@defun xwidget-webkit-load-html xwidget text &optional base-uri
+Load @var{text}, a string, into @var{xwidget}, which should be a
+WebKit xwidget.  Any HTML markup in @var{text} will be processed
+by @var{xwidget} while rendering the text.
+
+Optional argument @var{base-uri}, which should be a string, specifies
+the absolute location of the web resources referenced by @var{text},
+to be used for resolving relative links in @var{text}.
+@end defun
+
+@defun xwidget-webkit-goto-history xwidget rel-pos
+Make @var{xwidget}, a WebKit widget, load the @var{rel-pos}th element
+in its navigation history.
+
+If @var{rel-pos} is zero, the current page will be reloaded instead.
+@end defun
+
+@defun xwidget-webkit-back-forward-list xwidget &optional limit
+Return the navigation history of @var{xwidget}, up to @var{limit}
+items in each direction.  If not specified, @var{limit} defaults to
+50.
+
+The returned value is a list of the form @w{@code{(@var{back}
+@var{here} @var{forward})}}, where @var{here} is the current
+navigation item, while @var{back} is a list of items containing the
+items recorded by WebKit before the current navigation item, and
+@var{forward} is a list of items recorded after the current navigation
+item.  @var{back}, @var{here} and @var{forward} can all be @code{nil}.
+
+When @var{here} is @code{nil}, it means that no items have been
+recorded yet; if @var{back} or @var{forward} are @code{nil}, it means
+that there is no history recorded before or after the current item
+respectively.
+
+Navigation items are themselves lists of the form @w{@code{(@var{idx}
+@var{title} @var{uri})}}.  In these lists, @var{idx} is an index that
+can be passed to @code{xwidget-webkit-goto-history}, @var{title} is
+the human-readable title of the item, and @var{uri} is the URI of the
+item.  The user should normally have no reason to load @var{uri}
+manually to reach a specific history item.  Instead, @var{idx} should
+be passed as an index to @code{xwidget-webkit-goto-history}.
+@end defun
+
+@defun xwidget-webkit-estimated-load-progress xwidget
+Return an estimate of how much data is remaining to be transferred
+before the page displayed by the WebKit widget @var{xwidget} is fully
+loaded.
+
+The value returned is a float ranging between 0.0 and 1.0.
+@end defun
+
+@defun xwidget-webkit-set-cookie-storage-file xwidget file
+Make the WebKit widget @var{xwidget} store cookies in @var{file}.
+
+@var{file} must be an absolute file name.  The new setting will also
+affect any xwidget that was created with @var{xwidget} as the
+@code{related} argument to @code{make-xwidget}, and widgets related to
+those as well.
+
+If this function is not called at least once on @var{xwidget} or a
+related widget, @var{xwidget} will not store cookies on disk at all.
+@end defun
+
+@defun xwidget-webkit-stop-loading xwidget
+Terminate any data transfer still in progress in the WebKit widget
+@var{xwidget} as part of a page-loading operation.  If a page is not
+being loaded, this function does nothing.
 @end defun
 
 @node Buttons
@@ -7611,16 +7794,14 @@ The string is formatted #RRGGBB (hash followed by six hex digits)."
   (kill-buffer nil))
 
 (setq colorcomp-mode-map
-      (let ((m (make-sparse-keymap)))
-        (suppress-keymap m)
-        (define-key m "i" 'colorcomp-R-less)
-        (define-key m "o" 'colorcomp-R-more)
-        (define-key m "k" 'colorcomp-G-less)
-        (define-key m "l" 'colorcomp-G-more)
-        (define-key m "," 'colorcomp-B-less)
-        (define-key m "." 'colorcomp-B-more)
-        (define-key m " " 'colorcomp-copy-as-kill-and-exit)
-        m))
+      (define-keymap :suppress t
+        "i" 'colorcomp-R-less
+        "o" 'colorcomp-R-more
+        "k" 'colorcomp-G-less
+        "l" 'colorcomp-G-more
+        "," 'colorcomp-B-less
+        "." 'colorcomp-B-more
+        "SPC" 'colorcomp-copy-as-kill-and-exit))
 @end smallexample
 
 Note that we never modify the data in each node, which is fixed when the
@@ -8029,7 +8210,14 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
+@vindex glyphless-display-mode
+The @code{glyphless-display-mode} minor mode can be used to toggle
+displaying glyphless characters in a convenient manner in the current
+buffer.  If this mode is enabled, all the glyphless characters are
+displayed as boxes that display acronyms of their character names.
+
 @defvar glyphless-char-display
+For more fine-grained (and global) control, this variable can be used.
 The value of this variable is a char-table which defines glyphless
 characters and how they are displayed.  Each entry must be one of the
 following display methods:
@@ -8105,6 +8293,16 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
+Characters of Unicode General Category [Cf], such as U+200E
+@sc{left-to-right mark}, but excluding characters that have graphic
+images, such as U+00AD @sc{soft hyphen}.
+
+@item bidi-control
+This is a subset of @code{format-control}, but only includes
+characters that are related to bidirectional formatting control, like
+U+2069 @sc{pop directional isolate} and U+202A @sc{left-to-right
+embedding}.  @xref{Bidirectional Display}.
+
 Characters of Unicode General Category [Cf], such as U+200E
 @sc{left-to-right mark}, but excluding characters that have graphic
 images, such as U+00AD @sc{soft hyphen}.
@@ -8186,6 +8384,8 @@ Emacs is displaying the frame using the Nextstep interface (used on
 GNUstep and macOS).
 @item pc
 Emacs is displaying the frame using MS-DOS direct screen writes.
+@item haiku
+Emacs is displaying the frame using the Application Kit on Haiku.
 @item nil
 Emacs is displaying the frame on a character-based terminal.
 @end table
@@ -8232,6 +8432,7 @@ area.  On text-mode (a.k.a.@: ``TTY'') frames, tooltips are always
 displayed in the echo area.
 @end defun
 
+@cindex system tooltips
 @vindex x-gtk-use-system-tooltips
 When Emacs is built with GTK+ support, it by default displays tooltips
 using GTK+ functions, and the appearance of the tooltips is then

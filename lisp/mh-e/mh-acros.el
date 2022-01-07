@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004, 2006-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -59,7 +59,8 @@
 ;;;###mh-autoload
 (defmacro mh-funcall-if-exists (function &rest args)
   "Call FUNCTION with ARGS as parameters if it exists."
-  (declare (debug (symbolp body)))
+  (declare (obsolete "use `(when (fboundp 'foo) (foo))' instead." "29.1")
+           (debug (symbolp body)))
   ;; FIXME: Not clear when this should be used.  If the function happens
   ;; not to exist at compile-time (e.g. because the corresponding package
   ;; wasn't loaded), then it won't ever be used :-(

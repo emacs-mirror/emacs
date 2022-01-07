@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2021 Free Software Foundation, Inc.
+Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,11 +32,19 @@ struct window;
 
 #if defined (USE_GTK)
 #include <gtk/gtk.h>
+#ifndef HAVE_PGTK
 #include <X11/Xlib.h>
 #include "xterm.h"
+#else
+#include "pgtkterm.h"
+#endif
 #elif defined (NS_IMPL_COCOA) && defined (__OBJC__)
 #import <AppKit/NSView.h>
 #import "nsxwidget.h"
+#endif
+
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
 #endif
 
 struct xwidget
@@ -68,6 +76,8 @@ struct xwidget
   /* For offscreen widgets, unused if not osr.  */
   GtkWidget *widget_osr;
   GtkWidget *widgetwindow_osr;
+  struct frame *embedder;
+  struct xwidget_view *embedder_view;
   guint hit_result;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
@@ -102,14 +112,22 @@ struct xwidget_view
   /* The "live" instance isn't drawn.  */
   bool hidden;
 
+  enum glyph_row_area area;
+
 #if defined (USE_GTK)
+#ifndef HAVE_PGTK
   Display *dpy;
   Window wdesc;
+#else
+  struct pgtk_display_info *dpyinfo;
+  GtkWidget *widget;
+#endif
   Emacs_Cursor cursor;
   struct frame *frame;
 
   cairo_surface_t *cr_surface;
   cairo_t *cr_context;
+  int just_resized;
 #elif defined (NS_IMPL_COCOA)
 # ifdef __OBJC__
   XvWindow *xvWindow;
@@ -136,8 +154,15 @@ struct xwidget_view
 #define XXWIDGET(a) (eassert (XWIDGETP (a)), \
 		     XUNTAG (a, Lisp_Vectorlike, struct xwidget))
 
+#define XWIDGET_LIVE_P(w) (!NILP ((w)->buffer))
+
 #define CHECK_XWIDGET(x) \
   CHECK_TYPE (XWIDGETP (x), Qxwidgetp, x)
+
+#define CHECK_LIVE_XWIDGET(x)				\
+  CHECK_TYPE ((XWIDGETP (x)				\
+	       && XWIDGET_LIVE_P (XXWIDGET (x))),	\
+	      Qxwidget_live_p, x)
 
 /* Test for xwidget_view pseudovector.  */
 #define XWIDGET_VIEW_P(x) PSEUDOVECTORP (x, PVEC_XWIDGET_VIEW)
@@ -177,11 +202,25 @@ extern struct xwidget *xwidget_from_id (uint32_t id);
 #ifdef HAVE_X_WINDOWS
 struct xwidget_view *xwidget_view_from_window (Window wdesc);
 void xwidget_expose (struct xwidget_view *xv);
+extern void lower_frame_xwidget_views (struct frame *f);
+#endif
+#ifndef NS_IMPL_COCOA
 extern void kill_frame_xwidget_views (struct frame *f);
+#endif
+#ifdef HAVE_X_WINDOWS
 extern void xwidget_button (struct xwidget_view *, bool, int,
 			    int, int, int, Time);
 extern void xwidget_motion_or_crossing (struct xwidget_view *,
 					const XEvent *);
+#ifdef HAVE_XINPUT2
+extern void xwidget_motion_notify (struct xwidget_view *, double,
+				   double, double, double, uint, Time);
+extern void xwidget_scroll (struct xwidget_view *, double, double,
+                            double, double, uint, Time, bool);
+#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+extern void xwidget_pinch (struct xwidget_view *, XIGesturePinchEvent *);
+#endif
+#endif
 #endif
 #else
 INLINE_HEADER_BEGIN

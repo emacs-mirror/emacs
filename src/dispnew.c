@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2021 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1034,7 +1034,7 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   enum { off = offsetof (struct glyph_row, x) };
 
-  memcpy (&to->x, &from->x, sizeof *to - off);
+  memcpy ((char *) to + off, (char *) from + off, sizeof *to - off);
 }
 
 
@@ -6146,7 +6146,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
     wrong_type_argument (Qnumberp, timeout);
 
 
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   gobble_input ();
 #endif
 
@@ -6449,6 +6449,24 @@ init_display_interactive (void)
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_fixnum (10);
+      return;
+    }
+#endif
+
+#ifdef HAVE_PGTK
+  if (!inhibit_window_system && !will_dump_p ())
+    {
+      Vinitial_window_system = Qpgtk;
+      Vwindow_system_version = make_fixnum (3);
+      return;
+    }
+#endif
+
+#ifdef HAVE_HAIKU
+  if (!inhibit_window_system && !will_dump_p ())
+    {
+      Vinitial_window_system = Qhaiku;
+      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif

@@ -1,6 +1,6 @@
 ;;; help-macro.el --- makes command line help such as help-for-help  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Lynn Slater <lrs@indetech.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -93,7 +93,8 @@ and then returns."
      "Help command."
      (interactive)
      (let ((line-prompt
-            (substitute-command-keys ,help-line)))
+            (substitute-command-keys ,help-line))
+           (help-buffer-under-preparation t))
        (when three-step-help
          (message "%s" line-prompt))
        (let* ((help-screen ,help-text)
@@ -140,6 +141,7 @@ and then returns."
                    (insert (substitute-command-keys help-screen)))
                  (let ((minor-mode-map-alist new-minor-mode-map-alist))
                    (help-mode)
+                   (variable-pitch-mode)
                    (setq new-minor-mode-map-alist minor-mode-map-alist))
                  (goto-char (point-min))
                  (while (or (memq char (append help-event-list
@@ -165,14 +167,18 @@ and then returns."
                    (let ((cursor-in-echo-area t)
                          (overriding-local-map local-map))
                      (setq key (read-key-sequence
-                                (format "Type one of the options listed%s: "
+                                (format "Type one of listed options%s: "
                                         (if (pos-visible-in-window-p
                                              (point-max))
                                             ""
                                           (concat  ", or "
                                                    (help--key-description-fontified (kbd "<PageDown>"))
-                                                   " or "
+                                                   "/"
                                                    (help--key-description-fontified (kbd "<PageUp>"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "SPC"))
+                                                   "/"
+                                                   (help--key-description-fontified (kbd "DEL"))
                                                    " to scroll"))))
                            char (aref key 0)))
 

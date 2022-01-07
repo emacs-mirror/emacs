@@ -1,6 +1,6 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Joakim Verona (joakim@verona.se)
 ;;
@@ -33,6 +33,7 @@
 
 (require 'cl-lib)
 (require 'bookmark)
+(require 'format-spec)
 
 (declare-function make-xwidget "xwidget.c"
                   (type title width height arguments &optional buffer related))
@@ -54,6 +55,12 @@
 (declare-function delete-xwidget-view "xwidget.c" (xwidget-view))
 (declare-function get-buffer-xwidgets "xwidget.c" (buffer))
 (declare-function xwidget-query-on-exit-flag "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-back-forward-list "xwidget.c" (xwidget &optional limit))
+(declare-function xwidget-webkit-estimated-load-progress "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-set-cookie-storage-file "xwidget.c" (xwidget file))
+(declare-function xwidget-live-p "xwidget.c" (xwidget))
+(declare-function xwidget-webkit-stop-loading "xwidget.c" (xwidget))
+(declare-function xwidget-info "xwidget.c" (xwidget))
 
 (defgroup xwidget nil
   "Displaying native widgets in Emacs buffers."
@@ -73,12 +80,9 @@ This returns the result of `make-xwidget'."
 
 (defun xwidget-at (pos)
   "Return xwidget at POS."
-  ;; TODO this function is a bit tedious because the C layer isn't well
-  ;; protected yet and xwidgetp apparently doesn't work yet.
   (let* ((disp (get-text-property pos 'display))
-         (xw (car (cdr (cdr  disp)))))
-    ;;(if (xwidgetp  xw) xw nil)
-    (if (equal 'xwidget (car disp)) xw)))
+         (xw (car (cdr (cdr disp)))))
+    (when (xwidget-live-p xw) xw)))
 
 
 
@@ -95,13 +99,22 @@ This returns the result of `make-xwidget'."
   :group 'web
   :prefix "xwidget-webkit-")
 
-(defcustom xwidget-webkit-buffer-name-prefix "*xwidget-webkit: "
-  "Buffer name prefix used by `xwidget-webkit' buffers."
+(defcustom xwidget-webkit-buffer-name-format "*xwidget-webkit: %T*"
+  "Template for naming `xwidget-webkit' buffers.
+It can use the following special constructs:
+
+  %T -- the title of the Web page loaded by the xwidget.
+  %U -- the URI of the Web page loaded by the xwidget."
   :type 'string
   :version "29.1")
 
-(defvar-local xwidget-webkit--title ""
-  "The title of the WebKit widget, used for the header line.")
+(defcustom xwidget-webkit-cookie-file nil
+  "The name of the file where `xwidget-webkit-browse-url' will store cookies.
+They will be stored as plain text in Mozilla \"cookies.txt\"
+format.  If nil, do not store cookies.  You must kill all xwidget-webkit
+buffers for this setting to take effect after setting it to nil."
+  :type '(choice (const :tag "Do not store cookies" nil) file)
+  :version "29.1")
 
 ;;;###autoload
 (defun xwidget-webkit-browse-url (url &optional new-session)
@@ -126,7 +139,7 @@ Interactively, URL defaults to the string looking like a url around point."
 Get the URL of current session, then browse to the URL
 in `split-window-below' with a new xwidget webkit session."
   (interactive nil xwidget-webkit-mode)
-  (let ((url (xwidget-webkit-current-url)))
+  (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
     (with-selected-window (split-window-below)
       (xwidget-webkit-new-session url))))
 
@@ -135,17 +148,48 @@ in `split-window-below' with a new xwidget webkit session."
 Get the URL of current session, then browse to the URL
 in `split-window-right' with a new xwidget webkit session."
   (interactive nil xwidget-webkit-mode)
-  (let ((url (xwidget-webkit-current-url)))
+  (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
     (with-selected-window (split-window-right)
       (xwidget-webkit-new-session url))))
 
 (declare-function xwidget-perform-lispy-event "xwidget.c")
 
-(defun xwidget-webkit-pass-command-event ()
-  "Pass `last-command-event' to the current buffer's WebKit widget."
+(defvar xwidget-webkit--input-method-events nil
+  "Internal variable used to store input method events.")
+
+(defvar-local xwidget-webkit--loading-p nil
+  "Whether or not a page is being loaded.")
+
+(defvar-local xwidget-webkit--progress-update-timer nil
+  "Timer that updates the display of page load progress in the header line.")
+
+(defun xwidget-webkit-pass-command-event-with-input-method ()
+  "Handle a `with-input-method' event."
   (interactive)
-  (xwidget-perform-lispy-event (xwidget-webkit-current-session)
-                               last-command-event))
+  (let ((key (pop unread-command-events)))
+    (setq xwidget-webkit--input-method-events
+          (funcall input-method-function key))
+    (exit-minibuffer)))
+
+(defun xwidget-webkit-pass-command-event ()
+  "Pass `last-command-event' to the current buffer's WebKit widget.
+If `current-input-method' is non-nil, consult `input-method-function'
+for the actual events that will be sent."
+  (interactive)
+  (if (and current-input-method
+           (characterp last-command-event))
+      (let ((xwidget-webkit--input-method-events nil)
+            (minibuffer-local-map (make-keymap)))
+        (define-key minibuffer-local-map [with-input-method]
+          'xwidget-webkit-pass-command-event-with-input-method)
+        (push last-command-event unread-command-events)
+        (push 'with-input-method unread-command-events)
+        (read-from-minibuffer "" nil nil nil nil nil t)
+        (dolist (event xwidget-webkit--input-method-events)
+          (xwidget-perform-lispy-event (xwidget-webkit-current-session)
+                                       event)))
+    (xwidget-perform-lispy-event (xwidget-webkit-current-session)
+                                 last-command-event)))
 
 ;;todo.
 ;; - check that the webkit support is compiled in
@@ -156,7 +200,6 @@ in `split-window-right' with a new xwidget webkit session."
     (define-key map "b" 'xwidget-webkit-back)
     (define-key map "f" 'xwidget-webkit-forward)
     (define-key map "r" 'xwidget-webkit-reload)
-    (define-key map "t" (lambda () (interactive) (message "o"))) ;FIXME: ?!?
     (define-key map "\C-m" 'xwidget-webkit-insert-string)
     (define-key map "w" 'xwidget-webkit-current-url)
     (define-key map "+" 'xwidget-webkit-zoom-in)
@@ -164,6 +207,7 @@ in `split-window-right' with a new xwidget webkit session."
     (define-key map "e" 'xwidget-webkit-edit-mode)
     (define-key map "\C-r" 'xwidget-webkit-isearch-mode)
     (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
+    (define-key map "H" 'xwidget-webkit-browse-history)
 
     ;;similar to image mode bindings
     (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
@@ -198,6 +242,7 @@ in `split-window-right' with a new xwidget webkit session."
         ["Back" xwidget-webkit-back t]
         ["Forward" xwidget-webkit-forward t]
         ["Reload" xwidget-webkit-reload t]
+        ["History" xwidget-webkit-browse-history t]
         ["Insert String" xwidget-webkit-insert-string
          :active t
          :help "Insert a string into the currently active field"]
@@ -213,11 +258,17 @@ in `split-window-right' with a new xwidget webkit session."
          :help "Save the browser's selection in the kill ring"]
         ["Incremental Search" xwidget-webkit-isearch-mode
          :active (not xwidget-webkit-isearch-mode)
-         :help "Perform incremental search inside the WebKit widget"]))
+         :help "Perform incremental search inside the WebKit widget"]
+        ["Stop Loading" xwidget-webkit-stop
+         :active xwidget-webkit--loading-p]))
 
 (defvar xwidget-webkit-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
+      (tool-bar-local-item-from-menu 'xwidget-webkit-stop
+                                     "cancel"
+                                     map
+                                     xwidget-webkit-mode-map)
       (tool-bar-local-item-from-menu 'xwidget-webkit-back
                                      "left-arrow"
                                      map
@@ -297,23 +348,36 @@ If N is omitted or nil, scroll down by one line."
 
 (defun xwidget-webkit-scroll-forward (&optional n)
   "Scroll webkit horizontally by N chars.
-The width of char is calculated with `window-font-width'.
-If N is omitted or nil, scroll forwards by one char."
+If the widget is larger than the window, hscroll by N columns
+instead.  The width of char is calculated with
+`window-font-width'.  If N is omitted or nil, scroll forwards by
+one char."
   (interactive "p" xwidget-webkit-mode)
-  (xwidget-webkit-execute-script
-   (xwidget-webkit-current-session)
-   (format "window.scrollBy(%d, 0);"
-           (* n (window-font-width)))))
+  (let ((session (xwidget-webkit-current-session)))
+    (if (> (- (aref (xwidget-info session) 2)
+              (window-text-width nil t))
+           (window-font-width))
+        (set-window-hscroll nil (+ (window-hscroll) n))
+      (xwidget-webkit-execute-script session
+                                     (format "window.scrollBy(%d, 0);"
+                                             (* n (window-font-width)))))))
 
 (defun xwidget-webkit-scroll-backward (&optional n)
   "Scroll webkit back by N chars.
-The width of char is calculated with `window-font-width'.
-If N is omitted or nil, scroll backwards by one char."
+If the widget is larger than the window, hscroll backwards by N
+columns instead.  The width of char is calculated with
+`window-font-width'.  If N is omitted or nil, scroll backwards by
+one char."
   (interactive "p" xwidget-webkit-mode)
-  (xwidget-webkit-execute-script
-   (xwidget-webkit-current-session)
-   (format "window.scrollBy(-%d, 0);"
-           (* n (window-font-width)))))
+  (let ((session (xwidget-webkit-current-session)))
+    (if (and (> (- (aref (xwidget-info session) 2)
+                   (window-text-width nil t))
+                (window-font-width))
+             (> (window-hscroll) 0))
+        (set-window-hscroll nil (- (window-hscroll) n))
+      (xwidget-webkit-execute-script session
+                                     (format "window.scrollBy(%-d, 0);"
+                                             (* n (window-font-width)))))))
 
 (defun xwidget-webkit-scroll-top ()
   "Scroll webkit to the very top."
@@ -329,10 +393,13 @@ If N is omitted or nil, scroll backwards by one char."
    (xwidget-webkit-current-session)
    "window.scrollTo(pageXOffset, window.document.body.scrollHeight);"))
 
-;; The xwidget event needs to go into a higher level handler
-;; since the xwidget can generate an event even if it's offscreen.
-;; TODO this needs to use callbacks and consider different xwidget event types.
-(define-key (current-global-map) [xwidget-event] #'xwidget-event-handler)
+;; The xwidget event needs to go in the special map.  To receive
+;; xwidget events, you should place a callback in the property list of
+;; the xwidget, instead of handling these events manually.
+;;
+;; See `xwidget-webkit-new-session' for an example of how to do this.
+(define-key special-event-map [xwidget-event] #'xwidget-event-handler)
+
 (defun xwidget-log (&rest msg)
   "Log MSG to a buffer."
   (let ((buf (get-buffer-create " *xwidget-log*")))
@@ -351,6 +418,16 @@ If N is omitted or nil, scroll backwards by one char."
     (when xwidget-callback
       (funcall xwidget-callback xwidget xwidget-event-type))))
 
+(defun xwidget-webkit--update-progress-timer-function (xwidget)
+  "Force an update of the header line of XWIDGET's buffer."
+  (with-current-buffer (xwidget-buffer xwidget)
+    (force-mode-line-update)))
+
+(defun xwidget-webkit-buffer-kill ()
+  "Clean up an xwidget-webkit buffer before it is killed."
+  (when (timerp xwidget-webkit--progress-update-timer)
+    (cancel-timer xwidget-webkit--progress-update-timer)))
+
 (defun xwidget-webkit-callback (xwidget xwidget-event-type)
   "Callback for xwidgets.
 XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
@@ -358,7 +435,22 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
       (xwidget-log
        "error: callback called for xwidget with dead buffer")
     (cond ((eq xwidget-event-type 'load-changed)
-           (let ((title (xwidget-webkit-title xwidget)))
+           (let ((title (xwidget-webkit-title xwidget))
+                 (uri (xwidget-webkit-uri xwidget)))
+             (when-let ((buffer (get-buffer "*Xwidget WebKit History*")))
+               (with-current-buffer buffer
+                 (revert-buffer)))
+             (with-current-buffer (xwidget-buffer xwidget)
+               (if (string-equal (nth 3 last-input-event)
+                                 "load-finished")
+                   (progn
+                     (setq xwidget-webkit--loading-p nil)
+                     (cancel-timer xwidget-webkit--progress-update-timer))
+                 (unless xwidget-webkit--loading-p
+                   (setq xwidget-webkit--loading-p t
+                         xwidget-webkit--progress-update-timer
+                         (run-at-time 0.5 0.5 #'xwidget-webkit--update-progress-timer-function
+                                      xwidget)))))
              ;; This funciton will be called multi times, so only
              ;; change buffer name when the load actually completes
              ;; this can limit buffer-name flicker in mode-line.
@@ -366,15 +458,17 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                                      "load-finished")
                        (> (length title) 0))
                (with-current-buffer (xwidget-buffer xwidget)
-                 (setq xwidget-webkit--title title)
                  (force-mode-line-update)
                  (xwidget-log "webkit finished loading: %s" title)
                  ;; Do not adjust webkit size to window here, the
                  ;; selected window can be the mini-buffer window
                  ;; unwantedly.
-                 (rename-buffer (concat xwidget-webkit-buffer-name-prefix
-                                        title "*")
-                                t)))))
+                 (rename-buffer
+                  (format-spec
+                   xwidget-webkit-buffer-name-format
+                   `((?T . ,title)
+                     (?U . ,uri)))
+                  t)))))
           ((eq xwidget-event-type 'decide-policy)
            (let ((strarg  (nth 3 last-input-event)))
              (if (string-match ".*#\\(.*\\)" strarg)
@@ -404,10 +498,21 @@ If non-nil, plugins are enabled.  Otherwise, disabled."
 (define-derived-mode xwidget-webkit-mode special-mode "xwidget-webkit"
   "Xwidget webkit view mode."
   (setq buffer-read-only t)
+  (add-hook 'kill-buffer-hook #'xwidget-webkit-buffer-kill)
   (setq-local tool-bar-map xwidget-webkit-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'xwidget-webkit-bookmark-make-record)
-  (setq-local header-line-format 'xwidget-webkit--title)
+  (setq-local header-line-format
+              (list "WebKit: "
+                    '(:eval
+                      (xwidget-webkit-title (xwidget-webkit-current-session)))
+                    '(:eval
+                      (when xwidget-webkit--loading-p
+                        (let ((session (xwidget-webkit-current-session)))
+                          (format " [%d%%%%]"
+                                  (* 100
+                                     (xwidget-webkit-estimated-load-progress
+                                      session))))))))
   ;; Keep track of [vh]scroll when switching buffers
   (image-mode-setup-winprops))
 
@@ -440,24 +545,31 @@ directory, URL is saved at the specified directory as FILE-NAME."
 ;;; Bookmarks integration
 
 (defcustom xwidget-webkit-bookmark-jump-new-session nil
-  "Control bookmark jump to use new session or not.
-If non-nil, use a new xwidget webkit session after bookmark jump.
-Otherwise, it will use `xwidget-webkit-last-session'.
-When you set this variable to nil, consider further customization with
-`xwidget-webkit-last-session-buffer'."
+  "Whether to jump to a bookmarked URL in a new xwidget webkit session.
+If non-nil, create a new xwidget webkit session, otherwise use
+the value of `xwidget-webkit-last-session'."
   :version "28.1"
   :type 'boolean)
 
 (defun xwidget-webkit-bookmark-make-record ()
-  "Create bookmark record in webkit xwidget.
-See `xwidget-webkit-bookmark-jump-new-session' for whether this
-should create a new session or not."
+  "Create a bookmark record for a webkit xwidget."
   (nconc (bookmark-make-record-default t t)
          `((page . ,(xwidget-webkit-uri (xwidget-webkit-current-session)))
-           (handler  . (lambda (bmk)
-                         (xwidget-webkit-browse-url
-                          (bookmark-prop-get bmk 'page)
-                          xwidget-webkit-bookmark-jump-new-session))))))
+           (handler . xwidget-webkit-bookmark-jump-handler))))
+
+;;;###autoload
+(defun xwidget-webkit-bookmark-jump-handler (bookmark)
+  "Jump to the web page bookmarked by the bookmark record BOOKMARK.
+If `xwidget-webkit-bookmark-jump-new-session' is non-nil, create
+a new xwidget-webkit session, otherwise use an existing session."
+  (let* ((url (bookmark-prop-get bookmark 'page))
+	 (xwbuf (if (or xwidget-webkit-bookmark-jump-new-session
+                        (not (xwidget-webkit-current-session)))
+	            (xwidget-webkit--create-new-session-buffer url)
+                  (xwidget-buffer (xwidget-webkit-current-session)))))
+    (with-current-buffer xwbuf
+      (xwidget-webkit-goto-uri (xwidget-webkit-current-session) url))
+    (set-buffer xwbuf)))
 
 ;;; xwidget webkit session
 
@@ -483,6 +595,10 @@ The latter might be nil."
   (let ((size (xwidget-size-request xw)))
     (xwidget-resize xw (car size) (cadr size))))
 
+(defun xwidget-webkit-stop ()
+  "Stop trying to load the current page."
+  (interactive)
+  (xwidget-webkit-stop-loading (xwidget-webkit-current-session)))
 
 (defvar xwidget-webkit-activeelement-js"
 function findactiveelement(doc){
@@ -701,33 +817,44 @@ For example, use this to display an anchor."
   (add-to-list 'window-size-change-functions
                'xwidget-webkit-adjust-size-in-frame))
 
-(defun xwidget-webkit-new-session (url &optional callback)
-  "Create a new webkit session buffer with URL."
+(defun xwidget-webkit--create-new-session-buffer (url &optional callback)
+  "Create a new webkit session buffer to display URL in an xwidget.
+Optional function CALLBACK specifies the callback for webkit xwidgets;
+see `xwidget-webkit-callback'."
   (let* ((bufname
-          ;; Generate a temp-name based on current buffer name. it
-          ;; will be renamed by `xwidget-webkit-callback' in the
-          ;; future. This approach can limit flicker of buffer-name in
-          ;; mode-line.
+          ;; Generate a temp-name based on current buffer name.  The
+          ;; buffer will subsequently be renamed by
+          ;; `xwidget-webkit-callback'.  This approach can avoid
+          ;; flicker of buffer-name in mode-line.
           (generate-new-buffer-name (buffer-name)))
          (callback (or callback #'xwidget-webkit-callback))
          (current-session (xwidget-webkit-current-session))
          xw)
-    (setq xwidget-webkit-last-session-buffer (switch-to-buffer
-                                              (get-buffer-create bufname)))
+    (setq xwidget-webkit-last-session-buffer (get-buffer-create bufname))
     ;; The xwidget id is stored in a text property, so we need to have
     ;; at least character in this buffer.
     ;; Insert invisible url, good default for next `g' to browse url.
-    (let ((start (point)))
-      (insert url)
-      (put-text-property start (+ start (length url)) 'invisible t)
-      (setq xw (xwidget-insert
-                start 'webkit bufname
-                (xwidget-window-inside-pixel-width (selected-window))
-                (xwidget-window-inside-pixel-height (selected-window))
-                nil current-session)))
-    (xwidget-put xw 'callback callback)
-    (xwidget-webkit-mode)
-    (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url)))
+    (with-current-buffer xwidget-webkit-last-session-buffer
+      (let ((start (point)))
+        (insert url)
+        (put-text-property start (+ start (length url)) 'invisible t)
+        (setq xw (xwidget-insert
+                  start 'webkit bufname
+                  (xwidget-window-inside-pixel-width (selected-window))
+                  (xwidget-window-inside-pixel-height (selected-window))
+                  nil current-session)))
+      (when xwidget-webkit-cookie-file
+        (xwidget-webkit-set-cookie-storage-file
+         xw (expand-file-name xwidget-webkit-cookie-file)))
+      (xwidget-put xw 'callback callback)
+      (xwidget-put xw 'display-callback #'xwidget-webkit-display-callback)
+      (xwidget-webkit-mode))
+    xwidget-webkit-last-session-buffer))
+
+(defun xwidget-webkit-new-session (url)
+  "Display URL in a new webkit xwidget."
+  (switch-to-buffer (xwidget-webkit--create-new-session-buffer url))
+  (xwidget-webkit-goto-uri (xwidget-webkit-last-session) url))
 
 (defun xwidget-webkit-import-widget (xwidget)
   "Create a new webkit session buffer from XWIDGET, an existing xwidget.
@@ -741,28 +868,40 @@ Return the buffer."
          (callback #'xwidget-webkit-callback)
          (buffer (get-buffer-create bufname)))
     (with-current-buffer buffer
+      (setq xwidget-webkit-last-session-buffer buffer)
       (save-excursion
         (erase-buffer)
         (insert ".")
         (put-text-property (point-min) (point-max)
                            'display (list 'xwidget :xwidget xwidget)))
       (xwidget-put xwidget 'callback callback)
+      (xwidget-put xwidget 'display-callback
+                   #'xwidget-webkit-display-callback)
       (set-xwidget-buffer xwidget buffer)
       (xwidget-webkit-mode))
     buffer))
 
 (defun xwidget-webkit-display-event (event)
-  "Import the xwidget inside EVENT and display it."
+  "Trigger display callback for EVENT."
   (interactive "e")
-  (display-buffer (xwidget-webkit-import-widget (nth 1 event))))
+  (let ((xwidget (cadr event))
+        (source (caddr event)))
+    (when (xwidget-get source 'display-callback)
+      (funcall (xwidget-get source 'display-callback)
+               xwidget source))))
 
-(global-set-key [xwidget-display-event] 'xwidget-webkit-display-event)
+(defun xwidget-webkit-display-callback (xwidget _source)
+  "Import XWIDGET and display it."
+  (display-buffer (xwidget-webkit-import-widget xwidget)))
+
+(define-key special-event-map [xwidget-display-event] 'xwidget-webkit-display-event)
 
 (defun xwidget-webkit-goto-url (url)
   "Goto URL with xwidget webkit."
   (if (xwidget-webkit-current-session)
       (progn
-        (xwidget-webkit-goto-uri (xwidget-webkit-current-session) url))
+        (xwidget-webkit-goto-uri (xwidget-webkit-current-session) url)
+        (switch-to-buffer (xwidget-buffer (xwidget-webkit-current-session))))
     (xwidget-webkit-new-session url)))
 
 (defun xwidget-webkit-back ()
@@ -785,6 +924,15 @@ Return the buffer."
   (interactive nil xwidget-webkit-mode)
   (let ((url (xwidget-webkit-uri (xwidget-webkit-current-session))))
     (message "URL: %s" (kill-new (or url "")))))
+
+(defun xwidget-webkit-browse-history ()
+  "Display a buffer containing the history of page loads."
+  (interactive)
+  (setq xwidget-webkit-last-session-buffer (current-buffer))
+  (let ((buffer (get-buffer-create "*Xwidget WebKit History*")))
+    (with-current-buffer buffer
+      (xwidget-webkit-history-mode))
+    (display-buffer buffer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun xwidget-webkit-get-selection (proc)
@@ -863,6 +1011,8 @@ WebKit widget."
   "The current search query.")
 (defvar-local xwidget-webkit-isearch--is-reverse nil
   "Whether or not the current isearch should be reverse.")
+(defvar xwidget-webkit-isearch--read-string-buffer nil
+  "The buffer we are reading input method text for, if any.")
 
 (defun xwidget-webkit-isearch--update (&optional only-message)
   "Update the current buffer's WebKit widget's search query.
@@ -873,8 +1023,9 @@ WebKit widget.  The query will be set to the contents of
     (xwidget-webkit-search xwidget-webkit-isearch--string
                            (xwidget-webkit-current-session)
                            t xwidget-webkit-isearch--is-reverse t))
-  (message (concat (propertize "Search contents: " 'face 'minibuffer-prompt)
-                   xwidget-webkit-isearch--string)))
+  (let ((message-log-max nil))
+    (message "%s" (concat (propertize "Search contents: " 'face 'minibuffer-prompt)
+                          xwidget-webkit-isearch--string))))
 
 (defun xwidget-webkit-isearch-erasing-char (count)
   "Erase the last COUNT characters of the current query."
@@ -885,13 +1036,43 @@ WebKit widget.  The query will be set to the contents of
                      (- (length xwidget-webkit-isearch--string) count))))
   (xwidget-webkit-isearch--update))
 
+(defun xwidget-webkit-isearch-with-input-method ()
+  "Handle a request to use the input method to modify the search query."
+  (interactive)
+  (let ((key (car unread-command-events))
+	events)
+    (setq unread-command-events (cdr unread-command-events)
+	  events (funcall input-method-function key))
+    (dolist (k events)
+      (with-current-buffer xwidget-webkit-isearch--read-string-buffer
+        (setq xwidget-webkit-isearch--string
+              (concat xwidget-webkit-isearch--string
+                      (char-to-string k)))))
+    (exit-minibuffer)))
+
+(defun xwidget-webkit-isearch-printing-char-with-input-method (char)
+  "Handle printing char CHAR with the current input method."
+  (let ((minibuffer-local-map (make-keymap))
+        (xwidget-webkit-isearch--read-string-buffer (current-buffer)))
+    (define-key minibuffer-local-map [with-input-method]
+      'xwidget-webkit-isearch-with-input-method)
+    (setq unread-command-events
+          (cons 'with-input-method
+                (cons char unread-command-events)))
+    (read-string "Search contents: "
+                 xwidget-webkit-isearch--string
+                 'junk-hist nil t)
+    (xwidget-webkit-isearch--update)))
+
 (defun xwidget-webkit-isearch-printing-char (char &optional count)
   "Add ordinary character CHAR to the search string and search.
 With argument, add COUNT copies of CHAR."
   (interactive (list last-command-event
                      (prefix-numeric-value current-prefix-arg)))
-  (setq xwidget-webkit-isearch--string (concat xwidget-webkit-isearch--string
-                                               (make-string (or count 1) char)))
+  (if current-input-method
+      (xwidget-webkit-isearch-printing-char-with-input-method char)
+    (setq xwidget-webkit-isearch--string (concat xwidget-webkit-isearch--string
+                                                 (make-string (or count 1) char))))
   (xwidget-webkit-isearch--update))
 
 (defun xwidget-webkit-isearch-forward (count)
@@ -900,7 +1081,8 @@ With argument, add COUNT copies of CHAR."
   (let ((was-reverse xwidget-webkit-isearch--is-reverse))
     (setq xwidget-webkit-isearch--is-reverse nil)
     (when was-reverse
-      (xwidget-webkit-isearch--update)))
+      (xwidget-webkit-isearch--update)
+      (setq count (1- count))))
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-next-result (xwidget-webkit-current-session))
@@ -913,7 +1095,8 @@ With argument, add COUNT copies of CHAR."
   (let ((was-reverse xwidget-webkit-isearch--is-reverse))
     (setq xwidget-webkit-isearch--is-reverse t)
     (unless was-reverse
-      (xwidget-webkit-isearch--update)))
+      (xwidget-webkit-isearch--update)
+      (setq count (1- count))))
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-previous-result (xwidget-webkit-current-session))
@@ -945,6 +1128,8 @@ With argument, add COUNT copies of CHAR."
 (define-key xwidget-webkit-isearch-mode-map "\C-g" 'xwidget-webkit-isearch-exit)
 (define-key xwidget-webkit-isearch-mode-map "\C-r" 'xwidget-webkit-isearch-backward)
 (define-key xwidget-webkit-isearch-mode-map "\C-s" 'xwidget-webkit-isearch-forward)
+(define-key xwidget-webkit-isearch-mode-map "\C-y" 'xwidget-webkit-isearch-yank-kill)
+(define-key xwidget-webkit-isearch-mode-map "\C-\\" 'toggle-input-method)
 (define-key xwidget-webkit-isearch-mode-map "\t" 'xwidget-webkit-isearch-printing-char)
 
 (let ((meta-map (make-keymap)))
@@ -966,6 +1151,9 @@ To navigate around the search results, type
 \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-forward] to move forward, and
 \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-backward] to move backward.
 
+To insert the string at the front of the kill ring into the
+search query, type \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-yank-kill].
+
 Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit incremental search."
   :keymap xwidget-webkit-isearch-mode-map
   (if xwidget-webkit-isearch-mode
@@ -975,6 +1163,75 @@ Press \\<xwidget-webkit-isearch-mode-map>\\[xwidget-webkit-isearch-exit] to exit
         (xwidget-webkit-isearch--update))
     (xwidget-webkit-finish-search (xwidget-webkit-current-session))))
 
+(defun xwidget-webkit-isearch-yank-kill ()
+  "Append the most recent kill from `kill-ring' to the current query."
+  (interactive)
+  (unless xwidget-webkit-isearch-mode
+    (xwidget-webkit-isearch-mode t))
+  (setq xwidget-webkit-isearch--string
+        (concat xwidget-webkit-isearch--string
+                (current-kill 0)))
+  (xwidget-webkit-isearch--update))
+
+(defvar-local xwidget-webkit-history--session nil
+  "The xwidget this history buffer controls.")
+
+(define-button-type 'xwidget-webkit-history 'action #'xwidget-webkit-history-select-item)
+
+(defun xwidget-webkit-history--insert-item (item)
+  "Insert specified ITEM into the current buffer."
+  (let ((idx (car item))
+        (title (cadr item))
+        (uri (caddr item)))
+    (push (list idx (vector (list (number-to-string idx)
+                                  :type 'xwidget-webkit-history)
+                            (list title :type 'xwidget-webkit-history)
+                            (list uri :type 'xwidget-webkit-history)))
+          tabulated-list-entries)))
+
+(defun xwidget-webkit-history-select-item (pos)
+  "Navigate to the history item underneath POS."
+  (interactive "P")
+  (let ((id (tabulated-list-get-id pos)))
+    (xwidget-webkit-goto-history xwidget-webkit-history--session id))
+  (xwidget-webkit-history-reload))
+
+(defun xwidget-webkit-history-reload (&rest ignored)
+  "Reload the current history buffer."
+  (interactive)
+  (setq tabulated-list-entries nil)
+  (let* ((back-forward-list
+          (xwidget-webkit-back-forward-list xwidget-webkit-history--session))
+         (back-list (car back-forward-list))
+         (here (cadr back-forward-list))
+         (forward-list (caddr back-forward-list)))
+    (mapc #'xwidget-webkit-history--insert-item (nreverse forward-list))
+    (xwidget-webkit-history--insert-item here)
+    (mapc #'xwidget-webkit-history--insert-item back-list)
+    (tabulated-list-print t nil)
+    (goto-char (point-min))
+    (let ((position (line-beginning-position (1+ (length back-list)))))
+      (goto-char position)
+      (setq-local overlay-arrow-position (make-marker))
+      (set-marker overlay-arrow-position position))))
+
+(define-derived-mode xwidget-webkit-history-mode tabulated-list-mode
+  "Xwidget Webkit History"
+  "Major mode for browsing the history of an Xwidget Webkit buffer.
+Each line describes an entry in history."
+  (setq truncate-lines t)
+  (setq buffer-read-only t)
+  (setq tabulated-list-format [("Index" 10 nil)
+                               ("Title" 50 nil)
+                               ("URL" 100 nil)])
+  (setq tabulated-list-entries nil)
+  (setq xwidget-webkit-history--session (xwidget-webkit-current-session))
+  (xwidget-webkit-history-reload)
+  (setq-local revert-buffer-function #'xwidget-webkit-history-reload)
+  (tabulated-list-init-header))
+
+(define-key xwidget-webkit-history-mode-map (kbd "RET")
+  #'xwidget-webkit-history-select-item)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar xwidget-view-list)              ; xwidget.c

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997--2021 Free Software Foundation, Inc.
+@c Copyright (C) 1997--2022 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -654,10 +654,14 @@ you can specify that the value must be @code{nil} or @code{t}, but also
 specify the text to describe each value in a way that fits the specific
 meaning of the alternative.
 
+@item key
+The value is a valid key according to @kbd{key-valid-p}, and suitable
+for use with, for example @code{keymap-set}.
+
 @item key-sequence
 The value is a key sequence.  The customization buffer shows the key
 sequence using the same syntax as the @kbd{kbd} function.  @xref{Key
-Sequences}.
+Sequences}.  This is a legacy type; use @code{key} instead.
 
 @item coding-system
 The value must be a coding-system name, and you can do completion with
@@ -737,7 +741,7 @@ If omitted, @var{key-type} and @var{value-type} default to
 
 The user can add any key matching the specified key type, but you can
 give some keys a preferential treatment by specifying them with the
-@code{:options} (see @ref{Variable Definitions}).  The specified keys
+@code{:options} (@pxref{Variable Definitions}).  The specified keys
 will always be shown in the customize buffer (together with a suitable
 value), with a checkbox to include or exclude or disable the key/value
 pair from the alist.  The user will not be able to edit the keys

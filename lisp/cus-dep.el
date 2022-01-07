@@ -1,6 +1,6 @@
 ;;; cus-dep.el --- find customization dependencies  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
