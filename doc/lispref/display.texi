@@ -2485,8 +2485,9 @@ GNU Emacs Manual}.
 @item :width
 Relative character width.  This should be one of the symbols
 @code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
-@code{semi-condensed}, @code{normal}, @code{semi-expanded},
-@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
+@code{semi-condensed}, @code{normal}, @code{regular}, @code{medium},
+@code{semi-expanded}, @code{expanded}, @code{extra-expanded}, or
+@code{ultra-expanded}.
 
 @item :height
 The height of the font.  In the simplest case, this is an integer in
