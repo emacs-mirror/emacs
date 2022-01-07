@@ -186,18 +186,27 @@ pgtk_display_info_for_name (Lisp_Object name)
 static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  unsigned long fg;
+  unsigned long fg, old_fg;
 
+  block_input ();
+  old_fg = FRAME_FOREGROUND_COLOR (f);
   fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   FRAME_FOREGROUND_PIXEL (f) = fg;
   FRAME_X_OUTPUT (f)->foreground_color = fg;
 
   if (FRAME_GTK_WIDGET (f))
     {
+      if (FRAME_X_OUTPUT (f)->cursor_color == old_fg)
+	{
+	  FRAME_X_OUTPUT (f)->cursor_color = fg;
+	  FRAME_X_OUTPUT (f)->cursor_xgcv.background = fg;
+	}
+
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
 	SET_FRAME_GARBAGED (f);
     }
+  unblock_input ();
 }
 
 
@@ -206,6 +215,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long bg;
 
+  block_input ();
   bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
   FRAME_BACKGROUND_PIXEL (f) = bg;
 
@@ -214,12 +224,14 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     pgtk_clear_frame (f);
 
   FRAME_X_OUTPUT (f)->background_color = bg;
+  FRAME_X_OUTPUT (f)->cursor_xgcv.foreground = bg;
 
   xg_set_background_color (f, bg);
   update_face_from_frame_parameter (f, Qbackground_color, arg);
 
   if (FRAME_VISIBLE_P (f))
     SET_FRAME_GARBAGED (f);
+  unblock_input ();
 }
 
 static void
