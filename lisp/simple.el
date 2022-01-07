@@ -6664,7 +6664,7 @@ mode temporarily."
         (user-error "No mark set in this buffer"))
     (set-mark (point))
     (goto-char omark)
-    (cond (temp-highlight
+    (cond ((and (not arg) (not temp-highlight))
 	   (setq-local transient-mark-mode (cons 'only transient-mark-mode)))
 	  ((xor arg (not (region-active-p)))
 	   (deactivate-mark))
