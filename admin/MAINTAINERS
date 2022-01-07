@@ -309,6 +309,13 @@ Tramp
         doc/misc/tramp*.texi
         test/lisp/net/tramp*-tests.el
 
+Modus themes
+        Maintainer: Protesilaos Stavrou
+        Repository and issue tracker: https://gitlab.com/protesilaos/modus-themes
+
+        doc/misc/modus-themes.org
+        etc/themes/modus*.el
+
 
 ;;; Local Variables:
 ;;;   coding: utf-8
