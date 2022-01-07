@@ -15280,6 +15280,29 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
   }
 
+  {
+    AUTO_STRING (inputStyle, "inputStyle");
+    AUTO_STRING (InputStyle, "InputStyle");
+    Lisp_Object value = gui_display_get_resource (dpyinfo, inputStyle, InputStyle,
+						  Qnil, Qnil);
+
+#ifdef HAVE_X_I18N
+    if (STRINGP (value))
+      {
+	if (!strcmp (SSDATA (value), "callback"))
+	  dpyinfo->preferred_xim_style = STYLE_CALLBACK;
+	else if (!strcmp (SSDATA (value), "none"))
+	  dpyinfo->preferred_xim_style = STYLE_NONE;
+	else if (!strcmp (SSDATA (value), "overthespot"))
+	  dpyinfo->preferred_xim_style = STYLE_OVERTHESPOT;
+	else if (!strcmp (SSDATA (value), "offthespot"))
+	  dpyinfo->preferred_xim_style = STYLE_OFFTHESPOT;
+	else if (!strcmp (SSDATA (value), "root"))
+	  dpyinfo->preferred_xim_style = STYLE_ROOT;
+      }
+#endif
+  }
+
 #ifdef HAVE_X_SM
   /* Only do this for the very first display in the Emacs session.
      Ignore X session management when Emacs was first started on a

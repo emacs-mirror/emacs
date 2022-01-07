@@ -2622,13 +2622,6 @@ xic_free_xfontset (struct frame *f)
 
 /* Create XIC for frame F. */
 
-
-#define STYLE_OFFTHESPOT (XIMPreeditArea | XIMStatusArea)
-#define STYLE_OVERTHESPOT (XIMPreeditPosition | XIMStatusNothing)
-#define STYLE_ROOT (XIMPreeditNothing | XIMStatusNothing)
-#define STYLE_CALLBACK (XIMPreeditCallbacks | XIMStatusNothing)
-#define STYLE_NONE (XIMPreeditNothing | XIMStatusNothing)
-
 static const XIMStyle supported_xim_styles[] =
   {
     STYLE_CALLBACK,
@@ -2643,10 +2636,18 @@ static const XIMStyle supported_xim_styles[] =
    input method XIM.  */
 
 static XIMStyle
-best_xim_style (XIMStyles *xim)
+best_xim_style (struct x_display_info *dpyinfo,
+		XIMStyles *xim)
 {
   int i, j;
   int nr_supported = ARRAYELTS (supported_xim_styles);
+
+  if (dpyinfo->preferred_xim_style)
+    {
+      for (j = 0; j < xim->count_styles; ++j)
+	if (dpyinfo->preferred_xim_style == xim->supported_styles[j])
+	  return dpyinfo->preferred_xim_style;
+    }
 
   for (i = 0; i < nr_supported; ++i)
     for (j = 0; j < xim->count_styles; ++j)
@@ -2679,7 +2680,8 @@ create_frame_xic (struct frame *f)
     goto out;
 
   /* Determine XIC style.  */
-  xic_style = best_xim_style (FRAME_X_XIM_STYLES (f));
+  xic_style = best_xim_style (FRAME_DISPLAY_INFO (f),
+			      FRAME_X_XIM_STYLES (f));
 
   /* Create X fontset. */
   if (xic_style & (XIMPreeditPosition | XIMStatusArea))

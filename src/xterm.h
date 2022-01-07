@@ -434,6 +434,7 @@ struct x_display_info
   XIM xim;
   XIMStyles *xim_styles;
   struct xim_inst_t *xim_callback_data;
+  XIMStyle preferred_xim_style;
 #endif
 
   /* A cache mapping color names to RGB values.  */
@@ -1331,6 +1332,13 @@ extern bool x_session_have_connection (void);
 extern void x_session_close (void);
 #endif
 
+#ifdef HAVE_X_I18N
+#define STYLE_OFFTHESPOT (XIMPreeditArea | XIMStatusArea)
+#define STYLE_OVERTHESPOT (XIMPreeditPosition | XIMStatusNothing)
+#define STYLE_ROOT (XIMPreeditNothing | XIMStatusNothing)
+#define STYLE_CALLBACK (XIMPreeditCallbacks | XIMStatusNothing)
+#define STYLE_NONE (XIMPreeditNothing | XIMStatusNothing)
+#endif
 
 /* Is the frame embedded into another application? */
 

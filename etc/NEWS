@@ -144,6 +144,11 @@ buffer isn't displayed.
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
 
++++
+** New X resource: "inputStyle".
+This controls the style of the pre-edit and status areas of X input
+methods.
+
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
 When enabled, and if your mouse supports it, you can scroll the
