@@ -350,6 +350,11 @@ provided by Emacs.
 Display the preview text inside a popup window at the location of
 point in the current window.
 
+@item none
+Let the input method decide how to display itself.  This is usually
+equivalent to @samp{overthespot}, but it might work with more input
+methods.
+
 @item root
 Use some location on display specific to the input method for
 displaying the preview text.
