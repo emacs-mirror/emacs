@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haikuselect.h"
 #include "haikuterm.h"
 
+#include <stdlib.h>
+
 static Lisp_Object
 haiku_selection_data_1 (Lisp_Object clipboard)
 {
