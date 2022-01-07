@@ -6662,6 +6662,8 @@ The value is a symbol:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `pgtk' for an Emacs frame using pure GTK facilities.
+ `haiku' for an Emacs frame running in Haiku.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
@@ -6675,6 +6677,8 @@ The value is a symbol:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `pgtk' for an Emacs frame using pure GTK facilities.
+ `haiku' for an Emacs frame running in Haiku.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'

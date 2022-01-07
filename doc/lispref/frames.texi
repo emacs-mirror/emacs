@@ -60,6 +60,8 @@ The frame is displayed on a GNUstep or Macintosh Cocoa graphical
 terminal.
 @item pc
 The frame is displayed on an MS-DOS terminal.
+@item pgtk
+The frame is displayed using pure GTK facilities.
 @end table
 @end defun
 

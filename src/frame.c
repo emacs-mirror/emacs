@@ -277,6 +277,8 @@ The value is a symbol:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `pgtk' for an Emacs frame using pure GTK facilities.
+ `haiku' for an Emacs frame running in Haiku.
 
 FRAME defaults to the currently selected frame.
 
