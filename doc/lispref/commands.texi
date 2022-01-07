@@ -2137,7 +2137,21 @@ of @var{arg} are dependent on the window system being used.
 
 On X, @var{arg} is a string describing some text to place behind the
 cursor.  It can be @code{nil}, which means to remove any text
-previously displayed.  @c FIXME: what is the value of ARG on PGTK?
+previously displayed.
+
+On PGTK, @var{arg} is a list of strings with color information.  Its
+structure is as follows:
+
+@example
+   (
+     (TEXT (ul . COLOR) (bg . COLOR) (fg . COLOR))
+     ; ...
+   )
+@end example
+
+Color information can be omitted.  @code{COLOR} of @code{ul} can be
+@code{t} or a string.  @var{arg} can be @code{nil}, which means to
+remove any text previously displayed.
 
 This is a special event (@pxref{Special Events}), which normally
 should not be bound by the user to any command.  Emacs will typically
