@@ -2140,7 +2140,9 @@ cursor.  It can be @code{nil}, which means to remove any text
 previously displayed.  @c FIXME: what is the value of ARG on PGTK?
 
 This is a special event (@pxref{Special Events}), which normally
-should not be bound by the user to any command.
+should not be bound by the user to any command.  Emacs will typically
+the text contained in the event behind the cursor on-screen when it is
+received.
 
 @cindex @code{drag-n-drop} event
 @item (drag-n-drop @var{position} @var{files})
