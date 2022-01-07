@@ -2131,16 +2131,16 @@ size of the object beneath the gesture: image, window, etc.
 
 @cindex @code{preedit-text} event
 @item (preedit-text @var{arg})
-This kind of event is sent when a system input method tells Emacs to
-display some text to indicate to the user what will be inserted.  The
-contents of @var{arg} are dependent on the window system being used.
+This event is sent when a system input method tells Emacs to display
+some text to indicate to the user what will be inserted.  The contents
+of @var{arg} are dependent on the window system being used.
 
 On X, @var{arg} is a string describing some text to place behind the
 cursor.  It can be @code{nil}, which means to remove any text
 previously displayed.  @c FIXME: what is the value of ARG on PGTK?
 
-It is a special event (@xref{Special Events}), which should normally
-not be bound by the user.
+This is a special event (@pxref{Special Events}), which normally
+should not be bound by the user to any command.
 
 @cindex @code{drag-n-drop} event
 @item (drag-n-drop @var{position} @var{files})
