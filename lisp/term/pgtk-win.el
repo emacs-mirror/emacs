@@ -325,8 +325,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defun pgtk-preedit-text (event)
   "An internal function to display preedit text from input method.
 
-EVENT is an event of PGTK_PREEDIT_TEXT_EVENT.
-It contains colors and texts."
+EVENT is a `preedit-text-event'."
   (interactive "e")
   (when pgtk-preedit-overlay
     (delete-overlay pgtk-preedit-overlay))
@@ -356,6 +355,7 @@ It contains colors and texts."
     (overlay-put ov 'before-string ovstr)
     (setq pgtk-preedit-overlay ov)))
 
+(define-key special-event-map [preedit-text] 'pgtk-preedit-text)
 
 (add-hook 'after-init-hook
           (function

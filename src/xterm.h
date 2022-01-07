@@ -788,6 +788,12 @@ struct x_output
      They are used when creating the cairo surface next time.  */
   int cr_surface_desired_width, cr_surface_desired_height;
 #endif
+
+#ifdef HAVE_X_I18N
+  ptrdiff_t preedit_size;
+  char *preedit_chars;
+  bool preedit_active;
+#endif
 };
 
 enum

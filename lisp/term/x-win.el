@@ -1517,6 +1517,24 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 
 (global-set-key [XF86WakeUp] 'ignore)
 
+
+(defvar x-preedit-overlay nil
+  "The overlay currently used to display preedit text from a compose sequence.")
+
+(defun x-preedit-text (event)
+  "Display preedit text from a compose sequence in EVENT.
+EVENT is a preedit-text event."
+  (interactive "e")
+  (when x-preedit-overlay
+    (delete-overlay x-preedit-overlay)
+    (setq x-preedit-overlay nil))
+  (when (nth 1 event)
+    (setq x-preedit-overlay (make-overlay (point) (point)))
+    (overlay-put x-preedit-overlay 'before-string
+                 (propertize (nth 1 event) 'face '(:underline t)))))
+
+(define-key special-event-map [preedit-text] 'x-preedit-text)
+
 (provide 'x-win)
 (provide 'term/x-win)
 

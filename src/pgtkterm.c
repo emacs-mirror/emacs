@@ -5259,7 +5259,7 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
 {
   union buffered_input_event inev;
   EVENT_INIT (inev.ie);
-  inev.ie.kind = PGTK_PREEDIT_TEXT_EVENT;
+  inev.ie.kind = PREEDIT_TEXT_EVENT;
   inev.ie.arg = preedit;
   inev.ie.code = 0;
   XSETFRAME (inev.ie.frame_or_window, f);

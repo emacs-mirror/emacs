@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "xterm.h"
 #include "frame.h"
 #include "window.h"
@@ -2330,8 +2331,19 @@ hack_wm_protocols (struct frame *f, Widget widget)
 
 #ifdef HAVE_X_I18N
 
-static XFontSet xic_create_xfontset (struct frame *);
-static XIMStyle best_xim_style (XIMStyles *);
+static void xic_preedit_draw_callback (XIC, XPointer, XIMPreeditDrawCallbackStruct *);
+static void xic_preedit_caret_callback (XIC, XPointer, XIMPreeditCaretCallbackStruct *);
+static void xic_preedit_done_callback (XIC, XPointer, XPointer);
+static int xic_preedit_start_callback (XIC, XPointer, XPointer);
+
+static XIMCallback Xxic_preedit_draw_callback = { NULL,
+						  (XIMProc) xic_preedit_draw_callback };
+static XIMCallback Xxic_preedit_caret_callback = { NULL,
+						   (XIMProc) xic_preedit_caret_callback };
+static XIMCallback Xxic_preedit_done_callback = { NULL,
+						  (XIMProc) xic_preedit_done_callback };
+static XIMCallback Xxic_preedit_start_callback = { NULL,
+						   (void *) xic_preedit_start_callback };
 
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
@@ -2608,6 +2620,23 @@ xic_free_xfontset (struct frame *f)
   FRAME_XIC_FONTSET (f) = NULL;
 }
 
+/* Create XIC for frame F. */
+
+
+#define STYLE_OFFTHESPOT (XIMPreeditArea | XIMStatusArea)
+#define STYLE_OVERTHESPOT (XIMPreeditPosition | XIMStatusNothing)
+#define STYLE_ROOT (XIMPreeditNothing | XIMStatusNothing)
+#define STYLE_CALLBACK (XIMPreeditCallbacks | XIMStatusNothing)
+#define STYLE_NONE (XIMPreeditNothing | XIMStatusNothing)
+
+static const XIMStyle supported_xim_styles[] =
+  {
+    STYLE_CALLBACK,
+    STYLE_NONE,
+    STYLE_OVERTHESPOT,
+    STYLE_OFFTHESPOT,
+    STYLE_ROOT
+  };
 
 /* Value is the best input style, given user preferences USER (already
    checked to be supported by Emacs), and styles supported by the
@@ -2616,8 +2645,15 @@ xic_free_xfontset (struct frame *f)
 static XIMStyle
 best_xim_style (XIMStyles *xim)
 {
-  /* Return the default style. This is what GTK3 uses and
-     should work fine with all modern input methods.  */
+  int i, j;
+  int nr_supported = ARRAYELTS (supported_xim_styles);
+
+  for (i = 0; i < nr_supported; ++i)
+    for (j = 0; j < xim->count_styles; ++j)
+      if (supported_xim_styles[i] == xim->supported_styles[j])
+	return supported_xim_styles[i];
+
+  /* Return the default style.  */
   return XIMPreeditNothing | XIMStatusNothing;
 }
 
@@ -2690,6 +2726,22 @@ create_frame_xic (struct frame *f)
 
       if (!status_attr)
         goto out;
+    }
+
+  if (xic_style & XIMPreeditCallbacks)
+    {
+      spot.x = 0;
+      spot.y = 0;
+      preedit_attr = XVaCreateNestedList (0,
+					  XNSpotLocation, &spot,
+					  XNPreeditStartCallback, &Xxic_preedit_start_callback,
+					  XNPreeditDoneCallback, &Xxic_preedit_done_callback,
+					  XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
+					  XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
+					  NULL);
+
+      if (!preedit_attr)
+	goto out;
     }
 
   if (preedit_attr && status_attr)
@@ -2768,7 +2820,12 @@ xic_set_preeditarea (struct window *w, int x, int y)
 
   spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w) + WINDOW_LEFT_MARGIN_WIDTH(w);
   spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
-  attr = XVaCreateNestedList (0, XNSpotLocation, &spot, NULL);
+  attr = XVaCreateNestedList (0, XNSpotLocation, &spot,
+			      XNPreeditStartCallback, &Xxic_preedit_start_callback,
+			      XNPreeditDoneCallback, &Xxic_preedit_done_callback,
+			      XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
+			      XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
+			      NULL);
   XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
   XFree (attr);
 }
@@ -2816,9 +2873,273 @@ xic_set_statusarea (struct frame *f)
   XFree (attr);
 }
 
+static struct frame *
+x_xic_to_frame (XIC xic)
+{
+  Lisp_Object tail, tem;
+  struct frame *f;
 
-/* Set X fontset for XIC of frame F, using base font name
-   BASE_FONTNAME.  Called when a new Emacs fontset is chosen.  */
+  FOR_EACH_FRAME (tail, tem)
+    {
+      f = XFRAME (tem);
+
+      if (FRAME_X_P (f) && FRAME_XIC (f) == xic)
+	return f;
+    }
+
+  return NULL;
+}
+
+static int
+xic_preedit_start_callback (XIC xic, XPointer client_data,
+			    XPointer call_data)
+{
+  struct frame *f = x_xic_to_frame (xic);
+  struct x_output *output;
+
+  if (f)
+    {
+      output = FRAME_X_OUTPUT (f);
+
+      output->preedit_size = 0;
+      output->preedit_active = true;
+
+      if (output->preedit_chars)
+	xfree (output->preedit_chars);
+
+      output->preedit_chars = NULL;
+    }
+
+  return -1;
+}
+
+static void
+xic_preedit_caret_callback (XIC xic, XPointer client_data,
+			    XIMPreeditCaretCallbackStruct *call_data)
+{
+
+}
+
+
+static void
+xic_preedit_done_callback (XIC xic, XPointer client_data,
+			   XPointer call_data)
+{
+  struct frame *f = x_xic_to_frame (xic);
+  struct x_output *output;
+  struct input_event ie;
+
+  if (f)
+    {
+      ie.kind = PREEDIT_TEXT_EVENT;
+      ie.arg = Qnil;
+      XSETFRAME (ie.frame_or_window, f);
+      XSETINT (ie.x, 0);
+      XSETINT (ie.y, 0);
+      kbd_buffer_store_event (&ie);
+
+      output = FRAME_X_OUTPUT (f);
+
+      if (output->preedit_chars)
+	xfree (output->preedit_chars);
+
+      output->preedit_size = 0;
+      output->preedit_active = false;
+      output->preedit_chars = NULL;
+    }
+}
+
+/* The string returned is not null-terminated.  */
+static char *
+x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
+{
+  unsigned char *wchar_buf;
+  ptrdiff_t wchar_actual_length, i;
+  ptrdiff_t nbytes;
+  struct coding_system coding;
+
+  if (text->encoding_is_wchar)
+    {
+      wchar_buf = xmalloc ((text->length + 1) * MAX_MULTIBYTE_LENGTH);
+      wchar_actual_length = 0;
+
+      for (i = 0; i < text->length; ++i)
+	wchar_actual_length += CHAR_STRING (text->string.wide_char[i],
+					    wchar_buf + wchar_actual_length);
+      *length = wchar_actual_length;
+
+      return (char *) wchar_buf;
+    }
+
+  nbytes = strlen (text->string.multi_byte);
+  setup_coding_system (Qutf_8_unix, &coding);
+  coding.mode |= (CODING_MODE_LAST_BLOCK
+		  | CODING_MODE_SAFE_ENCODING);
+  coding.source = (const unsigned char *) text->string.multi_byte;
+  coding.dst_bytes = 2048;
+  coding.destination = xmalloc (2048);
+  decode_coding_object (&coding, Qnil, 0, 0, nbytes, nbytes, Qnil);
+
+  /* coding.destination has either been allocated by us, or
+     reallocated by decode_coding_object.  */
+
+  *length = coding.produced;
+  return (char *) coding.destination;
+}
+
+static void
+xic_preedit_draw_callback (XIC xic, XPointer client_data,
+			   XIMPreeditDrawCallbackStruct *call_data)
+{
+  struct frame *f = x_xic_to_frame (xic);
+  struct x_output *output;
+  ptrdiff_t text_length;
+  ptrdiff_t charpos;
+  ptrdiff_t original_size;
+  char *text;
+  char *chg_start, *chg_end;
+  struct input_event ie;
+
+  if (f)
+    {
+      output = FRAME_X_OUTPUT (f);
+
+      if (!output->preedit_active)
+	return;
+
+      if (call_data->text)
+	text = x_xim_text_to_utf8_unix (call_data->text, &text_length);
+      else
+	text = NULL;
+
+      original_size = output->preedit_size;
+
+      /* This is an ordinary insertion: reallocate the buffer to hold
+	 enough for TEXT.  */
+      if (!call_data->chg_length)
+	{
+	  if (!text)
+	    goto im_abort;
+
+	  if (output->preedit_chars)
+	    output->preedit_chars = xrealloc (output->preedit_chars,
+					      output->preedit_size += text_length);
+	  else
+	    output->preedit_chars = xmalloc (output->preedit_size += text_length);
+	}
+
+      chg_start = output->preedit_chars;
+
+      /* The IM sent bad data: the buffer is empty, but the change
+	 position is more than 0.  */
+      if (!output->preedit_chars && call_data->chg_first)
+	goto im_abort;
+
+      /* Find the byte position for the character position where the
+	 first change is to be made.  */
+      if (call_data->chg_first)
+	{
+	  charpos = 0;
+
+	  while (charpos < call_data->chg_first)
+	    {
+	      chg_start += BYTES_BY_CHAR_HEAD (*chg_start);
+
+	      if ((chg_start - output->preedit_chars) > output->preedit_size)
+		/* The IM sent bad data: chg_start is larger than the
+		   current buffer.  */
+		goto im_abort;
+	      ++charpos;
+	    }
+	}
+
+      if (!call_data->chg_length)
+	{
+	  if (!text)
+	    goto im_abort;
+
+	  memmove (chg_start + text_length, chg_start,
+		   original_size - (chg_start - output->preedit_chars));
+	  memcpy (chg_start, text, text_length);
+	}
+      else
+	{
+	  if (call_data->chg_length < 1)
+	    goto im_abort;
+
+	  charpos = 0;
+	  chg_end = chg_start;
+
+	  while (charpos < call_data->chg_length)
+	    {
+	      chg_end += BYTES_BY_CHAR_HEAD (*chg_end);
+
+	      if ((chg_end - output->preedit_chars) > output->preedit_size)
+		/* The IM sent bad data: chg_end ends someplace outside
+		   the current buffer.  */
+		goto im_abort;
+	      ++charpos;
+	    }
+
+	  memmove (chg_start, chg_end, ((output->preedit_chars
+					 + output->preedit_size) - chg_end));
+	  output->preedit_size -= (chg_end - chg_start);
+
+	  if (text)
+	    {
+	      original_size = output->preedit_size;
+	      output->preedit_chars = xrealloc (output->preedit_chars,
+						output->preedit_size += text_length);
+
+	      /* Find chg_start again, since preedit_chars was reallocated.  */
+
+	      chg_start = output->preedit_chars;
+	      charpos = 0;
+
+	      while (charpos < call_data->chg_first)
+		{
+		  chg_start += BYTES_BY_CHAR_HEAD (*chg_start);
+
+		  if ((chg_start - output->preedit_chars) > output->preedit_size)
+		    /* The IM sent bad data: chg_start is larger than the
+		       current buffer.  */
+		    goto im_abort;
+		  ++charpos;
+		}
+
+	      memmove (chg_start + text_length, chg_start,
+		       original_size - (chg_start - output->preedit_chars));
+	      memcpy (chg_start, text, text_length);
+	    }
+	}
+
+      if (text)
+	xfree (text);
+
+      /* This is okay because this callback is called from the big XIM
+	 event filter, which runs inside XTread_socket.  */
+
+      ie.kind = PREEDIT_TEXT_EVENT;
+      XSETFRAME (ie.frame_or_window, f);
+      ie.arg = make_string_from_utf8 (output->preedit_chars,
+				      output->preedit_size);
+      XSETINT (ie.x, 0);
+      XSETINT (ie.y, 0);
+
+      kbd_buffer_store_event (&ie);
+    }
+
+  return;
+
+ im_abort:
+  if (text)
+    xfree (text);
+  if (output->preedit_chars)
+    xfree (output->preedit_chars);
+  output->preedit_chars = NULL;
+  output->preedit_size = 0;
+  output->preedit_active = false;
+}
 
 void
 xic_set_xfontset (struct frame *f, const char *base_fontname)

@@ -269,10 +269,8 @@ enum event_kind
   , FILE_NOTIFY_EVENT
 #endif
 
-#ifdef HAVE_PGTK
   /* Pre-edit text was changed. */
-  , PGTK_PREEDIT_TEXT_EVENT
-#endif
+  , PREEDIT_TEXT_EVENT
 
   /* Either the mouse wheel has been released without it being
      clicked, or the user has lifted his finger from a touchpad.

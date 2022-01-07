@@ -5198,7 +5198,7 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 #ifdef HAVE_XINPUT2
     case GenericEvent:
       {
-	XIEvent *xi_event = (XIEvent *) event;
+	XIEvent *xi_event = (XIEvent *) event->xcookie.data;
 
         struct frame *focus_frame = dpyinfo->x_focus_event_frame;
         int focus_state
@@ -14046,6 +14046,9 @@ x_free_frame_resources (struct frame *f)
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (f))
 	free_frame_xic (f);
+
+      if (f->output_data.x->preedit_chars)
+	xfree (f->output_data.x->preedit_chars);
 #endif
 
 #ifdef USE_CAIRO
