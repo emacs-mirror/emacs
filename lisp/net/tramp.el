@@ -5756,7 +5756,8 @@ Invokes `password-read' if available, `read-passwd' else."
 			      :create t))
 			    tramp-password-save-function
 			    (plist-get auth-info :save-function)
-			    auth-passwd (auth-info-password auth-info))))
+			    auth-passwd
+			    (tramp-compat-auth-info-password auth-info))))
 
 	       ;; Try the password cache.
 	       (progn
