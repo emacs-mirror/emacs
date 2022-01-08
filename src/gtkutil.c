@@ -6024,6 +6024,27 @@ xg_add_virtual_mods (struct x_display_info *dpyinfo, GdkEventKey *key)
     key->state |= GDK_HYPER_MASK;
 }
 
+static unsigned int
+xg_virtual_mods_to_x (struct x_display_info *dpyinfo, guint virtual)
+{
+  unsigned int modifiers = virtual & ~(GDK_SUPER_MASK
+				       | GDK_META_MASK
+				       | GDK_HYPER_MASK
+				       | GDK_MOD2_MASK
+				       | GDK_MOD3_MASK
+				       | GDK_MOD4_MASK
+				       | GDK_MOD5_MASK);
+
+  if (virtual & GDK_META_MASK)
+    modifiers |= dpyinfo->meta_mod_mask;
+  if (virtual & GDK_SUPER_MASK)
+    modifiers |= dpyinfo->super_mod_mask;
+  if (virtual & GDK_HYPER_MASK)
+    modifiers |= dpyinfo->hyper_mod_mask;
+
+  return modifiers;
+}
+
 static void
 xg_im_context_commit (GtkIMContext *imc, gchar *str,
 		      gpointer user_data)
@@ -6093,6 +6114,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   struct frame *f = NULL;
   union buffered_input_event inev;
   guint keysym = event->key.keyval;
+  unsigned int xstate;
   gunichar *cb;
   ptrdiff_t i;
   glong len;
@@ -6117,8 +6139,11 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   EVENT_INIT (inev.ie);
   XSETFRAME (inev.ie.frame_or_window, f);
 
-  inev.ie.modifiers |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
-					       event->key.state);
+  xstate = xg_virtual_mods_to_x (FRAME_DISPLAY_INFO (f),
+				 event->key.state);
+
+  inev.ie.modifiers
+    |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
 
   /* First deal with keysyms which have defined
      translations to characters.  */
