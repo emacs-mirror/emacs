@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2182,7 +2182,7 @@ Try to visit the target file for a richer summary line."
   ;; JT@19/10/09: This is a totally dummy identifier that isn't even
   ;; passed to LSP.  The reason for this particular wording is to
   ;; construct a readable message "No references for LSP identifier at
-  ;; point.".   See http://github.com/joaotavora/eglot/issues/314
+  ;; point.".   See https://github.com/joaotavora/eglot/issues/314
   "LSP identifier at point.")
 
 (defvar eglot--lsp-xref-refs nil
