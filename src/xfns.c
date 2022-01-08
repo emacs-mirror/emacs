@@ -2930,6 +2930,7 @@ xic_preedit_done_callback (XIC xic, XPointer client_data,
   struct frame *f = x_xic_to_frame (xic);
   struct x_output *output;
   struct input_event ie;
+  EVENT_INIT (ie);
 
   if (f)
     {
@@ -3001,6 +3002,7 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
   char *text;
   char *chg_start, *chg_end;
   struct input_event ie;
+  EVENT_INIT (ie);
 
   if (f)
     {
