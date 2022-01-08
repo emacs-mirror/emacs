@@ -6250,6 +6250,8 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
       xg_pending_quit_event.kind = NO_EVENT;
       kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
     }
+
+  raise (SIGIO);
   return true;
 }
 
