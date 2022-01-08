@@ -2956,6 +2956,7 @@ xg_mark_data (void)
         }
     }
 
+#ifndef HAVE_PGTK
   if (xg_pending_quit_event.kind != NO_EVENT)
     {
       eassert (xg_pending_quit_event.kind == ASCII_KEYSTROKE_EVENT);
@@ -2963,6 +2964,7 @@ xg_mark_data (void)
       mark_object (xg_pending_quit_event.frame_or_window);
       mark_object (xg_pending_quit_event.arg);
     }
+#endif
 }
 
 /* Callback called when a menu item is destroyed.  Used to free data.
