@@ -50,7 +50,7 @@
 ;;
 ;;   (add-hook 'foo-mode-hook 'eglot-ensure)
 ;;
-;; To attempt to start an eglot session automatically everytime a
+;; To attempt to start an eglot session automatically every time a
 ;; foo-mode buffer is visited.
 ;;
 ;;; Code:
@@ -1490,7 +1490,7 @@ against a variable's name.  Examples include the string
 \"company\" or the symbol `xref'.
 
 Before Eglot starts \"managing\" a particular buffer, it
-opinionatedly sets some peripheral Emacs facilites, such as
+opinionatedly sets some peripheral Emacs facilities, such as
 Flymake, Xref and Company.  These overriding settings help ensure
 consistent Eglot behaviour and only stay in place until
 \"managing\" stops (usually via `eglot-shutdown'), whereupon the
@@ -1695,7 +1695,7 @@ Uses THING, FACE, DEFS and PREPEND."
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
                      '((mouse-3 eglot-clear-status  "clear this status"))
-                     (format "An error occured: %s\n" (plist-get last-error
+                     (format "An error occurred: %s\n" (plist-get last-error
                                                                  :message)))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props doing
