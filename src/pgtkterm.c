@@ -5231,9 +5231,9 @@ pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
 void
 pgtk_enqueue_string (struct frame *f, gchar * str)
 {
-  gunichar *ustr;
+  gunichar *ustr, *uptr;
 
-  ustr = g_utf8_to_ucs4 (str, -1, NULL, NULL, NULL);
+  uptr = ustr = g_utf8_to_ucs4 (str, -1, NULL, NULL, NULL);
   if (ustr == NULL)
     return;
   for (; *ustr != 0; ustr++)
@@ -5252,6 +5252,7 @@ pgtk_enqueue_string (struct frame *f, gchar * str)
       evq_enqueue (&inev);
     }
 
+  g_free (uptr);
 }
 
 void
