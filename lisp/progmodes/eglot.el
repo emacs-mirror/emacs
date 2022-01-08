@@ -91,7 +91,7 @@
 
 ;;; User tweakable stuff
 (defgroup eglot nil
-  "Interaction with Language Server Protocol servers"
+  "Interaction with Language Server Protocol servers."
   :prefix "eglot-"
   :group 'applications)
 
@@ -577,7 +577,7 @@ treated as in `eglot-dbind'."
     `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
 
 (cl-defmacro eglot--when-buffer-window (buf &body body)
-  "Check BUF showing somewhere, then do BODY in it" (declare (indent 1) (debug t))
+  "Check BUF showing somewhere, then do BODY in it." (declare (indent 1) (debug t))
   (let ((b (cl-gensym)))
     `(let ((,b ,buf))
        ;;notice the exception when testing with `ert'
@@ -585,7 +585,7 @@ treated as in `eglot-dbind'."
          (with-current-buffer ,b ,@body)))))
 
 (cl-defmacro eglot--widening (&rest body)
-  "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
+  "Save excursion and restriction.  Widen.  Then run BODY." (declare (debug t))
   `(save-excursion (save-restriction (widen) ,@body)))
 
 (cl-defgeneric eglot-handle-request (server method &rest params)
@@ -598,7 +598,7 @@ treated as in `eglot-dbind'."
   "Ask SERVER to execute COMMAND with ARGUMENTS.")
 
 (cl-defgeneric eglot-initialization-options (server)
-  "JSON object to send under `initializationOptions'"
+  "JSON object to send under `initializationOptions'."
   (:method (_s) eglot--{})) ; blank default
 
 (cl-defgeneric eglot-register-capability (server method id &rest params)
@@ -1481,7 +1481,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     map))
 
 (defvar-local eglot--current-flymake-report-fn nil
-  "Current flymake report function for this buffer")
+  "Current flymake report function for this buffer.")
 
 (defvar-local eglot--saved-bindings nil
   "Bindings saved by `eglot--setq-saving'.")
@@ -1734,14 +1734,14 @@ Uses THING, FACE, DEFS and PREPEND."
 ;;;
 (cl-defmethod eglot-handle-notification
   (_server method &key &allow-other-keys)
-  "Handle unknown notification"
+  "Handle unknown notification."
   (unless (or (string-prefix-p "$" (format "%s" method))
               (not (memq 'disallow-unknown-methods eglot-strict-mode)))
     (eglot--warn "Server sent unknown notification method `%s'" method)))
 
 (cl-defmethod eglot-handle-request
   (_server method &key &allow-other-keys)
-  "Handle unknown request"
+  "Handle unknown request."
   (when (memq 'disallow-unknown-methods eglot-strict-mode)
     (jsonrpc-error "Unknown request method `%s'" method)))
 
@@ -1754,14 +1754,14 @@ COMMAND is a symbol naming the command."
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/showMessage)) &key type message)
-  "Handle notification window/showMessage"
+  "Handle notification window/showMessage."
   (eglot--message (propertize "Server reports (type=%s): %s"
                               'face (if (<= type 1) 'error))
                   type message))
 
 (cl-defmethod eglot-handle-request
   (_server (_method (eql window/showMessageRequest)) &key type message actions)
-  "Handle server request window/showMessageRequest"
+  "Handle server request window/showMessageRequest."
   (let* ((actions (append actions nil)) ;; gh#627
          (label (completing-read
                  (concat
@@ -1776,16 +1776,16 @@ COMMAND is a symbol naming the command."
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/logMessage)) &key _type _message)
-  "Handle notification window/logMessage") ;; noop, use events buffer
+  "Handle notification window/logMessage.") ;; noop, use events buffer
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql telemetry/event)) &rest _any)
-  "Handle notification telemetry/event") ;; noop, use events buffer
+  "Handle notification telemetry/event.") ;; noop, use events buffer
 
 (cl-defmethod eglot-handle-notification
   (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
           &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
-  "Handle notification publishDiagnostics"
+  "Handle notification publishDiagnostics."
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
         (cl-loop
@@ -1839,18 +1839,18 @@ THINGS are either registrations or unregisterations (sic)."
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql client/registerCapability)) &key registrations)
-  "Handle server request client/registerCapability"
+  "Handle server request client/registerCapability."
   (eglot--register-unregister server registrations 'register))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql client/unregisterCapability))
           &key unregisterations) ;; XXX: "unregisterations" (sic)
-  "Handle server request client/unregisterCapability"
+  "Handle server request client/unregisterCapability."
   (eglot--register-unregister server unregisterations 'unregister))
 
 (cl-defmethod eglot-handle-request
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
-  "Handle server request workspace/applyEdit"
+  "Handle server request workspace/applyEdit."
   (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits))
 
 (defun eglot--TextDocumentIdentifier ()
@@ -2180,7 +2180,7 @@ Try to visit the target file for a richer summary line."
     (xref-make-match summary (xref-make-file-location file line column) length)))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
-  (eglot--error "cannot (yet) provide reliable completion table for LSP symbols"))
+  (eglot--error "Cannot (yet) provide reliable completion table for LSP symbols"))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   ;; JT@19/10/09: This is a totally dummy identifier that isn't even
@@ -2578,7 +2578,7 @@ is not active."
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
 (defun eglot--highlight-piggyback (_cb)
-  "Request and handle `:textDocument/documentHighlight'"
+  "Request and handle `:textDocument/documentHighlight'."
   ;; FIXME: Obviously, this is just piggy backing on eldoc's calls for
   ;; convenience, as shown by the fact that we just ignore cb.
   (let ((buf (current-buffer)))
@@ -2821,7 +2821,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 ;;;
 (cl-defmethod eglot-register-capability
   (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
-  "Handle dynamic registration of workspace/didChangeWatchedFiles"
+  "Handle dynamic registration of workspace/didChangeWatchedFiles."
   (eglot-unregister-capability server method id)
   (let* (success
          (globs (mapcar
@@ -2863,7 +2863,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 
 (cl-defmethod eglot-unregister-capability
   (server (_method (eql workspace/didChangeWatchedFiles)) id)
-  "Handle dynamic unregistration of workspace/didChangeWatchedFiles"
+  "Handle dynamic unregistration of workspace/didChangeWatchedFiles."
   (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches server)))
   (remhash id (eglot--file-watches server))
   (list t "OK"))
@@ -2948,7 +2948,7 @@ If NOERROR, return predicate, else erroring function."
 (cl-defmethod eglot-handle-notification
   ((server eglot-rls) (_method (eql window/progress))
    &key id done title message &allow-other-keys)
-  "Handle notification window/progress"
+  "Handle notification window/progress."
   (setf (eglot--spinner server) (list id title done message)))
 
 
@@ -2958,7 +2958,7 @@ If NOERROR, return predicate, else erroring function."
   :documentation "Eclipse's Java Development Tools Language Server.")
 
 (cl-defmethod eglot-initialization-options ((server eglot-eclipse-jdt))
-  "Passes through required jdt initialization options"
+  "Passes through required jdt initialization options."
   `(:workspaceFolders
     [,@(cl-delete-duplicates
         (mapcar #'eglot--path-to-uri
