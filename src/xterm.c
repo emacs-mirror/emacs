@@ -11134,8 +11134,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      *finish = X_EVENT_DROP;
 		      x_catch_errors (dpyinfo->display);
-		      XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-					  xev->detail, xev->event, XIAcceptTouch);
+		      if (x_input_grab_touch_events)
+			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
+					    xev->detail, xev->event, XIAcceptTouch);
 		      if (!x_had_errors_p (dpyinfo->display))
 			{
 			  xi_link_touch_point (device, xev->detail, xev->event_x,
@@ -11154,8 +11155,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  else
 		    {
 		      x_catch_errors (dpyinfo->display);
-		      XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-					  xev->detail, xev->event, XIRejectTouch);
+		      if (x_input_grab_touch_events)
+			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
+					    xev->detail, xev->event, XIRejectTouch);
 		      x_uncatch_errors ();
 		    }
 #endif
@@ -15946,4 +15948,12 @@ support. */);
 This provides better support for some modern input methods, and is
 only effective when Emacs is built with GTK.  */);
   x_gtk_use_native_input = false;
+
+  DEFVAR_BOOL ("x-input-grab-touch-events", x_input_grab_touch_events,
+	       doc: /* Non-nil means to actively grab touch events.
+This means touch sequences that started on an Emacs frame will
+reliably continue to receive updates even if the finger moves off the
+frame, but may cause crashes with some window managers and/or external
+programs.  */);
+  x_input_grab_touch_events = true;
 }
