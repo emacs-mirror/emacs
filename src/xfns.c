@@ -2820,16 +2820,33 @@ xic_set_preeditarea (struct window *w, int x, int y)
   XVaNestedList attr;
   XPoint spot;
 
-  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w) + WINDOW_LEFT_MARGIN_WIDTH(w);
-  spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
-  attr = XVaCreateNestedList (0, XNSpotLocation, &spot,
-			      XNPreeditStartCallback, &Xxic_preedit_start_callback,
-			      XNPreeditDoneCallback, &Xxic_preedit_done_callback,
-			      XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
-			      XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
-			      NULL);
-  XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
-  XFree (attr);
+  if (FRAME_XIC (WINDOW_XFRAME (w)))
+    {
+      spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w) + WINDOW_LEFT_MARGIN_WIDTH(w);
+      spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
+      attr = XVaCreateNestedList (0, XNSpotLocation, &spot,
+				  XNPreeditStartCallback, &Xxic_preedit_start_callback,
+				  XNPreeditDoneCallback, &Xxic_preedit_done_callback,
+				  XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
+				  XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
+				  NULL);
+      XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
+      XFree (attr);
+    }
+#ifdef USE_GTK
+  GdkRectangle rect;
+  rect.x = (WINDOW_TO_FRAME_PIXEL_X (w, x)
+	    + WINDOW_LEFT_FRINGE_WIDTH (w)
+	    + WINDOW_LEFT_MARGIN_WIDTH (w));
+  rect.y = (WINDOW_TO_FRAME_PIXEL_Y (w, y)
+	    + FRAME_TOOLBAR_HEIGHT (f)
+	    + FRAME_MENUBAR_HEIGHT (f));
+  rect.width = w->phys_cursor_width;
+  rect.height = w->phys_cursor_height;
+
+  gtk_im_context_set_cursor_location (FRAME_X_OUTPUT (f)->im_context,
+				      &rect);
+#endif
 }
 
 

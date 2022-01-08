@@ -76,6 +76,13 @@ typedef struct pgtk_output xp_output;
 #define XG_TEXT_OPEN   GTK_STOCK_OPEN
 #endif
 
+#ifndef HAVE_PGTK
+static void xg_im_context_commit (GtkIMContext *, gchar *, gpointer);
+static void xg_im_context_preedit_changed (GtkIMContext *, gpointer);
+static void xg_im_context_preedit_end (GtkIMContext *, gpointer);
+static bool xg_widget_key_press_event_cb (GtkWidget *, GdkEvent *, gpointer);
+#endif
+
 #ifndef HAVE_GTK3
 
 #ifdef HAVE_FREETYPE
@@ -1437,6 +1444,9 @@ xg_create_frame_widgets (struct frame *f)
 #ifndef HAVE_GTK3
   GtkRcStyle *style;
 #endif
+#ifndef HAVE_PGTK
+  GtkIMContext *imc;
+#endif
   GtkWindowType type = GTK_WINDOW_TOPLEVEL;
   char *title = 0;
 
@@ -1621,6 +1631,22 @@ xg_create_frame_widgets (struct frame *f)
 #ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+
+  imc = gtk_im_multicontext_new ();
+  g_object_ref (imc);
+  gtk_im_context_set_use_preedit (imc, TRUE);
+
+  g_signal_connect (G_OBJECT (imc), "commit",
+		    G_CALLBACK (xg_im_context_commit), f);
+  g_signal_connect (G_OBJECT (imc), "preedit-changed",
+		    G_CALLBACK (xg_im_context_preedit_changed), NULL);
+  g_signal_connect (G_OBJECT (imc), "preedit-end",
+		    G_CALLBACK (xg_im_context_preedit_end), NULL);
+  FRAME_X_OUTPUT (f)->im_context = imc;
+
+  g_signal_connect (G_OBJECT (wfixed), "key-press-event",
+		    G_CALLBACK (xg_widget_key_press_event_cb),
+		    NULL);
 #endif
 
   {
@@ -1761,6 +1787,7 @@ xg_free_frame_widgets (struct frame *f)
       /* x_free_frame_resources should have taken care of it */
 #ifndef HAVE_PGTK
       eassert (!FRAME_X_DOUBLE_BUFFERED_P (f));
+      g_object_unref (FRAME_X_OUTPUT (f)->im_context);
 #endif
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
@@ -2927,6 +2954,14 @@ xg_mark_data (void)
               mark_object (tbinfo->style);
             }
         }
+    }
+
+  if (xg_pending_quit_event.kind != NO_EVENT)
+    {
+      eassert (xg_pending_quit_event.kind == ASCII_KEYSTROKE_EVENT);
+
+      mark_object (xg_pending_quit_event.frame_or_window);
+      mark_object (xg_pending_quit_event.arg);
     }
 }
 
@@ -5963,4 +5998,323 @@ xg_initialize (void)
 #endif
 }
 
+#ifndef HAVE_PGTK
+static void
+xg_add_virtual_mods (struct x_display_info *dpyinfo, GdkEventKey *key)
+{
+  guint modifiers = key->state;
+
+  if (modifiers & dpyinfo->meta_mod_mask)
+    {
+      /* GDK always assumes Mod1 is alt, but that's no reason for
+	 us to make that mistake as well.  */
+      if (!dpyinfo->alt_mod_mask)
+	key->state |= GDK_MOD1_MASK;
+      else
+	key->state |= GDK_META_MASK;
+    }
+
+  if (modifiers & dpyinfo->alt_mod_mask)
+    key->state |= GDK_MOD1_MASK;
+  if (modifiers & dpyinfo->super_mod_mask)
+    key->state |= GDK_SUPER_MASK;
+  if (modifiers & dpyinfo->hyper_mod_mask)
+    key->state |= GDK_HYPER_MASK;
+}
+
+static void
+xg_im_context_commit (GtkIMContext *imc, gchar *str,
+		      gpointer user_data)
+{
+  struct frame *f = user_data;
+  struct input_event ie;
+  gunichar *ucs4_str;
+
+  ucs4_str = g_utf8_to_ucs4_fast (str, -1, NULL);
+
+  if (!ucs4_str)
+    return;
+
+  for (gunichar *c = ucs4_str; *c; c++)
+    {
+      EVENT_INIT (ie);
+      ie.kind = (SINGLE_BYTE_CHAR_P (*c)
+		 ? ASCII_KEYSTROKE_EVENT
+		 : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      ie.arg = Qnil;
+      ie.code = *c;
+      XSETFRAME (ie.frame_or_window, f);
+      ie.modifiers = 0;
+      ie.timestamp = 0;
+
+      kbd_buffer_store_event (&ie);
+    }
+
+  g_free (ucs4_str);
+}
+
+static void
+xg_im_context_preedit_changed (GtkIMContext *imc, gpointer user_data)
+{
+  PangoAttrList *list;
+  gchar *str;
+  gint cursor;
+  struct input_event inev;
+
+  gtk_im_context_get_preedit_string (imc, &str, &list, &cursor);
+
+  EVENT_INIT (inev);
+  inev.kind = PREEDIT_TEXT_EVENT;
+  inev.arg = build_string_from_utf8 (str);
+  kbd_buffer_store_event (&inev);
+
+  g_free (str);
+  pango_attr_list_unref (list);
+}
+
+static void
+xg_im_context_preedit_end (GtkIMContext *imc, gpointer user_data)
+{
+  struct input_event inev;
+
+  EVENT_INIT (inev);
+  inev.kind = PREEDIT_TEXT_EVENT;
+  inev.arg = Qnil;
+  kbd_buffer_store_event (&inev);
+}
+
+static bool
+xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+			      gpointer user_data)
+{
+  Lisp_Object tail, tem;
+  struct frame *f = NULL;
+  union buffered_input_event inev;
+  guint keysym = event->key.keyval;
+  gunichar *cb;
+  ptrdiff_t i;
+  glong len;
+
+  FOR_EACH_FRAME (tail, tem)
+    {
+      if (FRAME_X_P (XFRAME (tem))
+	  && (FRAME_GTK_WIDGET (XFRAME (tem)) == widget))
+	{
+	  f = XFRAME (tem);
+	  break;
+	}
+    }
+
+  if (!f)
+    return true;
+
+  if (!x_gtk_use_native_input
+      && !FRAME_DISPLAY_INFO (f)->prefer_native_input)
+    return true;
+
+  EVENT_INIT (inev.ie);
+  XSETFRAME (inev.ie.frame_or_window, f);
+
+  inev.ie.modifiers |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
+					       event->key.state);
+
+  /* First deal with keysyms which have defined
+     translations to characters.  */
+  if (keysym >= 32 && keysym < 128)
+    /* Avoid explicitly decoding each ASCII character.  */
+    {
+      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
+      goto done;
+    }
+
+  /* Keysyms directly mapped to Unicode characters.  */
+  if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
+    {
+      if (keysym < 0x01000080)
+	inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+      else
+	inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      inev.ie.code = keysym & 0xFFFFFF;
+      goto done;
+    }
+
+  /* Random non-modifier sorts of keysyms.  */
+  if (((keysym >= GDK_KEY_BackSpace && keysym <= GDK_KEY_Escape)
+       || keysym == GDK_KEY_Delete
+#ifdef GDK_KEY_ISO_Left_Tab
+       || (keysym >= GDK_KEY_ISO_Left_Tab && keysym <= GDK_KEY_ISO_Enter)
+#endif
+       || IsCursorKey (keysym)	/* 0xff50 <= x < 0xff60 */
+       || IsMiscFunctionKey (keysym)	/* 0xff60 <= x < VARIES */
+#ifdef GDK_KEY_dead_circumflex
+       || keysym == GDK_KEY_dead_circumflex
+#endif
+#ifdef GDK_KEY_dead_grave
+       || keysym == GDK_KEY_dead_grave
+#endif
+#ifdef GDK_KEY_dead_tilde
+       || keysym == GDK_KEY_dead_tilde
+#endif
+#ifdef GDK_KEY_dead_diaeresis
+       || keysym == GDK_KEY_dead_diaeresis
+#endif
+#ifdef GDK_KEY_dead_macron
+       || keysym == GDK_KEY_dead_macron
+#endif
+#ifdef GDK_KEY_dead_degree
+       || keysym == GDK_KEY_dead_degree
+#endif
+#ifdef GDK_KEY_dead_acute
+       || keysym == GDK_KEY_dead_acute
+#endif
+#ifdef GDK_KEY_dead_cedilla
+       || keysym == GDK_KEY_dead_cedilla
+#endif
+#ifdef GDK_KEY_dead_breve
+       || keysym == GDK_KEY_dead_breve
+#endif
+#ifdef GDK_KEY_dead_ogonek
+       || keysym == GDK_KEY_dead_ogonek
+#endif
+#ifdef GDK_KEY_dead_caron
+       || keysym == GDK_KEY_dead_caron
+#endif
+#ifdef GDK_KEY_dead_doubleacute
+       || keysym == GDK_KEY_dead_doubleacute
+#endif
+#ifdef GDK_KEY_dead_abovedot
+       || keysym == GDK_KEY_dead_abovedot
+#endif
+       || IsKeypadKey (keysym)	/* 0xff80 <= x < 0xffbe */
+       || IsFunctionKey (keysym)	/* 0xffbe <= x < 0xffe1 */
+       /* Any "vendor-specific" key is ok.  */
+       || (keysym & (1 << 28))
+       || (keysym != GDK_KEY_VoidSymbol && !event->key.string))
+      && !(event->key.is_modifier))
+    {
+      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
+      goto done;
+    }
+
+  if (event->key.string)
+    {
+      cb = g_utf8_to_ucs4_fast (event->key.string, -1, &len);
+
+      for (i = 0; i < len; ++i)
+	{
+	  inev.ie.kind = (SINGLE_BYTE_CHAR_P (cb[i])
+			  ? ASCII_KEYSTROKE_EVENT
+			  : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	  inev.ie.code = cb[i];
+
+	  kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+	}
+
+      g_free (cb);
+
+      inev.ie.kind = NO_EVENT;
+    }
+
+ done:
+  if (inev.ie.kind != NO_EVENT)
+    {
+      xg_pending_quit_event.kind = NO_EVENT;
+      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+    }
+  return true;
+}
+
+bool
+xg_filter_key (struct frame *frame, XEvent *xkey)
+{
+  GdkEvent *xg_event = gdk_event_new (GDK_KEY_PRESS);
+  GdkDisplay *dpy = gtk_widget_get_display (FRAME_GTK_WIDGET (frame));
+  GdkKeymap *keymap = gdk_keymap_get_for_display (dpy);
+  GdkModifierType consumed;
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
+  bool result;
+
+  xg_event->any.window = gtk_widget_get_window (FRAME_GTK_WIDGET (frame));
+  g_object_ref (xg_event->any.window);
+
+#if GTK_CHECK_VERSION (3, 20, 0)
+  GdkSeat *seat = gdk_display_get_default_seat (dpy);
+
+  gdk_event_set_device (xg_event,
+			gdk_seat_get_keyboard (seat));
+#elif GTK_CHECK_VERSION (3, 16, 0)
+  GdkDeviceManager *manager = gdk_display_get_device_manager (dpy);
+  GList *devices = gdk_device_manager_list_devices (manager,
+						    GDK_DEVICE_TYPE_MASTER);
+  GdkDevice *device;
+  GList *tem;
+  for (tem = devices; tem; tem = tem->next)
+    {
+      device = GDK_DEVICE (tem->data);
+
+      if (gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
+	{
+	  gdk_event_set_device (xg_event, device);
+	  break;
+	}
+    }
+
+  g_list_free (devices);
+#endif
+
+#ifdef HAVE_XINPUT2
+  if (xkey->type != GenericEvent)
+    {
+#endif
+      xg_event->key.hardware_keycode = xkey->xkey.keycode;
+
+#ifdef HAVE_XKB
+      if (dpyinfo->supports_xkb)
+	xg_event->key.group = XkbGroupForCoreState (xkey->xkey.state);
+#endif
+      xg_event->key.state = xkey->xkey.state;
+      gdk_keymap_translate_keyboard_state (keymap,
+					   xkey->xkey.keycode,
+					   xkey->xkey.state,
+					   xg_event->key.group,
+					   &xg_event->key.keyval,
+					   NULL, NULL, &consumed);
+      xg_add_virtual_mods (dpyinfo, &xg_event->key);
+      xg_event->key.state &= ~consumed;
+#if GTK_CHECK_VERSION (3, 6, 0)
+      xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
+								  xg_event->key.hardware_keycode);
+#endif
+#ifdef HAVE_XINPUT2
+    }
+  else
+    {
+      XIDeviceEvent *xev = (XIDeviceEvent *) xkey->xcookie.data;
+
+      xg_event->key.hardware_keycode = xev->detail;
+      xg_event->key.group = xev->group.effective;
+      xg_event->key.state = xev->mods.effective;
+      gdk_keymap_translate_keyboard_state (keymap,
+					   xev->detail,
+					   xev->mods.effective,
+					   xg_event->key.group,
+					   &xg_event->key.keyval,
+					   NULL, NULL, &consumed);
+      xg_add_virtual_mods (dpyinfo, &xg_event->key);
+      xg_event->key.state &= ~consumed;
+      xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
+								  xg_event->key.hardware_keycode);
+    }
+#endif
+
+  result = gtk_im_context_filter_keypress (FRAME_X_OUTPUT (frame)->im_context,
+					   &xg_event->key);
+
+  gdk_event_free (xg_event);
+
+  return result;
+}
+#endif
 #endif /* USE_GTK */

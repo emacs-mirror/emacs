@@ -527,6 +527,10 @@ struct x_display_info
   int xkb_event_type;
   XkbDescPtr xkb_desc;
 #endif
+
+#ifdef USE_GTK
+  bool prefer_native_input;
+#endif
 };
 
 #ifdef HAVE_X_I18N
@@ -643,6 +647,8 @@ struct x_output
   GtkTooltip *ttip_widget;
   GtkWidget *ttip_lbl;
   GtkWindow *ttip_window;
+
+  GtkIMContext *im_context;
 #endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
@@ -1338,6 +1344,10 @@ extern void x_session_close (void);
 #define STYLE_ROOT (XIMPreeditNothing | XIMStatusNothing)
 #define STYLE_CALLBACK (XIMPreeditCallbacks | XIMStatusNothing)
 #define STYLE_NONE (XIMPreeditNothing | XIMStatusNothing)
+#endif
+
+#ifdef USE_GTK
+extern struct input_event xg_pending_quit_event;
 #endif
 
 /* Is the frame embedded into another application? */

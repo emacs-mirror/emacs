@@ -147,6 +147,17 @@ bool use_xim = true;
 bool use_xim = false;  /* configure --without-xim */
 #endif
 
+#ifdef USE_GTK
+/* GTK can't tolerate a call to `handle_interrupt' inside an event
+   signal handler, but we have to store input events inside the
+   handler for native input to work.
+
+   This acts as a `hold_quit', and it is stored in the keyboard buffer
+   (thereby causing the call to `handle_interrupt') after the GTK
+   signal handler exits and control returns to XTread_socket.  */
+struct input_event xg_pending_quit_event = { .kind = NO_EVENT };
+#endif
+
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
@@ -4931,7 +4942,8 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
    a FOCUS_IN_EVENT into *BUFP.  */
 
 static void
-x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct frame *frame, struct input_event *bufp)
+x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct frame *frame,
+		 struct input_event *bufp)
 {
   if (type == FocusIn)
     {
@@ -4947,7 +4959,15 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
 
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (frame))
-        XSetICFocus (FRAME_XIC (frame));
+	XSetICFocus (FRAME_XIC (frame));
+#ifdef USE_GTK
+      GtkWidget *widget;
+
+      gtk_im_context_focus_in (FRAME_X_OUTPUT (frame)->im_context);
+      widget = FRAME_GTK_OUTER_WIDGET (frame);
+      gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context,
+					gtk_widget_get_window (widget));
+#endif
 #endif
     }
   else if (type == FocusOut)
@@ -4966,6 +4986,10 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (frame))
         XUnsetICFocus (FRAME_XIC (frame));
+#ifdef USE_GTK
+      gtk_im_context_focus_out (FRAME_X_OUTPUT (frame)->im_context);
+      gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context, NULL);
+#endif
 #endif
       if (frame->pointer_invisible)
         XTtoggle_invisible_pointer (frame, false);
@@ -8229,10 +8253,52 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
    XFilterEvent because that's the one for which the IC
    was created.  */
 
-  struct frame *f1 = x_any_window_to_frame (dpyinfo,
-                                            event->xclient.window);
+  struct frame *f1;
 
-  return XFilterEvent (event, f1 ? FRAME_X_WINDOW (f1) : None);
+#if defined HAVE_XINPUT2 && defined USE_GTK
+  bool xinput_event = false;
+  if (dpyinfo->supports_xi2
+      && event->type == GenericEvent
+      && (event->xgeneric.extension
+	  == dpyinfo->xi2_opcode)
+      && (event->xgeneric.evtype
+	  == XI_KeyPress))
+    {
+      f1 = x_any_window_to_frame (dpyinfo,
+				  ((XIDeviceEvent *)
+				   event->xcookie.data)->event);
+      xinput_event = true;
+    }
+  else
+#endif
+    f1 = x_any_window_to_frame (dpyinfo,
+				event->xclient.window);
+
+#ifdef USE_GTK
+  if (!x_gtk_use_native_input
+      && !dpyinfo->prefer_native_input)
+    {
+#endif
+      return XFilterEvent (event, f1 ? FRAME_X_WINDOW (f1) : None);
+#ifdef USE_GTK
+    }
+  else if (f1 && (event->type == KeyPress
+#ifdef HAVE_XINPUT2
+		  || xinput_event
+#endif
+		  ))
+    {
+      bool result;
+
+      block_input ();
+      result = xg_filter_key (f1, event);
+      unblock_input ();
+
+      return result;
+    }
+
+  return 0;
+#endif
 }
 #endif
 
@@ -10679,11 +10745,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
 
+#ifdef USE_GTK
+	      if ((!x_gtk_use_native_input
+		   && x_filter_event (dpyinfo, (XEvent *) &xkey))
+		  || (x_gtk_use_native_input
+		      && x_filter_event (dpyinfo, event)))
+		{
+		  *finish = X_EVENT_DROP;
+		  goto XI_OTHER;
+		}
+#else
 	      if (x_filter_event (dpyinfo, (XEvent *) &xkey))
 		{
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
+#endif
 #endif
 
 #ifdef HAVE_XKB
@@ -11421,6 +11498,20 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
       if (current_finish == X_EVENT_GOTO_OUT)
         break;
     }
+
+  /* Now see if `xg_pending_quit_event' was set.  */
+  if (xg_pending_quit_event.kind != NO_EVENT)
+    {
+      /* Check that the frame is still valid.  It could have been
+	 deleted between now and the time the event was recorded.  */
+      if (FRAME_LIVE_P (XFRAME (xg_pending_quit_event.frame_or_window)))
+	/* Store that event into hold_quit and clear the pending quit
+	   event.  */
+	*hold_quit = xg_pending_quit_event;
+
+      /* If the frame is invalid, just clear the event as well.  */
+      xg_pending_quit_event.kind = NO_EVENT;
+    }
 #endif /* USE_GTK */
 
   /* On some systems, an X bug causes Emacs to get no more events
@@ -11726,8 +11817,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 
 #ifdef HAVE_X_I18N
       if (w == XWINDOW (f->selected_window))
-	if (FRAME_XIC (f))
-	  xic_set_preeditarea (w, x, y);
+	xic_set_preeditarea (w, x, y);
 #endif
     }
 
@@ -15299,6 +15389,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  dpyinfo->preferred_xim_style = STYLE_OFFTHESPOT;
 	else if (!strcmp (SSDATA (value), "root"))
 	  dpyinfo->preferred_xim_style = STYLE_ROOT;
+#ifdef USE_GTK
+	else if (!strcmp (SSDATA (value), "native"))
+	  dpyinfo->prefer_native_input = true;
+#endif
       }
 #endif
   }
@@ -15846,4 +15940,10 @@ always uses gtk_window_move and ignores the value of this variable.  */);
 This option is only effective when Emacs is built with XInput 2
 support. */);
   Vx_scroll_event_delta_factor = make_float (1.0);
+
+  DEFVAR_BOOL ("x-gtk-use-native-input", x_gtk_use_native_input,
+	       doc: /* Non-nil means to use GTK for input method support.
+This provides better support for some modern input methods, and is
+only effective when Emacs is built with GTK.  */);
+  x_gtk_use_native_input = false;
 }

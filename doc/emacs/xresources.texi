@@ -355,6 +355,10 @@ Let the input method decide how to display itself.  This is usually
 equivalent to @samp{overthespot}, but it might work with more input
 methods.
 
+@item native
+Use the toolkit for handling input methods.  This is currently
+implemented only on GTK.
+
 @item root
 Use some location on display specific to the input method for
 displaying the preview text.
