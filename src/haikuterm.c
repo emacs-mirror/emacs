@@ -234,11 +234,11 @@ haiku_clear_frame (struct frame *f)
   block_input ();
   BView_draw_lock (view);
   BView_StartClip (view);
-  BView_ClipToRect (view, 0, 0, FRAME_PIXEL_WIDTH (f) + 1,
-		    FRAME_PIXEL_HEIGHT (f) + 1);
+  BView_ClipToRect (view, 0, 0, FRAME_PIXEL_WIDTH (f),
+		    FRAME_PIXEL_HEIGHT (f));
   BView_SetHighColor (view, FRAME_BACKGROUND_PIXEL (f));
-  BView_FillRectangle (view, 0, 0, FRAME_PIXEL_WIDTH (f) + 1,
-		       FRAME_PIXEL_HEIGHT (f) + 1);
+  BView_FillRectangle (view, 0, 0, FRAME_PIXEL_WIDTH (f) ,
+		       FRAME_PIXEL_HEIGHT (f));
   BView_EndClip (view);
   BView_draw_unlock (view);
   unblock_input ();
