@@ -141,6 +141,7 @@ chosen (interactively or automatically)."
 
 (defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
                                 (cmake-mode . ("cmake-language-server"))
+                                (vimrc-mode . ("vim-language-server" "--stdio"))
                                 (python-mode
                                  . ,(eglot-alternatives
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio"))))
