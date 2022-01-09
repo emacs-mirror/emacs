@@ -1530,6 +1530,7 @@ EVENT is a preedit-text event."
     (setq x-preedit-overlay nil))
   (when (nth 1 event)
     (setq x-preedit-overlay (make-overlay (point) (point)))
+    (overlay-put x-preedit-overlay 'window (selected-window))
     (overlay-put x-preedit-overlay 'before-string
                  (propertize (nth 1 event) 'face '(:underline t)))))
 
