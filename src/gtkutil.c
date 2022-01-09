@@ -6118,6 +6118,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   gunichar *cb;
   ptrdiff_t i;
   glong len;
+  gunichar uc;
 
   FOR_EACH_FRAME (tail, tem)
     {
@@ -6216,8 +6217,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
        || IsKeypadKey (keysym)	/* 0xff80 <= x < 0xffbe */
        || IsFunctionKey (keysym)	/* 0xffbe <= x < 0xffe1 */
        /* Any "vendor-specific" key is ok.  */
-       || (keysym & (1 << 28))
-       || (keysym != GDK_KEY_VoidSymbol && !event->key.string))
+       || (keysym & (1 << 28)))
       && !(event->key.is_modifier))
     {
       inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
@@ -6242,6 +6242,23 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
       g_free (cb);
 
       inev.ie.kind = NO_EVENT;
+    }
+  else
+    {
+      uc = gdk_keyval_to_unicode (keysym);
+
+      if (uc)
+	{
+	  inev.ie.kind = (SINGLE_BYTE_CHAR_P (uc)
+			  ? ASCII_KEYSTROKE_EVENT
+			  : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	  inev.ie.code = uc;
+	}
+      else
+	{
+	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = keysym;
+	}
     }
 
  done:

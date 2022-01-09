@@ -10727,7 +10727,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto XI_OTHER;
 #endif
 
-#ifdef HAVE_X_I18N
 	      XKeyPressedEvent xkey;
 
 	      memset (&xkey, 0, sizeof xkey);
@@ -10745,6 +10744,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
 
+#ifdef HAVE_X_I18N
 #ifdef USE_GTK
 	      if ((!x_gtk_use_native_input
 		   && x_filter_event (dpyinfo, (XEvent *) &xkey))
