@@ -140,6 +140,7 @@ chosen (interactively or automatically)."
                       finally (funcall err)))))))
 
 (defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
+                                (cmake-mode . ("cmake-language-server"))
                                 (python-mode
                                  . ,(eglot-alternatives
                                      '("pylsp" "pyls" ("pyright-langserver" "--stdio"))))
