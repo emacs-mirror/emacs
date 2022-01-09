@@ -2148,6 +2148,7 @@ may be called multiple times (respecting the protocol of
          (let (,collected)
            (cl-flet ((,collector (xref) (push xref ,collected)))
              ,@body)
+           (setq ,collected (nreverse ,collected))
            (sort ,collected eglot-xref-lessp-function))
        (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
        (clrhash eglot--temp-location-buffers))))
