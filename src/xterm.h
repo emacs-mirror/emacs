@@ -800,6 +800,7 @@ struct x_output
   ptrdiff_t preedit_size;
   char *preedit_chars;
   bool preedit_active;
+  int preedit_caret;
 #endif
 };
 
