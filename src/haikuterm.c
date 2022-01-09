@@ -2728,7 +2728,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct frame *f = haiku_window_to_frame (b->window);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 
-	    if (!f)
+	    if (!f || FRAME_TOOLTIP_P (f))
 	      continue;
 
 	    Lisp_Object frame;
