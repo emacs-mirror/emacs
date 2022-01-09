@@ -835,6 +835,7 @@ haiku_create_frame (Lisp_Object parms, int ttip_p)
     haiku_set_parent_frame (f, parent_frame, Qnil);
 
   gui_default_parameter (f, parms, Qundecorated, Qnil, NULL, NULL, RES_TYPE_BOOLEAN);
+  gui_default_parameter (f, parms, Qoverride_redirect, Qnil, NULL, NULL, RES_TYPE_BOOLEAN);
 
   gui_default_parameter (f, parms, Qicon_type, Qnil,
                          "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
@@ -1064,6 +1065,20 @@ haiku_set_undecorated (struct frame *f, Lisp_Object new_value,
   block_input ();
   FRAME_UNDECORATED (f) = !NILP (new_value);
   BWindow_change_decoration (FRAME_HAIKU_WINDOW (f), NILP (new_value));
+  unblock_input ();
+}
+
+static void
+haiku_set_override_redirect (struct frame *f, Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  if (EQ (new_value, old_value))
+    return;
+
+  block_input ();
+  BWindow_set_override_redirect (FRAME_HAIKU_WINDOW (f),
+				 !NILP (new_value));
+  FRAME_OVERRIDE_REDIRECT (f) = !NILP (new_value);
   unblock_input ();
 }
 
@@ -2430,7 +2445,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_no_focus_on_map,
     haiku_set_no_accept_focus,
     NULL, /* set z group */
-    NULL, /* set override redir */
+    haiku_set_override_redirect,
     gui_set_no_special_glyphs
   };
 

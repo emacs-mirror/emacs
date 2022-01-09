@@ -856,6 +856,9 @@ extern "C"
   extern bool
   be_use_subpixel_antialiasing (void);
 
+  extern void
+  BWindow_set_override_redirect (void *window, bool override_redirect_p);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);

@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <kernel/scheduler.h>
 
 #include <private/interface/ToolTip.h>
+#include <private/interface/WindowPrivate.h>
 
 #include <cmath>
 #include <cstring>
@@ -271,6 +272,8 @@ public:
   int shown_flag = 0;
   volatile int was_shown_p = 0;
   bool menu_bar_active_p = false;
+  window_look pre_override_redirect_style;
+  window_feel pre_override_redirect_feel;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -3057,4 +3060,31 @@ be_use_subpixel_antialiasing (void)
     return false;
 
   return current_subpixel_antialiasing;
+}
+
+/* This isn't implemented very properly (for example: what if
+   decorations are changed while the window is under override
+   redirect?) but it works well enough for most use cases.  */
+void
+BWindow_set_override_redirect (void *window, bool override_redirect_p)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  if (w->LockLooper ())
+    {
+      if (override_redirect_p)
+	{
+	  w->pre_override_redirect_feel = w->Feel ();
+	  w->pre_override_redirect_style = w->Look ();
+	  w->SetFeel (kMenuWindowFeel);
+	  w->SetLook (B_NO_BORDER_WINDOW_LOOK);
+	}
+      else
+	{
+	  w->SetFeel (w->pre_override_redirect_feel);
+	  w->SetLook (w->pre_override_redirect_style);
+	}
+
+      w->UnlockLooper ();
+    }
 }
