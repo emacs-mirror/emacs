@@ -159,9 +159,9 @@ BFont_char_bounds (void *font, const char *mb_str, int *advance,
 
   ft->GetEdges (mb_str, 1, &edge_info);
   ft->GetEscapements (mb_str, 1, &escapement);
-  *advance = std::ceil (escapement * size);
-  *lb =  std::ceil (edge_info.left * size);
-  *rb = *advance + std::ceil (edge_info.right * size);
+  *advance = std::lrint (escapement * size);
+  *lb =  std::lrint (edge_info.left * size);
+  *rb = *advance + std::lrint (edge_info.right * size);
 }
 
 /* The same, but for a variable amount of chars.  */
@@ -534,14 +534,15 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
       font_family_style_matches_p (name, NULL, flags, pat, 1))
     {
       BFont *ft = new BFont;
+      ft->SetSize (size);
+      ft->SetEncoding (B_UNICODE_UTF8);
+      ft->SetSpacing (B_BITMAP_SPACING);
+
       if (ft->SetFamilyAndStyle (name, NULL) != B_OK)
 	{
 	  delete ft;
 	  return 1;
 	}
-      ft->SetSize (size);
-      ft->SetEncoding (B_UNICODE_UTF8);
-      ft->SetSpacing (B_BITMAP_SPACING);
       *font = (void *) ft;
       return 0;
     }
@@ -553,14 +554,15 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 	      font_family_style_matches_p (name, (char *) &sname, flags, pat))
 	    {
 	      BFont *ft = new BFont;
+	      ft->SetSize (size);
+	      ft->SetEncoding (B_UNICODE_UTF8);
+	      ft->SetSpacing (B_BITMAP_SPACING);
+
 	      if (ft->SetFamilyAndStyle (name, sname) != B_OK)
 		{
 		  delete ft;
 		  return 1;
 		}
-	      ft->SetSize (size);
-	      ft->SetEncoding (B_UNICODE_UTF8);
-	      ft->SetSpacing (B_BITMAP_SPACING);
 	      *font = (void *) ft;
 	      return 0;
 	    }
