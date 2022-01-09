@@ -9,23 +9,25 @@
 ;; Keywords: convenience, languages
 ;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.0.9") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0"))
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Simply M-x eglot should be enough to get you started, but here's a
- ;; little info (see the accompanying README.md or the URL for more).
+;; little info (see the accompanying README.md or the URL for more).
 ;;
 ;; M-x eglot starts a server via a shell-command guessed from
 ;; `eglot-server-programs', using the current major-mode (for whatever
