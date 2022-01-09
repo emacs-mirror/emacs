@@ -179,6 +179,40 @@ map_shift (uint32_t kc, uint32_t *ch)
 }
 
 static void
+map_caps (uint32_t kc, uint32_t *ch)
+{
+  if (!key_map_lock.Lock ())
+    gui_abort ("Failed to lock keymap");
+  if (!key_map)
+    get_key_map (&key_map, &key_chars);
+  if (!key_map)
+    return;
+  if (kc >= 128)
+    return;
+
+  int32_t m = key_map->caps_map[kc];
+  map_key (key_chars, m, ch);
+  key_map_lock.Unlock ();
+}
+
+static void
+map_caps_shift (uint32_t kc, uint32_t *ch)
+{
+  if (!key_map_lock.Lock ())
+    gui_abort ("Failed to lock keymap");
+  if (!key_map)
+    get_key_map (&key_map, &key_chars);
+  if (!key_map)
+    return;
+  if (kc >= 128)
+    return;
+
+  int32_t m = key_map->caps_shift_map[kc];
+  map_key (key_chars, m, ch);
+  key_map_lock.Unlock ();
+}
+
+static void
 map_normal (uint32_t kc, uint32_t *ch)
 {
   if (!key_map_lock.Lock ())
@@ -605,9 +639,19 @@ public:
 	  BUnicodeChar::FromUTF8 (msg->GetString ("bytes"));
 
 	if ((mods & B_SHIFT_KEY) && rq.kc >= 0)
-	  map_shift (rq.kc, &rq.unraw_mb_char);
+	  {
+	    if (mods & B_CAPS_LOCK)
+	      map_caps_shift (rq.kc, &rq.unraw_mb_char);
+	    else
+	      map_shift (rq.kc, &rq.unraw_mb_char);
+	  }
 	else if (rq.kc >= 0)
-	  map_normal (rq.kc, &rq.unraw_mb_char);
+	  {
+	    if (mods & B_CAPS_LOCK)
+	      map_caps (rq.kc, &rq.unraw_mb_char);
+	    else
+	      map_normal (rq.kc, &rq.unraw_mb_char);
+	  }
 
 	haiku_write (msg->what == B_KEY_DOWN ? KEY_DOWN : KEY_UP, &rq);
       }
