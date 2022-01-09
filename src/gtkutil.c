@@ -6089,6 +6089,13 @@ xg_im_context_preedit_changed (GtkIMContext *imc, gpointer user_data)
   EVENT_INIT (inev);
   inev.kind = PREEDIT_TEXT_EVENT;
   inev.arg = build_string_from_utf8 (str);
+
+  Fput_text_property (make_fixnum (min (SCHARS (inev.arg),
+					max (0, cursor))),
+		      make_fixnum (min (SCHARS (inev.arg),
+					max (0, cursor) + 1)),
+		      Qcursor, Qt, inev.arg);
+
   kbd_buffer_store_event (&inev);
 
   g_free (str);
@@ -6145,6 +6152,9 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 
   inev.ie.modifiers
     |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
+
+  if (event->key.is_modifier)
+    goto done;
 
   /* First deal with keysyms which have defined
      translations to characters.  */
@@ -6217,8 +6227,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
        || IsKeypadKey (keysym)	/* 0xff80 <= x < 0xffbe */
        || IsFunctionKey (keysym)	/* 0xffbe <= x < 0xffe1 */
        /* Any "vendor-specific" key is ok.  */
-       || (keysym & (1 << 28)))
-      && !(event->key.is_modifier))
+       || (keysym & (1 << 28))))
     {
       inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
       inev.ie.code = keysym;

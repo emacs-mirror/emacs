@@ -2973,7 +2973,8 @@ xic_preedit_caret_callback (XIC xic, XPointer client_data,
 	  ie.arg = make_string_from_utf8 (output->preedit_chars,
 					  output->preedit_size);
 
-	  Fput_text_property (make_fixnum (max (0, output->preedit_caret)),
+	  Fput_text_property (make_fixnum (min (SCHARS (ie.arg),
+						max (0, output->preedit_caret))),
 			      make_fixnum (max (SCHARS (ie.arg),
 						max (0, output->preedit_caret) + 1)),
 			      Qcursor, Qt, ie.arg);
@@ -3195,7 +3196,8 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
       ie.arg = make_string_from_utf8 (output->preedit_chars,
 				      output->preedit_size);
 
-      Fput_text_property (make_fixnum (max (0, output->preedit_caret)),
+      Fput_text_property (make_fixnum (min (SCHARS (ie.arg),
+					    max (0, output->preedit_caret))),
 			  make_fixnum (min (SCHARS (ie.arg),
 					    max (0, output->preedit_caret) + 1)),
 			  Qcursor, Qt, ie.arg);
