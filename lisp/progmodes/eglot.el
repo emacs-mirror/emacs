@@ -182,9 +182,9 @@ language-server/bin/php-language-server.php"))
                                 ((fortran-mode f90-mode) . ("fortls"))
                                 (lua-mode . ("lua-lsp"))
                                 (zig-mode . ("zls"))
-                                (css-mode "css-languageserver" "--stdio")
-                                (html-mode "html-languageserver" "--stdio")
-                                (json-mode "json-languageserver" "--stdio")
+                                (css-mode . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio") ("css-languageserver" "--stdio"))))
+                                (html-mode . ,(eglot-alternatives '(("vscode-html-language-server" "--stdio") ("html-languageserver" "--stdio"))))
+                                (json-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))
                                 (dockerfile-mode . ("docker-langserver" "--stdio")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
