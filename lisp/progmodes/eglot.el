@@ -114,7 +114,7 @@ chosen (interactively or automatically)."
                                collect (if (listp a) a (list a))))
            (err (lambda ()
                   (error "None of '%s' are valid executables"
-                         (mapconcat #'identity alternatives ", ")))))
+                         (mapconcat #'car listified ", ")))))
       (cond (interactive
              (let* ((augmented (mapcar (lambda (a)
                                          (let ((found (eglot--executable-find
