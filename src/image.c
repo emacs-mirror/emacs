@@ -11458,7 +11458,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #endif
 
 #if defined (HAVE_WEBP) || (defined (HAVE_NATIVE_IMAGE_API) \
-			    && defined (HAVE_BE_APP))
+			    && defined (HAVE_HAIKU))
   DEFSYM (Qwebp, "webp");
   add_image_type (Qwebp);
 #endif
