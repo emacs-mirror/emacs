@@ -581,8 +581,7 @@ Return the column number after insertion."
       (when not-last-col
         (when (> pad-right 0) (insert (make-string pad-right ?\s)))
         (insert (propertize
-                 ;; We need at least one space to align correctly.
-                 (make-string (- width (min 1 width label-width)) ?\s)
+                 (make-string (- width (min width label-width)) ?\s)
                  'display `(space :align-to ,next-x))))
       (put-text-property opoint (point) 'tabulated-list-column-name name)
       next-x)))
