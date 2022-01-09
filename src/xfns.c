@@ -2922,6 +2922,7 @@ xic_preedit_start_callback (XIC xic, XPointer client_data,
 
       output->preedit_size = 0;
       output->preedit_active = true;
+      output->preedit_caret = 0;
 
       if (output->preedit_chars)
 	xfree (output->preedit_chars);
@@ -2936,7 +2937,54 @@ static void
 xic_preedit_caret_callback (XIC xic, XPointer client_data,
 			    XIMPreeditCaretCallbackStruct *call_data)
 {
+  struct frame *f = x_xic_to_frame (xic);
+  struct x_output *output;
+  struct input_event ie;
+  EVENT_INIT (ie);
 
+  if (f)
+    {
+      output = FRAME_X_OUTPUT (f);
+
+      if (!output->preedit_active)
+	return;
+
+      switch (call_data->direction)
+	{
+	case XIMAbsolutePosition:
+	  output->preedit_caret = call_data->position;
+	  break;
+	case XIMForwardChar:
+	case XIMForwardWord:
+	  call_data->position = output->preedit_caret++;
+	  break;
+	case XIMBackwardChar:
+	case XIMBackwardWord:
+	  call_data->position = max (0, output->preedit_caret--);
+	  break;
+	default:
+	  call_data->position = output->preedit_caret;
+	}
+
+      if (output->preedit_chars)
+	{
+	  ie.kind = PREEDIT_TEXT_EVENT;
+	  XSETFRAME (ie.frame_or_window, f);
+	  ie.arg = make_string_from_utf8 (output->preedit_chars,
+					  output->preedit_size);
+
+	  Fput_text_property (make_fixnum (0),
+			      make_fixnum (SCHARS (ie.arg)),
+			      Qcursor,
+			      make_fixnum (output->preedit_caret),
+			      ie.arg);
+
+	  XSETINT (ie.x, 0);
+	  XSETINT (ie.y, 0);
+
+	  kbd_buffer_store_event (&ie);
+	}
+    }
 }
 
 
@@ -2966,6 +3014,7 @@ xic_preedit_done_callback (XIC xic, XPointer client_data,
       output->preedit_size = 0;
       output->preedit_active = false;
       output->preedit_chars = NULL;
+      output->preedit_caret = 0;
     }
 }
 
@@ -3137,6 +3186,8 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
       if (text)
 	xfree (text);
 
+      output->preedit_caret = call_data->caret;
+
       /* This is okay because this callback is called from the big XIM
 	 event filter, which runs inside XTread_socket.  */
 
@@ -3144,6 +3195,13 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
       XSETFRAME (ie.frame_or_window, f);
       ie.arg = make_string_from_utf8 (output->preedit_chars,
 				      output->preedit_size);
+
+      Fput_text_property (make_fixnum (0),
+			  make_fixnum (SCHARS (ie.arg)),
+			  Qcursor,
+			  make_fixnum (output->preedit_caret),
+			  ie.arg);
+
       XSETINT (ie.x, 0);
       XSETINT (ie.y, 0);
 
@@ -3160,6 +3218,7 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
   output->preedit_chars = NULL;
   output->preedit_size = 0;
   output->preedit_active = false;
+  output->preedit_caret = 0;
 }
 
 void
