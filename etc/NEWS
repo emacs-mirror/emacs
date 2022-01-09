@@ -796,6 +796,13 @@ the Netscape web browser was released in February, 2008.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Galeon web browser was released in September, 2008.
 
+** Miscellaneous
+
+---
+*** New minor mode 'elide-head-mode'.
+Enabling this minor mode toggles hiding header material.  The commands
+'elide-head' and 'elide-head-show' are now obsolete.
+
 
 * New Modes and Packages in Emacs 29.1
 

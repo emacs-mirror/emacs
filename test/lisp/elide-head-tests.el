@@ -28,41 +28,67 @@
 
 (require 'elide-head)
 (require 'ert)
+(require 'ert-x)
 
-(ert-deftest elide-head-tests-elide-head ()
+(ert-deftest elide-head-tests-elide-head-mode ()
   (let ((elide-head-headers-to-hide '(("START" . "END"))))
     (with-temp-buffer
       (insert "foo\nSTART\nHIDDEN\nEND\nbar")
-      (elide-head)
+      (elide-head-mode 1)
       (let ((o (car (overlays-at 14))))
         (should (= (overlay-start o) 10))
         (should (= (overlay-end o) 21))
         (should (overlay-get o 'invisible))
         (should (overlay-get o 'evaporate))))))
 
-(ert-deftest elide-head-tests-elide-head-with-prefix-arg ()
+(ert-deftest elide-head-tests-elide-head-mode/enable-disable ()
   (let ((elide-head-headers-to-hide '(("START" . "END"))))
     (with-temp-buffer
       (insert "foo\nSTART\nHIDDEN\nEND\nbar")
-      (elide-head)
+      (elide-head-mode 1)
       (should (overlays-at 14))
-      (elide-head t)
+      (elide-head-mode -1)
       (should-not (overlays-at 14)))))
 
-(ert-deftest elide-head-tests-show ()
-  (let ((elide-head-headers-to-hide '(("START" . "END"))))
-    (with-temp-buffer
-      (insert "foo\nSTART\nHIDDEN\nEND\nbar")
-      (elide-head)
-      (should (overlays-at 14))
-      (elide-head-show)
-      (should-not (overlays-at 14)))))
+(ert-deftest elide-head-tests-elide-head-mode/normal-mode ()
+  (ert-with-temp-file fil
+    (with-temp-file fil
+      (insert "foo\nSTART\nHIDDEN\nEND\nbar"))
+    (let ((elide-head-headers-to-hide '(("START" . "END")))
+          (buf (find-file-noselect fil)))
+      (save-excursion
+        (unwind-protect
+            (progn
+              (set-buffer buf)
+              (elide-head-mode 1)
+              (should (= 1 (length (overlays-in (point-min) (point-max)))))
+              (normal-mode)
+              (should (= 0 (length (overlays-in (point-min) (point-max))))))
+          (when buf (kill-buffer buf)))))))
+
+(ert-deftest elide-head-tests-elide-head-mode/revert-buffer ()
+  (ert-with-temp-file fil
+    (with-temp-file fil
+      (insert "foo\nSTART\nHIDDEN\nEND\nbar"))
+    (let ((elide-head-headers-to-hide '(("START" . "END")))
+          (buf (find-file-noselect fil)))
+      (save-excursion
+        (unwind-protect
+            (progn
+              (set-buffer buf)
+              (elide-head-mode 1)
+              (should (= 1 (length (overlays-in (point-min) (point-max)))))
+              (revert-buffer nil t)
+              (elide-head-mode 1)
+              (should (= 1 (length (overlays-in (point-min) (point-max))))))
+          (when buf (kill-buffer buf)))))))
+
 
 (defmacro elide-head--add-test (name text search-str)
   `(ert-deftest ,(intern (format "elide-head--test-headers-to-hide/%s" name)) ()
      (with-temp-buffer
        (insert ,text)
-       (elide-head)
+       (elide-head-mode 1)
        (goto-char (point-min))
        (re-search-forward ,search-str)
        (let ((o (car (overlays-at (match-beginning 0)))))
@@ -162,6 +188,40 @@
         along with this program; if not, write to the Free Software
         Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 " "This program is distributed in the hope that")
+
+
+;;; Obsolete
+
+(with-suppressed-warnings ((obsolete elide-head)
+                           (obsolete elide-head-show))
+  (ert-deftest elide-head-tests-elide-head ()
+    (let ((elide-head-headers-to-hide '(("START" . "END"))))
+      (with-temp-buffer
+        (insert "foo\nSTART\nHIDDEN\nEND\nbar")
+        (elide-head)
+        (let ((o (car (overlays-at 14))))
+          (should (= (overlay-start o) 10))
+          (should (= (overlay-end o) 21))
+          (should (overlay-get o 'invisible))
+          (should (overlay-get o 'evaporate))))))
+
+  (ert-deftest elide-head-tests-elide-head-with-prefix-arg ()
+    (let ((elide-head-headers-to-hide '(("START" . "END"))))
+      (with-temp-buffer
+        (insert "foo\nSTART\nHIDDEN\nEND\nbar")
+        (elide-head)
+        (should (overlays-at 14))
+        (elide-head t)
+        (should-not (overlays-at 14)))))
+
+  (ert-deftest elide-head-tests-show ()
+    (let ((elide-head-headers-to-hide '(("START" . "END"))))
+      (with-temp-buffer
+        (insert "foo\nSTART\nHIDDEN\nEND\nbar")
+        (elide-head)
+        (should (overlays-at 14))
+        (elide-head-show)
+        (should-not (overlays-at 14))))))
 
 (provide 'elide-head-tests)
 ;;; elide-head-tests.el ends here
