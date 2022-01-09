@@ -800,7 +800,8 @@ the Galeon web browser was released in September, 2008.
 
 ---
 *** New minor mode 'elide-head-mode'.
-Enabling this minor mode toggles hiding header material.  The commands
+Enabling this minor mode turns on hiding header material, like
+'elide-head' does; disabling it shows the header.  The commands
 'elide-head' and 'elide-head-show' are now obsolete.
 
 
