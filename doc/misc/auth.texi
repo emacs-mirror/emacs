@@ -579,10 +579,7 @@ from Gnus's @code{nnimap.el}.
                                            :create t))))
     (if found
         (list (plist-get found :user)
-              (let ((secret (plist-get found :secret)))
-                (if (functionp secret)
-                    (funcall secret)
-                  secret))
+              (auth-info-password found)
               (plist-get found :save-function))
       nil)))
 @end example
@@ -602,7 +599,7 @@ Later, after a successful login, @code{nnimap.el} calls the
 
 @example
 (when (functionp (nth 2 credentials))
-   (funcall (nth 2 credentials)))
+  (funcall (nth 2 credentials)))
 @end example
 
 This will work whether the @code{:save-function} was provided or not.
@@ -635,6 +632,16 @@ matching data was found.
 @defun auth-source-forget+ &rest spec &allow-other-keys
 This function forgets any cached data matching @var{spec}.
 It returns the number of items forgotten.
+@end defun
+
+@defun auth-source-pick-first-password &rest spec
+This function returns the password of the first record found by
+applying @code{auth-source-search} to @var{spec}.
+@end defun
+
+@defun auth-info-password auth-info
+This function extracts the password string from the @var{auth-info}
+record.
 @end defun
 
 @node GnuPG and EasyPG Assistant Configuration
