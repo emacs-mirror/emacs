@@ -1489,6 +1489,12 @@ If you don't want stock icons, set the variable to nil."
 				       (string :tag "Stock/named")))))
   :group 'x)
 
+(defcustom x-display-cursor-at-start-of-preedit-string nil
+  "If non-nil, display the cursor at the start of any pre-edit text."
+  :version "29.1"
+  :type 'boolean
+  :group 'x)
+
 (defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))
 
 (defun x-gtk-map-stock (file)
@@ -1529,10 +1535,13 @@ EVENT is a preedit-text event."
     (delete-overlay x-preedit-overlay)
     (setq x-preedit-overlay nil))
   (when (nth 1 event)
-    (setq x-preedit-overlay (make-overlay (point) (point)))
-    (overlay-put x-preedit-overlay 'window (selected-window))
-    (overlay-put x-preedit-overlay 'before-string
-                 (propertize (nth 1 event) 'face '(:underline t)))))
+    (let ((string (propertize (nth 1 event) 'face '(:underline t))))
+      (setq x-preedit-overlay (make-overlay (point) (point)))
+      (overlay-put x-preedit-overlay 'window (selected-window))
+      (overlay-put x-preedit-overlay 'before-string
+                   (if x-display-cursor-at-start-of-preedit-string
+                       (propertize string 'cursor t)
+                     string)))))
 
 (define-key special-event-map [preedit-text] 'x-preedit-text)
 
