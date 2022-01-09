@@ -168,7 +168,7 @@ or may be omitted (it is usually omitted)."
 
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."
-  (interactive)
+  (interactive nil edit-abbrevs-mode)
   (save-restriction
     (widen)
     (define-abbrevs t)
@@ -269,7 +269,8 @@ have been saved."
    (list (read-file-name "Save abbrevs to file: "
 			 (file-name-directory
 			  (expand-file-name abbrev-file-name))
-			 abbrev-file-name)))
+                         abbrev-file-name))
+   edit-abbrevs-mode)
   (edit-abbrevs-redefine)
   (write-abbrev-file file t))
 
@@ -277,7 +278,7 @@ have been saved."
   "Save all user-level abbrev definitions in current buffer.
 The saved abbrevs are written to the file specified by
 `abbrev-file-name'."
-  (interactive)
+  (interactive nil edit-abbrevs-mode)
   (abbrev-edit-save-to-file abbrev-file-name))
 
 
@@ -1188,7 +1189,8 @@ SORTFUN is passed to `sort' to change the default ordering."
 (define-derived-mode edit-abbrevs-mode fundamental-mode "Edit-Abbrevs"
   "Major mode for editing the list of abbrev definitions.
 This mode is for editing abbrevs in a buffer prepared by `edit-abbrevs',
-which see.")
+which see."
+  :interactive nil)
 
 (provide 'abbrev)
 
