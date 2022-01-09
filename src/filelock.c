@@ -608,7 +608,7 @@ lock_if_free (lock_info_type *clasher, char *lfname)
       err = current_lock_owner (clasher, lfname);
       if (err != 0)
 	{
-	  if (err < 0)
+	  if (err == -1 || err == -2)
 	    return -2 - err; /* We locked it, or someone else has it.  */
 	  break; /* current_lock_owner returned strange error.  */
 	}
@@ -616,7 +616,14 @@ lock_if_free (lock_info_type *clasher, char *lfname)
       /* We deleted a stale lock; try again to lock the file.  */
     }
 
+#if !defined HAIKU \
+  || defined BE_USE_POSITIVE_POSIX_ERRORS
   return err;
+#else
+  /* On Haiku, POSIX error values are negative by default, but this
+     code's callers assume that any errno value is positive.  */
+  return -err;
+#endif
 }
 
 static Lisp_Object
