@@ -318,6 +318,23 @@ Modus themes
         doc/misc/modus-themes.org
         etc/themes/modus*.el
 
+Org Mode
+	Home Page: https://orgmode.org/
+	Maintainer: Org Mode developers
+	Repository: git://git.sv.gnu.org/emacs/org-mode.git
+	Mailing list: emacs-orgmode@gnu.org
+	Bug Reports: M-x org-submit-bug-report
+	Notes: Org Mode is maintained as a separate project that is
+          periodically merged into Emacs.  To view or participate in
+          Org Mode development, please go to https://orgmode.org/ and
+          follow the instructions there.
+
+	lisp/org/*.el
+	etc/org/*
+	etc/refcards/orgcard.tex
+	doc/misc/org.org
+	doc/misc/org-setup.org
+
 
 ;;; Local Variables:
 ;;;   coding: utf-8

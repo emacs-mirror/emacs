@@ -366,6 +366,22 @@ reasons.  These should be marked by including something like "Do not
 merge to master" or anything that matches gitmerge-skip-regexp (see
 admin/gitmerge.el) in the commit message.
 
+** Some packages in Emacs are maintained externally
+
+Sometimes a package that ships as part of GNU Emacs is maintained as a
+separate project, with its own upstream repository, its own maintainer
+group, its own development conventions, etc.  The upstream project's
+code is periodically merged into Emacs (exactly when and how such
+merges happen depends on the package).
+
+So when you are making a contribution -- such as fixing a bug or
+proposing an enhancement -- to one of these externally maintained
+packages, you sometimes need to deal with that package at its upstream
+source.
+
+In the section "Externally maintained packages" in "admin/MAINTAINERS"
+we maintain a list of such packages.
+
 ** GNU ELPA
 
 This repository does not contain the Emacs Lisp package archive
