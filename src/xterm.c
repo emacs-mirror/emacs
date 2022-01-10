@@ -11135,8 +11135,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #else
 	      f = x_any_window_to_frame (xkey->event);
 
-	      if (f &&
-		  xg_filter_event (dpyinfo, event))
+	      if (f && xg_filter_key (f, event))
 		*finish = X_EVENT_DROP;
 #endif
 #endif
