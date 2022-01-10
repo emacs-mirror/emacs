@@ -1720,7 +1720,9 @@ Uses THING, FACE, DEFS and PREPEND."
              `("/" ,(eglot--mode-line-props
                      (format "%d" pending) 'warning
                      '((mouse-3 eglot-forget-pending-continuations
-                                "forget pending continuations"))))))))))
+                                "forget pending continuations"))
+                     "Number of outgoing, \
+still unanswered LSP requests to the server"))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
