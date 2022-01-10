@@ -2688,7 +2688,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    inev.code = b->unraw_mb_char;
 
-	    BMapKey (b->kc, &non_ascii_p, &inev.code);
+	    be_map_key (b->kc, &non_ascii_p, &inev.code);
 
 	    if (non_ascii_p)
 	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;

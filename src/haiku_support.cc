@@ -1849,7 +1849,7 @@ BWindow_Flush (void *window)
 /* Map the keycode KC, storing the result in CODE and 1 in
    NON_ASCII_P if it should be used.  */
 void
-BMapKey (uint32_t kc, int *non_ascii_p, unsigned *code)
+be_map_key (uint32_t kc, int *non_ascii_p, unsigned *code)
 {
   if (*code == 10 && kc != 0x42)
     {
@@ -1884,21 +1884,27 @@ BMapKey (uint32_t kc, int *non_ascii_p, unsigned *code)
       *code = XK_Down;
       break;
     case 0x64:
+    case 0x1f:
       *code = XK_Insert;
       break;
     case 0x65:
+    case 0x34:
       *code = XK_Delete;
       break;
     case 0x37:
+    case 0x20:
       *code = XK_Home;
       break;
     case 0x58:
+    case 0x35:
       *code = XK_End;
       break;
     case 0x39:
+    case 0x21:
       *code = XK_Page_Up;
       break;
     case 0x5a:
+    case 0x36:
       *code = XK_Page_Down;
       break;
     case 0x1:

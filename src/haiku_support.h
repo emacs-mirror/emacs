@@ -561,7 +561,7 @@ extern "C"
   BWindow_Flush (void *window);
 
   extern void
-  BMapKey (uint32_t kc, int *non_ascii_p, unsigned *code);
+  be_map_key (uint32_t kc, int *non_ascii_p, unsigned *code);
 
   extern void *
   BScrollBar_make_for_view (void *view, int horizontal_p,
