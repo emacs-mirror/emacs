@@ -154,14 +154,14 @@ This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
   (declare (obsolete elide-head-mode "29.1"))
   (interactive "P")
   (if arg
-      (elide-head--show)
-    (elide-head--hide)))
+      (elide-head-mode -1)
+    (elide-head-mode 1)))
 
 (defun elide-head-show ()
   "Show a header in the current buffer elided by \\[elide-head]."
   (declare (obsolete elide-head-mode "29.1"))
   (interactive)
-  (elide-head--show))
+  (elide-head-mode -1))
 
 (provide 'elide-head)
 
