@@ -141,7 +141,12 @@
 		   (const :format "" :value :style)
 		   (choice :tag "Style"
 			   (const :tag "Line" line)
-			   (const :tag "Wave" wave))))
+			   (const :tag "Wave" wave))
+                   (const :format "" :value :position)
+                   (choice :tag "Position"
+                           (const :tag "At Default Position" nil)
+                           (const :tag "At Bottom Of Text" t)
+                           (integer :tag "Pixels Above Bottom Of Text"))))
      ;; filter to make value suitable for customize
      (lambda (real-value)
        (and real-value
@@ -151,18 +156,21 @@
 		       'foreground-color))
 		  (style
 		   (or (and (consp real-value) (plist-get real-value :style))
-		       'line)))
-	      (list :color color :style style))))
+		       'line))
+                  (position (and (consp real-value)
+                                 (plist-get real-value :style))))
+	      (list :color color :style style :position position))))
      ;; filter to make customized-value suitable for storing
      (lambda (cus-value)
        (and cus-value
 	    (let ((color (plist-get cus-value :color))
-		  (style (plist-get cus-value :style)))
-	      (cond ((eq style 'line)
+		  (style (plist-get cus-value :style))
+                  (position (plist-get cus-value :position)))
+	      (cond ((and (eq style 'line) (not position))
 		     ;; Use simple value for default style
 		     (if (eq color 'foreground-color) t color))
 		    (t
-		     `(:color ,color :style ,style)))))))
+		     `(:color ,color :style ,style :position ,position)))))))
 
     (:overline
      (choice :tag "Overline"

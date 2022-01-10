@@ -1720,6 +1720,12 @@ struct face
   int box_vertical_line_width;
   int box_horizontal_line_width;
 
+
+  /* The amount of pixels above the descent line the underline should
+     be displayed.  It does not take effect unless
+     `underline_at_descent_line_p` is t.  */
+  int underline_pixels_above_descent_line;
+
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn
      around text in this face.  A value of FACE_SIMPLE_BOX means a box
      of width box_line_width is drawn in color box_color.  A value of
@@ -1752,6 +1758,9 @@ struct face
   bool_bf overline_color_defaulted_p : 1;
   bool_bf strike_through_color_defaulted_p : 1;
   bool_bf box_color_defaulted_p : 1;
+
+  /* True means the underline should be drawn at the descent line.  */
+  bool_bf underline_at_descent_line_p : 1;
 
   /* TTY appearances.  Colors are found in `lface' with empty color
      string meaning the default color of the TTY.  */

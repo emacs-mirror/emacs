@@ -3265,7 +3265,11 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
           /* If the prev was underlined, match its appearance.  */
           if (s->prev
 	      && s->prev->face->underline == FACE_UNDER_LINE
-              && s->prev->underline_thickness > 0)
+              && s->prev->underline_thickness > 0
+	      && (s->prev->face->underline_at_descent_line_p
+		  == s->face->underline_at_descent_line_p)
+	      && (s->prev->face->underline_pixels_above_descent_line
+		  == s->face->underline_pixels_above_descent_line))
             {
               thickness = s->prev->underline_thickness;
               position = s->prev->underline_position;
@@ -3286,7 +3290,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_underline_at_descent_line, s->w));
-	      underline_at_descent_line = !(NILP (val) || EQ (val, Qunbound));
+	      underline_at_descent_line = (!(NILP (val) || EQ (val, Qunbound))
+					   || s->face->underline_at_descent_line_p);
 
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_use_underline_position_properties, s->w));
@@ -3299,7 +3304,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
 
               /* Determine the offset of underlining from the baseline.  */
               if (underline_at_descent_line)
-                position = descent - thickness;
+                position = (descent - thickness
+			    - s->face->underline_pixels_above_descent_line);
               else if (use_underline_position_properties
                        && font && font->underline_position >= 0)
                 position = font->underline_position;
@@ -3308,7 +3314,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
               else
                 position = minimum_offset;
 
-              position = max (position, minimum_offset);
+	      if (!s->face->underline_pixels_above_descent_line)
+		position = max (position, minimum_offset);
 
               /* Ensure underlining is not cropped.  */
               if (descent <= position)

@@ -4144,8 +4144,12 @@ x_draw_glyph_string (struct glyph_string *s)
               unsigned long thickness, position;
               int y;
 
-              if (s->prev &&
-	          s->prev->face->underline == FACE_UNDER_LINE)
+              if (s->prev
+		  && s->prev->face->underline == FACE_UNDER_LINE
+		  && (s->prev->face->underline_at_descent_line_p
+		      == s->face->underline_at_descent_line_p)
+		  && (s->prev->face->underline_pixels_above_descent_line
+		      == s->face->underline_pixels_above_descent_line))
                 {
                   /* We use the same underline style as the previous one.  */
                   thickness = s->prev->underline_thickness;
@@ -4168,7 +4172,8 @@ x_draw_glyph_string (struct glyph_string *s)
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_underline_at_descent_line, s->w));
 		  underline_at_descent_line
-		    = !(NILP (val) || EQ (val, Qunbound));
+		    = (!(NILP (val) || EQ (val, Qunbound))
+		       || s->face->underline_at_descent_line_p);
 
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_use_underline_position_properties, s->w));
@@ -4181,7 +4186,9 @@ x_draw_glyph_string (struct glyph_string *s)
                   else
                     thickness = 1;
                   if (underline_at_descent_line)
-                    position = (s->height - thickness) - (s->ybase - s->y);
+		    position = ((s->height - thickness)
+				- (s->ybase - s->y)
+				- s->face->underline_pixels_above_descent_line);
                   else
                     {
                       /* Get the underline position.  This is the
@@ -4201,12 +4208,16 @@ x_draw_glyph_string (struct glyph_string *s)
                       else
                         position = minimum_offset;
                     }
-                  position = max (position, minimum_offset);
+
+		  /* Ignore minimum_offset if the amount of pixels was
+		     explictly specified.  */
+		  if (!s->face->underline_pixels_above_descent_line)
+		    position = max (position, minimum_offset);
                 }
               /* Check the sanity of thickness and position.  We should
                  avoid drawing underline out of the current line area.  */
-              if (s->y + s->height <= s->ybase + position)
-                position = (s->height - 1) - (s->ybase - s->y);
+	      if (s->y + s->height <= s->ybase + position)
+		position = (s->height - 1) - (s->ybase - s->y);
               if (s->y + s->height < s->ybase + position + thickness)
                 thickness = (s->y + s->height) - (s->ybase + position);
               s->underline_thickness = thickness;

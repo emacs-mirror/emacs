@@ -1278,6 +1278,12 @@ This is a subcategory of 'file-error', and is signaled when some file
 operation fails because the OS doesn't allow Emacs to access a file or
 a directory.
 
++++
+** The ':underline' face attribute now accepts a new property.
+The property ':position' now specifies the position of the underline
+when used as part of a property list specification for the
+':underline' attribute.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

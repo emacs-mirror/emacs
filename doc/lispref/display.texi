@@ -2555,13 +2555,16 @@ Underline with the foreground color of the face.
 @item @var{color}
 Underline in color @var{color}, a string specifying a color.
 
-@item @code{(:color @var{color} :style @var{style})}
+@item @code{(:color @var{color} :style @var{style} :position @var{position}}
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.
+means to use a straight line.  @var{position}, if non-nil, means to
+display the underline at the descent of the text, instead of at the
+baseline level.  If it is a number, then it specifies the amount of
+pixels above the descent to display the underline.
 @end table
 
 @cindex overlined text

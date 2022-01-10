@@ -6041,6 +6041,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline = FACE_UNDER_LINE;
       face->underline_defaulted_p = true;
       face->underline_color = 0;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (STRINGP (underline))
     {
@@ -6050,12 +6052,16 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline_color
 	= load_color (f, face, underline,
 		      LFACE_UNDERLINE_INDEX);
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (NILP (underline))
     {
       face->underline = FACE_NO_UNDERLINE;
       face->underline_defaulted_p = false;
       face->underline_color = 0;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (CONSP (underline))
     {
@@ -6064,6 +6070,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline = FACE_UNDER_LINE;
       face->underline_color = 0;
       face->underline_defaulted_p = true;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
 
       /* FIXME?  This is also not robust about checking the precise form.
          See comments in Finternal_set_lisp_face_attribute.  */
@@ -6100,6 +6108,13 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
               else if (EQ (value, Qwave))
                 face->underline = FACE_UNDER_WAVE;
             }
+	  else if (EQ (keyword, QCposition))
+	    {
+	      face->underline_at_descent_line_p = !NILP (value);
+
+	      if (FIXNATP (value))
+		face->underline_pixels_above_descent_line = XFIXNAT (value);
+	    }
         }
     }
 
@@ -6915,6 +6930,7 @@ syms_of_xfaces (void)
   DEFSYM (QCcolor, ":color");
   DEFSYM (QCline_width, ":line-width");
   DEFSYM (QCstyle, ":style");
+  DEFSYM (QCposition, ":position");
   DEFSYM (Qline, "line");
   DEFSYM (Qwave, "wave");
   DEFSYM (Qreleased_button, "released-button");
