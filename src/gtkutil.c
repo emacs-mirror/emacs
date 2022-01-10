@@ -6090,11 +6090,12 @@ xg_im_context_preedit_changed (GtkIMContext *imc, gpointer user_data)
   inev.kind = PREEDIT_TEXT_EVENT;
   inev.arg = build_string_from_utf8 (str);
 
-  Fput_text_property (make_fixnum (min (SCHARS (inev.arg),
-					max (0, cursor))),
-		      make_fixnum (min (SCHARS (inev.arg),
-					max (0, cursor) + 1)),
-		      Qcursor, Qt, inev.arg);
+  if (SCHARS (inev.arg))
+    Fput_text_property (make_fixnum (min (SCHARS (inev.arg) - 1,
+					  max (0, cursor))),
+			make_fixnum (min (SCHARS (inev.arg),
+					  max (0, cursor) + 1)),
+			Qcursor, Qt, inev.arg);
 
   kbd_buffer_store_event (&inev);
 
