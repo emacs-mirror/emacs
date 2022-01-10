@@ -4224,8 +4224,7 @@ variable 'NATIVE_DISABLED' is set, only byte compile."
       (batch-native-compile)
       (pcase byte-to-native-output-file
         (`(,tempfile . ,target-file)
-         (rename-file tempfile target-file t)))
-      (setq command-line-args-left (cdr command-line-args-left)))))
+         (rename-file tempfile target-file t))))))
 
 ;;;###autoload
 (defun native-compile-async (files &optional recursively load selector)
