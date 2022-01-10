@@ -1769,7 +1769,7 @@ PRED is nil."
     (files-tests-with-all-permutations
         buffers-offer
         buffers-offer-init
-      (dolist (pred `(nil t save-some-buffers-root))
+      (dolist (pred `(nil t))
         (dolist (callers-dir `(nil save-some-buffers-root))
           (let* ((head-offer (cadar buffers-offer))
                  (res (cond ((null pred)

@@ -5755,7 +5755,7 @@ to return a predicate used to check buffers."
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
   :type '(choice (const :tag "Default" nil)
-                 (function :tag "Only in subdirs of root"
+                 (function :tag "Only in subdirs of current project"
                            save-some-buffers-root)
                  (function :tag "Custom function"))
   :version "26.1")
@@ -5791,21 +5791,22 @@ all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
-If PRED is a zero-argument function, it indicates for each buffer whether
-to consider it or not when called with that buffer current.
+If PRED is a function, it is called with no argument in each buffer and
+should return non-nil if that buffer should be considered.
 PRED defaults to the value of `save-some-buffers-default-predicate'.
 
 See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (unless pred
-    (setq pred save-some-buffers-default-predicate))
-  ;; Allow `pred' to be a function that returns a predicate
-  ;; with lexical bindings in its original environment (bug#46374).
-  (when (and (symbolp pred) (get pred 'save-some-buffers-function))
-    (let ((pred-fun (and (functionp pred) (funcall pred))))
-      (when (functionp pred-fun)
-        (setq pred pred-fun))))
+    (setq pred
+          ;; Allow `pred' to be a function that returns a predicate
+          ;; with lexical bindings in its original environment (bug#46374).
+          (if (and (symbolp save-some-buffers-default-predicate)
+                   (get save-some-buffers-default-predicate
+                        'save-some-buffers-function))
+              (funcall save-some-buffers-default-predicate)
+            save-some-buffers-default-predicate)))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)
