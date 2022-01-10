@@ -136,6 +136,65 @@ gui_abort (const char *msg)
   emacs_abort ();
 }
 
+static int
+keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
+{
+  switch (raw)
+    {
+    case B_BACKSPACE:
+      *code = XK_BackSpace;
+      break;
+    case B_RETURN:
+      *code = XK_Return;
+      break;
+    case B_TAB:
+      *code = XK_Tab;
+      break;
+    case B_ESCAPE:
+      *code = XK_Escape;
+      break;
+    case B_LEFT_ARROW:
+      *code = XK_Left;
+      break;
+    case B_RIGHT_ARROW:
+      *code = XK_Right;
+      break;
+    case B_UP_ARROW:
+      *code = XK_Up;
+      break;
+    case B_DOWN_ARROW:
+      *code = XK_Down;
+      break;
+    case B_INSERT:
+      *code = XK_Insert;
+      break;
+    case B_DELETE:
+      *code = XK_Delete;
+      break;
+    case B_HOME:
+      *code = XK_Home;
+      break;
+    case B_END:
+      *code = XK_End;
+      break;
+    case B_PAGE_UP:
+      *code = XK_Page_Up;
+      break;
+    case B_PAGE_DOWN:
+      *code = XK_Page_Down;
+      break;
+
+    case B_FUNCTION_KEY:
+      *code = XK_F1 + key - 2;
+      break;
+
+    default:
+      return 0;
+    }
+
+  return 1;
+}
+
 static void
 map_key (char *chars, int32 offset, uint32_t *c)
 {
@@ -616,7 +675,9 @@ public:
 
 	rq.window = this;
 
-	int32_t code = msg->GetInt32 ("raw_char", 0);
+	int32 raw, key;
+	msg->FindInt32 ("raw_char", &raw);
+	msg->FindInt32 ("key", &key);
 
 	rq.modifiers = 0;
 	uint32_t mods = modifiers ();
@@ -633,24 +694,27 @@ public:
 	if (mods & B_OPTION_KEY)
 	  rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-	rq.mb_char = code;
-	rq.kc = msg->GetInt32 ("key", -1);
-	rq.unraw_mb_char =
-	  BUnicodeChar::FromUTF8 (msg->GetString ("bytes"));
+	if (!keysym_from_raw_char (raw, key, &rq.keysym))
+	  rq.keysym = 0;
 
-	if ((mods & B_SHIFT_KEY) && rq.kc >= 0)
+	rq.multibyte_char = 0;
+
+	if (!rq.keysym)
 	  {
-	    if (mods & B_CAPS_LOCK)
-	      map_caps_shift (rq.kc, &rq.unraw_mb_char);
+	    if (mods & B_SHIFT_KEY)
+	      {
+		if (mods & B_CAPS_LOCK)
+		  map_caps_shift (key, &rq.multibyte_char);
+		else
+		  map_shift (key, &rq.multibyte_char);
+	      }
 	    else
-	      map_shift (rq.kc, &rq.unraw_mb_char);
-	  }
-	else if (rq.kc >= 0)
-	  {
-	    if (mods & B_CAPS_LOCK)
-	      map_caps (rq.kc, &rq.unraw_mb_char);
-	    else
-	      map_normal (rq.kc, &rq.unraw_mb_char);
+	      {
+		if (mods & B_CAPS_LOCK)
+		  map_caps (key, &rq.multibyte_char);
+		else
+		  map_normal (key, &rq.multibyte_char);
+	      }
 	  }
 
 	haiku_write (msg->what == B_KEY_DOWN ? KEY_DOWN : KEY_UP, &rq);
@@ -1844,77 +1908,6 @@ void
 BWindow_Flush (void *window)
 {
   ((BWindow *) window)->Flush ();
-}
-
-/* Map the keycode KC, storing the result in CODE and 1 in
-   NON_ASCII_P if it should be used.  */
-void
-be_map_key (uint32_t kc, int *non_ascii_p, unsigned *code)
-{
-  if (*code == 10 && kc != 0x42)
-    {
-      *code = XK_Return;
-      *non_ascii_p = 1;
-      return;
-    }
-
-  switch (kc)
-    {
-    default:
-      *non_ascii_p = 0;
-      if (kc < 0xe && kc > 0x1)
-	{
-	  *code = XK_F1 + kc - 2;
-	  *non_ascii_p = 1;
-	}
-      return;
-    case 0x1e:
-      *code = XK_BackSpace;
-      break;
-    case 0x61:
-      *code = XK_Left;
-      break;
-    case 0x63:
-      *code = XK_Right;
-      break;
-    case 0x57:
-      *code = XK_Up;
-      break;
-    case 0x62:
-      *code = XK_Down;
-      break;
-    case 0x64:
-    case 0x1f:
-      *code = XK_Insert;
-      break;
-    case 0x65:
-    case 0x34:
-      *code = XK_Delete;
-      break;
-    case 0x37:
-    case 0x20:
-      *code = XK_Home;
-      break;
-    case 0x58:
-    case 0x35:
-      *code = XK_End;
-      break;
-    case 0x39:
-    case 0x21:
-      *code = XK_Page_Up;
-      break;
-    case 0x5a:
-    case 0x36:
-      *code = XK_Page_Down;
-      break;
-    case 0x1:
-      *code = XK_Escape;
-      break;
-    case 0x68:
-      *code = XK_Menu;
-      break;
-    }
-  *non_ascii_p = 1;
 }
 
 /* Make a scrollbar, attach it to VIEW's window, and return it.  */

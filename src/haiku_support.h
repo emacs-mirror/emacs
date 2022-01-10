@@ -130,9 +130,8 @@ struct haiku_key_event
 {
   void *window;
   int modifiers;
-  uint32_t mb_char;
-  uint32_t unraw_mb_char;
-  short kc;
+  unsigned keysym;
+  uint32_t multibyte_char;
 };
 
 struct haiku_activation_event
@@ -559,9 +558,6 @@ extern "C"
 
   extern void
   BWindow_Flush (void *window);
-
-  extern void
-  be_map_key (uint32_t kc, int *non_ascii_p, unsigned *code);
 
   extern void *
   BScrollBar_make_for_view (void *view, int horizontal_p,

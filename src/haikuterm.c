@@ -2670,7 +2670,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_key_event *b = buf;
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    int non_ascii_p;
 	    if (!f)
 	      continue;
 
@@ -2686,11 +2685,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		need_flush = 1;
 	      }
 
-	    inev.code = b->unraw_mb_char;
+	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
 
-	    be_map_key (b->kc, &non_ascii_p, &inev.code);
-
-	    if (non_ascii_p)
+	    if (b->keysym)
 	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    else
 	      inev.kind = inev.code > 127 ? MULTIBYTE_CHAR_KEYSTROKE_EVENT :
