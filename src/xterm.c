@@ -11110,6 +11110,37 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  case XI_KeyRelease:
 	    x_display_set_last_user_time (dpyinfo, xev->time);
+
+#if defined HAVE_X_I18N || defined USE_GTK
+	      XKeyPressedEvent xkey;
+
+	      memset (&xkey, 0, sizeof xkey);
+
+	      xkey.type = KeyRelease;
+	      xkey.serial = xev->serial;
+	      xkey.send_event = xev->send_event;
+	      xkey.display = xev->display;
+	      xkey.window = xev->event;
+	      xkey.root = xev->root;
+	      xkey.subwindow = xev->child;
+	      xkey.time = xev->time;
+	      xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
+			    | (xev->group.effective << 13));
+	      xkey.keycode = xev->detail;
+	      xkey.same_screen = True;
+
+#ifdef HAVE_X_I18N
+	      if (x_filter_event (dpyinfo, (XEvent *) &xkey))
+		*finish = X_EVENT_DROP;
+#else
+	      f = x_any_window_to_frame (xkey->event);
+
+	      if (f &&
+		  xg_filter_event (dpyinfo, event))
+		*finish = X_EVENT_DROP;
+#endif
+#endif
+
 	    goto XI_OTHER;
 
 	  case XI_PropertyEvent:
