@@ -304,6 +304,8 @@ Tramp
 	Repository: git://git.savannah.gnu.org/tramp.git
 	Mailing List: tramp-devel@gnu.org
 	Bug Reports: M-x tramp-bug
+	Notes: For backward compatibility requirements, see
+	  lisp/net/trampver.el.
 
         lisp/net/tramp*.el
         doc/misc/tramp*.texi
