@@ -187,6 +187,7 @@ in the file it applies to.")
                  (function :tag "Custom filter"))
   :version "28.1")
 
+(defvar outline-minor-mode-cycle)
 (defun outline-minor-mode-cycle--bind (map key binding &optional filter)
   (define-key map key
     `(menu-item
@@ -195,8 +196,10 @@ in the file it applies to.")
       :filter
       ,(or filter
            (lambda (cmd)
-             (when (or (not (functionp outline-minor-mode-cycle-filter))
-                       (funcall outline-minor-mode-cycle-filter))
+             (when (and outline-minor-mode-cycle
+                        (outline-on-heading-p)
+                        (or (not (functionp outline-minor-mode-cycle-filter))
+                            (funcall outline-minor-mode-cycle-filter)))
                cmd))))))
 
 (defvar outline-minor-mode-cycle-map
@@ -223,14 +226,8 @@ in the file it applies to.")
     ;; Highlight headings according to the level.
     (eval . (list (concat "^\\(?:" outline-regexp "\\).*")
                   0 '(if outline-minor-mode
-                         (if outline-minor-mode-cycle
-                             (if outline-minor-mode-highlight
-                                 (list 'face (outline-font-lock-face)
-                                       'keymap outline-minor-mode-cycle-map)
-                               (list 'face nil
-                                     'keymap outline-minor-mode-cycle-map))
-                           (if outline-minor-mode-highlight
-                               (list 'face (outline-font-lock-face))))
+                         (if outline-minor-mode-highlight
+                             (list 'face (outline-font-lock-face)))
                        (outline-font-lock-face))
                   (when outline-minor-mode
                     (pcase outline-minor-mode-highlight
@@ -410,9 +407,7 @@ faces to major mode's faces."
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
           (when outline-minor-mode-use-buttons
-            (outline--insert-open-button))
-          (when outline-minor-mode-cycle
-            (overlay-put overlay 'keymap outline-minor-mode-cycle-map)))
+            (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
 ;;;###autoload
@@ -421,11 +416,13 @@ faces to major mode's faces."
 
 See the command `outline-mode' for more information on this mode."
   :lighter " Outl"
-  :keymap (list (cons [menu-bar] outline-minor-mode-menu-bar-map)
-		(cons outline-minor-mode-prefix outline-mode-prefix-map))
+  :keymap (easy-mmode-define-keymap
+           `(([menu-bar] . ,outline-minor-mode-menu-bar-map)
+             (,outline-minor-mode-prefix . ,outline-mode-prefix-map))
+           :inherit outline-minor-mode-cycle-map)
   (if outline-minor-mode
       (progn
-        (when (or outline-minor-mode-cycle outline-minor-mode-highlight)
+        (when outline-minor-mode-highlight
           (if (and global-font-lock-mode (font-lock-specified-p major-mode))
               (progn
                 (font-lock-add-keywords nil outline-font-lock-keywords t)
@@ -438,7 +435,7 @@ See the command `outline-mode' for more information on this mode."
         (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t)))
-    (when (or outline-minor-mode-cycle outline-minor-mode-highlight)
+    (when outline-minor-mode-highlight
       (if font-lock-fontified
           (font-lock-remove-keywords nil outline-font-lock-keywords))
       (remove-overlays nil nil 'outline-overlay t)
@@ -992,7 +989,6 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'help-echo "Click to hide")
       (overlay-put o 'keymap
                    (define-keymap
-                     :parent outline-minor-mode-cycle-map
                      "RET" #'outline-hide-subtree
                      "<mouse-2>" #'outline-hide-subtree)))))
 
@@ -1003,7 +999,6 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'help-echo "Click to show")
       (overlay-put o 'keymap
                    (define-keymap
-                     :parent outline-minor-mode-cycle-map
                      "RET" #'outline-show-subtree
                      "<mouse-2>" #'outline-show-subtree)))))
 
