@@ -137,25 +137,9 @@ verify (BITS_WORD_MAX >> (BITS_PER_BITS_WORD - 1) == 1);
 /* Use pD to format ptrdiff_t values, which suffice for indexes into
    buffers and strings.  Emacs never allocates objects larger than
    PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
-   In C99, pD can always be "t"; configure it here for the sake of
-   pre-C99 libraries such as glibc 2.0 and Solaris 8.
-
-   On Haiku, the size of ptrdiff_t is inconsistent with the value of
-   PTRDIFF_MAX.  In that case, "t" should be sufficient. */
-
-#ifndef HAIKU
-#if PTRDIFF_MAX == INT_MAX
-# define pD ""
-#elif PTRDIFF_MAX == LONG_MAX
-# define pD "l"
-#elif PTRDIFF_MAX == LLONG_MAX
-# define pD "ll"
-#else
-# define pD "t"
-#endif
-#else
-# define pD "t"
-#endif
+   In C99, pD can always be "t", as we no longer need to worry about
+   pre-C99 libraries such as glibc 2.0 (1997) and Solaris 8 (2000).  */
+#define pD "t"
 
 /* Convenience macro for rarely-used functions that do not return.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
