@@ -2816,20 +2816,24 @@ free_frame_xic (struct frame *f)
 void
 xic_set_preeditarea (struct window *w, int x, int y)
 {
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f = WINDOW_XFRAME (w);
   XVaNestedList attr;
   XPoint spot;
 
-  if (FRAME_XIC (WINDOW_XFRAME (w)))
+  if (FRAME_XIC (f))
     {
       spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w) + WINDOW_LEFT_MARGIN_WIDTH(w);
       spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
-      attr = XVaCreateNestedList (0, XNSpotLocation, &spot,
-				  XNPreeditStartCallback, &Xxic_preedit_start_callback,
-				  XNPreeditDoneCallback, &Xxic_preedit_done_callback,
-				  XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
-				  XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
-				  NULL);
+
+      if (FRAME_XIC_STYLE (f) & XIMPreeditCallbacks)
+	attr = XVaCreateNestedList (0, XNSpotLocation, &spot,
+				    XNPreeditStartCallback, &Xxic_preedit_start_callback,
+				    XNPreeditDoneCallback, &Xxic_preedit_done_callback,
+				    XNPreeditDrawCallback, &Xxic_preedit_draw_callback,
+				    XNPreeditCaretCallback, &Xxic_preedit_caret_callback,
+				    NULL);
+      else
+	attr = XVaCreateNestedList (0, XNSpotLocation, &spot, NULL);
       XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);
       XFree (attr);
     }
