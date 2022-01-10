@@ -75,6 +75,7 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
+(require 'json)
 
 ;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
 ;; using the latest version from GNU Elpa when we load eglot.el.  Use an
@@ -2209,6 +2210,18 @@ above.")
 
 ;;;###autoload
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+
+(defun eglot-show-configuration (server)
+  "Dump `eglot-workspace-configuration' as json for debugging."
+  (interactive (list (eglot--read-server "Server configuration"
+                                         (eglot-current-server))))
+  (let ((conf (eglot--workspace-configuration server)))
+    (with-current-buffer (get-buffer-create " *eglot configuration*")
+      (erase-buffer)
+      (insert (jsonrpc--json-encode conf))
+      (json-mode)
+      (json-pretty-print-buffer)
+      (pop-to-buffer (current-buffer)))))
 
 (defun eglot--workspace-configuration (server)
   (if (functionp eglot-workspace-configuration)
