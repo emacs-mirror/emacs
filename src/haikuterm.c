@@ -107,6 +107,8 @@ haiku_delete_terminal (struct terminal *terminal)
 static const char *
 get_string_resource (void *ignored, const char *name, const char *class)
 {
+  const char *native;
+
   if (!name)
     return NULL;
 
@@ -114,6 +116,9 @@ get_string_resource (void *ignored, const char *name, const char *class)
 
   if (!NILP (lval))
     return SSDATA (XCDR (lval));
+
+  if ((native = be_find_setting (name)))
+    return native;
 
   return NULL;
 }

@@ -291,8 +291,25 @@ map_normal (uint32_t kc, uint32_t *ch)
 class Emacs : public BApplication
 {
 public:
+  BMessage settings;
+  bool settings_valid_p = false;
+
   Emacs () : BApplication ("application/x-vnd.GNU-emacs")
   {
+    BPath settings_path;
+
+    if (find_directory (B_USER_SETTINGS_DIRECTORY, &settings_path) != B_OK)
+      return;
+
+    settings_path.Append (PACKAGE_NAME);
+
+    BEntry entry (settings_path.Path ());
+    BFile settings_file (&entry, B_READ_ONLY | B_CREATE_FILE);
+
+    if (settings.Unflatten (&settings_file) != B_OK)
+      return;
+
+    settings_valid_p = true;
   }
 
   void
@@ -3130,4 +3147,24 @@ BWindow_set_override_redirect (void *window, bool override_redirect_p)
 
       w->UnlockLooper ();
     }
+}
+
+/* Find a resource by the name NAME inside the settings file.  The
+   string returned is in UTF-8 encoding, and will stay allocated as
+   long as the BApplication (a.k.a display) is alive.  */
+const char *
+be_find_setting (const char *name)
+{
+  Emacs *app = (Emacs *) be_app;
+  const char *value;
+
+  /* Note that this is thread-safe since the constructor of `Emacs'
+     runs in the main thread.  */
+  if (!app->settings_valid_p)
+    return NULL;
+
+  if (app->settings.FindString (name, 0, &value) != B_OK)
+    return NULL;
+
+  return value;
 }

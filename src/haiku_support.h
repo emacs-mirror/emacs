@@ -855,6 +855,9 @@ extern "C"
   extern void
   BWindow_set_override_redirect (void *window, bool override_redirect_p);
 
+  extern const char *
+  be_find_setting (const char *name);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);
