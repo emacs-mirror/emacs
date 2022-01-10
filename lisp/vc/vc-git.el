@@ -1695,8 +1695,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-setup-buffer "*vc-git-stash*")
   (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
   (set-buffer "*vc-git-stash*")
-  (diff-mode)
   (setq buffer-read-only t)
+  (diff-mode)
   (pop-to-buffer (current-buffer)))
 
 (defun vc-git-stash-apply (name)

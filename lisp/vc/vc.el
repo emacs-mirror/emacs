@@ -1808,16 +1808,16 @@ Return t if the buffer had changes, nil otherwise."
         (setq files (nreverse filtered))))
     (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (set-buffer buffer)
+    ;; Make the *vc-diff* buffer read only, the diff-mode key
+    ;; bindings are nicer for read only buffers. pcl-cvs does the
+    ;; same thing.
+    (setq buffer-read-only t)
     (diff-mode)
     (setq-local diff-vc-backend (car vc-fileset))
     (setq-local diff-vc-revisions (list rev1 rev2))
     (setq-local revert-buffer-function
                 (lambda (_ignore-auto _noconfirm)
                   (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
-    ;; Make the *vc-diff* buffer read only, the diff-mode key
-    ;; bindings are nicer for read only buffers. pcl-cvs does the
-    ;; same thing.
-    (setq buffer-read-only t)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
