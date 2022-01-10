@@ -2527,8 +2527,12 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      unsigned long thickness, position;
 	      int y;
 
-	      if (s->prev && s->prev->face->underline
-		  && s->prev->face->underline == FACE_UNDER_LINE)
+	      if (s->prev
+		  && s->prev->face->underline == FACE_UNDER_LINE
+		  && (s->prev->face->underline_at_descent_line_p
+		      == s->face->underline_at_descent_line_p)
+		  && (s->prev->face->underline_pixels_above_descent_line
+		      == s->face->underline_pixels_above_descent_line))
 		{
 		  /* We use the same underline style as the previous one.  */
 		  thickness = s->prev->underline_thickness;
@@ -2543,8 +2547,11 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		    thickness = font->underline_thickness;
 		  else
 		    thickness = 1;
-		  if (x_underline_at_descent_line)
-		    position = (s->height - thickness) - (s->ybase - s->y);
+		  if ((x_underline_at_descent_line
+		       || s->face->underline_at_descent_line_p))
+		    position = ((s->height - thickness)
+				- (s->ybase - s->y)
+				- s->face->underline_pixels_above_descent_line);
 		  else
 		    {
 		      /* Get the underline position.  This is the recommended
@@ -2563,7 +2570,11 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		      else
 			position = underline_minimum_offset;
 		    }
-		  position = max (position, underline_minimum_offset);
+
+		  /* Ignore minimum_offset if the amount of pixels was
+		     explictly specified.  */
+		  if (!s->face->underline_pixels_above_descent_line)
+		    position = max (position, underline_minimum_offset);
 		}
 	      /* Check the sanity of thickness and position.  We should
 	         avoid drawing underline out of the current line area.  */
