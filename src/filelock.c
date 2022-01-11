@@ -617,7 +617,7 @@ lock_if_free (lock_info_type *clasher, char *lfname)
     }
 
 #if !defined HAIKU \
-  || defined BE_USE_POSITIVE_POSIX_ERRORS
+  || defined B_USE_POSITIVE_POSIX_ERRORS
   return err;
 #else
   /* On Haiku, POSIX errno values are negative by default, but this
