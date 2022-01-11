@@ -269,6 +269,8 @@ For example, a 'display-buffer-alist' entry of
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' in combination with 'body-lines'.
 
+*** 'other-window-scroll-default' can define the other window to scroll.
+
 ** Rcirc
 
 +++
