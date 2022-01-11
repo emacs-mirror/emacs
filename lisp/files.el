@@ -4083,11 +4083,8 @@ It is dangerous if either of these conditions are met:
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
 
-(defun hack-one-local-variable-constantp (exp)
-  (or (and (not (symbolp exp)) (not (consp exp)))
-      (memq exp '(t nil))
-      (keywordp exp)
-      (hack-one-local-variable-quotep exp)))
+(define-obsolete-function-alias 'hack-one-local-variable-constantp
+  #'macroexp-const-p "29.1")
 
 (defun hack-one-local-variable-eval-safep (exp)
   "Return non-nil if it is safe to eval EXP when it is found in a file."
@@ -4125,7 +4122,7 @@ It is dangerous if either of these conditions are met:
 		 (cond ((eq prop t)
 			(let ((ok t))
 			  (dolist (arg (cdr exp))
-			    (unless (hack-one-local-variable-constantp arg)
+			    (unless (macroexp-const-p arg)
 			      (setq ok nil)))
 			  ok))
 		       ((functionp prop)
