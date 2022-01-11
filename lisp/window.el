@@ -7474,14 +7474,6 @@ ALIST.  See `display-buffer' for details."
   :version "24.1"
   :group 'windows)
 
-(defcustom display-comint-buffer-action display-buffer--same-window-action
-  "`display-buffer' action for displaying comint buffers."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "29.1"
-  :group 'windows
-  :group 'comint)
-
 (defconst display-buffer-fallback-action
   '((display-buffer--maybe-same-window  ;FIXME: why isn't this redundant?
      display-buffer-reuse-window
@@ -8574,6 +8566,14 @@ by `window-minibuffer-p'), nor is dedicated to another buffer
 currently selected window; otherwise it will be displayed in
 another window."
   (pop-to-buffer buffer display-buffer--same-window-action norecord))
+
+(defcustom display-comint-buffer-action display-buffer--same-window-action
+  "`display-buffer' action for displaying comint buffers."
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "29.1"
+  :group 'windows
+  :group 'comint)
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
