@@ -1608,6 +1608,7 @@ xg_create_frame_widgets (struct frame *f)
   /* Must use g_strdup because gtk_widget_modify_style does g_free.  */
   style->bg_pixmap_name[GTK_STATE_NORMAL] = g_strdup ("<none>");
   gtk_widget_modify_style (wfixed, style);
+  gtk_widget_set_can_focus (wfixed, TRUE);
 #else
   gtk_widget_set_can_focus (wfixed, TRUE);
 #ifdef HAVE_PGTK
