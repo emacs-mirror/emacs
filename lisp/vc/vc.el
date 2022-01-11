@@ -1730,12 +1730,22 @@ to override the value of `vc-diff-switches' and `diff-switches'."
       ;; any switches in diff-switches.
       (when (listp switches) switches))))
 
+(defun vc-shrink-buffer-window (&optional buffer)
+  "Call `shrink-window-if-larger-than-buffer' only when BUFFER is visible.
+BUFFER defaults to the current buffer."
+  (let ((window (get-buffer-window buffer t)))
+    (when window
+      (shrink-window-if-larger-than-buffer window))))
+
+(defvar vc-diff-finish-functions '(vc-shrink-buffer-window)
+  "Functions run at the end of the diff command.
+Each function runs in the diff output buffer without args.")
+
 (defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.
   (when (buffer-live-p buffer)
-    (let ((window (get-buffer-window buffer t))
-	  (emptyp (zerop (buffer-size buffer))))
+    (let ((emptyp (zerop (buffer-size buffer))))
       (with-current-buffer buffer
 	(and messages emptyp
 	     (let ((inhibit-read-only t))
@@ -1744,8 +1754,7 @@ to override the value of `vc-diff-switches' and `diff-switches'."
 	(diff-setup-whitespace)
 	(diff-setup-buffer-type)
 	(goto-char (point-min))
-	(when window
-	  (shrink-window-if-larger-than-buffer window)))
+	(run-hooks 'vc-diff-finish-functions))
       (when (and messages (not emptyp))
 	(message "%sdone" (car messages))))))
 
@@ -2498,6 +2507,10 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 (put 'vc-log-view-type 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
+(defvar vc-log-finish-functions '(vc-shrink-buffer-window)
+  "Functions run at the end of the log command.
+Each function runs in the log output buffer without args.")
+
 (defun vc-log-internal-common (backend
 			       buffer-name
 			       files
@@ -2529,11 +2542,11 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
     (vc-run-delayed
      (let ((inhibit-read-only t))
        (funcall setup-buttons-func backend files retval)
-       (shrink-window-if-larger-than-buffer)
        (when goto-location-func
          (funcall goto-location-func backend)
          (setq vc-sentinel-movepoint (point)))
-       (set-buffer-modified-p nil)))))
+       (set-buffer-modified-p nil)
+       (run-hooks 'vc-log-finish-functions)))))
 
 (defun vc-incoming-outgoing-internal (backend remote-location buffer-name type)
   (vc-log-internal-common
