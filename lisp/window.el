@@ -7474,7 +7474,7 @@ ALIST.  See `display-buffer' for details."
   :version "24.1"
   :group 'windows)
 
-(defcustom display-comint-buffer-action '((display-buffer-same-window))
+(defcustom display-comint-buffer-action display-buffer--same-window-action
   "`display-buffer' action for displaying comint buffers."
   :type display-buffer--action-custom-type
   :risky t

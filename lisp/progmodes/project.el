@@ -1017,7 +1017,7 @@ if one already exists."
          (default-project-shell-name (project-prefixed-buffer-name "shell"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
-        (pop-to-buffer shell-buffer display-comint-buffer-action)
+        (pop-to-buffer shell-buffer (bound-and-true-p display-comint-buffer-action))
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
@@ -1033,7 +1033,7 @@ if one already exists."
          (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer display-comint-buffer-action)
+        (pop-to-buffer eshell-buffer (bound-and-true-p display-comint-buffer-action))
       (eshell t))))
 
 ;;;###autoload
