@@ -351,7 +351,7 @@ This can be useful when using docker to run a language server.")
                              :sortText :filterText :insertText :insertTextFormat
                              :textEdit :additionalTextEdits :commitCharacters
                              :command :data))
-      (Diagnostic (:range :message) (:severity :code :source :relatedInformation))
+      (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription))
       (DocumentHighlight (:range) (:kind))
       (FileSystemWatcher (:globPattern) (:kind))
       (Hover (:contents) (:range))
@@ -689,7 +689,11 @@ treated as in `eglot-dbind'."
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
-             :publishDiagnostics `(:relatedInformation :json-false))
+             :publishDiagnostics (list :relatedInformation :json-false
+                                       ;; TODO: We can support :codeDescription after
+                                       ;; adding an appropriate UI to
+                                       ;; Flymake.
+                                       :codeDescriptionSupport :json-false))
             :experimental eglot--{})))
 
 (defclass eglot-lsp-server (jsonrpc-process-connection)
