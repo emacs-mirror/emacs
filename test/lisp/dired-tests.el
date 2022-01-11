@@ -1,6 +1,6 @@
 ;;; dired-tests.el --- Test suite. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -510,6 +510,93 @@
                            testdir nil "[0-9]" t nil 50))))))
       (when (file-directory-p testdir)
         (delete-directory testdir t)))))
+
+;; `dired-insert-directory' output tests.
+(let* ((data-dir "insert-directory")
+       (test-dir (file-name-as-directory
+                  (ert-resource-file
+                   (concat data-dir "/test_dir"))))
+       (test-dir-other (file-name-as-directory
+                        (ert-resource-file
+                         (concat data-dir "/test_dir_other"))))
+       (test-files `(,test-dir "foo" "bar")) ;expected files to be found
+       ;; Free space test data for `insert-directory'.
+       ;; Meaning: (path free-space-bytes-to-stub expected-free-space-string)
+       (free-data `((,test-dir 10 "available 10 B")
+                    (,test-dir-other 100 "available 100 B")
+                    (:default 999 "available 999 B"))))
+
+  (defun files-tests--look-up-free-data (path)
+    "Look up free space test data, with a default for unspecified paths."
+    (let ((path (file-name-as-directory path)))
+      (cdr (or (assoc path free-data)
+               (assoc :default free-data)))))
+
+  (defun files-tests--make-file-system-info-stub (&optional static-path)
+    "Return a stub for `file-system-info' using dynamic or static test data.
+If that data should be static, pass STATIC-PATH to choose which
+path's data to use."
+    (lambda (path)
+      (let* ((path (cond (static-path)
+                         ;; file-system-info knows how to handle ".", so we
+                         ;; do the same thing
+                         ((equal "." path) default-directory)
+                         (path)))
+             (return-size
+              ;; It is always defined but this silences the byte-compiler:
+              (when (fboundp 'files-tests--look-up-free-data)
+                (car (files-tests--look-up-free-data path)))))
+        (list return-size return-size return-size))))
+
+  (defun files-tests--insert-directory-output (dir &optional _verbose)
+    "Run `insert-directory' and return its output."
+    (with-current-buffer-window "files-tests--insert-directory" nil nil
+      (let ((dired-free-space 'separate))
+        (dired-insert-directory dir "-l" nil nil t))
+      (buffer-substring-no-properties (point-min) (point-max))))
+
+  (ert-deftest files-tests-insert-directory-shows-files ()
+    "Verify `insert-directory' reports the files in the directory."
+    ;; It is always defined but this silences the byte-compiler:
+    (when (fboundp 'files-tests--insert-directory-output)
+      (let* ((test-dir (car test-files))
+             (files (cdr test-files))
+             (output (files-tests--insert-directory-output test-dir)))
+        (dolist (file files)
+          (should (string-match-p file output))))))
+
+  (defun files-tests--insert-directory-shows-given-free (dir &optional
+                                                             info-func)
+    "Run `insert-directory' and verify it reports the correct available space.
+Stub `file-system-info' to ensure the available space is consistent,
+either with the given stub function or a default one using test data."
+    ;; It is always defined but this silences the byte-compiler:
+    (when (and (fboundp 'files-tests--make-file-system-info-stub)
+               (fboundp 'files-tests--look-up-free-data)
+               (fboundp 'files-tests--insert-directory-output))
+      (cl-letf (((symbol-function 'file-system-info)
+                 (or info-func
+                     (files-tests--make-file-system-info-stub))))
+        (should (string-match-p (cadr
+                                 (files-tests--look-up-free-data dir))
+                                (files-tests--insert-directory-output dir t))))))
+
+  (ert-deftest files-tests-insert-directory-shows-free ()
+    "Test that verbose `insert-directory' shows the correct available space."
+    ;; It is always defined but this silences the byte-compiler:
+    (when (and (fboundp 'files-tests--insert-directory-shows-given-free)
+               (fboundp 'files-tests--make-file-system-info-stub))
+      (files-tests--insert-directory-shows-given-free
+       test-dir
+       (files-tests--make-file-system-info-stub test-dir))))
+
+  (ert-deftest files-tests-bug-50630 ()
+    "Verify verbose `insert-directory' shows free space of the target directory.
+The current directory at call time should not affect the result (Bug#50630)."
+    ;; It is always defined but this silences the byte-compiler:
+    (when (fboundp 'files-tests--insert-directory-shows-given-free)
+      (let ((default-directory test-dir-other))
+        (files-tests--insert-directory-shows-given-free test-dir)))))
 
 (provide 'dired-tests)
 ;;; dired-tests.el ends here

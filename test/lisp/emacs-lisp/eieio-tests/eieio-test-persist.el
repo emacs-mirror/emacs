@@ -1,6 +1,6 @@
 ;;; eieio-test-persist.el --- Tests for eieio-persistent class  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -99,7 +99,7 @@ This is usually a symbol that starts with `:'."
 (defclass persist-simple (eieio-persistent)
   ((slot1 :initarg :slot1
 	  :type symbol
-	  :initform moose)
+          :initform 'moose)
    (slot2 :initarg :slot2
 	  :initform "foo")
    (slot3 :initform 2))

@@ -1,6 +1,6 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>

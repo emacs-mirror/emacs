@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1456,7 +1456,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 `file-notify' events."
   (let* ((events (process-get proc 'events))
 	 (rest-string (process-get proc 'rest-string))
-	 (dd (with-current-buffer (process-buffer proc) default-directory))
+	 (dd (tramp-get-default-directory (process-buffer proc)))
 	 (ddu (regexp-quote (tramp-gvfs-url-file-name dd))))
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
@@ -1521,11 +1521,13 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (size (cdr (assoc "filesystem::size" attr)))
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
-      (when (or size used free)
-	(list (string-to-number (or size "0"))
-	      (string-to-number (or free "0"))
-	      (- (string-to-number (or size "0"))
-		 (string-to-number (or used "0"))))))))
+      (when (or size free)
+	(list (and size (string-to-number size))
+	      (and free (string-to-number free))
+	      ;; "mtp" connections do not return "filesystem::used".
+	      (or (and size used
+		       (- (string-to-number size) (string-to-number used)))
+		  (and free (string-to-number free))))))))
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -1595,7 +1597,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       "%s" (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       (current-time)
+	       nil
 	     time)))))
 
 (defun tramp-gvfs-handle-get-remote-uid (vec id-format)
@@ -2124,9 +2126,6 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
-
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)))

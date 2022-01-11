@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -286,7 +286,9 @@ DEFAULT-BODY, if present, is used as the body of a default method.
          (progn
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
-             ,(help-add-fundoc-usage doc args))
+             ,(if (consp doc)           ;An expression rather than a constant.
+                  `(help-add-fundoc-usage ,doc ',args)
+                (help-add-fundoc-usage doc args)))
            :autoload-end
            ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
                      (nreverse methods)))
@@ -604,7 +606,9 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
-      (gethash dispatch cl--generic-dispatchers)
+      ;; We need `copy-sequence` here because this `dispatch' object might be
+      ;; modified by side-effect in `cl-generic-define-method' (bug#46722).
+      (gethash (copy-sequence dispatch) cl--generic-dispatchers)
     ;; (message "cl--generic-get-dispatcher (%S)" dispatch)
     (let* ((dispatch-arg (car dispatch))
            (generalizers (cdr dispatch))

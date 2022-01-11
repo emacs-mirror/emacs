@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -2053,7 +2053,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'gnus-groups-from-server "gnus")
 (autoload 'gnus-open-server "gnus-int")
 (autoload 'gnus-output-to-mail "gnus-util")
-(autoload 'gnus-output-to-rmail "gnus-util")
+(autoload 'gnus-output-to-rmail "gnus-rmail")
 (autoload 'gnus-request-post "gnus-int")
 (autoload 'gnus-server-string "gnus")
 (autoload 'message-setup-toolbar "messagexmas")
@@ -4335,6 +4335,44 @@ Instead, just auto-save the buffer and then bury it."
 
 (autoload 'mml-secure-bcc-is-safe "mml-sec")
 
+(defcustom message-server-alist nil
+  "Alist of rules to generate \"X-Message-SMTP-Method\" header.
+The header will be inserted just before the message is sent.
+Elements should be of the form (COND . METHOD).
+If COND is a string, METHOD will be inserted if the \"From\"
+address compares equal with COND.
+If COND is a function, METHOD will be inserted if COND returns
+a non-nil value when called in the message buffer without any
+arguments.  If METHOD is nil in this case, the return value of
+the function will be inserted instead.
+If the buffer already has a\"X-Message-SMTP-Method\" header,
+it is left unchanged."
+  :type '(alist :key-type '(choice
+                            (string :tag "From Address")
+                            (function :tag "Predicate"))
+                :value-type 'string)
+  :version "29.1"
+  :group 'message-sending)
+
+(defun message-update-smtp-method-header ()
+  "Insert an X-Message-SMTP-Method header according to `message-server-alist'."
+  (unless (message-fetch-field "X-Message-SMTP-Method")
+    (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
+          method)
+      (catch 'exit
+        (dolist (server message-server-alist)
+          (cond ((functionp (car server))
+                 (let ((res (funcall (car server))))
+                   (when res
+                     (setq method (or (cdr server) res))
+                     (throw 'exit nil))))
+                ((and (stringp (car server))
+                      (string= (car server) from))
+                 (setq method (cdr server))
+                 (throw 'exit nil)))))
+      (when method
+        (message-add-header (concat "X-Message-SMTP-Method: " method))))))
+
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
 If `message-interactive' is non-nil, wait for success indication or
@@ -4348,6 +4386,7 @@ It should typically alter the sending method in some way or other."
   (undo-boundary)
   (let ((inhibit-read-only t))
     (put-text-property (point-min) (point-max) 'read-only nil))
+  (message-update-smtp-method-header)
   (message-fix-before-sending)
   (run-hooks 'message-send-hook)
   (mml-secure-bcc-is-safe)
@@ -5828,15 +5867,15 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 ;; You might for example insert a "." somewhere (not next to another dot
 ;; or string boundary), or modify the "fsf" string.
 (defun message-unique-id ()
-  ;; Don't use microseconds from (current-time), they may be unsupported.
+  ;; Don't use fractional seconds from timestamp; they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq message-unique-id-char
-	(% (1+ (or message-unique-id-char
-		   (random (ash 1 20))))
-	   ;; (current-time) returns 16-bit ints,
-	   ;; and 2^16*25 just fits into 4 digits i base 36.
-	   (* 25 25)))
-  (let ((tm (current-time)))
+	;; 2^16 * 25 just fits into 4 digits i base 36.
+	(let ((base (* 25 25)))
+	  (if message-unique-id-char
+	      (% (1+ message-unique-id-char) base)
+	    (random base))))
+  (let ((tm (time-convert nil 'integer)))
     (concat
      (if (or (eq system-type 'ms-dos)
 	     ;; message-number-base36 doesn't handle bigints.
@@ -5846,10 +5885,12 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	     (aset user (match-beginning 0) ?_))
 	   user)
        (message-number-base36 (user-uid) -1))
-     (message-number-base36 (+ (car tm)
-			       (ash (% message-unique-id-char 25) 16)) 4)
-     (message-number-base36 (+ (nth 1 tm)
-			       (ash (/ message-unique-id-char 25) 16)) 4)
+     (message-number-base36 (+ (ash tm -16)
+			       (ash (% message-unique-id-char 25) 16))
+			    4)
+     (message-number-base36 (+ (logand tm #xffff)
+			       (ash (/ message-unique-id-char 25) 16))
+			    4)
      ;; Append a given name, because while the generated ID is unique
      ;; to this newsreader, other newsreaders might otherwise generate
      ;; the same ID via another algorithm.
@@ -5946,12 +5987,9 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 
 (defun message-make-expires ()
   "Return an Expires header based on `message-expires'."
-  (let ((current (current-time))
-	(future (* 1.0 message-expires 60 60 24)))
+  (let ((future (* 60 60 24 message-expires)))
     ;; Add the future to current.
-    (setcar current (+ (car current) (round (/ future (expt 2 16)))))
-    (setcar (cdr current) (+ (nth 1 current) (% (round future) (expt 2 16))))
-    (message-make-date current)))
+    (message-make-date (time-add nil future))))
 
 (defun message-make-path ()
   "Return uucp path."

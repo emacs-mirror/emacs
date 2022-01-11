@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2021 Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2022 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -283,6 +283,7 @@ If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist fcntl.in.h update fcntl.in.h fcntl.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist getopt-cdefs.in.h update getopt-cdefs.in.h getopt-cdefs.in-h
+If Exist ieee754.in.h update ieee754.in.h ieee754.in-h
 If Exist inttypes.in.h update inttypes.in.h inttypes.in-h
 If Exist limits.in.h update limits.in.h limits.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
@@ -293,6 +294,7 @@ If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist string.in.h update string.in.h string.in-h
+If Exist sys_random.in.h update sys_random.in.h sys_random.in-h
 If Exist sys_select.in.h update sys_select.in.h sys_select.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
 If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
@@ -308,10 +310,13 @@ rm -f makefile.tmp
 sed -f ../msdos/sedlibcf.inp < gnulib.mk-in > gnulib.tmp
 sed -f ../msdos/sedlibmk.inp < gnulib.tmp > gnulib.mk
 rm -f gnulib.tmp
-Rem Create .d files for new files in lib/
+Rem Create .d files for new files in lib/ and lib/malloc/
 If Not Exist deps\stamp mkdir deps
 for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
 echo deps-stamp > deps\stamp
+If Not Exist deps\malloc\stamp mkdir deps\malloc
+for %%f in (malloc\*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\malloc\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...

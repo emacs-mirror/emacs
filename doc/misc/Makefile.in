@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2021 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -130,12 +130,12 @@ info: $(INFO_TARGETS)
 
 ## Used by top-level Makefile.
 ## Base file names of output info files.
+INFO_BASES = $(patsubst %.info,%,$(notdir $(INFO_INSTALL)))
 echo-info:
-	@echo "$(INFO_INSTALL) " | \
-	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */.info /g"
+	@: $(info $(addsuffix .info,$(INFO_BASES)))
 
 echo-sources:
-	@echo ${SOURCES}
+	@: $(info $(SOURCES))
 
 dvi: $(DVI_TARGETS)
 
@@ -185,7 +185,8 @@ $(foreach ifile,$(filter-out info.info,$(INFO_TARGETS)),$(eval $(call info_templ
 
 ## Extra dependencies.
 
-need_emacsver = calc cl dired-x efaq efaq-w32 erc ido reftex woman
+## FIXME Updating this list manually is unreliable.
+need_emacsver = calc cl dired-x efaq efaq-w32 erc forms ido newsticker reftex remember woman
 need_emacsver_prefix = $(addprefix ${buildinfodir}/,${need_emacsver})
 
 $(need_emacsver_prefix:=.info) $(need_emacsver:=.dvi) $(need_emacsver:=.pdf) $(need_emacsver:=.html) : ${emacsdir}/emacsver.texi

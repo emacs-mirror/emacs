@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2021 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -1532,7 +1532,7 @@ commands to use in that buffer.
 					     shell-file-name))))
   (set-buffer (make-term "terminal" program))
   (term-char-mode)
-  (switch-to-buffer "*terminal*"))
+  (pop-to-buffer-same-window "*terminal*"))
 
 (defun term-exec (buffer name command startfile switches)
   "Start up a process in buffer for term modes.
@@ -3300,13 +3300,16 @@ Called as a buffer-local `post-command-hook' function in
 `term-char-mode' to prevent commands from putting the buffer into
 an inconsistent state by unexpectedly moving point.
 
-Mouse events are ignored so that mouse selection is unimpeded.
+Mouse and wheel events are ignored so that mouse selection and
+mouse wheel scrolling are unimpeded.
 
 Only acts when the pre-command position of point was equal to the
 process mark, and the `term-char-mode-point-at-process-mark'
 option is enabled.  See `term-set-goto-process-mark'."
   (when term-goto-process-mark
-    (unless (mouse-event-p last-command-event)
+    (unless (or (mouse-event-p last-command-event)
+                (memq (event-basic-type last-command-event)
+                      '(wheel-down wheel-up)))
       (goto-char (term-process-mark)))))
 
 (defun term-process-mark ()

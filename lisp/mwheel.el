@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2022 Free Software Foundation, Inc.
 ;; Keywords: mouse
 ;; Package: emacs
 
@@ -56,7 +56,7 @@
 
 (defcustom mouse-wheel-down-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
-          (featurep 'haiku-win))
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-up
     'mouse-4)
   "Event used for scrolling down."
@@ -65,7 +65,10 @@
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-down-alternate-event
-  (when (featurep 'xinput2) 'wheel-up)
+  (if (featurep 'xinput2)
+      'wheel-up
+    (unless (featurep 'x)
+      'mouse-4))
   "Alternative wheel down event to consider."
   :group 'mouse
   :type 'symbol
@@ -74,7 +77,7 @@
 
 (defcustom mouse-wheel-up-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
-          (featurep 'haiku-win))
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-down
     'mouse-5)
   "Event used for scrolling up."
@@ -83,7 +86,10 @@
   :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-up-alternate-event
-  (when (featurep 'xinput2) 'wheel-down)
+  (if (featurep 'xinput2)
+      'wheel-down
+    (unless (featurep 'x)
+      'mouse-5))
   "Alternative wheel up event to consider."
   :group 'mouse
   :type 'symbol
@@ -240,24 +246,30 @@ Also see `mouse-wheel-tilt-scroll'."
 
 (defvar mouse-wheel-left-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
-          (featurep 'haiku-win))
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-left
     'mouse-6)
   "Event used for scrolling left.")
 
 (defvar mouse-wheel-left-alternate-event
-  (when (featurep 'xinput2) 'wheel-left)
+  (if (featurep 'xinput2)
+      'wheel-left
+    (unless (featurep 'x)
+      'mouse-6))
   "Alternative wheel left event to consider.")
 
 (defvar mouse-wheel-right-event
   (if (or (featurep 'w32-win) (featurep 'ns-win)
-          (featurep 'haiku-win))
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-right
     'mouse-7)
   "Event used for scrolling right.")
 
 (defvar mouse-wheel-right-alternate-event
-  (when (featurep 'xinput2) 'wheel-right)
+  (if (featurep 'xinput2)
+      'wheel-right
+    (unless (featurep 'x)
+      'mouse-7))
   "Alternative wheel right event to consider.")
 
 (defun mouse-wheel--get-scroll-window (event)

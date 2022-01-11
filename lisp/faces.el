@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -686,8 +686,10 @@ and `?' are allowed.
 
 VALUE specifies the relative proportionate width of the font to use.
 It must be one of the symbols `ultra-condensed', `extra-condensed',
-`condensed', `semi-condensed', `normal', `semi-expanded', `expanded',
-`extra-expanded', or `ultra-expanded'.
+`condensed' (a.k.a. `compressed', a.k.a. `narrow'),
+`semi-condensed' (a.k.a. `demi-condensed'), `normal' (a.k.a. `medium',
+a.k.a. `regular'), `semi-expanded' (a.k.a. `demi-expanded'),
+`expanded', `extra-expanded', or `ultra-expanded' (a.k.a. `wide').
 
 `:height'
 
@@ -703,9 +705,11 @@ for it to be relative to).
 `:weight'
 
 VALUE specifies the weight of the font to use.  It must be one of
-the symbols `ultra-heavy', `heavy', `ultra-bold', `extra-bold',
-`bold', `semi-bold', `medium', `normal', `book', `semi-light',
-`light', `extra-light', `ultra-light', or `thin'.
+the symbols `ultra-heavy', `heavy' (a.k.a. `black'),
+`ultra-bold' (a.k.a. `extra-bold'), `bold',
+`semi-bold' (a.k.a. `demi-bold'), `medium', `normal' (a.k.a. `regular',
+a.k.a. `book'), `semi-light' (a.k.a. `demi-light'),
+`light', `extra-light' (a.k.a. `ultra-light'), or `thin'.
 
 `:slant'
 
@@ -1172,13 +1176,13 @@ an integer value."
            (:height
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x ns)) ; No stipple on w32 or haiku
+            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32 or haiku
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
                                                (file-directory-p dir)
-                                               (directory-files dir)))
+                                               (directory-files dir 'full)))
                                         x-bitmap-file-path)))))
            (:inherit
             (cons '("none" . nil)
@@ -1516,7 +1520,7 @@ If FRAME is nil, the current FRAME is used."
 	    match (cond ((eq req 'type)
 			 (or (memq (window-system frame) options)
 			     (and (memq 'graphic options)
-				  (memq (window-system frame) '(x w32 ns)))
+				  (memq (window-system frame) '(x w32 ns pgtk)))
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
@@ -2381,6 +2385,15 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "The basic variable-pitch face."
   :group 'basic-faces)
 
+(defface variable-pitch-text
+  '((t :inherit variable-pitch
+       :height 1.1))
+  "The proportional face used for longer texts.
+This is like the `variable-pitch' face, but is slightly bigger by
+default."
+  :version "29.1"
+  :group 'basic-faces)
+
 (defface shadow
   '((((class color grayscale) (min-colors 88) (background light))
      :foreground "grey50")
@@ -2621,7 +2634,7 @@ See `mode-line-display' for the face used on mode lines."
   :group 'basic-faces)
 
 (defface mode-line-active
-  '((t :inherit (mode-line variable-pitch)))
+  '((t :inherit mode-line))
   "Face for the selected mode line.
 This inherits from the `mode-line' face."
   :version "29.1"
@@ -2630,7 +2643,7 @@ This inherits from the `mode-line' face."
 
 (defface mode-line-inactive
   '((default
-     :inherit (mode-line variable-pitch))
+     :inherit mode-line)
     (((class color) (min-colors 88) (background light))
      :weight light
      :box (:line-width -1 :color "grey75" :style nil)
@@ -2831,7 +2844,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns haiku) (class color))
+    (((type x w32 ns haiku pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))
@@ -2954,7 +2967,7 @@ It is used for characters of no fonts too."
   :group 'basic-faces)
 
 (defface read-multiple-choice-face
-  '((t (:inherit underline
+  '((t (:inherit (help-key-binding underline)
         :weight bold)))
   "Face for the symbol name in `read-multiple-choice' output."
   :group 'basic-faces

@@ -1,6 +1,6 @@
 ;;; subr-x-tests.el --- Testing the extended lisp routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Keywords:
@@ -169,13 +169,13 @@
              "no")
            "no"))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (if-let* (z (a 1) (b 2) (c 3))
                  "yes"
                "no"))
            "no"))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (if-let* ((a 1) (b 2) (c 3) d)
                  "yes"
                "no"))
@@ -191,7 +191,7 @@
 
 (ert-deftest subr-x-test-if-let*-and-laziness-is-preserved ()
   "Test `if-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a nil)
                        (b (setq b-called t))
@@ -199,7 +199,7 @@
                  "yes"
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
                        (b nil)
@@ -207,12 +207,12 @@
                  "yes"
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) c-called)
     (should (equal
              (if-let* ((a (setq a-called t))
-                      (b (setq b-called t))
-                      (c nil)
-                      (d (setq c-called t)))
+                       (b (setq b-called t))
+                       (c nil)
+                       (d (setq c-called t)))
                  "yes"
                (list a-called b-called c-called))
              (list t t nil)))))
@@ -329,12 +329,12 @@
              "no")
            nil))
   (should (equal
-           (let (z)
+           (let ((z nil))
              (when-let* (z (a 1) (b 2) (c 3))
                "no"))
            nil))
   (should (equal
-           (let (d)
+           (let ((d nil))
              (when-let* ((a 1) (b 2) (c 3) d)
                "no"))
            nil)))
@@ -348,7 +348,7 @@
 
 (ert-deftest subr-x-test-when-let*-and-laziness-is-preserved ()
   "Test `when-let' respects `and' laziness."
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a nil)
@@ -357,7 +357,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list nil nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))
@@ -366,7 +366,7 @@
                  "yes")
                (list a-called b-called c-called))
              (list t nil nil))))
-  (let (a-called b-called c-called)
+  (let ((a-called nil) (b-called nil) (c-called nil))
     (should (equal
              (progn
                (when-let* ((a (setq a-called t))
@@ -676,7 +676,7 @@
       (buffer-string))
     "foo\n")))
 
-(ert-deftest test-add-display-text-property ()
+(ert-deftest subr-x-test-add-display-text-property ()
   (with-temp-buffer
     (insert "Foo bar zot gazonk")
     (add-display-text-property 4 8 'height 2.0)
@@ -693,6 +693,24 @@
     (should (equal (get-text-property 5 'display)
                    [(raise 0.5) (height 2.0)]))
     (should (equal (get-text-property 9 'display) '(raise 0.5)))))
+
+(ert-deftest subr-x-named-let ()
+  (let ((funs ()))
+    (named-let loop
+        ((rest '(1 42 3))
+         (sum 0))
+      (when rest
+        ;; Here, we make sure that the variables are distinct in every
+        ;; iteration, since a naive tail-call optimization would tend to end up
+        ;; with a single `sum' variable being shared by all the closures.
+        (push (lambda () sum) funs)
+        ;; Here we add a dummy `sum' variable which shadows the `sum' iteration
+        ;; variable since a naive tail-call optimization could also trip here
+        ;; thinking it can `(setq sum ...)' to set the iteration
+        ;; variable's value.
+        (let ((sum sum))
+          (loop (cdr rest) (+ sum (car rest))))))
+    (should (equal (mapcar #'funcall funs) '(43 1 0)))))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

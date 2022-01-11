@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -60,6 +60,8 @@ The frame is displayed on a GNUstep or Macintosh Cocoa graphical
 terminal.
 @item pc
 The frame is displayed on an MS-DOS terminal.
+@item pgtk
+The frame is displayed using pure GTK facilities.
 @end table
 @end defun
 
@@ -171,7 +173,9 @@ usually not run for the initial frame, since Emacs reads the initial
 file only after creating that frame.  However, if the initial frame is
 specified to use a separate minibuffer frame (@pxref{Minibuffers and
 Frames}), the functions will be run for both, the minibuffer-less and
-the minibuffer frame.
+the minibuffer frame.  Alternatively, you can add functions to these
+hooks in your ``early init file'' (@pxref{Init File}), in which case
+they will be in effect for the initial frame as well.
 
 @defvar frame-inherited-parameters
 This variable specifies the list of frame parameters that a newly
@@ -214,7 +218,7 @@ The terminal and keyboard coding systems used on the terminal.
 @item
 The kind of display associated with the terminal.  This is the symbol
 returned by the function @code{terminal-live-p} (i.e., @code{x},
-@code{t}, @code{w32}, @code{ns}, @code{pc}, or @code{haiku}).
+@code{t}, @code{w32}, @code{ns}, @code{pc}, @code{haiku}, or @code{pgtk}).
 @xref{Frames}.
 
 @item
@@ -3163,8 +3167,7 @@ that if both frames are visible and their display areas overlap,
 third argument @var{above} is non-@code{nil}, this function restacks
 @var{frame1} above @var{frame2}.  This means that if both frames are
 visible and their display areas overlap, @var{frame1} will (partially)
-obscure @var{frame2}.@footnote{Restacking frames is not supported on
-Haiku, due to limitations imposed by the system.}
+obscure @var{frame2}.
 
 Technically, this function may be thought of as an atomic action
 performed in two steps: The first step removes @var{frame1}'s
@@ -3360,20 +3363,22 @@ are handy (@pxref{Window Parameters}).  These allow to remove an
 unwanted mode line (when @code{drag-with-header-line} is chosen) and to
 remove mouse-sensitive areas which might interfere with frame dragging.
 
-  To avoid that dragging moves a frame completely out of its parent's
-native frame, something which might happen when the mouse cursor
-overshoots and makes the frame difficult to retrieve once the mouse
-button has been released, it is advisable to set the frame's
-@code{top-visible} or @code{bottom-visible} parameter correspondingly.
+  When the user drags a frame with a mouse and overshoots, it's easy
+to drag a frame out of the screen area of its parent.  Retrieving such
+a frame can be hairy once the mouse button has been released.  To
+prevent such a situation, it is advisable to set the frame's
+@code{top-visible} or @code{bottom-visible} parameter (@pxref{Mouse
+Dragging Parameters}).
 
-  The @code{top-visible} parameter specifies the number of pixels at the
-top of the frame that always remain visible within the parent's native
-frame during dragging and should be set when specifying a non-@code{nil}
-@code{drag-with-header-line} parameter.  The @code{bottom-visible}
-parameter specifies the number of pixels at the bottom of the frame that
-always remain visible within the parent's native frame during dragging
-and should be preferred when specifying a non-@code{nil}
-@code{drag-with-mode-line} parameter.
+  Set the @code{top-visible} parameter of a child frame to a number
+when you intend to allow the user dragging that frame by its header
+line.  Setting @code{top-visible} to a number inhibits dragging the
+top edge of the child frame above the top edge of its parent.  Set the
+@code{bottom-visible} parameter to a number when you intend to drag
+that frame via its mode line; this inhibits dragging the bottom edge
+of the child frame beneath the bottom edge of its parent.  In either
+case, that number also specifies width and height (in pixels) of the
+area of the child frame that remains visible during dragging.
 
   When a child frame is used for displaying a buffer via
 @code{display-buffer-in-child-frame} (@pxref{Buffer Display Action

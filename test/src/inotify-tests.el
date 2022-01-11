@@ -1,6 +1,6 @@
 ;;; inotify-tests.el --- Test suite for inotify. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 ;; Keywords:       internal
@@ -28,6 +28,7 @@
 
 (declare-function inotify-add-watch "inotify.c" (file-name aspect callback))
 (declare-function inotify-rm-watch "inotify.c" (watch-descriptor))
+(declare-function inotify-valid-p "inotify.c" (watch-descriptor))
 
 (ert-deftest inotify-valid-p-simple ()
   "Simple tests for `inotify-valid-p'."

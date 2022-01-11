@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -134,6 +134,7 @@ The return value of this function is not used."
              :autoload-end
              (eval-and-compile
                (defun ,cfname (,@(car data) ,@args)
+                 (ignore ,@(delq '&rest (delq '&optional (copy-sequence args))))
                  ,@(cdr data))))))))
 
 (defalias 'byte-run--set-doc-string

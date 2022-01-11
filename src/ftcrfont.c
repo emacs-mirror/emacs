@@ -1,5 +1,5 @@
 /* ftcrfont.c -- FreeType font driver on cairo.
-   Copyright (C) 2015-2021 Free Software Foundation, Inc.
+   Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,10 +24,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
-#else /* Otherwise, Haiku */
+#elif HAVE_HAIKU
 #include "haikuterm.h"
 #include "haiku_support.h"
 #include "termchar.h"
+#else
+#include "pgtkterm.h"
 #endif
 #include "blockinput.h"
 #include "charset.h"
@@ -167,6 +169,10 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   cairo_matrix_init_scale (&font_matrix, pixel_size, pixel_size);
   cairo_matrix_init_identity (&ctm);
   cairo_font_options_t *options = cairo_font_options_create ();
+#ifdef USE_BE_CAIRO
+  if (be_use_subpixel_antialiasing ())
+    cairo_font_options_set_antialias (options, CAIRO_ANTIALIAS_SUBPIXEL);
+#endif
   cairo_scaled_font_t *scaled_font
     = cairo_scaled_font_create (font_face, &font_matrix, &ctm, options);
   cairo_font_face_destroy (font_face);
@@ -526,7 +532,11 @@ ftcrfont_draw (struct glyph_string *s,
   block_input ();
 
 #ifndef USE_BE_CAIRO
+#ifdef HAVE_X_WINDOWS
   cr = x_begin_cr_clip (f, s->gc);
+#else
+  cr = pgtk_begin_cr_clip (f);
+#endif
 #else
   BView_draw_lock (FRAME_HAIKU_VIEW (f));
   EmacsWindow_begin_cr_critical_section (FRAME_HAIKU_WINDOW (f));
@@ -544,8 +554,11 @@ ftcrfont_draw (struct glyph_string *s,
   if (with_background)
     {
 #ifndef USE_BE_CAIRO
+#ifdef HAVE_X_WINDOWS
       x_set_cr_source_with_gc_background (f, s->gc);
-      s->background_filled_p = 1;
+#else
+      pgtk_set_cr_source_with_color (f, s->xgcv.background);
+#endif
 #else
       struct face *face = s->face;
 
@@ -556,6 +569,7 @@ ftcrfont_draw (struct glyph_string *s,
 			    GREEN_FROM_ULONG (col) / 255.0,
 			    BLUE_FROM_ULONG (col) / 255.0);
 #endif
+      s->background_filled_p = 1;
       cairo_rectangle (cr, x, y - FONT_BASE (face->font),
 		       s->width, FONT_HEIGHT (face->font));
       cairo_fill (cr);
@@ -572,7 +586,11 @@ ftcrfont_draw (struct glyph_string *s,
                                                        NULL));
     }
 #ifndef USE_BE_CAIRO
+#ifdef HAVE_X_WINDOWS
   x_set_cr_source_with_gc_foreground (f, s->gc);
+#else
+  pgtk_set_cr_source_with_color (f, s->xgcv.foreground);
+#endif
 #else
   uint32_t col = s->hl == DRAW_CURSOR ?
     FRAME_OUTPUT_DATA (s->f)->cursor_fg : face->foreground;
@@ -584,7 +602,11 @@ ftcrfont_draw (struct glyph_string *s,
   cairo_set_scaled_font (cr, ftcrfont_info->cr_scaled_font);
   cairo_show_glyphs (cr, glyphs, len);
 #ifndef USE_BE_CAIRO
+#ifdef HAVE_X_WINDOWS
   x_end_cr_clip (f);
+#else
+  pgtk_end_cr_clip (f);
+#endif
 #else
   haiku_end_cr_clip (cr);
   EmacsWindow_end_cr_critical_section (FRAME_HAIKU_WINDOW (f));

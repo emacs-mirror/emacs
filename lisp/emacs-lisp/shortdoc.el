@@ -1,6 +1,6 @@
 ;;; shortdoc.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 ;; Package: emacs
@@ -1232,7 +1232,7 @@ There can be any number of :example/:result elements."
   (define-keymap
     :no-eval (define-keymap "C-c C-c" #'quit-buffer))
   (defvar-keymap
-      :no-eval (defvar-keymap my-keymap "C-c C-c" map #'quit-buffer))
+      :no-eval (defvar-keymap my-keymap "C-c C-c" #'quit-buffer))
   "Setting keys"
   (keymap-set
    :no-eval (keymap-set map "C-c C-c" #'quit-buffer))
@@ -1423,14 +1423,12 @@ Example:
         (setq slist (cdr slist)))
       (setcdr slist (cons elem (cdr slist))))))
 
-(defvar shortdoc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'shortdoc-next)
-    (define-key map (kbd "p") 'shortdoc-previous)
-    (define-key map (kbd "C-c C-n") 'shortdoc-next-section)
-    (define-key map (kbd "C-c C-p") 'shortdoc-previous-section)
-    map)
-  "Keymap for `shortdoc-mode'.")
+(defvar-keymap shortdoc-mode-map
+  :doc "Keymap for `shortdoc-mode'."
+  "n"       #'shortdoc-next
+  "p"       #'shortdoc-previous
+  "C-c C-n" #'shortdoc-next-section
+  "C-c C-p" #'shortdoc-previous-section)
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc."

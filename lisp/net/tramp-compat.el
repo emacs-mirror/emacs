@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -271,6 +271,27 @@ CONDITION can also be a list of error conditions."
                            (file-name-as-directory directory))
                          (car components))
 	         (cdr components)))))))
+
+;; `permission-denied' is introduced in Emacs 29.1.
+(defconst tramp-permission-denied
+  (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
+  "The error symbol for the `permission-denied' error.")
+
+(defsubst tramp-compat-permission-denied (vec file)
+  "Emit the `permission-denied' error."
+  (if (get 'permission-denied 'error-conditions)
+      (tramp-error vec tramp-permission-denied file)
+    (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
+
+;; Function `auth-info-password' is new in Emacs 29.1.
+(defalias 'tramp-compat-auth-info-password
+  (if (fboundp 'auth-info-password)
+      #'auth-info-password
+    (lambda (auth-info)
+      (let ((secret (plist-get auth-info :secret)))
+	(while (functionp secret)
+          (setq secret (funcall secret)))
+	secret))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))

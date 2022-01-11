@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2021 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2022 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -1236,6 +1236,15 @@ A workaround is to not use 'klipper'/'clipit'.  Upgrading 'klipper' to
 the one coming with KDE 3.3 or later might solve the problem; if it
 doesn't, set 'select-active-regions' to 'only' or nil.
 
+*** Emacs doesn't receive the key "C-.", displaying an input field instead.
+
+This is caused by the IBus Emoji input panel, which is usually bound
+to "C-.".  You can disable that panel by running the following
+command:
+
+  $ gsettings set org.freedesktop.ibus.panel.emoji hotkey "[]"
+
+
 ** Window-manager and toolkit-related problems
 
 *** Emacs built with GTK+ toolkit produces corrupted display on HiDPI screen
@@ -1327,6 +1336,12 @@ mitigate the problem by the following lines in your .emacs file:
 A better approach might be to avoid navigation from Nautilus to Emacs
 for such files, and instead to open the file in Emacs using Tramp
 remote file name syntax.
+
+*** Gnome: GTK builds with XInput2 freeze when making a frame fullscreen.
+
+This problem exists with GTK 3.24.30 in GNOME 41.1 and possibly other
+versions.  The solution is to upgrade GNOME Shell to the version that
+comes with GNOME 41.2.
 
 *** KDE: When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
@@ -1674,6 +1689,18 @@ You can get back menus on each frame by starting emacs like this:
 This happens on the proprietary X server ASTEC-X when the number of
 monitors is changed after the server has started.  A workaround is to
 restart the X server after the monitor configuration has been changed.
+
+*** Touchpad gestures don't work and emit warning messages.
+
+When pinching or swiping on your touchpad, you might see a warning
+message that looks like:
+
+  XInputWireToCookie: Unknown generic event. type 28
+
+This happens when your XInput headers support XInput 2.4, but the
+actual version of libXi installed does not.  The solution is to
+upgrade your libXi binaries to libXi 1.8.0 or later, to correspond
+with your XInput headers.
 
 * Runtime problems on character terminals
 
@@ -2791,6 +2818,17 @@ file; for example:
     '("/usr/local/opt/gcc/lib/gcc/11"
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
+
+* Runtime problems specific to PGTK
+
+** Some modifier keys doesn't work if Emacs is started in a systemd unit file.
+
+Environment variables may be different if there is a difference in the
+behavior of keys between when started in the systemd unit file and
+when started from the command line.
+
+Especially, PGTK Emacs needs environment variables LANG and
+GTK_IM_MODULE.
 
 * Build-time problems
 

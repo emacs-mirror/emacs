@@ -1,6 +1,6 @@
 ;;; ses-tests.el --- Tests for ses.el              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Vincent Belaïche <vincentb1@users.sourceforge.net>
 
@@ -24,6 +24,10 @@
 (require 'ert)
 (require 'ses)
 
+;; Silence byte-compiler.
+(with-suppressed-warnings ((lexical A2) (lexical A3))
+  (defvar A2)
+  (defvar A3))
 
 ;; PLAIN FORMULA TESTS
 ;; ======================================================================

@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -301,24 +301,31 @@ FORM is of the form (ARGS . BODY)."
              (t ;; `simple-args' doesn't handle all the parsing that we need,
               ;; so we pass the rest to cl--do-arglist which will do
               ;; "manual" parsing.
-              (let ((slen (length simple-args)))
-                (when (memq '&optional simple-args)
-                  (cl-decf slen))
-                (setq header
+              (let ((slen (length simple-args))
+                    (usage-str
                       ;; Macro expansion can take place in the middle of
                       ;; apparently harmless computation, so it should not
                       ;; touch the match-data.
                       (save-match-data
-                        (cons (help-add-fundoc-usage
-                               (if (stringp (car header)) (pop header))
-                               ;; Be careful with make-symbol and (back)quote,
-                               ;; see bug#12884.
-                               (help--docstring-quote
-                                (let ((print-gensym nil) (print-quoted t)
-                                      (print-escape-newlines t))
-                                  (format "%S" (cons 'fn (cl--make-usage-args
-                                                          orig-args))))))
-                              header)))
+                        (help--docstring-quote
+                         (let ((print-gensym nil) (print-quoted t)
+                               (print-escape-newlines t))
+                           (format "%S" (cons 'fn (cl--make-usage-args
+                                                   orig-args))))))))
+                (when (memq '&optional simple-args)
+                  (cl-decf slen))
+                (setq header
+                      (cons
+                       (if (eq :documentation (car-safe (car header)))
+                           `(:documentation (help-add-fundoc-usage
+                                             ,(cadr (pop header))
+                                             ,usage-str))
+                         (help-add-fundoc-usage
+                          (if (stringp (car header)) (pop header))
+                          ;; Be careful with make-symbol and (back)quote,
+                          ;; see bug#12884.
+                          usage-str))
+                       header))
                 ;; FIXME: we'd want to choose an arg name for the &rest param
                 ;; and pass that as `expr' to cl--do-arglist, but that ends up
                 ;; generating code with a redundant let-binding, so we instead
@@ -2139,9 +2146,14 @@ Like `cl-flet' but the definitions can refer to previous ones.
                    ;; setq the fresh new `ofargs' vars instead ;-)
                    (let ((shadowings
                           (mapcar (lambda (b) (if (consp b) (car b) b)) bindings)))
-                     ;; If `var' is shadowed, then it clearly can't be
-                     ;; tail-called any more.
-                     (not (memq var shadowings)))))
+                     (and
+                      ;; If `var' is shadowed, then it clearly can't be
+                      ;; tail-called any more.
+                      (not (memq var shadowings))
+                      ;; If any of the new bindings is a dynamic
+                      ;; variable, the body is not in tail position.
+                      (not (delq nil (mapcar #'macroexp--dynamic-variable-p
+                                             shadowings)))))))
              `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
             ((and `(condition-case ,err-var ,bodyform . ,handlers)
                   (guard (not (eq err-var var))))
@@ -3052,7 +3064,7 @@ To see the documentation for a defined struct type, use
                             `(,predicate cl-x))))
     (when pred-form
       (push `(,defsym ,predicate (cl-x)
-               (declare (side-effect-free error-free))
+               (declare (side-effect-free error-free) (pure t))
                ,(if (eq (car pred-form) 'and)
                     (append pred-form '(t))
                   `(and ,pred-form t)))
@@ -3369,6 +3381,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (integer	. integerp)
                  (keyword	. keywordp)
                  (list		. listp)
+                 (natnum	. natnump)
                  (number	. numberp)
                  (null		. null)
                  (real		. numberp)

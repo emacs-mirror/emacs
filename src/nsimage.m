@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2021 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -76,6 +76,8 @@ ns_can_use_native_image_api (Lisp_Object type)
     imageType = @"public.tiff";
   else if (EQ (type, Qsvg))
     imageType = @"public.svg-image";
+  else if (EQ (type, Qheic))
+    imageType = @"public.heic";
 
   /* NSImage also supports a host of other types such as PDF and BMP,
      but we don't yet support these in image.c.  */

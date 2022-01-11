@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2021 Free Software
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -40,8 +40,6 @@
 (require 'mail-utils)
 (require 'rfc2047)
 (require 'auth-source)
-
-(require 'rmail-loaddefs)
 
 (declare-function compilation--message->loc "compile" (cl-x) t)
 (declare-function epa--find-coding-system-for-mime-charset "epa" (mime-charset))
@@ -3356,12 +3354,12 @@ removing prefixes such as Re:, Fwd: and so on and mailing list
 tags such as [tag]."
   (let ((subject (or (rmail-get-header "Subject" msgnum) ""))
 	(regexp "\\`[ \t\n]*\\(\\(\\w\\{1,4\\}\u00a0*[:：]\\|\\[[^]]+]\\)[ \t\n]+\\)*"))
+    (setq subject (rfc2047-decode-string subject))
     ;; Corporate mailing systems sometimes add `[External] :'; if that happened,
     ;; delete everything up thru there.  Empirically, that deletion makes
     ;; the Subject match the other messages in the thread.
     (if (string-match "\\[external][ \t\n]*:" subject)
         (setq subject (substring subject (match-end 0))))
-    (setq subject (rfc2047-decode-string subject))
     (setq subject (replace-regexp-in-string regexp "" subject))
     (replace-regexp-in-string "[ \t\n]+" " " subject)))
 
@@ -4125,10 +4123,8 @@ typically for purposes of moderating a list."
   "A regexp that matches the separator before the text of a failed message.")
 
 (defvar mail-mime-unsent-header "^Content-Type: message/rfc822 *$"
- "A regexp that matches the header of a MIME body part with a failed message.")
+  "A regexp that matches the header of a MIME body part with a failed message.")
 
-;; This is a cut-down version of rmail-clear-headers from Emacs 22.
-;; It doesn't have the same functionality, hence the name change.
 (defun rmail-delete-headers (regexp)
   "Delete any mail headers matching REGEXP.
 The message should be narrowed to just the headers."
@@ -4136,10 +4132,6 @@ The message should be narrowed to just the headers."
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (beginning-of-line)
-      ;; This code from Emacs 22 doesn't seem right, since r-n-h is
-      ;; just for display.
-;;;      (if (looking-at rmail-nonignored-headers)
-;;;	  (forward-line 1)
       (delete-region (point)
 		     (save-excursion
 		       (if (re-search-forward "\n[^ \t]" nil t)
@@ -4497,10 +4489,7 @@ password."
                                    :max 1 :user user :host host
                                    :require '(:secret)))))
                 (if found
-                    (let ((secret (plist-get found :secret)))
-                      (if (functionp secret)
-                          (funcall secret)
-                        secret))
+                    (auth-info-password found)
                   (read-passwd (if imap
                                    "IMAP password: "
                                  "POP password: "))))))

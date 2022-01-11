@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2021 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -875,9 +875,14 @@ load_pdump (int argc, char **argv)
     }
 
   /* Where's our executable?  */
-  ptrdiff_t bufsize, exec_bufsize;
+  ptrdiff_t bufsize;
+#ifndef NS_SELF_CONTAINED
+  ptrdiff_t exec_bufsize;
+#endif
   emacs_executable = load_pdump_find_executable (argv[0], &bufsize);
+#ifndef NS_SELF_CONTAINED
   exec_bufsize = bufsize;
+#endif
 
   /* If we couldn't find our executable, go straight to looking for
      the dump in the hardcoded location.  */
@@ -1909,6 +1914,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_bignum ();
   init_threads ();
   init_eval ();
+#ifdef HAVE_PGTK
+  init_pgtkterm ();   /* before init_atimer(). */
+#endif
   running_asynch_code = 0;
   init_random ();
 
@@ -2183,6 +2191,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
       syms_of_window ();
       syms_of_xdisp ();
+      syms_of_sqlite ();
       syms_of_font ();
 #ifdef HAVE_WINDOW_SYSTEM
       syms_of_fringe ();
@@ -2244,6 +2253,15 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_fontset ();
 #endif /* HAVE_NS */
 
+#ifdef HAVE_PGTK
+      syms_of_pgtkterm ();
+      syms_of_pgtkfns ();
+      syms_of_pgtkselect ();
+      syms_of_pgtkmenu ();
+      syms_of_pgtkim ();
+      syms_of_fontset ();
+      syms_of_xsettings ();
+#endif /* HAVE_PGTK */
 #ifdef HAVE_HAIKU
       syms_of_haikuterm ();
       syms_of_haikufns ();
@@ -2327,7 +2345,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_DBUS
   init_dbusbind ();
 #endif
-#ifdef USE_GTK
+#if defined(USE_GTK) && !defined(HAVE_PGTK)
   init_xterm ();
 #endif
 

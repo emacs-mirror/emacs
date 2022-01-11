@@ -1,6 +1,6 @@
 ;;; edebug-tests.el --- Edebug test suite   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -53,22 +53,20 @@ Since `should' failures which happen inside `post-command-hook' will
 be trapped by the command loop, this preserves them until we get
 back to the top level.")
 
-(defvar edebug-tests-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "@"     'edebug-tests-call-instrumented-func)
-    (define-key map "C-u"   'universal-argument)
-    (define-key map "C-p"   'previous-line)
-    (define-key map "C-n"   'next-line)
-    (define-key map "C-b"   'backward-char)
-    (define-key map "C-a"   'move-beginning-of-line)
-    (define-key map "C-e"   'move-end-of-line)
-    (define-key map "C-k"   'kill-line)
-    (define-key map "M-x"   'execute-extended-command)
-    (define-key map "C-M-x" 'eval-defun)
-    (define-key map "C-x X b" 'edebug-set-breakpoint)
-    (define-key map "C-x X w" 'edebug-where)
-    map)
-  "Keys used by the keyboard macros in Edebug's tests.")
+(defvar-keymap edebug-tests-keymap
+  :doc "Keys used by the keyboard macros in Edebug's tests."
+  "@"       'edebug-tests-call-instrumented-func
+  "C-u"     'universal-argument
+  "C-p"     'previous-line
+  "C-n"     'next-line
+  "C-b"     'backward-char
+  "C-a"     'move-beginning-of-line
+  "C-e"     'move-end-of-line
+  "C-k"     'kill-line
+  "M-x"     'execute-extended-command
+  "C-M-x"   'eval-defun
+  "C-x X b" 'edebug-set-breakpoint
+  "C-x X w" 'edebug-where)
 
 ;;; Macros for defining tests:
 
@@ -860,7 +858,8 @@ test and possibly others should be updated."
    (let ((inhibit-read-only t))
      (delete-region (point-min) (point-max))
      (insert  "`1"))
-   (edebug-eval-defun nil)
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (edebug-eval-defun nil))
    ;; `eval-defun' outputs its message to the echo area in a rather
    ;; funny way, so the "1" and the " (#o1, #x1, ?\C-a)" end up placed
    ;; there in separate pieces (via `print' rather than via `message').
@@ -870,7 +869,8 @@ test and possibly others should be updated."
 
    (setq edebug-initial-mode 'go)
    ;; In Bug#23651 Edebug would hang reading `1.
-   (edebug-eval-defun t)))
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (edebug-eval-defun t))))
 
 (ert-deftest edebug-tests-trivial-comma ()
   "Edebug can read a trivial comma expression (Bug#23651)."
@@ -879,7 +879,8 @@ test and possibly others should be updated."
    (delete-region (point-min) (point-max))
    (insert  ",1")
    (read-only-mode)
-   (should-error (edebug-eval-defun t))))
+   (with-suppressed-warnings ((obsolete edebug-eval-defun))
+     (should-error (edebug-eval-defun t)))))
 
 (ert-deftest edebug-tests-circular-read-syntax ()
   "Edebug can instrument code using circular read object syntax (Bug#23660)."

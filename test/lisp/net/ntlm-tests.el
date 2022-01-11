@@ -1,6 +1,6 @@
 ;;; ntlm-tests.el --- tests for ntlm.el            -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -227,6 +227,8 @@ This string will be returned from the NTLM server to the NTLM client."
 
 ;; Silence some byte-compiler warnings that occur when
 ;; web-server/web-server.el is not found.
+(eval-when-compile (cl-pushnew 'headers eieio--known-slot-names)
+                   (cl-pushnew 'process eieio--known-slot-names))
 (declare-function ws-send nil)
 (declare-function ws-parse-request nil)
 (declare-function ws-start nil)

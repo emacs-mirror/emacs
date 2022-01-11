@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2021 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2022 Free Software
 Foundation, Inc.
 
 Author: Jon Arnold
@@ -49,6 +49,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef MSDOS
 #include "msdos.h"
+#endif
+
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
 #endif
 
 #ifdef HAVE_X_WINDOWS
@@ -444,6 +448,19 @@ x_activate_menubar (struct frame *f)
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
 #else
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  /* Clear the XI2 grab so Motif or lwlib can set a core grab.
+     Otherwise some versions of Motif will emit a warning and hang,
+     and lwlib will fail to destroy the menu window.  */
+
+  if (dpyinfo->num_devices)
+    {
+      for (int i = 0; i < dpyinfo->num_devices; ++i)
+	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			CurrentTime);
+    }
+#endif
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   unblock_input ();
@@ -1445,7 +1462,17 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
+#if defined HAVE_XINPUT2 && defined USE_LUCID
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  /* Clear the XI2 grab so lwlib can set a core grab.  */
 
+  if (dpyinfo->num_devices)
+    {
+      for (int i = 0; i < dpyinfo->num_devices; ++i)
+	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			CurrentTime);
+    }
+#endif
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;

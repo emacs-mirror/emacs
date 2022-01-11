@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2021 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,16 +123,19 @@ typedef HDC Emacs_Pix_Context;
 
 #ifdef HAVE_NS
 #include "nsgui.h"
-#define FACE_COLOR_TO_PIXEL(face_color, frame) (FRAME_NS_P (frame) \
-                                                ? ns_color_index_to_rgba (face_color, frame) \
-                                                : face_color)
 /* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Emacs_Pixmap Emacs_Pix_Container;
 typedef Emacs_Pixmap Emacs_Pix_Context;
-#else
-#define FACE_COLOR_TO_PIXEL(face_color, frame) face_color
 #endif
+
+#ifdef HAVE_PGTK
+#include "pgtkgui.h"
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
+typedef struct pgtk_display_info Display_Info;
+typedef Emacs_Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
+#endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
 #include "haikugui.h"
@@ -1400,6 +1403,9 @@ struct glyph_string
   Emacs_GC *gc;
   HDC hdc;
 #endif
+#if defined (HAVE_PGTK)
+  Emacs_GC xgcv;
+#endif
 
   /* A pointer to the first glyph in the string.  This glyph
      corresponds to char2b[0].  Needed to draw rectangles if
@@ -1714,6 +1720,12 @@ struct face
   int box_vertical_line_width;
   int box_horizontal_line_width;
 
+
+  /* The amount of pixels above the descent line the underline should
+     be displayed.  It does not take effect unless
+     `underline_at_descent_line_p` is t.  */
+  int underline_pixels_above_descent_line;
+
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn
      around text in this face.  A value of FACE_SIMPLE_BOX means a box
      of width box_line_width is drawn in color box_color.  A value of
@@ -1746,6 +1758,9 @@ struct face
   bool_bf overline_color_defaulted_p : 1;
   bool_bf strike_through_color_defaulted_p : 1;
   bool_bf box_color_defaulted_p : 1;
+
+  /* True means the underline should be drawn at the descent line.  */
+  bool_bf underline_at_descent_line_p : 1;
 
   /* TTY appearances.  Colors are found in `lface' with empty color
      string meaning the default color of the TTY.  */

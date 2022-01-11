@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2021 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2022 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2621,6 +2621,15 @@ It is used by `query-replace-regexp', `replace-regexp',
 It is called with three arguments, as if it were
 `re-search-forward'.")
 
+(defvar replace-regexp-function nil
+  "Function to convert the FROM string of query-replace commands to a regexp.
+This is used by `query-replace', `query-replace-regexp', etc. as
+the value of `isearch-regexp-function' when they search for the
+occurences of the string/regexp to be replaced.  This is intended
+to be used when the string to be replaced, as typed by the user,
+is not to be interpreted literally, but instead should be converted
+to a regexp that is actually used for the search.")
+
 (defun replace-search (search-string limit regexp-flag delimited-flag
 		       case-fold &optional backward)
   "Search for the next occurrence of SEARCH-STRING to replace."
@@ -2633,7 +2642,8 @@ It is called with three arguments, as if it were
   ;; outside of this function because then another I-search
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
-	 (isearch-regexp-function (or delimited-flag
+	 (isearch-regexp-function (or replace-regexp-function
+				      delimited-flag
 				      (and replace-char-fold
 					   (not regexp-flag)
 					   #'char-fold-to-regexp)))
@@ -2690,7 +2700,8 @@ It is called with three arguments, as if it were
   (if query-replace-lazy-highlight
       (let ((isearch-string search-string)
 	    (isearch-regexp regexp-flag)
-	    (isearch-regexp-function (or delimited-flag
+	    (isearch-regexp-function (or replace-regexp-function
+					 delimited-flag
 					 (and replace-char-fold
 					      (not regexp-flag)
 					      #'char-fold-to-regexp)))

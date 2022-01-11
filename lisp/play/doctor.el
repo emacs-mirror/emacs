@@ -1,6 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2021 Free Software
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -126,11 +126,9 @@
     (set what ww)
     first))
 
-(defvar doctor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\n" 'doctor-read-print)
-    (define-key map "\r" 'doctor-ret-or-read)
-    map))
+(defvar-keymap doctor-mode-map
+  "C-j" #'doctor-read-print
+  "RET" #'doctor-ret-or-read)
 
 (define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.

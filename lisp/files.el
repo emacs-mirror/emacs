@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -2010,12 +2010,14 @@ otherwise a string <2> or <3> or ... is appended to get an unused name.
 Emacs treats buffers whose names begin with a space as internal buffers.
 To avoid confusion when visiting a file whose name begins with a space,
 this function prepends a \"|\" to the final result if necessary."
-  (let ((lastname (file-name-nondirectory filename)))
-    (if (string= lastname "")
-	(setq lastname filename))
-    (generate-new-buffer (if (string-prefix-p " " lastname)
-			     (concat "|" lastname)
-			   lastname))))
+  (let* ((lastname (file-name-nondirectory filename))
+	 (lastname (if (string= lastname "")
+	               filename lastname))
+	 (buf (generate-new-buffer (if (string-prefix-p " " lastname)
+			               (concat "|" lastname)
+			             lastname))))
+    (uniquify--create-file-buffer-advice buf filename)
+    buf))
 
 (defcustom automount-dir-prefix (purecopy "^/tmp_mnt/")
   "Regexp to match the automounter prefix in a directory name."
@@ -4081,11 +4083,8 @@ It is dangerous if either of these conditions are met:
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
 
-(defun hack-one-local-variable-constantp (exp)
-  (or (and (not (symbolp exp)) (not (consp exp)))
-      (memq exp '(t nil))
-      (keywordp exp)
-      (hack-one-local-variable-quotep exp)))
+(define-obsolete-function-alias 'hack-one-local-variable-constantp
+  #'macroexp-const-p "29.1")
 
 (defun hack-one-local-variable-eval-safep (exp)
   "Return non-nil if it is safe to eval EXP when it is found in a file."
@@ -4123,7 +4122,7 @@ It is dangerous if either of these conditions are met:
 		 (cond ((eq prop t)
 			(let ((ok t))
 			  (dolist (arg (cdr exp))
-			    (unless (hack-one-local-variable-constantp arg)
+			    (unless (macroexp-const-p arg)
 			      (setq ok nil)))
 			  ok))
 		       ((functionp prop)
@@ -4745,7 +4744,6 @@ using \\<minibuffer-local-map>\\[next-history-element].
 If optional second arg CONFIRM is non-nil, this function
 asks for confirmation before overwriting an existing file.
 Interactively, confirmation is required unless you supply a prefix argument."
-;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
 	     (read-file-name "Write file: "
@@ -4756,33 +4754,44 @@ Interactively, confirmation is required unless you supply a prefix argument."
 			    default-directory)
 			   nil nil))
 	 (not current-prefix-arg)))
-  (or (null filename) (string-equal filename "")
-      (progn
-	;; If arg is a directory name,
-	;; use the default file name, but in that directory.
-	(if (directory-name-p filename)
-	    (setq filename (concat filename
-				   (file-name-nondirectory
-				    (or buffer-file-name (buffer-name))))))
-	(and confirm
-	     (file-exists-p filename)
-	     ;; NS does its own confirm dialog.
-	     (not (and (eq (framep-on-display) 'ns)
-		       (listp last-nonmenu-event)
-		       use-dialog-box))
-	     (or (y-or-n-p (format-message
-                            "File `%s' exists; overwrite? " filename))
-		 (user-error "Canceled")))
-	(set-visited-file-name filename (not confirm))))
-  (set-buffer-modified-p t)
-  ;; Make buffer writable if file is writable.
-  (and buffer-file-name
-       (file-writable-p buffer-file-name)
-       (setq buffer-read-only nil))
-  (save-buffer)
-  ;; It's likely that the VC status at the new location is different from
-  ;; the one at the old location.
-  (vc-refresh-state))
+  (let ((old-modes
+         (and buffer-file-name
+              ;; File may have gone away; ignore errors in that case.
+              (ignore-errors (file-modes buffer-file-name)))))
+    (or (null filename) (string-equal filename "")
+        (progn
+	  ;; If arg is a directory name,
+	  ;; use the default file name, but in that directory.
+	  (if (directory-name-p filename)
+	      (setq filename (concat filename
+				     (file-name-nondirectory
+				      (or buffer-file-name (buffer-name))))))
+	  (and confirm
+	       (file-exists-p filename)
+	       ;; NS does its own confirm dialog.
+	       (not (and (eq (framep-on-display) 'ns)
+		         (listp last-nonmenu-event)
+		         use-dialog-box))
+	       (or (y-or-n-p (format-message
+                              "File `%s' exists; overwrite? " filename))
+		   (user-error "Canceled")))
+	  (set-visited-file-name filename (not confirm))))
+    (set-buffer-modified-p t)
+    ;; Make buffer writable if file is writable.
+    (and buffer-file-name
+         (file-writable-p buffer-file-name)
+         (setq buffer-read-only nil))
+    (save-buffer)
+    ;; If the old file was executable, then make the new file
+    ;; executable, too.
+    (when (and old-modes
+               (not (zerop (logand #o111 old-modes))))
+      (set-file-modes buffer-file-name
+                      (logior (logand #o111 old-modes)
+                              (file-modes buffer-file-name))))
+    ;; It's likely that the VC status at the new location is different from
+    ;; the one at the old location.
+    (vc-refresh-state)))
 
 (defun file-extended-attributes (filename)
   "Return an alist of extended attributes of file FILENAME.
@@ -5787,7 +5796,7 @@ to return a predicate used to check buffers."
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
   :type '(choice (const :tag "Default" nil)
-                 (function :tag "Only in subdirs of root"
+                 (function :tag "Only in subdirs of current project"
                            save-some-buffers-root)
                  (function :tag "Custom function"))
   :version "26.1")
@@ -5823,21 +5832,22 @@ all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
-If PRED is a zero-argument function, it indicates for each buffer whether
-to consider it or not when called with that buffer current.
+If PRED is a function, it is called with no argument in each buffer and
+should return non-nil if that buffer should be considered.
 PRED defaults to the value of `save-some-buffers-default-predicate'.
 
 See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (unless pred
-    (setq pred save-some-buffers-default-predicate))
-  ;; Allow `pred' to be a function that returns a predicate
-  ;; with lexical bindings in its original environment (bug#46374).
-  (when (and (symbolp pred) (get pred 'save-some-buffers-function))
-    (let ((pred-fun (and (functionp pred) (funcall pred))))
-      (when (functionp pred-fun)
-        (setq pred pred-fun))))
+    (setq pred
+          ;; Allow `pred' to be a function that returns a predicate
+          ;; with lexical bindings in its original environment (bug#46374).
+          (if (and (symbolp save-some-buffers-default-predicate)
+                   (get save-some-buffers-default-predicate
+                        'save-some-buffers-function))
+              (funcall save-some-buffers-default-predicate)
+            save-some-buffers-default-predicate)))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)
@@ -7211,11 +7221,18 @@ DIRNAME is globbed by the shell if necessary.
 Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
-  (interactive (let ((pfx current-prefix-arg))
-		 (list (read-directory-name (if pfx "List directory (verbose): "
-					 "List directory (brief): ")
-				       nil default-directory nil)
-		       pfx)))
+  (interactive
+   (let ((pfx current-prefix-arg))
+     (list (read-file-name
+            (if pfx "List directory (verbose): "
+	      "List directory (brief): ")
+	    nil default-directory t
+            nil
+            (lambda (file)
+              (or (file-directory-p file)
+                  (insert-directory-wildcard-in-dir-p
+                   (expand-file-name file)))))
+           pfx)))
   (let ((switches (if verbose list-directory-verbose-switches
 		    list-directory-brief-switches))
 	buffer)
@@ -7666,21 +7683,7 @@ normally equivalent short `-D' option is just passed on to
 					    (if val coding-no-eol coding))
 		      (if val
 			  (put-text-property pos (point)
-					     'dired-filename t)))))))
-
-	  (if full-directory-p
-	      ;; Try to insert the amount of free space.
-	      (save-excursion
-		(goto-char beg)
-		;; First find the line to put it on.
-		(when (re-search-forward "^ *\\(total\\)" nil t)
-		  ;; Replace "total" with "total used in directory" to
-		  ;; avoid confusion.
-		  (replace-match "total used in directory" nil nil nil 1)
-		  (let ((available (get-free-disk-space file)))
-		    (when available
-		      (end-of-line)
-		      (insert " available " available))))))))))
+					     'dired-filename t)))))))))))
 
 (defun insert-directory-adj-pos (pos error-lines)
   "Convert `ls --dired' file name position value POS to a buffer position.

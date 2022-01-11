@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -486,10 +486,8 @@ Activates the region if needed.  Only lasts until the region is deactivated."
     (cua--deactivate t))
   (setq cua--last-rectangle nil)
   (mouse-set-point event)
-  ;; FIX ME -- need to calculate virtual column.
-  (cua-set-rectangle-mark)
-  (setq cua--buffer-and-point-before-command nil)
-  (setq cua--mouse-last-pos nil))
+  (activate-mark)
+  (cua-rectangle-mark-mode))
 
 (defun cua-mouse-save-then-kill-rectangle (event arg)
   "Expand rectangle to mouse click position and copy rectangle.

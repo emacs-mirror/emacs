@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2021 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -900,12 +900,17 @@ This handles splitting the command if it would be bigger than
       )
 
     (cond (w
-           (server--create-frame
-            nowait proc
-            `((display . ,display)
-              ,@(if parent-id
-                    `((parent-id . ,(string-to-number parent-id))))
-              ,@parameters)))
+           (condition-case nil
+               (server--create-frame
+                nowait proc
+                `((display . ,display)
+                  ,@(if parent-id
+                        `((parent-id . ,(string-to-number parent-id))))
+                  ,@parameters))
+             (error
+              (server-log "Window system unsupported" proc)
+              (server-send-string proc "-window-system-unsupported \n")
+              nil)))
 
           (t
            (server-log "Window system unsupported" proc)

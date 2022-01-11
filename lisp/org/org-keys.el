@@ -1,6 +1,6 @@
 ;;; org-keys.el --- Key bindings for Org mode        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 
@@ -444,7 +444,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 
 ;;;; TAB key with modifiers
 (org-defkey org-mode-map (kbd "TAB") #'org-cycle)
-(org-defkey org-mode-map (kbd "C-c C-TAB") #'org-force-cycle-archived)
+(org-defkey org-mode-map (kbd "C-c C-<tab>") #'org-force-cycle-archived)
 ;; Override text-mode binding to expose `complete-symbol' for
 ;; pcomplete functionality.
 (org-defkey org-mode-map (kbd "M-TAB") nil)

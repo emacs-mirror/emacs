@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -336,7 +336,7 @@ absolute file names."
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
       (unless (tramp-sudoedit-send-command
-	       v "rm" (tramp-compat-file-name-unquote localname))
+	       v "rm" "-f" (tramp-compat-file-name-unquote localname))
 	;; Propagate the error.
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
@@ -453,12 +453,13 @@ the result will be a local, non-Tramp, file name."
 	  (if (file-directory-p (expand-file-name f directory))
 	      (file-name-as-directory f)
 	    f))
-	(with-current-buffer (tramp-get-connection-buffer v)
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (l) (and (not (string-match-p "^[[:space:]]*$" l)) l))
-	    (split-string (buffer-string) "\n" 'omit)))))))))
+	(delq
+	 nil
+	 (mapcar
+	  (lambda (l) (and (not (string-match-p "^[[:space:]]*$" l)) l))
+	  (split-string
+	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
+	   "\n" 'omit))))))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -534,7 +535,7 @@ the result will be a local, non-Tramp, file name."
 	   (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
-	       (current-time)
+	       nil
 	     time)))
       (tramp-sudoedit-send-command
        v "env" "TZ=UTC" "touch" "-t"
@@ -786,9 +787,6 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
-
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)

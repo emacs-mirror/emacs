@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -135,6 +135,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_SOCKET             0x0200
 #define FILE_NDELAY             0x0400
 #define FILE_SERIAL             0x0800
+#define FILE_DONT_CLOSE         0x1000
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);

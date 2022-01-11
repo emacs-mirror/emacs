@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2021 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1034,7 +1034,7 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   enum { off = offsetof (struct glyph_row, x) };
 
-  memcpy (&to->x, &from->x, sizeof *to - off);
+  memcpy ((char *) to + off, (char *) from + off, sizeof *to - off);
 }
 
 
@@ -6453,6 +6453,15 @@ init_display_interactive (void)
     }
 #endif
 
+#ifdef HAVE_PGTK
+  if (!inhibit_window_system && !will_dump_p ())
+    {
+      Vinitial_window_system = Qpgtk;
+      Vwindow_system_version = make_fixnum (3);
+      return;
+    }
+#endif
+
 #ifdef HAVE_HAIKU
   if (!inhibit_window_system && !will_dump_p ())
     {
@@ -6653,6 +6662,8 @@ The value is a symbol:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `pgtk' for an Emacs frame using pure GTK facilities.
+ `haiku' for an Emacs frame running in Haiku.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
@@ -6666,6 +6677,8 @@ The value is a symbol:
  `w32' for an Emacs frame that is a window on MS-Windows display,
  `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
  `pc' for a direct-write MS-DOS frame.
+ `pgtk' for an Emacs frame using pure GTK facilities.
+ `haiku' for an Emacs frame running in Haiku.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'

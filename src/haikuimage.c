@@ -1,5 +1,5 @@
 /* Haiku window system support.
-   Copyright (C) 2021 Free Software Foundation, Inc.
+   Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -52,6 +52,8 @@ haiku_can_use_native_image_api (Lisp_Object type)
     mime_type = "image/svg";
   else if (EQ (type, Qpbm))
     mime_type = "image/pbm";
+  else if (EQ (type, Qwebp))
+    mime_type = "image/webp";
 
   if (!mime_type)
     return 0;

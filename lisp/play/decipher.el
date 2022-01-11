@@ -1,6 +1,6 @@
 ;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1995-1996, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <chris_madsen@geocities.com>
 ;; Keywords: games
@@ -138,36 +138,31 @@ the tail of the list."
      (2 font-lock-string-face)))
   "Font Lock keywords for Decipher mode.")
 
-(defvar decipher-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map "A" #'decipher-show-alphabet)
-    (define-key map "C" #'decipher-complete-alphabet)
-    (define-key map "D" #'decipher-digram-list)
-    (define-key map "F" #'decipher-frequency-count)
-    (define-key map "M" #'decipher-make-checkpoint)
-    (define-key map "N" #'decipher-adjacency-list)
-    (define-key map "R" #'decipher-restore-checkpoint)
-    (define-key map "U" #'decipher-undo)
-    (define-key map " " #'decipher-keypress)
-    (define-key map [remap undo] #'decipher-undo)
-    (define-key map [remap advertised-undo] #'decipher-undo)
-    (let ((key ?a))
-      (while (<= key ?z)
-	(define-key map (vector key) #'decipher-keypress)
-	(cl-incf key)))
-    map)
-  "Keymap for Decipher mode.")
+(defvar-keymap decipher-mode-map
+  :doc "Keymap for Decipher mode."
+  :suppress t
+  "A"   #'decipher-show-alphabet
+  "C"   #'decipher-complete-alphabet
+  "D"   #'decipher-digram-list
+  "F"   #'decipher-frequency-count
+  "M"   #'decipher-make-checkpoint
+  "N"   #'decipher-adjacency-list
+  "R"   #'decipher-restore-checkpoint
+  "U"   #'decipher-undo
+  "SPC" #'decipher-keypress
+  "<remap> <undo>" #'decipher-undo
+  "<remap> <advertised-undo>" #'decipher-undo)
+(let ((key ?a))
+  (while (<= key ?z)
+    (keymap-set decipher-mode-map (char-to-string key) #'decipher-keypress)
+    (cl-incf key)))
 
-
-(defvar decipher-stats-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map "D" #'decipher-digram-list)
-    (define-key map "F" #'decipher-frequency-count)
-    (define-key map "N" #'decipher-adjacency-list)
-    map)
-  "Keymap for Decipher-Stats mode.")
+(defvar-keymap decipher-stats-mode-map
+  :doc "Keymap for Decipher-Stats mode."
+  :suppress t
+  "D" #'decipher-digram-list
+  "F" #'decipher-frequency-count
+  "N" #'decipher-adjacency-list)
 
 
 (defvar decipher-mode-syntax-table

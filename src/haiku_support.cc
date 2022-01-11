@@ -1,5 +1,5 @@
 /* Haiku window system support.  Hey, Emacs, this is -*- C++ -*-
-   Copyright (C) 2021 Free Software Foundation, Inc.
+   Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -62,6 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <kernel/scheduler.h>
 
 #include <private/interface/ToolTip.h>
+#include <private/interface/WindowPrivate.h>
 
 #include <cmath>
 #include <cstring>
@@ -85,6 +86,37 @@ static key_map *key_map = NULL;
 static char *key_chars = NULL;
 static BLocker key_map_lock;
 
+/* The locking semantics of BWindows running in multiple threads are
+   so complex that child frame state (which is the only state that is
+   shared between different BWindows at runtime) does best with a
+   single global lock.  */
+
+static BLocker child_frame_lock;
+
+/* A LeaveNotify event (well, the closest equivalent on Haiku, which
+   is a B_MOUSE_MOVED event with `transit' set to B_EXITED_VIEW) might
+   be sent out-of-order with regards to motion events from other
+   windows, such as when the mouse pointer rapidly moves from an
+   undecorated child frame to its parent.  This can cause a failure to
+   clear the mouse face on the former if an event for the latter is
+   read by Emacs first and ends up showing the mouse face there.
+
+   While this lock doesn't really ensure that the events will be
+   delivered in the correct order, it makes them arrive in the correct
+   order "most of the time" on my machine, which is good enough and
+   preferable to adding a lot of extra complexity to the event
+   handling code to sort motion events by their timestamps.
+
+   Obviously this depends on the number of execution units that are
+   available, and the scheduling priority of each thread involved in
+   the input handling, but it will be good enough for most people.  */
+
+static BLocker movement_locker;
+
+/* This could be a private API, but it's used by (at least) the Qt
+   port, so it's probably here to stay.  */
+extern status_t get_subpixel_antialiasing (bool *);
+
 extern "C"
 {
   extern _Noreturn void emacs_abort (void);
@@ -104,27 +136,64 @@ gui_abort (const char *msg)
   emacs_abort ();
 }
 
-#ifdef USE_BE_CAIRO
-static cairo_format_t
-cairo_format_from_color_space (color_space space)
+static int
+keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
 {
-  switch (space)
+  switch (raw)
     {
-    case B_RGBA32:
-      return CAIRO_FORMAT_ARGB32;
-    case B_RGB32:
-      return CAIRO_FORMAT_RGB24;
-    case B_RGB16:
-      return CAIRO_FORMAT_RGB16_565;
-    case B_GRAY8:
-      return CAIRO_FORMAT_A8;
-    case B_GRAY1:
-      return CAIRO_FORMAT_A1;
+    case B_BACKSPACE:
+      *code = XK_BackSpace;
+      break;
+    case B_RETURN:
+      *code = XK_Return;
+      break;
+    case B_TAB:
+      *code = XK_Tab;
+      break;
+    case B_ESCAPE:
+      *code = XK_Escape;
+      break;
+    case B_LEFT_ARROW:
+      *code = XK_Left;
+      break;
+    case B_RIGHT_ARROW:
+      *code = XK_Right;
+      break;
+    case B_UP_ARROW:
+      *code = XK_Up;
+      break;
+    case B_DOWN_ARROW:
+      *code = XK_Down;
+      break;
+    case B_INSERT:
+      *code = XK_Insert;
+      break;
+    case B_DELETE:
+      *code = XK_Delete;
+      break;
+    case B_HOME:
+      *code = XK_Home;
+      break;
+    case B_END:
+      *code = XK_End;
+      break;
+    case B_PAGE_UP:
+      *code = XK_Page_Up;
+      break;
+    case B_PAGE_DOWN:
+      *code = XK_Page_Down;
+      break;
+
+    case B_FUNCTION_KEY:
+      *code = XK_F1 + key - 2;
+      break;
+
     default:
-      gui_abort ("Unsupported color space");
+      return 0;
     }
+
+  return 1;
 }
-#endif
 
 static void
 map_key (char *chars, int32 offset, uint32_t *c)
@@ -169,6 +238,40 @@ map_shift (uint32_t kc, uint32_t *ch)
 }
 
 static void
+map_caps (uint32_t kc, uint32_t *ch)
+{
+  if (!key_map_lock.Lock ())
+    gui_abort ("Failed to lock keymap");
+  if (!key_map)
+    get_key_map (&key_map, &key_chars);
+  if (!key_map)
+    return;
+  if (kc >= 128)
+    return;
+
+  int32_t m = key_map->caps_map[kc];
+  map_key (key_chars, m, ch);
+  key_map_lock.Unlock ();
+}
+
+static void
+map_caps_shift (uint32_t kc, uint32_t *ch)
+{
+  if (!key_map_lock.Lock ())
+    gui_abort ("Failed to lock keymap");
+  if (!key_map)
+    get_key_map (&key_map, &key_chars);
+  if (!key_map)
+    return;
+  if (kc >= 128)
+    return;
+
+  int32_t m = key_map->caps_shift_map[kc];
+  map_key (key_chars, m, ch);
+  key_map_lock.Unlock ();
+}
+
+static void
 map_normal (uint32_t kc, uint32_t *ch)
 {
   if (!key_map_lock.Lock ())
@@ -188,8 +291,25 @@ map_normal (uint32_t kc, uint32_t *ch)
 class Emacs : public BApplication
 {
 public:
+  BMessage settings;
+  bool settings_valid_p = false;
+
   Emacs () : BApplication ("application/x-vnd.GNU-emacs")
   {
+    BPath settings_path;
+
+    if (find_directory (B_USER_SETTINGS_DIRECTORY, &settings_path) != B_OK)
+      return;
+
+    settings_path.Append (PACKAGE_NAME);
+
+    BEntry entry (settings_path.Path ());
+    BFile settings_file (&entry, B_READ_ONLY | B_CREATE_FILE);
+
+    if (settings.Unflatten (&settings_file) != B_OK)
+      return;
+
+    settings_valid_p = true;
   }
 
   void
@@ -242,7 +362,7 @@ public:
   }
 };
 
-class EmacsWindow : public BDirectWindow
+class EmacsWindow : public BWindow
 {
 public:
   struct child_frame
@@ -260,41 +380,35 @@ public:
   int fullscreen_p = 0;
   int zoomed_p = 0;
   int shown_flag = 0;
+  volatile int was_shown_p = 0;
+  bool menu_bar_active_p = false;
+  window_look pre_override_redirect_style;
+  window_feel pre_override_redirect_feel;
 
-#ifdef USE_BE_CAIRO
-  BLocker surface_lock;
-  cairo_surface_t *cr_surface = NULL;
-#endif
-
-  EmacsWindow () : BDirectWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
-				  B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
+  EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
+			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
   {
 
   }
 
   ~EmacsWindow ()
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     struct child_frame *next;
     for (struct child_frame *f = subset_windows; f; f = next)
       {
+	if (f->window->LockLooper ())
+	  gui_abort ("Failed to lock looper for unparent");
 	f->window->Unparent ();
+	f->window->UnlockLooper ();
 	next = f->next;
 	delete f;
       }
 
     if (this->parent)
       UnparentAndUnlink ();
-
-#ifdef USE_BE_CAIRO
-    if (!surface_lock.Lock ())
-      gui_abort ("Failed to lock cairo surface");
-    if (cr_surface)
-      {
-	cairo_surface_destroy (cr_surface);
-	cr_surface = NULL;
-      }
-    surface_lock.Unlock ();
-#endif
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -307,10 +421,16 @@ public:
   void
   UpwardsSubsetChildren (EmacsWindow *w)
   {
+    if (!LockLooper ())
+      gui_abort ("Failed to lock looper for subset");
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     UpwardsSubset (w);
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       f->window->UpwardsSubsetChildren (w);
+    child_frame_lock.Unlock ();
+    UnlockLooper ();
   }
 
   void
@@ -323,15 +443,23 @@ public:
   void
   UpwardsUnSubsetChildren (EmacsWindow *w)
   {
+    if (!LockLooper ())
+      gui_abort ("Failed to lock looper for unsubset");
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     UpwardsUnSubset (w);
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       f->window->UpwardsUnSubsetChildren (w);
+    child_frame_lock.Unlock ();
+    UnlockLooper ();
   }
 
   void
   Unparent (void)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     this->SetFeel (B_NORMAL_WINDOW_FEEL);
     UpwardsUnSubsetChildren (parent);
     this->RemoveFromSubset (this);
@@ -341,13 +469,17 @@ public:
 	fullscreen_p = 0;
 	MakeFullscreen (1);
       }
+    child_frame_lock.Unlock ();
   }
 
   void
   UnparentAndUnlink (void)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     this->parent->UnlinkChild (this);
     this->Unparent ();
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -362,8 +494,8 @@ public:
 	  {
 	    if (last)
 	      last->next = tem->next;
-	    if (tem == subset_windows)
-	      subset_windows = NULL;
+	    else
+	      subset_windows = tem->next;
 	    delete tem;
 	    return;
 	  }
@@ -375,6 +507,9 @@ public:
   void
   ParentTo (EmacsWindow *window)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (this->parent)
       UnparentAndUnlink ();
 
@@ -390,6 +525,8 @@ public:
       }
     this->Sync ();
     window->LinkChild (this);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -418,7 +555,6 @@ public:
     BRect frame = this->Frame ();
     f->window->MoveTo (frame.left + f->xoff,
 		       frame.top + f->yoff);
-    this->Sync ();
   }
 
   void
@@ -431,6 +567,9 @@ public:
   MoveChild (EmacsWindow *window, int xoff, int yoff,
 	     int weak_p)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     for (struct child_frame *f = subset_windows; f;
 	 f = f->next)
       {
@@ -440,10 +579,13 @@ public:
 	    f->yoff = yoff;
 	    if (!weak_p)
 	      DoMove (f);
+
+	    child_frame_lock.Unlock ();
 	    return;
 	  }
       }
 
+    child_frame_lock.Unlock ();
     gui_abort ("Trying to move a child frame that doesn't exist");
   }
 
@@ -455,43 +597,6 @@ public:
     rq.activated_p = activated;
 
     haiku_write (ACTIVATION, &rq);
-  }
-
-  void
-  DirectConnected (direct_buffer_info *info)
-  {
-#ifdef USE_BE_CAIRO
-    if (!surface_lock.Lock ())
-      gui_abort ("Failed to lock window direct cr surface");
-    if (cr_surface)
-      {
-	cairo_surface_destroy (cr_surface);
-	cr_surface = NULL;
-      }
-
-    if (info->buffer_state != B_DIRECT_STOP)
-      {
-	int left, top, right, bottom;
-	left = info->clip_bounds.left;
-	top = info->clip_bounds.top;
-	right = info->clip_bounds.right;
-	bottom = info->clip_bounds.bottom;
-
-	unsigned char *bits = (unsigned char *) info->bits;
-	if ((info->bits_per_pixel % 8) == 0)
-	  {
-	    bits += info->bytes_per_row * top;
-	    bits += (left * info->bits_per_pixel / 8);
-	    cr_surface = cairo_image_surface_create_for_data
-	      (bits,
-	       cairo_format_from_color_space (info->pixel_format),
-	       right - left + 1,
-	       bottom - top + 1,
-	       info->bytes_per_row);
-	  }
-      }
-    surface_lock.Unlock ();
-#endif
   }
 
   void
@@ -567,7 +672,7 @@ public:
 	haiku_write (FILE_PANEL_EVENT, &rq);
       }
     else
-      BDirectWindow::MessageReceived (msg);
+      BWindow::MessageReceived (msg);
   }
 
   void
@@ -576,9 +681,20 @@ public:
     if (msg->what == B_KEY_DOWN || msg->what == B_KEY_UP)
       {
 	struct haiku_key_event rq;
+
+	/* Pass through key events to the regular dispatch mechanism
+	   if the menu bar active, so that key navigation can work.  */
+	if (menu_bar_active_p)
+	  {
+	    BWindow::DispatchMessage (msg, handler);
+	    return;
+	  }
+
 	rq.window = this;
 
-	int32_t code = msg->GetInt32 ("raw_char", 0);
+	int32 raw, key;
+	msg->FindInt32 ("raw_char", &raw);
+	msg->FindInt32 ("key", &key);
 
 	rq.modifiers = 0;
 	uint32_t mods = modifiers ();
@@ -595,15 +711,28 @@ public:
 	if (mods & B_OPTION_KEY)
 	  rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-	rq.mb_char = code;
-	rq.kc = msg->GetInt32 ("key", -1);
-	rq.unraw_mb_char =
-	  BUnicodeChar::FromUTF8 (msg->GetString ("bytes"));
+	if (!keysym_from_raw_char (raw, key, &rq.keysym))
+	  rq.keysym = 0;
 
-	if ((mods & B_SHIFT_KEY) && rq.kc >= 0)
-	  map_shift (rq.kc, &rq.unraw_mb_char);
-	else if (rq.kc >= 0)
-	  map_normal (rq.kc, &rq.unraw_mb_char);
+	rq.multibyte_char = 0;
+
+	if (!rq.keysym)
+	  {
+	    if (mods & B_SHIFT_KEY)
+	      {
+		if (mods & B_CAPS_LOCK)
+		  map_caps_shift (key, &rq.multibyte_char);
+		else
+		  map_shift (key, &rq.multibyte_char);
+	      }
+	    else
+	      {
+		if (mods & B_CAPS_LOCK)
+		  map_caps (key, &rq.multibyte_char);
+		else
+		  map_normal (key, &rq.multibyte_char);
+	      }
+	  }
 
 	haiku_write (msg->what == B_KEY_DOWN ? KEY_DOWN : KEY_UP, &rq);
       }
@@ -638,7 +767,7 @@ public:
 	  };
       }
     else
-      BDirectWindow::DispatchMessage (msg, handler);
+      BWindow::DispatchMessage (msg, handler);
   }
 
   void
@@ -648,6 +777,7 @@ public:
     rq.window = this;
 
     haiku_write (MENU_BAR_OPEN, &rq);
+    menu_bar_active_p = true;
   }
 
   void
@@ -657,6 +787,7 @@ public:
     rq.window = this;
 
     haiku_write (MENU_BAR_CLOSE, &rq);
+    menu_bar_active_p = false;
   }
 
   void
@@ -668,7 +799,7 @@ public:
     rq.px_widthf = newWidth + 1.0f;
 
     haiku_write (FRAME_RESIZED, &rq);
-    BDirectWindow::FrameResized (newWidth, newHeight);
+    BWindow::FrameResized (newWidth, newHeight);
   }
 
   void
@@ -681,27 +812,39 @@ public:
 
     haiku_write (MOVE_EVENT, &rq);
 
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoMove (f);
-    BDirectWindow::FrameMoved (newPosition);
+    child_frame_lock.Unlock ();
+
+    Sync ();
+    BWindow::FrameMoved (newPosition);
   }
 
   void
   WorkspacesChanged (uint32_t old, uint32_t n)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frames for changing workspaces");
     for (struct child_frame *f = subset_windows;
 	 f; f = f->next)
       DoUpdateWorkspace (f);
+    child_frame_lock.Unlock ();
   }
 
   void
   EmacsMoveTo (int x, int y)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (!this->parent)
       this->MoveTo (x, y);
     else
       this->parent->MoveChild (this, x, y, 0);
+    child_frame_lock.Unlock ();
   }
 
   bool
@@ -716,7 +859,7 @@ public:
   void
   Minimize (bool minimized_p)
   {
-    BDirectWindow::Minimize (minimized_p);
+    BWindow::Minimize (minimized_p);
     struct haiku_iconification_event rq;
     rq.window = this;
     rq.iconified_p = !parent && minimized_p;
@@ -729,9 +872,14 @@ public:
   {
     if (this->IsHidden ())
       return;
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     Hide ();
     if (this->parent)
       UpwardsUnSubsetChildren (this->parent);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -739,11 +887,29 @@ public:
   {
     if (!this->IsHidden ())
       return;
+
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
+    if (!was_shown_p)
+      {
+	/* This window is being shown for the first time, which means
+	   Show will unlock the looper.  In this case, it should be
+	   locked again, since the looper is unlocked when the window
+	   is first created.  */
+
+	if (!LockLooper ())
+	  gui_abort ("Failed to lock looper during first window show");
+	was_shown_p = true;
+      }
+
     if (this->parent)
       shown_flag = 1;
     Show ();
     if (this->parent)
       UpwardsSubsetChildren (this->parent);
+
+    child_frame_lock.Unlock ();
   }
 
   void
@@ -776,7 +942,7 @@ public:
 	x_before_zoom = y_before_zoom = INT_MIN;
       }
 
-    BDirectWindow::Zoom (o, w, h);
+    BWindow::Zoom (o, w, h);
   }
 
   void
@@ -787,29 +953,40 @@ public:
     zoomed_p = 0;
 
     EmacsMoveTo (pre_zoom_rect.left, pre_zoom_rect.top);
-    ResizeTo (pre_zoom_rect.Width (),
-	      pre_zoom_rect.Height ());
+    ResizeTo (BE_RECT_WIDTH (pre_zoom_rect),
+	      BE_RECT_HEIGHT (pre_zoom_rect));
   }
 
   void
   GetParentWidthHeight (int *width, int *height)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     if (parent)
       {
-	*width = parent->Frame ().Width ();
-	*height = parent->Frame ().Height ();
+	BRect frame = parent->Frame ();
+	*width = BE_RECT_WIDTH (frame);
+	*height = BE_RECT_HEIGHT (frame);
       }
     else
       {
 	BScreen s (this);
-	*width = s.Frame ().Width ();
-	*height = s.Frame ().Height ();
+	BRect frame = s.Frame ();
+
+	*width = BE_RECT_WIDTH (frame);
+	*height = BE_RECT_HEIGHT (frame);
       }
+
+    child_frame_lock.Unlock ();
   }
 
   void
   OffsetChildRect (BRect *r, EmacsWindow *c)
   {
+    if (!child_frame_lock.Lock ())
+      gui_abort ("Failed to lock child frame state lock");
+
     for (struct child_frame *f; f; f = f->next)
       if (f->window == c)
 	{
@@ -817,9 +994,11 @@ public:
 	  r->bottom -= f->yoff;
 	  r->left -= f->xoff;
 	  r->right -= f->xoff;
+	  child_frame_lock.Unlock ();
 	  return;
 	}
 
+    child_frame_lock.Lock ();
     gui_abort ("Trying to calculate offsets for a child frame that doesn't exist");
   }
 
@@ -828,8 +1007,8 @@ public:
   {
     BScreen screen (this);
 
-      if (!screen.IsValid ())
-	gui_abort ("Trying to make a window fullscreen without a screen");
+    if (!screen.IsValid ())
+      gui_abort ("Trying to make a window fullscreen without a screen");
 
     if (make_fullscreen_p == fullscreen_p)
       return;
@@ -843,8 +1022,14 @@ public:
 
 	flags |= B_NOT_MOVABLE | B_NOT_ZOOMABLE;
 	pre_fullscreen_rect = Frame ();
+
+	if (!child_frame_lock.Lock ())
+	  gui_abort ("Failed to lock child frame state lock");
+
 	if (parent)
 	  parent->OffsetChildRect (&pre_fullscreen_rect, this);
+
+	child_frame_lock.Unlock ();
 
 	int w, h;
 	EmacsMoveTo (0, 0);
@@ -856,8 +1041,8 @@ public:
 	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
 	EmacsMoveTo (pre_fullscreen_rect.left,
 		     pre_fullscreen_rect.top);
-	ResizeTo (pre_fullscreen_rect.Width (),
-		  pre_fullscreen_rect.Height ());
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect),
+		  BE_RECT_HEIGHT (pre_fullscreen_rect));
       }
     SetFlags (flags);
   }
@@ -868,6 +1053,14 @@ class EmacsMenuBar : public BMenuBar
 public:
   EmacsMenuBar () : BMenuBar (BRect (0, 0, 0, 0), NULL)
   {
+  }
+
+  void
+  AttachedToWindow (void)
+  {
+    BWindow *window = Window ();
+
+    window->SetKeyMenuBar (this);
   }
 
   void
@@ -940,10 +1133,12 @@ public:
       gui_abort ("Could not lock cr surface during attachment");
     if (cr_surface)
       gui_abort ("Trying to attach cr surface when one already exists");
+    BRect bounds = offscreen_draw_bitmap_1->Bounds ();
+
     cr_surface = cairo_image_surface_create_for_data
       ((unsigned char *) offscreen_draw_bitmap_1->Bits (),
-       CAIRO_FORMAT_ARGB32, offscreen_draw_bitmap_1->Bounds ().Width (),
-       offscreen_draw_bitmap_1->Bounds ().Height (),
+       CAIRO_FORMAT_ARGB32, BE_RECT_WIDTH (bounds),
+       BE_RECT_HEIGHT (bounds),
        offscreen_draw_bitmap_1->BytesPerRow ());
     if (!cr_surface)
       gui_abort ("Cr surface allocation failed for double-buffered view");
@@ -997,8 +1192,11 @@ public:
 	if (offscreen_draw_bitmap_1->InitCheck () != B_OK)
 	  gui_abort ("Offscreen draw bitmap initialization failed");
 
-	offscreen_draw_view->MoveTo (Frame ().left, Frame ().top);
-	offscreen_draw_view->ResizeTo (Frame ().Width (), Frame ().Height ());
+	BRect frame = Frame ();
+
+	offscreen_draw_view->MoveTo (frame.left, frame.top);
+	offscreen_draw_view->ResizeTo (BE_RECT_WIDTH (frame),
+				       BE_RECT_HEIGHT (frame));
 	offscreen_draw_bitmap_1->AddChild (offscreen_draw_view);
 #ifdef USE_BE_CAIRO
 	AttachCairoSurface ();
@@ -1037,7 +1235,7 @@ public:
 	return;
       }
 
-    if (w->shown_flag)
+    if (w->shown_flag && offscreen_draw_view)
       {
 	PushState ();
 	SetDrawingMode (B_OP_ERASE);
@@ -1140,7 +1338,7 @@ public:
     if (looper_locked_count)
       {
 	if (!offscreen_draw_bitmap_1->Lock ())
-	  gui_abort ("Failed to lock bitmap after double buffering was set up.");
+	  gui_abort ("Failed to lock bitmap after double buffering was set up");
       }
 
     UnlockLooper ();
@@ -1162,7 +1360,11 @@ public:
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
 						    -(point.y - tt_absl_pos.y)));
 
-    haiku_write (MOUSE_MOTION, &rq);
+    if (movement_locker.Lock ())
+      {
+	haiku_write (MOUSE_MOTION, &rq);
+	movement_locker.Unlock ();
+      }
   }
 
   void
@@ -1383,7 +1585,7 @@ public:
       {
 	BRect r = menu->Frame ();
 	int w = menu->StringWidth (key);
-	menu->MovePenTo (BPoint (r.Width () - w - 4,
+	menu->MovePenTo (BPoint (BE_RECT_WIDTH (r) - w - 4,
 				 menu->PenLocation ().y));
 	menu->DrawString (key);
       }
@@ -1551,10 +1753,18 @@ BWindow_new (void *_view)
   if (!vw)
     {
       *v = NULL;
-      window->Lock ();
+      window->LockLooper ();
       window->Quit ();
       return NULL;
     }
+
+  /* Windows are created locked by the current thread, but calling
+     Show for the first time causes them to be unlocked.  To avoid a
+     deadlock when a frame is created invisible in one thread, and
+     another thread later tries to lock it, the window is unlocked
+     here, and EmacsShow will lock it manually if it's being shown for
+     the first time.  */
+  window->UnlockLooper ();
   window->AddChild (vw);
   *v = vw;
   return window;
@@ -1563,7 +1773,7 @@ BWindow_new (void *_view)
 void
 BWindow_quit (void *window)
 {
-  ((BWindow *) window)->Lock ();
+  ((BWindow *) window)->LockLooper ();
   ((BWindow *) window)->Quit ();
 }
 
@@ -1610,7 +1820,6 @@ BWindow_set_visible (void *window, int visible_p)
 	win->Minimize (false);
       win->EmacsHide ();
     }
-  win->Sync ();
 }
 
 /* Change the title of WINDOW to the multibyte string TITLE.  */
@@ -1716,71 +1925,6 @@ void
 BWindow_Flush (void *window)
 {
   ((BWindow *) window)->Flush ();
-}
-
-/* Map the keycode KC, storing the result in CODE and 1 in
-   NON_ASCII_P if it should be used.  */
-void
-BMapKey (uint32_t kc, int *non_ascii_p, unsigned *code)
-{
-  if (*code == 10 && kc != 0x42)
-    {
-      *code = XK_Return;
-      *non_ascii_p = 1;
-      return;
-    }
-
-  switch (kc)
-    {
-    default:
-      *non_ascii_p = 0;
-      if (kc < 0xe && kc > 0x1)
-	{
-	  *code = XK_F1 + kc - 2;
-	  *non_ascii_p = 1;
-	}
-      return;
-    case 0x1e:
-      *code = XK_BackSpace;
-      break;
-    case 0x61:
-      *code = XK_Left;
-      break;
-    case 0x63:
-      *code = XK_Right;
-      break;
-    case 0x57:
-      *code = XK_Up;
-      break;
-    case 0x62:
-      *code = XK_Down;
-      break;
-    case 0x64:
-      *code = XK_Insert;
-      break;
-    case 0x65:
-      *code = XK_Delete;
-      break;
-    case 0x37:
-      *code = XK_Home;
-      break;
-    case 0x58:
-      *code = XK_End;
-      break;
-    case 0x39:
-      *code = XK_Page_Up;
-      break;
-    case 0x5a:
-      *code = XK_Page_Down;
-      break;
-    case 0x1:
-      *code = XK_Escape;
-      break;
-    case 0x68:
-      *code = XK_Menu;
-      break;
-    }
-  *non_ascii_p = 1;
 }
 
 /* Make a scrollbar, attach it to VIEW's window, and return it.  */
@@ -2224,8 +2368,14 @@ BMenuBar_delete (void *menubar)
 {
   BView *vw = (BView *) menubar;
   BView *p = vw->Parent ();
+  EmacsWindow *window = (EmacsWindow *) p->Window ();
+
   if (!p->LockLooper ())
     gui_abort ("Failed to lock menu bar parent while removing menubar");
+  window->SetKeyMenuBar (NULL);
+  /* MenusEnded isn't called if the menu bar is destroyed
+     before it closes.  */
+  window->menu_bar_active_p = false;
   vw->RemoveSelf ();
   p->UnlockLooper ();
   delete vw;
@@ -2597,7 +2747,8 @@ char *
 be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int dir_only_p,
 		      void *window, const char *save_text, const char *prompt,
 		      void (*block_input_function) (void),
-		      void (*unblock_input_function) (void))
+		      void (*unblock_input_function) (void),
+		      void (*maybe_quit_function) (void))
 {
   ptrdiff_t idx = c_specpdl_idx_from_cxx ();
   /* setjmp/longjmp is UB with automatic objects. */
@@ -2608,7 +2759,6 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
   BMessage *msg = new BMessage ('FPSE');
   BFilePanel *panel = new BFilePanel (open_p ? B_OPEN_PANEL : B_SAVE_PANEL,
 				      NULL, NULL, mode);
-  unblock_input_function ();
 
   struct popup_file_dialog_data dat;
   dat.entry = path;
@@ -2632,7 +2782,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
   be_popup_file_dialog_safe_set_target (panel, w);
 
   panel->Show ();
-  panel->Window ()->Show ();
+  unblock_input_function ();
 
   void *buf = alloca (200);
   while (1)
@@ -2642,19 +2792,26 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
 
       if (!haiku_read_with_timeout (&type, buf, 200, 100000))
 	{
+	  block_input_function ();
 	  if (type != FILE_PANEL_EVENT)
 	    haiku_write (type, buf);
 	  else if (!ptr)
 	    ptr = (char *) ((struct haiku_file_panel_event *) buf)->ptr;
+	  unblock_input_function ();
+
+	  maybe_quit_function ();
 	}
 
       ssize_t b_s;
+      block_input_function ();
       haiku_read_size (&b_s);
-      if (!b_s || b_s == -1 || ptr || panel->Window ()->IsHidden ())
+      if (!b_s || ptr || panel->Window ()->IsHidden ())
 	{
 	  c_unbind_to_nil_from_cxx (idx);
+	  unblock_input_function ();
 	  return ptr;
 	}
+      unblock_input_function ();
     }
 }
 
@@ -2663,10 +2820,8 @@ be_app_quit (void)
 {
   if (be_app)
     {
-      status_t e;
       while (!be_app->Lock ());
       be_app->Quit ();
-      wait_for_thread (app_thread, &e);
     }
 }
 
@@ -2818,8 +2973,7 @@ cairo_surface_t *
 EmacsView_cairo_surface (void *view)
 {
   EmacsView *vw = (EmacsView *) view;
-  EmacsWindow *wn = (EmacsWindow *) vw->Window ();
-  return vw->cr_surface ? vw->cr_surface : wn->cr_surface;
+  return vw->cr_surface;
 }
 
 /* Transfer each clip rectangle in VIEW to the cairo context
@@ -2834,8 +2988,9 @@ BView_cr_dump_clipping (void *view, cairo_t *ctx)
   for (int i = 0; i < cr.CountRects (); ++i)
     {
       BRect r = cr.RectAt (i);
-      cairo_rectangle (ctx, r.left, r.top, r.Width () + 1,
-		       r.Height () + 1);
+      cairo_rectangle (ctx, r.left, r.top,
+		       BE_RECT_WIDTH (r),
+		       BE_RECT_HEIGHT (r));
     }
 
   cairo_clip (ctx);
@@ -2845,10 +3000,7 @@ BView_cr_dump_clipping (void *view, cairo_t *ctx)
 void
 EmacsWindow_begin_cr_critical_section (void *window)
 {
-  EmacsWindow *w = (EmacsWindow *) window;
-  if (!w->surface_lock.Lock ())
-    gui_abort ("Couldn't lock cairo surface");
-
+  BWindow *w = (BWindow *) window;
   BView *vw = (BView *) w->FindView ("Emacs");
   EmacsView *ev = dynamic_cast <EmacsView *> (vw);
   if (ev && !ev->cr_surface_lock.Lock ())
@@ -2859,8 +3011,7 @@ EmacsWindow_begin_cr_critical_section (void *window)
 void
 EmacsWindow_end_cr_critical_section (void *window)
 {
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->surface_lock.Unlock ();
+  BWindow *w = (BWindow *) window;
   BView *vw = (BView *) w->FindView ("Emacs");
   EmacsView *ev = dynamic_cast <EmacsView *> (vw);
   if (ev)
@@ -2912,6 +3063,18 @@ BWindow_set_min_size (void *window, int width, int height)
   w->UnlockLooper ();
 }
 
+/* Synchronize WINDOW's connection to the App Server.  */
+void
+BWindow_sync (void *window)
+{
+  BWindow *w = (BWindow *) window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window looper for sync");
+  w->Sync ();
+  w->UnlockLooper ();
+}
+
 /* Set the alignment of WINDOW's dimensions.  */
 void
 BWindow_set_size_alignment (void *window, int align_width, int align_height)
@@ -2927,4 +3090,81 @@ BWindow_set_size_alignment (void *window, int align_width, int align_height)
     gui_abort ("Invalid pixel alignment");
 #endif
   w->UnlockLooper ();
+}
+
+void
+BWindow_send_behind (void *window, void *other_window)
+{
+  BWindow *w = (BWindow *) window;
+  BWindow *other = (BWindow *) other_window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window in order to send it behind another");
+  w->SendBehind (other);
+  w->UnlockLooper ();
+}
+
+bool
+BWindow_is_active (void *window)
+{
+  BWindow *w = (BWindow *) window;
+  return w->IsActive ();
+}
+
+bool
+be_use_subpixel_antialiasing (void)
+{
+  bool current_subpixel_antialiasing;
+
+  if (get_subpixel_antialiasing (&current_subpixel_antialiasing) != B_OK)
+    return false;
+
+  return current_subpixel_antialiasing;
+}
+
+/* This isn't implemented very properly (for example: what if
+   decorations are changed while the window is under override
+   redirect?) but it works well enough for most use cases.  */
+void
+BWindow_set_override_redirect (void *window, bool override_redirect_p)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  if (w->LockLooper ())
+    {
+      if (override_redirect_p)
+	{
+	  w->pre_override_redirect_feel = w->Feel ();
+	  w->pre_override_redirect_style = w->Look ();
+	  w->SetFeel (kMenuWindowFeel);
+	  w->SetLook (B_NO_BORDER_WINDOW_LOOK);
+	}
+      else
+	{
+	  w->SetFeel (w->pre_override_redirect_feel);
+	  w->SetLook (w->pre_override_redirect_style);
+	}
+
+      w->UnlockLooper ();
+    }
+}
+
+/* Find a resource by the name NAME inside the settings file.  The
+   string returned is in UTF-8 encoding, and will stay allocated as
+   long as the BApplication (a.k.a display) is alive.  */
+const char *
+be_find_setting (const char *name)
+{
+  Emacs *app = (Emacs *) be_app;
+  const char *value;
+
+  /* Note that this is thread-safe since the constructor of `Emacs'
+     runs in the main thread.  */
+  if (!app->settings_valid_p)
+    return NULL;
+
+  if (app->settings.FindString (name, 0, &value) != B_OK)
+    return NULL;
+
+  return value;
 }

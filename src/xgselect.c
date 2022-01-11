@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
 
-Copyright (C) 2009-2021 Free Software Foundation, Inc.
+Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,11 +28,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "blockinput.h"
 #include "systime.h"
+#include "process.h"
 
 static ptrdiff_t threads_holding_glib_lock;
 static GMainContext *glib_main_context;
 
-void release_select_lock (void)
+void
+release_select_lock (void)
 {
 #if GNUC_PREREQ (4, 7, 0)
   if (__atomic_sub_fetch (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
@@ -43,7 +45,8 @@ void release_select_lock (void)
 #endif
 }
 
-static void acquire_select_lock (GMainContext *context)
+static void
+acquire_select_lock (GMainContext *context)
 {
 #if GNUC_PREREQ (4, 7, 0)
   if (__atomic_fetch_add (&threads_holding_glib_lock, 1, __ATOMIC_ACQ_REL) == 0)
@@ -93,9 +96,16 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec, must_free = 0;
   bool need_to_dispatch;
+#ifdef HAVE_PGTK
+  bool already_has_events;
+#endif
 
   context = g_main_context_default ();
   acquire_select_lock (context);
+
+#ifdef HAVE_PGTK
+  already_has_events = g_main_context_pending (context);
+#endif
 
   if (rfds) all_rfds = *rfds;
   else FD_ZERO (&all_rfds);
@@ -143,10 +153,41 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	tmop = &tmo;
     }
 
+#ifndef HAVE_PGTK
   fds_lim = max_fds + 1;
   nfds = thread_select (pselect, fds_lim,
 			&all_rfds, have_wfds ? &all_wfds : NULL, efds,
 			tmop, sigmask);
+#else
+  /*
+    On PGTK, when you type a key, the key press event are received,
+    and one more key press event seems to be received internally.
+    The second event is not via a socket, so there are weird status:
+      - socket read buffer is empty
+      - a key press event is pending
+    In that case, we should not sleep, and dispatch the event immediately.
+    Bug#52761
+   */
+  if (!already_has_events)
+    {
+      fds_lim = max_fds + 1;
+      nfds = thread_select (pselect, fds_lim,
+			    &all_rfds, have_wfds ? &all_wfds : NULL, efds,
+			    tmop, sigmask);
+    }
+  else
+    {
+      /* Emulate return values */
+      nfds = 1;
+      FD_ZERO (&all_rfds);
+      if (have_wfds)
+	FD_ZERO (&all_wfds);
+      if (efds)
+	FD_ZERO (efds);
+      our_fds++;
+    }
+#endif
+
   if (nfds < 0)
     retval = nfds;
   else if (nfds > 0)
@@ -181,6 +222,21 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 #else
   need_to_dispatch = true;
 #endif
+
+  /* xwidgets make heavy use of GLib subprocesses, which add their own
+     SIGCHLD handler at arbitrary locations.  That doesn't play well
+     with Emacs's own handler, so once GLib does its thing with its
+     subprocesses we restore our own SIGCHLD handler (which chains the
+     GLib handler) here.
+
+     There is an obvious race condition, but we can't really do
+     anything about that, except hope a SIGCHLD arrives soon to clear
+     up the situation.  */
+
+#ifdef HAVE_XWIDGETS
+  catch_child_signal ();
+#endif
+
   if (need_to_dispatch)
     {
       acquire_select_lock (context);

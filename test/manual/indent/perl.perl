@@ -95,3 +95,15 @@ s#ijk#lmn#g;  # This is a regular expression sustitution.
 s #lmn#opq#g; # FIXME: this should be a comment starting with "#lmn"
   /lmn/rst/g; # and this is the actual regular expression
 print;        # prints "rstrst\n"
+
+given ($num) {
+    when ($num>10) {
+	printf "number is greater than 10\n";
+    }
+    when ($num<10) {
+	printf "number is less than 10\n";
+    }
+    default {
+	printf "number is equal to 10\n";
+    }
+}

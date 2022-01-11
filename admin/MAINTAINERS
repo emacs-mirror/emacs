@@ -58,10 +58,7 @@ Artur Malabarba
 
 Michael Albinus
         Tramp
-            lisp/net/tramp*.el
             lisp/url/url-tramp.el
-            doc/misc/tramp*.texi
-            test/lisp/net/tramp*-tests.el
             test/lisp/url/url-tramp-tests.el
 
         D-Bus
@@ -140,6 +137,27 @@ Andrea Corallo
 
 Stefan Kangas
         admin/automerge
+
+Po Lu
+	The Haiku port:
+	    src/haikuterm.c
+	    src/haikufns.c
+	    src/haikuimage.c
+	    src/haikuselect.c
+	    src/haiku_io.c
+	    src/haiku.c
+	    src/haiku_select.cc
+	    src/haiku_support.cc
+	    src/haiku_font_support.cc
+	    src/haiku_draw_support.cc
+	    src/haikugui.h
+	    src/haikuterm.h
+	    src/haikuselect.h
+	    src/haiku_support.h
+	    lisp/term/haiku-win.el
+	    doc/emacs/haiku.texi
+
+	Haiku battery support in lisp/battery.el
 
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
@@ -269,6 +287,53 @@ Amin Bandali
 	Eshell
 	    lisp/eshell/*
 	    doc/misc/eshell.texi
+
+Po Lu
+	The X port
+	      src/xterm.c
+	      src/xfns.c
+	X11 and GTK xwidget support in src/xwidget.c
+	Precision pixel scrolling in lisp/pixel-scroll.el
+
+==============================================================================
+3. Externally maintained packages.
+==============================================================================
+
+Tramp
+	Maintainer: Michael Albinus
+	Repository: git://git.savannah.gnu.org/tramp.git
+	Mailing List: tramp-devel@gnu.org
+	Bug Reports: M-x tramp-bug
+	Notes: For backward compatibility requirements, see
+	  lisp/net/trampver.el.
+
+        lisp/net/tramp*.el
+        doc/misc/tramp*.texi
+        test/lisp/net/tramp*-tests.el
+
+Modus themes
+        Maintainer: Protesilaos Stavrou
+        Repository and issue tracker: https://gitlab.com/protesilaos/modus-themes
+
+        doc/misc/modus-themes.org
+        etc/themes/modus*.el
+
+Org Mode
+	Home Page: https://orgmode.org/
+	Maintainer: Org Mode developers
+	Repository: git://git.sv.gnu.org/emacs/org-mode.git
+	Mailing list: emacs-orgmode@gnu.org
+	Bug Reports: M-x org-submit-bug-report
+	Notes: Org Mode is maintained as a separate project that is
+          periodically merged into Emacs.  To view or participate in
+          Org Mode development, please go to https://orgmode.org/ and
+          follow the instructions there.
+
+	lisp/org/*.el
+	etc/org/*
+	etc/refcards/orgcard.tex
+	doc/misc/org.org
+	doc/misc/org-setup.org
 
 
 ;;; Local Variables:

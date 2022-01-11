@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2021 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1552,7 +1552,7 @@ This does not change the name of the visited file (if any).  */)
 
   /* Catch redisplay's attention.  Unless we do this, the mode lines for
      any windows displaying current_buffer will stay unchanged.  */
-  update_mode_lines = 11;
+  bset_update_mode_line (current_buffer);
 
   XSETBUFFER (buf, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), newname);
@@ -1561,6 +1561,9 @@ This does not change the name of the visited file (if any).  */)
     call0 (intern ("rename-auto-save-file"));
 
   run_buffer_list_update_hook (current_buffer);
+
+  call2 (intern ("uniquify--rename-buffer-advice"),
+         BVAR (current_buffer, name), unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
@@ -6020,15 +6023,16 @@ specifies.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &BVAR (current_buffer, indicate_empty_lines), Qnil,
-		     doc: /* Visually indicate empty lines after the buffer end.
-If non-nil, a bitmap is displayed in the left fringe of a window on
-window-systems.  */);
+		     doc: /* Visually indicate unused ("empty") screen lines after the buffer end.
+If non-nil, a bitmap is displayed in the left fringe of a window
+on graphical displays for each screen line that doesn't correspond
+to any buffer text.  */);
 
   DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
 		     &BVAR (current_buffer, indicate_buffer_boundaries), Qnil,
 		     doc: /* Visually indicate buffer boundaries and scrolling.
 If non-nil, the first and last line of the buffer are marked in the fringe
-of a window on window-systems with angle bitmaps, or if the window can be
+of a window on graphical displays with angle bitmaps, or if the window can be
 scrolled, the top and bottom line of the window are marked with up and down
 arrow bitmaps.
 

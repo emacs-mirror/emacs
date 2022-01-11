@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
@@ -510,8 +510,9 @@ If DEFAULT is nil then return empty string for empty input."
 
 (defmacro bookmark-maybe-historicize-string (string)
   "Put STRING into the bookmark prompt history, if caller non-interactive.
-We need this because sometimes bookmark functions are invoked from
-menus, so `completing-read' never gets a chance to set `bookmark-history'."
+We need this because sometimes bookmark functions are invoked
+from other commands that pass in the bookmark name, so
+`completing-read' never gets a chance to set `bookmark-history'."
   `(or
     (called-interactively-p 'interactive)
     (setq bookmark-history (cons ,string bookmark-history))))
@@ -1154,7 +1155,7 @@ and then show any annotations for this bookmark."
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-set-fringe-mark
-    (let ((overlays (overlays-in (point) (point)))
+    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))

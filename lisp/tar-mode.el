@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1991, 1993-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2022 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -467,8 +467,8 @@ checksum before doing the check."
 
 (defun tar-clip-time-string (time)
   (declare (obsolete format-time-string "27.1"))
-  (let ((str (current-time-string time)))
-    (concat " " (substring str 4 16) (format-time-string " %Y" time))))
+  (let ((system-time-locale "C"))
+    (format-time-string " %b %e %H:%M %Y" time)))
 
 (defun tar-grind-file-mode (mode)
   "Construct a `rw-r--r--' string indicating MODE.

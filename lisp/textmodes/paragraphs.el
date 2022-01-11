@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2021 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -479,18 +479,42 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
 
-(defun repunctuate-sentences (&optional no-query)
+(defun repunctuate-sentences-filter (_start _end)
+  "Search filter used by `repunctuate-sentences' to skip unneeded spaces.
+By default, it skips occurrences that already have two spaces."
+  (/= 2 (- (point) (save-excursion (skip-chars-backward " ") (point)))))
+
+(defvar repunctuate-sentences-filter #'repunctuate-sentences-filter
+  "The default filter used by `repunctuate-sentences'.
+It is advised to use `add-function' on this to add more filters,
+for example, `(looking-back (rx (or \"e.g.\" \"i.e.\") \" \") 5)'
+with a set of predefined abbreviations to skip from adding two spaces.")
+
+(defun repunctuate-sentences (&optional no-query start end)
   "Put two spaces at the end of sentences from point to the end of buffer.
-It works using `query-replace-regexp'.
-If optional argument NO-QUERY is non-nil, make changes without
-asking for confirmation."
-  (interactive)
+It works using `query-replace-regexp'.  In Transient Mark mode,
+if the mark is active, operate on the contents of the region.
+Second and third arg START and END specify the region to operate on.
+If optional argument NO-QUERY is non-nil, make changes without asking
+for confirmation.  You can use `repunctuate-sentences-filter' to add
+filters to skip occurrences of spaces that don't need to be replaced."
+  (interactive (list nil
+                     (if (use-region-p) (region-beginning))
+                     (if (use-region-p) (region-end))))
   (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
         (to-string "\\1\\2\\3  "))
     (if no-query
-        (while (re-search-forward regexp nil t)
-          (replace-match to-string))
-      (query-replace-regexp regexp to-string))))
+        (progn
+          (when start (goto-char start))
+          (while (re-search-forward regexp end t)
+            (replace-match to-string)))
+      (unwind-protect
+          (progn
+            (add-function :after-while isearch-filter-predicate
+                          repunctuate-sentences-filter)
+            (query-replace-regexp regexp to-string nil start end))
+        (remove-function isearch-filter-predicate
+                         repunctuate-sentences-filter)))))
 
 
 (defun backward-sentence (&optional arg)

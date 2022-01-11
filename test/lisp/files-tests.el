@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1679,7 +1679,7 @@ PRED is nil."
     (pcase-dolist (`(,pred ,def-pred-bind ,exp-1 ,exp-2) args-results)
       (files-tests--save-some-buffers pred def-pred-bind exp-1 exp-2))))
 
-(defmacro files-tests--with-buffer-offer-save (buffers-offer fn-test fn-binders args-results)
+(defun files-tests--with-buffer-offer-save (buffers-offer fn-test args-results)
   "Helper macro to test `save-some-buffers' and `save-buffers-kill-emacs'.
 
 This macro creates several non-file-visiting buffers in different
@@ -1693,52 +1693,52 @@ FN-TEST is the function to test: either `save-some-buffers' or
 `save-some-buffers-default-predicate' let-bound to a value
 specified inside ARGS-RESULTS.
 
-FN-BINDERS is a list of elements (FUNCTION . BINDING), where FUNCTION
-is a function symbol that this macro temporary binds to BINDING during
-the FN-TEST call.
+During the call to FN-TEST,`read-event' is overridden with a function that
+just returns `n' and `kill-emacs' is overriden to do nothing.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
 FN-ARGS are the arguments for FN-TEST;
 CALLERS-DIR specifies the value to let-bind
 \`save-some-buffers-default-predicate';
  EXPECTED is the expected result of the test."
-  (declare (debug (form symbol form form)))
-  (let ((dir (gensym "dir"))
-        (buffers (gensym "buffers")))
-    `(let* ((,dir (make-temp-file "testdir" 'dir))
-            (inhibit-message t)
-            (use-dialog-box nil)
-            ,buffers)
-       (pcase-dolist (`(,bufsym ,offer-save) ,buffers-offer)
-         (let* ((buf (generate-new-buffer (symbol-name bufsym)))
-                (subdir (expand-file-name
-                         (format "subdir-%s" (buffer-name buf))
-                         ,dir)))
-           (make-directory subdir 'parens)
-           (push buf ,buffers)
-           (with-current-buffer buf
-             (cd subdir)
-             (setq buffer-offer-save offer-save)
-             (insert "foobar\n"))))
-       (setq ,buffers (nreverse ,buffers))
-       (let ((nb-saved-buffers 0))
-         (unwind-protect
-             (pcase-dolist (`(,fn-test-args ,callers-dir ,expected)
-                            ,args-results)
-               (setq nb-saved-buffers 0)
-               (with-current-buffer (car ,buffers)
-                 (cl-letf
-                     (,@(mapcar (lambda (pair) `((symbol-function ,(car pair)) ,(cdr pair)))
-                                fn-binders)
-                      (save-some-buffers-default-predicate callers-dir))
-                   (apply #',fn-test fn-test-args)
-                   (should (equal nb-saved-buffers expected)))))
-           ;; Clean up.
-           (dolist (buf ,buffers)
-             (with-current-buffer buf
-               (set-buffer-modified-p nil)
-               (kill-buffer buf)))
-           (delete-directory ,dir 'recursive))))))
+  (let* ((dir (make-temp-file "testdir" 'dir))
+         (inhibit-message t)
+         (use-dialog-box nil)
+         buffers)
+    (pcase-dolist (`(,bufsym ,offer-save) buffers-offer)
+      (let* ((buf (generate-new-buffer (symbol-name bufsym)))
+             (subdir (expand-file-name
+                      (format "subdir-%s" (buffer-name buf))
+                      dir)))
+        (make-directory subdir 'parens)
+        (push buf buffers)
+        (with-current-buffer buf
+          (cd subdir)
+          (setq buffer-offer-save offer-save)
+          (insert "foobar\n"))))
+    (setq buffers (nreverse buffers))
+    (let ((nb-saved-buffers 0))
+      (unwind-protect
+          (pcase-dolist (`(,fn-test-args ,callers-dir ,expected)
+                         args-results)
+            (setq nb-saved-buffers 0)
+            (with-current-buffer (car buffers)
+              (cl-letf
+                  (((symbol-function 'read-event)
+                    ;; Increase counter and answer 'n' when prompted
+                    ;; to save a buffer.
+                    (lambda (&rest _) (cl-incf nb-saved-buffers) ?n))
+                   ;; Do not kill Emacs.
+                   ((symbol-function 'kill-emacs) #'ignore)
+                   (save-some-buffers-default-predicate callers-dir))
+                (apply fn-test fn-test-args)
+                (should (equal nb-saved-buffers expected)))))
+        ;; Clean up.
+        (dolist (buf buffers)
+          (with-current-buffer buf
+            (set-buffer-modified-p nil)
+            (kill-buffer buf)))
+        (delete-directory dir 'recursive)))))
 
 (defmacro files-tests-with-all-permutations (permutation list &rest body)
   "Execute BODY forms for all permutations of LIST.
@@ -1777,7 +1777,7 @@ PRED is nil."
     (files-tests-with-all-permutations
         buffers-offer
         buffers-offer-init
-      (dolist (pred `(nil t save-some-buffers-root))
+      (dolist (pred `(nil t))
         (dolist (callers-dir `(nil save-some-buffers-root))
           (let* ((head-offer (cadar buffers-offer))
                  (res (cond ((null pred)
@@ -1790,9 +1790,7 @@ PRED is nil."
                  (args-res `(((nil ,pred) ,callers-dir ,res))))
             (files-tests--with-buffer-offer-save
              buffers-offer
-             save-some-buffers
-             ;; Increase counter and answer 'n' when prompted to save a buffer.
-             (('read-event . (lambda (&rest _) (cl-incf nb-saved-buffers) ?n)))
+             #'save-some-buffers
              args-res)))))))
 
 (ert-deftest files-tests-save-buffers-kill-emacs--asks-to-save-buffers ()
@@ -1807,10 +1805,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
         buffers-offer-init
       (files-tests--with-buffer-offer-save
        buffers-offer
-       save-buffers-kill-emacs
-       ;; Increase counter and answer 'n' when prompted to save a buffer.
-       (('read-event . (lambda (&rest _) (cl-incf nb-saved-buffers) ?n))
-        ('kill-emacs . #'ignore)) ; Do not kill Emacs.
+       #'save-buffers-kill-emacs
        `((nil nil ,nb-might-save)
          ;; `save-some-buffers-default-predicate' (i.e. the 2nd element) is ignored.
          (nil save-some-buffers-root ,nb-might-save))))))
@@ -1821,80 +1816,6 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (equal (file-name-split "/foo/bar/zot") '("" "foo" "bar" "zot")))
   (should (equal (file-name-split "/foo/bar/") '("" "foo" "bar" "")))
   (should (equal (file-name-split "foo/bar/") '("foo" "bar" ""))))
-
-;; `insert-directory' output tests.
-(let* ((data-dir "insert-directory")
-       (test-dir (file-name-as-directory
-                  (ert-resource-file
-                   (concat data-dir "/test_dir"))))
-       (test-dir-other (file-name-as-directory
-                        (ert-resource-file
-                         (concat data-dir "/test_dir_other"))))
-       (test-files `(,test-dir "foo" "bar")) ;expected files to be found
-       ;; Free space test data for `insert-directory'.
-       ;; Meaning: (path free-space-bytes-to-stub expected-free-space-string)
-       (free-data `((,test-dir 10 "available 10 B")
-                    (,test-dir-other 100 "available 100 B")
-                    (:default 999 "available 999 B"))))
-
-
-  (defun files-tests--look-up-free-data (path)
-    "Look up free space test data, with a default for unspecified paths."
-    (let ((path (file-name-as-directory path)))
-      (cdr (or (assoc path free-data)
-               (assoc :default free-data)))))
-
-  (defun files-tests--make-file-system-info-stub (&optional static-path)
-    "Return a stub for `file-system-info' using dynamic or static test data.
-If that data should be static, pass STATIC-PATH to choose which
-path's data to use."
-    (lambda (path)
-      (let* ((path (cond (static-path)
-                         ;; file-system-info knows how to handle ".", so we
-                         ;; do the same thing
-                         ((equal "." path) default-directory)
-                         (path)))
-             (return-size
-              (car (files-tests--look-up-free-data path))))
-        (list return-size return-size return-size))))
-
-  (defun files-tests--insert-directory-output (dir &optional verbose)
-    "Run `insert-directory' and return its output."
-    (with-current-buffer-window "files-tests--insert-directory" nil nil
-      (insert-directory dir "-l" nil t)
-      (buffer-substring-no-properties (point-min) (point-max))))
-
-  (ert-deftest files-tests-insert-directory-shows-files ()
-    "Verify `insert-directory' reports the files in the directory."
-    (let* ((test-dir (car test-files))
-           (files (cdr test-files))
-           (output (files-tests--insert-directory-output test-dir)))
-      (dolist (file files)
-        (should (string-match-p file output)))))
-
-  (defun files-tests--insert-directory-shows-given-free (dir &optional
-                                                             info-func)
-    "Run `insert-directory' and verify it reports the correct available space.
-Stub `file-system-info' to ensure the available space is consistent,
-either with the given stub function or a default one using test data."
-    (cl-letf (((symbol-function 'file-system-info)
-               (or info-func
-                   (files-tests--make-file-system-info-stub))))
-      (should (string-match-p (cadr
-                               (files-tests--look-up-free-data dir))
-                              (files-tests--insert-directory-output dir t)))))
-
-  (ert-deftest files-tests-insert-directory-shows-free ()
-    "Test that verbose `insert-directory' shows the correct available space."
-    (files-tests--insert-directory-shows-given-free
-     test-dir
-     (files-tests--make-file-system-info-stub test-dir)))
-
-  (ert-deftest files-tests-bug-50630 ()
-    "Verify verbose `insert-directory' shows free space of the target directory.
-The current directory at call time should not affect the result (Bug#50630)."
-    (let ((default-directory test-dir-other))
-      (files-tests--insert-directory-shows-given-free test-dir))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

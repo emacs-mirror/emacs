@@ -1,6 +1,6 @@
 ;;; editfns-tests.el --- tests for editfns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -412,5 +412,18 @@
       (insert max-char)
       (translate-region-internal (point-min) (point-max) tt)
       (should (string-equal (buffer-string) "*")))))
+
+(ert-deftest find-fields ()
+  (with-temp-buffer
+    (insert "foo" (propertize "bar" 'field 'bar) "zot")
+    (goto-char (point-min))
+    (should (= (field-beginning) (point-min)))
+    (should (= (field-end) 4))
+    (goto-char 5)
+    (should (= (field-beginning) 4))
+    (should (= (field-end) 7))
+    (goto-char 8)
+    (should (= (field-beginning) 7))
+    (should (= (field-end) (point-max)))))
 
 ;;; editfns-tests.el ends here

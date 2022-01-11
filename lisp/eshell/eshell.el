@@ -1,6 +1,6 @@
 ;;; eshell.el --- the Emacs command shell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -260,7 +260,7 @@ information on Eshell, see Info node `(eshell)Top'."
 		   (t
 		    (get-buffer-create eshell-buffer-name)))))
     (cl-assert (and buf (buffer-live-p buf)))
-    (pop-to-buffer-same-window buf)
+    (pop-to-buffer buf display-comint-buffer-action)
     (unless (derived-mode-p 'eshell-mode)
       (eshell-mode))
     buf))

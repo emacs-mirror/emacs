@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2021 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2022 Free Software Foundation,
 Inc.
 
 @quotation
@@ -526,6 +526,7 @@ Variables
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 * Generalized Variables::   Extending the concept of variables.
+* Multisession Variables::  Variables that survive restarting Emacs.
 
 Scoping Rules for Variable Bindings
 
@@ -546,6 +547,10 @@ Generalized Variables
 
 * Setting Generalized Variables::   The @code{setf} macro.
 * Adding Generalized Variables::    Defining new @code{setf} forms.
+
+Multisession Variables
+
+* Multisession Variables::      Variables that survive restarting Emacs.
 
 Functions
 
@@ -1224,6 +1229,7 @@ Text
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * GnuTLS Cryptography::     Cryptographic algorithms imported from GnuTLS.
+* Database::                Interacting with an SQL database.
 * Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes atomically.
 * Change Hooks::            Supplying functions to be run when text is changed.

@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2021 Free Software Foundation, Inc.
+   Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -118,6 +118,17 @@ _GL_FUNCDECL_SYS (timespec_get, int, (struct timespec *ts, int base)
 #  endif
 _GL_CXXALIAS_SYS (timespec_get, int, (struct timespec *ts, int base));
 _GL_CXXALIASWARN (timespec_get);
+# endif
+
+/* Set *TS to the current time resolution, and return BASE.
+   Upon failure, return 0.  */
+# if @GNULIB_TIMESPEC_GETRES@
+#  if ! @HAVE_TIMESPEC_GETRES@
+_GL_FUNCDECL_SYS (timespec_getres, int, (struct timespec *ts, int base)
+                                        _GL_ARG_NONNULL ((1)));
+#  endif
+_GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
+_GL_CXXALIASWARN (timespec_getres);
 # endif
 
 /* Sleep for at least RQTP seconds unless interrupted,  If interrupted,

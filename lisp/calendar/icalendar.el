@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -645,10 +645,10 @@ FIXME: multiple comma-separated values should be allowed!"
           (setq second (read (substring isodatetimestring 13 15))))
 	;; FIXME: Support subseconds.
         (when (> (length isodatetimestring) 15)
-          (cl-case (aref isodatetimestring 15)
+	  (pcase (aref isodatetimestring 15)
             (?Z
              (setq source-zone t))
-            ((?- ?+)
+	    ((or ?- ?+)
              (setq source-zone
                    (concat "UTC" (substring isodatetimestring 15))))))
         ;; shift if necessary

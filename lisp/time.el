@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2021 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -355,7 +355,7 @@ update which can wait for the next redisplay."
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
-         (time-zone (car (cdr (current-time-zone now))))
+	 (time-zone (format-time-string "%Z" now))
          (day (substring time 8 10))
          (year (format-time-string "%Y" now))
          (monthname (substring time 4 7))
@@ -526,11 +526,9 @@ If the value is t instead of an alist, use the value of
   '((t :inherit font-lock-variable-name-face))
   "Face for time zone label in `world-clock' buffer.")
 
-(defvar world-clock-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "n" #'next-line)
-    (define-key map "p" #'previous-line)
-    map))
+(defvar-keymap world-clock-mode-map
+  "n" #'next-line
+  "p" #'previous-line)
 
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.

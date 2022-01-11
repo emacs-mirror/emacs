@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -60,15 +60,11 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - t, meaning to scale the image down to fit in the window.
  - `fit-window', meaning to fit the image to the window.
- - `fit-height', meaning to fit the image to the window height.
- - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 1).
 
 Resizing will always preserve the aspect ratio of the image."
   :type '(choice (const :tag "No resizing" nil)
                  (const :tag "Fit to window" fit-window)
-                 (const :tag "Fit to window height" fit-height)
-                 (const :tag "Fit to window width" fit-width)
                  (other :tag "Scale down to fit window" t)
                  (number :tag "Scale factor" 1))
   :version "29.1"
@@ -78,7 +74,7 @@ Resizing will always preserve the aspect ratio of the image."
   "Max size (in percent) to scale up to when `image-auto-resize' is `fit-window'.
 Can be either a number larger than 100, or nil, which means no
 max size."
-  :type '(choice (const nil "No max")
+  :type '(choice (const :tag "No max" nil)
                  natnum)
   :version "29.1"
   :group 'image)
@@ -100,9 +96,11 @@ Its value should be one of the following:
  - nil, meaning no resizing.
  - t, meaning to scale the image down to fit in the window.
  - `fit-window', meaning to fit the image to the window.
+ - A number, which is a scale factor (the default size is 1).
+
+There is also support for these values, obsolete since Emacs 29.1:
  - `fit-height', meaning to fit the image to the window height.
  - `fit-width', meaning to fit the image to the window width.
- - A number, which is a scale factor (the default size is 1).
 
 Resizing will always preserve the aspect ratio of the image.")
 
@@ -457,6 +455,15 @@ call."
 
 ;;; Image Mode setup
 
+(defcustom image-text-based-formats '(svg xpm)
+  "List of image formats that use a plain text format.
+For such formats, display a message that explains how to edit the
+image as text, when opening such images in `image-mode'."
+  :type '(choice (const :tag "Disable completely" nil)
+                 (repeat :tag "List of formats" sexp))
+  :version "29.1"
+  :group 'image)
+
 (defvar-local image-type nil
   "The image type for the current Image mode buffer.")
 
@@ -621,8 +628,9 @@ call."
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
-You can use \\<image-mode-map>\\[image-toggle-display] or \\<image-mode-map>\\[image-toggle-hex-display]
-to toggle between display as an image and display as text or hex.
+You can use \\<image-mode-map>\\[image-toggle-display] or \
+\\[image-toggle-hex-display] to toggle between display
+as an image and display as text or hex.
 
 Key bindings:
 \\{image-mode-map}"
@@ -694,12 +702,10 @@ Key bindings:
 
   (run-mode-hooks 'image-mode-hook)
   (let ((image (image-get-display-property))
-	(msg1 (substitute-command-keys
-               "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as "))
-	animated)
+        msg animated)
     (cond
      ((null image)
-      (message "%s" (concat msg1 "an image.")))
+      (setq msg "an image"))
      ((setq animated (image-multi-frame-p image))
       (setq image-multi-frame t
 	    mode-line-process
@@ -717,10 +723,13 @@ Key bindings:
 			  keymap
 			  (down-mouse-1 . image-next-frame)
 			  (down-mouse-3 . image-previous-frame)))))))
-      (message "%s"
-	       (concat msg1 "text.  This image has multiple frames.")))
+      (setq msg "text.  This image has multiple frames"))
      (t
-      (message "%s" (concat msg1 "text or hex."))))))
+      (setq msg "text")))
+    (when (memq (plist-get (cdr image) :type) image-text-based-formats)
+      (message (substitute-command-keys
+                "Type \\[image-toggle-display] to view the image as %s")
+               msg))))
 
 ;;;###autoload
 (define-minor-mode image-minor-mode
@@ -767,11 +776,11 @@ on these modes."
   (image-mode-to-text)
   ;; Turn on hexl-mode
   (hexl-mode)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-hex-display] or \\[image-toggle-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "hex" "an image or text") ".")))
+  (message (substitute-command-keys
+            "Type \\[image-toggle-hex-display] or \
+\\[image-toggle-display] to view the image as %s")
+           (if (image-get-display-property)
+               "hex" "an image or text")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
@@ -787,11 +796,10 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "text" "an image or hex") ".")))
+  (message (substitute-command-keys
+            "Type \\[image-toggle-display] to view the image as %s")
+           (if (image-get-display-property)
+               "text" "an image")))
 
 (defun image-toggle-display-text ()
   "Show the image file as text.

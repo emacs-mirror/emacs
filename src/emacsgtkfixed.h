@@ -1,7 +1,7 @@
 /* A Gtk Widget that inherits GtkFixed, but can be shrunk.
 This file is only use when compiling with Gtk+ 3.
 
-Copyright (C) 2011-2021 Free Software Foundation, Inc.
+Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,6 +27,11 @@ struct frame;
 
 G_BEGIN_DECLS
 
+#ifdef HAVE_PGTK
+#define EMACS_TYPE_FIXED        (emacs_fixed_get_type ())
+#define EMACS_IS_FIXED(obj)     (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EMACS_TYPE_FIXED))
+#endif
+
 struct frame;
 
 typedef struct _EmacsFixedPrivate       EmacsFixedPrivate;
@@ -43,6 +48,10 @@ struct _EmacsFixedClass
 {
   GtkFixedClass parent_class;
 };
+
+#ifdef HAVE_PGTK
+extern GType emacs_fixed_get_type (void);
+#endif
 
 extern GtkWidget *emacs_fixed_new (struct frame *f);
 

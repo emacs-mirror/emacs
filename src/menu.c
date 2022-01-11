@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2021 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -424,7 +424,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 		  AREF (item_properties, ITEM_PROPERTY_HELP));
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS) \
-  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
+  || defined (HAVE_NTGUI) || defined (HAVE_HAIKU) || defined (HAVE_PGTK)
   /* Display a submenu using the toolkit.  */
   if (FRAME_WINDOW_P (XFRAME (Vmenu_updating_frame))
       && ! (NILP (map) || NILP (enabled)))

@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2021 Free Software Foundation, Inc.
+Copyright 2015-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 typedef void *dynlib_handle_ptr;
 dynlib_handle_ptr dynlib_open (const char *path);
+dynlib_handle_ptr dynlib_open_for_eln (const char *path);
 int dynlib_close (dynlib_handle_ptr h);
 const char *dynlib_error (void);
 

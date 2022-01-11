@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2021 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -364,11 +364,14 @@ invoke it (via an `interactive' spec that contains, for instance, an
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  Initialize it to point to the first
-     event with parameters.  */
-  ptrdiff_t next_event;
-  for (next_event = 0; next_event < key_count; next_event++)
-    if (EVENT_HAS_PARAMETERS (AREF (keys, next_event)))
-      break;
+     event with parameters.  When `inhibit_mouse_event_check' is non-nil,
+     the command can accept an event without parameters,
+     so don't search for the event with parameters in this case.  */
+  ptrdiff_t next_event = 0;
+  if (!inhibit_mouse_event_check)
+    for (; next_event < key_count; next_event++)
+      if (EVENT_HAS_PARAMETERS (AREF (keys, next_event)))
+	break;
 
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
   /* Note that `+' is reserved for user extensions.  */
@@ -606,7 +609,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  break;
 
 	case 'e':		/* The invoking event.  */
-	  if (!inhibit_mouse_event_check && next_event >= key_count)
+	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
 		    ? SSDATA (SYMBOL_NAME (function))
@@ -614,11 +617,15 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  args[i] = AREF (keys, next_event);
 	  varies[i] = -1;
 
-	  /* Find the next parameterized event.  */
-	  do
+	  /* `inhibit_mouse_event_check' allows non-parameterized events.  */
+	  if (inhibit_mouse_event_check)
 	    next_event++;
-	  while (next_event < key_count
-		 && ! EVENT_HAS_PARAMETERS (AREF (keys, next_event)));
+	  else
+	    /* Find the next parameterized event.  */
+	    do
+	      next_event++;
+	    while (next_event < key_count
+		   && ! EVENT_HAS_PARAMETERS (AREF (keys, next_event)));
 
 	  break;
 

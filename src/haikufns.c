@@ -1,5 +1,5 @@
 /* Haiku window system support
-   Copyright (C) 2021 Free Software Foundation, Inc.
+   Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -835,6 +835,7 @@ haiku_create_frame (Lisp_Object parms, int ttip_p)
     haiku_set_parent_frame (f, parent_frame, Qnil);
 
   gui_default_parameter (f, parms, Qundecorated, Qnil, NULL, NULL, RES_TYPE_BOOLEAN);
+  gui_default_parameter (f, parms, Qoverride_redirect, Qnil, NULL, NULL, RES_TYPE_BOOLEAN);
 
   gui_default_parameter (f, parms, Qicon_type, Qnil,
                          "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
@@ -1068,6 +1069,20 @@ haiku_set_undecorated (struct frame *f, Lisp_Object new_value,
 }
 
 static void
+haiku_set_override_redirect (struct frame *f, Lisp_Object new_value,
+			     Lisp_Object old_value)
+{
+  if (EQ (new_value, old_value))
+    return;
+
+  block_input ();
+  BWindow_set_override_redirect (FRAME_HAIKU_WINDOW (f),
+				 !NILP (new_value));
+  FRAME_OVERRIDE_REDIRECT (f) = !NILP (new_value);
+  unblock_input ();
+}
+
+static void
 haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   if (FRAME_TOOLTIP_P (f))
@@ -1238,7 +1253,7 @@ haiku_get_pixel (haiku bitmap, int x, int y)
   BBitmap_dimensions (bitmap, &left, &top, &right, &bottom,
 		      &bytes_per_row, &mono_p);
 
-  if (x < left || x > right || y < top || y > bottom)
+  if (x < 0 || x > right - left || y < 0 || y > bottom - top)
     emacs_abort ();
 
   if (!mono_p)
@@ -1263,7 +1278,7 @@ haiku_put_pixel (haiku bitmap, int x, int y, unsigned long pixel)
   BBitmap_dimensions (bitmap, &left, &top, &right, &bottom,
 		      &bytes_per_row, &mono_p);
 
-  if (x < left || x > right || y < top || y > bottom)
+  if (x < 0 || x > right - left || y < 0 || y > bottom - top)
     emacs_abort ();
 
   if (mono_p)
@@ -1291,8 +1306,8 @@ haiku_free_frame_resources (struct frame *f)
   Lisp_Object bar;
   struct scroll_bar *b;
 
-  block_input ();
   check_window_system (f);
+  block_input ();
 
   hlinfo = MOUSE_HL_INFO (f);
   window = FRAME_HAIKU_WINDOW (f);
@@ -1393,6 +1408,7 @@ haiku_visualize_frame (struct frame *f)
       if (FRAME_NO_FOCUS_ON_MAP (f) &&
 	  !FRAME_NO_ACCEPT_FOCUS (f))
 	BWindow_set_avoid_focus (FRAME_HAIKU_WINDOW (f), 0);
+      BWindow_sync (FRAME_HAIKU_WINDOW (f));
 
       haiku_set_offset (f, f->left_pos, f->top_pos, 0);
 
@@ -1409,6 +1425,7 @@ haiku_unvisualize_frame (struct frame *f)
   block_input ();
 
   BWindow_set_visible (FRAME_HAIKU_WINDOW (f), 0);
+  BWindow_sync (FRAME_HAIKU_WINDOW (f));
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, 0);
 
@@ -1510,20 +1527,24 @@ haiku_set_inhibit_double_buffering (struct frame *f,
 				    Lisp_Object old_value)
 {
   block_input ();
+#ifndef USE_BE_CAIRO
   if (FRAME_HAIKU_WINDOW (f))
     {
       if (NILP (new_value))
 	{
+#endif
 	  EmacsView_set_up_double_buffering (FRAME_HAIKU_VIEW (f));
 	  if (!NILP (old_value))
 	    {
 	      SET_FRAME_GARBAGED (f);
 	      expose_frame (f, 0, 0, 0, 0);
 	    }
+#ifndef USE_BE_CAIRO
 	}
       else
 	EmacsView_disable_double_buffering (FRAME_HAIKU_VIEW (f));
     }
+#endif
   unblock_input ();
 }
 
@@ -1970,7 +1991,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
-				  make_fixnum (w->pixel_height), Qnil);
+				  make_fixnum (w->pixel_height), Qnil,
+				  Qnil);
   /* Add the frame's internal border to calculated size.  */
   width = XFIXNUM (Fcar (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
   height = XFIXNUM (Fcdr (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
@@ -2231,7 +2253,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
 				   FRAME_HAIKU_WINDOW (f),
 				   !NILP (save_text) ? SSDATA (ENCODE_UTF_8 (save_text)) : NULL,
 				   SSDATA (ENCODE_UTF_8 (prompt)),
-				   block_input, unblock_input);
+				   block_input, unblock_input, maybe_quit);
 
   unbind_to (idx, Qnil);
 
@@ -2314,6 +2336,67 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
   return Qnil;
 }
 
+DEFUN ("haiku-frame-restack", Fhaiku_frame_restack, Shaiku_frame_restack, 2, 3, 0,
+       doc: /* Restack FRAME1 below FRAME2.
+This means that if both frames are visible and the display areas of
+these frames overlap, FRAME2 (partially) obscures FRAME1.  If optional
+third argument ABOVE is non-nil, restack FRAME1 above FRAME2.  This
+means that if both frames are visible and the display areas of these
+frames overlap, FRAME1 (partially) obscures FRAME2.
+
+Some window managers may refuse to restack windows.  */)
+     (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
+{
+  struct frame *f1 = decode_live_frame (frame1);
+  struct frame *f2 = decode_live_frame (frame2);
+
+  check_window_system (f1);
+  check_window_system (f2);
+
+  block_input ();
+
+  if (NILP (above))
+    {
+      /* If the window that is currently active will be sent behind
+	 another window, make the window that it is being sent behind
+	 active first, to avoid both windows being moved to the back of
+	 the display.  */
+
+      if (BWindow_is_active (FRAME_HAIKU_WINDOW (f1))
+	  /* But don't do this if any of the frames involved have
+	     child frames, since they are guaranteed to be in front of
+	     their toplevel parents.  */
+	  && !FRAME_PARENT_FRAME (f1)
+	  && !FRAME_PARENT_FRAME (f2))
+	{
+	  BWindow_activate (FRAME_HAIKU_WINDOW (f2));
+	  BWindow_sync (FRAME_HAIKU_WINDOW (f2));
+	}
+
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f1),
+			   FRAME_HAIKU_WINDOW (f2));
+    }
+  else
+    {
+      if (BWindow_is_active (FRAME_HAIKU_WINDOW (f2))
+	  && !FRAME_PARENT_FRAME (f1)
+	  && !FRAME_PARENT_FRAME (f2))
+	{
+	  BWindow_activate (FRAME_HAIKU_WINDOW (f1));
+	  BWindow_sync (FRAME_HAIKU_WINDOW (f1));
+	}
+
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f2),
+			   FRAME_HAIKU_WINDOW (f1));
+    }
+  BWindow_sync (FRAME_HAIKU_WINDOW (f1));
+  BWindow_sync (FRAME_HAIKU_WINDOW (f2));
+
+  unblock_input ();
+
+  return Qnil;
+}
+
 frame_parm_handler haiku_frame_parm_handlers[] =
   {
     gui_set_autoraise,
@@ -2362,7 +2445,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_no_focus_on_map,
     haiku_set_no_accept_focus,
     NULL, /* set z group */
-    NULL, /* set override redir */
+    haiku_set_override_redirect,
     gui_set_no_special_glyphs
   };
 
@@ -2408,6 +2491,7 @@ syms_of_haikufns (void)
   defsubr (&Shaiku_put_resource);
   defsubr (&Shaiku_frame_list_z_order);
   defsubr (&Sx_display_save_under);
+  defsubr (&Shaiku_frame_restack);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

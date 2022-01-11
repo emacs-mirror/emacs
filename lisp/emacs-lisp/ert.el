@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -39,7 +39,7 @@
 ;; but signals a different error when its condition is violated that
 ;; is caught and processed by ERT.  In addition, it analyzes its
 ;; argument form and records information that helps debugging
-;; (`assert' tries to do something similar when its second argument
+;; (`cl-assert' tries to do something similar when its second argument
 ;; SHOW-ARGS is true, but `should' is more sophisticated).  For
 ;; information on `should-not' and `should-error', see their
 ;; docstrings.  `skip-unless' skips the test immediately without
@@ -64,6 +64,8 @@
 (require 'find-func)
 (require 'pp)
 (require 'map)
+
+(autoload 'xml-escape-string "xml.el")
 
 ;;; UI customization options.
 
@@ -246,7 +248,6 @@ in batch mode, an error is signalled.
           find-function-space-re
           "%s\\(\\s-\\|$\\)")
   "The regexp the `find-function' mechanisms use for finding test definitions.")
-
 
 (define-error 'ert-test-failed "Test failed")
 (define-error 'ert-test-skipped "Test skipped")
@@ -677,7 +678,6 @@ and is displayed in front of the value of MESSAGE-FORM."
      ,@body))
 
 
-
 ;;; Facilities for running a single test.
 
 (defvar ert-debug-on-error nil
@@ -950,7 +950,8 @@ t    -- Selects UNIVERSE.
 :expected, :unexpected -- Select tests according to their most recent result.
 a string -- A regular expression selecting all tests with matching names.
 a test   -- (i.e., an object of the ert-test data-type) Selects that test.
-a symbol -- Selects the test that the symbol names, errors if none.
+a symbol -- Selects the test that the symbol names, signals an
+    `ert-test-unbound' error if none.
 \(member TESTS...) -- Selects the elements of TESTS, a list of tests
     or symbols naming tests.
 \(eql TEST) -- Selects TEST, a test or a symbol naming a test.
@@ -1012,52 +1013,47 @@ contained in UNIVERSE."
                           universe))))
     ((pred ert-test-p) (list selector))
     ((pred symbolp)
-     (cl-assert (ert-test-boundp selector))
+     (unless (ert-test-boundp selector)
+       (signal 'ert-test-unbound (list selector)))
      (list (ert-get-test selector)))
-    (`(,operator . ,operands)
-     (cl-ecase operator
-       (member
-        (mapcar (lambda (purported-test)
-                  (pcase-exhaustive purported-test
-                    ((pred symbolp)
-                     (cl-assert (ert-test-boundp purported-test))
-                     (ert-get-test purported-test))
-                    ((pred ert-test-p) purported-test)))
-                operands))
-       (eql
-        (cl-assert (eql (length operands) 1))
-        (ert-select-tests `(member ,@operands) universe))
-       (and
-        ;; Do these definitions of AND, NOT and OR satisfy de
-        ;; Morgan's laws?  Should they?
-        (cl-case (length operands)
-          (0 (ert-select-tests 't universe))
-          (t (ert-select-tests `(and ,@(cdr operands))
-                               (ert-select-tests (car operands)
-                                                 universe)))))
-       (not
-        (cl-assert (eql (length operands) 1))
-        (let ((all-tests (ert-select-tests 't universe)))
-          (cl-set-difference all-tests
-                             (ert-select-tests (car operands)
-                                               all-tests))))
-       (or
-        (cl-case (length operands)
-          (0 (ert-select-tests 'nil universe))
-          (t (cl-union (ert-select-tests (car operands) universe)
-                       (ert-select-tests `(or ,@(cdr operands))
-                                         universe)))))
-       (tag
-        (cl-assert (eql (length operands) 1))
-        (let ((tag (car operands)))
-          (ert-select-tests `(satisfies
-                              ,(lambda (test)
-                                 (member tag (ert-test-tags test))))
-                            universe)))
-       (satisfies
-        (cl-assert (eql (length operands) 1))
-        (cl-remove-if-not (car operands)
-                          (ert-select-tests 't universe)))))))
+    (`(member . ,operands)
+     (mapcar (lambda (purported-test)
+               (pcase-exhaustive purported-test
+                 ((pred symbolp)
+                  (unless (ert-test-boundp purported-test)
+                    (signal 'ert-test-unbound
+                            (list purported-test)))
+                  (ert-get-test purported-test))
+                 ((pred ert-test-p) purported-test)))
+             operands))
+    (`(eql ,operand)
+     (ert-select-tests `(member ,operand) universe))
+    ;; Do these definitions of AND, NOT and OR satisfy de Morgan's
+    ;; laws?  Should they?
+    (`(and)
+     (ert-select-tests 't universe))
+    (`(and ,first . ,rest)
+     (ert-select-tests `(and ,@rest)
+                       (ert-select-tests first universe)))
+    (`(not ,operand)
+     (let ((all-tests (ert-select-tests 't universe)))
+       (cl-set-difference all-tests
+                          (ert-select-tests operand all-tests))))
+    (`(or)
+     (ert-select-tests 'nil universe))
+    (`(or ,first . ,rest)
+     (cl-union (ert-select-tests first universe)
+               (ert-select-tests `(or ,@rest) universe)))
+    (`(tag ,tag)
+     (ert-select-tests `(satisfies
+                         ,(lambda (test)
+                            (member tag (ert-test-tags test))))
+                       universe))
+    (`(satisfies ,predicate)
+     (cl-remove-if-not predicate
+                       (ert-select-tests 't universe)))))
+
+(define-error 'ert-test-unbound "ERT test is unbound")
 
 (defun ert--insert-human-readable-selector (selector)
   "Insert a human-readable presentation of SELECTOR into the current buffer."
@@ -1437,7 +1433,9 @@ Returns the stats object."
                                   (if (getenv "EMACS_TEST_VERBOSE")
                                       (ert-reason-for-test-result result)
                                     ""))))
-              (message "%s" "")))))
+              (message "%s" ""))
+            (when (getenv "EMACS_TEST_JUNIT_REPORT")
+              (ert-write-junit-test-report stats)))))
        (test-started)
        (test-ended
         (cl-destructuring-bind (stats test result) event-args
@@ -1525,6 +1523,183 @@ the tests)."
           (backtrace))
       (kill-emacs 2))))
 
+(defvar ert-load-file-name nil
+  "The name of the loaded ERT test file, a string.
+Usually, it is not needed to be defined, but if different ERT
+test packages depend on each other, it might be helpful.")
+
+(defun ert-write-junit-test-report (stats)
+  "Write a JUnit test report, generated from STATS."
+  ;; https://www.ibm.com/docs/en/developer-for-zos/14.1.0?topic=formats-junit-xml-format
+  ;; https://llg.cubic.org/docs/junit/
+  (when-let ((symbol (car (apropos-internal "" #'ert-test-boundp)))
+             (test-file (symbol-file symbol 'ert--test))
+             (test-report
+              (file-name-with-extension
+               (or ert-load-file-name test-file) "xml")))
+    (with-temp-file test-report
+      (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+      (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+                      (file-name-nondirectory test-report)
+                      (ert-stats-total stats)
+                      (if (ert--stats-aborted-p stats) 1 0)
+                      (ert-stats-completed-unexpected stats)
+                      (ert-stats-skipped stats)
+                      (float-time
+                       (time-subtract
+                        (ert--stats-end-time stats)
+                        (ert--stats-start-time stats)))))
+      (insert (format "  <testsuite id=\"0\" name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\" timestamp=\"%s\">\n"
+                      (file-name-nondirectory test-report)
+                      (ert-stats-total stats)
+                      (if (ert--stats-aborted-p stats) 1 0)
+                      (ert-stats-completed-unexpected stats)
+                      (ert-stats-skipped stats)
+                      (float-time
+                       (time-subtract
+                        (ert--stats-end-time stats)
+                        (ert--stats-start-time stats)))
+                      (ert--format-time-iso8601 (ert--stats-end-time stats))))
+      ;; If the test has aborted, `ert--stats-selector' might return
+      ;; huge junk.  Skip this.
+      (when (< (length (format "%s" (ert--stats-selector stats))) 1024)
+        (insert "    <properties>\n"
+                (format "      <property name=\"selector\" value=\"%s\"/>\n"
+                        (xml-escape-string
+                         (format "%s" (ert--stats-selector stats)) 'noerror))
+                "    </properties>\n"))
+      (cl-loop for test across (ert--stats-tests stats)
+               for result = (ert-test-most-recent-result test) do
+               (insert (format "    <testcase name=\"%s\" status=\"%s\" time=\"%s\""
+                               (xml-escape-string
+                                (symbol-name (ert-test-name test)) 'noerror)
+                               (ert-string-for-test-result
+                                result
+                                (ert-test-result-expected-p test result))
+                               (ert-test-result-duration result)))
+               (if (and (ert-test-result-expected-p test result)
+                        (not (ert-test-aborted-with-non-local-exit-p result))
+                        (not (ert-test-skipped-p result))
+                        (zerop (length (ert-test-result-messages result))))
+                   (insert "/>\n")
+                 (insert ">\n")
+                 (cond
+                  ((ert-test-skipped-p result)
+                   (insert (format "      <skipped message=\"%s\" type=\"%s\">\n"
+                                   (xml-escape-string
+                                    (string-trim
+                                     (ert-reason-for-test-result result))
+                                    'noerror)
+                                   (ert-string-for-test-result
+                                    result
+                                    (ert-test-result-expected-p
+                                     test result)))
+                           (xml-escape-string
+                            (string-trim
+                             (ert-reason-for-test-result result))
+                            'noerror)
+                           "\n"
+                           "      </skipped>\n"))
+                  ((ert-test-aborted-with-non-local-exit-p result)
+                   (insert (format "      <error message=\"%s\" type=\"%s\">\n"
+                                   (file-name-nondirectory test-report)
+                                   (ert-string-for-test-result
+                                    result
+                                    (ert-test-result-expected-p
+                                     test result)))
+                           (format "Test %s aborted with non-local exit\n"
+                                   (xml-escape-string
+                                    (symbol-name (ert-test-name test)) 'noerror))
+                           "      </error>\n"))
+                  ((not (ert-test-result-type-p
+                         result (ert-test-expected-result-type test)))
+                   (insert (format "      <failure message=\"%s\" type=\"%s\">\n"
+                                   (xml-escape-string
+                                    (string-trim
+                                     (ert-reason-for-test-result result))
+                                    'noerror)
+                                   (ert-string-for-test-result
+                                    result
+                                    (ert-test-result-expected-p
+                                     test result)))
+                           (xml-escape-string
+                            (string-trim
+                             (ert-reason-for-test-result result))
+                            'noerror)
+                           "\n"
+                           "      </failure>\n")))
+                 (unless (zerop (length (ert-test-result-messages result)))
+                   (insert "      <system-out>\n"
+                           (xml-escape-string
+                            (ert-test-result-messages result) 'noerror)
+                           "      </system-out>\n"))
+                 (insert "    </testcase>\n")))
+      (insert "  </testsuite>\n")
+      (insert "</testsuites>\n"))))
+
+(defun ert-write-junit-test-summary-report (&rest logfiles)
+  "Write a JUnit summary test report, generated from LOGFILES."
+  (let ((report (file-name-with-extension
+                 (getenv "EMACS_TEST_JUNIT_REPORT") "xml"))
+        (tests 0) (errors 0) (failures 0) (skipped 0) (time 0) (id 0))
+    (with-temp-file report
+      (dolist (logfile logfiles)
+        (let ((test-report (file-name-with-extension logfile "xml")))
+          (if (not (file-readable-p test-report))
+              (let* ((logfile (file-name-with-extension logfile "log"))
+                     (logfile-contents
+                      (when (file-readable-p logfile)
+                        (with-temp-buffer
+                          (insert-file-contents-literally logfile)
+                          (buffer-string)))))
+                (unless
+                    ;; No defined tests, perhaps a helper file.
+                    (and logfile-contents
+                         (string-match-p "^Running 0 tests" logfile-contents))
+                  (insert (format "  <testsuite id=\"%s\" name=\"%s\" tests=\"1\" errors=\"1\" failures=\"0\" skipped=\"0\" time=\"0\" timestamp=\"%s\">\n"
+                                  id test-report
+                                  (ert--format-time-iso8601 (current-time))))
+                  (insert (format "    <testcase name=\"Test report missing %s\" status=\"error\" time=\"0\">\n"
+                                  (file-name-nondirectory test-report)))
+                  (insert (format "      <error message=\"Test report missing %s\" type=\"error\">\n"
+                                  (file-name-nondirectory test-report)))
+                  (when logfile-contents
+                    (insert (xml-escape-string logfile-contents 'noerror)))
+                  (insert "      </error>\n"
+                          "    </testcase>\n"
+                          "  </testsuite>\n")
+                  (cl-incf errors 1)
+                  (cl-incf id 1)))
+
+            (insert-file-contents-literally test-report)
+            (when (looking-at-p
+                   (regexp-quote "<?xml version=\"1.0\" encoding=\"utf-8\"?>"))
+              (delete-region (point) (line-beginning-position 2)))
+            (when (looking-at
+                   "<testsuites name=\".+\" tests=\"\\(.+\\)\" errors=\"\\(.+\\)\" failures=\"\\(.+\\)\" skipped=\"\\(.+\\)\" time=\"\\(.+\\)\">")
+              (cl-incf tests (string-to-number (match-string 1)))
+              (cl-incf errors  (string-to-number (match-string 2)))
+              (cl-incf failures  (string-to-number (match-string 3)))
+              (cl-incf skipped (string-to-number (match-string 4)))
+              (cl-incf time (string-to-number (match-string 5)))
+              (delete-region (point) (line-beginning-position 2)))
+            (when (looking-at "  <testsuite id=\"\\(0\\)\"")
+              (replace-match (number-to-string id) nil nil nil 1)
+              (cl-incf id 1))
+            (goto-char (point-max))
+            (beginning-of-line 0)
+            (when (looking-at-p "</testsuites>")
+              (delete-region (point) (line-beginning-position 2))))
+
+          (narrow-to-region (point-max) (point-max))))
+
+      (insert "</testsuites>\n")
+      (widen)
+      (goto-char (point-min))
+      (insert "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+      (insert (format "<testsuites name=\"%s\" tests=\"%s\" errors=\"%s\" failures=\"%s\" skipped=\"%s\" time=\"%s\">\n"
+                      (file-name-nondirectory report)
+                      tests errors failures skipped time)))))
 
 (defun ert-summarize-tests-batch-and-exit (&optional high)
   "Summarize the results of testing.
@@ -1540,6 +1715,8 @@ If HIGH is a natural number, the HIGH long lasting tests are summarized."
   ;; behavior.
   (setq attempt-stack-overflow-recovery nil
         attempt-orderly-shutdown-on-fatal-signal nil)
+  (when (getenv "EMACS_TEST_JUNIT_REPORT")
+    (apply #'ert-write-junit-test-summary-report command-line-args-left))
   (let ((nlogs (length command-line-args-left))
         (ntests 0) (nrun 0) (nexpected 0) (nunexpected 0) (nskipped 0)
         nnotrun logfile notests badtests unexpected skipped tests)
@@ -1855,7 +2032,6 @@ Also sets `ert--results-progress-bar-button-begin'."
      ;; should test it again.)
      "\n")))
 
-
 (defvar ert-test-run-redisplay-interval-secs .1
   "How many seconds ERT should wait between redisplays while running tests.
 
@@ -2036,7 +2212,6 @@ STATS is the stats object; LISTENER is the results listener."
           (ert--results-update-ewoc-hf ert--results-ewoc ert--results-stats)
           (goto-char (1- (point-max)))
           buffer)))))
-
 
 (defvar ert--selector-history nil
   "List of recent test selectors read from terminal.")

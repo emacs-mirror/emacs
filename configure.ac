@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2021 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2022 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -410,18 +410,19 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the file name of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
- [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, no)])],
+ [use an X toolkit (KIT one of: yes or gtk, gtk2, gtk3, lucid or athena, motif, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athen | athena )	val=athena ;;
+	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
 	    gtk2  )	val=gtk2 ;;
 	    gtk3  )	val=gtk3 ;;
 	    * )
 AC_MSG_ERROR(['--with-x-toolkit=$withval' is invalid;
-this option's value should be 'yes', 'no', 'lucid', 'athena', 'gtk',
+this option's value should be 'yes', 'no', 'lucid', 'athena', 'motif', 'gtk',
 'gtk2' or 'gtk3'.  'yes' and 'gtk' are synonyms.
 'athena' and 'lucid' are synonyms.])
 	    ;;
@@ -448,6 +449,7 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 OPTION_DEFAULT_ON([webp],[don't compile with WebP image support])
+OPTION_DEFAULT_ON([sqlite3],[don't compile with sqlite3 support])
 OPTION_DEFAULT_ON([lcms2],[don't compile with Little CMS support])
 OPTION_DEFAULT_ON([libsystemd],[don't compile with libsystemd support])
 OPTION_DEFAULT_ON([cairo],[don't compile with Cairo drawing])
@@ -461,7 +463,7 @@ OPTION_DEFAULT_ON([harfbuzz],[don't use HarfBuzz for text shaping])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
 OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 
-OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Xaw3d/GTK toolkit scroll bars])
+OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif/Xaw3d/GTK toolkit scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[at runtime, default X11 XIM to off])
 OPTION_DEFAULT_ON([xdbe],[don't use X11 double buffering support])
@@ -469,6 +471,7 @@ AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
 OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
+OPTION_DEFAULT_OFF([pgtk], [use pure GTK build without reliance on X libs (Wayland support) (requires cairo) - Experimental])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -487,7 +490,7 @@ OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
-OPTION_DEFAULT_OFF([xinput2],[use version 2.0 the X Input Extension for input])
+OPTION_DEFAULT_OFF([xinput2],[use version 2 of the X Input Extension for input])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -1196,8 +1199,8 @@ fi)
 
 dnl Automake replacements.
 AC_DEFUN([AM_CONDITIONAL],
-  [$2 && $1=1 || $1=
-   AC_SUBST([$1])])
+  [$2 && $1_CONDITION=1 || $1_CONDITION=
+   AC_SUBST([$1_CONDITION])])
 
 dnl Prefer silent make output.  For verbose output, use
 dnl 'configure --disable-silent-rules' or 'make V=1' .
@@ -1839,8 +1842,14 @@ AC_SUBST(AUTO_DEPEND)
 ## window-system-specific substs.
 
 window_system=none
+
+if test "${with_pgtk}" = "yes"; then
+  window_system=pgtk
+fi
+
+
 AC_PATH_X
-if test "$no_x" != yes; then
+if test "$no_x" != yes && test "${with_pgtk}" != "yes"; then
   window_system=x11
 fi
 
@@ -2271,6 +2280,7 @@ term_header=
 HAVE_X_WINDOWS=no
 HAVE_X11=no
 USE_X_TOOLKIT=none
+HAVE_PGTK=no
 
 case "${window_system}" in
   x11 )
@@ -2303,10 +2313,18 @@ dnl use the toolkit if we have gtk, or X11R5 or newer.
   w32 )
     term_header=w32term.h
   ;;
+  pgtk )
+    term_header=pgtkterm.h
+    with_gtk3=yes
+    USE_X_TOOLKIT=none
+    HAVE_PGTK=yes
+    AC_DEFINE([HAVE_PGTK], 1, [Define to 1 if you have pure Gtk+-3.])
+  ;;
   haiku )
     term_header=haikuterm.h
   ;;
 esac
+AC_SUBST(HAVE_PGTK)
 
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
@@ -2319,7 +2337,7 @@ if test "$window_system" = none && test "X$with_x" != "Xno"; then
    then
         AC_MSG_ERROR([You seem to be running X, but no X development libraries
 were found.  You should install the relevant development files for X
-and for the toolkit you want, such as Gtk+.  Also make
+and for the toolkit you want, such as Gtk+ or Motif.  Also make
 sure you have development files for image handling, i.e.
 tiff, gif, jpeg, png and xpm.
 If you are sure you want Emacs compiled without X window support, pass
@@ -2638,7 +2656,8 @@ fi
 ### Use -lrsvg-2 if available, unless '--with-rsvg=no' is specified.
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" \
-   || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes"; then
+   || test "${opsys}" = "mingw32" || test "${HAVE_BE_APP}" = "yes" \
+   || test "${window_system}" = "pgtk"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.14.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -2663,7 +2682,7 @@ HAVE_WEBP=no
 if test "${with_webp}" != "no"; then
    if test "${HAVE_X11}" = "yes" || test "${opsys}" = "mingw32" \
    || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
-   || test "${HAVE_BE_APP}" = "yes"; then
+   || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes"; then
       WEBP_REQUIRED=0.6.0
       WEBP_MODULE="libwebp >= $WEBP_REQUIRED"
 
@@ -2681,9 +2700,30 @@ if test "${with_webp}" != "no"; then
    fi
 fi
 
+### Use -lsqlite3 if available, unless '--with-sqlite3=no'
+HAVE_SQLITE3=no
+if test "${with_sqlite3}" != "no"; then
+   AC_CHECK_LIB(sqlite3, sqlite3_open_v2, HAVE_SQLITE3=yes, HAVE_SQLITE3=no)
+   if test "$HAVE_SQLITE3" = "yes"; then
+     SQLITE3_LIBS=-lsqlite3
+     AC_SUBST(SQLITE3_LIBS)
+     LIBS="$SQLITE3_LIBS $LIBS"
+     AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the libsqlite3 library (-lsqlite).])
+     # Windows loads libsqlite dynamically
+     if test "${opsys}" = "mingw32"; then
+        SQLITE3_LIBS=
+     fi
+     AC_CHECK_LIB(sqlite3, sqlite3_load_extension,
+         HAVE_SQLITE3_LOAD_EXTENSION=yes, HAVE_SQLITE3_LOAD_EXTENSION=no)
+     if test "$HAVE_SQLITE3_LOAD_EXTENSION" = "yes"; then
+       AC_DEFINE(HAVE_SQLITE3_LOAD_EXTENSION, 1, [Define to 1 if sqlite3 supports loading extensions.])
+     fi
+   fi
+fi
+
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}" = "yes" || \
-   test "${HAVE_BE_APP}" = "yes"; then
+   test "${HAVE_BE_APP}" = "yes" || test "${window_system}" = "pgtk"; then
   if test "${with_imagemagick}" != "no"; then
     if test -n "$BREW"; then
       # Homebrew doesn't link ImageMagick 6 by default, so make sure
@@ -2765,6 +2805,9 @@ if test "${opsys}" != "mingw32"; then
 	   [Define to 1 to disable GTK+/GDK deprecation warnings.])
 	 AC_DEFINE([GLIB_DISABLE_DEPRECATION_WARNINGS], [1],
 	   [Define to 1 to disable Glib deprecation warnings.])
+       fi
+       if test "$window_system" = pgtk; then
+	  GLIB_GSETTINGS
        fi
     else
        check_gtk2=yes
@@ -2907,6 +2950,15 @@ AC_SUBST(XWIDGETS_OBJ)
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
+PGTK_OBJ=
+PGTK_LIBS=
+if test "$window_system" = "pgtk"; then
+  PGTK_OBJ="pgtkfns.o pgtkterm.o pgtkselect.o pgtkmenu.o pgtkim.o xsettings.o"
+  PGTK_LIBS="$GTK_LIBS"
+fi
+AC_SUBST(PGTK_OBJ)
+AC_SUBST(PGTK_LIBS)
+
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.
 HAVE_DBUS=no
@@ -2936,7 +2988,7 @@ AC_SUBST(DBUS_OBJ)
 
 dnl GSettings has been tested under GNU/Linux only.
 HAVE_GSETTINGS=no
-if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
+if test "${HAVE_X11}" = "yes" -o "${window_system}" = "pgtk" && test "${with_gsettings}" = "yes"; then
    EMACS_CHECK_MODULES([GSETTINGS], [gio-2.0 >= 2.26])
    if test "$HAVE_GSETTINGS" = "yes"; then
       old_CFLAGS=$CFLAGS
@@ -2966,11 +3018,12 @@ if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
       LIBS=$old_LIBS
    fi
 fi
+AC_SUBST(HAVE_GSETTINGS)
 
 dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
 HAVE_GCONF=no
-if test "${HAVE_X11}" = "yes" && test "${with_gconf}" != "no"; then
+if test "${HAVE_X11}" = "yes" -o "${window_system}" = "pgtk" && test "${with_gconf}" != "no"; then
    EMACS_CHECK_MODULES([GCONF], [gconf-2.0 >= 2.13])
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
@@ -3369,7 +3422,7 @@ if test "${HAVE_XIM}" != "no"; then
 XrmDatabase db;
 char *res_name;
 char *res_class;
-XIMProc  callback;
+XIDProc *callback;
 XPointer *client_data;
 #ifndef __GNUC__
 /* If we're not using GCC, it's probably not XFree86, and this is
@@ -3425,6 +3478,23 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 fi
+
+if test "$window_system" = "pgtk"; then
+  CAIRO_REQUIRED=1.12.0
+  CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
+  EMACS_CHECK_MODULES(CAIRO, $CAIRO_MODULE)
+  if test $HAVE_CAIRO = yes; then
+    AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+  else
+    AC_MSG_ERROR([cairo required but not found.])
+  fi
+
+  CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+  LIBS="$LIBS $CAIRO_LIBS"
+  AC_SUBST(CAIRO_CFLAGS)
+  AC_SUBST(CAIRO_LIBS)
+fi
+
 if test "${HAVE_BE_APP}" = "yes"; then
   if test "${with_be_cairo}" != "no"; then
     CAIRO_REQUIRED=1.8.0
@@ -3561,10 +3631,34 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 else # "${HAVE_X11}" != "yes"
-  HAVE_XFT=no
-  HAVE_FREETYPE=no
-  HAVE_LIBOTF=no
-  HAVE_M17N_FLT=no
+  if test $window_system = pgtk; then
+    EMACS_CHECK_MODULES([FONTCONFIG], [fontconfig >= 2.2.0])
+    EMACS_CHECK_MODULES([FREETYPE], [freetype2])
+    if test "$HAVE_FONTCONFIG" != yes -o "$HAVE_FREETYPE" != yes; then
+      AC_MSG_ERROR(fontconfig and freetype is required.)
+    fi
+    HAVE_LIBOTF=no
+    AC_DEFINE(HAVE_FREETYPE, 1,
+	      [Define to 1 if using the freetype and fontconfig libraries.])
+    if test "${with_libotf}" != "no"; then
+      EMACS_CHECK_MODULES([LIBOTF], [libotf])
+      if test "$HAVE_LIBOTF" = "yes"; then
+	AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+	AC_CHECK_LIB(otf, OTF_get_variation_glyphs,
+		     HAVE_OTF_GET_VARIATION_GLYPHS=yes,
+		     HAVE_OTF_GET_VARIATION_GLYPHS=no)
+	if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
+	  AC_DEFINE(HAVE_OTF_GET_VARIATION_GLYPHS, 1,
+		    [Define to 1 if libotf has OTF_get_variation_glyphs.])
+	fi
+      fi
+    fi
+  else
+    HAVE_XFT=no
+    HAVE_FREETYPE=no
+    HAVE_LIBOTF=no
+    HAVE_M17N_FLT=no
+  fi
 fi   # "${HAVE_X11}" != "yes"
 
 HAVE_HARFBUZZ=no
@@ -3576,6 +3670,7 @@ else
   harfbuzz_required_ver=0.9.42
 fi
 if test "${HAVE_X11}" = "yes" && test "${HAVE_FREETYPE}" = "yes" \
+        || test "$window_system" = "pgtk" \
         || test "${HAVE_W32}" = "yes"; then
   if test "${with_harfbuzz}" != "no"; then
     EMACS_CHECK_MODULES([HARFBUZZ], [harfbuzz >= $harfbuzz_required_ver])
@@ -3763,7 +3858,8 @@ AC_SUBST(LIBXPM)
 HAVE_JPEG=no
 LIBJPEG=
 if test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-   || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
+   || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
+   || test "$window_system" = "pgtk"; then
   if test "${with_jpeg}" != "no"; then
     AC_CACHE_CHECK([for jpeglib 6b or later],
       [emacs_cv_jpeglib],
@@ -4081,7 +4177,8 @@ if test "${with_png}" != no; then
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-       || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
+       || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
+       || test "$window_system" = "pgtk"; then
     EMACS_CHECK_MODULES([PNG], [libpng >= 1.0.0])
     if test $HAVE_PNG = yes; then
       LIBPNG=$PNG_LIBS
@@ -4156,7 +4253,8 @@ if test "${opsys}" = "mingw32"; then
     AC_DEFINE(HAVE_TIFF, 1, [Define to 1 if you have the tiff library (-ltiff).])
   fi
 elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes" \
-     || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes"; then
+     || test "${HAVE_NS}" = "yes" || test "${HAVE_BE_APP}" = "yes" \
+     || test "$window_system" = "pgtk"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER(tiffio.h,
       [tifflibs="-lz -lm"
@@ -4186,7 +4284,7 @@ if test "${opsys}" = "mingw32"; then
   fi
 elif test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no" \
         || test "${HAVE_W32}" = "yes" || test "${HAVE_NS}" = "yes" \
-	|| test "${HAVE_BE_APP}" = "yes"; then
+	|| test "${HAVE_BE_APP}" = "yes" || test "$window_system" = "pgtk"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs, but version 5.0 removes EGifPutExtensionLast.
@@ -4389,11 +4487,18 @@ if test "${HAVE_X11}" = "yes" && test "${with_xinput2}" != "no"; then
        [AC_CHECK_LIB(Xi, XIGrabButton, HAVE_XINPUT2=yes)])
    fi
    if test $HAVE_XINPUT2 = yes; then
-     AC_DEFINE(HAVE_XINPUT2, 1, [Define to 1 if the X Input Extension version 2.0 is present.])
+     AC_DEFINE(HAVE_XINPUT2, 1, [Define to 1 if the X Input Extension version 2.0 or later is present.])
      if test "$USE_GTK_TOOLKIT" = "GTK2"; then
        AC_MSG_WARN([You are building Emacs with GTK+ 2 and the X Input Extension version 2.
 This might lead to problems if your version of GTK+ is not built with support for XInput 2.])
      fi
+     # Detect both faulty installations of libXi where gesture event
+     # types are defined but gesture event structures are not, and
+     # also where gesture event structures are empty.
+     AC_CHECK_MEMBERS([XIGesturePinchEvent.delta_unaccel_y],
+       [AC_DEFINE(HAVE_USABLE_XI_GESTURE_PINCH_EVENT, 1,
+         [Define to 1 if XInput headers define gesture structures correctly.])],
+       [], [[#include <X11/extensions/XInput2.h>]])
    fi
 fi
 AC_SUBST(XINPUT_CFLAGS)
@@ -5426,6 +5531,7 @@ case $opsys in
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
   || defined __alpha__ || defined __mips__ || defined __s390__ \
   || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+  || defined __x86_64__ \
   || defined __ia64__ || defined __sh__
 /* ok */
 #else
@@ -5674,7 +5780,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2021 Free Software Foundation, Inc."
+copyright="Copyright (C) 2022 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -5690,6 +5796,7 @@ AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
 AC_SUBST(bindir)
 AC_SUBST(datadir)
+AC_SUBST(gsettingsschemadir)
 AC_SUBST(sharedstatedir)
 AC_SUBST(libexecdir)
 AC_SUBST(mandir)
@@ -5753,13 +5860,13 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   fi
 fi
 
+if test "${window_system}" = "pgtk"; then
+   FONT_OBJ="ftfont.o ftcrfont.o"
+fi
+
 if test "${HAVE_BE_APP}" = "yes" ; then
-  if test "${HAVE_FREETYPE}" = "yes" || \
-     test "${HAVE_CAIRO}" = "yes"; then
-     FONT_OBJ="$FONT_OBJ ftfont.o"
-  fi
   if test "${HAVE_CAIRO}" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftcrfont.o"
+    FONT_OBJ="$FONT_OBJ ftfont.o ftcrfont.o"
   fi
 fi
 
@@ -6153,8 +6260,8 @@ optsep=
 emacs_config_features=
 for opt in ACL BE_APP CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
- M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PNG RSVG SECCOMP \
- SOUND THREADS TIFF TOOLKIT_SCROLL_BARS \
+ M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP \
+ SOUND SQLITE3 THREADS TIFF TOOLKIT_SCROLL_BARS \
  UNEXEC WEBP X11 XAW3D XDBE XFT XIM XINPUT2 XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 
@@ -6201,6 +6308,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG
   Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}
   Does Emacs use -lwebp?                                  ${HAVE_WEBP}
+  Does Emacs use -lsqlite3?                               ${HAVE_SQLITE3}
   Does Emacs use cairo?                                   ${HAVE_CAIRO}
   Does Emacs use -llcms2?                                 ${HAVE_LCMS2}
   Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}

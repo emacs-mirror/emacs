@@ -1,6 +1,6 @@
 ;;; image-tests.el --- Tests for image.c  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefan@marxist.se>
 
@@ -239,7 +239,6 @@
 (ert-deftest image-tests-init-image-library ()
   (skip-unless (fboundp 'init-image-library))
   (should (init-image-library 'pbm)) ; built-in
-  (should (init-image-library 'xpm)) ; built-in
   (should-not (init-image-library 'invalid-image-type)))
 
 ;;; image-tests.el ends here

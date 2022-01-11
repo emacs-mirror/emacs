@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -642,24 +642,41 @@ apply them to specific text when you want the effects they produce.
 @item default
 This face is used for ordinary text that doesn't specify any face.
 Its background color is used as the frame's background color.
+
 @item bold
 This face uses a bold variant of the default font.
+
 @item italic
 This face uses an italic variant of the default font.
+
 @item bold-italic
 This face uses a bold italic variant of the default font.
+
 @item underline
 This face underlines text.
+
 @item fixed-pitch
 This face forces use of a fixed-width font.  It's reasonable to
 customize this face to use a different fixed-width font, if you like,
 but you should not make it a variable-width font.
+
 @item fixed-pitch-serif
 This face is like @code{fixed-pitch}, except the font has serifs and
 looks more like traditional typewriting.
+
 @cindex @code{variable-pitch} face
 @item variable-pitch
-This face forces use of a variable-width font.
+This face forces use of a variable-width (i.e., proportional) font.
+The font size picked for this face matches the font picked for the
+default (usually fixed-width) font.
+
+@item variable-pitch-text
+This is like the @code{variable-pitch} face (from which it inherits),
+but is slightly larger.  A proportional font of the same height as a
+monospace font usually appears visually smaller, and can therefore be
+harder to read.  When displaying longer texts, this face can be a good
+choice over the (slightly smaller) @code{variable-pitch} face.
+
 @cindex @code{shadow} face
 @item shadow
 This face is used for making the text less noticeable than the surrounding
@@ -885,6 +902,20 @@ prefix argument.
   The above commands automatically enable the minor mode
 @code{text-scale-mode} if the current font scaling is other than 1,
 and disable it otherwise.
+
+@cindex pinch to scale
+@findex text-scale-pinch
+  The command @code{text-scale-pinch} increases or decreases the text
+scale based on the distance between fingers on a touchpad when a pinch
+gesture is performed by placing two fingers on a touchpad and moving
+them towards or apart from each other.  This is only available on some
+systems with supported hardware.
+
+@findex mouse-wheel-text-scale
+  The command @code{mouse-wheel-text-scale} also changes the text
+scale.  Normally, it is run when you press @key{Ctrl} while moving the
+mouse wheel.  The text scale is increased when the wheel is moved
+downwards, and it is decreased when the wheel is moved upwards.
 
 @node Font Lock
 @section Font Lock mode
@@ -1672,6 +1703,12 @@ can also customize the @code{glyphless-char} face to make these
 characters more prominent on display.  @xref{Glyphless Chars,,
 Glyphless Character Display, elisp, The Emacs Lisp Reference Manual},
 for details.
+
+@findex glyphless-display-mode
+  The @code{glyphless-display-mode} minor mode can be used to toggle
+the display of glyphless characters in the current buffer.  The
+glyphless characters will be displayed as boxes with acronyms of their
+names inside.
 
 @cindex curly quotes, and terminal capabilities
 @cindex curved quotes, and terminal capabilities

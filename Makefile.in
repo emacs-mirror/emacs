@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2021 Free Software Foundation, Inc.
+# Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -103,6 +103,9 @@ HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 USE_STARTUP_NOTIFICATION = @USE_STARTUP_NOTIFICATION@
 
 HAVE_BE_APP = @HAVE_BE_APP@
+
+HAVE_PGTK = @HAVE_PGTK@
+HAVE_GSETTINGS = @HAVE_GSETTINGS@
 
 # ==================== Where To Install Things ====================
 
@@ -212,6 +215,9 @@ icondir=$(datarootdir)/icons
 # The source directory for the icon files.
 iconsrcdir=$(srcdir)/etc/images/icons
 
+# Where to install the gsettings schema file.
+gsettingsschemadir = $(datadir)/glib-2.0/schemas
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -306,6 +312,8 @@ LN_S_FILEONLY = @LN_S_FILEONLY@
 # We use gzip to compress installed .el and some .txt files.
 GZIP_PROG = @GZIP_PROG@
 
+GLIB_COMPILE_SCHEMAS = glib-compile-schemas
+
 # ============================= Targets ==============================
 
 # Program name transformation.
@@ -345,7 +353,9 @@ BIN_DESTDIR='${ns_appbindir}/'
 ELN_DESTDIR = ${ns_applibdir}/
 endif
 
-all: ${SUBDIR} info
+gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
+
+all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid)
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
 
@@ -427,6 +437,10 @@ epaths-force-ns-self-contained: epaths-force
 	  -e 's;${ns_appdir}/;;') &&			\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
+ifneq ($(NTDIR),)
+$(NTDIR): lib
+endif
+
 lib-src src: $(NTDIR) lib
 
 src: lib-src
@@ -497,7 +511,7 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln
+install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln install-gsettings-schemas
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -817,7 +831,7 @@ install-strip:
 ### create (but not the noninstalled files such as 'make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
-uninstall: uninstall-$(NTDIR) uninstall-doc
+uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
@@ -913,7 +927,7 @@ clean_dirs = $(mostlyclean_dirs) nextstep admin/charsets admin/unidata
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
-clean: $(clean_dirs:=_clean)
+clean: $(clean_dirs:=_clean) clean-gsettings-schemas
 	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 	-rm -rf native-lisp
@@ -938,7 +952,7 @@ distclean_dirs = $(clean_dirs) leim lisp admin/grammars
 
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
-distclean: $(distclean_dirs:=_distclean)
+distclean: $(distclean_dirs:=_distclean) clean-gsettings-schemas
 	${top_distclean}
 
 ### 'bootstrap-clean'
@@ -1063,8 +1077,8 @@ info_dir_deps = \
 ## but then we would need to depend on ${INFOS}, which would
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
-	$(AM_V_at)${MKDIR_P} ${srcdir}/info
-	$(AM_V_GEN)(cd ${srcdir}/doc && \
+	$(AM_V_GEN)${MKDIR_P} ${srcdir}/info
+	$(AM_V_at)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
 	) >$@.tmp && mv $@.tmp $@
 
@@ -1233,3 +1247,31 @@ gitmerge:
 	${GITMERGE_EMACS} -batch --no-site-file --no-site-lisp \
 	  -l ${srcdir}/admin/gitmerge.el \
 	  --eval '(setq gitmerge-minimum-missing ${GITMERGE_NMIN})' -f gitmerge
+
+install-gsettings-schemas:
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	$(MKDIR_P) "$(DESTDIR)$(gsettingsschemadir)"
+	$(INSTALL_DATA) $(srcdir)/$(gsettings_SCHEMAS) "$(DESTDIR)$(gsettingsschemadir)"
+	if [ -z "$(DESTDIR)" ]; then $(GLIB_COMPILE_SCHEMAS) $(gsettingsschemadir); fi
+endif
+
+uninstall-gsettings-schemas:
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	for x in $(gsettings_SCHEMAS); do \
+	  xx=`echo $$x | sed -e 's|.*/||'`; \
+	  rm -f "$(DESTDIR)$(gsettingsschemadir)/$${xx}"; \
+	done
+	if [ -z "$(DESTDIR)" ]; then $(GLIB_COMPILE_SCHEMAS) $(gsettingsschemadir); fi
+endif
+
+clean-gsettings-schemas:
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	rm -f $(gsettings_SCHEMAS:.xml=.valid)
+endif
+
+$(gsettings_SCHEMAS:.xml=.valid): $(srcdir)/$(gsettings_SCHEMAS)
+ifeq ($(HAVE_PGTK)$(HAVE_GSETTINGS),yesyes)
+	$(GLIB_COMPILE_SCHEMAS) --strict --dry-run --schema-file=$(srcdir)/$(gsettings_SCHEMAS)
+	$(MKDIR_P) $(@D)
+	touch $@
+endif

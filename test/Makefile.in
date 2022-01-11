@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2021 Free Software Foundation, Inc.
+# Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -183,8 +183,8 @@ testloadfile = $*
 endif
 
 %.log: %.elc
-	$(AM_V_at)${MKDIR_P} $(dir $@)
-	$(AM_V_GEN)HOME=$(TEST_HOME) $(emacs) \
+	$(AM_V_GEN)${MKDIR_P} $(dir $@)
+	$(AM_V_at)HOME=$(TEST_HOME) $(emacs) \
 	  -l ert ${ert_opts} -l $(testloadfile) \
 	  $(TEST_RUN_ERT)
 
@@ -291,8 +291,8 @@ FREE_SOURCE_1 = $(srcdir)/../lib/free.c
 # as source because those are not compiled with -fPIC.  Therefore we
 # use only source files.
 $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
-	$(AM_V_at)${MKDIR_P} $(dir $@)
-	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
+	$(AM_V_CCLD)${MKDIR_P} $(dir $@)
+	$(AM_V_at)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
 	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
 	  $(FREE_SOURCE_$(REPLACE_FREE)) \
@@ -353,6 +353,7 @@ mostlyclean:
 
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
+	find . '(' -name '*.xml' -a ! -path '*resources*' ')' $(FIND_DELETE)
 	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
 	  $(test_module_dir)/*.dll
@@ -368,16 +369,16 @@ maintainer-clean: distclean bootstrap-clean
 .PHONY: check-declare
 
 check-declare:
-	$(emacs) -l check-declare \
+	$(emacs) --batch -l check-declare \
 	  --eval '(check-declare-directory "$(srcdir)")'
 
 .PHONY: subdirs subdir-targets generate-test-jobs
 
 subdirs:
-	@echo $(SUBDIRS)
+	@: $(info $(SUBDIRS))
 
 subdir-targets:
-	@echo $(SUBDIR_TARGETS)
+	@: $(info $(SUBDIR_TARGETS))
 
 generate-test-jobs:
 	@$(MAKE) -C infra generate-test-jobs SUBDIRS="$(SUBDIRS)"

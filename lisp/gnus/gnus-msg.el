@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1748,7 +1748,7 @@ this is a reply."
 			    (concat "\"" str "\"")
 			  str)))
 	      (when groups
-		(insert " ")))
+		(insert ",")))
 	    (insert "\n")))))))
 
 (defun gnus-mailing-list-followup-to ()

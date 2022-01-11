@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for GNU Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1990-1993, 1996, 1999, 2001-2021 Free Software
+;; Copyright (C) 1990-1993, 1996, 1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -95,10 +95,7 @@ if nil, the local time zone is assumed."
 Optional argument TIMEZONE specifies a time zone."
   (let ((zone
 	 (if (listp timezone)
-	     (let* ((m (timezone-zone-to-minute timezone))
-		    (absm (if (< m 0) (- m) m)))
-	       (format "%c%02d%02d"
-		       (if (< m 0) ?- ?+) (/ absm 60) (% absm 60)))
+	     (format-time-string "%z" 0 (or timezone 0))
 	   timezone)))
     (format "%02d %s %04d %s %s"
 	    day
@@ -302,11 +299,10 @@ Return a list in the same format as `current-time-zone's result,
 or nil if the local time zone could not be computed.
 DATE is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-   (and (fboundp 'current-time-zone)
-	(let ((utc-time (timezone-time-from-absolute date seconds)))
-	  (and utc-time
-	       (let ((zone (current-time-zone utc-time)))
-		 (and (car zone) zone))))))
+  (let ((utc-time (timezone-time-from-absolute date seconds)))
+    (and utc-time
+	 (let ((zone (current-time-zone utc-time)))
+	   (and (car zone) zone)))))
 
 (defun timezone-fix-time (date local timezone)
   "Convert DATE (default timezone LOCAL) to YYYY-MM-DD-HH-MM-SS-ZONE vector.

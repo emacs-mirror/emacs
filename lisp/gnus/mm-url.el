@@ -1,6 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -34,8 +34,6 @@
 (require 'gnus)
 
 (defvar url-current-object)
-(defvar url-package-name)
-(defvar url-package-version)
 
 (defgroup mm-url nil
   "A wrapper of url package and external url command for Gnus."

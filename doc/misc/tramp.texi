@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3389,8 +3389,8 @@ indication that the process has been interrupted, and returns a
 corresponding string.
 
 This remote process handling does not apply to @acronym{GVFS}
-(@pxref{GVFS-based methods}) because the remote file system is mounted on
-the local host and @value{tramp} accesses it by changing the
+(@pxref{GVFS-based methods}) because the remote file system is mounted
+on the local host and @value{tramp} accesses it by changing the
 @code{default-directory}.
 
 @value{tramp} starts a remote process when a command is executed in a
@@ -4059,6 +4059,11 @@ CPIO archives
 @cindex @file{cpio} file archive suffix
 @cindex file archive suffix @file{cpio}
 
+@item @samp{.crate} ---
+Cargo (Rust) packages
+@cindex @file{crate} file archive suffix
+@cindex file archive suffix @file{crate}
+
 @item @samp{.deb} ---
 Debian packages
 @cindex @file{deb} file archive suffix
@@ -4226,7 +4231,7 @@ It is even possible to access file archives in file archives, as
 (progn
   (url-handler-mode 1)
   (find-file
-   "http://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
+   "https://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
 @end group
 @end lisp
 

@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -431,12 +431,8 @@ be added."
     ;; Let mouse-1 follow the link.
     (define-key map [follow-link] 'mouse-face)
 
-    (if (fboundp 'command-remapping)
-        (progn
-          (define-key map [remap advertised-undo] 'archive-undo)
-          (define-key map [remap undo] 'archive-undo))
-      (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
-      (substitute-key-definition 'undo 'archive-undo map global-map))
+    (define-key map [remap advertised-undo] #'archive-undo)
+    (define-key map [remap undo] #'archive-undo)
 
     (define-key map [mouse-2] 'archive-extract)
 
@@ -621,12 +617,8 @@ OLDMODE will be modified accordingly just like chmod(2) would have done."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let* ((time (list high low))
-	 (str (current-time-string time)))
-    (format "%s-%s-%s"
-	    (substring str 8 10)
-	    (substring str 4 7)
-	    (format-time-string "%Y" time))))
+  (let ((system-time-locale "C"))
+    (format-time-string "%e-%b-%Y" (list high low))))
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."

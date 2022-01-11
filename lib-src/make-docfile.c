@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2021 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
-/* The arguments given to this program are all the C and Lisp source files
- of GNU Emacs.  .elc and .el and .c files are allowed.
+/* The arguments given to this program are all the C and some Lisp source files
+ of GNU Emacs.  .el and .c files are allowed.
  A .o file can also be specified; the .c file it was made from is used.
  This helps the makefile pass the correct list of files.
  Option -d DIR means change to DIR before looking for files.
@@ -62,9 +62,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Similarly, msdos defines this as sys_chdir, but we're not linking with the
    file where that function is defined.  */
 #undef chdir
-#define IS_SLASH(c)  ((c) == '/' || (c) == '\\' || (c) == ':')
-#else  /* not DOS_NT */
-#define IS_SLASH(c)  ((c) == '/')
 #endif /* not DOS_NT */
 
 static void scan_file (char *filename);
@@ -242,9 +239,7 @@ scan_file (char *filename)
 
   if (!generate_globals)
     put_filename (filename);
-  if (len > 4 && !strcmp (filename + len - 4, ".elc"))
-    scan_lisp_file (filename, "rb");
-  else if (len > 3 && !strcmp (filename + len - 3, ".el"))
+  if (len > 3 && !strcmp (filename + len - 3, ".el"))
     scan_lisp_file (filename, "r");
   else
     scan_c_file (filename, "r");
@@ -1225,7 +1220,7 @@ scan_c_stream (FILE *infile)
     fatal ("read error");
 }
 
-/* Read a file of Lisp code, compiled or interpreted.
+/* Read a file of Lisp source code.
  Looks for
   (defun NAME ARGS DOCSTRING ...)
   (defmacro NAME ARGS DOCSTRING ...)
@@ -1252,10 +1247,8 @@ scan_c_stream (FILE *infile)
  For defun, defmacro, and autoload, we know how to skip over the
  arglist, but the doc string must still have a backslash and newline
  immediately after the double quote.
- The only source files that must follow this convention are preloaded
- uncompiled ones like loaddefs.el; aside from that, it is always the .elc
- file that we should look at, and they are no problem because byte-compiler
- output follows this convention.
+ The only source files that follow this convention are autoload-generated
+ files like loaddefs.el;
  The NAME and DOCSTRING are output.
  NAME is preceded by `F' for a function or `V' for a variable.
  An entry is output only if DOCSTRING has \ newline just after the opening ".
@@ -1331,50 +1324,14 @@ search_lisp_doc_at_eol (FILE *infile)
   return true;
 }
 
-#define DEF_ELISP_FILE(fn)  { #fn, sizeof(#fn) - 1 }
-
 static void
 scan_lisp_file (const char *filename, const char *mode)
 {
   FILE *infile;
   int c;
-  char *saved_string = 0;
-  /* These are the only files that are loaded uncompiled, and must
-     follow the conventions of the doc strings expected by this
-     function.  These conventions are automatically followed by the
-     byte compiler when it produces the .elc files.  */
-  static struct {
-    const char *fn;
-    int fl;
-  } const uncompiled[] = {
-    DEF_ELISP_FILE (loaddefs.el),
-    DEF_ELISP_FILE (loadup.el),
-    DEF_ELISP_FILE (charprop.el),
-    DEF_ELISP_FILE (cp51932.el),
-    DEF_ELISP_FILE (eucjp-ms.el)
-  };
-  int i;
-  int flen = strlen (filename);
 
   if (generate_globals)
     fatal ("scanning lisp file when -g specified");
-  if (flen > 3 && !strcmp (filename + flen - 3, ".el"))
-    {
-      bool match = false;
-      for (i = 0; i < sizeof (uncompiled) / sizeof (uncompiled[0]); i++)
-	{
-	  if (uncompiled[i].fl <= flen
-	      && !strcmp (filename + flen - uncompiled[i].fl, uncompiled[i].fn)
-	      && (flen == uncompiled[i].fl
-		  || IS_SLASH (filename[flen - uncompiled[i].fl - 1])))
-	    {
-	      match = true;
-	      break;
-	    }
-	}
-      if (!match)
-	fatal ("uncompiled lisp file %s is not supported", filename);
-    }
 
   infile = fopen (filename, mode);
   if (infile == NULL)
@@ -1398,54 +1355,6 @@ scan_lisp_file (const char *filename, const char *mode)
       /* Skip the line break.  */
       while (c == '\n' || c == '\r')
 	c = getc (infile);
-      /* Detect a dynamic doc string and save it for the next expression.  */
-      if (c == '#')
-	{
-	  c = getc (infile);
-	  if (c == '@')
-	    {
-	      ptrdiff_t length = 0;
-	      ptrdiff_t i;
-
-	      /* Read the length.  */
-	      while ((c = getc (infile),
-		      c_isdigit (c)))
-		{
-		  if (INT_MULTIPLY_WRAPV (length, 10, &length)
-		      || INT_ADD_WRAPV (length, c - '0', &length)
-		      || SIZE_MAX < length)
-		    memory_exhausted ();
-		}
-
-	      if (length <= 1)
-		fatal ("invalid dynamic doc string length");
-
-	      if (c != ' ')
-		fatal ("space not found after dynamic doc string length");
-
-	      /* The next character is a space that is counted in the length
-		 but not part of the doc string.
-		 We already read it, so just ignore it.  */
-	      length--;
-
-	      /* Read in the contents.  */
-	      free (saved_string);
-	      saved_string = xmalloc (length);
-	      for (i = 0; i < length; i++)
-		saved_string[i] = getc (infile);
-	      /* The last character is a ^_.
-		 That is needed in the .elc file
-		 but it is redundant in DOC.  So get rid of it here.  */
-	      saved_string[length - 1] = 0;
-	      /* Skip the line break.  */
-	      while (c == '\n' || c == '\r')
-		c = getc (infile);
-	      /* Skip the following line.  */
-	      while (! (c == '\n' || c == '\r' || c < 0))
-		c = getc (infile);
-	    }
-	  continue;
-	}
 
       if (c != '(')
 	continue;
@@ -1498,7 +1407,6 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 	}
 
-      /* defcustom can only occur in uncompiled Lisp files.  */
       else if (! strcmp (buffer, "defvar")
 	       || ! strcmp (buffer, "defconst")
 	       || ! strcmp (buffer, "defcustom"))
@@ -1506,9 +1414,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	  type = 'V';
 	  read_lisp_symbol (infile, buffer);
 
-	  if (saved_string == 0)
-	    if (!search_lisp_doc_at_eol (infile))
-	      continue;
+	  if (!search_lisp_doc_at_eol (infile))
+	    continue;
 	}
 
       else if (! strcmp (buffer, "custom-declare-variable")
@@ -1548,9 +1455,8 @@ scan_lisp_file (const char *filename, const char *mode)
 		}
 	    }
 
-	  if (saved_string == 0)
-	    if (!search_lisp_doc_at_eol (infile))
-	      continue;
+	  if (!search_lisp_doc_at_eol (infile))
+	    continue;
 	}
 
       else if (! strcmp (buffer, "fset") || ! strcmp (buffer, "defalias"))
@@ -1586,9 +1492,8 @@ scan_lisp_file (const char *filename, const char *mode)
 		}
 	    }
 
-	  if (saved_string == 0)
-	    if (!search_lisp_doc_at_eol (infile))
-	      continue;
+	  if (!search_lisp_doc_at_eol (infile))
+	    continue;
 	}
 
       else if (! strcmp (buffer, "autoload"))
@@ -1632,9 +1537,8 @@ scan_lisp_file (const char *filename, const char *mode)
 	    }
 	  read_c_string_or_comment (infile, 0, false, 0);
 
-	  if (saved_string == 0)
-	    if (!search_lisp_doc_at_eol (infile))
-	      continue;
+	  if (!search_lisp_doc_at_eol (infile))
+	    continue;
 	}
 
 #ifdef DEBUG
@@ -1652,23 +1556,13 @@ scan_lisp_file (const char *filename, const char *mode)
 	  continue;
 	}
 
-      /* At this point, we should either use the previous dynamic doc string in
-	 saved_string or gobble a doc string from the input file.
-	 In the latter case, the opening quote (and leading backslash-newline)
+      /* At this point, we should gobble a doc string from the input file.
+	 The opening quote (and leading backslash-newline)
 	 have already been read.  */
 
       printf ("\037%c%s\n", type, buffer);
-      if (saved_string)
-	{
-	  fputs (saved_string, stdout);
-	  /* Don't use one dynamic doc string twice.  */
-	  free (saved_string);
-	  saved_string = 0;
-	}
-      else
-	read_c_string_or_comment (infile, 1, false, 0);
+      read_c_string_or_comment (infile, 1, false, 0);
     }
-  free (saved_string);
   if (ferror (infile) || fclose (infile) != 0)
     fatal ("%s: read error", filename);
 }

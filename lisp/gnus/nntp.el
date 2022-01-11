@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2021 Free Software
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -36,6 +36,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -1175,10 +1176,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
          (auth-force (plist-get auth-info :force))
-         (auth-passwd (plist-get auth-info :secret))
-         (auth-passwd (if (functionp auth-passwd)
-                          (funcall auth-passwd)
-                        auth-passwd))
+         (auth-passwd (auth-info-password auth-info))
 	 (force (or (netrc-get alist "force")
                     nntp-authinfo-force
                     auth-force))

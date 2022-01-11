@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
 
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -41,7 +41,7 @@
 ;;
 ;;  I briefly tried out thumbs.el, and although it seemed more
 ;; powerful than this package, it did not work the way I wanted to.  It
-;; was too slow to created thumbnails of all files in a directory (I
+;; was too slow to create thumbnails of all files in a directory (I
 ;; currently keep all my 2000+ images in the same directory) and
 ;; browsing the thumbnail buffer was slow too.  image-dired.el will not
 ;; create thumbnails until they are needed and the browsing is done
@@ -103,9 +103,6 @@
 ;; TODO
 ;; ====
 ;;
-;; * Some sort of auto-rotate function based on rotate info in the
-;;   EXIF data.
-;;
 ;; * Investigate if it is possible to also write the tags to the image
 ;;   files.
 ;;
@@ -113,12 +110,6 @@
 ;;   for thumbnail directory.
 ;;
 ;; * From thumbs.el: Add setroot function.
-;;
-;; * From thumbs.el: Add image resizing, if useful (image-dired's automatic
-;;  "image fit" might be enough)
-;;
-;; * From thumbs.el: Add the "modify" commands (emboss, negate,
-;;   monochrome etc).
 ;;
 ;; * Add `image-dired-display-thumbs-ring' and functions to cycle that.  Find out
 ;;   which is best, saving old batch just before inserting new, or
@@ -499,6 +490,17 @@ variable is nil, it will never ask."
                  (const :tag "Disable warning" nil))
   :version "29.1")
 
+(defcustom image-dired-marking-shows-next t
+  "If non-nil, marking, unmarking or flagging an image shows the next image.
+
+This affects the following commands:
+\\<image-dired-thumbnail-mode-map>
+    `image-dired-flag-thumb-original-file'   (bound to \\[image-dired-flag-thumb-original-file])
+    `image-dired-mark-thumb-original-file'   (bound to \\[image-dired-mark-thumb-original-file])
+    `image-dired-unmark-thumb-original-file' (bound to \\[image-dired-unmark-thumb-original-file])"
+  :type 'boolean
+  :version "29.1")
+
 
 ;;; Util functions
 
@@ -540,7 +542,7 @@ Create the thumbnail directory if it does not exist."
 
 (defun image-dired-get-thumbnail-image (file)
   "Return the image descriptor for a thumbnail of image file FILE."
-  (unless (string-match (image-file-name-regexp) file)
+  (unless (string-match-p (image-file-name-regexp) file)
     (error "%s is not a valid image file" file))
   (let* ((thumb-file (image-dired-thumb-name file))
 	 (thumb-attr (file-attributes thumb-file)))
@@ -768,7 +770,7 @@ and remove the cached thumbnail files between each trial run.")
               (image-dired-debug-message
                (format-time-string
                 "Generated thumbnails in %s.%3N seconds"
-                (time-subtract (current-time)
+		(time-subtract nil
                                image-dired--generate-thumbs-start))))
             (if (not (and (eq (process-status process) 'exit)
                           (zerop (process-exit-status process))))
@@ -1280,7 +1282,7 @@ but the other way around."
         (when found
           (if (setq window (image-dired-thumbnail-window))
               (set-window-point window (point)))
-          (image-dired-display-thumb-properties))))))
+          (image-dired-update-header-line))))))
 
 (defun image-dired-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
@@ -1307,7 +1309,7 @@ With prefix argument, move ARG lines."
       (when (and (equal (current-buffer) old-buf)
                  (= (point) old-point))
         (ignore-errors
-          (image-dired-display-thumb-properties))))))
+          (image-dired-update-header-line))))))
 
 (defun image-dired-forward-image (&optional arg wrap-around)
   "Move to next image and display properties.
@@ -1330,13 +1332,13 @@ point is on the last image, move to the last one and vice versa."
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
           (progn (goto-char pos)
-                 (image-dired-display-thumb-properties))
+                 (image-dired-update-header-line))
         (if wrap-around
             (progn (goto-char (if (> arg 0)
                                   (point-min)
                                 ;; There are two spaces after the last image.
                                 (- (point-max) 2)))
-                   (image-dired-display-thumb-properties))
+                   (image-dired-update-header-line))
           (message "At %s image" (if (> arg 0) "last" "first"))
           (run-at-time 1 nil (image-dired--display-thumb-properties-fun))))))
   (when image-dired-track-movement
@@ -1361,7 +1363,7 @@ On reaching end or beginning of buffer, stop and show a message."
       (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 
 (defun image-dired-previous-line ()
@@ -1378,7 +1380,7 @@ On reaching end or beginning of buffer, stop and show a message."
       (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-beginning-of-buffer ()
   "Move to the first image in the buffer and display properties."
@@ -1389,7 +1391,7 @@ On reaching end or beginning of buffer, stop and show a message."
     (forward-char 1))
   (when image-dired-track-movement
     (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-end-of-buffer ()
   "Move to the last image in the buffer and display properties."
@@ -1400,7 +1402,7 @@ On reaching end or beginning of buffer, stop and show a message."
     (forward-char -1))
   (when image-dired-track-movement
     (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-format-properties-string (buf file props comment)
   "Format display properties.
@@ -1415,21 +1417,23 @@ comment."
     (cons ?t (or props ""))
     (cons ?c (or comment "")))))
 
-(defun image-dired-display-thumb-properties ()
-  "Display thumbnail properties in the echo area."
-  (if (not (eobp))
-      (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
-            (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
-            (props (mapconcat #'identity (get-text-property (point) 'tags) ", "))
-            (comment (get-text-property (point) 'comment))
-            (message-log-max nil))
-        (if file-name
-             (message "%s"
-             (image-dired-format-properties-string
-              dired-buf
-              file-name
-              props
-              comment))))))
+(defun image-dired-update-header-line ()
+  "Update image information in the header line."
+  (when (and (not (eobp))
+             (memq major-mode '(image-dired-thumbnail-mode
+                                image-dired-display-image-mode)))
+    (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
+          (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
+          (props (mapconcat #'identity (get-text-property (point) 'tags) ", "))
+          (comment (get-text-property (point) 'comment))
+          (message-log-max nil))
+      (if file-name
+          (setq header-line-format
+                (image-dired-format-properties-string
+                 dired-buf
+                 file-name
+                 props
+                 comment))))))
 
 (defun image-dired-dired-file-marked-p (&optional marker)
   "In Dired, return t if file on current line is marked.
@@ -1445,11 +1449,20 @@ for.  The default is to look for `dired-marker-char'."
   "In Dired, return t if file on current line is flagged for deletion."
   (image-dired-dired-file-marked-p dired-del-marker))
 
+(defmacro image-dired--with-thumbnail-buffer (&rest body)
+  (declare (indent defun) (debug t))
+  `(if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+       (with-current-buffer buf
+         (if-let ((win (get-buffer-window buf)))
+             (with-selected-window win
+               ,@body)
+           ,@body))
+     (user-error "No such buffer: %s" image-dired-thumbnail-buffer)))
+
 (defmacro image-dired--on-file-in-dired-buffer (&rest body)
   "Run BODY with point on file at point in Dired buffer.
 Should be called from commands in `image-dired-thumbnail-mode'."
-  (declare (indent defun)
-           (debug 1))
+  (declare (indent defun) (debug t))
   `(let ((file-name (image-dired-original-file-name))
          (dired-buf (image-dired-associated-dired-buffer)))
      (if (not (and dired-buf file-name))
@@ -1459,31 +1472,42 @@ Should be called from commands in `image-dired-thumbnail-mode'."
            ,@body
            (image-dired-thumb-update-marks))))))
 
+(defmacro image-dired--do-mark-command (maybe-next &rest body)
+  "Helper macro for the mark, unmark and flag commands.
+Run BODY in Dired buffer.
+If optional argument MAYBE-NEXT is non-nil, show next image
+according to `image-dired-marking-shows-next'."
+  (declare (indent defun) (debug t))
+  `(image-dired--with-thumbnail-buffer
+     (image-dired--on-file-in-dired-buffer
+       ,@body)
+     ,(when maybe-next
+        '(if image-dired-marking-shows-next
+             (image-dired-display-next-thumbnail-original)
+           (image-dired-next-line)))))
+
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-mark 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command t
+    (dired-mark 1)))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-unmark 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command t
+    (dired-unmark 1)))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
-    (dired-flag-file-deletion 1))
-  (image-dired-forward-image))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command t
+    (dired-flag-file-deletion 1)))
 
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (image-dired--on-file-in-dired-buffer
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command nil
     (if (image-dired-dired-file-marked-p)
         (dired-unmark 1)
       (dired-mark 1))))
@@ -1491,10 +1515,11 @@ Should be called from commands in `image-dired-thumbnail-mode'."
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files in associated Dired buffer.
 Also update the marks in the thumbnail buffer."
-  (interactive nil image-dired-thumbnail-mode)
-  (with-current-buffer (image-dired-associated-dired-buffer)
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command nil
     (dired-unmark-all-marks))
-  (image-dired-thumb-update-marks))
+  (image-dired--with-thumbnail-buffer
+    (image-dired-thumb-update-marks)))
 
 (defun image-dired-jump-original-dired-buffer ()
   "Jump to the Dired buffer associated with the current image file.
@@ -1593,11 +1618,6 @@ You probably want to use this together with
     (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
     (define-key map [down-mouse-3] #'image-dired-mouse-select-thumbnail)
-    ;; Let's disable mouse dragging, as it currently doesn't do
-    ;; anything useful.
-    (define-key map [drag-mouse-1] #'ignore)
-    (define-key map [drag-mouse-2] #'ignore)
-    (define-key map [drag-mouse-3] #'ignore)
     ;; Seems I must first set C-down-mouse-1 to undefined, or else it
     ;; will trigger the buffer menu. If I try to instead bind
     ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
@@ -1643,16 +1663,16 @@ You probably want to use this together with
 (defvar image-dired-display-image-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "S" #'image-dired-slideshow-start)
+    (define-key map (kbd "SPC") #'image-dired-display-next-thumbnail-original)
+    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
+    (define-key map "n" #'image-dired-display-next-thumbnail-original)
+    (define-key map "p" #'image-dired-display-previous-thumbnail-original)
+    (define-key map "m" #'image-dired-mark-thumb-original-file)
+    (define-key map "d" #'image-dired-flag-thumb-original-file)
+    (define-key map "u" #'image-dired-unmark-thumb-original-file)
+    (define-key map "U" #'image-dired-unmark-all-marks)
     ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
     (define-key map "o" nil) ; image-save
-    (define-key map "n" nil) ; image-next-file
-    (define-key map "p" nil) ; image-previous-file
-    ;; FIXME: Should be replaced with image-dired commands.
-    (define-key map (kbd "DEL") nil) ; image-next-file
-    (define-key map (kbd "SPC") nil) ; image-next-file
-    ;; FIXME: Should be replaced with image-dired commands.
-    (define-key map "m" nil) ; image-mode-mark-file
-    (define-key map "u" nil) ; image-mode-unmark-file
     map)
   "Keymap for `image-dired-display-image-mode'.")
 
@@ -1782,21 +1802,22 @@ This is used by `image-dired-slideshow-start'."
     (image-dired-slideshow-stop)))
 
 (defun image-dired-slideshow-start (&optional arg)
-  "Start a slideshow.
-Wait `image-dired-slideshow-delay' seconds before showing the
-next image.
+  "Start a slideshow, waiting `image-dired-slideshow-delay' between images.
 
 With prefix argument ARG, wait that many seconds before going to
 the next image.
 
 With a negative prefix argument, prompt user for the delay."
   (interactive "P" image-dired-thumbnail-mode image-dired-display-image-mode)
-  (let ((delay (if (> arg 0)
-                   arg
-                 (string-to-number
-                  (read-string
-                   (let ((delay (number-to-string image-dired-slideshow-delay)))
-                     (format-prompt "Delay, in seconds. Decimals are accepted" delay) delay))))))
+  (let ((delay (if (not arg)
+                   image-dired-slideshow-delay
+                 (if (> arg 0)
+                     arg
+                   (string-to-number
+                    (let ((delay (number-to-string image-dired-slideshow-delay)))
+                      (read-string
+                       (format-prompt "Delay, in seconds. Decimals are accepted" delay))
+                      delay))))))
     (setq image-dired--slideshow-timer
           (run-with-timer
            0 delay
@@ -2133,16 +2154,17 @@ function.  The result is a couple of new files in
 ;;; Thumbnail mode (cont.)
 
 (defun image-dired-display-next-thumbnail-original (&optional arg)
-  "In thumbnail buffer, move to next thumbnail and display the image.
+  "Move to the next image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode)
-  (image-dired-forward-image arg t)
-  (image-dired-display-thumbnail-original-image))
+  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--with-thumbnail-buffer
+    (image-dired-forward-image arg t)
+    (image-dired-display-thumbnail-original-image)))
 
 (defun image-dired-display-previous-thumbnail-original (arg)
-  "In thumbnail buffer, move to previous thumbnail and display image.
+  "Move to the previous image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode)
+  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
   (image-dired-display-next-thumbnail-original (- arg)))
 
 
@@ -2211,7 +2233,7 @@ FILE-COMMENTS is an alist on the following form:
          (comment (image-dired-read-comment file)))
     (image-dired-write-comments (list (cons file comment)))
     (image-dired-update-property 'comment comment))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 (defun image-dired-read-comment (&optional file)
   "Read comment for an image.
@@ -2304,7 +2326,7 @@ non-nil."
     (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-display-thumb-properties))
+  (image-dired-update-header-line))
 
 
 
@@ -2994,6 +3016,11 @@ Dired."
           (setcdr image-dired-tag-file-list
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
+
+(defun image-dired-display-thumb-properties ()
+  "Display thumbnail properties in the echo area."
+  (declare (obsolete image-dired-update-header-line "29.1"))
+  (image-dired-update-header-line))
 
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")

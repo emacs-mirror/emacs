@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
@@ -100,65 +100,61 @@ SHOULD be at least 2 (MUST BE at least 1).")
   "Number of lines between the Gomoku board and the top of the window.")
 
 
-(defvar gomoku-mode-map
-  (let ((map (make-sparse-keymap)))
+(defvar-keymap gomoku-mode-map
+  :doc "Local keymap to use in Gomoku mode."
+  ;; Key bindings for cursor motion.
+  "y"       #'gomoku-move-nw
+  "u"       #'gomoku-move-ne
+  "b"       #'gomoku-move-sw
+  "n"       #'gomoku-move-se
+  "h"       #'gomoku-move-left
+  "l"       #'gomoku-move-right
+  "j"       #'gomoku-move-down
+  "k"       #'gomoku-move-up
 
-    ;; Key bindings for cursor motion.
-    (define-key map "y" 'gomoku-move-nw)		    ; y
-    (define-key map "u" 'gomoku-move-ne)		    ; u
-    (define-key map "b" 'gomoku-move-sw)		    ; b
-    (define-key map "n" 'gomoku-move-se)		    ; n
-    (define-key map "h" 'gomoku-move-left)		    ; h
-    (define-key map "l" 'gomoku-move-right)		    ; l
-    (define-key map "j" 'gomoku-move-down)		    ; j
-    (define-key map "k" 'gomoku-move-up)		    ; k
+  "<kp-7>"  #'gomoku-move-nw
+  "<kp-9>"  #'gomoku-move-ne
+  "<kp-1>"  #'gomoku-move-sw
+  "<kp-3>"  #'gomoku-move-se
+  "<kp-4>"  #'gomoku-move-left
+  "<kp-6>"  #'gomoku-move-right
+  "<kp-2>"  #'gomoku-move-down
+  "<kp-8>"  #'gomoku-move-up
 
-    (define-key map [kp-7] 'gomoku-move-nw)
-    (define-key map [kp-9] 'gomoku-move-ne)
-    (define-key map [kp-1] 'gomoku-move-sw)
-    (define-key map [kp-3] 'gomoku-move-se)
-    (define-key map [kp-4] 'gomoku-move-left)
-    (define-key map [kp-6] 'gomoku-move-right)
-    (define-key map [kp-2] 'gomoku-move-down)
-    (define-key map [kp-8] 'gomoku-move-up)
+  "C-b"     #'gomoku-move-left
+  "C-f"     #'gomoku-move-right
+  "C-n"     #'gomoku-move-down
+  "C-p"     #'gomoku-move-up
 
-    (define-key map "\C-b" 'gomoku-move-left)		    ; C-b
-    (define-key map "\C-f" 'gomoku-move-right)		    ; C-f
-    (define-key map "\C-n" 'gomoku-move-down)		    ; C-n
-    (define-key map "\C-p" 'gomoku-move-up)		    ; C-p
+  ;; Key bindings for entering Human moves.
+  "X"       #'gomoku-human-plays
+  "x"       #'gomoku-human-plays
+  "SPC"     #'gomoku-human-plays
+  "RET"     #'gomoku-human-plays
+  "C-c C-p" #'gomoku-human-plays
+  "C-c C-b" #'gomoku-human-takes-back
+  "C-c C-r" #'gomoku-human-resigns
+  "C-c C-e" #'gomoku-emacs-plays
 
-    ;; Key bindings for entering Human moves.
-    (define-key map "X" 'gomoku-human-plays)		    ; X
-    (define-key map "x" 'gomoku-human-plays)		    ; x
-    (define-key map " " 'gomoku-human-plays)		    ; SPC
-    (define-key map "\C-m" 'gomoku-human-plays)		    ; RET
-    (define-key map "\C-c\C-p" 'gomoku-human-plays)	    ; C-c C-p
-    (define-key map "\C-c\C-b" 'gomoku-human-takes-back)    ; C-c C-b
-    (define-key map "\C-c\C-r" 'gomoku-human-resigns)	    ; C-c C-r
-    (define-key map "\C-c\C-e" 'gomoku-emacs-plays)	    ; C-c C-e
+  "<kp-enter>"     #'gomoku-human-plays
+  "<insert>"       #'gomoku-human-plays
+  "<down-mouse-1>" #'gomoku-click
+  "<drag-mouse-1>" #'gomoku-click
+  "<mouse-1>"      #'gomoku-click
+  "<down-mouse-2>" #'gomoku-click
+  "<mouse-2>"      #'gomoku-mouse-play
+  "<drag-mouse-2>" #'gomoku-mouse-play
 
-    (define-key map [kp-enter] 'gomoku-human-plays)
-    (define-key map [insert] 'gomoku-human-plays)
-    (define-key map [down-mouse-1] 'gomoku-click)
-    (define-key map [drag-mouse-1] 'gomoku-click)
-    (define-key map [mouse-1] 'gomoku-click)
-    (define-key map [down-mouse-2] 'gomoku-click)
-    (define-key map [mouse-2] 'gomoku-mouse-play)
-    (define-key map [drag-mouse-2] 'gomoku-mouse-play)
-
-    (define-key map [remap backward-char] 'gomoku-move-left)
-    (define-key map [remap left-char] 'gomoku-move-left)
-    (define-key map [remap forward-char] 'gomoku-move-right)
-    (define-key map [remap right-char] 'gomoku-move-right)
-    (define-key map [remap previous-line] 'gomoku-move-up)
-    (define-key map [remap next-line] 'gomoku-move-down)
-    (define-key map [remap move-beginning-of-line] 'gomoku-beginning-of-line)
-    (define-key map [remap move-end-of-line] 'gomoku-end-of-line)
-    (define-key map [remap undo] 'gomoku-human-takes-back)
-    (define-key map [remap advertised-undo] 'gomoku-human-takes-back)
-    map)
-
-  "Local keymap to use in Gomoku mode.")
+  "<remap> <backward-char>"          #'gomoku-move-left
+  "<remap> <left-char>"              #'gomoku-move-left
+  "<remap> <forward-char>"           #'gomoku-move-right
+  "<remap> <right-char>"             #'gomoku-move-right
+  "<remap> <previous-line>"          #'gomoku-move-up
+  "<remap> <next-line>"              #'gomoku-move-down
+  "<remap> <move-beginning-of-line>" #'gomoku-beginning-of-line
+  "<remap> <move-end-of-line>"       #'gomoku-end-of-line
+  "<remap> <undo>"                   #'gomoku-human-takes-back
+  "<remap> <advertised-undo>"        #'gomoku-human-takes-back)
 
 
 (defvar gomoku-emacs-won ()

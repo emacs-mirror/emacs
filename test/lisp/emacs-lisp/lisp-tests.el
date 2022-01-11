@@ -1,6 +1,6 @@
 ;;; lisp-tests.el --- Test Lisp editing commands     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -213,6 +213,7 @@
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
 
 ;; Test some core Elisp rules.
+(defvar c-e-x)
 (ert-deftest core-elisp-tests-1-defvar-in-let ()
   "Test some core Elisp rules."
   (with-temp-buffer

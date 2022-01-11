@@ -1,6 +1,6 @@
 /* Font support for Haiku windowing
 
-Copyright (C) 2021 Free Software Foundation, Inc.
+Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -956,7 +956,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
   prepare_face_for_display (s->f, face);
 
   BView_draw_lock (view);
-  BView_StartClip (view);
   if (with_background)
     {
       int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
@@ -982,13 +981,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 
       BView_FillRectangle (view, x, y - ascent, s->width, height);
       s->background_filled_p = 1;
-    }
-
-  if (s->left_overhang && s->clip_head && !s->for_overlaps)
-    {
-      /* XXX: Why is this neccessary? */
-      BView_ClipToRect (view, s->clip_head->x, 0,
-			FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
     }
 
   if (s->hl == DRAW_CURSOR)
@@ -1022,7 +1014,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
       BView_DrawString (view, b, b_len);
       xfree (b);
     }
-  BView_EndClip (view);
   BView_draw_unlock (view);
   unblock_input ();
   return 1;

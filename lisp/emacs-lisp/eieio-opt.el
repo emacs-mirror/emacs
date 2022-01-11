@@ -1,6 +1,6 @@
 ;;; eieio-opt.el --- eieio optional functions (debug, printing, speedbar)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2021 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -130,6 +130,7 @@ are not abstract."
 ;;;###autoload
 (defun eieio-help-constructor (ctr)
   "Describe CTR if it is a class constructor."
+  (declare (obsolete "use `describe-function' or `cl--describe-class'." "29.1"))
   (when (class-p ctr)
     (erase-buffer)
     (let ((location (find-lisp-object-file-name ctr 'define-type))

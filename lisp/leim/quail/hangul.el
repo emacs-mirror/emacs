@@ -1,6 +1,6 @@
 ;;; hangul.el --- Korean Hangul input method  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hangul
@@ -429,7 +429,7 @@ When a Korean input method is off, convert the following hangul character."
            (hangul3-input-method-jong char))
           (t
            (setq hangul-queue (make-vector 6 0))
-           (insert (decode-char 'ucs char))
+           (insert char)
            (move-overlay quail-overlay (point) (point))))))
 
 (defun hangul3-input-method (key)
@@ -476,7 +476,7 @@ When a Korean input method is off, convert the following hangul character."
            (hangul3-input-method-jong char))
           (t
            (setq hangul-queue (make-vector 6 0))
-           (insert (decode-char 'ucs char))
+           (insert char)
            (move-overlay quail-overlay (point) (point))))))
 
 (defun hangul390-input-method (key)

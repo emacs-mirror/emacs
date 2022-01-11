@@ -1,6 +1,6 @@
 ;;; tramp-archive.el --- Tramp archive manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -54,6 +54,7 @@
 ;; * ".ar" - UNIX archiver formats
 ;; * ".cab", ".CAB" - Microsoft Windows cabinets
 ;; * ".cpio" - CPIO archives
+;; * ".crate" - Cargo (Rust) packages
 ;; * ".deb" - Debian packages
 ;; * ".depot" - HP-UX SD depots
 ;; * ".exe" - Self extracting Microsoft Windows EXE files
@@ -103,7 +104,7 @@
 ;; It is even possible to access file archives in file archives, as
 
 ;;   (find-file
-;;    "http://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control")
+;;    "https://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control")
 
 ;;; Code:
 
@@ -141,6 +142,7 @@
     "ar" ;; UNIX archiver formats.
     "cab" "CAB" ;; Microsoft Windows cabinets.
     "cpio" ;; CPIO archives.
+    "crate" ;; Cargo (Rust) packages.  Not in libarchive testsuite.
     "deb" ;; Debian packages.  Not in libarchive testsuite.
     "depot" ;; HP-UX SD depot.  Not in libarchive testsuite.
     "exe" ;; Self extracting Microsoft Windows EXE files.
@@ -573,9 +575,8 @@ offered."
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for file archives."
   (when (tramp-archive-file-name-p newname)
-    (tramp-error
-     (tramp-archive-dissect-file-name newname) 'file-error
-      "Permission denied: %s" newname))
+    (tramp-compat-permission-denied
+     (tramp-archive-dissect-file-name newname) newname))
   (copy-file
    (tramp-archive-gvfs-file-name filename) newname ok-if-already-exists
    keep-date preserve-uid-gid preserve-extended-attributes))

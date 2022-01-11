@@ -304,8 +304,8 @@ position, type <DEL>.  This is the key on the keyboard usually labeled
 "Backspace"--the same one you normally use, outside Emacs, to delete
 the last character typed.
 
-There may also be another key on your keyboard labeled <Delete>, but
-that's not the one we refer to as <DEL>.
+There is usually another key on your keyboard labeled <Delete>, but
+that's not the one we refer to as <DEL> in Emacs.
 
 >> Do this now--type a few characters, then delete them by
    typing <DEL> a few times.  Don't worry about this file
@@ -1099,6 +1099,20 @@ manual in the node called "Dired".
 The manual also describes many other Emacs features.
 
 
+* INSTALLING PACKAGES
+---------------------
+
+There's a rich set of packages for Emacs written by the community,
+which extend Emacs' capabilities.  These packages include support for
+new languages, additional themes, plugins for integrating with
+external applications, and much, much more.
+
+To see a list of all available packages, type M-x list-packages.  In
+the display this shows, you can install or uninstall packages, as well
+as read packages' descriptions.  For more information about package
+management, consult the manual.
+
+
 * CONCLUSION
 ------------
 
@@ -1117,7 +1131,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2021 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.

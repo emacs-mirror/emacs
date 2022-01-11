@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -226,19 +226,17 @@ to writing a completion function."
   (let ((completion-at-point-functions '(elisp-completion-at-point)))
     (completion-at-point)))
 
-(defvar eshell-cmpl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?i)] #'completion-at-point)
-    ;; jww (1999-10-19): Will this work on anything but X?
-    (define-key map [backtab] #'pcomplete-reverse)
-    (define-key map [(meta ??)] #'completion-help-at-point)
-    (define-key map [(meta control ?i)] #'eshell-complete-lisp-symbol)
-    ;; C-c prefix:
-    (define-key map (kbd "C-c M-h") #'eshell-completion-help)
-    (define-key map (kbd "C-c TAB") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c C-i") #'pcomplete-expand-and-complete)
-    (define-key map (kbd "C-c SPC") #'pcomplete-expand)
-    map))
+(defvar-keymap eshell-cmpl-mode-map
+  "C-i"       #'completion-at-point
+  ;; jww (1999-10-19): Will this work on anything but X?
+  "<backtab>" #'pcomplete-reverse
+  "M-?"       #'completion-help-at-point
+  "C-M-i"     #'eshell-complete-lisp-symbol
+  ;; C-c prefix:
+  "C-c M-h"   #'eshell-completion-help
+  "C-c TAB"   #'pcomplete-expand-and-complete
+  "C-c C-i"   #'pcomplete-expand-and-complete
+  "C-c SPC"   #'pcomplete-expand)
 
 (define-minor-mode eshell-cmpl-mode
   "Minor mode that provides a keymap when `eshell-cmpl' active.
@@ -382,7 +380,7 @@ to writing a completion function."
                       (setq val (number-to-string val)))
                      ;; expand .../ etc that only eshell understands to
                      ;; standard ../../
-                     ((string-match "\\.\\.\\.+/" val)
+                     ((and (stringp val)) (string-match "\\.\\.\\.+/" val)
                       (setq val (eshell-expand-multiple-dots val))))
                (or val "")))
 	   args)

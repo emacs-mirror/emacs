@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2021 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -61,7 +61,8 @@ must be the first non-whitespace on a line.
 For more information, see Info node `(elisp)Declaring Functions'."
   (declare (advertised-calling-convention
 	    (fn file &optional arglist fileonly) nil))
-  ;; Does nothing - byte-compile-declare-function does the work.
+  ;; Does nothing - `byte-compile-macroexpand-declare-function' does
+  ;; the work.
   nil)
 
 
@@ -4056,7 +4057,7 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
- with any buffer
+ with any buffer.
 COMMAND is the shell command to run."
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.
@@ -6524,116 +6525,6 @@ not a list, return a one-element list containing OBJECT."
   (if (listp object)
       object
     (list object)))
-
-(defun define-keymap (&rest definitions)
-  "Create a new keymap and define KEY/DEFEFINITION pairs as key sequences.
-The new keymap is returned.
-
-Options can be given as keywords before the KEY/DEFEFINITION
-pairs.  Available keywords are:
-
-:full      If non-nil, create a chartable alist (see `make-keymap').
-             If nil (i.e., the default), create a sparse keymap (see
-             `make-sparse-keymap').
-
-:suppress  If non-nil, the keymap will be suppressed (see `suppress-keymap').
-             If `nodigits', treat digits like other chars.
-
-:parent    If non-nil, this should be a keymap to use as the parent
-             (see `set-keymap-parent').
-
-:keymap    If non-nil, instead of creating a new keymap, the given keymap
-             will be destructively modified instead.
-
-:name      If non-nil, this should be a string to use as the menu for
-             the keymap in case you use it as a menu with `x-popup-menu'.
-
-:prefix    If non-nil, this should be a symbol to be used as a prefix
-             command (see `define-prefix-command').  If this is the case,
-             this symbol is returned instead of the map itself.
-
-KEY/DEFINITION pairs are as KEY and DEF in `keymap-set'.  KEY can
-also be the special symbol `:menu', in which case DEFINITION
-should be a MENU form as accepted by `easy-menu-define'.
-
-\(fn &key FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
-  (declare (indent defun))
-  (define-keymap--define definitions))
-
-(defun define-keymap--define (definitions)
-  (let (full suppress parent name prefix keymap)
-    ;; Handle keywords.
-    (while (and definitions
-                (keywordp (car definitions))
-                (not (eq (car definitions) :menu)))
-      (let ((keyword (pop definitions)))
-        (unless definitions
-          (error "Missing keyword value for %s" keyword))
-        (let ((value (pop definitions)))
-          (pcase keyword
-            (:full (setq full value))
-            (:keymap (setq keymap value))
-            (:parent (setq parent value))
-            (:suppress (setq suppress value))
-            (:name (setq name value))
-            (:prefix (setq prefix value))
-            (_ (error "Invalid keyword: %s" keyword))))))
-
-    (when (and prefix
-               (or full parent suppress keymap))
-      (error "A prefix keymap can't be defined with :full/:parent/:suppress/:keymap keywords"))
-
-    (when (and keymap full)
-      (error "Invalid combination: :keymap with :full"))
-
-    (let ((keymap (cond
-                   (keymap keymap)
-                   (prefix (define-prefix-command prefix nil name))
-                   (full (make-keymap name))
-                   (t (make-sparse-keymap name)))))
-      (when suppress
-        (suppress-keymap keymap (eq suppress 'nodigits)))
-      (when parent
-        (set-keymap-parent keymap parent))
-
-      ;; Do the bindings.
-      (while definitions
-        (let ((key (pop definitions)))
-          (unless definitions
-            (error "Uneven number of key/definition pairs"))
-          (let ((def (pop definitions)))
-            (if (eq key :menu)
-                (easy-menu-define nil keymap "" def)
-              (keymap-set keymap key def)))))
-      keymap)))
-
-(defmacro defvar-keymap (variable-name &rest defs)
-  "Define VARIABLE-NAME as a variable with a keymap definition.
-See `define-keymap' for an explanation of the keywords and KEY/DEFINITION.
-
-In addition to the keywords accepted by `define-keymap', this
-macro also accepts a `:doc' keyword, which (if present) is used
-as the variable documentation string.
-
-\(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
-  (declare (indent 1))
-  (let ((opts nil)
-        doc)
-    (while (and defs
-                (keywordp (car defs))
-                (not (eq (car defs) :menu)))
-      (let ((keyword (pop defs)))
-        (unless defs
-          (error "Uneven number of keywords"))
-        (if (eq keyword :doc)
-            (setq doc (pop defs))
-          (push keyword opts)
-          (push (pop defs) opts))))
-    (unless (zerop (% (length defs) 2))
-      (error "Uneven number of key/definition pairs: %s" defs))
-    `(defvar ,variable-name
-       (define-keymap--define (list ,@(nreverse opts) ,@defs))
-       ,@(and doc (list doc)))))
 
 (defmacro with-delayed-message (args &rest body)
   "Like `progn', but display MESSAGE if BODY takes longer than TIMEOUT seconds.

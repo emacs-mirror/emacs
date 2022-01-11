@@ -1,6 +1,6 @@
 ;;; dired-aux-tests.el --- Test suite for dired-aux. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@
 
 (ert-deftest dired-test-bug28834 ()
   "test for https://debbugs.gnu.org/28834 ."
-  (let (from to-cp to-mv)
+  (let (to-cp to-mv)
     ;; `dired-create-destination-dirs' set to 'always.
     (with-dired-bug28834-test
      'always nil

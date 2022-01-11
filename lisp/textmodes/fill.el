@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2021 Free
+;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2022 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -705,7 +705,10 @@ space does not end a sentence, so don't break a line there."
     (goto-char from-plus-indent))
 
   (if (not (> to (point)))
-      nil ;; There is no paragraph, only whitespace: exit now.
+      ;; There is no paragraph, only whitespace: exit now.
+      (progn
+        (set-marker to nil)
+        nil)
 
     (or justify (setq justify (current-justification)))
 
@@ -791,6 +794,7 @@ space does not end a sentence, so don't break a line there."
       ;; Leave point after final newline.
       (goto-char to)
       (unless (eobp) (forward-char 1))
+      (set-marker to nil)
       ;; Return the fill-prefix we used
       fill-prefix)))
 

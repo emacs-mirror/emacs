@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -1479,6 +1479,14 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
+(defvar-local diff-mode-read-only nil
+  "Non-nil when read-only diff buffer uses short keys.")
+
+;; It should be lower than `outline-minor-mode' and `view-mode'.
+(or (assq 'diff-mode-read-only minor-mode-map-alist)
+    (nconc minor-mode-map-alist
+           (list (cons 'diff-mode-read-only diff-mode-shared-map))))
+
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
@@ -1516,23 +1524,23 @@ a diff with \\[diff-reverse-direction].
 
   (diff-setup-whitespace)
 
-  (if diff-default-read-only
-      (setq buffer-read-only t))
+  ;; read-only setup
+  (when diff-default-read-only
+    (setq buffer-read-only t))
+  (when buffer-read-only
+    (setq diff-mode-read-only t))
+  (add-hook 'read-only-mode-hook
+            (lambda ()
+              (setq diff-mode-read-only buffer-read-only))
+            nil t)
+
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions #'diff-after-change-function nil t)
     (add-hook 'post-command-hook #'diff-post-command-hook nil t))
-  ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
-    (add-to-list 'minor-mode-overriding-map-alist ro-bind)
-    ;; Turn off this little trick in case the buffer is put in view-mode.
-    (add-hook 'view-mode-hook
-	      (lambda ()
-		(setq minor-mode-overriding-map-alist
-		      (delq ro-bind minor-mode-overriding-map-alist)))
-	      nil t))
+
   ;; add-log support
   (setq-local add-log-current-defun-function #'diff-current-defun)
   (setq-local add-log-buffer-file-name-function
@@ -2612,19 +2620,17 @@ fixed, visit it in a buffer."
                          "\\(?:index.*\n\\)?"
                          "--- \\(?:" null-device "\\|a/\\(.*\\)\\)\n"
                          "\\+\\+\\+ \\(?:" null-device "\\|b/\\(.*\\)\\)\n"))))
-        (put-text-property (match-beginning 0)
-                           (or (match-beginning 2) (match-beginning 1))
-                           'display (propertize
-                                     (cond
-                                      ((null (match-beginning 1))
-                                       (concat "new file  " (match-string 2)))
-                                      ((null (match-beginning 2))
-                                       (concat "deleted   " (match-string 1)))
-                                      (t
-                                       (concat "modified  " (match-string 1))))
-                                     'face '(diff-file-header diff-header)))
-        (put-text-property (match-end 1) (1- (match-end 0))
-                           'display ""))))
+        (put-text-property (match-beginning 0) (1- (match-end 0))
+                           'display
+                           (propertize
+                            (cond
+                             ((null (match-string 1))
+                              (concat "new file  " (match-string 2)))
+                             ((null (match-string 2))
+                              (concat "deleted  " (match-string 1)))
+                             (t
+                              (concat "modified  " (match-string 1))))
+                            'face '(diff-file-header diff-header))))))
   nil)
 
 ;;; Syntax highlighting from font-lock

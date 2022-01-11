@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el --- Tests for bytecomp.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -643,6 +643,55 @@ inner loops respectively."
 
     (cond)
     (mapcar (lambda (x) (cond ((= x 0)))) '(0 1))
+
+    ;; These expressions give different results in lexbind and dynbind modes,
+    ;; but in each the compiler and interpreter should agree!
+    ;; (They look much the same but come in pairs exercising both the
+    ;; `let' and `let*' paths.)
+    (let ((f (lambda (x)
+               (lambda ()
+                 (let ((g (lambda () x)))
+                   (let ((x 'a))
+                     (list x (funcall g))))))))
+      (funcall (funcall f 'b)))
+    (let ((f (lambda (x)
+               (lambda ()
+                 (let ((g (lambda () x)))
+                   (let* ((x 'a))
+                     (list x (funcall g))))))))
+      (funcall (funcall f 'b)))
+    (let ((f (lambda (x)
+               (lambda ()
+                 (let ((g (lambda () x)))
+                   (setq x (list x x))
+                   (let ((x 'a))
+                     (list x (funcall g))))))))
+      (funcall (funcall f 'b)))
+    (let ((f (lambda (x)
+               (lambda ()
+                 (let ((g (lambda () x)))
+                   (setq x (list x x))
+                   (let* ((x 'a))
+                     (list x (funcall g))))))))
+      (funcall (funcall f 'b)))
+    (let ((f (lambda (x)
+               (let ((g (lambda () x))
+                     (h (lambda () (setq x (list x x)))))
+                 (let ((x 'a))
+                   (list x (funcall g) (funcall h)))))))
+      (funcall (funcall f 'b)))
+    (let ((f (lambda (x)
+               (let ((g (lambda () x))
+                     (h (lambda () (setq x (list x x)))))
+                 (let* ((x 'a))
+                   (list x (funcall g) (funcall h)))))))
+      (funcall (funcall f 'b)))
+
+    ;; Test constant-propagation of access to captured variables.
+    (let* ((x 2)
+           (f (lambda ()
+                (let ((y x)) (list y 3 y)))))
+      (funcall f))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -808,8 +857,7 @@ byte-compiled.  Run with dynamic binding."
        (byte-compile-file ,(ert-resource-file file))
        (ert-info ((buffer-string) :prefix "buffer: ")
          (,(if reverse 'should-not 'should)
-          (re-search-forward ,(string-replace " " "[ \n]+" re-warning)
-                             nil t))))))
+          (re-search-forward ,re-warning nil t))))))
 
 (bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
                             "add-hook.*lexical var")
@@ -937,7 +985,7 @@ byte-compiled.  Run with dynamic binding."
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than .* characters")
+ "Warning: docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"

@@ -1,6 +1,6 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -666,11 +666,32 @@ collection clause."
   (should (pcase (macroexpand
                   '(cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
                      #'len))
-            (`(function (lambda (,_ ,_) . ,_)) t))))
+            (`(function (lambda (,_ ,_) . ,_)) t)))
+
+  ;; Verify that there is no tail position inside dynamic variable bindings.
+  (defvar dyn-var)
+  (let ((dyn-var 'a))
+    (cl-labels ((f (x) (if x
+                           dyn-var
+                         (let ((dyn-var 'b))
+                           (f dyn-var)))))
+      (should (equal (f nil) 'b))))
+
+  ;; Control: same as above but with lexical binding.
+  (let ((lex-var 'a))
+    (cl-labels ((f (x) (if x
+                           lex-var
+                         (let ((lex-var 'b))
+                           (f lex-var)))))
+      (should (equal (f nil) 'a)))))
 
 (ert-deftest cl-macs--progv ()
-  (should (= (cl-progv '(test test) '(1 2) test) 2))
-  (should (equal (cl-progv '(test1 test2) '(1 2) (list test1 test2))
+  (defvar cl-macs--test)
+  (defvar cl-macs--test1)
+  (defvar cl-macs--test2)
+  (should (= (cl-progv '(cl-macs--test cl-macs--test) '(1 2) cl-macs--test) 2))
+  (should (equal (cl-progv '(cl-macs--test1 cl-macs--test2) '(1 2)
+                   (list cl-macs--test1 cl-macs--test2))
                  '(1 2))))
 
 ;;; cl-macs-tests.el ends here

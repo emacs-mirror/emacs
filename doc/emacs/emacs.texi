@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2021 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2022 Free Software Foundation,
 Inc.
 
 @quotation
@@ -345,14 +345,14 @@ Cut and Paste Operations on Graphical Displays
 
 Registers
 
-* Position Registers::       Saving positions in registers.
-* Text Registers::           Saving text in registers.
-* Rectangle Registers::      Saving rectangles in registers.
-* Configuration Registers::  Saving window configurations in registers.
-* Number Registers::         Numbers in registers.
-* File Registers::           File names in registers.
-* Keyboard Macro Registers:: Keyboard macros in registers.
-* Bookmarks::                Bookmarks are like registers, but persistent.
+* Position Registers::        Saving positions in registers.
+* Text Registers::            Saving text in registers.
+* Rectangle Registers::       Saving rectangles in registers.
+* Configuration Registers::   Saving window configurations in registers.
+* Number Registers::          Numbers in registers.
+* File and Buffer Registers:: File and buffer names in registers.
+* Keyboard Macro Registers::  Keyboard macros in registers.
+* Bookmarks::                 Bookmarks are like registers, but persistent.
 
 Controlling the Display
 

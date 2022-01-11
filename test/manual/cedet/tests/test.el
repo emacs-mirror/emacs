@@ -1,6 +1,6 @@
 ;;; test.el --- Unit test file for Semantic Emacs Lisp support.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -63,11 +63,11 @@
 
 ;;; Methods
 ;;
-(defmethod a-method ((obj some-class) &optional arg2)
+(cl-defmethod a-method ((obj some-class) &optional arg2)
   "Doc String for a method."
   (call-next-method))
 
-(defgeneric a-generic (arg1 arg2)
+(cl-defgeneric a-generic (arg1 arg2)
   "General description of a-generic.")
 
 ;;; Advice

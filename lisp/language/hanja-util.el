@@ -1,6 +1,6 @@
 ;;; hanja-util.el --- Korean Hanja util module  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja
@@ -6573,8 +6573,8 @@ The value is a hanja character that is selected interactively."
            (hanja-filter (lambda (x) (car x))
                          (mapcar (lambda (c)
                                    (if (listp c)
-                                       (cons (decode-char 'ucs (car c)) (cdr c))
-				     (list (decode-char 'ucs c))))
+                                       (cons (car c) (cdr c))
+                                     (list c)))
                                  (aref hanja-table char)))))
     (unwind-protect
 	(when (aref hanja-conversions 2)

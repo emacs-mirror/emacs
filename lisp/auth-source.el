@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -44,6 +44,9 @@
 
 (require 'cl-lib)
 (require 'eieio)
+
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
 
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
@@ -253,7 +256,7 @@ can get pretty complex."
                         (choice :tag "Authentication backend choice"
                                 (string :tag "Authentication Source (file)")
                                 (list
-                                 :tag "Secret Service API/KWallet/GNOME Keyring"
+                                 :tag "Secret Service API/KWallet/GNOME Keyring/KeyPassXC"
                                  (const :format "" :value :secrets)
                                  (choice :tag "Collection to use"
                                          (string :tag "Collection name")
@@ -850,14 +853,16 @@ while \(:host t) would find all host entries."
               (cl-return 'no)))
           'no))))
 
-(defun auth-source-pick-first-password (&rest spec)
-  "Pick the first secret found from applying SPEC to `auth-source-search'."
-  (let* ((result (nth 0 (apply #'auth-source-search (plist-put spec :max 1))))
-         (secret (plist-get result :secret)))
-
+(defun auth-info-password (auth-info)
+  "Return the :secret password from the AUTH-INFO."
+  (let ((secret (plist-get auth-info :secret)))
     (if (functionp secret)
         (funcall secret)
       secret)))
+
+(defun auth-source-pick-first-password (&rest spec)
+  "Pick the first secret found from applying SPEC to `auth-source-search'."
+  (auth-info-password (car (apply #'auth-source-search (plist-put spec :max 1)))))
 
 (defun auth-source-format-prompt (prompt alist)
   "Format PROMPT using %x (for any character x) specifiers in ALIST.
@@ -1797,10 +1802,9 @@ authentication tokens:
       (plist-put
        artificial
        :save-function
-       (let* ((collection collection)
-              (item (plist-get artificial :label))
-              (secret (plist-get artificial :secret))
-              (secret (if (functionp secret) (funcall secret) secret)))
+       (let ((collection collection)
+             (item (plist-get artificial :label))
+             (secret (auth-info-password artificial)))
          (lambda ()
 	   (auth-source-secrets-saver collection item secret args)))))
 
@@ -2407,9 +2411,7 @@ MODE can be \"login\" or \"password\"."
                         :require '(:user :secret)
                         :create nil))))
          (user (plist-get auth-info :user))
-         (password (plist-get auth-info :secret)))
-    (when (functionp password)
-      (setq password (funcall password)))
+         (password (auth-info-password auth-info)))
     (list user password auth-info)))
 
 ;;; Tiny mode for editing .netrc/.authinfo modes (that basically just

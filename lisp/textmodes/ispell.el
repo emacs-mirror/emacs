@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Ken Stevens <k.stevens@ieee.org>
 
@@ -296,7 +296,8 @@ The following values are supported:
   "Non-nil means suppress messages in `ispell-word'."
   :type 'boolean)
 
-(defvaralias 'ispell-format-word 'ispell-format-word-function)
+(define-obsolete-variable-alias 'ispell-format-word
+  'ispell-format-word-function "29.1")
 
 (defcustom ispell-format-word-function (function upcase)
   "Formatting function for displaying word being spell checked.
@@ -3977,7 +3978,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	    (if (re-search-forward "^Subject: *" end-of-headers t)
 		(progn
 		  (goto-char (match-end 0))
-		  (if (and (not (looking-at ".*Re\\>"))
+		  (if (and (not (looking-at ".*\\<Re\\>"))
 			   (not (looking-at "\\[")))
 		      (progn
 			(setq case-fold-search old-case-fold-search)

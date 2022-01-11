@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -40,6 +40,7 @@
 
 (autoload 'auth-source-forget+ "auth-source")
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -407,10 +408,7 @@ during splitting, which may be slow."
                                            :create t))))
     (if found
         (list (plist-get found :user)
-	      (let ((secret (plist-get found :secret)))
-		(if (functionp secret)
-		    (funcall secret)
-		  secret))
+	      (auth-info-password found)
 	      (plist-get found :save-function))
       nil)))
 

@@ -1,6 +1,6 @@
 /* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2021 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2022 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -357,8 +357,9 @@ typedef id instancetype;
 @interface NSColor (EmacsColor)
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha;
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c;
 - (NSColor *)colorUsingDefaultColorSpace;
-
+- (unsigned long)unsignedLong;
 @end
 
 
@@ -550,8 +551,8 @@ typedef id instancetype;
 - (void) addDisplayItemWithImage: (EmacsImage *)img
                              idx: (int)idx
                              tag: (int)tag
-                       labelText: (const char *)label
-                        helpText: (const char *)help
+                       labelText: (NSString *)label
+                        helpText: (NSString *)help
                          enabled: (BOOL)enabled;
 
 /* delegate methods */
@@ -766,35 +767,6 @@ struct ns_bitmap_record
   int height, width, depth;
 };
 
-/* This maps between emacs color indices and NSColor objects.  */
-struct ns_color_table
-{
-  ptrdiff_t size;
-  ptrdiff_t avail;
-#ifdef __OBJC__
-  NSColor **colors;
-  NSMutableSet *empty_indices;
-#else
-  void **items;
-  void *availIndices;
-#endif
-};
-#define NS_COLOR_CAPACITY 256
-
-#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
-#define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
-
-#define ALPHA_FROM_ULONG(color) ((color) >> 24)
-#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
-#define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
-#define BLUE_FROM_ULONG(color) ((color) & 0xff)
-
-/* Do not change `* 0x101' in the following lines to `<< 8'.  If
-   changed, image masks in 1-bit depth will not work.  */
-#define RED16_FROM_ULONG(color) (RED_FROM_ULONG(color) * 0x101)
-#define GREEN16_FROM_ULONG(color) (GREEN_FROM_ULONG(color) * 0x101)
-#define BLUE16_FROM_ULONG(color) (BLUE_FROM_ULONG(color) * 0x101)
-
 #ifdef NS_IMPL_GNUSTEP
 /* this extends font backend font */
 struct nsfont_info
@@ -849,8 +821,6 @@ struct ns_display_info
   struct ns_bitmap_record *bitmaps;
   ptrdiff_t bitmaps_size;
   ptrdiff_t bitmaps_last;
-
-  struct ns_color_table *color_table;
 
   /* DPI resolution of this screen */
   double resx, resy;
@@ -1127,13 +1097,9 @@ ns_defined_color (struct frame *f,
                   const char *name,
                   Emacs_Color *color_def, bool alloc,
                   bool makeIndex);
-extern void
-ns_query_color (void *col, Emacs_Color *color_def, bool setPixel);
 
 #ifdef __OBJC__
 extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
-extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
-extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern const char *ns_get_pending_menu_title (void);
 #endif
 
@@ -1352,9 +1318,7 @@ enum NSWindowTabbingMode
 #define NSPasteboardTypeTabularText NSTabularTextPboardType
 #define NSPasteboardTypeURL NSURLPboardType
 #define NSPasteboardTypeHTML NSHTMLPboardType
-#define NSPasteboardTypeMultipleTextSelection NSMultipleTextSelectionPboardType
 #define NSPasteboardTypePDF NSPDFPboardType
-#define NSPasteboardTypePNG NSPNGPboardType
 #define NSPasteboardTypeRTF NSRTFPboardType
 #define NSPasteboardTypeRTFD NSRTFDPboardType
 #define NSPasteboardTypeTIFF NSTIFFPboardType

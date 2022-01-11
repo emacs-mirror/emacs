@@ -1,6 +1,6 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
@@ -105,9 +105,13 @@
 
 (gnus-add-shutdown #'gnus-search-shutdown 'gnus)
 
-(define-error 'gnus-search-parse-error "Gnus search parsing error")
+(define-error 'gnus-search-error "Gnus search error")
 
-(define-error 'gnus-search-config-error "Gnus search configuration error")
+(define-error 'gnus-search-parse-error "Gnus search parsing error"
+              'gnus-search-error)
+
+(define-error 'gnus-search-config-error "Gnus search configuration error"
+              'gnus-search-error)
 
 ;;; User Customizable Variables:
 
@@ -568,15 +572,13 @@ REL-DATE, or (current-time) if REL-DATE is nil."
   ;; Time parsing doesn't seem to work with slashes.
   (let ((value (string-replace "/" "-" value))
 	(now (append '(0 0 0)
-		     (seq-subseq (decode-time (or rel-date
-						  (current-time)))
-				 3))))
+		     (seq-subseq (decode-time rel-date) 3))))
     ;; Check for relative time parsing.
     (if (string-match "\\([[:digit:]]+\\)\\([dwmy]\\)" value)
 	(seq-subseq
 	 (decode-time
 	  (time-subtract
-	   (apply #'encode-time now)
+	   (encode-time now)
 	   (days-to-time
 	    (* (string-to-number (match-string 1 value))
 	       (cdr (assoc (match-string 2 value)
@@ -595,7 +597,7 @@ REL-DATE, or (current-time) if REL-DATE is nil."
 	     ;; If DOW is given, handle that specially.
 	     (if (and (seq-elt d-time 6) (null (seq-elt d-time 3)))
 		 (decode-time
-		  (time-subtract (apply #'encode-time now)
+		  (time-subtract (encode-time now)
 				 (days-to-time
 				  (+ (if (> (seq-elt d-time 6)
 					    (seq-elt now 6))
@@ -1018,7 +1020,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 	  (single-search (gnus-search-single-p query))
 	  (grouplist (or groups (gnus-search-get-active srv)))
 	  q-string artlist group)
-      (message "Opening server %s" server)
+      (gnus-message 7 "Opening server %s" server)
       (gnus-open-server srv)
       ;; We should only be doing this once, in
       ;; `nnimap-open-connection', but it's too frustrating to try to
@@ -1058,11 +1060,11 @@ Responsible for handling and, or, and parenthetical expressions.")
 	       q-string)))
 
       (while (and (setq group (pop grouplist))
-		  (or (null single-search) (null artlist)))
+		  (or (null single-search) (= 0 (length artlist))))
 	(when (nnimap-change-group
 	       (gnus-group-short-name group) server)
 	  (with-current-buffer (nnimap-buffer)
-	    (message "Searching %s..." group)
+	    (gnus-message 7 "Searching %s..." group)
 	    (let ((result
 		   (gnus-search-imap-search-command engine q-string)))
 	      (when (car result)
@@ -1075,7 +1077,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 			      (vector group artn 100))))
 			(cdr (assoc "SEARCH" (cdr result))))
 		       artlist))))
-	    (message "Searching %s...done" group))))
+	    (gnus-message 7 "Searching %s...done" group))))
       (nreverse artlist))))
 
 (cl-defmethod gnus-search-imap-search-command ((engine gnus-search-imap)
@@ -1235,8 +1237,7 @@ nil (except that (dd nil yyyy) is not allowed).  Massage those
 numbers into the most recent past occurrence of whichever date
 elements are present."
   (pcase-let ((`(,nday ,nmonth ,nyear)
-	       (seq-subseq (decode-time (current-time))
-			   3 6))
+	       (seq-subseq (decode-time) 3 6))
 	      (`(,dday ,dmonth ,dyear) date))
     (unless (and dday dmonth dyear)
       (unless dday (setq dday 1))
@@ -1256,9 +1257,7 @@ elements are present."
 	  (setq dmonth 1))))
     (format-time-string
      "%e-%b-%Y"
-     (apply #'encode-time
-	    (append '(0 0 0)
-		    (list dday dmonth dyear))))))
+     (encode-time 0 0 0 dday dmonth dyear))))
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
@@ -1330,8 +1329,8 @@ Returns a list of [group article score] vectors."
       (erase-buffer)
 
       (if groups
-	  (message "Doing %s query on %s..." program groups)
-	(message "Doing %s query..." program))
+	  (gnus-message 7 "Doing %s query on %s..." program groups)
+	(gnus-message 7 "Doing %s query..." program))
       (setq proc (apply #'start-process (format "search-%s" server)
 			buffer program cp-list))
       (while (process-live-p proc)
@@ -1837,8 +1836,8 @@ Assume \"size\" key is equal to \"larger\"."
      (mapcar (lambda (x)
 	       (let ((group x)
 		     artlist)
-		 (message "Searching %s using find-grep..."
-			  (or group server))
+		 (gnus-message 7 "Searching %s using find-grep..."
+			       (or group server))
 		 (save-window-excursion
 		   (set-buffer buffer)
 		   (if (> gnus-verbose 6)
@@ -1893,8 +1892,8 @@ Assume \"size\" key is equal to \"larger\"."
 			  (vector (gnus-group-full-name group server) art 0)
 			  artlist))
 		       (forward-line 1)))
-		   (message "Searching %s using find-grep...done"
-			    (or group server))
+		   (gnus-message 7 "Searching %s using find-grep...done"
+			         (or group server))
 		   artlist)))
 	     grouplist))))
 
@@ -1927,7 +1926,7 @@ Assume \"size\" key is equal to \"larger\"."
 	      (apply #'nnheader-message 4
 		     "Search engine for %s improperly configured: %s"
 		     server (cdr err))
-	    (signal 'gnus-search-config-error err)))))
+	    (signal (car err) (cdr err))))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is

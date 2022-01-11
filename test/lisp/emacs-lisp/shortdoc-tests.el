@@ -1,6 +1,6 @@
 ;;; shortdoc-tests.el --- tests for shortdoc.el   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +43,17 @@
                             ((stringp example) (read example)))))
                 (should (shortdoc-tests--tree-contains expr fun))))
             (setq props (cddr props))))))))
+
+(ert-deftest shortdoc-all-groups-work ()
+  "Test that all defined shortdoc groups display correctly."
+  (dolist (group (mapcar (lambda (x) (car x)) shortdoc--groups))
+    (let ((buf-name (format "*Shortdoc %s*" group)) buf)
+      (unwind-protect
+          (progn
+            (shortdoc-display-group group)
+            (should (setq buf (get-buffer buf-name))))
+        (when buf
+          (kill-buffer buf))))))
 
 (provide 'shortdoc-tests)
 

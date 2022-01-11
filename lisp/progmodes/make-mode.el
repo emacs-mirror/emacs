@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -542,8 +542,8 @@ not be enclosed in { } or ( )."
 This should identify a `make' command that can handle the `-q' option."
   :type 'string)
 
-(defvaralias 'makefile-query-one-target-method
-  'makefile-query-one-target-method-function)
+(define-obsolete-variable-alias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function "29.1")
 
 (defcustom makefile-query-one-target-method-function
   'makefile-query-by-make-minus-q

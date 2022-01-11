@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1436,9 +1436,9 @@ component is used as the target of the symlink."
   (unless (process-live-p proc)
     ;; Accept pending output.
     (while (tramp-accept-process-output proc))
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 10 "\n%s" (buffer-string))
-      (throw 'tramp-action 'ok))))
+    (tramp-message
+     vec 10 "\n%s" (tramp-get-buffer-string (tramp-get-connection-buffer vec)))
+    (throw 'tramp-action 'ok)))
 
 (defun tramp-smb-handle-set-file-acl (filename acl-string)
   "Like `set-file-acl' for Tramp files."

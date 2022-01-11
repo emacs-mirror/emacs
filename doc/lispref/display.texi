@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2021 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -2086,23 +2086,33 @@ displayed in a given window.  This function is used by
 (@pxref{Resizing Windows}) to make a window exactly as large as the text
 it contains.
 
-@defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines
+@defun window-text-pixel-size &optional window from to x-limit y-limit mode-lines ignore-line-at-end
 This function returns the size of the text of @var{window}'s buffer in
 pixels.  @var{window} must be a live window and defaults to the
 selected one.  The return value is a cons of the maximum pixel-width
 of any text line and the maximum pixel-height of all text lines.  This
 function exists to allow Lisp programs to adjust the dimensions of
-@var{window} to the buffer text it needs to display.
+@var{window} to the buffer text it needs to display, and for other
+similar situations.
+
+The return value can also optionally (see below) include the buffer
+position of the first line whose dimensions were measured.
 
 The optional argument @var{from}, if non-@code{nil}, specifies the
 first text position to consider, and defaults to the minimum
 accessible position of the buffer.  If @var{from} is @code{t}, it
 stands for the minimum accessible position that is not a newline
-character.  The optional argument @var{to}, if non-@code{nil},
-specifies the last text position to consider, and defaults to the
-maximum accessible position of the buffer.  If @var{to} is @code{t},
-it stands for the maximum accessible position that is not a newline
-character.
+character.  If @var{from} is a cons, its @code{car} specifies a buffer
+position, and its @code{cdr} specifies the vertical offset in pixels
+from that position to the first screen line whose text is to be
+measured.  (The measurement will start from the visual beginning of
+that screen line.)  In that case, the return value will instead be a
+list of the pixel-width, pixel-height, and the buffer position of the
+first line that was measured.  The optional argument @var{to}, if
+non-@code{nil}, specifies the last text position to consider, and
+defaults to the maximum accessible position of the buffer.  If
+@var{to} is @code{t}, it stands for the maximum accessible position
+that is not a newline character.
 
 The optional argument @var{x-limit}, if non-@code{nil}, specifies the
 maximum X coordinate beyond which text should be ignored; it is
@@ -2135,6 +2145,12 @@ in the return value.  If it is either the symbol @code{mode-line},
 line, if present, in the return value.  If it is @code{t}, include the
 height of all of these lines, if present, in the return value.
 @end defun
+
+The optional argument @var{ignore-line-at-end} controls whether or
+not to count the height of text in @var{to}'s screen line as part of
+the returned pixel-height.  This is useful if your Lisp program is
+only interested in the dimensions of text up to and excluding the
+visual beginning of @var{to}'s screen line.
 
 @code{window-text-pixel-size} treats the text displayed in a window as a
 whole and does not care about the size of individual lines.  The
@@ -2469,8 +2485,9 @@ GNU Emacs Manual}.
 @item :width
 Relative character width.  This should be one of the symbols
 @code{ultra-condensed}, @code{extra-condensed}, @code{condensed},
-@code{semi-condensed}, @code{normal}, @code{semi-expanded},
-@code{expanded}, @code{extra-expanded}, or @code{ultra-expanded}.
+@code{semi-condensed}, @code{normal}, @code{regular}, @code{medium},
+@code{semi-expanded}, @code{expanded}, @code{extra-expanded}, or
+@code{ultra-expanded}.
 
 @item :height
 The height of the font.  In the simplest case, this is an integer in
@@ -2538,13 +2555,16 @@ Underline with the foreground color of the face.
 @item @var{color}
 Underline in color @var{color}, a string specifying a color.
 
-@item @code{(:color @var{color} :style @var{style})}
+@item @code{(:color @var{color} :style @var{style} :position @var{position})}
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
 @var{style} should be a symbol @code{line} or @code{wave}, meaning to
 use a straight or wavy line.  Omitting the attribute @code{:style}
-means to use a straight line.
+means to use a straight line.  @var{position}, if non-nil, means to
+display the underline at the descent of the text, instead of at the
+baseline level.  If it is a number, then it specifies the amount of
+pixels above the descent to display the underline.
 @end table
 
 @cindex overlined text
@@ -2785,8 +2805,8 @@ apply to.  Here are the possible values of @var{characteristic}:
 The kind of window system the terminal uses---either @code{graphic}
 (any graphics-capable display), @code{x}, @code{pc} (for the MS-DOS
 console), @code{w32} (for MS Windows 9X/NT/2K/XP), @code{haiku} (for
-Haiku), or @code{tty} (a non-graphics-capable display).
-@xref{Window Systems, window-system}.
+Haiku), @code{pgtk} (for pure GTK), or @code{tty} (a non-graphics-capable
+display).  @xref{Window Systems, window-system}.
 
 @item class
 What kinds of colors the terminal supports---either @code{color},
@@ -7777,16 +7797,14 @@ The string is formatted #RRGGBB (hash followed by six hex digits)."
   (kill-buffer nil))
 
 (setq colorcomp-mode-map
-      (let ((m (make-sparse-keymap)))
-        (suppress-keymap m)
-        (define-key m "i" 'colorcomp-R-less)
-        (define-key m "o" 'colorcomp-R-more)
-        (define-key m "k" 'colorcomp-G-less)
-        (define-key m "l" 'colorcomp-G-more)
-        (define-key m "," 'colorcomp-B-less)
-        (define-key m "." 'colorcomp-B-more)
-        (define-key m " " 'colorcomp-copy-as-kill-and-exit)
-        m))
+      (define-keymap :suppress t
+        "i" 'colorcomp-R-less
+        "o" 'colorcomp-R-more
+        "k" 'colorcomp-G-less
+        "l" 'colorcomp-G-more
+        "," 'colorcomp-B-less
+        "." 'colorcomp-B-more
+        "SPC" 'colorcomp-copy-as-kill-and-exit))
 @end smallexample
 
 Note that we never modify the data in each node, which is fixed when the
@@ -8195,7 +8213,14 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
+@vindex glyphless-display-mode
+The @code{glyphless-display-mode} minor mode can be used to toggle
+displaying glyphless characters in a convenient manner in the current
+buffer.  If this mode is enabled, all the glyphless characters are
+displayed as boxes that display acronyms of their character names.
+
 @defvar glyphless-char-display
+For more fine-grained (and global) control, this variable can be used.
 The value of this variable is a char-table which defines glyphless
 characters and how they are displayed.  Each entry must be one of the
 following display methods:
@@ -8271,6 +8296,16 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
+Characters of Unicode General Category [Cf], such as U+200E
+@sc{left-to-right mark}, but excluding characters that have graphic
+images, such as U+00AD @sc{soft hyphen}.
+
+@item bidi-control
+This is a subset of @code{format-control}, but only includes
+characters that are related to bidirectional formatting control, like
+U+2069 @sc{pop directional isolate} and U+202A @sc{left-to-right
+embedding}.  @xref{Bidirectional Display}.
+
 Characters of Unicode General Category [Cf], such as U+200E
 @sc{left-to-right mark}, but excluding characters that have graphic
 images, such as U+00AD @sc{soft hyphen}.
@@ -8354,6 +8389,8 @@ GNUstep and macOS).
 Emacs is displaying the frame using MS-DOS direct screen writes.
 @item haiku
 Emacs is displaying the frame using the Application Kit on Haiku.
+@item pgtk
+Emacs is displaying the frame using pure GTK facilities.
 @item nil
 Emacs is displaying the frame on a character-based terminal.
 @end table

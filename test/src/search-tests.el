@@ -1,6 +1,6 @@
 ;;; search-tests.el --- tests for search.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016, 2018-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
       (setq ov-set (make-overlay 3 5))
       (overlay-put
        ov-set 'modification-hooks
-       (list (lambda (o after &rest _args)
+       (list (lambda (_o after &rest _args)
 	       (when after
 		 (let ((inhibit-modification-hooks t))
 		   (save-excursion

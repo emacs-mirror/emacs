@@ -1,6 +1,6 @@
 ;;; manoj-dark-theme.el --- A dark theme from Manoj  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces
@@ -541,7 +541,6 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(ido-indicator ((t (:background "red1" :foreground "yellow1" :width condensed))))
  '(ido-only-match ((t (:foreground "ForestGreen"))))
  '(ido-subdir ((t (:foreground "red1"))))
- '(info-menu-5 ((t (:underline t))))
  '(info-menu-header ((t (:bold t :weight bold))))
  '(info-node ((t (:bold t :italic t :foreground "yellow"))))
  '(info-node ((t (:italic t :bold t :foreground "white" :slant italic :weight bold))))

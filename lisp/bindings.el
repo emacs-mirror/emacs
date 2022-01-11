@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2021 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -288,7 +288,7 @@ mnemonics of the following coding systems:
 Value is used for `mode-line-frame-identification', which see."
   (if (or (null window-system)
 	  (eq window-system 'pc))
-      "-%F  "
+      " %F  "
     "  "))
 
 ;; We need to defer the call to mode-line-frame-control to the time
@@ -501,7 +501,7 @@ mouse-1: Display Line and Column Mode Menu"))
 
 (defvar mode-line-position
   `((:propertize
-     (" " mode-line-percent-position)
+     ("" mode-line-percent-position)
      local-map ,mode-line-column-line-number-mode-map
      display (min-width (5.0))
      mouse-face mode-line-highlight
@@ -1260,6 +1260,8 @@ if `inhibit-field-text-motion' is non-nil."
 ;; (define-key global-map [kp-8]		'function-key-error)
 ;; (define-key global-map [kp-9]		'function-key-error)
 ;; (define-key global-map [kp-equal]	'function-key-error)
+
+(define-key global-map [touch-end] 'ignore)
 
 ;; X11 distinguishes these keys from the non-kp keys.
 ;; Make them behave like the non-kp keys unless otherwise bound.

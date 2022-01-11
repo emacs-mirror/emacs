@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2021 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -49,6 +49,11 @@
 
 (defvar help-window-old-frame nil
   "Frame selected at the time `with-help-window' is invoked.")
+
+(defvar help-buffer-under-preparation nil
+  "Whether a *Help* buffer is being prepared.
+This variable is bound to t during the preparation of a *Help*
+buffer.")
 
 (defvar help-map
   (let ((map (make-sparse-keymap)))
@@ -524,30 +529,31 @@ See `lossage-size' to update the number of recorded keystrokes.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
-  (help-setup-xref (list #'view-lossage)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (princ " ")
-    (princ (mapconcat (lambda (key)
-			(cond
-			 ((and (consp key) (null (car key)))
-			  (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
-					      "anonymous-command")))
-			 ((or (integerp key) (symbolp key) (listp key))
-			  (single-key-description key))
-			 (t
-			  (prin1-to-string key nil))))
-		      (recent-keys 'include-cmds)
-		      " "))
-    (with-current-buffer standard-output
-      (goto-char (point-min))
-      (let ((comment-start ";; ")
-            (comment-column 24))
-        (while (not (eobp))
-          (comment-indent)
-	  (forward-line 1)))
-      ;; Show point near the end of "lossage", as we did in Emacs 24.
-      (set-marker help-window-point-marker (point)))))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'view-lossage)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (princ " ")
+      (princ (mapconcat (lambda (key)
+			  (cond
+			   ((and (consp key) (null (car key)))
+			    (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
+						"anonymous-command")))
+			   ((or (integerp key) (symbolp key) (listp key))
+			    (single-key-description key))
+			   (t
+			    (prin1-to-string key nil))))
+			(recent-keys 'include-cmds)
+			" "))
+      (with-current-buffer standard-output
+	(goto-char (point-min))
+	(let ((comment-start ";; ")
+              (comment-column 24))
+          (while (not (eobp))
+            (comment-indent)
+	    (forward-line 1)))
+	;; Show point near the end of "lossage", as we did in Emacs 24.
+	(set-marker help-window-point-marker (point))))))
 
 
 ;; Key bindings
@@ -579,31 +585,32 @@ The optional argument BUFFER specifies which buffer's bindings
 to display (default, the current buffer).  BUFFER can be a buffer
 or a buffer name."
   (interactive)
-  (or buffer (setq buffer (current-buffer)))
-  (help-setup-xref (list #'describe-bindings prefix buffer)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (with-current-buffer (help-buffer)
-      (describe-buffer-bindings buffer prefix)
+  (let ((help-buffer-under-preparation t))
+    (or buffer (setq buffer (current-buffer)))
+    (help-setup-xref (list #'describe-bindings prefix buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer (help-buffer)
+	(describe-buffer-bindings buffer prefix)
 
-      (when describe-bindings-outline
-        (setq-local outline-regexp ".*:$")
-        (setq-local outline-heading-end-regexp ":\n")
-        (setq-local outline-level (lambda () 1))
-        (setq-local outline-minor-mode-cycle t
-                    outline-minor-mode-highlight t)
-        (setq-local outline-minor-mode-use-buttons t)
-        (outline-minor-mode 1)
-        (save-excursion
-          (goto-char (point-min))
-          (let ((inhibit-read-only t))
-            ;; Hide the longest body.
-            (when (re-search-forward "Key translations" nil t)
-              (outline-hide-subtree))
-            ;; Hide ^Ls.
-            (while (search-forward "\n\f\n" nil t)
-              (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
-                                 'invisible t))))))))
+	(when describe-bindings-outline
+          (setq-local outline-regexp ".*:$")
+          (setq-local outline-heading-end-regexp ":\n")
+          (setq-local outline-level (lambda () 1))
+          (setq-local outline-minor-mode-cycle t
+                      outline-minor-mode-highlight t)
+          (setq-local outline-minor-mode-use-buttons t)
+          (outline-minor-mode 1)
+          (save-excursion
+            (goto-char (point-min))
+            (let ((inhibit-read-only t))
+              ;; Hide the longest body.
+              (when (re-search-forward "Key translations" nil t)
+		(outline-hide-subtree))
+              ;; Hide ^Ls.
+              (while (search-forward "\n\f\n" nil t)
+		(put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+                                   'invisible t)))))))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke the command DEFINITION.
@@ -697,18 +704,14 @@ in the selected window."
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers))
                         " at that spot" ""))
-         ;; Use `mouse-set-point' to handle the case when a menu item
+         ;; Use `posn-set-point' to handle the case when a menu item
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
-         ;; When no mouse was involved, don't use `mouse-set-point'.
-         (defn (if (or buffer
-                       ;; Clicks on the menu bar produce "event" that
-                       ;; is just '(menu-bar)', for which
-                       ;; `mouse-set-point' is not useful.
-                       (and (not (windowp (posn-window (event-start event))))
-                            (not (framep (posn-window (event-start event))))))
+         ;; When no mouse was involved, don't use `posn-set-point'.
+         (defn (if buffer
                    (key-binding key t)
-                 (save-excursion (mouse-set-point event) (key-binding key t)))))
+                 (save-excursion (posn-set-point (event-end event))
+                                 (key-binding key t)))))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
     (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
@@ -907,7 +910,8 @@ current buffer."
       (let ((raw (if (numberp buffer) (this-single-command-raw-keys) buffer)))
         (setf (cdar (last key-list)) raw)))
     (setq buffer nil))
-  (let* ((buf (or buffer (current-buffer)))
+  (let* ((help-buffer-under-preparation t)
+         (buf (or buffer (current-buffer)))
          (on-link
           (mapcar (lambda (kr)
                     (let ((raw (cdr kr)))
@@ -1072,11 +1076,12 @@ strings done by `substitute-command-keys'."
   :version "29.1"
   :group 'help)
 
-(defun substitute-command-keys (string)
+(defun substitute-command-keys (string &optional no-face)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
-is not on any keys.  Keybindings will use the face `help-key-binding'.
+is not on any keys.  Keybindings will use the face `help-key-binding',
+unless the optional argument NO-FACE is non-nil.
 
 Each substring of the form \\\\=`KEYBINDING' will be replaced by
 KEYBINDING and use the `help-key-binding' face.
@@ -1173,20 +1178,27 @@ Otherwise, return a new string."
                       (let ((op (point)))
                         (insert "M-x ")
                         (goto-char (+ end-point 3))
-                        (add-text-properties op (point)
-                                             '( face help-key-binding
-                                                font-lock-face help-key-binding))
+                        (or no-face
+                            (add-text-properties
+                             op (point)
+                             '( face help-key-binding
+                                font-lock-face help-key-binding)))
                         (delete-char 1))
                     ;; Function is on a key.
                     (delete-char (- end-point (point)))
-                    (let ((key (help--key-description-fontified key)))
-                      (insert (if (and help-link-key-to-documentation
-                                       (functionp fun))
-                                  ;; The `fboundp' fixes bootstrap.
-                                  (if (fboundp 'help-mode--add-function-link)
-                                      (help-mode--add-function-link key fun)
-                                    key)
-                                key))))))
+
+                    (insert
+                     (if no-face
+                         (key-description key)
+                       (let ((key (help--key-description-fontified key)))
+                         (if (and help-link-key-to-documentation
+                                  help-buffer-under-preparation
+                                  (functionp fun))
+                             ;; The `fboundp' fixes bootstrap.
+                             (if (fboundp 'help-mode--add-function-link)
+                                 (help-mode--add-function-link key fun)
+                               key)
+                           key)))))))
                ;; 1D. \{foo} is replaced with a summary of the keymap
                ;;            (symbol-value foo).
                ;;     \<foo> just sets the keymap used for \[cmd].
@@ -1348,7 +1360,8 @@ Return nil if the key sequence is too long."
 
 (defun help--describe-command (definition &optional translation)
   (cond ((symbolp definition)
-         (if (fboundp definition)
+         (if (and (fboundp definition)
+                  help-buffer-under-preparation)
              (insert-text-button (symbol-name definition)
                                  'type 'help-function
                                  'help-args (list definition))

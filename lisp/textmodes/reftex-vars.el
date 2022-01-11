@@ -1,6 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1999, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -70,12 +70,16 @@
       ("tabwindow" ?f nil nil 1)))
 
     (rotating    "Sidewaysfigure and table"
-     (("sidewaysfigure" ?f nil nil caption)
-      ("sidewaystable"  ?t nil nil caption)))
+     (("sidewaysfigure"  ?f nil nil caption)
+      ("sidewaysfigure*" ?f nil nil caption)
+      ("sidewaystable"   ?t nil nil caption)
+      ("sidewaystable*"  ?t nil nil caption)))
 
-    (sidecap      "CSfigure and SCtable"
-     (("SCfigure"       ?f nil nil caption)
-      ("SCtable"        ?t nil nil caption)))
+    (sidecap      "SCfigure and SCtable"
+     (("SCfigure"  ?f nil nil caption)
+      ("SCfigure*" ?f nil nil caption)
+      ("SCtable"   ?t nil nil caption)
+      ("SCtable*"  ?t nil nil caption)))
 
     (subfigure   "Subfigure environments/macro"
      (("subfigure"   ?f nil nil caption)

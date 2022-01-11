@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2021 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -344,6 +344,7 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
        (or (symbolp v)
            (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
+;;;###autoload
 (defun byte-compile-warning-enabled-p (warning &optional symbol)
   "Return non-nil if WARNING is enabled, according to `byte-compile-warnings'."
   (let ((suppress nil))
@@ -516,15 +517,11 @@ Return the compile-time value of FORM."
                               ;; Don't compile here, since we don't know
                               ;; whether to compile as byte-compile-form
                               ;; or byte-compile-file-form.
-                              (let* ((print-symbols-bare t)
-                                     (expanded
-                                      (macroexpand-all
-                                       form
-                                       macroexpand-all-environment)))
-                                (eval
-                                 (macroexp-strip-symbol-positions
-                                      expanded)
-                                 lexical-binding)
+                              (let ((expanded
+                                     (macroexpand--all-toplevel
+                                      form
+                                      macroexpand-all-environment)))
+                                (eval expanded lexical-binding)
                                 expanded)))))
     (with-suppressed-warnings
         . ,(lambda (warnings &rest body)
@@ -1790,7 +1787,7 @@ It is too wide if it has any lines longer than the largest of
                           (nth 2 form)))))
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
-      (setq name (if name (format " `%s'" name) ""))
+      (setq name (if name (format " `%s' " name) ""))
       (when (and kind docs (stringp docs)
                  (byte-compile--wide-docstring-p docs col))
         (byte-compile-warn-x
@@ -2317,8 +2314,7 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-depth 0)
 	(byte-compile-maxdepth 0)
 	(byte-compile-output nil)
-	;; This allows us to get the positions of symbols read; it's
-	;; new in Emacs 22.1.
+        ;; This allows us to get the positions of symbols read.
 	(read-with-symbol-positions inbuffer)
 	(read-symbol-positions-list nil)
 	;;	  #### This is bound in b-c-close-variables.
@@ -2781,15 +2777,6 @@ list that represents a doc string reference.
     (apply 'make-obsolete
            (mapcar 'eval
                    (macroexp-strip-symbol-positions (cdr form))))))
-
-;; This handler is not necessary, but it makes the output from dont-compile
-;; and similar macros cleaner.
-(put 'eval 'byte-hunk-handler 'byte-compile-file-form-eval)
-(defun byte-compile-file-form-eval (form)
-  (if (and (eq (car-safe (nth 1 form)) 'quote)
-           (equal (nth 2 form) lexical-binding))
-      (nth 1 (nth 1 form))
-    (byte-compile-keep-pending form)))
 
 (defun byte-compile-file-form-defmumble (name macro arglist body rest)
   "Process a `defalias' for NAME.
@@ -5080,13 +5067,13 @@ binding slots have been popped."
   ;; if it weren't for the fact that we need to figure out when a defalias
   ;; defines a macro, so as to add it to byte-compile-macro-environment.
   ;;
-  ;; FIXME: we also use this hunk-handler to implement the function's dynamic
-  ;; docstring feature.  We could actually implement it more elegantly in
-  ;; byte-compile-lambda so it applies to all lambdas, but the problem is that
-  ;; the resulting .elc format will not be recognized by make-docfile, so
-  ;; either we stop using DOC for the docstrings of preloaded elc files (at the
-  ;; cost of around 24KB on 32bit hosts, double on 64bit hosts) or we need to
-  ;; build DOC in a more clever way (e.g. handle anonymous elements).
+  ;; FIXME: we also use this hunk-handler to implement the function's
+  ;; dynamic docstring feature (via byte-compile-file-form-defmumble).
+  ;; We should actually implement it (more elegantly) in
+  ;; byte-compile-lambda so it applies to all lambdas.  We did it here
+  ;; so the resulting .elc format was recognizable by make-docfile,
+  ;; but since then we stopped using DOC for the docstrings of
+  ;; preloaded elc files so that obstacle is gone.
   (let ((byte-compile-free-references nil)
         (byte-compile-free-assignments nil))
     (pcase form
@@ -5195,69 +5182,6 @@ binding slots have been popped."
 
     (_ (byte-compile-keep-pending form))))
 
-
-
-;; Key syntax warnings.
-
-(mapc
- (lambda (elem)
-   (put (car elem) 'byte-hunk-handler
-        (lambda (form)
-          (dolist (idx (cdr elem))
-            (let ((key (elt form idx)))
-              (when (or (vectorp key)
-                        (and (stringp key)
-                             (not (key-valid-p key))))
-                (byte-compile-warn-x form "Invalid `kbd' syntax: %S" key))))
-          form)))
- ;; Functions and the place(s) for the key definition(s).
- '((keymap-set 2)
-   (keymap-global-set 1)
-   (keymap-local-set 1)
-   (keymap-unset 2)
-   (keymap-global-unset 1)
-   (keymap-local-unset 1)
-   (keymap-substitute 2 3)
-   (keymap-set-after 2)
-   (key-translate 1 2)
-   (keymap-lookup 2)
-   (keymap-global-lookup 1)
-   (keymap-local-lookup 1)))
-
-(put 'define-keymap 'byte-hunk-handler #'byte-compile-define-keymap)
-(defun byte-compile-define-keymap (form)
-  (let ((result nil)
-        (orig-form form))
-    (push (pop form) result)
-    (while (and form
-                (keywordp (car form))
-                (not (eq (car form) :menu)))
-      (unless (memq (car form)
-                    '(:full :keymap :parent :suppress :name :prefix))
-        (byte-compile-warn-x (car form) "Invalid keyword: %s" (car form)))
-      (push (pop form) result)
-      (when (null form)
-        (byte-compile-warn-x orig-form "Uneven number of keywords in %S" form))
-      (push (pop form) result))
-    ;; Bindings.
-    (while form
-      (let ((key (pop form)))
-        (when (stringp key)
-          (unless (key-valid-p key)
-            (byte-compile-warn-x form "Invalid `kbd' syntax: %S" key)))
-          ;; No improvement.
-        (push key result))
-      (when (null form)
-        (byte-compile-warn-x form "Uneven number of key bindings in %S" form))
-      (push (pop form) result))
-    (macroexp-strip-symbol-positions orig-form)))
-
-(put 'define-keymap--define 'byte-hunk-handler
-     #'byte-compile-define-keymap--define)
-(defun byte-compile-define-keymap--define (form)
-  (when (consp (nth 1 form))
-    (byte-compile-define-keymap (nth 1 form)))
-  form)
 
 
 ;;; tags

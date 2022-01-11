@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -1489,6 +1489,12 @@ If you don't want stock icons, set the variable to nil."
 				       (string :tag "Stock/named")))))
   :group 'x)
 
+(defcustom x-display-cursor-at-start-of-preedit-string nil
+  "If non-nil, display the cursor at the start of any pre-edit text."
+  :version "29.1"
+  :type 'boolean
+  :group 'x)
+
 (defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))
 
 (defun x-gtk-map-stock (file)
@@ -1516,6 +1522,28 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 	 x-gtk-stock-cache))))
 
 (global-set-key [XF86WakeUp] 'ignore)
+
+
+(defvar x-preedit-overlay nil
+  "The overlay currently used to display preedit text from a compose sequence.")
+
+(defun x-preedit-text (event)
+  "Display preedit text from a compose sequence in EVENT.
+EVENT is a preedit-text event."
+  (interactive "e")
+  (when x-preedit-overlay
+    (delete-overlay x-preedit-overlay)
+    (setq x-preedit-overlay nil))
+  (when (nth 1 event)
+    (let ((string (propertize (nth 1 event) 'face '(:underline t))))
+      (setq x-preedit-overlay (make-overlay (point) (point)))
+      (overlay-put x-preedit-overlay 'window (selected-window))
+      (overlay-put x-preedit-overlay 'before-string
+                   (if x-display-cursor-at-start-of-preedit-string
+                       (propertize string 'cursor t)
+                     string)))))
+
+(define-key special-event-map [preedit-text] 'x-preedit-text)
 
 (provide 'x-win)
 (provide 'term/x-win)

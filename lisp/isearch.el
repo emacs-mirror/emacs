@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -521,14 +521,14 @@ This is like `describe-bindings', but displays only Isearch keys."
   (interactive)
   (let ((display-buffer-overriding-action isearch--display-help-action))
     (call-interactively 'describe-key))
-  (isearch-update))
+  (when isearch-mode (isearch-update)))
 
 (defun isearch-describe-mode ()
   "Display documentation of Isearch mode."
   (interactive)
   (let ((display-buffer-overriding-action isearch--display-help-action))
     (describe-function 'isearch-forward))
-  (isearch-update))
+  (when isearch-mode (isearch-update)))
 
 (defalias 'isearch-mode-help 'isearch-describe-mode)
 
@@ -2063,7 +2063,7 @@ The command then executes BODY and updates the isearch prompt."
                        #',function))
                (setq isearch-regexp nil)))
          ,@body
-         (setq isearch-success t isearch-adjusted t)
+         (setq isearch-success t isearch-adjusted 'toggle)
          (isearch-update))
        (define-key isearch-mode-map ,key #',command-name)
        ,@(when (and function (symbolp function))
@@ -2504,6 +2504,11 @@ If no input items have been entered yet, just beep."
   (if (null (cdr isearch-cmds))
       (ding)
     (isearch-pop-state))
+  ;; When going back to the hidden match, reopen it.
+  (when (and (eq search-invisible 'open) isearch-hide-immediately
+             isearch-other-end)
+    (isearch-range-invisible (min (point) isearch-other-end)
+                             (max (point) isearch-other-end)))
   (isearch-update))
 
 (defun isearch-del-char (&optional arg)
@@ -3412,7 +3417,7 @@ the word mode."
   ;; If currently failing, display no ellipsis.
   (or isearch-success (setq ellipsis nil))
   (let ((m (concat (if isearch-success "" "failing ")
-		   (if isearch-adjusted "pending " "")
+		   (if (eq isearch-adjusted t) "pending " "")
 		   (if (and isearch-wrapped
 			    (not isearch-wrap-function)
 			    (if isearch-forward
@@ -3516,10 +3521,10 @@ Can be changed via `isearch-search-fun-function' for special needs."
           ;; (Bug#35802).
           (regexp
            (cond (isearch-regexp-function
-                  (let ((lax (and (not bound)
+                  (let ((lax (and (not bound) ; not lazy-highlight
                                   (isearch--lax-regexp-function-p))))
                     (when lax
-                      (setq isearch-adjusted t))
+                      (setq isearch-adjusted 'lax))
                     (if (functionp isearch-regexp-function)
                         (funcall isearch-regexp-function string lax)
                       (word-search-regexp string lax))))
@@ -3787,10 +3792,9 @@ Isearch, at least partially, as determined by `isearch-range-invisible'.
 If `search-invisible' is t, which allows Isearch matches inside
 invisible text, this function will always return non-nil, regardless
 of what `isearch-range-invisible' says."
-  (and (or (eq search-invisible t)
-           (not (isearch-range-invisible beg end)))
-       (not (text-property-not-all (min beg end) (max beg end)
-                                   'inhibit-isearch nil))))
+  (and (not (text-property-not-all beg end 'inhibit-isearch nil))
+       (or (eq search-invisible t)
+           (not (isearch-range-invisible beg end)))))
 
 
 ;; General utilities

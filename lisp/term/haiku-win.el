@@ -1,6 +1,6 @@
 ;;; haiku-win.el --- set up windowing on Haiku -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +36,7 @@
 (require 'fontset)
 (require 'dnd)
 
-(add-to-list 'display-format-alist '(".*" . haiku-win))
+(add-to-list 'display-format-alist '(".*" . haiku))
 
 ;;;; Command line argument handling.
 
@@ -49,6 +49,7 @@
 (declare-function x-handle-args "common-win")
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
+(declare-function haiku-selection-targets "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
@@ -110,14 +111,17 @@ If TYPE is nil, return \"text/plain\"."
 
 (declare-function haiku-read-file-name "haikufns.c")
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+(defun x-file-dialog (prompt dir &optional default-filename mustmatch only-dir-p)
   "SKIP: real doc in xfns.c."
   (if (eq (framep-on-display (selected-frame)) 'haiku)
-      (haiku-read-file-name prompt (selected-frame)
-                            (or dir (and default_filename
-                                         (file-name-directory default_filename)))
-                            mustmatch only_dir_p
-                            (file-name-nondirectory default_filename))
+      (haiku-read-file-name (if (not (string-suffix-p ": " prompt))
+                                prompt
+                              (substring prompt 0 (- (length prompt) 2)))
+                            (selected-frame)
+                            (or dir (and default-filename
+                                         (file-name-directory default-filename)))
+                            mustmatch only-dir-p
+                            (file-name-nondirectory default-filename))
     (error "x-file-dialog on a tty frame")))
 
 (defun haiku-dnd-handle-drag-n-drop-event (event)

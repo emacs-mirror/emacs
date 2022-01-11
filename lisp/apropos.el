@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994-1995, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1989, 1994-1995, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
@@ -1322,17 +1322,18 @@ as a heading."
 
 (defun apropos-describe-plist (symbol)
   "Display a pretty listing of SYMBOL's plist."
-  (help-setup-xref (list 'apropos-describe-plist symbol)
-		   (called-interactively-p 'interactive))
-  (with-help-window (help-buffer)
-    (set-buffer standard-output)
-    (princ "Symbol ")
-    (prin1 symbol)
-    (princ (substitute-command-keys "'s plist is\n ("))
-    (put-text-property (+ (point-min) 7) (- (point) 14)
-		       'face 'apropos-symbol)
-    (insert (apropos-format-plist symbol "\n  "))
-    (princ ")")))
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list 'apropos-describe-plist symbol)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (set-buffer standard-output)
+      (princ "Symbol ")
+      (prin1 symbol)
+      (princ (substitute-command-keys "'s plist is\n ("))
+      (put-text-property (+ (point-min) 7) (- (point) 14)
+		         'face 'apropos-symbol)
+      (insert (apropos-format-plist symbol "\n  "))
+      (princ ")"))))
 
 
 (provide 'apropos)

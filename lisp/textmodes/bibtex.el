@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -839,6 +839,24 @@ for a new entry."
       ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
       ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
       ("url") ("urldate")))
+    ("PhdThesis" "PhD Thesis"
+     (("author")
+      ("title" "Title of the PhD thesis")
+      ("school" "School where the PhD thesis was written")
+      ("year"))
+     nil
+     (("type" "Type of the PhD thesis")
+      ("address" "Address of the school (if not part of field \"school\") or country")
+      ("month") ("note")))
+    ("TechReport" "Technical Report"
+     (("author")
+      ("title" "Title of the technical report (BibTeX converts it to lowercase)")
+      ("institution" "Sponsoring institution of the report")
+      ("year"))
+     nil
+     (("type" "Type of the report (if other than \"technical report\")")
+      ("number" "Number of the technical report")
+      ("address") ("month") ("note")))
     ("Unpublished" "Unpublished"
      (("author") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
@@ -1193,8 +1211,8 @@ See `bibtex-generate-autokey' for details."
   :type '(repeat (cons (regexp :tag "Old")
                        (string :tag "New"))))
 
-(defvaralias 'bibtex-autokey-name-case-convert
-  'bibtex-autokey-name-case-convert-function)
+(define-obsolete-variable-alias 'bibtex-autokey-name-case-convert
+  'bibtex-autokey-name-case-convert-function "29.1")
 
 (defcustom bibtex-autokey-name-case-convert-function #'downcase
   "Function called for each name to perform case conversion.
@@ -1268,8 +1286,8 @@ Case is significant.  See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
-(defvaralias 'bibtex-autokey-titleword-case-convert
-  'bibtex-autokey-titleword-case-convert-function)
+(define-obsolete-variable-alias 'bibtex-autokey-titleword-case-convert
+  'bibtex-autokey-titleword-case-convert-function "29.1")
 
 (defcustom bibtex-autokey-titleword-case-convert-function #'downcase
   "Function called for each titleword to perform case conversion.

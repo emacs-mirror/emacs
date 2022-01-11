@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>
@@ -599,11 +599,12 @@ bound to HIGHLIGHT-LOCUS."
     (with-temp-buffer
       (insert before)
       (goto-char (point-min))
-      (replace-regexp
-       "\\(\\(L\\)\\|\\(R\\)\\)"
-       '(replace-eval-replacement
-         replace-quote
-         (if (match-string 2) "R" "L")))
+      (with-suppressed-warnings ((interactive-only replace-regexp))
+        (replace-regexp
+         "\\(\\(L\\)\\|\\(R\\)\\)"
+         '(replace-eval-replacement
+           replace-quote
+           (if (match-string 2) "R" "L"))))
       (should (equal (buffer-string) after)))))
 
 (ert-deftest test-count-matches ()

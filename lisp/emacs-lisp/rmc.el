@@ -1,6 +1,6 @@
 ;;; rmc.el --- read from a multiple choice question -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -25,8 +25,101 @@
 
 (require 'seq)
 
+(defun rmc--add-key-description (elem)
+  (let* ((char (car elem))
+         (name (cadr elem))
+         (pos (seq-position name char))
+         (desc (key-description (char-to-string char)))
+         (graphical-terminal
+          (display-supports-face-attributes-p
+           '(:underline t) (window-frame)))
+         (altered-name
+          (cond
+           ;; Not in the name string, or a special character.
+           ((or (not pos)
+                (member desc '("ESC" "TAB" "RET" "DEL" "SPC")))
+            (format "%s %s"
+                    (if graphical-terminal
+                        (propertize desc 'face 'read-multiple-choice-face)
+                      (propertize desc 'face 'help-key-binding))
+                    name))
+           ;; The prompt character is in the name, so highlight
+           ;; it on graphical terminals.
+           (graphical-terminal
+            (setq name (copy-sequence name))
+            (put-text-property pos (1+ pos)
+                               'face 'read-multiple-choice-face
+                               name)
+            name)
+           ;; And put it in [bracket] on non-graphical terminals.
+           (t
+            (concat
+             (substring name 0 pos)
+             "["
+             (upcase (substring name pos (1+ pos)))
+             "]"
+             (substring name (1+ pos)))))))
+    (cons char altered-name)))
+
+(defun rmc--show-help (prompt help-string show-help choices altered-names)
+  (let* ((buf-name (if (stringp show-help)
+                       show-help
+                     "*Multiple Choice Help*"))
+         (buf (get-buffer-create buf-name)))
+    (if (stringp help-string)
+        (with-help-window buf
+          (with-current-buffer buf
+            (insert help-string)))
+      (with-help-window buf
+        (with-current-buffer buf
+          (erase-buffer)
+          (pop-to-buffer buf)
+          (insert prompt "\n\n")
+          (let* ((columns (/ (window-width) 25))
+                 (fill-column 21)
+                 (times 0)
+                 (start (point)))
+            (dolist (elem choices)
+              (goto-char start)
+              (unless (zerop times)
+                (if (zerop (mod times columns))
+                    ;; Go to the next "line".
+                    (goto-char (setq start (point-max)))
+                  ;; Add padding.
+                  (while (not (eobp))
+                    (end-of-line)
+                    (insert (make-string (max (- (* (mod times columns)
+                                                    (+ fill-column 4))
+                                                 (current-column))
+                                              0)
+                                         ?\s))
+                    (forward-line 1))))
+              (setq times (1+ times))
+              (let ((text
+                     (with-temp-buffer
+                       (insert (format
+                                "%c: %s\n"
+                                (car elem)
+                                (cdr (assq (car elem) altered-names))))
+                       (fill-region (point-min) (point-max))
+                       (when (nth 2 elem)
+                         (let ((start (point)))
+                           (insert (nth 2 elem))
+                           (unless (bolp)
+                             (insert "\n"))
+                           (fill-region start (point-max))))
+                       (buffer-string))))
+                (goto-char start)
+                (dolist (line (split-string text "\n"))
+                  (end-of-line)
+                  (if (bolp)
+                      (insert line "\n")
+                    (insert line))
+                  (forward-line 1))))))))
+    buf))
+
 ;;;###autoload
-(defun read-multiple-choice (prompt choices &optional help-string)
+(defun read-multiple-choice (prompt choices &optional help-string show-help)
   "Ask user to select an entry from CHOICES, promting with PROMPT.
 This function allows to ask the user a multiple-choice question.
 
@@ -42,6 +135,9 @@ the optional argument HELP-STRING.  This argument is a string that
 should contain a more detailed description of all of the possible
 choices.  `read-multiple-choice' will display that description in a
 help buffer if the user requests that.
+If optional argument SHOW-HELP is non-nil, show the help screen
+immediately, before any user input.  If SHOW-HELP is a string,
+use it as the name of the help buffer.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
@@ -67,45 +163,19 @@ Usage example:
                       \\='((?a \"always\")
                         (?s \"session only\")
                         (?n \"no\")))"
-  (let* ((altered-names nil)
+  (let* ((choices (if show-help choices (append choices '((?? "?")))))
+         (altered-names (mapcar #'rmc--add-key-description choices))
          (full-prompt
           (format
            "%s (%s): "
            prompt
-           (mapconcat
-            (lambda (elem)
-              (let* ((name (cadr elem))
-                     (pos (seq-position name (car elem)))
-                     (altered-name
-                      (cond
-                       ;; Not in the name string.
-                       ((not pos)
-                        (format "[%c] %s" (car elem) name))
-                       ;; The prompt character is in the name, so highlight
-                       ;; it on graphical terminals...
-                       ((display-supports-face-attributes-p
-                         '(:underline t) (window-frame))
-                        (setq name (copy-sequence name))
-                        (put-text-property pos (1+ pos)
-                                           'face 'read-multiple-choice-face
-                                           name)
-                        name)
-                       ;; And put it in [bracket] on non-graphical terminals.
-                       (t
-                        (concat
-                         (substring name 0 pos)
-                         "["
-                         (upcase (substring name pos (1+ pos)))
-                         "]"
-                         (substring name (1+ pos)))))))
-                (push (cons (car elem) altered-name)
-                      altered-names)
-                altered-name))
-            (append choices '((?? "?")))
-            ", ")))
+           (mapconcat (lambda (e) (cdr e)) altered-names ", ")))
          tchar buf wrong-char answer)
     (save-window-excursion
       (save-excursion
+        (if show-help
+            (setq buf (rmc--show-help prompt help-string show-help
+                                   choices altered-names)))
 	(while (not tchar)
 	  (message "%s%s"
                    (if wrong-char
@@ -161,57 +231,8 @@ Usage example:
                   tchar nil)
             (when wrong-char
               (ding))
-            (setq buf (get-buffer-create "*Multiple Choice Help*"))
-            (if (stringp help-string)
-                (with-help-window buf
-                  (with-current-buffer buf
-                    (insert help-string)))
-              (with-help-window buf
-                (with-current-buffer buf
-                  (erase-buffer)
-                  (pop-to-buffer buf)
-                  (insert prompt "\n\n")
-                  (let* ((columns (/ (window-width) 25))
-                         (fill-column 21)
-                         (times 0)
-                         (start (point)))
-                    (dolist (elem choices)
-                      (goto-char start)
-                      (unless (zerop times)
-                        (if (zerop (mod times columns))
-                            ;; Go to the next "line".
-                            (goto-char (setq start (point-max)))
-                          ;; Add padding.
-                          (while (not (eobp))
-                            (end-of-line)
-                            (insert (make-string (max (- (* (mod times columns)
-                                                            (+ fill-column 4))
-                                                         (current-column))
-                                                      0)
-                                                 ?\s))
-                            (forward-line 1))))
-                      (setq times (1+ times))
-                      (let ((text
-                             (with-temp-buffer
-                               (insert (format
-                                        "%c: %s\n"
-                                        (car elem)
-                                        (cdr (assq (car elem) altered-names))))
-                               (fill-region (point-min) (point-max))
-                               (when (nth 2 elem)
-                                 (let ((start (point)))
-                                   (insert (nth 2 elem))
-                                   (unless (bolp)
-                                     (insert "\n"))
-                                   (fill-region start (point-max))))
-                               (buffer-string))))
-                        (goto-char start)
-                        (dolist (line (split-string text "\n"))
-                          (end-of-line)
-                          (if (bolp)
-                              (insert line "\n")
-                            (insert line))
-                          (forward-line 1))))))))))))
+            (setq buf (rmc--show-help prompt help-string show-help
+                                   choices altered-names))))))
     (when (buffer-live-p buf)
       (kill-buffer buf))
     (assq tchar choices)))

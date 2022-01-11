@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -31,7 +31,7 @@
 
 (defun mm-ucs-to-char (codepoint)
   "Convert Unicode codepoint to character."
-  (or (decode-char 'ucs codepoint) ?#))
+  (or codepoint ?#))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()
@@ -101,9 +101,9 @@ version, you could use `autoload-coding-system' here."
   :type '(list (repeat :inline t
 		       :tag "Other options"
 		       (cons (symbol :tag "charset")
-			     (symbol :tag "form"))))
+                             (symbol :tag "form"))))
+  :risky t
   :group 'mime)
-(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-charset-override-alist)
 

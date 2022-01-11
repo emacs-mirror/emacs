@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -307,7 +307,9 @@ entirely by setting `warning-suppress-types' or
                                'type 'warning-suppress-log-warning
                                'warning-type type))
               (funcall newline)
-	      (when (and warning-fill-prefix (not (string-search "\n" message)))
+	      (when (and warning-fill-prefix
+                         (not (string-search "\n" message))
+                         (not noninteractive))
 		(let ((fill-prefix warning-fill-prefix)
 		      (fill-column warning-fill-column))
 		  (fill-region start (point))))

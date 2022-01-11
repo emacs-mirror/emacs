@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -605,7 +605,7 @@ selects the window immediately to the right of the currently selected
 one, and similarly for the left, up, and down counterparts.
 @code{windmove-default-keybindings} binds these commands to
 @kbd{S-right} etc.; doing so disables shift selection for those keys
-(@pxref{Shift Selection}).  In the same way as keybindings can be
+(@pxref{Shift Selection}).  In the same way as key bindings can be
 defined for commands that select windows directionally, you can use
 @code{windmove-display-default-keybindings} to define keybindings for
 commands that specify in what direction to display the window for the
@@ -613,7 +613,7 @@ buffer that the next command is going to display.  Also there is
 @code{windmove-delete-default-keybindings} to define keybindings for
 commands that delete windows directionally, and
 @code{windmove-swap-states-default-keybindings} that defines
-keybindings for commands that swap the window contents of the selected
+key bindings for commands that swap the window contents of the selected
 window with the window in the specified direction.
 
   The command @kbd{M-x compare-windows} lets you compare the text

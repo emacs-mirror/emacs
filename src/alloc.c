@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2021 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2022 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -125,6 +125,7 @@ union emacs_align_type
   struct Lisp_Overlay Lisp_Overlay;
   struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
   struct Lisp_Subr Lisp_Subr;
+  struct Lisp_Sqlite Lisp_Sqlite;
   struct Lisp_User_Ptr Lisp_User_Ptr;
   struct Lisp_Vector Lisp_Vector;
   struct terminal terminal;
@@ -3160,26 +3161,26 @@ cleanup_vector (struct Lisp_Vector *vector)
       module_finalize_function (function);
     }
 #endif
-  else if (NATIVE_COMP_FLAG
-	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
+#ifdef HAVE_NATIVE_COMP
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
     {
       struct Lisp_Native_Comp_Unit *cu =
 	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
       unload_comp_unit (cu);
     }
-  else if (NATIVE_COMP_FLAG
-	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
     {
       struct Lisp_Subr *subr =
 	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
-      if (!NILP (subr->native_comp_u[0]))
+      if (!NILP (subr->native_comp_u))
 	{
 	  /* FIXME Alternative and non invasive solution to this
 	     cast?  */
 	  xfree ((char *)subr->symbol_name);
-	  xfree (subr->native_c_name[0]);
+	  xfree (subr->native_c_name);
 	}
     }
+#endif
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -3902,6 +3903,7 @@ count as reachable for the purpose of deciding whether to run
 FUNCTION.  FUNCTION will be run once per finalizer object.  */)
   (Lisp_Object function)
 {
+  CHECK_TYPE (FUNCTIONP (function), Qfunctionp, function);
   struct Lisp_Finalizer *finalizer
     = ALLOCATE_PSEUDOVECTOR (struct Lisp_Finalizer, function, PVEC_FINALIZER);
   finalizer->function = function;
@@ -6159,6 +6161,9 @@ garbage_collect (void)
   mark_terminals ();
   mark_kboards ();
   mark_threads ();
+#ifdef HAVE_PGTK
+  mark_pgtkterm ();
+#endif
 
 #ifdef USE_GTK
   xg_mark_data ();
@@ -6803,15 +6808,17 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
 	    if (SUBR_NATIVE_COMPILEDP (obj))
 	      {
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
 		mark_object (subr->native_intspec);
-		mark_object (subr->native_comp_u[0]);
-		mark_object (subr->lambda_list[0]);
-		mark_object (subr->type[0]);
+		mark_object (subr->native_comp_u);
+		mark_object (subr->lambda_list);
+		mark_object (subr->type);
 	      }
+#endif
 	    break;
 
 	  case PVEC_FREE:
@@ -7736,6 +7743,12 @@ enum defined_HAVE_X_WINDOWS { defined_HAVE_X_WINDOWS = true };
 enum defined_HAVE_X_WINDOWS { defined_HAVE_X_WINDOWS = false };
 #endif
 
+#ifdef HAVE_PGTK
+enum defined_HAVE_PGTK { defined_HAVE_PGTK = true };
+#else
+enum defined_HAVE_PGTK { defined_HAVE_PGTK = false };
+#endif
+
 /* When compiled with GCC, GDB might say "No enum type named
    pvec_type" if we don't have at least one symbol with that type, and
    then xbacktrace could fail.  Similarly for the other enums and
@@ -7755,5 +7768,6 @@ union
   enum More_Lisp_Bits More_Lisp_Bits;
   enum pvec_type pvec_type;
   enum defined_HAVE_X_WINDOWS defined_HAVE_X_WINDOWS;
+  enum defined_HAVE_PGTK defined_HAVE_PGTK;
 } const EXTERNALLY_VISIBLE gdb_make_enums_visible = {0};
 #endif	/* __GNUC__ */

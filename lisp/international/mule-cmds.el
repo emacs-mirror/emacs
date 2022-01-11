@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -88,7 +88,7 @@
     (bindings--define-key map [separator-3] menu-bar-separator)
     (bindings--define-key map [set-terminal-coding-system]
       '(menu-item "For Terminal" set-terminal-coding-system
-        :enable (null (memq initial-window-system '(x w32 ns haiku)))
+        :enable (null (memq initial-window-system '(x w32 ns haiku pgtk)))
         :help "How to encode terminal output"))
     (bindings--define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system
@@ -1638,30 +1638,31 @@ If `default-transient-input-method' was not yet defined, prompt for it."
   (interactive
    (list (read-input-method-name
           (format-prompt "Describe input method" current-input-method))))
-  (if (and input-method (symbolp input-method))
-      (setq input-method (symbol-name input-method)))
-  (help-setup-xref (list #'describe-input-method
-			 (or input-method current-input-method))
-		   (called-interactively-p 'interactive))
+  (let ((help-buffer-under-preparation t))
+    (if (and input-method (symbolp input-method))
+	(setq input-method (symbol-name input-method)))
+    (help-setup-xref (list #'describe-input-method
+			   (or input-method current-input-method))
+		     (called-interactively-p 'interactive))
 
-  (if (null input-method)
-      (describe-current-input-method)
-    (let ((current current-input-method))
-      (condition-case nil
-	  (progn
-	    (save-excursion
-	      (activate-input-method input-method)
-	      (describe-current-input-method))
-	    (activate-input-method current))
-	(error
-	 (activate-input-method current)
-	 (help-setup-xref (list #'describe-input-method input-method)
-			  (called-interactively-p 'interactive))
-	 (with-output-to-temp-buffer (help-buffer)
-	   (let ((elt (assoc input-method input-method-alist)))
-	     (princ (format-message
-		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
-		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
+    (if (null input-method)
+	(describe-current-input-method)
+      (let ((current current-input-method))
+	(condition-case nil
+	    (progn
+	      (save-excursion
+		(activate-input-method input-method)
+		(describe-current-input-method))
+	      (activate-input-method current))
+	  (error
+	   (activate-input-method current)
+	   (help-setup-xref (list #'describe-input-method input-method)
+			    (called-interactively-p 'interactive))
+	   (with-output-to-temp-buffer (help-buffer)
+	     (let ((elt (assoc input-method input-method-alist)))
+	       (princ (format-message
+		       "Input method: %s (`%s' in mode line) for %s\n  %s\n"
+		       input-method (nth 3 elt) (nth 1 elt) (nth 4 elt)))))))))))
 
 (defun describe-current-input-method ()
   "Describe the input method currently in use.
@@ -1873,7 +1874,7 @@ The default status is as follows:
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'utf-8)
   (setq default-file-name-coding-system (if (memq system-type
-                                                  '(window-nt ms-dos))
+                                                  '(windows-nt ms-dos))
                                             'iso-latin-1-unix
                                           'utf-8-unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
@@ -1892,9 +1893,9 @@ The default status is as follows:
 	 (condition-case nil
 	     (coding-system-change-text-conversion
 	      (cdr default-process-coding-system)
-	      (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8))
+	      (if (memq system-type '(windows-nt ms-dos)) 'iso-latin-1 'utf-8))
 	   (coding-system-error
-	    (if (memq system-type '(window-nt ms-dos)) 'iso-latin-1 'utf-8)))))
+	    (if (memq system-type '(windows-nt ms-dos)) 'iso-latin-1 'utf-8)))))
     (setq default-process-coding-system
 	  (cons output-coding input-coding)))
 
@@ -2162,89 +2163,90 @@ See `set-language-info-alist' for use in programs."
    (list (read-language-name
 	  'documentation
 	  (format-prompt "Describe language environment" current-language-environment))))
-  (if (null language-name)
-      (setq language-name current-language-environment))
-  (if (or (null language-name)
-	  (null (get-language-info language-name 'documentation)))
-      (error "No documentation for the specified language"))
-  (if (symbolp language-name)
-      (setq language-name (symbol-name language-name)))
-  (dolist (feature (get-language-info language-name 'features))
-    (require feature))
-  (let ((doc (get-language-info language-name 'documentation)))
-    (help-setup-xref (list #'describe-language-environment language-name)
-		     (called-interactively-p 'interactive))
-    (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer standard-output
-	(insert language-name " language environment\n\n")
-	(if (stringp doc)
-	    (insert (substitute-command-keys doc) "\n\n"))
-	(condition-case nil
-	    (let ((str (eval (get-language-info language-name 'sample-text))))
-	      (if (stringp str)
-		  (insert "Sample text:\n  "
-			  (string-replace "\n" "\n  " str)
-			  "\n\n")))
-	  (error nil))
-	(let ((input-method (get-language-info language-name 'input-method))
-	      (l (copy-sequence input-method-alist))
-	      (first t))
-	  (when (and input-method
-		     (setq input-method (assoc input-method l)))
-	    (insert "Input methods (default " (car input-method) ")\n")
-	    (setq l (cons input-method (delete input-method l))
-		  first nil))
-	  (dolist (elt l)
-	    (when (or (eq input-method elt)
-		      (eq t (compare-strings language-name nil nil
-					     (nth 1 elt) nil nil t)))
-	      (when first
-		(insert "Input methods:\n")
-		(setq first nil))
-	      (insert "  " (car elt))
-	      (search-backward (car elt))
-	      (help-xref-button 0 'help-input-method (car elt))
-	      (goto-char (point-max))
-	      (insert " (\""
-		      (if (stringp (nth 3 elt)) (nth 3 elt) (car (nth 3 elt)))
-		      "\" in mode line)\n")))
-	  (or first
-	      (insert "\n")))
-	(insert "Character sets:\n")
-	(let ((l (get-language-info language-name 'charset)))
-	  (if (null l)
-	      (insert "  nothing specific to " language-name "\n")
-	    (while l
-	      (insert "  " (symbol-name (car l)))
-	      (search-backward (symbol-name (car l)))
-	      (help-xref-button 0 'help-character-set (car l))
-	      (goto-char (point-max))
-	      (insert ": " (charset-description (car l)) "\n")
-	      (setq l (cdr l)))))
-	(insert "\n")
-	(insert "Coding systems:\n")
-	(let ((l (get-language-info language-name 'coding-system)))
-	  (if (null l)
-	      (insert "  nothing specific to " language-name "\n")
-	    (while l
-	      (insert "  " (symbol-name (car l)))
-	      (search-backward (symbol-name (car l)))
-	      (help-xref-button 0 'help-coding-system (car l))
-	      (goto-char (point-max))
-	      (insert (substitute-command-keys " (`")
-		      (coding-system-mnemonic (car l))
-		      (substitute-command-keys "' in mode line):\n\t")
-                      (substitute-command-keys
-                       (coding-system-doc-string (car l)))
-		      "\n")
-	      (let ((aliases (coding-system-aliases (car l))))
-		(when aliases
-		  (insert "\t(alias:")
-		  (while aliases
-		    (insert " " (symbol-name (car aliases)))
-		    (setq aliases (cdr aliases)))
-		  (insert ")\n")))
-	      (setq l (cdr l)))))))))
+  (let ((help-buffer-under-preparation t))
+    (if (null language-name)
+	(setq language-name current-language-environment))
+    (if (or (null language-name)
+	    (null (get-language-info language-name 'documentation)))
+	(error "No documentation for the specified language"))
+    (if (symbolp language-name)
+	(setq language-name (symbol-name language-name)))
+    (dolist (feature (get-language-info language-name 'features))
+      (require feature))
+    (let ((doc (get-language-info language-name 'documentation)))
+      (help-setup-xref (list #'describe-language-environment language-name)
+		       (called-interactively-p 'interactive))
+      (with-output-to-temp-buffer (help-buffer)
+	(with-current-buffer standard-output
+	  (insert language-name " language environment\n\n")
+	  (if (stringp doc)
+	      (insert (substitute-command-keys doc) "\n\n"))
+	  (condition-case nil
+	      (let ((str (eval (get-language-info language-name 'sample-text))))
+		(if (stringp str)
+		    (insert "Sample text:\n  "
+			    (string-replace "\n" "\n  " str)
+			    "\n\n")))
+	    (error nil))
+	  (let ((input-method (get-language-info language-name 'input-method))
+		(l (copy-sequence input-method-alist))
+		(first t))
+	    (when (and input-method
+		       (setq input-method (assoc input-method l)))
+	      (insert "Input methods (default " (car input-method) ")\n")
+	      (setq l (cons input-method (delete input-method l))
+		    first nil))
+	    (dolist (elt l)
+	      (when (or (eq input-method elt)
+			(eq t (compare-strings language-name nil nil
+					       (nth 1 elt) nil nil t)))
+		(when first
+		  (insert "Input methods:\n")
+		  (setq first nil))
+		(insert "  " (car elt))
+		(search-backward (car elt))
+		(help-xref-button 0 'help-input-method (car elt))
+		(goto-char (point-max))
+		(insert " (\""
+			(if (stringp (nth 3 elt)) (nth 3 elt) (car (nth 3 elt)))
+			"\" in mode line)\n")))
+	    (or first
+		(insert "\n")))
+	  (insert "Character sets:\n")
+	  (let ((l (get-language-info language-name 'charset)))
+	    (if (null l)
+		(insert "  nothing specific to " language-name "\n")
+	      (while l
+		(insert "  " (symbol-name (car l)))
+		(search-backward (symbol-name (car l)))
+		(help-xref-button 0 'help-character-set (car l))
+		(goto-char (point-max))
+		(insert ": " (charset-description (car l)) "\n")
+		(setq l (cdr l)))))
+	  (insert "\n")
+	  (insert "Coding systems:\n")
+	  (let ((l (get-language-info language-name 'coding-system)))
+	    (if (null l)
+		(insert "  nothing specific to " language-name "\n")
+	      (while l
+		(insert "  " (symbol-name (car l)))
+		(search-backward (symbol-name (car l)))
+		(help-xref-button 0 'help-coding-system (car l))
+		(goto-char (point-max))
+		(insert (substitute-command-keys " (`")
+			(coding-system-mnemonic (car l))
+			(substitute-command-keys "' in mode line):\n\t")
+			(substitute-command-keys
+			 (coding-system-doc-string (car l)))
+			"\n")
+		(let ((aliases (coding-system-aliases (car l))))
+		  (when aliases
+		    (insert "\t(alias:")
+		    (while aliases
+		      (insert " " (symbol-name (car aliases)))
+		      (setq aliases (cdr aliases)))
+		    (insert ")\n")))
+		(setq l (cdr l))))))))))
 
 ;;; Locales.
 
@@ -2956,8 +2958,14 @@ See also the documentation of `get-char-code-property' and
     (or (stringp table)
 	(error "Not a char-table nor a file name: %s" table)))
   (if (stringp table) (setq table (purecopy table)))
-  (setf (alist-get name char-code-property-alist) table)
-  (put name 'char-code-property-documentation (purecopy docstring)))
+  (if (and (stringp table)
+           (char-table-p (alist-get name char-code-property-alist)))
+      ;; The table is already setup and we're apparently trying to
+      ;; undo that, probably because `charprop.el' is being re-loaded.
+      ;; Just skip it, in order to work around a recursive load (bug#52945).
+      nil
+    (setf (alist-get name char-code-property-alist) table)
+    (put name 'char-code-property-documentation (purecopy docstring))))
 
 (defvar char-code-property-table
   (make-char-table 'char-code-property-table)
@@ -3074,22 +3082,6 @@ on encoding."
                    (t 0))
                 0))
 	(substring enc2 i0 i2)))))
-
-;; Backwards compatibility.  These might be better with :init-value t,
-;; but that breaks loadup.
-(define-minor-mode unify-8859-on-encoding-mode
-  "Exists only for backwards compatibility."
-  :group 'mule
-  :global t)
-;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
-(make-obsolete 'unify-8859-on-encoding-mode "don't use it." "23.1")
-
-(define-minor-mode unify-8859-on-decoding-mode
-  "Exists only for backwards compatibility."
-  :group 'mule
-  :global t)
-;; Doc said "obsolete" in 23.1, this statement only added in 24.1.
-(make-obsolete 'unify-8859-on-decoding-mode "don't use it." "23.1")
 
 (defvar ucs-names nil
   "Hash table of cached CHAR-NAME keys to CHAR-CODE values.")

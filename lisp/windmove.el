@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -448,6 +448,7 @@ unless `windmove-create-window' is non-nil and a new window is created."
 (defvar windmove-mode-map (make-sparse-keymap)
   "Map used by `windmove-install-defaults'.")
 
+;;;###autoload
 (define-minor-mode windmove-mode
   "Global minor mode for default windmove commands."
   :keymap windmove-mode-map

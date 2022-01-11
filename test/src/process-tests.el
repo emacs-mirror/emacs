@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,10 @@
 (require 'subr-x)
 (require 'dns)
 (require 'url-http)
+
+(declare-function thread-last-error "thread.c")
+(declare-function thread-join "thread.c")
+(declare-function make-thread "thread.c")
 
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)

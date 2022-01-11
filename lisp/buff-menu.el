@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2021 Free Software
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -116,43 +116,41 @@ as it is by default."
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
 
-(defvar Buffer-menu-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tabulated-list-mode-map)
-    (define-key map "v" 'Buffer-menu-select)
-    (define-key map "2" 'Buffer-menu-2-window)
-    (define-key map "1" 'Buffer-menu-1-window)
-    (define-key map "f" 'Buffer-menu-this-window)
-    (define-key map "e" 'Buffer-menu-this-window)
-    (define-key map "\C-m" 'Buffer-menu-this-window)
-    (define-key map "o" 'Buffer-menu-other-window)
-    (define-key map "\C-o" 'Buffer-menu-switch-other-window)
-    (define-key map "s" 'Buffer-menu-save)
-    (define-key map "d" 'Buffer-menu-delete)
-    (define-key map "k" 'Buffer-menu-delete)
-    (define-key map "\C-k" 'Buffer-menu-delete)
-    (define-key map "\C-d" 'Buffer-menu-delete-backwards)
-    (define-key map "x" 'Buffer-menu-execute)
-    (define-key map " " 'next-line)
-    (define-key map "\177" 'Buffer-menu-backup-unmark)
-    (define-key map "~" 'Buffer-menu-not-modified)
-    (define-key map "u" 'Buffer-menu-unmark)
-    (define-key map "\M-\177" 'Buffer-menu-unmark-all-buffers)
-    (define-key map "U" 'Buffer-menu-unmark-all)
-    (define-key map "m" 'Buffer-menu-mark)
-    (define-key map "t" 'Buffer-menu-visit-tags-table)
-    (define-key map "%" 'Buffer-menu-toggle-read-only)
-    (define-key map "b" 'Buffer-menu-bury)
-    (define-key map "V" 'Buffer-menu-view)
-    (define-key map "T" 'Buffer-menu-toggle-files-only)
-    (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
-    (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
-    (define-key map (kbd "M-s a C-o") 'Buffer-menu-multi-occur)
+(defvar-keymap Buffer-menu-mode-map
+  :doc "Local keymap for `Buffer-menu-mode' buffers."
+  :parent tabulated-list-mode-map
+  "v"           #'Buffer-menu-select
+  "2"           #'Buffer-menu-2-window
+  "1"           #'Buffer-menu-1-window
+  "f"           #'Buffer-menu-this-window
+  "e"           #'Buffer-menu-this-window
+  "C-m"         #'Buffer-menu-this-window
+  "o"           #'Buffer-menu-other-window
+  "C-o"         #'Buffer-menu-switch-other-window
+  "s"           #'Buffer-menu-save
+  "d"           #'Buffer-menu-delete
+  "k"           #'Buffer-menu-delete
+  "C-k"         #'Buffer-menu-delete
+  "C-d"         #'Buffer-menu-delete-backwards
+  "x"           #'Buffer-menu-execute
+  "SPC"         #'next-line
+  "DEL"         #'Buffer-menu-backup-unmark
+  "~"           #'Buffer-menu-not-modified
+  "u"           #'Buffer-menu-unmark
+  "M-DEL"       #'Buffer-menu-unmark-all-buffers
+  "U"           #'Buffer-menu-unmark-all
+  "m"           #'Buffer-menu-mark
+  "t"           #'Buffer-menu-visit-tags-table
+  "%"           #'Buffer-menu-toggle-read-only
+  "b"           #'Buffer-menu-bury
+  "V"           #'Buffer-menu-view
+  "T"           #'Buffer-menu-toggle-files-only
+  "M-s a C-s"   #'Buffer-menu-isearch-buffers
+  "M-s a C-M-s" #'Buffer-menu-isearch-buffers-regexp
+  "M-s a C-o"   #'Buffer-menu-multi-occur
 
-    (define-key map [mouse-2] 'Buffer-menu-mouse-select)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for `Buffer-menu-mode' buffers.")
+  "<mouse-2>"     #'Buffer-menu-mouse-select
+  "<follow-link>" 'mouse-face)
 
 (easy-menu-define Buffer-menu-mode-menu Buffer-menu-mode-map
   "Menu for `Buffer-menu-mode' buffers."

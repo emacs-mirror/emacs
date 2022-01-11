@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -147,9 +147,8 @@ not be added to this variable."
 		function
 		(choice (const :tag "Func returns output-func" t)
 			(const :tag "Func is output-func" nil))))
+  :risky t
   :group 'eshell-io)
-
-(put 'eshell-virtual-targets 'risky-local-variable t)
 
 ;;; Internal Variables:
 

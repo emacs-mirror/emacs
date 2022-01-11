@@ -1,6 +1,6 @@
 ;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -369,7 +369,7 @@ OVERRIDE is either nil, require or t."
     (while (re-search-forward "\\\\x+{\\([[:xdigit:]]+\\)}"
 			      (point-max)
 			      t)
-      (let* ((ch (decode-char 'ucs (string-to-number (match-string 1) 16))))
+      (let* ((ch (string-to-number (match-string 1) 16)))
 	(if (and ch (> ch 0))
 	    (let ((begin (match-beginning 0))
 		  (end (match-end 0)))

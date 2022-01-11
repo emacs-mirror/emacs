@@ -1,6 +1,6 @@
 ;;; tramp-crypt.el --- Tramp crypt utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -323,7 +323,7 @@ connection if a previous connection has died for some reason."
 	   tramp-crypt-encfs-config (tramp-crypt-get-remote-dir vec)))
 	 (local-config (tramp-crypt-config-file-name vec)))
     ;; There is no local encfs6 config file.
-    (when (not (file-exists-p local-config))
+    (unless (file-exists-p local-config)
       (if (and tramp-crypt-save-encfs-config-remote
 	       (file-exists-p remote-config))
 	  ;; Copy remote encfs6 config file if possible.

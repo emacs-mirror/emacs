@@ -1,6 +1,6 @@
 ;;; timefns-tests.el --- tests for timefns.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -241,5 +241,17 @@ a fixed place on the right and are padded on the left."
         (let ((xdiv (/ x divisor)))
           (should (= xdiv (float-time (time-convert xdiv t))))))
       (setq x (* x 2)))))
+
+(ert-deftest time-convert-forms ()
+  ;; These computations involve numbers that should have exact
+  ;; representations on any Emacs platform.
+  (dolist (time '(-86400 -1 0 1 86400))
+    (dolist (delta '(0 0.0 0.25 3.25 1000 1000.25))
+      (let ((time+ (+ time delta))
+	    (time- (- time delta)))
+	(dolist (form '(nil t list 4 1000 1000000 1000000000))
+	  (should (time-equal-p time (time-convert time form)))
+	  (should (time-equal-p time- (time-convert time- form)))
+	  (should (time-equal-p time+ (time-convert time+ form))))))))
 
 ;;; timefns-tests.el ends here

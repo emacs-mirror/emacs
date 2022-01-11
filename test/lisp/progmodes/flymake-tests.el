@@ -1,6 +1,6 @@
 ;;; flymake-tests.el --- Test suite for flymake -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Eduard Wiebe <usenet@pusto.de>
 
@@ -140,9 +140,15 @@ SEVERITY-PREDICATE is used to setup
         (flymake-goto-next-error)
         (should (eq 'flymake-error (face-at-point)))))))
 
+(defun flymake-tests--gcc-is-clang ()
+  "Whether the `gcc' command actually runs the Clang compiler."
+  (string-match "[Cc]lang version "
+                (shell-command-to-string "gcc --version")))
+
 (ert-deftest different-diagnostic-types ()
   "Test GCC warning via function predicate."
   (skip-unless (and (executable-find "gcc")
+                    (not (flymake-tests--gcc-is-clang))
                     (version<=
                      "5" (string-trim
                           (shell-command-to-string "gcc -dumpversion")))
@@ -166,7 +172,9 @@ SEVERITY-PREDICATE is used to setup
 
 (ert-deftest included-c-header-files ()
   "Test inclusion of .h header files."
-  (skip-unless (and (executable-find "gcc") (executable-find "make")))
+  (skip-unless (and (executable-find "gcc")
+                    (not (flymake-tests--gcc-is-clang))
+                    (executable-find "make")))
   (let ((flymake-wrap-around nil))
     (flymake-tests--with-flymake
         ("some-problems.h")

@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2021 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1233,7 +1233,11 @@ return "unknown".
 If optional argument UID is an integer, return the full name
 of the user with that uid, or nil if there is no such user.
 If UID is a string, return the full name of the user with that login
-name, or nil if there is no such user.  */)
+name, or nil if there is no such user.
+
+If the full name includes commas, remove everything starting with
+the first comma, because the \\='gecos\\=' field of the \\='/etc/passwd\\=' file
+is in general a comma-separated list.  */)
   (Lisp_Object uid)
 {
   struct passwd *pw;
@@ -1263,7 +1267,8 @@ name, or nil if there is no such user.  */)
     return Qnil;
 
   p = USER_FULL_NAME;
-  /* Chop off everything after the first comma. */
+  /* Chop off everything after the first comma, since 'pw_gecos' is a
+     comma-separated list. */
   q = strchr (p, ',');
   full = make_string (p, q ? q - p : strlen (p));
 
@@ -4264,9 +4269,6 @@ ring.  */)
   /* Hmmm... how about checking to see if the gap is large
      enough to use as the temporary storage?  That would avoid an
      allocation... interesting.  Later, don't fool with it now.  */
-
-  /* Working without memmove, for portability (sigh), so must be
-     careful of overlapping subsections of the array...  */
 
   if (end1 == start2)		/* adjacent regions */
     {

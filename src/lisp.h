@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2021 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -137,25 +137,9 @@ verify (BITS_WORD_MAX >> (BITS_PER_BITS_WORD - 1) == 1);
 /* Use pD to format ptrdiff_t values, which suffice for indexes into
    buffers and strings.  Emacs never allocates objects larger than
    PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
-   In C99, pD can always be "t"; configure it here for the sake of
-   pre-C99 libraries such as glibc 2.0 and Solaris 8.
-
-   On Haiku, the size of ptrdiff_t is inconsistent with the value of
-   PTRDIFF_MAX.  In that case, "t" should be sufficient. */
-
-#ifndef HAIKU
-#if PTRDIFF_MAX == INT_MAX
-# define pD ""
-#elif PTRDIFF_MAX == LONG_MAX
-# define pD "l"
-#elif PTRDIFF_MAX == LLONG_MAX
-# define pD "ll"
-#else
-# define pD "t"
-#endif
-#else
-# define pD "t"
-#endif
+   In C99, pD can always be "t", as we no longer need to worry about
+   pre-C99 libraries such as glibc 2.0 (1997) and Solaris 8 (2000).  */
+#define pD "t"
 
 /* Convenience macro for rarely-used functions that do not return.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
@@ -258,6 +242,11 @@ DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
 DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 # define VALMASK (USE_LSB_TAG ? - (1 << GCTYPEBITS) : VAL_MAX)
 DEFINE_GDB_SYMBOL_END (VALMASK)
+
+/* Ignore 'alignas' on compilers lacking it.  */
+#if !defined alignas && !defined __alignas_is_defined
+# define alignas(a)
+#endif
 
 /* Minimum alignment requirement for Lisp objects, imposed by the
    internal representation of tagged pointers.  It is 2**GCTYPEBITS if
@@ -974,7 +963,7 @@ typedef EMACS_UINT Lisp_Word_tag;
                        ? ((y) - 1 + (x)) & ~ ((y) - 1)			\
                        : ((y) - 1 + (x)) - ((y) - 1 + (x)) % (y))
 
-#include "globals.h"
+#include <globals.h>
 
 /* Header of vector-like objects.  This documents the layout constraints on
    vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
@@ -1059,6 +1048,7 @@ enum pvec_type
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
   PVEC_NATIVE_COMP_UNIT,
+  PVEC_SQLITE,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
   PVEC_COMPILED,
@@ -2150,10 +2140,12 @@ struct Lisp_Subr
       Lisp_Object native_intspec;
     };
     EMACS_INT doc;
-    Lisp_Object native_comp_u[NATIVE_COMP_FLAG];
-    char *native_c_name[NATIVE_COMP_FLAG];
-    Lisp_Object lambda_list[NATIVE_COMP_FLAG];
-    Lisp_Object type[NATIVE_COMP_FLAG];
+#ifdef HAVE_NATIVE_COMP
+    Lisp_Object native_comp_u;
+    char *native_c_name;
+    Lisp_Object lambda_list;
+    Lisp_Object type;
+#endif
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
@@ -2622,6 +2614,17 @@ xmint_pointer (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Misc_Ptr)->pointer;
 }
 
+struct Lisp_Sqlite
+{
+  union vectorlike_header header;
+  void *db;
+  void *stmt;
+  char *name;
+  void (*finalizer) (void *);
+  bool eof;
+  bool is_statement;
+} GCALIGNED_STRUCT;
+
 struct Lisp_User_Ptr
 {
   union vectorlike_header header;
@@ -2713,6 +2716,31 @@ XUSER_PTR (Lisp_Object a)
 {
   eassert (USER_PTRP (a));
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_User_Ptr);
+}
+
+INLINE bool
+SQLITEP (Lisp_Object x)
+{
+  return PSEUDOVECTORP (x, PVEC_SQLITE);
+}
+
+INLINE bool
+SQLITE (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_SQLITE);
+}
+
+INLINE void
+CHECK_SQLITE (Lisp_Object x)
+{
+  CHECK_TYPE (SQLITE (x), Qsqlitep, x);
+}
+
+INLINE struct Lisp_Sqlite *
+XSQLITE (Lisp_Object a)
+{
+  eassert (SQLITEP (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Sqlite);
 }
 
 INLINE bool
@@ -3861,6 +3889,9 @@ extern Lisp_Object safe_eval (Lisp_Object);
 extern bool pos_visible_p (struct window *, ptrdiff_t, int *,
 			   int *, int *, int *, int *, int *);
 
+/* Defined in sqlite.c.  */
+extern void syms_of_sqlite (void);
+
 /* Defined in xsettings.c.  */
 extern void syms_of_xsettings (void);
 
@@ -4862,19 +4893,19 @@ extern char *emacs_root_dir (void);
 INLINE bool
 SUBR_NATIVE_COMPILEDP (Lisp_Object a)
 {
-  return SUBRP (a) && !NILP (XSUBR (a)->native_comp_u[0]);
+  return SUBRP (a) && !NILP (XSUBR (a)->native_comp_u);
 }
 
 INLINE bool
 SUBR_NATIVE_COMPILED_DYNP (Lisp_Object a)
 {
-  return SUBR_NATIVE_COMPILEDP (a) && !NILP (XSUBR (a)->lambda_list[0]);
+  return SUBR_NATIVE_COMPILEDP (a) && !NILP (XSUBR (a)->lambda_list);
 }
 
 INLINE Lisp_Object
 SUBR_TYPE (Lisp_Object a)
 {
-  return XSUBR (a)->type[0];
+  return XSUBR (a)->type;
 }
 
 INLINE struct Lisp_Native_Comp_Unit *

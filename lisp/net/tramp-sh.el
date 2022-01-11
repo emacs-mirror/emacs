@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -741,7 +741,7 @@ characters need to be doubled.")
 (defconst tramp-perl-encode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2021 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -780,7 +780,7 @@ characters need to be doubled.")
 (defconst tramp-perl-decode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2021 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -1429,7 +1429,7 @@ of."
 	     (if (or (null time)
 		     (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
 		     (tramp-compat-time-equal-p time tramp-time-dont-know))
-		 (current-time)
+		 nil
 	       time)))
 	(tramp-send-command-and-check
 	 v (format
@@ -2601,7 +2601,7 @@ The method used must be an out-of-band method."
 	;; We cannot use `insert-buffer-substring' because the Tramp
 	;; buffer changes its contents before insertion due to calling
 	;; `expand-file-name' and alike.
-	(insert (with-current-buffer (tramp-get-buffer v) (buffer-string)))
+	(insert (tramp-get-buffer-string (tramp-get-buffer v)))
 
 	;; We must enable unibyte strings, because the "--dired"
 	;; output counts in bytes.
@@ -3160,8 +3160,7 @@ implementation will be used."
 	    (when outbuf
 	      (with-current-buffer outbuf
                 (insert
-                 (with-current-buffer (tramp-get-connection-buffer v)
-                   (buffer-string))))
+		 (tramp-get-buffer-string (tramp-get-connection-buffer v))))
 	      (when (and display (get-buffer-window outbuf t)) (redisplay))))
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
@@ -3475,8 +3474,7 @@ implementation will be used."
 			 (not
 			  (string-equal
 			   (buffer-string)
-			   (with-current-buffer (tramp-get-buffer v)
-			     (buffer-string))))
+			   (tramp-get-buffer-string (tramp-get-buffer v))))
 			 (tramp-error
 			  v 'file-error
 			  (concat "Couldn't write region to `%s',"
@@ -3770,8 +3768,7 @@ Fall back to normal file name handler if no Tramp handler exists."
   "Read output from \"gio monitor\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'events))
 	(remote-prefix
-	 (with-current-buffer (process-buffer proc)
-	   (file-remote-p default-directory)))
+	 (file-remote-p (tramp-get-default-directory (process-buffer proc))))
 	(rest-string (process-get proc 'rest-string))
 	pos)
     (when rest-string
@@ -4600,6 +4597,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-enc)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-enc name)))
 		  (tramp-message
@@ -4617,6 +4616,8 @@ Goes through the list `tramp-local-coding-commands' and
 			  (value (symbol-value rem-dec)))
 		      (while (string-match "-" name)
 			(setq name (replace-match "_" nil t name)))
+		      (unless (tramp-expand-script vec value)
+			(throw 'wont-work-remote nil))
 		      (tramp-maybe-send-script vec value name)
 		      (setq rem-dec name)))
 		  (tramp-message
@@ -6022,5 +6023,8 @@ function cell is returned to be applied on a buffer."
 ;;   be to stipulate, as a directory or connection-local variable, an
 ;;   additional rc file on the remote machine that is sourced every
 ;;   time Tramp connects.  <https://emacs.stackexchange.com/questions/62306>
+;;
+;; * Support hostname canonicalization in ~/.ssh/config.
+;;   <https://stackoverflow.com/questions/70205232/>
 
 ;;; tramp-sh.el ends here

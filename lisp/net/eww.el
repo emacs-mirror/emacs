@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -239,7 +239,7 @@ parameter, and should return the (possibly) transformed URL."
   :version "29.1")
 
 (defface eww-form-submit
-  '((((type x w32 ns haiku) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -247,7 +247,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-file
-  '((((type x w32 ns haiku) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
@@ -255,7 +255,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-checkbox
-  '((((type x w32 ns haiku) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
@@ -263,7 +263,7 @@ parameter, and should return the (possibly) transformed URL."
   :group 'eww)
 
 (defface eww-form-select
-  '((((type x w32 ns haiku) (class color))	; Like default mode line
+  '((((type x w32 ns haiku pgtk) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
@@ -710,7 +710,7 @@ The renaming scheme is performed in accordance with
 	 (shr-target-id
 	  (goto-char (point-min))
           (let ((match (text-property-search-forward
-                        'shr-target-id shr-target-id t)))
+                        'shr-target-id shr-target-id #'member)))
             (when match
               (goto-char (prop-match-beginning match)))))
 	 (t

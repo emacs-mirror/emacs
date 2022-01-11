@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -140,24 +140,27 @@ MS-Windows does not have a \"primary\" selection."
 (defcustom x-select-request-type nil
   "Data type request for X selection.
 The value is one of the following data types, a list of them, or nil:
-  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT', `text/plain\\;charset=utf-8'
 
 If the value is one of the above symbols, try only the specified type.
 
 If the value is a list of them, try each of them in the specified
 order until succeed.
 
-The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
+The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING
+text/plain\\;charset=utf-8)."
   :type '(choice (const :tag "Default" nil)
 		 (const COMPOUND_TEXT)
 		 (const UTF8_STRING)
 		 (const STRING)
 		 (const TEXT)
+                 (const text/plain\;charset=utf-8)
 		 (set :tag "List of values"
 		      (const COMPOUND_TEXT)
 		      (const UTF8_STRING)
 		      (const STRING)
-		      (const TEXT)))
+		      (const TEXT)
+                      (const text/plain\;charset=utf-8)))
   :group 'killing)
 
 (defun gui--selection-value-internal (type)
@@ -165,9 +168,9 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 Call `gui-get-selection' with an appropriate DATA-TYPE argument
 decided by `x-select-request-type'.  The return value is already
 decoded.  If `gui-get-selection' signals an error, return nil."
-  (let ((request-type (if (eq window-system 'x)
+  (let ((request-type (if (memq window-system '(x pgtk))
                           (or x-select-request-type
-                              '(UTF8_STRING COMPOUND_TEXT STRING))
+                              '(UTF8_STRING COMPOUND_TEXT STRING text/plain\;charset=utf-8))
                         'STRING))
 	text)
     (with-demoted-errors "gui-get-selection: %S"
@@ -312,6 +315,7 @@ the formats available in the clipboard if TYPE is `CLIPBOARD'."
                         selection-coding-system
                         (pcase data-type
                           ('UTF8_STRING 'utf-8)
+                          ('text/plain\;charset=utf-8 'utf-8)
                           ('COMPOUND_TEXT 'compound-text-with-extensions)
                           ('C_STRING nil)
                           ('STRING 'iso-8859-1)))))

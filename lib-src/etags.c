@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2021 Free Software
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2022 Free Software
 Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -5773,7 +5773,7 @@ static void
 TEX_decode_env (const char *evarname, const char *defenv)
 {
   const char *env, *p;
-  ptrdiff_t len;
+  ptrdiff_t len = 1;
 
   /* Append default string to environment. */
   env = getenv (evarname);
@@ -5782,8 +5782,13 @@ TEX_decode_env (const char *evarname, const char *defenv)
   else
     env = concat (env, defenv, "");
 
+  /* If the environment variable doesn't start with a colon, increase
+     the length of the token table.  */
+  if (*env != ':')
+    len++;
+
   /* Allocate a token table */
-  for (len = 1, p = env; (p = strchr (p, ':')); )
+  for (p = env; (p = strchr (p, ':')); )
     if (*++p)
       len++;
   TEX_toktab = xnew (len, linebuffer);

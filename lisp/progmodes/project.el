@@ -1,6 +1,6 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 ;; Version: 0.8.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
 
@@ -502,10 +502,12 @@ backend implementation of `project-external-roots'.")
 (declare-function vc-hg-command "vc-hg")
 
 (defun project--vc-list-files (dir backend extra-ignores)
+  (defvar vc-git-use-literal-pathspecs)
   (pcase backend
     (`Git
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            (args '("-z"))
+           (vc-git-use-literal-pathspecs nil)
            files)
        ;; Include unregistered.
        (setq args (append args '("-c" "-o" "--exclude-standard")))
@@ -1015,7 +1017,7 @@ if one already exists."
          (default-project-shell-name (project-prefixed-buffer-name "shell"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
-        (pop-to-buffer-same-window shell-buffer)
+        (pop-to-buffer shell-buffer (bound-and-true-p display-comint-buffer-action))
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
@@ -1031,7 +1033,7 @@ if one already exists."
          (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer-same-window eshell-buffer)
+        (pop-to-buffer eshell-buffer (bound-and-true-p display-comint-buffer-action))
       (eshell t))))
 
 ;;;###autoload
@@ -1173,7 +1175,10 @@ displayed."
          (not (major-mode . help-mode)))
     (derived-mode . compilation-mode)
     (derived-mode . dired-mode)
-    (derived-mode . diff-mode))
+    (derived-mode . diff-mode)
+    (derived-mode . comint-mode)
+    (derived-mode . eshell-mode)
+    (derived-mode . change-log-mode))
   "List of conditions to kill buffers related to a project.
 This list is used by `project-kill-buffers'.
 Each condition is either:
@@ -1206,9 +1211,18 @@ current project, it will be killed."
                                (const and) sexp)
                          (cons :tag "Disjunction"
                                (const or) sexp)))
-  :version "28.1"
+  :version "29.1"
   :group 'project
-  :package-version '(project . "0.6.0"))
+  :package-version '(project . "0.8.2"))
+
+(defcustom project-kill-buffers-display-buffer-list nil
+  "Non-nil to display list of buffers to kill before killing project buffers.
+Used by `project-kill-buffers'."
+  :type 'boolean
+  :version "29.1"
+  :group 'project
+  :package-version '(project . "0.8.2")
+  :safe #'booleanp)
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
@@ -1276,14 +1290,35 @@ NO-CONFIRM is always nil when the command is invoked
 interactively."
   (interactive)
   (let* ((pr (project-current t))
-         (bufs (project--buffers-to-kill pr)))
+         (bufs (project--buffers-to-kill pr))
+         (query-user (lambda ()
+                       (yes-or-no-p
+                        (format "Kill %d buffers in %s? "
+                                (length bufs)
+                                (project-root pr))))))
     (cond (no-confirm
            (mapc #'kill-buffer bufs))
           ((null bufs)
            (message "No buffers to kill"))
-          ((yes-or-no-p (format "Kill %d buffers in %s? "
-                                (length bufs)
-                                (project-root pr)))
+          (project-kill-buffers-display-buffer-list
+           (when
+               (with-current-buffer-window
+                   (get-buffer-create "*Buffer List*")
+                   `(display-buffer--maybe-at-bottom
+                     (dedicated . t)
+                     (window-height . (fit-window-to-buffer))
+                     (preserve-size . (nil . t))
+                     (body-function
+                      . ,#'(lambda (_window)
+                             (list-buffers-noselect nil bufs))))
+                   #'(lambda (window _value)
+                       (with-selected-window window
+                         (unwind-protect
+                             (funcall query-user)
+                           (when (window-live-p window)
+                             (quit-restore-window window 'kill))))))
+             (mapc #'kill-buffer bufs)))
+          ((funcall query-user)
            (mapc #'kill-buffer bufs)))))
 
 

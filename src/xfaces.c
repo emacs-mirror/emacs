@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2021 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -246,6 +246,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
+
+#ifdef HAVE_PGTK
+#define GCGraphicsExposures 0
+#endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
 #define GCGraphicsExposures 0
@@ -569,6 +573,26 @@ x_create_gc (struct frame *f,
 {
   Emacs_GC *gc = xmalloc (sizeof *gc);
   *gc = *egc;
+  return gc;
+}
+
+static void
+x_free_gc (struct frame *f, Emacs_GC *gc)
+{
+  xfree (gc);
+}
+#endif  /* HAVE_NS */
+
+#ifdef HAVE_PGTK
+/* PGTK emulation of GCs */
+
+static Emacs_GC *
+x_create_gc (struct frame *f,
+	     unsigned long mask,
+	     Emacs_GC *xgcv)
+{
+  Emacs_GC *gc = xmalloc (sizeof *gc);
+  *gc = *xgcv;
   return gc;
 }
 
@@ -4782,7 +4806,7 @@ face_for_font (struct frame *f, Lisp_Object font_object,
                struct face *base_face)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
-  unsigned hash;
+  uintptr_t hash;
   int i;
   struct face *face;
 
@@ -6017,6 +6041,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline = FACE_UNDER_LINE;
       face->underline_defaulted_p = true;
       face->underline_color = 0;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (STRINGP (underline))
     {
@@ -6026,12 +6052,16 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline_color
 	= load_color (f, face, underline,
 		      LFACE_UNDERLINE_INDEX);
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (NILP (underline))
     {
       face->underline = FACE_NO_UNDERLINE;
       face->underline_defaulted_p = false;
       face->underline_color = 0;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
     }
   else if (CONSP (underline))
     {
@@ -6040,6 +6070,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       face->underline = FACE_UNDER_LINE;
       face->underline_color = 0;
       face->underline_defaulted_p = true;
+      face->underline_at_descent_line_p = false;
+      face->underline_pixels_above_descent_line = 0;
 
       /* FIXME?  This is also not robust about checking the precise form.
          See comments in Finternal_set_lisp_face_attribute.  */
@@ -6076,6 +6108,13 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
               else if (EQ (value, Qwave))
                 face->underline = FACE_UNDER_WAVE;
             }
+	  else if (EQ (keyword, QCposition))
+	    {
+	      face->underline_at_descent_line_p = !NILP (value);
+
+	      if (FIXNATP (value))
+		face->underline_pixels_above_descent_line = XFIXNAT (value);
+	    }
         }
     }
 
@@ -6891,6 +6930,7 @@ syms_of_xfaces (void)
   DEFSYM (QCcolor, ":color");
   DEFSYM (QCline_width, ":line-width");
   DEFSYM (QCstyle, ":style");
+  DEFSYM (QCposition, ":position");
   DEFSYM (Qline, "line");
   DEFSYM (Qwave, "wave");
   DEFSYM (Qreleased_button, "released-button");

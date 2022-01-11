@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2021 Free Software Foundation, Inc.
+# Copyright 2009-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -159,6 +159,7 @@ test/manual/etags/CTAGS
 test/manual/indent/*.new
 test/lisp/gnus/mml-sec-resources/random_seed
 test/lisp/play/fortune-resources/fortunes.dat
+test/**/*.xml
 
 # ctags, etags.
 TAGS
@@ -316,3 +317,9 @@ lib-src/seccomp-filter.bpf
 lib-src/seccomp-filter.pfc
 lib-src/seccomp-filter-exec.bpf
 lib-src/seccomp-filter-exec.pfc
+
+# gsettings schema
+/etc/*.gschema.valid
+
+# Ignore directory made by admin/make-manuals.
+manual/

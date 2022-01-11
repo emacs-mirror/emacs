@@ -1,6 +1,6 @@
 ;;; legacy-gnus-agent.el --- Legacy unplugged support for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Kevin Greiner <kgreiner@xpediantsolutions.com>
 ;; Keywords: news

@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2021 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -585,6 +585,7 @@ struct frame
     struct x_output *x;         /* From xterm.h.  */
     struct w32_output *w32;     /* From w32term.h.  */
     struct ns_output *ns;       /* From nsterm.h.  */
+    struct pgtk_output *pgtk; /* From pgtkterm.h. */
     struct haiku_output *haiku; /* From haikuterm.h. */
   }
   output_data;
@@ -853,6 +854,11 @@ default_pixels_per_inch_y (void)
 #else
 #define FRAME_NS_P(f) ((f)->output_method == output_ns)
 #endif
+#ifndef HAVE_PGTK
+#define FRAME_PGTK_P(f) false
+#else
+#define FRAME_PGTK_P(f) ((f)->output_method == output_pgtk)
+#endif
 #ifndef HAVE_HAIKU
 #define FRAME_HAIKU_P(f) false
 #else
@@ -869,6 +875,9 @@ default_pixels_per_inch_y (void)
 #endif
 #ifdef HAVE_NS
 #define FRAME_WINDOW_P(f) FRAME_NS_P(f)
+#endif
+#ifdef HAVE_PGTK
+#define FRAME_WINDOW_P(f) FRAME_PGTK_P(f)
 #endif
 #ifdef HAVE_HAIKU
 #define FRAME_WINDOW_P(f) FRAME_HAIKU_P (f)
@@ -925,6 +934,8 @@ default_pixels_per_inch_y (void)
 /* Scale factor of frame F.  */
 #if defined HAVE_NS
 # define FRAME_SCALE_FACTOR(f) (FRAME_NS_P (f) ? ns_frame_scale_factor (f) : 1)
+#elif defined HAVE_PGTK
+# define FRAME_SCALE_FACTOR(f) (FRAME_PGTK_P (f) ? pgtk_frame_scale_factor (f) : 1)
 #else
 # define FRAME_SCALE_FACTOR(f) 1
 #endif
@@ -1682,7 +1693,7 @@ extern const char *x_get_resource_string (const char *, const char *);
 extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
-#ifndef HAVE_NS
+#if !defined (HAVE_NS) && !defined (HAVE_PGTK)
 
 /* Set F's bitmap icon, if specified among F's parameters.  */
 
@@ -1718,6 +1729,9 @@ struct MonitorInfo {
   Emacs_Rectangle geom, work;
   int mm_width, mm_height;
   char *name;
+#ifdef HAVE_PGTK
+  double scale_factor;
+#endif
 };
 
 extern void free_monitors (struct MonitorInfo *monitors, int n_monitors);

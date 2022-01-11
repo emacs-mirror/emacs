@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -926,6 +926,7 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should-not (apropos-internal "^next-line$" #'keymapp)))
 
 
+(defvar test-global-boundp)
 (ert-deftest test-buffer-local-boundp ()
   (let ((buf (generate-new-buffer "boundp")))
     (with-current-buffer buf

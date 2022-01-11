@@ -1,6 +1,6 @@
 ;;; keymap.el --- Keymap functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,8 +31,14 @@
   (unless (key-valid-p key)
     (error "%S is not a valid key definition; see `key-valid-p'" key)))
 
+(defun keymap--compile-check (&rest keys)
+  (dolist (key keys)
+    (when (or (vectorp key)
+              (and (stringp key) (not (key-valid-p key))))
+      (byte-compile-warn "Invalid `kbd' syntax: %S" key))))
+
 (defun keymap-set (keymap key definition)
-  "Set key sequence KEY to DEFINITION in KEYMAP.
+  "Set KEY to DEFINITION in KEYMAP.
 KEY is a string that satisfies `key-valid-p'.
 
 DEFINITION is anything that can be a key's definition:
@@ -50,7 +56,13 @@ DEFINITION is anything that can be a key's definition:
  or a cons (MAP . CHAR), meaning use definition of CHAR in keymap MAP,
  or an extended menu item definition.
  (See info node `(elisp)Extended Menu Items'.)"
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
+  ;; If we're binding this key to another key, then parse that other
+  ;; key, too.
+  (when (stringp definition)
+    (keymap--check definition)
+    (setq definition (key-parse definition)))
   (define-key keymap (key-parse key) definition))
 
 (defun keymap-global-set (key command)
@@ -63,6 +75,7 @@ KEY is a string that satisfies `key-valid-p'.
 Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (let* ((menu-prompting nil)
           (key (read-key-sequence "Set key globally: " nil t)))
@@ -80,6 +93,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 The binding goes in the current buffer's local map, which in most
 cases is shared with all other buffers in the same major mode."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive "KSet key locally: \nCSet key %s locally to command: ")
   (let ((map (current-local-map)))
     (unless map
@@ -92,6 +106,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Set key locally: "))
          current-prefix-arg))
@@ -103,6 +118,7 @@ KEY is a string that satisfies `key-valid-p'.
 
 If REMOVE (interactively, the prefix arg), remove the binding
 instead of unsetting it.  See `keymap-unset' for details."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (interactive
    (list (key-description (read-key-sequence "Unset key locally: "))
          current-prefix-arg))
@@ -118,6 +134,7 @@ makes a difference when there's a parent keymap.  When unsetting
 a key in a child map, it will still shadow the same key in the
 parent keymap.  Removing the binding will allow the key in the
 parent keymap to be used."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (define-key keymap (key-parse key) nil remove))
 
@@ -140,10 +157,6 @@ in a cleaner way with command remapping, like this:
   ;; original key, with PREFIX added at the front.
   (unless prefix
     (setq prefix ""))
-  (keymap--check olddef)
-  (keymap--check newdef)
-  (setq olddef (key-parse olddef))
-  (setq newdef (key-parse newdef))
   (let* ((scan (or oldmap keymap))
 	 (prefix1 (vconcat prefix [nil]))
 	 (key-substitution-in-progress
@@ -170,7 +183,8 @@ Bindings are always added before any inherited map.
 
 The order of bindings in a keymap matters only when it is used as
 a menu, so this function is not useful for non-menu keymaps."
-  (declare (indent defun))
+  (declare (indent defun)
+           (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
   (when after
     (keymap--check after))
@@ -281,9 +295,9 @@ See `kbd' for a descripion of KEYS."
         res))))
 
 (defun key-valid-p (keys)
-  "Say whether KEYS is a valid `kbd' sequence.
-A `kbd' sequence is a string consisting of one and more key
-strokes.  The key strokes are separated by a space character.
+  "Say whether KEYS is a valid key.
+A key is a string consisting of one or more key strokes.
+The key strokes are separated by single space characters.
 
 Each key stroke is either a single character, or the name of an
 event, surrounded by angle brackets.  In addition, any key stroke
@@ -350,6 +364,8 @@ This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it.
 
 Both KEY and TO are strings that satisfy `key-valid-p'."
+  (declare (compiler-macro
+            (lambda (form) (keymap--compile-check from to) form)))
   (keymap--check from)
   (keymap--check to)
   (or (char-table-p keyboard-translate-table)
@@ -389,14 +405,16 @@ position as returned by `event-start' and `event-end', and the lookup
 occurs in the keymaps associated with it instead of KEY.  It can also
 be a number or marker, in which case the keymap properties at the
 specified buffer position instead of point are used."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
   (keymap--check key)
-  (when (and keymap (not position))
+  (when (and keymap position)
     (error "Can't pass in both keymap and position"))
   (if keymap
-      (let ((value (lookup-key (key-parse key) keymap accept-default)))
-        (when (and (not no-remap)
+      (let ((value (lookup-key keymap (key-parse key) accept-default)))
+        (if (and (not no-remap)
                    (symbolp value))
-          (or (command-remapping value) value)))
+            (or (command-remapping value) value)
+          value))
     (key-binding (kbd key) accept-default no-remap position)))
 
 (defun keymap-local-lookup (keys &optional accept-default)
@@ -408,6 +426,7 @@ The binding is probably a symbol with a function definition.
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `keymap-lookup' for more details
 about this."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
   (when-let ((map (current-local-map)))
     (keymap-lookup map keys accept-default)))
 
@@ -424,6 +443,7 @@ bindings; see the description of `keymap-lookup' for more details
 about this.
 
 If MESSAGE (and interactively), message the result."
+  (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
   (interactive
    (list (key-description (read-key-sequence "Look up key in global keymap: "))
          nil t))
@@ -431,6 +451,139 @@ If MESSAGE (and interactively), message the result."
     (when message
       (message "%s is bound to %s globally" keys def))
     def))
+
+
+;;; define-keymap and defvar-keymap
+
+(defun define-keymap--compile (form &rest args)
+  ;; This compiler macro is only there for compile-time
+  ;; error-checking; it does not change the call in any way.
+  (while (and args
+              (keywordp (car args))
+              (not (eq (car args) :menu)))
+    (unless (memq (car args) '(:full :keymap :parent :suppress :name :prefix))
+      (byte-compile-warn "Invalid keyword: %s" (car args)))
+    (setq args (cdr args))
+    (when (null args)
+      (byte-compile-warn "Uneven number of keywords in %S" form))
+    (setq args (cdr args)))
+  ;; Bindings.
+  (while args
+    (let ((key (pop args)))
+      (when (and (stringp key) (not (key-valid-p key)))
+        (byte-compile-warn "Invalid `kbd' syntax: %S" key)))
+    (when (null args)
+      (byte-compile-warn "Uneven number of key bindings in %S" form))
+    (setq args (cdr args)))
+  form)
+
+(defun define-keymap (&rest definitions)
+  "Create a new keymap and define KEY/DEFINITION pairs as key bindings.
+The new keymap is returned.
+
+Options can be given as keywords before the KEY/DEFINITION
+pairs.  Available keywords are:
+
+:full      If non-nil, create a chartable alist (see `make-keymap').
+             If nil (i.e., the default), create a sparse keymap (see
+             `make-sparse-keymap').
+
+:suppress  If non-nil, the keymap will be suppressed (see `suppress-keymap').
+             If `nodigits', treat digits like other chars.
+
+:parent    If non-nil, this should be a keymap to use as the parent
+             (see `set-keymap-parent').
+
+:keymap    If non-nil, instead of creating a new keymap, the given keymap
+             will be destructively modified instead.
+
+:name      If non-nil, this should be a string to use as the menu for
+             the keymap in case you use it as a menu with `x-popup-menu'.
+
+:prefix    If non-nil, this should be a symbol to be used as a prefix
+             command (see `define-prefix-command').  If this is the case,
+             this symbol is returned instead of the map itself.
+
+KEY/DEFINITION pairs are as KEY and DEF in `keymap-set'.  KEY can
+also be the special symbol `:menu', in which case DEFINITION
+should be a MENU form as accepted by `easy-menu-define'.
+
+\(fn &key FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
+  (declare (indent defun)
+           (compiler-macro define-keymap--compile))
+  (let (full suppress parent name prefix keymap)
+    ;; Handle keywords.
+    (while (and definitions
+                (keywordp (car definitions))
+                (not (eq (car definitions) :menu)))
+      (let ((keyword (pop definitions)))
+        (unless definitions
+          (error "Missing keyword value for %s" keyword))
+        (let ((value (pop definitions)))
+          (pcase keyword
+            (:full (setq full value))
+            (:keymap (setq keymap value))
+            (:parent (setq parent value))
+            (:suppress (setq suppress value))
+            (:name (setq name value))
+            (:prefix (setq prefix value))
+            (_ (error "Invalid keyword: %s" keyword))))))
+
+    (when (and prefix
+               (or full parent suppress keymap))
+      (error "A prefix keymap can't be defined with :full/:parent/:suppress/:keymap keywords"))
+
+    (when (and keymap full)
+      (error "Invalid combination: :keymap with :full"))
+
+    (let ((keymap (cond
+                   (keymap keymap)
+                   (prefix (define-prefix-command prefix nil name))
+                   (full (make-keymap name))
+                   (t (make-sparse-keymap name)))))
+      (when suppress
+        (suppress-keymap keymap (eq suppress 'nodigits)))
+      (when parent
+        (set-keymap-parent keymap parent))
+
+      ;; Do the bindings.
+      (while definitions
+        (let ((key (pop definitions)))
+          (unless definitions
+            (error "Uneven number of key/definition pairs"))
+          (let ((def (pop definitions)))
+            (if (eq key :menu)
+                (easy-menu-define nil keymap "" def)
+              (keymap-set keymap key def)))))
+      keymap)))
+
+(defmacro defvar-keymap (variable-name &rest defs)
+  "Define VARIABLE-NAME as a variable with a keymap definition.
+See `define-keymap' for an explanation of the keywords and KEY/DEFINITION.
+
+In addition to the keywords accepted by `define-keymap', this
+macro also accepts a `:doc' keyword, which (if present) is used
+as the variable documentation string.
+
+\(fn VARIABLE-NAME &key DOC FULL PARENT SUPPRESS NAME PREFIX KEYMAP &rest [KEY DEFINITION]...)"
+  (declare (indent 1))
+  (let ((opts nil)
+        doc)
+    (while (and defs
+                (keywordp (car defs))
+                (not (eq (car defs) :menu)))
+      (let ((keyword (pop defs)))
+        (unless defs
+          (error "Uneven number of keywords"))
+        (if (eq keyword :doc)
+            (setq doc (pop defs))
+          (push keyword opts)
+          (push (pop defs) opts))))
+    (unless (zerop (% (length defs) 2))
+      (error "Uneven number of key/definition pairs: %s" defs))
+    `(defvar ,variable-name
+       (define-keymap ,@(nreverse opts) ,@defs)
+       ,@(and doc (list doc)))))
 
 (provide 'keymap)
 

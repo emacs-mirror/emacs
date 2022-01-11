@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -27,6 +27,8 @@
 
 (defgroup image ()
   "Image support."
+  :prefix "image-"
+  :link '(info-link "(emacs) Image Mode")
   :group 'multimedia)
 
 (declare-function image-flush "image.c" (spec &optional frame))
@@ -56,7 +58,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
 		"\\(?:!DOCTYPE[ \t\r\n]+[^>]*>[ \t\r\n]*<[ \t\r\n]*" comment-re "*\\)?"
 		"[Ss][Vv][Gg]"))
      . svg)
-    )
+    ("\\`....ftyp\\(heic\\|heix\\|hevc\\|heim\\|heis\\|hevm\\|hevs\\|mif1\\|msf1\\)" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
@@ -76,7 +78,7 @@ a non-nil value, TYPE is the image's type.")
     ("\\.ps\\'" . postscript)
     ("\\.tiff?\\'" . tiff)
     ("\\.svgz?\\'" . svg)
-    )
+    ("\\.hei[cf]s?\\'" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to identify image files.
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
@@ -95,7 +97,8 @@ be of image type IMAGE-TYPE.")
     (tiff . maybe)
     (svg . maybe)
     (webp . maybe)
-    (postscript . nil))
+    (postscript . nil)
+    (heic . maybe))
   "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
 \(See `image-type-auto-detected-p').
 
@@ -951,9 +954,9 @@ for the animation speed.  A negative value means to animate in reverse."
 		   (progn
 		     (message "Stopping animation; animation possibly too big")
 		     nil)))
-      (image-show-frame image n t)
-      (let* ((speed (image-animate-get-speed image))
-	     (time (current-time))
+      (let* ((time (prog1 (current-time)
+		     (image-show-frame image n t)))
+	     (speed (image-animate-get-speed image))
 	     (time-to-load-image (time-since time))
 	     (stated-delay-time
               (/ (or (cdr (plist-get (cdr image) :animate-multi-frame-data))

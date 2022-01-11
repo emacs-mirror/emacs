@@ -1,6 +1,6 @@
 ;;; ls-lisp-tests.el --- tests for ls-lisp.el  -*- lexical-binding: t-*-
 
-;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -54,7 +54,8 @@
           (kill-buffer buf)
           (setq buf (dired (nconc (list dir) files)))
           (should (looking-at "src"))
-          (next-line) ; File names must be aligned.
+          (with-suppressed-warnings ((interactive-only next-line))
+            (next-line)) ; File names must be aligned.
           (should (looking-at "src")))
       (when (buffer-live-p buf) (kill-buffer buf)))))
 

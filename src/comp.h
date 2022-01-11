@@ -1,6 +1,6 @@
 /* Elisp native compiler definitions
 
-Copyright (C) 2019-2021 Free Software Foundation, Inc.
+Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,16 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef COMP_H
 #define COMP_H
-
-/* To keep ifdefs under control.  */
-enum {
-  NATIVE_COMP_FLAG =
-#ifdef HAVE_NATIVE_COMP
-  1
-#else
-  0
-#endif
-};
 
 #include <dynlib.h>
 

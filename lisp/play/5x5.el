@@ -1,6 +1,6 @@
 ;;; 5x5.el --- simple little puzzle game  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Created: 1998-10-03
@@ -107,39 +107,37 @@
 (defvar 5x5-buffer-name "*5x5*"
   "Name of the 5x5 play buffer.")
 
-(defvar 5x5-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
-    (define-key map "?"                       #'describe-mode)
-    (define-key map "\r"                      #'5x5-flip-current)
-    (define-key map " "                       #'5x5-flip-current)
-    (define-key map [up]                      #'5x5-up)
-    (define-key map [down]                    #'5x5-down)
-    (define-key map [left]                    #'5x5-left)
-    (define-key map [tab]                     #'5x5-right)
-    (define-key map [right]                   #'5x5-right)
-    (define-key map [(control a)]             #'5x5-bol)
-    (define-key map [(control e)]             #'5x5-eol)
-    (define-key map [(control p)]             #'5x5-up)
-    (define-key map [(control n)]             #'5x5-down)
-    (define-key map [(control b)]             #'5x5-left)
-    (define-key map [(control f)]             #'5x5-right)
-    (define-key map [home]                    #'5x5-bol)
-    (define-key map [end]                     #'5x5-eol)
-    (define-key map [prior]                   #'5x5-first)
-    (define-key map [next]                    #'5x5-last)
-    (define-key map "r"                       #'5x5-randomize)
-    (define-key map [(control c) (control r)] #'5x5-crack-randomly)
-    (define-key map [(control c) (control c)] #'5x5-crack-mutating-current)
-    (define-key map [(control c) (control b)] #'5x5-crack-mutating-best)
-    (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)
-    (define-key map "n"                       #'5x5-new-game)
-    (define-key map "s"                       #'5x5-solve-suggest)
-    (define-key map "<"                       #'5x5-solve-rotate-left)
-    (define-key map ">"                       #'5x5-solve-rotate-right)
-    (define-key map "q"                       #'5x5-quit-game)
-    map)
-  "Local keymap for the 5x5 game.")
+(defvar-keymap 5x5-mode-map
+  :doc "Local keymap for the 5x5 game."
+  :suppress 'nodigits
+  "?"       #'describe-mode
+  "RET"     #'5x5-flip-current
+  "SPC"     #'5x5-flip-current
+  "<up>"    #'5x5-up
+  "<down>"  #'5x5-down
+  "<left>"  #'5x5-left
+  "<tab>"   #'5x5-right
+  "<right>" #'5x5-right
+  "C-a"     #'5x5-bol
+  "C-e"     #'5x5-eol
+  "C-p"     #'5x5-up
+  "C-n"     #'5x5-down
+  "C-b"     #'5x5-left
+  "C-f"     #'5x5-right
+  "<home>"  #'5x5-bol
+  "<end>"   #'5x5-eol
+  "<prior>" #'5x5-first
+  "<next>"  #'5x5-last
+  "r"       #'5x5-randomize
+  "C-c C-r" #'5x5-crack-randomly
+  "C-c C-c" #'5x5-crack-mutating-current
+  "C-c C-b" #'5x5-crack-mutating-best
+  "C-c C-x" #'5x5-crack-xor-mutate
+  "n"       #'5x5-new-game
+  "s"       #'5x5-solve-suggest
+  "<"       #'5x5-solve-rotate-left
+  ">"       #'5x5-solve-rotate-right
+  "q"       #'5x5-quit-game)
 
 (defvar-local 5x5-solver-output nil
   "List that is the output of an arithmetic solver.

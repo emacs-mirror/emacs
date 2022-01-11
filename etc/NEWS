@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2021 Free Software Foundation, Inc.
+Copyright (C) 2021-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
++++
+** Emacs can be built with built-in support for accessing SQLite databases.
+This uses the popular sqlite3 library, and can be disabled by using
+the '--without-sqlite3' option to the 'configure' script.
+
 ** Emacs has been ported to the Haiku operating system.
 The configuration process should automatically detect and build for
 Haiku.  There is also an optional window-system port to Haiku, which
@@ -43,7 +48,7 @@ development files are present on your system, and configure Emacs with
 *** Double buffering is now enabled on the Haiku operating system.
 Unlike X, there is no compile-time option to enable or disable
 double-buffering.  If you wish to disable double-buffering, change the
-frame parameter `inhibit-double-buffering' instead.
+frame parameter 'inhibit-double-buffering' instead.
 
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
@@ -56,8 +61,20 @@ If your X server has support and you have the XInput 2 development headers
 installed, you can configure Emacs with the option '--with-xinput2' to enable
 this support.
 
-The named feature `xinput2' can be used to test for the presence of
+The named feature 'xinput2' can be used to test for the presence of
 XInput 2 support from Lisp programs.
+
+** Emacs now supports being built with pure GTK.
+To use this option, make sure the GTK 3 and Cairo development files
+are installed, and configure Emacs with the option '--with-pgtk'.
+Unlike the default X and GTK build, the resulting Emacs binary will
+work on any underlying window system supported by GDK, such as
+Wayland and Broadway.
+
+---
+** The docstrings of preloaded files are not in 'etc/DOC' any more.
+Instead, they're fetched as needed from the corresponding '.elc' file,
+as was already the case for all the non-preloaded files.
 
 
 * Startup Changes in Emacs 29.1
@@ -73,21 +90,49 @@ be used to reinitialize structures that would normally be done at load
 time.
 
 
+* Incompatible changes in Emacs 29.1
+
+---
+** Support for old EIEIO functions is not autoloaded any more.
+You need an explicit (require 'eieio-compat) to use 'defmethod'
+and 'defgeneric' (which have been made obsolete in Emacs-25 with
+'cl-defmethod' and 'cl-defgeneric').
+Similarly you might need to (require 'eieio-compat) before loading
+files that were compiled with an old EIEIO (Emacs<25).
+
+---
+** 'C-x 8 .' has been moved to 'C-x 8 . .'.
+This is to open up the 'C-x 8 .' map to bind further characters there.
+
+
 * Changes in Emacs 29.1
+
+** New command 'sqlite-mode-open-file' for examining an sqlite3 file.
+This uses the new 'sqlite-mode' which allows listing the tables in a
+DB file, and examining and modifying the columns and the contents of
+those tables.
+
+---
+** 'write-file' will now copy some file mode bits.
+If the current buffer is visiting a file that is executable, the
+'C-x C-w' command will now make the new file executable, too.
+
++++
+** New user option 'process-error-pause-time'.
+This determines how long to pause Emacs after a process
+filter/sentinel error has been handled.
+
++++
+** New face 'variable-pitch-text'.
+This face is like 'variable-pitch' (from which it inherits), but is
+slightly larger, which should help with the visual size differences
+between the default, non-proportional font and proportional fonts when
+mixed.
 
 +++
 ** New face 'mode-line-active'.
 This inherits from the 'mode-line' face, but is the face actually used
 on the mode lines (along with 'mode-line-inactive').
-
----
-** The mode line now uses a proportional font by default.
-To get the old monospaced mode line back, customize the
-'mode-line-active' and 'mode-line-inactive' faces not to inherit from
-the 'variable-pitch' face, or add this to your ~/.emacs:
-
-  (set-face-attribute 'mode-line-active nil :inherit 'mode-line)
-  (set-face-attribute 'mode-line-inactive nil :inherit 'mode-line)
 
 +++
 ** New function 'buffer-text-pixel-size'.
@@ -98,6 +143,16 @@ buffer isn't displayed.
 ** New X resource: "borderThickness".
 This controls the thickness of the external borders of the menu bars
 and pop-up menus.
+
++++
+** New X resource: "inputStyle".
+This controls the style of the pre-edit and status areas of X input
+methods.
+
+---
+** New user option 'x-gtk-use-native-input'.
+This controls whether or not GTK input methods are used by Emacs,
+instead of XIM input methods.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
@@ -115,17 +170,28 @@ This is in addition to previously-supported ways of discovering 24-bit
 color support: either via the "RGB" or "setf24" capabilities, or if
 the 'COLORTERM' environment variable is set to the value "truecolor".
 
+** ERT
+
 +++
-** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
+*** New ERT variables 'ert-batch-print-length' and 'ert-batch-print-level'.
 These variables will override 'print-length' and 'print-level' when
 printing Lisp values in ERT batch test results.
 
 ---
-** Redefining an ERT test in batch mode now signals an error
+*** Redefining an ERT test in batch mode now signals an error.
 Executing 'ert-deftest' with the same name as an existing test causes
 the previous definition to be discarded, which was probably not
 intended when this occurs in batch mode.  To remedy the error, rename
 tests so that they all have unique names.
+
++++
+*** ERT can generate JUnit test reports.
+When environment variable 'EMACS_TEST_JUNIT_REPORT' is set, ERT
+generates a JUnit test report under this file name.  This is useful
+for Emacs integration into CI/CD test environments.
+
+*** Unbound test symbols now signal an 'ert-test-unbound' error.
+This affects the 'ert-select-tests' function and its callers.
 
 ** Emoji
 
@@ -161,7 +227,7 @@ command also works for non-Emoji characters.)
 
 ---
 *** 'C-h b' uses outlining by default.
-Set 'describe-bindings-outline' to nil to get the old behaviour.
+Set 'describe-bindings-outline' to nil to get the old behavior.
 
 ---
 *** Jumping to function/variable source now saves mark before moving point.
@@ -203,10 +269,22 @@ For example, a 'display-buffer-alist' entry of
 will make the body of the chosen window 40 columns wide.  For the
 height use 'window-height' in combination with 'body-lines'.
 
+*** 'other-window-scroll-default' can define the other window to scroll.
+
+** Rcirc
+
++++
+*** New command 'rcirc-when'.
+
 ** Tab Bars and Tab Lines
 
 ---
 *** 'C-x t RET' creates a new tab when the provided tab name doesn't exist.
+
+---
+*** New keymap 'tab-bar-history-mode-map'.
+By default, it contains 'C-c <left>' and 'C-c <right>' to browse
+the history of tab window configurations back and forward.
 
 ** Better detection of text suspiciously reordered on display.
 The function 'bidi-find-overridden-directionality' has been extended
@@ -253,7 +331,7 @@ This command increases (or decreases) the number of empty lines before
 point.
 
 ---
-*** Improved mouse behavior with auto-scrolling modes.
+** Improved mouse behavior with auto-scrolling modes.
 When clicking inside the 'scroll-margin' or 'hscroll-margin' region
 the point is now moved only when releasing the mouse button.  This no
 longer results in a bogus selection, unless the mouse has been
@@ -266,6 +344,8 @@ effectively dragged.
 ** New user option 'yank-menu-max-items'.
 Customize this option to limit the number of entries in the menu
 "Edit->Paste from Kill Menu".  The default is 60.
+
+** Performing a pinch gesture on a touchpad now increases the text scale.
 
 ** show-paren-mode
 
@@ -295,6 +375,45 @@ received.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Minibuffer and Completions
+
+*** The *Completions* buffer can now be automatically selected.
+To enable this behavior, customize the option 'completion-auto-select'
+to t.  Then pressing TAB will switch to the *Completions* buffer when
+it pops up that buffer.
+
+*** New user option 'completion-wrap-movement'.
+When non-nil, the commands 'next-completion' and 'previous-completion'
+automatically wrap around on reaching the beginning or the end of
+the *Completions* buffer.
+
+** Isearch and Replace
+
++++
+*** New user option 'char-fold-override' disables default character equivalences.
+
+** New minor mode 'glyphless-display-mode'.
+This allows an easy way to toggle seeing all glyphless characters in
+the current buffer.
+
+** Registers
+
++++
+*** Buffer names can now be stored in registers.
+For instance, to enable jumping to the "*Messages*" buffer with
+'C-x r j m':
+
+    (set-register ?m '(buffer . "*Messages*"))
+
+** pixel-fill
+
++++
+*** This is a new package that deals with filling variable-pitch text.
+
++++
+*** New function 'pixel-fill-region'.
+This fills the region to be no wider than a specified pixel width.
+
 ** Info
 
 ---
@@ -321,6 +440,11 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** Message Mode now supports image yanking.
 
+---
+*** New user option 'message-server-alist'.
+This controls automatic insertion of the "X-Message-SMTP-Method"
+header before sending a message.
+
 ** HTML Mode
 
 ---
@@ -335,6 +459,11 @@ It narrows to the current node.
 ** eww/shr
 
 +++
+*** New user option 'shr-allowed-images'.
+This complements 'shr-blocked-images', but allows specifying just the
+allowed images.
+
++++
 *** New user option 'shr-use-xwidgets-for-media'.
 If non-nil (and Emacs has been built with support for xwidgets),
 display <video> elements with an xwidget.  Note that this is
@@ -347,6 +476,16 @@ These are used to alter an URL before using it.  By default it removes
 the common "utm_" trackers from URLs.
 
 ** Gnus
+
+---
+*** Gnus now uses a variable-pitch font in the headers by default.
+To get the monospace font back, you can put something like the
+following in your .gnus file:
+
+    (set-face-attribute 'gnus-header nil :inherit 'unspecified)
+
+---
+*** The default value of 'gnus-treat-fold-headers' is now 'head'.
 
 ---
 *** New face 'gnus-header'.
@@ -365,7 +504,7 @@ representation as emojis.
 ** EIEIO
 
 +++
-*** 'slot-value' can now be used to read slots of 'cl-defstruct' objects.
+*** 'slot-value' can now be used to access slots of 'cl-defstruct' objects.
 
 ** align
 
@@ -427,6 +566,10 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
 
+*** 'project-kill-buffers' can display the list of buffers to kill.
+Customize the user option 'project-kill-buffers-display-buffer-list'
+to enable the display of the buffer list.
+
 +++
 *** New command 'xref-go-forward'.
 It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
@@ -467,6 +610,12 @@ This works like 'image-transform-fit-to-window'.
 The new 'fit-window' option will never scale an image more than this
 much (in percent).  It is nil by default, which means no limit.
 
+---
+*** New user option 'image-text-based-formats'.
+This controls whether or not to show a message when opening certain
+image formats saying how to edit it as text.  The default is to show
+this message for SVG and XPM.
+
 ** Image-Dired
 
 +++
@@ -485,6 +634,16 @@ user options that are no longer needed are now obsolete:
 'image-dired-temp-image-file'.
 
 ---
+*** Navigation and marking commands now work in image display buffer.
+The following new bindings have been added:
+
+  n / SPC   image-dired-display-next-thumbnail-original
+  p / DEL   image-dired-display-previous-thumbnail-original
+  m         image-dired-mark-thumb-original-file
+  d         image-dired-flag-thumb-original-file
+  u         image-dired-unmark-thumb-original-file
+
+---
 *** Reduce dependency on external "exiftool" command.
 The 'image-dired-copy-with-exif-file-name' no longer requires an
 external "exiftool" command to be available.  The user options
@@ -494,7 +653,7 @@ external "exiftool" command to be available.  The user options
 ---
 *** New command for the thumbnail buffer.
 The new command 'image-dired-unmark-all-marks' has been added.  It is
-bound to 'U' in the thumbnail buffer.
+bound to 'U' in the thumbnail and display buffer.
 
 ---
 *** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
@@ -515,19 +674,33 @@ used for images that are flagged for deletion in the Dired buffer
 associated with Image-Dired.
 
 ---
-*** The 'image-dired-slideshow-start' command has been revamped.
+*** 'image-dired-slideshow-start' is now bound to 'S'.
+It is bound in both the thumbnail and display buffer.
+
+---
+*** The 'image-dired-slideshow-start' command no longer prompts.
 It no longer inconveniently prompts for a number of images and a
 delay: it runs indefinitely, but stops automatically on any command.
 You can set the delay with a prefix argument, or a negative prefix
-argument to prompt anyways.  Customize the user option
-'image-dired-slideshow-delay' to change the default, which is 5
-seconds.  It is bound to 'S' in the thumbnail and display buffer.
+argument to prompt for a delay.  Customize the user option
+'image-dired-slideshow-delay' to change the default from 5 seconds.
 
 ---
 *** Support for bookmark.el.
 The command 'bookmark-set' (bound to 'C-x r m') is now supported in
 the thumbnail view, and will create a bookmark that opens the current
 directory in Image-Dired.
+
+---
+*** New user option 'image-dired-marking-shows-next'.
+If this option is non-nil (the default), marking, unmarking or
+flagging an image in either the thumbnail or display buffer shows the
+next image.
+
+---
+*** Image information is now shown in the header line.
+This replaces the message most navigation commands in the thumbnail
+buffer used to show at the bottom of the screen.
 
 +++
 *** 'image-dired-show-all-from-dir-max-files' has been increased to 500.
@@ -545,6 +718,13 @@ thumbnail, or 'M-x image-rotate' to rotate the thumbnail without
 updating the thumbnail file.
 
 ** Dired
+
+*** New user option 'dired-free-space'.
+Dired will now, by default, include the free space in the first line
+instead of having it on a separate line.  To get the previous behavior
+back, say:
+
+    (setq dired-free-space 'separate)
 
 ---
 *** New user option 'dired-make-directory-clickable'.
@@ -606,6 +786,26 @@ When calling 'abbreviate-file-name' on a Tramp filename, the result
 will abbreviate the user's home directory, for example by abbreviating
 "/ssh:user@host:/home/user" to "/ssh:user@host:~".
 
+** Browse URL
+
+---
+*** Support for the Netscape web browser has been removed.
+This support has been obsolete since Emacs 25.1.  The final version of
+the Netscape web browser was released in February, 2008.
+
+---
+*** Support for the Galeon web browser has been removed.
+This support has been obsolete since Emacs 25.1.  The final version of
+the Galeon web browser was released in September, 2008.
+
+** Miscellaneous
+
+---
+*** New minor mode 'elide-head-mode'.
+Enabling this minor mode turns on hiding header material, like
+'elide-head' does; disabling it shows the header.  The commands
+'elide-head' and 'elide-head-show' are now obsolete.
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -617,6 +817,11 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 
 * Incompatible Lisp Changes in Emacs 29.1
+
+** User option 'mail-source-ignore-errors' is now obsolete.
+The whole mechanism for prompting users to continue in case of
+mail-source errors has been removed, so this option is no longer
+needed.
 
 ** Fonts
 
@@ -691,8 +896,34 @@ with recent versions of Firefox.
 ** The function 'image-dired-get-exif-data' is now obsolete.
 Use 'exif-parse-file' and 'exif-field' instead.
 
+---
+** 'insert-directory' alternatives should not change the free disk space line.
+This change is now applied in 'dired-insert-directory'.
+
+** Some functions and variables obsolete since Emacs 23 have been removed:
+'find-emacs-lisp-shadows', 'newsticker-cache-filename',
+'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
+'vc-arch-command'.
+
++++
+** Base64 encoding no longer tolerates latin-1 input.
+The functions 'base64-encode-string', 'base64url-encode-string',
+'base64-encode-region' and 'base64url-encode-region' no longer accept
+characters in the range U+0080..U+00FF as substitutes for single bytes
+in the range 128..255, but signal an error for all multibyte characters.
+The input must be encoded text.
+
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New variable 'lisp-directory' holds the directory of Emacs's own Lisp files.
+
++++
+** New facility for handling session state: 'multisession-value'.
+This can be used as a convenient way to store (simple) application
+state, and 'M-x list-multisession-values' allows users to list
+(and edit) this data.
 
 +++
 ** New function 'get-display-property'.
@@ -707,6 +938,17 @@ property.
 +++
 ** New 'min-width' 'display' property.
 This allows setting a minimum display width for a region of text.
+
++++
+** New event type 'touch-end'.
+This event is sent whenever the user's finger moves off the mouse
+wheel on some mice, or when the user's finger moves off the touchpad.
+
++++
+** New event type 'pinch'.
+This event is sent when a user peforms a pinch gesture on a touchpad,
+which is comprised of placing two fingers on the touchpad and moving
+them towards or away from each other.
 
 ** Keymaps and key definitions
 
@@ -753,6 +995,10 @@ different from setting a definition to nil (when the keymap has a
 parent).
 
 +++
+*** 'read-multiple-choice' now takes an optional SHOW-HELP argument.
+If non-nil, show the help buffer immediately, before any user input.
+
++++
 *** New function 'key-valid-p'.
 The 'kbd' function is quite permissive, and will try to return
 something usable even if the syntax of the argument isn't completely
@@ -763,6 +1009,11 @@ syntax.
 *** New function 'key-parse'.
 This is like 'kbd', but only returns vectors instead of a mix of
 vectors and strings.
+
++++
+*** New ':type' for 'defcustom' for keys.
+The new 'key' type can be used for options that should be a valid key
+according to 'key-valid-p'.  The type 'key-sequence' is now obsolete.
 
 +++
 ** New substitution in docstrings and 'substitute-command-keys'.
@@ -827,6 +1078,17 @@ when they have changed.
 ** New function 'font-has-char-p'.
 This can be used to check whether a specific font has a glyph for a
 character.
+
++++
+** 'window-text-pixel-size' now accepts a new argument 'ignore-line-at-end'.
+This controls whether or not the last screen line of the text being
+measured will be counted for the purpose of calculating the text
+dimensions.
+
++++
+** 'window-text-pixel-size' understands a new meaning of 'from'.
+Specifying a cons as the from argument allows to start measuring text
+from a specified amount of pixels above or below a position.
 
 ** XDG support
 
@@ -991,6 +1253,38 @@ that should be displayed, and the xwidget that asked to display it.
 *** New function 'xwidget-webkit-set-cookie-storage-file'.
 This function is used to control where and if an xwidget stores
 cookies set by web pages on disk.
+
+** New variable 'help-buffer-under-preparation'.
+This variable is bound to t during the preparation of a "*Help*" buffer.
+
++++
+** Timestamps like (1 . 1000) now work without warnings being generated.
+For example, (time-add nil '(1 . 1000)) no longer warns that the
+(1 . 1000) acts like (1000 . 1000000).  This warning, which was a
+temporary transition aid for Emacs 27, has served its purpose.
+
++++
+** 'date-to-time' now assumes earliest values if its argument lacks
+month, day, or time.  For example, (date-to-time "2021-12-04") now
+assumes a time of 00:00 instead of signaling an error.
+
++++
+** New events for taking advantage of touchscreen devices.
+The events 'touchscreen-begin, 'touchscreen-update', and
+'touchscreen-end' have been added to take better advantage of
+touch-capable display panels.
+
++++
+** New error symbol 'permission-denied'.
+This is a subcategory of 'file-error', and is signaled when some file
+operation fails because the OS doesn't allow Emacs to access a file or
+a directory.
+
++++
+** The ':underline' face attribute now accepts a new property.
+The property ':position' now specifies the position of the underline
+when used as part of a property list specification for the
+':underline' attribute.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

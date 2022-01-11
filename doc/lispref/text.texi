@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2021 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2022 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -60,6 +60,7 @@ the character after point.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
+* Database::         Interacting with an SQL database.
 * Parsing HTML/XML:: Parsing HTML and XML.
 * Parsing JSON::     Parsing and generating JSON values.
 * JSONRPC::          JSON Remote Procedure Call protocol
@@ -1650,6 +1651,47 @@ newline, if @code{use-hard-newlines} is enabled (see below).
 The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
 @end deffn
+
+@defun pixel-fill-region start end pixel-width
+Most Emacs buffers use monospaced text, so all the filling functions
+(like @code{fill-region}) work based on the number of characters and
+@code{char-width}.  However, Emacs can render other types of things,
+like text that contains images and using proportional fonts, and the
+@code{pixel-fill-region} exists to handle that.  It fills the region
+of text between @var{start} and @var{end} at pixel granularity, so
+text using variable-pitch fonts or several different fonts looks
+filled regardless of different character sizes.  The argument
+@var{pixel-width} specifies the maximum pixel width a line is allowed
+to have after filling; it is the pixel-resolution equivalent of the
+@code{fill-column} in @code{fill-region}.  For instance, this Lisp
+snippet will insert text using a proportional font, and then fill this
+to be no wider than 300 pixels:
+
+@lisp
+(insert (propertize
+	 "This is a sentence that's ends here."
+	 'face 'variable-pitch))
+(pixel-fill-region (point) (point-max) 300)
+@end lisp
+
+If @var{start} isn't at the start of a line, the horizontal position
+of @var{start}, converted to pixel units, will be used as the
+indentation prefix on subsequent lines.
+
+@findex pixel-fill-width
+The @code{pixel-fill-width} helper function can be used to compute the
+pixel width to use.  If given no arguments, it'll return a value
+slightly less than the width of the current window.  The first
+optional value, @var{columns}, specifies the number of columns using
+the standard, monospaced fonts, e.g. @code{fill-column}.  The second
+optional value is the window to use.  You'd typically use it like
+this:
+
+@lisp
+(pixel-fill-region
+  start end (pixel-fill-width fill-column))
+@end lisp
+@end defun
 
 @deffn Command fill-individual-paragraphs start end &optional justify citation-regexp
 This command fills each paragraph in the region according to its
@@ -3681,14 +3723,14 @@ Consecutive characters with the same @code{field} property constitute a
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the beginning or the end of any
 overlay and text property strings present at the current buffer
-position.  You can place the cursor on any desired character of these
-strings by giving that character a non-@code{nil} @code{cursor} text
-property.  In addition, if the value of the @code{cursor} property is
-an integer, it specifies the number of buffer's character
-positions, starting with the position where the overlay or the
-@code{display} property begins, for which the cursor should be
-displayed on that character.  Specifically, if the value of the
-@code{cursor} property of a character is the number @var{n}, the
+position.  You can instead tell Emacs to place the cursor on any
+desired character of these strings by giving that character a
+non-@code{nil} @code{cursor} text property.  In addition, if the value
+of the @code{cursor} property is an integer, it specifies the number
+of buffer's character positions, starting with the position where the
+overlay or the @code{display} property begins, for which the cursor
+should be displayed on that character.  Specifically, if the value of
+the @code{cursor} property of a character is the number @var{n}, the
 cursor will be displayed on this character for any buffer position in
 the range @code{[@var{ovpos}..@var{ovpos}+@var{n})}, where @var{ovpos}
 is the overlay's starting position given by @code{overlay-start}
@@ -3697,14 +3739,23 @@ text property begins in the buffer.
 
 In other words, the string character with the @code{cursor} property
 of any non-@code{nil} value is the character where to display the
-cursor.  The value of the property says for which buffer positions to
-display the cursor there.  If the value is an integer @var{n},
-the cursor is displayed there when point is anywhere between the
-beginning of the overlay or @code{display} property and @var{n}
-positions after that.  If the value is anything else and
-non-@code{nil}, the cursor is displayed there only when point is at
-the beginning of the @code{display} property or at
-@code{overlay-start}.
+cursor when the overlay or display string make point not visible on
+display.  The value of the property says for which buffer positions to
+display the cursor there.  If the value is an integer @var{n}, the
+cursor is displayed there when point is anywhere between the beginning
+of the overlay or @code{display} property and @var{n} positions after
+that.  If the value is anything else and non-@code{nil}, the cursor is
+displayed there only when point is at the buffer position that is the
+beginning of the @code{display} property, or at @code{overlay-start}
+if that position is not visible on display.  Note that an integer
+value of the @code{cursor} property could mean that the cursor is
+displayed on that character even when point is visible on display.
+
+One subtlety of this property is that it doesn't work to put this
+property on a newline character that is part of a display or overlay
+string.  That's because the newline doesn't have a graphic
+representation on the screen for Emacs to find when it looks for a
+character on display with that @code{cursor} property.
 
 @cindex cursor position for @code{display} properties and overlays
 When the buffer has many overlay strings (e.g., @pxref{Overlay
@@ -4195,7 +4246,7 @@ position.  The action code is always @code{t}.
 For example, here is how Info mode handles @key{mouse-1}:
 
 @smallexample
-(define-key Info-mode-map [follow-link] 'mouse-face)
+(keymap-set Info-mode-map "<follow-link>" 'mouse-face)
 @end smallexample
 
 @item a function
@@ -4208,9 +4259,9 @@ For example, here is how pcvs enables @kbd{mouse-1} to follow links on
 file names only:
 
 @smallexample
-(define-key map [follow-link]
-  (lambda (pos)
-    (eq (get-char-property pos 'face) 'cvs-filename-face)))
+(keymap-set map "<follow-link>"
+            (lambda (pos)
+              (eq (get-char-property pos 'face) 'cvs-filename-face)))
 @end smallexample
 
 @item anything else
@@ -4742,9 +4793,8 @@ converting to and from this code.
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
 signaled if a character in the region is multibyte, i.e., in a
-multibyte buffer the region must contain only characters from the
-charsets @code{ascii}, @code{eight-bit-control} and
-@code{eight-bit-graphic}.
+multibyte buffer the region must contain only ASCII characters or raw
+bytes.
 
 Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
@@ -5083,6 +5133,177 @@ and was invalid.
 
 On success, it returns a list of a binary string (the output) and the
 IV used.
+@end defun
+
+@node Database
+@section Database
+@cindex database access, SQLite
+
+  Emacs can be compiled with built-in support for accessing SQLite
+databases.  This section describes the facilities available for
+accessing SQLite databases from Lisp programs.
+
+@defun sqlite-available-p
+The function returns non-@code{nil} if built-in SQLite support is
+available in this Emacs session.
+@end defun
+
+When SQLite support is available, the following functions can be used.
+
+@cindex database object
+@defun sqlite-open &optional file
+This function opens @var{file} as an SQLite database file.  If
+@var{file} doesn't exist, a new database will be created and stored in
+that file.  If @var{file} is omitted or @code{nil}, a new in-memory
+database is created instead.
+
+The return value is a @dfn{database object} that can be used as the
+argument to most of the subsequent functions described below.
+@end defun
+
+@defun sqlitep object
+This predicate returns non-@code{nil} if @var{object} is an SQLite
+database object.  The database object returned by the
+@code{sqlite-open} function satisfies this predicate.
+@end defun
+
+@defun sqlite-close db
+Close the database @var{db}.  It's usually not necessary to call this
+function explicitly---the database will automatically be closed if
+Emacs shuts down or the database object is garbage collected.
+@end defun
+
+@defun sqlite-execute db statement &optional values
+Execute the @acronym{SQL} @var{statement}.  For instance:
+
+@lisp
+(sqlite-execute db "insert into foo values ('bar', 2)")
+@end lisp
+
+If the optional @var{values} parameter is present, it should be either
+a list or a vector of values to bind while executing the statement.
+For instance:
+
+@lisp
+(sqlite-execute db "insert into foo values (?, ?)" '("bar" 2))
+@end lisp
+
+This has exactly the same effect as the previous example, but is more
+efficient and safer (because it doesn't involve any string parsing or
+interpolation).
+
+@code{sqlite-execute} returns the number of affected rows.  For
+instance, an @samp{insert} statement will return @samp{1}, whereas an
+@samp{update} statement may return zero or a higher number.
+@end defun
+
+@defun sqlite-select db query &optional values result-type
+Select some data from @var{db} and return them.  For instance:
+
+@lisp
+(sqlite-select db "select * from foo where key = 2")
+  @result{} (("bar" 2))
+@end lisp
+
+As with the @code{sqlite-execute}, you can optionally pass in a list
+or a vector of values that will be bound before executing the select:
+
+@lisp
+(sqlite-select db "select * from foo where key = ?" [2])
+  @result{} (("bar" 2))
+@end lisp
+
+This is usually more efficient and safer than the method used by the
+previous example.
+
+By default, this function returns a list of matching rows, where each
+row is a list of column values.  If @var{return-type} is @code{full},
+the names of the columns (as a list of strings) will be returned as
+the first element in the return value.
+
+@cindex statement object
+If @var{return-type} is @code{set}, this function will return a
+@dfn{statement object} instead.  This object can be examined by using
+the @code{sqlite-next}, @code{sqlite-columns} and @code{sqlite-more-p}
+functions.  If the result set is small, it's often more convenient to
+just return the data directly, but if the result set is large (or if
+you won't be using all the data from the set), using the @code{set}
+method will allocate a lot less memory, and is therefore more
+memory-efficient.
+@end defun
+
+@defun sqlite-next statement
+This function returns the next row in the result set @var{statement},
+typically an object returned by @code{sqlite-select}.
+
+@lisp
+(sqlite-next stmt)
+    @result{} ("bar" 2)
+@end lisp
+@end defun
+
+@defun sqlite-columns statement
+This function returns the column names of the result set
+@var{statement}, typically an object returned by @code{sqlite-select}.
+
+@lisp
+(sqlite-columns stmt)
+    @result{} ("name" "issue")
+@end lisp
+@end defun
+
+@defun sqlite-more-p statement
+This predicate says whether there is more data to be fetched from the
+result set @var{statement}, typically an object returned by
+@code{sqlite-select}.
+@end defun
+
+@defun sqlite-finalize statement
+If @var{statement} is not going to be used any more, calling this
+function will free the resources used by @var{statement}.  This is
+usually not necessary---when the @var{statement} object is
+garbage-collected, Emacs will automatically free its resources.
+@end defun
+
+@defun sqlite-transaction db
+Start a transaction in @var{db}.  When in a transaction, other readers
+of the database won't access the results until the transaction has
+been committed by @code{sqlite-commit}.
+@end defun
+
+@defun sqlite-commit db
+End a transaction in @var{db} and write the data out to its file.
+@end defun
+
+@defun sqlite-rollback db
+End a transaction in @var{db} and discard any changes that have been
+made by the transaction.
+@end defun
+
+@defmac with-sqlite-transaction db body@dots{}
+Like @code{progn} (@pxref{Sequencing}), but executes @var{body} with a
+transaction held, and commits the transaction at the end.
+@end defmac
+
+@defun sqlite-pragma db pragma
+Execute @var{pragma} in @var{db}.  A @dfn{pragma} is usually a command
+that affects the database overall, instead of any particular table.
+For instance, to make SQLite automatically garbage collect data that's
+no longer needed, you can say:
+
+@lisp
+(sqlite-pragma db "auto_vacuum = FULL")
+@end lisp
+
+This function returns non-@code{nil} on success and @code{nil} if the
+pragma failed.  Many pragmas can only be issued when the database is
+brand new and empty.
+@end defun
+
+@defun sqlite-load-extension db module
+Load the named extension @var{module} into the database @var{db}.
+Extensions are usually shared-library files; on GNU and Unix systems,
+they have the @file{.so} file-name extension.
 @end defun
 
 @node Parsing HTML/XML

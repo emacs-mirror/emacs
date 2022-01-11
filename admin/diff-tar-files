@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# Copyright (C) 2001-2021 Free Software Foundation, Inc.
+# Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ old_tmp=/tmp/old.$$
 new_tmp=/tmp/new.$$
 trap "rm -f $old_tmp $new_tmp; exit 1" 1 2 15
 
-tar tzf "$old_tar" | sed -e 's,^[^/]*,,' | sort > $old_tmp
-tar tzf "$new_tar" | sed -e 's,^[^/]*,,' | sort > $new_tmp
+tar tf "$old_tar" | sed -e 's,^[^/]*,,' | sort > $old_tmp
+tar tf "$new_tar" | sed -e 's,^[^/]*,,' | sort > $new_tmp
 diff -u $old_tmp $new_tmp
 rm -f $new_tmp $old_tmp

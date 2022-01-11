@@ -1,5 +1,5 @@
 /* Thread definitions
-Copyright (C) 2012-2021 Free Software Foundation, Inc.
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef MSDOS
+#include <time.h>               /* struct rpl_timespec */
 #include <signal.h>		/* sigset_t */
 #endif
 

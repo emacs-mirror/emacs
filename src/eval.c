@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2021 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2022 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -220,17 +220,14 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Local Variables").  */
-  if (!NATIVE_COMP_FLAG)
-    {
-      max_specpdl_size = 1800; /* See bug#46818.  */
-      max_lisp_eval_depth = 800;
-    }
-  else
-    {
-      /* Original values increased for comp.el.  */
-      max_specpdl_size = 2500;
-      max_lisp_eval_depth = 1600;
-    }
+#ifndef HAVE_NATIVE_COMP
+  max_specpdl_size = 1800; /* See bug#46818.  */
+  max_lisp_eval_depth = 800;
+#else
+  /* Original values increased for comp.el.  */
+  max_specpdl_size = 2500;
+  max_lisp_eval_depth = 1600;
+#endif
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -2610,6 +2607,19 @@ eval_sub (Lisp_Object form)
 	     interpreted using lexical-binding or not.  */
 	  specbind (Qlexical_binding,
 		    NILP (Vinternal_interpreter_environment) ? Qnil : Qt);
+
+	  /* Make the macro aware of any defvar declarations in scope. */
+	  Lisp_Object dynvars = Vmacroexp__dynvars;
+	  for (Lisp_Object p = Vinternal_interpreter_environment;
+	       !NILP (p); p = XCDR(p))
+	    {
+	      Lisp_Object e = XCAR (p);
+	      if (SYMBOLP (e))
+		dynvars = Fcons(e, dynvars);
+	    }
+	  if (!EQ (dynvars, Vmacroexp__dynvars))
+	    specbind (Qmacroexp__dynvars, dynvars);
+
 	  exp = apply1 (Fcdr (fun), original_args);
 	  exp = unbind_to (count1, exp);
 	  val = eval_sub (exp);
@@ -3277,11 +3287,13 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else if (MODULE_FUNCTIONP (fun))
     return funcall_module (fun, nargs, arg_vector);
 #endif
+#ifdef HAVE_NATIVE_COMP
   else if (SUBR_NATIVE_COMPILED_DYNP (fun))
     {
-      syms_left = XSUBR (fun)->lambda_list[0];
+      syms_left = XSUBR (fun)->lambda_list;
       lexenv = Qnil;
     }
+#endif
   else
     emacs_abort ();
 
@@ -4581,5 +4593,6 @@ alist of active lexical bindings.  */);
   defsubr (&Sbacktrace_eval);
   defsubr (&Sbacktrace__locals);
   defsubr (&Sspecial_variable_p);
+  DEFSYM (Qfunctionp, "functionp");
   defsubr (&Sfunctionp);
 }

@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2021 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2022 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -260,7 +260,8 @@ _GL_WARN_ON_USE (atoll, "atoll is unportable - "
 #endif
 
 #if @GNULIB_CALLOC_POSIX@
-# if @REPLACE_CALLOC@
+# if (@GNULIB_CALLOC_POSIX@ && @REPLACE_CALLOC_FOR_CALLOC_POSIX@) \
+     || (@GNULIB_CALLOC_GNU@ && @REPLACE_CALLOC_FOR_CALLOC_GNU@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef calloc
 #   define calloc rpl_calloc
@@ -474,7 +475,8 @@ _GL_WARN_ON_USE (grantpt, "grantpt is not portable - "
    by never specifying a zero size), so it does not need malloc or
    realloc to be redefined.  */
 #if @GNULIB_MALLOC_POSIX@
-# if @REPLACE_MALLOC@
+# if (@GNULIB_MALLOC_POSIX@ && @REPLACE_MALLOC_FOR_MALLOC_POSIX@) \
+     || (@GNULIB_MALLOC_GNU@ && @REPLACE_MALLOC_FOR_MALLOC_GNU@)
 #  if !((defined __cplusplus && defined GNULIB_NAMESPACE) \
         || _GL_USE_STDLIB_ALLOC)
 #   undef malloc
@@ -828,29 +830,35 @@ _GL_CXXALIASWARN (putenv);
 /* Sort an array of NMEMB elements, starting at address BASE, each element
    occupying SIZE bytes, in ascending order according to the comparison
    function COMPARE.  */
+# ifdef __cplusplus
+extern "C" {
+# endif
+# if !GNULIB_defined_qsort_r_fn_types
+typedef int (*_gl_qsort_r_compar_fn) (void const *, void const *, void *);
+#  define GNULIB_defined_qsort_r_fn_types 1
+# endif
+# ifdef __cplusplus
+}
+# endif
 # if @REPLACE_QSORT_R@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef qsort_r
 #   define qsort_r rpl_qsort_r
 #  endif
 _GL_FUNCDECL_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
-                                  int (*compare) (void const *, void const *,
-                                                  void *),
+                                  _gl_qsort_r_compar_fn compare,
                                   void *arg) _GL_ARG_NONNULL ((1, 4)));
 _GL_CXXALIAS_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
-                                  int (*compare) (void const *, void const *,
-                                                  void *),
+                                  _gl_qsort_r_compar_fn compare,
                                   void *arg));
 # else
 #  if !@HAVE_QSORT_R@
 _GL_FUNCDECL_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
-                                  int (*compare) (void const *, void const *,
-                                                  void *),
+                                  _gl_qsort_r_compar_fn compare,
                                   void *arg) _GL_ARG_NONNULL ((1, 4)));
 #  endif
 _GL_CXXALIAS_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
-                                  int (*compare) (void const *, void const *,
-                                                  void *),
+                                  _gl_qsort_r_compar_fn compare,
                                   void *arg));
 # endif
 _GL_CXXALIASWARN (qsort_r);
@@ -1101,7 +1109,8 @@ _GL_WARN_ON_USE (setstate_r, "setstate_r is unportable - "
 
 
 #if @GNULIB_REALLOC_POSIX@
-# if @REPLACE_REALLOC@
+# if (@GNULIB_REALLOC_POSIX@ && @REPLACE_REALLOC_FOR_REALLOC_POSIX@) \
+     || (@GNULIB_REALLOC_GNU@ && @REPLACE_REALLOC_FOR_REALLOC_GNU@)
 #  if !((defined __cplusplus && defined GNULIB_NAMESPACE) \
         || _GL_USE_STDLIB_ALLOC)
 #   undef realloc

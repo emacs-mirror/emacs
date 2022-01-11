@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -964,6 +964,15 @@ the process using pipes.  It is also ignored if ptys are unavailable
 To determine whether a given subprocess actually got a pipe or a pty,
 use the function @code{process-tty-name} (@pxref{Process
 Information}).
+@end defvar
+
+@defvar process-error-pause-time
+If a process sentinel/filter function has an error, Emacs will (by
+default) pause Emacs for @code{process-error-pause-time} seconds after
+displaying this error, so that users will see the error in question.
+However, this can lead to situations where Emacs becomes unresponsive
+(if there's a lot of these errors happening), so this can be disabled
+by setting @code{process-error-pause-time} to 0.
 @end defvar
 
 @node Deleting Processes

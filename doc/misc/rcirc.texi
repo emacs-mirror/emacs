@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2006--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 2006--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -464,7 +464,7 @@ your status as ``being back'' if you do not.  People can use the
 @cindex help about irc
 Typical IRC servers implement many more commands.  You can read more
 about the fantastic world of IRC online at
-@uref{http://www.irchelp.org/, the Internet Relay Chat (IRC) help
+@uref{https://www.irchelp.org/, the Internet Relay Chat (IRC) help
 archive}.
 
 @node Configuration
@@ -932,6 +932,11 @@ how to include the date in the time stamp:
 @example
 (setq rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
+
+@findex rcirc-when
+If you don't wish to use verbose time formatting all the time, you can
+use the @code{rcirc-when} command to display a complete timestamp for
+the message at point.
 
 @node Defining a new command
 @section Defining a new command

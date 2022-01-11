@@ -1,6 +1,6 @@
 ;;; perl-mode-tests.el --- Test for perl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -36,5 +36,7 @@
                              (file-truename
                               (file-name-directory (or load-file-name
                                                        buffer-file-name)))))
+
+(setq ert-load-file-name load-file-name)
 
 ;;; perl-mode-tests.el ends here

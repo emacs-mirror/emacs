@@ -1,6 +1,6 @@
 ;;; filelock-tests.el --- test file locking -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -123,7 +123,9 @@ the case)."
      (filelock-tests--spoil-lock-file buffer-file-truename)
      (let ((err (should-error (file-locked-p (buffer-file-name)))))
        (should (equal (seq-subseq err 0 2)
-                      '(file-error "Testing file lock")))))))
+                      (if (eq system-type 'windows-nt)
+                          '(permission-denied "Testing file lock")
+                        '(file-error "Testing file lock"))))))))
 
 (ert-deftest filelock-tests-unlock-spoiled ()
   "Check that `unlock-buffer' fails if the lockfile is \"spoiled\"."
@@ -144,8 +146,11 @@ the case)."
                   (lambda (err) (push err errors))))
          (unlock-buffer))
        (should (consp errors))
-       (should (equal '(file-error "Unlocking file")
-                      (seq-subseq (car errors) 0 2)))
+       (should (equal
+                (if (eq system-type 'windows-nt)
+                    '(permission-denied "Unlocking file")
+                  '(file-error "Unlocking file"))
+                (seq-subseq (car errors) 0 2)))
        (should (equal (length errors) 1))))))
 
 (ert-deftest filelock-tests-kill-buffer-spoiled ()
@@ -174,8 +179,11 @@ the case)."
                   (lambda (err) (push err errors))))
          (kill-buffer))
        (should (consp errors))
-       (should (equal '(file-error "Unlocking file")
-                      (seq-subseq (car errors) 0 2)))
+       (should (equal
+                (if (eq system-type 'windows-nt)
+                    '(permission-denied "Unlocking file")
+                  '(file-error "Unlocking file"))
+                (seq-subseq (car errors) 0 2)))
        (should (equal (length errors) 1))))))
 
 (provide 'filelock-tests)

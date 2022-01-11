@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Keywords: completion convenience
@@ -467,9 +467,7 @@ interfere with other minibuffer usage.")
                  (switch-to-buffer-other-window . iswitchb-buffer-other-window)
                  (switch-to-buffer-other-frame . iswitchb-buffer-other-frame)
                  (display-buffer . iswitchb-display-buffer)))
-      (if (fboundp 'command-remapping)
-          (define-key map (vector 'remap (car b)) (cdr b))
-        (substitute-key-definition (car b) (cdr b) map global-map)))
+      (define-key map (vector 'remap (car b)) (cdr b)))
     map)
   "Global keymap for `iswitchb-mode'.")
 

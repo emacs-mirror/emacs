@@ -1,6 +1,6 @@
 ;;; url-privacy.el --- Global history tracking for URL package  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -48,6 +48,7 @@
 	  (pcase (or window-system 'tty)
 	    ('x "X11")
 	    ('ns "OpenStep")
+            ('pgtk "PureGTK")
 	    ('tty "TTY")
 	    (_ nil)))))
 
