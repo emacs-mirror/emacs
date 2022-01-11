@@ -252,6 +252,14 @@ CONTACT can be:
   '((t (:inherit font-lock-constant-face :weight bold)))
   "Face for package-name in EGLOT's mode line.")
 
+(defface eglot-diagnostic-tag-unnecessary-face
+  '((t . (:weight ultra-light)))
+  "Face used to render unused or unnecessary code.")
+
+(defface eglot-diagnostic-tag-deprecated-face
+  '((t . (:strike-through t)))
+  "Face used to render deprecated or obsolete code.")
+
 (defcustom eglot-autoreconnect 3
   "Control ability to reconnect automatically to the LSP server.
 If t, always reconnect automatically (not recommended).  If nil,
@@ -332,6 +340,10 @@ This can be useful when using docker to run a language server.")
     (21 . "Constant") (22 . "Struct") (23 . "Event") (24 . "Operator")
     (25 . "TypeParameter")))
 
+(defconst eglot--tag-faces
+  `((1 . eglot-diagnostic-tag-unnecessary-face)
+    (2 . eglot-diagnostic-tag-deprecated-face)))
+
 (defconst eglot--{} (make-hash-table) "The empty JSON object.")
 
 (defun eglot--executable-find (command &optional remote)
@@ -353,7 +365,7 @@ This can be useful when using docker to run a language server.")
                              :sortText :filterText :insertText :insertTextFormat
                              :textEdit :additionalTextEdits :commitCharacters
                              :command :data))
-      (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription))
+      (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription :tags))
       (DocumentHighlight (:range) (:kind))
       (FileSystemWatcher (:globPattern) (:kind))
       (Hover (:contents) (:range))
@@ -695,7 +707,11 @@ treated as in `eglot-dbind'."
                                        ;; TODO: We can support :codeDescription after
                                        ;; adding an appropriate UI to
                                        ;; Flymake.
-                                       :codeDescriptionSupport :json-false))
+                                       :codeDescriptionSupport :json-false
+                                       :tagSupport
+                                       `(:valueSet
+                                         [,@(mapcar
+                                             #'car eglot--tag-faces)])))
             :experimental eglot--{})))
 
 (defclass eglot-lsp-server (jsonrpc-process-connection)
@@ -1811,7 +1827,7 @@ COMMAND is a symbol naming the command."
       (with-current-buffer buffer
         (cl-loop
          for diag-spec across diagnostics
-         collect (eglot--dbind ((Diagnostic) range message severity source)
+         collect (eglot--dbind ((Diagnostic) range message severity source tags)
                      diag-spec
                    (setq message (concat source ": " message))
                    (pcase-let
@@ -1839,7 +1855,11 @@ COMMAND is a symbol naming the command."
 					     ((<= sev 1) 'eglot-error)
                                              ((= sev 2)  'eglot-warning)
                                              (t          'eglot-note))
-                                       message `((eglot-lsp-diag . ,diag-spec)))))
+                                       message `((eglot-lsp-diag . ,diag-spec))
+                                       (and tags
+                                            `((face . ,(mapcar (lambda (tag)
+                                                                 (alist-get tag eglot--tag-faces))
+                                                               tags)))))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (eglot--report-to-flymake diags))
