@@ -378,8 +378,6 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
-	  XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			  CurrentTime);
 	  xfree (dpyinfo->devices[i].valuators);
 
 	  tem = dpyinfo->devices[i].touchpoints;
