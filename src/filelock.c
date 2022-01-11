@@ -490,15 +490,29 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
   return nbytes;
 }
 
+/* True if errno values are negative.  Although the C standard
+   requires them to be positive, they are negative in Haiku.  */
+enum { NEGATIVE_ERRNO = EDOM < 0 };
+
+/* Nonzero values that are not errno values.  */
+enum
+  {
+    /* Another process on this machine owns it.  */
+    ANOTHER_OWNS_IT = NEGATIVE_ERRNO ? 1 : -1,
+
+    /* This Emacs process owns it.  */
+    I_OWN_IT = 2 * ANOTHER_OWNS_IT
+  };
+
 /* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
-   -1 if another process owns it (and set OWNER (if non-null) to info),
-   -2 if the current process owns it,
+   ANOTHER_OWNS_IT if another process owns it
+     (and set OWNER (if non-null) to info),
+   I_OWN_IT if the current process owns it,
    or an errno value if something is wrong with the locking mechanism.  */
 
 static int
 current_lock_owner (lock_info_type *owner, char *lfname)
 {
-  int ret;
   lock_info_type local_owner;
   ptrdiff_t lfinfolen;
   intmax_t pid, boot_time;
@@ -571,13 +585,13 @@ current_lock_owner (lock_info_type *owner, char *lfname)
       && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
     {
       if (pid == getpid ())
-        ret = -2; /* We own it.  */
+        return I_OWN_IT;
       else if (0 < pid && pid <= TYPE_MAXIMUM (pid_t)
                && (kill (pid, 0) >= 0 || errno == EPERM)
 	       && (boot_time == 0
 		   || (boot_time <= TYPE_MAXIMUM (time_t)
 		       && within_one_second (boot_time, get_boot_time ()))))
-        ret = -1; /* An existing process on this machine owns it.  */
+        return ANOTHER_OWNS_IT;
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */
       else
@@ -586,18 +600,16 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   else
     { /* If we wanted to support the check for stale locks on remote machines,
          here's where we'd do it.  */
-      ret = -1;
+      return ANOTHER_OWNS_IT;
     }
-
-  return ret;
 }
 
 
 /* Lock the lock named LFNAME if possible.
    Return 0 in that case.
-   Return negative if some other process owns the lock, and info about
+   Return ANOTHER_OWNS_IT if some other process owns the lock, and info about
      that process in CLASHER.
-   Return positive errno value if cannot lock for any other reason.  */
+   Return errno value if cannot lock for any other reason.  */
 
 static int
 lock_if_free (lock_info_type *clasher, char *lfname)
@@ -606,24 +618,17 @@ lock_if_free (lock_info_type *clasher, char *lfname)
   while ((err = lock_file_1 (lfname, 0)) == EEXIST)
     {
       err = current_lock_owner (clasher, lfname);
-      if (err != 0)
-	{
-	  if (err == -1 || err == -2)
-	    return -2 - err; /* We locked it, or someone else has it.  */
-	  break; /* current_lock_owner returned strange error.  */
-	}
 
-      /* We deleted a stale lock; try again to lock the file.  */
+      /* Return if we locked it, or another process owns it, or it is
+	 a strange error.  */
+      if (err != 0)
+	return err == I_OWN_IT ? 0 : err;
+
+      /* We deleted a stale lock or some other process deleted the lock;
+	 try again to lock the file.  */
     }
 
-#if !defined HAIKU \
-  || defined B_USE_POSITIVE_POSIX_ERRORS
   return err;
-#else
-  /* On Haiku, POSIX errno values are negative by default, but this
-     code's callers assume that all errno values are positive.  */
-  return -err;
-#endif
 }
 
 static Lisp_Object
@@ -681,12 +686,12 @@ lock_file (Lisp_Object fn)
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))
-      && current_lock_owner (NULL, lfname) != -2)
+      && current_lock_owner (NULL, lfname) != I_OWN_IT)
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
   /* Try to lock the lock.  FIXME: This ignores errors when
-     lock_if_free returns a positive errno value.  */
-  if (lock_if_free (&lock_info, lfname) < 0)
+     lock_if_free returns an errno value.  */
+  if (lock_if_free (&lock_info, lfname) == ANOTHER_OWNS_IT)
     {
       /* Someone else has the lock.  Consider breaking it.  */
       Lisp_Object attack;
@@ -717,9 +722,9 @@ unlock_file (Lisp_Object fn)
   lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   int err = current_lock_owner (0, lfname);
-  if (err == -2 && unlink (lfname) != 0 && errno != ENOENT)
-    err = errno;
-  if (0 < err)
+  if (! (err == 0 || err == ANOTHER_OWNS_IT
+	 || (err == I_OWN_IT
+	     && (unlink (lfname) == 0 || (err = errno) == ENOENT))))
     report_file_errno ("Unlocking file", fn, err);
 
   return Qnil;
@@ -865,8 +870,10 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   owner = current_lock_owner (&locker, lfname);
   switch (owner)
     {
-    case -2: ret = Qt; break;
-    case -1: ret = make_string (locker.user, locker.at - locker.user); break;
+    case I_OWN_IT: ret = Qt; break;
+    case ANOTHER_OWNS_IT:
+      ret = make_string (locker.user, locker.at - locker.user);
+      break;
     case  0: ret = Qnil; break;
     default: report_file_errno ("Testing file lock", filename, owner);
     }
