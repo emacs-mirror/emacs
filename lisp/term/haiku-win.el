@@ -36,7 +36,7 @@
 (require 'fontset)
 (require 'dnd)
 
-(add-to-list 'display-format-alist '(".*" . haiku-win))
+(add-to-list 'display-format-alist '(".*" . haiku))
 
 ;;;; Command line argument handling.
 
