@@ -98,7 +98,7 @@ area instead.
 
 @cindex X resources on Haiku
   Unlike the X window system, Haiku does not have a system-wide
-resource database.  Since many important options are are specified via
+resource database.  Since many important options are specified via
 X resources (@pxref{X Resources}), an emulation is provided: upon
 startup, Emacs will load a file named @file{GNU Emacs} inside the user
 configuration directory (normally @file{/boot/home/config/settings}),
@@ -106,8 +106,7 @@ which should be a flattened system message where keys and values are
 both strings, and correspond to attributes and their values
 respectively.
 
-You can create such a file with the tool @code{xmlbmessage}, which is
-free software.
+You can create such a file with the @command{xmlbmessage} tool.
 
 @subsection What to do when Emacs crashes
 @cindex crashes, Haiku
