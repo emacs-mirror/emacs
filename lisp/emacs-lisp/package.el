@@ -397,10 +397,10 @@ a sane initial value."
   :type '(repeat symbol))
 
 (defcustom package-native-compile nil
-  "Non-nil means to native compile packages after installing them.
-This controls ahead-of-time compilation.  If this option is nil,
-packages are normally compiled after they have been loaded for
-the first time.
+  "Non-nil means to natively compile packages as part of their installation.
+This controls ahead-of-time compilation of packages when they are
+installed.  If this option is nil, packages will be natively
+compiled when they are loaded for the first time.
 
 This option does not have any effect if Emacs was not built with
 native compilation support."
