@@ -1,1 +1,10 @@
-.p4ignore
+# code/w3mv/.p4ignore -- Perforce files to ignore from Visual Studio 
+# $Id$
+# Subproject build results
+*/Debug
+*/Release
+# Temporary user preferences
+*.vcxproj.user
+# Mystery rubbish
+*.sdf
+*.opensdf
