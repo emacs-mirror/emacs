@@ -3045,12 +3045,27 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_wheel_move_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    int x, y;
+	    int x, y, scroll_width, scroll_height;
 	    static float px = 0.0f, py = 0.0f;
+	    Lisp_Object wheel_window;
 
 	    if (!f)
 	      continue;
+
 	    BView_get_mouse (FRAME_HAIKU_VIEW (f), &x, &y);
+
+	    wheel_window = window_from_coordinates (f, x, y, 0, false, false);
+
+	    if (NILP (wheel_window))
+	      {
+		scroll_width = FRAME_PIXEL_WIDTH (f);
+		scroll_height = FRAME_PIXEL_HEIGHT (f);
+	      }
+	    else
+	      {
+		scroll_width = XWINDOW (wheel_window)->pixel_width;
+		scroll_height = XWINDOW (wheel_window)->pixel_height;
+	      }
 
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 
@@ -3063,9 +3078,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      py = 0;
 
 	    px += (b->delta_x
-		   * powf (FRAME_PIXEL_HEIGHT (f), 2.0f / 3.0f));
+		   * powf (scroll_width, 2.0f / 3.0f));
 	    py += (b->delta_y
-		   * powf (FRAME_PIXEL_HEIGHT (f), 2.0f / 3.0f));
+		   * powf (scroll_height, 2.0f / 3.0f));
 
 	    if (fabsf (py) >= FRAME_LINE_HEIGHT (f)
 		|| fabsf (px) >= FRAME_COLUMN_WIDTH (f)
