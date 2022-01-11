@@ -197,7 +197,7 @@ in the file it applies to.")
       ,(or filter
            (lambda (cmd)
              (when (and outline-minor-mode-cycle
-                        (outline-on-heading-p)
+                        (outline-on-heading-p t)
                         (or (not (functionp outline-minor-mode-cycle-filter))
                             (funcall outline-minor-mode-cycle-filter)))
                cmd))))))
