@@ -2555,7 +2555,7 @@ Underline with the foreground color of the face.
 @item @var{color}
 Underline in color @var{color}, a string specifying a color.
 
-@item @code{(:color @var{color} :style @var{style} :position @var{position}}
+@item @code{(:color @var{color} :style @var{style} :position @var{position})}
 @var{color} is either a string, or the symbol @code{foreground-color},
 meaning the foreground color of the face.  Omitting the attribute
 @code{:color} means to use the foreground color of the face.
