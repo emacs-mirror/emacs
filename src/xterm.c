@@ -11167,6 +11167,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_PropertyEvent:
 	  case XI_HierarchyChanged:
 	  case XI_DeviceChanged:
+
+#ifdef XISlaveSwitch
+	    if (xi_event->evtype == XI_DeviceChanged
+		&& (((XIDeviceChangedEvent *) xi_event)->reason
+		    == XISlaveSwitch))
+	      goto XI_OTHER;
+#endif
 	    x_init_master_valuators (dpyinfo);
 	    goto XI_OTHER;
 #ifdef XI_TouchBegin
