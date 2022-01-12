@@ -483,12 +483,16 @@ If `silently', don't ask the user before saving."
 
 (defcustom lock-file-name-transforms nil
   "Transforms to apply to buffer file name before making a lock file name.
-This has the same syntax as
-`auto-save-file-name-transforms' (which see), but instead of
-applying to auto-save file names, it's applied to lock file names.
+This has the same syntax as `auto-save-file-name-transforms',
+but applies to lock file names instead of auto-save file names.
 
-By default, a lock file is put into the same directory as the
-file it's locking, and it has the same name, but with \".#\" prepended."
+By default, Emacs puts each lock file into the same directory as the
+file it locks, prepending \".#\" to the base file name.
+
+Note that changing this could break lock file functionality, e.g.:
+if different users access the same file, using different lock file settings;
+if accessing files on a shared file system from different hosts,
+using a transform that puts the lock files on a local file system."
   :group 'files
   :type '(repeat (list (regexp :tag "Regexp")
                        (string :tag "Replacement")

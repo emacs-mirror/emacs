@@ -145,6 +145,11 @@ SEVERITY-PREDICATE is used to setup
   (string-match "[Cc]lang version "
                 (shell-command-to-string "gcc --version")))
 
+(defun flymake-tests--gcc-is-clang ()
+  "Whether the `gcc' command actually runs the Clang compiler."
+  (string-match "[Cc]lang version "
+                (shell-command-to-string "gcc --version")))
+
 (ert-deftest different-diagnostic-types ()
   "Test GCC warning via function predicate."
   (skip-unless (and (executable-find "gcc")
