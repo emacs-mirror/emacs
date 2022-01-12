@@ -2183,7 +2183,9 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 
   /* Score three style numeric fields.  Maximum difference is 127. */
   for (i = FONT_WEIGHT_INDEX; i <= FONT_WIDTH_INDEX; i++)
-    if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i]))
+    if (! NILP (spec_prop[i])
+	&& ! EQ (AREF (entity, i), spec_prop[i])
+	&& FIXNUMP (AREF (entity, i)))
       {
 	EMACS_INT diff = ((XFIXNUM (AREF (entity, i)) >> 8)
 			  - (XFIXNUM (spec_prop[i]) >> 8));
@@ -2764,26 +2766,31 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	{
 	  if (FIXNUMP (AREF (spec, prop)))
 	    {
-	      int required = XFIXNUM (AREF (spec, prop)) >> 8;
-	      int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
-
-	      if (candidate != required
-#ifdef HAVE_NTGUI
-		  /* A kludge for w32 font search, where listing a
-		     family returns only 4 standard weights: regular,
-		     italic, bold, bold-italic.  For other values one
-		     must specify the font, not just the family in the
-		     :family attribute of the face.  But specifying
-		     :family in the face attributes looks for regular
-		     weight, so if we require exact match, the
-		     non-regular font will be rejected.  So we relax
-		     the accuracy of the match here, and let
-		     font_sort_entities find the best match.  */
-		  && (prop != FONT_WEIGHT_INDEX
-		      || eabs (candidate - required) > 100)
-#endif
-		  )
+	      if (!FIXNUMP (AREF (entity, prop)))
 		prop = FONT_SPEC_MAX;
+	      else
+		{
+		  int required = XFIXNUM (AREF (spec, prop)) >> 8;
+		  int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
+
+		  if (candidate != required
+#ifdef HAVE_NTGUI
+		      /* A kludge for w32 font search, where listing a
+			 family returns only 4 standard weights: regular,
+			 italic, bold, bold-italic.  For other values one
+			 must specify the font, not just the family in the
+			 :family attribute of the face.  But specifying
+			 :family in the face attributes looks for regular
+			 weight, so if we require exact match, the
+			 non-regular font will be rejected.  So we relax
+			 the accuracy of the match here, and let
+			 font_sort_entities find the best match.  */
+		      && (prop != FONT_WEIGHT_INDEX
+			  || eabs (candidate - required) > 100)
+#endif
+		      )
+		    prop = FONT_SPEC_MAX;
+		}
 	    }
 	}
       if (prop < FONT_SPEC_MAX
