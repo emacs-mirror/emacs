@@ -3030,6 +3030,7 @@ Lisp_Object
 funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
 {
   Lisp_Object original_fun = fun;
+ retry:
   if (SYMBOLP (fun) && !NILP (fun)
       && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
@@ -3055,7 +3056,8 @@ funcall_general (Lisp_Object fun, ptrdiff_t numargs, Lisp_Object *args)
       else if (EQ (funcar, Qautoload))
 	{
 	  Fautoload_do_load (fun, original_fun, Qnil);
-	  return funcall_general (original_fun, numargs, args);
+	  fun = original_fun;
+	  goto retry;
 	}
       else
 	xsignal1 (Qinvalid_function, original_fun);
@@ -3069,10 +3071,6 @@ Thus, (funcall \\='cons \\='x \\='y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object fun, original_fun;
-  Lisp_Object funcar;
-  ptrdiff_t numargs = nargs - 1;
-  Lisp_Object val;
   ptrdiff_t count;
 
   maybe_quit ();
@@ -3092,42 +3090,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   if (debug_on_next_call)
     do_debug_on_call (Qlambda, count);
 
-  original_fun = args[0];
+  Lisp_Object val = funcall_general (args[0], nargs - 1, args + 1);
 
- retry:
-
-  /* Optimize for no indirection.  */
-  fun = original_fun;
-  if (SYMBOLP (fun) && !NILP (fun)
-      && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
-    fun = indirect_function (fun);
-
-  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
-    val = funcall_subr (XSUBR (fun), numargs, args + 1);
-  else if (COMPILEDP (fun)
-	   || SUBR_NATIVE_COMPILED_DYNP (fun)
-	   || MODULE_FUNCTIONP (fun))
-    val = funcall_lambda (fun, numargs, args + 1);
-  else
-    {
-      if (NILP (fun))
-	xsignal1 (Qvoid_function, original_fun);
-      if (!CONSP (fun))
-	xsignal1 (Qinvalid_function, original_fun);
-      funcar = XCAR (fun);
-      if (!SYMBOLP (funcar))
-	xsignal1 (Qinvalid_function, original_fun);
-      if (EQ (funcar, Qlambda)
-	  || EQ (funcar, Qclosure))
-	val = funcall_lambda (fun, numargs, args + 1);
-      else if (EQ (funcar, Qautoload))
-	{
-	  Fautoload_do_load (fun, original_fun, Qnil);
-	  goto retry;
-	}
-      else
-	xsignal1 (Qinvalid_function, original_fun);
-    }
   lisp_eval_depth--;
   if (backtrace_debug_on_exit (specpdl + count))
     val = call_debugger (list2 (Qexit, val));
