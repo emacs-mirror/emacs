@@ -136,6 +136,15 @@ gui_abort (const char *msg)
   emacs_abort ();
 }
 
+/* Convert a raw character RAW produced by the keycode KEY into a key
+   symbol and place it in KEYSYM.
+
+   If RAW cannot be converted into a keysym, value is 0.  If RAW can
+   be converted into a keysym, but it should be ignored, value is -1.
+
+   Any other value means success, and that the keysym should be used
+   instead of mapping the keycode into a character.  */
+
 static int
 keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
 {
@@ -190,7 +199,12 @@ keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
       if (*code - XK_F1 == 12)
 	*code = XK_Print;
       else if (*code - XK_F1 == 13)
-	*code = XK_Scroll_Lock;
+	/* Okay, Scroll Lock is a bit too much: keyboard.c doesn't
+	   know about it yet, and it shouldn't, since that's a
+	   modifier key.
+
+	   *code = XK_Scroll_Lock; */
+	return -1;
       else if (*code - XK_F1 == 14)
 	*code = XK_Pause;
 
@@ -701,6 +715,7 @@ public:
 	rq.window = this;
 
 	int32 raw, key;
+	int ret;
 	msg->FindInt32 ("raw_char", &raw);
 	msg->FindInt32 ("key", &key);
 
@@ -719,8 +734,13 @@ public:
 	if (mods & B_OPTION_KEY)
 	  rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-	if (!keysym_from_raw_char (raw, key, &rq.keysym))
+	ret = keysym_from_raw_char (raw, key, &rq.keysym);
+
+	if (!ret)
 	  rq.keysym = 0;
+
+	if (ret < 0)
+	  return;
 
 	rq.multibyte_char = 0;
 
