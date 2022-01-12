@@ -223,6 +223,8 @@ inserted.
 This command will tell you the name of the Emoji at point.  (This
 command also works for non-Emoji characters.)
 
+*** New input method 'emoji'.
+
 ** Help
 
 ---
