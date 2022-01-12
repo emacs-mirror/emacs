@@ -4126,7 +4126,9 @@ x_draw_glyph_string (struct glyph_string *s)
       area_max_x = area_x + area_width - 1;
 
       decoration_width = s->width;
-      if (area_max_x < (s->x + decoration_width - 1))
+      if (!s->row->mode_line_p
+	  && !s->row->tab_line_p
+	  && area_max_x < (s->x + decoration_width - 1))
 	decoration_width -= (s->x + decoration_width - 1) - area_max_x;
 
       /* Draw relief if not yet drawn.  */
