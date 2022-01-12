@@ -75,7 +75,7 @@ EMACS_EXTRAOPT =
 EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(elpa_opts) $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
 
 # To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
@@ -118,10 +118,8 @@ MODULES_EMACSOPT :=
 endif
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems,
-# and prevent locals to influence the text of the errors we expect to receive.
-emacs = LANG=C EMACSLOADPATH= 		   \
- EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
+# Prevent locales influencing the text of the errors we expect to receive.
+emacs = LANG=C EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
  $(GDB) $(TEST_TIMEOUT) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
 # Set HOME to a nonexistent directory to prevent tests from accessing
