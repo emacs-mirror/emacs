@@ -392,6 +392,13 @@ the *Completions* buffer.
 +++
 *** New user option 'char-fold-override' disables default character equivalences.
 
++++
+*** New command 'isearch-emoji-by-name'.
+It is bound to 'C-x 8 e RET' during an incremental search.  The
+command accepts the CLDR short name of an Emoji (for example, "smiling
+face" or "heart with arrow"), with minibuffer completion, and inserts
+the Emoji character into the search string.
+
 ** New minor mode 'glyphless-display-mode'.
 This allows an easy way to toggle seeing all glyphless characters in
 the current buffer.

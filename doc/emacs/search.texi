@@ -444,6 +444,14 @@ character into the search string, similar to the usual
 @code{insert-char} command (@pxref{Inserting Text}).
 
 @item
+@findex isearch-emoji-by-name
+@kindex C-x 8 e RET @r{(Incremental Search)}
+Type @kbd{C-x 8 e @key{RET}} (@code{isearch-emoji-by-name}), followed
+by the CLDR short name of an Emoji (for example, @samp{smiling face}
+or @samp{heart with arrow}).  This adds the specified Emoji into the
+search string.
+
+@item
 @kindex C-^ @r{(Incremental Search)}
 @findex isearch-toggle-input-method
 @findex isearch-toggle-specified-input-method
