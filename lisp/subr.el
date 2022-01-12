@@ -1971,7 +1971,7 @@ one will be removed."
                                 (format "%s hook to remove: "
                                         (if local "Buffer-local" "Global"))
                                 fn-alist
-                                nil t)
+                                nil t nil 'set-variable-value-history)
                                fn-alist nil nil #'string=)))
      (list hook function local)))
   (or (boundp hook) (set hook nil))
