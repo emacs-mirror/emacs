@@ -1159,13 +1159,15 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-head-custom)
 
-(defcustom gnus-treat-emphasize 50000
+(defcustom gnus-treat-emphasize '(and 50000
+                                      (not (typep "text/html")))
   "Emphasize text.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-custom)
+  :type gnus-article-treat-custom
+  :version "29.1")
 (put 'gnus-treat-emphasize 'highlight t)
 
 (defcustom gnus-treat-strip-cr nil
