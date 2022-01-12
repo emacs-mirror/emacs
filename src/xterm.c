@@ -5386,8 +5386,6 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   dpyinfo->super_mod_mask = 0;
   dpyinfo->hyper_mod_mask = 0;
 
-  XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
-
 #ifdef HAVE_XKB
   if (dpyinfo->xkb_desc)
     {
@@ -5431,6 +5429,8 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       return;
     }
 #endif
+
+  XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
 
   syms = XGetKeyboardMapping (dpyinfo->display,
 			      min_code, max_code - min_code + 1,
