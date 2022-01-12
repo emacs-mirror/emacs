@@ -5237,13 +5237,6 @@ other window is selected.  When it is non-@code{nil} and the
 minibuffer is selected, it takes precedence over
 @code{other-window-scroll-buffer}.  @xref{Definition of
 minibuffer-scroll-window}.
-
-When the minibuffer is active, it is the next window if the selected
-window is the one at the bottom right corner.  In this case,
-@code{scroll-other-window} attempts to scroll the minibuffer.  If the
-minibuffer contains just one line, it has nowhere to scroll to, so the
-line reappears after the echo area momentarily displays the message
-@samp{End of buffer}.
 @end deffn
 
 @deffn Command scroll-other-window-down &optional count
