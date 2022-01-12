@@ -750,6 +750,9 @@ uncompression packages: an entry of the form @code{("\\.gz\\'"
 @var{function} t)} can uncompress the file and then put the uncompressed
 file in the proper mode according to the name sans @samp{.gz}.
 
+If @code{auto-mode-alist} has more than one element whose @var{regexp}
+matches the file name, Emacs will use the first match.
+
 Here is an example of how to prepend several pattern pairs to
 @code{auto-mode-alist}.  (You might use this sort of expression in your
 init file.)
