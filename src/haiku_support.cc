@@ -186,6 +186,14 @@ keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
 
     case B_FUNCTION_KEY:
       *code = XK_F1 + key - 2;
+
+      if (*code - XK_F1 == 12)
+	*code = XK_Print;
+      else if (*code - XK_F1 == 13)
+	*code = XK_Scroll_Lock;
+      else if (*code - XK_F1 == 14)
+	*code = XK_Pause;
+
       break;
 
     default:
