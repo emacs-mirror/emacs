@@ -191,8 +191,9 @@ other meta-variable based on this name.")
   "Encode one makefile.")
 
 ;;; Code:
-(cl-defmethod project-add-file ((ot project-am-target))
+(cl-defmethod project-add-file ((ot project-am-target) &optional _file)
   "Add the current buffer into a project.
+_FILE is ignored.
 OT is the object target.  DIR is the directory to start in."
   (let* ((target (if ede-object (error "Already associated w/ a target")
 		   (let ((amf (project-am-load default-directory)))
