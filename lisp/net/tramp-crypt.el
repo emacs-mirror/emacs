@@ -39,7 +39,7 @@
 ;; first time you access a crypted remote directory.  It is kept in
 ;; your user directory "~/.emacs.d/" with the url-encoded directory
 ;; name as part of the basename, and ".encfs6.xml" as suffix.  Do not
-;; loose this file and the corresponding password; otherwise there is
+;; lose this file and the corresponding password; otherwise there is
 ;; no way to decrypt your crypted files.
 
 ;; If the user option `tramp-crypt-save-encfs-config-remote' is
