@@ -1078,16 +1078,20 @@ This docstring appeases checkdoc, that's all."
          (nickname (file-name-base (directory-file-name default-directory)))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
          autostart-inferior-process
+         server-info
          (contact (if (functionp contact) (funcall contact) contact))
          (initargs
           (cond ((keywordp (car contact)) contact)
                 ((integerp (cadr contact))
+                 (setq server-info (list (format "%s:%s" (car contact)
+                                                 (cadr contact))))
                  `(:process ,(lambda ()
                                (apply #'open-network-stream
                                       readable-name nil
                                       (car contact) (cadr contact)
                                       (cddr contact)))))
                 ((and (stringp (car contact)) (memq :autoport contact))
+                 (setq server-info (list "<inferior process>"))
                  `(:process ,(lambda ()
                                (pcase-let ((`(,connection . ,inferior)
                                             (eglot--inferior-bootstrap
@@ -1101,7 +1105,7 @@ This docstring appeases checkdoc, that's all."
                       (let ((default-directory default-directory))
                         (make-process
                          :name readable-name
-                         :command (eglot--cmd contact)
+                         :command (setq server-info (eglot--cmd contact))
                          :connection-type 'pipe
                          :coding 'utf-8-emacs-unix
                          :noquery t
@@ -1122,6 +1126,9 @@ This docstring appeases checkdoc, that's all."
            initargs))
          (cancelled nil)
          (tag (make-symbol "connected-catch-tag")))
+    (when server-info
+      (jsonrpc--debug server "Running language server: %s"
+                      (string-join server-info " ")))
     (setf (eglot--saved-initargs server) initargs)
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
