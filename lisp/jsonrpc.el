@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.14
+;; Version: 1.0.15
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
