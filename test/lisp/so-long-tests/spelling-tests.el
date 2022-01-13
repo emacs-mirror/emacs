@@ -50,9 +50,9 @@
     ;; The Emacs test Makefile's use of HOME=/nonexistent triggers an error
     ;; when starting the inferior ispell process, so we set HOME to a valid
     ;; (but empty) temporary directory for this test.
-    (ert-with-temp-file tmpdir
-      :directory t
-      :suffix "so-long.ispell"
+    (ert-with-temp-directory tmpdir
+      :prefix "so-long."
+      :suffix ".ispell"
       (let* ((process-environment (cons (format "HOME=%s" tmpdir)
                                         process-environment))
              (find-spelling-mistake
