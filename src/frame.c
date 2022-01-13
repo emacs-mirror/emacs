@@ -2382,8 +2382,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 }
 
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
-       doc: /* Delete FRAME, permanently eliminating it from use.
+       doc: /* Delete FRAME, eliminating it from use.
 FRAME must be a live frame and defaults to the selected one.
+
+When `undelete-frame-mode' is enabled, the 16 most recently deleted
+frames can be undeleted with `undelete-frame', which see.
 
 A frame may not be deleted if its minibuffer serves as surrogate
 minibuffer for another frame.  Normally, you may not delete a frame if

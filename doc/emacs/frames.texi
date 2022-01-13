@@ -512,6 +512,16 @@ frames by specifying @dfn{frame parameters}.  @xref{Frame Parameters}.
 Delete the selected frame (@code{delete-frame}).  This signals an
 error if there is only one frame.
 
+@item C-x 5 u
+@kindex C-x 5 u
+@findex undelete-frame
+@findex undelete-frame-mode
+When @code{undelete-frame-mode} is enabled, undelete one of the 16
+most recently deleted frames.  Without a prefix argument, undelete the
+most recently deleted frame.  With a numerical prefix argument between
+1 and 16, where 1 is the most recently deleted frame, undelete the
+corresponding deleted frame.
+
 @item C-z
 @kindex C-z @r{(X windows)}
 Minimize (or iconify) the selected Emacs frame

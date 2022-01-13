@@ -273,10 +273,15 @@ height use 'window-height' in combination with 'body-lines'.
 
 *** 'other-window-scroll-default' can define the other window to scroll.
 
-** Rcirc
+** Frames
 
 +++
-*** New command 'rcirc-when'.
+*** Deleted frames can now be undeleted.
+The 16 most recently deleted frames can be undeleted with 'C-x 5 u' when
+'undelete-frame-mode' is enabled.  Without a prefix argument, undelete
+the most recently deleted frame.  With a numerical prefix argument
+between 1 and 16, where 1 is the most recently deleted frame, undelete
+the corresponding deleted frame.
 
 ** Tab Bars and Tab Lines
 
@@ -308,6 +313,11 @@ frame if one exists; otherwise it creates a new frame.
 The Emacs server will be automatically stopped when certain conditions
 are met.  The conditions are given by the argument, which can be
 'empty', 'delete-frame' or 'kill-terminal'.
+
+** Rcirc
+
++++
+*** New command 'rcirc-when'.
 
 * Editing Changes in Emacs 29.1
 

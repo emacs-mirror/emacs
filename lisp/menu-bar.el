@@ -109,6 +109,15 @@
       (bindings--define-key menu [separator-tab]
         menu-bar-separator))
 
+    (bindings--define-key menu [enable-undelete-frame-mode]
+      '(menu-item "Enable Frame Undeletion" undelete-frame-mode
+                  :visible (null undelete-frame-mode)
+                  :help "Enable frame undeletion for this session"))
+    (bindings--define-key menu [undelete-last-deleted-frame]
+      '(menu-item "Undelete Frame" undelete-frame
+                  :visible undelete-frame-mode
+                  :help "Undelete the most recently deleted frame"))
+
     ;; Don't use delete-frame as event name because that is a special
     ;; event.
     (bindings--define-key menu [delete-this-frame]
