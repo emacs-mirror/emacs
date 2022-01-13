@@ -861,7 +861,7 @@ while \(:host t) would find all host entries."
       secret)))
 
 (defun auth-source-pick-first-password (&rest spec)
-  "Pick the first secret found from applying SPEC to `auth-source-search'."
+  "Pick the first secret found by applying 'auth-source-search' to SPEC."
   (auth-info-password (car (apply #'auth-source-search (plist-put spec :max 1)))))
 
 (defun auth-source-format-prompt (prompt alist)
