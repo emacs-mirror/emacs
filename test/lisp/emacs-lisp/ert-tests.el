@@ -881,6 +881,9 @@ This macro is used to test if macroexpansion in `should' works."
   "Check that `lexical-binding' in `ert-deftest' has the file value."
   (should (equal lexical-binding t)))
 
+(ert-deftest ert-test-get-explainer ()
+  (should (eq (ert--get-explainer 'string-equal) 'ert--explain-string-equal))
+  (should (eq (ert--get-explainer 'string=) 'ert--explain-string-equal)))
 
 (provide 'ert-tests)
 
