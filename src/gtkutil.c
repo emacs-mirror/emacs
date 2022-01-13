@@ -6262,7 +6262,12 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 bool
 xg_filter_key (struct frame *frame, XEvent *xkey)
 {
-  GdkEvent *xg_event = gdk_event_new (GDK_KEY_PRESS);
+  GdkEvent *xg_event = gdk_event_new ((xkey->type == ButtonPress
+#ifdef HAVE_XINPUT2
+				       || (xkey->type == GenericEvent
+					   && xkey->xgeneric.evtype == XI_KeyPress)
+#endif
+				       ) ? GDK_KEY_PRESS : GDK_KEY_RELEASE);
   GdkDisplay *dpy = gtk_widget_get_display (FRAME_GTK_WIDGET (frame));
   GdkKeymap *keymap = gdk_keymap_get_for_display (dpy);
   GdkModifierType consumed;

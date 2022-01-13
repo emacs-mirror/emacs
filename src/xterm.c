@@ -8284,8 +8284,10 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
       && event->type == GenericEvent
       && (event->xgeneric.extension
 	  == dpyinfo->xi2_opcode)
-      && (event->xgeneric.evtype
-	  == XI_KeyPress))
+      && ((event->xgeneric.evtype
+	   == XI_KeyPress)
+	  || (event->xgeneric.evtype
+	      == XI_KeyRelease)))
     {
       f1 = x_any_window_to_frame (dpyinfo,
 				  ((XIDeviceEvent *)
