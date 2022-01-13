@@ -936,6 +936,11 @@ The input must be encoded text.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'function-alias-p'.
+This predicate says whether an object is a function alias, and if it
+is, the alias chain is returned.
+
++++
 ** New variable 'lisp-directory' holds the directory of Emacs's own Lisp files.
 
 +++

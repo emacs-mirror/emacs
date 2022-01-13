@@ -6537,4 +6537,26 @@ string will be displayed only if BODY takes longer than TIMEOUT seconds.
                                  (lambda ()
                                    ,@body)))
 
+(defun function-alias-p (func &optional noerror)
+  "Return nil if FUNC is not a function alias.
+If FUNC is a function alias, return the function alias chain.
+
+If the function alias chain contains loops, an error will be
+signalled.  If NOERROR, the non-loop parts of the chain is returned."
+  (declare (side-effect-free t))
+  (let ((chain nil)
+        (orig-func func))
+    (nreverse
+     (catch 'loop
+       (while (and (symbolp func)
+                   (setq func (symbol-function func))
+                   (symbolp func))
+         (when (or (memq func chain)
+                   (eq func orig-func))
+           (if noerror
+               (throw 'loop chain)
+             (error "Alias loop for `%s'" orig-func)))
+         (push func chain))
+       chain))))
+
 ;;; subr.el ends here
