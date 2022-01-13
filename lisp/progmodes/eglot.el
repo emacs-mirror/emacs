@@ -1046,7 +1046,7 @@ Use current server's or first available Eglot events buffer."
   '()
   "Hook run after a `eglot-lsp-server' instance is created.
 
-That is before a connection was established. Use
+That is before a connection was established.  Use
 `eglot-connect-hook' to hook into when a connection was
 successfully established and the server on the other side has
 received the initializing configuration.
