@@ -12215,7 +12215,6 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-highlight-citation
 @vindex gnus-treat-highlight-headers
 @vindex gnus-treat-highlight-signature
-@vindex gnus-treat-play-sounds
 @vindex gnus-treat-x-pgp-sig
 @vindex gnus-treat-unfold-headers
 @vindex gnus-treat-fold-headers
@@ -12350,8 +12349,6 @@ is controlled by @code{gnus-body-boundary-delimiter}.
 
 @xref{Article Highlighting}.
 
-@vindex gnus-treat-play-sounds
-@item gnus-treat-play-sounds
 @item gnus-treat-ansi-sequences (t)
 @vindex gnus-treat-x-pgp-sig
 @item gnus-treat-x-pgp-sig (head)
