@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23"))
 
 ;; This file is part of GNU Emacs.
 
@@ -62,7 +62,6 @@
 (require 'imenu)
 (require 'cl-lib)
 (require 'project)
-(require 'seq)
 (require 'url-parse)
 (require 'url-util)
 (require 'pcase)
@@ -84,6 +83,11 @@
          (not (boundp 'eldoc-documentation-strategy)))
     (load "eldoc")
   (require 'eldoc))
+
+;; Similar issue as above for Emacs 26.3 and seq.el.
+(if (< emacs-major-version 27)
+    (load "seq")
+  (require 'seq))
 
 ;; forward-declare, but don't require (Emacs 28 doesn't seem to care)
 (defvar markdown-fontify-code-blocks-natively)
@@ -365,7 +369,7 @@ This can be useful when using docker to run a language server.")
                       (:kind :detail :documentation :deprecated :preselect
                              :sortText :filterText :insertText :insertTextFormat
                              :textEdit :additionalTextEdits :commitCharacters
-                             :command :data))
+                             :command :data :tags))
       (Diagnostic (:range :message) (:severity :code :source :relatedInformation :codeDescription :tags))
       (DocumentHighlight (:range) (:kind))
       (FileSystemWatcher (:globPattern) (:kind))
@@ -659,7 +663,9 @@ treated as in `eglot-dbind'."
                                     `(:snippetSupport
                                       ,(if (eglot--snippet-expansion-fn)
                                            t
-                                         :json-false))
+                                         :json-false)
+                                      :deprecatedSupport t
+                                      :tagSupport (:valueSet [1]))
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
                                        :contentFormat
@@ -2461,6 +2467,12 @@ is not active."
                      (kind (alist-get (plist-get lsp-item :kind)
                                       eglot--kind-names)))
            (intern (downcase kind))))
+       :company-deprecated
+       (lambda (proxy)
+         (when-let ((lsp-item (get-text-property 0 'eglot--lsp-item proxy)))
+           (or (seq-contains-p (plist-get lsp-item :tags)
+                               1)
+               (plist-get lsp-item :deprecated))))
        :company-docsig
        ;; FIXME: autoImportText is specific to the pyright language server
        (lambda (proxy)
