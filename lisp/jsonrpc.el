@@ -698,7 +698,9 @@ TIMEOUT is nil)."
 (defun jsonrpc--debug (server format &rest args)
   "Debug message for SERVER with FORMAT and ARGS."
   (jsonrpc--log-event
-   server (if (stringp format)`(:message ,(format format args)) format)))
+   server (if (stringp format)
+              `(:message ,(apply #'format format args))
+            format)))
 
 (defun jsonrpc--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
