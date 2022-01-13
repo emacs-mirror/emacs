@@ -6255,9 +6255,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
       kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
     }
 
-#ifdef USABLE_SIGIO
-  raise (SIGIO);
-#endif
+  XNoOp (FRAME_X_DISPLAY (f));
   return true;
 }
 
