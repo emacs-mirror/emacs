@@ -760,7 +760,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ["Search for char by name" isearch-char-by-name
      :help "Search for character by name"]
     ["Search for Emoji by name" isearch-emoji-by-name
-     :help "Search for Emoji by name"]
+     :help "Search for Emoji by its Unicode name"]
     "---"
     ["Toggle input method" isearch-toggle-input-method
      :help "Toggle input method for search"]
@@ -2751,10 +2751,10 @@ With argument, add COUNT copies of the character."
 						      string ""))))))))
 
 (defun isearch-emoji-by-name (&optional count)
-  "Read an Emoji name and add it to the search string.
-The command accepts CLDR short names like 'smiling face' or
-'heart with arrow' and completion is available.  With argument,
-add COUNT copies of the Emoji."
+  "Read an Emoji name and add it to the search string COUNT times.
+COUNT (interactively, the prefix argument) defaults to 1.
+The command accepts Unicode names like \"smiling face\" or
+\"heart with arrow\", and completion is available."
   (interactive "p")
   (with-isearch-suspended
    (let ((emoji (with-temp-buffer
