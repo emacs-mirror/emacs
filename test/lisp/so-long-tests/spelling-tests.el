@@ -36,12 +36,11 @@
 ;; make lisp/so-long-tests/spelling-tests SELECTOR=t
 
 ;; Only define the test if spell-checking is possible.
-(when (and ispell-program-name
-           (executable-find ispell-program-name)
-           (condition-case ()
-               (progn (ispell-check-version) t)
-             (error nil))
-           (member "british" (ispell-valid-dictionary-list)))
+(when (ignore-errors
+        (and ispell-program-name
+             (executable-find ispell-program-name)
+             (progn (ispell-check-version) t)
+             (member "british" (ispell-valid-dictionary-list))))
   (ert-deftest so-long-spelling ()
     "Check the spelling in the source code."
     :tags '(:unstable) ;; It works for me, but I'm not sure about others.
