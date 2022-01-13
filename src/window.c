@@ -5861,7 +5861,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 
       /* We moved the window start towards ZV, so PT may be now
 	 in the scroll margin at the top.  */
-      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+      if (IT_CHARPOS (it) < PT)
+	move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
       if (IT_CHARPOS (it) == PT
 	  && it.current_y >= this_scroll_margin
 	  && it.current_y <= last_y - WINDOW_TAB_LINE_HEIGHT (w)
