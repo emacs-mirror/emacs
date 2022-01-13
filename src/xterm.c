@@ -9459,7 +9459,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case EnterNotify:
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
-      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
 #ifdef HAVE_XWIDGETS
       {
@@ -9541,7 +9543,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       }
 #endif
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
-      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event->xcrossing.window);
 #if defined HAVE_X_TOOLKIT && defined HAVE_XINPUT2
@@ -10152,13 +10156,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 	    goto XI_OTHER;
 	  case XI_Enter:
-	    any = x_any_window_to_frame (dpyinfo, enter->event);
+
+	    any = x_top_window_to_frame (dpyinfo, enter->event);
 	    ev.x = lrint (enter->event_x);
 	    ev.y = lrint (enter->event_y);
-	    ev.window = leave->event;
-
+	    ev.window = enter->event;
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    /* There is no need to handle entry/exit events for
+	       passive focus from non-top windows at all, since they
+	       are an inferiors of the frame's top window, which will
+	       get virtual events.  */
+	    if (any)
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (!any)
+	      any = x_any_window_to_frame (dpyinfo, enter->event);
+
 	    {
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
@@ -10222,11 +10236,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
 #endif
 	    goto XI_OTHER;
+
 	  case XI_Leave:
 	    ev.x = lrint (leave->event_x);
 	    ev.y = lrint (leave->event_y);
 	    ev.window = leave->event;
-	    any = x_any_window_to_frame (dpyinfo, leave->event);
+	    any = x_top_window_to_frame (dpyinfo, leave->event);
 
 #ifdef HAVE_XWIDGETS
 	    {
@@ -10244,7 +10259,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (any)
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (!any)
+	      any = x_any_window_to_frame (dpyinfo, leave->event);
 
 #ifndef USE_X_TOOLKIT
 	    f = x_top_window_to_frame (dpyinfo, leave->event);
