@@ -6555,7 +6555,7 @@ signalled.  If NOERROR, the non-loop parts of the chain is returned."
                    (eq func orig-func))
            (if noerror
                (throw 'loop chain)
-             (error "Alias loop for `%s'" orig-func)))
+             (signal 'cyclic-function-indirection (list orig-func))))
          (push func chain))
        chain))))
 
