@@ -598,7 +598,7 @@ It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
 called without prefix argument, to make the most common case faster:
 replacing entire matches.
 
-*** New command 'xref-find-references-and-replace'.
+*** New command 'xref-find-references-and-replace' to rename one identifier.
 
 ** File notifications
 
