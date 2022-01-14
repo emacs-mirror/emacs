@@ -1478,6 +1478,22 @@ is nil, prompt only if there's no usable symbol at point."
   (interactive (list (xref--read-identifier "Find references of: ")))
   (xref--find-xrefs identifier 'references identifier nil))
 
+(defun xref-find-references-and-replace (from to)
+  "Replace all references to identifier FROM with TO."
+  (interactive
+   (let ((common
+          (query-replace-read-args "Query replace identifier" nil)))
+     (list (nth 0 common) (nth 1 common))))
+  (require 'xref)
+  (with-current-buffer
+      (let ((xref-show-xrefs-function
+             ;; Some future-proofing (bug#44905).
+             (custom--standard-value 'xref-show-xrefs-function))
+            ;; Disable auto-jumping, it will mess up replacement logic.
+            xref-auto-jump-to-first-xref)
+        (xref-find-references from))
+    (xref-query-replace-in-results ".*" to)))
+
 ;;;###autoload
 (defun xref-find-definitions-at-mouse (event)
   "Find the definition of identifier at or around mouse click.

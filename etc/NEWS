@@ -598,6 +598,8 @@ It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
 without prefix argument, to make the most common case faster:
 replacing all matches entirely.
 
+*** New command 'xref-find-references-and-replace'.
+
 ** File notifications
 
 +++
