@@ -609,9 +609,7 @@ See also `image-dired-thumbnail-storage'."
         ((eq 'use-image-dired-dir image-dired-thumbnail-storage)
          (let* ((f (expand-file-name file))
                 (hash
-                 ;; SHA1 is slightly faster than MD5, so let's use it.
-                 ;; (We don't need anything crytographically strong.)
-                 (sha1 (file-name-as-directory (file-name-directory f)))))
+                 (md5 (file-name-as-directory (file-name-directory f)))))
            (format "%s%s%s.thumb.%s"
                    (file-name-as-directory (expand-file-name (image-dired-dir)))
                    (file-name-base f)
