@@ -670,11 +670,10 @@ records.  @xref{Function Cells}.
 @end defun
 
 @defun function-alias-p object &optional noerror
-Use the @code{function-alias-p} function to check whether an object is
-a function alias.  If it isn't, this predicate will return
-@code{nil}.  If it is, the value returned will be a list of symbol
-representing the function alias chain.  For instance, if @code{a} is
-an alias for @code{b}, and @code{b} is an alias for @code{c}:
+Checks whether @var{object} is a function alias.  If it is, it returns
+a list of symbols representing the function alias chain, else
+@code{nil}.  For instance, if @code{a} is an alias for @code{b}, and
+@code{b} is an alias for @code{c}:
 
 @example
 (function-alias-p 'a)
