@@ -182,8 +182,8 @@ prefix argument is ignored."
       (cond
        ;; If the text was already indented right, try completion.
        ((and (eq tab-always-indent 'complete)
-             (eq old-point (point))
-             (eq old-tick (buffer-chars-modified-tick))
+             (eql old-point (point))
+             (eql old-tick (buffer-chars-modified-tick))
              (or (null tab-first-completion)
                  (eq last-command this-command)
                  (and (equal tab-first-completion 'eol)
