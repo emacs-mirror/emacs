@@ -862,6 +862,7 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
     (mouse-set-point event)
     (highlight-symbol-at-point)))
 
+;;;###autoload
 (defun hi-lock-context-menu (menu click)
   "Populate MENU with a menu item to highlight symbol at CLICK."
   (save-excursion

@@ -1984,6 +1984,7 @@ Uses `Man-name-local-regexp'."
     (mouse-set-point e)
     (man (Man-default-man-entry))))
 
+;;;###autoload
 (defun Man-context-menu (menu click)
   "Populate MENU with commands that open a man page at point."
   (save-excursion
