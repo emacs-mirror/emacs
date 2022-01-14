@@ -226,6 +226,32 @@ e.g. 'emacs25').  On Red Hat-based systems, the corresponding command is
 
 On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.
 
+* Alternative window systems
+
+If you want to use Emacs on one of the alternative window systems
+available on GNU/Linux and some Unix systems, such as Wayland or
+Broadway, you can install the PGTK port of Emacs, which utilizes the
+GTK+ toolkit to support them, by passing '--with-pgtk' to configure,
+like this:
+
+	./configure --with-pgtk
+
+Keep in mind that the only toolkit which will work with this option is
+GTK+ version 3, and specifying any X-specific configuration option is an
+error when it is enabled.
+
+Afterwards, you will be able to switch between running Emacs on X,
+Wayland and Broadway using the 'GDK_BACKEND' environment variable.
+GTK+ should automatically detect and use the correct value for your
+system, but you may have to specify it manually.  For example, you
+must run Emacs like this to force GTK+ to run under Broadway:
+
+	GDK_BACKEND=broadway emacs ...
+
+Where '...' denotes any further options you may want to pass to Emacs.
+
+GNUstep also has support for the Wayland window system.  If that is what
+you want, see nextstep/INSTALL.
 
 DETAILED BUILDING AND INSTALLATION:
 
