@@ -465,7 +465,6 @@ character to the search string using an input method, and
 automatically disable the input method afterwards.
 @end itemize
 
-@item
 @findex isearch-char-by-name
 @kindex C-x 8 RET @r{(Incremental Search)}
 Type @kbd{C-x 8 @key{RET}} (@code{isearch-char-by-name}), followed by

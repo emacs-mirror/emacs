@@ -2317,7 +2317,7 @@ them.
 @item M-?
 Find all the references for the identifier at point.
 
-@itemx M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
+@item M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
 @itemx C-u M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Interactively replace @var{regexp} with @var{replacement} in the names
 of all the identifiers shown in the @file{*xref*} buffer.
