@@ -130,6 +130,8 @@ to confuse some users sometimes."
 (defvar cvs-bakprefix ".#"
   "The prefix that CVS prepends to files when rcsmerge'ing.")
 
+(autoload 'cvs-mode-toggle-mark "pcvs")
+
 (defvar-keymap cvs-status-map
   :doc "Local keymap for text properties of status."
   "<mouse-2>" #'cvs-mode-toggle-mark)
