@@ -11461,6 +11461,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  x_find_modifier_meanings (dpyinfo);
 		}
+	      else
+		{
+		  dpyinfo->xkb_desc = XkbGetMap (dpyinfo->display,
+						 (XkbKeySymsMask
+						  | XkbKeyTypesMask
+						  | XkbModifierMapMask
+						  | XkbVirtualModsMask),
+						 XkbUseCoreKbd);
+
+		  if (dpyinfo->xkb_desc)
+		    XkbGetNames (dpyinfo->display,
+				 XkbGroupNamesMask | XkbVirtualModNamesMask,
+				 dpyinfo->xkb_desc);
+		}
 
 	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	    }
