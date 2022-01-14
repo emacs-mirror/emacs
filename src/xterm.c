@@ -5923,7 +5923,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	if (!f1 && insist > 0)
 	  f1 = SELECTED_FRAME ();
 
-	if (f1)
+	if (f1 && FRAME_X_P (f1))
 	  {
 	    /* Ok, we found a frame.  Store all the values.
 	       last_mouse_glyph is a rectangle used to reduce the
@@ -5933,7 +5933,6 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    /* FIXME: what if F1 is not an X frame?  */
 	    dpyinfo = FRAME_DISPLAY_INFO (f1);
 	    remember_mouse_glyph (f1, win_x, win_y, &dpyinfo->last_mouse_glyph);
 	    dpyinfo->last_mouse_glyph_frame = f1;
