@@ -186,16 +186,16 @@ prefix argument is ignored."
              (eql old-tick (buffer-chars-modified-tick))
              (or (null tab-first-completion)
                  (eq last-command this-command)
-                 (and (equal tab-first-completion 'eol)
+                 (and (eq tab-first-completion 'eol)
                       (eolp))
-                 (and (member tab-first-completion
-                              '(word word-or-paren word-or-paren-or-punct))
+                 (and (memq tab-first-completion
+                            '(word word-or-paren word-or-paren-or-punct))
                       (not (eql 2 syn)))
-                 (and (member tab-first-completion
-                              '(word-or-paren word-or-paren-or-punct))
+                 (and (memq tab-first-completion
+                            '(word-or-paren word-or-paren-or-punct))
                       (not (or (eql 4 syn)
                                (eql 5 syn))))
-                 (and (equal tab-first-completion 'word-or-paren-or-punct)
+                 (and (eq tab-first-completion 'word-or-paren-or-punct)
                       (not (eql 1 syn)))))
         (completion-at-point))
 
