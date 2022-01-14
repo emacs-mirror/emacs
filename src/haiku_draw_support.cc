@@ -313,7 +313,7 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
       BRect bounds = bc.Bounds ();
       for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
 	{
-	  for (int x = 0; x <= BE_RECT_WIDTH (bounds); ++x)
+	  for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
 	    {
 	      if (bits[y * (stride / 4) + x] == 0xFF000000)
 		bits[y * (stride / 4) + x] = RGB_COLOR_UINT32 (low_color);
