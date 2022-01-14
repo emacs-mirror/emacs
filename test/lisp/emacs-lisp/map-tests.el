@@ -422,6 +422,9 @@ Evaluate BODY for each created map."
     (should (map-every-p (lambda (k _v) (zerop k)) map))))
 
 (ert-deftest test-map-into ()
+  ;; This test is unstable in Emacs 28, but the problem has been fixed
+  ;; in Emacs 29 (bug#46722).
+  :tags '(:unstable)
   (let* ((plist '(a 1 b 2))
          (alist '((a . 1) (b . 2)))
          (ht (map-into alist 'hash-table))
