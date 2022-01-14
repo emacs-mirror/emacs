@@ -2103,7 +2103,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 
   /* Make sure this buffer has its own value of symbol.  */
   XSETSYMBOL (variable, sym);	/* Update in case of aliasing.  */
-  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
+  tem = assq_no_quit (variable, BVAR (current_buffer, local_var_alist));
   if (NILP (tem))
     {
       if (let_shadows_buffer_binding_p (sym))
@@ -2183,7 +2183,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
   /* Get rid of this buffer's alist element, if any.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
-  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
+  tem = assq_no_quit (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
     bset_local_var_alist
       (current_buffer,
@@ -2224,7 +2224,7 @@ Also see `buffer-local-boundp'.*/)
     case SYMBOL_PLAINVAL: return Qnil;
     case SYMBOL_LOCALIZED:
       {
-	Lisp_Object tail, elt, tmp;
+	Lisp_Object tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
@@ -2232,13 +2232,9 @@ Also see `buffer-local-boundp'.*/)
 	if (EQ (blv->where, tmp)) /* The binding is already loaded.  */
 	  return blv_found (blv) ? Qt : Qnil;
 	else
-	  for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
-	    {
-	      elt = XCAR (tail);
-	      if (EQ (variable, XCAR (elt)))
-		return Qt;
-	    }
-	return Qnil;
+	  return NILP (assq_no_quit (variable, BVAR (buf, local_var_alist)))
+	    ? Qnil
+	    : Qt;
       }
     case SYMBOL_FORWARDED:
       {
