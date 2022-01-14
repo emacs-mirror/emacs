@@ -669,6 +669,22 @@ purposes, it is better to use @code{fset}, which does not keep such
 records.  @xref{Function Cells}.
 @end defun
 
+@defun function-alias-p object &optional noerror
+Checks whether @var{object} is a function alias.  If it is, it returns
+a list of symbols representing the function alias chain, else
+@code{nil}.  For instance, if @code{a} is an alias for @code{b}, and
+@code{b} is an alias for @code{c}:
+
+@example
+(function-alias-p 'a)
+    @result{} (b c)
+@end example
+
+If there's a loop in the definitions, an error will be signalled.  If
+@var{noerror} is non-@code{nil}, the non-looping parts of the chain is
+returned instead.
+@end defun
+
   You cannot create a new primitive function with @code{defun} or
 @code{defalias}, but you can use them to change the function definition of
 any symbol, even one such as @code{car} or @code{x-popup-menu} whose

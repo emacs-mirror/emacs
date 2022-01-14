@@ -18557,6 +18557,20 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 			    || (NILP (g->object)
 				&& (g->charpos == PT
 				    || (g->charpos == 0 && endpos - 1 == PT)));
+			  /* Perhaps the point position is inside
+			     invisible text?  In that case, we trust
+			     'set_cursor_from_row' to do its job and
+			     find the best position for the cursor.  */
+			  if (!exact_match_p)
+			    {
+			      Lisp_Object val =
+				get_char_property_and_overlay (make_fixnum (PT),
+							       Qinvisible,
+							       Qnil, NULL);
+
+			      if (TEXT_PROP_MEANS_INVISIBLE (val) != 0)
+				exact_match_p = true;
+			    }
 			}
 		      if (at_zv_p || exact_match_p)
 			{

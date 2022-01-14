@@ -3347,6 +3347,8 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_Motion);
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
+  XISetMask (m, XI_FocusIn);
+  XISetMask (m, XI_FocusOut);
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
   XISelectEvents (FRAME_X_DISPLAY (f),
@@ -3359,6 +3361,8 @@ setup_xi_event_mask (struct frame *f)
 #ifdef USE_X_TOOLKIT
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
+  XISetMask (m, XI_FocusIn);
+  XISetMask (m, XI_FocusOut);
 
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_OUTER_WINDOW (f),

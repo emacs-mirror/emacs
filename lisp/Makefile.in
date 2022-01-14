@@ -101,11 +101,10 @@ MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
   ./cedet/semantic/db.el ./emacs-lisp/cconv.el
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
+emacs = '$(EMACS)' $(EMACSOPT)
 
 ## Subdirectories, relative to builddir.
 SUBDIRS = $(sort $(shell find ${srcdir} -type d -print))

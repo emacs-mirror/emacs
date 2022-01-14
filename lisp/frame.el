@@ -2529,6 +2529,80 @@ deleting them."
         (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))))
 
+(eval-when-compile (require 'frameset))
+
+(defvar undelete-frame--deleted-frames nil
+  "Internal variable used by `undelete-frame--handle-delete-frame'.")
+
+(defun undelete-frame--handle-delete-frame (frame)
+  "Save the configuration of frames deleted with `delete-frame'.
+Only the 16 most recently deleted frames are saved."
+  (when (frame-live-p frame)
+    (setq undelete-frame--deleted-frames
+          (cons
+           (cons
+            (display-graphic-p)
+            (frameset-save
+             (list frame)
+             ;; When the daemon is started from a graphical
+             ;; environment, TTY frames have a 'display' parameter set
+             ;; to the value of $DISPLAY (see the note in
+             ;; `server--on-display-p').  Do not store that parameter
+             ;; in the frameset, otherwise `frameset-restore' attempts
+             ;; to restore a graphical frame.
+             :filters (if (display-graphic-p)
+                          frameset-filter-alist
+                        (cons '(display . :never)
+                              frameset-filter-alist))))
+           undelete-frame--deleted-frames))
+    (if (> (length undelete-frame--deleted-frames) 16)
+        (setq undelete-frame--deleted-frames
+              (butlast undelete-frame--deleted-frames)))))
+
+(define-minor-mode undelete-frame-mode
+  "Enable the `undelete-frame' command."
+  :group 'frames
+  :global t
+  (if undelete-frame-mode
+      (add-hook 'delete-frame-functions
+                #'undelete-frame--handle-delete-frame -75)
+    (remove-hook 'delete-frame-functions
+                 #'undelete-frame--handle-delete-frame)
+    (setq undelete-frame--deleted-frames nil)))
+
+(defun undelete-frame (&optional arg)
+  "Undelete a frame deleted with `delete-frame'.
+Without a prefix argument, undelete the most recently deleted
+frame.
+With a numerical prefix argument ARG between 1 and 16, where 1 is
+most recently deleted frame, undelete the ARGth deleted frame.
+When called from Lisp, returns the new frame."
+  (interactive "P")
+  (if (not undelete-frame-mode)
+      (user-error "Undelete-Frame mode is disabled")
+    (if (consp arg)
+        (user-error "Missing deleted frame number argument")
+      (let* ((number (pcase arg ('nil 1) ('- -1) (_ arg)))
+             (frames (frame-list))
+             (frameset (nth (1- number) undelete-frame--deleted-frames))
+             (graphic (display-graphic-p)))
+        (if (not (<= 1 number 16))
+            (user-error "%d is not a valid deleted frame number argument"
+                        number)
+          (if (not frameset)
+              (user-error "No deleted frame with number %d" number)
+            (if (not (eq graphic (car frameset)))
+                (user-error
+                 "Cannot undelete a %s display frame on a %s display"
+                 (if graphic "non-graphic" "graphic")
+                 (if graphic "graphic" "non-graphic"))
+              (setq undelete-frame--deleted-frames
+                    (delq frameset undelete-frame--deleted-frames))
+              (frameset-restore (cdr frameset))
+              (let ((frame (car (seq-difference (frame-list) frames))))
+                (when frame
+                  (select-frame-set-input-focus frame)
+                  frame)))))))))
 
 ;;; Window dividers.
 (defgroup window-divider nil
@@ -2873,6 +2947,7 @@ See also `toggle-frame-maximized'."
 (define-key ctl-x-5-map "o" #'other-frame)
 (define-key ctl-x-5-map "5" #'other-frame-prefix)
 (define-key ctl-x-5-map "c" #'clone-frame)
+(define-key ctl-x-5-map "u" #'undelete-frame)
 (define-key global-map [f11] #'toggle-frame-fullscreen)
 (define-key global-map [(meta f10)] #'toggle-frame-maximized)
 (define-key esc-map    [f10]        #'toggle-frame-maximized)

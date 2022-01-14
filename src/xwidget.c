@@ -1447,8 +1447,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 #ifdef HAVE_XINPUT2
   else if (event->type == GenericEvent)
     {
-      xg_event->crossing.x = (gdouble) xev->event_x;
-      xg_event->crossing.y = (gdouble) xev->event_y;
+      xg_event->crossing.x = x;
+      xg_event->crossing.y = y;
       xg_event->crossing.x_root = (gdouble) xev->root_x;
       xg_event->crossing.y_root = (gdouble) xev->root_y;
       xg_event->crossing.time = xev->time;

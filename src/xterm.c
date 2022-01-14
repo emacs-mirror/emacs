@@ -20,6 +20,72 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* New display code by Gerd Moellmann <gerd@gnu.org>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
+/* X window system support for GNU Emacs
+
+   This file is part of the X window system support for GNU Emacs.  It
+   contains subroutines comprising the redisplay interface, setting up
+   scroll bars and widgets, and handling input.
+
+   INPUT
+
+   Emacs handles input by running pselect in a loop, which returns
+   whenever there is input available on the connection to the X
+   server.  On some systems, Emacs also arranges for any new input on
+   that connection to send an asynchronous signal.  Whenever pselect
+   returns, or such a signal is received and input is not blocked,
+   XTread_socket is called and translates X11 events read by Xlib into
+   struct input_events, which are then stored in the keyboard buffer,
+   to be processed and acted upon at some later time.  The function
+   handle_one_xevent is responsible for handling core events after
+   they are filtered, and filtering X Input Extension events.  It also
+   performs actions on some special events, such as updating the
+   dimensions of a frame after a ConfigureNotify is sent by the X
+   server to inform us that it changed.
+
+   Before such events are translated, an Emacs build with
+   internationalization enabled (the default since X11R6) will filter
+   events through an X Input Method (XIM) or GTK, which might decide
+   to intercept the event and send a different one in its place, for
+   reasons such as enabling the user to insert international
+   characters that aren't on his keyboard by typing a sequence of
+   characters which are.  See the function x_filter_event and its
+   callers for more details.
+
+   Events that cause Emacs to quit are treated specially by the code
+   that stores them in the keyboard buffer and generally cause an
+   immediate interrupt.  Such an interrupt can lead to a longjmp from
+   the code that stored the keyboard event, which isn't safe inside
+   XTread_socket.  To avoid this problem, XTread_socket is provided a
+   special event buffer named hold_quit.  When a quit event is
+   encountered, it is stored inside this special buffer, which will
+   cause the keyboard code that called XTread_socket to store it at a
+   later time when it is safe to do so.
+
+   handle_one_xevent will generally have to determine which frame an
+   event should be attributed to.  This is not easy, because events
+   can come from multiple X windows, and a frame can also have
+   multiple windows.  handle_one_xevent usually calls the function
+   x_any_window_to_frame, which searches for a frame by toplevel
+   window and widget windows.  There are also some other functions for
+   searching by specific types of window, such as
+   x_top_window_to_frame (which only searches for frames by toplevel
+   window), and x_menubar_window_to_frame (which will only search
+   through frame menu bars).
+
+   INPUT FOCUS
+
+   Under X, the window where keyboard input is sent is not always
+   explictly defined.  When there is a focus window, it receives what
+   is referred to as "explicit focus", but when there is none, it
+   receives "implicit focus" whenever the pointer enters it, and loses
+   that focus when the pointer leaves.  When the toplevel window of a
+   frame receives an explicit focus event (FocusIn or FocusOut), we
+   treat that frame as having the current input focus, but when there
+   is no focus window, we treat each frame as having the input focus
+   whenever the pointer enters it, and undo that treatment when the
+   pointer leaves it.  See the callers of x_detect_focus_change for
+   more details.  */
+
 #include <config.h>
 #include <stdlib.h>
 #include <math.h>
@@ -4126,7 +4192,9 @@ x_draw_glyph_string (struct glyph_string *s)
       area_max_x = area_x + area_width - 1;
 
       decoration_width = s->width;
-      if (area_max_x < (s->x + decoration_width - 1))
+      if (!s->row->mode_line_p
+	  && !s->row->tab_line_p
+	  && area_max_x < (s->x + decoration_width - 1))
 	decoration_width -= (s->x + decoration_width - 1) - area_max_x;
 
       /* Draw relief if not yet drawn.  */
@@ -5252,21 +5320,18 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
         int focus_state
           = focus_frame ? focus_frame->output_data.x->focus_state : 0;
 
-#ifdef USE_GTK
 	if (xi_event->evtype == XI_FocusIn
 	    || xi_event->evtype == XI_FocusOut)
 	  x_focus_changed ((xi_event->evtype == XI_FocusIn
 			    ? FocusIn : FocusOut),
 			   FOCUS_EXPLICIT,
 			   dpyinfo, frame, bufp);
-	else
-#endif
-	  if ((xi_event->evtype == XI_Enter
-	       || xi_event->evtype == XI_Leave)
-	      && (((XIEnterEvent *) xi_event)->detail
-		  != XINotifyInferior)
-	      && ((XIEnterEvent *) xi_event)->focus
-	      && !(focus_state & FOCUS_EXPLICIT))
+	else if ((xi_event->evtype == XI_Enter
+		  || xi_event->evtype == XI_Leave)
+		 && (((XIEnterEvent *) xi_event)->detail
+		     != XINotifyInferior)
+		 && ((XIEnterEvent *) xi_event)->focus
+		 && !(focus_state & FOCUS_EXPLICIT))
 	  x_focus_changed ((xi_event->evtype == XI_Enter
 			    ? FocusIn : FocusOut),
 			   FOCUS_IMPLICIT,
@@ -5386,8 +5451,6 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   dpyinfo->super_mod_mask = 0;
   dpyinfo->hyper_mod_mask = 0;
 
-  XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
-
 #ifdef HAVE_XKB
   if (dpyinfo->xkb_desc)
     {
@@ -5431,6 +5494,8 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       return;
     }
 #endif
+
+  XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
 
   syms = XGetKeyboardMapping (dpyinfo->display,
 			      min_code, max_code - min_code + 1,
@@ -5924,7 +5989,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	if (!f1 && insist > 0)
 	  f1 = SELECTED_FRAME ();
 
-	if (f1)
+	if (f1 && FRAME_X_P (f1))
 	  {
 	    /* Ok, we found a frame.  Store all the values.
 	       last_mouse_glyph is a rectangle used to reduce the
@@ -5934,7 +5999,6 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    /* FIXME: what if F1 is not an X frame?  */
 	    dpyinfo = FRAME_DISPLAY_INFO (f1);
 	    remember_mouse_glyph (f1, win_x, win_y, &dpyinfo->last_mouse_glyph);
 	    dpyinfo->last_mouse_glyph_frame = f1;
@@ -8285,8 +8349,10 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
       && event->type == GenericEvent
       && (event->xgeneric.extension
 	  == dpyinfo->xi2_opcode)
-      && (event->xgeneric.evtype
-	  == XI_KeyPress))
+      && ((event->xgeneric.evtype
+	   == XI_KeyPress)
+	  || (event->xgeneric.evtype
+	      == XI_KeyRelease)))
     {
       f1 = x_any_window_to_frame (dpyinfo,
 				  ((XIDeviceEvent *)
@@ -9458,7 +9524,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case EnterNotify:
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
-      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
 #ifdef HAVE_XWIDGETS
       {
@@ -9540,7 +9608,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       }
 #endif
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
-      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+      if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
+	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
       f = x_top_window_to_frame (dpyinfo, event->xcrossing.window);
 #if defined HAVE_X_TOOLKIT && defined HAVE_XINPUT2
@@ -10151,13 +10221,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 	    goto XI_OTHER;
 	  case XI_Enter:
-	    any = x_any_window_to_frame (dpyinfo, enter->event);
+
+	    any = x_top_window_to_frame (dpyinfo, enter->event);
 	    ev.x = lrint (enter->event_x);
 	    ev.y = lrint (enter->event_y);
-	    ev.window = leave->event;
-
+	    ev.window = enter->event;
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    /* There is no need to handle entry/exit events for
+	       passive focus from non-top windows at all, since they
+	       are an inferiors of the frame's top window, which will
+	       get virtual events.  */
+	    if (any)
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (!any)
+	      any = x_any_window_to_frame (dpyinfo, enter->event);
+
 	    {
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
@@ -10221,11 +10301,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
 #endif
 	    goto XI_OTHER;
+
 	  case XI_Leave:
 	    ev.x = lrint (leave->event_x);
 	    ev.y = lrint (leave->event_y);
 	    ev.window = leave->event;
-	    any = x_any_window_to_frame (dpyinfo, leave->event);
+	    any = x_top_window_to_frame (dpyinfo, leave->event);
 
 #ifdef HAVE_XWIDGETS
 	    {
@@ -10243,7 +10324,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (any)
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+	    if (!any)
+	      any = x_any_window_to_frame (dpyinfo, leave->event);
 
 #ifndef USE_X_TOOLKIT
 	    f = x_top_window_to_frame (dpyinfo, leave->event);
@@ -11167,6 +11253,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_PropertyEvent:
 	  case XI_HierarchyChanged:
 	  case XI_DeviceChanged:
+
+#ifdef XISlaveSwitch
+	    if (xi_event->evtype == XI_DeviceChanged
+		&& (((XIDeviceChangedEvent *) xi_event)->reason
+		    == XISlaveSwitch))
+	      goto XI_OTHER;
+#endif
 	    x_init_master_valuators (dpyinfo);
 	    goto XI_OTHER;
 #ifdef XI_TouchBegin
@@ -11433,6 +11526,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  x_find_modifier_meanings (dpyinfo);
 		}
+	      else
+		{
+		  dpyinfo->xkb_desc = XkbGetMap (dpyinfo->display,
+						 (XkbKeySymsMask
+						  | XkbKeyTypesMask
+						  | XkbModifierMapMask
+						  | XkbVirtualModsMask),
+						 XkbUseCoreKbd);
+
+		  if (dpyinfo->xkb_desc)
+		    XkbGetNames (dpyinfo->display,
+				 XkbGroupNamesMask | XkbVirtualModNamesMask,
+				 dpyinfo->xkb_desc);
+		}
+
+	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	    }
 	}
 #endif

@@ -694,6 +694,126 @@ Print the current user.  This Eshell version of @command{whoami}
 supports Tramp.
 @end table
 
+@subsection Defining new built-in commands
+While Eshell can run Lisp functions directly as commands, it may be
+more convenient to provide a special built-in command for
+Eshell.  Built-in commands are just ordinary Lisp functions designed
+to be called from Eshell.  When defining an Eshell-specific version of
+an existing function, you can give that function a name starting with
+@code{eshell/} so that Eshell knows to use it.
+
+@defmac eshell-eval-using-options name macro-args options body@dots{}
+This macro processes a list of @var{macro-args} for the command
+@var{name} using a set of command line @var{options}.  If the
+arguments are parsed successfully, it will store the resulting values
+in local symbols and execute @var{body}; any remaining arguments will
+be available in the locally let-bound variable @code{args}.  The
+return value is the value of the last form in @var{body}.
+
+If an unknown option was passed in @var{macro-args} and an external
+command was specified (see below), this macro will start a process for
+that command and throw the tag @code{eshell-external} with the new
+process as its value.
+
+@var{options} should be a list beginning with one or more elements of
+the following form, with each element representing a particular
+command-line switch:
+
+@example
+(@var{short} @var{long} @var{value} @var{symbol} @var{help-string})
+@end example
+
+@table @var
+@item short
+This element, if non-nil, should be a character to be used as a short
+switch, like @code{-@var{short}}.  At least one of this element and
+@var{long} must be non-nil.
+
+@item long
+This element, if non-nil, should be a string to be used as a long
+switch, like @code{--@var{long}}.
+
+@item value
+This element is the value associated with the option.  It can be
+either:
+
+@table @asis
+@item @code{t}
+The option needs a value to be specified after the switch.
+
+@item @code{nil}
+The option is given the value @code{t}.
+
+@item anything else
+The option is given the specified value.
+@end table
+
+@item symbol
+This element is the Lisp symbol that will be bound to @var{value}.  If
+@var{symbol} is @code{nil}, specifying this switch will instead call
+@code{eshell-show-usage}, and so is appropriate for an option like
+@code{--help}.
+
+@item help-string
+This element is a documentation string for the option, which will be
+displayed when @code{eshell-show-usage} is invoked.
+@end table
+
+After the list of command-line switch elements, @var{options} can
+include additional keyword arguments to control how
+@code{eshell-eval-using-options} behaves.  Some of these take
+arguments, while others don't.  The recognized keywords are:
+
+@table @code
+@item :external @var{string}
+Specify @var{string} as an external command to run if there are
+unknown switches in @var{macro-args}.
+
+@item :usage @var{string}
+Set @var{string} as the initial part of the command's documentation
+string.  It appears before the options are listed.
+
+@item :post-usage @var{string}
+Set @var{string} to be the (optional) trailing part of the command's
+documentation string.  It appears after the list of options, but
+before the final part of the documentation about the associated
+external command, if there is one.
+
+@item :show-usage
+If present, then show the usage message if the command is called with
+no arguments.
+
+@item :preserve-args
+Normally, @code{eshell-eval-using-options} flattens the list of
+arguments in @var{macro-args} and converts each to a string.  If this
+keyword is present, avoid doing that, instead preserving the original
+arguments.  This is useful for commands which want to accept arbitrary
+Lisp objects.
+
+@item :parse-leading-options-only
+If present, do not parse dash or switch arguments after the first
+positional argument.  Instead, treat them as positional arguments
+themselves.
+@end table
+
+For example, you could handle a subset of the options for the
+@code{ls} command like this:
+
+@example
+(eshell-eval-using-options
+ "ls" macro-args
+ '((?a  nil      nil show-all       "show all files")
+   (?I  "ignore" t   ignore-pattern "ignore files matching pattern")
+   (nil "help"   nil nil            "show this help message")
+ :external "ls"
+ :usage "[OPTION]... [FILE]...
+  List information about FILEs (the current directory by default).")
+ ;; List the files in ARGS somehow...
+ )
+@end example
+
+@end defmac
+
 @subsection Built-in variables
 Eshell knows a few built-in variables:
 

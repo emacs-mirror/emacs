@@ -20,6 +20,9 @@
 
 SHELL = @SHELL@
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
+
 # Following ../lisp/Makefile.in.
 EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp

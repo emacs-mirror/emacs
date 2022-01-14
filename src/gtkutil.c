@@ -6255,16 +6255,19 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
       kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
     }
 
-#ifdef USABLE_SIGIO
-  raise (SIGIO);
-#endif
+  XNoOp (FRAME_X_DISPLAY (f));
   return true;
 }
 
 bool
 xg_filter_key (struct frame *frame, XEvent *xkey)
 {
-  GdkEvent *xg_event = gdk_event_new (GDK_KEY_PRESS);
+  GdkEvent *xg_event = gdk_event_new ((xkey->type == ButtonPress
+#ifdef HAVE_XINPUT2
+				       || (xkey->type == GenericEvent
+					   && xkey->xgeneric.evtype == XI_KeyPress)
+#endif
+				       ) ? GDK_KEY_PRESS : GDK_KEY_RELEASE);
   GdkDisplay *dpy = gtk_widget_get_display (FRAME_GTK_WIDGET (frame));
   GdkKeymap *keymap = gdk_keymap_get_for_display (dpy);
   GdkModifierType consumed;

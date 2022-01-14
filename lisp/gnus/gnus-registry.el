@@ -355,8 +355,13 @@ This is not required after changing `gnus-registry-cache-file'."
   "Load the registry from the cache file."
   (interactive)
   (let ((file gnus-registry-cache-file))
+    (gnus-message 5 "Initializing the registry")
     (condition-case nil
-        (gnus-registry-read file)
+        (progn
+          (gnus-registry-read file)
+          (gnus-registry-install-hooks)
+          (gnus-registry-install-shortcuts)
+          (setq gnus-registry-enabled t))
       (file-error
        ;; Fix previous mis-naming of the registry file.
        (let ((old-file-name
@@ -846,9 +851,9 @@ Overrides existing keywords with FORCE set non-nil."
 
 (defun gnus-registry-register-message-ids ()
   "Register the Message-ID of every article in the group."
-  (unless (or (gnus-parameter-registry-ignore gnus-newsgroup-name)
-	      (null gnus-registry-register-all)
-              (null (eieio-object-p gnus-registry-db)))
+  (unless (or (null gnus-registry-enabled)
+              (null gnus-registry-register-all)
+	      (gnus-parameter-registry-ignore gnus-newsgroup-name))
     (dolist (article gnus-newsgroup-articles)
       (let* ((id (gnus-registry-fetch-message-id-fast article))
              (groups (gnus-registry-get-id-key id 'group)))
@@ -1175,7 +1180,8 @@ non-nil."
 (defun gnus-registry-clear ()
   "Clear the registry."
   (gnus-registry-unload-hook)
-  (setq gnus-registry-db nil))
+  (setq gnus-registry-db nil
+        gnus-registry-enabled nil))
 
 (gnus-add-shutdown 'gnus-registry-clear 'gnus)
 
@@ -1183,16 +1189,12 @@ non-nil."
 (defun gnus-registry-initialize ()
   "Initialize the Gnus registry."
   (interactive)
-  (gnus-message 5 "Initializing the registry")
-  (gnus-registry-install-hooks)
-  (gnus-registry-install-shortcuts)
   (if (gnus-alive-p)
       (gnus-registry-load)
     (add-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)))
 
 (defun gnus-registry-install-hooks ()
   "Install the registry hooks."
-  (setq gnus-registry-enabled t)
   (add-hook 'gnus-summary-article-move-hook #'gnus-registry-action)
   (add-hook 'gnus-summary-article-delete-hook #'gnus-registry-action)
   (add-hook 'gnus-summary-article-expire-hook #'gnus-registry-action)
@@ -1212,10 +1214,9 @@ non-nil."
   (remove-hook 'gnus-save-newsrc-hook #'gnus-registry-save)
   (remove-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)
 
-  (remove-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids)
-  (setq gnus-registry-enabled nil))
+  (remove-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids))
 
-(add-hook 'gnus-registry-unload-hook #'gnus-registry-unload-hook)
+(add-hook 'gnus-registry-unload-hook #'gnus-registry-clear)
 
 (defun gnus-registry-install-p ()
   "Return non-nil if the registry is enabled (and maybe enable it first).

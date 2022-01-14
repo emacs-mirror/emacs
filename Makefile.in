@@ -319,6 +319,9 @@ GLIB_COMPILE_SCHEMAS = glib-compile-schemas
 # Program name transformation.
 TRANSFORM = @program_transform_name@
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
+
 # What emacs should be called when installed.
 EMACS_NAME = `echo emacs | sed '$(TRANSFORM)'`
 EMACS = ${EMACS_NAME}${EXEEXT}

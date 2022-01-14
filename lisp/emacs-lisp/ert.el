@@ -335,14 +335,19 @@ It should only be stopped when ran from inside `ert--run-test-internal'."
                                  (unless (eql ,value ',default-value)
                                    (list :value ,value))
                                  (unless (eql ,value ',default-value)
-                                   (let ((-explainer-
-                                          (and (symbolp ',fn-name)
-                                               (get ',fn-name 'ert-explainer))))
-                                     (when -explainer-
-                                       (list :explanation
-                                             (apply -explainer- ,args))))))
+                                   (when-let ((-explainer-
+                                               (ert--get-explainer ',fn-name)))
+                                     (list :explanation
+                                           (apply -explainer- ,args)))))
                          value)
                ,value))))))))
+
+(defun ert--get-explainer (fn-name)
+  (when (symbolp fn-name)
+    (cl-loop for fn in (cons fn-name (function-alias-p fn-name))
+             for explainer = (get fn 'ert-explainer)
+             when explainer
+             return explainer)))
 
 (defun ert--expand-should (whole form inner-expander)
   "Helper function for the `should' macro and its variants.

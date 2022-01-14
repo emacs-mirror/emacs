@@ -668,6 +668,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; The key translations defined in the C-x 8 prefix should add
     ;; characters to the search string.  See iso-transl.el.
     (define-key map "\C-x8\r" 'isearch-char-by-name)
+    (define-key map "\C-x8e\r" 'isearch-emoji-by-name)
     map)
   "Keymap for `isearch-mode'.")
 
@@ -758,6 +759,8 @@ This is like `describe-bindings', but displays only Isearch keys."
      :help "Search for literal char"]
     ["Search for char by name" isearch-char-by-name
      :help "Search for character by name"]
+    ["Search for Emoji by name" isearch-emoji-by-name
+     :help "Search for Emoji by its Unicode name"]
     "---"
     ["Toggle input method" isearch-toggle-input-method
      :help "Toggle input method for search"]
@@ -2746,6 +2749,24 @@ With argument, add COUNT copies of the character."
 	       isearch-new-message (concat isearch-message
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
+
+(defun isearch-emoji-by-name (&optional count)
+  "Read an Emoji name and add it to the search string COUNT times.
+COUNT (interactively, the prefix argument) defaults to 1.
+The command accepts Unicode names like \"smiling face\" or
+\"heart with arrow\", and completion is available."
+  (interactive "p")
+  (with-isearch-suspended
+   (let ((emoji (with-temp-buffer
+                  (emoji-search)
+                  (if (and (integerp count) (> count 1))
+                      (apply 'concat (make-list count (buffer-string)))
+                    (buffer-string)))))
+     (when emoji
+       (setq isearch-new-string (concat isearch-string emoji)
+             isearch-new-message (concat isearch-message
+					   (mapconcat 'isearch-text-char-description
+						      emoji "")))))))
 
 (defun isearch-search-and-update ()
   "Do the search and update the display."

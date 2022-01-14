@@ -8861,7 +8861,11 @@ Define a constant M whose value is the result of `easy-mmode-define-keymap'.
 The M, BS, and ARGS arguments are as per that function.  DOC is
 the constant's documentation.
 
+This macro is deprecated; use `defvar-keymap' instead.
+
 \(fn M BS DOC &rest ARGS)" nil t)
+
+(function-put 'easy-mmode-defmap 'doc-string-elt '3)
 
 (function-put 'easy-mmode-defmap 'lisp-indent-function '1)
 
@@ -8870,6 +8874,8 @@ Define variable ST as a syntax-table.
 CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
 
 \(fn ST CSS DOC &rest ARGS)" nil t)
+
+(function-put 'easy-mmode-defsyntax 'doc-string-elt '3)
 
 (function-put 'easy-mmode-defsyntax 'lisp-indent-function '1)
 
@@ -10291,6 +10297,31 @@ disabled.
 ;;;### (autoloads nil "elide-head" "elide-head.el" (0 0 0 0))
 ;;; Generated autoloads from elide-head.el
 
+(autoload 'elide-head-mode "elide-head" "\
+Toggle eliding (hiding) header material in the current buffer.
+
+This is a minor mode.  If called interactively, toggle the `Elide-Head
+mode' mode.  If the prefix argument is positive, enable the mode, and
+if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `elide-head-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+When Elide Header mode is enabled, headers are hidden according
+to `elide-head-headers-to-hide'.
+
+This is suitable as an entry on `find-file-hook' or appropriate
+mode hooks.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'elide-head "elide-head" "\
 Hide header material in buffer according to `elide-head-headers-to-hide'.
 
@@ -10300,6 +10331,8 @@ an elided material again.
 This is suitable as an entry on `find-file-hook' or appropriate mode hooks.
 
 \(fn &optional ARG)" t nil)
+
+(make-obsolete 'elide-head 'elide-head-mode '"29.1")
 
 (register-definition-prefixes "elide-head" '("elide-head-"))
 
@@ -16764,6 +16797,11 @@ be found in variable `hi-lock-interactive-patterns'." t nil)
 (autoload 'hi-lock-find-patterns "hi-lock" "\
 Add patterns from the current buffer to the list of hi-lock patterns." t nil)
 
+(autoload 'hi-lock-context-menu "hi-lock" "\
+Populate MENU with a menu item to highlight symbol at CLICK.
+
+\(fn MENU CLICK)" nil nil)
+
 (register-definition-prefixes "hi-lock" '("hi-lock-" "turn-on-hi-lock-if-enabled"))
 
 ;;;***
@@ -19155,25 +19193,37 @@ system." t nil)
  (put 'info-lookup-symbol 'info-file "emacs")
 
 (autoload 'info-lookup-symbol "info-look" "\
-Display the definition of SYMBOL, as found in the relevant manual.
-When this command is called interactively, it reads SYMBOL from the
-minibuffer.  In the minibuffer, use \\<minibuffer-local-completion-map>\\[next-history-element] to yank the default argument
-value into the minibuffer so you can edit it.  The default symbol is the
-one found at point.
+Look up and display documentation of SYMBOL in the relevant Info manual.
+SYMBOL should be an identifier: a function or method, a macro, a variable,
+a data type, a class, etc.
 
-With prefix arg MODE a query for the symbol help mode is offered.
+Interactively, prompt for SYMBOL; you can use \\<minibuffer-local-completion-map>\\[next-history-element] in the minibuffer
+to yank the default argument value into the minibuffer so you can edit it.
+The default symbol is the one found at point.
+
+MODE is the major mode whose Info manuals to search for the documentation
+of SYMBOL.  It defaults to the current buffer's `major-mode'; if that
+mode doesn't have any Info manuals known to Emacs, the command will
+prompt for MODE to use, with completion.  With prefix arg, the command
+always prompts for MODE.
 
 \(fn SYMBOL &optional MODE)" t nil)
  (put 'info-lookup-file 'info-file "emacs")
 
 (autoload 'info-lookup-file "info-look" "\
-Display the documentation of a file.
-When this command is called interactively, it reads FILE from the minibuffer.
-In the minibuffer, use \\<minibuffer-local-completion-map>\\[next-history-element] to yank the default file name
-into the minibuffer so you can edit it.
+Look up and display documentation of FILE in the relevant Info manual.
+FILE should be the name of a file; a notable example is a standard header
+file that is part of the C or C++ standard library.
+
+Interactively, prompt for FILE; you can use \\<minibuffer-local-completion-map>\\[next-history-element] in the minibuffer
+to yank the default argument value into the minibuffer so you can edit it.
 The default file name is the one found at point.
 
-With prefix arg MODE a query for the file help mode is offered.
+MODE is the major mode whose Info manuals to search for the documentation
+of FILE.  It defaults to the current buffer's `major-mode'; if that
+mode doesn't have any Info manuals known to Emacs, the command will
+prompt for MODE to use, with completion.  With prefix arg, the command
+always prompts for MODE.
 
 \(fn FILE &optional MODE)" t nil)
 
@@ -19859,7 +19909,7 @@ one of the aforementioned options instead of using this mode.
 
 ;;;### (autoloads nil "jsonrpc" "jsonrpc.el" (0 0 0 0))
 ;;; Generated autoloads from jsonrpc.el
-(push (purecopy '(jsonrpc 1 0 14)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 15)) package--builtin-versions)
 
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
@@ -21310,6 +21360,11 @@ Get a Un*x manual page of the item under point and put it in a buffer.
 Default bookmark handler for Man buffers.
 
 \(fn BOOKMARK)" nil nil)
+
+(autoload 'Man-context-menu "man" "\
+Populate MENU with commands that open a man page at point.
+
+\(fn MENU CLICK)" nil nil)
 
 (register-definition-prefixes "man" '("Man-" "man"))
 
@@ -31067,6 +31122,8 @@ If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 
 \(fn GROUP &optional FUNCTION)" t nil)
 
+(defalias 'shortdoc #'shortdoc-display-group)
+
 (register-definition-prefixes "shortdoc" '("alist" "buffer" "define-short-documentation-group" "file" "hash-table" "keymaps" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
 
 ;;;***
@@ -39394,6 +39451,32 @@ unless `windmove-create-window' is non-nil and a new window is created.
 
 \(fn &optional ARG)" t nil)
 
+(defvar windmove-mode t "\
+Non-nil if Windmove mode is enabled.
+See the `windmove-mode' command
+for a description of this minor mode.")
+
+(custom-autoload 'windmove-mode "windmove" nil)
+
+(autoload 'windmove-mode "windmove" "\
+Global minor mode for default windmove commands.
+
+This is a minor mode.  If called interactively, toggle the `Windmove
+mode' mode.  If the prefix argument is positive, enable the mode, and
+if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='windmove-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'windmove-default-keybindings "windmove" "\
 Set up keybindings for `windmove'.
 Keybindings are of the form MODIFIERS-{left,right,up,down},
@@ -39969,24 +40052,23 @@ Zone out, completely." t nil)
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
 ;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
-;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/base.el" "cedet/ede/config.el"
-;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
-;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
-;;;;;;  "cedet/ede/linux.el" "cedet/ede/locate.el" "cedet/ede/make.el"
-;;;;;;  "cedet/ede/shell.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
-;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
-;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
-;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
-;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
-;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
-;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
-;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
-;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
-;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
-;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
-;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
-;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
-;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/cpp-root.el"
+;;;;;;  "cedet/ede/custom.el" "cedet/ede/dired.el" "cedet/ede/emacs.el"
+;;;;;;  "cedet/ede/files.el" "cedet/ede/generic.el" "cedet/ede/linux.el"
+;;;;;;  "cedet/ede/locate.el" "cedet/ede/make.el" "cedet/ede/speedbar.el"
+;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
+;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
+;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
+;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
+;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
+;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
+;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
+;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
+;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
+;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
+;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
+;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
+;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
@@ -40005,8 +40087,8 @@ Zone out, completely." t nil)
 ;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
 ;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
 ;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
-;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
-;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
+;;;;;;  "cus-face.el" "cus-load.el" "cus-start.el" "custom.el" "dired-aux.el"
+;;;;;;  "dired-x.el" "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
 ;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
 ;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-custom.el"
 ;;;;;;  "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el"
@@ -40028,30 +40110,41 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
 ;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
 ;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "faces.el" "files.el" "font-core.el" "font-lock.el" "format.el"
-;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
-;;;;;;  "international/characters.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "eshell/esh-groups.el" "faces.el" "files.el" "finder-inf.el"
+;;;;;;  "font-core.el" "font-lock.el" "format.el" "frame.el" "help.el"
+;;;;;;  "hfy-cmap.el" "ibuf-ext.el" "indent.el" "international/characters.el"
+;;;;;;  "international/charprop.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-labels.el"
+;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
-;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "keymap.el" "language/burmese.el"
-;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
-;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
-;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
-;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
-;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
-;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
-;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
-;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
-;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
-;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
-;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
-;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
-;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
-;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
-;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
-;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
-;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
+;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
+;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
+;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
+;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
+;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
+;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
+;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
+;;;;;;  "jka-cmpr-hook.el" "keymap.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
+;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
+;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
+;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
+;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
+;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
+;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
+;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
+;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
+;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
+;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
+;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
+;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
+;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
+;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/cham.el"
+;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
+;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/emoji.el"
 ;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
 ;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
 ;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"

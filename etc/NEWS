@@ -223,6 +223,8 @@ inserted.
 This command will tell you the name of the Emoji at point.  (This
 command also works for non-Emoji characters.)
 
+*** New input method 'emoji'.
+
 ** Help
 
 ---
@@ -271,10 +273,15 @@ height use 'window-height' in combination with 'body-lines'.
 
 *** 'other-window-scroll-default' can define the other window to scroll.
 
-** Rcirc
+** Frames
 
 +++
-*** New command 'rcirc-when'.
+*** Deleted frames can now be undeleted.
+The 16 most recently deleted frames can be undeleted with 'C-x 5 u' when
+'undelete-frame-mode' is enabled.  Without a prefix argument, undelete
+the most recently deleted frame.  With a numerical prefix argument
+between 1 and 16, where 1 is the most recently deleted frame, undelete
+the corresponding deleted frame.
 
 ** Tab Bars and Tab Lines
 
@@ -306,6 +313,11 @@ frame if one exists; otherwise it creates a new frame.
 The Emacs server will be automatically stopped when certain conditions
 are met.  The conditions are given by the argument, which can be
 'empty', 'delete-frame' or 'kill-terminal'.
+
+** Rcirc
+
++++
+*** New command 'rcirc-when'.
 
 * Editing Changes in Emacs 29.1
 
@@ -391,6 +403,13 @@ the *Completions* buffer.
 
 +++
 *** New user option 'char-fold-override' disables default character equivalences.
+
++++
+*** New command 'isearch-emoji-by-name'.
+It is bound to 'C-x 8 e RET' during an incremental search.  The
+command accepts the Unicode name of an Emoji (for example, "smiling
+face" or "heart with arrow"), like 'C-x 8 e e', with minibuffer
+completion, and adds the Emoji into the search string.
 
 ** New minor mode 'glyphless-display-mode'.
 This allows an easy way to toggle seeing all glyphless characters in
@@ -574,6 +593,12 @@ to enable the display of the buffer list.
 *** New command 'xref-go-forward'.
 It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
 ('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
+
+*** 'xref-query-replace-in-results' does not prompt for FROM when
+called without prefix argument, to make the most common case faster:
+replacing entire matches.
+
+*** New command 'xref-find-references-and-replace' to rename one identifier.
 
 ** File notifications
 
@@ -917,6 +942,11 @@ The input must be encoded text.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'function-alias-p'.
+This predicate says whether an object is a function alias, and if it
+is, the alias chain is returned.
+
++++
 ** New variable 'lisp-directory' holds the directory of Emacs's own Lisp files.
 
 +++
@@ -1089,6 +1119,12 @@ dimensions.
 ** 'window-text-pixel-size' understands a new meaning of 'from'.
 Specifying a cons as the from argument allows to start measuring text
 from a specified amount of pixels above or below a position.
+
+---
+** 'eshell-eval-using-options' now follows POSIX/GNU argument syntax conventions.
+Built-in commands in Eshell now accept command-line options with
+values passed as a single token, such as '-oVALUE' or
+'--option=VALUE'.
 
 ** XDG support
 

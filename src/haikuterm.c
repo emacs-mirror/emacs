@@ -2222,6 +2222,7 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   void *view = FRAME_HAIKU_VIEW (XFRAME (WINDOW_FRAME (w)));
   struct face *face = p->face;
 
+  block_input ();
   BView_draw_lock (view);
   BView_StartClip (view);
 
@@ -2256,6 +2257,7 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     }
   BView_EndClip (view);
   BView_draw_unlock (view);
+  unblock_input ();
 }
 
 static void
@@ -3233,7 +3235,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct frame *f = haiku_window_to_frame (b->window);
 
 	    if (!f)
-	      continue;
+	      {
+		free (b->ref);
+		continue;
+	      }
 
 	    inev.kind = DRAG_N_DROP_EVENT;
 	    inev.arg = build_string_from_utf8 (b->ref);

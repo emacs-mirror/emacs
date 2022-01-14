@@ -829,11 +829,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                               (symbol-name function)))))))
 	 (real-def (cond
                     ((and aliased (not (subrp def)))
-                     (let ((f real-function))
-                       (while (and (fboundp f)
-                                   (symbolp (symbol-function f)))
-                         (setq f (symbol-function f)))
-                       f))
+                     (car (function-alias-p real-function t)))
 		    ((subrp def) (intern (subr-name def)))
                     (t def))))
 

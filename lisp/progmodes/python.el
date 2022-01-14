@@ -3216,11 +3216,13 @@ detecting a prompt at the end of the buffer."
 (defun python-shell-send-string-no-output (string &optional process)
   "Send STRING to PROCESS and inhibit output.
 Return the output."
-  (let ((process (or process (python-shell-get-process-or-error)))
-        (comint-preoutput-filter-functions
-         '(python-shell-output-filter))
-        (python-shell-output-filter-in-progress t)
-        (inhibit-quit t))
+  (or process (setq process (python-shell-get-process-or-error)))
+  (cl-letf (((process-filter process)
+             (lambda (_proc str)
+               (with-current-buffer (process-buffer process)
+                 (python-shell-output-filter str))))
+            (python-shell-output-filter-in-progress t)
+            (inhibit-quit t))
     (or
      (with-local-quit
        (python-shell-send-string string process)

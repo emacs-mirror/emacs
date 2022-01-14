@@ -234,6 +234,10 @@ ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 
 abs_top_builddir = @abs_top_builddir@
+
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
+
 EMACS = ${abs_top_builddir}/src/emacs
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp --eval '(setq load-prefer-newer t)'
 

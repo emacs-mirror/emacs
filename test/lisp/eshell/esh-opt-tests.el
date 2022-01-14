@@ -57,7 +57,7 @@
            '((?u "user" t user "execute a command as another USER")
              :parse-leading-options-only))))
   (should
-   (equal '("world" "emerge")
+   (equal '("DN" "emerge" "world")
           (eshell--process-args
            "sudo"
            '("-u" "root" "emerge" "-uDN" "world")
@@ -65,59 +65,132 @@
 
 (ert-deftest test-eshell-eval-using-options ()
   "Tests for `eshell-eval-using-options'."
+  ;; Test short options.
+  (eshell-eval-using-options
+   "ls" '("-a" "/some/path")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with ."))
+   (should (eq show-all t))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("/some/path")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with ."))
+   (should (eq show-all nil))
+   (should (equal args '("/some/path"))))
+
+  ;; Test long options.
+  (eshell-eval-using-options
+   "ls" '("--all" "/some/path")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with ."))
+   (should (eq show-all t))
+   (should (equal args '("/some/path"))))
+
+  ;; Test options with constant values.
+  (eshell-eval-using-options
+   "ls" '("/some/path" "-h")
+   '((?h "human-readable" 1024 human-readable
+         "print sizes in human readable format"))
+   (should (eql human-readable 1024))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("/some/path" "--human-readable")
+   '((?h "human-readable" 1024 human-readable
+         "print sizes in human readable format"))
+   (should (eql human-readable 1024))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("/some/path")
+   '((?h "human-readable" 1024 human-readable
+         "print sizes in human readable format"))
+   (should (eq human-readable nil))
+   (should (equal args '("/some/path"))))
+
+  ;; Test options with user-specified values.
+  (eshell-eval-using-options
+   "ls" '("-I" "*.txt" "/some/path")
+   '((?I "ignore" t ignore-pattern
+         "do not list implied entries matching pattern"))
+   (should (equal ignore-pattern "*.txt"))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("-I*.txt" "/some/path")
+   '((?I "ignore" t ignore-pattern
+         "do not list implied entries matching pattern"))
+   (should (equal ignore-pattern "*.txt"))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("--ignore" "*.txt" "/some/path")
+   '((?I "ignore" t ignore-pattern
+         "do not list implied entries matching pattern"))
+   (should (equal ignore-pattern "*.txt"))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("--ignore=*.txt" "/some/path")
+   '((?I "ignore" t ignore-pattern
+         "do not list implied entries matching pattern"))
+   (should (equal ignore-pattern "*.txt"))
+   (should (equal args '("/some/path"))))
+
+  ;; Test multiple short options in a single token.
+  (eshell-eval-using-options
+   "ls" '("-al" "/some/path")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with .")
+     (?l nil long-listing listing-style
+         "use a long listing format"))
+   (should (eq t show-all))
+   (should (eql listing-style 'long-listing))
+   (should (equal args '("/some/path"))))
+  (eshell-eval-using-options
+   "ls" '("-aI*.txt" "/some/path")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with .")
+     (?I "ignore" t ignore-pattern
+         "do not list implied entries matching pattern"))
+   (should (eq t show-all))
+   (should (equal ignore-pattern "*.txt"))
+   (should (equal args '("/some/path"))))
+
+  ;; Test that "--" terminates options.
+  (eshell-eval-using-options
+   "ls" '("--" "-a")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with ."))
+   (should (eq show-all nil))
+   (should (equal args '("-a"))))
+  (eshell-eval-using-options
+   "ls" '("--" "--all")
+   '((?a "all" nil show-all
+         "do not ignore entries starting with ."))
+   (should (eq show-all nil))
+   (should (equal args '("--all"))))
+
+  ;; Test :parse-leading-options-only.
   (eshell-eval-using-options
    "sudo" '("-u" "root" "whoami")
    '((?u "user" t user "execute a command as another USER")
      :parse-leading-options-only)
-   (should (equal user "root")))
+   (should (equal user "root"))
+   (should (equal args '("whoami"))))
   (eshell-eval-using-options
    "sudo" '("--user" "root" "whoami")
    '((?u "user" t user "execute a command as another USER")
      :parse-leading-options-only)
-   (should (equal user "root")))
-
+   (should (equal user "root"))
+   (should (equal args '("whoami"))))
   (eshell-eval-using-options
    "sudo" '("emerge" "-uDN" "world")
    '((?u "user" t user "execute a command as another USER"))
-   (should (equal user "world")))
+   (should (equal user "DN"))
+   (should (equal args '("emerge" "world"))))
   (eshell-eval-using-options
    "sudo" '("emerge" "-uDN" "world")
    '((?u "user" t user "execute a command as another USER")
      :parse-leading-options-only)
-   (should (eq user nil)))
-
-  (eshell-eval-using-options
-   "ls" '("-I" "*.txt" "/dev/null")
-   '((?I "ignore" t ignore-pattern
-	 "do not list implied entries matching pattern"))
-   (should (equal ignore-pattern "*.txt")))
-
-  (eshell-eval-using-options
-   "ls" '("-l" "/dev/null")
-   '((?l nil long-listing listing-style
-	 "use a long listing format"))
-   (should (eql listing-style 'long-listing)))
-  (eshell-eval-using-options
-   "ls" '("/dev/null")
-   '((?l nil long-listing listing-style
-	 "use a long listing format"))
-   (should (eq listing-style nil)))
-
-  (eshell-eval-using-options
-   "ls" '("/dev/null" "-h")
-   '((?h "human-readable" 1024 human-readable
-	 "print sizes in human readable format"))
-   (should (eql human-readable 1024)))
-  (eshell-eval-using-options
-   "ls" '("/dev/null" "--human-readable")
-   '((?h "human-readable" 1024 human-readable
-	 "print sizes in human readable format"))
-   (should (eql human-readable 1024)))
-  (eshell-eval-using-options
-   "ls" '("/dev/null")
-   '((?h "human-readable" 1024 human-readable
-	 "print sizes in human readable format"))
-   (should (eq human-readable nil))))
+   (should (eq user nil))
+   (should (equal args '("emerge" "-uDN" "world")))))
 
 (provide 'esh-opt-tests)
 
