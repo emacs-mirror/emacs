@@ -142,6 +142,8 @@ left alone when opening a URL in an external browser."
           (kill-buffer (call-interactively #'find-file-at-point)))))))
 
 (ert-deftest ffap-test-path ()
+  (skip-unless (file-exists-p "/bin"))
+  (skip-unless (file-exists-p "/usr/bin"))
   (with-temp-buffer
     (insert "/usr/bin:/bin")
     (goto-char (point-min))
