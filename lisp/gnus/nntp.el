@@ -306,7 +306,7 @@ backend doesn't catch this error.")
     (nntp-record-command string))
   (process-send-string process (concat string nntp-end-of-line))
   (or (memq (process-status process) '(open run))
-      (nntp-report "Server closed connection")))
+      (nntp-report "NNTP server %S closed connection" nntp-address)))
 
 (defun nntp-record-command (string)
   "Record the command STRING."
@@ -369,7 +369,7 @@ retried once before actually displaying the error report."
 	    (nntp-snarf-error-message)
 	    nil))
 	 ((not (memq (process-status process) '(open run)))
-	  (nntp-report "Server closed connection"))
+	  (nntp-report "NNTP server %S closed connection" nntp-address))
 	 (t
 	  (goto-char (point-max))
 	  (let ((limit (point-min))
@@ -1431,7 +1431,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       ;; be the process's former output buffer (i.e. now killed)
       (or (and process
 	       (memq (process-status process) '(open run)))
-          (nntp-report "Server closed connection")))))
+          (nntp-report "NNTP server %S closed connection" nntp-address)))))
 
 (defun nntp-accept-response ()
   "Wait for output from the process that outputs to BUFFER."
@@ -1450,7 +1450,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (when group
     (let ((entry (nntp-find-connection-entry nntp-server-buffer)))
       (cond ((not entry)
-             (nntp-report "Server closed connection"))
+             (nntp-report "NNTP server %S closed connection" nntp-address))
             ((not (equal group (caddr entry)))
              (with-current-buffer (process-buffer (car entry))
                (erase-buffer)

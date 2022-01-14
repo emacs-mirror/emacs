@@ -246,7 +246,7 @@ during splitting, which may be slow."
 	  (nnimap-header-parameters))
 	 t)
 	(unless (process-live-p (get-buffer-process (current-buffer)))
-	  (error "Server closed connection"))
+	  (error "IMAP server %S closed connection" nnimap-address))
 	(nnimap-transform-headers)
 	(nnheader-remove-cr-followed-by-lf))
       (insert-buffer-substring
