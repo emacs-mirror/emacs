@@ -594,6 +594,10 @@ to enable the display of the buffer list.
 It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
 ('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
 
+*** 'xref-query-replace-in-results' only prompts for TO when called
+without prefix argument, to make the most common case faster:
+replacing all matches entirely.
+
 ** File notifications
 
 +++

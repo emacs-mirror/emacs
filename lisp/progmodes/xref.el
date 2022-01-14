@@ -738,11 +738,20 @@ quit the *xref* buffer."
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
 
 This command interactively replaces FROM with TO in the names of the
-references displayed in the current *xref* buffer."
+references displayed in the current *xref* buffer.
+
+When called interactively, it uses '.*' as FROM, which means
+replace the whole name.  Unless called with prefix argument, in
+which case the user is prompted for both FROM and TO."
   (interactive
-   (let ((fr (read-regexp "Xref query-replace (regexp)" ".*")))
-     (list fr
-           (read-regexp (format "Xref query-replace (regexp) %s with: " fr)))))
+   (let* ((fr
+           (if prefix-arg
+               (read-regexp "Query-replace (regexp)" ".*")
+             ".*"))
+          (prompt (if prefix-arg
+                      (format "Query-replace (regexp) %s with: " fr)
+                    "Query-replace all matches with: ")))
+     (list fr (read-regexp prompt))))
   (let* (item xrefs iter)
     (save-excursion
       (while (setq item (xref--search-property 'xref-item))
