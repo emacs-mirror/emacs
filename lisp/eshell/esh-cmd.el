@@ -1292,8 +1292,9 @@ or an external command."
 (defun eshell-exec-lisp (printer errprint func-or-form args form-p)
   "Execute a Lisp FUNC-OR-FORM, maybe passing ARGS.
 PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors.  FORM-P should be non-nil if FUNC-OR-FORM
-represent a Lisp form; ARGS will be ignored in that case."
+messages and errors, respectively.  FORM-P should be non-nil if
+FUNC-OR-FORM represent a Lisp form; ARGS will be ignored in that
+case."
   (eshell-condition-case err
       (let ((result
              (save-current-buffer
@@ -1316,44 +1317,56 @@ represent a Lisp form; ARGS will be ignored in that case."
 (defsubst eshell-apply* (printer errprint func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
 PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
+messages and errors, respectively."
   (eshell-exec-lisp printer errprint func args nil))
 
 (defsubst eshell-funcall* (printer errprint func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+PRINTER and ERRPRINT are functions to use for printing regular
+messages and errors, respectively."
   (eshell-apply* printer errprint func args))
 
 (defsubst eshell-eval* (printer errprint form)
-  "Evaluate FORM, trapping errors and returning them."
+  "Evaluate FORM, trapping errors and returning them.
+PRINTER and ERRPRINT are functions to use for printing regular
+messages and errors, respectively."
   (eshell-exec-lisp printer errprint form nil t))
 
 (defsubst eshell-apply (func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
-PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
-  (eshell-apply* 'eshell-print 'eshell-error func args))
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
+  (eshell-apply* #'eshell-print #'eshell-error func args))
 
 (defsubst eshell-funcall (func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
   (eshell-apply func args))
 
 (defsubst eshell-eval (form)
-  "Evaluate FORM, trapping errors and returning them."
-  (eshell-eval* 'eshell-print 'eshell-error form))
+  "Evaluate FORM, trapping errors and returning them.
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
+  (eshell-eval* #'eshell-print #'eshell-error form))
 
 (defsubst eshell-applyn (func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
-PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
-  (eshell-apply* 'eshell-printn 'eshell-errorn func args))
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
+  (eshell-apply* #'eshell-printn #'eshell-errorn func args))
 
 (defsubst eshell-funcalln (func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
   (eshell-applyn func args))
 
 (defsubst eshell-evaln (form)
-  "Evaluate FORM, trapping errors and returning them."
-  (eshell-eval* 'eshell-printn 'eshell-errorn form))
+  "Evaluate FORM, trapping errors and returning them.
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
+  (eshell-eval* #'eshell-printn #'eshell-errorn form))
 
 (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 
