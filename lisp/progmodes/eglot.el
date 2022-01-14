@@ -142,7 +142,7 @@ chosen (interactively or automatically)."
                       when probe return (cons probe args)
                       finally (funcall err)))))))
 
-(defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
+(defvar eglot-server-programs `((rust-mode . ("rust-analyzer" "rls"))
                                 (cmake-mode . ("cmake-language-server"))
                                 (vimrc-mode . ("vim-language-server" "--stdio"))
                                 (python-mode
@@ -2983,25 +2983,6 @@ If NOERROR, return predicate, else erroring function."
 (defun eglot--glob-emit-range (arg self next)
   (when (eq ?! (aref arg 1)) (aset arg 1 ?^))
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
-
-
-;;; Rust-specific
-;;;
-(defclass eglot-rls (eglot-lsp-server) () :documentation "Rustlang's RLS.")
-
-(cl-defmethod jsonrpc-connection-ready-p ((server eglot-rls) what)
-  "Except for :completion, RLS isn't ready until Indexing done."
-  (and (cl-call-next-method)
-       (or ;; RLS normally ready for this, even if building.
-        (eq :textDocument/completion what)
-        (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner server)))
-          (and (equal "Indexing" what) done)))))
-
-(cl-defmethod eglot-handle-notification
-  ((server eglot-rls) (_method (eql window/progress))
-   &key id done title message &allow-other-keys)
-  "Handle notification window/progress."
-  (setf (eglot--spinner server) (list id title done message)))
 
 
 ;;; eclipse-jdt-specific
