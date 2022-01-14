@@ -745,10 +745,10 @@ replace the whole name.  Unless called with prefix argument, in
 which case the user is prompted for both FROM and TO."
   (interactive
    (let* ((fr
-           (if prefix-arg
+           (if current-prefix-arg
                (read-regexp "Query-replace (regexp)" ".*")
              ".*"))
-          (prompt (if prefix-arg
+          (prompt (if current-prefix-arg
                       (format "Query-replace (regexp) %s with: " fr)
                     "Query-replace all matches with: ")))
      (list fr (read-regexp prompt))))
