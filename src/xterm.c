@@ -11461,6 +11461,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  x_find_modifier_meanings (dpyinfo);
 		}
+
+	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	    }
 	}
 #endif
