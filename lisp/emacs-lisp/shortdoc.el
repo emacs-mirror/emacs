@@ -1299,6 +1299,9 @@ If FUNCTION is non-nil, place point on the entry for FUNCTION (if any)."
     (text-property-search-forward 'shortdoc-function function t)
     (beginning-of-line)))
 
+;;;###autoload
+(defalias 'shortdoc #'shortdoc-display-group)
+
 (defun shortdoc--display-function (data)
   (let ((function (pop data))
         (start-section (point))
