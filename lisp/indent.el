@@ -170,7 +170,7 @@ prefix argument is ignored."
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
 	  (old-indent (current-indentation))
-          (syn `(,(syntax-after (point)))))
+          (syn (syntax-after (point))))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -190,13 +190,13 @@ prefix argument is ignored."
                       (eolp))
                  (and (member tab-first-completion
                               '(word word-or-paren word-or-paren-or-punct))
-                      (not (member 2 syn)))
+                      (not (eql 2 syn)))
                  (and (member tab-first-completion
                               '(word-or-paren word-or-paren-or-punct))
-                      (not (or (member 4 syn)
-                               (member 5 syn))))
+                      (not (or (eql 4 syn)
+                               (eql 5 syn))))
                  (and (equal tab-first-completion 'word-or-paren-or-punct)
-                      (not (member 1 syn)))))
+                      (not (eql 1 syn)))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following
