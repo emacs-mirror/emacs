@@ -3517,9 +3517,8 @@ and then returning foo."
     `(eval-and-compile
        ;; Name the compiler-macro function, so that `symbol-file' can find it.
        (cl-defun ,fname ,(if (memq '&whole args) (delq '&whole args)
-                           (cons '_cl-whole-arg
-                                 (macroexp-strip-symbol-positions args)))
-         ,@(macroexp-strip-symbol-positions body))
+                           (cons '_cl-whole-arg args))
+         ,@body)
        (put ',func 'compiler-macro #',fname))))
 
 ;;;###autoload

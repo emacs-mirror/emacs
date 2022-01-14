@@ -2069,7 +2069,7 @@ the same names as used in the original source code, when possible."
                    ((symbolp arg)
 		    (let ((name (symbol-name arg)))
 		      (cond
-                       ((string-match "\\`&" name) arg)
+                       ((string-match "\\`&" name) (bare-symbol arg))
                        ((string-match "\\`_." name)
                         (intern (upcase (substring name 1))))
                        (t (intern (upcase name))))))

@@ -4004,7 +4004,9 @@ the deferred compilation mechanism."
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
   (catch 'no-native-compile
-    (let* ((data function-or-file)
+    (let* ((print-symbols-bare t)
+           (max-specpdl-size (max max-specpdl-size 5000))
+           (data function-or-file)
            (comp-native-compiling t)
            (byte-native-qualities nil)
            (symbols-with-pos-enabled t)

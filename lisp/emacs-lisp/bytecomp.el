@@ -460,12 +460,6 @@ Filled in `cconv-analyze-form' but initialized and consulted here.")
 
 (defvar byte-compiler-error-flag)
 
-(defvar byte-compile--form-stack nil
-  "Dynamic list of successive enclosing forms.
-This is used by the warning message routines to determine a
-source code position.  The most accessible element is the current
-most deeply nested form.")
-
 (defun byte-compile-recurse-toplevel (form non-toplevel-case)
   "Implement `eval-when-compile' and `eval-and-compile'.
 Return the compile-time value of FORM."
@@ -506,9 +500,8 @@ Return the compile-time value of FORM."
                                         byte-compile-new-defuns))
                                    (setf result
                                          (byte-compile-eval
-                                          (macroexp-strip-symbol-positions
                                            (byte-compile-top-level
-                                            (byte-compile-preprocess form))))))))
+                                            (byte-compile-preprocess form)))))))
                               (list 'quote result))))
     (eval-and-compile . ,(lambda (&rest body)
                            (byte-compile-recurse-toplevel
@@ -517,10 +510,11 @@ Return the compile-time value of FORM."
                               ;; Don't compile here, since we don't know
                               ;; whether to compile as byte-compile-form
                               ;; or byte-compile-file-form.
-                              (let ((expanded
-                                     (macroexpand--all-toplevel
-                                      form
-                                      macroexpand-all-environment)))
+                              (let* ((print-symbols-bare t)
+                                     (expanded
+                                      (macroexpand--all-toplevel
+                                       form
+                                       macroexpand-all-environment)))
                                 (eval expanded lexical-binding)
                                 expanded)))))
     (with-suppressed-warnings
@@ -1248,10 +1242,10 @@ Here, \"first\" is by a depth first search."
      (t 0))))
 
 (defun byte-compile--warning-source-offset ()
-  "Return a source offset from `byte-compile--form-stack'.
+  "Return a source offset from `byte-compile-form-stack'.
 Return nil if such is not found."
   (catch 'offset
-    (dolist (form byte-compile--form-stack)
+    (dolist (form byte-compile-form-stack)
       (let ((s (byte-compile--first-symbol form)))
         (if (symbol-with-pos-p s)
             (throw 'offset (symbol-with-pos-pos s)))))))
@@ -1406,7 +1400,6 @@ function directly; use `byte-compile-warn' or
 
 (defun byte-compile-warn (format &rest args)
   "Issue a byte compiler warning; use (format-message FORMAT ARGS...) for message."
-  (setq args (mapcar #'macroexp-strip-symbol-positions args))
   (setq format (apply #'format-message format args))
   (if byte-compile-error-on-warn
       (error "%s" format)		; byte-compile-file catches and logs it
@@ -1417,7 +1410,7 @@ function directly; use `byte-compile-warn' or
 ARG is the source element (likely a symbol with position) central to
   the warning, intended to supply source position information.
 FORMAT and ARGS are as in `byte-compile-warn'."
-  (let ((byte-compile--form-stack (cons arg byte-compile--form-stack)))
+  (let ((byte-compile-form-stack (cons arg byte-compile-form-stack)))
     (apply #'byte-compile-warn format args)))
 
 (defun byte-compile-warn-obsolete (symbol)
@@ -1867,7 +1860,8 @@ It is too wide if it has any lines longer than the largest of
 	  (warning-series-started
 	   (and (markerp warning-series)
 		(eq (marker-buffer warning-series)
-		    (get-buffer byte-compile-log-buffer)))))
+		    (get-buffer byte-compile-log-buffer))))
+          (byte-compile-form-stack byte-compile-form-stack))
      (if (or (eq warning-series 'byte-compile-warning-series)
 	     warning-series-started)
 	 ;; warning-series does come from compilation,
@@ -2257,10 +2251,7 @@ See also `emacs-lisp-byte-compile-and-load'."
 	            (write-region (point-min) (point-max) dynvar-file)))))
 	    (if load
                 (load target-file))
-	    t)))
-    ;; Strip positions from symbols for the native compiler.
-    (setq byte-to-native-top-level-forms
-          (macroexp-strip-symbol-positions byte-to-native-top-level-forms))))
+	    t)))))
 
 ;;; compiling a single function
 ;;;###autoload
@@ -2272,7 +2263,8 @@ With argument ARG, insert value in current buffer after the form."
   (save-excursion
     (end-of-defun)
     (beginning-of-defun)
-    (let* ((byte-compile-current-file (current-buffer))
+    (let* ((print-symbols-bare t)
+           (byte-compile-current-file (current-buffer))
 	   (byte-compile-current-buffer (current-buffer))
 	   (byte-compile-read-position (point))
 	   (byte-compile-last-position byte-compile-read-position)
@@ -2319,7 +2311,7 @@ With argument ARG, insert value in current buffer after the form."
 	(read-symbol-positions-list nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings byte-compile-warnings)
-	)
+        (symbols-with-pos-enabled t))
     (byte-compile-close-variables
      (with-current-buffer
          (setq byte-compile--outbuffer
@@ -2432,11 +2424,10 @@ Call from the source buffer."
   ;; it here.
   (when byte-native-compiling
     ;; Spill output for the native compiler here
-    (push
-     (macroexp-strip-symbol-positions
-      (make-byte-to-native-top-level :form form :lexical lexical-binding))
-     byte-to-native-top-level-forms))
-  (let ((print-escape-newlines t)
+    (push (make-byte-to-native-top-level :form form :lexical lexical-binding)
+          byte-to-native-top-level-forms))
+  (let ((print-symbols-bare t)
+        (print-escape-newlines t)
         (print-length nil)
         (print-level nil)
         (print-quoted t)
@@ -2471,8 +2462,8 @@ list that represents a doc string reference.
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
     (with-current-buffer byte-compile--outbuffer
-      (let (position)
-
+      (let (position
+            (print-symbols-bare t))
         ;; Insert the doc string, and make it a comment with #@LENGTH.
         (and (>= (nth 1 info) 0)
              dynamic-docstrings
@@ -2596,13 +2587,16 @@ list that represents a doc string reference.
 
 ;; byte-hunk-handlers cannot call this!
 (defun byte-compile-toplevel-file-form (top-level-form)
-  (let ((byte-compile--form-stack
-         (cons top-level-form byte-compile--form-stack)))
-    (byte-compile-recurse-toplevel
-     top-level-form
-     (lambda (form)
-       (let ((byte-compile-current-form nil)) ; close over this for warnings.
-         (byte-compile-file-form (byte-compile-preprocess form t)))))))
+  ;; (let ((byte-compile-form-stack
+  ;;        (cons top-level-form byte-compile-form-stack)))
+  (push top-level-form byte-compile-form-stack)
+  (prog1
+      (byte-compile-recurse-toplevel
+       top-level-form
+       (lambda (form)
+         (let ((byte-compile-current-form nil)) ; close over this for warnings.
+           (byte-compile-file-form (byte-compile-preprocess form t)))))
+    (pop byte-compile-form-stack)))
 
 ;; byte-hunk-handlers can call this.
 (defun byte-compile-file-form (form)
@@ -2635,8 +2629,7 @@ list that represents a doc string reference.
      ;; byte-compile-noruntime-functions, in case we have an autoload
      ;; of foo-func following an (eval-when-compile (require 'foo)).
      (unless (fboundp funsym)
-       (push (macroexp-strip-symbol-positions
-              (cons funsym (cons 'autoload (cdr (cdr form)))))
+       (push (cons funsym (cons 'autoload (cdr (cdr form))))
              byte-compile-function-environment))
      ;; If an autoload occurs _before_ the first call to a function,
      ;; byte-compile-callargs-warn does not add an entry to
@@ -2652,7 +2645,8 @@ list that represents a doc string reference.
              (delq (assq funsym byte-compile-unresolved-functions)
                    byte-compile-unresolved-functions)))))
   (if (stringp (nth 3 form))
-      (prog1 (macroexp-strip-symbol-positions form)
+      (prog1
+          form
         (byte-compile-docstring-length-warn form))
     ;; No doc string, so we can compile this as a normal form.
     (byte-compile-keep-pending form 'byte-compile-normal-call)))
@@ -2692,8 +2686,7 @@ list that represents a doc string reference.
                    (byte-compile-top-level (nth 2 form) nil 'file)))
           ((symbolp (nth 2 form))
            (setcar (cddr form) (bare-symbol (nth 2 form))))
-          (t (setcar (cddr form)
-                     (macroexp-strip-symbol-positions (nth 2 form)))))
+          (t (setcar (cddr form) (nth 2 form))))
     (setcar form (bare-symbol (car form)))
     (if (symbolp (nth 1 form))
         (setcar (cdr form) (bare-symbol (nth 1 form))))
@@ -2775,8 +2768,7 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-make-obsolete (form)
   (prog1 (byte-compile-keep-pending form)
     (apply 'make-obsolete
-           (mapcar 'eval
-                   (macroexp-strip-symbol-positions (cdr form))))))
+           (mapcar 'eval (cdr form)))))
 
 (defun byte-compile-file-form-defmumble (name macro arglist body rest)
   "Process a `defalias' for NAME.
@@ -2894,14 +2886,13 @@ not to take responsibility for the actual compilation of the code."
             (when byte-native-compiling
               ;; Spill output for the native compiler here.
               (push
-               (macroexp-strip-symbol-positions
                 (if macro
                     (make-byte-to-native-top-level
                      :form `(defalias ',name '(macro . ,code) nil)
                      :lexical lexical-binding)
                   (make-byte-to-native-func-def :name name
-                                                :byte-func code)))
-               byte-to-native-top-level-forms))
+                                                :byte-func code))
+                byte-to-native-top-level-forms))
             ;; Output the form by hand, that's much simpler than having
             ;; b-c-output-file-form analyze the defalias.
             (byte-compile-output-docform
@@ -3020,9 +3011,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                   (setq fun (eval fun t)))
               (if macro (push 'macro fun))
               (if (symbolp form) (fset form fun))
-              fun)))
-        (setq byte-to-native-top-level-forms
-              (macroexp-strip-symbol-positions byte-to-native-top-level-forms)))))))
+              fun))))))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."
@@ -3169,8 +3158,7 @@ for symbols generated by the byte compiler itself."
                        ;; which may include "calls" to
                        ;; internal-make-closure (Bug#29988).
                        lexical-binding)
-                   (setq int (macroexp-strip-symbol-positions `(interactive ,newform)))
-                 (setq int (macroexp-strip-symbol-positions int)))))
+                   (setq int `(interactive ,newform)))))
             ((cdr int)                  ; Invalid (interactive . something).
 	     (byte-compile-warn-x int "malformed interactive spec: %s"
 				  int))))
@@ -3185,7 +3173,7 @@ for symbols generated by the byte compiler itself."
                                         (byte-compile-make-lambda-lexenv
                                          arglistvars))
                                    reserved-csts))
-          (bare-arglist (macroexp-strip-symbol-positions arglist)))
+          (bare-arglist arglist))
       ;; Build the actual byte-coded function.
       (cl-assert (eq 'byte-code (car-safe compiled)))
       (let ((out
@@ -3208,9 +3196,7 @@ for symbols generated by the byte compiler itself."
 		     (cond
 		      ;; We have some command modes, so use the vector form.
 		      (command-modes
-                       (list (vector (nth 1 int)
-                                     (macroexp-strip-symbol-positions
-                                      command-modes))))
+                       (list (vector (nth 1 int) command-modes)))
 		      ;; No command modes, use the simple form with just the
 		      ;; interactive spec.
 		      (int
@@ -3425,8 +3411,8 @@ for symbols generated by the byte compiler itself."
 ;; byte-compile--for-effect flag too.)
 ;;
 (defun byte-compile-form (form &optional for-effect)
-  (let ((byte-compile--for-effect for-effect)
-        (byte-compile--form-stack (cons form byte-compile--form-stack)))
+  (let ((byte-compile--for-effect for-effect))
+    (push form byte-compile-form-stack)
     (cond
      ((not (consp form))
       (cond ((or (not (symbolp form)) (macroexp--const-symbol-p form))
@@ -3500,7 +3486,8 @@ for symbols generated by the byte compiler itself."
       (setq byte-compile--for-effect nil))
      ((byte-compile-normal-call form)))
     (if byte-compile--for-effect
-        (byte-compile-discard))))
+        (byte-compile-discard))
+    (pop byte-compile-form-stack)))
 
 (defun byte-compile-normal-call (form)
   (when (and (symbolp (car form))
@@ -3756,8 +3743,7 @@ assignment (i.e. `setq')."
     (setq const (bare-symbol const)))
   (byte-compile-out
    'byte-constant
-   (byte-compile-get-constant
-    (macroexp-strip-symbol-positions const))))
+   (byte-compile-get-constant const)))
 
 ;; Compile those primitive ordinary functions
 ;; which have special byte codes just for speed.
@@ -4591,7 +4577,7 @@ Return (TAIL VAR TEST CASES), where:
 
     (dolist (case cases)
       (setq tag (byte-compile-make-tag)
-            test-objects (macroexp-strip-symbol-positions (car case))
+            test-objects (car case)
             body (cdr case))
       (byte-compile-out-tag tag)
       (dolist (value test-objects)
@@ -5241,9 +5227,9 @@ OP and OPERAND are as passed to `byte-compile-out'."
 ;;; call tree stuff
 
 (defun byte-compile-annotate-call-tree (form)
-  (let ((current-form (macroexp-strip-symbol-positions
+  (let ((current-form (byte-run-strip-symbol-positions
                        byte-compile-current-form))
-        (bare-car-form (macroexp-strip-symbol-positions (car form)))
+        (bare-car-form (byte-run-strip-symbol-positions (car form)))
         entry)
     ;; annotate the current call
     (if (setq entry (assq bare-car-form byte-compile-call-tree))
@@ -5463,8 +5449,6 @@ already up-to-date."
 	    (if (null (batch-byte-compile-file (car command-line-args-left)))
                 (setq error t))))
       (setq command-line-args-left (cdr command-line-args-left)))
-    (setq byte-to-native-top-level-forms
-          (macroexp-strip-symbol-positions byte-to-native-top-level-forms))
     (kill-emacs (if error 1 0))))
 
 (defun batch-byte-compile-file (file)
