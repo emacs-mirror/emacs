@@ -366,14 +366,18 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              form)
 	   (macroexp--expand-all newform))))
 
-      (`(funcall . ,(or `(,exp . ,args) pcase--dontcare))
+      (`(funcall ,exp . ,args)
        (let ((eexp (macroexp--expand-all exp))
              (eargs (macroexp--all-forms args)))
          ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
          ;; has a compiler-macro, or to unfold it.
          (pcase eexp
-           (`#',f (macroexp--expand-all `(,f . ,eargs)))
+           ((and `#',f
+                 (guard (not (or (special-form-p f) (macrop f)))));; bug#46636
+            (macroexp--expand-all `(,f . ,eargs)))
            (_ `(funcall ,eexp . ,eargs)))))
+      (`(funcall . ,_) form)            ;bug#53227
+
       (`(,func . ,_)
        (let ((handler (function-get func 'compiler-macro))
              (funargs (function-get func 'funarg-positions)))
