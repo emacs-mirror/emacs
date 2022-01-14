@@ -3235,7 +3235,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct frame *f = haiku_window_to_frame (b->window);
 
 	    if (!f)
-	      continue;
+	      {
+		free (b->ref);
+		continue;
+	      }
 
 	    inev.kind = DRAG_N_DROP_EVENT;
 	    inev.arg = build_string_from_utf8 (b->ref);
