@@ -2643,11 +2643,7 @@ best_xim_style (struct x_display_info *dpyinfo,
   int nr_supported = ARRAYELTS (supported_xim_styles);
 
   if (dpyinfo->preferred_xim_style)
-    {
-      for (j = 0; j < xim->count_styles; ++j)
-	if (dpyinfo->preferred_xim_style == xim->supported_styles[j])
-	  return dpyinfo->preferred_xim_style;
-    }
+    return dpyinfo->preferred_xim_style;
 
   for (i = 0; i < nr_supported; ++i)
     for (j = 0; j < xim->count_styles; ++j)
