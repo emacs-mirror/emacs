@@ -2362,6 +2362,28 @@ alist mapping symbols to their value.  */)
   return unbind_to (count, eval_sub (form));
 }
 
+static void
+grow_specpdl_allocation (void)
+{
+  eassert (specpdl_ptr == specpdl + specpdl_size);
+
+  ptrdiff_t count = SPECPDL_INDEX ();
+  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
+  union specbinding *pdlvec = specpdl - 1;
+  ptrdiff_t pdlvecsize = specpdl_size + 1;
+  if (max_size <= specpdl_size)
+    {
+      if (max_specpdl_size < 400)
+	max_size = max_specpdl_size = 400;
+      if (max_size <= specpdl_size)
+	xsignal0 (Qexcessive_variable_binding);
+    }
+  pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
+  specpdl = pdlvec + 1;
+  specpdl_size = pdlvecsize - 1;
+  specpdl_ptr = specpdl + count;
+}
+
 /* Grow the specpdl stack by one entry.
    The caller should have already initialized the entry.
    Signal an error on stack overflow.
@@ -2372,29 +2394,12 @@ alist mapping symbols to their value.  */)
    never-used entry just before the bottom of the stack; sometimes its
    address is taken.  */
 
-static void
+INLINE void
 grow_specpdl (void)
 {
   specpdl_ptr++;
-
   if (specpdl_ptr == specpdl + specpdl_size)
-    {
-      ptrdiff_t count = SPECPDL_INDEX ();
-      ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
-      union specbinding *pdlvec = specpdl - 1;
-      ptrdiff_t pdlvecsize = specpdl_size + 1;
-      if (max_size <= specpdl_size)
-	{
-	  if (max_specpdl_size < 400)
-	    max_size = max_specpdl_size = 400;
-	  if (max_size <= specpdl_size)
-	    xsignal0 (Qexcessive_variable_binding);
-	}
-      pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
-      specpdl = pdlvec + 1;
-      specpdl_size = pdlvecsize - 1;
-      specpdl_ptr = specpdl + count;
-    }
+    grow_specpdl_allocation ();
 }
 
 ptrdiff_t
