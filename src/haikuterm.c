@@ -370,6 +370,13 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
       BWindow_sync (FRAME_HAIKU_WINDOW (f));
       unblock_input ();
     }
+  else
+    {
+      block_input ();
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f), NULL);
+      BWindow_sync (FRAME_HAIKU_WINDOW (f));
+      unblock_input ();
+    }
 }
 
 /* Unfortunately, NOACTIVATE is not implementable on Haiku.  */
