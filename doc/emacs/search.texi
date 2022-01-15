@@ -463,14 +463,15 @@ transient input method (@pxref{transient input method}) with
 @kbd{C-x \} (@code{isearch-transient-input-method}) to insert a single
 character to the search string using an input method, and
 automatically disable the input method afterwards.
-@end itemize
 
+@item
 @findex isearch-char-by-name
 @kindex C-x 8 RET @r{(Incremental Search)}
 Type @kbd{C-x 8 @key{RET}} (@code{isearch-char-by-name}), followed by
 a Unicode name or code-point in hex.  This adds the specified
 character into the search string, similar to the usual
 @code{insert-char} command (@pxref{Inserting Text}).
+@end itemize
 
 @findex isearch-emoji-by-name
 @kindex C-x 8 e RET @r{(Incremental Search)}
