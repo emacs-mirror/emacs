@@ -8373,6 +8373,7 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
 #ifdef USE_GTK
     }
   else if (f1 && (event->type == KeyPress
+		  || event->type == KeyRelease
 #ifdef HAVE_XINPUT2
 		  || xinput_event
 #endif

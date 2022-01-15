@@ -6262,7 +6262,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 bool
 xg_filter_key (struct frame *frame, XEvent *xkey)
 {
-  GdkEvent *xg_event = gdk_event_new ((xkey->type == ButtonPress
+  GdkEvent *xg_event = gdk_event_new ((xkey->type == KeyPress
 #ifdef HAVE_XINPUT2
 				       || (xkey->type == GenericEvent
 					   && xkey->xgeneric.evtype == XI_KeyPress)
