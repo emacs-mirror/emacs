@@ -8435,8 +8435,10 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 		  && xev->type == GenericEvent
 		  && (xev->xgeneric.extension
 		      == dpyinfo->xi2_opcode)
-		  && (xev->xgeneric.evtype
-		      == XI_KeyPress))
+		  && ((xev->xgeneric.evtype
+		       == XI_KeyPress)
+		      || (xev->xgeneric.evtype
+			  == XI_KeyRelease)))
 #endif
 	      ))
 	{
