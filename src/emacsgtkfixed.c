@@ -164,13 +164,9 @@ XSetWMSizeHints (Display *d,
 
   if ((hints->flags & PMinSize) && f)
     {
-#ifdef HAVE_PGTK
-      int w = f->output_data.pgtk->size_hints.min_width;
-      int h = f->output_data.pgtk->size_hints.min_height;
-#else
       int w = f->output_data.x->size_hints.min_width;
       int h = f->output_data.x->size_hints.min_height;
-#endif
+
       data[5] = w;
       data[6] = h;
     }
