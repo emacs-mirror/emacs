@@ -2957,7 +2957,8 @@ undo record: if we undo from 4, `pending-undo-list' will be at 3,
 
 (defcustom undo-no-redo nil
   "If t, `undo' doesn't go through redo entries."
-  :type 'boolean)
+  :type 'boolean
+  :group 'undo)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.
