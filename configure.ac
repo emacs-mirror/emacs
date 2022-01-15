@@ -3409,41 +3409,6 @@ if test "${with_xim}" != "no"; then
 	    [Define to 1 to default runtime use of XIM to on.])
 fi
 
-
-if test "${HAVE_XIM}" != "no"; then
-  late_CFLAGS=$CFLAGS
-  if test "$GCC" = yes; then
-    CFLAGS="$CFLAGS --pedantic-errors"
-  fi
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <X11/Xlib.h>
-#include <X11/Xresource.h>]],
-[[Display *display;
-XrmDatabase db;
-char *res_name;
-char *res_class;
-XIDProc *callback;
-XPointer *client_data;
-#ifndef __GNUC__
-/* If we're not using GCC, it's probably not XFree86, and this is
-   probably right, but we can't use something like --pedantic-errors.  */
-extern Bool XRegisterIMInstantiateCallback(Display*, XrmDatabase, char*,
-                                           char*, XIMProc, XPointer*);
-#endif
-(void)XRegisterIMInstantiateCallback(display, db, res_name, res_class, callback,
-   client_data);]])],
-    [emacs_cv_arg6_star=yes])
-  AH_TEMPLATE(XRegisterIMInstantiateCallback_arg6,
-         [Define to the type of the 6th arg of XRegisterIMInstantiateCallback,
-either XPointer or XPointer*.])dnl
-  if test "$emacs_cv_arg6_star" = yes; then
-    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer*])
-  else
-    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
-  fi
-  CFLAGS=$late_CFLAGS
-fi
-
 # Check for XRender
 HAVE_XRENDER=no
 if test "${HAVE_X11}" = "yes"; then
