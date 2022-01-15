@@ -437,8 +437,7 @@ happens at run-time.  At compile-time, a warning is raised if a
 destructuring spec doesn't use all optional fields.
 
 If the symbol `disallow-unknown-methods' is present, Eglot warns
-on unknown notifications and errors on unknown requests.
-"))
+on unknown notifications and errors on unknown requests."))
 
 (defun eglot--plist-keys (plist)
   (cl-loop for (k _v) on plist by #'cddr collect k))
