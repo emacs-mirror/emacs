@@ -63,4 +63,74 @@
                  (append mailcap-tests-path-extensions
                          mailcap-tests-mime-extensions))))
 
+(defmacro with-pristine-mailcap (&rest body)
+  ;; We only want the mailcap info we define ourselves.
+  `(let (mailcap--computed-mime-data
+         mailcap-mime-data
+         mailcap-user-mime-data)
+     ;; `mailcap-mime-info' calls `mailcap-parse-mailcaps' which parses
+     ;; the system's mailcaps.  We don't want that for our test.
+     (cl-letf (((symbol-function 'mailcap-parse-mailcaps) #'ignore))
+       ,@body)))
+
+(ert-deftest mailcap-parsing-and-mailcap-mime-info ()
+  (with-pristine-mailcap
+   ;; One mailcap entry has a test=false field.  The shell command
+   ;; execution errors when running the tests from the Makefile
+   ;; because then HOME=/nonexistent.
+   (ert-with-temp-directory home
+     (setenv "HOME" home)
+     ;; Now parse our resource mailcap file.
+     (mailcap-parse-mailcap (ert-resource-file "mailcap"))
+
+     ;; Assert that we get what we have defined.
+     (dolist (type '("audio/ogg" "audio/flac"))
+       (should (string= "mpv %s" (mailcap-mime-info type))))
+     (should (string= "aplay %s" (mailcap-mime-info "audio/x-wav")))
+     (should (string= "emacsclient -t %s"
+                      (mailcap-mime-info "text/plain")))
+     ;; evince is chosen because acroread has test=false and okular
+     ;; comes later.
+     (should (string= "evince %s"
+                      (mailcap-mime-info "application/pdf")))
+     (should (string= "inkscape %s"
+                      (mailcap-mime-info "image/svg+xml")))
+     (should (string= "eog %s"
+                      (mailcap-mime-info "image/jpg")))
+     ;; With REQUEST being a number, all fields of the selected entry
+     ;; should be returned.
+     (should (equal '((viewer . "evince %s")
+                      (type . "application/pdf"))
+                    (mailcap-mime-info "application/pdf" 1)))
+     ;; With 'all, all applicable entries should be returned.
+     (should (equal '(((viewer . "evince %s")
+                       (type . "application/pdf"))
+                      ((viewer . "okular %s")
+                       (type . "application/pdf")))
+                    (mailcap-mime-info "application/pdf" 'all)))
+     (let* ((c nil)
+            (toggle (lambda (_) (setq c (not c)))))
+       (mailcap-add "audio/ogg" "toggle %s" toggle)
+       (should (string= "toggle %s" (mailcap-mime-info "audio/ogg")))
+       ;; The test results are cached, so in order to have the test
+       ;; re-evaluated, one needs to clear the cache.
+       (setq mailcap-viewer-test-cache nil)
+       (should (string= "mpv %s" (mailcap-mime-info "audio/ogg")))
+       (setq mailcap-viewer-test-cache nil)
+       (should (string= "toggle %s" (mailcap-mime-info "audio/ogg")))))))
+
+(defvar mailcap--test-result nil)
+(defun mailcap--test-viewer ()
+  (setq mailcap--test-result (string= (buffer-string) "test\n")))
+
+(ert-deftest mailcap-view-file ()
+  (with-pristine-mailcap
+   ;; Try using a lambda as viewer and check wether
+   ;; `mailcap-view-file' works correctly.
+   (let* ((mailcap-mime-extensions '((".test" . "test/test"))))
+     (mailcap-add "test/test" 'mailcap--test-viewer)
+     (save-window-excursion
+       (mailcap-view-file (ert-resource-file "test.test")))
+     (should mailcap--test-result))))
+
 ;;; mailcap-tests.el ends here
