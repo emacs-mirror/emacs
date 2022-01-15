@@ -18731,17 +18731,19 @@ With prefix arg UNCOMPILED, load the uncompiled versions."
   "Is S an ID created by UUIDGEN?"
   (string-match "\\`[0-9a-f]\\{8\\}-[0-9a-f]\\{4\\}-[0-9a-f]\\{4\\}-[0-9a-f]\\{4\\}-[0-9a-f]\\{12\\}\\'" (downcase s)))
 
-(defun org-in-src-block-p (&optional inside)
+(defun org-in-src-block-p (&optional inside element)
   "Whether point is in a code source block.
 When INSIDE is non-nil, don't consider we are within a source
-block when point is at #+BEGIN_SRC or #+END_SRC."
-  (let ((case-fold-search t))
-    (or (and (eq (get-char-property (point) 'src-block) t))
-	(and (not inside)
-	     (save-match-data
-	       (save-excursion
-		 (beginning-of-line)
-		 (looking-at ".*#\\+\\(begin\\|end\\)_src")))))))
+block when point is at #+BEGIN_SRC or #+END_SRC.
+When ELEMENT is provided, it is considered to be element at point."
+  (save-match-data (setq element (or element (org-element-at-point))))
+  (when (eq 'src-block (org-element-type element))
+    (or (not inside)
+        (not (or (= (line-beginning-position)
+                  (org-element-property :post-affiliated element))
+               (= (1+ (line-end-position))
+                  (- (org-element-property :end element)
+                     (org-element-property :post-blank element))))))))
 
 (defun org-context ()
   "Return a list of contexts of the current cursor position.
