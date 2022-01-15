@@ -55,6 +55,14 @@
   "Face for emojis that have derivations."
   :version "29.1")
 
+(defvar emoji-alternate-names nil
+  "Alist of emojis and lists of alternate names for the emojis.
+Each element in the alist should have the emoji (as a string) as
+the first element, and the rest of the elements should be strings
+representing names.  For instance:
+
+  (\"🤗\" \"hug\" \"hugging\" \"kind\")")
+
 (defvar emoji--labels nil)
 (defvar emoji--all-bases nil)
 (defvar emoji--derived nil)
@@ -90,8 +98,9 @@ of selecting from emoji display."
 ;;;###autoload
 (defun emoji-search ()
   "Choose and insert an emoji glyph by typing its Unicode name.
-This command prompts for an emoji name, with completion, and inserts it.
-It recognizes the Unicode Standard names of emoji."
+This command prompts for an emoji name, with completion, and
+inserts it.  It recognizes the Unicode Standard names of emoji,
+and also consults the `emoji-alternate-names' alist."
   (interactive "*")
   (emoji--init)
   (emoji--choose-emoji))
@@ -647,29 +656,47 @@ We prefer the earliest unique letter."
 
 (defun emoji--choose-emoji ()
   ;; Use the list of names.
-  (let ((name
-         (completing-read
-          "Insert emoji: "
-          (lambda (string pred action)
-	    (if (eq action 'metadata)
-		(list 'metadata
-		      (cons
-                       'affixation-function
-                       ;; Add the glyphs to the start of the displayed
-                       ;; strings when TAB-ing.
-                       (lambda (strings)
-                         (mapcar
-                          (lambda (name)
-                            (list name
-                                  (concat
-                                   (or (gethash name emoji--all-bases) " ")
-                                   "\t")
-                                  ""))
-                          strings))))
-	      (complete-with-action action emoji--all-bases string pred)))
-          nil t)))
+  (let* ((table
+          (if (not emoji-alternate-names)
+              ;; If we don't have alternate names, do the efficient version.
+              emoji--all-bases
+            ;; Compute all the (possibly non-unique) names.
+            (let ((table nil))
+              (maphash
+               (lambda (name glyph)
+                 (push (concat name "\t" glyph) table))
+               emoji--all-bases)
+              (dolist (elem emoji-alternate-names)
+                (dolist (name (cdr elem))
+                  (push (concat name "\t" (car elem)) table)))
+              (sort table #'string<))))
+         (name
+          (completing-read
+           "Insert emoji: "
+           (lambda (string pred action)
+	     (if (eq action 'metadata)
+		 (list 'metadata
+		       (cons
+                        'affixation-function
+                        ;; Add the glyphs to the start of the displayed
+                        ;; strings when TAB-ing.
+                        (lambda (strings)
+                          (mapcar
+                           (lambda (name)
+                             (if emoji-alternate-names
+                                 (list name "" "")
+                               (list name
+                                     (concat
+                                      (or (gethash name emoji--all-bases) " ")
+                                      "\t")
+                                     "")))
+                           strings))))
+	       (complete-with-action action table string pred)))
+           nil t)))
     (when (cl-plusp (length name))
-      (let* ((glyph (gethash name emoji--all-bases))
+      (let* ((glyph (if emoji-alternate-names
+                        (cadr (split-string name "\t"))
+                      (gethash name emoji--all-bases)))
              (derived (gethash glyph emoji--derived)))
         (if (not derived)
             ;; Simple glyph with no derivations.
