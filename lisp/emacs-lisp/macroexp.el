@@ -162,6 +162,8 @@ Other uses risk returning non-nil value that point to the wrong file."
   #'macroexp-warn-and-return "28.1")
 (defun macroexp-warn-and-return (arg msg form &optional category compile-only)
   "Return code equivalent to FORM labeled with warning MSG.
+ARG is a symbol (or a form) giving the source code position of FORM
+for the message.  It should normally be a symbol with position.
 CATEGORY is the category of the warning, like the categories that
 can appear in `byte-compile-warnings'.
 COMPILE-ONLY non-nil means no warning should be emitted if the code
@@ -287,7 +289,7 @@ is executed without being compiled first."
       (setq arglist (cdr arglist)))
     (if values
         (macroexp-warn-and-return
-         name
+         arglist
          (format (if (eq values 'too-few)
                      "attempt to open-code `%s' with too few arguments"
                    "attempt to open-code `%s' with too many arguments")
