@@ -298,9 +298,10 @@ and should return the same menu with changes such as added new menu items."
                   (function-item context-menu-buffers)
                   (function-item context-menu-vc)
                   (function-item context-menu-ffap)
-                  (function-item Man-context-menu)
                   (function-item hi-lock-context-menu)
-                  (function-item context-menu-online-search)
+                  (function-item occur-context-menu)
+                  (function-item Man-context-menu)
+                  (function-item dictionary-context-menu)
                   (function :tag "Custom function")))
   :version "28.1")
 
