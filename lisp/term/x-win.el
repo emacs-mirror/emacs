@@ -1527,16 +1527,32 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 (defvar x-preedit-overlay nil
   "The overlay currently used to display preedit text from a compose sequence.")
 
+;; With some input methods, text gets inserted before Emacs is told to
+;; remove any preedit text that was displayed, which causes both the
+;; preedit overlay and the text to be visible for a brief period of
+;; time.  This pre-command-hook clears the overlay before any command
+;; and should be set whenever a preedit overlay is visible.
+(defun x-clear-preedit-text ()
+  "Clear the pre-edit overlay and remove itself from pre-command-hook.
+This function should be installed in `pre-command-hook' whenever
+preedit text is displayed."
+  (when x-preedit-overlay
+    (delete-overlay x-preedit-overlay)
+    (setq x-preedit-overlay nil))
+  (remove-hook 'pre-command-hook #'x-clear-preedit-text))
+
 (defun x-preedit-text (event)
   "Display preedit text from a compose sequence in EVENT.
 EVENT is a preedit-text event."
   (interactive "e")
   (when x-preedit-overlay
     (delete-overlay x-preedit-overlay)
-    (setq x-preedit-overlay nil))
+    (setq x-preedit-overlay nil)
+    (remove-hook 'pre-command-hook #'x-clear-preedit-text))
   (when (nth 1 event)
     (let ((string (propertize (nth 1 event) 'face '(:underline t))))
       (setq x-preedit-overlay (make-overlay (point) (point)))
+      (add-hook 'pre-command-hook #'x-clear-preedit-text)
       (overlay-put x-preedit-overlay 'window (selected-window))
       (overlay-put x-preedit-overlay 'before-string
                    (if x-display-cursor-at-start-of-preedit-string
