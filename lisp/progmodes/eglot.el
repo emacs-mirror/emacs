@@ -322,6 +322,10 @@ let the buffer grow forever."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
+(defcustom eglot-mode-line-string "eglot"
+  "String displayed on the mode line when Eglot is active."
+  :type 'string)
+
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
@@ -1741,6 +1745,99 @@ If it is activated, also signal textDocument/didOpen."
                                            (call-interactively what)
                                            (force-mode-line-update t))))))
 
+(defun eglot-read-documentation ()
+  "Open the on-line documentation."
+  (interactive)
+  (browse-url "https://github.com/joaotavora/eglot#readme"))
+
+(defun eglot-customize ()
+  "Customize Eglot."
+  (interactive)
+  (customize-group "eglot"))
+
+(easy-menu-define eglot-menu-map nil "Eglot"
+  (let ((action-help
+         "Get possible code actions for the active region or the point"))
+    `("Eglot"
+      ;; Commands for getting information and customization.
+      ["Read the documentation" eglot-read-documentation
+       :help "Read the on-line documentation"]
+      ["Customize Eglot" eglot-customize
+       :help "Customize Eglot globally"]
+      "--"
+      ;; xref like commands.
+      ["Find definitions" xref-find-definitions
+       :help "Find definitions of the identifier at point"
+       :active (eglot--server-capable :definitionProvider)]
+      ["Find references" xref-find-references
+       :help "Find references to the identifier at point"
+       :active (eglot--server-capable :referencesProvider)]
+      ["Find symbols in workspace (apropos)" xref-find-apropos
+       :help "Find symbols matching a query"
+       :active (eglot--server-capable :workspaceSymbolProvider)]
+      ["Find declaration" eglot-find-declaration
+       :help "Find declaration for the identifier at point"
+       :active (eglot--server-capable :declarationProvider)]
+      ["Find implementation" eglot-find-implementation
+       :help "Find implementation for the identifier at point"
+       :active (eglot--server-capable :implementationProvider)]
+      ["Find type definition" eglot-find-typeDefinition
+       :help "Find type definition for the identifier at point"
+       :active (eglot--server-capable :typeDefinitionProvider)]
+      "--"
+      ;; LSP-related commands (mostly Eglot's own commands).
+      ["Rename symbol" eglot-rename
+       :help "Rename current symbol"
+       :active (eglot--server-capable :renameProvider)]
+      ["Format buffer" eglot-format-buffer
+       :help "Format contents of the buffer"
+       :active (eglot--server-capable :documentFormattingProvider)]
+      ["Format region" eglot-format
+       :help "Format the active region"
+       :active (and (region-active-p)
+                    (eglot--server-capable :documentRangeFormattingProvider))]
+      ["Show all diagnostics" flymake-show-buffer-diagnostics
+       :help "Show diagnostics for current buffer (flymake)"]
+      ["Show documentation for point" eldoc-doc-buffer
+       :help "Show documentation for point in a buffer (eldoc)"]
+      "--"
+      ;; Code-action commands.
+      ["All possible code actions" eglot-code-actions
+       :help ,action-help
+       :active (eglot--server-capable :codeActionProvider)]
+      ["Organize imports" eglot-code-action-organize-imports
+       :help ,action-help
+       :visible (eglot--server-capable :codeActionProvider)]
+      ["Extract" eglot-code-action-extract
+       :help ,action-help
+       :visible (eglot--server-capable :codeActionProvider)]
+      ["Inline" eglot-code-action-inline
+       :help ,action-help
+       :visible (eglot--server-capable :codeActionProvider)]
+      ["Rewrite" eglot-code-action-rewrite
+       :help ,action-help
+       :visible (eglot--server-capable :codeActionProvider)]
+      ["Quickfix" eglot-code-action-quickfix
+       :help ,action-help
+       :visible (eglot--server-capable :codeActionProvider)])))
+
+(easy-menu-define eglot-debug-map nil "Debugging the server communication"
+  '("Debugging the server communication"
+    ["Go to events buffer" eglot-events-buffer
+     :help "Display the log buffer of the server communication"]
+    ["Go to the stderr buffer" eglot-stderr-buffer
+     :help "Display the error buffer for current LSP server"]
+    ["Reconnect to server" eglot-reconnect
+     :help "Reconnect to the current LSP server"]
+    ["Quit server" eglot-shutdown
+     :help "Politely ask the LSP server to quit"]
+    "--"
+    ["Customize events buffers"
+     (lambda ()
+       (interactive)
+       (customize-variable 'eglot-events-buffer-size))
+     :help "Customize variable eglot-events-buffer-size"]))
+
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
 Uses THING, FACE, DEFS and PREPEND."
@@ -1764,18 +1861,28 @@ Uses THING, FACE, DEFS and PREPEND."
                (`(,_id ,doing ,done-p ,_detail) (and server (eglot--spinner server)))
                (last-error (and server (jsonrpc-last-error server))))
     (append
-     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
+     `(,(propertize
+         eglot-mode-line-string
+         'face 'eglot-mode-line
+         'mouse-face 'mode-line-highlight
+         'help-echo "Eglot: an LSP client\nmouse-1: Display minor mode menu"
+         'keymap (let ((map (make-sparse-keymap)))
+                   (define-key map [mode-line down-mouse-1] eglot-menu-map)
+                   map)))
      (when nick
-       `(":" ,(eglot--mode-line-props
-               nick 'eglot-mode-line
-               '((C-mouse-1 eglot-stderr-buffer "go to stderr buffer")
-                 (mouse-1 eglot-events-buffer "go to events buffer")
-                 (mouse-2 eglot-shutdown      "quit server")
-                 (mouse-3 eglot-reconnect     "reconnect to server")))
-         ,@(when last-error
+       `(":"
+         ,(propertize
+           nick
+           'face 'eglot-mode-line
+           'mouse-face 'mode-line-highlight
+           'help-echo (format "Project '%s'\nmouse-1: LSP debugging menu" nick)
+           'keymap (let ((map (make-sparse-keymap)))
+                     (define-key map [mode-line down-mouse-1] eglot-debug-map)
+                     map))
+       ,@(when last-error
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
-                     '((mouse-3 eglot-clear-status  "clear this status"))
+                     '((mouse-3 eglot-clear-status  "Clear this status"))
                      (format "An error occurred: %s\n" (plist-get last-error
                                                                  :message)))))
          ,@(when (and doing (not done-p))
@@ -1785,9 +1892,9 @@ Uses THING, FACE, DEFS and PREPEND."
              `("/" ,(eglot--mode-line-props
                      (format "%d" pending) 'warning
                      '((mouse-3 eglot-forget-pending-continuations
-                                "forget pending continuations"))
+                                "Forget pending continuations"))
                      "Number of outgoing, \
-still unanswered LSP requests to the server"))))))))
+still unanswered LSP requests to the server\n"))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
