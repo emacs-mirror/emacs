@@ -11898,7 +11898,8 @@ Returns nil if no threads were there to be hidden."
   (beginning-of-line)
   (let ((start (point))
 	(starteol (line-end-position))
-	(article (gnus-summary-article-number)))
+	(article (unless (gnus-summary-article-intangible-p)
+                   (gnus-summary-article-number))))
     ;; Go forward until either the buffer ends or the subthread ends.
     (when (and (not (eobp))
 	       (or (zerop (gnus-summary-next-thread 1 t))
@@ -11912,7 +11913,9 @@ Returns nil if no threads were there to be hidden."
 	      (let ((ol (make-overlay starteol (point) nil t nil)))
 		(overlay-put ol 'invisible 'gnus-sum)
 		(overlay-put ol 'evaporate t)))
-	    (gnus-summary-goto-subject article)
+	    (if article
+                (gnus-summary-goto-subject article)
+              (gnus-summary-position-point))
 	    ;; We moved backward past the start point (invisible thread?)
             (when (> start (point))
               (goto-char starteol)))
