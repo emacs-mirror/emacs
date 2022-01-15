@@ -443,6 +443,9 @@ Evaluate BODY for each created map."
 
 (ert-deftest test-map-into-hash-test ()
   "Test `map-into' with different hash-table test functions."
+  ;; This test is unstable in Emacs 28, but the problem has been fixed
+  ;; in Emacs 29 (bug#46722).
+  :tags '(:unstable)
   (should (eq (hash-table-test (map-into () 'hash-table)) #'equal))
   (should (eq (hash-table-test (map-into () '(hash-table))) #'eql))
   (should (eq (hash-table-test (map-into () '(hash-table :test eq))) #'eq))
@@ -473,6 +476,9 @@ Evaluate BODY for each created map."
 
 (ert-deftest test-map-merge ()
   "Test `map-merge'."
+  ;; This test is unstable in Emacs 28, but the problem has been fixed
+  ;; in Emacs 29 (bug#46722).
+  :tags '(:unstable)
   (should (equal (sort (map-merge 'list '(a 1) '((b . 2) (c . 3))
                                   #s(hash-table data (c 4)))
                        (lambda (x y) (string< (car x) (car y))))
@@ -482,6 +488,9 @@ Evaluate BODY for each created map."
   (should (equal (map-merge 'plist () '(:a 1)) '(:a 1))))
 
 (ert-deftest test-map-merge-with ()
+  ;; This test is unstable in Emacs 28, but the problem has been fixed
+  ;; in Emacs 29 (bug#46722).
+  :tags '(:unstable)
   (should (equal (sort (map-merge-with 'list #'+
                                        '((1 . 2))
                                        '((1 . 3) (2 . 4))
@@ -494,6 +503,9 @@ Evaluate BODY for each created map."
 
 (ert-deftest test-map-merge-empty ()
   "Test merging of empty maps."
+  ;; This test is unstable in Emacs 28, but the problem has been fixed
+  ;; in Emacs 29 (bug#46722).
+  :tags '(:unstable)
   (should-not (map-merge 'list))
   (should-not (map-merge 'alist))
   (should-not (map-merge 'plist))
