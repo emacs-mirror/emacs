@@ -324,6 +324,8 @@ the function `context-menu-filter-function'."
          (fun (mouse-posn-property (event-start click)
                                    'context-menu-function)))
 
+    (select-window (posn-window (event-start click)))
+
     (if (functionp fun)
         (setq menu (funcall fun menu click))
       (run-hook-wrapped 'context-menu-functions
