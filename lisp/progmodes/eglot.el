@@ -1519,7 +1519,8 @@ and just return it.  PROMPT shouldn't end with a question mark."
 ;;;
 (defvar eglot-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap display-local-help] 'eldoc-doc-buffer)
+    (when (fboundp 'eldoc-doc-buffer) ; Emacs 28.1 or later
+      (define-key map [remap display-local-help] #'eldoc-doc-buffer))
     map))
 
 (defvar-local eglot--current-flymake-report-fn nil
