@@ -2818,7 +2818,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
       enum haiku_event_type type;
       char *ptr = NULL;
 
-      if (!haiku_read_with_timeout (&type, buf, 200, 100000))
+      if (!haiku_read_with_timeout (&type, buf, 200, 1000000))
 	{
 	  block_input_function ();
 	  if (type != FILE_PANEL_EVENT)
