@@ -2224,7 +2224,11 @@ BWindow_set_tooltip_decoration (void *window)
   if (!w->LockLooper ())
     gui_abort ("Failed to lock window while setting ttip decoration");
   w->SetLook (B_BORDERED_WINDOW_LOOK);
-  w->SetFeel (B_FLOATING_APP_WINDOW_FEEL);
+  w->SetFeel (kMenuWindowFeel);
+  w->SetFlags (B_NOT_ZOOMABLE
+	       | B_NOT_MINIMIZABLE
+	       | B_AVOID_FRONT
+	       | B_AVOID_FOCUS);
   w->UnlockLooper ();
 }
 
