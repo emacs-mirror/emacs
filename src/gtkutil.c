@@ -6256,6 +6256,9 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
     }
 
   XNoOp (FRAME_X_DISPLAY (f));
+#ifdef USABLE_SIGIO
+  raise (SIGIO);
+#endif
   return true;
 }
 
