@@ -287,11 +287,12 @@ height use 'window-height' in combination with 'body-lines'.
 
 +++
 *** Deleted frames can now be undeleted.
-The 16 most recently deleted frames can be undeleted with 'C-x 5 u' when
-'undelete-frame-mode' is enabled.  Without a prefix argument, undelete
-the most recently deleted frame.  With a numerical prefix argument
-between 1 and 16, where 1 is the most recently deleted frame, undelete
-the corresponding deleted frame.
+The most recently deleted frame can be undeleted with 'C-x 5 u' when
+the new user option 'undelete-frame-max' has its default value 1.
+Without a prefix argument, undelete the most recently deleted frame.
+With a numerical prefix argument between 1 and 'undelete-frame-max',
+where 1 is the most recently deleted frame, undelete the corresponding
+deleted frame.
 
 ** Tab Bars and Tab Lines
 
