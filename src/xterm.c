@@ -11526,8 +11526,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
 		      dpyinfo->xkb_desc = NULL;
 		    }
-
-		  x_find_modifier_meanings (dpyinfo);
 		}
 	      else
 		{
@@ -11545,6 +11543,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 
 	      XkbRefreshKeyboardMapping (&xkbevent->map);
+	      x_find_modifier_meanings (dpyinfo);
 	    }
 	}
 #endif
