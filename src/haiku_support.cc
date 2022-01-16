@@ -1861,7 +1861,7 @@ BWindow_retitle (void *window, const char *title)
 void
 BWindow_resize (void *window, int width, int height)
 {
-  ((BWindow *) window)->ResizeTo (width, height);
+  ((BWindow *) window)->ResizeTo (width - 1, height - 1);
 }
 
 /* Activate WINDOW, making it the subject of keyboard focus and
