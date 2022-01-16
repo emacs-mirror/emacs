@@ -2479,10 +2479,7 @@ haiku_default_font_parameter (struct frame *f, Lisp_Object parms)
       struct haiku_font_pattern ptn;
       ptn.specified = 0;
 
-      if (f->tooltip)
-	BFont_populate_plain_family (&ptn);
-      else
-	BFont_populate_fixed_family (&ptn);
+      BFont_populate_fixed_family (&ptn);
 
       if (ptn.specified & FSPEC_FAMILY)
 	font = font_open_by_name (f, build_unibyte_string (ptn.family));

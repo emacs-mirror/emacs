@@ -2001,6 +2001,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   BWindow_resize (FRAME_HAIKU_WINDOW (tip_f), width, height);
   haiku_set_offset (tip_f, root_x, root_y, 1);
   BWindow_set_tooltip_decoration (FRAME_HAIKU_WINDOW (tip_f));
+  BWindow_set_avoid_focus (FRAME_HAIKU_WINDOW (tip_f), true);
   BView_set_view_cursor (FRAME_HAIKU_VIEW (tip_f),
 			 FRAME_OUTPUT_DATA (XFRAME (frame))->current_cursor);
   SET_FRAME_VISIBLE (tip_f, 1);
