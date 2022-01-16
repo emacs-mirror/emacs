@@ -243,6 +243,16 @@ These will take you (respectively) to the next and previous "page".
 ---
 *** 'describe-char' now also outputs the name of emoji combinations.
 
+** Outline Mode
+
+*** Support for a default visibility state.
+Customize the option 'outline-default-state' to define what headings
+are visible when the mode is set.  When equal to a number, the option
+'outline-default-rules' determines the visibility of the subtree
+starting at the corresponding level.  Values are provided to show
+a heading subtree unless the heading match a regexp, or its subtree
+has long lines or is long.
+
 ** Outline Minor Mode
 
 +++
