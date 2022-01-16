@@ -10711,7 +10711,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f && xev->evtype == XI_ButtonPress
 		  && !popup_activated ()
-		  && !x_window_to_scroll_bar (xev->display, xev->event, 2)
+		  && !x_window_to_scroll_bar (dpyinfo->display, xev->event, 2)
 		  && !FRAME_NO_ACCEPT_FOCUS (f))
 		{
 		  /* When clicking into a child frame or when clicking
@@ -10884,7 +10884,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.type = KeyPress;
 	      xkey.serial = xev->serial;
 	      xkey.send_event = xev->send_event;
-	      xkey.display = xev->display;
+	      xkey.display = dpyinfo->display;
 	      xkey.window = xev->event;
 	      xkey.root = xev->root;
 	      xkey.subwindow = xev->child;
@@ -11230,7 +11230,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.type = KeyRelease;
 	      xkey.serial = xev->serial;
 	      xkey.send_event = xev->send_event;
-	      xkey.display = xev->display;
+	      xkey.display = dpyinfo->display;
 	      xkey.window = xev->event;
 	      xkey.root = xev->root;
 	      xkey.subwindow = xev->child;
