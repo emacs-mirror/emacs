@@ -451,11 +451,11 @@ on unknown notifications and errors on unknown requests."))
       (eglot--interface interface-name)
     (when-let ((missing (and enforce-required
                              (cl-set-difference required-keys
-                                                (map-keys object)))))
+                                                (eglot--plist-keys object)))))
       (eglot--error "A `%s' must have %s" interface-name missing))
     (when-let ((excess (and disallow-non-standard
                             (cl-set-difference
-                             (map-keys object)
+                             (eglot--plist-keys object)
                              (append required-keys optional-keys)))))
       (eglot--error "A `%s' mustn't have %s" interface-name excess))
     (when check-types
@@ -580,7 +580,7 @@ treated as in `eglot-dbind'."
                   ;; has all the keys the user wants to destructure.
                   `(null (cl-set-difference
                           ',vars-as-keywords
-                          (map-keys ,obj-once)))))
+                          (eglot--plist-keys ,obj-once)))))
            collect `(,condition
                      (cl-destructuring-bind (&key ,@vars &allow-other-keys)
                          ,obj-once
@@ -3103,7 +3103,12 @@ If INTERACTIVE, prompt user for details."
 
 (make-obsolete-variable 'eglot--managed-mode-hook
                         'eglot-managed-mode-hook "1.6")
-(define-obsolete-function-alias 'eglot--plist-keys #'map-keys "1.9")
+
+(if (< emacs-major-version 27)
+    (defun eglot--plist-keys (plist)
+      (cl-loop for (k _v) on plist by #'cddr collect k))
+  ;; Make into an obsolete alias once we drop support for Emacs 26.
+  (defalias 'eglot--plist-keys #'map-keys))
 
 (provide 'eglot)
 
