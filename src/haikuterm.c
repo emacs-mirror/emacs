@@ -55,6 +55,8 @@ struct unhandled_event
   uint8_t buffer[200];
 };
 
+static bool any_help_event_p = false;
+
 char *
 get_keysym_name (int keysym)
 {
@@ -2594,6 +2596,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   struct unhandled_event *unhandled_events = NULL;
   int button_or_motion_p;
   int need_flush = 0;
+  int do_help = 0;
 
   if (!buf)
     buf = xmalloc (200);
@@ -2774,8 +2777,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  }
 
 		haiku_new_focus_frame (x_display_list->focused_frame);
-		help_echo_string = Qnil;
-		gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+
+		if (any_help_event_p)
+		  do_help = -1;
 	      }
 	    else
 	      {
@@ -2820,9 +2824,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    remember_mouse_glyph (f, b->x, b->y,
 					  &FRAME_DISPLAY_INFO (f)->last_mouse_glyph);
 		    dpyinfo->last_mouse_glyph_frame = f;
-		    gen_help_event (help_echo_string, frame, help_echo_window,
-				    help_echo_object, help_echo_pos);
 		  }
+		else
+		  help_echo_string = previous_help_echo_string;
 
 		if (!NILP (Vmouse_autoselect_window))
 		  {
@@ -2842,6 +2846,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		    last_mouse_window = window;
 		  }
+
+		if (!NILP (help_echo_string)
+		    || !NILP (previous_help_echo_string))
+		  do_help = 1;
 	      }
 	    break;
 	  }
@@ -3291,6 +3299,28 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       struct unhandled_event *old = ev;
       ev = old->next;
       xfree (old);
+    }
+
+  if (do_help && !(hold_quit && hold_quit->kind != NO_EVENT))
+    {
+      Lisp_Object help_frame = Qnil;
+
+      if (x_display_list->last_mouse_frame)
+	XSETFRAME (help_frame,
+		   x_display_list->last_mouse_frame);
+
+      if (do_help > 0)
+	{
+	  any_help_event_p = true;
+	  gen_help_event (help_echo_string, help_frame,
+			  help_echo_window, help_echo_object,
+			  help_echo_pos);
+	}
+      else
+	{
+	  help_echo_string = Qnil;
+	  gen_help_event (Qnil, help_frame, Qnil, Qnil, 0);
+	}
     }
 
   if (need_flush)
