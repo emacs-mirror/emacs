@@ -1101,10 +1101,11 @@ this is probably the wrong function to use, because it can't take
 `syntax-after' instead.  */)
   (Lisp_Object character)
 {
-  int char_int;
   CHECK_CHARACTER (character);
-  char_int = XFIXNUM (character);
+  int char_int = XFIXNAT (character);
   SETUP_BUFFER_SYNTAX_TABLE ();
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+    char_int = make_char_multibyte (char_int);
   return make_fixnum (syntax_code_spec[SYNTAX (char_int)]);
 }
 

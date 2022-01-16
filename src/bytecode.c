@@ -1167,13 +1167,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  NEXT;
 
 	CASE (Bchar_syntax):
-	  {
-	    CHECK_CHARACTER (TOP);
-	    int c = XFIXNAT (TOP);
-	    if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	      c = make_char_multibyte (c);
-	    XSETFASTINT (TOP, syntax_code_spec[SYNTAX (c)]);
-	  }
+	  TOP = Fchar_syntax (TOP);
 	  NEXT;
 
 	CASE (Bbuffer_substring):
