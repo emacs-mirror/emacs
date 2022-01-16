@@ -1466,7 +1466,7 @@ under cursor."
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
   (unless (cl-some (lambda (feat)
-                     (memq feat eglot-ignored-server-capabilites))
+                     (memq feat eglot-ignored-server-capabilities))
                    feats)
     (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
              then (cadr probe)
