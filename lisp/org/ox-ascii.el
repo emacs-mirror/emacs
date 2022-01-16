@@ -1929,7 +1929,11 @@ a communication channel."
 	       (org-export-table-cell-alignment table-cell info)))))
       (setq contents
 	    (concat data
-		    (make-string (- width (string-width (or data ""))) ?\s))))
+                    ;; FIXME: If CONTENTS was transformed by filters,
+                    ;; the whole width calculation can be wrong.
+                    ;; At least, make sure that we do not throw error
+                    ;; when CONTENTS is larger than width.
+		    (make-string (max 0 (- width (string-width (or data "")))) ?\s))))
     ;; Return cell.
     (concat (format " %s " contents)
 	    (when (memq 'right (org-export-table-cell-borders table-cell info))
