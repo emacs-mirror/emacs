@@ -1565,9 +1565,6 @@ For example, to keep your Company customization use
   "Tell if current buffer is managed by EGLOT."
   eglot--managed-mode)
 
-(make-obsolete-variable
- 'eglot--managed-mode-hook 'eglot-managed-mode-hook "1.6")
-
 (defvar eglot-managed-mode-hook nil
   "A hook run by EGLOT after it started/stopped managing a buffer.
 Use `eglot-managed-p' to determine if current buffer is managed.")
@@ -3103,11 +3100,19 @@ If INTERACTIVE, prompt user for details."
   "Eclipse JDT breaks spec and replies with edits as arguments."
   (mapc #'eglot--apply-workspace-edit arguments))
 
+
+;;; Obsolete
+;;;
+
+(make-obsolete-variable 'eglot--managed-mode-hook
+                        'eglot-managed-mode-hook "1.6")
+
 (provide 'eglot)
-;;; eglot.el ends here
 
 ;; Local Variables:
 ;; bug-reference-bug-regexp: "\\(github#\\([0-9]+\\)\\)"
 ;; bug-reference-url-format: "https://github.com/joaotavora/eglot/issues/%s"
 ;; checkdoc-force-docstrings-flag: nil
 ;; End:
+
+;;; eglot.el ends here
