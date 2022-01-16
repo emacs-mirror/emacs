@@ -153,10 +153,24 @@ static int
 evq_flush (struct input_event *hold_quit)
 {
   struct event_queue_t *evq = &event_q;
-  int i, n = evq->nr;
-  for (i = 0; i < n; i++)
-    kbd_buffer_store_buffered_event (&evq->q[i], hold_quit);
-  evq->nr = 0;
+  int n = 0;
+
+  while (evq->nr > 0)
+    {
+      /* kbd_buffer_store_buffered_event may do longjmp, so
+	 we need to shift event queue first and pass the event
+	 to kbd_buffer_store_buffered_event so that events in
+	 queue are not processed twice.  Bug#52941 */
+      union buffered_input_event ev = evq->q[0];
+      int i;
+      for (i = 1; i < evq->nr; i++)
+	evq->q[i - 1] = evq->q[i];
+      evq->nr--;
+
+      kbd_buffer_store_buffered_event (&ev, hold_quit);
+      n++;
+    }
+
   return n;
 }
 
