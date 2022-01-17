@@ -44,7 +44,8 @@ unifiles = $(addprefix ${unidir}/,$(sort $(shell sed -n 's/^[ \t][ \t]*${lparen}
 .PHONY: all
 
 all: ${top_srcdir}/src/macuvs.h ${unifiles} ${unidir}/charscript.el \
-  ${unidir}/charprop.el ${unidir}/emoji-zwj.el ${unidir}/emoji-labels.el
+  ${unidir}/charprop.el ${unidir}/emoji-zwj.el ${unidir}/emoji-labels.el \
+  ${unidir}/uni-scripts.el
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -81,6 +82,13 @@ ${unifiles}: ${srcdir}/unidata-gen.el \
 ${unidir}/emoji-labels.el: ${unidir}/../international/emoji.el \
 	  ${srcdir}/emoji-test.txt
 	$(AM_V_GEN)${emacs} -l emoji.el -f emoji--generate-file $@
+
+${unidir}/uni-scripts.el: ${srcdir}/unidata-gen.el \
+	  ${srcdir}/Scripts.txt \
+	  ${srcdir}/ScriptExtensions.txt \
+	  ${srcdir}/PropertyValueAliases.txt
+	$(AM_V_GEN)${emacs} -L ${srcdir} \
+		-l unidata-gen -f unidata-gen-scripts $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el

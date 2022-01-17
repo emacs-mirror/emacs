@@ -1,0 +1,95 @@
+;;; textsec.el --- Functions for handling homoglyphs and the like  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2022 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;
+
+;;; Code:
+
+(require 'cl-lib)
+
+(defvar textsec--char-scripts nil)
+
+(eval-and-compile
+  (defun textsec--create-script-table (data)
+    "Create the textsec--char-scripts char table."
+    (setq textsec--char-scripts (make-char-table nil))
+    (dolist (scripts data)
+      (dolist (range (cadr scripts))
+        (set-char-table-range textsec--char-scripts
+                              range (car scripts)))))
+  (require 'uni-scripts))
+
+(defun textsec-scripts (string)
+  "Return a list of scripts used in STRING."
+  (seq-map (lambda (char)
+             (elt textsec--char-scripts char))
+           string))
+
+(defun textsec-single-script-p (string)
+  "Return non-nil if STRING is all in a single script.
+
+Note that the concept of \"single script\" used by this function
+isn't obvious -- some mixtures of scripts count as a \"single
+script\.  See
+
+  https://www.unicode.org/reports/tr39/#Mixed_Script_Detection
+
+for details."
+  (let ((scripts (mapcar (lambda (s)
+                           (append s
+                                   (mapcan (lambda (script)
+                                             (copy-sequence
+                                              (textsec--augment-script script)))
+                                           s)))
+                         (textsec-scripts string))))
+    (catch 'empty
+      (cl-loop for s1 in scripts
+               do (cl-loop for s2 in scripts
+                           when (and (not (memq 'common s1))
+                                     (not (memq 'common s2))
+                                     (not (memq 'inherited s1))
+                                     (not (memq 'inherited s2))
+                                     (not (seq-intersection s1 s2)))
+                           do (throw 'empty nil)))
+      t)))
+
+(defun textsec--augment-script (script)
+  (cond
+   ((eq script 'han)
+    '(hangul japan korea))
+   ((or (eq script 'hiragana)
+        (eq script 'katakana))
+    '(japan))
+   ((or (eq script 'hangul)
+        (eq script 'bopomofo))
+    '(korea))))
+
+(defun textsec-covering-scripts (string)
+  "Return a minimal list of scripts used in STRING."
+  (let* ((scripts (textsec-scripts string))
+         (set (car scripts)))
+    (dolist (s scripts)
+      (setq set (seq-union set (seq-difference s set))))
+    (delq 'common (delq 'inherited set))))
+
+(provide 'textsec)
+
+;;; textsec.el ends here

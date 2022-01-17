@@ -951,6 +951,10 @@ The input must be encoded text.
 
 * Lisp Changes in Emacs 29.1
 
+---
+** The Gnus range functions have been moved to a new library, range.el.
+All the old names have been made obsolete.
+
 +++
 ** New function 'function-alias-p'.
 This predicate says whether an object is a function alias, and if it
