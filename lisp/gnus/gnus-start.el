@@ -1884,13 +1884,12 @@ The info element is shared with the same element of
 	 (ranges (gnus-info-read info))
 	 news article)
     (while articles
-      (when (gnus-member-of-range
-	     (setq article (pop articles)) ranges)
+      (when (range-member-p (setq article (pop articles)) ranges)
 	(push article news)))
     (when news
       ;; Enter this list into the group info.
       (setf (gnus-info-read info)
-            (gnus-remove-from-range (gnus-info-read info) (nreverse news)))
+            (range-remove (gnus-info-read info) (nreverse news)))
 
       ;; Set the number of unread articles in gnus-newsrc-hashtb.
       (gnus-get-unread-articles-in-group info (gnus-active group))
@@ -2362,10 +2361,10 @@ The form should return either t or nil."
 	      ticked (cdr (assq 'tick marks)))
 	(when (or dormant ticked)
 	  (setf (gnus-info-read info)
-	        (gnus-add-to-range
+	        (range-add-list
 	         (gnus-info-read info)
-	         (nconc (gnus-uncompress-range dormant)
-		        (gnus-uncompress-range ticked)))))))))
+	         (nconc (range-uncompress dormant)
+		        (range-uncompress ticked)))))))))
 
 (defun gnus-load (file)
   "Load FILE, but in such a way that read errors can be reported."
@@ -2457,8 +2456,7 @@ The form should return either t or nil."
 	  (unless (nthcdr 3 info)
 	    (nconc info (list nil)))
 	  (setf (gnus-info-marks info)
-		(list (cons 'tick (gnus-compress-sequence
-				   (sort (cdr m) #'<) t))))))
+		(list (cons 'tick (range-compress-list (sort (cdr m) #'<)))))))
       (setq newsrc killed)
       (while newsrc
 	(setcar newsrc (caar newsrc))

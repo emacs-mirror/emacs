@@ -207,7 +207,7 @@ as `(keyfunc member)' and the corresponding element is just
   (inline-quote
    (cond
     ((eq ,type 'range)
-     (nnselect-categorize (gnus-uncompress-range ,articles)
+     (nnselect-categorize (range-uncompress ,articles)
 			  #'nnselect-article-group #'nnselect-article-number))
     ((eq ,type 'tuple)
      (nnselect-categorize ,articles
@@ -542,10 +542,10 @@ If this variable is nil, or if the provided function returns nil,
 	     (group-info (gnus-get-info artgroup))
 	     (marks (gnus-info-marks group-info))
 	     (unread (gnus-uncompress-sequence
-		      (gnus-range-difference (gnus-active artgroup)
-					     (gnus-info-read group-info)))))
+		      (range-difference (gnus-active artgroup)
+					(gnus-info-read group-info)))))
 	(setf (gnus-info-read info)
-	      (gnus-add-to-range
+	      (range-add-list
 	       (gnus-info-read info)
 	       (delq nil (mapcar
                           (lambda (art)
@@ -567,7 +567,7 @@ If this variable is nil, or if the provided function returns nil,
 			       artids))
 			     (t
 			      (setq mark-list
-				    (gnus-uncompress-range mark-list))
+				    (range-uncompress mark-list))
 			      (mapcar
                                (lambda (id)
                                  (when (memq (cdr id) mark-list)
@@ -866,16 +866,16 @@ article came from is also searched."
 	      (when (and (gnus-check-backend-function
 			  'request-set-mark artgroup)
 			 (not (gnus-article-unpropagatable-p type)))
-		(let* ((old (gnus-list-range-intersection
+		(let* ((old (range-list-intersection
 			     artlist
 			     (alist-get type (gnus-info-marks group-info))))
-		       (del (gnus-remove-from-range (copy-tree old) list))
-		       (add (gnus-remove-from-range (copy-tree list) old)))
+		       (del (range-remove (copy-tree old) list))
+		       (add (range-remove (copy-tree list) old)))
 		  (when add (push (list add 'add (list type)) delta-marks))
 		  (when del
 		    ;; Don't delete marks from outside the active range.
 		    ;; This shouldn't happen, but is a sanity check.
-		    (setq del (gnus-sorted-range-intersection
+		    (setq del (range-intersection
 			       (gnus-active artgroup) del))
 		    (push (list del 'del (list type)) delta-marks))))
 
@@ -910,18 +910,18 @@ article came from is also searched."
 			      (< (car elt1) (car elt2))))))
 	       (t
 		(setq list
-		      (gnus-compress-sequence
+		      (range-compress-list
 		       (gnus-sorted-union
 			(gnus-sorted-difference
 			 (gnus-uncompress-sequence
 			  (alist-get type (gnus-info-marks group-info)))
 			 artlist)
-			(sort list #'<)) t)))
+			(sort list #'<)))))
 
 	       ;; When exiting the group, everything that's previously been
 	       ;; unseen is now seen.
 	       (when (eq  type 'seen)
-		 (setq list (gnus-range-add
+		 (setq list (range-concat
 			     list (cdr (assoc artgroup select-unseen))))))
 
 	      (when (or list (eq  type 'unexist))
@@ -944,9 +944,9 @@ article came from is also searched."
 	    ;; update read and unread
 	    (gnus-update-read-articles
 	     artgroup
-	     (gnus-uncompress-range
-	      (gnus-add-to-range
-	       (gnus-remove-from-range
+	     (range-uncompress
+	      (range-add-list
+	       (range-remove
 		old-unread
 		(cdr (assoc artgroup select-reads)))
 	       (sort (cdr (assoc artgroup select-unreads)) #'<))))

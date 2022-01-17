@@ -42,6 +42,7 @@
 (require 'message)
 (require 'mouse)
 (require 'seq)
+(require 'range)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
@@ -7019,7 +7020,7 @@ then we display only bindings that start with that prefix."
 		   (setq sumkeys
 			 (append (mapcar
 				  #'vector
-				  (nreverse (gnus-uncompress-range def)))
+				  (nreverse (range-uncompress def)))
 				 sumkeys))))
 		((setq def (key-binding key))
 		 (unless (eq def 'undefined)

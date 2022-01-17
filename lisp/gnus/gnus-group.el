@@ -35,6 +35,7 @@
 (require 'gnus-undo)
 (require 'gmm-utils)
 (require 'time-date)
+(require 'range)
 
 (eval-when-compile
   (require 'mm-url)
@@ -512,8 +513,8 @@ simple manner."
 	      ((numberp number)
 	       (int-to-string
 		(+ number
-		   (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
-		   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))))
+		   (range-length (cdr (assq 'dormant gnus-tmp-marked)))
+		   (range-length (cdr (assq 'tick gnus-tmp-marked))))))
 	      (t number))
 	?s)
     (?R gnus-tmp-number-of-read ?s)
@@ -523,10 +524,10 @@ simple manner."
 	?s)
     (?t gnus-tmp-number-total ?d)
     (?y gnus-tmp-number-of-unread ?s)
-    (?I (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
-    (?T (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
-    (?i (+ (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
-	   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))
+    (?I (range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
+    (?T (range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
+    (?i (+ (range-length (cdr (assq 'dormant gnus-tmp-marked)))
+	   (range-length (cdr (assq 'tick gnus-tmp-marked))))
 	?d)
     (?g gnus-tmp-group ?s)
     (?G gnus-tmp-qualified-group ?s)
@@ -1482,9 +1483,9 @@ if it is a string, only list groups matching REGEXP."
 	 (active (gnus-active group)))
     (if (not active)
 	0
-      (length (gnus-uncompress-range
-	       (gnus-range-difference
-		(gnus-range-difference (list active) (gnus-info-read info))
+      (length (range-uncompress
+	       (range-difference
+		(range-difference (list active) (gnus-info-read info))
 		seen))))))
 
 ;; Moving through the Group buffer (in topic mode) e.g. with C-n doesn't
@@ -1642,7 +1643,7 @@ Some value are bound so the form can use them."
 			    '(mail post-mail))))
 	     (cons 'level (or (gnus-info-level info) gnus-level-killed))
 	     (cons 'score (or (gnus-info-score info) 0))
-	     (cons 'ticked (gnus-range-length (cdr (assq 'tick marked))))
+	     (cons 'ticked (range-length (cdr (assq 'tick marked))))
 	     (cons 'group-age (gnus-group-timestamp-delta group)))))
       (while (and list
                   (not (eval (caar list) env)))
@@ -2065,9 +2066,9 @@ that group."
 		 (- (1+ (cdr active)) (car active)))))
     (gnus-summary-read-group
      group (or all (and (numberp number)
-			(zerop (+ number (gnus-range-length
+			(zerop (+ number (range-length
 					  (cdr (assq 'tick marked)))
-				  (gnus-range-length
+				  (range-length
 				   (cdr (assq 'dormant marked)))))))
      no-article nil no-display nil select-articles)))
 
@@ -2832,7 +2833,7 @@ according to the expiry settings.  Note that this will delete old
 not-expirable articles, too."
   (interactive (list (gnus-group-group-name) current-prefix-arg)
 	       gnus-group-mode)
-  (let ((articles (gnus-uncompress-range (gnus-active group))))
+  (let ((articles (range-uncompress (gnus-active group))))
     (when (gnus-yes-or-no-p
 	   (format "Do you really want to delete these %d articles forever? "
 		   (length articles)))
@@ -3755,15 +3756,15 @@ or nil if no action could be taken."
 						 'del '(tick))
 					   (list (cdr (assq 'dormant marks))
 						 'del '(dormant))))
-	(setq unread (gnus-range-add (gnus-range-add
-                                      unread (cdr (assq 'dormant marks)))
-                                     (cdr (assq 'tick marks))))
+	(setq unread (range-concat (range-concat
+                                    unread (cdr (assq 'dormant marks)))
+                                   (cdr (assq 'tick marks))))
 	(gnus-add-marked-articles group 'tick nil nil 'force)
 	(gnus-add-marked-articles group 'dormant nil nil 'force))
       ;; Do auto-expirable marks if that's required.
       (when (and (gnus-group-auto-expirable-p group)
 		 (not (gnus-group-read-only-p group)))
-        (gnus-range-map
+        (range-map
 	 (lambda (article)
 	   (gnus-add-marked-articles group 'expire (list article))
 	   (gnus-request-set-mark group (list (list (list article)
@@ -3795,7 +3796,7 @@ Uses the process/prefix convention."
 			  (cons nil (gnus-list-of-read-articles group))
 			(assq 'expire (gnus-info-marks info))))
 	   (articles-to-expire
-	    (gnus-list-range-difference
+	    (range-list-difference
 	     (gnus-uncompress-sequence (cdr expirable))
 	     (cdr (assq 'unexist (gnus-info-marks info)))))
 	   (expiry-wait (gnus-group-find-parameter group 'expiry-wait))
@@ -4671,23 +4672,22 @@ and the second element is the address."
 	(and (not (setq marked (nthcdr 3 info)))
 	     (or (null articles)
 		 (setcdr (nthcdr 2 info)
-			 (list (list (cons type (gnus-compress-sequence
-						 articles t)))))))
+			 (list (list (cons type (range-compress-list
+                                                 articles)))))))
 	(and (not (setq m (assq type (car marked))))
 	     (or (null articles)
 		 (setcar marked
-			 (cons (cons type (gnus-compress-sequence articles t) )
+			 (cons (cons type (range-compress-list articles))
 			       (car marked)))))
 	(if force
 	    (if (null articles)
 		(setcar (nthcdr 3 info)
 			(assq-delete-all type (car marked)))
-	      (setcdr m (gnus-compress-sequence articles t)))
-	  (setcdr m (gnus-compress-sequence
-		     (sort (nconc (gnus-uncompress-range (cdr m))
+	      (setcdr m (range-compress-list articles)))
+	  (setcdr m (range-compress-list
+		     (sort (nconc (range-uncompress (cdr m))
 				  (copy-sequence articles))
-			   #'<)
-		     t))))))
+			   #'<)))))))
 
 (declare-function gnus-summary-add-mark "gnus-sum" (article type))
 

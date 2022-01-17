@@ -5755,7 +5755,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      ;;  (let ((n (cdr (gnus-active group))))
 	      ;;    (lambda () (> number (- n display))))
 	      (setq select-articles
-		    (gnus-uncompress-range
+		    (range-uncompress
 		     (cons (let ((tmp (- (cdr (gnus-active group)) display)))
 			     (if (> tmp 0)
 				 tmp
@@ -5928,7 +5928,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
   "Find out what articles the user wants to read."
   (let* ((only-read-p t)
 	 (articles
-	  (gnus-list-range-difference
+	  (range-list-difference
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5943,13 +5943,13 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      (or
 	       (if gnus-newsgroup-maximum-articles
 		   (let ((active (gnus-active group)))
-		     (gnus-uncompress-range
+		     (range-uncompress
 		      (cons (max (car active)
 				 (- (cdr active)
 				    gnus-newsgroup-maximum-articles
 				    -1))
 			    (cdr active))))
-		 (gnus-uncompress-range (gnus-active group)))
+		 (range-uncompress (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
 	    (setq only-read-p nil)
@@ -6040,7 +6040,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 (defun gnus-killed-articles (killed articles)
   (let (out)
     (while articles
-      (when (inline (gnus-member-of-range (car articles) killed))
+      (when (inline (range-member-p (car articles) killed))
 	(push (car articles) out))
       (setq articles (cdr articles)))
     out))
@@ -6078,7 +6078,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
        ;; Adjust "simple" lists - compressed yet unsorted
        ((eq mark-type 'list)
         ;; Simultaneously uncompress and clip to active range
-        ;; See gnus-uncompress-range for a description of possible marks
+        ;; See range-uncompress for a description of possible marks
         (let (l lh)
           (if (not (cadr marks))
               (set var nil)
@@ -6177,10 +6177,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	;; When exiting the group, everything that's previously been
 	;; unseen is now seen.
 	(when (eq (cdr type) 'seen)
-	  (setq list (gnus-range-add list gnus-newsgroup-unseen)))
+	  (setq list (range-concat list gnus-newsgroup-unseen)))
 
 	(when (eq (gnus-article-mark-to-type (cdr type)) 'list)
-	  (setq list (gnus-compress-sequence (set symbol (sort list #'<)) t)))
+	  (setq list (range-compress-list (set symbol (sort list #'<)))))
 
 	(when (and (gnus-check-backend-function
 		    'request-set-mark gnus-newsgroup-name)
@@ -6189,20 +6189,19 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 ;; Don't do anything about marks for articles we
 		 ;; didn't actually get any headers for.
 		 (del
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-articles
-		   (gnus-remove-from-range (copy-tree old) list)))
+		   (range-remove (copy-tree old) list)))
 		 (add
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-articles
-		   (gnus-remove-from-range
-		    (copy-tree list) old))))
+		   (range-remove (copy-tree list) old))))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
 	      ;; Don't delete marks from outside the active range.
 	      ;; This shouldn't happen, but is a sanity check.
-	      (setq del (gnus-sorted-range-intersection
+	      (setq del (range-intersection
 			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
 
@@ -6386,7 +6385,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	  (setq ninfo (cons 1 (1- (car active))))
 	(setq ninfo (gnus-info-read info)))
       ;; Then we add the read articles to the range.
-      (gnus-add-to-range
+      (range-add-list
        ninfo (setq articles (sort articles #'<))))))
 
 (defun gnus-group-make-articles-read (group articles)
@@ -6967,10 +6966,10 @@ displayed, no centering will be performed."
 	 (marked (gnus-info-marks info))
 	 (active (gnus-active group)))
     (and info active
-	 (gnus-list-range-difference
-	  (gnus-list-range-difference
+	 (range-list-difference
+	  (range-list-difference
 	   (gnus-sorted-complement
-	    (gnus-uncompress-range
+	    (range-uncompress
 	     (if gnus-newsgroup-maximum-articles
 		 (cons (max (car active)
 			    (- (cdr active)
@@ -7129,12 +7128,11 @@ The prefix argument ALL means to select all articles."
       (when group
 	(when gnus-newsgroup-kill-headers
 	  (setq gnus-newsgroup-killed
-		(gnus-compress-sequence
+		(range-compress-list
 		 (gnus-sorted-union
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-unselected gnus-newsgroup-killed)
-		  gnus-newsgroup-unreads)
-		 t)))
+		  gnus-newsgroup-unreads))))
 	(unless (listp (cdr gnus-newsgroup-killed))
 	  (setq gnus-newsgroup-killed (list gnus-newsgroup-killed)))
 	(let ((headers gnus-newsgroup-headers)
@@ -10241,8 +10239,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		       (cdr art-group))
 	      (push 'read to-marks)
 	      (setf (gnus-info-read info)
-		    (gnus-add-to-range (gnus-info-read info)
-				       (list (cdr art-group)))))
+		    (range-add-list (gnus-info-read info)
+				    (list (cdr art-group)))))
 
 	    ;; See whether the article is to be put in the cache.
 	    (let* ((expirable (gnus-group-auto-expirable-p to-group))
@@ -10525,7 +10523,7 @@ This will be the case if the article has both been mailed and posted."
     ;; This backend supports expiry.
     (let* ((total (gnus-group-total-expirable-p gnus-newsgroup-name))
 	   (expirable
-	    (gnus-list-range-difference
+	    (range-list-difference
 	     (if total
 		 (progn
 		   ;; We need to update the info for
@@ -12874,8 +12872,8 @@ UNREAD is a sorted list."
 			(gnus-find-method-for-group group)
 			'server-marks)
 		       (gnus-check-backend-function 'request-set-mark group))
-	      (let ((del (gnus-remove-from-range (gnus-info-read info) read))
-		    (add (gnus-remove-from-range read (gnus-info-read info))))
+	      (let ((del (range-remove (gnus-info-read info) read))
+		    (add (range-remove read (gnus-info-read info))))
 		(when (or add del)
 		  (unless (gnus-check-group group)
 		    (error "Can't open server for %s" group))
@@ -13133,10 +13131,10 @@ If ALL is a number, fetch this number of articles."
 	      ;; Some nntp servers lie about their active range.  When
 	      ;; this happens, the active range can be in the millions.
 	      ;; Use a compressed range to avoid creating a huge list.
-	      (gnus-range-difference
-	       (gnus-range-difference (list gnus-newsgroup-active) old)
+	      (range-difference
+	       (range-difference (list gnus-newsgroup-active) old)
 	       gnus-newsgroup-unexist))
-	(setq len (gnus-range-length older))
+	(setq len (range-length older))
 	(cond
 	 ((null older) nil)
 	 ((numberp all)
@@ -13153,9 +13151,9 @@ If ALL is a number, fetch this number of articles."
 		      (push max older)
 		      (setq all (1- all)
 			    max (1- max))))))
-	    (setq older (gnus-uncompress-range older))))
+	    (setq older (range-uncompress older))))
 	 (all
-	  (setq older (gnus-uncompress-range older)))
+	  (setq older (range-uncompress older)))
 	 (t
 	  (when (and (numberp gnus-large-newsgroup)
 		   (> len gnus-large-newsgroup))
@@ -13190,7 +13188,7 @@ If ALL is a number, fetch this number of articles."
 			      (push max older)
 			      (setq all (1- all)
 				    max (1- max))))))))))
-	  (setq older (gnus-uncompress-range older))))
+	  (setq older (range-uncompress older))))
 	(if (not older)
 	    (message "No old news.")
 	  (gnus-summary-insert-articles older)

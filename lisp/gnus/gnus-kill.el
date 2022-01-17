@@ -349,7 +349,7 @@ Returns the number of articles marked as read."
 		  (setq gnus-newsgroup-kill-headers
 			(mapcar #'mail-header-number headers))
 		(while headers
-		  (unless (gnus-member-of-range
+		  (unless (range-member-p
 			   (mail-header-number (car headers))
 			   gnus-newsgroup-killed)
 		    (push (mail-header-number (car headers))

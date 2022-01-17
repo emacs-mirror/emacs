@@ -30,6 +30,7 @@
 
 (require 'parse-time)
 (require 'nnimap)
+(require 'range)
 
 (eval-when-compile (require 'epg)) ;; setf-method for `epg-context-armor'
 (autoload 'epg-make-context "epg")
@@ -404,7 +405,7 @@ When FULL is t, upload everything, not just a difference from the last full."
   (let* ((group (gnus-group-full-name gnus-cloud-group-name gnus-cloud-method))
          (active (gnus-active group))
          headers head)
-    (when (gnus-retrieve-headers (gnus-uncompress-range active) group)
+    (when (gnus-retrieve-headers (range-uncompress active) group)
       (with-current-buffer nntp-server-buffer
         (goto-char (point-min))
 	(while (setq head (nnheader-parse-head))
