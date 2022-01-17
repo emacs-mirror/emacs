@@ -97,6 +97,58 @@ Not that a string may have several different minimal cover sets."
       (setq set (seq-union set (seq-difference s set))))
     (sort (delq 'common (delq 'inherited set)) #'string<)))
 
+(defun textsec-restriction-level (string)
+  "Say what restriction level STRING qualifies for.
+Levels are (in order of restrictiveness) `ascii-only',
+`single-script', `highly-restrictive', `moderately-restrictive',
+`minimally-restrictive' and `unrestricted'."
+  (let ((scripts (textsec-covering-scripts string)))
+  (cond
+   ((string-match "\\`[[:ascii:]]+\\'" string)
+    'ascii-only)
+   ((textsec-single-script-p string)
+    'single-script)
+   ((or (null (seq-difference scripts '(latin han hiragana katakana)))
+        (null (seq-difference scripts '(latin han bopomofo)))
+        (null (seq-difference scripts '(latin han hangul))))
+    'highly-restrictive)
+   ((and (= (length scripts) 2)
+         (memq 'latin scripts)
+         (seq-intersection scripts
+                           '(arabic
+                             armenian
+                             bengali
+                             bopomofo
+                             devanagari
+                             ethiopic
+                             georgian
+                             gujarati
+                             gurmukhi
+                             hangul
+                             han
+                             hebrew
+                             hiragana
+                             katakana
+                             kannada
+                             khmer
+                             lao
+                             malayalam
+                             myanmar
+                             oriya
+                             sinhala
+                             tamil
+                             telugu
+                             thaana
+                             thai
+                             tibetan)))
+    ;; The string is covered by Latin and any one other Recommended
+    ;; script, except Cyrillic, Greek.
+    'moderately-retrictive)
+   ;; Fixme `minimally-restrictive' -- needs well-formedness criteria
+   ;; and Identifier Profile.
+   (t
+    'unrestricted))))
+
 (provide 'textsec)
 
 ;;; textsec.el ends here

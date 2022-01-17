@@ -69,4 +69,16 @@
   (should (equal (textsec-covering-scripts "〆切")
                  '(han))))
 
+(ert-deftest test-restriction-level ()
+  (should (eq (textsec-restriction-level "foo")
+              'ascii-only))
+  (should (eq (textsec-restriction-level "C𝗂𝗋𝖼𝗅𝖾")
+              'single-script))
+  (should (eq (textsec-restriction-level "切foo")
+              'highly-restrictive))
+  (should (eq (textsec-restriction-level "հfoo")
+              'moderately-retrictive))
+  (should (eq (textsec-restriction-level "Сirсlе")
+              'unrestricted)))
+
 ;;; textsec-tests.el ends here
