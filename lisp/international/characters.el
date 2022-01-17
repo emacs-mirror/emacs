@@ -1440,6 +1440,10 @@ Setup `char-width-table' appropriate for non-CJK language environment."
    (set-char-table-range char-script-table range 'tibetan))
  'tibetan)
 
+;; Fix some exceptions that blocks.awk/Blocks.txt couldn't get right.
+(set-char-table-range char-script-table '(#x2ea . #x2eb) 'bopomofo)
+(set-char-table-range char-script-table #xab65 'greek)
+
 
 ;;; Setting unicode-category-table.
 
