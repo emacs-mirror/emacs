@@ -60,7 +60,7 @@ void TractInit(Tract tract, Pool pool, Addr base)
   AVER_CRITICAL(tract != NULL);
   AVERT_CRITICAL(Pool, pool);
 
-  tract->pool.pool = pool;
+  tract->pool = pool;
   tract->base = base;
   tract->seg = NULL;
 
@@ -77,7 +77,7 @@ void TractFinish(Tract tract)
 
   /* Check that there's no segment - and hence no shielding. */
   AVER(!TractHasSeg(tract));
-  tract->pool.pool = NULL;
+  tract->pool = NULL;
 }
 
 
@@ -258,10 +258,14 @@ void ChunkFinish(Chunk chunk)
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
   arena = ChunkArena(chunk);
 
-  if (arena->hasFreeLand)
-    ArenaFreeLandDelete(arena,
-                        PageIndexBase(chunk, chunk->allocBase),
-                        chunk->limit);
+  if (arena->hasFreeLand) {
+    Res res = ArenaFreeLandDelete(arena,
+                                  PageIndexBase(chunk, chunk->allocBase),
+                                  chunk->limit);
+    /* Can't fail because the range can't split because we passed the
+       whole chunk and chunks never coalesce. */
+    AVER(res == ResOK);
+  }
 
   ArenaChunkRemoved(arena, chunk);
 
@@ -477,9 +481,7 @@ void PageInit(Chunk chunk, Index pi)
   page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
-  PageSetPool(page, NULL);
-  PageSetType(page, PageStateFREE);
-  RingInit(PageSpareRing(page));
+  page->pool = NULL;
 }
 
 
