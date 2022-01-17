@@ -15,6 +15,9 @@ Emacs uses the following files from the Unicode Character Database
   . BidiMirroring.txt
   . IVD_Sequences.txt
   . NormalizationTest.txt
+  . PropertyValueAliases.txt
+  . ScriptExtensions.txt
+  . Scripts.txt
   . SpecialCasing.txt
   . emoji-data.txt
   . emoji-zwj-sequences.txt
@@ -24,7 +27,7 @@ Emacs uses the following files from the Unicode Character Database
 Emacs also uses the file emoji-test.txt which should be imported from
 the Unicode's Public/emoji/ directory.
 
-First, the first 10 files and emoji-test.txt need to be copied into
+First, the first 13 files and emoji-test.txt need to be copied into
 admin/unidata/, and the file https://www.unicode.org/copyright.html
 should be copied over copyright.html in admin/unidata (some of them
 might need trailing whitespace removed before they can be committed to
