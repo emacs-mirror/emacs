@@ -48,21 +48,27 @@
 
 Note that the concept of \"single script\" used by this function
 isn't obvious -- some mixtures of scripts count as a \"single
-script\.  See
+script\".  See
 
   https://www.unicode.org/reports/tr39/#Mixed_Script_Detection
 
 for details."
-  (let ((scripts (mapcar (lambda (s)
-                           (append s
-                                   (mapcan (lambda (script)
-                                             (copy-sequence
-                                              (textsec--augment-script script)))
-                                           s)))
+  (let ((scripts (mapcar
+                  (lambda (s)
+                    (append s
+                            ;; Some scripts used in East Asia are
+                            ;; commonly used across borders, so we add
+                            ;; those.
+                            (mapcan (lambda (script)
+                                      (copy-sequence
+                                       (textsec--augment-script script)))
+                                    s)))
                          (textsec-scripts string))))
     (catch 'empty
       (cl-loop for s1 in scripts
                do (cl-loop for s2 in scripts
+                           ;; Common/inherited chars can be used in
+                           ;; text with all scripts.
                            when (and (not (memq 'common s1))
                                      (not (memq 'common s2))
                                      (not (memq 'inherited s1))
@@ -83,12 +89,13 @@ for details."
     '(korea))))
 
 (defun textsec-covering-scripts (string)
-  "Return a minimal list of scripts used in STRING."
+  "Return a minimal list of scripts used in STRING.
+Not that a string may have several different minimal cover sets."
   (let* ((scripts (textsec-scripts string))
          (set (car scripts)))
     (dolist (s scripts)
       (setq set (seq-union set (seq-difference s set))))
-    (delq 'common (delq 'inherited set))))
+    (sort (delq 'common (delq 'inherited set)) #'string<)))
 
 (provide 'textsec)
 
