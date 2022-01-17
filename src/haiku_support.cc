@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/MenuBar.h>
 #include <interface/Alert.h>
 #include <interface/Button.h>
+#include <interface/ControlLook.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -2019,7 +2020,9 @@ BView_scroll_bar_update (void *sb, int portion, int whole, int position)
 int
 BScrollBar_default_size (int horizontal_p)
 {
-  return horizontal_p ? B_H_SCROLL_BAR_HEIGHT : B_V_SCROLL_BAR_WIDTH;
+  return be_control_look->GetScrollBarWidth (horizontal_p
+					     ? B_HORIZONTAL
+					     : B_VERTICAL);
 }
 
 /* Invalidate VIEW, causing it to be drawn again.  */
