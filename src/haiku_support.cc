@@ -406,6 +406,7 @@ public:
   bool menu_bar_active_p = false;
   window_look pre_override_redirect_style;
   window_feel pre_override_redirect_feel;
+  uint32 pre_override_redirect_workspaces;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -3170,11 +3171,14 @@ BWindow_set_override_redirect (void *window, bool override_redirect_p)
 	  w->pre_override_redirect_style = w->Look ();
 	  w->SetFeel (kMenuWindowFeel);
 	  w->SetLook (B_NO_BORDER_WINDOW_LOOK);
+	  w->pre_override_redirect_workspaces = w->Workspaces ();
+	  w->SetWorkspaces (B_ALL_WORKSPACES);
 	}
       else
 	{
 	  w->SetFeel (w->pre_override_redirect_feel);
 	  w->SetLook (w->pre_override_redirect_style);
+	  w->SetWorkspaces (w->pre_override_redirect_workspaces);
 	}
 
       w->UnlockLooper ();
