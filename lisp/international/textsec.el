@@ -154,18 +154,19 @@ Levels are (in order of restrictiveness) `ascii-only',
 
 (defun textsec-mixed-numbers-p (string)
   "Return non-nil if there are numbers from different decimal systems in STRING."
-  (> (length
-      (seq-uniq
-       (textsec-scripts
-        (apply #'string
-               (seq-filter (lambda (char)
-                             ;; We're selecting the characters that
-                             ;; have a numeric property.
-                             (eq (get-char-code-property char 'general-category)
-                                 'Nd))
-                           string)))
-       #'equal))
-     1))
+  (>
+   (length
+    (seq-uniq
+     (mapcar
+      (lambda (char)
+        (get-char-code-property char 'numeric-value))
+      (seq-filter (lambda (char)
+                    ;; We're selecting the characters that
+                    ;; have a numeric property.
+                    (eq (get-char-code-property char 'general-category)
+                        'Nd))
+                  string))))
+   1))
 
 (provide 'textsec)
 
