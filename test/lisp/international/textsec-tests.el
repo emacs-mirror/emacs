@@ -81,4 +81,9 @@
   (should (eq (textsec-restriction-level "Сirсlе")
               'unrestricted)))
 
+(ert-deftest test-mixed-numbers ()
+  (should-not (textsec-mixed-numbers-p "foo"))
+  (should-not (textsec-mixed-numbers-p "8foo8"))
+  (should (textsec-mixed-numbers-p "8foo৪")))
+
 ;;; textsec-tests.el ends here
