@@ -263,6 +263,9 @@ Accepts keyword arguments:
                          'repeat-map property of each command bound
                          (within the scope of the :repeat-map keyword)
                          is set to this map.
+:exit BINDINGS         - Within the scope of :repeat-map will bind the
+                         key in the repeat map, but will not set the
+                         'repeat-map property of the bound command.
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
@@ -273,12 +276,14 @@ function symbol (unquoted)."
         prefix
         repeat-map
         repeat-doc
+        repeat-type ;; Only used internally
         filter
         menu-name
         pkg)
 
     ;; Process any initial keyword arguments
-    (let ((cont t))
+    (let ((cont t)
+          (arg-change-func 'cddr))
       (while (and cont args)
         (if (cond ((and (eq :map (car args))
                         (not prefix-map))
@@ -296,6 +301,9 @@ function symbol (unquoted)."
                                          override-global-map))))
                    (setq repeat-map (cadr args))
                    (setq map repeat-map))
+                  ((eq :exit (car args))
+                   (setq repeat-type :exit
+                         arg-change-func 'cdr))
                   ((eq :prefix (car args))
                    (setq prefix (cadr args)))
                   ((eq :filter (car args))
@@ -304,7 +312,7 @@ function symbol (unquoted)."
                    (setq menu-name (cadr args)))
                   ((eq :package (car args))
                    (setq pkg (cadr args))))
-            (setq args (cddr args))
+            (setq args (funcall arg-change-func args))
           (setq cont nil))))
 
     (when (or (and prefix-map (not prefix))
@@ -362,7 +370,8 @@ function symbol (unquoted)."
                           ;; Only needed in this branch, since when
                           ;; repeat-map is non-nil, map is always
                           ;; non-nil
-                          `(,@(when repeat-map `((put ,fun 'repeat-map ',repeat-map)))
+                          `(,@(when (and repeat-map (not (eq repeat-type :exit)))
+                                `((put ,fun 'repeat-map ',repeat-map)))
                             (bind-key ,(car form) ,fun ,map ,filter))
                         `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
@@ -389,6 +398,9 @@ Accepts keyword arguments:
                          'repeat-map property of each command bound
                          (within the scope of the :repeat-map keyword)
                          is set to this map.
+:exit BINDINGS         - Within the scope of :repeat-map will bind the
+                         key in the repeat map, but will not set the
+                         'repeat-map property of the bound command.
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
