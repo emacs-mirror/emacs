@@ -45,7 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define BLUE_FROM_ULONG(color)	((color) & 0xff)
 
 /* The frame of the currently visible tooltip.  */
-static Lisp_Object tip_frame;
+Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */

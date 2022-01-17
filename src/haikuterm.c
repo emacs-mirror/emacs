@@ -2786,6 +2786,16 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		struct haiku_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 		struct haiku_rect r = dpyinfo->last_mouse_glyph;
 
+		/* For an unknown reason Haiku sends phantom motion events when a
+		   tooltip frame is visible.  FIXME */
+		if (FRAMEP (tip_frame)
+		    && FRAME_LIVE_P (XFRAME (tip_frame))
+		    && FRAME_VISIBLE_P (XFRAME (tip_frame))
+		    && f == dpyinfo->last_mouse_motion_frame
+		    && b->x == dpyinfo->last_mouse_motion_x
+		    && b->y == dpyinfo->last_mouse_motion_y)
+		  continue;
+
 		dpyinfo->last_mouse_motion_x = b->x;
 		dpyinfo->last_mouse_motion_y = b->y;
 		dpyinfo->last_mouse_motion_frame = f;

@@ -178,6 +178,8 @@ struct x_output
 extern struct haiku_display_info *x_display_list;
 extern struct font_driver const haikufont_driver;
 
+extern Lisp_Object tip_frame;
+
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
