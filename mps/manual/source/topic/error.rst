@@ -67,6 +67,7 @@ assume that any MPS function that returns a result code can return
     * :c:macro:`MPS_RES_PARAM`: an invalid parameter was passed.
 
 
+.. _topic-result-codes:
 
 Result codes
 ------------
@@ -320,8 +321,7 @@ this documentation.
 
     The client program has made a re-entrant call into the MPS. Look
     at the backtrace to see what it was. Common culprits are signal
-    handlers, assertion handlers, :term:`format methods`, and
-    :term:`stepper functions`.
+    handlers, assertion handlers, and :term:`format methods`.
 
 
 ``locus.c: gen->activeTraces == TraceSetEMPTY``

@@ -312,15 +312,18 @@ called via the generic function ``SegBlacken()``.
 ``typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss)``
 
 _`.method.scan`: The ``scan`` method scans all the grey objects on the
-segment ``seg``, passing the scan state ``ss`` to ``FormatScan``. The
-segment may additionally accumulate a summary of *all* its objects. If
-it succeeds in accumulating such a summary it must indicate that it
-has done so by setting the ``*totalReturn`` parameter to ``TRUE``.
-Otherwise it must set ``*totalReturn`` to ``FALSE``. Segment classes
-are not required to provide this method, and not doing so indicates
-that all instances of this class will have no fixable or traceable
-references in them. This method is called via the generic function
-``SegScan()``.
+segment ``seg``, passing the scan state ``ss`` to
+``TraceScanFormat()``. The segment may additionally accumulate a
+summary of *all* its objects. If it succeeds in accumulating such a
+summary it must indicate that it has done so by setting the
+``*totalReturn`` parameter to ``TRUE``. Otherwise it must set
+``*totalReturn`` to ``FALSE``. This method is called via the generic
+function ``SegScan()``.
+
+_`.method.scan.required`: Automatically managed segment classes are
+required to provide this method, even if all instances of this class
+will have no fixable or traceable references in them, in order to
+support ``mps_pool_walk()``.
 
 ``typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO)``
 
@@ -365,13 +368,19 @@ via the generic function ``SegReclaim()``.
 
 _`.method.walk`: The ``walk`` method must call the visitor function
 ``f`` (along with its closure parameters ``v`` and ``s`` and the
-format ``format``) once for each of the *black* objects in the
-segment ``seg``. Padding objects may or may not be included in the
-walk, at the segment's discretion: it is the responsibility of the
-client program to handle them. Forwarding objects must not be included
-in the walk. Segment classes need not provide this method. This
-method is called by the genetic function ``SegWalk()``, which is
-called by the heap walker ``mps_arena_formatted_objects_walk()``.
+format ``format``) once for each of the *black* objects in the segment
+``seg``. Padding objects may or may not be included in the walk, at
+the segment's discretion: it is the responsibility of the client
+program to handle them. Forwarding objects must not be included in the
+walk. Segment classes need not provide this method. This method is
+called by the generic function ``SegWalk()``, which is called by the
+deprecated public functions ``mps_arena_formatted_objects_walk()`` and
+``mps_amc_apply()``.
+
+_`.method.walk.deprecated`: The ``walk`` method is deprecated along
+with the public functions ``mps_arena_formatted_objects_walk()`` and
+``mps_amc_apply()`` and will be removed along with them in a future
+release.
 
 ``typedef void (*SegFlipMethod)(Seg seg, Trace trace)``
 
