@@ -554,6 +554,20 @@ the scanners, found in ``scan.c`` in the MPS source code.
     :c:func:`mps_root_create_thread_tagged` then it is the value of
     the ``closure`` argument originally passed to that function.
 
+    .. note::
+
+        The reason that :c:data:`base` and :c:data:`limit` have type
+        :c:type:`void *` and not :c:type:`mps_addr_t` is that the
+        latter is used only for :term:`addresses` managed by the MPS,
+        but :c:type:`mps_area_scan_t` may also be used to scan
+        :term:`roots` that are not managed by the MPS.
+
+    .. warning::
+
+        Area scanning functions are subject to the same set of
+        restrictions as format scanning functions, described under
+        :ref:`topic-format-cautions`.
+
 .. c:function:: mps_res_t mps_scan_area(mps_ss_t ss, void *base, void *limit, void *closure)
 
     Scan an area of memory :term:`fixing <fix>` every word.
