@@ -93,7 +93,7 @@ Unicode Standard Annex 24 (UAX#24)."
 
 (defun textsec-covering-scripts (string)
   "Return a minimal list of scripts used in STRING.
-Not that a string may have several different minimal cover sets.
+Note that a string may have several different minimal cover sets.
 The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   (let* ((scripts (textsec-scripts string))
          (set (car scripts)))
