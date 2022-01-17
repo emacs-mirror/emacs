@@ -137,7 +137,7 @@
     (set-file-acl . ignore)
     (set-file-modes . tramp-sshfs-handle-set-file-modes)
     (set-file-selinux-context . ignore)
-    (set-file-times . ignore)
+    (set-file-times . tramp-sshfs-handle-set-file-times)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (shell-command . tramp-handle-shell-command)
     (start-file-process . tramp-handle-start-file-process)
@@ -242,13 +242,28 @@ arguments to pass to the OPERATION."
     (let ((command
 	   (format
 	    "cd %s && exec %s"
-	    localname
-	    (mapconcat #'tramp-shell-quote-argument (cons program args) " "))))
+	    (tramp-unquote-shell-quote-argument localname)
+	    (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
+	  input tmpinput)
+
+      ;; Determine input.
+      (if (null infile)
+	  (setq input (tramp-get-remote-null-device v))
+	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
+	(if (tramp-equal-remote default-directory infile)
+	    ;; INFILE is on the same remote host.
+	    (setq input (tramp-file-local-name infile))
+	  ;; INFILE must be copied to remote host.
+	  (setq input (tramp-make-tramp-temp-file v)
+		tmpinput (tramp-make-tramp-file-name v input 'nohop))
+	  (copy-file infile tmpinput t)))
+      (when input (setq command (format "%s <%s" command input)))
+
       (unwind-protect
 	  (apply
 	   #'tramp-call-process
 	   v (tramp-get-method-parameter v 'tramp-login-program)
-	   infile destination display
+	   nil destination display
 	   (tramp-expand-args
 	    v 'tramp-login-args
 	    ?h (or (tramp-file-name-host v) "")
@@ -256,7 +271,11 @@ arguments to pass to the OPERATION."
 	    ?p (or (tramp-file-name-port v) "")
 	    ?l command))
 
-	(unless process-file-side-effects
+	;; Cleanup.  We remove all file cache values for the
+	;; connection, because the remote process could have changed
+	;; them.
+	(when tmpinput (delete-file tmpinput))
+	(when process-file-side-effects
           (tramp-flush-directory-properties v ""))))))
 
 (defun tramp-sshfs-handle-rename-file
@@ -284,6 +303,15 @@ arguments to pass to the OPERATION."
       (tramp-flush-file-properties v localname)
       (tramp-compat-set-file-modes
        (tramp-fuse-local-file-name filename) mode flag))))
+
+(defun tramp-sshfs-handle-set-file-times (filename &optional timestamp flag)
+  "Like `set-file-times' for Tramp files."
+  (or (file-exists-p filename) (write-region "" nil filename nil 0))
+  (with-parsed-tramp-file-name filename nil
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (tramp-compat-set-file-times
+       (tramp-fuse-local-file-name filename) timestamp flag))))
 
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
