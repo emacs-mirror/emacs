@@ -378,9 +378,12 @@ MSG is either a help string to display, or nil to cancel the display."
 	       ;; Cancel display.  This also cancels a delayed tip, if
 	       ;; there is one.
 	       (tooltip-hide))
-	      ((equal-including-properties previous-help msg)
-	       ;; Same help as before (but possibly the mouse has moved).
-	       ;; Keep what we have.
+	      ((equal previous-help msg)
+	       ;; Same help as before (but possibly the mouse has
+	       ;; moved or the text properties have changed).  Keep
+	       ;; what we have.  If only text properties have changed,
+	       ;; the tooltip won't be updated, but that shouldn't
+	       ;; occur.
 	       )
 	      (t
 	       ;; A different help.  Remove a previous tooltip, and
