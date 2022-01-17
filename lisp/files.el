@@ -3968,12 +3968,12 @@ major-mode."
 	        ;; Discard the prefix.
 	        (if (looking-at prefix)
 		    (delete-region (point) (match-end 0))
-		  (error "Local variables entry is missing the prefix"))
+		  (user-error "Local variables entry is missing the prefix"))
 	        (end-of-line)
 	        ;; Discard the suffix.
 	        (if (looking-back suffix (line-beginning-position))
 		    (delete-region (match-beginning 0) (point))
-		  (error "Local variables entry is missing the suffix"))
+		  (user-error "Local variables entry is missing the suffix"))
 	        (forward-line 1))
 	      (goto-char (point-min))
 
@@ -3981,9 +3981,9 @@ major-mode."
                               (and (eq handle-mode t) result)))
 	        ;; Find the variable name;
 	        (unless (looking-at hack-local-variable-regexp)
-                  (error "Malformed local variable line: %S"
-                         (buffer-substring-no-properties
-                          (point) (line-end-position))))
+                  (user-error "Malformed local variable line: %S"
+                              (buffer-substring-no-properties
+                               (point) (line-end-position))))
                 (goto-char (match-end 1))
 	        (let* ((str (match-string 1))
 		       (var (intern str))
