@@ -616,7 +616,7 @@ endif
 ## icon set.
 
 ifeq ($(HAVE_BE_APP),yes)
-Emacs: emacs$(EXEEXT)
+Emacs: emacs$(EXEEXT) $(libsrc)/be-resources
 	$(AM_V_GEN) cp -f emacs$(EXEEXT) $@
 	$(AM_V_at) $(libsrc)/be-resources \
 	  $(etc)/images/icons/hicolor/32x32/apps/emacs.png $@
