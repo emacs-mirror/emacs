@@ -6151,6 +6151,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 
   inev.ie.modifiers
     |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
+  inev.ie.timestamp = event->key.time;
 
   if (event->key.is_modifier)
     goto done;
@@ -6324,6 +6325,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 					   NULL, NULL, &consumed);
       xg_add_virtual_mods (dpyinfo, &xg_event->key);
       xg_event->key.state &= ~consumed;
+      xg_event->key.time = xkey->xkey.time;
 #if GTK_CHECK_VERSION (3, 6, 0)
       xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
 								  xg_event->key.hardware_keycode);
@@ -6337,6 +6339,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
       xg_event->key.hardware_keycode = xev->detail;
       xg_event->key.group = xev->group.effective;
       xg_event->key.state = xev->mods.effective;
+      xg_event->key.time = xev->time;
       gdk_keymap_translate_keyboard_state (keymap,
 					   xev->detail,
 					   xev->mods.effective,
