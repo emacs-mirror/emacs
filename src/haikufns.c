@@ -2005,7 +2005,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 			 FRAME_OUTPUT_DATA (XFRAME (frame))->current_cursor);
   SET_FRAME_VISIBLE (tip_f, 1);
   BWindow_set_visible (FRAME_HAIKU_WINDOW (tip_f), 1);
-
+  BWindow_sync (FRAME_HAIKU_WINDOW (tip_f));
   w->must_be_updated_p = true;
   flush_frame (tip_f);
   update_single_window (w);
