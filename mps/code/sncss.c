@@ -84,6 +84,28 @@ static void fmtVisitor(mps_addr_t object, mps_fmt_t format,
     env->obj += obj->size;
 }
 
+
+/* area_scan -- area scanning function for mps_pool_walk */
+
+static mps_res_t area_scan(mps_ss_t ss, void *base, void *limit, void *closure)
+{
+  env_t env = closure;
+  testlib_unused(ss);
+  while (base < limit) {
+    mps_addr_t prev = base;
+    obj_t obj = base;
+    if (obj->pad)
+      env->pad += obj->size;
+    else
+      env->obj += obj->size;
+    base = fmtSkip(base);
+    Insist(prev < base);
+  }
+  Insist(base == limit);
+  return MPS_RES_OK;
+}
+
+
 #define AP_MAX 3                /* Number of allocation points */
 #define DEPTH_MAX 20            /* Maximum depth of frame push */
 
@@ -152,11 +174,10 @@ static void test(mps_pool_class_t pool_class)
     }
   }
 
+  mps_arena_park(arena);
   {
-    env_s env = {0, 0};
+    env_s env1 = {0, 0}, env2 = {0, 0};
     size_t alloc = 0;
-    size_t free = mps_pool_free_size(pool);
-    size_t total = mps_pool_total_size(pool);
 
     for (i = 0; i < NELEMS(aps); ++i) {
       ap_t a = &aps[i];
@@ -165,15 +186,12 @@ static void test(mps_pool_class_t pool_class)
       }
     }
 
-    mps_arena_formatted_objects_walk(arena, fmtVisitor, &env, 0);
+    mps_arena_formatted_objects_walk(arena, fmtVisitor, &env1, 0);
+    Insist(alloc == env1.obj);
 
-    printf("alloc=%lu obj=%lu pad=%lu free=%lu total=%lu\n",
-           (unsigned long)alloc,
-           (unsigned long)env.obj,
-           (unsigned long)env.pad,
-           (unsigned long)free,
-           (unsigned long)total);
-    Insist(alloc == env.obj);
+    die(mps_pool_walk(pool, area_scan, &env2), "mps_pool_walk");
+    Insist(alloc == env2.obj);
+    Insist(env1.pad == env2.pad);
   }
 
   for (i = 0; i < NELEMS(aps); ++i) {

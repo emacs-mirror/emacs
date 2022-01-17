@@ -508,19 +508,17 @@ static void sncSegBufferEmpty(Seg seg, Buffer buffer)
 static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
-  Format format;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
 
-  format = SegPool(seg)->format;
   base = SegBase(seg);
   limit = SegBufferScanLimit(seg);
 
   if (base < limit) {
-    res = FormatScan(format, ss, base, limit);
+    res = TraceScanFormat(ss, base, limit);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;

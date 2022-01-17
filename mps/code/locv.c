@@ -42,6 +42,23 @@ static mps_fmt_A_s locv_fmt =
 static mps_addr_t roots[4];
 
 
+/* area_scan -- area scanning function for mps_pool_walk */
+
+static mps_res_t area_scan(mps_ss_t ss, void *base, void *limit, void *closure)
+{
+  unsigned long *count = closure;
+  testlib_unused(ss);
+  while (base < limit) {
+    mps_addr_t prev = base;
+    ++ *count;
+    base = skip(base);
+    Insist(prev < base);
+  }
+  Insist(base == limit);
+  return MPS_RES_OK;
+}
+
+
 int main(int argc, char *argv[])
 {
   mps_arena_t arena;
@@ -85,9 +102,15 @@ int main(int argc, char *argv[])
   *(mps_word_t *)p = sizeof(void *);
   cdie(mps_commit(ap, p, sizeof(void *)), "commit last");
 
+  mps_arena_park(arena);
   {
     size_t count = 0;
     mps_arena_formatted_objects_walk(arena, stepper, &count, 0);
+    cdie(count == 4, "stepped 4 objects");
+  }
+  {
+    size_t count = 0;
+    die(mps_pool_walk(pool, area_scan, &count), "mps_pool_walk");
     cdie(count == 4, "walk 4 objects");
   }
 
