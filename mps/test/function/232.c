@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = test arena extension and compaction
+ summary = grey-box test of arena extension and compaction
  language = c
  link = testlib.o
  parameters = CHUNKSIZE=1024*1024 ITERATIONS=100
@@ -44,7 +44,12 @@ static void test(void *stack_pointer)
   for (i = ITERATIONS; i > 0; --i) {
     mps_free(pool, block[i - 1], CHUNKSIZE);
     mps_arena_collect(arena); /* ensure ArenaCompact is called */
-    check_chunks(arena, i);
+    /* The first chunk to be freed from the pool to the arena gets
+     * some of its memory stolen for the spare memory land's block
+     * pool, and this prevents the chunk from being destroyed.
+     * Subsequent chunks can be freed in their entirety because the
+     * spare memory land has enough blocks. */
+    check_chunks(arena, i + 1);
   }
 
   mps_pool_destroy(pool);
