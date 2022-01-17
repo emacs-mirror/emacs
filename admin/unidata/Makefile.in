@@ -88,7 +88,7 @@ ${unidir}/uni-scripts.el: ${srcdir}/unidata-gen.el \
 	  ${srcdir}/ScriptExtensions.txt \
 	  ${srcdir}/PropertyValueAliases.txt
 	$(AM_V_GEN)${emacs} -L ${srcdir} \
-		-l unidata-gen -f unidata-gen-scripts $@
+		-l unidata-gen.el -f unidata-gen-scripts $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el
