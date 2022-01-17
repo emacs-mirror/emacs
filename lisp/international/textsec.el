@@ -114,6 +114,9 @@ Levels are (in order of restrictiveness) `ascii-only',
     'highly-restrictive)
    ((and (= (length scripts) 2)
          (memq 'latin scripts)
+         ;; This list comes from
+         ;; https://www.unicode.org/reports/tr31/#Table_Recommended_Scripts
+         ;; (but is without latin, cyrillic and greek).
          (seq-intersection scripts
                            '(arabic
                              armenian
