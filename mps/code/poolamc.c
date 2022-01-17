@@ -1277,7 +1277,7 @@ static Res amcSegScanNailedRange(Bool *totalReturn, Bool *moreReturn,
     Addr q;
     q = (*format->skip)(p);
     if ((*amc->pinned)(amc, board, p, q)) {
-      Res res = FormatScan(format, ss, p, q);
+      Res res = TraceScanFormat(ss, p, q);
       if(res != ResOK) {
         *totalReturn = FALSE;
         *moreReturn = TRUE;
@@ -1425,7 +1425,7 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
       *totalReturn = TRUE;
       return ResOK;
     }
-    res = FormatScan(format, ss, base, limit);
+    res = TraceScanFormat(ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1438,7 +1438,7 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
   AVER(SegBase(seg) <= base);
   AVER(base <= AddrAdd(SegLimit(seg), format->headerSize));
   if(base < limit) {
-    res = FormatScan(format, ss, base, limit);
+    res = TraceScanFormat(ss, base, limit);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;

@@ -63,6 +63,164 @@ Deprecated in version 1.118
     limit is set to 1.0 exactly.
 
 
+.. c:function:: void mps_arena_formatted_objects_walk(mps_arena_t arena, mps_formatted_objects_stepper_t f, void *p, size_t s)
+
+    .. deprecated::
+
+        Use :c:func:`mps_pool_walk` instead.
+
+    Visit all :term:`formatted objects` in an
+    :term:`arena`.
+
+    ``arena`` is the arena whose formatted objects you want to visit.
+
+    ``f`` is a formatted objects stepper function. It will be called for
+    each formatted object in the arena. See
+    :c:type:`mps_formatted_objects_stepper_t`.
+
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
+    is called. This is intended to make it easy to pass, for example,
+    an array and its size as parameters.
+
+    Each :term:`pool class` determines for which objects the stepper
+    function is called. Typically, all validly formatted objects are
+    visited. :term:`Padding objects` may be visited at the pool
+    class's discretion: the stepper function must handle this
+    case.
+
+    .. warning::
+
+        The callback function must obey the restrictions documented
+        under :c:type:`mps_formatted_objects_stepper_t`.
+
+        If a garbage collection is currently in progress (that is, if
+        the arena is in the :term:`clamped <clamped state>` or
+        :term:`unclamped state`), then only objects that are known to
+        be currently valid are visited.
+
+        If you need to be certain that all objects are visited, or if
+        the callback function needs to follow references from the
+        object to automatically managed memory, you must ensure that
+        the arena is in the :term:`parked state` by calling
+        :c:func:`mps_arena_park` before calling this function (and
+        release it by calling :c:func:`mps_arena_release` afterwards,
+        if desired).
+
+        If your application has requirements for introspection that
+        can't be met under these restrictions, :ref:`contact us
+        <contact>`.
+
+
+.. c:type:: void (*mps_formatted_objects_stepper_t)(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, void *p, size_t s)
+
+    .. deprecated::
+
+        Use :c:func:`mps_pool_walk` instead.
+
+    The type of a :term:`formatted objects`
+    :term:`stepper function`.
+
+    A function of this type can be passed to
+    :c:func:`mps_arena_formatted_objects_walk`, in which case it will
+    be called for each formatted object in an :term:`arena`. It
+    receives five arguments:
+
+    ``addr`` is the address of the object.
+
+    ``fmt`` is the :term:`object format` for that object.
+
+    ``pool`` is the :term:`pool` to which the object belongs.
+
+    ``p`` and ``s`` are the corresponding values that were passed to
+    :c:func:`mps_arena_formatted_objects_walk`.
+
+    The function may not call any function in the MPS. It may access:
+
+    a. memory inside the object or block pointed to by ``addr``;
+
+    b. memory managed by the MPS that is in pools that do not protect
+       their contents;
+
+    c. memory not managed by the MPS.
+
+    It must not:
+
+    d. access other memory managed by the MPS;
+
+    e. modify any of the references in the object.
+
+
+.. c:function:: void mps_amc_apply(mps_pool_t pool, mps_amc_apply_stepper_t f, void *p, size_t s)
+
+    .. deprecated::
+
+        Use :c:func:`mps_pool_walk` instead.
+
+    Visit all :term:`formatted objects` in an AMC pool.
+
+    ``pool`` is the pool whose formatted objects you want to visit.
+
+    ``f`` is a function that will be called for each formatted object in
+    the pool.
+
+    ``p`` and ``s`` are arguments that will be passed to ``f`` each time it
+    is called. This is intended to make it easy to pass, for example,
+    an array and its size as parameters.
+
+    It is an error to call this function when the :term:`arena` is not
+    in the :term:`parked state`. You need to call
+    :c:func:`mps_arena_collect` or :c:func:`mps_arena_park` before
+    calling :c:func:`mps_amc_apply`.
+
+    The function ``f`` will be called on both :term:`client <client
+    object>` and :term:`padding objects`. It is the job of ``f`` to
+    distinguish, if necessary, between the two. It may also be called
+    on :term:`dead` objects that the collector has not recycled or has
+    been unable to recycle.
+
+    .. note::
+
+        There is no equivalent function for other pool classes, but
+        there is a more general function
+        :c:func:`mps_arena_formatted_objects_walk` that visits all
+        formatted objects in the arena.
+
+    .. note::
+
+        This function is intended for heap analysis, tuning, and
+        debugging, not for frequent use in production.
+
+
+.. c:type:: void (*mps_amc_apply_stepper_t)(mps_addr_t addr, void *p, size_t s)
+
+    .. deprecated::
+
+        Use :c:func:`mps_pool_walk` instead.
+
+    The type of a :term:`stepper function` for :term:`formatted
+    objects` in an AMC pool.
+
+    ``addr`` is the address of an object in the pool.
+
+    ``p`` and ``s`` are the corresponding arguments that were passed
+    to :c:func:`mps_amc_apply`.
+
+    The function may not call any function in the MPS. It may access:
+
+    a. memory inside the object or block pointed to by ``addr``;
+
+    b. memory managed by the MPS that is in pools that do not protect
+       their contents;
+
+    c. memory not managed by the MPS;
+
+    It must not:
+
+    d. access other memory managed by the MPS;
+
+    e. modify any of the references in the object.
+
+
 .. index::
    single: deprecated interfaces; in version 1.115
 
@@ -77,7 +235,7 @@ Deprecated in version 1.115
         pools were the only objects in the MPS that belonged to
         classes.
 
-    
+
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
 
     .. deprecated::
