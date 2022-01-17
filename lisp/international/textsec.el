@@ -103,7 +103,7 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
 
 (defun textsec-restriction-level (string)
   "Say what restriction level STRING qualifies for.
-Levels are (in order of restrictiveness) `ascii-only',
+Levels are (in decreasing order of restrictiveness) `ascii-only',
 `single-script', `highly-restrictive', `moderately-restrictive',
 `minimally-restrictive' and `unrestricted'."
   (let ((scripts (textsec-covering-scripts string)))
