@@ -875,6 +875,16 @@ the Galeon web browser was released in September, 2008.
 
 *** New user option 'ruby-toggle-block-space-before-parameters'.
 
+** Eshell
+
++++
+*** New feature to easily bypass Eshell's own pipelining.
+Prefixing '|', '<' or '>' with an asterisk, i.e. '*|', '*<' or '*>',
+will cause the whole command to be passed to the operating system
+shell.  This is particularly useful to bypass Eshell's own pipelining
+support for pipelines which will move a lot of data.  See "Running
+Shell Pipelines Natively" in the Eshell manual.
+
 ** Miscellaneous
 
 ---

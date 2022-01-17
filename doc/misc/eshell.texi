@@ -1142,6 +1142,48 @@ the output function.
 The output function is called once on each line of output until
 @code{nil} is passed, indicating end of output.
 
+@section Running Shell Pipelines Natively
+When constructing shell pipelines that will move a lot of data, it is
+a good idea to bypass Eshell's own pipelining support and use the
+operating system shell's instead.  This is especially relevant when
+executing commands on a remote machine using Eshell's Tramp
+integration: using the remote shell's pipelining avoids copying the
+data which will flow through the pipeline to local Emacs buffers and
+then right back again.
+
+Eshell recognises a special syntax to make it easier to convert
+pipelines so as to bypass Eshell's pipelining.  Prefixing at least one
+@code{|}, @code{<} or @code{>} with an asterisk marks a command as
+intended for the operating system shell.  To make it harder to invoke
+this functionality accidentally, it is also required that the asterisk
+be preceded by whitespace or located at the start of input.  For
+example,
+
+@example
+ cat *.ogg *| my-cool-decoder >file
+@end example
+
+Executing this command will not copy all the data in the *.ogg files,
+nor the decoded data, into Emacs buffers, as would normally happen.
+
+The command is interpreted as extending up to the next @code{|}
+character which is not preceded by an unescaped asterisk following
+whitespace, or the end of the input if there is no such character.
+Thus, all @code{<} and @code{>} redirections occuring before the next
+asterisk-unprefixed @code{|} are implicitly prefixed with (whitespace
+and) asterisks.  An exception is that Eshell-specific redirects right
+at the end of the command are excluded.  This allows input like this:
+
+@example
+ foo *| baz >#<buffer quux>
+@end example
+
+@noindent which is equivalent to input like this:
+
+@example
+ sh -c "foo | baz" >#<buffer quux>
+@end example
+
 @node Extension modules
 @chapter Extension modules
 Eshell provides a facility for defining extension modules so that they

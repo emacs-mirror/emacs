@@ -86,6 +86,6 @@ raise an error."
     (let ((eshell-history-file-name nil))
       (eshell-command-result command))))
 
-(provide 'eshell-tests)
+(provide 'eshell-tests-helpers)
 
-;;; eshell-tests.el ends here
+;;; eshell-tests-helpers.el ends here

@@ -54,6 +54,7 @@ customizing the variable `eshell-modules-list'."
     eshell-basic
     eshell-cmpl
     eshell-dirs
+    eshell-extpipe
     eshell-glob
     eshell-hist
     eshell-ls
