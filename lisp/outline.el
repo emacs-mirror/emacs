@@ -1308,23 +1308,25 @@ convenient way to make a table of contents of the buffer."
 (defcustom outline-default-state nil
   "If non-nil, some headings are initially outlined.
 
-Note that the default state is applied when the major mode is set
-or when the command `outline-apply-default-state' is called
-interactively.
+Note that the default state is applied when Outline major and
+minor modes are set or when the command
+`outline-apply-default-state' is called interactively.
 
-When nil, headings visibility is left unchanged.
+When nil, no default state is defined and
+`outline-apply-default-state' is a no-op.
 
 If equal to `outline-show-all', all text of buffer is shown.
 
-If equal to `outline-show-only-headings', only headings are shown.
+If equal to `outline-show-only-headings', show only headings,
+whatever their level is.
 
 If equal to a number, show only headings up to and including the
 corresponding level.  See `outline-default-rules' to customize
-visibility of the subtree at the choosen level.
+visibility of the subtree at that level.
 
 If equal to a lambda function or function name, this function is
-expected to toggle headings visibility, and will be called after
-the mode is enabled."
+expected to toggle headings visibility, and will be
+called without arguments after the mode is enabled."
   :version "29.1"
   :type '(choice (const :tag "Disabled" nil)
                  (const :tag "Show all" outline-show-all)
@@ -1334,6 +1336,9 @@ the mode is enabled."
 
 (defcustom outline-default-rules nil
   "Determines visibility of subtree starting at `outline-default-state' level.
+
+The rules apply if and only if `outline-default-state' is a
+number.
 
 When nil, the subtree is hidden unconditionally.
 
@@ -1350,10 +1355,11 @@ When equal to a list, each element should be one of the following:
 - `subtree-is-long' to only show the heading branches when its
   subtree contains more than `outline-default-line-count' lines.
 
-- A lambda function or function name which will be evaluated with
-  point at the beginning of the heading and the match data set
-  appropriately, the function being expected to toggle the
-  heading visibility."
+- A cons cell of the form (custom-function . FUNCTION) where
+  FUNCTION is a lambda function or function name which will be
+  called without arguments with point at the beginning of the
+  heading and the match data set appropriately, the function
+  being expected to toggle the heading visibility."
   :version "29.1"
   :type '(choice (const :tag "Hide subtree" nil)
                  (set :tag "Show subtree unless"
