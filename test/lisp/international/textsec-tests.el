@@ -86,11 +86,28 @@
   (should-not (textsec-mixed-numbers-p "8foo8"))
   (should (textsec-mixed-numbers-p "8foo৪")))
 
+(ert-deftest test-resolved ()
+  (should (equal (textsec-resolved-script-set "ǉeto")
+                 '(latin)))
+  (should-not (textsec-resolved-script-set "Сirсlе")))
+
 (ert-deftest test-confusable ()
   (should (equal (textsec-unconfuse-string "ǉeto") "ljeto"))
   (should (textsec-ascii-confusable-p "ǉeto"))
   (should-not (textsec-ascii-confusable-p "ljeto"))
   (should (equal (textsec-unconfuse-string "～") "〜"))
-  (should-not (textsec-ascii-confusable-p "～")))
+  (should-not (textsec-ascii-confusable-p "～"))
+
+  (should (textsec-single-script-confusable-p "ǉeto" "ljeto"))
+  (should-not (textsec-single-script-confusable-p "paypal" "pаypаl"))
+  (should-not (textsec-single-script-confusable-p "scope""ѕсоре"))
+
+  (should-not (textsec-mixed-script-confusable-p "ǉeto" "ljeto"))
+  (should (textsec-mixed-script-confusable-p "paypal" "pаypаl"))
+  (should (textsec-mixed-script-confusable-p "scope""ѕсоре"))
+
+  (should-not (textsec-whole-script-confusable-p "ǉeto" "ljeto"))
+  (should-not (textsec-whole-script-confusable-p "paypal" "pаypаl"))
+  (should (textsec-whole-script-confusable-p "scope""ѕсоре")))
 
 ;;; textsec-tests.el ends here

@@ -192,6 +192,36 @@ This algorithm is described in:
                          (string char)))
                    (ucs-normalize-NFD-string string)))))
 
+(defun textsec-resolved-script-set (string)
+  "Return the resolved script set for STRING.
+This is the minimal covering script set for STRING, but is nil is
+STRING isn't a single script string."
+  (and (textsec-single-script-p string)
+       (textsec-covering-scripts string)))
+
+(defun textsec-single-script-confusable-p (string1 string2)
+  "Say whether STRING1 and STRING2 are single script confusables."
+  (and (equal (textsec-unconfuse-string string1)
+              (textsec-unconfuse-string string2))
+       ;; And they have to have at least one resolved script in
+       ;; common.
+       (seq-intersection (textsec-resolved-script-set string1)
+                         (textsec-resolved-script-set string2))))
+
+(defun textsec-mixed-script-confusable-p (string1 string2)
+  "Say whether STRING1 and STRING2 are mixed script confusables."
+  (and (equal (textsec-unconfuse-string string1)
+              (textsec-unconfuse-string string2))
+       ;; And they have no resolved scripts in common.
+       (null (seq-intersection (textsec-resolved-script-set string1)
+                               (textsec-resolved-script-set string2)))))
+
+(defun textsec-whole-script-confusable-p (string1 string2)
+  "Say whether STRING1 and STRING2 are whole script confusables."
+  (and (textsec-mixed-script-confusable-p string1 string2)
+       (textsec-single-script-p string1)
+       (textsec-single-script-p string2)))
+
 (provide 'textsec)
 
 ;;; textsec.el ends here
