@@ -698,7 +698,7 @@ haiku_create_frame (Lisp_Object parms)
                          "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_fringe, Qnil,
                          "rightFringe", "RightFringe", RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qno_special_glyphs, Qt,
+  gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
                          NULL, NULL, RES_TYPE_BOOLEAN);
 
   init_frame_faces (f);
