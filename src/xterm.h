@@ -496,6 +496,11 @@ struct x_display_info
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
 
+#ifdef HAVE_XKB
+  /* Virtual modifiers */
+  Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
+#endif
+
 #ifdef HAVE_XRANDR
   int xrandr_major_version;
   int xrandr_minor_version;

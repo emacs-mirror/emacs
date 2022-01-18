@@ -5436,11 +5436,6 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   int syms_per_code;
   XModifierKeymap *mods;
 #ifdef HAVE_XKB
-  Atom meta;
-  Atom super;
-  Atom hyper;
-  Atom shiftlock;
-  Atom alt;
   int i;
   int found_meta_p = false;
 #endif
@@ -5454,28 +5449,22 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 #ifdef HAVE_XKB
   if (dpyinfo->xkb_desc)
     {
-      meta = XInternAtom (dpyinfo->display, "Meta", False);
-      super = XInternAtom (dpyinfo->display, "Super", False);
-      hyper = XInternAtom (dpyinfo->display, "Hyper", False);
-      shiftlock = XInternAtom (dpyinfo->display, "ShiftLock", False);
-      alt = XInternAtom (dpyinfo->display, "Alt", False);
-
       for (i = 0; i < XkbNumVirtualMods; i++)
 	{
 	  uint vmodmask = dpyinfo->xkb_desc->server->vmods[i];
 
-	  if (dpyinfo->xkb_desc->names->vmods[i] == meta)
+	  if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Meta)
 	    {
 	      dpyinfo->meta_mod_mask |= vmodmask;
 	      found_meta_p = vmodmask;
 	    }
-	  else if (dpyinfo->xkb_desc->names->vmods[i] == alt)
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Alt)
 	    dpyinfo->alt_mod_mask |= vmodmask;
-	  else if (dpyinfo->xkb_desc->names->vmods[i] == super)
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Super)
 	    dpyinfo->super_mod_mask |= vmodmask;
-	  else if (dpyinfo->xkb_desc->names->vmods[i] == hyper)
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Hyper)
 	    dpyinfo->hyper_mod_mask |= vmodmask;
-	  else if (dpyinfo->xkb_desc->names->vmods[i] == shiftlock)
+	  else if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_ShiftLock)
 	    dpyinfo->shift_lock_mask |= vmodmask;
 	}
 
@@ -15337,9 +15326,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
-
-  /* Figure out which modifier bits mean what.  */
-  x_find_modifier_meanings (dpyinfo);
 #endif
 
 #if defined USE_CAIRO || defined HAVE_XFT
@@ -15455,6 +15441,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_STATE_SKIP_TASKBAR", Xatom_net_wm_state_skip_taskbar)
       ATOM_REFS_INIT ("_NET_WM_STATE_ABOVE", Xatom_net_wm_state_above)
       ATOM_REFS_INIT ("_NET_WM_STATE_BELOW", Xatom_net_wm_state_below)
+#ifdef HAVE_XKB
+      ATOM_REFS_INIT ("Meta", Xatom_Meta)
+      ATOM_REFS_INIT ("Super", Xatom_Super)
+      ATOM_REFS_INIT ("Hyper", Xatom_Hyper)
+      ATOM_REFS_INIT ("ShiftLock", Xatom_ShiftLock)
+      ATOM_REFS_INIT ("Alt", Xatom_Alt)
+#endif
     };
 
     int i;
@@ -15484,6 +15477,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     /* Manually copy last atom.  */
     dpyinfo->Xatom_xsettings_sel = atoms_return[i];
   }
+
+#ifdef HAVE_XKB
+  /* Figure out which modifier bits mean what.  */
+  x_find_modifier_meanings (dpyinfo);
+#endif
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
