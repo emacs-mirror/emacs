@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'uni-confusable)
+(require 'ucs-normalize)
 
 (defvar textsec--char-scripts nil)
 
@@ -171,6 +173,24 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
                         'Nd))
                   string))))
    1))
+
+(defun textsec-ascii-confusable-p (string)
+  "Return non-nil if STRING isn't ASCII, but is confusable with ASCII."
+  (and (not (eq (textsec-restriction-level string) 'ascii-only))
+       (eq (textsec-restriction-level (textsec-unconfuse-string string))
+           'ascii-only)))
+
+(defun textsec-unconfuse-string (string)
+  "Return a de-confused version of STRING.
+This algorithm is described in:
+
+  https://www.unicode.org/reports/tr39/#Confusable_Detection"
+  (ucs-normalize-NFD-string
+   (apply #'concat
+          (seq-map (lambda (char)
+                     (or (gethash char uni-confusable-table)
+                         (string char)))
+                   (ucs-normalize-NFD-string string)))))
 
 (provide 'textsec)
 

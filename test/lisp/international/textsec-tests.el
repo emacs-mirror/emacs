@@ -86,4 +86,11 @@
   (should-not (textsec-mixed-numbers-p "8foo8"))
   (should (textsec-mixed-numbers-p "8foo৪")))
 
+(ert-deftest test-confusable ()
+  (should (equal (textsec-unconfuse-string "ǉeto") "ljeto"))
+  (should (textsec-ascii-confusable-p "ǉeto"))
+  (should-not (textsec-ascii-confusable-p "ljeto"))
+  (should (equal (textsec-unconfuse-string "～") "〜"))
+  (should-not (textsec-ascii-confusable-p "～")))
+
 ;;; textsec-tests.el ends here
