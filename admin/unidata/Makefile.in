@@ -45,7 +45,8 @@ unifiles = $(addprefix ${unidir}/,$(sort $(shell sed -n 's/^[ \t][ \t]*${lparen}
 
 all: ${top_srcdir}/src/macuvs.h ${unifiles} ${unidir}/charscript.el \
   ${unidir}/charprop.el ${unidir}/emoji-zwj.el ${unidir}/emoji-labels.el \
-  ${unidir}/uni-scripts.el ${unidir}/uni-confusable.el
+  ${unidir}/uni-scripts.el ${unidir}/uni-confusable.el \
+  ${unidir}/idna-mapping.el
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -94,6 +95,11 @@ ${unidir}/uni-confusable.el: ${srcdir}/unidata-gen.el \
 	  ${srcdir}/confusables.txt
 	$(AM_V_GEN)${emacs} -L ${srcdir} \
 		-l unidata-gen.el -f unidata-gen-confusable $@
+
+${unidir}/idna-mapping.el: ${srcdir}/unidata-gen.el \
+	  ${srcdir}/IdnaMappingTable.txt
+	$(AM_V_GEN)${emacs} -L ${srcdir} \
+		-l unidata-gen.el -f unidata-gen-idna-mapping $@
 
 .PHONY: charscript.el
 charscript.el: ${unidir}/charscript.el

@@ -1602,6 +1602,46 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (insert ")")
       (unidata-gen-charprop file (buffer-string)))))
 
+(defun unidata-gen-idna-mapping (&optional file)
+  ;; Running from Makefile.
+  (unless file
+    (setq file (pop command-line-args-left)))
+  (let ((map (make-char-table nil)))
+    (with-temp-buffer
+      (unidata-gen--insert-file "IdnaMappingTable.txt")
+      (while (re-search-forward "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^ ]+\\) +\\(?:; +\\([ 0-9A-F]+\\)\\)?"
+                                nil t)
+        (let ((start (match-string 1))
+              (end (match-string 2))
+              (status (match-string 3))
+              (mapped (match-string 4)))
+          ;; Make reading the file slightly faster by using `t'
+          ;; instead of `disallowed' all over the place.
+          (when (string-match-p "\\`disallowed" status)
+            (setq status "t"))
+          (unless (or (equal status "valid")
+                      (equal status "deviation"))
+            (set-char-table-range
+             map
+             (if end
+                 (cons (string-to-number start 16)
+                       (string-to-number end 16))
+               (string-to-number start 16))
+             (cond
+              ((equal status "mapped")
+               (apply #'string
+                      (mapcar (lambda (char)
+                                (string-to-number char 16))
+                              (split-string (string-trim mapped)))))
+              (t
+               (intern status))))))))
+    (with-temp-buffer
+      (insert "(defconst idna-mapping-table\n")
+      (let ((print-length nil))
+        (prin1 map (current-buffer)))
+      (insert ")")
+      (unidata-gen-charprop file (buffer-string)))))
+
 
 
 ;;; unidata-gen.el ends here

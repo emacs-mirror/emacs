@@ -61,6 +61,6 @@ PropertyValueAliases.txt
 https://www.unicode.org/Public/UCD/latest/ucd/PropertyValueAliases.txt
 2022-01-17
 
-confusables.txt
-https://www.unicode.org/Public/security/latest/confusables.txt
+IdnaMappingTable.txt
+https://www.unicode.org/Public/idna/latest/IdnaMappingTable.txt
 2022-01-18

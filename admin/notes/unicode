@@ -26,13 +26,15 @@ Emacs uses the following files from the Unicode Character Database
   . BidiCharacterTest.txt
 
 Emacs also uses the file emoji-test.txt which should be imported from
-the Unicode's Public/emoji/ directory.
+the Unicode's Public/emoji/ directory, and IdnaMappingTable.txt from
+the Public/idna/ directory.
 
-First, the first 14 files and emoji-test.txt need to be copied into
-admin/unidata/, and the file https://www.unicode.org/copyright.html
-should be copied over copyright.html in admin/unidata (some of them
-might need trailing whitespace removed before they can be committed to
-the Emacs repository).
+First, the first 14 files, emoji-test.txt and IdnaMappingTable.txt
+need to be copied into admin/unidata/, and the file
+https://www.unicode.org/copyright.html should be copied over
+copyright.html in admin/unidata (some of them might need trailing
+whitespace removed before they can be committed to the Emacs
+repository).
 
 Then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source

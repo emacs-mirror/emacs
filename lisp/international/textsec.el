@@ -26,6 +26,8 @@
 (require 'cl-lib)
 (require 'uni-confusable)
 (require 'ucs-normalize)
+(require 'idna-mapping)
+(require 'puny)
 
 (defvar textsec--char-scripts nil)
 
@@ -221,6 +223,18 @@ STRING isn't a single script string."
   (and (textsec-mixed-script-confusable-p string1 string2)
        (textsec-single-script-p string1)
        (textsec-single-script-p string2)))
+
+(defun textsec-domain-suspicious-p (domain)
+  (catch 'found
+    (seq-do
+     (lambda (char)
+       (when (eq (elt idna-mapping-table char) t)
+         (throw 'found (format "Disallowed character: `%s' (#x%x)"
+                               (string char) char))))
+     domain)
+    (unless (puny-highly-restrictive-domain-p domain)
+      (throw 'found "%s is not highly restrictive"))
+    nil))
 
 (provide 'textsec)
 
