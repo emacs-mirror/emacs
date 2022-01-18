@@ -1,6 +1,6 @@
 ;;; dictionary.el --- Client for rfc2229 dictionary servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: interface, dictionary
@@ -1376,7 +1376,7 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
     (dictionary-search word)))
 
 ;;;###autoload
-(defun context-menu-dictionary (menu click)
+(defun dictionary-context-menu (menu click)
   "Populate MENU with dictionary commands at CLICK.
 When you add this function to `context-menu-functions',
 the context menu will contain an item that searches

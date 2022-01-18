@@ -1,6 +1,6 @@
 ;;; tramp-crypt.el --- Tramp crypt utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -39,7 +39,7 @@
 ;; first time you access a crypted remote directory.  It is kept in
 ;; your user directory "~/.emacs.d/" with the url-encoded directory
 ;; name as part of the basename, and ".encfs6.xml" as suffix.  Do not
-;; loose this file and the corresponding password; otherwise there is
+;; lose this file and the corresponding password; otherwise there is
 ;; no way to decrypt your crypted files.
 
 ;; If the user option `tramp-crypt-save-encfs-config-remote' is

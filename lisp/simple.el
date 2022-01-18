@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -2947,7 +2947,8 @@ undo record: if we undo from 4, `pending-undo-list' will be at 3,
 
 (defcustom undo-no-redo nil
   "If t, `undo' doesn't go through redo entries."
-  :type 'boolean)
+  :type 'boolean
+  :group 'undo)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.

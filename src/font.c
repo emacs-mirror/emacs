@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2021 Free Software Foundation, Inc.
+Copyright (C) 2006-2022 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -2170,7 +2170,9 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 
   /* Score three style numeric fields.  Maximum difference is 127. */
   for (i = FONT_WEIGHT_INDEX; i <= FONT_WIDTH_INDEX; i++)
-    if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i]))
+    if (! NILP (spec_prop[i])
+	&& ! EQ (AREF (entity, i), spec_prop[i])
+	&& FIXNUMP (AREF (entity, i)))
       {
 	EMACS_INT diff = ((XFIXNUM (AREF (entity, i)) >> 8)
 			  - (XFIXNUM (spec_prop[i]) >> 8));
@@ -2749,8 +2751,9 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
 	if (FIXNUMP (AREF (spec, prop))
-	    && ((XFIXNUM (AREF (spec, prop)) >> 8)
-		!= (XFIXNUM (AREF (entity, prop)) >> 8)))
+	    && ! (FIXNUMP (AREF (entity, prop))
+		  && ((XFIXNUM (AREF (spec, prop)) >> 8)
+		      == (XFIXNUM (AREF (entity, prop)) >> 8))))
 	  prop = FONT_SPEC_MAX;
       if (prop < FONT_SPEC_MAX
 	  && size

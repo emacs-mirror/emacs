@@ -12,7 +12,7 @@
 @footnotestyle end
 
 @copying
-Copyright @copyright{} 1999--2021 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2858,7 +2858,7 @@ similar user option as auto-save files, called
 original file.
 
 If you change @code{lock-file-name-transforms} in order to keep file
-locks for remote files somewhere else, you will loose Emacs' feature
+locks for remote files somewhere else, you will lose Emacs's feature
 to warn you, if a file is changed in parallel from different Emacs
 sessions, or via different remote connections.  Be careful with such
 settings.
@@ -2927,7 +2927,7 @@ you, for example, mark the remote directory
 @file{@trampfn{nextcloud,user@@host,/path/to/dir}} for encryption, the
 configuration file is saved as
 @file{tramp-%2Fnextcloud%3Auser%40host%3A%2Fpath%2Fto%2Fdir%2F.encfs6.xml}
-in @code{user-emacs-directory}.  Do not loose this file and the
+in @code{user-emacs-directory}.  Do not lose this file and the
 corresponding password; otherwise there is no way to decrypt your
 encrypted files.
 

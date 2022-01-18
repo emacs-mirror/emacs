@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -149,12 +149,18 @@ Otherwise display all abbrevs."
 Selects a buffer containing a list of abbrev definitions with
 point located in the abbrev table for the current buffer, and
 turns on `edit-abbrevs-mode' in that buffer.
-You can edit them and type \\<edit-abbrevs-map>\\[edit-abbrevs-redefine] to redefine abbrevs
+
+You can edit them and type \\<edit-abbrevs-mode-map>\\[edit-abbrevs-redefine] \
+to redefine abbrevs
 according to your editing.
+
 The abbrevs editing buffer contains a header line for each
 abbrev table, which is the abbrev table name in parentheses.
+
 This is followed by one line per abbrev in that table:
-NAME   USECOUNT   EXPANSION   HOOK
+
+    NAME   USECOUNT   EXPANSION   HOOK
+
 where NAME and EXPANSION are strings with quotes,
 USECOUNT is an integer, and HOOK is any valid function
 or may be omitted (it is usually omitted)."

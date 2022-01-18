@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -1793,9 +1793,16 @@ This stands for the ISO 8601 date format, which is like
 @samp{%+4Y-%m-%d} except that any flags or field width override the
 @samp{+} and (after subtracting 6) the @samp{4}.
 @item %g
-This stands for the year corresponding to the ISO week within the century.
+@cindex ISO week, in time formatting
+This stands for the year without century (00--99) corresponding to the
+current @dfn{ISO week} number.  ISO weeks start on Monday and end on
+Sunday.  If an ISO week begins in one year and ends in another, the
+rules regarding which year @samp{%g} will produce are complex and will
+not be described here; however, in general, if most of the week's days
+are in the ending year, @samp{%g} will produce that year.
 @item %G
-This stands for the year corresponding to the ISO week.
+This stands for the year with century corresponding to the current ISO
+week number.
 @item %h
 This is a synonym for @samp{%b}.
 @item %H

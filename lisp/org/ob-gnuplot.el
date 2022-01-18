@@ -1,6 +1,6 @@
 ;;; ob-gnuplot.el --- Babel Functions for Gnuplot    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Ihor Radchenko <yantar92@gmail.com>
@@ -129,6 +129,7 @@ code."
            (title (cdr (assq :title params)))
            (lines (cdr (assq :line params)))
            (sets (cdr (assq :set params)))
+           (missing (cdr (assq :missing params)))
            (x-labels (cdr (assq :xlabels params)))
            (y-labels (cdr (assq :ylabels params)))
            (timefmt (cdr (assq :timefmt params)))
@@ -138,6 +139,7 @@ code."
 			   (file-name-directory (buffer-file-name))))
 	   (add-to-body (lambda (text) (setq body (concat text "\n" body)))))
       ;; append header argument settings to body
+      (when missing (funcall add-to-body (format "set datafile missing '%s'" missing)))
       (when title (funcall add-to-body (format "set title '%s'" title)))
       (when lines (mapc (lambda (el) (funcall add-to-body el)) lines))
       (when sets
@@ -284,13 +286,17 @@ then create one.  Return the initialized session.  The current
 (defun org-babel-gnuplot-table-to-data (table data-file params)
   "Export TABLE to DATA-FILE in a format readable by gnuplot.
 Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
+  (require 'ox-org)
   (with-temp-file data-file
     (insert (let ((org-babel-gnuplot-timestamp-fmt
 		   (or (plist-get params :timefmt) "%Y-%m-%d-%H:%M:%S")))
 	      (orgtbl-to-generic
 	       table
 	       (org-combine-plists
-		'(:sep "\t" :fmt org-babel-gnuplot-quote-tsv-field :raw t :backend ascii)
+		'( :sep "\t" :fmt org-babel-gnuplot-quote-tsv-field
+                   ;; Two setting below are needed to make :fmt work.
+                   :raw t
+                   :backend ascii)
 		params)))))
   data-file)
 

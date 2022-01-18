@@ -1,6 +1,6 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 ;; Version: 1.3.0
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -44,7 +44,7 @@
 ;;
 ;; The last three methods operate with "xref" and "location" values.
 ;;
-;; One would usually call `make-xref' and `xref-make-file-location',
+;; One would usually call `xref-make' and `xref-make-file-location',
 ;; `xref-make-buffer-location' or `xref-make-bogus-location' to create
 ;; them.  More generally, a location must be an instance of a type for
 ;; which methods `xref-location-group' and `xref-location-marker' are
@@ -118,16 +118,16 @@ When it is a file name, it should be the \"expanded\" version.")
 (defcustom xref-file-name-display 'project-relative
   "Style of file name display in *xref* buffers.
 
-If the value is the symbol `abs', the default, show the file names
-in their full absolute form.
+If the value is the symbol `abs', show the file names in their
+full absolute form.
 
 If `nondirectory', show only the nondirectory (a.k.a. \"base name\")
 part of the file name.
 
-If `project-relative', show only the file name relative to the
-current project root.  If there is no current project, or if the
-file resides outside of its root, show that particular file name
-in its full absolute form."
+If `project-relative', the default, show only the file name
+relative to the current project root.  If there is no current
+project, or if the file resides outside of its root, show that
+particular file name in its full absolute form."
   :type '(choice (const :tag "absolute file name" abs)
                  (const :tag "nondirectory file name" nondirectory)
                  (const :tag "relative to project root" project-relative))
@@ -199,7 +199,19 @@ is not known."
                (:constructor xref-make (summary location))
                (:noinline t))
   "An xref item describes a reference to a location somewhere."
-  summary location)
+  (summary nil :documentation "String which describes the location.
+
+When `xref-location-line' returns non-nil (a number), the summary
+is implied to be the contents of a file or buffer line containing
+the location.  When multiple locations in a row report the same
+line, in the same group (corresponding to the case of multiple
+locations on one line), the summaries are concatenated in the
+Xref output buffer.  Consequently, any code that creates xref
+values should take care to slice the summary values when several
+locations point to the same line.
+
+This behavior is new in Emacs 28.")
+  location)
 
 (cl-defstruct (xref-match-item
                (:include xref-item)

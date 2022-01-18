@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2021 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>

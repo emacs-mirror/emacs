@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2021 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4848,7 +4848,7 @@ face_for_font (struct frame *f, Lisp_Object font_object,
                struct face *base_face)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
-  unsigned hash;
+  uintptr_t hash;
   int i;
   struct face *face;
 
@@ -6449,8 +6449,12 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
 
     default_face = FACE_FROM_ID_OR_NULL (f, face_id);
     if (!default_face)
-      default_face = FACE_FROM_ID (f,
-				   lookup_basic_face (w, f, DEFAULT_FACE_ID));
+      {
+	if (FRAME_FACE_CACHE (f)->used == 0)
+	  recompute_basic_faces (f);
+	default_face = FACE_FROM_ID (f,
+				     lookup_basic_face (w, f, DEFAULT_FACE_ID));
+      }
   }
 
   /* Optimize common cases where we can use the default face.  */

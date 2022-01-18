@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2019-2021 Free Software Foundation, Inc.
+Copyright (C) 2019-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -76,9 +76,6 @@ shaping, so 'configure' now recommends that combination.
 ** Building without double buffering support.
 'configure --with-xdbe=no' can now be used to disable double buffering
 at build time.
-
----
-** Support for building with Motif has been removed.
 
 ---
 ** The configure option '--without-makeinfo' has been removed.
@@ -1011,20 +1008,6 @@ file:
 
     (add-hook 'foo-mode-hook (lambda () (auto-fill-mode -1))
 
-** Xref migrated from EIEIO to cl-defstruct for its core objects.
-This means that 'oref' and 'with-slots' no longer works on them, and
-'make-instance' can no longer be used to create those instances (which
-wasn't recommended anyway).  Packages should restrict themselves to
-using functions like 'xref-make', 'xref-make-match',
-'xref-make-*-location', as well as accessor functions
-'xref-item-summary' and 'xref-item-location'.
-
-Among the benefits are better performance (noticeable when there are a
-lot of matches) and improved flexibility: 'xref-match-item' instances
-do not require that 'location' inherits from 'xref-location' anymore
-(that class was removed), so packages can create new location types to
-use with "match items" without adding EIEIO as a dependency.
-
 
 * Editing Changes in Emacs 28.1
 
@@ -1588,9 +1571,9 @@ and the result is not truncated in any way.
 It no longer has lower precedence than '+' and '-'.
 
 ---
-*** Calc now marks its windows dedicated.
-The new user option 'calc-make-windows-dedicated' controls this.  It
-is t by default; set to nil to get back the old behavior.
+*** New user option 'calc-make-windows-dedicated'.
+When this user option is non-nil, Calc will mark its windows as
+dedicated.
 
 ** Calendar
 
@@ -1965,6 +1948,13 @@ String or list of strings specifying switches for Git log under VC.
 *** Command 'vc-switch-backend' is now obsolete.
 If you are still using it with any regularity, please file a bug
 report with some details.
+
+---
+*** New variable 'vc-git-use-literal-pathspecs'.
+The Git backend's function now treat all file names "literally", where
+some of them previously could interpret file names (pathspecs) as
+globs when they contain appropriate characters.  Functions can bind
+the aforementioned variable to nil locally to avoid this.
 
 ** Gnus
 
@@ -3055,7 +3045,6 @@ checkdoc will now check the format of 'yes-or-no-p'.
 *** New command 'checkdoc-dired'.
 This can be used to run checkdoc on files from a Dired buffer.
 
----
 *** No longer checks for 'A-' modifiers.
 Checkdoc recommends usage of command substitutions ("\\[foo-command]")
 in favor of writing keybindings like 'C-c f'.  It now no longer warns
@@ -3724,6 +3713,20 @@ user option has been renamed to 'find-library-source-path', and
 ---
 ** The macro 'vc-call' no longer evaluates its second argument twice.
 
+** Xref migrated from EIEIO to cl-defstruct for its core objects.
+This means that 'oref' and 'with-slots' no longer works on them, and
+'make-instance' can no longer be used to create those instances (which
+wasn't recommended anyway).  Packages should restrict themselves to
+using functions like 'xref-make', 'xref-make-match',
+'xref-make-*-location', as well as accessor functions
+'xref-item-summary' and 'xref-item-location'.
+
+Among the benefits are better performance (noticeable when there are a
+lot of matches) and improved flexibility: 'xref-match-item' instances
+do not require that 'location' inherits from 'xref-location' anymore
+(that class was removed), so packages can create new location types to
+use with "match items" without adding EIEIO as a dependency.
+
 
 * Lisp Changes in Emacs 28.1
 
@@ -3734,15 +3737,28 @@ commands as being applicable for modes derived from 'dired-mode',
 or if the mode is a minor mode, when the current buffer has that
 minor mode activated.  Note that using this form will create byte code
 that is not compatible with byte code in previous Emacs versions.
+Also note that by default these annotations have no effect, unless the
+new option 'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.
 
 +++
-** New forms to declare how completion should happen has been added.
+** New 'declare' forms to control completion of commands in 'M-x'.
 '(declare (completion PREDICATE))' can be used as a general predicate
-to say whether the command should be present when completing with
-'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
-way of saying that the command should be present when completing from
-buffers in major modes derived from MODE..., or, if it's a minor mode,
-when that minor mode is enabled in the current buffer.
+to say whether the command should be considered a completion candidate
+when completing with 'M-x TAB'.
+
+'(declare (modes MODE...))' can be used as a short-hand way of saying
+that the command should be considered a completion candidate when
+completing on commands from buffers in major modes derived from
+MODE..., or, if it's a minor mode, when that minor mode is enabled in
+the current buffer.
+
+Note that these forms will only have their effect if the
+'read-extended-command-predicate' option is customized to call
+'command-completion-default-include-p' or a similar function.  The
+default value of 'read-extended-command-predicate' is nil, which means
+no commands that match what you have typed are excluded from being
+completion candidates.
 
 +++
 ** 'define-minor-mode'  now takes an ':interactive' argument.

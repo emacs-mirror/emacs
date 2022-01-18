@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -71,7 +71,7 @@
 
 (defmacro inline-quote (_exp)
   "Similar to backquote, but quotes code and only accepts , and not ,@."
-  (declare (debug backquote-form))
+  (declare (debug (backquote-form)))
   (error "inline-quote can only be used within define-inline"))
 
 (defmacro inline-const-p (_exp)

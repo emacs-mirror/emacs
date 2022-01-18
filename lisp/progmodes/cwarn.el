@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces

@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -3180,8 +3180,8 @@ Note that Java specific rules are currently applied to tell this from
       (append
        (c-lang-const c-flat-decl-block-kwds)
        (if (c-lang-const c-recognize-<>-arglists)
-	   '("{" "}" ";" "," ")" ":" "<")
-	 '("{" "}" ";" "," ")" ":")))))
+	   '("{" "}" ";" "*" "," ")" ":" "<")
+	 '("{" "}" ";" "*" "," ")" ":")))))
 (c-lang-defvar c-brace-stack-thing-key (c-lang-const c-brace-stack-thing-key))
 
 (c-lang-defconst c-brace-stack-no-semi-key

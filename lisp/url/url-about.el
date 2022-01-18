@@ -1,6 +1,6 @@
 ;;; url-about.el --- Show internal URLs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

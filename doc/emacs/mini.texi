@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer
@@ -497,7 +497,10 @@ falls back on the next style.
 @vindex completion-styles
   The list variable @code{completion-styles} specifies the completion
 styles to use.  Each list element is the name of a completion style (a
-Lisp symbol).  The default completion styles are (in order):
+Lisp symbol).  The available style symbols are stored in the variable
+@code{completion-styles-alist} (@pxref{Completion Variables,,, elisp,
+The Emacs Lisp Reference Manual}).  The default completion styles are
+(in order):
 
 @table @code
 @item basic

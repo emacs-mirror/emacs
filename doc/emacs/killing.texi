@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
@@ -921,6 +921,11 @@ so in a rectangular fashion, and killing and yanking operate on the
 rectangle.  @xref{Killing}.  The mode persists only as long as the
 region is active.
 
+The region-rectangle works only when the mark is active.  In
+particular, when Transient Mark mode is off (@pxref{Disabled Transient
+Mark}), in addition to typing @kbd{C-x @key{SPC}} you will need to
+activate the mark.
+
 Unlike the standard region, the region-rectangle can have its corners
 extended past the end of buffer, or inside stretches of white space
 that point normally cannot enter, like in the middle of a TAB
@@ -929,11 +934,12 @@ character.
 @findex rectangle-exchange-point-and-mark
 @findex exchange-point-and-mark@r{, in rectangle-mark-mode}
 @kindex C-x C-x@r{, in rectangle-mark-mode}
-When the region is in rectangle-mark-mode, @kbd{C-x C-x} runs the
-command @code{rectangle-exchange-point-and-mark}, which cycles between
-the four corners of the region-rectangle.  This comes in handy if you
-want to modify the dimensions of the region-rectangle before invoking
-an operation on the marked text.
+When the region is active (@pxref{Mark}) and in rectangle-mark-mode,
+@kbd{C-x C-x} runs the command
+@code{rectangle-exchange-point-and-mark}, which cycles between the
+four corners of the region-rectangle.  This comes in handy if you want
+to modify the dimensions of the region-rectangle before invoking an
+operation on the marked text.
 
 @node CUA Bindings
 @section CUA Bindings

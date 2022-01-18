@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -458,12 +458,16 @@ If `silently', don't ask the user before saving."
 
 (defcustom lock-file-name-transforms nil
   "Transforms to apply to buffer file name before making a lock file name.
-This has the same syntax as
-`auto-save-file-name-transforms' (which see), but instead of
-applying to auto-save file names, it's applied to lock file names.
+This has the same syntax as `auto-save-file-name-transforms',
+but applies to lock file names instead of auto-save file names.
 
-By default, a lock file is put into the same directory as the
-file it's locking, and it has the same name, but with \".#\" prepended."
+By default, Emacs puts each lock file into the same directory as the
+file it locks, prepending \".#\" to the base file name.
+
+Note that changing this could break lock file functionality, e.g.:
+if different users access the same file, using different lock file settings;
+if accessing files on a shared file system from different hosts,
+using a transform that puts the lock files on a local file system."
   :group 'files
   :type '(repeat (list (regexp :tag "Regexp")
                        (string :tag "Replacement")
@@ -5755,7 +5759,7 @@ to return a predicate used to check buffers."
   ;; FIXME nil should not be a valid option, let alone the default,
   ;; eg so that add-function can be used.
   :type '(choice (const :tag "Default" nil)
-                 (function :tag "Only in subdirs of root"
+                 (function :tag "Only in subdirs of current project"
                            save-some-buffers-root)
                  (function :tag "Custom function"))
   :version "26.1")
@@ -5791,21 +5795,22 @@ all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
-If PRED is a zero-argument function, it indicates for each buffer whether
-to consider it or not when called with that buffer current.
+If PRED is a function, it is called with no argument in each buffer and
+should return non-nil if that buffer should be considered.
 PRED defaults to the value of `save-some-buffers-default-predicate'.
 
 See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (unless pred
-    (setq pred save-some-buffers-default-predicate))
-  ;; Allow `pred' to be a function that returns a predicate
-  ;; with lexical bindings in its original environment (bug#46374).
-  (when (and (symbolp pred) (get pred 'save-some-buffers-function))
-    (let ((pred-fun (and (functionp pred) (funcall pred))))
-      (when (functionp pred-fun)
-        (setq pred pred-fun))))
+    (setq pred
+          ;; Allow `pred' to be a function that returns a predicate
+          ;; with lexical bindings in its original environment (bug#46374).
+          (if (and (symbolp save-some-buffers-default-predicate)
+                   (get save-some-buffers-default-predicate
+                        'save-some-buffers-function))
+              (funcall save-some-buffers-default-predicate)
+            save-some-buffers-default-predicate)))
   (let* ((switched-buffer nil)
          (save-some-buffers--switch-window-callback
           (lambda (buffer)

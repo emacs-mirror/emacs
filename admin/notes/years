@@ -3,7 +3,31 @@ HOW TO MAINTAIN COPYRIGHT YEARS FOR GNU EMACS
 Maintaining copyright years is now very simple: every time a new year
 rolls around, add that year to every FSF (and AIST) copyright notice.
 Do this by running the 'admin/update-copyright' script on a fresh repo
-checkout.  Inspect the results for plausibility, then commit them.
+checkout, redirecting its output to a file, so that you could later
+examine the files that don't have copyright notices.  Inspect the
+results for plausibility, then commit them.
+
+A few known problems with the build-aux/update-copyright script:
+
+  . it doesn't update config.bat, msdos/depfiles.bat,
+    nt/configure.bat, etc/tutorials/TUTORIAL.cn, and
+    etc/tutorials/TUTORIAL.he because the "Copyright" statement begins
+    in these files after a prefix that is more than 5 characters long
+  . it doesn't update etc/tutorials/TUTORIAL.nl and
+    etc/tutorials/TUTORIAL.ro for some reason
+  . it doesn't update the second Copyright notice, the one that gets
+    output into PDF and PS, in etc/refcards/ru-refcard.tex
+  . it doesn't update etc/refcards/gnus-refcard.tex and
+    doc/misc/org.org because their Copyright statements have a
+    non-standard format
+  . several README and XPM files under etc/images/, and also
+    etc/refcards/README, msdos/README, and nt/icons/README aren't
+    updated either
+
+These files need to be updated by hand.
+
+Next, run "M-x set-copyright" from admin.el, which updates several
+copyright notices in the Emacs sources.
 
 You should also run the etags test suite in test/manual/etags/.  It
 will most probably fail because the contents of the test files changes

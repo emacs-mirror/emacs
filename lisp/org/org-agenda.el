@@ -1,6 +1,6 @@
 ;;; org-agenda.el --- Dynamic task and appointment lists for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -85,6 +85,8 @@
 (declare-function org-add-archive-files "org-archive" (files))
 (declare-function org-capture "org-capture" (&optional goto keys))
 (declare-function org-clock-modify-effort-estimate "org-clock" (&optional value))
+
+(declare-function org-element-type "org-element" (&optional element))
 
 (defvar calendar-mode-map)
 (defvar org-clock-current-task)
@@ -5729,7 +5731,8 @@ displayed in agenda view."
 		    (org-at-planning-p)
 		    (org-before-first-heading-p)
 		    (and org-agenda-include-inactive-timestamps
-			 (org-at-clock-log-p)))
+			 (org-at-clock-log-p))
+                    (not (eq 'timestamp (org-element-type (org-element-context)))))
 	    (throw :skip nil))
 	  (org-agenda-skip))
 	(let* ((pos (match-beginning 0))
@@ -6765,7 +6768,7 @@ Any match of REMOVE-RE will be removed from TXT."
 	    (setq duration (- (org-duration-to-minutes s2)
 			      (org-duration-to-minutes s1))))
           ;; Format S1 and S2 for display.
-	  (when s1 (setq s1 (org-get-time-of-day s1 'overtime)))
+	  (when s1 (setq s1 (format "%5s" (org-get-time-of-day s1 'overtime))))
 	  (when s2 (setq s2 (org-get-time-of-day s2 'overtime))))
 	(when (string-match org-tag-group-re txt)
 	  ;; Tags are in the string

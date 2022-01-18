@@ -1,6 +1,6 @@
 ;;; ox-ascii.el --- ASCII Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
@@ -1929,7 +1929,11 @@ a communication channel."
 	       (org-export-table-cell-alignment table-cell info)))))
       (setq contents
 	    (concat data
-		    (make-string (- width (string-width (or data ""))) ?\s))))
+                    ;; FIXME: If CONTENTS was transformed by filters,
+                    ;; the whole width calculation can be wrong.
+                    ;; At least, make sure that we do not throw error
+                    ;; when CONTENTS is larger than width.
+		    (make-string (max 0 (- width (string-width (or data "")))) ?\s))))
     ;; Return cell.
     (concat (format " %s " contents)
 	    (when (memq 'right (org-export-table-cell-borders table-cell info))

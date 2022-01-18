@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2021 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node M-x
@@ -59,6 +59,7 @@ the option @code{read-extended-command-predicate} to exclude those
 irrelevant commands from completion results.
 
 @kindex M-S-x
+@kindex M-X
   Conversely, Emacs can exclude all commands except those that are
 particularly relevant to the current buffer.  The @kbd{M-S-x} (that's
 ``meta shift x'') command works just like @kbd{M-x}, but instead of

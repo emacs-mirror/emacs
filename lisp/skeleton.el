@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1996, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; gulp.el --- ask for updates for Lisp packages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Sam Shteingold <shteingd@math.ucla.edu>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Keywords: convenience, extensions
@@ -1423,7 +1423,7 @@ commands given here will actually operate on the *Calculator* stack."
     (require 'calc-ext)
     (calc-set-language calc-language calc-language-option t)))
 
-(defcustom calc-make-windows-dedicated t
+(defcustom calc-make-windows-dedicated nil
   "If non-nil, windows displaying Calc buffers will be marked dedicated.
 See `window-dedicated-p' for what that means."
   :version "28.1"

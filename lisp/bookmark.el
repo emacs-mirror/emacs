@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
@@ -1164,7 +1164,7 @@ and then show any annotations for this bookmark."
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-set-fringe-mark
-    (let ((overlays (overlays-in (point) (point)))
+    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))

@@ -1,6 +1,6 @@
 ;;; comp.el --- compilation of Lisp code into native code -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 ;; Keywords: lisp
@@ -1181,7 +1181,9 @@ clashes."
 	                   for i across orig-name
 	                   for byte = (format "%x" i)
 	                   do (aset str j (aref byte 0))
-	                      (aset str (1+ j) (aref byte 1))
+			      (aset str (1+ j) (if (length> byte 1)
+						   (aref byte 1)
+						 ?\_))
 	                   finally return str))
          (human-readable (string-replace
                           "-" "_" orig-name))

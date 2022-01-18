@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -749,6 +749,9 @@ name that did not match before.  This feature is useful for
 uncompression packages: an entry of the form @code{("\\.gz\\'"
 @var{function} t)} can uncompress the file and then put the uncompressed
 file in the proper mode according to the name sans @samp{.gz}.
+
+If @code{auto-mode-alist} has more than one element whose @var{regexp}
+matches the file name, Emacs will use the first match.
 
 Here is an example of how to prepend several pattern pairs to
 @code{auto-mode-alist}.  (You might use this sort of expression in your

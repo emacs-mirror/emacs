@@ -1,6 +1,6 @@
 ;;; w32-vars.el --- MS-Windows specific user options  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Jason Rumney <jasonr@gnu.org>
 ;; Keywords: internal
