@@ -311,7 +311,7 @@ problem is returned."
     (or
      (textsec-domain-suspicious-p domain)
      (textsec-local-address-suspicious-p local)
-     (textsec-name-suspicious-p name))))
+     (and name (textsec-name-suspicious-p name)))))
 
 (provide 'textsec)
 
