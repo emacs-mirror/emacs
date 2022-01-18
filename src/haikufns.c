@@ -1756,6 +1756,10 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
+  /* FIXME: Why don't re-used tooltip frames update correctly when a
+     menu is active? */
+  if (popup_activated_p)
+    specbind (Qtooltip_reuse_hidden_frame, Qnil);
 
   CHECK_STRING (string);
 
@@ -2000,7 +2004,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 		      root_x, root_y);
   BWindow_resize (FRAME_HAIKU_WINDOW (tip_f), width, height);
   BView_resize_to (FRAME_HAIKU_VIEW (tip_f), width, height);
-  change_frame_size (tip_f, width, height, false, true, false);
+  tip_f->pixel_width = width;
+  tip_f->pixel_height = height;
   BWindow_set_tooltip_decoration (FRAME_HAIKU_WINDOW (tip_f));
   BWindow_set_visible (FRAME_HAIKU_WINDOW (tip_f), 1);
   BWindow_sync (FRAME_HAIKU_WINDOW (tip_f));
@@ -2009,6 +2014,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   w->must_be_updated_p = true;
   update_single_window (w);
+  haiku_clear_under_internal_border (tip_f);
 
   set_buffer_internal_1 (old_buffer);
   unbind_to (count_1, Qnil);
@@ -2459,6 +2465,7 @@ syms_of_haikufns (void)
   DEFSYM (Qalways, "always");
   DEFSYM (Qnot_useful, "not-useful");
   DEFSYM (Qwhen_mapped, "when-mapped");
+  DEFSYM (Qtooltip_reuse_hidden_frame, "tooltip-reuse-hidden-frame");
 
   defsubr (&Sx_hide_tip);
   defsubr (&Sxw_display_color_p);
