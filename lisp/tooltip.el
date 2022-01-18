@@ -339,6 +339,8 @@ This is used by `tooltip-show-help' and
 (defvar tooltip-previous-message nil
   "The previous content of the echo area.")
 
+(defvar haiku-use-system-tooltips)
+
 (defun tooltip-show-help-non-mode (help)
   "Function installed as `show-help-function' when Tooltip mode is off.
 It is also called if Tooltip mode is on, for text-only displays."
