@@ -1149,8 +1149,7 @@ component is used as the target of the symlink."
 	   (when (file-remote-p result)
 	     (setq result (tramp-compat-file-name-quote result 'top)))
 	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result))
-       'nohop)))))
+	   result)))))))
 
 ;; Basic functions.
 
@@ -2852,7 +2851,7 @@ implementation will be used."
 		 ;; `shell'.  We discard hops, if existing, that's why
 		 ;; we cannot use `file-remote-p'.
 		 (prompt (format "PS1=%s %s"
-				 (tramp-make-tramp-file-name v nil 'nohop)
+				 (tramp-make-tramp-file-name v)
 				 tramp-initial-end-of-output))
 		 ;; We use as environment the difference to toplevel
 		 ;; `process-environment'.
@@ -3013,7 +3012,7 @@ implementation will be used."
       vec
       (concat
        "signal-strings-" (tramp-get-method-parameter vec 'tramp-remote-shell))
-    (let ((default-directory (tramp-make-tramp-file-name vec 'localname))
+    (let ((default-directory (tramp-make-tramp-file-name vec 'noloc))
 	  process-file-return-signal-string signals res result)
       (setq signals
 	    (append
@@ -3104,7 +3103,7 @@ implementation will be used."
 	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input 'nohop))
+		tmpinput (tramp-make-tramp-file-name v input))
 	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
 
@@ -3136,7 +3135,7 @@ implementation will be used."
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
-		  tmpstderr (tramp-make-tramp-file-name v stderr 'nohop))))
+		  tmpstderr (tramp-make-tramp-file-name v stderr))))
 	 ;; stderr to be discarded.
 	 ((null (cadr destination))
 	  (setq stderr (tramp-get-remote-null-device v)))))
@@ -3650,8 +3649,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 (defun tramp-sh-file-name-handler-p (vec)
   "Whether VEC uses a method from `tramp-sh-file-name-handler'."
   (and (assoc (tramp-file-name-method vec) tramp-methods)
-       (eq (tramp-find-foreign-file-name-handler
-	    (tramp-make-tramp-file-name vec nil 'nohop))
+       (eq (tramp-find-foreign-file-name-handler vec)
 	   'tramp-sh-file-name-handler)))
 
 ;; This must be the last entry, because `identity' always matches.
@@ -5441,7 +5439,7 @@ Nonexistent directories are removed from spec."
 	  (lambda (x)
 	    (and
 	     (stringp x)
-	     (file-directory-p (tramp-make-tramp-file-name vec x 'nohop))
+	     (file-directory-p (tramp-make-tramp-file-name vec x))
 	     x))
 	  remote-path))))))
 

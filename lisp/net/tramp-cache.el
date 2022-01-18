@@ -124,7 +124,7 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 	    (dolist (elt tramp-connection-properties)
 	      (when (tramp-compat-string-search
 		     (or (nth 0 elt) "")
-		     (tramp-make-tramp-file-name key 'noloc 'nohop))
+		     (tramp-make-tramp-file-name key 'noloc))
 		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
 	  hash))))
 

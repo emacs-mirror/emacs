@@ -796,8 +796,7 @@ Also see `ignore'."
 	   (string-equal
 	    (file-remote-p
 	     "/method1:user1@host1|method2:user2@host2:/path/to/file")
-	    (format "/%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1" "method2" "user2" "host2")))
+	    "/method2:user2@host2:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -833,10 +832,7 @@ Also see `ignore'."
 	      "/method1:user1@host1"
 	      "|method2:user2@host2"
 	      "|method3:user3@host3:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/method3:user3@host3:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -895,10 +891,7 @@ Also see `ignore'."
 	      "/-:user1@host1"
 	      "|-:user2@host2"
 	      "|-:user3@host3:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/method3:user3@host3:"))
 
 	  ;; Expand `tramp-default-user-alist'.
 	  (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
@@ -911,10 +904,7 @@ Also see `ignore'."
 	      "/method1:host1"
 	      "|method2:host2"
 	      "|method3:host3:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/method3:user3@host3:"))
 
 	  ;; Expand `tramp-default-host-alist'.
 	  (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
@@ -927,10 +917,7 @@ Also see `ignore'."
 	      "/method1:user1@"
 	      "|method2:user2@"
 	      "|method3:user3@:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/method3:user3@host3:"))
 
 	  ;; Ad-hoc user name and host name expansion.
 	  (setq tramp-default-method-alist nil
@@ -943,10 +930,7 @@ Also see `ignore'."
 	      "/method1:user1@host1"
 	      "|method2:user2@"
 	      "|method3:user3@:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host1"
-		    "method3" "user3" "host1")))
+	    "/method3:user3@host1:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -955,11 +939,7 @@ Also see `ignore'."
 	      "|method2:user2@host2"
 	      "|method3:%u@%h"
 	      "|method4:user4%domain4@host4#1234:/path/to/file"))
-	    (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-		    "method1" "user2" "host2"
-		    "method2" "user2" "host2"
-		    "method3" "user4" "host4"
-		    "method4" "user4%domain4" "host4#1234"))))
+	    "/method4:user4%domain4@host4#1234:")))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -1147,7 +1127,7 @@ Also see `ignore'."
 	  (should
 	   (string-equal
 	    (file-remote-p "/user1@host1|user2@host2:/path/to/file")
-	    (format "/%s@%s|%s@%s:" "user1" "host1" "user2" "host2")))
+	    "/user2@host2:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1181,10 +1161,7 @@ Also see `ignore'."
 	      "/user1@host1"
 	      "|user2@host2"
 	      "|user3@host3:/path/to/file"))
-	    (format "/%s@%s|%s@%s|%s@%s:"
-		    "user1" "host1"
-		    "user2" "host2"
-		    "user3" "host3")))
+	    "/user3@host3:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1243,10 +1220,7 @@ Also see `ignore'."
 	      "/host1"
 	      "|host2"
 	      "|host3:/path/to/file"))
-	    (format "/%s@%s|%s@%s|%s@%s:"
-		    "user1" "host1"
-		    "user2" "host2"
-		    "user3" "host3")))
+	    "/user3@host3:"))
 
 	  ;; Expand `tramp-default-host-alist'.
 	  (add-to-list 'tramp-default-host-alist '(nil "user1" "host1"))
@@ -1259,10 +1233,7 @@ Also see `ignore'."
 	      "/user1@"
 	      "|user2@"
 	      "|user3@:/path/to/file"))
-	    (format "/%s@%s|%s@%s|%s@%s:"
-		    "user1" "host1"
-		    "user2" "host2"
-		    "user3" "host3")))
+	    "/user3@host3:"))
 
 	  ;; Ad-hoc user name and host name expansion.
 	  (setq tramp-default-user-alist nil
@@ -1274,10 +1245,7 @@ Also see `ignore'."
 	      "/user1@host1"
 	      "|user2@"
 	      "|user3@:/path/to/file"))
-	    (format "/%s@%s|%s@%s|%s@%s:"
-		    "user1" "host1"
-		    "user2" "host1"
-		    "user3" "host1")))
+	    "/user3@host1:"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1286,11 +1254,7 @@ Also see `ignore'."
 	      "|user2@host2"
 	      "|%u@%h"
 	      "|user4%domain4@host4#1234:/path/to/file"))
-	    (format "/%s@%s|%s@%s|%s@%s|%s@%s:"
-		    "user2" "host2"
-		    "user2" "host2"
-		    "user4" "host4"
-		    "user4%domain4" "host4#1234"))))
+	    "/user4%domain4@host4#1234:")))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -1786,8 +1750,7 @@ Also see `ignore'."
 	   (string-equal
 	    (file-remote-p
 	     "/[method1/user1@host1|method2/user2@host2]/path/to/file")
-	    (format "/[%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1" "method2" "user2" "host2")))
+	    "/[method2/user2@host2]"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1823,10 +1786,7 @@ Also see `ignore'."
 	      "/[method1/user1@host1"
 	      "|method2/user2@host2"
 	      "|method3/user3@host3]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/[method3/user3@host3]"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1885,10 +1845,7 @@ Also see `ignore'."
 	      "/[/user1@host1"
 	      "|/user2@host2"
 	      "|/user3@host3]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/[method3/user3@host3]"))
 
 	  ;; Expand `tramp-default-user-alist'.
 	  (add-to-list 'tramp-default-user-alist '("method1" "host1" "user1"))
@@ -1901,10 +1858,7 @@ Also see `ignore'."
 	      "/[method1/host1"
 	      "|method2/host2"
 	      "|method3/host3]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/[method3/user3@host3]"))
 
 	  ;; Expand `tramp-default-host-alist'.
 	  (add-to-list 'tramp-default-host-alist '("method1" "user1" "host1"))
@@ -1917,10 +1871,7 @@ Also see `ignore'."
 	      "/[method1/user1@"
 	      "|method2/user2@"
 	      "|method3/user3@]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host2"
-		    "method3" "user3" "host3")))
+	    "/[method3/user3@host3]"))
 
 	  ;; Ad-hoc user name and host name expansion.
 	  (setq tramp-default-method-alist nil
@@ -1933,10 +1884,7 @@ Also see `ignore'."
 	      "/[method1/user1@host1"
 	      "|method2/user2@"
 	      "|method3/user3@]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user1" "host1"
-		    "method2" "user2" "host1"
-		    "method3" "user3" "host1")))
+	    "/[method3/user3@host1]"))
 	  (should
 	   (string-equal
 	    (file-remote-p
@@ -1945,11 +1893,7 @@ Also see `ignore'."
 	      "|method2/user2@host2"
 	      "|method3/%u@%h"
 	      "|method4/user4%domain4@host4#1234]/path/to/file"))
-	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s|%s/%s@%s]"
-		    "method1" "user2" "host2"
-		    "method2" "user2" "host2"
-		    "method3" "user4" "host4"
-		    "method4" "user4%domain4" "host4#1234"))))
+	    "/[method4/user4%domain4@host4#1234]")))
 
       ;; Exit.
       (tramp-change-syntax syntax))))
@@ -2286,17 +2230,20 @@ This checks also `file-name-as-directory', `file-name-directory',
   (skip-unless (not (tramp--test-ange-ftp-p)))
 
   (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
+	 (remote-host-nohop
+	  (tramp-make-tramp-file-name (tramp-dissect-file-name remote-host)))
 	 ;; Not all methods can expand "~".
-         (home-dir (ignore-errors (expand-file-name (concat remote-host "~")))))
+         (home-dir (ignore-errors (expand-file-name (concat remote-host "~"))))
+	 home-dir-nohop)
     (skip-unless home-dir)
 
     ;; Check home-dir abbreviation.
     (unless (string-suffix-p "~" home-dir)
       (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
-                     (concat remote-host "~/foo/bar")))
+                     (concat remote-host-nohop "~/foo/bar")))
       (should (equal (abbreviate-file-name
 		      (concat remote-host "/nowhere/special"))
-                     (concat remote-host "/nowhere/special"))))
+                     (concat remote-host-nohop "/nowhere/special"))))
 
     ;; Check `directory-abbrev-alist' abbreviation.
     (let ((directory-abbrev-alist
@@ -2305,18 +2252,20 @@ This checks also `file-name-as-directory', `file-name-directory',
              (,(concat "\\`" (regexp-quote remote-host) "/nowhere")
               . ,(concat remote-host "/nw")))))
       (should (equal (abbreviate-file-name (concat home-dir "/foo/bar"))
-                     (concat remote-host "~/f/bar")))
+                     (concat remote-host-nohop "~/f/bar")))
       (should (equal (abbreviate-file-name
 		      (concat remote-host "/nowhere/special"))
-                     (concat remote-host "/nw/special"))))
+                     (concat remote-host-nohop "/nw/special"))))
 
     ;; Check that home-dir abbreviation doesn't occur when home-dir is just "/".
-    (setq home-dir (concat remote-host "/"))
+    (setq home-dir (concat remote-host "/")
+	  home-dir-nohop
+	  (tramp-make-tramp-file-name (tramp-dissect-file-name home-dir)))
     ;; The remote home directory is kept in the connection property
     ;; "home-directory".  We fake this setting.
     (tramp-set-connection-property tramp-test-vec "home-directory" home-dir)
-    (should (equal (concat home-dir "foo/bar")
-                   (abbreviate-file-name (concat home-dir "foo/bar"))))
+    (should (equal (abbreviate-file-name (concat home-dir "foo/bar"))
+		   (concat home-dir-nohop "foo/bar")))
     (tramp-flush-connection-property tramp-test-vec "home-directory")))
 
 (ert-deftest tramp-test07-file-exists-p ()

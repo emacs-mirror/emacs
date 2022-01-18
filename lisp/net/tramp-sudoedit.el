@@ -572,8 +572,7 @@ the result will be a local, non-Tramp, file name."
 	   (when (file-remote-p result)
 	     (setq result (tramp-compat-file-name-quote result 'top)))
 	   (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	   result))
-       'nohop)))))
+	   result)))))))
 
 (defun tramp-sudoedit-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."

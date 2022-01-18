@@ -255,7 +255,7 @@ arguments to pass to the OPERATION."
 	    (setq input (tramp-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput (tramp-make-tramp-file-name v input 'nohop))
+		tmpinput (tramp-make-tramp-file-name v input))
 	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
 

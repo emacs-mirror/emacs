@@ -776,7 +776,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-adb-get-signal-strings (vec)
   "Strings to return by `process-file' in case of signals."
   (with-tramp-connection-property vec "signal-strings"
-    (let ((default-directory (tramp-make-tramp-file-name vec 'localname))
+    (let ((default-directory (tramp-make-tramp-file-name vec 'noloc))
 	  ;; `shell-file-name' and `shell-command-switch' are needed
 	  ;; for Emacs < 27.1, which doesn't support connection-local
 	  ;; variables in `shell-command'.
