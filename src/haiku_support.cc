@@ -1862,7 +1862,7 @@ BWindow_retitle (void *window, const char *title)
 void
 BWindow_resize (void *window, int width, int height)
 {
-  ((BWindow *) window)->ResizeTo (width - 1, height - 1);
+  ((BWindow *) window)->ResizeTo (width, height);
 }
 
 /* Activate WINDOW, making it the subject of keyboard focus and
@@ -1998,8 +1998,6 @@ BView_move_frame (void *view, int x, int y, int x1, int y1)
     gui_abort ("Failed to lock view moving frame");
   vw->MoveTo (x, y);
   vw->ResizeTo (x1 - x, y1 - y);
-  vw->Flush ();
-  vw->Sync ();
   vw->UnlockLooper ();
 }
 
@@ -2248,7 +2246,6 @@ BWindow_set_avoid_focus (void *window, int avoid_focus_p)
     w->SetFlags (w->Flags () & ~B_AVOID_FOCUS);
   else
     w->SetFlags (w->Flags () | B_AVOID_FOCUS);
-  w->Sync ();
   w->UnlockLooper ();
 }
 

@@ -283,7 +283,7 @@ haiku_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   else
     FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
-  if (FRAME_HAIKU_WINDOW (f))
+  if (FRAME_HAIKU_WINDOW (f) && !FRAME_TOOLTIP_P (f))
     {
       adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 			 FRAME_LINES (f) * FRAME_LINE_HEIGHT (f),
@@ -2639,15 +2639,34 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_resize_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
 
-	    if (!f || FRAME_TOOLTIP_P (f))
+	    if (!f)
 	      continue;
 
 	    int width = lrint (b->px_widthf);
 	    int height = lrint (b->px_heightf);
 
+	    if (FRAME_TOOLTIP_P (f))
+	      {
+		if (FRAME_PIXEL_WIDTH (f) != width
+		    || FRAME_PIXEL_HEIGHT (f) != height)
+		  {
+		    SET_FRAME_GARBAGED (f);
+		    BView_draw_lock (FRAME_HAIKU_VIEW (f));
+		    BView_resize_to (FRAME_HAIKU_VIEW (f), width, height);
+		    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
+		  }
+
+		FRAME_PIXEL_WIDTH (f) = width;
+		FRAME_PIXEL_HEIGHT (f) = height;
+
+		haiku_clear_under_internal_border (f);
+		continue;
+	      }
+
 	    BView_draw_lock (FRAME_HAIKU_VIEW (f));
 	    BView_resize_to (FRAME_HAIKU_VIEW (f), width, height);
 	    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
+
 	    if (width != FRAME_PIXEL_WIDTH (f)
 		|| height != FRAME_PIXEL_HEIGHT (f)
 		|| (f->new_size_p
@@ -3551,7 +3570,10 @@ put_xrm_resource (Lisp_Object name, Lisp_Object val)
 void
 haiku_clear_under_internal_border (struct frame *f)
 {
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0
+      /* This is needed because tooltip frames set up the internal
+	 border before init_frame_faces.  */
+      && FRAME_FACE_CACHE (f))
     {
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
