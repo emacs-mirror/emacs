@@ -1929,7 +1929,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   if (NILP (frame))
     frame = selected_frame;
-  check_window_system (frame);
+  decode_window_system_frame (frame);
 
   if (NILP (timeout))
     timeout = make_fixnum (5);
