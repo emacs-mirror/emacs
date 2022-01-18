@@ -765,7 +765,6 @@
                     old-uyghur
 		    makasar
                     dives-akuru
-		    cuneiform-numbers-and-punctuation
 		    cuneiform
 		    egyptian
                     tangsa
