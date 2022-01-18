@@ -340,7 +340,7 @@ put the output in."
    (t
     (let ((doc-string-elt (function-get (car-safe form) 'doc-string-elt))
 	  (outbuf autoload-print-form-outbuf))
-      (if (and doc-string-elt (stringp (nth doc-string-elt form)))
+      (if (and (numberp doc-string-elt) (stringp (nth doc-string-elt form)))
 	  ;; We need to hack the printing because the
 	  ;; doc-string must be printed specially for
 	  ;; make-docfile (sigh).
@@ -410,7 +410,7 @@ FILE's name."
 	    ";; version-control: never\n"
             ";; no-byte-compile: t\n" ;; #$ is byte-compiled into nil.
 	    ";; no-update-autoloads: t\n"
-	    ";; coding: utf-8\n"
+	    ";; coding: utf-8-emacs-unix\n"
 	    ";; End:\n"
 	    ";;; " basename
 	    " ends here\n")))
