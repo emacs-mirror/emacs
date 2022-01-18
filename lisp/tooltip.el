@@ -378,8 +378,8 @@ MSG is either a help string to display, or nil to cancel the display."
   (if (and (display-graphic-p)
            ;; On Haiku, system tooltips can't be displayed above
            ;; menus.
-           (or (not (and haiku-use-system-tooltips
-                         (eq window-system 'haiku)))
+           (or (not (and (eq window-system 'haiku)
+                         haiku-use-system-tooltips))
                (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
