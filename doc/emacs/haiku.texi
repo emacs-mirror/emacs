@@ -92,9 +92,9 @@ not be able to display text properties or faces.  If you need those
 features, customize the variable @code{haiku-use-system-tooltips} to
 the nil value, and Emacs will use its own implementation of tooltips.
 
-  Both system tooltips and Emacs's own tooltips cannot display above
-the menu bar, so help text in the menu bar will display in the echo
-area instead.
+  System tooltips cannot display above the menu bar, so help text
+in the menu bar will display in the echo area instead when they are
+enabled.
 
 @cindex X resources on Haiku
   Unlike the X window system, Haiku does not have a system-wide

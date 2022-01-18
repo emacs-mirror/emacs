@@ -2639,7 +2639,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_resize_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
 
-	    if (!f)
+	    if (!f || FRAME_TOOLTIP_P (f))
 	      continue;
 
 	    int width = lrint (b->px_widthf);

@@ -1320,7 +1320,6 @@ public:
     if (!offscreen_draw_view)
       gui_abort ("Failed to lock offscreen view during buffer flip");
 
-    offscreen_draw_view->Flush ();
     offscreen_draw_view->Sync ();
 
     EmacsWindow *w = (EmacsWindow *) Window ();
