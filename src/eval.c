@@ -3105,10 +3105,7 @@ fetch_and_exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   if (CONSP (AREF (fun, COMPILED_BYTECODE)))
     Ffetch_bytecode (fun);
 
-  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-			 AREF (fun, COMPILED_CONSTANTS),
-			 AREF (fun, COMPILED_STACK_DEPTH),
-			 args_template, nargs, args);
+  return exec_byte_code (fun, args_template, nargs, args);
 }
 
 static Lisp_Object

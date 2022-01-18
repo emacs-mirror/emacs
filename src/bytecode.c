@@ -324,9 +324,8 @@ If the third argument is incorrect, Emacs may crash.  */)
 	 the original unibyte form.  */
       bytestr = Fstring_as_unibyte (bytestr);
     }
-  pin_string (bytestr);  // Bytecode must be immovable.
-
-  return exec_byte_code (bytestr, vector, maxdepth, 0, 0, NULL);
+  Lisp_Object args[] = {0, bytestr, vector, maxdepth};
+  return exec_byte_code (Fmake_byte_code (4, args), 0, 0, NULL);
 }
 
 static void
@@ -335,24 +334,26 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
-/* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
-   MAXDEPTH is the maximum stack depth used (if MAXDEPTH is incorrect,
-   emacs may crash!).  ARGS_TEMPLATE is the function arity encoded as an
-   integer, and ARGS, of size NARGS, should be a vector of the actual
-   arguments.  The arguments in ARGS are pushed on the stack according
-   to ARGS_TEMPLATE before executing BYTESTR.  */
+/* Execute the byte-code in FUN.  ARGS_TEMPLATE is the function arity
+   encoded as an integer (the one in FUN is ignored), and ARGS, of
+   size NARGS, should be a vector of the actual arguments.  The
+   arguments in ARGS are pushed on the stack according to
+   ARGS_TEMPLATE before executing FUN.  */
 
 Lisp_Object
-exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
-		ptrdiff_t args_template, ptrdiff_t nargs, Lisp_Object *args)
+exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
+		ptrdiff_t nargs, Lisp_Object *args)
 {
 #ifdef BYTE_CODE_METER
   int volatile this_op = 0;
 #endif
 
+  Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
+
   eassert (!STRING_MULTIBYTE (bytestr));
   eassert (string_immovable_p (bytestr));
-
+  Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
+  Lisp_Object maxdepth = AREF (fun, COMPILED_STACK_DEPTH);
   ptrdiff_t const_length = ASIZE (vector);
   ptrdiff_t bytestr_length = SCHARS (bytestr);
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
@@ -657,10 +658,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 		// No autoloads.
 		&& (bytecode = AREF (fun, COMPILED_BYTECODE),
 		    !CONSP (bytecode)))
-	      val = exec_byte_code (bytecode,
-				    AREF (fun, COMPILED_CONSTANTS),
-				    AREF (fun, COMPILED_STACK_DEPTH),
-				    XFIXNUM (template), numargs, args);
+	      val = exec_byte_code (fun, XFIXNUM (template), numargs, args);
 	    else if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
 	      val = funcall_subr (XSUBR (fun), numargs, args);
 	    else
