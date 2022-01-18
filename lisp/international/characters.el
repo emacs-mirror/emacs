@@ -1526,8 +1526,11 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 
 ;; We can't use the \N{name} things here, because this file is used
 ;; too early in the build process.
-(defvar glyphless--bidi-control-characters
-  '(#x202a			     ; ?\N{left-to-right embedding}
+(defvar bidi-control-characters
+  '(#x200e                           ; ?\N{left-to-right mark}
+    #x200f                           ; ?\N{right-to-left mark}
+    #x061c                           ; ?\N{arabic letter mark}
+    #x202a			     ; ?\N{left-to-right embedding}
     #x202b			     ; ?\N{right-to-left embedding}
     #x202d			     ; ?\N{left-to-right override}
     #x202e			     ; ?\N{right-to-left override}
@@ -1535,7 +1538,8 @@ Setup `char-width-table' appropriate for non-CJK language environment."
     #x2067			     ; ?\N{right-to-left isolate}
     #x2068			     ; ?\N{first strong isolate}
     #x202c			     ; ?\N{pop directional formatting}
-    #x2069))                         ; ?\N{pop directional isolate})
+    #x2069)                          ; ?\N{pop directional isolate}
+  "List of bidirectional control characters.")
 
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
@@ -1582,8 +1586,7 @@ option `glyphless-char-display'."
                                   (or (aref char-acronym-table from)
                                       "UNK")))
                           (when (or (eq target 'format-control)
-                                    (memq from
-                                          glyphless--bidi-control-characters))
+                                    (memq from bidi-control-characters))
                             (set-char-table-range glyphless-char-display
                                                   from this-method)))
                         (setq from (1+ from))))))

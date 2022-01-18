@@ -28,6 +28,7 @@
 (require 'ucs-normalize)
 (require 'idna-mapping)
 (require 'puny)
+(require 'mail-parse)
 
 (defvar textsec--char-scripts nil)
 
@@ -225,6 +226,9 @@ STRING isn't a single script string."
        (textsec-single-script-p string2)))
 
 (defun textsec-domain-suspicious-p (domain)
+  "Say whether DOMAIN looks suspicious.
+If it isn't, nil is returned.  If it is, a string explaining the
+problem is returned."
   (catch 'found
     (seq-do
      (lambda (char)
@@ -235,6 +239,79 @@ STRING isn't a single script string."
     (unless (puny-highly-restrictive-domain-p domain)
       (throw 'found "%s is not highly restrictive"))
     nil))
+
+(defun textsec-local-address-suspicious-p (local)
+  "Say whether LOCAL looks suspicious.
+LOCAL is the bit before \"@\" in an email address.
+
+If it suspicious, nil is returned.  If it is, a string explaining
+the problem is returned."
+  (cond
+   ((not (equal local (ucs-normalize-NFKC-string local)))
+    (format "`%s' is not in normalized format `%s'"
+            local (ucs-normalize-NFKC-string local)))
+   ((textsec-mixed-numbers-p local)
+    (format "`%s' contains numbers from different number systems" local))
+   ((eq (textsec-restriction-level local) 'unrestricted)
+    (format "`%s' isn't restrictive enough" local))
+   ((string-match-p "\\`\\.\\|\\.\\'\\|\\.\\." local)
+    (format "`%s' contains invalid dots" local))))
+
+(defun textsec-name-suspicious-p (name)
+  "Say whether NAME looks suspicious.
+NAME is (for instance) the free-text name from an email address.
+
+If it suspicious, nil is returned.  If it is, a string explaining
+the problem is returned."
+  (cond
+   ((not (equal name (ucs-normalize-NFC-string name)))
+    (format "`%s' is not in normalized format `%s'"
+            name (ucs-normalize-NFC-string name)))
+   ((seq-find (lambda (char)
+                (and (member char bidi-control-characters)
+                     (not (member char
+                                  '( ?\N{left-to-right mark}
+                                     ?\N{right-to-left mark}
+                                     ?\N{arabic letter mark})))))
+              name)
+    (format "The string contains bidirectional control characters"))
+   ((textsec-suspicious-nonspacing-p name))))
+
+(defun textsec-suspicious-nonspacing-p (string)
+  "Say whether STRING has a suspicious use of nonspacing characters.
+If it suspicious, nil is returned.  If it is, a string explaining
+the problem is returned."
+  (let ((prev nil)
+        (nonspace-count 0))
+    (catch 'found
+      (seq-do
+       (lambda (char)
+         (let ((nonspacing
+                (memq (get-char-code-property char 'general-category)
+                      '(Cf Cc Mn))))
+           (when (and nonspacing
+                      (equal char prev))
+             (throw 'found "Two identical nonspacing characters in a row"))
+           (setq nonspace-count (if nonspacing
+                                    (1+ nonspace-count)
+                                  0))
+           (when (> nonspace-count 4)
+             (throw 'found
+                    "Excessive number of nonspacing characters in a row"))
+           (setq prev char)))
+       string)
+      nil)))
+
+(defun textsec-email-suspicious-p (email)
+  "Say whether EMAIL looks suspicious.
+If it isn't, nil is returned.  If it is, a string explaining the
+problem is returned."
+  (pcase-let* ((`(,address . ,name) (mail-header-parse-address email t))
+               (`(,local ,domain) (split-string address "@")))
+    (or
+     (textsec-domain-suspicious-p domain)
+     (textsec-local-address-suspicious-p local)
+     (textsec-name-suspicious-p name))))
 
 (provide 'textsec)
 
