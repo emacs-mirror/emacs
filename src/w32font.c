@@ -2385,7 +2385,6 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (108, Qkharoshthi);
   SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
-  SUBRANGE (111, Qcuneiform_numbers_and_punctuation);
   SUBRANGE (111, Qcounting_rod_numeral);
   SUBRANGE (112, Qsundanese);
   SUBRANGE (113, Qlepcha);
@@ -2828,8 +2827,6 @@ syms_of_w32font (void)
   DEFSYM (Qbuginese, "buginese");
   DEFSYM (Qbuhid, "buhid");
   DEFSYM (Qcuneiform, "cuneiform");
-  DEFSYM (Qcuneiform_numbers_and_punctuation,
-	  "cuneiform-numbers-and-punctuation");
   DEFSYM (Qcypriot, "cypriot");
   DEFSYM (Qdeseret, "deseret");
   DEFSYM (Qglagolitic, "glagolitic");
