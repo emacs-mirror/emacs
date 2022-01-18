@@ -125,7 +125,7 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
          (memq 'latin scripts)
          ;; This list comes from
          ;; https://www.unicode.org/reports/tr31/#Table_Recommended_Scripts
-         ;; (but is without latin, cyrillic and greek).
+         ;; (but without latin, cyrillic and greek).
          (seq-intersection scripts
                            '(arabic
                              armenian
@@ -162,7 +162,7 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
     'unrestricted))))
 
 (defun textsec-mixed-numbers-p (string)
-  "Return non-nil if there are numbers from different decimal systems in STRING."
+  "Return non-nil if STRING includes numbers from different decimal systems."
   (>
    (length
     (seq-uniq
@@ -178,7 +178,7 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
    1))
 
 (defun textsec-ascii-confusable-p (string)
-  "Return non-nil if STRING isn't ASCII, but is confusable with ASCII."
+  "Return non-nil if non-ASCII STRING can be confused with ASCII on display."
   (and (not (eq (textsec-restriction-level string) 'ascii-only))
        (eq (textsec-restriction-level (textsec-unconfuse-string string))
            'ascii-only)))
@@ -198,12 +198,14 @@ This algorithm is described in:
 (defun textsec-resolved-script-set (string)
   "Return the resolved script set for STRING.
 This is the minimal covering script set for STRING, but is nil is
-STRING isn't a single script string."
+STRING isn't a single script string.
+The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   (and (textsec-single-script-p string)
        (textsec-covering-scripts string)))
 
 (defun textsec-single-script-confusable-p (string1 string2)
-  "Say whether STRING1 and STRING2 are single script confusables."
+  "Say whether STRING1 and STRING2 are single-script confusables.
+The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   (and (equal (textsec-unconfuse-string string1)
               (textsec-unconfuse-string string2))
        ;; And they have to have at least one resolved script in
@@ -212,7 +214,8 @@ STRING isn't a single script string."
                          (textsec-resolved-script-set string2))))
 
 (defun textsec-mixed-script-confusable-p (string1 string2)
-  "Say whether STRING1 and STRING2 are mixed script confusables."
+  "Say whether STRING1 and STRING2 are mixed-script confusables.
+The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   (and (equal (textsec-unconfuse-string string1)
               (textsec-unconfuse-string string2))
        ;; And they have no resolved scripts in common.
@@ -220,15 +223,18 @@ STRING isn't a single script string."
                                (textsec-resolved-script-set string2)))))
 
 (defun textsec-whole-script-confusable-p (string1 string2)
-  "Say whether STRING1 and STRING2 are whole script confusables."
+  "Say whether STRING1 and STRING2 are whole-script confusables.
+The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   (and (textsec-mixed-script-confusable-p string1 string2)
        (textsec-single-script-p string1)
        (textsec-single-script-p string2)))
 
 (defun textsec-domain-suspicious-p (domain)
-  "Say whether DOMAIN looks suspicious.
-If it isn't, nil is returned.  If it is, a string explaining the
-problem is returned."
+  "Say whether DOMAIN's name looks suspicious.
+Return nil if it isn't suspicious.  If it is, return a string explaining
+the potential problem.
+Domain names are considered suspicious if they use characters that
+can look on display as other characters."
   (catch 'found
     (seq-do
      (lambda (char)
@@ -241,11 +247,13 @@ problem is returned."
     nil))
 
 (defun textsec-local-address-suspicious-p (local)
-  "Say whether LOCAL looks suspicious.
+  "Say whether LOCAL part of an email address looks suspicious.
 LOCAL is the bit before \"@\" in an email address.
 
-If it suspicious, nil is returned.  If it is, a string explaining
-the problem is returned."
+If it isn't suspicious, return nil.  If it is, return a string explaining
+the potential problem.
+Email addresses are considered suspicious if they use characters that
+can look on display as other characters."
   (cond
    ((not (equal local (ucs-normalize-NFKC-string local)))
     (format "`%s' is not in normalized format `%s'"
@@ -259,10 +267,12 @@ the problem is returned."
 
 (defun textsec-name-suspicious-p (name)
   "Say whether NAME looks suspicious.
-NAME is (for instance) the free-text name from an email address.
+NAME is (for instance) the free-text name part of an email address.
 
-If it suspicious, nil is returned.  If it is, a string explaining
-the problem is returned."
+If it isn't suspicious, return nil.  If it is, return a string explaining
+the potential problem.
+Names are considered suspicious if they use characters that
+can look on display as other characters."
   (cond
    ((not (equal name (ucs-normalize-NFC-string name)))
     (format "`%s' is not in normalized format `%s'"
@@ -278,9 +288,12 @@ the problem is returned."
    ((textsec-suspicious-nonspacing-p name))))
 
 (defun textsec-suspicious-nonspacing-p (string)
-  "Say whether STRING has a suspicious use of nonspacing characters.
-If it suspicious, nil is returned.  If it is, a string explaining
-the problem is returned."
+  "Say whether STRING uses nonspacing characters in suspicious ways.
+If it doesn't, return nil.  If it does, return a string explaining
+the potential problem.
+Use of nonspacing characters is considered suspeicious if there are
+two or more consecutive identical nonspacing characters, or too many
+consecutive nonspacing characters."
   (let ((prev nil)
         (nonspace-count 0))
     (catch 'found
@@ -303,9 +316,13 @@ the problem is returned."
       nil)))
 
 (defun textsec-email-suspicious-p (email)
-  "Say whether EMAIL looks suspicious.
-If it isn't, nil is returned.  If it is, a string explaining the
-problem is returned."
+  "Say whether EMAIL address looks suspicious.
+If it isn't, return nil.  If it is, return a string explaining the
+potential problem.
+An email address is considered suspicious if either of its 3 parts:
+domain, local, or name -- are found to be suspicious by, respectively,
+`textsec-domain-suspicious-p', `textsec-local-address-suspicious-p',
+and `textsec-name-suspicious-p'."
   (pcase-let* ((`(,address . ,name) (mail-header-parse-address email t))
                (`(,local ,domain) (split-string address "@")))
     (or
