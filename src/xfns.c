@@ -7152,6 +7152,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     unblock_input ();
 #else
     uint32_t value_list[4];
+    xcb_atom_t net_wm_window_type_tooltip
+      = (xcb_atom_t) dpyinfo->Xatom_net_window_type_tooltip;
+
     f->output_data.x->current_cursor = f->output_data.x->text_cursor;
     /* Values are set in the order of their enumeration in `enum
        xcb_cw_t'.  */
@@ -7183,7 +7186,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 			 (xcb_window_t) tip_window,
 			 (xcb_atom_t) dpyinfo->Xatom_net_window_type,
 			 (xcb_atom_t) dpyinfo->Xatom_ATOM,
-			 32, 1, &dpyinfo->Xatom_net_window_type_tooltip);
+			 32, 1, &net_wm_window_type_tooltip);
 
     initial_set_up_x_back_buffer (f);
     unblock_input ();
