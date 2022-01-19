@@ -246,7 +246,7 @@ or use certain other unusual mixtures of characters."
                                (string char) char))))
      domain)
     (unless (puny-highly-restrictive-domain-p domain)
-      (throw 'found "%s is not highly restrictive"))
+      (throw 'found (format "%s is not highly-restrictive" domain)))
     nil))
 
 (defun textsec-local-address-suspicious-p (local)
