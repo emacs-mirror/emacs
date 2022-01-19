@@ -40,6 +40,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef USE_XCB
+#include <xcb/xcb.h>
+#include <xcb/xproto.h>
+#include <xcb/xcb_aux.h>
+#endif
+
 #include "bitmaps/gray.xbm"
 #include "xsettings.h"
 
@@ -6482,7 +6488,11 @@ void
 x_sync (struct frame *f)
 {
   block_input ();
+#ifndef USE_XCB
   XSync (FRAME_X_DISPLAY (f), False);
+#else
+  xcb_aux_sync (FRAME_DISPLAY_INFO (f)->xcb_connection);
+#endif
   unblock_input ();
 }
 
@@ -7103,6 +7113,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   gui_figure_window_size (f, parms, false, false);
 
   {
+#ifndef USE_XCB
     XSetWindowAttributes attrs;
     unsigned long mask;
     Atom type = FRAME_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
@@ -7139,6 +7150,44 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
                      XA_ATOM, 32, PropModeReplace,
                      (unsigned char *)&type, 1);
     unblock_input ();
+#else
+    uint32_t value_list[4];
+    f->output_data.x->current_cursor = f->output_data.x->text_cursor;
+    /* Values are set in the order of their enumeration in `enum
+       xcb_cw_t'.  */
+    value_list[0] = FRAME_BACKGROUND_PIXEL (f);
+    value_list[1] = true;
+    value_list[2] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+    value_list[3] = (xcb_cursor_t) f->output_data.x->text_cursor;
+
+    block_input ();
+    tip_window
+      = FRAME_X_WINDOW (f)
+      = (Window) xcb_generate_id (dpyinfo->xcb_connection);
+
+    xcb_create_window (dpyinfo->xcb_connection,
+		       XCB_COPY_FROM_PARENT,
+		       (xcb_window_t) tip_window,
+		       (xcb_window_t) dpyinfo->root_window,
+		       0, 0, 1, 1, f->border_width,
+		       XCB_WINDOW_CLASS_INPUT_OUTPUT,
+		       XCB_COPY_FROM_PARENT,
+		       (XCB_CW_BACK_PIXEL
+			| XCB_CW_OVERRIDE_REDIRECT
+			| XCB_CW_EVENT_MASK
+			| XCB_CW_CURSOR),
+		       &value_list);
+
+    xcb_change_property (dpyinfo->xcb_connection,
+			 XCB_PROP_MODE_REPLACE,
+			 (xcb_window_t) tip_window,
+			 (xcb_atom_t) dpyinfo->Xatom_net_window_type,
+			 (xcb_atom_t) dpyinfo->Xatom_ATOM,
+			 32, 1, &dpyinfo->Xatom_net_window_type_tooltip);
+
+    initial_set_up_x_back_buffer (f);
+    unblock_input ();
+#endif
   }
 
   x_make_gc (f);
@@ -7761,9 +7810,23 @@ Text larger than the specified size is clipped.  */)
 
   /* Show tooltip frame.  */
   block_input ();
+#ifndef USE_XCB
   XMoveResizeWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),
 		     root_x, root_y, width, height);
   XMapRaised (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f));
+#else
+  uint32_t values[] = { root_x, root_y, width, height, XCB_STACK_MODE_ABOVE };
+
+  xcb_configure_window (FRAME_DISPLAY_INFO (tip_f)->xcb_connection,
+			(xcb_window_t) FRAME_X_WINDOW (tip_f),
+			(XCB_CONFIG_WINDOW_X
+			 | XCB_CONFIG_WINDOW_Y
+			 | XCB_CONFIG_WINDOW_WIDTH
+			 | XCB_CONFIG_WINDOW_HEIGHT
+			 | XCB_CONFIG_WINDOW_STACK_MODE), &values);
+  xcb_map_window (FRAME_DISPLAY_INFO (tip_f)->xcb_connection,
+		  (xcb_window_t) FRAME_X_WINDOW (tip_f));
+#endif
   unblock_input ();
 
 #ifdef USE_CAIRO
