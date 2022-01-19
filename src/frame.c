@@ -6472,6 +6472,14 @@ This variable is effective only with the X toolkit (and there only when
 Gtk+ tooltips are not used) and on Windows.  */);
   tooltip_reuse_hidden_frame = false;
 
+  DEFVAR_BOOL ("use-system-tooltips", use_system_tooltips,
+	       doc: /* Use the toolkit to display tooltips.
+This option is only meaningful when Emacs is built with GTK+ or Haiku
+windowing support, and results in tooltips that look like those
+displayed by other GTK+ or Haiku programs, but will not be able to
+display text properties inside tooltip text.  */);
+  use_system_tooltips = true;
+
   DEFVAR_LISP ("iconify-child-frame", iconify_child_frame,
 	       doc: /* How to handle iconification of child frames.
 This variable tells Emacs how to proceed when it is asked to iconify a

@@ -154,6 +154,11 @@ methods.
 This controls whether or not GTK input methods are used by Emacs,
 instead of XIM input methods.
 
++++
+** New user option 'use-system-tooltips'.
+This controls whether or not to use the toolkit Emacs was built with
+to display tooltips, if supported.
+
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
 When enabled, and if your mouse supports it, you can scroll the

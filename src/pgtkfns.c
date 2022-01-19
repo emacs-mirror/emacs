@@ -3128,7 +3128,7 @@ x_hide_tip (bool delete)
      value of x_gtk_use_system_tooltips might not be the same as used
      for the tooltip we have to hide, see Bug#30399.  */
   if ((NILP (tip_last_frame) && NILP (tip_frame))
-      || (!x_gtk_use_system_tooltips
+      || (!use_system_tooltips
 	  && !delete
 	  && FRAMEP (tip_frame)
 	  && FRAME_LIVE_P (XFRAME (tip_frame))
@@ -3161,7 +3161,7 @@ x_hide_tip (bool delete)
       /* When using GTK+ system tooltips (compare Bug#41200) reset
 	 tip_last_frame.  It will be reassigned when showing the next
 	 GTK+ system tooltip.  */
-      if (x_gtk_use_system_tooltips)
+      if (use_system_tooltips)
 	tip_last_frame = Qnil;
 
       /* Now look whether there's an Emacs tip around.  */
@@ -3171,7 +3171,7 @@ x_hide_tip (bool delete)
 
 	  if (FRAME_LIVE_P (f))
 	    {
-	      if (delete || x_gtk_use_system_tooltips)
+	      if (delete || use_system_tooltips)
 		{
 		  /* Delete the Emacs tooltip frame when DELETE is true
 		     or we change the tooltip type from an Emacs one to
@@ -3267,7 +3267,7 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_FIXNUM (dy);
 
-  if (x_gtk_use_system_tooltips)
+  if (use_system_tooltips)
     {
       bool ok;
 
@@ -4067,12 +4067,6 @@ chooser to show or not show hidden files on a case by case basis.  */);
 If more space for files in the file chooser dialog is wanted, set this to nil
 to turn the additional text off.  */);
   x_gtk_file_dialog_help_text = true;
-
-  DEFVAR_BOOL ("x-gtk-use-system-tooltips", x_gtk_use_system_tooltips,
-	       doc: /* If non-nil with a Gtk+ built Emacs, the Gtk+ tooltip is used.
-Otherwise use Emacs own tooltip implementation.
-When using Gtk+ tooltips, the tooltip face is not used.  */);
-  x_gtk_use_system_tooltips = true;
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
     doc: /* Maximum size for tooltips.

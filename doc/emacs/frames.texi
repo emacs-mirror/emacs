@@ -1633,13 +1633,14 @@ Parameters,,, elisp, The Emacs Lisp Reference Manual}, and also
 For additional customization options for displaying tooltips, use
 @kbd{M-x customize-group @key{RET} tooltip @key{RET}}.
 
-@vindex x-gtk-use-system-tooltips
-  If Emacs is built with GTK+ support, it displays tooltips via GTK+,
-using the default appearance of GTK+ tooltips.  To disable this,
-change the variable @code{x-gtk-use-system-tooltips} to @code{nil}.
-If you do this, or if Emacs is built without GTK+ support, most
-attributes of the tooltip text are specified by the @code{tooltip}
-face, and by X resources (@pxref{X Resources}).
+@vindex use-system-tooltips
+  If Emacs is built with the GTK+ toolkit or Haiku windowing support,
+it displays tooltips via the toolkit, using the default appearance of
+the toolkit's tooltips.  To disable this, change the variable
+@code{use-system-tooltips} to @code{nil}.  If you do this, or if Emacs
+is built without GTK+ or Haiku windowing support, most attributes of
+the tooltip text are specified by the @code{tooltip} face, and by X
+resources (@pxref{X Resources}).
 
   @dfn{GUD tooltips} are special tooltips that show the values of
 variables when debugging a program with GUD@.  @xref{Debugger

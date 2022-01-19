@@ -1561,6 +1561,8 @@ EVENT is a preedit-text event."
 
 (define-key special-event-map [preedit-text] 'x-preedit-text)
 
+(defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
+
 (provide 'x-win)
 (provide 'term/x-win)
 

@@ -8438,13 +8438,14 @@ displayed in the echo area.
 @end defun
 
 @cindex system tooltips
-@vindex x-gtk-use-system-tooltips
-When Emacs is built with GTK+ support, it by default displays tooltips
-using GTK+ functions, and the appearance of the tooltips is then
-controlled by GTK+ settings.  GTK+ tooltips can be disabled by
-changing the value of the variable @code{x-gtk-use-system-tooltips} to
-@code{nil}.  The rest of this subsection describes how to control
-non-GTK+ tooltips, which are presented by Emacs itself.
+@vindex use-system-tooltips
+When Emacs is built with the GTK+ toolkit or Haiku windowing support,
+it by default displays tooltips using toolkit functions, and the
+appearance of the tooltips is then controlled by by the toolkit's
+settings.  Toolkit-provided tooltips can be disabled by changing the
+value of the variable @code{use-system-tooltips} to @code{nil}.  The
+rest of this subsection describes how to control non-toolkit tooltips,
+which are presented by Emacs itself.
 
 @cindex tooltip frames
 Tooltips are displayed in special frames called tooltip frames, which

@@ -85,15 +85,15 @@ instead.
 
 @cindex tooltips (haiku)
 @cindex haiku tooltips
-@vindex haiku-use-system-tooltips
   On Haiku, Emacs defaults to using the system tooltip mechanism.
 This usually leads to more responsive tooltips, but the tooltips will
 not be able to display text properties or faces.  If you need those
-features, customize the variable @code{haiku-use-system-tooltips} to
-the nil value, and Emacs will use its own implementation of tooltips.
+features, customize the variable @code{use-system-tooltips} to the
+@code{nil} value, and Emacs will use its own implementation of
+tooltips.
 
-  System tooltips cannot display above the menu bar, so help text
-in the menu bar will display in the echo area instead when they are
+  System tooltips cannot display above the menu bar, so help text in
+the menu bar will display in the echo area instead when they are
 enabled.
 
 @cindex X resources on Haiku

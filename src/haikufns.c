@@ -1946,7 +1946,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   else
     CHECK_FIXNUM (dy);
 
-  if (haiku_use_system_tooltips)
+  if (use_system_tooltips)
     {
       int root_x, root_y;
       CHECK_STRING (string);
@@ -2671,14 +2671,6 @@ syms_of_haikufns (void)
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
-
-  DEFVAR_BOOL ("haiku-use-system-tooltips", haiku_use_system_tooltips,
-	       doc: /* When non-nil, Emacs will display tooltips using the App Kit.
-This can avoid a great deal of consing that does not play
-well with the Haiku memory allocator, but comes with the
-disadvantage of not being able to use special display properties
-within tooltips.  */);
-  haiku_use_system_tooltips = 1;
 
 #ifdef USE_BE_CAIRO
   DEFVAR_LISP ("cairo-version-string", Vcairo_version_string,

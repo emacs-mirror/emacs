@@ -510,6 +510,8 @@ This uses `icon-map-list' to map icon file names to stock icon names."
    (t
     (popup-menu (mouse-menu-bar-map) last-nonmenu-event))))
 
+(defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
+
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)
 

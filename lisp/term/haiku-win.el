@@ -136,6 +136,8 @@ If TYPE is nil, return \"text/plain\"."
 (define-key special-event-map [drag-n-drop]
             'haiku-dnd-handle-drag-n-drop-event)
 
+(defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
+
 (provide 'haiku-win)
 (provide 'term/haiku-win)
 
