@@ -304,13 +304,13 @@ consecutive nonspacing characters."
                       '(Cf Cc Mn))))
            (when (and nonspacing
                       (equal char prev))
-             (throw 'found "Two identical nonspacing characters in a row"))
+             (throw 'found "Two identical consecutive nonspacing characters"))
            (setq nonspace-count (if nonspacing
                                     (1+ nonspace-count)
                                   0))
            (when (> nonspace-count 4)
              (throw 'found
-                    "Excessive number of nonspacing characters in a row"))
+                    "Too many consecutive nonspacing characters"))
            (setq prev char)))
        string)
       nil)))
