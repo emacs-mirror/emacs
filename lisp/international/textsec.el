@@ -372,7 +372,9 @@ and `textsec-name-suspicious-p'."
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem."
   (let ((parsed (url-generic-parse-url url)))
-    (textsec-domain-suspicious-p (url-host parsed))))
+    ;; The URL may not have a domain.
+    (and (url-host parsed)
+         (textsec-domain-suspicious-p (url-host parsed)))))
 
 (provide 'textsec)
 
