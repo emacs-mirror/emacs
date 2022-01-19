@@ -169,7 +169,8 @@ Levels are (in decreasing order of restrictiveness) `ascii-only',
     (seq-uniq
      (mapcar
       (lambda (char)
-        (get-char-code-property char 'numeric-value))
+        ;; Compare zeros in the respective decimal systems.
+        (- char (get-char-code-property char 'numeric-value)))
       (seq-filter (lambda (char)
                     ;; We're selecting the characters that
                     ;; have a numeric property.

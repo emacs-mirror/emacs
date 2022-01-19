@@ -84,6 +84,7 @@
 (ert-deftest test-mixed-numbers ()
   (should-not (textsec-mixed-numbers-p "foo"))
   (should-not (textsec-mixed-numbers-p "8foo8"))
+  (should-not (textsec-mixed-numbers-p "foo20@foo.org"))
   (should (textsec-mixed-numbers-p "8foo৪")))
 
 (ert-deftest test-resolved ()
