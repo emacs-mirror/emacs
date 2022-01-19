@@ -245,8 +245,14 @@ or use certain other unusual mixtures of characters."
          (throw 'found (format "Disallowed character: `%s' (#x%x)"
                                (string char) char))))
      domain)
+    ;; Does IDNA allow it?
     (unless (puny-highly-restrictive-domain-p domain)
-      (throw 'found (format "%s is not highly-restrictive" domain)))
+      (throw 'found (format "`%s' is not highly-restrictive" domain)))
+    ;; Check whether any segment of the domain name is confusable with
+    ;; an ASCII-only segment.
+    (dolist (elem (split-string domain "\\."))
+      (when (textsec-ascii-confusable-p elem)
+        (throw 'found (format "`%s' is confusable with ASCII" elem))))
     nil))
 
 (defun textsec-local-address-suspicious-p (local)

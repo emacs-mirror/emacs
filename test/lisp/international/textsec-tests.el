@@ -113,7 +113,10 @@
 (ert-deftest test-suspiction-domain ()
   (should (textsec-domain-suspicious-p "foo/bar.org"))
   (should-not (textsec-domain-suspicious-p "foo.org"))
-  (should (textsec-domain-suspicious-p "f\N{LEFT-TO-RIGHT ISOLATE}oo.org")))
+  (should (textsec-domain-suspicious-p "f\N{LEFT-TO-RIGHT ISOLATE}oo.org"))
+
+  (should (textsec-domain-suspicious-p "Сгсе.ru"))
+  (should-not (textsec-domain-suspicious-p "фСгсе.ru")))
 
 (ert-deftest test-suspicious-local ()
   (should-not (textsec-local-address-suspicious-p "larsi"))
