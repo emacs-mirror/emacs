@@ -1876,7 +1876,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
   int width, height;
   BScreen_px_dim (&width, &height);
 
-  return make_fixnum (height / (dpyinfo->resy / 25.4));
+  return make_fixnum (width / (dpyinfo->resx / 25.4));
 }
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
