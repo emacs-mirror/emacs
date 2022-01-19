@@ -99,6 +99,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #include <X11/cursorfont.h>
 
+#ifdef USE_XCB
+#include <xcb/xproto.h>
+#endif
+
 /* If we have Xfixes extension, use it for pointer blanking.  */
 #ifdef HAVE_XFIXES
 #include <X11/extensions/Xfixes.h>
@@ -204,6 +208,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_XKB
 #include <X11/XKBlib.h>
+#endif
+
+#if defined USE_XCB && defined USE_CAIRO_XCB
+#define USE_CAIRO_XCB_SURFACE
 #endif
 
 /* Default to using XIM if available.  */
@@ -777,11 +785,19 @@ x_begin_cr_clip (struct frame *f, GC gc)
     {
       int width = FRAME_CR_SURFACE_DESIRED_WIDTH (f);
       int height = FRAME_CR_SURFACE_DESIRED_HEIGHT (f);
-      cairo_surface_t *surface
-	= cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
-				     FRAME_X_RAW_DRAWABLE (f),
-				     FRAME_X_VISUAL (f),
-				     width, height);
+      cairo_surface_t *surface;
+#ifdef USE_CAIRO_XCB_SURFACE
+      if (FRAME_DISPLAY_INFO (f)->xcb_visual)
+	surface = cairo_xcb_surface_create (FRAME_DISPLAY_INFO (f)->xcb_connection,
+					    (xcb_drawable_t) FRAME_X_RAW_DRAWABLE (f),
+					    FRAME_DISPLAY_INFO (f)->xcb_visual,
+					    width, height);
+      else
+#endif
+	surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+					     FRAME_X_RAW_DRAWABLE (f),
+					     FRAME_X_VISUAL (f),
+					     width, height);
 
       cr = FRAME_CR_CONTEXT (f) = cairo_create (surface);
       cairo_surface_destroy (surface);
@@ -850,6 +866,9 @@ x_try_cr_xlib_drawable (struct frame *f, GC gc)
   switch (cairo_surface_get_type (surface))
     {
     case CAIRO_SURFACE_TYPE_XLIB:
+#ifdef USE_CAIRO_XCB_SURFACE
+    case CAIRO_SURFACE_TYPE_XCB:
+#endif
       cairo_surface_flush (surface);
       return true;
 
@@ -4921,6 +4940,18 @@ x_scroll_run (struct window *w, struct run *run)
 		     x, to_y);
 	  cairo_surface_mark_dirty_rectangle (surface, x, to_y, width, height);
 	}
+#ifdef USE_CAIRO_XCB_SURFACE
+      else if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_XCB)
+	{
+	  cairo_surface_flush (surface);
+	  xcb_copy_area (FRAME_DISPLAY_INFO (f)->xcb_connection,
+			 (xcb_drawable_t) FRAME_X_DRAWABLE (f),
+			 (xcb_drawable_t) FRAME_X_DRAWABLE (f),
+			 (xcb_gcontext_t) XGContextFromGC (f->output_data.x->normal_gc),
+			 x, from_y, x, to_y, width, height);
+	  cairo_surface_mark_dirty_rectangle (surface, x, to_y, width, height);
+	}
+#endif
       else
 	{
 	  cairo_surface_t *s
@@ -15256,6 +15287,40 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   int xdbe_minor;
   if (XdbeQueryExtension (dpyinfo->display, &xdbe_major, &xdbe_minor))
     dpyinfo->supports_xdbe = true;
+#endif
+
+#ifdef USE_XCB
+  xcb_screen_t *xcb_screen = NULL;
+  xcb_screen_iterator_t iter;
+  xcb_visualid_t wanted = { XVisualIDFromVisual (dpyinfo->visual) };
+  xcb_depth_iterator_t depth_iter;
+  xcb_visualtype_iterator_t visual_iter;
+
+  int screen = DefaultScreen (dpyinfo->display);
+
+  iter = xcb_setup_roots_iterator (xcb_get_setup (dpyinfo->xcb_connection));
+  for (; iter.rem; --screen, xcb_screen_next (&iter))
+    {
+      if (!screen)
+	xcb_screen = iter.data;
+    }
+
+  if (xcb_screen)
+    {
+      depth_iter = xcb_screen_allowed_depths_iterator (xcb_screen);
+      for (; depth_iter.rem; xcb_depth_next (&depth_iter))
+	{
+	  visual_iter = xcb_depth_visuals_iterator (depth_iter.data);
+	  for (; visual_iter.rem; xcb_visualtype_next (&visual_iter))
+	    {
+	      if (wanted == visual_iter.data->visual_id)
+		{
+		  dpyinfo->xcb_visual = visual_iter.data;
+		  break;
+		}
+	    }
+	}
+    }
 #endif
 
 #ifdef HAVE_XINPUT2

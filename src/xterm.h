@@ -78,6 +78,9 @@ typedef GtkWidget *xt_or_gtk_widget;
 #ifdef CAIRO_HAS_SVG_SURFACE
 #include <cairo-svg.h>
 #endif
+#ifdef USE_CAIRO_XCB
+#include <cairo-xcb.h>
+#endif
 #endif
 
 #ifdef HAVE_X_I18N
@@ -512,6 +515,7 @@ struct x_display_info
 
 #ifdef USE_XCB
   xcb_connection_t *xcb_connection;
+  xcb_visualtype_t *xcb_visual;
 #endif
 
 #ifdef HAVE_XDBE
