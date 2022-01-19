@@ -615,8 +615,8 @@ Each element is (INDEX . VALUE)")
   "Hash byte-code -> byte-to-native-lambda.")
 (defvar byte-to-native-top-level-forms nil
   "List of top level forms.")
-(defvar byte-to-native-output-file nil
-  "Temporary file containing the byte-compilation output.")
+(defvar byte-to-native-output-buffer-file nil
+  "Pair holding byte-compilation output buffer, elc filename.")
 (defvar byte-to-native-plist-environment nil
   "To spill `overriding-plist-environment'.")
 
@@ -2008,7 +2008,7 @@ If compilation is needed, this functions returns the result of
       ;; deleting target-file before writing it.
       (if byte-native-compiling
           ;; Defer elc final renaming.
-          (setf byte-to-native-output-file
+          (setf byte-to-native-output-buffer-file
                 (cons tempfile target-file))
         (rename-file tempfile target-file t)))))
 
@@ -2143,7 +2143,11 @@ See also `emacs-lisp-byte-compile-and-load'."
 		     ;; Need to expand in case TARGET-FILE doesn't
 		     ;; include a directory (Bug#45287).
 		     (expand-file-name target-file))))
-              (byte-write-target-file (current-buffer) target-file)
+              (if byte-native-compiling
+                  ;; Defer elc production.
+                  (setf byte-to-native-output-buffer-file
+                        (cons (current-buffer) target-file))
+                (byte-write-target-file (current-buffer) target-file))
 	      (or noninteractive
 		  byte-native-compiling
 		  (message "Wrote %s" target-file)))
@@ -2164,7 +2168,8 @@ See also `emacs-lisp-byte-compile-and-load'."
 				  "Cannot overwrite file"
 			        "Directory not writable or nonexistent")
 			      target-file))))))
-	  (kill-buffer (current-buffer)))
+          (unless byte-native-compiling
+	    (kill-buffer (current-buffer))))
 	(if (and byte-compile-generate-call-tree
 		 (or (eq t byte-compile-generate-call-tree)
 		     (y-or-n-p (format "Report call tree for %s? "

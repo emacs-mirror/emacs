@@ -4212,11 +4212,13 @@ variable 'NATIVE_DISABLED' is set, only byte compile."
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
     (let ((byte+native-compile t)
-          (byte-to-native-output-file nil))
+          (byte-to-native-output-buffer-file nil))
       (batch-native-compile)
-      (pcase byte-to-native-output-file
-        (`(,tempfile . ,target-file)
-         (rename-file tempfile target-file t)))
+      (pcase byte-to-native-output-buffer-file
+        (`(,temp-buffer . ,target-file)
+         (unwind-protect
+             (byte-write-target-file temp-buffer target-file))
+         (kill-buffer temp-buffer)))
       (setq command-line-args-left (cdr command-line-args-left)))))
 
 ;;;###autoload
