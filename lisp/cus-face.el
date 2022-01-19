@@ -46,7 +46,7 @@
 ;;; Face attributes.
 
 (defconst custom-face-attributes
-  '((:family
+  `((:family
      (string :tag "Font Family"
 	     :help-echo "Font family or fontset alias name."))
 
@@ -148,29 +148,29 @@
                            (const :tag "At Bottom Of Text" t)
                            (integer :tag "Pixels Above Bottom Of Text"))))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (and real-value
-	    (let ((color
-		   (or (and (consp real-value) (plist-get real-value :color))
-		       (and (stringp real-value) real-value)
-		       'foreground-color))
-		  (style
-		   (or (and (consp real-value) (plist-get real-value :style))
-		       'line))
-                  (position (and (consp real-value)
-                                 (plist-get real-value :style))))
-	      (list :color color :style style :position position))))
+     ,(lambda (real-value)
+	(and real-value
+	     (let ((color
+		    (or (and (consp real-value) (plist-get real-value :color))
+		        (and (stringp real-value) real-value)
+		        'foreground-color))
+		   (style
+		    (or (and (consp real-value) (plist-get real-value :style))
+		        'line))
+                   (position (and (consp real-value)
+                                  (plist-get real-value :style))))
+	       (list :color color :style style :position position))))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (and cus-value
-	    (let ((color (plist-get cus-value :color))
-		  (style (plist-get cus-value :style))
-                  (position (plist-get cus-value :position)))
-	      (cond ((and (eq style 'line) (not position))
-		     ;; Use simple value for default style
-		     (if (eq color 'foreground-color) t color))
-		    (t
-		     `(:color ,color :style ,style :position ,position)))))))
+     ,(lambda (cus-value)
+	(and cus-value
+	     (let ((color (plist-get cus-value :color))
+		   (style (plist-get cus-value :style))
+                   (position (plist-get cus-value :position)))
+	       (cond ((and (eq style 'line) (not position))
+		      ;; Use simple value for default style
+		      (if (eq color 'foreground-color) t color))
+		     (t
+		      `(:color ,color :style ,style :position ,position)))))))
 
     (:overline
      (choice :tag "Overline"
@@ -206,40 +206,40 @@
 			   (const :tag "Flat"   flat-button)
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (and real-value
-	    (let ((lwidth
-		   (or (and (consp real-value)
-                            (if (listp (cdr real-value))
-                                (plist-get real-value :line-width)
-                              real-value))
-		       (and (integerp real-value) real-value)
-                       '(1 . 1)))
-		  (color
-		   (or (and (consp real-value) (plist-get real-value :color))
-		       (and (stringp real-value) real-value)
-		       nil))
-		  (style
-		   (and (consp real-value) (plist-get real-value :style))))
-              (if (integerp lwidth)
-                  (setq lwidth (cons (abs lwidth) lwidth)))
-	      (list :line-width lwidth :color color :style style))))
+     ,(lambda (real-value)
+	(and real-value
+	     (let ((lwidth
+		    (or (and (consp real-value)
+                             (if (listp (cdr real-value))
+                                 (plist-get real-value :line-width)
+                               real-value))
+		        (and (integerp real-value) real-value)
+		        '(1 . 1)))
+		   (color
+		    (or (and (consp real-value) (plist-get real-value :color))
+		        (and (stringp real-value) real-value)
+		        nil))
+		   (style
+		    (and (consp real-value) (plist-get real-value :style))))
+               (if (integerp lwidth)
+                   (setq lwidth (cons (abs lwidth) lwidth)))
+	       (list :line-width lwidth :color color :style style))))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (and cus-value
-	    (let ((lwidth (plist-get cus-value :line-width))
-		  (color (plist-get cus-value :color))
-		  (style (plist-get cus-value :style)))
-	      (cond ((and (null color) (null style))
-		     lwidth)
-		    ((and (null lwidth) (null style))
-		     ;; actually can't happen, because LWIDTH is always an int
-		     color)
-		    (t
-		     ;; Keep as a plist, but remove null entries
-		     (nconc (and lwidth `(:line-width ,lwidth))
-			    (and color  `(:color ,color))
-			    (and style  `(:style ,style)))))))))
+     ,(lambda (cus-value)
+	(and cus-value
+	     (let ((lwidth (plist-get cus-value :line-width))
+		   (color (plist-get cus-value :color))
+		   (style (plist-get cus-value :style)))
+	       (cond ((and (null color) (null style))
+		      lwidth)
+		     ((and (null lwidth) (null style))
+		      ;; actually can't happen, because LWIDTH is always an int
+		      color)
+		     (t
+		      ;; Keep as a plist, but remove null entries
+		      (nconc (and lwidth `(:line-width ,lwidth))
+			     (and color  `(:color ,color))
+			     (and style  `(:style ,style)))))))))
 
     (:inverse-video
      (choice :tag "Inverse-video"
@@ -276,18 +276,18 @@
 	     :help-echo "List of faces to inherit attributes from."
 	     (face :Tag "Face" default))
      ;; filter to make value suitable for customize
-     (lambda (real-value)
-       (cond ((or (null real-value) (eq real-value 'unspecified))
-	      nil)
-	     ((symbolp real-value)
-	      (list real-value))
-	     (t
-	      real-value)))
+     ,(lambda (real-value)
+	(cond ((or (null real-value) (eq real-value 'unspecified))
+	       nil)
+	      ((symbolp real-value)
+	       (list real-value))
+	      (t
+	       real-value)))
      ;; filter to make customized-value suitable for storing
-     (lambda (cus-value)
-       (if (and (consp cus-value) (null (cdr cus-value)))
-	   (car cus-value)
-	 cus-value))))
+     ,(lambda (cus-value)
+	(if (and (consp cus-value) (null (cdr cus-value)))
+	    (car cus-value)
+	  cus-value))))
 
   "Alist of face attributes.
 
@@ -329,12 +329,12 @@ If FRAME is nil, use the global defaults for FACE."
   "Apply a list of face specs for user customizations.
 This works by calling `custom-theme-set-faces' for the `user'
 theme, a special theme referring to settings made via Customize.
-The arguments should be a list where each entry has the form:
+The arguments ARGS should be a list where each entry has the form:
 
   (FACE SPEC [NOW [COMMENT]])
 
 See the documentation of `custom-theme-set-faces' for details."
-  (apply 'custom-theme-set-faces 'user args))
+  (apply #'custom-theme-set-faces 'user args))
 
 (defun custom-theme-set-faces (theme &rest args)
   "Apply a list of face specs associated with theme THEME.
@@ -419,7 +419,7 @@ Each of the arguments ARGS has this form:
     (FACE FROM-THEME)
 
 This means reset FACE to its value in FROM-THEME."
-  (apply 'custom-theme-reset-faces 'user args))
+  (apply #'custom-theme-reset-faces 'user args))
 
 (define-obsolete-function-alias 'custom-facep #'facep "28.1")
 
