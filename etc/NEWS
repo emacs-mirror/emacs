@@ -156,8 +156,12 @@ instead of XIM input methods.
 
 +++
 ** New user option 'use-system-tooltips'.
-This controls whether or not to use the toolkit Emacs was built with
-to display tooltips, if supported.
+This controls whether to use the toolkit tooltips, or Emacs's own
+native implementation of tooltips as small frames.  This option is
+only meaningful if Emacs was built with GTK+ or Haiku support, and
+defaults to t, which makes Emacs use the toolkit tooltips.  The
+existing GTK-specific option 'x-gtk-use-system-tooltips' is now an
+alias of this new option.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
