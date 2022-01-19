@@ -41,26 +41,37 @@ If nil, these checks are disabled."
 ;;;###autoload
 (defun textsec-check (string type)
   "Test whether STRING is suspicious when considered as TYPE.
-If STRING is suspicious, text properties will be added to the
-string to mark it as suspicious, and with tooltip texts that says
-what's suspicious about it.
+If STRING is suspicious, a string explaining the possible problem
+is returned.
 
-Available types include `domain', `local-address', `name',
+Available types include `url', `domain', `local-address', `name',
 `email-address', and `email-address-headers'.
 
-If the `textsec-check' user option is nil, these checks are disabled."
+If the `textsec-check' user option is nil, these checks are
+disabled, and this function always returns nil."
   (if (not textsec-check)
-      string
+      nil
     (require 'textsec)
     (let ((func (intern (format "textsec-%s-suspicious-p" type))))
       (unless (fboundp func)
         (error "%s is not a valid function" func))
-      (let ((warning (funcall func string)))
-        (if (not warning)
-            string
-          (propertize string
-                      'face 'textsec-suspicious
-                      'help-echo warning))))))
+      (funcall func string))))
+
+;;;###autoload
+(defun textsec-propertize (string type)
+  "Test whether STRING is suspicious when considered as TYPE.
+If STRING is suspicious, text properties will be added to the
+string to mark it as suspicious, and with tooltip texts that says
+what's suspicious about it.  Otherwise STRING is returned
+verbatim.
+
+See `texsec-check' for further information about TYPE."
+  (let ((warning (textsec-check string type)))
+    (if (not wardning)
+        string
+      (propertize string
+                  'face 'textsec-suspicious
+                  'help-echo warning))))
 
 (provide 'textsec-check)
 

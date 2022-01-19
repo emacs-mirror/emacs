@@ -29,6 +29,7 @@
 (require 'idna-mapping)
 (require 'puny)
 (require 'mail-parse)
+(require 'url)
 
 (defvar textsec--char-scripts nil)
 
@@ -365,6 +366,13 @@ and `textsec-name-suspicious-p'."
       (or
        (textsec-email-address-suspicious-p  address)
        (and name (textsec-name-suspicious-p name))))))
+
+(defun textsec-url-suspicious-p (url)
+  "Say whether EMAIL looks suspicious.
+If it isn't, return nil.  If it is, return a string explaining the
+potential problem."
+  (let ((parsed (url-generic-parse-url url)))
+    (textsec-domain-suspicious-p (url-host parsed))))
 
 (provide 'textsec)
 

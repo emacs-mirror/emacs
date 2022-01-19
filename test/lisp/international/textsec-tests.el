@@ -164,4 +164,8 @@
   (should (textsec-email-address-header-suspicious-p
            "דגבא <foo@bar.com>")))
 
+(ert-deftest test-suspicious-url ()
+  (should-not (textsec-url-suspicious-p "http://example.ru/bar"))
+  (should (textsec-url-suspicious-p "http://Сгсе.ru/bar")))
+
 ;;; textsec-tests.el ends here

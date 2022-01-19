@@ -1467,7 +1467,12 @@ ones, in case fg and bg are nil."
                          (dom-attr dom 'name)))) ; Obsolete since HTML5.
       (push (cons id (point)) shr--link-targets))
     (when url
-      (shr-urlify (or shr-start start) (shr-expand-url url) title))))
+      (shr-urlify (or shr-start start) (shr-expand-url url) title)
+      (when-let ((warning (textsec-check (shr-expand-url url) 'url)))
+        (add-text-properties (or shr-start start) (point)
+                             (list 'help-echo warning
+                                   'face '(shr-link textsec-suspicious)))
+        (insert "⚠️")))))
 
 (defun shr-tag-abbr (dom)
   (let ((title (dom-attr dom 'title))
