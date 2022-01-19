@@ -368,7 +368,7 @@ and `textsec-name-suspicious-p'."
        (and name (textsec-name-suspicious-p name))))))
 
 (defun textsec-url-suspicious-p (url)
-  "Say whether EMAIL looks suspicious.
+  "Say whether URL looks suspicious.
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem."
   (let ((parsed (url-generic-parse-url url)))
