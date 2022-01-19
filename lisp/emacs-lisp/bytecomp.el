@@ -1976,6 +1976,42 @@ If compilation is needed, this functions returns the result of
 (defvar byte-compile-level 0		; bug#13787
   "Depth of a recursive byte compilation.")
 
+(defun byte-write-target-file (buffer target-file)
+  "Write BUFFER into TARGET-FILE."
+  (with-current-buffer buffer
+    ;; We must disable any code conversion here.
+    (let* ((coding-system-for-write 'no-conversion)
+	   ;; Write to a tempfile so that if another Emacs
+	   ;; process is trying to load target-file (eg in a
+	   ;; parallel bootstrap), it does not risk getting a
+	   ;; half-finished file.  (Bug#4196)
+	   (tempfile
+	    (make-temp-file (when (file-writable-p target-file)
+                              (expand-file-name target-file))))
+	   (default-modes (default-file-modes))
+	   (temp-modes (logand default-modes #o600))
+	   (desired-modes (logand default-modes #o666))
+	   (kill-emacs-hook
+	    (cons (lambda () (ignore-errors
+			  (delete-file tempfile)))
+		  kill-emacs-hook)))
+      (unless (= temp-modes desired-modes)
+        (set-file-modes tempfile desired-modes 'nofollow))
+      (write-region (point-min) (point-max) tempfile nil 1)
+      ;; This has the intentional side effect that any
+      ;; hard-links to target-file continue to
+      ;; point to the old file (this makes it possible
+      ;; for installed files to share disk space with
+      ;; the build tree, without causing problems when
+      ;; emacs-lisp files in the build tree are
+      ;; recompiled).  Previously this was accomplished by
+      ;; deleting target-file before writing it.
+      (if byte-native-compiling
+          ;; Defer elc final renaming.
+          (setf byte-to-native-output-file
+                (cons tempfile target-file))
+        (rename-file tempfile target-file t)))))
+
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
@@ -2107,38 +2143,7 @@ See also `emacs-lisp-byte-compile-and-load'."
 		     ;; Need to expand in case TARGET-FILE doesn't
 		     ;; include a directory (Bug#45287).
 		     (expand-file-name target-file))))
-	      ;; We must disable any code conversion here.
-	      (let* ((coding-system-for-write 'no-conversion)
-		     ;; Write to a tempfile so that if another Emacs
-		     ;; process is trying to load target-file (eg in a
-		     ;; parallel bootstrap), it does not risk getting a
-		     ;; half-finished file.  (Bug#4196)
-		     (tempfile
-		      (make-temp-file (when (file-writable-p target-file)
-                                        (expand-file-name target-file))))
-		     (default-modes (default-file-modes))
-		     (temp-modes (logand default-modes #o600))
-		     (desired-modes (logand default-modes #o666))
-		     (kill-emacs-hook
-		      (cons (lambda () (ignore-errors
-				    (delete-file tempfile)))
-			    kill-emacs-hook)))
-	        (unless (= temp-modes desired-modes)
-		  (set-file-modes tempfile desired-modes 'nofollow))
-	        (write-region (point-min) (point-max) tempfile nil 1)
-	        ;; This has the intentional side effect that any
-	        ;; hard-links to target-file continue to
-	        ;; point to the old file (this makes it possible
-	        ;; for installed files to share disk space with
-	        ;; the build tree, without causing problems when
-	        ;; emacs-lisp files in the build tree are
-	        ;; recompiled).  Previously this was accomplished by
-	        ;; deleting target-file before writing it.
-	        (if byte-native-compiling
-                    ;; Defer elc final renaming.
-                    (setf byte-to-native-output-file
-                          (cons tempfile target-file))
-                  (rename-file tempfile target-file t)))
+              (byte-write-target-file (current-buffer) target-file)
 	      (or noninteractive
 		  byte-native-compiling
 		  (message "Wrote %s" target-file)))
