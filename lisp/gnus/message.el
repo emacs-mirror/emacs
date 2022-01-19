@@ -4663,6 +4663,12 @@ This function could be useful in `message-setup-hook'."
 		       (format "Email address %s looks invalid; send anyway?"
 			       address))
 		(user-error "Invalid address %s" address))))
+	  ;; Then check for suspicious addresses.
+	  (dolist (address (mail-header-parse-addresses addr t))
+	    (when-let ((warning (textsec-check address 'email-address-header)))
+	      (unless (y-or-n-p
+		       (format "Suspicious address: %s; send anyway?" warning))
+		(user-error "Suspicious address %s" address))))
 	  ;; Then check for likely-bogus addresses.
 	  (dolist (bog (message-bogus-recipient-p addr))
 	    (and bog
