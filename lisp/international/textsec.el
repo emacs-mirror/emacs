@@ -324,21 +324,41 @@ consecutive nonspacing characters."
        string)
       nil)))
 
-(defun textsec-email-suspicious-p (email)
+(defun textsec-email-address-suspicious-p (address)
   "Say whether EMAIL address looks suspicious.
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem.
 
-An email address is considered suspicious if either of its 3 parts:
-domain, local, or name -- are found to be suspicious by, respectively,
-`textsec-domain-suspicious-p', `textsec-local-address-suspicious-p',
-and `textsec-name-suspicious-p'."
-  (pcase-let* ((`(,address . ,name) (mail-header-parse-address email t))
-               (`(,local ,domain) (split-string address "@")))
+An email address is considered suspicious if either of its two
+parts -- the local address name or the domain -- are found to be
+suspicious by, respectively, `textsec-local-address-suspicious-p'
+and `textsec-domain-suspicious-p'."
+  (pcase-let ((`(,local ,domain) (split-string address "@")))
     (or
      (textsec-domain-suspicious-p domain)
-     (textsec-local-address-suspicious-p local)
-     (and name (textsec-name-suspicious-p name)))))
+     (textsec-local-address-suspicious-p local))))
+
+(defun textsec-email-suspicious-p (email)
+  "Say whether EMAIL looks suspicious.
+If it isn't, return nil.  If it is, return a string explaining the
+potential problem.
+
+Note that EMAIL has to be a valid email specification according
+to RFC2047bis -- strings that can't be parsed will be flagged as
+suspicious.
+
+An email specification is considered suspicious if either of its
+two parts -- the address or the name -- are found to be
+suspicious by, respectively, `textsec-email-address-suspicious-p'
+and `textsec-name-suspicious-p'."
+  (catch 'end
+    (pcase-let ((`(,address . ,name)
+                 (condition-case nil
+                     (mail-header-parse-address email t)
+                   (error (throw 'end "Email address can't be parsed.")))))
+      (or
+       (textsec-email-address-suspicious-p  address)
+       (and name (textsec-name-suspicious-p name))))))
 
 (provide 'textsec)
 

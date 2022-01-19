@@ -152,6 +152,8 @@
   (should
    (textsec-email-suspicious-p "Lars Ingebrigtsen <.larsi@gnus.org>"))
   (should
-   (textsec-email-suspicious-p "Lars Ingebrigtsen <larsi@gn\N{LEFT-TO-RIGHT ISOLATE}us.org>")))
+   (textsec-email-suspicious-p "Lars Ingebrigtsen <larsi@gn\N{LEFT-TO-RIGHT ISOLATE}us.org>"))
+
+  (should (textsec-email-suspicious-p "דגבא <foo@bar.com>")))
 
 ;;; textsec-tests.el ends here
