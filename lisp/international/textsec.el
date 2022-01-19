@@ -235,9 +235,9 @@ Return nil if it isn't suspicious.  If it is, return a string explaining
 the potential problem.
 
 Domain names are considered suspicious if they use characters
-that can look similar to other characters when displayed, or that
-are not allowed by Unicode's IDNA mapping, or are certain other
-non-usual mixtures of characters."
+that can look similar to other characters when displayed, or
+use characters that are not allowed by Unicode's IDNA mapping,
+or use certain other unusual mixtures of characters."
   (catch 'found
     (seq-do
      (lambda (char)
@@ -257,8 +257,8 @@ If it isn't suspicious, return nil.  If it is, return a string explaining
 the potential problem.
 
 Email addresses are considered suspicious if they use characters
-that can look similar to other characters when displayed, or are
-certain other non-usual mixtures of characters."
+that can look similar to other characters when displayed, or use
+certain other unusual mixtures of characters."
   (cond
    ((not (equal local (ucs-normalize-NFKC-string local)))
     (format "`%s' is not in normalized format `%s'"
@@ -279,8 +279,8 @@ If it isn't suspicious, return nil.  If it is, return a string
 explaining the potential problem.
 
 Names are considered suspicious if they use characters that can
-look similar to other characters when displayed, or are certain
-other non-usual mixtures of characters."
+look similar to other characters when displayed, or use certain
+other unusual mixtures of characters."
   (cond
    ((not (equal name (ucs-normalize-NFC-string name)))
     (format "`%s' is not in normalized format `%s'"
