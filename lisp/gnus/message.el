@@ -4663,12 +4663,6 @@ This function could be useful in `message-setup-hook'."
 		       (format "Email address %s looks invalid; send anyway?"
 			       address))
 		(user-error "Invalid address %s" address))))
-	  ;; Then check for suspicious addresses.
-	  (dolist (address (mail-header-parse-addresses addr t))
-	    (when-let ((warning (textsec-check address 'email-address-header)))
-	      (unless (y-or-n-p
-		       (format "Suspicious address: %s; send anyway?" warning))
-		(user-error "Suspicious address %s" address))))
 	  ;; Then check for likely-bogus addresses.
 	  (dolist (bog (message-bogus-recipient-p addr))
 	    (and bog
@@ -4907,7 +4901,18 @@ If you always want Gnus to send messages in one piece, set
 	      (message-generate-headers '(Lines)))
 	    ;; Remove some headers.
 	    (message-remove-header message-ignored-mail-headers t)
-            (mail-encode-encoded-word-buffer))
+            (mail-encode-encoded-word-buffer)
+	    ;; Then check for suspicious addresses.
+            (dolist (hdr '("To" "Cc" "Bcc"))
+              (let ((addr (message-fetch-field hdr)))
+	        (when (stringp addr)
+	          (dolist (address (mail-header-parse-addresses addr t))
+	            (when-let ((warning (textsec-check address
+                                                       'email-address-header)))
+	              (unless (y-or-n-p
+		               (format "Suspicious address: %s; send anyway?"
+                                       warning))
+		        (user-error "Suspicious address %s" address))))))))
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
