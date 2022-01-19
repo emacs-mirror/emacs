@@ -429,6 +429,11 @@ When non-nil, the commands 'next-completion' and 'previous-completion'
 automatically wrap around on reaching the beginning or the end of
 the "*Completions*" buffer.
 
+*** New user option 'completions-sort'.
+This option controls the sorting of the completion candidates in
+the *Completions* buffer.  Available styles are no sorting,
+alphabetical (the default), or a custom sort function.
+
 ** Isearch and Replace
 
 +++

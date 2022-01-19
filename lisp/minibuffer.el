@@ -1173,6 +1173,18 @@ completion candidates than this number."
   :version "24.1"
   :type completion--cycling-threshold-type)
 
+(defcustom completions-sort 'alphabetical
+  "Sort candidates in the *Completions* buffer.
+
+The value can be nil to disable sorting, `alphabetical' for
+alphabetical sorting or a custom sorting function.  The sorting
+function takes and returns a list of completion candidate
+strings."
+  :type '(choice (const :tag "No sorting" nil)
+                 (const :tag "Alphabetical sorting" alphabetical)
+                 function :tag "Custom function")
+  :version "29.1")
+
 (defcustom completions-group nil
   "Enable grouping of completion candidates in the *Completions* buffer.
 See also `completions-group-format' and `completions-group-sort'."
@@ -2268,7 +2280,10 @@ variables.")
                       ;; same, but not always.
                       (setq completions (if sort-fun
                                             (funcall sort-fun completions)
-                                          (sort completions 'string-lessp)))
+                                          (pcase completions-sort
+                                            ('nil completions)
+                                            ('alphabetical (sort completions #'string-lessp))
+                                            (_ (funcall completions-sort completions)))))
 
                       ;; After sorting, group the candidates using the
                       ;; `group-function'.
