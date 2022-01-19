@@ -376,6 +376,32 @@ potential problem."
     (and (url-host parsed)
          (textsec-domain-suspicious-p (url-host parsed)))))
 
+(defun textsec-link-suspicious-p (link)
+  "Say whether LINK is suspicious.
+LINK should be a cons cell where the first element is the URL,
+and the second element is the link text.
+
+This function will return non-nil if it seems like the link text
+is misleading about where the URL takes you.  This is typical
+when the link text looks like an URL itself, but doesn't lead to
+the same domain as the URL."
+  (let ((url (car link))
+        (text (string-trim (cdr link))))
+    (when (string-match-p "\\`[a-z]+\\.[.a-z]+\\'" text)
+      (setq text (concat "http://" text)))
+    (let ((udomain (url-host (url-generic-parse-url url)))
+          (tdomain (url-host (url-generic-parse-url text))))
+      (and udomain
+           tdomain
+           (not (equal udomain tdomain))
+           ;; One may be a sub-domain of the other, but don't allow too
+           ;; short domains.
+           (not (or (and (string-suffix-p udomain tdomain)
+                         (url-domsuf-cookie-allowed-p udomain))
+                    (and (string-suffix-p tdomain udomain)
+                         (url-domsuf-cookie-allowed-p tdomain))))
+           (format "Text `%s' doesn't point to link URL `%s'" text url)))))
+
 (provide 'textsec)
 
 ;;; textsec.el ends here

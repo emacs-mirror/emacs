@@ -168,4 +168,22 @@
   (should-not (textsec-url-suspicious-p "http://example.ru/bar"))
   (should (textsec-url-suspicious-p "http://Сгсе.ru/bar")))
 
+(ert-deftest test-suspicious-link ()
+  (should-not (textsec-link-suspicious-p
+               (cons "https://gnu.org/" "Hello")))
+  (should-not (textsec-link-suspicious-p
+               (cons "https://gnu.org/" "https://gnu.org/")))
+  (should-not (textsec-link-suspicious-p
+               (cons "https://gnu.org/" "https://www.gnu.org/")))
+  (should-not (textsec-link-suspicious-p
+               (cons "https://www.gnu.org/" "https://gnu.org/")))
+  (should (textsec-link-suspicious-p
+           (cons "https://www.gnu.org/" "https://org/")))
+  (should (textsec-link-suspicious-p
+           (cons "https://www.gnu.org/" "https://fsf.org/")))
+  (should (textsec-link-suspicious-p
+           (cons "https://www.gnu.org/" "http://fsf.org/")))
+  (should (textsec-link-suspicious-p
+           (cons "https://www.gnu.org/" "fsf.org"))))
+
 ;;; textsec-tests.el ends here

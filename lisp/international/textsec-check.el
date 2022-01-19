@@ -44,8 +44,8 @@ If nil, these checks are disabled."
 If STRING is suspicious, a string explaining the possible problem
 is returned.
 
-Available types include `url', `domain', `local-address', `name',
-`email-address', and `email-address-headers'.
+Available types include `url', `link', `domain', `local-address',
+`name', `email-address', and `email-address-headers'.
 
 If the `textsec-check' user option is nil, these checks are
 disabled, and this function always returns nil."
@@ -67,7 +67,7 @@ verbatim.
 
 See `texsec-check' for further information about TYPE."
   (let ((warning (textsec-check string type)))
-    (if (not wardning)
+    (if (not warning)
         string
       (propertize string
                   'face 'textsec-suspicious
