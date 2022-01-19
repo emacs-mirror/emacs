@@ -149,14 +149,19 @@
 
 (ert-deftest test-suspicious-email ()
   (should-not
-   (textsec-email-suspicious-p "Lars Ingebrigtsen <larsi@gnus.org>"))
+   (textsec-email-address-header-suspicious-p
+    "Lars Ingebrigtsen <larsi@gnus.org>"))
   (should
-   (textsec-email-suspicious-p "LÅrs Ingebrigtsen <larsi@gnus.org>"))
+   (textsec-email-address-header-suspicious-p
+    "LÅrs Ingebrigtsen <larsi@gnus.org>"))
   (should
-   (textsec-email-suspicious-p "Lars Ingebrigtsen <.larsi@gnus.org>"))
+   (textsec-email-address-header-suspicious-p
+    "Lars Ingebrigtsen <.larsi@gnus.org>"))
   (should
-   (textsec-email-suspicious-p "Lars Ingebrigtsen <larsi@gn\N{LEFT-TO-RIGHT ISOLATE}us.org>"))
+   (textsec-email-address-header-suspicious-p
+    "Lars Ingebrigtsen <larsi@gn\N{LEFT-TO-RIGHT ISOLATE}us.org>"))
 
-  (should (textsec-email-suspicious-p "דגבא <foo@bar.com>")))
+  (should (textsec-email-address-header-suspicious-p
+           "דגבא <foo@bar.com>")))
 
 ;;; textsec-tests.el ends here

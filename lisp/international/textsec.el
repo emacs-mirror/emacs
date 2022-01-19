@@ -344,7 +344,7 @@ and `textsec-domain-suspicious-p'."
      (textsec-domain-suspicious-p domain)
      (textsec-local-address-suspicious-p local))))
 
-(defun textsec-email-suspicious-p (email)
+(defun textsec-email-address-header-suspicious-p (email)
   "Say whether EMAIL looks suspicious.
 If it isn't, return nil.  If it is, return a string explaining the
 potential problem.
