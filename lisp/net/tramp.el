@@ -1735,7 +1735,10 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
       (when hop
 	(setq hop nil)
 	;; Assure that the hops are in `tramp-default-proxies-alist'.
-	(tramp-add-hops (car args))))
+	;; In tramp-archive.el, the slot `hop' is used for the archive
+	;; file name.
+	(unless (string-equal method "archive")
+	  (tramp-add-hops (car args)))))
 
      (t (setq method (nth 0 args)
 	      user (nth 1 args)
