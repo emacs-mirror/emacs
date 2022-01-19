@@ -2659,12 +2659,12 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (defun article--check-suspicious-addresses (addresses)
   (setq addresses (replace-regexp-in-string "\\`[^:]+:[ \t\n]*" "" addresses))
   (dolist (header (mail-header-parse-addresses addresses t))
-    (let ((address (car (mail-header-parse-address header))))
-      (when-let ((warning (textsec-check address 'email-address)))
-        (goto-char (point-min))
-        (while (search-forward address nil t)
-          (put-text-property (match-beginning 0) (match-end 0)
-                             'textsec-suspicious warning))))))
+    (when-let* ((address (car (mail-header-parse-address header)))
+                (warning (textsec-check address 'email-address)))
+      (goto-char (point-min))
+      (while (search-forward address nil t)
+        (put-text-property (match-beginning 0) (match-end 0)
+                           'textsec-suspicious warning)))))
 
 (defun article-decode-group-name ()
   "Decode group names in Newsgroups, Followup-To and Xref headers."
