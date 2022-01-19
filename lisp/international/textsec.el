@@ -233,8 +233,9 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   "Say whether DOMAIN's name looks suspicious.
 Return nil if it isn't suspicious.  If it is, return a string explaining
 the potential problem.
-Domain names are considered suspicious if they use characters that
-can look on display as other characters."
+Domain names are considered suspicious if they use characters
+that can look similar to other characters when displayed, or that
+are not allowed by Unicode's IDNA mapping."
   (catch 'found
     (seq-do
      (lambda (char)
@@ -252,8 +253,8 @@ LOCAL is the bit before \"@\" in an email address.
 
 If it isn't suspicious, return nil.  If it is, return a string explaining
 the potential problem.
-Email addresses are considered suspicious if they use characters that
-can look on display as other characters."
+Email addresses are considered suspicious if they use characters
+that can look similar to other characters when displayed."
   (cond
    ((not (equal local (ucs-normalize-NFKC-string local)))
     (format "`%s' is not in normalized format `%s'"
@@ -267,12 +268,13 @@ can look on display as other characters."
 
 (defun textsec-name-suspicious-p (name)
   "Say whether NAME looks suspicious.
-NAME is (for instance) the free-text name part of an email address.
+NAME is (for instance) the free-text display name part of an
+email address.
 
-If it isn't suspicious, return nil.  If it is, return a string explaining
-the potential problem.
+If it isn't suspicious, return nil.  If it is, return a string
+explaining the potential problem.
 Names are considered suspicious if they use characters that
-can look on display as other characters."
+can look similar to other characters when displayed."
   (cond
    ((not (equal name (ucs-normalize-NFC-string name)))
     (format "`%s' is not in normalized format `%s'"
@@ -291,7 +293,7 @@ can look on display as other characters."
   "Say whether STRING uses nonspacing characters in suspicious ways.
 If it doesn't, return nil.  If it does, return a string explaining
 the potential problem.
-Use of nonspacing characters is considered suspeicious if there are
+Use of nonspacing characters is considered suspicious if there are
 two or more consecutive identical nonspacing characters, or too many
 consecutive nonspacing characters."
   (let ((prev nil)
