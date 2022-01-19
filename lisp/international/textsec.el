@@ -310,7 +310,7 @@ consecutive nonspacing characters."
        (lambda (char)
          (let ((nonspacing
                 (memq (get-char-code-property char 'general-category)
-                      '(Cf Cc Mn))))
+                      '(Mn Me))))
            (when (and nonspacing
                       (equal char prev))
              (throw 'found "Two identical consecutive nonspacing characters"))

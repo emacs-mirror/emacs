@@ -138,11 +138,11 @@
                "Lars Ingebrigtsen\N{LEFT-TO-RIGHT MARK}"))
 
   (should (textsec-name-suspicious-p
-           "\N{LEFT-TO-RIGHT MARK}\N{LEFT-TO-RIGHT MARK}Lars Ingebrigtsen"))
+           "\N{COMBINING GRAVE ACCENT}\N{COMBINING GRAVE ACCENT}Lars Ingebrigtsen"))
   (should-not (textsec-name-suspicious-p
-               "\N{LEFT-TO-RIGHT MARK}\N{RIGHT-TO-LEFT MARK}Lars Ingebrigtsen"))
+               "\N{COMBINING GRAVE ACCENT}\N{COMBINING ENCLOSING CIRCLE}Lars Ingebrigtsen"))
   (should (textsec-name-suspicious-p
-               "\N{LEFT-TO-RIGHT MARK}\N{RIGHT-TO-LEFT MARK}\N{LEFT-TO-RIGHT MARK}\N{RIGHT-TO-LEFT MARK}\N{LEFT-TO-RIGHT MARK}Lars Ingebrigtsen")))
+               "\N{COMBINING GRAVE ACCENT}\N{COMBINING ENCLOSING CIRCLE}\N{COMBINING GRAVE ACCENT}\N{COMBINING ENCLOSING CIRCLE}\N{COMBINING GRAVE ACCENT}Lars Ingebrigtsen")))
 
 (ert-deftest test-suspicious-email ()
   (should-not
