@@ -1468,11 +1468,11 @@ ones, in case fg and bg are nil."
       (push (cons id (point)) shr--link-targets))
     (when url
       (shr-urlify (or shr-start start) (shr-expand-url url) title)
+      ;; Check whether the URL is suspicious.
       (when-let ((warning (textsec-check (shr-expand-url url) 'url)))
         (add-text-properties (or shr-start start) (point)
-                             (list 'help-echo warning
-                                   'face '(shr-link textsec-suspicious)))
-        (insert "⚠️")))))
+                             (list 'face '(shr-link textsec-suspicious)))
+        (insert (propertize "⚠️" 'help-echo warning))))))
 
 (defun shr-tag-abbr (dom)
   (let ((title (dom-attr dom 'title))
