@@ -720,6 +720,7 @@ public:
 	int ret;
 	msg->FindInt32 ("raw_char", &raw);
 	msg->FindInt32 ("key", &key);
+	msg->FindInt64 ("when", &rq.time);
 
 	rq.modifiers = 0;
 	uint32_t mods = modifiers ();
@@ -1382,8 +1383,8 @@ public:
     rq.just_exited_p = transit == B_EXITED_VIEW;
     rq.x = point.x;
     rq.y = point.y;
-    rq.be_code = transit;
     rq.window = this->Window ();
+    rq.time = system_time ();
 
     if (ToolTip ())
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
@@ -1438,6 +1439,7 @@ public:
 
     SetMouseEventMask (B_POINTER_EVENTS, B_LOCK_WINDOW_FOCUS);
 
+    rq.time = system_time ();
     haiku_write (BUTTON_DOWN, &rq);
   }
 
@@ -1484,6 +1486,7 @@ public:
     if (!buttons)
       SetMouseEventMask (0, 0);
 
+    rq.time = system_time ();
     haiku_write (BUTTON_UP, &rq);
   }
 };

@@ -2725,6 +2725,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      inev.kind = inev.code > 127 ? MULTIBYTE_CHAR_KEYSTROKE_EVENT :
 		ASCII_KEYSTROKE_EVENT;
 
+	    inev.timestamp = b->time / 1000;
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 	    XSETFRAME (inev.frame_or_window, f);
 	    break;
@@ -2763,7 +2764,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
 
-	    x_display_list->last_mouse_movement_time = system_time () / 1000;
+	    x_display_list->last_mouse_movement_time = b->time / 1000;
 	    button_or_motion_p = 1;
 
 	    if (hlinfo->mouse_face_hidden)
@@ -2889,7 +2890,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 
 	    x_display_list->last_mouse_glyph_frame = 0;
-	    x_display_list->last_mouse_movement_time = system_time () / 1000;
+	    x_display_list->last_mouse_movement_time = b->time / 1000;
 	    button_or_motion_p = 1;
 
 	    /* Is this in the tab-bar?  */
@@ -3294,7 +3295,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
       if (inev.kind != NO_EVENT)
 	{
-	  if (inev.kind != HELP_EVENT)
+	  if (inev.kind != HELP_EVENT && !inev.timestamp)
 	    inev.timestamp = (button_or_motion_p
 			      ? x_display_list->last_mouse_movement_time
 			      : system_time () / 1000);
@@ -3304,7 +3305,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
       if (inev2.kind != NO_EVENT)
 	{
-	  if (inev2.kind != HELP_EVENT)
+	  if (inev2.kind != HELP_EVENT && !inev.timestamp)
 	    inev2.timestamp = (button_or_motion_p
 			       ? x_display_list->last_mouse_movement_time
 			       : system_time () / 1000);
