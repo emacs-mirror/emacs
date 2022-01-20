@@ -158,6 +158,12 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 			    !NILP (enable), !NILP (selected), 0, window,
 			    !NILP (descrip) ? SSDATA (descrip) : NULL,
 			    STRINGP (help) ? SSDATA (help) : NULL);
+	  else if (!use_system_tooltips || NILP (Fsymbol_value (Qtooltip_mode)))
+	    BMenu_add_item (menu, SSDATA (item_name),
+			    !NILP (def) ? (void *) (intptr_t) i : NULL,
+			    !NILP (enable), !NILP (selected), 1, window,
+			    !NILP (descrip) ? SSDATA (descrip) : NULL,
+			    NULL);
 	  else
 	    BMenu_add_item (menu, SSDATA (item_name),
 			    !NILP (def) ? (void *) (intptr_t) i : NULL,
@@ -664,6 +670,7 @@ syms_of_haikumenu (void)
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
   DEFSYM (Qpopup_menu, "popup-menu");
   DEFSYM (Qmouse_menu_bar_map, "mouse-menu-bar-map");
+  DEFSYM (Qtooltip_mode, "tooltip-mode");
 
   defsubr (&Smenu_or_popup_active_p);
   defsubr (&Shaiku_menu_bar_open);

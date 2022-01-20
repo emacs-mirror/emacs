@@ -92,10 +92,6 @@ features, customize the variable @code{use-system-tooltips} to the
 @code{nil} value, and Emacs will use its own implementation of
 tooltips.
 
-  System tooltips cannot display above the menu bar, so help text in
-the menu bar will display in the echo area instead when they are
-enabled.
-
 @cindex X resources on Haiku
   Unlike the X window system, Haiku does not have a system-wide
 resource database.  Since many important options are specified via

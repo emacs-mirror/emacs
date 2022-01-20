@@ -1636,16 +1636,16 @@ public:
   {
     struct haiku_menu_bar_help_event rq;
 
-    if (menu_bar_id >= 0)
+    if (help)
+      {
+	Menu ()->SetToolTip (highlight_p ? help : NULL);
+      }
+    else if (menu_bar_id >= 0)
       {
 	rq.window = wind_ptr;
 	rq.mb_idx = highlight_p ? menu_bar_id : -1;
 
 	haiku_write (MENU_BAR_HELP_EVENT, &rq);
-      }
-    else if (help)
-      {
-	Menu ()->SetToolTip (highlight_p ? help : NULL);
       }
 
     BMenuItem::Highlight (highlight_p);
