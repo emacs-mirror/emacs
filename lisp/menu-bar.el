@@ -113,6 +113,10 @@
       '(menu-item "Enable Undeleting Frames" undelete-frame-mode
                   :visible (null undelete-frame-mode)
                   :help "Enable undeleting frames in this session"))
+    (bindings--define-key menu [disable-undelete-frame-mode]
+      '(menu-item "Disable Undeleting Frames" undelete-frame-mode
+                  :visible undelete-frame-mode
+                  :help "Disable undeleting frames in this session"))
     (bindings--define-key menu [undelete-last-deleted-frame]
       '(menu-item "Undelete Frame" undelete-frame
                   :visible (and undelete-frame-mode
