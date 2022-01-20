@@ -50,6 +50,7 @@
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
 (declare-function haiku-selection-targets "haikuselect.c")
+(declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
@@ -105,9 +106,8 @@ If TYPE is nil, return \"text/plain\"."
                                               &context (window-system haiku))
   (haiku-selection-data selection "text/plain"))
 
-(cl-defmethod gui-backend-selection-owner-p (_
-                                             &context (window-system haiku))
-  t)
+(cl-defmethod gui-backend-selection-owner-p (selection &context (window-system haiku))
+  (haiku-selection-owner-p selection))
 
 (declare-function haiku-read-file-name "haikufns.c")
 

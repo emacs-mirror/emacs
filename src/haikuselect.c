@@ -166,6 +166,36 @@ clipboard.  */)
   return Qnil;
 }
 
+DEFUN ("haiku-selection-owner-p", Fhaiku_selection_owner_p, Shaiku_selection_owner_p,
+       0, 1, 0,
+       doc: /* Whether the current Emacs process owns the given SELECTION.
+The arg should be the name of the selection in question, typically one
+of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  For
+convenience, the symbol nil is the same as `PRIMARY', and t is the
+same as `SECONDARY'.  */)
+  (Lisp_Object selection)
+{
+  bool value;
+
+  if (NILP (selection))
+    selection = QPRIMARY;
+  else if (EQ (selection, Qt))
+    selection = QSECONDARY;
+
+  block_input ();
+  if (EQ (selection, QPRIMARY))
+    value = BClipboard_owns_primary ();
+  else if (EQ (selection, QSECONDARY))
+    value = BClipboard_owns_secondary ();
+  else if (EQ (selection, QCLIPBOARD))
+    value = BClipboard_owns_clipboard ();
+  else
+    value = false;
+  unblock_input ();
+
+  return value ? Qt : Qnil;
+}
+
 void
 syms_of_haikuselect (void)
 {
@@ -179,4 +209,5 @@ syms_of_haikuselect (void)
   defsubr (&Shaiku_selection_data);
   defsubr (&Shaiku_selection_put);
   defsubr (&Shaiku_selection_targets);
+  defsubr (&Shaiku_selection_owner_p);
 }
