@@ -1029,7 +1029,7 @@ suspicious address.  If this variable is nil, these checks aren't
 performed.
 
 +++
-*** New function 'textsec-check'.
+*** New function 'textsec-suspicious-p'.
 This is the main function Emacs applications should be using to check
 whether a string is suspicious.  It heeds the 'textsec-check' user
 option.

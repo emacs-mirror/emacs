@@ -4971,7 +4971,7 @@ more details about them.)  Packages that present data that might be
 suspicious should use this library to flag suspicious text on display.
 
 @vindex textsec-check
-@defun textsec-check object type
+@defun textsec-suspicious-p object type
 This function is the high-level interface function that packages
 should use.  It respects the @code{textsec-check} user option, which
 allows the user to disable the checks.
@@ -5025,7 +5025,7 @@ function returns @code{nil}.
 @vindex textsec-suspicious@r{ (face)}
 If the text is suspicious, the application should mark the suspicious
 text with the @code{textsec-suspicious} face, and make the explanation
-returned by @code{textsec-check} available to the user in some way
+returned by @code{textsec-suspicious-p} available to the user in some way
 (for example, in a tooltip).  The application might also prompt the
 user for confirmation before taking any action on a suspicious string
 (like sending an email to a suspicious email address).

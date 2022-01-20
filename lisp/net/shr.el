@@ -1469,12 +1469,13 @@ ones, in case fg and bg are nil."
     (when url
       (shr-urlify (or shr-start start) (shr-expand-url url) title)
       ;; Check whether the URL is suspicious.
-      (when-let ((warning (or (textsec-check (shr-expand-url url) 'url)
-                              (textsec-check (cons (shr-expand-url url)
-                                                   (buffer-substring
-                                                    (or shr-start start)
-                                                    (point)))
-                                             'link))))
+      (when-let ((warning (or (textsec-suspicious-p
+                               (shr-expand-url url) 'url)
+                              (textsec-suspicious-p
+                               (cons (shr-expand-url url)
+                                     (buffer-substring (or shr-start start)
+                                                       (point)))
+                               'link))))
         (add-text-properties (or shr-start start) (point)
                              (list 'face '(shr-link textsec-suspicious)))
         (insert (propertize "⚠️" 'help-echo warning))))))

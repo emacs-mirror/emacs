@@ -4907,8 +4907,8 @@ If you always want Gnus to send messages in one piece, set
               (let ((addr (message-fetch-field hdr)))
 	        (when (stringp addr)
 	          (dolist (address (mail-header-parse-addresses addr t))
-	            (when-let ((warning (textsec-check address
-                                                       'email-address-header)))
+	            (when-let ((warning (textsec-suspicious-p
+                                         address 'email-address-header)))
 	              (unless (y-or-n-p
 		               (format "Suspicious address: %s; send anyway?"
                                        warning))

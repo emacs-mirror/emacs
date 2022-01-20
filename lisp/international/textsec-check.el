@@ -39,8 +39,8 @@ If nil, these checks are disabled."
   "Face used to highlight suspicious strings.")
 
 ;;;###autoload
-(defun textsec-check (object type)
-  "Test whether OBJECT is suspicious for use as TYPE.
+(defun textsec-suspicious-p (object type)
+  "Say whether OBJECT is suspicious for use as TYPE.
 If OBJECT is suspicious, return a string explaining the reason
 for considering it suspicious, otherwise return nil.
 
