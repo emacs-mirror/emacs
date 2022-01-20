@@ -1107,6 +1107,16 @@ returned.  Otherwise, DEFAULT is returned verbatim."
   (let ((prompt (if default
                     (format-prompt prompt default)
                   (format "%s: " prompt)))
+        (completion-extra-properties
+         '(:affixation-function
+           (lambda (faces)
+             (mapcar
+              (lambda (face)
+                (list (concat (propertize "SAMPLE" 'face face)
+                              "\t")
+                      ""
+                      face))
+              faces))))
         aliasfaces nonaliasfaces faces)
     ;; Build up the completion tables.
     (mapatoms (lambda (s)
