@@ -1228,6 +1228,7 @@ Text
 * Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
+* Suspicious Text::         Determining whether a string is suspicious.
 * GnuTLS Cryptography::     Cryptographic algorithms imported from GnuTLS.
 * Database::                Interacting with an SQL database.
 * Parsing HTML/XML::        Parsing HTML and XML.
