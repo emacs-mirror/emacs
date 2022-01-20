@@ -77,6 +77,8 @@ AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
 BYTE_COMPILE_FLAGS = \
   --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
+# ... but we must prefer .elc files for those in the early bootstrap.
+compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
@@ -303,9 +305,23 @@ endif
 # An old-fashioned suffix rule, which, according to the GNU Make manual,
 # cannot have prerequisites.
 ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(ANCIENT),yes)
+# The first compilation of compile-first, using an interpreted compiler:
+# The resulting .elc files get given a date of 1971-01-01 so that their
+# date stamp is earlier than the source files, causing these to be compiled
+# into native code at the second recursive invocation of this $(MAKE),
+# using these .elc's.  This is faster than just compiling the native code
+# directly using the interpreted compile-first files.  (Note: 1970-01-01
+# fails on some systems.)
+.el.elc:
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	-l comp -f batch-byte-compile $<
+	touch -t 197101010000 $@
+else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 	-l comp -f batch-byte+native-compile $<
+endif
 else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
