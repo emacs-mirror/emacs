@@ -729,9 +729,10 @@ with completion and history."
 	 face)
     (if (and hi-lock-auto-select-face (not current-prefix-arg))
 	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
-      (setq face (read-face-name
-                  (format-prompt "Highlight using face" (car defaults))
-                  defaults))
+      (setq face (symbol-name
+                  (read-face-name
+                   (format-prompt "Highlight using face" (car defaults))
+                   defaults)))
       ;; Update list of un-used faces.
       (setq hi-lock--unused-faces (remove face hi-lock--unused-faces))
       ;; Grow the list of defaults.
