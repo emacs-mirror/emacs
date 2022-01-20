@@ -547,9 +547,9 @@ suitable file is found, return nil."
               (insert "\n"))
             (when menus
               (let ((start (point)))
-                (insert "It can "
-                        (and keys "also ")
-                        "be invoked from the menu: ")
+                (insert (concat "It can "
+                                (and keys "also ")
+                                "be invoked from the menu: "))
                 ;; FIXME: Should insert menu names instead of key
                 ;; binding names.
                 (help-fns--insert-bindings menus)
