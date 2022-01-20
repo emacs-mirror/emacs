@@ -491,14 +491,19 @@ Returns what was actually sent, or nil if nothing was sent."
   object)
 
 (defun eshell-output-object (object &optional handle-index handles)
-  "Insert OBJECT, using HANDLE-INDEX specifically)."
+  "Insert OBJECT, using HANDLE-INDEX specifically.
+If HANDLE-INDEX is nil, output to `eshell-output-handle'.
+HANDLES is the set of file handles to use; if nil, use
+`eshell-current-handles'."
   (let ((target (car (aref (or handles eshell-current-handles)
 			   (or handle-index eshell-output-handle)))))
-    (if (and target (not (listp target)))
-	(eshell-output-object-to-target object target)
-      (while target
-	(eshell-output-object-to-target object (car target))
-	(setq target (cdr target))))))
+    (if (listp target)
+        (while target
+	  (eshell-output-object-to-target object (car target))
+	  (setq target (cdr target)))
+      (eshell-output-object-to-target object target)
+      ;; Explicitly return nil to match the list case above.
+      nil)))
 
 (provide 'esh-io)
 ;;; esh-io.el ends here
