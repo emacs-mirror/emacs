@@ -71,7 +71,7 @@
    :font :inherit :fontset :distant-foreground :extend :vector])
 
 (defun face-attrs--make-indirect-safe ()
-  "Deep copy `face-remapping-alist' on cloning for safety."
+  "Deep-copy the buffer's `face-remapping-alist' upon cloning the buffer."
   (setq-local face-remapping-alist
               (mapcar #'copy-sequence face-remapping-alist)))
 

@@ -629,7 +629,6 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
 
-@vindex clone-indirect-buffer-hook
   A quick and handy way to make an indirect buffer is with the command
 @kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
 buffer whose base buffer is the current buffer.  With a numeric
@@ -637,13 +636,18 @@ argument, it prompts for the name of the indirect buffer; otherwise it
 uses the name of the current buffer, with a @samp{<@var{n}>} suffix
 added.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
 works like @kbd{M-x clone-indirect-buffer}, but it selects the new
-buffer in another window.  These functions run the hook
-@code{clone-indirect-buffer-hook} after creating the indirect buffer.
+buffer in another window.
 
   The more general way to make an indirect buffer is with the command
 @kbd{M-x make-indirect-buffer}.  It creates an indirect buffer
 named @var{indirect-name} from a buffer @var{base-buffer}, prompting for
 both using the minibuffer.
+
+@vindex clone-indirect-buffer-hook
+  The functions that create indirect buffers run the hook
+@code{clone-indirect-buffer-hook} after creating the indirect buffer.
+When this hook runs, the newly created indirect buffer is the current
+buffer.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling

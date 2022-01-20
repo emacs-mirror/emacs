@@ -6399,7 +6399,10 @@ This is the default.  If nil, auto-save file deletion is inhibited.  */);
   delete_auto_save_files = 1;
 
   DEFVAR_LISP ("clone-indirect-buffer-hook", Vclone_indirect_buffer_hook,
-	       doc: /* Normal hook to run in the new buffer at the end of `clone-indirect-buffer'. */);
+	       doc: /* Normal hook to run in the new buffer at the end of `make-indirect-buffer'.
+
+Since `clone-indirect-buffer' calls `make-indirect-buffer', this hook
+will run for `clone-indirect-buffer' calls as well.  */);
   Vclone_indirect_buffer_hook = Qnil;
 
   defsubr (&Sbuffer_live_p);

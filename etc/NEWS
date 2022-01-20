@@ -957,6 +957,13 @@ characters in the range U+0080..U+00FF as substitutes for single bytes
 in the range 128..255, but signal an error for all multibyte characters.
 The input must be encoded text.
 
++++
+** The 'clone-indirect-buffer-hook' is now run by 'make-indirect-buffer'.
+It was previously only run by 'clone-indirect-buffer' and
+'clone-indirect-buffer-other-window'.  Since 'make-indirect-buffer' is
+called by both of these, the hook is now run by all 3 of these
+functions.
+
 
 * Lisp Changes in Emacs 29.1
 
