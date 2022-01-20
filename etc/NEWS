@@ -960,6 +960,10 @@ The input must be encoded text.
 
 * Lisp Changes in Emacs 29.1
 
+** New function 'bidi-string-strip-control-characters'.
+This utility function is meant for displaying strings when it's
+essential that there's no bidirectional context.
+
 ---
 ** The Gnus range functions have been moved to a new library, range.el.
 All the old names have been made obsolete.

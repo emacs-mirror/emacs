@@ -1541,6 +1541,12 @@ Setup `char-width-table' appropriate for non-CJK language environment."
     #x2069)                          ; ?\N{pop directional isolate}
   "List of bidirectional control characters.")
 
+(defun bidi-string-strip-control-characters (string)
+  "Strip bidi control characters from STRING and return the result."
+  (apply #'string (seq-filter (lambda (char)
+                                (not (memq char bidi-control-characters)))
+                              string)))
+
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
 This function updates the char-table `glyphless-char-display',
