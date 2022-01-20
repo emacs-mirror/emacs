@@ -540,6 +540,12 @@ struct x_display_info
 #ifdef USE_GTK
   bool prefer_native_input;
 #endif
+
+#ifdef HAVE_XRENDER
+  bool xrender_supported_p;
+  int xrender_major;
+  int xrender_minor;
+#endif
 };
 
 #ifdef HAVE_X_I18N

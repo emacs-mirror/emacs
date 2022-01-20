@@ -15393,6 +15393,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 #endif
 
+#ifdef HAVE_XRENDER
+  int event_base, error_base;
+  dpyinfo->xrender_supported_p
+    = XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+
+  if (dpyinfo->xrender_supported_p)
+    {
+      if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
+				&dpyinfo->xrender_minor))
+	dpyinfo->xrender_supported_p = false;
+    }
+#endif
+
 #if defined USE_CAIRO || defined HAVE_XFT
   {
     /* If we are using Xft, the following precautions should be made:
@@ -15408,11 +15421,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
        is smaller or larger than the one Xft uses, our font will look smaller
        or larger than other for other applications, even if it is the same
        font name (monospace-10 for example).  */
-
-# ifdef HAVE_XRENDER
-    int event_base, error_base;
-    XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
-# endif
 
     char *v = XGetDefault (dpyinfo->display, "Xft", "dpi");
     double d;
