@@ -82,7 +82,11 @@ equivalent of `echo' can always be achieved by using `identity'."
 It returns a formatted value that should be passed to `eshell-print'
 or `eshell-printn' for display."
   (if eshell-plain-echo-behavior
-      (concat (apply 'eshell-flatten-and-stringify args) "\n")
+      (progn
+        ;; If the output does not end in a newline, do not emit one.
+        (setq eshell-ensure-newline-p nil)
+        (concat (apply #'eshell-flatten-and-stringify args)
+                (when output-newline "\n")))
     (let ((value
 	   (cond
 	    ((= (length args) 0) "")
@@ -109,18 +113,28 @@ or `eshell-printn' for display."
   "Implementation of `echo'.  See `eshell-plain-echo-behavior'."
   (eshell-eval-using-options
    "echo" args
-   '((?n nil nil output-newline "terminate with a newline")
+   '((?n nil (nil) output-newline "do not output the trailing newline")
+     (?N nil (t)   output-newline "terminate with a newline")
      (?h "help" nil nil "output this help screen")
      :preserve-args
-     :usage "[-n] [object]")
-   (eshell-echo args output-newline)))
+     :usage "[-n | -N] [object]")
+   (if eshell-plain-echo-behavior
+       (eshell-echo args (if output-newline (car output-newline) t))
+     ;; In Emacs 28.1 and earlier, "-n" was used to add a newline to
+     ;; non-plain echo in Eshell.  This caused confusion due to "-n"
+     ;; generally having the opposite meaning for echo.  Retain this
+     ;; compatibility for the time being.  For more info, see
+     ;; bug#27361.
+     (when (equal output-newline '(nil))
+       (display-warning
+        :warning "To terminate with a newline, you should use -N instead."))
+     (eshell-echo args output-newline))))
 
 (defun eshell/printnl (&rest args)
-  "Print out each of the arguments, separated by newlines."
+  "Print out each of the arguments as strings, separated by newlines."
   (let ((elems (flatten-tree args)))
-    (while elems
-      (eshell-printn (eshell-echo (list (car elems))))
-      (setq elems (cdr elems)))))
+    (dolist (elem elems)
+      (eshell-printn (eshell-stringify elem)))))
 
 (defun eshell/listify (&rest args)
   "Return the argument(s) as a single list."
