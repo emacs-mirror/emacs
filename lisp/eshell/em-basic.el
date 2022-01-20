@@ -113,11 +113,16 @@ or `eshell-printn' for display."
   "Implementation of `echo'.  See `eshell-plain-echo-behavior'."
   (eshell-eval-using-options
    "echo" args
-   '((?n nil (nil) output-newline "do not output the trailing newline")
-     (?N nil (t)   output-newline "terminate with a newline")
-     (?h "help" nil nil "output this help screen")
+   '((?n nil (nil) output-newline
+         "do not output the trailing newline")
+     (?N nil (t)   output-newline
+         "terminate with a newline")
+     (?E nil nil   _disable-escapes
+         "don't interpret backslash escapes (default)")
+     (?h "help" nil nil
+         "output this help screen")
      :preserve-args
-     :usage "[-n | -N] [object]")
+     :usage "[OPTION]... [OBJECT]...")
    (if eshell-plain-echo-behavior
        (eshell-echo args (if output-newline (car output-newline) t))
      ;; In Emacs 28.1 and earlier, "-n" was used to add a newline to

@@ -257,12 +257,12 @@ triggered to say that the switch is unrecognized."
         remaining
       (let ((extcmd (memq ':external options)))
 	(when extcmd
-	  (setq extcmd (eshell-search-path (cadr extcmd)))
-	  (if extcmd
-	      (throw 'eshell-ext-command extcmd)
-            (error (if (characterp (car switch)) "%s: unrecognized option -%c"
-                     "%s: unrecognized option --%s")
-                   name (car switch))))))))
+	  (setq extcmd (eshell-search-path (cadr extcmd))))
+	(if extcmd
+	    (throw 'eshell-ext-command extcmd)
+          (error (if (characterp (car switch)) "%s: unrecognized option -%c"
+                   "%s: unrecognized option --%s")
+                 name (car switch)))))))
 
 (defun eshell--process-args (name args options)
   "Process the given ARGS using OPTIONS."
