@@ -172,7 +172,10 @@
     "Lars Ingebrigtsen <larsi@\N{RIGHT-TO-LEFT OVERRIDE}gnus.org>"))
 
   (should (textsec-email-address-header-suspicious-p
-           "דגבא <foo@bar.com>")))
+           "דגבא <foo@bar.com>"))
+
+  (should (textsec-email-address-suspicious-p
+           "Bob_Norbolwits@GCSsafetyACE.com​")))
 
 (ert-deftest test-suspicious-url ()
   (should-not (textsec-url-suspicious-p "http://example.ru/bar"))
