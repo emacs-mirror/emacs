@@ -416,7 +416,13 @@ the same domain as the URL."
                                (url-domsuf-cookie-allowed-p tdomain)))))
             (throw 'found
                    (format "Text `%s' doesn't point to link URL `%s'"
-                           text url)))))))))
+                           text url)))
+           ((and tdomain
+                 (textsec-domain-suspicious-p tdomain))
+            (throw 'found
+                   (format "Domain `%s' in the link text is suspicious"
+                           (bidi-string-strip-control-characters
+                            tdomain))))))))))
 
 (provide 'textsec)
 

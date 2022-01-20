@@ -195,6 +195,8 @@
            (cons "https://www.gnu.org/"
                  "This is a link that doesn't point to fsf.org")))
 
-  )
+  (should (textsec-link-suspicious-p
+           (cons "https://www.gn\N{LEFT-TO-RIGHT ISOLATE}u.org/"
+                 "gn\N{LEFT-TO-RIGHT ISOLATE}u.org"))))
 
 ;;; textsec-tests.el ends here
