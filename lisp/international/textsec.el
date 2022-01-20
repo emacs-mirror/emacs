@@ -244,8 +244,11 @@ or use certain other unusual mixtures of characters."
     (seq-do
      (lambda (char)
        (when (eq (elt idna-mapping-table char) t)
-         (throw 'found (format "Disallowed character: `%s' (#x%x)"
-                               (string char) char))))
+         (throw 'found
+                (format "Disallowed character: `%s' (#x%x, %s)"
+                        (bidi-string-strip-control-characters (string char))
+                        char
+                        (get-char-code-property char 'name)))))
      domain)
     ;; Does IDNA allow it?
     (unless (puny-highly-restrictive-domain-p domain)

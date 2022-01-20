@@ -162,6 +162,10 @@
    (textsec-email-address-header-suspicious-p
     "Lars Ingebrigtsen <larsi@gn\N{LEFT-TO-RIGHT ISOLATE}us.org>"))
 
+  (should
+   (textsec-email-address-header-suspicious-p
+    "Lars Ingebrigtsen <larsi@\N{RIGHT-TO-LEFT OVERRIDE}gnus.org>"))
+
   (should (textsec-email-address-header-suspicious-p
            "דגבא <foo@bar.com>")))
 
