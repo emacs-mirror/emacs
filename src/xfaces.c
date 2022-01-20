@@ -3165,14 +3165,15 @@ FRAME 0 means change the face on all frames, and change the default
           */
           valid_p = true;
 
-          while (!NILP (CAR_SAFE(list)))
+          while (!NILP (CAR_SAFE (list)))
             {
               key = CAR_SAFE (list);
               list = CDR_SAFE (list);
               val = CAR_SAFE (list);
               list = CDR_SAFE (list);
 
-              if (NILP (key) || NILP (val))
+              if (NILP (key) || (NILP (val)
+				 && !EQ (key, QCposition)))
                 {
                   valid_p = false;
                   break;
