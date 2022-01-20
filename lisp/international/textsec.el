@@ -389,22 +389,34 @@ This function will return non-nil if it seems like the link text
 is misleading about where the URL takes you.  This is typical
 when the link text looks like an URL itself, but doesn't lead to
 the same domain as the URL."
-  (let ((url (car link))
-        (text (string-trim (cdr link))))
-    (when (string-match-p "\\`[a-z]+\\.[.a-z]+\\'" text)
-      (setq text (concat "http://" text)))
-    (let ((udomain (url-host (url-generic-parse-url url)))
-          (tdomain (url-host (url-generic-parse-url text))))
-      (and udomain
-           tdomain
-           (not (equal udomain tdomain))
-           ;; One may be a sub-domain of the other, but don't allow too
-           ;; short domains.
-           (not (or (and (string-suffix-p udomain tdomain)
-                         (url-domsuf-cookie-allowed-p udomain))
-                    (and (string-suffix-p tdomain udomain)
-                         (url-domsuf-cookie-allowed-p tdomain))))
-           (format "Text `%s' doesn't point to link URL `%s'" text url)))))
+  (let* ((url (car link))
+         (text (string-trim (cdr link)))
+         (text-bits (seq-filter (lambda (bit)
+                                  (string-match-p "\\`[^.]+\\.[^.]+.*\\'" bit))
+                                (split-string text))))
+    (when text-bits
+      (setq text-bits (seq-map (lambda (string)
+                                 (if (not (string-match-p "\\`[^:]+:" string))
+                                     (concat "http://" string)
+                                   string))
+                               text-bits)))
+    (catch 'found
+      (dolist (text (or text-bits (list text)))
+        (let ((udomain (url-host (url-generic-parse-url url)))
+              (tdomain (url-host (url-generic-parse-url text))))
+          (cond
+           ((and udomain
+                 tdomain
+                 (not (equal udomain tdomain))
+                 ;; One may be a sub-domain of the other, but don't allow too
+                 ;; short domains.
+                 (not (or (and (string-suffix-p udomain tdomain)
+                               (url-domsuf-cookie-allowed-p udomain))
+                          (and (string-suffix-p tdomain udomain)
+                               (url-domsuf-cookie-allowed-p tdomain)))))
+            (throw 'found
+                   (format "Text `%s' doesn't point to link URL `%s'"
+                           text url)))))))))
 
 (provide 'textsec)
 
