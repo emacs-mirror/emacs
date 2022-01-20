@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.0.9") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0"))
 
 ;; This file is part of GNU Emacs.
 
@@ -1825,49 +1825,66 @@ COMMAND is a symbol naming the command."
   (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
           &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
   "Handle notification publishDiagnostics."
-  (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
-      (with-current-buffer buffer
-        (cl-loop
-         for diag-spec across diagnostics
-         collect (eglot--dbind ((Diagnostic) range message severity source tags)
-                     diag-spec
-                   (setq message (concat source ": " message))
-                   (pcase-let
-                       ((sev severity)
-                        (`(,beg . ,end) (eglot--range-region range)))
-                     ;; Fallback to `flymake-diag-region' if server
-                     ;; botched the range
-                     (when (= beg end)
-                       (if-let* ((st (plist-get range :start))
-                                 (diag-region
-                                  (flymake-diag-region
-                                   (current-buffer) (1+ (plist-get st :line))
-                                   (plist-get st :character))))
-                           (setq beg (car diag-region) end (cdr diag-region))
-                         (eglot--widening
-                          (goto-char (point-min))
-                          (setq beg
-                                (point-at-bol
-                                 (1+ (plist-get (plist-get range :start) :line))))
-                          (setq end
-                                (point-at-eol
-                                 (1+ (plist-get (plist-get range :end) :line)))))))
-                     (eglot--make-diag (current-buffer) beg end
-                                       (cond ((null sev) 'eglot-error)
-					     ((<= sev 1) 'eglot-error)
-                                             ((= sev 2)  'eglot-warning)
-                                             (t          'eglot-note))
-                                       message `((eglot-lsp-diag . ,diag-spec))
-                                       (and tags
-                                            `((face . ,(mapcar (lambda (tag)
-                                                                 (alist-get tag eglot--tag-faces))
-                                                               tags)))))))
-         into diags
-         finally (cond (eglot--current-flymake-report-fn
-                        (eglot--report-to-flymake diags))
-                       (t
-                        (setq eglot--unreported-diagnostics (cons t diags))))))
-    (jsonrpc--debug server "Diagnostics received for unvisited %s" uri)))
+  (cl-flet ((eglot--diag-type (sev)
+              (cond ((null sev) 'eglot-error)
+                    ((<= sev 1) 'eglot-error)
+                    ((= sev 2)  'eglot-warning)
+                    (t          'eglot-note))))
+    (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
+        (with-current-buffer buffer
+          (cl-loop
+           for diag-spec across diagnostics
+           collect (eglot--dbind ((Diagnostic) range message severity source tags)
+                       diag-spec
+                     (setq message (concat source ": " message))
+                     (pcase-let
+                         ((`(,beg . ,end) (eglot--range-region range)))
+                       ;; Fallback to `flymake-diag-region' if server
+                       ;; botched the range
+                       (when (= beg end)
+                         (if-let* ((st (plist-get range :start))
+                                   (diag-region
+                                    (flymake-diag-region
+                                     (current-buffer) (1+ (plist-get st :line))
+                                     (plist-get st :character))))
+                             (setq beg (car diag-region) end (cdr diag-region))
+                           (eglot--widening
+                            (goto-char (point-min))
+                            (setq beg
+                                  (point-at-bol
+                                   (1+ (plist-get (plist-get range :start) :line))))
+                            (setq end
+                                  (point-at-eol
+                                   (1+ (plist-get (plist-get range :end) :line)))))))
+                       (eglot--make-diag
+                        (current-buffer) beg end
+                        (eglot--diag-type severity)
+                        message `((eglot-lsp-diag . ,diag-spec))
+                        (and tags
+                             `((face
+                                . ,(mapcar (lambda (tag)
+                                             (alist-get tag eglot--tag-faces))
+                                           tags)))))))
+           into diags
+           finally (cond (eglot--current-flymake-report-fn
+                          (eglot--report-to-flymake diags))
+                         (t
+                          (setq eglot--unreported-diagnostics (cons t diags))))))
+      (cl-loop
+       with path = (expand-file-name (eglot--uri-to-path uri))
+       for diag-spec across diagnostics
+       collect (eglot--dbind ((Diagnostic) range message severity source) diag-spec
+                 (setq message (concat source ": " message))
+                 (let* ((start (plist-get range :start))
+                        (line (1+ (plist-get start :line)))
+                        (char (1+ (plist-get start :character))))
+                   (eglot--make-diag
+                    path (cons line char) nil (eglot--diag-type severity) message)))
+       into diags
+       finally
+       (setq flymake-list-only-diagnostics
+             (assoc-delete-all path flymake-list-only-diagnostics #'string=))
+       (push (cons path diags) flymake-list-only-diagnostics)))))
 
 (cl-defun eglot--register-unregister (server things how)
   "Helper for `registerCapability'.
