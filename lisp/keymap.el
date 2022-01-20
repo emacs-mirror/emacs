@@ -325,38 +325,38 @@ which is
 
    Alt-Control-Hyper-Meta-Shift-super"
   (declare (pure t) (side-effect-free t))
-  (and
-   (stringp keys)
-   (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
-   (save-match-data
-     (catch 'exit
-       (let ((prefixes
-              "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?")
-             (case-fold-search nil))
-         (dolist (key (split-string keys " "))
-           ;; Every key might have these modifiers, and they should be
-           ;; in this order.
-           (when (string-match (concat "\\`" prefixes) key)
-             (setq key (substring key (match-end 0))))
-           (unless (or (and (= (length key) 1)
-                            ;; Don't accept control characters as keys.
-                            (not (< (aref key 0) ?\s))
-                            ;; Don't accept Meta'd characters as keys.
-                            (or (multibyte-string-p key)
-                                (not (<= 127 (aref key 0) 255))))
-                       (and (string-match-p "\\`<[-_A-Za-z0-9]+>\\'" key)
-                            ;; Don't allow <M-C-down>.
-                            (= (progn
-                                 (string-match
-                                  (concat "\\`<" prefixes) key)
-                                 (match-end 0))
-                               1))
-                       (string-match-p
-                        "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
-                        key))
-             ;; Invalid.
-             (throw 'exit nil)))
-         t)))))
+  (let ((case-fold-search nil))
+    (and
+     (stringp keys)
+     (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
+     (save-match-data
+       (catch 'exit
+         (let ((prefixes
+                "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?"))
+           (dolist (key (split-string keys " "))
+             ;; Every key might have these modifiers, and they should be
+             ;; in this order.
+             (when (string-match (concat "\\`" prefixes) key)
+               (setq key (substring key (match-end 0))))
+             (unless (or (and (= (length key) 1)
+                              ;; Don't accept control characters as keys.
+                              (not (< (aref key 0) ?\s))
+                              ;; Don't accept Meta'd characters as keys.
+                              (or (multibyte-string-p key)
+                                  (not (<= 127 (aref key 0) 255))))
+                         (and (string-match-p "\\`<[-_A-Za-z0-9]+>\\'" key)
+                              ;; Don't allow <M-C-down>.
+                              (= (progn
+                                   (string-match
+                                    (concat "\\`<" prefixes) key)
+                                   (match-end 0))
+                                 1))
+                         (string-match-p
+                          "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
+                          key))
+               ;; Invalid.
+               (throw 'exit nil)))
+           t))))))
 
 (defun key-translate (from to)
   "Translate character FROM to TO on the current terminal.
