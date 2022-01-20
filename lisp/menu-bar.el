@@ -96,27 +96,23 @@
     (bindings--define-key menu [separator-print]
       menu-bar-separator)
 
-    (unless (featurep 'ns)
-      (bindings--define-key menu [close-tab]
-        '(menu-item "Close Tab" tab-close
-                    :visible (fboundp 'tab-close)
-                    :help "Close currently selected tab"))
-      (bindings--define-key menu [make-tab]
-        '(menu-item "New Tab" tab-new
-                    :visible (fboundp 'tab-new)
-                    :help "Open a new tab"))
+    (bindings--define-key menu [close-tab]
+      '(menu-item "Close Tab" tab-close
+                  :visible (fboundp 'tab-close)
+                  :help "Close currently selected tab"))
+    (bindings--define-key menu [make-tab]
+      '(menu-item "New Tab" tab-new
+                  :visible (fboundp 'tab-new)
+                  :help "Open a new tab"))
 
-      (bindings--define-key menu [separator-tab]
-        menu-bar-separator))
+    (bindings--define-key menu [separator-tab]
+      menu-bar-separator)
 
-    (bindings--define-key menu [enable-undelete-frame-mode]
-      '(menu-item "Enable Undeleting Frames" undelete-frame-mode
-                  :visible (null undelete-frame-mode)
-                  :help "Enable undeleting frames in this session"))
-    (bindings--define-key menu [disable-undelete-frame-mode]
-      '(menu-item "Disable Undeleting Frames" undelete-frame-mode
-                  :visible undelete-frame-mode
-                  :help "Disable undeleting frames in this session"))
+    (bindings--define-key menu [undelete-frame-mode]
+      '(menu-item "Allow Undeleting Frames" undelete-frame-mode
+                  :help "Allow frames to be restored after deletion"
+                  :button (:toggle . undelete-frame-mode)))
+
     (bindings--define-key menu [undelete-last-deleted-frame]
       '(menu-item "Undelete Frame" undelete-frame
                   :visible (and undelete-frame-mode
