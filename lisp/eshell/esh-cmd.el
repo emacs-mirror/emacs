@@ -903,21 +903,50 @@ at the moment are:
   "Completion for the `debug' command."
   (while (pcomplete-here '("errors" "commands"))))
 
+(defun eshell--invoke-command-directly (command)
+  "Determine whether the given COMMAND can be invoked directly.
+COMMAND should be a non-top-level Eshell command in parsed form.
+
+A command can be invoked directly if all of the following are true:
+
+* The command is of the form
+  \"(eshell-trap-errors (eshell-named-command NAME ARGS))\",
+  where ARGS is optional.
+
+* NAME is a string referring to an alias function and isn't a
+  complex command (see `eshell-complex-commands').
+
+* Any argument in ARGS that calls a subcommand can also be
+  invoked directly."
+  (when (and (eq (car command) 'eshell-trap-errors)
+             (eq (car (cadr command)) 'eshell-named-command))
+    (let ((name (cadr (cadr command)))
+          (args (cdr-safe (nth 2 (cadr command)))))
+      (and name (stringp name)
+	   (not (member name eshell-complex-commands))
+	   (catch 'simple
+	     (dolist (pred eshell-complex-commands t)
+	       (when (and (functionp pred)
+		          (funcall pred name))
+	         (throw 'simple nil))))
+	   (eshell-find-alias-function name)
+           (catch 'indirect-subcommand
+	     (dolist (arg args t)
+               (pcase arg
+                 (`(eshell-escape-arg
+                    (let ,_
+                      (eshell-convert
+                       (eshell-command-to-value
+                        (eshell-as-subcommand ,subcommand)))))
+                  (unless (eshell--invoke-command-directly subcommand)
+                    (throw 'indirect-subcommand nil))))))))))
+
 (defun eshell-invoke-directly (command)
-  (let ((base (cadr (nth 2 (nth 2 (cadr command))))) name)
-    (if (and (eq (car base) 'eshell-trap-errors)
-	     (eq (car (cadr base)) 'eshell-named-command))
-	(setq name (cadr (cadr base))))
-    (and name (stringp name)
-	 (not (member name eshell-complex-commands))
-	 (catch 'simple
-	   (progn
-	    (dolist (pred eshell-complex-commands)
-	      (if (and (functionp pred)
-		       (funcall pred name))
-		  (throw 'simple nil)))
-	    t))
-	 (eshell-find-alias-function name))))
+  "Determine whether the given COMMAND can be invoked directly.
+COMMAND should be a top-level Eshell command in parsed form, as
+produced by `eshell-parse-command'."
+  (let ((base (cadr (nth 2 (nth 2 (cadr command))))))
+    (eshell--invoke-command-directly base)))
 
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."

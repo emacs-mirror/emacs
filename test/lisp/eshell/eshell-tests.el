@@ -30,6 +30,10 @@
 (require 'esh-mode)
 (require 'eshell)
 
+(defvar eshell-test--max-subprocess-time 5
+  "The maximum amount of time to wait for a subprocess to finish, in seconds.
+See `eshell-wait-for-subprocess'.")
+
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
   `(ert-with-temp-directory eshell-directory-name
@@ -43,6 +47,17 @@
              ,@body)
          (let (kill-buffer-query-functions)
            (kill-buffer eshell-buffer))))))
+
+(defun eshell-wait-for-subprocess ()
+  "Wait until there is no interactive subprocess running in Eshell.
+If this takes longer than `eshell-test--max-subprocess-time',
+raise an error."
+  (let ((start (current-time)))
+    (while (eshell-interactive-process)
+      (when (> (float-time (time-since start))
+               eshell-test--max-subprocess-time)
+        (error "timed out waiting for subprocess"))
+      (sit-for 0.1))))
 
 (defun eshell-insert-command (text &optional func)
   "Insert a command at the end of the buffer."
@@ -59,6 +74,7 @@
 (defun eshell-command-result-p (text regexp &optional func)
   "Insert a command at the end of the buffer."
   (eshell-insert-command text func)
+  (eshell-wait-for-subprocess)
   (eshell-match-result regexp))
 
 (defvar eshell-history-file-name)
@@ -143,6 +159,13 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 (ert-deftest eshell-test/interp-concat-lisp2 ()
   "Interpolate and concat two Lisp forms"
   (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
+
+(ert-deftest eshell-test/interp-cmd-external ()
+  "Interpolate command result from external command"
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi}"
+                            "hi\n")))
 
 (ert-deftest eshell-test/window-height ()
   "$LINES should equal (window-height)"
