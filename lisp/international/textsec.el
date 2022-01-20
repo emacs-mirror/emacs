@@ -245,8 +245,11 @@ or use certain other unusual mixtures of characters."
      (lambda (char)
        (when (eq (elt idna-mapping-table char) t)
          (throw 'found
-                (format "Disallowed character: `%s' (#x%x, %s)"
-                        (bidi-string-strip-control-characters (string char))
+                (format "Disallowed character%s (#x%x, %s)"
+                        (if (eq (get-char-code-property char 'general-category)
+                                'Cf)
+                            ""
+                          (concat ": " (string char)))
                         char
                         (get-char-code-property char 'name)))))
      domain)
