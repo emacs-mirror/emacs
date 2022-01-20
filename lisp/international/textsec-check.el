@@ -29,7 +29,7 @@
   :version "29.1")
 
 (defcustom textsec-check t
-  "If non-nil, perform some checks on certain texts.
+  "If non-nil, perform some security-related checks on text objects.
 If nil, these checks are disabled."
   :type 'boolean
   :version "29.1")
@@ -40,14 +40,30 @@ If nil, these checks are disabled."
 
 ;;;###autoload
 (defun textsec-check (object type)
-  "Test whether OBJECT is suspicious when considered as TYPE.
-If OBJECT is suspicious, a string explaining the possible problem
-is returned.
+  "Test whether OBJECT is suspicious for use as TYPE.
+If OBJECT is suspicious, return a string explaining the reason
+for considering it suspicious, otherwise return nil.
 
-Available types include `url', `link', `domain', `local-address',
-`name', `email-address', and `email-address-header'.
+Available values of TYPE and corresponding OBJECTs are:
 
-If the `textsec-check' user option is nil, these checks are
+ `url'                   -- a URL; OBJECT should be a URL string.
+
+ `link'                 -- an HTML link; OBJECT should be a cons cell
+                           of the form (URL . LINK-TEXT).
+
+ `domain'               -- a Web domain; OBJECT should be a string.
+
+ `local-address'        -- the local part of an email address; OBJECT
+                           should be a string.
+ `name'                 -- the \"display name\" part of an email address;
+                           OBJECT should be a string.
+
+`email-address'         -- a full email address; OBJECT should be a string.
+
+ `email-address-header' -- a raw email address header in RFC 2822 format;
+                           OBJECT should be a string.
+
+If the user option `textsec-check' is nil, these checks are
 disabled, and this function always returns nil."
   (if (not textsec-check)
       nil

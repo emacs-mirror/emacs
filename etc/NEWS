@@ -1023,8 +1023,8 @@ may be used to confuse a user.
 If non-nil (which is the default), Emacs packages that are vulnerable
 to attackers trying to confuse the users will use the textsec library
 to mark suspicious text.  For instance shr/eww will mark suspicious
-URLs and links, and Gnus will mark suspicious From addresses, and
-Message will query the user if the user is sending mail to a
+URLs and links, Gnus will mark suspicious From addresses, and
+Message mode will query the user if the user is sending mail to a
 suspicious address.  If this variable is nil, these checks aren't
 performed.
 
