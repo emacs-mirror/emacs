@@ -266,6 +266,10 @@ Accepts keyword arguments:
 :exit BINDINGS         - Within the scope of :repeat-map will bind the
                          key in the repeat map, but will not set the
                          'repeat-map property of the bound command.
+:continue BINDINGS     - Within the scope of :repeat-map forces the
+                         same behaviour as if no special keyword had
+                         been used (that is, the command is bound, and
+                         it's 'repeat-map property set)
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
@@ -301,6 +305,9 @@ function symbol (unquoted)."
                                          override-global-map))))
                    (setq repeat-map (cadr args))
                    (setq map repeat-map))
+                  ((eq :continue (car args))
+                   (setq repeat-type :continue
+                         arg-change-func 'cdr))
                   ((eq :exit (car args))
                    (setq repeat-type :exit
                          arg-change-func 'cdr))
@@ -376,9 +383,10 @@ function symbol (unquoted)."
                         `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
          (when next
-           (bind-keys-form (if pkg
-                               (cons :package (cons pkg next))
-                             next) map)))))))
+           (bind-keys-form `(,@(when repeat-map `(:repeat-map ,repeat-map))
+                             ,@(if pkg
+                                   (cons :package (cons pkg next))
+                                 next)) map)))))))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
@@ -401,6 +409,10 @@ Accepts keyword arguments:
 :exit BINDINGS         - Within the scope of :repeat-map will bind the
                          key in the repeat map, but will not set the
                          'repeat-map property of the bound command.
+:continue BINDINGS     - Within the scope of :repeat-map forces the
+                         same behaviour as if no special keyword had
+                         been used (that is, the command is bound, and
+                         it's 'repeat-map property set)
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
