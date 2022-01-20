@@ -398,13 +398,14 @@ when the link text looks like an URL itself, but doesn't lead to
 the same domain as the URL."
   (let* ((url (car link))
          (text (string-trim (cdr link)))
-         (text-bits (seq-filter
-                     (lambda (bit)
-                       (and (string-match-p "\\`[^.]+\\.[^.]+.*\\'" bit)
-                            ;; All-numerical texts are probably not
-                            ;; suspicious (but what about IP addresses?).
-                            (not (string-match-p "\\`[0-9.]+\\'" bit))))
-                     (split-string text))))
+         (text-bits
+          (seq-filter
+           (lambda (bit)
+             (and (string-match-p "\\`[^.[:punct:]]+\\.[^.[:punct:]]+\\'" bit)
+                  ;; All-numerical texts are probably not
+                  ;; suspicious (but what about IP addresses?).
+                  (not (string-match-p "\\`[0-9.]+\\'" bit))))
+           (split-string text))))
     (when text-bits
       (setq text-bits (seq-map (lambda (string)
                                  (if (not (string-match-p "\\`[^:]+:" string))
