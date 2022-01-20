@@ -252,7 +252,10 @@ or use certain other unusual mixtures of characters."
      domain)
     ;; Does IDNA allow it?
     (unless (puny-highly-restrictive-domain-p domain)
-      (throw 'found (format "`%s' is not highly-restrictive" domain)))
+      (throw
+       'found
+       (format "`%s' mixes characters from different scripts in suspicious ways"
+               domain)))
     ;; Check whether any segment of the domain name is confusable with
     ;; an ASCII-only segment.
     (dolist (elem (split-string domain "\\."))
