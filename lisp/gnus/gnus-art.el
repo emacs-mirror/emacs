@@ -2659,7 +2659,8 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (defun article--check-suspicious-addresses (addresses)
   (setq addresses (replace-regexp-in-string "\\`[^:]+:[ \t\n]*" "" addresses))
   (dolist (header (mail-header-parse-addresses addresses t))
-    (when-let* ((address (car (mail-header-parse-address header)))
+    (when-let* ((address (car (ignore-errors
+                                (mail-header-parse-address header))))
                 (warning (textsec-check address 'email-address)))
       (goto-char (point-min))
       (while (search-forward address nil t)
