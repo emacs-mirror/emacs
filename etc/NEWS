@@ -972,7 +972,7 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 --
-** The variable 'polling-period' now accepts floating point values
+** The variable 'polling-period' now accepts floating point values.
 Setting it to a floating-point value means that Emacs will poll for
 input every so many fractions of a second.
 
