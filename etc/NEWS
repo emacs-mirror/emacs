@@ -104,6 +104,11 @@ files that were compiled with an old EIEIO (Emacs<25).
 ** 'C-x 8 .' has been moved to 'C-x 8 . .'.
 This is to open up the 'C-x 8 .' map to bind further characters there.
 
+---
+** 'source' and '.' in Eshell no longer accept the '--help' option.
+This is for compatibility with the shell versions of these commands,
+which don't handle options like '--help' in any special way.
+
 
 * Changes in Emacs 29.1
 
