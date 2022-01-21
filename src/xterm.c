@@ -2789,8 +2789,9 @@ x_query_frame_background_color (struct frame *f, XColor *bgcolor)
    and names we've actually looked up; list-colors-display is probably
    the most color-intensive case we're likely to hit.  */
 
-Status x_parse_color (struct frame *f, const char *color_name,
-		      XColor *color)
+Status
+x_parse_color (struct frame *f, const char *color_name,
+	       XColor *color)
 {
   /* Don't pass #RGB strings directly to XParseColor, because that
      follows the X convention of zero-extending each channel
@@ -2818,6 +2819,10 @@ Status x_parse_color (struct frame *f, const char *color_name,
 	  return 1;
 	}
     }
+
+  /* Some X servers send BadValue on empty color names.  */
+  if (!strlen (color_name))
+    return 0;
 
   if (XParseColor (dpy, cmap, color_name, color) == 0)
     /* No caching of negative results, currently.  */
