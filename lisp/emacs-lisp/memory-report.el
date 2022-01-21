@@ -75,7 +75,7 @@ by counted more than once."
 
 (defun memory-report-object-size (object)
   "Return the size of OBJECT in bytes."
-  (unless memory-report--type-size
+  (when (zerop (hash-table-count memory-report--type-size))
     (memory-report--garbage-collect))
   (memory-report--object-size (make-hash-table :test #'eq) object))
 
