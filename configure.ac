@@ -2913,40 +2913,6 @@ if test "${HAVE_GTK}" = "yes"; then
   fi
 fi
 
-
-dnl Enable xwidgets if GTK3 and WebKitGTK+ are available.
-dnl Enable xwidgets if macOS Cocoa and WebKit framework are available.
-HAVE_XWIDGETS=no
-XWIDGETS_OBJ=
-if test "$with_xwidgets" != "no"; then
-  if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
-    WEBKIT_REQUIRED=2.12
-    WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
-    EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
-    HAVE_XWIDGETS=$HAVE_WEBKIT
-    XWIDGETS_OBJ="xwidget.o"
-  elif test "${NS_IMPL_COCOA}" = "yes"; then
-    dnl FIXME: Check framework WebKit2
-    dnl WEBKIT_REQUIRED=M.m.p
-    WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
-    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
-    HAVE_WEBKIT="yes"
-    HAVE_XWIDGETS=$HAVE_WEBKIT
-    XWIDGETS_OBJ="xwidget.o"
-    NS_OBJC_OBJ="$NS_OBJC_OBJ nsxwidget.o"
-    dnl Update NS_OBJC_OBJ with added nsxwidget.o
-    AC_SUBST(NS_OBJC_OBJ)
-  else
-    AC_MSG_ERROR([xwidgets requested, it requires GTK3 as X window toolkit or macOS Cocoa as window system.])
-  fi
-
-  test $HAVE_XWIDGETS = yes ||
-    AC_MSG_ERROR([xwidgets requested but WebKitGTK+ or WebKit framework not found.])
-
-  AC_DEFINE([HAVE_XWIDGETS], 1, [Define to 1 if you have xwidgets support.])
-fi
-AC_SUBST(XWIDGETS_OBJ)
-
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
@@ -3450,6 +3416,51 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 fi
+
+dnl Enable xwidgets if GTK3 and WebKitGTK+ are available.
+dnl Enable xwidgets if macOS Cocoa and WebKit framework are available.
+HAVE_XWIDGETS=no
+XWIDGETS_OBJ=
+if test "$with_xwidgets" != "no"; then
+  if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
+    WEBKIT_REQUIRED=2.12
+    WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
+    EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
+    HAVE_XWIDGETS=$HAVE_WEBKIT
+    XWIDGETS_OBJ="xwidget.o"
+    if test "$HAVE_X_WINDOWS" = "yes" && test "${with_cairo}" = "no"; then
+      CAIRO_XLIB_MODULES="cairo >= 1.8.0 cairo-xlib >= 1.8.0"
+      EMACS_CHECK_MODULES(CAIRO_XLIB, $CAIRO_XLIB_MODULES)
+      if test $HAVE_CAIRO_XLIB = "yes"; then
+        CAIRO_CFLAGS="$CAIRO_XLIB_CFLAGS"
+	CAIRO_LIBS="$CAIRO_XLIB_LIBS"
+	AC_SUBST(CAIRO_CFLAGS)
+	AC_SUBST(CAIRO_LIBS)
+      else
+        AC_MSG_ERROR([xwidgets requested, but a suitable cairo installation wasn't found])
+      fi
+    fi
+  elif test "${NS_IMPL_COCOA}" = "yes"; then
+    dnl FIXME: Check framework WebKit2
+    dnl WEBKIT_REQUIRED=M.m.p
+    WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
+    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
+    HAVE_WEBKIT="yes"
+    HAVE_XWIDGETS=$HAVE_WEBKIT
+    XWIDGETS_OBJ="xwidget.o"
+    NS_OBJC_OBJ="$NS_OBJC_OBJ nsxwidget.o"
+    dnl Update NS_OBJC_OBJ with added nsxwidget.o
+    AC_SUBST(NS_OBJC_OBJ)
+  else
+    AC_MSG_ERROR([xwidgets requested, it requires GTK3 as X window toolkit or macOS Cocoa as window system.])
+  fi
+
+  test $HAVE_XWIDGETS = yes ||
+    AC_MSG_ERROR([xwidgets requested but WebKitGTK+ or WebKit framework not found.])
+
+  AC_DEFINE([HAVE_XWIDGETS], 1, [Define to 1 if you have xwidgets support.])
+fi
+AC_SUBST(XWIDGETS_OBJ)
 
 if test "$window_system" = "pgtk"; then
   CAIRO_REQUIRED=1.12.0

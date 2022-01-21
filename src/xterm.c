@@ -173,6 +173,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "../lwlib/xlwmenu.h"
 #endif
 
+#ifdef HAVE_XWIDGETS
+#include <cairo-xlib.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 
 /* Include toolkit specific headers for the scroll bar widget.  */
