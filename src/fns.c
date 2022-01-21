@@ -643,18 +643,19 @@ Do NOT use this function to compare file names for equality.  */)
 }
 
 static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
-			   enum Lisp_Type target_type, bool last_special);
+			   Lisp_Object last_tail, bool vector_target);
+static Lisp_Object concat_strings (ptrdiff_t nargs, Lisp_Object *args);
 
 Lisp_Object
 concat2 (Lisp_Object s1, Lisp_Object s2)
 {
-  return concat (2, ((Lisp_Object []) {s1, s2}), Lisp_String, 0);
+  return concat_strings (2, ((Lisp_Object []) {s1, s2}));
 }
 
 Lisp_Object
 concat3 (Lisp_Object s1, Lisp_Object s2, Lisp_Object s3)
 {
-  return concat (3, ((Lisp_Object []) {s1, s2, s3}), Lisp_String, 0);
+  return concat_strings (3, ((Lisp_Object []) {s1, s2, s3}));
 }
 
 DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
@@ -665,7 +666,9 @@ The last argument is not copied, just used as the tail of the new list.
 usage: (append &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return concat (nargs, args, Lisp_Cons, 1);
+  if (nargs == 0)
+    return Qnil;
+  return concat (nargs - 1, args, args[nargs - 1], false);
 }
 
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
@@ -678,7 +681,7 @@ to be `eq'.
 usage: (concat &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return concat (nargs, args, Lisp_String, 0);
+  return concat_strings (nargs, args);
 }
 
 DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
@@ -688,7 +691,7 @@ Each argument may be a list, vector or string.
 usage: (vconcat &rest SEQUENCES)   */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  return concat (nargs, args, Lisp_Vectorlike, 0);
+  return concat (nargs, args, Qnil, true);
 }
 
 
@@ -702,15 +705,47 @@ the same empty object instead of its copy.  */)
 {
   if (NILP (arg)) return arg;
 
-  if (RECORDP (arg))
+  if (CONSP (arg))
     {
-      return Frecord (PVSIZE (arg), XVECTOR (arg)->contents);
+      Lisp_Object val = Fcons (XCAR (arg), Qnil);
+      Lisp_Object prev = val;
+      Lisp_Object tail = XCDR (arg);
+      FOR_EACH_TAIL (tail)
+	{
+	  Lisp_Object c = Fcons (XCAR (tail), Qnil);
+	  XSETCDR (prev, c);
+	  prev = c;
+	}
+      CHECK_LIST_END (tail, tail);
+      return val;
     }
 
-  if (CHAR_TABLE_P (arg))
+  if (STRINGP (arg))
     {
-      return copy_char_table (arg);
+      ptrdiff_t bytes = SBYTES (arg);
+      ptrdiff_t chars = SCHARS (arg);
+      Lisp_Object val = STRING_MULTIBYTE (arg)
+	? make_uninit_multibyte_string (chars, bytes)
+	: make_uninit_string (bytes);
+      memcpy (SDATA (val), SDATA (arg), bytes);
+      INTERVAL ivs = string_intervals (arg);
+      if (ivs)
+	{
+	  INTERVAL copy = copy_intervals (ivs, 0, chars);
+	  set_interval_object (copy, val);
+	  set_string_intervals (val, copy);
+	}
+      return val;
     }
+
+  if (VECTORP (arg))
+    return Fvector (ASIZE (arg), XVECTOR (arg)->contents);
+
+  if (RECORDP (arg))
+    return Frecord (PVSIZE (arg), XVECTOR (arg)->contents);
+
+  if (CHAR_TABLE_P (arg))
+    return copy_char_table (arg);
 
   if (BOOL_VECTOR_P (arg))
     {
@@ -721,13 +756,10 @@ the same empty object instead of its copy.  */)
       return val;
     }
 
-  if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
-    wrong_type_argument (Qsequencep, arg);
-
-  return concat (1, &arg, XTYPE (arg), 0);
+  wrong_type_argument (Qsequencep, arg);
 }
 
-/* This structure holds information of an argument of `concat' that is
+/* This structure holds information of an argument of `concat_strings' that is
    a string and has text properties to be copied.  */
 struct textprop_rec
 {
@@ -737,278 +769,312 @@ struct textprop_rec
 };
 
 static Lisp_Object
-concat (ptrdiff_t nargs, Lisp_Object *args,
-	enum Lisp_Type target_type, bool last_special)
+concat_strings (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object val;
-  Lisp_Object tail;
-  Lisp_Object this;
-  ptrdiff_t toindex;
-  ptrdiff_t toindex_byte = 0;
-  EMACS_INT result_len;
-  EMACS_INT result_len_byte;
-  ptrdiff_t argnum;
-  Lisp_Object last_tail;
-  Lisp_Object prev;
-  bool some_multibyte;
-  /* When we make a multibyte string, we can't copy text properties
-     while concatenating each string because the length of resulting
-     string can't be decided until we finish the whole concatenation.
-     So, we record strings that have text properties to be copied
-     here, and copy the text properties after the concatenation.  */
-  struct textprop_rec  *textprops = NULL;
-  /* Number of elements in textprops.  */
-  ptrdiff_t num_textprops = 0;
   USE_SAFE_ALLOCA;
 
-  tail = Qnil;
-
-  /* In append, the last arg isn't treated like the others */
-  if (last_special && nargs > 0)
-    {
-      nargs--;
-      last_tail = args[nargs];
-    }
-  else
-    last_tail = Qnil;
-
-  /* Check each argument.  */
-  for (argnum = 0; argnum < nargs; argnum++)
-    {
-      this = args[argnum];
-      if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
-	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
-	wrong_type_argument (Qsequencep, this);
-    }
-
-  /* Compute total length in chars of arguments in RESULT_LEN.
-     If desired output is a string, also compute length in bytes
-     in RESULT_LEN_BYTE, and determine in SOME_MULTIBYTE
+  /* Check types and compute total length in chars of arguments in RESULT_LEN,
+     length in bytes in RESULT_LEN_BYTE, and determine in DEST_MULTIBYTE
      whether the result should be a multibyte string.  */
-  result_len_byte = 0;
-  result_len = 0;
-  some_multibyte = 0;
-  for (argnum = 0; argnum < nargs; argnum++)
+  EMACS_INT result_len = 0;
+  EMACS_INT result_len_byte = 0;
+  bool dest_multibyte = false;
+  bool some_unibyte = false;
+  for (ptrdiff_t i = 0; i < nargs; i++)
     {
+      Lisp_Object arg = args[i];
       EMACS_INT len;
-      this = args[argnum];
-      len = XFIXNAT (Flength (this));
-      if (target_type == Lisp_String)
-	{
-	  /* We must count the number of bytes needed in the string
-	     as well as the number of characters.  */
-	  ptrdiff_t i;
-	  Lisp_Object ch;
-	  int c;
-	  ptrdiff_t this_len_byte;
 
-	  if (VECTORP (this) || COMPILEDP (this))
-	    for (i = 0; i < len; i++)
-	      {
-		ch = AREF (this, i);
-		CHECK_CHARACTER (ch);
-		c = XFIXNAT (ch);
-		this_len_byte = CHAR_BYTES (c);
-		if (STRING_BYTES_BOUND - result_len_byte < this_len_byte)
-		  string_overflow ();
-		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (c) && ! CHAR_BYTE8_P (c))
-		  some_multibyte = 1;
-	      }
-	  else if (BOOL_VECTOR_P (this) && bool_vector_size (this) > 0)
-	    wrong_type_argument (Qintegerp, Faref (this, make_fixnum (0)));
-	  else if (CONSP (this))
-	    for (; CONSP (this); this = XCDR (this))
-	      {
-		ch = XCAR (this);
-		CHECK_CHARACTER (ch);
-		c = XFIXNAT (ch);
-		this_len_byte = CHAR_BYTES (c);
-		if (STRING_BYTES_BOUND - result_len_byte < this_len_byte)
-		  string_overflow ();
-		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (c) && ! CHAR_BYTE8_P (c))
-		  some_multibyte = 1;
-	      }
-	  else if (STRINGP (this))
-	    {
-	      if (STRING_MULTIBYTE (this))
-		{
-		  some_multibyte = 1;
-		  this_len_byte = SBYTES (this);
-		}
-	      else
-		this_len_byte = count_size_as_multibyte (SDATA (this),
-							 SCHARS (this));
-	      if (STRING_BYTES_BOUND - result_len_byte < this_len_byte)
-		string_overflow ();
-	      result_len_byte += this_len_byte;
-	    }
+      /* We must count the number of bytes needed in the string
+	 as well as the number of characters.  */
+
+      if (STRINGP (arg))
+	{
+	  ptrdiff_t arg_len_byte;
+	  len = SCHARS (arg);
+	  arg_len_byte = SBYTES (arg);
+	  if (STRING_MULTIBYTE (arg))
+	    dest_multibyte = true;
+	  else
+	    some_unibyte = true;
+	  if (STRING_BYTES_BOUND - result_len_byte < arg_len_byte)
+	    string_overflow ();
+	  result_len_byte += arg_len_byte;
 	}
+      else if (VECTORP (arg))
+	{
+	  len = ASIZE (arg);
+	  ptrdiff_t arg_len_byte = 0;
+	  for (ptrdiff_t j = 0; j < len; j++)
+	    {
+	      Lisp_Object ch = AREF (arg, j);
+	      CHECK_CHARACTER (ch);
+	      int c = XFIXNAT (ch);
+	      arg_len_byte += CHAR_BYTES (c);
+	      if (!ASCII_CHAR_P (c) && !CHAR_BYTE8_P (c))
+		dest_multibyte = true;
+	    }
+	  if (STRING_BYTES_BOUND - result_len_byte < arg_len_byte)
+	    string_overflow ();
+	  result_len_byte += arg_len_byte;
+	}
+      else if (NILP (arg))
+	continue;
+      else if (CONSP (arg))
+	{
+	  len = XFIXNAT (Flength (arg));
+	  ptrdiff_t arg_len_byte = 0;
+	  for (; CONSP (arg); arg = XCDR (arg))
+	    {
+	      Lisp_Object ch = XCAR (arg);
+	      CHECK_CHARACTER (ch);
+	      int c = XFIXNAT (ch);
+	      arg_len_byte += CHAR_BYTES (c);
+	      if (!ASCII_CHAR_P (c) && !CHAR_BYTE8_P (c))
+		dest_multibyte = true;
+	    }
+	  if (STRING_BYTES_BOUND - result_len_byte < arg_len_byte)
+	    string_overflow ();
+	  result_len_byte += arg_len_byte;
+	}
+      else
+	wrong_type_argument (Qsequencep, arg);
 
       result_len += len;
       if (MOST_POSITIVE_FIXNUM < result_len)
 	memory_full (SIZE_MAX);
     }
 
-  if (! some_multibyte)
+  if (dest_multibyte && some_unibyte)
+    {
+      // Non-ASCII chars in unibyte strings take two bytes when
+      // converted to multibyte -- count them and adjust the total.
+      for (ptrdiff_t i = 0; i < nargs; i++)
+	{
+	  Lisp_Object arg = args[i];
+	  if (STRINGP (arg) && !STRING_MULTIBYTE (arg))
+	    {
+	      ptrdiff_t bytes = SCHARS (arg);
+	      const unsigned char *s = SDATA (arg);
+	      ptrdiff_t nonascii = 0;
+	      for (ptrdiff_t j = 0; j < bytes; j++)
+		nonascii += s[j] >> 7;
+	      if (STRING_BYTES_BOUND - result_len_byte < nonascii)
+		string_overflow ();
+	      result_len_byte += nonascii;
+	    }
+	}
+    }
+
+  if (!dest_multibyte)
     result_len_byte = result_len;
 
   /* Create the output object.  */
-  if (target_type == Lisp_Cons)
-    val = Fmake_list (make_fixnum (result_len), Qnil);
-  else if (target_type == Lisp_Vectorlike)
-    val = make_nil_vector (result_len);
-  else if (some_multibyte)
-    val = make_uninit_multibyte_string (result_len, result_len_byte);
-  else
-    val = make_uninit_string (result_len);
-
-  /* In `append', if all but last arg are nil, return last arg.  */
-  if (target_type == Lisp_Cons && NILP (val))
-    return last_tail;
+  Lisp_Object result = dest_multibyte
+    ? make_uninit_multibyte_string (result_len, result_len_byte)
+    : make_uninit_string (result_len);
 
   /* Copy the contents of the args into the result.  */
-  if (CONSP (val))
-    tail = val, toindex = -1; /* -1 in toindex is flag we are making a list */
-  else
-    toindex = 0, toindex_byte = 0;
+  ptrdiff_t toindex = 0;
+  ptrdiff_t toindex_byte = 0;
 
-  prev = Qnil;
-  if (STRINGP (val))
-    SAFE_NALLOCA (textprops, 1, nargs);
+  /* When we make a multibyte string, we can't copy text properties
+     while concatenating each string because the length of resulting
+     string can't be decided until we finish the whole concatenation.
+     So, we record strings that have text properties to be copied
+     here, and copy the text properties after the concatenation.  */
+  struct textprop_rec *textprops;
+  /* Number of elements in textprops.  */
+  ptrdiff_t num_textprops = 0;
+  SAFE_NALLOCA (textprops, 1, nargs);
 
-  for (argnum = 0; argnum < nargs; argnum++)
+  for (ptrdiff_t i = 0; i < nargs; i++)
     {
-      Lisp_Object thislen;
-      ptrdiff_t thisleni = 0;
-      ptrdiff_t thisindex = 0;
-      ptrdiff_t thisindex_byte = 0;
-
-      this = args[argnum];
-      if (!CONSP (this))
-	thislen = Flength (this), thisleni = XFIXNUM (thislen);
-
-      /* Between strings of the same kind, copy fast.  */
-      if (STRINGP (this) && STRINGP (val)
-	  && STRING_MULTIBYTE (this) == some_multibyte)
+      Lisp_Object arg = args[i];
+      if (STRINGP (arg))
 	{
-	  ptrdiff_t thislen_byte = SBYTES (this);
-
-	  memcpy (SDATA (val) + toindex_byte, SDATA (this), SBYTES (this));
-	  if (string_intervals (this))
+	  if (string_intervals (arg))
 	    {
-	      textprops[num_textprops].argnum = argnum;
+	      textprops[num_textprops].argnum = i;
 	      textprops[num_textprops].from = 0;
-	      textprops[num_textprops++].to = toindex;
+	      textprops[num_textprops].to = toindex;
+	      num_textprops++;
 	    }
-	  toindex_byte += thislen_byte;
-	  toindex += thisleni;
+	  ptrdiff_t nchars = SCHARS (arg);
+	  if (STRING_MULTIBYTE (arg) == dest_multibyte)
+	    {
+	      /* Between strings of the same kind, copy fast.  */
+	      ptrdiff_t arg_len_byte = SBYTES (arg);
+	      memcpy (SDATA (result) + toindex_byte, SDATA (arg), arg_len_byte);
+	      toindex_byte += arg_len_byte;
+	    }
+	  else
+	    {
+	      /* Copy a single-byte string to a multibyte string.  */
+	      toindex_byte += copy_text (SDATA (arg),
+					 SDATA (result) + toindex_byte,
+					 nchars, 0, 1);
+	    }
+	  toindex += nchars;
 	}
-      /* Copy a single-byte string to a multibyte string.  */
-      else if (STRINGP (this) && STRINGP (val))
+      else if (VECTORP (arg))
 	{
-	  if (string_intervals (this))
+	  ptrdiff_t len = ASIZE (arg);
+	  for (ptrdiff_t j = 0; j < len; j++)
 	    {
-	      textprops[num_textprops].argnum = argnum;
-	      textprops[num_textprops].from = 0;
-	      textprops[num_textprops++].to = toindex;
+	      int c = XFIXNAT (AREF (arg, j));
+	      ptrdiff_t arg_len_byte = CHAR_BYTES (c);
+
+	      if (dest_multibyte)
+		toindex_byte += CHAR_STRING (c, SDATA (result) + toindex_byte);
+	      else
+		SSET (result, toindex_byte++, c);
+	      toindex++;
 	    }
-	  toindex_byte += copy_text (SDATA (this),
-				     SDATA (val) + toindex_byte,
-				     SCHARS (this), 0, 1);
-	  toindex += thisleni;
 	}
       else
-	/* Copy element by element.  */
-	while (1)
+	for (Lisp_Object tail = arg; !NILP (tail); tail = XCDR (tail))
 	  {
-	    register Lisp_Object elt;
-
-	    /* Fetch next element of `this' arg into `elt', or break if
-	       `this' is exhausted. */
-	    if (NILP (this)) break;
-	    if (CONSP (this))
-	      elt = XCAR (this), this = XCDR (this);
-	    else if (thisindex >= thisleni)
-	      break;
-	    else if (STRINGP (this))
-	      {
-		int c;
-		if (STRING_MULTIBYTE (this))
-		  c = fetch_string_char_advance_no_check (this, &thisindex,
-							  &thisindex_byte);
-		else
-		  {
-		    c = SREF (this, thisindex); thisindex++;
-		    if (some_multibyte && !ASCII_CHAR_P (c))
-		      c = BYTE8_TO_CHAR (c);
-		  }
-		XSETFASTINT (elt, c);
-	      }
-	    else if (BOOL_VECTOR_P (this))
-	      {
-		elt = bool_vector_ref (this, thisindex);
-		thisindex++;
-	      }
+	    int c = XFIXNAT (XCAR (tail));
+	    if (dest_multibyte)
+	      toindex_byte += CHAR_STRING (c, SDATA (result) + toindex_byte);
 	    else
-	      {
-		elt = AREF (this, thisindex);
-		thisindex++;
-	      }
-
-	    /* Store this element into the result.  */
-	    if (toindex < 0)
-	      {
-		XSETCAR (tail, elt);
-		prev = tail;
-		tail = XCDR (tail);
-	      }
-	    else if (VECTORP (val))
-	      {
-		ASET (val, toindex, elt);
-		toindex++;
-	      }
-	    else
-	      {
-		int c;
-		CHECK_CHARACTER (elt);
-		c = XFIXNAT (elt);
-		if (some_multibyte)
-		  toindex_byte += CHAR_STRING (c, SDATA (val) + toindex_byte);
-		else
-		  SSET (val, toindex_byte++, c);
-		toindex++;
-	      }
+	      SSET (result, toindex_byte++, c);
+	    toindex++;
 	  }
     }
-  if (!NILP (prev))
-    XSETCDR (prev, last_tail);
 
   if (num_textprops > 0)
     {
-      Lisp_Object props;
       ptrdiff_t last_to_end = -1;
-
-      for (argnum = 0; argnum < num_textprops; argnum++)
+      for (ptrdiff_t i = 0; i < num_textprops; i++)
 	{
-	  this = args[textprops[argnum].argnum];
-	  props = text_property_list (this,
-				      make_fixnum (0),
-				      make_fixnum (SCHARS (this)),
-				      Qnil);
+	  Lisp_Object arg = args[textprops[i].argnum];
+	  Lisp_Object props = text_property_list (arg,
+						  make_fixnum (0),
+						  make_fixnum (SCHARS (arg)),
+						  Qnil);
 	  /* If successive arguments have properties, be sure that the
 	     value of `composition' property be the copy.  */
-	  if (last_to_end == textprops[argnum].to)
+	  if (last_to_end == textprops[i].to)
 	    make_composition_value_copy (props);
-	  add_text_properties_from_list (val, props,
-					 make_fixnum (textprops[argnum].to));
-	  last_to_end = textprops[argnum].to + SCHARS (this);
+	  add_text_properties_from_list (result, props,
+					 make_fixnum (textprops[i].to));
+	  last_to_end = textprops[i].to + SCHARS (arg);
 	}
     }
 
   SAFE_FREE ();
-  return val;
+  return result;
+}
+
+/* Concatenate sequences into a list or vector. */
+
+Lisp_Object
+concat (ptrdiff_t nargs, Lisp_Object *args, Lisp_Object last_tail,
+	bool vector_target)
+{
+  /* Check argument types and compute total length of arguments.  */
+  EMACS_INT result_len = 0;
+  for (ptrdiff_t i = 0; i < nargs; i++)
+    {
+      Lisp_Object arg = args[i];
+      if (!(CONSP (arg) || NILP (arg) || VECTORP (arg) || STRINGP (arg)
+	    || COMPILEDP (arg) || BOOL_VECTOR_P (arg)))
+	wrong_type_argument (Qsequencep, arg);
+      EMACS_INT len = XFIXNAT (Flength (arg));
+      result_len += len;
+      if (MOST_POSITIVE_FIXNUM < result_len)
+	memory_full (SIZE_MAX);
+    }
+
+  /* Create the output object.  */
+  Lisp_Object result = vector_target
+    ? make_nil_vector (result_len)
+    : Fmake_list (make_fixnum (result_len), Qnil);
+
+  /* In `append', if all but last arg are nil, return last arg.  */
+  if (!vector_target && NILP (result))
+    return last_tail;
+
+  /* Copy the contents of the args into the result.  */
+  Lisp_Object tail = Qnil;
+  ptrdiff_t toindex = 0;
+  if (CONSP (result))
+    {
+      tail = result;
+      toindex = -1;   /* -1 in toindex is flag we are making a list */
+    }
+
+  Lisp_Object prev = Qnil;
+
+  for (ptrdiff_t i = 0; i < nargs; i++)
+    {
+      ptrdiff_t arglen = 0;
+      ptrdiff_t argindex = 0;
+      ptrdiff_t argindex_byte = 0;
+
+      Lisp_Object arg = args[i];
+      if (!CONSP (arg))
+	arglen = XFIXNUM (Flength (arg));
+
+      /* Copy element by element.  */
+      while (1)
+	{
+	  /* Fetch next element of `arg' arg into `elt', or break if
+	     `arg' is exhausted. */
+	  Lisp_Object elt;
+	  if (NILP (arg))
+	    break;
+	  if (CONSP (arg))
+	    {
+	      elt = XCAR (arg);
+	      arg = XCDR (arg);
+	    }
+	  else if (argindex >= arglen)
+	    break;
+	  else if (STRINGP (arg))
+	    {
+	      int c;
+	      if (STRING_MULTIBYTE (arg))
+		c = fetch_string_char_advance_no_check (arg, &argindex,
+							&argindex_byte);
+	      else
+		{
+		  c = SREF (arg, argindex);
+		  argindex++;
+		}
+	      XSETFASTINT (elt, c);
+	    }
+	  else if (BOOL_VECTOR_P (arg))
+	    {
+	      elt = bool_vector_ref (arg, argindex);
+	      argindex++;
+	    }
+	  else
+	    {
+	      elt = AREF (arg, argindex);
+	      argindex++;
+	    }
+
+	  /* Store this element into the result.  */
+	  if (toindex < 0)
+	    {
+	      XSETCAR (tail, elt);
+	      prev = tail;
+	      tail = XCDR (tail);
+	    }
+	  else
+	    {
+	      ASET (result, toindex, elt);
+	      toindex++;
+	    }
+	}
+    }
+  if (!NILP (prev))
+    XSETCDR (prev, last_tail);
+
+  return result;
 }
 
 static Lisp_Object string_char_byte_cache_string;
@@ -1380,7 +1446,7 @@ Elements of ALIST that are not conses are also shared.  */)
 {
   if (NILP (alist))
     return alist;
-  alist = concat (1, &alist, Lisp_Cons, false);
+  alist = Fcopy_sequence (alist);
   for (Lisp_Object tem = alist; !NILP (tem); tem = XCDR (tem))
     {
       Lisp_Object car = XCAR (tem);
