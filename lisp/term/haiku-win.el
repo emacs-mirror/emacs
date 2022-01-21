@@ -138,6 +138,14 @@ If TYPE is nil, return \"text/plain\"."
 
 (defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
 
+(defun haiku-use-system-tooltips-watcher (&rest _ignored)
+  "Variable watcher to force a menu bar update when `use-system-tooltip' changes.
+This is necessary because on Haiku `use-system-tooltip' doesn't
+take effect on menu items until the menu bar is updated again."
+  (force-mode-line-update t))
+
+(add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
+
 (provide 'haiku-win)
 (provide 'term/haiku-win)
 
