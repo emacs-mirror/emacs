@@ -973,8 +973,8 @@ functions.
 
 --
 ** The variable 'polling-period' now accepts floating point values.
-Setting it to a floating-point value means that Emacs will poll for
-input every so many fractions of a second.
+This means Emacs can now poll for input during Lisp execution more
+frequently than once in a second.
 
 --
 ** New function 'bidi-string-strip-control-characters'.
