@@ -345,7 +345,7 @@ are met.  The conditions are given by the argument, which can be
 These forms now indent like this:
 
     (cl-flet ((bla (x)
-		(* x x)))
+                (* x x)))
       (bla 42))
 
 This change also affects 'cl-macrolet', 'cl-flet*' and
