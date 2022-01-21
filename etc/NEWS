@@ -968,6 +968,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 --
+** The variable 'polling-period' now accepts floating point values
+Setting it to a floating-point value means that Emacs will poll for
+input every so many fractions of a second.
+
+--
 ** New function 'bidi-string-strip-control-characters'.
 This utility function is meant for displaying strings when it's
 essential that there's no bidirectional context.
