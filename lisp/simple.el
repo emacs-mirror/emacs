@@ -2306,8 +2306,8 @@ maps."
    (let* ((execute-extended-command--last-typed nil)
           (keymaps
            ;; The major mode's keymap and any active minor modes.
-           (cons
-            (current-local-map)
+           (nconc
+            (and (current-local-map) (list (current-local-map)))
             (mapcar
              #'cdr
              (seq-filter
