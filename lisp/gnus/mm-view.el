@@ -504,8 +504,6 @@ If MODE is not set, try to find mode automatically."
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
 	(setq text (buffer-string))))
     (with-temp-buffer
-      (buffer-disable-undo)
-      (mm-enable-multibyte)
       (insert (cond ((eq charset 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))

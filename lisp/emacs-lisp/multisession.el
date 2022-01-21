@@ -434,10 +434,16 @@ storage method to list."
                multisession-edit-mode)
   (unless id
     (error "No value on the current line"))
-  (let* ((object (make-multisession
-                  :package (car id)
-                  :key (cdr id)
-                  :storage multisession-storage))
+  (let* ((object (or
+                  ;; If the multisession variable already exists, use
+                  ;; it (so that we update it).
+                  (and (boundp (intern-soft (cdr id)))
+                       (symbol-value (intern (cdr id))))
+                  ;; Create a new object.
+                  (make-multisession
+                   :package (car id)
+                   :key (cdr id)
+                   :storage multisession-storage)))
          (value (multisession-value object)))
     (setf (multisession-value object)
           (car (read-from-string

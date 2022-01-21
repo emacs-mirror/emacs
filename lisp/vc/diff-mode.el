@@ -2270,23 +2270,27 @@ Return new point, if it was moved."
 
 (defun diff--iterate-hunks (max fun)
   "Iterate over all hunks between point and MAX.
-Call FUN with two args (BEG and END) for each hunk."
+Call FUN with two args (BEG and END) for each hunk.
+If INHIBIT-ERROR, ignore malformed hunks."
   (save-excursion
-    (let* ((beg (or (ignore-errors (diff-beginning-of-hunk))
-                    (ignore-errors (diff-hunk-next) (point))
-                    max)))
-      (while (< beg max)
-        (goto-char beg)
-        (cl-assert (looking-at diff-hunk-header-re))
-        (let ((end
-               (save-excursion (diff-end-of-hunk) (point))))
-          (cl-assert (< beg end))
-          (funcall fun beg end)
-          (goto-char end)
-          (setq beg (if (looking-at diff-hunk-header-re)
-                        end
-                      (or (ignore-errors (diff-hunk-next) (point))
-                          max))))))))
+    (catch 'malformed
+      (let* ((beg (or (ignore-errors (diff-beginning-of-hunk))
+                      (ignore-errors (diff-hunk-next) (point))
+                      max)))
+        (while (< beg max)
+          (goto-char beg)
+          (unless (looking-at diff-hunk-header-re)
+            (throw 'malformed nil))
+          (let ((end
+                 (save-excursion (diff-end-of-hunk) (point))))
+            (unless (< beg end)
+              (throw 'malformed nil))
+            (funcall fun beg end)
+            (goto-char end)
+            (setq beg (if (looking-at diff-hunk-header-re)
+                          end
+                        (or (ignore-errors (diff-hunk-next) (point))
+                            max)))))))))
 
 (defun diff--font-lock-refined (max)
   "Apply hunk refinement from font-lock."

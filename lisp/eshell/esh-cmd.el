@@ -107,6 +107,7 @@
 (require 'esh-module)
 (require 'esh-io)
 (require 'esh-ext)
+(require 'generator)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -903,6 +904,17 @@ at the moment are:
   "Completion for the `debug' command."
   (while (pcomplete-here '("errors" "commands"))))
 
+(iter-defun eshell--find-subcommands (haystack)
+  "Recursively search for subcommand forms in HAYSTACK.
+This yields the SUBCOMMANDs when found in forms like
+\"(eshell-as-subcommand SUBCOMMAND)\"."
+  (dolist (elem haystack)
+    (cond
+     ((eq (car-safe elem) 'eshell-as-subcommand)
+      (iter-yield (cdr elem)))
+     ((listp elem)
+      (iter-yield-from (eshell--find-subcommands elem))))))
+
 (defun eshell--invoke-command-directly (command)
   "Determine whether the given COMMAND can be invoked directly.
 COMMAND should be a non-top-level Eshell command in parsed form.
@@ -916,8 +928,7 @@ A command can be invoked directly if all of the following are true:
 * NAME is a string referring to an alias function and isn't a
   complex command (see `eshell-complex-commands').
 
-* Any argument in ARGS that calls a subcommand can also be
-  invoked directly."
+* Any subcommands in ARGS can also be invoked directly."
   (when (and (eq (car command) 'eshell-trap-errors)
              (eq (car (cadr command)) 'eshell-named-command))
     (let ((name (cadr (cadr command)))
@@ -931,15 +942,10 @@ A command can be invoked directly if all of the following are true:
 	         (throw 'simple nil))))
 	   (eshell-find-alias-function name)
            (catch 'indirect-subcommand
-	     (dolist (arg args t)
-               (pcase arg
-                 (`(eshell-escape-arg
-                    (let ,_
-                      (eshell-convert
-                       (eshell-command-to-value
-                        (eshell-as-subcommand ,subcommand)))))
-                  (unless (eshell--invoke-command-directly subcommand)
-                    (throw 'indirect-subcommand nil))))))))))
+             (iter-do (subcommand (eshell--find-subcommands args))
+               (unless (eshell--invoke-command-directly subcommand)
+                 (throw 'indirect-subcommand nil)))
+             t)))))
 
 (defun eshell-invoke-directly (command)
   "Determine whether the given COMMAND can be invoked directly.

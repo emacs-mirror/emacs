@@ -98,7 +98,11 @@ This applies to `eval-defun', `eval-region', `eval-buffer', and
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
 \(make-local-variable \\='edebug-all-defs) in your
-`emacs-lisp-mode-hook'."
+`emacs-lisp-mode-hook'.
+
+Note that this user option has no effect unless the edebug
+package has been loaded."
+  :require 'edebug
   :type 'boolean)
 
 ;;;###autoload

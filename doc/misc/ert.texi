@@ -444,8 +444,9 @@ emacs -batch -l ert -l my-tests.el \
 @vindex EMACS_TEST_VERBOSE@r{, environment variable}
 By default, ERT test failure summaries are quite brief in batch
 mode---only the names of the failed tests are listed.  If the
-@env{EMACS_TEST_VERBOSE} environment variable is set, the failure
-summaries will also include the data from the failing test.
+@env{EMACS_TEST_VERBOSE} environment variable is set and is non-empty,
+the failure summaries will also include the data from the failing
+test.
 
 @vindex EMACS_TEST_JUNIT_REPORT@r{, environment variable}
 ERT can produce JUnit test reports in batch mode.  If the environment
