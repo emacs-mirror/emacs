@@ -80,6 +80,7 @@ The GNU allocators don't work|\
 ^'\.git/|\
 ^\^\(\(|\
 ^'build-aux/git-hooks\
+^ANCIENT=yes make\
 " | \
 while read
 do
