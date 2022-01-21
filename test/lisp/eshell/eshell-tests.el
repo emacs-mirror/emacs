@@ -167,6 +167,13 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-command-result-p "echo ${*echo hi}"
                             "hi\n")))
 
+(ert-deftest eshell-test/interp-cmd-external-concat ()
+  "Interpolate command result from external command with concatenation"
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${echo hi}-${*echo there}"
+                            "hi-there\n")))
+
 (ert-deftest eshell-test/window-height ()
   "$LINES should equal (window-height)"
   (should (eshell-test-command-result "= $LINES (window-height)")))
