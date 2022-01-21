@@ -2270,8 +2270,7 @@ Return new point, if it was moved."
 
 (defun diff--iterate-hunks (max fun)
   "Iterate over all hunks between point and MAX.
-Call FUN with two args (BEG and END) for each hunk.
-If INHIBIT-ERROR, ignore malformed hunks."
+Call FUN with two args (BEG and END) for each hunk."
   (save-excursion
     (catch 'malformed
       (let* ((beg (or (ignore-errors (diff-beginning-of-hunk))
