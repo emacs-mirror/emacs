@@ -4360,6 +4360,7 @@ it is left unchanged."
     (let ((from (cadr (mail-extract-address-components
                        (save-restriction
                          (widen)
+                         (message-narrow-to-headers-or-head)
                          (message-fetch-field "From")))))
           method)
       (catch 'exit
