@@ -1283,10 +1283,14 @@ x_clear_window (struct frame *f)
   cairo_paint (cr);
   x_end_cr_clip (f);
 #else
+#ifndef USE_GTK
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
+#endif
     x_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+#ifndef USE_GTK
   else
     XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+#endif
 #endif
 }
 
@@ -4499,14 +4503,18 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
   cairo_fill (cr);
   x_end_cr_clip (f);
 #else
+#ifndef USE_GTK
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
+#endif
     XFillRectangle (FRAME_X_DISPLAY (f),
 		    FRAME_X_DRAWABLE (f),
 		    f->output_data.x->reverse_gc,
 		    x, y, width, height);
+#ifndef USE_GTK
   else
     x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
                    x, y, width, height, False);
+#endif
 #endif
 }
 
