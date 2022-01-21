@@ -39,19 +39,9 @@ AM_V_CC      = @$(info $   CC       $@)
 AM_V_CXX     = @$(info $   CXX      $@)
 AM_V_CCLD    = @$(info $   CCLD     $@)
 AM_V_CXXLD   = @$(info $   CXXLD    $@)
-ifeq ($(HAVE_NATIVE_COMP),yes)
-ifneq ($(NATIVE_DISABLED),1)
-ifneq ($(ANCIENT),yes)
+ifeq ($(HAVE_NATIVE_COMP)-$(NATIVE_DISABLED)-$(ANCIENT),yes--)
 AM_V_ELC     = @$(info $   ELC+ELN  $@)
 AM_V_ELN     = @$(info $   ELN      $@)
-else
-AM_V_ELC     = @$(info $   ELC      $@)
-AM_V_ELN =
-endif
-else
-AM_V_ELC     = @$(info $   ELC      $@)
-AM_V_ELN =
-endif
 else
 AM_V_ELC     = @$(info $   ELC      $@)
 AM_V_ELN =
