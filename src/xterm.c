@@ -10285,26 +10285,33 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  {
 	  case XI_FocusIn:
 	    any = x_any_window_to_frame (dpyinfo, focusin->event);
-#ifndef USE_GTK
+#ifdef USE_GTK
 	    /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
 	       minimized/iconified windows; thus, for those WMs we won't get
-	       a MapNotify when unminimizing/deconifying.  Check here if we
+	       a MapNotify when unminimizing/deiconifying.  Check here if we
 	       are deiconizing a window (Bug42655).
 
-	       But don't do that on GTK since it may cause a plain invisible
-	       frame get reported as iconified, compare
+	       But don't do that by default on GTK since it may cause a plain
+	       invisible frame get reported as iconified, compare
 	       https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
-	       That is fixed above but bites us here again.  */
-	    f = any;
-	    if (f && FRAME_ICONIFIED_P (f))
-	      {
-		SET_FRAME_VISIBLE (f, 1);
-		SET_FRAME_ICONIFIED (f, false);
-		f->output_data.x->has_been_visible = true;
-		inev.ie.kind = DEICONIFY_EVENT;
-		XSETFRAME (inev.ie.frame_or_window, f);
-	      }
+	       That is fixed above but bites us here again.
+
+	       The option x_set_frame_visibility_more_laxly allows to override
+	       the default behavior (Bug#49955, Bug#53298).  */
+	    if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
+		|| EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */
+	      {
+		f = any;
+		if (f && FRAME_ICONIFIED_P (f))
+		  {
+		    SET_FRAME_VISIBLE (f, 1);
+		    SET_FRAME_ICONIFIED (f, false);
+		    f->output_data.x->has_been_visible = true;
+		    inev.ie.kind = DEICONIFY_EVENT;
+		    XSETFRAME (inev.ie.frame_or_window, f);
+		  }
+	      }
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 	    goto XI_OTHER;
 	  case XI_FocusOut:
