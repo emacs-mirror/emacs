@@ -370,7 +370,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)
-	     (polling-period keyboard integer)
+	     (polling-period keyboard float)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
