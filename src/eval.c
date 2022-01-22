@@ -2395,8 +2395,7 @@ grow_specpdl (void)
 	  if (max_specpdl_size < 400)
 	    max_size = max_specpdl_size = 400;
 	  if (max_size <= specpdl_size)
-	    signal_error ("Variable binding depth exceeds max-specpdl-size",
-			  Qnil);
+	    xsignal0 (Qexcessive_variable_binding);
 	}
       pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
       specpdl = pdlvec + 1;
@@ -2450,7 +2449,7 @@ eval_sub (Lisp_Object form)
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
+	xsignal0 (Qexcessive_lisp_nesting);
     }
 
   Lisp_Object original_fun = XCAR (form);
@@ -3054,7 +3053,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
+	xsignal0 (Qexcessive_lisp_nesting);
     }
 
   count = record_in_backtrace (args[0], &args[1], nargs - 1);

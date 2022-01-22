@@ -1831,9 +1831,7 @@ and the annotation emission."
       (byte-listp auto)
       (byte-eq auto)
       (byte-memq auto)
-      (byte-not
-       (comp-emit-set-call (comp-call 'eq (comp-slot-n (comp-sp))
-                                      (make-comp-mvar :constant nil))))
+      (byte-not null)
       (byte-car auto)
       (byte-cdr auto)
       (byte-cons auto)
@@ -3570,7 +3568,7 @@ Update all insn accordingly."
   ;; Symbols imported by C inlined functions.  We do this here because
   ;; is better to add all objs to the relocation containers before we
   ;; compacting them.
-  (mapc #'comp-add-const-to-relocs '(nil t consp listp))
+  (mapc #'comp-add-const-to-relocs '(nil t consp listp symbol-with-pos-p))
 
   (let* ((d-default (comp-ctxt-d-default comp-ctxt))
          (d-default-idx (comp-data-container-idx d-default))
@@ -4006,9 +4004,12 @@ the deferred compilation mechanism."
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
   (catch 'no-native-compile
-    (let* ((data function-or-file)
+    (let* ((print-symbols-bare t)
+           (max-specpdl-size (max max-specpdl-size 5000))
+           (data function-or-file)
            (comp-native-compiling t)
            (byte-native-qualities nil)
+           (symbols-with-pos-enabled t)
            ;; Have byte compiler signal an error when compilation fails.
            (byte-compile-debug t)
            (comp-ctxt (make-comp-ctxt :output output
@@ -4052,10 +4053,10 @@ the deferred compilation mechanism."
 	     (signal (car err) (if (consp err-val)
 			           (cons function-or-file err-val)
 			         (list function-or-file err-val)))))))
-      (if (stringp function-or-file)
-          data
-        ;; So we return the compiled function.
-        (native-elisp-load data)))))
+        (if (stringp function-or-file)
+            data
+          ;; So we return the compiled function.
+          (native-elisp-load data)))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.

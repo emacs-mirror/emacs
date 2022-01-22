@@ -454,6 +454,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
+#define F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM "f_symbols_with_pos_enabled_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
 #define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
@@ -542,6 +543,7 @@ typedef struct {
   gcc_jit_type *emacs_int_type;
   gcc_jit_type *emacs_uint_type;
   gcc_jit_type *void_ptr_type;
+  gcc_jit_type *bool_ptr_type;
   gcc_jit_type *char_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *uintptr_type;
@@ -563,6 +565,16 @@ typedef struct {
   gcc_jit_field *lisp_cons_u_s_u_cdr;
   gcc_jit_type *lisp_cons_type;
   gcc_jit_type *lisp_cons_ptr_type;
+  /* struct Lisp_Symbol_With_Position */
+  gcc_jit_rvalue *f_symbols_with_pos_enabled_ref;
+  gcc_jit_struct *lisp_symbol_with_position;
+  gcc_jit_field *lisp_symbol_with_position_header;
+  gcc_jit_field *lisp_symbol_with_position_sym;
+  gcc_jit_field *lisp_symbol_with_position_pos;
+  gcc_jit_type *lisp_symbol_with_position_type;
+  gcc_jit_type *lisp_symbol_with_position_ptr_type;
+  gcc_jit_function *get_symbol_with_position;
+  gcc_jit_function *symbol_with_pos_sym;
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
@@ -655,7 +667,10 @@ Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
 void helper_save_restriction (void);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
+struct Lisp_Symbol_With_Pos *helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a);
 
+/* Note: helper_link_table must match the list created by
+   `declare_runtime_imported_funcs'.  */
 void *helper_link_table[] =
   { wrong_type_argument,
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
@@ -664,6 +679,7 @@ void *helper_link_table[] =
     record_unwind_protect_excursion,
     helper_unbind_n,
     helper_save_restriction,
+    helper_GET_SYMBOL_WITH_POSITION,
     record_unwind_current_buffer,
     set_internal,
     helper_unwind_protect,
@@ -1328,9 +1344,9 @@ emit_XCONS (gcc_jit_rvalue *a)
 }
 
 static gcc_jit_rvalue *
-emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
+emit_BASE_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 {
-  emit_comment ("EQ");
+  emit_comment ("BASE_EQ");
 
   return gcc_jit_context_new_comparison (
 	   comp.ctxt,
@@ -1338,6 +1354,30 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 	   GCC_JIT_COMPARISON_EQ,
 	   emit_XLI (x),
 	   emit_XLI (y));
+}
+
+static gcc_jit_rvalue *
+emit_AND (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
+{
+  return gcc_jit_context_new_binary_op (
+    comp.ctxt,
+    NULL,
+    GCC_JIT_BINARY_OP_LOGICAL_AND,
+    comp.bool_type,
+    x,
+    y);
+}
+
+static gcc_jit_rvalue *
+emit_OR (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
+{
+  return gcc_jit_context_new_binary_op (
+    comp.ctxt,
+    NULL,
+    GCC_JIT_BINARY_OP_LOGICAL_OR,
+    comp.bool_type,
+    x,
+    y);
 }
 
 static gcc_jit_rvalue *
@@ -1399,6 +1439,85 @@ emit_CONSP (gcc_jit_rvalue *obj)
   emit_comment ("CONSP");
 
   return emit_TAGGEDP (obj, Lisp_Cons);
+}
+
+static gcc_jit_rvalue *
+emit_BARE_SYMBOL_P (gcc_jit_rvalue *obj)
+{
+  emit_comment ("BARE_SYMBOL_P");
+
+  return gcc_jit_context_new_cast (comp.ctxt,
+				   NULL,
+				   emit_TAGGEDP (obj, Lisp_Symbol),
+				   comp.bool_type);
+}
+
+static gcc_jit_rvalue *
+emit_SYMBOL_WITH_POS_P (gcc_jit_rvalue *obj)
+{
+  emit_comment ("SYMBOL_WITH_POS_P");
+
+  gcc_jit_rvalue *args[] =
+    { obj,
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.int_type,
+					   PVEC_SYMBOL_WITH_POS)
+    };
+
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.pseudovectorp,
+				   2,
+				   args);
+}
+
+static gcc_jit_rvalue *
+emit_SYMBOL_WITH_POS_SYM (gcc_jit_rvalue *obj)
+{
+  emit_comment ("SYMBOL_WITH_POS_SYM");
+
+  gcc_jit_rvalue *arg [] = { obj };
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.symbol_with_pos_sym,
+				   1,
+				   arg);
+}
+
+static gcc_jit_rvalue *
+emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
+{
+  return
+    emit_OR (
+      gcc_jit_context_new_comparison (
+        comp.ctxt, NULL,
+        GCC_JIT_COMPARISON_EQ,
+        emit_XLI (x), emit_XLI (y)),
+      emit_AND (
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference (comp.f_symbols_with_pos_enabled_ref,
+				      NULL)),
+        emit_OR (
+          emit_AND (
+            emit_SYMBOL_WITH_POS_P (x),
+            emit_OR (
+              emit_AND (
+                emit_SYMBOL_WITH_POS_P (y),
+                emit_BASE_EQ (
+                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (x)),
+                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (y)))),
+              emit_AND (
+                emit_BARE_SYMBOL_P (y),
+                emit_BASE_EQ (
+                  emit_XLI (emit_SYMBOL_WITH_POS_SYM (x)),
+                  emit_XLI (y))))),
+          emit_AND (
+            emit_BARE_SYMBOL_P (x),
+            emit_AND (
+              emit_SYMBOL_WITH_POS_P (y),
+              emit_BASE_EQ (
+                emit_XLI (x),
+                emit_XLI (emit_SYMBOL_WITH_POS_SYM (y))))))));
 }
 
 static gcc_jit_rvalue *
@@ -1615,7 +1734,7 @@ static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
-  return emit_EQ (x, emit_lisp_obj_rval (Qnil));
+  return emit_BASE_EQ (x, emit_lisp_obj_rval (Qnil));
 }
 
 static gcc_jit_rvalue *
@@ -1719,6 +1838,29 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
       emit_lisp_obj_rval (Qconsp),
+      x };
+
+  gcc_jit_block_add_eval (
+    comp.block,
+    NULL,
+    gcc_jit_context_new_call (comp.ctxt,
+			      NULL,
+			      comp.check_type,
+			      3,
+			      args));
+}
+
+static void
+emit_CHECK_SYMBOL_WITH_POS (gcc_jit_rvalue *x)
+{
+  emit_comment ("CHECK_SYMBOL_WITH_POS");
+
+  gcc_jit_rvalue *args[] =
+    { gcc_jit_context_new_cast (comp.ctxt,
+				NULL,
+				emit_SYMBOL_WITH_POS_P (x),
+				comp.int_type),
+      emit_lisp_obj_rval (Qsymbol_with_pos_p),
       x };
 
   gcc_jit_block_add_eval (
@@ -2095,7 +2237,13 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *target1 = retrive_block (arg[2]);
       gcc_jit_block *target2 = retrive_block (arg[3]);
 
-      emit_cond_jump (emit_EQ (a, b), target1, target2);
+      if ((CALL1I (comp-cstr-imm-vld-p, arg[0])
+	   && NILP (CALL1I (comp-cstr-imm, arg[0])))
+	  || (CALL1I (comp-cstr-imm-vld-p, arg[1])
+	      && NILP (CALL1I (comp-cstr-imm, arg[1]))))
+	emit_cond_jump (emit_BASE_EQ (a, b), target1, target2);
+      else
+	emit_cond_jump (emit_EQ (a, b), target1, target2);
     }
   else if (EQ (op, Qcond_jump_narg_leq))
     {
@@ -2714,7 +2862,8 @@ declare_imported_data (void)
 
 /*
   Declare as imported all the functions that are requested from the runtime.
-  These are either subrs or not.
+  These are either subrs or not.  Note that the list created here must match
+  the array `helper_link_table'.
 */
 static Lisp_Object
 declare_runtime_imported_funcs (void)
@@ -2750,6 +2899,10 @@ declare_runtime_imported_funcs (void)
   ADD_IMPORTED (helper_unbind_n, comp.lisp_obj_type, 1, args);
 
   ADD_IMPORTED (helper_save_restriction, comp.void_type, 0, NULL);
+
+  args[0] = comp.lisp_obj_type;
+  ADD_IMPORTED (helper_GET_SYMBOL_WITH_POSITION, comp.lisp_symbol_with_position_ptr_type,
+		1, args);
 
   ADD_IMPORTED (record_unwind_current_buffer, comp.void_type, 0, NULL);
 
@@ -2797,6 +2950,15 @@ emit_ctxt_code (void)
 	GCC_JIT_GLOBAL_EXPORTED,
 	gcc_jit_type_get_pointer (comp.thread_state_ptr_type),
 	CURRENT_THREAD_RELOC_SYM));
+
+  comp.f_symbols_with_pos_enabled_ref =
+    gcc_jit_lvalue_as_rvalue (
+      gcc_jit_context_new_global (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_GLOBAL_EXPORTED,
+	comp.bool_ptr_type,
+	F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM));
 
   comp.pure_ptr =
     gcc_jit_lvalue_as_rvalue (
@@ -2975,6 +3137,39 @@ define_lisp_cons (void)
   gcc_jit_struct_set_fields (comp.lisp_cons_s,
 			     NULL, 1, &comp.lisp_cons_u);
 
+}
+
+static void
+define_lisp_symbol_with_position (void)
+{
+  comp.lisp_symbol_with_position_header =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.ptrdiff_type,
+			       "header");
+  comp.lisp_symbol_with_position_sym =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "sym");
+  comp.lisp_symbol_with_position_pos =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "pos");
+  gcc_jit_field *fields [3] = {comp.lisp_symbol_with_position_header,
+			       comp.lisp_symbol_with_position_sym,
+			       comp.lisp_symbol_with_position_pos};
+  comp.lisp_symbol_with_position =
+    gcc_jit_context_new_struct_type (comp.ctxt,
+				     NULL,
+				     "comp_lisp_symbol_with_position",
+				     3,
+				     fields);
+  comp.lisp_symbol_with_position_type =
+    gcc_jit_struct_as_type (comp.lisp_symbol_with_position);
+  comp.lisp_symbol_with_position_ptr_type =
+    gcc_jit_type_get_pointer (comp.lisp_symbol_with_position_type);
 }
 
 /* Opaque jmp_buf definition.  */
@@ -3673,6 +3868,82 @@ define_PSEUDOVECTORP (void)
 }
 
 static void
+define_GET_SYMBOL_WITH_POSITION (void)
+{
+  gcc_jit_param *param[] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "a") };
+
+  comp.get_symbol_with_position =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_INTERNAL,
+				  comp.lisp_symbol_with_position_ptr_type,
+				  "GET_SYMBOL_WITH_POSITION",
+				  1,
+				  param,
+				  0);
+
+  DECL_BLOCK (entry_block, comp.get_symbol_with_position);
+
+  comp.block = entry_block;
+  comp.func = comp.get_symbol_with_position;
+
+  gcc_jit_rvalue *args[] =
+    { gcc_jit_param_as_rvalue (param[0]) };
+  /* FIXME use XUNTAG now that's available.  */
+  gcc_jit_block_end_with_return (
+    entry_block,
+    NULL,
+    emit_call (intern_c_string ("helper_GET_SYMBOL_WITH_POSITION"),
+	       comp.lisp_symbol_with_position_ptr_type,
+	       1, args, false));
+}
+
+static void define_SYMBOL_WITH_POS_SYM (void)
+{
+  gcc_jit_rvalue *tmpr, *swp;
+  gcc_jit_lvalue *tmpl;
+
+  gcc_jit_param *param [] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "a") };
+  comp.symbol_with_pos_sym =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_INTERNAL,
+				  comp.lisp_obj_type,
+				  "SYMBOL_WITH_POS_SYM",
+				  1,
+				  param,
+				  0);
+
+  DECL_BLOCK (entry_block, comp.symbol_with_pos_sym);
+  comp.func = comp.symbol_with_pos_sym;
+  comp.block = entry_block;
+
+  emit_CHECK_SYMBOL_WITH_POS (gcc_jit_param_as_rvalue (param [0]));
+
+  gcc_jit_rvalue *args[] = { gcc_jit_param_as_rvalue (param [0]) };
+
+  swp = gcc_jit_context_new_call (comp.ctxt,
+				  NULL,
+				  comp.get_symbol_with_position,
+				  1,
+				  args);
+  tmpl = gcc_jit_rvalue_dereference (swp, NULL);
+  tmpr = gcc_jit_lvalue_as_rvalue (tmpl);
+  gcc_jit_block_end_with_return (entry_block,
+				 NULL,
+				 gcc_jit_rvalue_access_field (
+				   tmpr,
+				   NULL,
+				   comp.lisp_symbol_with_position_sym));
+}
+
+static void
 define_CHECK_IMPURE (void)
 {
   gcc_jit_param *param[] =
@@ -4309,6 +4580,7 @@ Return t on success.  */)
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
   comp.unsigned_long_long_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG_LONG);
+  comp.bool_ptr_type = gcc_jit_type_get_pointer (comp.bool_type);
   comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
   comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
 						      sizeof (EMACS_INT),
@@ -4381,6 +4653,7 @@ Return t on success.  */)
   /* Define data structures.  */
 
   define_lisp_cons ();
+  define_lisp_symbol_with_position ();
   define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
@@ -4602,7 +4875,9 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   /* Define inline functions.  */
   define_CAR_CDR ();
   define_PSEUDOVECTORP ();
+  define_GET_SYMBOL_WITH_POSITION ();
   define_CHECK_TYPE ();
+  define_SYMBOL_WITH_POS_SYM ();
   define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
   define_setcar_setcdr ();
@@ -4732,6 +5007,14 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
 				     union vectorlike_header),
 			     code);
+}
+
+struct Lisp_Symbol_With_Pos *
+helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a)
+{
+  if (!SYMBOL_WITH_POS_P (a))
+    wrong_type_argument (Qwrong_type_argument, a);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
 
 
@@ -5000,12 +5283,15 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     {
       struct thread_state ***current_thread_reloc =
 	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
+      bool **f_symbols_with_pos_enabled_reloc =
+	dynlib_sym (handle, F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM);
       void **pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
       Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
       Lisp_Object *data_imp_relocs = comp_u->data_imp_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
       if (!(current_thread_reloc
+	    && f_symbols_with_pos_enabled_reloc
 	    && pure_reloc
 	    && data_relocs
 	    && data_imp_relocs
@@ -5017,6 +5303,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
       *current_thread_reloc = &current_thread;
+      *f_symbols_with_pos_enabled_reloc = &symbols_with_pos_enabled;
       *pure_reloc = pure;
 
       /* Imported functions.  */
@@ -5386,6 +5673,7 @@ compiled one.  */);
   DEFSYM (Qnumberp, "numberp");
   DEFSYM (Qintegerp, "integerp");
   DEFSYM (Qcomp_maybe_gc_or_quit, "comp-maybe-gc-or-quit");
+  DEFSYM (Qsymbol_with_pos_p, "symbol-with-pos-p");
 
   /* Allocation classes. */
   DEFSYM (Qd_default, "d-default");
@@ -5536,3 +5824,6 @@ be preloaded.  */);
 
   defsubr (&Snative_comp_available_p);
 }
+/* Local Variables: */
+/* c-file-offsets: ((arglist-intro . +)) */
+/* End: */

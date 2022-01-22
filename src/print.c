@@ -1649,6 +1649,30 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       printchar ('>', printcharfun);
       break;
 
+    case PVEC_SYMBOL_WITH_POS:
+      {
+        struct Lisp_Symbol_With_Pos *sp = XSYMBOL_WITH_POS (obj);
+        if (print_symbols_bare)
+          print_object (sp->sym, printcharfun, escapeflag);
+        else
+          {
+            print_c_string ("#<symbol ", printcharfun);
+            if (BARE_SYMBOL_P (sp->sym))
+              print_object (sp->sym, printcharfun, escapeflag);
+            else
+              print_c_string ("NOT A SYMBOL!!", printcharfun);
+            if (FIXNUMP (sp->pos))
+              {
+                print_c_string (" at ", printcharfun);
+                print_object (sp->pos, printcharfun, escapeflag);
+              }
+            else
+              print_c_string (" NOT A POSITION!!", printcharfun);
+            printchar ('>', printcharfun);
+          }
+      }
+      break;
+
     case PVEC_OVERLAY:
       print_c_string ("#<overlay ", printcharfun);
       if (! XMARKER (OVERLAY_START (obj))->buffer)
@@ -1974,7 +1998,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	error ("Apparently circular structure being printed");
 
       for (i = 0; i < print_depth; i++)
-	if (EQ (obj, being_printed[i]))
+	if (BASE_EQ (obj, being_printed[i]))
 	  {
 	    int len = sprintf (buf, "#%d", i);
 	    strout (buf, len, len, printcharfun);
@@ -2477,6 +2501,13 @@ the value is different from what is guessed in the current charset
 priorities.  Values other than nil or t are also treated as
 `default'.  */);
   Vprint_charset_text_property = Qdefault;
+
+  DEFVAR_BOOL ("print-symbols-bare", print_symbols_bare,
+               doc: /* A flag to control printing of symbols with position.
+If the value is nil, print these objects complete with position.
+Otherwise print just the bare symbol.  */);
+  print_symbols_bare = false;
+  DEFSYM (Qprint_symbols_bare, "print-symbols-bare");
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);

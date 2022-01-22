@@ -258,11 +258,11 @@ Returns a form where all lambdas don't have any free variables."
               ;; unused vars.
               (not (intern-soft var))
               (eq ?_ (aref (symbol-name var) 0))
-	      ;; As a special exception, ignore "ignore".
+	      ;; As a special exception, ignore "ignored".
 	      (eq var 'ignored))
        (let ((suggestions (help-uni-confusable-suggestions (symbol-name var))))
          (format "Unused lexical %s `%S'%s"
-                 varkind var
+                 varkind (bare-symbol var)
                  (if suggestions (concat "\n  " suggestions) "")))))
 
 (define-inline cconv--var-classification (binder form)
@@ -286,7 +286,7 @@ of converted forms."
               (let (and (pred stringp) msg)
                 (cconv--warn-unused-msg arg "argument")))
          (if (assq arg env) (push `(,arg . nil) env)) ;FIXME: Is it needed?
-         (push (lambda (body) (macroexp--warn-wrap msg body 'lexical)) wrappers))
+         (push (lambda (body) (macroexp--warn-wrap body msg body 'lexical)) wrappers))
         (_
          (if (assq arg env) (push `(,arg . nil) env)))))
     (setq funcbody (mapcar (lambda (form)
@@ -367,7 +367,8 @@ places where they originally did not directly appear."
 		(var (if (not (consp binder))
 			 (prog1 binder (setq binder (list binder)))
                        (when (cddr binder)
-                         (byte-compile-warn
+                         (byte-compile-warn-x
+                          binder
                           "Malformed `%S' binding: %S"
                           letsym binder))
 		       (setq value (cadr binder))
@@ -375,9 +376,9 @@ places where they originally did not directly appear."
            (cond
             ;; Ignore bindings without a valid name.
             ((not (symbolp var))
-             (byte-compile-warn "attempt to let-bind nonvariable `%S'" var))
+             (byte-compile-warn-x var "attempt to let-bind nonvariable `%S'" var))
             ((or (booleanp var) (keywordp var))
-             (byte-compile-warn "attempt to let-bind constant `%S'" var))
+             (byte-compile-warn-x var "attempt to let-bind constant `%S'" var))
             (t
              (let ((new-val
 		    (pcase (cconv--var-classification binder form)
@@ -427,11 +428,14 @@ places where they originally did not directly appear."
                        ;; Declared variable is unused.
                        (if (assq var new-env)
                            (push `(,var) new-env)) ;FIXME:Needed?
-                       (let ((newval
-                              `(ignore ,(cconv-convert value env extend)))
-                             (msg (cconv--warn-unused-msg var "variable")))
+                       (let* ((Ignore (if (symbol-with-pos-p var)
+                                          (position-symbol 'ignore var)
+                                        'ignore))
+                              (newval `(,Ignore
+                                        ,(cconv-convert value env extend)))
+                              (msg (cconv--warn-unused-msg var "variable")))
                          (if (null msg) newval
-                           (macroexp--warn-wrap msg newval 'lexical))))
+                           (macroexp--warn-wrap var msg newval 'lexical))))
 
                       ;; Normal default case.
                       (_
@@ -530,7 +534,7 @@ places where they originally did not directly appear."
             (newprotform (cconv-convert protected-form env extend)))
        `(condition-case ,var
             ,(if msg
-                 (macroexp--warn-wrap msg newprotform 'lexical)
+                 (macroexp--warn-wrap var msg newprotform 'lexical)
                newprotform)
           ,@(mapcar
              (lambda (handler)
@@ -624,7 +628,8 @@ FORM is the parent form that binds this var."
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
      ;; so as to give better position information.
      (when (byte-compile-warning-enabled-p 'not-unused var)
-       (byte-compile-warn "%s `%S' not left unused" varkind var)))
+       (byte-compile-warn-x
+        var "%s `%S' not left unused" varkind var)))
     ((and (let (or 'let* 'let) (car form))
           `((,var) ;; (or `(,var nil) : Too many false positives: bug#47080
             t nil ,_ ,_))
@@ -632,7 +637,7 @@ FORM is the parent form that binds this var."
      ;; so as to give better position information and obey
      ;; `byte-compile-warnings'.
      (unless (not (intern-soft var))
-       (byte-compile-warn "Variable `%S' left uninitialized" var))))
+       (byte-compile-warn-x var "Variable `%S' left uninitialized" var))))
   (pcase vardata
     (`(,binder nil ,_ ,_ nil)
      (push (cons (cons binder form) :unused) cconv-var-classification))
@@ -661,7 +666,8 @@ FORM is the parent form that binds this var."
     (dolist (arg args)
       (cond
        ((byte-compile-not-lexical-var-p arg)
-        (byte-compile-warn
+        (byte-compile-warn-x
+         arg
          "Lexical argument shadows the dynamic variable %S"
          arg))
        ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
@@ -744,7 +750,8 @@ This function does not return anything but instead fills the
        (setq forms (cddr forms))))
 
     (`((lambda . ,_) . ,_)             ; First element is lambda expression.
-     (byte-compile-warn
+     (byte-compile-warn-x
+      (nth 1 (car form))
       "Use of deprecated ((lambda %s ...) ...) form" (nth 1 (car form)))
      (dolist (exp `((function ,(car form)) . ,(cdr form)))
        (cconv-analyze-form exp env)))
@@ -763,8 +770,8 @@ This function does not return anything but instead fills the
     (`(condition-case ,var ,protected-form . ,handlers)
      (cconv-analyze-form protected-form env)
      (when (and var (symbolp var) (byte-compile-not-lexical-var-p var))
-       (byte-compile-warn
-        "Lexical variable shadows the dynamic variable %S" var))
+       (byte-compile-warn-x
+        var "Lexical variable shadows the dynamic variable %S" var))
      (let* ((varstruct (list var nil nil nil nil)))
        (if var (push varstruct env))
        (dolist (handler handlers)

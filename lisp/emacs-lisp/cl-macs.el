@@ -2429,10 +2429,12 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                                (append bindings venv))
                                          macroexpand-all-environment))))
             (if malformed-bindings
-                (macroexp-warn-and-return
-                 (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
-                                 (nreverse malformed-bindings))
-                 expansion)
+                (let ((rev-malformed-bindings (nreverse malformed-bindings)))
+                  (macroexp-warn-and-return
+                   rev-malformed-bindings
+                   (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
+                                   rev-malformed-bindings)
+                   expansion))
               expansion)))
       (unless advised
         (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
@@ -3116,6 +3118,7 @@ To see the documentation for a defined struct type, use
               (when (cl-oddp (length desc))
                 (push
                  (macroexp-warn-and-return
+                  (car (last desc))
                   (format "Missing value for option `%S' of slot `%s' in struct %s!"
                           (car (last desc)) slot name)
                   'nil)
@@ -3125,6 +3128,7 @@ To see the documentation for a defined struct type, use
                   (let ((kw (car defaults)))
                     (push
                      (macroexp-warn-and-return
+                      kw
                       (format "  I'll take `%s' to be an option rather than a default value."
                               kw)
                       'nil)

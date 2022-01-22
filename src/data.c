@@ -216,6 +216,7 @@ for example, (type-of 1) returns `integer'.  */)
         case PVEC_NORMAL_VECTOR: return Qvector;
 	case PVEC_BIGNUM: return Qinteger;
 	case PVEC_MARKER: return Qmarker;
+	case PVEC_SYMBOL_WITH_POS: return Qsymbol_with_pos;
 	case PVEC_OVERLAY: return Qoverlay;
 	case PVEC_FINALIZER: return Qfinalizer;
 	case PVEC_USER_PTR: return Quser_ptr;
@@ -318,6 +319,26 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0,
   return Qt;
 }
 
+DEFUN ("bare-symbol-p", Fbare_symbol_p, Sbare_symbol_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a symbol, but not a symbol together with position.  */
+       attributes: const)
+  (Lisp_Object object)
+{
+  if (BARE_SYMBOL_P (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("symbol-with-pos-p", Fsymbol_with_pos_p, Ssymbol_with_pos_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a symbol together with position.  */
+       attributes: const)
+  (Lisp_Object object)
+{
+  if (SYMBOL_WITH_POS_P (object))
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol.  */
        attributes: const)
@@ -753,6 +774,62 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   CHECK_SYMBOL (symbol);
   name = SYMBOL_NAME (symbol);
   return name;
+}
+
+DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
+       doc: /* Extract, if need be, the bare symbol from SYM, a symbol.  */)
+  (register Lisp_Object sym)
+{
+  if (BARE_SYMBOL_P (sym))
+    return sym;
+  /* Type checking is done in the following macro. */
+  return SYMBOL_WITH_POS_SYM (sym);
+}
+
+DEFUN ("symbol-with-pos-pos", Fsymbol_with_pos_pos, Ssymbol_with_pos_pos, 1, 1, 0,
+       doc: /* Extract the position from a symbol with position.  */)
+  (register Lisp_Object ls)
+{
+  /* Type checking is done in the following macro. */
+  return SYMBOL_WITH_POS_POS (ls);
+}
+
+DEFUN ("remove-pos-from-symbol", Fremove_pos_from_symbol,
+       Sremove_pos_from_symbol, 1, 1, 0,
+       doc: /* If ARG is a symbol with position, return it without the position.
+Otherwise, return ARG unchanged.  Compare with `bare-symbol'.  */)
+  (register Lisp_Object arg)
+{
+  if (SYMBOL_WITH_POS_P (arg))
+    return (SYMBOL_WITH_POS_SYM (arg));
+  return arg;
+}
+
+DEFUN ("position-symbol", Fposition_symbol, Sposition_symbol, 2, 2, 0,
+       doc: /* Create a new symbol with position.
+SYM is a symbol, with or without position, the symbol to position.
+POS, the position, is either a fixnum or a symbol with position from which
+the position will be taken.  */)
+     (register Lisp_Object sym, register Lisp_Object pos)
+{
+  Lisp_Object bare;
+  Lisp_Object position;
+
+  if (BARE_SYMBOL_P (sym))
+    bare = sym;
+  else if (SYMBOL_WITH_POS_P (sym))
+    bare = XSYMBOL_WITH_POS (sym)->sym;
+  else
+    wrong_type_argument (Qsymbolp, sym);
+
+  if (FIXNUMP (pos))
+    position = pos;
+  else if (SYMBOL_WITH_POS_P (pos))
+    position = XSYMBOL_WITH_POS (pos)->pos;
+  else
+    wrong_type_argument (Qfixnum_or_symbol_with_pos_p, pos);
+
+  return build_symbol_with_pos (bare, position);
 }
 
 DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
@@ -3892,7 +3969,7 @@ A is a bool vector, B is t or nil, and I is an index into A.  */)
 void
 syms_of_data (void)
 {
-  Lisp_Object error_tail, arith_tail;
+  Lisp_Object error_tail, arith_tail, recursion_tail;
 
   DEFSYM (Qquote, "quote");
   DEFSYM (Qlambda, "lambda");
@@ -3927,8 +4004,14 @@ syms_of_data (void)
   DEFSYM (Qmark_inactive, "mark-inactive");
   DEFSYM (Qinhibited_interaction, "inhibited-interaction");
 
+  DEFSYM (Qrecursion_error, "recursion-error");
+  DEFSYM (Qexcessive_variable_binding, "excessive-variable-binding");
+  DEFSYM (Qexcessive_lisp_nesting, "excessive-lisp-nesting");
+
   DEFSYM (Qlistp, "listp");
   DEFSYM (Qconsp, "consp");
+  DEFSYM (Qbare_symbol_p, "bare-symbol-p");
+  DEFSYM (Qsymbol_with_pos_p, "symbol-with-pos-p");
   DEFSYM (Qsymbolp, "symbolp");
   DEFSYM (Qfixnump, "fixnump");
   DEFSYM (Qintegerp, "integerp");
@@ -3954,6 +4037,7 @@ syms_of_data (void)
 
   DEFSYM (Qchar_table_p, "char-table-p");
   DEFSYM (Qvector_or_char_table_p, "vector-or-char-table-p");
+  DEFSYM (Qfixnum_or_symbol_with_pos_p, "fixnum-or-symbol-with-pos-p");
 
   DEFSYM (Qsubrp, "subrp");
   DEFSYM (Qunevalled, "unevalled");
@@ -4032,12 +4116,23 @@ syms_of_data (void)
   PUT_ERROR (Qunderflow_error, Fcons (Qrange_error, arith_tail),
 	     "Arithmetic underflow error");
 
+  recursion_tail = pure_cons (Qrecursion_error, error_tail);
+  Fput (Qrecursion_error, Qerror_conditions, recursion_tail);
+  Fput (Qrecursion_error, Qerror_message, build_pure_c_string
+	("Excessive recursive calling error"));
+
+  PUT_ERROR (Qexcessive_variable_binding, recursion_tail,
+	     "Variable binding depth exceeds max-specpdl-size");
+  PUT_ERROR (Qexcessive_lisp_nesting, recursion_tail,
+	     "Lisp nesting exceeds `max-lisp-eval-depth'");
+
   /* Types that type-of returns.  */
   DEFSYM (Qinteger, "integer");
   DEFSYM (Qsymbol, "symbol");
   DEFSYM (Qstring, "string");
   DEFSYM (Qcons, "cons");
   DEFSYM (Qmarker, "marker");
+  DEFSYM (Qsymbol_with_pos, "symbol-with-pos");
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
   DEFSYM (Qmodule_function, "module-function");
@@ -4089,6 +4184,8 @@ syms_of_data (void)
   defsubr (&Snumber_or_marker_p);
   defsubr (&Sfloatp);
   defsubr (&Snatnump);
+  defsubr (&Sbare_symbol_p);
+  defsubr (&Ssymbol_with_pos_p);
   defsubr (&Ssymbolp);
   defsubr (&Skeywordp);
   defsubr (&Sstringp);
@@ -4119,6 +4216,10 @@ syms_of_data (void)
   defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
+  defsubr (&Sbare_symbol);
+  defsubr (&Ssymbol_with_pos_pos);
+  defsubr (&Sremove_pos_from_symbol);
+  defsubr (&Sposition_symbol);
   defsubr (&Smakunbound);
   defsubr (&Sfmakunbound);
   defsubr (&Sboundp);
@@ -4200,6 +4301,12 @@ This variable cannot be set; trying to do so will signal an error.  */);
 This variable cannot be set; trying to do so will signal an error.  */);
   Vmost_negative_fixnum = make_fixnum (MOST_NEGATIVE_FIXNUM);
   make_symbol_constant (intern_c_string ("most-negative-fixnum"));
+
+  DEFSYM (Qsymbols_with_pos_enabled, "symbols-with-pos-enabled");
+  DEFVAR_BOOL ("symbols-with-pos-enabled", symbols_with_pos_enabled,
+               doc: /* Non-nil when "symbols with position" can be used as symbols.
+Bind this to non-nil in applications such as the byte compiler.  */);
+  symbols_with_pos_enabled = false;
 
   DEFSYM (Qwatchers, "watchers");
   DEFSYM (Qmakunbound, "makunbound");

@@ -804,6 +804,7 @@ is the name of a variable that will hold the value we need to pack.")
               (if (or (eq label '_) (not (assq label labels)))
                   code
                 (macroexp-warn-and-return
+                 code
                  (format "Duplicate label: %S" label)
                  code))))
            (`(,_ ,val)

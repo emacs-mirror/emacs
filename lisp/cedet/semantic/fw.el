@@ -191,12 +191,20 @@ will throw a warning when it encounters this symbol."
 	     (not (string-match "cedet" (macroexp-file-name)))
 	     )
     (make-obsolete-overload oldfnalias newfn when)
-    (byte-compile-warn
-     "%s: `%s' obsoletes overload `%s'"
-     (macroexp-file-name)
-     newfn
-     (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
-       (semantic-overload-symbol-from-function oldfnalias)))))
+    (if (fboundp 'byte-compile-warn-x)
+        (byte-compile-warn-x
+         newfn
+         "%s: `%s' obsoletes overload `%s'"
+         (macroexp-file-name)
+         newfn
+         (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
+           (semantic-overload-symbol-from-function oldfnalias)))
+      (byte-compile-warn
+       "%s: `%s' obsoletes overload `%s'"
+       (macroexp-file-name)
+       newfn
+       (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
+         (semantic-overload-symbol-from-function oldfnalias))))))
 
 (defun semantic-varalias-obsolete (oldvaralias newvar when)
   "Make OLDVARALIAS an alias for variable NEWVAR.
@@ -209,10 +217,14 @@ will throw a warning when it encounters this symbol."
     (error
      ;; Only throw this warning when byte compiling things.
      (when (macroexp-compiling-p)
-       (byte-compile-warn
-        "variable `%s' obsoletes, but isn't alias of `%s'"
-        newvar oldvaralias)
-     ))))
+       (if (fboundp 'byte-compile-warn-x)
+           (byte-compile-warn-x
+            newvar
+            "variable `%s' obsoletes, but isn't alias of `%s'"
+            newvar oldvaralias)
+         (byte-compile-warn
+          "variable `%s' obsoletes, but isn't alias of `%s'"
+          newvar oldvaralias))))))
 
 ;;; Help debugging
 ;;

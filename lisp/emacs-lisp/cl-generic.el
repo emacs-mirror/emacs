@@ -498,7 +498,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                     cl--generic-edebug-make-name nil]
              lambda-doc                 ; documentation string
              def-body)))                ; part to be debugged
-  (let ((qualifiers nil))
+  (let ((qualifiers nil)
+        (org-name name))
     (while (cl-generic--method-qualifier-p args)
       (push args qualifiers)
       (setq args (pop body)))
@@ -513,6 +514,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                    (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
                  (macroexp-warn-and-return
+                  org-name
                   (macroexp--obsolete-warning name obsolete "generic function")
                   nil)))
          ;; You could argue that `defmethod' modifies rather than defines the
