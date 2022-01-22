@@ -448,6 +448,9 @@ Symbols
 * Creating Symbols::        How symbols are kept unique.
 * Symbol Properties::       Each symbol has a property list
                               for recording miscellaneous information.
+* Shorthands::              Properly organize your symbol names but
+                              type less of them.
+* Symbols with Position::   Symbol variants containing integer positions
 
 Symbol Properties
 

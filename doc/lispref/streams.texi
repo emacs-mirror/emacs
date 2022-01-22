@@ -326,6 +326,16 @@ For example:
 @end group
 @end example
 @end defun
+@end defun
+
+@defun read-positioning-symbols &optional stream
+This function reads one textual expression from @var{stream}, like
+@code{read} does, but additionally positions the read symbols to the
+positions in @var{stream} where they occurred.  Only the symbol
+@code{nil} is not positioned, this for efficiency reasons.
+@xref{Symbols with Position}.  This function is used by the byte
+compiler.
+@end defun
 
 @defvar standard-input
 This variable holds the default input stream---the stream that

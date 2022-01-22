@@ -1309,20 +1309,21 @@ Called with arguments (STRING POSITION FILL LEVEL).  STRING is a
 message describing the problem.  POSITION is a buffer position
 where the problem was detected.  FILL is a prefix as in
 `warning-fill-prefix'.  LEVEL is the level of the
-problem (`:warning' or `:error').  POSITION, FILL and LEVEL may be
-nil.")
+problem (`:warning' or `:error').  FILL and LEVEL may be nil.")
 
 (defun byte-compile-log-warning (string &optional fill level)
   "Log a byte-compilation warning.
 STRING, FILL and LEVEL are as described in
 `byte-compile-log-warning-function', which see."
   (funcall byte-compile-log-warning-function
-           string nil
+           string
+           (or (byte-compile--warning-source-offset)
+               (point))
            fill
            level))
 
-(defun byte-compile--log-warning-for-byte-compile (string &optional
-                                                          _position
+(defun byte-compile--log-warning-for-byte-compile (string _position
+                                                          &optional
                                                           fill
                                                           level)
   "Log a message STRING in `byte-compile-log-buffer'.
@@ -2653,8 +2654,11 @@ list that represents a doc string reference.
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
-  (let ((args (mapcar 'eval (cdr form)))
-        hist-new prov-cons)
+  (let* ((args (mapcar 'eval (cdr form)))
+         ;; The following is for the byte-compile-warn in
+         ;; `do-after-load-evaluation' (in subr.el).
+         (byte-compile-form-stack (cons (car args) byte-compile-form-stack))
+         hist-new prov-cons)
     (apply 'require args)
 
     ;; Record the functions defined by the require in `byte-compile-new-defuns'.

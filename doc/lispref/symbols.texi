@@ -23,15 +23,15 @@ otherwise.
 @end defun
 
 @menu
-* Symbol Components::        Symbols have names, values, function definitions
+* Symbol Components::           Symbols have names, values, function definitions
                                and property lists.
-* Definitions::              A definition says how a symbol will be used.
-* Creating Symbols::         How symbols are kept unique.
-* Symbol Properties::        Each symbol has a property list
+* Definitions::                 A definition says how a symbol will be used.
+* Creating Symbols::            How symbols are kept unique.
+* Symbol Properties::           Each symbol has a property list
                                for recording miscellaneous information.
-* Shorthands::               Properly organize your symbol names but
+* Shorthands::                  Properly organize your symbol names but
                                type less of them.
-
+* Symbols with Position::       Symbol variants containing integer positions
 @end menu
 
 @node Symbol Components
@@ -432,8 +432,8 @@ symbol's property list cell (@pxref{Symbol Components}), in the form
 of a property list (@pxref{Property Lists}).
 
 @menu
-* Symbol Plists::        Accessing symbol properties.
-* Standard Properties::  Standard meanings of symbol properties.
+* Symbol Plists::               Accessing symbol properties.
+* Standard Properties::         Standard meanings of symbol properties.
 @end menu
 
 @node Symbol Plists
@@ -751,3 +751,69 @@ those names.
 @item
 Symbol forms whose names start with @samp{#_} are not transformed.
 @end itemize
+
+@node Symbols with Position
+@section Symbols with Position
+@cindex symbols with position
+
+A @dfn{symbol with position} is a symbol, the @dfn{bare symbol},
+together with an unsigned integer called the @dfn{position}.  These
+objects are intended for use by the byte compiler, which records in
+them the position of each symbol occurrence and uses those positions
+in warning and error messages.
+
+The printed representation of a symbol with position uses the hash
+notation outlined in @ref{Printed Representation}.  It looks like
+@samp{#<symbol foo at 12345>}.  It has no read syntax.  You can cause
+just the bare symbol to be printed by binding the variable
+@code{print-symbols-bare} to non-@code{nil} around the print
+operation.  The byte compiler does this before writing its output to
+the compiled Lisp file.
+
+For most purposes, when the flag variable
+@code{symbols-with-pos-enabled} is non-@code{nil}, symbols with
+positions behave just as bare symbols do.  For example, @samp{(eq
+#<symbol foo at 12345> foo)} has a value @code{t} when that variable
+is set (but nil when it isn't set).  Most of the time in Emacs this
+variable is @code{nil}, but the byte compiler binds it to @code{t}
+when it runs.
+
+Typically, symbols with position are created by the byte compiler
+calling the reader function @code{read-positioning-symbols}
+(@pxref{Input Functions}).  One can also be created with the function
+@code{position-symbol}.
+
+@defvar symbols-with-pos-enabled
+When this variable is non-@code{nil}, symbols with position behave
+like the contained bare symbol.  Emacs runs a little more slowly in
+this case.
+@end defvar
+
+@defvar print-symbols-bare
+When bound to non-nil, the Lisp printer prints only the bare symbol of
+a symbol with position, ignoring the position.
+@end defvar
+
+@defun symbol-with-pos-p symbol.
+This function returns @code{t} if @var{symbol} is a symbol with
+position, @code{nil} otherwise.
+@end defun
+
+@defun bare-symbol symbol
+This function returns the bare symbol contained in @var{symbol}, or
+@var{symbol} itself if it is already a bare symbol.  For any other
+type of object, it throws an error.
+@end defun
+
+@defun symbol-with-pos-pos symbol
+This function returns the position, a number, from a symbol with
+position.  For any other type of object, it throws an error.
+@end defun
+
+@defun position-symbol sym pos
+Make a new symbol with position.  @var{sym} is either a bare symbol or
+a symbol with position, and supplies the symbol part of the new
+object.  @var{pos} is either an integer which becomes the number part
+of the new object, or a symbol with position whose position is used.
+Emacs throws an error if either argument is invalid.
+@end defun
