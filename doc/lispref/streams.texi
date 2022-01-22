@@ -872,6 +872,32 @@ If non-@code{nil}, this variable enables detection of circular and
 shared structure in printing.  @xref{Circular Objects}.
 @end defvar
 
+@defvar print-unreadable-function
+By default, Emacs prints unreadable objects as @samp{#<...>"}.  For
+instance:
+
+@example
+(prin1-to-string (make-marker))
+     @result{} "#<marker in no buffer>"
+@end example
+
+If this variable is non-@code{nil}, it should be a function that will
+be called to handle printing of these objects.  The first argument is
+the object, and the second argument is the @var{noescape} flag used by
+the printing functions (@pxref{Output Functions}).
+
+The function should return either @code{nil} (print nothing), or a
+string (which will be printed), or any other object (which means that
+the object should be printed normally).  For instance:
+
+@example
+(let ((print-unreadable-function
+       (lambda (object escape) "hello")))
+  (prin1-to-string (make-marker)))
+     @result{} "hello"
+@end example
+@end defvar
+
 @defvar print-gensym
 If non-@code{nil}, this variable enables detection of uninterned symbols
 (@pxref{Creating Symbols}) in printing.  When this is enabled,

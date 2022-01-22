@@ -977,12 +977,16 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
---
++++
+** New variable 'print-unreadable-function'.
+This variable allows changing how Emacs prints unreadable objects.
+
+---
 ** The variable 'polling-period' now accepts floating point values.
 This means Emacs can now poll for input during Lisp execution more
 frequently than once in a second.
 
---
+---
 ** New function 'bidi-string-strip-control-characters'.
 This utility function is meant for displaying strings when it's
 essential that there's no bidirectional context.

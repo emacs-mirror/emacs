@@ -406,5 +406,16 @@ otherwise, use a different charset."
     (should (equal printed-nonprints
                    "(55296 57343 778 65535 8194 8204)"))))
 
+(ert-deftest test-unreadable ()
+  (should (equal (prin1-to-string (make-marker)) "#<marker in no buffer>"))
+  (let ((print-unreadable-function
+         (lambda (_object _escape)
+           "hello")))
+    (should (equal (prin1-to-string (make-marker)) "hello")))
+  (let ((print-unreadable-function
+         (lambda (_object _escape)
+           t)))
+    (should (equal (prin1-to-string (make-marker)) ""))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here
