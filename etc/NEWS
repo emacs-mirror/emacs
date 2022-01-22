@@ -72,8 +72,8 @@ work on any underlying window system supported by GDK, such as
 Wayland and Broadway.
 
 ---
-** The docstrings of preloaded files are not in 'etc/DOC' any more.
-Instead, they're fetched as needed from the corresponding '.elc' file,
+** The docstrings of preloaded files are not in "etc/DOC" any more.
+Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
 
 
@@ -94,10 +94,10 @@ time.
 
 ---
 ** Support for old EIEIO functions is not autoloaded any more.
-You need an explicit (require 'eieio-compat) to use 'defmethod'
-and 'defgeneric' (which have been made obsolete in Emacs-25 with
+You need an explicit '(require 'eieio-compat)' to use 'defmethod'
+and 'defgeneric' (which have been made obsolete in Emacs 25.1 with
 'cl-defmethod' and 'cl-defgeneric').
-Similarly you might need to (require 'eieio-compat) before loading
+Similarly you might need to '(require 'eieio-compat)' before loading
 files that were compiled with an old EIEIO (Emacs<25).
 
 ---
@@ -260,13 +260,13 @@ These will take you (respectively) to the next and previous "page".
 ** Outline Mode
 
 *** Support for customizing the default visibility state of headings.
-Customize the option 'outline-default-state' to define what headings
-will be visible after Outline mode is turned on.  When equal to a
-number, the option 'outline-default-rules' determines the visibility
-of the subtree starting at the corresponding level.  Values are
-provided to control showing a heading subtree depending on whether the
-heading matches a regexp, or on whether its subtree has long lines or
-is itself too long.
+Customize the user option 'outline-default-state' to define what
+headings will be visible after Outline mode is turned on.  When equal
+to a number, the user option 'outline-default-rules' determines the
+visibility of the subtree starting at the corresponding level.  Values
+are provided to control showing a heading subtree depending on whether
+the heading matches a regexp, or on whether its subtree has long lines
+or is itself too long.
 
 ** Outline Minor Mode
 
@@ -414,15 +414,15 @@ received.
 
 ** Minibuffer and Completions
 
-*** The *Completions* buffer can now be automatically selected.
-To enable this behavior, customize the option 'completion-auto-select'
-to t.  Then pressing TAB will switch to the *Completions* buffer when
-it pops up that buffer.
+*** The "*Completions*" buffer can now be automatically selected.
+To enable this behavior, customize the user option
+'completion-auto-select' to t.  Then pressing 'TAB' will switch to the
+"*Completions*" buffer when it pops up that buffer.
 
 *** New user option 'completion-wrap-movement'.
 When non-nil, the commands 'next-completion' and 'previous-completion'
 automatically wrap around on reaching the beginning or the end of
-the *Completions* buffer.
+the "*Completions*" buffer.
 
 ** Isearch and Replace
 
@@ -484,7 +484,7 @@ If non-nil, 'C-c C-a' will put attached files at the end of the message.
 ---
 *** Message Mode now supports image yanking.
 
----
++++
 *** New user option 'message-server-alist'.
 This controls automatic insertion of the "X-Message-SMTP-Method"
 header before sending a message.
@@ -836,6 +836,12 @@ When calling 'abbreviate-file-name' on a Tramp filename, the result
 will abbreviate the user's home directory, for example by abbreviating
 "/ssh:user@host:/home/user" to "/ssh:user@host:~".
 
++++
+*** New user option 'tramp-use-scp-direct-remote-copying'.
+When set to non-nil, Tramp does not copy files between two remote
+hosts via a local copy in its temporary directory, but let the 'scp'
+command do this job.
+
 ** Browse URL
 
 ---
@@ -991,7 +997,7 @@ read back by the Emacs Lisp reader.
 This variable allows changing how Emacs prints unreadable objects.
 
 ---
-** The variable 'polling-period' now accepts floating point values.
+** The user option 'polling-period' now accepts floating point values.
 This means Emacs can now poll for input during Lisp execution more
 frequently than once in a second.
 
@@ -1039,7 +1045,7 @@ wheel on some mice, or when the user's finger moves off the touchpad.
 
 +++
 ** New event type 'pinch'.
-This event is sent when a user peforms a pinch gesture on a touchpad,
+This event is sent when a user performs a pinch gesture on a touchpad,
 which is comprised of placing two fingers on the touchpad and moving
 them towards or away from each other.
 
@@ -1199,14 +1205,14 @@ This can be used to check whether a specific font has a glyph for a
 character.
 
 +++
-** 'window-text-pixel-size' now accepts a new argument 'ignore-line-at-end'.
+** 'window-text-pixel-size' now accepts a new argument IGNORE-LINE-AT-END.
 This controls whether or not the last screen line of the text being
 measured will be counted for the purpose of calculating the text
 dimensions.
 
 +++
-** 'window-text-pixel-size' understands a new meaning of 'from'.
-Specifying a cons as the from argument allows to start measuring text
+** 'window-text-pixel-size' understands a new meaning of FROM.
+Specifying a cons as the FROM argument allows to start measuring text
 from a specified amount of pixels above or below a position.
 
 ---
@@ -1383,9 +1389,9 @@ cookies set by web pages on disk.
 This variable is bound to t during the preparation of a "*Help*" buffer.
 
 +++
-** Timestamps like (1 . 1000) now work without warnings being generated.
-For example, (time-add nil '(1 . 1000)) no longer warns that the
-(1 . 1000) acts like (1000 . 1000000).  This warning, which was a
+** Timestamps like '(1 . 1000)' now work without warnings being generated.
+For example, '(time-add nil '(1 . 1000))' no longer warns that the
+'(1 . 1000)' acts like '(1000 . 1000000)'.  This warning, which was a
 temporary transition aid for Emacs 27, has served its purpose.
 
 +++

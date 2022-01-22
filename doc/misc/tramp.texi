@@ -133,19 +133,21 @@ Configuring @value{tramp} for use
 * Multi-hops::                  Connecting to a remote host using multiple hops.
 * Firewalls::                   Passing firewalls.
 * Customizing Methods::         Using Non-Standard Methods.
-* Customizing Completion::      Selecting config files for user/host name completion.
+* Customizing Completion::      Selecting config files for user/host name @c
+completion.
 * Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
 * Predefined connection information::
                                 Setting own connection related information.
-* Remote programs::             How @value{tramp} finds and uses programs on the remote host.
+* Remote programs::             How @value{tramp} finds and uses programs @c
+on the remote host.
 * Remote shell setup::          Remote shell setup hints.
+* Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
-* Windows setup hints::         Issues with Cygwin ssh.
 
 Using @value{tramp}
 
@@ -523,7 +525,7 @@ performed on another host, it can be comnbined with a leading
 connects first to the other host with non-administrative credentials,
 and changes to administrative credentials on that host afterwards.  In
 a simple case, the syntax looks like
-@file{@value{prefix}ssh@value{postfixhop}user@@host|sudo@value{postfixhop}@value{postfix}/path/to/file}.
+@file{@trampfn{ssh@value{postfixhop}user@@host|sudo,,/path/to/file}}.
 @xref{Ad-hoc multi-hops}.
 
 
@@ -683,19 +685,21 @@ may be used in your init file:
 * Multi-hops::                  Connecting to a remote host using multiple hops.
 * Firewalls::                   Passing firewalls.
 * Customizing Methods::         Using Non-Standard Methods.
-* Customizing Completion::      Selecting config files for user/host name completion.
+* Customizing Completion::      Selecting config files for user/host name @c
+completion.
 * Password handling::           Reusing passwords for several connections.
 * Connection caching::          Reusing connection related information.
 * Predefined connection information::
                                 Setting own connection related information.
-* Remote programs::             How @value{tramp} finds and uses programs on the remote host.
+* Remote programs::             How @value{tramp} finds and uses programs @c
+on the remote host.
 * Remote shell setup::          Remote shell setup hints.
+* Ssh setup::                   Ssh setup hints.
 * FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save File Lock and Backup::
                                 Auto-save, File Lock and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
-* Windows setup hints::         Issues with Cygwin ssh.
 @end menu
 
 
@@ -1234,7 +1238,8 @@ be populated in your @command{Online Accounts} application outside Emacs.
 Since Google Drive uses cryptic blob file names internally,
 @value{tramp} works with the @code{display-name} of the files.  This
 could produce unexpected behavior in case two files in the same
-directory have the same @code{display-name}, such a situation must be avoided.
+directory have the same @code{display-name}, such a situation must be
+avoided.
 
 @item @option{mtp}
 @cindex method @option{mtp}
@@ -1448,7 +1453,7 @@ External methods might be more efficient for large files, but most
 @value{tramp} users edit small files more often than large files.
 
 Enable compression, @code{tramp-inline-compress-start-size}, for a
-performance boost for large files.
+performance boost for large files with inline methods.
 
 Since @command{ssh} has become the most common method of remote host
 access and it has the most reasonable security protocols, use
@@ -1473,6 +1478,10 @@ the shortened syntax of @samp{root}:
 For editing large files, @option{scp} is faster than @option{ssh}.
 @option{pscp} is faster than @option{plink}.  But this speed
 improvement is not always true.
+
+When copying large files between two different remote hosts via
+@option{scp}, set @code{tramp-use-scp-direct-remote-copying} to
+non-@code{nil}.
 
 
 @node Default User
@@ -1689,8 +1698,8 @@ Sometimes, it is not possible to reach a remote host directly.  A
 firewall might be in the way, which could be passed via a proxy
 server.
 
-Both ssh and PuTTY support such proxy settings, using an HTTP tunnel
-via the @command{CONNECT} command (conforming to RFC 2616, 2817
+Both OpenSSH and PuTTY support such proxy settings, using an HTTP
+tunnel via the @command{CONNECT} command (conforming to RFC 2616, 2817
 specifications).  Proxy servers using HTTP 1.1 or later protocol
 support this command.
 
@@ -1804,7 +1813,7 @@ hadoop server.
 @cindex @option{vagrant} method
 Convenience method to access vagrant boxes.  It is often used in
 multi-hop file names like
-@file{@value{prefix}vagrant@value{postfixhop}box|sudo@value{postfixhop}box@value{postfix}/path/to/file},
+@file{@trampfn{vagrant@value{postfixhop}box|sudo,box,/path/to/file}},
 where @samp{box} is the name of the vagrant box.
 
 @end table
@@ -2606,6 +2615,211 @@ where @samp{192.168.0.1} is the remote host IP address
 @end table
 
 
+@node Ssh setup
+@section Ssh setup hints
+
+The most common @value{tramp} connection family is based on either
+@command{ssh} or @command{scp} of OpenSSH, or @command{plink} or
+@command{pscp} of PuTTY on MS Windows.  In the following, some
+configuration recommendations are given.
+
+
+@subsection Detection of session hangouts
+
+@vindex ServerAliveInterval@r{, ssh option}
+@vindex ServerAliveCountMax@r{, ssh option}
+@command{ssh} sessions on the local host hang when the network is
+down.  @value{tramp} cannot safely detect such hangs.  OpenSSH can be
+configured to kill such hangs with the following settings in
+@file{~/.ssh/config}:
+
+@example
+@group
+Host *
+     ServerAliveInterval 5
+     ServerAliveCountMax 2
+@end group
+@end example
+
+The corresponding PuTTY configuration is in the @option{Connection}
+entry, @option{Seconds between keepalives} option.  Set this to 5.
+There is no counter which could be set.
+
+
+@subsection Using ssh connection sharing
+
+@vindex ControlPath@r{, ssh option}
+@vindex ControlPersist@r{, ssh option}
+@value{tramp} uses the @option{ControlMaster=auto} OpenSSH option by
+default, if possible.  However, it overwrites @option{ControlPath}
+settings when initiating @command{ssh} sessions.  @value{tramp} does
+this to fend off a stall if a master session opened outside the Emacs
+session is no longer open.  That is why @value{tramp} prompts for the
+password again even if there is an @command{ssh} already open.
+
+@vindex tramp-ssh-controlmaster-options
+Some OpenSSH versions support a @option{ControlPersist} option, which
+allows you to set the @option{ControlPath} provided the variable
+@code{tramp-ssh-controlmaster-options} is customized as follows:
+
+@lisp
+@group
+(customize-set-variable
+ 'tramp-ssh-controlmaster-options
+ (concat
+   "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
+   "-o ControlMaster=auto -o ControlPersist=yes"))
+@end group
+@end lisp
+
+Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
+@samp{%%r}, @samp{%%h} and @samp{%%p}.
+
+@vindex tramp-use-ssh-controlmaster-options
+If the @file{~/.ssh/config} file is configured appropriately for the
+above behavior, then any changes to @command{ssh} can be suppressed
+with this @code{nil} setting:
+
+@lisp
+(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+@end lisp
+
+@vindex ProxyCommand@r{, ssh option}
+@vindex ProxyJump@r{, ssh option}
+This should also be set to @code{nil} if you use the
+@option{ProxyCommand} or @option{ProxyJump} options in your
+@command{ssh} configuration.
+
+In order to use the @option{ControlMaster} option, @value{tramp} must
+check whether the @command{ssh} client supports this option.  This is
+only possible on the local host, for the first hop.  @value{tramp}
+does not use this option on proxy hosts, therefore.
+
+If you want to use this option also for the other hops, you must
+configure @file{~/.ssh/config} on the proxy host:
+
+@example
+@group
+Host *
+     ControlMaster      auto
+     ControlPath        tramp.%C
+     ControlPersist     no
+@end group
+@end example
+
+Check the @samp{ssh_config(5)} man page whether these options are
+supported on your proxy host.
+
+On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
+@code{nil} by default, because the MS Windows and MSYS2
+implementations of @command{OpenSSH} do not support this option properly.
+
+In PuTTY, you can achieve connection sharing in the @option{Connection/SSH}
+entry, enabling the @option{Share SSH connections if possible} option.
+
+
+@subsection Configure direct copying between two remote servers
+
+@vindex tramp-use-scp-direct-remote-copying
+@value{tramp} uses a temporary local copy when copying two files
+between different remote hosts via external methods.  This behavior is
+due to authentication problems @value{tramp} cannot handle
+sufficiently.  However, for @option{scp} connections this can be
+changed.  When a file shall be copied between two different remote
+hosts @samp{source} and @samp{target}, and
+
+@itemize @minus
+@item
+Variable @code{tramp-use-scp-direct-remote-copying} is non-@code{nil},
+
+@item
+Remote host @samp{source} doesn't use the @option{RemoteCommand}
+option in @file{~/.ssh/config},
+
+@item
+Remote host @samp{target} shows the same host key when seen from the
+local host and from host @samp{source}, and
+
+@item
+@command{scp} running on host @samp{source} can authenticate to host
+@samp{target} without requiring a password,
+@end itemize
+
+@noindent
+@value{tramp} applies direct remote copying between hosts
+@samp{source} and @samp{target} like
+
+@example
+scp -p -T -R -q -r source:/path/to/file target:/path/to/another/file
+@end example
+
+This protects also your local temporary directory from overrun when
+copying large files.
+
+If these conditions do not apply, and
+@code{tramp-use-scp-direct-remote-copying} is non-@code{nil}, the
+option @samp{-3} is used instead of @samp{-R}.
+
+@c FIXME
+When @value{tramp} uses direct remote copying, password caches are not
+consulted.
+
+
+@subsection Issues with Cygwin ssh
+@cindex cygwin, issues
+
+This section is incomplete.  Please share your solutions.
+
+@cindex method @option{sshx} with cygwin
+@cindex @option{sshx} method with cygwin
+
+Cygwin's @command{ssh} works only with a Cygwin version of Emacs.  To
+check for compatibility: type @kbd{M-x eshell @key{RET}}, and start
+@kbd{ssh test.host @key{RET}}.  Incompatibilities trigger this
+message:
+
+@example
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+@end example
+
+Some older versions of Cygwin's @command{ssh} work with the
+@option{sshx} access method.  Consult Cygwin's FAQ at
+@uref{https://cygwin.com/faq/} for details.
+
+@cindex cygwin and @command{fakecygpty}
+@cindex @command{fakecygpty} and cygwin
+
+On @uref{https://www.emacswiki.org/emacs/SshWithNTEmacs, the Emacs
+Wiki} it is explained how to use the helper program
+@command{fakecygpty} to fix this problem.
+
+@cindex method @option{scpx} with cygwin
+@cindex @option{scpx} method with cygwin
+
+When using the @option{scpx} access method, Emacs may call
+@command{scp} with MS Windows file naming, such as @file{c:/foo}.  But
+the version of @command{scp} that is installed with Cygwin does not
+know about MS Windows file naming, which causes it to incorrectly look
+for a host named @samp{c}.
+
+A workaround: write a wrapper script for @option{scp} to convert
+Windows file names to Cygwin file names.
+
+@cindex cygwin and @command{ssh-agent}
+@cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
+@vindex SSH_AUTH_SOCK@r{, environment variable}
+
+When using the @command{ssh-agent} on MS Windows for password-less
+interaction, @option{ssh} methods depend on the environment variable
+@env{SSH_AUTH_SOCK}.  But this variable is not set when Emacs is
+started from a Desktop shortcut and authentication fails.
+
+One workaround is to use an MS Windows based SSH Agent, such as
+@command{Pageant}.  It is part of the PuTTY Suite of tools.
+
+The fallback is to start Emacs from a shell.
+
+
 @node FUSE setup
 @section @acronym{FUSE} setup hints
 
@@ -2828,10 +3042,10 @@ Example:
 The backup file name of
 @file{@trampfn{su,root@@localhost,/etc/secretfile}} would be
 @ifset unified
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile~}}
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile~}}.
 @end ifset
 @ifset separate
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/![su!root@@localhost]!etc!secretfile~}}
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/![su!root@@localhost]!etc!secretfile~}}.
 @end ifset
 
 @vindex auto-save-file-name-transforms
@@ -2985,62 +3199,6 @@ subdirectories will remain encrypted.
 @end deffn
 
 
-@node Windows setup hints
-@section Issues with Cygwin ssh
-@cindex cygwin, issues
-
-This section is incomplete.  Please share your solutions.
-
-@cindex method @option{sshx} with cygwin
-@cindex @option{sshx} method with cygwin
-
-Cygwin's @command{ssh} works only with a Cygwin version of Emacs.  To
-check for compatibility: type @kbd{M-x eshell @key{RET}}, and start
-@kbd{ssh test.host @key{RET}}.  Incompatibilities trigger this
-message:
-
-@example
-Pseudo-terminal will not be allocated because stdin is not a terminal.
-@end example
-
-Some older versions of Cygwin's @command{ssh} work with the
-@option{sshx} access method.  Consult Cygwin's FAQ at
-@uref{https://cygwin.com/faq/} for details.
-
-@cindex cygwin and @command{fakecygpty}
-@cindex @command{fakecygpty} and cygwin
-
-On @uref{https://www.emacswiki.org/emacs/SshWithNTEmacs, the Emacs
-Wiki} it is explained how to use the helper program
-@command{fakecygpty} to fix this problem.
-
-@cindex method @option{scpx} with cygwin
-@cindex @option{scpx} method with cygwin
-
-When using the @option{scpx} access method, Emacs may call
-@command{scp} with MS Windows file naming, such as @file{c:/foo}.  But
-the version of @command{scp} that is installed with Cygwin does not
-know about MS Windows file naming, which causes it to incorrectly look
-for a host named @samp{c}.
-
-A workaround: write a wrapper script for @option{scp} to convert
-Windows file names to Cygwin file names.
-
-@cindex cygwin and @command{ssh-agent}
-@cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
-@vindex SSH_AUTH_SOCK@r{, environment variable}
-
-When using the @command{ssh-agent} on MS Windows for password-less
-interaction, @option{ssh} methods depend on the environment variable
-@env{SSH_AUTH_SOCK}.  But this variable is not set when Emacs is
-started from a Desktop shortcut and authentication fails.
-
-One workaround is to use an MS Windows based SSH Agent, such as
-Pageant.  It is part of the Putty Suite of tools.
-
-The fallback is to start Emacs from a shell.
-
-
 @node Usage
 @chapter Using @value{tramp}
 @cindex using @value{tramp}
@@ -3085,23 +3243,23 @@ is a feature of Emacs that may cause missed prompts when using
 on the remote host @var{host}, using the method @var{method}.
 
 @table @file
-@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}.emacs
+@item @trampfn{ssh,melancholia,.emacs}
 For the file @file{.emacs} located in the home directory, on the host
 @code{melancholia}, using method @code{ssh}.
 
-@item @value{prefix}ssh@value{postfixhop}melancholia.danann.net@value{postfix}.emacs
+@item @trampfn{ssh,melancholia.danann.net,.emacs}
 For the file @file{.emacs} specified using the fully qualified domain name of
 the host.
 
-@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~/.emacs
+@item @trampfn{ssh,melancholia,~/.emacs}
 For the file @file{.emacs} specified using the @file{~}, which is expanded.
 
-@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~daniel/.emacs
+@item @trampfn{ssh,melancholia,~daniel/.emacs}
 For the file @file{.emacs} located in @code{daniel}'s home directory
 on the host, @code{melancholia}.  The @file{~<user>} construct is
 expanded to the home directory of that user on the remote host.
 
-@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}/etc/squid.conf
+@item @trampfn{ssh,melancholia,/etc/squid.conf}
 For the file @file{/etc/squid.conf} on the host @code{melancholia}.
 
 @end table
@@ -3115,12 +3273,9 @@ brackets @file{@value{ipv6prefix}} and @file{@value{ipv6postfix}}.
 @end ifset
 
 By default, @value{tramp} will use the current local user name as the
-remote user name for log in to the remote host.  Specifying a different
-name using the proper syntax will override this default behavior:
-
-@example
-@trampfn{method,user@@host,path/to/file}
-@end example
+remote user name for log in to the remote host.  Specifying a
+different name using the proper syntax will override this default
+behavior: @file{@trampfn{method,user@@host,path/to/file}}.
 
 @file{@trampfn{ssh,daniel@@melancholia,.emacs}} is for file
 @file{.emacs} in @code{daniel}'s home directory on the host,
@@ -3316,8 +3471,9 @@ remote host name and file name.  For example, hopping over a single
 proxy @samp{bird@@bastion} to a remote file on @samp{you@@remotehost}:
 
 @example
-@c @kbd{C-x C-f @trampfn{ssh@value{postfixhop}bird@@bastion|ssh,you,remotehost,/path} @key{RET}}
-@kbd{C-x C-f @value{prefix}ssh@value{postfixhop}bird@@bastion|ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
+@c @kbd{C-x C-f @trampfn{ssh@value{postfixhop}bird@@bastion|ssh,you@@remotehost,/path} @key{RET}}
+@kbd{C-x C-f @value{prefix}ssh@value{postfixhop}bird@@bastion|@c
+ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 @end example
 
 Each involved method must be an inline method (@pxref{Inline methods}).
@@ -3345,12 +3501,12 @@ Ad-hoc proxies can take patterns @code{%h} or @code{%u} like in
 @code{tramp-default-proxies-alist}.  The following file name expands
 to user @samp{root} on host @samp{remotehost}, starting with an
 @option{ssh} session on host @samp{remotehost}:
-@samp{@value{prefix}ssh@value{postfixhop}%h|su@value{postfixhop}remotehost@value{postfix}}.
+@samp{@trampfn{ssh@value{postfixhop}%h|su,remotehost,}}.
 
-On the other hand, if a trailing hop does not specify a host name,
-the host name of the previous hop is reused.  Therefore, the following
+On the other hand, if a trailing hop does not specify a host name, the
+host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
-@samp{@value{prefix}ssh@value{postfixhop}remotehost|su@value{postfixhop}@value{postfix}}.
+@samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
 
 
 @node Remote processes
@@ -3971,7 +4127,9 @@ would trigger renaming of buffer file names on @samp{badhost} to
 @samp{goodhost}, including changing the directory name.
 
 @lisp
-("@trampfn{ssh,.+\\\\.company\\\\.org,}" . "@value{prefix}ssh@value{postfixhop}multi.hop|ssh@value{postfixhop}%h@value{postfix}")
+("@trampfn{ssh,.+\\\\.company\\\\.org,}" @c
+. "@value{prefix}ssh@value{postfixhop}multi.hop|@c
+ssh@value{postfixhop}%h@value{postfix}")
 @end lisp
 
 routes all connections to a host in @samp{company.org} via
@@ -4231,7 +4389,8 @@ It is even possible to access file archives in file archives, as
 (progn
   (url-handler-mode 1)
   (find-file
-   "https://ftp.debian.org/debian/pool/main/c/coreutils/coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
+   "https://ftp.debian.org/debian/pool/main/c/coreutils/\
+coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
 @end group
 @end lisp
 
@@ -4535,97 +4694,6 @@ When connecting to a local host, @value{tramp} uses some internal
 optimizations.  They fail when Emacs runs in a chrooted environment.
 In order to disable those optimizations, set user option
 @code{tramp-local-host-regexp} to @code{nil}.
-
-
-@item
-@value{tramp} does not recognize if a @command{ssh} session hangs
-
-@vindex ServerAliveInterval@r{, ssh option}
-@command{ssh} sessions on the local host hang when the network is
-down.  @value{tramp} cannot safely detect such hangs.  The network
-configuration for @command{ssh} can be configured to kill such hangs
-with the following command in the @file{~/.ssh/config}:
-
-@example
-@group
-Host *
-     ServerAliveInterval 5
-@end group
-@end example
-
-
-@item
-@value{tramp} does not use default @command{ssh} @option{ControlPath}
-
-@vindex ControlPath@r{, ssh option}
-@vindex ControlPersist@r{, ssh option}
-@value{tramp} overwrites @option{ControlPath} settings when initiating
-@command{ssh} sessions.  @value{tramp} does this to fend off a stall
-if a master session opened outside the Emacs session is no longer
-open.  That is why @value{tramp} prompts for the password again even
-if there is an @command{ssh} already open.
-
-@vindex tramp-ssh-controlmaster-options
-Some @command{ssh} versions support a @option{ControlPersist} option,
-which allows you to set the @option{ControlPath} provided the variable
-@code{tramp-ssh-controlmaster-options} is customized as follows:
-
-@lisp
-@group
-(customize-set-variable
- 'tramp-ssh-controlmaster-options
- (concat
-   "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
-   "-o ControlMaster=auto -o ControlPersist=yes"))
-@end group
-@end lisp
-
-Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
-@samp{%%r}, @samp{%%h} and @samp{%%p}.
-
-@vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} file is configured appropriately for the
-above behavior, then any changes to @command{ssh} can be suppressed
-with this @code{nil} setting:
-
-@lisp
-(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
-@end lisp
-
-@vindex ProxyCommand@r{, ssh option}
-@vindex ProxyJump@r{, ssh option}
-This should also be set to @code{nil} if you use the
-@option{ProxyCommand} or @option{ProxyJump} options in your
-@command{ssh} configuration.
-
-On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
-@code{nil} by default, because the MS Windows and MSYS2
-implementations of @command{OpenSSH} do not support this option properly.
-
-
-@item
-On multi-hop connections, @value{tramp} does not use @command{ssh}
-@option{ControlMaster}
-
-In order to use the @option{ControlMaster} option, @value{tramp} must
-check whether the @command{ssh} client supports this option.  This is
-only possible on the local host, for the first hop.  @value{tramp}
-does not use this option on proxy hosts.
-
-If you want to use this option also for the other hops, you must
-configure @file{~/.ssh/config} on the proxy host:
-
-@example
-@group
-Host *
-     ControlMaster      auto
-     ControlPath        tramp.%C
-     ControlPersist     no
-@end group
-@end example
-
-Check the @samp{ssh_config(5)} man page whether these options are
-supported on your proxy host.
 
 
 @item
@@ -5075,7 +5143,8 @@ Why saved multi-hop file names do not work in a new Emacs session?
 When saving ad-hoc multi-hop @value{tramp} file names (@pxref{Ad-hoc
 multi-hops}) via bookmarks, recent files, filecache, bbdb, or another
 package, use the full ad-hoc file name including all hops, like
-@file{@trampfn{ssh,bird@@bastion|ssh@value{postfixhop}news.my.domain,/opt/news/etc}}.
+@file{@trampfn{ssh,bird@@bastion|ssh@value{postfixhop}@c
+news.my.domain,/opt/news/etc}}.
 
 Alternatively, when saving abbreviated multi-hop file names
 @file{@trampfn{ssh,news@@news.my.domain,/opt/news/etc}}, the user
@@ -5384,7 +5453,7 @@ bind it to non-@code{nil} value.
 Keeping a local cache of remote file attributes in sync with the
 remote host is a time-consuming operation.  Flushing and re-querying
 these attributes can tax @value{tramp} to a grinding halt on busy
-remote servers.
+remote hosts.
 
 To get around these types of slow-downs in @value{tramp}'s
 responsiveness, set the @code{process-file-side-effects} to @code{nil}
@@ -5539,6 +5608,8 @@ function call traces are written to the buffer @file{*trace-output*}.
 @c
 @c * Say something about the .login and .profile files of the remote
 @c   shells.
+@c
 @c * Explain how tramp.el works in principle: open a shell on a remote
 @c   host and then send commands to it.
+@c
 @c * Consistent small or capitalized words especially in menus.

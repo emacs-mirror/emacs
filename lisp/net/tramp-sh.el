@@ -38,6 +38,7 @@
 (declare-function dired-compress-file "dired-aux")
 (declare-function dired-remove-file "dired-aux")
 (defvar dired-compress-file-suffixes)
+;; Added in Emacs 28.1.
 (defvar process-file-return-signal-string)
 (defvar vc-handled-backends)
 (defvar vc-bzr-program)
@@ -136,6 +137,12 @@ be auto-detected by Tramp.
 
 The string is used in `tramp-methods'.")
 
+(defcustom tramp-use-scp-direct-remote-copying nil
+  "Whether to use direct copying between two remote hosts."
+  :group 'tramp
+  :version "29.1"
+  :type 'boolean)
+
 ;; Initialize `tramp-methods' with the supported methods.
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -172,7 +179,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-					     ("%x") ("-q") ("-r") ("%c")))
+					     ("%x") ("%y") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -188,7 +195,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-				             ("%x") ("-q") ("-r") ("%c")))
+				             ("%x") ("%y") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -2240,200 +2247,210 @@ the uid and gid from FILENAME."
     (op filename newname ok-if-already-exists keep-date)
   "Invoke `scp' program to copy.
 The method used must be an out-of-band method."
-  (let* ((t1 (tramp-tramp-file-p filename))
-	 (t2 (tramp-tramp-file-p newname))
-	 (orig-vec (tramp-dissect-file-name (if t1 filename newname)))
+  (let* ((v1 (and (tramp-tramp-file-p filename)
+		  (tramp-dissect-file-name filename)))
+	 (v2 (and (tramp-tramp-file-p newname)
+		  (tramp-dissect-file-name newname)))
+	 (v (or v1 v2))
 	 copy-program copy-args copy-env copy-keep-date listener spec
 	 options source target remote-copy-program remote-copy-args p)
 
-    (with-parsed-tramp-file-name (if t1 filename newname) nil
-      (if (and t1 t2)
+    (if (and v1 v2 (zerop (length (tramp-scp-direct-remote-copying v1 v2))))
 
-	  ;; Both are Tramp files.  We shall optimize it when the
-	  ;; methods for FILENAME and NEWNAME are the same.
-	  (let* ((dir-flag (file-directory-p filename))
-		 (tmpfile (tramp-compat-make-temp-file localname dir-flag)))
-	    (if dir-flag
-		(setq tmpfile
-		      (expand-file-name
-		       (file-name-nondirectory newname) tmpfile)))
-	    (unwind-protect
-		(progn
-		  (tramp-do-copy-or-rename-file-out-of-band
-		   op filename tmpfile ok-if-already-exists keep-date)
-		  (tramp-do-copy-or-rename-file-out-of-band
-		   'rename tmpfile newname ok-if-already-exists keep-date))
-	      ;; Save exit.
-	      (ignore-errors
-		(if dir-flag
-		    (delete-directory
-		     (expand-file-name ".." tmpfile) 'recursive)
-		  (delete-file tmpfile)))))
-
-	;; Check which ones of source and target are Tramp files.
-	(setq source (funcall
-		      (if (and (string-equal method "rsync")
-			       (file-directory-p filename)
-			       (not (file-exists-p newname)))
-			  #'file-name-as-directory
-			#'identity)
-		      (if t1
-			  (tramp-make-copy-program-file-name v)
-			(tramp-compat-file-name-unquote filename)))
-	      target (if t2
-			 (tramp-make-copy-program-file-name v)
-		       (tramp-compat-file-name-unquote newname)))
-
-	;; Check for user.  There might be an interactive setting.
-	(setq user (or (tramp-file-name-user v)
-		       (tramp-get-connection-property v "login-as" nil)))
-
-	;; Check for listener port.
-	(when (tramp-get-method-parameter v 'tramp-remote-copy-args)
-	  (setq listener (number-to-string (+ 50000 (random 10000))))
-	  (while
-	      (zerop (tramp-call-process v "nc" nil nil nil "-z" host listener))
-	    (setq listener (number-to-string (+ 50000 (random 10000))))))
-
-	;; Compose copy command.
-	(setq options
-	      (format-spec
-	       (tramp-ssh-controlmaster-options v)
-	       (format-spec-make
-		?t (tramp-get-connection-property
-		    (tramp-get-connection-process v) "temp-file" "")))
-	      spec (list
-		    ?h (or host "") ?u (or user "") ?p (or port "")
-		    ?r listener ?c options ?k (if keep-date " " "")
-                    ?n (concat "2>" (tramp-get-remote-null-device v))
-		    ?x (tramp-scp-strict-file-name-checking v))
-	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
-	      copy-keep-date (tramp-get-method-parameter
-			      v 'tramp-copy-keep-date)
-	      copy-args
-	      ;; " " has either been a replacement of "%k" (when
-	      ;; keep-date argument is non-nil), or a replacement for
-	      ;; the whole keep-date sublist.
-	      (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
-	      ;; `tramp-ssh-controlmaster-options' is a string instead
-	      ;; of a list.  Unflatten it.
-	      copy-args
-	      (tramp-compat-flatten-tree
-	       (mapcar
-		(lambda (x) (if (tramp-compat-string-search " " x)
-                                (split-string x) x))
-		copy-args))
-	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
-	      remote-copy-program
-	      (tramp-get-method-parameter v 'tramp-remote-copy-program)
-	      remote-copy-args
-	      (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
-
-	;; Check for local copy program.
-	(unless (executable-find copy-program)
-	  (tramp-error
-	   v 'file-error "Cannot find local copy program: %s" copy-program))
-
-	;; Install listener on the remote side.  The prompt must be
-	;; consumed later on, when the process does not listen anymore.
-	(when remote-copy-program
-	  (unless (with-tramp-connection-property
-		      v (concat "remote-copy-program-" remote-copy-program)
-		    (tramp-find-executable
-		     v remote-copy-program (tramp-get-remote-path v)))
-	    (tramp-error
-	     v 'file-error
-	     "Cannot find remote listener: %s" remote-copy-program))
-	  (setq remote-copy-program
-		(mapconcat
-		 #'identity
-		 (append
-		  (list remote-copy-program) remote-copy-args
-		  (list (if t1 (concat "<" source) (concat ">" target)) "&"))
-		 " "))
-	  (tramp-send-command v remote-copy-program)
-	  (with-timeout
-	      (60 (tramp-error
-		   v 'file-error
-		   "Listener process not running on remote host: `%s'"
-		   remote-copy-program))
-	    (tramp-send-command v (format "netstat -l | grep -q :%s" listener))
-	    (while (not (tramp-send-command-and-check v nil))
-	      (tramp-send-command
-	       v (format "netstat -l | grep -q :%s" listener)))))
-
-	(with-temp-buffer
+	;; Both are Tramp files.  We cannot use direct remote copying.
+	(let* ((dir-flag (file-directory-p filename))
+	       (tmpfile (tramp-compat-make-temp-file
+			 (tramp-file-name-localname v1) dir-flag)))
+	  (if dir-flag
+	      (setq tmpfile
+		    (expand-file-name
+		     (file-name-nondirectory newname) tmpfile)))
 	  (unwind-protect
-	      ;; The default directory must be remote.
-	      (let ((default-directory
-		      (file-name-directory (if t1 filename newname)))
-		    (process-environment (copy-sequence process-environment)))
-		;; Set the transfer process properties.
-		(tramp-set-connection-property
-		 v "process-name" (buffer-name (current-buffer)))
-		(tramp-set-connection-property
-		 v "process-buffer" (current-buffer))
-		(when copy-env
-		  (tramp-message
-		   orig-vec 6 "%s=\"%s\""
-		   (car copy-env) (string-join (cdr copy-env) " "))
-		  (setenv (car copy-env) (string-join (cdr copy-env) " ")))
-		(setq
-		 copy-args
-		 (append
-		  copy-args
-		  (if remote-copy-program
-		      (list (if t1 (concat ">" target) (concat "<" source)))
-		    (list source target)))
-		 ;; Use an asynchronous process.  By this, password
-		 ;; can be handled.  We don't set a timeout, because
-		 ;; the copying of large files can last longer than 60
-		 ;; secs.
-		 p (let ((default-directory tramp-compat-temporary-file-directory))
-		     (apply
-		      #'start-process
-		      (tramp-get-connection-name v)
-		      (tramp-get-connection-buffer v)
-		      copy-program copy-args)))
-		(tramp-message orig-vec 6 "%s" (string-join (process-command p) " "))
-		(process-put p 'vector orig-vec)
-		(process-put p 'adjust-window-size-function #'ignore)
-		(set-process-query-on-exit-flag p nil)
+	      (progn
+		(tramp-do-copy-or-rename-file-out-of-band
+		 op filename tmpfile ok-if-already-exists keep-date)
+		(tramp-do-copy-or-rename-file-out-of-band
+		 'rename tmpfile newname ok-if-already-exists keep-date))
+	    ;; Save exit.
+	    (ignore-errors
+	      (if dir-flag
+		  (delete-directory
+		   (expand-file-name ".." tmpfile) 'recursive)
+		(delete-file tmpfile)))))
 
-		;; We must adapt `tramp-local-end-of-line' for
-		;; sending the password.
-		(let ((tramp-local-end-of-line tramp-rsh-end-of-line))
-		  (tramp-process-actions
-		   p v nil tramp-actions-copy-out-of-band)))
+      ;; Check which ones of source and target are Tramp files.
+      (setq source (funcall
+		    (if (and (string-equal (tramp-file-name-method v) "rsync")
+			     (file-directory-p filename)
+			     (not (file-exists-p newname)))
+			#'file-name-as-directory
+		      #'identity)
+		    (if v1
+			(tramp-make-copy-program-file-name v1)
+		      (tramp-compat-file-name-unquote filename)))
+	    target (if v2
+		       (tramp-make-copy-program-file-name v2)
+		     (tramp-compat-file-name-unquote newname)))
 
-	    ;; Reset the transfer process properties.
-	    (tramp-flush-connection-property v "process-name")
-	    (tramp-flush-connection-property v "process-buffer")
-	    ;; Clear the remote prompt.
-	    (when (and remote-copy-program
-		       (not (tramp-send-command-and-check v nil)))
-	      ;; Houston, we have a problem!  Likely, the listener is
-	      ;; still running, so let's clear everything (but the
-	      ;; cached password).
-	      (tramp-cleanup-connection v 'keep-debug 'keep-password))))
+      ;; Check for listener port.
+      (when (tramp-get-method-parameter v 'tramp-remote-copy-args)
+	(setq listener (number-to-string (+ 50000 (random 10000))))
+	(while
+	    (zerop (tramp-call-process
+		    v "nc" nil nil nil "-z" (tramp-file-name-host v) listener))
+	  (setq listener (number-to-string (+ 50000 (random 10000))))))
 
-	;; Handle KEEP-DATE argument.
-	(when (and keep-date (not copy-keep-date))
-	  (tramp-compat-set-file-times
-	   newname
-	   (file-attribute-modification-time (file-attributes filename))
-	   (unless ok-if-already-exists 'nofollow)))
+      ;; Compose copy command.
+      (setq options
+	    (format-spec
+	     (tramp-ssh-controlmaster-options v)
+	     (format-spec-make
+	      ?t (tramp-get-connection-property
+		  (tramp-get-connection-process v) "temp-file" "")))
+	    spec (list
+		  ;; "%h" and "%u" do not happen in `tramp-copy-args'
+		  ;; of `scp', so it is save to use `v'.
+		  ?h (or (tramp-file-name-host v) "")
+		  ?u (or (tramp-file-name-user v)
+			 ;; There might be an interactive setting.
+			 (tramp-get-connection-property v "login-as" nil)
+			 "")
+		  ;; For direct remote copying, the port must be the
+		  ;; same for source and target.
+		  ?p (or (tramp-file-name-port v) "")
+		  ?r listener ?c options ?k (if keep-date " " "")
+                  ?n (concat "2>" (tramp-get-remote-null-device v))
+		  ?x (tramp-scp-strict-file-name-checking v)
+		  ?y (tramp-scp-direct-remote-copying v1 v2))
+	    copy-program (tramp-get-method-parameter v 'tramp-copy-program)
+	    copy-keep-date (tramp-get-method-parameter
+			    v 'tramp-copy-keep-date)
+	    copy-args
+	    ;; " " has either been a replacement of "%k" (when
+	    ;; keep-date argument is non-nil), or a replacement for
+	    ;; the whole keep-date sublist.
+	    (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
+	    ;; `tramp-ssh-controlmaster-options' is a string instead
+	    ;; of a list.  Unflatten it.
+	    copy-args
+	    (tramp-compat-flatten-tree
+	     (mapcar
+	      (lambda (x) (if (tramp-compat-string-search " " x)
+                              (split-string x) x))
+	      copy-args))
+	    copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
+	    remote-copy-program
+	    (tramp-get-method-parameter v 'tramp-remote-copy-program)
+	    remote-copy-args
+	    (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
 
-	;; Set the mode.
-	(unless (and keep-date copy-keep-date)
-	  (ignore-errors
-	    (set-file-modes newname (tramp-default-file-modes filename)))))
+      ;; Check for local copy program.
+      (unless (executable-find copy-program)
+	(tramp-error
+	 v 'file-error "Cannot find local copy program: %s" copy-program))
 
-      ;; If the operation was `rename', delete the original file.
-      (unless (eq op 'copy)
-	(if (file-regular-p filename)
-	    (delete-file filename)
-	  (delete-directory filename 'recursive))))))
+      ;; Install listener on the remote side.  The prompt must be
+      ;; consumed later on, when the process does not listen anymore.
+      (when remote-copy-program
+	(unless (with-tramp-connection-property
+		    v (concat "remote-copy-program-" remote-copy-program)
+		  (tramp-find-executable
+		   v remote-copy-program (tramp-get-remote-path v)))
+	  (tramp-error
+	   v 'file-error
+	   "Cannot find remote listener: %s" remote-copy-program))
+	(setq remote-copy-program
+	      (mapconcat
+	       #'identity
+	       (append
+		(list remote-copy-program) remote-copy-args
+		(list (if v1 (concat "<" source) (concat ">" target)) "&"))
+	       " "))
+	(tramp-send-command v remote-copy-program)
+	(with-timeout
+	    (60 (tramp-error
+		 v 'file-error
+		 "Listener process not running on remote host: `%s'"
+		 remote-copy-program))
+	  (tramp-send-command v (format "netstat -l | grep -q :%s" listener))
+	  (while (not (tramp-send-command-and-check v nil))
+	    (tramp-send-command
+	     v (format "netstat -l | grep -q :%s" listener)))))
+
+      (with-temp-buffer
+	(unwind-protect
+	    ;; The default directory must be remote.
+	    (let ((default-directory
+		   (file-name-directory (if v1 filename newname)))
+		  (process-environment (copy-sequence process-environment)))
+	      ;; Set the transfer process properties.
+	      (tramp-set-connection-property
+	       v "process-name" (buffer-name (current-buffer)))
+	      (tramp-set-connection-property
+	       v "process-buffer" (current-buffer))
+	      (when copy-env
+		(tramp-message
+		 v 6 "%s=\"%s\""
+		 (car copy-env) (string-join (cdr copy-env) " "))
+		(setenv (car copy-env) (string-join (cdr copy-env) " ")))
+	      (setq
+	       copy-args
+	       (append
+		copy-args
+		(if remote-copy-program
+		    (list (if v1 (concat ">" target) (concat "<" source)))
+		  (list source target)))
+	       ;; Use an asynchronous process.  By this, password can
+	       ;; be handled.  We don't set a timeout, because the
+	       ;; copying of large files can last longer than 60 secs.
+	       p (let ((default-directory
+			tramp-compat-temporary-file-directory))
+		   (apply
+		    #'start-process
+		    (tramp-get-connection-name v)
+		    (tramp-get-connection-buffer v)
+		    copy-program copy-args)))
+	      (tramp-message v 6 "%s" (string-join (process-command p) " "))
+	      (process-put p 'vector v)
+	      (process-put p 'adjust-window-size-function #'ignore)
+	      (set-process-query-on-exit-flag p nil)
+
+	      ;; We must adapt `tramp-local-end-of-line' for sending
+	      ;; the password.  Also, we indicate that perhaps several
+	      ;; password prompts might appear.
+	      (let ((tramp-local-end-of-line tramp-rsh-end-of-line)
+		    (tramp-password-prompt-not-unique (and v1 v2)))
+		(tramp-process-actions
+		 p v nil tramp-actions-copy-out-of-band)))
+
+	  ;; Reset the transfer process properties.
+	  (tramp-flush-connection-property v "process-name")
+	  (tramp-flush-connection-property v "process-buffer")
+	  ;; Clear the remote prompt.
+	  (when (and remote-copy-program
+		     (not (tramp-send-command-and-check v nil)))
+	    ;; Houston, we have a problem!  Likely, the listener is
+	    ;; still running, so let's clear everything (but the
+	    ;; cached password).
+	    (tramp-cleanup-connection v 'keep-debug 'keep-password))))
+
+      ;; Handle KEEP-DATE argument.
+      (when (and keep-date (not copy-keep-date))
+	(tramp-compat-set-file-times
+	 newname
+	 (file-attribute-modification-time (file-attributes filename))
+	 (unless ok-if-already-exists 'nofollow)))
+
+      ;; Set the mode.
+      (unless (and keep-date copy-keep-date)
+	(ignore-errors
+	  (set-file-modes newname (tramp-default-file-modes filename)))))
+
+    ;; If the operation was `rename', delete the original file.
+    (unless (eq op 'copy)
+      (if (file-regular-p filename)
+	  (delete-file filename)
+	(delete-directory filename 'recursive)))))
 
 (defun tramp-sh-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -4806,7 +4823,7 @@ Goes through the list `tramp-inline-compress-commands'."
    ((stringp tramp-scp-strict-file-name-checking)
     tramp-scp-strict-file-name-checking)
 
-   ;; Determine the options.
+   ;; Determine the option.
    (t (setq tramp-scp-strict-file-name-checking "")
       (let ((case-fold-search t))
 	(ignore-errors
@@ -4821,6 +4838,78 @@ Goes through the list `tramp-inline-compress-commands'."
                      "\\(illegal\\|unknown\\) option -- T" nil t)
 		  (setq tramp-scp-strict-file-name-checking "-T")))))))
       tramp-scp-strict-file-name-checking)))
+
+(defun tramp-scp-direct-remote-copying (vec1 vec2)
+  "Return the direct remote copying argument of the local scp."
+  (cond
+   ((or (not tramp-use-scp-direct-remote-copying) (null vec1) (null vec2)
+	(not (tramp-get-process vec1))
+	(not (equal (tramp-file-name-port vec1) (tramp-file-name-port vec2)))
+	(null (assoc "%y" (tramp-get-method-parameter vec1 'tramp-copy-args)))
+	(null (assoc "%y" (tramp-get-method-parameter vec2 'tramp-copy-args))))
+    "")
+
+   ((let ((case-fold-search t))
+      (and
+       ;; Check, whether "scp" supports "-R" option.
+       (with-tramp-connection-property nil "scp-R"
+	 (when (executable-find "scp")
+	   (with-temp-buffer
+	     (tramp-call-process vec1 "scp" nil t nil "-R")
+	     (goto-char (point-min))
+	     (not (search-forward-regexp
+		   "\\(illegal\\|unknown\\) option -- R" nil 'noerror)))))
+
+       ;; Check, that RemoteCommand is not used.
+       (with-tramp-connection-property (tramp-get-process vec1) "remote-command"
+	 (let ((command `("ssh" "-G" ,(tramp-file-name-host vec1))))
+	   (with-temp-buffer
+	     (tramp-call-process
+	      vec1 tramp-encoding-shell nil t nil
+	      tramp-encoding-command-switch
+	      (mapconcat #'identity command " "))
+	     (goto-char (point-min))
+	     (not (search-forward "remotecommand" nil 'noerror)))))
+
+       ;; Check hostkeys.
+       (with-tramp-connection-property
+	   (tramp-get-process vec1)
+	   (concat "direct-remote-copying-"
+		   (tramp-make-tramp-file-name vec2 'noloc))
+	 (let ((command
+		(append
+		 `("ssh" "-G" ,(tramp-file-name-host vec2) "|"
+		   "grep" "-i" "^hostname" "|" "cut" "-d\" \"" "-f2" "|"
+		   "ssh-keyscan" "-f" "-")
+		 (when (tramp-file-name-port vec2)
+		   `("-p" ,(tramp-file-name-port vec2)))))
+	       found string)
+	   (with-temp-buffer
+	     ;; Check hostkey of VEC2, seen from VEC1.
+	     (tramp-send-command vec1 (mapconcat #'identity command " "))
+	     ;; Check hostkey of VEC2, seen locally.
+	     (tramp-call-process
+	      vec1 tramp-encoding-shell nil t nil tramp-encoding-command-switch
+	      (mapconcat #'identity command " "))
+	     (goto-char (point-min))
+	     (while (and (not found) (not (eobp)))
+	       (setq string
+		     (buffer-substring
+		      (line-beginning-position) (line-end-position))
+		     string
+		     (and
+		      (string-match "^[^# ]+ \\S-+ \\(\\S-+\\)$" string)
+		      (match-string 1 string))
+		     found
+		     (and string
+			  (with-current-buffer (tramp-get-buffer vec1)
+			    (goto-char (point-min))
+			    (search-forward string nil 'noerror))))
+	       (forward-line))
+	     found)))))
+    "-R")
+
+   (t "-3")))
 
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
@@ -5974,9 +6063,6 @@ function cell is returned to be applied on a buffer."
 ;;   isn't on the remote host.  (Mark A. Hershberger)
 ;;
 ;; * Use lsh instead of ssh.  (Alfred M. Szmidt)
-;;
-;; * Optimize out-of-band copying when both methods are scp-like (not
-;;   rsync).
 ;;
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
