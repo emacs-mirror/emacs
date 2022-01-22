@@ -2145,18 +2145,23 @@ Prompt user for a target directory in which to create the new
   one file is marked.  The initial suggestion for target is the
   Dired buffer's current directory (or, if `dired-dwim-target' is
   non-nil, the current directory of a neighboring Dired window).
+
 OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
   will determine whether pop-ups are appropriate for this OP-SYMBOL.
+
 FILE-CREATOR and OPERATION as in `dired-create-files'.
+
 ARG as in `dired-get-marked-files'.
+
 Optional arg MARKER-CHAR as in `dired-create-files'.
+
 Optional arg OP1 is an alternate form for OPERATION if there is
   only one file.
+
 Optional arg HOW-TO determines how to treat the target.
   If HOW-TO is nil, use `file-directory-p' to determine if the
    target is a directory.  If so, the marked file(s) are created
-   inside that directory.  Otherwise, the target is a plain file;
-   an error is raised unless there is exactly one marked file.
+   inside that directory.
   If HOW-TO is t, target is always treated as a plain file.
   Otherwise, HOW-TO should be a function of one argument, TARGET.
    If its return value is nil, TARGET is regarded as a plain file.
@@ -2169,6 +2174,11 @@ Optional arg HOW-TO determines how to treat the target.
       target    - the name of the target itself.
     The rest of elements of the list returned by HOW-TO are optional
     arguments for the function that is the first element of the list.
+
+    This can be useful because by default, copying a single file
+    would replace the tar file.  But this could be overridden to
+    add or replace entries in the tar file.
+
    For any other return value, TARGET is treated as a directory."
   (or op1 (setq op1 operation))
   (let* ((fn-list (dired-get-marked-files nil arg nil nil t))
@@ -2417,7 +2427,7 @@ If FILE already exists, signal an error."
 
 (defvar dired-copy-how-to-fn nil
   "Either nil or a function used by `dired-do-copy' to determine target.
-See HOW-TO argument for `dired-do-create-files'.")
+See HOW-TO argument for `dired-do-create-files' for an explanation.")
 
 ;;;###autoload
 (defun dired-do-copy (&optional arg)
