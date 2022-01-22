@@ -777,6 +777,25 @@ prettify_key (const char *key)
 /* GNUstep seems to have a number of required methods in
    NSMenuDelegate that are optional in Cocoa.  */
 
+- (BOOL) menu: (NSMenu*) menu updateItem: (NSMenuItem*) item
+      atIndex: (NSInteger) index shouldCancel: (BOOL) shouldCancel
+{
+  return YES;
+}
+
+- (BOOL) menuHasKeyEquivalent: (NSMenu*) menu
+		     forEvent: (NSEvent*) event
+		       target: (id*) target
+		       action: (SEL*) action
+{
+  return NO;
+}
+
+- (NSInteger) numberOfItemsInMenu: (NSMenu*) menu
+{
+  return [super numberOfItemsInMenu: menu];
+}
+
 - (void) menuWillOpen:(NSMenu *)menu
 {
 }
