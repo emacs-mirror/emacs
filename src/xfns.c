@@ -3051,7 +3051,7 @@ x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
     }
 
   nbytes = strlen (text->string.multi_byte);
-  setup_coding_system (Qutf_8_unix, &coding);
+  setup_coding_system (Vlocale_coding_system, &coding);
   coding.mode |= (CODING_MODE_LAST_BLOCK
 		  | CODING_MODE_SAFE_ENCODING);
   coding.source = (const unsigned char *) text->string.multi_byte;
