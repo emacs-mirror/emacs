@@ -895,9 +895,9 @@ be called to handle printing of these objects.  The function will be
 called with two arguments: the object and the @var{noescape} flag used by
 the printing functions (@pxref{Output Functions}).
 
-The function should return either @code{nil} (print nothing), or a
-string (which will be printed), or any other object (which means that
-the object should be printed normally).  For instance:
+The function should return either @code{nil} (print the object as
+usual), or a string (which will be printed), or any other object
+(don't print the object).  For instance:
 
 @example
 (let ((print-unreadable-function
