@@ -143,6 +143,7 @@ visited and a warning displayed."
 		 (const :tag "Visit link and warn" nil)
 		 (const :tag "Follow link" t))
   :group 'vc)
+(put 'vc-follow-symlinks 'safe-local-variable #'null)
 
 (defcustom vc-display-status t
   "If non-nil, display revision number and lock status in mode line.
