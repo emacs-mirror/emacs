@@ -1024,5 +1024,9 @@ final or penultimate step during initialization."))
   (should (equal (function-alias-p 'subr-tests--d t)
                  '(subr-tests--e))))
 
+(ert-deftest test-readablep ()
+  (should (readablep "foo"))
+  (should-not (readablep (list (make-marker)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

@@ -6561,4 +6561,17 @@ signalled.  If NOERROR, the non-loop parts of the chain is returned."
          (push func chain))
        chain))))
 
+(defun readablep (object)
+  "Say whether OBJECT has a readable syntax.
+This means that OBJECT can be printed out and then read back
+again by the Lisp reader.  This function returns nil if OBJECT is
+unreadable, and the printed representation (from `prin1') of
+OBJECT if it is readable."
+  (declare (side-effect-free t))
+  (catch 'unreadable
+    (let ((print-unreadable-function
+           (lambda (_object _escape)
+             (throw 'unreadable nil))))
+      (prin1-to-string object))))
+
 ;;; subr.el ends here

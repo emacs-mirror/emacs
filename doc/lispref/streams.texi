@@ -358,6 +358,13 @@ mode for @var{stream}.  On POSIX hosts, it always returns a
 non-@code{nil} value and does nothing except flushing pending output.
 @end defun
 
+@defun readablep object
+This predicate says whether @var{object} can be written out and then
+read back by the Emacs Lisp reader.  If it can't, this function
+returns @code{nil}, and if it can, a printed representation (via
+@code{prin1}) of @var{object} is returned.
+@end defun
+
 @node Output Streams
 @section Output Streams
 @cindex stream (for printing)

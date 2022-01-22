@@ -977,6 +977,10 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+** New function 'readablep'.
+This function says whether an object can be written out and then
+read back by the Emacs Lisp reader.
+
 +++
 ** New variable 'print-unreadable-function'.
 This variable allows changing how Emacs prints unreadable objects.
