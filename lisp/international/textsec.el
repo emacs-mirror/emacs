@@ -287,6 +287,22 @@ certain other unusual mixtures of characters."
    ((string-match-p "\\`\\.\\|\\.\\'\\|\\.\\." local)
     (format "`%s' contains invalid dots" local))))
 
+(defun textsec-bidi-controls-suspicious-p (string)
+  "Return non-nil of STRING uses bidi controls in suspicious ways.
+If STRING doesn't include any suspicious uses of bidirectional
+formatting control characters, return nil.  Otherwise, return the
+index of the first character in STRING affected by such suspicious
+use of bidi controls.  If the returned value is beyond the length
+of STRING, it means any text following STRING on display might be
+affected by bidi controls in STRING."
+  (with-temp-buffer
+    ;; We add a string that's representative of some text that could
+    ;; follow STRING, with the purpose of detecting residual bidi
+    ;; state at end of STRING which could then affect the following
+    ;; text.
+    (insert string "a1א:!")
+    (bidi-find-overridden-directionality 1 (point-max) nil)))
+
 (defun textsec-name-suspicious-p (name)
   "Say whether NAME looks suspicious.
 NAME is (for instance) the free-text display name part of an
@@ -310,10 +326,11 @@ other unusual mixtures of characters."
                                           ?\N{arabic letter mark})))))
                    name)
          ;; We have bidirectional formatting characters, but check
-         ;; whether they affect LTR characters.  If not, it's not
-         ;; suspicious.
-         (bidi-find-overridden-directionality 0 (length name) name))
-    (format "The string contains bidirectional control characters"))
+         ;; whether they affect any other characters in suspicious
+         ;; ways.  If not, NAME is not suspicious.
+         (fixnump (textsec-bidi-controls-suspicious-p name)))
+    (format "`%s' contains suspicious uses of bidirectional control characters"
+            name))
    ((textsec-suspicious-nonspacing-p name))))
 
 (defun textsec-suspicious-nonspacing-p (string)

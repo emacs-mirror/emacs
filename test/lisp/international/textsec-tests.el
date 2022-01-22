@@ -136,10 +136,8 @@
   (should (textsec-name-suspicious-p "LÅRS INGEBRIGTSEN"))
   (should-not (textsec-name-suspicious-p "LÅRS INGEBRIGTSEN"))
 
-  ;;; FIXME -- this test fail with `bidi-find-overridden-directionality'.
-  (when nil
-    (should (textsec-name-suspicious-p
-             "Lars Ingebrigtsen\N{LEFT-TO-RIGHT OVERRIDE}")))
+  (should (textsec-name-suspicious-p
+           "Lars Ingebrigtsen\N{LEFT-TO-RIGHT OVERRIDE}"))
   (should (textsec-name-suspicious-p
            "Lars Ingebrigtsen\N{LEFT-TO-RIGHT OVERRIDE}f"))
   (should-not (textsec-name-suspicious-p
