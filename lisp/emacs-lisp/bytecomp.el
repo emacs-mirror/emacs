@@ -2294,7 +2294,7 @@ With argument ARG, insert value in current buffer after the form."
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
           (let* ((lread--unescaped-character-literals nil)
-                 (form (read inbuffer))
+                 (form (funcall load-read-function inbuffer))
                  (warning (byte-run--unescaped-character-literals-warning)))
             (when warning (byte-compile-warn "%s" warning))
 	    (byte-compile-toplevel-file-form form)))
