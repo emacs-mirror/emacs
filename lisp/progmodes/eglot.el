@@ -2489,7 +2489,6 @@ is not active."
             (regexp-opt
              (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
             (line-beginning-position))))
-       :exclusive 'no
        :exit-function
        (lambda (proxy status)
          (when (eq status 'finished)
