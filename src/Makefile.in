@@ -616,7 +616,7 @@ endif
 ## icon set.
 
 ifeq ($(HAVE_BE_APP),yes)
-Emacs: emacs$(EXEEXT)
+Emacs: emacs$(EXEEXT) $(libsrc)/be-resources
 	$(AM_V_GEN) cp -f emacs$(EXEEXT) $@
 	$(AM_V_at) $(libsrc)/be-resources \
 	  $(etc)/images/icons/hicolor/32x32/apps/emacs.png $@
@@ -914,6 +914,9 @@ $(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
 	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap \
 		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	@: Compile some files earlier to speed up further compilation.
+	@: First, byte compile these files, ....
+	ANCIENT=yes $(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+	@: .... then use their .elcs in native compiling these and other files.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
 endif
 

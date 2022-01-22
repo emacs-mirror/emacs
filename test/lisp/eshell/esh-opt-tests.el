@@ -27,41 +27,63 @@
   (should
    (equal '(t)
           (eshell--process-args
-           "sudo"
-           '("-a")
-           '((?a "all" nil show-all "")))))
-  (should
-   (equal '(nil)
-          (eshell--process-args
-           "sudo"
-           '("-g")
-           '((?a "all" nil show-all "")))))
+           "sudo" '("-a")
+           '((?a "all" nil show-all
+                 "do not ignore entries starting with .")))))
   (should
    (equal '("root" "world")
           (eshell--process-args
-           "sudo"
-           '("-u" "root" "world")
-           '((?u "user" t user "execute a command as another USER")))))
+           "sudo" '("-u" "root" "world")
+           '((?u "user" t user
+                 "execute a command as another USER")))))
   (should
    (equal '(nil "emerge" "-uDN" "world")
           (eshell--process-args
-           "sudo"
-           '("emerge" "-uDN" "world")
-           '((?u "user" t user "execute a command as another USER")
+           "sudo" '("emerge" "-uDN" "world")
+           '((?u "user" t user
+                 "execute a command as another USER")
              :parse-leading-options-only))))
   (should
    (equal '("root" "emerge" "-uDN" "world")
           (eshell--process-args
-           "sudo"
-           '("-u" "root" "emerge" "-uDN" "world")
-           '((?u "user" t user "execute a command as another USER")
+           "sudo" '("-u" "root" "emerge" "-uDN" "world")
+           '((?u "user" t user
+                 "execute a command as another USER")
              :parse-leading-options-only))))
   (should
    (equal '("DN" "emerge" "world")
           (eshell--process-args
-           "sudo"
-           '("-u" "root" "emerge" "-uDN" "world")
-           '((?u "user" t user "execute a command as another USER"))))))
+           "sudo" '("-u" "root" "emerge" "-uDN" "world")
+           '((?u "user" t user
+                 "execute a command as another USER")))))
+
+  ;; Test :external.
+  (cl-letf (((symbol-function 'eshell-search-path) #'ignore))
+    (should
+     (equal '(nil "/some/path")
+            (eshell--process-args
+             "ls" '("/some/path")
+             '((?a "all" nil show-all
+                   "do not ignore entries starting with .")
+               :external "ls")))))
+  (cl-letf (((symbol-function 'eshell-search-path) #'identity))
+    (should
+     (equal '(no-catch eshell-ext-command "ls")
+            (should-error
+             (eshell--process-args
+              "ls" '("-u" "/some/path")
+              '((?a "all" nil show-all
+                    "do not ignore entries starting with .")
+                :external "ls"))
+             :type 'no-catch))))
+  (cl-letf (((symbol-function 'eshell-search-path) #'ignore))
+    (should-error
+     (eshell--process-args
+      "ls" '("-u" "/some/path")
+      '((?a "all" nil show-all
+            "do not ignore entries starting with .")
+        :external "ls"))
+     :type 'error)))
 
 (ert-deftest test-eshell-eval-using-options ()
   "Tests for `eshell-eval-using-options'."
@@ -190,7 +212,27 @@
    '((?u "user" t user "execute a command as another USER")
      :parse-leading-options-only)
    (should (eq user nil))
-   (should (equal args '("emerge" "-uDN" "world")))))
+   (should (equal args '("emerge" "-uDN" "world"))))
+
+  ;; Test unrecognized options.
+  (should-error
+   (eshell-eval-using-options
+    "ls" '("-u" "/some/path")
+    '((?a "all" nil show-all
+          "do not ignore entries starting with ."))
+    (ignore show-all)))
+  (should-error
+   (eshell-eval-using-options
+    "ls" '("-au" "/some/path")
+    '((?a "all" nil show-all
+          "do not ignore entries starting with ."))
+    (ignore show-all)))
+  (should-error
+   (eshell-eval-using-options
+    "ls" '("--unrecognized" "/some/path")
+    '((?a "all" nil show-all
+          "do not ignore entries starting with ."))
+    (ignore show-all))))
 
 (provide 'esh-opt-tests)
 

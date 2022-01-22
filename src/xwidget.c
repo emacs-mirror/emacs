@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <webkit2/webkit2.h>
 #include <JavaScriptCore/JavaScript.h>
 #include <cairo.h>
+#include <cairo-xlib.h>
 #ifndef HAVE_PGTK
 #include <X11/Xlib.h>
 #else
@@ -1855,7 +1856,7 @@ webkit_js_to_lisp (JSCValue *value)
       const gint32 dlen = jsc_value_to_int32 (len);
 
       Lisp_Object obj;
-      if (! (0 <= dlen && dlen < PTRDIFF_MAX + 1.0))
+      if (! (0 <= dlen && dlen < G_MAXINT32))
 	memory_full (SIZE_MAX);
 
       ptrdiff_t n = dlen;

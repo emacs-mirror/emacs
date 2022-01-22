@@ -59,6 +59,7 @@ the character after point.
 * Decompression::    Dealing with compressed data.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
+* Suspicious Text::  Determining whether a string is suspicious.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
 * Database::         Interacting with an SQL database.
 * Parsing HTML/XML:: Parsing HTML and XML.
@@ -4942,6 +4943,92 @@ It should be somewhat more efficient on larger buffers than
 @c even whether it's a cryptographic hash, since that may change
 @c according to what we find useful.
 @end defun
+
+@node Suspicious Text
+@section Suspicious Text
+@cindex suspicious text
+@cindex insecure text
+@cindex security vulnerabilities in text
+
+  Emacs can display text from many external sources, like email and Web
+sites.  Attackers may attempt to confuse the user reading this text by
+using obfuscated @acronym{URL}s or email addresses, and tricking the
+user into visiting a web page they didn't intend to visit, or sending
+an email to the wrong address.
+
+This usually involves using characters from scripts that visually look
+like @acronym{ASCII} characters (i.e., are homoglyphs), but there are
+also other techniques used, like using bidirectional overrides, or
+having an @acronym{HTML} link text that says one thing, while the
+underlying @acronym{URL} points somewhere else.
+
+@cindex suspicious text strings
+To help identify these @dfn{suspicious text strings}, Emacs provides a
+library to do a number of checks on text.  (See
+@url{https://www.unicode.org/reports/tr39/, UTS #39: Unicode Security
+Mechanisms} for the rationale behind the checks that are available and
+more details about them.)  Packages that present data that might be
+suspicious should use this library to flag suspicious text on display.
+
+@vindex textsec-check
+@defun textsec-suspicious-p object type
+This function is the high-level interface function that packages
+should use.  It respects the @code{textsec-check} user option, which
+allows the user to disable the checks.
+
+This function checks @var{object} (whose data type depends on
+@var{type}) to see if it looks suspicious when interpreted as a thing
+of @var{type}.  The available types and the corresponding @var{object}
+data types are:
+
+@table @code
+@item domain
+Check whether a domain (e.g., @samp{www.gnu.org} looks suspicious.
+@var{object} should be a string, the domain name.
+
+@item url
+Check whether an @acronym{URL} (e.g., @samp{http://gnu.org/foo/bar})
+looks suspicious.  @var{object} should be a string, the @acronym{URL}
+to check.
+
+@item link
+Check whether an @acronym{HTML} link (e.g., @samp{<a
+href='http://gnu.org'>fsf.org</a>} looks suspicious.  In this case,
+@var{object} should be a @code{cons} cell where the @code{car} is the
+@acronym{URL} string, and the @code{cdr} is the link text.  The link
+is deemed suspicious if the link text contains a domain name, and that
+domain name points to something other than the @acronym{URL}.
+
+@item email-address
+Check whether an email address (e.g., @samp{foo@@example.org}) looks
+suspicious.  @var{object} should be a string.
+
+@item local-address
+Check whether the local part of an email address (the bit before the
+@samp{@@} sign) looks suspicious.  @var{object} should be a string.
+
+@item name
+Check whether a name (used in an email address header) looks
+suspicious.  @var{object} should be a string.
+
+@item email-address-header
+Check whether a full RFC2822 email address header (e.g.,
+@samp{=?utf-8?Q?=C3=81?= <foo@@example.com>}) looks suspicious.
+@var{object} should be a string.
+@end table
+
+If @var{object} is suspicious, this function returns a string that
+explains why it is suspicious.  If @var{object} is not suspicious, the
+function returns @code{nil}.
+@end defun
+
+@vindex textsec-suspicious@r{ (face)}
+If the text is suspicious, the application should mark the suspicious
+text with the @code{textsec-suspicious} face, and make the explanation
+returned by @code{textsec-suspicious-p} available to the user in some way
+(for example, in a tooltip).  The application might also prompt the
+user for confirmation before taking any action on a suspicious string
+(like sending an email to a suspicious email address).
 
 @node GnuTLS Cryptography
 @section GnuTLS Cryptography

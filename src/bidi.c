@@ -3569,7 +3569,9 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 ptrdiff_t
 bidi_find_first_overridden (struct bidi_it *bidi_it)
 {
-  ptrdiff_t found_pos = ZV;
+  ptrdiff_t eob
+    = STRINGP (bidi_it->string.lstring) ? bidi_it->string.schars : ZV;
+  ptrdiff_t found_pos = eob;
   /* Maximum bidi levels we allow for L2R and R2L characters.  Note
      that these are levels after resolving explicit embeddings,
      overrides, and isolates, i.e. before resolving implicit levels.  */
@@ -3607,8 +3609,8 @@ bidi_find_first_overridden (struct bidi_it *bidi_it)
 	  || ((category == WEAK || bidi_it->orig_type == NEUTRAL_ON)
 	      && level > max_weak))
 	found_pos = bidi_it->charpos;
-    } while (found_pos == ZV
-	     && bidi_it->charpos < ZV
+    } while (found_pos == eob
+	     && bidi_it->charpos < eob
 	     && bidi_it->ch != BIDI_EOB
 	     && bidi_it->ch != '\n');
 

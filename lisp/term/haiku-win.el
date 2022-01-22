@@ -50,6 +50,7 @@
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
 (declare-function haiku-selection-targets "haikuselect.c")
+(declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
@@ -105,9 +106,8 @@ If TYPE is nil, return \"text/plain\"."
                                               &context (window-system haiku))
   (haiku-selection-data selection "text/plain"))
 
-(cl-defmethod gui-backend-selection-owner-p (_
-                                             &context (window-system haiku))
-  t)
+(cl-defmethod gui-backend-selection-owner-p (selection &context (window-system haiku))
+  (haiku-selection-owner-p selection))
 
 (declare-function haiku-read-file-name "haikufns.c")
 
@@ -135,6 +135,16 @@ If TYPE is nil, return \"text/plain\"."
 
 (define-key special-event-map [drag-n-drop]
             'haiku-dnd-handle-drag-n-drop-event)
+
+(defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
+
+(defun haiku-use-system-tooltips-watcher (&rest _ignored)
+  "Variable watcher to force a menu bar update when `use-system-tooltip' changes.
+This is necessary because on Haiku `use-system-tooltip' doesn't
+take effect on menu items until the menu bar is updated again."
+  (force-mode-line-update t))
+
+(add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
 
 (provide 'haiku-win)
 (provide 'term/haiku-win)

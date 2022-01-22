@@ -21,15 +21,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define XSETTINGS_H
 
 #ifndef HAVE_PGTK
+#include "dispextern.h"
 #include <X11/Xlib.h>
 #endif
 
 struct x_display_info;
 struct pgtk_display_info;
 
-#ifndef HAVE_PGTK
-typedef struct x_display_info Display_Info;
-#else
+#ifdef HAVE_PGTK
 typedef struct pgtk_display_info Display_Info;
 #endif
 

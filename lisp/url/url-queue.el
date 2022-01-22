@@ -155,14 +155,19 @@ The variable `url-queue-timeout' sets a timeout."
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
-          (with-current-buffer (if (buffer-live-p (url-queue-context-buffer job))
+          (with-current-buffer (if (buffer-live-p
+                                    (url-queue-context-buffer job))
                                    (url-queue-context-buffer job)
                                  (current-buffer))
-	   (let ((url-request-noninteractive t))
-             (url-retrieve (url-queue-url job)
-                           #'url-queue-callback-function (list job)
-                           (url-queue-silentp job)
-                           (url-queue-inhibit-cookiesp job)))))))
+	    (let ((url-request-noninteractive t)
+                  ;; This will disable querying the user for
+                  ;; credentials if one of the things we're fetching
+                  ;; in the background return a header requesting it.
+                  (url-request-extra-headers '(("Authorization" . ""))))
+              (url-retrieve (url-queue-url job)
+                            #'url-queue-callback-function (list job)
+                            (url-queue-silentp job)
+                            (url-queue-inhibit-cookiesp job)))))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)

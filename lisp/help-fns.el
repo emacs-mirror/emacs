@@ -496,9 +496,16 @@ suitable file is found, return nil."
     (let ((pt2 (with-current-buffer standard-output (point)))
           (remapped (command-remapping function)))
       (unless (memq remapped '(ignore undefined))
-        (let ((keys (where-is-internal
-                     (or remapped function) overriding-local-map nil nil))
-              non-modified-keys)
+        (let* ((all-keys (where-is-internal
+                          (or remapped function) overriding-local-map nil nil))
+               (seps (seq-group-by
+                      (lambda (key)
+                        (and (vectorp key)
+                             (eq (elt key 0) 'menu-bar)))
+                      all-keys))
+               (keys (cdr (assq nil seps)))
+               (menus (cdr (assq t seps)))
+               non-modified-keys)
           (if (and (eq function 'self-insert-command)
                    (vectorp (car-safe keys))
                    (consp (aref (car keys) 0)))
@@ -522,24 +529,42 @@ suitable file is found, return nil."
               ;; don't mention them one by one.
               (if (< (length non-modified-keys) 10)
                   (with-current-buffer standard-output
-                    (insert (mapconcat #'help--key-description-fontified
-                                       keys ", ")))
+                    (help-fns--insert-bindings keys))
                 (dolist (key non-modified-keys)
                   (setq keys (delq key keys)))
                 (if keys
                     (with-current-buffer standard-output
-                      (insert (mapconcat #'help--key-description-fontified
-                                        keys ", "))
+                      (help-fns--insert-bindings keys)
                       (insert ", and many ordinary text characters"))
-                  (princ "many ordinary text characters"))))
+                  (princ "many ordinary text characters."))))
             (when (or remapped keys non-modified-keys)
               (princ ".")
-              (terpri)))))
+              (terpri)))
 
-      (with-current-buffer standard-output
-        (fill-region-as-paragraph pt2 (point))
-        (unless (looking-back "\n\n" (- (point) 2))
-          (terpri))))))
+          (with-current-buffer standard-output
+            (fill-region-as-paragraph pt2 (point))
+            (unless (bolp)
+              (insert "\n"))
+            (when menus
+              (let ((start (point)))
+                (insert (concat "It can "
+                                (and keys "also ")
+                                "be invoked from the menu: "))
+                ;; FIXME: Should insert menu names instead of key
+                ;; binding names.
+                (help-fns--insert-bindings menus)
+                (insert ".")
+                (fill-region-as-paragraph start (point))))
+            (ensure-empty-lines)))))))
+
+(defun help-fns--insert-bindings (keys)
+  (seq-do-indexed (lambda (key i)
+                    (insert
+                     (cond ((zerop i) "")
+                           ((= i (1- (length keys))) " and ")
+                           (t ", ")))
+                    (insert (help--key-description-fontified key)))
+                  keys))
 
 (defun help-fns--compiler-macro (function)
   (let ((handler (function-get function 'compiler-macro)))

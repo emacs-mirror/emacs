@@ -1993,11 +1993,13 @@ Uses `Man-name-local-regexp'."
             (skip-syntax-backward "^ ")
             (and (looking-at
                   "[[:space:]]*\\([[:alnum:]_-]+([[:alnum:]]+)\\)")
-                  (match-string 1)))
-      (define-key-after menu [man-separator] menu-bar-separator)
+                 (match-string 1)))
+      (define-key-after menu [man-separator] menu-bar-separator
+        'middle-separator)
       (define-key-after menu [man-at-mouse]
-    '(menu-item "Open man page" man-at-mouse
-            :help "Open man page around mouse click"))))
+        '(menu-item "Open man page" Man-at-mouse
+                    :help "Open man page around mouse click")
+        'man-separator)))
   menu)
 
 

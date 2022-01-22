@@ -3154,10 +3154,8 @@ raises @var{frame} above all other child frames of its parent.
 @deffn Command lower-frame &optional frame
 This function lowers frame @var{frame} (default, the selected frame)
 below all other frames belonging to the same or a higher z-group as
-@var{frame}.@footnote{Lowering frames is not supported on Haiku, due
-to limitations imposed by the system.}  If @var{frame} is a child
-frame (@pxref{Child Frames}), this lowers @var{frame} below all other
-child frames of its parent.
+@var{frame}.  If @var{frame} is a child frame (@pxref{Child Frames}),
+this lowers @var{frame} below all other child frames of its parent.
 @end deffn
 
 @defun frame-restack frame1 frame2 &optional above

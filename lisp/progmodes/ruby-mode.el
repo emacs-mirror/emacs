@@ -325,6 +325,13 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
   :type 'boolean :group 'ruby)
 
+(defcustom ruby-toggle-block-space-before-parameters t
+  "When non-nil, ensure space between the \"toggled\" curly and parameters.
+This only affects the output of the command `ruby-toggle-block'."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
 ;;; SMIE support
 
 (require 'smie)
@@ -1722,13 +1729,14 @@ See `add-log-current-defun-function'."
       (insert "}")
       (goto-char orig)
       (delete-char 2)
-      ;; Maybe this should be customizable, let's see if anyone asks.
-      (insert "{ ")
-      (setq beg-marker (point-marker))
-      (when (looking-at "\\s +|")
-        (delete-char (- (match-end 0) (match-beginning 0) 1))
-        (forward-char)
-        (re-search-forward "|" (line-end-position) t))
+      (insert "{")
+      (if (looking-at "\\s +|")
+          (progn
+            (just-one-space (if ruby-toggle-block-space-before-parameters 1 0))
+            (setq beg-marker (point-marker))
+            (forward-char)
+            (re-search-forward "|" (line-end-position) t))
+        (setq beg-marker (point-marker)))
       (save-excursion
         (skip-chars-forward " \t\n\r")
         (setq beg-pos (point))

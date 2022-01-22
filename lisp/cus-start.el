@@ -356,6 +356,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                    (const :tag "Iconify" t))
 				  "26.1")
 	     (tooltip-reuse-hidden-frame tooltip boolean "26.1")
+             (use-system-tooltips tooltip boolean "29.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -369,7 +370,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)
-	     (polling-period keyboard integer)
+	     (polling-period keyboard float)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")

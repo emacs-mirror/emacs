@@ -407,9 +407,16 @@ Summarize disk usage for each file.
 
 @item echo
 @cmindex echo
-Echoes its input.  If @code{eshell-plain-echo-behavior} is
-non-@code{nil}, @command{echo} will try to behave more like a plain
-shell's @command{echo}.
+Echoes its input.  By default, this prints in a Lisp-friendly fashion
+(so that the value is useful to a Lisp command using the result of
+@command{echo} as an argument).  If a single argument is passed,
+@command{echo} prints that; if multiple arguments are passed, it
+prints a list of all the arguments; otherwise, it prints the empty
+string.
+
+If @code{eshell-plain-echo-behavior} is non-@code{nil}, @command{echo}
+will try to behave more like a plain shell's @command{echo}, printing
+each argument as a string, separated by a space.
 
 @item env
 @cmindex env

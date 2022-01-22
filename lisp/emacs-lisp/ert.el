@@ -1423,7 +1423,8 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                  (if (cl-plusp
+                                       (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
               (message "%s" ""))
@@ -1435,7 +1436,8 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                  (if (cl-plusp
+                                       (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
               (message "%s" ""))

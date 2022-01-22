@@ -98,7 +98,7 @@ function name2alias(name   , w, w2) {
     else if (name ~ /arabic/) return "arabic"
     else if (name ~ /^greek/) return "greek"
     else if (name ~ /^coptic/) return "coptic"
-    else if (name ~ /cuneiform number/) return "cuneiform-numbers-and-punctuation"
+    else if (name ~ /cuneiform number/) return "cuneiform"
     else if (name ~ /cuneiform/) return "cuneiform"
     else if (name ~ /mathematical alphanumeric symbol/) return "mathematical"
     else if (name ~ /punctuation|mathematical|arrows|currency|superscript|small form variants|geometric|dingbats|enclosed|alchemical|pictograph|emoticon|transport/) return "symbol"
@@ -113,9 +113,11 @@ function name2alias(name   , w, w2) {
     else if (name ~/^(specials|tags)$/) return 0
     else if (name ~ /linear b/) return "linear-b"
     else if (name ~ /aramaic/) return "aramaic"
-    else if (name ~ /rumi num/) return "rumi-number"
+    else if (name ~ /rumi num/) return "arabic"
     else if (name ~ /duployan|shorthand/) return "duployan-shorthand"
     else if (name ~ /sutton signwriting/) return "sutton-sign-writing"
+    else if (name ~ /sinhala archaic number/) return "sinhala"
+    else if (name ~ /tangut components/) return "tangut"
 
     sub(/^small /, "", name)
     sub(/ (extended|extensions*|supplement).*/, "", name)

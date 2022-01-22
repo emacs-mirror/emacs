@@ -2906,9 +2906,8 @@ x_create_xrender_picture (struct frame *f, Emacs_Pixmap pixmap, int depth)
 {
   Picture p;
   Display *display = FRAME_X_DISPLAY (f);
-  int event_basep, error_basep;
 
-  if (XRenderQueryExtension (display, &event_basep, &error_basep))
+  if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
     {
       if (depth <= 0)
 	depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
@@ -11198,8 +11197,7 @@ The list of capabilities can include one or more of the following:
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
       int event_basep, error_basep;
 
-      if (XRenderQueryExtension (FRAME_X_DISPLAY (f),
-				 &event_basep, &error_basep))
+      if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
 	return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_NTGUI)
       return (w32_image_rotations_p ()

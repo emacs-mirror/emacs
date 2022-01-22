@@ -330,9 +330,7 @@ It is the default value of `show-paren-data-function'."
                 (let ((open-paren-line-string
                        (blink-paren-open-paren-line-string openparen))
                       (message-log-max nil))
-                  (minibuffer-message
-                   "Matches %s"
-                   (substring-no-properties open-paren-line-string)))))
+                  (minibuffer-message "Matches %s" open-paren-line-string))))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))

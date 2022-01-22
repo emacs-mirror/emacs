@@ -1376,7 +1376,7 @@ any buffer where (dictionary-tooltip-mode 1) has been called."
     (dictionary-search word)))
 
 ;;;###autoload
-(defun context-menu-dictionary (menu click)
+(defun dictionary-context-menu (menu click)
   "Populate MENU with dictionary commands at CLICK.
 When you add this function to `context-menu-functions',
 the context menu will contain an item that searches

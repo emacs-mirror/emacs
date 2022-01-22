@@ -4534,6 +4534,12 @@ xg_update_scrollbar_pos (struct frame *f,
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
         }
+
+#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
+	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
+	  emacs_abort ();
+#endif
+
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  */
@@ -4587,7 +4593,6 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 				    int width,
 				    int height)
 {
-
   GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
 
   if (wscroll)
@@ -4632,6 +4637,11 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
         x_clear_area (f, oldx, oldy, oldw, oldh);
 #else
         pgtk_clear_area (f, oldx, oldy, oldw, oldh);
+#endif
+
+#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
+	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
+	  emacs_abort ();
 #endif
 
       /* GTK does not redraw until the main loop is entered again, but
@@ -6151,6 +6161,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 
   inev.ie.modifiers
     |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
+  inev.ie.timestamp = event->key.time;
 
   if (event->key.is_modifier)
     goto done;
@@ -6256,13 +6267,16 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
     }
 
   XNoOp (FRAME_X_DISPLAY (f));
+#ifdef USABLE_SIGIO
+  raise (SIGIO);
+#endif
   return true;
 }
 
 bool
 xg_filter_key (struct frame *frame, XEvent *xkey)
 {
-  GdkEvent *xg_event = gdk_event_new ((xkey->type == ButtonPress
+  GdkEvent *xg_event = gdk_event_new ((xkey->type == KeyPress
 #ifdef HAVE_XINPUT2
 				       || (xkey->type == GenericEvent
 					   && xkey->xgeneric.evtype == XI_KeyPress)
@@ -6321,6 +6335,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 					   NULL, NULL, &consumed);
       xg_add_virtual_mods (dpyinfo, &xg_event->key);
       xg_event->key.state &= ~consumed;
+      xg_event->key.time = xkey->xkey.time;
 #if GTK_CHECK_VERSION (3, 6, 0)
       xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
 								  xg_event->key.hardware_keycode);
@@ -6334,6 +6349,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
       xg_event->key.hardware_keycode = xev->detail;
       xg_event->key.group = xev->group.effective;
       xg_event->key.state = xev->mods.effective;
+      xg_event->key.time = xev->time;
       gdk_keymap_translate_keyboard_state (keymap,
 					   xev->detail,
 					   xev->mods.effective,

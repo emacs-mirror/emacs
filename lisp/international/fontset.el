@@ -231,7 +231,6 @@
 	(elymaic #x10FE0)
 	(old-uyghur #x10F70)
 	(mahajani #x11150)
-	(sinhala-archaic-number #x111E1)
 	(khojki #x11200)
 	(khudawadi #x112B0)
 	(grantha #x11305)
@@ -253,7 +252,6 @@
 	(gunjala-gondi #x11D60)
 	(makasar #x11EE0)
 	(cuneiform #x12000)
-	(cuneiform-numbers-and-punctuation #x12400)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
 	(mro #x16A40)
@@ -262,7 +260,6 @@
 	(pahawh-hmong #x16B11)
 	(medefaidrin #x16E40)
 	(tangut #x17000)
-	(tangut-components #x18800)
 	(khitan-small-script #x18B00)
 	(nushu #x1B170)
 	(duployan-shorthand #x1BC20)
@@ -768,7 +765,6 @@
                     old-uyghur
 		    makasar
                     dives-akuru
-		    cuneiform-numbers-and-punctuation
 		    cuneiform
 		    egyptian
                     tangsa

@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/MenuBar.h>
 #include <interface/Alert.h>
 #include <interface/Button.h>
+#include <interface/ControlLook.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -406,6 +407,7 @@ public:
   bool menu_bar_active_p = false;
   window_look pre_override_redirect_style;
   window_feel pre_override_redirect_feel;
+  uint32 pre_override_redirect_workspaces;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -718,6 +720,7 @@ public:
 	int ret;
 	msg->FindInt32 ("raw_char", &raw);
 	msg->FindInt32 ("key", &key);
+	msg->FindInt64 ("when", &rq.time);
 
 	rq.modifiers = 0;
 	uint32_t mods = modifiers ();
@@ -1318,7 +1321,6 @@ public:
     if (!offscreen_draw_view)
       gui_abort ("Failed to lock offscreen view during buffer flip");
 
-    offscreen_draw_view->Flush ();
     offscreen_draw_view->Sync ();
 
     EmacsWindow *w = (EmacsWindow *) Window ();
@@ -1381,8 +1383,8 @@ public:
     rq.just_exited_p = transit == B_EXITED_VIEW;
     rq.x = point.x;
     rq.y = point.y;
-    rq.be_code = transit;
     rq.window = this->Window ();
+    rq.time = system_time ();
 
     if (ToolTip ())
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
@@ -1437,6 +1439,7 @@ public:
 
     SetMouseEventMask (B_POINTER_EVENTS, B_LOCK_WINDOW_FOCUS);
 
+    rq.time = system_time ();
     haiku_write (BUTTON_DOWN, &rq);
   }
 
@@ -1483,6 +1486,7 @@ public:
     if (!buttons)
       SetMouseEventMask (0, 0);
 
+    rq.time = system_time ();
     haiku_write (BUTTON_UP, &rq);
   }
 };
@@ -1632,16 +1636,16 @@ public:
   {
     struct haiku_menu_bar_help_event rq;
 
-    if (menu_bar_id >= 0)
+    if (help)
+      {
+	Menu ()->SetToolTip (highlight_p ? help : NULL);
+      }
+    else if (menu_bar_id >= 0)
       {
 	rq.window = wind_ptr;
 	rq.mb_idx = highlight_p ? menu_bar_id : -1;
 
 	haiku_write (MENU_BAR_HELP_EVENT, &rq);
-      }
-    else if (help)
-      {
-	Menu ()->SetToolTip (highlight_p ? help : NULL);
       }
 
     BMenuItem::Highlight (highlight_p);
@@ -1997,8 +2001,6 @@ BView_move_frame (void *view, int x, int y, int x1, int y1)
     gui_abort ("Failed to lock view moving frame");
   vw->MoveTo (x, y);
   vw->ResizeTo (x1 - x, y1 - y);
-  vw->Flush ();
-  vw->Sync ();
   vw->UnlockLooper ();
 }
 
@@ -2018,7 +2020,9 @@ BView_scroll_bar_update (void *sb, int portion, int whole, int position)
 int
 BScrollBar_default_size (int horizontal_p)
 {
-  return horizontal_p ? B_H_SCROLL_BAR_HEIGHT : B_V_SCROLL_BAR_WIDTH;
+  return be_control_look->GetScrollBarWidth (horizontal_p
+					     ? B_HORIZONTAL
+					     : B_VERTICAL);
 }
 
 /* Invalidate VIEW, causing it to be drawn again.  */
@@ -2224,7 +2228,11 @@ BWindow_set_tooltip_decoration (void *window)
   if (!w->LockLooper ())
     gui_abort ("Failed to lock window while setting ttip decoration");
   w->SetLook (B_BORDERED_WINDOW_LOOK);
-  w->SetFeel (B_FLOATING_APP_WINDOW_FEEL);
+  w->SetFeel (kMenuWindowFeel);
+  w->SetFlags (B_NOT_ZOOMABLE
+	       | B_NOT_MINIMIZABLE
+	       | B_AVOID_FRONT
+	       | B_AVOID_FOCUS);
   w->UnlockLooper ();
 }
 
@@ -2241,7 +2249,6 @@ BWindow_set_avoid_focus (void *window, int avoid_focus_p)
     w->SetFlags (w->Flags () & ~B_AVOID_FOCUS);
   else
     w->SetFlags (w->Flags () | B_AVOID_FOCUS);
-  w->Sync ();
   w->UnlockLooper ();
 }
 
@@ -2818,7 +2825,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
       enum haiku_event_type type;
       char *ptr = NULL;
 
-      if (!haiku_read_with_timeout (&type, buf, 200, 100000))
+      if (!haiku_read_with_timeout (&type, buf, 200, 1000000))
 	{
 	  block_input_function ();
 	  if (type != FILE_PANEL_EVENT)
@@ -3166,11 +3173,14 @@ BWindow_set_override_redirect (void *window, bool override_redirect_p)
 	  w->pre_override_redirect_style = w->Look ();
 	  w->SetFeel (kMenuWindowFeel);
 	  w->SetLook (B_NO_BORDER_WINDOW_LOOK);
+	  w->pre_override_redirect_workspaces = w->Workspaces ();
+	  w->SetWorkspaces (B_ALL_WORKSPACES);
 	}
       else
 	{
 	  w->SetFeel (w->pre_override_redirect_feel);
 	  w->SetLook (w->pre_override_redirect_style);
+	  w->SetWorkspaces (w->pre_override_redirect_workspaces);
 	}
 
       w->UnlockLooper ();

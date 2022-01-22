@@ -351,7 +351,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
               '(outline-font-lock-keywords t nil nil backward-paragraph))
   (setq-local imenu-generic-expression
 	      (list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0)))
-  (add-hook 'change-major-mode-hook #'outline-show-all nil t))
+  (add-hook 'change-major-mode-hook #'outline-show-all nil t)
+  (add-hook 'hack-local-variables-hook #'outline-apply-default-state nil t))
 
 (defvar outline-minor-mode-map)
 
@@ -434,7 +435,8 @@ See the command `outline-mode' for more information on this mode."
 		  nil t)
         (setq-local line-move-ignore-invisible t)
 	;; Cause use of ellipses for invisible text.
-	(add-to-invisibility-spec '(outline . t)))
+	(add-to-invisibility-spec '(outline . t))
+	(outline-apply-default-state))
     (when outline-minor-mode-highlight
       (if font-lock-fontified
           (font-lock-remove-keywords nil outline-font-lock-keywords))
@@ -1302,6 +1304,178 @@ convenient way to make a table of contents of the buffer."
                     (insert-buffer-substring buffer start end)
                     (insert "\n\n"))))))
           (kill-new (buffer-string)))))))
+
+(defcustom outline-default-state nil
+  "If non-nil, some headings are initially outlined.
+
+Note that the default state is applied when the major mode is set
+or when the command `outline-apply-default-state' is called
+interactively.
+
+When nil, headings visibility is left unchanged.
+
+If equal to `outline-show-all', all text of buffer is shown.
+
+If equal to `outline-show-only-headings', only headings are shown.
+
+If equal to a number, show only headings up to and including the
+corresponding level.  See `outline-default-rules' to customize
+visibility of the subtree at the choosen level.
+
+If equal to a lambda function or function name, this function is
+expected to toggle headings visibility, and will be called after
+the mode is enabled."
+  :version "29.1"
+  :type '(choice (const :tag "Disabled" nil)
+                 (const :tag "Show all" outline-show-all)
+                 (const :tag "Only headings" outline-show-only-headings)
+                 (natnum :tag "Show headings up to level" :value 1)
+                 (function :tag "Custom function")))
+
+(defcustom outline-default-rules nil
+  "Determines visibility of subtree starting at `outline-default-state' level.
+
+When nil, the subtree is hidden unconditionally.
+
+When equal to a list, each element should be one of the following:
+
+- A cons cell with CAR `match-regexp' and CDR a regexp, the
+  subtree will be hidden when the outline heading match the
+  regexp.
+
+- `subtree-has-long-lines' to only show the heading branches when
+  long lines are detected in its subtree (see
+  `outline-default-long-line' for the definition of long lines).
+
+- `subtree-is-long' to only show the heading branches when its
+  subtree contains more than `outline-default-line-count' lines.
+
+- A lambda function or function name which will be evaluated with
+  point at the beginning of the heading and the match data set
+  appropriately, the function being expected to toggle the
+  heading visibility."
+  :version "29.1"
+  :type '(choice (const :tag "Hide subtree" nil)
+                 (set :tag "Show subtree unless"
+                      (cons :tag "Heading match regexp"
+                            (const match-regexp)  string)
+                      (const :tag "Subtree has long lines"
+                             subtree-has-long-lines)
+                      (const :tag "Subtree is long"
+                             subtree-is-long)
+                      (cons :tag "Custom function"
+                            (const custom-function) function))))
+
+(defcustom outline-default-long-line 1000
+  "Minimal number of characters in a line for a heading to be outlined."
+  :version "29.1"
+  :type '(natnum :tag "Number of characters"))
+
+(defcustom outline-default-line-count 50
+  "Minimal number of lines for a heading to be outlined."
+  :version "29.1"
+  :type '(natnum :tag "Number of lines"))
+
+(defun outline-apply-default-state ()
+  "Apply the outline state defined by `outline-default-state'."
+  (interactive)
+  (cond
+   ((integerp outline-default-state)
+    (outline--show-headings-up-to-level outline-default-state))
+   ((functionp outline-default-state)
+    (funcall outline-default-state))))
+
+(defun outline-show-only-headings ()
+  "Show only headings."
+  (interactive)
+  (outline-show-all)
+  (outline-hide-region-body (point-min) (point-max)))
+
+(eval-when-compile (require 'so-long))
+(autoload 'so-long-detected-long-line-p "so-long")
+(defvar so-long-skip-leading-comments)
+(defvar so-long-threshold)
+(defvar so-long-max-lines)
+
+(defun outline--show-headings-up-to-level (level)
+  "Show only headings up to a LEVEL level.
+
+Like `outline-hide-sublevels' but, for each heading at level
+LEVEL, decides of subtree visibility according to
+`outline-default-rules'."
+  (if (not outline-default-rules)
+      (outline-hide-sublevels level)
+    (if (< level 1)
+        (error "Must keep at least one level of headers"))
+    (save-excursion
+      (let* (outline-view-change-hook
+             (beg (progn
+                    (goto-char (point-min))
+                    ;; Skip the prelude, if any.
+                    (unless (outline-on-heading-p t) (outline-next-heading))
+                    (point)))
+             (end (progn
+                    (goto-char (point-max))
+                    ;; Keep empty last line, if available.
+                    (if (bolp) (1- (point)) (point))))
+             (heading-regexp
+              (cdr-safe
+               (assoc 'match-regexp outline-default-rules)))
+             (check-line-count
+              (memq 'subtree-is-long outline-default-rules))
+             (check-long-lines
+              (memq 'subtree-has-long-lines outline-default-rules))
+             (custom-function
+              (cdr-safe
+               (assoc 'custom-function outline-default-rules))))
+        (if (< end beg)
+	    (setq beg (prog1 end (setq end beg))))
+        ;; First hide everything.
+        (outline-hide-sublevels level)
+        ;; Then unhide the top level headers.
+        (outline-map-region
+         (lambda ()
+           (let ((current-level (funcall outline-level)))
+	     (when (< current-level level)
+               (outline-show-heading)
+               (outline-show-entry))
+             (when (= current-level level)
+               (cond
+                ((and heading-regexp
+                      (let ((beg (point))
+                            (end (progn (outline-end-of-heading) (point))))
+                        (string-match-p heading-regexp (buffer-substring beg end))))
+                 ;; hide entry when heading match regexp
+                 (outline-hide-entry))
+                ((and check-line-count
+                      (save-excursion
+                        (let ((beg (point))
+                              (end (progn (outline-end-of-subtree) (point))))
+                          (<= outline-default-line-count (count-lines beg end)))))
+                 ;; show only branches when line count of subtree >
+                 ;; threshold
+                 (outline-show-branches))
+                ((and check-long-lines
+                      (save-excursion
+                        (let ((beg (point))
+                              (end (progn (outline-end-of-subtree) (point))))
+                          (save-restriction
+                            (narrow-to-region beg end)
+                            (let ((so-long-skip-leading-comments nil)
+                                  (so-long-threshold outline-default-long-line)
+                                  (so-long-max-lines nil))
+                              (so-long-detected-long-line-p))))))
+                 ;; show only branches when long lines are detected
+                 ;; in subtree
+                 (outline-show-branches))
+                (custom-function
+                 ;; call custom function if defined
+                 (funcall custom-function))
+                (t
+                 ;; if no previous clause succeeds, show subtree
+                 (outline-show-subtree))))))
+         beg end)))
+    (run-hooks 'outline-view-change-hook)))
 
 (defun outline--cycle-state ()
   "Return the cycle state of current heading.

@@ -77,10 +77,11 @@ This variable has no effect unless `tab-always-indent' is `complete'."
   :group 'indent
   :type '(choice
           (const :tag "Always complete" nil)
-          (const :tag "Unless at the end of a line" 'eol)
-          (const :tag "Unless looking at a word" 'word)
-          (const :tag "Unless at a word or parenthesis" 'word-or-paren)
-          (const :tag "Unless at a word, parenthesis, or punctuation." 'word-or-paren-or-punct))
+          (const :tag "Unless at the end of a line" eol)
+          (const :tag "Unless looking at a word" word)
+          (const :tag "Unless at a word or parenthesis" word-or-paren)
+          (const :tag "Unless at a word, parenthesis, or punctuation."
+                 word-or-paren-or-punct))
   :version "28.1")
 
 (defvar indent-line-ignored-functions '(indent-relative
@@ -170,7 +171,7 @@ prefix argument is ignored."
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
 	  (old-indent (current-indentation))
-          (syn `(,(syntax-after (point)))))
+          (syn (syntax-after (point))))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -182,21 +183,21 @@ prefix argument is ignored."
       (cond
        ;; If the text was already indented right, try completion.
        ((and (eq tab-always-indent 'complete)
-             (eq old-point (point))
-             (eq old-tick (buffer-chars-modified-tick))
+             (eql old-point (point))
+             (eql old-tick (buffer-chars-modified-tick))
              (or (null tab-first-completion)
                  (eq last-command this-command)
-                 (and (equal tab-first-completion 'eol)
+                 (and (eq tab-first-completion 'eol)
                       (eolp))
-                 (and (member tab-first-completion
-                              '(word word-or-paren word-or-paren-or-punct))
-                      (not (member 2 syn)))
-                 (and (member tab-first-completion
-                              '(word-or-paren word-or-paren-or-punct))
-                      (not (or (member 4 syn)
-                               (member 5 syn))))
-                 (and (equal tab-first-completion 'word-or-paren-or-punct)
-                      (not (member 1 syn)))))
+                 (and (memq tab-first-completion
+                            '(word word-or-paren word-or-paren-or-punct))
+                      (not (eql 2 syn)))
+                 (and (memq tab-first-completion
+                            '(word-or-paren word-or-paren-or-punct))
+                      (not (or (eql 4 syn)
+                               (eql 5 syn))))
+                 (and (eq tab-first-completion 'word-or-paren-or-punct)
+                      (not (eql 1 syn)))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following

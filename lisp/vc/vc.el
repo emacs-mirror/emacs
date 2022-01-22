@@ -1004,13 +1004,14 @@ responsible for the given file."
       ;;
       ;; First try: find a responsible backend.  If this is for registration,
       ;; it must be a backend under which FILE is not yet registered.
-      (let ((dirs (delq nil
-                        (mapcar
-                         (lambda (backend)
-                           (when-let ((dir (vc-call-backend
-                                            backend 'responsible-p file)))
-                             (cons backend dir)))
-                         vc-handled-backends))))
+      (let* ((file (expand-file-name file))
+             (dirs (delq nil
+                         (mapcar
+                          (lambda (backend)
+                            (when-let ((dir (vc-call-backend
+                                             backend 'responsible-p file)))
+                              (cons backend dir)))
+                          vc-handled-backends))))
         ;; Just a single response (or none); use it.
         (if (< (length dirs) 2)
             (caar dirs)

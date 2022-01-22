@@ -34,6 +34,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
+#include <kernel/OS.h>
+
 enum haiku_cursor
   {
     CURSOR_ID_NO_CURSOR = 12,
@@ -132,6 +134,9 @@ struct haiku_key_event
   int modifiers;
   unsigned keysym;
   uint32_t multibyte_char;
+
+  /* Time the keypress occurred, in microseconds.  */
+  bigtime_t time;
 };
 
 struct haiku_activation_event
@@ -146,7 +151,7 @@ struct haiku_mouse_motion_event
   bool just_exited_p;
   int x;
   int y;
-  uint32_t be_code;
+  bigtime_t time;
 };
 
 struct haiku_button_event
@@ -156,6 +161,7 @@ struct haiku_button_event
   int modifiers;
   int x;
   int y;
+  bigtime_t time;
 };
 
 struct haiku_iconification_event

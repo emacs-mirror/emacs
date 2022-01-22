@@ -273,7 +273,10 @@ Use the `pp-max-width' variable to control the desired line length."
     (insert "(")
     (pp--insert start (pop sexp))
     (while sexp
-      (pp--insert " " (pop sexp)))
+      (if (consp sexp)
+          (pp--insert " " (pop sexp))
+        (pp--insert " . " sexp)
+        (setq sexp nil)))
     (insert ")")))
 
 (defun pp--format-function (sexp)

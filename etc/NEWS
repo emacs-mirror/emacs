@@ -104,6 +104,11 @@ files that were compiled with an old EIEIO (Emacs<25).
 ** 'C-x 8 .' has been moved to 'C-x 8 . .'.
 This is to open up the 'C-x 8 .' map to bind further characters there.
 
+---
+** 'source' and '.' in Eshell no longer accept the '--help' option.
+This is for compatibility with the shell versions of these commands,
+which don't handle options like '--help' in any special way.
+
 
 * Changes in Emacs 29.1
 
@@ -153,6 +158,15 @@ methods.
 ** New user option 'x-gtk-use-native-input'.
 This controls whether or not GTK input methods are used by Emacs,
 instead of XIM input methods.
+
++++
+** New user option 'use-system-tooltips'.
+This controls whether to use the toolkit tooltips, or Emacs's own
+native implementation of tooltips as small frames.  This option is
+only meaningful if Emacs was built with GTK+ or Haiku support, and
+defaults to t, which makes Emacs use the toolkit tooltips.  The
+existing GTK-specific option 'x-gtk-use-system-tooltips' is now an
+alias of this new option.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
@@ -243,6 +257,16 @@ These will take you (respectively) to the next and previous "page".
 ---
 *** 'describe-char' now also outputs the name of emoji combinations.
 
+** Outline Mode
+
+*** Support for a default visibility state.
+Customize the option 'outline-default-state' to define what headings
+are visible when the mode is set.  When equal to a number, the option
+'outline-default-rules' determines the visibility of the subtree
+starting at the corresponding level.  Values are provided to show
+a heading subtree unless the heading match a regexp, or its subtree
+has long lines or is long.
+
 ** Outline Minor Mode
 
 +++
@@ -326,7 +350,7 @@ are met.  The conditions are given by the argument, which can be
 These forms now indent like this:
 
     (cl-flet ((bla (x)
-		(* x x)))
+                (* x x)))
       (bla 42))
 
 This change also affects 'cl-macrolet', 'cl-flet*' and
@@ -823,6 +847,10 @@ the Netscape web browser was released in February, 2008.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Galeon web browser was released in September, 2008.
 
+** Ruby Mode
+
+*** New user option 'ruby-toggle-block-space-before-parameters'.
+
 ** Miscellaneous
 
 ---
@@ -938,8 +966,29 @@ characters in the range U+0080..U+00FF as substitutes for single bytes
 in the range 128..255, but signal an error for all multibyte characters.
 The input must be encoded text.
 
++++
+** The 'clone-indirect-buffer-hook' is now run by 'make-indirect-buffer'.
+It was previously only run by 'clone-indirect-buffer' and
+'clone-indirect-buffer-other-window'.  Since 'make-indirect-buffer' is
+called by both of these, the hook is now run by all 3 of these
+functions.
+
 
 * Lisp Changes in Emacs 29.1
+
+--
+** The variable 'polling-period' now accepts floating point values.
+This means Emacs can now poll for input during Lisp execution more
+frequently than once in a second.
+
+--
+** New function 'bidi-string-strip-control-characters'.
+This utility function is meant for displaying strings when it's
+essential that there's no bidirectional context.
+
+---
+** The Gnus range functions have been moved to a new library, range.el.
+All the old names have been made obsolete.
 
 +++
 ** New function 'function-alias-p'.
@@ -979,6 +1028,32 @@ wheel on some mice, or when the user's finger moves off the touchpad.
 This event is sent when a user peforms a pinch gesture on a touchpad,
 which is comprised of placing two fingers on the touchpad and moving
 them towards or away from each other.
+
+** Text security and suspiciousness
+
++++
+*** New library textsec.el.
+This library contains a number of checks for whether a string is
+"suspicious".  This usually means that the string contains characters
+that have glyphs that can be confused with other, more commonly used
+glyphs, or contain bidirectional (or other) formatting characters that
+may be used to confuse a user.
+
++++
+*** New user option 'textsec-check'.
+If non-nil (which is the default), Emacs packages that are vulnerable
+to attackers trying to confuse the users will use the textsec library
+to mark suspicious text.  For instance shr/eww will mark suspicious
+URLs and links, Gnus will mark suspicious From addresses, and
+Message mode will query the user if the user is sending mail to a
+suspicious address.  If this variable is nil, these checks aren't
+performed.
+
++++
+*** New function 'textsec-suspicious-p'.
+This is the main function Emacs applications should be using to check
+whether a string is suspicious.  It heeds the 'textsec-check' user
+option.
 
 ** Keymaps and key definitions
 

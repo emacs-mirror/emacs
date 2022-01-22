@@ -4357,7 +4357,11 @@ it is left unchanged."
 (defun message-update-smtp-method-header ()
   "Insert an X-Message-SMTP-Method header according to `message-server-alist'."
   (unless (message-fetch-field "X-Message-SMTP-Method")
-    (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
+    (let ((from (cadr (mail-extract-address-components
+                       (save-restriction
+                         (widen)
+                         (message-narrow-to-headers-or-head)
+                         (message-fetch-field "From")))))
           method)
       (catch 'exit
         (dolist (server message-server-alist)
@@ -4901,7 +4905,18 @@ If you always want Gnus to send messages in one piece, set
 	      (message-generate-headers '(Lines)))
 	    ;; Remove some headers.
 	    (message-remove-header message-ignored-mail-headers t)
-            (mail-encode-encoded-word-buffer))
+            (mail-encode-encoded-word-buffer)
+	    ;; Then check for suspicious addresses.
+            (dolist (hdr '("To" "Cc" "Bcc"))
+              (let ((addr (message-fetch-field hdr)))
+	        (when (stringp addr)
+	          (dolist (address (mail-header-parse-addresses addr t))
+	            (when-let ((warning (textsec-suspicious-p
+                                         address 'email-address-header)))
+	              (unless (y-or-n-p
+		               (format "Suspicious address: %s; send anyway?"
+                                       warning))
+		        (user-error "Suspicious address %s" address))))))))
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)

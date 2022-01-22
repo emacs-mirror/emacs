@@ -506,4 +506,19 @@ the `parse-partial-sexp's are expected to stop.  See
     (should (parse-partial-sexp 1 1))
     (should-error (parse-partial-sexp 2 1))))
 
+(ert-deftest syntax-char-syntax ()
+  ;; Verify that char-syntax behaves identically in interpreted and
+  ;; byte-compiled code (bug#53260).
+  (let ((cs (byte-compile (lambda (x) (char-syntax x)))))
+    ;; Use a unibyte buffer with a syntax table using symbol syntax
+    ;; for raw byte 128.
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (let ((st (make-syntax-table)))
+        (modify-syntax-entry (unibyte-char-to-multibyte 128) "_" st)
+        (set-syntax-table st)
+        (should (equal (eval '(char-syntax 128) t) ?_))
+        (should (equal (funcall cs 128) ?_))))
+    (list (char-syntax 128) (funcall cs 128))))
+
 ;;; syntax-tests.el ends here

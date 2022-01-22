@@ -55,6 +55,8 @@ struct unhandled_event
   uint8_t buffer[200];
 };
 
+static bool any_help_event_p = false;
+
 char *
 get_keysym_name (int keysym)
 {
@@ -281,7 +283,7 @@ haiku_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   else
     FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
-  if (FRAME_HAIKU_WINDOW (f))
+  if (FRAME_HAIKU_WINDOW (f) && !FRAME_TOOLTIP_P (f))
     {
       adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 			 FRAME_LINES (f) * FRAME_LINE_HEIGHT (f),
@@ -367,6 +369,13 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
     {
       block_input ();
       BWindow_activate (FRAME_HAIKU_WINDOW (f));
+      BWindow_sync (FRAME_HAIKU_WINDOW (f));
+      unblock_input ();
+    }
+  else
+    {
+      block_input ();
+      BWindow_send_behind (FRAME_HAIKU_WINDOW (f), NULL);
       BWindow_sync (FRAME_HAIKU_WINDOW (f));
       unblock_input ();
     }
@@ -2472,10 +2481,7 @@ haiku_default_font_parameter (struct frame *f, Lisp_Object parms)
       struct haiku_font_pattern ptn;
       ptn.specified = 0;
 
-      if (f->tooltip)
-	BFont_populate_plain_family (&ptn);
-      else
-	BFont_populate_fixed_family (&ptn);
+      BFont_populate_fixed_family (&ptn);
 
       if (ptn.specified & FSPEC_FAMILY)
 	font = font_open_by_name (f, build_unibyte_string (ptn.family));
@@ -2590,6 +2596,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   struct unhandled_event *unhandled_events = NULL;
   int button_or_motion_p;
   int need_flush = 0;
+  int do_help = 0;
 
   if (!buf)
     buf = xmalloc (200);
@@ -2638,9 +2645,19 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    int width = lrint (b->px_widthf);
 	    int height = lrint (b->px_heightf);
 
+	    if (FRAME_TOOLTIP_P (f))
+	      {
+		FRAME_PIXEL_WIDTH (f) = width;
+		FRAME_PIXEL_HEIGHT (f) = height;
+
+		haiku_clear_under_internal_border (f);
+		continue;
+	      }
+
 	    BView_draw_lock (FRAME_HAIKU_VIEW (f));
 	    BView_resize_to (FRAME_HAIKU_VIEW (f), width, height);
 	    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
+
 	    if (width != FRAME_PIXEL_WIDTH (f)
 		|| height != FRAME_PIXEL_HEIGHT (f)
 		|| (f->new_size_p
@@ -2708,6 +2725,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      inev.kind = inev.code > 127 ? MULTIBYTE_CHAR_KEYSTROKE_EVENT :
 		ASCII_KEYSTROKE_EVENT;
 
+	    inev.timestamp = b->time / 1000;
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 	    XSETFRAME (inev.frame_or_window, f);
 	    break;
@@ -2746,7 +2764,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
 
-	    x_display_list->last_mouse_movement_time = time (NULL);
+	    x_display_list->last_mouse_movement_time = b->time / 1000;
 	    button_or_motion_p = 1;
 
 	    if (hlinfo->mouse_face_hidden)
@@ -2770,13 +2788,24 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  }
 
 		haiku_new_focus_frame (x_display_list->focused_frame);
-		help_echo_string = Qnil;
-		gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+
+		if (any_help_event_p)
+		  do_help = -1;
 	      }
 	    else
 	      {
 		struct haiku_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 		struct haiku_rect r = dpyinfo->last_mouse_glyph;
+
+		/* For an unknown reason Haiku sends phantom motion events when a
+		   tooltip frame is visible.  FIXME */
+		if (FRAMEP (tip_frame)
+		    && FRAME_LIVE_P (XFRAME (tip_frame))
+		    && FRAME_VISIBLE_P (XFRAME (tip_frame))
+		    && f == dpyinfo->last_mouse_motion_frame
+		    && b->x == dpyinfo->last_mouse_motion_x
+		    && b->y == dpyinfo->last_mouse_motion_y)
+		  continue;
 
 		dpyinfo->last_mouse_motion_x = b->x;
 		dpyinfo->last_mouse_motion_y = b->y;
@@ -2816,9 +2845,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    remember_mouse_glyph (f, b->x, b->y,
 					  &FRAME_DISPLAY_INFO (f)->last_mouse_glyph);
 		    dpyinfo->last_mouse_glyph_frame = f;
-		    gen_help_event (help_echo_string, frame, help_echo_window,
-				    help_echo_object, help_echo_pos);
 		  }
+		else
+		  help_echo_string = previous_help_echo_string;
 
 		if (!NILP (Vmouse_autoselect_window))
 		  {
@@ -2838,6 +2867,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		    last_mouse_window = window;
 		  }
+
+		if (!NILP (help_echo_string)
+		    || !NILP (previous_help_echo_string))
+		  do_help = 1;
 	      }
 	    break;
 	  }
@@ -2857,7 +2890,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
 
 	    x_display_list->last_mouse_glyph_frame = 0;
-	    x_display_list->last_mouse_movement_time = time (NULL);
+	    x_display_list->last_mouse_movement_time = b->time / 1000;
 	    button_or_motion_p = 1;
 
 	    /* Is this in the tab-bar?  */
@@ -3262,20 +3295,20 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
       if (inev.kind != NO_EVENT)
 	{
-	  if (inev.kind != HELP_EVENT)
+	  if (inev.kind != HELP_EVENT && !inev.timestamp)
 	    inev.timestamp = (button_or_motion_p
 			      ? x_display_list->last_mouse_movement_time
-			      : time (NULL));
+			      : system_time () / 1000);
 	  kbd_buffer_store_event_hold (&inev, hold_quit);
 	  ++message_count;
 	}
 
       if (inev2.kind != NO_EVENT)
 	{
-	  if (inev2.kind != HELP_EVENT)
+	  if (inev2.kind != HELP_EVENT && !inev.timestamp)
 	    inev2.timestamp = (button_or_motion_p
 			       ? x_display_list->last_mouse_movement_time
-			       : time (NULL));
+			       : system_time () / 1000);
 	  kbd_buffer_store_event_hold (&inev2, hold_quit);
 	  ++message_count;
 	}
@@ -3287,6 +3320,28 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       struct unhandled_event *old = ev;
       ev = old->next;
       xfree (old);
+    }
+
+  if (do_help && !(hold_quit && hold_quit->kind != NO_EVENT))
+    {
+      Lisp_Object help_frame = Qnil;
+
+      if (x_display_list->last_mouse_frame)
+	XSETFRAME (help_frame,
+		   x_display_list->last_mouse_frame);
+
+      if (do_help > 0)
+	{
+	  any_help_event_p = true;
+	  gen_help_event (help_echo_string, help_frame,
+			  help_echo_window, help_echo_object,
+			  help_echo_pos);
+	}
+      else
+	{
+	  help_echo_string = Qnil;
+	  gen_help_event (Qnil, help_frame, Qnil, Qnil, 0);
+	}
     }
 
   if (need_flush)
@@ -3507,7 +3562,10 @@ put_xrm_resource (Lisp_Object name, Lisp_Object val)
 void
 haiku_clear_under_internal_border (struct frame *f)
 {
-  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+  if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0
+      /* This is needed because tooltip frames set up the internal
+	 border before init_frame_faces.  */
+      && FRAME_FACE_CACHE (f))
     {
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);

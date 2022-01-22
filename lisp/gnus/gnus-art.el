@@ -42,6 +42,7 @@
 (require 'message)
 (require 'mouse)
 (require 'seq)
+(require 'range)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
@@ -1394,6 +1395,15 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
+(defcustom gnus-treat-suspicious-headers 'head
+  "Mark headers that are suspicious.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles'."
+  :version "29.1"
+  :group 'gnus-article-treat
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :type gnus-article-treat-custom)
+
 (defcustom gnus-treat-fold-newsgroups 'head
   "Fold the Newsgroups and Followup-To headers.
 Valid values are nil, t, `head', `first', `last', an integer or a
@@ -1711,6 +1721,7 @@ regexp."
     (gnus-treat-unfold-headers gnus-article-treat-unfold-headers)
     (gnus-treat-fold-newsgroups gnus-article-treat-fold-newsgroups)
     (gnus-treat-fold-headers gnus-article-treat-fold-headers)
+    (gnus-treat-suspicious-headers gnus-article-treat-suspicious-headers)
     (gnus-treat-buttonize-head gnus-article-add-buttons-to-head)
     (gnus-treat-display-smileys gnus-treat-smiley)
     (gnus-treat-capitalize-sentences gnus-article-capitalize-sentences)
@@ -2235,6 +2246,20 @@ unfolded."
           (pixel-fill-region (point) (point-max) (pixel-fill-width)))
 	(goto-char (point-max))))))
 
+(defun gnus-article-treat-suspicious-headers ()
+  "Mark suspicious headers."
+  (interactive nil gnus-article-mode gnus-summary-mode)
+  (gnus-with-article-headers
+    (let (match)
+      (while (setq match (text-property-search-forward 'textsec-suspicious))
+        (add-text-properties (prop-match-beginning match)
+                             (prop-match-end match)
+                             (list 'help-echo (prop-match-value match)
+                                   'face 'textsec-suspicious))
+        (overlay-put (make-overlay (prop-match-end match)
+                                   (prop-match-end match))
+                     'after-string "⚠️")))))
+
 (defun gnus-treat-smiley ()
   "Toggle display of textual emoticons (\"smileys\") as small graphical icons."
   (interactive nil gnus-article-mode gnus-summary-mode)
@@ -2611,17 +2636,36 @@ If PROMPT (the prefix), prompt for a coding system to use."
       (forward-line -1))
     (setq end (point))
     (while (not (bobp))
-      (while (progn
-	       (forward-line -1)
-	       (and (not (bobp))
-		    (memq (char-after) '(?\t ? )))))
-      (setq start (point))
-      (if (looking-at "\
+      (let (addresses)
+        (while (progn
+	         (forward-line -1)
+	         (and (not (bobp))
+		      (memq (char-after) '(?\t ? )))))
+        (setq start (point))
+        (save-restriction
+          (narrow-to-region start end)
+          (if (looking-at "\
 \\(?:Resent-\\)?\\(?:From\\|Cc\\|To\\|Bcc\\|\\(?:In-\\)?Reply-To\\|Sender\
 \\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\):")
-	  (funcall gnus-decode-address-function start end)
-	(funcall gnus-decode-header-function start end))
-      (goto-char (setq end start)))))
+              (progn
+                (setq addresses (buffer-string))
+	        (funcall gnus-decode-address-function (point-min) (point-max)))
+	    (funcall gnus-decode-header-function (point-min) (point-max))))
+        (when addresses
+          (article--check-suspicious-addresses addresses))
+        (goto-char (point-max))
+        (goto-char (setq end start))))))
+
+(defun article--check-suspicious-addresses (addresses)
+  (setq addresses (replace-regexp-in-string "\\`[^:]+:[ \t\n]*" "" addresses))
+  (dolist (header (mail-header-parse-addresses addresses t))
+    (when-let* ((address (car (ignore-errors
+                                (mail-header-parse-address header))))
+                (warning (textsec-suspicious-p address 'email-address)))
+      (goto-char (point-min))
+      (while (search-forward address nil t)
+        (put-text-property (match-beginning 0) (match-end 0)
+                           'textsec-suspicious warning)))))
 
 (defun article-decode-group-name ()
   "Decode group names in Newsgroups, Followup-To and Xref headers."
@@ -7019,7 +7063,7 @@ then we display only bindings that start with that prefix."
 		   (setq sumkeys
 			 (append (mapcar
 				  #'vector
-				  (nreverse (gnus-uncompress-range def)))
+				  (nreverse (range-uncompress def)))
 				 sumkeys))))
 		((setq def (key-binding key))
 		 (unless (eq def 'undefined)

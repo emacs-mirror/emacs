@@ -2353,7 +2353,8 @@ for deletion instead."
   (interactive)
   (image-dired--with-marked
    (image-dired-delete-char)
-   (backward-char))
+   (unless (bobp)
+     (backward-char)))
   (image-dired--line-up-with-method)
   (with-current-buffer (image-dired-associated-dired-buffer)
     (dired-do-delete)))

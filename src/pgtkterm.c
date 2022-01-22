@@ -153,10 +153,24 @@ static int
 evq_flush (struct input_event *hold_quit)
 {
   struct event_queue_t *evq = &event_q;
-  int i, n = evq->nr;
-  for (i = 0; i < n; i++)
-    kbd_buffer_store_buffered_event (&evq->q[i], hold_quit);
-  evq->nr = 0;
+  int n = 0;
+
+  while (evq->nr > 0)
+    {
+      /* kbd_buffer_store_buffered_event may do longjmp, so
+	 we need to shift event queue first and pass the event
+	 to kbd_buffer_store_buffered_event so that events in
+	 queue are not processed twice.  Bug#52941 */
+      union buffered_input_event ev = evq->q[0];
+      int i;
+      for (i = 1; i < evq->nr; i++)
+	evq->q[i - 1] = evq->q[i];
+      evq->nr--;
+
+      kbd_buffer_store_buffered_event (&ev, hold_quit);
+      n++;
+    }
+
   return n;
 }
 
@@ -3720,6 +3734,9 @@ pgtk_flash (struct frame *f)
   block_input ();
 
   {
+    if (!FRAME_CR_CONTEXT (f))
+      return;
+
     cairo_surface_t *surface_orig = FRAME_CR_SURFACE (f);
 
     int width = FRAME_CR_SURFACE_DESIRED_WIDTH (f);
@@ -7027,13 +7044,12 @@ If set to a non-float value, there will be no wait at all.  */);
 }
 
 /* Cairo does not allow resizing a surface/context after it is
- * created, so we need to trash the old context, create a new context
- * on the next cr_clip_begin with the new dimensions and request a
- * re-draw.
- *
- * This Will leave the active context available to present on screen
- * until a redrawn frame is completed.
- */
+   created, so we need to trash the old context, create a new context
+   on the next cr_clip_begin with the new dimensions and request a
+   re-draw.
+
+   This will leave the active context available to present on screen
+   until a redrawn frame is completed.  */
 void
 pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height, bool force)
 {

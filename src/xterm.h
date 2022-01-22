@@ -78,6 +78,9 @@ typedef GtkWidget *xt_or_gtk_widget;
 #ifdef CAIRO_HAS_SVG_SURFACE
 #include <cairo-svg.h>
 #endif
+#ifdef USE_CAIRO_XCB
+#include <cairo-xcb.h>
+#endif
 #endif
 
 #ifdef HAVE_X_I18N
@@ -496,6 +499,11 @@ struct x_display_info
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
 
+#ifdef HAVE_XKB
+  /* Virtual modifiers */
+  Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
+#endif
+
 #ifdef HAVE_XRANDR
   int xrandr_major_version;
   int xrandr_minor_version;
@@ -507,6 +515,7 @@ struct x_display_info
 
 #ifdef USE_XCB
   xcb_connection_t *xcb_connection;
+  xcb_visualtype_t *xcb_visual;
 #endif
 
 #ifdef HAVE_XDBE
@@ -530,6 +539,12 @@ struct x_display_info
 
 #ifdef USE_GTK
   bool prefer_native_input;
+#endif
+
+#ifdef HAVE_XRENDER
+  bool xrender_supported_p;
+  int xrender_major;
+  int xrender_minor;
 #endif
 };
 

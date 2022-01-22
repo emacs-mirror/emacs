@@ -7071,6 +7071,9 @@ not_in_argv (NSString *arg)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   struct frame *old_focus = dpyinfo->ns_focus_frame;
+  struct input_event event;
+
+  EVENT_INIT (event);
 
   NSTRACE ("[EmacsView windowDidBecomeKey]");
 
@@ -7079,11 +7082,9 @@ not_in_argv (NSString *arg)
 
   ns_frame_rehighlight (emacsframe);
 
-  if (emacs_event)
-    {
-      emacs_event->kind = FOCUS_IN_EVENT;
-      EV_TRAILER ((id)nil);
-    }
+  event.kind = FOCUS_IN_EVENT;
+  XSETFRAME (event.frame_or_window, emacsframe);
+  kbd_buffer_store_event (&event);
 }
 
 

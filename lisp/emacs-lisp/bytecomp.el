@@ -617,8 +617,8 @@ Each element is (INDEX . VALUE)")
   "Hash byte-code -> byte-to-native-lambda.")
 (defvar byte-to-native-top-level-forms nil
   "List of top level forms.")
-(defvar byte-to-native-output-file nil
-  "Temporary file containing the byte-compilation output.")
+(defvar byte-to-native-output-buffer-file nil
+  "Pair holding byte-compilation output buffer, elc filename.")
 (defvar byte-to-native-plist-environment nil
   "To spill `overriding-plist-environment'.")
 
@@ -1986,6 +1986,42 @@ If compilation is needed, this functions returns the result of
 (defvar byte-compile-level 0		; bug#13787
   "Depth of a recursive byte compilation.")
 
+(defun byte-write-target-file (buffer target-file)
+  "Write BUFFER into TARGET-FILE."
+  (with-current-buffer buffer
+    ;; We must disable any code conversion here.
+    (let* ((coding-system-for-write 'no-conversion)
+	   ;; Write to a tempfile so that if another Emacs
+	   ;; process is trying to load target-file (eg in a
+	   ;; parallel bootstrap), it does not risk getting a
+	   ;; half-finished file.  (Bug#4196)
+	   (tempfile
+	    (make-temp-file (when (file-writable-p target-file)
+                              (expand-file-name target-file))))
+	   (default-modes (default-file-modes))
+	   (temp-modes (logand default-modes #o600))
+	   (desired-modes (logand default-modes #o666))
+	   (kill-emacs-hook
+	    (cons (lambda () (ignore-errors
+			  (delete-file tempfile)))
+		  kill-emacs-hook)))
+      (unless (= temp-modes desired-modes)
+        (set-file-modes tempfile desired-modes 'nofollow))
+      (write-region (point-min) (point-max) tempfile nil 1)
+      ;; This has the intentional side effect that any
+      ;; hard-links to target-file continue to
+      ;; point to the old file (this makes it possible
+      ;; for installed files to share disk space with
+      ;; the build tree, without causing problems when
+      ;; emacs-lisp files in the build tree are
+      ;; recompiled).  Previously this was accomplished by
+      ;; deleting target-file before writing it.
+      (if byte-native-compiling
+          ;; Defer elc final renaming.
+          (setf byte-to-native-output-buffer-file
+                (cons tempfile target-file))
+        (rename-file tempfile target-file t)))))
+
 ;;;###autoload
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
@@ -2020,176 +2056,148 @@ See also `emacs-lisp-byte-compile-and-load'."
 
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
-  (prog1
-      (let ((byte-compile-current-file filename)
-            (byte-compile-current-group nil)
-	    (set-auto-coding-for-load t)
-            (byte-compile--seen-defvars nil)
-            (byte-compile--known-dynamic-vars
-             (byte-compile--load-dynvars (getenv "EMACS_DYNVARS_FILE")))
-	    target-file input-buffer output-buffer
-	    byte-compile-dest-file byte-compiler-error-flag)
-        (setq target-file (byte-compile-dest-file filename))
-        (setq byte-compile-dest-file target-file)
-        (with-current-buffer
-	    ;; It would be cleaner to use a temp buffer, but if there was
-	    ;; an error, we leave this buffer around for diagnostics.
-	    ;; Its name is documented in the lispref.
-	    (setq input-buffer (get-buffer-create
-			        (concat " *Compiler Input*"
-				        (if (zerop byte-compile-level) ""
-				          (format "-%s" byte-compile-level)))))
-          (erase-buffer)
-          (setq buffer-file-coding-system nil)
-          ;; Always compile an Emacs Lisp file as multibyte
-          ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-
-          (set-buffer-multibyte t)
-          (insert-file-contents filename)
-          ;; Mimic the way after-insert-file-set-coding can make the
-          ;; buffer unibyte when visiting this file.
-          (when (or (eq last-coding-system-used 'no-conversion)
-		    (eq (coding-system-type last-coding-system-used) 5))
-	    ;; For coding systems no-conversion and raw-text...,
-	    ;; edit the buffer as unibyte.
-	    (set-buffer-multibyte nil))
-          ;; Run hooks including the uncompression hook.
-          ;; If they change the file name, then change it for the output also.
-          (let ((buffer-file-name filename)
-                (dmm (default-value 'major-mode))
-                ;; Ignore unsafe local variables.
-                ;; We only care about a few of them for our purposes.
-                (enable-local-variables :safe)
-                (enable-local-eval nil))
-            (unwind-protect
-                (progn
-                  (setq-default major-mode 'emacs-lisp-mode)
-                  ;; Arg of t means don't alter enable-local-variables.
-                  (delay-mode-hooks (normal-mode t)))
-              (setq-default major-mode dmm))
-            ;; There may be a file local variable setting (bug#10419).
-            (setq buffer-read-only nil
-                  filename buffer-file-name))
-          ;; Don't inherit lexical-binding from caller (bug#12938).
-          (unless (local-variable-p 'lexical-binding)
-            (setq-local lexical-binding nil))
-          ;; Set the default directory, in case an eval-when-compile uses it.
-          (setq default-directory (file-name-directory filename)))
-        ;; Check if the file's local variables explicitly specify not to
-        ;; compile this file.
-        (if (with-current-buffer input-buffer no-byte-compile)
-	    (progn
-	      ;; (message "%s not compiled because of `no-byte-compile: %s'"
-	      ;; 	   (byte-compile-abbreviate-file filename)
-	      ;; 	   (with-current-buffer input-buffer no-byte-compile))
-	      (when (and target-file (file-exists-p target-file))
-	        (message "%s deleted because of `no-byte-compile: %s'"
-		         (byte-compile-abbreviate-file target-file)
-		         (buffer-local-value 'no-byte-compile input-buffer))
-	        (condition-case nil (delete-file target-file) (error nil)))
-	      ;; We successfully didn't compile this file.
-	      'no-byte-compile)
-          (when byte-compile-verbose
-	    (message "Compiling %s..." filename))
-          ;; It is important that input-buffer not be current at this call,
-          ;; so that the value of point set in input-buffer
-          ;; within byte-compile-from-buffer lingers in that buffer.
-          (setq output-buffer
-	        (save-current-buffer
-	          (let ((symbols-with-pos-enabled t)
-                        (byte-compile-level (1+ byte-compile-level)))
-                    (byte-compile-from-buffer input-buffer))))
-          (if byte-compiler-error-flag
-	      nil
-	    (when byte-compile-verbose
-	      (message "Compiling %s...done" filename))
-	    (kill-buffer input-buffer)
-	    (with-current-buffer output-buffer
-              (when (and target-file
-                         (or (not byte-native-compiling)
-                             (and byte-native-compiling byte+native-compile)))
-	        (goto-char (point-max))
-	        (insert "\n")           ; aaah, unix.
-	        (cond
-	         ((and (file-writable-p target-file)
-		       ;; We attempt to create a temporary file in the
-		       ;; target directory, so the target directory must be
-		       ;; writable.
-		       (file-writable-p
-		        (file-name-directory
-		         ;; Need to expand in case TARGET-FILE doesn't
-		         ;; include a directory (Bug#45287).
-		         (expand-file-name target-file))))
-	          ;; We must disable any code conversion here.
-	          (let* ((coding-system-for-write 'no-conversion)
-		         ;; Write to a tempfile so that if another Emacs
-		         ;; process is trying to load target-file (eg in a
-		         ;; parallel bootstrap), it does not risk getting a
-		         ;; half-finished file.  (Bug#4196)
-		         (tempfile
-		          (make-temp-file (when (file-writable-p target-file)
-                                            (expand-file-name target-file))))
-		         (default-modes (default-file-modes))
-		         (temp-modes (logand default-modes #o600))
-		         (desired-modes (logand default-modes #o666))
-		         (kill-emacs-hook
-		          (cons (lambda () (ignore-errors
-				             (delete-file tempfile)))
-			        kill-emacs-hook)))
-	            (unless (= temp-modes desired-modes)
-		      (set-file-modes tempfile desired-modes 'nofollow))
-	            (write-region (point-min) (point-max) tempfile nil 1)
-	            ;; This has the intentional side effect that any
-	            ;; hard-links to target-file continue to
-	            ;; point to the old file (this makes it possible
-	            ;; for installed files to share disk space with
-	            ;; the build tree, without causing problems when
-	            ;; emacs-lisp files in the build tree are
-	            ;; recompiled).  Previously this was accomplished by
-	            ;; deleting target-file before writing it.
-	            (if byte-native-compiling
-                        ;; Defer elc final renaming.
-                        (setf byte-to-native-output-file
-                              (cons tempfile target-file))
-                      (rename-file tempfile target-file t)))
-	          (or noninteractive
-		      byte-native-compiling
-		      (message "Wrote %s" target-file)))
-                 ((file-writable-p target-file)
-                  ;; In case the target directory isn't writable (see e.g. Bug#44631),
-                  ;; try writing to the output file directly.  We must disable any
-                  ;; code conversion here.
-                  (let ((coding-system-for-write 'no-conversion))
-                    (with-file-modes (logand (default-file-modes) #o666)
-                      (write-region (point-min) (point-max) target-file nil 1)))
-                  (or noninteractive (message "Wrote %s" target-file)))
-	         (t
-	          ;; This is just to give a better error message than write-region
-	          (let ((exists (file-exists-p target-file)))
-	            (signal (if exists 'file-error 'file-missing)
-		            (list "Opening output file"
-			          (if exists
-				      "Cannot overwrite file"
-			            "Directory not writable or nonexistent")
-			          target-file))))))
-	      (kill-buffer (current-buffer)))
-	    (if (and byte-compile-generate-call-tree
-		     (or (eq t byte-compile-generate-call-tree)
-		         (y-or-n-p (format "Report call tree for %s? "
-                                           filename))))
-	        (save-excursion
-	          (display-call-tree filename)))
-            (let ((gen-dynvars (getenv "EMACS_GENERATE_DYNVARS")))
-              (when (and gen-dynvars (not (equal gen-dynvars ""))
-                         byte-compile--seen-defvars)
-                (let ((dynvar-file (concat target-file ".dynvars")))
-                  (message "Generating %s" dynvar-file)
-                  (with-temp-buffer
-                    (dolist (var (delete-dups byte-compile--seen-defvars))
-                      (insert (format "%S\n" (cons var filename))))
-	            (write-region (point-min) (point-max) dynvar-file)))))
-	    (if load
-                (load target-file))
-	    t)))))
+  (let ((byte-compile-current-file filename)
+        (byte-compile-current-group nil)
+	(set-auto-coding-for-load t)
+        (byte-compile--seen-defvars nil)
+        (byte-compile--known-dynamic-vars
+         (byte-compile--load-dynvars (getenv "EMACS_DYNVARS_FILE")))
+	target-file input-buffer output-buffer
+	byte-compile-dest-file byte-compiler-error-flag)
+    (setq target-file (byte-compile-dest-file filename))
+    (setq byte-compile-dest-file target-file)
+    (with-current-buffer
+	;; It would be cleaner to use a temp buffer, but if there was
+	;; an error, we leave this buffer around for diagnostics.
+	;; Its name is documented in the lispref.
+	(setq input-buffer (get-buffer-create
+			    (concat " *Compiler Input*"
+				    (if (zerop byte-compile-level) ""
+				      (format "-%s" byte-compile-level)))))
+      (erase-buffer)
+      (setq buffer-file-coding-system nil)
+      ;; Always compile an Emacs Lisp file as multibyte
+      ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-
+      (set-buffer-multibyte t)
+      (insert-file-contents filename)
+      ;; Mimic the way after-insert-file-set-coding can make the
+      ;; buffer unibyte when visiting this file.
+      (when (or (eq last-coding-system-used 'no-conversion)
+		(eq (coding-system-type last-coding-system-used) 5))
+	;; For coding systems no-conversion and raw-text...,
+	;; edit the buffer as unibyte.
+	(set-buffer-multibyte nil))
+      ;; Run hooks including the uncompression hook.
+      ;; If they change the file name, then change it for the output also.
+      (let ((buffer-file-name filename)
+            (dmm (default-value 'major-mode))
+            ;; Ignore unsafe local variables.
+            ;; We only care about a few of them for our purposes.
+            (enable-local-variables :safe)
+            (enable-local-eval nil))
+        (unwind-protect
+            (progn
+              (setq-default major-mode 'emacs-lisp-mode)
+              ;; Arg of t means don't alter enable-local-variables.
+              (delay-mode-hooks (normal-mode t)))
+          (setq-default major-mode dmm))
+        ;; There may be a file local variable setting (bug#10419).
+        (setq buffer-read-only nil
+              filename buffer-file-name))
+      ;; Don't inherit lexical-binding from caller (bug#12938).
+      (unless (local-variable-p 'lexical-binding)
+        (setq-local lexical-binding nil))
+      ;; Set the default directory, in case an eval-when-compile uses it.
+      (setq default-directory (file-name-directory filename)))
+    ;; Check if the file's local variables explicitly specify not to
+    ;; compile this file.
+    (if (with-current-buffer input-buffer no-byte-compile)
+	(progn
+	  ;; (message "%s not compiled because of `no-byte-compile: %s'"
+	  ;; 	   (byte-compile-abbreviate-file filename)
+	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
+	  (when (and target-file (file-exists-p target-file))
+	    (message "%s deleted because of `no-byte-compile: %s'"
+		     (byte-compile-abbreviate-file target-file)
+		     (buffer-local-value 'no-byte-compile input-buffer))
+	    (condition-case nil (delete-file target-file) (error nil)))
+	  ;; We successfully didn't compile this file.
+	  'no-byte-compile)
+      (when byte-compile-verbose
+	(message "Compiling %s..." filename))
+      ;; It is important that input-buffer not be current at this call,
+      ;; so that the value of point set in input-buffer
+      ;; within byte-compile-from-buffer lingers in that buffer.
+      (setq output-buffer
+	    (save-current-buffer
+	      (let ((byte-compile-level (1+ byte-compile-level)))
+                (byte-compile-from-buffer input-buffer))))
+      (if byte-compiler-error-flag
+	  nil
+	(when byte-compile-verbose
+	  (message "Compiling %s...done" filename))
+	(kill-buffer input-buffer)
+	(with-current-buffer output-buffer
+          (when (and target-file
+                     (or (not byte-native-compiling)
+                         (and byte-native-compiling byte+native-compile)))
+	    (goto-char (point-max))
+	    (insert "\n")			; aaah, unix.
+	    (cond
+	     ((and (file-writable-p target-file)
+		   ;; We attempt to create a temporary file in the
+		   ;; target directory, so the target directory must be
+		   ;; writable.
+		   (file-writable-p
+		    (file-name-directory
+		     ;; Need to expand in case TARGET-FILE doesn't
+		     ;; include a directory (Bug#45287).
+		     (expand-file-name target-file))))
+              (if byte-native-compiling
+                  ;; Defer elc production.
+                  (setf byte-to-native-output-buffer-file
+                        (cons (current-buffer) target-file))
+                (byte-write-target-file (current-buffer) target-file))
+	      (or noninteractive
+		  byte-native-compiling
+		  (message "Wrote %s" target-file)))
+             ((file-writable-p target-file)
+              ;; In case the target directory isn't writable (see e.g. Bug#44631),
+              ;; try writing to the output file directly.  We must disable any
+              ;; code conversion here.
+              (let ((coding-system-for-write 'no-conversion))
+                (with-file-modes (logand (default-file-modes) #o666)
+                  (write-region (point-min) (point-max) target-file nil 1)))
+              (or noninteractive (message "Wrote %s" target-file)))
+	     (t
+	      ;; This is just to give a better error message than write-region
+	      (let ((exists (file-exists-p target-file)))
+	        (signal (if exists 'file-error 'file-missing)
+		        (list "Opening output file"
+			      (if exists
+				  "Cannot overwrite file"
+			        "Directory not writable or nonexistent")
+			      target-file))))))
+          (unless byte-native-compiling
+	    (kill-buffer (current-buffer))))
+	(if (and byte-compile-generate-call-tree
+		 (or (eq t byte-compile-generate-call-tree)
+		     (y-or-n-p (format "Report call tree for %s? "
+                                       filename))))
+	    (save-excursion
+	      (display-call-tree filename)))
+        (let ((gen-dynvars (getenv "EMACS_GENERATE_DYNVARS")))
+          (when (and gen-dynvars (not (equal gen-dynvars ""))
+                     byte-compile--seen-defvars)
+            (let ((dynvar-file (concat target-file ".dynvars")))
+              (message "Generating %s" dynvar-file)
+              (with-temp-buffer
+                (dolist (var (delete-dups byte-compile--seen-defvars))
+                  (insert (format "%S\n" (cons var filename))))
+	        (write-region (point-min) (point-max) dynvar-file)))))
+	(if load
+            (load target-file))
+	t))))
 
 ;;; compiling a single function
 ;;;###autoload

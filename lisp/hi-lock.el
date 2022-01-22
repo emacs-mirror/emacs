@@ -727,11 +727,12 @@ with completion and history."
 			   (cdr (member last-used-face hi-lock-face-defaults))
 			   hi-lock-face-defaults))
 	 face)
-          (if (and hi-lock-auto-select-face (not current-prefix-arg))
+    (if (and hi-lock-auto-select-face (not current-prefix-arg))
 	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
-      (setq face (completing-read
-		  (format-prompt "Highlight using face" (car defaults))
-		  obarray 'facep t nil 'face-name-history defaults))
+      (setq face (symbol-name
+                  (read-face-name
+                   (format-prompt "Highlight using face" (car defaults))
+                   defaults)))
       ;; Update list of un-used faces.
       (setq hi-lock--unused-faces (remove face hi-lock--unused-faces))
       ;; Grow the list of defaults.
@@ -855,7 +856,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
   nil)
 
 ;;; Mouse support
-(defun hi-lock-symbol-at-mouse (event)
+(defalias 'highlight-symbol-at-mouse 'hi-lock-face-symbol-at-mouse)
+(defun hi-lock-face-symbol-at-mouse (event)
   "Highlight symbol at mouse click EVENT."
   (interactive "e")
   (save-excursion
@@ -865,13 +867,13 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
 ;;;###autoload
 (defun hi-lock-context-menu (menu click)
   "Populate MENU with a menu item to highlight symbol at CLICK."
-  (save-excursion
-    (mouse-set-point click)
-    (when (symbol-at-point)
-      (define-key-after menu [highlight-search-separator] menu-bar-separator)
-      (define-key-after menu [highlight-search-mouse]
-        '(menu-item "Highlight Symbol" highlight-symbol-at-mouse
-                    :help "Highlight symbol at point"))))
+  (when (thing-at-mouse click 'symbol)
+    (define-key-after menu [highlight-search-separator] menu-bar-separator
+      'middle-separator)
+    (define-key-after menu [highlight-search-mouse]
+      '(menu-item "Highlight Symbol" highlight-symbol-at-mouse
+                  :help "Highlight symbol at point")
+      'highlight-search-separator))
   menu)
 
 (provide 'hi-lock)
