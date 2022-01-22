@@ -630,7 +630,7 @@ size, and full-buffer size."
               (t
                (shr-generic dom)))
         (when-let ((id (dom-attr dom 'id)))
-          (push (cons id (point)) shr--link-targets))
+          (push (cons id (set-marker (make-marker) start)) shr--link-targets))
 	;; If style is set, then this node has set the color.
 	(when style
 	  (shr-colorize-region
@@ -1465,7 +1465,7 @@ ones, in case fg and bg are nil."
     (shr-generic dom)
     (when-let* ((id (and (not (dom-attr dom 'id)) ; Handled by `shr-descend'.
                          (dom-attr dom 'name)))) ; Obsolete since HTML5.
-      (push (cons id (point)) shr--link-targets))
+      (push (cons id (set-marker (make-marker) start)) shr--link-targets))
     (when url
       (shr-urlify (or shr-start start) (shr-expand-url url) title)
       ;; Check whether the URL is suspicious.
