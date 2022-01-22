@@ -437,8 +437,8 @@ storage method to list."
   (let* ((object (or
                   ;; If the multisession variable already exists, use
                   ;; it (so that we update it).
-                  (and (boundp (intern-soft (cdr id)))
-                       (symbol-value (intern (cdr id))))
+                  (and (intern-soft (cdr id))
+                       (bound-and-true-p (intern (cdr id))))
                   ;; Create a new object.
                   (make-multisession
                    :package (car id)
