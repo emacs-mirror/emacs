@@ -259,13 +259,14 @@ These will take you (respectively) to the next and previous "page".
 
 ** Outline Mode
 
-*** Support for a default visibility state.
+*** Support for customizing the default visibility state of headings.
 Customize the option 'outline-default-state' to define what headings
-are visible when the mode is set.  When equal to a number, the option
-'outline-default-rules' determines the visibility of the subtree
-starting at the corresponding level.  Values are provided to show
-a heading subtree unless the heading match a regexp, or its subtree
-has long lines or is long.
+will be visible after Outline mode is turned on.  When equal to a
+number, the option 'outline-default-rules' determines the visibility
+of the subtree starting at the corresponding level.  Values are
+provided to control showing a heading subtree depending on whether the
+heading matches a regexp, or on whether its subtree has long lines or
+is itself too long.
 
 ** Outline Minor Mode
 
