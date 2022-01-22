@@ -33,29 +33,45 @@ AM_V_GLOBALS =
 AM_V_NO_PD =
 AM_V_RC =
 else
+
+# Whether $(info ...) works.  This is to work around a bug in GNU Make
+# 4.3 and earlier, which implements $(info MSG) via two system calls
+# { write (..., "MSG", 3); write (..., "\n", 1); }
+# which looks bad when make -j interleaves two of these at about the same time.
+#
+# Later versions of GNU Make have the 'notintermediate' feature,
+# so assume that $(info ...) works if this feature is present.
+#
+have_working_info = $(filter notintermediate,$(value .FEATURES))
+#
+# The workaround is to use the shell and 'echo' rather than $(info ...).
+# The workaround is done only for AM_V_ELC and AM_V_ELN,
+# since the bug is not annoying elsewhere.
+
 AM_V_AR      = @$(info $   AR       $@)
 AM_V_at = @
 AM_V_CC      = @$(info $   CC       $@)
 AM_V_CXX     = @$(info $   CXX      $@)
 AM_V_CCLD    = @$(info $   CCLD     $@)
 AM_V_CXXLD   = @$(info $   CXXLD    $@)
-ifeq ($(HAVE_NATIVE_COMP),yes)
-ifneq ($(NATIVE_DISABLED),1)
-ifneq ($(ANCIENT),yes)
+
+ifeq ($(HAVE_NATIVE_COMP)-$(NATIVE_DISABLED)-$(ANCIENT),yes--)
+ifdef have_working_info
 AM_V_ELC     = @$(info $   ELC+ELN  $@)
 AM_V_ELN     = @$(info $   ELN      $@)
 else
-AM_V_ELC     = @$(info $   ELC      $@)
-AM_V_ELN =
+AM_V_ELC     = @echo "  ELC+ELN " $@;
+AM_V_ELN     = @echo "  ELN     " $@;
 endif
 else
+ifdef have_working_info
 AM_V_ELC     = @$(info $   ELC      $@)
-AM_V_ELN =
-endif
 else
-AM_V_ELC     = @$(info $   ELC      $@)
+AM_V_ELC     = @echo "  ELC     " $@;
+endif
 AM_V_ELN =
 endif
+
 AM_V_GEN     = @$(info $   GEN      $@)
 AM_V_GLOBALS = @$(info $   GEN      globals.h)
 AM_V_NO_PD = --no-print-directory

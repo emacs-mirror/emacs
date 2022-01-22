@@ -4534,6 +4534,12 @@ xg_update_scrollbar_pos (struct frame *f,
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
         }
+
+#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
+	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
+	  emacs_abort ();
+#endif
+
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  */
@@ -4587,7 +4593,6 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 				    int width,
 				    int height)
 {
-
   GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
 
   if (wscroll)
@@ -4632,6 +4637,11 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
         x_clear_area (f, oldx, oldy, oldw, oldh);
 #else
         pgtk_clear_area (f, oldx, oldy, oldw, oldh);
+#endif
+
+#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
+	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
+	  emacs_abort ();
 #endif
 
       /* GTK does not redraw until the main loop is entered again, but

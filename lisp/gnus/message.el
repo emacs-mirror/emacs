@@ -4357,7 +4357,11 @@ it is left unchanged."
 (defun message-update-smtp-method-header ()
   "Insert an X-Message-SMTP-Method header according to `message-server-alist'."
   (unless (message-fetch-field "X-Message-SMTP-Method")
-    (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
+    (let ((from (cadr (mail-extract-address-components
+                       (save-restriction
+                         (widen)
+                         (message-narrow-to-headers-or-head)
+                         (message-fetch-field "From")))))
           method)
       (catch 'exit
         (dolist (server message-server-alist)

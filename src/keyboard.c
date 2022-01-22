@@ -1941,7 +1941,7 @@ start_polling (void)
 	 a different interval, start a new one.  */
       if (NUMBERP (Vpolling_period)
 	  && (poll_timer == NULL
-	      || !Fequal (Vpolling_period, poll_timer_time)))
+	      || NILP (Fequal (Vpolling_period, poll_timer_time))))
 	{
 	  struct timespec interval = dtotimespec (XFLOATINT (Vpolling_period));
 
@@ -12082,8 +12082,10 @@ syms_of_keyboard (void)
   help_form_saved_window_configs = Qnil;
   staticpro (&help_form_saved_window_configs);
 
+#ifdef POLL_FOR_INPUT
   poll_timer_time = Qnil;
   staticpro (&poll_timer_time);
+#endif
 
   defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_symbol_parse_modifiers);

@@ -3734,6 +3734,9 @@ pgtk_flash (struct frame *f)
   block_input ();
 
   {
+    if (!FRAME_CR_CONTEXT (f))
+      return;
+
     cairo_surface_t *surface_orig = FRAME_CR_SURFACE (f);
 
     int width = FRAME_CR_SURFACE_DESIRED_WIDTH (f);
@@ -7041,13 +7044,12 @@ If set to a non-float value, there will be no wait at all.  */);
 }
 
 /* Cairo does not allow resizing a surface/context after it is
- * created, so we need to trash the old context, create a new context
- * on the next cr_clip_begin with the new dimensions and request a
- * re-draw.
- *
- * This Will leave the active context available to present on screen
- * until a redrawn frame is completed.
- */
+   created, so we need to trash the old context, create a new context
+   on the next cr_clip_begin with the new dimensions and request a
+   re-draw.
+
+   This will leave the active context available to present on screen
+   until a redrawn frame is completed.  */
 void
 pgtk_cr_update_surface_desired_size (struct frame *f, int width, int height, bool force)
 {

@@ -79,8 +79,9 @@ The GNU allocators don't work|\
 ^git config |\
 ^'\.git/|\
 ^\^\(\(|\
+^ANCIENT=yes make|\
+^touch -t|\
 ^'build-aux/git-hooks\
-^ANCIENT=yes make\
 " | \
 while read
 do
