@@ -9276,7 +9276,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           int modifiers;
           Lisp_Object coding_system = Qlatin_1;
 	  Lisp_Object c;
-	  /* Event will be modified.  */
+	  /* `xkey' will be modified, but it's not important to modify
+	     `event' itself.  */
 	  XKeyEvent xkey = event->xkey;
 
 #ifdef USE_GTK
@@ -9538,8 +9539,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (keysym == NoSymbol)
 	      break;
 	  }
-	  /* FIXME: check side effects and remove this.  */
-	  ((XEvent *) event)->xkey = xkey;
         }
     done_keysym:
 #ifdef HAVE_X_I18N
