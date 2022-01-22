@@ -218,10 +218,9 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            (let ((print-length nil)
                  (print-circle t)
                  (print-level nil))
-             (prin1-to-string value))))
-      (condition-case nil
-          (ignore (read-from-string pvalue))
-        (error (error "Unable to store unreadable value: %s" pvalue)))
+             (readablep value))))
+      (when (and value (not pvalue))
+        (error "Unable to store unreadable value: %s" value))
       (sqlite-execute
        multisession--db
        "insert into multisession(package, key, sequence, value) values(?, ?, 1, ?) on conflict(package, key) do update set sequence = sequence + 1, value = ?"
