@@ -1828,8 +1828,8 @@ COMMAND is a symbol naming the command."
   "Handle notification telemetry/event.") ;; noop, use events buffer
 
 (cl-defmethod eglot-handle-notification
-  (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
-          &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
+  (_server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
+           &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
   "Handle notification publishDiagnostics."
   (cl-flet ((eglot--diag-type (sev)
               (cond ((null sev) 'eglot-error)
