@@ -359,10 +359,12 @@ non-@code{nil} value and does nothing except flushing pending output.
 @end defun
 
 @defun readablep object
-This predicate says whether @var{object} can be written out and then
-read back by the Emacs Lisp reader.  If it can't, this function
-returns @code{nil}, and if it can, a printed representation (via
-@code{prin1}) of @var{object} is returned.
+@cindex readable syntax
+This predicate says whether @var{object} has @dfn{readable syntax},
+i.e., it can be written out and then read back by the Emacs Lisp
+reader.  If it can't, this function returns @code{nil}; if it can,
+this function returns a printed representation (via @code{prin1},
+@pxref{Output Functions}) of @var{object}.
 @end defun
 
 @node Output Streams
@@ -889,8 +891,8 @@ instance:
 @end example
 
 If this variable is non-@code{nil}, it should be a function that will
-be called to handle printing of these objects.  The first argument is
-the object, and the second argument is the @var{noescape} flag used by
+be called to handle printing of these objects.  The function will be
+called with two arguments: the object and the @var{noescape} flag used by
 the printing functions (@pxref{Output Functions}).
 
 The function should return either @code{nil} (print nothing), or a

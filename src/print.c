@@ -2498,15 +2498,15 @@ priorities.  Values other than nil or t are also treated as
   staticpro (&print_prune_charset_plist);
 
   DEFVAR_LISP ("print-unreadable-function", Vprint_unreadable_function,
-	       doc: /* Function called when printing unreadable objects.
+	       doc: /* If non-nil, a function to call when printing unreadable objects.
 By default, Emacs printing functions (like `prin1') print unreadable
-objects like \"#<...>\", where \"...\" describes the object (for
+objects as \"#<...>\", where \"...\" describes the object (for
 instance, \"#<marker in no buffer>\").  If this variable is non-nil,
 it should be a function which will be called to print the object instead.
 
-It will be called with two arguments: The object to be printed, and
-noescape (see `prin1-to-string').  If this function returns nil, the
-object will be printed as normal.  If it returns a string, that string
+The function will be called with two arguments: the object to be printed, and
+the NOESCAPE flag (see `prin1-to-string').  If this function returns nil, the
+object will be printed as usual.  If it returns a string, that string
 will then be printed.  If the function returns anything else, the
 object will not be printed.  */);
   Vprint_unreadable_function = Qnil;
