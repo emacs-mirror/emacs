@@ -142,10 +142,7 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	    }
 
 	  if (STRINGP (help) && STRING_MULTIBYTE (help))
-	    {
-	      help = ENCODE_UTF_8 (help);
-	      ASET (menu_items, i + MENU_ITEMS_ITEM_HELP, help);
-	    }
+	    help = ENCODE_UTF_8 (help);
 
 	  if (i + MENU_ITEMS_ITEM_LENGTH < menu_items_used &&
 	      NILP (AREF (menu_items, i + MENU_ITEMS_ITEM_LENGTH)))
