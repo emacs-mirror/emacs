@@ -184,8 +184,8 @@ No active TAGS table is required."
                                       default))))
     (if (string= from "") (setq from default))
     (unless to
-      (setq to (read-string (format "Replace label %s with: "
-                                    from))))
+      (setq to (read-string (format "Replace label %s with: " from)
+                            nil nil from)))
     (reftex-query-replace-document
      (concat "{" (regexp-quote from) "}")
      (format "{%s}" to))))
