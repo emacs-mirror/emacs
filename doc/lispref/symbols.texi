@@ -754,8 +754,9 @@ Symbol forms whose names start with @samp{#_} are not transformed.
 
 @node Symbols with Position
 @section Symbols with Position
-@cindex symbols with position
+@cindex symbol with position
 
+@cindex bare symbol
 A @dfn{symbol with position} is a symbol, the @dfn{bare symbol},
 together with an unsigned integer called the @dfn{position}.  These
 objects are intended for use by the byte compiler, which records in
@@ -802,12 +803,12 @@ position, @code{nil} otherwise.
 @defun bare-symbol symbol
 This function returns the bare symbol contained in @var{symbol}, or
 @var{symbol} itself if it is already a bare symbol.  For any other
-type of object, it throws an error.
+type of object, it signals an error.
 @end defun
 
 @defun symbol-with-pos-pos symbol
 This function returns the position, a number, from a symbol with
-position.  For any other type of object, it throws an error.
+position.  For any other type of object, it signals an error.
 @end defun
 
 @defun position-symbol sym pos
@@ -815,5 +816,5 @@ Make a new symbol with position.  @var{sym} is either a bare symbol or
 a symbol with position, and supplies the symbol part of the new
 object.  @var{pos} is either an integer which becomes the number part
 of the new object, or a symbol with position whose position is used.
-Emacs throws an error if either argument is invalid.
+Emacs signals an error if either argument is invalid.
 @end defun
