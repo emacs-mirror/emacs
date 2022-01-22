@@ -24884,15 +24884,17 @@ DEFUN ("bidi-find-overridden-directionality",
        doc: /* Return position between FROM and TO where directionality was overridden.
 
 This function returns the first character position in the specified
-region of OBJECT where there is a character whose `bidi-class' property
-is `L', but which was forced to display as `R' by a directional
-override, and likewise with characters whose `bidi-class' is `R'
-or `AL' that were forced to display as `L'.
+region of OBJECT where characters have their bidirectional
+properties affected in a way that might make its text look confusingly
+on display.  For example, characters whose `bidi-class' property is `L',
+could be forced to display as `R' by a directional override, and
+likewise characters whose `bidi-class' is `R' or `AL' that are
+forced to display as `L'.
 
 If no such character is found, the function returns nil.
 
 OBJECT is a Lisp string or buffer to search for overridden
-directionality, and defaults to the current buffer if nil or omitted.
+directionality, and defaults to the current buffer if nil.
 OBJECT can also be a window, in which case the function will search
 the buffer displayed in that window.  Passing the window instead of
 a buffer is preferable when the buffer is displayed in some window,
@@ -24904,12 +24906,16 @@ of the text.  It should be a symbol, either `left-to-right'
 or `right-to-left', and defaults to `left-to-right'.
 
 Strong directional characters `L', `R', and `AL' can have their
-intrinsic directionality overridden by directional override
-control characters RLO (u+202E) and LRO (u+202D).  They can also
-have their directionality affected by other formatting control
-characters: LRE (u+202A), RLE (u+202B), LRI (u+2066), and RLI (u+2067).
-See the function `get-char-code-property' for a way to inquire about
-the `bidi-class' property of a character.  */)
+intrinsic directionality overridden by directional override control
+characters RLO (u+202E) and LRO (u+202D).  They can also have their
+directionality affected by other formatting control characters: LRE
+(u+202A), RLE (u+202B), LRI (u+2066), and RLI (u+2067).  See the
+function `get-char-code-property' for a way to inquire about the
+`bidi-class' property of a character.  Characters whose intrinsic
+directionality is weak or neutral, such as numbers or punctuation
+characters, can be forced to display in a very different place with
+respect of its surrounding characters, so as to make the surrounding
+text confuse the user regarding what the text says.  */)
   (Lisp_Object from, Lisp_Object to, Lisp_Object object, Lisp_Object base_dir)
 {
   struct buffer *buf = current_buffer;
