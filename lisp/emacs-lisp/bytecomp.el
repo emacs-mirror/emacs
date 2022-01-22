@@ -2303,8 +2303,11 @@ With argument ARG, insert value in current buffer after the form."
 		   (forward-line 1))
 		 (not (eobp)))
           (let* ((lread--unescaped-character-literals nil)
-                 (load-read-function #'read-positioning-symbols)
-                 (form (funcall load-read-function inbuffer))
+                 ;; Don't bind `load-read-function' to
+                 ;; `read-positioning-symbols' here.  Calls to `read'
+                 ;; at a lower level must not get symbols with
+                 ;; position.
+                 (form (read-positioning-symbols inbuffer))
                  (warning (byte-run--unescaped-character-literals-warning)))
             (when warning (byte-compile-warn-x form "%s" warning))
 	    (byte-compile-toplevel-file-form form)))
