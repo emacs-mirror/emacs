@@ -228,6 +228,7 @@ main (int argc, char **argv)
      capabilities, and operating on them shouldn't cause security
      issues.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (read));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (pread64));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (write));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (close));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (lseek));
@@ -239,6 +240,7 @@ main (int argc, char **argv)
      should be further restricted using mount namespaces.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (access));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat2));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat64));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (lstat));
