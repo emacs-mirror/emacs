@@ -301,7 +301,9 @@ affected by bidi controls in STRING."
     ;; state at end of STRING which could then affect the following
     ;; text.
     (insert string "a1א:!")
-    (bidi-find-overridden-directionality 1 (point-max) nil)))
+    (let ((pos (bidi-find-overridden-directionality 1 (point-max) nil)))
+      (and (fixnump pos)
+           (1- pos)))))
 
 (defun textsec-name-suspicious-p (name)
   "Say whether NAME looks suspicious.
