@@ -39,8 +39,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <webkit2/webkit2.h>
 #include <JavaScriptCore/JavaScript.h>
 #include <cairo.h>
-#include <cairo-xlib.h>
 #ifndef HAVE_PGTK
+#include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #else
 #include <gtk/gtk.h>
