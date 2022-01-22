@@ -29,61 +29,16 @@
 (require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
-
-(defvar eshell-test--max-subprocess-time 5
-  "The maximum amount of time to wait for a subprocess to finish, in seconds.
-See `eshell-wait-for-subprocess'.")
-
-(defmacro with-temp-eshell (&rest body)
-  "Evaluate BODY in a temporary Eshell buffer."
-  `(ert-with-temp-directory eshell-directory-name
-     (let* (;; We want no history file, so prevent Eshell from falling
-            ;; back on $HISTFILE.
-            (process-environment (cons "HISTFILE" process-environment))
-            (eshell-history-file-name nil)
-            (eshell-buffer (eshell t)))
-       (unwind-protect
-           (with-current-buffer eshell-buffer
-             ,@body)
-         (let (kill-buffer-query-functions)
-           (kill-buffer eshell-buffer))))))
-
-(defun eshell-wait-for-subprocess ()
-  "Wait until there is no interactive subprocess running in Eshell.
-If this takes longer than `eshell-test--max-subprocess-time',
-raise an error."
-  (let ((start (current-time)))
-    (while (eshell-interactive-process)
-      (when (> (float-time (time-since start))
-               eshell-test--max-subprocess-time)
-        (error "timed out waiting for subprocess"))
-      (sit-for 0.1))))
-
-(defun eshell-insert-command (text &optional func)
-  "Insert a command at the end of the buffer."
-  (goto-char eshell-last-output-end)
-  (insert-and-inherit text)
-  (funcall (or func 'eshell-send-input)))
-
-(defun eshell-match-result (regexp)
-  "Check that text after `eshell-last-input-end' matches REGEXP."
-  (goto-char eshell-last-input-end)
-  (should (string-match-p regexp (buffer-substring-no-properties
-                                  (point) (point-max)))))
-
-(defun eshell-command-result-p (text regexp &optional func)
-  "Insert a command at the end of the buffer."
-  (eshell-insert-command text func)
-  (eshell-wait-for-subprocess)
-  (eshell-match-result regexp))
+(eval-and-compile
+  (load (expand-file-name "eshell-tests-helpers"
+                          (file-name-directory (or load-file-name
+                                                   default-directory)))))
 
 (defvar eshell-history-file-name)
-
-(defun eshell-test-command-result (command)
-  "Like `eshell-command-result', but not using HOME."
-  (ert-with-temp-directory eshell-directory-name
-    (let ((eshell-history-file-name nil))
-      (eshell-command-result command))))
+(defvar eshell-test--max-subprocess-time)
+(declare-function eshell-insert-command "eshell-tests-helpers")
+(declare-function eshell-match-result "eshell-tests-helpers")
+(declare-function eshell-command-result-p "eshell-tests-helpers")
 
 ;;; Tests:
 
