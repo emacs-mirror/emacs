@@ -115,7 +115,7 @@
 
     (bindings--define-key menu [undelete-last-deleted-frame]
       '(menu-item "Undelete Frame" undelete-frame
-                  :visible (and undelete-frame-mode
+                  :enable (and undelete-frame-mode
                                 (car undelete-frame--deleted-frames))
                   :help "Undelete the most recently deleted frame"))
 
