@@ -238,6 +238,9 @@ static void
 haiku_clear_frame (struct frame *f)
 {
   void *view = FRAME_HAIKU_VIEW (f);
+
+  mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
+
   block_input ();
   BView_draw_lock (view);
   BView_StartClip (view);
