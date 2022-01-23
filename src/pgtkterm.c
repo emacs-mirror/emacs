@@ -3731,11 +3731,11 @@ recover_from_visible_bell (struct atimer *timer)
 static void
 pgtk_flash (struct frame *f)
 {
-  block_input ();
-
   {
     if (!FRAME_CR_CONTEXT (f))
       return;
+
+    block_input ();
 
     cairo_surface_t *surface_orig = FRAME_CR_SURFACE (f);
 
@@ -3806,9 +3806,8 @@ pgtk_flash (struct frame *f)
     }
 
     cairo_destroy (cr);
+    unblock_input ();
   }
-
-  unblock_input ();
 }
 
 /* Make audible bell.  */
