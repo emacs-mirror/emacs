@@ -1,46 +1,55 @@
-MPS TRANSFORM DESIGN
-====================
-Richard Brooksby, Ravenbrook Limited, 2012-09-04
+.. mode: -*- rst -*-
 
 
-1. Introduction
----------------
+Transforms
+==========
 
-This document describes the Transform mechanism of the Memory Pool
-System.  Transforms allow the client code to replace a set of object
-references on the heap.  Transforms exist to satisfy a requirement from
-Configura, and are not intended to become part of the open source
-MPS.
+:Tag: design.mps.transform
+:Author: Richard Brooksby
+:Date: 2012-09-04
+:Status: complete
+:Revision: $Id$
+:Copyright: See `Copyright and License`_.
+:Index terms:
+   pair: transforms; design
+
+
+Introduction
+------------
+
+This document describes the Transform mechanism of the Memory Pool System.
+Transforms allow the client code to replace a set of object references on the
+heap.
 
 The readership of this document is any developer intending to modify the
 Transform implementation.
 
-This document is Configura client confidential.
 
-
-2. Background
--------------
+Background
+----------
 
 Göran Rydqvist of Configura originally expressed the requirement for the
-MPS to support the change of layout of objects in CET [[Crab
-2010-02-25][]].  Ravenbrook proposed several methods [[RHSK
-2010-09-21][]] but Configura selected idea 1:
+MPS to support the change of layout of objects in CET [GR_2010-02-25]_.
+Ravenbrook proposed several methods [RHSK_2010-09-21]_ including:
 
-> Make all objects "direct", without IOHeaders. If you need to add fields,
-> then use a special new MPS function (that doesn't exist yet):
-> 
->     mps_arena_transform_objects(&my_transform_function);
-> 
-> This traverses the object graph, lets your transform_function basically
-> "realloc()" the field-block, and MPS fixes up all references from other
-> objects to point to the new field-block.
-> 
-> Unfortunately, this idea is probably killed off by ambiguous references
-> :-(.  You could only run the patch if you could *guarantee* there are no
-> ambiguous refs you want.  In other words, any object refs on the stack
-> would become instant death (or worse: subtle slow death :-). Therefore we
-> don't really like this idea (unfortunately).  There are safer and simpler
-> ways to do it, we think...
+    If you need to add fields, then use a special new MPS function (that
+    doesn't exist yet)::
+
+        mps_arena_transform_objects(&my_transform_function);
+
+    This traverses the object graph, lets your transform_function
+    basically ``realloc()`` the field-block, and MPS fixes up all
+    references from other objects to point to the new field-block.
+
+    Unfortunately, this idea is probably killed off by ambiguous
+    references :-(. You could only run the patch if you could
+    *guarantee* there are no ambiguous refs you want. In other words,
+    any object refs on the stack would become instant death (or worse:
+    subtle slow death :-). Therefore we don't really like this idea
+    (unfortunately). There are safer and simpler ways to do it, we
+    think...
+
+which Configura selected [GR_2010-09-22]_.
 
 An initial implementation was made by RHSK and released to Configura as
 "experimental", however Configura put it into production.
@@ -49,78 +58,92 @@ During work on adapting the MPS to 64-bit Windows, RB reformed and
 reimplemented transforms based on RHSK's original work.
 
 
-3. Overview
------------
+Overview
+--------
 
 The client program builds a table mapping "old" references to "new" ones
-in a `Transform` object.  This is then "applied", causing a garbage
+in a ``Transform`` object. This is then "applied", causing a garbage
 collection trace in which the fix function is substituted by
-`transformFix`, which spots "old" references and replaces them with
+``transformFix()``, which spots "old" references and replaces them with
 "new" ones, in addition to applying the usual garbage collection fix
 function.
 
 
-4. NOT YET WRITTEN
-------------------
+Not yet written
+---------------
 
-Points to cover:
+* Ambiguous references and aborting the transform.
 
-* Ambiguous references and aborting the transform
+* How ambiguous references are avoided using ``arena->stackWarm``.
 
-  * How ambiguous references are avoided using stackAtEnter
+* How the implementation is an add-on to the MPS.
 
-* How the implementation is an add-on to the MPS
+* How the code is kept separate from the mainstream MPS.
 
-* How the code is kept separate from the mainstream MPS
+* Why it has its own hash table implementation (no good reason).
 
-* Why it has its own hash table implementation (no good reason)
+* Why it does a garbage collection and not just a transforming scan.
 
-* Why it does a garbage collection and not just a transforming scan
+* Nice side-effect is that "old" objects are killed.
 
-  * Nice side-effect is that "old" objects are killed
-
-* Why the arena must be parked
+* Why the arena must be parked.
 
 
 
-A. References
--------------
+References
+----------
 
-[Crab 2010-02-25]: http://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/
-[Crab 2010-02-25] "Incremental object" (email); Göran Rydqvist;
-Configura; 2010-02-25;
-<http://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/>.
+.. [GR_2010-02-25]
+   "Incremental object" (e-mail);
+   Göran Rydqvist; Configura; 2010-02-25;
+   <https://info.ravenbrook.com/mail/2010/02/25/16-35-45/0/>.
 
-[RHSK 2010-09-21]: http://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/
-[RHSK 2010-09-21] "Incremental object ideas" (email); Richard Kistruck;
-Ravenbrook Limited; 2010-09-21;
-<http://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/>.
+.. [RHSK_2010-09-21]
+   "Incremental object ideas" (e-mail);
+   Richard Kistruck; Ravenbrook Limited; 2010-09-21;
+   <https://info.ravenbrook.com/mail/2010/09/21/16-54-59/0/>.
 
-[Crab 2010-09-22]: http://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/
-[Crab 2010-09-22] "Incremental object ideas" (email); Göran Rydqvist;
-Configura; 2010-09-22;
-<http://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/>.
-
-
-B. Document History
--------------------
-
-* 2012-09-04  [RB](mailto:rb@ravenbrook.com)  First draft.
+.. [GR_2010-09-22]
+   "Incremental object ideas" (e-mail);
+   Göran Rydqvist; Configura; 2010-09-22;
+   <https://info.ravenbrook.com/mail/2010/09/22/09-27-53/0/>.
 
 
-C. Copyright and Licence
-------------------------
+Document History
+----------------
 
-This document is copyright © 2012 [Ravenbrook Limited](http://www.ravenbrook.com).  All rights reserved.  This is an
-open source license.  Contact Ravenbrook for commercial licensing
-options.
+- 2012-09-04 RB_ First draft.
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+- 2022-01-23 GDR_ Converted to reStructuredText.
 
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
-3. Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs.
+Copyright and License
+---------------------
 
-**This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.**
+Copyright © 2012–2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
