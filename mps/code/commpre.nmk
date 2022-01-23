@@ -98,7 +98,8 @@ TEST_TARGETS=\
     teletest.exe \
     walkt0.exe \
     zcoll.exe \
-    zmess.exe
+    zmess.exe \
+    ztfm.exe
 
 # Stand-alone programs go in EXTRA_TARGETS if they should always be
 # built, or in OPTIONAL_TARGETS if they should only be built if
@@ -112,10 +113,6 @@ OPTIONAL_TARGETS=mpseventsql.exe
 # replay -- depends on the EPVM pool.
 
 UNBUILDABLE_TARGETS=replay.exe
-
-# Add tests for the custom CET build here:
-
-TEST_TARGETS=$(TEST_TARGETS) ztfm.exe
 
 ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 
@@ -149,6 +146,7 @@ MPMCOMMON=\
     [meter] \
     [mpm] \
     [mpsi] \
+    [mpsitr] \
     [nailboard] \
     [policy] \
     [pool] \
@@ -173,6 +171,7 @@ MPMCOMMON=\
     [trace] \
     [traceanc] \
     [tract] \
+    [trans] \
     [tree] \
     [version] \
     [vm] \
@@ -192,10 +191,6 @@ TESTLIB = [testlib] [getoptl]
 TESTTHR = [testthrw3]
 POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
 MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
-
-# Custom CET extensions go here:
-
-MPMCOMMON = $(MPMCOMMON) [mpsitr] [trans]
 
 
 # CHECK PARAMETERS

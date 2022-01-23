@@ -1,27 +1,7 @@
-/* ztfm.c: Transform test
+/* ztfm.c: Transforms test
  *
  * $Id$
- * Copyright (c) 2010 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2002 Global Graphics Software.
- *
- * OBJECTIVE
- *
- *
- * DESIGN OVERVIEW
- *
- * CODE OVERVIEW
- *
- * DEPENDENCIES
- *
- * This test uses the dylan object format, but the reliance on this
- * particular format is not great and could be removed.
- *
- *
- * BUGS, FUTURE IMPROVEMENTS, ETC
- *
- * HISTORY
- *
- * This code was created by first copying <code/zcoll.c>.
+ * Copyright (c) 2011-2022 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "fmtdy.h"
@@ -30,7 +10,6 @@
 #include "mpsavm.h"
 #include "mpscamc.h"
 #include "mpslib.h"
-#include "mpstr.h"
 #include "testlib.h"
 
 #include <stdio.h> /* printf */
@@ -93,28 +72,28 @@ struct node_t {
 
 /* Tour -- a particular journey to visit to every node in the world
  *
- * A tour starts with the node at world[0], tours the graph reachable 
- * from it, then any further bits of graph reachable from world[1], 
+ * A tour starts with the node at world[0], tours the graph reachable
+ * from it, then any further bits of graph reachable from world[1],
  * and so on.
  *
- * As it does so, the tour computes a tourReport, characterising the 
+ * As it does so, the tour computes a tourReport, characterising the
  * state of everything reachable (from world) in the form a few numbers.
  *
- * Each tour explores the subgraph rooted at each node exactly once.  
- * That is: if the tour re-encounters a node already visited on that 
+ * Each tour explores the subgraph rooted at each node exactly once.
+ * That is: if the tour re-encounters a node already visited on that
  * tour, it uses the values already computed for that node.
  *
- * The tourIdHash deliberately depends on the order in which nodes are 
- * encountered.  Therefore, the tourIdHash of a tour depends on the 
- * entirety of the state of the world and all the world-reachable nodes.  
+ * The tourIdHash deliberately depends on the order in which nodes are
+ * encountered.  Therefore, the tourIdHash of a tour depends on the
+ * entirety of the state of the world and all the world-reachable nodes.
  *
- * The tourVerSum, being a simple sum, does not depend on the order of 
+ * The tourVerSum, being a simple sum, does not depend on the order of
  * visiting.
  */
 
 enum {
   cVer = 10
-}; 
+};
 typedef struct tourReportStruct {
   ulongest_t  tour;  /* tour serial */
   ulongest_t  tourIdHash;  /* hash of node ids, computed last tour */
@@ -128,7 +107,7 @@ static ulongest_t tourSerial = 0;
 static void tourWorld(tourReport tr_o, mps_addr_t *world, ulongest_t countWorld)
 {
   ulongest_t i;
-  
+
   tourSerial += 1;
   tr_o->tour = tourSerial;
   tr_o->tourIdHash = 0;
@@ -158,15 +137,15 @@ static void tour_subgraph(tourReport tr_o, struct node_t *node)
   ulongest_t tourIdHash;
 
   Insist(tr_o != NULL);
-  
+
   /* node == NULL is permitted */
   if(node == NULL)
     return;
-  
+
   tour = tr_o->tour;
   if(DYI_INT(node->tour_dyi) == tour)
     return;  /* already visited */
-  
+
   /* this is a newly discovered node */
   Insist(DYI_INT(node->tour_dyi) < tour);
 
@@ -180,13 +159,13 @@ static void tour_subgraph(tourReport tr_o, struct node_t *node)
   ver = DYI_INT(node->ver_dyi);
   Insist(ver < cVer);
   tr_o->acNodesVer[ver] += 1;
-  
+
   /* tour the subgraphs (NULL is permitted) */
   left = node->left;
   right = node->right;
   tour_subgraph(tr_o, left);
   tour_subgraph(tr_o, right);
-  
+
   /* computed idHash of subgraph at this node */
   id = DYI_INT(node->id_dyi);
   tourIdHashLeft = left ? DYI_INT(left->tourIdHash_dyi) : 0;
@@ -216,12 +195,12 @@ static void after(mps_addr_t *world, ulongest_t countWorld,
 {
   longest_t dCVerOld;
   longest_t dCVerNew;
-  
+
   tourWorld(&trAfter, world, countWorld);
 
   dCVerOld = ((long)trAfter.acNodesVer[verOld] - (long)trBefore.acNodesVer[verOld]);
   dCVerNew = ((long)trAfter.acNodesVer[verNew] - (long)trBefore.acNodesVer[verNew]);
-  
+
   progressf(("tourWorld: (%"PRIuLONGEST"  %"PRIuLONGEST":%"PRIuLONGEST"/%"PRIuLONGEST":%"PRIuLONGEST") -> (%"PRIuLONGEST"  %"PRIuLONGEST":%+"PRIdLONGEST"/%"PRIuLONGEST":%+"PRIdLONGEST"), %s\n",
     trBefore.tourIdHash,
     verOld,
@@ -253,9 +232,9 @@ static mps_res_t mps_arena_transform_objects_list(mps_bool_t *transform_done_o,
   mps_res_t res;
   mps_transform_t transform;
   mps_bool_t applied = FALSE;
-  
+
   Insist(old_list_count == new_list_count);
-  
+
   res = mps_transform_create(&transform, mps_arena);
   if(res == MPS_RES_OK) {
     /* We have a transform */
@@ -270,7 +249,7 @@ static mps_res_t mps_arena_transform_objects_list(mps_bool_t *transform_done_o,
       mps_transform_destroy(transform);
     }
   }
-  
+
   /* Always set *transform_done_o (even if there is also a non-ResOK */
   /* return code): it is a status report, not a material return. */
   *transform_done_o = applied;
@@ -293,10 +272,10 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
   {
     /* Test with sets of pre-built nodes, a known distance apart.
      *
-     * This gives control over whether new nodes are on the same 
+     * This gives control over whether new nodes are on the same
      * segment as the olds or not.
      */
-    
+
     ulongest_t iPerset;
     ulongest_t aPerset[] = {0, 1, 1, 10, 10, 1000, 1000};
     ulongest_t cPerset = NELEMS(aPerset);
@@ -317,9 +296,9 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     }
     progressf(("total: %"PRIuLONGEST".\n", countWorld));
     Insist(countWorld <= myrootExactCOUNT);
-    
+
     keepCount = 0;
-    
+
     for(iPerset = stepPerset;
         aPerset[iPerset] != 0;
         iPerset = (iPerset + stepPerset) % cPerset) {
@@ -327,7 +306,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
       ulongest_t first;
       ulongest_t skip;
       ulongest_t count;
-      
+
       perset = aPerset[iPerset];
       first = keepCount;
       skip = 0;
@@ -352,11 +331,11 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
         /*printf("Object %"PRIuLONGEST" at %p.\n", keepCount, (void*)v);*/
       }
       v = 0;
-      
+
       /* >=10? pick subset */
       if(perset >= 10) {
         /* subset of [first..first+perset) */
-        
+
         skip = (rnd() % (2 * perset));
         if(skip > (perset - 1))
           skip = 0;
@@ -364,12 +343,12 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
         count = 1 + rnd() % (2 * (perset - skip));
         if(skip + count > perset)
           count = perset - skip;
-        
+
         Insist(skip < perset);
         Insist(count >= 1);
         Insist(skip + count <= perset);
       }
-      
+
       /* >=10? sometimes build tree */
       if(perset >= 10 && count >= 4 && rnd() % 2 == 0) {
         struct node_t **oldNodes = (struct node_t **)&myrootExact[first + skip];
@@ -382,13 +361,13 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
           newNodes[j]->right = newNodes[(2 * j) + 1];}
         }
       }
-      
+
       /* transform {count} olds into {count} news */
       before(myrootExact, countWorld);
       /* after(myrootExact, countWorld, 1, 0, 2, 0); */
       progressf(("Transform [%"PRIuLONGEST"..%"PRIuLONGEST") to [%"PRIuLONGEST"..%"PRIuLONGEST").\n",
         first + skip, first + skip + count, first + skip + perset, first + skip + count + perset));
-      res = mps_arena_transform_objects_list(&transform_done, arena, 
+      res = mps_arena_transform_objects_list(&transform_done, arena,
         &myrootExact[first + skip], count,
         &myrootExact[first + skip + perset], count);
       Insist(res == MPS_RES_OK);
@@ -397,13 +376,13 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
       after(myrootExact, countWorld, 1, -(longest_t)count, 2, 0);
     }
   }
-  
+
   {
     /* Transforming in various situations
      *
      * First, make two sets of 1024 nodes.
      */
-    
+
     perset = 1024;
     Insist(2*perset < myrootExactCOUNT);
     for(keepCount = 0; keepCount < 2*perset; keepCount++) {
@@ -422,16 +401,16 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
     }
     v = 0;
 
-    
-    /* Functions before() and after() checksum the world, and verify 
+
+    /* Functions before() and after() checksum the world, and verify
      * that the expected transform occurred.
      */
     before(myrootExact, perset);
     after(myrootExact, perset, 1, 0, 2, 0);
 
-    /* Don't transform node 0: its ref coincides with a segbase, so 
+    /* Don't transform node 0: its ref coincides with a segbase, so
      * there are probably ambiguous refs to it on the stack.
-     * Don't transform last node either: this test code may leave an 
+     * Don't transform last node either: this test code may leave an
      * ambiguous reference to it on the stack.
      */
 
@@ -482,7 +461,7 @@ static void Transform(mps_arena_t arena, mps_ap_t ap)
      *
      * **** USES OBJECTS CREATED IN PREVIOUS TEST GROUP ****
      */
-    
+
     mps_transform_t t1;
     mps_transform_t t2;
     mps_bool_t applied = FALSE;
@@ -683,10 +662,10 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
   ulongest_t a = cols(alimit);
   ulongest_t count;
   ulongest_t i;
-  
+
   /* if we can show alimit within 200 cols, do so */
   count = (a < 200) ? a + 1 : c;
-  
+
   for(i = 0; i < count; i++) {
     printf( (i == a)  ? "A"
             : (i < n) ? "n"
@@ -701,7 +680,7 @@ static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit
 
 /* print_M -- print count of bytes as Mebibytes or Megabytes
  *
- * Print as a whole number, "m" for the decimal point, and 
+ * Print as a whole number, "m" for the decimal point, and
  * then the decimal fraction.
  *
  * Input:                208896
@@ -762,7 +741,7 @@ static void get(mps_arena_t arena)
 
     cdie(mps_message_get(&message, arena, type),
          "get");
-    
+
     switch(type) {
       case mps_message_type_gc_start(): {
         mclockBegin = mps_message_clock(arena, message);
@@ -780,7 +759,7 @@ static void get(mps_arena_t arena)
         size_t alimit = mps_arena_reserved(arena);
 
         mclockEnd = mps_message_clock(arena, message);
-        
+
         printf("    %5"PRIuLONGEST": (%5"PRIuLONGEST")",
                mclockEnd, mclockEnd - mclockBegin);
         printf("    Coll End  ");
@@ -800,34 +779,34 @@ static void get(mps_arena_t arena)
         break;
       }
     }
-    
+
     mps_message_discard(arena, message);
   }
 }
 
 
 /* .catalog: The Catalog client:
- * 
- * This is an MPS client for testing the MPS.  It simulates 
- * converting a multi-page "Catalog" document from a page-description 
+ *
+ * This is an MPS client for testing the MPS.  It simulates
+ * converting a multi-page "Catalog" document from a page-description
  * into a bitmap.
  *
- * The intention is that this task will cause memory usage that is 
- * fairly realistic (much more so than randomly allocated objects 
- * with random interconnections.  The patterns in common with real 
+ * The intention is that this task will cause memory usage that is
+ * fairly realistic (much more so than randomly allocated objects
+ * with random interconnections.  The patterns in common with real
  * clients are:
- *   - the program input and its task are 'fractal', with a 
+ *   - the program input and its task are 'fractal', with a
  *     self-similar hierarchy;
- *   - object allocation is prompted by each successive element of 
+ *   - object allocation is prompted by each successive element of
  *     the input/task;
- *   - objects are often used to store a transformed version of the 
+ *   - objects are often used to store a transformed version of the
  *     program input;
  *   - there may be several stages of transformation;
- *   - at each stage, the old object (holding the untransformed data) 
+ *   - at each stage, the old object (holding the untransformed data)
  *     may become dead;
- *   - sometimes a tree of objects becomes dead once an object at 
+ *   - sometimes a tree of objects becomes dead once an object at
  *     some level of the hierarchy has been fully processed;
- *   - there is more than one hierarchy, and objects in different 
+ *   - there is more than one hierarchy, and objects in different
  *     hierarchies interact.
  *
  * The entity-relationship diagram is:
@@ -836,12 +815,12 @@ static void get(mps_arena_t arena)
  *                                        |
  *        Palette --------------------< Colour
  *
- * The first hierarchy is a Catalog, containing Pages, each 
- * containing Articles (bits of artwork etc), each composed of 
- * Polygons.  Each polygon has a single colour.  
+ * The first hierarchy is a Catalog, containing Pages, each
+ * containing Articles (bits of artwork etc), each composed of
+ * Polygons.  Each polygon has a single colour.
  *
- * The second hierarchy is a top-level Palette, containing Colours.  
- * Colours (in this client) are expensive, large objects (perhaps 
+ * The second hierarchy is a top-level Palette, containing Colours.
+ * Colours (in this client) are expensive, large objects (perhaps
  * because of complex colour modelling or colour blending).
  *
  * The things that matter for their effect on MPS behaviour are:
@@ -889,7 +868,7 @@ static void CatalogCheck(void)
     Page = (void *)w;
     Insist(DYLAN_VECTOR_SLOT(Page, 0) == DYLAN_INT(PageSig));
     Pages += 1;
-    
+
     for(j = 0; j < PageVar; j += 1) {
       /* retrieve Art from Page */
       w = DYLAN_VECTOR_SLOT(Page, PageFix + j);
@@ -917,11 +896,11 @@ static void CatalogCheck(void)
 
 /* CatalogDo -- make a Catalog and its tree of objects
  *
- * .catalog.broken: this code, when compiled with 
- * moderate optimization, may have ambiguous interior pointers but 
- * lack corresponding ambiguous base pointers to MPS objects.  This 
- * means the interior pointers are unmanaged references, and the 
- * code goes wrong.  The hack in poolamc.c#4 cures this, but not very 
+ * .catalog.broken: this code, when compiled with
+ * moderate optimization, may have ambiguous interior pointers but
+ * lack corresponding ambiguous base pointers to MPS objects.  This
+ * means the interior pointers are unmanaged references, and the
+ * code goes wrong.  The hack in poolamc.c#4 cures this, but not very
  * nicely.  For further discussion, see:
  *    <http://info.ravenbrook.com/mail/2009/02/05/18-05-52/0.txt>
  */
@@ -934,7 +913,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
   die(make_dylan_vector(&v, ap, CatalogFix + CatalogVar), "Catalog");
   DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(CatalogSig);
   Catalog = (void *)v;
-  
+
   /* store Catalog in root */
   myrootExact[CatalogRootIndex] = Catalog;
   get(arena);
@@ -950,10 +929,10 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
     /* store Page in Catalog */
     DYLAN_VECTOR_SLOT(Catalog, CatalogFix + i) = (mps_word_t)Page;
     get(arena);
-    
+
     printf("Page %d: make articles\n", i);
     fflush(stdout);
-    
+
     for(j = 0; j < PageVar; j += 1) {
       die(make_dylan_vector(&v, ap, ArtFix + ArtVar), "Art");
       DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(ArtSig);
@@ -981,8 +960,8 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 
 /* MakeThing -- make an object of the size requested (in bytes)
  *
- * Any size is accepted.  MakeThing may round it up (MakeThing always 
- * makes a dylan vector, which has a minimum size of 8 bytes).  Vector 
+ * Any size is accepted.  MakeThing may round it up (MakeThing always
+ * makes a dylan vector, which has a minimum size of 8 bytes).  Vector
  * slots, if any, are initialized to DYLAN_INT(0).
  *
  * After making the object, calls get(), to retrieve MPS messages.
@@ -1004,7 +983,7 @@ static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
   slots = words - 2;
   die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
   get(arena);
-  
+
   return (void *)v;
 }
 
@@ -1012,7 +991,7 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_
 {
   static ulongest_t keepCount = 0;
   ulongest_t i;
-  
+
   mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
     (void) MakeThing(arena, ap, big);
@@ -1045,7 +1024,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 {
   unsigned keepCount = 0;
   ulongest_t objCount = 0;
-  
+
   Insist(keepRootspace <= myrootExactCOUNT);
 
   objCount = 0;
@@ -1102,7 +1081,7 @@ static void Make(mps_arena_t arena, mps_ap_t ap, unsigned randm, unsigned keep1i
 static void Rootdrop(char rank_char)
 {
   ulongest_t i;
-  
+
   if(rank_char == 'A') {
     for(i = 0; i < myrootAmbigCOUNT; ++i) {
       myrootAmbig[i] = NULL;
@@ -1122,11 +1101,11 @@ static void stackwipe(void)
 {
   unsigned iw;
   ulongest_t aw[stackwipedepth];
-  
+
   /* http://xkcd.com/710/ */
   /* I don't want my friends to stop calling; I just want the */
   /* compiler to stop optimising away my code. */
-  
+
   /* Do you ever get two even numbers next to each other?  Hmmmm :-) */
   for(iw = 0; iw < stackwipedepth; iw++) {
     if((iw & 1) == 0) {
@@ -1340,7 +1319,7 @@ static void *testscriptB(void *arg, size_t s)
       "root_create - exact");
 
   die(mps_ap_create(&ap, amc, mps_rank_exact()), "ap_create");
-  
+
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   stack_start = &stack_starts_here;
   stack_thr = thr;
@@ -1409,7 +1388,7 @@ int main(int argc, char *argv[])
 {
   randomize(argc, argv);
   mps_lib_assert_fail_install(assert_die);
-  
+
   /* 1<<19 == 524288 == 1/2 Mebibyte */
   /* 16<<20 == 16777216 == 16 Mebibyte */
 
@@ -1425,41 +1404,29 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
- * All rights reserved.  This is an open source license.  Contact
- * Ravenbrook for commercial licensing options.
- * 
+ * Copyright (C) 2011-2022 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- * 
+ *    notice, this list of conditions and the following disclaimer.
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- * 
- * 3. Redistributions in any form must be accompanied by information on how
- * to obtain complete source code for this software and any accompanying
- * software that uses this software.  The source code must either be
- * included in the distribution or be available for no more than the cost
- * of distribution plus a nominal fee, and must be freely redistributable
- * under reasonable conditions.  For an executable file, complete source
- * code means the source code for all modules it contains. It does not
- * include source code for modules or files that typically accompany the
- * major components of the operating system on which the executable file
- * runs.
- * 
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the
+ *    distribution.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */

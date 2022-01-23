@@ -191,6 +191,7 @@ MPMCOMMON = \
     meter.c \
     mpm.c \
     mpsi.c \
+    mpsitr.c \
     nailboard.c \
     policy.c \
     pool.c \
@@ -214,16 +215,13 @@ MPMCOMMON = \
     trace.c \
     traceanc.c \
     tract.c \
+    trans.c \
     tree.c \
     version.c \
     vm.c \
     walk.c
 POOLS = $(AMC) $(AMS) $(AWL) $(LO) $(MV2) $(MVFF) $(SNC)
 MPM = $(MPMCOMMON) $(MPMPF) $(POOLS) $(PLINTH)
-
-# Custom CET extensions go here:
-
-MPM += mpsitr.c trans.c
 
 
 # These map the source file lists onto object files and dependency files
@@ -297,17 +295,14 @@ TEST_TARGETS=\
     teletest \
     walkt0 \
     zcoll \
-    zmess
+    zmess \
+    ztfm
 
 # This target records programs that we were once able to build but
 # can't at the moment:
 
 UNBUILDABLE_TARGETS=\
     replay # depends on the EPVM pool
-
-# Add tests for the custom CET build here:
-
-TEST_TARGETS += ztfm
 
 ALL_TARGETS=$(LIB_TARGETS) $(TEST_TARGETS) $(EXTRA_TARGETS)
 

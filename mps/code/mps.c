@@ -80,9 +80,6 @@
 #include "failover.c"
 #include "vm.c"
 #include "policy.c"
-
-/* Configura CET customisations */
-
 #include "trans.c"
 #include "mpsitr.c"
 

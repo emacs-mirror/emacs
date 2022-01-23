@@ -47,6 +47,11 @@ New features
    :ref:`topic-scanning-protocol`. This allows the client program to
    safely update references in the visited objects.
 
+#. The new **transforms** feature updates references throughout the
+   automatically managed portion of the heap. For some use cases this
+   may be more convenient than :c:func:`mps_pool_walk`. See
+   :ref:`topic-transform`.
+
 
 Interface changes
 .................
