@@ -14920,8 +14920,12 @@ static bool
 x_probe_xfixes_extension (Display *dpy)
 {
 #ifdef HAVE_XFIXES
-  int major, minor;
-  return XFixesQueryVersion (dpy, &major, &minor) && major >= 4;
+  struct x_display_info *info
+    = x_display_info_for_display (dpy);
+
+  return (info
+	  && info->xfixes_supported_p
+	  && info->xfixes_major >= 4);
 #else
   return false;
 #endif /* HAVE_XFIXES */
@@ -15428,6 +15432,20 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
 				&dpyinfo->xrender_minor))
 	dpyinfo->xrender_supported_p = false;
+    }
+#endif
+
+#ifdef HAVE_XFIXES
+  int xfixes_event_base, xfixes_error_base;
+  dpyinfo->xfixes_supported_p
+    = XFixesQueryExtension (dpyinfo->display, &xfixes_event_base,
+			    &xfixes_error_base);
+
+  if (dpyinfo->xfixes_supported_p)
+    {
+      if (!XFixesQueryVersion (dpyinfo->display, &dpyinfo->xfixes_major,
+			       &dpyinfo->xfixes_minor))
+	dpyinfo->xfixes_supported_p = false;
     }
 #endif
 

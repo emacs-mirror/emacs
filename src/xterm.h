@@ -546,6 +546,12 @@ struct x_display_info
   int xrender_major;
   int xrender_minor;
 #endif
+
+#ifdef HAVE_XFIXES
+  bool xfixes_supported_p;
+  int xfixes_major;
+  int xfixes_minor;
+#endif
 };
 
 #ifdef HAVE_X_I18N

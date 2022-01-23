@@ -11195,8 +11195,6 @@ The list of capabilities can include one or more of the following:
   || defined (HAVE_HAIKU)
       return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
-      int event_basep, error_basep;
-
       if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
 	return list2 (Qscale, Qrotate90);
 # elif defined (HAVE_NTGUI)
