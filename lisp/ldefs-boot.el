@@ -7867,7 +7867,7 @@ any buffer where (dictionary-tooltip-mode 1) has been called.
 
 \(fn &optional ARG)" t nil)
 
-(autoload 'context-menu-dictionary "dictionary" "\
+(autoload 'dictionary-context-menu "dictionary" "\
 Populate MENU with dictionary commands at CLICK.
 When you add this function to `context-menu-functions',
 the context menu will contain an item that searches
@@ -9580,7 +9580,10 @@ This applies to `eval-defun', `eval-region', `eval-buffer', and
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
 \(make-local-variable \\='edebug-all-defs) in your
-`emacs-lisp-mode-hook'.")
+`emacs-lisp-mode-hook'.
+
+Note that this user option has no effect unless the edebug
+package has been loaded.")
 
 (custom-autoload 'edebug-all-defs "edebug" t)
 
@@ -10535,8 +10538,9 @@ Choose and insert one of the recently-used emoji glyphs." t nil)
 
 (autoload 'emoji-search "emoji" "\
 Choose and insert an emoji glyph by typing its Unicode name.
-This command prompts for an emoji name, with completion, and inserts it.
-It recognizes the Unicode Standard names of emoji." t nil)
+This command prompts for an emoji name, with completion, and
+inserts it.  It recognizes the Unicode Standard names of emoji,
+and also consults the `emoji-alternate-names' alist." t nil)
 
 (autoload 'emoji-list "emoji" "\
 List emojis and insert the one that's selected.
@@ -15190,12 +15194,6 @@ LIST1 and LIST2 have to be sorted over <.
 
 \(fn LIST1 LIST2)" nil nil)
 
-(autoload 'gnus-sorted-range-intersection "gnus-range" "\
-Return intersection of RANGE1 and RANGE2.
-RANGE1 and RANGE2 have to be sorted over <.
-
-\(fn RANGE1 RANGE2)" nil nil)
-
 (defalias 'gnus-set-sorted-intersection 'gnus-sorted-nintersection)
 
 (autoload 'gnus-sorted-nintersection "gnus-range" "\
@@ -16802,7 +16800,7 @@ Populate MENU with a menu item to highlight symbol at CLICK.
 
 \(fn MENU CLICK)" nil nil)
 
-(register-definition-prefixes "hi-lock" '("hi-lock-" "turn-on-hi-lock-if-enabled"))
+(register-definition-prefixes "hi-lock" '("hi-lock-" "highlight-symbol-at-mouse" "turn-on-hi-lock-if-enabled"))
 
 ;;;***
 
@@ -19551,7 +19549,7 @@ Valid forms include:
   (KEY REGEXP) - skip to end of REGEXP.  REGEXP must be a string.
   (KEY FUNCTION ARGS) - FUNCTION called with ARGS returns end of region.")
 
-(defvar ispell-tex-skip-alists (purecopy '((("\\\\addcontentsline" ispell-tex-arg-end 2) ("\\\\add\\(tocontents\\|vspace\\)" ispell-tex-arg-end) ("\\\\\\([aA]lph\\|arabic\\)" ispell-tex-arg-end) ("\\\\cref" ispell-tex-arg-end) ("\\\\bibliographystyle" ispell-tex-arg-end) ("\\\\makebox" ispell-tex-arg-end 0) ("\\\\e?psfig" ispell-tex-arg-end) ("\\\\document\\(class\\|style\\)" . "\\\\begin[ \11\n]*{[ \11\n]*document[ \11\n]*}")) (("\\(figure\\|table\\)\\*?" ispell-tex-arg-end 0) ("list" ispell-tex-arg-end 2) ("program" . "\\\\end[ \11\n]*{[ \11\n]*program[ \11\n]*}") ("verbatim\\*?" . "\\\\end[ \11\n]*{[ \11\n]*verbatim\\*?[ \11\n]*}")))) "\
+(defvar ispell-tex-skip-alists (purecopy '((("\\\\addcontentsline" ispell-tex-arg-end 2) ("\\\\add\\(tocontents\\|vspace\\)" ispell-tex-arg-end) ("\\\\\\([aA]lph\\|arabic\\)" ispell-tex-arg-end) ("\\\\cref" ispell-tex-arg-end) ("\\\\bibliographystyle" ispell-tex-arg-end) ("\\\\makebox" ispell-tex-arg-end 0) ("\\\\e?psfig" ispell-tex-arg-end) ("\\\\document\\(class\\|style\\)" . "\\\\begin[ \11\n]*{document}")) (("\\(figure\\|table\\)\\*?" ispell-tex-arg-end 0) ("list" ispell-tex-arg-end 2) ("program" . "\\\\end[ \11]*{program}") ("verbatim\\*?" . "\\\\end[ \11]*{verbatim\\*?}")))) "\
 Lists of regions to be skipped in TeX mode.
 First list is used raw.
 Second list has key placed inside \\begin{}.
@@ -27800,6 +27798,13 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "range" "emacs-lisp/range.el" (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/range.el
+
+(register-definition-prefixes "range" '("range-"))
+
+;;;***
+
 ;;;### (autoloads nil "rcirc" "net/rcirc.el" (0 0 0 0))
 ;;; Generated autoloads from net/rcirc.el
 
@@ -32917,6 +32922,11 @@ this defaults to the current buffer.
 
 \(fn START END PROP VALUE &optional OBJECT)" nil nil)
 
+(autoload 'read-process-name "subr-x" "\
+Query the user for a process and return the process object.
+
+\(fn PROMPT)" nil nil)
+
 (register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*" "with-memoization"))
 
 ;;;***
@@ -34462,6 +34472,51 @@ value of `texinfo-mode-hook'.
 ;;; Generated autoloads from emacs-lisp/text-property-search.el
 
 (register-definition-prefixes "text-property-search" '("text-property-"))
+
+;;;***
+
+;;;### (autoloads nil "textsec" "international/textsec.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from international/textsec.el
+
+(register-definition-prefixes "textsec" '("textsec-"))
+
+;;;***
+
+;;;### (autoloads nil "textsec-check" "international/textsec-check.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from international/textsec-check.el
+
+(autoload 'textsec-suspicious-p "textsec-check" "\
+Say whether OBJECT is suspicious for use as TYPE.
+If OBJECT is suspicious, return a string explaining the reason
+for considering it suspicious, otherwise return nil.
+
+Available values of TYPE and corresponding OBJECTs are:
+
+ `url'                   -- a URL; OBJECT should be a URL string.
+
+ `link'                 -- an HTML link; OBJECT should be a cons cell
+                           of the form (URL . LINK-TEXT).
+
+ `domain'               -- a Web domain; OBJECT should be a string.
+
+ `local-address'        -- the local part of an email address; OBJECT
+                           should be a string.
+ `name'                 -- the \"display name\" part of an email address;
+                           OBJECT should be a string.
+
+`email-address'         -- a full email address; OBJECT should be a string.
+
+ `email-address-header' -- a raw email address header in RFC 2822 format;
+                           OBJECT should be a string.
+
+If the user option `textsec-check' is nil, these checks are
+disabled, and this function always returns nil.
+
+\(fn OBJECT TYPE)" nil nil)
+
+(register-definition-prefixes "textsec-check" '("textsec-check"))
 
 ;;;***
 
@@ -40116,62 +40171,64 @@ Zone out, completely." t nil)
 ;;;;;;  "international/charprop.el" "international/charscript.el"
 ;;;;;;  "international/cp51932.el" "international/emoji-labels.el"
 ;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
-;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/idna-mapping.el" "international/iso-transl.el"
+;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
+;;;;;;  "international/mule.el" "international/uni-bidi.el" "international/uni-brackets.el"
+;;;;;;  "international/uni-category.el" "international/uni-combining.el"
+;;;;;;  "international/uni-comment.el" "international/uni-confusable.el"
 ;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
 ;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
 ;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
 ;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "keymap.el" "language/burmese.el" "language/cham.el"
-;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
-;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
-;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
-;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
-;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
-;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
-;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
-;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
-;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
-;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
-;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
-;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
-;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
-;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/cham.el"
-;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
-;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/emoji.el"
-;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
-;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
-;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
-;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
-;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
-;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
-;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
-;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
-;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
-;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
-;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "minibuffer.el"
-;;;;;;  "mouse.el" "newcomment.el" "obarray.el" "org/ob-core.el"
-;;;;;;  "org/ob-lob.el" "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el"
-;;;;;;  "org/ol-bbdb.el" "org/ol-irc.el" "org/ol.el" "org/org-archive.el"
-;;;;;;  "org/org-attach.el" "org/org-clock.el" "org/org-colview.el"
-;;;;;;  "org/org-compat.el" "org/org-datetree.el" "org/org-duration.el"
-;;;;;;  "org/org-element.el" "org/org-feed.el" "org/org-footnote.el"
-;;;;;;  "org/org-goto.el" "org/org-id.el" "org/org-indent.el" "org/org-install.el"
-;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
-;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
-;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
-;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
-;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
+;;;;;;  "international/uni-scripts.el" "international/uni-special-lowercase.el"
+;;;;;;  "international/uni-special-titlecase.el" "international/uni-special-uppercase.el"
+;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
+;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "keymap.el"
+;;;;;;  "language/burmese.el" "language/cham.el" "language/chinese.el"
+;;;;;;  "language/cyrillic.el" "language/czech.el" "language/english.el"
+;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
+;;;;;;  "language/greek.el" "language/hebrew.el" "language/indian.el"
+;;;;;;  "language/japanese.el" "language/khmer.el" "language/korean.el"
+;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
+;;;;;;  "language/sinhala.el" "language/slovak.el" "language/tai-viet.el"
+;;;;;;  "language/thai.el" "language/tibetan.el" "language/utf-8-lang.el"
+;;;;;;  "language/vietnamese.el" "ldefs-boot.el" "leim/ja-dic/ja-dic.el"
+;;;;;;  "leim/leim-list.el" "leim/quail/4Corner.el" "leim/quail/ARRAY30.el"
+;;;;;;  "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el"
+;;;;;;  "leim/quail/ECDICT.el" "leim/quail/ETZY.el" "leim/quail/PY-b5.el"
+;;;;;;  "leim/quail/PY.el" "leim/quail/Punct-b5.el" "leim/quail/Punct.el"
+;;;;;;  "leim/quail/QJ-b5.el" "leim/quail/QJ.el" "leim/quail/SW.el"
+;;;;;;  "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el"
+;;;;;;  "leim/quail/arabic.el" "leim/quail/cham.el" "leim/quail/compose.el"
+;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
+;;;;;;  "leim/quail/czech.el" "leim/quail/emoji.el" "leim/quail/georgian.el"
+;;;;;;  "leim/quail/greek.el" "leim/quail/hanja-jis.el" "leim/quail/hanja.el"
+;;;;;;  "leim/quail/hanja3.el" "leim/quail/hebrew.el" "leim/quail/ipa-praat.el"
+;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
+;;;;;;  "leim/quail/latin-pre.el" "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
+;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
+;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
+;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
+;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/undigest.el" "menu-bar.el"
+;;;;;;  "mh-e/mh-gnus.el" "minibuffer.el" "mouse.el" "newcomment.el"
+;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
+;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
+;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
+;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
+;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
+;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
+;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
+;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
+;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
+;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
+;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
+;;;;;;  "paren.el" "progmodes/elisp-mode.el" "progmodes/prog-mode.el"
+;;;;;;  "ps-mule.el" "register.el" "replace.el" "rfn-eshadow.el"
+;;;;;;  "select.el" "simple.el" "startup.el" "subdirs.el" "subr.el"
+;;;;;;  "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
 ;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
 ;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
 ;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
@@ -40187,6 +40244,6 @@ Zone out, completely." t nil)
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
+;; coding: utf-8-emacs-unix
 ;; End:
 ;;; loaddefs.el ends here
