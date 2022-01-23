@@ -493,7 +493,12 @@ Intended as a value for `revert-buffer-function'."
 
 \\{apropos-mode-map}"
   (make-local-variable 'apropos--current)
-  (setq-local revert-buffer-function #'apropos--revert-buffer))
+  (setq-local revert-buffer-function #'apropos--revert-buffer)
+  (setq-local outline-regexp "^[^ \n]+"
+              outline-level (lambda () 1)
+              outline-minor-mode-cycle t
+              outline-minor-mode-highlight t
+              outline-minor-mode-use-buttons t))
 
 (defvar apropos-multi-type t
   "If non-nil, this apropos query concerns multiple types.
@@ -846,7 +851,7 @@ Returns list of symbols and values found."
 					         f v p)
 				           apropos-accumulator))))))
   (let ((apropos-multi-type do-all))
-    (apropos-print nil "\n----------------\n")))
+    (apropos-print nil "\n")))
 
 ;;;###autoload
 (defun apropos-local-value (pattern &optional buffer)
@@ -940,13 +945,14 @@ Returns list of symbols and documentation found."
 
 (defun apropos-value-internal (predicate symbol function)
   (when (funcall predicate symbol)
-    (setq symbol (prin1-to-string
-                  (if (memq symbol '(command-history minibuffer-history))
-                      ;; The value we're looking for will always be in
-                      ;; the first element of these two lists, so skip
-                      ;; that value.
-                      (cdr (funcall function symbol))
-                    (funcall function symbol))))
+    (let ((print-escape-newlines t))
+      (setq symbol (prin1-to-string
+                    (if (memq symbol '(command-history minibuffer-history))
+                        ;; The value we're looking for will always be in
+                        ;; the first element of these two lists, so skip
+                        ;; that value.
+                        (cdr (funcall function symbol))
+                      (funcall function symbol)))))
     (when (string-match apropos-regexp symbol)
       (if apropos-match-face
           (put-text-property (match-beginning 0) (match-end 0)
@@ -1156,13 +1162,15 @@ as a heading."
 	    (old-buffer (current-buffer))
 	    (inhibit-read-only t)
 	    (button-end 0)
+            (first t)
 	    symbol item)
 	(set-buffer standard-output)
 	(apropos-mode)
         (apropos--preamble text)
 	(dolist (apropos-item p)
-	  (when (and spacing (not (bobp)))
-	    (princ spacing))
+	  (if (and spacing (not first))
+	      (princ spacing)
+            (setq first nil))
 	  (setq symbol (car apropos-item))
 	  ;; Insert dummy score element for backwards compatibility with 21.x
 	  ;; apropos-item format.
