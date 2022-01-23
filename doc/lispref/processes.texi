@@ -1422,11 +1422,13 @@ non-@code{nil}, you can think of this function as typing @kbd{C-c}
 on the terminal by which Emacs talks to the subprocess.
 @end defun
 
-@defun kill-process &optional process current-group
-This function kills the process @var{process} by sending the
+@deffn Command kill-process &optional process current-group
+This command kills the process @var{process} by sending the
 signal @code{SIGKILL}.  This signal kills the subprocess immediately,
-and cannot be handled by the subprocess.
-@end defun
+and cannot be handled by the subprocess.  Interactively, it'll prompt
+the user for a process name, defaulting to the process (if any) in the
+current buffer.
+@end deffn
 
 @defun quit-process &optional process current-group
 This function sends the signal @code{SIGQUIT} to the process
