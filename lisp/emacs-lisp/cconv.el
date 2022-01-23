@@ -286,7 +286,7 @@ of converted forms."
               (let (and (pred stringp) msg)
                 (cconv--warn-unused-msg arg "argument")))
          (if (assq arg env) (push `(,arg . nil) env)) ;FIXME: Is it needed?
-         (push (lambda (body) (macroexp--warn-wrap body msg body 'lexical)) wrappers))
+         (push (lambda (body) (macroexp--warn-wrap arg msg body 'lexical)) wrappers))
         (_
          (if (assq arg env) (push `(,arg . nil) env)))))
     (setq funcbody (mapcar (lambda (form)
