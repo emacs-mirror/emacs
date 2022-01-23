@@ -326,7 +326,6 @@ For example:
 @end group
 @end example
 @end defun
-@end defun
 
 @defun read-positioning-symbols &optional stream
 This function reads one textual expression from @var{stream}, like
