@@ -5316,7 +5316,7 @@ of the file, regardless of whether or not it has the `.elc' extension.  */);
 
   DEFVAR_LISP ("load-read-function", Vload_read_function,
 	       doc: /* Function used for reading expressions.
-It is used by `load', `eval-region' and `byte-compile-from-buffer'.
+It is used by `load' and `eval-region'.
 
 Called with a single argument (the stream from which to read).
 The default is to use the function `read'.  */);
