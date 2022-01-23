@@ -938,7 +938,9 @@ supported at a time.
   ;; hscroll
   (setq-local auto-hscroll-mode nil)
   ;; reset the selection variable
-  (setq speedbar-last-selected-file nil))
+  (setq speedbar-last-selected-file nil)
+  (unless (display-graphic-p)
+    (message "Use `M-x speedbar-get-focus' to see the speedbar window")))
 
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
