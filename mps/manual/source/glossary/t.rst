@@ -233,6 +233,15 @@ Memory Management Glossary: T
         objects are reachable. Those that were not reachable may be
         :term:`reclaimed`.
 
+    transform
+
+        .. mps:specifc::
+
+           A mapping from old :term:`references` to new references,
+           represented by :c:type:`mps_transform_t`, that can be applied
+           to all references managed by the MPS. See
+           :ref:`topic-transform`.
+
     translation buffer
     translation lookaside buffer
 
