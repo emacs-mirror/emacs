@@ -523,6 +523,16 @@ This means text can automatically reflow if the window is resized."
 (make-obsolete-variable 'term-suppress-hard-newline nil
                         "27.1")
 
+(defcustom term-clear-full-screen-programs t
+  "Whether to clear contents of full-screen TUI programs after exit.
+If non-nil, output of full-screen TUI programs is cleared after
+exiting them.  Note however that a minority of such programs
+don't send an appropriate escape sequence to the terminal before
+exiting so their output isn't cleared regardless of this option."
+  :version "29.1"
+  :type 'boolean
+  :group 'term)
+
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
 ;; indications of the current pc.
@@ -1270,7 +1280,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     (when (/= width term-width)
       (save-excursion
         (term--remove-fake-newlines)))
-    (let ((point (point)))
+    (let ((point (point))
+          (home-marker (marker-position term-home-marker)))
       (setq term-height height)
       (setq term-width width)
       (setq term-start-line-column nil)
@@ -1279,11 +1290,20 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       (term--reset-scroll-region)
       ;; `term-set-scroll-region' causes these to be set, we have to
       ;; clear them again since we're changing point (Bug#30544).
+      (term--unwrap-visible-long-lines width)
       (setq term-start-line-column nil)
       (setq term-current-row nil)
       (setq term-current-column nil)
-      (goto-char point))
-    (term--unwrap-visible-long-lines width)))
+      (goto-char point)
+
+      (when (term-using-alternate-sub-buffer)
+        (term-handle-deferred-scroll)
+        ;; When using an alternative sub-buffer, the home marker should
+        ;; not move forward.  Bring it back by deleting text in front of
+        ;; it.
+        (when (> term-home-marker home-marker)
+          (let ((inhibit-read-only t))
+            (delete-region home-marker term-home-marker)))))))
 
 ;; Recursive routine used to check if any string in term-kill-echo-list
 ;; matches part of the buffer before point.
@@ -1611,6 +1631,7 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
   "%s%s:li#%d:co#%d:cl=\\E[H\\E[J:cd=\\E[J:bs:am:xn:cm=\\E[%%i%%d;%%dH\
 :nd=\\E[C:up=\\E[A:ce=\\E[K:ho=\\E[H:pt\
 :al=\\E[L:dl=\\E[M:DL=\\E[%%dM:AL=\\E[%%dL:cs=\\E[%%i%%d;%%dr:sf=^J\
+:NR:te=\\E[47l:ti=\\E[47h\
 :dc=\\E[P:DC=\\E[%%dP:IC=\\E[%%d@:im=\\E[4h:ei=\\E[4l:mi:\
 :mb=\\E[5m:mh=\\E[2m:ZR=\\E[23m:ZH=\\E[3m\
 :so=\\E[7m:se=\\E[m:us=\\E[4m:ue=\\E[m:md=\\E[1m:mr=\\E[7m:me=\\E[m\
@@ -3539,16 +3560,14 @@ otherwise use the current foreground color."
    ((eq char ?h)
     (cond ((eq (car params) 4)  ;; (terminfo: smir)
 	   (setq term-insert-mode t))
-	  ;; ((eq (car params) 47) ;; (terminfo: smcup)
-	  ;; (term-switch-to-alternate-sub-buffer t))
-	  ))
+	  ((eq (car params) 47) ;; (terminfo: smcup)
+	   (term-switch-to-alternate-sub-buffer t))))
    ;; \E[?l - DEC Private Mode Reset
    ((eq char ?l)
     (cond ((eq (car params) 4)  ;; (terminfo: rmir)
 	   (setq term-insert-mode nil))
-          ;; ((eq (car params) 47) ;; (terminfo: rmcup)
-	  ;; (term-switch-to-alternate-sub-buffer nil))
-	  ))
+          ((eq (car params) 47) ;; (terminfo: rmcup)
+	   (term-switch-to-alternate-sub-buffer nil))))
 
    ;; Modified to allow ansi coloring -mm
    ;; \E[m - Set/reset modes, set bg/fg
@@ -3595,32 +3614,35 @@ The top-most line is line 0."
   (term-move-columns (- (term-current-column)))
   (term-goto 0 0))
 
-;; (defun term-switch-to-alternate-sub-buffer (set)
-;;   ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
-;;   ;; using it, do nothing.  This test is needed for some programs (including
-;;   ;; Emacs) that emit the ti termcap string twice, for unknown reason.
-;;   (term-handle-deferred-scroll)
-;;   (if (eq set (not (term-using-alternate-sub-buffer)))
-;;       (let ((row (term-current-row))
-;; 	    (col (term-horizontal-column)))
-;; 	(cond (set
-;; 	       (goto-char (point-max))
-;; 	       (if (not (eq (preceding-char) ?\n))
-;; 		   (term-insert-char ?\n 1))
-;; 	       (setq term-scroll-with-delete t)
-;; 	       (setq term-saved-home-marker (copy-marker term-home-marker))
-;; 	       (set-marker term-home-marker (point)))
-;; 	      (t
-;; 	       (setq term-scroll-with-delete
-;; 		     (not (and (= term-scroll-start 0)
-;; 			       (= term-scroll-end term-height))))
-;; 	       (set-marker term-home-marker term-saved-home-marker)
-;; 	       (set-marker term-saved-home-marker nil)
-;; 	       (setq term-saved-home-marker nil)
-;; 	       (goto-char term-home-marker)))
-;; 	(setq term-current-column nil)
-;; 	(setq term-current-row 0)
-;; 	(term-goto row col))))
+(defun term-switch-to-alternate-sub-buffer (set)
+  ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
+  ;; using it, do nothing.  This test is needed for some programs (including
+  ;; Emacs) that emit the ti termcap string twice, for unknown reason.
+  (term-handle-deferred-scroll)
+  (when (eq set (not (term-using-alternate-sub-buffer)))
+    (cond
+     (set
+      (goto-char (point-max))
+      (if (not (eq (preceding-char) ?\n))
+          (term-insert-char ?\n 1))
+      (setq term-scroll-with-delete t)
+      (setq term-saved-home-marker (copy-marker term-home-marker))
+      (set-marker term-home-marker (point)))
+     (t
+      (setq term-scroll-with-delete
+            (not (and (= term-scroll-start 0)
+                      (= term-scroll-end (term--last-line)))))
+      (goto-char (point-max))
+      (when term-clear-full-screen-programs
+        (delete-region term-home-marker (point))
+        (set-marker term-home-marker term-saved-home-marker))
+      (set-marker term-saved-home-marker nil)
+      (setq term-saved-home-marker nil)))
+
+    (setq term-start-line-column nil)
+    (setq term-current-column nil)
+    (setq term-current-row nil)
+    (term-handle-deferred-scroll)))
 
 ;; Default value for the symbol term-command-function.
 
