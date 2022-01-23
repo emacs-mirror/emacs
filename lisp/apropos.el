@@ -1276,7 +1276,9 @@ as a heading."
 	(cond ((equal doc "")
 	       (setq doc "(not documented)"))
 	      (do-keys
-	       (setq doc (substitute-command-keys doc))))
+	       (setq doc (or (ignore-errors
+                               (substitute-command-keys doc))
+                             doc))))
 	(insert doc)
 	(if (equal doc "(not documented)")
 	    (put-text-property opoint (point) 'font-lock-face 'shadow))
