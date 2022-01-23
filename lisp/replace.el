@@ -2086,6 +2086,7 @@ See also `multi-occur'."
 				                     ;; (for Occur Edit mode).
 				                     front-sticky t
 						     rear-nonsticky t
+                                                     read-only t
 						     occur-target ,markers
 						     follow-link t
 				                     help-echo "mouse-2: go to this occurrence"))))
