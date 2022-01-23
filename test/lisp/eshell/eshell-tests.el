@@ -232,9 +232,8 @@ chars"
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (eshell-kill-output)
-   (eshell-match-result (regexp-quote "*** output flushed ***\n"))
-   (should (forward-line))
-   (should (= (point) eshell-last-output-start))))
+   (eshell-match-result
+    (concat "^" (regexp-quote "*** output flushed ***\n") "$"))))
 
 (ert-deftest eshell-test/run-old-command ()
   "Re-run an old command"

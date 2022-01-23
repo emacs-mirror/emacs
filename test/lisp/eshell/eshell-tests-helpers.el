@@ -66,10 +66,11 @@ raise an error."
   (funcall (or func 'eshell-send-input)))
 
 (defun eshell-match-result (regexp)
-  "Check that text after `eshell-last-input-end' matches REGEXP."
-  (goto-char eshell-last-input-end)
-  (should (string-match-p regexp (buffer-substring-no-properties
-                                  (point) (point-max)))))
+  "Check that output of last command matches REGEXP."
+  (should
+   (string-match-p
+    regexp (buffer-substring-no-properties
+            (eshell-beginning-of-output) (eshell-end-of-output)))))
 
 (defun eshell-command-result-p (text regexp &optional func)
   "Insert a command at the end of the buffer."
