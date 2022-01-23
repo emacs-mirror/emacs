@@ -3641,7 +3641,7 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 	(cond
 	 (unsafe-vars
 	  (insert "The local variables list in " name
-		  "\ncontains values that may not be safe (*)"
+		  "\nor .dir-locals.el contains values that may not be safe (*)"
 		  (if risky-vars
 		      ", and variables that are risky (**)."
 		    ".")))
