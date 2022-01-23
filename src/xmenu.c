@@ -457,8 +457,11 @@ x_activate_menubar (struct frame *f)
   if (dpyinfo->num_devices)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
-	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			CurrentTime);
+	{
+	  if (dpyinfo->devices[i].grab)
+	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			    CurrentTime);
+	}
     }
 #endif
   XtDispatchEvent (f->output_data.x->saved_menu_event);
@@ -1469,8 +1472,11 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   if (dpyinfo->num_devices)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
-	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			CurrentTime);
+	{
+	  if (dpyinfo->devices[i].grab)
+	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			    CurrentTime);
+	}
     }
 #endif
   /* Display the menu.  */
@@ -2367,6 +2373,22 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
   menu_help_frame = f;
+
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  /* Clear the XI2 grab so a core grab can be set.  */
+
+  if (dpyinfo->num_devices)
+    {
+      for (int i = 0; i < dpyinfo->num_devices; ++i)
+	{
+	  if (dpyinfo->devices[i].grab)
+	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			    CurrentTime);
+	}
+    }
+#endif
+
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);
