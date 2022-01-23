@@ -2472,7 +2472,7 @@ is not active."
          (when-let ((lsp-item (get-text-property 0 'eglot--lsp-item proxy)))
            (or (seq-contains-p (plist-get lsp-item :tags)
                                1)
-               (plist-get lsp-item :deprecated))))
+               (eq t (plist-get lsp-item :deprecated)))))
        :company-docsig
        ;; FIXME: autoImportText is specific to the pyright language server
        (lambda (proxy)
