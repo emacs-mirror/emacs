@@ -1602,7 +1602,7 @@ This adds rules for comments and assignments."
 
 ;;; Completion
 
-(defvar sh--completion-keywords '("if" "while" "until" "for"))
+(defvar sh--completion-keywords '("if" "while" "until" "for" "then"))
 
 (defun sh--vars-before-point ()
   (save-excursion
