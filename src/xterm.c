@@ -10759,7 +10759,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bv.state = xev->mods.effective;
 	      bv.time = xev->time;
 
-	      memset (&compose_status, 0, sizeof (compose_status));
 	      dpyinfo->last_mouse_glyph_frame = NULL;
 	      x_display_set_last_user_time (dpyinfo, xev->time);
 
@@ -11030,12 +11029,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     (see above).  */
 		  *finish = X_EVENT_DROP;
 #endif
-		  /* If not using XIM/XIC, and a compose sequence is in progress,
-		     we break here.  Otherwise, chars_matched is always 0.  */
-		  if (compose_status.chars_matched > 0 && nbytes == 0)
-		    goto XI_OTHER;
-
-		  memset (&compose_status, 0, sizeof (compose_status));
 
 		  XSETFRAME (inev.ie.frame_or_window, f);
 		  inev.ie.modifiers
@@ -11102,7 +11095,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			{
 			  nbytes = XLookupString (&xkey, copy_bufptr,
 						  copy_bufsiz, &keysym,
-						  &compose_status);
+						  NULL);
 			}
 		    }
 
