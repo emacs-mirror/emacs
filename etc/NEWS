@@ -257,6 +257,11 @@ These will take you (respectively) to the next and previous "page".
 ---
 *** 'describe-char' now also outputs the name of emoji combinations.
 
++++
+*** New key binding in *Help* buffers: 'I'.
+This will take you to the Emacs Lisp manual entry for the item
+displayed, if any.
+
 ** Outline Mode
 
 *** Support for customizing the default visibility state of headings.
