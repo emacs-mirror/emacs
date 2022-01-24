@@ -2537,9 +2537,6 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
     read_objects_completed
       = make_hash_table (hashtest_eq, DEFAULT_HASH_SIZE, DEFAULT_REHASH_SIZE,
 			 DEFAULT_REHASH_THRESHOLD, Qnil, false);
-  if (EQ (Vread_with_symbol_positions, Qt)
-      || EQ (Vread_with_symbol_positions, stream))
-    Vread_symbol_positions_list = Qnil;
 
   if (STRINGP (stream)
       || ((CONSP (stream) && STRINGP (XCAR (stream)))))
@@ -2561,10 +2558,6 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
     }
 
   retval = read0 (stream, locate_syms);
-  if (EQ (Vread_with_symbol_positions, Qt)
-      || EQ (Vread_with_symbol_positions, stream))
-    Vread_symbol_positions_list = Fnreverse (Vread_symbol_positions_list);
-  /* Empty hashes can be reused; otherwise, reset on next call.  */
   if (HASH_TABLE_P (read_objects_map)
       && XHASH_TABLE (read_objects_map)->count > 0)
     read_objects_map = Qnil;
@@ -3873,11 +3866,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	    result = build_symbol_with_pos (result,
 					    make_fixnum (start_position));
 
-	  if (EQ (Vread_with_symbol_positions, Qt)
-	      || EQ (Vread_with_symbol_positions, readcharfun))
-	    Vread_symbol_positions_list
-	      = Fcons (Fcons (result, make_fixnum (start_position)),
-		       Vread_symbol_positions_list);
 	  return unbind_to (count, result);
 	}
       }
@@ -5165,35 +5153,6 @@ This variable is obsolete as of Emacs 28.1 and should not be used.  */);
 	       doc: /* Stream for read to get input from.
 See documentation of `read' for possible values.  */);
   Vstandard_input = Qt;
-
-  DEFVAR_LISP ("read-with-symbol-positions", Vread_with_symbol_positions,
-	       doc: /* If non-nil, add position of read symbols to `read-symbol-positions-list'.
-
-If this variable is a buffer, then only forms read from that buffer
-will be added to `read-symbol-positions-list'.
-If this variable is t, then all read forms will be added.
-The effect of all other values other than nil are not currently
-defined, although they may be in the future.
-
-The positions are relative to the last call to `read' or
-`read-from-string'.  It is probably a bad idea to set this variable at
-the toplevel; bind it instead.  */);
-  Vread_with_symbol_positions = Qnil;
-
-  DEFVAR_LISP ("read-symbol-positions-list", Vread_symbol_positions_list,
-	       doc: /* A list mapping read symbols to their positions.
-This variable is modified during calls to `read' or
-`read-from-string', but only when `read-with-symbol-positions' is
-non-nil.
-
-Each element of the list looks like (SYMBOL . CHAR-POSITION), where
-CHAR-POSITION is an integer giving the offset of that occurrence of the
-symbol from the position where `read' or `read-from-string' started.
-
-Note that a symbol will appear multiple times in this list, if it was
-read multiple times.  The list is in the same order as the symbols
-were read in.  */);
-  Vread_symbol_positions_list = Qnil;
 
   DEFVAR_LISP ("read-circle", Vread_circle,
 	       doc: /* Non-nil means read recursive structures using #N= and #N# syntax.  */);
