@@ -954,13 +954,12 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
 (defun gnus-registry-install-shortcuts ()
   "Install the keyboard shortcuts and menus for the registry.
 Uses `gnus-registry-marks' to find what shortcuts to install."
-  (let (keys-plist)
-    (setq gnus-registry-misc-menus nil)
-    (gnus-registry-do-marks
-     :char
-     (lambda (mark data)
-       (let ((function-format
-              (format "gnus-registry-%%s-article-%s-mark" mark)))
+  (setq gnus-registry-misc-menus nil)
+  (gnus-registry-do-marks
+   :char
+   (lambda (mark data)
+     (let ((function-format
+            (format "gnus-registry-%%s-article-%s-mark" mark)))
 
 ;;;  The following generates these functions:
 ;;;  (defun gnus-registry-set-article-Important-mark (&rest articles)
@@ -972,39 +971,37 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;;;    (interactive (gnus-summary-work-articles current-prefix-arg))
 ;;;    (gnus-registry-set-article-mark-internal 'Important articles t t))
 
-         (dolist (remove '(t nil))
-           (let* ((variant-name (if remove "remove" "set"))
-                  (function-name
-                   (intern (format function-format variant-name)))
-                  (shortcut (format "%c" (if remove (upcase data) data))))
-             (defalias function-name
-               (lambda (&rest articles)
-                 (:documentation
-                  (format
-                   "%s the %s mark over process-marked ARTICLES."
-                   (upcase-initials variant-name)
-                   mark))
-                 (interactive
-                  (gnus-summary-work-articles current-prefix-arg))
-                 (gnus-registry--set/remove-mark mark remove articles)))
-             (push function-name keys-plist)
-             (push shortcut keys-plist)
-             (push (vector (format "%s %s"
-                                   (upcase-initials variant-name)
-                                   (symbol-name mark))
-                           function-name t)
-                   gnus-registry-misc-menus)
-             (gnus-message 9 "Defined mark handling function %s"
-                           function-name))))))
-    (define-key gnus-summary-mark-map "M"
-      (apply #'define-keymap :prefix 'gnus-summary-mark-map
-             keys-plist))
-    (add-hook 'gnus-summary-menu-hook
-              (lambda ()
-                (easy-menu-add-item
-                 gnus-summary-misc-menu
-                 nil
-                 (cons "Registry Marks" gnus-registry-misc-menus))))))
+       (dolist (remove '(t nil))
+         (let* ((variant-name (if remove "remove" "set"))
+                (function-name
+                 (intern (format function-format variant-name)))
+                (shortcut (format "%c" (if remove (upcase data) data))))
+           (defalias function-name
+             (lambda (&rest articles)
+               (:documentation
+                (format
+                 "%s the %s mark over process-marked ARTICLES."
+                 (upcase-initials variant-name)
+                 mark))
+               (interactive
+                (gnus-summary-work-articles current-prefix-arg))
+               (gnus-registry--set/remove-mark mark remove articles)))
+           (keymap-set gnus-summary-mark-map
+                       (concat "M " shortcut)
+                       function-name)
+           (push (vector (format "%s %s"
+                                 (upcase-initials variant-name)
+                                 (symbol-name mark))
+                         function-name t)
+                 gnus-registry-misc-menus)
+           (gnus-message 9 "Defined mark handling function %s"
+                         function-name))))))
+  (add-hook 'gnus-summary-menu-hook
+            (lambda ()
+              (easy-menu-add-item
+               gnus-summary-misc-menu
+               nil
+               (cons "Registry Marks" gnus-registry-misc-menus)))))
 
 (define-obsolete-function-alias 'gnus-registry-user-format-function-M
   #'gnus-registry-article-marks-to-chars "24.1")
