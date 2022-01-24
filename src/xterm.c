@@ -11412,8 +11412,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    && xg_event_is_for_menubar (f, event));
 	      if (f && FRAME_X_OUTPUT (f)->toolbar_widget)
 		{
-		  test_rect.x = xev->event_x;
-		  test_rect.y = xev->event_y;
+		  int scale = xg_get_scale (f);
+
+		  test_rect.x = xev->event_x / scale;
+		  test_rect.y = xev->event_y / scale;
 		  test_rect.width = 1;
 		  test_rect.height = 1;
 
