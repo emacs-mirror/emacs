@@ -9892,6 +9892,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       block_input ();
       if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
         font_drop_xrender_surfaces (f);
+#ifdef HAVE_XRENDER
+      if (f && FRAME_X_DOUBLE_BUFFERED_P (f)
+	  && FRAME_X_PICTURE (f) != None)
+	{
+	  XRenderFreePicture (FRAME_X_DISPLAY (f),
+			      FRAME_X_PICTURE (f));
+	  FRAME_X_PICTURE (f) = None;
+	}
+#endif
       unblock_input ();
 #if defined USE_CAIRO && !defined USE_GTK
       if (f)
