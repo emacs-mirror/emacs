@@ -9964,6 +9964,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
             xic_set_statusarea (f);
+
+	  if (f)
+	    {
+	      struct window *w = XWINDOW (f->selected_window);
+	      xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
+	    }
 #endif
 
 	}
