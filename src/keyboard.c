@@ -3059,12 +3059,13 @@ read_char (int commandflag, Lisp_Object map,
 
   /* Now wipe the echo area, except for help events which do their
      own stuff with the echo area.  */
-  if (!CONSP (c)
-      || (!(EQ (Qhelp_echo, XCAR (c)))
-	  && !(EQ (Qswitch_frame, XCAR (c)))
-	  /* Don't wipe echo area for select window events: These might
-	     get delayed via `mouse-autoselect-window' (Bug#11304).  */
-	  && !(EQ (Qselect_window, XCAR (c)))))
+  if (!NILP (Vecho_keystrokes)
+      && (!CONSP (c)
+	  || (!(EQ (Qhelp_echo, XCAR (c)))
+	      && !(EQ (Qswitch_frame, XCAR (c)))
+	      /* Don't wipe echo area for select window events: These might
+		 get delayed via `mouse-autoselect-window' (Bug#11304).  */
+	      && !(EQ (Qselect_window, XCAR (c))))))
     {
       if (!NILP (echo_area_buffer[0]))
 	{
