@@ -1182,7 +1182,7 @@ function takes and returns a list of completion candidate
 strings."
   :type '(choice (const :tag "No sorting" nil)
                  (const :tag "Alphabetical sorting" alphabetical)
-                 function :tag "Custom function")
+                 (function :tag "Custom function"))
   :version "29.1")
 
 (defcustom completions-group nil
