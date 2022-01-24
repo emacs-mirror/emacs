@@ -4217,8 +4217,8 @@ variable 'NATIVE_DISABLED' is set, only byte compile."
       (pcase byte-to-native-output-buffer-file
         (`(,temp-buffer . ,target-file)
          (unwind-protect
-             (byte-write-target-file temp-buffer target-file))
-         (kill-buffer temp-buffer)))
+             (byte-write-target-file temp-buffer target-file)
+           (kill-buffer temp-buffer))))
       (setq command-line-args-left (cdr command-line-args-left)))))
 
 ;;;###autoload
