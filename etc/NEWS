@@ -93,6 +93,13 @@ time.
 * Incompatible changes in Emacs 29.1
 
 ---
+** New user option 'term-clear-full-screen-programs'.
+By default, term will now work like most terminals when displaying
+full-screen programs: When they exit, the output is cleared, leaving
+what was displayed in the window before the programs started.  Set
+this user option to nil to revert back to the old behavior.
+
+---
 ** Support for old EIEIO functions is not autoloaded any more.
 You need an explicit '(require 'eieio-compat)' to use 'defmethod'
 and 'defgeneric' (which have been made obsolete in Emacs 25.1 with
