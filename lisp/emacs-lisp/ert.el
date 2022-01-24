@@ -129,7 +129,8 @@ mode.")
   (body (cl-assert nil))
   (most-recent-result nil)
   (expected-result-type ':passed)
-  (tags '()))
+  (tags '())
+  (file-name nil))
 
 (defun ert-test-boundp (symbol)
   "Return non-nil if SYMBOL names a test."
@@ -240,7 +241,8 @@ in batch mode, an error is signalled.
                             `(:expected-result-type ,expected-result))
                         ,@(when tags-supplied-p
                             `(:tags ,tags))
-                        :body (lambda () ,@body)))
+                        :body (lambda () ,@body)
+                        :file-name ,(or (macroexp-file-name) buffer-file-name)))
          ',name))))
 
 (defvar ert--find-test-regexp
@@ -1370,6 +1372,22 @@ RESULT must be an `ert-test-result-with-condition'."
 (defvar ert-quiet nil
   "Non-nil makes ERT only print important information in batch mode.")
 
+(defun ert-test-location (test)
+  "Return a string description the source location of TEST."
+  (when-let ((loc
+              (ignore-errors
+                (find-function-search-for-symbol
+                 (ert-test-name test) 'ert-deftest (ert-test-file-name test)))))
+    (let* ((buffer (car loc))
+           (point (cdr loc))
+           (file (file-relative-name (buffer-file-name buffer)))
+           (line (with-current-buffer buffer
+                   (line-number-at-pos point))))
+      (format "at %s:%s" file line))))
+
+(defvar ert-batch-backtrace-right-margin 70
+  "The maximum line length for printing backtraces in `ert-run-tests-batch'.")
+
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)
   "Run the tests specified by SELECTOR, printing results to the terminal.
@@ -1497,14 +1515,17 @@ Returns the stats object."
             (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                    (format-string (concat "%9s  %"
                                           (prin1-to-string (length max))
-                                          "s/" max "  %S (%f sec)")))
+                                          "s/" max "  %S (%f sec)%s")))
               (message format-string
                        (ert-string-for-test-result result
                                                    (ert-test-result-expected-p
                                                     test result))
                        (1+ (ert--stats-test-pos stats test))
                        (ert-test-name test)
-                       (ert-test-result-duration result))))))))
+                       (ert-test-result-duration result)
+                       (if (ert-test-result-expected-p test result)
+                           ""
+                         (concat " " (ert-test-location test))))))))))
    nil))
 
 ;;;###autoload

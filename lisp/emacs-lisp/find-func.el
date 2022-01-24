@@ -123,6 +123,15 @@ should insert the feature name."
   :group 'xref
   :version "25.1")
 
+(defcustom find-ert-deftest-regexp
+  "(ert-deftest +'%s"
+  "The regexp used to search for an ert-deftest definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  :type 'regexp
+  :group 'xref
+  :version "29.1")
+
 (defun find-function--defface (symbol)
   (catch 'found
     (while (re-search-forward (format find-face-regexp symbol) nil t)
@@ -136,7 +145,8 @@ should insert the feature name."
     (defvar . find-variable-regexp)
     (defface . find-function--defface)
     (feature . find-feature-regexp)
-    (defalias . find-alias-regexp))
+    (defalias . find-alias-regexp)
+    (ert-deftest . find-ert-deftest-regexp))
   "Alist mapping definition types into regexp variables.
 Each regexp variable's value should actually be a format string
 to be used to substitute the desired symbol name into the regexp.
