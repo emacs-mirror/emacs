@@ -3488,14 +3488,15 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
 {
   Display *display = FRAME_X_DISPLAY (s->f);
 #ifdef HAVE_XRENDER
-  if (s->img->picture)
+  if (s->img->picture && FRAME_X_PICTURE_FORMAT (s->f))
     {
       Picture destination;
       XRenderPictFormat *default_format;
       XRenderPictureAttributes attr;
+      /* Pacify GCC.  */
+      memset (&attr, 0, sizeof attr);
 
-      default_format = XRenderFindVisualFormat (display,
-                                                DefaultVisual (display, 0));
+      default_format = FRAME_X_PICTURE_FORMAT (s->f);
       destination = XRenderCreatePicture (display, dest,
                                           default_format, 0, &attr);
 
