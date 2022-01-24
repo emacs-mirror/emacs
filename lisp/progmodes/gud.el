@@ -759,13 +759,18 @@ The option \"--fullname\" must be included in this value."
 	 (concat (or cmd-name (symbol-name minor-mode))
 		 " "
 		 (or init
-		     (let ((file nil))
-		       (dolist (f (directory-files default-directory) file)
-			 (if (and (file-executable-p f)
-				  (not (file-directory-p f))
-				  (or (not file)
-				      (file-newer-than-file-p f file)))
-			     (setq file f)))))))
+		     (let ((file nil)
+                           (files (directory-files default-directory)))
+                       ;; On remote systems, this may be slow, so avoid it.
+                       (when (or (not (file-remote-p default-directory))
+                                 (length< files 50))
+		         (dolist (f files)
+			   (if (and (file-executable-p f)
+				    (not (file-directory-p f))
+				    (or (not file)
+				        (file-newer-than-file-p f file)))
+			       (setq file f)))
+                            file)))))
      gud-minibuffer-local-map nil
      hist-sym)))
 
