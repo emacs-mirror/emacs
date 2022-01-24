@@ -48,6 +48,7 @@
     (define-key map "\C-m" #'Electric-buffer-menu-select)
     (define-key map "\C-l" #'recenter)
     (define-key map "s" #'Buffer-menu-save)
+    (define-key map "S" #'tabulated-list-sort)
     (define-key map "d" #'Buffer-menu-delete)
     (define-key map "k" #'Buffer-menu-delete)
     (define-key map "\C-d" #'Buffer-menu-delete-backwards)
