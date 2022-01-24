@@ -738,6 +738,17 @@ with completion and history."
       (add-to-list 'hi-lock-face-defaults face t))
     (intern face)))
 
+(defvar hi-lock-use-overlays nil
+  "Whether to always use overlays instead of font-lock rules.
+When font-lock-mode is enabled and the buffer specifies font-lock rules,
+highlighting is performed by adding new font-lock rules to the existing ones,
+so when new matching strings are added, they are highlighted by font-lock.
+Otherwise, overlays are used, but new highlighting overlays are not added
+when new matching strings are inserted to the buffer.
+However, sometimes overlays are still preferable even in buffers
+where font-lock is enabled, when hi-lock overlays take precedence
+over other overlays in the same buffer.")
+
 (defun hi-lock-set-pattern (regexp face &optional subexp lighter case-fold spaces-regexp)
   "Highlight SUBEXP of REGEXP with face FACE.
 If omitted or nil, SUBEXP defaults to zero, i.e. the entire
@@ -759,7 +770,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
         (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
       (push (cons (or lighter regexp) pattern) hi-lock-interactive-lighters)
-      (if (and font-lock-mode (font-lock-specified-p major-mode))
+      (if (and font-lock-mode (font-lock-specified-p major-mode)
+               (not hi-lock-use-overlays))
 	  (progn
 	    (font-lock-add-keywords nil (list pattern) t)
 	    (font-lock-flush))
@@ -781,6 +793,8 @@ SPACES-REGEXP is a regexp to substitute spaces in font-lock search."
                                            (match-end subexp))))
                 (overlay-put overlay 'hi-lock-overlay t)
                 (overlay-put overlay 'hi-lock-overlay-regexp (or lighter regexp))
+                ;; Use priority higher than default used by e.g. diff-refine.
+                (overlay-put overlay 'priority 1)
                 (overlay-put overlay 'face face))
               (goto-char (match-end 0)))
             (when no-matches
