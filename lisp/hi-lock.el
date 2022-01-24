@@ -723,9 +723,11 @@ with completion and history."
 	  (when hi-lock-interactive-patterns
 	    (face-name (hi-lock-keyword->face
                         (car hi-lock-interactive-patterns)))))
-	 (defaults (append hi-lock--unused-faces
-			   (cdr (member last-used-face hi-lock-face-defaults))
-			   hi-lock-face-defaults))
+	 (defaults (seq-uniq
+                    (append hi-lock--unused-faces
+			    (cdr (member last-used-face hi-lock-face-defaults))
+			    hi-lock-face-defaults)
+                    #'equal))
 	 face)
     (if (and hi-lock-auto-select-face (not current-prefix-arg))
 	(setq face (or (pop hi-lock--unused-faces) (car defaults)))
