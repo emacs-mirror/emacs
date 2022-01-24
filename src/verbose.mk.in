@@ -56,7 +56,7 @@ AM_V_CCLD    = @$(info $   CCLD     $@)
 AM_V_CXXLD   = @$(info $   CXXLD    $@)
 
 ifeq ($(HAVE_NATIVE_COMP)-$(NATIVE_DISABLED)-$(ANCIENT),yes--)
-ifdef have_working_info
+ifneq (,$(have_working_info))
 AM_V_ELC     = @$(info $   ELC+ELN  $@)
 AM_V_ELN     = @$(info $   ELN      $@)
 else
@@ -64,7 +64,7 @@ AM_V_ELC     = @echo "  ELC+ELN " $@;
 AM_V_ELN     = @echo "  ELN     " $@;
 endif
 else
-ifdef have_working_info
+ifneq (,$(have_working_info))
 AM_V_ELC     = @$(info $   ELC      $@)
 else
 AM_V_ELC     = @echo "  ELC     " $@;
