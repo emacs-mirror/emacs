@@ -2326,9 +2326,7 @@ This only works if the article in question is HTML."
 	(goto-char (point-max))))))
 
 (defcustom gnus-article-truncate-lines (default-value 'truncate-lines)
-  "Value of `truncate-lines' in Gnus Article buffer.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
+  "Value of `truncate-lines' in Gnus Article buffer."
   :version "23.1" ;; No Gnus
   :group 'gnus-article
   ;; :link '(custom-manual "(gnus)Customizing Articles")
