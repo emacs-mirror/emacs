@@ -1081,64 +1081,66 @@ That is, if DEFAULT is a list and MULTIPLE is nil, the first
 element of DEFAULT is returned.  If DEFAULT isn't a list, but
 MULTIPLE is non-nil, a one-element list containing DEFAULT is
 returned.  Otherwise, DEFAULT is returned verbatim."
-  (unless (listp default)
-    (setq default (list default)))
-  (when default
-    (setq default
-          (if multiple
-              (mapconcat (lambda (f) (if (symbolp f) (symbol-name f) f))
-                         default ", ")
-            ;; If we only want one, and the default is more than one,
-            ;; discard the unwanted ones.
-            (setq default (car default))
-            (if (symbolp default)
-                (symbol-name default)
-              default))))
-  (when (and default (not multiple))
-    (require 'crm)
-    ;; For compatibility with `completing-read-multiple' use `crm-separator'
-    ;; to define DEFAULT if MULTIPLE is nil.
-    (setq default (car (split-string default crm-separator t))))
+  (let (defaults)
+    (unless (listp default)
+      (setq default (list default)))
+    (when default
+      (setq default
+            (if multiple
+                (mapconcat (lambda (f) (if (symbolp f) (symbol-name f) f))
+                           default ", ")
+              ;; If we only want one, and the default is more than one,
+              ;; discard the unwanted ones and use them only in the
+              ;; "future history" retrieved via `M-n M-n ...'.
+              (setq defaults default default (car default))
+              (if (symbolp default)
+                  (symbol-name default)
+                default))))
+    (when (and default (not multiple))
+      (require 'crm)
+      ;; For compatibility with `completing-read-multiple' use `crm-separator'
+      ;; to define DEFAULT if MULTIPLE is nil.
+      (setq default (car (split-string default crm-separator t))))
 
-  ;; Older versions of `read-face-name' did not append ": " to the
-  ;; prompt, so there are third party libraries that have that in the
-  ;; prompt.  If so, remove it.
-  (setq prompt (replace-regexp-in-string ": ?\\'" "" prompt))
-  (let ((prompt (if default
-                    (format-prompt prompt default)
-                  (format "%s: " prompt)))
-        (completion-extra-properties
-         '(:affixation-function
-           (lambda (faces)
-             (mapcar
-              (lambda (face)
-                (list (concat (propertize "SAMPLE" 'face face)
-                              "\t")
-                      ""
-                      face))
-              faces))))
-        aliasfaces nonaliasfaces faces)
-    ;; Build up the completion tables.
-    (mapatoms (lambda (s)
-                (if (facep s)
-                    (if (get s 'face-alias)
-                        (push (symbol-name s) aliasfaces)
-                      (push (symbol-name s) nonaliasfaces)))))
-    (if multiple
-        (progn
-          (dolist (face (completing-read-multiple
-                         prompt
-                         (completion-table-in-turn nonaliasfaces aliasfaces)
-                         nil t nil 'face-name-history default))
-            ;; Ignore elements that are not faces
-            ;; (for example, because DEFAULT was "all faces")
-            (if (facep face) (push (intern face) faces)))
-          (nreverse faces))
-      (let ((face (completing-read
-                   prompt
-                   (completion-table-in-turn nonaliasfaces aliasfaces)
-                   nil t nil 'face-name-history default)))
-        (if (facep face) (intern face))))))
+    ;; Older versions of `read-face-name' did not append ": " to the
+    ;; prompt, so there are third party libraries that have that in the
+    ;; prompt.  If so, remove it.
+    (setq prompt (replace-regexp-in-string ": ?\\'" "" prompt))
+    (let ((prompt (if default
+                      (format-prompt prompt default)
+                    (format "%s: " prompt)))
+          (completion-extra-properties
+           '(:affixation-function
+             (lambda (faces)
+               (mapcar
+                (lambda (face)
+                  (list (concat (propertize "SAMPLE" 'face face)
+                                "\t")
+                        ""
+                        face))
+                faces))))
+          aliasfaces nonaliasfaces faces)
+      ;; Build up the completion tables.
+      (mapatoms (lambda (s)
+                  (if (facep s)
+                      (if (get s 'face-alias)
+                          (push (symbol-name s) aliasfaces)
+                        (push (symbol-name s) nonaliasfaces)))))
+      (if multiple
+          (progn
+            (dolist (face (completing-read-multiple
+                           prompt
+                           (completion-table-in-turn nonaliasfaces aliasfaces)
+                           nil t nil 'face-name-history default))
+              ;; Ignore elements that are not faces
+              ;; (for example, because DEFAULT was "all faces")
+              (if (facep face) (push (intern face) faces)))
+            (nreverse faces))
+        (let ((face (completing-read
+                     prompt
+                     (completion-table-in-turn nonaliasfaces aliasfaces)
+                     nil t nil 'face-name-history defaults)))
+          (if (facep face) (intern face)))))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)
