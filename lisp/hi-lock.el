@@ -235,10 +235,12 @@ by cycling through the faces in `hi-lock-face-defaults'."
   "Human-readable lighters for `hi-lock-interactive-patterns'.")
 (put 'hi-lock-interactive-lighters 'permanent-local t)
 
-(defvar hi-lock-face-defaults
+(defcustom hi-lock-face-defaults
   '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-salmon" "hi-aquamarine"
     "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
-  "Default faces for hi-lock interactive functions.")
+  "Default face names for hi-lock interactive functions."
+  :type '(repeat string)
+  :version "29.1")
 
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
   "String used to identify hi-lock patterns at the start of files.")
