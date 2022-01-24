@@ -5,7 +5,7 @@
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Per Persson <pp@sno.pp.se>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 ;; Created: 1994-01-23
 

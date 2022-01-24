@@ -3,7 +3,7 @@
 ;; Copyright (C) 2017, 2020-2022 Free Software Foundation, Inc.
 
 ;; Author: Andrew Barbarello
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://github.com/drewbarbs/erc-status-sidebar
 
 ;; This file is part of GNU Emacs.
