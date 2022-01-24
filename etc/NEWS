@@ -1187,6 +1187,10 @@ It marks the image with the 'inhibit-isearch' text property, which
 inhibits 'isearch' matching the STRING parameter.
 
 ---
+** New function 'replace-regexp-function'.
+It can be used to implement own regexp syntax for search/replace.
+
+---
 ** New user option 'pp-use-max-width'.
 If non-nil, 'pp' will attempt to limit the line length when formatting
 long lists and vectors.
