@@ -10672,11 +10672,16 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   viewbox_height = dimension_data.height;
 #endif
 
+#ifdef HAVE_NATIVE_TRANSFORMS
   compute_image_size (viewbox_width, viewbox_height, img,
                       &width, &height);
 
   width = scale_image_size (width, 1, FRAME_SCALE_FACTOR (f));
   height = scale_image_size (height, 1, FRAME_SCALE_FACTOR (f));
+#else
+  width = viewbox_width;
+  height = viewbox_height;
+#endif
 
   if (! check_image_size (f, width, height))
     {

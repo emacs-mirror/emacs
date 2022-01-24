@@ -358,6 +358,22 @@ x_flush (struct frame *f)
   unblock_input ();
 }
 
+#ifdef HAVE_XRENDER
+MAYBE_UNUSED static void
+x_xr_ensure_picture (struct frame *f)
+{
+  if (FRAME_X_PICTURE (f) == None && FRAME_X_PICTURE_FORMAT (f))
+    {
+      XRenderPictureAttributes attrs;
+      attrs.clip_mask = None;
+
+      FRAME_X_PICTURE (f) = XRenderCreatePicture (FRAME_X_DISPLAY (f),
+						  FRAME_X_RAW_DRAWABLE (f),
+						  FRAME_X_PICTURE_FORMAT (f),
+						  CPClipMask, &attrs);
+    }
+}
+#endif
 
 /* Remove calls to XFlush by defining XFlush to an empty replacement.
    Calls to XFlush should be unnecessary because the X output buffer
@@ -401,14 +417,7 @@ record_event (char *locus, int type)
 
 #endif
 
-#ifdef USE_CAIRO
-
-#define FRAME_CR_CONTEXT(f)	((f)->output_data.x->cr_context)
-#define FRAME_CR_SURFACE_DESIRED_WIDTH(f) \
-  ((f)->output_data.x->cr_surface_desired_width)
-#define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
-  ((f)->output_data.x->cr_surface_desired_height)
-
+#if defined USE_CAIRO || defined HAVE_XRENDER
 static struct x_gc_ext_data *
 x_gc_get_ext_data (struct frame *f, GC gc, int create_if_not_found_p)
 {
@@ -441,6 +450,15 @@ x_extension_initialize (struct x_display_info *dpyinfo)
 
   dpyinfo->ext_codes = ext_codes;
 }
+#endif
+
+#ifdef USE_CAIRO
+
+#define FRAME_CR_CONTEXT(f)	((f)->output_data.x->cr_context)
+#define FRAME_CR_SURFACE_DESIRED_WIDTH(f) \
+  ((f)->output_data.x->cr_surface_desired_width)
+#define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
+  ((f)->output_data.x->cr_surface_desired_height)
 
 #endif /* HAVE_CAIRO */
 
@@ -1184,11 +1202,37 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
 #endif	/* USE_CAIRO */
 
+#if defined HAVE_XRENDER && !defined USE_CAIRO
+MAYBE_UNUSED static void
+x_xr_apply_ext_clip (struct frame *f, GC gc)
+{
+  eassert (FRAME_X_PICTURE (f) != None);
+
+  struct x_gc_ext_data *data = x_gc_get_ext_data (f, gc, 1);
+
+  if (data->n_clip_rects)
+    XRenderSetPictureClipRectangles (FRAME_X_DISPLAY (f),
+				     FRAME_X_PICTURE (f),
+				     0, 0, data->clip_rects,
+				     data->n_clip_rects);
+}
+
+MAYBE_UNUSED static void
+x_xr_reset_ext_clip (struct frame *f)
+{
+  XRenderPictureAttributes attrs = { .clip_mask = None };
+
+  XRenderChangePicture (FRAME_X_DISPLAY (f),
+			FRAME_X_PICTURE (f),
+			CPClipMask, &attrs);
+}
+#endif
+
 static void
 x_set_clip_rectangles (struct frame *f, GC gc, XRectangle *rectangles, int n)
 {
   XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, rectangles, n, Unsorted);
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined HAVE_XRENDER
   eassert (n >= 0 && n <= MAX_CLIP_RECTS);
 
   {
@@ -1204,7 +1248,7 @@ static void
 x_reset_clip_rectangles (struct frame *f, GC gc)
 {
   XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined HAVE_XRENDER
   {
     struct x_gc_ext_data *gc_ext = x_gc_get_ext_data (f, gc, 0);
 
@@ -4510,10 +4554,31 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 #ifndef USE_GTK
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
 #endif
-    XFillRectangle (FRAME_X_DISPLAY (f),
-		    FRAME_X_DRAWABLE (f),
-		    f->output_data.x->reverse_gc,
-		    x, y, width, height);
+    {
+#if defined HAVE_XRENDER && \
+  (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+      x_xr_ensure_picture (f);
+      if (FRAME_X_PICTURE (f) != None
+	  && FRAME_CHECK_XR_VERSION (f, 0, 2))
+	{
+	  XRenderColor xc;
+	  GC gc = f->output_data.x->reverse_gc;
+
+	  x_xr_apply_ext_clip (f, gc);
+	  x_xrender_color_from_gc_foreground (f, gc, &xc);
+	  XRenderFillRectangle (FRAME_X_DISPLAY (f),
+				PictOpSrc, FRAME_X_PICTURE (f),
+				&xc, x, y, width, height);
+	  x_xr_reset_ext_clip (f);
+	  x_mark_frame_dirty (f);
+	}
+      else
+#endif
+	XFillRectangle (FRAME_X_DISPLAY (f),
+			FRAME_X_DRAWABLE (f),
+			f->output_data.x->reverse_gc,
+			x, y, width, height);
+    }
 #ifndef USE_GTK
   else
     x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -15431,6 +15496,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
 				&dpyinfo->xrender_minor))
 	dpyinfo->xrender_supported_p = false;
+      else
+	dpyinfo->pict_format = XRenderFindVisualFormat (dpyinfo->display,
+							dpyinfo->visual);
     }
 #endif
 
@@ -15714,7 +15782,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_session_initialize (dpyinfo);
 #endif
 
-#ifdef USE_CAIRO
+#if defined USE_CAIRO || defined HAVE_XRENDER
   x_extension_initialize (dpyinfo);
 #endif
 
@@ -16087,6 +16155,40 @@ init_xterm (void)
      extensions.  */
   xputenv ("GDK_CORE_DEVICE_EVENTS=1");
 #endif
+}
+#endif
+
+#ifdef HAVE_XRENDER
+void
+x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color)
+{
+  XGCValues xgcv;
+  XColor xc;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCForeground, &xgcv);
+  xc.pixel = xgcv.foreground;
+  x_query_colors (f, &xc, 1);
+
+  color->alpha = 65535;
+  color->red = xc.red;
+  color->blue = xc.blue;
+  color->green = xc.green;
+}
+
+void
+x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color)
+{
+  XGCValues xgcv;
+  XColor xc;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCBackground, &xgcv);
+  xc.pixel = xgcv.foreground;
+  x_query_colors (f, &xc, 1);
+
+  color->alpha = 65535;
+  color->red = xc.red;
+  color->blue = xc.blue;
+  color->green = xc.green;
 }
 #endif
 

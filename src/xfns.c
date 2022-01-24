@@ -3267,6 +3267,17 @@ x_mark_frame_dirty (struct frame *f)
 static void
 set_up_x_back_buffer (struct frame *f)
 {
+#ifdef HAVE_XRENDER
+  block_input ();
+  if (FRAME_X_PICTURE (f) != None)
+    {
+      XRenderFreePicture (FRAME_X_DISPLAY (f),
+			  FRAME_X_PICTURE (f));
+      FRAME_X_PICTURE (f) = None;
+    }
+  unblock_input ();
+#endif
+
 #ifdef HAVE_XDBE
   block_input ();
   if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
@@ -3281,10 +3292,10 @@ set_up_x_back_buffer (struct frame *f)
              server ran out of memory or we don't have the right kind
              of visual, just use single-buffered rendering.  */
           x_catch_errors (FRAME_X_DISPLAY (f));
-          FRAME_X_RAW_DRAWABLE (f) = XdbeAllocateBackBufferName (
-            FRAME_X_DISPLAY (f),
-            FRAME_X_WINDOW (f),
-            XdbeCopied);
+          FRAME_X_RAW_DRAWABLE (f)
+	    = XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f),
+					  FRAME_X_WINDOW (f),
+					  XdbeCopied);
           if (x_had_errors_p (FRAME_X_DISPLAY (f)))
             FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
           x_uncatch_errors_after_check ();
@@ -3297,6 +3308,17 @@ set_up_x_back_buffer (struct frame *f)
 void
 tear_down_x_back_buffer (struct frame *f)
 {
+#ifdef HAVE_XRENDER
+  block_input ();
+  if (FRAME_X_PICTURE (f) != None)
+    {
+      XRenderFreePicture (FRAME_X_DISPLAY (f),
+			  FRAME_X_PICTURE (f));
+      FRAME_X_PICTURE (f) = None;
+    }
+  unblock_input ();
+#endif
+
 #ifdef HAVE_XDBE
   block_input ();
   if (FRAME_X_WINDOW (f) && FRAME_X_DOUBLE_BUFFERED_P (f))

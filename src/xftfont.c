@@ -441,10 +441,10 @@ xftfont_get_xft_draw (struct frame *f)
   if (! xft_draw)
     {
       block_input ();
-      xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
-                               FRAME_X_DRAWABLE (f),
-			       FRAME_X_VISUAL (f),
-			       FRAME_X_COLORMAP (f));
+      xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
+				FRAME_X_DRAWABLE (f),
+				FRAME_X_VISUAL (f),
+				FRAME_X_COLORMAP (f));
       unblock_input ();
       eassert (xft_draw != NULL);
       font_put_frame_data (f, Qxft, xft_draw);
