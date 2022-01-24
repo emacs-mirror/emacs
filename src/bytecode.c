@@ -381,7 +381,9 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   Lisp_Object *stack_lim = top + stack_items;
   unsigned char const *bytestr_data = SDATA (bytestr);
   unsigned char const *pc = bytestr_data;
+#if BYTE_CODE_SAFE || !defined NDEBUG
   ptrdiff_t count = SPECPDL_INDEX ();
+#endif
 
   /* ARGS_TEMPLATE is composed of bit fields:
      bits 0..6    minimum number of arguments
