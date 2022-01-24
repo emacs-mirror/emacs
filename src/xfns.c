@@ -3072,7 +3072,7 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
 {
   struct frame *f = x_xic_to_frame (xic);
   struct x_output *output;
-  ptrdiff_t text_length;
+  ptrdiff_t text_length = 0;
   ptrdiff_t charpos;
   ptrdiff_t original_size;
   char *text;
