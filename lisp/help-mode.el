@@ -45,6 +45,7 @@
     (define-key map [XF86Forward] 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
     (define-key map "s" 'help-view-source)
+    (define-key map "I" 'help-goto-lispref-info)
     (define-key map "i" 'help-goto-info)
     (define-key map "c" 'help-customize)
     map)
@@ -818,6 +819,14 @@ The help buffers are divided into \"pages\" by the ^L character."
     (error "No symbol to look up in the current buffer"))
   (info-lookup-symbol (plist-get help-mode--current-data :symbol)
                       'emacs-lisp-mode))
+
+(defun help-goto-lispref-info ()
+  "View the Emacs Lisp manual *info* node of the current help item."
+  (interactive nil help-mode)
+  (unless help-mode--current-data
+    (error "No symbol to look up in the current buffer"))
+  (info-lookup-symbol (plist-get help-mode--current-data :symbol)
+                      'emacs-lisp-only))
 
 (defun help-customize ()
   "Customize variable or face whose doc string is shown in the current buffer."

@@ -1010,6 +1010,13 @@ Return nil if there is nothing appropriate in the buffer near point."
              ("(cl)Function Index"    nil "^ -+ .*: " "\\( \\|$\\)")
              ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")))
 
+(info-lookup-maybe-add-help
+ :mode 'emacs-lisp-only
+ :regexp "[^][()`'‘’,\" \t\n]+"
+ :doc-spec '(("(elisp)Index"          nil "^ -+ .*: " "\\( \\|$\\)")
+             ("(cl)Function Index"    nil "^ -+ .*: " "\\( \\|$\\)")
+             ("(cl)Variable Index"    nil "^ -+ .*: " "\\( \\|$\\)")))
+
 (mapc
  (lambda (elem)
    (let* ((prefix (car elem)))
