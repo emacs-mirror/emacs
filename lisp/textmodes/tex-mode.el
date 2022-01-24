@@ -630,6 +630,14 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	      3 '(tex-font-lock-append-prop 'bold) 'append)))))
    "Gaudy expressions to highlight in TeX modes.")
 
+(defun tex--current-command ()
+  "Return the previous \\\\command."
+  (save-excursion
+    (and (re-search-backward "\\\\\\([a-zA-Z@]+\\)\\*?\\({\\)?" nil t)
+         ;; Ignore commands that don't have contents.
+         (and (match-string 2)
+              (match-string 1)))))
+
 (defun tex-font-lock-suscript (pos)
   (unless (or (memq (get-text-property pos 'face)
 		    '(font-lock-constant-face font-lock-builtin-face
@@ -639,7 +647,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		    (pos pos))
 		(while (eq (char-before pos) ?\\)
 		  (setq pos (1- pos) odd (not odd)))
-		odd))
+		odd)
+              ;; Allow bare _ characters in some commands.
+              (member (tex--current-command) '("href" "ProvidesFile")))
     (if (eq (char-after pos) ?_)
 	`(face subscript display (raise ,(car tex-font-script-display)))
       `(face superscript display (raise ,(cadr tex-font-script-display))))))
