@@ -1720,7 +1720,7 @@ emit_lisp_obj_rval (Lisp_Object obj)
   emit_comment (format_string ("const lisp obj: %s",
 			       SSDATA (Fprin1_to_string (obj, Qnil))));
 
-  if (EQ (obj, Qnil))
+  if (NILP (obj))
     {
       gcc_jit_rvalue *n;
       n = emit_rvalue_from_lisp_word ((Lisp_Word) iQnil);
