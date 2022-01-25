@@ -365,26 +365,29 @@ typedef EMACS_INT Lisp_Word;
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
-/* #define lisp_h_EQ(x, y) (XLI (x) == XLI (y)) */
 
-#define lisp_h_EQ(x, y) ((XLI ((x)) == XLI ((y)))       \
-  || (symbols_with_pos_enabled    \
-  && (SYMBOL_WITH_POS_P ((x))                        \
-      ? BARE_SYMBOL_P ((y))                               \
-        ? XLI (XSYMBOL_WITH_POS((x))->sym) == XLI (y)           \
-        : SYMBOL_WITH_POS_P((y))                       \
-          && (XLI (XSYMBOL_WITH_POS((x))->sym)                   \
-              == XLI (XSYMBOL_WITH_POS((y))->sym))               \
-      : (SYMBOL_WITH_POS_P ((y))                     \
-         && BARE_SYMBOL_P ((x))                           \
-         && (XLI (x) == XLI ((XSYMBOL_WITH_POS ((y)))->sym))))))
+/* FIXME: Do we really need to inline the whole thing?
+ * What about keeping the part after `symbols_with_pos_enabled` in
+ * a separate function?  */
+#define lisp_h_EQ(x, y)                                     \
+  ((XLI ((x)) == XLI ((y)))                                 \
+   || (symbols_with_pos_enabled                             \
+       && (SYMBOL_WITH_POS_P ((x))                          \
+           ? (BARE_SYMBOL_P ((y))                           \
+              ? XLI (XSYMBOL_WITH_POS((x))->sym) == XLI (y) \
+              : SYMBOL_WITH_POS_P((y))                      \
+                && (XLI (XSYMBOL_WITH_POS((x))->sym)        \
+                    == XLI (XSYMBOL_WITH_POS((y))->sym)))   \
+           : (SYMBOL_WITH_POS_P ((y))                       \
+              && BARE_SYMBOL_P ((x))                        \
+              && (XLI (x) == XLI ((XSYMBOL_WITH_POS ((y)))->sym))))))
 
 #define lisp_h_FIXNUMP(x) \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
 	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) \
        & ((1 << INTTYPEBITS) - 1)))
 #define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
-#define lisp_h_NILP(x) /* x == Qnil */ /* ((XLI (x) == XLI (Qnil))) */ /* EQ (x, Qnil) */ BASE_EQ (x, Qnil)
+#define lisp_h_NILP(x)  BASE_EQ (x, Qnil)
 #define lisp_h_SET_SYMBOL_VAL(sym, v) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
     (sym)->u.s.val.value = (v))
