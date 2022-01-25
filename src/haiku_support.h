@@ -299,6 +299,7 @@ struct haiku_menu_bar_resize_event
 struct haiku_menu_bar_state_event
 {
   void *window;
+  bool no_lock;
 };
 
 #define HAIKU_THIN 0
@@ -863,6 +864,9 @@ extern "C"
 
   extern const char *
   be_find_setting (const char *name);
+
+  extern void
+  EmacsWindow_signal_menu_update_complete (void *window);
 
 #ifdef __cplusplus
   extern void *

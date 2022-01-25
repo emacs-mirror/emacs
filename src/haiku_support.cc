@@ -408,6 +408,9 @@ public:
   window_look pre_override_redirect_style;
   window_feel pre_override_redirect_feel;
   uint32 pre_override_redirect_workspaces;
+  pthread_mutex_t menu_update_mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_t menu_update_cv = PTHREAD_COND_INITIALIZER;
+  bool menu_updated_p = false;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -433,6 +436,9 @@ public:
     if (this->parent)
       UnparentAndUnlink ();
     child_frame_lock.Unlock ();
+
+    pthread_cond_destroy (&menu_update_cv);
+    pthread_mutex_destroy (&menu_update_mutex);
   }
 
   void
@@ -805,9 +811,36 @@ public:
   MenusBeginning ()
   {
     struct haiku_menu_bar_state_event rq;
+    int lock_count = 0;
+    thread_id current_thread = find_thread (NULL);
+    thread_id window_thread = Thread ();
     rq.window = this;
+    rq.no_lock = false;
+
+    if (window_thread != current_thread)
+      rq.no_lock = true;
 
     haiku_write (MENU_BAR_OPEN, &rq);
+
+    if (!rq.no_lock)
+      {
+	while (IsLocked ())
+	  {
+	    ++lock_count;
+	    UnlockLooper ();
+	  }
+	pthread_mutex_lock (&menu_update_mutex);
+	while (!menu_updated_p)
+	  pthread_cond_wait (&menu_update_cv,
+			     &menu_update_mutex);
+	menu_updated_p = false;
+	pthread_mutex_unlock (&menu_update_mutex);
+	for (; lock_count; --lock_count)
+	  {
+	    if (!LockLooper ())
+	      gui_abort ("Failed to lock after cv signal denoting menu update");
+	  }
+      }
     menu_bar_active_p = true;
   }
 
@@ -3211,4 +3244,15 @@ be_find_setting (const char *name)
     return NULL;
 
   return value;
+}
+
+void
+EmacsWindow_signal_menu_update_complete (void *window)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  pthread_mutex_lock (&w->menu_update_mutex);
+  w->menu_updated_p = true;
+  pthread_cond_signal (&w->menu_update_cv);
+  pthread_mutex_unlock (&w->menu_update_mutex);
 }

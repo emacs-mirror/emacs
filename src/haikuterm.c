@@ -3178,20 +3178,20 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    if (type == MENU_BAR_OPEN)
 	      {
-		if (!FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-		  {
-		    BView_draw_lock (FRAME_HAIKU_VIEW (f));
-		    /* This shouldn't be here, but nsmenu does it, so
-		       it should probably be safe.  */
-		    int was_waiting_for_input_p = waiting_for_input;
-		    if (waiting_for_input)
-		      waiting_for_input = 0;
-		    set_frame_menubar (f, 1);
-		    waiting_for_input = was_waiting_for_input_p;
-		    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
-		  }
+		BView_draw_lock (FRAME_HAIKU_VIEW (f));
+		/* This shouldn't be here, but nsmenu does it, so
+		   it should probably be safe.  */
+		int was_waiting_for_input_p = waiting_for_input;
+		if (waiting_for_input)
+		  waiting_for_input = 0;
+		set_frame_menubar (f, 1);
+		waiting_for_input = was_waiting_for_input_p;
+		BView_draw_unlock (FRAME_HAIKU_VIEW (f));
 		FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
 		popup_activated_p += 1;
+
+		if (!b->no_lock)
+		  EmacsWindow_signal_menu_update_complete (b->window);
 	      }
 	    else
 	      {

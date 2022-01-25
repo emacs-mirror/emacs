@@ -644,10 +644,7 @@ the position of the last non-menu event instead.  */)
   struct frame *f = decode_window_system_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
-    {
-      if (!FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-	set_frame_menubar (f, 1);
-    }
+    set_frame_menubar (f, 1);
   else
     {
       return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
