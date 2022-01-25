@@ -847,8 +847,8 @@ concat_strings (ptrdiff_t nargs, Lisp_Object *args)
 
   if (dest_multibyte && some_unibyte)
     {
-      // Non-ASCII chars in unibyte strings take two bytes when
-      // converted to multibyte -- count them and adjust the total.
+      /* Non-ASCII characters in unibyte strings take two bytes when
+	 converted to multibyte -- count them and adjust the total. */
       for (ptrdiff_t i = 0; i < nargs; i++)
 	{
 	  Lisp_Object arg = args[i];
