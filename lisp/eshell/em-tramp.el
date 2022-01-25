@@ -57,13 +57,12 @@
 
 (autoload 'eshell-parse-command "esh-cmd")
 
-(defun eshell/su (&rest arguments)
+(defun eshell/su (&rest args)
   "Alias \"su\" to call TRAMP.
 
 Uses the system su through TRAMP's su method."
-  (setq arguments (eshell-stringify-list (flatten-tree arguments)))
   (eshell-eval-using-options
-   "su" arguments
+   "su" args
    '((?h "help" nil nil "show this usage screen")
      (?l "login" nil login "provide a login environment")
      (?  nil nil login "provide a login environment")
@@ -77,10 +76,6 @@ Become another USER during a login session.")
                 (prefix (file-remote-p default-directory)))
             (dolist (arg args)
               (if (string-equal arg "-") (setq login t) (setq user arg)))
-            ;; `eshell-eval-using-options' tries to handle "-" as a
-            ;; short option; double-check whether the original
-            ;; arguments include it.
-            (when (member "-" arguments) (setq login t))
             (when login (setq dir "~/"))
             (if (and prefix
                      (or

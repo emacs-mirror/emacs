@@ -182,6 +182,27 @@
    (should (equal ignore-pattern "*.txt"))
    (should (equal args '("/some/path")))))
 
+(ert-deftest esh-opt-test/eval-using-options-stdin ()
+  "Test that \"-\" is a positional arg in `eshell-eval-using-options'."
+  (eshell-eval-using-options
+   "cat" '("-")
+   '((?A "show-all" nil show-all
+         "show all characters"))
+   (should (eq show-all nil))
+   (should (equal args '("-"))))
+  (eshell-eval-using-options
+   "cat" '("-A" "-")
+   '((?A "show-all" nil show-all
+         "show all characters"))
+   (should (eq show-all t))
+   (should (equal args '("-"))))
+  (eshell-eval-using-options
+   "cat" '("-" "-A")
+   '((?A "show-all" nil show-all
+         "show all characters"))
+   (should (eq show-all t))
+   (should (equal args '("-")))))
+
 (ert-deftest esh-opt-test/eval-using-options-terminate-options ()
   "Test that \"--\" terminates options in `eshell-eval-using-options'."
   (eshell-eval-using-options

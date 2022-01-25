@@ -283,6 +283,9 @@ triggered to say that the switch is unrecognized."
                           (memq :parse-leading-options-only options))))
       (setq arg (nth ai eshell--args))
       (if (not (and (stringp arg)
+                    ;; A string of length 1 can't be an option; (if
+                    ;; it's "-", that generally means stdin).
+                    (> (length arg) 1)
 		    (string-match "^-\\(-\\)?\\(.*\\)" arg)))
           ;; Positional argument found, skip
 	  (setq ai (1+ ai)
@@ -295,9 +298,9 @@ triggered to say that the switch is unrecognized."
 	      (if (> (length switch) 0)
 		  (eshell--process-option name switch 1 ai options opt-vals)
 		(setq ai (length eshell--args)))
-	      (while (> (length switch) 0)
-		(setq switch (eshell--process-option name switch 0
-                                                     ai options opt-vals)))))))
+	    (while (> (length switch) 0)
+	      (setq switch (eshell--process-option name switch 0
+                                                   ai options opt-vals)))))))
     (nconc (mapcar #'cdr opt-vals) eshell--args)))
 
 (provide 'esh-opt)
