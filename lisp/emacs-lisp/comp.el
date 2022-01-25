@@ -4195,9 +4195,9 @@ last directory in `native-comp-eln-load-path')."
              if (or (null byte+native-compile)
                     (cl-notany (lambda (re) (string-match re file))
                                native-comp-bootstrap-deny-list))
-             do (comp--native-compile file)
+             collect (comp--native-compile file)
              else
-             do (byte-compile-file file))))
+             collect (byte-compile-file file))))
 
 ;;;###autoload
 (defun batch-byte+native-compile ()
@@ -4211,13 +4211,18 @@ variable 'NATIVE_DISABLED' is set, only byte compile."
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
     (cl-assert (length= command-line-args-left 1))
-    (let ((byte+native-compile t)
-          (byte-to-native-output-buffer-file nil))
-      (batch-native-compile)
+    (let* ((byte+native-compile t)
+           (byte-to-native-output-buffer-file nil)
+           (eln-file (car (batch-native-compile))))
       (pcase byte-to-native-output-buffer-file
         (`(,temp-buffer . ,target-file)
          (unwind-protect
-             (byte-write-target-file temp-buffer target-file)
+             (progn
+               (byte-write-target-file temp-buffer target-file)
+               ;; Touch the .eln in order to have it older than the
+               ;; corresponding .elc.
+               (when (stringp eln-file)
+                 (set-file-times eln-file)))
            (kill-buffer temp-buffer))))
       (setq command-line-args-left (cdr command-line-args-left)))))
 
