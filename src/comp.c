@@ -2237,9 +2237,9 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *target1 = retrive_block (arg[2]);
       gcc_jit_block *target2 = retrive_block (arg[3]);
 
-      if ((CALL1I (comp-cstr-imm-vld-p, arg[0])
+      if ((!NILP (CALL1I (comp-cstr-imm-vld-p, arg[0]))
 	   && NILP (CALL1I (comp-cstr-imm, arg[0])))
-	  || (CALL1I (comp-cstr-imm-vld-p, arg[1])
+	  || (!NILP (CALL1I (comp-cstr-imm-vld-p, arg[1]))
 	      && NILP (CALL1I (comp-cstr-imm, arg[1]))))
 	emit_cond_jump (emit_BASE_EQ (a, b), target1, target2);
       else
