@@ -358,6 +358,22 @@ x_flush (struct frame *f)
   unblock_input ();
 }
 
+static void
+x_drop_xrender_surfaces (struct frame *f)
+{
+  font_drop_xrender_surfaces (f);
+
+#ifdef HAVE_XRENDER
+  if (f && FRAME_X_DOUBLE_BUFFERED_P (f)
+      && FRAME_X_PICTURE (f) != None)
+    {
+      XRenderFreePicture (FRAME_X_DISPLAY (f),
+			  FRAME_X_PICTURE (f));
+      FRAME_X_PICTURE (f) = None;
+    }
+#endif
+}
+
 #ifdef HAVE_XRENDER
 MAYBE_UNUSED static void
 x_xr_ensure_picture (struct frame *f)
@@ -9061,7 +9077,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 
 	      if (FRAME_X_DOUBLE_BUFFERED_P (f))
-                font_drop_xrender_surfaces (f);
+                x_drop_xrender_surfaces (f);
               f->output_data.x->has_been_visible = true;
               SET_FRAME_GARBAGED (f);
               unblock_input ();
@@ -9885,23 +9901,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         }
 
       f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
-      /* Unfortunately, we need to call font_drop_xrender_surfaces for
+      /* Unfortunately, we need to call x_drop_xrender_surfaces for
          _all_ ConfigureNotify events, otherwise we miss some and
          flicker.  Don't try to optimize these calls by looking only
          for size changes: that's not sufficient.  We miss some
          surface invalidations and flicker.  */
       block_input ();
       if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
-        font_drop_xrender_surfaces (f);
-#ifdef HAVE_XRENDER
-      if (f && FRAME_X_DOUBLE_BUFFERED_P (f)
-	  && FRAME_X_PICTURE (f) != None)
-	{
-	  XRenderFreePicture (FRAME_X_DISPLAY (f),
-			      FRAME_X_PICTURE (f));
-	  FRAME_X_PICTURE (f) = None;
-	}
-#endif
+        x_drop_xrender_surfaces (f);
       unblock_input ();
 #if defined USE_CAIRO && !defined USE_GTK
       if (f)
@@ -9931,7 +9938,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  block_input ();
           if (FRAME_X_DOUBLE_BUFFERED_P (f))
-            font_drop_xrender_surfaces (f);
+            x_drop_xrender_surfaces (f);
           unblock_input ();
           xg_frame_resized (f, configureEvent.xconfigure.width,
                             configureEvent.xconfigure.height);
