@@ -1650,7 +1650,7 @@ public:
 	r = Frame ();
 	menu->GetMouse (&pt, &buttons);
 
-	if (r.Contains (pt))
+	if (!highlight_p || r.Contains (pt))
 	  haiku_write (MENU_BAR_HELP_EVENT, &rq);
       }
 
