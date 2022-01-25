@@ -1177,7 +1177,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	return false;
 
     maybe_done:
-      if (EQ (XCDR (plist), Qnil))
+      if (NILP (XCDR (plist)))
 	{
 	  /* Check that all mandatory fields are present.  */
 	  for (i = 0; i < nkeywords; ++i)
