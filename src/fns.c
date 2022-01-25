@@ -923,8 +923,6 @@ concat_strings (ptrdiff_t nargs, Lisp_Object *args)
 	  for (ptrdiff_t j = 0; j < len; j++)
 	    {
 	      int c = XFIXNAT (AREF (arg, j));
-	      ptrdiff_t arg_len_byte = CHAR_BYTES (c);
-
 	      if (dest_multibyte)
 		toindex_byte += CHAR_STRING (c, SDATA (result) + toindex_byte);
 	      else
