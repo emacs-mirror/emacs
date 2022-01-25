@@ -57,41 +57,42 @@
 
 (autoload 'eshell-parse-command "esh-cmd")
 
-(defun eshell/su (&rest args)
+(defun eshell/su (&rest arguments)
   "Alias \"su\" to call TRAMP.
 
 Uses the system su through TRAMP's su method."
-  (setq args (eshell-stringify-list (flatten-tree args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "su" args
-     '((?h "help" nil nil "show this usage screen")
-       (?l "login" nil login "provide a login environment")
-       (?  nil nil login "provide a login environment")
-       :usage "[- | -l | --login] [USER]
+  (setq arguments (eshell-stringify-list (flatten-tree arguments)))
+  (eshell-eval-using-options
+   "su" arguments
+   '((?h "help" nil nil "show this usage screen")
+     (?l "login" nil login "provide a login environment")
+     (?  nil nil login "provide a login environment")
+     :usage "[- | -l | --login] [USER]
 Become another USER during a login session.")
-     (throw 'eshell-replace-command
-	    (let ((user "root")
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (file-local-name (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      (dolist (arg args)
-		(if (string-equal arg "-") (setq login t) (setq user arg)))
-	      ;; `eshell-eval-using-options' does not handle "-".
-	      (if (member "-" orig-args) (setq login t))
-	      (if login (setq dir "~/"))
-	      (if (and prefix
-		       (or
-			(not (string-equal
-			      "su" (file-remote-p default-directory 'method)))
-			(not (string-equal
-			      user (file-remote-p default-directory 'user)))))
-		  (eshell-parse-command
-		   "cd" (list (format "%s|su:%s@%s:%s"
-				      (substring prefix 0 -1) user host dir)))
-		(eshell-parse-command
-		 "cd" (list (format "/su:%s@%s:%s" user host dir)))))))))
+   (throw 'eshell-replace-command
+          (let ((user "root")
+                (host (or (file-remote-p default-directory 'host)
+                          "localhost"))
+                (dir (file-local-name (expand-file-name default-directory)))
+                (prefix (file-remote-p default-directory)))
+            (dolist (arg args)
+              (if (string-equal arg "-") (setq login t) (setq user arg)))
+            ;; `eshell-eval-using-options' tries to handle "-" as a
+            ;; short option; double-check whether the original
+            ;; arguments include it.
+            (when (member "-" arguments) (setq login t))
+            (when login (setq dir "~/"))
+            (if (and prefix
+                     (or
+                      (not (string-equal
+                            "su" (file-remote-p default-directory 'method)))
+                      (not (string-equal
+                            user (file-remote-p default-directory 'user)))))
+                (eshell-parse-command
+                 "cd" (list (format "%s|su:%s@%s:%s"
+                                    (substring prefix 0 -1) user host dir)))
+              (eshell-parse-command
+               "cd" (list (format "/su:%s@%s:%s" user host dir))))))))
 
 (put 'eshell/su 'eshell-no-numeric-conversions t)
 
@@ -99,41 +100,35 @@ Become another USER during a login session.")
   "Alias \"sudo\" to call Tramp.
 
 Uses the system sudo through TRAMP's sudo method."
-  (setq args (eshell-stringify-list (flatten-tree args)))
-  (let ((orig-args (copy-tree args)))
-    (eshell-eval-using-options
-     "sudo" args
-     '((?h "help" nil nil "show this usage screen")
-       (?u "user" t user "execute a command as another USER")
-       :show-usage
-       :parse-leading-options-only
-       :usage "[(-u | --user) USER] COMMAND
+  (eshell-eval-using-options
+   "sudo" args
+   '((?h "help" nil nil "show this usage screen")
+     (?u "user" t user "execute a command as another USER")
+     :show-usage
+     :parse-leading-options-only
+     :usage "[(-u | --user) USER] COMMAND
 Execute a COMMAND as the superuser or another USER.")
-     (throw 'eshell-external
-	    (let ((user (or user "root"))
-		  (host (or (file-remote-p default-directory 'host)
-			    "localhost"))
-		  (dir (file-local-name (expand-file-name default-directory)))
-		  (prefix (file-remote-p default-directory)))
-	      ;; `eshell-eval-using-options' reads options of COMMAND.
-	      (while (and (stringp (car orig-args))
-			  (member (car orig-args) '("-u" "--user")))
-		(setq orig-args (cddr orig-args)))
-	      (let ((default-directory
-		      (if (and prefix
-			       (or
-				(not
-				 (string-equal
-				  "sudo"
-				  (file-remote-p default-directory 'method)))
-				(not
-				 (string-equal
-				  user
-				  (file-remote-p default-directory 'user)))))
-			  (format "%s|sudo:%s@%s:%s"
-				  (substring prefix 0 -1) user host dir)
-			(format "/sudo:%s@%s:%s" user host dir))))
-		(eshell-named-command (car orig-args) (cdr orig-args))))))))
+   (throw 'eshell-external
+          (let* ((user (or user "root"))
+                 (host (or (file-remote-p default-directory 'host)
+                           "localhost"))
+                 (dir (file-local-name (expand-file-name default-directory)))
+                 (prefix (file-remote-p default-directory))
+                 (default-directory
+                   (if (and prefix
+                            (or
+                             (not
+                              (string-equal
+                               "sudo"
+                               (file-remote-p default-directory 'method)))
+                             (not
+                              (string-equal
+                               user
+                               (file-remote-p default-directory 'user)))))
+                       (format "%s|sudo:%s@%s:%s"
+                               (substring prefix 0 -1) user host dir)
+                     (format "/sudo:%s@%s:%s" user host dir))))
+            (eshell-named-command (car args) (cdr args))))))
 
 (put 'eshell/sudo 'eshell-no-numeric-conversions t)
 

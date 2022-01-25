@@ -22,8 +22,8 @@
 (require 'ert)
 (require 'esh-opt)
 
-(ert-deftest esh-opt-process-args-test ()
-  "Unit tests which verify correct behavior of `eshell--process-args'."
+(ert-deftest esh-opt-test/process-args ()
+  "Test behavior of `eshell--process-args'."
   (should
    (equal '(t)
           (eshell--process-args
@@ -35,7 +35,10 @@
           (eshell--process-args
            "sudo" '("-u" "root" "world")
            '((?u "user" t user
-                 "execute a command as another USER")))))
+                 "execute a command as another USER"))))))
+
+(ert-deftest esh-opt-test/process-args-parse-leading-options-only ()
+  "Test behavior of :parse-leading-options-only in `eshell--process-args'."
   (should
    (equal '(nil "emerge" "-uDN" "world")
           (eshell--process-args
@@ -55,9 +58,10 @@
           (eshell--process-args
            "sudo" '("-u" "root" "emerge" "-uDN" "world")
            '((?u "user" t user
-                 "execute a command as another USER")))))
+                 "execute a command as another USER"))))))
 
-  ;; Test :external.
+(ert-deftest esh-opt-test/process-args-external ()
+  "Test behavior of :external in `eshell--process-args'."
   (cl-letf (((symbol-function 'eshell-search-path) #'ignore))
     (should
      (equal '(nil "/some/path")
@@ -85,9 +89,8 @@
         :external "ls"))
      :type 'error)))
 
-(ert-deftest test-eshell-eval-using-options ()
-  "Tests for `eshell-eval-using-options'."
-  ;; Test short options.
+(ert-deftest esh-opt-test/eval-using-options-short ()
+  "Test `eshell-eval-using-options' with short options."
   (eshell-eval-using-options
    "ls" '("-a" "/some/path")
    '((?a "all" nil show-all
@@ -99,17 +102,19 @@
    '((?a "all" nil show-all
          "do not ignore entries starting with ."))
    (should (eq show-all nil))
-   (should (equal args '("/some/path"))))
+   (should (equal args '("/some/path")))))
 
-  ;; Test long options.
+(ert-deftest esh-opt-test/eval-using-options-long ()
+  "Test `eshell-eval-using-options' with long options."
   (eshell-eval-using-options
    "ls" '("--all" "/some/path")
    '((?a "all" nil show-all
          "do not ignore entries starting with ."))
    (should (eq show-all t))
-   (should (equal args '("/some/path"))))
+   (should (equal args '("/some/path")))))
 
-  ;; Test options with constant values.
+(ert-deftest esh-opt-test/eval-using-options-constant ()
+  "Test `eshell-eval-using-options' with options with constant values."
   (eshell-eval-using-options
    "ls" '("/some/path" "-h")
    '((?h "human-readable" 1024 human-readable
@@ -127,9 +132,10 @@
    '((?h "human-readable" 1024 human-readable
          "print sizes in human readable format"))
    (should (eq human-readable nil))
-   (should (equal args '("/some/path"))))
+   (should (equal args '("/some/path")))))
 
-  ;; Test options with user-specified values.
+(ert-deftest esh-opt-test/eval-using-options-user-specified ()
+  "Test `eshell-eval-using-options' with options with user-specified values."
   (eshell-eval-using-options
    "ls" '("-I" "*.txt" "/some/path")
    '((?I "ignore" t ignore-pattern
@@ -153,9 +159,10 @@
    '((?I "ignore" t ignore-pattern
          "do not list implied entries matching pattern"))
    (should (equal ignore-pattern "*.txt"))
-   (should (equal args '("/some/path"))))
+   (should (equal args '("/some/path")))))
 
-  ;; Test multiple short options in a single token.
+(ert-deftest esh-opt-test/eval-using-options-short-single-token ()
+  "Test `eshell-eval-using-options' with multiple short options in one token."
   (eshell-eval-using-options
    "ls" '("-al" "/some/path")
    '((?a "all" nil show-all
@@ -173,9 +180,10 @@
          "do not list implied entries matching pattern"))
    (should (eq t show-all))
    (should (equal ignore-pattern "*.txt"))
-   (should (equal args '("/some/path"))))
+   (should (equal args '("/some/path")))))
 
-  ;; Test that "--" terminates options.
+(ert-deftest esh-opt-test/eval-using-options-terminate-options ()
+  "Test that \"--\" terminates options in `eshell-eval-using-options'."
   (eshell-eval-using-options
    "ls" '("--" "-a")
    '((?a "all" nil show-all
@@ -187,9 +195,10 @@
    '((?a "all" nil show-all
          "do not ignore entries starting with ."))
    (should (eq show-all nil))
-   (should (equal args '("--all"))))
+   (should (equal args '("--all")))))
 
-  ;; Test :parse-leading-options-only.
+(ert-deftest esh-opt-test/eval-using-options-parse-leading-options-only ()
+  "Test :parse-leading-options-only in `eshell-eval-using-options'."
   (eshell-eval-using-options
    "sudo" '("-u" "root" "whoami")
    '((?u "user" t user "execute a command as another USER")
@@ -212,27 +221,47 @@
    '((?u "user" t user "execute a command as another USER")
      :parse-leading-options-only)
    (should (eq user nil))
-   (should (equal args '("emerge" "-uDN" "world"))))
+   (should (equal args '("emerge" "-uDN" "world")))))
 
-  ;; Test unrecognized options.
+(ert-deftest esh-opt-test/eval-using-options-unrecognized ()
+  "Test `eshell-eval-using-options' with unrecognized options."
   (should-error
    (eshell-eval-using-options
     "ls" '("-u" "/some/path")
-    '((?a "all" nil show-all
-          "do not ignore entries starting with ."))
-    (ignore show-all)))
+    '((?a "all" nil _show-all
+          "do not ignore entries starting with ."))))
   (should-error
    (eshell-eval-using-options
     "ls" '("-au" "/some/path")
-    '((?a "all" nil show-all
-          "do not ignore entries starting with ."))
-    (ignore show-all)))
+    '((?a "all" nil _show-all
+          "do not ignore entries starting with ."))))
   (should-error
    (eshell-eval-using-options
     "ls" '("--unrecognized" "/some/path")
-    '((?a "all" nil show-all
-          "do not ignore entries starting with ."))
-    (ignore show-all))))
+    '((?a "all" nil _show-all
+          "do not ignore entries starting with .")))))
+
+(ert-deftest esh-opt-test/eval-using-options-external ()
+  "Test :external in `eshell-eval-using-options'."
+  (cl-letf (((symbol-function 'eshell-search-path) #'identity)
+            ((symbol-function 'eshell-external-command) #'list))
+    (should
+     (equal (catch 'eshell-external
+              (eshell-eval-using-options
+               "ls" '("/some/path" "-u")
+               '((?a "all" nil _show-all
+                     "do not ignore entries starting with .")
+                 :external "ls")))
+            '("ls" ("/some/path" "-u"))))
+    (should
+     (equal (catch 'eshell-external
+              (eshell-eval-using-options
+               "ls" '("/some/path2" "-u")
+               '((?a "all" nil _show-all
+                     "do not ignore entries starting with .")
+                 :preserve-args
+                 :external "ls")))
+            '("ls" ("/some/path2" "-u"))))))
 
 (provide 'esh-opt-tests)
 
