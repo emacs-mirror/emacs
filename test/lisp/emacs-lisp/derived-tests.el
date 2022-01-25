@@ -40,6 +40,9 @@
       (derived-tests--child-mode)
       (should (equal (buffer-string) "PB CB MH AFP=S AFC=S ")))))
 
+(declare-function mode-a "derived-tests")
+(declare-function mode-b "derived-tests")
+(declare-function mode-c "derived-tests")
 (ert-deftest test-add-font-lock ()
   (define-derived-mode mode-a fundamental-mode "mode-a"
     (font-lock-add-keywords nil `(("a" 0 'font-lock-keyword-face))))
