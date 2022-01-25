@@ -653,8 +653,7 @@ about the server there.
 (add-to-list 'gnus-secondary-select-methods
              '(nnimap "Give the baby a name"
                       (nnimap-address "imap.yourProvider.net")
-                      (nnimap-port 143)
-                      (nnimap-list-pattern "archive.*")))
+                      (nnimap-port 143)))
 @end example
 @noindent
 
