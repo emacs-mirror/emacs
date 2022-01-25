@@ -524,8 +524,8 @@ This means text can automatically reflow if the window is resized."
                         "27.1")
 
 (defcustom term-clear-full-screen-programs t
-  "Whether to clear contents of full-screen TUI programs after exit.
-If non-nil, output of full-screen TUI programs is cleared after
+  "Whether to clear contents of full-screen terminal programs after exit.
+If non-nil, output of full-screen terminal programs is cleared after
 exiting them.  Note however that a minority of such programs
 don't send an appropriate escape sequence to the terminal before
 exiting so their output isn't cleared regardless of this option."
