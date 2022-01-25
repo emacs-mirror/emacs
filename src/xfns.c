@@ -2342,14 +2342,19 @@ static void xic_preedit_caret_callback (XIC, XPointer, XIMPreeditCaretCallbackSt
 static void xic_preedit_done_callback (XIC, XPointer, XPointer);
 static int xic_preedit_start_callback (XIC, XPointer, XPointer);
 
+#ifndef HAVE_XICCALLBACK_CALLBACK
+#define XICCallback XIMCallback
+#define XICProc XIMProc
+#endif
+
 static XIMCallback Xxic_preedit_draw_callback = { NULL,
 						  (XIMProc) xic_preedit_draw_callback };
 static XIMCallback Xxic_preedit_caret_callback = { NULL,
 						   (XIMProc) xic_preedit_caret_callback };
 static XIMCallback Xxic_preedit_done_callback = { NULL,
 						  (XIMProc) xic_preedit_done_callback };
-static XIMCallback Xxic_preedit_start_callback = { NULL,
-						   (void *) xic_preedit_start_callback };
+static XICCallback Xxic_preedit_start_callback = { NULL,
+						   (XICProc) xic_preedit_start_callback };
 
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
