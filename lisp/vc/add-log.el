@@ -1068,8 +1068,23 @@ the change log file in another window."
 	    (insert-before-markers "("))
 	(error nil)))))
 
+;; If we're filling a line that has a whole bunch of file names, and
+;; we're still in the file names, then transform this so that it'll
+;; still font-lock properly.
+(defun change-log-fill-file-list ()
+  (save-excursion
+    (unless (bobp)
+      (forward-line -1)
+      (when (looking-at change-log-file-names-re)
+        (goto-char (match-end 0))
+        (while (looking-at "\\=, \\([^ ,:([\n]+\\)")
+          (goto-char (match-end 0)))
+        (when (looking-at ", *\n")
+          (replace-match ":\n *" t t))))))
+
 (defun change-log-indent ()
   (change-log-fill-parenthesized-list)
+  (change-log-fill-file-list)
   (let* ((indent
 	  (save-excursion
 	    (beginning-of-line)
