@@ -163,7 +163,9 @@ nnmairix groups are specifically excluded because they are ephemeral."
   :type 'boolean
   :version "28.1")
 
-(defvar gnus-registry-enabled nil)
+(make-obsolete-variable
+ 'gnus-registry-enabled
+ "Check for non-nil value of `gnus-registry-db'" "29.1")
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
 
@@ -360,8 +362,7 @@ This is not required after changing `gnus-registry-cache-file'."
         (progn
           (gnus-registry-read file)
           (gnus-registry-install-hooks)
-          (gnus-registry-install-shortcuts)
-          (setq gnus-registry-enabled t))
+          (gnus-registry-install-shortcuts))
       (file-error
        ;; Fix previous mis-naming of the registry file.
        (let ((old-file-name
@@ -851,7 +852,7 @@ Overrides existing keywords with FORCE set non-nil."
 
 (defun gnus-registry-register-message-ids ()
   "Register the Message-ID of every article in the group."
-  (unless (or (null gnus-registry-enabled)
+  (unless (or (null gnus-registry-db)
               (null gnus-registry-register-all)
 	      (gnus-parameter-registry-ignore gnus-newsgroup-name))
     (dolist (article gnus-newsgroup-articles)
@@ -1010,7 +1011,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)
   "Show the marks for an article by the :char property."
-  (if gnus-registry-enabled
+  (if gnus-registry-db
       (let* ((id (mail-header-message-id headers))
              (marks (when id (gnus-registry-get-id-key id 'mark))))
 	(concat (delq nil
@@ -1026,7 +1027,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-names)
 (defun gnus-registry-article-marks-to-names (headers)
   "Show the marks for an article by name."
-  (if gnus-registry-enabled
+  (if gnus-registry-db
       (let* ((id (mail-header-message-id headers))
              (marks (when id (gnus-registry-get-id-key id 'mark))))
 	(mapconcat #'symbol-name marks ","))
@@ -1177,8 +1178,7 @@ non-nil."
 (defun gnus-registry-clear ()
   "Clear the registry."
   (gnus-registry-unload-hook)
-  (setq gnus-registry-db nil
-        gnus-registry-enabled nil))
+  (setq gnus-registry-db nil))
 
 (gnus-add-shutdown 'gnus-registry-clear 'gnus)
 
@@ -1220,7 +1220,7 @@ non-nil."
 If the registry is not already enabled, then if `gnus-registry-install'
 is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
   (interactive)
-  (unless gnus-registry-enabled
+  (unless gnus-registry-db
     (when (if (eq gnus-registry-install 'ask)
               (gnus-y-or-n-p
                (concat "Enable the Gnus registry?  "
@@ -1228,7 +1228,7 @@ is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
                        "to get rid of this query permanently. "))
             gnus-registry-install)
       (gnus-registry-initialize)))
-  gnus-registry-enabled)
+  (null (null gnus-registry-db)))
 
 ;; largely based on nnselect-warp-to-article
 (defun gnus-try-warping-via-registry ()
