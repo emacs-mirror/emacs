@@ -2844,14 +2844,16 @@ xic_set_preeditarea (struct window *w, int x, int y)
     }
 #ifdef USE_GTK
   GdkRectangle rect;
+  int scale = xg_get_scale (f);
+
   rect.x = (WINDOW_TO_FRAME_PIXEL_X (w, x)
 	    + WINDOW_LEFT_FRINGE_WIDTH (w)
-	    + WINDOW_LEFT_MARGIN_WIDTH (w));
+	    + WINDOW_LEFT_MARGIN_WIDTH (w)) / scale;
   rect.y = (WINDOW_TO_FRAME_PIXEL_Y (w, y)
 	    + FRAME_TOOLBAR_HEIGHT (f)
-	    + FRAME_MENUBAR_HEIGHT (f));
-  rect.width = w->phys_cursor_width;
-  rect.height = w->phys_cursor_height;
+	    + FRAME_MENUBAR_HEIGHT (f)) / scale;
+  rect.width = w->phys_cursor_width / scale;
+  rect.height = w->phys_cursor_height / scale;
 
   gtk_im_context_set_cursor_location (FRAME_X_OUTPUT (f)->im_context,
 				      &rect);
