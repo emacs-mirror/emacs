@@ -1635,17 +1635,23 @@ public:
   Highlight (bool highlight_p)
   {
     struct haiku_menu_bar_help_event rq;
+    BMenu *menu = Menu ();
+    BRect r;
+    BPoint pt;
+    uint32 buttons;
 
     if (help)
-      {
-	Menu ()->SetToolTip (highlight_p ? help : NULL);
-      }
+      menu->SetToolTip (highlight_p ? help : NULL);
     else if (menu_bar_id >= 0)
       {
 	rq.window = wind_ptr;
 	rq.mb_idx = highlight_p ? menu_bar_id : -1;
 
-	haiku_write (MENU_BAR_HELP_EVENT, &rq);
+	r = Frame ();
+	menu->GetMouse (&pt, &buttons);
+
+	if (r.Contains (pt))
+	  haiku_write (MENU_BAR_HELP_EVENT, &rq);
       }
 
     BMenuItem::Highlight (highlight_p);
