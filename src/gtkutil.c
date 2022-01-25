@@ -5471,6 +5471,7 @@ xg_update_tool_bar_sizes (struct frame *f)
   GtkRequisition req;
   int nl = 0, nr = 0, nt = 0, nb = 0;
   GtkWidget *top_widget = x->toolbar_widget;
+  int scale = xg_get_scale (f);
 
   gtk_widget_get_preferred_size (GTK_WIDGET (top_widget), NULL, &req);
   if (x->toolbar_in_hbox)
@@ -5479,8 +5480,10 @@ xg_update_tool_bar_sizes (struct frame *f)
       gtk_container_child_get (GTK_CONTAINER (x->hbox_widget),
                                top_widget,
                                "position", &pos, NULL);
-      if (pos == 0) nl = req.width;
-      else nr = req.width;
+      if (pos == 0)
+	nl = req.width * scale;
+      else
+	nr = req.width * scale;
     }
   else
     {
@@ -5488,8 +5491,10 @@ xg_update_tool_bar_sizes (struct frame *f)
       gtk_container_child_get (GTK_CONTAINER (x->vbox_widget),
                                top_widget,
                                "position", &pos, NULL);
-      if (pos == 0 || (pos == 1 && x->menubar_widget)) nt = req.height;
-      else nb = req.height;
+      if (pos == 0 || (pos == 1 && x->menubar_widget))
+	nt = req.height * scale;
+      else
+	nb = req.height * scale;
     }
 
   if (nl != FRAME_TOOLBAR_LEFT_WIDTH (f)
