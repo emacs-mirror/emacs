@@ -213,9 +213,7 @@ TOKTYPE is a hint to the type of tag desired."
 	      (symbol-name sym)
 	      nil	;; return type
 	      (semantic-elisp-desymbolify arglist)
-	      :user-visible-flag (condition-case nil
-				     (interactive-form sym)
-				   (error nil)))))
+	      :user-visible-flag (commandp sym))))
 	  ((and (eq toktype 'variable) (boundp sym))
 	   (semantic-tag-new-variable
 	    (symbol-name sym)
