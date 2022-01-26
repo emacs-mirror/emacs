@@ -2325,50 +2325,14 @@ haiku_scroll_run (struct window *w, struct run *run)
 	height = run->height;
     }
 
-  if (!height)
-    return;
-
   block_input ();
   gui_clear_cursor (w);
-  BView_draw_lock (view);
-#ifdef USE_BE_CAIRO
-  if (EmacsView_double_buffered_p (view))
-    {
-#endif
-      BView_StartClip (view);
-      BView_CopyBits (view, x, from_y, width, height,
-		      x, to_y, width, height);
-      BView_EndClip (view);
-#ifdef USE_BE_CAIRO
-    }
-  else
-    {
-      EmacsWindow_begin_cr_critical_section (FRAME_HAIKU_WINDOW (f));
-      cairo_surface_t *surface = FRAME_CR_SURFACE (f);
-      cairo_surface_t *s
-	= cairo_surface_create_similar (surface,
-					cairo_surface_get_content (surface),
-					width, height);
-      cairo_t *cr = cairo_create (s);
-      if (surface)
-	{
-	  cairo_set_source_surface (cr, surface, -x, -from_y);
-	  cairo_paint (cr);
-	  cairo_destroy (cr);
 
-	  cr = haiku_begin_cr_clip (f, NULL);
-	  cairo_save (cr);
-	  cairo_set_source_surface (cr, s, x, to_y);
-	  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-	  cairo_rectangle (cr, x, to_y, width, height);
-	  cairo_fill (cr);
-	  cairo_restore (cr);
-	  cairo_surface_destroy (s);
-	  haiku_end_cr_clip (cr);
-	}
-      EmacsWindow_end_cr_critical_section (FRAME_HAIKU_WINDOW (f));
-    }
-#endif
+  BView_draw_lock (view);
+  BView_StartClip (view);
+  BView_CopyBits (view, x, from_y, width, height,
+		  x, to_y, width, height);
+  BView_EndClip (view);
   BView_draw_unlock (view);
 
   unblock_input ();
