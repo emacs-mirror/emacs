@@ -5694,6 +5694,12 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
       dpyinfo->alt_mod_mask &= ~dpyinfo->meta_mod_mask;
     }
 
+  /* If some keys are both super and hyper, make them just super.
+     Many X servers are misconfigured so that super and hyper are both
+     Mod4, but most users have no hyper key.  */
+  if (dpyinfo->hyper_mod_mask & dpyinfo->super_mod_mask)
+    dpyinfo->hyper_mod_mask &= ~dpyinfo->super_mod_mask;
+
   XFree (syms);
   XFreeModifiermap (mods);
 }
