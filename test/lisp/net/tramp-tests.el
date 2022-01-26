@@ -6472,7 +6472,7 @@ This requires restrictions of file name syntax."
 	  (unless (or (tramp--test-ftp-p)
 		      (tramp--test-gvfs-p)
 		      (tramp--test-windows-nt-or-smb-p))
-	    "*foo*bar*baz*")
+	    "*foo+bar*baz+")
 	  (if (or (tramp--test-gvfs-p) (tramp--test-windows-nt-or-smb-p))
 	      "'foo'bar'baz'"
 	    "'foo\"bar'baz\"")
