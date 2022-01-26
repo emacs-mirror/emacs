@@ -10357,10 +10357,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      }
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 	    goto XI_OTHER;
+
 	  case XI_FocusOut:
 	    any = x_any_window_to_frame (dpyinfo, focusout->event);
 	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 	    goto XI_OTHER;
+
 	  case XI_Enter:
 
 	    any = x_top_window_to_frame (dpyinfo, enter->event);
@@ -10502,6 +10504,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
 #endif
 	    goto XI_OTHER;
+
 	  case XI_Motion:
 	    {
 	      struct xi_device_t *device;
@@ -10782,6 +10785,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		do_help = 1;
 	      goto XI_OTHER;
 	    }
+
 	  case XI_ButtonRelease:
 	  case XI_ButtonPress:
 	    {
@@ -10981,6 +10985,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 	      goto XI_OTHER;
 	    }
+
 	  case XI_KeyPress:
 	    {
 	      int state = xev->mods.effective;
@@ -11350,6 +11355,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 	      goto XI_OTHER;
 	    }
+
 	  case XI_KeyRelease:
 	    x_display_set_last_user_time (dpyinfo, xev->time);
 
@@ -11387,7 +11393,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_PropertyEvent:
 	  case XI_HierarchyChanged:
 	  case XI_DeviceChanged:
-
 #ifdef XISlaveSwitch
 	    if (xi_event->evtype == XI_DeviceChanged
 		&& (((XIDeviceChangedEvent *) xi_event)->reason
@@ -11396,6 +11401,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 	    x_init_master_valuators (dpyinfo);
 	    goto XI_OTHER;
+
 #ifdef XI_TouchBegin
 	  case XI_TouchBegin:
 	    {
@@ -11482,6 +11488,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+
 	  case XI_TouchUpdate:
 	    {
 	      struct xi_device_t *device;
@@ -11524,6 +11531,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+
 	  case XI_TouchEnd:
 	    {
 	      struct xi_device_t *device;
@@ -11554,6 +11562,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+
 #endif
 #ifdef XI_GesturePinchBegin
 	  case XI_GesturePinchBegin:
@@ -11599,6 +11608,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      *finish = X_EVENT_DROP;
 	      goto XI_OTHER;
 	    }
+
 	  case XI_GesturePinchEnd:
 	    {
 	      x_display_set_last_user_time (dpyinfo, xi_event->time);
@@ -11617,6 +11627,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  default:
 	    goto XI_OTHER;
 	  }
+
       xi_done_keysym:
 #ifdef HAVE_X_I18N
 	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
@@ -11625,6 +11636,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	if (must_free_data)
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
 	goto done_keysym;
+
       XI_OTHER:
 	if (must_free_data)
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
