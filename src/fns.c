@@ -790,9 +790,8 @@ concat_strings (ptrdiff_t nargs, Lisp_Object *args)
 
       if (STRINGP (arg))
 	{
-	  ptrdiff_t arg_len_byte;
+	  ptrdiff_t arg_len_byte = SBYTES (arg);
 	  len = SCHARS (arg);
-	  arg_len_byte = SBYTES (arg);
 	  if (STRING_MULTIBYTE (arg))
 	    dest_multibyte = true;
 	  else
@@ -986,14 +985,15 @@ concat (ptrdiff_t nargs, Lisp_Object *args, Lisp_Object last_tail,
 	memory_full (SIZE_MAX);
     }
 
+  /* When the target is a list, return the tail directly if all other
+     arguments are empty.  */
+  if (!vector_target && result_len == 0)
+    return last_tail;
+
   /* Create the output object.  */
   Lisp_Object result = vector_target
     ? make_nil_vector (result_len)
     : Fmake_list (make_fixnum (result_len), Qnil);
-
-  /* In `append', if all but last arg are nil, return last arg.  */
-  if (!vector_target && NILP (result))
-    return last_tail;
 
   /* Copy the contents of the args into the result.  */
   Lisp_Object tail = Qnil;
@@ -1022,14 +1022,12 @@ concat (ptrdiff_t nargs, Lisp_Object *args, Lisp_Object last_tail,
 	  /* Fetch next element of `arg' arg into `elt', or break if
 	     `arg' is exhausted. */
 	  Lisp_Object elt;
-	  if (NILP (arg))
-	    break;
 	  if (CONSP (arg))
 	    {
 	      elt = XCAR (arg);
 	      arg = XCDR (arg);
 	    }
-	  else if (argindex >= arglen)
+	  else if (NILP (arg) || argindex >= arglen)
 	    break;
 	  else if (STRINGP (arg))
 	    {
