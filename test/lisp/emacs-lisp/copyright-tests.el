@@ -61,5 +61,16 @@
         (buffer-substring (- (point-max) 42) (point-max))))
     "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
 
+(ert-deftest test-correct-notice ()
+  (should (equal
+           (with-temp-buffer
+             (dotimes (_ 2)
+               (insert "Copyright 2021 FSF\n"))
+             (let ((copyright-at-end-flag t)
+                   (copyright-query nil))
+               (copyright-update))
+             (buffer-string))
+           "Copyright 2021 FSF\nCopyright 2021, 2022 FSF\n")))
+
 (provide 'copyright-tests)
 ;;; copyright-tests.el ends here

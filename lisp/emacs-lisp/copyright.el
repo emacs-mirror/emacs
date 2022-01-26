@@ -152,7 +152,9 @@ This function sets the match data that `copyright-update-year' uses."
         ;; copyright line, so re-perform the search without the
         ;; limit.  (Otherwise we may be inserting the new year in the
         ;; middle of the list of years.)
-        (goto-char (match-beginning 0))
+        (if copyright-at-end-flag
+            (goto-char (match-end 0))
+          (goto-char (match-beginning 0)))
         (copyright-re-search regexp nil t)))))
 
 (defun copyright-find-end ()
