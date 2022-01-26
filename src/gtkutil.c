@@ -4012,6 +4012,7 @@ xg_update_frame_menubar (struct frame *f)
 {
   xp_output *x = f->output_data.xp;
   GtkRequisition req;
+  int scale = xg_get_scale (f);
 
   if (!x->menubar_widget || gtk_widget_get_mapped (x->menubar_widget))
     return;
@@ -4029,9 +4030,9 @@ xg_update_frame_menubar (struct frame *f)
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
   req.height *= xg_get_scale (f);
-  if (FRAME_MENUBAR_HEIGHT (f) != req.height)
+  if (FRAME_MENUBAR_HEIGHT (f) != (req.height * scale))
     {
-      FRAME_MENUBAR_HEIGHT (f) = req.height;
+      FRAME_MENUBAR_HEIGHT (f) = req.height * scale;
       adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
   unblock_input ();
