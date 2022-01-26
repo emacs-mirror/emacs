@@ -4644,7 +4644,7 @@ error displays the error message.  */)
   struct addrinfo hints;
 
   memset (&hints, 0, sizeof hints);
-  if (EQ (family, Qnil))
+  if (NILP (family))
     hints.ai_family = AF_UNSPEC;
   else if (EQ (family, Qipv4))
     hints.ai_family = AF_INET;

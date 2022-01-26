@@ -1217,7 +1217,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
   int mask_color;
 
-  if (!EQ (Qnil, arg))
+  if (!NILP (arg))
     f->output_data.w32->mouse_pixel
       = w32_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   mask_color = FRAME_BACKGROUND_PIXEL (f);
@@ -1233,7 +1233,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   /* It's not okay to crash if the user selects a screwy cursor.  */
   count = x_catch_errors (FRAME_W32_DISPLAY (f));
 
-  if (!EQ (Qnil, Vx_pointer_shape))
+  if (!NILP (Vx_pointer_shape))
     {
       CHECK_FIXNUM (Vx_pointer_shape);
       cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XFIXNUM (Vx_pointer_shape));
@@ -1242,7 +1242,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad text pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_nontext_pointer_shape))
+  if (!NILP (Vx_nontext_pointer_shape))
     {
       CHECK_FIXNUM (Vx_nontext_pointer_shape);
       nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
@@ -1252,7 +1252,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_left_ptr);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_hourglass_pointer_shape))
+  if (!NILP (Vx_hourglass_pointer_shape))
     {
       CHECK_FIXNUM (Vx_hourglass_pointer_shape);
       hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
@@ -1263,7 +1263,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   x_check_errors (FRAME_W32_DISPLAY (f), "bad busy pointer cursor: %s");
 
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
-  if (!EQ (Qnil, Vx_mode_pointer_shape))
+  if (!NILP (Vx_mode_pointer_shape))
     {
       CHECK_FIXNUM (Vx_mode_pointer_shape);
       mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
@@ -1273,7 +1273,7 @@ w32_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     mode_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_xterm);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad modeline pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
+  if (!NILP (Vx_sensitive_text_pointer_shape))
     {
       CHECK_FIXNUM (Vx_sensitive_text_pointer_shape);
       hand_cursor

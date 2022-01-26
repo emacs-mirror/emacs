@@ -651,7 +651,7 @@ frame's display, or the first available X display.  */)
      by the X interface code.  (On MSDOS, killed text is only put
      into the clipboard if we run under Windows, so we cannot check
      the clipboard alone.)  */
-  if ((EQ (selection, Qnil) || EQ (selection, QPRIMARY))
+  if ((NILP (selection) || EQ (selection, QPRIMARY))
       && ! NILP (Fsymbol_value (Fintern_soft (build_string ("kill-ring"),
 					      Qnil))))
     return Qt;
