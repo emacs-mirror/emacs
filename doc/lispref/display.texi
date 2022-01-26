@@ -5229,7 +5229,7 @@ is partitioned using the identity of the parameter, which is why the
 parameter is a list with one element.  For instance:
 
 @lisp
-(insert (propertize "foo" '(display (min-width (6.0)))))
+(insert (propertize "foo" 'display '(min-width (6.0))))
 @end lisp
 
 This will add padding after @samp{foo} bringing the total width up to
