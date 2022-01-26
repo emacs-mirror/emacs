@@ -632,20 +632,12 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	      && (s->prev->face->underline_pixels_above_descent_line
 		  == s->face->underline_pixels_above_descent_line))
 	    {
-	      struct face *prev_face = s->prev->face;
-
-	      if (prev_face && prev_face->underline == FACE_UNDER_LINE)
-		{
-		  /* We use the same underline style as the previous one.  */
-		  thickness = s->prev->underline_thickness;
-		  position = s->prev->underline_position;
-		}
-	      else
-		goto calculate_underline_metrics;
+	      /* We use the same underline style as the previous one.  */
+	      thickness = s->prev->underline_thickness;
+	      position = s->prev->underline_position;
 	    }
 	  else
 	    {
-	    calculate_underline_metrics:;
 	      struct font *font = font_for_underline_metrics (s);
 	      unsigned long minimum_offset;
 	      bool underline_at_descent_line;
