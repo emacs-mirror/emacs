@@ -202,4 +202,8 @@
       (eshell-command-result-p input "rab")
       (eshell-command-result-p "echo \"bar\" | rev" "nonsense"))))
 
+;; Confirm we don't break input of sharp-quoted symbols (Bug#53518).
+(em-extpipe-tests--deftest em-extpipe-test-17 "funcall #'upcase foo"
+  (eshell-command-result-p input "FOO"))
+
 ;;; em-extpipe-tests.el ends here

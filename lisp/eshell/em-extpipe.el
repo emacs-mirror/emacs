@@ -30,6 +30,7 @@
 
 (require 'cl-lib)
 (require 'esh-arg)
+(require 'esh-cmd)
 (require 'esh-io)
 (require 'esh-util)
 
@@ -97,15 +98,21 @@ as though it were Eshell syntax."
                    (while (> bound (point))
                      (let* ((found
                              (save-excursion
-                               (re-search-forward "['\"\\]" bound t)))
+                               (re-search-forward
+                                "\\(?:#?'\\|\"\\|\\\\\\)" bound t)))
                             (next (or (and found (match-beginning 0))
                                       bound)))
                        (if (re-search-forward pat next t)
                            (throw 'found (match-beginning 1))
                          (goto-char next)
-                         (while (or (eshell-parse-backslash)
+                         (while (or (eshell-parse-lisp-argument)
+                                    (eshell-parse-backslash)
                                     (eshell-parse-double-quote)
-                                    (eshell-parse-literal-quote)))))))))
+                                    (eshell-parse-literal-quote)))
+                         ;; Guard against an infinite loop if none of
+                         ;; the parsers moved us forward.
+                         (unless (or (> (point) next) (eobp))
+                           (forward-char 1))))))))
            (goto-char (if (and result go) (match-end 0) start))
            result)))
     (unless (or eshell-current-argument eshell-current-quoted)
