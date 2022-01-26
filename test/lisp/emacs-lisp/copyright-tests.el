@@ -50,5 +50,16 @@
   (dolist (test copyright-tests--data)
     (with-copyright-test (car test) (cdr test))))
 
+(ert-deftest test-end-chop ()
+  (should
+   (equal
+    (with-temp-buffer
+      (let ((copyright-query nil))
+        (insert (make-string (- copyright-limit 14) ?x) "\n"
+                "\nCopyright 2006, 2007, 2008 Foo Bar\n\n")
+        (copyright-update)
+        (buffer-substring (- (point-max) 42) (point-max))))
+    "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
+
 (provide 'copyright-tests)
 ;;; copyright-tests.el ends here
