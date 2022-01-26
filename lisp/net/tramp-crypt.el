@@ -208,7 +208,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-crypt-handle-insert-directory)
-    ;; `insert-file-contents' performed by default handler.
+    (insert-file-contents . tramp-handle-insert-file-contents)
     (load . tramp-handle-load)
     (lock-file . tramp-crypt-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
