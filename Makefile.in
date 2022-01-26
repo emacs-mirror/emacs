@@ -694,8 +694,6 @@ install-etcdoc: src install-arch-indep
 	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
 	     "$(DESTDIR)${etcdocdir}"; \
 	   ${INSTALL_DATA} etc/$${docfile} "$(DESTDIR)${etcdocdir}/$${docfile}"; \
-	   $(set_installuser); \
-	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
 	else true; fi
 
 ## FIXME:
