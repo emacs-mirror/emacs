@@ -254,8 +254,9 @@ Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
 
 (defcustom doc-view-epub-font-size nil
   "Font size in points for EPUB layout."
-  :type 'integer
-  :set #'doc-view-custom-set-epub-font-size)
+  :type '(choice (const nil) integer)
+  :set #'doc-view-custom-set-epub-font-size
+  :version "29.1")
 
 (defcustom doc-view-scale-internally t
   "Whether we should try to rescale images ourselves.
