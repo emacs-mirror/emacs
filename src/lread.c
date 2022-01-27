@@ -705,13 +705,8 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   /* Read until we get an acceptable event.  */
  retry:
   do
-    {
-      ptrdiff_t count = SPECPDL_INDEX ();
-      specbind (Qecho_keystrokes, Qnil);
-      val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
-		       NUMBERP (seconds) ? &end_time : NULL);
-      unbind_to (count, Qnil);
-    }
+    val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
+		     NUMBERP (seconds) ? &end_time : NULL);
   while (FIXNUMP (val) && XFIXNUM (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
