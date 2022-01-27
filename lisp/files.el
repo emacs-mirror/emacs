@@ -5816,6 +5816,27 @@ of the directory that was default during command invocation."
     (lambda () (file-in-directory-p default-directory root))))
 (put 'save-some-buffers-root 'save-some-buffers-function t)
 
+(defun files--buffers-needing-to-be-saved (pred)
+  "Return a list of buffers to save according to PRED.
+See `save-some-buffers' for PRED values."
+  (seq-filter
+   (lambda (buffer)
+     ;; Note that killing some buffers may kill others via
+     ;; hooks (e.g. Rmail and its viewing buffer).
+     (and (buffer-live-p buffer)
+	  (buffer-modified-p buffer)
+          (not (buffer-base-buffer buffer))
+          (or
+           (buffer-file-name buffer)
+           (with-current-buffer buffer
+             (or (eq buffer-offer-save 'always)
+                 (and pred buffer-offer-save
+                      (> (buffer-size) 0)))))
+          (or (not (functionp pred))
+              (with-current-buffer buffer
+                (funcall pred)))))
+   (buffer-list)))
+
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
 You can answer \\`y' or \\`SPC' to save, \\`n' or \\`DEL' not to save, \\`C-r'
@@ -5872,49 +5893,36 @@ change the additional actions you can take on files."
           (setq files-done
 	        (map-y-or-n-p
                  (lambda (buffer)
-	           ;; Note that killing some buffers may kill others via
-	           ;; hooks (e.g. Rmail and its viewing buffer).
-	           (and (buffer-live-p buffer)
-		        (buffer-modified-p buffer)
-                        (not (buffer-base-buffer buffer))
-                        (or
-                         (buffer-file-name buffer)
-                         (with-current-buffer buffer
-                           (or (eq buffer-offer-save 'always)
-                               (and pred buffer-offer-save
-                                    (> (buffer-size) 0)))))
-                        (or (not (functionp pred))
-                            (with-current-buffer buffer (funcall pred)))
-                        (if arg
-                            t
-                          (setq queried t)
-                          (if (buffer-file-name buffer)
-                              (if (or
-                                   (equal (buffer-name buffer)
-                                          (file-name-nondirectory
-                                           (buffer-file-name buffer)))
-                                   (string-match
-                                    (concat "\\<"
-                                            (regexp-quote
-                                             (file-name-nondirectory
-                                              (buffer-file-name buffer)))
-                                            "<[^>]*>\\'")
-                                    (buffer-name buffer)))
-                                  ;; The buffer name is similar to the
-                                  ;; file name.
-                                  (format "Save file %s? "
-                                          (buffer-file-name buffer))
-                                ;; The buffer and file names are
-                                ;; dissimilar; display both.
-                                (format "Save file %s (buffer %s)? "
-                                        (buffer-file-name buffer)
-                                        (buffer-name buffer)))
-                            ;; No file name
-                            (format "Save buffer %s? " (buffer-name buffer))))))
+                   (if arg
+                       t
+                     (setq queried t)
+                     (if (buffer-file-name buffer)
+                         (if (or
+                              (equal (buffer-name buffer)
+                                     (file-name-nondirectory
+                                      (buffer-file-name buffer)))
+                              (string-match
+                               (concat "\\<"
+                                       (regexp-quote
+                                        (file-name-nondirectory
+                                         (buffer-file-name buffer)))
+                                       "<[^>]*>\\'")
+                               (buffer-name buffer)))
+                             ;; The buffer name is similar to the file
+                             ;; name.
+                             (format "Save file %s? "
+                                     (buffer-file-name buffer))
+                           ;; The buffer and file names are dissimilar;
+                           ;; display both.
+                           (format "Save file %s (buffer %s)? "
+                                   (buffer-file-name buffer)
+                                   (buffer-name buffer)))
+                       ;; No file name.
+                       (format "Save buffer %s? " (buffer-name buffer)))))
                  (lambda (buffer)
                    (with-current-buffer buffer
                      (save-buffer)))
-                 (buffer-list)
+                 (files--buffers-needing-to-be-saved pred)
 	         '("buffer" "buffers" "save")
 	         save-some-buffers-action-alist))
           ;; Maybe to save abbrevs, and record whether
@@ -7752,15 +7760,16 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
   (interactive "P")
   ;; Don't use save-some-buffers-default-predicate, because we want
   ;; to ask about all the buffers before killing Emacs.
-  (if (use-dialog-box-p)
-      (pcase (x-popup-dialog
-              t `("Unsaved Buffers"
-                  ("Close Without Saving" . no-save)
-                  ("Save All" . save-all)
-                  ("Cancel" . cancel)))
-        ('cancel (user-error "Exit cancelled"))
-        ('save-all (save-some-buffers t)))
-    (save-some-buffers arg t))
+    (when (files--buffers-needing-to-be-saved t)
+      (if (use-dialog-box-p)
+          (pcase (x-popup-dialog
+                  t `("Unsaved Buffers"
+                      ("Close Without Saving" . no-save)
+                      ("Save All" . save-all)
+                      ("Cancel" . cancel)))
+            ('cancel (user-error "Exit cancelled"))
+            ('save-all (save-some-buffers t)))
+        (save-some-buffers arg t)))
   (let ((confirm confirm-kill-emacs))
     (and
      (or (not (memq t (mapcar (lambda (buf)
