@@ -987,6 +987,7 @@ You can retrieve the value with `xwidget-get'."
 (define-key xwidget-webkit-edit-mode-map [M-up] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [M-down] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [M-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-backspace] 'xwidget-webkit-pass-command-event)
 
 (define-minor-mode xwidget-webkit-edit-mode
   "Minor mode for editing the content of WebKit buffers.
