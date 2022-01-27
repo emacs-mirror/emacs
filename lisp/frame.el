@@ -798,8 +798,9 @@ also select the new frame."
          (windows (unless no-windows
                     (window-state-get (frame-root-window frame))))
          (default-frame-alist
-           (seq-remove (lambda (elem) (eq (car elem) 'name))
-                       (frame-parameters frame)))
+          (seq-remove (lambda (elem)
+                        (memq (car elem) '(name parent-id)))
+                      (frame-parameters frame)))
          (new-frame (make-frame)))
     (when windows
       (window-state-put windows (frame-root-window new-frame) 'safe))
