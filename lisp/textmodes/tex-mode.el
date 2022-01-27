@@ -505,7 +505,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 			"documentstyle" "documentclass" "verbatiminput"
 			"includegraphics" "includegraphics*")
 		      t))
-           (verbish (regexp-opt '("url" "nolinkurl" "path") t))
+           (verbish (regexp-opt '("url" "nolinkurl" "path"
+                                  "href" "ProvidesFile")
+                                t))
 	   ;; Miscellany.
 	   (slash "\\\\")
 	   (opt " *\\(\\[[^]]*\\] *\\)*")
@@ -578,9 +580,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
 			  ;; "caption" "footnote" "footnotemark" "footnotetext"
 			  )
 			t))
-	    (file-like (regexp-opt
-			'("href" "ProvidesFile")
-			t))
 	    ;;
 	    ;; Names of commands that should be fontified.
 	    (specials-1 (regexp-opt '("\\" "\\*") t)) ;; "-"
@@ -601,8 +600,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	;;
 	;; Citation args.
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
-	;; File-like args.
-	(list (concat slash file-like opt arg) 3 'font-lock-constant-face)
 	;;
         ;; Text between `` quotes ''.
         (list (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
