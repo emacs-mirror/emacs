@@ -713,8 +713,7 @@ space does not end a sentence, so don't break a line there."
     (or justify (setq justify (current-justification)))
 
     ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
-    (let ((actual-fill-prefix fill-prefix)
-          (fill-prefix fill-prefix))
+    (let ((fill-prefix fill-prefix))
       ;; Figure out how this paragraph is indented, if desired.
       (when (and adaptive-fill-mode
 		 (or (null fill-prefix) (string= fill-prefix "")))
@@ -754,18 +753,9 @@ space does not end a sentence, so don't break a line there."
 
 	;; This is the actual filling loop.
 	(goto-char from)
-	(let ((first t)
-              linebeg)
-	  (while (< (point) to)
-            ;; On the first line, there may be text in the fill prefix
-            ;; zone (when `fill-prefix' is specified externally, and
-            ;; not computed).  In that case, don't consider that area
-            ;; when trying to find a place to put a line break
-            ;; (bug#45720).
-            (if (not first)
-	        (setq linebeg (point))
-              (setq first nil
-                    linebeg (+ (point) (length actual-fill-prefix))))
+	(let (linebeg)
+          (while (< (point) to)
+	    (setq linebeg (point))
 	    (move-to-column (current-fill-column))
 	    (if (when (and (< (point) to) (< linebeg to))
 		  ;; Find the position where we'll break the line.

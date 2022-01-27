@@ -10216,7 +10216,8 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 			 could have both positions after TO_CHARPOS or
 			 both positions before it, due to bidi
 			 reordering.)  */
-		      if (IT_CHARPOS (*it) != to_charpos
+		      if (to_charpos > 0
+			  && IT_CHARPOS (*it) != to_charpos
 			  && ((IT_CHARPOS (it_backup) > to_charpos)
 			      == (IT_CHARPOS (*it) > to_charpos)))
 			{
