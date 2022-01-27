@@ -14026,7 +14026,7 @@ x_focus_frame (struct frame *f, bool noactivate)
     }
   else
     {
-      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      RevertToParent, CurrentTime);
       if (!noactivate)
 	x_ewmh_activate_frame (f);
