@@ -226,6 +226,32 @@ are available (see Info node `(emacs)Document View')"
 Higher values result in larger images."
   :type 'number)
 
+(defvar doc-view-doc-type nil
+  "The type of document in the current buffer.
+Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
+`'xps' or `oxps'.")
+
+;; FIXME: The doc-view-current-* definitions below are macros because they
+;; map to accessors which we want to use via `setf' as well!
+(defmacro doc-view-current-page (&optional win)
+  `(image-mode-window-get 'page ,win))
+(defmacro doc-view-current-info () '(image-mode-window-get 'info))
+(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
+(defmacro doc-view-current-image () '(image-mode-window-get 'image))
+(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defun doc-view-custom-set-epub-font-size (option-name new-value)
+  (set-default option-name new-value)
+  (dolist (x (buffer-list))
+    (with-current-buffer x
+      (when (eq doc-view-doc-type 'epub)
+        (delete-directory doc-view--current-cache-dir t)
+        (doc-view-initiate-display)
+        (doc-view-goto-page (doc-view-current-page))))))
+
 (defcustom doc-view-epub-font-size nil
   "Font size in points for EPUB layout."
   :type 'integer
@@ -371,9 +397,6 @@ of the page moves to the previous page."
 (defvar-local doc-view--current-timer nil
   "Only used internally.")
 
-(defvar-local doc-view--current-cache-dir nil
-  "Only used internally.")
-
 (defvar-local doc-view--current-search-matches nil
   "Only used internally.")
 
@@ -387,11 +410,6 @@ The file name used for conversion.  Normally it's the same as
 files inside an archive it is a temporary copy of
 the (uncompressed, extracted) file residing in
 `doc-view-cache-directory'.")
-
-(defvar doc-view-doc-type nil
-  "The type of document in the current buffer.
-Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
-`'xps' or `oxps'.")
 
 (defvar doc-view-single-page-converter-function nil
   "Function to call to convert a single page of the document to a bitmap file.
@@ -585,24 +603,6 @@ Typically \"page-%s.png\".")
     ["Exit DocView Mode" doc-view-minor-mode]))
 
 ;;;; Navigation Commands
-
-;; FIXME: The doc-view-current-* definitions below are macros because they
-;; map to accessors which we want to use via `setf' as well!
-(defmacro doc-view-current-page (&optional win)
-  `(image-mode-window-get 'page ,win))
-(defmacro doc-view-current-info () '(image-mode-window-get 'info))
-(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
-(defmacro doc-view-current-image () '(image-mode-window-get 'image))
-(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
-
-(defun doc-view-custom-set-epub-font-size (option-name new-value)
-  (set-default option-name new-value)
-  (dolist (x (buffer-list))
-    (with-current-buffer x
-      (when (eq doc-view-doc-type 'epub)
-        (delete-directory doc-view--current-cache-dir t)
-        (doc-view-initiate-display)
-        (doc-view-goto-page (doc-view-current-page))))))
 
 (defun doc-view-last-page-number ()
   (length doc-view--current-files))
