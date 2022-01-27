@@ -677,7 +677,7 @@
         (progn
           (if (and noninteractive (not byte-compile-verbose))
               (message "Compiling %s..." filename))
-          (byte-compile-file filename load))
+          (byte-compile-file filename))
       (when load
 	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))
