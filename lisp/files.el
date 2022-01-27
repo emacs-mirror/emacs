@@ -2757,8 +2757,7 @@ since only a single case-insensitive search through the alist is made."
 (defvar auto-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (c-mode,
   ;; c++-mode, java-mode and more) are added through autoload
-  ;; directives in that file.  That way is discouraged since it
-  ;; spreads out the definition of the initial value.
+  ;; directives in that file.
   (mapcar
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
@@ -3056,8 +3055,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
 (defvar interpreter-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
   ;; and pike-mode) are added through autoload directives in that
-  ;; file.  That way is discouraged since it spreads out the
-  ;; definition of the initial value.
+  ;; file.
   (mapcar
    (lambda (l)
      (cons (purecopy (car l)) (cdr l)))
