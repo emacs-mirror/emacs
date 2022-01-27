@@ -80,6 +80,9 @@ as was already the case for all the non-preloaded files.
 * Startup Changes in Emacs 29.1
 
 +++
+** Emacs now support setting 'user-emacs-directory' via --init-directory.
+
++++
 ** Emacs now has a '--fingerprint' option.
 This will output a string identifying the current Emacs build.
 

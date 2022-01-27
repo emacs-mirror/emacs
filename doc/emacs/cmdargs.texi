@@ -329,6 +329,10 @@ option does this too, but other options like @samp{-q} do not.
 Do not include the @file{site-lisp} directories in @code{load-path}
 (@pxref{Init File}).  The @samp{-Q} option does this too.
 
+@item --init-directory
+@opindex --init-directory
+Specify the directory to use when looking for the Emacs init file.
+
 @item --no-splash
 @opindex --no-splash
 @cindex splash screen
