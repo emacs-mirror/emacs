@@ -224,6 +224,13 @@ xw_forward_event_from_view (GtkWidget *widget, GdkEvent *event,
 #endif
 
 #ifdef HAVE_X_WINDOWS
+enum xw_crossing_mode
+  {
+    XW_CROSSING_LEFT,
+    XW_CROSSING_ENTERED,
+    XW_CROSSING_NONE
+  };
+
 static guint
 xw_translate_x_modifiers (struct x_display_info *dpyinfo,
 			  unsigned int modifiers)
@@ -253,6 +260,10 @@ xw_translate_x_modifiers (struct x_display_info *dpyinfo,
 
   return mods;
 }
+
+static bool xw_maybe_synthesize_crossing (struct xwidget_view *,
+					  GdkWindow *, int, int, int,
+					  Time, unsigned int);
 #endif
 
 DEFUN ("make-xwidget",
@@ -1222,10 +1233,14 @@ xwidget_motion_notify (struct xwidget_view *view,
 
   if (!target)
     {
-      target_x = lrint (x);
-      target_y = lrint (y);
+      target_x = lrint (x + view->clip_left);
+      target_y = lrint (y + view->clip_top);
       target = model->widget_osr;
     }
+  else if (xw_maybe_synthesize_crossing (view, gtk_widget_get_window (target),
+					 x + view->clip_left, y + view->clip_top,
+					 XW_CROSSING_NONE, time, state))
+    return;
 
   xg_event = gdk_event_new (GDK_MOTION_NOTIFY);
   xg_event->any.window = gtk_widget_get_window (target);
@@ -1377,13 +1392,106 @@ xi_translate_notify_detail (int detail)
 }
 #endif
 
+static void
+window_coords_from_toplevel (GdkWindow *window, GdkWindow *toplevel,
+			     int x, int y, int *out_x, int *out_y)
+{
+  GdkWindow *parent;
+  GList *children, *l;
+  gdouble x_out, y_out;
+
+  children = NULL;
+  while ((parent = gdk_window_get_parent (window)) != toplevel)
+    {
+      children = g_list_prepend (children, window);
+      window = parent;
+    }
+
+  for (l = children; l != NULL; l = l->next)
+    gdk_window_coords_from_parent (l->data, x, y, &x_out, &y_out);
+
+  g_list_free (children);
+
+  *out_x = x_out;
+  *out_y = y_out;
+}
+
+static bool
+xw_maybe_synthesize_crossing (struct xwidget_view *view,
+			      GdkWindow *current_window,
+			      int x, int y, int crossing,
+			      Time time, unsigned int state)
+{
+  GdkWindow *last_crossing;
+  GdkEvent *xg_event;
+  GdkWindow *toplevel;
+  int cx, cy;
+
+  if (view->last_crossing_window
+      && (gdk_window_is_destroyed (view->last_crossing_window)
+	  || crossing == XW_CROSSING_LEFT))
+    g_clear_pointer (&view->last_crossing_window,
+		     g_object_unref);
+  last_crossing = view->last_crossing_window;
+
+  if (!last_crossing)
+    {
+      view->last_crossing_window = g_object_ref (current_window);
+      return false;
+    }
+
+  toplevel = gtk_widget_get_window (XXWIDGET (view->model)->widgetwindow_osr);
+
+  if (last_crossing != current_window)
+    {
+      view->last_crossing_window = g_object_ref (current_window);
+
+      xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
+      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      window_coords_from_toplevel (last_crossing, toplevel,
+				   x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.state = state;
+      /* TODO: actually calculate the event detail and mode.  */
+      xg_event->crossing.detail = GDK_NOTIFY_NONLINEAR;
+      xg_event->crossing.mode = GDK_CROSSING_NORMAL;
+      xg_event->crossing.window = g_object_ref (last_crossing);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+
+      xg_event = gdk_event_new (GDK_ENTER_NOTIFY);
+      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      window_coords_from_toplevel (current_window, toplevel,
+				   x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.state = state;
+      xg_event->crossing.detail = GDK_NOTIFY_NONLINEAR;
+      xg_event->crossing.mode = GDK_CROSSING_NORMAL;
+      xg_event->crossing.window = g_object_ref (current_window);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+      g_object_unref (last_crossing);
+
+      return true;
+    }
+
+  return false;
+}
+
 void
 xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 {
   GdkEvent *xg_event;
   struct xwidget *model = XXWIDGET (view->model);
-  int x;
-  int y;
+  int x, y, toplevel_x, toplevel_y;
   GtkWidget *target;
 #ifdef HAVE_XINPUT2
   XIEnterEvent *xev = NULL;
@@ -1401,14 +1509,14 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 				: (event->type == LeaveNotify
 				   ? GDK_LEAVE_NOTIFY
 				   : GDK_ENTER_NOTIFY));
+      toplevel_x = (event->type == MotionNotify
+		    ? event->xmotion.x + view->clip_left
+		    : event->xcrossing.x + view->clip_left);
+      toplevel_y = (event->type == MotionNotify
+		    ? event->xmotion.y + view->clip_top
+		    : event->xcrossing.y + view->clip_top);
       target = find_widget_at_pos (model->widgetwindow_osr,
-				   (event->type == MotionNotify
-				    ? event->xmotion.x + view->clip_left
-				    : event->xcrossing.x + view->clip_left),
-				   (event->type == MotionNotify
-				    ? event->xmotion.y + view->clip_top
-				    : event->xcrossing.y + view->clip_top),
-				   &x, &y);
+				   toplevel_x, toplevel_y, &x, &y);
     }
 #ifdef HAVE_XINPUT2
   else
@@ -1421,8 +1529,10 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 				? GDK_ENTER_NOTIFY
 				: GDK_LEAVE_NOTIFY);
       target = find_widget_at_pos (model->widgetwindow_osr,
-				   lrint (xev->event_x + view->clip_left),
-				   lrint (xev->event_y + view->clip_top),
+				   (toplevel_x
+				    = lrint (xev->event_x + view->clip_left)),
+				   (toplevel_y
+				    = lrint (xev->event_y + view->clip_top)),
 				   &x, &y);
     }
 #endif
@@ -1437,13 +1547,24 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 
   if (event->type == MotionNotify)
     {
-      xg_event->motion.x = x;
-      xg_event->motion.y = y;
-      xg_event->motion.x_root = event->xmotion.x_root;
-      xg_event->motion.y_root = event->xmotion.y_root;
-      xg_event->motion.time = event->xmotion.time;
-      xg_event->motion.state = event->xmotion.state;
-      xg_event->motion.device = find_suitable_pointer (view->frame);
+      if (!xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					 toplevel_x, toplevel_y,
+					 XW_CROSSING_NONE, event->xmotion.time,
+					 event->xmotion.state))
+	{
+	  xg_event->motion.x = x;
+	  xg_event->motion.y = y;
+	  xg_event->motion.x_root = event->xmotion.x_root;
+	  xg_event->motion.y_root = event->xmotion.y_root;
+	  xg_event->motion.time = event->xmotion.time;
+	  xg_event->motion.state = event->xmotion.state;
+	  xg_event->motion.device = find_suitable_pointer (view->frame);
+	}
+      else
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
     }
 #ifdef HAVE_XINPUT2
   else if (event->type == GenericEvent)
@@ -1468,11 +1589,34 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 	    xg_event->crossing.state |= GDK_BUTTON3_MASK;
 	}
 
+      if (xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					toplevel_x, toplevel_y,
+					(xev->type == XI_Enter
+					 ? XW_CROSSING_ENTERED
+					 : XW_CROSSING_LEFT),
+					xev->time, xg_event->crossing.state))
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
+
       gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
     }
 #endif
   else
     {
+      if (xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					toplevel_x, toplevel_y,
+					(event->type == EnterNotify
+					 ? XW_CROSSING_ENTERED
+					 : XW_CROSSING_LEFT),
+					event->xcrossing.time,
+					event->xcrossing.state))
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
+
       xg_event->crossing.detail = min (5, event->xcrossing.detail);
       xg_event->crossing.time = event->xcrossing.time;
       xg_event->crossing.x = x;
@@ -2135,6 +2279,7 @@ xwidget_init_view (struct xwidget *xww,
   xv->frame = s->f;
   xv->cursor = cursor_for_hit (xww->hit_result, s->f);
   xv->just_resized = false;
+  xv->last_crossing_window = NULL;
 #elif defined HAVE_PGTK
   xv->dpyinfo = FRAME_DISPLAY_INFO (s->f);
   xv->widget = gtk_drawing_area_new ();
@@ -2757,6 +2902,9 @@ DEFUN ("delete-xwidget-view",
       XDestroyWindow (xv->dpy, xv->wdesc);
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
     }
+
+  g_clear_pointer (&xv->last_crossing_window,
+		   g_object_unref);
 #else
   gtk_widget_destroy (xv->widget);
 #endif

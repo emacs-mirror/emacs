@@ -118,6 +118,8 @@ struct xwidget_view
 #ifndef HAVE_PGTK
   Display *dpy;
   Window wdesc;
+
+  GdkWindow *last_crossing_window;
 #else
   struct pgtk_display_info *dpyinfo;
   GtkWidget *widget;
