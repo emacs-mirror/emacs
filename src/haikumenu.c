@@ -646,10 +646,8 @@ the position of the last non-menu event instead.  */)
   if (FRAME_EXTERNAL_MENU_BAR (f))
     {
       block_input ();
-      BView_draw_lock (FRAME_HAIKU_VIEW (f));
       set_frame_menubar (f, 1);
       BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
-      BView_draw_unlock (FRAME_HAIKU_VIEW (f));
       unblock_input ();
     }
   else
