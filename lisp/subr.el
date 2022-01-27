@@ -3249,6 +3249,13 @@ switch back again to the minibuffer before entering the
 character.  This is not possible when using `read-key', but using
 `read-key' may be less confusing to some users.")
 
+(defun use-dialog-box-p ()
+  "Say whether the user should be prompted with a dialog popup box."
+  (and (display-popup-menus-p)
+       last-input-event                 ; not during startup
+       (listp last-nonmenu-event)
+       use-dialog-box))
+
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
 Return t if answer is \"y\" and nil if it is \"n\".
@@ -3308,10 +3315,7 @@ like) while `y-or-n-p' is running)."
 		  ((and (member str '("h" "H")) help-form) (print help-form))
 		  (t (setq temp-prompt (concat "Please answer y or n.  "
 					       prompt))))))))
-     ((and (display-popup-menus-p)
-           last-input-event             ; not during startup
-	   (listp last-nonmenu-event)
-	   use-dialog-box)
+     ((use-dialog-box-p)
       (setq prompt (funcall padded prompt t)
 	    answer (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
      (y-or-n-p-use-read-key

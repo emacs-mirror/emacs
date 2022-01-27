@@ -7752,7 +7752,15 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
   (interactive "P")
   ;; Don't use save-some-buffers-default-predicate, because we want
   ;; to ask about all the buffers before killing Emacs.
-  (save-some-buffers arg t)
+  (if (use-dialog-box-p)
+      (pcase (x-popup-dialog
+              t `("Unsaved Buffers"
+                  ("Close Without Saving" . no-save)
+                  ("Save All" . save-all)
+                  ("Cancel" . cancel)))
+        ('cancel (user-error "Exit cancelled"))
+        ('save-all (save-some-buffers t)))
+    (save-some-buffers arg t))
   (let ((confirm confirm-kill-emacs))
     (and
      (or (not (memq t (mapcar (lambda (buf)
