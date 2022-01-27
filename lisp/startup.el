@@ -525,12 +525,16 @@ DIRS are relative."
                   (files &optional recursively load selector))
 (defun startup--honor-delayed-native-compilations ()
   "Honor pending delayed deferred native compilations."
-  (when (and (native-comp-available-p)
-             comp--delayed-sources)
-    (require 'comp)
-    (setq comp--loadable t)
-    (native--compile-async comp--delayed-sources nil 'late)
-    (setq comp--delayed-sources nil)))
+  (if (and (native-comp-available-p)
+           comp--delayed-sources)
+      (progn
+        ;; Require comp before setting `comp--loadable' to break
+        ;; circularity.
+        (require 'comp)
+        (setq comp--loadable t)
+        (native--compile-async comp--delayed-sources nil 'late)
+        (setq comp--delayed-sources nil))
+    (setq comp--loadable t)))
 
 (defvar native-comp-eln-load-path)
 (defun normal-top-level ()
