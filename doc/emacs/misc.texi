@@ -455,20 +455,27 @@ servers the user has connected to.  If this variable is @code{t},
 @cindex PostScript file
 @cindex OpenDocument file
 @cindex Microsoft Office file
+@cindex EPUB file
+@cindex CBZ file
+@cindex FB2 file
+@cindex XPS file
+@cindex OXPS file
 @cindex DocView mode
 @cindex mode, DocView
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
   DocView mode is a major mode for viewing DVI, PostScript (PS), PDF,
-OpenDocument, and Microsoft Office documents.  It provides features
-such as slicing, zooming, and searching inside documents.  It works by
-converting the document to a set of images using the @command{gs}
-(GhostScript) or @command{mudraw}/@command{pdfdraw} (MuPDF) commands
-and other external tools @footnote{For PostScript files, GhostScript
-is a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm}
-is needed.  For OpenDocument and Microsoft Office documents, the
-@code{unoconv} tool is needed.}, and displaying those images.
+OpenDocument, Microsoft Office, EPUB, CBZ, FB2, XPS and OXPS
+documents.  It provides features such as slicing, zooming, and
+searching inside documents.  It works by converting the document to a
+set of images using the @command{gs} (GhostScript) or
+@command{pdfdraw}/@command{mutool draw} (MuPDF) commands and other
+external tools @footnote{PostScript files require GhostScript, DVI
+files require @code{dvipdf} or @code{dvipdfm}, OpenDocument and
+Microsoft Office documents require the @code{unoconv} tool, and EPUB,
+CBZ, FB2, XPS and OXPS files require @code{mutool} to be available.},
+and displaying those images.
 
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
