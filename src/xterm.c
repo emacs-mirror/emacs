@@ -10390,32 +10390,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
-#else
-	      bool xwidget_view = false;
 #endif
-
-	      /* One problem behind the design of XInput 2 scrolling is
-		 that valuators are not unique to each window, but only
-		 the window that has grabbed the valuator's device or
-		 the window that the device's pointer is on top of can
-		 receive motion events.  There is also no way to
-		 retrieve the value of a valuator outside of each motion
-		 event.
-
-		 As such, to prevent wildly inaccurate results when the
-		 valuators have changed outside Emacs, we reset our
-		 records of each valuator's value whenever the pointer
-		 re-enters a frame after its valuators have potentially
-		 been changed elsewhere.  */
-	      if (enter->detail != XINotifyInferior
-		  && enter->mode != XINotifyPassiveUngrab
-		  /* See the comment under FocusIn in
-		     `x_detect_focus_change'.  The main relevant culprit
-		     these days seems to be XFCE.  */
-		  && enter->mode != XINotifyUngrab
-		  && (xwidget_view
-		      || (any && enter->event == FRAME_X_WINDOW (any))))
-		xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
 
 #ifdef HAVE_XWIDGETS
 	      if (xwidget_view)
@@ -10456,6 +10431,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    ev.y = lrint (leave->event_y);
 	    ev.window = leave->event;
 	    any = x_top_window_to_frame (dpyinfo, leave->event);
+
+	    /* One problem behind the design of XInput 2 scrolling is
+	       that valuators are not unique to each window, but only
+	       the window that has grabbed the valuator's device or
+	       the window that the device's pointer is on top of can
+	       receive motion events.  There is also no way to
+	       retrieve the value of a valuator outside of each motion
+	       event.
+
+	       As such, to prevent wildly inaccurate results when the
+	       valuators have changed outside Emacs, we reset our
+	       records of each valuator's value whenever the pointer
+	       moves out of a frame (and not into one of its
+	       children, which we know about).  */
+	    if (leave->detail != XINotifyInferior && any)
+	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
 
 #ifdef HAVE_XWIDGETS
 	    {
