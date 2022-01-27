@@ -480,6 +480,10 @@ load_gccjit_if_necessary (bool mandatory)
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
+/* Like call0 but stringify and intern.  */
+#define CALL0I(fun)				\
+  CALLN (Ffuncall, intern_c_string (STR (fun)))
+
 /* Like call1 but stringify and intern.  */
 #define CALL1I(fun, arg)				\
   CALLN (Ffuncall, intern_c_string (STR (fun)), arg)
@@ -5128,7 +5132,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (comp__loadable)
     {
       /* Startup is done, comp is usable.  */
-      Frequire (Qcomp, Qnil, Qnil);
+      CALL0I(startup--require-comp-safetly);
       Fputhash (function_name, definition, Vcomp_deferred_pending_h);
       CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 	     src, Qnil, Qlate);

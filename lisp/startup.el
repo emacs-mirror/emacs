@@ -519,22 +519,26 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
-(defvar comp--delayed-sources)
 (defvar comp--loadable)
+(defvar comp--delayed-sources)
+(defun startup--require-comp-safetly ()
+  "Require the native compiler avoiding circular dependencies."
+  (unless (featurep 'comp)
+    ;; Require comp with `comp--loadable' set to nil to break
+    ;; circularity.
+    (let ((comp--loadable nil))
+      (require 'comp))
+    (native--compile-async comp--delayed-sources nil 'late)
+    (setq comp--delayed-sources nil)))
+
 (declare-function native--compile-async "comp.el"
                   (files &optional recursively load selector))
 (defun startup--honor-delayed-native-compilations ()
   "Honor pending delayed deferred native compilations."
-  (if (and (native-comp-available-p)
-           comp--delayed-sources)
-      (progn
-        ;; Require comp before setting `comp--loadable' to break
-        ;; circularity.
-        (require 'comp)
-        (setq comp--loadable t)
-        (native--compile-async comp--delayed-sources nil 'late)
-        (setq comp--delayed-sources nil))
-    (setq comp--loadable t)))
+  (when (and (native-comp-available-p)
+             comp--delayed-sources)
+    (startup--require-comp-safetly))
+  (setq comp--loadable t))
 
 (defvar native-comp-eln-load-path)
 (defun normal-top-level ()
