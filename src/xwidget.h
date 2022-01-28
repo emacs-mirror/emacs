@@ -120,6 +120,7 @@ struct xwidget_view
   Window wdesc;
 
   GdkWindow *last_crossing_window;
+  guint last_crossing_cursor_signal;
   GtkWidget *passive_grab;
   guint passive_grab_destruction_signal;
   guint passive_grab_drag_signal;

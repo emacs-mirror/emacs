@@ -123,11 +123,12 @@ struct widget_search_data
 };
 
 static void find_widget (GtkWidget *t, struct widget_search_data *);
-static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
-				  gpointer);
 #endif
 
 #ifdef HAVE_PGTK
+static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
+				  gpointer);
+
 static int
 xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
 			    struct xwidget *xw)
@@ -420,11 +421,12 @@ fails.  */)
                             G_CALLBACK
                             (webkit_decide_policy_cb),
                             xw);
-
+#ifdef HAVE_PGTK
 	  g_signal_connect (G_OBJECT (xw->widget_osr),
 			    "mouse-target-changed",
 			    G_CALLBACK (mouse_target_changed),
 			    xw);
+#endif
 	  g_signal_connect (G_OBJECT (xw->widget_osr),
 			    "create",
 			    G_CALLBACK (webkit_create_cb),
@@ -1014,6 +1016,7 @@ find_widget_at_pos (GtkWidget *w, int x, int y,
   return NULL;
 }
 
+#ifdef HAVE_PGTK
 static Emacs_Cursor
 cursor_for_hit (guint result, struct frame *frame)
 {
@@ -1037,9 +1040,7 @@ static void
 define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 {
   struct xwidget_view *xvw;
-#ifdef HAVE_PGTK
   GdkWindow *wdesc;
-#endif
 
   xw->hit_result = webkit_hit_test_result_get_context (res);
 
@@ -1053,16 +1054,12 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 	  if (XXWIDGET (xvw->model) == xw)
 	    {
 	      xvw->cursor = cursor_for_hit (xw->hit_result, xvw->frame);
-#ifdef HAVE_X_WINDOWS
-	      if (xvw->wdesc != None)
-		XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
-#else
+
 	      if (gtk_widget_get_realized (xvw->widget))
 		{
 		  wdesc = gtk_widget_get_window (xvw->widget);
 		  gdk_window_set_cursor (wdesc, xvw->cursor);
 		}
-#endif
 	    }
 	}
     }
@@ -1075,6 +1072,7 @@ mouse_target_changed (WebKitWebView *webview,
 {
   define_cursors (xw, hitresult);
 }
+#endif
 
 static gboolean
 run_file_chooser_cb (WebKitWebView *webview,
@@ -1682,6 +1680,37 @@ xw_notify_virtual_downwards_until (struct xwidget_view *xv,
   g_list_free (path);
 }
 
+static void
+xw_update_cursor_for_view (struct xwidget_view *xv,
+			   GdkWindow *crossing_window)
+{
+  GdkCursor *xg_cursor;
+  Cursor cursor;
+
+  xg_cursor = gdk_window_get_cursor (crossing_window);
+
+  if (xg_cursor)
+    {
+      cursor = gdk_x11_cursor_get_xcursor (xg_cursor);
+
+      if (gdk_x11_cursor_get_xdisplay (xg_cursor) == xv->dpy)
+	xv->cursor = cursor;
+    }
+  else
+    xv->cursor = FRAME_OUTPUT_DATA (xv->frame)->nontext_cursor;
+
+  if (xv->wdesc != None)
+    XDefineCursor (xv->dpy, xv->wdesc, xv->cursor);
+}
+
+static void
+xw_last_crossing_cursor_cb (GdkWindow *window,
+			    GParamSpec *spec,
+			    gpointer user_data)
+{
+  xw_update_cursor_for_view (user_data, window);
+}
+
 static bool
 xw_maybe_synthesize_crossing (struct xwidget_view *view,
 			      GdkWindow *current_window,
@@ -1708,8 +1737,12 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
   if (view->last_crossing_window
       && (gdk_window_is_destroyed (view->last_crossing_window)
 	  || crossing == XW_CROSSING_LEFT))
-    g_clear_pointer (&view->last_crossing_window,
-		     g_object_unref);
+    {
+      g_signal_handler_disconnect (view->last_crossing_window,
+				   view->last_crossing_cursor_signal);
+      g_clear_pointer (&view->last_crossing_window,
+		       g_object_unref);
+    }
   last_crossing = view->last_crossing_window;
 
   if (!last_crossing)
@@ -1717,6 +1750,10 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
       if (current_window)
 	{
 	  view->last_crossing_window = g_object_ref (current_window);
+	  xw_update_cursor_for_view (view, current_window);
+	  view->last_crossing_cursor_signal
+	    = g_signal_connect (G_OBJECT (current_window), "notify::cursor",
+				G_CALLBACK (xw_last_crossing_cursor_cb), view);
 
 	  xw_notify_virtual_downwards_until (view, current_window,
 					     toplevel, toplevel,
@@ -1730,6 +1767,12 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
   if (last_crossing != current_window)
     {
       view->last_crossing_window = g_object_ref (current_window);
+      g_signal_handler_disconnect (last_crossing, view->last_crossing_cursor_signal);
+
+      xw_update_cursor_for_view (view, current_window);
+      view->last_crossing_cursor_signal
+	= g_signal_connect (G_OBJECT (current_window), "notify::cursor",
+			    G_CALLBACK (xw_last_crossing_cursor_cb), view);
 
       ancestor = xw_find_common_ancestor (last_crossing, current_window, toplevel);
 
@@ -2594,7 +2637,7 @@ xwidget_init_view (struct xwidget *xww,
 
   xv->wdesc = None;
   xv->frame = s->f;
-  xv->cursor = cursor_for_hit (xww->hit_result, s->f);
+  xv->cursor = FRAME_OUTPUT_DATA (s->f)->nontext_cursor;
   xv->just_resized = false;
   xv->last_crossing_window = NULL;
   xv->passive_grab = NULL;
@@ -3224,6 +3267,9 @@ DEFUN ("delete-xwidget-view",
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
     }
 
+  if (xv->last_crossing_window)
+    g_signal_handler_disconnect (xv->last_crossing_window,
+				 xv->last_crossing_cursor_signal);
   g_clear_pointer (&xv->last_crossing_window,
 		   g_object_unref);
 
