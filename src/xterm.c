@@ -10395,14 +10395,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XWIDGETS
 	      if (xwidget_view)
 		{
-		  /* Don't send an enter event to the xwidget if the
-		     first button is pressed, to avoid it releasing
-		     the passive grab.  I don't know why that happens,
-		     but this workaround makes dragging to select text
-		     work again.  */
-		  if (!(enter->buttons.mask_len
-			&& XIMaskIsSet (enter->buttons.mask, 1)))
-		    xwidget_motion_or_crossing (xwidget_view, event);
+		  xwidget_motion_or_crossing (xwidget_view, event);
 
 		  goto XI_OTHER;
 		}
