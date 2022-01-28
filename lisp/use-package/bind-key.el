@@ -326,6 +326,10 @@ function symbol (unquoted)."
               (and prefix (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
 
+    (when repeat-type
+      (unless repeat-map
+        (error ":continue and :exit require specifying :repeat-map")))
+
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
 
