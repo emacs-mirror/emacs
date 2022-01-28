@@ -4092,6 +4092,10 @@ interactively when the prefix argument is given), insert the
 output in current buffer after point leaving mark after it.  This
 cannot be done asynchronously.
 
+If OUTPUT-BUFFER is a buffer or buffer name different from the
+current buffer, instead of outputting at point in that buffer,
+the output will be appended at the end of that buffer.
+
 The user option `shell-command-dont-erase-buffer', which see, controls
 whether the output buffer is erased and where to put point after
 the shell command.

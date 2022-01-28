@@ -856,6 +856,9 @@ Restores the position of point as it was before inserting the
 shell-command output.
 @end table
 
+In case the output buffer is not the current buffer, shell command
+output is appended at the end of this buffer.
+
 @node Interactive Shell
 @subsection Interactive Subshell
 
