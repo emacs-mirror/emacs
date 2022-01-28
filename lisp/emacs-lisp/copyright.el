@@ -313,7 +313,7 @@ independently replaces consecutive years with a range."
 			   (> prev-year first-year))
 		  (goto-char range-end)
 		  (delete-region range-start range-end)
-		  (insert (format "%c%d" sep prev-year))
+		  (insert (format "-%d" prev-year))
 		  (goto-char p))
 		(setq first-year year
 		      range-start (point)))))
