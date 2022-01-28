@@ -1295,45 +1295,48 @@ xwidget_button (struct xwidget_view *view,
 	   || FRAME_DISPLAY_INFO (view->frame)->xi2_version < 1)
 #endif
     {
-      GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
-      struct xwidget *model = XXWIDGET (view->model);
-      GtkWidget *target;
+      if (!down_p)
+	{
+	  GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
+	  struct xwidget *model = XXWIDGET (view->model);
+	  GtkWidget *target;
 
-      x += view->clip_left;
-      y += view->clip_top;
+	  x += view->clip_left;
+	  y += view->clip_top;
 
-      target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y,
-				   true, view);
+	  target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y,
+				       true, view);
 
-      if (!target)
-	target = model->widget_osr;
+	  if (!target)
+	    target = model->widget_osr;
 
-      xg_event->any.window = gtk_widget_get_window (target);
-      g_object_ref (xg_event->any.window); /* The window will be unrefed
-					      later by gdk_event_free.  */
-      if (button == 4)
-	xg_event->scroll.direction = GDK_SCROLL_UP;
-      else if (button == 5)
-	xg_event->scroll.direction = GDK_SCROLL_DOWN;
-      else if (button == 6)
-	xg_event->scroll.direction = GDK_SCROLL_LEFT;
-      else
-	xg_event->scroll.direction = GDK_SCROLL_RIGHT;
+	  xg_event->any.window = gtk_widget_get_window (target);
+	  g_object_ref (xg_event->any.window); /* The window will be unrefed
+						  later by gdk_event_free.  */
+	  if (button == 4)
+	    xg_event->scroll.direction = GDK_SCROLL_UP;
+	  else if (button == 5)
+	    xg_event->scroll.direction = GDK_SCROLL_DOWN;
+	  else if (button == 6)
+	    xg_event->scroll.direction = GDK_SCROLL_LEFT;
+	  else
+	    xg_event->scroll.direction = GDK_SCROLL_RIGHT;
 
-      xg_event->scroll.device = find_suitable_pointer (view->frame);
+	  xg_event->scroll.device = find_suitable_pointer (view->frame);
 
-      xg_event->scroll.x = x;
-      xg_event->scroll.x_root = x;
-      xg_event->scroll.y = y;
-      xg_event->scroll.y_root = y;
-      xg_event->scroll.state = modifier_state;
-      xg_event->scroll.time = time;
+	  xg_event->scroll.x = x;
+	  xg_event->scroll.x_root = x;
+	  xg_event->scroll.y = y;
+	  xg_event->scroll.y_root = y;
+	  xg_event->scroll.state = modifier_state;
+	  xg_event->scroll.time = time;
 
-      xg_event->scroll.delta_x = 0;
-      xg_event->scroll.delta_y = 0;
+	  xg_event->scroll.delta_x = 0;
+	  xg_event->scroll.delta_y = 0;
 
-      gtk_main_do_event (xg_event);
-      gdk_event_free (xg_event);
+	  gtk_main_do_event (xg_event);
+	  gdk_event_free (xg_event);
+	}
     }
 }
 
