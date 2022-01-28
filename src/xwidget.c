@@ -1139,6 +1139,23 @@ run_file_chooser_cb (WebKitWebView *webview,
 #ifdef HAVE_X_WINDOWS
 
 static void
+xv_drag_begin_cb (GtkWidget *widget,
+		  GdkDragContext *context,
+		  gpointer user_data)
+{
+  struct xwidget_view *view = user_data;
+
+  if (view->passive_grab)
+    {
+      g_signal_handler_disconnect (view->passive_grab,
+				   view->passive_grab_destruction_signal);
+      g_signal_handler_disconnect (view->passive_grab,
+				   view->passive_grab_drag_signal);
+      view->passive_grab = NULL;
+    }
+}
+
+static void
 xwidget_button_1 (struct xwidget_view *view,
 		  bool down_p, int x, int y, int button,
 		  int modifier_state, Time time)
@@ -1170,6 +1187,10 @@ xwidget_button_1 (struct xwidget_view *view,
 	= g_signal_connect (G_OBJECT (view->passive_grab),
 			    "destroy", G_CALLBACK (gtk_widget_destroyed),
 			    &view->passive_grab);
+      view->passive_grab_drag_signal
+	= g_signal_connect (G_OBJECT (view->passive_grab),
+			    "drag-begin", G_CALLBACK (xv_drag_begin_cb),
+			    view);
     }
   else
     {
@@ -1230,6 +1251,8 @@ xwidget_button_1 (struct xwidget_view *view,
 	{
 	  g_signal_handler_disconnect (view->passive_grab,
 				       view->passive_grab_destruction_signal);
+	  g_signal_handler_disconnect (view->passive_grab,
+				       view->passive_grab_drag_signal);
 	  view->passive_grab = NULL;
 	}
     }
@@ -3205,6 +3228,8 @@ DEFUN ("delete-xwidget-view",
     {
       g_signal_handler_disconnect (xv->passive_grab,
 				   xv->passive_grab_destruction_signal);
+      g_signal_handler_disconnect (xv->passive_grab,
+				   xv->passive_grab_drag_signal);
       xv->passive_grab = NULL;
     }
 
