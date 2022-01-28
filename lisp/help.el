@@ -650,15 +650,21 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	      (if insert
 		  (if (> (length keys) 0)
 		      (if remapped
-			  (format "%s (%s) (remapped from %s)"
-				  keys remapped symbol)
-			(format "%s (%s)" keys symbol))
+			  (format "%s, remapped to %s (%s)"
+                                  symbol remapped keys)
+			(format "%s (%s)" symbol keys))
 		    (format "M-x %s RET" symbol))
 		(if (> (length keys) 0)
 		    (if remapped
-			(format "%s is remapped to %s which is on %s"
-				symbol remapped keys)
-		      (format "%s is on %s" symbol keys))
+			(if (eq symbol (symbol-function definition))
+			    (format
+                             "%s, which is remapped to %s, which is on %s"
+			     symbol remapped keys)
+			  (format "%s is remapped to %s, which is on %s"
+				  symbol remapped keys))
+		      (if (eq symbol (symbol-function definition))
+			  (format "%s, which is on %s" symbol keys)
+			(format "%s is on %s" symbol keys)))
 		  ;; If this is the command the user asked about,
 		  ;; and it is not on any key, say so.
 		  ;; For other symbols, its aliases, say nothing
@@ -667,7 +673,9 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		      (format "%s is not on any key" symbol)))))
 	(when string
 	  (unless (eq symbol definition)
-	    (princ ";\n its alias "))
+	    (if (eq definition (symbol-function symbol))
+		(princ ";\n its alias ")
+	      (princ ";\n it's an alias for ")))
 	  (princ string)))))
   nil)
 
