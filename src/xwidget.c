@@ -1178,7 +1178,7 @@ xwidget_button_1 (struct xwidget_view *view,
   if (!target)
     target = model->widget_osr;
 
-  if (down_p)
+  if (down_p && !view->passive_grab)
     {
       view->passive_grab = target;
       view->passive_grab_destruction_signal
