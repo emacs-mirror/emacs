@@ -331,7 +331,7 @@ Do not include the @file{site-lisp} directories in @code{load-path}
 
 @item --init-directory
 @opindex --init-directory
-Specify the directory to use when looking for the Emacs init file.
+Specify the directory to use when looking for the Emacs init files.
 
 @item --no-splash
 @opindex --no-splash

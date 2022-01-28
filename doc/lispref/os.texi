@@ -365,7 +365,7 @@ Equivalent to @samp{-q --no-site-file --no-splash}.
 @c and --no-site-lisp, but let's not mention that here.
 
 @item --init-directory
-Specify the directory to use when finding the Emacs init file.
+Specify the directory to use when finding the Emacs init files.
 @end table
 
 
