@@ -764,8 +764,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
               (eshell-set-output-handle ,eshell-output-handle
                                         'append nextproc)
               (eshell-set-output-handle ,eshell-error-handle
-                                        'append nextproc)
-              (setq tailproc (or tailproc nextproc))))
+                                        'append nextproc)))
 	,(let ((head (car pipeline)))
 	   (if (memq (car head) '(let progn))
 	       (setq head (car (last head))))
@@ -781,7 +780,9 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 	       ,(cond ((not notfirst) (quote 'first))
 		      ((cdr pipeline) t)
 		      (t (quote 'last)))))
-	  ,(car pipeline))))))
+          (let ((proc ,(car pipeline)))
+            (setq tailproc (or tailproc proc))
+            proc))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.

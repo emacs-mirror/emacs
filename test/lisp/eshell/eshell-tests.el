@@ -129,6 +129,13 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-command-result-p "echo ${echo hi}-${*echo there}"
                             "hi-there\n")))
 
+(ert-deftest eshell-test/pipe-tailproc ()
+  "Check that piping a process to a non-process command waits for the process"
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-command-result-p "*echo hi | echo bye"
+                            "bye\nhi\n")))
+
 (ert-deftest eshell-test/window-height ()
   "$LINES should equal (window-height)"
   (should (eshell-test-command-result "= $LINES (window-height)")))
