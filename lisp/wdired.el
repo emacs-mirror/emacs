@@ -169,6 +169,7 @@ nonexistent directory will fail."
   "C-p"     #'wdired-previous-line
   "<down>"  #'wdired-next-line
   "C-n"     #'wdired-next-line
+  "C-("     #'dired-hide-details-mode
   "<remap> <upcase-word>"         #'wdired-upcase-word
   "<remap> <capitalize-word>"     #'wdired-capitalize-word
   "<remap> <downcase-word>"       #'wdired-downcase-word

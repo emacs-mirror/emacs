@@ -2756,7 +2756,7 @@ permissions are hidden from view.
 See options: `dired-hide-details-hide-symlink-targets' and
 `dired-hide-details-hide-information-lines'."
   :group 'dired
-  (unless (derived-mode-p 'dired-mode)
+  (unless (derived-mode-p 'dired-mode 'wdired-mode)
     (error "Not a Dired buffer"))
   (dired-hide-details-update-invisibility-spec)
   (if dired-hide-details-mode
