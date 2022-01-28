@@ -144,7 +144,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->button.x - xv->clip_left),
 				   lrint (event->button.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -157,7 +157,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->scroll.x - xv->clip_left),
 				   lrint (event->scroll.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -170,7 +170,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->motion.x - xv->clip_left),
 				   lrint (event->motion.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -184,7 +184,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->crossing.x - xv->clip_left),
 				   lrint (event->crossing.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
