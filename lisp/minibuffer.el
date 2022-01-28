@@ -3066,7 +3066,10 @@ Fourth arg MUSTMATCH can take the following values:
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
-Fifth arg INITIAL specifies text to start with.
+Fifth arg INITIAL specifies text to start with.  It will be
+interpreted as the trailing part of DEFAULT-FILENAME, so using a
+full file name for INITIAL will usually lead to surprising
+results.
 
 Sixth arg PREDICATE, if non-nil, should be a function of one
 argument; then a file name is considered an acceptable completion
