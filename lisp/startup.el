@@ -693,6 +693,47 @@ It is the default value of the variable `top-level'."
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
+
+        ;; Do this after `command-line', since it may alter
+        ;; `user-emacs-directory'.
+        (when (featurep 'native-compile)
+          ;; Form `native-comp-eln-load-path'.
+          (let ((path-env (getenv "EMACSNATIVELOADPATH")))
+            (when path-env
+              (dolist (path (split-string path-env path-separator))
+                (unless (string= "" path)
+                  (push path native-comp-eln-load-path)))))
+          (push (expand-file-name "eln-cache/" user-emacs-directory)
+                native-comp-eln-load-path)
+          ;; When $HOME is set to '/nonexistent' means we are running the
+          ;; testsuite, add a temporary folder in front to produce there
+          ;; new compilations.
+          (when (and (equal (getenv "HOME") "/nonexistent")
+                     ;; We may be running in a chroot environment where we
+                     ;; can't write anything.
+                     (file-writable-p (expand-file-name
+                                       (or temporary-file-directory ""))))
+            (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
+              (add-hook 'kill-emacs-hook
+                        (lambda ()
+                          (delete-directory tmp-dir t)))
+              (push tmp-dir native-comp-eln-load-path)))
+          (when locale-coding-system
+            (let ((coding (if (eq system-type 'windows-nt)
+			      ;; MS-Windows build converts all file names to
+			      ;; UTF-8 during startup.
+			      'utf-8
+		            locale-coding-system))
+                  (npath (symbol-value 'native-comp-eln-load-path)))
+              (set 'native-comp-eln-load-path
+                   (mapcar (lambda (dir)
+                             ;; Call expand-file-name to remove all the
+                             ;; pesky ".." from the directyory names in
+                             ;; native-comp-eln-load-path.
+                             (expand-file-name
+                              (decode-coding-string dir coding t)))
+                           npath)))))
+
 	;; Do this again, in case .emacs defined more abbreviations.
 	(if default-directory
 	    (setq default-directory (abbreviate-file-name default-directory)))
@@ -759,44 +800,6 @@ It is the default value of the variable `top-level'."
 	    (font-menu-add-default))
 	(unless inhibit-startup-hooks
 	  (run-hooks 'window-setup-hook))))
-
-    ;; Do this after `command-line', since it may alter
-    ;; `user-emacs-directory'.
-    (when (featurep 'native-compile)
-      ;; Form `native-comp-eln-load-path'.
-      (let ((path-env (getenv "EMACSNATIVELOADPATH")))
-        (when path-env
-          (dolist (path (split-string path-env path-separator))
-            (unless (string= "" path)
-              (push path native-comp-eln-load-path)))))
-      (push (expand-file-name "eln-cache/" user-emacs-directory)
-            native-comp-eln-load-path)
-      ;; When $HOME is set to '/nonexistent' means we are running the
-      ;; testsuite, add a temporary folder in front to produce there
-      ;; new compilations.
-      (when (and (equal (getenv "HOME") "/nonexistent")
-                 ;; We may be running in a chroot environment where we
-                 ;; can't write anything.
-                 (file-writable-p (expand-file-name
-                                   (or temporary-file-directory ""))))
-        (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
-          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
-          (push tmp-dir native-comp-eln-load-path)))
-      (when locale-coding-system
-        (let ((coding (if (eq system-type 'windows-nt)
-			  ;; MS-Windows build converts all file names to
-			  ;; UTF-8 during startup.
-			  'utf-8
-		        locale-coding-system))
-              (npath (symbol-value 'native-comp-eln-load-path)))
-          (set 'native-comp-eln-load-path
-               (mapcar (lambda (dir)
-                         ;; Call expand-file-name to remove all the
-                         ;; pesky ".." from the directyory names in
-                         ;; native-comp-eln-load-path.
-                         (expand-file-name
-                          (decode-coding-string dir coding t)))
-                       npath)))))
 
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
