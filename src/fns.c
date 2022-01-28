@@ -3249,12 +3249,8 @@ FILENAME are suppressed.  */)
       record_unwind_protect (require_unwind, require_nesting_list);
       require_nesting_list = Fcons (feature, require_nesting_list);
 
-      /* Value saved here is to be restored into Vautoload_queue */
-      record_unwind_protect (un_autoload, Vautoload_queue);
-      Vautoload_queue = Qt;
-
       /* Load the file.  */
-      tem = save_match_data_load
+      tem = load_with_autoload_queue
 	(NILP (filename) ? Fsymbol_name (feature) : filename,
 	 noerror, Qt, Qnil, (NILP (filename) ? Qt : Qnil));
 
@@ -3276,8 +3272,6 @@ FILENAME are suppressed.  */)
                    SDATA (tem3), tem2);
         }
 
-      /* Once loading finishes, don't undo it.  */
-      Vautoload_queue = Qt;
       feature = unbind_to (count, feature);
     }
 

@@ -2247,7 +2247,7 @@ this does nothing and returns nil.  */)
 		    Qnil);
 }
 
-void
+static void
 un_autoload (Lisp_Object oldqueue)
 {
   Lisp_Object queue, first, second;
@@ -2269,6 +2269,32 @@ un_autoload (Lisp_Object oldqueue)
     }
 }
 
+Lisp_Object
+load_with_autoload_queue
+  (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
+   Lisp_Object nosuffix, Lisp_Object must_suffix)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  /* If autoloading gets an error (which includes the error of failing
+     to define the function being called), we use Vautoload_queue
+     to undo function definitions and `provide' calls made by
+     the function.  We do this in the specific case of autoloading
+     because autoloading is not an explicit request "load this file",
+     but rather a request to "call this function".
+
+     The value saved here is to be restored into Vautoload_queue.  */
+  record_unwind_protect (un_autoload, Vautoload_queue);
+  Vautoload_queue = Qt;
+  Lisp_Object tem
+    = save_match_data_load (file, noerror, nomessage, nosuffix, must_suffix);
+
+  /* Once loading finishes, don't undo it.  */
+  Vautoload_queue = Qt;
+  unbind_to (count, Qnil);
+  return tem;
+}
+
 /* Load an autoloaded function.
    FUNNAME is the symbol which is the function's name.
    FUNDEF is the autoload definition (a list).  */
@@ -2281,8 +2307,6 @@ If equal to `macro', MACRO-ONLY specifies that FUNDEF should only be loaded if
 it defines a macro.  */)
   (Lisp_Object fundef, Lisp_Object funname, Lisp_Object macro_only)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
-
   if (!CONSP (fundef) || !EQ (Qautoload, XCAR (fundef)))
     return fundef;
 
@@ -2299,26 +2323,12 @@ it defines a macro.  */)
 
   CHECK_SYMBOL (funname);
 
-  /* If autoloading gets an error (which includes the error of failing
-     to define the function being called), we use Vautoload_queue
-     to undo function definitions and `provide' calls made by
-     the function.  We do this in the specific case of autoloading
-     because autoloading is not an explicit request "load this file",
-     but rather a request to "call this function".
-
-     The value saved here is to be restored into Vautoload_queue.  */
-  record_unwind_protect (un_autoload, Vautoload_queue);
-  Vautoload_queue = Qt;
   /* If `macro_only' is set and fundef isn't a macro, assume this autoload to
      be a "best-effort" (e.g. to try and find a compiler macro),
      so don't signal an error if autoloading fails.  */
   Lisp_Object ignore_errors
     = (EQ (kind, Qt) || EQ (kind, Qmacro)) ? Qnil : macro_only;
-  save_match_data_load (Fcar (Fcdr (fundef)), ignore_errors, Qt, Qnil, Qt);
-
-  /* Once loading finishes, don't undo it.  */
-  Vautoload_queue = Qt;
-  unbind_to (count, Qnil);
+  load_with_autoload_queue (Fcar (Fcdr (fundef)), ignore_errors, Qt, Qnil, Qt);
 
   if (NILP (funname) || !NILP (ignore_errors))
     return Qnil;
