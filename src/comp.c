@@ -5132,7 +5132,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
   if (comp__loadable)
     {
       /* Startup is done, comp is usable.  */
-      CALL0I(startup--require-comp-safetly);
+      CALL0I (startup--require-comp-safely);
       Fputhash (function_name, definition, Vcomp_deferred_pending_h);
       CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 	     src, Qnil, Qlate);

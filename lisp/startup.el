@@ -521,7 +521,7 @@ DIRS are relative."
 
 (defvar comp--loadable)
 (defvar comp--delayed-sources)
-(defun startup--require-comp-safetly ()
+(defun startup--require-comp-safely ()
   "Require the native compiler avoiding circular dependencies."
   (unless (featurep 'comp)
     ;; Require comp with `comp--loadable' set to nil to break
@@ -537,7 +537,7 @@ DIRS are relative."
   "Honor pending delayed deferred native compilations."
   (when (and (native-comp-available-p)
              comp--delayed-sources)
-    (startup--require-comp-safetly))
+    (startup--require-comp-safely))
   (setq comp--loadable t))
 
 (defvar native-comp-eln-load-path)
