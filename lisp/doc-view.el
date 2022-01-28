@@ -1217,7 +1217,8 @@ is named like ODF with the extension turned to pdf."
   "Convert PDF-PS to PNG asynchronously."
   (funcall
    (pcase doc-view-doc-type
-     ((or 'pdf 'odf) doc-view-pdf->png-converter-function)
+     ((or 'pdf 'odf 'epub 'cbz 'fb2 'xps 'oxps)
+      doc-view-pdf->png-converter-function)
      ('djvu #'doc-view-djvu->tiff-converter-ddjvu)
      (_ #'doc-view-ps->png-converter-ghostscript))
    pdf-ps png nil
