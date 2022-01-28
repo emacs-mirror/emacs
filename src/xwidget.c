@@ -2844,8 +2844,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 #endif
 
 #if defined HAVE_XINPUT2 || defined HAVE_PGTK
-  record_osr_embedder (xv);
-  synthesize_focus_in_event (xww->widget_osr);
+  if (!NILP (xww->buffer))
+    {
+      record_osr_embedder (xv);
+      synthesize_focus_in_event (xww->widget_osr);
+    }
 #endif
 
 #ifdef USE_GTK
