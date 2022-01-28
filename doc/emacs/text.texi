@@ -1702,17 +1702,17 @@ to work with them.
 @table @kbd
 @item C-c C-o
 Insert @samp{\begin} and @samp{\end} for @LaTeX{} block and position
-point on a line between them (@code{tex-latex-block}).
+point on a line between them (@code{latex-insert-block}).
 @item C-c C-e
 Close the innermost @LaTeX{} block not yet closed
-(@code{tex-close-latex-block}).
+(@code{latex-close-block}).
 @end table
 
-@findex tex-latex-block
+@findex latex-insert-block
 @kindex C-c C-o @r{(@LaTeX{} mode)}
   In @LaTeX{} input, @samp{\begin} and @samp{\end} tags are used to
 group blocks of text.  To insert a block, type @kbd{C-c C-o}
-(@code{tex-latex-block}).  This prompts for a block type, and inserts
+(@code{latex-insert-block}).  This prompts for a block type, and inserts
 the appropriate matching @samp{\begin} and @samp{\end} tags, leaving a
 blank line between the two and moving point there.
 
@@ -1723,11 +1723,11 @@ completion list contains the standard @LaTeX{} block types.  If you
 want additional block types for completion, customize the list
 variable @code{latex-block-names}.
 
-@findex tex-close-latex-block
+@findex latex-close-block
 @kindex C-c C-e @r{(@LaTeX{} mode)}
 @findex latex-electric-env-pair-mode
   In @LaTeX{} input, @samp{\begin} and @samp{\end} tags must balance.
-You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to insert an
+You can use @kbd{C-c C-e} (@code{latex-close-block}) to insert an
 @samp{\end} tag which matches the last unmatched @samp{\begin}.  It
 also indents the @samp{\end} to match the corresponding @samp{\begin},
 and inserts a newline after the @samp{\end} tag if point is at the
