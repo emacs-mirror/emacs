@@ -558,6 +558,27 @@ It is the default value of the variable `top-level'."
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
+    (when (featurep 'native-compile)
+      ;; Form `native-comp-eln-load-path'.
+      (let ((path-env (getenv "EMACSNATIVELOADPATH")))
+        (when path-env
+          (dolist (path (split-string path-env path-separator))
+            (unless (string= "" path)
+              (push path native-comp-eln-load-path)))))
+      (push (expand-file-name "eln-cache/" user-emacs-directory)
+            native-comp-eln-load-path)
+      ;; When $HOME is set to '/nonexistent' means we are running the
+      ;; testsuite, add a temporary folder in front to produce there
+      ;; new compilations.
+      (when (and (equal (getenv "HOME") "/nonexistent")
+                 ;; We may be running in a chroot environment where we
+                 ;; can't write anything.
+                 (file-writable-p (expand-file-name
+                                   (or temporary-file-directory ""))))
+        (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
+          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+          (push tmp-dir native-comp-eln-load-path))))
+
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
     ;; that dir into load-path.  This needs to be done before setting
@@ -644,6 +665,16 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
+        (when (featurep 'native-compile)
+          (let ((npath (symbol-value 'native-comp-eln-load-path)))
+            (set 'native-comp-eln-load-path
+                 (mapcar (lambda (dir)
+                           ;; Call expand-file-name to remove all the
+                           ;; pesky ".." from the directyory names in
+                           ;; native-comp-eln-load-path.
+                           (expand-file-name
+                            (decode-coding-string dir coding t)))
+                         npath))))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name
@@ -800,6 +831,34 @@ It is the default value of the variable `top-level'."
 	    (font-menu-add-default))
 	(unless inhibit-startup-hooks
 	  (run-hooks 'window-setup-hook))))
+
+    ;; Amend `native-comp-eln-load-path' after `command-line', since
+    ;; the latter may have altered `user-emacs-directory'.
+    (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
+                        (file-writable-p (expand-file-name
+                                          (or temporary-file-directory "")))
+                        (car native-comp-eln-load-path)))
+          (coding (if (eq system-type 'windows-nt)
+		      'utf-8
+		    locale-coding-system)))
+      (if tmp-dir
+          (setq native-comp-eln-load-path
+                (cdr native-comp-eln-load-path)))
+      ;; Remove the original eln-cache.
+      (setq native-comp-eln-load-path
+            (cdr native-comp-eln-load-path))
+      ;; Add the new eln-cache.
+      (push (expand-file-name "eln-cache/"
+                              (if coding
+                                  (decode-coding-string user-emacs-directory
+                                                        coding t)
+                                user-emacs-directory))
+            native-comp-eln-load-path)
+      (when tmp-dir
+        ;; Recompute tmp-dir, in case user-emacs-directory affects it.
+        (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
+        (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+        (push tmp-dir native-comp-eln-load-path)))
 
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
