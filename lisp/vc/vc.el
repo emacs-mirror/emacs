@@ -1742,7 +1742,20 @@ BUFFER defaults to the current buffer."
   "Functions run at the end of the diff command.
 Each function runs in the diff output buffer without args.")
 
-(defun vc-diff-finish (buffer messages)
+(defun vc-diff-restore-buffer (original new)
+  "Restore point in buffer NEW to where it was in ORIGINAL.
+
+This function works by updating buffer ORIGINAL with the contents
+of NEW (without destroying existing markers), swapping their text
+objects, and finally killing buffer ORIGINAL."
+  (with-current-buffer original
+    (let ((inhibit-read-only t))
+      (replace-buffer-contents new)))
+  (with-current-buffer new
+    (buffer-swap-text original))
+  (kill-buffer original))
+
+(defun vc-diff-finish (buffer messages &optional oldbuf)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.
   (when (buffer-live-p buffer)
@@ -1754,7 +1767,11 @@ Each function runs in the diff output buffer without args.")
 	       (message "%s" (cdr messages))))
 	(diff-setup-whitespace)
 	(diff-setup-buffer-type)
-	(goto-char (point-min))
+        ;; `oldbuf' is the buffer that used to show this diff.  Make
+        ;; sure that we restore point in it if it's given.
+	(if oldbuf
+            (vc-diff-restore-buffer oldbuf buffer)
+          (goto-char (point-min)))
 	(run-hooks 'vc-diff-finish-functions))
       (when (and messages (not emptyp))
 	(message "%sdone" (car messages))))))
@@ -1779,7 +1796,12 @@ Return t if the buffer had changes, nil otherwise."
 	 ;; but the only way to set it for each file included would
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
-	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
+	  (if files (vc-coding-system-for-diff (car files)) 'undecided))
+         (orig-diff-buffer-clone
+          (if (and (get-buffer buffer) revert-buffer-in-progress-p)
+              (with-current-buffer buffer
+                (clone-buffer
+                 (generate-new-buffer-name " *vc-diff-clone*") nil)))))
     ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
     ;; EOLs, which will look ugly if (car files) happens to have Unix
     ;; EOLs.
@@ -1840,7 +1862,8 @@ Return t if the buffer had changes, nil otherwise."
       ;; after `pop-to-buffer'; the former assumes the diff buffer is
       ;; shown in some window.
       (let ((buf (current-buffer)))
-        (vc-run-delayed (vc-diff-finish buf (when verbose messages))))
+        (vc-run-delayed (vc-diff-finish buf (when verbose messages)
+                                        orig-diff-buffer-clone)))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
