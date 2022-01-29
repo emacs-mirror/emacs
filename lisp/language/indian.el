@@ -341,6 +341,30 @@ South Indian language Malayalam is supported in this language environment."))
      table))
   "Regexp matching a composable sequence of Kannada characters.")
 
+(defconst malayalam-composable-pattern
+  (let ((table
+	 '(("A" . "[\u0D02\u0D03]")	; SIGN ANUSVARA .. VISARGA
+	   ("V" . "[\u0D05-\u0D14\u0D60\u0D61]")  ; independent vowel
+	   ("C" . "[\u0D15-\u0D39]")		  ; consonant
+	   ("Y" . "[\u0D2F\u0D30\u0D32\u0D35]")   ; YA, RA, LA, VA
+	   ("v" . "[\u0D3E-\u0D4C\u0D57\u0D62\u0D63]")	; postbase matra
+	   ("H" . "\u0D4D")			  ; SIGN VIRAMA
+	   ("N" . "\u200C")			  ; ZWNJ
+	   ("J" . "\u200D")			  ; ZWJ
+	   ("X" . "[\u0D00-\u0D7F]"))))		  ; all coverage
+    (indian-compose-regexp
+     (concat
+      ;; any sequence of Malayalam characters, or
+      "X+\\|"
+      ;; consonant-based syllables, or
+      "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?\\|v?A?\\)\\|"
+      ;; syllables with an independent vowel, or
+      "V\\(?:J?HY\\)?v*?A?\\|"
+      ;; special consonant form
+      "JHY")
+     table))
+  "Regexp matching a composable sequence of Malayalam characters.")
+
 (let ((script-regexp-alist
        `((devanagari . ,devanagari-composable-pattern)
 	 (bengali . ,bengali-composable-pattern)
@@ -349,7 +373,8 @@ South Indian language Malayalam is supported in this language environment."))
 	 (oriya . ,oriya-composable-pattern)
 	 (tamil . ,tamil-composable-pattern)
 	 (telugu . ,telugu-composable-pattern)
-	 (kannada . ,kannada-composable-pattern))))
+	 (kannada . ,kannada-composable-pattern)
+	 (malayalam . ,malayalam-composable-pattern))))
   (map-char-table
    #'(lambda (key val)
        (let ((slot (assq val script-regexp-alist)))
@@ -358,11 +383,6 @@ South Indian language Malayalam is supported in this language environment."))
 	      composition-function-table key
 	      (list (vector (cdr slot) 0 #'font-shape-gstring))))))
    char-script-table))
-
-;; Malayalam: pass any sequence of characters to the shaping engine.
-(set-char-table-range composition-function-table '(#x0D00 . #x0D7F)
-                      `([,(purecopy "[\u0D00-\u0D7F]+")
-                         0 font-shape-gstring]))
 
 (provide 'indian)
 
