@@ -2844,7 +2844,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    int tab_bar_p = 0, tool_bar_p = 0;
 	    bool up_okay_p = false;
 
-	    if (!f)
+	    if (popup_activated_p || !f)
 	      continue;
 
 	    struct haiku_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -3324,6 +3324,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
     flush_dirty_back_buffers ();
 
   unblock_input ();
+
   return message_count;
 }
 
