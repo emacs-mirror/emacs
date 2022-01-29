@@ -200,6 +200,8 @@ struct haiku_menu_bar_help_event
 {
   void *window;
   int mb_idx;
+  void *data;
+  bool highlight_p;
 };
 
 struct haiku_zoom_event
@@ -358,25 +360,27 @@ extern "C"
 #endif
 
   extern port_id port_application_to_emacs;
+  extern port_id port_popup_menu_to_emacs;
 
   extern void haiku_io_init (void);
   extern void haiku_io_init_in_app_thread (void);
 
   extern void
-  haiku_read_size (ssize_t *len);
+  haiku_read_size (ssize_t *len, bool popup_menu_p);
 
   extern int
   haiku_read (enum haiku_event_type *type, void *buf, ssize_t len);
 
   extern int
   haiku_read_with_timeout (enum haiku_event_type *type, void *buf, ssize_t len,
-			   time_t timeout);
+			   time_t timeout, bool popup_menu_p);
 
   extern int
   haiku_write (enum haiku_event_type type, void *buf);
 
   extern int
-  haiku_write_without_signal (enum haiku_event_type type, void *buf);
+  haiku_write_without_signal (enum haiku_event_type type, void *buf,
+			      bool popup_menu_p);
 
   extern void
   rgb_color_hsl (uint32_t rgb, double *h, double *s, double *l);
@@ -679,7 +683,12 @@ extern "C"
   BMenu_item_at (void *menu, int idx);
 
   extern void *
-  BMenu_run (void *menu, int x, int y);
+  BMenu_run (void *menu, int x, int y,
+	     void (*run_help_callback) (void *, void *),
+	     void (*block_input_function) (void),
+	     void (*unblock_input_function) (void),
+	     void (*process_pending_signals_function) (void),
+	     void *run_help_callback_data);
 
   extern void
   BPopUpMenu_delete (void *menu);

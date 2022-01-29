@@ -114,6 +114,8 @@ static BLocker child_frame_lock;
 
 static BLocker movement_locker;
 
+static BMessage volatile *popup_track_message;
+
 /* This could be a private API, but it's used by (at least) the Qt
    port, so it's probably here to stay.  */
 extern status_t get_subpixel_antialiasing (bool *);
@@ -135,6 +137,30 @@ gui_abort (const char *msg)
   fprintf (stderr, "App Server disconnects usually manifest as bitmap "
 	   "initialization failures or lock failures.");
   emacs_abort ();
+}
+
+struct be_popup_menu_data
+{
+  int x, y;
+  BPopUpMenu *menu;
+};
+
+static int32
+be_popup_menu_thread_entry (void *thread_data)
+{
+  struct be_popup_menu_data *data;
+  BMenuItem *it;
+
+  data = (struct be_popup_menu_data *) thread_data;
+
+  it = data->menu->Go (BPoint (data->x, data->y));
+
+  if (it)
+    popup_track_message = it->Message ();
+  else
+    popup_track_message = NULL;
+
+  return 0;
 }
 
 /* Convert a raw character RAW produced by the keycode KEY into a key
@@ -656,8 +682,10 @@ public:
     else if (msg->GetPointer ("menuptr"))
       {
 	struct haiku_menu_bar_select_event rq;
+
 	rq.window = this;
 	rq.ptr = (void *) msg->GetPointer ("menuptr");
+
 	haiku_write (MENU_BAR_SELECT_EVENT, &rq);
       }
     else if (msg->what == 'FPSE'
@@ -1607,6 +1635,7 @@ class EmacsMenuItem : public BMenuItem
 {
 public:
   int menu_bar_id = -1;
+  void *menu_ptr = NULL;
   void *wind_ptr = NULL;
   char *key = NULL;
   char *help = NULL;
@@ -1675,16 +1704,23 @@ public:
 
     if (help)
       menu->SetToolTip (highlight_p ? help : NULL);
-    else if (menu_bar_id >= 0)
+    else
       {
 	rq.window = wind_ptr;
 	rq.mb_idx = highlight_p ? menu_bar_id : -1;
+	rq.highlight_p = highlight_p;
+	rq.data = menu_ptr;
 
 	r = Frame ();
 	menu->GetMouse (&pt, &buttons);
 
 	if (!highlight_p || r.Contains (pt))
-	  haiku_write (MENU_BAR_HELP_EVENT, &rq);
+	  {
+	    if (menu_bar_id > 0)
+	      haiku_write (MENU_BAR_HELP_EVENT, &rq);
+	    else
+	      haiku_write_without_signal (MENU_BAR_HELP_EVENT, &rq, true);
+	  }
       }
 
     BMenuItem::Highlight (highlight_p);
@@ -2353,6 +2389,7 @@ BMenu_add_item (void *menu, const char *label, void *ptr, bool enabled_p,
       it->menu_bar_id = (intptr_t) ptr;
       it->wind_ptr = mbw_ptr;
     }
+  it->menu_ptr = ptr;
   if (ptr)
     msg->AddPointer ("menuptr", ptr);
   m->AddItem (it);
@@ -2397,20 +2434,109 @@ BMenu_new_menu_bar_submenu (void *menu, const char *label)
    data of the selected item (if one exists), or NULL.  X, Y should
    be in the screen coordinate system.  */
 void *
-BMenu_run (void *menu, int x, int y)
+BMenu_run (void *menu, int x, int y,
+	   void (*run_help_callback) (void *, void *),
+	   void (*block_input_function) (void),
+	   void (*unblock_input_function) (void),
+	   void (*process_pending_signals_function) (void),
+	   void *run_help_callback_data)
 {
   BPopUpMenu *mn = (BPopUpMenu *) menu;
+  enum haiku_event_type type;
+  void *buf;
+  void *ptr = NULL;
+  struct be_popup_menu_data data;
+  struct object_wait_info infos[2];
+  struct haiku_menu_bar_help_event *event;
+  BMessage *msg;
+  ssize_t stat;
+
+  block_input_function ();
+  port_popup_menu_to_emacs = create_port (1800, "popup menu port");
+  data.x = x;
+  data.y = y;
+  data.menu = mn;
+  unblock_input_function ();
+
+  if (port_popup_menu_to_emacs < B_OK)
+    return NULL;
+
+  block_input_function ();
   mn->SetRadioMode (0);
-  BMenuItem *it = mn->Go (BPoint (x, y));
-  if (it)
+  buf = alloca (200);
+
+  infos[0].object = port_popup_menu_to_emacs;
+  infos[0].type = B_OBJECT_TYPE_PORT;
+  infos[0].events = B_EVENT_READ;
+
+  infos[1].object = spawn_thread (be_popup_menu_thread_entry,
+				  "Menu tracker", B_DEFAULT_MEDIA_PRIORITY,
+				  (void *) &data);
+  infos[1].type = B_OBJECT_TYPE_THREAD;
+  infos[1].events = B_EVENT_INVALID;
+  unblock_input_function ();
+
+  if (infos[1].object < B_OK)
     {
-      BMessage *mg = it->Message ();
-      if (mg)
-	return (void *) mg->GetPointer ("menuptr");
-      else
-	return NULL;
+      block_input_function ();
+      delete_port (port_popup_menu_to_emacs);
+      unblock_input_function ();
+      return NULL;
     }
-  return NULL;
+
+  block_input_function ();
+  resume_thread (infos[1].object);
+  unblock_input_function ();
+
+  while (true)
+    {
+      if ((stat = wait_for_objects_etc ((object_wait_info *) &infos, 2,
+					B_RELATIVE_TIMEOUT, 10000)) < B_OK)
+	{
+	  if (stat == B_INTERRUPTED)
+	    continue;
+	  else if (stat == B_TIMED_OUT)
+	    {
+	      process_pending_signals_function ();
+	      continue;
+	    }
+	  else
+	    gui_abort ("Failed to wait for popup");
+	}
+
+      if (infos[0].events & B_EVENT_READ)
+	{
+	  if (!haiku_read_with_timeout (&type, buf, 200, 1000000, true))
+	    {
+	      switch (type)
+		{
+		case MENU_BAR_HELP_EVENT:
+		  event = (struct haiku_menu_bar_help_event *) buf;
+		  run_help_callback (event->highlight_p
+				     ? event->data
+				     : NULL, run_help_callback_data);
+		  break;
+		default:
+		  gui_abort ("Unknown popup menu event");
+		}
+	    }
+	}
+
+      if (infos[1].events & B_EVENT_INVALID)
+	{
+	  block_input_function ();
+	  msg = (BMessage *) popup_track_message;
+	  if (popup_track_message)
+	    ptr = (void *) msg->GetPointer ("menuptr");
+
+	  delete_port (port_popup_menu_to_emacs);
+	  unblock_input_function ();
+	  return ptr;
+	}
+
+      infos[0].events = B_EVENT_READ;
+      infos[1].events = B_EVENT_INVALID;
+    }
 }
 
 /* Delete the entire menu hierarchy of MENU, and then delete MENU
@@ -2864,7 +2990,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
       enum haiku_event_type type;
       char *ptr = NULL;
 
-      if (!haiku_read_with_timeout (&type, buf, 200, 1000000))
+      if (!haiku_read_with_timeout (&type, buf, 200, 1000000, false))
 	{
 	  block_input_function ();
 	  if (type != FILE_PANEL_EVENT)
@@ -2878,7 +3004,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
 
       ssize_t b_s;
       block_input_function ();
-      haiku_read_size (&b_s);
+      haiku_read_size (&b_s, false);
       if (!b_s || ptr || panel->Window ()->IsHidden ())
 	{
 	  c_unbind_to_nil_from_cxx (idx);

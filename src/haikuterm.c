@@ -2559,7 +2559,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   if (!buf)
     buf = xmalloc (200);
-  haiku_read_size (&b_size);
+  haiku_read_size (&b_size, false);
   while (b_size >= 0)
     {
       enum haiku_event_type type;
@@ -2831,6 +2831,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    || !NILP (previous_help_echo_string))
 		  do_help = 1;
 	      }
+
+	    need_flush = FRAME_DIRTY_P (f);
 	    break;
 	  }
 	case BUTTON_UP:
@@ -3260,7 +3262,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  break;
 	}
 
-      haiku_read_size (&b_size);
+      haiku_read_size (&b_size, false);
 
       if (inev.kind != NO_EVENT)
 	{
@@ -3285,7 +3287,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
   for (struct unhandled_event *ev = unhandled_events; ev;)
     {
-      haiku_write_without_signal (ev->type, &ev->buffer);
+      haiku_write_without_signal (ev->type, &ev->buffer, false);
       struct unhandled_event *old = ev;
       ev = old->next;
       xfree (old);

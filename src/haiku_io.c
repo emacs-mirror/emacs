@@ -36,6 +36,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Emacs.  */
 port_id port_application_to_emacs;
 
+/* The port used to send popup menu messages from the application
+   thread to Emacs.  */
+port_id port_popup_menu_to_emacs;
+
 void
 haiku_io_init (void)
 {
@@ -98,9 +102,11 @@ haiku_len (enum haiku_event_type type)
 /* Read the size of the next message into len, returning -1 if the
    query fails or there is no next message.  */
 void
-haiku_read_size (ssize_t *len)
+haiku_read_size (ssize_t *len, bool popup_menu_p)
 {
-  port_id from = port_application_to_emacs;
+  port_id from = (popup_menu_p
+		  ? port_popup_menu_to_emacs
+		  : port_application_to_emacs);
   ssize_t size;
 
   size = port_buffer_size_etc (from, B_TIMEOUT, 0);
@@ -129,13 +135,16 @@ haiku_read (enum haiku_event_type *type, void *buf, ssize_t len)
 }
 
 /* The same as haiku_read, but time out after TIMEOUT microseconds.
+   POPUP_MENU_P means to read from the popup menu port instead.
    Input is blocked when an attempt to read is in progress.  */
 int
 haiku_read_with_timeout (enum haiku_event_type *type, void *buf, ssize_t len,
-			 time_t timeout)
+			 time_t timeout, bool popup_menu_p)
 {
   int32 typ;
-  port_id from = port_application_to_emacs;
+  port_id from = (popup_menu_p
+		  ? port_popup_menu_to_emacs
+		  : port_application_to_emacs);
 
   block_input ();
   if (read_port_etc (from, &typ, buf, len,
@@ -165,9 +174,12 @@ haiku_write (enum haiku_event_type type, void *buf)
 }
 
 int
-haiku_write_without_signal (enum haiku_event_type type, void *buf)
+haiku_write_without_signal (enum haiku_event_type type, void *buf,
+			    bool popup_menu_p)
 {
-  port_id to = port_application_to_emacs;
+  port_id to = (popup_menu_p
+		? port_popup_menu_to_emacs
+		: port_application_to_emacs);
 
   if (write_port (to, (int32_t) type, buf, haiku_len (type)) < B_OK)
     return -1;

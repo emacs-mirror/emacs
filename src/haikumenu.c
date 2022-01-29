@@ -150,11 +150,20 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	  else if (NILP (def) && menu_separator_name_p (SSDATA (item_name)))
 	    BMenu_add_separator (menu);
 	  else if (!mbar_p)
-	    BMenu_add_item (menu, SSDATA (item_name),
-			    !NILP (def) ? aref_addr (menu_items, i) : NULL,
-			    !NILP (enable), !NILP (selected), 0, window,
-			    !NILP (descrip) ? SSDATA (descrip) : NULL,
-			    STRINGP (help) ? SSDATA (help) : NULL);
+	    {
+	      if (!use_system_tooltips || NILP (Fsymbol_value (Qtooltip_mode)))
+		BMenu_add_item (menu, SSDATA (item_name),
+				!NILP (def) ? aref_addr (menu_items, i) : NULL,
+				!NILP (enable), !NILP (selected), 0, window,
+				!NILP (descrip) ? SSDATA (descrip) : NULL,
+				NULL);
+	      else
+		BMenu_add_item (menu, SSDATA (item_name),
+				!NILP (def) ? aref_addr (menu_items, i) : NULL,
+				!NILP (enable), !NILP (selected), 0, window,
+				!NILP (descrip) ? SSDATA (descrip) : NULL,
+				STRINGP (help) ? SSDATA (help) : NULL);
+	    }
 	  else if (!use_system_tooltips || NILP (Fsymbol_value (Qtooltip_mode)))
 	    BMenu_add_item (menu, SSDATA (item_name),
 			    !NILP (def) ? (void *) (intptr_t) i : NULL,
@@ -294,6 +303,27 @@ haiku_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   return selection;
 }
 
+static void
+haiku_menu_show_help (void *help, void *data)
+{
+  Lisp_Object *id = (Lisp_Object *) help;
+
+  if (help)
+    show_help_echo (id[MENU_ITEMS_ITEM_HELP],
+		    Qnil, Qnil, Qnil);
+  else
+    show_help_echo (Qnil, Qnil, Qnil, Qnil);
+}
+
+static void
+haiku_process_pending_signals_for_menu (void)
+{
+  process_pending_signals ();
+
+  input_pending = false;
+  detect_input_pending_run_timers (true);
+}
+
 Lisp_Object
 haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 		 Lisp_Object title, const char **error_name)
@@ -327,8 +357,13 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
     }
   digest_menu_items (menu, 0, menu_items_used, 0);
   BView_convert_to_screen (view, &x, &y);
-  menu_item_selection = BMenu_run (menu, x, y);
   unblock_input ();
+
+  popup_activated_p++;
+  menu_item_selection = BMenu_run (menu, x, y,  haiku_menu_show_help,
+				   block_input, unblock_input,
+				   haiku_process_pending_signals_for_menu, NULL);
+  popup_activated_p--;
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
