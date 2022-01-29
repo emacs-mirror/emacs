@@ -1085,6 +1085,11 @@ This event is sent when a user performs a pinch gesture on a touchpad,
 which is comprised of placing two fingers on the touchpad and moving
 them towards or away from each other.
 
++++
+** New hook 'x-pre-popup-menu-hook'.
+This hook is run before 'x-popup-menu' is about to display a
+deck-of-cards menu on screen.
+
 ** Text security and suspiciousness
 
 +++

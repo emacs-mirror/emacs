@@ -1395,6 +1395,8 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   record_unwind_protect_void (discard_menu_items);
 #endif
 
+  run_hook (Qx_pre_popup_menu_hook);
+
   /* Display them in a menu, but not if F is the initial frame that
      doesn't have its hooks set (e.g., in a batch session), because
      such a frame cannot display menus.  */
@@ -1408,7 +1410,11 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   discard_menu_items ();
 #endif
 
-#ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
+#ifdef HAVE_NTGUI     /* W32 specific because other terminals clear
+			 the grab inside their `menu_show_hook's if
+			 it's actually required (i.e. there isn't a
+			 way to query the buttons currently held down
+			 after XMenuActivate). */
   if (FRAME_W32_P (f))
     FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
@@ -1602,6 +1608,14 @@ syms_of_menu (void)
   staticpro (&menu_items);
 
   DEFSYM (Qhide, "hide");
+  DEFSYM (Qx_pre_popup_menu_hook, "x-pre-popup-menu-hook");
+
+  DEFVAR_LISP ("x-pre-popup-menu-hook", Vx_pre_popup_menu_hook,
+	       doc: /* Hook run before `x-popup-menu' displays a popup menu.
+It is only run before the menu is really going to be displayed.  It
+won't be run if `x-popup-menu' fails or returns for some other reason
+(such as the keymap is invalid).  */);
+  Vx_pre_popup_menu_hook = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
