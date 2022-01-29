@@ -2827,6 +2827,14 @@ All the elements are markers or nil (nil if the Nth pair didn't match)
 if the last match was on a buffer; integers or nil if a string was matched.
 Use `set-match-data' to reinstate the data in this list.
 
+Note that non-matching optional groups at the end of the regexp are
+elided instead of being represented with two `nil's each.  For instance:
+
+  (progn
+    (string-match "^\\(a\\)?\\(b\\)\\(c\\)?$" "b")
+    (match-data))
+  => (0 1 nil nil 0 1)
+
 If INTEGERS (the optional first argument) is non-nil, always use
 integers (rather than markers) to represent buffer positions.  In
 this case, and if the last match was in a buffer, the buffer will get
