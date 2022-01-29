@@ -830,11 +830,12 @@ These will be used to retrieve the RSVP information from ical events."
 (defmacro gnus-icalendar-with-decoded-handle (handle &rest body)
   "Execute BODY in buffer containing the decoded contents of HANDLE."
   (let ((charset (make-symbol "charset")))
-    `(let ((,charset (cdr (assoc 'charset (mm-handle-type ,handle)))))
+    `(let ((,charset (downcase
+		      (or (cdr (assoc 'charset (mm-handle-type ,handle)))
+			  "utf-8"))))
        (with-temp-buffer
          (mm-insert-part ,handle)
-         (when (and ,charset (string= (downcase ,charset) "utf-8"))
-           (decode-coding-region (point-min) (point-max) 'utf-8))
+         (decode-coding-region (point-min) (point-max) (intern ,charset))
          ,@body))))
 
 
