@@ -834,31 +834,32 @@ It is the default value of the variable `top-level'."
 
     ;; Amend `native-comp-eln-load-path' after `command-line', since
     ;; the latter may have altered `user-emacs-directory'.
-    (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
-                        (file-writable-p (expand-file-name
-                                          (or temporary-file-directory "")))
-                        (car native-comp-eln-load-path)))
-          (coding (if (eq system-type 'windows-nt)
-		      'utf-8
-		    locale-coding-system)))
-      (if tmp-dir
-          (setq native-comp-eln-load-path
-                (cdr native-comp-eln-load-path)))
-      ;; Remove the original eln-cache.
-      (setq native-comp-eln-load-path
-            (cdr native-comp-eln-load-path))
-      ;; Add the new eln-cache.
-      (push (expand-file-name "eln-cache/"
-                              (if coding
-                                  (decode-coding-string user-emacs-directory
-                                                        coding t)
-                                user-emacs-directory))
-            native-comp-eln-load-path)
-      (when tmp-dir
-        ;; Recompute tmp-dir, in case user-emacs-directory affects it.
-        (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
-        (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
-        (push tmp-dir native-comp-eln-load-path)))
+    (when (featurep 'native-compile)
+      (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
+                          (file-writable-p (expand-file-name
+                                            (or temporary-file-directory "")))
+                          (car native-comp-eln-load-path)))
+            (coding (if (eq system-type 'windows-nt)
+		        'utf-8
+		      locale-coding-system)))
+        (if tmp-dir
+            (setq native-comp-eln-load-path
+                  (cdr native-comp-eln-load-path)))
+        ;; Remove the original eln-cache.
+        (setq native-comp-eln-load-path
+              (cdr native-comp-eln-load-path))
+        ;; Add the new eln-cache.
+        (push (expand-file-name "eln-cache/"
+                                (if coding
+                                    (decode-coding-string user-emacs-directory
+                                                          coding t)
+                                  user-emacs-directory))
+              native-comp-eln-load-path)
+        (when tmp-dir
+          ;; Recompute tmp-dir, in case user-emacs-directory affects it.
+          (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
+          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+          (push tmp-dir native-comp-eln-load-path))))
 
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
