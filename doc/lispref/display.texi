@@ -612,6 +612,16 @@ how to display a message and prevent it from being logged:
 @end example
 @end defopt
 
+@defvar messages-buffer-name
+This variable has the name of the buffer where messages should be
+logged to, and defaults to @file{*Messages*}.  Some packages may find
+it useful to temporarily redirect the output to a different buffer
+(perhaps to write the buffer out to a log file later), and they can
+bind this variable to a different buffer name.  (Note that this buffer
+(if it doesn't exist already), will be created and put into
+@code{messages-buffer-mode}.)
+@end defvar
+
   To make @file{*Messages*} more convenient for the user, the logging
 facility combines successive identical messages.  It also combines
 successive related messages for the sake of two cases: question

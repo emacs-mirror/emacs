@@ -1023,6 +1023,10 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+** New variable 'messages-buffer-name'.
+This variable (defaulting to "*Messages*") allows packages to override
+where messages are logged.
+
 +++
 ** New function 'readablep'.
 This function says whether an object can be written out and then

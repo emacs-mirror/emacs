@@ -741,10 +741,6 @@ int update_mode_lines;
 
 static bool line_number_displayed;
 
-/* The name of the *Messages* buffer, a string.  */
-
-static Lisp_Object Vmessages_buffer_name;
-
 /* Current, index 0, and last displayed echo area message.  Either
    buffers from echo_buffers, or nil to indicate no message.  */
 
@@ -11378,6 +11374,10 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
 
+      /* Sanity check, in case the variable has been set to something
+	 invalid.  */
+      if (! STRINGP (Vmessages_buffer_name))
+	Vmessages_buffer_name = build_string ("*Messages*");
       /* Ensure the Messages buffer exists, and switch to it.
          If we created it, set the major-mode.  */
       bool newbuffer = NILP (Fget_buffer (Vmessages_buffer_name));
@@ -35626,8 +35626,13 @@ be let-bound around code that needs to disable messages temporarily. */);
   staticpro (&echo_area_buffer[0]);
   staticpro (&echo_area_buffer[1]);
 
-  Vmessages_buffer_name = build_pure_c_string ("*Messages*");
-  staticpro (&Vmessages_buffer_name);
+  DEFVAR_LISP ("messages-buffer-name", Vmessages_buffer_name,
+    doc: /* The name of the buffer where messages are logged.
+This is normally \"\*Messages*\", but can be rebound by packages that
+wish to redirect messages to a different buffer.  (If the buffer
+doesn't exist, it will be created and put into
+`messages-buffer-mode'.)  */);
+  Vmessages_buffer_name = build_string ("*Messages*");
 
   mode_line_proptrans_alist = Qnil;
   staticpro (&mode_line_proptrans_alist);
