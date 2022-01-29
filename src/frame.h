@@ -637,6 +637,9 @@ struct frame
      Negative values mean not to change alpha.  */
   double alpha[2];
 
+  /* Background opacity */
+  double alpha_background;
+
   /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *
      SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a
      frame parameter.  0 means don't do gamma correction.  */
@@ -1669,6 +1672,7 @@ extern void gui_set_scroll_bar_height (struct frame *, Lisp_Object, Lisp_Object)
 extern long gui_figure_window_size (struct frame *, Lisp_Object, bool, bool);
 
 extern void gui_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+extern void gui_set_alpha_background (struct frame *, Lisp_Object, Lisp_Object);
 extern void gui_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);

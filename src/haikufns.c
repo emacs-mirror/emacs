@@ -830,6 +830,8 @@ haiku_create_frame (Lisp_Object parms)
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha, Qnil,
 			 "alpha", "Alpha", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                         "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qfullscreen, Qnil,
 			 "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
@@ -1043,6 +1045,8 @@ haiku_create_tip_frame (Lisp_Object parms)
                          "cursorType", "CursorType", RES_TYPE_SYMBOL);
   gui_default_parameter (f, parms, Qalpha, Qnil,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                         "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
 
   initial_setup_back_buffer (f);
 
@@ -2609,7 +2613,8 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_no_accept_focus,
     NULL, /* set z group */
     haiku_set_override_redirect,
-    gui_set_no_special_glyphs
+    gui_set_no_special_glyphs,
+    gui_set_alpha_background,
   };
 
 void

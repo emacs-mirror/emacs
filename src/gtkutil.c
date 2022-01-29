@@ -1467,6 +1467,10 @@ xg_create_frame_widgets (struct frame *f)
     }
   wtop = gtk_window_new (type);
   gtk_widget_add_events (wtop, GDK_ALL_EVENTS_MASK);
+
+  /* This prevents GTK from painting the window's background, which
+     would interfere with transparent background in some environments */
+  gtk_widget_set_app_paintable (wtop, TRUE);
 #endif
 
   /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
@@ -1587,6 +1591,15 @@ xg_create_frame_widgets (struct frame *f)
 #endif
                          | GDK_VISIBILITY_NOTIFY_MASK);
 
+  GdkScreen *screen = gtk_widget_get_screen (wtop);
+
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
+    {
+      GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
+      gtk_widget_set_visual (wtop, visual);
+      gtk_widget_set_visual (wfixed, visual);
+    }
+
 #ifndef HAVE_PGTK
   /* Must realize the windows so the X window gets created.  It is used
      by callers of this function.  */
@@ -1651,7 +1664,6 @@ xg_create_frame_widgets (struct frame *f)
 #endif
 
   {
-    GdkScreen *screen = gtk_widget_get_screen (wtop);
     GtkSettings *gs = gtk_settings_get_for_screen (screen);
     /* Only connect this signal once per screen.  */
     if (! g_signal_handler_find (G_OBJECT (gs),

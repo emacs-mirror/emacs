@@ -149,6 +149,15 @@ various X toolkits (GTK+, Lucid, etc.)---we indicate below when this
 is the case.
 
 @table @asis
+@item @code{alpha} (class @code{Alpha})
+Sets the @samp{alpha} frame parameter, determining frame transparency
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
+@item @code{alphaBackground} (class @code{AlphaBackground})
+Sets the @samp{alpha-background} frame parameter, determining background
+transparency
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
 @item @code{background} (class @code{Background})
 Background color (@pxref{Colors}).
 
