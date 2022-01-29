@@ -3252,7 +3252,7 @@ character.  This is not possible when using `read-key', but using
 (defvar from--tty-menu-p nil
   "Non-nil means the current command was invoked from a TTY menu.")
 (defun use-dialog-box-p ()
-  "Say whether the current command should promp the user via GUI dialog box."
+  "Say whether the current command should prompt the user via a dialog box."
   (and last-input-event                 ; not during startup
        (or (listp last-nonmenu-event)   ; invoked by a mouse event
            from--tty-menu-p)            ; invoked via TTY menu
