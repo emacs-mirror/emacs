@@ -119,6 +119,16 @@ This is to open up the 'C-x 8 .' map to bind further characters there.
 This is for compatibility with the shell versions of these commands,
 which don't handle options like '--help' in any special way.
 
+---
+** The 'delete-forward-char' command now deletes by grapheme clusters.
+This command is by default bound to the <Delete> function key
+(a.k.a. <deletechar>).  When invoked without a prefix argument or with
+a positive prefix numeric argument, the command will now delete
+complete grapheme clusters produced by character composition.  For
+example, if point is before an Emoji sequence, pressing <Delete> will
+delete the entire sequence, not just a single character at its
+beginning.
+
 
 * Changes in Emacs 29.1
 

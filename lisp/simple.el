@@ -1292,6 +1292,11 @@ If Transient Mark mode is enabled, the mark is active, and N is 1,
 delete the text in the region and deactivate the mark instead.
 To disable this, set variable `delete-active-region' to nil.
 
+If N is positive, characters composed into a single grapheme cluster
+count as a single character and are deleted together.  Thus,
+\"\\[universal-argument] 2 \\[delete-forward-char]\" when two grapheme clusters follow point will
+delete the characters composed into both of the grapheme clusters.
+
 Optional second arg KILLFLAG non-nil means to kill (save in kill
 ring) instead of delete.  If called interactively, a numeric
 prefix argument specifies N, and KILLFLAG is also set if a prefix
@@ -1311,6 +1316,21 @@ the actual saved text might be different from what was killed."
 	 (if (eq delete-active-region 'kill)
 	     (kill-region (region-beginning) (region-end) 'region)
 	   (funcall region-extract-function 'delete-only)))
+
+	;; For forward deletion, treat composed characters as a single
+	;; character to delete.
+        ((>= n 1)
+         (let ((pos (point))
+               start cmp)
+           (setq start pos)
+           (while (> n 0)
+             ;; 'find-composition' will return (FROM TO ....) or nil.
+             (setq cmp (find-composition pos))
+             (if cmp
+                 (setq pos (cadr cmp))
+               (setq pos (1+ pos)))
+             (setq n (1- n)))
+           (delete-char (- pos start) killflag)))
 
 	;; Otherwise, do simple deletion.
 	(t (delete-char n killflag))))
