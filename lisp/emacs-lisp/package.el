@@ -1005,7 +1005,8 @@ untar into a directory named DIR; otherwise, signal an error."
   "Make sure that the autoload file FILE exists and if not create it."
   (unless (file-exists-p file)
     (require 'autoload)
-    (write-region (autoload-rubric file "package" nil) nil file nil 'silent))
+    (let ((coding-system-for-write 'utf-8-emacs-unix))
+      (write-region (autoload-rubric file "package" nil) nil file nil 'silent)))
   file)
 
 (defvar autoload-timestamps)
