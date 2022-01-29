@@ -2842,6 +2842,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct frame *f = haiku_window_to_frame (b->window);
 	    Lisp_Object tab_bar_arg = Qnil;
 	    int tab_bar_p = 0, tool_bar_p = 0;
+	    bool up_okay_p = false;
 
 	    if (!f)
 	      continue;
@@ -2894,10 +2895,12 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (type == BUTTON_UP)
 	      {
 		inev.modifiers |= up_modifier;
+		up_okay_p = (dpyinfo->grabbed & (1 << b->btn_no));
 		dpyinfo->grabbed &= ~(1 << b->btn_no);
 	      }
 	    else
 	      {
+		up_okay_p = true;
 		inev.modifiers |= down_modifier;
 		dpyinfo->last_mouse_frame = f;
 		dpyinfo->grabbed |= (1 << b->btn_no);
@@ -2907,7 +2910,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  f->last_tool_bar_item = -1;
 	      }
 
-	    if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
+	    if (up_okay_p
+		&& !(tab_bar_p && NILP (tab_bar_arg))
+		&& !tool_bar_p)
 	      inev.kind = MOUSE_CLICK_EVENT;
 	    inev.arg = tab_bar_arg;
 	    inev.code = b->btn_no;
