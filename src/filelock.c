@@ -682,7 +682,7 @@ lock_file (Lisp_Object fn)
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))
-      && !(lfname && (current_lock_owner (NULL, lfname) != I_OWN_IT)))
+      && !(lfname && (current_lock_owner (NULL, lfname) == I_OWN_IT)))
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
   /* Don't do locking if the user has opted out.  */
