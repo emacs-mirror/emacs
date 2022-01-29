@@ -836,7 +836,6 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.  */)
   (register Lisp_Object symbol, Lisp_Object definition)
 {
-  register Lisp_Object function;
   CHECK_SYMBOL (symbol);
   /* Perhaps not quite the right error signal, but seems good enough.  */
   if (NILP (symbol) && !NILP (definition))
@@ -844,11 +843,11 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
        think this one little sanity check is worth its cost, but anyway.  */
     xsignal1 (Qsetting_constant, symbol);
 
-  function = XSYMBOL (symbol)->u.s.function;
-
   eassert (valid_lisp_object_p (definition));
 
 #ifdef HAVE_NATIVE_COMP
+  register Lisp_Object function = XSYMBOL (symbol)->u.s.function;
+
   if (comp_enable_subr_trampolines
       && SUBRP (function)
       && !SUBR_NATIVE_COMPILEDP (function))
