@@ -2629,8 +2629,11 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
       ;; `setup-specified-language-environment', for instance,
       ;; expects this to be set from a menu keymap.
       (setq last-command-event (car (last event)))
-      ;; mouse-major-mode-menu was using `command-execute' instead.
-      (call-interactively cmd))))
+      (setq from--tty-menu-p nil)
+      ;; Signal use-dialog-box-p this command was invoked from a menu.
+      (let ((from--tty-menu-p t))
+        ;; mouse-major-mode-menu was using `command-execute' instead.
+        (call-interactively cmd)))))
 
 (defun popup-menu-normalize-position (position)
   "Convert the POSITION to the form which `popup-menu' expects internally.
