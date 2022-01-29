@@ -133,7 +133,7 @@
 	     :help-echo "Control text underlining."
 	     (const :tag "Off" nil)
 	     (list :tag "On"
-		   :value (:color foreground-color :style line)
+		   :value (:color foreground-color :style line :position nil)
 		   (const :format "" :value :color)
 		   (choice :tag "Color"
 			   (const :tag "Foreground Color" foreground-color)
