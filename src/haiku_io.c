@@ -94,6 +94,8 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_refs_event);
     case APP_QUIT_REQUESTED_EVENT:
       return sizeof (struct haiku_app_quit_requested_event);
+    case DUMMY_EVENT:
+      return sizeof (struct haiku_dummy_event);
     }
 
   emacs_abort ();

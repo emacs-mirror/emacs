@@ -149,6 +149,7 @@ static int32
 be_popup_menu_thread_entry (void *thread_data)
 {
   struct be_popup_menu_data *data;
+  struct haiku_dummy_event dummy;
   BMenuItem *it;
 
   data = (struct be_popup_menu_data *) thread_data;
@@ -160,6 +161,7 @@ be_popup_menu_thread_entry (void *thread_data)
   else
     popup_track_message = NULL;
 
+  haiku_write (DUMMY_EVENT, &dummy);
   return 0;
 }
 
@@ -1697,6 +1699,7 @@ public:
   Highlight (bool highlight_p)
   {
     struct haiku_menu_bar_help_event rq;
+    struct haiku_dummy_event dummy;
     BMenu *menu = Menu ();
     BRect r;
     BPoint pt;
@@ -1719,7 +1722,10 @@ public:
 	    if (menu_bar_id > 0)
 	      haiku_write (MENU_BAR_HELP_EVENT, &rq);
 	    else
-	      haiku_write_without_signal (MENU_BAR_HELP_EVENT, &rq, true);
+	      {
+		haiku_write_without_signal (MENU_BAR_HELP_EVENT, &rq, true);
+		haiku_write (DUMMY_EVENT, &dummy);
+	      }
 	  }
       }
 
@@ -2490,16 +2496,13 @@ BMenu_run (void *menu, int x, int y,
 
   while (true)
     {
+      process_pending_signals_function ();
+
       if ((stat = wait_for_objects_etc ((object_wait_info *) &infos, 2,
 					B_RELATIVE_TIMEOUT, 10000)) < B_OK)
 	{
-	  if (stat == B_INTERRUPTED)
+	  if (stat == B_INTERRUPTED || stat == B_TIMED_OUT)
 	    continue;
-	  else if (stat == B_TIMED_OUT)
-	    {
-	      process_pending_signals_function ();
-	      continue;
-	    }
 	  else
 	    gui_abort ("Failed to wait for popup");
 	}

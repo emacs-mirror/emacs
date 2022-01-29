@@ -3263,6 +3263,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  }
 	case APP_QUIT_REQUESTED_EVENT:
 	case KEY_UP:
+	case DUMMY_EVENT:
 	default:
 	  break;
 	}

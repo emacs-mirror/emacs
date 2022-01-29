@@ -86,7 +86,8 @@ enum haiku_event_type
     MENU_BAR_HELP_EVENT,
     ZOOM_EVENT,
     REFS_EVENT,
-    APP_QUIT_REQUESTED_EVENT
+    APP_QUIT_REQUESTED_EVENT,
+    DUMMY_EVENT
   };
 
 struct haiku_quit_requested_event
@@ -119,6 +120,11 @@ struct haiku_refs_event
 };
 
 struct haiku_app_quit_requested_event
+{
+  char dummy;
+};
+
+struct haiku_dummy_event
 {
   char dummy;
 };
