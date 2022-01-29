@@ -751,9 +751,13 @@ Used by `tab-bar-format-menu-bar'."
                 (menu-bar-keymap))
     (popup-menu menu event)))
 
+(defvar tab-bar-menu-bar-button
+  (propertize "Menu" 'face 'tab-bar-tab-inactive)
+  "Button for the menu bar.")
+
 (defun tab-bar-format-menu-bar ()
   "Produce the Menu button for the tab bar that shows the menu bar."
-  `((menu-bar menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
+  `((menu-bar menu-item ,tab-bar-menu-bar-button
      tab-bar-menu-bar :help "Menu Bar")))
 
 (defun tab-bar-format-history ()
