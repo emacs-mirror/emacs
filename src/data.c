@@ -846,9 +846,6 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 
   function = XSYMBOL (symbol)->u.s.function;
 
-  if (AUTOLOADP (function))
-    Fput (symbol, Qautoload, XCDR (function));
-
   eassert (valid_lisp_object_p (definition));
 
 #ifdef HAVE_NATIVE_COMP
@@ -880,6 +877,9 @@ defalias (Lisp_Object symbol, Lisp_Object definition)
 
         if (!NILP (Vautoload_queue) && !NILP (function))
           Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
+
+        if (AUTOLOADP (function))
+          Fput (symbol, Qautoload, XCDR (function));
       }
   }
 
