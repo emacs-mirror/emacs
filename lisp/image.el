@@ -171,18 +171,16 @@ or \"ffmpeg\") is installed."
 
 (define-error 'unknown-image-type "Unknown image type")
 
-;; Map put into text properties on images.
-(defvar image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "-" 'image-decrease-size)
-    (define-key map "+" 'image-increase-size)
-    (define-key map [C-wheel-down] 'image-mouse-decrease-size)
-    (define-key map [C-mouse-5]    'image-mouse-decrease-size)
-    (define-key map [C-wheel-up]   'image-mouse-increase-size)
-    (define-key map [C-mouse-4]    'image-mouse-increase-size)
-    (define-key map "r" 'image-rotate)
-    (define-key map "o" 'image-save)
-    map))
+(defvar-keymap image-map
+  :doc "Map put into text properties on images."
+  "-" #'image-decrease-size
+  "+" #'image-increase-size
+  "r" #'image-rotate
+  "o" #'image-save
+  "C-<wheel-down>" #'image-mouse-decrease-size
+  "C-<mouse-5>"    #'image-mouse-decrease-size
+  "C-<wheel-up>"   #'image-mouse-increase-size
+  "C-<mouse-4>"    #'image-mouse-increase-size)
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
