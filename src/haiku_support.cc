@@ -1679,11 +1679,17 @@ public:
 
     if (key)
       {
-	BRect r = menu->Frame ();
-	int w = menu->StringWidth (key);
+	BRect r = Frame ();
+	int w;
+
+	menu->PushState ();
+	menu->ClipToRect (r);
+	menu->SetFont (be_plain_font);
+	w = menu->StringWidth (key);
 	menu->MovePenTo (BPoint (BE_RECT_WIDTH (r) - w - 4,
 				 menu->PenLocation ().y));
 	menu->DrawString (key);
+	menu->PopState ();
       }
   }
 
