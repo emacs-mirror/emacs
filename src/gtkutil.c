@@ -1593,12 +1593,14 @@ xg_create_frame_widgets (struct frame *f)
 
   GdkScreen *screen = gtk_widget_get_screen (wtop);
 
+#if !defined HAVE_PGTK && defined USE_CAIRO
   if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
     {
       GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
       gtk_widget_set_visual (wtop, visual);
       gtk_widget_set_visual (wfixed, visual);
     }
+#endif
 
 #ifndef HAVE_PGTK
   /* Must realize the windows so the X window gets created.  It is used

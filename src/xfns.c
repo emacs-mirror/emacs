@@ -6375,7 +6375,7 @@ select_visual (struct x_display_info *dpyinfo)
 
       vinfo_template.screen = XScreenNumberOfScreen (screen);
 
-#if defined (USE_GTK)
+#if defined (USE_GTK) && defined (USE_CAIRO)
       /* First attempt to use 32-bit visual if available */
 
       vinfo_template.depth = 32;
@@ -6391,7 +6391,7 @@ select_visual (struct x_display_info *dpyinfo)
 	  return;
 	}
 
-#endif /* defined (USE_GTK) */
+#endif /* USE_GTK && USE_CAIRO */
 
       /* 32-bit visual not available, fallback to default visual */
       dpyinfo->visual = DefaultVisualOfScreen (screen);
