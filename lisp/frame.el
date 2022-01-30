@@ -2531,12 +2531,12 @@ deleting them."
       (setq this next))))
 
 (defvar undelete-frame--deleted-frames nil
-  "Internal variable used by `undelete-frame--handle-delete-frame'.")
+  "Internal variable used by `undelete-frame--save-deleted-frame'.")
 
-(defun undelete-frame--handle-delete-frame (frame)
+(defun undelete-frame--save-deleted-frame (frame)
   "Save the configuration of frames deleted with `delete-frame'.
 Only the 16 most recently deleted frames are saved."
-  (when (frame-live-p frame)
+  (when (and after-init-time (frame-live-p frame))
     (setq undelete-frame--deleted-frames
           (cons
            (list
@@ -2564,9 +2564,9 @@ Only the 16 most recently deleted frames are saved."
   :global t
   (if undelete-frame-mode
       (add-hook 'delete-frame-functions
-                #'undelete-frame--handle-delete-frame -75)
+                #'undelete-frame--save-deleted-frame -75)
     (remove-hook 'delete-frame-functions
-                 #'undelete-frame--handle-delete-frame)
+                 #'undelete-frame--save-deleted-frame)
     (setq undelete-frame--deleted-frames nil)))
 
 (defun undelete-frame (&optional arg)
