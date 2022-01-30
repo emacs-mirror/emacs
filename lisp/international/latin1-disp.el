@@ -1,4 +1,4 @@
-;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*- lexical-binding: t; -*-
+;;; latin1-disp.el --- display tables for non-ASCII on Latin-1 terminals -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
@@ -22,17 +22,22 @@
 
 ;;; Commentary:
 
-;; This package sets up display of ISO 8859-n for n>1 by substituting
-;; Latin-1 characters and sequences of them for characters which can't
-;; be displayed, either because we're on a tty or because we don't
-;; have the relevant window system fonts available.  For instance,
-;; Latin-9 is very similar to Latin-1, so we can display most Latin-9
-;; characters using the Latin-1 characters at the same code point and
-;; fall back on more-or-less mnemonic ASCII sequences for the rest.
+;; This package sets up display of many non-ASCII characters by
+;; substituting ASCII and Latin-1 characters and sequences of them for
+;; characters which can't be displayed, either because we're on a tty
+;; or because we don't have the relevant window system fonts
+;; available.  For instance, Latin-9 is very similar to Latin-1, so we
+;; can display most Latin-9 characters using the Latin-1 characters at
+;; the same code point and fall back on more-or-less mnemonic ASCII
+;; sequences for the rest.
 
 ;; For the Latin charsets the ASCII sequences are mostly consistent
 ;; with the Quail prefix input sequences.  Latin-4 uses the Quail
 ;; postfix sequences since a prefix method isn't defined for Latin-4.
+
+;; Non-Latin non-ASCII characters are generally displayed as ASCII
+;; strings remotely reminiscent of the original characters, as best as
+;; possible.  See `latin1-display-ucs-per-lynx'.
 
 ;; [A different approach is taken in the DOS display tables in
 ;; term/internal.el, and the relevant ASCII sequences from there are
