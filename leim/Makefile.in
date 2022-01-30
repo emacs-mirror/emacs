@@ -122,6 +122,7 @@ leim-list.el: ${leimdir}/leim-list.el
 ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 	$(AM_V_GEN)rm -f $@
 	$(AM_V_at)${RUN_EMACS} -l international/quail \
+	  --eval "(setq max-specpdl-size 5000)" \
 	  --eval "(update-leim-list-file (unmsys--file-name \"${leimdir}\"))"
 	$(AM_V_at)sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < $< >> $@
 
