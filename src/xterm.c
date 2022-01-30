@@ -382,11 +382,22 @@ x_xr_ensure_picture (struct frame *f)
     {
       XRenderPictureAttributes attrs;
       attrs.clip_mask = None;
+      XRenderPictFormat *fmt;
+
+#ifdef USE_GTK
+      GdkWindow *wnd = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+      GdkVisual *visual = gdk_window_get_visual (wnd);
+      Visual *xvisual = gdk_x11_visual_get_xvisual (visual);
+
+      fmt = XRenderFindVisualFormat (FRAME_X_DISPLAY (f), xvisual);
+
+      if (!fmt)
+#endif
+	fmt = FRAME_X_PICTURE_FORMAT (f);
 
       FRAME_X_PICTURE (f) = XRenderCreatePicture (FRAME_X_DISPLAY (f),
 						  FRAME_X_RAW_DRAWABLE (f),
-						  FRAME_X_PICTURE_FORMAT (f),
-						  CPClipMask, &attrs);
+						  fmt, CPClipMask, &attrs);
     }
 }
 #endif
