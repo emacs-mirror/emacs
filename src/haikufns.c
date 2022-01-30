@@ -592,8 +592,6 @@ haiku_create_frame (Lisp_Object parms)
   if (STRINGP (name))
     Vx_resource_name = name;
 
-  block_input ();
-
   /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
   /* No need to protect DISPLAY because that's not used after passing
      it to make_frame_without_minibuffer.  */
@@ -667,8 +665,6 @@ haiku_create_frame (Lisp_Object parms)
                          "fontBackend", "FontBackend", RES_TYPE_STRING);
 
   FRAME_RIF (f)->default_font_parameter (f, parms);
-
-  unblock_input ();
 
   gui_default_parameter (f, parms, Qborder_width, make_fixnum (0),
                          "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
@@ -749,6 +745,7 @@ haiku_create_frame (Lisp_Object parms)
                              RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !NILP (tem));
 
+  block_input ();
 #define ASSIGN_CURSOR(cursor, be_cursor) \
   (FRAME_OUTPUT_DATA (f)->cursor = be_cursor)
 
@@ -786,11 +783,15 @@ haiku_create_frame (Lisp_Object parms)
   f->terminal->reference_count++;
 
   FRAME_OUTPUT_DATA (f)->window = BWindow_new (&FRAME_OUTPUT_DATA (f)->view);
+  unblock_input ();
+
   if (!FRAME_OUTPUT_DATA (f)->window)
     xsignal1 (Qerror, build_unibyte_string ("Could not create window"));
 
+  block_input ();
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
     initialize_frame_menubar (f);
+  unblock_input ();
 
   FRAME_OUTPUT_DATA (f)->window_desc = FRAME_OUTPUT_DATA (f)->window;
 
@@ -871,10 +872,12 @@ haiku_create_frame (Lisp_Object parms)
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
+  block_input ();
   if (window_prompting & (USPosition | PPosition))
     haiku_set_offset (f, f->left_pos, f->top_pos, 1);
   else
     BWindow_center_on_screen (FRAME_HAIKU_WINDOW (f));
+  unblock_input ();
 
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */

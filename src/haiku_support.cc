@@ -2028,7 +2028,8 @@ BCursor_create_grab (void)
 void
 BCursor_delete (void *cursor)
 {
-  delete (BCursor *) cursor;
+  if (cursor)
+    delete (BCursor *) cursor;
 }
 
 void
