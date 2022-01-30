@@ -375,8 +375,6 @@ it defaults to `insert'."
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
-(defvar grep-null-device)
-
 (defun eshell-set-output-handle (index mode &optional target)
   "Set handle INDEX, using MODE, to point to TARGET."
   (when target
