@@ -1270,7 +1270,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time t)
 INLINE unsigned long
 x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
 {
-  unsigned long pr, pg, pb;
+  unsigned long pr, pg, pb, pa = 0;
 
   /* Scale down RGB values to the visual's bits per RGB, and shift
      them to the right position in the pixel color.  Note that the
@@ -1279,8 +1279,11 @@ x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
   pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
   pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
 
+  if (dpyinfo->n_planes == 32)
+    pa = ((unsigned long) 0xFF << 24);
+
   /* Assemble the pixel color.  */
-  return pr | pg | pb;
+  return pr | pg | pb | pa;
 }
 
 /* If display has an immutable color map, freeing colors is not

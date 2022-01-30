@@ -1966,7 +1966,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       Drawable drawable = FRAME_X_DRAWABLE (f);
       char *bits;
       Pixmap pixmap, clipmask = (Pixmap) 0;
-      int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+      int depth = FRAME_DISPLAY_INFO (f)->n_planes;
       XGCValues gcv;
 
       if (p->wd > 8)
@@ -2812,12 +2812,12 @@ void
 x_query_colors (struct frame *f, XColor *colors, int ncolors)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  int i;
 
   if (dpyinfo->red_bits > 0)
     {
       /* For TrueColor displays, we can decompose the RGB value
 	 directly.  */
-      int i;
       unsigned int rmult, gmult, bmult;
       unsigned int rmask, gmask, bmask;
 
@@ -2854,6 +2854,12 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	  colors[i].green = (g * gmult) >> 16;
 	  colors[i].blue = (b * bmult) >> 16;
 	}
+
+      if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
+	{
+	  for (i = 0; i < ncolors; ++i)
+	    colors[i].pixel |= ((unsigned long) 0xFF << 24);
+	}
       return;
     }
 
@@ -2871,6 +2877,12 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
     }
 
   XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
+
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
+    {
+      for (i = 0; i < ncolors; ++i)
+	colors[i].pixel |= ((unsigned long) 0xFF << 24);
+    }
 }
 
 /* Store F's background color into *BGCOLOR.  */
@@ -3924,8 +3936,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  /* Create a pixmap as large as the glyph string.  Fill it
 	     with the background color.  Copy the image to it, using
 	     its mask.  Copy the temporary pixmap to the display.  */
-	  Screen *screen = FRAME_X_SCREEN (s->f);
-	  int depth = DefaultDepthOfScreen (screen);
+	  int depth = FRAME_DISPLAY_INFO (s->f)->n_planes;
 
 	  /* Create a pixmap as large as the glyph string.  */
           pixmap = XCreatePixmap (display, FRAME_X_DRAWABLE (s->f),

@@ -1593,7 +1593,7 @@ xg_create_frame_widgets (struct frame *f)
 
   GdkScreen *screen = gtk_widget_get_screen (wtop);
 
-#if !defined HAVE_PGTK && defined USE_CAIRO
+#if !defined HAVE_PGTK
   if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
     {
       GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
