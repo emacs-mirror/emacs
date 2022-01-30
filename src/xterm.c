@@ -1976,9 +1976,15 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
     {
       Drawable drawable = FRAME_X_DRAWABLE (f);
       char *bits;
-      Pixmap pixmap, clipmask = (Pixmap) 0;
+      Pixmap pixmap, clipmask = None;
       int depth = FRAME_DISPLAY_INFO (f)->n_planes;
       XGCValues gcv;
+#ifdef HAVE_XRENDER
+      Picture picture = None;
+      XRenderPictureAttributes attrs;
+
+      memset (&attrs, 0, sizeof attrs);
+#endif
 
       if (p->wd > 8)
 	bits = (char *) (p->bits + p->dh);
@@ -1994,20 +2000,57 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 					     : face->foreground),
 					    face->background, depth);
 
+#ifdef HAVE_XRENDER
+      if (FRAME_X_PICTURE_FORMAT (f)
+	  && (x_xr_ensure_picture (f), FRAME_X_PICTURE (f)))
+	picture = XRenderCreatePicture (display, pixmap,
+					FRAME_X_PICTURE_FORMAT (f),
+					0, &attrs);
+#endif
+
       if (p->overlay_p)
 	{
 	  clipmask = XCreatePixmapFromBitmapData (display,
 						  FRAME_DISPLAY_INFO (f)->root_window,
 						  bits, p->wd, p->h,
 						  1, 0, 1);
-	  gcv.clip_mask = clipmask;
-	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y;
-	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+
+#ifdef HAVE_XRENDER
+	  if (picture != None)
+	    {
+	      attrs.clip_mask = clipmask;
+	      attrs.clip_x_origin = p->x;
+	      attrs.clip_y_origin = p->y;
+
+	      XRenderChangePicture (display, FRAME_X_PICTURE (f),
+				    CPClipMask | CPClipXOrigin | CPClipYOrigin,
+				    &attrs);
+	    }
+	  else
+#endif
+	    {
+	      gcv.clip_mask = clipmask;
+	      gcv.clip_x_origin = p->x;
+	      gcv.clip_y_origin = p->y;
+	      XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+	    }
 	}
 
-      XCopyArea (display, pixmap, drawable, gc, 0, 0,
-		 p->wd, p->h, p->x, p->y);
+#ifdef HAVE_XRENDER
+      if (picture != None)
+	{
+	  x_xr_apply_ext_clip (f, gc);
+	  XRenderComposite (display, PictOpSrc, picture,
+			    None, FRAME_X_PICTURE (f),
+			    0, 0, 0, 0, p->x, p->y, p->wd, p->h);
+	  x_xr_reset_ext_clip (f);
+
+	  XRenderFreePicture (display, picture);
+	}
+      else
+#endif
+	XCopyArea (display, pixmap, drawable, gc, 0, 0,
+		   p->wd, p->h, p->x, p->y);
       XFreePixmap (display, pixmap);
 
       if (p->overlay_p)
