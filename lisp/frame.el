@@ -799,7 +799,7 @@ also select the new frame."
                     (window-state-get (frame-root-window frame))))
          (default-frame-alist
           (seq-remove (lambda (elem)
-                        (memq (car elem) '(name parent-id)))
+                        (memq (car elem) frame-internal-parameters))
                       (frame-parameters frame)))
          (new-frame (make-frame)))
     (when windows
@@ -2530,8 +2530,6 @@ deleting them."
         (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))))
 
-(eval-when-compile (require 'frameset))
-
 (defvar undelete-frame--deleted-frames nil
   "Internal variable used by `undelete-frame--handle-delete-frame'.")
 
@@ -2541,20 +2539,20 @@ Only the 16 most recently deleted frames are saved."
   (when (frame-live-p frame)
     (setq undelete-frame--deleted-frames
           (cons
-           (cons
+           (list
             (display-graphic-p)
-            (frameset-save
-             (list frame)
-             ;; When the daemon is started from a graphical
-             ;; environment, TTY frames have a 'display' parameter set
-             ;; to the value of $DISPLAY (see the note in
-             ;; `server--on-display-p').  Do not store that parameter
-             ;; in the frameset, otherwise `frameset-restore' attempts
-             ;; to restore a graphical frame.
-             :filters (if (display-graphic-p)
-                          frameset-filter-alist
-                        (cons '(display . :never)
-                              frameset-filter-alist))))
+            (seq-remove
+             (lambda (elem)
+               (or (memq (car elem) frame-internal-parameters)
+                   ;; When the daemon is started from a graphical
+                   ;; environment, TTY frames have a 'display' parameter set
+                   ;; to the value of $DISPLAY (see the note in
+                   ;; `server--on-display-p').  Do not store that parameter
+                   ;; in the frame data, otherwise `undelete-frame' attempts
+                   ;; to restore a graphical frame.
+                   (and (eq (car elem) 'display) (not (display-graphic-p)))))
+             (frame-parameters frame))
+            (window-state-get (frame-root-window frame)))
            undelete-frame--deleted-frames))
     (if (> (length undelete-frame--deleted-frames) 16)
         (setq undelete-frame--deleted-frames
@@ -2584,26 +2582,25 @@ When called from Lisp, returns the new frame."
     (if (consp arg)
         (user-error "Missing deleted frame number argument")
       (let* ((number (pcase arg ('nil 1) ('- -1) (_ arg)))
-             (frames (frame-list))
-             (frameset (nth (1- number) undelete-frame--deleted-frames))
+             (frame-data (nth (1- number) undelete-frame--deleted-frames))
              (graphic (display-graphic-p)))
         (if (not (<= 1 number 16))
             (user-error "%d is not a valid deleted frame number argument"
                         number)
-          (if (not frameset)
+          (if (not frame-data)
               (user-error "No deleted frame with number %d" number)
-            (if (not (eq graphic (car frameset)))
+            (if (not (eq graphic (nth 0 frame-data)))
                 (user-error
                  "Cannot undelete a %s display frame on a %s display"
                  (if graphic "non-graphic" "graphic")
                  (if graphic "graphic" "non-graphic"))
               (setq undelete-frame--deleted-frames
-                    (delq frameset undelete-frame--deleted-frames))
-              (frameset-restore (cdr frameset))
-              (let ((frame (car (seq-difference (frame-list) frames))))
-                (when frame
-                  (select-frame-set-input-focus frame)
-                  frame)))))))))
+                    (delq frame-data undelete-frame--deleted-frames))
+              (let* ((default-frame-alist (nth 1 frame-data))
+                     (frame (make-frame)))
+                (window-state-put (nth 2 frame-data) (frame-root-window frame) 'safe)
+                (select-frame-set-input-focus frame)
+                frame))))))))
 
 ;;; Window dividers.
 (defgroup window-divider nil

@@ -436,10 +436,11 @@ Properties can be set with
 
 ;;;###autoload
 (defvar frameset-session-filter-alist
-  '((name            . :never)
-    (left            . frameset-filter-iconified)
-    (minibuffer      . frameset-filter-minibuffer)
-    (top             . frameset-filter-iconified))
+  (append
+   '((left            . frameset-filter-iconified)
+     (minibuffer      . frameset-filter-minibuffer)
+     (top             . frameset-filter-iconified))
+   (mapcar (lambda (p) (cons p :never)) frame-internal-parameters))
   "Minimum set of parameters to filter for live (on-session) framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
@@ -468,14 +469,11 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
      (GUI:height                  . frameset-filter-unshelve-param)
      (GUI:width                   . frameset-filter-unshelve-param)
      (height                      . frameset-filter-shelve-param)
-     (outer-window-id             . :never)
      (parent-frame                . :never)
-     (parent-id                   . :never)
      (mouse-wheel-frame           . :never)
      (tty                         . frameset-filter-tty-to-GUI)
      (tty-type                    . frameset-filter-tty-to-GUI)
      (width                       . frameset-filter-shelve-param)
-     (window-id                   . :never)
      (window-system               . :never))
    frameset-session-filter-alist)
   "Parameters to filter for persistent framesets.

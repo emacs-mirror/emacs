@@ -6524,6 +6524,14 @@ making the child frame unresponsive to user actions, the default is to
 iconify the top level frame instead.  */);
   iconify_child_frame = Qiconify_top_level;
 
+  DEFVAR_LISP ("frame-internal-parameters", frame_internal_parameters,
+	       doc: /* Frame parameters specific to every frame.  */);
+#ifdef HAVE_X_WINDOWS
+  frame_internal_parameters = list4 (Qname, Qparent_id, Qwindow_id, Qouter_window_id);
+#else
+  frame_internal_parameters = list3 (Qname, Qparent_id, Qwindow_id);
+#endif
+
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
   defsubr (&Swindow_system);
