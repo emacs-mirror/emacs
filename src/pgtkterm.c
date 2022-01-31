@@ -2381,7 +2381,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  else
 	    {
 	      pgtk_fill_rectangle (s->f, color, x, y, w, h,
-				   false);
+				   true);
 	    }
 
 	  pgtk_end_cr_clip (s->f);
@@ -2966,17 +2966,20 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 }
 
 static void
-pgtk_copy_bits (struct frame *f, cairo_rectangle_t * src_rect,
-		cairo_rectangle_t * dst_rect)
+pgtk_copy_bits (struct frame *f, cairo_rectangle_t *src_rect,
+		cairo_rectangle_t *dst_rect)
 {
   cairo_t *cr;
+  GdkWindow *window;
   cairo_surface_t *surface;	/* temporary surface */
 
+  window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+
   surface =
-    cairo_surface_create_similar (FRAME_CR_SURFACE (f),
-				  CAIRO_CONTENT_COLOR_ALPHA,
-				  (int) src_rect->width,
-				  (int) src_rect->height);
+    gdk_window_create_similar_surface (window, CAIRO_CONTENT_COLOR_ALPHA,
+				       FRAME_CR_SURFACE_DESIRED_WIDTH (f),
+				       FRAME_CR_SURFACE_DESIRED_HEIGHT
+				       (f));
 
   cr = cairo_create (surface);
   cairo_set_source_surface (cr, FRAME_CR_SURFACE (f), -src_rect->x,
@@ -2988,6 +2991,7 @@ pgtk_copy_bits (struct frame *f, cairo_rectangle_t * src_rect,
 
   cr = pgtk_begin_cr_clip (f);
   cairo_set_source_surface (cr, surface, dst_rect->x, dst_rect->y);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   cairo_rectangle (cr, dst_rect->x, dst_rect->y, dst_rect->width,
 		   dst_rect->height);
   cairo_clip (cr);
