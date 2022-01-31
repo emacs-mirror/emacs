@@ -732,10 +732,12 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   gui_set_alpha_background (f, arg, oldval);
 
+#ifdef USE_GTK
   /* This prevents GTK from painting the window's background, which
      interferes with transparent background in some environments */
   gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f),
 				f->alpha_background != 1.0);
+#endif
 
   if (f->alpha_background != 1.0)
     {
