@@ -1606,7 +1606,7 @@ xg_create_frame_widgets (struct frame *f)
   if (!visual)
     emacs_abort ();
 #else
-  GdkVisual *visual = gdk_screen_get_argb_visual (screen);
+  GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
 #endif
 
   gtk_widget_set_visual (wtop, visual);
