@@ -2357,7 +2357,9 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
 static void
 x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-  x_clear_rectangle (s->f, s->gc, x, y, w, h, true);
+  x_clear_rectangle (s->f, s->gc, x, y, w, h,
+		     (s->first_glyph->type != STRETCH_GLYPH
+		      || s->hl != DRAW_CURSOR));
 }
 
 

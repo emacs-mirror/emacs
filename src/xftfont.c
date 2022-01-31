@@ -519,7 +519,7 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 						 0, 0, s->clip, s->num_clips);
 	      else
 		x_xr_reset_ext_clip (f);
-	      x_xrender_color_from_gc_background (s->f, s->gc, &xc, true);
+	      x_xrender_color_from_gc_background (s->f, s->gc, &xc, s->hl != DRAW_CURSOR);
 	      XRenderFillRectangle (FRAME_X_DISPLAY (s->f),
 				    PictOpSrc, FRAME_X_PICTURE (s->f),
 				    &xc, x, y - ascent, s->width, height);
