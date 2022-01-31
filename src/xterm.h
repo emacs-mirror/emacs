@@ -460,8 +460,8 @@ struct x_display_info
   int ncolor_cells;
 
   /* Bits and shifts to use to compose pixel values on TrueColor visuals.  */
-  int red_bits, blue_bits, green_bits;
-  int red_offset, blue_offset, green_offset;
+  int red_bits, blue_bits, green_bits, alpha_bits;
+  int red_offset, blue_offset, green_offset, alpha_offset;
 
   /* The type of window manager we have.  If we move FRAME_OUTER_WINDOW
      to x/y 0/0, some window managers (type A) puts the window manager
@@ -1285,8 +1285,11 @@ x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
   pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
   pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
 
-  if (dpyinfo->n_planes == 32)
-    pa = ((unsigned long) 0xFF << 24);
+  if (dpyinfo->alpha_bits)
+    pa = (((unsigned long) 0xffff >> (16 - dpyinfo->alpha_bits))
+	  << dpyinfo->alpha_offset);
+  else
+    pa = 0;
 
   /* Assemble the pixel color.  */
   return pr | pg | pb | pa;

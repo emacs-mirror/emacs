@@ -6401,8 +6401,11 @@ select_visual (struct x_display_info *dpyinfo)
       /* First attempt to use 32-bit visual if available */
 
       vinfo_template.depth = 32;
+      vinfo_template.class = TrueColor;
 
-      vinfo = XGetVisualInfo (dpy, VisualScreenMask | VisualDepthMask,
+      vinfo = XGetVisualInfo (dpy, (VisualScreenMask
+				    | VisualDepthMask
+				    | VisualClassMask),
 			      &vinfo_template, &n_visuals);
 
       if (n_visuals > 0)

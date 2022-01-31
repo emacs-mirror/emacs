@@ -1356,7 +1356,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #else
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
   if (respect_alpha_background
-      && FRAME_DISPLAY_INFO (f)->n_planes == 32
+      && FRAME_DISPLAY_INFO (f)->alpha_bits
       && FRAME_CHECK_XR_VERSION (f, 0, 2))
     {
       x_xr_ensure_picture (f);
@@ -1398,7 +1398,7 @@ x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #else
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
   if (respect_alpha_background
-      && FRAME_DISPLAY_INFO (f)->n_planes == 32
+      && FRAME_DISPLAY_INFO (f)->alpha_bits
       && FRAME_CHECK_XR_VERSION (f, 0, 2))
     {
       x_xr_ensure_picture (f);
@@ -2976,12 +2976,6 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	  colors[i].green = (g * gmult) >> 16;
 	  colors[i].blue = (b * bmult) >> 16;
 	}
-
-      if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
-	{
-	  for (i = 0; i < ncolors; ++i)
-	    colors[i].pixel |= ((unsigned long) 0xFF << 24);
-	}
       return;
     }
 
@@ -2999,12 +2993,6 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
     }
 
   XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
-
-  if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
-    {
-      for (i = 0; i < ncolors; ++i)
-	colors[i].pixel |= ((unsigned long) 0xFF << 24);
-    }
 }
 
 /* Store F's background color into *BGCOLOR.  */
@@ -3158,7 +3146,9 @@ x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 
   gamma_correct (f, color);
 
-  if (dpyinfo->red_bits > 0)
+  if (dpyinfo->red_bits > 0
+      && (dpyinfo->n_planes != 32
+	  || dpyinfo->alpha_bits > 0))
     {
       color->pixel = x_make_truecolor_pixel (dpyinfo,
 					     color->red,
@@ -15539,16 +15529,21 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
-  /* See if we can construct pixel values from RGB values.  */
-  if (dpyinfo->visual->class == TrueColor)
+#ifdef HAVE_XRENDER
+  int event_base, error_base;
+  dpyinfo->xrender_supported_p
+    = XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+
+  if (dpyinfo->xrender_supported_p)
     {
-      get_bits_and_offset (dpyinfo->visual->red_mask,
-                           &dpyinfo->red_bits, &dpyinfo->red_offset);
-      get_bits_and_offset (dpyinfo->visual->blue_mask,
-                           &dpyinfo->blue_bits, &dpyinfo->blue_offset);
-      get_bits_and_offset (dpyinfo->visual->green_mask,
-                           &dpyinfo->green_bits, &dpyinfo->green_offset);
+      if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
+				&dpyinfo->xrender_minor))
+	dpyinfo->xrender_supported_p = false;
+      else
+	dpyinfo->pict_format = XRenderFindVisualFormat (dpyinfo->display,
+							dpyinfo->visual);
     }
+#endif
 
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
@@ -15569,6 +15564,46 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   else
     dpyinfo->cmap = XCreateColormap (dpyinfo->display, dpyinfo->root_window,
                                      dpyinfo->visual, AllocNone);
+
+  /* See if we can construct pixel values from RGB values.  */
+  if (dpyinfo->visual->class == TrueColor)
+    {
+      get_bits_and_offset (dpyinfo->visual->red_mask,
+                           &dpyinfo->red_bits, &dpyinfo->red_offset);
+      get_bits_and_offset (dpyinfo->visual->blue_mask,
+                           &dpyinfo->blue_bits, &dpyinfo->blue_offset);
+      get_bits_and_offset (dpyinfo->visual->green_mask,
+                           &dpyinfo->green_bits, &dpyinfo->green_offset);
+
+#ifdef HAVE_XRENDER
+      if (dpyinfo->pict_format)
+	{
+	  get_bits_and_offset (((unsigned long) dpyinfo->pict_format->direct.alphaMask
+				<< dpyinfo->pict_format->direct.alpha),
+			       &dpyinfo->alpha_bits, &dpyinfo->alpha_offset);
+	}
+      else
+#endif
+	{
+	  XColor xc;
+	  unsigned long alpha_mask;
+	  xc.red = 65535;
+	  xc.green = 65535;
+	  xc.blue = 65535;
+
+	  if (XAllocColor (dpyinfo->display,
+			   dpyinfo->cmap, &xc) != 0)
+	    {
+	      alpha_mask = xc.pixel & ~(dpyinfo->visual->red_mask
+					| dpyinfo->visual->blue_mask
+					| dpyinfo->visual->green_mask);
+
+	      if (alpha_mask)
+		get_bits_and_offset (alpha_mask, &dpyinfo->alpha_bits,
+				     &dpyinfo->alpha_offset);
+	    }
+	}
+    }
 
 #ifdef HAVE_XDBE
   dpyinfo->supports_xdbe = false;
@@ -15679,22 +15714,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       XkbUseCoreKbd,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
-    }
-#endif
-
-#ifdef HAVE_XRENDER
-  int event_base, error_base;
-  dpyinfo->xrender_supported_p
-    = XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
-
-  if (dpyinfo->xrender_supported_p)
-    {
-      if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
-				&dpyinfo->xrender_minor))
-	dpyinfo->xrender_supported_p = false;
-      else
-	dpyinfo->pict_format = XRenderFindVisualFormat (dpyinfo->display,
-							dpyinfo->visual);
     }
 #endif
 

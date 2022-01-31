@@ -503,7 +503,7 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
       if (with_background
-	  && FRAME_DISPLAY_INFO (s->f)->n_planes == 32
+	  && FRAME_DISPLAY_INFO (s->f)->alpha_bits
 	  && FRAME_CHECK_XR_VERSION (s->f, 0, 2))
 	{
 	  x_xr_ensure_picture (s->f);
