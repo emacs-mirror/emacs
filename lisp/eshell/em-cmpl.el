@@ -314,7 +314,7 @@ to writing a completion function."
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
-	     (eshell-interactive-process))
+	     (eshell-interactive-process-p))
     (insert-and-inherit "\t")
     (throw 'pcompleted t))
   (let ((end (point-marker))

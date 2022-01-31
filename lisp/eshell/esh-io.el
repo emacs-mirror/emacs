@@ -485,7 +485,7 @@ Returns what was actually sent, or nil if nothing was sent."
    ((eshell-processp target)
     (when (eq (process-status target) 'run)
       (unless (stringp object)
-	(setq object (eshell-stringify object)))
+       (setq object (eshell-stringify object)))
       (process-send-string target object)))
 
    ((consp target)

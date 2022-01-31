@@ -136,6 +136,17 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-command-result-p "*echo hi | echo bye"
                             "bye\nhi\n")))
 
+(ert-deftest eshell-test/pipe-headproc-stdin ()
+  "Check that standard input is sent to the head process in a pipeline"
+  (skip-unless (and (executable-find "tr")
+                    (executable-find "rev")))
+  (with-temp-eshell
+   (eshell-insert-command "tr a-z A-Z | rev")
+   (eshell-insert-command "hello")
+   (eshell-send-eof-to-process)
+   (eshell-wait-for-subprocess)
+   (eshell-match-result "OLLEH\n")))
+
 (ert-deftest eshell-test/window-height ()
   "$LINES should equal (window-height)"
   (should (eshell-test-command-result "= $LINES (window-height)")))

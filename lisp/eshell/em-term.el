@@ -224,7 +224,7 @@ the buffer."
 
 ; (defun eshell-term-send-raw-string (chars)
 ;   (goto-char eshell-last-output-end)
-;   (process-send-string (eshell-interactive-process) chars))
+;   (process-send-string (eshell-head-process) chars))
 
 ; (defun eshell-term-send-raw ()
 ;   "Send the last character typed through the terminal-emulator

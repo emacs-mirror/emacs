@@ -101,6 +101,8 @@ information, for example."
 (defvar eshell-process-list nil
   "A list of the current status of subprocesses.")
 
+(declare-function eshell-send-eof-to-process "esh-mode")
+
 (defvar-keymap eshell-proc-mode-map
   "C-c M-i"  #'eshell-insert-process
   "C-c C-c"  #'eshell-interrupt-process
@@ -541,15 +543,6 @@ See the variable `eshell-kill-processes-on-exit'."
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
 ;    (eshell-kill-process-function nil "continue")))
-
-(defun eshell-send-eof-to-process ()
-  "Send EOF to process."
-  (interactive)
-  (require 'esh-mode)
-  (declare-function eshell-send-input "esh-mode"
-                    (&optional use-region queue-p no-newline))
-  (eshell-send-input nil nil t)
-  (eshell-process-interact 'process-send-eof))
 
 (provide 'esh-proc)
 ;;; esh-proc.el ends here

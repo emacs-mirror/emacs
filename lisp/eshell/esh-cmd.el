@@ -279,14 +279,33 @@ otherwise t.")
 (defvar eshell-in-subcommand-p nil)
 (defvar eshell-last-arguments nil)
 (defvar eshell-last-command-name nil)
-(defvar eshell-last-async-proc nil
-  "When this foreground process completes, resume command evaluation.")
+(defvar eshell-last-async-procs nil
+  "The currently-running foreground process(es).
+When executing a pipeline, this is a cons cell whose CAR is the
+first process (usually reading from stdin) and whose CDR is the
+last process (usually writing to stdout).  Otherwise, the CAR and
+CDR are the same process.
+
+When the process in the CDR completes, resume command evaluation.")
 
 ;;; Functions:
 
-(defsubst eshell-interactive-process ()
-  "Return currently running command process, if non-Lisp."
-  eshell-last-async-proc)
+(defsubst eshell-interactive-process-p ()
+  "Return non-nil if there is a currently running command process."
+  eshell-last-async-procs)
+
+(defsubst eshell-head-process ()
+  "Return the currently running process at the head of any pipeline.
+This only returns external (non-Lisp) processes."
+  (car-safe eshell-last-async-procs))
+
+(defsubst eshell-tail-process ()
+  "Return the currently running process at the tail of any pipeline.
+This only returns external (non-Lisp) processes."
+  (cdr-safe eshell-last-async-procs))
+
+(define-obsolete-function-alias 'eshell-interactive-process
+  'eshell-tail-process "29.1")
 
 (defun eshell-cmd-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the Eshell command processing module."
@@ -295,7 +314,7 @@ otherwise t.")
   (setq-local eshell-command-arguments nil)
   (setq-local eshell-last-arguments nil)
   (setq-local eshell-last-command-name nil)
-  (setq-local eshell-last-async-proc nil)
+  (setq-local eshell-last-async-procs nil)
 
   (add-hook 'eshell-kill-hook #'eshell-resume-command nil t)
 
@@ -306,7 +325,7 @@ otherwise t.")
   (add-hook 'eshell-post-command-hook
             (lambda ()
               (setq eshell-current-command nil
-                    eshell-last-async-proc nil))
+                    eshell-last-async-procs nil))
             nil t)
 
   (add-hook 'eshell-parse-argument-hook
@@ -781,6 +800,8 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 		      ((cdr pipeline) t)
 		      (t (quote 'last)))))
           (let ((proc ,(car pipeline)))
+            ,(unless notfirst
+               '(setq headproc proc))
             (setq tailproc (or tailproc proc))
             proc))))))
 
@@ -823,7 +844,7 @@ This is used on systems where async subprocesses are not supported."
 
 (defmacro eshell-execute-pipeline (pipeline)
   "Execute the commands in PIPELINE, connecting each to one another."
-  `(let ((eshell-in-pipeline-p t) tailproc)
+  `(let ((eshell-in-pipeline-p t) headproc tailproc)
      (progn
        ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
@@ -833,7 +854,7 @@ This is used on systems where async subprocesses are not supported."
 				(car (aref eshell-current-handles
 					   ,eshell-error-handle)) nil)))
 	     (eshell-do-pipelines-synchronously ,pipeline)))
-       (eshell-process-identity tailproc))))
+       (eshell-process-identity (cons headproc tailproc)))))
 
 (defmacro eshell-as-subcommand (command)
   "Execute COMMAND using a temp buffer.
@@ -993,24 +1014,24 @@ produced by `eshell-parse-command'."
     (unless (or (not (stringp status))
 		(string= "stopped" status)
 		(string-match eshell-reset-signals status))
-      (if (eq proc (eshell-interactive-process))
+      (if (eq proc (eshell-tail-process))
 	  (eshell-resume-eval)))))
 
 (defun eshell-resume-eval ()
   "Destructively evaluate a form which may need to be deferred."
   (eshell-condition-case err
       (progn
-	(setq eshell-last-async-proc nil)
+	(setq eshell-last-async-procs nil)
 	(when eshell-current-command
 	  (let* (retval
-		 (proc (catch 'eshell-defer
+		 (procs (catch 'eshell-defer
 			 (ignore
 			  (setq retval
 				(eshell-do-eval
 				 eshell-current-command))))))
-	    (if (eshell-processp proc)
-		(ignore (setq eshell-last-async-proc proc))
-	      (cadr retval)))))
+           (if (eshell-process-pair-p procs)
+               (ignore (setq eshell-last-async-procs procs))
+             (cadr retval)))))
     (error
      (error (error-message-string err)))))
 
@@ -1173,17 +1194,16 @@ be finished later after the completion of an asynchronous subprocess."
 		    (setcar form (car new-form))
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
-	      (if (and (memq (car form) eshell-deferrable-commands)
-		       (not eshell-current-subjob-p)
-		       result
-		       (eshell-processp result))
-		  (if synchronous-p
-		      (eshell/wait result)
+              (if-let (((memq (car form) eshell-deferrable-commands))
+                       ((not eshell-current-subjob-p))
+                       (procs (eshell-make-process-pair result)))
+                  (if synchronous-p
+		      (eshell/wait (cdr procs))
 		    (eshell-manipulate "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-		    (throw 'eshell-defer result))
-		(list 'quote result))))))))))))
+		    (throw 'eshell-defer procs))
+                (list 'quote result))))))))))))
 
 ;; command invocation
 

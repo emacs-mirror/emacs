@@ -53,7 +53,7 @@ See `eshell-wait-for-subprocess'.")
 If this takes longer than `eshell-test--max-subprocess-time',
 raise an error."
   (let ((start (current-time)))
-    (while (eshell-interactive-process)
+    (while (eshell-interactive-process-p)
       (when (> (float-time (time-since start))
                eshell-test--max-subprocess-time)
         (error "timed out waiting for subprocess"))
