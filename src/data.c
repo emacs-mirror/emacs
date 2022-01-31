@@ -859,6 +859,43 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
+static void
+add_to_function_history (Lisp_Object symbol, Lisp_Object olddef)
+{
+  eassert (!NILP (olddef));
+
+  Lisp_Object past = Fget (symbol, Qfunction_history);
+  Lisp_Object file = Qnil;
+  /* FIXME: Sadly, `Vload_file_name` gives less precise information
+     (it's sometimes non-nil when it shoujld be nil).  */
+  Lisp_Object tail = Vcurrent_load_list;
+  FOR_EACH_TAIL_SAFE (tail)
+    if (NILP (XCDR (tail)) && STRINGP (XCAR (tail)))
+      file = XCAR (tail);
+
+  Lisp_Object tem = Fplist_member (past, file);
+  if (!NILP (tem))
+    { /* New def from a file used before.
+         Overwrite the previous record associated with this file.  */
+      if (EQ (tem, past))
+        /* The new def is from the same file as the last change, so
+           there's nothing to do: unloading the file should revert to
+           the status before the last change rather than before this load.  */
+        return;
+      Lisp_Object pastlen = Flength (past);
+      Lisp_Object temlen = Flength (tem);
+      EMACS_INT tempos = XFIXNUM (pastlen) - XFIXNUM (temlen);
+      eassert (tempos > 1);
+      Lisp_Object prev = Fnthcdr (make_fixnum (tempos - 2), past);
+      /* Remove the previous info for this file.
+         E.g. change `hist` from (... OTHERFILE DEF3 THISFILE DEF2 ...)
+         to (... OTHERFILE DEF2). */
+      XSETCDR (prev, XCDR (tem));
+    }
+  /* Push new def from new file.  */
+  Fput (symbol, Qfunction_history, Fcons (file, Fcons (olddef, past)));
+}
+
 void
 defalias (Lisp_Object symbol, Lisp_Object definition)
 {
@@ -866,19 +903,19 @@ defalias (Lisp_Object symbol, Lisp_Object definition)
     bool autoload = AUTOLOADP (definition);
     if (!will_dump_p () || !autoload)
       { /* Only add autoload entries after dumping, because the ones before are
-	   not useful and else we get loads of them from the loaddefs.el.  */
-        Lisp_Object function = XSYMBOL (symbol)->u.s.function;
+	   not useful and else we get loads of them from the loaddefs.el.
+	   That saves us about 110KB in the pdmp file (Jan 2022).  */
+	LOADHIST_ATTACH (Fcons (Qdefun, symbol));
+      }
+  }
 
-	if (AUTOLOADP (function))
-	  /* Remember that the function was already an autoload.  */
-	  LOADHIST_ATTACH (Fcons (Qt, symbol));
-	LOADHIST_ATTACH (Fcons (autoload ? Qautoload : Qdefun, symbol));
-
-        if (!NILP (Vautoload_queue) && !NILP (function))
-          Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
-
-        if (AUTOLOADP (function))
-          Fput (symbol, Qautoload, XCDR (function));
+  {
+    Lisp_Object olddef = XSYMBOL (symbol)->u.s.function;
+    if (!NILP (olddef))
+      {
+        if (!NILP (Vautoload_queue))
+          Vautoload_queue = Fcons (symbol, Vautoload_queue);
+        add_to_function_history (symbol, olddef);
       }
   }
 
@@ -4171,6 +4208,7 @@ syms_of_data (void)
 
   DEFSYM (Qinteractive_form, "interactive-form");
   DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
+  DEFSYM (Qfunction_history, "function-history");
 
   DEFSYM (Qbyte_code_function_p, "byte-code-function-p");
 

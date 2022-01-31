@@ -157,38 +157,35 @@ documentation of `unload-feature' for details.")
           ;; mode, or proposed is not nil and not major-mode, and so we use it.
           (funcall (or proposed 'fundamental-mode)))))))
 
+(defvar loadhist-unload-filename nil)
+
 (cl-defgeneric loadhist-unload-element (x)
-  "Unload an element from the `load-history'."
+  "Unload an element from the `load-history'.
+The variable `loadhist-unload-filename' holds the name of the file we're
+unloading."
   (message "Unexpected element %S in load-history" x))
 
-;; In `load-history', the definition of a previously autoloaded
-;; function is represented by 2 entries: (t . SYMBOL) comes before
-;; (defun . SYMBOL) and says we should restore SYMBOL's autoload when
-;; we undefine it.
-;; So we use this auxiliary variable to keep track of the last (t . SYMBOL)
-;; that occurred.
-(defvar loadhist--restore-autoload nil
-  "If non-nil, is a symbol for which to try to restore a previous autoload.")
-
-(cl-defmethod loadhist-unload-element ((x (head t)))
-  (setq loadhist--restore-autoload (cdr x)))
-
-(defun loadhist--unload-function (x)
-  (let ((fun (cdr x)))
-    (when (fboundp fun)
-      (when (fboundp 'ad-unadvise)
-	(ad-unadvise fun))
-      (let ((aload (get fun 'autoload)))
-	(defalias fun
-          (if (and aload (eq fun loadhist--restore-autoload))
-	      (cons 'autoload aload)
-            nil)))))
-  (setq loadhist--restore-autoload nil))
-
 (cl-defmethod loadhist-unload-element ((x (head defun)))
-  (loadhist--unload-function x))
-(cl-defmethod loadhist-unload-element ((x (head autoload)))
-  (loadhist--unload-function x))
+  (let* ((fun (cdr x))
+         (hist (get fun 'function-history)))
+    (cond
+     ((null hist)
+      (defalias fun nil)
+      ;; Override the change that `defalias' just recorded.
+      (put fun 'function-history nil))
+     ((equal (car hist) loadhist-unload-filename)
+      (defalias fun (cadr hist))
+      ;; Set the history afterwards, to override the change that
+      ;; `defalias' records otherwise.
+      (put fun 'function-history (cddr hist)))
+     (t
+      ;; Unloading a file whose definition is "inactive" (i.e. has been
+      ;; overridden by another file): just remove it from the history,
+      ;; so future unloading of that other file has a chance to DTRT.
+      (let* ((tmp (plist-member hist loadhist-unload-filename))
+             (pos (- (length hist) (length tmp))))
+        (cl-assert (> pos 1))
+        (setcdr (nthcdr (- pos 2) hist) (cdr tmp)))))))
 
 (cl-defmethod loadhist-unload-element ((_ (head require))) nil)
 (cl-defmethod loadhist-unload-element ((_ (head defface))) nil)
@@ -257,6 +254,7 @@ something strange, such as redefining an Emacs function."
 	       (prin1-to-string dependents) file))))
   (let* ((unload-function-defs-list (feature-symbols feature))
          (file (pop unload-function-defs-list))
+         (loadhist-unload-filename file)
 	 (name (symbol-name feature))
          (unload-hook (intern-soft (concat name "-unload-hook")))
 	 (unload-func (intern-soft (concat name "-unload-function"))))

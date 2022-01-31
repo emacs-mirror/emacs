@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'help-mode)
 (require 'radix-tree)
 (eval-when-compile (require 'subr-x))   ;For when-let.
@@ -678,19 +679,9 @@ suitable file is found, return nil."
     (terpri)))
 
 ;; We could use `symbol-file' but this is a wee bit more efficient.
-(defun help-fns--autoloaded-p (function file)
-  "Return non-nil if FUNCTION has previously been autoloaded.
-FILE is the file where FUNCTION was probably defined."
-  (let* ((file (file-name-sans-extension (file-truename file)))
-	 (load-hist load-history)
-	 (target (cons t function))
-	 found)
-    (while (and load-hist (not found))
-      (and (stringp (caar load-hist))
-	   (equal (file-name-sans-extension (caar load-hist)) file)
-	   (setq found (member target (cdar load-hist))))
-      (setq load-hist (cdr load-hist)))
-    found))
+(defun help-fns--autoloaded-p (function)
+  "Return non-nil if FUNCTION has previously been autoloaded."
+  (seq-some #'autoloadp (get function 'function-history)))
 
 (defun help-fns--interactive-only (function)
   "Insert some help blurb if FUNCTION should only be used interactively."
@@ -873,13 +864,13 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
   "Print a line describing FUNCTION to `standard-output'."
   (pcase-let* ((`(,_real-function ,def ,aliased ,real-def)
                 (help-fns--analyze-function function))
-               (file-name (find-lisp-object-file-name function (if aliased 'defun
-                                                                 def)))
+               (file-name (find-lisp-object-file-name
+                           function (if aliased 'defun def)))
                (beg (if (and (or (byte-code-function-p def)
                                  (keymapp def)
                                  (memq (car-safe def) '(macro lambda closure)))
                              (stringp file-name)
-                             (help-fns--autoloaded-p function file-name))
+                             (help-fns--autoloaded-p function))
                         (concat
                          "an autoloaded " (if (commandp def)
                                               "interactive "))

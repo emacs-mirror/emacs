@@ -54,4 +54,51 @@
   (should-error (unload-feature 'dired))
   (unload-feature 'dired-x))
 
+(defvar loadhist--tests-dir (file-name-directory (macroexp-file-name)))
+
+(ert-deftest loadhist-tests-unload-feature-nested ()
+  (add-to-list 'load-path (expand-file-name
+                           "loadhist-resources/"
+                           loadhist--tests-dir))
+  (declare-function loadhist--foo-inc "loadhist--foo")
+  (declare-function loadhist--bar-dec "loadhist--dec")
+  (load "loadhist--foo" nil t)
+  (should (and (functionp 'loadhist--bar-dec) (functionp 'loadhist--foo-inc)))
+  (should (autoloadp (symbol-function 'loadhist--bar-dec)))
+  (load "loadhist--bar" nil t)
+  (should (and (functionp 'loadhist--bar-dec) (functionp 'loadhist--foo-inc)))
+  (should (not (autoloadp (symbol-function 'loadhist--bar-dec))))
+  (should (not (autoloadp (symbol-function 'loadhist--foo-inc))))
+  (should (equal (list 40 42)
+                 (list (loadhist--bar-dec 41) (loadhist--foo-inc 41))))
+  (unload-feature 'loadhist--bar)
+  (should (and (functionp 'loadhist--bar-dec) (functionp 'loadhist--foo-inc)))
+  (should (autoloadp (symbol-function 'loadhist--bar-dec)))
+  (should (not (autoloadp (symbol-function 'loadhist--foo-inc))))
+  (unload-feature 'loadhist--foo)
+  (should (null (symbol-function 'loadhist--bar-dec)))
+  (should (null (symbol-function 'loadhist--foo-inc)))
+  (should (null (get 'loadhist--bar-dec 'function-history)))
+  (should (null (get 'loadhist--foo-inc 'function-history))))
+
+(ert-deftest loadhist-tests-unload-feature-notnested ()
+  (add-to-list 'load-path (expand-file-name
+                           "loadhist-resources/"
+                           loadhist--tests-dir))
+  (load "loadhist--foo" nil t)
+  (load "loadhist--bar" nil t)
+  (should (equal (list 40 42)
+                 (list (loadhist--bar-dec 41) (loadhist--foo-inc 41))))
+  (unload-feature 'loadhist--foo)
+  (should (functionp 'loadhist--bar-dec))
+  (should (not (autoloadp (symbol-function 'loadhist--bar-dec))))
+  (should  (let ((f (symbol-function 'loadhist--foo-inc)))
+             ;; Both choices seem acceptable.
+             (or (null f) (autoloadp f))))
+  (unload-feature 'loadhist--bar)
+  (should (null (symbol-function 'loadhist--bar-dec)))
+  (should (null (symbol-function 'loadhist--foo-inc)))
+  (should (null (get 'loadhist--bar-dec 'function-history)))
+  (should (null (get 'loadhist--foo-inc 'function-history))))
+
 ;;; loadhist-tests.el ends here

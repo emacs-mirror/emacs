@@ -129,6 +129,9 @@ example, if point is before an Emoji sequence, pressing <Delete> will
 delete the entire sequence, not just a single character at its
 beginning.
 
+** 'load-history' does not treat autoloads specially any more.
+An autoload definition appears just as a (defun . NAME) and the
+(t . NAME) entries are not generated any more.
 
 * Changes in Emacs 29.1
 
@@ -1470,6 +1473,9 @@ a directory.
 The property ':position' now specifies the position of the underline
 when used as part of a property list specification for the
 ':underline' attribute.
+
+** 'defalias' records a more precise history of definitions.
+This is recorded in the `function-history` symbol property.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

@@ -2250,21 +2250,17 @@ this does nothing and returns nil.  */)
 static void
 un_autoload (Lisp_Object oldqueue)
 {
-  Lisp_Object queue, first, second;
-
   /* Queue to unwind is current value of Vautoload_queue.
      oldqueue is the shadowed value to leave in Vautoload_queue.  */
-  queue = Vautoload_queue;
+  Lisp_Object queue = Vautoload_queue;
   Vautoload_queue = oldqueue;
   while (CONSP (queue))
     {
-      first = XCAR (queue);
-      second = Fcdr (first);
-      first = Fcar (first);
-      if (EQ (first, make_fixnum (0)))
-	Vfeatures = second;
+      Lisp_Object first = XCAR (queue);
+      if (CONSP (first) && EQ (XCAR (first), make_fixnum (0)))
+	Vfeatures = XCDR (first);
       else
-	Ffset (first, second);
+	Ffset (first, Fcar (Fcdr (Fget (first, Qfunction_history))));
       queue = XCDR (queue);
     }
 }
