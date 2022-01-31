@@ -16365,6 +16365,10 @@ x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color,
   xc.pixel = xgcv.foreground;
   x_query_colors (f, &xc, 1);
 
+  color->alpha = (apply_alpha_background
+		  ? 65535 * f->alpha_background
+		  : 65535);
+
   if (color->alpha == 65535)
     {
       color->red = xc.red;
