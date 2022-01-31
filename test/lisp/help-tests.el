@@ -286,11 +286,11 @@ M-g M-c		switch-to-completions
            "
 Key             Binding
 -+
-( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
 
 C-e		foo-something
+( .. )		short-range
 x		foo-original
 <F1>		foo-function-key1
 "))))
@@ -304,12 +304,12 @@ x		foo-original
            "
 Key             Binding
 -+
-( .. )		short-range
 1 .. 4		foo-range
 a .. c		foo-other-range
 
 C-e		foo-something
   (this binding is currently shadowed)
+( .. )		short-range
 x		foo-original
   (this binding is currently shadowed)
 <F1>		foo-function-key1
