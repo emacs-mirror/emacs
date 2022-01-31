@@ -15578,9 +15578,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef HAVE_XRENDER
       if (dpyinfo->pict_format)
 	{
-	  get_bits_and_offset (((unsigned long) dpyinfo->pict_format->direct.alphaMask
-				<< dpyinfo->pict_format->direct.alpha),
-			       &dpyinfo->alpha_bits, &dpyinfo->alpha_offset);
+	  unsigned long channel_mask
+	    = ((unsigned long) dpyinfo->pict_format->direct.alphaMask
+	       << dpyinfo->pict_format->direct.alpha);
+
+	  if (channel_mask)
+	    get_bits_and_offset (channel_mask, &dpyinfo->alpha_bits,
+				 &dpyinfo->alpha_offset);
 	}
       else
 #endif
