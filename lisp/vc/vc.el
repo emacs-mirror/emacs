@@ -1798,10 +1798,9 @@ Return t if the buffer had changes, nil otherwise."
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided))
          (orig-diff-buffer-clone
-          (if (and (get-buffer buffer) revert-buffer-in-progress-p)
-              (with-current-buffer buffer
-                (clone-buffer
-                 (generate-new-buffer-name " *vc-diff-clone*") nil)))))
+          (if revert-buffer-in-progress-p
+              (clone-buffer
+               (generate-new-buffer-name " *vc-diff-clone*") nil))))
     ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
     ;; EOLs, which will look ugly if (car files) happens to have Unix
     ;; EOLs.
