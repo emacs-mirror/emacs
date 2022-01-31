@@ -2549,9 +2549,10 @@ used automatically to handle certain shades of gray.
 
 @item :font
 The font used to display the face.  Its value should be a font object
-or a fontset.  @xref{Low-Level Font}, for information about font
-objects, font specs, and font entities.  @xref{Fontsets}, for
-information about fontsets.
+or a fontset.  If it is a font object, it specifies the font to be
+used by the face for displaying ASCII characters.  @xref{Low-Level
+Font}, for information about font objects, font specs, and font
+entities.  @xref{Fontsets}, for information about fontsets.
 
 @anchor{face-font-attribute}
 When specifying this attribute using @code{set-face-attribute} or
@@ -2994,13 +2995,19 @@ return value is always specified, use a value of @code{default} for
 @var{inherit}.
 
 @defun face-font face &optional frame character
-This function returns the name of the font of face @var{face}.
+This function returns the name of the font used by the specified
+@var{face}.
 
 If the optional argument @var{frame} is specified, it returns the name
-of the font of @var{face} for that frame.  If @var{frame} is omitted or
-@code{nil}, the selected frame is used.  In the latter case, if the
-optional third argument @var{character} is supplied, it returns the font
-name used for @var{character}.
+of the font of @var{face} for that frame; @var{frame} defaults to the
+selected frame if it is @code{nil} or omitted.  If @var{frame} is
+@code{t}, the function reports on the font defaults for @var{face} to
+be used for new frames.
+
+By default, the returned font is for displaying ASCII characters, but
+if @var{frame} is anything but @code{t}, and the optional third
+argument @var{character} is supplied, the function returns the font
+name used by @var{face} for that character.
 @end defun
 
 @defun face-foreground face &optional frame inherit
