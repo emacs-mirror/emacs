@@ -1099,7 +1099,7 @@ files (typically, one of them is an autoload), so in order to be
 able to properly @emph{unload} a file, we need to know more precisely
 what that file did to the function definition.
 
-@kindex{function-history}
+@kindex function-history
 The symbol property @code{function-history} holds a list of the form
 @code{(@var{file1} @var{def2} @var{file2} @var{def3} ...)} where
 @var{file1} is the last file that changed the definition and
