@@ -7191,7 +7191,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     Atom type = FRAME_DISPLAY_INFO (f)->Xatom_net_window_type_tooltip;
 
     block_input ();
-    mask = CWBackPixel | CWOverrideRedirect | CWEventMask | CWCursor;
+    mask = (CWBackPixel | CWOverrideRedirect | CWEventMask
+	    | CWCursor | CWColormap | CWBorderPixel);
     if (DoesSaveUnders (dpyinfo->screen))
       mask |= CWSaveUnder;
 
@@ -7201,9 +7202,11 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     attrs.override_redirect = True;
     attrs.save_under = True;
     attrs.background_pixel = FRAME_BACKGROUND_PIXEL (f);
+    attrs.colormap = FRAME_X_COLORMAP (f);
     attrs.cursor =
       f->output_data.x->current_cursor
       = f->output_data.x->text_cursor;
+    attrs.border_pixel = f->output_data.x->border_pixel;
     /* Arrange for getting MapNotify and UnmapNotify events.  */
     attrs.event_mask = StructureNotifyMask;
     tip_window
@@ -7214,7 +7217,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       0, 0, 1, 1,
 		       /* Border.  */
 		       f->border_width,
-		       CopyFromParent, InputOutput, CopyFromParent,
+		       dpyinfo->n_planes, InputOutput,
+		       FRAME_X_VISUAL (f),
                        mask, &attrs);
     initial_set_up_x_back_buffer (f);
     XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
@@ -7223,17 +7227,21 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
                      (unsigned char *)&type, 1);
     unblock_input ();
 #else
-    uint32_t value_list[4];
+    uint32_t value_list[6];
     xcb_atom_t net_wm_window_type_tooltip
       = (xcb_atom_t) dpyinfo->Xatom_net_window_type_tooltip;
+    xcb_visualid_t visual_id
+      = (xcb_visualid_t) XVisualIDFromVisual (FRAME_X_VISUAL (f));
 
     f->output_data.x->current_cursor = f->output_data.x->text_cursor;
     /* Values are set in the order of their enumeration in `enum
        xcb_cw_t'.  */
     value_list[0] = FRAME_BACKGROUND_PIXEL (f);
-    value_list[1] = true;
-    value_list[2] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
-    value_list[3] = (xcb_cursor_t) f->output_data.x->text_cursor;
+    value_list[1] = f->output_data.x->border_pixel;
+    value_list[2] = true;
+    value_list[3] = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+    value_list[4] = (xcb_colormap_t) FRAME_X_COLORMAP (f);
+    value_list[5] = (xcb_cursor_t) f->output_data.x->text_cursor;
 
     block_input ();
     tip_window
@@ -7241,15 +7249,17 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
       = (Window) xcb_generate_id (dpyinfo->xcb_connection);
 
     xcb_create_window (dpyinfo->xcb_connection,
-		       XCB_COPY_FROM_PARENT,
+		       dpyinfo->n_planes,
 		       (xcb_window_t) tip_window,
 		       (xcb_window_t) dpyinfo->root_window,
 		       0, 0, 1, 1, f->border_width,
 		       XCB_WINDOW_CLASS_INPUT_OUTPUT,
-		       XCB_COPY_FROM_PARENT,
+		       visual_id,
 		       (XCB_CW_BACK_PIXEL
+			| XCB_CW_BORDER_PIXEL
 			| XCB_CW_OVERRIDE_REDIRECT
 			| XCB_CW_EVENT_MASK
+			| XCB_CW_COLORMAP
 			| XCB_CW_CURSOR),
 		       &value_list);
 
