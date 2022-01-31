@@ -798,43 +798,44 @@ MODE is the symbol for the mode to initialize, like `c-mode'.  See
 `c-basic-common-init' for details.  It's only optional to be
 compatible with old code; callers should always specify it."
 
-  (unless mode
-    ;; Called from an old third party package.  The fallback is to
-    ;; initialize for C.
-    (c-init-language-vars-for 'c-mode))
+  (let (case-fold-search)
+    (unless mode
+      ;; Called from an old third party package.  The fallback is to
+      ;; initialize for C.
+      (c-init-language-vars-for 'c-mode))
 
-  (c-basic-common-init mode c-default-style)
-  (when mode
-    ;; Only initialize font locking if we aren't called from an old package.
-    (c-font-lock-init))
+    (c-basic-common-init mode c-default-style)
+    (when mode
+      ;; Only initialize font locking if we aren't called from an old package.
+      (c-font-lock-init))
 
-  ;; Starting a mode is a sort of "change".  So call the change functions...
-  (save-restriction
-    (widen)
-    (setq c-new-BEG (point-min))
-    (setq c-new-END (point-max))
-    (save-excursion
-      (let (before-change-functions after-change-functions)
-	(mapc (lambda (fn)
-		(funcall fn (point-min) (point-max)))
-	      c-get-state-before-change-functions)
-	(mapc (lambda (fn)
-		(funcall fn (point-min) (point-max)
-			 (- (point-max) (point-min))))
-	      c-before-font-lock-functions))))
+    ;; Starting a mode is a sort of "change".  So call the change functions...
+    (save-restriction
+      (widen)
+      (setq c-new-BEG (point-min))
+      (setq c-new-END (point-max))
+      (save-excursion
+	(let (before-change-functions after-change-functions)
+	  (mapc (lambda (fn)
+		  (funcall fn (point-min) (point-max)))
+		c-get-state-before-change-functions)
+	  (mapc (lambda (fn)
+		  (funcall fn (point-min) (point-max)
+			   (- (point-max) (point-min))))
+		c-before-font-lock-functions))))
 
-  (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
-  (set (make-local-variable 'outline-level) 'c-outline-level)
-  (set (make-local-variable 'add-log-current-defun-function)
-       (lambda ()
-	 (or (c-cpp-define-name) (car (c-defun-name-and-limits nil)))))
-  (let ((rfn (assq mode c-require-final-newline)))
-    (when rfn
-      (if (boundp 'mode-require-final-newline)
-          (and (cdr rfn)
-               (set (make-local-variable 'require-final-newline)
-                    mode-require-final-newline))
-        (set (make-local-variable 'require-final-newline) (cdr rfn))))))
+    (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
+    (set (make-local-variable 'outline-level) 'c-outline-level)
+    (set (make-local-variable 'add-log-current-defun-function)
+	 (lambda ()
+	   (or (c-cpp-define-name) (car (c-defun-name-and-limits nil)))))
+    (let ((rfn (assq mode c-require-final-newline)))
+      (when rfn
+	(if (boundp 'mode-require-final-newline)
+            (and (cdr rfn)
+		 (set (make-local-variable 'require-final-newline)
+                      mode-require-final-newline))
+          (set (make-local-variable 'require-final-newline) (cdr rfn)))))))
 
 (defun c-count-cfss (lv-alist)
   ;; LV-ALIST is an alist like `file-local-variables-alist'.  Count how many
