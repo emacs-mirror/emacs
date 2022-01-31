@@ -2659,7 +2659,8 @@ If PROMPT (the prefix), prompt for a coding system to use."
   (dolist (header (mail-header-parse-addresses addresses t))
     (when-let* ((address (car (ignore-errors
                                 (mail-header-parse-address header))))
-                (warning (textsec-suspicious-p address 'email-address)))
+                (warning (and (string-match "@" address)
+                              (textsec-suspicious-p address 'email-address))))
       (goto-char (point-min))
       (while (search-forward address nil t)
         (put-text-property (match-beginning 0) (match-end 0)
