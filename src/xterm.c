@@ -1974,9 +1974,9 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	    GC gc = f->output_data.x->normal_gc;
 
 	    XSetForeground (display, gc, color);
-	    x_fill_rectangle (f, gc, 0, y, width, height);
+	    x_fill_rectangle (f, gc, 0, y, width, height, true);
 	    x_fill_rectangle (f, gc, FRAME_PIXEL_WIDTH (f) - width, y,
-			      width, height);
+			      width, height, true);
 	    XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	  }
 	else
