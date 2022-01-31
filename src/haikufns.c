@@ -1905,10 +1905,8 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
 
   if (planes == 8)
     return intern ("static-color");
-  else if (planes == 16 || planes == 15)
-    return intern ("pseudo-color");
 
-  return intern ("direct-color");
+  return intern ("true-color");
 }
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
