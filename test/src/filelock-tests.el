@@ -31,26 +31,26 @@
 (require 'ert-x)
 (require 'seq)
 
-(defun filelock-tests--fixture (test-function)
-  "Call TEST-FUNCTION under a test fixture.
+(defmacro filelock-tests--fixture (&rest body)
+  "Call BODY under a test fixture.
 Create a test directory and a buffer whose `buffer-file-name' and
-`buffer-file-truename' are a file within it, then call
-TEST-FUNCTION.  Finally, delete the buffer and the test
-directory."
-  (ert-with-temp-directory temp-dir
-    (let ((name (concat (file-name-as-directory temp-dir)
-                        "userfile"))
-          (create-lockfiles t))
-      (with-temp-buffer
-        (setq buffer-file-name name
-              buffer-file-truename name)
-        (unwind-protect
-            (save-current-buffer
-              (funcall test-function))
-          ;; Set `buffer-file-truename' nil to prevent unlocking,
-          ;; which might prompt the user and/or signal errors.
-          (setq buffer-file-name nil
-                buffer-file-truename nil))))))
+`buffer-file-truename' are a file within it, then call BODY.
+Finally, delete the buffer and the test directory."
+  (declare (debug (body)))
+  `(ert-with-temp-directory temp-dir
+     (let ((name (concat (file-name-as-directory temp-dir)
+                         "userfile"))
+           (create-lockfiles t))
+       (with-temp-buffer
+         (setq buffer-file-name name
+               buffer-file-truename name)
+         (unwind-protect
+             (save-current-buffer
+               ,@body)
+           ;; Set `buffer-file-truename' nil to prevent unlocking,
+           ;; which might prompt the user and/or signal errors.
+           (setq buffer-file-name nil
+                 buffer-file-truename nil))))))
 
 (defun filelock-tests--make-lock-name (file-name)
   "Return the lock file name for FILE-NAME.
@@ -86,105 +86,132 @@ the case)."
 (ert-deftest filelock-tests-lock-unlock-no-errors ()
   "Check that locking and unlocking works without error."
   (filelock-tests--fixture
-   (lambda ()
-     (should-not (file-locked-p (buffer-file-name)))
+   (should-not (file-locked-p (buffer-file-name)))
 
-     ;; inserting text should lock the buffer's file.
-     (insert "this locks the buffer's file")
-     (filelock-tests--should-be-locked)
-     (unlock-buffer)
-     (set-buffer-modified-p nil)
-     (should-not (file-locked-p (buffer-file-name)))
+   ;; Inserting text should lock the buffer's file.
+   (insert "this locks the buffer's file")
+   (filelock-tests--should-be-locked)
+   (unlock-buffer)
+   (set-buffer-modified-p nil)
+   (should-not (file-locked-p (buffer-file-name)))
 
-     ;; `set-buffer-modified-p' should lock the buffer's file.
-     (set-buffer-modified-p t)
-     (filelock-tests--should-be-locked)
-     (unlock-buffer)
-     (should-not (file-locked-p (buffer-file-name)))
+   ;; `set-buffer-modified-p' should lock the buffer's file.
+   (set-buffer-modified-p t)
+   (filelock-tests--should-be-locked)
+   (unlock-buffer)
+   (should-not (file-locked-p (buffer-file-name)))
 
-     (should-not (file-locked-p (buffer-file-name))))))
+   (should-not (file-locked-p (buffer-file-name)))))
 
 (ert-deftest filelock-tests-lock-spoiled ()
-  "Check `lock-buffer' ."
+  "Check `lock-buffer'."
   (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
   (filelock-tests--fixture
-   (lambda ()
-     (filelock-tests--spoil-lock-file buffer-file-truename)
-     ;; FIXME: errors when locking a file are ignored; should they be?
-     (set-buffer-modified-p t)
-     (filelock-tests--unspoil-lock-file buffer-file-truename)
-     (should-not (file-locked-p buffer-file-truename)))))
+   (filelock-tests--spoil-lock-file buffer-file-truename)
+   ;; FIXME: errors when locking a file are ignored; should they be?
+   (set-buffer-modified-p t)
+   (filelock-tests--unspoil-lock-file buffer-file-truename)
+   (should-not (file-locked-p buffer-file-truename))))
 
 (ert-deftest filelock-tests-file-locked-p-spoiled ()
   "Check that `file-locked-p' fails if the lockfile is \"spoiled\"."
   (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
   (filelock-tests--fixture
-   (lambda ()
-     (filelock-tests--spoil-lock-file buffer-file-truename)
-     (let ((err (should-error (file-locked-p (buffer-file-name)))))
-       (should (equal (seq-subseq err 0 2)
-                      (if (eq system-type 'windows-nt)
-                          '(permission-denied "Testing file lock")
-                        '(file-error "Testing file lock"))))))))
+   (filelock-tests--spoil-lock-file buffer-file-truename)
+   (let ((err (should-error (file-locked-p (buffer-file-name)))))
+     (should (equal (seq-subseq err 0 2)
+                    (if (eq system-type 'windows-nt)
+                        '(permission-denied "Testing file lock")
+                      '(file-error "Testing file lock")))))))
 
 (ert-deftest filelock-tests-unlock-spoiled ()
   "Check that `unlock-buffer' fails if the lockfile is \"spoiled\"."
   (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
   (filelock-tests--fixture
-   (lambda ()
-     ;; Set the buffer modified with file locking temporarily
-     ;; disabled.
-     (let ((create-lockfiles nil))
-       (set-buffer-modified-p t))
-     (should-not (file-locked-p buffer-file-truename))
-     (filelock-tests--spoil-lock-file buffer-file-truename)
+   ;; Set the buffer modified with file locking temporarily disabled.
+   (let ((create-lockfiles nil))
+     (set-buffer-modified-p t))
+   (should-not (file-locked-p buffer-file-truename))
+   (filelock-tests--spoil-lock-file buffer-file-truename)
 
-     ;; Errors from `unlock-buffer' should call
-     ;; `userlock--handle-unlock-error' (bug#46397).
-     (let (errors)
-       (cl-letf (((symbol-function 'userlock--handle-unlock-error)
-                  (lambda (err) (push err errors))))
-         (unlock-buffer))
-       (should (consp errors))
-       (should (equal
-                (if (eq system-type 'windows-nt)
-                    '(permission-denied "Unlocking file")
-                  '(file-error "Unlocking file"))
-                (seq-subseq (car errors) 0 2)))
-       (should (equal (length errors) 1))))))
+   ;; Errors from `unlock-buffer' should call
+   ;; `userlock--handle-unlock-error' (bug#46397).
+   (cl-letf (((symbol-function 'userlock--handle-unlock-error)
+              (lambda (err) (signal (car err) (cdr err)))))
+     (should (equal
+              (if (eq system-type 'windows-nt)
+                  '(permission-denied "Unlocking file")
+                '(file-error "Unlocking file"))
+              (seq-subseq (should-error (unlock-buffer)) 0 2))))))
 
 (ert-deftest filelock-tests-kill-buffer-spoiled ()
   "Check that `kill-buffer' fails if a lockfile is \"spoiled\"."
   (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
   (filelock-tests--fixture
-   (lambda ()
-     ;; Set the buffer modified with file locking temporarily
-     ;; disabled.
-     (let ((create-lockfiles nil))
-       (set-buffer-modified-p t))
-     (should-not (file-locked-p buffer-file-truename))
-     (filelock-tests--spoil-lock-file buffer-file-truename)
+   ;; Set the buffer modified with file locking temporarily disabled.
+   (let ((create-lockfiles nil))
+     (set-buffer-modified-p t))
+   (should-not (file-locked-p buffer-file-truename))
+   (filelock-tests--spoil-lock-file buffer-file-truename)
 
-     ;; Kill the current buffer.  Because the buffer is modified Emacs
-     ;; will attempt to unlock it.  Temporarily bind `yes-or-no-p' to
-     ;; a function that fakes a "yes" answer for the "Buffer modified;
-     ;; kill anyway?" prompt.
-     ;;
-     ;; File errors from unlocking files should call
-     ;; `userlock--handle-unlock-error' (bug#46397).
-     (let (errors)
+   ;; Kill the current buffer.  Because the buffer is modified Emacs
+   ;; will attempt to unlock it.  Temporarily bind `yes-or-no-p' to a
+   ;; function that fakes a "yes" answer for the "Buffer modified;
+   ;; kill anyway?" prompt.
+   ;;
+   ;; File errors from unlocking files should call
+   ;; `userlock--handle-unlock-error' (bug#46397).
+   (cl-letf (((symbol-function 'yes-or-no-p) #'always)
+             ((symbol-function 'userlock--handle-unlock-error)
+              (lambda (err) (signal (car err) (cdr err)))))
+     (should (equal
+              (if (eq system-type 'windows-nt)
+                  '(permission-denied "Unlocking file")
+                '(file-error "Unlocking file"))
+              (seq-subseq (should-error (kill-buffer)) 0 2))))))
+
+(ert-deftest filelock-tests-detect-external-change ()
+  "Check that an external file modification is reported."
+  (skip-unless (not (eq system-type 'ms-dos))) ; no filelock support
+  (skip-unless (executable-find "touch"))
+  (skip-unless (executable-find "echo"))
+  (dolist (cl '(t nil))
+    (filelock-tests--fixture
+     (let ((create-lockfiles cl))
+       (write-region "foo" nil (buffer-file-name))
+       (revert-buffer nil 'noconfirm)
+       (should-not (file-locked-p (buffer-file-name)))
+
+       ;; Just changing the file modification on disk doesn't hurt,
+       ;; because file contents in buffer and on disk look equal.
+       (shell-command (format "touch %s" (buffer-file-name)))
+       (insert "bar")
+       (when cl (filelock-tests--should-be-locked))
+
+       ;; Bug#53207: with `create-lockfiles' nil, saving the buffer
+       ;; results in a prompt.
        (cl-letf (((symbol-function 'yes-or-no-p)
-                  (lambda (&rest _) t))
-                 ((symbol-function 'userlock--handle-unlock-error)
-                  (lambda (err) (push err errors))))
-         (kill-buffer))
-       (should (consp errors))
-       (should (equal
-                (if (eq system-type 'windows-nt)
-                    '(permission-denied "Unlocking file")
-                  '(file-error "Unlocking file"))
-                (seq-subseq (car errors) 0 2)))
-       (should (equal (length errors) 1))))))
+                  (lambda (_) (ert-fail "Test failed unexpectedly"))))
+         (save-buffer))
+       (should-not (file-locked-p (buffer-file-name)))
+
+       ;; Changing the file contents on disk hurts when buffer is
+       ;; modified.  There shall be a query, which we answer.
+       ;; *Messages* buffer is checked for prompt.
+       (shell-command (format "echo bar >>%s" (buffer-file-name)))
+       (cl-letf (((symbol-function 'read-char-choice)
+                  (lambda (prompt &rest _) (message "%s" prompt) ?y)))
+         (ert-with-message-capture captured-messages
+           ;; `ask-user-about-supersession-threat' does not work in
+           ;; batch mode, let's simulate interactiveness.
+           (let (noninteractive)
+             (insert "baz"))
+           (should (string-match-p
+		    (format
+                     "^%s changed on disk; really edit the buffer\\?"
+                     (file-name-nondirectory (buffer-file-name)))
+                    captured-messages))))
+       (when cl (filelock-tests--should-be-locked))))))
 
 (provide 'filelock-tests)
 ;;; filelock-tests.el ends here
