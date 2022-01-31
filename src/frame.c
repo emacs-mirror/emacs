@@ -5050,6 +5050,7 @@ gui_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   f->alpha_background = alpha;
 
+  recompute_basic_faces (f);
   SET_FRAME_GARBAGED (f);
 }
 

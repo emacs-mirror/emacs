@@ -728,6 +728,26 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 }
 
 static void
+x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  gui_set_alpha_background (f, arg, oldval);
+
+  /* This prevents GTK from painting the window's background, which
+     interferes with transparent background in some environments */
+  gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f),
+				f->alpha_background != 1.0);
+
+  if (f->alpha_background != 1.0)
+    {
+      XChangeProperty (FRAME_X_DISPLAY (f),
+		       FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		       XA_CARDINAL, 32, PropModeReplace,
+		       NULL, 0);
+    }
+}
+
+static void
 x_set_tool_bar_position (struct frame *f,
                          Lisp_Object new_value,
                          Lisp_Object old_value)
@@ -8583,7 +8603,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_z_group,
   x_set_override_redirect,
   gui_set_no_special_glyphs,
-  gui_set_alpha_background,
+  x_set_alpha_background,
 };
 
 void

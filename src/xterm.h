@@ -496,7 +496,8 @@ struct x_display_info
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_above, Xatom_net_wm_state_below,
     Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
-    Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea;
+    Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
+    Xatom_net_wm_opaque_region;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -1242,8 +1243,13 @@ extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
 #ifdef HAVE_XRENDER
-extern void x_xrender_color_from_gc_foreground (struct frame *, GC, XRenderColor *);
-extern void x_xrender_color_from_gc_background (struct frame *, GC, XRenderColor *);
+extern void x_xrender_color_from_gc_foreground (struct frame *, GC,
+						XRenderColor *, bool);
+extern void x_xrender_color_from_gc_background (struct frame *, GC,
+						XRenderColor *, bool);
+extern void x_xr_ensure_picture (struct frame *f);
+extern void x_xr_apply_ext_clip (struct frame *f, GC gc);
+extern void x_xr_reset_ext_clip (struct frame *f);
 #endif
 
 INLINE int

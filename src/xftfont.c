@@ -33,6 +33,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "ftfont.h"
 #include "pdumper.h"
 
+#ifdef HAVE_XRENDER
+#include <X11/extensions/Xrender.h>
+#endif
+
 #ifndef FC_LCD_FILTER
 /* Older fontconfig versions don't have FC_LCD_FILTER.  */
 # define FC_LCD_FILTER "lcdfilter"
@@ -496,7 +500,40 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	height = ascent =
 	  s->first_glyph->slice.glyphless.lower_yoff
 	  - s->first_glyph->slice.glyphless.upper_yoff;
-      XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
+
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+      if (with_background
+	  && FRAME_DISPLAY_INFO (s->f)->n_planes == 32
+	  && FRAME_CHECK_XR_VERSION (s->f, 0, 2))
+	{
+	  x_xr_ensure_picture (s->f);
+
+	  if (FRAME_X_PICTURE (s->f) != None)
+	    {
+	      XRenderColor xc;
+	      int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
+
+	      if (s->num_clips > 0)
+		XRenderSetPictureClipRectangles (FRAME_X_DISPLAY (s->f),
+						 FRAME_X_PICTURE (s->f),
+						 0, 0, s->clip, s->num_clips);
+	      else
+		x_xr_reset_ext_clip (f);
+	      x_xrender_color_from_gc_background (s->f, s->gc, &xc, true);
+	      XRenderFillRectangle (FRAME_X_DISPLAY (s->f),
+				    PictOpSrc, FRAME_X_PICTURE (s->f),
+				    &xc, x, y - ascent, s->width, height);
+	      x_xr_reset_ext_clip (f);
+	      x_mark_frame_dirty (s->f);
+
+	      with_background = false;
+	    }
+	  else
+	    XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
+	}
+      else
+#endif
+	XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
     }
   code = alloca (sizeof (FT_UInt) * len);
   for (i = 0; i < len; i++)

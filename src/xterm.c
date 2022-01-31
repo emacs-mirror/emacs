@@ -341,6 +341,7 @@ static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 static bool x_get_current_wm_state (struct frame *, Window, int *, bool *);
+static void x_update_opaque_region (struct frame *);
 
 /* Flush display of frame F.  */
 
@@ -361,6 +362,7 @@ x_flush (struct frame *f)
 static void
 x_drop_xrender_surfaces (struct frame *f)
 {
+  x_update_opaque_region (f);
   font_drop_xrender_surfaces (f);
 
 #ifdef HAVE_XRENDER
@@ -375,7 +377,7 @@ x_drop_xrender_surfaces (struct frame *f)
 }
 
 #ifdef HAVE_XRENDER
-MAYBE_UNUSED static void
+void
 x_xr_ensure_picture (struct frame *f)
 {
   if (FRAME_X_PICTURE (f) == None && FRAME_X_PICTURE_FORMAT (f))
@@ -443,6 +445,18 @@ record_event (char *locus, int type)
 }
 
 #endif
+
+static void
+x_update_opaque_region (struct frame *f)
+{
+  if (f->alpha_background < 1.0)
+    XChangeProperty (FRAME_X_DISPLAY (f),
+		     FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		     XA_CARDINAL, 32, PropModeReplace,
+		     NULL, 0);
+}
+
 
 #if defined USE_CAIRO || defined HAVE_XRENDER
 static struct x_gc_ext_data *
@@ -1244,8 +1258,8 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
 #endif	/* USE_CAIRO */
 
-#if defined HAVE_XRENDER && !defined USE_CAIRO
-MAYBE_UNUSED static void
+#if defined HAVE_XRENDER
+void
 x_xr_apply_ext_clip (struct frame *f, GC gc)
 {
   eassert (FRAME_X_PICTURE (f) != None);
@@ -1259,7 +1273,7 @@ x_xr_apply_ext_clip (struct frame *f, GC gc)
 				     data->n_clip_rects);
 }
 
-MAYBE_UNUSED static void
+void
 x_xr_reset_ext_clip (struct frame *f)
 {
   XRenderPictureAttributes attrs = { .clip_mask = None };
@@ -1301,7 +1315,8 @@ x_reset_clip_rectangles (struct frame *f, GC gc)
 }
 
 static void
-x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+		  bool respect_alpha_background)
 {
 #ifdef USE_CAIRO
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -1339,6 +1354,29 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
     }
   x_end_cr_clip (f);
 #else
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+  if (respect_alpha_background
+      && FRAME_DISPLAY_INFO (f)->n_planes == 32
+      && FRAME_CHECK_XR_VERSION (f, 0, 2))
+    {
+      x_xr_ensure_picture (f);
+
+      if (FRAME_X_PICTURE (f) != None)
+	{
+	  XRenderColor xc;
+
+	  x_xr_apply_ext_clip (f, gc);
+	  x_xrender_color_from_gc_foreground (f, gc, &xc, true);
+	  XRenderFillRectangle (FRAME_X_DISPLAY (f),
+				PictOpSrc, FRAME_X_PICTURE (f),
+				&xc, x, y, width, height);
+	  x_xr_reset_ext_clip (f);
+	  x_mark_frame_dirty (f);
+
+	  return;
+	}
+    }
+#endif
   XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 		  gc, x, y, width, height);
 #endif
@@ -1346,7 +1384,8 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
 
 
 static void
-x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+		   bool respect_alpha_background)
 {
 #ifdef USE_CAIRO
   cairo_t *cr;
@@ -1357,6 +1396,30 @@ x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
   cairo_fill (cr);
   x_end_cr_clip (f);
 #else
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+  if (respect_alpha_background
+      && FRAME_DISPLAY_INFO (f)->n_planes == 32
+      && FRAME_CHECK_XR_VERSION (f, 0, 2))
+    {
+      x_xr_ensure_picture (f);
+
+      if (FRAME_X_PICTURE (f) != None)
+	{
+	  XRenderColor xc;
+
+	  x_xr_apply_ext_clip (f, gc);
+	  x_xrender_color_from_gc_background (f, gc, &xc, true);
+	  XRenderFillRectangle (FRAME_X_DISPLAY (f),
+				PictOpSrc, FRAME_X_PICTURE (f),
+				&xc, x, y, width, height);
+	  x_xr_reset_ext_clip (f);
+	  x_mark_frame_dirty (f);
+
+	  return;
+	}
+    }
+#endif
+
   XGCValues xgcv;
   Display *dpy = FRAME_X_DISPLAY (f);
   XGetGCValues (dpy, gc, GCBackground | GCForeground, &xgcv);
@@ -1397,7 +1460,7 @@ x_clear_window (struct frame *f)
   x_end_cr_clip (f);
 #else
 #ifndef USE_GTK
-  if (FRAME_X_DOUBLE_BUFFERED_P (f))
+  if (FRAME_X_DOUBLE_BUFFERED_P (f) || (f->alpha_background != 1.0))
 #endif
     x_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
 #ifndef USE_GTK
@@ -1655,7 +1718,7 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 		    face->foreground);
 
 #ifdef USE_CAIRO
-  x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0);
+  x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0, false);
 #else
   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 	     f->output_data.x->normal_gc, x, y0, x, y1);
@@ -1688,13 +1751,13 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, 1, y1 - y0);
+			x0, y0, 1, y1 - y0, false);
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0 + 1, y0, x1 - x0 - 2, y1 - y0);
+			x0 + 1, y0, x1 - x0 - 2, y1 - y0, false);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x1 - 1, y0, 1, y1 - y0);
+			x1 - 1, y0, 1, y1 - y0, false);
     }
   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
     /* A horizontal divider, at least three pixels high: Draw first and
@@ -1702,13 +1765,13 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, x1 - x0, 1);
+			x0, y0, x1 - x0, 1, false);
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0 + 1, x1 - x0, y1 - y0 - 2);
+			x0, y0 + 1, x1 - x0, y1 - y0 - 2, false);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y1 - 1, x1 - x0, 1);
+			x0, y1 - 1, x1 - x0, 1, false);
     }
   else
     {
@@ -1716,7 +1779,7 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
        differently.  */
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
-			x0, y0, x1 - x0, y1 - y0);
+			x0, y0, x1 - x0, y1 - y0, false);
     }
 }
 
@@ -1841,10 +1904,10 @@ x_clear_under_internal_border (struct frame *f)
 	  GC gc = f->output_data.x->normal_gc;
 
 	  XSetForeground (display, gc, color);
-	  x_fill_rectangle (f, gc, 0, margin, width, border);
-	  x_fill_rectangle (f, gc, 0, 0, border, height);
-	  x_fill_rectangle (f, gc, width - border, 0, border, height);
-	  x_fill_rectangle (f, gc, 0, height - border, width, border);
+	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
+	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
+	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
+	  x_fill_rectangle (f, gc, 0, height - border, width, border, false);
 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	}
       else
@@ -1949,7 +2012,8 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       else
 	XSetBackground (display, face->gc, face->background);
 
-      x_clear_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny);
+      x_clear_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
+			 true);
 
       if (!face->stipple)
 	XSetForeground (display, face->gc, face->foreground);
@@ -2293,7 +2357,7 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
 static void
 x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-  x_clear_rectangle (s->f, s->gc, x, y, w, h);
+  x_clear_rectangle (s->f, s->gc, x, y, w, h, true);
 }
 
 
@@ -2319,9 +2383,10 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	  /* Fill background with a stipple pattern.  */
 	  XSetFillStyle (display, s->gc, FillOpaqueStippled);
 	  x_fill_rectangle (s->f, s->gc, s->x,
-			  s->y + box_line_width,
-			  s->background_width,
-			  s->height - 2 * box_line_width);
+			    s->y + box_line_width,
+			    s->background_width,
+			    s->height - 2 * box_line_width,
+			    false);
 	  XSetFillStyle (display, s->gc, FillSolid);
 	  s->background_filled_p = true;
 	}
@@ -2416,7 +2481,8 @@ x_draw_glyph_string_foreground (struct glyph_string *s)
 		  x_fill_rectangle (s->f, s->gc, s->x,
 				    s->y + box_line_width,
 				    s->background_width,
-				    s->height - 2 * box_line_width);
+				    s->height - 2 * box_line_width,
+				    false);
 		  XSetFillStyle (display, s->gc, FillSolid);
 		}
 	      else
@@ -3344,7 +3410,7 @@ x_draw_relief_rect (struct frame *f,
   if (left_p)
     {
       x_fill_rectangle (f, top_left_gc, left_x, top_y,
-			vwidth, bottom_y + 1 - top_y);
+			vwidth, bottom_y + 1 - top_y, false);
       if (top_p)
 	corners |= 1 << CORNER_TOP_LEFT;
       if (bot_p)
@@ -3353,7 +3419,7 @@ x_draw_relief_rect (struct frame *f,
   if (right_p)
     {
       x_fill_rectangle (f, bottom_right_gc, right_x + 1 - vwidth, top_y,
-			vwidth, bottom_y + 1 - top_y);
+			vwidth, bottom_y + 1 - top_y, false);
       if (top_p)
 	corners |= 1 << CORNER_TOP_RIGHT;
       if (bot_p)
@@ -3363,7 +3429,7 @@ x_draw_relief_rect (struct frame *f,
     {
       if (!right_p)
 	x_fill_rectangle (f, top_left_gc, left_x, top_y,
-			  right_x + 1 - left_x, hwidth);
+			  right_x + 1 - left_x, hwidth, false);
       else
 	x_fill_trapezoid_for_relief (f, top_left_gc, left_x, top_y,
 				     right_x + 1 - left_x, hwidth, 1);
@@ -3372,7 +3438,7 @@ x_draw_relief_rect (struct frame *f,
     {
       if (!left_p)
 	x_fill_rectangle (f, bottom_right_gc, left_x, bottom_y + 1 - hwidth,
-			  right_x + 1 - left_x, hwidth);
+			  right_x + 1 - left_x, hwidth, false);
       else
 	x_fill_trapezoid_for_relief (f, bottom_right_gc,
 				     left_x, bottom_y + 1 - hwidth,
@@ -3380,10 +3446,10 @@ x_draw_relief_rect (struct frame *f,
     }
   if (left_p && vwidth > 1)
     x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
-		      1, bottom_y + 1 - top_y);
+		      1, bottom_y + 1 - top_y, false);
   if (top_p && hwidth > 1)
     x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
-		      right_x + 1 - left_x, 1);
+		      right_x + 1 - left_x, 1, false);
   if (corners)
     {
       XSetBackground (FRAME_X_DISPLAY (f), top_left_gc,
@@ -3505,21 +3571,25 @@ x_draw_box_rect (struct glyph_string *s,
 
   /* Top.  */
   x_fill_rectangle (s->f, s->gc,
-		  left_x, top_y, right_x - left_x + 1, hwidth);
+		    left_x, top_y, right_x - left_x + 1, hwidth,
+		    false);
 
   /* Left.  */
   if (left_p)
     x_fill_rectangle (s->f, s->gc,
-		    left_x, top_y, vwidth, bottom_y - top_y + 1);
+		      left_x, top_y, vwidth, bottom_y - top_y + 1,
+		      false);
 
   /* Bottom.  */
   x_fill_rectangle (s->f, s->gc,
-		  left_x, bottom_y - hwidth + 1, right_x - left_x + 1, hwidth);
+		    left_x, bottom_y - hwidth + 1, right_x - left_x + 1, hwidth,
+		    false);
 
   /* Right.  */
   if (right_p)
     x_fill_rectangle (s->f, s->gc,
-		    right_x - vwidth + 1, top_y, vwidth, bottom_y - top_y + 1);
+		      right_x - vwidth + 1, top_y, vwidth, bottom_y - top_y + 1,
+		      false);
 
   XSetForeground (display, s->gc, xgcv.foreground);
   x_reset_clip_rectangles (s->f, s->gc);
@@ -3934,7 +4004,7 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 
       /* Fill background with a stipple pattern.  */
       XSetFillStyle (display, s->gc, FillOpaqueStippled);
-      x_fill_rectangle (s->f, s->gc, x, y, w, h);
+      x_fill_rectangle (s->f, s->gc, x, y, w, h, false);
       XSetFillStyle (display, s->gc, FillSolid);
     }
   else
@@ -4139,7 +4209,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	    {
 	      /* Fill background with a stipple pattern.  */
 	      XSetFillStyle (display, gc, FillOpaqueStippled);
-	      x_fill_rectangle (s->f, gc, x, y, w, h);
+	      x_fill_rectangle (s->f, gc, x, y, w, h, true);
 	      XSetFillStyle (display, gc, FillSolid);
 	    }
 	  else
@@ -4147,7 +4217,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	      XGCValues xgcv;
 	      XGetGCValues (display, gc, GCForeground | GCBackground, &xgcv);
 	      XSetForeground (display, gc, xgcv.background);
-	      x_fill_rectangle (s->f, gc, x, y, w, h);
+	      x_fill_rectangle (s->f, gc, x, y, w, h, true);
 	      XSetForeground (display, gc, xgcv.foreground);
 	    }
 
@@ -4497,7 +4567,8 @@ x_draw_glyph_string (struct glyph_string *s)
               y = s->ybase + position;
               if (s->face->underline_defaulted_p)
                 x_fill_rectangle (s->f, s->gc,
-				  s->x, y, decoration_width, thickness);
+				  s->x, y, decoration_width, thickness,
+				  false);
               else
                 {
                   Display *display = FRAME_X_DISPLAY (s->f);
@@ -4505,7 +4576,8 @@ x_draw_glyph_string (struct glyph_string *s)
                   XGetGCValues (display, s->gc, GCForeground, &xgcv);
                   XSetForeground (display, s->gc, s->face->underline_color);
                   x_fill_rectangle (s->f, s->gc,
-				    s->x, y, decoration_width, thickness);
+				    s->x, y, decoration_width, thickness,
+				    false);
                   XSetForeground (display, s->gc, xgcv.foreground);
                 }
             }
@@ -4517,7 +4589,7 @@ x_draw_glyph_string (struct glyph_string *s)
 
 	  if (s->face->overline_color_defaulted_p)
 	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-			      decoration_width, h);
+			      decoration_width, h, false);
 	  else
 	    {
               Display *display = FRAME_X_DISPLAY (s->f);
@@ -4525,7 +4597,7 @@ x_draw_glyph_string (struct glyph_string *s)
 	      XGetGCValues (display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (display, s->gc, s->face->overline_color);
 	      x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				decoration_width, h);
+				decoration_width, h, false);
 	      XSetForeground (display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -4547,7 +4619,7 @@ x_draw_glyph_string (struct glyph_string *s)
 
 	  if (s->face->strike_through_color_defaulted_p)
 	    x_fill_rectangle (s->f, s->gc, s->x, glyph_y + dy,
-			    s->width, h);
+			      s->width, h, false);
 	  else
 	    {
               Display *display = FRAME_X_DISPLAY (s->f);
@@ -4555,7 +4627,7 @@ x_draw_glyph_string (struct glyph_string *s)
 	      XGetGCValues (display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (display, s->gc, s->face->strike_through_color);
 	      x_fill_rectangle (s->f, s->gc, s->x, glyph_y + dy,
-				decoration_width, h);
+				decoration_width, h, false);
 	      XSetForeground (display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -4667,7 +4739,8 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
   x_end_cr_clip (f);
 #else
 #ifndef USE_GTK
-  if (FRAME_X_DOUBLE_BUFFERED_P (f))
+  if (FRAME_X_DOUBLE_BUFFERED_P (f)
+      || f->alpha_background != 1.0)
 #endif
     {
 #if defined HAVE_XRENDER && \
@@ -4677,10 +4750,10 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 	  && FRAME_CHECK_XR_VERSION (f, 0, 2))
 	{
 	  XRenderColor xc;
-	  GC gc = f->output_data.x->reverse_gc;
+	  GC gc = f->output_data.x->normal_gc;
 
 	  x_xr_apply_ext_clip (f, gc);
-	  x_xrender_color_from_gc_foreground (f, gc, &xc);
+	  x_xrender_color_from_gc_background (f, gc, &xc, true);
 	  XRenderFillRectangle (FRAME_X_DISPLAY (f),
 				PictOpSrc, FRAME_X_PICTURE (f),
 				&xc, x, y, width, height);
@@ -9392,6 +9465,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f->output_data.x->has_been_visible = true;
 	    }
 
+	  x_update_opaque_region (f);
+
           if (not_hidden && iconified)
             {
               inev.ie.kind = DEICONIFY_EVENT;
@@ -12134,8 +12209,8 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	    x += cursor_glyph->pixel_width - width;
 
 	  x_fill_rectangle (f, gc, x,
-			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-			  width, row->height);
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			    width, row->height, false);
 	}
       else /* HBAR_CURSOR */
 	{
@@ -12156,7 +12231,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	  x_fill_rectangle (f, gc, x,
 			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
                                                      row->height - width),
-                            w->phys_cursor_width - 1, width);
+                            w->phys_cursor_width - 1, width, false);
 	}
 
       x_reset_clip_rectangles (f, gc);
@@ -15743,6 +15818,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_STATE_SKIP_TASKBAR", Xatom_net_wm_state_skip_taskbar)
       ATOM_REFS_INIT ("_NET_WM_STATE_ABOVE", Xatom_net_wm_state_above)
       ATOM_REFS_INIT ("_NET_WM_STATE_BELOW", Xatom_net_wm_state_below)
+      ATOM_REFS_INIT ("_NET_WM_OPAQUE_REGION", Xatom_net_wm_opaque_region)
 #ifdef HAVE_XKB
       ATOM_REFS_INIT ("Meta", Xatom_Meta)
       ATOM_REFS_INIT ("Super", Xatom_Super)
@@ -16279,7 +16355,8 @@ init_xterm (void)
 
 #ifdef HAVE_XRENDER
 void
-x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color)
+x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color,
+				    bool apply_alpha_background)
 {
   XGCValues xgcv;
   XColor xc;
@@ -16288,26 +16365,47 @@ x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color)
   xc.pixel = xgcv.foreground;
   x_query_colors (f, &xc, 1);
 
-  color->alpha = 65535;
-  color->red = xc.red;
-  color->blue = xc.blue;
-  color->green = xc.green;
+  if (color->alpha == 65535)
+    {
+      color->red = xc.red;
+      color->blue = xc.blue;
+      color->green = xc.green;
+    }
+  else
+    {
+      color->red = (xc.red * color->alpha) / 65535;
+      color->blue = (xc.blue * color->alpha) / 65535;
+      color->green = (xc.green * color->alpha) / 65535;
+    }
 }
 
 void
-x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color)
+x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color,
+				    bool apply_alpha_background)
 {
   XGCValues xgcv;
   XColor xc;
 
   XGetGCValues (FRAME_X_DISPLAY (f), gc, GCBackground, &xgcv);
-  xc.pixel = xgcv.foreground;
+  xc.pixel = xgcv.background;
   x_query_colors (f, &xc, 1);
 
-  color->alpha = 65535;
-  color->red = xc.red;
-  color->blue = xc.blue;
-  color->green = xc.green;
+  color->alpha = (apply_alpha_background
+		  ? 65535 * f->alpha_background
+		  : 65535);
+
+  if (color->alpha == 65535)
+    {
+      color->red = xc.red;
+      color->blue = xc.blue;
+      color->green = xc.green;
+    }
+  else
+    {
+      color->red = (xc.red * color->alpha) / 65535;
+      color->blue = (xc.blue * color->alpha) / 65535;
+      color->green = (xc.green * color->alpha) / 65535;
+    }
 }
 #endif
 
