@@ -174,6 +174,11 @@ and pop-up menus.
 This controls the style of the pre-edit and status areas of X input
 methods.
 
++++
+** New frame parameter 'alpha-background' and X resource "alphaBackground".
+This controls the opacity of the text background when running on a
+composited display.
+
 ---
 ** New user option 'x-gtk-use-native-input'.
 This controls whether or not GTK input methods are used by Emacs,
