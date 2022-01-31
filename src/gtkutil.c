@@ -1601,12 +1601,14 @@ xg_create_frame_widgets (struct frame *f)
   GdkScreen *screen = gtk_widget_get_screen (wtop);
 
 #if !defined HAVE_PGTK
-  if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
-    {
-      GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
-      gtk_widget_set_visual (wtop, visual);
-      gtk_widget_set_visual (wfixed, visual);
-    }
+  GdkVisual *visual = gdk_x11_screen_lookup_visual (screen,
+						    XVisualIDFromVisual (FRAME_X_VISUAL (f)));
+
+  if (!visual)
+    emacs_abort ();
+
+  gtk_widget_set_visual (wtop, visual);
+  gtk_widget_set_visual (wfixed, visual);
 #endif
 
 #ifndef HAVE_PGTK
