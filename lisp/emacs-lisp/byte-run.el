@@ -656,7 +656,7 @@ For the `mapcar' case, only the `mapcar' function can be used in
 the symbol list.  For `suspicious', only `set-buffer' can be used."
   ;; Note: during compilation, this definition is overridden by the one in
   ;; byte-compile-initial-macro-environment.
-  (declare (debug (sexp &optional body)) (indent 1))
+  (declare (debug (sexp body)) (indent 1))
   (if (not (and (featurep 'macroexp)
                 (boundp 'byte-compile--suppressed-warnings)))
       ;; If `macroexp' is not yet loaded, we're in the middle of
