@@ -1091,6 +1091,7 @@ The value of @code{load-history} may have one element whose @sc{car} is
 by adding the symbols defined to the element for the file being visited,
 rather than replacing that element.  @xref{Eval}.
 
+@kindex function-history @r{(function symbol property)}
 In addition to @code{load-history}, every function keeps track of its
 own history in the symbol property @code{function-history}.
 The reason why functions are treated specially in this respect is that
@@ -1099,12 +1100,11 @@ files (typically, one of them is an autoload), so in order to be
 able to properly @emph{unload} a file, we need to know more precisely
 what that file did to the function definition.
 
-@kindex function-history
 The symbol property @code{function-history} holds a list of the form
-@code{(@var{file1} @var{def2} @var{file2} @var{def3} ...)} where
+@w{@code{(@var{file1} @var{def2} @var{file2} @var{def3} ...)}}, where
 @var{file1} is the last file that changed the definition and
 @var{def2} was the definition before @var{file1}, set by @var{file2},
-etc... Logically this list should end with the name of the first file
+etc.  Logically this list should end with the name of the first file
 that defined this function, but to save space this last element
 is usually omitted.
 
