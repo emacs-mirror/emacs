@@ -591,12 +591,9 @@ extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
 extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int, bool);
 extern cairo_t *pgtk_begin_cr_clip (struct frame *f);
 extern void pgtk_end_cr_clip (struct frame *f);
-extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f,
-						   Emacs_GC * gc);
-extern void pgtk_set_cr_source_with_gc_background (struct frame *f,
-						   Emacs_GC * gc);
-extern void pgtk_set_cr_source_with_color (struct frame *f,
-					   unsigned long color);
+extern void pgtk_set_cr_source_with_gc_foreground (struct frame *, Emacs_GC *, bool);
+extern void pgtk_set_cr_source_with_gc_background (struct frame *, Emacs_GC *, bool);
+extern void pgtk_set_cr_source_with_color (struct frame *, unsigned long, bool);
 extern void pgtk_cr_draw_frame (cairo_t * cr, struct frame *f);
 extern void pgtk_cr_destroy_frame_context (struct frame *f);
 extern Lisp_Object pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type);

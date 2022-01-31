@@ -557,7 +557,7 @@ ftcrfont_draw (struct glyph_string *s,
 #ifdef HAVE_X_WINDOWS
       x_set_cr_source_with_gc_background (f, s->gc);
 #else
-      pgtk_set_cr_source_with_color (f, s->xgcv.background);
+      pgtk_set_cr_source_with_color (f, s->xgcv.background, true);
 #endif
 #else
       struct face *face = s->face;
@@ -589,7 +589,7 @@ ftcrfont_draw (struct glyph_string *s,
 #ifdef HAVE_X_WINDOWS
   x_set_cr_source_with_gc_foreground (f, s->gc);
 #else
-  pgtk_set_cr_source_with_color (f, s->xgcv.foreground);
+  pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
 #endif
 #else
   uint32_t col = s->hl == DRAW_CURSOR ?

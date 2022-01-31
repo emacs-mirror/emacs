@@ -81,10 +81,10 @@ static void xg_im_context_commit (GtkIMContext *, gchar *, gpointer);
 static void xg_im_context_preedit_changed (GtkIMContext *, gpointer);
 static void xg_im_context_preedit_end (GtkIMContext *, gpointer);
 static bool xg_widget_key_press_event_cb (GtkWidget *, GdkEvent *, gpointer);
+#endif
 
 #if GTK_CHECK_VERSION (3, 10, 0)
 static void xg_widget_style_updated (GtkWidget *, gpointer);
-#endif
 #endif
 
 #ifndef HAVE_GTK3
@@ -1464,13 +1464,6 @@ xg_create_frame_widgets (struct frame *f)
     }
   else
     wtop = gtk_window_new (type);
-
-#if GTK_CHECK_VERSION (3, 10, 0)
-  g_signal_connect (G_OBJECT (wtop), "style-updated",
-		    G_CALLBACK (xg_widget_style_updated), f);
-#endif
-
-  gtk_widget_set_app_paintable (wtop, f->alpha_background != 1.0);
 #else
   if (f->tooltip)
     {
@@ -1478,6 +1471,12 @@ xg_create_frame_widgets (struct frame *f)
     }
   wtop = gtk_window_new (type);
   gtk_widget_add_events (wtop, GDK_ALL_EVENTS_MASK);
+#endif
+
+  gtk_widget_set_app_paintable (wtop, f->alpha_background != 1.0);
+#if GTK_CHECK_VERSION (3, 10, 0)
+  g_signal_connect (G_OBJECT (wtop), "style-updated",
+		    G_CALLBACK (xg_widget_style_updated), f);
 #endif
 
   /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
@@ -1606,10 +1605,12 @@ xg_create_frame_widgets (struct frame *f)
 
   if (!visual)
     emacs_abort ();
+#else
+  GdkVisual *visual = gdk_screen_get_argb_visual (screen);
+#endif
 
   gtk_widget_set_visual (wtop, visual);
   gtk_widget_set_visual (wfixed, visual);
-#endif
 
 #ifndef HAVE_PGTK
   /* Must realize the windows so the X window gets created.  It is used
@@ -6398,6 +6399,7 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 
   return result;
 }
+#endif
 
 #if GTK_CHECK_VERSION (3, 10, 0)
 static void
@@ -6406,12 +6408,20 @@ xg_widget_style_updated (GtkWidget *widget, gpointer user_data)
   struct frame *f = user_data;
 
   if (f->alpha_background < 1.0)
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
-		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
-		     XA_CARDINAL, 32, PropModeReplace,
-		     NULL, 0);
-}
+    {
+#ifndef HAVE_PGTK
+      XChangeProperty (FRAME_X_DISPLAY (f),
+		       FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		       XA_CARDINAL, 32, PropModeReplace,
+		       NULL, 0);
+#else
+      if (FRAME_GTK_OUTER_WIDGET (f)
+	  && gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f)))
+	gdk_window_set_opaque_region (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+				      NULL);
 #endif
+    }
+}
 #endif
 #endif /* USE_GTK */

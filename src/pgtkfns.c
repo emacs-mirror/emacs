@@ -235,6 +235,24 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 static void
+pgtk_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  gui_set_alpha_background (f, arg, oldval);
+
+  /* This prevents GTK from painting the window's background, which
+     interferes with transparent background in some environments */
+
+  gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f),
+				f->alpha_background != 1.0);
+
+  if (FRAME_GTK_OUTER_WIDGET (f)
+      && gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f))
+      && f->alpha_background != 1.0)
+    gdk_window_set_opaque_region (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+				  NULL);
+}
+
+static void
 x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int pix;
@@ -1043,7 +1061,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] = {
   x_set_z_group,
   x_set_override_redirect,
   gui_set_no_special_glyphs,
-  gui_set_alpha_background,
+  pgtk_set_alpha_background,
 };
 
 
@@ -1668,7 +1686,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha, Qnil,
 			 "alpha", "Alpha", RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qalpha, Qnil,
+  gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
 
   if (!NILP (parent_frame))
