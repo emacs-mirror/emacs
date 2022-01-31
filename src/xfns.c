@@ -3780,7 +3780,7 @@ x_window (struct frame *f)
 		     f->top_pos,
 		     FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
 		     f->border_width,
-		     CopyFromParent, /* depth */
+		     FRAME_DISPLAY_INFO (f)->n_planes, /* depth */
 		     InputOutput, /* class */
 		     FRAME_X_VISUAL (f),
                      attribute_mask, &attributes);
