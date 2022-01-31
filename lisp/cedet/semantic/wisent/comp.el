@@ -65,6 +65,7 @@
 (defmacro wisent-defcontext (name &rest vars)
   "Define a context NAME that will bind variables VARS."
   (declare (indent 1))
+  (declare-function wisent-context-name nil (name))
   (let* ((context (wisent-context-name name))
          (declarations (mapcar (lambda (v) (list 'defvar v)) vars)))
     `(progn
@@ -75,6 +76,7 @@
 (defmacro wisent-with-context (name &rest body)
   "Bind variables in context NAME then eval BODY."
   (declare (indent 1))
+  (declare-function wisent-context-bindings nil (name))
   `(dlet ,(wisent-context-bindings name)
      ,@body))
 

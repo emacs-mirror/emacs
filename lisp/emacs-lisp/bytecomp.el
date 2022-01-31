@@ -1031,30 +1031,23 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	(hist-nil-orig current-load-list))
     (prog1 (eval form lexical-binding)
       (when (byte-compile-warning-enabled-p 'noruntime)
-	(let ((hist-new load-history)
-	      (hist-nil-new current-load-list))
+	(let* ((hist-new
+	        ;; Get new `current-load-list' for the locally defined funs.
+	        (cons (butlast current-load-list
+	                       (length hist-nil-orig))
+	              load-history)))
 	  ;; Go through load-history, look for newly loaded files
 	  ;; and mark all the functions defined therein.
 	  (while (and hist-new (not (eq hist-new hist-orig)))
-	    (let ((xs (pop hist-new))
-		  old-autoloads)
+	    (let ((xs (pop hist-new)))
 	      ;; Make sure the file was not already loaded before.
 	      (unless (assoc (car xs) hist-orig)
 		(dolist (s xs)
-		  (cond
-		   ((and (consp s) (eq t (car s)))
-		    (push (cdr s) old-autoloads))
-		   ((and (consp s) (memq (car s) '(autoload defun)))
-		    (unless (memq (cdr s) old-autoloads)
-                      (push (cdr s) byte-compile-noruntime-functions))))))))
-	  ;; Go through current-load-list for the locally defined funs.
-	  (let (old-autoloads)
-	    (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))
-	      (let ((s (pop hist-nil-new)))
-		(when (and (symbolp s) (not (memq s old-autoloads)))
-		  (push s byte-compile-noruntime-functions))
-		(when (and (consp s) (eq t (car s)))
-                  (push (cdr s) old-autoloads))))))))))
+		  (pcase s
+		    (`(defun . ,f)
+		     (unless (seq-some #'autoloadp
+		                       (get (cdr s) 'function-history))
+                       (push f byte-compile-noruntime-functions)))))))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."

@@ -3135,9 +3135,9 @@ If SOLID (the prefix), create a solid group."
 	     (if (derived-mode-p 'gnus-summary-mode) 'summary 'group))))))
 
 (defvar nnrss-group-alist)
-(eval-when-compile
-  (defun nnrss-discover-feed (_arg))
-  (defun nnrss-save-server-data (_arg)))
+(declare-function nnrss-discover-feed "nnrss" (url))
+(declare-function nnrss-save-server-data "nnrss" (server))
+
 (defun gnus-group-make-rss-group (&optional url)
   "Given a URL, discover if there is an RSS feed.
 If there is, use Gnus to create an nnrss group"
