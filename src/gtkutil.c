@@ -4853,9 +4853,8 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 	     && event->type == GenericEvent
 	     && (event->xgeneric.extension
 		 == FRAME_DISPLAY_INFO (f)->xi2_opcode)
-	     && ((event->xgeneric.evtype == XI_ButtonPress
-		  && xev->detail < 4)
-		 || (event->xgeneric.evtype == XI_Motion)))
+	     && (event->xgeneric.evtype == XI_ButtonPress
+		 && xev->detail < 4))
 	    || (event->type == ButtonPress
 		&& event->xbutton.button < 4)))
 #else
@@ -4887,19 +4886,7 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 #else
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
 #endif
-#ifndef HAVE_XINPUT2
       retval = gwin != gtk_widget_get_window (f->output_data.xp->edit_widget);
-#else
-      retval = (gwin
-		&& (gwin
-		    != gtk_widget_get_window (f->output_data.xp->edit_widget)));
-#endif
-#ifdef HAVE_XINPUT2
-      GtkWidget *grab = gtk_grab_get_current ();
-      if (event->type == GenericEvent
-	  && event->xgeneric.evtype == XI_Motion)
-	retval = retval || (grab && GTK_IS_SCROLLBAR (grab));
-#endif
     }
 #ifdef HAVE_XINPUT2
   else if (f && ((FRAME_DISPLAY_INFO (f)->supports_xi2
