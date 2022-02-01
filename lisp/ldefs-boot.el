@@ -8580,8 +8580,8 @@ Locate SOA record and increment the serial field." t nil)
 
 (autoload 'doc-view-mode-p "doc-view" "\
 Return non-nil if document type TYPE is available for `doc-view'.
-Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
-OpenDocument format).
+Document types are symbols like `dvi', `ps', `pdf', `epub',
+`cbz', `fb2', `xps', `oxps', or`odf' (any OpenDocument format).
 
 \(fn TYPE)" nil nil)
 
@@ -10406,6 +10406,14 @@ information for all instrumented functions is reset after results are
 displayed." t nil)
 
 (register-definition-prefixes "elp" '("elp-"))
+
+;;;***
+
+;;;### (autoloads nil "em-extpipe" "eshell/em-extpipe.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from eshell/em-extpipe.el
+
+(register-definition-prefixes "em-extpipe" '("eshell-"))
 
 ;;;***
 
@@ -13923,11 +13931,11 @@ and choose the directory as the fortune-file.
 ;;;### (autoloads nil "frameset" "frameset.el" (0 0 0 0))
 ;;; Generated autoloads from frameset.el
 
-(defvar frameset-session-filter-alist '((name . :never) (left . frameset-filter-iconified) (minibuffer . frameset-filter-minibuffer) (top . frameset-filter-iconified)) "\
+(defvar frameset-session-filter-alist (append '((left . frameset-filter-iconified) (minibuffer . frameset-filter-minibuffer) (top . frameset-filter-iconified)) (mapcar (lambda (p) (cons p :never)) frame-internal-parameters)) "\
 Minimum set of parameters to filter for live (on-session) framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
-(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (outer-window-id . :never) (parent-frame . :never) (parent-id . :never) (mouse-wheel-frame . :never) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-id . :never) (window-system . :never)) frameset-session-filter-alist) "\
+(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (parent-frame . :never) (mouse-wheel-frame . :never) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-system . :never)) frameset-session-filter-alist) "\
 Parameters to filter for persistent framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
@@ -40107,23 +40115,24 @@ Zone out, completely." t nil)
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
 ;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
-;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/cpp-root.el"
-;;;;;;  "cedet/ede/custom.el" "cedet/ede/dired.el" "cedet/ede/emacs.el"
-;;;;;;  "cedet/ede/files.el" "cedet/ede/generic.el" "cedet/ede/linux.el"
-;;;;;;  "cedet/ede/locate.el" "cedet/ede/make.el" "cedet/ede/speedbar.el"
-;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
-;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
-;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
-;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
-;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
-;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
-;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
-;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
-;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
-;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
-;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
-;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
-;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/base.el" "cedet/ede/config.el"
+;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
+;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
+;;;;;;  "cedet/ede/linux.el" "cedet/ede/locate.el" "cedet/ede/make.el"
+;;;;;;  "cedet/ede/shell.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
+;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
+;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
+;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
+;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
+;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
+;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
+;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
+;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
+;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
+;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
+;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
+;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
+;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
@@ -40142,8 +40151,8 @@ Zone out, completely." t nil)
 ;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
 ;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
 ;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
-;;;;;;  "cus-face.el" "cus-load.el" "cus-start.el" "custom.el" "dired-aux.el"
-;;;;;;  "dired-x.el" "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
+;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
+;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
 ;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
 ;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-custom.el"
 ;;;;;;  "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el"
@@ -40165,47 +40174,35 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
 ;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
 ;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "eshell/esh-groups.el" "faces.el" "files.el" "finder-inf.el"
-;;;;;;  "font-core.el" "font-lock.el" "format.el" "frame.el" "help.el"
-;;;;;;  "hfy-cmap.el" "ibuf-ext.el" "indent.el" "international/characters.el"
-;;;;;;  "international/charprop.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-labels.el"
-;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
-;;;;;;  "international/idna-mapping.el" "international/iso-transl.el"
-;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
-;;;;;;  "international/mule.el" "international/uni-bidi.el" "international/uni-brackets.el"
-;;;;;;  "international/uni-category.el" "international/uni-combining.el"
-;;;;;;  "international/uni-comment.el" "international/uni-confusable.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-scripts.el" "international/uni-special-lowercase.el"
-;;;;;;  "international/uni-special-titlecase.el" "international/uni-special-uppercase.el"
-;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
-;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "keymap.el"
-;;;;;;  "language/burmese.el" "language/cham.el" "language/chinese.el"
-;;;;;;  "language/cyrillic.el" "language/czech.el" "language/english.el"
-;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
-;;;;;;  "language/greek.el" "language/hebrew.el" "language/indian.el"
-;;;;;;  "language/japanese.el" "language/khmer.el" "language/korean.el"
-;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
-;;;;;;  "language/sinhala.el" "language/slovak.el" "language/tai-viet.el"
-;;;;;;  "language/thai.el" "language/tibetan.el" "language/utf-8-lang.el"
-;;;;;;  "language/vietnamese.el" "ldefs-boot.el" "leim/ja-dic/ja-dic.el"
-;;;;;;  "leim/leim-list.el" "leim/quail/4Corner.el" "leim/quail/ARRAY30.el"
-;;;;;;  "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el"
-;;;;;;  "leim/quail/ECDICT.el" "leim/quail/ETZY.el" "leim/quail/PY-b5.el"
-;;;;;;  "leim/quail/PY.el" "leim/quail/Punct-b5.el" "leim/quail/Punct.el"
-;;;;;;  "leim/quail/QJ-b5.el" "leim/quail/QJ.el" "leim/quail/SW.el"
-;;;;;;  "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el"
-;;;;;;  "leim/quail/arabic.el" "leim/quail/cham.el" "leim/quail/compose.el"
-;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
-;;;;;;  "leim/quail/czech.el" "leim/quail/emoji.el" "leim/quail/georgian.el"
-;;;;;;  "leim/quail/greek.el" "leim/quail/hanja-jis.el" "leim/quail/hanja.el"
-;;;;;;  "leim/quail/hanja3.el" "leim/quail/hebrew.el" "leim/quail/ipa-praat.el"
-;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
-;;;;;;  "leim/quail/latin-pre.el" "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "faces.el" "files.el" "font-core.el" "font-lock.el" "format.el"
+;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
+;;;;;;  "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "keymap.el" "language/burmese.el"
+;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
+;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
+;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
+;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
+;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
+;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
+;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
+;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
+;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
+;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
+;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
+;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
+;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
+;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
+;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
+;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "leim/quail/emoji.el" "leim/quail/georgian.el" "leim/quail/greek.el"
+;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
+;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
+;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
+;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
 ;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
 ;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
 ;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
