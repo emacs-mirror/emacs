@@ -5127,13 +5127,14 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 	return;
     }
 
+  Fputhash (function_name, definition, Vcomp_deferred_pending_h);
+
   /* This is so deferred compilation is able to compile comp
      dependencies breaking circularity.  */
   if (comp__compilable)
     {
       /* Startup is done, comp is usable.  */
       CALL0I (startup--require-comp-safely);
-      Fputhash (function_name, definition, Vcomp_deferred_pending_h);
       CALLN (Ffuncall, intern_c_string ("native--compile-async"),
 	     src, Qnil, Qlate);
     }
