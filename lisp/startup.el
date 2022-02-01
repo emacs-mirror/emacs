@@ -523,7 +523,7 @@ DIRS are relative."
 (defvar comp--delayed-sources)
 (defun startup--require-comp-safely ()
   "Require the native compiler avoiding circular dependencies."
-  (unless (featurep 'comp)
+  (unless (featurep 'native-compile)
     ;; Require comp with `comp--loadable' set to nil to break
     ;; circularity.
     (let ((comp--loadable nil))
