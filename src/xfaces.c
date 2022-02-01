@@ -4151,9 +4151,9 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
   The font default for a face is either nil, or a list
   of the form (bold), (italic) or (bold italic).
-If FRAME is omitted or nil, use the selected frame.  And, in this case,
-if the optional third argument CHARACTER is given,
-return the font name used for CHARACTER.  */)
+If FRAME is omitted or nil, use the selected frame.
+If FRAME is anything but t, and the optional third argument CHARACTER
+is given, return the font name used by FACE for CHARACTER on FRAME.  */)
   (Lisp_Object face, Lisp_Object frame, Lisp_Object character)
 {
   if (EQ (frame, Qt))
