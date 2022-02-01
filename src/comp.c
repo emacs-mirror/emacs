@@ -5129,7 +5129,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 
   /* This is so deferred compilation is able to compile comp
      dependencies breaking circularity.  */
-  if (comp__loadable)
+  if (comp__compilable)
     {
       /* Startup is done, comp is usable.  */
       CALL0I (startup--require-comp-safely);
@@ -5600,9 +5600,9 @@ syms_of_comp (void)
   DEFVAR_LISP ("comp--delayed-sources", Vcomp__delayed_sources,
 	       doc: /* List of sources to be native-compiled when startup is finished.
 For internal use.  */);
-  DEFVAR_BOOL ("comp--loadable",
-	       comp__loadable,
-	       doc: /* Non-nil when comp.el can be loaded.
+  DEFVAR_BOOL ("comp--compilable",
+	       comp__compilable,
+	       doc: /* Non-nil when comp.el can be native compiled.
 For internal use. */);
   /* Compiler control customizes.  */
   DEFVAR_BOOL ("native-comp-deferred-compilation",
