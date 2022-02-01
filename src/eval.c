@@ -3104,80 +3104,61 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 Lisp_Object
 funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 {
-  if (numargs < subr->min_args
-      || (subr->max_args >= 0 && subr->max_args < numargs))
+  eassume (numargs >= 0);
+  /* Conforming call to finite-arity subr.  */
+  if (numargs >= subr->min_args && numargs <= subr->max_args)
     {
-      Lisp_Object fun;
-      XSETSUBR (fun, subr);
-      xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (numargs));
-    }
-
-  else if (subr->max_args == UNEVALLED)
-    {
-      Lisp_Object fun;
-      XSETSUBR (fun, subr);
-      xsignal1 (Qinvalid_function, fun);
-    }
-
-  else if (subr->max_args == MANY)
-    return (subr->function.aMANY) (numargs, args);
-  else
-    {
-      Lisp_Object internal_argbuf[8];
-      Lisp_Object *internal_args;
-      if (subr->max_args > numargs)
+      Lisp_Object argbuf[8];
+      Lisp_Object *a;
+      if (numargs < subr->max_args)
         {
-          eassert (subr->max_args <= ARRAYELTS (internal_argbuf));
-          internal_args = internal_argbuf;
-          memcpy (internal_args, args, numargs * word_size);
-          memclear (internal_args + numargs,
-                    (subr->max_args - numargs) * word_size);
+          eassume (subr->max_args <= ARRAYELTS (argbuf));
+          a = argbuf;
+          memcpy (a, args, numargs * word_size);
+          memclear (a + numargs, (subr->max_args - numargs) * word_size);
         }
       else
-        internal_args = args;
+        a = args;
       switch (subr->max_args)
         {
         case 0:
-          return (subr->function.a0 ());
+          return subr->function.a0 ();
         case 1:
-          return (subr->function.a1 (internal_args[0]));
+          return subr->function.a1 (a[0]);
         case 2:
-          return (subr->function.a2
-                  (internal_args[0], internal_args[1]));
+          return subr->function.a2 (a[0], a[1]);
         case 3:
-          return (subr->function.a3
-                  (internal_args[0], internal_args[1], internal_args[2]));
+          return subr->function.a3 (a[0], a[1], a[2]);
         case 4:
-          return (subr->function.a4
-                  (internal_args[0], internal_args[1], internal_args[2],
-                   internal_args[3]));
+          return subr->function.a4 (a[0], a[1], a[2], a[3]);
         case 5:
-          return (subr->function.a5
-                  (internal_args[0], internal_args[1], internal_args[2],
-                   internal_args[3], internal_args[4]));
+          return subr->function.a5 (a[0], a[1], a[2], a[3], a[4]);
         case 6:
-          return (subr->function.a6
-                  (internal_args[0], internal_args[1], internal_args[2],
-                   internal_args[3], internal_args[4], internal_args[5]));
+          return subr->function.a6 (a[0], a[1], a[2], a[3], a[4], a[5]);
         case 7:
-          return (subr->function.a7
-                  (internal_args[0], internal_args[1], internal_args[2],
-                   internal_args[3], internal_args[4], internal_args[5],
-                   internal_args[6]));
+          return subr->function.a7 (a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
         case 8:
-          return (subr->function.a8
-                  (internal_args[0], internal_args[1], internal_args[2],
-                   internal_args[3], internal_args[4], internal_args[5],
-                   internal_args[6], internal_args[7]));
-
+          return subr->function.a8 (a[0], a[1], a[2], a[3], a[4], a[5], a[6],
+				    a[7]);
         default:
-
           /* If a subr takes more than 8 arguments without using MANY
              or UNEVALLED, we need to extend this function to support it.
              Until this is done, there is no way to call the function.  */
           emacs_abort ();
         }
     }
+
+  /* Call to n-adic subr.  */
+  if (subr->max_args == MANY)
+    return subr->function.aMANY (numargs, args);
+
+  /* Anything else is an error.  */
+  Lisp_Object fun;
+  XSETSUBR (fun, subr);
+  if (subr->max_args >= 0)
+    xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (numargs));
+  else
+    xsignal1 (Qinvalid_function, fun);
 }
 
 /* Call the compiled Lisp function FUN.  If we have not yet read FUN's
