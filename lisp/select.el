@@ -173,6 +173,7 @@ decoded.  If `gui-get-selection' signals an error, return nil."
   (unless (and (memq window-system '(x haiku))
                ;; gui-backend-selection-p might be unreliable on other
                ;; window systems.
+               (eq type 'CLIPBOARD)
                (gui-backend-selection-owner-p type))
     (let ((request-type (if (memq window-system '(x pgtk))
                             (or x-select-request-type
