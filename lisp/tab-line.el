@@ -558,8 +558,9 @@ inherit from `tab-line-tab-inactive-alternate'.  For use in
 When TAB is a non-file-visiting buffer, make FACE inherit from
 `tab-line-tab-special'.  For use in
 `tab-line-tab-face-functions'."
-  (when (and buffer-p (not (buffer-file-name tab)))
-    (setf face `(:inherit (tab-line-tab-special ,face))))
+  (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
+    (when (and buffer (not (buffer-file-name buffer)))
+      (setf face `(:inherit (tab-line-tab-special ,face)))))
   face)
 
 (defun tab-line-tab-face-modified (tab _tabs face buffer-p _selected-p)
@@ -567,8 +568,9 @@ When TAB is a non-file-visiting buffer, make FACE inherit from
 When TAB is a modified, file-backed buffer, make FACE inherit
 from `tab-line-tab-modified'.  For use in
 `tab-line-tab-face-functions'."
-  (when (and buffer-p (buffer-file-name tab) (buffer-modified-p tab))
-    (setf face `(:inherit (tab-line-tab-modified ,face))))
+  (let ((buffer (if buffer-p tab (cdr (assq 'buffer tab)))))
+    (when (and buffer (buffer-file-name buffer) (buffer-modified-p buffer))
+      (setf face `(:inherit (tab-line-tab-modified ,face)))))
   face)
 
 (defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)
