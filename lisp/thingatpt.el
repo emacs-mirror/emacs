@@ -508,14 +508,14 @@ If no URL is found, return nil.
 If optional argument LAX is non-nil, look for URLs that are not
 well-formed, such as foo@bar or <nobody>.
 
-If optional arguments BOUNDS are non-nil, it should be a cons
+If optional argument BOUNDS is non-nil, it should be a cons
 cell of the form (START . END), containing the beginning and end
 positions of the URI.  Otherwise, these positions are detected
 automatically from the text around point.
 
 If the scheme component is absent, either because a URI delimited
 with <url:...> lacks one, or because an ill-formed URI was found
-with LAX or BEG and END, try to add a scheme in the returned URI.
+with LAX or BOUNDS, try to add a scheme in the returned URI.
 The scheme is chosen heuristically: \"mailto:\" if the address
 looks like an email address, \"ftp://\" if it starts with
 \"ftp\", etc."
