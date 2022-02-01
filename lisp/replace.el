@@ -186,6 +186,12 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
                         length)
              length)))))
 
+(defvar query-replace-read-from-default nil
+  "Function to get default non-regexp value for `query-replace-read-from'.")
+
+(defvar query-replace-read-from-regexp-default nil
+  "Function to get default regexp value for `query-replace-read-from'.")
+
 (defun query-replace-read-from-suggestions ()
   "Return a list of standard suggestions for `query-replace-read-from'.
 By default, the list includes the active region, the identifier
@@ -234,7 +240,10 @@ wants to replace FROM with TO."
 	     (symbol-value query-replace-from-history-variable)))
 	   (minibuffer-allow-text-properties t) ; separator uses text-properties
 	   (prompt
-	    (cond ((and query-replace-defaults separator)
+            (cond ((and query-replace-read-from-regexp-default regexp-flag) prompt)
+                  ((and query-replace-read-from-default (not regexp-flag))
+                   (format-prompt prompt (funcall query-replace-read-from-default)))
+                  ((and query-replace-defaults separator)
                    (format-prompt prompt (car minibuffer-history)))
                   (query-replace-defaults
                    (format-prompt
@@ -255,10 +264,19 @@ wants to replace FROM with TO."
                                 (append '((separator . t) (face . t))
                                         text-property-default-nonsticky)))
                 (if regexp-flag
-                    (read-regexp prompt nil 'minibuffer-history)
+                    (read-regexp
+                     (if query-replace-read-from-regexp-default
+                         (string-remove-suffix ": " prompt)
+                       prompt)
+                     query-replace-read-from-regexp-default
+                     'minibuffer-history)
                   (read-from-minibuffer
                    prompt nil nil nil nil
-                   (query-replace-read-from-suggestions) t)))))
+                   (if query-replace-read-from-default
+                       (cons (funcall query-replace-read-from-default)
+                             (query-replace-read-from-suggestions))
+                     (query-replace-read-from-suggestions))
+                   t)))))
            (to))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (caar query-replace-defaults)

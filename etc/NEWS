@@ -1238,6 +1238,17 @@ inhibits 'isearch' matching the STRING parameter.
 It can be used to implement own regexp syntax for search/replace.
 
 ---
+** New variable 'query-replace-read-from-default'.
+It can be set to a function that returns the default value (such as
+'find-tag-default') when 'query-replace' reads a string to replace.
+Another new variable 'query-replace-read-from-regexp-default'
+can be set to a function that returns the default value (such as
+'find-tag-default-as-regexp') when 'query-replace-regexp'
+reads a regexp to replace.  When these variables are nil
+(which is the default) then 'query-replace' uses the previous
+replacement from-to pair as the default value.
+
+---
 ** New user option 'pp-use-max-width'.
 If non-nil, 'pp' will attempt to limit the line length when formatting
 long lists and vectors.

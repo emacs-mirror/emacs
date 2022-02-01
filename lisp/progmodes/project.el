@@ -1072,9 +1072,10 @@ Stops when a match is found and prompts for whether to replace it.
 If you exit the `query-replace', you can later continue the
 `query-replace' loop using the command \\[fileloop-continue]."
   (interactive
-   (pcase-let ((`(,from ,to)
-                (query-replace-read-args "Query replace (regexp)" t t)))
-     (list from to)))
+   (let ((query-replace-read-from-regexp-default 'find-tag-default-as-regexp))
+     (pcase-let ((`(,from ,to)
+                  (query-replace-read-args "Query replace (regexp)" t t)))
+       (list from to))))
   (fileloop-initialize-replace
    from to (project-files (project-current t)) 'default)
   (fileloop-continue))
