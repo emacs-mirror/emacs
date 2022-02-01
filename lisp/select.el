@@ -170,11 +170,12 @@ decided by `x-select-request-type'.  The return value is already
 decoded.  If `gui-get-selection' signals an error, return nil."
   ;; The doc string of `interprogram-paste-function' says to return
   ;; nil if no other program has provided text to paste.
-  (unless (and (memq window-system '(x haiku))
-               ;; gui-backend-selection-p might be unreliable on other
-               ;; window systems.
-               (eq type 'CLIPBOARD)
-               (gui-backend-selection-owner-p type))
+  (unless (and
+           ;; `gui-backend-selection-owner-p' might be unreliable on
+           ;; some other window systems.
+           (memq window-system '(x haiku))
+           (eq type 'CLIPBOARD)
+           (gui-backend-selection-owner-p type))
     (let ((request-type (if (memq window-system '(x pgtk))
                             (or x-select-request-type
                                 '(UTF8_STRING COMPOUND_TEXT STRING text/plain\;charset=utf-8))
