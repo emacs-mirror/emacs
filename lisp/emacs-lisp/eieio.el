@@ -260,7 +260,7 @@ This method is obsolete."
            (let ((f (intern (format "%s-child-p" name))))
              `((defalias ',f #',testsym2)
                (make-obsolete
-                ',f ,(format "use (cl-typep ... \\='%s) instead" name)
+                ',f ,(format "use (cl-typep ... '%s) instead" name)
                 "25.1"))))
 
        ;; When using typep, (typep OBJ 'myclass) returns t for objects which

@@ -215,7 +215,7 @@ It creates an autoload function for CNAME's constructor."
       (when eieio-backward-compatibility
         (set cname cname)
         (make-obsolete-variable cname (format "\
-use \\='%s or turn off `eieio-backward-compatibility' instead" cname)
+use '%s or turn off `eieio-backward-compatibility' instead" cname)
                                 "25.1"))
 
       (setf (cl--find-class cname) newc)
@@ -340,7 +340,7 @@ See `defclass' for more information."
     ;; turn this into a usable self-pointing symbol;  FIXME: Why?
     (when eieio-backward-compatibility
       (set cname cname)
-      (make-obsolete-variable cname (format "use \\='%s instead" cname)
+      (make-obsolete-variable cname (format "use '%s instead" cname)
                               "25.1"))
 
     ;; Create a handy list of the class test too
@@ -362,7 +362,7 @@ See `defclass' for more information."
                   (setq obj (cdr obj)))
                 ans))))
         (make-obsolete csym (format
-                             "use (cl-typep ... \\='(list-of %s)) instead"
+                             "use (cl-typep ... '(list-of %s)) instead"
                              cname)
                        "25.1")))
 
@@ -420,7 +420,7 @@ See `defclass' for more information."
                  (progn
                    (set initarg initarg)
                    (make-obsolete-variable
-                    initarg (format "use \\='%s instead" initarg) "25.1"))))
+                    initarg (format "use '%s instead" initarg) "25.1"))))
 
 	;; The customgroup should be a list of symbols.
 	(cond ((and (null customg) custom)
