@@ -1334,8 +1334,8 @@ pgtk_draw_rectangle (struct frame *f, unsigned long color, int x, int y,
   cairo_t *cr;
 
   cr = pgtk_begin_cr_clip (f);
-  pgtk_set_cr_source_with_color (f, color, true);
-  cairo_rectangle (cr, x + 0.5, y + 0.5, width, respect_alpha_background);
+  pgtk_set_cr_source_with_color (f, color, respect_alpha_background);
+  cairo_rectangle (cr, x + 0.5, y + 0.5, width, height);
   cairo_set_line_width (cr, 1);
   cairo_stroke (cr);
   pgtk_end_cr_clip (f);
