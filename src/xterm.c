@@ -2032,6 +2032,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       Pixmap pixmap, clipmask = None;
       int depth = FRAME_DISPLAY_INFO (f)->n_planes;
       XGCValues gcv;
+      unsigned long background = face->background;
 #ifdef HAVE_XRENDER
       Picture picture = None;
       XRenderPictureAttributes attrs;
@@ -2044,6 +2045,14 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       else
 	bits = (char *) p->bits + p->dh;
 
+      if (FRAME_DISPLAY_INFO (f)->alpha_bits)
+	{
+	  background = (background & ~FRAME_DISPLAY_INFO (f)->alpha_mask);
+	  background |= (((unsigned long) (f->alpha_background * 0xffff)
+			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
+			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	}
+
       /* Draw the bitmap.  I believe these small pixmaps can be cached
 	 by the server.  */
       pixmap = XCreatePixmapFromBitmapData (display, drawable, bits, p->wd, p->h,
@@ -2051,7 +2060,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 					     ? (p->overlay_p ? face->background
 						: f->output_data.x->cursor_pixel)
 					     : face->foreground),
-					    face->background, depth);
+					    background, depth);
 
 #ifdef HAVE_XRENDER
       if (FRAME_X_PICTURE_FORMAT (f)
@@ -15574,6 +15583,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  if (channel_mask)
 	    get_bits_and_offset (channel_mask, &dpyinfo->alpha_bits,
 				 &dpyinfo->alpha_offset);
+	  dpyinfo->alpha_mask = channel_mask;
 	}
       else
 #endif
@@ -15594,6 +15604,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	      if (alpha_mask)
 		get_bits_and_offset (alpha_mask, &dpyinfo->alpha_bits,
 				     &dpyinfo->alpha_offset);
+	      dpyinfo->alpha_mask = alpha_mask;
 	    }
 	}
     }

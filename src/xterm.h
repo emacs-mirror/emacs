@@ -462,6 +462,7 @@ struct x_display_info
   /* Bits and shifts to use to compose pixel values on TrueColor visuals.  */
   int red_bits, blue_bits, green_bits, alpha_bits;
   int red_offset, blue_offset, green_offset, alpha_offset;
+  unsigned long alpha_mask;
 
   /* The type of window manager we have.  If we move FRAME_OUTER_WINDOW
      to x/y 0/0, some window managers (type A) puts the window manager
