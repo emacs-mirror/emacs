@@ -949,6 +949,7 @@ Speedbar,,speedbar, Speedbar Manual}.
 @node Multiple Displays
 @section Multiple Displays
 @cindex multiple displays
+@cindex display server
 
   A single Emacs can talk to more than one X display.  Initially, Emacs
 uses just one display---the one specified with the @env{DISPLAY}

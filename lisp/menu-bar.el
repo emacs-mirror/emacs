@@ -131,9 +131,9 @@
                   :visible (fboundp 'make-frame-on-monitor)
                   :help "Open a new frame on another monitor"))
     (bindings--define-key menu [make-frame-on-display]
-      '(menu-item "New Frame on Display..." make-frame-on-display
+      '(menu-item "New Frame on Display Server..." make-frame-on-display
                   :visible (fboundp 'make-frame-on-display)
-                  :help "Open a new frame on another display"))
+                  :help "Open a new frame on a display server"))
     (bindings--define-key menu [make-frame]
       '(menu-item "New Frame" make-frame-command
                   :visible (fboundp 'make-frame-command)
