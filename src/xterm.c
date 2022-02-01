@@ -2993,12 +2993,23 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
   XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
 }
 
-/* Store F's background color into *BGCOLOR.  */
+/* Store F's real background color into *BGCOLOR.  */
 
 static void
 x_query_frame_background_color (struct frame *f, XColor *bgcolor)
 {
-  bgcolor->pixel = FRAME_BACKGROUND_PIXEL (f);
+  unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+
+  if (FRAME_DISPLAY_INFO (f)->alpha_bits)
+    {
+      background = (background & ~FRAME_DISPLAY_INFO (f)->alpha_mask);
+      background |= (((unsigned long) (f->alpha_background * 0xffff)
+		      >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
+		     << FRAME_DISPLAY_INFO (f)->alpha_offset);
+    }
+
+  bgcolor->pixel = background;
+
   x_query_colors (f, bgcolor, 1);
 }
 
@@ -4075,12 +4086,34 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  else
 	    {
 	      XGCValues xgcv;
-	      XGetGCValues (display, s->gc, GCForeground | GCBackground,
-			    &xgcv);
-	      XSetForeground (display, s->gc, xgcv.background);
-	      XFillRectangle (display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
-	      XSetForeground (display, s->gc, xgcv.foreground);
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+	      if (FRAME_DISPLAY_INFO (s->f)->alpha_bits
+		  && FRAME_CHECK_XR_VERSION (s->f, 0, 2)
+		  && FRAME_X_PICTURE_FORMAT (s->f))
+		{
+		  XRenderColor xc;
+		  XRenderPictureAttributes attrs;
+		  Picture pict;
+		  memset (&attrs, 0, sizeof attrs);
+
+		  pict = XRenderCreatePicture (display, pixmap,
+					       FRAME_X_PICTURE_FORMAT (s->f),
+					       0, &attrs);
+		  x_xrender_color_from_gc_background (s->f, s->gc, &xc, true);
+		  XRenderFillRectangle (FRAME_X_DISPLAY (s->f), PictOpSrc, pict,
+					&xc, 0, 0, s->background_width, s->height);
+		  XRenderFreePicture (display, pict);
+		}
+	      else
+#endif
+		{
+		  XGetGCValues (display, s->gc, GCForeground | GCBackground,
+				&xgcv);
+		  XSetForeground (display, s->gc, xgcv.background);
+		  XFillRectangle (display, pixmap, s->gc,
+				  0, 0, s->background_width, s->height);
+		  XSetForeground (display, s->gc, xgcv.foreground);
+		}
 	    }
 	}
       else
