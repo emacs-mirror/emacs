@@ -5,6 +5,7 @@
 ;; Author: Howard Gayle
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 

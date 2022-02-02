@@ -4,6 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Keywords: terminals
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
