@@ -2816,9 +2816,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    if (WINDOWP (window)
 			&& !EQ (window, last_mouse_window)
 			&& !EQ (window, selected_window)
+			&& !popup_activated_p
+			&& !MINI_WINDOW_P (XWINDOW (selected_window))
 			&& (!NILP (focus_follows_mouse)
-				|| (EQ (XWINDOW (window)->frame,
-					XWINDOW (selected_window)->frame))))
+			    || f == SELECTED_FRAME ()))
 		      {
 			inev.kind = SELECT_WINDOW_EVENT;
 			inev.frame_or_window = window;
