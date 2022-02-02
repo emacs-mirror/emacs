@@ -386,8 +386,27 @@ output."
 	      (let ((data (nth 3 entry)))
 		(setcar (nthcdr 3 entry) nil)
 		(setcar (nthcdr 4 entry) t)
-		(eshell-output-object data nil (cadr entry))
-		(setcar (nthcdr 4 entry) nil)))))))))
+                (unwind-protect
+                    (condition-case nil
+                        (eshell-output-object data nil (cadr entry))
+                      ;; FIXME: We want to send SIGPIPE to the process
+                      ;; here.  However, remote processes don't
+                      ;; currently support that, and not all systems
+                      ;; have SIGPIPE in the first place (e.g. MS
+                      ;; Windows).  In these cases, just delete the
+                      ;; process; this is reasonably close to the
+                      ;; right behavior, since the default action for
+                      ;; SIGPIPE is to terminate the process.  For use
+                      ;; cases where SIGPIPE is truly needed, using an
+                      ;; external pipe operator (`*|') may work
+                      ;; instead (e.g. when working with remote
+                      ;; processes).
+                      (eshell-pipe-broken
+                       (if (or (process-get proc 'remote-pid)
+                               (eq system-type 'windows-nt))
+                           (delete-process proc)
+                         (signal-process proc 'SIGPIPE))))
+                  (setcar (nthcdr 4 entry) nil))))))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
@@ -416,8 +435,12 @@ PROC is the process that's exiting.  STRING is the exit message."
                                   (lambda ()
                                     (if (nth 4 entry)
                                         (run-at-time 0 nil finish-io)
-                                      (when str (eshell-output-object str nil handles))
-                                      (eshell-close-handles status 'nil handles)))))
+                                      (unwind-protect
+                                          (when str
+                                            (eshell-output-object
+                                             str nil handles))
+                                        (eshell-close-handles
+                                         status 'nil handles))))))
                           (funcall finish-io)))))
 		(eshell-remove-process-entry entry))))
 	(eshell-kill-process-function proc string)))))

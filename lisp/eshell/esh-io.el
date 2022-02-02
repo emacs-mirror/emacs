@@ -150,6 +150,8 @@ not be added to this variable."
   :risky t
   :group 'eshell-io)
 
+(define-error 'eshell-pipe-broken "Pipe broken")
+
 ;;; Internal Variables:
 
 (defvar eshell-current-handles nil)
@@ -481,10 +483,12 @@ Returns what was actually sent, or nil if nothing was sent."
 		(goto-char target))))))
 
    ((eshell-processp target)
-    (when (eq (process-status target) 'run)
-      (unless (stringp object)
-       (setq object (eshell-stringify object)))
-      (process-send-string target object)))
+    (unless (stringp object)
+      (setq object (eshell-stringify object)))
+    (condition-case nil
+        (process-send-string target object)
+      ;; If `process-send-string' raises an error, treat it as a broken pipe.
+      (error (signal 'eshell-pipe-broken target))))
 
    ((consp target)
     (apply (car target) object (cdr target))))

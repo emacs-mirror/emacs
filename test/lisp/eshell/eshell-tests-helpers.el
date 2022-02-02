@@ -50,15 +50,18 @@ See `eshell-wait-for-subprocess'.")
          (let (kill-buffer-query-functions)
            (kill-buffer eshell-buffer))))))
 
-(defun eshell-wait-for-subprocess ()
+(defun eshell-wait-for-subprocess (&optional all)
   "Wait until there is no interactive subprocess running in Eshell.
+If ALL is non-nil, wait until there are no Eshell subprocesses at
+all running.
+
 If this takes longer than `eshell-test--max-subprocess-time',
 raise an error."
   (let ((start (current-time)))
-    (while (eshell-interactive-process-p)
+    (while (if all eshell-process-list (eshell-interactive-process-p))
       (when (> (float-time (time-since start))
                eshell-test--max-subprocess-time)
-        (error "timed out waiting for subprocess"))
+        (error "timed out waiting for subprocess(es)"))
       (sit-for 0.1))))
 
 (defun eshell-insert-command (text &optional func)
