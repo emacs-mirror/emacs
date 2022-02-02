@@ -3350,45 +3350,79 @@ union specbinding
     } bt;
   };
 
+/* We use 64-bit platforms as a proxy for ones with ABIs that treat
+   small structs efficiently.  */
+#if SIZE_MAX > 0xffffffff
+#define WRAP_SPECPDL_REF 1
+#endif
+
 /* Abstract reference to to a specpdl entry.  */
+#ifdef WRAP_SPECPDL_REF
+/* Use a proper type for specpdl_ref if it does not make the code slower,
+   since the type checking is quite useful.  */
+typedef struct { ptrdiff_t n; } specpdl_ref;
+#else
 typedef ptrdiff_t specpdl_ref;
+#endif
+
+/* Internal use only.  */
+INLINE specpdl_ref
+wrap_specpdl_ref (ptrdiff_t count)
+{
+#ifdef WRAP_SPECPDL_REF
+  return (specpdl_ref) {.n = count};
+#else
+  return count;
+#endif
+}
+
+/* Internal use only.  */
+INLINE ptrdiff_t
+unwrap_specpdl_ref (specpdl_ref ref)
+{
+#ifdef WRAP_SPECPDL_REF
+  return ref.n;
+#else
+  return ref;
+#endif
+}
 
 INLINE specpdl_ref
 specpdl_count_to_ref (ptrdiff_t count)
 {
-  return count;
+  return wrap_specpdl_ref (count);
 }
 
 INLINE ptrdiff_t
 specpdl_ref_to_count (specpdl_ref ref)
 {
-  return ref;
+  return unwrap_specpdl_ref (ref);
 }
 
 /* Whether two `specpdl_ref' refer to the same entry.  */
 INLINE bool
 specpdl_ref_eq (specpdl_ref a, specpdl_ref b)
 {
-  return a == b;
+  return unwrap_specpdl_ref (a) == unwrap_specpdl_ref (b);
 }
 
 /* Whether `a' refers to an earlier entry than `b'.  */
 INLINE bool
 specpdl_ref_lt (specpdl_ref a, specpdl_ref b)
 {
-  return a < b;
+  return unwrap_specpdl_ref (a) < unwrap_specpdl_ref (b);
 }
 
 INLINE bool
 specpdl_ref_valid_p (specpdl_ref ref)
 {
-  return specpdl_ref_to_count (ref) >= 0;
+  return unwrap_specpdl_ref (ref) >= 0;
 }
 
 INLINE specpdl_ref
 make_invalid_specpdl_ref (void)
 {
-  return specpdl_count_to_ref (-1);
+  return wrap_specpdl_ref (-1);
 }
 
 /* Return a reference that is `delta' steps more recent than `ref'.
