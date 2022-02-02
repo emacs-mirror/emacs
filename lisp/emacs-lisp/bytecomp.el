@@ -2198,20 +2198,20 @@ With argument ARG, insert value in current buffer after the form."
   (save-excursion
     (end-of-defun)
     (beginning-of-defun)
-    (let* ((print-symbols-bare t)
+    (let* ((print-symbols-bare t)       ; For the final `message'.
            (byte-compile-current-file (current-buffer))
 	   (byte-compile-current-buffer (current-buffer))
 	   (start-read-position (point))
 	   (byte-compile-last-warned-form 'nothing)
+           (symbols-with-pos-enabled t)
 	   (value (eval
-		   (let ((symbols-with-pos-enabled t))
-		     (displaying-byte-compile-warnings
-		      (byte-compile-sexp
-                       (let ((form (read-positioning-symbols (current-buffer))))
-                         (push form byte-compile-form-stack)
-                         (eval-sexp-add-defvars
-                          form
-                          start-read-position)))))
+		   (displaying-byte-compile-warnings
+		    (byte-compile-sexp
+                     (let ((form (read-positioning-symbols (current-buffer))))
+                       (push form byte-compile-form-stack)
+                       (eval-sexp-add-defvars
+                        form
+                        start-read-position))))
                    lexical-binding)))
       (cond (arg
 	     (message "Compiling from buffer... done.")
