@@ -240,7 +240,7 @@ If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
 	    (cons
 	     (mapconcat #'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))
-	(cons mailbox (if decode
+	(cons mailbox (if (and decode display-string)
                           (rfc2047-decode-string display-string)
                         display-string))))))
 
