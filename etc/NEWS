@@ -1238,15 +1238,18 @@ inhibits 'isearch' matching the STRING parameter.
 It can be used to implement own regexp syntax for search/replace.
 
 ---
-** New variable 'query-replace-read-from-default'.
-It can be set to a function that returns the default value (such as
-'find-tag-default') when 'query-replace' reads a string to replace.
-Another new variable 'query-replace-read-from-regexp-default'
-can be set to a function that returns the default value (such as
-'find-tag-default-as-regexp') when 'query-replace-regexp'
-reads a regexp to replace.  When these variables are nil
-(which is the default) then 'query-replace' uses the previous
-replacement from-to pair as the default value.
+** New variables to customize defaults of FROM for query-replace commands.
+The new variable 'query-replace-read-from-default' can be set to a
+function that returns the default value of FROM when 'query-replace'
+prompts for a string to be replaced.  An example of such a function is
+'find-tag-default'.
+
+The new variable 'query-replace-read-from-regexp-default' can be set
+to a function (such as 'find-tag-default-as-regexp') that returns the
+default value of FROM when 'query-replace-regexp' prompts for a regexp
+whose matches are to be replaced.  If these variables are nil (which
+is the default), 'query-replace' and 'query-replace-regexp' take the
+default value from the previous FROM-TO pair.
 
 ---
 ** New user option 'pp-use-max-width'.
