@@ -2153,8 +2153,8 @@ worry about how many times the body uses the arguments, as you do for
 macros.
 
   Alternatively, you can define a function by providing the code which
-will inline it as a compiler macro.  The following macros make this
-possible.
+will inline it as a compiler macro (@pxref{Declare Form}).  The
+following macros make this possible.
 
 @c FIXME: Can define-inline use the interactive spec?
 @defmac define-inline name args [doc] [declare] body@dots{}
@@ -2310,6 +2310,7 @@ which case the warning message gives no extra details).  @var{when}
 should be a string indicating when the function or macro was first
 made obsolete.
 
+@cindex compiler macro
 @item (compiler-macro @var{expander})
 This can only be used for functions, and tells the compiler to use
 @var{expander} as an optimization function.  When encountering a call to the
