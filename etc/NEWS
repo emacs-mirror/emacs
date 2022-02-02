@@ -917,6 +917,10 @@ Enabling this minor mode turns on hiding header material, like
 
 * New Modes and Packages in Emacs 29.1
 
+---
+** New theme 'leuven-dark'.
+This is a dark version of the 'leuven' theme.
+
 +++
 ** New mode 'erts-mode'.
 This mode is used to edit files geared towards testing actions in
