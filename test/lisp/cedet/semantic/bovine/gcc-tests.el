@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'semantic/bovine/gcc)
 
 ;;; From bovine-gcc:
