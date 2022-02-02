@@ -3356,23 +3356,24 @@ union specbinding
 #define WRAP_SPECPDL_REF 1
 #endif
 
-/* Abstract reference to to a specpdl entry.  */
+/* Abstract reference to to a specpdl entry.
+   The number is always a multiple of sizeof (union specbinding).  */
 #ifdef WRAP_SPECPDL_REF
 /* Use a proper type for specpdl_ref if it does not make the code slower,
    since the type checking is quite useful.  */
-typedef struct { ptrdiff_t n; } specpdl_ref;
+typedef struct { ptrdiff_t bytes; } specpdl_ref;
 #else
 typedef ptrdiff_t specpdl_ref;
 #endif
 
 /* Internal use only.  */
 INLINE specpdl_ref
-wrap_specpdl_ref (ptrdiff_t count)
+wrap_specpdl_ref (ptrdiff_t bytes)
 {
 #ifdef WRAP_SPECPDL_REF
-  return (specpdl_ref) {.n = count};
+  return (specpdl_ref){.bytes = bytes};
 #else
-  return count;
+  return bytes;
 #endif
 }
 
@@ -3381,7 +3382,7 @@ INLINE ptrdiff_t
 unwrap_specpdl_ref (specpdl_ref ref)
 {
 #ifdef WRAP_SPECPDL_REF
-  return ref.n;
+  return ref.bytes;
 #else
   return ref;
 #endif
@@ -3390,13 +3391,13 @@ unwrap_specpdl_ref (specpdl_ref ref)
 INLINE specpdl_ref
 specpdl_count_to_ref (ptrdiff_t count)
 {
-  return wrap_specpdl_ref (count);
+  return wrap_specpdl_ref (count * sizeof (union specbinding));
 }
 
 INLINE ptrdiff_t
 specpdl_ref_to_count (specpdl_ref ref)
 {
-  return unwrap_specpdl_ref (ref);
+  return unwrap_specpdl_ref (ref) / sizeof (union specbinding);
 }
 
 /* Whether two `specpdl_ref' refer to the same entry.  */
@@ -3430,20 +3431,21 @@ make_invalid_specpdl_ref (void)
 INLINE specpdl_ref
 specpdl_ref_add (specpdl_ref ref, ptrdiff_t delta)
 {
-  return specpdl_count_to_ref (specpdl_ref_to_count (ref) + delta);
+  return wrap_specpdl_ref (unwrap_specpdl_ref (ref)
+			   + delta * sizeof (union specbinding));
 }
 
 INLINE union specbinding *
 specpdl_ref_to_ptr (specpdl_ref ref)
 {
-  return specpdl + specpdl_ref_to_count (ref);
+  return (union specbinding *)((char *)specpdl + unwrap_specpdl_ref (ref));
 }
 
 /* Return a reference to the most recent specpdl entry.  */
 INLINE specpdl_ref
 SPECPDL_INDEX (void)
 {
-  return specpdl_count_to_ref (specpdl_ptr - specpdl);
+  return wrap_specpdl_ref ((char *)specpdl_ptr - (char *)specpdl);
 }
 
 INLINE bool
