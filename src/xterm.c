@@ -4769,7 +4769,8 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
 #if defined HAVE_XRENDER && \
   (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
       x_xr_ensure_picture (f);
-      if (FRAME_X_PICTURE (f) != None
+      if (FRAME_DISPLAY_INFO (f)->alpha_bits
+	  && FRAME_X_PICTURE (f) != None
 	  && FRAME_CHECK_XR_VERSION (f, 0, 2))
 	{
 	  XRenderColor xc;
