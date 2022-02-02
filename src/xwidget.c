@@ -1178,6 +1178,25 @@ xwidget_button_1 (struct xwidget_view *view,
   if (!target)
     target = model->widget_osr;
 
+  xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
+
+  xg_event->any.window = gtk_widget_get_window (target);
+  g_object_ref (xg_event->any.window); /* The window will be unrefed
+					  later by gdk_event_free.  */
+
+  xg_event->button.x = x;
+  xg_event->button.x_root = x;
+  xg_event->button.y = y;
+  xg_event->button.y_root = y;
+  xg_event->button.button = button;
+  xg_event->button.state = modifier_state;
+  xg_event->button.time = time;
+  xg_event->button.device = find_suitable_pointer (view->frame);
+
+  gtk_main_do_event (xg_event);
+  gdk_event_free (xg_event);
+
+
   if (down_p && !view->passive_grab)
     {
       view->passive_grab = target;
@@ -1254,24 +1273,6 @@ xwidget_button_1 (struct xwidget_view *view,
 	  view->passive_grab = NULL;
 	}
     }
-
-  xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
-
-  xg_event->any.window = gtk_widget_get_window (target);
-  g_object_ref (xg_event->any.window); /* The window will be unrefed
-					  later by gdk_event_free.  */
-
-  xg_event->button.x = x;
-  xg_event->button.x_root = x;
-  xg_event->button.y = y;
-  xg_event->button.y_root = y;
-  xg_event->button.button = button;
-  xg_event->button.state = modifier_state;
-  xg_event->button.time = time;
-  xg_event->button.device = find_suitable_pointer (view->frame);
-
-  gtk_main_do_event (xg_event);
-  gdk_event_free (xg_event);
 }
 
 void
