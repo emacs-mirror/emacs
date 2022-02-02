@@ -1873,18 +1873,19 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     }
 
   /* If we're in batch mode, print a backtrace unconditionally to help
-     with debugging.  Make sure to use `debug' unconditionally to not
-     interfere with ERT or other packages that install custom
-     debuggers.  Don't try to call the debugger while dumping or
-     bootstrapping, it wouldn't work anyway.  */
+     with debugging.  Make sure to use `debug-early' unconditionally
+     to not interfere with ERT or other packages that install custom
+     debuggers.  */
   if (!debugger_called && !NILP (error_symbol)
       && (NILP (clause) || EQ (h->tag_or_ch, Qerror))
       && noninteractive && backtrace_on_error_noninteractive
-      && !will_dump_p () && !will_bootstrap_p ()
-      && NILP (Vinhibit_debugger))
+      && NILP (Vinhibit_debugger)
+      && !NILP (Ffboundp (Qdebug_early)))
     {
+      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
+      max_ensure_room (&max_specpdl_size, SPECPDL_INDEX (), 200);
       ptrdiff_t count = SPECPDL_INDEX ();
-      specbind (Qdebugger, Qdebug);
+      specbind (Qdebugger, Qdebug_early);
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
     }
@@ -4399,6 +4400,7 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qclosure, "closure");
   DEFSYM (QCdocumentation, ":documentation");
   DEFSYM (Qdebug, "debug");
+  DEFSYM (Qdebug_early, "debug-early");
 
   DEFVAR_LISP ("inhibit-debugger", Vinhibit_debugger,
 	       doc: /* Non-nil means never enter the debugger.
@@ -4453,7 +4455,7 @@ If due to frame exit, args are `exit' and the value being returned;
 If due to error, args are `error' and a list of the args to `signal'.
 If due to `apply' or `funcall' entry, one arg, `lambda'.
 If due to `eval' entry, one arg, t.  */);
-  Vdebugger = Qnil;
+  Vdebugger = Qdebug_early;
 
   DEFVAR_LISP ("signal-hook-function", Vsignal_hook_function,
 	       doc: /* If non-nil, this is a function for `signal' to call.
