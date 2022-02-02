@@ -239,10 +239,11 @@ wants to replace FROM with TO."
 		       query-replace-defaults))
 	     (symbol-value query-replace-from-history-variable)))
 	   (minibuffer-allow-text-properties t) ; separator uses text-properties
+	   (default (when (and query-replace-read-from-default (not regexp-flag))
+		      (funcall query-replace-read-from-default)))
 	   (prompt
             (cond ((and query-replace-read-from-regexp-default regexp-flag) prompt)
-                  ((and query-replace-read-from-default (not regexp-flag))
-                   (format-prompt prompt (funcall query-replace-read-from-default)))
+                  (default (format-prompt prompt default))
                   ((and query-replace-defaults separator)
                    (format-prompt prompt (car minibuffer-history)))
                   (query-replace-defaults
@@ -272,17 +273,18 @@ wants to replace FROM with TO."
                      'minibuffer-history)
                   (read-from-minibuffer
                    prompt nil nil nil nil
-                   (if query-replace-read-from-default
-                       (cons (funcall query-replace-read-from-default)
-                             (query-replace-read-from-suggestions))
+                   (if default
+                       (delete-dups
+                        (cons default (query-replace-read-from-suggestions)))
                      (query-replace-read-from-suggestions))
                    t)))))
            (to))
-      (if (and (zerop (length from)) query-replace-defaults)
+      (if (and (zerop (length from)) query-replace-defaults (not default))
 	  (cons (caar query-replace-defaults)
 		(query-replace-compile-replacement
 		 (cdar query-replace-defaults) regexp-flag))
-        (setq from (query-replace--split-string from))
+        (setq from (or (and (zerop (length from)) default)
+                       (query-replace--split-string from)))
         (when (consp from) (setq to (cdr from) from (car from)))
         (add-to-history query-replace-from-history-variable from nil t)
         ;; Warn if user types \n or \t, but don't reject the input.
