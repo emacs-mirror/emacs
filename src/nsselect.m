@@ -250,7 +250,7 @@ ns_get_foreign_selection (Lisp_Object symbol, Lisp_Object target)
 
       NSString *type;
       NSEnumerator *e = [[pb types] objectEnumerator];
-      while (type = [e nextObject])
+      while ((type = [e nextObject]))
         {
           NSString *val = [typeLookup valueForKey:type];
           if (val && ! [types containsObject:val])
