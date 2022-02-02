@@ -3834,7 +3834,7 @@ recursive calls in starting lines of here-documents."
 		"\\<" cperl-sub-regexp "\\>" ;  sub with proto/attr
 		"\\("
 		   cperl-white-and-comment-rex
-                   (rx (group (eval cperl--normal-identifier-rx)))
+                   (rx (opt (group (eval cperl--normal-identifier-rx))))
                 "\\)"
 		"\\("
 		   cperl-maybe-white-and-comment-rex

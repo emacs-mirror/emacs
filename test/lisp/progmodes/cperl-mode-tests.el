@@ -154,6 +154,55 @@ point in the distant past, and is still broken in perl-mode. "
     (should (equal (get-text-property (match-beginning 0) 'face)
                    'font-lock-keyword-face))))
 
+(ert-deftest cperl-test-fontify-attrs-and-signatures ()
+  "Test fontification of the various combinations of subroutine
+attributes, prototypes and signatures."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((file (ert-resource-file "proto-and-attrs.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+
+      ;; Named subroutines
+      (while (search-forward-regexp "\\_<sub_[[:digit:]]+" nil t)
+        (should (equal (get-text-property (match-beginning 0) 'face)
+                       'font-lock-function-name-face))
+        (let ((start-of-sub (match-beginning 0))
+              (end-of-sub (save-excursion (search-forward "}") (point))))
+
+          ;; Prototypes are shown as strings
+          (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)
+            (should (equal (get-text-property (1+ (match-beginning 0)) 'face)
+                           'font-lock-string-face)))
+          (goto-char start-of-sub)
+          (when (search-forward-regexp "\\(:[a-z]+\\)\\((.*?)\\)?" end-of-sub t)
+            (should (equal (get-text-property (match-beginning 1) 'face)
+                           'font-lock-constant-face))
+            (when (match-beginning 2)
+              (should (equal (get-text-property (match-beginning 2) 'face)
+                             'font-lock-string-face))))
+          (goto-char end-of-sub)))
+
+      ;; Anonymous subroutines
+      (while (search-forward-regexp "= sub" nil t)
+        (let ((start-of-sub (match-beginning 0))
+              (end-of-sub (save-excursion (search-forward "}") (point))))
+
+          ;; Prototypes are shown as strings
+          (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)
+            (should (equal (get-text-property (1+ (match-beginning 0)) 'face)
+                           'font-lock-string-face)))
+          (goto-char start-of-sub)
+          (when (search-forward-regexp "\\(:[a-z]+\\)\\((.*?)\\)?" end-of-sub t)
+            (should (equal (get-text-property (match-beginning 1) 'face)
+                           'font-lock-constant-face))
+            (when (match-beginning 2)
+              (should (equal (get-text-property (match-beginning 2) 'face)
+                             'font-lock-string-face))))
+          (goto-char end-of-sub))))))
+
 (ert-deftest cperl-test-fontify-special-variables ()
   "Test fontification of variables like $^T or ${^ENCODING}.
 These can occur as \"local\" aliases."
