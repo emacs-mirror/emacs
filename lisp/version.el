@@ -54,8 +54,13 @@ developing Emacs.")
 (defvar cairo-version-string)
 
 (defun emacs-version (&optional here)
-  "Return string describing the version of Emacs that is running.
-If optional argument HERE is non-nil, insert string at point.
+  "Display the version of Emacs that is running in this session.
+With a prefix argument, insert the Emacs version string at point
+instead of displaying it.
+If called from Lisp, by default return the version string; but
+if the optional argument HERE is non-nil, insert the string at
+point instead.
+
 Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")

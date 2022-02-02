@@ -782,10 +782,12 @@ Emacs, so you will have to report the bug somewhere else.
 
 @item
 The type of machine you are using, and the operating system name and
-version number (again, automatically included by @kbd{M-x
-report-emacs-bug}).  @kbd{M-x emacs-version @key{RET}} provides this
-information too.  Copy its output from the @file{*Messages*} buffer,
-so that you get it all and get it accurately.
+version number (again, automatically included by @w{@kbd{M-x
+report-emacs-bug}}).  @w{@kbd{M-x emacs-version @key{RET}}} provides
+this information too.  Copy its output from the @file{*Messages*}
+buffer, so that you get it all and get it accurately, or use
+@w{@kbd{C-u M-x emacs-version @key{RET}}} to insert the version
+information into the current buffer.
 
 @item
 The operands given to the @code{configure} command when Emacs was
