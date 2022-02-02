@@ -907,6 +907,12 @@ While reading KEY-LIST interactively, this command temporarily enables
 menu items or tool-bar buttons that are disabled to allow getting help
 on them.
 
+Interactively, this command can't describe prefix commands, but
+will always wait for the user to type the complete key sequence.
+For instance, entering \"C-x\" will wait until the command has
+been completed, but `M-: (describe-key (kbd \"C-x\")) RET' will
+tell you what this prefix command is bound to.
+
 BUFFER is the buffer in which to lookup those keys; it defaults to the
 current buffer."
   (declare (advertised-calling-convention (key-list &optional buffer) "27.1"))
