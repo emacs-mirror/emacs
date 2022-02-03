@@ -100,10 +100,9 @@ misprints are the Gnus team's fault, sorry.
 * FAQ 1-1::    What is the latest version of Gnus?
 * FAQ 1-2::    What's new in 5.10?
 * FAQ 1-3::    Where and how to get Gnus?
-* FAQ 1-4::    What to do with the tarball now?
-* FAQ 1-5::    I sometimes read references to No Gnus and Oort Gnus,
+* FAQ 1-4::    I sometimes read references to No Gnus and Oort Gnus,
                what are those?
-* FAQ 1-6::    Which version of Emacs do I need?
+* FAQ 1-5::    Which version of Emacs do I need?
 @end menu
 
 @node FAQ 1-1
@@ -165,34 +164,6 @@ Gnus is bundled with Emacs.
 @node FAQ 1-4
 @subsubheading Question 1.4
 
-What to do with the tarball now?
-
-@subsubheading Answer
-
-Untar it via @samp{tar xvzf gnus.tar.gz} and do the common
-@samp{./configure; make; make install} circle.
-(under MS-Windows either get the Cygwin environment from
-@uref{https://www.cygwin.com}
-which allows you to do what's described above or unpack the
-tarball with some packer (e.g., Winace)
-and use the batch-file make.bat included in the tarball to install
-Gnus.) If you don't want to (or aren't allowed to) install Gnus
-system-wide, you can install it in your home directory and add the
-following lines to your ~/.emacs:
-
-@example
-(add-to-list 'load-path "/path/to/gnus/lisp")
-(add-to-list 'Info-default-directory-list "/path/to/gnus/texi/")
-@end example
-@noindent
-
-Make sure that you don't have any Gnus related stuff
-before this line, on MS Windows use something like
-"C:/path/to/lisp" (yes, "/").
-
-@node FAQ 1-5
-@subsubheading Question 1.5
-
 I sometimes read references to No Gnus and Oort Gnus,
 what are those?
 
@@ -205,8 +176,8 @@ once become Gnus 5.12 or Gnus 6. (If you're wondering why
 not 5.11, the odd version numbers are normally used for
 the Gnus versions bundled with Emacs)
 
-@node FAQ 1-6
-@subsubheading Question 1.6
+@node FAQ 1-5
+@subsubheading Question 1.5
 
 Which version of Emacs do I need?
 
