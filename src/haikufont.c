@@ -1000,12 +1000,13 @@ haikufont_draw (struct glyph_string *s, int from, int to,
   else
     {
       ptrdiff_t b_len = 0;
-      char *b = xmalloc (b_len);
+      char *b = alloca ((to - from + 1) * MAX_MULTIBYTE_LENGTH);
 
       for (int idx = from; idx < to; ++idx)
 	{
 	  int len = CHAR_STRING (s->char2b[idx], mb);
-	  b = xrealloc (b, b_len = (b_len + len));
+	  b_len += len;
+
 	  if (len == 1)
 	    b[b_len - len] = mb[0];
 	  else
@@ -1013,7 +1014,6 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 	}
 
       BView_DrawString (view, b, b_len);
-      xfree (b);
     }
 
   unblock_input ();
