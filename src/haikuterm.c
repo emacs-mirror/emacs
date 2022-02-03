@@ -601,7 +601,7 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
 
 static void
 haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
-			    uint8_t dcol, int width, int x)
+			    int width, int x)
 {
   if (s->for_overlaps)
     return;
@@ -616,7 +616,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       else if (!face->underline_defaulted_p)
 	BView_SetHighColor (view, face->underline_color);
       else
-	BView_SetHighColor (view, dcol);
+	BView_SetHighColor (view, face->foreground);
 
       if (face->underline == FACE_UNDER_WAVE)
 	haiku_draw_underwave (s, width, x);
@@ -713,7 +713,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       else if (!face->overline_color_defaulted_p)
 	BView_SetHighColor (view, face->overline_color);
       else
-	BView_SetHighColor (view, dcol);
+	BView_SetHighColor (view, face->foreground);
 
       BView_FillRectangle (view, s->x, s->y + dy, s->width, h);
     }
@@ -737,7 +737,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       else if (!face->strike_through_color_defaulted_p)
 	BView_SetHighColor (view, face->strike_through_color);
       else
-	BView_SetHighColor (view, dcol);
+	BView_SetHighColor (view, face->foreground);
 
       BView_FillRectangle (view, s->x, glyph_y + dy, s->width, h);
     }
@@ -814,7 +814,7 @@ haiku_draw_string_box (struct glyph_string *s, int clip_p)
     {
       void *view = FRAME_HAIKU_VIEW (s->f);
 
-      haiku_draw_text_decoration (s, face, face->foreground, s->width, s->x);
+      haiku_draw_text_decoration (s, face, s->width, s->x);
       BView_ClipToInverseRect (view, left_x, top_y, right_x - left_x + 1, hwidth);
       if (left_p)
 	BView_ClipToInverseRect (view, left_x, top_y, vwidth, bottom_y - top_y + 1);
@@ -1561,8 +1561,7 @@ haiku_draw_glyph_string (struct glyph_string *s)
       if (!box_filled_p && face->box != FACE_NO_BOX)
 	haiku_draw_string_box (s, 1);
       else
-	haiku_draw_text_decoration (s, face, face->foreground,
-				    s->width, s->x);
+	haiku_draw_text_decoration (s, face, s->width, s->x);
 
       if (s->prev)
 	{
