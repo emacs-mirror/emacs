@@ -5,12 +5,11 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.2.0
+;; Version: 3.2.1
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; URL: https://github.com/alex-hhh/emacs-soap-client
-;; Package-Requires: ((cl-lib "0.6.1"))
-;;FIXME: Put in `Package-Requires:' the Emacs version we expect.
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6.1"))
 
 ;; This file is part of GNU Emacs.
 
