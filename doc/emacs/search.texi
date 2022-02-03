@@ -1860,12 +1860,12 @@ replacing regexp matches in file names.
 @node Other Repeating Search
 @section Other Search-and-Loop Commands
 
-  Here are some other commands that find matches for a regular
-expression.  They all ignore case in matching, if the pattern contains
+  Here are some other commands that find matches for regular
+expressions.  They all ignore case in matching, if the pattern contains
 no upper-case letters and @code{case-fold-search} is non-@code{nil}.
 Aside from @code{multi-occur} and @code{multi-occur-in-matching-buffers},
-which always search the whole buffer, all operate on the text from point
-to the end of the buffer, or on the region if it is active.
+which always search the whole buffer, all of the commands operate on the
+text from point to the end of the buffer, or on the region if it is active.
 
 @table @kbd
 @findex multi-isearch-buffers
@@ -1939,19 +1939,27 @@ is not considered a match.
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}
-In the @file{*Occur*} buffer, you can click on each entry, or move
-point there and type @key{RET}, to visit the corresponding position in
-the buffer that was searched.  @kbd{o} and @kbd{C-o} display the match
-in another window; @kbd{C-o} does not select it.  Alternatively, you
-can use the @kbd{M-g M-n} (@code{next-error}) command to visit the
-occurrences one by one (@pxref{Compilation Mode}).
+The @file{*Occur*} buffer uses the Occur mode as its major mode.  You
+can use the @kbd{n} and @kbd{p} keys to move to the next or previous
+match; with prefix numeric argument, these commands move that many
+matches.  Digit keys are bound to @code{digit-argument}, so @kbd{5 n}
+moves to the fifth next match (you don't have to type @kbd{C-u}).
+@key{SPC} and @key{DEL} scroll the @file{*Occur*} buffer up and down.
+Clicking on a match or moving point there and typing @key{RET} visits
+the corresponding position in the original buffer that was searched.
+@kbd{o} and @kbd{C-o} display the match in another window; @kbd{C-o}
+does not select that window.  Alternatively, you can use the @kbd{M-g
+M-n} (@code{next-error}) command to visit the occurrences one by one
+(@pxref{Compilation Mode}).  Finally, @kbd{q} quits the window showing
+the @file{*Occur*} buffer and buries the buffer.
 
 @cindex Occur Edit mode
 @cindex mode, Occur Edit
-Typing @kbd{e} in the @file{*Occur*} buffer switches to Occur Edit
-mode, in which edits made to the entries are also applied to the text
-in the originating buffer.  Type @kbd{C-c C-c} to return to Occur
-mode.
+Typing @kbd{e} in the @file{*Occur*} buffer makes the buffer writable
+and enters the Occur Edit mode, in which you can edit the matching
+lines and have those edits reflected in the text in the originating
+buffer.  Type @kbd{C-c C-c} to leave the Occur Edit mode and return to
+the Occur mode.
 
 @findex list-matching-lines
 The command @kbd{M-x list-matching-lines} is a synonym for @kbd{M-x

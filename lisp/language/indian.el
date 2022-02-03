@@ -354,14 +354,14 @@ South Indian language Malayalam is supported in this language environment."))
 	   ("X" . "[\u0D00-\u0D7F]"))))		  ; all coverage
     (indian-compose-regexp
      (concat
+      ;; any sequence of 2 or more Malayalam characters, or
+      "XX+\\|"
       ;; consonant-based syllables, or
       "C\\(?:J?HJ?C\\)*\\(?:H[NJ]?\\|v?A?\\)\\|"
       ;; syllables with an independent vowel, or
       "V\\(?:J?HY\\)?v*?A?\\|"
-      ;; special consonant form, or
-      "JHY\\|"
-      ;; any other singleton characters
-      "X")
+      ;; special consonant form
+      "JHY")
      table))
   "Regexp matching a composable sequence of Malayalam characters.")
 

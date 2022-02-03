@@ -872,8 +872,9 @@ Frames are indexed from 0.  Optional argument NOCHECK non-nil means
 do not check N is within the range of frames present in the image."
   (unless nocheck
     (if (< n 0) (setq n 0)
-      (setq n (min n (1- (car (plist-get (cdr image)
-                                         :animate-multi-frame-data)))))))
+      (setq n (min n (1- (car (or (plist-get (cdr image)
+                                             :animate-multi-frame-data)
+                                  (image-multi-frame-p image))))))))
   (plist-put (cdr image) :index n)
   (force-window-update (plist-get (cdr image) :animate-buffer)))
 

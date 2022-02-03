@@ -1862,7 +1862,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && NILP (Vinhibit_debugger))
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      specbind (Vdebugger, Qdebug);
+      specbind (Qdebugger, Qdebug);
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
     }
@@ -4413,6 +4413,7 @@ might not be safe to continue.  */);
 	       doc: /* Non-nil means display call stack frames as lists. */);
   debugger_stack_frame_as_list = 0;
 
+  DEFSYM (Qdebugger, "debugger");
   DEFVAR_LISP ("debugger", Vdebugger,
 	       doc: /* Function to call to invoke debugger.
 If due to frame exit, args are `exit' and the value being returned;

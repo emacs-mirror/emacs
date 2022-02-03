@@ -233,7 +233,7 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
       (setq bbdb-attrs (append bbdb-attrs (list (car query-attrs))))
       (if (car query-attrs)
 	  ;; BEWARE: `bbdb-search' is a macro!
-	  (setq records (eval `(bbdb-search records ,@bbdb-attrs) t)))
+	  (setq records (eval `(bbdb-search (quote ,records) ,@bbdb-attrs) t)))
       (setq query-attrs (cdr query-attrs)))
     (mapc (lambda (record)
             (setq filtered (eudc-filter-duplicate-attributes record))

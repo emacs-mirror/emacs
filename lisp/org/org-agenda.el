@@ -99,8 +99,8 @@
 
 ;; Defined somewhere in this file, but used before definition.
 (defvar org-agenda-buffer-name "*Org Agenda*")
-(defvar org-agenda-overriding-header nil)
 (defvar org-agenda-title-append nil)
+(defvar org-agenda-overriding-header)
 ;; (with-no-warnings (defvar entry)) ;; unprefixed, from calendar.el
 ;; (with-no-warnings (defvar date))  ;; unprefixed, from calendar.el
 (defvar original-date) ; dynamically scoped, calendar.el does scope this
@@ -2158,7 +2158,7 @@ string that it returns."
 (org-remap org-agenda-mode-map 'move-end-of-line 'org-agenda-end-of-line)
 
 (defvar org-agenda-menu) ; defined later in this file.
-(defvar org-agenda-restrict nil) ; defined later in this file.
+(defvar org-agenda-restrict nil)
 (defvar org-agenda-follow-mode nil)
 (defvar org-agenda-entry-text-mode nil)
 (defvar org-agenda-clockreport-mode nil)
@@ -7288,7 +7288,7 @@ When TYPE is \"scheduled\", \"deadline\", \"timestamp\" or
 \"timestamp_ia\", compare within each of these type.  When TYPE
 is the empty string, compare all timestamps without respect of
 their type."
-  (let* ((def (and (not org-agenda-sort-notime-is-late) -1))
+  (let* ((def (if org-agenda-sort-notime-is-late 99999999 -1))
 	 (ta (or (and (string-match type (or (get-text-property 1 'type a) ""))
 		      (get-text-property 1 'ts-date a))
 		 def))

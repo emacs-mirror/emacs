@@ -115,7 +115,7 @@
 
 (defvar org-agenda-overriding-header)
 (defvar org-agenda-search-view-always-boolean)
-(defvar org-bibtex-description nil) ; dynamically scoped from org.el
+(defvar org-bibtex-description nil)
 (defvar org-id-locations)
 (defvar org-property-end-re)
 (defvar org-special-properties)

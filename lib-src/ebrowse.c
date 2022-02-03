@@ -1925,7 +1925,15 @@ matching_regexp (void)
       *--s = *--t;
 
       if (*s == '"' || *s == '\\')
-        *--s = '\\';
+	{
+	  if (s > matching_regexp_buffer)
+	    *--s = '\\';
+	  else
+	    {
+	      s++;
+	      break;
+	    }
+	}
     }
 
   *(matching_regexp_end_buf - 1) = '\0';

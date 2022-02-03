@@ -7892,25 +7892,6 @@ not_in_argv (NSString *arg)
 
   NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
                                NSHeight (srcRect));
-  NSRect frame = [self frame];
-
-  /* TODO: This check is an attempt to debug a rare graphical glitch
-     on macOS and should be removed before the Emacs 28 release.  */
-  if (!NSContainsRect (frame, srcRect)
-      || !NSContainsRect (frame, dstRect))
-    {
-      NSLog (@"[EmacsView copyRect:to:] Attempting to copy to or "
-             "from an area outside the graphics buffer.");
-      NSLog (@"  Frame: (%f, %f) %f×%f",
-             NSMinX (frame), NSMinY (frame),
-             NSWidth (frame), NSHeight (frame));
-      NSLog (@"  Source: (%f, %f) %f×%f",
-             NSMinX (srcRect), NSMinY (srcRect),
-             NSWidth (srcRect), NSHeight (srcRect));
-      NSLog (@"  Destination: (%f, %f) %f×%f",
-             NSMinX (dstRect), NSMinY (dstRect),
-             NSWidth (dstRect), NSHeight (dstRect));
-    }
 
 #ifdef NS_IMPL_COCOA
   if ([self wantsLayer])
