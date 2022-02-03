@@ -610,7 +610,6 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
     return;
 
   void *view = FRAME_HAIKU_VIEW (s->f);
-  BView_draw_lock (view);
 
   if (face->underline)
     {
@@ -744,8 +743,6 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 
       BView_FillRectangle (view, s->x, glyph_y + dy, s->width, h);
     }
-
-  BView_draw_unlock (view);
 }
 
 static void
