@@ -1274,7 +1274,10 @@ then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
 (defun bookmark-default-handler (bmk-record)
   "Default handler to jump to a particular bookmark location.
 BMK-RECORD is a bookmark record, not a bookmark name (i.e., not a string).
-Changes current buffer and point and returns nil, or signals a `file-error'."
+Changes current buffer and point and returns nil, or signals a `file-error'.
+
+If BMK-RECORD has a property called `buffer', it should be a live
+buffer object, and this buffer will be selected."
   (let ((file          (bookmark-get-filename bmk-record))
 	(buf           (bookmark-prop-get bmk-record 'buffer))
         (forward-str   (bookmark-get-front-context-string bmk-record))
