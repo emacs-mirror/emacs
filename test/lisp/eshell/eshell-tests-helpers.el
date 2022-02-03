@@ -30,6 +30,8 @@
 (require 'esh-mode)
 (require 'eshell)
 
+(defvar eshell-history-file-name nil)
+
 (defvar eshell-test--max-subprocess-time 5
   "The maximum amount of time to wait for a subprocess to finish, in seconds.
 See `eshell-wait-for-subprocess'.")

@@ -29,16 +29,10 @@
 (require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
-(eval-and-compile
-  (load (expand-file-name "eshell-tests-helpers"
-                          (file-name-directory (or load-file-name
-                                                   default-directory)))))
-
-(defvar eshell-history-file-name)
-(defvar eshell-test--max-subprocess-time)
-(declare-function eshell-insert-command "eshell-tests-helpers")
-(declare-function eshell-match-result "eshell-tests-helpers")
-(declare-function eshell-command-result-p "eshell-tests-helpers")
+(require 'eshell-tests-helpers
+         (expand-file-name "eshell-tests-helpers"
+                           (file-name-directory (or load-file-name
+                                                    default-directory))))
 
 ;;; Tests:
 

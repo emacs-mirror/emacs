@@ -28,14 +28,10 @@
 (require 'ert)
 (require 'ert-x)
 (require 'em-extpipe)
-(eval-and-compile
-  (load (expand-file-name "eshell-tests-helpers"
-                          (file-name-directory (or load-file-name
-                                                   default-directory)))))
-
-(defvar eshell-history-file-name)
-(defvar eshell-test--max-subprocess-time)
-(declare-function eshell-command-result-p "eshell-tests-helpers")
+(require 'eshell-tests-helpers
+         (expand-file-name "eshell-tests-helpers"
+                           (file-name-directory (or load-file-name
+                                                    default-directory))))
 
 (defmacro em-extpipe-tests--deftest (name input &rest body)
   (declare (indent 2))
