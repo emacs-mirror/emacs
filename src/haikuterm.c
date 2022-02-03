@@ -1105,7 +1105,6 @@ static void
 haiku_start_clip (struct glyph_string *s)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
-  BView_draw_lock (view);
   BView_StartClip (view);
 }
 
@@ -1114,7 +1113,6 @@ haiku_end_clip (struct glyph_string *s)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
   BView_EndClip (view);
-  BView_draw_unlock (view);
 }
 
 static void
@@ -1448,7 +1446,11 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 static void
 haiku_draw_glyph_string (struct glyph_string *s)
 {
+  void *view;
+
   block_input ();
+  view = FRAME_HAIKU_VIEW (s->f);
+  BView_draw_lock (view);
   prepare_face_for_display (s->f, s->face);
 
   struct face *face = s->face;
@@ -1597,6 +1599,7 @@ haiku_draw_glyph_string (struct glyph_string *s)
 	}
     }
   haiku_end_clip (s);
+  BView_draw_unlock (view);
   unblock_input ();
 }
 
