@@ -125,7 +125,7 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 	       (puthash key (make-hash-table :test #'equal) tramp-cache-data)))
 	  (when (tramp-file-name-p key)
 	    (dolist (elt tramp-connection-properties)
-	      (when (tramp-compat-string-search
+	      (when (string-match-p
 		     (or (nth 0 elt) "")
 		     (tramp-make-tramp-file-name key 'noloc 'nohop))
 		(tramp-set-connection-property key (nth 1 elt) (nth 2 elt)))))
