@@ -286,25 +286,30 @@ FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
   (let ;; To make `end-of-line' and etc. to ignore fields.
       ((inhibit-field-text-motion t))
-    (sort-fields-1 field beg end
-		   (lambda ()
-		     (sort-skip-fields field)
-		     (let* ((case-fold-search t)
-			    (base
-			     (if (looking-at "\\(0x\\)[0-9a-f]\\|\\(0\\)[0-7]")
-				 (cond ((match-beginning 1)
-					(goto-char (match-end 1))
-					16)
-				       ((match-beginning 2)
-					(goto-char (match-end 2))
-					8)
-				       (t nil)))))
-		       (string-to-number (buffer-substring (point)
-							   (save-excursion
-							     (forward-sexp 1)
-							     (point)))
-					 (or base sort-numeric-base))))
-		   nil)))
+    (sort-fields-1
+     field beg end
+     (lambda ()
+       ;; Don't try to parse blank lines (they'll be
+       ;; sorted at the start).
+       (if (looking-at "[\t ]*$")
+           0
+	 (sort-skip-fields field)
+	 (let* ((case-fold-search t)
+		(base
+		 (if (looking-at "\\(0x\\)[0-9a-f]\\|\\(0\\)[0-7]")
+		     (cond ((match-beginning 1)
+			    (goto-char (match-end 1))
+			    16)
+			   ((match-beginning 2)
+			    (goto-char (match-end 2))
+			    8)
+			   (t nil)))))
+	   (string-to-number (buffer-substring (point)
+					       (save-excursion
+						 (forward-sexp 1)
+						 (point)))
+			     (or base sort-numeric-base)))))
+     nil)))
 
 ;;;;;###autoload
 ;;(defun sort-float-fields (field beg end)
