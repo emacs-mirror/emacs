@@ -169,8 +169,8 @@
    (textsec-email-address-header-suspicious-p
     "Lars Ingebrigtsen <larsi@\N{RIGHT-TO-LEFT OVERRIDE}gnus.org>"))
 
-  (should (textsec-email-address-header-suspicious-p
-           "דגבא <foo@bar.com>"))
+  (should-not (textsec-email-address-header-suspicious-p
+               "דגבא <foo@bar.com>"))
 
   (should (textsec-email-address-suspicious-p
            "Bob_Norbolwits@GCSsafetyACE.com​")))
