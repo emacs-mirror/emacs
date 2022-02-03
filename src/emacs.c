@@ -190,8 +190,11 @@ static uintmax_t heap_bss_diff;
 
    We mark being in the exec'd process by a daemon name argument of
    form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
-   NAME is the original daemon name, if any. */
-#if defined NS_IMPL_COCOA || defined CYGWIN
+   NAME is the original daemon name, if any.
+
+   On Haiku, the table of semaphores used for looper locks doesn't
+   persist across forked processes.  */
+#if defined NS_IMPL_COCOA || defined CYGWIN || defined HAVE_HAIKU
 # define DAEMON_MUST_EXEC
 #endif
 
