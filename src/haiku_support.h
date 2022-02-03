@@ -827,8 +827,8 @@ extern "C"
   BView_show_tooltip (void *view);
 
 #ifdef USE_BE_CAIRO
-  extern cairo_surface_t *
-  EmacsView_cairo_surface (void *view);
+  extern cairo_t *
+  EmacsView_cairo_context (void *view);
 
   extern void
   BView_cr_dump_clipping (void *view, cairo_t *ctx);

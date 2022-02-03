@@ -1184,6 +1184,7 @@ public:
 
 #ifdef USE_BE_CAIRO
   cairo_surface_t *cr_surface = NULL;
+  cairo_t *cr_context = NULL;
   BLocker cr_surface_lock;
 #endif
 
@@ -1215,8 +1216,10 @@ public:
       gui_abort ("Could not lock cr surface during detachment");
     if (!cr_surface)
       gui_abort ("Trying to detach window cr surface when none exists");
+    cairo_destroy (cr_context);
     cairo_surface_destroy (cr_surface);
     cr_surface = NULL;
+    cr_context = NULL;
     cr_surface_lock.Unlock ();
   }
 
@@ -1236,6 +1239,10 @@ public:
        offscreen_draw_bitmap_1->BytesPerRow ());
     if (!cr_surface)
       gui_abort ("Cr surface allocation failed for double-buffered view");
+
+    cr_context = cairo_create (cr_surface);
+    if (!cr_context)
+      gui_abort ("cairo_t allocation failed for double-buffered view");
     cr_surface_lock.Unlock ();
   }
 #endif
@@ -3178,12 +3185,12 @@ BView_show_tooltip (void *view)
 
 
 #ifdef USE_BE_CAIRO
-/* Return VIEW's cairo surface.  */
-cairo_surface_t *
-EmacsView_cairo_surface (void *view)
+/* Return VIEW's cairo context.  */
+cairo_t *
+EmacsView_cairo_context (void *view)
 {
   EmacsView *vw = (EmacsView *) view;
-  return vw->cr_surface;
+  return vw->cr_context;
 }
 
 /* Transfer each clip rectangle in VIEW to the cairo context

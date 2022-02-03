@@ -538,12 +538,12 @@ ftcrfont_draw (struct glyph_string *s,
   cr = pgtk_begin_cr_clip (f);
 #endif
 #else
-  BView_draw_lock (FRAME_HAIKU_VIEW (f));
+  /* Presumably the draw lock is already held by
+     haiku_draw_glyph_string.  */
   EmacsWindow_begin_cr_critical_section (FRAME_HAIKU_WINDOW (f));
   cr = haiku_begin_cr_clip (f, s);
   if (!cr)
     {
-      BView_draw_unlock (FRAME_HAIKU_VIEW (f));
       EmacsWindow_end_cr_critical_section (FRAME_HAIKU_WINDOW (f));
       unblock_input ();
       return 0;
@@ -610,7 +610,6 @@ ftcrfont_draw (struct glyph_string *s,
 #else
   haiku_end_cr_clip (cr);
   EmacsWindow_end_cr_critical_section (FRAME_HAIKU_WINDOW (f));
-  BView_draw_unlock (FRAME_HAIKU_VIEW (f));
 #endif
   unblock_input ();
 

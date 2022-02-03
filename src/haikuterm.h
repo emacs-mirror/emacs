@@ -231,8 +231,10 @@ struct scroll_bar
 #define FRAME_CURSOR_COLOR(f) (FRAME_OUTPUT_DATA (f)->cursor_color)
 
 #ifdef USE_BE_CAIRO
-#define FRAME_CR_SURFACE(f) \
-  (FRAME_HAIKU_VIEW (f) ? EmacsView_cairo_surface (FRAME_HAIKU_VIEW (f)) : 0);
+#define FRAME_CR_CONTEXT(f)					\
+  (FRAME_HAIKU_VIEW (f)						\
+   ? EmacsView_cairo_context (FRAME_HAIKU_VIEW (f))		\
+   : NULL)
 #endif
 
 extern void syms_of_haikuterm (void);

@@ -3618,18 +3618,22 @@ haiku_set_offset (struct frame *frame, int x, int y,
 cairo_t *
 haiku_begin_cr_clip (struct frame *f, struct glyph_string *s)
 {
-  cairo_surface_t *surface = FRAME_CR_SURFACE (f);
-  if (!surface)
+  cairo_t *cr = FRAME_CR_CONTEXT (f);
+
+  if (!cr)
     return NULL;
 
-  cairo_t *context = cairo_create (surface);
-  return context;
+  cairo_save (cr);
+  return cr;
 }
 
 void
 haiku_end_cr_clip (cairo_t *cr)
 {
-  cairo_destroy (cr);
+  if (!cr)
+    return NULL;
+
+  cairo_restore (cr);
 }
 #endif
 
