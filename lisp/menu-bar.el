@@ -2342,9 +2342,12 @@ It must accept a buffer as its only required argument.")
   (and (lookup-key (current-global-map) [menu-bar buffer])
        (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
-	     (frames (frame-list))
-	     buffers-menu)
-
+	     frames buffers-menu)
+         ;; Ignore the initial frame if present.  It can happen if
+         ;; Emacs was started as a daemon.  (bug#53740)
+         (dolist (frame (frame-list))
+           (unless (eq frame frame-initial-frame)
+             (push frame frames)))
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
                (let ((i 0)
