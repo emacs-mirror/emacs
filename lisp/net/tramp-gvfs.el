@@ -2246,13 +2246,7 @@ connection if a previous connection has died for some reason."
 COMMAND is a command from the gvfs-* utilities.  It is replaced
 by the corresponding gio tool call if available.  `call-process'
 is applied, and it returns t if the return code is zero."
-  (let* ((locale (tramp-get-local-locale vec))
-	 (process-environment
-	  (append
-	   `(,(format "LANG=%s" locale)
-	     ,(format "LANGUAGE=%s" locale)
-	     ,(format "LC_ALL=%s" locale))
-	   process-environment)))
+  (let ((locale (tramp-get-local-locale vec)))
     (when (tramp-gvfs-gio-tool-p vec)
       ;; Use gio tool.
       (setq args (cons (cdr (assoc command tramp-gvfs-gio-mapping))
@@ -2262,7 +2256,14 @@ is applied, and it returns t if the return code is zero."
     (with-current-buffer (tramp-get-connection-buffer vec)
       (tramp-gvfs-maybe-open-connection vec)
       (erase-buffer)
-      (or (zerop (apply #'tramp-call-process vec command nil t nil args))
+      (or (zerop
+	   (apply
+	    #'tramp-call-process vec "env" nil t nil
+	    (append `(,(format "LANG=%s" locale)
+		      ,(format "LANGUAGE=%s" locale)
+		      ,(format "LC_ALL=%s" locale)
+		      ,command)
+		    args)))
 	  ;; Remove information about mounted connection.
 	  (and (tramp-flush-file-properties vec "/") nil)))))
 
