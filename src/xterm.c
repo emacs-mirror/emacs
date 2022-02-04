@@ -5370,10 +5370,13 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
 #ifdef USE_GTK
       GtkWidget *widget;
 
-      gtk_im_context_focus_in (FRAME_X_OUTPUT (frame)->im_context);
-      widget = FRAME_GTK_OUTER_WIDGET (frame);
-      gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context,
-					gtk_widget_get_window (widget));
+      if (x_gtk_use_native_input)
+	{
+	  gtk_im_context_focus_in (FRAME_X_OUTPUT (frame)->im_context);
+	  widget = FRAME_GTK_OUTER_WIDGET (frame);
+	  gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context,
+					    gtk_widget_get_window (widget));
+	}
 #endif
 #endif
     }
@@ -5394,8 +5397,11 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
       if (FRAME_XIC (frame))
         XUnsetICFocus (FRAME_XIC (frame));
 #ifdef USE_GTK
-      gtk_im_context_focus_out (FRAME_X_OUTPUT (frame)->im_context);
-      gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context, NULL);
+      if (x_gtk_use_native_input)
+	{
+	  gtk_im_context_focus_out (FRAME_X_OUTPUT (frame)->im_context);
+	  gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context, NULL);
+	}
 #endif
 #endif
       if (frame->pointer_invisible)
