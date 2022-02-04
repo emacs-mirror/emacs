@@ -6018,13 +6018,13 @@ Use direct async.")
 	(ignore-errors (delete-file tmp-name1))
 	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
 
-;; The function was introduced in Emacs 28.1.
+;; The functions were introduced in Emacs 28.1.
 (ert-deftest tramp-test39-detect-external-change ()
   "Check that an external file modification is reported."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
   ;; Since Emacs 28.1.
-  (skip-unless (fboundp 'file-locked-p))
+  (skip-unless (and (fboundp 'lock-file) (fboundp 'file-locked-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (dolist (create-lockfiles '(nil t))
