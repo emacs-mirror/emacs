@@ -79,30 +79,33 @@
 ;;; Helper routines.
 (defun nnselect-compress-artlist (artlist)
   "Compress ARTLIST."
-  (let (selection)
-    (pcase-dolist (`(,artgroup . ,arts)
-                   (nnselect-categorize artlist #'nnselect-artitem-group))
-      (let (list)
-        (pcase-dolist (`(,rsv . ,articles)
-                       (nnselect-categorize
-                        arts #'nnselect-artitem-rsv #'nnselect-artitem-number))
-          (push (cons rsv (gnus-compress-sequence (sort articles #'<)))
-                list))
-        (push (cons artgroup list) selection)))
-    selection))
+  (if (consp artlist)
+      artlist
+    (let (selection)
+      (pcase-dolist (`(,artgroup . ,arts)
+                     (nnselect-categorize artlist #'nnselect-artitem-group))
+	(let (list)
+          (pcase-dolist (`(,rsv . ,articles)
+			 (nnselect-categorize
+                          arts #'nnselect-artitem-rsv #'nnselect-artitem-number))
+            (push (cons rsv (gnus-compress-sequence (sort articles #'<)))
+                  list))
+          (push (cons artgroup list) selection)))
+      selection)))
 
 (defun nnselect-uncompress-artlist (artlist)
   "Uncompress ARTLIST."
   (if (vectorp artlist)
       artlist
     (let (selection)
-      (pcase-dolist (`(,artgroup (,artrsv . ,artseq)) artlist)
-	(setq selection
-	      (vconcat
-	       (cl-map 'vector
-                       (lambda (art)
-                         (vector artgroup art artrsv))
-		    (gnus-uncompress-sequence artseq)) selection)))
+      (pcase-dolist (`(,artgroup . ,list) artlist)
+	(pcase-dolist (`(,artrsv . ,artseq) list)
+	  (setq selection
+		(vconcat
+		 (cl-map 'vector
+			 (lambda (art)
+                           (vector artgroup art artrsv))
+			 (gnus-uncompress-sequence artseq)) selection))))
       selection)))
 
 (make-obsolete 'nnselect-group-server 'gnus-group-server "28.1")
