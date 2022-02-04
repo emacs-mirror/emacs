@@ -3083,34 +3083,56 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
-	 to try to get the next closest color.  The algorithm used is
+	 to try and get the next closest color.  The algorithm used is
 	 a least-squares matching, which is what X uses for closest
 	 color matching with StaticColor visuals.  */
-      int nearest, i;
-      int max_color_delta = 255;
-      int max_delta = 3 * max_color_delta;
-      int nearest_delta = max_delta + 1;
-      int ncells;
-      const XColor *cells = x_color_cells (dpy, &ncells);
 
-      for (nearest = i = 0; i < ncells; ++i)
+      const XColor *cells;
+      int no_cells;
+      int nearest;
+      long nearest_delta, trial_delta;
+      int x;
+      Status status;
+
+      cells = x_color_cells (dpy, &no_cells);
+
+      XQueryColors (dpy, cmap, cells, no_cells);
+      nearest = 0;
+      /* I'm assuming CSE so I'm not going to condense this. */
+      nearest_delta = ((((color->red >> 8) - (cells[0].red >> 8))
+			* ((color->red >> 8) - (cells[0].red >> 8)))
+		       + (((color->green >> 8) - (cells[0].green >> 8))
+			  * ((color->green >> 8) - (cells[0].green >> 8)))
+		       + (((color->blue >> 8) - (cells[0].blue >> 8))
+			  * ((color->blue >> 8) - (cells[0].blue >> 8))));
+      for (x = 1; x < no_cells; x++)
 	{
-	  int dred   = (color->red   >> 8) - (cells[i].red   >> 8);
-	  int dgreen = (color->green >> 8) - (cells[i].green >> 8);
-	  int dblue  = (color->blue  >> 8) - (cells[i].blue  >> 8);
-	  int delta = dred * dred + dgreen * dgreen + dblue * dblue;
-
-	  if (delta < nearest_delta)
+	  trial_delta = ((((color->red >> 8) - (cells[x].red >> 8))
+			  * ((color->red >> 8) - (cells[x].red >> 8)))
+			 + (((color->green >> 8) - (cells[x].green >> 8))
+			    * ((color->green >> 8) - (cells[x].green >> 8)))
+			 + (((color->blue >> 8) - (cells[x].blue >> 8))
+			    * ((color->blue >> 8) - (cells[x].blue >> 8))));
+	  if (trial_delta < nearest_delta)
 	    {
-	      nearest = i;
-	      nearest_delta = delta;
+	      XColor temp;
+	      temp.red = cells[x].red;
+	      temp.green = cells[x].green;
+	      temp.blue = cells[x].blue;
+	      status = XAllocColor (dpy, cmap, &temp);
+	      if (status)
+		{
+		  nearest = x;
+		  nearest_delta = trial_delta;
+		}
 	    }
 	}
-
-      color->red   = cells[nearest].red;
+      color->red = cells[nearest].red;
       color->green = cells[nearest].green;
-      color->blue  = cells[nearest].blue;
-      rc = XAllocColor (dpy, cmap, color) != 0;
+      color->blue = cells[nearest].blue;
+      status = XAllocColor (dpy, cmap, color);
+
+      rc = status != 0;
     }
   else
     {
