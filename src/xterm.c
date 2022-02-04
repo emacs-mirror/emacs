@@ -3096,7 +3096,6 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 
       cells = x_color_cells (dpy, &no_cells);
 
-      XQueryColors (dpy, cmap, cells, no_cells);
       nearest = 0;
       /* I'm assuming CSE so I'm not going to condense this. */
       nearest_delta = ((((color->red >> 8) - (cells[0].red >> 8))
