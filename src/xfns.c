@@ -6413,7 +6413,7 @@ select_visual (struct x_display_info *dpyinfo)
 				    | VisualClassMask),
 			      &vinfo_template, &n_visuals);
 
-      if (n_visuals > 0)
+      if (n_visuals > 0 && vinfo)
 	{
 	  dpyinfo->n_planes = vinfo->depth;
 	  dpyinfo->visual = vinfo->visual;
@@ -8643,6 +8643,54 @@ frame_parm_handler x_frame_parm_handlers[] =
   gui_set_no_special_glyphs,
   x_set_alpha_background,
 };
+
+/* Some versions of libX11 don't have symbols for a few functions we
+   need, so define replacements here.  */
+
+#ifdef HAVE_XKB
+#ifndef HAVE_XKBREFRESHKEYBOARDMAPPING
+Status
+XkbRefreshKeyboardMapping (XkbMapNotifyEvent *event)
+{
+  return Success;
+}
+#endif
+
+#ifndef HAVE_XKBFREENAMES
+void
+XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
+{
+  return;
+}
+#endif
+#endif
+
+#ifndef HAVE_XDISPLAYCELLS
+int
+XDisplayCells (Display *dpy, int screen_number)
+{
+  return 1677216;
+}
+#endif
+
+#ifndef HAVE_XDESTROYSUBWINDOWS
+int
+XDestroySubwindows (Display *dpy, Window w)
+{
+  Window root, parent, *children;
+  unsigned int nchildren, i;
+
+  if (XQueryTree (dpy, w, &root, &parent, &children,
+		  &nchildren))
+    {
+      for (i = 0; i < nchildren; ++i)
+	XDestroyWindow (dpy, children[i]);
+      XFree (children);
+    }
+
+  return 0;
+}
+#endif
 
 void
 syms_of_xfns (void)

@@ -5768,7 +5768,8 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   dpyinfo->hyper_mod_mask = 0;
 
 #ifdef HAVE_XKB
-  if (dpyinfo->xkb_desc)
+  if (dpyinfo->xkb_desc
+      && dpyinfo->xkb_desc->server)
     {
       for (i = 0; i < XkbNumVirtualMods; i++)
 	{
@@ -5810,6 +5811,14 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
   syms = XGetKeyboardMapping (dpyinfo->display,
 			      min_code, max_code - min_code + 1,
 			      &syms_per_code);
+
+  if (!syms)
+    {
+      dpyinfo->meta_mod_mask = Mod1Mask;
+      dpyinfo->super_mod_mask = Mod2Mask;
+      return;
+    }
+
   mods = XGetModifierMapping (dpyinfo->display);
 
   /* Scan the modifier table to see which modifier bits the Meta and
