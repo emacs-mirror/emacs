@@ -2208,6 +2208,7 @@ virtualenv."
 
 (defun python-shell-calculate-process-environment ()
   (declare (obsolete python-shell--calculate-process-environment "29.1"))
+  (defvar tramp-remote-process-environment)
   (let* ((remote-p (file-remote-p default-directory)))
     (append (python-shell--calculate-process-environment)
             (if remote-p
