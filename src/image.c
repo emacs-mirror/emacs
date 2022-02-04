@@ -2848,13 +2848,12 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 {
   Display *display = FRAME_X_DISPLAY (f);
   Drawable drawable = FRAME_X_DRAWABLE (f);
-  Screen *screen = FRAME_X_SCREEN (f);
 
   eassert (input_blocked_p ());
 
   if (depth <= 0)
-    depth = DefaultDepthOfScreen (screen);
-  *ximg = XCreateImage (display, DefaultVisualOfScreen (screen),
+    depth = FRAME_DISPLAY_INFO (f)->n_planes;
+  *ximg = XCreateImage (display, FRAME_X_VISUAL (f),
 			depth, ZPixmap, 0, NULL, width, height,
 			depth > 16 ? 32 : depth > 8 ? 16 : 8, 0);
   if (*ximg == NULL)
@@ -2910,7 +2909,7 @@ x_create_xrender_picture (struct frame *f, Emacs_Pixmap pixmap, int depth)
   if (FRAME_DISPLAY_INFO (f)->xrender_supported_p)
     {
       if (depth <= 0)
-	depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+	depth = FRAME_DISPLAY_INFO (f)->n_planes;
       if (depth == 32 || depth == 24 || depth == 8 || depth == 4 || depth == 1)
         {
           /* FIXME: Do we need to handle all possible bit depths?
@@ -4632,8 +4631,10 @@ xpm_load (struct frame *f, struct image *img)
 #ifndef HAVE_NTGUI
   attrs.visual = FRAME_X_VISUAL (f);
   attrs.colormap = FRAME_X_COLORMAP (f);
+  attrs.depth = FRAME_DISPLAY_INFO (f)->n_planes;
   attrs.valuemask |= XpmVisual;
   attrs.valuemask |= XpmColormap;
+  attrs.valuemask |= XpmDepth;
 #endif /* HAVE_NTGUI */
 
 #ifdef ALLOC_XPM_COLORS
@@ -11024,7 +11025,7 @@ gs_load (struct frame *f, struct image *img)
       block_input ();
       img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
 				   img->width, img->height,
-				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+				   FRAME_DISPLAY_INFO (f)->n_planes);
       unblock_input ();
     }
 
