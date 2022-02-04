@@ -101,7 +101,7 @@ with parameters from the *Messages* buffer modification."
 ;; | Overlay test setup
 ;; +==========================================================================+
 
-(eval-when-compile
+(eval-and-compile
   (defun buffer-tests--make-test-name (fn x y)
     (intern (format "buffer-tests--%s-%s-%s" fn x y))))
 
