@@ -2811,6 +2811,12 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    last_mouse_window = window;
 		  }
 
+		if (f->auto_raise)
+		  {
+		    if (!BWindow_is_active (FRAME_HAIKU_WINDOW (f)))
+		      haiku_frame_raise_lower (f, 1);
+		  }
+
 		if (!NILP (help_echo_string)
 		    || !NILP (previous_help_echo_string))
 		  do_help = 1;
