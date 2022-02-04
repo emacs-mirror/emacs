@@ -8567,18 +8567,28 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 #endif	/* USE_GTK */
 
 DEFUN ("x-internal-focus-input-context", Fx_internal_focus_input_context,
-       Sx_internal_focus_input_context, 1, 1, 0,
+       Sx_internal_focus_input_context, 2, 2, 0,
        doc: /* Focus and set the client window of FRAME's GTK input context.
+If FOCUS is nil, focus out and remove the client window instead.
 This should be called from a variable watcher for `x-gtk-use-native-input'.  */)
-  (Lisp_Object frame)
+  (Lisp_Object focus, Lisp_Object frame)
 {
 #ifdef USE_GTK
   struct frame *f = decode_window_system_frame (frame);
   GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
 
-  gtk_im_context_focus_in (FRAME_X_OUTPUT (f)->im_context);
-  gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
-				    gtk_widget_get_window (widget));
+  if (!NILP (focus))
+    {
+      gtk_im_context_focus_in (FRAME_X_OUTPUT (f)->im_context);
+      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
+					gtk_widget_get_window (widget));
+    }
+  else
+    {
+      gtk_im_context_focus_out (FRAME_X_OUTPUT (f)->im_context);
+      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
+					NULL);
+    }
 #endif
 
   return Qnil;
