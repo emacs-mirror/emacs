@@ -18739,6 +18739,34 @@ set_horizontal_scroll_bar (struct window *w)
       (w, portion, whole, start);
 }
 
+/* Subroutine of redisplay_window, to determine whether a window-start
+   point STARTP of WINDOW should be rejected.  */
+static bool
+window_start_acceptable_p (Lisp_Object window, ptrdiff_t startp)
+{
+  if (!make_window_start_visible)
+    return true;
+
+  struct window *w = XWINDOW (window);
+  struct frame *f = XFRAME (w->frame);
+  Lisp_Object startpos = make_fixnum (startp);
+  Lisp_Object invprop, disp_spec;
+  struct text_pos ignored;
+
+  /* Is STARTP in invisible text?  */
+  if (startp > BEGV
+      && ((invprop = Fget_char_property (startpos, Qinvisible, window)),
+	  TEXT_PROP_MEANS_INVISIBLE (invprop) != 0))
+    return false;
+
+  /* Is STARTP covered by a replacing 'display' property?  */
+  if (!NILP (disp_spec = Fget_char_property (startpos, Qdisplay, window))
+      && handle_display_spec (NULL, disp_spec, Qnil, Qnil, &ignored, startp,
+			      FRAME_WINDOW_P (f)) > 0)
+    return false;
+
+  return true;
+}
 
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P means only
    selected_window is redisplayed.
@@ -19036,9 +19064,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
  force_start:
 
   /* Handle case where place to start displaying has been specified,
-     unless the specified location is outside the accessible range, or
-     the buffer wants the window-start point to be always visible.  */
-  if (w->force_start && !make_window_start_visible)
+     unless the specified location is outside the accessible range.  */
+  if (w->force_start)
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
@@ -19070,6 +19097,11 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
       else if (CHARPOS (startp) > ZV)
 	SET_TEXT_POS (startp, ZV, ZV_BYTE);
+
+      /* Reject the specified start location if it is invisible, and
+	 the buffer wants it always visible.  */
+      if (!window_start_acceptable_p (window, CHARPOS (startp)))
+	goto ignore_start;
 
       /* Redisplay, then check if cursor has been set during the
 	 redisplay.  Give up if new fonts were loaded.  */
@@ -19228,8 +19260,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       goto done;
     }
 
-  Lisp_Object iprop, dspec;
-  struct text_pos ignored;
+ ignore_start:
+
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame, and we are not retrying after hscroll.
      (current_matrix_up_to_date_p is true when retrying.)  */
@@ -19253,26 +19285,10 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* If current starting point was originally the beginning of a line
      but no longer is, or if the starting point is invisible but the
      buffer wants it always visible, find a new starting point.  */
-  else if (w->start_at_line_beg
-	   && (!(CHARPOS (startp) <= BEGV
-		 || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n')
-	       || (make_window_start_visible
-		   /* Is window-start in invisible text?  */
-		   && ((CHARPOS (startp) > BEGV
-			&& ((iprop =
-			     Fget_char_property
-			     (make_fixnum (CHARPOS (startp) - 1), Qinvisible,
-			      window)),
-			    TEXT_PROP_MEANS_INVISIBLE (iprop) != 0))
-		       /* Is window-start covered by a replacing
-			  'display' property?  */
-		       || (!NILP (dspec =
-				  Fget_char_property
-				  (make_fixnum (CHARPOS (startp)), Qdisplay,
-				   window))
-			   && handle_display_spec (NULL, dspec, Qnil, Qnil,
-						   &ignored, CHARPOS (startp),
-						   FRAME_WINDOW_P (f)) > 0)))))
+  else if ((w->start_at_line_beg
+	    && !(CHARPOS (startp) <= BEGV
+		 || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n'))
+	   || !window_start_acceptable_p (window, CHARPOS (startp)))
     {
 #ifdef GLYPH_DEBUG
       debug_method_add (w, "recenter 1");
@@ -19348,14 +19364,10 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	  goto force_start;
       	}
 
-      /* Don't use the same window-start if it is covered by a
-	 replacing 'display' property and the buffer requested the
-	 window-start to be always visible.  */
-      if (make_window_start_visible
-	  && !NILP (dspec = Fget_char_property (make_fixnum (CHARPOS (startp)),
-						Qdisplay, window))
-	  && handle_display_spec (NULL, dspec, Qnil, Qnil, &ignored,
-				  CHARPOS (startp), FRAME_WINDOW_P (f)) > 0)
+      /* Don't use the same window-start if it is invisible or covered
+	 by a replacing 'display' property and the buffer requested
+	 the window-start to be always visible.  */
+      if (!window_start_acceptable_p (window, CHARPOS (startp)))
 	{
 #ifdef GLYPH_DEBUG
 	  debug_method_add (w, "recenter 2");
