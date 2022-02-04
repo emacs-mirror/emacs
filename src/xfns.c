@@ -8565,6 +8565,22 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 #endif /* GTK_CHECK_VERSION (3, 14, 0) */
 #endif /* HAVE_GTK3 */
 #endif	/* USE_GTK */
+
+DEFUN ("x-internal-focus-input-context", Fx_internal_focus_input_context,
+       Sx_internal_focus_input_context, 1, 1, 0,
+       doc: /* Focus and set the client window of FRAME's GTK input context.
+This should be called from a variable watcher for `x-gtk-use-native-input'.  */)
+  (Lisp_Object frame)
+{
+#ifdef USE_GTK
+  struct frame *f = decode_window_system_frame (frame);
+  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+
+  gtk_im_context_focus_in (FRAME_X_OUTPUT (f)->im_context);
+  gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
+				    gtk_widget_get_window (widget));
+#endif
+}
 
 /***********************************************************************
 			    Initialization
@@ -8941,6 +8957,8 @@ eliminated in future versions of Emacs.  */);
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
 #endif
+
+  defsubr (&Sx_internal_focus_input_context);
 
 #ifdef USE_CAIRO
   defsubr (&Sx_export_frames);
