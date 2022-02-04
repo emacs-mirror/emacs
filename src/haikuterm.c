@@ -3637,7 +3637,7 @@ void
 haiku_end_cr_clip (cairo_t *cr)
 {
   if (!cr)
-    return NULL;
+    return;
 
   cairo_restore (cr);
 }
