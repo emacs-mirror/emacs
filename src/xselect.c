@@ -795,6 +795,7 @@ x_handle_selection_request (struct selection_input_event *event)
       Window requestor = SELECTION_EVENT_REQUESTOR (event);
       Lisp_Object multprop;
       ptrdiff_t j, nselections;
+      struct selection_data cs;
 
       if (property == None) goto DONE;
       multprop
@@ -811,11 +812,19 @@ x_handle_selection_request (struct selection_input_event *event)
 	  Lisp_Object subtarget = AREF (multprop, 2*j);
 	  Atom subproperty = symbol_to_x_atom (dpyinfo,
 					       AREF (multprop, 2*j+1));
+	  bool subsuccess = false;
 
 	  if (subproperty != None)
-	    x_convert_selection (selection_symbol, subtarget,
-				 subproperty, true, dpyinfo);
+	    subsuccess = x_convert_selection (selection_symbol, subtarget,
+					      subproperty, true, dpyinfo);
+	  if (!subsuccess)
+	    ASET (multprop, 2*j+1, Qnil);
 	}
+      /* Save conversion results */
+      lisp_data_to_selection_data (dpyinfo, multprop, &cs);
+      XChangeProperty (dpyinfo->display, requestor, property,
+		       cs.type, cs.format, PropModeReplace,
+		       cs.data, cs.size);
       success = true;
     }
   else
