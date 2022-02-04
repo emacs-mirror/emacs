@@ -8580,6 +8580,8 @@ This should be called from a variable watcher for `x-gtk-use-native-input'.  */)
   gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
 				    gtk_widget_get_window (widget));
 #endif
+
+  return Qnil;
 }
 
 /***********************************************************************
