@@ -1590,6 +1590,11 @@ acquires focus to be automatically raised.
 Note that this minor mode controls Emacs's own auto-raise
 feature.  Window managers that switch focus on mouse movement
 often have their own auto-raise feature."
+  ;; This isn't really a global minor mode; rather, it's local to the
+  ;; selected frame, but declaring it as global prevents a misleading
+  ;; "Auto-Raise mode enabled in current buffer" message from being
+  ;; displayed when it is turned on.
+  :global t
   :variable (frame-parameter nil 'auto-raise)
   (if (frame-parameter nil 'auto-raise)
       (raise-frame)))
