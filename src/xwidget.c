@@ -1291,12 +1291,7 @@ xwidget_button (struct xwidget_view *view,
 
   if (button < 4 || button > 8)
     xwidget_button_1 (view, down_p, x, y, button, modifier_state, time);
-#ifndef HAVE_XINPUT2
   else
-#else
-  else if (!FRAME_DISPLAY_INFO (view->frame)->supports_xi2
-	   || FRAME_DISPLAY_INFO (view->frame)->xi2_version < 1)
-#endif
     {
       if (!down_p)
 	{
