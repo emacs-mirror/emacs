@@ -916,8 +916,6 @@ or `dbus-call-method-asynchronously'."
      ;; when loading.
      (dbus-ignore-errors (tramp-dbus-function ,vec func args))))
 
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-call-method\\>"))
-
 (defmacro with-tramp-dbus-get-all-properties
   (vec bus service path interface)
   "Return all properties of INTERFACE.
@@ -931,8 +929,6 @@ The call will be traced by Tramp with trace level 6."
 	   (list ,bus ,service ,path)))
      (tramp-dbus-function
       ,vec #'dbus-get-all-properties (list ,bus ,service ,path ,interface))))
-
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-get-all-properties\\>"))
 
 (defvar tramp-gvfs-dbus-event-vector nil
   "Current Tramp file name to be used, as vector.
