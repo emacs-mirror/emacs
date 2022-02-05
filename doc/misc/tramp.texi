@@ -4164,8 +4164,10 @@ methods}.  Internally, file archives are mounted via the
 @acronym{GVFS} @option{archive} method.
 
 A file archive is a regular file of kind @file{/path/to/dir/file.EXT}.
-The extension @samp{.EXT} identifies the type of the file archive.  A
-file inside a file archive, called archive file name, has the name
+The extension @samp{.EXT} identifies the type of the file archive.  To
+examine the contents of an archive with Dired, open file name as if it
+were a directory (i.e., open @file{/path/to/dir/file.EXT/}).  A file
+inside a file archive, called archive file name, has the name
 @file{/path/to/dir/file.EXT/dir/file}.
 
 Most of the @ref{Magic File Names, , magic file name operations,
