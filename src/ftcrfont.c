@@ -571,8 +571,6 @@ ftcrfont_draw (struct glyph_string *s,
       pgtk_set_cr_source_with_color (f, s->xgcv.background, true);
 #endif
 #else
-      struct face *face = s->face;
-
       uint32_t col = be_background;
 
       cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
@@ -580,8 +578,8 @@ ftcrfont_draw (struct glyph_string *s,
 			    BLUE_FROM_ULONG (col) / 255.0);
 #endif
       s->background_filled_p = 1;
-      cairo_rectangle (cr, x, y - FONT_BASE (face->font),
-		       s->width, FONT_HEIGHT (face->font));
+      cairo_rectangle (cr, x, y - FONT_BASE (s->font),
+		       s->width, FONT_HEIGHT (s->font));
       cairo_fill (cr);
     }
 
