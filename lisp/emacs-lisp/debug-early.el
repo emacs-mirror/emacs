@@ -24,10 +24,12 @@
 
 ;;; Commentary:
 
-;; This file dumps a backtrace on stderr when an error is thrown.
-;; It has no dependencies on any Lisp libraries and is thus suitable
-;; for generating backtraces in the early parts of bootstrapping.  It
-;; is also good for generating backtraces in batch mode in general.
+;; This file dumps a backtrace on stderr when an error is thrown.  It
+;; has no dependencies on any Lisp libraries and is thus used for
+;; generating backtraces for bugs in the early parts of bootstrapping.
+;; It is also always used in batch model.  It was introduced in Emacs
+;; 29, before which there was no backtrace available during early
+;; bootstrap.
 
 (defalias 'debug-early-backtrace
   #'(lambda ()
@@ -60,14 +62,22 @@ of the build process."
 
 (defalias 'debug-early
   #'(lambda (&rest args)
-  "Print a trace of Lisp function calls currently active.
+  "Print an error message with a backtrace of active Lisp function calls.
 The output stream used is the value of `standard-output'.
 
-There should be two ARGS, the symbol `error' and a cons of
-the error symbol and its data.
+The Emacs core calls this function after an error has been
+signaled, and supplies two ARGS.  These are the symbol
+`error' (which is ignored) and a cons of the error symbol and the
+error data.
 
-This is a simplified version of `debug', intended for use
-in debugging the early parts of the build process."
+`debug-early' is a simplified version of `debug', and is
+available during the early parts of the build process.  It is
+superseded by `debug' after enough Lisp has been loaded to
+support the latter, except in batch mode which always uses
+`debug-early'.
+
+(In versions of Emacs prior to Emacs 29, no backtrace was
+available before `debug' was usable.)"
   (princ "\nError: ")
   (prin1 (car (car (cdr args))))	; The error symbol.
   (princ " ")
