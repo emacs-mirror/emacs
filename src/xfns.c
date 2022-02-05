@@ -7734,6 +7734,8 @@ Text larger than the specified size is clipped.  */)
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count_1;
   Lisp_Object window, size, tip_buf;
+  Window child;
+  int dest_x_return, dest_y_return;
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
@@ -7958,6 +7960,27 @@ Text larger than the specified size is clipped.  */)
 
   /* Show tooltip frame.  */
   block_input ();
+  /* If the display is composited, then WM_TRANSIENT_FOR must be set
+     as well, or else the compositing manager won't display
+     decorations correctly, even though the tooltip window is override
+     redirect. See
+     https://specifications.freedesktop.org/wm-spec/1.4/ar01s08.html
+
+     Perhaps WM_TRANSIENT_FOR should be used in place of
+     override-redirect anyway.  The ICCCM only recommends
+     override-redirect if the pointer will be grabbed.  */
+
+  if (XTranslateCoordinates (FRAME_X_DISPLAY (f),
+			     FRAME_DISPLAY_INFO (f)->root_window,
+			     FRAME_DISPLAY_INFO (f)->root_window,
+			     root_x, root_y, &dest_x_return,
+			     &dest_y_return, &child))
+    XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
+			  FRAME_X_WINDOW (tip_f), child);
+  else
+    XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
+			  FRAME_X_WINDOW (tip_f), None);
+
 #ifndef USE_XCB
   XMoveResizeWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),
 		     root_x, root_y, width, height);
