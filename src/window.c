@@ -481,7 +481,9 @@ Return WINDOW.  */)
 DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
        doc: /* Return the selected window.
 The selected window is the window in which the standard cursor for
-selected windows appears and to which many commands apply.  */)
+selected windows appears and to which many commands apply.
+
+Also see `old-selected-window' and `minibuffer-selected-window'.  */)
   (void)
 {
   return selected_window;
