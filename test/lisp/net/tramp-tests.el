@@ -7205,12 +7205,14 @@ Since it unloads Tramp, it shall be the last test to run."
   (mapatoms
    (lambda (x)
      (and (or (and (boundp x) (null (local-variable-if-set-p x)))
-	      (and (functionp x) (null (autoloadp (symbol-function x)))))
+	      (and (functionp x) (null (autoloadp (symbol-function x))))
+	      (macrop x))
 	  (string-match-p "^tramp" (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
 	  (not (string-match-p "^tramp\\(-archive\\)?--?test" (symbol-name x)))
 	  (not (string-match-p "unload-hook$" (symbol-name x)))
+	  (not (get x 'tramp-autoload))
 	  (ert-fail (format "`%s' still bound" x)))))
   ;; The defstruct `tramp-file-name' and all its internal functions
   ;; shall be purged.
