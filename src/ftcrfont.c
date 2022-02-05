@@ -522,12 +522,23 @@ ftcrfont_draw (struct glyph_string *s,
                int from, int to, int x, int y, bool with_background)
 {
   struct frame *f = s->f;
-  struct face *face = s->face;
   struct font_info *ftcrfont_info = (struct font_info *) s->font;
   cairo_t *cr;
   cairo_glyph_t *glyphs;
   int len = to - from;
   int i;
+#ifdef USE_BE_CAIRO
+  unsigned long be_foreground, be_background;
+
+  if (s->hl != DRAW_CURSOR)
+    {
+      be_foreground = s->face->foreground;
+      be_background = s->face->background;
+    }
+  else
+    haiku_merge_cursor_foreground (s, &be_foreground,
+				   &be_background);
+#endif
 
   block_input ();
 
@@ -562,8 +573,7 @@ ftcrfont_draw (struct glyph_string *s,
 #else
       struct face *face = s->face;
 
-      uint32_t col = s->hl == DRAW_CURSOR ?
-	FRAME_CURSOR_COLOR (s->f).pixel : face->background;
+      uint32_t col = be_background;
 
       cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
 			    GREEN_FROM_ULONG (col) / 255.0,
@@ -592,8 +602,7 @@ ftcrfont_draw (struct glyph_string *s,
   pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
 #endif
 #else
-  uint32_t col = s->hl == DRAW_CURSOR ?
-    FRAME_OUTPUT_DATA (s->f)->cursor_fg : face->foreground;
+  uint32_t col = be_foreground;
 
   cairo_set_source_rgb (cr, RED_FROM_ULONG (col) / 255.0,
 			GREEN_FROM_ULONG (col) / 255.0,

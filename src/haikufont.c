@@ -951,9 +951,18 @@ haikufont_draw (struct glyph_string *s, int from, int to,
   struct font_info *info = (struct font_info *) s->font;
   unsigned char mb[MAX_MULTIBYTE_LENGTH];
   void *view = FRAME_HAIKU_VIEW (f);
+  unsigned long foreground, background;
 
   block_input ();
   prepare_face_for_display (s->f, face);
+
+  if (s->hl != DRAW_CURSOR)
+    {
+      foreground = s->face->foreground;
+      background = s->face->background;
+    }
+  else
+    haiku_merge_cursor_foreground (s, &foreground, &background);
 
   /* Presumably the draw lock is already held by
      haiku_draw_glyph_string; */
@@ -977,18 +986,12 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 	  s->first_glyph->slice.glyphless.lower_yoff
 	  - s->first_glyph->slice.glyphless.upper_yoff;
 
-      BView_SetHighColor (view, s->hl == DRAW_CURSOR ?
-			  FRAME_CURSOR_COLOR (s->f).pixel : face->background);
-
+      BView_SetHighColor (view, background);
       BView_FillRectangle (view, x, y - ascent, s->width, height);
       s->background_filled_p = 1;
     }
 
-  if (s->hl == DRAW_CURSOR)
-    BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
-  else
-    BView_SetHighColor (view, face->foreground);
-
+  BView_SetHighColor (view, foreground);
   BView_MovePenTo (view, x, y);
   BView_SetFont (view, ((struct haikufont_info *) info)->be_font);
 

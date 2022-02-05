@@ -294,4 +294,7 @@ haiku_begin_cr_clip (struct frame *f, struct glyph_string *s);
 extern void
 haiku_end_cr_clip (cairo_t *cr);
 #endif
+
+extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long *,
+					   unsigned long *);
 #endif /* _HAIKU_TERM_H_ */

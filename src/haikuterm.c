@@ -3644,6 +3644,32 @@ haiku_end_cr_clip (cairo_t *cr)
 #endif
 
 void
+haiku_merge_cursor_foreground (struct glyph_string *s,
+			       unsigned long *foreground_out,
+			       unsigned long *background_out)
+{
+  unsigned long background = FRAME_CURSOR_COLOR (s->f).pixel;
+  unsigned long foreground = s->face->background;
+
+  if (background == foreground)
+    foreground = s->face->background;
+  if (background == foreground)
+    foreground = FRAME_OUTPUT_DATA (s->f)->cursor_fg;
+  if (background == foreground)
+    foreground = s->face->foreground;
+
+  if (background == s->face->background
+      || foreground == s->face->foreground)
+    {
+      background = s->face->foreground;
+      foreground = s->face->background;
+    }
+
+  *foreground_out = foreground;
+  *background_out = background;
+}
+
+void
 syms_of_haikuterm (void)
 {
   DEFVAR_BOOL ("haiku-initialized", haiku_initialized,
