@@ -2280,9 +2280,9 @@ Currently set only from \\='\\\" t in the first line of the source file.")
       (replace-match woman-unpadded-space-string t t))
 
     ;; Discard optional hyphen \%; concealed newlines \<newline>;
-    ;; point-size change function \sN,\s+N, \s-N:
+    ;; kerning \/, \,; point-size change function \sN,\s+N, \s-N:
     (goto-char from)
-    (while (re-search-forward "\\\\\\([%\n]\\|s[-+]?[0-9]+\\)" nil t)
+    (while (re-search-forward "\\\\\\([%\n/,]\\|s[-+]?[0-9]+\\)" nil t)
       (woman-delete-match 0))
 
     ;; BEWARE: THIS SHOULD PROBABLY ALL BE DONE MUCH LATER!!!!!
