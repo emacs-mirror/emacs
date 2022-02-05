@@ -391,6 +391,10 @@ in the minibuffer:
 	(unless (equal curdir newdir)
 	  (eshell-add-to-dir-ring curdir))
 	(let ((result (cd newdir)))
+          ;; If we're in "/" and cd to ".." or the like, make things
+          ;; less confusing by changing "/.." to "/".
+          (when (equal (file-truename result) "/")
+            (setq result (cd "/")))
 	  (and eshell-cd-shows-directory
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)
