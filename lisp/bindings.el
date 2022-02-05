@@ -654,6 +654,18 @@ By default, this shows the information specified by `global-mode-string'.")
   (with-selected-window (posn-window (event-start event))
     (previous-buffer)))
 
+(defun mode-line-window-selected-p ()
+  "Return non-nil if we're updating the mode line for the selected window.
+This function is meant to be called in `:eval' mode line
+constructs to allow altering the look of the mode line depending
+on whether the mode line belongs to the currently selected window
+or not."
+  (let ((window (selected-window)))
+    (or (eq window (old-selected-window))
+	(and (minibuffer-window-active-p (minibuffer-window))
+	     (with-selected-window (minibuffer-window)
+	       (eq window (minibuffer-selected-window)))))))
+
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil.
 Note that if `lexical-binding' is in effect, this function isn't

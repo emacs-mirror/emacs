@@ -1964,8 +1964,26 @@ This function also forces an update of the menu bar and frame title.
 @end defun
 
   The selected window's mode line is usually displayed in a different
-color using the face @code{mode-line}.  Other windows' mode lines appear
-in the face @code{mode-line-inactive} instead.  @xref{Faces}.
+color using the face @code{mode-line-active}.  Other windows' mode
+lines appear in the face @code{mode-line-inactive} instead.
+@xref{Faces}.
+
+@defun mode-line-window-selected-p
+If you want to have more extensive differences between the mode lines
+in selected and non-selected windows, you can use this predicate in an
+@code{:eval} construct.  For instance, if you want to display the
+buffer name in bold in selected windows, but in italics in the other
+windows, you can say something like:
+
+@lisp
+(setq-default
+ mode-line-buffer-identification
+ '(:eval (propertize "%12b"
+		     'face (if (mode-line-window-selected-p)
+			       'bold
+			     'italic))))
+@end lisp
+@end defun
 
 @vindex mode-line-compact
   Some modes put a lot of data in the mode line, pushing elements at

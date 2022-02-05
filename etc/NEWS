@@ -1035,6 +1035,12 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New utility predicate 'mode-line-window-selected-p'.
+This is meant to be used from ':eval' mode line constructs to create
+different mode line looks for selected and unselected windows.
+
++++
 ** New variable 'messages-buffer-name'.
 This variable (defaulting to "*Messages*") allows packages to override
 where messages are logged.
