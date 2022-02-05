@@ -9071,6 +9071,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto done;
               }
 
+
+	    if (event->xclient.data.l[0] == dpyinfo->Xatom_net_wm_ping
+		&& event->xclient.format == 32)
+	      {
+		XEvent send_event = *event;
+
+		send_event.xclient.window = dpyinfo->root_window;
+		XSendEvent (dpyinfo->display, dpyinfo->root_window, False,
+			    SubstructureRedirectMask | SubstructureNotifyMask,
+			    &send_event);
+
+		*finish = X_EVENT_DROP;
+		goto done;
+	      }
+
 	    goto done;
           }
 
@@ -15914,6 +15929,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_STATE_ABOVE", Xatom_net_wm_state_above)
       ATOM_REFS_INIT ("_NET_WM_STATE_BELOW", Xatom_net_wm_state_below)
       ATOM_REFS_INIT ("_NET_WM_OPAQUE_REGION", Xatom_net_wm_opaque_region)
+      ATOM_REFS_INIT ("_NET_WM_PING", Xatom_net_wm_ping)
 #ifdef HAVE_XKB
       ATOM_REFS_INIT ("Meta", Xatom_Meta)
       ATOM_REFS_INIT ("Super", Xatom_Super)

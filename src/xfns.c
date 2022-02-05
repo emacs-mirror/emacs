@@ -2355,6 +2355,55 @@ hack_wm_protocols (struct frame *f, Widget widget)
 }
 #endif
 
+static void
+append_wm_protocols (struct x_display_info *dpyinfo,
+		     struct frame *f)
+{
+  unsigned char *existing = NULL;
+  int format = 0;
+  unsigned long nitems = 0;
+  Atom type;
+  Atom *existing_protocols;
+  Atom protos[10];
+  int num_protos = 0;
+  bool found_wm_ping = false;
+  unsigned long bytes_after;
+
+  block_input ();
+  if ((XGetWindowProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+			   dpyinfo->Xatom_wm_protocols,
+			   0, 100, False, XA_ATOM, &type, &format, &nitems,
+			   &bytes_after, &existing) == Success)
+      && format == 32 && type == XA_ATOM)
+    {
+      existing_protocols = (Atom *) existing;
+
+      while (nitems)
+	{
+	  nitems--;
+
+	  if (existing_protocols[nitems]
+	      == dpyinfo->Xatom_net_wm_ping)
+	    found_wm_ping = true;
+	}
+    }
+
+  if (existing)
+    XFree (existing);
+
+  if (!found_wm_ping)
+    protos[num_protos++] = dpyinfo->Xatom_net_wm_ping;
+
+  if (num_protos)
+    XChangeProperty (dpyinfo->display,
+		     FRAME_OUTER_WINDOW (f),
+		     dpyinfo->Xatom_wm_protocols,
+		     XA_ATOM, 32, PropModeAppend,
+		     (unsigned char *) protos,
+		     num_protos);
+  unblock_input ();
+}
+
 
 
 /* Support routines for XIC (X Input Context).  */
@@ -3630,6 +3679,7 @@ x_window (struct frame *f, long window_prompting)
 	       &f->output_data.x->wm_hints);
 
   hack_wm_protocols (f, shell_widget);
+  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
 
 #ifdef X_TOOLKIT_EDITRES
   XtAddEventHandler (shell_widget, 0, True, _XEditResCheckMessages, 0);
@@ -3750,6 +3800,8 @@ x_window (struct frame *f)
   }
 #endif
 
+  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
+
 #ifdef HAVE_XINPUT2
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
     setup_xi_event_mask (f);
@@ -3790,6 +3842,7 @@ x_window (struct frame *f)
 		     FRAME_X_VISUAL (f),
                      attribute_mask, &attributes);
   initial_set_up_x_back_buffer (f);
+  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
 
 #ifdef HAVE_X_I18N
   if (use_xim)
