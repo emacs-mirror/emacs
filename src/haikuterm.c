@@ -606,15 +606,20 @@ static void
 haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 			    int width, int x)
 {
+  unsigned long cursor_color;
+
   if (s->for_overlaps)
     return;
+
+  if (s->hl == DRAW_CURSOR)
+    haiku_merge_cursor_foreground (s, &cursor_color, NULL);
 
   void *view = FRAME_HAIKU_VIEW (s->f);
 
   if (face->underline)
     {
       if (s->hl == DRAW_CURSOR)
-	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
+	BView_SetHighColor (view, cursor_color);
       else if (!face->underline_defaulted_p)
 	BView_SetHighColor (view, face->underline_color);
       else
@@ -711,7 +716,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
     {
       unsigned long dy = 0, h = 1;
       if (s->hl == DRAW_CURSOR)
-	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
+	BView_SetHighColor (view, cursor_color);
       else if (!face->overline_color_defaulted_p)
 	BView_SetHighColor (view, face->overline_color);
       else
@@ -735,7 +740,7 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
       unsigned long dy = (glyph_height - h) / 2;
 
       if (s->hl == DRAW_CURSOR)
-	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
+	BView_SetHighColor (view, cursor_color);
       else if (!face->strike_through_color_defaulted_p)
 	BView_SetHighColor (view, face->strike_through_color);
       else
@@ -812,8 +817,12 @@ haiku_draw_plain_background (struct glyph_string *s, struct face *face,
 			     int box_line_hwidth, int box_line_vwidth)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
+  unsigned long cursor_color;
   if (s->hl == DRAW_CURSOR)
-    BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
+    {
+      haiku_merge_cursor_foreground (s, NULL, &cursor_color);
+      BView_SetHighColor (view, cursor_color);
+    }
   else
     BView_SetHighColor (view, face->background_defaulted_p ?
 			FRAME_BACKGROUND_PIXEL (s->f) :
@@ -1045,7 +1054,10 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	x -= width;
 
       void *view = FRAME_HAIKU_VIEW (s->f);
-      BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
+      unsigned long cursor_color;
+
+      haiku_merge_cursor_foreground (s, NULL, &cursor_color);
+      BView_SetHighColor (view, cursor_color);
       BView_FillRectangle (view, x, s->y, width, s->height);
 
       if (width < background_width)
@@ -1088,9 +1100,9 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
       if (background_width > 0)
 	{
 	  void *view = FRAME_HAIKU_VIEW (s->f);
-	  uint32_t bkg;
+	  unsigned long bkg;
 	  if (s->hl == DRAW_CURSOR)
-	    bkg = FRAME_CURSOR_COLOR (s->f).pixel;
+	    haiku_merge_cursor_foreground (s, NULL, &bkg);
 	  else
 	    bkg = s->face->background;
 
@@ -3665,8 +3677,10 @@ haiku_merge_cursor_foreground (struct glyph_string *s,
       foreground = s->face->background;
     }
 
-  *foreground_out = foreground;
-  *background_out = background;
+  if (foreground_out)
+    *foreground_out = foreground;
+  if (background_out)
+    *background_out = background;
 }
 
 void
