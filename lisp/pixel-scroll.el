@@ -32,8 +32,10 @@
 
 ;;; Commentary:
 
-;; This package offers a global minor mode which makes mouse-wheel
-;; scroll a line smoothly.
+;; This file contains two somewhat related features.
+
+;; The first is a global minor mode which makes Emacs try to scroll
+;; each line smoothly.
 ;;
 ;; Scrolling a line up by `set-window-vscroll' and that by `scroll-up'
 ;; give similar display as shown below.
@@ -57,6 +59,25 @@
 ;;  (dolist (vs (number-sequence 1 (1- (frame-char-height))))
 ;;    (set-window-vscroll nil vs t) (sit-for 0))
 ;;  (scroll-up 1)
+
+;; The second is another global minor mode that redefines `wheel-up'
+;; and `wheel-down' to a command that tries to scroll the display
+;; according to the precise movement of a trackpad or mouse.
+
+;; But it operates in a much more intelligent manner than simply
+;; setting the vscroll.  It will set window start to the position
+;; closest to the position at the top-left corner of the window if
+;; vscroll were set accordingly, in a smart and fast manner, and only
+;; set vscroll the rest of the way.  There is no visible difference,
+;; but it is much faster, and doesn't move the display by a huge
+;; portion if vscroll is reset for some reason.
+
+;; It also tries to move point out of the way, so redisplay will not
+;; recenter the display as it scrolls.  This works well almost all of
+;; the time, but is impossible to get right with images larger than
+;; the window they're displayed in.  A feature that will allow
+;; redisplay to skip recentering is in the works, and will completely
+;; resolve this problem.
 
 ;;; Todo:
 ;;
