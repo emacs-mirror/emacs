@@ -122,6 +122,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xrandr.h>
 #endif
 
+#ifdef HAVE_XSYNC
+#include <X11/extensions/sync.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -1849,6 +1853,17 @@ XTframe_up_to_date (struct frame *f)
   FRAME_MOUSE_UPDATE (f);
   if (!buffer_flipping_blocked_p () && FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
+
+#ifdef HAVE_XSYNC
+  if (FRAME_X_OUTPUT (f)->sync_end_pending_p
+      && FRAME_X_BASIC_COUNTER (f))
+    {
+      XSyncSetCounter (FRAME_X_DISPLAY (f),
+		       FRAME_X_BASIC_COUNTER (f),
+		       FRAME_X_OUTPUT (f)->pending_basic_counter_value);
+      FRAME_X_OUTPUT (f)->sync_end_pending_p = false;
+    }
+#endif
   unblock_input ();
 }
 
@@ -9086,6 +9101,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto done;
 	      }
 
+#if defined HAVE_XSYNC && !defined HAVE_GTK3
+	    if (event->xclient.data.l[0] == dpyinfo->Xatom_net_wm_sync_request
+		&& event->xclient.format == 32)
+	      {
+		struct frame *f
+		  = x_top_window_to_frame (dpyinfo,
+					   event->xclient.window);
+
+		if (f)
+		  {
+		    XSyncIntsToValue (&FRAME_X_OUTPUT (f)->pending_basic_counter_value,
+				      event->xclient.data.l[2], event->xclient.data.l[3]);
+		    FRAME_X_OUTPUT (f)->sync_end_pending_p = true;
+
+		    *finish = X_EVENT_DROP;
+		    goto done;
+		  }
+	      }
+#endif
+
 	    goto done;
           }
 
@@ -14745,8 +14780,14 @@ x_free_frame_resources (struct frame *f)
 
       tear_down_x_back_buffer (f);
       if (FRAME_X_WINDOW (f))
-          XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* !USE_X_TOOLKIT */
+
+#ifdef HAVE_XSYNC
+      if (FRAME_X_BASIC_COUNTER (f))
+	XSyncDestroyCounter (FRAME_X_DISPLAY (f),
+			     FRAME_X_BASIC_COUNTER (f));
+#endif
 
       unload_color (f, FRAME_FOREGROUND_PIXEL (f));
       unload_color (f, FRAME_BACKGROUND_PIXEL (f));
@@ -15628,6 +15669,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 #endif
 
+#ifdef HAVE_XSYNC
+  int xsync_event_base, xsync_error_base;
+  dpyinfo->xsync_supported_p
+    = XSyncQueryExtension (dpyinfo->display,
+			   &xsync_event_base,
+			   &xsync_error_base);
+
+  if (dpyinfo->xsync_supported_p)
+    dpyinfo->xsync_supported_p = XSyncInitialize (dpyinfo->display,
+						  &dpyinfo->xsync_major,
+						  &dpyinfo->xsync_minor);
+#endif
+
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
@@ -15887,6 +15941,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
       ATOM_REFS_INIT ("ATOM_PAIR", Xatom_ATOM_PAIR)
       ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
+      ATOM_REFS_INIT ("XATOM_COUNTER", Xatom_XEMBED_INFO)
       ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
       /* For properties of font.  */
       ATOM_REFS_INIT ("PIXEL_SIZE", Xatom_PIXEL_SIZE)
@@ -15921,6 +15976,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_FRAME_EXTENTS", Xatom_net_frame_extents)
       ATOM_REFS_INIT ("_NET_CURRENT_DESKTOP", Xatom_net_current_desktop)
       ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
+      ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
+      ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
       /* Session management */
       ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
       ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)

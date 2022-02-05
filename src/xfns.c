@@ -2367,6 +2367,9 @@ append_wm_protocols (struct x_display_info *dpyinfo,
   Atom protos[10];
   int num_protos = 0;
   bool found_wm_ping = false;
+#if !defined HAVE_GTK3 && defined HAVE_XSYNC
+  bool found_wm_sync_request = false;
+#endif
   unsigned long bytes_after;
 
   block_input ();
@@ -2385,6 +2388,11 @@ append_wm_protocols (struct x_display_info *dpyinfo,
 	  if (existing_protocols[nitems]
 	      == dpyinfo->Xatom_net_wm_ping)
 	    found_wm_ping = true;
+#if !defined HAVE_GTK3 && defined HAVE_XSYNC
+	  else if (existing_protocols[nitems]
+		   == dpyinfo->Xatom_net_wm_sync_request)
+	    found_wm_sync_request = true;
+#endif
 	}
     }
 
@@ -2393,6 +2401,10 @@ append_wm_protocols (struct x_display_info *dpyinfo,
 
   if (!found_wm_ping)
     protos[num_protos++] = dpyinfo->Xatom_net_wm_ping;
+#if !defined HAVE_GTK3 && defined HAVE_XSYNC
+  if (!found_wm_sync_request)
+    protos[num_protos++] = dpyinfo->Xatom_net_wm_sync_request;
+#endif
 
   if (num_protos)
     XChangeProperty (dpyinfo->display,
@@ -3842,7 +3854,6 @@ x_window (struct frame *f)
 		     FRAME_X_VISUAL (f),
                      attribute_mask, &attributes);
   initial_set_up_x_back_buffer (f);
-  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
 
 #ifdef HAVE_X_I18N
   if (use_xim)
@@ -3890,6 +3901,8 @@ x_window (struct frame *f)
     protocols[1] = FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
     XSetWMProtocols (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), protocols, 2);
   }
+
+  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
@@ -4794,6 +4807,24 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       XA_WINDOW, 32, PropModeReplace,
 		       (unsigned char *) &dpyinfo->client_leader_window, 1);
     }
+
+#ifdef HAVE_XSYNC
+  if (dpyinfo->xsync_supported_p)
+    {
+#ifndef HAVE_GTK3
+      XSyncValue initial_value;
+
+      XSyncIntToValue (&initial_value, 0);
+      FRAME_X_BASIC_COUNTER (f) = XSyncCreateCounter (FRAME_X_DISPLAY (f),
+						      initial_value);
+
+      XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		       dpyinfo->Xatom_net_wm_sync_request_counter,
+		       XA_CARDINAL, 32, PropModeReplace,
+		       (unsigned char *) &FRAME_X_BASIC_COUNTER (f), 1);
+#endif
+    }
+#endif
 
   unblock_input ();
 

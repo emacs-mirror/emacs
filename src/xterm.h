@@ -99,6 +99,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include <X11/XKBlib.h>
 #endif
 
+#ifdef HAVE_XSYNC
+#include <X11/extensions/sync.h>
+#endif
+
 #include "dispextern.h"
 #include "termhooks.h"
 
@@ -366,9 +370,9 @@ struct x_display_info
 
   /* More atoms, which are selection types.  */
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
-  Xatom_COMPOUND_TEXT, Xatom_UTF8_STRING,
-  Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
-  Xatom_ATOM, Xatom_ATOM_PAIR, Xatom_CLIPBOARD_MANAGER;
+    Xatom_COMPOUND_TEXT, Xatom_UTF8_STRING,
+    Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
+    Xatom_ATOM, Xatom_ATOM_PAIR, Xatom_CLIPBOARD_MANAGER, Xatom_COUNTER;
 
   /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
@@ -498,7 +502,8 @@ struct x_display_info
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_above, Xatom_net_wm_state_below,
     Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
     Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
-    Xatom_net_wm_opaque_region, Xatom_net_wm_ping;
+    Xatom_net_wm_opaque_region, Xatom_net_wm_ping, Xatom_net_wm_sync_request,
+    Xatom_net_wm_sync_request_counter;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -564,6 +569,12 @@ struct x_display_info
   bool xfixes_supported_p;
   int xfixes_major;
   int xfixes_minor;
+#endif
+
+#ifdef HAVE_XSYNC
+  bool xsync_supported_p;
+  int xsync_major;
+  int xsync_minor;
 #endif
 };
 
@@ -801,6 +812,13 @@ struct x_output
   XFontSet xic_xfs;
 #endif
 
+#ifdef HAVE_XSYNC
+  XSyncCounter basic_frame_counter;
+  XSyncValue pending_basic_counter_value;
+
+  bool_bf sync_end_pending_p;
+#endif
+
   /* Relief GCs, colors etc.  */
   struct relief
   {
@@ -963,6 +981,9 @@ extern void x_mark_frame_dirty (struct frame *f);
        || (FRAME_DISPLAY_INFO (f)->xrender_major > (major))))
 #endif
 
+#ifdef HAVE_XSYNC
+#define FRAME_X_BASIC_COUNTER(f) FRAME_X_OUTPUT (f)->basic_frame_counter
+#endif
 
 /* This is the Colormap which frame F uses.  */
 #define FRAME_X_COLORMAP(f) FRAME_DISPLAY_INFO (f)->cmap
