@@ -800,8 +800,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 		      ((cdr pipeline) t)
 		      (t (quote 'last)))))
           (let ((proc ,(car pipeline)))
-            ,(unless notfirst
-               '(setq headproc proc))
+            (setq headproc (or proc headproc))
             (setq tailproc (or tailproc proc))
             proc))))))
 

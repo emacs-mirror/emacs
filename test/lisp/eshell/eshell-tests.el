@@ -123,6 +123,13 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-command-result-p "echo ${echo hi}-${*echo there}"
                             "hi-there\n")))
 
+(ert-deftest eshell-test/pipe-headproc ()
+  "Check that piping a non-process to a process command waits for the process"
+  (skip-unless (executable-find "cat"))
+  (with-temp-eshell
+   (eshell-command-result-p "echo hi | *cat"
+                            "hi")))
+
 (ert-deftest eshell-test/pipe-tailproc ()
   "Check that piping a process to a non-process command waits for the process"
   (skip-unless (executable-find "echo"))
