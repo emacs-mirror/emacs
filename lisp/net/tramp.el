@@ -5023,6 +5023,7 @@ Mostly useful to protect BODY from being interrupted by timers."
 	   ,@body)
        (tramp-flush-connection-property ,proc "locked"))))
 
+;; FIXME: This call is redundant in current Emacsen.
 (font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-locked-connection\\>"))
 

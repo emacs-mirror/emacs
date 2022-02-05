@@ -2678,7 +2678,8 @@ When OLD is non-nil, highlight the hunk from the old source."
          ;; Trim a trailing newline to find hunk in diff-syntax-fontify-props
          ;; in diffs that have no newline at end of diff file.
          (text (string-trim-right
-                (or (with-demoted-errors (diff-hunk-text hunk (not old) nil))
+                (or (with-demoted-errors "Error getting hunk text: %S"
+                      (diff-hunk-text hunk (not old) nil))
                     "")))
 	 (line (if (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?")
 		   (if old (match-string 1)

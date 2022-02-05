@@ -1301,9 +1301,9 @@ Only meaningful when called from within `smie-rules-function'."
   (let ((afterpos (save-excursion
                     (let ((tok (funcall smie-forward-token-function)))
                       (unless tok
-                        (with-demoted-errors
-                          (error "smie-rule-separator: Can't skip token %s"
-                                 smie--token))))
+                        (funcall (if debug-on-error #'error #'message)
+                                 "smie-rule-separator: Can't skip token %s"
+                                 smie--token)))
                     (skip-chars-forward " ")
                     (unless (eolp) (point)))))
     (or (and afterpos
@@ -1820,7 +1820,7 @@ to which that point should be aligned, if we were to reindent it.")
   "Indent current line using the SMIE indentation engine."
   (interactive)
   (let* ((savep (point))
-	 (indent (or (with-demoted-errors
+	 (indent (or (with-demoted-errors "SMIE Error: %S"
                        (save-excursion
                          (forward-line 0)
                          (skip-chars-forward " \t")
@@ -1846,7 +1846,7 @@ to which that point should be aligned, if we were to reindent it.")
                            (move-to-column fc)
                            (syntax-ppss))))
         (while
-            (and (with-demoted-errors
+            (and (with-demoted-errors "SMIE Error: %S"
                    (save-excursion
                      (let ((end (point))
                            (bsf nil)    ;Best-so-far.

@@ -1973,7 +1973,7 @@ May return nil if the line should not be treated as continued."
          (cons 'column (smie-indent-keyword ";"))
        (smie-rule-separator kind)))
     (`(:after . ,(or ";;" ";&" ";;&"))
-     (with-demoted-errors
+     (with-demoted-errors "SMIE rule error: %S"
        (smie-backward-sexp token)
        (cons 'column
              (if (or (smie-rule-bolp)

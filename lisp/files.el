@@ -4061,7 +4061,8 @@ It is safe if any of these conditions are met:
         (and (functionp safep)
              ;; If the function signals an error, that means it
              ;; can't assure us that the value is safe.
-             (with-demoted-errors (funcall safep val))))))
+             (with-demoted-errors "Local variable error: %S"
+               (funcall safep val))))))
 
 (defun risky-local-variable-p (sym &optional _ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.
@@ -4937,7 +4938,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	nil)))
   ;; If set-file-extended-attributes fails, fall back on set-file-modes.
   (unless (and extended-attributes
-	       (with-demoted-errors
+	       (with-demoted-errors "Error setting attributes: %S"
 		 (set-file-extended-attributes to-name extended-attributes)))
     (and modes
 	 (set-file-modes to-name (logand modes #o1777) nofollow-flag)))))
@@ -5558,7 +5559,8 @@ Before and after saving the buffer, this function runs
 		     (goto-char (point-max))
 		     (insert ?\n))))
 	    ;; Don't let errors prevent saving the buffer.
-	    (with-demoted-errors (run-hooks 'before-save-hook))
+	    (with-demoted-errors "Before-save hook error: %S"
+	      (run-hooks 'before-save-hook))
             ;; Give `write-contents-functions' a chance to
             ;; short-circuit the whole process.
 	    (unless (run-hook-with-args-until-success 'write-contents-functions)
@@ -5606,7 +5608,7 @@ Before and after saving the buffer, this function runs
 		  (condition-case ()
 		      (progn
 		        (unless
-			    (with-demoted-errors
+			    (with-demoted-errors "Error setting file modes: %S"
 			        (set-file-modes buffer-file-name (car setmodes)))
 			  (set-file-extended-attributes buffer-file-name
 						        (nth 1 setmodes))))
@@ -5721,7 +5723,7 @@ Before and after saving the buffer, this function runs
 	       ;; If set-file-extended-attributes fails, fall back on
 	       ;; set-file-modes.
 	       (unless
-		   (with-demoted-errors
+		   (with-demoted-errors "Error setting attributes: %s"
 		     (set-file-extended-attributes buffer-file-name
 						   (nth 1 setmodes)))
 		 (set-file-modes buffer-file-name

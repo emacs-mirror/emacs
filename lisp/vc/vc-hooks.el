@@ -799,9 +799,10 @@ In the latter case, VC mode is deactivated for this buffer."
     (add-hook 'vc-mode-line-hook #'vc-mode-line nil t)
     (let (backend)
       (cond
-        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-         ;; Let the backend setup any buffer-local things he needs.
-         (vc-call-backend backend 'find-file-hook)
+       ((setq backend (with-demoted-errors "VC refresh error: %S"
+                        (vc-backend buffer-file-name)))
+        ;; Let the backend setup any buffer-local things he needs.
+        (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files

@@ -519,17 +519,17 @@ If MODE is not set, try to find mode automatically."
         ;; setting now, but it seems harmless and potentially still useful.
 	(setq-local font-lock-mode-hook nil)
         (setq buffer-file-name (mm-handle-filename handle))
-	(with-demoted-errors
-	    (if mode
-                (save-window-excursion
-                  ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
-                  ;; requires the buffer to be temporarily displayed here, but
-                  ;; I could not reproduce this problem.  Furthermore, if
-                  ;; there's such a problem, we should fix org-mode rather than
-                  ;; use switch-to-buffer which can have undesirable
-                  ;; side-effects!
-                  ;;(switch-to-buffer (current-buffer))
-	          (funcall mode))
+	(with-demoted-errors "Error setting mode: %S"
+	  (if mode
+              (save-window-excursion
+                ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
+                ;; requires the buffer to be temporarily displayed here, but
+                ;; I could not reproduce this problem.  Furthermore, if
+                ;; there's such a problem, we should fix org-mode rather than
+                ;; use switch-to-buffer which can have undesirable
+                ;; side-effects!
+                ;;(switch-to-buffer (current-buffer))
+	        (funcall mode))
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))

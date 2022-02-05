@@ -865,7 +865,7 @@ This macro is used to test if macroexpansion in `should' works."
 (ert-deftest ert-test-with-demoted-errors ()
   "Check that ERT correctly handles `with-demoted-errors'."
   :expected-result :failed  ;; FIXME!  Bug#11218
-  (should-not (with-demoted-errors (error "Foo"))))
+  (should-not (with-demoted-errors "FOO: %S" (error "Foo"))))
 
 (ert-deftest ert-test-fail-inside-should ()
   "Check that `ert-fail' inside `should' works correctly."

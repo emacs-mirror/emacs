@@ -879,7 +879,8 @@ startup file, `~/.emacs-octave'."
     (set-process-filter proc 'comint-output-filter)
     ;; Just in case, to be sure a cd in the startup file won't have
     ;; detrimental effects.
-    (with-demoted-errors (inferior-octave-resync-dirs))
+    (with-demoted-errors "Octave resync error: %S"
+      (inferior-octave-resync-dirs))
     ;; Generate a proper prompt, which is critical to
     ;; `comint-history-isearch-backward-regexp'.  Bug#14433.
     (comint-send-string proc "\n")))
