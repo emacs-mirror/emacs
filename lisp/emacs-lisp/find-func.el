@@ -183,6 +183,16 @@ See the functions `find-function' and `find-variable'."
   :group 'find-function
   :version "20.3")
 
+(defcustom find-library-include-other-files t
+  "If non-nil, `read-library-name' will also include non-library files.
+This affects commands like `read-library'.
+
+If nil, only library files (i.e., \".el\" files) will be offered
+for completion."
+  :type 'boolean
+  :version "29.1"
+  :group 'find-function)
+
 ;;; Functions:
 
 (defun find-library-suffixes ()
@@ -302,7 +312,10 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 Interactively, prompt for LIBRARY using the one at or near point.
 
 This function searches `find-library-source-path' if non-nil, and
-`load-path' otherwise."
+`load-path' otherwise.
+
+See the `find-library-include-other-files' user option for
+customizing the candidate completions."
   (interactive (list (read-library-name)))
   (prog1
       (switch-to-buffer (find-file-noselect (find-library-name library)))
@@ -317,8 +330,6 @@ in a directory under `load-path' (or `find-library-source-path',
 if non-nil)."
   (let* ((dirs (or find-library-source-path load-path))
          (suffixes (find-library-suffixes))
-         (table (apply-partially 'locate-file-completion-table
-                                 dirs suffixes))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
                   ;; with `point' anywhere on this line.  So wrap the
@@ -332,10 +343,28 @@ if non-nil)."
                         (thing-at-point 'symbol))
                     (error nil))
                 (thing-at-point 'symbol))))
-    (when (and def (not (test-completion def table)))
-      (setq def nil))
-    (completing-read (format-prompt "Library name" def)
-                     table nil nil nil nil def)))
+    (if find-library-include-other-files
+        (let ((table (apply-partially #'locate-file-completion-table
+                                      dirs suffixes)))
+          (when (and def (not (test-completion def table)))
+            (setq def nil))
+          (completing-read (format-prompt "Library name" def)
+                           table nil nil nil nil def))
+      (let ((files (read-library-name--find-files dirs suffixes)))
+        (when (and def (not (member def files)))
+          (setq def nil))
+        (completing-read (format-prompt "Library name" def)
+                         files nil t nil nil def)))))
+
+(defun read-library-name--find-files (dirs suffixes)
+  "Return a list of all files in DIRS that match SUFFIXES."
+  (let ((files nil)
+        (regexp (concat (regexp-opt suffixes) "\\'")))
+    (dolist (dir dirs)
+      (dolist (file (ignore-errors (directory-files dir nil regexp t)))
+        (and (string-match regexp file)
+             (push (substring file 0 (match-beginning 0)) files))))
+    files))
 
 ;;;###autoload
 (defun find-library-other-window (library)

@@ -135,6 +135,11 @@ An autoload definition appears just as a (defun . NAME) and the
 
 * Changes in Emacs 29.1
 
+---
+** New user option 'find-library-include-other-files'.
+If non-nil, commands like 'M-x find-library' will only include library
+files in the completion alternatives.
+
 ** New command 'sqlite-mode-open-file' for examining an sqlite3 file.
 This uses the new 'sqlite-mode' which allows listing the tables in a
 DB file, and examining and modifying the columns and the contents of
