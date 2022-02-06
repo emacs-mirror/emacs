@@ -191,6 +191,8 @@ the Content-Transfer-Encoding header of a mail."
   "Parse STRING and return a MAILBOX / DISPLAY-NAME pair.
 If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
 (that's the \"=?utf...q...=?\") stuff."
+  (when decode
+    (require 'rfc2047))
   (with-temp-buffer
     (let (display-name mailbox c display-string)
       (ietf-drums-init string)
