@@ -347,6 +347,10 @@ version of that color."
   "\e\\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]"
   "Regexp matching an ANSI control sequence.")
 
+(defconst ansi-color--control-seq-fragment-regexp
+  "\e\\[[\x30-\x3F]*[\x20-\x2F]*\\|\e"
+  "Regexp matching a partial ANSI control sequence.")
+
 (defconst ansi-color-parameter-regexp "\\([0-9]*\\)[m;]"
   "Regexp that matches SGR control sequence parameters.")
 
@@ -492,7 +496,11 @@ This function can be added to `comint-preoutput-filter-functions'."
     ;; save context, add the remainder of the string to the result
     (let ((fragment ""))
       (push (substring string start
-                       (if (string-match "\033" string start)
+                       (if (string-match
+                            (concat "\\(?:"
+                                    ansi-color--control-seq-fragment-regexp
+                                    "\\)\\'")
+                            string start)
                            (let ((pos (match-beginning 0)))
                              (setq fragment (substring string pos))
                              pos)
@@ -549,7 +557,9 @@ This function can be added to `comint-preoutput-filter-functions'."
       (put-text-property start (length string)
                          'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
-    (if (string-match "\033" string start)
+    (if (string-match
+         (concat "\\(?:" ansi-color--control-seq-fragment-regexp "\\)\\'")
+         string start)
         (let ((pos (match-beginning 0)))
           (setcar (cdr context) (substring string pos))
           (push (substring string start pos) result))
@@ -685,7 +695,11 @@ it will override BEGIN, the start of the region.  Set
       (while (re-search-forward ansi-color-control-seq-regexp end-marker t)
         (delete-region (match-beginning 0) (match-end 0)))
       ;; save context, add the remainder of the string to the result
-      (if (re-search-forward "\033" end-marker t)
+      (set-marker start (point))
+      (while (re-search-forward ansi-color--control-seq-fragment-regexp
+                                end-marker t))
+      (if (and (/= (point) start)
+               (= (point) end-marker))
 	  (set-marker start (match-beginning 0))
         (set-marker start nil)))))
 
@@ -742,10 +756,12 @@ being deleted."
             ;; Otherwise, strip.
             (delete-region esc-beg esc-end))))
       ;; search for the possible start of a new escape sequence
-      (if (re-search-forward "\033" end-marker t)
+      (while (re-search-forward ansi-color--control-seq-fragment-regexp
+                                end-marker t))
+      (if (and (/= (point) start-marker)
+               (= (point) end-marker))
           (progn
-            (while (re-search-forward "\033" end-marker t))
-            (backward-char)
+            (goto-char (match-beginning 0))
             (funcall ansi-color-apply-face-function
                      start-marker (point)
                      (ansi-color--face-vec-face face-vec))
