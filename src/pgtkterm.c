@@ -5694,6 +5694,32 @@ window_state_event (GtkWidget *widget,
 	}
     }
 
+  if (event->window_state.new_window_state
+      & GDK_WINDOW_STATE_FULLSCREEN)
+    store_frame_param (f, Qfullscreen, Qfullboth);
+  else if (event->window_state.new_window_state
+	   & GDK_WINDOW_STATE_MAXIMIZED)
+    store_frame_param (f, Qfullscreen, Qmaximized);
+  else
+    store_frame_param (f, Qfullscreen, Qnil);
+
+  if (event->window_state.new_window_state
+      & GDK_WINDOW_STATE_ICONIFIED)
+    SET_FRAME_ICONIFIED (f, true);
+  else
+    {
+      FRAME_X_OUTPUT (f)->has_been_visible = true;
+      inev.ie.kind = DEICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, f);
+      SET_FRAME_ICONIFIED (f, false);
+    }
+
+  if (event->window_state.new_window_state
+      & GDK_WINDOW_STATE_STICKY)
+    store_frame_param (f, Qsticky, Qt);
+  else
+    store_frame_param (f, Qsticky, Qnil);
+
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return FALSE;
