@@ -89,11 +89,21 @@ its position."
   :type 'boolean)
 
 (defcustom show-paren-context-when-offscreen nil
-  "If non-nil, show context in the echo area when the openparen is offscreen.
+  "If non-nil, show context around the opening paren if it is offscreen.
 The context is usually the line that contains the openparen,
 except if the openparen is on its own line, in which case the
-context includes the previous nonblank line."
-  :type 'boolean
+context includes the previous nonblank line.
+
+By default, the context is shown in the echo area.
+
+If set to the symbol `child-frame', the context is shown in a
+child frame at the top left of the window.  You might want to
+customize the `child-frame-border' face (especially the
+background color) to give the child frame a distinguished border.
+On non-graphical frames, the context is shown in the echo area."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "In echo area" t)
+                 (const :tag "Child frame" child-frame))
   :version "29.1")
 
 (defvar show-paren--idle-timer nil)
@@ -260,6 +270,103 @@ It is the default value of `show-paren-data-function'."
 		  (if (= dir 1) pos (1+ pos))
 		  mismatch)))))))
 
+(defvar show-paren--context-child-frame nil)
+
+(defun show-paren--context-child-frame-redirect-focus ()
+  "Redirect focus from child frame."
+  (redirect-frame-focus
+   show-paren--context-child-frame
+   (frame-parent corfu--frame)))
+
+(defun show-paren--context-child-frame-buffer (text)
+  (with-current-buffer
+      (get-buffer-create " *show-paren context*")
+    ;; Redirect focus to parent.
+    (add-hook 'pre-command-hook
+              #'show-paren--delete-context-child-frame
+              nil t)
+    ;; Use an empty keymap.
+    (use-local-map (make-keymap))
+    (dolist (var '((mode-line-format . nil)
+                   (header-line-format . nil)
+                   (tab-line-format . nil)
+                   (tab-bar-format . nil) ;; Emacs 28 tab-bar-format
+                   (frame-title-format . "")
+                   (truncate-lines . t)
+                   (cursor-in-non-selected-windows . nil)
+                   (cursor-type . nil)
+                   (show-trailing-whitespace . nil)
+                   (display-line-numbers . nil)
+                   (left-fringe-width . nil)
+                   (right-fringe-width . nil)
+                   (left-margin-width . 0)
+                   (right-margin-width . 0)
+                   (fringes-outside-margins . 0)
+                   (buffer-read-only . t)))
+      (set (make-local-variable (car var)) (cdr var)))
+    (let ((inhibit-modification-hooks t)
+          (inhibit-read-only t))
+      (erase-buffer)
+      (insert text)
+      (goto-char (point-min)))
+    (current-buffer)))
+
+(defvar show-paren--context-child-frame-parameters
+  `((visibility . nil)
+    (width . 0) (height . 0)
+    (min-width . t) (min-height . t)
+    (no-accept-focus . t)
+    (no-focus-on-map . t)
+    (border-width . 0)
+    (child-frame-border-width . 1)
+    (left-fringe . 0)
+    (right-fringe . 0)
+    (vertical-scroll-bars . nil)
+    (horizontal-scroll-bars . nil)
+    (menu-bar-lines . 0)
+    (tool-bar-lines . 0)
+    (tab-bar-lines . 0)
+    (no-other-frame . t)
+    (no-other-window . t)
+    (no-delete-other-windows . t)
+    (unsplittable . t)
+    (undecorated . t)
+    (cursor-type . nil)
+    (no-special-glyphs . t)
+    (desktop-dont-save . t)))
+
+(defun show-paren--delete-context-child-frame ()
+  (when show-paren--context-child-frame
+    (delete-frame show-paren--context-child-frame))
+  (remove-hook 'post-command-hook
+               #'show-paren--delete-context-child-frame))
+
+(defun show-paren--show-context-in-child-frame (text)
+  "Show TEXT in a child-frame at the top-left of the current window."
+  (let ((minibuffer (minibuffer-window (window-frame)))
+        (buffer (show-paren--context-child-frame-buffer text))
+        (x (window-pixel-left))
+        (y (window-pixel-top))
+        (window-min-height 1)
+        (window-min-width 1)
+        after-make-frame-functions)
+    (show-paren--delete-context-child-frame)
+    (setq show-paren--context-child-frame
+          (make-frame
+           `((parent-frame . ,(window-frame))
+             (minibuffer . ,minibuffer)
+             ,@show-paren--context-child-frame-parameters)))
+    (let ((win (frame-root-window show-paren--context-child-frame)))
+      (set-window-buffer win buffer)
+      (set-window-dedicated-p win t)
+      (set-frame-size show-paren--context-child-frame
+                      (string-width text)
+                      (length (string-lines text)))
+      (set-frame-position show-paren--context-child-frame x y)
+      (make-frame-visible show-paren--context-child-frame)
+      (add-hook 'post-command-hook
+                #'show-paren--delete-context-child-frame))))
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
   (let ((data (and show-paren-mode (funcall show-paren-data-function))))
@@ -299,8 +406,8 @@ It is the default value of `show-paren-data-function'."
         ;; Otherwise, turn off any such highlighting.
         (if (or (not here-beg)
                 (and (not show-paren-highlight-openparen)
-		     (> here-end (point))
-		     (<= here-beg (point))
+                     (> here-end (point))
+                     (<= here-beg (point))
                      (integerp there-beg)))
             (delete-overlay show-paren--overlay-1)
           (move-overlay show-paren--overlay-1
@@ -315,7 +422,7 @@ It is the default value of `show-paren-data-function'."
             (delete-overlay show-paren--overlay)
           (if highlight-expression
               (move-overlay show-paren--overlay
-			    (if (< there-beg here-beg) here-end here-beg)
+                            (if (< there-beg here-beg) here-end here-beg)
                             (if (< there-beg here-beg) there-beg there-end)
                             (current-buffer))
             (move-overlay show-paren--overlay
@@ -330,7 +437,12 @@ It is the default value of `show-paren-data-function'."
                 (let ((open-paren-line-string
                        (blink-paren-open-paren-line-string openparen))
                       (message-log-max nil))
-                  (minibuffer-message "Matches %s" open-paren-line-string))))
+                  (if (and (eq show-paren-context-when-offscreen
+                               'child-frame)
+                           (display-graphic-p))
+                      (show-paren--show-context-in-child-frame
+                       open-paren-line-string)
+                    (minibuffer-message "Matches %s" open-paren-line-string)))))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))
