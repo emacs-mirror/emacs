@@ -2742,4 +2742,6 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 
   ((XMotionEvent*)event)->is_hint = 0;
   handle_motion_event (mw, (XMotionEvent*)event);
+
+  XlwMenuRedisplay ((XlwMenuWidget) mw, NULL, None);
 }
