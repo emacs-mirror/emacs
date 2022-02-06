@@ -31,6 +31,8 @@
 ;; 29, before which there was no backtrace available during early
 ;; bootstrap.
 
+;;; Code:
+
 (defalias 'debug-early-backtrace
   #'(lambda ()
   "Print a trace of Lisp function calls currently active.
