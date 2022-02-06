@@ -15681,8 +15681,22 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     dpyinfo->xsync_supported_p = XSyncInitialize (dpyinfo->display,
 						  &dpyinfo->xsync_major,
 						  &dpyinfo->xsync_minor);
-#endif
 
+  {
+    AUTO_STRING (synchronizeResize, "synchronizeResize");
+    AUTO_STRING (SynchronizeResize, "SynchronizeResize");
+
+    Lisp_Object value = gui_display_get_resource (dpyinfo,
+						  synchronizeResize,
+						  SynchronizeResize,
+						  Qnil, Qnil);
+
+    if (STRINGP (value) &&
+	(!strcmp (SSDATA (value), "false")
+	 || !strcmp (SSDATA (value), "off")))
+      dpyinfo->xsync_supported_p = false;
+  }
+#endif
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {

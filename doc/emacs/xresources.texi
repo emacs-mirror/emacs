@@ -373,6 +373,14 @@ Use some location on display specific to the input method for
 displaying the preview text.
 @end table
 
+@item @code{synchronizeResize} (class @code{SynchronizeResize})
+If @samp{off} or @samp{false}, Emacs will not try to tell the window
+manager when it has finished redrawing the display in response to a
+request to resize a frame.  Otherwise, the window manager will
+postpone drawing a frame that was just resized until its contents are
+updated, which prevents blank areas of a frame that have not yet been
+painted from being displayed.
+
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars on the left if @samp{left}, on the right if
 @samp{right}; don't have scroll bars if @samp{off} (@pxref{Scroll Bars}).

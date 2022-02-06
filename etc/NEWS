@@ -183,6 +183,14 @@ This controls the style of the pre-edit and status areas of X input
 methods.
 
 +++
+** On X11, Emacs now tries to synchronize window resize with the window manager.
+This leads to less flicker and empty areas of a frame being displayed
+when a frame is being resized.  Unfortunately, it does not work on
+some ancient buggy window managers, so if Emacs appears to freeze, but
+is still responive to input, you can turn it off by setting the X
+resource "synchronizeResize" to "off".
+
++++
 ** New frame parameter 'alpha-background' and X resource "alphaBackground".
 This controls the opacity of the text background when running on a
 composited display.
