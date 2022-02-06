@@ -9103,7 +9103,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #if defined HAVE_XSYNC && !defined HAVE_GTK3
 	    if (event->xclient.data.l[0] == dpyinfo->Xatom_net_wm_sync_request
-		&& event->xclient.format == 32)
+		&& event->xclient.format == 32
+		&& dpyinfo->xsync_supported_p)
 	      {
 		struct frame *f
 		  = x_top_window_to_frame (dpyinfo,
@@ -14784,7 +14785,7 @@ x_free_frame_resources (struct frame *f)
 #endif /* !USE_X_TOOLKIT */
 
 #ifdef HAVE_XSYNC
-      if (FRAME_X_BASIC_COUNTER (f))
+      if (FRAME_X_BASIC_COUNTER (f) != None)
 	XSyncDestroyCounter (FRAME_X_DISPLAY (f),
 			     FRAME_X_BASIC_COUNTER (f));
 #endif
