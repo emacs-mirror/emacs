@@ -3599,7 +3599,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	{
 	  Lisp_Object data = get_file_errno_data (err, contact, xerrno);
 
-	  pset_status (p, list2 (Fcar (data), Fcdr (data)));
+	  pset_status (p, list2 (Qfailed, data));
 	  unbind_to (count, Qnil);
 	  return;
 	}
