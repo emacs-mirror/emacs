@@ -18754,9 +18754,8 @@ window_start_acceptable_p (Lisp_Object window, ptrdiff_t startp)
   struct text_pos ignored;
 
   /* Is STARTP in invisible text?  */
-  if (startp > BEGV
-      && ((invprop = Fget_char_property (startpos, Qinvisible, window)),
-	  TEXT_PROP_MEANS_INVISIBLE (invprop) != 0))
+  if ((invprop = Fget_char_property (startpos, Qinvisible, window)),
+      TEXT_PROP_MEANS_INVISIBLE (invprop) != 0)
     return false;
 
   /* Is STARTP covered by a replacing 'display' property?  */
@@ -19285,10 +19284,12 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* If current starting point was originally the beginning of a line
      but no longer is, or if the starting point is invisible but the
      buffer wants it always visible, find a new starting point.  */
-  else if ((w->start_at_line_beg
-	    && !(CHARPOS (startp) <= BEGV
-		 || FETCH_BYTE (BYTEPOS (startp) - 1) == '\n'))
-	   || !window_start_acceptable_p (window, CHARPOS (startp)))
+  else if (w->start_at_line_beg
+	   && ((CHARPOS (startp) > BEGV
+		&& FETCH_BYTE (BYTEPOS (startp) - 1) != '\n')
+	       || (CHARPOS (startp) >= BEGV
+		   && CHARPOS (startp) <= ZV
+		   && !window_start_acceptable_p (window, CHARPOS (startp)))))
     {
 #ifdef GLYPH_DEBUG
       debug_method_add (w, "recenter 1");
