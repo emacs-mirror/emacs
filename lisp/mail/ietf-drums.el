@@ -150,7 +150,7 @@ backslash and doublequote.")
       (buffer-string))))
 
 (defun ietf-drums-get-comment (string)
-  "Return the first comment in STRING."
+  "Return the last comment in STRING."
   (with-temp-buffer
     (ietf-drums-init string)
     (let (result c)
