@@ -4813,15 +4813,25 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
 #ifndef HAVE_GTK3
       XSyncValue initial_value;
+      XSyncCounter counters[2];
 
       XSyncIntToValue (&initial_value, 0);
-      FRAME_X_BASIC_COUNTER (f) = XSyncCreateCounter (FRAME_X_DISPLAY (f),
-						      initial_value);
+      counters[0]
+	= FRAME_X_BASIC_COUNTER (f)
+	= XSyncCreateCounter (FRAME_X_DISPLAY (f),
+			      initial_value);
+      counters[1]
+	= FRAME_X_EXTENDED_COUNTER (f)
+	= XSyncCreateCounter (FRAME_X_DISPLAY (f),
+			      initial_value);
+
+      FRAME_X_OUTPUT (f)->current_extended_counter_value
+	= initial_value;
 
       XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       dpyinfo->Xatom_net_wm_sync_request_counter,
 		       XA_CARDINAL, 32, PropModeReplace,
-		       (unsigned char *) &FRAME_X_BASIC_COUNTER (f), 1);
+		       (unsigned char *) &counters, 2);
 #endif
     }
 #endif

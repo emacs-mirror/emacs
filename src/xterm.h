@@ -503,7 +503,7 @@ struct x_display_info
     Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
     Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
     Xatom_net_wm_opaque_region, Xatom_net_wm_ping, Xatom_net_wm_sync_request,
-    Xatom_net_wm_sync_request_counter;
+    Xatom_net_wm_sync_request_counter, Xatom_net_wm_frame_drawn;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -814,9 +814,12 @@ struct x_output
 
 #ifdef HAVE_XSYNC
   XSyncCounter basic_frame_counter;
+  XSyncCounter extended_frame_counter;
   XSyncValue pending_basic_counter_value;
+  XSyncValue current_extended_counter_value;
 
-  bool_bf sync_end_pending_p;
+  bool_bf sync_end_pending_p : 1;
+  bool_bf ext_sync_end_pending_p : 1;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -983,6 +986,7 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 #ifdef HAVE_XSYNC
 #define FRAME_X_BASIC_COUNTER(f) FRAME_X_OUTPUT (f)->basic_frame_counter
+#define FRAME_X_EXTENDED_COUNTER(f) FRAME_X_OUTPUT (f)->extended_frame_counter
 #endif
 
 /* This is the Colormap which frame F uses.  */

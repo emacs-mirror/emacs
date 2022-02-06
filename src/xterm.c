@@ -1856,12 +1856,32 @@ XTframe_up_to_date (struct frame *f)
 
 #ifdef HAVE_XSYNC
   if (FRAME_X_OUTPUT (f)->sync_end_pending_p
-      && FRAME_X_BASIC_COUNTER (f))
+      && FRAME_X_BASIC_COUNTER (f) != None)
     {
       XSyncSetCounter (FRAME_X_DISPLAY (f),
 		       FRAME_X_BASIC_COUNTER (f),
 		       FRAME_X_OUTPUT (f)->pending_basic_counter_value);
       FRAME_X_OUTPUT (f)->sync_end_pending_p = false;
+    }
+
+  if (FRAME_X_OUTPUT (f)->ext_sync_end_pending_p
+      && FRAME_X_EXTENDED_COUNTER (f) != None)
+    {
+      XSyncValue add;
+      Bool overflow_p;
+
+      XSyncIntToValue (&add, 1);
+      XSyncValueAdd (&FRAME_X_OUTPUT (f)->current_extended_counter_value,
+		     add, add, &overflow_p);
+
+      if (overflow_p)
+	emacs_abort ();
+
+      XSyncSetCounter (FRAME_X_DISPLAY (f),
+		       FRAME_X_EXTENDED_COUNTER (f),
+		       FRAME_X_OUTPUT (f)->current_extended_counter_value);
+
+      FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = false;
     }
 #endif
   unblock_input ();
@@ -9112,9 +9132,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		if (f)
 		  {
-		    XSyncIntsToValue (&FRAME_X_OUTPUT (f)->pending_basic_counter_value,
-				      event->xclient.data.l[2], event->xclient.data.l[3]);
-		    FRAME_X_OUTPUT (f)->sync_end_pending_p = true;
+		    if (event->xclient.data.l[4] == 0)
+		      {
+			XSyncIntsToValue (&FRAME_X_OUTPUT (f)->pending_basic_counter_value,
+					  event->xclient.data.l[2], event->xclient.data.l[3]);
+			FRAME_X_OUTPUT (f)->sync_end_pending_p = true;
+		      }
+		    else if (event->xclient.data.l[4] == 1)
+		      FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = true;
 
 		    *finish = X_EVENT_DROP;
 		    goto done;
@@ -14788,6 +14813,10 @@ x_free_frame_resources (struct frame *f)
       if (FRAME_X_BASIC_COUNTER (f) != None)
 	XSyncDestroyCounter (FRAME_X_DISPLAY (f),
 			     FRAME_X_BASIC_COUNTER (f));
+
+      if (FRAME_X_EXTENDED_COUNTER (f) != None)
+	XSyncDestroyCounter (FRAME_X_DISPLAY (f),
+			     FRAME_X_EXTENDED_COUNTER (f));
 #endif
 
       unload_color (f, FRAME_FOREGROUND_PIXEL (f));
@@ -15993,6 +16022,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
       ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
       ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
+      ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
       /* Session management */
       ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
       ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)
