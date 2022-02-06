@@ -141,31 +141,15 @@ popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 static void
 show_help_event (struct frame *f, GtkWidget *widget, Lisp_Object help)
 {
-  /* Don't show this tooltip.
-   * Tooltips are always tied to main widget, so stacking order
-   * on Wayland is:
-   *   (above)
-   *   - menu
-   *   - tooltip
-   *   - main widget
-   *   (below)
-   * This is applicable to tooltips for menu, and menu tooltips
-   * are shown below menus.
-   * As a workaround, I entrust Gtk with menu tooltips, and
-   * let emacs not to show menu tooltips.
-   */
+  /* Don't show help echo on PGTK, as tooltips are always transient
+     for the main widget, so on Wayland the menu will display above
+     and obscure the tooltip.  FIXME: this is some low hanging fruit
+     for fixing.  After you fix Fx_show_tip in pgtkterm.c so that it
+     can display tooltips above menus, copy the definition of this
+     function from xmenu.c.
 
-#if 0
-  Lisp_Object frame;
-
-  if (f)
-    {
-      XSETFRAME (frame, f);
-      kbd_buffer_store_help_event (frame, help);
-    }
-  else
-    show_help_echo (help, Qnil, Qnil, Qnil);
-#endif
+     As a workaround, GTK is used to display menu tooltips, outside
+     the Emacs help echo machinery.  */
 }
 
 /* Callback called when menu items are highlighted/unhighlighted

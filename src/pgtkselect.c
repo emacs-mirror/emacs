@@ -36,10 +36,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "pgtkselect.h"
 #include <gdk/gdk.h>
 
-#if 0
-static Lisp_Object Vselection_alist;
-#endif
-
 static GQuark quark_primary_data = 0;
 static GQuark quark_primary_size = 0;
 static GQuark quark_secondary_data = 0;
@@ -605,11 +601,6 @@ syms_of_pgtkselect (void)
   defsubr (&Spgtk_own_selection_internal);
   defsubr (&Spgtk_selection_exists_p);
   defsubr (&Spgtk_selection_owner_p);
-
-#if 0
-  Vselection_alist = Qnil;
-  staticpro (&Vselection_alist);
-#endif
 
   DEFVAR_LISP ("pgtk-sent-selection-hooks", Vpgtk_sent_selection_hooks,
 	       "A list of functions to be called when Emacs answers a selection request.\n\

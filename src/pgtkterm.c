@@ -582,10 +582,6 @@ pgtk_iconify_frame (struct frame *f)
 
   block_input ();
 
-#if 0
-  x_set_bitmap_icon (f);
-#endif
-
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
       if (!FRAME_VISIBLE_P (f))
@@ -600,20 +596,8 @@ pgtk_iconify_frame (struct frame *f)
 
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
-  if (!FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f)
-#if 0
-      && !FRAME_X_EMBEDDED_P (f)
-#endif
-    )
+  if (!FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
     x_set_offset (f, f->left_pos, f->top_pos, 0);
-
-#if 0
-  if (!FRAME_VISIBLE_P (f))
-    {
-      /* If the frame was withdrawn, before, we must map it.  */
-      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-    }
-#endif
 
   SET_FRAME_ICONIFIED (f, true);
   SET_FRAME_VISIBLE (f, 0);
@@ -4600,22 +4584,6 @@ x_set_frame_alpha (struct frame *f)
   else if (alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
 
-#if 0
-  /* If there is a parent from the window manager, put the property there
-     also, to work around broken window managers that fail to do that.
-     Do this unconditionally as this function is called on reparent when
-     alpha has not changed on the frame.  */
-
-  if (!FRAME_PARENT_FRAME (f))
-    {
-      Window parent = x_find_topmost_parent (f);
-      if (parent != None)
-	XChangeProperty (dpy, parent, dpyinfo->Xatom_net_wm_window_opacity,
-			 XA_CARDINAL, 32, PropModeReplace,
-			 (unsigned char *) &opac, 1);
-    }
-#endif
-
   set_opacity_recursively (FRAME_WIDGET (f), &alpha);
   /* without this, blending mode is strange on wayland. */
   gtk_widget_queue_resize_no_redraw (FRAME_WIDGET (f));
@@ -6152,9 +6120,6 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   dpyinfo = FRAME_DISPLAY_INFO (frame);
 
   dpyinfo->last_mouse_glyph_frame = NULL;
-#if 0
-  x_display_set_last_user_time (dpyinfo, event->button.time);
-#endif
 
   if (gui_mouse_grabbed (dpyinfo))
     f = dpyinfo->last_mouse_frame;
@@ -6182,14 +6147,6 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	    }
 	}
     }
-
-  /* xg_event_is_for_scrollbar() doesn't work correctly on sway, and
-   * we shouldn't need it.
-   */
-#if 0
-  if (f && xg_event_is_for_scrollbar (f, event))
-    f = 0;
-#endif
 
   if (f)
     {
@@ -6232,11 +6189,6 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	  if (!NILP (tab_bar_arg))
 	    inev.ie.arg = tab_bar_arg;
 	}
-#if 0
-      if (FRAME_X_EMBEDDED_P (f))
-	xembed_send_message (f, event->button.time,
-			     XEMBED_REQUEST_FOCUS, 0, 0, 0);
-#endif
     }
 
   if (event->type == GDK_BUTTON_PRESS)
