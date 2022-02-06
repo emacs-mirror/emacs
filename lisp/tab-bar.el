@@ -474,6 +474,9 @@ you can use the command `toggle-frame-tab-bar'."
 If t, start a new tab with the current buffer, i.e. the buffer
 that was current before calling the command that adds a new tab
 (this is the same what `make-frame' does by default).
+If the value is the symbol `window', then keep the selected
+window as a single window on the new tab, and keep all its
+window parameters except 'window-atom' and 'window-side'.
 If the value is a string, use it as a buffer name to switch to
 if such buffer exists, or switch to a buffer visiting the file or
 directory that the string specifies.  If the value is a function,
@@ -481,6 +484,7 @@ call it with no arguments and switch to the buffer that it returns.
 If nil, duplicate the contents of the tab that was active
 before calling the command that adds a new tab."
   :type '(choice (const     :tag "Current buffer" t)
+                 (const     :tag "Current window" window)
                  (string    :tag "Buffer" "*scratch*")
                  (directory :tag "Directory" :value "~/")
                  (file      :tag "File" :value "~/.emacs")
@@ -1361,12 +1365,17 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (minibuffer-selected-window)
         (select-window (minibuffer-selected-window)))
+      ;; Remove window parameters that can cause problems
+      ;; with `delete-other-windows' and `split-window'.
+      (set-window-parameter nil 'window-atom nil)
+      (set-window-parameter nil 'window-side nil)
       (let ((ignore-window-parameters t))
-        (delete-other-windows))
-      (unless (eq tab-bar-new-tab-choice 'window)
-        ;; Create a new window to get rid of old window parameters
-        ;; (e.g. prev/next buffers) of old window.
-        (split-window) (delete-window))
+        (delete-other-windows)
+        (unless (eq tab-bar-new-tab-choice 'window)
+          ;; Create a new window to get rid of old window parameters
+          ;; (e.g. prev/next buffers) of old window.
+          (split-window) (delete-window)))
+
       (let ((buffer
              (if (functionp tab-bar-new-tab-choice)
                  (funcall tab-bar-new-tab-choice)
