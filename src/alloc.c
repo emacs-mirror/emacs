@@ -4925,8 +4925,8 @@ mark_maybe_pointer (void *p, bool symbol_only)
    miss objects if __alignof__ were used.  */
 #define GC_POINTER_ALIGNMENT alignof (void *)
 
-/* Mark Lisp objects referenced from the address range START+OFFSET..END
-   or END+OFFSET..START.  */
+/* Mark Lisp objects referenced from the address range START..END
+   or END..START.  */
 
 static void ATTRIBUTE_NO_SANITIZE_ADDRESS
 mark_memory (void const *start, void const *end)
