@@ -21,6 +21,7 @@
 
 (require 'ert)
 (require 'em-tramp)
+(require 'tramp)
 
 (ert-deftest em-tramp-test/su-default ()
   "Test Eshell `su' command with no arguments."
@@ -29,7 +30,8 @@
            `(eshell-trap-errors
              (eshell-named-command
               "cd"
-              (list ,(format "/su:root@localhost:%s" default-directory)))))))
+              (list ,(format "/su:root@%s:%s"
+                             tramp-default-host default-directory)))))))
 
 (ert-deftest em-tramp-test/su-user ()
   "Test Eshell `su' command with USER argument."
@@ -38,7 +40,8 @@
            `(eshell-trap-errors
              (eshell-named-command
               "cd"
-              (list ,(format "/su:USER@localhost:%s" default-directory)))))))
+              (list ,(format "/su:USER@%s:%s"
+                             tramp-default-host default-directory)))))))
 
 (ert-deftest em-tramp-test/su-login ()
   "Test Eshell `su' command with -/-l/--login option."
@@ -50,7 +53,7 @@
              `(eshell-trap-errors
                (eshell-named-command
                 "cd"
-                (list "/su:root@localhost:~/")))))))
+                (list ,(format "/su:root@%s:~/" tramp-default-host))))))))
 
 (defun mock-eshell-named-command (&rest args)
   "Dummy function to test Eshell `sudo' command rewriting."
@@ -62,11 +65,11 @@
              #'mock-eshell-named-command))
     (should (equal
              (catch 'eshell-external (eshell/sudo "echo" "hi"))
-             `(,(format "/sudo:root@localhost:%s" default-directory)
+             `(,(format "/sudo:root@%s:%s" tramp-default-host default-directory)
                ("echo" ("hi")))))
     (should (equal
              (catch 'eshell-external (eshell/sudo "echo" "-u" "hi"))
-             `(,(format "/sudo:root@localhost:%s" default-directory)
+             `(,(format "/sudo:root@%s:%s" tramp-default-host default-directory)
                ("echo" ("-u" "hi")))))))
 
 (ert-deftest em-tramp-test/sudo-user ()
@@ -75,11 +78,11 @@
              #'mock-eshell-named-command))
     (should (equal
              (catch 'eshell-external (eshell/sudo "-u" "USER" "echo" "hi"))
-             `(,(format "/sudo:USER@localhost:%s" default-directory)
+             `(,(format "/sudo:USER@%s:%s" tramp-default-host default-directory)
                ("echo" ("hi")))))
     (should (equal
              (catch 'eshell-external (eshell/sudo "-u" "USER" "echo" "-u" "hi"))
-             `(,(format "/sudo:USER@localhost:%s" default-directory)
+             `(,(format "/sudo:USER@%s:%s" tramp-default-host default-directory)
                ("echo" ("-u" "hi")))))))
 
 ;;; em-tramp-tests.el ends here
