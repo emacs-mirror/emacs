@@ -287,7 +287,12 @@ type \"nil\" to use `elp-function-list'."
   "Instrument for profiling, all functions which start with PREFIX.
 For example, to instrument all ELP functions, do the following:
 
-    \\[elp-instrument-package] RET elp- RET"
+    \\[elp-instrument-package] RET elp- RET
+
+Note that only functions that are currently loaded will be
+instrumented.  If you run this function, and then later load
+further functions that start with PREFIX, they will not be
+instrumented automatically."
   (interactive
    (list (completing-read "Prefix of package to instrument: "
                           obarray 'elp-profilable-p)))
