@@ -7317,7 +7317,7 @@ current buffer, and returns it.
 @end defun
 
 @defun insert-button label &rest properties
-This insert a button with the label @var{label} at point,
+This inserts a button with the label @var{label} at point,
 and returns it.
 @end defun
 
