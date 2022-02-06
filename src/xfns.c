@@ -4815,15 +4815,25 @@ This function is an internal primitive--use `make-frame' instead.  */)
       XSyncValue initial_value;
       XSyncCounter counters[2];
 
+      AUTO_STRING (synchronizeResize, "synchronizeResize");
+      AUTO_STRING (SynchronizeResize, "SynchronizeResize");
+
+      Lisp_Object value = gui_display_get_resource (dpyinfo,
+						    synchronizeResize,
+						    SynchronizeResize,
+						    Qnil, Qnil);
+
       XSyncIntToValue (&initial_value, 0);
       counters[0]
 	= FRAME_X_BASIC_COUNTER (f)
 	= XSyncCreateCounter (FRAME_X_DISPLAY (f),
 			      initial_value);
-      counters[1]
-	= FRAME_X_EXTENDED_COUNTER (f)
-	= XSyncCreateCounter (FRAME_X_DISPLAY (f),
-			      initial_value);
+
+      if (STRINGP (value) && !strcmp (SSDATA (value), "extended"))
+	counters[1]
+	  = FRAME_X_EXTENDED_COUNTER (f)
+	  = XSyncCreateCounter (FRAME_X_DISPLAY (f),
+				initial_value);
 
       FRAME_X_OUTPUT (f)->current_extended_counter_value
 	= initial_value;
@@ -4831,7 +4841,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       dpyinfo->Xatom_net_wm_sync_request_counter,
 		       XA_CARDINAL, 32, PropModeReplace,
-		       (unsigned char *) &counters, 2);
+		       (unsigned char *) &counters,
+		       ((STRINGP (value)
+			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
 #endif
     }
 #endif
