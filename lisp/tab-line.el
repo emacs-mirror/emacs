@@ -486,7 +486,7 @@ which the tab will represent."
                    (funcall tab-line-tab-name-function tab tabs)
                  (cdr (assq 'name tab))))
          (face (if selected-p
-                   (if (eq (selected-window) (old-selected-window))
+                   (if (mode-line-window-selected-p)
                        'tab-line-tab-current
                      'tab-line-tab)
                  'tab-line-tab-inactive)))
