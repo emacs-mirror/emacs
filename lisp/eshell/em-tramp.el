@@ -71,7 +71,7 @@ Become another USER during a login session.")
    (throw 'eshell-replace-command
           (let ((user "root")
                 (host (or (file-remote-p default-directory 'host)
-                          "localhost"))
+                          tramp-default-host))
                 (dir (file-local-name (expand-file-name default-directory)))
                 (prefix (file-remote-p default-directory)))
             (dolist (arg args)
@@ -106,7 +106,7 @@ Execute a COMMAND as the superuser or another USER.")
    (throw 'eshell-external
           (let* ((user (or user "root"))
                  (host (or (file-remote-p default-directory 'host)
-                           "localhost"))
+                           tramp-default-host))
                  (dir (file-local-name (expand-file-name default-directory)))
                  (prefix (file-remote-p default-directory))
                  (default-directory
