@@ -1687,7 +1687,7 @@ haiku_draw_window_cursor (struct window *w,
 			  int cursor_width, bool on_p, bool active_p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-
+  struct face *face;
   struct glyph *phys_cursor_glyph;
   struct glyph *cursor_glyph;
 
@@ -1741,7 +1741,26 @@ haiku_draw_window_cursor (struct window *w,
 
   BView_draw_lock (view);
   BView_StartClip (view);
-  BView_SetHighColor (view, FRAME_CURSOR_COLOR (f).pixel);
+
+  if (cursor_type == BAR_CURSOR)
+    {
+      cursor_glyph = get_phys_cursor_glyph (w);
+      face = FACE_FROM_ID (f, cursor_glyph->face_id);
+    }
+
+  /* If the glyph's background equals the color we normally draw the
+     bar cursor in, our cursor in its normal color is invisible.  Use
+     the glyph's foreground color instead in this case, on the
+     assumption that the glyph's colors are chosen so that the glyph
+     is legible.  */
+
+  /* xterm.c only does this for bar cursors, and nobody has
+     complained, so it would be best to do that here as well.  */
+  if (cursor_type == BAR_CURSOR
+      && face->background == FRAME_CURSOR_COLOR (f).pixel)
+    BView_SetHighColor (view, face->foreground);
+  else
+    BView_SetHighColor (view, FRAME_CURSOR_COLOR (f).pixel);
   haiku_clip_to_row (w, glyph_row, TEXT_AREA);
 
   switch (cursor_type)
@@ -1754,7 +1773,6 @@ haiku_draw_window_cursor (struct window *w,
       BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
       break;
     case BAR_CURSOR:
-      cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph->resolved_level & 1)
 	BView_FillRectangle (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
 			     fy, w->phys_cursor_width, h);
