@@ -1949,7 +1949,7 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
 
 
 /* Encode Lisp string STRING as a text in a format appropriate for
-   XICCC (X Inter Client Communication Conventions).
+   the ICCCM (Inter Client Communication Conventions Manual).
 
    If STRING contains only ASCII characters, do no conversion and
    return the string data of STRING.  Otherwise, encode the text by
