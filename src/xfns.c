@@ -6508,7 +6508,7 @@ select_visual (struct x_display_info *dpyinfo)
 
       vinfo_template.screen = XScreenNumberOfScreen (screen);
 
-#if !defined USE_X_TOOLKIT
+#if !defined USE_X_TOOLKIT && !(defined USE_GTK && !defined HAVE_GTK3)
       /* First attempt to use 32-bit visual if available */
 
       vinfo_template.depth = 32;

@@ -4055,7 +4055,7 @@ xg_update_frame_menubar (struct frame *f)
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
   req.height *= xg_get_scale (f);
 
-#ifndef HAVE_PGTK
+#if !defined HAVE_PGTK && defined HAVE_GTK3
   if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
     {
       GdkScreen *screen = gtk_widget_get_screen (x->menubar_widget);
@@ -6387,8 +6387,10 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 					   NULL, NULL, &consumed);
       xg_add_virtual_mods (dpyinfo, &xg_event->key);
       xg_event->key.state &= ~consumed;
+#if GTK_CHECK_VERSION (3, 6, 0)
       xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
 								  xg_event->key.hardware_keycode);
+#endif
     }
 #endif
 
