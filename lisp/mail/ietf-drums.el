@@ -25,16 +25,6 @@
 ;; library is based on draft-ietf-drums-msg-fmt-05.txt, released on
 ;; 1998-08-05.
 
-;; Pending a real regression self test suite, Simon Josefsson added
-;; various self test expressions snipped from bug reports, and their
-;; expected value, below.  I you believe it could be useful, please
-;; add your own test cases, or write a real self test suite, or just
-;; remove this.
-
-;; <m3oekvfd50.fsf@whitebox.m5r.de>
-;; (ietf-drums-parse-address "'foo' <foo@example.com>")
-;; => ("foo@example.com" . "'foo'")
-
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
