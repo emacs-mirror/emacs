@@ -428,9 +428,9 @@ It is the default value of `show-paren-data-function'."
                             (current-buffer))
             (move-overlay show-paren--overlay
                           there-beg there-end (current-buffer)))
-          ;; If `show-paren-open-line-when-offscreen' is t and point
-          ;; is at a close paren, show the line that contains the
-          ;; openparen in the echo area.
+          ;; If `show-paren-context-when-offscreen' is non-nil and
+          ;; point is at a closing paren, show the context around the
+          ;; opening paren.
           (let ((openparen (min here-beg there-beg)))
             (if (and show-paren-context-when-offscreen
                      (< there-beg here-beg)
