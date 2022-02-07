@@ -579,15 +579,22 @@ changed by the user.")
 (setq ignored-local-variables
       (cons 'connection-local-variables-alist ignored-local-variables))
 
-(defvar connection-local-profile-alist nil
+(defcustom connection-local-profile-alist nil
   "Alist mapping connection profiles to variable lists.
 Each element in this list has the form (PROFILE VARIABLES).
 PROFILE is the name of a connection profile (a symbol).
 VARIABLES is a list that declares connection-local variables for
 PROFILE.  An element in VARIABLES is an alist whose elements are
-of the form (VAR . VALUE).")
+of the form (VAR . VALUE)."
+  :type '(repeat (cons (symbol :tag "Profile")
+                       (repeat :tag "Variables"
+                               (cons (symbol :tag "Variable")
+                                     (sexp :tag "Value")))))
+  :group 'files
+  :group 'tramp
+  :version "29.1")
 
-(defvar connection-local-criteria-alist nil
+(defcustom connection-local-criteria-alist nil
   "Alist mapping connection criteria to connection profiles.
 Each element in this list has the form (CRITERIA PROFILES).
 CRITERIA is a plist identifying a connection and the application
@@ -596,7 +603,19 @@ using this connection.  Property names might be `:application',
 `:application' is a symbol, all other property values are
 strings.  All properties are optional; if CRITERIA is nil, it
 always applies.
-PROFILES is a list of connection profiles (symbols).")
+PROFILES is a list of connection profiles (symbols)."
+  :type '(repeat (cons (plist :tag "Criteria"
+                              ;; Give the most common options as checkboxes.
+			      :options (((const :format "%v " :application)
+                                         symbol)
+				        ((const :format "%v " :protocol) string)
+				        ((const :format "%v " :user) string)
+				        ((const :format "%v " :machine) string)))
+                       (repeat :tag "Profiles"
+                               (symbol :tag "Profile"))))
+  :group 'files
+  :group 'tramp
+  :version "29.1")
 
 (defsubst connection-local-normalize-criteria (criteria)
   "Normalize plist CRITERIA according to properties.

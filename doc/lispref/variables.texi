@@ -2263,11 +2263,11 @@ list in @var{variables} is an alist of the form
 @end example
 @end defun
 
-@defvar connection-local-profile-alist
+@deffn {User Option} connection-local-profile-alist
 This alist holds the connection profile symbols and the associated
 variable settings.  It is updated by
 @code{connection-local-set-profile-variables}.
-@end defvar
+@end deffn
 
 @defun connection-local-set-profiles criteria &rest profiles
 This function assigns @var{profiles}, which are symbols, to all remote
@@ -2321,11 +2321,11 @@ Therefore, the example above would be equivalent to
 defined by @code{connection-local-set-profile-variables}.
 @end defun
 
-@defvar connection-local-criteria-alist
+@deffn {User Option} connection-local-criteria-alist
 This alist contains connection criteria and their assigned profile
 names.  The function @code{connection-local-set-profiles} updates this
 list.
-@end defvar
+@end deffn
 
 @defun hack-connection-local-variables criteria
 This function collects applicable connection-local variables

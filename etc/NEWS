@@ -80,7 +80,7 @@ as was already the case for all the non-preloaded files.
 * Startup Changes in Emacs 29.1
 
 +++
-** Emacs now support setting 'user-emacs-directory' via --init-directory.
+** Emacs now supports setting 'user-emacs-directory' via '--init-directory'.
 
 +++
 ** Emacs now has a '--fingerprint' option.
@@ -130,14 +130,15 @@ delete the entire sequence, not just a single character at its
 beginning.
 
 ** 'load-history' does not treat autoloads specially any more.
-An autoload definition appears just as a (defun . NAME) and the
-(t . NAME) entries are not generated any more.
+An autoload definition appears just as a '(defun . NAME)' and the
+'(t . NAME)' entries are not generated any more.
+
 
 * Changes in Emacs 29.1
 
 ---
 ** New user option 'find-library-include-other-files'.
-If set to nil, commands like 'M-x find-library' will only include library
+If set to nil, commands like 'find-library' will only include library
 files in the completion candidates.  The default is t, which preserves
 previous behavior, whereby non-library files could also be included.
 
@@ -188,7 +189,7 @@ methods.
 This leads to less flicker and empty areas of a frame being displayed
 when a frame is being resized.  Unfortunately, it does not work on
 some ancient buggy window managers, so if Emacs appears to freeze, but
-is still responive to input, you can turn it off by setting the X
+is still responsive to input, you can turn it off by setting the X
 resource "synchronizeResize" to "off".
 
 +++
@@ -209,6 +210,12 @@ only meaningful if Emacs was built with GTK+ or Haiku support, and
 defaults to t, which makes Emacs use the toolkit tooltips.  The
 existing GTK-specific option 'x-gtk-use-system-tooltips' is now an
 alias of this new option.
+
++++
+** Some connection-local variables are now user options.
+The variables 'connection-local-profile-alist' and
+'connection-local-criteria-alist' are now user options, in order to
+make it more convenient to inspect and modify them.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
@@ -300,7 +307,7 @@ These will take you (respectively) to the next and previous "page".
 *** 'describe-char' now also outputs the name of emoji combinations.
 
 +++
-*** New key binding in *Help* buffers: 'I'.
+*** New key binding in "*Help*" buffer: 'I'.
 This will take you to the Emacs Lisp manual entry for the item
 displayed, if any.
 
@@ -478,7 +485,7 @@ the "*Completions*" buffer.
 
 *** New user option 'completions-sort'.
 This option controls the sorting of the completion candidates in
-the *Completions* buffer.  Available styles are no sorting,
+the "*Completions*" buffer.  Available styles are no sorting,
 alphabetical (the default), or a custom sort function.
 
 ** Isearch and Replace
@@ -820,9 +827,9 @@ option to nil to disable this confirmation completely.
 
 ---
 *** Make 'image-dired-rotate-thumbnail-(left|right)' obsolete.
-Instead, use 'M-x image-dired-refresh-thumb' to generate a new
-thumbnail, or 'M-x image-rotate' to rotate the thumbnail without
-updating the thumbnail file.
+Instead, use commands 'image-dired-refresh-thumb' to generate a new
+thumbnail, or 'image-rotate' to rotate the thumbnail without updating
+the thumbnail file.
 
 ** Dired
 
@@ -922,8 +929,9 @@ the Galeon web browser was released in September, 2008.
 Prefixing '|', '<' or '>' with an asterisk, i.e. '*|', '*<' or '*>',
 will cause the whole command to be passed to the operating system
 shell.  This is particularly useful to bypass Eshell's own pipelining
-support for pipelines which will move a lot of data.  See "Running
-Shell Pipelines Natively" in the Eshell manual.
+support for pipelines which will move a lot of data.  See section
+"Running Shell Pipelines Natively" in the Eshell manual, node
+"(eshell) Input/Output".
 
 ** Miscellaneous
 
@@ -1098,7 +1106,7 @@ is, the alias chain is returned.
 +++
 ** New facility for handling session state: 'multisession-value'.
 This can be used as a convenient way to store (simple) application
-state, and 'M-x list-multisession-values' allows users to list
+state, and the command 'list-multisession-values' allows users to list
 (and edit) this data.
 
 +++
@@ -1267,7 +1275,7 @@ inhibits 'isearch' matching the STRING parameter.
 It can be used to implement own regexp syntax for search/replace.
 
 ---
-** New variables to customize defaults of FROM for query-replace commands.
+** New variables to customize defaults of FROM for 'query-replace*' commands.
 The new variable 'query-replace-read-from-default' can be set to a
 function that returns the default value of FROM when 'query-replace'
 prompts for a string to be replaced.  An example of such a function is
