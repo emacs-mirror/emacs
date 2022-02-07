@@ -426,7 +426,7 @@ or earlier: it can break `dired-do-find-regexp-and-replace'."
   :version "28.1"
   :package-version '(xref . "1.2.0"))
 
-(make-obsolete-variable 'xref-marker-ring nil "29.1")
+(make-obsolete-variable 'xref--marker-ring 'xref--history "29.1")
 
 (defun xref-set-marker-ring-length (_var _val)
   (declare (obsolete nil "29.1"))
