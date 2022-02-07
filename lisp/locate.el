@@ -238,6 +238,8 @@ that is, with a prefix arg, you get the default behavior."
 ;; Functions
 
 (defun locate-default-make-command-line (search-string)
+  (unless (executable-find locate-command)
+    (error "Can't find the %s command" locate-command))
   (list locate-command search-string))
 
 (defun locate-word-at-point ()
