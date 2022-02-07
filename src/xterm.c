@@ -698,7 +698,7 @@ x_get_scroll_valuator_delta (struct x_display_info *dpyinfo, int device_id,
   return DBL_MAX;
 }
 
-static struct xi_device_t *
+struct xi_device_t *
 xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
 {
   for (int i = 0; i < dpyinfo->num_devices; ++i)

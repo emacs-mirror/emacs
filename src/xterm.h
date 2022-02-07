@@ -1444,6 +1444,10 @@ extern void x_session_close (void);
 extern struct input_event xg_pending_quit_event;
 #endif
 
+#ifdef HAVE_XINPUT2
+struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+#endif
+
 /* Is the frame embedded into another application? */
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)

@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_XINPUT2
+#include <math.h>
 #include <X11/extensions/XInput2.h>
 #endif
 
@@ -240,18 +241,25 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		     LWLIB_ID id, bool do_timers)
 {
   XEvent event;
+  XEvent copy;
+#ifdef HAVE_XINPUT2
+  bool cookie_claimed_p = false;
+  XIDeviceEvent *xev;
+  struct xi_device_t *device;
+#endif
 
   while (popup_activated_flag)
     {
       if (initial_event)
         {
-          event = *initial_event;
+          copy = event = *initial_event;
           initial_event = 0;
         }
       else
         {
           if (do_timers) x_menu_wait_for_event (0);
           XtAppNextEvent (Xt_app_con, &event);
+	  copy = event;
         }
 
       /* Make sure we don't consider buttons grabbed after menu goes.
@@ -271,6 +279,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
               so Motif thinks this is the case.  */
           event.xbutton.state = 0;
 #endif
+	  copy = event;
         }
       /* Pop down on C-g and Escape.  */
       else if (event.type == KeyPress
@@ -281,9 +290,110 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
           if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
               || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
             popup_activated_flag = 0;
-        }
 
-      x_dispatch_event (&event, event.xany.display);
+	  copy = event;
+        }
+#ifdef HAVE_XINPUT2
+      else if (event.type == GenericEvent
+	       && dpyinfo->supports_xi2
+	       && event.xgeneric.display == dpyinfo->display
+	       && event.xgeneric.extension == dpyinfo->xi2_opcode)
+	{
+	  if (!event.xcookie.data
+	      && XGetEventData (dpyinfo->display, &event.xcookie))
+	    cookie_claimed_p = true;
+
+	  if (event.xcookie.data)
+	    {
+	      switch (event.xgeneric.evtype)
+		{
+		case XI_ButtonRelease:
+		  {
+		    xev = (XIDeviceEvent *) event.xcookie.data;
+		    device = xi_device_from_id (dpyinfo, xev->deviceid);
+
+		    dpyinfo->grabbed &= ~(1 << xev->detail);
+		    device->grab &= ~(1 << xev->detail);
+
+		    copy.xbutton.type = ButtonRelease;
+		    copy.xbutton.serial = xev->serial;
+		    copy.xbutton.send_event = xev->send_event;
+		    copy.xbutton.display = xev->display;
+		    copy.xbutton.window = xev->event;
+		    copy.xbutton.root = xev->root;
+		    copy.xbutton.subwindow = xev->child;
+		    copy.xbutton.time = xev->time;
+		    copy.xbutton.x = lrint (xev->event_x);
+		    copy.xbutton.y = lrint (xev->event_y);
+		    copy.xbutton.x_root = lrint (xev->root_x);
+		    copy.xbutton.y_root = lrint (xev->root_y);
+		    copy.xbutton.state = xev->mods.effective;
+		    copy.xbutton.button = xev->detail;
+		    copy.xbutton.same_screen = True;
+
+#ifdef USE_MOTIF /* Pretending that the event came from a
+                    Btn1Down seems the only way to convince Motif to
+                    activate its callbacks; setting the XmNmenuPost
+                    isn't working. --marcus@sysc.pdx.edu.  */
+		    copy.xbutton.button = 1;
+		    /*  Motif only pops down menus when no Ctrl, Alt or Mod
+			key is pressed and the button is released.  So reset key state
+			so Motif thinks this is the case.  */
+		    copy.xbutton.state = 0;
+#endif
+
+		    if (xev->buttons.mask_len)
+		      {
+			if (XIMaskIsSet (xev->buttons.mask, 1))
+			  copy.xbutton.state |= Button1Mask;
+			if (XIMaskIsSet (xev->buttons.mask, 2))
+			  copy.xbutton.state |= Button2Mask;
+			if (XIMaskIsSet (xev->buttons.mask, 3))
+			  copy.xbutton.state |= Button3Mask;
+		      }
+
+		    break;
+		  }
+		case XI_KeyPress:
+		  {
+		    KeySym keysym;
+
+		    xev = (XIDeviceEvent *) event.xcookie.data;
+
+		    copy.xkey.type = KeyPress;
+		    copy.xkey.serial = xev->serial;
+		    copy.xkey.send_event = xev->send_event;
+		    copy.xkey.display = xev->display;
+		    copy.xkey.window = xev->event;
+		    copy.xkey.root = xev->root;
+		    copy.xkey.subwindow = xev->child;
+		    copy.xkey.time = xev->time;
+		    copy.xkey.x = lrint (xev->event_x);
+		    copy.xkey.y = lrint (xev->event_y);
+		    copy.xkey.x_root = lrint (xev->root_x);
+		    copy.xkey.y_root = lrint (xev->root_y);
+		    copy.xkey.state = xev->mods.effective;
+		    copy.xkey.keycode = xev->detail;
+		    copy.xkey.same_screen = True;
+
+		    keysym = XLookupKeysym (&copy.xkey, 0);
+
+		    if ((keysym == XK_g
+			 && (copy.xkey.state & ControlMask) != 0)
+			|| keysym == XK_Escape) /* Any escape, ignore modifiers.  */
+		      popup_activated_flag = 0;
+
+		    break;
+		  }
+		}
+	    }
+	}
+
+      if (cookie_claimed_p)
+	XFreeEventData (dpyinfo->display, &event.xcookie);
+#endif
+
+      x_dispatch_event (&copy, copy.xany.display);
     }
 }
 
@@ -458,7 +568,9 @@ x_activate_menubar (struct frame *f)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
+#ifndef USE_MOTIF
 	  if (dpyinfo->devices[i].grab)
+#endif
 	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
 			    CurrentTime);
 	}
@@ -1465,7 +1577,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
-#if defined HAVE_XINPUT2 && defined USE_LUCID
+
+#if defined HAVE_XINPUT2 && defined USE_X_TOOLKIT
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   /* Clear the XI2 grab so lwlib can set a core grab.  */
 
@@ -1473,12 +1586,15 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
+#ifndef USE_MOTIF
 	  if (dpyinfo->devices[i].grab)
+#endif
 	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
 			    CurrentTime);
 	}
     }
 #endif
+
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;
