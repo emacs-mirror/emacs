@@ -337,7 +337,8 @@ It is the default value of `show-paren-data-function'."
 
 (defun show-paren--delete-context-child-frame ()
   (when show-paren--context-child-frame
-    (delete-frame show-paren--context-child-frame))
+    (delete-frame show-paren--context-child-frame)
+    (setq show-paren--context-child-frame nil))
   (remove-hook 'post-command-hook
                #'show-paren--delete-context-child-frame))
 
