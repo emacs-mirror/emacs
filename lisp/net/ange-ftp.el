@@ -2547,13 +2547,16 @@ can parse the output from a DIR listing for a host of type TYPE.")
 (defvar ange-ftp-after-parse-ls-hook nil
   "Normal hook run after parsing the text of an FTP directory listing.")
 
+(declare-function ls-lisp--sanitize-switches "ls-lisp" (switches))
+
 (defun ange-ftp-ls (file lsargs parse &optional no-error wildcard)
   "Return the output of a `DIR' or `ls' command done over FTP.
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
-  (while (string-match "^--dired\\s-+" lsargs)
-    (setq lsargs (replace-match "" nil t lsargs)))
+  (when (string-match "--" lsargs)
+    (require 'ls-lisp)
+    (setq lsargs (ls-lisp--sanitize-switches lsargs)))
   ;; If parse is t, we assume that file is a directory. i.e. we only parse
   ;; full directory listings.
   (let* ((ange-ftp-this-file (ange-ftp-expand-file-name file))
