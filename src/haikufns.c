@@ -1393,7 +1393,7 @@ haiku_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   CHECK_STRING (arg);
 
   block_input ();
-  Emacs_Color color;
+  Emacs_Color color, fore_pixel;
 
   if (haiku_get_color (SSDATA (arg), &color))
     {
@@ -1403,6 +1403,17 @@ haiku_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 
   FRAME_CURSOR_COLOR (f) = color;
+
+  if (STRINGP (Vx_cursor_fore_pixel))
+    {
+      if (haiku_get_color (SSDATA (Vx_cursor_fore_pixel),
+			   &fore_pixel))
+	error ("Bad color %s", Vx_cursor_fore_pixel);
+      FRAME_OUTPUT_DATA (f)->cursor_fg = fore_pixel.pixel;
+    }
+  else
+    FRAME_OUTPUT_DATA (f)->cursor_fg = FRAME_BACKGROUND_PIXEL (f);
+
   if (FRAME_VISIBLE_P (f))
     {
       gui_update_cursor (f, 0);
@@ -2684,6 +2695,10 @@ syms_of_haikufns (void)
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+
+  DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
+	       doc: /* SKIP: real doc in xfns.c.  */);
+  Vx_cursor_fore_pixel = Qnil;
 
 #ifdef USE_BE_CAIRO
   DEFVAR_LISP ("cairo-version-string", Vcairo_version_string,
