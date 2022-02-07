@@ -1170,7 +1170,11 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
     {
       was_visible = true;
+#ifndef HAVE_PGTK
       hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
+#else
+      hide_child_frame = false;
+#endif
 
       if (outer_width != gwidth || outer_height != gheight)
 	{
@@ -1927,12 +1931,12 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   else if (win_gravity == StaticGravity)
     size_hints.win_gravity = GDK_GRAVITY_STATIC;
 
-  if (x_gtk_use_window_move)
-    {
-      if (flags & PPosition) hint_flags |= GDK_HINT_POS;
-      if (flags & USPosition) hint_flags |= GDK_HINT_USER_POS;
-      if (flags & USSize) hint_flags |= GDK_HINT_USER_SIZE;
-    }
+  if (flags & PPosition)
+    hint_flags |= GDK_HINT_POS;
+  if (flags & USPosition)
+    hint_flags |= GDK_HINT_USER_POS;
+  if (flags & USSize)
+    hint_flags |= GDK_HINT_USER_SIZE;
 
   if (user_position)
     {

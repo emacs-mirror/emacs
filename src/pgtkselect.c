@@ -230,82 +230,9 @@ pgtk_selection_usable (void)
   if (pgtk_enable_selection_on_multi_display)
     return true;
 
-  /*
-   * https://github.com/GNOME/gtk/blob/gtk-3-24/gdk/wayland/gdkselection-wayland.c#L1033
-   *
-   * Gdk uses gdk_display_get_default() when handling selections, so
-   * selections don't work properly on multi-display environment.
-   *
-   * ----------------
-   * #include <gtk/gtk.h>
-   *
-   * static GtkWidget *top1, *top2;
-   *
-   * int main (int argc, char **argv)
-   * {
-   *     GtkWidget *w;
-   *     GtkTextBuffer *buf;
-   *
-   *     gtk_init (&argc, &argv);
-   *
-   *     static char *text = "\
-   * It is fine today.\n\
-   * It will be fine tomorrow too.\n\
-   * It is too hot.";
-   *
-   *     top1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-   *     gtk_window_set_title (GTK_WINDOW (top1), "default");
-   *     gtk_widget_show (top1);
-   *     w = gtk_text_view_new ();
-   *     gtk_container_add (GTK_CONTAINER (top1), w);
-   *     gtk_widget_show (w);
-   *     buf = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
-   *     gtk_text_buffer_insert_at_cursor (buf, text, strlen (text));
-   *     gtk_text_buffer_add_selection_clipboard (buf, gtk_widget_get_clipboard (w, GDK_SELECTION_PRIMARY));
-   *
-   *     unsetenv ("GDK_BACKEND");
-   *     GdkDisplay *gdpy;
-   *     const char *dpyname2;
-   *     if (strcmp (G_OBJECT_TYPE_NAME (gtk_widget_get_window (top1)), "GdkWaylandWindow") == 0)
-   *         dpyname2 = ":0";
-   *     else
-   *         dpyname2 = "wayland-0";
-   *     gdpy = gdk_display_open (dpyname2);
-   *     top2 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-   *     gtk_window_set_title (GTK_WINDOW (top2), dpyname2);
-   *     gtk_window_set_screen (GTK_WINDOW (top2), gdk_display_get_default_screen (gdpy));
-   *     gtk_widget_show (top2);
-   *     w = gtk_text_view_new ();
-   *     gtk_container_add (GTK_CONTAINER (top2), w);
-   *     gtk_widget_show (w);
-   *     buf = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
-   *     gtk_text_buffer_insert_at_cursor (buf, text, strlen (text));
-   *     gtk_text_buffer_add_selection_clipboard (buf, gtk_widget_get_clipboard (w, GDK_SELECTION_PRIMARY));
-   *
-   *     gtk_main ();
-   *
-   *     return 0;
-   * }
-   * ----------------
-   *
-   * This code fails if
-   *   GDK_BACKEND=x11 ./test
-   * and select on both of windows.
-   *
-   * ----------------
-   * (test:15345): GLib-GObject-CRITICAL **: 01:56:38.041: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
-   *
-   * (test:15345): GLib-GObject-CRITICAL **: 01:56:38.042: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
-   *
-   * (test:15345): GLib-GObject-CRITICAL **: 01:56:39.113: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
-   *
-   * (test:15345): GLib-GObject-CRITICAL **: 01:56:39.113: g_object_ref: assertion 'G_IS_OBJECT (object)' failed
-   * ----------------
-   * (gtk-3.24.10)
-   *
-   * This function checks whether selections work by the number of displays.
-   * If you use more than 2 displays, then selection is disabled.
-   */
+  /* Gdk uses `gdk_display_get_default' when handling selections, so
+     selections don't work properly when Emacs is connected to
+     multiple displays.  */
 
   GdkDisplayManager *dpyman = gdk_display_manager_get ();
   GSList *list = gdk_display_manager_list_displays (dpyman);
@@ -408,21 +335,15 @@ nil, it defaults to the selected frame. */)
 }
 
 
-DEFUN ("pgtk-disown-selection-internal", Fpgtk_disown_selection_internal, Spgtk_disown_selection_internal, 1, 3, 0,
+DEFUN ("pgtk-disown-selection-internal", Fpgtk_disown_selection_internal,
+       Spgtk_disown_selection_internal, 1, 2, 0,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.
 
-Sets the last-change time for the selection to TIME-OBJECT (by default
-the time of the last event).
-
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
-
-On Nextstep, the TIME-OBJECT and TERMINAL arguments are unused.
-On MS-DOS, all this does is return non-nil if we own the selection.
-On PGTK, the TIME-OBJECT is unused.  */)
-  (Lisp_Object selection, Lisp_Object time_object, Lisp_Object terminal)
+frame's display, or the first available X display.  */)
+  (Lisp_Object selection, Lisp_Object terminal)
 {
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
@@ -503,29 +424,25 @@ On Nextstep, TERMINAL is unused.  */)
 }
 
 
-DEFUN ("pgtk-get-selection-internal", Fpgtk_get_selection_internal, Spgtk_get_selection_internal, 2, 4, 0,
-       doc: /* Return text selected from some X window.
+DEFUN ("pgtk-get-selection-internal", Fpgtk_get_selection_internal,
+       Spgtk_get_selection_internal, 2, 3, 0,
+       doc: /* Return text selected from some program.
 SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 TARGET-TYPE is the type of data desired, typically `STRING'.
 
-TIME-STAMP is the time to use in the XConvertSelection call for foreign
-selections.  If omitted, defaults to the time for the last event.
-
 TERMINAL should be a terminal object or a frame specifying the X
 server to query.  If omitted or nil, that stands for the selected
-frame's display, or the first available X display.
-
-On Nextstep, TIME-STAMP and TERMINAL are unused.
-On PGTK, TIME-STAMP is unused.  */)
+frame's display, or the first available display.  */)
   (Lisp_Object selection_symbol, Lisp_Object target_type,
-   Lisp_Object time_stamp, Lisp_Object terminal)
+   Lisp_Object terminal)
 {
   struct frame *f = frame_for_pgtk_selection (terminal);
   GtkClipboard *cb;
 
   CHECK_SYMBOL (selection_symbol);
   CHECK_SYMBOL (target_type);
+
   if (EQ (target_type, QMULTIPLE))
     error ("Retrieving MULTIPLE selections is currently unimplemented");
   if (!f)
@@ -603,21 +520,23 @@ syms_of_pgtkselect (void)
   defsubr (&Spgtk_selection_owner_p);
 
   DEFVAR_LISP ("pgtk-sent-selection-hooks", Vpgtk_sent_selection_hooks,
-	       "A list of functions to be called when Emacs answers a selection request.\n\
-The functions are called with four arguments:\n\
-  - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
-  - the selection-type which Emacs was asked to convert the\n\
-    selection into before sending (for example, `STRING' or `LENGTH');\n\
-  - a flag indicating success or failure for responding to the request.\n\
-We might have failed (and declined the request) for any number of reasons,\n\
-including being asked for a selection that we no longer own, or being asked\n\
-to convert into a type that we don't know about or that is inappropriate.\n\
-This hook doesn't let you change the behavior of Emacs's selection replies,\n\
-it merely informs you that they have happened.");
+	       doc: /* A list of functions to be called when Emacs answers a selection request
+The functions are called with four arguments:
+  - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
+  - the selection-type which Emacs was asked to convert the
+    selection into before sending (for example, `STRING' or `LENGTH');
+  - a flag indicating success or failure for responding to the request.
+We might have failed (and declined the request) for any number of reasons,
+including being asked for a selection that we no longer own, or being asked
+to convert into a type that we don't know about or that is inappropriate.
+This hook doesn't let you change the behavior of Emacs's selection replies,
+it merely informs you that they have happened.  */);
   Vpgtk_sent_selection_hooks = Qnil;
 
   DEFVAR_BOOL ("pgtk-enable-selection-on-multi-display", pgtk_enable_selection_on_multi_display,
-	       doc: /* Enable selection on multi display environment.
-This may cause crash.  */);
+	       doc: /* Enable selections when connected to multiple displays.
+This may cause crashes due to a GTK bug, which assumes that clients
+will connect to a single display.  It might also cause selections to
+not arrive at the correct display.  */);
   pgtk_enable_selection_on_multi_display = false;
 }

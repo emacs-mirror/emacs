@@ -1583,11 +1583,8 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 			 RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Create the X widget or window.  */
-  /* x_window (f); */
   xg_create_frame_widgets (f);
   pgtk_set_event_handler (f);
-
 
 #define INSTALL_CURSOR(FIELD, NAME) \
   FRAME_X_OUTPUT (f)->FIELD = gdk_cursor_new_for_display (FRAME_X_DISPLAY (f), GDK_ ## NAME)
@@ -1766,14 +1763,10 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   return unbind_to (count, frame);
 }
 
-/**
- * x_frame_restack:
- *
- * Restack frame F1 below frame F2, above if ABOVE_FLAG is non-nil.  In
- * practice this is a two-step action: The first step removes F1's
- * window-system window from the display.  The second step reinserts
- * F1's window below (above if ABOVE_FLAG is true) that of F2.
- */
+/* Restack frame F1 below frame F2, above if ABOVE_FLAG is non-nil.
+   In practice this is a two-step action: The first step removes F1's
+   window-system window from the display.  The second step reinserts
+   F1's window below (above if ABOVE_FLAG is true) that of F2.  */
 static void
 pgtk_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 {
@@ -1781,7 +1774,6 @@ pgtk_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
   xg_frame_restack (f1, f2, above_flag);
   unblock_input ();
 }
-
 
 DEFUN ("pgtk-frame-restack", Fpgtk_frame_restack, Spgtk_frame_restack, 2, 3, 0,
        doc: /* Restack FRAME1 below FRAME2.
@@ -3874,7 +3866,7 @@ syms_of_pgtkfns (void)
   DEFSYM (Qresize_mode, "resize-mode");
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
-	       doc: /* A string indicating the foreground color of the cursor box.  */);
+	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("pgtk-icon-type-alist", Vpgtk_icon_type_alist,
@@ -3898,14 +3890,7 @@ When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
   Vpgtk_icon_type_alist = list1 (Qt);
 
-
-  /* Provide x-toolkit also for GTK.  Internally GTK does not use Xt so it
-     is not an X toolkit in that sense (USE_X_TOOLKIT is not defined).
-     But for a user it is a toolkit for X, and indeed, configure
-     accepts --with-x-toolkit=gtk.  */
-  Fprovide (intern_c_string ("x-toolkit"), Qnil);
   Fprovide (intern_c_string ("gtk"), Qnil);
-  Fprovide (intern_c_string ("move-toolbar"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", Vgtk_version_string,
 	       doc: /* Version info for GTK+.  */);
@@ -3998,51 +3983,20 @@ be used as the image of the icon representing the frame.  */);
 
   /* This is not ifdef:ed, so other builds than GTK can customize it.  */
   DEFVAR_BOOL ("x-gtk-use-old-file-dialog", x_gtk_use_old_file_dialog,
-	       doc: /* Non-nil means prompt with the old GTK file selection dialog.
-If nil or if the file selection dialog is not available, the new GTK file
-chooser is used instead.  To turn off all file dialogs set the
-variable `use-file-dialog'.  */);
+	       doc: /* SKIP: real doc in xfns.c.  */);
   x_gtk_use_old_file_dialog = false;
 
   DEFVAR_BOOL ("x-gtk-show-hidden-files", x_gtk_show_hidden_files,
-	       doc: /* If non-nil, the GTK file chooser will by default show hidden files.
-Note that this is just the default, there is a toggle button on the file
-chooser to show or not show hidden files on a case by case basis.  */);
+	       doc: /* SKIP: real doc in xfns.c.  */);
   x_gtk_show_hidden_files = false;
 
   DEFVAR_BOOL ("x-gtk-file-dialog-help-text", x_gtk_file_dialog_help_text,
-	       doc: /* If non-nil, the GTK file chooser will show additional help text.
-If more space for files in the file chooser dialog is wanted, set this to nil
-to turn the additional text off.  */);
+	       doc: /* SKIP: real doc in xfns.c.  */);
   x_gtk_file_dialog_help_text = true;
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
-    doc: /* Maximum size for tooltips.
-Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
+	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
-
-  DEFVAR_LISP ("x-gtk-resize-child-frames", x_gtk_resize_child_frames,
-    doc: /* If non-nil, resize child frames specially with GTK builds.
-If this is nil, resize child frames like any other frames.  This is the
-default and usually works with most desktops.  Some desktop environments
-(GNOME shell in particular when using the mutter window manager),
-however, may refuse to resize a child frame when Emacs is built with
-GTK3.  For those environments, the two settings below are provided.
-
-If this equals the symbol 'hide', Emacs temporarily hides the child
-frame during resizing.  This approach seems to work reliably, may
-however induce some flicker when the frame is made visible again.
-
-If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
-always trigger an immediate resize of the child frame.  This method is
-deprecated by GTK and may not work in future versions of that toolkit.
-It also may freeze Emacs when used with other desktop environments.  It
-avoids, however, the unpleasant flicker induced by the hiding approach.
-
-This variable is considered a temporary workaround and will be hopefully
-eliminated in future versions of Emacs.  */);
-  x_gtk_resize_child_frames = Qnil;
-
 
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");

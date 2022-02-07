@@ -290,6 +290,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Any display name is OK.
 (add-to-list 'display-format-alist '(".*" . pgtk))
+
 (cl-defmethod handle-args-function (args &context (window-system pgtk))
   (x-handle-args args))
 
@@ -297,10 +298,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (x-create-frame-with-faces params))
 
 (declare-function pgtk-own-selection-internal "pgtkselect.c" (selection value &optional frame))
-(declare-function pgtk-disown-selection-internal "pgtkselect.c" (selection &optional time_object terminal))
+(declare-function pgtk-disown-selection-internal "pgtkselect.c" (selection &optional terminal))
 (declare-function pgtk-selection-owner-p "pgtkselect.c" (&optional selection terminal))
 (declare-function pgtk-selection-exists-p "pgtkselect.c" (&optional selection terminal))
-(declare-function pgtk-get-selection-internal "pgtkselect.c" (selection-symbol target-type &optional time_stamp terminal))
+(declare-function pgtk-get-selection-internal "pgtkselect.c" (selection-symbol target-type &optional terminal))
 
 (cl-defmethod gui-backend-set-selection (selection value
                                          &context (window-system pgtk))
