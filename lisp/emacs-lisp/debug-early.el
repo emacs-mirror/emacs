@@ -53,10 +53,11 @@ of the build process."
 	   (progn
 	     (princ "  (")
 	     (setq args (cons func args))))
-	 (while (progn
-	          (prin1 (car args))
-	          (setq args (cdr args)))
-	   (princ " "))
+	 (if args
+	     (while (progn
+	              (prin1 (car args))
+	              (setq args (cdr args)))
+	       (princ " ")))
 	 (princ ")\n"))))))
 
 (defalias 'debug-early
