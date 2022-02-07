@@ -166,7 +166,7 @@
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
 (require 'lisp-mode) ;; for lisp-mode-symbol-regexp
-(require 'dired)     ;; for dired-get-filename and dired-map-over-marks
+(eval-when-compile (require 'dired))     ;; for dired-map-over-marks
 (require 'lisp-mnt)
 
 (defvar compilation-error-regexp-alist)
@@ -1124,12 +1124,20 @@ Skip anything that doesn't have the Emacs Lisp library file
 extension (\".el\").
 When called from Lisp, FILES is a list of filenames."
   (interactive
-   (list
-    (delq nil
-          (mapcar
-           ;; skip anything that doesn't look like an Emacs Lisp library
-           (lambda (f) (if (equal (file-name-extension f) "el") f nil))
-           (nreverse (dired-map-over-marks (dired-get-filename) nil)))))
+   (progn
+     ;; These Dired functions must be defined since we're in a Dired buffer.
+     (declare-function dired-get-filename "dired"
+                       (&optional localp no-error-if-not-filep bof))
+     ;; These functions are used by the expansion of `dired-map-over-marks'.
+     (declare-function dired-move-to-filename "dired"
+                       (&optional raise-error eol))
+     (declare-function dired-marker-regexp "dired" ())
+     (list
+      (delq nil
+            (mapcar
+             ;; skip anything that doesn't look like an Emacs Lisp library
+             (lambda (f) (if (equal (file-name-extension f) "el") f nil))
+             (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
    dired-mode)
   (if (null files)
       (error "No files to run checkdoc on")
@@ -1275,27 +1283,27 @@ TEXT, START, END and UNFIXABLE conform to
   (let ((map (make-sparse-keymap))
 	(pmap (make-sparse-keymap)))
     ;; Override some bindings
-    (define-key map "\C-\M-x" 'checkdoc-eval-defun)
-    (define-key map "\C-x`" 'checkdoc-continue)
+    (define-key map "\C-\M-x" #'checkdoc-eval-defun)
+    (define-key map "\C-x`"   #'checkdoc-continue)
     (define-key map [menu-bar emacs-lisp eval-buffer]
-      'checkdoc-eval-current-buffer)
+      #'checkdoc-eval-current-buffer)
     ;; Add some new bindings under C-c ?
-    (define-key pmap "x" 'checkdoc-defun)
-    (define-key pmap "X" 'checkdoc-ispell-defun)
-    (define-key pmap "`" 'checkdoc-continue)
-    (define-key pmap "~" 'checkdoc-ispell-continue)
-    (define-key pmap "s" 'checkdoc-start)
-    (define-key pmap "S" 'checkdoc-ispell-start)
-    (define-key pmap "d" 'checkdoc)
-    (define-key pmap "D" 'checkdoc-ispell)
-    (define-key pmap "b" 'checkdoc-current-buffer)
-    (define-key pmap "B" 'checkdoc-ispell-current-buffer)
-    (define-key pmap "e" 'checkdoc-eval-current-buffer)
-    (define-key pmap "m" 'checkdoc-message-text)
-    (define-key pmap "M" 'checkdoc-ispell-message-text)
-    (define-key pmap "c" 'checkdoc-comments)
-    (define-key pmap "C" 'checkdoc-ispell-comments)
-    (define-key pmap " " 'checkdoc-rogue-spaces)
+    (define-key pmap "x" #'checkdoc-defun)
+    (define-key pmap "X" #'checkdoc-ispell-defun)
+    (define-key pmap "`" #'checkdoc-continue)
+    (define-key pmap "~" #'checkdoc-ispell-continue)
+    (define-key pmap "s" #'checkdoc-start)
+    (define-key pmap "S" #'checkdoc-ispell-start)
+    (define-key pmap "d" #'checkdoc)
+    (define-key pmap "D" #'checkdoc-ispell)
+    (define-key pmap "b" #'checkdoc-current-buffer)
+    (define-key pmap "B" #'checkdoc-ispell-current-buffer)
+    (define-key pmap "e" #'checkdoc-eval-current-buffer)
+    (define-key pmap "m" #'checkdoc-message-text)
+    (define-key pmap "M" #'checkdoc-ispell-message-text)
+    (define-key pmap "c" #'checkdoc-comments)
+    (define-key pmap "C" #'checkdoc-ispell-comments)
+    (define-key pmap " " #'checkdoc-rogue-spaces)
 
     ;; bind our submap into map
     (define-key map "\C-c?" pmap)
