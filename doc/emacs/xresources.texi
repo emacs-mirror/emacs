@@ -375,14 +375,14 @@ displaying the preview text.
 
 @item @code{synchronizeResize} (class @code{SynchronizeResize})
 If @samp{off} or @samp{false}, Emacs will not try to tell the window
-manager when it has finished redrawing the display in response to a
-request to resize a frame.  Otherwise, the window manager will
-postpone drawing a frame that was just resized until its contents are
-updated, which prevents blank areas of a frame that have not yet been
-painted from being displayed.  If set to @samp{extended}, it will
-enable use of extended frame synchronization, which might be supported
-by some compositing window managers which don't support basic
-synchronization.
+manager when it has finished redrawing the display in response to a a
+frame being resized.  Otherwise, the window manager will postpone
+drawing a frame that was just resized until its contents are updated,
+which prevents blank areas of a frame that have not yet been painted
+from being displayed.  If set to @samp{extended}, it will enable use
+of an alternative frame synchronization protocol, which might be
+supported by some compositing window managers that don't support the
+protocol Emacs uses by default.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars on the left if @samp{left}, on the right if
