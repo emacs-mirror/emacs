@@ -276,7 +276,7 @@ It is the default value of `show-paren-data-function'."
   "Redirect focus from child frame."
   (redirect-frame-focus
    show-paren--context-child-frame
-   (frame-parent corfu--frame)))
+   (frame-parent show-paren--context-child-frame)))
 
 (defun show-paren--context-child-frame-buffer (text)
   (with-current-buffer
