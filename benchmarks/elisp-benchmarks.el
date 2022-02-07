@@ -1,6 +1,6 @@
 ;;; elisp-benchmarks.el --- elisp benchmarks collection -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2021  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2022  Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
@@ -56,13 +56,11 @@
 
 (defcustom elb-runs 3
   "Total number of benchmark iterations."
-  :type 'number
-  :group 'elb)
+  :type 'number)
 
 (defcustom elb-speed 3
   "Default `native-comp-speed' to be used for native compiling the benchmarks."
-  :type 'number
-  :group 'elb)
+  :type 'number)
 
 (defconst elb-bench-directory
   (concat (file-name-directory (or load-file-name buffer-file-name))
@@ -122,7 +120,7 @@ RECOMPILE all the benchmark folder when non nil."
 	                        (when (string-match
 	                               "\\`elb-\\(.*\\)-entry\\'" name)
 	                          (push (match-string 1 name) names)))))
-	           names)))
+	           (sort names #'string-lessp))))
       ;; (cl-loop for test in tests
       ;;          do (puthash test () res))
       (cl-loop with runs = (or runs elb-runs)
