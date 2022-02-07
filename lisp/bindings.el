@@ -1160,7 +1160,9 @@ if `inhibit-field-text-motion' is non-nil."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
-(define-key global-map [Scroll_Lock]    'scroll-lock-mode)
+(define-key global-map
+            (if (eq system-type 'windows-nt) [scroll] [Scroll_Lock])
+            #'scroll-lock-mode)
 (define-key global-map [C-S-backspace]  'kill-whole-line)
 (define-key global-map [home]		'move-beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
