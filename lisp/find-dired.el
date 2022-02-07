@@ -234,8 +234,8 @@ it finishes, type \\[kill-find]."
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
       ;; this does no harm)
-      (setq-local dired-subdir-alist
-                  (list (cons default-directory (point-min-marker)))))
+      (setq dired-subdir-alist
+            (list (cons default-directory (point-min-marker)))))
     (setq-local dired-subdir-switches find-ls-subdir-switches)
     (setq buffer-read-only nil)
     ;; Subdir headlerline must come first because the first marker in

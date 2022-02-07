@@ -461,13 +461,11 @@ Specific `locate-mode' commands, such as \\[locate-find-directory],
 do not work in subdirectories.
 
 \\{locate-mode-map}"
-  ;; Avoid clobbering this variable
-  (make-local-variable 'dired-subdir-alist)
   (setq default-directory   "/"
 	buffer-read-only    t)
   (add-to-invisibility-spec '(dired . t))
   (dired-alist-add-1 default-directory (point-min-marker))
-  (setq-local dired-directory "/")
+  (setq dired-directory "/")
   (setq-local dired-subdir-switches locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
   ;; This should support both Unix and Windoze style names

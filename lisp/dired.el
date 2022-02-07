@@ -408,7 +408,7 @@ action argument symbol is `window-height' and its value is nil." "24.3")
 (defvar dired-file-version-alist)
 
 ;;;###autoload
-(defvar dired-directory nil
+(defvar-local dired-directory nil
   "The directory name or wildcard spec that this Dired directory lists.
 Local to each Dired buffer.  May be a list, in which case the car is the
 directory name and the cdr is the list of files to mention.
@@ -455,7 +455,7 @@ The directory name must be absolute, but need not be fully expanded.")
 (defvar dired-re-dot "^.* \\.\\.?/?$")
 
 ;; The subdirectory names in the next two lists are expanded.
-(defvar dired-subdir-alist nil
+(defvar-local dired-subdir-alist nil
   "Alist of listed directories and their buffer positions.
 Alist elements have the form (DIRNAME . STARTMARKER), where
 DIRNAME is the absolute name of the directory and STARTMARKER is
@@ -1336,7 +1336,7 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 	(goto-char (point-min))
 	;; Must first make alist buffer local and set it to nil because
 	;; dired-build-subdir-alist will call dired-clear-alist first
-	(setq-local dired-subdir-alist nil)
+	(setq dired-subdir-alist nil)
 	(dired-build-subdir-alist))
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
@@ -2365,7 +2365,7 @@ Keybindings:
   (setq-local buffer-stale-function #'dired-buffer-stale-p)
   (setq-local buffer-auto-revert-by-notification t)
   (setq-local page-delimiter "\n\n")
-  (setq-local dired-directory (or dirname default-directory))
+  (setq dired-directory (or dirname default-directory))
   ;; list-buffers uses this to display the dir being edited in this buffer.
   (setq list-buffers-directory
 	(expand-file-name (if (listp dired-directory)
