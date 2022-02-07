@@ -1,6 +1,6 @@
-;;; bench/pcase.el --- Exercise code using pcase  -*- lexical-binding: t; -*-
+;;; elb-pcase.el --- Exercise code using pcase  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -17,25 +17,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-(eval-and-compile
-  ;; ¡FIXME!  The GNUmakefile of elpa.git uses:
-  ;;
-  ;;    ... -L $(dir $@) -f batch-byte-compile $<
-  ;;
-  ;; to compile each file.  This is handy for some cases such as files in
-  ;; `contrib' subdirectories but for this `pcase.el' file it causes this
-  ;; `pcase.el' to hide the *real* `pcase.el'.  So we workaround this problem
-  ;; here by removing the offending element from `load-path'.  Yuck!
-  ;;
-  ;; We should probably change GNUmakefile instead so it doesn't forcefully
-  ;; add the directory to `load-path', e.g. make this dependent on the
-  ;; presence of special file like `.dont-add-to-load-path'. 
-  (let ((file (if (fboundp 'macroexp-file-name) (macroexp-file-name) ;Emacs≥28
-                (or load-file-name
-                    (bound-and-true-p byte-compile-current-file)))))
-    (when file
-      (setq load-path (remove (file-name-directory file) load-path)))))
-
 ;;; Commentary:
 
 ;; Apply a simple pattern match defined with pcase on the element of a list.
@@ -51,10 +32,10 @@
 					  (1 '(a))
 					  (2 (random 10)))))
 
-(defsubst foo (x)
+(defsubst elb-pcase--foo (x)
   (1+ x))
 
-(defsubst bar (x)
+(defsubst elb-pcase--bar (x)
   (* x x))
 
 (defun elb-pcase (l)
@@ -62,10 +43,11 @@
 	   counting (pcase x
 		      (`(a b) 1)
 		      (`(a) 2)
-		      (_ (foo (bar x))))))
+		      (_ (elb-pcase--foo (elb-pcase--bar x))))))
 
 (defun elb-pcase-entry ()
   (cl-loop repeat 20000
 	   do (elb-pcase elb-pcase-list)))
 
 (provide 'elb-pcase)
+;;; elb-pcase ends here.
