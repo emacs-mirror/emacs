@@ -63,7 +63,7 @@ ENVADD = \
   MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
 
 DVI_TARGETS = emacs-lisp-intro.dvi
-HTML_TARGETS = emacs-lisp-intro.html
+HTML_TARGETS = eintr.html
 PDF_TARGETS = emacs-lisp-intro.pdf
 PS_TARGETS = emacs-lisp-intro.ps
 
@@ -95,7 +95,7 @@ emacs-lisp-intro.dvi: ${srcs}
 emacs-lisp-intro.pdf: ${srcs}
 	$(ENVADD) $(TEXI2PDF) $<
 
-emacs-lisp-intro.html: ${srcs}
+eintr.html: ${srcs}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(HTML_OPTS) -o $@ $<
 
 emacs-lisp-intro.ps: emacs-lisp-intro.dvi

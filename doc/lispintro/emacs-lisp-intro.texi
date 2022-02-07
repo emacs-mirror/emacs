@@ -1,8 +1,6 @@
 \input texinfo                       @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/eintr.info
-@c setfilename emacs-lisp-intro.info
-@c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
 @include docstyle.texi
 @syncodeindex vr cp
