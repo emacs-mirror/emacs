@@ -459,7 +459,7 @@ more...")
    `(compilation-mode-line-run ((,class (:weight bold :foreground "#065aff")))) ; :run
    `(css-property ((,class (:foreground "#ff55ff"))))
    `(css-selector ((,class (:weight bold :foreground "#ffff0b"))))
-   `(custom-button ((,class (:box (:line-width 2 :style released-button) :foreground "#ffffff" :background "lightgrey"))))
+   `(custom-button ((,class (:box (:line-width 2 :style released-button) :foreground "gray20" :background "lightgrey"))))
    `(custom-button-mouse ((,class (:box (:line-width 2 :style released-button) :foreground "#ffffff" :background "#3d3842"))))
    `(custom-button-pressed ((,class (:box (:line-width 2 :style pressed-button) :foreground "#ffffff" :background "#312c36"))))
    `(custom-button-pressed-unraised ((,class (:underline t :foreground "#78ff7c"))))
