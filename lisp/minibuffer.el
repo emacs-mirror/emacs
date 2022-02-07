@@ -2932,26 +2932,30 @@ same as `substitute-in-file-name'."
   (let* ((ustr (substitute-in-file-name qstr))
          (uprefix (substring ustr 0 upos))
          qprefix)
-    ;; Main assumption: nothing after qpos should affect the text before upos,
-    ;; so we can work our way backward from the end of qstr, one character
-    ;; at a time.
-    ;; Second assumptions: If qpos is far from the end this can be a bit slow,
-    ;; so we speed it up by doing a first loop that skips a word at a time.
-    ;; This word-sized loop is careful not to cut in the middle of env-vars.
-    (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
-             (and boundary
-                  (progn
-                    (setq qprefix (substring qstr 0 boundary))
+    (if (eq upos (length ustr))
+        ;; Easy and common case.  This not only speed things up in a very
+        ;; common case but it also avoids problems in some cases (bug#53053).
+        (cons (length qstr) #'minibuffer-maybe-quote-filename)
+      ;; Main assumption: nothing after qpos should affect the text before upos,
+      ;; so we can work our way backward from the end of qstr, one character
+      ;; at a time.
+      ;; Second assumptions: If qpos is far from the end this can be a bit slow,
+      ;; so we speed it up by doing a first loop that skips a word at a time.
+      ;; This word-sized loop is careful not to cut in the middle of env-vars.
+      (while (let ((boundary (string-match "\\(\\$+{?\\)?\\w+\\W*\\'" qstr)))
+               (and boundary
+                    (progn
+                      (setq qprefix (substring qstr 0 boundary))
+                      (string-prefix-p uprefix
+                                       (substitute-in-file-name qprefix)))))
+        (setq qstr qprefix))
+      (let ((qpos (length qstr)))
+        (while (and (> qpos 0)
                     (string-prefix-p uprefix
-                                   (substitute-in-file-name qprefix)))))
-      (setq qstr qprefix))
-    (let ((qpos (length qstr)))
-      (while (and (> qpos 0)
-                  (string-prefix-p uprefix
-                                   (substitute-in-file-name
-                                    (substring qstr 0 (1- qpos)))))
-        (setq qpos (1- qpos)))
-      (cons qpos #'minibuffer-maybe-quote-filename))))
+                                     (substitute-in-file-name
+                                      (substring qstr 0 (1- qpos)))))
+          (setq qpos (1- qpos)))
+        (cons qpos #'minibuffer-maybe-quote-filename)))))
 
 (defalias 'completion--file-name-table
   (completion-table-with-quoting #'completion-file-name-table
