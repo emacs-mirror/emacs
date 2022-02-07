@@ -9139,7 +9139,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			FRAME_X_OUTPUT (f)->sync_end_pending_p = true;
 		      }
 		    else if (event->xclient.data.l[4] == 1)
-		      FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = true;
+		      {
+			XSyncIntsToValue (&FRAME_X_OUTPUT (f)->current_extended_counter_value,
+					  event->xclient.data.l[2], event->xclient.data.l[3]);
+			FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = true;
+		      }
 
 		    *finish = X_EVENT_DROP;
 		    goto done;
