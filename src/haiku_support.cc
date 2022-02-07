@@ -1047,8 +1047,8 @@ public:
     zoomed_p = 0;
 
     EmacsMoveTo (pre_zoom_rect.left, pre_zoom_rect.top);
-    ResizeTo (BE_RECT_WIDTH (pre_zoom_rect),
-	      BE_RECT_HEIGHT (pre_zoom_rect));
+    ResizeTo (BE_RECT_WIDTH (pre_zoom_rect) - 1,
+	      BE_RECT_HEIGHT (pre_zoom_rect) - 1);
   }
 
   void
@@ -1128,15 +1128,15 @@ public:
 	int w, h;
 	EmacsMoveTo (0, 0);
 	GetParentWidthHeight (&w, &h);
-	ResizeTo (w, h);
+	ResizeTo (w - 1, h - 1);
       }
     else
       {
 	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
 	EmacsMoveTo (pre_fullscreen_rect.left,
 		     pre_fullscreen_rect.top);
-	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect),
-		  BE_RECT_HEIGHT (pre_fullscreen_rect));
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
+		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
       }
     SetFlags (flags);
   }
@@ -1959,7 +1959,7 @@ BWindow_retitle (void *window, const char *title)
 void
 BWindow_resize (void *window, int width, int height)
 {
-  ((BWindow *) window)->ResizeTo (width, height);
+  ((BWindow *) window)->ResizeTo (width - 1, height - 1);
 }
 
 /* Activate WINDOW, making it the subject of keyboard focus and
