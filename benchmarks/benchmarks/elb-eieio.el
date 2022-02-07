@@ -1,6 +1,6 @@
 ;;; elb-eieio.el --- Benchmarking EIEIO operations   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022  Stefan Monnier
+;; Copyright (C) 2022  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
