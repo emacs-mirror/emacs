@@ -1774,21 +1774,27 @@ Does not preserve point."
         (n (skip-syntax-backward ".")))
     (if (or (zerop n)
             (and (eq n -1)
+                 ;; Skip past quoted white space.
                  (let ((p (point)))
                    (if (eq -1 (% (skip-syntax-backward "\\") 2))
                        t
                      (goto-char p)
                      nil))))
         (while
-            (progn (skip-syntax-backward ".w_'")
-                   (or (not (zerop (skip-syntax-backward "\\")))
-                       (when (eq ?\\ (char-before (1- (point))))
-                         (let ((p (point)))
-                           (forward-char -1)
-                           (if (eq -1 (% (skip-syntax-backward "\\") 2))
-                               t
-                             (goto-char p)
-                             nil))))))
+            (progn
+              ;; Skip past words, but stop at semicolons.
+              (while (and (not (zerop (skip-syntax-backward "w_'")))
+                          (not (eq (char-before (point)) ?\;))
+                          (skip-syntax-backward ".")))
+              (or (not (zerop (skip-syntax-backward "\\")))
+                  ;; Skip past quoted white space.
+                  (when (eq ?\\ (char-before (1- (point))))
+                    (let ((p (point)))
+                      (forward-char -1)
+                      (if (eq -1 (% (skip-syntax-backward "\\") 2))
+                          t
+                        (goto-char p)
+                        nil))))))
       (goto-char (- (point) (% (skip-syntax-backward "\\") 2))))
     (buffer-substring-no-properties (point) pos)))
 
