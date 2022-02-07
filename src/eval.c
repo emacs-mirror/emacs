@@ -3495,6 +3495,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 	      bytecode = Fstring_as_unibyte (bytecode);
 	    }
 
+	  pin_string (bytecode);
 	  ASET (object, COMPILED_BYTECODE, bytecode);
 	  ASET (object, COMPILED_CONSTANTS, XCDR (tem));
 	}
