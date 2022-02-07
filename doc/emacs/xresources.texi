@@ -375,7 +375,7 @@ displaying the preview text.
 
 @item @code{synchronizeResize} (class @code{SynchronizeResize})
 If @samp{off} or @samp{false}, Emacs will not try to tell the window
-manager when it has finished redrawing the display in response to a a
+manager when it has finished redrawing the display in response to a
 frame being resized.  Otherwise, the window manager will postpone
 drawing a frame that was just resized until its contents are updated,
 which prevents blank areas of a frame that have not yet been painted
