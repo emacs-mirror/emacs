@@ -822,6 +822,9 @@ struct x_output
 
   bool_bf sync_end_pending_p : 1;
   bool_bf ext_sync_end_pending_p : 1;
+#ifdef HAVE_GTK3
+  bool_bf xg_sync_end_pending_p : 1;
+#endif
 #endif
 
   /* Relief GCs, colors etc.  */

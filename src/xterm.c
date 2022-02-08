@@ -1848,10 +1848,14 @@ x_update_end (struct frame *f)
 static void
 XTframe_up_to_date (struct frame *f)
 {
-#ifdef HAVE_XSYNC
+#if defined HAVE_XSYNC && !defined HAVE_GTK3
   XSyncValue add;
   XSyncValue current;
   Bool overflow_p;
+#elif defined HAVE_XSYNC
+  GtkWidget *widget;
+  GdkWindow *window;
+  GdkFrameClock *clock;
 #endif
 
   eassert (FRAME_X_P (f));
@@ -1861,6 +1865,7 @@ XTframe_up_to_date (struct frame *f)
     show_back_buffer (f);
 
 #ifdef HAVE_XSYNC
+#ifndef HAVE_GTK3
   if (FRAME_X_OUTPUT (f)->sync_end_pending_p
       && FRAME_X_BASIC_COUNTER (f) != None)
     {
@@ -1892,6 +1897,20 @@ XTframe_up_to_date (struct frame *f)
 
       FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = false;
     }
+#else
+  if (FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
+    {
+      widget = FRAME_GTK_OUTER_WIDGET (f);
+      window = gtk_widget_get_window (widget);
+      eassert (window);
+      clock = gdk_window_get_frame_clock (window);
+      eassert (clock);
+
+      gdk_frame_clock_request_phase (clock,
+				     GDK_FRAME_CLOCK_PHASE_AFTER_PAINT);
+      FRAME_X_OUTPUT (f)->xg_sync_end_pending_p = false;
+    }
+#endif
 #endif
   unblock_input ();
 }
@@ -9130,7 +9149,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto done;
 	      }
 
-#if defined HAVE_XSYNC && !defined HAVE_GTK3
+#if defined HAVE_XSYNC
 	    if (event->xclient.data.l[0] == dpyinfo->Xatom_net_wm_sync_request
 		&& event->xclient.format == 32
 		&& dpyinfo->xsync_supported_p)
@@ -9138,9 +9157,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		struct frame *f
 		  = x_top_window_to_frame (dpyinfo,
 					   event->xclient.window);
+#if defined HAVE_GTK3
+		GtkWidget *widget;
+		GdkWindow *window;
+		GdkFrameClock *frame_clock;
+#endif
 
 		if (f)
 		  {
+#ifndef HAVE_GTK3
 		    if (event->xclient.data.l[4] == 0)
 		      {
 			XSyncIntsToValue (&FRAME_X_OUTPUT (f)->pending_basic_counter_value,
@@ -9155,6 +9180,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      }
 
 		    *finish = X_EVENT_DROP;
+#else
+		    widget = FRAME_GTK_OUTER_WIDGET (f);
+
+		    if (widget && !FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
+		      {
+			window = gtk_widget_get_window (widget);
+			eassert (window);
+			frame_clock = gdk_window_get_frame_clock (window);
+			eassert (frame_clock);
+
+			gdk_frame_clock_request_phase (frame_clock,
+						       GDK_FRAME_CLOCK_PHASE_BEFORE_PAINT);
+
+			FRAME_X_OUTPUT (f)->xg_sync_end_pending_p = true;
+		      }
+#endif
 		    goto done;
 		  }
 	      }
