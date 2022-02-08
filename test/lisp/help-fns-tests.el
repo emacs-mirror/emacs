@@ -25,6 +25,7 @@
 
 (require 'ert)
 (require 'help-fns)
+(require 'subr-x)
 
 (autoload 'help-fns-test--macro "foo" nil nil t)
 
