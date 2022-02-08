@@ -1719,13 +1719,13 @@ remove anything that looks like this:
 
 From your X defaults file.  Your X server might also provide a
 different visual class that will do what you want.  You can experiment
-with `TrueColor-8', by placing:
+with `TrueColor-8', by placing this:
 
   Emacs.visualClass: TrueColor-8
 
-In your ~/.Xresources, and loading that file.
+in your ~/.Xresources, and loading that file.
 
-*** Colors messed up on Cairo builds or GTK builds.
+*** Colors messed up on Cairo or GTK builds.
 
 If your display defaults to a visual where pixel values cannot be
 directly converted to their corresponding real colors, a build with
@@ -1739,7 +1739,7 @@ not colormapped.  Try the following in your ~/.Xresources:
 
   Emacs.visualClass: TrueColor-N
 
-Where "N" is the bit depth of the visual your X server defaults to.
+where "N" is the bit depth of the visual your X server defaults to.
 If that does not work, you lose.  Configure Emacs '--without-cairo'
 and '--with-x-toolkit=lucid' instead.
 
@@ -1764,9 +1764,9 @@ proprietary, it has many other disadvantages, such as not supporting
 most recent hardware and most modern extensions to the X protocol.
 Consider switching to a free X server, such as X.Org.
 
-If GTK complains about not being built with support for debugging
-options, then there is nothing you can do, except for switching to a
-free X server.
+If setting GDK_DEBUG causes GTK to complain about not being built with
+support for debugging options, then there is nothing you can do,
+except switch to a free X server.
 
 * Runtime problems on character terminals
 
