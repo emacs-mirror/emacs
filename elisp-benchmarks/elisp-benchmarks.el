@@ -77,7 +77,7 @@
   (let* ((n (length list))
 	 (mean (/ (cl-loop for x in list
 			   sum x)
-		  n)))
+		  (max n 1))))
     (sqrt (/ (cl-loop for x in list
 		   sum (expt (- x mean) 2))
 	  (1- n)))))
@@ -110,18 +110,22 @@ RECOMPILE all the benchmark folder when non nil."
 	      (funcall compile-function f))
 	    test-sources))
     ;; Load
-    (mapc #'load (mapcar (if (and (featurep 'native-compile)
-				  (fboundp 'comp-el-to-eln-filename))
-			     ;; FIXME: Isn't the elc->eln
-                             ;; remapping fully automatic?
-			     #'comp-el-to-eln-filename
-			   #'file-name-sans-extension)
-			 test-sources))
+    (mapc (lambda (file)
+	    (with-demoted-errors "Error loading: %S"
+	      (load file)))
+	  (mapcar (if (and (featurep 'native-compile)
+			   (fboundp 'comp-el-to-eln-filename))
+		      ;; FIXME: Isn't the elc->eln
+                      ;; remapping fully automatic?
+		      #'comp-el-to-eln-filename
+		    #'file-name-sans-extension)
+		  test-sources))
     (let ((tests (let ((names '()))
 	           (mapatoms (lambda (s)
 	                      (let ((name (symbol-name s)))
-	                        (when (string-match
-	                               "\\`elb-\\(.*\\)-entry\\'" name)
+	                        (when (and (fboundp s)
+	                                   (string-match
+	                                    "\\`elb-\\(.*\\)-entry\\'" name))
 	                          (push (match-string 1 name) names)))))
 	           (sort names #'string-lessp))))
       ;; (cl-loop for test in tests
@@ -137,9 +141,14 @@ RECOMPILE all the benchmark folder when non nil."
 		        do
 		        (garbage-collect)
 		        (message "Running %s..." test)
-		        (push (eval `(benchmark-run nil (,entry-point)) t)
-			      (gethash test res)))
+		        (let ((time
+		               (with-demoted-errors "Error running: %S"
+			        (eval `(benchmark-run nil (,entry-point)) t))))
+		          (when time
+			    (push time (gethash test res)))))
 	       finally
+	       (setq debug-on-error t)
+
 	       (pop-to-buffer elb-result-buffer-name)
 	       (erase-buffer)
 	       (insert "* Results\n\n")

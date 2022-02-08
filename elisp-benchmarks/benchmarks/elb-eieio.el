@@ -36,7 +36,7 @@
 
 (defun elb-eieio-entry ()
   (let ((total 0))
-    (dotimes (_ 3000)
+    (dotimes (_ 5000)
       (let ((l nil))
         ;; The elb--eieio-length recursion can't deal with more than about
         ;; 150 elements.
