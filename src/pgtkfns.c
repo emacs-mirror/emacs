@@ -1586,6 +1586,14 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   xg_create_frame_widgets (f);
   pgtk_set_event_handler (f);
 
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gtk_widget_realize (FRAME_GTK_OUTER_WIDGET (f));
+
+  /* Many callers (including the Lisp functions that call
+     FRAME_SCALE_FACTOR) expect the widget to be realized.  */
+  if (FRAME_GTK_WIDGET (f))
+    gtk_widget_realize (FRAME_GTK_WIDGET (f));
+
 #define INSTALL_CURSOR(FIELD, NAME) \
   FRAME_X_OUTPUT (f)->FIELD = gdk_cursor_new_for_display (FRAME_X_DISPLAY (f), GDK_ ## NAME)
 
