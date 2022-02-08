@@ -63,8 +63,11 @@
   :type 'number)
 
 (defconst elb-bench-directory
-  (concat (file-name-directory (or load-file-name buffer-file-name))
-	  "benchmarks/"))
+  (expand-file-name "benchmarks/"
+	            (file-name-directory
+	             (if (fboundp 'macroexp-file-name)
+	                 (macroexp-file-name)
+	               (or load-file-name buffer-file-name)))))
 
 (defconst elb-result-buffer-name "elisp-benchmarks-results"
   "Buffer name where results are presented.")
