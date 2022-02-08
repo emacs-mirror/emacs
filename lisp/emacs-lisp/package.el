@@ -2040,6 +2040,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
                                                  package-alist))))
                  (setf (package-desc-signed (car pkg-descs)) t))))))))))
 
+;;;###autoload
 (defun package-installed-p (package &optional min-version)
   "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 If PACKAGE is a symbol, it is the package name and MIN-VERSION
