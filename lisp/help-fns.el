@@ -396,7 +396,7 @@ if the variable `help-downcase-arguments' is non-nil."
 ;; `describe-face' (instead of `describe-simplify-lib-file-name').
 
 ;;;###autoload
-(defun find-lisp-object-file-name (object type)
+(defun find-lisp-object-file-name (object type &optional also-c-source)
   "Guess the file that defined the Lisp object OBJECT, of type TYPE.
 OBJECT should be a symbol associated with a function, variable, or face;
   alternatively, it can be a function definition.
@@ -407,8 +407,13 @@ If TYPE is not a symbol, search for a function definition.
 The return value is the absolute name of a readable file where OBJECT is
 defined.  If several such files exist, preference is given to a file
 found via `load-path'.  The return value can also be `C-source', which
-means that OBJECT is a function or variable defined in C.  If no
-suitable file is found, return nil."
+means that OBJECT is a function or variable defined in C, but
+it's currently unknown where.  If no suitable file is found,
+return nil.
+
+If ALSO-C-SOURCE is non-nil, instead of returning `C-source',
+this function will attempt to locate the definition of OBJECT in
+the C sources, too."
   (let* ((autoloaded (autoloadp type))
 	 (file-name (or (and autoloaded (nth 1 type))
 			(symbol-file
@@ -445,14 +450,18 @@ suitable file is found, return nil."
     (cond
      ((and (not file-name) (subrp type))
       ;; A built-in function.  The form is from `describe-function-1'.
-      (if (get-buffer " *DOC*")
+      (if (or (get-buffer " *DOC*")
+              (and also-c-source
+                   (get-buffer-create " *DOC*")))
 	  (help-C-file-name type 'subr)
 	'C-source))
      ((and (not file-name) (symbolp object)
            (eq type 'defvar)
 	   (integerp (get object 'variable-documentation)))
       ;; A variable defined in C.  The form is from `describe-variable'.
-      (if (get-buffer " *DOC*")
+      (if (or (get-buffer " *DOC*")
+              (and also-c-source
+                   (get-buffer-create " *DOC*")))
 	  (help-C-file-name object 'var)
 	'C-source))
      ((not (stringp file-name))
