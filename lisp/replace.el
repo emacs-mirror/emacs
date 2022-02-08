@@ -3233,7 +3233,13 @@ characters."
 			       (last-command 'recenter-top-bottom))
 			   (recenter-top-bottom)))
 			((eq def 'edit)
-			 (let ((opos (point-marker)))
+			 (let ((opos (point-marker))
+			       ;; Restore original isearch filter to allow
+			       ;; using isearch in a recursive edit even
+			       ;; when perform-replace was started from
+			       ;; `xref--query-replace-1' that let-binds
+			       ;; `isearch-filter-predicate' (bug#53758).
+			       (isearch-filter-predicate #'isearch-filter-visible))
 			   (setq real-match-data (replace-match-data
 						  nil real-match-data
 						  real-match-data))
