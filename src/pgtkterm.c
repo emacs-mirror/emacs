@@ -5536,6 +5536,7 @@ configure_event (GtkWidget *widget,
 		 gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->configure.window);
+
   if (f && widget == FRAME_GTK_OUTER_WIDGET (f))
     {
       if (any_help_event_p)
@@ -5547,6 +5548,15 @@ configure_event (GtkWidget *widget,
 	    frame = Qnil;
 	  help_echo_string = Qnil;
 	  gen_help_event (Qnil, frame, Qnil, Qnil, 0);
+	}
+
+      if (f->win_gravity == NorthWestGravity)
+	gtk_window_get_position (GTK_WINDOW (widget),
+				 &f->top_pos, &f->left_pos);
+      else
+	{
+	  f->top_pos = event->configure.y;
+	  f->left_pos = event->configure.x;
 	}
     }
   return FALSE;
