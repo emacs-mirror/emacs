@@ -267,8 +267,8 @@ If set to nil, don't suppress any zero counters."
          (format " [%s %s]"
                  (or sublog 'flymake)
                  ;; Handle file names with "%" correctly.  (Bug#51549)
-                 (string-replace "%" "%%"
-                                 (buffer-name (current-buffer))))))
+                 (replace-regexp-in-string "%" "%%"
+                                           (buffer-name (current-buffer))))))
     (display-warning (list 'flymake sublog)
                      (apply #'format-message msg args)
                      (if (numberp level)
