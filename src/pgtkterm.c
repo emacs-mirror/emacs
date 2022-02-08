@@ -5552,7 +5552,7 @@ configure_event (GtkWidget *widget,
 
       if (f->win_gravity == NorthWestGravity)
 	gtk_window_get_position (GTK_WINDOW (widget),
-				 &f->top_pos, &f->left_pos);
+				 &f->left_pos, &f->top_pos);
       else
 	{
 	  f->top_pos = event->configure.y;
