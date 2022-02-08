@@ -962,9 +962,14 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
   (let ((pt1 (with-current-buffer (help-buffer) (point))))
     (help-fns-function-description-header function)
     (with-current-buffer (help-buffer)
-      (fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
-                                (point))))
-  (terpri)(terpri)
+      (fill-region-as-paragraph
+       (save-excursion
+         (goto-char pt1)
+         (forward-line 0)
+         (point))
+       (point)
+       nil t)
+      (ensure-empty-lines)))
 
   (pcase-let* ((`(,real-function ,def ,_aliased ,real-def)
                 (help-fns--analyze-function function))
