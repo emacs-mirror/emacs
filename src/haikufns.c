@@ -1408,7 +1408,7 @@ haiku_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       if (haiku_get_color (SSDATA (Vx_cursor_fore_pixel),
 			   &fore_pixel))
-	error ("Bad color %s", Vx_cursor_fore_pixel);
+	error ("Bad color %s", SSDATA (Vx_cursor_fore_pixel));
       FRAME_OUTPUT_DATA (f)->cursor_fg = fore_pixel.pixel;
     }
   else
@@ -1932,7 +1932,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   (Lisp_Object string, Lisp_Object frame, Lisp_Object parms,
    Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
-  struct frame *tip_f;
+  struct frame *f, *tip_f;
   struct window *w;
   int root_x, root_y;
   struct buffer *old_buffer;
@@ -1952,7 +1952,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   if (NILP (frame))
     frame = selected_frame;
-  decode_window_system_frame (frame);
+  f = decode_window_system_frame (frame);
 
   if (NILP (timeout))
     timeout = make_fixnum (5);
@@ -2185,12 +2185,20 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   void *wnd = FRAME_HAIKU_WINDOW (tip_f);
   BWindow_resize (wnd, width, height);
   BView_resize_to (FRAME_HAIKU_VIEW (tip_f), width, height);
+  BView_set_view_cursor (FRAME_HAIKU_VIEW (tip_f),
+			 FRAME_OUTPUT_DATA (f)->current_cursor);
   BWindow_set_offset (wnd, root_x, root_y);
   BWindow_set_visible (wnd, true);
   SET_FRAME_VISIBLE (tip_f, true);
   FRAME_PIXEL_WIDTH (tip_f) = width;
   FRAME_PIXEL_HEIGHT (tip_f) = height;
   BWindow_sync (wnd);
+
+  /* This is needed because the app server resets the cursor whenever
+     a new window is mapped, so we won't see the cursor set on the
+     tooltip if the mouse pointer isn't actually over it.  */
+  BView_set_view_cursor (FRAME_HAIKU_VIEW (f),
+			 FRAME_OUTPUT_DATA (f)->current_cursor);
   unblock_input ();
 
   w->must_be_updated_p = true;
