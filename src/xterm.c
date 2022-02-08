@@ -14959,7 +14959,8 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 #ifdef USE_X_TOOLKIT
   if (f->output_data.x->widget)
     {
-      widget_update_wm_size_hints (f->output_data.x->widget);
+      widget_update_wm_size_hints (f->output_data.x->widget,
+				   f->output_data.x->edit_widget);
       return;
     }
 #endif

@@ -260,9 +260,8 @@ set_frame_size (EmacsFrame ew)
 }
 
 static void
-update_wm_hints (EmacsFrame ew)
+update_wm_hints (Widget wmshell, EmacsFrame ew)
 {
-  Widget wmshell = get_wm_shell ((Widget) ew);
   int cw;
   int ch;
   Dimension rounded_width;
@@ -271,9 +270,6 @@ update_wm_hints (EmacsFrame ew)
   int char_height;
   int base_width;
   int base_height;
-
-  /* This happens when the frame is just created.  */
-  if (! wmshell) return;
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height,
 		      &char_width, &char_height);
@@ -302,10 +298,9 @@ update_wm_hints (EmacsFrame ew)
 }
 
 void
-widget_update_wm_size_hints (Widget widget)
+widget_update_wm_size_hints (Widget widget, Widget frame)
 {
-  EmacsFrame ew = (EmacsFrame) widget;
-  update_wm_hints (ew);
+  update_wm_hints (widget, (EmacsFrame) frame);
 }
 
 static void
@@ -386,7 +381,8 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
     frame_size_history_plain
       (f, build_string ("EmacsFrameRealize"));
 
-  update_wm_hints (ew);
+  if (get_wm_shell (widget))
+    update_wm_hints (get_wm_shell (widget), ew);
 }
 
 static void
@@ -410,7 +406,8 @@ EmacsFrameResize (Widget widget)
 
   change_frame_size (f, ew->core.width, ew->core.height, false, true, false);
 
-  update_wm_hints (ew);
+  if (get_wm_shell (widget))
+    update_wm_hints (get_wm_shell (widget), ew);
   update_various_frame_slots (ew);
 
   cancel_mouse_face (f);
