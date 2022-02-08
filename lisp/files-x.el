@@ -668,7 +668,9 @@ variables for a connection profile are defined using
         (setcdr slot (delete-dups (append (cdr slot) profiles)))
       (setq connection-local-criteria-alist
             (cons (cons criteria (delete-dups profiles))
-		  connection-local-criteria-alist)))))
+		  connection-local-criteria-alist))))
+  (customize-set-variable
+   'connection-local-criteria-alist connection-local-criteria-alist))
 
 (defsubst connection-local-get-profile-variables (profile)
   "Return the connection-local variable list for PROFILE."
@@ -687,7 +689,9 @@ connection profile using `connection-local-set-profiles'.  Then
 variables are set in the server's process buffer according to the
 VARIABLES list of the connection profile.  The list is processed
 in order."
-  (setf (alist-get profile connection-local-profile-alist) variables))
+  (setf (alist-get profile connection-local-profile-alist) variables)
+  (customize-set-variable
+   'connection-local-profile-alist connection-local-profile-alist))
 
 (defun hack-connection-local-variables (criteria)
   "Read connection-local variables according to CRITERIA.
