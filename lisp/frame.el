@@ -883,7 +883,6 @@ the new frame according to its own rules."
                   (error "Don't know how to interpret display %S"
                          display)))
              (t window-system)))
-	 (oldframe (selected-frame))
 	 (params parameters)
 	 frame child-frame)
 
@@ -901,8 +900,12 @@ the new frame according to its own rules."
     (dolist (p default-frame-alist)
       (unless (assq (car p) params)
 	(push p params)))
-
-;;     (setq frame-size-history '(1000))
+    ;; Add parameters from `frame-inherited-parameters' unless they are
+    ;; overridden by explicit parameters.
+    (dolist (param frame-inherited-parameters)
+      (unless (assq param parameters)
+        (let ((val (frame-parameter nil param)))
+          (when val (push (cons param val) params)))))
 
     (when (eq (cdr (or (assq 'minibuffer params) '(minibuffer . t)))
               'child-frame)
@@ -935,12 +938,6 @@ the new frame according to its own rules."
          frame 'minibuffer (frame-root-window child-frame))))
 
     (normal-erase-is-backspace-setup-frame frame)
-    ;; Inherit original frame's parameters unless they are overridden
-    ;; by explicit parameters.
-    (dolist (param frame-inherited-parameters)
-      (unless (assq param parameters)
-        (let ((val (frame-parameter oldframe param)))
-          (when val (set-frame-parameter frame param val)))))
 
     ;; We can run `window-configuration-change-hook' for this frame now.
     (frame-after-make-frame frame t)
