@@ -4292,7 +4292,9 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	       (command (mapconcat #'tramp-shell-quote-argument command " "))
 	       ;; Set cwd and environment variables.
 	       (command
-	        (append `("cd" ,localname "&&" "(" "env") env `(,command ")"))))
+	        (append
+		 `("cd" ,(tramp-shell-quote-argument localname) "&&" "(" "env")
+		 env `(,command ")"))))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-sh.el, and tramp-adb.el or

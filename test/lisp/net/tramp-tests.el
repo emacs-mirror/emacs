@@ -6475,6 +6475,23 @@ This requires restrictions of file name syntax."
 		    (delete-file file3)
 		    (should-not (file-exists-p file3))))
 
+		;; Check, that a process runs on a remote
+		;; `default-directory' with special characters.  See
+		;; Bug#53846.
+		(when (and (tramp--test-expensive-test-p)
+			   (tramp--test-supports-processes-p))
+		  (let ((default-directory file1))
+		    (dolist (this-shell-command
+			     (append
+			      ;; Synchronously.
+			      '(shell-command)
+			      ;; Asynchronously.
+			      (and (tramp--test-asynchronous-processes-p)
+				   '(tramp--test-async-shell-command))))
+		      (with-temp-buffer
+			(funcall this-shell-command "cat -- *" (current-buffer))
+			(should (string-equal elt (buffer-string)))))))
+
 		(delete-file file2)
 		(should-not (file-exists-p file2))
 		(delete-directory file1)
