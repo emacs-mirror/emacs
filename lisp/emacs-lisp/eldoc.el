@@ -387,6 +387,10 @@ Also store it in `eldoc-last-message' and return that value."
            ;; conflicts with eldoc.
            (and (boundp 'show-paren-context-when-offscreen)
                 show-paren-context-when-offscreen
+                ;; There's no conflict with the child-frame and
+                ;; overlay versions.
+                (not (memq show-paren-context-when-offscreen
+                           '(child-frame overlay)))
                 (not (pos-visible-in-window-p
                       (overlay-end show-paren--overlay)))))))
 

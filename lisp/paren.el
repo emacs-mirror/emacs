@@ -96,14 +96,18 @@ context includes the previous nonblank line.
 
 By default, the context is shown in the echo area.
 
+If set to the symbol `overlay', the context is shown in an
+overlay at the top-left of the window.
+
 If set to the symbol `child-frame', the context is shown in a
-child frame at the top left of the window.  You might want to
+child frame at the top-left of the window.  You might want to
 customize the `child-frame-border' face (especially the
 background color) to give the child frame a distinguished border.
 On non-graphical frames, the context is shown in the echo area."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "In echo area" t)
-                 (const :tag "Child frame" child-frame))
+                 (const :tag "In overlay" overlay)
+                 (const :tag "In child-frame" child-frame))
   :version "29.1")
 
 (defvar show-paren--idle-timer nil)
@@ -368,6 +372,32 @@ It is the default value of `show-paren-data-function'."
       (add-hook 'post-command-hook
                 #'show-paren--delete-context-child-frame))))
 
+(defvar-local show-paren--context-overlay nil)
+
+(defun show-paren--delete-context-overlay ()
+  (when show-paren--context-overlay
+    (delete-overlay show-paren--context-overlay)
+    (setq show-paren--context-overlay nil))
+  (remove-hook 'post-command-hook #'show-paren--delete-overlays
+               'local))
+
+(defun show-paren--show-context-in-overlay (text)
+  "Show TEXT in an overlay at the top-left of the current window."
+  (setq text (replace-regexp-in-string "\n" " " text))
+  (show-paren--delete-context-overlay)
+  (let* ((beg (window-start))
+         (end (save-excursion
+                (goto-char beg)
+                (line-end-position))))
+    (setq show-paren--context-overlay (make-overlay beg end)))
+  (overlay-put show-paren--context-overlay 'display text)
+  (overlay-put show-paren--context-overlay
+               'face `(:box
+                       ( :line-width (1 . -1)
+                         :color ,(face-attribute 'shadow :foreground))))
+  (add-hook 'post-command-hook #'show-paren--delete-context-overlay
+            nil 'local))
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
   (let ((data (and show-paren-mode (funcall show-paren-data-function))))
@@ -435,15 +465,18 @@ It is the default value of `show-paren-data-function'."
             (if (and show-paren-context-when-offscreen
                      (< there-beg here-beg)
                      (not (pos-visible-in-window-p openparen)))
-                (let ((open-paren-line-string
-                       (blink-paren-open-paren-line-string openparen))
+                (let ((context (blink-paren-open-paren-line-string
+                                openparen))
                       (message-log-max nil))
-                  (if (and (eq show-paren-context-when-offscreen
-                               'child-frame)
-                           (display-graphic-p))
-                      (show-paren--show-context-in-child-frame
-                       open-paren-line-string)
-                    (minibuffer-message "Matches %s" open-paren-line-string)))))
+                  (cond
+                   ((and
+                     (eq show-paren-context-when-offscreen 'child-frame)
+                     (display-graphic-p))
+                    (show-paren--show-context-in-child-frame context))
+                   ((eq show-paren-context-when-offscreen 'overlay)
+                    (show-paren--show-context-in-overlay context))
+                   (show-paren-context-when-offscreen
+                    (minibuffer-message "Matches %s" context))))))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))
