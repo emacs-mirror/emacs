@@ -531,68 +531,65 @@ If this variable is nil, or if the provided function returns nil,
 
 (deffoo nnselect-request-update-info (group info &optional _server)
   (let* ((group (nnselect-add-prefix group))
-	 (gnus-newsgroup-selection
-	  (or gnus-newsgroup-selection (nnselect-get-artlist group)))
-	 newmarks)
+         (gnus-newsgroup-selection
+          (or gnus-newsgroup-selection (nnselect-get-artlist group)))
+         newmarks)
     (gnus-info-set-marks info nil)
     (setf (gnus-info-read info) nil)
     (pcase-dolist (`(,artgroup . ,nartids)
-		   (ids-by-group
-		    (number-sequence 1 (nnselect-artlist-length
-					gnus-newsgroup-selection))))
+                   (ids-by-group
+                    (number-sequence 1 (nnselect-artlist-length
+                                        gnus-newsgroup-selection))))
       (let* ((gnus-newsgroup-active nil)
-	     (artids (cl-sort nartids #'< :key 'car))
-	     (group-info (gnus-get-info artgroup))
-	     (marks (gnus-info-marks group-info))
-	     (unread (gnus-uncompress-sequence
-		      (range-difference (gnus-active artgroup)
-					(gnus-info-read group-info)))))
+             (idmap (make-hash-table :test 'eql))
+             (gactive (sort (mapcar 'cdr nartids) '<))
+             (group-info (gnus-get-info artgroup))
+             (marks (gnus-info-marks group-info)))
+	(pcase-dolist (`(,val . ,key) nartids)
+	  (puthash key val idmap))
 	(setf (gnus-info-read info)
-	      (range-add-list
-	       (gnus-info-read info)
-	       (delq nil (mapcar
-                          (lambda (art)
-                            (unless (memq (cdr art) unread) (car art)))
-			  artids))))
-	(pcase-dolist (`(,type . ,mark-list) marks)
-	  (let ((mark-type (gnus-article-mark-to-type type)) new)
-	    (when
-		(setq new
-		      (delq nil
-			    (cond
-			     ((eq mark-type 'tuple)
-			      (mapcar
-                               (lambda (id)
-                                 (let (mark)
-                                   (when
-                                       (setq mark (assq (cdr id) mark-list))
-                                     (cons (car id) (cdr mark)))))
-			       artids))
-			     (t
-			      (setq mark-list
-				    (range-uncompress mark-list))
-			      (mapcar
-                               (lambda (id)
-                                 (when (memq (cdr id) mark-list)
-                                   (car id)))  artids)))))
-	      (let ((previous (alist-get type newmarks)))
-		(if previous
-		    (nconc previous new)
-		  (push (cons type new) newmarks))))))))
+              (range-add-list
+               (gnus-info-read info)
+	       (sort (mapcar (lambda (art) (gethash art idmap))
+	                     (gnus-sorted-intersection
+		              gactive
+                              (range-uncompress (gnus-info-read group-info))))
+                     '<)))
+        (pcase-dolist (`(,type . ,mark-list) marks)
+          (let ((mark-type (gnus-article-mark-to-type type)) new)
+            (when
+                (setq new
+		      (if (not mark-list)  nil
+			(cond
+			 ((eq mark-type 'tuple)
+			  (delq nil
+				(mapcar
+				 (lambda (mark)
+				   (let ((id (gethash (car mark) idmap)))
+				     (when id (cons id (cdr mark)))))
+				 mark-list)))
+			 (t
+			  (mapcar (lambda (art) (gethash art idmap))
+				  (gnus-sorted-intersection
+				   gactive (range-uncompress mark-list)))))))
+              (let ((previous (alist-get type newmarks)))
+                (if previous
+                    (nconc previous new)
+                  (push (cons type new) newmarks))))))))
 
     ;; Clean up the marks: compress lists;
     (pcase-dolist (`(,type . ,mark-list) newmarks)
       (let ((mark-type (gnus-article-mark-to-type type)))
-	(unless (eq mark-type 'tuple)
-	  (setf (alist-get type newmarks)
-		(gnus-compress-sequence mark-list)))))
+        (unless (eq mark-type 'tuple)
+          (setf (alist-get type newmarks)
+                (gnus-compress-sequence (sort mark-list '<))))))
     ;; and ensure an unexist key.
     (unless (assq 'unexist newmarks)
       (push (cons 'unexist nil) newmarks))
 
     (gnus-info-set-marks info newmarks)
     (gnus-set-active group (cons 1 (nnselect-artlist-length
-				    gnus-newsgroup-selection)))))
+                                    gnus-newsgroup-selection)))))
 
 
 (deffoo nnselect-request-thread (header &optional group server)
@@ -753,8 +750,8 @@ If this variable is nil, or if the provided function returns nil,
 
 (deffoo nnselect-request-group-scan (group &optional _server _info)
   (let* ((group (nnselect-add-prefix group))
-	 (artlist (nnselect-run
-		   (gnus-group-get-parameter group 'nnselect-specs t))))
+	 (artlist (nnselect-uncompress-artlist (nnselect-run
+		   (gnus-group-get-parameter group 'nnselect-specs t)))))
     (gnus-set-active group (cons 1 (nnselect-artlist-length
 				    artlist)))
     (gnus-group-set-parameter
@@ -866,9 +863,6 @@ article came from is also searched."
 	      ;; When the backend can store marks we collect any
 	      ;; changes.  Unlike a normal group the mark lists only
 	      ;; include marks for articles we retrieved.
-	      (when (and (gnus-check-backend-function
-			  'request-set-mark artgroup)
-			 (not (gnus-article-unpropagatable-p type)))
 		(let* ((old (range-list-intersection
 			     artlist
 			     (alist-get type (gnus-info-marks group-info))))
@@ -880,7 +874,7 @@ article came from is also searched."
 		    ;; This shouldn't happen, but is a sanity check.
 		    (setq del (range-intersection
 			       (gnus-active artgroup) del))
-		    (push (list del 'del (list type)) delta-marks))))
+		    (push (list del 'del (list type)) delta-marks)))
 
 	      ;; Marked sets are of mark-type 'tuple, 'list, or
 	      ;; 'range. We merge the lists with what is already in
