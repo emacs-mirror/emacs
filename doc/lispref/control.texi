@@ -1326,6 +1326,20 @@ Assign values to variables in a @code{setq} form, destructuring each
 @var{value} according to its respective @var{pattern}.
 @end defmac
 
+@defmac pcase-lambda lambda-list &rest body
+This is like @code{lambda}, but allows each argument to be a pattern.
+For instance, here's a simple function that takes a cons cell as the
+argument:
+
+@example
+(setq fun
+      (pcase-lambda (`(,key . ,val))
+        (vector key (* val 10))))
+(funcall fun '(foo . 2))
+    @result{} [foo 20]
+@end example
+@end defmac
+
 @node Iteration
 @section Iteration
 @cindex iteration
