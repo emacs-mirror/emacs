@@ -7788,6 +7788,7 @@ Text larger than the specified size is clipped.  */)
   ptrdiff_t count_1;
   Lisp_Object window, size, tip_buf;
   Window child;
+  XWindowAttributes child_attrs;
   int dest_x_return, dest_y_return;
   AUTO_STRING (tip, " *tip*");
 
@@ -8028,11 +8029,24 @@ Text larger than the specified size is clipped.  */)
 			     FRAME_DISPLAY_INFO (f)->root_window,
 			     root_x, root_y, &dest_x_return,
 			     &dest_y_return, &child))
-    XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
-			  FRAME_X_WINDOW (tip_f), child);
+    {
+      /* But only if the child is not override-redirect, which can
+	 happen if the pointer is above a menu.  */
+
+      if (XGetWindowAttributes (FRAME_X_DISPLAY (f),
+				child, &child_attrs)
+	  || child_attrs.override_redirect)
+	XDeleteProperty (FRAME_X_DISPLAY (tip_f),
+			 FRAME_X_WINDOW (tip_f),
+			 FRAME_DISPLAY_INFO (tip_f)->Xatom_wm_transient_for);
+      else
+	XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
+			      FRAME_X_WINDOW (tip_f), child);
+    }
   else
-    XSetTransientForHint (FRAME_X_DISPLAY (tip_f),
-			  FRAME_X_WINDOW (tip_f), None);
+    XDeleteProperty (FRAME_X_DISPLAY (tip_f),
+		     FRAME_X_WINDOW (tip_f),
+		     FRAME_DISPLAY_INFO (tip_f)->Xatom_wm_transient_for);
 
 #ifndef USE_XCB
   XMoveResizeWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),

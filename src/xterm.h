@@ -364,6 +364,8 @@ struct x_display_info
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
   Atom Xatom_wm_window_moved;     /* When the WM moves us.  */
   Atom Xatom_wm_client_leader;    /* Id of client leader window.  */
+  Atom Xatom_wm_transient_for;    /* Id of whatever window we are
+				     transient for. */
 
   /* EditRes protocol */
   Atom Xatom_editres;
