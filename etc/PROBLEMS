@@ -1709,6 +1709,65 @@ actual version of libXi installed does not.  The solution is to
 upgrade your libXi binaries to libXi 1.8.0 or later, to correspond
 with your XInput headers.
 
+*** Requesting a private colormap makes Emacs hang.
+
+The part of Xlib that provides this feature is broken in modern
+incarnations of Xlib, so it cannot possibly work.  The solution is to
+remove anything that looks like this:
+
+  Emacs.privateColormap: on
+
+From your X defaults file.  Your X server might also provide a
+different visual class that will do what you want.  You can experiment
+with `TrueColor-8', by placing:
+
+  Emacs.visualClass: TrueColor-8
+
+In your ~/.Xresources, and loading that file.
+
+*** Colors messed up on Cairo builds or GTK builds.
+
+If your display defaults to a visual where pixel values cannot be
+directly converted to their corresponding real colors, a build with
+Cairo drawing or GTK will display colors incorrectly.  This is because
+Cairo and GTK foolishly assume that all RGB values can be converted
+directly from their individual components, without asking the X server
+to allocate the color.
+
+Your X server might have a different visual which is decomposed and
+not colormapped.  Try the following in your ~/.Xresources:
+
+  Emacs.visualClass: TrueColor-N
+
+Where "N" is the bit depth of the visual your X server defaults to.
+If that does not work, you lose.  Configure Emacs '--without-cairo'
+and '--with-x-toolkit=lucid' instead.
+
+*** GUI widgets don't display on GTK builds, except for scrollbars.
+
+This can happen if your visual does not have a decomposed colormap,
+and your X server has the X rendering extension.
+
+To solve the problem, disable the X rendering extension on your X
+server, or rebuild Emacs without GTK+.
+
+*** On Accelerated X, the GTK 3 menu bar does not select items.
+
+The solution is to run Emacs with the environment variable 'GDK_DEBUG'
+set to "nograbs", like this (where "..." stands for the other
+command-line arguments you intend to pass to Emacs):
+
+  GDK_DEBUG=nograbs emacs ...
+
+Accelerated X is a proprietary X server.  Aside from being
+proprietary, it has many other disadvantages, such as not supporting
+most recent hardware and most modern extensions to the X protocol.
+Consider switching to a free X server, such as X.Org.
+
+If GTK complains about not being built with support for debugging
+options, then there is nothing you can do, except for switching to a
+free X server.
+
 * Runtime problems on character terminals
 
 *** With X forwarding, mouse highlighting can make Emacs slow.
