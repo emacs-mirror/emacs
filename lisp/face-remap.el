@@ -395,7 +395,11 @@ a top-level keymap, `text-scale-increase' or
            (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
              (define-key map (vector (append mods (list key)))
                (lambda () (interactive) (text-scale-adjust (abs inc))))))
-         map))))) ;; )
+         map)
+       nil
+       ;; Clear the prompt after exiting.
+       (lambda ()
+         (message ""))))))
 
 (defvar-local text-scale--pinch-start-scale 0
   "The text scale at the start of a pinch sequence.")
