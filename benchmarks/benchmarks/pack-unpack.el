@@ -1,6 +1,6 @@
 ;;; benchmarks/pack-unpack.el --- Packing and unpacking binary data  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021  Free Software Foundation, Inc.
+;; Copyright (C) 2021-2022  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -45,6 +45,54 @@
 
 (require 'bindat)
 
+(defconst struct-bindat
+  '((header
+     (dest-ip . [192 168 1 100])
+     (src-ip . [192 168 1 101])
+     (dest-port . 284)
+     (src-port . 5408))
+    (items . 2)
+    (item ((type . 2)
+           (opcode . 3)
+           (length . 5)
+           (id . "ABCDEF")
+           (data . [1 2 3 4 5]))
+          ((type . 1)
+           (opcode . 4)
+           (length . 7)
+           (id . "BCDEFG")
+           (data . [6 7 8 9 10 11 12])))))
+
+;;;; First using the old API
+
+(defconst header-bindat-spec
+  '((dest-ip ip)
+    (src-ip ip)
+    (dest-port u16)
+    (src-port u16)))
+
+(defconst data-bindat-spec
+  '((type u8)
+    (opcode u8)
+    (length u16r) ;; little endian order
+    (id strz 8)
+    (data vec (length))
+    (align 4)))
+
+(defconst packet-bindat-spec
+  '((header struct header-bindat-spec)
+    (items u8)
+    (fill 3)
+    (item repeat (items)
+          (struct data-bindat-spec))))
+
+(defun elb-pack-unpack-old-entry ()
+  (dotimes (_ 40000)
+    (bindat-unpack packet-bindat-spec
+                   (bindat-pack packet-bindat-spec struct-bindat))))
+
+;;;; Then using the new API
+
 (bindat-defmacro ip () "An IPv4 address"     '(vec 4 byte))
 
 (defconst header-bindat-type
@@ -71,56 +119,10 @@
     (item repeat items
           (_ type data-bindat-type))))
 
-(defconst struct-bindat
-  '((header
-     (dest-ip . [192 168 1 100])
-     (src-ip . [192 168 1 101])
-     (dest-port . 284)
-     (src-port . 5408))
-    (items . 2)
-    (item ((type . 2)
-           (opcode . 3)
-           (length . 5)
-           (id . "ABCDEF")
-           (data . [1 2 3 4 5]))
-          ((type . 1)
-           (opcode . 4)
-           (length . 7)
-           (id . "BCDEFG")
-           (data . [6 7 8 9 10 11 12])))))
-
 (defun elb-pack-unpack-entry ()
-  (dotimes (_ 10000)
+  (dotimes (_ 40000)
     (bindat-unpack packet-bindat-type
                    (bindat-pack packet-bindat-type struct-bindat))))
-
-;;;; Same code but using the old API
-
-(defconst header-bindat-spec
-  '((dest-ip ip)
-    (src-ip ip)
-    (dest-port u16)
-    (src-port u16)))
-
-(defconst data-bindat-spec
-  '((type u8)
-    (opcode u8)
-    (length u16r) ;; little endian order
-    (id strz 8)
-    (data vec (length))
-    (align 4)))
-
-(defconst packet-bindat-spec
-  '((header struct header-bindat-spec)
-    (items u8)
-    (fill 3)
-    (item repeat (items)
-          (struct data-bindat-spec))))
-
-(defun elb-pack-unpack-old-entry ()
-  (dotimes (_ 10000)
-    (bindat-unpack packet-bindat-spec
-                   (bindat-pack packet-bindat-spec struct-bindat))))
 
 (provide 'benchmarks/pack-unpack)
 ;;; benchmarks/pack-unpack.el ends here

@@ -474,6 +474,7 @@ if INNER is non-nil, it stops at the innermost one."
                            (guard (when inner
                                     (or (member tok elb-smie-paren-block-keywords)
                                         (equal tok "do"))))))
+           (ignore tok)
            (goto-char pos) nil) ;Found it!
           (`(t ,(pred (eq (point-min))) . ,_) nil)
           (`(,_ ,pos . ,_) (goto-char pos) t)))))
@@ -884,7 +885,6 @@ Past this column, we do not try to align the backslashes."
   ;; Backslash auto-realign.
   (add-hook 'after-change-functions #'elb-smie--bs-after-change nil t)
   (add-hook 'post-command-hook #'elb-smie--bs-realign nil t)
-  (setq-local add-log-current-defun-header-regexp elb-smie--def-regexp)
   (setq-local imenu-generic-expression `((nil ,elb-smie--def-regexp 1))))
 
 ;;; The actual benchmark
@@ -894,7 +894,7 @@ Past this column, we do not try to align the backslashes."
     (insert-file-contents (expand-file-name
                            "../resources/xmenu.c" elb-bench-directory))
     (elb-smie-mode)
-    (dotimes (_ 3)
+    (dotimes (_ 5)
       (indent-region (point-min) (point-max)))))
 
 (provide 'elb-smie)

@@ -60,9 +60,10 @@
         b
       (loop (+ a b) a (- count 1)))))
 
-(defun elb-fibn-named-let-entry ()
-  (dotimes (_ 1000000)
-    (elb-fibn-named-let 80)))
+(when (fboundp 'named-let)
+  (defun elb-fibn-named-let-entry ()
+    (dotimes (_ 1000000)
+      (elb-fibn-named-let 80))))
 
 ;; Fibonacci sequence with the naive recursive algo.
 

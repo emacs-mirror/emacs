@@ -25,7 +25,7 @@
 ;;; Code:
 
 (defun elb-bytecomp-entry ()
-  (dotimes (_ 30)
+  (dotimes (_ 50)
     (byte-compile-file (expand-file-name "elb-smie.el" elb-bench-directory))))
 
 (provide 'elb-bytecomp)
