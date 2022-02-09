@@ -412,7 +412,8 @@ It is the default value of `show-paren-data-function'."
           ;; If show-paren-mode is nil in this buffer or if not at a paren that
           ;; has a match, turn off any previous paren highlighting.
           (delete-overlay show-paren--overlay)
-          (delete-overlay show-paren--overlay-1))
+          (delete-overlay show-paren--overlay-1)
+          (setq show-paren--last-pos (point)))
 
       ;; Found something to highlight.
       (let* ((here-beg (nth 0 data))
