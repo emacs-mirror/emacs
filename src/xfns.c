@@ -6431,8 +6431,7 @@ visual_classes[] =
    the X function with the same name when that doesn't exist.  */
 
 int
-XScreenNumberOfScreen (scr)
-    register Screen *scr;
+XScreenNumberOfScreen (Screen *scr)
 {
   Display *dpy = scr->display;
   int i;

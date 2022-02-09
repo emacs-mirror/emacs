@@ -13386,7 +13386,7 @@ x_calc_absolute_position (struct frame *f)
    which means, do adjust for borders but don't change the gravity.  */
 
 static void
-x_set_offset (struct frame *f, register int xoff, register int yoff, int change_gravity)
+x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 {
   int modified_top, modified_left;
 #ifdef USE_GTK
