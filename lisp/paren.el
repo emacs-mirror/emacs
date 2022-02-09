@@ -398,6 +398,12 @@ It is the default value of `show-paren-data-function'."
   (add-hook 'post-command-hook #'show-paren--delete-context-overlay
             nil 'local))
 
+;; The last position of point for which `show-paren-function' was
+;; called.  We track it in order to C-g away a context overlay or
+;; child-frame without having it pop up again after
+;; `show-paren-delay'.
+(defvar-local show-paren--last-pos nil)
+
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
   (let ((data (and show-paren-mode (funcall show-paren-data-function))))
@@ -462,21 +468,23 @@ It is the default value of `show-paren-data-function'."
           ;; point is at a closing paren, show the context around the
           ;; opening paren.
           (let ((openparen (min here-beg there-beg)))
-            (if (and show-paren-context-when-offscreen
-                     (< there-beg here-beg)
-                     (not (pos-visible-in-window-p openparen)))
-                (let ((context (blink-paren-open-paren-line-string
-                                openparen))
-                      (message-log-max nil))
-                  (cond
-                   ((and
-                     (eq show-paren-context-when-offscreen 'child-frame)
-                     (display-graphic-p))
-                    (show-paren--show-context-in-child-frame context))
-                   ((eq show-paren-context-when-offscreen 'overlay)
-                    (show-paren--show-context-in-overlay context))
-                   (show-paren-context-when-offscreen
-                    (minibuffer-message "Matches %s" context))))))
+            (when (and show-paren-context-when-offscreen
+                       (not (eql show-paren--last-pos (point)))
+                       (< there-beg here-beg)
+                       (not (pos-visible-in-window-p openparen)))
+              (let ((context (blink-paren-open-paren-line-string
+                              openparen))
+                    (message-log-max nil))
+                (cond
+                 ((and
+                   (eq show-paren-context-when-offscreen 'child-frame)
+                   (display-graphic-p))
+                  (show-paren--show-context-in-child-frame context))
+                 ((eq show-paren-context-when-offscreen 'overlay)
+                  (show-paren--show-context-in-overlay context))
+                 (show-paren-context-when-offscreen
+                  (minibuffer-message "Matches %s" context))))))
+          (setq show-paren--last-pos (point))
           ;; Always set the overlay face, since it varies.
           (overlay-put show-paren--overlay 'priority show-paren-priority)
           (overlay-put show-paren--overlay 'face face))))))
