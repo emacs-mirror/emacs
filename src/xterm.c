@@ -2220,24 +2220,29 @@ static void x_check_font (struct frame *, struct font *);
 void
 x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time)
 {
+#ifndef USE_GTK
   struct frame *focus_frame = dpyinfo->x_focus_frame;
+#endif
 
 #ifdef ENABLE_CHECKING
   eassert (t <= X_ULONG_MAX);
 #endif
   dpyinfo->last_user_time = time;
 
+#ifndef USE_GTK
   if (focus_frame)
     {
       while (FRAME_PARENT_FRAME (focus_frame))
 	focus_frame = FRAME_PARENT_FRAME (focus_frame);
 
-      XChangeProperty (dpyinfo->display,
-		       FRAME_OUTER_WINDOW (dpyinfo->x_focus_frame),
-		       dpyinfo->Xatom_net_wm_user_time,
-		       XA_CARDINAL, 32, PropModeReplace,
-		       (unsigned char *) &time, 1);
+      if (FRAME_X_OUTPUT (focus_frame)->user_time_window != None)
+	XChangeProperty (dpyinfo->display,
+			 FRAME_X_OUTPUT (focus_frame)->user_time_window,
+			 dpyinfo->Xatom_net_wm_user_time,
+			 XA_CARDINAL, 32, PropModeReplace,
+			 (unsigned char *) &time, 1);
     }
+#endif
 }
 
 
@@ -14481,6 +14486,9 @@ void
 x_make_frame_visible (struct frame *f)
 {
   struct x_display_info *dpyinfo;
+#ifndef USE_GTK
+  struct x_output *output;
+#endif
 
   if (FRAME_PARENT_FRAME (f))
     {
@@ -14518,16 +14526,44 @@ x_make_frame_visible (struct frame *f)
 	  && ! f->output_data.x->asked_for_visible)
 	x_set_offset (f, f->left_pos, f->top_pos, 0);
 
+#ifndef USE_GTK
+      output = FRAME_X_OUTPUT (f);
+
+      if (output->user_time_window == None)
+	{
+	  XSetWindowAttributes attrs;
+	  memset (&attrs, 0, sizeof attrs);
+
+	  output->user_time_window
+	    = FRAME_OUTER_WINDOW (f);
+
+	  if (x_wm_supports (f, dpyinfo->Xatom_net_wm_user_time_window))
+	    {
+	      output->user_time_window
+		= XCreateWindow (dpyinfo->display, FRAME_X_WINDOW (f),
+				 -1, -1, 1, 1, 0, 0, InputOnly,
+				 CopyFromParent, 0, &attrs);
+
+	      XChangeProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (f),
+			       dpyinfo->Xatom_net_wm_user_time_window,
+			       XA_WINDOW, 32, PropModeReplace,
+			       (unsigned char *) &output->user_time_window,
+			       1);
+	    }
+	}
+
       if (dpyinfo->last_user_time)
 	XChangeProperty (dpyinfo->display,
-			 FRAME_OUTER_WINDOW (f),
+			 output->user_time_window,
 			 dpyinfo->Xatom_net_wm_user_time,
 			 XA_CARDINAL, 32, PropModeReplace,
 			 (unsigned char *) &dpyinfo->last_user_time, 1);
       else
 	XDeleteProperty (dpyinfo->display,
-			 FRAME_OUTER_WINDOW (f),
+			 output->user_time_window,
 			 dpyinfo->Xatom_net_wm_user_time);
+#endif
 
       f->output_data.x->asked_for_visible = true;
 
@@ -16133,6 +16169,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
       ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
       ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
+      ATOM_REFS_INIT ("_NET_WM_USER_TIME_WINDOW", Xatom_net_wm_user_time_window)
       /* Session management */
       ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
       ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)

@@ -506,7 +506,7 @@ struct x_display_info
     Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
     Xatom_net_wm_opaque_region, Xatom_net_wm_ping, Xatom_net_wm_sync_request,
     Xatom_net_wm_sync_request_counter, Xatom_net_wm_frame_drawn,
-    Xatom_net_wm_user_time;
+    Xatom_net_wm_user_time, Xatom_net_wm_user_time_window;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -675,6 +675,12 @@ struct x_output
   Widget edit_widget;
 
   Widget menubar_widget;
+#endif
+
+#ifndef USE_GTK
+  /* A window used to store the user time property.  May be None or
+     the frame's outer window.  */
+  Window user_time_window;
 #endif
 
 #ifdef USE_GTK
