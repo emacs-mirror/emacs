@@ -6420,7 +6420,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
   if (p->raw_status_new)
     update_status (p);
   if (! EQ (p->status, Qrun))
-    error ("Process %s not running", SDATA (p->name));
+    error ("Process %s not running: %s", SDATA (p->name), SDATA (status_message (p)));
   if (p->outfd < 0)
     error ("Output file descriptor of %s is closed", SDATA (p->name));
 
@@ -7125,7 +7125,7 @@ process has been transmitted to the serial port.  */)
   if (XPROCESS (proc)->raw_status_new)
     update_status (XPROCESS (proc));
   if (! EQ (XPROCESS (proc)->status, Qrun))
-    error ("Process %s not running", SDATA (XPROCESS (proc)->name));
+    error ("Process %s not running: %s", SDATA (XPROCESS (proc)->name), SDATA (status_message (XPROCESS (proc))));
 
   if (coding && CODING_REQUIRE_FLUSHING (coding))
     {
