@@ -883,6 +883,9 @@ extern "C"
   extern void
   EmacsWindow_signal_menu_update_complete (void *window);
 
+  extern haiku_font_family_or_style *
+  be_list_font_families (size_t *length);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);

@@ -615,3 +615,27 @@ BFont_string_width (void *font, const char *utf8)
 {
   return ((BFont *) font)->StringWidth (utf8);
 }
+
+haiku_font_family_or_style *
+be_list_font_families (size_t *length)
+{
+  int32 families = count_font_families ();
+  haiku_font_family_or_style *array;
+  int32 idx;
+  uint32 flags;
+
+  array = (haiku_font_family_or_style *) malloc (sizeof *array * families);
+
+  if (!array)
+    return NULL;
+
+  for (idx = 0; idx < families; ++idx)
+    {
+      if (get_font_family (idx, &array[idx], &flags) != B_OK)
+	array[idx][0] = '\0';
+    }
+
+  *length = families;
+
+  return array;
+}
