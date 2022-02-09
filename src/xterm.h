@@ -1267,8 +1267,8 @@ extern void x_cr_destroy_frame_context (struct frame *);
 extern void x_cr_update_surface_desired_size (struct frame *, int, int);
 extern cairo_t *x_begin_cr_clip (struct frame *, GC);
 extern void x_end_cr_clip (struct frame *);
-extern void x_set_cr_source_with_gc_foreground (struct frame *, GC);
-extern void x_set_cr_source_with_gc_background (struct frame *, GC);
+extern void x_set_cr_source_with_gc_foreground (struct frame *, GC, bool);
+extern void x_set_cr_source_with_gc_background (struct frame *, GC, bool);
 extern void x_cr_draw_frame (cairo_t *, struct frame *);
 extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif

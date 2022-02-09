@@ -875,20 +875,35 @@ x_end_cr_clip (struct frame *f)
 }
 
 void
-x_set_cr_source_with_gc_foreground (struct frame *f, GC gc)
+x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
+				    bool respect_alpha_background)
 {
   XGCValues xgcv;
   XColor color;
+  unsigned int depth;
 
   XGetGCValues (FRAME_X_DISPLAY (f), gc, GCForeground, &xgcv);
   color.pixel = xgcv.foreground;
   x_query_colors (f, &color, 1);
-  cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
-			color.green / 65535.0, color.blue / 65535.0);
+  depth = FRAME_DISPLAY_INFO (f)->n_planes;
+
+  if (f->alpha_background < 1.0 && depth == 32
+      && respect_alpha_background)
+    {
+      cairo_set_source_rgba (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+			     color.green / 65535.0, color.blue / 65535.0,
+			     f->alpha_background);
+
+      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+    }
+  else
+    cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+                          color.green / 65535.0, color.blue / 65535.0);
 }
 
 void
-x_set_cr_source_with_gc_background (struct frame *f, GC gc)
+x_set_cr_source_with_gc_background (struct frame *f, GC gc,
+				    bool respect_alpha_background)
 {
   XGCValues xgcv;
   XColor color;
@@ -901,7 +916,8 @@ x_set_cr_source_with_gc_background (struct frame *f, GC gc)
 
   depth = FRAME_DISPLAY_INFO (f)->n_planes;
 
-  if (f->alpha_background < 1.0 && depth == 32)
+  if (f->alpha_background < 1.0 && depth == 32
+      && respect_alpha_background)
     {
       cairo_set_source_rgba (FRAME_CR_CONTEXT (f), color.red / 65535.0,
 			     color.green / 65535.0, color.blue / 65535.0,
@@ -912,7 +928,6 @@ x_set_cr_source_with_gc_background (struct frame *f, GC gc)
   else
     cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
                           color.green / 65535.0, color.blue / 65535.0);
-
 }
 
 static const cairo_user_data_key_t xlib_surface_key, saved_drawable_key;
@@ -1097,7 +1112,7 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
     cairo_rectangle (cr, dest_x, dest_y, width, height);
   else
     {
-      x_set_cr_source_with_gc_background (f, gc);
+      x_set_cr_source_with_gc_background (f, gc, false);
       cairo_rectangle (cr, dest_x, dest_y, width, height);
       cairo_fill_preserve (cr);
     }
@@ -1114,7 +1129,7 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
     }
   else
     {
-      x_set_cr_source_with_gc_foreground (f, gc);
+      x_set_cr_source_with_gc_foreground (f, gc, false);
       cairo_clip (cr);
       cairo_mask (cr, image);
     }
@@ -1325,7 +1340,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 	 regarded as Pixmap of unspecified size filled with ones.  */
       || (xgcv.stipple & ((Pixmap) 7 << (sizeof (Pixmap) * CHAR_BIT - 3))))
     {
-      x_set_cr_source_with_gc_foreground (f, gc);
+      x_set_cr_source_with_gc_foreground (f, gc, respect_alpha_background);
       cairo_rectangle (cr, x, y, width, height);
       cairo_fill (cr);
     }
@@ -1333,14 +1348,14 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
     {
       eassert (xgcv.fill_style == FillOpaqueStippled);
       eassert (xgcv.stipple != None);
-      x_set_cr_source_with_gc_background (f, gc);
+      x_set_cr_source_with_gc_background (f, gc, respect_alpha_background);
       cairo_rectangle (cr, x, y, width, height);
       cairo_fill_preserve (cr);
 
       cairo_pattern_t *pattern = x_bitmap_stipple (f, xgcv.stipple);
       if (pattern)
 	{
-	  x_set_cr_source_with_gc_foreground (f, gc);
+	  x_set_cr_source_with_gc_foreground (f, gc, respect_alpha_background);
 	  cairo_clip (cr);
 	  cairo_mask (cr, pattern);
 	}
@@ -1384,7 +1399,7 @@ x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
   cairo_t *cr;
 
   cr = x_begin_cr_clip (f, gc);
-  x_set_cr_source_with_gc_background (f, gc);
+  x_set_cr_source_with_gc_background (f, gc, respect_alpha_background);
   cairo_rectangle (cr, x, y, width, height);
   cairo_fill (cr);
   x_end_cr_clip (f);
@@ -1430,7 +1445,7 @@ x_draw_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
   cairo_t *cr;
 
   cr = x_begin_cr_clip (f, gc);
-  x_set_cr_source_with_gc_foreground (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc, false);
   cairo_rectangle (cr, x + 0.5, y + 0.5, width, height);
   cairo_set_line_width (cr, 1);
   cairo_stroke (cr);
@@ -1448,7 +1463,7 @@ x_clear_window (struct frame *f)
   cairo_t *cr;
 
   cr = x_begin_cr_clip (f, NULL);
-  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc);
+  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc, true);
   cairo_paint (cr);
   x_end_cr_clip (f);
 #else
@@ -1471,7 +1486,7 @@ x_fill_trapezoid_for_relief (struct frame *f, GC gc, int x, int y,
   cairo_t *cr;
 
   cr = x_begin_cr_clip (f, gc);
-  x_set_cr_source_with_gc_foreground (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc, false);
   cairo_move_to (cr, top_p ? x : x + height, y);
   cairo_line_to (cr, x, y + height);
   cairo_line_to (cr, top_p ? x + width - height : x + width, y + height);
@@ -1498,7 +1513,7 @@ x_erase_corners_for_relief (struct frame *f, GC gc, int x, int y,
   int i;
 
   cr = x_begin_cr_clip (f, gc);
-  x_set_cr_source_with_gc_background (f, gc);
+  x_set_cr_source_with_gc_background (f, gc, false);
   for (i = 0; i < CORNER_LAST; i++)
     if (corners & (1 << i))
       {
@@ -1531,7 +1546,7 @@ x_draw_horizontal_wave (struct frame *f, GC gc, int x, int y,
   int xoffset, n;
 
   cr = x_begin_cr_clip (f, gc);
-  x_set_cr_source_with_gc_foreground (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc, false);
   cairo_rectangle (cr, x, y, width, height);
   cairo_clip (cr);
 
@@ -4840,7 +4855,8 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
   eassert (width > 0 && height > 0);
 
   cr = x_begin_cr_clip (f, NULL);
-  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc);
+  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc,
+				      true);
   cairo_rectangle (cr, x, y, width, height);
   cairo_fill (cr);
   x_end_cr_clip (f);

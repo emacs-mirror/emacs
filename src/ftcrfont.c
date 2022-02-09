@@ -566,7 +566,7 @@ ftcrfont_draw (struct glyph_string *s,
     {
 #ifndef USE_BE_CAIRO
 #ifdef HAVE_X_WINDOWS
-      x_set_cr_source_with_gc_background (f, s->gc);
+      x_set_cr_source_with_gc_background (f, s->gc, s->hl != DRAW_CURSOR);
 #else
       pgtk_set_cr_source_with_color (f, s->xgcv.background, true);
 #endif
@@ -595,7 +595,7 @@ ftcrfont_draw (struct glyph_string *s,
     }
 #ifndef USE_BE_CAIRO
 #ifdef HAVE_X_WINDOWS
-  x_set_cr_source_with_gc_foreground (f, s->gc);
+  x_set_cr_source_with_gc_foreground (f, s->gc, false);
 #else
   pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
 #endif
