@@ -2730,8 +2730,20 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct frame *f = haiku_window_to_frame (b->window);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 
-	    if (!f || FRAME_TOOLTIP_P (f))
+	    if (!f)
 	      continue;
+
+	    if (FRAME_TOOLTIP_P (f))
+	      {
+		/* Dismiss the tooltip if the mouse moves onto a
+		   tooltip frame.  FIXME: for some reason we don't get
+		   leave notification events for this.  */
+
+		if (any_help_event_p)
+		  do_help = -1;
+
+		break;
+	      }
 
 	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
