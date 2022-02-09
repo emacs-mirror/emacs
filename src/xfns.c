@@ -7285,19 +7285,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
                          NULL, NULL, RES_TYPE_BOOLEAN);
 
-  /* Init faces before gui_default_parameter is called for the
-     scroll-bar-width parameter because otherwise we end up in
-     init_iterator with a null face cache, which should not happen.  */
-  init_frame_faces (f);
-
-  f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
-
-  gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
-                         "inhibitDoubleBuffering", "InhibitDoubleBuffering",
-                         RES_TYPE_BOOLEAN);
-
-  gui_figure_window_size (f, parms, false, false);
-
   {
 #ifndef USE_XCB
     XSetWindowAttributes attrs;
@@ -7388,6 +7375,19 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     unblock_input ();
 #endif
   }
+
+  /* Init faces before gui_default_parameter is called for the
+     scroll-bar-width parameter because otherwise we end up in
+     init_iterator with a null face cache, which should not happen.  */
+  init_frame_faces (f);
+
+  gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                         "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                         RES_TYPE_BOOLEAN);
+
+  gui_figure_window_size (f, parms, false, false);
+
+  f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
 
   x_make_gc (f);
 
