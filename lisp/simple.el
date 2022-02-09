@@ -8303,7 +8303,8 @@ Just \\[universal-argument] as argument means to use the current column."
              ;; We used to use current-column silently, but C-x f is too easily
              ;; typed as a typo for C-x C-f, so we turned it into an error and
              ;; now an interactive prompt.
-             (read-number "Set fill-column to: " (current-column)))))
+             (read-number (format "Change fill-column from %s to: " fill-column)
+                          (current-column)))))
   (if (consp arg)
       (setq arg (current-column)))
   (if (not (integerp arg))
