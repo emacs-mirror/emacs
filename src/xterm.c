@@ -14485,8 +14485,8 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
 void
 x_make_frame_visible (struct frame *f)
 {
-  struct x_display_info *dpyinfo;
 #ifndef USE_GTK
+  struct x_display_info *dpyinfo;
   struct x_output *output;
 #endif
 
@@ -14513,7 +14513,10 @@ x_make_frame_visible (struct frame *f)
   block_input ();
 
   gui_set_bitmap_icon (f);
+
+#ifndef USE_GTK
   dpyinfo = FRAME_DISPLAY_INFO (f);
+#endif
 
   if (! FRAME_VISIBLE_P (f))
     {
