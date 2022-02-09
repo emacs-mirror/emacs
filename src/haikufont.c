@@ -1043,8 +1043,7 @@ haikufont_list_family (struct frame *f)
   for (idx = 0; idx < length; ++idx)
     {
       if (styles[idx][0])
-	list = Fcons (build_string_from_utf8 ((char *) &styles[idx]),
-		      list);
+	list = Fcons (intern ((char *) &styles[idx]), list);
     }
 
   free (styles);
