@@ -1861,7 +1861,9 @@ concatenated and the result truncated."
     buffs))
 
 (defun calendar-exit (&optional kill)
-  "Get out of the calendar window and hide it and related buffers."
+  "Get out of the calendar window and hide it and related buffers.
+If KILL (interactively, the prefix), kill the buffers instead of
+hiding them."
   (interactive "P")
   (let ((diary-buffer (get-file-buffer diary-file))
         (calendar-buffers (calendar-buffer-list)))
@@ -1880,7 +1882,12 @@ concatenated and the result truncated."
 		      (iconify-frame (window-frame w)))
 		  (quit-window kill w))))
         (dolist (b calendar-buffers)
-          (quit-windows-on b kill))))))
+          (quit-windows-on b kill)))
+      ;; Finally, kill non-displayed buffers (if requested).
+      (when kill
+        (dolist (b calendar-buffers)
+          (when (buffer-live-p b)
+            (kill-buffer b)))))))
 
 (defun calendar-current-date (&optional offset)
   "Return the current date in a list (month day year).
