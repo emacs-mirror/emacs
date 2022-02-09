@@ -446,10 +446,10 @@ When non-nil, if the point is in a closing delimiter and the opening
 delimiter is offscreen, shows some context around the opening
 delimiter in the echo area.  Default nil.
 
-May also be set to the symbol 'child-frame' in which case the context
-is shown in a child frame at the top left of the current window on
-graphical frames.  On non-graphical frames, the context is shown in
-the echo area.
+May also be set to the symbols 'overlay' or 'child-frame' in which
+case the context is shown in an overlay or child-frame at the top-left
+of the current window.  The latter option requires a graphical frame.
+On non-graphical frames, the context is shown in the echo area.
 
 ** Comint
 
