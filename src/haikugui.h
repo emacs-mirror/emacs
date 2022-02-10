@@ -19,11 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef _HAIKU_GUI_H_
 #define _HAIKU_GUI_H_
 
-#ifdef _cplusplus
-extern "C"
-{
-#endif
-
 typedef struct haiku_char_struct
 {
   int rbearing;
@@ -100,7 +95,4 @@ typedef haiku Drawable;
 typedef haiku Window;
 typedef int Display;
 
-#ifdef _cplusplus
-};
-#endif
 #endif /* _HAIKU_GUI_H_ */
