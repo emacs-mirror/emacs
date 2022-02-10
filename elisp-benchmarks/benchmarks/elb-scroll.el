@@ -35,7 +35,7 @@
   (defun elb-scroll-entry ()
     ;; FIXME: This relies on `elb-smie.el' being compiled already which is
     ;; not necessarily the case if we're only running some of the benchmarks.
-    (load (expand-file-name "elb-smie.elc" elb-bench-directory))
+    (load (expand-file-name "elb-smie" elb-bench-directory))
     (setq redisplay-skip-initial-frame nil)
     (with-temp-buffer
       (rename-buffer (generate-new-buffer-name "elb-scroll"))
