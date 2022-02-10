@@ -541,6 +541,49 @@ DIRS are relative."
   (setq comp--compilable t))
 
 (defvar native-comp-eln-load-path)
+
+(defvar startup--original-eln-load-path nil
+  "Original value of `native-comp-eln-load-path'.")
+
+(defun startup-redirect-eln-cache (cache-directory)
+  "Redirect the user's eln-cache directory to CACHE-DIRECTORY.
+CACHE-DIRECTORY must be a single directory, a string.
+This function destructively changes `native-comp-eln-load-path'
+so that its first element is CACHE-DIRECTORY.  If CACHE-DIRECTORY
+is not an absolute file name, it is interpreted relative
+to `user-emacs-directory'.
+For best results, call this function in your early-init file,
+so that the rest of initialization and package loading uses
+the updated value."
+  (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
+                      (file-writable-p (expand-file-name
+                                        (or temporary-file-directory "")))
+                      (car native-comp-eln-load-path))))
+    (if tmp-dir
+        (setq native-comp-eln-load-path
+              (cdr native-comp-eln-load-path)))
+    ;; Remove the original eln-cache.
+    (setq native-comp-eln-load-path
+          (cdr native-comp-eln-load-path))
+    ;; Add the new eln-cache.
+    (push (expand-file-name (file-name-as-directory cache-directory)
+                            user-emacs-directory)
+          native-comp-eln-load-path)
+    (when tmp-dir
+      ;; Recompute tmp-dir, in case user-emacs-directory affects it.
+      (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
+      (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+      (push tmp-dir native-comp-eln-load-path))))
+
+(defun startup--update-eln-cache ()
+  "Update the user eln-cache directory due to user customizations."
+  ;; Don't override user customizations!
+  (when (equal native-comp-eln-load-path
+               startup--original-eln-load-path)
+    (startup-redirect-eln-cache "eln-cache")
+    (setq startup--original-eln-load-path
+          (copy-sequence native-comp-eln-load-path))))
+
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
@@ -559,7 +602,7 @@ It is the default value of the variable `top-level'."
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
     (when (featurep 'native-compile)
-      ;; Form `native-comp-eln-load-path'.
+      ;; Form the initial value of `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
           (dolist (path (split-string path-env path-separator))
@@ -674,7 +717,9 @@ It is the default value of the variable `top-level'."
                            ;; native-comp-eln-load-path.
                            (expand-file-name
                             (decode-coding-string dir coding t)))
-                         npath))))
+                         npath)))
+          (setq startup--original-eln-load-path
+                (copy-sequence native-comp-eln-load-path)))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name
@@ -724,46 +769,6 @@ It is the default value of the variable `top-level'."
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
-
-        ;; Do this after `command-line', since it may alter
-        ;; `user-emacs-directory'.
-        (when (featurep 'native-compile)
-          ;; Form `native-comp-eln-load-path'.
-          (let ((path-env (getenv "EMACSNATIVELOADPATH")))
-            (when path-env
-              (dolist (path (split-string path-env path-separator))
-                (unless (string= "" path)
-                  (push path native-comp-eln-load-path)))))
-          (push (expand-file-name "eln-cache/" user-emacs-directory)
-                native-comp-eln-load-path)
-          ;; When $HOME is set to '/nonexistent' means we are running the
-          ;; testsuite, add a temporary folder in front to produce there
-          ;; new compilations.
-          (when (and (equal (getenv "HOME") "/nonexistent")
-                     ;; We may be running in a chroot environment where we
-                     ;; can't write anything.
-                     (file-writable-p (expand-file-name
-                                       (or temporary-file-directory ""))))
-            (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
-              (add-hook 'kill-emacs-hook
-                        (lambda ()
-                          (delete-directory tmp-dir t)))
-              (push tmp-dir native-comp-eln-load-path)))
-          (when locale-coding-system
-            (let ((coding (if (eq system-type 'windows-nt)
-			      ;; MS-Windows build converts all file names to
-			      ;; UTF-8 during startup.
-			      'utf-8
-		            locale-coding-system))
-                  (npath (symbol-value 'native-comp-eln-load-path)))
-              (set 'native-comp-eln-load-path
-                   (mapcar (lambda (dir)
-                             ;; Call expand-file-name to remove all the
-                             ;; pesky ".." from the directyory names in
-                             ;; native-comp-eln-load-path.
-                             (expand-file-name
-                              (decode-coding-string dir coding t)))
-                           npath)))))
 
 	;; Do this again, in case .emacs defined more abbreviations.
 	(if default-directory
@@ -831,35 +836,6 @@ It is the default value of the variable `top-level'."
 	    (font-menu-add-default))
 	(unless inhibit-startup-hooks
 	  (run-hooks 'window-setup-hook))))
-
-    ;; Amend `native-comp-eln-load-path' after `command-line', since
-    ;; the latter may have altered `user-emacs-directory'.
-    (when (featurep 'native-compile)
-      (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
-                          (file-writable-p (expand-file-name
-                                            (or temporary-file-directory "")))
-                          (car native-comp-eln-load-path)))
-            (coding (if (eq system-type 'windows-nt)
-		        'utf-8
-		      locale-coding-system)))
-        (if tmp-dir
-            (setq native-comp-eln-load-path
-                  (cdr native-comp-eln-load-path)))
-        ;; Remove the original eln-cache.
-        (setq native-comp-eln-load-path
-              (cdr native-comp-eln-load-path))
-        ;; Add the new eln-cache.
-        (push (expand-file-name "eln-cache/"
-                                (if coding
-                                    (decode-coding-string user-emacs-directory
-                                                          coding t)
-                                  user-emacs-directory))
-              native-comp-eln-load-path)
-        (when tmp-dir
-          ;; Recompute tmp-dir, in case user-emacs-directory affects it.
-          (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
-          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
-          (push tmp-dir native-comp-eln-load-path))))
 
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
@@ -1362,6 +1338,12 @@ please check its value")
       startup-init-directory)))
   (setq early-init-file user-init-file)
 
+  ;; Amend `native-comp-eln-load-path', since the early-init file may
+  ;; have altered `user-emacs-directory' and/or changed the eln-cache
+  ;; directory.
+  (when (featurep 'native-compile)
+    (startup--update-eln-cache))
+
   ;; If any package directory exists, initialize the package system.
   (and user-init-file
        package-enable-at-startup
@@ -1495,6 +1477,12 @@ please check its value")
         "init.el"
         startup-init-directory))
      t)
+
+    ;; Amend `native-comp-eln-load-path' again, since the early-init
+    ;; file may have altered `user-emacs-directory' and/or changed the
+    ;; eln-cache directory.
+    (when (featurep 'native-compile)
+      (startup--update-eln-cache))
 
     (when (and deactivate-mark transient-mark-mode)
       (with-current-buffer (window-buffer)

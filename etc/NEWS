@@ -92,6 +92,14 @@ This is run at the end of the Emacs startup process, and it meant to
 be used to reinitialize structures that would normally be done at load
 time.
 
+---
+** New function 'startup-redirect-eln-cache'.
+This function can be called in your init files to change the
+user-specific directory where Emacs stores the "*.eln" files produced
+by native compilation of Lisp packages Emacs loads.  The default
+eln-cache directory is unchanged: it is the 'eln-cache' subdirectory
+of 'user-emacs-directory'.
+
 
 * Incompatible changes in Emacs 29.1
 
