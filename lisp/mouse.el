@@ -321,10 +321,12 @@ At the end, it's possible to modify the final menu by specifying
 the function `context-menu-filter-function'."
   (let* ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t)))
          (click (or click last-input-event))
+         (window (posn-window (event-start click)))
          (fun (mouse-posn-property (event-start click)
                                    'context-menu-function)))
 
-    (select-window (posn-window (event-start click)))
+    (unless (eq (selected-window) window)
+      (select-window window))
 
     (if (functionp fun)
         (setq menu (funcall fun menu click))
