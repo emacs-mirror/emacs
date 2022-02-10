@@ -846,6 +846,9 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
   GtkCssProvider *css_provider =
     FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider;
 
+  if (FRAME_TOOLTIP_P (f))
+    return;
+
   if (NILP (new_value))
     {
       gtk_css_provider_load_from_data (css_provider, "", -1, NULL);
