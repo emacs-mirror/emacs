@@ -541,6 +541,8 @@ DIRS are relative."
   (setq comp--compilable t))
 
 (defvar native-comp-eln-load-path)
+(defvar native-comp-deferred-compilation)
+(defvar comp-enable-subr-trampolines)
 
 (defvar startup--original-eln-load-path nil
   "Original value of `native-comp-eln-load-path'.")
@@ -600,6 +602,14 @@ It is the default value of the variable `top-level'."
 	      startup--xdg-config-default)))
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
+
+    (unless (native-comp-available-p)
+      ;; Disable deferred async compilation and trampoline synthesis
+      ;; in this session.  This is necessary if libgccjit is not
+      ;; available on MS-Windows, but Emacs was built with
+      ;; native-compilation support.
+      (setq native-comp-deferred-compilation nil
+            comp-enable-subr-trampolines nil))
 
     (when (featurep 'native-compile)
       ;; Form the initial value of `native-comp-eln-load-path'.
