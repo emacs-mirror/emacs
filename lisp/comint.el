@@ -3191,8 +3191,8 @@ inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters.
       (while (not giveup)
 	(let ((startpoint (point)))
 	  (skip-chars-backward (concat "\\\\" word-chars))
-	  (if (and comint-file-name-quote-list
-		   (eq (char-before (1- (point))) ?\\))
+	  (if (and (eq (char-before (1- (point))) ?\\)
+                   (memq (char-before) comint-file-name-quote-list))
 	      (forward-char -2))
 	  ;; FIXME: This isn't consistent with Bash, at least -- not
 	  ;; all non-ASCII chars should be word constituents.
