@@ -14534,21 +14534,36 @@ x_make_frame_visible (struct frame *f)
 #ifndef USE_GTK
       output = FRAME_X_OUTPUT (f);
 
-      if (output->user_time_window == None)
+      if (!x_wm_supports (f, dpyinfo->Xatom_net_wm_user_time_window))
 	{
-	  XSetWindowAttributes attrs;
-	  memset (&attrs, 0, sizeof attrs);
-
-	  output->user_time_window
-	    = FRAME_OUTER_WINDOW (f);
-
-	  if (x_wm_supports (f, dpyinfo->Xatom_net_wm_user_time_window))
+	  if (output->user_time_window == None)
+	    output->user_time_window = FRAME_OUTER_WINDOW (f);
+	  else if (output->user_time_window != FRAME_OUTER_WINDOW (f))
 	    {
+	      XDestroyWindow (dpyinfo->display,
+			      output->user_time_window);
+	      XDeleteProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (f),
+			       dpyinfo->Xatom_net_wm_user_time_window);
+	      output->user_time_window = FRAME_OUTER_WINDOW (f);
+	    }
+	}
+      else
+	{
+	  if (output->user_time_window == FRAME_OUTER_WINDOW (f)
+	      || output->user_time_window == None)
+	    {
+	      XSetWindowAttributes attrs;
+	      memset (&attrs, 0, sizeof attrs);
+
 	      output->user_time_window
 		= XCreateWindow (dpyinfo->display, FRAME_X_WINDOW (f),
 				 -1, -1, 1, 1, 0, 0, InputOnly,
 				 CopyFromParent, 0, &attrs);
 
+	      XDeleteProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (f),
+			       dpyinfo->Xatom_net_wm_user_time);
 	      XChangeProperty (dpyinfo->display,
 			       FRAME_OUTER_WINDOW (f),
 			       dpyinfo->Xatom_net_wm_user_time_window,
