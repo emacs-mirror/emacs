@@ -5402,7 +5402,8 @@ be granted."
         (offset (cond
                  ((eq ?r access) 1)
                  ((eq ?w access) 2)
-                 ((eq ?x access) 3))))
+                 ((eq ?x access) 3)
+                 ((eq ?s access) 3))))
     (dolist (suffix '("string" "integer") result)
       (setq
        result
@@ -5432,13 +5433,15 @@ be granted."
             ;; User accessible and owned by user.
             (and
              (eq access (aref (file-attribute-modes file-attr) offset))
-	     (or (equal remote-uid (file-attribute-user-id file-attr))
+	     (or (equal remote-uid unknown-id)
+		 (equal remote-uid (file-attribute-user-id file-attr))
 		 (equal unknown-id (file-attribute-user-id file-attr))))
             ;; Group accessible and owned by user's principal group.
             (and
              (eq access
 		 (aref (file-attribute-modes file-attr) (+ offset 3)))
-             (or (equal remote-gid (file-attribute-group-id file-attr))
+             (or (equal remote-gid unknown-id)
+		 (equal remote-gid (file-attribute-group-id file-attr))
 		 (equal unknown-id (file-attribute-group-id file-attr))))))))))))
 
 (defun tramp-get-remote-uid (vec id-format)

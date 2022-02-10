@@ -1385,7 +1385,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-executable-p"
-      (tramp-check-cached-permissions v ?x))))
+      (or (tramp-check-cached-permissions v ?x)
+	  (tramp-check-cached-permissions v ?s)))))
 
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -1603,8 +1604,7 @@ ID-FORMAT valid values are `string' and `integer'."
       (tramp-file-name-user vec)
     (when-let ((localname
 		(tramp-get-connection-property
-		 (tramp-get-process vec) "share"
-		 (tramp-get-connection-property vec "default-location" nil))))
+		 (tramp-get-process vec) "share" nil)))
       (file-attribute-user-id
        (file-attributes (tramp-make-tramp-file-name vec localname) id-format)))))
 
@@ -1613,8 +1613,7 @@ ID-FORMAT valid values are `string' and `integer'."
 ID-FORMAT valid values are `string' and `integer'."
   (when-let ((localname
 	      (tramp-get-connection-property
-	       (tramp-get-process vec) "share"
-	       (tramp-get-connection-property vec "default-location" nil))))
+	       (tramp-get-process vec) "share" nil)))
     (file-attribute-group-id
      (file-attributes (tramp-make-tramp-file-name vec localname) id-format))))
 

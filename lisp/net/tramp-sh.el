@@ -1585,6 +1585,7 @@ ID-FORMAT valid values are `string' and `integer'."
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
       (or (tramp-check-cached-permissions v ?x)
+	  (tramp-check-cached-permissions v ?s)
 	  (tramp-run-test "-x" filename)))))
 
 (defun tramp-sh-handle-file-readable-p (filename)
