@@ -6591,4 +6591,11 @@ OBJECT if it is readable."
              (throw 'unreadable nil))))
       (prin1-to-string object))))
 
+(defun delete-line ()
+  "Delete the current line."
+  (delete-region (line-beginning-position)
+                 (progn
+                   (forward-line 1)
+                   (point))))
+
 ;;; subr.el ends here

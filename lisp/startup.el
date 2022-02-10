@@ -2663,7 +2663,7 @@ nil default-directory" name)
                        ;; actually exist on some systems.
                        (when (file-exists-p truename)
                          (setq file-ex truename))
-                       (load file-ex nil t t)))
+                       (command-line--load-script file-ex)))
 
                     ((equal argi "-insert")
                      (setq inhibit-startup-screen t)
@@ -2837,6 +2837,19 @@ nil default-directory" name)
         ;; 	(setq menubar-bindings-done t))
 
         (display-startup-screen (> displayable-buffers-len 0))))))
+
+(defun command-line--load-script (file)
+  (load-with-code-conversion
+   file file nil nil
+   (lambda (buffer file)
+     (with-current-buffer buffer
+       (goto-char (point-min))
+       ;; Removing the #! and then calling `eval-buffer' will make the
+       ;; reader not signal an error if it then turns out that the
+       ;; buffer is empty.
+       (when (looking-at "#!")
+         (delete-line))
+       (eval-buffer buffer nil file nil t)))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
