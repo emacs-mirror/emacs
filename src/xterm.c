@@ -3292,9 +3292,7 @@ x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 
   gamma_correct (f, color);
 
-  if (dpyinfo->red_bits > 0
-      && (dpyinfo->n_planes != 32
-	  || dpyinfo->alpha_bits > 0))
+  if (dpyinfo->red_bits > 0)
     {
       color->pixel = x_make_truecolor_pixel (dpyinfo,
 					     color->red,
