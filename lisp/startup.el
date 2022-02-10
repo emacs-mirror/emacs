@@ -2840,7 +2840,7 @@ nil default-directory" name)
 
 (defun command-line--load-script (file)
   (load-with-code-conversion
-   file file nil nil
+   file file nil t
    (lambda (buffer file)
      (with-current-buffer buffer
        (goto-char (point-min))
