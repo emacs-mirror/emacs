@@ -49,19 +49,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct xftface_info
 {
+  bool bg_allocated_p;
+  bool fg_allocated_p;
   XftColor xft_fg;		/* color for face->foreground */
   XftColor xft_bg;		/* color for face->background */
 };
 
 /* Setup foreground and background colors of GC into FG and BG.  If
    XFTFACE_INFO is not NULL, reuse the colors in it if possible.  BG
-   may be NULL.  */
+   may be NULL.  Return whether or not colors were allocated in
+   BG_ALLOCATED_P and FG_ALLOCATED_P.  */
 
 static void
 xftfont_get_colors (struct frame *f, struct face *face, GC gc,
 		    struct xftface_info *xftface_info,
-		    XftColor *fg, XftColor *bg)
+		    XftColor *fg, XftColor *bg,
+		    bool *bg_allocated_p, bool *fg_allocated_p)
 {
+  *bg_allocated_p = false;
+  *fg_allocated_p = false;
+
   if (xftface_info && face->gc == gc)
     {
       *fg = xftface_info->xft_fg;
@@ -94,20 +101,39 @@ xftfont_get_colors (struct frame *f, struct face *face, GC gc,
 	{
 	  XColor colors[2];
 
-	  colors[0].pixel = fg->pixel = xgcv.foreground;
+	  colors[0].pixel = xgcv.foreground;
 	  if (bg)
-	    colors[1].pixel = bg->pixel = xgcv.background;
+	    colors[1].pixel = xgcv.background;
 	  x_query_colors (f, colors, bg ? 2 : 1);
 	  fg->color.alpha = 0xFFFF;
 	  fg->color.red = colors[0].red;
 	  fg->color.green = colors[0].green;
 	  fg->color.blue = colors[0].blue;
+
+	  if (!XftColorAllocValue (FRAME_X_DISPLAY (f),
+				   FRAME_X_VISUAL (f),
+				   FRAME_X_COLORMAP (f),
+				   &fg->color, fg))
+	    /* This color should've been allocated when creating the
+	       GC.  */
+	    emacs_abort ();
+	  else
+	    *fg_allocated_p = true;
+
 	  if (bg)
 	    {
 	      bg->color.alpha = 0xFFFF;
 	      bg->color.red = colors[1].red;
 	      bg->color.green = colors[1].green;
 	      bg->color.blue = colors[1].blue;
+
+	      if (!XftColorAllocValue (FRAME_X_DISPLAY (f),
+				       FRAME_X_VISUAL (f),
+				       FRAME_X_COLORMAP (f),
+				       &bg->color, bg))
+		emacs_abort ();
+	      else
+		*bg_allocated_p = true;
 	    }
 	}
       unblock_input ();
@@ -360,9 +386,12 @@ xftfont_prepare_face (struct frame *f, struct face *face)
     }
 #endif
 
-  xftface_info = xmalloc (sizeof *xftface_info);
+  xftface_info = xzalloc (sizeof *xftface_info);
   xftfont_get_colors (f, face, face->gc, NULL,
-		      &xftface_info->xft_fg, &xftface_info->xft_bg);
+		      &xftface_info->xft_fg,
+		      &xftface_info->xft_bg,
+		      &xftface_info->bg_allocated_p,
+		      &xftface_info->fg_allocated_p);
   face->extra = xftface_info;
 }
 
@@ -381,6 +410,18 @@ xftfont_done_face (struct frame *f, struct face *face)
   xftface_info = (struct xftface_info *) face->extra;
   if (xftface_info)
     {
+      if (xftface_info->fg_allocated_p)
+	XftColorFree (FRAME_X_DISPLAY (f),
+		      FRAME_X_VISUAL (f),
+		      FRAME_X_COLORMAP (f),
+		      &xftface_info->xft_fg);
+
+      if (xftface_info->bg_allocated_p)
+	XftColorFree (FRAME_X_DISPLAY (f),
+		      FRAME_X_VISUAL (f),
+		      FRAME_X_COLORMAP (f),
+		      &xftface_info->xft_bg);
+
       xfree (xftface_info);
       face->extra = NULL;
     }
@@ -469,13 +510,16 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   XftDraw *xft_draw = xftfont_get_xft_draw (f);
   FT_UInt *code;
   XftColor fg, bg;
+  bool bg_allocated_p, fg_allocated_p;
   int len = to - from;
   int i;
 
   if (s->font == face->font)
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
-		      &fg, with_background ? &bg : NULL);
+		      &fg, with_background ? &bg : NULL,
+		      &bg_allocated_p, &fg_allocated_p);
+
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -550,6 +594,19 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
      FRAME_X_DRAWABLE in order to draw: we cached the drawable in the
      XftDraw structure.  */
   x_mark_frame_dirty (f);
+
+  if (bg_allocated_p)
+    XftColorFree (FRAME_X_DISPLAY (f),
+		  FRAME_X_VISUAL (f),
+		  FRAME_X_COLORMAP (f),
+		  &bg);
+
+  if (fg_allocated_p)
+    XftColorFree (FRAME_X_DISPLAY (f),
+		  FRAME_X_VISUAL (f),
+		  FRAME_X_COLORMAP (f),
+		  &fg);
+
   unblock_input ();
   return len;
 }
