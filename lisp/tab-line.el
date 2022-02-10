@@ -591,7 +591,7 @@ For use in `tab-line-tab-face-functions'."
                           ;; handle tab-line scrolling
                           (window-parameter nil 'tab-line-hscroll)
                           ;; for setting face 'tab-line-tab-current'
-                          (eq (selected-window) (old-selected-window))
+                          (mode-line-window-selected-p)
                           (and (memq 'tab-line-tab-face-modified
                                      tab-line-tab-face-functions)
                                (buffer-file-name) (buffer-modified-p))))
