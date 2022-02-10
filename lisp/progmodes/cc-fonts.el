@@ -2253,12 +2253,13 @@ higher."
 ;; redisplay.
 (defvar c-re-redisplay-timer nil)
 
-(defun c-force-redisplay (start end)
+(defun c-force-redisplay (buffer start end)
   ;; Force redisplay immediately.  This assumes `font-lock-support-mode' is
   ;; 'jit-lock-mode.  Set the variable `c-re-redisplay-timer' to nil.
-  (save-excursion (c-font-lock-fontify-region start end))
-  (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
-  (setq c-re-redisplay-timer nil))
+  (with-current-buffer buffer
+    (save-excursion (c-font-lock-fontify-region start end))
+    (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
+    (setq c-re-redisplay-timer nil)))
 
 (defun c-fontify-new-found-type (type)
   ;; Cause the fontification of TYPE, a string, wherever it occurs in the
@@ -2288,6 +2289,7 @@ higher."
 			 (not c-re-redisplay-timer))
 		(setq c-re-redisplay-timer
 		      (run-with-timer 0 nil #'c-force-redisplay
+				      (current-buffer)
 				      (match-beginning 0) (match-end 0)))))))))))
 
 
