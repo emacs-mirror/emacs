@@ -4055,11 +4055,9 @@ x_make_gc (struct frame *f)
   /* Cursor has cursor-color background, background-color foreground.  */
   gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
   gc_values.background = f->output_data.x->cursor_pixel;
-  gc_values.fill_style = FillOpaqueStippled;
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
-		 (GCForeground | GCBackground
-		  | GCFillStyle | GCLineWidth),
+		 (GCForeground | GCBackground | GCLineWidth),
 		 &gc_values);
 
   /* Create the gray border tile used when the pointer is not in
