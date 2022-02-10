@@ -2111,6 +2111,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       int depth = FRAME_DISPLAY_INFO (f)->n_planes;
       XGCValues gcv;
       unsigned long background = face->background;
+      XColor bg;
 #ifdef HAVE_XRENDER
       Picture picture = None;
       XRenderPictureAttributes attrs;
@@ -2123,9 +2124,18 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       else
 	bits = (char *) p->bits + p->dh;
 
-      if (FRAME_DISPLAY_INFO (f)->alpha_bits)
+      if (FRAME_DISPLAY_INFO (f)->alpha_bits
+	  && f->alpha_background < 1.0)
 	{
-	  background = (background & ~FRAME_DISPLAY_INFO (f)->alpha_mask);
+	  bg.pixel = background;
+	  x_query_colors (f, &bg, 1);
+	  bg.red *= f->alpha_background;
+	  bg.green *= f->alpha_background;
+	  bg.blue *= f->alpha_background;
+
+	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
+					       bg.red, bg.green, bg.blue);
+	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
 	  background |= (((unsigned long) (f->alpha_background * 0xffff)
 			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
 			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
