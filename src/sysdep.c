@@ -664,7 +664,7 @@ sys_subshell (void)
 #else
   {
     char *volatile str_volatile = str;
-    pid = vfork ();
+    pid = VFORK ();
     str = str_volatile;
   }
 #endif

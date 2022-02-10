@@ -1500,7 +1500,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   if (pty != NULL)
     pid = fork ();
   else
-    pid = vfork ();
+    pid = VFORK ();
 #else
   pid = vfork ();
 #endif

@@ -353,6 +353,19 @@ extern int emacs_setenv_TZ (char const *);
 # define vfork fork
 #endif
 
+/* vfork is deprecated on at least macOS 11.6 and later, but it still works
+   and is faster than fork, so silence the warning as if we knew what we
+   are doing.  */
+#ifdef DARWIN_OS
+#define VFORK()								\
+  (_Pragma("clang diagnostic push")					\
+   _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")	\
+   vfork ()								\
+   _Pragma("clang diagnostic pop"))
+#else
+#define VFORK() vfork ()
+#endif
+
 #if ! (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__)
 # undef PROFILING
 #endif
