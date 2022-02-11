@@ -540,15 +540,15 @@ It is the default value of the variable `top-level'."
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
-    (unless (native-comp-available-p)
-      ;; Disable deferred async compilation and trampoline synthesis
-      ;; in this session.  This is necessary if libgccjit is not
-      ;; available on MS-Windows, but Emacs was built with
-      ;; native-compilation support.
-      (setq native-comp-deferred-compilation nil
-            comp-enable-subr-trampolines nil))
-
     (when (featurep 'native-compile)
+      (unless (native-comp-available-p)
+        ;; Disable deferred async compilation and trampoline synthesis
+        ;; in this session.  This is necessary if libgccjit is not
+        ;; available on MS-Windows, but Emacs was built with
+        ;; native-compilation support.
+        (setq native-comp-deferred-compilation nil
+              comp-enable-subr-trampolines nil))
+
       ;; Form `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
