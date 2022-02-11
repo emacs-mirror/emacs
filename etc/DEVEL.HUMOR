@@ -188,3 +188,19 @@ wouldn't worry about it too much."
   "Kind of late, but thanks for letting us know.  I've just revoked your
   write access to the repository for the obvious safety reasons,"
                                 -- Bastien Guerry and Stefan Monnier
+
+----------------------------------------------------------------------
+
+  "I should have known better than to think I could be right and you
+wrong about some Emacs code I've just started looking at. Sorry about
+that."
+
+  "No problem.  It's one of the many joys of working on a code base
+that's up to almost 40 years old: First you have to figure out what
+the (no doubt smart) programmer meant to achieve with the code, and
+then try to figure out whether it ever even did that, and then whether
+it's still working the same way, and then whether it's still relevant
+due to changes elsewhere, and then finally whether it can be improved
+without breaking odd edge cases on obscure systems you don't have
+access to.  🙃"
+                                -- Ignacio Casso and Lars Ingebrigtsen
