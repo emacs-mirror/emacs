@@ -3193,9 +3193,15 @@ x_parse_color (struct frame *f, const char *color_name,
 static bool
 x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 {
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   bool rc;
 
+  eassume (dpyinfo);
   rc = XAllocColor (dpy, cmap, color) != 0;
+
+  if (dpyinfo->visual->class == DirectColor)
+    return rc;
+
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
