@@ -762,6 +762,9 @@ the files in ARTLIST by that search key.")
 			 (generate-new-buffer " *gnus-search-")))
   (cl-call-next-method engine slots))
 
+(defclass gnus-search-nnselect (gnus-search-engine)
+  nil)
+
 (defclass gnus-search-imap (gnus-search-engine)
   ((literal-plus
     :initarg :literal-plus
@@ -907,13 +910,15 @@ quirks.")
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
 
-(defcustom gnus-search-default-engines '((nnimap . gnus-search-imap))
+(defcustom gnus-search-default-engines '((nnimap . gnus-search-imap)
+                                         (nnselect . gnus-search-nnselect))
   "Alist of default search engines keyed by server method."
   :version "26.1"
   :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
-			       (const nnfolder) (const nnmaildir))
+			       (const nnfolder) (const nnmaildir)
+                               (const nnselect))
 		       (choice
 			,@(mapcar
 			   (lambda (el) (list 'const (intern (car el))))
@@ -1009,6 +1014,33 @@ Responsible for handling and, or, and parenthetical expressions.")
 	 senton sentsince unanswered undeleted undraft unflagged unkeyword
 	 unseen all old new or not)
   "Known IMAP search keys.")
+
+(autoload 'nnselect-categorize "nnselect")
+(autoload 'nnselect-get-artlist "nnselect" nil nil 'macro)
+(autoload 'ids-by-group "nnselect")
+;; nnselect interface
+(cl-defmethod gnus-search-run-search ((_engine gnus-search-nnselect)
+				      _srv query-spec groups)
+  (let ((artlist []))
+    (dolist (group groups)
+      (let* ((gnus-newsgroup-selection (nnselect-get-artlist group))
+             (group-spec
+              (nnselect-categorize
+               (mapcar 'car
+                       (ids-by-group
+                        (number-sequence 1
+                                         (length gnus-newsgroup-selection))))
+               (lambda (x)
+                 (gnus-group-server x)))))
+        (setq artlist
+              (vconcat artlist
+                       (seq-intersection
+                        gnus-newsgroup-selection
+                        (gnus-search-run-query
+                         (list (cons 'search-query-spec query-spec)
+                               (cons 'search-group-spec group-spec))))))))
+    artlist))
+
 
 ;; imap interface
 (cl-defmethod gnus-search-run-search ((engine gnus-search-imap)
@@ -2155,7 +2187,8 @@ article came from is also searched."
 		(read-from-minibuffer
 		 "Query: " nil gnus-search-minibuffer-map
 		 nil 'gnus-search-history)))
-	(cons 'raw arg)))
+	(cons 'raw
+              (or (gnus-nnselect-group-p (gnus-group-group-name)) arg))))
 
 (provide 'gnus-search)
 ;;; gnus-search.el ends here

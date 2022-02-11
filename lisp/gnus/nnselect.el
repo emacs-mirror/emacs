@@ -47,7 +47,8 @@
 ;;; Setup:
 
 (require 'gnus-art)
-(require 'gnus-search)
+(autoload 'gnus-search-run-query "gnus-search")
+(autoload 'gnus-search-server-to-engine "gnus-search")
 
 (eval-when-compile (require 'cl-lib))
 
