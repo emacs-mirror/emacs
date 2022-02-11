@@ -8369,7 +8369,11 @@ regular text mode tabbing command."
 
 (defcustom message-expand-name-standard-ui nil
   "If non-nil, use the standard completion UI in `message-expand-name'.
-E.g. this means it will obey `completion-styles' and other such settings."
+E.g. this means it will obey `completion-styles' and other such settings.
+
+If this variable is non-nil and `message-mail-alias-type' is
+`ecomplete', `message-self-insert-commands' should probably be
+set to nil."
   :version "27.1"
   :type 'boolean)
 
