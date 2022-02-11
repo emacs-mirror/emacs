@@ -29,9 +29,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 static BClipboard *primary = NULL;
 static BClipboard *secondary = NULL;
 static BClipboard *system_clipboard = NULL;
-static unsigned long count_clipboard = 0;
-static unsigned long count_primary = 0;
-static unsigned long count_secondary = 0;
+static int64 count_clipboard = -1;
+static int64 count_primary = -1;
+static int64 count_secondary = -1;
 
 int selection_state_flag;
 
@@ -176,8 +176,8 @@ BClipboard_set_system_data (const char *type, const char *data,
   if (!system_clipboard)
     return;
 
-  BClipboard_set_data (system_clipboard, type, data, len, clear);
   count_clipboard = system_clipboard->SystemCount ();
+  BClipboard_set_data (system_clipboard, type, data, len, clear);
 }
 
 void
@@ -187,8 +187,8 @@ BClipboard_set_primary_selection_data (const char *type, const char *data,
   if (!primary)
     return;
 
-  BClipboard_set_data (primary, type, data, len, clear);
   count_primary = primary->SystemCount ();
+  BClipboard_set_data (primary, type, data, len, clear);
 }
 
 void
@@ -198,8 +198,8 @@ BClipboard_set_secondary_selection_data (const char *type, const char *data,
   if (!secondary)
     return;
 
-  BClipboard_set_data (secondary, type, data, len, clear);
   count_secondary = secondary->SystemCount ();
+  BClipboard_set_data (secondary, type, data, len, clear);
 }
 
 void
@@ -229,22 +229,25 @@ BClipboard_secondary_targets (char **buf, int len)
 bool
 BClipboard_owns_clipboard (void)
 {
-  return (count_clipboard
-	  == system_clipboard->SystemCount ());
+  return (count_clipboard >= 0
+	  && (count_clipboard + 1
+	      == system_clipboard->SystemCount ()));
 }
 
 bool
 BClipboard_owns_primary (void)
 {
-  return (count_primary
-	  == primary->SystemCount ());
+  return (count_primary >= 0
+	  && (count_primary + 1
+	      == primary->SystemCount ()));
 }
 
 bool
 BClipboard_owns_secondary (void)
 {
-  return (count_secondary
-	  == secondary->SystemCount ());
+  return (count_secondary >= 0
+	  && (count_secondary + 1
+	      == secondary->SystemCount ()));
 }
 
 void
