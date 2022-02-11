@@ -681,9 +681,9 @@ $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all
 
 ifeq ($(HAVE_PDUMPER),yes)
-  MAKE_PDUMPER_FINGERPRINT = $(libsrc)/make-fingerprint$(EXEEXT)
+MAKE_PDUMPER_FINGERPRINT = $(libsrc)/make-fingerprint$(EXEEXT)
 else
-  MAKE_PDUMPER_FINGERPRINT =
+MAKE_PDUMPER_FINGERPRINT =
 endif
 
 ## We have to create $(etc) here because init_cmdargs tests its

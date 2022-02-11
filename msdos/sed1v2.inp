@@ -55,8 +55,10 @@ s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
 s/ *@LIBGIF@//
 s/ *@LIBXPM@//
+s/ *@WEBP_LIBS@//
 /^HAVE_NATIVE_COMP *=/s/@HAVE_NATIVE_COMP@/no/
 /^HAVE_PDUMPER *=/s/@HAVE_PDUMPER@/no/
+/^HAVE_BE_APP *=/s/@HAVE_BE_APP@/no/
 /^CHECK_STRUCTS *=/s/@CHECK_STRUCTS@//
 /^RUN_TEMACS \=/s/temacs/temacs.exe/
 /^XFT_LIBS *=/s/@XFT_LIBS@//
@@ -78,6 +80,10 @@ s/ *@LIBXPM@//
 /^NOTIFY_LIBS *=/s/@NOTIFY_LIBS@//
 /^NOTIFY_CFLAGS *=/s/@NOTIFY_CFLAGS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
+/^PGTK_OBJ *=/s/@PGTK_OBJ@//
+/^PGTK_LIBS *=/s/@PGTK_LIBS@//
+/^HAIKU_OBJ *=/s/@HAIKU_OBJ@//
+/^HAIKU_CXX_OBJ *=/s/@HAIKU_CXX_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
 /^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
 /^LIBXMU *=/s/@LIBXMU@//
@@ -110,6 +116,14 @@ s/ *@LIBXPM@//
 /^XFIXES_CFLAGS *=/s/@XFIXES_CFLAGS@//
 /^XDBE_LIBS *=/s/@XDBE_LIBS@//
 /^XDBE_CFLAGS *=/s/@XDBE_CFLAGS@//
+/^XINPUT_LIBS *=/s/@XINPUT_LIBS@//
+/^XINPUT_CFLAGS *=/s/@XINPUT_CFLAGS@//
+/^XSYNC_LIBS *=/s/@XSYNC_LIBS@//
+/^XSYNC_CFLAGS *=/s/@XSYNC_CFLAGS@//
+/^WEBP_CFLAGS *=/s/@WEBP_CFLAGS@//
+/^SQLITE3_LIBS *=/s/@SQLITE3_LIBS@//
+/^HAIKU_LIBS *=/s/@HAIKU_LIBS@//
+/^HAIKU_CFLAGS *=/s/@HAIKU_CFLAGS@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^WINDOW_SYSTEM_OBJ *=/s/@WINDOW_SYSTEM_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/

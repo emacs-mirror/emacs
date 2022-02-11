@@ -268,6 +268,8 @@ s/@PACKAGE@/emacs/
 # MKDIR_P lines are edited further below
 # MKDIR_P is only used to create lib/malloc, and the folder is
 # already present in the distribution, so this should work fine.
+# (No longer true as of Emacs 29, but the directories we need
+# are created in config.bat!)
 /^MKDIR_P *=/s/@MKDIR_P@/echo/
 /^NEXT_AS_FIRST_DIRECTIVE_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
@@ -403,18 +405,19 @@ s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho /
 #
 # Determine which headers to generate
-s/= @GL_GENERATE_ALLOCA_H_TRUE@/= 1/
-s/= @GL_GENERATE_BYTESWAP_H@/= 1/
-s/= @GL_GENERATE_EXECINFO_H@/= 1/
-s/= @GL_GENERATE_IEEE754_H@/= 1/
-s/= @GL_GENERATE_STDALIGN_H@/= 1/
-s/= @GL_GENERATE_STDDEF_H@/= 1/
-s/= @GL_GENERATE_STDINT_H@/= 1/
-s/= @GL_GENERATE_LIMITS_H@/= 1/
-s/= @GL_GENERATE_ERRNO_H@/= /
-s/= @GL_GENERATE_LIMITS_H@/= /
-s/= @GL_GENERATE_GMP_GMP_H@/= 1/
-s/= @GL_GENERATE_MINI_GMP_H@/= 1/
+s/= @GL_GENERATE_ALLOCA_H_CONDITION@/= 1/
+s/= @GL_GENERATE_BYTESWAP_H_CONDITION@/= 1/
+s/= @GL_GENERATE_EXECINFO_H_CONDITION@/= 1/
+s/= @GL_GENERATE_IEEE754_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDALIGN_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDDEF_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDINT_H_CONDITION@/= 1/
+s/= @GL_GENERATE_LIMITS_H_CONDITION@/= 1/
+s/= @GL_GENERATE_ERRNO_H_CONDITION@/= /
+s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
+s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
+s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
+s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
 s/\$\(MKDIR_P\) malloc//
 #
 # Determine which modules to build and which to omit

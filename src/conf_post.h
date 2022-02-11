@@ -182,6 +182,20 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 # define SIZE_MAX  4294967295U
 #endif
 
+/* Things that lib/reg* wants.  */
+
+#define mbrtowc(pwc, s, n, ps) mbtowc ((pwc), (s), (n))
+#define wcrtomb(s, wc, ps) wctomb ((s), (wc))
+#define btowc(b) ((wchar_t) (b))
+#define towupper(chr) toupper (chr)
+#define towlower(chr) tolower (chr)
+#define iswalnum(chr) isalnum (chr)
+#define wctype(name) ((wctype_t) 0)
+#define iswctype(wc, type) false
+#define mbsinit(ps) 1
+
+#define MALLOC_0_IS_NONNULL 1
+
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
