@@ -1364,6 +1364,24 @@ connection if a previous connection has died for some reason."
    `(:application tramp :protocol ,tramp-adb-method)
    'tramp-adb-connection-local-default-shell-profile))
 
+;; `shell-mode' tries to open remote files like "/adb::~/.history".
+;; This fails, because the tilde cannot be expanded.  Tell
+;; `tramp-handle-expand-file-name' to tolerate this.
+(defun tramp-adb-tolerate-tilde (orig-fun)
+  "Advice for `shell-mode' to tolerate tilde in remote file names."
+  (let ((tramp-tolerate-tilde
+	 (or tramp-tolerate-tilde
+	     (equal (file-remote-p default-directory 'method)
+		    tramp-adb-method))))
+    (funcall orig-fun)))
+
+(add-function
+ :around  (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)
+(add-hook 'tramp-adb-unload-hook
+	  (lambda ()
+	    (remove-function
+	     (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-adb 'force)))

@@ -3458,6 +3458,10 @@ User is always nil."
       (if (file-directory-p dir) dir (file-name-directory dir)) nil
     (tramp-flush-directory-properties v localname)))
 
+(defvar tramp-tolerate-tilde nil
+  "Indicator, that not expandable tilde shall be tolerated.
+Let-bind it when necessary.")
+
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
   ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
@@ -3475,7 +3479,8 @@ User is always nil."
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
       ;; Tilde expansion is not possible.
-      (when (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+      (when (and (not tramp-tolerate-tilde)
+		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
 	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       ;; Do not keep "/..".
       (when (string-match-p "^/\\.\\.?$" localname)
@@ -3486,7 +3491,9 @@ User is always nil."
       (let ((default-directory tramp-compat-temporary-file-directory))
 	(tramp-make-tramp-file-name
 	 v (tramp-drop-volume-letter
-	    (tramp-run-real-handler #'expand-file-name (list localname))))))))
+	    (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+		localname
+	      (tramp-run-real-handler #'expand-file-name (list localname)))))))))
 
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for Tramp files."

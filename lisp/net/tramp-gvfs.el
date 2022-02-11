@@ -1151,6 +1151,10 @@ file names."
 		(replace-match
 		 (tramp-get-connection-property v "default-location" "~")
 		 nil t localname 1))))
+      ;; Tilde expansion is not possible.
+      (when (and (not tramp-tolerate-tilde)
+		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
+	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
       ;; We do not pass "/..".
@@ -1168,7 +1172,7 @@ file names."
       ;; Do normal `expand-file-name' (this does "/./" and "/../"),
       ;; unless there are tilde characters in file name.
       (tramp-make-tramp-file-name
-       v (if (string-match-p "\\`~" localname)
+       v (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
 	     localname
 	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
 
