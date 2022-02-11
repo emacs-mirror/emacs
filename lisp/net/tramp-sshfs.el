@@ -55,7 +55,8 @@
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-q")("-l" "%u") ("-p" "%p")
-				             ("-e" "none") ("%h") ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("%h") ("%l")))
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
@@ -410,6 +411,24 @@ connection if a previous connection has died for some reason."
       vec "uid-string" (tramp-get-local-uid 'string))
   (with-tramp-connection-property
       vec "gid-string" (tramp-get-local-gid 'string)))
+
+;; `shell-mode' tries to open remote files like "/sshfs:user@host:~/.history".
+;; This fails, because the tilde cannot be expanded.  Tell
+;; `tramp-handle-expand-file-name' to tolerate this.
+(defun tramp-sshfs-tolerate-tilde (orig-fun)
+  "Advice for `shell-mode' to tolerate tilde in remote file names."
+  (let ((tramp-tolerate-tilde
+	 (or tramp-tolerate-tilde
+	     (equal (file-remote-p default-directory 'method)
+		    tramp-sshfs-method))))
+    (funcall orig-fun)))
+
+(add-function
+ :around  (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
+(add-hook 'tramp-sshfs-unload-hook
+	  (lambda ()
+	    (remove-function
+	     (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

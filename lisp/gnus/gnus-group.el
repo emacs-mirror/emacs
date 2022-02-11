@@ -3226,7 +3226,8 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	       (if (gnus-server-server-name)
 		   (list (list (gnus-server-server-name)))
 		 (seq-group-by
-		  (lambda (elt) (gnus-group-server elt))
+                  (lambda (elt) (gnus-method-to-server
+                                 (gnus-find-method-for-group  elt)))
 		  (or gnus-group-marked
 		      (if (gnus-group-group-name)
 			  (list (gnus-group-group-name))
@@ -3277,7 +3278,8 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	      (if (gnus-server-server-name)
 		  (list (list (gnus-server-server-name)))
 		(seq-group-by
-		 (lambda (elt) (gnus-group-server elt))
+                  (lambda (elt) (gnus-method-to-server
+                                 (gnus-find-method-for-group  elt)))
 		 (or gnus-group-marked
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
