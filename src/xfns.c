@@ -730,6 +730,11 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 static void
 x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
+#ifndef HAVE_GTK3
+  unsigned long opaque_region[] = {0, 0, FRAME_PIXEL_WIDTH (f),
+				   FRAME_PIXEL_HEIGHT (f)};
+#endif
+
   gui_set_alpha_background (f, arg, oldval);
 
 #ifdef USE_GTK
@@ -749,6 +754,14 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 		       XA_CARDINAL, 32, PropModeReplace,
 		       NULL, 0);
     }
+#ifndef HAVE_GTK3
+  else
+    XChangeProperty (FRAME_X_DISPLAY (f),
+		     FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		     XA_CARDINAL, 32, PropModeReplace,
+		     (unsigned char *) &opaque_region, 4);
+#endif
 }
 
 static void

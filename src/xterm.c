@@ -345,7 +345,7 @@ static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 static bool x_get_current_wm_state (struct frame *, Window, int *, bool *);
-static void x_update_opaque_region (struct frame *);
+static void x_update_opaque_region (struct frame *, XEvent *);
 
 /* Flush display of frame F.  */
 
@@ -366,7 +366,6 @@ x_flush (struct frame *f)
 static void
 x_drop_xrender_surfaces (struct frame *f)
 {
-  x_update_opaque_region (f);
   font_drop_xrender_surfaces (f);
 
 #ifdef HAVE_XRENDER
@@ -440,14 +439,37 @@ record_event (char *locus, int type)
 #endif
 
 static void
-x_update_opaque_region (struct frame *f)
+x_update_opaque_region (struct frame *f, XEvent *configure)
 {
+#ifndef HAVE_GTK3
+  unsigned long opaque_region[] = {0, 0,
+				   (configure
+				    ? configure->xconfigure.width
+				    : FRAME_PIXEL_WIDTH (f)),
+				   (configure
+				    ? configure->xconfigure.height
+				    : FRAME_PIXEL_HEIGHT (f))};
+#endif
+
+  if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
+    return;
+
+  block_input ();
   if (f->alpha_background < 1.0)
     XChangeProperty (FRAME_X_DISPLAY (f),
 		     FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     NULL, 0);
+#ifndef HAVE_GTK3
+  else
+    XChangeProperty (FRAME_X_DISPLAY (f),
+		     FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		     XA_CARDINAL, 32, PropModeReplace,
+		     (unsigned char *) &opaque_region, 4);
+#endif
+  unblock_input ();
 }
 
 
@@ -9712,7 +9734,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f->output_data.x->has_been_visible = true;
 	    }
 
-	  x_update_opaque_region (f);
+	  x_update_opaque_region (f, NULL);
 
           if (not_hidden && iconified)
             {
@@ -10350,6 +10372,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	x_cr_update_surface_desired_size (any,
 					  configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
+      x_update_opaque_region (f, &configureEvent);
 #endif
 #ifdef USE_GTK
       if (!f
@@ -10378,6 +10401,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  x_cr_update_surface_desired_size (f, configureEvent.xconfigure.width,
 					    configureEvent.xconfigure.height);
 #endif
+	  x_update_opaque_region (f, &configureEvent);
           f = 0;
 	}
 #endif
