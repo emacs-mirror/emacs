@@ -1307,7 +1307,7 @@ x_display_pixel_width (struct x_display_info *dpyinfo)
 INLINE unsigned long
 x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
 {
-  unsigned long pr, pg, pb, pa = 0;
+  unsigned long pr, pg, pb, pa = dpyinfo->alpha_mask;
 
   /* Scale down RGB values to the visual's bits per RGB, and shift
      them to the right position in the pixel color.  Note that the
@@ -1315,12 +1315,6 @@ x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
   pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
   pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
   pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
-
-  if (dpyinfo->alpha_bits)
-    pa = (((unsigned long) 0xffff >> (16 - dpyinfo->alpha_bits))
-	  << dpyinfo->alpha_offset);
-  else
-    pa = 0;
 
   /* Assemble the pixel color.  */
   return pr | pg | pb | pa;

@@ -687,7 +687,7 @@ x_defined_color (struct frame *f, const char *color_name,
    is a monochrome frame, return MONO_COLOR regardless of what ARG says.
    Signal an error if color can't be allocated.  */
 
-static int
+static unsigned long
 x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color)
 {
   XColor cdef;
