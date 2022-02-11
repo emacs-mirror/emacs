@@ -1768,7 +1768,16 @@ If setting GDK_DEBUG causes GTK to complain about not being built with
 support for debugging options, then there is nothing you can do,
 except switch to a free X server.
 
-* Runtime problems on character terminals
+*** 'set-mouse-position' does not move the pointer on Xwayland.
+
+This is because Wayland does not allow programs to warp the pointer.
+There is nothing that can be done about this problem, except to switch
+to an X session.
+
+Some versions of the Xwayland server will pretend to warp the pointer,
+so mouse-motion events might be sent to the position the mouse was
+supposed to have moved to, even though the cursor displays at the same
+on-screen position.
 
 *** With X forwarding, mouse highlighting can make Emacs slow.
 
@@ -1776,6 +1785,8 @@ If you see slow updates when moving the mouse in an Emacs running on a
 remote X server, try this:
 
     (setq mouse-highlight nil)
+
+* Runtime problems on character terminals
 
 ** The meta key does not work on xterm.
 
@@ -2895,6 +2906,11 @@ when started from the command line.
 
 Especially, PGTK Emacs needs environment variables LANG and
 GTK_IM_MODULE.
+
+** 'set-mouse-position' does nothing.
+
+GTK does not allow programs to warp the pointer anymore.  There is
+nothing that can be done about this problem.
 
 * Build-time problems
 
