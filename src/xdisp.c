@@ -36549,9 +36549,8 @@ and display the most important part of the minibuffer.   */);
   /* See bug#43519 for some discussion around this.  */
   redisplay_adhoc_scroll_in_resize_mini_windows = true;
 
-  DEFVAR_BOOL ("composition-break-at-point",
-	       composition_break_at_point,
-	       doc: /* If non-nil, prevent auto-composition of characters around point.
+  DEFVAR_BOOL ("composition-break-at-point", composition_break_at_point,
+    doc: /* If non-nil, prevent auto-composition of characters around point.
 This makes it easier to edit character sequences that are
 composed on display.  */);
   composition_break_at_point = false;
