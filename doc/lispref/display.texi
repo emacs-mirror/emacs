@@ -6467,7 +6467,9 @@ buffer's text.
 
 The argument @var{slice} specifies a slice of the image to insert.  If
 @var{slice} is @code{nil} or omitted the whole image is inserted.
-Otherwise, @var{slice} is a list @code{(@var{x} @var{y} @var{width}
+(However, note that images are chopped on display at the window's
+right edge, because wrapping images is not supported.)  Otherwise,
+@var{slice} is a list @code{(@var{x} @var{y} @var{width}
 @var{height})} which specifies the @var{x} and @var{y} positions and
 @var{width} and @var{height} of the image area to insert.  Integer
 values are in units of pixels.  A floating-point number in the range
