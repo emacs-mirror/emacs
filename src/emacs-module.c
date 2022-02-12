@@ -1137,7 +1137,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_module (SPECPDL_MODULE_RUNTIME, rt);
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, rt_priv.env);
 
@@ -1166,7 +1166,7 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   emacs_env pub;
   struct emacs_env_private priv;
   emacs_env *env = initialize_environment (&pub, &priv);
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, env);
 
   USE_SAFE_ALLOCA;

@@ -1106,7 +1106,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
-  ptrdiff_t count = specpdl_ptr - specpdl;
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object display;
   struct ns_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
@@ -2823,7 +2823,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
      (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   int root_x, root_y;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct frame *f;
   char *str;
   NSSize size;

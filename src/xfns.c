@@ -4302,7 +4302,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   bool minibuffer_only = false;
   bool undecorated = false, override_redirect = false;
   long window_prompting = 0;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object display;
   struct x_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
@@ -7136,7 +7136,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   struct frame *f;
   Lisp_Object frame;
   Lisp_Object name;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   bool face_change_before = face_change;
 
   if (!dpyinfo->terminal->name)
@@ -7637,10 +7637,9 @@ x_hide_tip (bool delete)
     return Qnil;
   else
     {
-      ptrdiff_t count;
       Lisp_Object was_open = Qnil;
 
-      count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
@@ -7699,10 +7698,9 @@ x_hide_tip (bool delete)
     return Qnil;
   else
     {
-      ptrdiff_t count;
       Lisp_Object was_open = Qnil;
 
-      count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
@@ -7797,8 +7795,7 @@ Text larger than the specified size is clipped.  */)
   struct text_pos pos;
   int width, height;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t count_1;
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object window, size, tip_buf;
   Window child;
   XWindowAttributes child_attrs;
@@ -8001,7 +7998,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Insert STRING into root window's buffer and fit the frame to the
      buffer.  */
-  count_1 = SPECPDL_INDEX ();
+  specpdl_ref count_1 = SPECPDL_INDEX ();
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (w->contents));
   bset_truncate_lines (current_buffer, Qnil);
@@ -8190,7 +8187,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   Arg al[10];
   int ac = 0;
   XmString dir_xmstring, pattern_xmstring;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   check_window_system (f);
 
@@ -8357,7 +8354,7 @@ value of DIR as in previous invocations; this is standard MS Windows behavior.  
   char *fn;
   Lisp_Object file = Qnil;
   Lisp_Object decoded_file;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   char *cdef_file;
 
   check_window_system (f);
@@ -8418,7 +8415,7 @@ nil, it defaults to the selected frame. */)
   Lisp_Object font;
   Lisp_Object font_param;
   char *default_name = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (popup_activated ())
     error ("Trying to use a menu from within a menu-entry");
@@ -8670,7 +8667,6 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
      (Lisp_Object frames)
 {
   Lisp_Object rest, tmp;
-  int count;
 
   if (!CONSP (frames))
     frames = list1 (frames);
@@ -8689,7 +8685,7 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
   frames = Fnreverse (tmp);
 
   /* Make sure the current matrices are up-to-date.  */
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (32);
   unbind_to (count, Qnil);

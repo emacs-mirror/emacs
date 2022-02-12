@@ -2180,7 +2180,7 @@ get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
 {
   Lisp_Object prop, lispy_position, lispy_buffer;
   ptrdiff_t old_begv, old_zv, old_begv_byte, old_zv_byte;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   position = clip_to_bounds (BUF_BEGV (buffer), position, BUF_ZV (buffer));
 

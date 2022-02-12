@@ -4046,7 +4046,7 @@ types.  */)
     }
   while (number_finalizers_run);
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line

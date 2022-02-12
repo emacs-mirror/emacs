@@ -6176,15 +6176,13 @@ Return t if redisplay was performed, nil if redisplay was preempted
 immediately by pending input.  */)
   (Lisp_Object force)
 {
-  ptrdiff_t count;
-
   swallow_events (true);
   if ((detect_input_pending_run_timers (1)
        && NILP (force) && !redisplay_dont_pause)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   if (!NILP (force) && !redisplay_dont_pause)
     specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (2);

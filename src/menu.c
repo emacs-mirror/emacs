@@ -1121,7 +1121,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   struct frame *f = NULL;
   Lisp_Object x, y, window;
   int menuflags = 0;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   if (NILP (position))
     /* This is an obsolete call, which wants us to precompute the

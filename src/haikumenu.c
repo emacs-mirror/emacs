@@ -273,7 +273,7 @@ haiku_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object title;
   const char *error_name = NULL;
   Lisp_Object selection;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   check_window_system (f);
 
@@ -480,7 +480,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
   Lisp_Object items;
   struct buffer *prev = current_buffer;
   Lisp_Object buffer;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
   int previous_menu_items_used = f->menu_bar_items_used;
   Lisp_Object *previous_items
     = alloca (previous_menu_items_used * sizeof *previous_items);

@@ -83,7 +83,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
   char *from, *to, *name, *p, *p1;
   Lisp_Object file, pos;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object dir;
   USE_SAFE_ALLOCA;
 
@@ -545,7 +545,6 @@ the same file name is found in the `doc-directory'.  */)
   EMACS_INT pos;
   Lisp_Object sym;
   char *p, *name;
-  ptrdiff_t count;
   char const *dirname;
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
@@ -569,7 +568,7 @@ the same file name is found in the `doc-directory'.  */)
       dirlen = SBYTES (Vdoc_directory);
     }
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
   name = SAFE_ALLOCA (dirlen + SBYTES (filename) + 1);
   lispstpcpy (stpcpy (name, dirname), filename); 	/*** Add this line ***/

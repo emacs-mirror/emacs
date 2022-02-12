@@ -1837,7 +1837,7 @@ notify_variable_watchers (Lisp_Object symbol,
 {
   symbol = Findirect_variable (symbol);
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect (restore_symbol_trapped_write, symbol);
   /* Avoid recursion.  */
   set_symbol_trapped_write (symbol, SYMBOL_UNTRAPPED_WRITE);

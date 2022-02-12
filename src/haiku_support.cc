@@ -2948,7 +2948,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
 		      void (*unblock_input_function) (void),
 		      void (*maybe_quit_function) (void))
 {
-  ptrdiff_t idx = c_specpdl_idx_from_cxx ();
+  specpdl_ref idx = c_specpdl_idx_from_cxx ();
   /* setjmp/longjmp is UB with automatic objects. */
   block_input_function ();
   BWindow *w = (BWindow *) window;

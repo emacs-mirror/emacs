@@ -456,7 +456,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 {
   int i;
   Lisp_Object name, dir, handler;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
   AUTO_STRING (slash_colon, "/:");
 
@@ -2904,7 +2904,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 {
   Lisp_Object tem;
   Lisp_Object symbol;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   check_pure_size ();
 

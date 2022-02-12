@@ -861,7 +861,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
@@ -1401,7 +1401,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   GtkWidget *menu;
   GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
   struct next_popup_x_y popup_x_y;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
   bool use_pos_func = ! for_click;
 
 #ifdef HAVE_GTK3
@@ -1634,7 +1634,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   x_activate_timeout_atimer ();
 
   {
-    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+    specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
     record_unwind_protect_int (pop_down_menu, (int) menu_id);
 
@@ -1665,7 +1665,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     = alloca (menu_items_used * sizeof *subprefix_stack);
   int submenu_depth = 0;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 
@@ -1952,7 +1952,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
 
   if (menu)
     {
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
@@ -2007,7 +2007,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
   /* Process events that apply to the dialog box.
      Also handle timers.  */
   {
-    ptrdiff_t count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
 
     /* xdialog_show_unwind is responsible for popping the dialog box down.  */
 
@@ -2039,7 +2039,7 @@ x_dialog_show (struct frame *f, Lisp_Object title,
   /* Whether we've seen the boundary between left-hand elts and right-hand.  */
   bool boundary_seen = false;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 
@@ -2191,7 +2191,7 @@ xw_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object title;
   const char *error_name;
   Lisp_Object selection;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   check_window_system (f);
 
@@ -2312,7 +2312,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f) || FRAME_MSDOS_P (f));
 

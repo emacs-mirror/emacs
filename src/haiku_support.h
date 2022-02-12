@@ -787,11 +787,10 @@ extern "C"
   extern void
   record_c_unwind_protect_from_cxx (void (*) (void *), void *);
 
-  extern ptrdiff_t
-  c_specpdl_idx_from_cxx (void);
+  extern specpdl_ref c_specpdl_idx_from_cxx (void);
 
   extern void
-  c_unbind_to_nil_from_cxx (ptrdiff_t idx);
+  c_unbind_to_nil_from_cxx (specpdl_ref idx);
 
   extern void
   BWindow_zoom (void *window);

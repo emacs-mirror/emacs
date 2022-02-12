@@ -122,7 +122,7 @@ enum
     CALLPROC_FDS
   };
 
-static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
+static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, specpdl_ref);
 
 #ifdef DOS_NT
 # define CHILD_SETUP_TYPE int
@@ -289,7 +289,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 {
   Lisp_Object infile, encoded_infile;
   int filefd;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
@@ -310,12 +310,13 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   if (filefd < 0)
     report_file_error ("Opening process input file", infile);
   record_unwind_protect_int (close_file_unwind, filefd);
-  return unbind_to (count, call_process (nargs, args, filefd, -1));
+  return unbind_to (count, call_process (nargs, args, filefd,
+					 make_invalid_specpdl_ref ()));
 }
 
 /* Like Fcall_process (NARGS, ARGS), except use FILEFD as the input file.
 
-   If TEMPFILE_INDEX is nonnegative, it is the specpdl index of an
+   If TEMPFILE_INDEX is valid, it is the specpdl index of an
    unwinder that is intended to remove the input temporary file; in
    this case NARGS must be at least 2 and ARGS[1] is the file's name.
 
@@ -323,7 +324,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
 static Lisp_Object
 call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
-	      ptrdiff_t tempfile_index)
+	      specpdl_ref tempfile_index)
 {
   Lisp_Object buffer, current_dir, path;
   bool display_p;
@@ -331,7 +332,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   int callproc_fd[CALLPROC_FDS];
   int status;
   ptrdiff_t i;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
   char **new_argv;
@@ -616,7 +617,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	callproc_fd[i] = -1;
       }
   emacs_close (filefd);
-  clear_unwind_protect (count - 1);
+  clear_unwind_protect (specpdl_ref_add (count, -1));
 
   if (tempfile)
     {
@@ -654,7 +655,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
       if (FIXNUMP (buffer))
 	{
-	  if (tempfile_index < 0)
+	  if (!specpdl_ref_valid_p (tempfile_index))
 	    record_deleted_pid (pid, Qnil);
 	  else
 	    {
@@ -681,7 +682,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	callproc_fd[i] = -1;
       }
   emacs_close (filefd);
-  clear_unwind_protect (count - 1);
+  clear_unwind_protect (specpdl_ref_add (count, -1));
 
 #endif /* not MSDOS */
 
@@ -813,7 +814,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	  else
 	    {			/* We have to decode the input.  */
 	      Lisp_Object curbuf;
-	      ptrdiff_t count1 = SPECPDL_INDEX ();
+	      specpdl_ref count1 = SPECPDL_INDEX ();
 
 	      XSETBUFFER (curbuf, current_buffer);
 	      /* We cannot allow after-change-functions be run
@@ -957,7 +958,6 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
   {
     Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
     char *tempfile;
-    ptrdiff_t count;
 
 #ifdef WINDOWSNT
     /* Cannot use the result of Fexpand_file_name, because it
@@ -977,7 +977,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
     filename_string = Fcopy_sequence (ENCODE_FILE (pattern));
     tempfile = SSDATA (filename_string);
 
-    count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     record_unwind_protect_nothing ();
     fd = mkostemp (tempfile, O_BINARY | O_CLOEXEC);
     if (fd < 0)
@@ -1009,7 +1009,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
   val = complement_process_encoding_system (val);
 
   {
-    ptrdiff_t count1 = SPECPDL_INDEX ();
+    specpdl_ref count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
     /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
@@ -1069,7 +1069,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object start = args[0];
   Lisp_Object end = args[1];
   bool empty_input;
@@ -1123,7 +1123,8 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
   args[1] = infile;
 
-  val = call_process (nargs, args, fd, empty_input ? -1 : count);
+  val = call_process (nargs, args, fd,
+		      empty_input ? make_invalid_specpdl_ref () : count);
   return unbind_to (count, val);
 }
 

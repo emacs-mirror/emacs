@@ -65,7 +65,7 @@ union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
 static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
-static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, ptrdiff_t);
+static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, specpdl_ref);
 static Lisp_Object lambda_arity (Lisp_Object);
 
 static Lisp_Object
@@ -282,11 +282,12 @@ Lisp_Object
 call_debugger (Lisp_Object arg)
 {
   bool debug_while_redisplaying;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object val;
   intmax_t old_depth = max_lisp_eval_depth;
   /* Do not allow max_specpdl_size less than actual depth (Bug#16603).  */
-  intmax_t old_max = max (max_specpdl_size, count);
+  ptrdiff_t counti = specpdl_ref_to_count (count);
+  intmax_t old_max = max (max_specpdl_size, counti);
 
   /* The previous value of 40 is too small now that the debugger
      prints using cl-prin1 instead of prin1.  Printing lists nested 8
@@ -296,9 +297,9 @@ call_debugger (Lisp_Object arg)
 
   /* While debugging Bug#16603, previous value of 100 was found
      too small to avoid specpdl overflow in the debugger itself.  */
-  max_ensure_room (&max_specpdl_size, count, 200);
+  max_ensure_room (&max_specpdl_size, counti, 200);
 
-  if (old_max == count)
+  if (old_max == counti)
     {
       /* We can enter the debugger due to specpdl overflow (Bug#16603).  */
       specpdl_ptr--;
@@ -348,10 +349,10 @@ call_debugger (Lisp_Object arg)
 }
 
 void
-do_debug_on_call (Lisp_Object code, ptrdiff_t count)
+do_debug_on_call (Lisp_Object code, specpdl_ref count)
 {
   debug_on_next_call = 0;
-  set_backtrace_debug_on_exit (specpdl + count, true);
+  set_backtrace_debug_on_exit (specpdl_ref_to_ptr (count), true);
   call_debugger (list1 (code));
 }
 
@@ -929,7 +930,7 @@ usage: (let* VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object var, val, elt, lexenv;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   lexenv = Vinternal_interpreter_environment;
 
@@ -989,7 +990,7 @@ usage: (let VARLIST BODY...)  */)
 {
   Lisp_Object *temps, tem, lexenv;
   Lisp_Object elt;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
   USE_SAFE_ALLOCA;
 
@@ -1093,7 +1094,7 @@ If FUNCTION takes less time to execute than TIMEOUT seconds, MESSAGE
 is not displayed.  */)
   (Lisp_Object timeout, Lisp_Object message, Lisp_Object function)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   CHECK_NUMBER (timeout);
   CHECK_STRING (message);
@@ -1306,7 +1307,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   record_unwind_protect (prog_ignore, XCDR (args));
   val = eval_sub (XCAR (args));
@@ -1430,7 +1431,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 	  /* Bind HANDLER_VAR to VAL while evaluating HANDLER_BODY.
 	     The unbind_to undoes just this binding; whoever longjumped
 	     to us unwound the stack to C->pdlcount before throwing.  */
-	  ptrdiff_t count = SPECPDL_INDEX ();
+	  specpdl_ref count = SPECPDL_INDEX ();
 	  specbind (handler_var, val);
 	  return unbind_to (count, Fprogn (handler_body));
 	}
@@ -1451,7 +1452,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 	  handler_var = Qinternal_interpreter_environment;
 	}
 
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (handler_var, result);
       return unbind_to (count, Fprogn (success_handler));
     }
@@ -1815,7 +1816,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
-      max_ensure_room (&max_specpdl_size, SPECPDL_INDEX (), 40);
+      ptrdiff_t counti = specpdl_ref_to_count (SPECPDL_INDEX ());
+      max_ensure_room (&max_specpdl_size, counti, 40);
 
       call2 (Vsignal_hook_function, error_symbol, data);
     }
@@ -1883,8 +1885,9 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && !NILP (Ffboundp (Qdebug_early)))
     {
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
-      max_ensure_room (&max_specpdl_size, SPECPDL_INDEX (), 200);
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
+      ptrdiff_t counti = specpdl_ref_to_count (count);
+      max_ensure_room (&max_specpdl_size, counti, 200);
       specbind (Qdebugger, Qdebug_early);
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
@@ -2271,7 +2274,7 @@ load_with_autoload_queue
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
    Lisp_Object nosuffix, Lisp_Object must_suffix)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* If autoloading gets an error (which includes the error of failing
      to define the function being called), we use Vautoload_queue
@@ -2350,7 +2353,7 @@ LEXICAL can also be an actual lexical environment, in the form of an
 alist mapping symbols to their value.  */)
   (Lisp_Object form, Lisp_Object lexical)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qinternal_interpreter_environment,
 	    CONSP (lexical) || NILP (lexical) ? lexical : list1 (Qt));
   return unbind_to (count, eval_sub (form));
@@ -2361,7 +2364,7 @@ grow_specpdl_allocation (void)
 {
   eassert (specpdl_ptr == specpdl + specpdl_size);
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
   union specbinding *pdlvec = specpdl - 1;
   ptrdiff_t pdlvecsize = specpdl_size + 1;
@@ -2375,7 +2378,7 @@ grow_specpdl_allocation (void)
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
   specpdl_size = pdlvecsize - 1;
-  specpdl_ptr = specpdl + count;
+  specpdl_ptr = specpdl_ref_to_ptr (count);
 }
 
 /* Grow the specpdl stack by one entry.
@@ -2396,10 +2399,10 @@ grow_specpdl (void)
     grow_specpdl_allocation ();
 }
 
-ptrdiff_t
+specpdl_ref
 record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   eassert (nargs >= UNEVALLED);
   specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
@@ -2449,7 +2452,7 @@ eval_sub (Lisp_Object form)
   CHECK_LIST (original_args);
 
   /* This also protects them from gc.  */
-  ptrdiff_t count
+  specpdl_ref count
     = record_in_backtrace (original_fun, &original_args, UNEVALLED);
 
   if (debug_on_next_call)
@@ -2498,13 +2501,13 @@ eval_sub (Lisp_Object form)
 	      vals[argnum++] = eval_sub (arg);
 	    }
 
-	  set_backtrace_args (specpdl + count, vals, argnum);
+	  set_backtrace_args (specpdl_ref_to_ptr (count), vals, argnum);
 
 	  val = XSUBR (fun)->function.aMANY (argnum, vals);
 
 	  lisp_eval_depth--;
 	  /* Do the debug-on-exit now, while VALS still exists.  */
-	  if (backtrace_debug_on_exit (specpdl + count))
+	  if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count)))
 	    val = call_debugger (list2 (Qexit, val));
 	  SAFE_FREE ();
 	  specpdl_ptr--;
@@ -2520,7 +2523,7 @@ eval_sub (Lisp_Object form)
 	      args_left = Fcdr (args_left);
 	    }
 
-	  set_backtrace_args (specpdl + count, argvals, numargs);
+	  set_backtrace_args (specpdl_ref_to_ptr (count), argvals, numargs);
 
 	  switch (i)
 	    {
@@ -2592,7 +2595,7 @@ eval_sub (Lisp_Object form)
 	}
       if (EQ (funcar, Qmacro))
 	{
-	  ptrdiff_t count1 = SPECPDL_INDEX ();
+	  specpdl_ref count1 = SPECPDL_INDEX ();
 	  Lisp_Object exp;
 	  /* Bind lexical-binding during expansion of the macro, so the
 	     macro can know reliably if the code it outputs will be
@@ -2624,7 +2627,7 @@ eval_sub (Lisp_Object form)
     }
 
   lisp_eval_depth--;
-  if (backtrace_debug_on_exit (specpdl + count))
+  if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count)))
     val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
 
@@ -3070,7 +3073,7 @@ Thus, (funcall \\='cons \\='x \\='y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count;
+  specpdl_ref count;
 
   maybe_quit ();
 
@@ -3092,7 +3095,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   Lisp_Object val = funcall_general (args[0], nargs - 1, args + 1);
 
   lisp_eval_depth--;
-  if (backtrace_debug_on_exit (specpdl + count))
+  if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count)))
     val = call_debugger (list2 (Qexit, val));
   specpdl_ptr--;
   return val;
@@ -3183,7 +3186,7 @@ fetch_and_exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 }
 
 static Lisp_Object
-apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
+apply_lambda (Lisp_Object fun, Lisp_Object args, specpdl_ref count)
 {
   Lisp_Object *arg_vector;
   Lisp_Object tem;
@@ -3200,12 +3203,12 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
       arg_vector[i] = tem;
     }
 
-  set_backtrace_args (specpdl + count, arg_vector, numargs);
+  set_backtrace_args (specpdl_ref_to_ptr (count), arg_vector, numargs);
   tem = funcall_lambda (fun, numargs, arg_vector);
 
   lisp_eval_depth--;
   /* Do the debug-on-exit now, while arg_vector still exists.  */
-  if (backtrace_debug_on_exit (specpdl + count))
+  if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count)))
     tem = call_debugger (list2 (Qexit, tem));
   SAFE_FREE ();
   specpdl_ptr--;
@@ -3222,7 +3225,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next, lexenv;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t i;
   bool optional, rest;
 
@@ -3820,9 +3823,9 @@ record_unwind_protect_nothing (void)
    It need not be at the top of the stack.  */
 
 void
-clear_unwind_protect (ptrdiff_t count)
+clear_unwind_protect (specpdl_ref count)
 {
-  union specbinding *p = specpdl + count;
+  union specbinding *p = specpdl_ref_to_ptr (count);
   p->unwind_void.kind = SPECPDL_UNWIND_VOID;
   p->unwind_void.func = do_nothing;
 }
@@ -3832,10 +3835,10 @@ clear_unwind_protect (ptrdiff_t count)
    previous value without invoking it.  */
 
 void
-set_unwind_protect (ptrdiff_t count, void (*func) (Lisp_Object),
+set_unwind_protect (specpdl_ref count, void (*func) (Lisp_Object),
 		    Lisp_Object arg)
 {
-  union specbinding *p = specpdl + count;
+  union specbinding *p = specpdl_ref_to_ptr (count);
   p->unwind.kind = SPECPDL_UNWIND;
   p->unwind.func = func;
   p->unwind.arg = arg;
@@ -3843,9 +3846,9 @@ set_unwind_protect (ptrdiff_t count, void (*func) (Lisp_Object),
 }
 
 void
-set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
+set_unwind_protect_ptr (specpdl_ref count, void (*func) (void *), void *arg)
 {
-  union specbinding *p = specpdl + count;
+  union specbinding *p = specpdl_ref_to_ptr (count);
   p->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   p->unwind_ptr.func = func;
   p->unwind_ptr.arg = arg;
@@ -3855,13 +3858,13 @@ set_unwind_protect_ptr (ptrdiff_t count, void (*func) (void *), void *arg)
    depth COUNT is reached.  Return VALUE.  */
 
 Lisp_Object
-unbind_to (ptrdiff_t count, Lisp_Object value)
+unbind_to (specpdl_ref count, Lisp_Object value)
 {
   Lisp_Object quitf = Vquit_flag;
 
   Vquit_flag = Qnil;
 
-  while (specpdl_ptr != specpdl + count)
+  while (specpdl_ptr != specpdl_ref_to_ptr (count))
     {
       /* Copy the binding, and decrement specpdl_ptr, before we do
 	 the work to unbind it.  We decrement first
@@ -4152,7 +4155,7 @@ NFRAMES and BASE specify the activation frame to use, as in `backtrace-frame'.  
      (Lisp_Object exp, Lisp_Object nframes, Lisp_Object base)
 {
   union specbinding *pdl = get_backtrace_frame (nframes, base);
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t distance = specpdl_ptr - pdl;
   eassert (distance >= 0);
 

@@ -3963,7 +3963,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   INIT_FAIL_STACK ();
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Prevent shrinking and relocation of buffer text if GC happens
      while we are inside this function.  The calls to

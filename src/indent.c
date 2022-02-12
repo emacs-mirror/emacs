@@ -1979,7 +1979,7 @@ line_number_display_width (struct window *w, int *width, int *pixel_width)
       struct text_pos startpos;
       bool saved_restriction = false;
       struct buffer *old_buf = current_buffer;
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       SET_TEXT_POS_FROM_MARKER (startpos, w->start);
       void *itdata = bidi_shelve_cache ();
 
@@ -2116,7 +2116,7 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object lcols = Qnil;
   void *itdata = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines))

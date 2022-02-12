@@ -1219,8 +1219,8 @@ Return t if the file exists and loads successfully.  */)
 {
   FILE *stream UNINIT;
   int fd;
-  int fd_index UNINIT;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref fd_index UNINIT;
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object found, efound, hist_file_name;
   /* True means we printed the ".el is newer" message.  */
   bool newer = 0;
@@ -1628,7 +1628,7 @@ save_match_data_load (Lisp_Object file, Lisp_Object noerror,
 		      Lisp_Object nomessage, Lisp_Object nosuffix,
 		      Lisp_Object must_suffix)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_save_match_data ();
   Lisp_Object result = Fload (file, noerror, nomessage, nosuffix, must_suffix);
   return unbind_to (count, result);
@@ -2164,7 +2164,7 @@ readevalloop (Lisp_Object readcharfun,
 {
   int c;
   Lisp_Object val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct buffer *b = 0;
   bool continue_reading_p;
   Lisp_Object lex_bound;
@@ -2220,7 +2220,7 @@ readevalloop (Lisp_Object readcharfun,
   continue_reading_p = 1;
   while (continue_reading_p)
     {
-      ptrdiff_t count1 = SPECPDL_INDEX ();
+      specpdl_ref count1 = SPECPDL_INDEX ();
 
       if (b != 0 && !BUFFER_LIVE_P (b))
 	error ("Reading from killed buffer");
@@ -2375,7 +2375,7 @@ will be evaluated without lexical binding.
 This function preserves the position of point.  */)
   (Lisp_Object buffer, Lisp_Object printflag, Lisp_Object filename, Lisp_Object unibyte, Lisp_Object do_allow_print)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object tem, buf;
 
   if (NILP (buffer))
@@ -2420,7 +2420,7 @@ This function does not move point.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object printflag, Lisp_Object read_function)
 {
   /* FIXME: Do the eval-sexp-add-defvars dance!  */
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 
   cbuf = Fcurrent_buffer ();
@@ -2595,7 +2595,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 static char *
 grow_read_buffer (char *buf, ptrdiff_t offset,
-		  char **buf_addr, ptrdiff_t *buf_size, ptrdiff_t count)
+		  char **buf_addr, ptrdiff_t *buf_size, specpdl_ref count)
 {
   char *p = xpalloc (*buf_addr, buf_size, MAX_MULTIBYTE_LENGTH, -1, 1);
   if (!*buf_addr)
@@ -2948,7 +2948,7 @@ read_integer (Lisp_Object readcharfun, int radix,
   char *p = read_buffer;
   char *heapbuf = NULL;
   int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   int c = READCHAR;
   if (c == '-' || c == '+')
@@ -3608,7 +3608,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 
     case '"':
       {
-	ptrdiff_t count = SPECPDL_INDEX ();
+	specpdl_ref count = SPECPDL_INDEX ();
 	char *read_buffer = stackbuf;
 	ptrdiff_t read_buffer_size = sizeof stackbuf;
 	char *heapbuf = NULL;
@@ -3752,7 +3752,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 
     read_symbol:
       {
-	ptrdiff_t count = SPECPDL_INDEX ();
+	specpdl_ref count = SPECPDL_INDEX ();
 	char *read_buffer = stackbuf;
 	ptrdiff_t read_buffer_size = sizeof stackbuf;
 	char *heapbuf = NULL;

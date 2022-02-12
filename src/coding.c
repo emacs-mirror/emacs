@@ -7907,7 +7907,7 @@ coding_restore_undo_list (Lisp_Object arg)
 void
 decode_coding_gap (struct coding_system *coding, ptrdiff_t bytes)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object attrs;
 
   eassert (GPT_BYTE == PT_BYTE);
@@ -8071,7 +8071,7 @@ decode_coding_object (struct coding_system *coding,
 		      ptrdiff_t to, ptrdiff_t to_byte,
 		      Lisp_Object dst_object)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   unsigned char *destination UNINIT;
   ptrdiff_t dst_bytes UNINIT;
   ptrdiff_t chars = to - from;
@@ -8170,7 +8170,7 @@ decode_coding_object (struct coding_system *coding,
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
       Lisp_Object undo_list = BVAR (current_buffer, undo_list);
-      ptrdiff_t count1 = SPECPDL_INDEX ();
+      specpdl_ref count1 = SPECPDL_INDEX ();
 
       record_unwind_protect (coding_restore_undo_list,
 			     Fcons (undo_list, Fcurrent_buffer ()));
@@ -8290,7 +8290,7 @@ encode_coding_object (struct coding_system *coding,
 		      ptrdiff_t to, ptrdiff_t to_byte,
 		      Lisp_Object dst_object)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t chars = to - from;
   ptrdiff_t bytes = to_byte - from_byte;
   Lisp_Object attrs;
@@ -8584,7 +8584,7 @@ are lower-case).  */)
   (Lisp_Object prompt, Lisp_Object default_coding_system)
 {
   Lisp_Object val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (SYMBOLP (default_coding_system))
     default_coding_system = SYMBOL_NAME (default_coding_system);

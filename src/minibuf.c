@@ -578,7 +578,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	      bool allow_props, bool inherit_input_method)
 {
   Lisp_Object val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   Lisp_Object calling_frame = selected_frame;
   Lisp_Object calling_window = selected_window;
@@ -833,7 +833,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Erase the buffer.  */
   {
-    ptrdiff_t count1 = SPECPDL_INDEX ();
+    specpdl_ref count1 = SPECPDL_INDEX ();
     specbind (Qinhibit_read_only, Qt);
     specbind (Qinhibit_modification_hooks, Qt);
     Ferase_buffer ();
@@ -991,7 +991,7 @@ nth_minibuffer (EMACS_INT depth)
 static void
 set_minibuffer_mode (Lisp_Object buf, EMACS_INT depth)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   record_unwind_current_buffer ();
   Fset_buffer (buf);
@@ -1155,7 +1155,7 @@ read_minibuf_unwind (void)
 
   /* Erase the minibuffer we were using at this level.  */
   {
-    ptrdiff_t count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     /* Prevent error in erase-buffer.  */
     specbind (Qinhibit_read_only, Qt);
     specbind (Qinhibit_modification_hooks, Qt);
@@ -1384,7 +1384,7 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Just in case we're in a recursive minibuffer, make it clear that the
      previous minibuffer's completion table does not apply to the new
@@ -1483,7 +1483,7 @@ function, instead of the usual behavior.  */)
   Lisp_Object result;
   char *s;
   ptrdiff_t len;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (BUFFERP (def))
     def = BVAR (XBUFFER (def), name);

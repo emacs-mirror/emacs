@@ -575,7 +575,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
     }
   if (min_pos < max_pos)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       specbind (Qinhibit_read_only, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -892,7 +892,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       ptrdiff_t limit, struct window *win, struct face *face,
 	       Lisp_Object string, Lisp_Object direction, int ch)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;

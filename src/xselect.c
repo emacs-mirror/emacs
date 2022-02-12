@@ -376,7 +376,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       /* Don't allow a quit within the converter.
 	 When the user types C-g, he would be surprised
 	 if by luck it came during a converter.  */
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
 
       CHECK_SYMBOL (target_type);
@@ -564,7 +564,7 @@ x_reply_selection_request (struct selection_input_event *event,
   Window window = SELECTION_EVENT_REQUESTOR (event);
   ptrdiff_t bytes_remaining;
   int max_bytes = selection_quantum (display);
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct selection_data *cs;
 
   reply->type = SelectionNotify;
@@ -758,7 +758,7 @@ x_handle_selection_request (struct selection_input_event *event)
   Atom property = SELECTION_EVENT_PROPERTY (event);
   Lisp_Object local_selection_data;
   bool success = false;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (!dpyinfo) goto DONE;
 
@@ -1082,7 +1082,7 @@ wait_for_property_change_unwind (void *loc)
 static void
 wait_for_property_change (struct prop_location *location)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect_ptr (wait_for_property_change_unwind, location);

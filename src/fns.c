@@ -3060,7 +3060,7 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   AUTO_STRING (yes_or_no, "(yes or no) ");
   prompt = CALLN (Fconcat, prompt, yes_or_no);
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qenable_recursive_minibuffers, Qt);
 
   while (1)
@@ -3222,7 +3222,7 @@ FILENAME are suppressed.  */)
 
   if (NILP (tem))
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       int nesting = 0;
 
       /* This is to make sure that loadup.el gives a clear picture
@@ -4223,7 +4223,7 @@ hash_table_user_defined_call (ptrdiff_t nargs, Lisp_Object *args,
 {
   if (!h->mutable)
     return Ffuncall (nargs, args);
-  ptrdiff_t count = inhibit_garbage_collection ();
+  specpdl_ref count = inhibit_garbage_collection ();
   record_unwind_protect_ptr (restore_mutability, h);
   h->mutable = false;
   return unbind_to (count, Ffuncall (nargs, args));

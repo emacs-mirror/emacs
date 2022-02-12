@@ -714,14 +714,14 @@ This function does not grok magic file names.  */)
   bool failed = fd < 0;
   if (!failed)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_protect_int (close_file_unwind, fd);
       val = DECODE_FILE (val);
       if (STRINGP (text) && SBYTES (text) != 0)
 	write_region (text, Qnil, val, Qnil, Qnil, Qnil, Qnil, fd);
       failed = NILP (dir_flag) && emacs_close (fd) != 0;
       /* Discard the unwind protect.  */
-      specpdl_ptr = specpdl + count;
+      specpdl_ptr = specpdl_ref_to_ptr (count);
     }
   if (failed)
     {
@@ -2165,7 +2165,7 @@ permissions.  */)
    Lisp_Object preserve_permissions)
 {
   Lisp_Object handler;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object encoded_file, encoded_newname;
 #if HAVE_LIBSELINUX
   char *con;
@@ -2416,7 +2416,7 @@ permissions.  */)
 #endif /* not WINDOWSNT */
 
   /* Discard the unwind protects.  */
-  specpdl_ptr = specpdl + count;
+  specpdl_ptr = specpdl_ref_to_ptr (count);
 
   return Qnil;
 }
@@ -2718,7 +2718,7 @@ This is what happens in interactive use with M-x.  */)
 	Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
     }
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qdelete_by_moving_to_trash, Qnil);
   if (dirp)
     call2 (Qdelete_directory, file, Qt);
@@ -3903,7 +3903,7 @@ by calling `format-decode', which see.  */)
   ptrdiff_t how_much;
   off_t beg_offset, end_offset;
   int unprocessed;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
   ptrdiff_t total = 0;
@@ -3922,7 +3922,6 @@ by calling `format-decode', which see.  */)
        && BEG == Z);
   Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
   bool we_locked_file = false;
-  ptrdiff_t fd_index;
   Lisp_Object window_markers = Qnil;
   /* same_at_start and same_at_end count bytes, because file access counts
      bytes and BEG and END count bytes.  */
@@ -3984,7 +3983,7 @@ by calling `format-decode', which see.  */)
       goto notfound;
     }
 
-  fd_index = SPECPDL_INDEX ();
+  specpdl_ref fd_index = SPECPDL_INDEX ();
   record_unwind_protect_int (close_file_unwind, fd);
 
   /* Replacement should preserve point as it preserves markers.  */
@@ -4327,7 +4326,7 @@ by calling `format-decode', which see.  */)
       if (! giveup_match_end)
 	{
 	  ptrdiff_t temp;
-          ptrdiff_t this_count = SPECPDL_INDEX ();
+          specpdl_ref this_count = SPECPDL_INDEX ();
 
 	  /* We win!  We can handle REPLACE the optimized way.  */
 
@@ -4398,7 +4397,7 @@ by calling `format-decode', which see.  */)
       unsigned char *decoded;
       ptrdiff_t temp;
       ptrdiff_t this = 0;
-      ptrdiff_t this_count = SPECPDL_INDEX ();
+      specpdl_ref this_count = SPECPDL_INDEX ();
       bool multibyte
 	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
@@ -4704,7 +4703,7 @@ by calling `format-decode', which see.  */)
             = Fcons (multibyte,
                      Fcons (BVAR (current_buffer, undo_list),
 			    Fcurrent_buffer ()));
-	  ptrdiff_t count1 = SPECPDL_INDEX ();
+	  specpdl_ref count1 = SPECPDL_INDEX ();
 
 	  bset_enable_multibyte_characters (current_buffer, Qnil);
 	  bset_undo_list (current_buffer, Qt);
@@ -4855,7 +4854,7 @@ by calling `format-decode', which see.  */)
   if (inserted > 0)
     {
       /* Don't run point motion or modification hooks when decoding.  */
-      ptrdiff_t count1 = SPECPDL_INDEX ();
+      specpdl_ref count1 = SPECPDL_INDEX ();
       ptrdiff_t old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -5186,8 +5185,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   const char *fn;
   struct stat st;
   struct timespec modtime;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t count1 UNINIT;
+  specpdl_ref count = SPECPDL_INDEX ();
+  specpdl_ref count1 UNINIT;
   Lisp_Object handler;
   Lisp_Object visit_file;
   Lisp_Object annotations;
@@ -5390,7 +5389,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	ok = 0, save_errno = errno;
 
       /* Discard the unwind protect for close_file_unwind.  */
-      specpdl_ptr = specpdl + count1;
+      specpdl_ptr = specpdl_ref_to_ptr (count1);
     }
 
   /* Some file systems have a bug where st_mtime is not updated
@@ -5969,7 +5968,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   int do_handled_files;
   Lisp_Object oquit;
   FILE *stream = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   bool orig_minibuffer_auto_raise = minibuffer_auto_raise;
   bool old_message_p = 0;
   struct auto_save_unwind auto_save_unwind;

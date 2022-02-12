@@ -263,7 +263,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
     {
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
@@ -542,7 +542,7 @@ create_and_show_popup_menu (struct frame *f, widget_value * first_wv,
 			    int x, int y, bool for_click)
 {
   GtkWidget *menu;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
@@ -609,7 +609,7 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
     = alloca (menu_items_used * sizeof *subprefix_stack);
   int submenu_depth = 0;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
@@ -886,7 +886,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
 
   if (menu)
     {
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
@@ -918,7 +918,7 @@ pgtk_dialog_show (struct frame *f, Lisp_Object title,
   /* Whether we've seen the boundary between left-hand elts and right-hand.  */
   bool boundary_seen = false;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
@@ -1071,7 +1071,7 @@ pgtk_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object title;
   const char *error_name;
   Lisp_Object selection;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   check_window_system (f);
 

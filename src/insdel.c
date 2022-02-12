@@ -2134,7 +2134,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   Lisp_Object start, end;
   Lisp_Object start_marker, end_marker;
   Lisp_Object preserve_marker;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
 
   start = make_fixnum (start_int);
@@ -2201,7 +2201,7 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
 void
 signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
   Lisp_Object tmp, save_insert_behind_hooks, save_insert_in_from_hooks;
 
@@ -2298,7 +2298,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        doc: /* This function is for use internally in the function `combine-after-change-calls'.  */)
   (void)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t beg, end, change;
   ptrdiff_t begpos, endpos;
   Lisp_Object tail;

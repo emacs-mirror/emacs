@@ -239,7 +239,7 @@ This function can be called only in unibyte buffers.  */)
   z_stream stream;
   int inflate_status;
   struct decompress_unwind_data unwind_data;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   validate_region (&start, &end);
 

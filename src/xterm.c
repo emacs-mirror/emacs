@@ -1202,7 +1202,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   int width, height;
   void (*surface_set_size_func) (cairo_surface_t *, double, double) = NULL;
   Lisp_Object acc = Qnil;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (31);
@@ -12912,7 +12912,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  ptrdiff_t idx = SPECPDL_INDEX ();
+  specpdl_ref idx = SPECPDL_INDEX ();
 
   error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);

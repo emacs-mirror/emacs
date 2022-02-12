@@ -337,7 +337,7 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
                           const struct json_configuration *conf)
 {
   json_t *json;
-  ptrdiff_t count;
+  specpdl_ref count;
 
   if (VECTORP (lisp))
     {
@@ -584,7 +584,7 @@ any JSON false values.
 usage: (json-serialize OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
   if (!json_initialized)
@@ -693,7 +693,7 @@ OBJECT.
 usage: (json-insert OBJECT &rest ARGS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
   if (!json_initialized)
@@ -950,7 +950,7 @@ represent a JSON false value.  It defaults to `:false'.
 usage: (json-parse-string STRING &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
   if (!json_initialized)
@@ -1047,7 +1047,7 @@ represent a JSON false value.  It defaults to `:false'.
 usage: (json-parse-buffer &rest args) */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
   if (!json_initialized)

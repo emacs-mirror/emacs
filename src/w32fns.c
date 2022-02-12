@@ -5771,7 +5771,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   Lisp_Object name;
   bool minibuffer_only = false;
   long window_prompting = 0;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object display;
   struct w32_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
@@ -6946,7 +6946,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
   struct frame *f;
   Lisp_Object frame;
   Lisp_Object name;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct kboard *kb;
   bool face_change_before = face_change;
 
@@ -7273,10 +7273,9 @@ w32_hide_tip (bool delete)
     return Qnil;
   else
     {
-      ptrdiff_t count;
       Lisp_Object was_open = Qnil;
 
-      count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
@@ -7317,8 +7316,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   struct text_pos pos;
   int width, height;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t count_1;
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object window, size, tip_buf;
   AUTO_STRING (tip, " *tip*");
 
@@ -7517,7 +7515,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   /* Insert STRING into the root window's buffer and fit the frame to
      the buffer.  */
-  count_1 = SPECPDL_INDEX ();
+  specpdl_ref count_1 = SPECPDL_INDEX ();
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (w->contents));
   bset_truncate_lines (current_buffer, Qnil);
@@ -7952,7 +7950,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 #endif	/* !NTGUI_UNICODE */
 
     {
-      int count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       w32_dialog_in_progress (Qt);
 

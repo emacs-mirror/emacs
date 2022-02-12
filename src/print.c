@@ -101,7 +101,7 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
    struct buffer *old = current_buffer;					\
    ptrdiff_t old_point = -1, start_point = -1;				\
    ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
-   ptrdiff_t specpdl_count = SPECPDL_INDEX ();				\
+   specpdl_ref specpdl_count = SPECPDL_INDEX ();			\
    bool free_print_buffer = 0;						\
    bool multibyte							\
      = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
@@ -556,7 +556,7 @@ write_string (const char *data, Lisp_Object printcharfun)
 void
 temp_output_buffer_setup (const char *bufname)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
@@ -669,7 +669,7 @@ a list, a buffer, a window, a frame, etc.
 A printed representation of an object is text which describes that object.  */)
   (Lisp_Object object, Lisp_Object noescape)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_modification_hooks, Qt);
 
@@ -1612,7 +1612,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
   if (!NILP (Vprint_unreadable_function)
       && FUNCTIONP (Vprint_unreadable_function))
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       /* Bind `print-unreadable-function' to nil to avoid accidental
 	 infinite recursion in the function called.  */
       Lisp_Object func = Vprint_unreadable_function;

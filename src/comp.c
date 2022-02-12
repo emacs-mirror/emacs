@@ -2639,7 +2639,7 @@ emit_static_object (const char *name, Lisp_Object obj)
      strings cause of this funny bug that will affect all pre gcc10 era gccs:
      https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html  */
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   /* Preserve uninterned symbols, this is specifically necessary for
      CL macro expansion in dynamic scope code (bug#42088).  See
      `byte-compile-output-file-form'.  */
@@ -4995,7 +4995,7 @@ helper_temp_output_buffer_setup (Lisp_Object x)
 Lisp_Object
 helper_unbind_n (Lisp_Object n)
 {
-  return unbind_to (SPECPDL_INDEX () - XFIXNUM (n), Qnil);
+  return unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -XFIXNUM (n)), Qnil);
 }
 
 void
@@ -5270,7 +5270,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
      identify is we have at least another load active on it.  */
   bool recursive_load = comp_u->load_ongoing;
   comp_u->load_ongoing = true;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   if (!recursive_load)
     record_unwind_protect (unset_cu_load_ongoing, comp_u_lisp_obj);
 

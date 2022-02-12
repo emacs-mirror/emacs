@@ -3401,7 +3401,7 @@ slurp_file (int fd, ptrdiff_t *size)
 
   if (fp)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (fclose_unwind, fp);
 
       if (fstat (fileno (fp), &st) == 0

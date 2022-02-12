@@ -3350,10 +3350,66 @@ union specbinding
     } bt;
   };
 
+/* Abstract reference to to a specpdl entry.  */
+typedef ptrdiff_t specpdl_ref;
+
+INLINE specpdl_ref
+specpdl_count_to_ref (ptrdiff_t count)
+{
+  return count;
+}
+
 INLINE ptrdiff_t
+specpdl_ref_to_count (specpdl_ref ref)
+{
+  return ref;
+}
+
+/* Whether two `specpdl_ref' refer to the same entry.  */
+INLINE bool
+specpdl_ref_eq (specpdl_ref a, specpdl_ref b)
+{
+  return a == b;
+}
+
+/* Whether `a' refers to an earlier entry than `b'.  */
+INLINE bool
+specpdl_ref_lt (specpdl_ref a, specpdl_ref b)
+{
+  return a < b;
+}
+
+INLINE bool
+specpdl_ref_valid_p (specpdl_ref ref)
+{
+  return specpdl_ref_to_count (ref) >= 0;
+}
+
+INLINE specpdl_ref
+make_invalid_specpdl_ref (void)
+{
+  return specpdl_count_to_ref (-1);
+}
+
+/* Return a reference that is `delta' steps more recent than `ref'.
+   `delta' may be negative or zero.  */
+INLINE specpdl_ref
+specpdl_ref_add (specpdl_ref ref, ptrdiff_t delta)
+{
+  return specpdl_count_to_ref (specpdl_ref_to_count (ref) + delta);
+}
+
+INLINE union specbinding *
+specpdl_ref_to_ptr (specpdl_ref ref)
+{
+  return specpdl + specpdl_ref_to_count (ref);
+}
+
+/* Return a reference to the most recent specpdl entry.  */
+INLINE specpdl_ref
 SPECPDL_INDEX (void)
 {
-  return specpdl_ptr - specpdl;
+  return specpdl_count_to_ref (specpdl_ptr - specpdl);
 }
 
 INLINE bool
@@ -3419,7 +3475,7 @@ struct handler
      but a few others are handled by storing their value here.  */
   sys_jmp_buf jmp;
   EMACS_INT f_lisp_eval_depth;
-  ptrdiff_t pdlcount;
+  specpdl_ref pdlcount;
   int poll_suppress_count;
   int interrupt_input_blocked;
 };
@@ -4178,7 +4234,7 @@ extern struct Lisp_Vector *allocate_pseudovector (int, int, int,
 extern bool gc_in_progress;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
-extern ptrdiff_t inhibit_garbage_collection (void);
+extern specpdl_ref inhibit_garbage_collection (void);
 extern Lisp_Object build_symbol_with_pos (Lisp_Object, Lisp_Object);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
@@ -4356,10 +4412,11 @@ extern void record_unwind_protect_void (void (*) (void));
 extern void record_unwind_protect_excursion (void);
 extern void record_unwind_protect_nothing (void);
 extern void record_unwind_protect_module (enum specbind_tag, void *);
-extern void clear_unwind_protect (ptrdiff_t);
-extern void set_unwind_protect (ptrdiff_t, void (*) (Lisp_Object), Lisp_Object);
-extern void set_unwind_protect_ptr (ptrdiff_t, void (*) (void *), void *);
-extern Lisp_Object unbind_to (ptrdiff_t, Lisp_Object);
+extern void clear_unwind_protect (specpdl_ref);
+extern void set_unwind_protect (specpdl_ref, void (*) (Lisp_Object),
+				Lisp_Object);
+extern void set_unwind_protect_ptr (specpdl_ref, void (*) (void *), void *);
+extern Lisp_Object unbind_to (specpdl_ref, Lisp_Object);
 extern void rebind_for_thread_switch (void);
 extern void unbind_for_thread_switch (struct thread_state *);
 extern AVOID error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
@@ -4378,12 +4435,12 @@ extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
 extern void syms_of_eval (void);
 extern void prog_ignore (Lisp_Object);
-extern ptrdiff_t record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
+extern specpdl_ref record_in_backtrace (Lisp_Object, Lisp_Object *, ptrdiff_t);
 extern void mark_specpdl (union specbinding *first, union specbinding *ptr);
 extern void get_backtrace (Lisp_Object array);
 Lisp_Object backtrace_top_function (void);
 extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
-void do_debug_on_call (Lisp_Object code, ptrdiff_t count);
+void do_debug_on_call (Lisp_Object code, specpdl_ref count);
 Lisp_Object funcall_general (Lisp_Object fun,
 			     ptrdiff_t numargs, Lisp_Object *args);
 
@@ -5054,7 +5111,7 @@ extern void *record_xmalloc (size_t)
 
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_avail = MAX_ALLOCA;	\
-  ptrdiff_t sa_count = SPECPDL_INDEX ()
+  specpdl_ref sa_count = SPECPDL_INDEX ()
 
 #define AVAIL_ALLOCA(size) (sa_avail -= (size), alloca (size))
 
@@ -5092,9 +5149,9 @@ extern void *record_xmalloc (size_t)
 #define SAFE_FREE() safe_free (sa_count)
 
 INLINE void
-safe_free (ptrdiff_t sa_count)
+safe_free (specpdl_ref sa_count)
 {
-  while (specpdl_ptr != specpdl + sa_count)
+  while (specpdl_ptr != specpdl_ref_to_ptr (sa_count))
     {
       specpdl_ptr--;
       if (specpdl_ptr->kind == SPECPDL_UNWIND_PTR)
@@ -5120,9 +5177,9 @@ safe_free (ptrdiff_t sa_count)
   safe_free_unbind_to (count, sa_count, val)
 
 INLINE Lisp_Object
-safe_free_unbind_to (ptrdiff_t count, ptrdiff_t sa_count, Lisp_Object val)
+safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 {
-  eassert (count <= sa_count);
+  eassert (!specpdl_ref_lt (sa_count, count));
   return unbind_to (count, val);
 }
 

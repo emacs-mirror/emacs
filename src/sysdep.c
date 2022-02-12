@@ -3365,7 +3365,6 @@ system_process_attributes (Lisp_Object pid)
   double pcpu, pmem;
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_cmd;
-  ptrdiff_t count;
 
   CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
@@ -3390,7 +3389,7 @@ system_process_attributes (Lisp_Object pid)
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   strcpy (fn, procfn);
   procfn_end = fn + strlen (fn);
   strcpy (procfn_end, "/stat");
@@ -3512,7 +3511,7 @@ system_process_attributes (Lisp_Object pid)
       do
 	{
 	  cmdline = xpalloc (cmdline, &cmdline_size, 2, STRING_BYTES_BOUND, 1);
-	  set_unwind_protect_ptr (count + 1, xfree, cmdline);
+	  set_unwind_protect_ptr (specpdl_ref_add (count, 1), xfree, cmdline);
 
 	  /* Leave room even if every byte needs escaping below.  */
 	  readsize = (cmdline_size >> 1) - nread;
@@ -3546,7 +3545,7 @@ system_process_attributes (Lisp_Object pid)
 	  nread = cmdsize + 2;
 	  cmdline_size = nread + 1;
 	  q = cmdline = xrealloc (cmdline, cmdline_size);
-	  set_unwind_protect_ptr (count + 1, xfree, cmdline);
+	  set_unwind_protect_ptr (specpdl_ref_add (count, 1), xfree, cmdline);
 	  sprintf (cmdline, "[%.*s]", cmdsize, cmd);
 	}
       /* Command line is encoded in locale-coding-system; decode it.  */
@@ -3595,7 +3594,6 @@ system_process_attributes (Lisp_Object pid)
   gid_t gid;
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_cmd;
-  ptrdiff_t count;
 
   CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
@@ -3620,7 +3618,7 @@ system_process_attributes (Lisp_Object pid)
   if (gr)
     attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   strcpy (fn, procfn);
   procfn_end = fn + strlen (fn);
   strcpy (procfn_end, "/psinfo");

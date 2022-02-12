@@ -382,7 +382,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   unsigned char const *bytestr_data = SDATA (bytestr);
   unsigned char const *pc = bytestr_data;
 #if BYTE_CODE_SAFE || !defined NDEBUG
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 #endif
 
   /* ARGS_TEMPLATE is composed of bit fields:
@@ -650,7 +650,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    Lisp_Object fun = TOP;
 	    Lisp_Object *args = &TOP + 1;
 
-	    ptrdiff_t count1 = record_in_backtrace (fun, args, numargs);
+	    specpdl_ref count1 = record_in_backtrace (fun, args, numargs);
 	    maybe_gc ();
 	    if (debug_on_next_call)
 	      do_debug_on_call (Qlambda, count1);
@@ -678,7 +678,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	      val = funcall_general (original_fun, numargs, args);
 
 	    lisp_eval_depth--;
-	    if (backtrace_debug_on_exit (specpdl + count1))
+	    if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count1)))
 	      val = call_debugger (list2 (Qexit, val));
 	    specpdl_ptr--;
 
@@ -702,7 +702,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	CASE (Bunbind5):
 	  op -= Bunbind;
 	dounbind:
-	  unbind_to (SPECPDL_INDEX () - op, Qnil);
+	  unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -op), Qnil);
 	  NEXT;
 
 	CASE (Bgoto):
@@ -796,7 +796,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Bsave_window_excursion): /* Obsolete since 24.1.  */
 	  {
-	    ptrdiff_t count1 = SPECPDL_INDEX ();
+	    specpdl_ref count1 = SPECPDL_INDEX ();
 	    record_unwind_protect (restore_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    TOP = Fprogn (TOP);
@@ -872,7 +872,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    temp_output_buffer_show (TOP);
 	    TOP = v1;
 	    /* pop binding of standard-output */
-	    unbind_to (SPECPDL_INDEX () - 1, Qnil);
+	    unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -1), Qnil);
 	    NEXT;
 	  }
 
@@ -1585,10 +1585,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
  exit:
 
 #if BYTE_CODE_SAFE || !defined NDEBUG
-  if (SPECPDL_INDEX () != count)
+  if (!specpdl_ref_eq (SPECPDL_INDEX (), count))
     {
       /* Binds and unbinds are supposed to be compiled balanced.  */
-      if (SPECPDL_INDEX () > count)
+      if (specpdl_ref_lt (count, SPECPDL_INDEX ()))
 	unbind_to (count, Qnil);
       error ("binding stack not balanced (serious byte compiler bug)");
     }

@@ -570,7 +570,7 @@ haiku_create_frame (Lisp_Object parms)
   Lisp_Object name;
   bool minibuffer_only = false;
   long window_prompting = 0;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object display;
   struct haiku_display_info *dpyinfo = NULL;
   struct kboard *kb;
@@ -908,7 +908,7 @@ haiku_create_tip_frame (Lisp_Object parms)
   struct frame *f;
   Lisp_Object frame;
   Lisp_Object name;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   bool face_change_before = face_change;
   struct haiku_display_info *dpyinfo = x_display_list;
 
@@ -1204,10 +1204,9 @@ haiku_hide_tip (bool delete)
     return Qnil;
   else
     {
-      ptrdiff_t count;
       Lisp_Object was_open = Qnil;
 
-      count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
@@ -1939,8 +1938,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   struct text_pos pos;
   int width, height;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  ptrdiff_t count = SPECPDL_INDEX ();
-  ptrdiff_t count_1;
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object window, size, tip_buf;
   AUTO_STRING (tip, " *tip*");
 
@@ -2156,7 +2154,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   /* Insert STRING into root window's buffer and fit the frame to the
      buffer.  */
-  count_1 = SPECPDL_INDEX ();
+  specpdl_ref count_1 = SPECPDL_INDEX ();
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (w->contents));
   bset_truncate_lines (current_buffer, Qnil);
@@ -2415,7 +2413,6 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
    Lisp_Object dir, Lisp_Object mustmatch,
    Lisp_Object dir_only_p, Lisp_Object save_text)
 {
-  ptrdiff_t idx;
   if (!x_display_list)
     error ("Be windowing not initialized");
 
@@ -2433,7 +2430,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
   CHECK_LIVE_FRAME (frame);
   check_window_system (XFRAME (frame));
 
-  idx = SPECPDL_INDEX ();
+  specpdl_ref idx = SPECPDL_INDEX ();
   record_unwind_protect_void (unwind_popup);
 
   struct frame *f = XFRAME (frame);

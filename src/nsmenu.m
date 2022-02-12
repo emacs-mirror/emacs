@@ -164,7 +164,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
@@ -854,7 +854,7 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
   EmacsMenu *pmenu;
   NSPoint p;
   Lisp_Object tem;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
   widget_value *wv, *first_wv = 0;
   bool keymaps = (menuflags & MENU_KEYMAPS);
 
@@ -1552,7 +1552,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
                                            isQuestion: isQ];
 
   {
-    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+    specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
     record_unwind_protect_ptr (pop_down_menu, dialog);
     popup_activated_flag = 1;

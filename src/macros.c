@@ -287,7 +287,7 @@ buffer before the macro is executed.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  ptrdiff_t pdlcount = SPECPDL_INDEX ();
+  specpdl_ref pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   EMACS_INT success_count = 0;
 

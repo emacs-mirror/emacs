@@ -2660,7 +2660,7 @@ in the font selection dialog. */)
   ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 
   {
-    int count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     Lisp_Object value = Qnil;
 
     w32_dialog_in_progress (Qt);

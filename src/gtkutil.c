@@ -2382,7 +2382,7 @@ xg_maybe_add_timer (gpointer data)
 static int
 xg_dialog_run (struct frame *f, GtkWidget *w)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct xg_dialog_data dd;
 
   xg_set_screen (w, f);
