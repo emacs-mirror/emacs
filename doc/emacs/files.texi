@@ -1828,6 +1828,22 @@ argument to @kbd{M-x delete-file} or @kbd{M-x delete-directory} makes
 them delete outright, instead of using the Trash, regardless of
 @code{delete-by-moving-to-trash}.
 
+  If you have @code{delete-by-moving-to-trash} set, and you want to
+delete files manually in Emacs from the Trash directory, using
+commands like @kbd{D} (@code{dired-do-delete}) doesn't work well in
+the Trash directory (it'll just give the file a new name, but won't
+delete anything).  If you want to be able to do this, you should
+create a @code{.dir-locals.el} file containing something like the
+following in the Trash directory:
+
+@example
+((dired-mode . ((delete-by-moving-to-trash . nil))))
+@end example
+
+  Note, however, if you use the system ``empty trash'' command, it's
+liable to also delete this @code{.dir-locals.el} file, so this should
+only be done if you delete files from the Trash directory manually.
+
 @ifnottex
   If a file is under version control (@pxref{Version Control}), you
 should delete it using @kbd{M-x vc-delete-file} instead of @kbd{M-x
