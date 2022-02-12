@@ -746,6 +746,9 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 				  f->alpha_background != 1.0);
 #endif
 
+  if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
+    return;
+
   if (f->alpha_background != 1.0)
     {
       XChangeProperty (FRAME_X_DISPLAY (f),
