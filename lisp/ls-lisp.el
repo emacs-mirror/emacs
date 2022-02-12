@@ -784,7 +784,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 		;; In GNU ls, -h affects the size in blocks, displayed
 		;; by -s, as well.
 		(if (memq ?h switches)
-		    (format "%6s "
+		    (format "%7s "
 			    (file-size-human-readable
 			     ;; We use 1K as "block size", although
 			     ;; most Windows volumes use 4KB to 8KB
@@ -881,7 +881,7 @@ All ls time options, namely c, t and u, are handled."
 		  ls-lisp-filesize-f-fmt
 		ls-lisp-filesize-d-fmt)
 	      file-size)
-    (format " %6s" (file-size-human-readable file-size))))
+    (format " %7s" (file-size-human-readable file-size))))
 
 (defun ls-lisp-unload-function ()
   "Unload ls-lisp library."
