@@ -83,6 +83,22 @@ release_global_lock (void)
   sys_mutex_unlock (&global_lock);
 }
 
+static void
+rebind_for_thread_switch (void)
+{
+  ptrdiff_t distance
+    = current_thread->m_specpdl_ptr - current_thread->m_specpdl;
+  specpdl_unrewind (specpdl_ptr, -distance, true);
+}
+
+static void
+unbind_for_thread_switch (struct thread_state *thr)
+{
+  ptrdiff_t distance = thr->m_specpdl_ptr - thr->m_specpdl;
+  specpdl_unrewind (thr->m_specpdl_ptr, distance, true);
+}
+
+
 /* You must call this after acquiring the global lock.
    acquire_global_lock does it for you.  */
 static void

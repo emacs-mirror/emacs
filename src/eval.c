@@ -104,13 +104,6 @@ specpdl_where (union specbinding *pdl)
 }
 
 static Lisp_Object
-specpdl_saved_value (union specbinding *pdl)
-{
-  eassert (pdl->kind >= SPECPDL_LET);
-  return pdl->let.saved_value;
-}
-
-static Lisp_Object
 specpdl_arg (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_UNWIND);
@@ -3589,9 +3582,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
       specpdl_ptr->let.kind = SPECPDL_LET;
       specpdl_ptr->let.symbol = symbol;
       specpdl_ptr->let.old_value = SYMBOL_VAL (sym);
-      specpdl_ptr->let.saved_value = Qnil;
-      grow_specpdl ();
-      do_specbind (sym, specpdl_ptr - 1, value, SET_INTERNAL_BIND);
       break;
     case SYMBOL_LOCALIZED:
     case SYMBOL_FORWARDED:
@@ -3601,7 +3591,6 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	specpdl_ptr->let.symbol = symbol;
 	specpdl_ptr->let.old_value = ovalue;
 	specpdl_ptr->let.where = Fcurrent_buffer ();
-	specpdl_ptr->let.saved_value = Qnil;
 
 	eassert (sym->u.s.redirect != SYMBOL_LOCALIZED
 		 || (EQ (SYMBOL_BLV (sym)->where, Fcurrent_buffer ())));
@@ -3619,22 +3608,17 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	       having their own value.  This is consistent with what
 	       happens with other buffer-local variables.  */
 	    if (NILP (Flocal_variable_p (symbol, Qnil)))
-	      {
-		specpdl_ptr->let.kind = SPECPDL_LET_DEFAULT;
-		grow_specpdl ();
-                do_specbind (sym, specpdl_ptr - 1, value, SET_INTERNAL_BIND);
-		return;
-	      }
+	      specpdl_ptr->let.kind = SPECPDL_LET_DEFAULT;
 	  }
 	else
 	  specpdl_ptr->let.kind = SPECPDL_LET;
 
-	grow_specpdl ();
-        do_specbind (sym, specpdl_ptr - 1, value, SET_INTERNAL_BIND);
 	break;
       }
     default: emacs_abort ();
     }
+  grow_specpdl ();
+  do_specbind (sym, specpdl_ptr - 1, value, SET_INTERNAL_BIND);
 }
 
 /* Push unwind-protect entries of various types.  */
@@ -3708,24 +3692,6 @@ record_unwind_protect_module (enum specbind_tag kind, void *ptr)
   specpdl_ptr->unwind_ptr.func = NULL;
   specpdl_ptr->unwind_ptr.arg = ptr;
   grow_specpdl ();
-}
-
-void
-rebind_for_thread_switch (void)
-{
-  union specbinding *bind;
-
-  for (bind = specpdl; bind != specpdl_ptr; ++bind)
-    {
-      if (bind->kind >= SPECPDL_LET)
-	{
-	  Lisp_Object value = specpdl_saved_value (bind);
-	  Lisp_Object sym = specpdl_symbol (bind);
-	  bind->let.saved_value = Qnil;
-          do_specbind (XSYMBOL (sym), bind, value,
-                       SET_INTERNAL_THREAD_SWITCH);
-	}
-    }
 }
 
 static void
@@ -3884,22 +3850,6 @@ unbind_to (specpdl_ref count, Lisp_Object value)
   return value;
 }
 
-void
-unbind_for_thread_switch (struct thread_state *thr)
-{
-  union specbinding *bind;
-
-  for (bind = thr->m_specpdl_ptr; bind > thr->m_specpdl;)
-    {
-      if ((--bind)->kind >= SPECPDL_LET)
-	{
-	  Lisp_Object sym = specpdl_symbol (bind);
-	  bind->let.saved_value = find_symbol_value (sym);
-          do_one_unbind (bind, false, SET_INTERNAL_THREAD_SWITCH);
-	}
-    }
-}
-
 DEFUN ("special-variable-p", Fspecial_variable_p, Sspecial_variable_p, 1, 1, 0,
        doc: /* Return non-nil if SYMBOL's global binding has been declared special.
 A special variable is one that will be bound dynamically, even in a
@@ -4055,11 +4005,13 @@ or a lambda expression for macro calls.  */)
    value and the old value stored in the specpdl), kind of like the inplace
    pointer-reversal trick.  As it turns out, the rewind does the same as the
    unwind, except it starts from the other end of the specpdl stack, so we use
-   the same function for both unwind and rewind.  */
-static void
-backtrace_eval_unrewind (int distance)
+   the same function for both unwind and rewind.
+   This same code is used when switching threads, except in that case
+   we unwind/rewind the whole specpdl of the threads.  */
+void
+specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only)
 {
-  union specbinding *tmp = specpdl_ptr;
+  union specbinding *tmp = pdl;
   int step = -1;
   if (distance < 0)
     { /* It's a rewind rather than unwind.  */
@@ -4077,6 +4029,8 @@ backtrace_eval_unrewind (int distance)
 	     unwind_protect, but the problem is that we don't know how to
 	     rewind them afterwards.  */
 	case SPECPDL_UNWIND:
+	  if (vars_only)
+	    break;
 	  if (tmp->unwind.func == set_buffer_if_live)
 	    {
 	      Lisp_Object oldarg = tmp->unwind.arg;
@@ -4085,6 +4039,8 @@ backtrace_eval_unrewind (int distance)
 	    }
 	  break;
 	case SPECPDL_UNWIND_EXCURSION:
+	  if (vars_only)
+	    break;
 	  {
 	    Lisp_Object marker = tmp->unwind_excursion.marker;
 	    Lisp_Object window = tmp->unwind_excursion.window;
@@ -4125,7 +4081,7 @@ backtrace_eval_unrewind (int distance)
 	    Lisp_Object sym = specpdl_symbol (tmp);
 	    Lisp_Object old_value = specpdl_old_value (tmp);
 	    set_specpdl_old_value (tmp, default_value (sym));
-	    Fset_default (sym, old_value);
+	    set_default_internal (sym, old_value, SET_INTERNAL_THREAD_SWITCH);
 	  }
 	  break;
 	case SPECPDL_LET_LOCAL:
@@ -4141,12 +4097,26 @@ backtrace_eval_unrewind (int distance)
 	      {
 		set_specpdl_old_value
 		  (tmp, buffer_local_value (symbol, where));
-                set_internal (symbol, old_value, where, SET_INTERNAL_UNBIND);
+                set_internal (symbol, old_value, where,
+                              SET_INTERNAL_THREAD_SWITCH);
 	      }
+	    else
+	      /* FIXME: If the var is not local any more, we failed
+                 to swap the old and new values.  As long as the var remains
+                 non-local, this is fine, but if it ever reverts to being
+                 local we may end up using this entry "in the wrong
+                 direction".  */
+	      ;
 	  }
 	  break;
 	}
     }
+}
+
+static void
+backtrace_eval_unrewind (int distance)
+{
+  specpdl_unrewind (specpdl_ptr, distance, false);
 }
 
 DEFUN ("backtrace-eval", Fbacktrace_eval, Sbacktrace_eval, 2, 3, NULL,
@@ -4302,7 +4272,6 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	case SPECPDL_LET:
 	  mark_object (specpdl_symbol (pdl));
 	  mark_object (specpdl_old_value (pdl));
-	  mark_object (specpdl_saved_value (pdl));
 	  break;
 
 	case SPECPDL_UNWIND_PTR:

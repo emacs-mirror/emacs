@@ -243,7 +243,7 @@ define test_template
   .PHONY: $(1) $(notdir $(1))
   $(1):
 	@test ! -f $(1).log || mv $(1).log $(1).log~
-	@$(MAKE) $(1).log WRITE_LOG=
+	+@$(MAKE) $(1).log WRITE_LOG=
   $(notdir $(1)): $(1)
 endef
 

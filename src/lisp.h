@@ -3337,9 +3337,6 @@ union specbinding
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
       /* `where' is not used in the case of SPECPDL_LET.  */
       Lisp_Object symbol, old_value, where;
-      /* Normally this is unused; but it is set to the symbol's
-	 current value when a thread is swapped out.  */
-      Lisp_Object saved_value;
     } let;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -4453,8 +4450,7 @@ extern void set_unwind_protect (specpdl_ref, void (*) (Lisp_Object),
 				Lisp_Object);
 extern void set_unwind_protect_ptr (specpdl_ref, void (*) (void *), void *);
 extern Lisp_Object unbind_to (specpdl_ref, Lisp_Object);
-extern void rebind_for_thread_switch (void);
-extern void unbind_for_thread_switch (struct thread_state *);
+void specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only);
 extern AVOID error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern AVOID verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
