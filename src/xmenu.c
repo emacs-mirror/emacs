@@ -318,7 +318,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xbutton.type = ButtonRelease;
 		    copy.xbutton.serial = xev->serial;
 		    copy.xbutton.send_event = xev->send_event;
-		    copy.xbutton.display = xev->display;
+		    copy.xbutton.display = dpyinfo->display;
 		    copy.xbutton.window = xev->event;
 		    copy.xbutton.root = xev->root;
 		    copy.xbutton.subwindow = xev->child;
@@ -363,7 +363,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xkey.type = KeyPress;
 		    copy.xkey.serial = xev->serial;
 		    copy.xkey.send_event = xev->send_event;
-		    copy.xkey.display = xev->display;
+		    copy.xkey.display = dpyinfo->display;
 		    copy.xkey.window = xev->event;
 		    copy.xkey.root = xev->root;
 		    copy.xkey.subwindow = xev->child;
