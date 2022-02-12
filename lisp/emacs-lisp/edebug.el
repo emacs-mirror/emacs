@@ -2577,6 +2577,13 @@ See `edebug-behavior-alist' for implementations.")
     ;; Let's at least show a backtrace so the user can figure out
     ;; which function we're talking about.
     (debug))
+  ;; If we're in a `track-mouse' setting, then any previous mouse
+  ;; movements will make `input-pending-p' later return true.  So
+  ;; discard the inputs in that case.  (And `discard-input' doesn't
+  ;; work here.)
+  (when track-mouse
+    (while (input-pending-p)
+      (read-event)))
   ;; Setup windows for edebug, determine mode, maybe enter recursive-edit.
   ;; Uses local variables of edebug-enter, edebug-before, edebug-after
   ;; and edebug-debugger.
