@@ -5593,7 +5593,6 @@ realize_basic_faces (struct frame *f)
 
   if (realize_default_face (f))
     {
-      realize_named_face (f, Qmode_line, MODE_LINE_FACE_ID);
       realize_named_face (f, Qmode_line_active, MODE_LINE_ACTIVE_FACE_ID);
       realize_named_face (f, Qmode_line_inactive, MODE_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
