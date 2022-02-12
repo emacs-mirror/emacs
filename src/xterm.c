@@ -11242,11 +11242,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef XIPointerEmulated
 	      /* Ignore emulated scroll events when XI2 native
 		 scroll events are present.  */
-	      if (((dpyinfo->xi2_version == 1
-		   && xev->detail >= 4
-		   && xev->detail <= 8)
-		   || (dpyinfo->xi2_version >= 2))
-		  && xev->flags & XIPointerEmulated)
+	      if (xev->flags & XIPointerEmulated)
 		{
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
