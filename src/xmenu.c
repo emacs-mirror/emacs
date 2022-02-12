@@ -299,16 +299,16 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 	       && event.xgeneric.display == dpyinfo->display
 	       && event.xgeneric.extension == dpyinfo->xi2_opcode)
 	{
-	  if (!event.xcookie.data
-	      && XGetEventData (dpyinfo->display, &event.xcookie))
-	    cookie_claimed_p = true;
-
 	  if (event.xcookie.data)
 	    {
 	      switch (event.xgeneric.evtype)
 		{
 		case XI_ButtonRelease:
 		  {
+		    if (!event.xcookie.data
+			&& XGetEventData (dpyinfo->display, &event.xcookie))
+		      cookie_claimed_p = true;
+
 		    xev = (XIDeviceEvent *) event.xcookie.data;
 		    device = xi_device_from_id (dpyinfo, xev->deviceid);
 
@@ -357,6 +357,10 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		case XI_KeyPress:
 		  {
 		    KeySym keysym;
+
+		    if (!event.xcookie.data
+			&& XGetEventData (dpyinfo->display, &event.xcookie))
+		      cookie_claimed_p = true;
 
 		    xev = (XIDeviceEvent *) event.xcookie.data;
 
@@ -1578,26 +1582,55 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
 
-#if defined HAVE_XINPUT2 && defined USE_X_TOOLKIT
+#if defined HAVE_XINPUT2
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  /* Clear the XI2 grab so lwlib can set a core grab.  */
+  bool any_xi_grab_p = false;
+
+  /* Clear the XI2 grab, and if any XI2 grab was set, place a core
+     grab on the frame's edit widget.  */
+
+  if (dpyinfo->supports_xi2)
+    XGrabServer (dpyinfo->display);
 
   if (dpyinfo->num_devices)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
-#ifndef USE_MOTIF
 	  if (dpyinfo->devices[i].grab)
-#endif
-	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			    CurrentTime);
+	    {
+	      any_xi_grab_p = true;
+	      dpyinfo->devices[i].grab = 0;
+
+	      XIUngrabDevice (dpyinfo->display,
+			      dpyinfo->devices[i].device_id,
+			      CurrentTime);
+	    }
 	}
     }
+
+  if (any_xi_grab_p)
+    XGrabPointer (dpyinfo->display,
+		  FRAME_X_WINDOW (f),
+		  False, (PointerMotionMask
+			  | PointerMotionHintMask
+			  | ButtonReleaseMask
+			  | ButtonPressMask),
+		  GrabModeSync, GrabModeAsync,
+		  None, None, CurrentTime);
+
+  if (dpyinfo->supports_xi2)
+    XUngrabServer (dpyinfo->display);
 #endif
 
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;
+
+#ifdef HAVE_XINPUT2
+  if (any_xi_grab_p)
+    XAllowEvents (dpyinfo->display, AsyncPointer, CurrentTime);
+#endif
+
   x_activate_timeout_atimer ();
 
   {
