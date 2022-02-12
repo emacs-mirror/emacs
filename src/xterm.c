@@ -451,7 +451,7 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 				    : FRAME_PIXEL_HEIGHT (f))};
 #endif
 
-  if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
+  if (!(f && FRAME_DISPLAY_INFO (f)->alpha_bits))
     return;
 
   block_input ();
