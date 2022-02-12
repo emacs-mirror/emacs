@@ -476,6 +476,17 @@ The options 'mouse-wheel-down-alternate-event', 'mouse-wheel-up-alternate-event'
 been added to better support systems where two kinds of wheel events can be
 received.
 
+** Editing complex text layout (CTL) scripts
+
+*** The <Delete> function key now allows deleting the entire composed sequence.
+For the details, see the item about the 'delete-forward-char' command
+above.
+
+*** New user option 'composition-break-at-point'.
+Setting it to a non-nil value temporarily disables automatic
+composition of character sequences at point, and thus makes it easier
+to edit such sequences by allowing point to "enter" the sequence.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

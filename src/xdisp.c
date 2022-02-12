@@ -3984,6 +3984,12 @@ compute_stop_pos (struct it *it)
       pos = next_overlay_change (charpos);
       if (pos < it->stop_charpos)
 	it->stop_charpos = pos;
+      /* If we are breaking compositions at point, stop at point.  */
+      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+	  && !NILP (Vauto_composition_mode)
+	  && composition_break_at_point
+	  && charpos < PT && PT < it->stop_charpos)
+	it->stop_charpos = PT;
 
       /* Set up variables for computing the stop position from text
          property changes.  */
@@ -3995,7 +4001,8 @@ compute_stop_pos (struct it *it)
 	 chunks.  We play safe here by assuming that only SPC, TAB,
 	 FF, and NL cannot be in some composition; in particular, most
 	 ASCII punctuation characters could be composed into ligatures.  */
-      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+      if (!composition_break_at_point
+	  && !NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && !NILP (Vauto_composition_mode))
 	{
 	  ptrdiff_t endpos = charpos + 10 * TEXT_PROP_DISTANCE_LIMIT;
@@ -9186,7 +9193,19 @@ next_element_from_buffer (struct it *it)
 	  && IT_CHARPOS (*it) >= it->redisplay_end_trigger_charpos)
 	run_redisplay_end_trigger_hook (it);
 
-      stop = it->bidi_it.scan_dir < 0 ? -1 : it->end_charpos;
+      if (composition_break_at_point
+	  && !NILP (BVAR (current_buffer, enable_multibyte_characters))
+	  && !NILP (Vauto_composition_mode))
+	{
+	  /* Limit search for composable characters to point's position.  */
+	  if (it->bidi_it.scan_dir < 0)
+	    stop = (PT <= IT_CHARPOS (*it)) ? PT : -1;
+	  else
+	    stop = (IT_CHARPOS (*it) < PT
+		    && PT < it->end_charpos) ? PT : it->end_charpos;
+	}
+      else
+	stop = it->bidi_it.scan_dir < 0 ? -1 : it->end_charpos;
       if (CHAR_COMPOSED_P (it, IT_CHARPOS (*it), IT_BYTEPOS (*it),
 			   stop)
 	  && next_element_from_composition (it))
@@ -16390,7 +16409,8 @@ redisplay_internal (void)
       /* If highlighting the region, or if the cursor is in the echo area,
 	 then we can't just move the cursor.  */
       else if (NILP (Vshow_trailing_whitespace)
-	       && !cursor_in_echo_area)
+	       && !cursor_in_echo_area
+	       && !composition_break_at_point)
 	{
 	  struct it it;
 	  struct glyph_row *row;
@@ -18928,6 +18948,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
        && !current_buffer->clip_changed
        && !current_buffer->prevent_redisplay_optimizations_p
        && !window_outdated (w)
+       && !composition_break_at_point
        && !hscrolling_current_line_p (w));
 
   beg_unchanged = BEG_UNCHANGED;
@@ -36527,6 +36548,13 @@ Otherwise, use custom-tailored code after resizing minibuffer windows to try
 and display the most important part of the minibuffer.   */);
   /* See bug#43519 for some discussion around this.  */
   redisplay_adhoc_scroll_in_resize_mini_windows = true;
+
+  DEFVAR_BOOL ("composition-break-at-point",
+	       composition_break_at_point,
+	       doc: /* If non-nil, prevent auto-composition of characters around point.
+This makes it easier to edit character sequences that are
+composed on display.  */);
+  composition_break_at_point = false;
 }
 
 

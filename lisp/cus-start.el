@@ -811,6 +811,7 @@ since it could result in memory overflow and make Emacs crash."
                character)
               "27.1"
               :safe (lambda (value) (or (characterp value) (null value))))
+             (composition-break-at-point display boolean "29.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed
               display (choice (const :tag "Don't allow scalable fonts" nil)

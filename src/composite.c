@@ -1292,6 +1292,16 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  if (cmp_it->lookback > 0)
 	    {
 	      cpos = charpos - cmp_it->lookback;
+	      /* Reject the composition if it starts before ENDPOS,
+		 which here can only happen if
+		 composition-break-at-point is non-nil and point is
+		 inside the composition.  */
+	      if (cpos < endpos)
+		{
+		  eassert (composition_break_at_point);
+		  eassert (endpos == PT);
+		  goto no_composition;
+		}
 	      if (STRINGP (string))
 		bpos = string_char_to_byte (string, cpos);
 	      else

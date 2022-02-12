@@ -1603,23 +1603,33 @@ command_loop_1 (void)
 
       if (current_buffer == prev_buffer
 	  && XBUFFER (XWINDOW (selected_window)->contents) == current_buffer
-	  && last_point_position != PT
-	  && NILP (Vdisable_point_adjustment)
-	  && NILP (Vglobal_disable_point_adjustment))
+	  && last_point_position != PT)
 	{
-	  if (last_point_position > BEGV
-	      && last_point_position < ZV
-	      && (composition_adjust_point (last_point_position,
-					    last_point_position)
-		  != last_point_position))
-	    /* The last point was temporarily set within a grapheme
-	       cluster to prevent automatic composition.  To recover
-	       the automatic composition, we must update the
-	       display.  */
-	    windows_or_buffers_changed = 21;
-	  if (!already_adjusted)
-	    adjust_point_for_property (last_point_position,
-				       MODIFF != prev_modiff);
+	  if (NILP (Vdisable_point_adjustment)
+	      && NILP (Vglobal_disable_point_adjustment)
+	      && !composition_break_at_point)
+	    {
+	      if (last_point_position > BEGV
+		  && last_point_position < ZV
+		  && (composition_adjust_point (last_point_position,
+						last_point_position)
+		      != last_point_position))
+		/* The last point was temporarily set within a grapheme
+		   cluster to prevent automatic composition.  To recover
+		   the automatic composition, we must update the
+		   display.  */
+		windows_or_buffers_changed = 21;
+	      if (!already_adjusted)
+		adjust_point_for_property (last_point_position,
+					   MODIFF != prev_modiff);
+	    }
+	  else if (PT > BEGV && PT < ZV
+		   && (composition_adjust_point (last_point_position, PT)
+		       != PT))
+	    /* Now point is within a grapheme cluster.  We must update
+	       the display so that this cluster is de-composed on the
+	       screen and the cursor is correctly placed at point.  */
+	    windows_or_buffers_changed = 39;
 	}
 
       /* Install chars successfully executed in kbd macro.  */
