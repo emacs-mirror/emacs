@@ -1174,7 +1174,6 @@ public:
 class EmacsView : public BView
 {
 public:
-  uint32_t visible_bell_color = 0;
   uint32_t previous_buttons = 0;
   int looper_locked_count = 0;
   BRegion sb_region;
@@ -1314,28 +1313,10 @@ public:
   }
 
   void
-  Pulse (void)
-  {
-    visible_bell_color = 0;
-    SetFlags (Flags () & ~B_PULSE_NEEDED);
-    Window ()->SetPulseRate (0);
-    Invalidate ();
-  }
-
-  void
   Draw (BRect expose_bounds)
   {
     struct haiku_expose_event rq;
     EmacsWindow *w = (EmacsWindow *) Window ();
-
-    if (visible_bell_color > 0)
-      {
-	PushState ();
-	BView_SetHighColorForVisibleBell (this, visible_bell_color);
-	FillRect (Frame ());
-	PopState ();
-	return;
-      }
 
     if (w->shown_flag && offscreen_draw_view)
       {
@@ -1370,18 +1351,6 @@ public:
 
 	haiku_write (FRAME_EXPOSED, &rq);
       }
-  }
-
-  void
-  DoVisibleBell (uint32_t color)
-  {
-    if (!LockLooper ())
-      gui_abort ("Failed to lock looper during visible bell");
-    visible_bell_color = color | (255 << 24);
-    SetFlags (Flags () | B_PULSE_NEEDED);
-    Window ()->SetPulseRate (100 * 1000);
-    Invalidate ();
-    UnlockLooper ();
   }
 
   void
@@ -3052,14 +3021,6 @@ be_app_quit (void)
       while (!be_app->Lock ());
       be_app->Quit ();
     }
-}
-
-/* Temporarily fill VIEW with COLOR.  */
-void
-EmacsView_do_visible_bell (void *view, uint32_t color)
-{
-  EmacsView *vw = (EmacsView *) view;
-  vw->DoVisibleBell (color);
 }
 
 /* Zoom WINDOW.  */

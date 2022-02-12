@@ -473,10 +473,6 @@ extern "C"
   BView_SetHighColorForVisibleBell (void *view, uint32_t color);
 
   extern void
-  BView_FillRectangleForVisibleBell (void *view, int x, int y, int width,
-				     int height);
-
-  extern void
   BView_SetLowColor (void *view, uint32_t color);
 
   extern void
@@ -537,6 +533,9 @@ extern "C"
 		  int x, int y, int width, int height,
 		  int vx, int vy, int vwidth, int vheight,
 		  uint32_t color);
+
+  extern void
+  BView_InvertRect (void *view, int x, int y, int width, int height);
 
   extern void *
   BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
@@ -793,9 +792,6 @@ extern "C"
 
   extern void
   c_unbind_to_nil_from_cxx (ptrdiff_t idx);
-
-  extern void
-  EmacsView_do_visible_bell (void *view, uint32_t color);
 
   extern void
   BWindow_zoom (void *window);

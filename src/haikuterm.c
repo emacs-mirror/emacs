@@ -3381,6 +3381,94 @@ haiku_free_pixmap (struct frame *f, Emacs_Pixmap pixmap)
 }
 
 static void
+haiku_flash (struct frame *f)
+{
+  /* Get the height not including a menu bar widget.  */
+  int height = FRAME_PIXEL_HEIGHT (f);
+  /* Height of each line to flash.  */
+  int flash_height = FRAME_LINE_HEIGHT (f);
+  /* These will be the left and right margins of the rectangles.  */
+  int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+  int width = flash_right - flash_left;
+  void *view = FRAME_HAIKU_VIEW (f);
+  struct timespec delay, wakeup, current, timeout;
+
+  delay = make_timespec (0, 150 * 1000 * 1000);
+  wakeup = timespec_add (current_timespec (), delay);
+
+  BView_draw_lock (view);
+  BView_StartClip (view);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      BView_InvertRect (view, flash_left,
+			(FRAME_INTERNAL_BORDER_WIDTH (f)
+			 + FRAME_TOP_MARGIN_HEIGHT (f)),
+			width, flash_height);
+
+      BView_InvertRect (view, flash_left,
+			(height - flash_height
+			 - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    BView_InvertRect (view, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+		      width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+  BView_EndClip (view);
+  BView_draw_unlock (view);
+
+  flush_frame (f);
+
+  if (EmacsView_double_buffered_p (view))
+    haiku_flip_buffers (f);
+
+  /* Keep waiting until past the time wakeup or any input gets
+     available.  */
+  while (!detect_input_pending ())
+    {
+      current = current_timespec ();
+
+      /* Break if result would not be positive.  */
+      if (timespec_cmp (wakeup, current) <= 0)
+	break;
+
+      /* How long `select' should wait.  */
+      timeout = make_timespec (0, 10 * 1000 * 1000);
+
+      /* Try to wait that long--but we might wake up sooner.  */
+      pselect (0, NULL, NULL, NULL, &timeout, NULL);
+    }
+
+  BView_draw_lock (view);
+  BView_StartClip (view);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      BView_InvertRect (view, flash_left,
+			(FRAME_INTERNAL_BORDER_WIDTH (f)
+			 + FRAME_TOP_MARGIN_HEIGHT (f)),
+			width, flash_height);
+
+      BView_InvertRect (view, flash_left,
+			(height - flash_height
+			 - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    BView_InvertRect (view, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+		      width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+  BView_EndClip (view);
+  BView_draw_unlock (view);
+
+  flush_frame (f);
+  if (EmacsView_double_buffered_p (view))
+    haiku_flip_buffers (f);
+}
+
+static void
 haiku_beep (struct frame *f)
 {
   if (visible_bell)
@@ -3389,21 +3477,7 @@ haiku_beep (struct frame *f)
       if (view)
 	{
 	  block_input ();
-	  BView_draw_lock (view);
-	  if (!EmacsView_double_buffered_p (view))
-	    {
-	      BView_SetHighColorForVisibleBell (view, FRAME_FOREGROUND_PIXEL (f));
-	      BView_FillRectangleForVisibleBell (view, 0, 0, FRAME_PIXEL_WIDTH (f),
-						 FRAME_PIXEL_HEIGHT (f));
-	      SET_FRAME_GARBAGED (f);
-	      expose_frame (f, 0, 0, 0, 0);
-	    }
-	  else
-	    {
-	      EmacsView_do_visible_bell (view, FRAME_FOREGROUND_PIXEL (f));
-	      haiku_flip_buffers (f);
-	    }
-	  BView_draw_unlock (view);
+	  haiku_flash (f);
 	  unblock_input ();
 	}
     }

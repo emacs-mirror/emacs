@@ -479,10 +479,9 @@ BView_SetHighColorForVisibleBell (void *view, uint32_t color)
 }
 
 void
-BView_FillRectangleForVisibleBell (void *view, int x, int y, int width, int height)
+BView_InvertRect (void *view, int x, int y, int width, int height)
 {
-  BView *vw = (BView *) view;
-  BRect rect = BRect (x, y, x + width - 1, y + height - 1);
+  BView *vw = get_view (view);
 
-  vw->FillRect (rect);
+  vw->InvertRect (BRect (x, y, x + width - 1, y + height - 1));
 }
