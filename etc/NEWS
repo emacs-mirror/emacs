@@ -1093,6 +1093,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New macro 'setopt'.
+This is like 'setq', but uses 'customize-set-variable' to set the
+variable(s).
+
++++
 ** New utility predicate 'mode-line-window-selected-p'.
 This is meant to be used from ':eval' mode line constructs to create
 different mode line looks for selected and unselected windows.

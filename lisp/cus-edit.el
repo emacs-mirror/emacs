@@ -1045,6 +1045,29 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   value)
 
 ;;;###autoload
+(defmacro setopt (&rest pairs)
+  "Set VARIABLE/VALUE pairs, and return the final VALUE.
+This is like `setq', but is meant for user options instead of
+plain variables.  This means that `setopt' will execute any
+Customize form associated with VARIABLE.
+
+If VARIABLE has a `custom-set' property, that is used for setting
+VARIABLE, otherwise `set-default' is used.
+
+\(fn [VARIABLE VALUE]...)"
+  (declare (debug setq))
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable/value members"))
+  (let ((expr nil))
+    (while pairs
+      (unless (symbolp (car pairs))
+        (error "Attempting to set a non-symbol: %s" (car pairs)))
+      (push `(customize-set-variable ',(car pairs) ,(cadr pairs))
+            expr)
+      (setq pairs (cddr pairs)))
+    (macroexp-progn (nreverse expr))))
+
+;;;###autoload
 (defun customize-save-variable (variable value &optional comment)
   "Set the default for VARIABLE to VALUE, and save it for future sessions.
 Return VALUE.

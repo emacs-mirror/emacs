@@ -286,14 +286,14 @@ LDAP:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
-(customize-set-variable 'eudc-server-hotlist
-                        '(("" . bbdb)
-                          ("ldaps://ldap.gnu.org" . ldap)))
-(customize-set-variable 'ldap-host-parameters-alist
-                        '(("ldaps://ldap.gnu.org"
-                           base "ou=people,dc=gnu,dc=org"
-                           binddn "gnu\\emacsuser"
-                           passwd ldap-password-read)))
+(setopt eudc-server-hotlist
+        '(("" . bbdb)
+          ("ldaps://ldap.gnu.org" . ldap)))
+(setopt 'ldap-host-parameters-alist
+        '(("ldaps://ldap.gnu.org"
+                  base "ou=people,dc=gnu,dc=org"
+                  binddn "gnu\\emacsuser"
+                  passwd ldap-password-read)))
 @end lisp
 
 @findex ldap-password-read
@@ -342,12 +342,12 @@ configure EUDC for LDAP:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
-(customize-set-variable 'eudc-server-hotlist
-                        '(("" . bbdb)
-                          ("ldaps://ldap.gnu.org" . ldap)))
-(customize-set-variable 'ldap-host-parameters-alist
-                        '(("ldaps://ldap.gnu.org"
-                           auth-source t)))
+(setopt 'eudc-server-hotlist
+        '(("" . bbdb)
+          ("ldaps://ldap.gnu.org" . ldap)))
+(setopt 'ldap-host-parameters-alist
+        '(("ldaps://ldap.gnu.org"
+                  auth-source t)))
 @end lisp
 
 For this example where we only care about one server, the server name
@@ -371,10 +371,10 @@ and the @file{.emacs} expressions become:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
-(customize-set-variable 'eudc-server-hotlist
-                        '(("" . bbdb) ("" . ldap)))
-(customize-set-variable 'ldap-host-parameters-alist
-                        '(("" auth-source t)))
+(setopt 'eudc-server-hotlist
+        '(("" . bbdb) ("" . ldap)))
+(setopt 'ldap-host-parameters-alist
+        '(("" auth-source t)))
 @end lisp
 
 @node Troubleshooting

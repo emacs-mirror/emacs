@@ -861,6 +861,33 @@ error is signaled.
 @end example
 @end defun
 
+@defmac setopt [symbol form]@dots{}
+This is like @code{setq} (see above), but meant for user options.
+This macro uses the Customize machinery to set the variable(s).  In
+particular, @code{setopt} will run the setter function associated with
+the variable.  For instance, if you have:
+
+@example
+(defcustom my-var 1
+  "My var."
+  :type 'number
+  :set (lambda (var val)
+         (set-default var val)
+         (message "We set %s to %s" var val)))
+@end example
+
+Then the following, in addition to setting @code{my-var} to @samp{2},
+will also issue a message:
+
+@example
+(setop my-var 2)
+@end example
+
+@code{setopt} can be used on regular, non-user option variables, but
+is much less efficient than @code{setq}.  The main use case for this
+macro is setting user options in the user's init file.
+@end defmac
+
 @node Watching Variables
 @section Running a function when a variable is changed.
 @cindex variable watchpoints
