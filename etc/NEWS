@@ -145,6 +145,9 @@ An autoload definition appears just as a '(defun . NAME)' and the
 * Changes in Emacs 29.1
 
 ---
+** 'count-lines' will now report buffer totals if given a prefix.
+
+---
 ** New user option 'find-library-include-other-files'.
 If set to nil, commands like 'find-library' will only include library
 files in the completion candidates.  The default is t, which preserves

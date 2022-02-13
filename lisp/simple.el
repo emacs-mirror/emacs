@@ -1477,46 +1477,59 @@ START and END."
   (cond ((not (called-interactively-p 'any))
 	 (count-words start end))
 	(arg
-	 (count-words--buffer-message))
+	 (message "%s" (count-words--buffer-format)))
 	(t
-	 (count-words--message "Region" start end))))
+	 (message "%s" (count-words--format "Region" start end)))))
 
-(defun count-words (start end)
+(defun count-words (start end &optional totals)
   "Count words between START and END.
 If called interactively, START and END are normally the start and
 end of the buffer; but if the region is active, START and END are
 the start and end of the region.  Print a message reporting the
-number of lines, words, and chars.
+number of lines, words, and chars.  If given a prefix, also
+include the data for the total (un-narrowed) buffer.
 
 If called from Lisp, return the number of words between START and
-END, without printing any message."
-  (interactive (list nil nil))
-  (cond ((not (called-interactively-p 'any))
-	 (let ((words 0)
-               ;; Count across field boundaries. (Bug#41761)
-               (inhibit-field-text-motion t))
-	   (save-excursion
-	     (save-restriction
-	       (narrow-to-region start end)
-	       (goto-char (point-min))
-	       (while (forward-word-strictly 1)
-		 (setq words (1+ words)))))
-	   words))
-	((use-region-p)
-	 (call-interactively 'count-words-region))
-	(t
-	 (count-words--buffer-message))))
+END, without printing any message.  TOTAL is ignored when called
+from Lisp."
+  (interactive (list nil nil current-prefix-arg))
+  ;; When called from Lisp, return the data.
+  (if (not (called-interactively-p 'any))
+      (let ((words 0)
+            ;; Count across field boundaries. (Bug#41761)
+            (inhibit-field-text-motion t))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (goto-char (point-min))
+	    (while (forward-word-strictly 1)
+	      (setq words (1+ words)))))
+	words)
+    ;; When called interactively, message the data.
+    (let ((totals (if (and totals
+                           (or (use-region-p)
+                               (buffer-narrowed-p)))
+                      (save-restriction
+                        (widen)
+                        (count-words--format "; buffer in total"
+                                             (point-min) (point-max)))
+                    "")))
+      (if (use-region-p)
+	  (message "%s%s" (count-words--format
+                           "Region" (region-beginning) (region-end))
+                   totals)
+        (message "%s%s" (count-words--buffer-format) totals)))))
 
-(defun count-words--buffer-message ()
-  (count-words--message
+(defun count-words--buffer-format ()
+  (count-words--format
    (if (buffer-narrowed-p) "Narrowed part of buffer" "Buffer")
    (point-min) (point-max)))
 
-(defun count-words--message (str start end)
+(defun count-words--format (str start end)
   (let ((lines (count-lines start end))
 	(words (count-words start end))
 	(chars (- end start)))
-    (message "%s has %d line%s, %d word%s, and %d character%s."
+    (format "%s has %d line%s, %d word%s, and %d character%s"
 	     str
 	     lines (if (= lines 1) "" "s")
 	     words (if (= words 1) "" "s")
