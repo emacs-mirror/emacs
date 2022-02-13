@@ -3198,6 +3198,14 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
       if (!output->preedit_active)
 	return;
 
+      /* If we don't bail out here then GTK can crash
+	 from the resulting signal in `setup_coding_system'.  */
+      if (NILP (Fcoding_system_p (Vlocale_coding_system)))
+	{
+	  text = NULL;
+	  goto im_abort;
+	}
+
       if (call_data->text)
 	text = x_xim_text_to_utf8_unix (call_data->text, &text_length);
       else

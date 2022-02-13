@@ -10024,6 +10024,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (nchars < nbytes)
 	      {
+		/* If we don't bail out here then GTK can crash
+		   from the resulting signal in `setup_coding_system'.  */
+		if (NILP (Fcoding_system_p (coding_system)))
+		  goto done_keysym;
+
 		/* Decode the input data.  */
 
 		/* The input should be decoded with `coding_system'
@@ -11763,6 +11768,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (nchars < nbytes)
 		    {
+		      /* If we don't bail out here then GTK can crash
+			 from the resulting signal in `setup_coding_system'.  */
+		      if (NILP (Fcoding_system_p (Vlocale_coding_system)))
+			goto xi_done_keysym;
+
 		      /* Decode the input data.  */
 
 		      setup_coding_system (Vlocale_coding_system, &coding);
