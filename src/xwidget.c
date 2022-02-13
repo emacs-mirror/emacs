@@ -62,6 +62,9 @@ static uint32_t xwidget_counter = 0;
 #ifdef USE_GTK
 #ifdef HAVE_X_WINDOWS
 static Lisp_Object x_window_to_xwv_map;
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+static Lisp_Object dummy_tooltip_string;
+#endif
 #endif
 static gboolean offscreen_damage_event (GtkWidget *, GdkEvent *, gpointer);
 static void synthesize_focus_in_event (GtkWidget *);
@@ -1730,6 +1733,17 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
   int cx, cy;
   bool nonlinear_p;
   bool retention_flag;
+
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+  /* Work around a silly bug in WebKitGTK+ that tries to make tooltip
+     windows transient for our offscreen window.  */
+  int tooltip_width, tooltip_height;
+  struct x_output *output = FRAME_X_OUTPUT (view->frame);
+
+  if (!output->ttip_widget)
+    xg_prepare_tooltip (view->frame, dummy_tooltip_string,
+			&tooltip_width, &tooltip_height);
+#endif
 
   toplevel = gtk_widget_get_window (XXWIDGET (view->model)->widgetwindow_osr);
   retention_flag = false;
@@ -3931,6 +3945,11 @@ syms_of_xwidget (void)
   x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   staticpro (&x_window_to_xwv_map);
+
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+  dummy_tooltip_string = build_string ("");
+  staticpro (&dummy_tooltip_string);
+#endif
 #endif
 }
 
