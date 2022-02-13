@@ -5559,17 +5559,21 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
           XSETFRAME (bufp->frame_or_window, frame);
         }
 
-#ifdef HAVE_X_I18N
-      if (FRAME_XIC (frame))
-        XUnsetICFocus (FRAME_XIC (frame));
-#ifdef USE_GTK
-      if (x_gtk_use_native_input)
+      if (!frame->output_data.x->focus_state)
 	{
-	  gtk_im_context_focus_out (FRAME_X_OUTPUT (frame)->im_context);
-	  gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context, NULL);
+#ifdef HAVE_X_I18N
+	  if (FRAME_XIC (frame))
+	    XUnsetICFocus (FRAME_XIC (frame));
+#ifdef USE_GTK
+	  if (x_gtk_use_native_input)
+	    {
+	      gtk_im_context_focus_out (FRAME_X_OUTPUT (frame)->im_context);
+	      gtk_im_context_set_client_window (FRAME_X_OUTPUT (frame)->im_context, NULL);
+	    }
+#endif
+#endif
 	}
-#endif
-#endif
+
       if (frame->pointer_invisible)
         XTtoggle_invisible_pointer (frame, false);
     }
