@@ -2771,6 +2771,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    need_flush = 1;
 		  }
 
+		if (f->auto_lower)
+		  haiku_frame_raise_lower (f, 0);
+
 		haiku_new_focus_frame (x_display_list->focused_frame);
 
 		if (any_help_event_p)
