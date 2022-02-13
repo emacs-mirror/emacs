@@ -978,7 +978,6 @@ The fallback command is passed as an argument to the functions."
 (defvar-keymap ido-file-completion-map
   :doc "Keymap for Ido file commands."
   :parent ido-file-dir-completion-map
-  "C-k" #'ido-delete-file-at-head
   "C-o" #'ido-copy-current-word
   "C-w" #'ido-copy-current-file-name
   "M-l" #'ido-toggle-literal)

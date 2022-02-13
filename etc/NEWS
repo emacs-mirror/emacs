@@ -104,6 +104,14 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** 'C-k' no longer deletes files in 'ido-mode'.
+To get the previous action back, put something like the following in
+your init file:
+
+  (require 'ido)
+  (keymap-set ido-file-completion-map "C-k" #'ido-delete-file-at-head)
+
+---
 ** New user option 'term-clear-full-screen-programs'.
 By default, term will now work like most terminals when displaying
 full-screen programs: When they exit, the output is cleared, leaving
