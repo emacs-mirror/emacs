@@ -1486,11 +1486,11 @@ START and END."
 If called interactively, START and END are normally the start and
 end of the buffer; but if the region is active, START and END are
 the start and end of the region.  Print a message reporting the
-number of lines, words, and chars.  If given a prefix, also
-include the data for the total (un-narrowed) buffer.
+number of lines, words, and chars.  With prefix argument, also
+include the data for the entire (un-narrowed) buffer.
 
 If called from Lisp, return the number of words between START and
-END, without printing any message.  TOTAL is ignored when called
+END, without printing any message.  TOTALS is ignored when called
 from Lisp."
   (interactive (list nil nil current-prefix-arg))
   ;; When called from Lisp, return the data.
