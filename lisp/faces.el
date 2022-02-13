@@ -1114,10 +1114,9 @@ returned.  Otherwise, DEFAULT is returned verbatim."
              (lambda (faces)
                (mapcar
                 (lambda (face)
-                  (list (concat (propertize "SAMPLE" 'face face)
-                                "\t")
-                        ""
-                        face))
+                  (list face
+                        (concat (propertize "SAMPLE" 'face face) "\t")
+                        ""))
                 faces))))
           aliasfaces nonaliasfaces faces)
       ;; Build up the completion tables.
