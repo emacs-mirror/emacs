@@ -579,6 +579,10 @@ struct x_display_info
   int xsync_major;
   int xsync_minor;
 #endif
+
+#ifdef HAVE_XINERAMA
+  bool xinerama_supported_p;
+#endif
 };
 
 #ifdef HAVE_X_I18N

@@ -5720,10 +5720,7 @@ x_get_monitor_attributes (struct x_display_info *dpyinfo)
 #ifdef HAVE_XINERAMA
   if (NILP (attributes_list))
     {
-      int xin_event_base, xin_error_base;
-      bool xin_ok = false;
-      xin_ok = XineramaQueryExtension (dpy, &xin_event_base, &xin_error_base);
-      if (xin_ok && XineramaIsActive (dpy))
+      if (dpyinfo->xinerama_supported_p && XineramaIsActive (dpy))
         attributes_list = x_get_monitor_attributes_xinerama (dpyinfo);
     }
 #endif /* HAVE_XINERAMA */

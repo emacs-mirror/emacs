@@ -126,6 +126,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/extensions/sync.h>
 #endif
 
+#ifdef HAVE_XINERAMA
+#include <X11/extensions/Xinerama.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -15937,6 +15941,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       dpyinfo->xsync_supported_p = false;
   }
 #endif
+
+#ifdef HAVE_XINERAMA
+  int xin_event_base, xin_error_base;
+  dpyinfo->xinerama_supported_p
+    = XineramaQueryExtension (dpy, &xin_event_base, &xin_error_base);
+#endif
+
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
