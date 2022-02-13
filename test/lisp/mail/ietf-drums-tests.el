@@ -40,6 +40,16 @@
   (should (equal (ietf-drums-remove-comments
                   "random (first) (second (and)) (third) not fourth")
                  "random    not fourth"))
+  ;; Test some unterminated comments.
+  (should (equal (ietf-drums-remove-comments "test an (unterminated comment")
+                 "test an "))
+  (should (equal (ietf-drums-remove-comments "test an \"unterminated quote")
+                 ;; returns the string unchanged (and doesn't barf).
+                 "test an \"unterminated quote"))
+  (should (equal (ietf-drums-remove-comments
+                  ;; note that double-quote is not special.
+                  "test (unterminated comments with \"quoted (\" )stuff")
+                 "test "))
 
   ;; ietf-drums-remove-whitespace
   (should (equal (ietf-drums-remove-whitespace "random string")
@@ -53,6 +63,12 @@
   (should (equal (ietf-drums-remove-whitespace
                   "random (first) (second (and)) (third) not fourth")
                  "random(first)(second (and))(third)notfourth"))
+  ;; Test some unterminated comments and quotes.
+  (should (equal (ietf-drums-remove-whitespace
+                  "random (first) (second (and)) (third unterminated")
+                 "random(first)(second (and))(third unterminated"))
+  (should (equal (ietf-drums-remove-whitespace "random \"non terminated string")
+                 "random\"non terminated string"))
 
   ;; ietf-drums-strip
   (should (equal (ietf-drums-strip "random string") "randomstring"))
