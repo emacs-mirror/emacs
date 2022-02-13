@@ -4106,7 +4106,7 @@ specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only)
                  non-local, this is fine, but if it ever reverts to being
                  local we may end up using this entry "in the wrong
                  direction".  */
-	      {};
+	      {}
 	  }
 	  break;
 	}
