@@ -1455,7 +1455,7 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
    F has an x-window.  */
 
 static void
-x_set_border_pixel (struct frame *f, int pix)
+x_set_border_pixel (struct frame *f, unsigned long pix)
 {
   unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
@@ -1485,7 +1485,7 @@ x_set_border_pixel (struct frame *f, int pix)
 static void
 x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int pix;
+  unsigned long pix;
 
   CHECK_STRING (arg);
   pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
