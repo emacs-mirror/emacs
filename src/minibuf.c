@@ -1292,8 +1292,9 @@ Fifth arg HIST, if non-nil, specifies a history list and optionally
   HISTPOS is the initial position for use by the minibuffer history
   commands.  For consistency, you should also specify that element of
   the history as the value of INITIAL-CONTENTS.  Positions are counted
-  starting from 1 at the beginning of the list.  If HIST is t, history
-  is not recorded.
+  starting from 1 at the beginning of the list.  If HIST is nil, the
+  default history list `minibuffer-history' is used.  If HIST is t,
+  history is not recorded.
 
   If `history-add-new-input' is non-nil (the default), the result will
   be added to the history list using `add-to-history'.
