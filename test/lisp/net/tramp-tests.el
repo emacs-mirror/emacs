@@ -4398,6 +4398,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (let* ((tmp-name (tramp--test-make-temp-name nil quoted))
 	   (fnnd (file-name-nondirectory tmp-name))
 	   (default-directory tramp-test-temporary-file-directory)
+	   (buffer (get-buffer-create "*tramp-tests*"))
 	   kill-buffer-query-functions)
       (unwind-protect
 	  (progn
@@ -4430,31 +4431,47 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		   (tramp--test-shell-file-name)
 		   nil nil nil "-c" "kill -2 $$")))))
 
-	    (with-temp-buffer
-	      (write-region "foo" nil tmp-name)
-	      (should (file-exists-p tmp-name))
-	      (should (zerop (process-file "ls" nil t nil fnnd)))
-	      ;; "ls" could produce colorized output.
-	      (goto-char (point-min))
-	      (while
-		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
-		(replace-match "" nil nil))
-	      (should (string-equal (format "%s\n" fnnd) (buffer-string)))
-	      (should-not (get-buffer-window (current-buffer) t))
+	    ;; Check DESTINATION.
+	    (dolist (destination `(nil t ,buffer))
+	      (when (bufferp destination)
+		(with-current-buffer destination
+		  (delete-region (point-min) (point-max))))
+	      (with-temp-buffer
+		(write-region "foo" nil tmp-name)
+		(should (file-exists-p tmp-name))
+		(should (zerop (process-file "ls" nil destination nil fnnd)))
+		(with-current-buffer
+		    (if (bufferp destination) destination (current-buffer))
+		  ;; "ls" could produce colorized output.
+		  (goto-char (point-min))
+		  (while (re-search-forward
+			  tramp-display-escape-sequence-regexp nil t)
+		    (replace-match "" nil nil))
+		  (should
+		   (string-equal (if destination (format "%s\n" fnnd) "")
+				 (buffer-string)))
+		  (should-not (get-buffer-window (current-buffer) t))
+		  (goto-char (point-max)))
 
-	      ;; Second run.  The output must be appended.
-	      (goto-char (point-max))
-	      (should (zerop (process-file "ls" nil t t fnnd)))
-	      ;; "ls" could produce colorized output.
-	      (goto-char (point-min))
-	      (while
-		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
-		(replace-match "" nil nil))
-	      (should
-	       (string-equal (format "%s\n%s\n" fnnd fnnd) (buffer-string)))
-	      ;; A non-nil DISPLAY must not raise the buffer.
-	      (should-not (get-buffer-window (current-buffer) t))
-	      (delete-file tmp-name))
+		;; Second run.  The output must be appended.
+		(should (zerop (process-file "ls" nil destination t fnnd)))
+		(with-current-buffer
+		    (if (bufferp destination) destination (current-buffer))
+		  ;; "ls" could produce colorized output.
+		  (goto-char (point-min))
+		  (while (re-search-forward
+			  tramp-display-escape-sequence-regexp nil t)
+		    (replace-match "" nil nil))
+		  (should
+		   (string-equal
+		    (if destination (format "%s\n%s\n" fnnd fnnd) "")
+		    (buffer-string))))
+
+		(unless (eq destination t)
+		  (should (string-empty-p (buffer-string))))
+		;; A non-nil DISPLAY must not raise the buffer.
+		(should-not (get-buffer-window (current-buffer) t))
+		(delete-file tmp-name)))
 
 	    ;; Check remote and local INFILE.
 	    (dolist (local '(nil t))
@@ -4464,10 +4481,37 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(should (file-exists-p tmp-name))
 		(should (zerop (process-file "cat" tmp-name t)))
 		(should (string-equal "foo" (buffer-string)))
-		(should-not (get-buffer-window (current-buffer) t)))
-	      (delete-file tmp-name)))
+		(should-not (get-buffer-window (current-buffer) t))
+		(delete-file tmp-name)))
+
+	    ;; Check remote and local DESTNATION file.  This isn't
+	    ;; implemented yet ina all file name handler backends.
+	    ;; (dolist (local '(nil t))
+	    ;;   (setq tmp-name (tramp--test-make-temp-name local quoted))
+	    ;;   (should
+	    ;;    (zerop (process-file "echo" nil `(:file ,tmp-name) nil "foo")))
+	    ;;   (with-temp-buffer
+	    ;; 	(insert-file-contents tmp-name)
+	    ;; 	(should (string-equal "foo" (buffer-string)))
+	    ;; 	(should-not (get-buffer-window (current-buffer) t))
+	    ;; 	(delete-file tmp-name)))
+
+	    ;; Check remote and local STDERR.
+	    (dolist (local '(nil t))
+	      (setq tmp-name (tramp--test-make-temp-name local quoted))
+	      (should-not
+	       (zerop
+		(process-file "cat" nil `(t ,tmp-name) nil "/does-not-exist")))
+	      (with-temp-buffer
+		(insert-file-contents tmp-name)
+		(should
+		 (string-match-p
+		  "cat:.* No such file or directory" (buffer-string)))
+		(should-not (get-buffer-window (current-buffer) t))
+		(delete-file tmp-name))))
 
 	;; Cleanup.
+	(ignore-errors (kill-buffer buffer))
 	(ignore-errors (delete-file tmp-name))))))
 
 ;; Must be a command, because used as `sigusr1' handler.
@@ -6479,7 +6523,13 @@ This requires restrictions of file name syntax."
 		;; `default-directory' with special characters.  See
 		;; Bug#53846.
 		(when (and (tramp--test-expensive-test-p)
-			   (tramp--test-supports-processes-p))
+			   (tramp--test-supports-processes-p)
+			   ;; Prior Emacs 27, `shell-file-name' was
+			   ;; hard coded as "/bin/sh" for remote
+			   ;; processes in Emacs.  That doesn't work
+			   ;; for tramp-adb.el.
+			   (or (not (tramp--test-adb-p))
+			       (tramp--test-emacs27-p)))
 		  (let ((default-directory file1))
 		    (dolist (this-shell-command
 			     (append
@@ -7207,17 +7257,20 @@ Since it unloads Tramp, it shall be the last test to run."
   (should (featurep 'tramp-archive))
   ;; This unloads also tramp-archive.el and tramp-theme.el if needed.
   (unload-feature 'tramp 'force)
-  ;; No Tramp feature must be left.
+
+  ;; No Tramp feature must be left except the test packages.
   (should-not (featurep 'tramp))
   (should-not (featurep 'tramp-archive))
   (should-not (featurep 'tramp-theme))
   (should-not
    (all-completions
     "tramp" (delq 'tramp-tests (delq 'tramp-archive-tests features))))
+
   ;; `file-name-handler-alist' must be clean.
   (should-not (all-completions "tramp" (mapcar #'cdr file-name-handler-alist)))
+
   ;; There shouldn't be left a bound symbol, except buffer-local
-  ;; variables, and autoload functions.  We do not regard our test
+  ;; variables, and autoloaded functions.  We do not regard our test
   ;; symbols, and the Tramp unload hooks.
   (mapatoms
    (lambda (x)
@@ -7231,6 +7284,7 @@ Since it unloads Tramp, it shall be the last test to run."
 	  (not (string-match-p "unload-hook$" (symbol-name x)))
 	  (not (get x 'tramp-autoload))
 	  (ert-fail (format "`%s' still bound" x)))))
+
   ;; The defstruct `tramp-file-name' and all its internal functions
   ;; shall be purged.
   (should-not (cl--find-class 'tramp-file-name))
@@ -7239,6 +7293,7 @@ Since it unloads Tramp, it shall be the last test to run."
      (and (functionp x)
           (string-match-p "tramp-file-name" (symbol-name x))
           (ert-fail (format "Structure function `%s' still exists" x)))))
+
   ;; There shouldn't be left a hook function containing a Tramp
   ;; function.  We do not regard the Tramp unload hooks.
   (mapatoms
@@ -7248,7 +7303,18 @@ Since it unloads Tramp, it shall be the last test to run."
 	  (not (string-match-p "unload-hook$" (symbol-name x)))
 	  (consp (symbol-value x))
 	  (ignore-errors (all-completions "tramp" (symbol-value x)))
-	  (ert-fail (format "Hook `%s' still contains Tramp function" x))))))
+	  (ert-fail (format "Hook `%s' still contains Tramp function" x)))))
+
+  ;; There shouldn't be left an advice function from Tramp.
+  (mapatoms
+   (lambda (x)
+     (and (functionp x)
+	  (advice-mapc
+	   (lambda (fun _symbol)
+	     (and (string-match-p "^tramp" (symbol-name fun))
+		  (ert-fail
+		   (format "Function `%s' still contains Tramp advice" x))))
+	   x)))))
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp].
