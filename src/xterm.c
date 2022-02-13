@@ -451,7 +451,7 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 				    : FRAME_PIXEL_HEIGHT (f))};
 #endif
 
-  if (!(f && FRAME_DISPLAY_INFO (f)->alpha_bits))
+  if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
     return;
 
   block_input ();
@@ -10372,7 +10372,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	x_cr_update_surface_desired_size (any,
 					  configureEvent.xconfigure.width,
 					  configureEvent.xconfigure.height);
-      x_update_opaque_region (f, &configureEvent);
+      if (f || (any && configureEvent.xconfigure.window == FRAME_X_WINDOW (any)))
+	x_update_opaque_region (f ? f : any, &configureEvent);
 #endif
 #ifdef USE_GTK
       if (!f
