@@ -907,17 +907,17 @@ It would make it easy to add (and remove) mappings like
 *** Missing features
 This sections contains features found in other official Emacs ports.
 
-**** Support for xwidgets
-Emacs 25 has support for xwidgets, a system to include operating
-system components into an Emacs buffer.  The components range from
-simple buttons to webkit (effectively, a web browser).
+**** Improved xwidgets support
+Emacs 25 has support for xwidgets, a system to include WebKit widgets
+into an Emacs buffer.
 
-Currently, xwidgets work only for the gtk+ framework but they are
-designed to be compatible with multiple Emacs ports.
+They work on NS, but not very well.  For example, trying to display a
+xwidget in the "killed" state will make Emacs crash.  This is because
+the NS code has not been updated to keep with recent changes to the
+X11 and GTK code.
 
-(See the scratch/nsxwidget branch, and the discussion around
-Objective-C code and GCC at
-https://lists.gnu.org/r/emacs-devel/2019-08/msg00072.html )
+Many features such as xwidget-webkit-edit-mode do not work correctly
+on NS either.
 
 **** Respect 'frame-inhibit-implied-resize'
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames
@@ -990,29 +990,16 @@ It has been maintained in parallel to the official Cocoa-based NS
 interface.  The Carbon interface has been enhanced, and a number of the
 features of that interface could be implemented NS.
 
-**** Smooth scrolling -- maybe not a good idea
-Today, by default, scrolling with a trackpad makes the text move in
-steps of one line.  (Scrolling with SHIFT scrolls horizontally.)
-
-The "mac" port provides smooth, pixel-based, scrolling.  This is a very
-popular feature.  However, there are drawbacks to this method: what
-happens if only a fraction of a line is visible at the top of a
-window, is the partially visible text considered part of the window or
-not?  (Technically, what should 'window-start' return.)
-
-Note: This feature might not be allowed to be implemented until also
-implemented in Emacs for a free system.
-
 **** Mouse gestures
 The "mac" port defines the gestures 'swipe-left/right/up/down',
 'magnify-up/down', and 'rotate-left/right'.
 
-It also binds the magnification commands to change the font
-size.  (This should be not be done in a specific interface, instead
-Emacs should do this binding globally.)
+The magnify gestures have now been implemented on X11 and NS.  The
+event is named differently: it is named `pinch', but it does the same
+thing.
 
-Note: This feature might not be allowed to be implemented until also
-implemented in Emacs for a free system.
+Someone needs to figure out what the other gestures do in the Mac
+port, implement them on X, and then following that, on NS.
 
 **** Synthesize bold fonts
 
