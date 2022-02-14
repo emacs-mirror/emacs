@@ -2187,19 +2187,38 @@ BView_mouse_moved (void *view, int x, int y, uint32_t transit)
     }
 }
 
-/* Import BITS into BITMAP using the B_GRAY1 colorspace.  */
+/* Import fringe bitmap (short array, low bit rightmost) BITS into
+   BITMAP using the B_GRAY1 colorspace.  */
+void
+BBitmap_import_fringe_bitmap (void *bitmap, unsigned short *bits, int wd, int h)
+{
+  BBitmap *bmp = (BBitmap *) bitmap;
+  unsigned char *data = (unsigned char *) bmp->Bits ();
+  int i;
+
+  for (i = 0; i < h; i++)
+    {
+      if (wd <= 8)
+	data[0] = bits[i] & 0xff;
+      else
+	{
+	  data[1] = bits[i] & 0xff;
+	  data[0] = bits[i] >> 8;
+	}
+
+      data += bmp->BytesPerRow ();
+    }
+}
+
 void
 BBitmap_import_mono_bits (void *bitmap, void *bits, int wd, int h)
 {
   BBitmap *bmp = (BBitmap *) bitmap;
-  unsigned char *data = (unsigned char *) bmp->Bits ();
-  unsigned short *bts = (unsigned short *) bits;
 
-  for (int i = 0; i < (h * (wd / 8)); i++)
-    {
-      *((unsigned short *) data) = bts[i];
-      data += bmp->BytesPerRow ();
-    }
+  if (wd % 8)
+    wd += 8 - (wd % 8);
+
+  bmp->ImportBits (bits, wd / 8 * h, wd / 8, 0, B_GRAY1);
 }
 
 /* Make a scrollbar at X, Y known to the view VIEW.  */

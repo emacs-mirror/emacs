@@ -632,6 +632,10 @@ extern "C"
   BView_mouse_up (void *view, int x, int y);
 
   extern void
+  BBitmap_import_fringe_bitmap (void *bitmap, unsigned short *bits,
+				int wd, int h);
+
+  extern void
   BBitmap_import_mono_bits (void *bitmap, void *bits, int wd, int h);
 
   extern void

@@ -2293,7 +2293,7 @@ haiku_define_fringe_bitmap (int which, unsigned short *bits,
     }
 
   fringe_bmps[which] = BBitmap_new (wd, h, 1);
-  BBitmap_import_mono_bits (fringe_bmps[which], bits, wd, h);
+  BBitmap_import_fringe_bitmap (fringe_bmps[which], bits, wd, h);
 }
 
 static void
