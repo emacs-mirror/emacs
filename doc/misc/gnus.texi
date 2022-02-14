@@ -24141,37 +24141,22 @@ If you want to see them in the Cc and To fields, set:
 @end lisp
 
 
-@subsubsection Toolbar
+@subsubsection Tool bar
 
 @table @code
 
-@item gnus-use-toolbar
-@vindex gnus-use-toolbar
-This variable specifies the position to display the toolbar.  If
-@code{nil}, don't display toolbars.  If it is non-@code{nil}, it should
-be one of the symbols @code{default}, @code{top}, @code{bottom},
-@code{right}, and @code{left}.  @code{default} means to use the default
-toolbar, the rest mean to display the toolbar on the place which those
-names show.  The default is @code{default}.
-
-@item gnus-toolbar-thickness
-@vindex gnus-toolbar-thickness
-Cons of the height and the width specifying the thickness of a toolbar.
-The height is used for the toolbar displayed on the top or the bottom,
-the width is used for the toolbar displayed on the right or the left.
-The default is that of the default toolbar.
-
-@item gnus-group-toolbar
+@item gnus-group-tool-bar
 @vindex gnus-group-toolbar
-The toolbar in the group buffer.
+Specifies the tool bar in the group buffer.  It can be either a list
+or a symbol referring to a list.  Pre-defined symbols include
+@code{gnus-group-tool-bar-gnome} and @code{gnus-group-tool-bar-retro}.
 
-@item gnus-summary-toolbar
+@item gnus-summary-tool-bar
 @vindex gnus-summary-toolbar
-The toolbar in the summary buffer.
-
-@item gnus-summary-mail-toolbar
-@vindex gnus-summary-mail-toolbar
-The toolbar in the summary buffer of mail groups.
+Specifies the tool bar in the summary buffer.  It can be either a list
+or a symbol referring to a list.  Pre-defined symbols include
+@code{gnus-summary-tool-bar-gnome} and
+@code{gnus-summary-tool-bar-retro}.
 
 @end table
 
