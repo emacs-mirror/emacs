@@ -3321,12 +3321,15 @@ if you need to remove the remapping later.
 (face-remap-add-relative 'default :height 1.5)
 @end example
 
-Note that face remapping does not work reliably for parent faces of
-@dfn{basic faces}.  (These are the faces that are used in mode lines,
-header lines and the like.)  For instance, @code{mode-line-inactive}
-inherits from @code{mode-line}, but remapping @code{mode-line} won't
-normally have the desired effect on @code{mode-line-inactive}.
-Instead you have to remap @code{mode-line-inactive} directly.
+Note that buffer-local face remapping does not work reliably for
+parent faces of basic faces (@pxref{Basic Faces}).  (These are the
+faces that are used in mode lines, header lines, and other basic
+decorations of windows and frames.)  For instance,
+@code{mode-line-inactive} inherits from @code{mode-line}, but
+remapping @code{mode-line} won't normally have the desired effect on
+@code{mode-line-inactive}, especially if done locally for some
+buffers.  Instead you have to remap @code{mode-line-inactive}
+directly.
 @end defun
 
 @defun face-remap-remove-relative cookie
@@ -3452,10 +3455,10 @@ usually assign faces to around 400 to 600 characters at each call.
 If your Emacs Lisp program needs to assign some faces to text, it is
 often a good idea to use certain existing faces or inherit from them,
 rather than defining entirely new faces.  This way, if other users
-have customized the basic faces to give Emacs a certain look, your
-program will fit in without additional customization.
+have customized those existing faces to give Emacs a certain look,
+your program will fit in without additional customization.
 
-  Some of the basic faces defined in Emacs are listed below.  In
+  Some of the @dfn{basic faces} defined in Emacs are listed below.  In
 addition to these, you might want to make use of the Font Lock faces
 for syntactic highlighting, if highlighting is not already handled by
 Font Lock mode, or if some Font Lock faces are not in use.
@@ -3466,6 +3469,28 @@ Font Lock mode, or if some Font Lock faces are not in use.
 The default face, whose attributes are all specified.  All other faces
 implicitly inherit from it: any unspecified attribute defaults to the
 attribute on this face (@pxref{Face Attributes}).
+
+@item mode-line-active
+@itemx mode-line-inactive
+@itemx header-line
+@itemx tab-line
+Basic faces used for the mode line, header line, and tab line.
+
+@item tool-bar
+@itemx tab-bar
+@itemx fringe
+@itemx scroll-bar
+@itemx window-divider
+@itemx border
+@itemx child-frame-border
+Basic faces used for the corresponding decorations of GUI frames.
+
+@item cursor
+The basic face used for the text cursor.
+
+@item mouse
+The basic face used for displaying mouse-sensitive text when the mouse
+pointer is on that text.
 
 @item bold
 @itemx italic
