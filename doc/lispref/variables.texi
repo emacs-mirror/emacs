@@ -883,7 +883,7 @@ then the following, in addition to setting @code{my-var} to @samp{2},
 will also issue a message:
 
 @example
-(setop my-var 2)
+(setopt my-var 2)
 @end example
 
 The @code{setopt} macro can be used on regular, non-user option
