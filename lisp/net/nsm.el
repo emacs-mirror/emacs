@@ -226,27 +226,18 @@ If `nsm-trust-local-network' is or returns non-nil, and if the
 host address is a localhost address, or in the same subnet as one
 of the local interfaces, this function returns nil.  Non-nil
 otherwise."
-  (let ((addresses (network-lookup-address-info host))
-        (network-interface-list (network-interface-list t))
-        (off-net t))
-    (when
-     (or (and (functionp nsm-trust-local-network)
-              (funcall nsm-trust-local-network))
-         nsm-trust-local-network)
-     (mapc
-      (lambda (ip)
-        (mapc
-         (lambda (info)
-           (let ((local-ip (nth 1 info))
-                 (mask (nth 3 info)))
-             (when
-                 (nsm-network-same-subnet (substring local-ip 0 -1)
-                                          (substring mask 0 -1)
-                                          (substring ip 0 -1))
-               (setq off-net nil))))
-         network-interface-list))
-      addresses))
-     off-net))
+  (not (and-let* (((or (and (functionp nsm-trust-local-network)
+                            (funcall nsm-trust-local-network))
+                       nsm-trust-local-network))
+                  (addresses (network-lookup-address-info host))
+                  (network-interface-list (network-interface-list t)))
+         (catch 'nsm-should-check
+           (dolist (ip addresses)
+             (dolist (info network-interface-list)
+               (when (nsm-network-same-subnet (substring (nth 1 info) 0 -1)
+                                              (substring (nth 3 info) 0 -1)
+                                              (substring ip 0 -1))
+                 (throw 'nsm-should-check t))))))))
 
 (defun nsm-check-tls-connection (process host port status settings)
   "Check TLS connection against potential security problems.
