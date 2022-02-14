@@ -3320,6 +3320,13 @@ if you need to remove the remapping later.
 ;; Increase the size of the 'default' face by 50%:
 (face-remap-add-relative 'default :height 1.5)
 @end example
+
+Note that face remapping does not work reliably parent faces of
+@dnf{basic faces}.  (These are the faces that are used in mode lines,
+header lines and the like.)  For instance, @code{mode-line-inactive}
+inherits from @code{mode-line}, but remapping @code{mode-line} won't
+normally have the desired effect on @code{mode-line-inactive}.
+Instead you have to remap @code{mode-line-inactive} directly.
 @end defun
 
 @defun face-remap-remove-relative cookie
