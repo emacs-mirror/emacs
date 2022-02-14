@@ -2917,6 +2917,7 @@ either a full name or nil, and EMAIL is a valid email address."
   "r"     #'revert-buffer
   "~"     #'package-menu-mark-obsolete-for-deletion
   "w"     #'package-browse-url
+  "m"     #'package-contact-maintainer
   "x"     #'package-menu-execute
   "h"     #'package-menu-quick-help
   "H"     #'package-menu-hide-package
@@ -4378,11 +4379,22 @@ beginning of the line."
             (package-version-join (package-desc-version package-desc))
             (package-desc-summary package-desc))))
 
+(defun package--query-desc (&optional alist)
+  "Query the user for a package or return the package at point.
+The optional argument ALIST must consist of elements with the
+form (PKG-NAME PKG-DESC).  If not specified, it will default to
+`package-alist'."
+  (or (tabulated-list-get-id)
+      (let ((alist (or alist package-alist)))
+        (cadr (assoc (completing-read "Package: " alist nil t)
+                     alist #'string=)))))
+
 (defun package-browse-url (desc &optional secondary)
   "Open the website of the package under point in a browser.
-`browse-url' is used to determine the browser to be used.
-If SECONDARY (interactively, the prefix), use the secondary browser."
-  (interactive (list (tabulated-list-get-id)
+`browse-url' is used to determine the browser to be used.  If
+SECONDARY (interactively, the prefix), use the secondary browser.
+DESC must be a `package-desc' object."
+  (interactive (list (package--query-desc)
                      current-prefix-arg)
                package-menu-mode)
   (unless desc
@@ -4393,6 +4405,28 @@ If SECONDARY (interactively, the prefix), use the secondary browser."
     (if secondary
 	(funcall browse-url-secondary-browser-function url)
       (browse-url url))))
+
+;; TODO: Allow attaching a patch to send directly to the maintainer.
+;; Ideally this should be able to detect the local changes, convert
+;; these into patches.
+(defun package-contact-maintainer (desc)
+  "Prepare a message to send to the maintainers of a package.
+DESC must be a `package-desc' object."
+  (interactive (list (package--query-desc package-archive-contents))
+               package-menu-mode)
+  (unless desc
+    (user-error "No package here"))
+  (let* ((extras (package-desc-extras desc))
+         (maint (alist-get :maintainer extras))
+         (name (package-desc-name desc))
+         (subject (read-string "Subject: ")))
+    (unless maint
+      (user-error "Package has no explicit maintainer"))
+    (compose-mail
+     (with-temp-buffer
+       (package--print-email-button maint)
+       (string-trim (substring-no-properties (buffer-string))))
+     (format "[%s] %s" name subject))))
 
 ;;;; Introspection
 
