@@ -791,7 +791,8 @@ xi_find_touch_point (struct xi_device_t *device, int detail)
 #endif /* XI_TouchBegin */
 
 static void
-xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id)
+xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id,
+					 bool pending_only)
 {
   struct xi_device_t *device = xi_device_from_id (dpyinfo, id);
   struct xi_scroll_valuator_t *valuator;
@@ -805,6 +806,11 @@ xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id)
   for (int i = 0; i < device->scroll_valuator_count; ++i)
     {
       valuator = &device->valuators[i];
+
+      if (pending_only && !valuator->pending_enter_reset)
+	continue;
+
+      valuator->pending_enter_reset = false;
       valuator->invalid_p = true;
       valuator->emacs_value = 0.0;
     }
@@ -10853,6 +10859,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (!any)
 	      any = x_any_window_to_frame (dpyinfo, enter->event);
 
+	    xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid,
+						     true);
+
 	    {
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
@@ -10916,7 +10925,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	       moves out of a frame (and not into one of its
 	       children, which we know about).  */
 	    if (leave->detail != XINotifyInferior && any)
-	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid);
+	      xi_reset_scroll_valuators_for_device_id (dpyinfo,
+						       enter->deviceid, false);
 
 #ifdef HAVE_XWIDGETS
 	    {
@@ -11937,6 +11947,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    {
 			      device->valuators[i].invalid_p = false;
 			      device->valuators[i].current_value = info->value;
+
+			      /* Make sure that this is reset if the
+				 pointer moves into a window of ours.
+
+				 Otherwise the valuator state could be
+				 left invalid if the DeviceChange
+				 event happened with the pointer
+				 outside any Emacs frame. */
+			      device->valuators[i].pending_enter_reset = true;
 			    }
 			}
 		    }

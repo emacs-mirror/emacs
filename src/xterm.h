@@ -184,6 +184,7 @@ struct color_name_cache_entry
 struct xi_scroll_valuator_t
 {
   bool invalid_p;
+  bool pending_enter_reset;
   double current_value;
   double emacs_value;
   double increment;
