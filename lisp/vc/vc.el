@@ -568,6 +568,11 @@
 ;;   containing FILE-OR-DIR.  The optional REMOTE-NAME specifies the
 ;;   remote (in Git parlance) whose URL is to be returned.  It has
 ;;   only a meaning for distributed VCS and is ignored otherwise.
+;;
+;; - clone (remote directory)
+;;
+;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
+;;   Returns the symbol of the backend used if successful.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -3232,6 +3237,27 @@ to provide the `find-revision' operation instead."
   "Check if the current file has any headers in it."
   (interactive)
   (vc-call-backend (vc-backend buffer-file-name) 'check-headers))
+
+(defun vc-clone (backend remote &optional directory)
+  "Use BACKEND to clone REMOTE into DIRECTORY.
+If successful, returns the symbol of the backed used to clone.
+If BACKEND is nil, iterate through every known backend in
+`vc-handled-backends' until one succeeds."
+  (unless directory
+    (setq directory default-directory))
+  (if backend
+      (progn
+        (unless (memq backend vc-handled-backends)
+          (error "Unknown VC backend %s" backend))
+        (vc-call-backend backend 'clone remote directory)
+        backend)
+    (catch 'ok
+      (dolist (backend vc-handled-backends)
+        (ignore-error vc-not-supported
+          (when-let (res (vc-call-backend
+                          backend 'clone
+                          remote directory))
+            (throw 'ok backend)))))))
 
 
 
