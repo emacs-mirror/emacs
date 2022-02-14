@@ -475,7 +475,8 @@ PROPS is a list of properties."
 (defun abbrev-table-p (object)
   "Return non-nil if OBJECT is an abbrev table."
   (and (obarrayp object)
-       (numberp (abbrev-table-get object :abbrev-table-modiff))))
+       (numberp (ignore-error 'wrong-type-argument
+                  (abbrev-table-get object :abbrev-table-modiff)))))
 
 (defun abbrev-table-empty-p (object &optional ignore-system)
   "Return nil if there are no abbrev symbols in OBJECT.

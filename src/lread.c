@@ -4626,7 +4626,9 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   if (EQ (bucket, make_fixnum (0)))
     ;
   else if (!SYMBOLP (bucket))
-    error ("Bad data in guts of obarray"); /* Like CADR error message.  */
+    /* Like CADR error message.  */
+    xsignal2 (Qwrong_type_argument, Qobarrayp,
+	      build_string ("Bad data in guts of obarray"));
   else
     for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next))
       {
@@ -5438,6 +5440,7 @@ This variable's value can only be set via file-local variables.
 See Info node `(elisp)Shorthands' for more details.  */);
   Vread_symbol_shorthands = Qnil;
   DEFSYM (Qobarray_cache, "obarray-cache");
+  DEFSYM (Qobarrayp, "obarrayp");
 
   DEFSYM (Qmacroexp__dynvars, "macroexp--dynvars");
   DEFVAR_LISP ("macroexp--dynvars", Vmacroexp__dynvars,
