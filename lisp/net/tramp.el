@@ -3343,16 +3343,24 @@ User is always nil."
   (let* ((case-fold-search (file-name-case-insensitive-p filename))
 	 (vec (tramp-dissect-file-name filename))
          (home-dir
-          (with-tramp-connection-property vec "home-directory"
-            (tramp-compat-funcall
-	     'directory-abbrev-apply
-	     (expand-file-name (tramp-make-tramp-file-name vec "~"))))))
+          (if (let ((non-essential t)) (tramp-connectable-p vec))
+              ;; If a connection has already been established, make
+              ;; sure the "home-directory" connection property is
+              ;; properly set.
+              (with-tramp-connection-property vec "home-directory"
+                (tramp-compat-funcall
+	         'directory-abbrev-apply
+	         (expand-file-name (tramp-make-tramp-file-name vec "~"))))
+            ;; Otherwise, just use the cached value.
+            (tramp-get-connection-property vec "home-directory" nil))))
     ;; If any elt of `directory-abbrev-alist' matches this name,
     ;; abbreviate accordingly.
     (setq filename (tramp-compat-funcall 'directory-abbrev-apply filename))
     ;; Abbreviate home directory.
-    (if (string-match
-	 (tramp-compat-funcall 'directory-abbrev-make-regexp home-dir) filename)
+    (if (and home-dir
+             (string-match
+	      (tramp-compat-funcall 'directory-abbrev-make-regexp home-dir)
+              filename))
         (tramp-make-tramp-file-name
 	 vec (concat "~" (substring filename (match-beginning 1))))
       (tramp-make-tramp-file-name (tramp-dissect-file-name filename)))))
