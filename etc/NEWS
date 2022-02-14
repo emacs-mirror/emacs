@@ -154,8 +154,15 @@ An autoload definition appears just as a '(defun . NAME)' and the
 
 +++
 ** New function 'command-query'.
-Commands that are marked with this function will prompt the user
-before executing.
+This function makes its argument command prompt the user for
+confirmation before executing.
+
++++
+** The 'disabled' property of a command's symbol can now be a list.
+The first element of the list should be the symbol 'query', which will
+cause the command disabled this way prompt the user with a y/n or a
+yes/no question before executing.  The new function 'command-query' is
+a convenient method of making commands disabled in this way.
 
 ---
 ** 'count-lines' will now report buffer totals if given a prefix.
