@@ -2292,8 +2292,12 @@ haiku_define_fringe_bitmap (int which, unsigned short *bits,
 	fringe_bmps[i++] = NULL;
     }
 
+  block_input ();
   fringe_bmps[which] = BBitmap_new (wd, h, 1);
+  if (!fringe_bmps[which])
+    memory_full (SIZE_MAX);
   BBitmap_import_fringe_bitmap (fringe_bmps[which], bits, wd, h);
+  unblock_input ();
 }
 
 static void
