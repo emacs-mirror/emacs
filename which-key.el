@@ -2655,6 +2655,9 @@ Finally, show the buffer."
                         (not which-key--secondary-timer-active))
                (which-key--start-timer which-key-idle-secondary-delay t))))
           ((and which-key-show-transient-maps
+                ;; Assuming that if this is not true we're in
+                ;; `which-key-show-top-level', which would then be overwritten.
+                (> (length prefix-keys) 0)
                 (keymapp overriding-terminal-local-map)
                 ;; basic test for it being a hydra
                 (not (eq (lookup-key overriding-terminal-local-map "\C-u")
