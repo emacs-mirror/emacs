@@ -3321,7 +3321,7 @@ if you need to remove the remapping later.
 (face-remap-add-relative 'default :height 1.5)
 @end example
 
-Note that face remapping does not work reliably parent faces of
+Note that face remapping does not work reliably for parent faces of
 @dfn{basic faces}.  (These are the faces that are used in mode lines,
 header lines and the like.)  For instance, @code{mode-line-inactive}
 inherits from @code{mode-line}, but remapping @code{mode-line} won't
