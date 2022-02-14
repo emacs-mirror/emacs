@@ -303,6 +303,17 @@ packages in `package-directory-list'."
   :risky t
   :version "24.1")
 
+(defcustom package-devel-dir (expand-file-name "devel" package-user-dir)
+  "Directory containing the user's Emacs Lisp package checkouts.
+The directory name should be absolute.
+Apart from this directory, Emacs also looks for system-wide
+packages in `package-directory-list'."
+  :type 'directory
+  :initialize #'custom-initialize-delay
+  :set-after '(package-user-dir)
+  :risky t
+  :version "29.1")
+
 ;;;###autoload
 (defcustom package-directory-list
   ;; Defaults are subdirs named "elpa" in the site-lisp dirs.
@@ -459,7 +470,7 @@ synchronously."
                  &rest rest-plist
                  &aux
                  (name (intern name-string))
-                 (version (version-to-list version-string))
+                 (version (and version-string (version-to-list version-string)))
                  (reqs (mapcar (lambda (elt)
                                  (list (car elt)
                                        (version-to-list (cadr elt))))
@@ -560,7 +571,9 @@ This is, approximately, the inverse of `version-to-list'.
 This is the name of the package with its version appended."
   (format "%s-%s"
           (package-desc-name pkg-desc)
-          (package-version-join (package-desc-version pkg-desc))))
+          (if (eq (package-desc-kind pkg-desc) 'source)
+              "devel"
+            (package-version-join (package-desc-version pkg-desc)))))
 
 (defun package-desc-suffix (pkg-desc)
   "Return file-name extension of package-desc object PKG-DESC.
@@ -666,6 +679,16 @@ are sorted with the highest version first."
               nil)))
       new-pkg-desc)))
 
+(declare-function vc-working-revision "vc" (file &optional backend))
+(defun package-devel-commit (pkg)
+  "Extract the commit of a development package PKG."
+  (cl-assert (eq (package-desc-kind pkg) 'source))
+  (require 'vc)
+  (cl-loop with dir = (package-desc-dir pkg)
+           for file in (directory-files dir t "\\.el\\'" t)
+           when (vc-working-revision file) return it
+           finally return "unknown"))
+
 (defun package-load-descriptor (pkg-dir)
   "Load the package description file in directory PKG-DIR.
 Create a new `package-desc' object, add it to `package-alist' and
@@ -681,6 +704,14 @@ return it."
                              (read (current-buffer)))
                             (error "Can't find define-package in %s" pkg-file))))
           (setf (package-desc-dir pkg-desc) pkg-dir)
+          (when (file-exists-p (expand-file-name
+                                (symbol-name (package-desc-name pkg-desc))
+                                package-devel-dir))
+            ;; XXX: This check seems dirty, there should be a better
+            ;; way to deduce if a package is in the devel directory.
+            (setf (package-desc-kind pkg-desc) 'source)
+            (push (cons :commit (package-devel-commit pkg-desc))
+                  (package-desc-extras pkg-desc)))
           (if (file-exists-p signed-file)
               (setf (package-desc-signed pkg-desc) t))
           pkg-desc)))))
@@ -694,13 +725,13 @@ controls which package subdirectories may be loaded.
 In each valid package subdirectory, this function loads the
 description file containing a call to `define-package', which
 updates `package-alist'."
-  (dolist (dir (cons package-user-dir package-directory-list))
+  (dolist (dir (cl-list* package-user-dir
+                         package-devel-dir
+                         package-directory-list))
     (when (file-directory-p dir)
-      (dolist (subdir (directory-files dir))
-        (unless (equal subdir "..")
-          (let ((pkg-dir (expand-file-name subdir dir)))
-            (when (file-directory-p pkg-dir)
-              (package-load-descriptor pkg-dir))))))))
+      (dolist (pkg-dir (directory-files dir t "^[^.]" t))
+        (when (file-directory-p pkg-dir)
+          (package-load-descriptor pkg-dir))))))
 
 (defun package--alist ()
   "Return `package-alist', after computing it if needed."
@@ -916,12 +947,51 @@ untar into a directory named DIR; otherwise, signal an error."
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
+(declare-function vc-clone "vc" (backend remote &optional directory))
+
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
   (let* ((name (package-desc-name pkg-desc))
          (dirname (package-desc-full-name pkg-desc))
          (pkg-dir (expand-file-name dirname package-user-dir)))
     (pcase (package-desc-kind pkg-desc)
+      ('source
+       (setq pkg-dir (expand-file-name (symbol-name name) package-devel-dir))
+       (when (file-exists-p pkg-dir)
+         (if (and (called-interactively-p 'interactive)
+                  (yes-or-no-p "Overwrite previous checkout?"))
+             (delete-directory pkg-dir t)
+           (error "There already exists a checkout for %s" name)))
+       (pcase-let* ((attr (package-desc-extras pkg-desc))
+                    (`(,backend ,repo ,dir ,branch)
+                     (or (alist-get :upstream attr)
+                         (error "Source package has no repository"))))
+         (require 'vc)
+         (make-directory (file-name-directory (file-name-directory pkg-dir)) t)
+         (unless (setf (car (alist-get :upstream attr))
+                       (vc-clone backend repo pkg-dir))
+           (error "Failed to clone %s from %s" name repo))
+         (when-let ((rev (or (alist-get :rev attr) branch)))
+           (vc-retrieve-tag pkg-dir rev))
+         (when dir (setq pkg-dir (file-name-concat pkg-dir dir)))
+         ;; In case the package was installed directly from source, the
+         ;; dependency list wasn't know beforehand, and they might have
+         ;; to be installed explicitly.
+         (let (deps)
+           (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
+             (with-temp-buffer
+               (insert-file-contents file)
+               (when-let* ((require-lines (lm-header-multiline "package-requires")))
+                 (thread-last
+                   (mapconcat #'identity require-lines " ")
+                   package-read-from-string
+                   package--prepare-dependencies
+                   (nconc deps)
+                   (setq deps)))))
+           (dolist (dep deps)
+             (cl-callf version-to-list (cadr dep)))
+           (package-download-transaction
+            (package-compute-transaction nil (delete-dups deps))))))
       ('dir
        (make-directory pkg-dir t)
        (let ((file-list
@@ -935,7 +1005,7 @@ untar into a directory named DIR; otherwise, signal an error."
          ;; indistinguishable from a `tar' or a `single'. Let's make
          ;; things simple by ensuring we're one of them.
          (setf (package-desc-kind pkg-desc)
-               (if (> (length file-list) 1) 'tar 'single))))
+               (if (length> file-list 1) 'tar 'single))))
       ('tar
        (make-directory package-user-dir t)
        (let* ((default-directory (file-name-as-directory package-user-dir)))
@@ -948,8 +1018,9 @@ untar into a directory named DIR; otherwise, signal an error."
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
-      (unless (equal (package-desc-full-name new-desc)
-                     (package-desc-full-name pkg-desc))
+      (unless (or (equal (package-desc-full-name new-desc)
+                         (package-desc-full-name pkg-desc))
+                  (eq (package-desc-kind pkg-desc) 'source))
         (error "The retrieved package (`%s') doesn't match what the archive offered (`%s')"
                (package-desc-full-name new-desc) (package-desc-full-name pkg-desc)))
       ;; Activation has to be done before compilation, so that if we're
@@ -983,7 +1054,8 @@ untar into a directory named DIR; otherwise, signal an error."
          (nconc
           (list 'define-package
                 (symbol-name name)
-                (package-version-join (package-desc-version pkg-desc))
+                (and (not (eq (package-desc-kind pkg-desc) 'source))
+                     (package-version-join (package-desc-version pkg-desc)))
                 (package-desc-summary pkg-desc)
                 (let ((requires (package-desc-reqs pkg-desc)))
                   (list 'quote
@@ -1995,50 +2067,52 @@ if all the in-between dependencies are also in PACKAGE-LIST."
   (cdr (assoc (package-desc-archive desc) package-archives)))
 
 (defun package-install-from-archive (pkg-desc)
-  "Download and install a tar package defined by PKG-DESC."
+  "Download and install a package defined by PKG-DESC."
   ;; This won't happen, unless the archive is doing something wrong.
   (when (eq (package-desc-kind pkg-desc) 'dir)
     (error "Can't install directory package from archive"))
-  (let* ((location (package-archive-base pkg-desc))
-         (file (concat (package-desc-full-name pkg-desc)
-                       (package-desc-suffix pkg-desc))))
-    (package--with-response-buffer location :file file
-      (if (or (not (package-check-signature))
-              (member (package-desc-archive pkg-desc)
-                      package-unsigned-archives))
-          ;; If we don't care about the signature, unpack and we're
-          ;; done.
-          (let ((save-silently t))
-            (package-unpack pkg-desc))
-        ;; If we care, check it and *then* write the file.
-        (let ((content (buffer-string)))
-          (package--check-signature
-           location file content nil
-           ;; This function will be called after signature checking.
-           (lambda (&optional good-sigs)
-             ;; Signature checked, unpack now.
-             (with-temp-buffer ;FIXME: Just use the previous current-buffer.
-               (set-buffer-multibyte nil)
-               (cl-assert (not (multibyte-string-p content)))
-               (insert content)
-               (let ((save-silently t))
-                 (package-unpack pkg-desc)))
-             ;; Here the package has been installed successfully, mark it as
-             ;; signed if appropriate.
-             (when good-sigs
-               ;; Write out good signatures into NAME-VERSION.signed file.
-               (write-region (mapconcat #'epg-signature-to-string good-sigs "\n")
-                             nil
-                             (expand-file-name
-                              (concat (package-desc-full-name pkg-desc) ".signed")
-                              package-user-dir)
-                             nil 'silent)
-               ;; Update the old pkg-desc which will be shown on the description buffer.
-               (setf (package-desc-signed pkg-desc) t)
-               ;; Update the new (activated) pkg-desc as well.
-               (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
-                                                 package-alist))))
-                 (setf (package-desc-signed (car pkg-descs)) t))))))))))
+  (if (eq (package-desc-kind pkg-desc) 'source)
+      (package-unpack pkg-desc)
+    (let* ((location (package-archive-base pkg-desc))
+           (file (concat (package-desc-full-name pkg-desc)
+                         (package-desc-suffix pkg-desc))))
+      (package--with-response-buffer location :file file
+        (if (or (not (package-check-signature))
+                (member (package-desc-archive pkg-desc)
+                        package-unsigned-archives))
+            ;; If we don't care about the signature, unpack and we're
+            ;; done.
+            (let ((save-silently t))
+              (package-unpack pkg-desc))
+          ;; If we care, check it and *then* write the file.
+          (let ((content (buffer-string)))
+            (package--check-signature
+             location file content nil
+             ;; This function will be called after signature checking.
+             (lambda (&optional good-sigs)
+               ;; Signature checked, unpack now.
+               (with-temp-buffer ;FIXME: Just use the previous current-buffer.
+                 (set-buffer-multibyte nil)
+                 (cl-assert (not (multibyte-string-p content)))
+                 (insert content)
+                 (let ((save-silently t))
+                   (package-unpack pkg-desc)))
+               ;; Here the package has been installed successfully, mark it as
+               ;; signed if appropriate.
+               (when good-sigs
+                 ;; Write out good signatures into NAME-VERSION.signed file.
+                 (write-region (mapconcat #'epg-signature-to-string good-sigs "\n")
+                               nil
+                               (expand-file-name
+                                (concat (package-desc-full-name pkg-desc) ".signed")
+                                package-user-dir)
+                               nil 'silent)
+                 ;; Update the old pkg-desc which will be shown on the description buffer.
+                 (setf (package-desc-signed pkg-desc) t)
+                 ;; Update the new (activated) pkg-desc as well.
+                 (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc)
+                                                   package-alist))))
+                   (setf (package-desc-signed (car pkg-descs)) t)))))))))))
 
 ;;;###autoload
 (defun package-installed-p (package &optional min-version)
@@ -2131,6 +2205,61 @@ to install it but still mark it as selected."
           (package--quickstart-maybe-refresh)
           (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
+
+;;;###autoload
+(defun package-fetch (name-or-url &optional name rev)
+  "Fetch the source of NAME-OR-URL.
+If NAME-OR-URL is a URL, then the package will be downloaded from
+the repository indicated by the URL.  The function will try to
+guess the name of the package using `file-name-base'.  This can
+be overridden by manually passing the optional NAME.  Otherwise
+NAME-OR-URL is taken to be a package name, and the package
+metadata will be consulted for the URL.  An explicit revision can
+be requested using REV."
+  (interactive
+   (progn
+     ;; Initialize the package system to get the list of package
+     ;; symbols for completion.
+     (package--archives-initialize)
+     (let* ((input (completing-read
+                    "Fetch package source (name or URL): "
+                    package-archive-contents))
+            (name (file-name-base input)))
+       (list input (intern (string-remove-prefix "emacs-" name))))))
+  (package--archives-initialize)
+  (package-install
+   (cond
+    ((and (stringp name-or-url)
+          (url-type (url-generic-parse-url name-or-url)))
+     (package-desc-create
+      :name (or name (intern (file-name-base name-or-url)))
+      :kind 'source
+      :extras `((:upstream . ,(list nil name-or-url nil nil))
+                (:rev . ,rev))))
+    ((when-let* ((desc (cadr (assoc name-or-url package-archive-contents
+                                    #'string=)))
+                 (spec (or (alist-get :vc (package-desc-extras desc))
+                           (user-error "Package has no VC header"))))
+       (unless (string-match
+                (rx bos
+                    (group (+ alnum))
+                    (+ blank) (group (+ (not blank)))
+                    (? (+ blank) (group (+ (not blank)))
+                       (? (+ blank) (group (+ (not blank)))))
+                    eos)
+                spec)
+         (user-error "Invalid repository specification %S" spec))
+       (package-desc-create
+        :name (if (stringp name-or-url)
+                  (intern name-or-url)
+                name-or-url)
+        :kind 'source
+        :extras `((:upstream . ,(list (intern (match-string 1 spec))
+                                      (match-string 2 spec)
+                                      (match-string 3 spec)
+                                      (match-string 4 spec)))
+                  (:rev . ,rev)))))
+    ((user-error "Unknown package to fetch: %s" name-or-url)))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -2940,6 +3069,7 @@ of these dependencies, similar to the list returned by
          (signed (or (not package-list-unsigned)
                      (package-desc-signed pkg-desc))))
     (cond
+     ((eq (package-desc-kind pkg-desc) 'source) "source")
      ((eq dir 'builtin) "built-in")
      ((and lle (null held)) "disabled")
      ((stringp held)
@@ -3028,8 +3158,9 @@ to their archives."
           (if (not installed)
               filtered-by-priority
             (let ((ins-version (package-desc-version installed)))
-              (cl-remove-if (lambda (p) (version-list-= (package-desc-version p)
-                                                   ins-version))
+              (cl-remove-if (lambda (p) (or (version-list-= (package-desc-version p)
+                                                            ins-version)
+                                            (eq (package-desc-kind installed) 'source)))
                             filtered-by-priority))))))))
 
 (defcustom package-hidden-regexps nil
@@ -3231,6 +3362,11 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   "Face used on the status and version of installed packages."
   :version "25.1")
 
+(defface package-status-from-source
+  '((t :inherit font-lock-negation-char-face))
+  "Face used on the status and version of installed packages."
+  :version "29.1")
+
 (defface package-status-dependency
   '((t :inherit package-status-installed))
   "Face used on the status and version of dependency packages."
@@ -3268,6 +3404,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
                  ("held"      'package-status-held)
                  ("disabled"  'package-status-disabled)
                  ("installed" 'package-status-installed)
+                 ("source"    'package-status-from-source)
                  ("dependency" 'package-status-dependency)
                  ("unsigned"  'package-status-unsigned)
                  ("incompat"  'package-status-incompat)
@@ -3279,9 +3416,12 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
              follow-link t
              package-desc ,pkg
              action package-menu-describe-package)
-            ,(propertize (package-version-join
-                          (package-desc-version pkg))
-                         'font-lock-face face)
+            ,(propertize
+              (if (eq (package-desc-kind pkg) 'source)
+                  (package-devel-commit pkg)
+                (package-version-join
+                 (package-desc-version pkg)))
+              'font-lock-face face)
             ,(propertize status 'font-lock-face face)
             ,@(if (cdr package-archives)
                   (list (propertize (or (package-desc-archive pkg) "")
@@ -3356,7 +3496,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status)
-              '("installed" "dependency" "obsolete" "unsigned"))
+              '("installed" "source" "dependency" "obsolete" "unsigned"))
       (tabulated-list-put-tag "D" t)
     (forward-line)))
 
@@ -3674,6 +3814,8 @@ This is used for `tabulated-list-format' in `package-menu-mode'."
           ((string= sB "installed") nil)
           ((string= sA "dependency") t)
           ((string= sB "dependency") nil)
+          ((string= sA "source") t)
+          ((string= sB "source") nil)
           ((string= sA "unsigned") t)
           ((string= sB "unsigned") nil)
           ((string= sA "held") t)
@@ -3969,6 +4111,7 @@ packages."
                                         "held"
                                         "incompat"
                                         "installed"
+                                        "source"
                                         "new"
                                         "unsigned")))
                package-menu-mode)
