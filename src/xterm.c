@@ -10783,6 +10783,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	XIEnterEvent *enter = (XIEnterEvent *) xi_event;
 	XIFocusInEvent *focusin = (XIFocusInEvent *) xi_event;
 	XIFocusOutEvent *focusout = (XIFocusOutEvent *) xi_event;
+	XIDeviceChangedEvent *device_changed = (XIDeviceChangedEvent *) xi_event;
 	XIValuatorState *states;
 	double *values;
 	bool found_valuator = false;
@@ -11861,16 +11862,90 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    goto XI_OTHER;
 
 	  case XI_PropertyEvent:
+	    goto XI_OTHER;
+
 	  case XI_HierarchyChanged:
-	  case XI_DeviceChanged:
-#ifdef XISlaveSwitch
-	    if (xi_event->evtype == XI_DeviceChanged
-		&& (((XIDeviceChangedEvent *) xi_event)->reason
-		    == XISlaveSwitch))
-	      goto XI_OTHER;
-#endif
 	    x_init_master_valuators (dpyinfo);
 	    goto XI_OTHER;
+
+	  case XI_DeviceChanged:
+	    {
+	      struct xi_device_t *device;
+	      struct xi_touch_point_t *tem, *last;
+	      int c;
+
+	      device = xi_device_from_id (dpyinfo, device_changed->sourceid);
+
+	      if (!device)
+		emacs_abort ();
+
+	      /* Free data that we will regenerate from new
+		 information.  */
+	      device->valuators = xrealloc (device->valuators,
+					    (device_changed->num_classes
+					     * sizeof *device->valuators));
+	      device->scroll_valuator_count = 0;
+	      device->direct_p = false;
+
+	      for (c = 0; c < device_changed->num_classes; ++c)
+		{
+		  switch (device_changed->classes[c]->type)
+		    {
+#ifdef XIScrollClass
+		    case XIScrollClass:
+		      {
+			XIScrollClassInfo *info =
+			  (XIScrollClassInfo *) device_changed->classes[c];
+			struct xi_scroll_valuator_t *valuator;
+
+			if (device->master_p)
+			  {
+			    valuator = &device->valuators[device->scroll_valuator_count++];
+			    valuator->horizontal
+			      = (info->scroll_type == XIScrollTypeHorizontal);
+			    valuator->invalid_p = true;
+			    valuator->emacs_value = DBL_MIN;
+			    valuator->increment = info->increment;
+			    valuator->number = info->number;
+			  }
+
+			break;
+		      }
+#endif
+
+#ifdef XITouchClass
+		    case XITouchClass:
+		      {
+			XITouchClassInfo *info;
+
+			info = (XITouchClassInfo *) device_changed->classes[c];
+			device->direct_p = info->mode == XIDirectTouch;
+		      }
+#endif
+		    default:
+		      break;
+		    }
+		}
+
+	      /* The device is no longer a DirectTouch device, so
+		 remove any touchpoints that we might have
+		 recorded.  */
+	      if (!device->direct_p)
+		{
+		  tem = device->touchpoints;
+
+		  while (tem)
+		    {
+		      last = tem;
+		      tem = tem->next;
+		      xfree (last);
+		    }
+
+		  device->touchpoints = NULL;
+		}
+
+	      goto XI_OTHER;
+	    }
 
 #ifdef XI_TouchBegin
 	  case XI_TouchBegin:
