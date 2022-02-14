@@ -3146,13 +3146,35 @@ static void
 x_query_frame_background_color (struct frame *f, XColor *bgcolor)
 {
   unsigned long background = FRAME_BACKGROUND_PIXEL (f);
+#ifndef USE_CAIRO
+  XColor bg;
+#endif
 
   if (FRAME_DISPLAY_INFO (f)->alpha_bits)
     {
+#ifdef USE_CAIRO
       background = (background & ~FRAME_DISPLAY_INFO (f)->alpha_mask);
       background |= (((unsigned long) (f->alpha_background * 0xffff)
 		      >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
 		     << FRAME_DISPLAY_INFO (f)->alpha_offset);
+#else
+      if (FRAME_DISPLAY_INFO (f)->alpha_bits
+	  && f->alpha_background < 1.0)
+	{
+	  bg.pixel = background;
+	  x_query_colors (f, &bg, 1);
+	  bg.red *= f->alpha_background;
+	  bg.green *= f->alpha_background;
+	  bg.blue *= f->alpha_background;
+
+	  background = x_make_truecolor_pixel (FRAME_DISPLAY_INFO (f),
+					       bg.red, bg.green, bg.blue);
+	  background &= ~FRAME_DISPLAY_INFO (f)->alpha_mask;
+	  background |= (((unsigned long) (f->alpha_background * 0xffff)
+			  >> (16 - FRAME_DISPLAY_INFO (f)->alpha_bits))
+			 << FRAME_DISPLAY_INFO (f)->alpha_offset);
+	}
+#endif
     }
 
   bgcolor->pixel = background;
