@@ -3945,6 +3945,15 @@ what happens when a disabled command is invoked interactively.
 Disabling a command has no effect on calling it as a function from Lisp
 programs.
 
+@findex command-query
+  The value of the @code{disabled} property can also be a list where
+the first element is the symbol @code{query}.  In that case, the user
+will be queried whether to execute the command.  The second element in
+the list should be @code{nil} or non-@code{nil} to say whether to use
+@code{y-or-n-p} or @code{yes-or-no-p}, respectively, and the third
+element is the question to use.  The @code{command-query} convenience
+function should be used to enable querying for a command.
+
 @deffn Command enable-command command
 Allow @var{command} (a symbol) to be executed without special
 confirmation from now on, and alter the user's init file (@pxref{Init

@@ -152,6 +152,11 @@ An autoload definition appears just as a '(defun . NAME)' and the
 
 * Changes in Emacs 29.1
 
++++
+** New function 'command-query'.
+Commands that are marked with this function will prompt the user
+before executing.
+
 ---
 ** 'count-lines' will now report buffer totals if given a prefix.
 

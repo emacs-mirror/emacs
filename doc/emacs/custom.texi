@@ -2234,6 +2234,22 @@ is included in the message displayed when the command is used:
      "It's better to use `kill-region' instead.\n")
 @end example
 
+@findex command-query
+  As a less heavy-handed alternative to disabling commands, you may
+want to be queried before executing a command.  For instance, to be
+queried before executing the @kbd{M->} (@code{end-of-buffer})
+command, you could put something like the following in your init file:
+
+@example
+(command-query
+ 'end-of-buffer
+ "Do you really want to go to the end of the buffer?")
+@end example
+
+By default, you'll be queried with a @kbd{y}/@kbd{n} question, but if
+you give a non-@code{nil} value to the third, optional argument,
+you'll be queried with @kbd{yes}/@kbd{no} instead.
+
 @findex disable-command
 @findex enable-command
   You can make a command disabled either by editing the initialization
