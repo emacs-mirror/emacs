@@ -631,16 +631,13 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 		      (XIScrollClassInfo *) device->classes[c];
 		    struct xi_scroll_valuator_t *valuator;
 
-		    if (xi_device->master_p)
-		      {
-			valuator = &xi_device->valuators[actual_valuator_count++];
-			valuator->horizontal
-			  = (info->scroll_type == XIScrollTypeHorizontal);
-			valuator->invalid_p = true;
-			valuator->emacs_value = DBL_MIN;
-			valuator->increment = info->increment;
-			valuator->number = info->number;
-		      }
+		    valuator = &xi_device->valuators[actual_valuator_count++];
+		    valuator->horizontal
+		      = (info->scroll_type == XIScrollTypeHorizontal);
+		    valuator->invalid_p = true;
+		    valuator->emacs_value = DBL_MIN;
+		    valuator->increment = info->increment;
+		    valuator->number = info->number;
 
 		    break;
 		  }
@@ -11872,9 +11869,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      struct xi_device_t *device;
 	      struct xi_touch_point_t *tem, *last;
-	      int c;
+	      int c, i;
 
-	      device = xi_device_from_id (dpyinfo, device_changed->sourceid);
+	      device = xi_device_from_id (dpyinfo, device_changed->deviceid);
 
 	      if (!device)
 		emacs_abort ();
@@ -11894,20 +11891,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef XIScrollClass
 		    case XIScrollClass:
 		      {
-			XIScrollClassInfo *info =
-			  (XIScrollClassInfo *) device_changed->classes[c];
+			XIScrollClassInfo *info;
+
+			info = (XIScrollClassInfo *) device_changed->classes[c];
 			struct xi_scroll_valuator_t *valuator;
 
-			if (device->master_p)
-			  {
-			    valuator = &device->valuators[device->scroll_valuator_count++];
-			    valuator->horizontal
-			      = (info->scroll_type == XIScrollTypeHorizontal);
-			    valuator->invalid_p = true;
-			    valuator->emacs_value = DBL_MIN;
-			    valuator->increment = info->increment;
-			    valuator->number = info->number;
-			  }
+			valuator = &device->valuators[device->scroll_valuator_count++];
+			valuator->horizontal
+			  = (info->scroll_type == XIScrollTypeHorizontal);
+			valuator->invalid_p = true;
+			valuator->emacs_value = DBL_MIN;
+			valuator->increment = info->increment;
+			valuator->number = info->number;
 
 			break;
 		      }
@@ -11926,6 +11921,27 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      break;
 		    }
 		}
+
+#ifdef XIScrollClass
+	      for (c = 0; c < device_changed->num_classes; ++c)
+		{
+		  if (device_changed->classes[c]->type == XIValuatorClass)
+		    {
+		      XIValuatorClassInfo *info;
+
+		      info = (XIValuatorClassInfo *) device_changed->classes[c];
+
+		      for (i = 0; i < device->scroll_valuator_count; ++i)
+			{
+			  if (device->valuators[i].number == info->number)
+			    {
+			      device->valuators[i].invalid_p = false;
+			      device->valuators[i].current_value = info->value;
+			    }
+			}
+		    }
+		}
+#endif
 
 	      /* The device is no longer a DirectTouch device, so
 		 remove any touchpoints that we might have
