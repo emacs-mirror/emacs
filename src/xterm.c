@@ -1390,6 +1390,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #else
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
   if (respect_alpha_background
+      && f->alpha_background != 1.0
       && FRAME_DISPLAY_INFO (f)->alpha_bits
       && FRAME_CHECK_XR_VERSION (f, 0, 2))
     {
@@ -1432,6 +1433,7 @@ x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #else
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
   if (respect_alpha_background
+      && f->alpha_background != 1.0
       && FRAME_DISPLAY_INFO (f)->alpha_bits
       && FRAME_CHECK_XR_VERSION (f, 0, 2))
     {
@@ -4255,6 +4257,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	      XGCValues xgcv;
 #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
 	      if (FRAME_DISPLAY_INFO (s->f)->alpha_bits
+		  && s->f->alpha_background != 1.0
 		  && FRAME_CHECK_XR_VERSION (s->f, 0, 2)
 		  && FRAME_X_PICTURE_FORMAT (s->f))
 		{
@@ -4939,6 +4942,7 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
       x_xr_ensure_picture (f);
       if (FRAME_DISPLAY_INFO (f)->alpha_bits
 	  && FRAME_X_PICTURE (f) != None
+	  && f->alpha_background != 1.0
 	  && FRAME_CHECK_XR_VERSION (f, 0, 2))
 	{
 	  XRenderColor xc;
