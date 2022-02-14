@@ -162,6 +162,7 @@
 	  (radio-button-choice :tag "SOCKS Version"
 			       :format "%t: %v"
 			       (const :tag "SOCKS v4  " :format "%t" :value 4)
+                               (const :tag "SOCKS v4a"  :format "%t" :value 4a)
 			       (const :tag "SOCKS v5"   :format "%t" :value 5))))
 
 
@@ -201,6 +202,12 @@
     "Time-to-live expired"
     "Command not supported"
     "Address type not supported"))
+
+(defconst socks--errors-4
+  '("Granted"
+    "Rejected or failed"
+    "Cannot connect to identd on the client"
+    "Client and identd report differing user IDs"))
 
 ;; The socks v5 address types
 (defconst socks-address-type-v4   1)
@@ -309,7 +316,8 @@
 		     ((pred (= socks-address-type-name))
 		      (if (< (length string) 5)
 			  255
-		        (+ 1 (aref string 4)))))))
+                        (+ 1 (aref string 4))))
+                     (0 0))))
 	  (if (< (length string) desired-len)
 	      nil			; Need to spin some more
 	    (process-put proc 'socks-state socks-state-connected)
@@ -399,6 +407,7 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
 		(format "%c%s" (length address) address))
 	       (t
 		(error "Unknown address type: %d" atype))))
+        trailing
 	request version)
     (or (process-get proc 'socks)
         (error "socks-send-command called on non-SOCKS connection %S" proc))
@@ -415,6 +424,12 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
 			     (t
 			      (error "Unsupported address type for HTTP: %d" atype)))
 			    port)))
+     ((and (eq version '4a)
+           (setf addr "\0\0\0\1"
+                 trailing (concat address "\0")
+                 version 4 ; become version 4
+                 (process-get proc 'socks-server-protocol) 4)
+           nil)) ; fall through
      ((equal version 4)
       (setq request (concat
 		     (unibyte-string
@@ -423,8 +438,9 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
 		      (ash port -8)       ; port, high byte
 		      (logand port #xff)) ; port, low byte
 		     addr                 ; address
-		     (user-full-name)     ; username
-		     "\0")))              ; terminate username
+                     socks-username       ; username
+                     "\0"                 ; terminate username
+                     trailing)))          ; optional host to look up
      ((equal version 5)
       (setq request (concat
 		     (unibyte-string
@@ -445,7 +461,13 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
 	nil				; Sweet sweet success!
       (delete-process proc)
       (error "SOCKS: %s"
-             (nth (or (process-get proc 'socks-reply) 1) socks-errors)))
+             (let ((err (process-get proc 'socks-reply)))
+               (if (eql version 5)
+                   (nth (or err 1) socks-errors)
+                 ;; The defined error codes for v4 range from
+                 ;; 90-93, but we store them in a simple list.
+                 (nth (pcase err (90 0) (92 2) (93 3) (_ 1))
+                      socks--errors-4)))))
     proc))
 
 

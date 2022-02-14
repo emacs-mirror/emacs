@@ -871,6 +871,13 @@ neither of which have been supported by Emacs since version 23.1.
 The user option 'url-gateway-nslookup-program' and the function
 'url-gateway-nslookup-host' are consequently also obsolete.
 
+** socks
+
++++
+*** SOCKS supports version 4a.
+The 'socks-server' option accepts '4a' as a value for its version
+field.
+
 ** Edmacro
 
 +++

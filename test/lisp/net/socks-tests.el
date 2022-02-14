@@ -197,6 +197,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
   "Show correct preparation of SOCKS4 connect command (Bug#46342)."
   (let ((socks-server '("server" "127.0.0.1" t 4))
         (url-user-agent "Test/4-basic")
+        (socks-username "foo")
         (socks-tests-canned-server-patterns
          `(([4 1 0 80 93 184 216 34 ?f ?o ?o 0] . [0 90 0 0 0 0 0 0])
            ,socks-tests--hello-world-http-request-pattern))
@@ -205,10 +206,34 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
       (cl-letf (((symbol-function 'socks-nslookup-host)
                  (lambda (host)
                    (should (equal host "example.com"))
-                   (list 93 184 216 34)))
-                ((symbol-function 'user-full-name)
-                 (lambda (&optional _) "foo")))
+                   (list 93 184 216 34))))
         (socks-tests-perform-hello-world-http-request)))))
+
+(ert-deftest socks-tests-v4a-basic ()
+  "Show correct preparation of SOCKS4a connect command."
+  (let ((socks-server '("server" "127.0.0.1" t 4a))
+        (socks-username "foo")
+        (url-user-agent "Test/4a-basic")
+        (socks-tests-canned-server-patterns
+         `(([4 1 0 80 0 0 0 1 ?f ?o ?o 0 ?e ?x ?a ?m ?p ?l ?e ?. ?c ?o ?m 0]
+            . [0 90 0 0 0 0 0 0])
+           ,socks-tests--hello-world-http-request-pattern)))
+    (ert-info ("Make HTTP request over SOCKS4A")
+      (socks-tests-perform-hello-world-http-request))))
+
+(ert-deftest socks-tests-v4a-error ()
+  "Show error signaled when destination address rejected."
+  (let ((socks-server '("server" "127.0.0.1" t 4a))
+        (url-user-agent "Test/4a-basic")
+        (socks-username "")
+        (socks-tests-canned-server-patterns
+         `(([4 1 0 80 0 0 0 1 0 ?e ?x ?a ?m ?p ?l ?e ?. ?c ?o ?m 0]
+            . [0 91 0 0 0 0 0 0])
+           ,socks-tests--hello-world-http-request-pattern)))
+    (ert-info ("Make HTTP request over SOCKS4A")
+      (let ((err (should-error
+                  (socks-tests-perform-hello-world-http-request))))
+        (should (equal err '(error "SOCKS: Rejected or failed")))))))
 
 ;; Replace first pattern below with ([5 3 0 1 2] . [5 2]) to validate
 ;; against curl 7.71 with the following options:
