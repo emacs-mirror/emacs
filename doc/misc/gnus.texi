@@ -21674,7 +21674,9 @@ engine.
 @item remove-prefix
 The directory part to be removed from the filenames returned by the
 search query.  This absolute path should include everything up to the
-top level of the message store.
+top level of the message store.  Note that this is the path to the
+location of the actual messages, not to the search engine's indexes
+(nor, in the case of Mairix, to its symlink directories).
 
 @item switches
 Additional command-line switches to be fed to the search program.  The
