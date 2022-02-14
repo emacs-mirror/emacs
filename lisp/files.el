@@ -1493,8 +1493,13 @@ in all cases, since that is the standard symbol for byte."
                                (if (string= prefix "") "" "i")
                                (or unit "B"))
                             (concat prefix unit))))
-      (format (if (and (>= (mod file-size 1.0) 0.05)
+      ;; Mimic what GNU "ls -lh" does:
+      ;; If the formatted size will have just one digit before the decimal...
+      (format (if (and (< file-size 10)
+                       ;; ...and its fractional part is not too small...
+                       (>= (mod file-size 1.0) 0.05)
                        (< (mod file-size 1.0) 0.95))
+                  ;; ...then emit one digit after the decimal.
 		  "%.1f%s%s"
 	        "%.0f%s%s")
 	      file-size
