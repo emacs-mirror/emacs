@@ -86,7 +86,8 @@ DISPLAY may be set to the name of a display that will be initialized."
   "Convert symbolic selection type TYPE to its MIME equivalent.
 If TYPE is nil, return \"text/plain\"."
   (cond
-   ((memq type '(TEXT COMPOUND_TEXT STRING UTF8_STRING)) "text/plain")
+   ((eq type 'STRING) "text/plain;charset=iso-8859-1")
+   ((eq type 'UTF8_STRING) "text/plain")
    ((stringp type) type)
    ((symbolp type) (symbol-name type))
    (t "text/plain")))

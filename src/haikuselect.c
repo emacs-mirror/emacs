@@ -97,20 +97,12 @@ fetch.  */)
     return Qnil;
 
   Lisp_Object str = make_unibyte_string (dat, len);
-  Lisp_Object lispy_type = Qnil;
 
-  if (!strcmp (SSDATA (name), "text/utf-8") ||
-      !strcmp (SSDATA (name), "text/plain"))
-    {
-      if (string_ascii_p (str))
-	lispy_type = QSTRING;
-      else
-	lispy_type = QUTF8_STRING;
-    }
-
-  if (!NILP (lispy_type))
-    Fput_text_property (make_fixnum (0), make_fixnum (len),
-			Qforeign_selection, lispy_type, str);
+  /* `foreign-selection' just means that the selection has to be
+     decoded by `gui-get-selection'.  It has no other meaning,
+     AFAICT.  */
+  Fput_text_property (make_fixnum (0), make_fixnum (len),
+		      Qforeign_selection, Qt, str);
 
   block_input ();
   BClipboard_free_data (dat);
@@ -125,10 +117,8 @@ DEFUN ("haiku-selection-put", Fhaiku_selection_put, Shaiku_selection_put,
 CLIPBOARD is the symbol `PRIMARY', `SECONDARY' or `CLIPBOARD'.  NAME
 is a MIME type denoting the type of the data to add.  DATA is the
 string that will be placed in the clipboard, or nil if the content is
-to be removed.  If NAME is the string "text/utf-8" or the string
-"text/plain", encode it as UTF-8 before storing it into the clipboard.
-CLEAR, if non-nil, means to erase all the previous contents of the
-clipboard.  */)
+to be removed.  CLEAR, if non-nil, means to erase all the previous
+contents of the clipboard.  */)
   (Lisp_Object clipboard, Lisp_Object name, Lisp_Object data,
    Lisp_Object clear)
 {
@@ -138,13 +128,6 @@ clipboard.  */)
     CHECK_STRING (data);
 
   block_input ();
-  /* It seems that Haiku applications counter-intuitively expect
-     UTF-8 data in both text/utf-8 and text/plain.  */
-  if (!NILP (data) && STRING_MULTIBYTE (data) &&
-      (!strcmp (SSDATA (name), "text/utf-8") ||
-       !strcmp (SSDATA (name), "text/plain")))
-    data = ENCODE_UTF_8 (data);
-
   char *dat = !NILP (data) ? SSDATA (data) : NULL;
   ptrdiff_t len = !NILP (data) ? SBYTES (data) : 0;
 
