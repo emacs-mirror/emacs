@@ -4579,6 +4579,8 @@ logging the message."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
+(put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
+
 ;; Obsolete.
 
 (defvar woman-version "0.551 (beta)" "WoMan version information.")

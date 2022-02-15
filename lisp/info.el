@@ -5449,6 +5449,7 @@ type returned by `Info-bookmark-make-record', which see."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
+(put 'Info-bookmark-jump 'bookmark-handler-type "Info")
 
 ;;;###autoload
 (defun info-display-manual (manual)

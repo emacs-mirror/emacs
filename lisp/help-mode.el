@@ -936,6 +936,7 @@ BOOKMARK is a bookmark name or a bookmark record."
     (pop-to-buffer "*Help*")
     (goto-char position)))
 
+(put 'help-bookmark-jump 'bookmark-handler-type "Help")
 
 (provide 'help-mode)
 

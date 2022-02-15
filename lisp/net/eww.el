@@ -2499,6 +2499,8 @@ Otherwise, the restored buffer will contain a prompt to do so by using
   "Default bookmark handler for EWW buffers."
   (eww (bookmark-prop-get bookmark 'location)))
 
+(put 'eww-bookmark-jump 'bookmark-handler-type "EWW")
+
 (provide 'eww)
 
 ;;; eww.el ends here

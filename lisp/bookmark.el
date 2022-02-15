@@ -344,6 +344,17 @@ This point is in `bookmark-current-buffer'.")
 BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'."
   (car bookmark-record))
 
+(defun bookmark-type-from-full-record (bookmark-record)
+  "Return then type of BOOKMARK-RECORD.
+BOOKMARK-RECORD is, e.g., one element from `bookmark-alist'. It's
+type is read from the symbol property named
+`bookmark-handler-type' read on the record handler function."
+  (let ((handler (bookmark-get-handler bookmark-record)))
+    (when (autoloadp (symbol-function handler))
+      (autoload-do-load (symbol-function handler)))
+    (if (symbolp handler)
+        (get handler 'bookmark-handler-type)
+     "")))
 
 (defun bookmark-all-names ()
   "Return a list of all current bookmark names."
@@ -1351,7 +1362,6 @@ minibuffer history list `bookmark-history'."
       (bookmark-get-filename bookmark-name-or-record)
       "-- Unknown location --"))
 
-
 ;;;###autoload
 (defun bookmark-rename (old-name &optional new-name)
   "Change the name of OLD-NAME bookmark to NEW-NAME name.
@@ -1790,6 +1800,7 @@ Don't affect the buffer ring order."
   (let (entries)
     (dolist (full-record (bookmark-maybe-sort-alist))
       (let* ((name       (bookmark-name-from-full-record full-record))
+             (type       (bookmark-type-from-full-record full-record))
              (annotation (bookmark-get-annotation full-record))
              (location   (bookmark-location full-record)))
         (push (list
@@ -1803,6 +1814,7 @@ Don't affect the buffer ring order."
                                   'follow-link t
                                   'help-echo "mouse-2: go to this bookmark in other window")
                     name)
+                 ,(or type "")
                  ,@(if bookmark-bmenu-toggle-filenames
                        (list location))])
               entries)))
@@ -1891,6 +1903,7 @@ Bookmark names preceded by a \"*\" have annotations.
   (setq tabulated-list-format
         `[("" 1) ;; Space to add "*" for bookmark with annotation
           ("Bookmark" ,bookmark-bmenu-file-column bookmark-bmenu--name-predicate)
+          ("Type" 15 bookmark-bmenu--type-predicate)
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)
@@ -1905,6 +1918,10 @@ Bookmark names preceded by a \"*\" have annotations.
 This is used for `tabulated-list-format' in `bookmark-bmenu-mode'."
   (string< (caar a) (caar b)))
 
+(defun bookmark-bmenu--type-predicate (a b)
+  "Predicate to sort \"*Bookmark List*\" buffer by the type column.
+This is used for `tabulated-list-format' in `bookmark-bmenu-mode'."
+  (string< (elt (cadr a) 2) (elt (cadr b) 2)))
 
 (defun bookmark-bmenu--file-predicate (a b)
   "Predicate to sort \"*Bookmark List*\" buffer by the file column.

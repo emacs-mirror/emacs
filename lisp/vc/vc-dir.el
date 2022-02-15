@@ -1560,6 +1560,8 @@ type returned by `vc-dir-bookmark-make-record'."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
+(put 'vc-dir-bookmark-jump 'bookmark-handler-type "VC")
+
 
 (provide 'vc-dir)
 
