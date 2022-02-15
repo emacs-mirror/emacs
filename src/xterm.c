@@ -15075,7 +15075,7 @@ x_iconify_frame (struct frame *f)
     msg.xclient.data.l[0] = IconicState;
 
     if (! XSendEvent (FRAME_X_DISPLAY (f),
-		      DefaultRootWindow (FRAME_X_DISPLAY (f)),
+		      FRAME_DISPLAY_INFO (f)->root_window,
 		      False,
 		      SubstructureRedirectMask | SubstructureNotifyMask,
 		      &msg))

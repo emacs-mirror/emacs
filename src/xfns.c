@@ -610,7 +610,7 @@ x_relative_mouse_position (struct frame *f, int *x, int *y)
   block_input ();
 
   XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+                 FRAME_DISPLAY_INFO (f)->root_window,
 
                  /* The root window which contains the pointer.  */
                  &root,
@@ -910,7 +910,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       block_input ();
       XReparentWindow
 	(FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-	 p ? FRAME_X_WINDOW (p) : DefaultRootWindow (FRAME_X_DISPLAY (f)),
+	 p ? FRAME_X_WINDOW (p) : FRAME_DISPLAY_INFO (f)->root_window,
 	 f->left_pos, f->top_pos);
 #ifdef USE_GTK
       if (EQ (x_gtk_resize_child_frames, Qresize_mode))
@@ -6372,7 +6372,7 @@ selected frame's display.  */)
 
   block_input ();
   XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+		 FRAME_DISPLAY_INFO (f)->root_window,
                  &root, &dummy_window, &x, &y, &dummy, &dummy,
                  (unsigned int *) &dummy);
   unblock_input ();
@@ -6406,14 +6406,15 @@ The coordinates X and Y are interpreted in pixels relative to a position
 			      &deviceid))
 	{
 	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
-			 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+			 FRAME_DISPLAY_INFO (f)->root_window,
 			 0, 0, 0, 0, xval, yval);
 	}
       XUngrabServer (FRAME_X_DISPLAY (f));
     }
   else
 #endif
-    XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
+    XWarpPointer (FRAME_X_DISPLAY (f), None,
+		  FRAME_DISPLAY_INFO (f)->root_window,
 		  0, 0, 0, 0, xval, yval);
   unblock_input ();
 
