@@ -167,10 +167,9 @@ Instead, use this:
 This variable can also be set per-server."
   :type '(repeat string))
 
-(defcustom gnus-search-swish++-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-swish++-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by swish++
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp)
@@ -204,10 +203,9 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-swish-e-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by swish-e
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp
@@ -252,7 +250,7 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-namazu-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by Namazu
 in order to get a group name (albeit with / instead of .).
 
@@ -296,10 +294,9 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-notmuch-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by notmuch
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp
@@ -339,10 +336,9 @@ This variable can also be set per-server."
   :version "28.1"
   :type '(repeat string))
 
-(defcustom gnus-search-mairix-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-mairix-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by mairix
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :version "28.1"
@@ -826,7 +822,7 @@ quirks.")
     :documentation "Location of the config file, if any.")
    (remove-prefix
     :initarg :remove-prefix
-    :initform (concat (getenv "HOME") "/Mail/")
+    :initform (expand-file-name "Mail/" "~")
     :type string
     :documentation
     "The path to the directory where the indexed mails are
