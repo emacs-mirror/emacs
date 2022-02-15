@@ -581,6 +581,11 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 /* Setup valuator tracking for XI2 master devices on
    DPYINFO->display.  */
 
+/* This function's name is a misnomer: these days, it keeps a
+   client-side record of all devices, which includes basic information
+   about the device and also touchscreen tracking information, instead
+   of just scroll valuators.  */
+
 static void
 x_init_master_valuators (struct x_display_info *dpyinfo)
 {
@@ -11906,7 +11911,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      device = xi_device_from_id (dpyinfo, device_changed->deviceid);
 
 	      if (!device)
-		emacs_abort ();
+		{
+		  /* An existing device might have been enabled.  */
+		  x_init_master_valuators (dpyinfo);
+
+		  /* Now try to find the device again, in case it was
+		     just enabled.  */
+		  device = xi_device_from_id (dpyinfo, device_changed->deviceid);
+		}
+
+	      /* If it wasn't enabled, then stop handling this event.  */
+	      if (!device)
+		goto XI_OTHER;
 
 	      /* Free data that we will regenerate from new
 		 information.  */
