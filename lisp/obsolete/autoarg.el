@@ -5,6 +5,7 @@
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
 ;; Keywords: abbrev, emulations
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
