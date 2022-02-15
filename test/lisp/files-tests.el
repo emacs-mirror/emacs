@@ -1457,7 +1457,7 @@ renaming only, rather than modified in-place."
   (should (equal (file-size-human-readable-iec 0) "0 B"))
   (should (equal (file-size-human-readable-iec 1) "1 B"))
   (should (equal (file-size-human-readable-iec 9621) "9.4 KiB"))
-  (should (equal (file-size-human-readable-iec 72528034765) "67.5 GiB")))
+  (should (equal (file-size-human-readable-iec 72528034765) "68 GiB")))
 
 (ert-deftest files-test-magic-mode-alist-re-baseline ()
   "Test magic-mode-alist with RE, expected behavior for match."
