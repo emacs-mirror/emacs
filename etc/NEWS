@@ -514,9 +514,11 @@ to edit such sequences by allowing point to "enter" the sequence.
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
 ---
-** 'savehist-additional-variables' can now specify variable lengths.
-Lists that are longer than the specified length will be truncated
-before saving.
+** 'savehist.el' can now truncate variables that are too long.
+An element of 'savehist-additional-variables' can now be of the form
+(VARIABLE . MAX-ELTS), which means to truncate the VARIABLE's value to
+at most MAX-ELTS elements (if the value is a list) before saving the
+value.
 
 ** Minibuffer and Completions
 
