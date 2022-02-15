@@ -406,7 +406,7 @@ haiku_new_focus_frame (struct frame *frame)
 
       x_display_list->focused_frame = frame;
 
-      if (frame && frame->auto_raise)
+      if (frame && frame->auto_raise && !popup_activated_p)
 	haiku_frame_raise_lower (frame, 1);
     }
   unblock_input ();
@@ -2775,7 +2775,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    need_flush = 1;
 		  }
 
-		if (f->auto_lower)
+		if (f->auto_lower && !popup_activated_p)
 		  haiku_frame_raise_lower (f, 0);
 
 		haiku_new_focus_frame (x_display_list->focused_frame);
