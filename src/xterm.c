@@ -16952,7 +16952,11 @@ init_xterm (void)
   /* Emacs can handle only core input events when built without XI2
      support, so make sure Gtk doesn't use Xinput or Xinput2
      extensions.  */
+#ifndef HAVE_GTK3
   xputenv ("GDK_CORE_DEVICE_EVENTS=1");
+#else
+  gdk_disable_multidevice ();
+#endif
 #endif
 }
 #endif
