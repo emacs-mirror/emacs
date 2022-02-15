@@ -986,6 +986,10 @@ implementation will be used."
 		 (name1 name)
 		 (i 0))
 
+	    (when (string-match-p "[[:multibyte:]]" command)
+	      (tramp-error
+	       v 'file-error "Cannot apply multi-byte command `%s'" command))
+
 	    (while (get-process name1)
 	      ;; NAME must be unique as process name.
 	      (setq i (1+ i)
@@ -1264,7 +1268,7 @@ connection if a previous connection has died for some reason."
 	(if (zerop (length device))
 	    (tramp-error vec 'file-error "Device %s not connected" host))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
-	  (let* ((coding-system-for-read 'utf-8-dos)  ; Is this correct?
+	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		 (process-connection-type tramp-process-connection-type)
 		 (args (if (> (length host) 0)
 			   (list "-s" device "shell")

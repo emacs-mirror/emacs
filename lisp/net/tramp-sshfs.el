@@ -240,7 +240,7 @@ arguments to pass to the OPERATION."
     (error "Implementation does not handle immediate return"))
 
   (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let ((coding-system-for-read 'utf-8-dos)  ; Is this correct?
+    (let ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 	  (command
 	   (format
 	    "cd %s && exec %s"
