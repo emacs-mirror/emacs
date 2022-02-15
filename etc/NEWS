@@ -513,6 +513,11 @@ to edit such sequences by allowing point to "enter" the sequence.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+---
+** 'savehist-additional-variables' can now specify variable lengths.
+Lists that are longer than the specified length will be truncated
+before saving.
+
 ** Minibuffer and Completions
 
 *** The "*Completions*" buffer can now be automatically selected.
