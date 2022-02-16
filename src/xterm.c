@@ -5681,6 +5681,13 @@ x_any_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   if (wdesc == None)
     return NULL;
 
+#ifdef HAVE_XWIDGETS
+  struct xwidget_view *xv = xwidget_view_from_window (wdesc);
+
+  if (xv)
+    return xv->frame;
+#endif
+
   FOR_EACH_FRAME (tail, frame)
     {
       if (found)
@@ -10997,19 +11004,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 scroll wheel movement is reported on XInput 2.  */
 		      delta = x_get_scroll_valuator_delta (dpyinfo, xev->deviceid,
 							   i, *values, &val);
+		      values++;
 
 		      if (delta != DBL_MAX)
 			{
+			  if (!f)
+			    {
+			      f = x_any_window_to_frame (dpyinfo, xev->event);
+
+			      if (!f)
+				goto XI_OTHER;
+			    }
+
 #ifdef HAVE_XWIDGETS
 			  if (xv)
 			    {
-			      /* FIXME: figure out what in GTK is
-				 causing interval values to jump by
-				 >100 at the end of a touch sequence
-				 when an xwidget gets a scroll event
-				 where is_stop is TRUE.  */
-			      if (fabs (delta) > 100)
-				continue;
 			      if (val->horizontal)
 				xv_total_x += delta;
 			      else
@@ -11019,13 +11028,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      continue;
 			    }
 #endif
-			  if (!f)
-			    {
-			      f = x_any_window_to_frame (dpyinfo, xev->event);
-
-			      if (!f)
-				goto XI_OTHER;
-			    }
 
 			  found_valuator = true;
 
@@ -11107,7 +11109,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  val->emacs_value = 0;
 			}
-		      values++;
 		    }
 
 		  inev.ie.kind = NO_EVENT;
