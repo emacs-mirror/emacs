@@ -72,8 +72,8 @@ work on any underlying window system supported by GDK, such as Wayland
 and Broadway.  We do not recommend that you use this configuration,
 unless you are running a window system that's supported by GDK other
 than X.  Running this configuration on X is known to have problems,
-such as undesirable frame positioning and keyboard input of sequences
-such as "C-;" and "C-S-u".
+such as undesirable frame positioning and various issues with keyboard
+input of sequences such as "C-;" and "C-S-u".
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
