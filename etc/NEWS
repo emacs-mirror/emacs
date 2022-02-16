@@ -68,8 +68,12 @@ XInput 2 support from Lisp programs.
 To use this option, make sure the GTK 3 and Cairo development files
 are installed, and configure Emacs with the option '--with-pgtk'.
 Unlike the default X and GTK build, the resulting Emacs binary will
-work on any underlying window system supported by GDK, such as
-Wayland and Broadway.
+work on any underlying window system supported by GDK, such as Wayland
+and Broadway.  We do not recommend that you use this configuration,
+unless you are running a window system that's supported by GDK other
+than X.  Running this configuration on X is known to have problems,
+such as undesirable frame positioning and keyboard input of sequences
+such as "C-;" and "C-S-u".
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
