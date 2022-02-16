@@ -3454,6 +3454,41 @@ backtrace_debug_on_exit (union specbinding *pdl)
   return pdl->bt.debug_on_exit;
 }
 
+void grow_specpdl_allocation (void);
+
+/* Grow the specpdl stack by one entry.
+   The caller should have already initialized the entry.
+   Signal an error on stack overflow.
+
+   Make sure that there is always one unused entry past the top of the
+   stack, so that the just-initialized entry is safely unwound if
+   memory exhausted and an error is signaled here.  Also, allocate a
+   never-used entry just before the bottom of the stack; sometimes its
+   address is taken.  */
+INLINE void
+grow_specpdl (void)
+{
+  specpdl_ptr++;
+  if (specpdl_ptr == specpdl + specpdl_size)
+    grow_specpdl_allocation ();
+}
+
+INLINE specpdl_ref
+record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  eassert (nargs >= UNEVALLED);
+  specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
+  specpdl_ptr->bt.debug_on_exit = false;
+  specpdl_ptr->bt.function = function;
+  current_thread->stack_top = specpdl_ptr->bt.args = args;
+  specpdl_ptr->bt.nargs = nargs;
+  grow_specpdl ();
+
+  return count;
+}
+
 /* This structure helps implement the `catch/throw' and `condition-case/signal'
    control structures.  A struct handler contains all the information needed to
    restore the state of the interpreter after a non-local jump.

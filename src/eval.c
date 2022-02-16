@@ -2320,7 +2320,7 @@ alist mapping symbols to their value.  */)
   return unbind_to (count, eval_sub (form));
 }
 
-static void
+void
 grow_specpdl_allocation (void)
 {
   eassert (specpdl_ptr == specpdl + specpdl_size);
@@ -2340,40 +2340,6 @@ grow_specpdl_allocation (void)
   specpdl = pdlvec + 1;
   specpdl_size = pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
-}
-
-/* Grow the specpdl stack by one entry.
-   The caller should have already initialized the entry.
-   Signal an error on stack overflow.
-
-   Make sure that there is always one unused entry past the top of the
-   stack, so that the just-initialized entry is safely unwound if
-   memory exhausted and an error is signaled here.  Also, allocate a
-   never-used entry just before the bottom of the stack; sometimes its
-   address is taken.  */
-
-INLINE void
-grow_specpdl (void)
-{
-  specpdl_ptr++;
-  if (specpdl_ptr == specpdl + specpdl_size)
-    grow_specpdl_allocation ();
-}
-
-specpdl_ref
-record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
-{
-  specpdl_ref count = SPECPDL_INDEX ();
-
-  eassert (nargs >= UNEVALLED);
-  specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
-  specpdl_ptr->bt.debug_on_exit = false;
-  specpdl_ptr->bt.function = function;
-  current_thread->stack_top = specpdl_ptr->bt.args = args;
-  specpdl_ptr->bt.nargs = nargs;
-  grow_specpdl ();
-
-  return count;
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same
