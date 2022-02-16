@@ -1567,11 +1567,11 @@ EVENT is a preedit-text event."
 
 (defun x-gtk-use-native-input-watcher (_symbol newval &rest _ignored)
   "Variable watcher for `x-gtk-use-native-input'.
-If NEWVAL is non-nil and the selected frame is displayed through X,
-focus the GTK input context."
+If NEWVAL is non-nil, focus the GTK input context of focused
+frames on all displays."
   (when (and (featurep 'gtk)
              (eq (framep (selected-frame)) 'x))
-    (x-internal-focus-input-context newval (selected-frame))))
+    (x-internal-focus-input-context newval)))
 
 (add-variable-watcher 'x-gtk-use-native-input
                       #'x-gtk-use-native-input-watcher)
