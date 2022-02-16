@@ -9132,6 +9132,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   static XComposeStatus compose_status;
   XEvent configureEvent;
   XEvent next_event;
+  Lisp_Object coding;
 
   *finish = X_EVENT_NORMAL;
 
@@ -9784,6 +9785,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     case KeyPress:
       x_display_set_last_user_time (dpyinfo, event->xkey.time);
       ignore_next_mouse_click_timeout = 0;
+      coding = Qlatin_1;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
       /* Dispatch KeyPress events when in menu.  */
@@ -9884,6 +9886,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                                         &xkey, (char *) copy_bufptr,
                                         copy_bufsiz, &keysym,
                                         &status_return);
+	      coding = Qnil;
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
@@ -10052,6 +10055,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	    inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
+
+	    Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
+				Qcoding, coding, inev.ie.arg);
 
 	    if (keysym == NoSymbol)
 	      break;
@@ -11444,6 +11450,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ptrdiff_t i;
 	      struct xi_device_t *device;
 
+	      coding = Qlatin_1;
+
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
 	      if (!device || !device->master_p)
@@ -11571,6 +11579,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						&xkey, (char *) copy_bufptr,
 						copy_bufsiz, &keysym,
 						&status_return);
+		      coding = Qnil;
 
 		      if (status_return == XBufferOverflow)
 			{
@@ -11617,6 +11626,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      if (overflow)
 				nbytes = 0;
 			    }
+
+			  coding = Qnil;
 			}
 		      else
 #endif
@@ -11748,6 +11759,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 		  inev.ie.arg = make_unibyte_string (copy_bufptr, nbytes);
+
+		  Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
+				      Qcoding, coding, inev.ie.arg);
 		  goto xi_done_keysym;
 		}
 

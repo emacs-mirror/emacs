@@ -90,7 +90,17 @@ enum event_kind
 					   decoded and the decoded
 					   string's characters will be
 					   used as .code
-					   individually.  */
+					   individually.
+
+					   The string can have a
+					   property `coding', which
+					   should be a symbol
+					   describing a coding system
+					   to use to decode the string.
+
+					   If it is nil, then the
+					   locale coding system will
+					   be used.  */
   NON_ASCII_KEYSTROKE_EVENT,	/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is

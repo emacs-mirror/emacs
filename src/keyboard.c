@@ -3838,7 +3838,12 @@ clear_event (struct input_event *event)
 static Lisp_Object
 kbd_buffer_get_event_1 (Lisp_Object arg)
 {
-  return code_convert_string (arg, Vlocale_coding_system,
+  Lisp_Object coding_system = Fget_text_property (make_fixnum (0),
+						  Qcoding, arg);
+
+  return code_convert_string (arg, (!NILP (coding_system)
+				    ? coding_system
+				    : Vlocale_coding_system),
 			      Qnil, 0, false, 0);
 }
 
@@ -12477,6 +12482,9 @@ See also `pre-command-hook'.  */);
   DEFSYM (Qtouchscreen_end, "touchscreen-end");
   DEFSYM (Qtouchscreen_update, "touchscreen-update");
   DEFSYM (Qpinch, "pinch");
+
+  DEFSYM (Qcoding, "coding");
+
   Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
