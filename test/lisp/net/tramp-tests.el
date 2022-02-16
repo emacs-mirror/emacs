@@ -6198,10 +6198,14 @@ This requires restrictions of file name syntax."
   "Whether asynchronous processes tests are run.
 This is used in tests which we dont't want to tag
 `:tramp-asynchronous-processes' completely."
-  (ert-select-tests
-   (ert--stats-selector ert--current-run-stats)
-   (list (make-ert-test :name (ert-test-name (ert-running-test))
-                        :body nil :tags '(:tramp-asynchronous-processes)))))
+  (and
+   (ert-select-tests
+    (ert--stats-selector ert--current-run-stats)
+    (list (make-ert-test :name (ert-test-name (ert-running-test))
+                         :body nil :tags '(:tramp-asynchronous-processes))))
+   ;; tramp-adb.el cannot apply multi-byte commands.
+   (not (and (tramp--test-adb-p)
+	     (string-match-p "[[:multibyte:]]" default-directory)))))
 
 (defun tramp--test-crypt-p ()
   "Check, whether the remote directory is crypted."
@@ -6250,7 +6254,7 @@ If optional METHOD is given, it is checked first."
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename tramp-test-temporary-file-directory)
-  (tramp-check-remote-uname tramp-test-vec "^HP-UX"))
+  (ignore-errors (tramp-check-remote-uname tramp-test-vec "^HP-UX")))
 
 (defun tramp--test-ksh-p ()
   "Check, whether the remote shell is ksh.
@@ -6265,7 +6269,7 @@ a $'' syntax."
   "Check, whether the remote host runs macOS."
   ;; We must refill the cache.  `file-truename' does it.
   (file-truename tramp-test-temporary-file-directory)
-  (tramp-check-remote-uname tramp-test-vec "Darwin"))
+  (ignore-errors (tramp-check-remote-uname tramp-test-vec "Darwin")))
 
 (defun tramp--test-mock-p ()
   "Check, whether the mock method is used.
@@ -6527,8 +6531,10 @@ This requires restrictions of file name syntax."
 			   ;; Prior Emacs 27, `shell-file-name' was
 			   ;; hard coded as "/bin/sh" for remote
 			   ;; processes in Emacs.  That doesn't work
-			   ;; for tramp-adb.el.
+			   ;; for tramp-adb.el.  tramp-sshfs.el times
+			   ;; out for older Emacsen, reason unknown.
 			   (or (not (tramp--test-adb-p))
+			       (not (tramp--test-sshfs-p))
 			       (tramp--test-emacs27-p)))
 		  (let ((default-directory file1))
 		    (dolist (this-shell-command

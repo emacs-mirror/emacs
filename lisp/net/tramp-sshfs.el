@@ -108,9 +108,9 @@
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-notify-add-watch . ignore)
-    (file-notify-rm-watch . ignore)
-    (file-notify-valid-p . ignore)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -388,6 +388,12 @@ arguments to pass to the OPERATION."
 	(write-region
 	 start end (tramp-fuse-local-file-name filename) append 'nomessage)
 	(tramp-flush-file-properties v localname))
+
+      ;; Set file modification time.
+      (when (or (eq visit t) (stringp visit))
+	(set-visited-file-modtime
+	 (or (file-attribute-modification-time (file-attributes filename))
+	     (current-time))))
 
       ;; Unlock file.
       (when file-locked
