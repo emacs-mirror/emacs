@@ -1538,9 +1538,8 @@ These are the commands available for use in the file status buffer:
 This implements the `bookmark-make-record-function' type for
 `vc-dir' buffers."
   (let* ((bookmark-name
-          (concat "(" (symbol-name vc-dir-backend) ") "
-                  (file-name-nondirectory
-                   (directory-file-name default-directory))))
+          (file-name-nondirectory
+           (directory-file-name default-directory)))
          (defaults (list bookmark-name default-directory)))
     `(,bookmark-name
       ,@(bookmark-make-record-default 'no-file)
