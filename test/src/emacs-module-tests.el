@@ -308,7 +308,8 @@ local reference."
   "Check that Bug#30163 is fixed."
   (with-temp-buffer
     (let ((standard-output (current-buffer))
-          (text-quoting-style 'grave))
+          (text-quoting-style 'grave)
+          (fill-column 200))            ; prevent line breaks when filling
       (describe-function-1 #'mod-test-sum)
       (goto-char (point-min))
       (while (re-search-forward "`[^']*/src/emacs-module-resources/" nil t)
