@@ -79,9 +79,9 @@ This manual is for Transient version 0.3.7.
 * Related Abstractions and Packages::
 * FAQ::
 * Keystroke Index::
-* Command Index::
-* Function Index::
+* Command and Function Index::
 * Variable Index::
+* Concept Index::
 * GNU General Public License::
 
 @detailmenu
@@ -326,10 +326,10 @@ the latter, then you can later resume the stack of transients using
 
 @table @asis
 @kindex C-g
-@cindex transient-quit-seq
+@findex transient-quit-seq
 @item @kbd{C-g} @tie{}@tie{}@tie{}@tie{}(@code{transient-quit-seq})
 @kindex C-g
-@cindex transient-quit-one
+@findex transient-quit-one
 @item @kbd{C-g} @tie{}@tie{}@tie{}@tie{}(@code{transient-quit-one})
 
 This key quits the currently active incomplete key sequence, if any,
@@ -343,7 +343,7 @@ doc string.
 
 @table @asis
 @kindex C-q
-@cindex transient-quit-all
+@findex transient-quit-all
 @item @kbd{C-q} @tie{}@tie{}@tie{}@tie{}(@code{transient-quit-all})
 
 This command quits the currently active incomplete key sequence, if
@@ -351,7 +351,7 @@ any, and all transients, including the active transient and all
 suspended transients, if any.
 
 @kindex C-z
-@cindex transient-suspend
+@findex transient-suspend
 @item @kbd{C-z} @tie{}@tie{}@tie{}@tie{}(@code{transient-suspend})
 
 Like @code{transient-quit-all}, this command quits an incomplete key
@@ -366,7 +366,7 @@ If another stack is already saved, then saving a new stack discards
 the previous stack.
 
 @kindex M-x transient-resume
-@cindex transient-resume
+@findex transient-resume
 @item @kbd{M-x transient-resume} @tie{}@tie{}@tie{}@tie{}(@code{transient-resume})
 
 This command resumes the previously suspended stack of transients,
@@ -390,7 +390,7 @@ common commands to always be shown for all transients.
 
 @table @asis
 @kindex C-x t
-@cindex transient-toggle-common
+@findex transient-toggle-common
 @item @kbd{C-x t} @tie{}@tie{}@tie{}@tie{}(@code{transient-toggle-common})
 
 This command toggles whether the generic commands that are common to
@@ -441,14 +441,14 @@ but it is easily accessible (@pxref{Using History}).
 
 @table @asis
 @kindex C-x s
-@cindex transient-set
+@findex transient-set
 @item @kbd{C-x s} @tie{}@tie{}@tie{}@tie{}(@code{transient-set})
 
 This command saves the value of the active transient for this Emacs
 session.
 
 @kindex C-x C-s
-@cindex transient-save
+@findex transient-save
 @item @kbd{C-x C-s} @tie{}@tie{}@tie{}@tie{}(@code{transient-save})
 
 Save the value of the active transient persistently across Emacs
@@ -473,20 +473,20 @@ user-input in the minibuffer.
 
 @table @asis
 @kindex C-M-p
-@cindex transient-history-prev
+@findex transient-history-prev
 @item @kbd{C-M-p} @tie{}@tie{}@tie{}@tie{}(@code{transient-history-prev})
 @kindex C-x p
-@cindex transient-history-prev
+@findex transient-history-prev
 @item @kbd{C-x p} @tie{}@tie{}@tie{}@tie{}(@code{transient-history-prev})
 
 This command switches to the previous value used for the active
 transient.
 
 @kindex C-M-n
-@cindex transient-history-next
+@findex transient-history-next
 @item @kbd{C-M-n} @tie{}@tie{}@tie{}@tie{}(@code{transient-history-next})
 @kindex C-x n
-@cindex transient-history-next
+@findex transient-history-next
 @item @kbd{C-x n} @tie{}@tie{}@tie{}@tie{}(@code{transient-history-next})
 
 This command switches to the next value used for the active
@@ -528,7 +528,7 @@ transient.
 
 @table @asis
 @kindex C-h
-@cindex transient-help
+@findex transient-help
 @item @kbd{C-h} @tie{}@tie{}@tie{}@tie{}(@code{transient-help})
 
 This command enters help mode.  When help mode is active,
@@ -596,7 +596,7 @@ transients and their suffixes between Emacs sessions.
 
 @table @asis
 @kindex C-x l
-@cindex transient-set-level
+@findex transient-set-level
 @item @kbd{C-x l} @tie{}@tie{}@tie{}@tie{}(@code{transient-set-level})
 
 This command enters edit mode.  When edit mode is active, then all
@@ -633,7 +633,7 @@ following commands.  These commands are never shown in the transient
 window, and the key bindings are the same as for @code{scroll-up-command} and
 @code{scroll-down-command} in other buffers.
 
-@cindex transient-scroll-up arg
+@findex transient-scroll-up arg
 @deffn Command transient-scroll-up arg
 
 This command scrolls text of transient popup window upward @var{arg}
@@ -641,7 +641,7 @@ lines.  If @var{arg} is @code{nil}, then it scrolls near full screen.  This
 is a wrapper around @code{scroll-up-command} (which see).
 @end deffn
 
-@cindex transient-scroll-down arg
+@findex transient-scroll-down arg
 @deffn Command transient-scroll-down arg
 
 This command scrolls text of transient popup window down @var{arg}
@@ -2537,13 +2537,8 @@ necessary changes.  See its doc string for more information.
 
 @printindex ky
 
-@node Command Index
-@appendix Command Index
-
-@printindex cp
-
-@node Function Index
-@appendix Function Index
+@node Command and Function Index
+@appendix Command and Function Index
 
 @printindex fn
 
@@ -2551,6 +2546,11 @@ necessary changes.  See its doc string for more information.
 @appendix Variable Index
 
 @printindex vr
+
+@node Concept Index
+@appendix Concept and Feature Index
+
+@printindex cp
 
 @node GNU General Public License
 @appendix GNU General Public License
