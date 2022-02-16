@@ -514,6 +514,9 @@ Setting it to a non-nil value temporarily disables automatic
 composition of character sequences at point, and thus makes it easier
 to edit such sequences by allowing point to "enter" the sequence.
 
+*** New language environment "Northern Thai".
+This uses the Tai Tham script, whose support has been enhanced.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

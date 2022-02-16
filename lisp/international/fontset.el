@@ -184,6 +184,7 @@
 	(runic #x16A0)
 	(khmer #x1780)
 	(mongolian #x1826)
+        (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
@@ -779,6 +780,7 @@
 		    counting-rod-numeral
                     toto
 		    adlam
+                    tai-tham
 		    mahjong-tile
 		    domino-tile
                     emoji))
