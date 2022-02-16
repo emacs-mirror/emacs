@@ -9124,7 +9124,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   int do_help = 0;
   ptrdiff_t nbytes = 0;
   struct frame *any, *f = NULL;
-  struct coding_system coding;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
   /* This holds the state XLookupString needs to implement dead keys
      and other tricks known as "compose processing".  _X Window System_
@@ -9133,8 +9132,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   static XComposeStatus compose_status;
   XEvent configureEvent;
   XEvent next_event;
-
-  USE_SAFE_ALLOCA;
 
   *finish = X_EVENT_NORMAL;
 
@@ -9843,7 +9840,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           unsigned char *copy_bufptr = copy_buffer;
           int copy_bufsiz = sizeof (copy_buffer);
           int modifiers;
-          Lisp_Object coding_system = Qlatin_1;
 	  Lisp_Object c;
 	  /* `xkey' will be modified, but it's not important to modify
 	     `event' itself.  */
@@ -9884,7 +9880,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             {
               Status status_return;
 
-              coding_system = Vlocale_coding_system;
               nbytes = XmbLookupString (FRAME_XIC (f),
                                         &xkey, (char *) copy_bufptr,
                                         copy_bufsiz, &keysym,
@@ -10051,64 +10046,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  {	/* Raw bytes, not keysym.  */
 	    ptrdiff_t i;
-	    int nchars, len;
 
-	    for (i = 0, nchars = 0; i < nbytes; i++)
-	      {
-		if (ASCII_CHAR_P (copy_bufptr[i]))
-		  nchars++;
-		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-	      }
+	    for (i = 0; i < nbytes; i++)
+	      STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 
-	    if (nchars < nbytes)
-	      {
-		/* If we don't bail out here then GTK can crash
-		   from the resulting signal in `setup_coding_system'.  */
-		if (NILP (Fcoding_system_p (coding_system)))
-		  goto done_keysym;
-
-		/* Decode the input data.  */
-
-		/* The input should be decoded with `coding_system'
-		   which depends on which X*LookupString function
-		   we used just above and the locale.  */
-		setup_coding_system (coding_system, &coding);
-		coding.src_multibyte = false;
-		coding.dst_multibyte = true;
-		/* The input is converted to events, thus we can't
-		   handle composition.  Anyway, there's no XIM that
-		   gives us composition information.  */
-		coding.common_flags &= ~CODING_ANNOTATION_MASK;
-
-		SAFE_NALLOCA (coding.destination, MAX_MULTIBYTE_LENGTH,
-			      nbytes);
-		coding.dst_bytes = MAX_MULTIBYTE_LENGTH * nbytes;
-		coding.mode |= CODING_MODE_LAST_BLOCK;
-		decode_coding_c_string (&coding, copy_bufptr, nbytes, Qnil);
-		nbytes = coding.produced;
-		nchars = coding.produced_char;
-		copy_bufptr = coding.destination;
-	      }
-
-	    /* Convert the input data to a sequence of
-	       character events.  */
-	    for (i = 0; i < nbytes; i += len)
-	      {
-		int ch;
-		if (nchars == nbytes)
-		  ch = copy_bufptr[i], len = 1;
-		else
-		  ch = string_char_and_length (copy_bufptr + i, &len);
-		inev.ie.kind = (SINGLE_BYTE_CHAR_P (ch)
-				? ASCII_KEYSTROKE_EVENT
-				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		inev.ie.code = ch;
-		kbd_buffer_store_buffered_event (&inev, hold_quit);
-	      }
-
-	    count += nchars;
-
-	    inev.ie.kind = NO_EVENT;  /* Already stored above.  */
+	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	    inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
 
 	    if (keysym == NoSymbol)
 	      break;
@@ -11497,10 +11440,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      KeySym keysym;
 	      char copy_buffer[81];
 	      char *copy_bufptr = copy_buffer;
-	      unsigned char *copy_ubufptr;
 	      int copy_bufsiz = sizeof (copy_buffer);
 	      ptrdiff_t i;
-	      int nchars, len;
 	      struct xi_device_t *device;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
@@ -11802,62 +11743,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      goto xi_done_keysym;
 		    }
 
-		  for (i = 0, nchars = 0; i < nbytes; i++)
-		    {
-		      if (ASCII_CHAR_P (copy_bufptr[i]))
-			nchars++;
-		      STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-		    }
+		  for (i = 0; i < nbytes; i++)
+		    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 
-		  if (nchars < nbytes)
-		    {
-		      /* If we don't bail out here then GTK can crash
-			 from the resulting signal in `setup_coding_system'.  */
-		      if (NILP (Fcoding_system_p (Vlocale_coding_system)))
-			goto xi_done_keysym;
-
-		      /* Decode the input data.  */
-
-		      setup_coding_system (Vlocale_coding_system, &coding);
-		      coding.src_multibyte = false;
-		      coding.dst_multibyte = true;
-		      /* The input is converted to events, thus we can't
-			 handle composition.  Anyway, there's no XIM that
-			 gives us composition information.  */
-		      coding.common_flags &= ~CODING_ANNOTATION_MASK;
-
-		      SAFE_NALLOCA (coding.destination, MAX_MULTIBYTE_LENGTH,
-				    nbytes);
-		      coding.dst_bytes = MAX_MULTIBYTE_LENGTH * nbytes;
-		      coding.mode |= CODING_MODE_LAST_BLOCK;
-		      decode_coding_c_string (&coding, (unsigned char *) copy_bufptr,
-					      nbytes, Qnil);
-		      nbytes = coding.produced;
-		      nchars = coding.produced_char;
-		      copy_bufptr = (char *) coding.destination;
-		    }
-
-		  copy_ubufptr = (unsigned char *) copy_bufptr;
-
-		  /* Convert the input data to a sequence of
-		     character events.  */
-		  for (i = 0; i < nbytes; i += len)
-		    {
-		      int ch;
-		      if (nchars == nbytes)
-			ch = copy_ubufptr[i], len = 1;
-		      else
-			ch = string_char_and_length (copy_ubufptr + i, &len);
-		      inev.ie.kind = (SINGLE_BYTE_CHAR_P (ch)
-				      ? ASCII_KEYSTROKE_EVENT
-				      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		      inev.ie.code = ch;
-		      kbd_buffer_store_buffered_event (&inev, hold_quit);
-		    }
-
-		  inev.ie.kind = NO_EVENT;
+		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+		  inev.ie.arg = make_unibyte_string (copy_bufptr, nbytes);
 		  goto xi_done_keysym;
 		}
+
 	      goto XI_OTHER;
 	    }
 
@@ -12352,7 +12245,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   /* Sometimes event processing draws to the frame outside redisplay.
      To ensure that these changes become visible, draw them here.  */
   flush_dirty_back_buffers ();
-  SAFE_FREE ();
   return count;
 }
 

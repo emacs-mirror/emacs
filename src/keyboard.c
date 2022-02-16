@@ -3835,6 +3835,18 @@ clear_event (struct input_event *event)
   event->kind = NO_EVENT;
 }
 
+static Lisp_Object
+kbd_buffer_get_event_1 (Lisp_Object arg)
+{
+  return code_convert_string (arg, Vlocale_coding_system,
+			      Qnil, 0, false, 0);
+}
+
+static Lisp_Object
+kbd_buffer_get_event_2 (Lisp_Object val)
+{
+  return Qnil;
+}
 
 /* Read one event from the event buffer, waiting if necessary.
    The value is a Lisp object representing the event.
@@ -3847,7 +3859,7 @@ kbd_buffer_get_event (KBOARD **kbp,
                       bool *used_mouse_menu,
                       struct timespec *end_time)
 {
-  Lisp_Object obj;
+  Lisp_Object obj, str;
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -4120,6 +4132,47 @@ kbd_buffer_get_event (KBOARD **kbp,
 		    }
 		}
 
+	      if (event->kind == MULTIBYTE_CHAR_KEYSTROKE_EVENT
+		  /* This string has to be decoded.  */
+		  && STRINGP (event->ie.arg))
+		{
+		  str = internal_condition_case_1 (kbd_buffer_get_event_1,
+						   event->ie.arg, Qt,
+						   kbd_buffer_get_event_2);
+
+		  /* Decoding the string failed, so use the original,
+		     where at least ASCII text will work.  */
+		  if (NILP (str))
+		    str = event->ie.arg;
+
+		  if (!SCHARS (str))
+		    {
+		      kbd_fetch_ptr = next_kbd_event (event);
+		      obj = Qnil;
+		      break;
+		    }
+
+		  /* car is the index of the next character in the
+		     string that will be sent and cdr is the string
+		     itself.  */
+		  event->ie.arg = Fcons (make_fixnum (0), str);
+		}
+
+	      if (event->kind == MULTIBYTE_CHAR_KEYSTROKE_EVENT
+		  && CONSP (event->ie.arg))
+		{
+		  eassert (FIXNUMP (XCAR (event->ie.arg)));
+		  eassert (STRINGP (XCDR (event->ie.arg)));
+		  eassert (XFIXNUM (XCAR (event->ie.arg))
+			   < SCHARS (XCDR (event->ie.arg)));
+
+		  event->ie.code = XFIXNUM (Faref (XCDR (event->ie.arg),
+						   XCAR (event->ie.arg)));
+
+		  XSETCAR (event->ie.arg,
+			   make_fixnum (XFIXNUM (XCAR (event->ie.arg)) + 1));
+		}
+
 	      obj = make_lispy_event (&event->ie);
 
 #ifdef HAVE_EXT_MENU_BAR
@@ -4142,9 +4195,15 @@ kbd_buffer_get_event (KBOARD **kbp,
 		*used_mouse_menu = true;
 #endif
 
-	      /* Wipe out this event, to catch bugs.  */
-	      clear_event (&event->ie);
-	      kbd_fetch_ptr = next_kbd_event (event);
+	      if (event->kind != MULTIBYTE_CHAR_KEYSTROKE_EVENT
+		  || !CONSP (event->ie.arg)
+		  || (XFIXNUM (XCAR (event->ie.arg))
+		      >= SCHARS (XCDR (event->ie.arg))))
+		{
+		  /* Wipe out this event, to catch bugs.  */
+		  clear_event (&event->ie);
+		  kbd_fetch_ptr = next_kbd_event (event);
+		}
 	    }
 	}
       }
