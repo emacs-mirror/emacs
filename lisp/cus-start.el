@@ -858,6 +858,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (featurep 'ns))
                       ((string-match "\\`haiku-" (symbol-name symbol))
                        (featurep 'haiku))
+                      ((eq symbol 'process-error-pause-time)
+                       (not (eq system-type 'ms-dos)))
                       ((eq symbol 'x-gtk-use-native-input)
                        (and (featurep 'x)
                             (featurep 'gtk)))
