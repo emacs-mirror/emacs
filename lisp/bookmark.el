@@ -1903,7 +1903,7 @@ Bookmark names preceded by a \"*\" have annotations.
   (setq tabulated-list-format
         `[("" 1) ;; Space to add "*" for bookmark with annotation
           ("Bookmark" ,bookmark-bmenu-file-column bookmark-bmenu--name-predicate)
-          ("Type" 15 bookmark-bmenu--type-predicate)
+          ("Type" 8 bookmark-bmenu--type-predicate)
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)

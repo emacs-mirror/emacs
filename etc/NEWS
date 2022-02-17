@@ -992,6 +992,11 @@ support for pipelines which will move a lot of data.  See section
 ** Miscellaneous
 
 ---
+*** 'list-bookmarks' now includes a type column.
+Types are registered via a 'bookmark-handler-type' symbol property on
+the jumping function.
+
+---
 *** New minor mode 'elide-head-mode'.
 Enabling this minor mode turns on hiding header material, like
 'elide-head' does; disabling it shows the header.  The commands
