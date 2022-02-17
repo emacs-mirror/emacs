@@ -1391,9 +1391,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     }
 #endif
 
-#ifdef HAVE_NS			/* FIXME: ns-specific, why? --Stef  */
   record_unwind_protect_void (discard_menu_items);
-#endif
 
   run_hook (Qx_pre_popup_menu_hook);
 
@@ -1404,11 +1402,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
 						    title, &error_name);
 
-#ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);
-#else
-  discard_menu_items ();
-#endif
 
 #ifdef HAVE_NTGUI     /* W32 specific because other terminals clear
 			 the grab inside their `menu_show_hook's if
