@@ -10968,13 +10968,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_Motion:
 	    {
 	      struct xi_device_t *device;
-	      bool touch_end_event_seen = false;
 
 	      states = &xev->valuators;
 	      values = states->values;
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
-	      if (!device || !device->master_p)
+	      if (!device)
 		goto XI_OTHER;
 
 #ifdef XI_TouchBegin
@@ -10988,6 +10987,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      double xv_total_x = 0.0;
 	      double xv_total_y = 0.0;
 #endif
+	      double total_x = 0.0;
+	      double total_y = 0.0;
 
 	      for (int i = 0; i < states->mask_len * 8; i++)
 		{
@@ -11029,7 +11030,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    }
 #endif
 
-			  found_valuator = true;
+			  if (delta == 0.0)
+			    found_valuator = true;
 
 			  if (signbit (delta) != signbit (val->emacs_value))
 			    val->emacs_value = 0;
@@ -11040,26 +11042,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      && (fabs (val->emacs_value) < 1)
 			      && (fabs (delta) > 0))
 			    continue;
-
-			  bool s = signbit (val->emacs_value);
-			  inev.ie.kind = (fabs (delta) > 0
-					  ? (val->horizontal
-					     ? HORIZ_WHEEL_EVENT
-					     : WHEEL_EVENT)
-					  : TOUCH_END_EVENT);
-			  inev.ie.timestamp = xev->time;
-
-			  XSETINT (inev.ie.x, lrint (xev->event_x));
-			  XSETINT (inev.ie.y, lrint (xev->event_y));
-			  XSETFRAME (inev.ie.frame_or_window, f);
-
-			  if (fabs (delta) > 0)
-			    {
-			      inev.ie.modifiers = !s ? up_modifier : down_modifier;
-			      inev.ie.modifiers
-				|= x_x_to_emacs_modifiers (dpyinfo,
-							   xev->mods.effective);
-			    }
 
 			  window = window_from_coordinates (f, xev->event_x,
 							    xev->event_y, NULL,
@@ -11078,40 +11060,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  if (NUMBERP (Vx_scroll_event_delta_factor))
 			    scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);
 
-			  if (fabs (delta) > 0)
-			    {
-			      if (val->horizontal)
-				{
-				  inev.ie.arg
-				    = list3 (Qnil,
-					     make_float (val->emacs_value
-							 * scroll_unit),
-					     make_float (0));
-				}
-			      else
-				{
-				  inev.ie.arg = list3 (Qnil, make_float (0),
-						       make_float (val->emacs_value
-								   * scroll_unit));
-				}
-			    }
+			  if (val->horizontal)
+			    total_x += delta * scroll_unit;
 			  else
-			    {
-			      inev.ie.arg = Qnil;
-			    }
+			    total_y += delta * scroll_unit;
 
-			  if (inev.ie.kind != TOUCH_END_EVENT
-			      || !touch_end_event_seen)
-			    {
-			      kbd_buffer_store_event_hold (&inev.ie, hold_quit);
-			      touch_end_event_seen = inev.ie.kind == TOUCH_END_EVENT;
-			    }
-
+			  found_valuator = true;
 			  val->emacs_value = 0;
 			}
 		    }
-
-		  inev.ie.kind = NO_EVENT;
 		}
 
 #ifdef HAVE_XWIDGETS
@@ -11141,15 +11098,51 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  goto XI_OTHER;
 		}
-#endif
-	      if (found_valuator)
+	      else
 		{
-#ifdef USE_GTK
-		  if (f && xg_event_is_for_scrollbar (f, event))
-		    *finish = X_EVENT_DROP;
 #endif
-		  goto XI_OTHER;
+		  if (found_valuator)
+		    {
+		      if (fabs (total_x) > 0 || fabs (total_y) > 0)
+			{
+			  inev.ie.kind = (fabs (total_y) >= fabs (total_x)
+					  ? WHEEL_EVENT : HORIZ_WHEEL_EVENT);
+			  inev.ie.timestamp = xev->time;
+
+			  XSETINT (inev.ie.x, lrint (xev->event_x));
+			  XSETINT (inev.ie.y, lrint (xev->event_y));
+			  XSETFRAME (inev.ie.frame_or_window, f);
+
+			  inev.ie.modifiers = (signbit (fabs (total_y) >= fabs (total_x)
+							? total_y : total_x)
+					       ? down_modifier : up_modifier);
+			  inev.ie.modifiers
+			    |= x_x_to_emacs_modifiers (dpyinfo,
+						       xev->mods.effective);
+			  inev.ie.arg = list3 (Qnil,
+					       make_float (total_x),
+					       make_float (total_y));
+
+#ifdef USE_GTK
+			  if (f && xg_event_is_for_scrollbar (f, event))
+			    *finish = X_EVENT_DROP;
+#endif
+			}
+		      else
+			{
+			  inev.ie.kind = TOUCH_END_EVENT;
+			  inev.ie.timestamp = xev->time;
+
+			  XSETINT (inev.ie.x, lrint (xev->event_x));
+			  XSETINT (inev.ie.y, lrint (xev->event_y));
+			  XSETFRAME (inev.ie.frame_or_window, f);
+			}
+
+		      goto XI_OTHER;
+		    }
+#ifdef HAVE_XWIDGETS
 		}
+#endif
 
 	      ev.x = lrint (xev->event_x);
 	      ev.y = lrint (xev->event_y);
