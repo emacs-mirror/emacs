@@ -1049,10 +1049,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   "Set VARIABLE/VALUE pairs, and return the final VALUE.
 This is like `setq', but is meant for user options instead of
 plain variables.  This means that `setopt' will execute any
-Customize form associated with VARIABLE.
-
-If VARIABLE has a `custom-set' property, that is used for setting
-VARIABLE, otherwise `set-default' is used.
+`custom-set' form associated with VARIABLE.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
@@ -1062,10 +1059,19 @@ VARIABLE, otherwise `set-default' is used.
     (while pairs
       (unless (symbolp (car pairs))
         (error "Attempting to set a non-symbol: %s" (car pairs)))
-      (push `(customize-set-variable ',(car pairs) ,(cadr pairs))
+      (push `(setopt--set ',(car pairs) ,(cadr pairs))
             expr)
       (setq pairs (cddr pairs)))
     (macroexp-progn (nreverse expr))))
+
+;;;###autoload
+(defun setopt--set (variable value)
+  (custom-load-symbol variable)
+  ;; Check that the type is correct.
+  (when-let ((type (get variable 'custom-type)))
+    (unless (widget-apply (widget-convert type) :match value)
+      (user-error "Value `%S' does not match type %s" value type)))
+  (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
 ;;;###autoload
 (defun customize-save-variable (variable value &optional comment)

@@ -886,6 +886,10 @@ will also issue a message:
 (setopt my-var 2)
 @end example
 
+@code{setopt} also checks whether the value is valid for the user
+option.  For instance, using @code{setopt} to set a user option
+defined with a @code{number} type to a string will signal an error.
+
 The @code{setopt} macro can be used on regular, non-user option
 variables, but is much less efficient than @code{setq}.  The main use
 case for this macro is setting user options in the user's init file.
