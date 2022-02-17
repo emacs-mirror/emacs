@@ -458,17 +458,13 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 #ifdef BYTE_CODE_THREADED
 
-      /* A convenience define that saves us a lot of typing and makes
-	 the table clearer.  */
-#define LABEL(OP) [OP] = &&insn_ ## OP
-
       /* This is the dispatch table for the threaded interpreter.  */
       static const void *const targets[256] =
 	{
 	  [0 ... (Bconstant - 1)] = &&insn_default,
 	  [Bconstant ... 255] = &&insn_Bconstant,
 
-#define DEFINE(name, value) LABEL (name) ,
+#define DEFINE(name, value) [name] = &&insn_ ## name,
 	  BYTE_CODES
 #undef DEFINE
 	};

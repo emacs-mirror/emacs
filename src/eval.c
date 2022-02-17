@@ -3243,19 +3243,15 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else if (COMPILEDP (fun))
     {
       syms_left = AREF (fun, COMPILED_ARGLIST);
+      /* Bytecode objects using lexical binding have an integral
+	 ARGLIST slot value: pass the arguments to the byte-code
+	 engine directly.  */
       if (FIXNUMP (syms_left))
-	/* A byte-code object with an integer args template means we
-	   shouldn't bind any arguments, instead just call the byte-code
-	   interpreter directly; it will push arguments as necessary.
-
-	   Byte-code objects with a nil args template (the default)
-	   have dynamically-bound arguments, and use the
-	   argument-binding code below instead (as do all interpreted
-	   functions, even lexically bound ones).  */
-	{
-	  return fetch_and_exec_byte_code (fun, XFIXNUM (syms_left),
-					   nargs, arg_vector);
-	}
+	return fetch_and_exec_byte_code (fun, XFIXNUM (syms_left),
+					 nargs, arg_vector);
+      /* Otherwise the bytecode object uses dynamic binding and the
+	 ARGLIST slot contains a standard formal argument list whose
+	 variables are bound dynamically below.  */
       lexenv = Qnil;
     }
 #ifdef HAVE_MODULES

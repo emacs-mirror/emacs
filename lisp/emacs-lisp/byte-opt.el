@@ -29,11 +29,6 @@
 ;; "No matter how hard you try, you can't make a racehorse out of a pig.
 ;; You can, however, make a faster pig."
 ;;
-;; Or, to put it another way, the Emacs byte compiler is a VW Bug.  This code
-;; makes it be a VW Bug with fuel injection and a turbocharger...  You're
-;; still not going to make it go faster than 70 mph, but it might be easier
-;; to get it there.
-;;
 
 ;; TO DO:
 ;;
@@ -74,10 +69,6 @@
 (eval-when-compile (require 'subr-x))
 
 (defun byte-compile-log-lap-1 (format &rest args)
-  ;; Newer byte codes for stack-ref make the slot 0 non-nil again.
-  ;; But the "old disassembler" is *really* ancient by now.
-  ;; (if (aref byte-code-vector 0)
-  ;;     (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
    (apply #'format-message format
      (let (c a)
