@@ -283,7 +283,7 @@
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Oct 8, 2020 version of
+;; The below was synchronized with the latest Sep 12, 2021 version of
 ;; https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 (setq otf-script-alist
       '((adlm . adlam)
@@ -316,6 +316,7 @@
 	(copt . coptic)
 	(xsux . cuneiform)
 	(cprt . cypriot)
+        (cpmn . cypro-minoan)
 	(cyrl . cyrillic)
 	(dsrt . deseret)
 	(deva . devanagari)
@@ -339,7 +340,7 @@
 	(gur2 . gurmukhi)
 	(hani . han)
 	(hang . hangul)
-	(jamo . hangul)
+	(jamo . hangul) ; Not recommended; use 'hang' instead.
 	(rohg . hanifi-rohingya)
 	(hano . hanunoo)
 	(hatr . hatran)
@@ -389,6 +390,7 @@
 	(musc . musical-symbol)
 	(mym2 . burmese)
 	(mymr . burmese)
+        (nand . nandinagari)
 	(nbat . nabataean)
 	(newa . newa)
 	(nko\  . nko)
@@ -403,6 +405,7 @@
 	(sogo . old-sogdian)
 	(sarb . old-south-arabian)
 	(orkh . old-turkic)
+        (ougr . old-uyghur)
 	(orya . oriya)
 	(ory2 . oriya)
 	(osge . osage)
@@ -439,6 +442,7 @@
 	(takr . takri)
 	(taml . tamil)
 	(tml2 . tamil)
+        (tnsa . tangsa)
 	(tang . tangut)
 	(telu . telugu)
 	(tel2 . telugu)
@@ -447,7 +451,9 @@
 	(tibt . tibetan)
 	(tfng . tifinagh)
 	(tirh . tirhuta)
+        (toto . toto)
 	(ugar . ugaritic)
+        (vith . vithkuqi)
 	(vai\  . vai)
 	(wcho . wancho)
 	(wara . warang-citi)
