@@ -2728,6 +2728,23 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    break;
 	  }
+	case MENU_BAR_LEFT:
+	  {
+	    struct haiku_menu_bar_left_event *b = buf;
+	    struct frame *f = haiku_window_to_frame (b->window);
+
+	    if (!f)
+	      continue;
+
+	    if (b->y > 0 && b->y <= FRAME_PIXEL_HEIGHT (f)
+		&& b->x > 0 && b->x <= FRAME_PIXEL_WIDTH (f))
+	      break;
+
+	    if (f->auto_lower && !popup_activated_p)
+	      haiku_frame_raise_lower (f, 0);
+
+	    break;
+	  }
 	case MOUSE_MOTION:
 	  {
 	    struct haiku_mouse_motion_event *b = buf;
@@ -2776,7 +2793,16 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  }
 
 		if (f->auto_lower && !popup_activated_p)
-		  haiku_frame_raise_lower (f, 0);
+		  {
+		    /* If we're leaving towards the menu bar, don't
+		       auto-lower here, and wait for a exit
+		       notification from the menu bar instead.  */
+		    if (b->x > FRAME_PIXEL_WIDTH (f)
+			|| b->y >= FRAME_MENU_BAR_HEIGHT (f)
+			|| b->x < 0
+			|| b->y < 0)
+		      haiku_frame_raise_lower (f, 0);
+		  }
 
 		haiku_new_focus_frame (x_display_list->focused_frame);
 

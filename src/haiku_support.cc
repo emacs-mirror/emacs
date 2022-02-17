@@ -1169,6 +1169,27 @@ public:
     haiku_write (MENU_BAR_RESIZE, &rq);
     BMenuBar::FrameResized (newWidth, newHeight);
   }
+
+  void
+  MouseMoved (BPoint point, uint32 transit, const BMessage *msg)
+  {
+    struct haiku_menu_bar_left_event rq;
+
+    if (transit == B_EXITED_VIEW)
+      {
+	rq.x = std::lrint (point.x);
+	rq.y = std::lrint (point.y);
+	rq.window = this->Window ();
+
+	if (movement_locker.Lock ())
+	  {
+	    haiku_write (MENU_BAR_LEFT, &rq);
+	    movement_locker.Unlock ();
+	  }
+      }
+
+    BMenuBar::MouseMoved (point, transit, msg);
+  }
 };
 
 class EmacsView : public BView

@@ -96,6 +96,8 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_app_quit_requested_event);
     case DUMMY_EVENT:
       return sizeof (struct haiku_dummy_event);
+    case MENU_BAR_LEFT:
+      return sizeof (struct haiku_menu_bar_left_event);
     }
 
   emacs_abort ();

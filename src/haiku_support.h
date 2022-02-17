@@ -87,7 +87,8 @@ enum haiku_event_type
     ZOOM_EVENT,
     REFS_EVENT,
     APP_QUIT_REQUESTED_EVENT,
-    DUMMY_EVENT
+    DUMMY_EVENT,
+    MENU_BAR_LEFT
   };
 
 struct haiku_quit_requested_event
@@ -158,6 +159,12 @@ struct haiku_mouse_motion_event
   int x;
   int y;
   bigtime_t time;
+};
+
+struct haiku_menu_bar_left_event
+{
+  void *window;
+  int x, y;
 };
 
 struct haiku_button_event
