@@ -3804,7 +3804,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
 				   data,
 				   img->width, img->height,
 				   fg, bg,
-				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+				   FRAME_DISPLAY_INFO (f)->n_planes);
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   if (img->pixmap)
     img->picture = x_create_xrender_picture (f, img->pixmap, 0);
