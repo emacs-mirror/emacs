@@ -68,7 +68,11 @@ estimate_font_ascii (BFont *font, int *max_width,
 
   *min_width = min;
   *max_width = max;
-  *avg_width = total / count;
+
+  if (count)
+    *avg_width = total / count;
+  else
+    *avg_width = 0;
 }
 
 void
