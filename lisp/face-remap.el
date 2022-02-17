@@ -70,16 +70,28 @@
    :foreground :background :stipple :overline :strike-through :box
    :font :inherit :fontset :distant-foreground :extend :vector])
 
+(defun face-remap--copy-face (val)
+  "Return a copy of the `face' property value VAL."
+  ;; A `face' property can be either a face name (a symbol), or a face
+  ;; property list like (:foreground "red" :inherit default),
+  ;; or a list of such things.
+  ;; FIXME: This should probably be shared to some extent with
+  ;; `add-face-text-property'.
+  (if (or (not (listp val)) (keywordp (car val)))
+      val
+    (copy-sequence val)))
+
 (defun face-attrs--make-indirect-safe ()
   "Deep-copy the buffer's `face-remapping-alist' upon cloning the buffer."
   (setq-local face-remapping-alist
-              (mapcar #'copy-sequence face-remapping-alist)))
+              (mapcar #'face-remap--copy-face face-remapping-alist)))
 
 (add-hook 'clone-indirect-buffer-hook #'face-attrs--make-indirect-safe)
 
 (defun face-attrs-more-relative-p (attrs1 attrs2)
-  "Return true if ATTRS1 contains a greater number of relative
-face-attributes than ATTRS2.  A face attribute is considered
+  "Return non-nil if ATTRS1 is \"more relative\" than ATTRS2.
+We define this as meaning that ATTRS1 contains a greater number of
+relative face-attributes than ATTRS2.  A face attribute is considered
 relative if `face-attribute-relative-p' returns non-nil.
 
 ATTRS1 and ATTRS2 may be any value suitable for a `face' text
@@ -106,7 +118,7 @@ face lists so that more specific faces are located near the end."
   "Order ENTRY so that more relative face specs are near the beginning.
 The list structure of ENTRY may be destructively modified."
   (setq entry (nreverse entry))
-  (setcdr entry (sort (cdr entry) 'face-attrs-more-relative-p))
+  (setcdr entry (sort (cdr entry) #'face-attrs-more-relative-p))
   (nreverse entry))
 
 ;;;###autoload
