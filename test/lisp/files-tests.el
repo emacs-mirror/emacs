@@ -1411,7 +1411,10 @@ See <https://debbugs.gnu.org/35241>."
        (equal tmpfile
               (executable-find (file-name-nondirectory tmpfile)))))))
 
-(ert-deftest files-tests-dont-rewrite-precious-files ()
+;; Note: we call this test "...-zzdont..." so that it runs near the
+;; end, because otherwise the advice it adds to write-region doesn't
+;; get removed(??) and breaks the revert-file tests on MS-Windows.
+(ert-deftest files-tests-zzdont-rewrite-precious-files ()
   "Test that `file-precious-flag' forces files to be saved by
 renaming only, rather than modified in-place."
   (ert-with-temp-file temp-file-name
@@ -1540,13 +1543,10 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      ;; Disable lock files, since that barfs in
-      ;; userlock--check-content-unchanged on MS-Windows.
-      (let (create-lockfiles)
-        (write-file temp-file-name)
-        (erase-buffer)
-        (insert files-tests-tzu)
-        (revert-buffer t t t))
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (revert-buffer t t t)
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1556,13 +1556,10 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      ;; Disable lock files, since that barfs in
-      ;; userlock--check-content-unchanged on MS-Windows.
-      (let (create-lockfiles)
-        (write-file temp-file-name)
-        (erase-buffer)
-        (insert files-tests-tzu)
-        (should (revert-buffer-with-fine-grain t t)))
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (should (revert-buffer-with-fine-grain t t))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
