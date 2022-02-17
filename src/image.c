@@ -543,6 +543,10 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 
 #ifdef HAVE_HAIKU
   void *bitmap = BBitmap_new (width, height, 1);
+
+  if (!bitmap)
+    return -1;
+
   BBitmap_import_mono_bits (bitmap, bits, width, height);
 #endif
 
@@ -3815,6 +3819,21 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     convert_mono_to_color_image (f, img, fg, bg);
 #elif defined HAVE_NS
   img->pixmap = ns_image_from_XBM (data, img->width, img->height, fg, bg);
+#elif defined HAVE_HAIKU
+  img->pixmap = BBitmap_new (img->width, img->height, 0);
+
+  if (img->pixmap)
+    {
+      int bytes_per_line = (img->width + 7) / 8;
+
+      for (int y = 0; y < img->height; y++)
+	{
+	  for (int x = 0; x < img->width; x++)
+	    PUT_PIXEL (img->pixmap, x, y,
+		       (data[x / 8] >> (x % 8)) & 1 ? fg : bg);
+	  data += bytes_per_line;
+	}
+    }
 #endif
 }
 
@@ -3999,6 +4018,7 @@ xbm_load_image (struct frame *f, struct image *img, char *contents, char *end)
 
   rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height,
 			     &data, 0);
+
   if (rc)
     {
       unsigned long foreground = img->face_foreground;
