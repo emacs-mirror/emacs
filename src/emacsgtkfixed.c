@@ -164,11 +164,30 @@ XSetWMSizeHints (Display *d,
 
   if ((hints->flags & PMinSize) && f)
     {
-      int w = f->output_data.x->size_hints.min_width;
-      int h = f->output_data.x->size_hints.min_height;
+      /* Overriding the size hints with our own values of min_width
+	 and min_height used to work, but these days just results in
+	 frames resizing unpredictably and emitting GTK warnings while
+	 Emacs fights with GTK over the size of the frame.  So instead
+	 of doing that, just respect the hints set by GTK, but make
+	 sure they are an integer multiple of the resize increments so
+	 that bug#8919 stays fixed.  */
 
-      data[5] = w;
-      data[6] = h;
+      /* int w = f->output_data.x->size_hints.min_width;
+         int h = f->output_data.x->size_hints.min_height;
+
+	 data[5] = w;
+	 data[6] = h; */
+
+      /* Make sure min_width and min_height are multiples of width_inc
+	 and height_inc.  */
+
+      if (hints->flags & PResizeInc)
+	{
+	  if (data[5] % hints->width_inc)
+	    data[5] += (hints->width_inc - (data[5] % hints->width_inc));
+	  if (data[6] % hints->height_inc)
+	    data[6] += (hints->height_inc - (data[6] % hints->height_inc));
+	}
     }
 
   XChangeProperty (d, w, prop, XA_WM_SIZE_HINTS, 32, PropModeReplace,
