@@ -643,6 +643,7 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 		    valuator->emacs_value = DBL_MIN;
 		    valuator->increment = info->increment;
 		    valuator->number = info->number;
+		    valuator->pending_enter_reset = false;
 
 		    break;
 		  }
