@@ -4571,10 +4571,7 @@ BUFFER might be a list, in this case STDERR is separated."
 			   ;; We must disable cygwin-mount file name
 			   ;; handlers and alike.
 			   (tramp-run-real-handler
-			    #'substitute-in-file-name (list localname))))))))
-      ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
-      (if (and (stringp localname) (string-equal "~" localname))
-	  (concat filename "/")
+			    #'substitute-in-file-name (list localname)))))))
 	filename))))
 
 (defconst tramp-time-dont-know '(0 0 0 1000)
