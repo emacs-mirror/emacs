@@ -440,35 +440,35 @@ haikufont_spec_or_entity_to_pattern (Lisp_Object ent,
     }
 
   tem = FONT_SLANT_SYMBOLIC (ent);
-  if (!NILP (tem))
+  if (!NILP (tem) && !EQ (tem, Qunspecified))
     {
       ptn->specified |= FSPEC_SLANT;
       ptn->slant = haikufont_lisp_to_slant (tem);
     }
 
   tem = FONT_WEIGHT_SYMBOLIC (ent);
-  if (!NILP (tem))
+  if (!NILP (tem) && !EQ (tem, Qunspecified))
     {
       ptn->specified |= FSPEC_WEIGHT;
       ptn->weight = haikufont_lisp_to_weight (tem);
     }
 
   tem = FONT_WIDTH_SYMBOLIC (ent);
-  if (!NILP (tem))
+  if (!NILP (tem) && !EQ (tem, Qunspecified))
     {
       ptn->specified |= FSPEC_WIDTH;
       ptn->width = haikufont_lisp_to_width (tem);
     }
 
   tem = AREF (ent, FONT_SPACING_INDEX);
-  if (FIXNUMP (tem))
+  if (!NILP (tem) && !EQ (tem, Qunspecified))
     {
       ptn->specified |= FSPEC_SPACING;
       ptn->mono_spacing_p = XFIXNUM (tem) != FONT_SPACING_PROPORTIONAL;
     }
 
   tem = AREF (ent, FONT_FAMILY_INDEX);
-  if (!NILP (tem) &&
+  if (!NILP (tem) && !EQ (tem, Qunspecified) &&
       (list_p && !haikufont_maybe_handle_special_family (tem, ptn)))
     {
       ptn->specified |= FSPEC_FAMILY;
