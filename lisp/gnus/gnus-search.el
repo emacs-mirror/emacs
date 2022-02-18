@@ -1393,18 +1393,27 @@ Returns a list of [group article score] vectors."
 	(when (and f-name
                    (file-readable-p f-name)
 		   (null (file-directory-p f-name)))
-          (setq group
-                (replace-regexp-in-string
-	         "[/\\]" "."
-	         (replace-regexp-in-string
-	          "/?\\(cur\\|new\\|tmp\\)?/\\'" ""
+          ;; `expand-file-name' canoncalizes the file name,
+          ;; specifically collapsing multiple consecutive directory
+          ;; separators.
+          (setq f-name (expand-file-name f-name)
+                group
+                (delete
+                 "" ; forward slash at root leaves an empty string
+                 (file-name-split
 	          (replace-regexp-in-string
-	           "\\`\\." ""
-	           (string-remove-prefix
+	           "\\`\\." "" ; why do we do this?
+                   (string-remove-prefix
                     prefix (file-name-directory f-name))
-                   nil t)
-	          nil t)
-	         nil t))
+                   nil t)))
+                ;; Turn file name segments into a Gnus group name.
+                group (mapconcat
+                       #'identity
+                       (if (member (car (last group))
+                                   '("new" "tmp" "cur"))
+                           (nbutlast group)
+                         group)
+                       "."))
           (setq article (file-name-nondirectory f-name)
                 article
                 ;; TODO: Provide a cleaner way of producing final
