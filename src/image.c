@@ -3719,9 +3719,9 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	      overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
 	      value += digit;
 	    }
-
-	  return 0;
 	}
+
+      return 0;
     }
   else if (c_isalpha (c) || c == '_')
     {
