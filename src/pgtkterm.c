@@ -2927,6 +2927,7 @@ pgtk_copy_bits (struct frame *f, cairo_rectangle_t *src_rect,
   cairo_t *cr;
   GdkWindow *window;
   cairo_surface_t *surface;	/* temporary surface */
+  int scale;
 
   window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
 
@@ -2935,6 +2936,9 @@ pgtk_copy_bits (struct frame *f, cairo_rectangle_t *src_rect,
 				       FRAME_CR_SURFACE_DESIRED_WIDTH (f),
 				       FRAME_CR_SURFACE_DESIRED_HEIGHT
 				       (f));
+
+  scale = gtk_widget_get_scale_factor (FRAME_GTK_WIDGET (f));
+  cairo_surface_set_device_scale (surface, scale, scale);
 
   cr = cairo_create (surface);
   cairo_set_source_surface (cr, FRAME_CR_SURFACE (f), -src_rect->x,
