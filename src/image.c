@@ -3681,6 +3681,48 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
       *ival = value;
       return overflow ? XBM_TK_OVERFLOW : XBM_TK_NUMBER;
     }
+  /* Character literal.  XBM images typically contain hex escape
+     sequences and not actual characters, so we only try to handle
+     that here.  */
+  else if (c == '\'')
+    {
+      int value = 0, digit;
+      bool overflow = false;
+
+      if (*s == end)
+	return 0;
+
+      c = *(*s)++;
+
+      if (c != '\\' || *s == end)
+	return 0;
+
+      c = *(*s)++;
+
+      if (c == 'x')
+	{
+	  while (*s < end)
+	    {
+	      c = *(*s)++;
+
+	      if (c == '\'')
+		{
+		  *ival = value;
+		  return overflow ? XBM_TK_OVERFLOW : XBM_TK_NUMBER;
+		}
+
+	      digit = char_hexdigit (c);
+
+	      if (digit < 0)
+		return 0;
+
+	      overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
+	      value += digit;
+	    }
+
+	  return 0;
+	}
+    }
   else if (c_isalpha (c) || c == '_')
     {
       *sval++ = c;
