@@ -1417,7 +1417,6 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 #endif
 
 	  x_xr_apply_ext_clip (f, gc);
-	  x_xrender_color_from_gc_foreground (f, gc, &xc, true);
 
 #if RENDER_MAJOR > 0 || (RENDER_MINOR >= 10)
 	  XGetGCValues (FRAME_X_DISPLAY (f),
@@ -1426,15 +1425,9 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 	  if (xgcv.fill_style == FillOpaqueStippled
 	      && FRAME_CHECK_XR_VERSION (f, 0, 10))
 	    {
-	      alpha.red = 65535 * f->alpha_background;
-	      alpha.green = 65535 * f->alpha_background;
-	      alpha.blue = 65535 * f->alpha_background;
-	      alpha.alpha = 65535 * f->alpha_background;
-
-	      fill = XRenderCreateSolidFill (FRAME_X_DISPLAY (f),
-					     &alpha);
+	      x_xrender_color_from_gc_background (f, gc, &alpha, true);
+	      x_xrender_color_from_gc_foreground (f, gc, &xc, true);
 	      attrs.repeat = RepeatNormal;
-	      attrs.alpha_map = fill;
 
 	      stipple = XRenderCreatePicture (FRAME_X_DISPLAY (f),
 					      xgcv.stipple,
@@ -1442,19 +1435,26 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 									 PictStandardA1),
 					      CPRepeat, &attrs);
 
-	      XRenderComposite (FRAME_X_DISPLAY (f),
-				PictOpSrc, stipple,
-				None, FRAME_X_PICTURE (f),
-				x, y, 0, 0, x, y, width, height);
+	      XRenderFillRectangle (FRAME_X_DISPLAY (f), PictOpSrc,
+				    FRAME_X_PICTURE (f),
+				    &alpha, x, y, width, height);
+
+	      fill = XRenderCreateSolidFill (FRAME_X_DISPLAY (f), &xc);
+
+	      XRenderComposite (FRAME_X_DISPLAY (f), PictOpOver, fill, stipple,
+				FRAME_X_PICTURE (f), 0, 0, x, y, x, y, width, height);
 
 	      XRenderFreePicture (FRAME_X_DISPLAY (f), stipple);
 	      XRenderFreePicture (FRAME_X_DISPLAY (f), fill);
 	    }
 	  else
 #endif
-	    XRenderFillRectangle (FRAME_X_DISPLAY (f),
-				  PictOpSrc, FRAME_X_PICTURE (f),
-				  &xc, x, y, width, height);
+	    {
+	      x_xrender_color_from_gc_foreground (f, gc, &xc, true);
+	      XRenderFillRectangle (FRAME_X_DISPLAY (f),
+				    PictOpSrc, FRAME_X_PICTURE (f),
+				    &xc, x, y, width, height);
+	    }
 	  x_xr_reset_ext_clip (f);
 	  x_mark_frame_dirty (f);
 
