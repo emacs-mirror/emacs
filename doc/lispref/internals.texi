@@ -1637,7 +1637,7 @@ This function returns the value of a Lisp float specified by
 @var{arg}, as a C @code{double} value.
 @end deftypefn
 
-@deftypefn Function struct timespec extract_time (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {struct timespec} extract_time (emacs_env *@var{env}, emacs_value @var{arg})
 This function, which is available since Emacs 27, interprets @var{arg}
 as an Emacs Lisp time value and returns the corresponding @code{struct
 timespec}.  @xref{Time of Day}.  @code{struct timespec} represents a
@@ -1942,7 +1942,7 @@ garbage-collected.  Don't run any expensive code in a finalizer,
 because GC must finish quickly to keep Emacs responsive.
 @end deftypefn
 
-@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {void *}get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
 This function extracts the C pointer from the Lisp object represented
 by @var{arg}.
 @end deftypefn

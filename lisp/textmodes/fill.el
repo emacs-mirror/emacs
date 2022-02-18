@@ -644,20 +644,27 @@ The break position will be always after LINEBEG and generally before point."
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
-  "Fill the region as one paragraph.
-It removes any paragraph breaks in the region and extra newlines at the end,
-indents and fills lines between the margins given by the
-`current-left-margin' and `current-fill-column' functions.
-\(In most cases, the variable `fill-column' controls the width.)
-It leaves point at the beginning of the line following the paragraph.
+  "Fill the region as if it were a single paragraph.
+This command removes any paragraph breaks in the region and
+extra newlines at the end, and indents and fills lines between the
+margins given by the `current-left-margin' and `current-fill-column'
+functions.  (In most cases, the variable `fill-column' controls the
+width.)  It leaves point at the beginning of the line following the
+region.
 
-Normally performs justification according to the `current-justification'
-function, but with a prefix arg, does full justification instead.
+Normally, the command performs justification according to
+the `current-justification' function, but with a prefix arg, it
+does full justification instead.
 
-From a program, optional third arg JUSTIFY can specify any type of
-justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
-between words canonical before filling.  Fifth arg SQUEEZE-AFTER, if non-nil,
-means don't canonicalize spaces before that position.
+When called from Lisp, optional third arg JUSTIFY can specify any
+type of justification; see `default-justification' for the possible
+values.
+Optional fourth arg NOSQUEEZE non-nil means not to make spaces
+between words canonical before filling.
+Fifth arg SQUEEZE-AFTER, if non-nil, should be a buffer position; it
+means canonicalize spaces only starting from that position.
+See `canonically-space-region' for the meaning of canonicalization
+of spaces.
 
 Return the `fill-prefix' used for filling.
 
@@ -1104,6 +1111,10 @@ space does not end a sentence, so don't break a line there."
 (defcustom default-justification 'left
   "Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
+The values `left' and `right' mean lines are lined up at,
+respectively, left or right margin, and ragged at the other margin.
+`full' means lines are lined up at both margins.  `center' means each
+line is centered.  `none' means no justification or centering.
 The requested kind of justification is done whenever lines are filled.
 The `justification' text-property can locally override this variable."
   :type '(choice (const left)
@@ -1133,6 +1144,7 @@ However, it returns nil rather than `none' to mean \"don't justify\"."
 (defun set-justification (begin end style &optional whole-par)
   "Set the region's justification style to STYLE.
 This commands prompts for the kind of justification to use.
+See `default-justification' for the possible values and their meaning.
 If the mark is not active, this command operates on the current paragraph.
 If the mark is active, it operates on the region.  However, if the
 beginning and end of the region are not at paragraph breaks, they are
@@ -1184,7 +1196,8 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-left (b e)
   "Make paragraphs in the region left-justified.
-This means they are flush at the left margin and ragged on the right.
+This means lines are flush (lined up) at the left margin and ragged
+on the right.
 This is usually the default, but see the variable `default-justification'.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
@@ -1193,7 +1206,8 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-right (b e)
   "Make paragraphs in the region right-justified.
-This means they are flush at the right margin and ragged on the left.
+This means lines are flush (lined up) at the right margin and ragged
+on the left.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
 		     (if mark-active (region-end) (point))))
@@ -1201,7 +1215,7 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-full (b e)
   "Make paragraphs in the region fully justified.
-This makes lines flush on both margins by inserting spaces between words.
+This makes lines be lined up on both margins by inserting spaces between words.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
 		     (if mark-active (region-end) (point))))
@@ -1236,7 +1250,8 @@ If the mark is not active, this applies to the current paragraph."
 Normally does full justification: adds spaces to the line to make it end at
 the column given by `current-fill-column'.
 Optional first argument HOW specifies alternate type of justification:
-it can be `left', `right', `full', `center', or `none'.
+it can be `left', `right', `full', `center', or `none'; for their
+meaning, see `default-justification'.
 If HOW is t, will justify however the `current-justification' function says to.
 If HOW is nil or missing, full justification is done by default.
 Second arg EOP non-nil means that this is the last line of the paragraph, so
