@@ -2188,8 +2188,7 @@ article came from is also searched."
 		(read-from-minibuffer
 		 "Query: " nil gnus-search-minibuffer-map
 		 nil 'gnus-search-history)))
-	(cons 'raw
-              (or (gnus-nnselect-group-p (gnus-group-group-name)) arg))))
+	(cons 'raw arg)))
 
 (provide 'gnus-search)
 ;;; gnus-search.el ends here
