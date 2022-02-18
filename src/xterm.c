@@ -2549,9 +2549,7 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
 static void
 x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-  x_clear_rectangle (s->f, s->gc, x, y, w, h,
-		     (s->first_glyph->type != STRETCH_GLYPH
-		      || s->hl != DRAW_CURSOR));
+  x_clear_rectangle (s->f, s->gc, x, y, w, h, s->hl != DRAW_CURSOR);
 }
 
 
@@ -2580,7 +2578,7 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 			    s->y + box_line_width,
 			    s->background_width,
 			    s->height - 2 * box_line_width,
-			    true);
+			    s->hl != DRAW_CURSOR);
 	  XSetFillStyle (display, s->gc, FillSolid);
 	  s->background_filled_p = true;
 	}
@@ -4246,7 +4244,7 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 
       /* Fill background with a stipple pattern.  */
       XSetFillStyle (display, s->gc, FillOpaqueStippled);
-      x_fill_rectangle (s->f, s->gc, x, y, w, h, false);
+      x_fill_rectangle (s->f, s->gc, x, y, w, h, true);
       XSetFillStyle (display, s->gc, FillSolid);
     }
   else
