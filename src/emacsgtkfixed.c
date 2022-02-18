@@ -183,9 +183,12 @@ XSetWMSizeHints (Display *d,
 
       if (hints->flags & PResizeInc)
 	{
-	  if (data[5] % hints->width_inc)
+	  /* Some versions of GTK set PResizeInc even if the
+	     increments are at their initial values.  */
+
+	  if (hints->width_inc && data[5] % hints->width_inc)
 	    data[5] += (hints->width_inc - (data[5] % hints->width_inc));
-	  if (data[6] % hints->height_inc)
+	  if (hints->height_inc && data[6] % hints->height_inc)
 	    data[6] += (hints->height_inc - (data[6] % hints->height_inc));
 	}
     }
