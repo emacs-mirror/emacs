@@ -1346,16 +1346,14 @@ This method is common to all indexed search engines.
 
 Returns a list of [group article score] vectors."
 
-  (save-excursion
-    (let* ((qstring (gnus-search-make-query-string engine query))
-	   (program (slot-value engine 'program))
-	   (buffer (slot-value engine 'proc-buffer))
-	   (cp-list (gnus-search-indexed-search-command
-		     engine qstring query groups))
-           proc exitstatus)
-      (set-buffer buffer)
+  (let* ((qstring (gnus-search-make-query-string engine query))
+	 (program (slot-value engine 'program))
+	 (buffer (slot-value engine 'proc-buffer))
+	 (cp-list (gnus-search-indexed-search-command
+		   engine qstring query groups))
+         proc exitstatus)
+    (with-current-buffer buffer
       (erase-buffer)
-
       (if groups
 	  (gnus-message 7 "Doing %s query on %s..." program groups)
 	(gnus-message 7 "Doing %s query..." program))
@@ -1374,7 +1372,7 @@ Returns a list of [group article score] vectors."
 	;; wants it.
 	(when (> gnus-verbose 6)
 	  (display-buffer buffer))
-	nil))))
+        nil))))
 
 (cl-defmethod gnus-search-indexed-parse-output ((engine gnus-search-indexed)
 						server query &optional groups)
@@ -1628,17 +1626,17 @@ Namazu provides a little more information, for instance a score."
 	       (cp-list (gnus-search-indexed-search-command
 			 engine qstring query groups))
 	       thread-ids proc)
-	  (set-buffer proc-buffer)
-	  (erase-buffer)
-	  (setq proc (apply #'start-process (format "search-%s" server)
-			    proc-buffer program cp-list))
-	  (while (process-live-p proc)
-	    (accept-process-output proc))
-          (goto-char (point-min))
-	  (while (re-search-forward
-                  "^thread:\\([^[:space:]\n]+\\)"
-                  (point-max) t)
-	    (cl-pushnew (match-string 1) thread-ids :test #'equal))
+	  (with-current-buffer proc-buffer
+	    (erase-buffer)
+	    (setq proc (apply #'start-process (format "search-%s" server)
+			      proc-buffer program cp-list))
+	    (while (process-live-p proc)
+	      (accept-process-output proc))
+            (goto-char (point-min))
+	    (while (re-search-forward
+                    "^thread:\\([^[:space:]\n]+\\)"
+                    (point-max) t)
+	      (cl-pushnew (match-string 1) thread-ids :test #'equal)))
 	  (cl-call-next-method
 	   engine server
 	   ;; If we found threads, completely replace the query with
