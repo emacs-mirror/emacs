@@ -73,8 +73,8 @@ INFO_COMMON = auth autotype bovine calc ccmode cl \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e modus-themes newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
-	sc semantic ses sieve smtpmail speedbar srecode todo-mode tramp \
-	url vhdl-mode vip viper widget wisent woman
+	sc semantic ses sieve smtpmail speedbar srecode todo-mode transient \
+	tramp url vhdl-mode vip viper widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
