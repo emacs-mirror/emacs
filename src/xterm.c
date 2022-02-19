@@ -11017,8 +11017,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto XI_OTHER;
 
 #ifdef XI_TouchBegin
-	      if (xev->flags & XIPointerEmulated
-		  && dpyinfo->xi2_version >= 2)
+	      if (xev->flags & XIPointerEmulated)
 		goto XI_OTHER;
 #endif
 
