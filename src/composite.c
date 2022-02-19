@@ -988,7 +988,9 @@ inhibit_auto_composition (void)
    less than CHARPOS, search backward to ENDPOS+1 assuming that
    set_iterator_to_next works in reverse order.  In this case, if a
    composition closest to CHARPOS is found, set cmp_it->stop_pos to
-   the last character of the composition.
+   the last character of the composition.  STRING, if non-nil, is
+   the string (as opposed to a buffer) whose characters should be
+   tested for being composable.
 
    If no composition is found, set cmp_it->ch to -2.  If a static
    composition is found, set cmp_it->ch to -1.  Otherwise, set
@@ -996,7 +998,9 @@ inhibit_auto_composition (void)
    composition.  */
 
 void
-composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, Lisp_Object string)
+composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
+			      ptrdiff_t bytepos, ptrdiff_t endpos,
+			      Lisp_Object string)
 {
   ptrdiff_t start, end;
   int c;
@@ -1035,7 +1039,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
+  if ((NILP (string)
+       && NILP (BVAR (current_buffer, enable_multibyte_characters)))
+      || (STRINGP (string) && !STRING_MULTIBYTE (string))
       || inhibit_auto_composition ())
     return;
   if (bytepos < 0)
@@ -1971,7 +1977,9 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+      if (((NILP (string)
+	    && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	   || (!NILP (string) && STRING_MULTIBYTE (string)))
 	  && ! inhibit_auto_composition ()
 	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
 					 &start, &end, &gstring, string))
