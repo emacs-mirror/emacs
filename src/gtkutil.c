@@ -6099,6 +6099,10 @@ xg_im_context_commit (GtkIMContext *imc, gchar *str,
   EVENT_INIT (ie);
   ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
   ie.arg = build_unibyte_string (str);
+
+  Fput_text_property (make_fixnum (0), make_fixnum (strlen (str)),
+		      Qcoding, Qutf_8_unix, ie.arg);
+
   XSETFRAME (ie.frame_or_window, f);
   ie.modifiers = 0;
   ie.timestamp = 0;
