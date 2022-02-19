@@ -37,24 +37,6 @@ the corresponding new element of the same type.
 
 The purpose of this is to detect circular structures.")
 
-(defalias 'byte-run--circular-list-p
-  #'(lambda (l)
-      "Return non-nil when the list L is a circular list.
-Note that this algorithm doesn't check any circularity in the
-CARs of list elements."
-      (let ((hare l)
-            (tortoise l))
-        (condition-case err
-            (progn
-              (while (progn
-                       (setq hare (cdr (cdr hare))
-                             tortoise (cdr tortoise))
-                       (not (or (eq tortoise hare)
-                                (null hare)))))
-              (eq tortoise hare))
-          (wrong-type-argument nil)
-          (error (signal (car err) (cdr err)))))))
-
 (defalias 'byte-run--strip-s-p-1
   #'(lambda (arg)
       "Strip all positions from symbols in ARG, modifying ARG.
@@ -64,41 +46,36 @@ Return the modified ARG."
         (bare-symbol arg))
 
        ((consp arg)
-        (let* ((round (byte-run--circular-list-p arg))
-               (hash (and round (gethash arg byte-run--ssp-seen))))
-          (or hash
-              (let ((a arg) new)
-                (while
-                    (progn
-                      (when round
-                        (puthash a new byte-run--ssp-seen))
-                      (setq new (byte-run--strip-s-p-1 (car a)))
-                      (when (not (eq new (car a))) ; For read-only things.
-                        (setcar a new))
-                      (and (consp (cdr a))
-                           (not
-                            (setq hash
-                                  (and round
-                                       (gethash (cdr a) byte-run--ssp-seen))))))
-                  (setq a (cdr a)))
-                (setq new (byte-run--strip-s-p-1 (cdr a)))
-                (when (not (eq new (cdr a)))
-                  (setcdr a (or hash new)))
-                arg))))
+        (let* ((hash (gethash arg byte-run--ssp-seen)))
+          (if hash                      ; Already processed this node.
+              arg
+            (let ((a arg) new)
+              (while
+                  (progn
+                    (puthash a t byte-run--ssp-seen)
+                    (setq new (byte-run--strip-s-p-1 (car a)))
+                    (setcar a new)
+                    (and (consp (cdr a))
+                         (not
+                          (setq hash (gethash (cdr a) byte-run--ssp-seen)))))
+                (setq a (cdr a)))
+              (setq new (byte-run--strip-s-p-1 (cdr a)))
+              (setcdr a new)
+              arg))))
 
        ((or (vectorp arg) (recordp arg))
         (let ((hash (gethash arg byte-run--ssp-seen)))
-          (or hash
-              (let* ((len (length arg))
-                     (i 0)
-                     new)
-                (puthash arg arg byte-run--ssp-seen)
-                (while (< i len)
-                  (setq new (byte-run--strip-s-p-1 (aref arg i)))
-                  (when (not (eq new (aref arg i)))
-                    (aset arg i new))
-                  (setq i (1+ i)))
-                arg))))
+          (if hash
+              arg
+            (let* ((len (length arg))
+                   (i 0)
+                   new)
+              (puthash arg t byte-run--ssp-seen)
+              (while (< i len)
+                (setq new (byte-run--strip-s-p-1 (aref arg i)))
+                (aset arg i new)
+                (setq i (1+ i)))
+              arg))))
 
        (t arg))))
 

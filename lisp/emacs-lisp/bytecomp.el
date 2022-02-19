@@ -2610,15 +2610,9 @@ list that represents a doc string reference.
       nil
     (byte-compile-docstring-length-warn form)
     (setq form (copy-sequence form))
-    (cond ((consp (nth 2 form))
-           (setcar (cdr (cdr form))
-                   (byte-compile-top-level (nth 2 form) nil 'file)))
-          ((symbolp (nth 2 form))
-           (setcar (cddr form) (bare-symbol (nth 2 form))))
-          (t (setcar (cddr form) (nth 2 form))))
-    (setcar form (bare-symbol (car form)))
-    (if (symbolp (nth 1 form))
-        (setcar (cdr form) (bare-symbol (nth 1 form))))
+    (when (consp (nth 2 form))
+      (setcar (cdr (cdr form))
+              (byte-compile-top-level (nth 2 form) nil 'file)))
     form))
 
 (put 'define-abbrev-table 'byte-hunk-handler
@@ -3034,7 +3028,8 @@ lambda-expression."
   (byte-compile-docstring-length-warn fun)
   (byte-compile-check-lambda-list (nth 1 fun))
   (let* ((arglist (nth 1 fun))
-         (arglistvars (byte-compile-arglist-vars arglist))
+         (arglistvars (byte-run-strip-symbol-positions
+                       (byte-compile-arglist-vars arglist)))
 	 (byte-compile-bound-variables
 	  (append (if (not lexical-binding) arglistvars)
                   byte-compile-bound-variables))
@@ -3337,12 +3332,10 @@ lambda-expression."
     (cond
      ((not (consp form))
       (cond ((or (not (symbolp form)) (macroexp--const-symbol-p form))
-             (byte-compile-constant
-              (if (symbolp form) (bare-symbol form) form)))
+             (byte-compile-constant form))
             ((and byte-compile--for-effect byte-compile-delete-errors)
              (setq byte-compile--for-effect nil))
-            (t
-             (byte-compile-variable-ref (bare-symbol form)))))
+            (t (byte-compile-variable-ref form))))
      ((symbolp (car form))
       (let* ((fn (car form))
              (handler (get fn 'byte-compile))
@@ -3572,7 +3565,6 @@ lambda-expression."
 	 (byte-compile-warn-obsolete var))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
-  (if (symbolp var) (setq var (bare-symbol var)))
   (let ((tmp (assq var byte-compile-variables)))
     (unless tmp
       (setq tmp (list var))
@@ -3646,14 +3638,11 @@ assignment (i.e. `setq')."
 (defun byte-compile-constant (const)
   (if byte-compile--for-effect
       (setq byte-compile--for-effect nil)
-    (inline (byte-compile-push-constant
-             (if (symbolp const) (bare-symbol const) const)))))
+    (inline (byte-compile-push-constant const))))
 
 ;; Use this for a constant that is not the value of its containing form.
 ;; This ignores byte-compile--for-effect.
 (defun byte-compile-push-constant (const)
-  (when (symbolp const)
-    (setq const (bare-symbol const)))
   (byte-compile-out
    'byte-constant
    (byte-compile-get-constant const)))
@@ -5120,6 +5109,7 @@ OP and OPERAND are as passed to `byte-compile-out'."
 	(- 1 operand))))
 
 (defun byte-compile-out (op &optional operand)
+  (setq operand (byte-run-strip-symbol-positions operand))
   (push (cons op operand) byte-compile-output)
   (if (eq op 'byte-return)
       ;; This is actually an unnecessary case, because there should be no
