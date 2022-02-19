@@ -1,0 +1,521 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename ../../info/vtable.info
+@settitle Variable Pitch Tables
+@include docstyle.texi
+@c %**end of header
+
+@copying
+This file documents the GNU vtable.el package.
+
+Copyright @copyright{} 2022 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to copy and
+modify this GNU manual.''
+@end quotation
+@end copying
+
+@dircategory Emacs misc features
+@direntry
+* vtable: (vtable).     Variable Pitch Tables.
+@end direntry
+
+@finalout
+
+@titlepage
+@title Variable Pitch Tables
+@subtitle Columnar Display of Data.
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top vtable
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::        Introduction and examples.
+* Concepts::            vtable concepts.
+* Making A Table::      The main interface function.
+* Commands::            vtable commands.
+* Interface Functions:: Interface functions.
+
+Appendices
+* GNU Free Documentation License::  The license for this documentation.
+
+Indices
+* Index::
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+Most modes that display tabular data in Emacs use
+@code{tabulated-list-mode}, but it has some limitations: It assumes
+that the text it's displaying is monospaced, which makes it difficult
+to mix fonts and images in a single list.  The @dfn{vtable} (variable
+pitch tables) package tackles this instead.
+
+@code{tabulated-list-mode} is a major mode, and assumes that it
+controls the entire buffer.  vtable doesn't assume that---you can have
+a vtable in the middle of other data, or have several vtables in the
+same buffer.
+
+Here's just about the simplest vtable that can be created:
+
+@lisp
+(make-vtable
+ :objects '(("Foo" 1034)
+            ("Gazonk" 45)))
+@end lisp
+
+By default, vtable uses the @code{variable-pitch} font, and
+right-aligns columns that only have numerical data (and left-aligns
+the rest).
+
+You'd normally want to name the columns:
+
+@lisp
+(make-vtable
+ :columns '("Name" "ID")
+ :objects '(("Foo" 1034)
+            ("Gazonk" 45)))
+@end lisp
+
+Clicking on the column names will sort the table based on the data in
+each object (and in this example, each object is just a simple list).
+
+By default, the data is displayed ``as is'', that is, the way
+@samp{(format "%s" ...)} would display it, but you can override that.
+
+@lisp
+(make-vtable
+ :columns '("Name" "ID")
+ :objects '(("Foo" 1034)
+            ("Gazonk" 45))
+ :formatter (lambda (value column &rest _)
+              (if (= column 1)
+                  (file-size-human-readable value)
+                value)))
+@end lisp
+
+In this case, that @samp{1034} will be displayed as @samp{1k}---but
+will still sort after @samp{45}, because sorting is done on the actual
+data, and not the displayed data.
+
+Alternatively, instead of having a general formatter for the table,
+you can instead put the formatter in the column definition:
+
+@lisp
+(make-vtable
+ :columns '("Name"
+            (:name "ID" :formatter file-size-human-readable))
+ :objects '(("Foo" 1034)
+            ("Gazonk" 45)))
+@end lisp
+
+The data doesn't have to be simple lists---you can give any type of
+object to vtable, but then you also have to write a function that
+returns the data for each column.  For instance, here's a very simple
+version of @kbd{M-x list-buffers}:
+
+@lisp
+(make-vtable
+ :columns '("Name" "Size" "File")
+ :objects (buffer-list)
+ :actions '("k" kill-buffer
+            "RET" display-buffer)
+ :getter (lambda (object column vtable)
+           (pcase (vtable-column vtable column)
+             ("Name" (buffer-name object))
+             ("Size" (buffer-size object))
+             ("File" (or (buffer-file-name object) "")))))
+@end lisp
+
+@var{objects} in this case is a list of buffers.  To get the data to be
+displayed, vtable calls the @dfn{getter} function, which is called for
+each column of every object, and should return something suitable for
+display.
+
+Also note the @dfn{actions}: These are simple commands that will be
+called with the object under point.  So hitting @kbd{RET} on a line
+will result in @code{display-buffer} being called with a buffer object
+as the parameter.  (You can also supply a keymap to be used, but then
+you have to write commands that call @code{vtable-current-object} to
+get at the object.)
+
+Note that the actions aren't called with the data displayed in the
+buffer---they're called with the original objects.
+
+Finally, here's an example that uses just about all the features:
+
+@lisp
+(make-vtable
+ :columns `(( :name "Thumb" :width "500px"
+              :displayer
+              ,(lambda (value max-width table)
+                 (propertize "*" 'display
+                             (create-image value nil nil
+                                           :max-width max-width))))
+            (:name "Size" :width 10
+                   :formatter file-size-human-readable)
+            (:name "Time" :width 10 :primary ascend :direction 'descend)
+            "Name")
+ :objects-function (lambda ()
+                     (directory-files "~/pics/redslur/"
+                                      t "DSC0000[0-5].JPG"))
+ :actions '("RET" find-file)
+ :getter (lambda (object column table)
+           (pcase (vtable-column table column)
+             ("Name" (file-name-nondirectory object))
+             ("Thumb" object)
+             ("Size" (file-attribute-size (file-attributes object)))
+             ("Time" (format-time-string
+                      "%F" (file-attribute-modification-time
+                            (file-attributes object))))))
+ :separator-width 5
+ :keymap (define-keymap
+           "q" #'kill-buffer))
+@end lisp
+
+This vtable implements a simple image browser that displays image
+thumbnails (that change sizes dynamically depending on the width of
+the column), human-readable file sizes, date and file name.  The
+separator width is 5 typical characters wide.  Hitting @kbd{RET} on a
+line will open the image in a new window, and hitting @kbd{q} will
+kill a buffer.
+
+@node Concepts
+@chapter Concepts
+
+A vtable lists data about a number of @dfn{objects}.  Each object can
+be a list or a vector, but it can also be anything else.
+
+To get the @dfn{value} for a particular column, the @dfn{getter}
+function is called on the object.  If no getter function is defined,
+the default is to try to index the object as a sequence.  In any case,
+we end up with a value that is then used for sorting.
+
+This value is then @dfn{formatted} via a @dfn{formatter} function,
+which is called with the @dfn{value} as the argument.  The formatter
+commonly makes the value more reader friendly.
+
+Finally, the formatted value is passed to the @dfn{displayer}
+function, which is responsible for putting the table face on the
+formatted value, and also ensuring that it's not wider than the column
+width.  The displayer will commonly truncate too-long strings and
+scale image sizes.
+
+All these three transforms, the getter, the formatter and the display
+functions, can be defined on a per-column basis, and also on a
+per-table basis.  (The per-column transform takes precedence over the
+per-table transform.)
+
+User commands that are defined on a table does not work on the
+displayed data.  Instead they are called with the original object as
+the argument.
+
+@node Making A Table
+@chapter Making A Table
+
+@findex make-table
+The interface function for making (and optionally inserting a table
+into a buffer) is @code{make-table}.  It takes the following keyword
+parameters:
+
+@table @code
+@item :objects
+This is a list of objects to be displayed.  It should either be a list
+of strings (which will then be displayed as a single-column table), or
+a list where each element is a sequence containing a mixture of
+strings, number and other objects that can be displayed ``simply''.
+
+In the latter case, if @code{:columns} is non-@code{nil} and there's
+more elements in the sequence than there is in @code{:columns}, only
+the @code{:columns}th first elements are displayed.
+
+@item :objects-function
+It's often convenient to generate the objects dynamically (for
+instance, to make reversion work automatically).  In that case, this
+should be a function (which will be called with no arguments), and
+should return a value as accepted as an @code{:objects} list.
+
+@item :columns
+This is a list where each element is either a string (the column
+name), a plist of keyword/values (to make a @code{vtable-column}
+object), or a full @code{vtable-column} object.  A
+@code{vtable-column} object has the following slots:
+
+@table @code
+@item name
+The name of the column.
+
+@item width
+The width of the column.  This is either a number (the width of that
+many @samp{x} characters in the table's face), or a string on the form
+@samp{Xex}, where @var{x} is a number of @samp{x} characters, or a
+string on the form @samp{Xpx} (denoting a number of pixels), or a
+string on the form @samp{X%} (a percentage of the window's width).
+
+@item min-width
+This uses the same format as @code{width}, but specifies the minimum
+width (and overrides @code{width} is @code{width} is smaller than this.
+
+@item max-width
+This uses the same format as @code{width}, but specifies the maximum
+width (and overrides @code{width} is @code{width} is larger than this.
+@code{min-width}/@code{max-width} can be useful if @code{width} is
+given as a percentage of the window width, and you want to ensure that
+the column doesn't grow pointlessly large or unreadably narrow.
+
+@item primary
+Whether this is the primary column---this will be used for initial
+sorting.  This should be either @code{ascend} or @code{descend} to say
+which order the table should be sorted in.
+
+@item getter
+If present, this function will be called to return the column value.
+
+@defun column-getter object table
+It's called with two parameters: The object and the table.
+@end defun
+
+@item formatter
+If present, this function will be called to format the value.
+
+@defun column-formatter value
+It's called with one parameter: The column value.
+@end defun
+
+@item displayer
+If present, this function will be called to prepare the formatted
+value for display.  This function should return a string with the
+table face applied, and also limit the width of the string to the
+display width.
+
+@defun column-displayer fvalue max-width table
+@var{fvalue} is the formatted value; @var{max-width} is the maximum
+width (in pixels), and @var{table} is the table.
+@end defun
+
+@item align
+Should be either @code{right} or @code{left}.
+@end table
+
+@item :getter
+If given, this is a function that should return the values to use in
+the table, and will be called once for each element in the table
+(unless overridden by a column getter function).
+
+@defun getter object index table
+For a simple object (like a sequence), this function will typically
+just return the element corresponding to the column index, but the
+function can do any computation it wants.  If it's more convenient to
+write the function based on column names rather than the column index,
+the @code{vtable-column} function can be used to map from index to name.
+@end defun
+
+@item :formatter
+If present, this is a function that should format the value, and it
+will be called on all values in the table (unless overridden by a
+column formatter).
+
+@defun formatter value index table
+This function is called with three parameters: The value (as returned
+by the getter); the column index, and the table.  It can return any
+value.
+
+This can be used to (for instance) format numbers in a human-readable
+form.
+@end defun
+
+@item :displayer
+Before displaying an element, it's passed to the displaying function
+(if any).
+
+@defun displayer fvalue index max-width table
+This is called with four arguments: The formatted value of the element
+(as returned by the formatter function); the column index; the display
+width (in pixels); and the table.
+
+This function should return a string with the table face applied, and
+truncated to the display width.
+
+This can be used to (for instance) change the size of images that are
+displayed in the table.
+@end defun
+
+@item :use-header-line
+If non-@code{nil} (which is the default), use the Emacs header line
+machinery to display the column names.  This is the most common use
+case, but if there's other text in the buffer before the table, or
+there are several tables in the same buffer, then this should be
+@code{nil}.
+
+@item :face
+The face to be used.  This defaults to @code{variable-pitch}.  This
+face doesn't override the faces in the data, or supplied by the getter
+or formatter functions.
+
+@item :actions
+This uses the same syntax as @code{define-keymap}, but doesn't refer
+to commands directly.  Instead each key is bound to a command that
+picks out the current object, and then calls the function specified
+with that as the argument.
+
+@item :keymap
+This is a keymap used on the table.  The commands here are called as
+usual, and if they're supposed to work on the object displayed on the
+current line, they can use the @code{vtable-current-object} function
+to determine what that object is.
+
+@item :separator-width
+The blank space between columns.
+
+@item :sort-by
+This should be a list of tuples, and specifies how the table is to be
+sorted.  Each tuple should consist of an integer (the column index)
+and either @code{ascend} or @code{descend}.
+
+The table is first sorted by the first element in this list, and then
+the next, until the end is reached.
+
+@item :ellipsis
+By default, when shortening displayed values, an ellipsis will be
+shown.  If this is @code{nil}, no ellipsis is shown.  (The text to use
+as the ellipsis is determined by the @code{truncate-string-ellipsis}
+function.)
+
+@findex vtable-insert
+@item :insert
+By default, @code{make-vtable} will insert the table at point.  If this
+is @code{nil}, nothing is inserted, but the vtable object is returned,
+and you can insert it later with the @code{vtable-insert} function.
+@end table
+
+@node Commands
+@chapter Commands
+
+@table @kbd
+@item S
+Sort the table by the current column
+(@code{vtable-sort-by-current-column}).  Note that the table is sorted
+according to the data returned by the getter function, not by how it's
+displayed in the buffer.  Columns that have only numerical data is
+sorted as numbers, the rest are sorted as strings.
+
+@item @{
+Make the current column narrower
+(@code{vtable-narrow-current-column}).
+
+@item @}
+Make the current column wider
+(@code{vtable-widen-current-column}).
+
+@item M-<left>
+Move to the previous column (@code{vtable-previous-column}).
+
+@item M-<right>
+Move to the next column (@code{vtable-next-column}).
+
+@item g
+Regenerate the table (@code{vtable-revert-command}).  This command
+mostly makes sense if the table has a @code{:objects-function} that
+can fetch new data.
+@end table
+
+@node Interface Functions
+@chapter Interface Functions
+
+People writing modes based on vtable has to interact with the table in
+various ways---for instance, to write commands that updates an object
+and then displays the result.
+
+@defun vtable-current-table
+This function returns the table under point.
+@end defun
+
+@defun vtable-current-object
+This function returns the object on the current line.  (Note that this
+is the original object, and not the characters displayed in the
+buffer.)
+@end defun
+
+@defun vtable-current-column
+This function returns the column index of the column under point.
+@end defun
+
+@defun vtable-goto-table table
+Move point to the start of @var{table} and return the position.  If
+@var{table} can't be found in the current buffer, don't move point and
+return @code{nil}.
+@end defun
+
+@defun vtable-goto-object object
+Move point to the start of the line where @var{object} is displayed in
+the current table and return point.  If @var{object} can't be found,
+don't move point and return @code{nil}.
+@end defun
+
+@defun vtable-goto-column index
+Move point to the start of the @var{index}th column.  (The first
+column is numbered zero.)
+@end defun
+
+@defun vtable-beginning-of-table
+Move to the beginning of the current table.
+@end defun
+
+@defun vtable-end-of-table
+Move to the end of the current table.
+@end defun
+
+@defun vtable-remove-object table object
+Remove @var{object} from @var{table}.  This also updates the displayed
+table.
+@end defun
+
+@defun vtable-insert-object table object &optional after-object
+Insert @var{object} into @var{table}.  If @var{after-object}, insert
+the object after this object; otherwise append to @var{table}.  This
+also updates the displayed table.
+@end defun
+
+@defun vtable-update-object table object old-object
+Change @var{old-object} into @var{object} in @var{table}.  This also
+updates the displayed table.
+
+This has the same effect as calling @code{vtable-remove-object} and
+then @code{vtable-insert-object}, but is more efficient.
+@end defun
+
+@defun vtable-column table index
+Return the column name of the @var{index}th column in @var{table}.
+@end defun
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
+
+@node Index
+@unnumbered Index
+@printindex cp
+
+@bye
+
+@c todo up/down markers
