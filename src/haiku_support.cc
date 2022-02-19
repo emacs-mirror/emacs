@@ -582,7 +582,6 @@ public:
 	fullscreen_p = 0;
 	MakeFullscreen (1);
       }
-    this->Sync ();
     window->LinkChild (this);
 
     child_frame_lock.Unlock ();
@@ -914,7 +913,6 @@ public:
       DoMove (f);
     child_frame_lock.Unlock ();
 
-    Sync ();
     BWindow::FrameMoved (newPosition);
   }
 
