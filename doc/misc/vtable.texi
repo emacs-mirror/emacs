@@ -422,6 +422,11 @@ is @code{nil}, nothing is inserted, but the vtable object is returned,
 and you can insert it later with the @code{vtable-insert} function.
 @end table
 
+@code{make-table} returns a @code{vtable} object.  You can access the
+slots in that object by using accessor functions that have names based
+on the keywords described above.  For instance, to access the face,
+use @code{vtable-face}.
+
 @node Commands
 @chapter Commands
 @cindex vtable commands
