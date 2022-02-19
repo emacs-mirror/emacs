@@ -1169,6 +1169,13 @@ compute_found_effective (Lisp_Object found)
   return concat2 (src_name, build_string ("c"));
 }
 
+static void
+loadhist_initialize (Lisp_Object filename)
+{
+  eassert (STRINGP (filename));
+  specbind (Qcurrent_load_list, Fcons (filename, Qnil));
+}
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el', then try
@@ -1552,8 +1559,7 @@ Return t if the file exists and loads successfully.  */)
   if (is_module)
     {
 #ifdef HAVE_MODULES
-      specbind (Qcurrent_load_list, Qnil);
-      LOADHIST_ATTACH (found);
+      loadhist_initialize (found);
       Fmodule_load (found);
       build_load_history (found, true);
 #else
@@ -1564,8 +1570,7 @@ Return t if the file exists and loads successfully.  */)
   else if (is_native_elisp)
     {
 #ifdef HAVE_NATIVE_COMP
-      specbind (Qcurrent_load_list, Qnil);
-      LOADHIST_ATTACH (hist_file_name);
+      loadhist_initialize (hist_file_name);
       Fnative_elisp_load (found, Qnil);
       build_load_history (hist_file_name, true);
 #else
@@ -2197,7 +2202,6 @@ readevalloop (Lisp_Object readcharfun,
     emacs_abort ();
 
   specbind (Qstandard_input, readcharfun);
-  specbind (Qcurrent_load_list, Qnil);
   record_unwind_protect_int (readevalloop_1, load_convert_to_unibyte);
   load_convert_to_unibyte = !NILP (unibyte);
 
@@ -2215,7 +2219,7 @@ readevalloop (Lisp_Object readcharfun,
       && !NILP (sourcename) && !NILP (Ffile_name_absolute_p (sourcename)))
     sourcename = Fexpand_file_name (sourcename, Qnil);
 
-  LOADHIST_ATTACH (sourcename);
+  loadhist_initialize (sourcename);
 
   continue_reading_p = 1;
   while (continue_reading_p)
