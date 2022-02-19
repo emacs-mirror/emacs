@@ -15989,6 +15989,18 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #else
   dpyinfo->display->db = xrdb;
 #endif
+
+#ifdef HAVE_XRENDER
+  int event_base, error_base;
+  dpyinfo->xrender_supported_p
+    = XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+
+  if (dpyinfo->xrender_supported_p)
+    dpyinfo->xrender_supported_p
+      = XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
+			     &dpyinfo->xrender_minor);
+#endif
+
   /* Put the rdb where we can find it in a way that works on
      all versions.  */
   dpyinfo->rdb = xrdb;
@@ -16004,19 +16016,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
 #ifdef HAVE_XRENDER
-  int event_base, error_base;
-  dpyinfo->xrender_supported_p
-    = XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
-
-  if (dpyinfo->xrender_supported_p)
-    {
-      if (!XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
-				&dpyinfo->xrender_minor))
-	dpyinfo->xrender_supported_p = false;
-      else
-	dpyinfo->pict_format = XRenderFindVisualFormat (dpyinfo->display,
-							dpyinfo->visual);
-    }
+  if (dpyinfo->xrender_supported_p
+      /* This could already have been initialized by
+	 `select_visual'.  */
+      && !dpyinfo->pict_format)
+    dpyinfo->pict_format = XRenderFindVisualFormat (dpyinfo->display,
+						    dpyinfo->visual);
 #endif
 
 #ifdef HAVE_XSYNC

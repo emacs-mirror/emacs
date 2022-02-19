@@ -6574,28 +6574,45 @@ select_visual (struct x_display_info *dpyinfo)
 
       vinfo_template.screen = XScreenNumberOfScreen (screen);
 
-#if !defined USE_X_TOOLKIT && !(defined USE_GTK && !defined HAVE_GTK3)
-      /* First attempt to use 32-bit visual if available */
+#if !defined USE_X_TOOLKIT && !(defined USE_GTK && !defined HAVE_GTK3) \
+  && defined HAVE_XRENDER
+      int i;
+      XRenderPictFormat *format;
 
-      vinfo_template.depth = 32;
-      vinfo_template.class = TrueColor;
+      /* First attempt to find a visual with an alpha mask if
+	 available.  That information is only available when the
+	 render extension is present, and we cannot do much with such
+	 a visual if it isn't.  */
 
-      vinfo = XGetVisualInfo (dpy, (VisualScreenMask
-				    | VisualDepthMask
-				    | VisualClassMask),
-			      &vinfo_template, &n_visuals);
-
-      if (n_visuals > 0 && vinfo)
+      if (dpyinfo->xrender_supported_p)
 	{
-	  dpyinfo->n_planes = vinfo->depth;
-	  dpyinfo->visual = vinfo->visual;
-	  XFree (vinfo);
-	  return;
-	}
 
+	  vinfo = XGetVisualInfo (dpy, VisualScreenMask,
+				  &vinfo_template, &n_visuals);
+
+	  for (i = 0; i < n_visuals; ++i)
+	    {
+	      format = XRenderFindVisualFormat (dpy, vinfo[i].visual);
+
+	      if (format && format->type == PictTypeDirect
+		  && format->direct.alphaMask)
+		{
+		  dpyinfo->n_planes = vinfo[i].depth;
+		  dpyinfo->visual = vinfo[i].visual;
+		  dpyinfo->pict_format = format;
+
+		  XFree (vinfo);
+		  return;
+		}
+	    }
+
+	  if (vinfo)
+	    XFree (vinfo);
+	}
 #endif /* !USE_X_TOOLKIT */
 
-      /* 32-bit visual not available, fallback to default visual */
+      /* Visual with alpha channel (or the Render extension) not
+	 available, fallback to default visual.  */
       dpyinfo->visual = DefaultVisualOfScreen (screen);
       vinfo_template.visualid = XVisualIDFromVisual (dpyinfo->visual);
       vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
@@ -8091,7 +8108,8 @@ Text larger than the specified size is clipped.  */)
 			     FRAME_DISPLAY_INFO (f)->root_window,
 			     FRAME_DISPLAY_INFO (f)->root_window,
 			     root_x, root_y, &dest_x_return,
-			     &dest_y_return, &child))
+			     &dest_y_return, &child)
+      && child != None)
     {
       /* But only if the child is not override-redirect, which can
 	 happen if the pointer is above a menu.  */
