@@ -474,21 +474,41 @@ This also updates the displayed table."
       (when (eq direction 'descend)
         (setcar cache (nreverse (car cache)))))))
 
+(defun vtable--indicator (table index)
+  (let ((order (car (last (vtable-sort-by table)))))
+    (if (eq index (car order))
+        ;; We're sorting by this column last, so return an indicator.
+        (catch 'found
+          (dolist (candidate (nth (if (eq (cdr order) 'ascend)
+                                      1
+                                    0)
+                                  '((?▼ ?v)
+                                    (?▲ ?^))))
+            (when (char-displayable-p candidate)
+              (throw 'found (string candidate)))))
+      "")))
+
 (defun vtable--insert-header-line (table widths spacer)
   ;; Insert the header directly into the buffer.
-  (let ((start (point)))
+  (let* ((start (point)))
     (seq-do-indexed
      (lambda (column index)
-       (let ((name (propertize
-                    (vtable-column-name column)
-                    'face (list 'header-line (vtable-face table))))
-             (start (point))
-             displayed)
+       (let* ((name (propertize
+                     (vtable-column-name column)
+                     'face (list 'header-line (vtable-face table))))
+              (start (point))
+              (indicator (vtable--indicator table index))
+              (indicator-width (string-pixel-width indicator))
+              displayed)
          (insert
           (setq displayed
-                (if (> (string-pixel-width name) (elt widths index))
-                    (vtable--limit-string name (elt widths index))
-                  name))
+                (concat
+                 (if (> (string-pixel-width name)
+                        (- (elt widths index) indicator-width))
+                     (vtable--limit-string
+                      name (- (elt widths index) indicator-width))
+                   name)
+                 indicator))
           (propertize " " 'display
                       (list 'space :width
                             (list (+ (- (elt widths index)

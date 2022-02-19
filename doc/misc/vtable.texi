@@ -517,5 +517,3 @@ Return the column name of the @var{index}th column in @var{table}.
 @printindex cp
 
 @bye
-
-@c todo up/down markers
