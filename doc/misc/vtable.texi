@@ -181,8 +181,7 @@ Finally, here's an example that uses just about all the features:
             (:name "Time" :width 10 :primary ascend :direction 'descend)
             "Name")
  :objects-function (lambda ()
-                     (directory-files "~/pics/redslur/"
-                                      t "DSC0000[0-5].JPG"))
+                     (directory-files "/tmp/" t "\\.jpg\\'"))
  :actions '("RET" find-file)
  :getter (lambda (object column table)
            (pcase (vtable-column table column)
