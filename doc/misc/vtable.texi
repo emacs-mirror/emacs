@@ -89,7 +89,7 @@ Here's just about the simplest vtable that can be created:
 @end lisp
 
 By default, vtable uses the @code{variable-pitch} font, and
-right-aligns columns that only have numerical data (and left-aligns
+right-aligns columns that have only numerical data (and left-aligns
 the rest).
 
 You'd normally want to name the columns:
@@ -102,7 +102,8 @@ You'd normally want to name the columns:
 @end lisp
 
 Clicking on the column names will sort the table based on the data in
-each object (and in this example, each object is just a simple list).
+each column (which, in this example, corresponds to an element in a
+list).
 
 By default, the data is displayed ``as is'', that is, the way
 @samp{(format "%s" ...)} would display it, but you can override that.
@@ -123,7 +124,7 @@ will still sort after @samp{45}, because sorting is done on the actual
 data, and not the displayed data.
 
 Alternatively, instead of having a general formatter for the table,
-you can instead put the formatter in the column definition:
+you can put the formatter in the column definition:
 
 @lisp
 (make-vtable
@@ -151,10 +152,10 @@ version of @kbd{M-x list-buffers}:
              ("File" (or (buffer-file-name object) "")))))
 @end lisp
 
-@var{objects} in this case is a list of buffers.  To get the data to be
-displayed, vtable calls the @dfn{getter} function, which is called for
-each column of every object, and should return something suitable for
-display.
+@var{objects} in this case is a list of buffers.  To get the data to
+be displayed, vtable calls the @dfn{getter} function, which is called
+for each column of every object, and which should return the data that
+will eventually be displayed.
 
 Also note the @dfn{actions}: These are simple commands that will be
 called with the object under point.  So hitting @kbd{@key{RET}} on a line
@@ -178,7 +179,7 @@ Finally, here's an example that uses just about all the features:
                                            :max-width max-width))))
             (:name "Size" :width 10
                    :formatter file-size-human-readable)
-            (:name "Time" :width 10 :primary ascend :direction 'descend)
+            (:name "Time" :width 10 :primary ascend)
             "Name")
  :objects-function (lambda ()
                      (directory-files "/tmp/" t "\\.jpg\\'"))
