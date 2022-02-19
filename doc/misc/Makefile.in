@@ -74,7 +74,7 @@ INFO_COMMON = auth autotype bovine calc ccmode cl \
 	mairix-el message mh-e modus-themes newsticker nxml-mode octave-mode \
 	org pcl-cvs pgg rcirc remember reftex sasl \
 	sc semantic ses sieve smtpmail speedbar srecode todo-mode transient \
-	tramp url vhdl-mode vip viper widget wisent woman
+	tramp url vhdl-mode vip viper vtable widget wisent woman
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)

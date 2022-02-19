@@ -3,6 +3,10 @@
 @setfilename ../../info/vtable.info
 @settitle Variable Pitch Tables
 @include docstyle.texi
+@c Merge all indexes into a single Index node.
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
 @c %**end of header
 
 @copying
@@ -63,16 +67,16 @@ Indices
 @end menu
 
 @node Introduction
-@chapter Introduction
+@chapter Introduction and Tutorial
 
 Most modes that display tabular data in Emacs use
 @code{tabulated-list-mode}, but it has some limitations: It assumes
 that the text it's displaying is monospaced, which makes it difficult
-to mix fonts and images in a single list.  The @dfn{vtable} (variable
-pitch tables) package tackles this instead.
+to mix fonts and images in a single list.  The @dfn{vtable} (``variable
+pitch tables'') package tackles this instead.
 
 @code{tabulated-list-mode} is a major mode, and assumes that it
-controls the entire buffer.  vtable doesn't assume that---you can have
+controls the entire buffer.  A vtable doesn't assume that---you can have
 a vtable in the middle of other data, or have several vtables in the
 same buffer.
 
@@ -153,7 +157,7 @@ each column of every object, and should return something suitable for
 display.
 
 Also note the @dfn{actions}: These are simple commands that will be
-called with the object under point.  So hitting @kbd{RET} on a line
+called with the object under point.  So hitting @kbd{@key{RET}} on a line
 will result in @code{display-buffer} being called with a buffer object
 as the parameter.  (You can also supply a keymap to be used, but then
 you have to write commands that call @code{vtable-current-object} to
@@ -196,25 +200,29 @@ Finally, here's an example that uses just about all the features:
 This vtable implements a simple image browser that displays image
 thumbnails (that change sizes dynamically depending on the width of
 the column), human-readable file sizes, date and file name.  The
-separator width is 5 typical characters wide.  Hitting @kbd{RET} on a
+separator width is 5 typical characters wide.  Hitting @kbd{@key{RET}} on a
 line will open the image in a new window, and hitting @kbd{q} will
 kill a buffer.
 
 @node Concepts
 @chapter Concepts
 
+@cindex vtable
 A vtable lists data about a number of @dfn{objects}.  Each object can
 be a list or a vector, but it can also be anything else.
 
+@cindex getter of a vtable
 To get the @dfn{value} for a particular column, the @dfn{getter}
 function is called on the object.  If no getter function is defined,
 the default is to try to index the object as a sequence.  In any case,
 we end up with a value that is then used for sorting.
 
+@cindex formatter of a vtable
 This value is then @dfn{formatted} via a @dfn{formatter} function,
 which is called with the @dfn{value} as the argument.  The formatter
 commonly makes the value more reader friendly.
 
+@cindex displayer of a vtable
 Finally, the formatted value is passed to the @dfn{displayer}
 function, which is responsible for putting the table face on the
 formatted value, and also ensuring that it's not wider than the column
@@ -233,9 +241,9 @@ the argument.
 @node Making A Table
 @chapter Making A Table
 
-@findex make-table
+@findex make-vtable
 The interface function for making (and optionally inserting a table
-into a buffer) is @code{make-table}.  It takes the following keyword
+into a buffer) is @code{make-vtable}.  It takes the following keyword
 parameters:
 
 @table @code
@@ -243,11 +251,11 @@ parameters:
 This is a list of objects to be displayed.  It should either be a list
 of strings (which will then be displayed as a single-column table), or
 a list where each element is a sequence containing a mixture of
-strings, number and other objects that can be displayed ``simply''.
+strings, numbers, and other objects that can be displayed ``simply''.
 
 In the latter case, if @code{:columns} is non-@code{nil} and there's
 more elements in the sequence than there is in @code{:columns}, only
-the @code{:columns}th first elements are displayed.
+the @code{:columns} first elements are displayed.
 
 @item :objects-function
 It's often convenient to generate the objects dynamically (for
@@ -268,17 +276,17 @@ The name of the column.
 @item width
 The width of the column.  This is either a number (the width of that
 many @samp{x} characters in the table's face), or a string on the form
-@samp{Xex}, where @var{x} is a number of @samp{x} characters, or a
-string on the form @samp{Xpx} (denoting a number of pixels), or a
+@samp{Xe@var{x}}, where @var{x} is a number of @samp{x} characters, or a
+string on the form @samp{Xp@var{x}} (denoting a number of pixels), or a
 string on the form @samp{X%} (a percentage of the window's width).
 
 @item min-width
 This uses the same format as @code{width}, but specifies the minimum
-width (and overrides @code{width} is @code{width} is smaller than this.
+width (and overrides @code{width} if @code{width} is smaller than this.
 
 @item max-width
 This uses the same format as @code{width}, but specifies the maximum
-width (and overrides @code{width} is @code{width} is larger than this.
+width (and overrides @code{width} if @code{width} is larger than this.
 @code{min-width}/@code{max-width} can be useful if @code{width} is
 given as a percentage of the window width, and you want to ensure that
 the column doesn't grow pointlessly large or unreadably narrow.
@@ -286,20 +294,20 @@ the column doesn't grow pointlessly large or unreadably narrow.
 @item primary
 Whether this is the primary column---this will be used for initial
 sorting.  This should be either @code{ascend} or @code{descend} to say
-which order the table should be sorted in.
+in which order the table should be sorted.
 
 @item getter
 If present, this function will be called to return the column value.
 
 @defun column-getter object table
-It's called with two parameters: The object and the table.
+It's called with two parameters: the object and the table.
 @end defun
 
 @item formatter
 If present, this function will be called to format the value.
 
 @defun column-formatter value
-It's called with one parameter: The column value.
+It's called with one parameter: the column value.
 @end defun
 
 @item displayer
@@ -323,8 +331,9 @@ the table, and will be called once for each element in the table
 (unless overridden by a column getter function).
 
 @defun getter object index table
+@c FIXME: Describe the arguments.
 For a simple object (like a sequence), this function will typically
-just return the element corresponding to the column index, but the
+just return the element corresponding to the column index (zero-based), but the
 function can do any computation it wants.  If it's more convenient to
 write the function based on column names rather than the column index,
 the @code{vtable-column} function can be used to map from index to name.
@@ -336,7 +345,8 @@ will be called on all values in the table (unless overridden by a
 column formatter).
 
 @defun formatter value index table
-This function is called with three parameters: The value (as returned
+@c FIXME: The arguments are named, but not explained.  E.g., what is TABLE?
+This function is called with three parameters: the value (as returned
 by the getter); the column index, and the table.  It can return any
 value.
 
@@ -349,7 +359,7 @@ Before displaying an element, it's passed to the displaying function
 (if any).
 
 @defun displayer fvalue index max-width table
-This is called with four arguments: The formatted value of the element
+This is called with four arguments: the formatted value of the element
 (as returned by the formatter function); the column index; the display
 width (in pixels); and the table.
 
@@ -361,16 +371,16 @@ displayed in the table.
 @end defun
 
 @item :use-header-line
-If non-@code{nil} (which is the default), use the Emacs header line
-machinery to display the column names.  This is the most common use
+If non-@code{nil} (which is the default), display the column names on
+the header line.  This is the most common use
 case, but if there's other text in the buffer before the table, or
 there are several tables in the same buffer, then this should be
 @code{nil}.
 
 @item :face
 The face to be used.  This defaults to @code{variable-pitch}.  This
-face doesn't override the faces in the data, or supplied by the getter
-or formatter functions.
+face doesn't override the faces in the data, or the faces supplied by
+the getter and formatter functions.
 
 @item :actions
 This uses the same syntax as @code{define-keymap}, but doesn't refer
@@ -382,10 +392,10 @@ with that as the argument.
 This is a keymap used on the table.  The commands here are called as
 usual, and if they're supposed to work on the object displayed on the
 current line, they can use the @code{vtable-current-object} function
-to determine what that object is.
+(@pxref{Interface Functions}) to determine what that object is.
 
 @item :separator-width
-The blank space between columns.
+The width of the blank space between columns.
 
 @item :sort-by
 This should be a list of tuples, and specifies how the table is to be
@@ -410,29 +420,39 @@ and you can insert it later with the @code{vtable-insert} function.
 
 @node Commands
 @chapter Commands
+@cindex vtable commands
+
+@c FIXME: Some introductory text is in order?  Commands where?
 
 @table @kbd
+@findex vtable-sort-by-current-column
 @item S
 Sort the table by the current column
 (@code{vtable-sort-by-current-column}).  Note that the table is sorted
-according to the data returned by the getter function, not by how it's
+according to the data returned by the getter function (@pxref{Making A
+Table}), not by how it's
 displayed in the buffer.  Columns that have only numerical data is
 sorted as numbers, the rest are sorted as strings.
 
+@findex vtable-narrow-current-column
 @item @{
 Make the current column narrower
 (@code{vtable-narrow-current-column}).
 
+@findex vtable-widen-current-column
 @item @}
 Make the current column wider
 (@code{vtable-widen-current-column}).
 
+@findex vtable-previous-column
 @item M-<left>
 Move to the previous column (@code{vtable-previous-column}).
 
+@findex vtable-next-column
 @item M-<right>
 Move to the next column (@code{vtable-next-column}).
 
+@findex vtable-revert-command
 @item g
 Regenerate the table (@code{vtable-revert-command}).  This command
 mostly makes sense if the table has a @code{:objects-function} that
@@ -442,9 +462,12 @@ can fetch new data.
 @node Interface Functions
 @chapter Interface Functions
 
-People writing modes based on vtable has to interact with the table in
-various ways---for instance, to write commands that updates an object
-and then displays the result.
+If you need to write a mode based on vtable, you will have to interact
+with the table in
+various ways---for instance, you'll need to write commands that
+updates an object
+and then displays the result.  This chapter describes functions for
+such interaction.
 
 @defun vtable-current-table
 This function returns the table under point.
@@ -452,7 +475,7 @@ This function returns the table under point.
 
 @defun vtable-current-object
 This function returns the object on the current line.  (Note that this
-is the original object, and not the characters displayed in the
+is the original object, not the characters displayed in the
 buffer.)
 @end defun
 
@@ -468,7 +491,7 @@ return @code{nil}.
 
 @defun vtable-goto-object object
 Move point to the start of the line where @var{object} is displayed in
-the current table and return point.  If @var{object} can't be found,
+the current table and return the position.  If @var{object} can't be found,
 don't move point and return @code{nil}.
 @end defun
 
