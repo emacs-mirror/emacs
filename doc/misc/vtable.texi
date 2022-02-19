@@ -242,8 +242,15 @@ the argument.
 
 @findex make-vtable
 The interface function for making (and optionally inserting a table
-into a buffer) is @code{make-vtable}.  It takes the following keyword
-parameters:
+into a buffer) is @code{make-vtable}.  It returns a table object.
+
+The keyword parameters are described below.
+
+There are many callback interface functions possible in
+@code{make-vtable}, and many of them take a @var{object} argument (an
+object from the @code{:objects} list), a column index argument (an
+integer starting at zero), and a table argument (the object returned
+by @code{make-vtable}).
 
 @table @code
 @item :objects
@@ -330,7 +337,6 @@ the table, and will be called once for each element in the table
 (unless overridden by a column getter function).
 
 @defun getter object index table
-@c FIXME: Describe the arguments.
 For a simple object (like a sequence), this function will typically
 just return the element corresponding to the column index (zero-based), but the
 function can do any computation it wants.  If it's more convenient to
@@ -344,7 +350,6 @@ will be called on all values in the table (unless overridden by a
 column formatter).
 
 @defun formatter value index table
-@c FIXME: The arguments are named, but not explained.  E.g., what is TABLE?
 This function is called with three parameters: the value (as returned
 by the getter); the column index, and the table.  It can return any
 value.
@@ -421,7 +426,7 @@ and you can insert it later with the @code{vtable-insert} function.
 @chapter Commands
 @cindex vtable commands
 
-@c FIXME: Some introductory text is in order?  Commands where?
+When point is placed on a vtable, the following keys are bound:
 
 @table @kbd
 @findex vtable-sort-by-current-column
