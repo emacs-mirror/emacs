@@ -6095,29 +6095,15 @@ xg_im_context_commit (GtkIMContext *imc, gchar *str,
 {
   struct frame *f = user_data;
   struct input_event ie;
-  gunichar *ucs4_str;
 
-  ucs4_str = g_utf8_to_ucs4_fast (str, -1, NULL);
+  EVENT_INIT (ie);
+  ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+  ie.arg = build_unibyte_string (str);
+  XSETFRAME (ie.frame_or_window, f);
+  ie.modifiers = 0;
+  ie.timestamp = 0;
 
-  if (!ucs4_str)
-    return;
-
-  for (gunichar *c = ucs4_str; *c; c++)
-    {
-      EVENT_INIT (ie);
-      ie.kind = (SINGLE_BYTE_CHAR_P (*c)
-		 ? ASCII_KEYSTROKE_EVENT
-		 : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-      ie.arg = Qnil;
-      ie.code = *c;
-      XSETFRAME (ie.frame_or_window, f);
-      ie.modifiers = 0;
-      ie.timestamp = 0;
-
-      kbd_buffer_store_event (&ie);
-    }
-
-  g_free (ucs4_str);
+  kbd_buffer_store_event (&ie);
 }
 
 static void
