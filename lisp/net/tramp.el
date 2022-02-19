@@ -315,13 +315,19 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
   * `tramp-connection-timeout'
     This is the maximum time to be spent for establishing a connection.
     In general, the global default value shall be used, but for
-    some methods, like \"su\" or \"sudo\", a shorter timeout
-    might be desirable.
+    some methods, like \"doas\", \"su\" or \"sudo\", a shorter
+    timeout might be desirable.
 
   * `tramp-session-timeout'
     How long a Tramp connection keeps open before being disconnected.
-    This is useful for methods like \"su\" or \"sudo\", which
+    This is useful for methods like \"doas\" or \"sudo\", which
     shouldn't run an open connection in the background forever.
+
+  * `tramp-password-previous-hop'
+    The password for this connection is the same like the
+    password for the previous hop.  If there is no previous hop,
+    the password of the local user is applied.  This is needed
+    for methods like \"doas\", \"sudo\" or \"sudoedit\".
 
   * `tramp-case-insensitive'
     Whether the remote file system handles file names case insensitive.
@@ -1426,6 +1432,11 @@ calling HANDLER.")
 (put #'tramp-file-name-port 'tramp-suppress-trace t)
 (put #'tramp-file-name-localname 'tramp-suppress-trace t)
 (put #'tramp-file-name-hop 'tramp-suppress-trace t)
+
+;; Needed for `tramp-read-passwd' and `tramp-get-remote-null-device'.
+(defconst tramp-null-hop
+  (make-tramp-file-name :user (user-login-name) :host tramp-system-name)
+"Connection hop which identifies the virtual hop before the first one.")
 
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
@@ -5938,8 +5949,8 @@ name of a process or buffer, or nil to default to the current buffer."
 
 (defun tramp-get-remote-null-device (vec)
   "Return null device on the remote host identified by VEC.
-If VEC is nil, return local null device."
-  (if (null vec)
+If VEC is nil or `tramp-null-hop', return local null device."
+  (if (or (null vec) (equal vec tramp-null-hop))
       null-device
     (with-tramp-connection-property vec "null-device"
       (let ((default-directory (tramp-make-tramp-file-name vec)))

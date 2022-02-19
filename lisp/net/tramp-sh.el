@@ -301,7 +301,8 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-connection-timeout   10)
-                (tramp-session-timeout      300)))
+                (tramp-session-timeout      300)
+		(tramp-password-previous-hop t)))
  (add-to-list 'tramp-methods
               `("doas"
                 (tramp-login-program        "doas")
@@ -309,7 +310,8 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-connection-timeout   10)
-                (tramp-session-timeout      300)))
+                (tramp-session-timeout      300)
+		(tramp-password-previous-hop t)))
  (add-to-list 'tramp-methods
               `("ksu"
                 (tramp-login-program        "ksu")
@@ -5005,8 +5007,7 @@ connection if a previous connection has died for some reason."
                 (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)
 		     (target-alist (tramp-compute-multi-hops vec))
-		     ;; Needed for `tramp-get-remote-null-device'.
-		     (previous-hop nil)
+		     (previous-hop tramp-null-hop)
 		     ;; We will apply `tramp-ssh-controlmaster-options'
 		     ;; only for the first hop.
 		     (options (tramp-ssh-controlmaster-options vec))
@@ -5091,9 +5092,14 @@ connection if a previous connection has died for some reason."
 		    ;; Set password prompt vector.
 		    (tramp-set-connection-property
 		     p "password-vector"
-		     (make-tramp-file-name
-		      :method l-method :user l-user :domain l-domain
-		      :host l-host :port l-port))
+		     (if (tramp-get-method-parameter
+			  hop 'tramp-password-previous-hop)
+			 (let ((pv (copy-tramp-file-name previous-hop)))
+			   (setf (tramp-file-name-method pv) l-method)
+			   pv)
+		       (make-tramp-file-name
+			:method l-method :user l-user :domain l-domain
+			:host l-host :port l-port)))
 
 		    ;; Set session timeout.
 		    (when (tramp-get-method-parameter

@@ -45,7 +45,8 @@
  (add-to-list 'tramp-methods
               `(,tramp-sudoedit-method
                 (tramp-sudo-login (("sudo") ("-u" "%u") ("-S") ("-H")
-			           ("-p" "Password:") ("--")))))
+			           ("-p" "Password:") ("--")))
+		(tramp-password-previous-hop t)))
 
  (add-to-list 'tramp-default-user-alist '("\\`sudoedit\\'" nil "root"))
 
@@ -167,6 +168,12 @@ arguments to pass to the OPERATION."
 (tramp--with-startup
  (tramp-register-foreign-file-name-handler
   #'tramp-sudoedit-file-name-p #'tramp-sudoedit-file-name-handler))
+
+;; Needed for `tramp-read-passwd'.
+(defconst tramp-sudoedit-null-hop
+  (make-tramp-file-name
+   :method tramp-sudoedit-method :user (user-login-name) :host tramp-system-name)
+"Connection hop which identifies the virtual hop before the first one.")
 
 
 ;; File name primitives.
@@ -825,6 +832,7 @@ in case of error, t otherwise."
       (process-put p 'vector vec)
       (process-put p 'adjust-window-size-function #'ignore)
       (set-process-query-on-exit-flag p nil)
+      (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))
       (prog1

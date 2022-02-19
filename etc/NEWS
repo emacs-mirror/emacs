@@ -73,7 +73,7 @@ and Broadway.  We do not recommend that you use this configuration,
 unless you are running a window system that's supported by GDK other
 than X.  Running this configuration on X is known to have problems,
 such as undesirable frame positioning and various issues with keyboard
-input of sequences such as "C-;" and "C-S-u".
+input of sequences such as 'C-;' and 'C-S-u'.
 
 ---
 ** The docstrings of preloaded files are not in "etc/DOC" any more.
@@ -523,7 +523,7 @@ This uses the Tai Tham script, whose support has been enhanced.
 ---
 ** 'savehist.el' can now truncate variables that are too long.
 An element of 'savehist-additional-variables' can now be of the form
-(VARIABLE . MAX-ELTS), which means to truncate the VARIABLE's value to
+'(VARIABLE . MAX-ELTS)', which means to truncate the VARIABLE's value to
 at most MAX-ELTS elements (if the value is a list) before saving the
 value.
 
@@ -961,6 +961,13 @@ will abbreviate the user's home directory, for example by abbreviating
 When set to non-nil, Tramp does not copy files between two remote
 hosts via a local copy in its temporary directory, but let the 'scp'
 command do this job.
+
++++
+*** Proper password prompts for methods "doas", "sudo" and "sudoedit".
+The password prompts for these methods reflect now the credentials of
+the user requesting such a connection, and not of the user who is the
+target.  This has always been needed, just the password prompt and the
+related 'auth-sources' entry were wrong.
 
 ** Browse URL
 
