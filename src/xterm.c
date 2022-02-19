@@ -689,7 +689,7 @@ x_get_scroll_valuator_delta (struct x_display_info *dpyinfo, int device_id,
     {
       struct xi_device_t *device = &dpyinfo->devices[i];
 
-      if (device->device_id == device_id && device->master_p)
+      if (device->device_id == device_id)
 	{
 	  for (int j = 0; j < device->scroll_valuator_count; ++j)
 	    {
@@ -803,7 +803,7 @@ xi_reset_scroll_valuators_for_device_id (struct x_display_info *dpyinfo, int id,
   struct xi_device_t *device = xi_device_from_id (dpyinfo, id);
   struct xi_scroll_valuator_t *valuator;
 
-  if (!device || !device->master_p)
+  if (!device)
     return;
 
   if (!device->scroll_valuator_count)
@@ -11314,7 +11314,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
-	      if (!device || !device->master_p)
+	      if (!device)
 		goto XI_OTHER;
 
 	      bv.button = xev->detail;
@@ -11487,7 +11487,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
-	      if (!device || !device->master_p)
+	      if (!device)
 		goto XI_OTHER;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -12132,7 +12132,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
 
-	      if (!device || !device->master_p)
+	      if (!device)
 		goto XI_OTHER;
 
 #ifdef HAVE_XWIDGETS
