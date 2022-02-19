@@ -160,7 +160,8 @@ string), this heuristic is used to determine how far before and after
 point we should search in looking for a region separator.  Larger
 values can mean slower performance in large files, although smaller
 values may cause unexpected behavior at times."
-  :type 'integer
+  :type '(choice (const :tag "Don't use heuristic when aligning a region" nil)
+                 integer)
   :group 'align)
 
 (defcustom align-highlight-change-face 'highlight
@@ -176,7 +177,7 @@ values may cause unexpected behavior at times."
 (defcustom align-large-region 10000
   "If an integer, defines what constitutes a \"large\" region.
 If nil, then no messages will ever be printed to the minibuffer."
-  :type 'integer
+  :type '(choice (const :tag "Align a large region silently" nil) integer)
   :group 'align)
 
 (defcustom align-c++-modes '(c++-mode c-mode java-mode)
@@ -356,11 +357,11 @@ The possible settings for `align-region-separate' are:
 	     (cons :tag "Valid"
 		   (const :tag "(Return non-nil if rule is valid)"
 			  valid)
-		   (function :value t))
+		   (function :value always))
 	     (cons :tag "Run If"
 		   (const :tag "(Return non-nil if rule should run)"
 			  run-if)
-		   (function :value t))
+		   (function :value always))
 	     (cons :tag "Column"
 		   (const :tag "(Column to fix alignment at)" column)
 		   (choice :value comment-column
