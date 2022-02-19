@@ -3532,12 +3532,16 @@ It reads a directory name from an editable text field."
 (define-widget 'key 'editable-field
   "A key sequence."
   :prompt-value 'widget-field-prompt-value
-  :match 'key-valid-p
+  :match #'widget-key-valid-p
   :format "%{%t%}: %v"
   :validate 'widget-key-validate
   :keymap widget-key-sequence-map
   :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
   :tag "Key")
+
+(defun widget-key-valid-p (_widget value)
+  "Non-nil if VALUE is a valid value for the key widget WIDGET."
+  (key-valid-p value))
 
 (defun widget-key-validate (widget)
   (unless (and (stringp (widget-value widget))
