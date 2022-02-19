@@ -673,6 +673,12 @@ haiku_create_frame (Lisp_Object parms)
 
   FRAME_RIF (f)->default_font_parameter (f, parms);
 
+  if (!FRAME_FONT (f))
+    {
+      delete_frame (frame, Qnoelisp);
+      error ("Invalid frame font");
+    }
+
   gui_default_parameter (f, parms, Qborder_width, make_fixnum (0),
                          "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (2),
@@ -682,9 +688,9 @@ haiku_create_frame (Lisp_Object parms)
 			 "childFrameBorderWidth", "childFrameBorderWidth",
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
-		       NULL, NULL, RES_TYPE_NUMBER);
+			 NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
-		       NULL, NULL, RES_TYPE_NUMBER);
+			 NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qvertical_scroll_bars, Qt,
 			 "verticalScrollBars", "VerticalScrollBars",
 			 RES_TYPE_SYMBOL);
