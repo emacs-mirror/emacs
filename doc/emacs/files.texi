@@ -1467,8 +1467,8 @@ specified buffers.
   The command @kbd{M-x compare-windows} compares the text in the
 current window with that in the window that was the selected window
 before you selected the current one.  (For more information about
-windows in Emacs, @ref{Windows}.)  Comparison starts at point in each
-window, after pushing each initial point value on the mark ring
+windows in Emacs, @pxref{Windows}.)  Comparison starts at point in
+each window, after pushing each initial point value on the mark ring
 (@pxref{Mark Ring}) in its respective buffer.  Then it moves point
 forward in each window, one character at a time, until it reaches
 characters that don't match.  Then the command exits.
