@@ -2043,7 +2043,7 @@ connection."
                        rcirc-log-process-buffers))
           (rcirc-log process sender response target text))
 
-        (sleep-for 0)			; displayed text before hook
+        (sit-for 0)			; displayed text before hook
         (run-hook-with-args 'rcirc-print-functions
                             process sender response target text)))))
 
