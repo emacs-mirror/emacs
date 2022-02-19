@@ -748,9 +748,8 @@ Argument FN is the function calling this verifier."
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-slot-names))))
                  (macroexp-warn-and-return
-                  name
                   (format-message "Unknown slot `%S'" name)
-                  exp nil 'compile-only))
+                  exp nil 'compile-only name))
                 (_ exp))))
            (gv-setter eieio-oset))
   (cl-check-type slot symbol)
@@ -785,15 +784,13 @@ Fills in CLASS's SLOT with its default value."
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-slot-names))))
                  (macroexp-warn-and-return
-                  name
                   (format-message "Unknown slot `%S'" name)
-                  exp nil 'compile-only))
+                  exp nil 'compile-only name))
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-class-slot-names))))
                  (macroexp-warn-and-return
-                  name
                   (format-message "Slot `%S' is not class-allocated" name)
-                  exp nil 'compile-only))
+                  exp nil 'compile-only name))
                 (_ exp)))))
   (cl-check-type class (or eieio-object class))
   (cl-check-type slot symbol)
@@ -849,15 +846,13 @@ Fills in the default value in CLASS' in SLOT with VALUE."
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-slot-names))))
                  (macroexp-warn-and-return
-                  name
                   (format-message "Unknown slot `%S'" name)
-                  exp nil 'compile-only))
+                  exp nil 'compile-only name))
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-class-slot-names))))
                  (macroexp-warn-and-return
-                  name
                   (format-message "Slot `%S' is not class-allocated" name)
-                  exp nil 'compile-only))
+                  exp nil 'compile-only name))
                 (_ exp)))))
   (setq class (eieio--class-object class))
   (cl-check-type class eieio--class)

@@ -499,7 +499,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
              lambda-doc                 ; documentation string
              def-body)))                ; part to be debugged
   (let ((qualifiers nil)
-        (org-name name))
+        (orig-name name))
     (while (cl-generic--method-qualifier-p args)
       (push args qualifiers)
       (setq args (pop body)))
@@ -514,9 +514,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                    (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
                  (macroexp-warn-and-return
-                  org-name
                   (macroexp--obsolete-warning name obsolete "generic function")
-                  nil)))
+                  nil nil nil orig-name)))
          ;; You could argue that `defmethod' modifies rather than defines the
          ;; function, so warnings like "not known to be defined" are fair game.
          ;; But in practice, it's common to use `cl-defmethod'

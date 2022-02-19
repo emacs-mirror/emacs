@@ -160,14 +160,14 @@ Other uses risk returning non-nil value that point to the wrong file."
 
 (define-obsolete-function-alias 'macroexp--warn-and-return
   #'macroexp-warn-and-return "28.1")
-(defun macroexp-warn-and-return (arg msg form &optional category compile-only)
+(defun macroexp-warn-and-return (msg form &optional category compile-only arg)
   "Return code equivalent to FORM labeled with warning MSG.
-ARG is a symbol (or a form) giving the source code position of FORM
-for the message.  It should normally be a symbol with position.
 CATEGORY is the category of the warning, like the categories that
 can appear in `byte-compile-warnings'.
 COMPILE-ONLY non-nil means no warning should be emitted if the code
-is executed without being compiled first."
+is executed without being compiled first.
+ARG is a symbol (or a form) giving the source code position for the message.
+It should normally be a symbol with position and it defaults to FORM."
   (cond
    ((null msg) form)
    ((macroexp-compiling-p)
@@ -177,7 +177,7 @@ is executed without being compiled first."
         ;; macroexpand-all gets right back to macroexpanding `form'.
         form
       (puthash form form macroexp--warned)
-      (macroexp--warn-wrap arg msg form category)))
+      (macroexp--warn-wrap (or arg form) msg form category)))
    (t
     (unless compile-only
       (message "%sWarning: %s"
@@ -233,12 +233,11 @@ is executed without being compiled first."
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp-warn-and-return
-           fun
            (macroexp--obsolete-warning
             fun obsolete
             (if (symbolp (symbol-function fun))
                 "alias" "macro"))
-           new-form (list 'obsolete fun)))
+           new-form (list 'obsolete fun) nil fun))
       new-form)))
 
 (defun macroexp--unfold-lambda (form &optional name)
@@ -289,12 +288,11 @@ is executed without being compiled first."
       (setq arglist (cdr arglist)))
     (if values
         (macroexp-warn-and-return
-         arglist
          (format (if (eq values 'too-few)
                      "attempt to open-code `%s' with too few arguments"
                    "attempt to open-code `%s' with too many arguments")
                  name)
-         form)
+         form nil nil arglist)
 
       ;; The following leads to infinite recursion when loading a
       ;; file containing `(defsubst f () (f))', and then trying to
@@ -365,9 +363,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
                (if (null body)
                    (macroexp-unprogn
                     (macroexp-warn-and-return
-                     fun
                      (format "Empty %s body" fun)
-                     nil nil 'compile-only))
+                     nil nil 'compile-only fun))
                  (macroexp--all-forms body))
                (cdr form))
               form)))
@@ -405,11 +402,10 @@ Assumes the caller has bound `macroexpand-all-environment'."
                             (eq 'lambda (car-safe (cadr arg))))
                    (setcar (nthcdr funarg form)
                            (macroexp-warn-and-return
-                            (cadr arg)
                             (format "%S quoted with ' rather than with #'"
                                     (let ((f (cadr arg)))
                                       (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
-                            arg)))))
+                            arg nil nil (cadr arg))))))
              ;; Macro expand compiler macros.  This cannot be delayed to
              ;; byte-optimize-form because the output of the compiler-macro can
              ;; use macros.

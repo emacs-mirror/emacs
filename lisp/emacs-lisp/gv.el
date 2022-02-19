@@ -581,9 +581,7 @@ This is like the `&' operator of the C language.
 Note: this only works reliably with lexical binding mode, except for very
 simple PLACEs such as (symbol-function \\='foo) which will also work in dynamic
 binding mode."
-  (let ((org-place place) ; It's too difficult to determine by inspection whether
-                          ; the functions modify place.
-        (code
+  (let ((code
          (gv-letplace (getter setter) place
            `(cons (lambda () ,getter)
                   (lambda (gv--val) ,(funcall setter 'gv--val))))))
@@ -595,9 +593,8 @@ binding mode."
             (eq (car-safe code) 'cons))
         code
       (macroexp-warn-and-return
-       org-place
        "Use of gv-ref probably requires lexical-binding"
-       code))))
+       code nil nil place))))
 
 (defsubst gv-deref (ref)
   "Dereference REF, returning the referenced value.

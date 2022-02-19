@@ -2431,10 +2431,9 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
             (if malformed-bindings
                 (let ((rev-malformed-bindings (nreverse malformed-bindings)))
                   (macroexp-warn-and-return
-                   rev-malformed-bindings
                    (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
                                    rev-malformed-bindings)
-                   expansion))
+                   expansion nil nil rev-malformed-bindings))
               expansion)))
       (unless advised
         (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
@@ -3118,20 +3117,18 @@ To see the documentation for a defined struct type, use
               (when (cl-oddp (length desc))
                 (push
                  (macroexp-warn-and-return
-                  (car (last desc))
                   (format "Missing value for option `%S' of slot `%s' in struct %s!"
                           (car (last desc)) slot name)
-                  'nil)
+                  nil nil nil (car (last desc)))
                  forms)
                 (when (and (keywordp (car defaults))
                            (not (keywordp (car desc))))
                   (let ((kw (car defaults)))
                     (push
                      (macroexp-warn-and-return
-                      kw
                       (format "  I'll take `%s' to be an option rather than a default value."
                               kw)
-                      'nil)
+                      nil nil nil kw)
                      forms)
                     (push kw desc)
                     (setcar defaults nil))))
