@@ -3841,6 +3841,9 @@ kbd_buffer_get_event_1 (Lisp_Object arg)
   Lisp_Object coding_system = Fget_text_property (make_fixnum (0),
 						  Qcoding, arg);
 
+  if (EQ (coding_system, Qt))
+    return arg;
+
   return code_convert_string (arg, (!NILP (coding_system)
 				    ? coding_system
 				    : Vlocale_coding_system),

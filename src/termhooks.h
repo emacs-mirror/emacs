@@ -100,7 +100,9 @@ enum event_kind
 
 					   If it is nil, then the
 					   locale coding system will
-					   be used.  */
+					   be used.  If it is t, then
+					   no decoding will take
+					   place.  */
   NON_ASCII_KEYSTROKE_EVENT,	/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is

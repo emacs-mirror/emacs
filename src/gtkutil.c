@@ -6097,11 +6097,21 @@ xg_im_context_commit (GtkIMContext *imc, gchar *str,
   struct input_event ie;
 
   EVENT_INIT (ie);
-  ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-  ie.arg = build_unibyte_string (str);
+  /* This used to use g_utf8_to_ucs4_fast, which led to bad results
+     when STR wasn't actually a UTF-8 string, which some input method
+     modules commit.  */
 
-  Fput_text_property (make_fixnum (0), make_fixnum (strlen (str)),
-		      Qcoding, Qutf_8_unix, ie.arg);
+  ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+  ie.arg = decode_string_utf_8 (Qnil, str, strlen (str),
+				Qnil, false, Qnil, Qnil);
+
+  /* STR is invalid and not really encoded in UTF-8.  */
+  if (NILP (ie.arg))
+    ie.arg = build_unibyte_string (str);
+
+  Fput_text_property (make_fixnum (0),
+		      make_fixnum (SCHARS (ie.arg)),
+		      Qcoding, Qt, ie.arg);
 
   XSETFRAME (ie.frame_or_window, f);
   ie.modifiers = 0;
