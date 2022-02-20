@@ -1976,6 +1976,8 @@ Uses `Man-name-local-regexp'."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
+(put 'Man-bookmark-jump 'bookmark-handler-type "Man")
+
 ;;; Mouse support
 (defun Man-at-mouse (e)
   "Open man manual at point."
