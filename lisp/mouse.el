@@ -541,9 +541,7 @@ Some context functions add menu items below the separator."
 
 (defvar context-menu-entry
   `(menu-item ,(purecopy "Context Menu") ,(make-sparse-keymap)
-              :filter ,(lambda (_) (unless help-buffer-under-preparation
-                                     ;; No need to build menu to describe keys
-                                     (context-menu-map))))
+              :filter ,(lambda (_) (context-menu-map)))
   "Menu item that creates the context menu and can be bound to a mouse key.")
 
 (defvar context-menu-mode-map
