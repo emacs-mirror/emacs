@@ -76,18 +76,15 @@ to them."
 	    buff func
 	    func args
 	    args efs))
-  (let ((size (file-attribute-size (file-attributes name))))
-    (with-current-buffer buff
-      (goto-char (point-max))
-      (if (/= -1 size)
-	  (insert (format "Content-length: %d\n" size)))
-      (insert "\n")
-      (insert-file-contents-literally name)
-      (if (not (url-file-host-is-local-p (url-host url-current-object)))
-	  (condition-case ()
-	      (delete-file name)
-	    (error nil)))
-      (apply func args))))
+  (with-current-buffer buff
+    (goto-char (point-max))
+    (insert-file-contents-literally name)
+    (insert (format "Content-length: %d\n\n" (buffer-size)))
+    (if (not (url-file-host-is-local-p (url-host url-current-object)))
+	(condition-case ()
+	    (delete-file name)
+	  (error nil)))
+    (apply func args)))
 
 (declare-function ange-ftp-set-passwd "ange-ftp" (host user passwd))
 (declare-function ange-ftp-copy-file-internal "ange-ftp"

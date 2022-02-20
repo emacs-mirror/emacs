@@ -31,6 +31,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'browse-url)
 (require 'url-parse)
+(require 'url-file)
 
 (defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
@@ -160,6 +161,7 @@ The variable `url-queue-timeout' sets a timeout."
                                    (url-queue-context-buffer job)
                                  (current-buffer))
 	    (let ((url-request-noninteractive t)
+                  (url-allow-non-local-files t)
                   ;; This will disable querying the user for
                   ;; credentials if one of the things we're fetching
                   ;; in the background return a header requesting it.
