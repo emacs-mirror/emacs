@@ -877,7 +877,7 @@ The variable is used to trigger insertion of the \"Mail-Followup-To\"
 header when sending a message to a mailing list."
   :type '(repeat string))
 
-(declare-function mml-to-mime "mml" ())
+(declare-function mm-long-lines-p "mm-bodies" (length))
 
 (defun mail-send ()
   "Send the message in the current buffer.
@@ -955,6 +955,7 @@ the user from the mailer."
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
 	(goto-char opoint)
+        (require 'mml)
 	(when (or mail-encode-mml
                   ;; When we have long lines, we have to MIME encode
                   ;; to get line folding.
