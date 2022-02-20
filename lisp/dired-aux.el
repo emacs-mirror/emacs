@@ -954,6 +954,13 @@ prompted for the shell command to use interactively."
 		    (setq retval (replace-match x t t retval 2)))
 		  retval))
 	    (lambda (x) (concat cmd-prefix command dired-mark-separator x)))))
+    ;; If a file name starts with "-", add a "./" to avoid the command
+    ;; interpreting it as a command line switch.
+    (setq file-list (mapcar (lambda (file)
+                              (if (string-match "\\`-" file)
+                                  (concat "./" file)
+                                file))
+                            file-list))
     (concat
      (cond
       (on-each
