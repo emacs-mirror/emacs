@@ -16584,6 +16584,11 @@ x_delete_display (struct x_display_info *dpyinfo)
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
+
+#ifdef HAVE_XINPUT2
+  if (dpyinfo->supports_xi2)
+    x_free_xi_devices (dpyinfo);
+#endif
 }
 
 #ifdef USE_X_TOOLKIT
@@ -16728,10 +16733,6 @@ x_delete_terminal (struct terminal *terminal)
 #ifdef HAVE_XKB
       if (dpyinfo->xkb_desc)
 	XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
-#endif
-#ifdef HAVE_XINPUT2
-      if (dpyinfo->supports_xi2)
-	x_free_xi_devices (dpyinfo);
 #endif
 #ifdef USE_GTK
       xg_display_close (dpyinfo->display);
