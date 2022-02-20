@@ -195,7 +195,14 @@ use the @kbd{C-o} (@code{open-line}) command (@pxref{Blank Lines}).
 often bound to @dfn{completion commands}, which allow you to easily
 fill in the desired text without typing all of it.  @xref{Completion}.
 As with @key{RET}, you can use @kbd{C-q} to insert a @key{TAB},
-@key{SPC}, or @samp{?}  character.
+@key{SPC}, or @samp{?} character.  If you want to make @key{SPC} and
+@key{?} insert normally instead of starting completion, you can put
+the following in your init file:
+
+@lisp
+(keymap-set minibuffer-local-completion-map "SPC" #'self-insert-command)
+(keymap-set minibuffer-local-completion-map "?" #'self-insert-command)
+@end lisp
 
   For convenience, @kbd{C-a} (@code{move-beginning-of-line}) in a
 minibuffer moves point to the beginning of the argument text, not the
