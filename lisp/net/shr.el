@@ -40,6 +40,7 @@
 (require 'image)
 (require 'puny)
 (require 'url-cookie)
+(require 'url-file)
 (require 'pixel-fill)
 (require 'text-property-search)
 
