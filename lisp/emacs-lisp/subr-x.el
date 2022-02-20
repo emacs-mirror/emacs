@@ -446,7 +446,10 @@ is inserted before adjusting the number of empty lines."
   "Return the width of STRING in pixels."
   (if (zerop (length string))
       0
-    (with-temp-buffer
+    ;; Keeping a work buffer around is more efficient than creating a
+    ;; new temporary buffer.
+    (with-current-buffer (get-buffer-create " *string-pixel-width*")
+      (delete-region (point-min) (point-max))
       (insert string)
       (car (buffer-text-pixel-size nil nil t)))))
 
