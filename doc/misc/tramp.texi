@@ -1808,6 +1808,17 @@ Access of a hadoop/hdfs file system.  A file is accessed via
 the user that you want to use, and @samp{node} is the name of the
 hadoop server.
 
+@item tramp-nspawn
+@cindex method @option{nspawn}
+@cindex @option{nspawn} method
+Access to environments provided by systemd-nspawn.  A file is accessed
+via @file{@trampfn{nspawn,user@@container,/path/to/file}}, where
+@samp{user} is the (optional) user that you want to use, and
+@samp{container} is the container to connect to.  systemd-nspawn and
+its container utilities often require super user access to run, use
+multi-hop file names with @option{doas} or @option{sudo} to raise your
+privileges.
+
 @item vagrant-tramp
 @cindex method @option{vagrant}
 @cindex @option{vagrant} method
