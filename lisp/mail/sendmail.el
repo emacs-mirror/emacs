@@ -955,7 +955,10 @@ the user from the mailer."
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
 	(goto-char opoint)
-	(when mail-encode-mml
+	(when (or mail-encode-mml
+                  ;; When we have long lines, we have to MIME encode
+                  ;; to get line folding.
+                  (mm-long-lines-p 1000))
 	  (mml-to-mime)
 	  (setq mail-encode-mml nil))
 	(run-hooks 'mail-send-hook)
