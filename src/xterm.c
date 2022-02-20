@@ -11576,7 +11576,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  XkbDescRec *rec = FRAME_DISPLAY_INFO (f)->xkb_desc;
 
 		  if (rec->map->modmap && rec->map->modmap[xev->detail])
-		    goto done_keysym;
+		    goto xi_done_keysym;
 		}
 	      else
 #endif
@@ -11586,7 +11586,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
 			{
 			  if (xkey.keycode == dpyinfo->modmap->modifiermap[xev->detail])
-			    goto done_keysym;
+			    goto xi_done_keysym;
 			}
 		    }
 		}
