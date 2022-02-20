@@ -29,6 +29,12 @@
 (require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
 
+(defvar url-allow-non-local-files nil
+  "If non-nil, allow URL to fetch non-local files.
+By default, this is not allowed, since that would allow rendering
+HTML to fetch files on other systems if given a <img
+src=\"/ssh:host...\"> element, which can be disturbing.")
+
 (defconst url-file-default-port 21 "Default FTP port.")
 (defconst url-file-asynchronous-p t "FTP transfers are asynchronous.")
 (defalias 'url-file-expand-file-name 'url-default-expander)
@@ -111,7 +117,8 @@ to them."
 			  (memq system-type '(ms-dos windows-nt)))
 		     (substring file 1))
 		    ;; file: URL with a file:/bar:/foo-like spec.
-		    ((string-match "\\`/[^/]+:/" file)
+		    ((and (not url-allow-non-local-files)
+                          (string-match "\\`/[^/]+:/" file))
 		     (concat "/:" file))
 		    (t
 		     file))))

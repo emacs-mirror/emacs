@@ -877,8 +877,10 @@ size, and full-buffer size."
 	 ;; A link to an anchor.
 	 (concat (nth 3 base) url))
 	(t
-	 ;; Totally relative.
-	 (url-expand-file-name url (concat (car base) (cadr base))))))
+	 ;; Totally relative.  Allow Tramp file names if we're
+	 ;; rendering a file:// URL.
+         (let ((url-allow-non-local-files (equal (nth 2 base) "file")))
+	   (url-expand-file-name url (concat (car base) (cadr base)))))))
 
 (defun shr-ensure-newline ()
   (unless (bobp)

@@ -32,6 +32,7 @@
 (require 'thingatpt)
 (require 'url)
 (require 'url-queue)
+(require 'url-file)
 (require 'xdg)
 (eval-when-compile (require 'subr-x))
 
@@ -487,15 +488,11 @@ killed after rendering."
 (defun eww-open-file (file)
   "Render FILE using EWW."
   (interactive "fFile: ")
-  (eww (concat "file://"
-	       (and (memq system-type '(windows-nt ms-dos))
-		    "/")
-	       (expand-file-name file))
-       nil
-       ;; The file name may be a non-local Tramp file.  The URL
-       ;; library doesn't understand these file names, so use the
-       ;; normal Emacs machinery to load the file.
-       (eww--file-buffer file)))
+  (let ((url-allow-non-local-files t))
+    (eww (concat "file://"
+	         (and (memq system-type '(windows-nt ms-dos))
+		      "/")
+	         (expand-file-name file)))))
 
 (defun eww--file-buffer (file)
   (with-current-buffer (generate-new-buffer " *eww file*")
@@ -1207,7 +1204,8 @@ instead of `browse-url-new-window-flag'."
       (format "*eww-%s*" (url-host (url-generic-parse-url
                                     (eww--dwim-expand-url url))))))
     (eww-mode))
-  (eww url))
+  (let ((url-allow-non-local-files t))
+    (eww url)))
 
 (defun eww-back-url ()
   "Go to the previously displayed page."
