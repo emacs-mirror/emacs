@@ -5974,17 +5974,15 @@ not_in_argv (NSString *arg)
 /* Called on font panel selection.  */
 - (void)changeFont: (id)sender
 {
-  NSEvent *e = [[self window] currentEvent];
   struct face *face = FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID);
   struct font *font = face->font;
   id newFont;
   CGFloat size;
   NSFont *nsfont;
+  struct input_event ie;
 
   NSTRACE ("[EmacsView changeFont:]");
-
-  if (!emacs_event)
-    return;
+  EVENT_INIT (ie);
 
 #ifdef NS_IMPL_GNUSTEP
   nsfont = ((struct nsfont_info *)font)->nsfont;
@@ -5995,16 +5993,16 @@ not_in_argv (NSString *arg)
 
   if ((newFont = [sender convertFont: nsfont]))
     {
-      SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
-
-      emacs_event->kind = NS_NONKEY_EVENT;
-      emacs_event->modifiers = 0;
-      emacs_event->code = KEY_NS_CHANGE_FONT;
+      ie.kind = NS_NONKEY_EVENT;
+      ie.modifiers = 0;
+      ie.code = KEY_NS_CHANGE_FONT;
+      XSETFRAME (ie.frame_or_window, emacsframe);
 
       size = [newFont pointSize];
       ns_input_fontsize = make_fixnum (lrint (size));
       ns_input_font = [[newFont familyName] lispString];
-      EV_TRAILER (e);
+
+      kbd_buffer_store_event (&ie);
     }
 }
 
