@@ -200,8 +200,8 @@ As with @key{RET}, you can use @kbd{C-q} to insert a @key{TAB},
 the following in your init file:
 
 @lisp
-(keymap-set minibuffer-local-completion-map "SPC" #'self-insert-command)
-(keymap-set minibuffer-local-completion-map "?" #'self-insert-command)
+(keymap-unset minibuffer-local-completion-map "SPC")
+(keymap-unset minibuffer-local-completion-map "?")
 @end lisp
 
   For convenience, @kbd{C-a} (@code{move-beginning-of-line}) in a
