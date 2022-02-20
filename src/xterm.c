@@ -10123,7 +10123,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    ptrdiff_t i;
 
 	    for (i = 0; i < nbytes; i++)
-	      STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+	      {
+		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+	      }
 
 	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	    inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
@@ -11834,7 +11836,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 
 		  for (i = 0; i < nbytes; i++)
-		    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+		    {
+		      STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+		    }
 
 		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 		  inev.ie.arg = make_unibyte_string (copy_bufptr, nbytes);

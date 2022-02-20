@@ -3893,6 +3893,8 @@ kbd_buffer_get_event (KBOARD **kbp,
     }
 #endif	/* !defined HAVE_DBUS && !defined USE_FILE_NOTIFY && !defined THREADS_ENABLED  */
 
+  *kbp = current_kboard;
+
   /* Wait until there is input available.  */
   for (;;)
     {
