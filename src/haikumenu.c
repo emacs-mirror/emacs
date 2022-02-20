@@ -258,8 +258,10 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
   unblock_input ();
 
   unrequest_sigio ();
+  ++popup_activated_p;
   int32_t val = BAlert_go (alert, block_input, unblock_input,
 			   process_pending_signals);
+  --popup_activated_p;
   request_sigio ();
 
   if (val < 0)
