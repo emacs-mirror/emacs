@@ -6162,7 +6162,10 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
     dpyinfo->hyper_mod_mask &= ~dpyinfo->super_mod_mask;
 
   XFree (syms);
-  XFreeModifiermap (mods);
+
+  if (dpyinfo->modmap)
+    XFreeModifiermap (dpyinfo->modmap);
+  dpyinfo->modmap = mods;
 }
 
 /* Convert between the modifier bits X uses and the modifier bits
@@ -9893,6 +9896,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* `xkey' will be modified, but it's not important to modify
 	     `event' itself.  */
 	  XKeyEvent xkey = event->xkey;
+	  int i;
 
 #ifdef USE_GTK
           /* Don't pass keys to GTK.  A Tab will shift focus to the
@@ -9923,6 +9927,27 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              not it is combined with Meta.  */
           if (modifiers & dpyinfo->meta_mod_mask)
             memset (&compose_status, 0, sizeof (compose_status));
+
+#ifdef HAVE_XKB
+	  if (FRAME_DISPLAY_INFO (f)->xkb_desc)
+	    {
+	      XkbDescRec *rec = FRAME_DISPLAY_INFO (f)->xkb_desc;
+
+	      if (rec->map->modmap && rec->map->modmap[xkey.keycode])
+		goto done_keysym;
+	    }
+	  else
+#endif
+	    {
+	      if (dpyinfo->modmap)
+		{
+		  for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
+		    {
+		      if (xkey.keycode == dpyinfo->modmap->modifiermap[i])
+			  goto done_keysym;
+		    }
+		}
+	    }
 
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f))
@@ -11544,6 +11569,27 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  goto XI_OTHER;
 		}
 #endif
+
+#ifdef HAVE_XKB
+	      if (FRAME_DISPLAY_INFO (f)->xkb_desc)
+		{
+		  XkbDescRec *rec = FRAME_DISPLAY_INFO (f)->xkb_desc;
+
+		  if (rec->map->modmap && rec->map->modmap[xev->detail])
+		    goto done_keysym;
+		}
+	      else
+#endif
+		{
+		  if (dpyinfo->modmap)
+		    {
+		      for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
+			{
+			  if (xkey.keycode == dpyinfo->modmap->modifiermap[xev->detail])
+			    goto done_keysym;
+			}
+		    }
+		}
 
 #ifdef HAVE_XKB
 	      if (dpyinfo->xkb_desc)
@@ -16743,6 +16789,9 @@ x_delete_terminal (struct terminal *terminal)
       XCloseDisplay (dpyinfo->display);
 #endif
 #endif /* ! USE_GTK */
+
+      if (dpyinfo->modmap)
+	XFreeModifiermap (dpyinfo->modmap);
       /* Do not close the connection here because it's already closed
 	 by X(t)CloseDisplay (Bug#18403).  */
       dpyinfo->display = NULL;

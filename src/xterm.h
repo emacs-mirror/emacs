@@ -526,6 +526,9 @@ struct x_display_info
   Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
 #endif
 
+  /* Core modifier map when XKB is not present.  */
+  XModifierKeymap *modmap;
+
 #ifdef HAVE_XRANDR
   int xrandr_major_version;
   int xrandr_minor_version;
