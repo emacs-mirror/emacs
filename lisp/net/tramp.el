@@ -5755,12 +5755,15 @@ Consults the auth-source package."
 	 ;; adapt `default-directory'.  (Bug#39389, Bug#39489)
 	 (default-directory tramp-compat-temporary-file-directory)
 	 (case-fold-search t)
-	 (key (tramp-make-tramp-file-name
-	       ;; In tramp-sh.el, we must use "password-vector" due to
-	       ;; multi-hop.
-	       (tramp-get-connection-property
-		proc "password-vector" (process-get proc 'vector))
-	       'noloc))
+         ;; In tramp-sh.el, we must use "password-vector" due to
+         ;; multi-hop.
+	 (vec (tramp-get-connection-property
+	       proc "password-vector" (process-get proc 'vector)))
+	 (key (tramp-make-tramp-file-name vec 'noloc))
+	 (method (tramp-file-name-method vec))
+	 (user (or (tramp-file-name-user-domain vec)
+		   (tramp-get-connection-property key "login-as" nil)))
+	 (host (tramp-file-name-host-port vec))
 	 (pw-prompt
 	  (or prompt
 	      (with-current-buffer (process-buffer proc)
@@ -5776,51 +5779,40 @@ Consults the auth-source package."
 	 auth-info auth-passwd)
 
     (unwind-protect
-	(with-parsed-tramp-file-name key nil
-	  (setq tramp-password-save-function nil
-		user
-		(or user (tramp-get-connection-property key "login-as" nil)))
-	  (prog1
-	      (or
-	       ;; See if auth-sources contains something useful.
-	       (ignore-errors
-		 (and (tramp-get-connection-property
-		       v "first-password-request" nil)
-		      ;; Try with Tramp's current method.
-		      (setq auth-info
-			    (car
-			     (auth-source-search
-			      :max 1
-			      (and user :user)
-			      (if domain
-				  (concat
-				   user tramp-prefix-domain-format domain)
-				user)
-			      :host
-			      (if port
-				  (concat
-				   host tramp-prefix-port-format port)
-				host)
-			      :port method
-			      :require (cons :secret (and user '(:user)))
-			      :create t))
-			    tramp-password-save-function
-			    (plist-get auth-info :save-function)
-			    auth-passwd
-			    (tramp-compat-auth-info-password auth-info))))
+	;; We cannot use `with-parsed-tramp-file-name', because it
+	;; expands the file name.
+	(or
+	 (setq tramp-password-save-function nil)
+	 ;; See if auth-sources contains something useful.
+	 (ignore-errors
+	   (and (tramp-get-connection-property
+		 vec "first-password-request" nil)
+		;; Try with Tramp's current method.  If there is no
+		;; user name, `:create' triggers to ask for.  We
+		;; suppress it.
+		(setq auth-info
+		      (car
+		       (auth-source-search
+			:max 1 :user user :host host :port method
+			:require (cons :secret (and user '(:user)))
+			:create (and user t)))
+		      tramp-password-save-function
+		      (plist-get auth-info :save-function)
+		      auth-passwd
+		      (tramp-compat-auth-info-password auth-info))))
 
-	       ;; Try the password cache.
-	       (progn
-		 (setq auth-passwd (password-read pw-prompt key)
-		       tramp-password-save-function
-		       (lambda () (password-cache-add key auth-passwd)))
-		 auth-passwd))
+	 ;; Try the password cache.
+	 (progn
+	   (setq auth-passwd (password-read pw-prompt key)
+		 tramp-password-save-function
+		 (lambda () (password-cache-add key auth-passwd)))
+	   auth-passwd))
 
-	    ;; Workaround.  Prior Emacs 28.1, auth-source has saved
-	    ;; empty passwords.  See discussion in Bug#50399.
-	    (when (zerop (length auth-passwd))
-	      (setq tramp-password-save-function nil))
-	    (tramp-set-connection-property v "first-password-request" nil)))
+      ;; Workaround.  Prior Emacs 28.1, auth-source has saved empty
+      ;; passwords.  See discussion in Bug#50399.
+      (when (zerop (length auth-passwd))
+	(setq tramp-password-save-function nil))
+      (tramp-set-connection-property vec "first-password-request" nil)
 
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers))))
