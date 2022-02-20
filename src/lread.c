@@ -1172,7 +1172,7 @@ compute_found_effective (Lisp_Object found)
 static void
 loadhist_initialize (Lisp_Object filename)
 {
-  eassert (STRINGP (filename));
+  eassert (STRINGP (filename) || NILP (filename));
   specbind (Qcurrent_load_list, Fcons (filename, Qnil));
 }
 
@@ -2178,6 +2178,9 @@ readevalloop (Lisp_Object readcharfun,
   /* True on the first time around.  */
   bool first_sexp = 1;
   Lisp_Object macroexpand = intern ("internal-macroexpand-for-load");
+
+  if (!NILP (sourcename))
+    CHECK_STRING (sourcename);
 
   if (NILP (Ffboundp (macroexpand))
       || (STRINGP (sourcename) && suffix_p (sourcename, ".elc")))
