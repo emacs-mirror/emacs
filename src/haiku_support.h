@@ -754,8 +754,11 @@ extern "C"
   extern void *
   BAlert_add_button (void *alert, const char *text);
 
-  extern int32_t
-  BAlert_go (void *alert);
+  extern int32
+  BAlert_go (void *alert,
+	     void (*block_input_function) (void),
+	     void (*unblock_input_function) (void),
+	     void (*process_pending_signals_function) (void));
 
   extern void
   BButton_set_enabled (void *button, int enabled_p);

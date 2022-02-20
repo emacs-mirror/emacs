@@ -3615,7 +3615,7 @@ haiku_term_init (void)
   Lisp_Object color_file, color_map;
 
   block_input ();
-  Fset_input_interrupt_mode (Qnil);
+  Fset_input_interrupt_mode (Qt);
 
   baud_rate = 19200;
 

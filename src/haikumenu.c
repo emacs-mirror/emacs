@@ -255,9 +255,12 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
       ++nb_buttons;
       i += MENU_ITEMS_ITEM_LENGTH;
     }
-
-  int32_t val = BAlert_go (alert);
   unblock_input ();
+
+  unrequest_sigio ();
+  int32_t val = BAlert_go (alert, block_input, unblock_input,
+			   process_pending_signals);
+  request_sigio ();
 
   if (val < 0)
     quit ();
@@ -291,9 +294,7 @@ haiku_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   list_of_panes (list1 (contents));
 
   /* Display them in a dialog box.  */
-  block_input ();
   selection = haiku_dialog_show (f, title, header, &error_name);
-  unblock_input ();
 
   unbind_to (specpdl_count, Qnil);
   discard_menu_items ();
