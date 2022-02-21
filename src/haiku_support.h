@@ -754,6 +754,9 @@ extern "C"
   extern void *
   BAlert_add_button (void *alert, const char *text);
 
+  extern void
+  BAlert_set_offset_spacing (void *alert);
+
   extern int32
   BAlert_go (void *alert,
 	     void (*block_input_function) (void),

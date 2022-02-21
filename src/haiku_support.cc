@@ -2686,6 +2686,16 @@ BAlert_add_button (void *alert, const char *text)
   return al->ButtonAt (al->CountButtons () - 1);
 }
 
+/* Make sure the leftmost button is grouped to the left hand side of
+   the alert.  */
+void
+BAlert_set_offset_spacing (void *alert)
+{
+  BAlert *al = (BAlert *) alert;
+
+  al->SetButtonSpacing (B_OFFSET_SPACING);
+}
+
 static int32
 be_alert_thread_entry (void *thread_data)
 {

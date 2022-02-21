@@ -32,12 +32,6 @@ static Lisp_Object *volatile menu_item_selection;
 
 int popup_activated_p = 0;
 
-struct submenu_stack_cell
-{
-  void *parent_menu;
-  void *pane;
-};
-
 static void
 digest_menu_items (void *first_menu, int start, int menu_items_used,
 		   int mbar_p)
@@ -190,6 +184,11 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
 		   Lisp_Object header, const char **error_name)
 {
   int i, nb_buttons = 0;
+  bool boundary_seen = false;
+  Lisp_Object pane_name, vals[10];
+  void *alert, *button;
+  bool enabled_item_seen_p = false;
+  int32 val;
 
   *error_name = NULL;
 
@@ -199,17 +198,15 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
       return Qnil;
     }
 
-  Lisp_Object pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
+  pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
   i = MENU_ITEMS_PANE_LENGTH;
 
   if (STRING_MULTIBYTE (pane_name))
     pane_name = ENCODE_UTF_8 (pane_name);
 
   block_input ();
-  void *alert = BAlert_new (SSDATA (pane_name), NILP (header) ? HAIKU_INFO_ALERT :
-			    HAIKU_IDEA_ALERT);
-
-  Lisp_Object vals[10];
+  alert = BAlert_new (SSDATA (pane_name), NILP (header) ? HAIKU_INFO_ALERT :
+		      HAIKU_IDEA_ALERT);
 
   while (i < menu_items_used)
     {
@@ -229,7 +226,11 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
 
       if (EQ (item_name, Qquote))
 	{
+	  if (nb_buttons)
+	    boundary_seen = true;
+
 	  i++;
+	  continue;
 	}
 
       if (nb_buttons >= 9)
@@ -245,9 +246,11 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
       if (!NILP (descrip) && STRING_MULTIBYTE (descrip))
 	descrip = ENCODE_UTF_8 (descrip);
 
-      void *button = BAlert_add_button (alert, SSDATA (item_name));
+      button = BAlert_add_button (alert, SSDATA (item_name));
 
       BButton_set_enabled (button, !NILP (enable));
+      enabled_item_seen_p |= !NILP (enable);
+
       if (!NILP (descrip))
 	BView_set_tooltip (button, SSDATA (descrip));
 
@@ -255,21 +258,40 @@ haiku_dialog_show (struct frame *f, Lisp_Object title,
       ++nb_buttons;
       i += MENU_ITEMS_ITEM_LENGTH;
     }
+
+  /* Haiku only lets us specify a single button to place on the
+     left.  */
+  if (boundary_seen)
+    BAlert_set_offset_spacing (alert);
+
+  /* If there isn't a single enabled item, add an "Ok" button so the
+     popup can be dismissed.  */
+  if (!enabled_item_seen_p)
+    BAlert_add_button (alert, "Ok");
   unblock_input ();
 
   unrequest_sigio ();
   ++popup_activated_p;
-  int32_t val = BAlert_go (alert, block_input, unblock_input,
-			   process_pending_signals);
+  val = BAlert_go (alert, block_input, unblock_input,
+		   process_pending_signals);
   --popup_activated_p;
   request_sigio ();
 
   if (val < 0)
     quit ();
-  else
+  else if (val < nb_buttons)
     return vals[val];
 
-  return Qnil;
+  /* The dialog was dismissed via the button appended to dismiss popup
+     dialogs without a single enabled item.  */
+  if (nb_buttons)
+    quit ();
+  /* Otherwise, the Ok button was added because no buttons were seen
+     at all.  */
+  else
+    return Qt;
+
+  emacs_abort ();
 }
 
 Lisp_Object
