@@ -11572,6 +11572,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
+	      state |= x_emacs_to_x_modifiers (dpyinfo, extra_keyboard_modifiers);
+
 #ifdef HAVE_XKB
 	      if (FRAME_DISPLAY_INFO (f)->xkb_desc)
 		{
