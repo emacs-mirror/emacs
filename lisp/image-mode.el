@@ -621,9 +621,11 @@ Key bindings:
   ;; Bail out early if we have no image data.
   (if (zerop (buffer-size))
       (funcall (if (called-interactively-p 'any) 'error 'message)
-               (if (file-exists-p buffer-file-name)
-                   "Empty file"
-                 "(New file)"))
+               (if (stringp buffer-file-name)
+                   (if (file-exists-p buffer-file-name)
+                       "Empty file"
+                     "(New file)")
+                 "Empty buffer"))
     (image-mode--display)))
 
 (defun image-mode--display ()
