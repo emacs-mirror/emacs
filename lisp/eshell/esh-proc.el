@@ -435,12 +435,12 @@ PROC is the process that's exiting.  STRING is the exit message."
                                   (lambda ()
                                     (if (nth 4 entry)
                                         (run-at-time 0 nil finish-io)
-                                      (unwind-protect
-                                          (when str
-                                            (eshell-output-object
-                                             str nil handles))
-                                        (eshell-close-handles
-                                         status 'nil handles))))))
+                                      (when str
+                                        (ignore-error 'eshell-pipe-broken
+                                          (eshell-output-object
+                                           str nil handles)))
+                                      (eshell-close-handles
+                                       status 'nil handles)))))
                           (funcall finish-io)))))
 		(eshell-remove-process-entry entry))))
 	(eshell-kill-process-function proc string)))))
