@@ -76,6 +76,17 @@ typedef struct pgtk_output xp_output;
 #define XG_TEXT_OPEN   GTK_STOCK_OPEN
 #endif
 
+#ifdef HAVE_GTK3
+static void emacs_menu_bar_get_preferred_width (GtkWidget *, gint *, gint *);
+
+struct _EmacsMenuBar
+{
+  GtkMenuBar parent;
+};
+
+G_DEFINE_TYPE (EmacsMenuBar, emacs_menu_bar, GTK_TYPE_MENU_BAR)
+#endif
+
 #ifndef HAVE_PGTK
 static void xg_im_context_commit (GtkIMContext *, gchar *, gpointer);
 static void xg_im_context_preedit_changed (GtkIMContext *, gpointer);
@@ -126,6 +137,45 @@ bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible 
 #endif
 
 static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
+
+
+
+#ifdef HAVE_GTK3
+static void
+emacs_menu_bar_init (EmacsMenuBar *menu_bar)
+{
+  return;
+}
+
+static void
+emacs_menu_bar_class_init (EmacsMenuBarClass *klass)
+{
+  GtkWidgetClass *widget_class;
+
+  widget_class = GTK_WIDGET_CLASS (klass);
+  widget_class->get_preferred_width = emacs_menu_bar_get_preferred_width;
+}
+
+static void
+emacs_menu_bar_get_preferred_width (GtkWidget *widget,
+				    gint *minimum, gint *natural)
+{
+  GtkWidgetClass *widget_class;
+
+  widget_class = GTK_WIDGET_CLASS (emacs_menu_bar_parent_class);
+  widget_class->get_preferred_width (widget, minimum, natural);
+
+  if (minimum)
+    *minimum = 0;
+}
+
+static GtkWidget *
+emacs_menu_bar_new (void)
+{
+  return GTK_WIDGET (g_object_new (emacs_menu_bar_get_type (), NULL));
+}
+
+#endif
 
 
 /***********************************************************************
@@ -3287,7 +3337,12 @@ create_menus (widget_value *data,
       }
       else
         {
+#ifndef HAVE_GTK3
           wmenu = gtk_menu_bar_new ();
+#else
+	  wmenu = emacs_menu_bar_new ();
+#endif
+
 #ifdef HAVE_PGTK
 	  g_signal_connect (G_OBJECT (wmenu), "button-press-event",
 			    G_CALLBACK (menu_bar_button_pressed_cb), f);
