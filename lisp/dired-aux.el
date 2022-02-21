@@ -3252,7 +3252,6 @@ with the command \\[tags-loop-continue]."
    delimited)
   (fileloop-continue))
 
-(declare-function xref--show-xrefs "xref")
 (declare-function xref-query-replace-in-results "xref")
 (declare-function project--files-in-directory "project")
 
@@ -3296,7 +3295,7 @@ REGEXP should use constructs supported by your local `grep' command."
                 (user-error "No matches for: %s" regexp))
               (message "Searching...done")
               xrefs))))
-    (xref--show-xrefs fetcher nil)))
+    (xref-show-xrefs fetcher nil)))
 
 ;;;###autoload
 (defun dired-do-find-regexp-and-replace (from to)

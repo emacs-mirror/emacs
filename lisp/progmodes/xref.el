@@ -1340,6 +1340,13 @@ definitions."
 
 (defvar xref--read-pattern-history nil)
 
+;;;###autoload
+(defun xref-show-xrefs (fetcher display-action)
+  "Display some Xref values produced by FETCHER using DISPLAY-ACTION.
+The meanings of both arguments are the same as documented in
+`xref-show-xrefs-function'."
+  (xref--show-xrefs fetcher display-action))
+
 (defun xref--show-xrefs (fetcher display-action &optional _always-show-list)
   (xref--push-markers)
   (unless (functionp fetcher)

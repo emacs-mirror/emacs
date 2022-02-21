@@ -747,6 +747,8 @@ replacing entire matches.
 
 *** New variable 'xref-current-item' (renamed from a private version).
 
+*** New function 'xref-show-xrefs'.
+
 ** File notifications
 
 +++

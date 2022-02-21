@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 ;; Version: 0.8.1
-;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
+;; Package-Requires: ((emacs "26.1") (xref "1.4.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
 ;; not compatible with the version of Emacs recorded above.
@@ -776,7 +776,6 @@ The following commands are available:
   (define-key tab-prefix-map "p" #'project-other-tab-command))
 
 (declare-function grep-read-files "grep")
-(declare-function xref--show-xrefs "xref")
 (declare-function xref--find-ignores-arguments "xref")
 
 ;;;###autoload
@@ -802,7 +801,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
               (project--files-in-directory dir
                                            nil
                                            (grep-read-files regexp))))))
-    (xref--show-xrefs
+    (xref-show-xrefs
      (apply-partially #'project--find-regexp-in-files regexp files)
      nil)))
 
@@ -830,7 +829,7 @@ pattern to search for."
           (project-files pr (cons
                              (project-root pr)
                              (project-external-roots pr)))))
-    (xref--show-xrefs
+    (xref-show-xrefs
      (apply-partially #'project--find-regexp-in-files regexp files)
      nil)))
 
