@@ -12303,9 +12303,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     OTHER:
 #ifdef USE_X_TOOLKIT
       block_input ();
-    if (*finish != X_EVENT_DROP)
-      XtDispatchEvent ((XEvent *) event);
-    unblock_input ();
+      if (*finish != X_EVENT_DROP)
+	{
+	  /* Ignore some obviously bogus ConfigureNotify events that
+	     other clients have been known to send Emacs.
+	     (bug#54051)*/
+	  if (event->type != ConfigureNotify
+	      || (event->xconfigure.width != 0
+		  && event->xconfigure.height != 0))
+	    XtDispatchEvent ((XEvent *) event);
+	}
+      unblock_input ();
 #endif /* USE_X_TOOLKIT */
     break;
     }
