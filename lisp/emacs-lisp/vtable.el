@@ -61,7 +61,6 @@
   "A object to hold the data for a table.")
 
 (defvar-keymap vtable-map
-  :suppress t
   "S" #'vtable-sort-by-current-column
   "{" #'vtable-narrow-current-column
   "}" #'vtable-widen-current-column
@@ -634,7 +633,15 @@ This also updates the displayed table."
         (setq actions (cddr actions))))
     (if (vtable-keymap table)
         (progn
-          (set-keymap-parent (vtable-keymap table) map)
+          (setf (vtable-keymap table)
+                (copy-keymap (vtable-keymap table)))
+          ;; Respect any previously set parent keymaps.
+          (set-keymap-parent (vtable-keymap table)
+                             (if (keymap-parent (vtable-keymap table))
+                                 (append (ensure-list
+                                          (vtable-keymap table))
+                                         (list map))
+                               map))
           (vtable-keymap table))
       map)))
 
