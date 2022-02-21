@@ -2702,7 +2702,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		ASCII_KEYSTROKE_EVENT;
 
 	    inev.timestamp = b->time / 1000;
-	    inev.modifiers = haiku_modifiers_to_emacs (b->modifiers);
+	    inev.modifiers = (haiku_modifiers_to_emacs (b->modifiers)
+			      | extra_keyboard_modifiers);
 	    XSETFRAME (inev.frame_or_window, f);
 	    break;
 	  }
