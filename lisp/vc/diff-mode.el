@@ -2636,6 +2636,7 @@ fixed, visit it in a buffer."
                                  " and " file5 " \\(?7:differ\\)\n"))
                         (horb (concat "\\(?:" header "\\|" binary "\\)")))
                    (concat "diff.*?\\(?: a/\\(.*?\\) b/\\(.*\\)\\)?\n"
+                           "\\(?:\\(?:old\\|new\\) mode .*\n\\)*"
                            "\\(?:"
                            ;; For new/deleted files, there might be no
                            ;; header (and no hunk) if the file is/was empty.
@@ -2647,6 +2648,8 @@ fixed, visit it in a buffer."
         ;; or from the two header lines.  Prefer the header line info if
         ;; available since the `diff' line is ambiguous in case the
         ;; file names include " b/" or " a/".
+        ;; FIXME: This prettification throws away all the information
+        ;; about file modes (and the index hashes).
         (let ((oldfile (or (match-string 4) (match-string 1)))
               (newfile (or (match-string 5) (match-string 2)))
               (kind (if (match-beginning 7) " BINARY"
