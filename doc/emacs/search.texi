@@ -422,7 +422,7 @@ characters, that disables character folding during that search.
 search string.
 
   To search for non-@acronym{ASCII} characters, use one of the
-following methods:
+following methods during incremental search:
 
 @itemize @bullet
 @item
