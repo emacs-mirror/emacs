@@ -797,6 +797,9 @@ See `ispell-buffer-with-debug' for an example of use."
   "An alist of parsed Aspell dicts and associated parameters.
 Internal use.")
 
+(defvar ispell--aspell-found-dictionaries nil
+  "An alist of identified aspell dictionaries.")
+
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-aspell-dictionary-alist'."
   (let* ((dictionaries
@@ -810,7 +813,8 @@ Internal use.")
 		(mapcar #'ispell-aspell-find-dictionary dictionaries))))
     ;; Ensure aspell's alias dictionary will override standard
     ;; definitions.
-    (setq found (ispell-aspell-add-aliases found))
+    (setq found (ispell-aspell-add-aliases found)
+          ispell--aspell-found-dictionaries (copy-sequence found))
     ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
     ;; which have no element in FOUND at all.
     (dolist (dict ispell-dictionary-base-alist)
@@ -1378,9 +1382,11 @@ The variable `ispell-library-directory' defines their location."
       (if (and name
 	       (or
 		;; Include all for Aspell (we already know existing dicts)
-		ispell-really-aspell
+		(and ispell-really-aspell
+                     (assoc name ispell--aspell-found-dictionaries))
 		;; Include all if `ispell-library-directory' is nil (Hunspell)
-		(not ispell-library-directory)
+		(and (not ispell-really-aspell)
+                     (not ispell-library-directory))
 		;; If explicit (-d with an absolute path) and existing dict.
 		(and dict-explt
 		     (file-name-absolute-p dict-explt)
@@ -2986,8 +2992,7 @@ By just answering RET you can find out what the current dictionary is."
   (interactive
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "
-	  (and (fboundp 'ispell-valid-dictionary-list)
-	       (mapcar #'list (ispell-valid-dictionary-list)))
+	  (mapcar #'list (ispell-valid-dictionary-list))
 	  nil t)
 	 current-prefix-arg))
   (ispell-set-spellchecker-params) ; Initialize variables and dicts alists
