@@ -2798,10 +2798,24 @@ nil default-directory" name)
           (nondisplayed-buffers-p nil))
       (when (> displayable-buffers-len 0)
         (switch-to-buffer (car displayable-buffers)))
-      (when (> displayable-buffers-len 1)
-        (switch-to-buffer-other-window (car (cdr displayable-buffers)))
+      (cond
+       ;; Two buffers; display them both.
+       ((= displayable-buffers-len 2)
+        (switch-to-buffer-other-window (cadr displayable-buffers))
         ;; Focus on the first buffer.
         (other-window -1))
+       ;; More than two buffers: Ensure that the buffer display order
+       ;; reflects the order they were given on the command line.
+       ;; (This will end up with a `next-buffer' order that's in
+       ;; reverse order -- the final file is the focused one, and then
+       ;; the rest are in `next-buffer' in descending order.
+       ((> displayable-buffers-len 2)
+        (let ((bufs (reverse (cdr displayable-buffers))))
+          (switch-to-buffer-other-window (pop bufs))
+          (dolist (buf bufs)
+            (switch-to-buffer buf nil t))
+          ;; Focus on the first buffer.
+          (other-window -1))))
       (when (> displayable-buffers-len 2)
         (setq nondisplayed-buffers-p t))
 
