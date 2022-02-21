@@ -2615,29 +2615,60 @@ fixed, visit it in a buffer."
                                'display spec)))))
     ;; Mimicks the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.
+    ;; FIXME: Add support for Git's "rename from/to"?
     (while (re-search-forward "^diff " limit t)
+      ;; We split the regexp match into a search plus a looking-at because
+      ;; we want to use LIMIT for the search but we still want to match
+      ;; all the header's lines even if LIMIT falls in the middle of it.
       (when (save-excursion
               (forward-line 0)
               (looking-at
                (eval-when-compile
-                 (concat "diff.*\n"
-                         "\\(?:\\(?:new file\\|deleted\\).*\n\\)?"
-                         "\\(?:index.*\n\\)?"
-                         "--- \\(?:" null-device "\\|[ab]/\\(.*\\)\\)\n"
-                         "\\+\\+\\+ \\(?:" null-device "\\|[ab]/\\(.*\\)\\)\n"))))
-        (add-text-properties
-         (match-beginning 0) (1- (match-end 0))
-         (list 'display
-               (propertize
-                (cond
-                 ((null (match-string 1))
-                  (concat "new file  " (match-string 2)))
-                 ((null (match-string 2))
-                  (concat "deleted  " (match-string 1)))
-                 (t
-                  (concat "modified  " (match-string 1))))
-                'face '(diff-file-header diff-header))
-               'font-lock-multiline t)))))
+                 (let* ((index "\\(?:index.*\n\\)?")
+                        (file4 (concat
+                                "\\(?:" null-device "\\|[ab]/\\(?4:.*\\)\\)"))
+                        (file5 (concat
+                                "\\(?:" null-device "\\|[ab]/\\(?5:.*\\)\\)"))
+                        (header (concat "--- " file4 "\n"
+                                        "\\+\\+\\+ " file5 "\n"))
+                        (binary (concat
+                                 "Binary files " file4
+                                 " and " file5 " \\(?7:differ\\)\n"))
+                        (horb (concat "\\(?:" header "\\|" binary "\\)")))
+                   (concat "diff.*?\\(?: a/\\(.*?\\) b/\\(.*\\)\\)?\n"
+                           "\\(?:"
+                           ;; For new/deleted files, there might be no
+                           ;; header (and no hunk) if the file is/was empty.
+                           "\\(?3:new\\(?6:\\)\\|deleted\\) file.*\n"
+                           index "\\(?:" horb "\\)?"
+                           ;; Normal case.
+                           "\\|" index horb "\\)")))))
+        ;; The file names can be extracted either from the `diff' line
+        ;; or from the two header lines.  Prefer the header line info if
+        ;; available since the `diff' line is ambiguous in case the
+        ;; file names include " b/" or " a/".
+        (let ((oldfile (or (match-string 4) (match-string 1)))
+              (newfile (or (match-string 5) (match-string 2)))
+              (kind (if (match-beginning 7) " BINARY"
+                      (unless (or (match-beginning 4) (match-beginning 5))
+                       " empty"))))
+          (add-text-properties
+           (match-beginning 0) (1- (match-end 0))
+           (list 'display
+                 (propertize
+                  (cond
+                   ((match-beginning 3)
+                    (concat (capitalize (match-string 3)) kind " file"
+                            "  "
+                            (if (match-beginning 6) newfile oldfile)))
+                   ((null (match-string 4))
+                    (concat "New" kind " file  " newfile))
+                   ((null (match-string 2))
+                    (concat "Deleted" kind " file  " oldfile))
+                   (t
+                    (concat "Modified" kind " file  " oldfile)))
+                  'face '(diff-file-header diff-header))
+                 'font-lock-multiline t))))))
   nil)
 
 ;;; Syntax highlighting from font-lock
