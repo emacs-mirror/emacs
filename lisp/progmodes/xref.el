@@ -485,13 +485,18 @@ To undo, use \\[xref-go-forward]."
       (set-marker marker nil nil)
       (run-hooks 'xref-after-return-hook))))
 
-(defvar xref--current-item nil)
+(define-obsolete-variable-alias
+  'xref--current-item
+  'xref-current-item
+  "29.1")
+
+(defvar xref-current-item nil)
 
 (defun xref-pulse-momentarily ()
   (pcase-let ((`(,beg . ,end)
                (save-excursion
                  (or
-                  (let ((length (xref-match-length xref--current-item)))
+                  (let ((length (xref-match-length xref-current-item)))
                     (and length (cons (point) (+ (point) length))))
                   (back-to-indentation)
                   (if (eolp)
@@ -548,7 +553,7 @@ If SELECT is non-nil, select the target window."
       (window (pop-to-buffer buf t))
       (frame  (let ((pop-up-frames t)) (pop-to-buffer buf t))))
     (xref--goto-char marker))
-  (let ((xref--current-item item))
+  (let ((xref-current-item item))
     (run-hooks 'xref-after-jump-hook)))
 
 
@@ -656,7 +661,7 @@ SELECT is `quit', also quit the *xref* window."
   "Display the source of xref at point in the appropriate window, if any."
   (interactive)
   (let* ((xref (xref--item-at-point))
-         (xref--current-item xref))
+         (xref-current-item xref))
     (when xref
       (xref--set-arrow)
       (xref--show-location (xref-item-location xref)))))
@@ -715,7 +720,7 @@ quit the *xref* buffer."
   (let* ((buffer (current-buffer))
          (xref (or (xref--item-at-point)
                    (user-error "Choose a reference to visit")))
-         (xref--current-item xref))
+         (xref-current-item xref))
     (xref--set-arrow)
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
     (if (fboundp 'next-error-found)
@@ -945,7 +950,7 @@ beginning of the line."
            (let ((win (get-buffer-window (current-buffer))))
              (and win (set-window-point win (point))))
            (xref--set-arrow)
-           (let ((xref--current-item xref))
+           (let ((xref-current-item xref))
              (xref--show-location (xref-item-location xref) t)))
           (t
            (error "No %s xref" (if backward "previous" "next"))))))

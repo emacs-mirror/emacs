@@ -745,6 +745,8 @@ replacing entire matches.
 
 *** New command 'xref-find-references-and-replace' to rename one identifier.
 
+*** New variable 'xref-current-item' (renamed from a private version).
+
 ** File notifications
 
 +++
