@@ -312,8 +312,11 @@ data reflects the `outline-regexp'.")
 (defvar outline-mode-hook nil
   "This hook is run when outline mode starts.")
 
-(defvar outline-blank-line nil
-  "Non-nil means to leave unhidden blank line before heading.")
+(defcustom outline-blank-line nil
+  "Non-nil means to leave an unhidden blank line before headings."
+  :type 'boolean
+  :safe #'booleanp
+  :version "22.1")
 
 ;;;###autoload
 (define-derived-mode outline-mode text-mode "Outline"
