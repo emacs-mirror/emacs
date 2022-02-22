@@ -11391,6 +11391,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f)
 		{
+		  if (xev->detail >= 4 && xev->detail <= 8)
+		    {
+		      if (xev->detail <= 5)
+			inev.ie.kind = WHEEL_EVENT;
+		      else
+			inev.ie.kind = HORIZ_WHEEL_EVENT;
+
+		      inev.ie.timestamp = xev->time;
+
+		      XSETINT (inev.ie.x, lrint (xev->event_x));
+		      XSETINT (inev.ie.y, lrint (xev->event_y));
+		      XSETFRAME (inev.ie.frame_or_window, f);
+
+		      inev.ie.modifiers
+			|= x_x_to_emacs_modifiers (dpyinfo,
+						   xev->mods.effective);
+
+		      inev.ie.modifiers |= xev->detail % 2 ? down_modifier : up_modifier;
+
+		      goto XI_OTHER;
+		    }
+
 		  /* Is this in the tab-bar?  */
 		  if (WINDOWP (f->tab_bar_window)
 		      && WINDOW_TOTAL_LINES (XWINDOW (f->tab_bar_window)))
