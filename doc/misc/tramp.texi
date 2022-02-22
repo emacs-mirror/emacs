@@ -4336,8 +4336,11 @@ The official name is ``Tramp''.  This is used in comments, docstrings,
 and everywhere speaking about @value{tramp}.
 
 However, for historical reasons this is formatted as ``@@sc@{Tramp@}''
-in the @value{tramp} manual@inlinefmt{info,, @ref{(texinfo)
-Smallcaps}}.  So it looks different there.
+in the @value{tramp} manual.
+@ifinfo
+@pxref{Smallcaps, , , texinfo}.
+@end ifinfo
+So it looks different there.
 
 
 @item
