@@ -32,6 +32,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
@@ -40,10 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 				   that Xt creates... */
 #ifdef X_TOOLKIT_EDITRES
 #include <X11/Xmu/Editres.h>
-#endif
-
-#ifdef HAVE_XINPUT2
-#include <X11/extensions/XInput2.h>
 #endif
 
 typedef Widget xt_or_gtk_widget;
