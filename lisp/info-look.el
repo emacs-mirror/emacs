@@ -1074,6 +1074,7 @@ Return nil if there is nothing appropriate in the buffer near point."
    ("url" "Variable Index" "Function Index")
    ("vhdl" "(vhdl-mode)Variable Index" "(vhdl-mode)Command Index")
    ("viper" "Variable Index" "Function Index")
+   ("vtable" "Index")
    ("widget" "Index")
    ("wisent" "Index")
    ("woman" "Variable Index" "Command Index")))
