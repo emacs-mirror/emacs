@@ -234,8 +234,13 @@ This string will be returned from the NTLM server to the NTLM client."
 (declare-function ws-start nil)
 (declare-function ws-stop-all nil)
 
-(require 'web-server nil t)
-(require 'url-http-ntlm nil t)
+(eval-and-compile
+  (push (expand-file-name "../elpa/packages/web-server/" source-directory)
+        load-path)
+  (require 'web-server nil t)
+  (push (expand-file-name "../elpa/packages/url-http-ntlm/" source-directory)
+        load-path)
+  (require 'url-http-ntlm nil t))
 
 (defun ntlm-server-do-token (request _process)
   "Process an NTLM client's REQUEST.
