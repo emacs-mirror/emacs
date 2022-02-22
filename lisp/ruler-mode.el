@@ -279,21 +279,24 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   (let ((edges (window-edges)))
     (- (nth 2 edges) (nth 0 edges))))
 
-(defsubst ruler-mode-window-col (n)
+(defsubst ruler-mode-window-col (event)
   "Return a column number relative to the selected window.
-N is a column number relative to selected frame.
+EVENT is the mouse event that gives the current column.
 If required, account for screen estate taken by `display-line-numbers'."
-  (if display-line-numbers
+  (let ((n (car (posn-col-row event))))
+    (when display-line-numbers
       ;; FIXME: ruler-mode relies on N being an integer, so if the
       ;; 'line-number' face is customized to use a font that is larger
       ;; or smaller than that of the default face, the alignment might
       ;; be off by up to half a column, unless the font width is an
       ;; integral multiple or divisor of the default face's font.
       (setq n (- n (round (line-number-display-width 'columns)))))
-  (- n
-     (or (car (window-margins)) 0)
-     (fringe-columns 'left)
-     (scroll-bar-columns 'left)))
+    (- n
+       (if (eq (posn-area event) 'header-line)
+           (+ (or (car (window-margins)) 0)
+              (fringe-columns 'left)
+              (scroll-bar-columns 'left))
+         0))))
 
 (defun ruler-mode-mouse-set-left-margin (start-event)
   "Set left margin end to the graduation where the mouse pointer is on.
@@ -370,7 +373,7 @@ dragging.  See also the variable `ruler-mode-dragged-symbol'."
          col newc oldc)
     (save-selected-window
       (select-window (posn-window start))
-      (setq col  (ruler-mode-window-col (car (posn-col-row start)))
+      (setq col  (ruler-mode-window-col start)
             newc (+ col (ruler-mode-text-scaled-window-hscroll)))
       (and
        (>= col 0) (< col (ruler-mode-text-scaled-window-width))
@@ -455,7 +458,7 @@ Called on each mouse motion event START-EVENT."
          col newc)
     (save-selected-window
       (select-window (posn-window start))
-      (setq col  (ruler-mode-window-col (car (posn-col-row end)))
+      (setq col  (ruler-mode-window-col end)
             newc (+ col (ruler-mode-text-scaled-window-hscroll)))
       (when (and (>= col 0) (< col (ruler-mode-text-scaled-window-width)))
         (set ruler-mode-dragged-symbol newc)))))
@@ -471,7 +474,7 @@ START-EVENT is the mouse click event."
       (when (eq start end) ;; mouse click
         (save-selected-window
           (select-window (posn-window start))
-          (setq col (ruler-mode-window-col (car (posn-col-row start)))
+          (setq col (ruler-mode-window-col start)
                 ts  (+ col (ruler-mode-text-scaled-window-hscroll)))
           (and (>= col 0) (< col (ruler-mode-text-scaled-window-width))
                (not (member ts tab-stop-list))
@@ -492,7 +495,7 @@ START-EVENT is the mouse click event."
       (when (eq start end) ;; mouse click
         (save-selected-window
           (select-window (posn-window start))
-          (setq col (ruler-mode-window-col (car (posn-col-row start)))
+          (setq col (ruler-mode-window-col start)
                 ts  (+ col (ruler-mode-text-scaled-window-hscroll)))
           (and (>= col 0) (< col (ruler-mode-text-scaled-window-width))
                (member ts tab-stop-list)
