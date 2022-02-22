@@ -10127,11 +10127,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 	      }
 
-	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-	    inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
+	    if (nbytes)
+	      {
+		inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+		inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
 
-	    Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
-				Qcoding, coding, inev.ie.arg);
+		Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
+				    Qcoding, coding, inev.ie.arg);
+	      }
 
 	    if (keysym == NoSymbol)
 	      break;
@@ -11842,11 +11845,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
 		    }
 
-		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-		  inev.ie.arg = make_unibyte_string (copy_bufptr, nbytes);
+		  if (nbytes)
+		    {
+		      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+		      inev.ie.arg = make_unibyte_string (copy_bufptr, nbytes);
 
-		  Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
-				      Qcoding, coding, inev.ie.arg);
+		      Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
+					  Qcoding, coding, inev.ie.arg);
+		    }
 		  goto xi_done_keysym;
 		}
 
