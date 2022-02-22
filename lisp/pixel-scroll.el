@@ -699,11 +699,12 @@ wheel."
                      (message (error-message-string '(end-of-buffer))))))))))
       (mwheel-scroll event nil))))
 
-(defun pixel-scroll-kinetic-state ()
-  "Return the kinetic scroll state of the current window.
+(defun pixel-scroll-kinetic-state (&optional window)
+  "Return the kinetic scroll state of WINDOW.
+If WINDOW is nil, return the state of the current window.
 It is a vector of the form [ VELOCITY TIME SIGN ]."
-  (or (window-parameter nil 'kinetic-state)
-      (set-window-parameter nil 'kinetic-state
+  (or (window-parameter window 'kinetic-state)
+      (set-window-parameter window 'kinetic-state
                             (vector (make-ring 30) nil nil))))
 
 (defun pixel-scroll-accumulate-velocity (delta)
@@ -737,53 +738,54 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
   (when pixel-scroll-precision-use-momentum
     (let ((window (mwheel-event-window event))
           (state nil))
-      (with-selected-window window
-        (setq state (pixel-scroll-kinetic-state))
-        (when (and (aref state 1)
-                   (listp (aref state 0)))
-          (condition-case nil
-              (while-no-input
-                (unwind-protect (progn
-                                  (aset state 0 (pixel-scroll-calculate-velocity state))
-                                  (when (> (abs (aref state 0))
-                                           pixel-scroll-precision-momentum-min-velocity)
-                                    (let* ((velocity (aref state 0))
-                                           (original-velocity velocity)
-                                           (time-spent 0))
-                                      (if (> velocity 0)
-                                          (while (and (> velocity 0)
-                                                      (<= time-spent
-                                                          pixel-scroll-precision-momentum-seconds))
-                                            (when (> (round velocity) 0)
-                                              (pixel-scroll-precision-scroll-up (round velocity)))
-                                            (setq velocity (- velocity
-                                                              (/ original-velocity
-                                                                 (/ pixel-scroll-precision-momentum-seconds
-                                                                    pixel-scroll-precision-momentum-tick))))
-                                            (redisplay t)
-                                            (sit-for pixel-scroll-precision-momentum-tick)
-                                            (setq time-spent (+ time-spent
-                                                                pixel-scroll-precision-momentum-tick))))
-                                      (while (and (< velocity 0)
-                                                  (<= time-spent
-                                                      pixel-scroll-precision-momentum-seconds))
-                                        (when (> (round (abs velocity)) 0)
+      (setq state (pixel-scroll-kinetic-state window))
+      (when (and (aref state 1)
+                 (listp (aref state 0)))
+        (condition-case nil
+            (while-no-input
+              (unwind-protect (progn
+                                (aset state 0 (pixel-scroll-calculate-velocity state))
+                                (when (> (abs (aref state 0))
+                                         pixel-scroll-precision-momentum-min-velocity)
+                                  (let* ((velocity (aref state 0))
+                                         (original-velocity velocity)
+                                         (time-spent 0))
+                                    (if (> velocity 0)
+                                        (while (and (> velocity 0)
+                                                    (<= time-spent
+                                                        pixel-scroll-precision-momentum-seconds))
+                                          (when (> (round velocity) 0)
+                                            (with-selected-window window
+                                              (pixel-scroll-precision-scroll-up (round velocity))))
+                                          (setq velocity (- velocity
+                                                            (/ original-velocity
+                                                               (/ pixel-scroll-precision-momentum-seconds
+                                                                  pixel-scroll-precision-momentum-tick))))
+                                          (redisplay t)
+                                          (sit-for pixel-scroll-precision-momentum-tick)
+                                          (setq time-spent (+ time-spent
+                                                              pixel-scroll-precision-momentum-tick))))
+                                    (while (and (< velocity 0)
+                                                (<= time-spent
+                                                    pixel-scroll-precision-momentum-seconds))
+                                      (when (> (round (abs velocity)) 0)
+                                        (with-selected-window window
                                           (pixel-scroll-precision-scroll-down (round
-                                                                               (abs velocity))))
-                                        (setq velocity (+ velocity
-                                                          (/ (abs original-velocity)
-                                                             (/ pixel-scroll-precision-momentum-seconds
-                                                                pixel-scroll-precision-momentum-tick))))
-                                        (redisplay t)
-                                        (sit-for pixel-scroll-precision-momentum-tick)
-                                        (setq time-spent (+ time-spent
-                                                            pixel-scroll-precision-momentum-tick))))))
-                  (aset state 0 (make-ring 30))
-                  (aset state 1 nil)))
-            (beginning-of-buffer
-             (message (error-message-string '(beginning-of-buffer))))
-            (end-of-buffer
-             (message (error-message-string '(end-of-buffer))))))))))
+                                                                               (abs velocity)))))
+                                      (setq velocity (+ velocity
+                                                        (/ (abs original-velocity)
+                                                           (/ pixel-scroll-precision-momentum-seconds
+                                                              pixel-scroll-precision-momentum-tick))))
+                                      (redisplay t)
+                                      (sit-for pixel-scroll-precision-momentum-tick)
+                                      (setq time-spent (+ time-spent
+                                                          pixel-scroll-precision-momentum-tick))))))
+                (aset state 0 (make-ring 30))
+                (aset state 1 nil)))
+          (beginning-of-buffer
+           (message (error-message-string '(beginning-of-buffer))))
+          (end-of-buffer
+           (message (error-message-string '(end-of-buffer)))))))))
 
 (defun pixel-scroll-interpolate-down ()
   "Interpolate a scroll downwards by one page."
