@@ -78,11 +78,17 @@ typedef struct pgtk_output xp_output;
 
 #ifdef HAVE_GTK3
 static void emacs_menu_bar_get_preferred_width (GtkWidget *, gint *, gint *);
+static GType emacs_menu_bar_get_type (void);
 
-struct _EmacsMenuBar
+typedef struct _EmacsMenuBar
 {
   GtkMenuBar parent;
-};
+} EmacsMenuBar;
+
+typedef struct _EmacsMenuBarClass
+{
+  GtkMenuBarClass parent;
+} EmacsMenuBarClass;
 
 G_DEFINE_TYPE (EmacsMenuBar, emacs_menu_bar, GTK_TYPE_MENU_BAR)
 #endif
