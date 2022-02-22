@@ -4478,13 +4478,13 @@ if test "${HAVE_X11}" = "yes" && test "${with_xinput2}" != "no"; then
        AC_MSG_WARN([You are building Emacs with GTK+ 2 and the X Input Extension version 2.
 This might lead to problems if your version of GTK+ is not built with support for XInput 2.])
      fi
-     # Detect both faulty installations of libXi where gesture event
-     # types are defined but gesture event structures are not, and
-     # also where gesture event structures are empty.
-     AC_CHECK_MEMBERS([XIGesturePinchEvent.delta_unaccel_y],
-       [AC_DEFINE(HAVE_USABLE_XI_GESTURE_PINCH_EVENT, 1,
-         [Define to 1 if XInput headers define gesture structures correctly.])],
-       [], [[#include <X11/extensions/XInput2.h>]])
+
+     # Now check for some members (which used in conjunction with
+     # protocol definitions) can be used to determine the version of
+     # XInput supported.
+     AC_CHECK_MEMBERS([XIScrollClassInfo.type, XITouchClassInfo.type,
+       XIBarrierReleasePointerInfo.deviceid, XIGestureClassInfo.type],
+       [], [], [#include <X11/extensions/XInput2.h>])
    fi
 fi
 AC_SUBST(XINPUT_CFLAGS)

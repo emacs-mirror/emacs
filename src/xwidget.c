@@ -2853,7 +2853,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 	  XISetMask (m, XI_ButtonRelease);
 	  XISetMask (m, XI_Enter);
 	  XISetMask (m, XI_Leave);
-#ifdef XI_GesturePinchBegin
+#ifdef HAVE_XINPUT2_4
 	  if (FRAME_DISPLAY_INFO (s->f)->xi2_version >= 4)
 	    {
 	      XISetMask (m, XI_GesturePinchBegin);

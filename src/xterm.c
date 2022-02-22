@@ -629,7 +629,7 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 	    {
 	      switch (device->classes[c]->type)
 		{
-#ifdef XIScrollClass /* XInput 2.1 */
+#ifdef HAVE_XINPUT2_1
 		case XIScrollClass:
 		  {
 		    XIScrollClassInfo *info =
@@ -648,7 +648,7 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 		    break;
 		  }
 #endif
-#ifdef XITouchClass /* XInput 2.2 */
+#ifdef HAVE_XINPUT2_2
 		case XITouchClass:
 		  {
 		    XITouchClassInfo *info;
@@ -739,7 +739,7 @@ xi_device_from_id (struct x_display_info *dpyinfo, int deviceid)
   return NULL;
 }
 
-#ifdef XI_TouchBegin
+#ifdef HAVE_XINPUT2_2
 
 static void
 xi_link_touch_point (struct xi_device_t *device,
@@ -11046,7 +11046,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device)
 		goto XI_OTHER;
 
-#ifdef XI_TouchBegin
+#ifdef HAVE_XINPUT2_2
 	      if (xev->flags & XIPointerEmulated)
 		goto XI_OTHER;
 #endif
@@ -11929,7 +11929,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      struct xi_device_t *device;
 	      struct xi_touch_point_t *tem, *last;
-	      int c, i;
+	      int c;
+#ifdef HAVE_XINPUT2_1
+	      int i;
+#endif
 
 	      device = xi_device_from_id (dpyinfo, device_changed->deviceid);
 
@@ -11959,7 +11962,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  switch (device_changed->classes[c]->type)
 		    {
-#ifdef XIScrollClass
+#ifdef HAVE_XINPUT2_1
 		    case XIScrollClass:
 		      {
 			XIScrollClassInfo *info;
@@ -11979,7 +11982,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      }
 #endif
 
-#ifdef XITouchClass
+#ifdef HAVE_XINPUT2_2
 		    case XITouchClass:
 		      {
 			XITouchClassInfo *info;
@@ -11993,7 +11996,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
-#ifdef XIScrollClass
+#ifdef HAVE_XINPUT2_1
 	      for (c = 0; c < device_changed->num_classes; ++c)
 		{
 		  if (device_changed->classes[c]->type == XIValuatorClass)
@@ -12043,7 +12046,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      goto XI_OTHER;
 	    }
 
-#ifdef XI_TouchBegin
+#ifdef HAVE_XINPUT2_2
 	  case XI_TouchBegin:
 	    {
 	      struct xi_device_t *device;
@@ -12205,13 +12208,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 
 #endif
-#ifdef XI_GesturePinchBegin
+
+#ifdef HAVE_XINPUT2_4
 	  case XI_GesturePinchBegin:
 	  case XI_GesturePinchUpdate:
 	    {
 	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
-#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
 
@@ -12243,7 +12246,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				       make_float (pev->scale),
 				       make_float (pev->delta_angle));
 		}
-#endif
+
 	      /* Once again GTK seems to crash when confronted by
 		 events it doesn't understand.  */
 	      *finish = X_EVENT_DROP;
@@ -16261,13 +16264,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->supports_xi2 = false;
   int rc;
   int major = 2;
-#ifdef XI_GesturePinchBegin /* XInput 2.4 */
+#ifdef HAVE_XINPUT2_4
   int minor = 4;
-#elif XI_BarrierHit /* XInput 2.3 */
+#elif defined HAVE_XINPUT2_3 /* XInput 2.3 */
   int minor = 3;
-#elif defined XI_TouchBegin /* XInput 2.2 */
+#elif defined HAVE_XINPUT2_2 /* XInput 2.2 */
   int minor = 2;
-#elif defined XIScrollClass /* XInput 2.1 */
+#elif defined HAVE_XINPUT2_1 /* XInput 2.1 */
   int minor = 1;
 #else /* Some old version of XI2 we're not interested in. */
   int minor = 0;

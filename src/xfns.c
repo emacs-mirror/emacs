@@ -3565,13 +3565,13 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_PropertyEvent);
   XISetMask (m, XI_HierarchyChanged);
   XISetMask (m, XI_DeviceChanged);
-#ifdef XI_TouchBegin
+#ifdef HAVE_XINPUT2_2
   if (FRAME_DISPLAY_INFO (f)->xi2_version >= 2)
     {
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
-#ifdef XI_GesturePinchBegin
+#ifdef HAVE_XINPUT2_4
       if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
 	{
 	  XISetMask (m, XI_GesturePinchBegin);
