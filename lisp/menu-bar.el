@@ -178,17 +178,23 @@
                         t))
                   :help "Recover edits from a crashed session"))
     (bindings--define-key menu [revert-buffer]
-      '(menu-item "Revert Buffer" revert-buffer
-                  :enable (or (not (eq revert-buffer-function
-                                       'revert-buffer--default))
-                              (not (eq
-                                    revert-buffer-insert-file-contents-function
-                                    'revert-buffer-insert-file-contents--default-function))
-                              (and buffer-file-number
-                                   (or (buffer-modified-p)
-                                       (not (verify-visited-file-modtime
-                                             (current-buffer))))))
-                  :help "Re-read current buffer from its file"))
+      '(menu-item
+        "Revert Buffer" revert-buffer
+        :enable
+        (or (not (eq revert-buffer-function
+                     'revert-buffer--default))
+            (not (eq
+                  revert-buffer-insert-file-contents-function
+                  'revert-buffer-insert-file-contents--default-function))
+            (and buffer-file-number
+                 (or (buffer-modified-p)
+                     (not (verify-visited-file-modtime
+                           (current-buffer)))
+                     ;; Enable if the buffer has a different
+                     ;; writeability than the file.
+                     (not (eq (not buffer-read-only)
+                              (file-writable-p buffer-file-name))))))
+        :help "Re-read current buffer from its file"))
     (bindings--define-key menu [write-file]
       '(menu-item "Save As..." write-file
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
