@@ -3914,8 +3914,8 @@ Also see bindings for the eval list buffer *edebug* in `edebug-eval-mode'.
 The edebug buffer commands:
 \\{edebug-mode-map}
 
-Global commands prefixed by `global-edebug-prefix':
-\\{global-edebug-map}
+Global commands prefixed by `edebug-global-prefix':
+\\{edebug-global-map}
 
 Options:
 `edebug-setup-hook'
@@ -4082,8 +4082,8 @@ buffer and \\<global-map>\\[edebug-step-mode] in any buffer.
 Eval list buffer commands:
 \\{edebug-eval-mode-map}
 
-Global commands prefixed by `global-edebug-prefix':
-\\{global-edebug-map}")
+Global commands prefixed by `edebug-global-prefix':
+\\{edebug-global-map}")
 
 ;;; Interface with standard debugger.
 
