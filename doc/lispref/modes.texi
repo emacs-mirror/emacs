@@ -1074,7 +1074,7 @@ monospaced fonts, using a single font and text size.  If you want to
 display a table using variable pitch fonts or images,
 @code{make-vtable} can be used instead.  vtable also support having
 more than a single table in a buffer, or having a buffer that contains
-both a table and additional text in it.  @ref{Introduction,,, vtable}
+both a table and additional text in it.  @xref{Introduction,,, vtable},
 for more information.
 
   Tabulated List mode is intended to be used as a parent mode by a more
