@@ -4330,6 +4330,17 @@ there.
 
 @itemize @bullet
 @item
+What is the official name - ``Tramp'' or ``@value{tramp}''?
+
+The official name is ``Tramp''.  This is used in comments, docstrings,
+and everywhere speaking about @value{tramp}.
+
+However, for historical reasons this is formatted as ``@@sc@{Tramp@}''
+in the @value{tramp} manual@inlinefmt{info,, @ref{(texinfo)
+Smallcaps}}.  So it looks different there.
+
+
+@item
 Where is the latest @value{tramp}?
 
 @value{tramp} is available at the GNU URL:
