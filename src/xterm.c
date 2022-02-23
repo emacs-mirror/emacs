@@ -200,7 +200,143 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    `x_alloc_nearest_color_1', while the optimization for TrueColor
    visuals is in `x_make_truecolor_pixel'.  Also see `x_query_colors`,
    which is used to determine the color values for given pixel
-   values.  */
+   values.
+
+   OPTIONAL FEATURES
+
+   While X servers and client libraries tend to come with many
+   extensions to the core X11R6 protocol, dependencies on anything
+   other than the core X11R6 protocol and Xlib should be optional at
+   both compile-time and runtime.  Emacs should also not crash
+   regardless of what combination of X server and client-side features
+   are present.  For example, if you are developing a feature that
+   will need Xfixes, then add a test in configure.ac for the library
+   at compile-time which defines `HAVE_XFIXES', like this:
+
+     ### Use Xfixes (-lXfixes) if available
+     HAVE_XFIXES=no
+     if test "${HAVE_X11}" = "yes"; then
+       XFIXES_REQUIRED=4.0.0
+       XFIXES_MODULES="xfixes >= $XFIXES_REQUIRED"
+       EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
+       if test $HAVE_XFIXES = no; then
+	 # Test old way in case pkg-config doesn't have it (older machines).
+	 AC_CHECK_HEADER(X11/extensions/Xfixes.h,
+	   [AC_CHECK_LIB(Xfixes, XFixesHideCursor, HAVE_XFIXES=yes)])
+	 if test $HAVE_XFIXES = yes; then
+	   XFIXES_LIBS=-lXfixes
+	 fi
+       fi
+       if test $HAVE_XFIXES = yes; then
+	 AC_DEFINE(HAVE_XFIXES, 1, [Define to 1 if you have the Xfixes extension.])
+       fi
+     fi
+     AC_SUBST(XFIXES_CFLAGS)
+     AC_SUBST(XFIXES_LIBS)
+
+  Then, make sure to adjust CFLAGS and LIBES in src/Makefile.in and
+  add the new XFIXES_CFLAGS and XFIXES_LIBS variables to
+  msdos/sed1v2.inp.  (The latter has to be adjusted for any new
+  variables that are included in CFLAGS and LIBES even if the
+  libraries are not used by the MS-DOS port.)
+
+  Finally, add some fields in `struct x_display_info' which specify
+  the major and minor versions of the extension, and whether or not to
+  support them.  They (and their accessors) should be protected by the
+  `HAVE_XFIXES' preprocessor conditional.  Then, these fields should
+  be set in `x_term_init', and all Xfixes calls must be protected by
+  not only the preprocessor conditional, but also by checks against
+  those variables.
+
+  X TOOLKIT SUPPORT
+
+  Emacs supports being built with many different toolkits (and also no
+  toolkit at all), which provide decorations such as menu bars and
+  scroll bars, along with handy features like file panels, dialog
+  boxes, font panels, and popup menus.  Those configurations can
+  roughly be classified as belonging to one of three categories:
+
+    - Using no toolkit at all.
+    - Using the X Toolkit Intrinstics (Xt).
+    - Using GTK.
+
+  The no toolkit configuration is the simplest: no toolkit widgets are
+  used, Emacs uses its own implementation of scroll bars, and the
+  XMenu library that came with X11R2 and earlier versions of X is used
+  for popup menus.  There is also no complicated window structure to
+  speak of.
+
+  The Xt configurations come in either the Lucid or Motif flavors.
+  The former utilizes Emacs's own Xt-based Lucid widget library for
+  menus, and Xaw (or derivatives such as neXTaw and Xaw3d) for dialog
+  boxes and, optionally, scroll bars.  It does not support file
+  panels.  The latter uses either Motif or LessTif for menu bars,
+  popup menus, dialogs and file panels.
+
+  The GTK configurations come in the GTK+ 2 or GTK 3 configurations,
+  where the toolkit provides all the aforementioned decorations and
+  features.  They work mostly the same, though GTK 3 has various small
+  annoyances that complicate maintenance.
+
+  All of those configurations have various special technicalities
+  about event handling and the layout of windows inside a frame that
+  must be kept in mind when writing X code which is run on all of
+  them.
+
+  The no toolkit configuration has no noteworthy aspects about the
+  layout of windows inside a frame, since each frame has only one
+  associated window aside from scroll bars.  However, in the Xt
+  configurations, every widget is a separate window, and there are
+  quite a few widgets.  The "outer widget", a widget of class
+  ApplicationShell, is the top-level window of a frame.  Its window is
+  accessed via the macro `FRAME_OUTER_WINDOW'.  The "edit widget", a
+  widget class of EmacsFrame, is a child of the outer widget that
+  controls the size of a frame as known to Emacs, and is the widget
+  that Emacs draws to during display operations.  The "menu bar
+  widget" is the widget holding the menu bar.
+
+  Special care must be taken when performing operations on a frame.
+  Properties that are used by the window manager, for example, must be
+  set on the outer widget.  Drawing, on the other hand, must be done
+  to the edit widget, and button press events on the menu bar widget
+  must be redirected and not sent to Xt until the Lisp code is run to
+  update the menu bar.
+
+  The EmacsFrame widget is specific to Emacs and is implemented in
+  widget.c.  See that file for more details.
+
+  In the GTK configurations, GTK widgets do not necessarily correspond
+  to X windows, since the toolkit might decide to keep only a
+  client-side record of the widgets for performance reasons.
+
+  Because the GtkFixed widget that holds the "edit area" never
+  corresponds to an X window, drawing operations are directly
+  performed on the outer window, with special care taken to not
+  overwrite the surrounding GTK widgets.  This also means that the
+  only important window for most purposes is the outer window, which
+  on GTK builds can also be accessed using the macro
+  `FRAME_X_WINDOW'.
+
+  How `handle_one_xevent' is called also depends on the configuration.
+  Without a toolkit, Emacs performs all event processing by itself,
+  running XPending and XNextEvent in a loop whenever there is input,
+  passing the event to `handle_one_xevent'.
+
+  When using Xt, the same is performed, but `handle_one_xevent' may
+  also decide to call XtDispatchEvent on an event after Emacs finishes
+  processing it.
+
+  When using GTK, however, `handle_one_xevent' is called from an event
+  filter installed on the GTK event loop.  Unless the event filter
+  elects to drop the event, it will be passed to GTK right after
+  leaving the event filter.
+
+  Fortunately, `handle_one_xevent' is provided a `*finish' parameter
+  that abstracts away all these details.  If it is `X_EVENT_DROP',
+  then the event will not be dispatched to Xt or utilized by GTK.
+  Code inside `handle_one_xevent' should thus avoid making assumptions
+  about the event dispatch mechanism and use that parameter
+  instead.  */
 
 #include <config.h>
 #include <stdlib.h>
