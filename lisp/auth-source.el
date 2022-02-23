@@ -280,15 +280,16 @@ can get pretty complex."
                                          (const :tag "default" default))))
                         (repeat :tag "Extra Parameters" :inline t
                                 (choice :tag "Extra parameter"
+                                        :value (:host t)
                                         (list
-                                         :tag "Host"
+                                         :tag "Host" :inline t
                                          (const :format "" :value :host)
                                          (choice :tag "Host (machine) choice"
                                                  (const :tag "Any" t)
                                                  (regexp
                                                   :tag "Regular expression")))
                                         (list
-                                         :tag "Protocol"
+                                         :tag "Protocol" :inline t
                                          (const :format "" :value :port)
                                          (choice
                                           :tag "Protocol"
