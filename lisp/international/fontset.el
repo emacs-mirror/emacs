@@ -1132,7 +1132,7 @@ Internal use only.  Should be called at startup time."
 (defconst xlfd-regexp-pointsize-subnum 6)	; POINT_SIZE
 (defconst xlfd-regexp-resx-subnum 7)		; RESOLUTION_X
 (defconst xlfd-regexp-resy-subnum 8)		; RESOLUTION_Y
-(defconst xlfd-regexp-spacing-subnum 8)		; SPACING
+(defconst xlfd-regexp-spacing-subnum 9)		; SPACING
 (defconst xlfd-regexp-avgwidth-subnum 10)	; AVERAGE_WIDTH
 (defconst xlfd-regexp-registry-subnum 11)	; REGISTRY and ENCODING
 

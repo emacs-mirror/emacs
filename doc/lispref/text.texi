@@ -1670,8 +1670,9 @@ filling when @var{justify} is non-@code{nil}.
 
 If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
 other than line breaks untouched.  If @var{squeeze-after} is
-non-@code{nil}, it specifies a position in the region, and means don't
-canonicalize spaces before that position.
+non-@code{nil}, it specifies a position in the region, and means
+that whitespace other than line breaks should be left untouched before
+that position.
 
 In Adaptive Fill mode, this command calls @code{fill-context-prefix} to
 choose a fill prefix by default.  @xref{Adaptive Fill}.

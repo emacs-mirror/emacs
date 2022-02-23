@@ -941,7 +941,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
       dir
     (if (file-name-absolute-p dir)
 	;; The name is absolute, so prepend the prefix.
-	(concat comint-file-name-prefix dir)
+	(concat comint-file-name-prefix (file-local-name dir))
       ;; For relative name we assume default-directory already has the prefix.
       (expand-file-name dir))))
 

@@ -1761,7 +1761,7 @@ Use LOOKUP-NAME for deducing the save-function, if provided."
 
 (defun filesets-add-buffer (&optional name buffer)
   "Add BUFFER (or current buffer) to the fileset called NAME.
-User will be queried, if no fileset name is provided."
+If no fileset name is provided, prompt for NAME."
   (interactive)
   (let* ((buffer (or buffer
 		     (current-buffer)))
@@ -1796,8 +1796,8 @@ User will be queried, if no fileset name is provided."
 	    (message "Filesets: Can't add `%s' to fileset `%s'" this name)))))))
 
 (defun filesets-remove-buffer (&optional name buffer)
-  "Remove BUFFER (or current buffer) to fileset NAME.
-User will be queried, if no fileset name is provided."
+  "Remove BUFFER (or current buffer) from the fileset called NAME.
+If no fileset name is provided, prompt for NAME."
   (interactive)
   (let* ((buffer (or buffer
 		     (current-buffer)))

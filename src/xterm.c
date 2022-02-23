@@ -8739,6 +8739,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		/* Decode the input data.  */
 
+#ifdef HAVE_GLIB
+		/* If this isn't done in a build with GLib (usually
+		   with GTK), then the resulting signal in
+		   `setup_coding_system' will cause Emacs to
+		   crash.  */
+		if (NILP (Fcoding_system_p (coding_system)))
+		  coding_system = Qraw_text;
+#endif
+
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
 		   we used just above and the locale.  */

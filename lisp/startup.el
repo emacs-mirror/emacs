@@ -520,6 +520,9 @@ DIRS are relative."
      (t emacs-d-dir))))
 
 (defvar native-comp-eln-load-path)
+(defvar native-comp-deferred-compilation)
+(defvar comp-enable-subr-trampolines)
+
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
@@ -538,6 +541,14 @@ It is the default value of the variable `top-level'."
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
     (when (featurep 'native-compile)
+      (unless (native-comp-available-p)
+        ;; Disable deferred async compilation and trampoline synthesis
+        ;; in this session.  This is necessary if libgccjit is not
+        ;; available on MS-Windows, but Emacs was built with
+        ;; native-compilation support.
+        (setq native-comp-deferred-compilation nil
+              comp-enable-subr-trampolines nil))
+
       ;; Form `native-comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env

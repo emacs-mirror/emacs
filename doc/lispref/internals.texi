@@ -1629,7 +1629,7 @@ This function returns the value of a Lisp float specified by
 @var{arg}, as a C @code{double} value.
 @end deftypefn
 
-@deftypefn Function struct timespec extract_time (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {struct timespec} extract_time (emacs_env *@var{env}, emacs_value @var{arg})
 This function, which is available since Emacs 27, interprets @var{arg}
 as an Emacs Lisp time value and returns the corresponding @code{struct
 timespec}.  @xref{Time of Day}.  @code{struct timespec} represents a
@@ -1934,7 +1934,7 @@ garbage-collected.  Don't run any expensive code in a finalizer,
 because GC must finish quickly to keep Emacs responsive.
 @end deftypefn
 
-@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
+@deftypefn Function {void *}get_user_ptr (emacs_env *@var{env}, emacs_value @var{arg})
 This function extracts the C pointer from the Lisp object represented
 by @var{arg}.
 @end deftypefn
@@ -2052,7 +2052,7 @@ to quit, use the following function, which is available since Emacs
 27.1.
 
 @anchor{process_input}
-@deftypefn Function enum emacs_process_input_result process_input (emacs_env *@var{env})
+@deftypefn Function {enum emacs_process_input_result} process_input (emacs_env *@var{env})
 This function processes pending input events.  It returns
 @code{emacs_process_input_quit} if the user wants to quit or an error
 occurred while processing signals.  In that case, we recommend that
@@ -2127,7 +2127,7 @@ Therefore, we recommend that your module functions check for nonlocal
 exit conditions and recover from them, using the functions described
 below.
 
-@deftypefn Function enum emacs_funcall_exit non_local_exit_check (emacs_env *@var{env})
+@deftypefn Function {enum emacs_funcall_exit} non_local_exit_check (emacs_env *@var{env})
 This function returns the kind of nonlocal exit condition stored in
 @var{env}.  The possible values are:
 
@@ -2142,7 +2142,7 @@ The last @acronym{API} function exited via @code{throw}.
 @end vtable
 @end deftypefn
 
-@deftypefn Function enum emacs_funcall_exit non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
+@deftypefn Function {enum emacs_funcall_exit} non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
 This function returns the kind of nonlocal exit condition stored in
 @var{env}, like @code{non_local_exit_check} does, but it also returns
 the full information about the nonlocal exit, if any.  If the return

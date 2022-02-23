@@ -6410,7 +6410,11 @@ windows can get as small as `window-safe-min-height' and
 	(window--state-put-2 ignore pixelwise))
       (while window-state-put-stale-windows
 	(let ((window (pop window-state-put-stale-windows)))
-	  (when (eq (window-deletable-p window) t)
+          ;; Avoid that 'window-deletable-p' throws an error if window
+          ;; was already deleted when exiting 'with-temp-buffer' above
+          ;; (Bug#54028).
+	  (when (and (window-valid-p window)
+                     (eq (window-deletable-p window) t))
 	    (delete-window window))))
       (window--check frame))))
 
