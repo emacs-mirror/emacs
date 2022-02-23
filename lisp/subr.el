@@ -1905,7 +1905,9 @@ performance impact when running `add-hook' and `remove-hook'."
 	      (set (make-local-variable hook) (list t)))
     ;; Detect the case where make-local-variable was used on a hook
     ;; and do what we used to do.
-    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
+    (when (and (local-variable-if-set-p hook)
+               (not (and (consp (symbol-value hook))
+                         (memq t (symbol-value hook)))))
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
     ;; If the hook value is a single function, turn it into a list.
@@ -2020,7 +2022,7 @@ one will be removed."
           (when di
             (setf (if local (symbol-value depth-sym)
                     (default-value depth-sym))
-                  (delq di depth-alist)))))
+                  (remq di depth-alist)))))
       ;; If the function is on the global hook, we need to shadow it locally
       ;;(when (and local (member function (default-value hook))
       ;;	       (not (member (cons 'not function) hook-value)))
