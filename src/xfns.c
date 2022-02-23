@@ -737,6 +737,18 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   gui_set_alpha_background (f, arg, oldval);
 
+#ifdef HAVE_XRENDER
+  /* Setting `alpha_background' to something other than opaque on a
+     display that doesn't support the required features leads to
+     confusing results.  */
+  if (f->alpha_background < 1.0
+      && !FRAME_DISPLAY_INFO (f)->alpha_bits
+      && !FRAME_CHECK_XR_VERSION (f, 0, 2))
+    f->alpha_background = 1.0;
+#else
+  f->alpha_background = 1.0;
+#endif
+
 #ifdef USE_GTK
   /* This prevents GTK from painting the window's background, which
      interferes with transparent background in some environments */
