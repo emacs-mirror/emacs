@@ -16264,6 +16264,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->supports_xi2 = false;
   int rc;
   int major = 2;
+  int xi_first_event, xi_first_error;
+
 #ifdef HAVE_XINPUT2_4
   int minor = 4;
 #elif defined HAVE_XINPUT2_3 /* XInput 2.3 */
@@ -16275,12 +16277,39 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #else /* Some old version of XI2 we're not interested in. */
   int minor = 0;
 #endif
-  int fer, fee;
 
   if (XQueryExtension (dpyinfo->display, "XInputExtension",
-		       &dpyinfo->xi2_opcode, &fer, &fee))
+		       &dpyinfo->xi2_opcode, &xi_first_event,
+		       &xi_first_error))
     {
+#ifdef HAVE_GTK3
+    query:
+      /* Catch errors caused by GTK requesting a different version of
+	 XInput 2 than what Emacs was built with.  */
+      x_catch_errors (dpyinfo->display);
+#endif
+
       rc = XIQueryVersion (dpyinfo->display, &major, &minor);
+
+#ifdef HAVE_GTK3
+      if (x_had_errors_p (dpyinfo->display))
+	{
+	  /* Some unreasonable value that will probably not be
+	     exceeded in the future.  */
+	  if (minor > 100)
+	    rc = BadRequest;
+	  else
+	    {
+	      /* Increase the minor version until we find one the X server
+		 agrees with.  */
+	      minor++;
+	      goto query;
+	    }
+	}
+
+      x_uncatch_errors ();
+#endif
+
       if (rc == Success)
 	{
 	  dpyinfo->supports_xi2 = true;
