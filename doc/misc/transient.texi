@@ -729,7 +729,7 @@ The default is:
 This displays the window at the bottom of the selected frame.
 Another useful @var{function} is @code{display-buffer-below-selected}, which
 is what @code{magit-popup} used by default.  For more alternatives see
-@ref{Display Action Functions,,,elisp,}, and see @ref{Buffer Display
+@ref{Buffer Display Action Functions,,,elisp,}, and see @ref{Buffer Display
 Action Alists,,,elisp,}.
 
 Note that the buffer that was current before the transient buffer
