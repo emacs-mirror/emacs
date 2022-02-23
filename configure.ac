@@ -1201,6 +1201,8 @@ dnl Automake replacements.
 AC_DEFUN([AM_CONDITIONAL],
   [$2 && $1_CONDITION=1 || $1_CONDITION=
    AC_SUBST([$1_CONDITION])])
+AC_DEFUN([AM_COND_IF],
+  [AS_IF([test "$$1_CONDITION"], [$2], [$3])])
 
 dnl Prefer silent make output.  For verbose output, use
 dnl 'configure --disable-silent-rules' or 'make V=1' .
