@@ -207,10 +207,12 @@ If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
 to use the normal definition of FACE as the base remapping; note that
 this is different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all."
+  ;; Simplify the specs in the case where it's just a single face (and
+  ;; it's not a list with just a nil).
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
   (if (or (null specs)
-	  (and (eq (car specs) face) (null (cdr specs)))) ; default
+	  (eq specs face)) ; default
       ;; Set entry back to default
       (face-remap-reset-base face)
     ;; Set the base remapping
