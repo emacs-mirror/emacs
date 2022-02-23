@@ -1107,6 +1107,13 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
              (cdr pair)))
      alist)))
 
+(defun xref--ensure-default-directory (dd buffer)
+  ;; We might be in a let-binding which will restore the current value
+  ;; to a previous one (bug#53626).  So do this later.
+  (run-with-timer
+   0 nil
+   (lambda () (with-current-buffer buffer (setq default-directory dd)))))
+
 (defun xref--show-xref-buffer (fetcher alist)
   (cl-assert (functionp fetcher))
   (let* ((xrefs
@@ -1117,7 +1124,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
          (dd default-directory)
          buf)
     (with-current-buffer (get-buffer-create xref-buffer-name)
-      (setq default-directory dd)
+      (xref--ensure-default-directory dd (current-buffer))
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
       (pop-to-buffer (current-buffer))
@@ -1216,7 +1223,7 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                             (assoc-default 'display-action alist)))
      (t
       (with-current-buffer (get-buffer-create xref-buffer-name)
-        (setq default-directory dd)
+        (xref--ensure-default-directory dd (current-buffer))
         (xref--transient-buffer-mode)
         (xref--show-common-initialize (xref--analyze xrefs) fetcher alist)
         (pop-to-buffer (current-buffer)
