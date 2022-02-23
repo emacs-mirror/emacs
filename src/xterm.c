@@ -16398,32 +16398,68 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       &xi_first_error))
     {
 #ifdef HAVE_GTK3
-      /* Catch errors caused by GTK requesting a different version of
-	 XInput 2 than what Emacs was built with.  */
-      x_catch_errors (dpyinfo->display);
+      bool move_backwards = false;
+      int original_minor = minor;
 
     query:
+
+      /* Catch errors caused by GTK requesting a different version of
+	 XInput 2 than what Emacs was built with.  Usually, the X
+	 server tolerates these mistakes, but a BadValue error can
+	 result if only one of GTK or Emacs wasn't built with support
+	 for XInput 2.2.
+
+	 To work around the first, it suffices to increase the minor
+	 version until the X server is happy if the XIQueryVersion
+	 request results in an error.  If that doesn't work, however,
+	 then it's the latter, so decrease the minor until the version
+	 that GTK requested is found.  */
+      x_catch_errors (dpyinfo->display);
 #endif
 
       rc = XIQueryVersion (dpyinfo->display, &major, &minor);
 
 #ifdef HAVE_GTK3
+      /* Increase the minor version until we find one the X
+	 server agrees with.  If that didn't work, then
+	 decrease the version until it either hits zero or
+	 becomes agreeable to the X server.  */
+
       if (x_had_errors_p (dpyinfo->display))
 	{
-	  /* Some unreasonable value that will probably not be
-	     exceeded in the future.  */
-	  if (minor > 100)
-	    rc = BadRequest;
+	  x_uncatch_errors_after_check ();
+
+	  /* Since BadValue errors can't be generated if both the
+	     prior and current requests specify a version of 2.2 or
+	     later, this means the prior request specified a version
+	     of the input extension less than 2.2.  */
+	  if (minor >= 2)
+	    {
+	      move_backwards = true;
+	      minor = original_minor;
+
+	      if (--minor < 0)
+		rc = BadRequest;
+	      else
+		goto query;
+	    }
 	  else
 	    {
-	      /* Increase the minor version until we find one the X server
-		 agrees with.  */
-	      minor++;
-	      goto query;
+	      if (!move_backwards)
+		{
+		  minor++;
+		  goto query;
+		}
+
+	      if (--minor < 0)
+		rc = BadRequest;
+	      else
+		goto query;
+
 	    }
 	}
-
-      x_uncatch_errors ();
+      else
+	x_uncatch_errors_after_check ();
 #endif
 
       if (rc == Success)
