@@ -117,9 +117,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    background pixel values.
 
    Usually, one graphics context is computed for each face when it is
-   first about to be displayed, and this graphics context is the one
-   which is used for future X drawing operations in a glyph string
-   with that face.  (See `prepare_face_for_display' in xfaces.c).
+   about to be displayed for the first time, and this graphics context
+   is the one which is used for future X drawing operations in a glyph
+   string with that face.  (See `prepare_face_for_display' in
+   xfaces.c).
 
    However, when drawing glyph strings for special display elements
    such as the cursor, or mouse sensitive text, different GCs may be
@@ -155,11 +156,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    onto the physical display.
 
    When the visual class is TrueColor, the colormap will be indexed
-   based on the red, green, and blue components of the pixel values,
-   and the colormap will be statically allocated as to contain linear
-   ramps for each component.  As such, most of the color allocation
-   described below is bypassed, and the pixel values are computed
-   directly from the color.
+   based on the red, green, and blue (RGB) components of the pixel
+   values, and the colormap will be statically allocated so as to
+   contain linear ramps for each component.  As such, most of the
+   color allocation described below is bypassed, and the pixel values
+   are computed directly from the color.
 
    Otherwise, each time Emacs wants a pixel value that corresponds to
    a color, Emacs has to ask the X server to obtain the pixel value
