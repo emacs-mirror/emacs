@@ -16283,10 +16283,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		       &xi_first_error))
     {
 #ifdef HAVE_GTK3
-    query:
       /* Catch errors caused by GTK requesting a different version of
 	 XInput 2 than what Emacs was built with.  */
       x_catch_errors (dpyinfo->display);
+
+    query:
 #endif
 
       rc = XIQueryVersion (dpyinfo->display, &major, &minor);
