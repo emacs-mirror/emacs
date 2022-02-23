@@ -26,6 +26,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    contains subroutines comprising the redisplay interface, setting up
    scroll bars and widgets, and handling input.
 
+   Some of what is explained below also applies to the other window
+   systems that Emacs supports, to varying degrees.  YMMV.
+
    INPUT
 
    Emacs handles input by running pselect in a loop, which returns
@@ -84,7 +87,119 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    is no focus window, we treat each frame as having the input focus
    whenever the pointer enters it, and undo that treatment when the
    pointer leaves it.  See the callers of x_detect_focus_change for
-   more details.  */
+   more details.
+
+   REDISPLAY
+
+   The redisplay engine communicates with X through the "redisplay
+   interface", which is a structure containing pointers to functions
+   which output graphics to a frame.
+
+   Some of the functions included in the redisplay interface include
+   `x_clear_frame_area', which is called by the display engine when it
+   determines that a part of the display has to be cleared,
+   x_draw_window_cursor, which is called to perform the calculations
+   necessary to display the cursor glyph with a special "highlight"
+   (more on that later) and to set the input method spot location.
+
+   Most of the actual display is performed by the function
+   `x_draw_glyph_string', also included in the redisplay interface.
+   It takes a list of glyphs of the same type and face, computes the
+   correct graphics context for the string through the function
+   `x_set_glyph_string_gc', and draws whichever glyphs it might
+   contain, along with decorations such as the box face, underline and
+   overline.  That list is referred to as a "glyph string".
+
+   GRAPHICS CONTEXTS
+
+   A graphics context ("GC") is an X server-side object which contains
+   drawing attributes such as fill style, stipple, and foreground and
+   background pixel values.
+
+   Usually, one graphics context is computed for each face when it is
+   first about to be displayed, and this graphics context is the one
+   which is used for future X drawing operations in a glyph string
+   with that face.  (See `prepare_face_for_display' in xfaces.c).
+
+   However, when drawing glyph strings for special display elements
+   such as the cursor, or mouse sensitive text, different GCs may be
+   used.  When displaying the cursor, for example, the frame's cursor
+   graphics context is used for the common case where the cursor is
+   drawn with the default font, and the colors of the string's face
+   are the same as the default face.  In all other cases, a temporary
+   graphics context is created with the foreground and background
+   colors of the cursor face adjusted to ensure that the cursor can be
+   distinguished from its surroundings and that the text inside the
+   cursor stays visible.
+
+   Various graphics contexts are also calculated when the frame is
+   created by the function `x_make_gcs' in xfns.c, and are adjusted
+   whenever the foreground or background colors change.  The "normal"
+   graphics context is used for operations performed without a face,
+   and always corresponds to the foreground and background colors of
+   the frame's default face, the "reverse" graphics context is used to
+   draw text in inverse video, and the cursor graphics context is used
+   to display the cursor in the most common case.
+
+   COLOR ALLOCATION
+
+   In X, pixel values for colors are not guaranteed to correspond to
+   their individual components.  The rules for converting colors into
+   pixel values are defined by the visual class of each display opened
+   by Emacs.  When a display is opened, a suitable visual is obtained
+   from the X server, and a colormap is created based on that visual,
+   which is then used for each frame created.
+
+   The colormap is then used by the X server to convert pixel values
+   from a frame created by Emacs into actual colors which are output
+   onto the physical display.
+
+   When the visual class is TrueColor, the colormap will be indexed
+   based on the red, green, and blue components of the pixel values,
+   and the colormap will be statically allocated as to contain linear
+   ramps for each component.  As such, most of the color allocation
+   described below is bypassed, and the pixel values are computed
+   directly from the color.
+
+   Otherwise, each time Emacs wants a pixel value that corresponds to
+   a color, Emacs has to ask the X server to obtain the pixel value
+   that corresponds to a "color cell" containing the color (or a close
+   approximation) from the colormap.  Exactly how this is accomplished
+   further depends on the visual class, since some visuals have
+   immutable colormaps which contain color cells with pre-defined
+   values, while others have colormaps where the color cells are
+   dynamically allocated by individual X clients.
+
+   With visuals that have a visual class of StaticColor and StaticGray
+   (where the former is the case), the X server is asked to procure
+   the pixel value of a color cell that contains the closest
+   approximation of the color which Emacs wants.  On the other hand,
+   when the visual class is DirectColor, PseudoColor, or GrayScale,
+   where color cells are dynamically allocated by clients, Emacs asks
+   the X server to allocate a color cell containing the desired color,
+   and uses its pixel value.
+
+   (If the color already exists, the X server returns an existing color
+   cell, but increases its reference count, so it still has to be
+   freed afterwards.)
+
+   Otherwise, if no color could be allocated (due to the colormap
+   being full), Emacs looks for a color cell inside the colormap
+   closest to the desired color, and uses its pixel value instead.
+
+   Since the capacity of a colormap is finite, X clients have to take
+   special precautions in order to not allocate too many color cells
+   that are never used.  Emacs allocates its color cells when a face
+   is being realized or when a frame changes its foreground and
+   background colors, and releases them alongside the face or frame.
+   See calls to `unload_color' and `load_color' in xterm.c, xfaces.c
+   and xfns.c for more details.
+
+   The driving logic behind color allocation is in
+   `x_alloc_nearest_color_1', while the optimization for TrueColor
+   visuals is in `x_make_truecolor_pixel'.  Also see `x_query_colors`,
+   which is used to determine the color values for given pixel
+   values.  */
 
 #include <config.h>
 #include <stdlib.h>
