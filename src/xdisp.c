@@ -29037,6 +29037,7 @@ normal_char_ascent_descent (struct font *font, int c, int *ascent, int *descent)
       if (get_char_glyph_code (c >= 0 ? c : '{', font, &char2b))
 	{
 	  struct font_metrics *pcm = get_per_char_metric (font, &char2b);
+	  eassume (pcm);
 
 	  if (!(pcm->width == 0 && pcm->rbearing == 0 && pcm->lbearing == 0))
 	    {
