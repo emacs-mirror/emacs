@@ -5,9 +5,9 @@
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
 
-#+macro: stable-version 2.1.0
-#+macro: release-date 2022-02-17
-#+macro: development-version 2.2.0-dev
+#+macro: stable-version 2.2.0
+#+macro: release-date 2022-02-23
+#+macro: development-version 2.3.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -260,9 +260,9 @@ a theme with either of the following expressions:
 Changes to the available customization options must always be evaluated
 before loading a theme ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).  An exception to this
 norm is when using the various Custom interfaces or with commands like
-{{{kbd(M-x customize-set-variable)}}}, which automatically reload the theme by
-default ([[#h:9001527a-4e2c-43e0-98e8-3ef72d770639][Option for inhibiting theme reload]]).  This is how a basic setup
-could look like:
+{{{kbd(M-x customize-set-variable)}}}, which can automatically reload
+the theme ([[#h:9001527a-4e2c-43e0-98e8-3ef72d770639][Option for inhibiting theme reload]]).  This is how a basic
+setup could look like:
 
 #+begin_src emacs-lisp
 (require 'modus-themes)
@@ -372,9 +372,9 @@ it might appear to the unsuspecting user that the themes are somehow
 broken whenever they try to assign a new value to a customization option
 or some face.
 
-This "reset" that ~load-theme~ conducts does, however, come at the cost
-of being somewhat slower than ~enable-theme~.  Users who have a stable
-setup and who seldom update their variables during a given Emacs
+This "reset" that ~load-theme~ brings about does, however, come at the
+cost of being somewhat slower than ~enable-theme~.  Users who have a
+stable setup and who seldom update their variables during a given Emacs
 session, are better off using something like this:
 
 #+begin_src emacs-lisp
@@ -384,6 +384,8 @@ session, are better off using something like this:
 
 (enable-theme 'modus-operandi) ;; OR (enable-theme 'modus-vivendi)
 #+end_src
+
+[[#h:b40aca50-a3b2-4c43-be58-2c26fcd14237][Toggle themes without reloading them]].
 
 [[#h:e979734c-a9e1-4373-9365-0f2cd36107b8][Sample configuration with and without use-package]].
 
@@ -472,7 +474,22 @@ this manual.
       ;; symbols: `background', `bold', `gray', `intense', `italic'
       modus-themes-prompts '(intense bold)
 
-      modus-themes-completions 'moderate ; {nil,'moderate,'opinionated,'super-opinionated}
+      ;; The `modus-themes-completions' is an alist that reads three
+      ;; keys: `matches', `selection', `popup'.  Each accepts a nil
+      ;; value (or empty list) or a list of properties that can include
+      ;; any of the following (for WEIGHT read further below):
+      ;;
+      ;; `key' - `background', `intense', `underline', `italic', WEIGHT
+      ;; `selection' - `accented', `intense', `underline', `italic', WEIGHT
+      ;; `popup' - same as `selected'
+      ;; `t' - applies to any key not explicitly referenced (check docs)
+      ;;
+      ;; WEIGHT is a symbol such as `semibold', `light', or anything
+      ;; covered in `modus-themes-weights'.  Bold is used in the absence
+      ;; of an explicit WEIGHT.
+      modus-themes-completions '((matches . (extrabold))
+                                 (selection . (semibold accented))
+                                 (popup . (accented intense)))
 
       modus-themes-mail-citations nil ; {nil,'intense,'faint,'monochrome}
 
@@ -1058,53 +1075,103 @@ Centaur tabs package.
 ** Option for completion framework aesthetics
 :properties:
 :alt_title: Completion UIs
-:description: Choose among standard, moderate, or opinionated looks
+:description: Choose among several styles for completion UIs
 :custom_id: h:f1c20c02-7b34-4c35-9c65-99170efb2882
 :end:
 #+vindex: modus-themes-completions
 
 Brief: Set the overall style of completion framework interfaces.
 
-Symbol: ~modus-themes-completions~ (=choice= type)
+Symbol: ~modus-themes-completions~ (=alist= type properties)
 
-Possible values:
+This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy, Mct,
+Orderless, Selectrum, Vertico.  The value is an alist that takes the
+form of a =(key . properties)= combination.  Here is a sample, followed
+by a description of the particularities:
 
-1. ~nil~ (default)
-2. ~moderate~
-3. ~opinionated~
-4. ~super-opinionated~
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches . (extrabold background intense))
+        (selection . (semibold accented intense))
+        (popup . (accented))))
+#+end_src
 
-This is a special option that has different effects depending on the
-completion UI.  The interfaces can be grouped in two categories, based
-on their default aesthetics: (i) those that only or mostly use
-foreground colors for their interaction model, and (ii) those that
-combine background and foreground values for some of their metaphors.
-The former category encompasses Icomplete, Ido, Selectrum, Vertico, Mct,
-as well as pattern matching styles like Orderless and Flx.  The latter
-covers Helm and Ivy.
+The ~matches~ key refers to the highlighted characters that correspond
+to the user's input.  By default (nil or an empty list), they have a
+bold weight and a colored foreground.  The list of properties may
+include any of the following symbols regardless of the order they may
+appear in:
 
-A value of nil (the default) will simply respect the metaphors of each
-completion framework.
+- ~background~ to add a background color;
 
-Option ~moderate~ applies a combination of background and foreground that
-is fairly subtle.  For Icomplete and friends this constitutes a
-departure from their default aesthetics, however the difference is
-small.  While Helm and Ivy appear slightly different than their original
-looks, as they are toned down a bit.
+- ~intense~ to increase the overall coloration (also amplifies
+  the ~background~, if present);
 
-Option ~opinionated~ uses color combinations that refashion the completion
-UI.  For the Icomplete camp this means that intense background and
-foreground combinations are used: in effect their looks approximate
-those of Helm and Ivy in their original style.  Whereas the other group
-of packages will revert to an even more nuanced aesthetic with some
-additional changes to the choice of hues.
+- ~underline~ to draw a line below the characters;
 
-Option ~super-opinionated~ is like the ~opinionated~ though it has a more
-pronounced effect, especially on the color of the current
-line/candidate.
+- ~italic~ to use a slanted font (italic or oblique forms);
 
-To appreciate the scope of this customization option, you should spend
-some time with every one of those presets.
+- The symbol of a font weight attribute such as ~light~, ~semibold~, et
+  cetera.  Valid symbols are defined in the ~modus-themes-weights~
+  variable.  The absence of a weight means that bold will be used.
+
+The ~selection~ key applies to the current line or currently matched
+candidate, depending on the specifics of the User Interface.  By default
+(nil or an empty list), it has a subtle gray background and a bold
+weight.  The list of properties it accepts is as follows (order is not
+significant):
+
+- ~accented~ to make the background colorful instead of gray;
+
+- ~intense~ to increase the overall coloration;
+
+- ~underline~ to draw a line below the characters;
+
+- ~italic~ to use a slanted font (italic or oblique forms);
+
+- The symbol of a font weight attribute such as ~light~, ~semibold~, et
+  cetera.  Valid symbols are defined in the ~modus-themes-weights~
+  variable.  The absence of a weight means that bold will be used.
+
+The ~popup~ key takes the same values as ~selection~.
+
+Apart from specfying each key separately, a fallback list is accepted.
+This is only useful when the desired aesthetic is the same across all
+keys that are not explicitly referenced.  For example, this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((t . (extrabold intense))))
+#+end_src
+
+Is the same as:
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches . (extrabold intense))
+        (selection . (extrabold intense))
+        (popup . (extrabold intense))))
+#+end_src
+
+In the case of the fallback, any property that does not apply to the
+corresponding key is simply ignored (~matches~ does not have ~accented~,
+~selection~ and ~popup~ do not have ~background~).
+
+A concise expression of those associations can be written as follows,
+where the ~car~ is always the key and the ~cdr~ is the list of
+properties (whatever order they may appear in):
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches extrabold background intense)
+        (selection semibold accented intense)
+        (popup accented)))
+#+end_src
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
+Also refer to the Orderless documentation for its intersection with
+Company (if you choose to use those in tandem).
 
 ** Option for mail citations
 :properties:
@@ -2551,8 +2618,7 @@ both themes and expands to some more assosiations in the palette:
               (bg-header . "#ede3e0")
               (bg-tab-bar . "#dcd3d3")
               (bg-tab-active . "#fdf6eb")
-              (bg-tab-inactive . "#c8bab8")
-              (fg-unfocused . "#55556f"))
+              (bg-tab-inactive . "#c8bab8"))
             modus-themes-vivendi-color-overrides
             '((bg-main . "#100b17")
               (bg-dim . "#161129")
@@ -2564,17 +2630,34 @@ both themes and expands to some more assosiations in the palette:
               (bg-header . "#202037")
               (bg-tab-bar . "#262b41")
               (bg-tab-active . "#120f18")
-              (bg-tab-inactive . "#3a3a5a")
-              (fg-unfocused . "#9a9aab")))
+              (bg-tab-inactive . "#3a3a5a")))
     (setq modus-themes-operandi-color-overrides nil
           modus-themes-vivendi-color-overrides nil)))
 #+end_src
 
-With this in place, one can invoke {{{kbd(M-x my-modus-themes-tinted)}}} and
-then load the Modus theme of their choice.  The new palette subset will
-come into effect: subtle ochre tints for Modus Operandi and night sky
-shades for Modus Vivendi.  Switching between the two themes, such as
-with {{{kbd(M-x modus-themes-toggle)}}} will also use the overrides.
+A more neutral style for ~modus-themes-operandi-color-overrides~ can
+look like this:
+
+#+begin_src emacs-lisp
+'((bg-main . "#f7f7f7")
+  (bg-dim . "#f2f2f2")
+  (bg-alt . "#e8e8e8")
+  (bg-hl-line . "#eaeaef")
+  (bg-active . "#e0e0e0")
+  (bg-inactive . "#e6e6e6")
+  (bg-region . "#b5b5b5")
+  (bg-header . "#e4e4e4")
+  (bg-tab-bar . "#d1d1d4")
+  (bg-tab-active . "#f5f5f5")
+  (bg-tab-inactive . "#c0c0c0"))
+#+end_src
+
+With those in place, one can use {{{kbd(M-x my-modus-themes-tinted)}}}
+and then load the Modus theme of their choice.  The new palette subset
+will come into effect: subtle ochre tints (or shades of gray) for Modus
+Operandi and night sky blue shades for Modus Vivendi.  Switching between
+the two themes, such as with {{{kbd(M-x modus-themes-toggle)}}} will
+also use the overrides.
 
 Given that this is a user-level customisation, one is free to implement
 whatever color values they desire, even if the possible combinations
@@ -3464,6 +3547,35 @@ to be specified as well:
 
 (add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
 #+end_src
+
+** Toggle themes without reloading them
+:properties:
+:custom_id: h:b40aca50-a3b2-4c43-be58-2c26fcd14237
+:end:
+#+cindex: Switch themes without load-theme
+
+Users who have a stable setup and who only ever need to toggle between
+the themes without triggering a full reload, are better off defining
+their own command which calls ~enable-theme~ instead of ~load-theme~:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-toggle ()
+  "Toggle between `modus-operandi' and `modus-vivendi' themes.
+This uses `enable-theme' instead of the standard method of
+`load-theme'.  The technicalities are covered in the Modus themes
+manual."
+  (interactive)
+  (pcase (modus-themes--current-theme)
+    ('modus-operandi (progn (enable-theme 'modus-vivendi)
+                            (disable-theme 'modus-operandi)))
+    ('modus-vivendi (progn (enable-theme 'modus-operandi)
+                            (disable-theme 'modus-vivendi)))
+    (_ (error "No Modus theme is loaded; evaluate `modus-themes-load-themes' first"))))
+#+end_src
+
+[[#h:e68560b3-7fb0-42bc-a151-e015948f8a35][Differences between loading and enabling]].
+
+Recall that ~modus-themes-toggle~ uses ~load-theme~.
 
 ** A theme-agnostic hook for theme loading
 :properties:
@@ -5173,25 +5285,26 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Alex Griffin, Alex Koen, Alex Peitsinis, Alexey Shmalko,
   Alok Singh, Anders Johansson, André Alexandre Gomes, Arif Rezai, Basil
-  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze, Christopher
-  Dimech, Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David
-  Edmondson, Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele Michele
-  Alberto Monterosso, Farasha Euker, Feng Shu, Gautier Ponsinet, Gerry
-  Agbobada, Gianluca Recchia, Guilherme Semente, Gustavo Barros,
+  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze,
+  Christopher Dimech, Damien Cassou, Daniel Mendler, Dario Gjorgjevski,
+  David Edmondson, Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele
+  Michele Alberto Monterosso, Farasha Euker, Feng Shu, Gautier Ponsinet,
+  Gerry Agbobada, Gianluca Recchia, Guilherme Semente, Gustavo Barros,
   Hörmetjan Yiltiz, Ilja Kocken, Iris Garcia, Jeremy Friesen, Jerry
-  Zhang, Johannes Grødem, John Haman, Joshua O'Connor, Kevin Fleming,
-  Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Magne Hov, Manuel Uberti,
-  Mark Bestley, Mark Burton, Markus Beppler, Mauro Aranda, Michael
-  Goldenberg, Morgan Smith, Murilo Pereira, Nicky van Foreest, Nicolas
-  De Jaeghere, Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu,
-  Philip Kaludercic, Pierre Téchoueyres, Roman Rudakov, Ryan Phillips,
-  Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška,
-  Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut Verron, Thomas
-  Heartman, Togan Muftuoglu, Trey Merkley, Tomasz Hołubowicz, Toon
-  Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users:
-  Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik,
-  Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream, derek-upham,
-  doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p.
+  Zhang, Johannes Grødem, John Haman, Joshua O'Connor, Kenta Usami,
+  Kevin Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Magne Hov,
+  Manuel Uberti, Mark Bestley, Mark Burton, Markus Beppler, Mauro
+  Aranda, Michael Goldenberg, Morgan Smith, Murilo Pereira, Nicky van
+  Foreest, Nicolas De Jaeghere, Paul Poloskov, Pengji Zhang, Pete
+  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Roman
+  Rudakov, Ryan Phillips, Rudolf Adamkovič, Sam Kleinman, Samuel
+  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Tassilo Horn,
+  Thibaut Verron, Thomas Heartman, Togan Muftuoglu, Trey Merkley, Tomasz
+  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As
+  well as users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux,
+  Fredrik, Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream,
+  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
+  pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii, Glenn
   Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core Emacs),
