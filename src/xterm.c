@@ -16414,8 +16414,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	 request results in an error.  If that doesn't work, however,
 	 then it's the latter, so decrease the minor until the version
 	 that GTK requested is found.  */
-      x_catch_errors (dpyinfo->display);
 #endif
+
+      x_catch_errors (dpyinfo->display);
 
       rc = XIQueryVersion (dpyinfo->display, &major, &minor);
 
@@ -16460,6 +16461,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	}
       else
 	x_uncatch_errors_after_check ();
+#else
+      if (x_had_errors_p (dpyinfo->display))
+	rc = BadRequest;
+
+      x_uncatch_errors_after_check ();
 #endif
 
       if (rc == Success)
@@ -16468,6 +16474,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  x_init_master_valuators (dpyinfo);
 	}
     }
+
   dpyinfo->xi2_version = minor;
 #endif
 
