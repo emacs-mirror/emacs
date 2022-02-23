@@ -109,7 +109,9 @@ done
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
 	$avoided_flags $GNULIB_MODULES &&
-rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 \
+rm -- "$src"lib/gl_openssl.h \
+      "$src"lib/stdio-read.c "$src"lib/stdio-write.c \
+      "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
       "$src"m4/manywarnings-c++.m4 \
