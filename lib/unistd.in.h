@@ -415,16 +415,30 @@ _GL_CXXALIASWARN (close);
 
 
 #if @GNULIB_COPY_FILE_RANGE@
-# if !@HAVE_COPY_FILE_RANGE@
+# if @REPLACE_COPY_FILE_RANGE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef copy_file_range
+#   define copy_file_range rpl_copy_file_range
+#  endif
+_GL_FUNCDECL_RPL (copy_file_range, ssize_t, (int ifd, off_t *ipos,
+                                             int ofd, off_t *opos,
+                                             size_t len, unsigned flags));
+_GL_CXXALIAS_RPL (copy_file_range, ssize_t, (int ifd, off_t *ipos,
+                                             int ofd, off_t *opos,
+                                             size_t len, unsigned flags));
+# else
+#  if !@HAVE_COPY_FILE_RANGE@
 _GL_FUNCDECL_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
                                              size_t len, unsigned flags));
+#  endif
 _GL_CXXALIAS_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
                                              size_t len, unsigned flags));
 # endif
 _GL_CXXALIASWARN (copy_file_range);
 #elif defined GNULIB_POSIXCHECK
+# undef copy_file_range
 # if HAVE_RAW_DECL_COPY_FILE_RANGE
 _GL_WARN_ON_USE (copy_file_range,
                  "copy_file_range is unportable - "

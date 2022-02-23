@@ -429,8 +429,13 @@ __mktime_internal (struct tm *tp,
 	 time with the right value, and use its UTC offset.
 
 	 Heuristic: probe the adjacent timestamps in both directions,
-	 looking for the desired isdst.  This should work for all real
-	 time zone histories in the tz database.  */
+	 looking for the desired isdst.  If none is found within a
+	 reasonable duration bound, assume a one-hour DST difference.
+	 This should work for all real time zone histories in the tz
+	 database.  */
+
+      /* +1 if we wanted standard time but got DST, -1 if the reverse.  */
+      int dst_difference = (isdst == 0) - (tm.tm_isdst == 0);
 
       /* Distance between probes when looking for a DST boundary.  In
 	 tzdata2003a, the shortest period of DST is 601200 seconds
@@ -441,12 +446,14 @@ __mktime_internal (struct tm *tp,
 	 periods when probing.  */
       int stride = 601200;
 
-      /* The longest period of DST in tzdata2003a is 536454000 seconds
-	 (e.g., America/Jujuy starting 1946-10-01 01:00).  The longest
-	 period of non-DST is much longer, but it makes no real sense
-	 to search for more than a year of non-DST, so use the DST
-	 max.  */
-      int duration_max = 536454000;
+      /* In TZDB 2021e, the longest period of DST (or of non-DST), in
+	 which the DST (or adjacent DST) difference is not one hour,
+	 is 457243209 seconds: e.g., America/Cambridge_Bay with leap
+	 seconds, starting 1965-10-31 00:00 in a switch from
+	 double-daylight time (-05) to standard time (-07), and
+	 continuing to 1980-04-27 02:00 in a switch from standard time
+	 (-07) to daylight time (-06).  */
+      int duration_max = 457243209;
 
       /* Search in both directions, so the maximum distance is half
 	 the duration; add the stride to avoid off-by-1 problems.  */
@@ -482,6 +489,11 @@ __mktime_internal (struct tm *tp,
 		  }
 	      }
 	  }
+
+      /* No unusual DST offset was found nearby.  Assume one-hour DST.  */
+      t += 60 * 60 * dst_difference;
+      if (mktime_min <= t && t <= mktime_max && convert_time (convert, t, &tm))
+	goto offset_found;
 
       __set_errno (EOVERFLOW);
       return -1;

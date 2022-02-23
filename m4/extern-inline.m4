@@ -7,7 +7,22 @@ dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_EXTERN_INLINE],
 [
-  AH_VERBATIM([extern_inline],
+  AC_CACHE_CHECK([whether ctype.h defines __header_inline],
+    [gl_cv_have___header_inline],
+    [AC_PREPROC_IFELSE(
+       [AC_LANG_SOURCE([[#include <ctype.h>
+                         #ifndef __header_inline
+                          #error "<ctype.h> does not define __header_inline"
+                         #endif
+                        ]])],
+       [gl_cv_have___header_inline=yes],
+       [gl_cv_have___header_inline=no])])
+  if test "$gl_cv_have___header_inline" = yes; then
+    AC_DEFINE([HAVE___HEADER_INLINE], [1],
+      [Define to 1 if ctype.h defines __header_inline.])
+  fi
+
+  AH_VERBATIM([HAVE___HEADER_INLINE_1],
 [/* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
@@ -54,7 +69,7 @@ AC_DEFUN([gl_EXTERN_INLINE],
  */
 #if (((defined __APPLE__ && defined __MACH__) \
       || defined __DragonFly__ || defined __FreeBSD__) \
-     && (defined __header_inline \
+     && (defined HAVE___HEADER_INLINE \
          ? (defined __cplusplus && defined __GNUC_STDC_INLINE__ \
             && ! defined __clang__) \
          : ((! defined _DONT_USE_CTYPE_INLINE_ \

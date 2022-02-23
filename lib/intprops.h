@@ -229,11 +229,15 @@
 
 /* True if __builtin_add_overflow (A, B, P) and __builtin_sub_overflow
    (A, B, P) work when P is non-null.  */
-#if defined __has_builtin
+#ifdef __EDG__
+/* EDG-based compilers like nvc 22.1 cannot add 64-bit signed to unsigned
+   <https://bugs.gnu.org/53256>.  */
+# define _GL_HAS_BUILTIN_ADD_OVERFLOW 0
+#elif defined __has_builtin
 # define _GL_HAS_BUILTIN_ADD_OVERFLOW __has_builtin (__builtin_add_overflow)
 /* __builtin_{add,sub}_overflow exists but is not reliable in GCC 5.x and 6.x,
    see <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98269>.  */
-#elif 7 <= __GNUC__ && !defined __EDG__
+#elif 7 <= __GNUC__
 # define _GL_HAS_BUILTIN_ADD_OVERFLOW 1
 #else
 # define _GL_HAS_BUILTIN_ADD_OVERFLOW 0

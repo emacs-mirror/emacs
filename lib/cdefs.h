@@ -143,7 +143,8 @@
 #define __bos0(ptr) __builtin_object_size (ptr, 0)
 
 /* Use __builtin_dynamic_object_size at _FORTIFY_SOURCE=3 when available.  */
-#if __USE_FORTIFY_LEVEL == 3 && __glibc_clang_prereq (9, 0)
+#if __USE_FORTIFY_LEVEL == 3 && (__glibc_clang_prereq (9, 0)		      \
+				 || __GNUC_PREREQ (12, 0))
 # define __glibc_objsize0(__o) __builtin_dynamic_object_size (__o, 0)
 # define __glibc_objsize(__o) __builtin_dynamic_object_size (__o, 1)
 #else
