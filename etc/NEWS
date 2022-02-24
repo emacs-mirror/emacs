@@ -234,8 +234,8 @@ composited display.
 
 +++
 ** New frame parameter 'shaded'.
-On supported window managers, this controls whether or not a frame's
-contents will be hidden, leaving only the title bar.
+With window managers which support this, it controls whether or not a
+frame's contents will be hidden, leaving only the title bar on display.
 
 ---
 ** New user option 'x-gtk-use-native-input'.
