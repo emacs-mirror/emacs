@@ -143,6 +143,21 @@ struct xim_inst_t
 };
 #endif /* HAVE_X11R6_XIM */
 
+#ifdef HAVE_XINPUT2
+#if HAVE_XISCROLLCLASSINFO_TYPE && defined XIScrollClass
+#define HAVE_XINPUT2_1
+#endif
+#if HAVE_XITOUCHCLASSINFO_TYPE && defined XITouchClass
+#define HAVE_XINPUT2_2
+#endif
+#if HAVE_XIBARRIERRELEASEPOINTERINFO_DEVICEID && defined XIBarrierPointerReleased
+#define HAVE_XINPUT2_3
+#endif
+#if HAVE_XIGESTURECLASSINFO_TYPE && defined XIGestureClass
+#define HAVE_XINPUT2_4
+#endif
+#endif
+
 /* Structure recording X pixmap and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -185,6 +200,8 @@ struct color_name_cache_entry
 };
 
 #ifdef HAVE_XINPUT2
+
+#ifdef HAVE_XINPUT2_1
 struct xi_scroll_valuator_t
 {
   bool invalid_p;
@@ -196,7 +213,9 @@ struct xi_scroll_valuator_t
   int number;
   int horizontal;
 };
+#endif
 
+#ifdef HAVE_XINPUT2_2
 struct xi_touch_point_t
 {
   struct xi_touch_point_t *next;
@@ -204,17 +223,26 @@ struct xi_touch_point_t
   int number;
   double x, y;
 };
+#endif
 
 struct xi_device_t
 {
   int device_id;
+#ifdef HAVE_XINPUT2_1
   int scroll_valuator_count;
+#endif
   int grab;
   bool master_p;
+#ifdef HAVE_XINPUT2_2
   bool direct_p;
+#endif
 
+#ifdef HAVE_XINPUT2_1
   struct xi_scroll_valuator_t *valuators;
+#endif
+#ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *touchpoints;
+#endif
 };
 #endif
 
@@ -1468,21 +1496,6 @@ struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
    (nr).y = (ry),					\
    (nr).width = (rwidth),				\
    (nr).height = (rheight))
-
-#ifdef HAVE_XINPUT2
-#if HAVE_XISCROLLCLASSINFO_TYPE && defined XIScrollClass
-#define HAVE_XINPUT2_1
-#endif
-#if HAVE_XITOUCHCLASSINFO_TYPE && defined XITouchClass
-#define HAVE_XINPUT2_2
-#endif
-#if HAVE_XIBARRIERRELEASEPOINTERINFO_DEVICEID && defined XIBarrierPointerReleased
-#define HAVE_XINPUT2_3
-#endif
-#if HAVE_XIGESTURECLASSINFO_TYPE && defined XIGestureClass
-#define HAVE_XINPUT2_4
-#endif
-#endif
 
 INLINE_HEADER_END
 
