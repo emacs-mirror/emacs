@@ -102,6 +102,9 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
   exit 1
 }
 
+# gnulib-tool has problems with a bare checkout (Bug#32452#65).
+test -f configure || ./autogen.sh
+
 avoided_flags=
 for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
