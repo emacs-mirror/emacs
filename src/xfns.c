@@ -1472,6 +1472,21 @@ x_set_border_pixel (struct frame *f, unsigned long pix)
   unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
 
+#ifdef USE_X_TOOLKIT
+  if (f->output_data.x->widget && f->border_width > 0)
+    {
+      block_input ();
+      XtVaSetValues (f->output_data.x->widget, XtNborderColor,
+		     (Pixel) pix, NULL);
+      unblock_input ();
+
+      if (FRAME_VISIBLE_P (f))
+	redraw_frame (f);
+
+      return;
+    }
+#endif
+
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       block_input ();
