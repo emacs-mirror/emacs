@@ -3437,8 +3437,10 @@ This tests also `access-file', `file-readable-p',
 	      (should
 	       (string-equal
 		(file-attribute-type attr)
-		(tramp-file-name-localname
-		 (tramp-dissect-file-name tmp-name3))))
+		(funcall
+		 (if (tramp--test-sshfs-p) #'file-name-nondirectory #'identity)
+		 (tramp-file-name-localname
+		  (tramp-dissect-file-name tmp-name3)))))
 	      (delete-file tmp-name2))
 
 	    (when test-file-ownership-preserved-p
@@ -3598,7 +3600,9 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	    (should (= (file-modes tmp-name1) #o444))
 	    (should-not (file-executable-p tmp-name1))
 	    ;; A file is always writable for user "root".
-	    (unless (zerop (file-attribute-user-id (file-attributes tmp-name1)))
+	    (unless
+		(or (zerop (file-attribute-user-id (file-attributes tmp-name1)))
+		    (tramp--test-sshfs-p))
 	      (should-not (file-writable-p tmp-name1)))
 	    ;; Check the NOFOLLOW arg.  It exists since Emacs 28.  For
 	    ;; regular files, there shouldn't be a difference.

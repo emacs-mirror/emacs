@@ -51,10 +51,11 @@
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method
 		(tramp-mount-args            (("-C") ("-p" "%p")
+					      ("-o" "transform_symlinks")
 					      ("-o" "idmap=user,reconnect")))
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
-                (tramp-login-args           (("-q")("-l" "%u") ("-p" "%p")
+                (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")
 				             ("-e" "none") ("-t" "-t")
 					     ("%h") ("%l")))
                 (tramp-direct-async         t)
@@ -119,7 +120,7 @@
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sshfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
-    (file-writable-p . tramp-handle-file-writable-p)
+    (file-writable-p . tramp-sshfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-handle-insert-directory)
@@ -219,6 +220,10 @@ arguments to pass to the OPERATION."
   "Like `file-system-info' for Tramp files."
   ;;`file-system-info' exists since Emacs 27.1.
   (tramp-compat-funcall 'file-system-info (tramp-fuse-local-file-name filename)))
+
+(defun tramp-sshfs-handle-file-writable-p (filename)
+  "Like `file-writable-p' for Tramp files."
+  (file-writable-p (tramp-fuse-local-file-name filename)))
 
 (defun tramp-sshfs-handle-insert-file-contents
   (filename &optional visit beg end replace)
