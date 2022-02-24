@@ -59,7 +59,8 @@ prompt.  See bug#54136."
      (eshell-wait-for-subprocess t)
      (should (equal (buffer-substring-no-properties
                      output-start (eshell-end-of-output))
-                    "killed\n")))))
+                    ;; "interrupt\n" is for MS-Windows.
+                    (or "interrupt\n" "killed\n"))))))
 
 (ert-deftest esh-proc-test/kill-pipeline-head ()
   "Test that killing the first process in a pipeline doesn't
@@ -88,4 +89,4 @@ prompt.  See bug#54136."
    (kill-process (caar eshell-process-list))
    ;; Give `eshell-sentinel' a chance to run.
    (sit-for 0.1)
-   (eshell-match-result "\\[sh\\] [[:digit:]]+\n")))
+   (eshell-match-result "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n")))
