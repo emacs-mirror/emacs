@@ -37,52 +37,68 @@ the corresponding new element of the same type.
 
 The purpose of this is to detect circular structures.")
 
-(defalias 'byte-run--strip-s-p-1
+(defalias 'byte-run--strip-list
   #'(lambda (arg)
-      "Strip all positions from symbols in ARG, modifying ARG.
-Return the modified ARG."
-      (cond
-       ((symbol-with-pos-p arg)
-        (bare-symbol arg))
+      "Strip the positions from symbols with position in the list ARG.
+This is done by destructively modifying ARG.  Return ARG."
+      (let ((a arg))
+        (while
+            (and
+             (not (gethash a byte-run--ssp-seen))
+             (progn
+               (puthash a t byte-run--ssp-seen)
+               (cond
+                ((symbol-with-pos-p (car a))
+                 (setcar a (bare-symbol (car a))))
+                ((consp (car a))
+                 (byte-run--strip-list (car a)))
+                ((or (vectorp (car a)) (recordp (car a)))
+                 (byte-run--strip-vector/record (car a))))
+               (consp (cdr a))))
+          (setq a (cdr a)))
+        (cond
+         ((symbol-with-pos-p (cdr a))
+          (setcdr a (bare-symbol (cdr a))))
+         ((or (vectorp (cdr a)) (recordp (cdr a)))
+          (byte-run--strip-vector/record (cdr a))))
+        arg)))
 
-       ((consp arg)
-        (let* ((hash (gethash arg byte-run--ssp-seen)))
-          (if hash                      ; Already processed this node.
-              arg
-            (let ((a arg) new)
-              (while
-                  (progn
-                    (puthash a t byte-run--ssp-seen)
-                    (setq new (byte-run--strip-s-p-1 (car a)))
-                    (setcar a new)
-                    (and (consp (cdr a))
-                         (not
-                          (setq hash (gethash (cdr a) byte-run--ssp-seen)))))
-                (setq a (cdr a)))
-              (setq new (byte-run--strip-s-p-1 (cdr a)))
-              (setcdr a new)
-              arg))))
-
-       ((or (vectorp arg) (recordp arg))
-        (let ((hash (gethash arg byte-run--ssp-seen)))
-          (if hash
-              arg
-            (let* ((len (length arg))
-                   (i 0)
-                   new)
-              (puthash arg t byte-run--ssp-seen)
-              (while (< i len)
-                (setq new (byte-run--strip-s-p-1 (aref arg i)))
-                (aset arg i new)
-                (setq i (1+ i)))
-              arg))))
-
-       (t arg))))
+(defalias 'byte-run--strip-vector/record
+  #'(lambda (arg)
+      "Strip the positions from symbols with position in the vector/record ARG.
+This is done by destructively modifying ARG.  Return ARG."
+      (unless (gethash arg byte-run--ssp-seen)
+        (let ((len (length arg))
+              (i 0)
+              elt)
+          (puthash arg t byte-run--ssp-seen)
+          (while (< i len)
+            (setq elt (aref arg i))
+            (cond
+             ((symbol-with-pos-p elt)
+              (aset arg i elt))
+             ((consp elt)
+              (byte-run--strip-list elt))
+             ((or (vectorp elt) (recordp elt))
+              (byte-run--strip-vector/record elt))))))
+      arg))
 
 (defalias 'byte-run-strip-symbol-positions
   #'(lambda (arg)
+      "Strip all positions from symbols in ARG.
+This modifies destructively then returns ARG.
+
+ARG is any Lisp object, but is usually a list or a vector or a
+record, containing symbols with position."
       (setq byte-run--ssp-seen (make-hash-table :test 'eq))
-      (byte-run--strip-s-p-1 arg)))
+      (cond
+       ((symbol-with-pos-p arg)
+        (bare-symbol arg))
+       ((consp arg)
+        (byte-run--strip-list arg))
+       ((or (vectorp arg) (recordp arg))
+        (byte-run--strip-vector/record arg))
+       (t arg))))
 
 (defalias 'function-put
   ;; We don't want people to just use `put' because we can't conveniently
@@ -92,9 +108,7 @@ Return the modified ARG."
       "Set FUNCTION's property PROP to VALUE.
 The namespace for PROP is shared with symbols.
 So far, FUNCTION can only be a symbol, not a lambda expression."
-      (put (bare-symbol function)
-           (byte-run-strip-symbol-positions prop)
-           (byte-run-strip-symbol-positions value))))
+      (put (bare-symbol function) prop value)))
 (function-put 'defmacro 'doc-string-elt 3)
 (function-put 'defmacro 'lisp-indent-function 2)
 
