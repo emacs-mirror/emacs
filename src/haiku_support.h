@@ -666,6 +666,9 @@ extern "C"
   extern void
   BView_forget_scroll_bar (void *view, int x, int y, int width, int height);
 
+  extern bool
+  BView_inside_scroll_bar (void *view, int x, int y);
+
   extern void
   BView_get_mouse (void *view, int *x, int *y);
 

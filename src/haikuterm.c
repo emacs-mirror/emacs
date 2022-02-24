@@ -2799,7 +2799,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    need_flush = 1;
 		  }
 
-		if (f->auto_lower && !popup_activated_p)
+		if (f->auto_lower && !popup_activated_p
+		    /* Don't do this if the mouse entered a scroll bar.  */
+		    && !BView_inside_scroll_bar (FRAME_HAIKU_VIEW (f),
+						 b->x, b->y))
 		  {
 		    /* If we're leaving towards the menu bar, don't
 		       auto-lower here, and wait for a exit

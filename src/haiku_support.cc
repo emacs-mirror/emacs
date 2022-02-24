@@ -1607,6 +1607,30 @@ public:
     haiku_write (SCROLL_BAR_DRAG_EVENT, &rq);
     BScrollBar::MouseUp (pt);
   }
+
+  void
+  MouseMoved (BPoint point, uint32 transit, const BMessage *msg)
+  {
+    struct haiku_menu_bar_left_event rq;
+    BPoint conv;
+
+    if (transit == B_EXITED_VIEW)
+      {
+	conv = ConvertToParent (point);
+
+	rq.x = std::lrint (conv.x);
+	rq.y = std::lrint (conv.y);
+	rq.window = this->Window ();
+
+	if (movement_locker.Lock ())
+	  {
+	    haiku_write (MENU_BAR_LEFT, &rq);
+	    movement_locker.Unlock ();
+	  }
+      }
+
+    BScrollBar::MouseMoved (point, transit, msg);
+  }
 };
 
 class EmacsTitleMenuItem : public BMenuItem
@@ -2264,6 +2288,23 @@ BView_forget_scroll_bar (void *view, int x, int y, int width, int height)
 				    y - 1 + height));
       vw->UnlockLooper ();
     }
+}
+
+bool
+BView_inside_scroll_bar (void *view, int x, int y)
+{
+  EmacsView *vw = (EmacsView *) view;
+  bool val;
+
+  if (vw->LockLooper ())
+    {
+      val = vw->sb_region.Contains (BPoint (x, y));
+      vw->UnlockLooper ();
+    }
+  else
+    val = false;
+
+  return val;
 }
 
 void
