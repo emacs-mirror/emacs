@@ -418,6 +418,8 @@ s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
+s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
+s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
 s/\$\(MKDIR_P\) malloc//
 #
 # Determine which modules to build and which to omit
@@ -429,7 +431,6 @@ OMIT_GNULIB_MODULE_careadlinkat = true\
 OMIT_GNULIB_MODULE_cloexec = true\
 OMIT_GNULIB_MODULE_dirent = true\
 OMIT_GNULIB_MODULE_dirfd = true\
-OMIT_GNULIB_MODULE_scratch_buffer = true\
 OMIT_GNULIB_MODULE_dup2 = true\
 OMIT_GNULIB_MODULE_errno = true\
 OMIT_GNULIB_MODULE_euidaccess = true\

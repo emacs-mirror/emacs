@@ -194,6 +194,12 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define iswctype(wc, type) false
 #define mbsinit(ps) 1
 
+/* Some things that lib/at-func.c wants.  */
+#define GNULIB_SUPPORT_ONLY_AT_FDCWD
+
+/* Needed by lib/lchmod.c.  */
+#define EOPNOTSUPP EINVAL
+
 #define MALLOC_0_IS_NONNULL 1
 
 /* We must intercept 'opendir' calls to stash away the directory name,
