@@ -2588,6 +2588,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time)
 {
 #ifndef USE_GTK
   struct frame *focus_frame = dpyinfo->x_focus_frame;
+  struct x_output *output;
 #endif
 
 #ifdef ENABLE_CHECKING
@@ -2596,6 +2597,56 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time)
   dpyinfo->last_user_time = time;
 
 #ifndef USE_GTK
+  if (focus_frame
+      && (dpyinfo->last_user_time
+	  > (dpyinfo->last_user_check_time + 2000)))
+    {
+      output = FRAME_X_OUTPUT (focus_frame);
+
+      if (!x_wm_supports (focus_frame,
+			  dpyinfo->Xatom_net_wm_user_time_window))
+	{
+	  if (output->user_time_window == None)
+	    output->user_time_window = FRAME_OUTER_WINDOW (focus_frame);
+	  else if (output->user_time_window != FRAME_OUTER_WINDOW (focus_frame))
+	    {
+	      XDestroyWindow (dpyinfo->display,
+			      output->user_time_window);
+	      XDeleteProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (focus_frame),
+			       dpyinfo->Xatom_net_wm_user_time_window);
+	      output->user_time_window = FRAME_OUTER_WINDOW (focus_frame);
+	    }
+	}
+      else
+	{
+	  if (output->user_time_window == FRAME_OUTER_WINDOW (focus_frame)
+	      || output->user_time_window == None)
+	    {
+	      XSetWindowAttributes attrs;
+	      memset (&attrs, 0, sizeof attrs);
+
+	      output->user_time_window
+		= XCreateWindow (dpyinfo->display,
+				 FRAME_X_WINDOW (focus_frame),
+				 -1, -1, 1, 1, 0, 0, InputOnly,
+				 CopyFromParent, 0, &attrs);
+
+	      XDeleteProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (focus_frame),
+			       dpyinfo->Xatom_net_wm_user_time);
+	      XChangeProperty (dpyinfo->display,
+			       FRAME_OUTER_WINDOW (focus_frame),
+			       dpyinfo->Xatom_net_wm_user_time_window,
+			       XA_WINDOW, 32, PropModeReplace,
+			       (unsigned char *) &output->user_time_window,
+			       1);
+	    }
+	}
+
+      dpyinfo->last_user_check_time = time;
+    }
+
   if (focus_frame)
     {
       while (FRAME_PARENT_FRAME (focus_frame))
