@@ -527,13 +527,18 @@ If UNMARK is non-nil, unmark them."
   (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
 
 
+(autoload 'etags-verify-tags-table "etags")
 (defun Buffer-menu-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
   (interactive nil Buffer-menu-mode)
-  (let ((file (buffer-file-name (Buffer-menu-buffer t))))
-    (if file
-	(visit-tags-table file)
-      (error "Specified buffer has no file"))))
+  (let* ((buf (Buffer-menu-buffer t))
+         (file (buffer-file-name buf)))
+    (cond
+     ((not file) (error "Specified buffer has no file"))
+     ((and buf (with-current-buffer buf
+                 (etags-verify-tags-table)))
+      (visit-tags-table file))
+     (t (error "Specified buffer is not a tags-table")))))
 
 (defun Buffer-menu-1-window ()
   "Select this line's buffer, alone, in full frame."
