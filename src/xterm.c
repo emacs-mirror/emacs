@@ -600,7 +600,7 @@ static void x_wm_set_window_state (struct frame *, int);
 static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
-static bool x_get_current_wm_state (struct frame *, Window, int *, bool *);
+static bool x_get_current_wm_state (struct frame *, Window, int *, bool *, bool *);
 static void x_update_opaque_region (struct frame *, XEvent *);
 
 /* Flush display of frame F.  */
@@ -9354,9 +9354,9 @@ x_net_wm_state (struct frame *f, Window window)
 {
   int value = FULLSCREEN_NONE;
   Lisp_Object lval = Qnil;
-  bool sticky = false;
+  bool sticky = false, shaded = false;
 
-  x_get_current_wm_state (f, window, &value, &sticky);
+  x_get_current_wm_state (f, window, &value, &sticky, &shaded);
 
   switch (value)
     {
@@ -9375,7 +9375,8 @@ x_net_wm_state (struct frame *f, Window window)
     }
 
   store_frame_param (f, Qfullscreen, lval);
-/**   store_frame_param (f, Qsticky, sticky ? Qt : Qnil); **/
+  store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
+  store_frame_param (f, Qshaded, shaded ? Qt : Qnil);
 }
 
 /* Flip back buffers on any frames with undrawn content.  */
@@ -10043,8 +10044,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
 	  bool iconified = FRAME_ICONIFIED_P (f);
 	  int value;
-	  bool sticky;
-          bool not_hidden = x_get_current_wm_state (f, event->xmap.window, &value, &sticky);
+	  bool sticky, shaded;
+          bool not_hidden = x_get_current_wm_state (f, event->xmap.window, &value, &sticky,
+						    &shaded);
 
 	  if (CONSP (frame_size_history))
 	    frame_size_history_extra
@@ -14143,6 +14145,18 @@ x_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
                 dpyinfo->Xatom_net_wm_state_sticky, None);
 }
 
+void
+x_set_shaded (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  Lisp_Object frame;
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  XSETFRAME (frame, f);
+
+  set_wm_state (frame, !NILP (new_value),
+                dpyinfo->Xatom_net_wm_state_shaded, None);
+}
+
 /**
  * x_set_skip_taskbar:
  *
@@ -14243,7 +14257,8 @@ static bool
 x_get_current_wm_state (struct frame *f,
                         Window window,
                         int *size_state,
-                        bool *sticky)
+                        bool *sticky,
+			bool *shaded)
 {
   unsigned long actual_size;
   int i;
@@ -14267,6 +14282,7 @@ x_get_current_wm_state (struct frame *f,
 
   *sticky = false;
   *size_state = FULLSCREEN_NONE;
+  *shaded = false;
 
   block_input ();
 
@@ -14328,6 +14344,8 @@ x_get_current_wm_state (struct frame *f,
         *size_state = FULLSCREEN_BOTH;
       else if (a == dpyinfo->Xatom_net_wm_state_sticky)
         *sticky = true;
+      else if (a == dpyinfo->Xatom_net_wm_state_shaded)
+	*shaded = true;
     }
 
 #ifdef USE_XCB
@@ -14350,7 +14368,7 @@ do_ewmh_fullscreen (struct frame *f)
   int cur;
   bool dummy;
 
-  x_get_current_wm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
+  x_get_current_wm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy, &dummy);
 
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
@@ -14490,8 +14508,10 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
 {
   int value = FULLSCREEN_NONE;
   Lisp_Object lval;
-  bool sticky = false;
-  bool not_hidden = x_get_current_wm_state (f, event->window, &value, &sticky);
+  bool sticky = false, shaded = false;
+  bool not_hidden = x_get_current_wm_state (f, event->window,
+					    &value, &sticky,
+					    &shaded);
 
   lval = Qnil;
   switch (value)
@@ -14512,6 +14532,7 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
 
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
+  store_frame_param (f, Qshaded, shaded ? Qt : Qnil);
 
   return not_hidden;
 }
@@ -16804,6 +16825,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_VERT",
 		      Xatom_net_wm_state_maximized_vert)
       ATOM_REFS_INIT ("_NET_WM_STATE_STICKY", Xatom_net_wm_state_sticky)
+      ATOM_REFS_INIT ("_NET_WM_STATE_SHADED", Xatom_net_wm_state_shaded)
       ATOM_REFS_INIT ("_NET_WM_STATE_HIDDEN", Xatom_net_wm_state_hidden)
       ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE", Xatom_net_window_type)
       ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE_TOOLTIP",

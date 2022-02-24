@@ -2168,6 +2168,11 @@ prevent hanging with those window managers.
 If non-@code{nil}, the frame is visible on all virtual desktops on systems
 with virtual desktops.
 
+@vindex shaded@r{, a frame parameter}
+@item sticky
+If non-@code{nil}, tell the window manager to display the frame in a
+way that its contents are hidden, leaving only the title bar.
+
 @vindex inhibit-double-buffering@r{, a frame parameter}
 @item inhibit-double-buffering
 If non-@code{nil}, the frame is drawn to the screen without double

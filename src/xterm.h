@@ -536,10 +536,11 @@ struct x_display_info
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_above, Xatom_net_wm_state_below,
     Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
-    Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
-    Xatom_net_wm_opaque_region, Xatom_net_wm_ping, Xatom_net_wm_sync_request,
-    Xatom_net_wm_sync_request_counter, Xatom_net_wm_frame_drawn,
-    Xatom_net_wm_user_time, Xatom_net_wm_user_time_window;
+    Xatom_net_wm_state_shaded, Xatom_net_frame_extents, Xatom_net_current_desktop,
+    Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
+    Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
+    Xatom_net_wm_frame_drawn, Xatom_net_wm_user_time,
+    Xatom_net_wm_user_time_window;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -1372,6 +1373,7 @@ x_mutable_colormap (Visual *visual)
 }
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_shaded (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_skip_taskbar (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 extern bool x_wm_supports (struct frame *, Atom);

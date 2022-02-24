@@ -232,6 +232,11 @@ resource "synchronizeResize" to "off".
 This controls the opacity of the text background when running on a
 composited display.
 
++++
+** New frame parameter 'shaded'.
+On supported window managers, this controls whether or not a frame's
+contents will be hidden, leaving only the title bar.
+
 ---
 ** New user option 'x-gtk-use-native-input'.
 This controls whether or not GTK input methods are used by Emacs,

@@ -8900,6 +8900,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_override_redirect,
   gui_set_no_special_glyphs,
   x_set_alpha_background,
+  x_set_shaded,
 };
 
 /* Some versions of libX11 don't have symbols for a few functions we

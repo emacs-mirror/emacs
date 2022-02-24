@@ -3908,6 +3908,9 @@ static const struct frame_parm_table frame_parms[] =
   {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
   {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
   {"alpha-background",          SYMBOL_INDEX (Qalpha_background)},
+#ifdef HAVE_X_WINDOWS
+  {"shaded", 			SYMBOL_INDEX (Qshaded)},
+#endif
 #ifdef NS_IMPL_COCOA
   {"ns-appearance",		SYMBOL_INDEX (Qns_appearance)},
   {"ns-transparent-titlebar",	SYMBOL_INDEX (Qns_transparent_titlebar)},
@@ -6084,6 +6087,7 @@ syms_of_frame (void)
   DEFSYM (Qfullheight, "fullheight");
   DEFSYM (Qfullboth, "fullboth");
   DEFSYM (Qmaximized, "maximized");
+  DEFSYM (Qshaded, "shaded");
   DEFSYM (Qx_resource_name, "x-resource-name");
   DEFSYM (Qx_frame_parameter, "x-frame-parameter");
 
