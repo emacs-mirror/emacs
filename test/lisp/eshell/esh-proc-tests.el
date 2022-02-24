@@ -43,3 +43,49 @@
     "y\n")
    (eshell-wait-for-subprocess t)
    (should (eq (process-list) nil))))
+
+(ert-deftest esh-proc-test/kill-pipeline ()
+  "Test that killing a pipeline of processes only emits a single
+prompt.  See bug#54136."
+  (skip-unless (and (executable-find "sh")
+                    (executable-find "echo")
+                    (executable-find "sleep")))
+  (with-temp-eshell
+   (eshell-insert-command
+    (concat "sh -c 'while true; do echo y; sleep 1; done' | "
+            "sh -c 'while true; do read NAME; done'"))
+   (let ((output-start (eshell-beginning-of-output)))
+     (eshell-kill-process)
+     (eshell-wait-for-subprocess t)
+     (should (equal (buffer-substring-no-properties
+                     output-start (eshell-end-of-output))
+                    "killed\n")))))
+
+(ert-deftest esh-proc-test/kill-pipeline-head ()
+  "Test that killing the first process in a pipeline doesn't
+write the exit status to the pipe.  See bug#54136."
+  (skip-unless (and (executable-find "sh")
+                    (executable-find "echo")
+                    (executable-find "sleep")))
+  (with-temp-eshell
+   (eshell-insert-command
+    (concat "sh -c 'while true; sleep 1; done' | "
+            "sh -c 'while read NAME; do echo =${NAME}=; done'"))
+   (let ((output-start (eshell-beginning-of-output)))
+     (kill-process (eshell-head-process))
+     (eshell-wait-for-subprocess t)
+     (should (equal (buffer-substring-no-properties
+                     output-start (eshell-end-of-output))
+                    "")))))
+
+(ert-deftest esh-proc-test/kill-background-process ()
+  "Test that killing a background process doesn't emit a new
+prompt.  See bug#54136."
+  (skip-unless (and (executable-find "sh")
+                    (executable-find "sleep")))
+  (with-temp-eshell
+   (eshell-insert-command "sh -c 'while true; do sleep 1; done' &")
+   (kill-process (caar eshell-process-list))
+   ;; Give `eshell-sentinel' a chance to run.
+   (sit-for 0.1)
+   (eshell-match-result "\\[sh\\] [[:digit:]]+\n")))
