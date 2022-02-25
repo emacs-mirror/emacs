@@ -393,6 +393,29 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
     }
 }
 
+static struct frame *
+haiku_mouse_or_wdesc_frame (void *window)
+{
+  struct frame *lm_f = (gui_mouse_grabbed (x_display_list)
+			? x_display_list->last_mouse_frame
+			: NULL);
+
+  if (lm_f && !EQ (track_mouse, Qdropping))
+    return lm_f;
+  else
+    {
+      struct frame *w_f = haiku_window_to_frame (window);
+
+      /* Do not return a tooltip frame.  */
+      if (!w_f || FRAME_TOOLTIP_P (w_f))
+	return EQ (track_mouse, Qdropping) ? lm_f : NULL;
+      else
+	/* When dropping it would be probably nice to raise w_f
+	   here.  */
+	return w_f;
+    }
+}
+
 /* Unfortunately, NOACTIVATE is not implementable on Haiku.  */
 static void
 haiku_focus_frame (struct frame *frame, bool noactivate)
@@ -2777,7 +2800,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case MOUSE_MOTION:
 	  {
 	    struct haiku_mouse_motion_event *b = buf;
-	    struct frame *f = haiku_window_to_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 
 	    if (!f)
@@ -2936,7 +2959,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case BUTTON_DOWN:
 	  {
 	    struct haiku_button_event *b = buf;
-	    struct frame *f = haiku_window_to_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
 	    Lisp_Object tab_bar_arg = Qnil;
 	    int tab_bar_p = 0, tool_bar_p = 0;
 	    bool up_okay_p = false;
