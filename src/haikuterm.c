@@ -161,8 +161,12 @@ haiku_clip_to_string (struct glyph_string *s)
 			  FRAME_PIXEL_HEIGHT (s->f),
 			  10, 10);
       else
-	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[0].x,
-			  r[0].y, r[0].width, r[0].height);
+	{
+	  BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[0].x,
+			    r[0].y, r[0].width, r[0].height);
+	  BView_invalidate_region (FRAME_HAIKU_VIEW (s->f), r[0].x,
+				   r[0].y, r[0].width, r[0].height);
+	}
     }
 
   if (n > 1)
@@ -175,8 +179,12 @@ haiku_clip_to_string (struct glyph_string *s)
 			  FRAME_PIXEL_HEIGHT (s->f),
 			  10, 10);
       else
-	BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[1].x, r[1].y,
-			  r[1].width, r[1].height);
+	{
+	  BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), r[1].x, r[1].y,
+			    r[1].width, r[1].height);
+	  BView_invalidate_region (FRAME_HAIKU_VIEW (s->f), r[1].x,
+				   r[1].y, r[1].width, r[1].height);
+	}
     }
 }
 
@@ -193,7 +201,7 @@ haiku_flip_buffers (struct frame *f)
   void *view = FRAME_OUTPUT_DATA (f)->view;
   block_input ();
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, false, 0, 0, 0, 0);
   FRAME_DIRTY_P (f) = 0;
   EmacsView_flip_and_blit (view);
   BView_draw_unlock (view);
@@ -224,7 +232,7 @@ haiku_clear_frame_area (struct frame *f, int x, int y,
 {
   void *vw = FRAME_HAIKU_VIEW (f);
   block_input ();
-  BView_draw_lock (vw);
+  BView_draw_lock (vw, true, x, y, width, height);
   BView_StartClip (vw);
   BView_ClipToRect (vw, x, y, width, height);
   BView_SetHighColor (vw, FRAME_BACKGROUND_PIXEL (f));
@@ -242,7 +250,8 @@ haiku_clear_frame (struct frame *f)
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   block_input ();
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
+		   FRAME_PIXEL_HEIGHT (f));
   BView_StartClip (view);
   BView_ClipToRect (view, 0, 0, FRAME_PIXEL_WIDTH (f),
 		    FRAME_PIXEL_HEIGHT (f));
@@ -1462,7 +1471,7 @@ haiku_draw_glyph_string (struct glyph_string *s)
 
   block_input ();
   view = FRAME_HAIKU_VIEW (s->f);
-  BView_draw_lock (view);
+  BView_draw_lock (view, false, 0, 0, 0, 0);
   prepare_face_for_display (s->f, s->face);
 
   struct face *face = s->face;
@@ -1645,13 +1654,17 @@ haiku_after_update_window_line (struct window *w,
       if (face)
 	{
 	  void *view = FRAME_HAIKU_VIEW (f);
-	  BView_draw_lock (view);
+	  BView_draw_lock (view, false, 0, 0, 0, 0);
 	  BView_StartClip (view);
 	  BView_SetHighColor (view, face->background_defaulted_p ?
 			      FRAME_BACKGROUND_PIXEL (f) : face->background);
 	  BView_FillRectangle (view, 0, y, width, height);
 	  BView_FillRectangle (view, FRAME_PIXEL_WIDTH (f) - width,
 			       y, width, height);
+	  BView_invalidate_region (FRAME_HAIKU_VIEW (f),
+				   0, y, width, height);
+	  BView_invalidate_region (view, FRAME_PIXEL_WIDTH (f) - width,
+				   y, width, height);
 	  BView_EndClip (view);
 	  BView_draw_unlock (view);
 	}
@@ -1739,7 +1752,7 @@ haiku_draw_window_cursor (struct window *w,
       h = cursor_height;
     }
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, false, 0, 0, 0, 0);
   BView_StartClip (view);
 
   if (cursor_type == BAR_CURSOR)
@@ -1771,13 +1784,20 @@ haiku_draw_window_cursor (struct window *w,
       break;
     case HBAR_CURSOR:
       BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
+      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
     case BAR_CURSOR:
       if (cursor_glyph->resolved_level & 1)
-	BView_FillRectangle (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
-			     fy, w->phys_cursor_width, h);
+	{
+	  BView_FillRectangle (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
+			       fy, w->phys_cursor_width, h);
+	  BView_invalidate_region (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
+				   fy, w->phys_cursor_width, h);
+	}
       else
 	BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
+
+      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
     case HOLLOW_BOX_CURSOR:
       if (phys_cursor_glyph->type != IMAGE_GLYPH)
@@ -1787,6 +1807,8 @@ haiku_draw_window_cursor (struct window *w,
 	}
       else
 	draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+
+      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
     case FILLED_BOX_CURSOR:
       draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
@@ -1865,7 +1887,7 @@ haiku_draw_vertical_window_border (struct window *w,
 
   face = FACE_FROM_ID_OR_NULL (f, VERTICAL_BORDER_FACE_ID);
   void *view = FRAME_HAIKU_VIEW (f);
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, x, y_0, 1, y_1);
   BView_StartClip (view);
   if (face)
     BView_SetHighColor (view, face->foreground);
@@ -1910,7 +1932,7 @@ haiku_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 			      : FRAME_FOREGROUND_PIXEL (f));
   void *view = FRAME_HAIKU_VIEW (f);
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
   BView_StartClip (view);
 
   if ((y1 - y0 > x1 - x0) && (x1 - x0 >= 3))
@@ -2240,7 +2262,7 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   struct face *face = p->face;
 
   block_input ();
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, p->x, p->y, p->wd, p->h);
   BView_StartClip (view);
 
   haiku_clip_to_row (w, row, ANY_AREA);
@@ -2345,7 +2367,7 @@ haiku_scroll_run (struct window *w, struct run *run)
   block_input ();
   gui_clear_cursor (w);
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, x, to_y, width, height);
   BView_StartClip (view);
   BView_CopyBits (view, x, from_y, width, height,
 		  x, to_y, width, height);
@@ -2630,7 +2652,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		continue;
 	      }
 
-	    BView_draw_lock (FRAME_HAIKU_VIEW (f));
+	    BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
 	    BView_resize_to (FRAME_HAIKU_VIEW (f), width, height);
 	    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
 
@@ -3222,7 +3244,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		   menu bar.  */
 		if (!b->no_lock)
 		  {
-		    BView_draw_lock (FRAME_HAIKU_VIEW (f));
+		    BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
 		    /* This shouldn't be here, but nsmenu does it, so
 		       it should probably be safe.  */
 		    int was_waiting_for_input_p = waiting_for_input;
@@ -3440,7 +3462,8 @@ haiku_flash (struct frame *f)
   delay = make_timespec (0, 150 * 1000 * 1000);
   wakeup = timespec_add (current_timespec (), delay);
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
+		   FRAME_PIXEL_HEIGHT (f));
   BView_StartClip (view);
   /* If window is tall, flash top and bottom line.  */
   if (height > 3 * FRAME_LINE_HEIGHT (f))
@@ -3484,7 +3507,8 @@ haiku_flash (struct frame *f)
       pselect (0, NULL, NULL, NULL, &timeout, NULL);
     }
 
-  BView_draw_lock (view);
+  BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
+		   FRAME_PIXEL_HEIGHT (f));
   BView_StartClip (view);
   /* If window is tall, flash top and bottom line.  */
   if (height > 3 * FRAME_LINE_HEIGHT (f))
@@ -3709,7 +3733,8 @@ haiku_clear_under_internal_border (struct frame *f)
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
       void *view = FRAME_HAIKU_VIEW (f);
       block_input ();
-      BView_draw_lock (view);
+      BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
+		       FRAME_PIXEL_HEIGHT (f));
       BView_StartClip (view);
       BView_ClipToRect (view, 0, 0, FRAME_PIXEL_WIDTH (f),
 			FRAME_PIXEL_HEIGHT (f));

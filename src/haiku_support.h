@@ -621,7 +621,11 @@ extern "C"
   BView_invalidate (void *view);
 
   extern void
-  BView_draw_lock (void *view);
+  BView_draw_lock (void *view, bool invalidate_region,
+		   int x, int y, int width, int height);
+
+  extern void
+  BView_invalidate_region (void *view, int x, int y, int width, int height);
 
   extern void
   BView_draw_unlock (void *view);

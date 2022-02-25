@@ -1197,6 +1197,7 @@ public:
   uint32_t previous_buttons = 0;
   int looper_locked_count = 0;
   BRegion sb_region;
+  BRegion invalid_region;
 
   BView *offscreen_draw_view = NULL;
   BBitmap *offscreen_draw_bitmap_1 = NULL;
@@ -1403,7 +1404,8 @@ public:
     SetViewBitmap (copy_bitmap,
 		   Frame (), Frame (), B_FOLLOW_NONE, 0);
 
-    Invalidate ();
+    Invalidate (&invalid_region);
+    invalid_region.MakeEmpty ();
     UnlockLooper ();
     return;
   }
@@ -1431,6 +1433,7 @@ public:
 	  gui_abort ("Failed to lock bitmap after double buffering was set up");
       }
 
+    invalid_region.MakeEmpty ();
     UnlockLooper ();
     Invalidate ();
   }
@@ -2147,14 +2150,23 @@ BView_invalidate (void *view)
 
 /* Lock VIEW in preparation for drawing operations.  This should be
    called before any attempt to draw onto VIEW or to lock it for Cairo
-   drawing.  `BView_draw_unlock' should be called afterwards.  */
+   drawing.  `BView_draw_unlock' should be called afterwards.
+
+   If any drawing is going to take place, INVALID_REGION should be
+   true, and X, Y, WIDTH, HEIGHT should specify a rectangle in which
+   the drawing will take place.  */
 void
-BView_draw_lock (void *view)
+BView_draw_lock (void *view, bool invalidate_region,
+		 int x, int y, int width, int height)
 {
   EmacsView *vw = (EmacsView *) view;
   if (vw->looper_locked_count)
     {
       vw->looper_locked_count++;
+
+      if (invalidate_region && vw->offscreen_draw_view)
+	vw->invalid_region.Include (BRect (x, y, x + width - 1,
+					   y + height - 1));
       return;
     }
   BView *v = (BView *) find_appropriate_view_for_draw (vw);
@@ -2168,7 +2180,21 @@ BView_draw_lock (void *view)
 
   if (v != vw && !vw->LockLooper ())
     gui_abort ("Failed to lock view while acquiring draw lock");
+
+  if (invalidate_region && vw->offscreen_draw_view)
+    vw->invalid_region.Include (BRect (x, y, x + width - 1,
+				       y + height - 1));
   vw->looper_locked_count++;
+}
+
+void
+BView_invalidate_region (void *view, int x, int y, int width, int height)
+{
+  EmacsView *vw = (EmacsView *) view;
+
+  if (vw->offscreen_draw_view)
+    vw->invalid_region.Include (BRect (x, y, x + width - 1,
+				       y + height - 1));
 }
 
 void

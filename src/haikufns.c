@@ -1374,7 +1374,7 @@ haiku_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
     {
       struct face *defface;
 
-      BView_draw_lock (FRAME_HAIKU_VIEW (f));
+      BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
       BView_SetViewColor (FRAME_HAIKU_VIEW (f), color.pixel);
       BView_draw_unlock (FRAME_HAIKU_VIEW (f));
 

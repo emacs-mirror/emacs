@@ -63,7 +63,7 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
     }
 
   if (view)
-    BView_draw_lock (view);
+    BView_draw_lock (view, false, 0, 0, 0, 0);
 
   while (i < menu_items_used)
     {
