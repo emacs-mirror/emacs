@@ -11513,6 +11513,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 		  if (found_valuator)
 		    {
+		      x_display_set_last_user_time (dpyinfo, xev->time);
+
 		      if (fabs (total_x) > 0 || fabs (total_y) > 0)
 			{
 			  inev.ie.kind = (fabs (total_y) >= fabs (total_x)
