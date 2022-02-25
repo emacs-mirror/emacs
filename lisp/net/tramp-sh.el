@@ -4759,7 +4759,7 @@ Goes through the list `tramp-inline-compress-commands'."
 	      (with-temp-buffer
 		(tramp-call-process vec "ssh" nil t nil "-o" "ControlMaster")
 		(goto-char (point-min))
-		(when (search-forward-regexp "missing.+argument" nil t)
+		(when (search-forward-regexp "\\(missing\\|no\\).+argument" nil t)
 		  (setq tramp-ssh-controlmaster-options
 			"-o ControlMaster=auto")))
 	      (unless (zerop (length tramp-ssh-controlmaster-options))
