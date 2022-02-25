@@ -11471,9 +11471,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    scroll_unit *= XFLOATINT (Vx_scroll_event_delta_factor);
 
 			  if (val->horizontal)
-			    total_x += delta * scroll_unit;
+			    total_x += val->emacs_value * scroll_unit;
 			  else
-			    total_y += delta * scroll_unit;
+			    total_y += val->emacs_value * scroll_unit;
 
 			  found_valuator = true;
 			  val->emacs_value = 0;
