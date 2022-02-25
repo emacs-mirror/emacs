@@ -2010,10 +2010,16 @@ Such as the current syntax table and the applied syntax properties."
 
 (defun xref--find-file-buffer (file)
   (unless (equal (car xref--last-file-buffer) file)
-    (setq xref--last-file-buffer
-          ;; `find-buffer-visiting' is considerably slower,
-          ;; especially on remote files.
-          (cons file (get-file-buffer file))))
+    ;; `find-buffer-visiting' is considerably slower,
+    ;; especially on remote files.
+    (let ((buf (get-file-buffer file)))
+      (when (and buf
+                 (or
+                  (buffer-modified-p buf)
+                  (not (verify-visited-file-modtime (current-buffer)))))
+        ;; We can't use buffers whose contents diverge from disk (bug#54025).
+        (setq buf nil))
+      (setq xref--last-file-buffer (cons file buf))))
   (cdr xref--last-file-buffer))
 
 (provide 'xref)
