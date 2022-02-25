@@ -57,10 +57,11 @@ prompt.  See bug#54136."
    (let ((output-start (eshell-beginning-of-output)))
      (eshell-kill-process)
      (eshell-wait-for-subprocess t)
-     (should (equal (buffer-substring-no-properties
-                     output-start (eshell-end-of-output))
-                    ;; "interrupt\n" is for MS-Windows.
-                    (or "interrupt\n" "killed\n"))))))
+     (should (string-match-p
+              ;; "interrupt\n" is for MS-Windows.
+              (rx (or "interrupt\n" "killed\n"))
+              (buffer-substring-no-properties
+               output-start (eshell-end-of-output)))))))
 
 (ert-deftest esh-proc-test/kill-pipeline-head ()
   "Test that killing the first process in a pipeline doesn't
