@@ -294,9 +294,13 @@ a list of address strings."
     (replace-match " " t t))
   (goto-char (point-min)))
 
+(declare-function ietf-drums-parse-date-string "ietf-drums-date"
+                  (time-string &optional error? no-822?))
+
 (defun ietf-drums-parse-date (string)
   "Return an Emacs time spec from STRING."
-  (encode-time (parse-time-string string)))
+  (require 'ietf-drums-date)
+  (encode-time (ietf-drums-parse-date-string string)))
 
 (defun ietf-drums-narrow-to-header ()
   "Narrow to the header section in the current buffer."
