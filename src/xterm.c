@@ -10572,6 +10572,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case LeaveNotify:
+      x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
+
 #ifdef HAVE_XWIDGETS
       {
 	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
@@ -10583,7 +10585,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
       }
 #endif
-      x_display_set_last_user_time (dpyinfo, event->xcrossing.time);
 
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
@@ -10919,6 +10920,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     case ButtonRelease:
     case ButtonPress:
       {
+	if (event->xbutton.type == ButtonPress)
+	  x_display_set_last_user_time (dpyinfo, event->xbutton.time);
+
 #ifdef HAVE_XWIDGETS
 	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
 
@@ -10947,9 +10951,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	memset (&compose_status, 0, sizeof (compose_status));
 	dpyinfo->last_mouse_glyph_frame = NULL;
-
-	if (event->xbutton.type == ButtonPress)
-	  x_display_set_last_user_time (dpyinfo, event->xbutton.time);
 
 	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
 	if (f && event->xbutton.type == ButtonPress
@@ -11318,6 +11319,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						       enter->deviceid, false);
 #endif
 
+	    x_display_set_last_user_time (dpyinfo, xi_event->time);
+
 #ifdef HAVE_XWIDGETS
 	    {
 	      struct xwidget_view *xvw
@@ -11332,8 +11335,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 	    }
 #endif
-
-	    x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 	    if (any)
 	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
@@ -11485,6 +11486,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (xv)
 		{
 		  uint state = xev->mods.effective;
+		  x_display_set_last_user_time (dpyinfo, xev->time);
 
 		  if (xev->buttons.mask_len)
 		    {
@@ -11667,6 +11669,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
+	      if (xev->evtype == XI_ButtonPress)
+		x_display_set_last_user_time (dpyinfo, xev->time);
+
 #ifdef HAVE_XWIDGETS
 	      xvw = xwidget_view_from_window (xev->event);
 	      if (xvw)
@@ -11700,9 +11705,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bv.time = xev->time;
 
 	      dpyinfo->last_mouse_glyph_frame = NULL;
-
-	      if (xev->evtype == XI_ButtonPress)
-		x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 
