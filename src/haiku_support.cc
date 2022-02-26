@@ -1684,33 +1684,51 @@ public:
     struct haiku_scroll_bar_drag_event rq;
     struct haiku_scroll_bar_part_event part;
     BRegion r;
+    BLooper *looper;
+    BMessage *message;
+    int32 buttons;
 
-    r = ButtonRegionFor (HAIKU_SCROLL_BAR_UP_BUTTON);
+    looper = Looper ();
 
-    if (r.Contains (pt))
+    if (!looper)
+      GetMouse (&pt, (uint32 *) &buttons, false);
+    else
       {
-	part.scroll_bar = this;
-	part.window = Window ();
-	part.part = HAIKU_SCROLL_BAR_UP_BUTTON;
-	dragging = 1;
-	current_part = HAIKU_SCROLL_BAR_UP_BUTTON;
+	message = looper->CurrentMessage ();
 
-	haiku_write (SCROLL_BAR_PART_EVENT, &part);
-	goto out;
+	if (!message || message->FindInt32 ("buttons", &buttons) != B_OK)
+	  GetMouse (&pt, (uint32 *) &buttons, false);
       }
 
-    r = ButtonRegionFor (HAIKU_SCROLL_BAR_DOWN_BUTTON);
-
-    if (r.Contains (pt))
+    if (buttons == B_PRIMARY_MOUSE_BUTTON)
       {
-	part.scroll_bar = this;
-	part.window = Window ();
-	part.part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
-	dragging = 1;
-	current_part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
+	r = ButtonRegionFor (HAIKU_SCROLL_BAR_UP_BUTTON);
 
-	haiku_write (SCROLL_BAR_PART_EVENT, &part);
-	goto out;
+	if (r.Contains (pt))
+	  {
+	    part.scroll_bar = this;
+	    part.window = Window ();
+	    part.part = HAIKU_SCROLL_BAR_UP_BUTTON;
+	    dragging = 1;
+	    current_part = HAIKU_SCROLL_BAR_UP_BUTTON;
+
+	    haiku_write (SCROLL_BAR_PART_EVENT, &part);
+	    goto out;
+	  }
+
+	r = ButtonRegionFor (HAIKU_SCROLL_BAR_DOWN_BUTTON);
+
+	if (r.Contains (pt))
+	  {
+	    part.scroll_bar = this;
+	    part.window = Window ();
+	    part.part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
+	    dragging = 1;
+	    current_part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
+
+	    haiku_write (SCROLL_BAR_PART_EVENT, &part);
+	    goto out;
+	  }
       }
 
     rq.dragging_p = 1;
