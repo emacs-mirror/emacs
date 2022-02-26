@@ -2915,12 +2915,21 @@ names (such as @code{:family} or @code{:underline}) and values.  Thus,
 sets the attribute @code{:weight} to @code{bold} and the attribute
 @code{:slant} to @code{italic}.
 
-
 If @var{frame} is @code{t}, this function sets the default attributes
 for newly created frames; they will effectively override the attribute
 values specified by @code{defface}.  If @var{frame} is @code{nil},
 this function sets the attributes for all existing frames, as well as
-for newly created frames.
+for newly created frames.  However, if you want to @emph{reset} the
+value of an attribute to @code{unspecified} in a way that also affects
+newly created frames, you @emph{must} explicitly call this function
+with @var{frame} set to @code{t} and the value of the attribute set to
+@code{unspecified} (@emph{not} @code{nil}!@:), in addition to the call
+with @var{frame} set to @code{nil}.  This is because the default
+attributes for newly created frames are merged with the face's spec in
+@code{defface} when a new frame is created, and so having
+@code{unspecified} in the default attributes for new frames will be
+unable to override @code{defface}; the special call to this function
+as described above will arrange for @code{defface} to be overridden.
 @end defun
 
   The following commands and functions mostly provide compatibility
