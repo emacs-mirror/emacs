@@ -1557,7 +1557,6 @@ public:
 class EmacsScrollBar : public BScrollBar
 {
 public:
-  void *scroll_bar;
   int dragging = 0;
   bool horizontal;
   enum haiku_scroll_bar_part current_part;
@@ -1599,7 +1598,8 @@ public:
 	      {
 		SetValue (old_value);
 
-		part.scroll_bar = scroll_bar;
+		part.scroll_bar = this;
+		part.window = Window ();
 		part.part = current_part;
 		haiku_write (SCROLL_BAR_PART_EVENT, &part);
 	      }
@@ -1610,7 +1610,8 @@ public:
 	return;
       }
 
-    rq.scroll_bar = scroll_bar;
+    rq.scroll_bar = this;
+    rq.window = Window ();
     rq.position = new_value;
 
     haiku_write (SCROLL_BAR_VALUE_EVENT, &rq);
@@ -1688,7 +1689,8 @@ public:
 
     if (r.Contains (pt))
       {
-	part.scroll_bar = scroll_bar;
+	part.scroll_bar = this;
+	part.window = Window ();
 	part.part = HAIKU_SCROLL_BAR_UP_BUTTON;
 	dragging = 1;
 	current_part = HAIKU_SCROLL_BAR_UP_BUTTON;
@@ -1701,7 +1703,8 @@ public:
 
     if (r.Contains (pt))
       {
-	part.scroll_bar = scroll_bar;
+	part.scroll_bar = this;
+	part.window = Window ();
 	part.part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
 	dragging = 1;
 	current_part = HAIKU_SCROLL_BAR_DOWN_BUTTON;
@@ -1711,7 +1714,8 @@ public:
       }
 
     rq.dragging_p = 1;
-    rq.scroll_bar = scroll_bar;
+    rq.window = Window ();
+    rq.scroll_bar = this;
 
     haiku_write (SCROLL_BAR_DRAG_EVENT, &rq);
 
@@ -1724,7 +1728,8 @@ public:
   {
     struct haiku_scroll_bar_drag_event rq;
     rq.dragging_p = 0;
-    rq.scroll_bar = scroll_bar;
+    rq.scroll_bar = this;
+    rq.window = Window ();
 
     haiku_write (SCROLL_BAR_DRAG_EVENT, &rq);
     dragging = false;
@@ -2199,10 +2204,9 @@ BScrollBar_make_for_view (void *view, int horizontal_p,
 			  void *scroll_bar_ptr)
 {
   EmacsScrollBar *sb = new EmacsScrollBar (x, y, x1, y1, horizontal_p);
-  sb->scroll_bar = scroll_bar_ptr;
-
   BView *vw = (BView *) view;
   BView *sv = (BView *) sb;
+
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock scrollbar owner");
   vw->AddChild ((BView *) sb);

@@ -296,12 +296,14 @@ struct haiku_font_pattern
 struct haiku_scroll_bar_value_event
 {
   void *scroll_bar;
+  void *window;
   int position;
 };
 
 struct haiku_scroll_bar_drag_event
 {
   void *scroll_bar;
+  void *window;
   int dragging_p;
 };
 
@@ -314,6 +316,7 @@ enum haiku_scroll_bar_part
 struct haiku_scroll_bar_part_event
 {
   void *scroll_bar;
+  void *window;
   enum haiku_scroll_bar_part part;
 };
 
