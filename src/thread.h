@@ -92,13 +92,13 @@ struct thread_state
   struct handler *m_handlerlist_sentinel;
 #define handlerlist_sentinel (current_thread->m_handlerlist_sentinel)
 
-  /* Current number of specbindings allocated in specpdl.  */
-  ptrdiff_t m_specpdl_size;
-#define specpdl_size (current_thread->m_specpdl_size)
-
   /* Pointer to beginning of specpdl.  */
   union specbinding *m_specpdl;
 #define specpdl (current_thread->m_specpdl)
+
+  /* End of specpld (just beyond the last element).  */
+  union specbinding *m_specpdl_end;
+#define specpdl_end (current_thread->m_specpdl_end)
 
   /* Pointer to first unused element in specpdl.  */
   union specbinding *m_specpdl_ptr;

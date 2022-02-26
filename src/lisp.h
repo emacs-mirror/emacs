@@ -3469,7 +3469,7 @@ INLINE void
 grow_specpdl (void)
 {
   specpdl_ptr++;
-  if (specpdl_ptr == specpdl + specpdl_size)
+  if (specpdl_ptr == specpdl_end)
     grow_specpdl_allocation ();
 }
 

@@ -223,8 +223,8 @@ init_eval_once_for_pdumper (void)
 {
   enum { size = 50 };
   union specbinding *pdlvec = malloc ((size + 1) * sizeof *specpdl);
-  specpdl_size = size;
   specpdl = specpdl_ptr = pdlvec + 1;
+  specpdl_end = specpdl + size;
 }
 
 void
@@ -1773,7 +1773,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && ! NILP (error_symbol)
       /* Don't try to call a lisp function if we've already overflowed
          the specpdl stack.  */
-      && specpdl_ptr < specpdl + specpdl_size)
+      && specpdl_ptr < specpdl_end)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
@@ -2323,22 +2323,23 @@ alist mapping symbols to their value.  */)
 void
 grow_specpdl_allocation (void)
 {
-  eassert (specpdl_ptr == specpdl + specpdl_size);
+  eassert (specpdl_ptr == specpdl_end);
 
   specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
   union specbinding *pdlvec = specpdl - 1;
-  ptrdiff_t pdlvecsize = specpdl_size + 1;
-  if (max_size <= specpdl_size)
+  ptrdiff_t size = specpdl_end - specpdl;
+  ptrdiff_t pdlvecsize = size + 1;
+  if (max_size <= size)
     {
       if (max_specpdl_size < 400)
 	max_size = max_specpdl_size = 400;
-      if (max_size <= specpdl_size)
+      if (max_size <= size)
 	xsignal0 (Qexcessive_variable_binding);
     }
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
-  specpdl_size = pdlvecsize - 1;
+  specpdl_end = specpdl + pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
 }
 

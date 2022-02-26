@@ -790,7 +790,7 @@ run_thread (void *state)
   xfree (self->m_specpdl - 1);
   self->m_specpdl = NULL;
   self->m_specpdl_ptr = NULL;
-  self->m_specpdl_size = 0;
+  self->m_specpdl_end = NULL;
 
   {
     struct handler *c, *c_next;
@@ -862,11 +862,10 @@ If NAME is given, it must be a string; it names the new thread.  */)
   /* Perhaps copy m_last_thing_searched from parent?  */
   new_thread->m_current_buffer = current_thread->m_current_buffer;
 
-  new_thread->m_specpdl_size = 50;
-  new_thread->m_specpdl = xmalloc ((1 + new_thread->m_specpdl_size)
-				   * sizeof (union specbinding));
-  /* Skip the dummy entry.  */
-  ++new_thread->m_specpdl;
+  ptrdiff_t size = 50;
+  union specbinding *pdlvec = xmalloc ((1 + size) * sizeof (union specbinding));
+  new_thread->m_specpdl = pdlvec + 1;  /* Skip the dummy entry.  */
+  new_thread->m_specpdl_end = new_thread->m_specpdl + size;
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
 
   sys_cond_init (&new_thread->thread_condvar);
