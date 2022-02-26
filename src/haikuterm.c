@@ -3163,10 +3163,14 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    switch (b->part)
 	      {
 	      case HAIKU_SCROLL_BAR_UP_BUTTON:
-		inev.part = scroll_bar_up_arrow;
+		inev.part = (bar->horizontal
+			     ? scroll_bar_left_arrow
+			     : scroll_bar_up_arrow);
 		break;
 	      case HAIKU_SCROLL_BAR_DOWN_BUTTON:
-		inev.part = scroll_bar_down_arrow;
+		inev.part = (bar->horizontal
+			     ? scroll_bar_right_arrow
+			     : scroll_bar_down_arrow);
 		break;
 	      }
 
