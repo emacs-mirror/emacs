@@ -4798,7 +4798,11 @@ if only the first line of the docstring is shown."))
         (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
-	    (print-level nil))
+	    (print-level nil)
+            ;; We might be saving byte-code with embedded NULs, which
+            ;; can cause problems when read back, so print them
+            ;; readably.  (Bug#52554)
+            (print-escape-control-characters t))
         (atomic-change-group
 	  (custom-save-variables)
 	  (custom-save-faces)))

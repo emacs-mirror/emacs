@@ -1044,7 +1044,11 @@ init-file, or to a default value if loading is not possible."
         (debug-on-error-initial
          (if (eq init-file-debug t)
              'startup
-           init-file-debug)))
+           init-file-debug))
+        ;; The init file might contain byte-code with embedded NULs,
+        ;; which can cause problems when read back, so disable nul
+        ;; byte detection.  (Bug#52554)
+        (inhibit-null-byte-detection t))
     (let ((debug-on-error debug-on-error-initial))
       (condition-case-unless-debug error
           (when init-file-user
