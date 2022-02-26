@@ -76,6 +76,7 @@ enum haiku_event_type
     ICONIFICATION,
     MOVE_EVENT,
     SCROLL_BAR_VALUE_EVENT,
+    SCROLL_BAR_PART_EVENT,
     SCROLL_BAR_DRAG_EVENT,
     WHEEL_MOVE_EVENT,
     MENU_BAR_RESIZE,
@@ -302,6 +303,18 @@ struct haiku_scroll_bar_drag_event
 {
   void *scroll_bar;
   int dragging_p;
+};
+
+enum haiku_scroll_bar_part
+  {
+    HAIKU_SCROLL_BAR_UP_BUTTON,
+    HAIKU_SCROLL_BAR_DOWN_BUTTON
+  };
+
+struct haiku_scroll_bar_part_event
+{
+  void *scroll_bar;
+  enum haiku_scroll_bar_part part;
 };
 
 struct haiku_menu_bar_resize_event

@@ -3150,6 +3150,32 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      }
 	    break;
 	  }
+	case SCROLL_BAR_PART_EVENT:
+	  {
+	    struct haiku_scroll_bar_part_event *b = buf;
+	    struct scroll_bar *bar = b->scroll_bar;
+
+	    inev.kind = (bar->horizontal ? HORIZONTAL_SCROLL_BAR_CLICK_EVENT
+			 : SCROLL_BAR_CLICK_EVENT);
+
+	    bar->dragging = 0;
+
+	    switch (b->part)
+	      {
+	      case HAIKU_SCROLL_BAR_UP_BUTTON:
+		inev.part = scroll_bar_up_arrow;
+		break;
+	      case HAIKU_SCROLL_BAR_DOWN_BUTTON:
+		inev.part = scroll_bar_down_arrow;
+		break;
+	      }
+
+	    XSETINT (inev.x, 0);
+	    XSETINT (inev.y, 0);
+	    inev.frame_or_window = bar->window;
+
+	    break;
+	  }
 	case SCROLL_BAR_DRAG_EVENT:
 	  {
 	    struct haiku_scroll_bar_drag_event *b = buf;
