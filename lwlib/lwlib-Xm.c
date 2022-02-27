@@ -290,7 +290,12 @@ xm_arm_callback (Widget w, XtPointer client_data, XtPointer call_data)
   if (w != NULL)
     {
       instance = lw_get_widget_instance (w);
-      if (instance && instance->info->highlight_cb)
+
+      if (instance && instance->info->highlight_cb
+	  && (cbs->reason == XmCR_DISARM
+	      || (cbs->event
+		  && (cbs->event->type == EnterNotify
+		      || cbs->event->type == MotionNotify))))
 	{
 	  call_data = cbs->reason == XmCR_DISARM ? NULL : wv;
 	  instance->info->highlight_cb (w, instance->info->id, call_data);
