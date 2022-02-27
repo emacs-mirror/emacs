@@ -583,6 +583,12 @@ of familiarity.
 Expands to the value bound to @code{var}.  This is the main way to use
 variables in command invocations.
 
+@item $"var"
+@item $'var'
+Expands to the value bound to @code{var}.  This is useful to
+disambiguate the variable name when concatenating it with another
+value, such as @samp{$"var"-suffix}.
+
 @item $#var
 Expands to the length of the value bound to @code{var}.  Raises an error
 if the value is not a sequence
@@ -596,6 +602,11 @@ it can be used in a string, such as @samp{/some/path/$(lisp).txt}.
 @item $@{command@}
 Returns the output of @command{command}, which can be any valid Eshell
 command invocation, and may even contain expansions.
+
+@item $<command>
+As with @samp{$@{command@}}, evaluates the Eshell command invocation
+@command{command}, but writes the output to a temporary file and
+returns the file name.
 
 @item $var[i]
 Expands to the @code{i}th element of the value bound to @code{var}.  If
