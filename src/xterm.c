@@ -11670,7 +11670,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (popup_activated ())
 		{
 		  use_copy = true;
-		  copy.xbutton.type = ButtonRelease;
+		  copy.xbutton.type = (xev->evtype == XI_ButtonPress
+				       ? ButtonPress : ButtonRelease);
 		  copy.xbutton.serial = xev->serial;
 		  copy.xbutton.send_event = xev->send_event;
 		  copy.xbutton.display = dpyinfo->display;
