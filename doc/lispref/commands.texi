@@ -2091,11 +2091,13 @@ wheel.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
-This kind of event is generated only on some kinds of systems.  On some
-systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
-portable code, use the variables @code{mouse-wheel-up-event} and
-@code{mouse-wheel-down-event} defined in @file{mwheel.el} to determine
-what event types to expect for the mouse wheel.
+This kind of event is generated only on some kinds of systems.  On
+some systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
+portable code, use the variables @code{mouse-wheel-up-event},
+@code{mouse-wheel-up-alternate-event}, @code{mouse-wheel-down-event}
+and @code{mouse-wheel-down-alternate-event} defined in
+@file{mwheel.el} to determine what event types to expect for the mouse
+wheel.
 
 @cindex @code{pinch} event
 @item (pinch @var{position} @var{dx} @var{dy} @var{scale} @var{angle})
