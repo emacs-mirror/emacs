@@ -9513,6 +9513,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   XEvent configureEvent;
   XEvent next_event;
   Lisp_Object coding;
+#ifdef USE_MOTIF
+  /* Some XInput 2 events are important for Motif menu bars to work
+     correctly, so they must be translated into core events before
+     being passed to XtDispatchEvent.  */
+  bool use_copy = false;
+  XEvent copy;
+#endif
 
   *finish = X_EVENT_NORMAL;
 
@@ -10924,7 +10931,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  x_display_set_last_user_time (dpyinfo, event->xbutton.time);
 
 #ifdef HAVE_XWIDGETS
-	struct xwidget_view *xvw = xwidget_view_from_window (event->xmotion.window);
+	struct xwidget_view *xvw = xwidget_view_from_window (event->xbutton.window);
 
 	if (xvw)
 	  {
@@ -11657,6 +11664,38 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      struct xi_device_t *device;
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xvw;
+#endif
+
+#ifdef USE_MOTIF
+	      if (popup_activated ())
+		{
+		  use_copy = true;
+		  copy.xbutton.type = ButtonRelease;
+		  copy.xbutton.serial = xev->serial;
+		  copy.xbutton.send_event = xev->send_event;
+		  copy.xbutton.display = dpyinfo->display;
+		  copy.xbutton.window = xev->event;
+		  copy.xbutton.root = xev->root;
+		  copy.xbutton.subwindow = xev->child;
+		  copy.xbutton.time = xev->time;
+		  copy.xbutton.x = lrint (xev->event_x);
+		  copy.xbutton.y = lrint (xev->event_y);
+		  copy.xbutton.x_root = lrint (xev->root_x);
+		  copy.xbutton.y_root = lrint (xev->root_y);
+		  copy.xbutton.state = xev->mods.effective;
+		  copy.xbutton.button = xev->detail;
+		  copy.xbutton.same_screen = True;
+
+		  if (xev->buttons.mask_len)
+		    {
+		      if (XIMaskIsSet (xev->buttons.mask, 1))
+			copy.xbutton.state |= Button1Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 2))
+			copy.xbutton.state |= Button2Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 3))
+			copy.xbutton.state |= Button3Mask;
+		    }
+		}
 #endif
 
 #ifdef HAVE_XINPUT2_1
@@ -12699,7 +12738,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (event->type != ConfigureNotify
 	      || (event->xconfigure.width != 0
 		  && event->xconfigure.height != 0))
-	    XtDispatchEvent ((XEvent *) event);
+	    {
+#ifdef USE_MOTIF
+	      XtDispatchEvent (use_copy ? &copy : (XEvent *) event);
+#else
+	      XtDispatchEvent ((XEvent *) event);
+#endif
+	    }
 	}
       unblock_input ();
 #endif /* USE_X_TOOLKIT */

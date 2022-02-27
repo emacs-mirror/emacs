@@ -572,11 +572,11 @@ x_activate_menubar (struct frame *f)
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
-#ifndef USE_MOTIF
 	  if (dpyinfo->devices[i].grab)
-#endif
-	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			    CurrentTime);
+	    {
+	      XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			      CurrentTime);
+	    }
 	}
     }
 #endif
@@ -1514,6 +1514,23 @@ pop_down_menu (int id)
   popup_activated_flag = 0;
 }
 
+#ifdef HAVE_XINPUT2
+static Bool
+server_timestamp_predicate (Display *display,
+			    XEvent *xevent,
+			    XPointer arg)
+{
+  XID *args = (XID *) arg;
+
+  if (xevent->type == PropertyNotify
+      && xevent->xproperty.window == args[0]
+      && xevent->xproperty.atom == args[1])
+    return True;
+
+  return False;
+}
+#endif
+
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
    menu pops down.
    menu_item_selection will be set to the selection.  */
@@ -1529,6 +1546,10 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   LWLIB_ID menu_id;
   Widget menu;
   Window dummy_window;
+#ifdef HAVE_XINPUT2
+  XEvent property_dummy;
+  Atom property_atom;
+#endif
 
   eassert (FRAME_X_P (f));
 
@@ -1609,14 +1630,37 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
     }
 
   if (any_xi_grab_p)
-    XGrabPointer (dpyinfo->display,
-		  FRAME_X_WINDOW (f),
-		  False, (PointerMotionMask
-			  | PointerMotionHintMask
-			  | ButtonReleaseMask
-			  | ButtonPressMask),
-		  GrabModeSync, GrabModeAsync,
-		  None, None, CurrentTime);
+    {
+#ifndef USE_MOTIF
+      XGrabPointer (dpyinfo->display,
+		    FRAME_X_WINDOW (f),
+		    False, (PointerMotionMask
+			    | PointerMotionHintMask
+			    | ButtonReleaseMask
+			    | ButtonPressMask),
+		    GrabModeSync, GrabModeAsync,
+		    None, None, CurrentTime);
+#endif
+    }
+
+  if (dpyinfo->supports_xi2)
+    {
+      /* Dispatch a PropertyNotify to Xt with the current server time.
+	 Motif tries to set a grab with the timestamp of the last event
+	 processed by Xt, but Xt doesn't consider GenericEvents, so the
+	 timestamp is always less than the last grab time.  */
+
+      property_atom = XInternAtom (dpyinfo->display, "EMACS_SERVER_TIME_PROP", False);
+
+      XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		       property_atom, XA_ATOM, 32,
+		       PropModeReplace, (unsigned char *) &property_atom, 1);
+
+      XIfEvent (dpyinfo->display, &property_dummy, server_timestamp_predicate,
+		(XPointer) &(XID[]) {(XID) FRAME_OUTER_WINDOW (f), (XID) property_atom});
+
+      XtDispatchEvent (&property_dummy);
+    }
 
   if (dpyinfo->supports_xi2)
     XUngrabServer (dpyinfo->display);
@@ -1626,7 +1670,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;
 
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 && !defined USE_MOTIF
   if (any_xi_grab_p)
     XAllowEvents (dpyinfo->display, AsyncPointer, CurrentTime);
 #endif
