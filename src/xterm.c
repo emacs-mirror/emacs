@@ -11614,6 +11614,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ev.window = xev->event;
 	      ev.time = xev->time;
 
+#ifdef USE_MOTIF
+	      use_copy = true;
+
+	      copy.xmotion.type = MotionNotify;
+	      copy.xmotion.serial = xev->serial;
+	      copy.xmotion.send_event = xev->send_event;
+	      copy.xmotion.display = dpyinfo->display;
+	      copy.xmotion.window = xev->event;
+	      copy.xmotion.root = xev->root;
+	      copy.xmotion.subwindow = xev->child;
+	      copy.xmotion.time = xev->time;
+	      copy.xmotion.x = lrint (xev->event_x);
+	      copy.xmotion.y = lrint (xev->event_y);
+	      copy.xmotion.x_root = lrint (xev->root_x);
+	      copy.xmotion.y_root = lrint (xev->root_y);
+	      copy.xmotion.state = 0;
+	      copy.xmotion.is_hint = False;
+	      copy.xmotion.same_screen = True;
+#endif
+
 	      previous_help_echo_string = help_echo_string;
 	      help_echo_string = Qnil;
 
