@@ -663,7 +663,12 @@ face spec.  It is mostly intended for internal use only.
 
 If FRAME is nil, set the attributes for all existing frames, as
 well as the default for new frames.  If FRAME is t, change the
-default for new frames only.
+default for new frames only.  As an exception, to reset the value
+of some attribute to `unspecified' in a way that overrides the
+non-`unspecified' value defined by the face's spec in `defface',
+for new frames, you must explicitly call this function with FRAME
+set to t and the attribute's value set to `unspecified'; just
+using FRAME of nil will not affect new frames in this case.
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a
 valid face attribute name.  All attributes can be set to
