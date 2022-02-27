@@ -9513,7 +9513,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   XEvent configureEvent;
   XEvent next_event;
   Lisp_Object coding;
-#ifdef USE_MOTIF
+#if defined USE_MOTIF && defined HAVE_XINPUT2
   /* Some XInput 2 events are important for Motif menu bars to work
      correctly, so they must be translated into core events before
      being passed to XtDispatchEvent.  */
@@ -11236,12 +11236,33 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    goto XI_OTHER;
 
 	  case XI_Enter:
-
 	    any = x_top_window_to_frame (dpyinfo, enter->event);
 	    ev.x = lrint (enter->event_x);
 	    ev.y = lrint (enter->event_y);
 	    ev.window = enter->event;
 	    x_display_set_last_user_time (dpyinfo, xi_event->time);
+
+#ifdef USE_MOTIF
+	    use_copy = true;
+
+	    copy.xcrossing.type = EnterNotify;
+	    copy.xcrossing.serial = enter->serial;
+	    copy.xcrossing.send_event = enter->send_event;
+	    copy.xcrossing.display = dpyinfo->display;
+	    copy.xcrossing.window = enter->event;
+	    copy.xcrossing.root = enter->root;
+	    copy.xcrossing.subwindow = enter->child;
+	    copy.xcrossing.time = enter->time;
+	    copy.xcrossing.x = lrint (enter->event_x);
+	    copy.xcrossing.y = lrint (enter->event_y);
+	    copy.xcrossing.x_root = lrint (enter->root_x);
+	    copy.xcrossing.y_root = lrint (enter->root_y);
+	    copy.xcrossing.mode = enter->mode;
+	    copy.xcrossing.detail = enter->detail;
+	    copy.xcrossing.focus = enter->focus;
+	    copy.xcrossing.state = 0;
+	    copy.xcrossing.same_screen = True;
+#endif
 
 	    /* There is no need to handle entry/exit events for
 	       passive focus from non-top windows at all, since they
@@ -11305,6 +11326,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (popup_activated ()
 		&& leave->mode == XINotifyPassiveUngrab)
 	      any = x_any_window_to_frame (dpyinfo, leave->event);
+#endif
+
+#ifdef USE_MOTIF
+	    use_copy = true;
+
+	    copy.xcrossing.type = LeaveNotify;
+	    copy.xcrossing.serial = leave->serial;
+	    copy.xcrossing.send_event = leave->send_event;
+	    copy.xcrossing.display = dpyinfo->display;
+	    copy.xcrossing.window = leave->event;
+	    copy.xcrossing.root = leave->root;
+	    copy.xcrossing.subwindow = leave->child;
+	    copy.xcrossing.time = leave->time;
+	    copy.xcrossing.x = lrint (leave->event_x);
+	    copy.xcrossing.y = lrint (leave->event_y);
+	    copy.xcrossing.x_root = lrint (leave->root_x);
+	    copy.xcrossing.y_root = lrint (leave->root_y);
+	    copy.xcrossing.mode = leave->mode;
+	    copy.xcrossing.detail = leave->detail;
+	    copy.xcrossing.focus = leave->focus;
+	    copy.xcrossing.state = 0;
+	    copy.xcrossing.same_screen = True;
 #endif
 
 	    /* One problem behind the design of XInput 2 scrolling is
@@ -11667,35 +11710,32 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 #ifdef USE_MOTIF
-	      if (popup_activated ())
-		{
-		  use_copy = true;
-		  copy.xbutton.type = (xev->evtype == XI_ButtonPress
-				       ? ButtonPress : ButtonRelease);
-		  copy.xbutton.serial = xev->serial;
-		  copy.xbutton.send_event = xev->send_event;
-		  copy.xbutton.display = dpyinfo->display;
-		  copy.xbutton.window = xev->event;
-		  copy.xbutton.root = xev->root;
-		  copy.xbutton.subwindow = xev->child;
-		  copy.xbutton.time = xev->time;
-		  copy.xbutton.x = lrint (xev->event_x);
-		  copy.xbutton.y = lrint (xev->event_y);
-		  copy.xbutton.x_root = lrint (xev->root_x);
-		  copy.xbutton.y_root = lrint (xev->root_y);
-		  copy.xbutton.state = xev->mods.effective;
-		  copy.xbutton.button = xev->detail;
-		  copy.xbutton.same_screen = True;
+	      use_copy = true;
+	      copy.xbutton.type = (xev->evtype == XI_ButtonPress
+				   ? ButtonPress : ButtonRelease);
+	      copy.xbutton.serial = xev->serial;
+	      copy.xbutton.send_event = xev->send_event;
+	      copy.xbutton.display = dpyinfo->display;
+	      copy.xbutton.window = xev->event;
+	      copy.xbutton.root = xev->root;
+	      copy.xbutton.subwindow = xev->child;
+	      copy.xbutton.time = xev->time;
+	      copy.xbutton.x = lrint (xev->event_x);
+	      copy.xbutton.y = lrint (xev->event_y);
+	      copy.xbutton.x_root = lrint (xev->root_x);
+	      copy.xbutton.y_root = lrint (xev->root_y);
+	      copy.xbutton.state = xev->mods.effective;
+	      copy.xbutton.button = xev->detail;
+	      copy.xbutton.same_screen = True;
 
-		  if (xev->buttons.mask_len)
-		    {
-		      if (XIMaskIsSet (xev->buttons.mask, 1))
-			copy.xbutton.state |= Button1Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 2))
-			copy.xbutton.state |= Button2Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 3))
-			copy.xbutton.state |= Button3Mask;
-		    }
+	      if (xev->buttons.mask_len)
+		{
+		  if (XIMaskIsSet (xev->buttons.mask, 1))
+		    copy.xbutton.state |= Button1Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 2))
+		    copy.xbutton.state |= Button2Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 3))
+		    copy.xbutton.state |= Button3Mask;
 		}
 #endif
 
@@ -12740,7 +12780,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      || (event->xconfigure.width != 0
 		  && event->xconfigure.height != 0))
 	    {
-#ifdef USE_MOTIF
+#if defined USE_MOTIF && defined HAVE_XINPUT2
 	      XtDispatchEvent (use_copy ? &copy : (XEvent *) event);
 #else
 	      XtDispatchEvent ((XEvent *) event);
