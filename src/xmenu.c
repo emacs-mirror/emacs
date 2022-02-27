@@ -1687,6 +1687,14 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
     unbind_to (specpdl_count, Qnil);
   }
+
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
+  /* For some reason input focus isn't always restored to the outer
+     window after the menu pops down.  */
+  if (any_xi_grab_p)
+    XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		    RevertToParent, CurrentTime);
+#endif
 }
 
 #endif /* not USE_GTK */
