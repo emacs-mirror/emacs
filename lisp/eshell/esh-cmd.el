@@ -350,6 +350,36 @@ This only returns external (non-Lisp) processes."
 
 (defvar eshell--sep-terms)
 
+(defmacro eshell-with-temp-command (command &rest body)
+  "Narrow the buffer to COMMAND and execute the forms in BODY.
+COMMAND can either be a string, or a cons cell demarcating a
+buffer region.  If COMMAND is a string, temporarily insert it
+into the buffer before narrowing.  Point will be set to the
+beginning of the narrowed region.
+
+The value returned is the last form in BODY."
+  (declare (indent 1))
+  `(let ((cmd ,command))
+     (if (stringp cmd)
+         ;; Since parsing relies partly on buffer-local state
+         ;; (e.g. that of `eshell-parse-argument-hook'), we need to
+         ;; perform the parsing in the Eshell buffer.
+         (let ((begin (point)) end
+	       (inhibit-point-motion-hooks t))
+           (with-silent-modifications
+             (insert cmd)
+             (setq end (point))
+             (unwind-protect
+                 (save-restriction
+                   (narrow-to-region begin end)
+                   (goto-char begin)
+                   ,@body)
+               (delete-region begin end))))
+       (save-restriction
+         (narrow-to-region (car cmd) (cdr cmd))
+         (goto-char (car cmd))
+         ,@body))))
+
 (defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
 COMMAND can either be a string, or a cons cell demarcating a buffer
@@ -361,15 +391,9 @@ hooks should be run before and after the command."
 	  (append
 	   (if (consp command)
 	       (eshell-parse-arguments (car command) (cdr command))
-	     (let ((here (point))
-		   (inhibit-point-motion-hooks t))
-               (with-silent-modifications
-                 ;; FIXME: Why not use a temporary buffer and avoid this
-                 ;; "insert&delete" business?  --Stef
-                 (insert command)
-                 (prog1
-                     (eshell-parse-arguments here (point))
-                   (delete-region here (point))))))
+             (eshell-with-temp-command command
+               (goto-char (point-max))
+               (eshell-parse-arguments (point-min) (point-max))))
 	   args))
 	 (commands
 	  (mapcar
