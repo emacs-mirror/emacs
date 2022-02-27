@@ -1626,7 +1626,7 @@ IGNORES is a list of glob patterns for files to ignore."
     (ripgrep
      .
      ;; '!*/' is there to filter out dirs (e.g. submodules).
-     "xargs -0 rg <C> --null -nH --no-messages -g '!*/' -e <R>"
+     "xargs -0 rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"
      ))
   "Associative list mapping program identifiers to command templates.
 
