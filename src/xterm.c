@@ -10427,75 +10427,87 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
  	  /* Random non-modifier sorts of keysyms.  */
  	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
-                        || keysym == XK_Delete
+	       || keysym == XK_Delete
 #ifdef XK_ISO_Left_Tab
-                        || (keysym >= XK_ISO_Left_Tab
-                            && keysym <= XK_ISO_Enter)
+	       || (keysym >= XK_ISO_Left_Tab
+		   && keysym <= XK_ISO_Enter)
 #endif
-                        || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
-                        || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
+	       || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
+	       || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
-                        /* This recognizes the "extended function
-                           keys".  It seems there's no cleaner way.
-                           Test IsModifierKey to avoid handling
-                           mode_switch incorrectly.  */
-                        || (XK_Select <= keysym && keysym < XK_KP_Space)
+	       /* This recognizes the "extended function
+		  keys".  It seems there's no cleaner way.
+		  Test IsModifierKey to avoid handling
+		  mode_switch incorrectly.  */
+	       || (XK_Select <= keysym && keysym < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
-                        || orig_keysym == XK_dead_circumflex
+	       || orig_keysym == XK_dead_circumflex
 #endif
 #ifdef XK_dead_grave
-                        || orig_keysym == XK_dead_grave
+	       || orig_keysym == XK_dead_grave
 #endif
 #ifdef XK_dead_tilde
-                        || orig_keysym == XK_dead_tilde
+	       || orig_keysym == XK_dead_tilde
 #endif
 #ifdef XK_dead_diaeresis
-                        || orig_keysym == XK_dead_diaeresis
+	       || orig_keysym == XK_dead_diaeresis
 #endif
 #ifdef XK_dead_macron
-                        || orig_keysym == XK_dead_macron
+	       || orig_keysym == XK_dead_macron
 #endif
 #ifdef XK_dead_degree
-                        || orig_keysym == XK_dead_degree
+	       || orig_keysym == XK_dead_degree
 #endif
 #ifdef XK_dead_acute
-                        || orig_keysym == XK_dead_acute
+	       || orig_keysym == XK_dead_acute
 #endif
 #ifdef XK_dead_cedilla
-                        || orig_keysym == XK_dead_cedilla
+	       || orig_keysym == XK_dead_cedilla
 #endif
 #ifdef XK_dead_breve
-                        || orig_keysym == XK_dead_breve
+	       || orig_keysym == XK_dead_breve
 #endif
 #ifdef XK_dead_ogonek
-                        || orig_keysym == XK_dead_ogonek
+	       || orig_keysym == XK_dead_ogonek
 #endif
 #ifdef XK_dead_caron
-                        || orig_keysym == XK_dead_caron
+	       || orig_keysym == XK_dead_caron
 #endif
 #ifdef XK_dead_doubleacute
-                        || orig_keysym == XK_dead_doubleacute
+	       || orig_keysym == XK_dead_doubleacute
 #endif
 #ifdef XK_dead_abovedot
-                        || orig_keysym == XK_dead_abovedot
+	       || orig_keysym == XK_dead_abovedot
 #endif
-                        || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
-                        || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
-                        /* Any "vendor-specific" key is ok.  */
-                        || (orig_keysym & (1 << 28))
-                        || (keysym != NoSymbol && nbytes == 0))
-                       && ! (IsModifierKey (orig_keysym)
-                             /* The symbols from XK_ISO_Lock
-                                to XK_ISO_Last_Group_Lock
-                                don't have real modifiers but
-                                should be treated similarly to
-                                Mode_switch by Emacs. */
+#ifdef XK_dead_abovering
+	       || orig_keysym == XK_dead_abovering
+#endif
+#ifdef XK_dead_belowdot
+	       || orig_keysym == XK_dead_belowdot
+#endif
+#ifdef XK_dead_voiced_sound
+	       || orig_keysym == XK_dead_voiced_sound
+#endif
+#ifdef XK_dead_semivoiced_sound
+	       || orig_keysym == XK_dead_semivoiced_sound
+#endif
+	       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
+	       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
+	       /* Any "vendor-specific" key is ok.  */
+	       || (orig_keysym & (1 << 28))
+	       || (keysym != NoSymbol && nbytes == 0))
+	      && ! (IsModifierKey (orig_keysym)
+		    /* The symbols from XK_ISO_Lock
+		       to XK_ISO_Last_Group_Lock
+		       don't have real modifiers but
+		       should be treated similarly to
+		       Mode_switch by Emacs. */
 #if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
-                             || (XK_ISO_Lock <= orig_keysym
-				 && orig_keysym <= XK_ISO_Last_Group_Lock)
+		    || (XK_ISO_Lock <= orig_keysym
+			&& orig_keysym <= XK_ISO_Last_Group_Lock)
 #endif
-                             ))
+		    ))
 	    {
 	      STORE_KEYSYM_FOR_DEBUG (keysym);
 	      /* make_lispy_event will convert this to a symbolic
@@ -12384,6 +12396,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 #ifdef XK_dead_abovedot
 		       || keysym == XK_dead_abovedot
+#endif
+#ifdef XK_dead_abovering
+		       || keysym == XK_dead_abovering
+#endif
+#ifdef XK_dead_belowdot
+		       || keysym == XK_dead_belowdot
+#endif
+#ifdef XK_dead_voiced_sound
+		       || keysym == XK_dead_voiced_sound
+#endif
+#ifdef XK_dead_semivoiced_sound
+		       || keysym == XK_dead_semivoiced_sound
 #endif
 		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
