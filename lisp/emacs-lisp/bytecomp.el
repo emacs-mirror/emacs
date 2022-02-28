@@ -1583,32 +1583,31 @@ extra args."
 ;; number of arguments.
 (defun byte-compile-arglist-warn (name arglist macrop)
   ;; This is the first definition.  See if previous calls are compatible.
-  (let ((calls (assq name byte-compile-unresolved-functions))
-        nums sig min max)
-    (when (and calls macrop)
-      (byte-compile-warn-x name "macro `%s' defined too late" name))
-    (setq byte-compile-unresolved-functions
-          (delq calls byte-compile-unresolved-functions))
-    (setq calls (delq t calls))      ;Ignore higher-order uses of the function.
-    (when (cddr calls)
-      (when (and (symbolp name)
-                 (eq (function-get name 'byte-optimizer)
-                     'byte-compile-inline-expand))
-        (byte-compile-warn-x name "defsubst `%s' was used before it was defined"
-                             name))
-      (setq sig (byte-compile-arglist-signature arglist)
-            nums (sort (copy-sequence (cddr calls)) (function <))
-            min (car nums)
-            max (car (nreverse nums)))
-      (when (or (< min (car sig))
-                (and (cdr sig) (> max (cdr sig))))
-        (byte-compile-warn-x
-         name
-         "%s being defined to take %s%s, but was previously called with %s"
-         name
-         (byte-compile-arglist-signature-string sig)
-         (if (equal sig '(1 . 1)) " arg" " args")
-         (byte-compile-arglist-signature-string (cons min max))))))
+  (let ((calls (assq name byte-compile-unresolved-functions)))
+    (when calls
+      (when macrop
+        (byte-compile-warn-x name "macro `%s' defined too late" name))
+      (setq byte-compile-unresolved-functions
+            (delq calls byte-compile-unresolved-functions))
+      (let ((nums (delq t (cddr calls))))  ; Ignore higher-order uses.
+        (when nums
+          (when (and (symbolp name)
+                     (eq (function-get name 'byte-optimizer)
+                         'byte-compile-inline-expand))
+            (byte-compile-warn-x
+             name "defsubst `%s' was used before it was defined" name))
+          (let ((sig (byte-compile-arglist-signature arglist))
+                (min (apply #'min nums))
+                (max (apply #'max nums)))
+            (when (or (< min (car sig))
+                      (and (cdr sig) (> max (cdr sig))))
+              (byte-compile-warn-x
+               name
+               "%s being defined to take %s%s, but was previously called with %s"
+               name
+               (byte-compile-arglist-signature-string sig)
+               (if (equal sig '(1 . 1)) " arg" " args")
+               (byte-compile-arglist-signature-string (cons min max)))))))))
   (let* ((old (byte-compile-fdefinition name macrop))
          (initial (and macrop
                        (cdr (assq name
