@@ -5978,6 +5978,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
     }
   else if (CONSP (box))
     {
+      bool set_color = false;
+
       /* `(:width WIDTH :color COLOR :shadow SHADOW)'.  SHADOW
 	 being one of `raised' or `sunken'.  */
       face->box = FACE_SIMPLE_BOX;
@@ -6015,6 +6017,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 		  face->box_color = load_color (f, face, value,
 						LFACE_BOX_INDEX);
 		  face->use_box_color_for_shadows_p = true;
+		  set_color = true;
 		}
 	    }
 	  else if (EQ (keyword, QCstyle))
@@ -6026,7 +6029,9 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	      else if (EQ (value, Qflat_button))
 		{
 		  face->box = FACE_SIMPLE_BOX;
-		  face->box_color = face->background;
+		  /* Don't override colors set in this box. */
+		  if (!set_color)
+		    face->box_color = face->background;
 		}
 	    }
 	}
