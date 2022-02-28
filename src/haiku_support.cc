@@ -1561,6 +1561,7 @@ public:
   bool horizontal;
   enum haiku_scroll_bar_part current_part;
   float old_value;
+  scroll_bar_info info;
 
   EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p) :
     BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
@@ -1569,6 +1570,7 @@ public:
     BView *vw = (BView *) this;
     vw->SetResizingMode (B_FOLLOW_NONE);
     horizontal = horizontal_p;
+    get_scroll_bar_info (&info);
   }
 
   void
@@ -1624,9 +1626,6 @@ public:
     BRect bounds;
     BRect rect;
     float button_size;
-    scroll_bar_info info;
-
-    get_scroll_bar_info (&info);
 
     bounds = Bounds ();
     bounds.InsetBy (0.0, 0.0);
