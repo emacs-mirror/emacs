@@ -11229,6 +11229,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
     case DestroyNotify:
       xft_settings_event (dpyinfo, event);
       break;
+
 #ifdef HAVE_XINPUT2
     case GenericEvent:
       {
@@ -11248,11 +11249,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
 
 	XIDeviceEvent *xev = (XIDeviceEvent *) xi_event;
-	XILeaveEvent *leave = (XILeaveEvent *) xi_event;
-	XIEnterEvent *enter = (XIEnterEvent *) xi_event;
-	XIFocusInEvent *focusin = (XIFocusInEvent *) xi_event;
-	XIFocusOutEvent *focusout = (XIFocusOutEvent *) xi_event;
-	XIDeviceChangedEvent *device_changed = (XIDeviceChangedEvent *) xi_event;
 #ifdef HAVE_XINPUT2_1
 	XIValuatorState *states;
 	double *values;
@@ -11273,229 +11269,245 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	switch (event->xcookie.evtype)
 	  {
 	  case XI_FocusIn:
-	    any = x_any_window_to_frame (dpyinfo, focusin->event);
+	    {
+	      XIFocusInEvent *focusin = (XIFocusInEvent *) xi_event;
+
+	      any = x_any_window_to_frame (dpyinfo, focusin->event);
 #ifdef USE_GTK
-	    /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
-	       minimized/iconified windows; thus, for those WMs we won't get
-	       a MapNotify when unminimizing/deiconifying.  Check here if we
-	       are deiconizing a window (Bug42655).
+	      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
+		 minimized/iconified windows; thus, for those WMs we won't get
+		 a MapNotify when unminimizing/deiconifying.  Check here if we
+		 are deiconizing a window (Bug42655).
 
-	       But don't do that by default on GTK since it may cause a plain
-	       invisible frame get reported as iconified, compare
-	       https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
-	       That is fixed above but bites us here again.
+		 But don't do that by default on GTK since it may cause a plain
+		 invisible frame get reported as iconified, compare
+		 https://lists.gnu.org/archive/html/emacs-devel/2017-02/msg00133.html.
+		 That is fixed above but bites us here again.
 
-	       The option x_set_frame_visibility_more_laxly allows to override
-	       the default behavior (Bug#49955, Bug#53298).  */
-	    if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
-		|| EQ (x_set_frame_visibility_more_laxly, Qt))
+		 The option x_set_frame_visibility_more_laxly allows to override
+		 the default behavior (Bug#49955, Bug#53298).  */
+	      if (EQ (x_set_frame_visibility_more_laxly, Qfocus_in)
+		  || EQ (x_set_frame_visibility_more_laxly, Qt))
 #endif /* USE_GTK */
-	      {
-		f = any;
-		if (f && FRAME_ICONIFIED_P (f))
-		  {
-		    SET_FRAME_VISIBLE (f, 1);
-		    SET_FRAME_ICONIFIED (f, false);
-		    f->output_data.x->has_been_visible = true;
-		    inev.ie.kind = DEICONIFY_EVENT;
-		    XSETFRAME (inev.ie.frame_or_window, f);
-		  }
-	      }
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
-	    goto XI_OTHER;
+		{
+		  f = any;
+		  if (f && FRAME_ICONIFIED_P (f))
+		    {
+		      SET_FRAME_VISIBLE (f, 1);
+		      SET_FRAME_ICONIFIED (f, false);
+		      f->output_data.x->has_been_visible = true;
+		      inev.ie.kind = DEICONIFY_EVENT;
+		      XSETFRAME (inev.ie.frame_or_window, f);
+		    }
+		}
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      goto XI_OTHER;
+	    }
 
 	  case XI_FocusOut:
-	    any = x_any_window_to_frame (dpyinfo, focusout->event);
-	    x_detect_focus_change (dpyinfo, any, event, &inev.ie);
-	    goto XI_OTHER;
+	    {
+	      XIFocusOutEvent *focusout = (XIFocusOutEvent *) xi_event;
+
+	      any = x_any_window_to_frame (dpyinfo, focusout->event);
+	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      goto XI_OTHER;
+	    }
 
 	  case XI_Enter:
-	    any = x_top_window_to_frame (dpyinfo, enter->event);
-	    ev.x = lrint (enter->event_x);
-	    ev.y = lrint (enter->event_y);
-	    ev.window = enter->event;
-	    x_display_set_last_user_time (dpyinfo, xi_event->time);
+	    {
+	      XIEnterEvent *enter = (XIEnterEvent *) xi_event;
+
+	      any = x_top_window_to_frame (dpyinfo, enter->event);
+	      ev.x = lrint (enter->event_x);
+	      ev.y = lrint (enter->event_y);
+	      ev.window = enter->event;
+	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 #ifdef USE_MOTIF
-	    use_copy = true;
+	      use_copy = true;
 
-	    copy.xcrossing.type = EnterNotify;
-	    copy.xcrossing.serial = enter->serial;
-	    copy.xcrossing.send_event = enter->send_event;
-	    copy.xcrossing.display = dpyinfo->display;
-	    copy.xcrossing.window = enter->event;
-	    copy.xcrossing.root = enter->root;
-	    copy.xcrossing.subwindow = enter->child;
-	    copy.xcrossing.time = enter->time;
-	    copy.xcrossing.x = lrint (enter->event_x);
-	    copy.xcrossing.y = lrint (enter->event_y);
-	    copy.xcrossing.x_root = lrint (enter->root_x);
-	    copy.xcrossing.y_root = lrint (enter->root_y);
-	    copy.xcrossing.mode = enter->mode;
-	    copy.xcrossing.detail = enter->detail;
-	    copy.xcrossing.focus = enter->focus;
-	    copy.xcrossing.state = 0;
-	    copy.xcrossing.same_screen = True;
+	      copy.xcrossing.type = EnterNotify;
+	      copy.xcrossing.serial = enter->serial;
+	      copy.xcrossing.send_event = enter->send_event;
+	      copy.xcrossing.display = dpyinfo->display;
+	      copy.xcrossing.window = enter->event;
+	      copy.xcrossing.root = enter->root;
+	      copy.xcrossing.subwindow = enter->child;
+	      copy.xcrossing.time = enter->time;
+	      copy.xcrossing.x = lrint (enter->event_x);
+	      copy.xcrossing.y = lrint (enter->event_y);
+	      copy.xcrossing.x_root = lrint (enter->root_x);
+	      copy.xcrossing.y_root = lrint (enter->root_y);
+	      copy.xcrossing.mode = enter->mode;
+	      copy.xcrossing.detail = enter->detail;
+	      copy.xcrossing.focus = enter->focus;
+	      copy.xcrossing.state = 0;
+	      copy.xcrossing.same_screen = True;
 #endif
 
-	    /* There is no need to handle entry/exit events for
-	       passive focus from non-top windows at all, since they
-	       are an inferiors of the frame's top window, which will
-	       get virtual events.  */
-	    if (any)
-	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      /* There is no need to handle entry/exit events for
+		 passive focus from non-top windows at all, since they
+		 are an inferiors of the frame's top window, which will
+		 get virtual events.  */
+	      if (any)
+		x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
-	    if (!any)
-	      any = x_any_window_to_frame (dpyinfo, enter->event);
+	      if (!any)
+		any = x_any_window_to_frame (dpyinfo, enter->event);
 
 #ifdef HAVE_XINPUT2_1
-	    xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid,
-						     true);
+	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid,
+						       true);
 #endif
 
-	    {
+	      {
 #ifdef HAVE_XWIDGETS
-	      struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
+		struct xwidget_view *xwidget_view = xwidget_view_from_window (enter->event);
 #endif
 
 #ifdef HAVE_XWIDGETS
-	      if (xwidget_view)
-		{
-		  xwidget_motion_or_crossing (xwidget_view, event);
+		if (xwidget_view)
+		  {
+		    xwidget_motion_or_crossing (xwidget_view, event);
 
-		  goto XI_OTHER;
-		}
+		    goto XI_OTHER;
+		  }
 #endif
-	    }
+	      }
 
-	    f = any;
+	      f = any;
 
-	    if (f && x_mouse_click_focus_ignore_position)
-	      ignore_next_mouse_click_timeout = xi_event->time + 200;
+	      if (f && x_mouse_click_focus_ignore_position)
+		ignore_next_mouse_click_timeout = xi_event->time + 200;
 
-	    /* EnterNotify counts as mouse movement,
-	       so update things that depend on mouse position.  */
-	    if (f && !f->output_data.x->hourglass_p)
-	      x_note_mouse_movement (f, &ev);
+	      /* EnterNotify counts as mouse movement,
+		 so update things that depend on mouse position.  */
+	      if (f && !f->output_data.x->hourglass_p)
+		x_note_mouse_movement (f, &ev);
 #ifdef USE_GTK
-	    /* We may get an EnterNotify on the buttons in the toolbar.  In that
-	       case we moved out of any highlighted area and need to note this.  */
-	    if (!f && dpyinfo->last_mouse_glyph_frame)
-	      x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
+	      /* We may get an EnterNotify on the buttons in the toolbar.  In that
+		 case we moved out of any highlighted area and need to note this.  */
+	      if (!f && dpyinfo->last_mouse_glyph_frame)
+		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
 #endif
-	    goto XI_OTHER;
+	      goto XI_OTHER;
+	    }
 
 	  case XI_Leave:
-	    ev.x = lrint (leave->event_x);
-	    ev.y = lrint (leave->event_y);
-	    ev.window = leave->event;
-	    any = x_top_window_to_frame (dpyinfo, leave->event);
+	    {
+	      XILeaveEvent *leave = (XILeaveEvent *) xi_event;
 
-	    /* This allows us to catch LeaveNotify events generated by
-	       popup menu grabs.  FIXME: this is right when there is a
-	       focus menu, but implicit focus tracking can get screwed
-	       up if we get this and no XI_Enter event later.   */
+	      ev.x = lrint (leave->event_x);
+	      ev.y = lrint (leave->event_y);
+	      ev.window = leave->event;
+	      any = x_top_window_to_frame (dpyinfo, leave->event);
+
+	      /* This allows us to catch LeaveNotify events generated by
+		 popup menu grabs.  FIXME: this is right when there is a
+		 focus menu, but implicit focus tracking can get screwed
+		 up if we get this and no XI_Enter event later.   */
 
 #ifdef USE_X_TOOLKIT
-	    if (popup_activated ()
-		&& leave->mode == XINotifyPassiveUngrab)
-	      any = x_any_window_to_frame (dpyinfo, leave->event);
+	      if (popup_activated ()
+		  && leave->mode == XINotifyPassiveUngrab)
+		any = x_any_window_to_frame (dpyinfo, leave->event);
 #endif
 
 #ifdef USE_MOTIF
-	    use_copy = true;
+	      use_copy = true;
 
-	    copy.xcrossing.type = LeaveNotify;
-	    copy.xcrossing.serial = leave->serial;
-	    copy.xcrossing.send_event = leave->send_event;
-	    copy.xcrossing.display = dpyinfo->display;
-	    copy.xcrossing.window = leave->event;
-	    copy.xcrossing.root = leave->root;
-	    copy.xcrossing.subwindow = leave->child;
-	    copy.xcrossing.time = leave->time;
-	    copy.xcrossing.x = lrint (leave->event_x);
-	    copy.xcrossing.y = lrint (leave->event_y);
-	    copy.xcrossing.x_root = lrint (leave->root_x);
-	    copy.xcrossing.y_root = lrint (leave->root_y);
-	    copy.xcrossing.mode = leave->mode;
-	    copy.xcrossing.detail = leave->detail;
-	    copy.xcrossing.focus = leave->focus;
-	    copy.xcrossing.state = 0;
-	    copy.xcrossing.same_screen = True;
+	      copy.xcrossing.type = LeaveNotify;
+	      copy.xcrossing.serial = leave->serial;
+	      copy.xcrossing.send_event = leave->send_event;
+	      copy.xcrossing.display = dpyinfo->display;
+	      copy.xcrossing.window = leave->event;
+	      copy.xcrossing.root = leave->root;
+	      copy.xcrossing.subwindow = leave->child;
+	      copy.xcrossing.time = leave->time;
+	      copy.xcrossing.x = lrint (leave->event_x);
+	      copy.xcrossing.y = lrint (leave->event_y);
+	      copy.xcrossing.x_root = lrint (leave->root_x);
+	      copy.xcrossing.y_root = lrint (leave->root_y);
+	      copy.xcrossing.mode = leave->mode;
+	      copy.xcrossing.detail = leave->detail;
+	      copy.xcrossing.focus = leave->focus;
+	      copy.xcrossing.state = 0;
+	      copy.xcrossing.same_screen = True;
 #endif
 
-	    /* One problem behind the design of XInput 2 scrolling is
-	       that valuators are not unique to each window, but only
-	       the window that has grabbed the valuator's device or
-	       the window that the device's pointer is on top of can
-	       receive motion events.  There is also no way to
-	       retrieve the value of a valuator outside of each motion
-	       event.
+	      /* One problem behind the design of XInput 2 scrolling is
+		 that valuators are not unique to each window, but only
+		 the window that has grabbed the valuator's device or
+		 the window that the device's pointer is on top of can
+		 receive motion events.  There is also no way to
+		 retrieve the value of a valuator outside of each motion
+		 event.
 
-	       As such, to prevent wildly inaccurate results when the
-	       valuators have changed outside Emacs, we reset our
-	       records of each valuator's value whenever the pointer
-	       moves out of a frame (and not into one of its
-	       children, which we know about).  */
+		 As such, to prevent wildly inaccurate results when the
+		 valuators have changed outside Emacs, we reset our
+		 records of each valuator's value whenever the pointer
+		 moves out of a frame (and not into one of its
+		 children, which we know about).  */
 #ifdef HAVE_XINPUT2_1
-	    if (leave->detail != XINotifyInferior && any)
-	      xi_reset_scroll_valuators_for_device_id (dpyinfo,
-						       enter->deviceid, false);
+	      if (leave->detail != XINotifyInferior && any)
+		xi_reset_scroll_valuators_for_device_id (dpyinfo,
+							 leave->deviceid, false);
 #endif
 
-	    x_display_set_last_user_time (dpyinfo, xi_event->time);
+	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 #ifdef HAVE_XWIDGETS
-	    {
-	      struct xwidget_view *xvw
-		= xwidget_view_from_window (leave->event);
+	      {
+		struct xwidget_view *xvw
+		  = xwidget_view_from_window (leave->event);
 
-	      if (xvw)
-		{
-		  *finish = X_EVENT_DROP;
-		  xwidget_motion_or_crossing (xvw, event);
+		if (xvw)
+		  {
+		    *finish = X_EVENT_DROP;
+		    xwidget_motion_or_crossing (xvw, event);
 
-		  goto XI_OTHER;
-		}
-	    }
+		    goto XI_OTHER;
+		  }
+	      }
 #endif
 
-	    if (any)
-	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      if (any)
+		x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
 #ifndef USE_X_TOOLKIT
-	    f = x_top_window_to_frame (dpyinfo, leave->event);
-#else
-	    /* On Xt builds that have XI2, the enter and leave event
-	       masks are set on the frame widget's window.  */
-	    f = x_window_to_frame (dpyinfo, leave->event);
-
-	    if (!f)
 	      f = x_top_window_to_frame (dpyinfo, leave->event);
-#endif
-	    if (f)
-	      {
-		if (f == hlinfo->mouse_face_mouse_frame)
-		  {
-		    /* If we move outside the frame, then we're
-		       certainly no longer on any text in the frame.  */
-		    clear_mouse_face (hlinfo);
-		    hlinfo->mouse_face_mouse_frame = 0;
-		  }
+#else
+	      /* On Xt builds that have XI2, the enter and leave event
+		 masks are set on the frame widget's window.  */
+	      f = x_window_to_frame (dpyinfo, leave->event);
 
-		/* Generate a nil HELP_EVENT to cancel a help-echo.
-		   Do it only if there's something to cancel.
-		   Otherwise, the startup message is cleared when
-		   the mouse leaves the frame.  */
-		if (any_help_event_p)
-		  do_help = -1;
-	      }
-#ifdef USE_GTK
-	    /* See comment in EnterNotify above */
-	    else if (dpyinfo->last_mouse_glyph_frame)
-	      x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
+	      if (!f)
+		f = x_top_window_to_frame (dpyinfo, leave->event);
 #endif
-	    goto XI_OTHER;
+	      if (f)
+		{
+		  if (f == hlinfo->mouse_face_mouse_frame)
+		    {
+		      /* If we move outside the frame, then we're
+			 certainly no longer on any text in the frame.  */
+		      clear_mouse_face (hlinfo);
+		      hlinfo->mouse_face_mouse_frame = 0;
+		    }
+
+		  /* Generate a nil HELP_EVENT to cancel a help-echo.
+		     Do it only if there's something to cancel.
+		     Otherwise, the startup message is cleared when
+		     the mouse leaves the frame.  */
+		  if (any_help_event_p)
+		    do_help = -1;
+		}
+#ifdef USE_GTK
+	      /* See comment in EnterNotify above */
+	      else if (dpyinfo->last_mouse_glyph_frame)
+		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
+#endif
+	      goto XI_OTHER;
+	    }
 
 	  case XI_Motion:
 	    {
@@ -12496,6 +12508,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_DeviceChanged:
 	    {
+	      XIDeviceChangedEvent *device_changed = (XIDeviceChangedEvent *) xi_event;
 	      struct xi_device_t *device;
 #ifdef HAVE_XINPUT2_2
 	      struct xi_touch_point_t *tem, *last;
