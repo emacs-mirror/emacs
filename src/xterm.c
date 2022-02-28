@@ -7666,6 +7666,30 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   XDefineCursor (XtDisplay (widget), XtWindow (widget),
                  f->output_data.x->nontext_cursor);
 
+#ifdef HAVE_XINPUT2
+  /* Ask for input extension button and motion events.  This lets us
+     send the proper `wheel-up' or `wheel-down' events to Emacs.  */
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      XIEventMask mask;
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+      unsigned char *m;
+
+      mask.mask = m = alloca (l);
+      memset (m, 0, l);
+      mask.mask_len = l;
+
+      mask.deviceid = XIAllMasterDevices;
+      XISetMask (m, XI_ButtonPress);
+      XISetMask (m, XI_ButtonRelease);
+      XISetMask (m, XI_Motion);
+      XISetMask (m, XI_Enter);
+      XISetMask (m, XI_Leave);
+
+      XISelectEvents (XtDisplay (widget), XtWindow (widget),
+		      &mask, 1);
+    }
+#endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
   /* Set resources.  Create the widget.  The background of the
@@ -7867,6 +7891,30 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   XDefineCursor (XtDisplay (widget), XtWindow (widget),
                  f->output_data.x->nontext_cursor);
 
+#ifdef HAVE_XINPUT2
+  /* Ask for input extension button and motion events.  This lets us
+     send the proper `wheel-up' or `wheel-down' events to Emacs.  */
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      XIEventMask mask;
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+      unsigned char *m;
+
+      mask.mask = m = alloca (l);
+      memset (m, 0, l);
+      mask.mask_len = l;
+
+      mask.deviceid = XIAllMasterDevices;
+      XISetMask (m, XI_ButtonPress);
+      XISetMask (m, XI_ButtonRelease);
+      XISetMask (m, XI_Motion);
+      XISetMask (m, XI_Enter);
+      XISetMask (m, XI_Leave);
+
+      XISelectEvents (XtDisplay (widget), XtWindow (widget),
+		      &mask, 1);
+    }
+#endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
   /* Set resources.  Create the widget.  The background of the
@@ -11465,6 +11513,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      double total_x = 0.0;
 	      double total_y = 0.0;
 
+	      int real_x, real_y;
+	      Window dummy;
+
 	      for (int i = 0; i < states->mask_len * 8; i++)
 		{
 		  if (XIMaskIsSet (states->mask, i))
@@ -11489,7 +11540,31 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      f = x_any_window_to_frame (dpyinfo, xev->event);
 
 			      if (!f)
-				goto XI_OTHER;
+				{
+#if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
+				  struct scroll_bar *bar
+				    = x_window_to_scroll_bar (xi_event->display,
+							      xev->event, 2);
+
+				  if (bar)
+				    f = WINDOW_XFRAME (XWINDOW (bar->window));
+
+				  if (!f)
+#endif
+				    goto XI_OTHER;
+				}
+			    }
+
+			  if (FRAME_X_WINDOW (f) != xev->event)
+			    XTranslateCoordinates (dpyinfo->display,
+						   xev->event, FRAME_X_WINDOW (f),
+						   lrint (xev->event_x),
+						   lrint (xev->event_y),
+						   &real_x, &real_y, &dummy);
+			  else
+			    {
+			      real_x = lrint (xev->event_x);
+			      real_y = lrint (xev->event_y);
 			    }
 
 #ifdef HAVE_XWIDGETS
@@ -11518,8 +11593,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      && (fabs (delta) > 0))
 			    continue;
 
-			  window = window_from_coordinates (f, xev->event_x,
-							    xev->event_y, NULL,
+			  window = window_from_coordinates (f, real_x, real_y, NULL,
 							    false, false);
 
 			  if (WINDOWP (window))
@@ -11587,8 +11661,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					  ? WHEEL_EVENT : HORIZ_WHEEL_EVENT);
 			  inev.ie.timestamp = xev->time;
 
-			  XSETINT (inev.ie.x, lrint (xev->event_x));
-			  XSETINT (inev.ie.y, lrint (xev->event_y));
+			  XSETINT (inev.ie.x, lrint (real_x));
+			  XSETINT (inev.ie.y, lrint (real_y));
 			  XSETFRAME (inev.ie.frame_or_window, f);
 
 			  inev.ie.modifiers = (signbit (fabs (total_y) >= fabs (total_x)
@@ -11611,8 +11685,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  inev.ie.kind = TOUCH_END_EVENT;
 			  inev.ie.timestamp = xev->time;
 
-			  XSETINT (inev.ie.x, lrint (xev->event_x));
-			  XSETINT (inev.ie.y, lrint (xev->event_y));
+			  XSETINT (inev.ie.x, lrint (real_x));
+			  XSETINT (inev.ie.y, lrint (real_y));
 			  XSETFRAME (inev.ie.frame_or_window, f);
 			}
 
@@ -11644,6 +11718,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      copy.xmotion.x_root = lrint (xev->root_x);
 	      copy.xmotion.y_root = lrint (xev->root_y);
 	      copy.xmotion.state = 0;
+
+	      if (xev->buttons.mask_len)
+		{
+		  if (XIMaskIsSet (xev->buttons.mask, 1))
+		    copy.xmotion.state |= Button1Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 2))
+		    copy.xmotion.state |= Button2Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 3))
+		    copy.xmotion.state |= Button3Mask;
+		}
+
 	      copy.xmotion.is_hint = False;
 	      copy.xmotion.same_screen = True;
 #endif
@@ -11743,6 +11828,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      struct xwidget_view *xvw;
 #endif
 
+#ifdef HAVE_XINPUT2_1
+	      /* Ignore emulated scroll events when XI2 native
+		 scroll events are present.  */
+	      if (xev->flags & XIPointerEmulated)
+		{
+		  *finish = X_EVENT_DROP;
+		  goto XI_OTHER;
+		}
+#endif
+
 #ifdef USE_MOTIF
 	      use_copy = true;
 	      copy.xbutton.type = (xev->evtype == XI_ButtonPress
@@ -11770,16 +11865,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    copy.xbutton.state |= Button2Mask;
 		  if (XIMaskIsSet (xev->buttons.mask, 3))
 		    copy.xbutton.state |= Button3Mask;
-		}
-#endif
-
-#ifdef HAVE_XINPUT2_1
-	      /* Ignore emulated scroll events when XI2 native
-		 scroll events are present.  */
-	      if (xev->flags & XIPointerEmulated)
-		{
-		  *finish = X_EVENT_DROP;
-		  goto XI_OTHER;
 		}
 #endif
 
