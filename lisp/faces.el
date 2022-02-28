@@ -1743,7 +1743,14 @@ The following sources are applied in this order:
         (and tail (face-spec-set-2 face frame
                                    (list :extend (cadr tail))))))
     (setq face-attrs (face-spec-choose (get face 'face-override-spec) frame))
-    (face-spec-set-2 face frame face-attrs)))
+    (face-spec-set-2 face frame face-attrs)
+    (when (and (fboundp 'set-frame-parameter) ; This isn't available
+                                              ; during loadup.
+               (eq face 'scroll-bar))
+      ;; Set the `scroll-bar-foreground' and `scroll-bar-background'
+      ;; frame parameters.  (bug#13476)
+      (set-frame-parameter frame 'scroll-bar-foreground (face-foreground face))
+      (set-frame-parameter frame 'scroll-bar-background (face-background face)))))
 
 (defun face-spec-set-2 (face frame face-attrs)
   "Set the face attributes of FACE on FRAME according to FACE-ATTRS.
@@ -2826,11 +2833,9 @@ used to display the prompt text."
   :group 'frames
   :group 'basic-faces)
 
-(defface scroll-bar
-  '((((background light)) :foreground "black")
-    (((background dark))  :foreground "white"))
+(defface scroll-bar '((t nil))
   "Basic face for the scroll bar colors under X."
-  :version "28.1"
+  :version "21.1"
   :group 'frames
   :group 'basic-faces)
 
