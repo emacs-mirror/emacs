@@ -11112,12 +11112,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             && event->xbutton.y < FRAME_MENUBAR_HEIGHT (f)
             && event->xbutton.same_screen)
           {
-	    if (!f->output_data.x->saved_menu_event)
-	      f->output_data.x->saved_menu_event = xmalloc (sizeof *event);
-	    *f->output_data.x->saved_menu_event = *event;
-	    inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;
-	    XSETFRAME (inev.ie.frame_or_window, f);
-	    *finish = X_EVENT_DROP;
+#ifdef USE_MOTIF
+	    unsigned char column_type;
+	    Widget widget;
+
+	    widget = XtWindowToWidget (dpyinfo->display,
+				       event->xbutton.window);
+	    XtVaGetValues (widget, XmNrowColumnType, &column_type, NULL);
+
+	    if (column_type != XmMENU_BAR)
+	      {
+#endif
+		if (!f->output_data.x->saved_menu_event)
+		  f->output_data.x->saved_menu_event = xmalloc (sizeof *event);
+		*f->output_data.x->saved_menu_event = *event;
+		inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;
+		XSETFRAME (inev.ie.frame_or_window, f);
+		*finish = X_EVENT_DROP;
+#ifdef USE_MOTIF
+	      }
+#endif
           }
         else
           goto OTHER;
