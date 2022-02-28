@@ -85,48 +85,6 @@ Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
   (should (equal (eshell-test-command-result "{(+ 1 2)} 3") 3)))
 
-(ert-deftest eshell-test/interp-cmd ()
-  "Interpolate command result"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2} 3") 6)))
-
-(ert-deftest eshell-test/interp-lisp ()
-  "Interpolate Lisp form evaluation"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
-
-(ert-deftest eshell-test/interp-temp-cmd ()
-  "Interpolate command result redirected to temp file"
-  (should (equal (eshell-test-command-result "cat $<echo hi>") "hi")))
-
-(ert-deftest eshell-test/interp-concat ()
-  "Interpolate and concat command"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))
-
-(ert-deftest eshell-test/interp-concat-lisp ()
-  "Interpolate and concat Lisp form"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2)3 3") 36)))
-
-(ert-deftest eshell-test/interp-concat2 ()
-  "Interpolate and concat two commands"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}${+ 1 2} 3") 36)))
-
-(ert-deftest eshell-test/interp-concat-lisp2 ()
-  "Interpolate and concat two Lisp forms"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
-
-(ert-deftest eshell-test/interp-cmd-external ()
-  "Interpolate command result from external command"
-  (skip-unless (executable-find "echo"))
-  (with-temp-eshell
-   (eshell-command-result-p "echo ${*echo hi}"
-                            "hi\n")))
-
-(ert-deftest eshell-test/interp-cmd-external-concat ()
-  "Interpolate command result from external command with concatenation"
-  (skip-unless (executable-find "echo"))
-  (with-temp-eshell
-   (eshell-command-result-p "echo ${echo hi}-${*echo there}"
-                            "hi-there\n")))
-
 (ert-deftest eshell-test/pipe-headproc ()
   "Check that piping a non-process to a process command waits for the process"
   (skip-unless (executable-find "cat"))
@@ -151,32 +109,6 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-send-eof-to-process)
    (eshell-wait-for-subprocess)
    (eshell-match-result "OLLEH\n")))
-
-(ert-deftest eshell-test/window-height ()
-  "$LINES should equal (window-height)"
-  (should (eshell-test-command-result "= $LINES (window-height)")))
-
-(ert-deftest eshell-test/window-width ()
-  "$COLUMNS should equal (window-width)"
-  (should (eshell-test-command-result "= $COLUMNS (window-width)")))
-
-(ert-deftest eshell-test/last-result-var ()
-  "Test using the \"last result\" ($$) variable"
-  (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ 2"
-                            "3\n5\n")))
-
-(ert-deftest eshell-test/last-result-var2 ()
-  "Test using the \"last result\" ($$) variable twice"
-  (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ $$"
-                             "3\n6\n")))
-
-(ert-deftest eshell-test/last-arg-var ()
-  "Test using the \"last arg\" ($_) variable"
-  (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $_ 4"
-                             "3\n6\n")))
 
 (ert-deftest eshell-test/inside-emacs-var ()
   "Test presence of \"INSIDE_EMACS\" in subprocesses"
