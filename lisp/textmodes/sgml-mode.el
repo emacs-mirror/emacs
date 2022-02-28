@@ -419,11 +419,11 @@ These have to be run via `sgml-syntax-propertize'"))
 (defun sgml-syntax-propertize (start end &optional rules-function)
   "Syntactic keywords for `sgml-mode'."
   (setq sgml--syntax-propertize-ppss (cons start (syntax-ppss start)))
-  (cl-assert (>= (cadr sgml--syntax-propertize-ppss) 0))
-  (sgml-syntax-propertize-inside end)
-  (funcall (or rules-function sgml--syntax-propertize) (point) end)
-  ;; Catch any '>' after the last quote.
-  (sgml--syntax-propertize-ppss end))
+  (when (>= (cadr sgml--syntax-propertize-ppss) 0)
+    (sgml-syntax-propertize-inside end)
+    (funcall (or rules-function sgml--syntax-propertize) (point) end)
+    ;; Catch any '>' after the last quote.
+    (sgml--syntax-propertize-ppss end)))
 
 (defun sgml-syntax-propertize-inside (end)
   (let ((ppss (syntax-ppss)))
