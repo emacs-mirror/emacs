@@ -37,6 +37,25 @@
 
 ;; Variable interpolation
 
+(ert-deftest esh-var-test/interp-var ()
+  "Interpolate variable"
+  (should (equal (eshell-test-command-result "echo $user-login-name")
+                 user-login-name)))
+
+(ert-deftest esh-var-test/interp-quoted-var ()
+  "Interpolate quoted variable"
+  (should (equal (eshell-test-command-result "echo $'user-login-name'")
+                 user-login-name))
+  (should (equal (eshell-test-command-result "echo $\"user-login-name\"")
+                 user-login-name)))
+
+(ert-deftest esh-var-test/interp-quoted-var-concat ()
+  "Interpolate and concat quoted variable"
+  (should (equal (eshell-test-command-result "echo $'user-login-name'-foo")
+                 (concat user-login-name "-foo")))
+  (should (equal (eshell-test-command-result "echo $\"user-login-name\"-foo")
+                 (concat user-login-name "-foo"))))
+
 (ert-deftest esh-var-test/interp-lisp ()
   "Interpolate Lisp form evaluation"
   (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
@@ -78,6 +97,36 @@
   (with-temp-eshell
    (eshell-command-result-p "echo ${echo hi}-${*echo there}"
                             "hi-there\n")))
+
+(ert-deftest esh-var-test/quoted-interp-var ()
+  "Interpolate variable inside double-quotes"
+  (should (equal (eshell-test-command-result "echo \"$user-login-name\"")
+                 user-login-name)))
+
+(ert-deftest esh-var-test/quoted-interp-quoted-var ()
+  "Interpolate quoted variable inside double-quotes"
+  (should (equal (eshell-test-command-result
+                  "echo \"hi, $'user-login-name'\"")
+                 (concat "hi, " user-login-name)))
+  (should (equal (eshell-test-command-result
+                  "echo \"hi, $\\\"user-login-name\\\"\"")
+                 (concat "hi, " user-login-name))))
+
+(ert-deftest esh-var-test/quoted-interp-lisp ()
+  "Interpolate Lisp form evaluation inside double-quotes"
+  (should (equal (eshell-test-command-result
+                  "echo \"hi $(concat \\\"the\\\" \\\"re\\\")\"")
+                 "hi there")))
+
+(ert-deftest esh-var-test/quoted-interp-cmd ()
+  "Interpolate command result inside double-quotes"
+  (should (equal (eshell-test-command-result
+                  "echo \"hi ${echo \\\"there\\\"}\"")
+                 "hi there")))
+
+(ert-deftest esh-var-test/quoted-interp-temp-cmd ()
+  "Interpolate command result redirected to temp file inside double-quotes"
+  (should (equal (eshell-test-command-result "cat \"$<echo hi>\"") "hi")))
 
 
 ;; Built-in variables

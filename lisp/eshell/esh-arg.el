@@ -354,6 +354,30 @@ after are both returned."
 		  (list 'eshell-escape-arg arg))))
 	  (goto-char (1+ end)))))))
 
+(defun eshell-parse-inner-double-quote (bound)
+  "Parse the inner part of a double quoted string.
+The string to parse starts at point and ends at BOUND.
+
+If Eshell is currently parsing a quoted string and there are any
+backslash-escaped characters, this will return the unescaped
+string, updating point to BOUND.  Otherwise, this returns nil and
+leaves point where it was."
+  (when eshell-current-quoted
+    (let (strings
+          (start (point))
+          (special-char
+           (rx-to-string
+            `(seq "\\" (group (any ,@eshell-special-chars-inside-quoting))))))
+      (while (re-search-forward special-char bound t)
+        (push (concat (buffer-substring start (match-beginning 0))
+                      (match-string 1))
+              strings)
+        (setq start (match-end 0)))
+      (when strings
+        (push (buffer-substring start bound) strings)
+        (goto-char bound)
+        (apply #'concat (nreverse strings))))))
+
 (defun eshell-parse-special-reference ()
   "Parse a special syntax reference, of the form `#<args>'.
 

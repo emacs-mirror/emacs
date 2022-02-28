@@ -440,18 +440,16 @@ Possible options are:
     (let ((end (eshell-find-delimiter ?\{ ?\})))
       (if (not end)
           (throw 'eshell-incomplete ?\{)
+        (forward-char)
         (prog1
             `(eshell-convert
               (eshell-command-to-value
                (eshell-as-subcommand
-                ,(eshell-parse-command (cons (1+ (point)) end)))))
+                ,(let ((subcmd (or (eshell-parse-inner-double-quote end)
+                                   (cons (point) end)))
+                       (eshell-current-quoted nil))
+                   (eshell-parse-command subcmd)))))
           (goto-char (1+ end))))))
-   ((memq (char-after) '(?\' ?\"))
-    (let ((name (if (eq (char-after) ?\')
-                    (eshell-parse-literal-quote)
-                  (eshell-parse-double-quote))))
-      (if name
-	  `(eshell-get-variable ,(eval name) indices))))
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
       (if (not end)
@@ -463,7 +461,9 @@ Possible options are:
               `(let ((eshell-current-handles
                       (eshell-create-handles ,temp 'overwrite)))
                  (progn
-                   (eshell-as-subcommand ,(eshell-parse-command cmd))
+                   (eshell-as-subcommand
+                    ,(let ((eshell-current-quoted nil))
+                       (eshell-parse-command cmd)))
                    (ignore
                     (nconc eshell-this-command-hook
                            ;; Quote this lambda; it will be evaluated
@@ -478,9 +478,18 @@ Possible options are:
     (condition-case nil
         `(eshell-command-to-value
           (eshell-lisp-command
-           ',(read (current-buffer))))
+           ',(read (or (eshell-parse-inner-double-quote (point-max))
+                       (current-buffer)))))
       (end-of-file
        (throw 'eshell-incomplete ?\())))
+   ((looking-at (rx (or "'" "\"" "\\\"")))
+    (eshell-with-temp-command (or (eshell-parse-inner-double-quote (point-max))
+                                  (cons (point) (point-max)))
+      (let ((name (if (eq (char-after) ?\')
+                      (eshell-parse-literal-quote)
+                    (eshell-parse-double-quote))))
+        (when name
+	  `(eshell-get-variable ,(eval name) indices)))))
    ((assoc (char-to-string (char-after))
            eshell-variable-aliases-list)
     (forward-char)
