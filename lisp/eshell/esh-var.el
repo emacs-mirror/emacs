@@ -460,8 +460,12 @@ Possible options are:
                    (eshell-as-subcommand ,(eshell-parse-command cmd))
                    (ignore
                     (nconc eshell-this-command-hook
-                           (list (lambda ()
-                                   (delete-file ,temp)))))
+                           ;; Quote this lambda; it will be evaluated
+                           ;; by `eshell-do-eval', which requires very
+                           ;; particular forms in order to work
+                           ;; properly.  See bug#54190.
+                           (list (function (lambda ()
+                                   (delete-file ,temp))))))
                    (quote ,temp)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()
