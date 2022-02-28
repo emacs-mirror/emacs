@@ -167,7 +167,52 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 (defvar sieve-manage-capability nil)
 
 ;; Internal utility functions
-(autoload 'mm-enable-multibyte "mm-util")
+(defun sieve-manage--append-to-log (&rest args)
+  "Append ARGS to sieve-manage log buffer.
+
+ARGS can be a string or a list of strings.
+The buffer to use for logging is specifified via
+`sieve-manage-log'. If it is nil, logging is disabled."
+  (when sieve-manage-log
+    (with-current-buffer (or (get-buffer sieve-manage-log)
+                             (with-current-buffer
+                                 (get-buffer-create sieve-manage-log)
+                               (set-buffer-multibyte nil)
+                               (buffer-disable-undo)))
+      (goto-char (point-max))
+      (apply #'insert args))))
+
+(defun sieve-manage--message (format-string &rest args)
+  "Wrapper around `message' which also logs to sieve manage log.
+
+See `sieve-manage--append-to-log'."
+  (let ((ret (apply #'message
+                    (concat "sieve-manage: " format-string)
+                    args)))
+    (sieve-manage--append-to-log ret "\n")
+    ret))
+
+(defun sieve-manage--error (format-string &rest args)
+  "Wrapper around `error' which also logs to sieve manage log.
+
+See `sieve-manage--append-to-log'."
+  (let ((msg (apply #'format
+                    (concat "sieve-manage/ERROR: " format-string)
+                    args)))
+    (sieve-manage--append-to-log msg "\n")
+    (error msg)))
+
+(defun sieve-manage-encode (utf8-string)
+  "Convert UTF8-STRING to managesieve protocol octets."
+  (encode-coding-string utf8-string 'raw-text t))
+
+(defun sieve-manage-decode (octets &optional buffer)
+  "Convert managesieve protocol OCTETS to utf-8 string.
+
+If optional BUFFER is non-nil, insert decoded string into BUFFER."
+  (when octets
+    ;; eol type unix is required to preserve "\r\n"
+    (decode-coding-string octets 'utf-8-unix t buffer)))
 
 (defun sieve-manage-make-process-buffer ()
   (with-current-buffer
@@ -175,22 +220,19 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
                                    sieve-manage-server
                                    sieve-manage-port))
     (mapc #'make-local-variable sieve-manage-local-variables)
-    (mm-enable-multibyte)
+    (set-buffer-multibyte nil)
+    (setq-local after-change-functions nil)
     (buffer-disable-undo)
     (current-buffer)))
 
 (defun sieve-manage-erase (&optional p buffer)
-  (let ((buffer (or buffer (current-buffer))))
-    (and sieve-manage-log
-	 (with-current-buffer (get-buffer-create sieve-manage-log)
-	   (mm-enable-multibyte)
-	   (buffer-disable-undo)
-	   (goto-char (point-max))
-	   (insert-buffer-substring buffer (with-current-buffer buffer
-					     (point-min))
-				    (or p (with-current-buffer buffer
-					    (point-max)))))))
-  (delete-region (point-min) (or p (point-max))))
+  (with-current-buffer (or buffer (current-buffer))
+    (let* ((start (point-min))
+           (end (or p (point-max)))
+           (logdata (buffer-substring-no-properties start end)))
+      (sieve-manage--append-to-log logdata)
+      (delete-region start end)
+      logdata)))
 
 (defun sieve-manage-open-server (server port &optional stream buffer)
   "Open network connection to SERVER on PORT.
@@ -202,6 +244,8 @@ Return the buffer associated with the connection."
                  (open-network-stream
                   "SIEVE" buffer server port
                   :type stream
+                  ;; eol type unix is required to preserve "\r\n"
+                  :coding 'raw-text-unix
                   :capability-command "CAPABILITY\r\n"
                   :end-of-command "^\\(OK\\|NO\\).*\n"
                   :success "^OK.*\n"
@@ -224,7 +268,7 @@ Return the buffer associated with the connection."
 ;; Authenticators
 (defun sieve-sasl-auth (buffer mech)
   "Login to server using the SASL MECH method."
-  (message "sieve: Authenticating using %s..." mech)
+  (sieve-manage--message "Authenticating using %s..." mech)
   (with-current-buffer buffer
     (let* ((auth-info (auth-source-search :host sieve-manage-server
                                           :port "sieve"
@@ -275,11 +319,15 @@ Return the buffer associated with the connection."
             (if (and (setq step (sasl-next-step client step))
                      (setq data (sasl-step-data step)))
                 ;; We got data for server but it's finished
-                (error "Server not ready for SASL data: %s" data)
+                (sieve-manage--error
+                 "Server not ready for SASL data: %s" data)
               ;; The authentication process is finished.
+              (sieve-manage--message "Logged in as %s using %s"
+                                     user-name mech)
               (throw 'done t)))
           (unless (stringp rsp)
-            (error "Server aborted SASL authentication: %s" (caddr rsp)))
+            (sieve-manage--error
+             "Server aborted SASL authentication: %s" (caddr rsp)))
           (sasl-step-set-data step (base64-decode-string rsp))
           (setq step (sasl-next-step client step))
           (sieve-manage-send
@@ -288,8 +336,7 @@ Return the buffer associated with the connection."
                        (base64-encode-string (sasl-step-data step)
                                              'no-line-break)
                        "\"")
-             ""))))
-      (message "sieve: Login using %s...done" mech))))
+             "")))))))
 
 (defun sieve-manage-cram-md5-p (buffer)
   (sieve-manage-capability "SASL" "CRAM-MD5" buffer))
@@ -353,7 +400,7 @@ to work in."
                                   sieve-manage-default-stream)
           sieve-manage-auth   (or auth
                                   sieve-manage-auth))
-    (message "sieve: Connecting to %s..." sieve-manage-server)
+    (sieve-manage--message "Connecting to %s..." sieve-manage-server)
     (sieve-manage-open-server sieve-manage-server
                               sieve-manage-port
                               sieve-manage-stream
@@ -368,7 +415,8 @@ to work in."
             (setq sieve-manage-auth auth)
             (cl-return)))
         (unless sieve-manage-auth
-          (error "Couldn't figure out authenticator for server")))
+          (sieve-manage--error
+           "Couldn't figure out authenticator for server")))
       (sieve-manage-erase)
       (current-buffer))))
 
@@ -433,11 +481,7 @@ If NAME is nil, return the full server list of capabilities."
 (defun sieve-manage-putscript (name content &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (sieve-manage-send (format "PUTSCRIPT \"%s\" {%d+}%s%s" name
-                               ;; Here we assume that the coding-system will
-                               ;; replace each char with a single byte.
-                               ;; This is always the case if `content' is
-                               ;; a unibyte string.
-			       (length content)
+			       (length (sieve-manage-encode content))
 			       sieve-manage-client-eol content))
     (sieve-manage-parse-okno)))
 
@@ -449,11 +493,10 @@ If NAME is nil, return the full server list of capabilities."
 (defun sieve-manage-getscript (name output-buffer &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
     (sieve-manage-send (format "GETSCRIPT \"%s\"" name))
-    (let ((script (sieve-manage-parse-string)))
-      (sieve-manage-parse-crlf)
-      (with-current-buffer output-buffer
-	(insert script))
-      (sieve-manage-parse-okno))))
+    (sieve-manage-decode (sieve-manage-parse-string)
+                         output-buffer)
+    (sieve-manage-parse-crlf)
+    (sieve-manage-parse-okno)))
 
 (defun sieve-manage-setactive (name &optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -477,6 +520,9 @@ If NAME is nil, return the full server list of capabilities."
 
 (defun sieve-manage-ok-p (rsp)
   (string= (downcase (or (car-safe rsp) "")) "ok"))
+
+(defun sieve-manage-no-p (rsp)
+  (string= (downcase (or (car-safe rsp) "")) "no"))
 
 (defun sieve-manage-is-okno ()
   (when (looking-at (concat
@@ -528,7 +574,11 @@ to local variable `sieve-manage-capability'."
     (while (null rsp)
       (accept-process-output (get-buffer-process (current-buffer)) 1)
       (goto-char (point-min))
-      (setq rsp (sieve-manage-is-string)))
+      (unless (setq rsp (sieve-manage-is-string))
+        (when (sieve-manage-no-p (sieve-manage-is-okno))
+          ;; simple `error' is enough since `sieve-manage-erase'
+          ;; already adds the server response to the log
+          (error (sieve-manage-erase)))))
     (sieve-manage-erase (point))
     rsp))
 
@@ -540,7 +590,8 @@ to local variable `sieve-manage-capability'."
   (let (tmp rsp data)
     (while (null rsp)
       (while (null (or (setq rsp (sieve-manage-is-okno))
-		       (setq tmp (sieve-manage-is-string))))
+                       (setq tmp (sieve-manage-decode
+                                  (sieve-manage-is-string)))))
 	(accept-process-output (get-buffer-process (current-buffer)) 1)
 	(goto-char (point-min)))
       (when tmp
@@ -559,13 +610,9 @@ to local variable `sieve-manage-capability'."
       rsp)))
 
 (defun sieve-manage-send (cmdstr)
-  (setq cmdstr (concat cmdstr sieve-manage-client-eol))
-  (and sieve-manage-log
-       (with-current-buffer (get-buffer-create sieve-manage-log)
-	 (mm-enable-multibyte)
-	 (buffer-disable-undo)
-	 (goto-char (point-max))
-	 (insert cmdstr)))
+  (setq cmdstr (sieve-manage-encode
+                (concat cmdstr sieve-manage-client-eol)))
+  (sieve-manage--append-to-log cmdstr)
   (process-send-string sieve-manage-process cmdstr))
 
 (provide 'sieve-manage)
