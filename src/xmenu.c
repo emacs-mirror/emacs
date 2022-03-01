@@ -1514,7 +1514,7 @@ pop_down_menu (int id)
   popup_activated_flag = 0;
 }
 
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
 static Bool
 server_timestamp_predicate (Display *display,
 			    XEvent *xevent,
@@ -1546,7 +1546,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   LWLIB_ID menu_id;
   Widget menu;
   Window dummy_window;
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
   XEvent property_dummy;
   Atom property_atom;
 #endif
@@ -1643,6 +1643,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 #endif
     }
 
+#ifdef USE_MOTIF
   if (dpyinfo->supports_xi2)
     {
       /* Dispatch a PropertyNotify to Xt with the current server time.
@@ -1661,6 +1662,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
       XtDispatchEvent (&property_dummy);
     }
+#endif
 
   if (dpyinfo->supports_xi2)
     XUngrabServer (dpyinfo->display);
