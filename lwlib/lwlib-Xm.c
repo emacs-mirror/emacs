@@ -269,29 +269,19 @@ static void
 xm_arm_callback (Widget w, XtPointer client_data, XtPointer call_data)
 {
   XmPushButtonCallbackStruct *cbs = (XmPushButtonCallbackStruct *) call_data;
-  widget_value *wv = (widget_value *) client_data;
-  widget_instance *instance;
+  widget_value *wv = NULL;
+  widget_instance *instance = client_data;
+  XtPointer user_data;
+  Arg al[2];
+  int ac = 0;
 
-  /* Get the id of the menu bar or popup menu this widget is in.  */
-  while (w != NULL)
+  XtSetArg (al[ac], XmNuserData, &user_data); ac++;
+  XtGetValues (w, al, ac);
+  wv = user_data;
+
+  if (wv != NULL)
     {
-      if (XmIsRowColumn (w))
-	{
-	  unsigned char type = 0xff;
-
-	  XtVaGetValues (w, XmNrowColumnType, &type, NULL);
-	  if (type == XmMENU_BAR || type == XmMENU_POPUP)
-	    break;
-	}
-
-      w = XtParent (w);
-    }
-
-  if (w != NULL)
-    {
-      instance = lw_get_widget_instance (w);
-
-      if (instance && instance->info->highlight_cb
+      if (instance->info->highlight_cb
 	  && (cbs->reason == XmCR_DISARM
 	      || (cbs->event
 		  && (cbs->event->type == EnterNotify
@@ -542,7 +532,7 @@ make_menu_in_widget (widget_instance* instance,
       ac = 0;
       XtSetArg (al[ac], XmNsensitive, cur->enabled); ac++;
       XtSetArg (al[ac], XmNalignment, XmALIGNMENT_BEGINNING); ac++;
-      XtSetArg (al[ac], XmNuserData, cur->call_data); ac++;
+      XtSetArg (al[ac], XmNuserData, cur); ac++;
 
       if (instance->pop_up_p && !cur->contents && !cur->call_data
 	  && !lw_separator_p (cur->name, &separator, 1))
@@ -573,14 +563,18 @@ make_menu_in_widget (widget_instance* instance,
 			 ? XmN_OF_MANY : XmONE_OF_MANY));
 	      ++ac;
 	      button = XmCreateToggleButton (widget, cur->name, al, ac);
-	      XtAddCallback (button, XmNarmCallback, xm_arm_callback, cur);
-	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback, cur);
+	      XtAddCallback (button, XmNarmCallback, xm_arm_callback,
+			     (XtPointer) instance);
+	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback,
+			     (XtPointer) instance);
 	    }
 	  else
 	    {
 	      button = XmCreatePushButton (widget, cur->name, al, ac);
-	      XtAddCallback (button, XmNarmCallback, xm_arm_callback, cur);
-	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback, cur);
+	      XtAddCallback (button, XmNarmCallback, xm_arm_callback,
+			     (XtPointer) instance);
+	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback,
+			     (XtPointer) instance);
 	    }
 
 	  xm_update_label (instance, button, cur);
@@ -647,7 +641,7 @@ update_one_menu_entry (widget_instance* instance,
   /* update the sensitivity and userdata */
   /* Common to all widget types */
   XtSetSensitive (widget, val->enabled);
-  XtVaSetValues (widget, XmNuserData, val->call_data, NULL);
+  XtVaSetValues (widget, XmNuserData, val, NULL);
 
   /* update the menu button as a label. */
   if (val->this_one_change >= VISIBLE_CHANGE)
@@ -847,7 +841,7 @@ xm_update_one_widget (widget_instance* instance,
 
   /* Common to all widget types */
   XtSetSensitive (widget, val->enabled);
-  XtVaSetValues (widget, XmNuserData, val->call_data, NULL);
+  XtVaSetValues (widget, XmNuserData, val, NULL);
 
   /* Common to all label like widgets */
   if (XtIsSubclass (widget, xmLabelWidgetClass))
@@ -1792,6 +1786,7 @@ do_call (Widget widget,
   int ac;
   XtPointer user_data;
   widget_instance* instance = (widget_instance*)closure;
+  widget_value *wv;
   Widget instance_widget;
   LWLIB_ID id;
 
@@ -1809,17 +1804,18 @@ do_call (Widget widget,
   user_data = NULL;
   XtSetArg (al [ac], XmNuserData, &user_data); ac++;
   XtGetValues (widget, al, ac);
+  wv = user_data;
 
   switch (type)
     {
     case pre_activate:
       if (instance->info->pre_activate_cb)
-	instance->info->pre_activate_cb (widget, id, user_data);
+	instance->info->pre_activate_cb (widget, id, wv ? wv->call_data : NULL);
       break;
 
     case selection:
       if (instance->info->selection_cb)
-	instance->info->selection_cb (widget, id, user_data);
+	instance->info->selection_cb (widget, id, wv ? wv->call_data : NULL);
       break;
 
     case no_selection:
@@ -1829,7 +1825,7 @@ do_call (Widget widget,
 
     case post_activate:
       if (instance->info->post_activate_cb)
-	instance->info->post_activate_cb (widget, id, user_data);
+	instance->info->post_activate_cb (widget, id, wv ? wv->call_data : NULL);
       break;
 
     default:
