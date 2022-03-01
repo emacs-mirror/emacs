@@ -340,34 +340,35 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
   FRAME RESIZING
 
-  In the following explanations "frame size" refers to the "native size"
-  of a frame as reported by the (frame.h) macros FRAME_PIXEL_WIDTH and
-  FRAME_PIXEL_HEIGHT.  These specify the size of a frame as the values
-  passed to/received from a toolkit and the window manager.  The "text
-  size" Emacs Lisp code uses in functions like 'set-frame-size' or sees
-  in the ‘width’ and 'height' frame parameters is only loosely related
-  to the native size.  The necessary translations are provided by the
-  macros FRAME_TEXT_TO_PIXEL_WIDTH and FRAME_TEXT_TO_PIXEL_HEIGHT as
-  well as FRAME_PIXEL_TO_TEXT_WIDTH and FRAME_PIXEL_TO_TEXT_HEIGHT (in
+  In the following explanations "frame size" refers to the "native
+  size" of a frame as reported by the (frame.h) macros
+  FRAME_PIXEL_WIDTH and FRAME_PIXEL_HEIGHT.  These specify the size of
+  a frame as the values passed to/received from a toolkit and the
+  window manager.  The "text size" Emacs Lisp code uses in functions
+  like 'set-frame-size' or sees in the ‘width’ and 'height' frame
+  parameters is only loosely related to the native size.  The
+  necessary translations are provided by the macros
+  FRAME_TEXT_TO_PIXEL_WIDTH and FRAME_TEXT_TO_PIXEL_HEIGHT as well as
+  FRAME_PIXEL_TO_TEXT_WIDTH and FRAME_PIXEL_TO_TEXT_HEIGHT (in
   frame.h).
 
   Lisp functions may ask for resizing a frame either explicitly, using
   one of the interfaces provided for that purpose like, for example,
-  'set-frame-size' or changing the 'height' or 'width' parameter of that
-  frame, or implicitly, for example, by turning off/on or changing the
-  width of fringes or scroll bars for that frame.  Any such request
-  passes through the routine 'adjust_frame_size' (in frame.c) which
-  decides, among others, whether the native frame size would really
-  change and whether it is allowed to change it at that moment.  Only if
-  'adjust_frame_size' decides that the corresponding terminal's
-  'set_window_size_hook' may be run, it will dispatch execution to the
-  appropriate function which, for X builds, is 'x_set_window_size' in
-  this file.
+  'set-frame-size' or changing the 'height' or 'width' parameter of
+  that frame, or implicitly, for example, by turning off/on or
+  changing the width of fringes or scroll bars for that frame.  Any
+  such request passes through the routine 'adjust_frame_size' (in
+  frame.c) which decides, among others, whether the native frame size
+  would really change and whether it is allowed to change it at that
+  moment.  Only if 'adjust_frame_size' decides that the corresponding
+  terminal's 'set_window_size_hook' may be run, it will dispatch
+  execution to the appropriate function which, for X builds, is
+  'x_set_window_size' in this file.
 
-  For GTK builds, 'x_set_window_size' calls 'xg_frame_set_char_size' in
-  gtkutil.c if the frame has an edit widget and 'x_set_window_size_1' in
-  this file otherwise.  For non-GTK builds, 'x_set_window_size' always
-  calls 'x_set_window_size_1' directly.
+  For GTK builds, 'x_set_window_size' calls 'xg_frame_set_char_size'
+  in gtkutil.c if the frame has an edit widget and
+  'x_set_window_size_1' in this file otherwise.  For non-GTK builds,
+  'x_set_window_size' always calls 'x_set_window_size_1' directly.
 
   'xg_frame_set_char_size' calls the GTK function 'gtk_window_resize'
   for the frame's outer widget; x_set_window_size_1 calls the Xlib
@@ -378,28 +379,30 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   visible, it calls 'adjust_frame_size' to run 'resize_frame_windows'
   (see below) and hopes for the best.
 
-  Note that if Emacs receives a ConfigureEvent in response to an earlier
-  resize request, the sizes specified by that event are not necessarily
-  the sizes Emacs requested.  Window manager and toolkit may override
-  any of the requested sizes for their own reasons.
+  Note that if Emacs receives a ConfigureEvent in response to an
+  earlier resize request, the sizes specified by that event are not
+  necessarily the sizes Emacs requested.  Window manager and toolkit
+  may override any of the requested sizes for their own reasons.
 
-  On X, size notifications are received as ConfigureNotify events.  The
-  expected reaction to such an event on the Emacs side is to resize all
-  Emacs windows that are on the frame referred to by the event.  Since
-  resizing Emacs windows and redisplaying their buffers is a costly
-  operation, Emacs may collapse several subsequent ConfigureNotify
-  events into one to avoid that Emacs falls behind in user interactions
-  like resizing a frame by dragging one of its borders with the mouse.
+  On X, size notifications are received as ConfigureNotify events.
+  The expected reaction to such an event on the Emacs side is to
+  resize all Emacs windows that are on the frame referred to by the
+  event.  Since resizing Emacs windows and redisplaying their buffers
+  is a costly operation, Emacs may collapse several subsequent
+  ConfigureNotify events into one to avoid that Emacs falls behind in
+  user interactions like resizing a frame by dragging one of its
+  borders with the mouse.
 
   Each ConfigureEvent event specifies a window, a width and a height.
   The event loop uses 'x_top_window_to_frame' to associate the window
-  with its frame.  Once the frame has been identified, on GTK the event
-  is dispatched to 'xg_frame_resized'.  On Motif/Lucid 'x_window' has
-  installed 'EmacsFrameResize' as the routine that handles resize
-  events.  In either case, these routines end up calling the function
-  'change_frame_size' in dispnew.c.  On non-toolkit builds the effect is
-  to call 'change_frame_size' directly from the event loop.  In either
-  case, the value true is passed as the DELAY argument.
+  with its frame.  Once the frame has been identified, on GTK the
+  event is dispatched to 'xg_frame_resized'.  On Motif/Lucid
+  'x_window' has installed 'EmacsFrameResize' as the routine that
+  handles resize events.  In either case, these routines end up
+  calling the function 'change_frame_size' in dispnew.c.  On
+  non-toolkit builds the effect is to call 'change_frame_size'
+  directly from the event loop.  In either case, the value true is
+  passed as the DELAY argument.
 
   'change_frame_size' is the central function to decide whether it is
   safe to process a resize request immediately or it has to be delayed
@@ -412,28 +415,30 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   possibly replacing ones that have been stored there upon the receipt
   of a preceding ConfigureEvent.
 
-  Delayed size changes are applied eventually upon calls of the function
-  'do_pending_window_change' (in dispnew.c) which is called by the
-  redisplay code at suitable spots where it's safe to change sizes.
-  'do_pending_window_change' calls 'change_frame_size' with its DELAY
-  argument false in the hope that it is now safe to call the function
-  'resize_frame_windows' (in window.c) which is in charge of adjusting
-  the sizes of all Emacs windows on the frame accordingly.  Note that if
-  'resize_frame_windows' decides that the windows of a frame do not fit
-  into the constraints set up by the new frame sizes, it will resize the
-  windows to some minimum sizes with the effect that parts of the frame
-  at the right and bottom will appear clipped off.
+  Delayed size changes are applied eventually upon calls of the
+  function 'do_pending_window_change' (in dispnew.c) which is called
+  by the redisplay code at suitable spots where it's safe to change
+  sizes.  'do_pending_window_change' calls 'change_frame_size' with
+  its DELAY argument false in the hope that it is now safe to call the
+  function 'resize_frame_windows' (in window.c) which is in charge of
+  adjusting the sizes of all Emacs windows on the frame accordingly.
+  Note that if 'resize_frame_windows' decides that the windows of a
+  frame do not fit into the constraints set up by the new frame sizes,
+  it will resize the windows to some minimum sizes with the effect
+  that parts of the frame at the right and bottom will appear clipped
+  off.
 
-  In addition to explicitly passing width and height values in functions
-  like 'gtk_window_resize' or 'XResizeWindow', Emacs also sets window
-  manager size hints - a more implicit form of asking for the size Emacs
-  would like its frames to assume.  Some of these hints only restate the
-  size and the position explicitly requested for a frame.  Another hint
-  specifies the increments in which the window manager should resize a
-  frame to - either set to the default character size of a frame or to
-  one pixel for a non-nil value of 'frame-resize-pixelwise'.  See the
-  function 'x_wm_set_size_hint' - in gtkutil.c for GTK and in this file
-  for other builds - for the details.
+  In addition to explicitly passing width and height values in
+  functions like 'gtk_window_resize' or 'XResizeWindow', Emacs also
+  sets window manager size hints - a more implicit form of asking for
+  the size Emacs would like its frames to assume.  Some of these hints
+  only restate the size and the position explicitly requested for a
+  frame.  Another hint specifies the increments in which the window
+  manager should resize a frame to - either set to the default
+  character size of a frame or to one pixel for a non-nil value of
+  'frame-resize-pixelwise'.  See the function 'x_wm_set_size_hint' -
+  in gtkutil.c for GTK and in this file for other builds - for the
+  details.
 
   We have not discussed here a number of special issues like, for
   example, how to handle size requests and notifications for maximized
@@ -442,13 +447,56 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   used.
 
   One thing that might come handy when investigating problems wrt
-  resizing frames is the variable 'frame-size-history'.  Setting this to
-  a non-nil value, will cause Emacs to start recording frame size
+  resizing frames is the variable 'frame-size-history'.  Setting this
+  to a non-nil value, will cause Emacs to start recording frame size
   adjustments, usually specified by the function that asked for an
   adjustment, a sizes part that records the old and new values of the
   frame's width and height and maybe some additional information.  The
   internal function `frame--size-history' can then be used to display
-  the value of this variable in a more readable form.  */
+  the value of this variable in a more readable form.
+
+  FRAME RESIZE SYNCHRONIZATION
+
+  The X window system operates asynchronously.  That is to say, the
+  window manager and X server might think a window has been resized
+  before Emacs has a chance to process the ConfigureNotify event that
+  was sent.
+
+  When a compositing manager is present, and the X server and Emacs
+  both support the X synchronization extension, the semi-standard
+  frame synchronization protocol can be used to notify the compositing
+  manager of when Emacs has actually finished redisplaying the
+  contents of a frame after a resize.  The compositing manager will
+  customarily then postpone displaying the contents of the frame until
+  the redisplay is complete.
+
+  Emacs announces support for this protocol by creating an X
+  server-side counter object, and setting it as the
+  `_NET_WM_SYNC_REQUEST_COUNTER' property of the frame's top-level
+  window.  The window manager then initiates the synchronized resize
+  process by sending Emacs a ClientMessage event before the
+  ConfigureNotify event where:
+
+    type = ClientMessage
+    window = the respective client window
+    message_type = WM_PROTOCOLS
+    format = 32
+    data.l[0] = _NET_WM_SYNC_REQUEST
+    data.l[1] = timestamp
+    data.l[2] = low 32 bits of a provided frame counter value
+    data.l[3] = high 32 bits of a provided frame counter value
+    data.l[4] = 1 if the the extended frame counter should be updated,
+    otherwise 0
+
+  Upon receiving such an event, Emacs constructs and saves a counter
+  value from the provided low and high 32 bits.  Then, when the
+  display engine tells us that a frame has been completely updated
+  (presumably because of a redisplay caused by a ConfigureNotify
+  event), we set the counter to the saved value, telling the
+  compositing manager that the contents of the window now accurately
+  reflect the new size.  The compositing manager will then display the
+  contents of the window, and the window manager might also postpone
+  updating the window decorations until this moment.  */
 
 #include <config.h>
 #include <stdlib.h>
