@@ -1748,7 +1748,8 @@ The following sources are applied in this order:
                                               ; during loadup.
                (eq face 'scroll-bar))
       ;; Set the `scroll-bar-foreground' and `scroll-bar-background'
-      ;; frame parameters.  (bug#13476)
+      ;; frame parameters, because the face is handled by setting
+      ;; those two parameters.  (bug#13476)
       (set-frame-parameter frame 'scroll-bar-foreground (face-foreground face))
       (set-frame-parameter frame 'scroll-bar-background (face-background face)))))
 
