@@ -148,7 +148,8 @@ extern void xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 							int portion,
 							int position,
 							int whole);
-extern bool xg_event_is_for_scrollbar (struct frame *, const EVENT *);
+extern bool xg_event_is_for_scrollbar (struct frame *, const EVENT *,
+				       bool for_valuator);
 extern int xg_get_default_scrollbar_width (struct frame *f);
 extern int xg_get_default_scrollbar_height (struct frame *f);
 

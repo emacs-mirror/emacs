@@ -4637,11 +4637,6 @@ xg_update_scrollbar_pos (struct frame *f,
           gtk_widget_set_size_request (wscroll, width, height);
         }
 
-#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
-	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
-	  emacs_abort ();
-#endif
-
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  */
@@ -4739,11 +4734,6 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
         x_clear_area (f, oldx, oldy, oldw, oldh);
 #else
         pgtk_clear_area (f, oldx, oldy, oldw, oldh);
-#endif
-
-#if !defined HAVE_PGTK && GTK_CHECK_VERSION (2, 18, 0)
-	if (!gdk_window_ensure_native (gtk_widget_get_window (wscroll)))
-	  emacs_abort ();
 #endif
 
       /* GTK does not redraw until the main loop is entered again, but
@@ -4911,7 +4901,8 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
    frame.  This function does additional checks.  */
 
 bool
-xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
+xg_event_is_for_scrollbar (struct frame *f, const EVENT *event,
+			   bool for_valuator)
 {
   bool retval = 0;
 
@@ -4924,7 +4915,8 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 	     && (event->xgeneric.evtype == XI_ButtonPress
 		 && xev->detail < 4))
 	    || (event->type == ButtonPress
-		&& event->xbutton.button < 4)))
+		&& event->xbutton.button < 4)
+	    || for_valuator))
 #else
   if (f
 #ifndef HAVE_PGTK

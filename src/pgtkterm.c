@@ -5957,7 +5957,7 @@ motion_notify_event (GtkWidget * widget, GdkEvent * event,
       clear_mouse_face (hlinfo);
     }
 
-  if (f && xg_event_is_for_scrollbar (f, event))
+  if (f && xg_event_is_for_scrollbar (f, event, false))
     f = 0;
   if (f)
     {

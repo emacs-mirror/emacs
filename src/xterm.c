@@ -10899,7 +10899,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
 
 #ifdef USE_GTK
-        if (f && xg_event_is_for_scrollbar (f, event))
+        if (f && xg_event_is_for_scrollbar (f, event, false))
           f = 0;
 #endif
 #ifdef HAVE_XWIDGETS
@@ -11203,7 +11203,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	memset (&compose_status, 0, sizeof (compose_status));
 	dpyinfo->last_mouse_glyph_frame = NULL;
 
-	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
+	f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
 	if (f && event->xbutton.type == ButtonPress
 	    && !popup_activated ()
 	    && !x_window_to_scroll_bar (event->xbutton.display,
@@ -11228,7 +11228,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
 
 #ifdef USE_GTK
-        if (f && xg_event_is_for_scrollbar (f, event))
+        if (f && xg_event_is_for_scrollbar (f, event, false))
           f = 0;
 #endif
         if (f)
@@ -11733,7 +11733,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      int scroll_height;
 		      Lisp_Object window;
 
-
 		      /* See the comment on top of
 			 x_init_master_valuators for more details on how
 			 scroll wheel movement is reported on XInput 2.  */
@@ -11762,6 +11761,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				    goto XI_OTHER;
 				}
 			    }
+
+#ifdef USE_GTK
+			  if (f && xg_event_is_for_scrollbar (f, event, true))
+			    *finish = X_EVENT_DROP;
+#endif
 
 			  if (FRAME_X_WINDOW (f) != xev->event)
 			    XTranslateCoordinates (dpyinfo->display,
@@ -11882,11 +11886,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  inev.ie.arg = list3 (Qnil,
 					       make_float (total_x),
 					       make_float (total_y));
-
-#ifdef USE_GTK
-			  if (f && xg_event_is_for_scrollbar (f, event))
-			    *finish = X_EVENT_DROP;
-#endif
 			}
 		      else
 			{
@@ -11953,7 +11952,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 
 #ifdef USE_GTK
-	      if (f && xg_event_is_for_scrollbar (f, event))
+	      if (f && xg_event_is_for_scrollbar (f, event, false))
 		f = 0;
 #endif
 	      if (f)
@@ -12138,7 +12137,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 
 #ifdef USE_GTK
-	      if (f && xg_event_is_for_scrollbar (f, event))
+	      if (f && xg_event_is_for_scrollbar (f, event, false))
 		f = 0;
 #endif
 
