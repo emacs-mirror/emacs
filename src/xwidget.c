@@ -1443,7 +1443,7 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   gdk_event_free (xg_event);
 }
 
-#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+#ifdef HAVE_XINPUT2_4
 void
 xwidget_pinch (struct xwidget_view *view, XIGesturePinchEvent *xev)
 {
