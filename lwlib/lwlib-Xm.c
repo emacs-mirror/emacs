@@ -496,9 +496,11 @@ make_menu_in_widget (widget_instance* instance,
     ;
   children = (Widget*)(void*)XtMalloc (num_children * sizeof (Widget));
 
+#ifndef LESSTIF_VERSION
   /* WIDGET should be a RowColumn.  */
   if (!XmIsRowColumn (widget))
     emacs_abort ();
+#endif
 
   /* Determine whether WIDGET is a menu bar.  */
   type = -1;
