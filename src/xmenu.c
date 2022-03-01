@@ -1650,14 +1650,14 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 	 processed by Xt, but Xt doesn't consider GenericEvents, so the
 	 timestamp is always less than the last grab time.  */
 
-      property_atom = XInternAtom (dpyinfo->display, "EMACS_SERVER_TIME_PROP", False);
+      property_atom = dpyinfo->Xatom_EMACS_SERVER_TIME_PROP;
 
       XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
 		       property_atom, XA_ATOM, 32,
 		       PropModeReplace, (unsigned char *) &property_atom, 1);
 
       XIfEvent (dpyinfo->display, &property_dummy, server_timestamp_predicate,
-		(XPointer) &(XID[]) {(XID) FRAME_OUTER_WINDOW (f), (XID) property_atom});
+		(XPointer) &(XID[]) {FRAME_OUTER_WINDOW (f), property_atom});
 
       XtDispatchEvent (&property_dummy);
     }
