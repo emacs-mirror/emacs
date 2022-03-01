@@ -77,7 +77,7 @@ This variable has no effect unless `tab-always-indent' is `complete'."
   :group 'indent
   :type '(choice
           (const :tag "Always complete" nil)
-          (const :tag "Unless at the end of a line" eol)
+          (const :tag "Only complete at the end of a line" eol)
           (const :tag "Unless looking at a word" word)
           (const :tag "Unless at a word or parenthesis" word-or-paren)
           (const :tag "Unless at a word, parenthesis, or punctuation."
