@@ -3803,13 +3803,8 @@ x_window (struct frame *f, long window_prompting)
 		   FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
 		   XA_ATOM, 32, PropModeAppend, NULL, 0);
 
-#if !defined USE_MOTIF || !defined HAVE_XINPUT2
   /* Make all the standard events reach the Emacs frame.  */
   attributes.event_mask = STANDARD_EVENT_SET;
-#else
-  /* This is used for Motif menus.  */
-  attributes.event_mask = STANDARD_EVENT_SET | PropertyChangeMask;
-#endif
 
 #ifdef HAVE_X_I18N
   if (FRAME_XIC (f))

@@ -132,6 +132,7 @@ INLINE_HEADER_BEGIN
    | FocusChangeMask		\
    | LeaveWindowMask		\
    | EnterWindowMask		\
+   | PropertyChangeMask		\
    | VisibilityChangeMask)
 
 #ifdef HAVE_X11R6_XIM
