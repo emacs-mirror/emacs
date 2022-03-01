@@ -8489,6 +8489,30 @@ x_scroll_bar_create (struct window *w, int top, int left,
 			    CopyFromParent,
 			     /* Attributes.  */
 			    mask, &a);
+
+#ifdef HAVE_XINPUT2
+  /* Ask for input extension button and motion events.  This lets us
+     send the proper `wheel-up' or `wheel-down' events to Emacs.  */
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      XIEventMask mask;
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+      unsigned char *m;
+
+      mask.mask = m = alloca (l);
+      memset (m, 0, l);
+      mask.mask_len = l;
+
+      mask.deviceid = XIAllMasterDevices;
+      XISetMask (m, XI_ButtonPress);
+      XISetMask (m, XI_ButtonRelease);
+      XISetMask (m, XI_Motion);
+      XISetMask (m, XI_Enter);
+      XISetMask (m, XI_Leave);
+
+      XISelectEvents (FRAME_X_DISPLAY (f), window, &mask, 1);
+    }
+#endif
     bar->x_window = window;
   }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
@@ -11725,7 +11749,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			      if (!f)
 				{
-#if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
+#if defined USE_MOTIF || !defined USE_TOOLKIT_SCROLL_BARS
 				  struct scroll_bar *bar
 				    = x_window_to_scroll_bar (xi_event->display,
 							      xev->event, 2);
@@ -12207,6 +12231,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    xembed_send_message (f, xev->time,
 					 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 		}
+#ifndef USE_TOOLKIT_SCROLL_BARS
+	      else
+		{
+		  struct scroll_bar *bar
+		    = x_window_to_scroll_bar (dpyinfo->display,
+					      xev->event, 2);
+
+		  if (bar)
+		    x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie);
+		}
+#endif
 
 	      if (xev->evtype == XI_ButtonPress)
 		{
