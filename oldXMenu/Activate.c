@@ -121,12 +121,19 @@ int x_menu_grab_keyboard = 1;
 
 static Wait_func wait_func;
 static void* wait_data;
+static Translate_func translate_func = NULL;
 
 void
 XMenuActivateSetWaitFunction (Wait_func func, void *data)
 {
   wait_func = func;
   wait_data = data;
+}
+
+void
+XMenuActivateSetTranslateFunction (Translate_func func)
+{
+  translate_func = func;
 }
 
 int
@@ -515,6 +522,12 @@ XMenuActivate(
 		    feq = feq_tmp;
 		}
 		else if (_XMEventHandler) (*_XMEventHandler)(&event);
+		break;
+#ifdef HAVE_XINPUT2
+        case GenericEvent:
+	    if (translate_func)
+	      translate_func (&event);
+#endif
 	}
 	/*
 	 * If a selection has been made, break out of the event loop.

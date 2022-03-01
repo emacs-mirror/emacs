@@ -255,6 +255,11 @@ typedef struct _xmenu {
 
 typedef void (*Wait_func)(void*);
 
+/* Function for translating GenericEvents.  It is should call
+   XPutBackEvent on an equivalent artificial core event on any
+   function it wants to translate.  */
+typedef void (*Translate_func)(XEvent *);
+
 /*
  * XMenu library routine declarations.
  */
@@ -274,6 +279,7 @@ void XMenuEventHandler(int (*handler) (XEvent *));
 int XMenuLocate(Display *display, XMenu *menu, int p_num, int s_num, int x_pos, int y_pos, int *ul_x, int *ul_y, int *width, int *height);
 void XMenuSetFreeze(XMenu *menu, int freeze);
 void XMenuActivateSetWaitFunction(Wait_func func, void *data);
+void XMenuActivateSetTranslateFunction(Translate_func func);
 int XMenuActivate(Display *display, XMenu *menu, int *p_num, int *s_num, int x_pos, int y_pos, unsigned int event_mask, char **data, void (*help_callback) (char const *, int, int));
 char *XMenuPost(Display *display, XMenu *menu, int *p_num, int *s_num, int x_pos, int y_pos, int event_mask);
 int XMenuDeletePane(Display *display, XMenu *menu, int p_num);
