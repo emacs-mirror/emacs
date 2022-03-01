@@ -102,44 +102,34 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
   exit 1
 }
 
+# gnulib-tool has problems with a bare checkout (Bug#32452#65).
+test -f configure || ./autogen.sh || exit
+
 # Old caches can confuse autoconf when some Gnulib-related changes take effect.
 rm -fr autom4te.cache || exit
-
-# gnulib-tool has problems with a bare checkout (Bug#32452#91).
-if test -f configure; then
-  passes='1'
-else
-  passes='1 2'
-fi
 
 avoided_flags=
 for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
 done
 
-for pass in $passes; do
-  case $pass in
-    2) echo 'Running gnulib-tool again to work around Bug#32452#91.' >&2
-  esac
-
-  "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
+"$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
 	$avoided_flags $GNULIB_MODULES &&
-  rm -- "$src"lib/gl_openssl.h \
-	"$src"lib/stdio-read.c "$src"lib/stdio-write.c \
-	"$src"m4/fcntl-o.m4 \
-	"$src"m4/gl-openssl.m4 \
-	"$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
-	"$src"m4/manywarnings-c++.m4 \
-	"$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
-  cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
-  cp -- "$gnulib_srcdir"/build-aux/config.guess \
-	"$gnulib_srcdir"/build-aux/config.sub \
-	"$gnulib_srcdir"/build-aux/install-sh \
-	"$gnulib_srcdir"/build-aux/move-if-change \
-     "$src"build-aux &&
-  cp -- "$gnulib_srcdir"/lib/af_alg.h \
-	"$gnulib_srcdir"/lib/save-cwd.h \
-     "$src"lib &&
-  { test -z "$src" || cd "$src"; } &&
-  ./autogen.sh || exit
-done
+rm -- "$src"lib/gl_openssl.h \
+      "$src"lib/stdio-read.c "$src"lib/stdio-write.c \
+      "$src"m4/fcntl-o.m4 \
+      "$src"m4/gl-openssl.m4 \
+      "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
+      "$src"m4/manywarnings-c++.m4 \
+      "$src"m4/warn-on-use.m4 "$src"m4/wint_t.m4 &&
+cp -- "$gnulib_srcdir"/build-aux/texinfo.tex "$src"doc/misc &&
+cp -- "$gnulib_srcdir"/build-aux/config.guess \
+      "$gnulib_srcdir"/build-aux/config.sub \
+      "$gnulib_srcdir"/build-aux/install-sh \
+      "$gnulib_srcdir"/build-aux/move-if-change \
+   "$src"build-aux &&
+cp -- "$gnulib_srcdir"/lib/af_alg.h \
+      "$gnulib_srcdir"/lib/save-cwd.h \
+   "$src"lib &&
+{ test -z "$src" || cd "$src"; } &&
+./autogen.sh
