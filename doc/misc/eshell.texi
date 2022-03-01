@@ -228,15 +228,39 @@ other background process in Emacs.
 
 @node Arguments
 @section Arguments
-Command arguments are passed to the functions as either strings or
-numbers, depending on what the parser thinks they look like.  If you
-need to use a function that takes some other data type, you will need to
-call it in an Elisp expression (which can also be used with
-@ref{Expansion, expansions}).  As with other shells, you can
-escape special characters and spaces with the backslash (@code{\}) and
-apostrophes (@code{''}) and double quotes (@code{""}).  This is needed
-especially for file names with special characters like pipe
-(@code{|}), which could be part of remote file names.
+Ordinarily, command arguments are parsed by Eshell as either strings
+or numbers, depending on what the parser thinks they look like.  To
+specify an argument of some other data type, you can use an
+@ref{Dollars Expansion, Elisp expression}:
+
+@example
+~ $ echo (list 1 2 3)
+(1 2 3)
+@end example
+
+Additionally, many @ref{Built-ins, Eshell commands} will flatten the
+arguments they receive, so passing a list as an argument will
+``spread'' the elements into multiple arguments:
+
+@example
+~ $ printnl (list 1 2) 3
+1
+2
+3
+@end example
+
+@subsection Quoting and escaping
+
+As with other shells, you can escape special characters and spaces
+with by prefixing the character with a backslash (@code{\}), or by
+surrounding the string with apostrophes (@code{''}) or double quotes
+(@code{""}).  This is needed especially for file names with special
+characters like pipe (@code{|}), which could be part of remote file
+names.
+
+When using @ref{Expansion, expansions} in an Eshell command, the
+result may potentially be of any data type.  To ensure that the result
+is always a string, the expansion can be surrounded by double quotes.
 
 @node Built-ins
 @section Built-in commands
@@ -1026,11 +1050,20 @@ value, such as @samp{$"@var{var}"-suffix}.
 @item $(@var{lisp})
 Expands to the result of evaluating the S-expression @code{(@var{lisp})}.  On
 its own, this is identical to just @code{(@var{lisp})}, but with the @code{$},
-it can be used in a string, such as @samp{/some/path/$(@var{lisp}).txt}.
+it can be used inside double quotes or within a longer string, such as
+@samp{/some/path/$(@var{lisp}).txt}.
 
 @item $@{@var{command}@}
-Returns the output of @command{@var{command}}, which can be any valid Eshell
-command invocation, and may even contain expansions.
+Returns the output of @command{@var{command}}, which can be any valid
+Eshell command invocation, and may even contain expansions.  Similar
+to @code{$(@var{lisp})}, this is identical to @code{@{@var{command}@}}
+when on its own, but the @code{$} allows it to be used inside double
+quotes or as part of a string.
+
+Normally, the output is split line-by-line, returning a list (or the
+first element if there's only one line of output).  However, when this
+expansion is surrounded by double quotes, it returns the output as a
+single string instead.
 
 @item $<@var{command}>
 As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation

@@ -198,23 +198,37 @@ doubling it up."
       (when (= depth 0)
         (if reverse-p (point) (1- (point)))))))
 
-(defun eshell-convert (string)
-  "Convert STRING into a more native looking Lisp object."
-  (if (not (stringp string))
-      string
-    (let ((len (length string)))
-      (if (= len 0)
-	  string
-	(if (eq (aref string (1- len)) ?\n)
+(defun eshell-convert (string &optional to-string)
+  "Convert STRING into a more-native Lisp object.
+If TO-STRING is non-nil, always return a single string with
+trailing newlines removed.  Otherwise, this behaves as follows:
+
+* Return non-strings as-is.
+
+* Split multiline strings by line.
+
+* If `eshell-convert-numeric-aguments' is non-nil, convert
+  numeric strings to numbers."
+  (cond
+   ((not (stringp string))
+    (if to-string
+        (eshell-stringify string)
+      string))
+   (to-string (string-trim-right string "\n+"))
+   (t (let ((len (length string)))
+        (if (= len 0)
+	    string
+	  (when (eq (aref string (1- len)) ?\n)
 	    (setq string (substring string 0 (1- len))))
-	(if (string-search "\n" string)
-	    (split-string string "\n")
-	  (if (and eshell-convert-numeric-arguments
-		   (string-match
-		    (concat "\\`\\s-*" eshell-number-regexp
-			    "\\s-*\\'") string))
-	      (string-to-number string)
-	    string))))))
+          (cond
+           ((string-search "\n" string)
+            (split-string string "\n"))
+           ((and eshell-convert-numeric-arguments
+	         (string-match
+                  (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
+                  string))
+            (string-to-number string))
+           (t string)))))))
 
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.

@@ -1390,6 +1390,12 @@ Lisp function.  This frees you from having to keep track of whether
 commands are Lisp function or external when supplying absolute file
 name arguments.  See "Electric forward slash" in the Eshell manual.
 
++++
+*** Double-quoting an Eshell expansion now treats the result as a single string.
+If an Eshell expansion like '$FOO' is surrounded by double quotes, the
+result will always be a single string, no matter the type that would
+otherwise be returned.
+
 ---
 *** Built-in Eshell commands now follow POSIX/GNU argument syntax conventions.
 Built-in commands in Eshell now accept command-line options with
