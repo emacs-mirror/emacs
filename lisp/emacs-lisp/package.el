@@ -1325,7 +1325,7 @@ errors signaled by ERROR-FORM or by BODY).
 
 (cl-defun package--with-response-buffer-1 (url body &key async file error-function noerror &allow-other-keys)
   (if (string-match-p "\\`https?:" url)
-        (let ((url (concat url file)))
+        (let ((url (url-expand-file-name file url)))
           (if async
               (package--unless-error #'ignore
                 (url-retrieve
