@@ -8381,20 +8381,84 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   result = 0;
   while (result == 0)
     {
-      XEvent event;
+      XEvent event, copy;
+#ifdef HAVE_XINPUT2
+      x_menu_wait_for_event (FRAME_X_DISPLAY (f));
+#else
       x_menu_wait_for_event (0);
-      XtAppNextEvent (Xt_app_con, &event);
-      if (event.type == KeyPress
-          && FRAME_X_DISPLAY (f) == event.xkey.display)
-        {
-          KeySym keysym = XLookupKeysym (&event.xkey, 0);
+#endif
 
-          /* Pop down on C-g.  */
-          if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
-            XtUnmanageChild (dialog);
-        }
+      if (
+#ifndef HAVE_XINPUT2
+	  XtAppPending (Xt_app_con)
+#else
+	  XPending (FRAME_X_DISPLAY (f))
+#endif
+	  )
+	{
+#ifndef HAVE_XINPUT2
+	  XtAppNextEvent (Xt_app_con, &event);
+#else
+	  XNextEvent (FRAME_X_DISPLAY (f), &event);
+#endif
 
-      (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
+	  copy = event;
+	  if (event.type == KeyPress
+	      && FRAME_X_DISPLAY (f) == event.xkey.display)
+	    {
+	      KeySym keysym = XLookupKeysym (&event.xkey, 0);
+
+	      /* Pop down on C-g.  */
+	      if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+		XtUnmanageChild (dialog);
+	    }
+#ifdef HAVE_XINPUT2
+	  else if (event.type == GenericEvent
+		   && FRAME_X_DISPLAY (f) == event.xgeneric.display
+		   && FRAME_DISPLAY_INFO (f)->supports_xi2
+		   && (event.xgeneric.extension
+		       == FRAME_DISPLAY_INFO (f)->xi2_opcode)
+		   && event.xgeneric.evtype == XI_KeyPress)
+	    {
+	      KeySym keysym;
+	      XIDeviceEvent *xev;
+
+	      if (event.xcookie.data)
+		emacs_abort ();
+
+	      if (XGetEventData (FRAME_X_DISPLAY (f), &event.xcookie))
+		{
+		  xev = (XIDeviceEvent *) event.xcookie.data;
+
+		  copy.xkey.type = KeyPress;
+		  copy.xkey.serial = xev->serial;
+		  copy.xkey.send_event = xev->send_event;
+		  copy.xkey.display = FRAME_X_DISPLAY (f);
+		  copy.xkey.window = xev->event;
+		  copy.xkey.root = xev->root;
+		  copy.xkey.subwindow = xev->child;
+		  copy.xkey.time = xev->time;
+		  copy.xkey.x = lrint (xev->event_x);
+		  copy.xkey.y = lrint (xev->event_y);
+		  copy.xkey.x_root = lrint (xev->root_x);
+		  copy.xkey.y_root = lrint (xev->root_y);
+		  copy.xkey.state = xev->mods.effective;
+		  copy.xkey.keycode = xev->detail;
+		  copy.xkey.same_screen = True;
+
+		  keysym = XLookupKeysym (&copy.xkey, 0);
+
+		  if (keysym == XK_g
+		      && (copy.xkey.state & ControlMask) != 0) /* Any escape, ignore modifiers.  */
+		    XtUnmanageChild (dialog);
+
+		  XFreeEventData (FRAME_X_DISPLAY (f), &event.xcookie);
+		}
+	    }
+#endif
+
+	  (void) x_dispatch_event (&copy, FRAME_X_DISPLAY (f));
+	}
     }
 
   /* Get the result.  */

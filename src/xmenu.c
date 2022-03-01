@@ -184,8 +184,8 @@ x_menu_wait_for_event (void *data)
      instead of the small ifdefs below.  */
 
   while (
-#ifdef USE_X_TOOLKIT
-         ! XtAppPending (Xt_app_con)
+#if defined USE_X_TOOLKIT
+         ! (data ? XPending (data) : XtAppPending (Xt_app_con))
 #elif defined USE_GTK
          ! gtk_events_pending ()
 #else
