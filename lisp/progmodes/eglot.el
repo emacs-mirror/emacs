@@ -1866,11 +1866,11 @@ COMMAND is a symbol naming the command."
                         (current-buffer) beg end
                         (eglot--diag-type severity)
                         message `((eglot-lsp-diag . ,diag-spec))
-                        (and tags
-                             `((face
-                                . ,(mapcar (lambda (tag)
-                                             (alist-get tag eglot--tag-faces))
-                                           tags)))))))
+                        (when-let ((faces
+                                    (cl-loop for tag across tags
+                                             when (alist-get tag eglot--tag-faces)
+                                             collect it)))
+                          `((face . ,faces))))))
            into diags
            finally (cond (eglot--current-flymake-report-fn
                           (eglot--report-to-flymake diags))
