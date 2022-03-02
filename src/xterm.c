@@ -12035,17 +12035,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      struct xwidget_view *xvw;
 #endif
 
-#ifdef HAVE_XINPUT2_1
-	      /* Ignore emulated scroll events when XI2 native
-		 scroll events are present.  */
-	      if (xev->flags & XIPointerEmulated)
-		{
-		  *finish = X_EVENT_DROP;
-		  goto XI_OTHER;
-		}
+#ifdef USE_MOTIF
+#ifdef USE_TOOLKIT_SCROLL_BARS
+	      struct scroll_bar *bar
+		= x_window_to_scroll_bar (dpyinfo->display,
+					  xev->event, 2);
 #endif
 
-#ifdef USE_MOTIF
 	      use_copy = true;
 	      copy.xbutton.type = (xev->evtype == XI_ButtonPress
 				   ? ButtonPress : ButtonRelease);
@@ -12072,6 +12068,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    copy.xbutton.state |= Button2Mask;
 		  if (XIMaskIsSet (xev->buttons.mask, 3))
 		    copy.xbutton.state |= Button3Mask;
+		}
+#endif
+
+#ifdef HAVE_XINPUT2_1
+	      /* Ignore emulated scroll events when XI2 native
+		 scroll events are present.  */
+	      if (xev->flags & XIPointerEmulated)
+		{
+#if !defined USE_MOTIF || !defined USE_TOOLKIT_SCROLL_BARS
+		  *finish = X_EVENT_DROP;
+#else
+		  if (bar)
+		    *finish = X_EVENT_DROP;
+#endif
+		  goto XI_OTHER;
 		}
 #endif
 
