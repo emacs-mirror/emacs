@@ -457,6 +457,9 @@ XMenuActivate(
 	     * deactivate it.
 	     */
 	    if (cur_s->activated) {
+		/* Emacs specific, HELP_STRING cannot be validly NULL
+		 * in the real XMenu library.  */
+		help_callback (NULL, cur_p->serial, cur_s->serial);
 		cur_s->activated = False;
 		_XMRefreshSelection(display, menu, cur_s);
 	    }
