@@ -32,6 +32,8 @@
                            (file-name-directory (or load-file-name
                                                     default-directory))))
 
+(defvar eshell-test-value nil)
+
 ;;; Tests:
 
 
@@ -55,6 +57,76 @@
                  (concat user-login-name "-foo")))
   (should (equal (eshell-test-command-result "echo $\"user-login-name\"-foo")
                  (concat user-login-name "-foo"))))
+
+(ert-deftest esh-var-test/interp-var-indices ()
+  "Interpolate list variable with indices"
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2]")
+                   '("zero" "two")))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2 4]")
+                   '("zero" "two" "four")))))
+
+(ert-deftest esh-var-test/interp-var-split-indices ()
+  "Interpolate string variable with indices"
+  (let ((eshell-test-value "zero one two three four"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2]")
+                   '("zero" "two")))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2 4]")
+                   '("zero" "two" "four")))))
+
+(ert-deftest esh-var-test/interp-var-string-split-indices ()
+  "Interpolate string variable with string splitter and indices"
+  (let ((eshell-test-value "zero:one:two:three:four"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0 2]")
+                   '("zero" "two")))))
+
+(ert-deftest esh-var-test/interp-var-regexp-split-indices ()
+  "Interpolate string variable with regexp splitter and indices"
+  (let ((eshell-test-value "zero:one!two:three!four"))
+    (should (equal (eshell-test-command-result
+                    "echo $eshell-test-value['[:!]' 0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo $eshell-test-value['[:!]' 0 2]")
+                   '("zero" "two")))
+    (should (equal (eshell-test-command-result
+                    "echo $eshell-test-value[\"[:!]\" 0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo $eshell-test-value[\"[:!]\" 0 2]")
+                   '("zero" "two")))))
+
+(ert-deftest esh-var-test/interp-var-assoc ()
+  "Interpolate alist variable with index"
+  (let ((eshell-test-value '(("foo" . 1))))
+    (should (eq (eshell-test-command-result "echo $eshell-test-value[foo]")
+                1))))
+
+(ert-deftest esh-var-test/interp-var-length-list ()
+  "Interpolate length of list variable"
+  (let ((eshell-test-value '((1 2) (3) (5 (6 7 8 9)))))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value") 3))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value[1]") 1))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value[2][1]")
+                4))))
+
+(ert-deftest esh-var-test/interp-var-length-string ()
+  "Interpolate length of string variable"
+  (let ((eshell-test-value "foobar"))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value") 6))))
+
+(ert-deftest esh-var-test/interp-var-length-alist ()
+  "Interpolate length of alist variable"
+  (let ((eshell-test-value '(("foo" . (1 2 3)))))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value") 1))
+    (should (eq (eshell-test-command-result "echo $#eshell-test-value[foo]")
+                3))))
 
 (ert-deftest esh-var-test/interp-lisp ()
   "Interpolate Lisp form evaluation"
@@ -111,6 +183,86 @@
   (should (equal (eshell-test-command-result
                   "echo \"hi, $\\\"user-login-name\\\"\"")
                  (concat "hi, " user-login-name))))
+
+(ert-deftest esh-var-test/quoted-interp-var-indices ()
+  "Interpolate string variable with indices inside double-quotes"
+  (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0 2]\"")
+                   '("zero" "two")))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0 2 4]\"")
+                   '("zero" "two" "four")))))
+
+(ert-deftest esh-var-test/quoted-interp-var-split-indices ()
+  "Interpolate string variable with indices inside double-quotes"
+  (let ((eshell-test-value "zero one two three four"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0 2]\"")
+                   '("zero" "two")))))
+
+(ert-deftest esh-var-test/quoted-interp-var-string-split-indices ()
+  "Interpolate string variable with string splitter and indices
+inside double-quotes"
+  (let ((eshell-test-value "zero:one:two:three:four"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[: 0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[: 0 2]\"")
+                   '("zero" "two")))))
+
+(ert-deftest esh-var-test/quoted-interp-var-regexp-split-indices ()
+  "Interpolate string variable with regexp splitter and indices"
+  (let ((eshell-test-value "zero:one!two:three!four"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value['[:!]' 0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value['[:!]' 0 2]\"")
+                   '("zero" "two")))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[\\\"[:!]\\\" 0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[\\\"[:!]\\\" 0 2]\"")
+                   '("zero" "two")))))
+
+(ert-deftest esh-var-test/quoted-interp-var-assoc ()
+  "Interpolate alist variable with index inside double-quotes"
+  (let ((eshell-test-value '(("foo" . 1))))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[foo]\"")
+                   1))))
+
+(ert-deftest esh-var-test/quoted-interp-var-length-list ()
+  "Interpolate length of list variable inside double-quotes"
+  (let ((eshell-test-value '((1 2) (3) (5 (6 7 8 9)))))
+    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"") 3))
+    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value[1]\"")
+                1))
+    (should (eq (eshell-test-command-result
+                 "echo \"$#eshell-test-value[2][1]\"")
+                4))))
+
+(ert-deftest esh-var-test/quoted-interp-var-length-string ()
+  "Interpolate length of string variable inside double-quotes"
+  (let ((eshell-test-value "foobar"))
+    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"")
+                6))))
+
+(ert-deftest esh-var-test/quoted-interp-var-length-alist ()
+  "Interpolate length of alist variable inside double-quotes"
+  (let ((eshell-test-value '(("foo" . (1 2 3)))))
+    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"") 1))
+    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value[foo]\"")
+                3))))
 
 (ert-deftest esh-var-test/quoted-interp-lisp ()
   "Interpolate Lisp form evaluation inside double-quotes"

@@ -1022,11 +1022,6 @@ Expands to the value bound to @var{var}.  This is useful to
 disambiguate the variable name when concatenating it with another
 value, such as @samp{$"@var{var}"-suffix}.
 
-@item $#@var{var}
-Expands to the length of the value bound to @var{var}.  Raises an error
-if the value is not a sequence
-(@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
-
 @item $(@var{lisp})
 Expands to the result of evaluating the S-expression @code{(@var{lisp})}.  On
 its own, this is identical to just @code{(@var{lisp})}, but with the @code{$},
@@ -1041,34 +1036,35 @@ As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation
 @command{@var{command}}, but writes the output to a temporary file and
 returns the file name.
 
-@item $@var{var}[i]
-Expands to the @code{i}th element of the value bound to @var{var}.  If
-the value is a string, it will be split at whitespace to make it a list.
-Again, raises an error if the value is not a sequence.
+@item $@var{expr}[@var{i...}]
+Expands to the @var{i}th element of the result of @var{expr}, an
+expression in one of the above forms listed here.  If multiple indices
+are supplied, this will return a list containing the elements for each
+index.  If @var{expr}'s value is a string, it will first be split at
+whitespace to make it a list.  If @var{expr}'s value is an alist
+(@pxref{Association List Type, Association Lists, , elisp, The Emacs
+Lisp Reference Manual}), this will call @code{assoc} on the result of
+@var{expr}, returning the @code{cdr} of the element of the result
+whose car is equal to @code{"i"}.  Raises an error if the value is not
+a sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
+Emacs Lisp Reference Manual}).
 
-@item $@var{var}[: i]
-As above, but now splitting occurs at the colon character.
+Multiple sets of indices can also be specified. For example, if
+@var{var} is a list of lists, @samp{$@var{var}[0][0]} is equivalent to
+@samp{(caar @var{var})}.
 
-@item $@var{var}[: i j]
-As above, but instead of returning just a string, it now returns a list
-of two strings.  If the result is being interpolated into a larger
-string, this list will be flattened into one big string, with each
-element separated by a space.
+@item $@var{expr}[@var{regexp} @var{i...}]
+As above (when @var{expr} expands to a string), but use @var{regexp}
+to split the string.  @var{regexp} can be any form other than a number
+or a plain variable name.  For example, @samp{$@var{var}[: 0]} will
+return the first element of a colon-delimited string.
 
-@item $@var{var}["\\\\" i]
-Separate on backslash characters.  Actually, the first argument -- if it
-doesn't have the form of a number, or a plain variable name -- can be
-any regular expression.  So to split on numbers, use
-@samp{$@var{var}["[0-9]+" 10 20]}.
-
-@item $@var{var}[hello]
-Calls @code{assoc} on @var{var} with @code{"hello"}, expecting it to be
-an alist (@pxref{Association List Type, Association Lists, , elisp,
-The Emacs Lisp Reference Manual}).
-
-@item $#@var{var}[hello]
-Returns the length of the @code{cdr} of the element of @var{var} whose
-car is equal to @code{"hello"}.
+@item $#@var{expr}
+Expands to the length of the result of @var{expr}, an expression in
+one of the above forms.  For example, @samp{$#@var{var}} returns the
+length of the variable @var{var} and @samp{$#@var{var}[0]} returns the
+length of the first element of @var{var}.  Again, raises an error if
+the result of @var{expr} is not a sequence.
 
 @end table
 
