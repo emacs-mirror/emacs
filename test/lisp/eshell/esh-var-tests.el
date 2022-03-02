@@ -84,6 +84,11 @@
     (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0]")
                    "zero"))
     (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0 2]")
+                   '("zero" "two"))))
+  (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[X 0]")
+                   "zero"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[X 0 2]")
                    '("zero" "two")))))
 
 (ert-deftest esh-var-test/interp-var-regexp-split-indices ()
@@ -216,6 +221,13 @@ inside double-quotes"
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[: 0 2]\"")
+                   '("zero" "two"))))
+  (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[X 0]\"")
+                   "zero"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[X 0 2]\"")
                    '("zero" "two")))))
 
 (ert-deftest esh-var-test/quoted-interp-var-regexp-split-indices ()

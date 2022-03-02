@@ -74,9 +74,8 @@
 ;;   $EXPR["\\\\" 10]
 ;;
 ;; Separate on backslash characters.  Actually, the first argument --
-;; if it doesn't have the form of a number, or a plain variable name
-;; -- can be any regular expression.  So to split on numbers, use
-;; '$EXPR["[0-9]+" 10 20]'.
+;; if it doesn't have the form of a number -- can be any regular
+;; expression.  So to split on numbers, use '$EXPR["[0-9]+" 10 20]'.
 ;;
 ;;   $EXPR[hello]
 ;;
@@ -566,13 +565,11 @@ For example, to retrieve the second element of a user's record in
   (while indices
     (let ((refs (car indices)))
       (when (stringp value)
-	(let (separator)
-	  (if (not (or (not (stringp (caar indices)))
-		       (string-match
-			(concat "^" eshell-variable-name-regexp "$")
-			(caar indices))))
-	      (setq separator (caar indices)
-		    refs (cdr refs)))
+	(let (separator (index (caar indices)))
+          (when (and (stringp index)
+                     (not (get-text-property 0 'number index)))
+            (setq separator index
+                  refs (cdr refs)))
 	  (setq value
 		(mapcar #'eshell-convert
 			(split-string value separator)))))

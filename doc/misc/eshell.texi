@@ -1055,9 +1055,9 @@ Multiple sets of indices can also be specified. For example, if
 
 @item $@var{expr}[@var{regexp} @var{i...}]
 As above (when @var{expr} expands to a string), but use @var{regexp}
-to split the string.  @var{regexp} can be any form other than a number
-or a plain variable name.  For example, @samp{$@var{var}[: 0]} will
-return the first element of a colon-delimited string.
+to split the string.  @var{regexp} can be any form other than a
+number.  For example, @samp{$@var{var}[: 0]} will return the first
+element of a colon-delimited string.
 
 @item $#@var{expr}
 Expands to the length of the result of @var{expr}, an expression in
