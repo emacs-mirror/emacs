@@ -101,6 +101,15 @@ haiku_coords_from_parent (struct frame *f, int *x, int *y)
 }
 
 static void
+haiku_toolkit_position (struct frame *f, int x, int y,
+			bool *menu_bar_p, bool *tool_bar_p)
+{
+  if (FRAME_OUTPUT_DATA (f)->menubar)
+    *menu_bar_p = (x >= 0 && x < FRAME_PIXEL_WIDTH (f)
+		   && y >= 0 && y < FRAME_MENU_BAR_HEIGHT (f));
+}
+
+static void
 haiku_delete_terminal (struct terminal *terminal)
 {
   emacs_abort ();
@@ -3728,6 +3737,7 @@ haiku_create_terminal (struct haiku_display_info *dpyinfo)
   terminal->menu_show_hook = haiku_menu_show;
   terminal->toggle_invisible_pointer_hook = haiku_toggle_invisible_pointer;
   terminal->fullscreen_hook = haiku_fullscreen;
+  terminal->toolkit_position_hook = haiku_toolkit_position;
 
   return terminal;
 }
