@@ -831,6 +831,13 @@ struct terminal
      frames on the terminal when it calls this hook, so infinite
      recursion is prevented.  */
   void (*delete_terminal_hook) (struct terminal *);
+
+  /* Called to determine whether a position is on the toolkit tool bar
+     or menu bar.  May be NULL.  It should accept five arguments
+     FRAME, X, Y, MENU_BAR_P, TOOL_BAR_P, and store true into
+     `menu_bar_p' if X and Y are in FRAME's toolkit menu bar, and true
+     into `tool_bar_p` if X and Y are in FRAME's toolkit tool bar.  */
+  void (*toolkit_position_hook) (struct frame *, int, int, bool *, bool *);
 } GCALIGNED_STRUCT;
 
 INLINE bool

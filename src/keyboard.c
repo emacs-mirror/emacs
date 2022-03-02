@@ -5247,6 +5247,8 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
   Lisp_Object window_or_frame = f
     ? window_from_coordinates (f, mx, my, &part, true, true)
     : Qnil;
+  bool tool_bar_p = false;
+  bool menu_bar_p = false;
 
   /* Report mouse events on the tab bar and (on GUI frames) on the
      tool bar.  */
@@ -5279,6 +5281,20 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	 we use to display those, and it wants frame-relative
 	 coordinates.  FIXME!  */
       window_or_frame = Qnil;
+    }
+
+  if (FRAME_TERMINAL (f)->toolkit_position_hook)
+    {
+      FRAME_TERMINAL (f)->toolkit_position_hook (f, mx, my, &menu_bar_p,
+						 &tool_bar_p);
+
+      if (NILP (track_mouse) || EQ (track_mouse, Qt))
+	{
+	  if (menu_bar_p)
+	    posn = Qmenu_bar;
+	  else if (tool_bar_p)
+	    posn = Qtool_bar;
+	}
     }
 #endif
   if (f

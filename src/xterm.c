@@ -854,6 +854,41 @@ record_event (char *locus, int type)
 
 #endif
 
+#if defined USE_X_TOOLKIT || USE_GTK
+static void
+x_toolkit_position (struct frame *f, int x, int y,
+		    bool *menu_bar_p, bool *tool_bar_p)
+{
+#ifdef USE_GTK
+  GdkRectangle test_rect;
+  int scale;
+
+  y += (FRAME_MENUBAR_HEIGHT (f)
+	+ FRAME_TOOLBAR_TOP_HEIGHT (f));
+  x += FRAME_TOOLBAR_LEFT_WIDTH (f);
+
+  if (FRAME_EXTERNAL_MENU_BAR (f))
+    *menu_bar_p = (x >= 0 && x < FRAME_PIXEL_WIDTH (f)
+		   && y >= 0 && y < FRAME_MENUBAR_HEIGHT (f));
+
+  if (FRAME_X_OUTPUT (f)->toolbar_widget)
+    {
+      scale = xg_get_scale (f);
+      test_rect.x = x / scale;
+      test_rect.y = y / scale;
+      test_rect.width = 1;
+      test_rect.height = 1;
+
+      *tool_bar_p = gtk_widget_intersect (FRAME_X_OUTPUT (f)->toolbar_widget,
+					  &test_rect, NULL);
+    }
+#else
+  *menu_bar_p = (x > 0 && x < FRAME_PIXEL_WIDTH (f)
+		 && (y < 0 && y >= -FRAME_MENUBAR_HEIGHT (f)));
+#endif
+}
+#endif
+
 static void
 x_update_opaque_region (struct frame *f, XEvent *configure)
 {
@@ -17820,6 +17855,9 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->free_pixmap = x_free_pixmap;
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = x_delete_terminal;
+#if defined USE_X_TOOLKIT || defined USE_GTK
+  terminal->toolkit_position_hook = x_toolkit_position;
+#endif
   /* Other hooks are NULL by default.  */
 
   return terminal;
