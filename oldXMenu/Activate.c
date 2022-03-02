@@ -456,10 +456,10 @@ XMenuActivate(
 	     * If the current selection was activated then
 	     * deactivate it.
 	     */
+	    /* Emacs specific, HELP_STRING cannot be validly NULL
+	     * in the real XMenu library.  */
+	    help_callback (NULL, cur_p->serial, cur_s->serial);
 	    if (cur_s->activated) {
-		/* Emacs specific, HELP_STRING cannot be validly NULL
-		 * in the real XMenu library.  */
-		help_callback (NULL, cur_p->serial, cur_s->serial);
 		cur_s->activated = False;
 		_XMRefreshSelection(display, menu, cur_s);
 	    }
