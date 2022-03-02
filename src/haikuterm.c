@@ -2427,14 +2427,19 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		      enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		      Time *timestamp)
 {
+  Lisp_Object frame, tail;
+  struct frame *f1 = NULL;
+
   if (!fp)
     return;
 
   block_input ();
-  Lisp_Object frame, tail;
-  struct frame *f1 = NULL;
+
   FOR_EACH_FRAME (tail, frame)
-    XFRAME (frame)->mouse_moved = false;
+    {
+      if (FRAME_HAIKU_P (XFRAME (frame)))
+	XFRAME (frame)->mouse_moved = false;
+    }
 
   if (gui_mouse_grabbed (x_display_list) && !EQ (track_mouse, Qdropping))
     f1 = x_display_list->last_mouse_frame;
