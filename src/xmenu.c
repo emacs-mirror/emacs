@@ -1728,6 +1728,15 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
+
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
+  /* This is needed to prevent XI_Enter events that set an implicit
+     focus from being sent.  */
+  if (dpyinfo->supports_xi2)
+    XSetInputFocus (XtDisplay (menu), XtWindow (menu),
+		    RevertToParent, CurrentTime);
+#endif
+
   popup_activated_flag = 1;
 
 #if defined HAVE_XINPUT2 && !defined USE_MOTIF
