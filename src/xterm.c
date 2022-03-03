@@ -9794,10 +9794,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-#ifdef HAVE_XKB
-  if (event->type != dpyinfo->xkb_event_type)
+  /* Ignore events coming from various extensions, such as XFIXES and
+     XKB.  */
+  if (event->type < LASTEvent)
     {
-#endif
 #ifdef HAVE_XINPUT2
       if (event->type != GenericEvent)
 #endif
@@ -9806,11 +9806,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       else
 	any = NULL;
 #endif
-#ifdef HAVE_XKB
     }
   else
     any = NULL;
-#endif
 
   if (any && any->wait_event_type == event->type)
     any->wait_event_type = 0; /* Indicates we got it.  */
