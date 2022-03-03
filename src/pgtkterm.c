@@ -105,7 +105,35 @@ static void pgtk_fill_rectangle (struct frame *f, unsigned long color, int x,
 				 bool respect_alpha_background);
 static void pgtk_clip_to_row (struct window *w, struct glyph_row *row,
 			      enum glyph_row_area area, cairo_t * cr);
-static struct frame *pgtk_any_window_to_frame (GdkWindow * window);
+static struct frame *pgtk_any_window_to_frame (GdkWindow *window);
+
+static void
+pgtk_toolkit_position (struct frame *f, int x, int y,
+		       bool *menu_bar_p, bool *tool_bar_p)
+{
+  GdkRectangle test_rect;
+  int scale;
+
+  y += (FRAME_MENUBAR_HEIGHT (f)
+	+ FRAME_TOOLBAR_TOP_HEIGHT (f));
+  x += FRAME_TOOLBAR_LEFT_WIDTH (f);
+
+  if (FRAME_EXTERNAL_MENU_BAR (f))
+    *menu_bar_p = (x >= 0 && x < FRAME_PIXEL_WIDTH (f)
+		   && y >= 0 && y < FRAME_MENUBAR_HEIGHT (f));
+
+  if (FRAME_X_OUTPUT (f)->toolbar_widget)
+    {
+      scale = xg_get_scale (f);
+      test_rect.x = x / scale;
+      test_rect.y = y / scale;
+      test_rect.width = 1;
+      test_rect.height = 1;
+
+      *tool_bar_p = gtk_widget_intersect (FRAME_X_OUTPUT (f)->toolbar_widget,
+					  &test_rect, NULL);
+    }
+}
 
 /*
  * This is not a flip context in the same sense as gpu rendering
@@ -4808,6 +4836,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->focus_frame_hook = pgtk_focus_frame;
   terminal->set_frame_offset_hook = x_set_offset;
   terminal->free_pixmap = pgtk_free_pixmap;
+  terminal->toolkit_position_hook = pgtk_toolkit_position;
 
   /* Other hooks are NULL by default.  */
 
