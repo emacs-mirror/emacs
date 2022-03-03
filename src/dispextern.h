@@ -3449,6 +3449,9 @@ bool update_window_fringes (struct window *, bool);
 
 void gui_init_fringe (struct redisplay_interface *);
 
+extern int max_used_fringe_bitmap;
+void gui_define_fringe_bitmap (struct frame *, int);
+
 #ifdef HAVE_NTGUI
 void w32_reset_fringes (void);
 #endif
