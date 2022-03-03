@@ -597,13 +597,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo-xlib.h>
 #endif
 
+#ifdef USE_MOTIF
+#include <Xm/Xm.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 
 /* Include toolkit specific headers for the scroll bar widget.  */
-
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #if defined USE_MOTIF
-#include <Xm/Xm.h>		/* For LESSTIF_VERSION */
 #include <Xm/ScrollBar.h>
 #else /* !USE_MOTIF i.e. use Xaw */
 
