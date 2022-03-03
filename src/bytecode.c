@@ -255,11 +255,7 @@ DEFINE (Brem, 0246)							\
 DEFINE (Bnumberp, 0247)							\
 DEFINE (Bintegerp, 0250)						\
 									\
-DEFINE (BRgoto, 0252)							\
-DEFINE (BRgotoifnil, 0253)						\
-DEFINE (BRgotoifnonnil, 0254)						\
-DEFINE (BRgotoifnilelsepop, 0255)					\
-DEFINE (BRgotoifnonnilelsepop, 0256)					\
+/* 0252-0256 were relative jumps, apparently never used.  */            \
 									\
 DEFINE (BlistN, 0257)							\
 DEFINE (BconcatN, 0260)							\
@@ -702,7 +698,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  op = FETCH2;
 	op_branch:
 	  op -= pc - bytestr_data;
-	op_relative_branch:
 	  if (BYTE_CODE_SAFE
 	      && ! (bytestr_data - pc <= op
 		    && op < bytestr_data + bytestr_length - pc))
@@ -734,36 +729,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  op = FETCH2;
 	  if (!NILP (TOP))
 	    goto op_branch;
-	  DISCARD (1);
-	  NEXT;
-
-	CASE (BRgoto):
-	  op = FETCH - 128;
-	  goto op_relative_branch;
-
-	CASE (BRgotoifnil):
-	  op = FETCH - 128;
-	  if (NILP (POP))
-	    goto op_relative_branch;
-	  NEXT;
-
-	CASE (BRgotoifnonnil):
-	  op = FETCH - 128;
-	  if (!NILP (POP))
-	    goto op_relative_branch;
-	  NEXT;
-
-	CASE (BRgotoifnilelsepop):
-	  op = FETCH - 128;
-	  if (NILP (TOP))
-	    goto op_relative_branch;
-	  DISCARD (1);
-	  NEXT;
-
-	CASE (BRgotoifnonnilelsepop):
-	  op = FETCH - 128;
-	  if (!NILP (TOP))
-	    goto op_relative_branch;
 	  DISCARD (1);
 	  NEXT;
 
