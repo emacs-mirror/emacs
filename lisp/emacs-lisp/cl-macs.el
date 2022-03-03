@@ -3489,6 +3489,10 @@ omitted, a default message listing FORM itself is used."
 
 ;;; Compiler macros.
 
+(def-edebug-elem-spec 'cl-define-compiler-macro-list
+  `(([&optional "&whole" arg]
+     ,@(car (get 'cl-macro-list 'edebug-elem-spec)))))
+
 ;;;###autoload
 (defmacro cl-define-compiler-macro (func args &rest body)
   "Define a compiler-only macro.
@@ -3501,7 +3505,10 @@ compiler macros are expanded repeatedly until no further expansions are
 possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
-  (declare (debug cl-defmacro) (indent 2))
+  ;; Like `cl-defmacro', but with the `&whole' special case.
+  (declare (debug (&define name cl-define-compiler-macro-list
+                           cl-declarations-or-string def-body))
+           (indent 2))
   (let ((p args) (res nil))
     (while (consp p) (push (pop p) res))
     (setq args (nconc (nreverse res) (and p (list '&rest p)))))

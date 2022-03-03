@@ -23,6 +23,7 @@
 
 (require 'cl-lib)
 (require 'cl-macs)
+(require 'edebug)
 (require 'ert)
 
 
@@ -693,5 +694,19 @@ collection clause."
   (should (equal (cl-progv '(cl-macs--test1 cl-macs--test2) '(1 2)
                    (list cl-macs--test1 cl-macs--test2))
                  '(1 2))))
+
+(ert-deftest cl-define-compiler-macro/edebug ()
+  "Check that we can instrument compiler macros."
+  (with-temp-buffer
+    (dolist (form '((defun cl-define-compiler-macro/edebug (a b) nil)
+                    (cl-define-compiler-macro
+                        cl-define-compiler-macro/edebug
+                        (&whole w a b)
+                      w)))
+      (print form (current-buffer)))
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      ;; Just make sure the forms can be instrumented.
+      (eval-buffer))))
 
 ;;; cl-macs-tests.el ends here
