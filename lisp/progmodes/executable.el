@@ -240,12 +240,13 @@ executable."
 		 (not (string= argument
 			       (buffer-substring (point) (match-end 1))))
 		 (if (or (not executable-query) no-query-flag
-			 (save-window-excursion
-			   ;; Make buffer visible before question.
-			   (switch-to-buffer (current-buffer))
-			   (y-or-n-p (format-message
-				      "Replace magic number by `#!%s'? "
-				      argument))))
+                         (save-match-data
+			   (save-window-excursion
+			     ;; Make buffer visible before question.
+			     (switch-to-buffer (current-buffer))
+			     (y-or-n-p (format-message
+				        "Replace magic number by `#!%s'? "
+				        argument)))))
 		     (progn
 		       (replace-match argument t t nil 1)
 		       (message "Magic number changed to `#!%s'" argument))))
