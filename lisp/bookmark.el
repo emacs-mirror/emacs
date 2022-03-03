@@ -1819,7 +1819,7 @@ Don't affect the buffer ring order."
                        (list location))])
               entries)))
     (tabulated-list-init-header)
-    (setq tabulated-list-entries entries))
+    (setq tabulated-list-entries (reverse entries)))
   (tabulated-list-print t))
 
 ;;;###autoload
@@ -1907,7 +1907,8 @@ Bookmark names preceded by a \"*\" have annotations.
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)
-  (setq tabulated-list-sort-key '("Bookmark" . nil))
+  (when bookmark-sort-flag
+    (setq tabulated-list-sort-key '("Bookmark" . nil)))
   (add-hook 'tabulated-list-revert-hook #'bookmark-bmenu--revert nil t)'
   (setq revert-buffer-function 'bookmark-bmenu--revert)
   (tabulated-list-init-header))
