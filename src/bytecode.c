@@ -186,6 +186,7 @@ DEFINE (Bfollowing_char, 0147)						\
 DEFINE (Bpreceding_char, 0150)						\
 DEFINE (Bcurrent_column, 0151)						\
 DEFINE (Bindent_to, 0152)						\
+/* 0153 was Bscan_buffer in v17.  */                                    \
 DEFINE (Beolp, 0154)							\
 DEFINE (Beobp, 0155)							\
 DEFINE (Bbolp, 0156)							\
@@ -193,6 +194,7 @@ DEFINE (Bbobp, 0157)							\
 DEFINE (Bcurrent_buffer, 0160)						\
 DEFINE (Bset_buffer, 0161)						\
 DEFINE (Bsave_current_buffer_1, 0162) /* Replacing Bsave_current_buffer.  */ \
+/* 0163 was Bset_mark in v17.  */                                       \
 DEFINE (Binteractive_p, 0164) /* Obsolete since Emacs-24.1.  */		\
 									\
 DEFINE (Bforward_char, 0165)						\
@@ -277,11 +279,6 @@ enum byte_code_op
 #define DEFINE(name, value) name = value,
     BYTE_CODES
 #undef DEFINE
-
-#if BYTE_CODE_SAFE
-    Bscan_buffer = 0153, /* No longer generated as of v18.  */
-    Bset_mark = 0163, /* this loser is no longer generated as of v18 */
-#endif
 };
 
 /* Fetch the next byte from the bytecode stream.  */
@@ -1466,19 +1463,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	CASE (Bintegerp):
 	  TOP = INTEGERP (TOP) ? Qt : Qnil;
 	  NEXT;
-
-#if BYTE_CODE_SAFE
-	  /* These are intentionally written using 'case' syntax,
-	     because they are incompatible with the threaded
-	     interpreter.  */
-
-	case Bset_mark:
-	  error ("set-mark is an obsolete bytecode");
-	  break;
-	case Bscan_buffer:
-	  error ("scan-buffer is an obsolete bytecode");
-	  break;
-#endif
 
 	CASE_ABORT:
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
