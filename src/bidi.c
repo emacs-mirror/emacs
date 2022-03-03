@@ -2758,6 +2758,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	 (which requires the display engine to copy the cache back and
 	 forth many times).  */
       if (maxlevel == base_level
+	  && (l2r_seen || r2l_seen) /* N0d */
 	  && ((base_level == 0 && !r2l_seen)
 	      || (base_level == 1 && !l2r_seen)))
 	{
