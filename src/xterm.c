@@ -309,12 +309,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   to X windows, since the toolkit might decide to keep only a
   client-side record of the widgets for performance reasons.
 
-  Because the GtkFixed widget that holds the "edit area" never
-  corresponds to an X window, drawing operations are directly
+  Because the GtkFixed widget that holds the "edit area" might not
+  correspond to an X window, drawing operations may be directly
   performed on the outer window, with special care taken to not
   overwrite the surrounding GTK widgets.  This also means that the
   only important window for most purposes is the outer window, which
-  on GTK builds can also be accessed using the macro
+  on GTK builds can usually be accessed using the macro
   `FRAME_X_WINDOW'.
 
   How `handle_one_xevent' is called also depends on the configuration.
