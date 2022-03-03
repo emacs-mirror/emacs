@@ -4560,7 +4560,7 @@ but that should be robust in the unexpected case that an error is signaled."
     (if (eq orig-body body) exp
       ;; The use without `format' is obsolete, let's warn when we bump
       ;; into any such remaining uses.
-      (macroexp-warn-and-return format "Missing format argument" exp))))
+      (macroexp-warn-and-return "Missing format argument" exp nil nil format))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
