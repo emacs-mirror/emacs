@@ -437,7 +437,7 @@ Possible options are:
             `(eshell-convert
               (eshell-command-to-value
                (eshell-as-subcommand
-                ,(let ((subcmd (or (eshell-parse-inner-double-quote end)
+                ,(let ((subcmd (or (eshell-unescape-inner-double-quote end)
                                    (cons (point) end)))
                        (eshell-current-quoted nil))
                    (eshell-parse-command subcmd)))))
@@ -470,13 +470,15 @@ Possible options are:
     (condition-case nil
         `(eshell-command-to-value
           (eshell-lisp-command
-           ',(read (or (eshell-parse-inner-double-quote (point-max))
+           ',(read (or (eshell-unescape-inner-double-quote (point-max))
                        (current-buffer)))))
       (end-of-file
        (throw 'eshell-incomplete ?\())))
-   ((looking-at (rx (or "'" "\"" "\\\"")))
-    (eshell-with-temp-command (or (eshell-parse-inner-double-quote (point-max))
-                                  (cons (point) (point-max)))
+   ((looking-at (rx-to-string
+                 `(or "'" ,(if eshell-current-quoted "\\\"" "\""))))
+    (eshell-with-temp-command
+        (or (eshell-unescape-inner-double-quote (point-max))
+            (cons (point) (point-max)))
       (let ((name (if (eq (char-after) ?\')
                       (eshell-parse-literal-quote)
                     (eshell-parse-double-quote))))
@@ -506,7 +508,7 @@ For example, \"[0 1][2]\" becomes:
 	(if (not end)
 	    (throw 'eshell-incomplete ?\[)
 	  (forward-char)
-          (eshell-with-temp-command (or (eshell-parse-inner-double-quote end)
+          (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
                                         (cons (point) end))
 	    (let (eshell-glob-function (eshell-current-quoted nil))
 	      (setq indices (cons (eshell-parse-arguments

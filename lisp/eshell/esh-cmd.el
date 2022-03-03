@@ -350,24 +350,27 @@ This only returns external (non-Lisp) processes."
 
 (defvar eshell--sep-terms)
 
-(defmacro eshell-with-temp-command (command &rest body)
-  "Narrow the buffer to COMMAND and execute the forms in BODY.
-COMMAND can either be a string, or a cons cell demarcating a
-buffer region.  If COMMAND is a string, temporarily insert it
-into the buffer before narrowing.  Point will be set to the
-beginning of the narrowed region.
+(defmacro eshell-with-temp-command (region &rest body)
+  "Narrow the buffer to REGION and execute the forms in BODY.
+
+REGION is a cons cell (START . END) that specifies the region to
+which to narrow the buffer.  REGION can also be a string, in
+which case the macro temporarily inserts it into the buffer at
+point, and narrows the buffer to the inserted string.  Before
+executing BODY, point is set to the beginning of the narrowed
+REGION.
 
 The value returned is the last form in BODY."
   (declare (indent 1))
-  `(let ((cmd ,command))
-     (if (stringp cmd)
+  `(let ((reg ,region))
+     (if (stringp reg)
          ;; Since parsing relies partly on buffer-local state
          ;; (e.g. that of `eshell-parse-argument-hook'), we need to
          ;; perform the parsing in the Eshell buffer.
          (let ((begin (point)) end
 	       (inhibit-point-motion-hooks t))
            (with-silent-modifications
-             (insert cmd)
+             (insert reg)
              (setq end (point))
              (unwind-protect
                  (save-restriction
@@ -376,8 +379,8 @@ The value returned is the last form in BODY."
                    ,@body)
                (delete-region begin end))))
        (save-restriction
-         (narrow-to-region (car cmd) (cdr cmd))
-         (goto-char (car cmd))
+         (narrow-to-region (car reg) (cdr reg))
+         (goto-char (car reg))
          ,@body))))
 
 (defun eshell-parse-command (command &optional args toplevel)

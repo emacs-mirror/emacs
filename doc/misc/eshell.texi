@@ -1040,18 +1040,37 @@ returns the file name.
 Expands to the @var{i}th element of the result of @var{expr}, an
 expression in one of the above forms listed here.  If multiple indices
 are supplied, this will return a list containing the elements for each
-index.  If @var{expr}'s value is a string, it will first be split at
-whitespace to make it a list.  If @var{expr}'s value is an alist
-(@pxref{Association List Type, Association Lists, , elisp, The Emacs
-Lisp Reference Manual}), this will call @code{assoc} on the result of
-@var{expr}, returning the @code{cdr} of the element of the result
-whose car is equal to @code{"i"}.  Raises an error if the value is not
-a sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
+index.  The exact behavior depends on the type of @var{expr}'s value:
+
+@table @asis
+
+@item a sequence
+Expands to the element at the (zero-based) index @var{i} of the
+sequence (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The
 Emacs Lisp Reference Manual}).
 
-Multiple sets of indices can also be specified. For example, if
-@var{var} is a list of lists, @samp{$@var{var}[0][0]} is equivalent to
-@samp{(caar @var{var})}.
+@item a string
+Split the string at whitespace, and then expand to the @var{i}th
+element of the resulting sequence.
+
+@item an alist
+If @var{i} is a non-numeric value, expand to the value associated with
+the key @code{"@var{i}"} in the alist.  For example, if @var{var} is
+@samp{(("dog" . "fido") ("cat" . "felix"))}, then
+@samp{$@var{var}[dog]} expands to @code{"fido"}.  Otherwise, this
+behaves as with sequences; e.g., @samp{$@var{var}[0]} expands to
+@code{("dog" . "fido")}.  @xref{Association List Type, Association
+Lists, , elisp, The Emacs Lisp Reference Manual}.
+
+@item anything else
+Signals an error.
+
+@end table
+
+Multiple sets of indices can also be specified.  For example, if
+@var{var} is @samp{((1 2) (3 4))}, then @samp{$@var{var}[0][1]} will
+expand to @code{2}, i.e.@: the second element of the first list member
+(all indices are zero-based).
 
 @item $@var{expr}[@var{regexp} @var{i...}]
 As above (when @var{expr} expands to a string), but use @var{regexp}
@@ -1063,8 +1082,8 @@ element of a colon-delimited string.
 Expands to the length of the result of @var{expr}, an expression in
 one of the above forms.  For example, @samp{$#@var{var}} returns the
 length of the variable @var{var} and @samp{$#@var{var}[0]} returns the
-length of the first element of @var{var}.  Again, raises an error if
-the result of @var{expr} is not a sequence.
+length of the first element of @var{var}.  Again, signals an error if
+the result of @var{expr} is not a string or a sequence.
 
 @end table
 

@@ -354,8 +354,8 @@ after are both returned."
 		  (list 'eshell-escape-arg arg))))
 	  (goto-char (1+ end)))))))
 
-(defun eshell-parse-inner-double-quote (bound)
-  "Parse the inner part of a double quoted string.
+(defun eshell-unescape-inner-double-quote (bound)
+  "Unescape escaped characters inside a double-quoted string.
 The string to parse starts at point and ends at BOUND.
 
 If Eshell is currently parsing a quoted string and there are any
