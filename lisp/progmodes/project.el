@@ -418,30 +418,33 @@ The directory names should be absolute.  Used in the VC project
 backend implementation of `project-external-roots'.")
 
 (defun project-try-vc (dir)
-  (let* ((backend
-          ;; FIXME: This is slow. Cache it.
-          (ignore-errors (vc-responsible-backend dir)))
-         (root
-          (pcase backend
-            ('Git
-             ;; Don't stop at submodule boundary.
-             ;; FIXME: Cache for a shorter time.
-             (or (vc-file-getprop dir 'project-git-root)
-                 (let ((root (vc-call-backend backend 'root dir)))
-                   (vc-file-setprop
-                    dir 'project-git-root
-                    (if (and
-                         ;; FIXME: Invalidate the cache when the value
-                         ;; of this variable changes.
-                         (project--vc-merge-submodules-p root)
-                         (project--submodule-p root))
-                        (let* ((parent (file-name-directory
-                                        (directory-file-name root))))
-                          (vc-call-backend backend 'root parent))
-                      root)))))
-            ('nil nil)
-            (_ (ignore-errors (vc-call-backend backend 'root dir))))))
-    (and root (cons 'vc root))))
+  (or (vc-file-getprop dir 'project-vc)
+      (let* ((backend (ignore-errors (vc-responsible-backend dir)))
+             (root
+              (pcase backend
+                ('Git
+                 ;; Don't stop at submodule boundary.
+                 (or (vc-file-getprop dir 'project-git-root)
+                     (let ((root (vc-call-backend backend 'root dir)))
+                       (vc-file-setprop
+                        dir 'project-git-root
+                        (if (and
+                             ;; FIXME: Invalidate the cache when the value
+                             ;; of this variable changes.
+                             (project--vc-merge-submodules-p root)
+                             (project--submodule-p root))
+                            (let* ((parent (file-name-directory
+                                            (directory-file-name root))))
+                              (vc-call-backend backend 'root parent))
+                          root)))))
+                ('nil nil)
+                (_ (ignore-errors (vc-call-backend backend 'root dir)))))
+             project)
+        (when root
+          (setq project (list 'vc backend root))
+          ;; FIXME: Cache for a shorter time.
+          (vc-file-setprop dir 'project-vc project)
+          project))))
 
 (defun project--submodule-p (root)
   ;; XXX: We only support Git submodules for now.
@@ -467,7 +470,7 @@ backend implementation of `project-external-roots'.")
      (t nil))))
 
 (cl-defmethod project-root ((project (head vc)))
-  (cdr project))
+  (nth 2 project))
 
 (cl-defmethod project-external-roots ((project (head vc)))
   (project-subtract-directories
@@ -482,8 +485,8 @@ backend implementation of `project-external-roots'.")
    (lambda (dir)
      (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
            backend)
-       (if (and (file-equal-p dir (cdr project))
-                (setq backend (vc-responsible-backend dir))
+       (if (and (file-equal-p dir (nth 2 project))
+                (setq backend (cadr project))
                 (cond
                  ((eq backend 'Hg))
                  ((and (eq backend 'Git)
@@ -595,11 +598,11 @@ backend implementation of `project-external-roots'.")
     (file-missing nil)))
 
 (cl-defmethod project-ignores ((project (head vc)) dir)
-  (let* ((root (cdr project))
+  (let* ((root (nth 2 project))
          backend)
     (append
      (when (file-equal-p dir root)
-       (setq backend (vc-responsible-backend root))
+       (setq backend (cadr project))
        (delq
         nil
         (mapcar
