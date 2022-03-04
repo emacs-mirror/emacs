@@ -744,7 +744,7 @@ If this variable is nil, or if the provided function returns nil,
 
 (deffoo nnselect-request-scan (group _method)
   (when (and group
-	     (gnus-group-get-parameter  (nnselect-add-prefix group)
+	     (gnus-group-find-parameter  (nnselect-add-prefix group)
 					'nnselect-rescan t))
     (nnselect-request-group-scan group)))
 
