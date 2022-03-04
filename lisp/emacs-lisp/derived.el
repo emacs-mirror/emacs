@@ -409,7 +409,7 @@ the first time the mode is used."
       t
     (eval `(defvar ,(derived-mode-abbrev-table-name mode)
 	     (progn
-	       (define-abbrev-table (derived-mode-abbrev-table-name mode) nil)
+	       (define-abbrev-table (derived-mode-abbrev-table-name ',mode) nil)
 	       (make-abbrev-table))
 	     ,(format "Abbrev table for %s." mode)))))
 
