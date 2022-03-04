@@ -140,6 +140,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime:
   # Code from module mktime-internal:
   # Code from module multiarch:
+  # Code from module nanosleep:
   # Code from module nocrash:
   # Code from module nproc:
   # Code from module nstrftime:
@@ -430,6 +431,10 @@ AC_DEFUN([gl_INIT],
   fi
   gl_TIME_MODULE_INDICATOR([mktime])
   gl_MULTIARCH
+  gl_FUNC_NANOSLEEP
+  gl_CONDITIONAL([GL_COND_OBJ_NANOSLEEP],
+                 [test $HAVE_NANOSLEEP = 0 || test $REPLACE_NANOSLEEP = 1])
+  gl_TIME_MODULE_INDICATOR([nanosleep])
   gl_NPROC
   gl_FUNC_GNU_STRFTIME
   gl_PATHMAX
@@ -1304,6 +1309,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
+  lib/nanosleep.c
   lib/nproc.c
   lib/nproc.h
   lib/nstrftime.c
@@ -1456,6 +1462,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/mode_t.m4
   m4/multiarch.m4
+  m4/nanosleep.m4
   m4/nocrash.m4
   m4/nproc.m4
   m4/nstrftime.m4
