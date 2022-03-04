@@ -6813,6 +6813,10 @@ x_construct_mouse_click (struct input_event *result,
                          const XButtonEvent *event,
                          struct frame *f)
 {
+  int x = event->x;
+  int y = event->y;
+  Window dummy;
+
   /* Make the event type NO_EVENT; we'll change that when we decide
      otherwise.  */
   result->kind = MOUSE_CLICK_EVENT;
@@ -6824,8 +6828,16 @@ x_construct_mouse_click (struct input_event *result,
 			  ? up_modifier
 			  : down_modifier));
 
-  XSETINT (result->x, event->x);
-  XSETINT (result->y, event->y);
+  /* If result->window is not the frame's edit widget (which can
+     happen with GTK+ scroll bars, for example), translate the
+     coordinates so they appear at the correct position.  */
+  if (event->window != FRAME_X_WINDOW (f))
+    XTranslateCoordinates (FRAME_X_DISPLAY (f),
+			   event->window, FRAME_X_WINDOW (f),
+			   x, y, &x, &y, &dummy);
+
+  XSETINT (result->x, x);
+  XSETINT (result->y, y);
   XSETFRAME (result->frame_or_window, f);
   result->arg = Qnil;
   return Qnil;
@@ -11275,6 +11287,35 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
 
 #ifdef USE_GTK
+	if (!f)
+	  {
+	    f = x_any_window_to_frame (dpyinfo, event->xbutton.window);
+
+	    if (event->xbutton.button > 3
+		&& event->xbutton.button < 9
+		&& f)
+	      {
+		if (ignore_next_mouse_click_timeout)
+		  {
+		    if (event->type == ButtonPress
+			&& event->xbutton.time > ignore_next_mouse_click_timeout)
+		      {
+			ignore_next_mouse_click_timeout = 0;
+			x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+		      }
+		    if (event->type == ButtonRelease)
+		      ignore_next_mouse_click_timeout = 0;
+		  }
+		else
+		  x_construct_mouse_click (&inev.ie, &event->xbutton, f);
+
+		*finish = X_EVENT_DROP;
+		goto OTHER;
+	      }
+	    else
+	      f = NULL;
+	  }
+
         if (f && xg_event_is_for_scrollbar (f, event, false))
           f = 0;
 #endif
