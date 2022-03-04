@@ -21736,9 +21736,9 @@ that sticks around after exit from the summary buffer, you can call
 @code{gnus-group-make-search-group} (bound to @kbd{G g}).
 
 Unlike persistent groups, ephemeral groups by default do not run
-articles through the expiry process on exiting. If you want expiry to
+articles through the expiry process on exiting.  If you want expiry to
 happen in ephemeral search groups you can customize the variable
-@code{nnselect-allow-ephemeral-expiry}. In all cases the expiry
+@code{nnselect-allow-ephemeral-expiry}.  In all cases the expiry
 process uses the underlying group's expiry parameters.
 
 So you just performed a search whose results are so fabulous you

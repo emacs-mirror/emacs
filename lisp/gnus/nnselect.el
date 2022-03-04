@@ -257,8 +257,7 @@ as `(keyfunc member)' and the corresponding element is just
   'nnselect-retrieve-headers-override-function "28.1")
 
 (defcustom nnselect-allow-ephemeral-expiry nil
-  "If non-nil, articles in an ephemeral nnselect group will be put
-through the expiry process."
+  "If non-nil, articles in ephemeral nnselect groups are subject to expiry."
   :version "29.1"
   :type 'boolean)
 
