@@ -108,6 +108,11 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** 'Info-default-directory-list' is no longer populated at Emacs startup.
+If you have code in your init file that removes directories from
+'Info-default-directory-list', this will no longer work.
+
+---
 ** 'C-k' no longer deletes files in 'ido-mode'.
 To get the previous action back, put something like the following in
 your init file:

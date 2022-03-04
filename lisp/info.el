@@ -161,59 +161,8 @@ A header-line does not scroll with the rest of the buffer."
   "Face used to highlight matches in an index entry."
   :version "24.4")
 
-;; This is a defcustom largely so that we can get the benefit
-;; of `custom-initialize-delay'.  Perhaps it would work to make it a
-;; `defvar' and explicitly give it a `standard-value' property, and
-;; call `custom-initialize-delay' on it.
-;; The value is initialized at startup time, when command-line calls
-;; `custom-reevaluate-setting' on all the defcustoms in
-;; `custom-delayed-init-variables'.  This is somewhat sub-optimal, as ideally
-;; this should be done when Info mode is first invoked.
 ;;;###autoload
-(defcustom Info-default-directory-list
-  (let* ((config-dir
-	  (file-name-as-directory
-	   ;; Self-contained NS build with info/ in the app-bundle.
-	   (or (and (featurep 'ns)
-		    (let ((dir (expand-file-name "../info" data-directory)))
-		      (if (file-directory-p dir) dir)))
-	       configure-info-directory)))
-	 (prefixes
-	  ;; Directory trees in which to look for info subdirectories
-	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/")))
-	 (suffixes
-	  ;; Subdirectories in each directory tree that may contain info
-	  ;; directories.
-	  '("share/" ""))
-	 (standard-info-dirs
-	  (apply #'nconc
-		 (mapcar (lambda (pfx)
-			   (let ((dirs
-				  (mapcar (lambda (sfx)
-					    (concat pfx sfx "info/"))
-					  suffixes)))
-			     (prune-directory-list dirs)))
-			 prefixes)))
-	 ;; If $(prefix)/share/info is not one of the standard info
-	 ;; directories, they are probably installing an experimental
-	 ;; version of Emacs, so make sure that experimental version's Info
-	 ;; files override the ones in standard directories.
-	 (dirs
-	  (if (member config-dir standard-info-dirs)
-	      ;; FIXME?  What is the point of adding it again at the end
-	      ;; when it is already present earlier in the list?
-	      (nconc standard-info-dirs (list config-dir))
-	    (cons config-dir standard-info-dirs))))
-    (if (not (eq system-type 'windows-nt))
-	dirs
-      ;; Include the info directory near where Emacs executable was installed.
-      (let* ((instdir (file-name-directory invocation-directory))
-	     (dir1 (expand-file-name "../info/" instdir))
-	     (dir2 (expand-file-name "../../../info/" instdir)))
-	(cond ((file-exists-p dir1) (append dirs (list dir1)))
-	      ((file-exists-p dir2) (append dirs (list dir2)))
-	      (t dirs)))))
-
+(defcustom Info-default-directory-list nil
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
 Therefore, the directory of Info files that come with Emacs
@@ -224,15 +173,12 @@ first in this list.
 
 Once Info is started, the list of directories to search
 comes from the variable `Info-directory-list'.
-This variable `Info-default-directory-list' is used as the default
-for initializing `Info-directory-list' when Info is started, unless
-the environment variable INFOPATH is set.
 
-Although this is a customizable variable, that is mainly for technical
-reasons.  Normally, you should either set INFOPATH or customize
-`Info-additional-directory-list', rather than changing this variable."
-  :initialize #'custom-initialize-delay
-  :type '(repeat directory))
+This variable is used as the default for initializing
+`Info-directory-list' when Info is started, unless the
+environment variable INFOPATH is set."
+  :type '(repeat directory)
+  :version "29.1")
 
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
@@ -679,6 +625,51 @@ in `Info-file-supports-index-cookies-list'."
   (cdr (assoc file Info-file-supports-index-cookies-list)))
 
 
+(defun Info--default-directory-list ()
+  "Compute a directory list suitable for Info."
+  (let* ((config-dir
+	  (file-name-as-directory
+	   ;; Self-contained NS build with info/ in the app-bundle.
+	   (or (and (featurep 'ns)
+		    (let ((dir (expand-file-name "../info" data-directory)))
+		      (if (file-directory-p dir) dir)))
+	       configure-info-directory)))
+	 (prefixes
+	  ;; Directory trees in which to look for info subdirectories
+	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/")))
+	 (suffixes
+	  ;; Subdirectories in each directory tree that may contain info
+	  ;; directories.
+	  '("share/" ""))
+	 (standard-info-dirs
+	  (apply #'nconc
+		 (mapcar (lambda (pfx)
+			   (let ((dirs
+				  (mapcar (lambda (sfx)
+					    (concat pfx sfx "info/"))
+					  suffixes)))
+			     (prune-directory-list dirs)))
+			 prefixes)))
+	 ;; If $(prefix)/share/info is not one of the standard info
+	 ;; directories, they are probably installing an experimental
+	 ;; version of Emacs, so make sure that experimental version's Info
+	 ;; files override the ones in standard directories.
+	 (dirs
+	  (if (member config-dir standard-info-dirs)
+	      ;; FIXME?  What is the point of adding it again at the end
+	      ;; when it is already present earlier in the list?
+	      (nconc standard-info-dirs (list config-dir))
+	    (cons config-dir standard-info-dirs))))
+    (if (not (eq system-type 'windows-nt))
+	dirs
+      ;; Include the info directory near where Emacs executable was installed.
+      (let* ((instdir (file-name-directory invocation-directory))
+	     (dir1 (expand-file-name "../info/" instdir))
+	     (dir2 (expand-file-name "../../../info/" instdir)))
+	(cond ((file-exists-p dir1) (append dirs (list dir1)))
+	      ((file-exists-p dir2) (append dirs (list dir2)))
+	      (t dirs))))))
+
 (defun Info-default-dirs ()
   (let ((source (expand-file-name "info/" source-directory))
 	(sibling (if installation-directory
@@ -701,25 +692,11 @@ in `Info-file-supports-index-cookies-list'."
 	      sibling
 	    ;; Uninstalled, builddir == srcdir
 	    source))
-    (if (or (member alternative Info-default-directory-list)
-	    ;; On DOS/NT, we use movable executables always,
-	    ;; and we must always find the Info dir at run time.
-	    (if (memq system-type '(ms-dos windows-nt))
-		nil
-	      ;; Use invocation-directory for Info
-	      ;; only if we used it for exec-directory also.
-	      (not (string= exec-directory
-			    (expand-file-name "lib-src/"
-					      installation-directory))))
-	    (not (file-exists-p alternative)))
-	Info-default-directory-list
-      ;; `alternative' contains the Info files that came with this
-      ;; version, so we should look there first.  `Info-insert-dir'
-      ;; currently expects to find `alternative' first on the list.
-      (cons alternative
-	    ;; Don't drop the last part, it might contain non-Emacs stuff.
-	    ;; (reverse (cdr (reverse
-	    Info-default-directory-list)))) ;; )))
+    ;; `alternative' contains the Info files that came with this
+    ;; version, so we should look there first.  `Info-insert-dir'
+    ;; currently expects to find `alternative' first on the list.
+    (append (cons alternative Info-default-directory-list)
+            (Info--default-directory-list))))
 
 (defun info-initialize ()
   "Initialize `Info-directory-list', if that hasn't been done yet."

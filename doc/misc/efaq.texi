@@ -259,12 +259,13 @@ name displayed by this will be the full pathname of the installed
 @code{data-directory}, and @kbd{C-h v} displays the value and the
 documentation of a variable.)
 
-The location of your Info directory (i.e., where Info documentation
-is stored) is kept in the variable @code{Info-default-directory-list}.  Use
-@kbd{C-h v Info-default-directory-list @key{RET}} to see the value of
-this variable, which will be a list of directory names.  The last
-directory in that list is probably where most Info files are stored.  By
-default, Emacs Info documentation is placed in @file{/usr/local/share/info}.
+The location of your Info directory (i.e., where Info documentation is
+stored) is kept in the variable @code{Info-directory-list}.  Use
+@kbd{C-h v Info-directory-list @key{RET}} to see the value of this
+variable, which will be a list of directory names (after Info has been
+started).  The last directory in that list is probably where most Info
+files are stored.  By default, Emacs Info documentation is placed in
+@file{/usr/local/share/info}.
 
 For information on some of the files in the @file{etc} directory,
 @pxref{Informational files for Emacs}.
@@ -701,7 +702,7 @@ directory which is a subdirectory of your home directory named @file{Info},
 you could put this in your @file{.emacs} file:
 
 @lisp
-(add-to-list 'Info-default-directory-list "~/Info")
+(add-to-list 'Info-default-directory-list "~/Info/")
 @end lisp
 
 You will need a top-level Info file named @file{dir} in this directory
