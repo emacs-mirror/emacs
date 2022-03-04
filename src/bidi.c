@@ -2758,6 +2758,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	 (which requires the display engine to copy the cache back and
 	 forth many times).  */
       if (maxlevel == base_level
+	  && (l2r_seen || r2l_seen) /* N0d */
 	  && ((base_level == 0 && !r2l_seen)
 	      || (base_level == 1 && !l2r_seen)))
 	{
@@ -2924,7 +2925,8 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       eassert (bidi_it->bracket_pairing_pos > bidi_it->charpos);
       if (bidi_it->bracket_enclosed_type == embedding_type) /* N0b */
 	type = embedding_type;
-      else
+      else if (bidi_it->bracket_enclosed_type == STRONG_L   /* N0c, N0d */
+	       || bidi_it->bracket_enclosed_type == STRONG_R)
 	{
 	  switch (bidi_it->prev_for_neutral.type)
 	    {
@@ -2944,6 +2946,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 	      break;
 	    default:
 	      /* N0d: Do not set the type for that bracket pair.  */
+	      /* (Actuallly, this shouldn't happen.)  */
 	      break;
 	    }
 	}
