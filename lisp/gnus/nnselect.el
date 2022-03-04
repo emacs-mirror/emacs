@@ -878,6 +878,9 @@ article came from is also searched."
 	      ;; When the backend can store marks we collect any
 	      ;; changes.  Unlike a normal group the mark lists only
 	      ;; include marks for articles we retrieved.
+              (when (and (gnus-check-backend-function
+		          'request-set-mark gnus-newsgroup-name)
+		         (not (gnus-article-unpropagatable-p type)))
 		(let* ((old (range-list-intersection
 			     artlist
 			     (alist-get type (gnus-info-marks group-info))))
@@ -889,7 +892,7 @@ article came from is also searched."
 		    ;; This shouldn't happen, but is a sanity check.
 		    (setq del (range-intersection
 			       (gnus-active artgroup) del))
-		    (push (list del 'del (list type)) delta-marks)))
+		    (push (list del 'del (list type)) delta-marks))))
 
 	      ;; Marked sets are of mark-type 'tuple, 'list, or
 	      ;; 'range. We merge the lists with what is already in
@@ -914,12 +917,15 @@ article came from is also searched."
 		    (setq list (cdr all))))
 		;; now merge with the original list and sort just to
 		;; make sure
-		(setq list
-		      (sort (map-merge
-			     'alist list
-			     (alist-get type (gnus-info-marks group-info)))
-			    (lambda (elt1 elt2)
-			      (< (car elt1) (car elt2))))))
+		(setq
+                 list (sort
+                       (map-merge
+			'alist list
+                        (delq nil
+                              (mapcar
+                               (lambda (x) (unless (memq (car x) artlist) x))
+                               (alist-get type (gnus-info-marks group-info)))))
+                       'car-less-than-car)))
 	       (t
 		(setq list
 		      (range-compress-list
@@ -963,9 +969,13 @@ article came from is also searched."
 		(cdr (assoc artgroup select-reads)))
 	       (sort (cdr (assoc artgroup select-unreads)) #'<))))
 	    (gnus-get-unread-articles-in-group
-	     group-info (gnus-active artgroup) t)
-	    (gnus-group-update-group artgroup t t)))))))
-
+	     group-info (gnus-active artgroup) t))
+            (gnus-group-update-group
+             artgroup t
+             (equal group-info
+	            (setq group-info (copy-sequence (gnus-get-info artgroup))
+	                  group-info
+                          (delq (gnus-info-params group-info) group-info)))))))))
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))
 
