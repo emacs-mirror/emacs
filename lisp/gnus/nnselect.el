@@ -256,6 +256,12 @@ as `(keyfunc member)' and the corresponding element is just
 (define-obsolete-variable-alias 'nnir-retrieve-headers-override-function
   'nnselect-retrieve-headers-override-function "28.1")
 
+(defcustom nnselect-allow-ephemeral-expiry nil
+  "If non-nil, articles in an ephemeral nnselect group will be put
+through the expiry process."
+  :version "29.1"
+  :type 'boolean)
+
 (defcustom nnselect-retrieve-headers-override-function nil
   "A function that retrieves article headers for ARTICLES from GROUP.
 The retrieved headers should populate the `nntp-server-buffer'.
@@ -457,24 +463,26 @@ If this variable is nil, or if the provided function returns nil,
 			:test #'equal :count 1)))))
 
 (deffoo nnselect-request-expire-articles
-    (articles _group &optional _server force)
-  (if force
-      (let (not-expired)
-	(pcase-dolist (`(,artgroup . ,artids) (ids-by-group articles))
-	  (let ((artlist (sort (mapcar #'cdr artids) #'<)))
-	    (unless (gnus-check-backend-function 'request-expire-articles
-						 artgroup)
-	      (error "Group %s does not support article expiration" artgroup))
-	    (unless (gnus-check-server (gnus-find-method-for-group artgroup))
-	      (error "Couldn't open server for group %s" artgroup))
-            (push (mapcar (lambda (art)
-                            (car (rassq art artids)))
-			  (let ((nnimap-expunge 'immediately))
-			    (gnus-request-expire-articles
-			     artlist artgroup force)))
-		  not-expired)))
-	(sort (delq nil not-expired) #'<))
-    articles))
+    (articles group &optional _server force)
+  (let ((nnimap-expunge 'immediately) not-deleted)
+    (if (and (not force)
+             (not nnselect-allow-ephemeral-expiry)
+	     (gnus-ephemeral-group-p (nnselect-add-prefix group)))
+	articles
+      (pcase-dolist (`(,artgroup . ,artids) (ids-by-group articles))
+	(let ((artlist (sort (mapcar #'cdr artids) #'<)))
+	  (unless
+	      (gnus-check-backend-function 'request-expire-articles artgroup)
+	    (error "Group %s does not support article expiration" artgroup))
+	  (unless (gnus-check-server (gnus-find-method-for-group artgroup))
+	    (error "Couldn't open server for group %s" artgroup))
+	  (setq not-deleted
+                (append
+                 (mapcar (lambda (art) (car (rassq art artids)))
+			 (gnus-request-expire-articles artlist artgroup
+                                                       force))
+		 not-deleted))))
+      (sort (delq nil not-deleted) #'<))))
 
 
 (deffoo nnselect-warp-to-article ()
