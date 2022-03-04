@@ -2916,6 +2916,13 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     }
 
   NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
+
+  if (bmp == nil)
+    {
+      gui_define_fringe_bitmap (f, p->which);
+      bmp = [fringe_bmp objectForKey: [NSNumber numberWithInt: p->which]];
+    }
+
   if (bmp)
     {
       NSAffineTransform *transform = [NSAffineTransform transform];
