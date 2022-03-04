@@ -652,8 +652,15 @@ If this variable is nil, or if the provided function returns nil,
              (lambda (article)
                (if
                    (setq seq
-                         (cl-position article
-                                      gnus-newsgroup-selection :test 'equal))
+                         (cl-position
+                          article
+                          gnus-newsgroup-selection
+                          :test
+                          (lambda (x y)
+                            (and (equal (nnselect-artitem-group x)
+                                        (nnselect-artitem-group y))
+	                         (eql (nnselect-artitem-number x)
+                                      (nnselect-artitem-number y))))))
                    (push (1+ seq) old-arts)
                  (setq gnus-newsgroup-selection
                        (vconcat gnus-newsgroup-selection (vector article)))
