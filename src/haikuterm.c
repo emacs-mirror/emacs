@@ -44,7 +44,7 @@ struct haiku_display_info *x_display_list = NULL;
 extern frame_parm_handler haiku_frame_parm_handlers[];
 
 static void **fringe_bmps;
-static int fringe_bitmap_fillptr = 0;
+static int max_fringe_bmp = 0;
 
 static Lisp_Object rdb;
 
@@ -2326,9 +2326,23 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       BView_FillRectangle (view, p->bx, p->by, p->nx, p->ny);
     }
 
-  if (p->which && p->which < fringe_bitmap_fillptr)
+  if (p->which
+      && p->which < max_fringe_bmp
+      && p->which < max_used_fringe_bitmap)
     {
       void *bitmap = fringe_bmps[p->which];
+
+      if (!bitmap)
+	{
+	  /* This fringe bitmap is known to fringe.c, but lacks the
+	     BBitmap which shadows that bitmap.  This is typical to
+	     define-fringe-bitmap being called when the selected frame
+	     was not a GUI frame, for example, when packages that
+	     define fringe bitmaps are loaded by a daemon Emacs.
+	     Create the missing pattern now.  */
+	  gui_define_fringe_bitmap (WINDOW_XFRAME (w), p->which);
+	  bitmap = fringe_bmps[p->which];
+	}
 
       uint32_t col;
 
@@ -2357,14 +2371,14 @@ static void
 haiku_define_fringe_bitmap (int which, unsigned short *bits,
 			    int h, int wd)
 {
-  if (which >= fringe_bitmap_fillptr)
+  if (which >= max_fringe_bmp)
     {
-      int i = fringe_bitmap_fillptr;
-      fringe_bitmap_fillptr = which + 20;
-      fringe_bmps = !i ? xmalloc (fringe_bitmap_fillptr * sizeof (void *)) :
-	xrealloc (fringe_bmps, fringe_bitmap_fillptr * sizeof (void *));
+      int i = max_fringe_bmp;
+      max_fringe_bmp = which + 20;
+      fringe_bmps = !i ? xmalloc (max_fringe_bmp * sizeof (void *)) :
+	xrealloc (fringe_bmps, max_fringe_bmp * sizeof (void *));
 
-      while (i < fringe_bitmap_fillptr)
+      while (i < max_fringe_bmp)
 	fringe_bmps[i++] = NULL;
     }
 
@@ -2379,7 +2393,7 @@ haiku_define_fringe_bitmap (int which, unsigned short *bits,
 static void
 haiku_destroy_fringe_bitmap (int which)
 {
-  if (which >= fringe_bitmap_fillptr)
+  if (which >= max_fringe_bmp)
     return;
 
   if (fringe_bmps[which])
