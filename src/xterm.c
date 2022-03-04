@@ -6806,7 +6806,16 @@ get_keysym_name (int keysym)
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
    If the event is a button press, then note that we have grabbed
-   the mouse.  */
+   the mouse.
+
+   The XButtonEvent structure passed as EVENT might not come from the
+   X server, and instead be artificially constructed from input
+   extension events.  In these special events, the only fields that
+   are initialized are `time', `button', `state', `type', `window' and
+   `x' and `y'.  This function should not access any other fields in
+   EVENT without also initializing the corresponding fields in `bv'
+   under the XI_ButtonPress and XI_ButtonRelease labels inside
+   `handle_one_xevent'.  */
 
 static Lisp_Object
 x_construct_mouse_click (struct input_event *result,
@@ -6849,7 +6858,15 @@ x_construct_mouse_click (struct input_event *result,
    We have received a mouse movement event, which is given in *event.
    If the mouse is over a different glyph than it was last time, tell
    the mainstream emacs code by setting mouse_moved.  If not, ask for
-   another motion event, so we can check again the next time it moves.  */
+   another motion event, so we can check again the next time it moves.
+
+   The XMotionEvent structure passed as EVENT might not come from the
+   X server, and instead be artificially constructed from input
+   extension events.  In these special events, the only fields that
+   are initialized are `time', `window', and `x' and `y'.  This
+   function should not access any other fields in EVENT without also
+   initializing the corresponding fields in `ev' under the XI_Motion,
+   XI_Enter and XI_Leave labels inside `handle_one_xevent'.  */
 
 static bool
 x_note_mouse_movement (struct frame *frame, const XMotionEvent *event)
