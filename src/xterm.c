@@ -12236,6 +12236,48 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 
 #ifdef USE_GTK
+	      if (!f)
+		{
+		  int real_x = lrint (xev->event_x);
+		  int real_y = lrint (xev->event_y);
+		  Window child;
+
+		  f = x_any_window_to_frame (dpyinfo, xev->event);
+
+		  if (xev->detail > 3 && xev->detail < 9 && f)
+		    {
+		      if (xev->evtype == XI_ButtonRelease)
+			{
+			  if (FRAME_X_WINDOW (f) != xev->event)
+			    XTranslateCoordinates (dpyinfo->display, xev->event,
+						   FRAME_X_WINDOW (f), real_x,
+						   real_y, &real_x, &real_y, &child);
+
+			  if (xev->detail <= 5)
+			    inev.ie.kind = WHEEL_EVENT;
+			  else
+			    inev.ie.kind = HORIZ_WHEEL_EVENT;
+
+			  inev.ie.timestamp = xev->time;
+
+			  XSETINT (inev.ie.x, real_x);
+			  XSETINT (inev.ie.y, real_y);
+			  XSETFRAME (inev.ie.frame_or_window, f);
+
+			  inev.ie.modifiers
+			    |= x_x_to_emacs_modifiers (dpyinfo,
+						       xev->mods.effective);
+
+			  inev.ie.modifiers |= xev->detail % 2 ? down_modifier : up_modifier;
+			}
+
+		      *finish = X_EVENT_DROP;
+		      goto XI_OTHER;
+		    }
+		  else
+		    f = NULL;
+		}
+
 	      if (f && xg_event_is_for_scrollbar (f, event, false))
 		f = 0;
 #endif
