@@ -3573,9 +3573,22 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	}
     }
 
-  if (p->which && p->which < max_fringe_bmp)
+  if (p->which
+      && p->which < max_fringe_bmp
+      && p->which < max_used_fringe_bitmap)
     {
       Emacs_GC gcv;
+
+      if (!fringe_bmp[p->which])
+	{
+	  /* This fringe bitmap is known to fringe.c, but lacks the
+	     cairo_pattern_t pattern which shadows that bitmap.  This
+	     is typical to define-fringe-bitmap being called when the
+	     selected frame was not a GUI frame, for example, when
+	     packages that define fringe bitmaps are loaded by a
+	     daemon Emacs.  Create the missing pattern now.  */
+	  gui_define_fringe_bitmap (f, p->which);
+	}
 
       gcv.foreground = (p->cursor_p
 			? (p->overlay_p ? face->background
