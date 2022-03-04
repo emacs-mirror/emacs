@@ -172,9 +172,10 @@ You can call this function to add internal values in the trace buffer."
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION,
 and CONTEXT is a string describing the dynamic context (e.g. values of
 some global variables)."
-  (let ((print-circle t))
+  (let ((print-circle t)
+        (print-escape-newlines t))
     (format "%s%s%d -> %S%s\n"
-            (mapconcat 'char-to-string (make-string (max 0 (1- level)) ?|) " ")
+            (mapconcat #'char-to-string (make-string (max 0 (1- level)) ?|) " ")
             (if (> level 1) " " "")
             level
             ;; FIXME: Make it so we can click the function name to jump to its
@@ -187,7 +188,8 @@ some global variables)."
 LEVEL is the trace level, VALUE value returned by FUNCTION,
 and CONTEXT is a string describing the dynamic context (e.g. values of
 some global variables)."
-  (let ((print-circle t))
+  (let ((print-circle t)
+        (print-escape-newlines t))
     (format "%s%s%d <- %s: %S%s\n"
             (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
             (if (> level 1) " " "")
@@ -278,7 +280,8 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
                                      nil read-expression-map t
                                      'read-expression-history))))
         (lambda ()
-          (let ((print-circle t))
+          (let ((print-circle t)
+                (print-escape-newlines t))
             (concat " [" (prin1-to-string (eval exp t)) "]"))))))))
 
 ;;;###autoload
