@@ -6037,12 +6037,24 @@ x_scroll_run (struct window *w, struct run *run)
     }
   else
 #endif	/* USE_CAIRO */
-    XCopyArea (FRAME_X_DISPLAY (f),
-	       FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
-	       f->output_data.x->normal_gc,
-	       x, from_y,
-	       width, height,
-	       x, to_y);
+    {
+#ifdef HAVE_XRENDER
+      /* Avoid useless NoExpose events.  This way, we only get regular
+	 exposure events when there is actually something to
+	 expose.  */
+      if (FRAME_X_PICTURE (f) != None)
+	XRenderComposite (FRAME_X_DISPLAY (f), PictOpSrc, FRAME_X_PICTURE (f),
+			  None, FRAME_X_PICTURE (f), x, from_y, 0, 0, x, to_y,
+			  width, height);
+      else
+#endif
+	XCopyArea (FRAME_X_DISPLAY (f),
+		   FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
+		   f->output_data.x->normal_gc,
+		   x, from_y,
+		   width, height,
+		   x, to_y);
+    }
 
   unblock_input ();
 }
