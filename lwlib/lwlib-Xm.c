@@ -115,6 +115,7 @@ static void xm_generic_callback (Widget, XtPointer, XtPointer);
 static void xm_nosel_callback (Widget, XtPointer, XtPointer);
 static void xm_pull_down_callback (Widget, XtPointer, XtPointer);
 static void xm_pop_down_callback (Widget, XtPointer, XtPointer);
+static void xm_pop_up_callback (Widget, XtPointer, XtPointer);
 static void xm_internal_update_other_instances (Widget, XtPointer,
                                                 XtPointer);
 static void xm_arm_callback (Widget, XtPointer, XtPointer);
@@ -513,8 +514,12 @@ make_menu_in_widget (widget_instance* instance,
   /* Add a callback to popups and pulldowns that is called when
      it is made invisible again.  */
   if (!menubar_p)
-    XtAddCallback (XtParent (widget), XmNpopdownCallback,
-		   xm_pop_down_callback, (XtPointer)instance);
+    {
+      XtAddCallback (XtParent (widget), XmNpopdownCallback,
+		     xm_pop_down_callback, (XtPointer) instance);
+      XtAddCallback (XtParent (widget), XmNpopupCallback,
+		     xm_pop_up_callback, (XtPointer) instance);
+    }
 
   /* Preserve the first KEEP_FIRST_CHILDREN old children.  */
   for (child_index = 0, cur = val; child_index < keep_first_children;
@@ -1913,6 +1918,18 @@ xm_pop_down_callback (Widget widget,
   if ((!instance->pop_up_p && XtParent (widget) == instance->widget)
       || XtParent (widget) == instance->parent)
     do_call (widget, closure, post_activate);
+}
+
+static void
+xm_pop_up_callback (Widget widget,
+		    XtPointer closure,
+		    XtPointer call_data)
+{
+  widget_instance *instance = (widget_instance *) closure;
+
+  if ((!instance->pop_up_p && XtParent (widget) == instance->widget)
+      || XtParent (widget) == instance->parent)
+    do_call (widget, closure, pre_activate);
 }
 
 
