@@ -1007,6 +1007,8 @@ directories listed in `vc-directory-exclusion-list'."
   (interactive)
   (vc-dir (project-root (project-current t))))
 
+(declare-function comint-check-proc "comint")
+
 ;;;###autoload
 (defun project-shell ()
   "Start an inferior shell in the current project's root directory.
@@ -1015,11 +1017,14 @@ switch to it.  Otherwise, create a new shell buffer.
 With \\[universal-argument] prefix arg, create a new inferior shell buffer even
 if one already exists."
   (interactive)
+  (require 'comint)
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name (project-prefixed-buffer-name "shell"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
-        (pop-to-buffer shell-buffer (bound-and-true-p display-comint-buffer-action))
+        (if (comint-check-proc shell-buffer)
+            (pop-to-buffer shell-buffer (bound-and-true-p display-comint-buffer-action))
+          (shell shell-buffer))
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
