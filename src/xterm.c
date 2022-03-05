@@ -5983,6 +5983,12 @@ x_scroll_run (struct window *w, struct run *run)
     }
 #endif
 
+  /* Some of the following code depends on `normal_gc' being
+     up-to-date on the X server, but doesn't call a routine that will
+     flush it first.  So do this ourselves instead.  */
+  XFlushGC (FRAME_X_DISPLAY (f),
+	    f->output_data.x->normal_gc);
+
 #ifdef USE_CAIRO
   if (FRAME_CR_CONTEXT (f))
     {
