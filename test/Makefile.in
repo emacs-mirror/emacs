@@ -285,7 +285,7 @@ $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	  -o $@ $< $(LIBGMP) \
 	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
 	  $(FREE_SOURCE_$(REPLACE_FREE)) \
-	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
+	  ../lib/libgnu.a
 endif
 
 src/emacs-tests.log: ../lib-src/seccomp-filter.c
