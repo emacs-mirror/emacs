@@ -879,6 +879,16 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
   return form;
 }
 
+/* Convert a Lisp timestamp SPECIFIED_TIME to double.
+   Signal an error if unsuccessful.  */
+static double
+float_time (Lisp_Object specified_time)
+{
+  double t;
+  decode_lisp_time (specified_time, false, 0, &t);
+  return t;
+}
+
 /* Convert Z to time_t, returning true if it fits.  */
 static bool
 mpz_time (mpz_t const z, time_t *t)
@@ -1068,7 +1078,7 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
   if (FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
     {
       double da = XFLOAT_DATA (a);
-      double db = XFLOAT_DATA (Ffloat_time (b));
+      double db = float_time (b);
       return make_float (subtract ? da - db : da + db);
     }
   enum timeform aform, bform;
@@ -1264,9 +1274,7 @@ If precise time stamps are required, use either `encode-time',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
-  double t;
-  decode_lisp_time (specified_time, false, 0, &t);
-  return make_float (t);
+  return make_float (float_time (specified_time));
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
