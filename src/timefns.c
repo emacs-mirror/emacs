@@ -881,7 +881,7 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 
 /* Convert a Lisp timestamp SPECIFIED_TIME to double.
    Signal an error if unsuccessful.  */
-static double
+double
 float_time (Lisp_Object specified_time)
 {
   double t;
