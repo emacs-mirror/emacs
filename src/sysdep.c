@@ -3799,7 +3799,7 @@ system_process_attributes (Lisp_Object pid)
 			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
 		 attrs);
   attrs = Fcons (Fcons (Qcstime,
-			make_lisp_timeval (proc.ki_rusage_ch.ru_utime)),
+			make_lisp_timeval (proc.ki_rusage_ch.ru_stime)),
 		 attrs);
   t = timespec_add (timeval_to_timespec (proc.ki_rusage_ch.ru_utime),
 		    timeval_to_timespec (proc.ki_rusage_ch.ru_stime));
