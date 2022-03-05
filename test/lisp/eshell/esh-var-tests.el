@@ -137,9 +137,17 @@
   "Interpolate Lisp form evaluation"
   (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
 
+(ert-deftest esh-var-test/interp-lisp-indices ()
+  "Interpolate Lisp form evaluation with index"
+  (should (equal (eshell-test-command-result "+ $(list 1 2)[1] 3") 5)))
+
 (ert-deftest esh-var-test/interp-cmd ()
   "Interpolate command result"
   (should (equal (eshell-test-command-result "+ ${+ 1 2} 3") 6)))
+
+(ert-deftest esh-var-test/interp-cmd-indices ()
+  "Interpolate command result with index"
+  (should (equal (eshell-test-command-result "+ ${list 1 2}[1] 3") 5)))
 
 (ert-deftest esh-var-test/interp-cmd-external ()
   "Interpolate command result from external command"
@@ -147,6 +155,13 @@
   (with-temp-eshell
    (eshell-command-result-p "echo ${*echo hi}"
                             "hi\n")))
+
+(ert-deftest esh-var-test/interp-cmd-external-indices ()
+  "Interpolate command result from external command with index"
+  (skip-unless (executable-find "echo"))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo \"hi\nbye\"}[1]"
+                            "bye\n")))
 
 (ert-deftest esh-var-test/interp-temp-cmd ()
   "Interpolate command result redirected to temp file"
@@ -282,11 +297,19 @@ inside double-quotes"
                   "echo \"hi $(concat \\\"the\\\" \\\"re\\\")\"")
                  "hi there")))
 
+(ert-deftest esh-var-test/quoted-interp-lisp-indices ()
+  "Interpolate Lisp form evaluation with index"
+  (should (equal (eshell-test-command-result "+ \"$(list 1 2)[1]\" 3") 5)))
+
 (ert-deftest esh-var-test/quoted-interp-cmd ()
   "Interpolate command result inside double-quotes"
   (should (equal (eshell-test-command-result
                   "echo \"hi ${echo \\\"there\\\"}\"")
                  "hi there")))
+
+(ert-deftest esh-var-test/quoted-interp-cmd-indices ()
+  "Interpolate command result with index inside double-quotes"
+  (should (equal (eshell-test-command-result "+ \"${list 1 2}[1]\" 3") 5)))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
   "Interpolate command result redirected to temp file inside double-quotes"
