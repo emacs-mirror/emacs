@@ -3316,8 +3316,9 @@ union specbinding
     } unwind_array;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
-      void (*func) (void *);
+      void (*func) (void *);	/* Unwind function.  */
       void *arg;
+      void (*mark) (void *);	/* GC mark function (if non-null).  */
     } unwind_ptr;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -4474,6 +4475,8 @@ extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
 extern void record_unwind_protect_array (Lisp_Object *, ptrdiff_t);
 extern void record_unwind_protect_ptr (void (*) (void *), void *);
+extern void record_unwind_protect_ptr_mark (void (*function) (void *),
+					    void *arg, void (*mark) (void *));
 extern void record_unwind_protect_int (void (*) (int), int);
 extern void record_unwind_protect_intmax (void (*) (intmax_t), intmax_t);
 extern void record_unwind_protect_void (void (*) (void));
