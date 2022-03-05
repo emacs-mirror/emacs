@@ -2080,6 +2080,16 @@ BWindow_set_offset (void *window, int x, int y)
     wn->MoveTo (x, y);
 }
 
+void
+BWindow_dimensions (void *window, int *width, int *height)
+{
+  BWindow *w = (BWindow *) window;
+  BRect frame = w->Frame ();
+
+  *width = BE_RECT_WIDTH (frame);
+  *height = BE_RECT_HEIGHT (frame);
+}
+
 /* Iconify WINDOW.  */
 void
 BWindow_iconify (void *window)

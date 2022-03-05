@@ -140,6 +140,9 @@ haiku_update_size_hints (struct frame *f)
   int base_width, base_height;
   eassert (FRAME_HAIKU_P (f) && FRAME_HAIKU_WINDOW (f));
 
+  if (f->tooltip)
+    return;
+
   base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
 

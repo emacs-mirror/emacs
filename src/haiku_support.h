@@ -939,6 +939,9 @@ extern "C"
   extern haiku_font_family_or_style *
   be_list_font_families (size_t *length);
 
+  extern void
+  BWindow_dimensions (void *window, int *width, int *height);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);

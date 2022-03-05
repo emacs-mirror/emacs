@@ -2201,6 +2201,9 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   block_input ();
   void *wnd = FRAME_HAIKU_WINDOW (tip_f);
   BWindow_resize (wnd, width, height);
+  /* The window decorator might cause the actual width and height to
+     be larger than WIDTH and HEIGHT, so use the actual sizes.  */
+  BWindow_dimensions (wnd, &width, &height);
   BView_resize_to (FRAME_HAIKU_VIEW (tip_f), width, height);
   BView_set_view_cursor (FRAME_HAIKU_VIEW (tip_f),
 			 FRAME_OUTPUT_DATA (f)->current_cursor);
