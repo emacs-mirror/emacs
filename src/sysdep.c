@@ -3487,8 +3487,6 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
 	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
 	  pcpu = timespectod (us_time) / timespectod (telapsed);
-	  if (pcpu > 1.0)
-	    pcpu = 1.0;
 	  attrs = Fcons (Fcons (Qpcpu, make_float (100 * pcpu)), attrs);
 	  pmem = 4.0 * 100 * rss / procfs_get_total_memory ();
 	  if (pmem > 100)

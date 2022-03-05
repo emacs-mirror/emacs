@@ -2382,8 +2382,9 @@ occupied by the process in the machine's physical memory.
 
 @item pcpu
 The percentage of the CPU time used by the process since it started.
-The corresponding @var{value} is a floating-point number between 0 and
-100.
+The corresponding @var{value} is a nonnegative floating-point number.
+Although in theory the number can exceed 100 on a multicore platform,
+it is usually less than 100 because Emacs is typically single-threaded.
 
 @item pmem
 The percentage of the total physical memory installed on the machine
