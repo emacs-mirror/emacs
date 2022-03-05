@@ -3612,6 +3612,20 @@ record_unwind_protect_ptr (void (*function) (void *), void *arg)
   specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   specpdl_ptr->unwind_ptr.func = function;
   specpdl_ptr->unwind_ptr.arg = arg;
+  specpdl_ptr->unwind_ptr.mark = NULL;
+  grow_specpdl ();
+}
+
+/* Like `record_unwind_protect_ptr', but also specifies a function
+   for GC-marking Lisp objects only reachable through ARG.  */
+void
+record_unwind_protect_ptr_mark (void (*function) (void *), void *arg,
+				void (*mark) (void *))
+{
+  specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
+  specpdl_ptr->unwind_ptr.func = function;
+  specpdl_ptr->unwind_ptr.arg = arg;
+  specpdl_ptr->unwind_ptr.mark = mark;
   grow_specpdl ();
 }
 
@@ -3655,6 +3669,7 @@ record_unwind_protect_module (enum specbind_tag kind, void *ptr)
   specpdl_ptr->kind = kind;
   specpdl_ptr->unwind_ptr.func = NULL;
   specpdl_ptr->unwind_ptr.arg = ptr;
+  specpdl_ptr->unwind_ptr.mark = NULL;
   grow_specpdl ();
 }
 
@@ -3783,6 +3798,7 @@ set_unwind_protect_ptr (specpdl_ref count, void (*func) (void *), void *arg)
   p->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   p->unwind_ptr.func = func;
   p->unwind_ptr.arg = arg;
+  p->unwind_ptr.mark = NULL;
 }
 
 /* Pop and execute entries from the unwind-protect stack until the
@@ -4216,6 +4232,10 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	  break;
 
 	case SPECPDL_UNWIND_PTR:
+	  if (pdl->unwind_ptr.mark)
+	    pdl->unwind_ptr.mark (pdl->unwind_ptr.arg);
+	  break;
+
 	case SPECPDL_UNWIND_INT:
 	case SPECPDL_UNWIND_INTMAX:
         case SPECPDL_UNWIND_VOID:
