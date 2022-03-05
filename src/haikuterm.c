@@ -2718,6 +2718,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    if (FRAME_TOOLTIP_P (f))
 	      {
+		if (FRAME_PIXEL_WIDTH (f) != width
+		    || FRAME_PIXEL_HEIGHT (f) != height)
+		  SET_FRAME_GARBAGED (f);
+
 		FRAME_PIXEL_WIDTH (f) = width;
 		FRAME_PIXEL_HEIGHT (f) = height;
 
