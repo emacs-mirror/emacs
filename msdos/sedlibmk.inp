@@ -446,6 +446,7 @@ OMIT_GNULIB_MODULE_group-member = true\
 OMIT_GNULIB_MODULE_inttypes-incomplete = true\
 OMIT_GNULIB_MODULE_localtime-buffer = true\
 OMIT_GNULIB_MODULE_lstat = true\
+OMIT_GNULIB_MODULE_nanosleep = true\
 OMIT_GNULIB_MODULE_open = true\
 OMIT_GNULIB_MODULE_pipe2 = true\
 OMIT_GNULIB_MODULE_pselect = true\
