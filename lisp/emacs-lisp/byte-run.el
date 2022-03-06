@@ -80,7 +80,8 @@ This is done by destructively modifying ARG.  Return ARG."
              ((consp elt)
               (byte-run--strip-list elt))
              ((or (vectorp elt) (recordp elt))
-              (byte-run--strip-vector/record elt))))))
+              (byte-run--strip-vector/record elt)))
+            (setq i (1+ i)))))
       arg))
 
 (defalias 'byte-run-strip-symbol-positions
