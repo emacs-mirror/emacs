@@ -1112,6 +1112,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
   static int desc_ctr = 1;
+  NSWindow *main_window = [NSApp mainWindow];
 
   /* gui_display_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);
@@ -1483,8 +1484,27 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
 
-  if (window_prompting & USPosition)
+  /* This cascading behavior (which is the job of the window manager
+     on X-based systems) is something NS applications are expected to
+     implement themselves.  At least one person tells me he used
+     Carbon Emacs solely for this behavior.  */
+  if (window_prompting & (USPosition | PPosition) || FRAME_PARENT_FRAME (f))
     ns_set_offset (f, f->left_pos, f->top_pos, 1);
+  else
+    {
+      NSWindow *frame_window = [FRAME_NS_VIEW (f) window];
+      NSPoint top_left;
+
+      if (main_window)
+	{
+	  top_left = NSMakePoint (NSMinX ([main_window frame]),
+				  NSMaxY ([main_window frame]));
+	  top_left = [frame_window cascadeTopLeftFromPoint: top_left];
+	  [frame_window cascadeTopLeftFromPoint: top_left];
+	}
+      else
+	[main_window center];
+    }
 
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */
