@@ -888,6 +888,11 @@ parse_hex_color_comp (const char *s, const char *e, unsigned short *dst)
 static double
 parse_float_color_comp (const char *s, const char *e)
 {
+  /* Only allow decimal float literals without whitespace.  */
+  for (const char *p = s; p < e; p++)
+    if (!((*p >= '0' && *p <= '9')
+	  || *p == '.' || *p == '+' || *p == '-' || *p == 'e' || *p == 'E'))
+      return -1;
   char *end;
   double x = strtod (s, &end);
   return (end == e && x >= 0 && x <= 1) ? x : -1;
