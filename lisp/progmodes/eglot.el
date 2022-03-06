@@ -258,11 +258,11 @@ CONTACT can be:
   "Face for package-name in EGLOT's mode line.")
 
 (defface eglot-diagnostic-tag-unnecessary-face
-  '((t . (:weight ultra-light)))
+  '((t (:inherit shadow)))
   "Face used to render unused or unnecessary code.")
 
 (defface eglot-diagnostic-tag-deprecated-face
-  '((t . (:strike-through t)))
+  '((t . (:inherit shadow :strike-through t)))
   "Face used to render deprecated or obsolete code.")
 
 (defcustom eglot-autoreconnect 3
