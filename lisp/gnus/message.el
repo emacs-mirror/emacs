@@ -716,7 +716,7 @@ The function accepts 1 parameter which is the matched prefix."
   (defvar sendmail-program)
   (cond ((executable-find sendmail-program)
 	 #'message-send-mail-with-sendmail)
-	((bound-and-true-p 'smtpmail-default-smtp-server)
+	((bound-and-true-p smtpmail-default-smtp-server)
 	 #'message-smtpmail-send-it)
 	(t
 	 #'message-send-mail-with-mailclient)))
