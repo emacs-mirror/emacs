@@ -1081,6 +1081,11 @@ struct scroll_bar
   /* The X window representing this scroll bar.  */
   Window x_window;
 
+#if defined HAVE_XDBE && !defined USE_TOOLKIT_SCROLL_BARS
+  /* The X drawable representing this scroll bar.  */
+  Drawable x_drawable;
+#endif
+
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
   int top, left, width, height;
