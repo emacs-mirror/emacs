@@ -2780,8 +2780,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_key_event *b = buf;
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    if (!f)
-	      continue;
 
 	    /* If mouse-highlight is an integer, input clears out
 	       mouse highlighting.  */
@@ -2794,6 +2792,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		hlinfo->mouse_face_hidden = true;
 		need_flush = 1;
 	      }
+
+	    if (!f)
+	      continue;
 
 	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
 
