@@ -8583,7 +8583,8 @@ x_scroll_bar_create (struct window *w, int top, int left,
 			     /* Attributes.  */
 			    mask, &a);
 #ifdef HAVE_XDBE
-    if (FRAME_DISPLAY_INFO (f)->supports_xdbe)
+    if (FRAME_DISPLAY_INFO (f)->supports_xdbe
+	&& FRAME_X_DOUBLE_BUFFERED_P (f))
       {
 	x_catch_errors (FRAME_X_DISPLAY (f));
 	drawable = XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f),
