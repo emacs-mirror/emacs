@@ -565,7 +565,7 @@ unwind_popup (void)
 static Lisp_Object
 haiku_create_frame (Lisp_Object parms)
 {
-  struct frame *f;
+  struct frame *f, *cascade_target;
   Lisp_Object frame, tem;
   Lisp_Object name;
   bool minibuffer_only = false;
@@ -574,6 +574,13 @@ haiku_create_frame (Lisp_Object parms)
   Lisp_Object display;
   struct haiku_display_info *dpyinfo = NULL;
   struct kboard *kb;
+
+  if (x_display_list->focused_frame)
+    cascade_target = x_display_list->focused_frame;
+  else if (x_display_list->focus_event_frame)
+    cascade_target = x_display_list->focus_event_frame;
+  else
+    cascade_target = NULL;
 
   parms = Fcopy_alist (parms);
 
@@ -888,6 +895,9 @@ haiku_create_frame (Lisp_Object parms)
   block_input ();
   if (window_prompting & (USPosition | PPosition))
     haiku_set_offset (f, f->left_pos, f->top_pos, 1);
+  else if (cascade_target)
+    haiku_set_offset (f, cascade_target->left_pos + 15,
+		      cascade_target->top_pos + 15, 1);
   else
     BWindow_center_on_screen (FRAME_HAIKU_WINDOW (f));
   unblock_input ();
