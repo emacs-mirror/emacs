@@ -90,6 +90,7 @@
 (require 'gud)
 (require 'cl-lib)
 (require 'cl-seq)
+(require 'bindat)
 (eval-when-compile (require 'pcase))
 
 (declare-function speedbar-change-initial-expansion-list
@@ -4288,7 +4289,7 @@ member."
 ;; uses "-stack-list-locals --simple-values". Needs GDB 6.1 onwards.
 (def-gdb-trigger-and-handler
   gdb-invalidate-locals
-  (concat (gdb-current-context-command "-stack-list-locals")
+  (concat (gdb-current-context-command "-stack-list-variables")
           " --simple-values")
   gdb-locals-handler gdb-locals-handler-custom
   '(start update))
@@ -4298,6 +4299,48 @@ member."
  'gdb-locals-buffer-name
  'gdb-locals-mode
  'gdb-invalidate-locals)
+
+
+;; Retrieve the values of all variables before invalidating locals.
+(def-gdb-trigger-and-handler
+  gdb-locals-values
+  (concat (gdb-current-context-command "-stack-list-variables")
+          " --all-values")
+  gdb-locals-values-handler gdb-locals-values-handler-custom
+  '(start update))
+
+(gdb-set-buffer-rules
+ 'gdb-locals-values-buffer
+ 'gdb-locals-values-buffer-name
+ 'gdb-locals-mode
+ 'gdb-locals-values)
+
+(defun gdb-locals-values-buffer-name ()
+  (gdb-current-context-buffer-name
+   (concat "local values of " (gdb-get-target-string))))
+
+(defcustom gdb-locals-simple-values-only nil
+  "Only display simple values in the Locals buffer."
+  :type 'boolean
+  :group 'gud
+  :version "29.1")
+
+(defcustom gdb-locals-value-limit 100
+  "Maximum length the value of a local variable is allowed to be."
+  :type 'integer
+  :group 'gud
+  :version "29.1")
+
+(defvar gdb-locals-values-table (make-hash-table :test #'equal)
+  "Mapping of local variable names to a string with their value.")
+
+(defun gdb-locals-values-handler-custom ()
+  "Store the values of local variables in `gdb-locals-value-map'."
+  (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables)))
+    (dolist (local locals-list)
+      (let ((name (bindat-get-field local 'name))
+            (value (bindat-get-field local 'value)))
+        (puthash name value gdb-locals-values-table)))))
 
 (defvar gdb-locals-watch-map
   (let ((map (make-sparse-keymap)))
@@ -4315,6 +4358,15 @@ member."
     map)
   "Keymap to edit value of a simple data type local variable.")
 
+(defun gdb-locals-value-filter (value)
+  "Filter function for the local variable VALUE."
+  (let* ((no-nl (replace-regexp-in-string "\n" " " value))
+         (str (replace-regexp-in-string "[[:space:]]+" " " no-nl))
+         (limit gdb-locals-value-limit))
+    (if (>= (length str) limit)
+        (concat (substring str 0 limit) "...")
+      str)))
+
 (defun gdb-edit-locals-value (&optional event)
   "Assign a value to a variable displayed in the locals buffer."
   (interactive (list last-input-event))
@@ -4327,17 +4379,22 @@ member."
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
 
-;; Don't display values of arrays or structures.
-;; These can be expanded using gud-watch.
+;; Complex data types are looked up in `gdb-locals-values-table'.
 (defun gdb-locals-handler-custom ()
-  (let ((locals-list (gdb-mi--field (gdb-mi--partial-output) 'locals))
+  "Handler to rebuild the local variables table buffer."
+  (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables))
         (table (make-gdb-table)))
     (dolist (local locals-list)
       (let ((name (gdb-mi--field local 'name))
             (value (gdb-mi--field local 'value))
             (type (gdb-mi--field local 'type)))
         (when (not value)
-          (setq value "<complex data type>"))
+          (setq value
+                (if gdb-locals-simple-values-only
+                    "<complex data type>"
+                  (gethash name gdb-locals-values-table "<unavailable>"))))
+        (setq value (gdb-locals-value-filter value))
+
         (if (or (not value)
                 (string-match "0x" value))
             (add-text-properties 0 (length name)
@@ -4860,6 +4917,8 @@ file\" where the GDB session starts (see `gdb-main-file')."
          (expand-file-name gdb-default-window-configuration-file
                            gdb-window-configuration-directory)))
     ;; Create default layout as before.
+    ;; Make sure that local values are updated before locals.
+    (gdb-get-buffer-create 'gdb-locals-values-buffer)
     (gdb-get-buffer-create 'gdb-locals-buffer)
     (gdb-get-buffer-create 'gdb-stack-buffer)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
