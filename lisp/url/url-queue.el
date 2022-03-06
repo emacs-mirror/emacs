@@ -161,11 +161,7 @@ The variable `url-queue-timeout' sets a timeout."
                                    (url-queue-context-buffer job)
                                  (current-buffer))
 	    (let ((url-request-noninteractive t)
-                  (url-allow-non-local-files t)
-                  ;; This will disable querying the user for
-                  ;; credentials if one of the things we're fetching
-                  ;; in the background return a header requesting it.
-                  (url-request-extra-headers '(("Authorization" . ""))))
+                  (url-allow-non-local-files t))
               (url-retrieve (url-queue-url job)
                             #'url-queue-callback-function (list job)
                             (url-queue-silentp job)

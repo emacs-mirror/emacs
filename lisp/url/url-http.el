@@ -1304,9 +1304,7 @@ The return value of this function is the retrieval buffer."
   (cl-check-type url url "Need a pre-parsed URL.")
   (let* (;; (host (url-host (or url-using-proxy url)))
 	 ;; (port (url-port (or url-using-proxy url)))
-	 (nsm-noninteractive (or url-request-noninteractive
-				 (and (boundp 'url-http-noninteractive)
-				      url-http-noninteractive)))
+	 (nsm-noninteractive (not (url-interactive-p)))
          ;; The following binding is needed in url-open-stream, which
          ;; is called from url-http-find-free-connection.
          (url-current-object url)

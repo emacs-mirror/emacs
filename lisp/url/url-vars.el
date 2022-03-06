@@ -424,6 +424,11 @@ Should be one of:
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
+(defun url-interactive-p ()
+  "Say whether the current request is from a interactive context."
+  (not (or url-request-noninteractive
+           (bound-and-true-p 'url-http-noninteractive))))
+
 ;; Obsolete
 
 (defconst url-version "Emacs" "Version number of URL package.")
