@@ -103,7 +103,11 @@ string that was matched."
     (unless elems
       (push (setq elems (list type)) ecomplete-database))
     (if (setq entry (assoc key (cdr elems)))
-	(setcdr entry (list (1+ (cadr entry)) now text))
+	(pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
+	  (setcdr entry (list (1+ count) now
+	                      ;; Preserve the "more complete" text.
+	                      (if (>= (length text) (length oldtext))
+	                          text oldtext))))
       (nconc elems (list (list key 1 now text))))))
 
 (defun ecomplete-get-item (type key)
