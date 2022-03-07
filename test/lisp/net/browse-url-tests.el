@@ -82,10 +82,13 @@
 
 (ert-deftest browse-url-tests-file-url ()
   (should (equal (browse-url-file-url "/foo") "file:///foo"))
-  (should (equal (browse-url-file-url "/foo:") "ftp://foo/"))
-  (should (equal (browse-url-file-url "/ftp@foo:") "ftp://foo/"))
-  (should (equal (browse-url-file-url "/anonymous@foo:")
-                 "ftp://foo/")))
+  (when (file-remote-p "/foo:")
+    (should (equal (browse-url-file-url "/foo:") "ftp://foo/")))
+  (when (file-remote-p "/ftp@foo:")
+    (should (equal (browse-url-file-url "/ftp@foo:") "ftp://foo/")))
+  (when (file-remote-p "/anonymous@foo:")
+    (should (equal (browse-url-file-url "/anonymous@foo:")
+                   "ftp://foo/"))))
 
 (ert-deftest browse-url-tests-delete-temp-file ()
   (ert-with-temp-file browse-url-temp-file-name

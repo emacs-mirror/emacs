@@ -708,16 +708,29 @@ interactively.  Turn the filename into a URL with function
   (browse-url (browse-url-file-url file))
   (run-hooks 'browse-url-of-file-hook))
 
+(defun browse-url--file-name-coding-system ()
+  (if (equal system-type 'windows-nt)
+      ;; W32 pretends that file names are UTF-8 encoded.
+      'utf-8
+    (or file-name-coding-system default-file-name-coding-system)))
+
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  (let ((coding (if (equal system-type 'windows-nt)
-		    ;; W32 pretends that file names are UTF-8 encoded.
-		    'utf-8
-		  (and (or file-name-coding-system
-			   default-file-name-coding-system)))))
-    (if coding (setq file (encode-coding-string file coding))))
-  (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
+  (when-let ((coding (browse-url--file-name-coding-system)))
+    (setq file (encode-coding-string file coding)))
+  (if (and (file-remote-p file)
+           ;; We're applying special rules for FTP URLs for historical
+           ;; reasons.
+           (seq-find (lambda (match)
+                       (and (string-match-p (car match) file)
+                            (not (string-match "\\`file:" (cadr match)))))
+                     browse-url-filename-alist))
+      (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
+    ;; Encode all other file names properly.
+    (setq file (mapconcat #'url-hexify-string
+                          (file-name-split file)
+                          "/")))
   (dolist (map browse-url-filename-alist)
     (when (and map (string-match (car map) file))
       (setq file (replace-match (cdr map) t nil file))))
@@ -1213,10 +1226,12 @@ currently selected window instead."
   (require 'url-handlers)
   (let ((parsed (url-generic-parse-url url))
         (func (if same-window 'find-file 'find-file-other-window)))
-    (if (and (equal (url-type parsed) "file")
-             (file-directory-p (url-filename parsed)))
-        ;; It's a directory; just open it.
-        (funcall func (url-filename parsed))
+    (if (equal (url-type parsed) "file")
+        ;; It's a file; just open it.
+        (let ((file (url-unhex-string (url-filename parsed))))
+          (when-let ((coding (browse-url--file-name-coding-system)))
+            (setq file (decode-coding-string file 'utf-8)))
+          (funcall func file))
       (let ((file-name-handler-alist
              (cons (cons url-handler-regexp 'url-file-handler)
                    file-name-handler-alist)))
