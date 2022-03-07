@@ -836,7 +836,9 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
   "In Dired, ask a WWW browser to display the file named on this line."
   (interactive)
   (let ((tem (dired-get-filename t t))
-        (browse-url-default-handlers))
+        ;; Some URL handlers open files in Emacs.  We want to always
+        ;; open in a browser, so disable those.
+        (browse-url-default-handlers nil))
     (if tem
 	(browse-url-of-file (expand-file-name tem))
       (error "No file on this line"))))
