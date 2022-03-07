@@ -3857,6 +3857,10 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
       long nearest_delta, trial_delta;
       int x;
       Status status;
+      bool retry = false;
+      int ncolor_cells, i;
+
+    start:
 
       cells = x_color_cells (dpy, &no_cells);
 
@@ -3886,6 +3890,30 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
       color->green = cells[nearest].green;
       color->blue = cells[nearest].blue;
       status = XAllocColor (dpy, cmap, color);
+
+      if (status != 0 && !retry)
+	{
+	  /* Our private cache of color cells is probably out of date.
+	     Refresh it here, and try to allocate the nearest color
+	     from the new colormap.  */
+
+	  retry = true;
+	  xfree (dpyinfo->color_cells);
+
+	  ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (dpyinfo->screen));
+
+	  dpyinfo->color_cells = xnmalloc (ncolor_cells,
+					   sizeof *dpyinfo->color_cells);
+	  dpyinfo->ncolor_cells = ncolor_cells;
+
+	  for (i = 0; i < ncolor_cells; ++i)
+	    dpyinfo->color_cells[i].pixel = i;
+
+	  XQueryColors (dpy, dpyinfo->cmap,
+			dpyinfo->color_cells, ncolor_cells);
+
+	  goto start;
+	}
 
       rc = status != 0;
     }
