@@ -71,7 +71,7 @@ write the exit status to the pipe.  See bug#54136."
                     (executable-find "sleep")))
   (with-temp-eshell
    (eshell-insert-command
-    (concat "sh -c 'while true; sleep 1; done' | "
+    (concat "sh -c 'while true; do sleep 1; done' | "
             "sh -c 'while read NAME; do echo =${NAME}=; done'"))
    (let ((output-start (eshell-beginning-of-output)))
      (kill-process (eshell-head-process))
