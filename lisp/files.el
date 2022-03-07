@@ -3741,8 +3741,8 @@ return as the symbol specifying the mode."
 	       (while (not (or (and (eq handle-mode t) result)
                                (>= (point) end)))
 		 (unless (looking-at hack-local-variable-regexp)
-		   (message "Malformed mode-line: %S"
-                            (buffer-substring-no-properties (point) end))
+		   (message "Malformed mode-line: %S in buffer %S"
+                            (buffer-substring-no-properties (point) end) (buffer-name))
 		   (throw 'malformed-line nil))
 		 (goto-char (match-end 0))
 		 ;; There used to be a downcase here,
