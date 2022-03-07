@@ -3882,12 +3882,8 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	      temp.red = cells[x].red;
 	      temp.green = cells[x].green;
 	      temp.blue = cells[x].blue;
-	      status = XAllocColor (dpy, cmap, &temp);
-	      if (status)
-		{
-		  nearest = x;
-		  nearest_delta = trial_delta;
-		}
+	      nearest = x;
+	      nearest_delta = trial_delta;
 	    }
 	}
       color->red = cells[nearest].red;
