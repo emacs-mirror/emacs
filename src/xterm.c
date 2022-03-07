@@ -3641,8 +3641,7 @@ x_color_cells (Display *dpy, int *ncells)
 
   if (dpyinfo->color_cells == NULL)
     {
-      Screen *screen = dpyinfo->screen;
-      int ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (screen));
+      int ncolor_cells = dpyinfo->visual_info.colormap_size;
       int i;
 
       dpyinfo->color_cells = xnmalloc (ncolor_cells,
@@ -3841,7 +3840,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
   eassume (dpyinfo);
   rc = XAllocColor (dpy, cmap, color) != 0;
 
-  if (dpyinfo->visual->class == DirectColor)
+  if (dpyinfo->visual_info.class == DirectColor)
     return rc;
 
   if (rc == 0)
@@ -3900,7 +3899,7 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	  retry = true;
 	  xfree (dpyinfo->color_cells);
 
-	  ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (dpyinfo->screen));
+	  ncolor_cells = dpyinfo->visual_info.colormap_size;
 
 	  dpyinfo->color_cells = xnmalloc (ncolor_cells,
 					   sizeof *dpyinfo->color_cells);
@@ -5735,7 +5734,7 @@ XTflash (struct frame *f)
 
   block_input ();
 
-  if (FRAME_X_VISUAL (f)->class == TrueColor)
+  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor)
     {
       values.function = GXxor;
       values.foreground = (FRAME_FOREGROUND_PIXEL (f)
@@ -5821,7 +5820,7 @@ XTflash (struct frame *f)
 		    flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
 		    width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
-  if (FRAME_X_VISUAL (f)->class == TrueColor)
+  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor)
     XFreeGC (FRAME_X_DISPLAY (f), gc);
   x_flush (f);
 
@@ -13986,11 +13985,17 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
             }
 
 #elif defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
-
-	  rc = x_create_bitmap_from_xpm_data (f, gnu_xpm_bits);
-	  if (rc != -1)
-	    FRAME_DISPLAY_INFO (f)->icon_bitmap_id = rc;
-
+	  /* This allocates too many colors.  */
+	  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor
+	      /* That pixmap needs about 240 colors, and we should
+		 also leave some more space for other colors as
+		 well.  */
+	      || FRAME_X_VISUAL_INFO (f)->colormap_size >= (240 * 4))
+	    {
+	      rc = x_create_bitmap_from_xpm_data (f, gnu_xpm_bits);
+	      if (rc != -1)
+		FRAME_DISPLAY_INFO (f)->icon_bitmap_id = rc;
+	    }
 #endif
 
 	  /* If all else fails, use the (black and white) xbm image. */
@@ -17306,7 +17311,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {
-      if (dpyinfo->visual->class == PseudoColor)
+      if (dpyinfo->visual_info.class == PseudoColor)
 	{
 	  AUTO_STRING (privateColormap, "privateColormap");
 	  AUTO_STRING (PrivateColormap, "PrivateColormap");
@@ -17324,13 +17329,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
                                      dpyinfo->visual, AllocNone);
 
   /* See if we can construct pixel values from RGB values.  */
-  if (dpyinfo->visual->class == TrueColor)
+  if (dpyinfo->visual_info.class == TrueColor)
     {
-      get_bits_and_offset (dpyinfo->visual->red_mask,
+      get_bits_and_offset (dpyinfo->visual_info.red_mask,
                            &dpyinfo->red_bits, &dpyinfo->red_offset);
-      get_bits_and_offset (dpyinfo->visual->blue_mask,
+      get_bits_and_offset (dpyinfo->visual_info.blue_mask,
                            &dpyinfo->blue_bits, &dpyinfo->blue_offset);
-      get_bits_and_offset (dpyinfo->visual->green_mask,
+      get_bits_and_offset (dpyinfo->visual_info.green_mask,
                            &dpyinfo->green_bits, &dpyinfo->green_offset);
 
 #ifdef HAVE_XRENDER
@@ -17357,9 +17362,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  if (XAllocColor (dpyinfo->display,
 			   dpyinfo->cmap, &xc) != 0)
 	    {
-	      alpha_mask = xc.pixel & ~(dpyinfo->visual->red_mask
-					| dpyinfo->visual->blue_mask
-					| dpyinfo->visual->green_mask);
+	      alpha_mask = xc.pixel & ~(dpyinfo->visual_info.red_mask
+					| dpyinfo->visual_info.blue_mask
+					| dpyinfo->visual_info.green_mask);
 
 	      if (alpha_mask)
 		get_bits_and_offset (alpha_mask, &dpyinfo->alpha_bits,

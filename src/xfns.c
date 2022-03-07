@@ -6605,6 +6605,7 @@ select_visual (struct x_display_info *dpyinfo)
 	       SSDATA (ENCODE_SYSTEM (value)));
 
       dpyinfo->visual = vinfo.visual;
+      dpyinfo->visual_info = vinfo;
     }
   else
     {
@@ -6638,6 +6639,7 @@ select_visual (struct x_display_info *dpyinfo)
 		{
 		  dpyinfo->n_planes = vinfo[i].depth;
 		  dpyinfo->visual = vinfo[i].visual;
+		  dpyinfo->visual_info = vinfo[i];
 		  dpyinfo->pict_format = format;
 
 		  XFree (vinfo);
@@ -6658,7 +6660,7 @@ select_visual (struct x_display_info *dpyinfo)
 			      &vinfo_template, &n_visuals);
       if (n_visuals <= 0)
 	fatal ("Can't get proper X visual info");
-
+      dpyinfo->visual_info = *vinfo;
       dpyinfo->n_planes = vinfo->depth;
       XFree (vinfo);
     }
@@ -7540,8 +7542,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 
     if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
       disptype = Qmono;
-    else if (FRAME_DISPLAY_INFO (f)->visual->class == GrayScale
-             || FRAME_DISPLAY_INFO (f)->visual->class == StaticGray)
+    else if (FRAME_X_VISUAL_INFO (f)->class == GrayScale
+             || FRAME_X_VISUAL_INFO (f)->class == StaticGray)
       disptype = intern ("grayscale");
     else
       disptype = intern ("color");
@@ -9019,7 +9021,15 @@ XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
 int
 XDisplayCells (Display *dpy, int screen_number)
 {
-  return 1677216;
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+
+  if (!dpyinfo)
+    emacs_abort ();
+
+  /* Not strictly correct, since the display could be using a
+     non-default visual, but it satisfies the callers we need to care
+     about.  */
+  return dpyinfo->visual_info.colormap_size;
 }
 #endif
 
