@@ -724,7 +724,7 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
            ;; reasons.
            (seq-find (lambda (match)
                        (and (string-match-p (car match) file)
-                            (not (string-match "\\`file:" (cadr match)))))
+                            (not (string-match "\\`file:" (cdr match)))))
                      browse-url-filename-alist))
       (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
     ;; Encode all other file names properly.
