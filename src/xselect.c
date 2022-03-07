@@ -98,7 +98,11 @@ static void lisp_data_to_selection_data (struct x_display_info *, Lisp_Object,
 static int
 selection_quantum (Display *display)
 {
-  long mrs = XMaxRequestSize (display);
+  long mrs = XExtendedMaxRequestSize (display);
+
+  if (!mrs)
+    mrs = XMaxRequestSize (display);
+
   return (mrs < MAX_SELECTION_QUANTUM / X_LONG_SIZE + 25
 	  ? (mrs - 25) * X_LONG_SIZE
 	  : MAX_SELECTION_QUANTUM);
