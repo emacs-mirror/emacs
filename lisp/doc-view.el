@@ -226,6 +226,12 @@ are available (see Info node `(emacs)Document View')"
 Higher values result in larger images."
   :type 'number)
 
+(defcustom doc-view-mutool-user-stylesheet nil
+  "User stylesheet to use when converting EPUB documents to PDF."
+  :type '(choice (const nil)
+                 (file :must-match t))
+  :version "29.1")
+
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
 Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
@@ -1169,8 +1175,16 @@ The test is performed using `doc-view-pdfdraw-program'."
          (options `(,(concat "-o" png)
                     ,(format "-r%d" (round doc-view-resolution))
                     ,@(if pdf-passwd `("-p" ,pdf-passwd)))))
-    (when (and (eq doc-view-doc-type 'epub) doc-view-epub-font-size)
-      (setq options (append options (list (format "-S%s" doc-view-epub-font-size)))))
+    (when (eq doc-view-doc-type 'epub)
+      (when doc-view-epub-font-size
+        (setq options (append options
+                              (list (format "-S%s" doc-view-epub-font-size)))))
+      (when doc-view-mutool-user-stylesheet
+        (setq options
+              (append options
+                      (list (format "-U%s"
+                                    (expand-file-name
+                                     doc-view-mutool-user-stylesheet)))))))
     (doc-view-start-process
      "pdf->png" doc-view-pdfdraw-program
      `(,@(doc-view-pdfdraw-program-subcommand)
