@@ -1320,7 +1320,7 @@ extern void x_clear_area (struct frame *f, int, int, int, int);
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
-#if defined USE_X_TOOLKIT || defined USE_MOTIF
+#ifndef USE_GTK
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);

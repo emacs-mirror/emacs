@@ -13520,14 +13520,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   return count;
 }
 
-#if defined USE_X_TOOLKIT || defined USE_MOTIF || defined USE_GTK
-
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
 
    Returns the value handle_one_xevent sets in the finish argument.  */
+
+#ifdef USE_GTK
+static int
+#else
 int
+#endif
 x_dispatch_event (XEvent *event, Display *display)
 {
   struct x_display_info *dpyinfo;
@@ -13540,7 +13543,6 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
-#endif
 
 /* Read events coming from the X server.
    Return as soon as there are no more events to be read.

@@ -280,6 +280,14 @@ x_menu_translate_generic_event (XEvent *event)
     }
 }
 #endif
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+static void
+x_menu_expose_event (XEvent *event)
+{
+  x_dispatch_event (event, event->xexpose.display);
+}
+#endif
 #endif /* ! MSDOS */
 
 
@@ -2638,6 +2646,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
 #endif
+  XMenuActivateSetExposeFunction (x_menu_expose_event);
 #endif
 
   record_unwind_protect_ptr (pop_down_menu,
