@@ -299,6 +299,7 @@ sorted.  FUNCTION must be a function of one argument."
 TYPE must be one of following symbols: vector, string or list.
 
 \n(fn TYPE SEQUENCE...)"
+  (setq sequences (mapcar #'seq-into-sequence sequences))
   (pcase type
     ('vector (apply #'vconcat sequences))
     ('string (apply #'concat sequences))
