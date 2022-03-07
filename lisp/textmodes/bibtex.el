@@ -4119,11 +4119,11 @@ Optional arg POS is the position of the BibTeX entry to use."
         (goto-char pnt)))))
 
 (defun bibtex-mark-entry ()
-  "Put mark at beginning, point at end of current BibTeX entry.
+  "Put mark at end, point at beginning of current BibTeX entry.
 Activate mark in Transient Mark mode."
   (interactive)
-  (push-mark (bibtex-beginning-of-entry) t t)
-  (bibtex-end-of-entry))
+  (push-mark (bibtex-end-of-entry) t t)
+  (bibtex-beginning-of-entry))
 
 (defun bibtex-count-entries (&optional count-string-entries)
   "Count number of entries in current buffer or region.
