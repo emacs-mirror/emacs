@@ -578,8 +578,13 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   if (lfinfo_end != owner->user + lfinfolen)
     return EINVAL;
 
-  /* On current host?  */
   Lisp_Object system_name = Fsystem_name ();
+  /* If `system-name' returns nil, that means we're in a
+     --no-build-details Emacs, and the name part of the link (e.g.,
+     .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
+  if (NILP (system_name))
+    system_name = build_string ("");
+  /* On current host?  */
   if (STRINGP (system_name)
       && dot - (at + 1) == SBYTES (system_name)
       && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
