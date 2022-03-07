@@ -201,8 +201,8 @@ switches."
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
 		   ((not state) (setq state 'needs-update))))
-	(when (and state (not (string= "." filename)))
-         (setq result (cons (list filename state) result)))))
+	(when state
+          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
 ;; dir-status-files called from vc-dir, which loads vc,
