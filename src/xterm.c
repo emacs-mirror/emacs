@@ -9887,23 +9887,18 @@ x_net_wm_state (struct frame *f, Window window)
   store_frame_param (f, Qshaded, shaded ? Qt : Qnil);
 }
 
-/* Flip back buffers on any frames with undrawn content.  */
+/* Flip back buffers on FRAME if it has undrawn content.  */
 static void
-flush_dirty_back_buffers (void)
+flush_dirty_back_buffer_on (struct frame *f)
 {
   block_input ();
-  Lisp_Object tail, frame;
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) &&
-          FRAME_X_P (f) &&
-          FRAME_X_WINDOW (f) &&
-          !FRAME_GARBAGED_P (f) &&
-          !buffer_flipping_blocked_p () &&
-          FRAME_X_NEED_BUFFER_FLIP (f))
-        show_back_buffer (f);
-    }
+  if (FRAME_LIVE_P (f) &&
+      FRAME_X_P (f) &&
+      FRAME_X_WINDOW (f) &&
+      !FRAME_GARBAGED_P (f) &&
+      !buffer_flipping_blocked_p () &&
+      FRAME_X_NEED_BUFFER_FLIP (f))
+    show_back_buffer (f);
   unblock_input ();
 }
 
@@ -13490,9 +13485,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       count++;
     }
 
-  /* Sometimes event processing draws to the frame outside redisplay.
-     To ensure that these changes become visible, draw them here.  */
-  flush_dirty_back_buffers ();
+  /* Sometimes event processing draws to either F or ANY outside
+     redisplay.  To ensure that these changes become visible, draw
+     them here.  */
+
+  if (f)
+    flush_dirty_back_buffer_on (f);
+
+  if (any && any != f)
+    flush_dirty_back_buffer_on (any);
   return count;
 }
 
