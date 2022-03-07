@@ -6651,4 +6651,63 @@ is inserted before adjusting the number of empty lines."
 If OMIT-NULLS, empty lines will be removed from the results."
   (split-string string "\n" omit-nulls))
 
+(defun buffer-match-p (condition buffer-or-name &optional arg)
+  "Return non-nil if BUFFER-OR-NAME matches CONDITION.
+CONDITION is either:
+- a regular expression, to match a buffer name,
+- a predicate function that takes a buffer object and ARG as
+  arguments, and returns non-nil if the buffer matches,
+- a cons-cell, where the car describes how to interpret the cdr.
+  The car can be one of the following:
+  * `major-mode': the buffer matches if the buffer's major
+    mode is derived from the major mode denoted by the cons-cell's
+    cdr
+  * `not': the cdr is interpreted as a negation of a condition.
+  * `and': the cdr is a list of recursive conditions, that all have
+    to be met.
+  * `or': the cdr is a list of recursive condition, of which at
+    least one has to be met."
+  (letrec
+      ((buffer (get-buffer buffer-or-name))
+       (match
+        (lambda (conditions)
+          (catch 'match
+            (dolist (condition conditions)
+              (when (cond
+                     ((stringp condition)
+                      (string-match-p condition (buffer-name buffer)))
+                     ((functionp condition)
+                      (if (eq 1 (cdr (func-arity condition)))
+                          (funcall condition buffer)
+                        (funcall condition buffer arg)))
+                     ((eq (car-safe condition) 'major-mode)
+                      (provided-mode-derived-p
+                       (buffer-local-value 'major-mode buffer)
+                       (cdr condition)))
+                     ((eq (car-safe condition) 'not)
+                      (not (funcall match (cdr condition))))
+                     ((eq (car-safe condition) 'or)
+                      (funcall match (cdr condition)))
+                     ((eq (car-safe condition) 'and)
+                      (catch 'fail
+                        (dolist (c conditions)
+                          (unless (funcall match c)
+                            (throw 'fail nil)))
+                        t)))
+                (throw 'match t)))))))
+    (funcall match (list condition))))
+
+(defun match-buffers (condition &optional buffers arg)
+  "Return a list of buffers that match CONDITION.
+See `buffer-match' for details on CONDITION.  By default all
+buffers are checked, this can be restricted by passing an
+optional argument BUFFERS, set to a list of buffers to check.
+ARG is passed to `buffer-match', for predicate conditions in
+CONDITION."
+  (let (bufs)
+    (dolist (buf (or buffers (buffer-list)))
+      (when (buffer-match-p condition (get-buffer buf) arg)
+        (push buf bufs)))
+    bufs))
+
 ;;; subr.el ends here
