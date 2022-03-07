@@ -113,11 +113,17 @@ a directory's name.
 @findex dired-jump-other-window
 @kindex C-x C-j
 @kindex C-x 4 C-j
-  Typing @kbd{C-x C-j} (@code{dired-jump}) in any buffer will open a
-Dired buffer and move point to the line corresponding to the current
-file.  In Dired, move up a level and go to the previous directory's
-line.  Typing @kbd{C-x 4 C-j} (@code{dired-jump-other-window} has the
-same effect but opens a new window for the Dired buffer.
+  You can ask Emacs to invoke Dired on the default-directory
+(@pxref{File Names, default-directory}) of any buffer, by typing
+@kbd{C-x C-j} (@code{dired-jump}).  If the buffer visits a file, this
+command will move point to that file's line in the Dired buffer it
+shows; otherwise, point will end up on the first file in the directory
+listing.  As an exception, if you type @kbd{C-x C-j} in a Dired
+buffer, Emacs displays the directory listing of the parent directory
+and places point on the line that corresponds to the directory where
+you invoked @code{dired-jump}.  Typing @kbd{C-x 4 C-j}
+(@code{dired-jump-other-window} has the same effect, but displays the
+Dired buffer in a new window.
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
