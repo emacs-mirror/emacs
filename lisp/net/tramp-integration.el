@@ -271,7 +271,7 @@ NAME must be equal to `tramp-current-connection'."
 	    #'tramp-compile-disable-ssh-controlmaster-options)
   (add-hook 'tramp-integration-unload-hook
 	    (lambda ()
-	      (remove-hook 'compilation-start-hook
+	      (remove-hook 'compilation-mode-hook
 			   #'tramp-compile-disable-ssh-controlmaster-options))))
 
 ;;; Default connection-local variables for Tramp.

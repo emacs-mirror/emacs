@@ -2122,10 +2122,10 @@ Also see `ignore'."
 (ert-deftest tramp-test05-expand-file-name-relative ()
   "Check `expand-file-name'."
   (skip-unless (tramp--test-enabled))
-  ;; The bugs are fixed in Emacs 28.1.
-  (skip-unless (tramp--test-emacs28-p))
   ;; Methods with a share do not expand "/path/..".
   (skip-unless (not (tramp--test-share-p)))
+  ;; The bugs are fixed in Emacs 28.1.
+  (skip-unless (tramp--test-emacs28-p))
 
   (should
    (string-equal
@@ -2226,9 +2226,12 @@ This checks also `file-name-as-directory', `file-name-directory',
 (ert-deftest tramp-test07-abbreviate-file-name ()
   "Check that Tramp abbreviates file names correctly."
   (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-emacs29-p))
   (skip-unless (not (tramp--test-ange-ftp-p)))
+  ;; `abbreviate-file-name' is supported since Emacs 29.1.
+  (skip-unless (tramp--test-emacs29-p))
 
+  ;; We must refill the cache.  `file-truename' does it.
+  (file-truename tramp-test-temporary-file-directory)
   (let* ((remote-host (file-remote-p tramp-test-temporary-file-directory))
 	 (remote-host-nohop
 	  (tramp-make-tramp-file-name (tramp-dissect-file-name remote-host)))
@@ -2261,12 +2264,12 @@ This checks also `file-name-as-directory', `file-name-directory',
     (setq home-dir (concat remote-host "/")
 	  home-dir-nohop
 	  (tramp-make-tramp-file-name (tramp-dissect-file-name home-dir)))
-    ;; The remote home directory is kept in the connection property
-    ;; "home-directory".  We fake this setting.
-    (tramp-set-connection-property tramp-test-vec "home-directory" home-dir)
+    ;; The remote home directory is kept in the connection property "~".
+    ;; We fake this setting.
+    (tramp-set-connection-property tramp-test-vec "~" (file-local-name home-dir))
     (should (equal (abbreviate-file-name (concat home-dir "foo/bar"))
 		   (concat home-dir-nohop "foo/bar")))
-    (tramp-flush-connection-property tramp-test-vec "home-directory")))
+    (tramp-flush-connection-property tramp-test-vec "~")))
 
 (ert-deftest tramp-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
@@ -6195,7 +6198,7 @@ This requires restrictions of file name syntax."
 (defun tramp--test-ange-ftp-p ()
   "Check, whether Ange-FTP is used."
   (eq
-   (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
+   (tramp-find-foreign-file-name-handler tramp-test-vec)
    'tramp-ftp-file-name-handler))
 
 (defun tramp--test-asynchronous-processes-p ()

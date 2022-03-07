@@ -229,6 +229,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    ;; `tramp-get-home-directory' performed by default-handler.
     ;; `tramp-get-remote-gid' performed by default handler.
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)

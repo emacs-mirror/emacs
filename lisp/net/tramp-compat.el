@@ -37,6 +37,7 @@
 (require 'subr-x)
 
 (declare-function tramp-error "tramp")
+(declare-function tramp-file-name-handler "tramp")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
@@ -133,8 +134,8 @@ NAME is unquoted."
       #'exec-path
     (lambda ()
       "List of directories to search programs to run in remote subprocesses."
-      (if-let ((handler (find-file-name-handler default-directory 'exec-path)))
-	  (funcall handler 'exec-path)
+      (if (tramp-tramp-file-p default-directory)
+	  (tramp-file-name-handler 'exec-path)
 	exec-path))))
 
 ;; `time-equal-p' has appeared in Emacs 27.1.

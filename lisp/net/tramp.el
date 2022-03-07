@@ -2603,7 +2603,9 @@ Must be handled by the callers."
     (when (processp (nth 0 args))
       (tramp-get-default-directory (process-buffer (nth 0 args)))))
    ;; VEC.
-   ((member operation '(tramp-get-remote-gid tramp-get-remote-uid))
+   ((member operation
+	    '(tramp-get-home-directory
+	      tramp-get-remote-gid tramp-get-remote-uid))
     (tramp-make-tramp-file-name (nth 0 args)))
    ;; Unknown file primitive.
    (t (error "Unknown file I/O primitive: %s" operation))))
@@ -3360,15 +3362,16 @@ Let-bind it when necessary.")
 	 (tramp-tolerate-tilde t)
          (home-dir
           (if (let ((non-essential t)) (tramp-connectable-p vec))
-              ;; If a connection has already been established, make
-              ;; sure the "home-directory" connection property is
-              ;; properly set.
-              (with-tramp-connection-property vec "home-directory"
-                (tramp-compat-funcall
-	         'directory-abbrev-apply
-	         (expand-file-name (tramp-make-tramp-file-name vec "~"))))
+              ;; If a connection has already been established, get the
+              ;; home directory.
+	      (tramp-get-home-directory vec)
             ;; Otherwise, just use the cached value.
-            (tramp-get-connection-property vec "home-directory" nil))))
+            (tramp-get-connection-property vec "~" nil))))
+    (when home-dir
+      (setq home-dir
+	    (tramp-compat-funcall
+	     'directory-abbrev-apply
+	     (tramp-make-tramp-file-name vec home-dir))))
     ;; If any elt of `directory-abbrev-alist' matches this name,
     ;; abbreviate accordingly.
     (setq filename (tramp-compat-funcall 'directory-abbrev-apply filename))
@@ -5366,8 +5369,8 @@ If FILENAME is remote, a file name handler is called."
     (when (and modes (not (zerop (logand modes #o2000))))
       (setq gid (file-attribute-group-id (file-attributes dir)))))
 
-  (if-let ((handler (find-file-name-handler filename 'tramp-set-file-uid-gid)))
-      (funcall handler #'tramp-set-file-uid-gid filename uid gid)
+  (if (tramp-tramp-file-p filename)
+      (tramp-file-name-handler #'tramp-set-file-uid-gid filename uid gid)
     ;; On W32 systems, "chown" does not work.
     (unless (memq system-type '(ms-dos windows-nt))
       (let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))
@@ -5468,15 +5471,19 @@ be granted."
 		 (equal remote-gid (file-attribute-group-id file-attr))
 		 (equal unknown-id (file-attribute-group-id file-attr))))))))))))
 
+(defun tramp-get-home-directory (vec &optional user)
+  "The remote home directory for connection VEC as local file name.
+If USER is a string, return its home directory instead of the
+user identified by VEC.  If there is no user specified in either
+VEC or USER, or if there is no home directory, return nil."
+  (with-tramp-connection-property vec (concat "~" user)
+    (tramp-file-name-handler #'tramp-get-home-directory vec user)))
+
 (defun tramp-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
   (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (or (when-let
-	    ((handler
-	      (find-file-name-handler
-	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
-	  (funcall handler #'tramp-get-remote-uid vec id-format))
+    (or (tramp-file-name-handler #'tramp-get-remote-uid vec id-format)
 	;; Ensure there is a valid result.
 	(and (equal id-format 'integer) tramp-unknown-id-integer)
 	(and (equal id-format 'string) tramp-unknown-id-string))))
@@ -5485,11 +5492,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
   (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (or (when-let
-	    ((handler
-	      (find-file-name-handler
-	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-gid)))
-	  (funcall handler #'tramp-get-remote-gid vec id-format))
+    (or (tramp-file-name-handler #'tramp-get-remote-gid vec id-format)
 	;; Ensure there is a valid result.
 	(and (equal id-format 'integer) tramp-unknown-id-integer)
 	(and (equal id-format 'string) tramp-unknown-id-string))))
@@ -5755,8 +5758,8 @@ Consults the auth-source package."
 	 ;; adapt `default-directory'.  (Bug#39389, Bug#39489)
 	 (default-directory tramp-compat-temporary-file-directory)
 	 (case-fold-search t)
-         ;; In tramp-sh.el, we must use "password-vector" due to
-         ;; multi-hop.
+	 ;; In tramp-sh.el, we must use "password-vector" due to
+	 ;; multi-hop.
 	 (vec (tramp-get-connection-property
 	       proc "password-vector" (process-get proc 'vector)))
 	 (key (tramp-make-tramp-file-name vec 'noloc))
@@ -5941,8 +5944,8 @@ name of a process or buffer, or nil to default to the current buffer."
 
 (defun tramp-get-remote-null-device (vec)
   "Return null device on the remote host identified by VEC.
-If VEC is nil or `tramp-null-hop', return local null device."
-  (if (or (null vec) (equal vec tramp-null-hop))
+If VEC is `tramp-null-hop', return local null device."
+  (if (equal vec tramp-null-hop)
       null-device
     (with-tramp-connection-property vec "null-device"
       (let ((default-directory (tramp-make-tramp-file-name vec)))

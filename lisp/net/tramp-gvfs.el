@@ -816,6 +816,7 @@ It has been changed in GVFS 1.14.")
     (start-file-process . ignore)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-home-directory . tramp-gvfs-handle-get-home-directory)
     (tramp-get-remote-gid . tramp-gvfs-handle-get-remote-gid)
     (tramp-get-remote-uid . tramp-gvfs-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-gvfs-handle-set-file-uid-gid)
@@ -1139,18 +1140,14 @@ file names."
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
       ;; If there is a default location, expand tilde.
-      (when (string-match "\\`\\(~\\)\\(/\\|\\'\\)" localname)
-	(save-match-data
-	  (tramp-gvfs-maybe-open-connection
-	   (make-tramp-file-name
-	    :method method :user user :domain domain
-	    :host host :port port :localname "/" :hop hop)))
-	(unless (string-empty-p
-		 (tramp-get-connection-property v "default-location" ""))
-	  (setq localname
-		(replace-match
-		 (tramp-get-connection-property v "default-location" "~")
-		 nil t localname 1))))
+      (when (string-match "\\`~\\([^/]*\\)\\(.*\\)\\'" localname)
+	(let ((uname (match-string 1 localname))
+	      (fname (match-string 2 localname))
+	      hname)
+	  (when (zerop (length uname))
+	    (setq uname user))
+	  (when (setq hname (tramp-get-home-directory v uname))
+	    (setq localname (concat hname fname)))))
       ;; Tilde expansion is not possible.
       (when (and (not tramp-tolerate-tilde)
 		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
@@ -1600,6 +1597,17 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		   (tramp-compat-time-equal-p time tramp-time-dont-know))
 	       nil
 	     time)))))
+
+(defun tramp-gvfs-handle-get-home-directory (vec &optional _user)
+  "The remote home directory for connection VEC as local file name.
+If USER is a string, return its home directory instead of the
+user identified by VEC.  If there is no user specified in either
+VEC or USER, or if there is no home directory, return nil."
+  (let ((localname
+	 (tramp-get-connection-property vec "default-location" nil)))
+    (if (zerop (length localname))
+	(tramp-get-connection-property (tramp-get-process vec) "share" nil)
+      localname)))
 
 (defun tramp-gvfs-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.

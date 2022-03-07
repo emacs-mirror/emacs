@@ -294,6 +294,7 @@ See `tramp-actions-before-shell' for more info.")
     (start-file-process . tramp-smb-handle-start-file-process)
     (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-home-directory . tramp-smb-handle-get-home-directory)
     (tramp-get-remote-gid . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
@@ -745,25 +746,30 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (tramp-run-real-handler #'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
-      ;; Tilde expansion if necessary.  We use the user name as share,
-      ;; which is often the case in domains.
-      (when (string-match "\\`/?~\\([^/]*\\)" localname)
-	(setq localname
-	      (replace-match
-	       (if (zerop (length (match-string 1 localname)))
-		   user
-		 (match-string 1 localname))
-	       nil nil localname)))
-      ;; Make the file name absolute.
+      ;; Tilde expansion if necessary.
+      (when (string-match "\\`~\\([^/]*\\)\\(.*\\)\\'" localname)
+	(let ((uname (match-string 1 localname))
+	      (fname (match-string 2 localname))
+	      hname)
+	  (when (zerop (length uname))
+	    (setq uname user))
+	  (when (setq hname (tramp-get-home-directory v uname))
+	    (setq localname (concat hname fname)))))
+      ;; Tilde expansion is not possible.
+      (when (and (not tramp-tolerate-tilde)
+		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
+	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
      ;; Do not keep "/..".
       (when (string-match-p "^/\\.\\.?$" localname)
 	(setq localname "/"))
-      ;; No tilde characters in file name, do normal
-      ;; `expand-file-name' (this does "/./" and "/../").
+      ;; Do normal `expand-file-name' (this does "/./" and "/../"),
+      ;; unless there are tilde characters in file name.
       (tramp-make-tramp-file-name
-       v (tramp-run-real-handler #'expand-file-name (list localname))))))
+       v (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+	     localname
+	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
 
 (defun tramp-smb-action-get-acl (proc vec)
   "Read ACL data from connection buffer."
@@ -1588,6 +1594,15 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
     (condition-case nil
 	(tramp-run-real-handler #'substitute-in-file-name (list filename))
       (error filename))))
+
+(defun tramp-smb-handle-get-home-directory (vec &optional user)
+  "The remote home directory for connection VEC as local file name.
+If USER is a string, return its home directory instead of the
+user identified by VEC.  If there is no user specified in either
+VEC or USER, or if there is no home directory, return nil."
+  (let ((user (or user (tramp-file-name-user vec))))
+    (unless (zerop (length user))
+      (concat "/" user))))
 
 (defun tramp-smb-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
