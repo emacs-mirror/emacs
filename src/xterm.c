@@ -3878,10 +3878,6 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 			    * ((color->blue >> 8) - (cells[x].blue >> 8))));
 	  if (trial_delta < nearest_delta)
 	    {
-	      temp.red = cells[x].red;
-	      temp.green = cells[x].green;
-	      temp.blue = cells[x].blue;
-
 	      nearest = x;
 	      nearest_delta = trial_delta;
 	    }
