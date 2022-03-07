@@ -9635,15 +9635,19 @@ x_scroll_bar_clear (struct frame *f)
     for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
 	 bar = XSCROLL_BAR (bar)->next)
       {
-#ifndef HAVE_XDBE
-	XClearArea (FRAME_X_DISPLAY (f),
-		    XSCROLL_BAR (bar)->x_window,
-		    0, 0, 0, 0, True);
-#else
-	XFillRectangle (FRAME_X_DISPLAY (f),
-			XSCROLL_BAR (bar)->x_drawable,
-			gc, 0, 0, XSCROLL_BAR (bar)->width,
-			XSCROLL_BAR (bar)->height);
+#ifdef HAVE_XDBE
+	if (XSCROLL_BAR (bar)->x_window
+	    == XSCROLL_BAR (bar)->x_drawable)
+#endif
+	  XClearArea (FRAME_X_DISPLAY (f),
+		      XSCROLL_BAR (bar)->x_window,
+		      0, 0, 0, 0, True);
+#ifdef HAVE_XDBE
+	else
+	  XFillRectangle (FRAME_X_DISPLAY (f),
+			  XSCROLL_BAR (bar)->x_drawable,
+			  gc, 0, 0, XSCROLL_BAR (bar)->width,
+			  XSCROLL_BAR (bar)->height);
 #endif
       }
 
