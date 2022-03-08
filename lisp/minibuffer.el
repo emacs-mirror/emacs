@@ -2205,6 +2205,19 @@ variables.")
                (equal pre-msg (and exit-fun (current-message))))
       (completion--message message))))
 
+(defcustom completions-max-height nil
+  "Maximum height for *Completions* buffer."
+  :type 'natnum
+  :version "29.1")
+
+(defun completions--fit-window-to-buffer (&optional win &rest _)
+  "Resize completions."
+  (if temp-buffer-resize-mode
+      (let ((temp-buffer-max-height (or completions-max-height
+                                        temp-buffer-max-height)))
+        (resize-temp-buffer-window win))
+    (fit-window-to-buffer win completions-max-height)))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2268,9 +2281,7 @@ variables.")
              ,(if (eq (selected-window) (minibuffer-window))
                   'display-buffer-at-bottom
                 'display-buffer-below-selected))
-            ,(if temp-buffer-resize-mode
-                 '(window-height . resize-temp-buffer-window)
-               '(window-height . fit-window-to-buffer))
+            (window-height . completions--fit-window-to-buffer)
             ,(when temp-buffer-resize-mode
                '(preserve-size . (nil . t)))
             (body-function

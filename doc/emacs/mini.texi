@@ -658,6 +658,13 @@ changed by changing the @code{completions-format} user option.  If
 @code{vertical}, sort the completions vertically in columns instead,
 and if @code{one-column}, just use a single column.
 
+@vindex completions-max-height
+  When @code{completions-max-height} is non-@code{nil} it limits the
+size of the completions window. It is specified in lines and include
+mode, header line and a bottom divider, if any.  For a more complex
+control of the Completion window display properties you can use
+@code{display-buffer-alist} (@pxref{Buffer Display Action Alists}).
+
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history
