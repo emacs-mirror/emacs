@@ -13988,7 +13988,9 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
 
 #elif defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
 	  /* This allocates too many colors.  */
-	  if (FRAME_X_VISUAL_INFO (f)->class == TrueColor
+	  if ((FRAME_X_VISUAL_INFO (f)->class == TrueColor
+	       || FRAME_X_VISUAL_INFO (f)->class == StaticColor
+	       || FRAME_X_VISUAL_INFO (f)->class == StaticGray)
 	      /* That pixmap needs about 240 colors, and we should
 		 also leave some more space for other colors as
 		 well.  */
