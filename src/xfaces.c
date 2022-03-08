@@ -475,7 +475,7 @@ x_free_colors (struct frame *f, unsigned long *pixels, int npixels)
 {
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
-  if (x_mutable_colormap (FRAME_X_VISUAL (f)))
+  if (x_mutable_colormap (FRAME_X_VISUAL_INFO (f)))
     {
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);
@@ -500,7 +500,7 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
-  if (x_mutable_colormap (dpyinfo->visual))
+  if (x_mutable_colormap (&dpyinfo->visual_info))
     {
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);

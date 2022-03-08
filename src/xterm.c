@@ -4010,7 +4010,7 @@ x_copy_color (struct frame *f, unsigned long pixel)
      necessary and some servers don't allow it.  Since we won't free a
      color once we've allocated it, we don't need to re-allocate it to
      maintain the server's reference count.  */
-  if (!x_mutable_colormap (FRAME_X_VISUAL (f)))
+  if (!x_mutable_colormap (FRAME_X_VISUAL_INFO (f)))
     return pixel;
 
   color.pixel = pixel;

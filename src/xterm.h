@@ -1381,7 +1381,7 @@ x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
    also allows us to make other optimizations relating to server-side
    reference counts.  */
 INLINE bool
-x_mutable_colormap (Visual *visual)
+x_mutable_colormap (XVisualInfo *visual)
 {
   int class = visual->class;
   return (class != StaticColor && class != StaticGray && class != TrueColor);
