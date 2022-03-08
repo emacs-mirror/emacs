@@ -394,11 +394,17 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
   `(iter-defun ,name ,@(cl--transform-lambda (cons args body) name)))
 
 ;; The lambda list for macros is different from that of normal lambdas.
-;; Note that &environment is only allowed as first or last items in the
+
+;; `cl-macro-list' is shared between a few different use cases that
+;; don't all support exactly the same set of special keywords: the
+;; debug spec accepts hence a superset of what the macros
+;; actually support.
+;; For example &environment is only allowed as first or last items in the
 ;; top level list.
 
 (def-edebug-elem-spec 'cl-macro-list
-  '(([&optional "&environment" arg]
+  '(([&optional "&whole" arg] ; Only for compiler-macros or at lower levels.
+     [&optional "&environment" arg]     ; Only at top-level.
      [&rest cl-macro-arg]
      [&optional ["&optional" &rest
 		 &or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
@@ -410,26 +416,12 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 		 &optional "&allow-other-keys"]]
      [&optional ["&aux" &rest
 		 &or (cl-macro-arg &optional def-form) arg]]
-     [&optional "&environment" arg]
+     [&optional "&environment" arg]     ; Only at top-level.
+     . [&or arg nil]                    ; Only allowed at lower levels.
      )))
 
 (def-edebug-elem-spec 'cl-macro-arg
-  '(&or arg cl-macro-list1))
-
-(def-edebug-elem-spec 'cl-macro-list1
-  '(([&optional "&whole" arg] ;; only allowed at lower levels
-     [&rest cl-macro-arg]
-     [&optional ["&optional" &rest
-		 &or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
-     [&optional [[&or "&rest" "&body"] cl-macro-arg]]
-     [&optional ["&key" [&rest
-			 [&or ([&or (symbolp cl-macro-arg) arg]
-			       &optional def-form cl-macro-arg)
-			      arg]]
-		 &optional "&allow-other-keys"]]
-     [&optional ["&aux" &rest
-		 &or (cl-macro-arg &optional def-form) arg]]
-     . [&or arg nil])))
+  '(&or arg cl-macro-list))
 
 ;;;###autoload
 (defmacro cl-defmacro (name args &rest body)
@@ -692,7 +684,7 @@ its argument list allows full Common Lisp conventions."
 (defmacro cl-destructuring-bind (args expr &rest body)
   "Bind the variables in ARGS to the result of EXPR and execute BODY."
   (declare (indent 2)
-           (debug (&define cl-macro-list1 def-form cl-declarations def-body)))
+           (debug (&define cl-macro-list def-form cl-declarations def-body)))
   (let* ((cl--bind-lets nil)
          (cl--bind-forms nil)
 	 (cl--bind-defs nil)
@@ -3489,10 +3481,6 @@ omitted, a default message listing FORM itself is used."
 
 ;;; Compiler macros.
 
-(def-edebug-elem-spec 'cl-define-compiler-macro-list
-  `(([&optional "&whole" arg]
-     ,@(car (get 'cl-macro-list 'edebug-elem-spec)))))
-
 ;;;###autoload
 (defmacro cl-define-compiler-macro (func args &rest body)
   "Define a compiler-only macro.
@@ -3506,7 +3494,7 @@ possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
   ;; Like `cl-defmacro', but with the `&whole' special case.
-  (declare (debug (&define name cl-define-compiler-macro-list
+  (declare (debug (&define name cl-macro-list
                            cl-declarations-or-string def-body))
            (indent 2))
   (let ((p args) (res nil))
