@@ -6480,7 +6480,8 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 #ifdef HAVE_XINPUT2
     case GenericEvent:
       {
-	XIEvent *xi_event = (XIEvent *) event->xcookie.data;
+	XIEvent *xi_event = event->xcookie.data;
+	XIEnterEvent *enter_or_focus = event->xcookie.data;
 
         struct frame *focus_frame = dpyinfo->x_focus_event_frame;
         int focus_state
@@ -6490,13 +6491,14 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 	    || xi_event->evtype == XI_FocusOut)
 	  x_focus_changed ((xi_event->evtype == XI_FocusIn
 			    ? FocusIn : FocusOut),
-			   FOCUS_EXPLICIT,
-			   dpyinfo, frame, bufp);
+			   ((enter_or_focus->detail
+			     == XINotifyPointer)
+			    ? FOCUS_IMPLICIT : FOCUS_EXPLICIT),
+			     dpyinfo, frame, bufp);
 	else if ((xi_event->evtype == XI_Enter
 		  || xi_event->evtype == XI_Leave)
-		 && (((XIEnterEvent *) xi_event)->detail
-		     != XINotifyInferior)
-		 && ((XIEnterEvent *) xi_event)->focus
+		 && (enter_or_focus->detail != XINotifyInferior)
+		 && enter_or_focus->focus
 		 && !(focus_state & FOCUS_EXPLICIT))
 	  x_focus_changed ((xi_event->evtype == XI_Enter
 			    ? FocusIn : FocusOut),
