@@ -3858,10 +3858,12 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
       Status status;
       bool retry = false;
       int ncolor_cells, i;
+      bool temp_allocated;
+      XColor temp;
 
     start:
-
       cells = x_color_cells (dpy, &no_cells);
+      temp_allocated = false;
 
       nearest = 0;
       /* I'm assuming CSE so I'm not going to condense this. */
@@ -3881,16 +3883,39 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 			    * ((color->blue >> 8) - (cells[x].blue >> 8))));
 	  if (trial_delta < nearest_delta)
 	    {
-	      nearest = x;
-	      nearest_delta = trial_delta;
+	      /* We didn't decide to use this color, so free it.  */
+	      if (temp_allocated)
+		{
+		  XFreeColors (dpy, cmap, &temp.pixel, 1, 0);
+		  temp_allocated = false;
+		}
+
+	      temp.red = cells[x].red;
+	      temp.green = cells[x].green;
+	      temp.blue = cells[x].blue;
+	      status = XAllocColor (dpy, cmap, &temp);
+
+	      if (status)
+		{
+		  temp_allocated = true;
+		  nearest = x;
+		  nearest_delta = trial_delta;
+		}
 	    }
 	}
       color->red = cells[nearest].red;
       color->green = cells[nearest].green;
       color->blue = cells[nearest].blue;
-      status = XAllocColor (dpy, cmap, color);
 
-      if (status != 0 && !retry)
+      if (!temp_allocated)
+	status = XAllocColor (dpy, cmap, color);
+      else
+	{
+	  *color = temp;
+	  status = 1;
+	}
+
+      if (status == 0 && !retry)
 	{
 	  /* Our private cache of color cells is probably out of date.
 	     Refresh it here, and try to allocate the nearest color
