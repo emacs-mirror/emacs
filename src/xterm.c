@@ -12740,7 +12740,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
 			{
-			  if (xkey.keycode == dpyinfo->modmap->modifiermap[xev->detail])
+			  if (xev->detail == dpyinfo->modmap->modifiermap[i])
 			    goto xi_done_keysym;
 			}
 		    }
