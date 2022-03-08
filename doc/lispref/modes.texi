@@ -3204,7 +3204,9 @@ Non-@code{nil} means that regular expression matching for the sake of
 
   You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
-@code{font-lock-remove-keywords} to remove rules.
+@code{font-lock-remove-keywords} to remove rules.  You can also set
+the @code{font-lock-ignore} variable to disable keywords that match
+certain criteria.
 
 @defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer
@@ -3273,6 +3275,86 @@ mode @emph{and} all modes derived from it, do this instead:
      ("\\<\\(and\\|or\\|not\\)\\>" .
       font-lock-keyword-face)))))
 @end smallexample
+
+@defvar font-lock-ignore
+This variable contains rules to selectively disable Font Lock
+keywords.  It is a list with elements of the following form:
+
+@example
+(@var{mode} @var{rule} @dots{})
+@end example
+
+Here, @var{mode} is a symbol, say a major or minor mode.  The
+subsequent rules apply if the current major mode is derived from
+@var{mode} or @var{mode} is bound and true as a variable.  Each
+@var{rule} can be one of the following:
+
+@table @code
+@cindex @var{font-lock-ignore} rules
+@item @var{symbol}
+A symbol, say a face name, matches any Font Lock keyword containing
+the symbol in its definition.  The symbol is interpreted as a glob
+pattern; in particular, @code{*} matches everything.
+
+@item @var{string}
+A string matches any font-lock keyword defined by a regexp that
+matches the string.
+
+@item (pred @var{function})
+A rule of this form matches if @var{function}, called with the
+Font Lock keyword as argument, returns non-@code{nil}.
+
+@item (not @var{rule})
+A rule of this form matches if @var{rule} doesn’t.
+
+@item (and @var{rule} @dots{})
+A rule of this form matches if each @var{rule} matches.
+
+@item (or @var{rule} @dots{})
+A rule of this form matches if some @var{rule} matches.
+
+@item (except @var{rule})
+A rule of this form can only be used at top level or inside an
+@code{or} clause.  It undoes the effect of a previously matching rule.
+@end table
+
+In each buffer, Font Lock keywords that match at least one applicable
+rule are disabled.
+@end defvar
+
+As an example, consider the following setting:
+
+@smallexample
+(setq font-lock-ignore
+      '((prog-mode font-lock-*-face
+                   (except help-echo))
+        (emacs-lisp-mode (except ";;;###autoload)")
+        (whitespace-mode whitespace-empty-at-bob-regexp)
+        (makefile-mode (except *))))
+@end smallexample
+
+Line by line, this does the following:
+
+@enumerate
+@item
+In all programming modes, disable all font-lock keywords that apply
+one of the standard font-lock faces (excluding strings and comments,
+which are covered by syntactic Font Lock).
+
+@item
+However, keep any keywords that add a @code{help-echo} text property.
+
+@item
+In Emacs Lisp mode, also keep the highlighting of autoload cookies,
+which would have been excluded by rule 1.
+
+@item
+In @code{whitespace-mode} (a minor mode), don't highlight an empty
+line at beginning of buffer.
+
+@item
+Finally, in Makefile mode, don't apply any ignore rules.
+@end enumerate
 
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables

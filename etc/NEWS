@@ -1130,6 +1130,11 @@ support for pipelines which will move a lot of data.  See section
 ** Miscellaneous
 
 +++
+*** New user option 'font-lock-ignore'.
+This variable provides a mechanism to selectively disable font-lock
+keywords.
+
++++
 *** New package vtable.el for formatting tabular data.
 This package allows formatting data using variable-pitch fonts.
 The resulting tables can display text in variable pitch fonts, text
