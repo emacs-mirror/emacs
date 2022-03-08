@@ -5131,14 +5131,17 @@ If omitted or nil, that stands for the selected frame's display.
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  int nr_planes = DisplayPlanes (dpyinfo->display,
-                                 XScreenNumberOfScreen (dpyinfo->screen));
+  if (dpyinfo->visual_info.class != TrueColor
+      && dpyinfo->visual_info.class != DirectColor)
+    return make_fixnum (dpyinfo->visual_info.colormap_size);
 
-  /* Truncate nr_planes to 24 to avoid integer overflow.
-     Some displays says 32, but only 24 bits are actually significant.
+  int nr_planes = dpyinfo->n_planes;
+
+  /* Truncate nr_planes to 24 to avoid integer overflow.  Some
+     displays says 32, but only 24 bits are actually significant.
      There are only very few and rare video cards that have more than
-     24 significant bits.  Also 24 bits is more than 16 million colors,
-     it "should be enough for everyone".  */
+     24 significant bits.  Also 24 bits is more than 16 million
+     colors, it "should be enough for everyone".  */
   if (nr_planes > 24) nr_planes = 24;
 
   return make_fixnum (1 << nr_planes);
