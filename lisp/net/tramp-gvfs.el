@@ -1604,10 +1604,20 @@ If USER is a string, return its home directory instead of the
 user identified by VEC.  If there is no user specified in either
 VEC or USER, or if there is no home directory, return nil."
   (let ((localname
-	 (tramp-get-connection-property vec "default-location" nil)))
-    (if (zerop (length localname))
-	(tramp-get-connection-property (tramp-get-process vec) "share" nil)
-      localname)))
+	 (tramp-get-connection-property vec "default-location" nil))
+	result)
+    (cond
+     ((zerop (length localname))
+      (tramp-get-connection-property (tramp-get-process vec) "share" nil))
+     ;; Google-drive.
+     ((not (string-prefix-p "/" localname))
+      (dolist (item
+	       (tramp-gvfs-get-directory-attributes
+		(tramp-make-tramp-file-name vec "/"))
+	       result)
+	(when (string-equal (cdr (assoc "name" item)) localname)
+	  (setq result (concat "/" (car item))))))
+     (t localname))))
 
 (defun tramp-gvfs-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
