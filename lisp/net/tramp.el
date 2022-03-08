@@ -185,7 +185,7 @@ See the variable `tramp-encoding-shell' for more information."
 
 ;; Since Emacs 26.1, `system-name' can return nil at build time if
 ;; Emacs is compiled with "--no-build-details".  We do expect it to be
-;; a string.  (Bug#44481)
+;; a string.  (Bug#44481, Bug#54294)
 (defconst tramp-system-name (or (system-name) "")
   "The system name Tramp is running locally.")
 
@@ -4021,7 +4021,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	     (match (string-match tramp-lock-file-info-regexp info)))
     (or ; Locked by me.
         (and (string-equal (match-string 1 info) (user-login-name))
-	     (string-equal (match-string 2 info) (system-name))
+	     (string-equal (match-string 2 info) tramp-system-name)
 	     (string-equal (match-string 3 info) (tramp-get-lock-pid file)))
 	; User name.
 	(match-string 1 info))))
@@ -4052,7 +4052,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	         ;; USER@HOST.PID[:BOOT_TIME]
 	         (info
 	          (format
-	           "%s@%s.%s" (user-login-name) (system-name)
+	           "%s@%s.%s" (user-login-name) tramp-system-name
 	           (tramp-get-lock-pid file))))
 
 	;; Protect against security hole.
