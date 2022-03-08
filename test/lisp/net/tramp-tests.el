@@ -6917,7 +6917,9 @@ This is needed in timer functions as well as process filters and sentinels."
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
   :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		(and (getenv "EMACS_HYDRA_CI") '(:unstable)))
+		(and (or (getenv "EMACS_HYDRA_CI")
+                         (getenv "EMACS_EMBA_CI"))
+                     '(:unstable)))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
