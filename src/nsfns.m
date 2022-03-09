@@ -1503,7 +1503,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 	  [frame_window cascadeTopLeftFromPoint: top_left];
 	}
       else
-	[main_window center];
+	[frame_window center];
     }
 
   /* Make sure windows on this frame appear in calls to next-window
