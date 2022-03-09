@@ -1221,7 +1221,7 @@ static void
 haiku_update_end (struct frame *f)
 {
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
-  flush_frame (f);
+  BWindow_Flush (FRAME_HAIKU_WINDOW (f));
 }
 
 static void
@@ -2287,7 +2287,6 @@ haiku_set_vertical_scroll_bar (struct window *w,
 				   bar->width, bar->height);
 	  BView_move_frame (bar->scroll_bar, left, top,
 			    left + width - 1, top + height - 1);
-	  flush_frame (WINDOW_XFRAME (w));
 	  BView_publish_scroll_bar (view, left, top, width, height);
 	  bar->left = left;
 	  bar->top = top;
@@ -2515,7 +2514,7 @@ haiku_flush (struct frame *f)
 {
   /* This is needed for tooltip frames to work properly with double
      buffering.  */
-  if (FRAME_DIRTY_P (f))
+  if (FRAME_DIRTY_P (f) && FRAME_TOOLTIP_P (f))
     haiku_flip_buffers (f);
 
   if (FRAME_VISIBLE_P (f) && !FRAME_TOOLTIP_P (f))
