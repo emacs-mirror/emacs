@@ -919,6 +919,9 @@ static void
 x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   struct frame *p = NULL;
+#ifdef HAVE_GTK3
+  GdkWindow *window;
+#endif
 
   if (!NILP (new_value)
       && (!FRAMEP (new_value)
@@ -941,6 +944,14 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	gtk_container_set_resize_mode
 	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
 	   p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+#endif
+
+#ifdef HAVE_GTK3
+      if (p)
+	{
+	  window = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+	  gdk_x11_window_set_frame_sync_enabled (window, false);
+	}
 #endif
       unblock_input ();
 
