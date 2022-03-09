@@ -1089,15 +1089,91 @@ the result of @var{expr} is not a string or a sequence.
 
 @node Globbing
 @section Globbing
-Eshell's globbing syntax is very similar to that of Zsh.  Users coming
-from Bash can still use Bash-style globbing, as there are no
-incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  @xref{Filename Generation, , ,
-zsh, The Z Shell Manual},
-for full syntax.  To customize the syntax and behavior of globbing in
-Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
-The GNU Emacs Manual}.}
-groups ``eshell-glob'' and ``eshell-pred''.
+@vindex eshell-glob-case-insensitive
+Eshell's globbing syntax is very similar to that of Zsh
+(@pxref{Filename Generation, , , zsh, The Z Shell Manual}).  Users
+coming from Bash can still use Bash-style globbing, as there are no
+incompatibilities.
+
+By default, globs are case sensitive, except on MS-DOS/MS-Windows
+systems.  You can control this behavior via the
+@code{eshell-glob-case-insensitive} option.  You can further customize
+the syntax and behavior of globbing in Eshell via the Customize group
+``eshell-glob'' (@pxref{Easy Customization, , , emacs, The GNU Emacs
+Manual}).
+
+@table @samp
+
+@item *
+Matches any string (including the empty string).  For example,
+@samp{*.el} matches any file with the @file{.el} extension.
+
+@item ?
+Matches any single character.  For example, @samp{?at} matches
+@file{cat} and @file{bat}, but not @file{goat}.
+
+@item **/
+Matches zero or more subdirectories in a file name.  For example,
+@samp{**/foo.el} matches @file{foo.el}, @file{bar/foo.el},
+@file{bar/baz/foo.el}, etc.  Note that this cannot be combined with
+any other patterns in the same file name segment, so while
+@samp{foo/**/bar.el} is allowed, @samp{foo**/bar.el} is not.
+
+@item ***/
+Like @samp{**/}, but follows symlinks as well.
+
+@cindex character sets, in Eshell glob patterns
+@cindex character classes, in Eshell glob patterns
+@item [ @dots{} ]
+Defines a @dfn{character set} (@pxref{Regexps, , , emacs, The GNU
+Emacs Manual}).  A character set matches characters between the two
+brackets; for example, @samp{[ad]} matches @file{a} and @file{d}.  You
+can also include ranges of characters in the set by separating the
+start and end with @samp{-}.  Thus, @samp{[a-z]} matches any
+lower-case @acronym{ASCII} letter.  Note that, unlike in Zsh,
+character ranges are interpreted in the Unicode codepoint order, not
+in the locale-dependent collation order.
+
+Additionally, you can include @dfn{character classes} in a character
+set.  A @samp{[:} and balancing @samp{:]} enclose a character class
+inside a character set.  For instance, @samp{[[:alnum:]]}
+matches any letter or digit.  @xref{Char Classes, , , elisp, The Emacs
+Lisp Reference Manual}, for a list of character classes.
+
+@cindex complemented character sets, in Eshell glob patterns
+@item [^ @dots{} ]
+Defines a @dfn{complemented character set}.  This behaves just like a
+character set, but matches any character @emph{except} the ones
+specified.
+
+@cindex groups, in Eshell glob patterns
+@item ( @dots{} )
+Defines a @dfn{group}.  A group matches the pattern between @samp{(}
+and @samp{)}.  Note that a group can only match a single file name
+component, so a @samp{/} inside a group will signal an error.
+
+@item @var{x}|@var{y}
+Inside of a group, matches either @var{x} or @var{y}.  For example,
+@samp{e(m|sh)-*} matches any file beginning with @file{em-} or
+@file{esh-}.
+
+@item @var{x}#
+Matches zero or more copies of the glob pattern @var{x}.  For example,
+@samp{fo#.el} matches @file{f.el}, @file{fo.el}, @file{foo.el}, etc.
+
+@item @var{x}##
+Matches one or more copies of the glob pattern @var{x}.  Thus,
+@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+etc.
+
+@item @var{x}~@var{y}
+Matches anything that matches the pattern @var{x} but not @var{y}. For
+example, @samp{[[:digit:]]#~4?} matches @file{1} and @file{12}, but
+not @file{42}.  Note that unlike in Zsh, only a single @samp{~}
+operator can be used in a pattern, and it cannot be inside of a group
+like @samp{(@var{x}~@var{y})}.
+
+@end table
 
 @node Input/Output
 @chapter Input/Output

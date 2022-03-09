@@ -233,7 +233,10 @@ resulting regular expression."
 	    "\\'")))
 
 (defun eshell-extended-glob (glob)
-  "Return a list of files generated from GLOB, perhaps looking for DIRS-ONLY.
+  "Return a list of files matched by GLOB.
+If no files match, signal an error (if `eshell-error-if-no-glob'
+is non-nil), or otherwise return GLOB itself.
+
 This function almost fully supports zsh style filename generation
 syntax.  Things that are not supported are:
 
@@ -243,12 +246,7 @@ syntax.  Things that are not supported are:
    foo~x(a|b)  (a|b) will be interpreted as a predicate/modifier list
 
 Mainly they are not supported because file matching is done with Emacs
-regular expressions, and these cannot support the above constructs.
-
-If this routine fails, it returns nil.  Otherwise, it returns a list
-the form:
-
-   (INCLUDE-REGEXP EXCLUDE-REGEXP (PRED-FUNC-LIST) (MOD-FUNC-LIST))"
+regular expressions, and these cannot support the above constructs."
   (let ((paths (eshell-split-path glob))
         eshell-glob-matches message-shown)
     (unwind-protect
@@ -287,7 +285,7 @@ the form:
 		   glob (car globs)
 		   len (length glob)))))
     (if (and recurse-p (not glob))
-	(error "`**' cannot end a globbing pattern"))
+	(error "`**/' cannot end a globbing pattern"))
     (let ((index 1))
       (setq incl glob)
       (while (and (eq incl glob)
