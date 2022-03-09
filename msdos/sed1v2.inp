@@ -50,6 +50,7 @@ s/\.h\.in/.h-in/
 /^LIB_ACL *=/s/@LIB_ACL@//
 /^LIB_EACCESS *=/s/@LIB_EACCESS@//
 /^LIB_FDATASYNC *=/s/@LIB_FDATASYNC@//
+/^LIB_NANOSLEEP *=/s/@LIB_NANOSLEEP@//
 s/ *@LIBTIFF@//
 s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
