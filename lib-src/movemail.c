@@ -69,6 +69,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <string.h>
 
+#include <attribute.h>
 #include <unlocked-io.h>
 
 #include "syswait.h"

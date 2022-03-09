@@ -24,7 +24,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
-#include "unlocked-io.h"
+
+#include <attribute.h>
+#include <unlocked-io.h>
 
 extern FILE *emacs_fopen (char const *, char const *) ATTRIBUTE_MALLOC;
 extern void errputc (int);

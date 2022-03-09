@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <assert.h>
 #include <getopt.h>
 
+#include <attribute.h>
 #include <flexmember.h>
 #include <min-max.h>
 #include <unlocked-io.h>

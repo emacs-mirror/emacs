@@ -80,6 +80,7 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <attribute.h>
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>

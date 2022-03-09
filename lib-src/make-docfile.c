@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <string.h>
 
+#include <attribute.h>
 #include <binary-io.h>
 #include <c-ctype.h>
 #include <intprops.h>

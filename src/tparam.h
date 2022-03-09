@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_TPARAM_H
 #define EMACS_TPARAM_H
 
+#include <attribute.h>
+
 /* Don't try to include termcap.h.  On some systems, configure finds a
    non-standard termcap.h that the main build won't find.  */
 

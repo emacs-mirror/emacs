@@ -112,6 +112,7 @@ University of California, as described above. */
 # define O_CLOEXEC O_NOINHERIT
 #endif /* WINDOWSNT */
 
+#include <attribute.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <unistd.h>

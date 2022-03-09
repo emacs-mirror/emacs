@@ -59,7 +59,8 @@ variants of those files that can be used to sandbox Emacs before
 #include <seccomp.h>
 #include <unistd.h>
 
-#include "verify.h"
+#include <attribute.h>
+#include <verify.h>
 
 #ifndef ARCH_CET_STATUS
 #define ARCH_CET_STATUS 0x3001

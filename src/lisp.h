@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <inttypes.h>
 #include <limits.h>
 
+#include <attribute.h>
 #include <intprops.h>
 #include <verify.h>
 

@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 
+#include <attribute.h>
+
 #ifdef THREADS_ENABLED
 
 #ifdef HAVE_PTHREAD
