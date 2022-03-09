@@ -744,7 +744,7 @@ extern "C"
 	     void (*run_help_callback) (void *, void *),
 	     void (*block_input_function) (void),
 	     void (*unblock_input_function) (void),
-	     void (*process_pending_signals_function) (void),
+	     struct timespec (*process_pending_signals_function) (void),
 	     void *run_help_callback_data);
 
   extern void

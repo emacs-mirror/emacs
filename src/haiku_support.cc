@@ -2697,7 +2697,7 @@ BMenu_run (void *menu, int x, int y,
 	   void (*run_help_callback) (void *, void *),
 	   void (*block_input_function) (void),
 	   void (*unblock_input_function) (void),
-	   void (*process_pending_signals_function) (void),
+	   struct timespec (*process_pending_signals_function) (void),
 	   void *run_help_callback_data)
 {
   BPopUpMenu *mn = (BPopUpMenu *) menu;
@@ -2705,10 +2705,12 @@ BMenu_run (void *menu, int x, int y,
   void *buf;
   void *ptr = NULL;
   struct be_popup_menu_data data;
-  struct object_wait_info infos[2];
+  struct object_wait_info infos[3];
   struct haiku_menu_bar_help_event *event;
   BMessage *msg;
   ssize_t stat;
+  struct timespec next_time;
+  bigtime_t timeout;
 
   block_input_function ();
   port_popup_menu_to_emacs = create_port (1800, "popup menu port");
@@ -2733,6 +2735,10 @@ BMenu_run (void *menu, int x, int y,
 				  (void *) &data);
   infos[1].type = B_OBJECT_TYPE_THREAD;
   infos[1].events = B_EVENT_INVALID;
+
+  infos[2].object = port_application_to_emacs;
+  infos[2].type = B_OBJECT_TYPE_PORT;
+  infos[2].events = B_EVENT_READ;
   unblock_input_function ();
 
   if (infos[1].object < B_OK)
@@ -2749,10 +2755,16 @@ BMenu_run (void *menu, int x, int y,
 
   while (true)
     {
-      process_pending_signals_function ();
+      next_time = process_pending_signals_function ();
 
-      if ((stat = wait_for_objects_etc ((object_wait_info *) &infos, 2,
-					B_RELATIVE_TIMEOUT, 10000)) < B_OK)
+      if (next_time.tv_nsec < 0)
+	timeout = 100000;
+      else
+	timeout = (next_time.tv_sec * 1000000
+		   + next_time.tv_nsec / 1000);
+
+      if ((stat = wait_for_objects_etc ((object_wait_info *) &infos, 3,
+					B_RELATIVE_TIMEOUT, timeout)) < B_OK)
 	{
 	  if (stat == B_INTERRUPTED || stat == B_TIMED_OUT)
 	    continue;
@@ -2792,6 +2804,7 @@ BMenu_run (void *menu, int x, int y,
 
       infos[0].events = B_EVENT_READ;
       infos[1].events = B_EVENT_INVALID;
+      infos[2].events = B_EVENT_READ;
     }
 }
 

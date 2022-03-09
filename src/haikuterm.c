@@ -2513,7 +2513,12 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 static void
 haiku_flush (struct frame *f)
 {
-  if (FRAME_VISIBLE_P (f))
+  /* This is needed for tooltip frames to work properly with double
+     buffering.  */
+  if (FRAME_DIRTY_P (f))
+    haiku_flip_buffers (f);
+
+  if (FRAME_VISIBLE_P (f) && !FRAME_TOOLTIP_P (f))
     BWindow_Flush (FRAME_HAIKU_WINDOW (f));
 }
 

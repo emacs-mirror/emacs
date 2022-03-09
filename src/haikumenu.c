@@ -340,13 +340,12 @@ haiku_menu_show_help (void *help, void *data)
     show_help_echo (Qnil, Qnil, Qnil, Qnil);
 }
 
-static void
+static struct timespec
 haiku_process_pending_signals_for_menu (void)
 {
   process_pending_signals ();
 
-  input_pending = false;
-  detect_input_pending_run_timers (true);
+  return timer_check ();
 }
 
 Lisp_Object
