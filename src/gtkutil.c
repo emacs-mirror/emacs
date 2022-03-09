@@ -6252,6 +6252,13 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   if (event->key.is_modifier)
     goto done;
 
+#ifndef HAVE_GTK3
+  /* FIXME: event->key.is_modifier is not accurate on GTK 2.  */
+
+  if (keysym >= GDK_KEY_Shift_L && keysym <= GDK_KEY_Hyper_R)
+    goto done;
+#endif
+
   /* First deal with keysyms which have defined
      translations to characters.  */
   if (keysym >= 32 && keysym < 128)
