@@ -3579,7 +3579,7 @@ setup_xi_event_mask (struct frame *f)
   mask.mask_len = l;
 
   block_input ();
-#ifndef USE_GTK
+#ifndef HAVE_GTK3
   mask.deviceid = XIAllMasterDevices;
 
   XISetMask (m, XI_ButtonPress);
@@ -3587,8 +3587,10 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_Motion);
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
+#ifndef USE_GTK
   XISetMask (m, XI_FocusIn);
   XISetMask (m, XI_FocusOut);
+#endif
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
   XISelectEvents (FRAME_X_DISPLAY (f),
@@ -3596,7 +3598,7 @@ setup_xi_event_mask (struct frame *f)
 		  &mask, 1);
 
   memset (m, 0, l);
-#endif /* !USE_GTK */
+#endif /* !HAVE_GTK3 */
 
 #ifdef USE_X_TOOLKIT
   XISetMask (m, XI_KeyPress);

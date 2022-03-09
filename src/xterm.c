@@ -10021,6 +10021,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
      being passed to XtDispatchEvent.  */
   bool use_copy = false;
   XEvent copy;
+#elif defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
+  GdkEvent *copy = NULL;
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
 #endif
 
   *finish = X_EVENT_NORMAL;
@@ -12186,6 +12189,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      x_display_set_last_user_time (dpyinfo, xev->time);
 
+#if defined USE_GTK && !defined HAVE_GTK3
+		      /* Unlike on Motif, we can't select for XI
+			 events on the scroll bar window under GTK+ 2.
+			 So instead of that, just ignore XI wheel
+			 events which land on a scroll bar.
+
+		        Here we assume anything which isn't the edit
+		        widget window is a scroll bar.  */
+
+		      if (xev->child != None
+			  && xev->child != FRAME_X_WINDOW (f))
+			goto OTHER;
+#endif
+
 		      if (fabs (total_x) > 0 || fabs (total_y) > 0)
 			{
 			  inev.ie.kind = (fabs (total_y) >= fabs (total_x)
@@ -12390,6 +12407,37 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (XIMaskIsSet (xev->buttons.mask, 3))
 		    copy.xbutton.state |= Button3Mask;
 		}
+#elif defined USE_GTK && !defined HAVE_GTK3
+	      copy = gdk_event_new (xev->evtype == XI_ButtonPress
+				    ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
+
+	      copy->button.window = gdk_x11_window_lookup_for_display (gdpy, xev->event);
+	      copy->button.send_event = xev->send_event;
+	      copy->button.time = xev->time;
+	      copy->button.x = xev->event_x;
+	      copy->button.y = xev->event_y;
+	      copy->button.x_root = xev->root_x;
+	      copy->button.y_root = xev->root_y;
+	      copy->button.state = xev->mods.effective;
+	      copy->button.button = xev->detail;
+
+	      if (xev->buttons.mask_len)
+		{
+		  if (XIMaskIsSet (xev->buttons.mask, 1))
+		    copy->button.state |= GDK_BUTTON1_MASK;
+		  if (XIMaskIsSet (xev->buttons.mask, 2))
+		    copy->button.state |= GDK_BUTTON2_MASK;
+		  if (XIMaskIsSet (xev->buttons.mask, 3))
+		    copy->button.state |= GDK_BUTTON3_MASK;
+		}
+
+	      if (!copy->button.window)
+		emacs_abort ();
+
+	      g_object_ref (copy->button.window);
+
+	      gtk_main_do_event (copy);
+	      gdk_event_free (copy);
 #endif
 
 #ifdef HAVE_XINPUT2_1

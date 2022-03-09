@@ -1527,6 +1527,23 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
       if (i == 5) i = 0;
     }
 
+#if !defined HAVE_GTK3 && defined HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->num_devices)
+    {
+      for (int i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+	{
+	  if (FRAME_DISPLAY_INFO (f)->devices[i].grab)
+	    {
+	      FRAME_DISPLAY_INFO (f)->devices[i].grab = 0;
+
+	      XIUngrabDevice (FRAME_X_DISPLAY (f),
+			      FRAME_DISPLAY_INFO (f)->devices[i].device_id,
+			      CurrentTime);
+	    }
+	}
+    }
+#endif
+
   /* Display the menu.  */
   gtk_widget_show_all (menu);
 
