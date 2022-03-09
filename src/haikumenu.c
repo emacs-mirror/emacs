@@ -508,6 +508,10 @@ set_frame_menubar (struct frame *f, bool deep_p)
   int previous_menu_items_used = f->menu_bar_items_used;
   Lisp_Object *previous_items
     = alloca (previous_menu_items_used * sizeof *previous_items);
+  int count;
+  ptrdiff_t subitems, i;
+  int *submenu_start, *submenu_end, *submenu_n_panes;
+  Lisp_Object *submenu_names;
 
   XSETFRAME (Vmenu_updating_frame, f);
 
@@ -552,6 +556,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 	 do always reinitialize them.  */
       if (first_time_p)
 	previous_menu_items_used = 0;
+
       buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
       /* Don't let the debugger step into this code
@@ -587,29 +592,23 @@ set_frame_menubar (struct frame *f, bool deep_p)
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
       save_menu_items ();
+
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      init_menu_items ();
-      int i;
-      int count = BMenu_count_items (mbar);
-      int subitems = ASIZE (items) / 4;
-
-      int *submenu_start, *submenu_end,	*submenu_n_panes;
-      Lisp_Object *submenu_names;
-
+      subitems = ASIZE (items) / 4;
       submenu_start = alloca ((subitems + 1) * sizeof *submenu_start);
       submenu_end = alloca (subitems * sizeof *submenu_end);
       submenu_n_panes = alloca (subitems * sizeof *submenu_n_panes);
       submenu_names = alloca (subitems * sizeof (Lisp_Object));
 
-      for (i = 0; i < subitems; ++i)
+      init_menu_items ();
+      for (i = 0; i < subitems; i++)
 	{
 	  Lisp_Object key, string, maps;
 
-	  key = AREF (items, i * 4);
-	  string = AREF (items, i * 4 + 1);
-	  maps = AREF (items, i * 4 + 2);
-
+	  key = AREF (items, 4 * i);
+	  string = AREF (items, 4 * i + 1);
+	  maps = AREF (items, 4 * i + 2);
 	  if (NILP (string))
 	    break;
 
@@ -617,16 +616,44 @@ set_frame_menubar (struct frame *f, bool deep_p)
 	    string = ENCODE_UTF_8 (string);
 
 	  submenu_start[i] = menu_items_used;
+
 	  menu_items_n_panes = 0;
 	  parse_single_submenu (key, string, maps);
 	  submenu_n_panes[i] = menu_items_n_panes;
+
 	  submenu_end[i] = menu_items_used;
 	  submenu_names[i] = string;
 	}
-      finish_menu_items ();
+
       submenu_start[i] = -1;
+      finish_menu_items ();
+
+      set_buffer_internal_1 (prev);
+
+      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 1;
+
+      /* If there has been no change in the Lisp-level contents
+	 of the menu bar, skip redisplaying it.  Just exit.  */
+
+      /* Compare the new menu items with the ones computed last time.  */
+      for (i = 0; i < previous_menu_items_used; i++)
+	if (menu_items_used == i
+	    || (!EQ (previous_items[i], AREF (menu_items, i))))
+	  break;
+      if (i == menu_items_used && i == previous_menu_items_used && i != 0)
+	{
+	  /* The menu items have not changed.  Don't bother updating
+	     the menus in any form, since it would be a no-op.  */
+	  discard_menu_items ();
+	  unbind_to (specpdl_count, Qnil);
+	  return;
+	}
+
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
 
       block_input ();
+      count = BMenu_count_items (mbar);
       for (i = 0; submenu_start[i] >= 0; ++i)
 	{
 	  void *mn = NULL;
@@ -642,12 +669,12 @@ set_frame_menubar (struct frame *f, bool deep_p)
 	}
       unblock_input ();
 
-      set_buffer_internal_1 (prev);
-
-      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 1;
+      /* The menu items are different, so store them in the frame.  */
       fset_menu_bar_vector (f, menu_items);
       f->menu_bar_items_used = menu_items_used;
     }
+
+  /* This undoes save_menu_items.  */
   unbind_to (specpdl_count, Qnil);
 }
 
