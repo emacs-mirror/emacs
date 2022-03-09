@@ -10947,6 +10947,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef XK_dead_semivoiced_sound
 	       || orig_keysym == XK_dead_semivoiced_sound
 #endif
+#ifdef XK_dead_hook
+	       || orig_keysym == XK_dead_hook
+#endif
+#ifdef XK_dead_horn
+	       || orig_keysym == XK_dead_horn
+#endif
+#ifdef XK_dead_stroke
+	       || orig_keysym == XK_dead_stroke
+#endif
+#ifdef XK_dead_abovecomma
+	       || orig_keysym == XK_dead_abovecomma
+#endif
 	       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 	       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 	       /* Any "vendor-specific" key is ok.  */
@@ -12976,6 +12988,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 #ifdef XK_dead_semivoiced_sound
 		       || keysym == XK_dead_semivoiced_sound
+#endif
+#ifdef XK_dead_hook
+		       || keysym == XK_dead_hook
+#endif
+#ifdef XK_dead_horn
+		       || keysym == XK_dead_horn
+#endif
+#ifdef XK_dead_stroke
+		       || keysym == XK_dead_stroke
+#endif
+#ifdef XK_dead_abovecomma
+		       || keysym == XK_dead_abovecomma
 #endif
 		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
