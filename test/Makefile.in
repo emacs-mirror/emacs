@@ -49,8 +49,6 @@ SEPCHAR = @SEPCHAR@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
-REPLACE_FREE = @REPLACE_FREE@
-
 -include ${top_builddir}/src/verbose.mk
 
 # We never change directory before running Emacs, so a relative file
@@ -265,27 +263,29 @@ endif
 
 GMP_H = @GMP_H@
 LIBGMP = @LIBGMP@
+LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+LIB_NANOSLEEP = @LIB_NANOSLEEP@
 
-MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
+MODULE_CFLAGS = $(and $(GMP_H),-I.) -I../src -I$(srcdir)/../src \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
+
+gmp.h:
+	echo '#include "$(srcdir)/../lib/mini-gmp.h"' >$@
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 
-FREE_SOURCE_0 =
-FREE_SOURCE_1 = $(srcdir)/../lib/free.c
-
 # In the compilation command, we can't use any object or archive file
 # as source because those are not compiled with -fPIC.  Therefore we
 # use only source files.
-$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h \
+  ../src/config.h $(and $(GMP_H),gmp.h)
 	$(AM_V_CCLD)${MKDIR_P} $(dir $@)
 	$(AM_V_at)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
-	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
-	  $(FREE_SOURCE_$(REPLACE_FREE)) \
-	  ../lib/libgnu.a
+	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp.c) \
+	  $(LIB_CLOCK_GETTIME) $(LIB_NANOSLEEP)
 endif
 
 src/emacs-tests.log: ../lib-src/seccomp-filter.c
@@ -345,7 +345,7 @@ clean:
 	find . '(' -name '*.xml' -a ! -path '*resources*' ')' $(FIND_DELETE)
 	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
-	  $(test_module_dir)/*.dll
+	  $(test_module_dir)/*.dll gmp.h
 
 bootstrap-clean: clean
 	find $(srcdir) -name '*.elc' $(FIND_DELETE)
