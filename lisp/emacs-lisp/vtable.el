@@ -167,7 +167,7 @@ Return the position of the object if found, and nil if not."
   (let ((start (point)))
     (vtable-beginning-of-table)
     (save-restriction
-      (narrow-to-region (point) (vtable-end-of-table))
+      (narrow-to-region (point) (save-excursion (vtable-end-of-table)))
       (if (text-property-search-forward 'vtable-object object #'eq)
           (progn
             (forward-line -1)
