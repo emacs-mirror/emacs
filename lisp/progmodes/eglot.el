@@ -1436,7 +1436,7 @@ Doubles as an indicator of snippet support."
 	    (message-log-max nil))
         (ignore-errors (delay-mode-hooks (funcall mode))))
       (font-lock-ensure)
-      (string-trim (filter-buffer-substring (point-min) (point-max))))))
+      (string-trim (buffer-string)))))
 
 (define-obsolete-variable-alias 'eglot-ignored-server-capabilites
   'eglot-ignored-server-capabilities "1.8")
