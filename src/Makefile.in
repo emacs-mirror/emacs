@@ -434,7 +434,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o \
 	alloc.o pdumper.o data.o doc.o editfns.o callint.o \
-	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
+	eval.o floatfns.o fns.o sort.o font.o print.o lread.o $(MODULES_OBJ) \
 	syntax.o $(UNEXEC_OBJ) bytecode.o comp.o $(DYNLIB_OBJ) \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o timefns.o atimer.o \

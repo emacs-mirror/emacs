@@ -3939,6 +3939,9 @@ extern Lisp_Object string_to_multibyte (Lisp_Object);
 extern Lisp_Object string_make_unibyte (Lisp_Object);
 extern void syms_of_fns (void);
 
+/* Defined in sort.c  */
+extern void tim_sort (Lisp_Object, Lisp_Object *, const ptrdiff_t);
+
 /* Defined in floatfns.c.  */
 verify (FLT_RADIX == 2 || FLT_RADIX == 16);
 enum { LOG2_FLT_RADIX = FLT_RADIX == 2 ? 1 : 4 };
