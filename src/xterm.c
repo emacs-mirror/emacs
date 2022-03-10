@@ -12435,6 +12435,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      g_object_ref (copy->button.window);
 
+	      if (popup_activated ()
+		  && xev->evtype == XI_ButtonRelease)
+		{
+		  *finish = X_EVENT_DROP;
+		  gtk_main_do_event (copy);
+		  gdk_event_free (copy);
+		  goto XI_OTHER;
+		}
+
 	      gtk_main_do_event (copy);
 	      gdk_event_free (copy);
 #endif
