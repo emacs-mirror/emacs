@@ -2514,7 +2514,7 @@ haiku_flush (struct frame *f)
 {
   /* This is needed for tooltip frames to work properly with double
      buffering.  */
-  if (FRAME_DIRTY_P (f) && FRAME_TOOLTIP_P (f))
+  if (FRAME_DIRTY_P (f) && !buffer_flipping_blocked_p ())
     haiku_flip_buffers (f);
 
   if (FRAME_VISIBLE_P (f) && !FRAME_TOOLTIP_P (f))
