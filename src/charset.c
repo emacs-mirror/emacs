@@ -793,16 +793,21 @@ map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object fun
 
 DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 5, 0,
        doc: /* Call FUNCTION for all characters in CHARSET.
-FUNCTION is called with an argument RANGE and the optional 3rd
-argument ARG.
+Optional 3rd argument ARG is an additional argument to be passed
+to FUNCTION, see below.
+Optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
+range of code points (in CHARSET) of target characters on which to
+map the FUNCTION.  Note that these are not character codes, but code
+points of CHARSET; for the difference see `decode-char' and
+`list-charset-chars'.  If FROM-CODE is nil or imitted, it stands for
+the first code point of CHARSET; if TO-CODE is nil or omitted, it
+stands for the last code point of CHARSET.
 
-RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
-characters contained in CHARSET.
-
-The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
-range of code points (in CHARSET) of target characters.  Note that
-these are not character codes, but code points in CHARSET; for the
-difference see `decode-char' and `list-charset-chars'.  */)
+FUNCTION will be called with two arguments: RANGE and ARG.
+RANGE is a cons (FROM .  TO), where FROM and TO specify a range of
+characters that belong to CHARSET on which FUNCTION should do its
+job.  FROM and TO are Emacs character codes, unlike FROM-CODE and
+TO-CODE, which are CHARSET code points.  */)
   (Lisp_Object function, Lisp_Object charset, Lisp_Object arg, Lisp_Object from_code, Lisp_Object to_code)
 {
   struct charset *cs;
