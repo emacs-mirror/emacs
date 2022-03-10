@@ -16037,11 +16037,9 @@ redisplay_internal (void)
   if (!fr->glyphs_initialized_p)
     return;
 
-#if defined (USE_X_TOOLKIT) || (defined (USE_GTK) && !defined (HAVE_PGTK)) || defined (HAVE_NS)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
   if (popup_activated ())
-    {
-      return;
-    }
+    return;
 #endif
 
 #if defined (HAVE_HAIKU)

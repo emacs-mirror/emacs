@@ -3282,8 +3282,13 @@ menu_bar_button_pressed_cb (GtkWidget *widget, GdkEvent *event,
 {
   struct frame *f = user_data;
 
-  if (event->button.button < 4)
-    set_frame_menubar (f, true);
+  if (event->button.button < 4
+      && event->button.window != gtk_widget_get_window (widget)
+      && !popup_activated ())
+    {
+      pgtk_menu_set_in_use (true);
+      set_frame_menubar (f, true);
+    }
 
   return false;
 }

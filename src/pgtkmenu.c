@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 
 /* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets.  */
+   GTK on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
@@ -132,7 +132,7 @@ pgtk_activate_menubar (struct frame *f)
 static void
 popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
-  popup_activated_flag = 0;
+  pgtk_menu_set_in_use (false);
 }
 
 /* Function that finds the frame for WIDGET and shows the HELP text
