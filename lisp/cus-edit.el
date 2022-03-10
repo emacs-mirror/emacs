@@ -1531,12 +1531,12 @@ If TYPE is `groups', include only groups."
 ;;;###autoload
 (defun custom-prompt-customize-unsaved-options ()
   "Prompt user to customize any unsaved customization options.
-Return non-nil if user chooses to customize, for use in
+Return nil if user chooses to customize, for use in
 `kill-emacs-query-functions'."
   (not (and (custom-unsaved-options)
-	    (yes-or-no-p "Some customized options have not been saved; Examine? ")
-	    (customize-unsaved)
-	    t)))
+	    (yes-or-no-p
+             "Some customized options have not been saved; Examine? ")
+	    (progn (customize-unsaved) t))))
 
 ;;; Buffer.
 
