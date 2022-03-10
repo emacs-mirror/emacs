@@ -11652,11 +11652,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
         f = x_menubar_window_to_frame (dpyinfo, event);
-        /* For a down-event in the menu bar,
-           don't pass it to Xt right now.
-           Instead, save it away
-           and we will pass it to Xt from kbd_buffer_get_event.
-           That way, we can run some Lisp code first.  */
+        /* For a down-event in the menu bar, don't pass it to Xt or
+           GTK right away.  Instead, save it and pass it to Xt or GTK
+           from kbd_buffer_get_event.  That way, we can run some Lisp
+           code first.  */
         if (! popup_activated ()
 #ifdef USE_GTK
             /* Gtk+ menus only react to the first three buttons. */

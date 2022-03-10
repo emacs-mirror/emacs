@@ -266,6 +266,7 @@ xg_display_open (char *display_name, GdkDisplay **dpy)
 static int
 xg_get_gdk_scale (void)
 {
+#ifdef HAVE_GTK3
   const char *sscale = getenv ("GDK_SCALE");
 
   if (sscale)
@@ -274,6 +275,7 @@ xg_get_gdk_scale (void)
       if (0 < scale)
 	return min (scale, INT_MAX);
     }
+#endif
 
   return 1;
 }
@@ -4223,13 +4225,13 @@ xg_event_is_for_menubar (struct frame *f, const XEvent *event)
     }
   else
     {
-#else
+#endif
       rec.x = event->xbutton.x / scale;
       rec.y = event->xbutton.y / scale;
-#endif
 #ifdef HAVE_XINPUT2
     }
 #endif
+
   rec.width = 1;
   rec.height = 1;
 
