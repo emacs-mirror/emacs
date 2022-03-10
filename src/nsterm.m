@@ -8390,7 +8390,7 @@ not_in_argv (NSString *arg)
 
   EmacsToolbar *toolbar = [[EmacsToolbar alloc]
                             initForView:view
-                            withIdentifier:[NSString stringWithLispString:f->name]];
+                            withIdentifier:[NSString stringWithFormat:@"%p", f]];
 
   [self setToolbar:toolbar];
   update_frame_tool_bar_1 (f, toolbar);
