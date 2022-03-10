@@ -898,7 +898,11 @@ If the value is t the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete."
-  :type '(choice (const nil) (const t) (const lazy)))
+  :type '(choice (const :tag "Disabled" nil)
+                 (const :tag "Enabled legacy" t)
+                 (const :tag "After a second attempt" lazy)
+                 (const :tag "Visible update" visible)
+                 (const :tag "Always update" always)))
 
 (defvar completion-styles-alist
   '((emacs21
@@ -1343,16 +1347,19 @@ when the buffer's text is already an exact match."
               (completion--cache-all-sorted-completions beg end comps)
               (minibuffer-force-complete beg end))
              (completed
-              ;; We could also decide to refresh the completions,
-              ;; if they're displayed (and assuming there are
-              ;; completions left).
-              (minibuffer-hide-completions)
-              (if exact
-                  ;; If completion did not put point at end of field,
-                  ;; it's a sign that completion is not finished.
-                  (completion--done completion
-                                    (if (< comp-pos (length completion))
-                                        'exact 'unknown))))
+              (cond
+               (exact
+                ;; If completion did not put point at end of field,
+                ;; it's a sign that completion is not finished.
+                (minibuffer-hide-completions)
+                (completion--done completion
+                                  (if (< comp-pos (length completion))
+                                      'exact 'unknown)))
+               ((pcase completion-auto-help
+                  ('visible (get-buffer-window "*Completions*" 0))
+                  ('always t))
+                (minibuffer-completion-help beg end))
+               (t (minibuffer-hide-completions))))
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (pcase completion-auto-help

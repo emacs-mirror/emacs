@@ -628,7 +628,14 @@ commands never display the completion list buffer; you must type
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} shows the
-completion list buffer.
+completion list buffer.  With the previous values and the default
+@code{t} the completions are hidden when some unique completion is
+executed.  If @code{completion-auto-help} is set to @code{always} the
+completion commands are always shown after a completion attempt or
+updated if they are already visible. If the value is @code{visible}
+then completions are not hidden, but updated if they are already
+visible while the current behavior stays the same as default if they
+are not.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion

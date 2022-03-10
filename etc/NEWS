@@ -554,6 +554,15 @@ This option controls the sorting of the completion candidates in
 the "*Completions*" buffer.  Available styles are no sorting,
 alphabetical (the default), or a custom sort function.
 
+*** New values for the 'completion-auto-select' option.
+
+There are two new values to control the way *Completions* behave after
+a <tab> if completion is not unique.  'always updates or shows
+the *Completions* buffer after any attempt to complete.  'visual is
+like 'always, but only update the completions if they are already
+visible.  The default value t always hide the completion buffer after
+some completion is made.
+
 ** Isearch and Replace
 
 +++
