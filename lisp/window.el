@@ -7498,19 +7498,12 @@ all fail.  It should never be set by programs or users.  See
 (defun display-buffer-assq-regexp (buffer-name alist action)
   "Retrieve ALIST entry corresponding to BUFFER-NAME.
 This returns the cdr of the alist entry ALIST if either its key
-is a string that matches BUFFER-NAME, as reported by
-`string-match-p'; or if the key is a function that returns
-non-nil when called with three arguments: the ALIST key,
-BUFFER-NAME and ACTION.  ACTION should have the form of the
-action argument passed to `display-buffer'."
+satisfied a BUFFER-NAME per `buffer-match'.  ACTION should have
+the form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
-      (let ((key (car entry)))
-	(when (or (and (stringp key)
-		       (string-match-p key buffer-name))
-		  (and (functionp key)
-		       (funcall key buffer-name action)))
-	  (throw 'match (cdr entry)))))))
+      (when (buffer-match-p (car entry) buffer-name action)
+        (throw 'match (cdr entry))))))
 
 (defvar display-buffer--same-window-action
   '(display-buffer-same-window
