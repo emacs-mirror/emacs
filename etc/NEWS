@@ -565,6 +565,9 @@ some completion is made.
 *** New user option 'completions-max-height'.
 This option limits the height of the "*Completions*" buffer.
 
+*** New mode completions-highlight.
+This mode highlights the current candidate in the *Completions* buffer
+with the completions-highlight face.
 
 ** Isearch and Replace
 

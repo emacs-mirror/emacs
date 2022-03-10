@@ -2138,6 +2138,52 @@ candidates."
   (run-hooks 'completion-setup-hook)
   nil)
 
+
+(defface completions-highlight
+  '((t :inherit highlight :extend t))
+  "Default face for highlighting the current line in Hl-Line mode."
+  :version "29.1")
+
+(defvar completions--overlay nil
+  "Overlay to use when `completions-highlight-mode' is enabled.")
+
+(defun completions-highlight--delete ()
+  "Highlight current candidate in *Completions* when ``completions-highlight''."
+  (when (overlayp completions--overlay)
+    (delete-overlay completions--overlay)))
+
+(defun completions-highlight--highlight ()
+  "Highlight current candidate if point in a candidate."
+  (let* ((point (point))
+         (hpoint (or (and (get-text-property point 'mouse-face) point)
+                     (and (> point 1) (get-text-property (1- point) 'mouse-face) (1- point)))))
+    (when hpoint
+      (move-overlay completions--overlay
+                    (previous-single-property-change (1+ hpoint) 'mouse-face nil (point-min))
+                    (next-single-property-change hpoint 'mouse-face nil (point-max))))))
+
+(defun completions-highlight--setup-hook ()
+  "Function to call when enabling the `completion-highlight-mode' mode.
+It is called when showing the *Completions* buffer."
+  (with-current-buffer "*Completions*"
+    (completions-highlight--highlight)
+    (add-hook 'pre-command-hook #'completions-highlight--delete nil t)
+    (add-hook 'post-command-hook #'completions-highlight--highlight nil t)))
+
+;;;###autoload
+(define-minor-mode completions-highlight-mode
+  "Completion highlight mode to enable candidates highlight in the minibuffer."
+  :global t
+  :group 'minibuffer
+  (cond
+   (completions-highlight-mode
+    (setq completions--overlay (make-overlay 0 0))
+    (overlay-put completions--overlay 'face 'completions-highlight)
+    (add-hook 'completion-setup-hook #'completions-highlight--setup-hook t))
+   (t
+    (remove-hook 'completion-setup-hook #'completions-highlight--setup-hook)))
+  (completions-highlight--delete))
+
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
 These include:

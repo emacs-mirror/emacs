@@ -665,6 +665,11 @@ mode, header line and a bottom divider, if any.  For a more complex
 control of the Completion window display properties you can use
 @code{display-buffer-alist} (@pxref{Buffer Display Action Alists}).
 
+@vindex completions-highlight-mode
+When the mode @{completions-highlight-mode} is active the candidate
+under the cursor is highlighted when the completion window is
+selected.  The mode uses the face @code{completions-highlight}.
+
 @node Minibuffer History
 @section Minibuffer History
 @cindex minibuffer history
