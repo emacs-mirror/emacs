@@ -3501,6 +3501,17 @@ Let-bind it when necessary.")
     (with-parsed-tramp-file-name name nil
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+      ;; Expand tilde.  Usually, the methods applying this handler do
+      ;; not support tilde expansion.  But users could declare a
+      ;; respective connection property.  (Bug#53847)
+      (when (string-match "\\`~\\([^/]*\\)\\(.*\\)\\'" localname)
+	(let ((uname (match-string 1 localname))
+	      (fname (match-string 2 localname))
+	      hname)
+	  (when (zerop (length uname))
+	    (setq uname user))
+	  (when (setq hname (tramp-get-home-directory v uname))
+	    (setq localname (concat hname fname)))))
       ;; Tilde expansion is not possible.
       (when (and (not tramp-tolerate-tilde)
 		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))

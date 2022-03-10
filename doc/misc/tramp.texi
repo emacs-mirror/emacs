@@ -157,6 +157,7 @@ Using @value{tramp}
 @end ifset
 * File name completion::        File name completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
+* Home directories::            Expanding @file{~} to home directory.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
@@ -1663,7 +1664,7 @@ local one, first connect via @command{ssh}, and then apply
 (add-to-list 'tramp-default-proxies-alist
              '(nil "\\`root\\'" "@trampfn{ssh,%h,}"))
 (add-to-list 'tramp-default-proxies-alist
-             '((regexp-quote (system-name)) nil nil))
+             `(,(regexp-quote (system-name)) nil nil))
 @end group
 @end lisp
 @end defopt
@@ -2175,6 +2176,14 @@ connection is disabled for security reasons, and must be
 reestablished.  A value of @code{nil} disables this feature.  Most of
 the methods do not set this property except the @option{sudo} and
 @option{doas} methods, which use predefined values.
+
+@item @t{"~"}@*
+@t{"~user"}
+
+This is the home directory on the remote host.  Setting this
+connection property helps especially for methods which cannot expand
+to a remote home directory, like @option{adb}, @option{rclone} and
+@option{sshfs}.  @ref{Home directories} for an example.
 
 @item @t{"tmpdir"}
 
@@ -3252,6 +3261,7 @@ is a feature of Emacs that may cause missed prompts when using
 @end ifset
 * File name completion::        File name completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
+* Home directories::            Expanding @file{~} to home directory.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
@@ -3267,24 +3277,25 @@ is a feature of Emacs that may cause missed prompts when using
 @file{@trampfn{method,host,/path/to/file}} opens file @var{/path/to/file}
 on the remote host @var{host}, using the method @var{method}.
 
+@c We cannot use @trampfn{} in @item.
 @table @file
-@item @trampfn{ssh,melancholia,.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}.emacs
 For the file @file{.emacs} located in the home directory, on the host
 @code{melancholia}, using method @code{ssh}.
 
-@item @trampfn{ssh,melancholia.danann.net,.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia.danann.net@value{postfix}.emacs
 For the file @file{.emacs} specified using the fully qualified domain name of
 the host.
 
-@item @trampfn{ssh,melancholia,~/.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~/.emacs
 For the file @file{.emacs} specified using the @file{~}, which is expanded.
 
-@item @trampfn{ssh,melancholia,~daniel/.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~daniel/.emacs
 For the file @file{.emacs} located in @code{daniel}'s home directory
 on the host, @code{melancholia}.  The @file{~<user>} construct is
 expanded to the home directory of that user on the remote host.
 
-@item @trampfn{ssh,melancholia,/etc/squid.conf}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}/etc/squid.conf
 For the file @file{/etc/squid.conf} on the host @code{melancholia}.
 
 @end table
@@ -3532,6 +3543,66 @@ On the other hand, if a trailing hop does not specify a host name, the
 host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
+
+
+@node Home directories
+@section Expanding @file{~} to home directory
+
+Home directories on remote hosts can be typed as tilde @file{~}.  If
+possible, they are expanded to the remote user's home directory on the
+remote host.  Example:
+
+@example
+@group
+@trampfn{ssh,user@@host,~}
+@result{} @trampfn{ssh,user@@host,/home/user}
+@end group
+@end example
+
+This works in general for @option{ssh}-like methods, and for
+@option{sudoedit}.  These methods allow also the home directory
+expansion for another user, like
+
+@example
+@group
+@trampfn{sudoedit,,~otheruser}
+@result{} @trampfn{sudoedit,root@@localhost,/home/otheruser}
+@end group
+@end example
+
+For other methods, a home directory can be expanded only if supported.
+This happens for example for the @option{sftp} method.  Methods, which
+require a share directory in the remote file name (@option{afp},
+@option{smb}), use the value of this share directory as home
+directory:
+
+@example
+@group
+@trampfn{smb,user@@host,~}
+@result{} @trampfn{smb,user@@host,/share}
+@end group
+@end example
+
+Since Tramp cannot know in advance which share directory is intended
+to use, this expansion can be applied only when a share directory has
+been used already.
+
+The methods @option{adb}, @option{rclone} and @option{sshfs} do not
+support home directory expansion at all.  However, @value{tramp} keeps
+the home directory in the cache.  Therefore, those methods could be
+configured to expand a home directory via a connection property,
+@xref{Predefined connection information}.  Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{sshfs,user@@randomhost.your.domain,}")
+                   "~user" "/home/user"))
+@end group
+@end lisp
+
+When your remote file name does not contain a @samp{user} part, the
+connection property @t{"~"} must be used instead.
 
 
 @node Remote processes
