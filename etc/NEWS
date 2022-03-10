@@ -554,20 +554,23 @@ This option controls the sorting of the completion candidates in
 the "*Completions*" buffer.  Available styles are no sorting,
 alphabetical (the default), or a custom sort function.
 
-*** New values for the 'completion-auto-select' option.
++++
+*** New values for the 'completion-auto-help' option.
 There are two new values to control the way *Completions* behave after
-a <tab> if completion is not unique.  'always updates or shows
-the *Completions* buffer after any attempt to complete.  'visual is
-like 'always, but only update the completions if they are already
-visible.  The default value t always hide the completion buffer after
+a <tab> if completion is not unique.  'always' updates or shows
+the *Completions* buffer after any attempt to complete.  'visual' is
+like 'always', but only update the completions if they are already
+visible.  The default value 't' always hides the completion buffer after
 some completion is made.
 
++++
 *** New user option 'completions-max-height'.
 This option limits the height of the "*Completions*" buffer.
 
-*** New mode completions-highlight.
++++
+*** New mode 'completions-highlight-mode'.
 This mode highlights the current candidate in the *Completions* buffer
-with the completions-highlight face.
+with the 'completions-highlight' face.
 
 ** Isearch and Replace
 

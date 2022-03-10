@@ -632,7 +632,7 @@ completion list buffer.  With the previous values and the default
 @code{t} the completions are hidden when some unique completion is
 executed.  If @code{completion-auto-help} is set to @code{always} the
 completion commands are always shown after a completion attempt or
-updated if they are already visible. If the value is @code{visible}
+updated if they are already visible.  If the value is @code{visible}
 then completions are not hidden, but updated if they are already
 visible while the current behavior stays the same as default if they
 are not.
@@ -660,13 +660,15 @@ and if @code{one-column}, just use a single column.
 
 @vindex completions-max-height
   When @code{completions-max-height} is non-@code{nil} it limits the
-size of the completions window. It is specified in lines and include
+size of the completions window.  It is specified in lines and include
 mode, header line and a bottom divider, if any.  For a more complex
 control of the Completion window display properties you can use
-@code{display-buffer-alist} (@pxref{Buffer Display Action Alists}).
+@code{display-buffer-alist} (@pxref{Buffer Display Action
+Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
+Reference Manual}).
 
 @vindex completions-highlight-mode
-When the mode @{completions-highlight-mode} is active the candidate
+When the mode @code{completions-highlight-mode} is active the candidate
 under the cursor is highlighted when the completion window is
 selected.  The mode uses the face @code{completions-highlight}.
 

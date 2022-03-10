@@ -897,7 +897,12 @@ If the current buffer is not a minibuffer, erase its entire contents."
 If the value is t the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
-the second failed attempt to complete."
+the second failed attempt to complete.
+If the value is 'always', the completion commands are always shown
+after a completion attempt or updated if they are already visible.
+If the value is 'visible' then completions are not hidden, but updated
+if they are already visible while the current behavior stays the same
+as default if they are not."
   :type '(choice (const :tag "Disabled" nil)
                  (const :tag "Enabled legacy" t)
                  (const :tag "After a second attempt" lazy)
@@ -2141,14 +2146,14 @@ candidates."
 
 (defface completions-highlight
   '((t :inherit highlight :extend t))
-  "Default face for highlighting the current line in Hl-Line mode."
+  "Default face for highlighting the current line in `completions-highlight-mode'."
   :version "29.1")
 
 (defvar completions--overlay nil
   "Overlay to use when `completions-highlight-mode' is enabled.")
 
 (defun completions-highlight--delete ()
-  "Highlight current candidate in *Completions* when ``completions-highlight''."
+  "Highlight current candidate in *Completions* with `completions-highlight'."
   (when (overlayp completions--overlay)
     (delete-overlay completions--overlay)))
 
@@ -2253,7 +2258,7 @@ variables.")
 
 (defcustom completions-max-height nil
   "Maximum height for *Completions* buffer."
-  :type 'natnum
+  :type '(choice (const nil) natnum)
   :version "29.1")
 
 (defun completions--fit-window-to-buffer (&optional win &rest _)
