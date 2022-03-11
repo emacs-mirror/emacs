@@ -628,7 +628,8 @@ extern "C"
   BView_move_frame (void *view, int x, int y, int x1, int y1);
 
   extern void
-  BView_scroll_bar_update (void *sb, int portion, int whole, int position);
+  BView_scroll_bar_update (void *sb, int portion, int whole, int position,
+			   bool dragging);
 
   extern int
   BScrollBar_default_size (int horizontal_p);

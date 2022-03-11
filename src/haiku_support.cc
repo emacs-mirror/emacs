@@ -1571,16 +1571,26 @@ public:
     vw->SetResizingMode (B_FOLLOW_NONE);
     horizontal = horizontal_p;
     get_scroll_bar_info (&info);
+    SetSteps (5000, 10000);
   }
 
   void
   MessageReceived (BMessage *msg)
   {
+    int32 portion, range;
+
     if (msg->what == SCROLL_BAR_UPDATE)
       {
 	old_value = msg->GetInt32 ("emacs:units", 0);
-	this->SetRange (0, msg->GetInt32 ("emacs:range", 0));
-	this->SetValue (msg->GetInt32 ("emacs:units", 0));
+	portion = msg->GetInt32 ("emacs:portion", 0);
+	range = msg->GetInt32 ("emacs:range", 0);
+
+	if (!msg->GetBool ("emacs:dragging", false))
+	  {
+	    this->SetRange (0, range);
+	    this->SetValue (old_value);
+	    this->SetProportion ((float) portion / range);
+	  }
       }
 
     BScrollBar::MessageReceived (msg);
@@ -1612,11 +1622,15 @@ public:
 	return;
       }
 
-    rq.scroll_bar = this;
-    rq.window = Window ();
-    rq.position = new_value;
+    if (new_value != old_value)
+      {
+	rq.scroll_bar = this;
+	rq.window = Window ();
+	rq.position = new_value;
+	old_value = new_value;
 
-    haiku_write (SCROLL_BAR_VALUE_EVENT, &rq);
+	haiku_write (SCROLL_BAR_VALUE_EVENT, &rq);
+      }
   }
 
   BRegion
@@ -2269,13 +2283,16 @@ BView_move_frame (void *view, int x, int y, int x1, int y1)
 }
 
 void
-BView_scroll_bar_update (void *sb, int portion, int whole, int position)
+BView_scroll_bar_update (void *sb, int portion, int whole, int position,
+			 bool dragging)
 {
   BScrollBar *bar = (BScrollBar *) sb;
   BMessage msg = BMessage (SCROLL_BAR_UPDATE);
   BMessenger mr = BMessenger (bar);
   msg.AddInt32 ("emacs:range", whole);
   msg.AddInt32 ("emacs:units", position);
+  msg.AddInt32 ("emacs:portion", portion);
+  msg.AddBool ("emacs:dragging", dragging);
 
   mr.SendMessage (&msg);
 }

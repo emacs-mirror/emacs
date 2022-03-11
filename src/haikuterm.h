@@ -213,6 +213,8 @@ struct scroll_bar
 
   /* True if the scroll bar is horizontal.  */
   bool horizontal;
+
+  int page_size;
 };
 
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
