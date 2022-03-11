@@ -741,9 +741,18 @@ If none try N - 1 and so forth."
       (setq n (1- n)))
     formats))
 
+;;;###autoload
+(defun eudc-expand-try-all (&optional try-all-servers)
+  "Wrap `eudc-expand-inline' with a prefix argument.
+If TRY-ALL-SERVERS -- the prefix argument when called
+interactively -- is non-nil, collect results from all servers.
+If TRY-ALL-SERVERS is nil, do not try subsequent servers after
+one server returns any match."
+  (interactive "P")
+  (eudc-expand-inline (not eudc-expansion-save-query-as-kill) try-all-servers))
 
 ;;;###autoload
-(defun eudc-expand-inline (&optional save-query-as-kill)
+(defun eudc-expand-inline (&optional save-query-as-kill try-all-servers)
   "Query the directory server, and expand the query string before point.
 The query string consists of the buffer substring from the point back to
 the preceding comma, colon or beginning of line.
@@ -765,7 +774,7 @@ see `eudc-inline-expansion-servers'."
 		(point)))
 	 (query-words (split-string (buffer-substring-no-properties beg end)
 				    "[ \t]+"))
-	 (response-strings (eudc-query-with-words query-words)))
+	 (response-strings (eudc-query-with-words query-words try-all-servers)))
     (if (null response-strings)
         (error "No match")
 
@@ -788,7 +797,7 @@ see `eudc-inline-expansion-servers'."
 	(error "There is more than one match for the query"))))))
 
 ;;;###autoload
-(defun eudc-query-with-words (query-words)
+(defun eudc-query-with-words (query-words &optional try-all-servers)
   "Query the directory server, and return the matching responses.
 The variable `eudc-inline-query-format' controls how to associate the
 individual QUERY-WORDS with directory attribute names.
@@ -796,7 +805,8 @@ After querying the server for the given string, the expansion
 specified by `eudc-inline-expansion-format' is applied to the
 matches before returning them.inserted in the buffer at point.
 Multiple servers can be tried with the same query until one finds a match,
-see `eudc-inline-expansion-servers'."
+see `eudc-inline-expansion-servers'.   When TRY-ALL-SERVERS is non-nil,
+keep collecting results from subsequent servers after the first match."
   (cond
    ((eq eudc-inline-expansion-servers 'current-server)
     (or eudc-server
@@ -813,6 +823,7 @@ see `eudc-inline-expansion-servers'."
     (error "Wrong value for `eudc-inline-expansion-servers': %S"
 	   eudc-inline-expansion-servers)))
   (let* (query-formats
+	 response-strings
 	 (eudc-former-server eudc-server)
 	 (eudc-former-protocol eudc-protocol)
 	 ;; Prepare the list of servers to query
@@ -824,7 +835,7 @@ see `eudc-inline-expansion-servers'."
 	    (if eudc-server
 		(cons (cons eudc-server eudc-protocol)
 		      (delete (cons eudc-server eudc-protocol)
-		              (copy-sequence eudc-server-hotlist)))
+			      (copy-sequence eudc-server-hotlist)))
 	      eudc-server-hotlist))
 	   ((eq eudc-inline-expansion-servers 'current-server)
 	    (list (cons eudc-server eudc-protocol))))))
@@ -834,46 +845,49 @@ see `eudc-inline-expansion-servers'."
 	(setcdr (nthcdr (1- eudc-max-servers-to-query) servers) nil))
 
     (unwind-protect
-	(let ((response
-	       (catch 'found
-		 ;; Loop on the servers
-		 (dolist (server servers)
-		   (eudc-set-server (car server) (cdr server) t)
+	(cl-flet
+	    ((run-query
+	       (query-formats)
+	       (let ((response
+		      (eudc-query
+		       (eudc-format-query query-words (car query-formats))
+		       (eudc-translate-attribute-list
+			(cdr eudc-inline-expansion-format)))))
+		 (if response
+		     ;; Process response through eudc-inline-expansion-format.
+		     (dolist (r response)
+		       (let ((response-string
+			      (apply #'format
+			             (car eudc-inline-expansion-format)
+			             (mapcar
+				      (lambda (field)
+				        (or (cdr (assq field r))
+				            ""))
+				      (eudc-translate-attribute-list
+				       (cdr eudc-inline-expansion-format))))))
+			 (if (> (length response-string) 0)
+			     (push response-string response-strings))
+			 (when (not try-all-servers)
+			   (throw 'found nil))))))))
+	  (catch 'found
+	    ;; Loop on the servers.
+	    (dolist (server servers)
+	      (eudc-set-server (car server) (cdr server) t)
 
-		   ;; Determine which formats apply in the query-format list
-		   (setq query-formats
-			 (or
-			  (eudc-extract-n-word-formats eudc-inline-query-format
-						       (length query-words))
-			  (if (null eudc-protocol-has-default-query-attributes)
-			      '(name))))
+	      ;; Determine which formats apply in the query-format list.
+	      (setq query-formats
+		    (or
+		     (eudc-extract-n-word-formats eudc-inline-query-format
+						  (length query-words))
+		     (if (null eudc-protocol-has-default-query-attributes)
+			 '(name))))
 
-		   ;; Loop on query-formats
-		   (while query-formats
-		     (let ((response
-			    (eudc-query
-			     (eudc-format-query query-words (car query-formats))
-			     (eudc-translate-attribute-list
-			      (cdr eudc-inline-expansion-format)))))
-		       (if response
-			   (throw 'found response)))
-		     (setq query-formats (cdr query-formats))))
-		 ;; No more servers to try... no match found
-		 nil))
-	      (response-strings '()))
-
-	  ;; Process response through eudc-inline-expansion-format
-	  (dolist (r response)
-	    (let ((response-string
-                   (apply #'format
-                          (car eudc-inline-expansion-format)
-                          (mapcar (lambda (field)
-                                    (or (cdr (assq field r))
-                                        ""))
-                                  (eudc-translate-attribute-list
-                                   (cdr eudc-inline-expansion-format))))))
-	      (if (> (length response-string) 0)
-		  (push response-string response-strings))))
+	      ;; Loop on query-formats.
+	      (while query-formats
+		(run-query query-formats)
+		(setq query-formats (cdr query-formats))))
+	    ;; No more servers to try... no match found.
+	    nil)
 	  response-strings)
       (or (and (equal eudc-server eudc-former-server)
 	       (equal eudc-protocol eudc-former-protocol))
@@ -1053,6 +1067,8 @@ queries the server for the existing fields and displays a corresponding form."
   `(["---" nil nil]
     ["Query with Form" eudc-query-form
      :help "Display a form to query the directory server"]
+    ["Expand Inline Query Trying All Servers" eudc-expand-try-all
+     :help "Query all directory servers and expand the query string before point"]
     ["Expand Inline Query" eudc-expand-inline
      :help "Query the directory server, and expand the query string before point"]
     ["Insert Record into BBDB" eudc-insert-record-at-point-into-bbdb

@@ -192,9 +192,9 @@ email composition buffers (@pxref{Inline Query Expansion})
 
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
+  (define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-try-all))
 (with-eval-after-load "sendmail"
-  (define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
+  (define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-try-all))
 @end lisp
 
 @menu
@@ -281,11 +281,12 @@ LDAP:
 
 @vindex message-mode-map
 @findex eudc-expand-inline
+@findex eudc-expand-try-all
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
 (setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
@@ -337,11 +338,12 @@ configure EUDC for LDAP:
 
 @vindex message-mode-map
 @findex eudc-expand-inline
+@findex eudc-expand-try-all
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
 (setopt 'eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
@@ -366,11 +368,12 @@ and the @file{.emacs} expressions become:
 
 @vindex message-mode-map
 @findex eudc-expand-inline
+@findex eudc-expand-try-all
 @vindex eudc-server-hotlist
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-inline))
+  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
 (setopt 'eudc-server-hotlist
         '(("" . bbdb) ("" . ldap)))
 (setopt 'ldap-host-parameters-alist
@@ -709,19 +712,33 @@ be passed to the program.
 @node Inline Query Expansion
 @section Inline Query Expansion
 
-Inline query expansion is a powerful method to get completion from your
-directory server.  The most common usage is for expanding names to email
-addresses in mail message buffers.  The expansion is performed by the
-command @kbd{M-x eudc-expand-inline} which is available from the
-@samp{Expand Inline Query} menu item but can also be conveniently
-bound to a key shortcut (@pxref{Installation}).  The operation is
-controlled by the variables @code{eudc-inline-expansion-format},
-@code{eudc-inline-query-format},
+Inline query expansion is a powerful method to get completion from
+your directory servers.  The most common usage is for expanding names
+to email addresses in mail message buffers.  The expansion is
+performed by the command @kbd{M-x eudc-expand-try-all} which is
+available from the @samp{Expand Inline Query Trying All Servers} menu
+item but can also be conveniently bound to a key shortcut
+(@pxref{Installation}).  The operation is controlled by the variables
+@code{eudc-inline-expansion-format}, @code{eudc-inline-query-format},
 @code{eudc-expanding-overwrites-query} and
 @code{eudc-multiple-match-handling-method}.
 
-If the query fails for a server, other servers may be tried successively
-until one of them finds a match (@pxref{Multi-server Queries}).
+If the query fails for a server, other servers may be tried
+successively until one of them finds a match (@pxref{Multi-server
+Queries}), or all servers can be tried and all matches returned.
+
+@deffn Command eudc-expand-try-all try-all-servers-p
+Query some or all servers and expand the query string before point.
+The query string consists of the buffer substring from the point back
+to the preceding comma, colon or beginning of line.
+@code{eudc-inline-query-format} controls how individual words are
+mapped onto directory attribute names.  After querying the server or
+servers for the given string, the expansion specified by
+@code{eudc-inline-expansion-format} is inserted in the buffer at
+point.  If multiple matches are available, a selection window is
+displayed.  If @var{try-all-servers-p} is non-@code{nil} then all
+servers are queried.
+@end deffn
 
 @deffn Command eudc-expand-inline save-query-as-kill-p
 Query the server and expand the query string before point.  The query

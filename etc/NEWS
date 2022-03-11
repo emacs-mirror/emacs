@@ -638,6 +638,14 @@ Rename 'eudc-expansion-overwrites-query' to
 'eudc-expansion-save-query-as-kill' to reflect the actual behaviour of
 the customization variable.
 
++++
+*** New command 'eudc-expand-try-all'.
+This command can be used in place of 'eudc-expand-inline'.  It takes a
+prefix argument that causes 'eudc-expand-try-all' to return matches
+from all servers instead of just the matches from the first server to
+return any.  This is useful for example, if one wants to search LDAP
+for a name that happens to match a contact in one's BBDB.
+
 ** eww/shr
 
 +++
