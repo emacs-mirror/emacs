@@ -1578,18 +1578,22 @@ public:
   MessageReceived (BMessage *msg)
   {
     int32 portion, range;
+    double proportion;
 
     if (msg->what == SCROLL_BAR_UPDATE)
       {
 	old_value = msg->GetInt32 ("emacs:units", 0);
 	portion = msg->GetInt32 ("emacs:portion", 0);
 	range = msg->GetInt32 ("emacs:range", 0);
+	proportion = (double) portion / range;
 
 	if (!msg->GetBool ("emacs:dragging", false))
 	  {
-	    this->SetRange (0, range);
+	    /* Unlike on Motif, PORTION isn't included in the total
+	       range of the scroll bar.  */
+	    this->SetRange (0, std::floor ((double) range - (range * proportion)));
 	    this->SetValue (old_value);
-	    this->SetProportion ((float) portion / range);
+	    this->SetProportion (proportion);
 	  }
       }
 

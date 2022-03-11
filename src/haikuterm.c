@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 /* Minimum and maximum values used for Haiku scroll bars.  */
-#define BE_SB_MAX 10000000
+#define BE_SB_MAX 12000000
 
 struct haiku_display_info *x_display_list = NULL;
 extern frame_parm_handler haiku_frame_parm_handlers[];
@@ -440,8 +440,7 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
 			    int position, int whole)
 {
   void *scroll_bar = bar->scroll_bar;
-  float top, shown;
-  int size, value;
+  double top, shown, size, value;
 
   if (scroll_bar_adjust_thumb_portion_p)
     {
@@ -461,8 +460,8 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
 	top = 0, shown = 1;
       else
 	{
-	  top = (float) position / whole;
-	  shown = (float) portion / whole;
+	  top = (double) position / whole;
+	  shown = (double) portion / whole;
 	}
 
       /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
@@ -481,12 +480,12 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
     {
       bar->page_size = 0;
 
-      size = (((float) portion / whole) * BE_SB_MAX);
-      value = (((float) position / whole) * BE_SB_MAX);
+      size = (((double) portion / whole) * BE_SB_MAX);
+      value = (((double) position / whole) * BE_SB_MAX);
     }
 
-  BView_scroll_bar_update (scroll_bar, size, BE_SB_MAX, value,
-			   bar->dragging);
+  BView_scroll_bar_update (scroll_bar, lrint (size),
+			   BE_SB_MAX, lrint (value), bar->dragging);
 }
 
 static void
