@@ -12660,17 +12660,25 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    xembed_send_message (f, xev->time,
 					 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 		}
-#ifndef USE_TOOLKIT_SCROLL_BARS
 	      else
 		{
 		  struct scroll_bar *bar
 		    = x_window_to_scroll_bar (dpyinfo->display,
 					      xev->event, 2);
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
 		  if (bar)
 		    x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie);
-		}
+#else
+		  /* Make the "Ctrl-Mouse-2 splits window" work for toolkit
+		     scroll bars.  */
+		  if (bar && xev->mods.effective & ControlMask)
+		    {
+		      x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie);
+		      *finish = X_EVENT_DROP;
+		    }
 #endif
+		}
 
 	      if (xev->evtype == XI_ButtonPress)
 		{
