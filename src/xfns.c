@@ -1970,22 +1970,25 @@ x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object old
     }
 
 #ifdef HAVE_GTK3
-  if (pixel != -1)
+  if (!FRAME_TOOLTIP_P (f))
     {
-      color.pixel = pixel;
+      if (pixel != -1)
+	{
+	  color.pixel = pixel;
 
-      XQueryColor (FRAME_X_DISPLAY (f),
-		   FRAME_X_COLORMAP (f),
-		   &color);
+	  XQueryColor (FRAME_X_DISPLAY (f),
+		       FRAME_X_COLORMAP (f),
+		       &color);
 
-      sprintf (css, "scrollbar slider { background-color: #%02x%02x%02x; }",
-	       color.red >> 8, color.green >> 8, color.blue >> 8);
-      gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
-				       css, -1, NULL);
+	  sprintf (css, "scrollbar slider { background-color: #%02x%02x%02x; }",
+		   color.red >> 8, color.green >> 8, color.blue >> 8);
+	  gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+					   css, -1, NULL);
+	}
+      else
+	gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+					 "", -1, NULL);
     }
-  else
-    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
-				     "", -1, NULL);
 #endif
 }
 
@@ -2040,22 +2043,25 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
     }
 
 #ifdef HAVE_GTK3
-  if (pixel != -1)
-    {
-      color.pixel = pixel;
+    if (!FRAME_TOOLTIP_P (f))
+      {
+	if (pixel != -1)
+	  {
+	    color.pixel = pixel;
 
-      XQueryColor (FRAME_X_DISPLAY (f),
-		   FRAME_X_COLORMAP (f),
-		   &color);
+	    XQueryColor (FRAME_X_DISPLAY (f),
+			 FRAME_X_COLORMAP (f),
+			 &color);
 
-      sprintf (css, "scrollbar trough { background-color: #%02x%02x%02x; }",
-	       color.red >> 8, color.green >> 8, color.blue >> 8);
-      gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
-				       css, -1, NULL);
-    }
-  else
-    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
-				     "", -1, NULL);
+	    sprintf (css, "scrollbar trough { background-color: #%02x%02x%02x; }",
+		     color.red >> 8, color.green >> 8, color.blue >> 8);
+	    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+					     css, -1, NULL);
+	  }
+	else
+	  gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+					   "", -1, NULL);
+      }
 #endif
 }
 
@@ -4758,6 +4764,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
                          "rightFringe", "RightFringe", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
                          NULL, NULL, RES_TYPE_BOOLEAN);
+
+#ifdef HAVE_GTK3
+  FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider
+    = gtk_css_provider_new ();
+  FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider
+    = gtk_css_provider_new ();
+#endif
 
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
 					"scrollBarForeground",

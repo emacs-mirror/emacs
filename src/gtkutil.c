@@ -1631,14 +1631,6 @@ xg_create_frame_widgets (struct frame *f)
                     G_CALLBACK (delete_cb), f);
 #endif
 
-#if defined HAVE_GTK3 && !defined HAVE_PGTK
-  /* On PGTK this is done in Fx_create_frame.  */
-  FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider
-    = gtk_css_provider_new ();
-  FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider
-    = gtk_css_provider_new ();
-#endif
-
   /* Convert our geometry parameters into a geometry string
      and specify it.
      GTK will itself handle calculating the real position this way.  */
