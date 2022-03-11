@@ -2787,7 +2787,8 @@ BMenu_run (void *menu, int x, int y,
       if ((stat = wait_for_objects_etc ((object_wait_info *) &infos, 3,
 					B_RELATIVE_TIMEOUT, timeout)) < B_OK)
 	{
-	  if (stat == B_INTERRUPTED || stat == B_TIMED_OUT)
+	  if (stat == B_INTERRUPTED || stat == B_TIMED_OUT
+	      || stat == B_WOULD_BLOCK)
 	    continue;
 	  else
 	    gui_abort ("Failed to wait for popup");
