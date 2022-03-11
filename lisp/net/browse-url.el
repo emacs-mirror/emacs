@@ -970,7 +970,13 @@ non-nil, or the same display as Emacs if different from the current
 environment, otherwise just use the current environment."
   (let ((display (or browse-url-browser-display (browse-url-emacs-display))))
     (if display
-	(cons (concat "DISPLAY=" display) process-environment)
+	(cons (concat (if (and (eq window-system 'pgtk)
+                               (equal (pgtk-backend-display-class)
+                                      "GdkWaylandDisplay"))
+                          "WAYLAND_DISPLAY="
+                        "DISPLAY=")
+                      display)
+              process-environment)
       process-environment)))
 
 (defun browse-url-emacs-display ()
