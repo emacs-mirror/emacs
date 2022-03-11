@@ -2010,6 +2010,7 @@ increase the score of each group you read."
   "s" #'gnus-summary-isearch-article
   "TAB" #'gnus-summary-button-forward
   "<backtab>" #'gnus-summary-button-backward
+  "v" #'gnus-summary-browse-all-urls
   "w" #'gnus-summary-browse-url
   "t" #'gnus-summary-toggle-header
   "g" #'gnus-summary-show-article
@@ -2196,6 +2197,7 @@ increase the score of each group you read."
         "s" #'gnus-summary-isearch-article
         "TAB" #'gnus-summary-button-forward
         "<backtab>" #'gnus-summary-button-backward
+        "v" #'gnus-summary-browse-all-urls
         "w" #'gnus-summary-browse-url
         "P" #'gnus-summary-print-article
         "S" #'gnus-sticky-article
@@ -9445,6 +9447,16 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
       (push primary urls))
     (delete-dups urls)))
 
+(defun gnus-collect-urls-from-article ()
+  "Select the article and return the list of URLs in it.
+See 'gnus-collect-urls'."
+  (gnus-summary-select-article)
+  (gnus-with-article-buffer
+    (article-goto-body)
+    ;; Back up a char, in case body starts with a button.
+    (backward-char)
+    (gnus-collect-urls)))
+
 (defun gnus-shorten-url (url max)
   "Return an excerpt from URL not exceeding MAX characters."
   (if (<= (length url) max)
@@ -9456,37 +9468,38 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
                            (concat "#" target)))))
       (concat host (string-truncate-left rest (- max (length host)))))))
 
-(defun gnus-summary-browse-url (&optional external)
+(defun gnus-summary-browse-url (&optional _external)
   "Scan the current article body for links, and offer to browse them.
 
 Links are opened using `browse-url' unless a prefix argument is
-given: Then `browse-url-secondary-browser-function' is used instead.
+given: then `browse-url-secondary-browser-function' is used instead.
 
 If only one link is found, browse that directly, otherwise use
 completion to select a link.  The first link marked in the
 article text with `gnus-collect-urls-primary-text' is the
 default."
   (interactive "P" gnus-summary-mode)
-  (let (urls target)
-    (gnus-summary-select-article)
-    (gnus-with-article-buffer
-      (article-goto-body)
-      ;; Back up a char, in case body starts with a button.
-      (backward-char)
-      (setq urls (gnus-collect-urls))
-      (setq target
-	    (cond ((= (length urls) 1)
-		   (car urls))
-		  ((> (length urls) 1)
-		   (completing-read
-		    (format-prompt "URL to browse"
-				   (gnus-shorten-url (car urls) 40))
-		    urls nil t nil nil (car urls)))))
-      (if target
-	  (if external
-	      (funcall browse-url-secondary-browser-function target)
-	    (browse-url target))
-	(message "No URLs found.")))))
+  (let* ((urls (gnus-collect-urls-from-article))
+         (target
+	  (cond ((= (length urls) 1)
+		 (car urls))
+		((> (length urls) 1)
+		 (completing-read
+		  (format-prompt "URL to browse"
+				 (gnus-shorten-url (car urls) 40))
+		  urls nil t nil nil (car urls))))))
+    (if target
+	(browse-url-button-open-url target) ; this handles the prefix arg
+      (message "No URLs found."))))
+
+(defun gnus-summary-browse-all-urls (&optional _external)
+  "Scan the current article body for links, and browse them.
+
+Links are opened using `browse-url' unless a prefix argument is
+given: then `browse-url-secondary-browser-function' is used instead."
+  (interactive "P" gnus-summary-mode)
+  (dolist (url (gnus-collect-urls-from-article))
+    (browse-url-button-open-url url))) ; this handles the prefix arg
 
 (defun gnus-summary-isearch-article (&optional regexp-p)
   "Do incremental search forward on the current article.
