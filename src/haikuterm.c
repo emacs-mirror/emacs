@@ -456,27 +456,34 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
       /* When the thumb is at the bottom, position == whole.  So we
          need to increase `whole' to make space for the thumb.  */
       whole += portion;
-    }
 
-  if (whole <= 0)
-    top = 0, shown = 1;
+      if (whole <= 0)
+	top = 0, shown = 1;
+      else
+	{
+	  top = (float) position / whole;
+	  shown = (float) portion / whole;
+	}
+
+      /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
+	 is the scroll bar's maximum and MIN is the scroll bar's minimum
+	 value.  */
+      size = clip_to_bounds (1, shown * BE_SB_MAX, BE_SB_MAX);
+
+      /* Position.  Must be in the range [MIN .. MAX - SLIDER_SIZE].  */
+      value = top * BE_SB_MAX;
+      value = min (value, BE_SB_MAX - size);
+
+      if (!bar->dragging)
+	bar->page_size = size;
+    }
   else
     {
-      top = (float) position / whole;
-      shown = (float) portion / whole;
+      bar->page_size = 0;
+
+      size = (((float) portion / whole) * BE_SB_MAX);
+      value = (((float) position / whole) * BE_SB_MAX);
     }
-
-  /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
-     is the scroll bar's maximum and MIN is the scroll bar's minimum
-     value.  */
-  size = clip_to_bounds (1, shown * BE_SB_MAX, BE_SB_MAX);
-
-  /* Position.  Must be in the range [MIN .. MAX - SLIDER_SIZE].  */
-  value = top * BE_SB_MAX;
-  value = min (value, BE_SB_MAX - size);
-
-  if (!bar->dragging)
-    bar->page_size = size;
 
   BView_scroll_bar_update (scroll_bar, size, BE_SB_MAX, value,
 			   bar->dragging);
