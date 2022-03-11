@@ -16579,6 +16579,14 @@ x_free_frame_resources (struct frame *f)
       XFlush (FRAME_X_DISPLAY (f));
     }
 
+#ifdef HAVE_GTK3
+  if (FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider)
+    g_object_unref (FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider);
+
+  if (FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider)
+    g_object_unref (FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider);
+#endif
+
   xfree (f->output_data.x->saved_menu_event);
   xfree (f->output_data.x);
   f->output_data.x = NULL;

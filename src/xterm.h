@@ -758,6 +758,13 @@ struct x_output
   GtkWindow *ttip_window;
 
   GtkIMContext *im_context;
+
+#ifdef HAVE_GTK3
+  /* The CSS providers used for scroll bar foreground and background
+     colors.  */
+  GtkCssProvider *scrollbar_foreground_css_provider;
+  GtkCssProvider *scrollbar_background_css_provider;
+#endif
 #endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the

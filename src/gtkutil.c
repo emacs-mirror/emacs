@@ -1612,10 +1612,7 @@ xg_create_frame_widgets (struct frame *f)
      with regular X drawing primitives, so from a GTK/GDK point of
      view, the widget is totally blank.  When an expose comes, this
      will make the widget blank, and then Emacs redraws it.  This flickers
-     a lot, so we turn off double buffering.
-     FIXME: gtk_widget_set_double_buffered is deprecated and might stop
-     working in the future.  We need to migrate away from combining
-     X and GTK+ drawing to a pure GTK+ build.  */
+     a lot, so we turn off double buffering.  */
 
 #ifndef HAVE_PGTK
   gtk_widget_set_double_buffered (wfixed, FALSE);
@@ -1632,6 +1629,14 @@ xg_create_frame_widgets (struct frame *f)
      GTK is to destroy the widget.  We want Emacs to do that instead.  */
   g_signal_connect (G_OBJECT (wtop), "delete-event",
                     G_CALLBACK (delete_cb), f);
+#endif
+
+#if defined HAVE_GTK3 && !defined HAVE_PGTK
+  /* On PGTK this is done in Fx_create_frame.  */
+  FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider
+    = gtk_css_provider_new ();
+  FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider
+    = gtk_css_provider_new ();
 #endif
 
   /* Convert our geometry parameters into a geometry string
@@ -4448,6 +4453,10 @@ xg_finish_scroll_bar_creation (struct frame *f,
                                const char *scroll_bar_name)
 {
   GtkWidget *webox = gtk_event_box_new ();
+#ifdef HAVE_GTK3
+  GtkCssProvider *foreground_provider;
+  GtkCssProvider *background_provider;
+#endif
 
   gtk_widget_set_name (wscroll, scroll_bar_name);
 #ifndef HAVE_GTK3
@@ -4496,15 +4505,14 @@ xg_finish_scroll_bar_creation (struct frame *f,
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
-#ifdef HAVE_PGTK
+#ifdef HAVE_GTK3
   GtkStyleContext *ctxt = gtk_widget_get_style_context (wscroll);
-  gtk_style_context_add_provider (ctxt,
-				  GTK_STYLE_PROVIDER (FRAME_OUTPUT_DATA (f)->
-						      scrollbar_foreground_css_provider),
+  foreground_provider = FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider;
+  background_provider = FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider;
+
+  gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (foreground_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
-  gtk_style_context_add_provider (ctxt,
-				  GTK_STYLE_PROVIDER (FRAME_OUTPUT_DATA (f)->
-						      scrollbar_background_css_provider),
+  gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (background_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
 #endif
 

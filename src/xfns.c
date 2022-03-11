@@ -1943,6 +1943,10 @@ static void
 x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
+#ifdef HAVE_GTK3
+  XColor color;
+  char css[64];
+#endif
 
   if (STRINGP (value))
     pixel = x_decode_color (f, value, BLACK_PIX_DEFAULT (f));
@@ -1964,6 +1968,25 @@ x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object old
       update_face_from_frame_parameter (f, Qscroll_bar_foreground, value);
       redraw_frame (f);
     }
+
+#ifdef HAVE_GTK3
+  if (pixel != -1)
+    {
+      color.pixel = pixel;
+
+      XQueryColor (FRAME_X_DISPLAY (f),
+		   FRAME_X_COLORMAP (f),
+		   &color);
+
+      sprintf (css, "scrollbar slider { background-color: #%02x%02x%02x; }",
+	       color.red >> 8, color.green >> 8, color.blue >> 8);
+      gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+				       css, -1, NULL);
+    }
+  else
+    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+				     "", -1, NULL);
+#endif
 }
 
 
@@ -1976,6 +1999,10 @@ static void
 x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
+#ifdef HAVE_GTK3
+  XColor color;
+  char css[64];
+#endif
 
   if (STRINGP (value))
     pixel = x_decode_color (f, value, WHITE_PIX_DEFAULT (f));
@@ -2011,6 +2038,25 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
       update_face_from_frame_parameter (f, Qscroll_bar_background, value);
       redraw_frame (f);
     }
+
+#ifdef HAVE_GTK3
+  if (pixel != -1)
+    {
+      color.pixel = pixel;
+
+      XQueryColor (FRAME_X_DISPLAY (f),
+		   FRAME_X_COLORMAP (f),
+		   &color);
+
+      sprintf (css, "scrollbar trough { background-color: #%02x%02x%02x; }",
+	       color.red >> 8, color.green >> 8, color.blue >> 8);
+      gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+				       css, -1, NULL);
+    }
+  else
+    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+				     "", -1, NULL);
+#endif
 }
 
 
