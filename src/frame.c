@@ -6270,7 +6270,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
 
   DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
                scroll_bar_adjust_thumb_portion_p,
-               doc: /* Adjust thumb for overscrolling for Gtk+ and MOTIF.
+               doc: /* Adjust scroll bars for overscrolling for Gtk+, Motif and Haiku.
 Non-nil means adjust the thumb in the scroll bar so it can be dragged downwards
 even if the end of the buffer is shown (i.e. overscrolling).
 Set to nil if you want the thumb to be at the bottom when the end of the buffer
