@@ -743,7 +743,7 @@ If none try N - 1 and so forth."
 
 
 ;;;###autoload
-(defun eudc-expand-inline (&optional replace)
+(defun eudc-expand-inline (&optional save-query-as-kill)
   "Query the directory server, and expand the query string before point.
 The query string consists of the buffer substring from the point back to
 the preceding comma, colon or beginning of line.
@@ -751,8 +751,9 @@ The variable `eudc-inline-query-format' controls how to associate the
 individual inline query words with directory attribute names.
 After querying the server for the given string, the expansion specified by
 `eudc-inline-expansion-format' is inserted in the buffer at point.
-If REPLACE is non-nil, then this expansion replaces the name in the buffer.
-`eudc-expansion-overwrites-query' being non-nil inverts the meaning of REPLACE.
+If SAVE-QUERY-AS-KILL is non-nil, then save the pre-expansion
+text to the kill ring.  `eudc-expansion-save-query-as-kill' being
+non-nil inverts the meaning of SAVE-QUERY-AS-KILL.
 Multiple servers can be tried with the same query until one finds a match,
 see `eudc-inline-expansion-servers'."
   (interactive)
@@ -769,8 +770,8 @@ see `eudc-inline-expansion-servers'."
         (error "No match")
 
       (if (or
-	   (and replace (not eudc-expansion-overwrites-query))
-	   (and (not replace) eudc-expansion-overwrites-query))
+	   (and save-query-as-kill (not eudc-expansion-save-query-as-kill))
+	   (and (not save-query-as-kill) eudc-expansion-save-query-as-kill))
 	  (kill-ring-save beg end))
       (cond
        ((or (= (length response-strings) 1)

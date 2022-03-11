@@ -630,6 +630,14 @@ header before sending a message.
 *** 'texinfo-mode' now has a specialised 'narrow-to-defun' definition.
 It narrows to the current node.
 
+** EUDC
+
++++
+*** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
+Rename 'eudc-expansion-overwrites-query' to
+'eudc-expansion-save-query-as-kill' to reflect the actual behaviour of
+the customization variable.
+
 ** eww/shr
 
 +++

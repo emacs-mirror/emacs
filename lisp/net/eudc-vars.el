@@ -42,7 +42,7 @@ A port number may be specified by appending a colon and a
 number to the name of the server.  Use `localhost' if the directory
 server resides on your computer (BBDB backend).
 
-To specify multiple servers, customize eudc-server-hotlist
+To specify multiple servers, customize `eudc-server-hotlist'
 instead."
   :type  '(choice (string :tag "Server") (const :tag "None" nil)))
 
@@ -179,10 +179,15 @@ must be set in a protocol/server-local fashion, see `eudc-server-set' and
 	     (symbol :menu-tag "Other" :tag "Attribute name"))))
   :version "25.1")
 
-;; Default to nil so that the most common use of eudc-expand-inline,
-;; where replace is nil, does not affect the kill ring.
-(defcustom eudc-expansion-overwrites-query nil
-  "If non-nil, expanding a query overwrites the query string."
+(define-obsolete-variable-alias
+  'eudc-expansion-overwrites-query
+  'eudc-expansion-save-query-as-kill
+  "29.1")
+
+;; Default to nil so that the most common use of `eudc-expand-inline',
+;; where `save-query-as-kill' is nil, does not affect the kill ring.
+(defcustom eudc-expansion-save-query-as-kill nil
+  "If non-nil, expansion saves the query string to the kill ring."
   :type  'boolean
   :version "25.1")
 

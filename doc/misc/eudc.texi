@@ -723,17 +723,19 @@ controlled by the variables @code{eudc-inline-expansion-format},
 If the query fails for a server, other servers may be tried successively
 until one of them finds a match (@pxref{Multi-server Queries}).
 
-@deffn Command eudc-expand-inline replace-p
+@deffn Command eudc-expand-inline save-query-as-kill-p
 Query the server and expand the query string before point.  The query
 string consists of the buffer substring from the point back to the
-preceding comma, colon or beginning of
-line.  @code{eudc-inline-query-format} controls how individual words
-are mapped onto directory attribute names.  After querying the server
-for the given string, the expansion specified by
+preceding comma, colon or beginning of line.
+@code{eudc-inline-query-format} controls how individual words are
+mapped onto directory attribute names.  After querying the server for
+the given string, the expansion specified by
 @code{eudc-inline-expansion-format} is inserted in the buffer at
-point. If @var{replace-p} is @code{t} then this expansion replaces the
-query string in the buffer.  If @code{eudc-expanding-overwrites-query}
-is non-@code{nil} then the meaning of @var{replace-p} is negated.
+point.  If multiple matches are available, a selection window is
+displayed.  If @var{save-query-as-kill-p} is @code{t} then the query
+string is saved to the kill ring.  If
+@code{eudc-expansion-save-query-as-kill} is non-@code{nil} then the
+meaning of @var{save-query-as-kill-p} is negated.
 @end deffn
 
 @defvar eudc-inline-query-format
