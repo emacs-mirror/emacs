@@ -568,9 +568,19 @@ some completion is made.
 This option limits the height of the "*Completions*" buffer.
 
 +++
+*** New option 'completion-header-text-property-list'
+List of text properties to add to the header line of completions.
+
++++
+*** New option 'completion-lazy-count'
+When non-nil the completions header line shows the total number of
+completion candidates.
+
++++
 *** New mode 'completions-highlight-mode'.
 This mode highlights the current candidate in the *Completions* buffer
 with the 'completions-highlight' face.
+
 
 ** Isearch and Replace
 

@@ -1873,6 +1873,20 @@ completions."
   :type 'boolean
   :version "28.1")
 
+(defcustom completion-header-text-property-list nil
+  "List of text properties to add to the header line of completions.
+For example you can change the header color to red setting this
+to: `(face (:foreground ``red'')).  Some useful properties may be
+`cursor-intangible' or `invisible'.  See Info node `(elisp) Special
+Properties'."
+  :type 'plist
+  :version "29.1")
+
+(defcustom completion-lazy-count nil
+  "When non-nil, display the total number of candidates in the completions header."
+  :type 'boolean
+  :version "29.1")
+
 (defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
 The candidate strings are inserted into the buffer depending on the
@@ -2135,10 +2149,18 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (if (null completions)
-          (insert "There are no possible completions of what you have typed.")
-        (insert "Possible completions are:\n")
-        (completion--insert-strings completions group-fun))))
+      (if completions
+          (let ((start (point))
+                (text (concat
+                       "Possible completions are"
+                       (if completion-lazy-count
+                           (format " (%s)" (length completions)))
+                       ":\n")))
+            (insert text)
+            (when completion-header-text-property-list
+              (add-text-properties start (point) completion-header-text-property-list))
+            (completion--insert-strings completions group-fun))
+        (insert "There are no possible completions of what you have typed."))))
 
   (run-hooks 'completion-setup-hook)
   nil)

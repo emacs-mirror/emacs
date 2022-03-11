@@ -667,6 +667,18 @@ control of the Completion window display properties you can use
 Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
 Reference Manual}).
 
+@vindex completion-lazy-count
+@vindex completion-header-text-property-list
+  When the boolean variable @code{completion-lazy-count} is
+non-@code{nil} the completions header line shows the total number of
+completion candidates.  With the text property list
+@code{completion-header-text-property-list} (@pxref{Property
+Lists,,Property Lists, elisp, The Emacs Lisp Reference Manual}) the
+user can specify some text properties to the completions header line.
+Some useful values may be @code{face}, @code{cursor-intangible} or
+@code{invisible} (@pxref{Special Properties,,Properties with Special
+Meanings, elisp, The Emacs Lisp Reference Manual}).
+
 @vindex completions-highlight-mode
 When the mode @code{completions-highlight-mode} is active the candidate
 under the cursor is highlighted when the completion window is
