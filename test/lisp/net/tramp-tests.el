@@ -4713,7 +4713,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
-  :tags '(:expensive-test :tramp-asynchronous-processes)
+  :tags (append '(:expensive-test :tramp-asynchronous-processes)
+		(and (getenv "EMACS_EMBA_CI")
+                     '(:unstable)))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   ;; `make-process' supports file name handlers since Emacs 27.
