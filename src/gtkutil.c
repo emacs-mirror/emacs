@@ -4440,7 +4440,7 @@ xg_get_default_scrollbar_height (struct frame *f)
   return scroll_bar_width_for_theme * xg_get_scale (f);
 }
 
-#if defined HAVE_PGTK || !defined HAVE_GTK3
+#ifndef HAVE_GTK3
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 
@@ -4556,7 +4556,7 @@ xg_finish_scroll_bar_creation (struct frame *f,
 #endif
 #endif
 
-#if !defined HAVE_GTK3 || !defined HAVE_GTK3
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   bar->x_window = scroll_id;
 #endif
 }
