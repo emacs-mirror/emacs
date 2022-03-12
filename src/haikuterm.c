@@ -485,7 +485,7 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
     }
 
   BView_scroll_bar_update (scroll_bar, lrint (size),
-			   BE_SB_MAX, lrint (value), bar->dragging);
+			   BE_SB_MAX, ceil (value), bar->dragging);
 }
 
 static void
