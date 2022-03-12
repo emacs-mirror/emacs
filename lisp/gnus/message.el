@@ -8265,17 +8265,23 @@ When FORCE, rebuild the tool bar."
 				    'message-mode-map))))
   message-tool-bar-map)
 
-;;; Group name completion.
+;;; Group name and email address completion.
 
 (defcustom message-newgroups-header-regexp
   "^\\(Newsgroups\\|Followup-To\\|Posted-To\\|Gcc\\):"
-  "Regexp that match headers that lists groups."
+  "Regexp matching headers that list groups."
   :group 'message
+  :type 'regexp)
+
+(defcustom message-email-recipient-header-regexp
+  "^\\([^ :]*-\\)?\\(To\\|B?Cc\\|From\\|Reply-to\\|Mail-Followup-To\\|Mail-Copies-To\\):"
+  "Regexp matching headers that list email addresses."
+  :version "29.1"
   :type 'regexp)
 
 (defcustom message-completion-alist
   `((,message-newgroups-header-regexp . ,#'message-expand-group)
-    ("^\\([^ :]*-\\)?\\(To\\|B?Cc\\|From\\):" . ,#'message-expand-name))
+    (,message-email-recipient-header-regexp . ,#'message-expand-name))
   "Alist of (RE . FUN).  Use FUN for completion on header lines matching RE.
 FUN should be a function that obeys the same rules as those
 of `completion-at-point-functions'."
