@@ -1501,7 +1501,7 @@ message if FILE is not found."
   ;; same as that from top-level/ChangeLog.
   (let* ((fullname (expand-file-name file (file-name-directory log-file)))
 	 (entry (assoc fullname authors-checked-files-alist))
-	 laxlog relname valid foo)
+	 laxlog relname valid)
     (if entry
 	(cdr entry)
       (setq relname (file-name-nondirectory file))
