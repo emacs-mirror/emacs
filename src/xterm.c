@@ -7238,9 +7238,9 @@ x_window_to_scroll_bar (Display *display, Window window_id, int type)
 {
   Lisp_Object tail, frame;
 
-#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
+#if defined (USE_GTK) && !defined (HAVE_GTK3) && defined (USE_TOOLKIT_SCROLL_BARS)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
-#endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
+#endif /* USE_GTK && !HAVE_GTK3  && USE_TOOLKIT_SCROLL_BARS */
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -11293,6 +11293,41 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           else
 	    configureEvent = next_event;
         }
+
+#if defined HAVE_GTK3 && defined USE_TOOLKIT_SCROLL_BARS
+	  struct scroll_bar *bar = x_window_to_scroll_bar (dpyinfo->display,
+							   configureEvent.xconfigure.window, 2);
+
+	  /* There is really no other way to make GTK scroll bars fit
+	     in the dimensions we want them to.  */
+	  if (bar)
+	    {
+	      /* Skip all the pending configure events, not just the
+		 ones where window motion occurred.  */
+	      while (XPending (dpyinfo->display))
+		{
+		  XNextEvent (dpyinfo->display, &next_event);
+		  if (next_event.type != ConfigureNotify
+		      || next_event.xconfigure.window != event->xconfigure.window)
+		    {
+		      XPutBackEvent (dpyinfo->display, &next_event);
+		      break;
+		    }
+		  else
+		    configureEvent = next_event;
+		}
+
+	      if (configureEvent.xconfigure.width != max (bar->width, 1)
+		  || configureEvent.xconfigure.height != max (bar->height, 1))
+		XResizeWindow (dpyinfo->display, bar->x_window,
+			       max (bar->width, 1), max (bar->height, 1));
+
+	      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
+		x_drop_xrender_surfaces (f);
+
+	      goto OTHER;
+	    }
+#endif
 
       f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
       /* Unfortunately, we need to call x_drop_xrender_surfaces for

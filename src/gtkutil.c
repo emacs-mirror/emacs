@@ -142,7 +142,7 @@ struct xg_frame_tb_info
 bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible */
 #endif
 
-static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
+static GtkWidget *xg_get_widget_from_map (ptrdiff_t idx, Display *dpy);
 
 
 
@@ -2038,8 +2038,8 @@ xg_set_background_color (struct frame *f, unsigned long bg)
            !NILP (bar);
            bar = XSCROLL_BAR (bar)->next)
         {
-          GtkWidget *scrollbar =
-            xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window);
+          GtkWidget *scrollbar = xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window,
+							 FRAME_X_DISPLAY (f));
           GtkWidget *webox = gtk_widget_get_parent (scrollbar);
           xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
         }
@@ -4264,6 +4264,8 @@ bool xg_ignore_gtk_scrollbar;
 static int scroll_bar_width_for_theme;
 static int scroll_bar_height_for_theme;
 
+#if defined HAVE_PGTK || !defined HAVE_GTK3
+
 /* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
    may be larger than 32 bits.  Keep a mapping from integer index to widget
    pointers to get around the 32 bit limitation.  */
@@ -4335,13 +4337,49 @@ xg_remove_widget_from_map (ptrdiff_t idx)
 /* Get the widget pointer at IDX from id_to_widget. */
 
 static GtkWidget *
-xg_get_widget_from_map (ptrdiff_t idx)
+xg_get_widget_from_map (ptrdiff_t idx, Display *dpy)
 {
   if (idx < id_to_widget.max_size && id_to_widget.widgets[idx] != 0)
     return id_to_widget.widgets[idx];
 
   return 0;
 }
+
+#else
+static void
+find_scrollbar_cb (GtkWidget *widget, gpointer user_data)
+{
+  GtkWidget **scroll_bar = user_data;
+
+  if (GTK_IS_SCROLLBAR (widget))
+    *scroll_bar = widget;
+}
+
+static GtkWidget *
+xg_get_widget_from_map (ptrdiff_t window, Display *dpy)
+{
+  GtkWidget *gwdesc, *scroll_bar = NULL;
+  GdkWindow *gdkwin;
+
+  gdkwin = gdk_x11_window_lookup_for_display (gdk_x11_lookup_xdisplay (dpy),
+                                              (Window) window);
+  if (gdkwin)
+    {
+      GdkEvent event;
+      event.any.window = gdkwin;
+      event.any.type = GDK_NOTHING;
+      gwdesc = gtk_get_event_widget (&event);
+
+      if (gwdesc && GTK_IS_EVENT_BOX (gwdesc))
+	gtk_container_forall (GTK_CONTAINER (gwdesc),
+			      find_scrollbar_cb, &scroll_bar);
+    }
+  else
+    return NULL;
+
+  return scroll_bar;
+}
+#endif
 
 static void
 update_theme_scrollbar_width (void)
@@ -4402,7 +4440,7 @@ xg_get_default_scrollbar_height (struct frame *f)
   return scroll_bar_width_for_theme * xg_get_scale (f);
 }
 
-#ifndef HAVE_PGTK
+#if defined HAVE_PGTK || !defined HAVE_GTK3
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 
@@ -4429,12 +4467,14 @@ xg_get_scroll_id_for_window (Display *dpy, Window wid)
    DATA is the index into id_to_widget for WIDGET.
    We free pointer to last scroll bar values here and remove the index.  */
 
+#if !defined HAVE_GTK3 || defined HAVE_PGTK
 static void
 xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 {
   intptr_t id = (intptr_t) data;
   xg_remove_widget_from_map (id);
 }
+#endif
 
 static void
 xg_finish_scroll_bar_creation (struct frame *f,
@@ -4456,12 +4496,15 @@ xg_finish_scroll_bar_creation (struct frame *f,
 #endif
   g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
 
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   ptrdiff_t scroll_id = xg_store_widget_in_map (wscroll);
 
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
                     (gpointer) scroll_id);
+#endif
+
   g_signal_connect (G_OBJECT (wscroll),
                     "change-value",
                     scroll_callback,
@@ -4489,8 +4532,9 @@ xg_finish_scroll_bar_creation (struct frame *f,
   gtk_widget_realize (webox);
 #ifdef HAVE_PGTK
   gtk_widget_show_all (webox);
-#endif
-#ifndef HAVE_PGTK
+#elif defined HAVE_GTK3
+  bar->x_window = GTK_WIDGET_TO_X_WIN (webox);
+#else
   GTK_WIDGET_TO_X_WIN (webox);
 #endif
 
@@ -4506,9 +4550,15 @@ xg_finish_scroll_bar_creation (struct frame *f,
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
   gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (background_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+#ifndef HAVE_PGTK
+  gtk_widget_add_events (webox, GDK_STRUCTURE_MASK);
+#endif
 #endif
 
+#if !defined HAVE_GTK3 || !defined HAVE_GTK3
   bar->x_window = scroll_id;
+#endif
 }
 
 /* Create a scroll bar widget for frame F.  Store the scroll bar
@@ -4582,7 +4632,8 @@ xg_create_horizontal_scroll_bar (struct frame *f,
 void
 xg_remove_scroll_bar (struct frame *f, ptrdiff_t scrollbar_id)
 {
-  GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *w = xg_get_widget_from_map (scrollbar_id,
+					 FRAME_X_DISPLAY (f));
   if (w)
     {
       GtkWidget *wparent = gtk_widget_get_parent (w);
@@ -4605,7 +4656,8 @@ xg_update_scrollbar_pos (struct frame *f,
                          int width,
                          int height)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id,
+					       FRAME_X_DISPLAY (f));
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.xp->edit_widget;
@@ -4658,7 +4710,8 @@ xg_update_scrollbar_pos (struct frame *f,
 
       if (!hidden)
 	{
-	  GtkWidget *scrollbar = xg_get_widget_from_map (scrollbar_id);
+	  GtkWidget *scrollbar = xg_get_widget_from_map (scrollbar_id,
+							 FRAME_X_DISPLAY (f));
 	  GtkWidget *webox = gtk_widget_get_parent (scrollbar);
 
 #ifndef HAVE_PGTK
@@ -4697,7 +4750,8 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 				    int width,
 				    int height)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id,
+					       FRAME_X_DISPLAY (f));
 
   if (wscroll)
     {
@@ -4749,7 +4803,7 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 
       {
 	GtkWidget *scrollbar =
-	  xg_get_widget_from_map (scrollbar_id);
+	  xg_get_widget_from_map (scrollbar_id, FRAME_X_DISPLAY (f));
 	GtkWidget *webox = gtk_widget_get_parent (scrollbar);
 
 #ifndef HAVE_PGTK
@@ -4789,9 +4843,10 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
                                  int position,
                                  int whole)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
-
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window,
+					       FRAME_X_DISPLAY (f));
+
 
   if (wscroll && bar->dragging == -1)
     {
@@ -4876,7 +4931,9 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 					    int position,
 					    int whole)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window,
+					       FRAME_X_DISPLAY (f));
 
   if (wscroll && bar->dragging == -1)
     {
@@ -6055,8 +6112,10 @@ xg_initialize (void)
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   id_to_widget.max_size = id_to_widget.used = 0;
   id_to_widget.widgets = 0;
+#endif
 
   settings = gtk_settings_get_for_screen (gdk_display_get_default_screen
                                           (gdk_display_get_default ()));
