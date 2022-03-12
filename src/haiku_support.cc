@@ -1563,6 +1563,9 @@ public:
   float old_value;
   scroll_bar_info info;
 
+  /* True if button events should be passed to the parent.  */
+  bool handle_button = false;
+
   EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p) :
     BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
 		B_HORIZONTAL : B_VERTICAL)
@@ -1703,9 +1706,11 @@ public:
     BRegion r;
     BLooper *looper;
     BMessage *message;
-    int32 buttons;
+    int32 buttons, mods;
+    BView *parent;
 
     looper = Looper ();
+    message = NULL;
 
     if (!looper)
       GetMouse (&pt, (uint32 *) &buttons, false);
@@ -1715,6 +1720,18 @@ public:
 
 	if (!message || message->FindInt32 ("buttons", &buttons) != B_OK)
 	  GetMouse (&pt, (uint32 *) &buttons, false);
+      }
+
+    if (message && (message->FindInt32 ("modifiers", &mods)
+		    == B_OK)
+	&& mods & B_CONTROL_KEY)
+      {
+	/* Allow C-mouse-3 to split the window on a scroll bar.   */
+	handle_button = true;
+	parent = Parent ();
+	parent->MouseDown (ConvertToParent (pt));
+
+	return;
       }
 
     if (buttons == B_PRIMARY_MOUSE_BUTTON)
@@ -1762,6 +1779,17 @@ public:
   MouseUp (BPoint pt)
   {
     struct haiku_scroll_bar_drag_event rq;
+    BView *parent;
+
+    if (handle_button)
+      {
+	handle_button = false;
+	parent = Parent ();
+	parent->MouseUp (ConvertToParent (pt));
+
+	return;
+      }
+
     rq.dragging_p = 0;
     rq.scroll_bar = this;
     rq.window = Window ();
