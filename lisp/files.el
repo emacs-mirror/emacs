@@ -989,7 +989,16 @@ one or more of those symbols."
 		  (if (memq 'readable predicate) 4 0))))
   (let ((file (locate-file-internal filename path suffixes predicate)))
     (if (and file (string-match "\\.eln\\'" file))
-        (gethash (file-name-nondirectory file) comp-eln-to-el-h)
+        ;; This is all a bit of a mess.  We pass in a list of suffixes
+        ;; that doesn't include .eln, but with a nativecomp emacs, we
+        ;; get the .eln file back.  We then map that to the .el file.
+        ;; But `load-history' has the .elc file, so that's the file we
+        ;; return here (if it exists).
+        (let* ((el (gethash (file-name-nondirectory file) comp-eln-to-el-h))
+               (elc (replace-regexp-in-string "\\.el\\'" ".elc" el)))
+          (if (file-exists-p elc)
+              elc
+            el))
       file)))
 
 (defun locate-file-completion-table (dirs suffixes string pred action)
