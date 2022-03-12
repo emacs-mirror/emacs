@@ -267,8 +267,6 @@ restore_stack_limits (Lisp_Object data)
   integer_to_intmax (XCDR (data), &max_lisp_eval_depth);
 }
 
-static void grow_specpdl (void);
-
 /* Call the Lisp debugger, giving it argument ARG.  */
 
 Lisp_Object
