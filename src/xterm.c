@@ -12771,6 +12771,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.time = xev->time;
 	      xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
 			    | (xev->group.effective << 13));
+
+	      /* Some input methods react differently depending on the
+		 buttons that are pressed.  */
+	      if (xev->buttons.mask_len)
+		{
+		  if (XIMaskIsSet (xev->buttons.mask, 1))
+		    xkey.state |= Button1Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 2))
+		    xkey.state |= Button2Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 3))
+		    xkey.state |= Button3Mask;
+		}
+
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
 
@@ -13126,6 +13139,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.time = xev->time;
 	      xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
 			    | (xev->group.effective << 13));
+
+	      /* Some input methods react differently depending on the
+		 buttons that are pressed.  */
+	      if (xev->buttons.mask_len)
+		{
+		  if (XIMaskIsSet (xev->buttons.mask, 1))
+		    xkey.state |= Button1Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 2))
+		    xkey.state |= Button2Mask;
+		  if (XIMaskIsSet (xev->buttons.mask, 3))
+		    xkey.state |= Button3Mask;
+		}
+
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
 
