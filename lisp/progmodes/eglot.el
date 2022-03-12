@@ -649,7 +649,7 @@ treated as in `eglot-dbind'."
             :workspace (list
                         :applyEdit t
                         :executeCommand `(:dynamicRegistration :json-false)
-                        :workspaceEdit `(:documentChanges :json-false)
+                        :workspaceEdit `(:documentChanges t)
                         :didChangeWatchedFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false)
                         :configuration t)
