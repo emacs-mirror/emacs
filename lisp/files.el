@@ -996,7 +996,8 @@ one or more of those symbols."
         ;; return here (if it exists).
         (let* ((el (gethash (file-name-nondirectory file) comp-eln-to-el-h))
                (elc (replace-regexp-in-string "\\.el\\'" ".elc" el)))
-          (if (file-exists-p elc)
+          (if (and (member ".elc" suffixes)
+                   (file-exists-p elc))
               elc
             el))
       file)))
