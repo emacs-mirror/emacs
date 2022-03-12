@@ -506,6 +506,12 @@ are met.  The conditions are given by the argument, which can be
 +++
 *** New command 'rcirc-when'.
 
++++
+*** New user option 'rcirc-cycle-completion-flag'.
+Rcirc will use the default 'completion-at-point' mechanism.  The
+conventional IRC behaviour of completing by cycling through the
+available options can be restored by enabling this option.
+
 * Editing Changes in Emacs 29.1
 
 ---

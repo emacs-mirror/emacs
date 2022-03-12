@@ -154,8 +154,11 @@ deego: fsbot rules!
 
 @cindex nick completion
 @cindex completion of nicks
+@vindex rcirc-cycle-completion-flag
 @kindex TAB
 Since this is so common, you can use @key{TAB} to do nick completion.
+By default rcirc will use the default completion system, but you can
+enable @code{rcirc-cycle-completion-flag} to cycle nicks in place.
 
 @node Getting started with rcirc
 @section Getting started with rcirc

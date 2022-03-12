@@ -433,6 +433,20 @@ will be killed."
   :version "28.1"
   :type 'boolean)
 
+(defcustom rcirc-cycle-completion-flag nil
+  "Non-nil means to use cycling for completion in rcirc buffers.
+See the Info node `(emacs) Completion Options' for background on
+what cycling completion means."
+  :version "29.1"
+  :set (lambda (sym val)
+         (dolist (buf (match-buffers '(major-mode . rcirc-mode)))
+           (with-current-buffer buf
+             (if val
+                 (setq-local completion-cycle-threshold t)
+               (kill-local-variable 'completion-cycle-threshold))))
+         (set-default sym val))
+  :type 'boolean)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -1434,7 +1448,8 @@ PROCESS is the process object used for communication.
 
   (add-hook 'completion-at-point-functions
             'rcirc-completion-at-point nil 'local)
-  (setq-local completion-cycle-threshold t)
+  (when rcirc-cycle-completion-flag
+    (setq-local completion-cycle-threshold t))
 
   (run-mode-hooks 'rcirc-mode-hook))
 
