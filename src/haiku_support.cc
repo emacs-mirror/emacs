@@ -2807,7 +2807,7 @@ BMenu_run (void *menu, int x, int y,
       next_time = process_pending_signals_function ();
 
       if (next_time.tv_nsec < 0)
-	timeout = 100000;
+	timeout = 10000000000;
       else
 	timeout = (next_time.tv_sec * 1000000
 		   + next_time.tv_nsec / 1000);
