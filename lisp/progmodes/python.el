@@ -563,6 +563,8 @@ class declarations.")
           ;; Python 3.5+ PEP492
           (and "async" (+ space) (or "def" "for" "with"))
           "await"
+          ;; Python 3.10+
+          "match" "case"
           ;; Extra:
           "self")
          symbol-end)
