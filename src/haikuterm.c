@@ -493,20 +493,19 @@ haiku_set_horizontal_scroll_bar_thumb (struct scroll_bar *bar, int portion,
 				       int position, int whole)
 {
   void *scroll_bar = bar->scroll_bar;
-  float shown, top;
-  int size, value;
+  double size, value, shown, top;
 
-  shown = (float) portion / whole;
-  top = (float) position / (whole - portion);
+  shown = (double) portion / whole;
+  top = (double) position / whole;
 
-  size = clip_to_bounds (1, shown * BE_SB_MAX, BE_SB_MAX);
-  value = clip_to_bounds (0, top * (BE_SB_MAX - size), BE_SB_MAX - size);
+  size = shown * BE_SB_MAX;
+  value = top * BE_SB_MAX;
 
   if (!bar->dragging)
     bar->page_size = size;
 
-  BView_scroll_bar_update (scroll_bar, shown, BE_SB_MAX, value,
-			   bar->dragging);
+  BView_scroll_bar_update (scroll_bar, lrint (size), BE_SB_MAX,
+			   ceil (value), bar->dragging);
 }
 
 static struct scroll_bar *
