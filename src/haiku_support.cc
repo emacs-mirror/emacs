@@ -1469,17 +1469,19 @@ public:
     this->GetMouse (&point, &buttons, false);
 
     rq.window = this->Window ();
-    rq.btn_no = 0;
 
-    if (!(previous_buttons & B_PRIMARY_MOUSE_BUTTON) &&
-	(buttons & B_PRIMARY_MOUSE_BUTTON))
+    if (!(previous_buttons & B_PRIMARY_MOUSE_BUTTON)
+	&& (buttons & B_PRIMARY_MOUSE_BUTTON))
       rq.btn_no = 0;
-    else if (!(previous_buttons & B_SECONDARY_MOUSE_BUTTON) &&
-	     (buttons & B_SECONDARY_MOUSE_BUTTON))
+    else if (!(previous_buttons & B_SECONDARY_MOUSE_BUTTON)
+	     && (buttons & B_SECONDARY_MOUSE_BUTTON))
       rq.btn_no = 2;
-    else if (!(previous_buttons & B_TERTIARY_MOUSE_BUTTON) &&
-	     (buttons & B_TERTIARY_MOUSE_BUTTON))
+    else if (!(previous_buttons & B_TERTIARY_MOUSE_BUTTON)
+	     && (buttons & B_TERTIARY_MOUSE_BUTTON))
       rq.btn_no = 1;
+    else
+      return;
+
     previous_buttons = buttons;
 
     rq.x = point.x;
@@ -1515,7 +1517,6 @@ public:
     this->GetMouse (&point, &buttons, false);
 
     rq.window = this->Window ();
-    rq.btn_no = 0;
 
     if ((previous_buttons & B_PRIMARY_MOUSE_BUTTON)
 	&& !(buttons & B_PRIMARY_MOUSE_BUTTON))
@@ -1526,6 +1527,9 @@ public:
     else if ((previous_buttons & B_TERTIARY_MOUSE_BUTTON)
 	     && !(buttons & B_TERTIARY_MOUSE_BUTTON))
       rq.btn_no = 1;
+    else
+      return;
+
     previous_buttons = buttons;
 
     rq.x = point.x;
