@@ -1873,8 +1873,11 @@ completions."
   :type 'boolean
   :version "28.1")
 
-(defcustom completion-header-string "Possible completions are (%s):\n"
-  "Propertized header text for completions list.
+(defcustom completion-header-format
+  (propertize "%s possible completions:\n"
+              'face 'shadow
+              :help "Please select a completion")
+  "Format of completions header.
 It may contain one %s to show the total count of completions.
 When nil no header is shown."
   :type '(choice (const :tag "No prefix" nil)
@@ -2143,10 +2146,9 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (if (not completions)
-          (insert "There are no possible completions of what you have typed.")
-        (when completion-header-string
-          (insert (format completion-header-string (length completions))))
+      (when completions
+        (when completion-header-format
+          (insert (format completion-header-format (length completions))))
         (completion--insert-strings completions group-fun))))
 
   (run-hooks 'completion-setup-hook)

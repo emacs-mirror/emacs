@@ -568,7 +568,7 @@ some completion is made.
 This option limits the height of the "*Completions*" buffer.
 
 +++
-*** New option 'completion-header-string'
+*** New option 'completion-header-format'
 This is a string to control the message to show before completions.
 It may contain a %s to show the total number of completions. If nil no
 completions are shown.
