@@ -1408,6 +1408,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-newsgroup-adaptive-score-file nil)
 (defvar gnus-current-score-file nil)
 (defvar gnus-current-move-group nil)
+(defvar gnus-current-move-article nil)
 (defvar gnus-current-copy-group nil)
 (defvar gnus-current-crosspost-group nil)
 (defvar gnus-newsgroup-display nil)
@@ -10248,6 +10249,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
+	  (set (intern "gnus-current-move-article") (cdr art-group))
 	  (run-hook-with-args 'gnus-summary-article-move-hook
 			      action
 			      (gnus-data-header (gnus-data-find article))
