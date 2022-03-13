@@ -171,7 +171,7 @@
 	clm)
     (with-temp-buffer
       (insert "\n")
-      (insert "    +")
+      (insert "----+")
       (insert-char ?- 74)
       (insert "\n    |")
       (setq clm 6)
@@ -244,19 +244,27 @@
       (insert "\n")
       (buffer-string))))
 
-(defvar quail-tamil-itrans-various-signs-and-digits-table
+(defun quail-tamil-itrans-compute-signs-table (digitp)
+  "Compute the signs table for the tamil-itrans input method.
+If DIGITP is non-nil, include the digits translation as well."
   (let ((various '((?ஃ . "H") ("ஸ்ரீ" . "srii") (?ௐ)))
 	(digits "௦௧௨௩௪௫௬௭௮௯")
 	(width 6) clm)
     (with-temp-buffer
-      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (insert "\n" (make-string 18 ?-) "+")
+      (when digitp (insert (make-string 60 ?-)))
+      (insert "\n")
       (insert
        (propertize "\t" 'display '(space :align-to 5)) "various"
-       (propertize "\t" 'display '(space :align-to 18)) "|"
-       (propertize "\t" 'display '(space :align-to 45)) "digits")
-
-      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
-      (setq clm 0 )
+       (propertize "\t" 'display '(space :align-to 18)) "|")
+      (when digitp
+        (insert
+         (propertize "\t" 'display '(space :align-to 45)) "digits"))
+      (insert "\n" (make-string 18 ?-) "+")
+      (when digitp
+        (insert (make-string 60 ?-)))
+      (insert "\n")
+      (setq clm 0)
 
       (dotimes (i (length various))
 	(insert (propertize "\t" 'display (list 'space :align-to clm))
@@ -264,10 +272,11 @@
 	(setq clm (+ clm width)))
       (insert (propertize "\t" 'display '(space :align-to 18)) "|")
       (setq clm 20)
-      (dotimes (i 10)
-	(insert (propertize "\t" 'display (list 'space :align-to clm))
-		(aref digits i))
-	(setq clm (+ clm width)))
+      (when digitp
+        (dotimes (i 10)
+	  (insert (propertize "\t" 'display (list 'space :align-to clm))
+		  (aref digits i))
+	  (setq clm (+ clm width))))
       (insert "\n")
       (setq clm 0)
       (dotimes (i (length various))
@@ -276,12 +285,21 @@
 	(setq clm (+ clm width)))
       (insert (propertize "\t" 'display '(space :align-to 18)) "|")
       (setq clm 20)
-      (dotimes (i 10)
-	(insert (propertize "\t" 'display (list 'space :align-to clm))
-		(format "%d" i))
-	(setq clm (+ clm width)))
-      (insert "\n" (make-string 18 ?-) "+" (make-string 60 ?-) "\n")
+      (when digitp
+        (dotimes (i 10)
+	  (insert (propertize "\t" 'display (list 'space :align-to clm))
+		  (format "%d" i))
+	  (setq clm (+ clm width))))
+      (insert "\n" (make-string 18 ?-) "+")
+      (when digitp
+        (insert (make-string 60 ?-) "\n"))
       (buffer-string))))
+
+(defvar quail-tamil-itrans-various-signs-and-digits-table
+  (quail-tamil-itrans-compute-signs-table t))
+
+(defvar quail-tamil-itrans-various-signs-table
+  (quail-tamil-itrans-compute-signs-table nil))
 
 (if nil
     (quail-define-package "tamil-itrans" "Tamil" "TmlIT" t "Tamil ITRANS"))
@@ -293,16 +311,39 @@ You can input characters using the following mapping tables.
     Example: To enter வணக்கம், type vaNakkam.
 
 ### Basic syllables (consonants + vowels) ###
-\\<quail-tamil-itrans-syllable-table>
+\\=\\<quail-tamil-itrans-syllable-table>
 
-### Miscellaneous (various signs + digits) ###
-\\<quail-tamil-itrans-various-signs-and-digits-table>
+### Miscellaneous (various signs) ###
+\\=\\<quail-tamil-itrans-various-signs-table>
 
 ### Others (numerics + symbols) ###
 
 Characters below have no ITRANS method associated with them.
 Their descriptions are included for easy reference.
-\\<quail-tamil-itrans-numerics-and-symbols-table>
+\\=\\<quail-tamil-itrans-numerics-and-symbols-table>
+
+Full key sequences are listed below:")
+
+(if nil
+    (quail-define-package "tamil-itrans-digits" "Tamil" "TmlITD" t "Tamil ITRANS with digits"))
+(quail-define-indian-trans-package
+ indian-tml-itrans-digits-v5-hash "tamil-itrans-digits" "Tamil" "TmlITD"
+ "Tamil transliteration by ITRANS method with Tamil digits support.
+
+You can input characters using the following mapping tables.
+    Example: To enter வணக்கம், type vaNakkam.
+
+### Basic syllables (consonants + vowels) ###
+\\=\\<quail-tamil-itrans-syllable-table>
+
+### Miscellaneous (various signs + digits) ###
+\\=\\<quail-tamil-itrans-various-signs-and-digits-table>
+
+### Others (numerics + symbols) ###
+
+Characters below have no ITRANS method associated with them.
+Their descriptions are included for easy reference.
+\\=\\<quail-tamil-itrans-numerics-and-symbols-table>
 
 Full key sequences are listed below:")
 
@@ -478,6 +519,13 @@ Full key sequences are listed below:")
  indian-tml-base-table inscript-tml-keytable
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
+
+(if nil
+    (quail-define-package "tamil-inscript-digits" "Tamil" "TmlISD" t "Tamil keyboard Inscript with digits."))
+(quail-define-inscript-package
+ indian-tml-base-digits-table inscript-tml-keytable
+ "tamil-inscript-digits" "Tamil" "TmlISD"
+ "Tamil keyboard Inscript with Tamil digits support.")
 
 ;; Probhat Input Method
 (quail-define-package

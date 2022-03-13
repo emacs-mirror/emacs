@@ -273,6 +273,29 @@
     (;; Misc Symbols
      nil ?ஂ ?ஃ nil ?் nil nil)
     (;; Digits
+     nil nil nil nil nil nil nil nil nil nil)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "்ர" "ர்" "த்ர" nil nil)))
+
+(defvar indian-tml-base-digits-table
+  '(
+    (;; VOWELS
+     (?அ nil) (?ஆ ?ா) (?இ ?ி) (?ஈ ?ீ) (?உ ?ு) (?ஊ ?ூ)
+     nil nil nil (?ஏ ?ே) (?எ ?ெ) (?ஐ ?ை)
+     nil (?ஓ ?ோ) (?ஒ ?ொ) (?ஔ ?ௌ) nil nil)
+    (;; CONSONANTS
+     ?க nil nil nil ?ங                  ;; GUTTRULS
+     ?ச nil ?ஜ nil ?ஞ                  ;; PALATALS
+     ?ட nil nil nil ?ண                  ;; CEREBRALS
+     ?த nil nil nil ?ந ?ன              ;; DENTALS
+     ?ப nil nil nil ?ம                  ;; LABIALS
+     ?ய ?ர ?ற ?ல ?ள ?ழ ?வ          ;; SEMIVOWELS
+     nil ?ஷ ?ஸ ?ஹ                    ;; SIBILANTS
+     nil nil nil nil nil nil nil nil      ;; NUKTAS
+     "ஜ்ஞ" "க்ஷ")
+    (;; Misc Symbols
+     nil ?ஂ ?ஃ nil ?் nil nil)
+    (;; Digits
      ?௦ ?௧ ?௨ ?௩ ?௪ ?௫ ?௬ ?௭ ?௮ ?௯)
     (;; Inscript-extra (4)  (#, $, ^, *, ])
      "்ர" "ர்" "த்ர" nil nil)))
@@ -556,6 +579,10 @@
 
 (defvar indian-tml-itrans-v5-hash
   (indian-make-hash indian-tml-base-table
+			  indian-itrans-v5-table-for-tamil))
+
+(defvar indian-tml-itrans-digits-v5-hash
+  (indian-make-hash indian-tml-base-digits-table
 			  indian-itrans-v5-table-for-tamil))
 )
 
