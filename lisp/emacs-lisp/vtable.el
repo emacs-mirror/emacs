@@ -456,22 +456,26 @@ This also updates the displayed table."
   (pcase-dolist (`(,index . ,direction) (vtable-sort-by table))
     (let ((cache (vtable--cache table))
           (numerical (vtable-column--numerical
-                      (elt (vtable-columns table) index))))
+                      (elt (vtable-columns table) index)))
+          (numcomp (if (eq direction 'descend)
+                       #'> #'<))
+          (stringcomp (if (eq direction 'descend)
+                          #'string> #'string<)))
       (setcar cache
               (sort (car cache)
                     (lambda (e1 e2)
                       (let ((c1 (elt e1 (1+ index)))
                             (c2 (elt e2 (1+ index))))
                         (if numerical
-                            (< (car c1) (car c2))
-                          (string< (if (stringp (car c1))
-                                       (car c1)
-                                     (format "%s" (car c1)))
-                                   (if (stringp (car c2))
-                                       (car c2)
-                                     (format "%s" (car c2)))))))))
-      (when (eq direction 'descend)
-        (setcar cache (nreverse (car cache)))))))
+                            (funcall numcomp (car c1) (car c2))
+                          (funcall
+                           stringcomp
+                           (if (stringp (car c1))
+                               (car c1)
+                             (format "%s" (car c1)))
+                           (if (stringp (car c2))
+                               (car c2)
+                             (format "%s" (car c2))))))))))))
 
 (defun vtable--indicator (table index)
   (let ((order (car (last (vtable-sort-by table)))))
