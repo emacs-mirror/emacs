@@ -3285,8 +3285,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		if (bar->horizontal)
 		  {
-		    portion = bar->total * ceil ((double) b->position
-						 / BE_SB_MAX);
+		    portion = bar->total * ((float) b->position
+					    / BE_SB_MAX);
 		    whole = (bar->total
 			     * ((float) (BE_SB_MAX - bar->page_size)
 				/ BE_SB_MAX));
