@@ -1921,7 +1921,7 @@ public:
 	  {
 	    BScrollBar::MouseMoved (point, transit, msg);
 
-	    if (value == Value () && Proportion () < 1.0f)
+	    if (value == Value ())
 	      {
 		overscroll_start_value = value;
 		in_overscroll = true;
