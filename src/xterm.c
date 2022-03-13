@@ -9952,6 +9952,34 @@ flush_dirty_back_buffer_on (struct frame *f)
   unblock_input ();
 }
 
+#ifdef HAVE_GTK3
+void
+x_scroll_bar_configure (GdkEvent *event)
+{
+  XEvent configure;
+  GdkDisplay *gdpy;
+  Display *dpy;
+
+  configure.xconfigure.type = ConfigureNotify;
+  configure.xconfigure.serial = 0;
+  configure.xconfigure.send_event = event->configure.send_event;
+  configure.xconfigure.x = event->configure.x;
+  configure.xconfigure.y = event->configure.y;
+  configure.xconfigure.width = event->configure.width;
+  configure.xconfigure.height = event->configure.height;
+  configure.xconfigure.border_width = 0;
+  configure.xconfigure.event = GDK_WINDOW_XID (event->configure.window);
+  configure.xconfigure.window = GDK_WINDOW_XID (event->configure.window);
+  configure.xconfigure.above = None;
+  configure.xconfigure.override_redirect = False;
+
+  gdpy = gdk_window_get_display (event->configure.window);
+  dpy = gdk_x11_display_get_xdisplay (gdpy);
+
+  x_dispatch_event (&configure, dpy);
+}
+#endif
+
 /**
   mouse_or_wdesc_frame: When not dropping and the mouse was grabbed
   for DPYINFO, return the frame where the mouse was seen last.  If
@@ -11319,8 +11347,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (configureEvent.xconfigure.width != max (bar->width, 1)
 		  || configureEvent.xconfigure.height != max (bar->height, 1))
-		XResizeWindow (dpyinfo->display, bar->x_window,
-			       max (bar->width, 1), max (bar->height, 1));
+		{
+		  XResizeWindow (dpyinfo->display, bar->x_window,
+				 max (bar->width, 1), max (bar->height, 1));
+		  x_flush (WINDOW_XFRAME (XWINDOW (bar->window)));
+		}
 
 	      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
 		x_drop_xrender_surfaces (f);

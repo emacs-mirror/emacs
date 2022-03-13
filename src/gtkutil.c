@@ -4476,6 +4476,32 @@ xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 }
 #endif
 
+#if defined HAVE_GTK3 && !defined HAVE_PGTK
+static void
+xg_scroll_bar_size_allocate_cb (GtkWidget *widget,
+				GdkRectangle *allocation,
+				gpointer user_data)
+{
+  GdkEvent *event = gtk_get_current_event ();
+  GdkEvent dummy;
+
+  if (event && event->any.type == GDK_CONFIGURE)
+    x_scroll_bar_configure (event);
+  else
+    {
+      /* These are the only fields used by x_scroll_bar_configure.  */
+      dummy.configure.send_event = FALSE;
+      dummy.configure.x = allocation->x;
+      dummy.configure.y = allocation->y;
+      dummy.configure.width = allocation->width;
+      dummy.configure.height = allocation->height;
+      dummy.configure.window = gtk_widget_get_window (widget);
+
+      x_scroll_bar_configure (&dummy);
+    }
+}
+#endif
+
 static void
 xg_finish_scroll_bar_creation (struct frame *f,
                                GtkWidget *wscroll,
@@ -4494,7 +4520,13 @@ xg_finish_scroll_bar_creation (struct frame *f,
 #ifndef HAVE_GTK3
   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
 #endif
-  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
+  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer) f);
+
+#if defined HAVE_GTK3 && !defined HAVE_PGTK
+  g_signal_connect (G_OBJECT (webox), "size-allocate",
+		    G_CALLBACK (xg_scroll_bar_size_allocate_cb),
+		    NULL);
+#endif
 
 #if defined HAVE_PGTK || !defined HAVE_GTK3
   ptrdiff_t scroll_id = xg_store_widget_in_map (wscroll);
@@ -4534,6 +4566,7 @@ xg_finish_scroll_bar_creation (struct frame *f,
   gtk_widget_show_all (webox);
 #elif defined HAVE_GTK3
   bar->x_window = GTK_WIDGET_TO_X_WIN (webox);
+  gtk_widget_show_all (webox);
 #else
   GTK_WIDGET_TO_X_WIN (webox);
 #endif
@@ -4553,6 +4586,7 @@ xg_finish_scroll_bar_creation (struct frame *f,
 
 #ifndef HAVE_PGTK
   gtk_widget_add_events (webox, GDK_STRUCTURE_MASK);
+  gtk_widget_set_double_buffered (wscroll, FALSE);
 #endif
 #endif
 
@@ -4662,6 +4696,9 @@ xg_update_scrollbar_pos (struct frame *f,
     {
       GtkWidget *wfixed = f->output_data.xp->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+      GdkWindow *wdesc = gtk_widget_get_window (wparent);
+#endif
       gint msl;
       int scale = xg_get_scale (f);
 
@@ -4694,6 +4731,14 @@ xg_update_scrollbar_pos (struct frame *f,
         {
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
+
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+	  if (wdesc)
+	    {
+	      gdk_window_move_resize (wdesc, left, top, width, height);
+	      gtk_widget_queue_allocate (wparent);
+	    }
+#endif
         }
 
       if (oldx != -1 && oldw > 0 && oldh > 0)
@@ -4757,6 +4802,9 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
     {
       GtkWidget *wfixed = f->output_data.xp->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+      GdkWindow *wdesc = gtk_widget_get_window (wparent);
+#endif
       gint msl;
       int scale = xg_get_scale (f);
 
@@ -4788,6 +4836,14 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
         {
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
+
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+	  if (wdesc)
+	    {
+	      gdk_window_move_resize (wdesc, left, top, width, height);
+	      gtk_widget_queue_allocate (wparent);
+	    }
+#endif
         }
       if (oldx != -1 && oldw > 0 && oldh > 0)
         /* Clear under old scroll bar position.  */

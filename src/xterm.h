@@ -1353,6 +1353,10 @@ extern void x_xr_apply_ext_clip (struct frame *f, GC gc);
 extern void x_xr_reset_ext_clip (struct frame *f);
 #endif
 
+#ifdef HAVE_GTK3
+extern void x_scroll_bar_configure (GdkEvent *);
+#endif
+
 extern void x_display_set_last_user_time (struct x_display_info *, Time);
 
 INLINE int
