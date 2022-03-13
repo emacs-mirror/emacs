@@ -1670,7 +1670,8 @@ Use 'indian-tml-base-digits-table' if you want digits translation.
 
 --
 ** 'indian-tml-itrans-v5-hash' no longer translates digits.
-Use 'indian-tml-itrans-digits-v5-hash' if you digits translation.
+Use 'indian-tml-itrans-digits-v5-hash' if you want digits
+translation.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
