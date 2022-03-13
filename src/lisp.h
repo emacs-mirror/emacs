@@ -3546,6 +3546,7 @@ struct handler
   sys_jmp_buf jmp;
   EMACS_INT f_lisp_eval_depth;
   specpdl_ref pdlcount;
+  Lisp_Object *act_rec;
   int poll_suppress_count;
   int interrupt_input_blocked;
 };
@@ -4087,6 +4088,7 @@ extern void alloc_unexec_pre (void);
 extern void alloc_unexec_post (void);
 extern void mark_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
+extern void mark_memory (void const *start, void const *end);
 
 /* Force callee-saved registers and register windows onto the stack,
    so that conservative garbage collection can see their values.  */
@@ -4855,6 +4857,21 @@ extern void syms_of_bytecode (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, ptrdiff_t,
 				   ptrdiff_t, Lisp_Object *);
 extern Lisp_Object get_byte_code_arity (Lisp_Object);
+extern void init_bc_thread (struct bc_thread_state *bc);
+extern void free_bc_thread (struct bc_thread_state *bc);
+extern void mark_bytecode (struct bc_thread_state *bc);
+
+INLINE Lisp_Object *
+get_act_rec (struct thread_state *th)
+{
+  return th->bc.fp;
+}
+
+INLINE void
+set_act_rec (struct thread_state *th, Lisp_Object *act_rec)
+{
+  th->bc.fp = act_rec;
+}
 
 /* Defined in macros.c.  */
 extern void init_macros (void);

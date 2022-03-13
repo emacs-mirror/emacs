@@ -334,6 +334,166 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
+/* Layout of the stack frame header. */
+enum stack_frame_index {
+  SFI_SAVED_FP,   /* previous frame pointer */
+
+  /* In a frame called directly from C, the following two members are NULL.  */
+  SFI_SAVED_TOP,  /* previous stack pointer */
+  SFI_SAVED_PC,   /* previous program counter */
+
+  SFI_FUN,        /* current function object */
+
+  SF_SIZE         /* number of words in the header */
+};
+
+/* The bytecode stack size in Lisp words.
+   This is a fairly generous amount, but:
+   - if users need more, we could allocate more, or just reserve the address
+     space and allocate on demand
+   - if threads are used more, then it might be a good idea to reduce the
+     per-thread overhead in time and space
+   - for maximum flexibility but a small runtime penalty, we could allocate
+     the stack in smaller chunks as needed
+*/
+#define BC_STACK_SIZE (512 * 1024)
+
+/* Bytecode interpreter stack:
+
+           |--------------|         --
+           |fun           |           |                   ^ stack growth
+           |saved_pc      |           |                   | direction
+           |saved_top    -------      |
+     fp--->|saved_fp     ----   |     | current frame
+           |--------------|  |  |     | (called from bytecode in this example)
+           |   (free)     |  |  |     |
+     top-->| ...stack...  |  |  |     |
+           : ...          :  |  |     |
+           |incoming args |  |  |     |
+           |--------------|  |  |   --
+           |fun           |  |  |     |
+           |saved_pc      |  |  |     |
+           |saved_top     |  |  |     |
+           |saved_fp      |<-   |     | previous frame
+           |--------------|     |     |
+           |   (free)     |     |     |
+           | ...stack...  |<----      |
+           : ...          :           |
+           |incoming args |           |
+           |--------------|         --
+           :              :
+*/
+
+INLINE void *
+sf_get_ptr (Lisp_Object *fp, enum stack_frame_index index)
+{
+  return XLP (fp[index]);
+}
+
+INLINE void
+sf_set_ptr (Lisp_Object *fp, enum stack_frame_index index, void *value)
+{
+  fp[index] = XIL ((EMACS_INT)value);
+}
+
+INLINE Lisp_Object *
+sf_get_lisp_ptr (Lisp_Object *fp, enum stack_frame_index index)
+{
+  return sf_get_ptr (fp, index);
+}
+
+INLINE void
+sf_set_lisp_ptr (Lisp_Object *fp, enum stack_frame_index index,
+		 Lisp_Object *value)
+{
+  sf_set_ptr (fp, index, value);
+}
+
+INLINE const unsigned char *
+sf_get_saved_pc (Lisp_Object *fp)
+{
+  return sf_get_ptr (fp, SFI_SAVED_PC);
+}
+
+INLINE void
+sf_set_saved_pc (Lisp_Object *fp, const unsigned char *value)
+{
+  sf_set_ptr (fp, SFI_SAVED_PC, (unsigned char *)value);
+}
+
+void
+init_bc_thread (struct bc_thread_state *bc)
+{
+  bc->stack = xmalloc (BC_STACK_SIZE * sizeof *bc->stack);
+  bc->stack_end = bc->stack + BC_STACK_SIZE;
+  /* Put a dummy header at the bottom to indicate the first free location.  */
+  bc->fp = bc->stack;
+  memset (bc->fp, 0, SF_SIZE * sizeof *bc->stack);
+}
+
+void
+free_bc_thread (struct bc_thread_state *bc)
+{
+  xfree (bc->stack);
+}
+
+void
+mark_bytecode (struct bc_thread_state *bc)
+{
+  Lisp_Object *fp = bc->fp;
+  Lisp_Object *top = NULL;     /* stack pointer of topmost frame not known */
+  for (;;)
+    {
+      Lisp_Object *next_fp = sf_get_lisp_ptr (fp, SFI_SAVED_FP);
+      /* Only the dummy frame at the bottom has saved_fp = NULL.  */
+      if (!next_fp)
+	break;
+      mark_object (fp[SFI_FUN]);
+      Lisp_Object *frame_base = next_fp + SF_SIZE;
+      if (top)
+	{
+	  /* The stack pointer of a frame is known: mark the part of the stack
+	     above it conservatively.  This includes any outgoing arguments.  */
+	  mark_memory (top + 1, fp);
+	  /* Mark the rest of the stack precisely.  */
+	  mark_objects (frame_base, top + 1 - frame_base);
+	}
+      else
+	{
+	  /* The stack pointer is unknown -- mark everything conservatively.  */
+	  mark_memory (frame_base, fp);
+	}
+      top = sf_get_lisp_ptr (fp, SFI_SAVED_TOP);
+      fp = next_fp;
+    }
+}
+
+DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
+       0, 0, 0,
+       doc: /* internal */)
+  (void)
+{
+  struct bc_thread_state *bc = &current_thread->bc;
+  int nframes = 0;
+  int nruns = 0;
+  for (Lisp_Object *fp = bc->fp; fp; fp = sf_get_lisp_ptr (fp, SFI_SAVED_FP))
+    {
+      nframes++;
+      if (sf_get_lisp_ptr (fp, SFI_SAVED_TOP) == NULL)
+	nruns++;
+    }
+  fprintf (stderr, "%d stack frames, %d runs\n", nframes, nruns);
+  return Qnil;
+}
+
+/* Whether a stack pointer is valid in the current frame.  */
+INLINE bool
+valid_sp (struct bc_thread_state *bc, Lisp_Object *sp)
+{
+  Lisp_Object *fp = bc->fp;
+  return sp < fp && sp + 1 >= sf_get_lisp_ptr (fp, SFI_SAVED_FP) + SF_SIZE;
+}
+
 /* Execute the byte-code in FUN.  ARGS_TEMPLATE is the function arity
    encoded as an integer (the one in FUN is ignored), and ARGS, of
    size NARGS, should be a vector of the actual arguments.  The
@@ -347,37 +507,49 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 #ifdef BYTE_CODE_METER
   int volatile this_op = 0;
 #endif
+  unsigned char quitcounter = 1;
+  struct bc_thread_state *bc = &current_thread->bc;
+
+  /* Values used for the first stack record when called from C.  */
+  Lisp_Object *top = NULL;
+  unsigned char const *pc = NULL;
 
   Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
 
+ setup_frame: ;
   eassert (!STRING_MULTIBYTE (bytestr));
   eassert (string_immovable_p (bytestr));
+  /* FIXME: in debug mode (!NDEBUG, BYTE_CODE_SAFE or enabled checking),
+     save the specpdl index on function entry and check that it is the same
+     when returning, to detect unwind imbalances.  This would require adding
+     a field to the frame header.  */
+
   Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
   Lisp_Object maxdepth = AREF (fun, COMPILED_STACK_DEPTH);
   ptrdiff_t const_length = ASIZE (vector);
   ptrdiff_t bytestr_length = SCHARS (bytestr);
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
 
-  unsigned char quitcounter = 1;
-  /* Allocate two more slots than required, because... */
-  EMACS_INT stack_items = XFIXNAT (maxdepth) + 2;
-  USE_SAFE_ALLOCA;
-  void *alloc;
-  SAFE_ALLOCA_LISP (alloc, stack_items);
-  Lisp_Object *stack_base = alloc;
-  /* ... we plonk BYTESTR and VECTOR there to ensure that they survive
-     GC (bug#33014), since these variables aren't used directly beyond
-     the interpreter prologue and wouldn't be found in the stack frame
-     otherwise.  */
-  stack_base[0] = bytestr;
-  stack_base[1] = vector;
-  Lisp_Object *top = stack_base + 1;
-  Lisp_Object *stack_lim = top + stack_items;
+  EMACS_INT max_stack = XFIXNAT (maxdepth);
+  Lisp_Object *frame_base = bc->fp + SF_SIZE;
+  Lisp_Object *fp = frame_base + max_stack;
+
+  if (fp + SF_SIZE > bc->stack_end)
+    error ("Bytecode stack overflow");
+
+  /* Save the function object so that the bytecode and vector are
+     held from removal by the GC. */
+  fp[SFI_FUN] = fun;
+  /* Save previous stack pointer and pc in the new frame.  If we came
+     directly from outside, these will be NULL.  */
+  sf_set_lisp_ptr (fp, SFI_SAVED_TOP, top);
+  sf_set_saved_pc (fp, pc);
+  sf_set_lisp_ptr (fp, SFI_SAVED_FP, bc->fp);
+  bc->fp = fp;
+
+  top = frame_base - 1;
   unsigned char const *bytestr_data = SDATA (bytestr);
-  unsigned char const *pc = bytestr_data;
-#if BYTE_CODE_SAFE || !defined NDEBUG
-  specpdl_ref count = SPECPDL_INDEX ();
-#endif
+  pc = bytestr_data;
 
   /* ARGS_TEMPLATE is composed of bit fields:
      bits 0..6    minimum number of arguments
@@ -404,7 +576,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
       int op;
       enum handlertype type;
 
-      if (BYTE_CODE_SAFE && ! (stack_base <= top && top < stack_lim))
+      if (BYTE_CODE_SAFE && !valid_sp (bc, top))
 	emacs_abort ();
 
 #ifdef BYTE_CODE_METER
@@ -636,36 +808,45 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		  error ("Lisp nesting exceeds `max-lisp-eval-depth'");
 	      }
 
-	    ptrdiff_t numargs = op;
-	    Lisp_Object fun = TOP;
-	    Lisp_Object *args = &TOP + 1;
+	    ptrdiff_t call_nargs = op;
+	    Lisp_Object call_fun = TOP;
+	    Lisp_Object *call_args = &TOP + 1;
 
-	    specpdl_ref count1 = record_in_backtrace (fun, args, numargs);
+	    specpdl_ref count1 = record_in_backtrace (call_fun,
+						      call_args, call_nargs);
 	    maybe_gc ();
 	    if (debug_on_next_call)
 	      do_debug_on_call (Qlambda, count1);
 
-	    Lisp_Object original_fun = fun;
-	    if (SYMBOLP (fun))
-	      fun = XSYMBOL (fun)->u.s.function;
+	    Lisp_Object original_fun = call_fun;
+	    if (SYMBOLP (call_fun))
+	      call_fun = XSYMBOL (call_fun)->u.s.function;
 	    Lisp_Object template;
 	    Lisp_Object bytecode;
-	    Lisp_Object val;
-	    if (COMPILEDP (fun)
+	    if (COMPILEDP (call_fun)
 		// Lexical binding only.
-		&& (template = AREF (fun, COMPILED_ARGLIST),
+		&& (template = AREF (call_fun, COMPILED_ARGLIST),
 		    FIXNUMP (template))
 		// No autoloads.
-		&& (bytecode = AREF (fun, COMPILED_BYTECODE),
+		&& (bytecode = AREF (call_fun, COMPILED_BYTECODE),
 		    !CONSP (bytecode)))
-	      val = exec_byte_code (fun, XFIXNUM (template), numargs, args);
-	    else if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
-	      val = funcall_subr (XSUBR (fun), numargs, args);
+	      {
+		fun = call_fun;
+		bytestr = bytecode;
+		args_template = XFIXNUM (template);
+		nargs = call_nargs;
+		args = call_args;
+		goto setup_frame;
+	      }
+
+	    Lisp_Object val;
+	    if (SUBRP (call_fun) && !SUBR_NATIVE_COMPILED_DYNP (call_fun))
+	      val = funcall_subr (XSUBR (call_fun), call_nargs, call_args);
 	    else
-	      val = funcall_general (original_fun, numargs, args);
+	      val = funcall_general (original_fun, call_nargs, call_args);
 
 	    lisp_eval_depth--;
-	    if (backtrace_debug_on_exit (specpdl_ref_to_ptr (count1)))
+	    if (backtrace_debug_on_exit (specpdl_ptr - 1))
 	      val = call_debugger (list2 (Qexit, val));
 	    specpdl_ptr--;
 
@@ -731,7 +912,40 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  NEXT;
 
 	CASE (Breturn):
-	  goto exit;
+	  {
+	    Lisp_Object *saved_top = sf_get_lisp_ptr (bc->fp, SFI_SAVED_TOP);
+	    if (saved_top)
+	      {
+		Lisp_Object val = TOP;
+
+		lisp_eval_depth--;
+		if (backtrace_debug_on_exit (specpdl_ptr - 1))
+		  val = call_debugger (list2 (Qexit, val));
+		specpdl_ptr--;
+
+		top = saved_top;
+		pc = sf_get_saved_pc (bc->fp);
+		Lisp_Object *fp = sf_get_lisp_ptr (bc->fp, SFI_SAVED_FP);
+		bc->fp = fp;
+
+		Lisp_Object fun = fp[SFI_FUN];
+		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
+		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
+		bytestr_data = SDATA (bytestr);
+		vectorp = XVECTOR (vector)->contents;
+		if (BYTE_CODE_SAFE)
+		  {
+		    /* Only required for checking, not for execution.  */
+		    const_length = ASIZE (vector);
+		    bytestr_length = SCHARS (bytestr);
+		  }
+
+		TOP = val;
+		NEXT;
+	      }
+	    else
+	      goto exit;
+	  }
 
 	CASE (Bdiscard):
 	  DISCARD (1);
@@ -786,9 +1000,23 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    if (sys_setjmp (c->jmp))
 	      {
 		struct handler *c = handlerlist;
+		handlerlist = c->next;
 		top = c->bytecode_top;
 		op = c->bytecode_dest;
-		handlerlist = c->next;
+		Lisp_Object *fp = bc->fp;
+
+		Lisp_Object fun = fp[SFI_FUN];
+		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
+		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
+		bytestr_data = SDATA (bytestr);
+		vectorp = XVECTOR (vector)->contents;
+		if (BYTE_CODE_SAFE)
+		  {
+		    /* Only required for checking, not for execution.  */
+		    const_length = ASIZE (vector);
+		    bytestr_length = SCHARS (bytestr);
+		  }
+		pc = bytestr_data;
 		PUSH (c->val);
 		goto op_branch;
 	      }
@@ -1527,20 +1755,9 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
  exit:
 
-#if BYTE_CODE_SAFE || !defined NDEBUG
-  if (!specpdl_ref_eq (SPECPDL_INDEX (), count))
-    {
-      /* Binds and unbinds are supposed to be compiled balanced.  */
-      if (specpdl_ref_lt (count, SPECPDL_INDEX ()))
-	unbind_to (count, Qnil);
-      error ("binding stack not balanced (serious byte compiler bug)");
-    }
-#endif
-  /* The byte code should have been properly pinned.  */
-  eassert (SDATA (bytestr) == bytestr_data);
+  bc->fp = sf_get_lisp_ptr (bc->fp, SFI_SAVED_FP);
 
   Lisp_Object result = TOP;
-  SAFE_FREE ();
   return result;
 }
 
@@ -1562,6 +1779,7 @@ void
 syms_of_bytecode (void)
 {
   defsubr (&Sbyte_code);
+  defsubr (&Sinternal_stack_stats);
 
 #ifdef BYTE_CODE_METER
 

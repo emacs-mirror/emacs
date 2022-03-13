@@ -4928,7 +4928,7 @@ mark_maybe_pointer (void *p, bool symbol_only)
 /* Mark Lisp objects referenced from the address range START..END
    or END..START.  */
 
-static void ATTRIBUTE_NO_SANITIZE_ADDRESS
+void ATTRIBUTE_NO_SANITIZE_ADDRESS
 mark_memory (void const *start, void const *end)
 {
   char const *pp;

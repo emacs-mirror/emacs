@@ -33,6 +33,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysselect.h"		/* FIXME */
 #include "systhread.h"
 
+/* Byte-code interpreter thread state.  */
+struct bc_thread_state {
+  Lisp_Object *fp;		/* current frame pointer (see bytecode.c) */
+  Lisp_Object *stack;
+  Lisp_Object *stack_end;
+};
+
 struct thread_state
 {
   union vectorlike_header header;
@@ -181,6 +188,8 @@ struct thread_state
 
   /* Threads are kept on a linked list.  */
   struct thread_state *next_thread;
+
+  struct bc_thread_state bc;
 } GCALIGNED_STRUCT;
 
 INLINE bool
