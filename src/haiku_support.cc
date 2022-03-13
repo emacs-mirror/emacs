@@ -1596,7 +1596,9 @@ public:
 	proportion = (float) portion / range;
 	value = msg->GetInt32 ("emacs:units", 0);
 	can_overscroll = msg->GetBool ("emacs:overscroll", false);
-	value = std::max (0, value);
+
+	if (value < 0)
+	  value = 0;
 
 	if (dragging != 1)
 	  {
