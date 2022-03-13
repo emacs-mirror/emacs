@@ -364,12 +364,12 @@ resultant list of strings."
 
 (defun eshell-add-pred-func (pred funcs negate follow)
   "Add the predicate function PRED to FUNCS."
-  (if negate
-      (setq pred (lambda (file)
-		   (not (funcall pred file)))))
-  (if follow
-      (setq pred (lambda (file)
-		   (funcall pred (file-truename file)))))
+  (when negate
+    (setq pred (let ((pred pred))
+                 (lambda (file) (not (funcall pred file))))))
+  (when follow
+    (setq pred (let ((pred pred))
+                 (lambda (file) (funcall pred (file-truename file))))))
   (cons pred funcs))
 
 (defun eshell-pred-user-or-group (mod-char mod-type attr-index get-id-func)
