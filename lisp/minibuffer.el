@@ -1353,18 +1353,17 @@ when the buffer's text is already an exact match."
               (minibuffer-force-complete beg end))
              (completed
               (cond
-               (exact
-                ;; If completion did not put point at end of field,
-                ;; it's a sign that completion is not finished.
-                (minibuffer-hide-completions)
-                (completion--done completion
-                                  (if (< comp-pos (length completion))
-                                      'exact 'unknown)))
                ((pcase completion-auto-help
                   ('visible (get-buffer-window "*Completions*" 0))
                   ('always t))
                 (minibuffer-completion-help beg end))
-               (t (minibuffer-hide-completions))))
+               (t (minibuffer-hide-completions)
+                  (when exact
+                    ;; If completion did not put point at end of field,
+                    ;; it's a sign that completion is not finished.
+                    (completion--done completion
+                                      (if (< comp-pos (length completion))
+                                          'exact 'unknown))))))
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (pcase completion-auto-help
