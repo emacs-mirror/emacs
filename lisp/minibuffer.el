@@ -2035,7 +2035,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (funcall group-fun str 'transform)
             str))
          (point))
-       `(mouse-face highlight completion--string ,str))
+       `(mouse-face highlight cursor-face ,completions-highlight-face completion--string ,str))
     ;; If `str' is a list that has 2 elements,
     ;; then the second element is a suffix annotation.
     ;; If `str' has 3 elements, then the second element
@@ -2156,49 +2156,15 @@ candidates."
 
 
 (defface completions-highlight
-  '((t :inherit highlight :extend t))
+  '((t :inherit highlight))
   "Default face for highlighting the current line in `completions-highlight-mode'."
   :version "29.1")
 
-(defvar completions--overlay nil
-  "Overlay to use when `completions-highlight-mode' is enabled.")
-
-(defun completions-highlight--delete ()
-  "Highlight current candidate in *Completions* with `completions-highlight'."
-  (when (overlayp completions--overlay)
-    (delete-overlay completions--overlay)))
-
-(defun completions-highlight--highlight ()
-  "Highlight current candidate if point in a candidate."
-  (let* ((point (point))
-         (hpoint (or (and (get-text-property point 'mouse-face) point)
-                     (and (> point 1) (get-text-property (1- point) 'mouse-face) (1- point)))))
-    (when hpoint
-      (move-overlay completions--overlay
-                    (previous-single-property-change (1+ hpoint) 'mouse-face nil (point-min))
-                    (next-single-property-change hpoint 'mouse-face nil (point-max))))))
-
-(defun completions-highlight--setup-hook ()
-  "Function to call when enabling the `completion-highlight-mode' mode.
-It is called when showing the *Completions* buffer."
-  (with-current-buffer "*Completions*"
-    (completions-highlight--highlight)
-    (add-hook 'pre-command-hook #'completions-highlight--delete nil t)
-    (add-hook 'post-command-hook #'completions-highlight--highlight nil t)))
-
-;;;###autoload
-(define-minor-mode completions-highlight-mode
-  "Completion highlight mode to enable candidates highlight in the minibuffer."
-  :global t
-  :group 'minibuffer
-  (cond
-   (completions-highlight-mode
-    (setq completions--overlay (make-overlay 0 0))
-    (overlay-put completions--overlay 'face 'completions-highlight)
-    (add-hook 'completion-setup-hook #'completions-highlight--setup-hook t))
-   (t
-    (remove-hook 'completion-setup-hook #'completions-highlight--setup-hook)))
-  (completions-highlight--delete))
+(defcustom completions-highlight-face 'completions-highlight
+  "A face name to highlight current completion candidate.
+If the value is nil no highlight is performed."
+  :type '(choice (const nil) face)
+  :version "29.1")
 
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.

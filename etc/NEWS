@@ -574,9 +574,10 @@ It may contain a %s to show the total number of completions. If nil no
 completions are shown.
 
 +++
-*** New mode 'completions-highlight-mode'.
-This mode highlights the current candidate in the *Completions* buffer
-with the 'completions-highlight' face.
+*** New option 'completions-highlight-face'.
+When this variable is a face name it highlights the current candidate
+in the *Completions* buffer with that face.  When the value is nil no
+highlight is performed at all.
 
 
 ** Isearch and Replace

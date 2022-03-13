@@ -676,10 +676,12 @@ useful ones are @code{face} or @code{cursor-intangible}
 (@pxref{Special Properties,,Properties with Special Meanings, elisp,
 The Emacs Lisp Reference Manual}).
 
-@vindex completions-highlight-mode
-When the mode @code{completions-highlight-mode} is active the candidate
-under the cursor is highlighted when the completion window is
-selected.  The mode uses the face @code{completions-highlight}.
+@vindex completions-highlight-face
+When @code{completions-highlight-face} is a face name; then the
+current completion candidate will be highlighted with that face.  The
+default value is @code{completions-highlight}.  When the value is
+@code{nil} no highlight is performed. This feature sets the text
+property @code{cursor-face}.
 
 @node Minibuffer History
 @section Minibuffer History
