@@ -11038,6 +11038,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         }
     done_keysym:
 #ifdef HAVE_X_I18N
+      if (f)
+	{
+	  struct window *w = XWINDOW (f->selected_window);
+	  xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
+
+	  if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+            xic_set_statusarea (f);
+	}
+
       /* Don't dispatch this event since XtDispatchEvent calls
          XFilterEvent, and two calls in a row may freeze the
          client.  */
@@ -11507,11 +11516,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 
 #ifdef HAVE_X_I18N
-          if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
-            xic_set_statusarea (f);
-
 	  if (f)
 	    {
+	      if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+		xic_set_statusarea (f);
+
 	      struct window *w = XWINDOW (f->selected_window);
 	      xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
 	    }
@@ -13598,8 +13607,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       xi_done_keysym:
 #ifdef HAVE_X_I18N
-	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
-	  xic_set_statusarea (f);
+      if (f)
+	{
+	  struct window *w = XWINDOW (f->selected_window);
+	  xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
+
+	  if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+            xic_set_statusarea (f);
+	}
 #endif
 	if (must_free_data)
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
