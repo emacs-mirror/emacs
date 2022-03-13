@@ -62,7 +62,7 @@ prompt.  See bug#54136."
      (eshell-wait-for-subprocess t)
      (should (string-match-p
               ;; "interrupt\n" is for MS-Windows.
-              (rx (or "interrupt\n" "killed\n"))
+              (rx (or "interrupt\n" "killed\n" "killed: 9\n"))
               (buffer-substring-no-properties
                output-start (eshell-end-of-output)))))))
 
