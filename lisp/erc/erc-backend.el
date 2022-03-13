@@ -815,11 +815,12 @@ Use DISPLAY-FN to show the results."
         (erc-split-line text)))
 
 ;; From Circe, with modifications
-(defun erc-server-send (string &optional forcep target)
+(defun erc-server-send (string &optional force target)
   "Send STRING to the current server.
-If FORCEP is non-nil, no flood protection is done - the string is
-sent directly.  This might cause the messages to arrive in a wrong
-order.
+When FORCE is non-nil, bypass flood protection so that STRING is
+sent directly without modifying the queue.  When FORCE is the
+symbol `no-penalty', exempt this round from accumulating a
+timeout penalty.
 
 If TARGET is specified, look up encoding information for that
 channel in `erc-encoding-coding-alist' or
@@ -835,11 +836,11 @@ protection algorithm."
     (if (erc-server-process-alive)
         (erc-with-server-buffer
           (let ((str (concat string "\r\n")))
-            (if forcep
+            (if force
                 (progn
-                  (setq erc-server-flood-last-message
-                        (+ erc-server-flood-penalty
-                           erc-server-flood-last-message))
+                  (unless (eq force 'no-penalty)
+                    (cl-incf erc-server-flood-last-message
+                             erc-server-flood-penalty))
                   (erc-log-irc-protocol str 'outbound)
                   (condition-case nil
                       (progn
@@ -1469,7 +1470,7 @@ add things to `%s' instead."
   (let ((pinger (car (erc-response.command-args parsed))))
     (erc-log (format "PING: %s" pinger))
     ;; ping response to the server MUST be forced, or you can lose big
-    (erc-server-send (format "PONG :%s" pinger) t)
+    (erc-server-send (format "PONG :%s" pinger) 'no-penalty)
     (when erc-verbose-server-ping
       (erc-display-message
        parsed 'error proc
