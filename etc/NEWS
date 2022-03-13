@@ -1261,6 +1261,11 @@ property.
 This allows setting a minimum display width for a region of text.
 
 +++
+** New 'cursor-face 'text' property.
+This uses cursor-face instead of the default face when cursor is on or
+near the character.
+
++++
 ** New event type 'touch-end'.
 This event is sent whenever the user's finger moves off the mouse
 wheel on some mice, or when the user's finger moves off the touchpad.

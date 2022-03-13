@@ -3551,6 +3551,11 @@ that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
 
+@item cursor-face
+@kindex cursor-face @r{(text property)}
+This property is similar to @code{mouse-face} but is used when the
+cursor is on or near the character.
+
 @item fontified
 @kindex fontified @r{(text property)}
 This property says whether the text is ready for display.  If
