@@ -1873,18 +1873,12 @@ completions."
   :type 'boolean
   :version "28.1")
 
-(defcustom completion-header-text-property-list nil
-  "List of text properties to add to the header line of completions.
-For example you can change the header color to red setting this
-to: `(face (:foreground ``red'')).  Some useful properties may be
-`cursor-intangible' or `invisible'.  See Info node `(elisp) Special
-Properties'."
-  :type 'plist
-  :version "29.1")
-
-(defcustom completion-lazy-count nil
-  "When non-nil, display the total number of candidates in the completions header."
-  :type 'boolean
+(defcustom completion-header-string "Possible completions are (%s):\n"
+  "Propertized header text for completions list.
+It may contain one %s to show the total count of completions.
+When nil no header is shown."
+  :type '(choice (const :tag "No prefix" nil)
+                 (string :tag "Prefix format string"))
   :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
@@ -2149,18 +2143,11 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (if completions
-          (let ((start (point))
-                (text (concat
-                       "Possible completions are"
-                       (if completion-lazy-count
-                           (format " (%s)" (length completions)))
-                       ":\n")))
-            (insert text)
-            (when completion-header-text-property-list
-              (add-text-properties start (point) completion-header-text-property-list))
-            (completion--insert-strings completions group-fun))
-        (insert "There are no possible completions of what you have typed."))))
+      (if (not completions)
+          (insert "There are no possible completions of what you have typed.")
+        (when completion-header-string
+          (insert (format completion-header-string (length completions))))
+        (completion--insert-strings completions group-fun))))
 
   (run-hooks 'completion-setup-hook)
   nil)

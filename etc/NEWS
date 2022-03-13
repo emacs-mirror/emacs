@@ -568,13 +568,10 @@ some completion is made.
 This option limits the height of the "*Completions*" buffer.
 
 +++
-*** New option 'completion-header-text-property-list'
-List of text properties to add to the header line of completions.
-
-+++
-*** New option 'completion-lazy-count'
-When non-nil the completions header line shows the total number of
-completion candidates.
+*** New option 'completion-header-string'
+This is a string to control the message to show before completions.
+It may contain a %s to show the total number of completions. If nil no
+completions are shown.
 
 +++
 *** New mode 'completions-highlight-mode'.
