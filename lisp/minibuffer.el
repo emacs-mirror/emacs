@@ -2145,10 +2145,9 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (when completions
-        (when completion-header-format
-          (insert (format completion-header-format (length completions))))
-        (completion--insert-strings completions group-fun))))
+      (when completion-header-format
+        (insert (format completion-header-format (length completions))))
+      (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
   nil)
