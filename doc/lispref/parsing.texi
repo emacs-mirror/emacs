@@ -1,0 +1,1420 @@
+@c -*- mode: texinfo; coding: utf-8 -*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 2021 Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@node Parsing Program Source
+@chapter Parsing Program Source
+
+Emacs provides various ways to parse program source text and produce a
+@dfn{syntax tree}.  In a syntax tree, text is no longer a
+one-dimensional stream but a structured tree of nodes, where each node
+representing a piece of text.  Thus a syntax tree can enable
+interesting features like precise fontification, indentation,
+navigation, structured editing, etc.
+
+Emacs has a simple facility for parsing balanced expressions
+(@pxref{Parsing Expressions}).  There is also SMIE library for generic
+navigation and indentation (@pxref{SMIE}).
+
+Emacs also provides integration with tree-sitter library
+(@uref{https://tree-sitter.github.io/tree-sitter}) if compiled with
+it.  The tree-sitter library implements an incremental parser and has
+support from a wide range of programming languages.
+
+@defun treesit-available-p
+This function returns non-nil if tree-sitter features are available
+for this Emacs instance.
+@end defun
+
+For using tree-sitter features in font-lock and indentation,
+@pxref{Parser-based Font Lock}, @pxref{Parser-based Indentation}.
+
+To access the syntax tree of the text in a buffer, we need to first
+load a language definition and create a parser with it.  Next, we can
+query the parser for specific nodes in the syntax tree.  Then, we can
+access various information about the node, and we can pattern-match a
+node with a powerful syntax.  Finally, we explain how to work with
+source files that mixes multiple languages.  The following sections
+explain how to do each of the tasks in detail.
+
+@menu
+* Language Definitions::     Loading tree-sitter language definitions.
+* Using Parser::             Introduction to parsers.
+* Retrieving Node::          Retrieving node from syntax tree.
+* Accessing Node::           Accessing node information.
+* Pattern Matching::         Pattern matching with query patterns.
+* Multiple Languages::       Parse text written in multiple languages.
+* Tree-sitter C API::        Compare the C API and the ELisp API.
+@end menu
+
+@node Language Definitions
+@section Tree-sitter Language Definitions
+
+@heading Loading a language definition
+
+Tree-sitter relies on language definitions to parse text in that
+language. In Emacs, A language definition is represented by a symbol.
+For example, C language definition is represented as @code{c}, and
+@code{c} can be passed to tree-sitter functions as the @var{language}
+argument.
+
+@vindex treesit-extra-load-path
+@vindex treesit-load-language-error
+@vindex treesit-load-suffixes
+Tree-sitter language definitions are distributed as dynamic libraries.
+In order to use a language definition in Emacs, you need to make sure
+that the dynamic library is installed on the system.  Emacs looks for
+language definitions under load paths in
+@var{treesit-extra-load-path}, @var{user-emacs-directory}/tree-sitter,
+and system default locations for dynamic libraries, in that order.
+Emacs tries each extensions in @var{treesit-load-suffixes}.  If Emacs
+cannot find the library or has problem loading it, Emacs signals
+@var{treesit-load-language-error}.  The signal data is a list of
+specific error messages.
+
+@defun treesit-language-available-p language
+This function checks whether the dynamic library for @var{language} is
+present on the system, and return non-nil if it is.
+@end defun
+
+@vindex treesit-load-name-override-list
+By convention, the dynamic library for @var{language} is
+@code{libtree-sitter-@var{language}.@var{ext}}, where @var{ext} is the
+system-specific extension for dynamic libraries. Also by convention,
+the function provided by that library is named
+@code{tree_sitter_<language>}.  If a language definition doesn't
+follow this convention, you should add an entry
+
+@example
+(@var{language} @var{library-base-name} @var{function-name})
+@end example
+
+to @var{treesit-load-name-override-list}, where
+@var{library-base-name} is the base filename for the dynamic library
+(conventionally @code{libtree-sitter-@var{language}}), and
+@var{function-name} is the function provided by the library
+(conventionally @code{tree_sitter_@var{language}). For example,
+
+@example
+(cool-lang "libtree-sitter-coool" "tree_sitter_cooool")
+@end example
+
+for a language too cool to abide by the rules.
+
+@heading Concrete syntax tree
+
+A syntax tree is what a language definition defines (more or less) and
+what a parser generates.  In a syntax tree, each node represents a
+piece of text, and is connected to each other by a parent-child
+relationship.  For example, if the source text is
+
+@example
+1 + 2
+@end example
+
+@noindent
+its syntax tree could be
+
+@example
+@group
+                  +--------------+
+                  | root "1 + 2" |
+                  +--------------+
+                         |
+        +--------------------------------+
+        |       expression "1 + 2"       |
+        +--------------------------------+
+           |             |            |
++------------+   +--------------+   +------------+
+| number "1" |   | operator "+" |   | number "2" |
++------------+   +--------------+   +------------+
+@end group
+@end example
+
+We can also represent it in s-expression:
+
+@example
+(root (expression (number) (operator) (number)))
+@end example
+
+@subheading Node types
+
+@cindex tree-sitter node type
+@anchor{tree-sitter node type}
+@cindex tree-sitter named node
+@anchor{tree-sitter named node}
+@cindex tree-sitter anonymous node
+Names like @code{root}, @code{expression}, @code{number},
+@code{operator} are nodes' @dfn{type}.  However, not all nodes in a
+syntax tree have a type.  Nodes that don't are @dfn{anonymous nodes},
+and nodes with a type are @dfn{named nodes}.  Anonymous nodes are
+tokens with fixed spellings, including punctuation characters like
+bracket @samp{]}, and keywords like @code{return}.
+
+@subheading Field names
+
+@cindex tree-sitter node field name
+@anchor{tree-sitter node field name} To make the syntax tree easier to
+analyze, many language definitions assign @dfn{field names} to child
+nodes.  For example, a @code{function_definition} node could have a
+@code{declarator} and a @code{body}:
+
+@example
+@group
+(function_definition
+ declarator: (declaration)
+ body: (compound_statement))
+@end group
+@end example
+
+@deffn Command treesit-inspect-mode
+This minor mode displays the node that @emph{starts} at point in
+mode-line.  The mode-line will display
+
+@example
+@var{parent} @var{field-name}: (@var{child} (@var{grand-child} (...)))
+@end example
+
+@var{child}, @var{grand-child}, and @var{grand-grand-child}, etc, are
+nodes that have their beginning at point.  And @var{parent} is the
+parent of @var{child}.
+
+If there is no node that starts at point, i.e., point is in the middle
+of a node, then the mode-line only displays the smallest node that
+spans point, and its immediate parent.
+
+This minor mode doesn't create parsers on its own.  It simply uses the
+first parser in @var{treesit-parser-list} (@pxref{Using Parser}).
+@end deffn
+
+@heading Reading the grammar definition
+
+Authors of language definitions define the @dfn{grammar} of a
+language, and this grammar determines how does a parser construct a
+concrete syntax tree out of the text.  In order to used the syntax
+tree effectively, we need to read the @dfn{grammar file}.
+
+The grammar file is usually @code{grammar.js} in a language
+definition’s project repository.  The link to a language definition’s
+home page can be found in tree-sitter’s homepage
+(@uref{https://tree-sitter.github.io/tree-sitter}).
+
+The grammar is written in JavaScript syntax.  For example, the rule
+matching a @code{function_definition} node looks like
+
+@example
+@group
+function_definition: $ => seq(
+  $.declaration_specifiers,
+  field('declarator', $.declaration),
+  field('body', $.compound_statement)
+)
+@end group
+@end example
+
+The rule is represented by a function that takes a single argument
+@var{$}, representing the whole grammar.  The function itself is
+constructed by other functions: the @code{seq} function puts together a
+sequence of children; the @code{field} function annotates a child with
+a field name.  If we write the above definition in BNF syntax, it
+would look like
+
+@example
+@group
+function_definition :=
+  <declaration_specifiers> <declaration> <compound_statement>
+@end group
+@end example
+
+@noindent
+and the node returned by the parser would look like
+
+@example
+@group
+(function_definition
+  (declaration_specifier)
+  declarator: (declaration)
+  body: (compound_statement))
+@end group
+@end example
+
+Below is a list of functions that one will see in a grammar
+definition.  Each function takes other rules as arguments and returns
+a new rule.
+
+@itemize @bullet
+@item
+@code{seq(rule1, rule2, ...)} matches each rule one after another.
+
+@item
+@code{choice(rule1, rule2, ...)} matches one of the rules in its
+arguments.
+
+@item
+@code{repeat(rule)} matches @var{rule} for @emph{zero or more} times.
+This is like the @samp{*} operator in regular expressions.
+
+@item
+@code{repeat1(rule)} matches @var{rule} for @emph{one or more} times.
+This is like the @samp{+} operator in regular expressions.
+
+@item
+@code{optional(rule)} matches @var{rule} for @emph{zero or one} time.
+This is like the @samp{?} operator in regular expressions.
+
+@item
+@code{field(name, rule)} assigns field name @var{name} to the child
+node matched by @var{rule}.
+
+@item
+@code{alias(rule, alias)} makes nodes matched by @var{rule} appear as
+@var{alias} in the syntax tree generated by the parser.  For example,
+
+@example
+alias(preprocessor_call_exp, call_expression)
+@end example
+
+makes any node matched by @code{preprocessor_call_exp} to appear as
+@code{call_expression}.
+@end itemize
+
+Below are grammar functions less interesting for a reader of a
+language definition.
+
+@itemize
+@item
+@code{token(rule)} marks @var{rule} to produce a single leaf node.
+That is, instead of generating a parent node with individual child
+nodes under it, everything is combined into a single leaf node.
+
+@item
+Normally, grammar rules ignore preceding whitespaces,
+@code{token.immediate(rule)} changes @var{rule} to match only when
+there is no preceding whitespaces.
+
+@item
+@code{prec(n, rule)} gives @var{rule} a level @var{n} precedence.
+
+@item
+@code{prec.left([n,] rule)} marks @var{rule} as left-associative,
+optionally with level @var{n}.
+
+@item
+@code{prec.right([n,] rule)} marks @var{rule} as right-associative,
+optionally with level @var{n}.
+
+@item
+@code{prec.dynamic(n, rule)} is like @code{prec}, but the precedence
+is applied at runtime instead.
+@end itemize
+
+The tree-sitter project talks about writing a grammar in more detail:
+@uref{https://tree-sitter.github.io/tree-sitter/creating-parsers}.
+Read especially ``The Grammar DSL'' section.
+
+@node Using Parser
+@section Using Tree-sitter Parser
+@cindex Tree-sitter parser
+
+This section described how to create and configure a tree-sitter
+parser.  In Emacs, each tree-sitter parser is associated with a
+buffer.  As we edit the buffer, the associated parser is automatically
+kept up-to-date.
+
+@defvar treesit-disabled-modes
+Before creating a parser, it is perhaps good to check whether we
+should use tree-sitter at all.  Sometimes a user don't want to use
+tree-sitter features for a major mode.  To turn-off tree-sitter for a
+mode, they add that mode to this variable.
+@end defvar
+
+@defvar treesit-maximum-size
+If users want to turn off tree-sitter for buffers larger than a
+particular size (because tree-sitter consumes memory ~10 times the
+buffer size for storing the syntax tree), they set this variable to
+that size.
+@end defvar
+
+@defun treesit-should-enable-p &optional mode
+This function returns non-nil if @var{mode} (default to the current
+major mode) should activate tree-sitter features.  The result depends
+on the value of @var{treesit-disabled-modes} and
+@var{treesit-maximum-size} described above.  The result also
+depends on, of course, the result of @code{treesit-avaliabe-p}.
+
+Writer of major modes or other packages are responsible for calling
+this function and determine whether to activate tree-sitter features.
+@end defun
+
+
+@cindex Creating tree-sitter parsers
+To create a parser, we provide a buffer to parse and the language to
+use (@pxref{Language Definitions}).  Emacs provides several creation
+functions for different use cases.
+
+@defun treesit-get-parser-create language
+This function is the most convenient one.  It gives you a parser that
+recognizes @var{language} for the current buffer.  The function
+checks if there already exists a parser suiting the need, and only
+creates a new one when it can't find one.
+
+@example
+@group
+;; Create a parser for C programming language.
+(treesit-get-parser-create 'c)
+    @c @result{} #<treesit-parser for c in *scratch*>
+@end group
+@end example
+@end defun
+
+@defun treesit-get-parser language
+This function is like @code{treesit-get-parser-create}, but it
+always creates a new parser.
+@end defun
+
+@defun treesit-parser-create buffer language
+This function is the most primitive, requiring both the buffer to
+associate to, and the language to use.  If @var{buffer} is nil, the
+current buffer is used.
+@end defun
+
+Given a parser, we can query information about it:
+
+@defun treesit-parser-buffer parser
+Returns the buffer associated with @var{parser}.
+@end defun
+
+@defun treesit-parser-language parser
+Returns the language that @var{parser} uses.
+@end defun
+
+@defun treesit-parser-p object
+Checks if @var{object} is a tree-sitter parser. Return non-nil if it
+is, return nil otherwise.
+@end defun
+
+There is no need to explicitly parse a buffer, because parsing is done
+automatically and lazily.  A parser only parses when we query for a
+node in its syntax tree.  Therefore, when a parser is first created,
+it doesn't parse the buffer; instead, it waits until we query for a
+node for the first time.  Similarly, when some change is made in the
+buffer, a parser doesn't re-parse immediately and only records some
+necessary information to later re-parse when necessary.
+
+@vindex treesit-buffer-too-large
+When a parser do parse, it checks for the size of the buffer.
+Tree-sitter can only handle buffer no larger than about 4GB.  If the
+size exceeds that, Emacs signals @var{treesit-buffer-too-large}
+with signal data being the buffer size.
+
+@vindex treesit-parser-list
+Once a parser is created, Emacs automatically adds it to the
+buffer-local variable @var{treesit-parser-list}.  Every time a
+change is made to the buffer, Emacs updates parsers in this list so
+they can update their syntax tree incrementally.  Therefore, one must
+not remove parsers from this list and put the parser back in: if any
+change is made when that parser is absent, the parser will be
+permanently out-of-sync with the buffer content, and shouldn't be used
+anymore.
+
+@cindex tree-sitter narrowing
+@anchor{tree-sitter narrowing} Normally, a parser ``sees'' the whole
+buffer, but when the buffer is narrowed (@pxref{Narrowing}), the
+parser will only see the visible region.  As far as the parser can
+tell, the hidden region is deleted.  And when the buffer is later
+widened, the parser thinks text is inserted in the beginning and in
+the end.  Although parsers respect narrowing, narrowing shouldn't be
+the mean to handle a multi-language buffer; instead, set the ranges in
+which a parser should operate in.  @xref{Multiple Languages}.
+
+Because a parser parses lazily, when we narrow the buffer, the parser
+doesn't act immediately; as long as we don't query for a node while
+the buffer is narrowed, narrowing does not affect the parser.
+
+@cindex tree-sitter parse string
+@defun treesit-parse-string string language
+Besides creating a parser for a buffer, we can also just parse a
+string.  Unlike a buffer, parsing a string is a one-time deal, and
+there is no way to update the result.
+
+This function parses @var{string} with @var{language}, and returns the
+root node of the generated syntax tree.
+@end defun
+
+@node Retrieving Node
+@section Retrieving Node
+
+@cindex tree-sitter find node
+@cindex tree-sitter get node
+There are two ways to retrieve a node: directly from the syntax tree,
+or by traveling from other nodes.  But before we continue, lets go
+over some conventions of tree-sitter functions.
+
+We talk about a node being ``smaller'' or ``larger'', and ``lower'' or
+``higher''.  A smaller and lower node is lower in the syntax tree and
+therefore spans a smaller piece of text; a larger and higher node is
+higher up in the syntax tree, containing many smaller nodes as its
+children, and therefore spans a larger piece of text.
+
+When a function cannot find a node, it returns nil.  And for the
+convenience for function chaining, all the functions that take a node
+as argument and returns a node accept the node to be nil; in that
+case, the function just returns nil.
+
+@vindex treesit-node-outdated
+Nodes are not automatically updated when the associated buffer is
+modified.  In fact, there is no way to update a node once it is
+retrieved.  It is best to use a node and throw it away and not save
+it.  A node is @dfn{outdated} if the buffer has changed since the node
+is retrieved.  Using an outdated node throws
+@var{treesit-node-outdated} error.
+
+@heading Retrieving node from syntax tree
+
+@defun treesit-node-at beg &optional end parser-or-lang named
+This function returns the @emph{smallest} node that covers the span
+from @var{beg} to @var{end}.  In other words, the start of the node
+@code{<=} @var{beg}, and the end of the node @code{>=} @var{end}.  If
+@var{end} is omitted, it defaults to the value of @var{beg}.
+
+When @var{parser-or-lang} is nil, this function uses the first parser
+in @var{treesit-parser-list} in the current buffer.  If
+@var{parser-or-lang} is a parser object, it use that parser; if
+@var{parser-or-lang} is a language, it finds the first parser using
+that language in @var{treesit-parser-list} and use that.
+
+If @var{named} is non-nil, this function looks for a named node
+instead (@pxref{tree-sitter named node, named node}).
+
+@example
+@group
+;; Find the node at point in a C parser's syntax tree.
+(treesit-node-at (point) (point) 'c)
+    @c @result{} #<treesit-node from 1 to 4 in *scratch*>
+@end group
+@end example
+@end defun
+
+@defun treesit-parser-root-node parser
+This function returns the root node of the syntax tree generated by
+@var{parser}.
+@end defun
+
+@defun treesit-buffer-root-node &optional language
+This function finds the first parser that uses @var{language} in
+@var{treesit-parser-list} in the current buffer, and returns the
+root node of that buffer.  If it cannot find an appropriate parser, it
+returns nil.
+@end defun
+
+Once we have a node, we can retrieve other nodes from it, or query for
+information about this node.
+
+@heading Retrieving node from other nodes
+
+@subheading By kinship
+
+@defun treesit-node-parent node
+This function returns the immediate parent of @var{node}.
+@end defun
+
+@defun treesit-node-child node n &optional named
+This function returns the @var{n}'th child of @var{node}.  If
+@var{named} is non-nil, then it only counts named nodes
+(@pxref{tree-sitter named node, named node}).  For example, in a node
+that represents a string: @code{"text"}, there are three children
+nodes: the opening quote @code{"}, the string content @code{text}, and
+the enclosing quote @code{"}.  Among these nodes, the first child is
+the opening quote @code{"}, the first named child is the string
+content @code{text}.
+@end defun
+
+@defun treesit-node-children node &optional named
+This function returns all of @var{node}'s children in a list.  If
+@var{named} is non-nil, then it only retrieves named nodes
+(@pxref{tree-sitter named node, named node}).
+@end defun
+
+@defun treesit-next-sibling node &optional named
+This function finds the next sibling of @var{node}.  If @var{named} is
+non-nil, it finds the next named sibling (@pxref{tree-sitter named
+node, named node}).
+@end defun
+
+@defun treesit-prev-sibling node &optional named
+This function finds the previous sibling of @var{node}.  If
+@var{named} is non-nil, it finds the previous named sibling
+(@pxref{tree-sitter named node, named node}).
+@end defun
+
+@subheading By field name
+
+To make the syntax tree easier to analyze, many language definitions
+assign @dfn{field names} to child nodes (@pxref{tree-sitter node field
+name, field name}).  For example, a @code{function_definition} node
+could have a @code{declarator} and a @code{body}.
+
+@defun treesit-child-by-field-name node field-name
+This function finds the child of @var{node} that has @var{field-name}
+as its field name.
+
+@example
+@group
+;; Get the child that has "body" as its field name.
+(treesit-child-by-field-name node "body")
+    @c @result{} #<treesit-node from 3 to 11 in *scratch*>
+@end group
+@end example
+@end defun
+
+@subheading By position
+
+@defun treesit-first-child-for-pos node pos &optional named
+This function finds the first child of @var{node} that extends beyond
+@var{pos}.  ``Extend beyond'' means the end of the child node
+@code{>=} @var{pos}.  This function only looks for immediate children of
+@var{node}, and doesn't look in its grand children.  If @var{named} is
+non-nil, it only looks for named child (@pxref{tree-sitter named node,
+named node}).
+@end defun
+
+@defun treesit-node-descendant-for-range node beg end &optional named
+This function finds the @emph{smallest} (grand)child of @var{node}
+that spans the range from @var{beg} to @var{end}.  It is similar to
+@code{treesit-node-at}.  If @var{named} is non-nil, it only looks
+for named child (@pxref{tree-sitter named node, named node}).
+@end defun
+
+@heading More convenient functions
+
+@defun treesit-filter-child node pred &optional named
+This function finds children of @var{node} that satisfies @var{pred}.
+
+Function @var{pred} takes the child node as the argument and should
+return non-nil to indicated keeping the child.  If @var{named}
+non-nil, this function only searches for named nodes."
+@end defun
+
+@defun treesit-parent-until node pred
+This function repeatedly finds the parent of @var{node}, and returns
+the parent if it satisfies @var{pred} (which takes the parent as the
+argument).  If no parent satisfies @var{pred}, this function returns
+nil.
+@end defun
+
+@defun treesit-parent-while
+This function repeatedly finds the parent of @var{node}, and keeps
+doing so as long as the parent satisfies @var{pred} (which takes the
+parent as the single argument).  I.e., this function returns the
+farthest parent that still satisfies @var{pred}.
+@end defun
+
+@node Accessing Node
+@section Accessing Node Information
+
+Before going further, make sure you have read the basic conventions
+about tree-sitter nodes in the previous node.
+
+@heading Basic information
+
+Every node is associated with a parser, and that parser is associated
+with a buffer.  The following functions let you retrieve them.
+
+@defun treesit-node-parser node
+This function returns @var{node}'s associated parser.
+@end defun
+
+@defun treesit-node-buffer node
+This function returns @var{node}'s parser's associated buffer.
+@end defun
+
+@defun treesit-node-language node
+This function returns @var{node}'s parser's associated language.
+@end defun
+
+Each node represents a piece of text in the buffer.  Functions below
+finds relevant information about that text.
+
+@defun treesit-node-start node
+Return the start position of @var{node}.
+@end defun
+
+@defun treesit-node-end node
+Return the end position of @var{node}.
+@end defun
+
+@defun treesit-node-text node &optional object
+Returns the buffer text that @var{node} represents.  (If @var{node} is
+retrieved from parsing a string, it will be the text from that
+string.)
+@end defun
+
+Here are some basic checks on tree-sitter nodes.
+
+@defun treesit-node-p object
+Checks if @var{object} is a tree-sitter syntax node.
+@end defun
+
+@defun treesit-node-eq node1 node2
+Checks if @var{node1} and @var{node2} are the same node in a syntax
+tree.
+@end defun
+
+@heading Property information
+
+In general, nodes in a concrete syntax tree fall into two categories:
+@dfn{named nodes} and @dfn{anonymous nodes}.  Whether a node is named
+or anonymous is determined by the language definition
+(@pxref{tree-sitter named node, named node}).
+
+@cindex tree-sitter missing node
+Apart from being named/anonymous, a node can have other properties.  A
+node can be ``missing'': missing nodes are inserted by the parser in
+order to recover from certain kinds of syntax errors, i.e., something
+should probably be there according to the grammar, but not there.
+
+@cindex tree-sitter extra node
+A node can be ``extra'': extra nodes represent things like comments,
+which can appear anywhere in the text.
+
+@cindex tree-sitter node that has changes
+A node ``has changes'' if the buffer changed since when the node is
+retrieved.  In this case, the node's start and end position would be
+off and we better throw it away and retrieve a new one.
+
+@cindex tree-sitter node that has error
+A node ``has error'' if the text it spans contains a syntax error.  It
+can be the node itself has an error, or one of its (grand)children has
+an error.
+
+@defun treesit-node-check node property
+This function checks if @var{node} has @var{property}.  @var{property}
+can be @code{'named}, @code{'missing}, @code{'extra},
+@code{'has-changes}, or @code{'has-error}.
+@end defun
+
+Named nodes have ``types'' (@pxref{tree-sitter node type, node type}).
+For example, a named node can be a @code{string_literal} node, where
+@code{string_literal} is its type.
+
+@defun treesit-node-type node
+Return @var{node}'s type as a string.
+@end defun
+
+@heading Information as a child or parent
+
+@defun treesit-node-index node &optional named
+This function returns the index of @var{node} as a child node of its
+parent.  If @var{named} is non-nil, it only count named nodes
+(@pxref{tree-sitter named node, named node}).
+@end defun
+
+@defun treesit-node-field-name node
+A child of a parent node could have a field name (@pxref{tree-sitter
+node field name, field name}).  This function returns the field name
+of @var{node} as a child of its parent.
+@end defun
+
+@defun treesit-node-field-name-for-child node n
+This is a more primitive function that returns the field name of the
+@var{n}'th child of @var{node}.
+@end defun
+
+@defun treesit-child-count node &optional named
+This function finds the number of children of @var{node}.  If
+@var{named} is non-nil, it only counts named child (@pxref{tree-sitter
+named node, named node}).
+@end defun
+
+@node Pattern Matching
+@section Pattern Matching Tree-sitter Nodes
+
+Tree-sitter let us pattern match with a small declarative language.
+Pattern matching consists of two steps: first tree-sitter matches a
+@dfn{pattern} against nodes in the syntax tree, then it @dfn{captures}
+specific nodes in that pattern and returns the captured nodes.
+
+We describe first how to write the most basic query pattern and how to
+capture nodes in a pattern, then the pattern-match function, finally
+more advanced pattern syntax.
+
+@heading Basic query syntax
+
+@cindex Tree-sitter query syntax
+@cindex Tree-sitter query pattern
+A @dfn{query} consists of multiple @dfn{patterns}, each pattern is an
+s-expression that matches a certain node in the syntax node.  A
+pattern has the following shape:
+
+@example
+(@var{type} @var{child}...)
+@end example
+
+@noindent
+For example, a pattern that matches a @code{binary_expression} node that
+contains @code{number_literal} child nodes would look like
+
+@example
+(binary_expression (number_literal))
+@end example
+
+To @dfn{capture} a node in the query pattern above, append
+@code{@@capture-name} after the node pattern you want to capture.  For
+example,
+
+@example
+(binary_expression (number_literal) @@number-in-exp)
+@end example
+
+@noindent
+captures @code{number_literal} nodes that are inside a
+@code{binary_expression} node with capture name @code{number-in-exp}.
+
+We can capture the @code{binary_expression} node too, with capture
+name @code{biexp}:
+
+@example
+(binary_expression
+ (number_literal) @@number-in-exp) @@biexp
+@end example
+
+@heading Query function
+
+Now we can introduce the query functions.
+
+@defun treesit-query-capture node query &optional beg end
+This function matches patterns in @var{query} in @var{node}.
+Argument @var{query} can be a either string or a s-expression.  For
+now, we focus on the string syntax; s-expression syntax is described
+at the end of the section.
+
+The function returns all captured nodes in a list of
+@code{(@var{capture_name} . @var{node})}.  If @var{beg} and @var{end}
+are both non-nil, it only pattern matches nodes in that range.
+
+@vindex treesit-query-error
+This function raise a @var{treesit-query-error} if @var{query} is
+malformed.  The signal data contains a description of the specific
+error.
+@end defun
+
+@defun treesit-query-in source query &optional beg end
+This function matches patterns in @var{query} in @var{source}, and
+returns all captured nodes in a list of @code{(@var{capture_name}
+. @var{node})}.  If @var{beg} and @var{end} are both non-nil, it only
+pattern match nodes in that range.
+
+Argument @var{source} designates a node, it can be a language symbol,
+a parser, or simply a node.  If a language symbol, @var{source}
+represents the root node of the first parser for that language in the
+current buffer; if a parser, @var{source} represents the root node of
+that parser.
+
+This function also raises @var{treesit-query-error}.
+@end defun
+
+For example, suppose @var{node}'s content is @code{1 + 2}, and
+@var{query} is
+
+@example
+@group
+(setq query
+      "(binary_expression
+        (number_literal) @@number-in-exp) @@biexp")
+@end group
+@end example
+
+@noindent
+Querying that query would return
+
+@example
+@group
+(treesit-query-capture node query)
+    @result{} ((biexp . @var{<node for "1 + 2">})
+       (number-in-exp . @var{<node for "1">})
+       (number-in-exp . @var{<node for "2">}))
+@end group
+@end example
+
+As we mentioned earlier, a @var{query} could contain multiple
+patterns. For example, it could have two top-level patterns:
+
+@example
+@group
+(setq query
+      "(binary_expression) @@biexp
+       (number_literal)  @@number @@biexp")
+@end group
+@end example
+
+@defun treesit-query-string string query language
+This function parses @var{string} with @var{language}, pattern matches
+its root node with @var{query}, and returns the result.
+@end defun
+
+@heading More query syntax
+
+Besides node type and capture, tree-sitter's query syntax can express
+anonymous node, field name, wildcard, quantification, grouping,
+alternation, anchor, and predicate.
+
+@subheading Anonymous node
+
+An anonymous node is written verbatim, surrounded by quotes.  A
+pattern matching (and capturing) keyword @code{return} would be
+
+@example
+"return" @@keyword
+@end example
+
+@subheading Wild card
+
+In a query pattern, @samp{(_)} matches any named node, and @samp{_}
+matches any named and anonymous node.  For example, to capture any
+named child of a @code{binary_expression} node, the pattern would be
+
+@example
+(binary_expression (_) @@in_biexp)
+@end example
+
+@subheading Field name
+
+We can capture child nodes that has specific field names:
+
+@example
+@group
+(function_definition
+  declarator: (_) @@func-declarator
+  body: (_) @@func-body)
+@end group
+@end example
+
+We can also capture a node that doesn't have certain field, say, a
+@code{function_definition} without a @code{body} field.
+
+@example
+(function_definition !body) @@func-no-body
+@end example
+
+@subheading Quantify node
+
+Tree-sitter recognizes quantification operators @samp{*}, @samp{+} and
+@samp{?}.  Their meanings are the same as in regular expressions:
+@samp{*} matches the preceding pattern zero or more times, @samp{+}
+matches one or more times, and @samp{?} matches zero or one time.
+
+For example, this pattern matches @code{type_declaration} nodes
+that has @emph{zero or more} @code{long} keyword.
+
+@example
+(type_declaration "long"* @@long-in-type)
+@end example
+
+@noindent
+And this pattern matches a type declaration that has zero or one
+@code{long} keyword:
+
+@example
+(type_declaration "long"?) @@type-decl
+@end example
+
+@subheading Grouping
+
+Similar to groups in regular expression, we can bundle patterns into a
+group and apply quantification operators to it.  For example, to
+express a comma separated list of identifiers, one could write
+
+@example
+(identifier) ("," (identifier))*
+@end example
+
+@subheading Alternation
+
+Again, similar to regular expressions, we can express ``match anyone
+from this group of patterns'' in the query pattern.  The syntax is a
+list of patterns enclosed in square brackets.  For example, to capture
+some keywords in C, the query pattern would be
+
+@example
+@group
+[
+  "return"
+  "break"
+  "if"
+  "else"
+] @@keyword
+@end group
+@end example
+
+@subheading Anchor
+
+The anchor operator @samp{.} can be used to enforce juxtaposition,
+i.e., to enforce two things to be directly next to each other.  The
+two ``things'' can be two nodes, or a child and the end of its parent.
+For example, to capture the first child, the last child, or two
+adjacent children:
+
+@example
+@group
+;; Anchor the child with the end of its parent.
+(compound_expression (_) @@last-child .)
+
+;; Anchor the child with the beginning of its parent.
+(compound_expression . (_) @@first-child)
+
+;; Anchor two adjacent children.
+(compound_expression
+ (_) @@prev-child
+ .
+ (_) @@next-child)
+@end group
+@end example
+
+Note that the enforcement of juxtaposition ignores any anonymous
+nodes.
+
+@subheading Predicate
+
+We can add predicate constraints to a pattern.  For example, if we use
+the following query pattern
+
+@example
+@group
+(
+ (array . (_) @@first (_) @@last .)
+ (#equal @@first @@last)
+)
+@end group
+@end example
+
+Then tree-sitter only matches arrays where the first element equals to
+the last element.  To attach a predicate to a pattern, we need to
+group then together.  A predicate always starts with a @samp{#}.
+Currently there are two predicates, @code{#equal} and @code{#match}.
+
+@deffn Predicate equal arg1 arg2
+Matches if @var{arg1} equals to @var{arg2}.  Arguments can be either a
+string or a capture name.  Capture names represent the text that the
+captured node spans in the buffer.
+@end deffn
+
+@deffn Predicate match regexp capture-name
+Matches if the text that @var{capture-name}’s node spans in the buffer
+matches regular expression @var{regexp}.  Matching is case-sensitive.
+@end deffn
+
+Note that a predicate can only refer to capture names appeared in the
+same pattern.  Indeed, it makes little sense to refer to capture names
+in other patterns anyway.
+
+@heading S-expression patterns
+
+Besides strings, Emacs provides a s-expression based syntax for query
+patterns. It largely resembles the string-based syntax.  For example,
+the following pattern
+
+@example
+@group
+(treesit-query-capture
+ node "(addition_expression
+        left: (_) @@left
+        \"+\" @@plus-sign
+        right: (_) @@right) @@addition
+
+        [\"return\" \"break\"] @@keyword")
+@end group
+@end example
+
+@noindent
+is equivalent to
+
+@example
+@group
+(treesit-query-capture
+ node '((addition_expression
+         left: (_) @@left
+         "+" @@plus-sign
+         right: (_) @@right) @@addition
+
+         ["return" "break"] @@keyword))
+@end group
+@end example
+
+Most pattern syntax can be written directly as strange but
+never-the-less valid s-expressions.  Only a few of them needs
+modification:
+
+@itemize
+@item
+Anchor @samp{.} is written as @code{:anchor}.
+@item
+@samp{?} is written as @samp{:?}.
+@item
+@samp{*} is written as @samp{:*}.
+@item
+@samp{+} is written as @samp{:+}.
+@item
+@code{#equal} is written as @code{:equal}.  In general, predicates
+change their @samp{#} to @samp{:}.
+@end itemize
+
+For example,
+
+@example
+@group
+"(
+  (compound_expression . (_) @@first (_)* @@rest)
+  (#match \"love\" @@first)
+  )"
+@end group
+@end example
+
+is written in s-expression as
+
+@example
+@group
+'((
+   (compound_expression :anchor (_) @@first (_) :* @@rest)
+   (:match "love" @@first)
+   ))
+@end group
+@end example
+
+@defun treesit-expand-query query
+This function expands the s-expression @var{query} into a string
+query.  It is usually a good idea to expand the s-expression patterns
+into strings for font-lock queries since they are called repeatedly.
+@end defun
+
+Tree-sitter project's documentation about pattern-matching can be
+found at
+@uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
+
+@node Multiple Languages
+@section Parsing Text in Multiple Languages
+
+Sometimes, the source of a programming language could contain sources
+of other languages, HTML + CSS + JavaScript is one example.  In that
+case, we need to assign individual parsers to text segments written in
+different languages.  Traditionally this is achieved by using
+narrowing.  While tree-sitter works with narrowing (@pxref{tree-sitter
+narrowing, narrowing}), the recommended way is to set ranges in which
+a parser will operate.
+
+@defun treesit-parser-set-included-ranges parser ranges
+This function sets the range of @var{parser} to @var{ranges}.  Then
+@var{parser} will only read the text covered in each range.  Each
+range in @var{ranges} is a list of cons @code{(@var{beg}
+. @var{end})}.
+
+Each range in @var{ranges} must come in order and not overlap.  That
+is, in pseudo code:
+
+@example
+@group
+(cl-loop for idx from 1 to (1- (length ranges))
+         for prev = (nth (1- idx) ranges)
+         for next = (nth idx ranges)
+         should (<= (car prev) (cdr prev)
+                    (car next) (cdr next)))
+@end group
+@end example
+
+@vindex treesit-range-invalid
+If @var{ranges} violates this constraint, or something else went
+wrong, this function signals a @var{treesit-range-invalid}.  The
+signal data contains a specific error message and the ranges we are
+trying to set.
+
+This function can also be used for disabling ranges.  If @var{ranges}
+is nil, the parser is set to parse the whole buffer.
+
+Example:
+
+@example
+@group
+(treesit-parser-set-included-ranges
+ parser '((1 . 9) (16 . 24) (24 . 25)))
+@end group
+@end example
+@end defun
+
+@defun treesit-parser-included-ranges parser
+This function returns the ranges set for @var{parser}.  The return
+value is the same as the @var{ranges} argument of
+@code{treesit-parser-included-ranges}: a list of cons
+@code{(@var{beg} . @var{end})}.  And if @var{parser} doesn't have any
+ranges, the return value is nil.
+
+@example
+@group
+(treesit-parser-included-ranges parser)
+    @result{} ((1 . 9) (16 . 24) (24 . 25))
+@end group
+@end example
+@end defun
+
+@defun treesit-set-ranges parser-or-lang ranges
+Like @code{treesit-parser-set-included-ranges}, this function sets
+the ranges of @var{parser-or-lang} to @var{ranges}.  Conveniently,
+@var{parser-or-lang} could be either a parser or a language.  If it is
+a language, this function looks for the first parser in
+@var{treesit-parser-list} for that language in the current buffer,
+and set range for it.
+@end defun
+
+@defun treesit-get-ranges parser-or-lang
+This function returns the ranges of @var{parser-or-lang}, like
+@code{treesit-parser-included-ranges}.  And like
+@code{treesit-set-ranges}, @var{parser-or-lang} can be a parser or
+a language symbol.
+@end defun
+
+@defun treesit-query-range source pattern &optional beg end
+This function matches @var{source} with @var{pattern} and returns the
+ranges of captured nodes.  The return value has the same shape of
+other functions: a list of @code{(@var{beg} . @var{end})}.
+
+For convenience, @var{source} can be a language symbol, a parser, or a
+node.  If a language symbol, this function matches in the root node of
+the first parser using that language; if a parser, this function
+matches in the root node of that parser; if a node, this function
+matches in that node.
+
+Parameter @var{pattern} is the query pattern used to capture nodes
+(@pxref{Pattern Matching}). The capture names don't matter.  Parameter
+@var{beg} and @var{end}, if both non-nil, limits the range in which
+this function queries.
+
+Like other query functions, this function raises an
+@var{treesit-query-error} if @var{pattern} is malformed.
+@end defun
+
+@defun treesit-language-at point
+This function tries to figure out which language is responsible for
+the text at @var{point}.  It goes over each parser in
+@var{treesit-parser-list} and see if that parser's range covers
+@var{point}.
+@end defun
+
+@defvar treesit-range-functions
+A list of range functions.  Font-locking and indenting code uses
+functions in this alist to set correct ranges for a language parser
+before using it.
+
+The signature of each function should be
+
+@example
+(@var{start} @var{end} &rest @var{_})
+@end example
+
+where @var{start} and @var{end} marks the region that is about to be
+used.  A range function only need to (but not limited to) update
+ranges in that region.
+
+Each function in the list is called in-order.
+@end defvar
+
+@defun treesit-update-ranges &optional start end
+This function is used by font-lock and indent to update ranges before
+using any parser.  Each range function in
+@var{treesit-range-functions} is called in-order.  Arguments
+@var{start} and @var{end} are passed to each range function.
+@end defun
+
+@heading An example
+
+Normally, in a set of languages that can be mixed together, there is a
+major language and several embedded languages. The major language
+parses the whole document, and skips the embedded languages. Then the
+parser for the major language knows the ranges of the embedded
+languages. So we first parse the whole document with the major
+language’s parser, set ranges for the embedded languages, then parse
+the embedded languages.
+
+Suppose we want to parse a very simple document that mixes HTML, CSS
+and JavaScript:
+
+@example
+@group
+<html>
+  <script>1 + 2</script>
+  <style>body @{ color: "blue"; @}</style>
+</html>
+@end group
+@end example
+
+We first parse with HTML, then set ranges for CSS and JavaScript:
+
+@example
+@group
+;; Create parsers.
+(setq html (treesit-get-parser-create 'html))
+(setq css (treesit-get-parser-create 'css))
+(setq js (treesit-get-parser-create 'javascript))
+
+;; Set CSS ranges.
+(setq css-range
+      (treesit-query-range
+       'html
+       "(style_element (raw_text) @@capture)"))
+(treesit-parser-set-included-ranges css css-range)
+
+;; Set JavaScript ranges.
+(setq js-range
+      (treesit-query-range
+       'html
+       "(script_element (raw_text) @@capture)"))
+(treesit-parser-set-included-ranges js js-range)
+@end group
+@end example
+
+We use a query pattern @code{(style_element (raw_text) @@capture)} to
+find CSS nodes in the HTML parse tree. For how to write query
+patterns, @pxref{Pattern Matching}.
+
+@node Tree-sitter C API
+@section Tree-sitter C API Correspondence
+
+Emacs' tree-sitter integration doesn't expose every feature
+tree-sitter's C API provides.  Missing features include:
+
+@itemize
+@item
+Creating a tree cursor and navigating the syntax tree with it.
+@item
+Setting timeout and cancellation flag for a parser.
+@item
+Setting the logger for a parser.
+@item
+Printing a DOT graph of the syntax tree to a file.
+@item
+Coping and modifying a syntax tree.  (Emacs doesn't expose a tree
+object.)
+@item
+Using (row, column) coordinates as position.
+@item
+Updating a node with changes. (In Emacs, retrieve a new node instead
+of updating the existing one.)
+@item
+Querying statics of a language definition.
+@end itemize
+
+In addition, Emacs makes some changes to the C API to make the API more
+convenient and idiomatic:
+
+@itemize
+@item
+Instead of using byte positions, the ELisp API uses character
+positions.
+@item
+Null nodes are converted to nil.
+@end itemize
+
+Below is the correspondence between all C API functions and their
+ELisp counterparts.  Sometimes one ELisp function corresponds to
+multiple C functions, and many C functions don't have an ELisp
+counterpart.
+
+@example
+ts_parser_new                           treesit-parser-create
+ts_parser_delete
+ts_parser_set_language
+ts_parser_language                      treesit-parser-language
+ts_parser_set_included_ranges           treesit-parser-set-included-ranges
+ts_parser_included_ranges               treesit-parser-included-ranges
+ts_parser_parse
+ts_parser_parse_string                  treesit-parse-string
+ts_parser_parse_string_encoding
+ts_parser_reset
+ts_parser_set_timeout_micros
+ts_parser_timeout_micros
+ts_parser_set_cancellation_flag
+ts_parser_cancellation_flag
+ts_parser_set_logger
+ts_parser_logger
+ts_parser_print_dot_graphs
+ts_tree_copy
+ts_tree_delete
+ts_tree_root_node
+ts_tree_language
+ts_tree_edit
+ts_tree_get_changed_ranges
+ts_tree_print_dot_graph
+ts_node_type                            treesit-node-type
+ts_node_symbol
+ts_node_start_byte                      treesit-node-start
+ts_node_start_point
+ts_node_end_byte                        treesit-node-end
+ts_node_end_point
+ts_node_string                          treesit-node-string
+ts_node_is_null
+ts_node_is_named                        treesit-node-check
+ts_node_is_missing                      treesit-node-check
+ts_node_is_extra                        treesit-node-check
+ts_node_has_changes                     treesit-node-check
+ts_node_has_error                       treesit-node-check
+ts_node_parent                          treesit-node-parent
+ts_node_child                           treesit-node-child
+ts_node_field_name_for_child            treesit-node-field-name-for-child
+ts_node_child_count                     treesit-node-child-count
+ts_node_named_child                     treesit-node-child
+ts_node_named_child_count               treesit-node-child-count
+ts_node_child_by_field_name             treesit-node-by-field-name
+ts_node_child_by_field_id
+ts_node_next_sibling                    treesit-next-sibling
+ts_node_prev_sibling                    treesit-prev-sibling
+ts_node_next_named_sibling              treesit-next-sibling
+ts_node_prev_named_sibling              treesit-prev-sibling
+ts_node_first_child_for_byte            treesit-first-child-for-pos
+ts_node_first_named_child_for_byte      treesit-first-child-for-pos
+ts_node_descendant_for_byte_range       treesit-descendant-for-range
+ts_node_descendant_for_point_range
+ts_node_named_descendant_for_byte_range treesit-descendant-for-range
+ts_node_named_descendant_for_point_range
+ts_node_edit
+ts_node_eq                              treesit-node-eq
+ts_tree_cursor_new
+ts_tree_cursor_delete
+ts_tree_cursor_reset
+ts_tree_cursor_current_node
+ts_tree_cursor_current_field_name
+ts_tree_cursor_current_field_id
+ts_tree_cursor_goto_parent
+ts_tree_cursor_goto_next_sibling
+ts_tree_cursor_goto_first_child
+ts_tree_cursor_goto_first_child_for_byte
+ts_tree_cursor_goto_first_child_for_point
+ts_tree_cursor_copy
+ts_query_new
+ts_query_delete
+ts_query_pattern_count
+ts_query_capture_count
+ts_query_string_count
+ts_query_start_byte_for_pattern
+ts_query_predicates_for_pattern
+ts_query_step_is_definite
+ts_query_capture_name_for_id
+ts_query_string_value_for_id
+ts_query_disable_capture
+ts_query_disable_pattern
+ts_query_cursor_new
+ts_query_cursor_delete
+ts_query_cursor_exec                    treesit-query-capture
+ts_query_cursor_did_exceed_match_limit
+ts_query_cursor_match_limit
+ts_query_cursor_set_match_limit
+ts_query_cursor_set_byte_range
+ts_query_cursor_set_point_range
+ts_query_cursor_next_match
+ts_query_cursor_remove_match
+ts_query_cursor_next_capture
+ts_language_symbol_count
+ts_language_symbol_name
+ts_language_symbol_for_name
+ts_language_field_count
+ts_language_field_name_for_id
+ts_language_field_id_for_name
+ts_language_symbol_type
+ts_language_version
+@end example

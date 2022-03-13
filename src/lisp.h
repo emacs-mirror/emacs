@@ -575,6 +575,8 @@ enum Lisp_Fwd_Type
    your object -- this way, the same object could be used to represent
    several disparate C structures.
 
+   In addition, you need to add switch branches in data.c for Ftype_of.
+
    You also need to add the new type to the constant
    `cl--typeof-types' in lisp/emacs-lisp/cl-preloaded.el.  */
 
@@ -1053,6 +1055,8 @@ enum pvec_type
   PVEC_CONDVAR,
   PVEC_MODULE_FUNCTION,
   PVEC_NATIVE_COMP_UNIT,
+  PVEC_TS_PARSER,
+  PVEC_TS_NODE,
   PVEC_SQLITE,
 
   /* These should be last, for internal_equal and sxhash_obj.  */
@@ -5406,6 +5410,11 @@ maybe_gc (void)
   if (consing_until_gc < 0)
     maybe_garbage_collect ();
 }
+
+/* Simplified version of 'define-error' that works with pure
+   objects.  */
+void
+define_error (Lisp_Object name, const char *message, Lisp_Object parent);
 
 INLINE_HEADER_END
 

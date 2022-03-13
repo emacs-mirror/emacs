@@ -5196,6 +5196,14 @@ to the specified file name if a suffix is allowed or required.  */);
     Fcons (build_pure_c_string (MODULES_SECONDARY_SUFFIX), Vload_suffixes);
 #endif
 
+  DEFVAR_LISP ("dynamic-library-suffixes", Vdynamic_library_suffixes,
+	       doc: /* A list of suffixes for loadable dynamic libraries.  */);
+  Vdynamic_library_suffixes =
+    Fcons (build_pure_c_string (DYNAMIC_LIB_SECONDARY_SUFFIX), Qnil);
+  Vdynamic_library_suffixes =
+    Fcons (build_pure_c_string (DYNAMIC_LIB_SUFFIX),
+	   Vdynamic_library_suffixes);
+
 #endif
   DEFVAR_LISP ("module-file-suffix", Vmodule_file_suffix,
 	       doc: /* Suffix of loadable module file, or nil if modules are not supported.  */);

@@ -136,6 +136,10 @@ extern char etext;
 #include <sys/resource.h>
 #endif
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 #include "pdumper.h"
 #include "fingerprint.h"
 #include "epaths.h"
@@ -2181,6 +2185,9 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_module ();
 #endif
 
+#ifdef HAVE_TREE_SITTER
+      syms_of_treesit ();
+#endif
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif
