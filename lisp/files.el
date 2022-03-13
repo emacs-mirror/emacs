@@ -987,20 +987,7 @@ one or more of those symbols."
 	  (logior (if (memq 'executable predicate) 1 0)
 		  (if (memq 'writable predicate) 2 0)
 		  (if (memq 'readable predicate) 4 0))))
-  (let ((file (locate-file-internal filename path suffixes predicate)))
-    (if (and file (string-match "\\.eln\\'" file))
-        ;; This is all a bit of a mess.  We pass in a list of suffixes
-        ;; that doesn't include .eln, but with a nativecomp emacs, we
-        ;; get the .eln file back.  We then map that to the .el file.
-        ;; But `load-history' has the .elc file, so that's the file we
-        ;; return here (if it exists).
-        (let* ((el (gethash (file-name-nondirectory file) comp-eln-to-el-h))
-               (elc (replace-regexp-in-string "\\.el\\'" ".elc" el)))
-          (if (and (member ".elc" suffixes)
-                   (file-exists-p elc))
-              elc
-            el))
-      file)))
+  (locate-file-internal filename path suffixes predicate))
 
 (defun locate-file-completion-table (dirs suffixes string pred action)
   "Do completion for file names passed to `locate-file'."

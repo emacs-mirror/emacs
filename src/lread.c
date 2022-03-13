@@ -1661,7 +1661,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate, false, false);
+  int fd = openp (path, filename, suffixes, &file, predicate, false, true);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
