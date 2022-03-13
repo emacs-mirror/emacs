@@ -6537,7 +6537,7 @@ The overlay is returned by the function.")
         (unless (equal new rol)
           (set-window-parameter window 'internal-region-overlay new))))))
 
-(defun redisplay--update-cursor-property-highlight (window)
+(defun redisplay--update-cursor-face-highlight (window)
   "This highlights the overlay used to highlight text with cursor-face."
   (let ((rol (window-parameter window 'internal-cursor-face-overlay))
         (pt) (value) (cursor-face))
@@ -6556,7 +6556,7 @@ The overlay is returned by the function.")
       (if rol
           (redisplay-unhighlight-overlay-function rol)))))
 
-(defvar pre-redisplay-functions (list #'redisplay--update-cursor-property-highlight
+(defvar pre-redisplay-functions (list #'redisplay--update-cursor-face-highlight
                                       #'redisplay--update-region-highlight)
   "Hook run just before redisplay.
 It is called in each window that is to be redisplayed.  It takes one argument,
