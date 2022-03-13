@@ -606,7 +606,8 @@
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
   (let ((select-enable-clipboard t)
-        ;; Ensure that we defeat the DWIM login in `gui-selection-value'.
+        ;; Ensure that we defeat the DWIM logic in `gui-selection-value'
+        ;; (i.e., that gui--clipboard-selection-unchanged-p returns nil).
         (gui--last-selected-text-clipboard nil))
     (yank)))
 

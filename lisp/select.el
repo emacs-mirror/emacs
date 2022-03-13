@@ -25,9 +25,10 @@
 ;; Based partially on earlier release by Lucid.
 
 ;; The functionality here is divided in two parts:
-;; - Low-level: gui-get-selection, gui-set-selection, gui-selection-owner-p,
-;;   gui-selection-exists-p are the backend-dependent functions meant to access
-;;   various kinds of selections (CLIPBOARD, PRIMARY, SECONDARY).
+;; - Low-level: gui-backend-get-selection, gui-backend-set-selection,
+;;   gui-backend-selection-owner-p, gui-backend-selection-exists-p are
+;;   the backend-dependent functions meant to access various kinds of
+;;   selections (CLIPBOARD, PRIMARY, SECONDARY).
 ;; - Higher-level: gui-select-text and gui-selection-value go together to
 ;;   access the general notion of "GUI selection" for interoperation with other
 ;;   applications.  This can use either the clipboard or the primary selection,
@@ -108,9 +109,10 @@ E.g. it doesn't exist under MS-Windows."
   :group 'killing
   :version "25.1")
 
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from gui-selection-value.  We track both
+;; We keep track of the last selection here, so we can check the
+;; current selection against it, and avoid passing back with
+;; gui-selection-value the same text we previously killed or
+;; yanked. We track both
 ;; separately in case another X application only sets one of them
 ;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
 
@@ -119,22 +121,68 @@ E.g. it doesn't exist under MS-Windows."
 (defvar gui--last-selected-text-primary nil
   "The value of the PRIMARY selection last seen.")
 
+(defvar gui--last-selection-timestamp-clipboard nil
+  "The timestamp of the CLIPBOARD selection last seen.")
+(defvar gui--last-selection-timestamp-primary nil
+  "The timestamp of the PRIMARY selection last seen.")
+
+(defun gui--set-last-clipboard-selection (text)
+  "Save last clipboard selection.
+Save the selected text, passed as argument, and for window
+systems that support it, save the selection timestamp too."
+  (setq gui--last-selected-text-clipboard text)
+  (when (eq window-system 'x)
+    (setq gui--last-selection-timestamp-clipboard
+          (gui-backend-get-selection 'CLIPBOARD 'TIMESTAMP))))
+
+(defun gui--set-last-primary-selection (text)
+  "Save last primary selection.
+Save the selected text, passed as argument, and for window
+systems that support it, save the selection timestamp too."
+  (setq gui--last-selected-text-primary text)
+  (when (eq window-system 'x)
+    (setq gui--last-selection-timestamp-primary
+          (gui-backend-get-selection 'PRIMARY 'TIMESTAMP))))
+
+(defun gui--clipboard-selection-unchanged-p (text)
+  "Check whether the clipboard selection has changed.
+Compare the selection text, passed as argument, with the text
+from the last saved selection. For window systems that support
+it, compare the selection timestamp too."
+  (and
+   (equal text gui--last-selected-text-clipboard)
+   (or (not (eq window-system 'x))
+       (eq gui--last-selection-timestamp-clipboard
+           (gui-backend-get-selection 'CLIPBOARD 'TIMESTAMP)))))
+
+(defun gui--primary-selection-unchanged-p (text)
+  "Check whether the primary selection has changed.
+Compare the selection text, passed as argument, with the text
+from the last saved selection. For window systems that support
+it, compare the selection timestamp too."
+  (and
+   (equal text gui--last-selected-text-primary)
+   (or (not (eq window-system 'x))
+       (eq gui--last-selection-timestamp-primary
+           (gui-backend-get-selection 'PRIMARY 'TIMESTAMP)))))
+
+
 (defun gui-select-text (text)
   "Select TEXT, a string, according to the window system.
-if `select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
+If `select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
 If `select-enable-primary' is non-nil, put TEXT in the primary selection.
 
 MS-Windows does not have a \"primary\" selection."
   (when select-enable-primary
     (gui-set-selection 'PRIMARY text)
-    (setq gui--last-selected-text-primary text))
+    (gui--set-last-primary-selection text))
   (when select-enable-clipboard
     ;; When cutting, the selection is cleared and PRIMARY
     ;; set to the empty string.  Prevent that, PRIMARY
     ;; should not be reset by cut (Bug#16382).
     (setq saved-region-selection text)
     (gui-set-selection 'CLIPBOARD text)
-    (setq gui--last-selected-text-clipboard text)))
+    (gui--set-last-clipboard-selection text)))
 (define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
 
 (defcustom x-select-request-type nil
@@ -175,6 +223,7 @@ decoded.  If `gui-get-selection' signals an error, return nil."
            ;; some other window systems.
            (memq window-system '(x haiku))
            (eq type 'CLIPBOARD)
+           ;; Should we unify this with gui--clipboard-selection-unchanged-p?
            (gui-backend-selection-owner-p type))
     (let ((request-type (if (memq window-system '(x pgtk haiku))
                             (or x-select-request-type
@@ -197,19 +246,17 @@ decoded.  If `gui-get-selection' signals an error, return nil."
            (let ((text (gui--selection-value-internal 'CLIPBOARD)))
              (when (string= text "")
                (setq text nil))
-             ;; When `select-enable-clipboard' is non-nil,
-             ;; killing/copying text (with, say, `C-w') will push the
-             ;; text to the clipboard (and store it in
-             ;; `gui--last-selected-text-clipboard').  We check
-             ;; whether the text on the clipboard is identical to this
-             ;; text, and if so, we report that the clipboard is
-             ;; empty.  See (bug#27442) for further discussion about
-             ;; this DWIM action, and possible ways to make this check
-             ;; less fragile, if so desired.
-             (prog1
-                 (unless (equal text gui--last-selected-text-clipboard)
-                   text)
-               (setq gui--last-selected-text-clipboard text)))))
+             ;; Check the CLIPBOARD selection for 'newness', i.e.,
+             ;; whether it is different from the last time we did a
+             ;; yank operation or whether it was set by Emacs itself
+             ;; with a kill operation, since in both cases the text
+             ;; will already be in the kill ring. See (bug#27442) and
+             ;; (bug#53894) for further discussion about this DWIM
+             ;; action, and possible ways to make this check less
+             ;; fragile, if so desired.
+             (unless (gui--clipboard-selection-unchanged-p text)
+               (gui--set-last-clipboard-selection text)
+               text))))
         (primary-text
          (when select-enable-primary
            (let ((text (gui--selection-value-internal 'PRIMARY)))
@@ -217,10 +264,9 @@ decoded.  If `gui-get-selection' signals an error, return nil."
              ;; Check the PRIMARY selection for 'newness', is it different
              ;; from what we remembered them to be last time we did a
              ;; cut/paste operation.
-             (prog1
-                 (unless (equal text gui--last-selected-text-primary)
-                   text)
-               (setq gui--last-selected-text-primary text))))))
+             (unless (gui--primary-selection-unchanged-p text)
+               (gui--set-last-primary-selection text)
+               text)))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)
@@ -235,11 +281,11 @@ decoded.  If `gui-get-selection' signals an error, return nil."
     ;; something like the following has happened since the last time
     ;; we looked at the selections: Application X set all the
     ;; selections, then Application Y set only one of them.
-    ;; In this case since we don't have
-    ;; timestamps there is no way to know what the 'correct' value to
-    ;; return is.  The nice thing to do would be to tell the user we
-    ;; saw multiple possible selections and ask the user which was the
-    ;; one they wanted.
+    ;; In this case, for systems that support selection timestamps, we
+    ;; could return the newer.  For systems that don't, there is no
+    ;; way to know what the 'correct' value to return is.  The nice
+    ;; thing to do would be to tell the user we saw multiple possible
+    ;; selections and ask the user which was the one they wanted.
     (or clip-text primary-text)
     ))
 
