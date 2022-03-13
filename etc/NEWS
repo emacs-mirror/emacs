@@ -159,11 +159,12 @@ An autoload definition appears just as a '(defun . NAME)' and the
 '(t . NAME)' entries are not generated any more.
 
 ---
-** The Tamil input methods do not insert Tamil digits anymore.
+** The Tamil input methods no longer insert Tamil digits.
 The input methods 'tamil-itrans' and 'tamil-inscript' no longer insert
-the Tamil digit.  To get back the previous behaviour, use the
-'tamil-itrans-digits' and 'tamil-inscript-digits' input methods
-instead.
+the Tamil digits, as those digit characters are not used nowadays by
+speakers of the Tamil language.  To get back the previous behavior,
+use the new 'tamil-itrans-digits' and 'tamil-inscript-digits' input
+methods instead.
 
 
 * Changes in Emacs 29.1
@@ -1670,6 +1671,7 @@ Use 'indian-tml-base-digits-table' if you want digits translation.
 --
 ** 'indian-tml-itrans-v5-hash' no longer translates digits.
 Use 'indian-tml-itrans-digits-v5-hash' if you digits translation.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 
