@@ -629,7 +629,7 @@ extern "C"
 
   extern void
   BView_scroll_bar_update (void *sb, int portion, int whole, int position,
-			   bool dragging);
+			   int dragging, bool can_overscroll);
 
   extern int
   BScrollBar_default_size (int horizontal_p);

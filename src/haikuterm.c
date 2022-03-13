@@ -485,7 +485,10 @@ haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
     }
 
   BView_scroll_bar_update (scroll_bar, lrint (size),
-			   BE_SB_MAX, ceil (value), bar->dragging);
+			   BE_SB_MAX, ceil (value),
+			   (scroll_bar_adjust_thumb_portion_p
+			    ? bar->dragging : bar->dragging ? -1 : 0),
+			   !scroll_bar_adjust_thumb_portion_p);
 }
 
 static void
@@ -505,7 +508,7 @@ haiku_set_horizontal_scroll_bar_thumb (struct scroll_bar *bar, int portion,
     bar->page_size = size;
 
   BView_scroll_bar_update (scroll_bar, lrint (size), BE_SB_MAX,
-			   ceil (value), bar->dragging);
+			   ceil (value), bar->dragging, false);
 }
 
 static struct scroll_bar *
@@ -3282,8 +3285,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		if (bar->horizontal)
 		  {
-		    portion = bar->total * ((float) b->position
-					    / BE_SB_MAX);
+		    portion = bar->total * ceil ((double) b->position
+						 / BE_SB_MAX);
 		    whole = (bar->total
 			     * ((float) (BE_SB_MAX - bar->page_size)
 				/ BE_SB_MAX));
