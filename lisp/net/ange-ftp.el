@@ -2554,7 +2554,7 @@ can parse the output from a DIR listing for a host of type TYPE.")
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
-  (when (string-match "--" lsargs)
+  (while (string-match "--" lsargs)
     (require 'ls-lisp)
     (setq lsargs (ls-lisp--sanitize-switches lsargs)))
   ;; If parse is t, we assume that file is a directory. i.e. we only parse
