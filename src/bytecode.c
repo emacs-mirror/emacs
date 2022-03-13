@@ -393,7 +393,7 @@ sf_get_ptr (Lisp_Object *fp, enum stack_frame_index index)
 INLINE void
 sf_set_ptr (Lisp_Object *fp, enum stack_frame_index index, void *value)
 {
-  fp[index] = XIL ((EMACS_INT)value);
+  fp[index] = XIL ((uintptr_t)value);
 }
 
 INLINE Lisp_Object *
