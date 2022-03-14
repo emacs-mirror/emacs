@@ -6567,13 +6567,13 @@ which is the window that will be redisplayed.  When run, the `current-buffer'
 is set to the buffer displayed in that window.")
 
 (define-minor-mode cursor-face-highlight-mode
-  "When enabled the cursor-face property is respected."
+  "When enabled, respect the cursor-face property."
   :global nil
   (if cursor-face-highlight-mode
       (add-hook 'pre-redisplay-functions
                 #'redisplay--update-cursor-face-highlight nil t)
     (add-hook 'pre-redisplay-functions
-              #'redisplay--update-cursor-face-highlight)))
+              #'redisplay--update-cursor-face-highlight t)))
 
 (defun redisplay--pre-redisplay-functions (windows)
   (with-demoted-errors "redisplay--pre-redisplay-functions: %S"
