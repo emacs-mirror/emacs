@@ -11210,6 +11210,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case MotionNotify:
       {
+	XMotionEvent xmotion = event->xmotion;
+
         previous_help_echo_string = help_echo_string;
         help_echo_string = Qnil;
 
@@ -11250,8 +11252,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    || !NILP (focus_follows_mouse)))
 	      {
 		static Lisp_Object last_mouse_window;
+
+		if (xmotion.window != FRAME_X_WINDOW (f))
+		  {
+		    XTranslateCoordinates (FRAME_X_DISPLAY (f),
+					   xmotion.window, FRAME_X_WINDOW (f),
+					   xmotion.x, xmotion.y, &xmotion.x,
+					   &xmotion.y, &xmotion.subwindow);
+		    xmotion.window = FRAME_X_WINDOW (f);
+		  }
+
 		Lisp_Object window = window_from_coordinates
-		  (f, event->xmotion.x, event->xmotion.y, 0, false, false);
+		  (f, xmotion.x, xmotion.y, 0, false, false);
 
 		/* A window will be autoselected only when it is not
 		   selected now and the last mouse movement event was
@@ -12367,6 +12379,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 	      if (f)
 		{
+		  if (xev->event != FRAME_X_WINDOW (f))
+		    {
+		      XTranslateCoordinates (FRAME_X_DISPLAY (f),
+					     xev->event, FRAME_X_WINDOW (f),
+					     ev.x, ev.y, &ev.x, &ev.y, &dummy);
+		      ev.window = FRAME_X_WINDOW (f);
+		    }
+
 		  /* Maybe generate a SELECT_WINDOW_EVENT for
 		     `mouse-autoselect-window' but don't let popup menus
 		     interfere with this (Bug#1261).  */
