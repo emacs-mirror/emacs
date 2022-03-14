@@ -6540,36 +6540,40 @@ The overlay is returned by the function.")
         (unless (equal new rol)
           (set-window-parameter window 'internal-region-overlay new))))))
 
-(define-minor-mode cursor-face-highlight-mode
-  "When enabled the cursor-face property is respected.")
-
 (defun redisplay--update-cursor-face-highlight (window)
   "Highlights the overlay used to highlight text with cursor-face."
-  (when cursor-face-highlight-mode
-    (let ((rol (window-parameter window 'internal-cursor-face-overlay)))
-      (if-let (((or (eq window (selected-window))
-                    (and (window-minibuffer-p)
-                         (eq window (minibuffer-selected-window)))))
-               (pt (window-point window))
-               (value (get-text-property pt 'cursor-face))
-               ;; Extra code needed here for when passing plists.
-               (cursor-face (if (facep value) value)))
-          (let* ((start (previous-single-property-change
-                         (1+ pt) 'cursor-face nil (point-min)))
-                 (end (next-single-property-change
-                       pt 'cursor-face nil (point-max)))
-                 (new (redisplay--highlight-overlay-function
-                       start end window rol cursor-face)))
-            (unless (equal new rol)
-              (set-window-parameter window 'internal-cursor-face-overlay new)))
-        (redisplay--unhighlight-overlay-function rol)))))
+  (let ((rol (window-parameter window 'internal-cursor-face-overlay)))
+    (if-let (((or (eq window (selected-window))
+                  (and (window-minibuffer-p)
+                       (eq window (minibuffer-selected-window)))))
+             (pt (window-point window))
+             (value (get-text-property pt 'cursor-face))
+             ;; Extra code needed here for when passing plists.
+             (cursor-face (if (facep value) value)))
+        (let* ((start (previous-single-property-change
+                       (1+ pt) 'cursor-face nil (point-min)))
+               (end (next-single-property-change
+                     pt 'cursor-face nil (point-max)))
+               (new (redisplay--highlight-overlay-function
+                     start end window rol cursor-face)))
+          (unless (equal new rol)
+            (set-window-parameter window 'internal-cursor-face-overlay new)))
+      (redisplay--unhighlight-overlay-function rol))))
 
-(defvar pre-redisplay-functions (list #'redisplay--update-cursor-face-highlight
-                                      #'redisplay--update-region-highlight)
+(defvar pre-redisplay-functions (list #'redisplay--update-region-highlight)
   "Hook run just before redisplay.
 It is called in each window that is to be redisplayed.  It takes one argument,
 which is the window that will be redisplayed.  When run, the `current-buffer'
 is set to the buffer displayed in that window.")
+
+(define-minor-mode cursor-face-highlight-mode
+  "When enabled the cursor-face property is respected."
+  :global nil
+  (if cursor-face-highlight-mode
+      (add-hook 'pre-redisplay-functions
+                #'redisplay--update-cursor-face-highlight nil t)
+    (add-hook 'pre-redisplay-functions
+              #'redisplay--update-cursor-face-highlight)))
 
 (defun redisplay--pre-redisplay-functions (windows)
   (with-demoted-errors "redisplay--pre-redisplay-functions: %S"
