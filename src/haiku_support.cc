@@ -1571,6 +1571,7 @@ public:
   bool handle_button = false;
   bool in_overscroll = false;
   bool can_overscroll = false;
+  bool maybe_overscroll = false;
   BPoint last_overscroll;
   int last_reported_overscroll_value;
   int max_value, real_max_value;
@@ -1784,6 +1785,7 @@ public:
 
     if (buttons == B_PRIMARY_MOUSE_BUTTON)
       {
+	maybe_overscroll = true;
 	r = ButtonRegionFor (HAIKU_SCROLL_BAR_UP_BUTTON);
 
 	if (r.Contains (pt))
@@ -1833,6 +1835,7 @@ public:
     BView *parent;
 
     in_overscroll = false;
+    maybe_overscroll = false;
 
     if (handle_button)
       {
@@ -1922,7 +1925,9 @@ public:
 	    return;
 	  }
       }
-    else if (can_overscroll && (buttons == B_PRIMARY_MOUSE_BUTTON))
+    else if (can_overscroll
+	     && (buttons == B_PRIMARY_MOUSE_BUTTON)
+	     && maybe_overscroll)
       {
 	value = Value ();
 
