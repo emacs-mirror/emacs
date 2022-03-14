@@ -6482,15 +6482,17 @@ An example is a rectangular region handled as a list of
 separate contiguous regions for each line."
   (cdr (region-bounds)))
 
-(defun redisplay-unhighlight-overlay-function (rol)
+(defun redisplay--unhighlight-overlay-function (rol)
   "If ROL is an overlay, call ``delete-overlay''."
   (when (overlayp rol) (delete-overlay rol)))
 
-(defvar redisplay-unhighlight-region-function #'redisplay-unhighlight-overlay-function
+(defvar redisplay-unhighlight-region-function
+  #'redisplay--unhighlight-overlay-function
   "Function to remove the region-highlight overlay.")
 
-(defun redisplay-highlight-overlay-function (start end window rol face)
+(defun redisplay--highlight-overlay-function (start end window rol &optional face)
   "Update the overlay ROL in WINDOW with FACE in range START-END."
+  (unless face (setq face 'region))
   (if (not (overlayp rol))
       (let ((nrol (make-overlay start end)))
         (funcall redisplay-unhighlight-region-function rol)
@@ -6510,7 +6512,8 @@ separate contiguous regions for each line."
       (move-overlay rol start end (current-buffer)))
     rol))
 
-(defvar redisplay-highlight-region-function #'redisplay-highlight-overlay-function
+(defvar redisplay-highlight-region-function
+  #'redisplay--highlight-overlay-function
   "Function to move the region-highlight overlay.
 This function is called with four parameters, START, END, WINDOW
 and OVERLAY.  If OVERLAY is nil, a new overlay is created.  In
@@ -6533,28 +6536,33 @@ The overlay is returned by the function.")
              (end   (max pt mark))
              (new
               (funcall redisplay-highlight-region-function
-                       start end window rol 'region)))
+                       start end window rol)))
         (unless (equal new rol)
           (set-window-parameter window 'internal-region-overlay new))))))
 
+(define-minor-mode cursor-face-highlight-mode
+  "When enabled the cursor-face property is respected.")
+
 (defun redisplay--update-cursor-face-highlight (window)
-  "This highlights the overlay used to highlight text with cursor-face."
-  (let ((rol (window-parameter window 'internal-cursor-face-overlay))
-        (pt) (value) (cursor-face))
-    (if (and (or (eq window (selected-window))
-                 (and (window-minibuffer-p)
-                      (eq window (minibuffer-selected-window))))
-             (setq pt (window-point window))
-             (setq value (get-text-property pt 'cursor-face))
-             ;; extra code needed here for when passing plists
-             (setq cursor-face (if (facep value) value)))
-        (let* ((start (previous-single-property-change (1+ pt) 'cursor-face nil (point-min)))
-               (end   (next-single-property-change pt 'cursor-face nil (point-max)))
-               (new   (redisplay-highlight-overlay-function start end window rol cursor-face)))
-          (unless (equal new rol)
-            (set-window-parameter window 'internal-cursor-face-overlay new)))
-      (if rol
-          (redisplay-unhighlight-overlay-function rol)))))
+  "Highlights the overlay used to highlight text with cursor-face."
+  (when cursor-face-highlight-mode
+    (let ((rol (window-parameter window 'internal-cursor-face-overlay)))
+      (if-let (((or (eq window (selected-window))
+                    (and (window-minibuffer-p)
+                         (eq window (minibuffer-selected-window)))))
+               (pt (window-point window))
+               (value (get-text-property pt 'cursor-face))
+               ;; Extra code needed here for when passing plists.
+               (cursor-face (if (facep value) value)))
+          (let* ((start (previous-single-property-change
+                         (1+ pt) 'cursor-face nil (point-min)))
+                 (end (next-single-property-change
+                       pt 'cursor-face nil (point-max)))
+                 (new (redisplay--highlight-overlay-function
+                       start end window rol cursor-face)))
+            (unless (equal new rol)
+              (set-window-parameter window 'internal-cursor-face-overlay new)))
+        (redisplay--unhighlight-overlay-function rol)))))
 
 (defvar pre-redisplay-functions (list #'redisplay--update-cursor-face-highlight
                                       #'redisplay--update-region-highlight)
@@ -9379,6 +9387,9 @@ Called from `temp-buffer-show-hook'."
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width
         (setq tab-width completion-tab-width))
+      ;; Maybe enable cursor completions-highlight.
+      (when completions-highlight-face
+        (cursor-face-highlight-mode 1))
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))
