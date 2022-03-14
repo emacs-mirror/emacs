@@ -46,7 +46,7 @@
     ("Followup-To" . nil)
     ("Message-ID" . nil)
     ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|\\(In-\\)?Reply-To\\|Sender\
-\\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\)" . address-mime)
+\\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\|Disposition-Notification-To\\)" . address-mime)
     (t . mime))
   "Header/encoding method alist.
 The list is traversed sequentially.  The keys can either be
