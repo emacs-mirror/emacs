@@ -615,8 +615,8 @@ XMenuActivate(
 						   event.xbutton.window
 						   );
 		if (event_xmp != NULL) continue;
-
-	queue:
+		FALLTHROUGH;
+	    default:
 		/*
 		 * This is a foreign event.
 		 * Queue it for later return to the X event queue.
@@ -629,9 +629,6 @@ XMenuActivate(
 		feq_tmp->event = event;
 		feq_tmp->next = feq;
 		feq = feq_tmp;
-		break;
-	    default:
-		goto queue;
 	    }
     }
     /*
