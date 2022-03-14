@@ -191,25 +191,51 @@ must be set in a protocol/server-local fashion, see `eudc-server-set' and
   :type  'boolean
   :version "25.1")
 
-(defcustom eudc-inline-expansion-format '("%s %s <%s>" firstname name email)
-  "A list specifying the format of the expansion of inline queries.
-This variable controls what `eudc-expand-inline' actually inserts in
-the buffer.  First element is a string passed to `format'.  Remaining
-elements are symbols indicating attribute names; the corresponding values
-are passed as additional arguments to `format'."
-  :type  '(list
-	   (string :tag "Format String")
-	   (repeat :inline t
-		   :tag "Attributes"
-		   (choice
-		    :tag "Attribute"
-		    (const :menu-tag "First Name" :tag "First Name" firstname)
-		    (const :menu-tag "Surname" :tag "Surname" name)
-		    (const :menu-tag "Email Address" :tag "Email Address" email)
-		    (const :menu-tag "Phone" :tag "Phone" phone)
-		    (symbol :menu-tag "Other")
-		    (symbol :tag "Attribute name"))))
-  :version "25.1")
+(defcustom eudc-inline-expansion-format nil
+  "Specify the format of the expansion of inline queries.
+This variable controls what `eudc-expand-inline' actually inserts
+in the buffer. It is either a list, or a function.
+
+When set to a list, the expansion result will be formatted
+according to the first element of the list, a string, which is
+passed as the first argument to `format'.  The remaining elements
+of the list are symbols indicating attribute names; the
+corresponding values are passed as additional arguments to
+`format'.
+
+When set to nil, the expansion result will be formatted using
+`eudc-rfc5322-make-address', and the PHRASE part will be
+formatted according to \"firstname name\", quoting the result if
+necessary.  No COMMENT will be added in this case.
+
+When set to a function, the expansion result will be formatted
+using `eudc-rfc5322-make-address', and the referenced function is
+used to format the PHRASE, and COMMENT parts, respectively.  It
+receives a single argument, which is an alist of
+protocol-specific attributes describing the recipient.  To access
+the alist elements using generic EUDC attribute names, such as
+for example name, or email, use `eudc-translate-attribute-list'.
+The function should return a list, which should contain two
+elements.  If the first element is a string, it will be used as
+the PHRASE part, quoting it if necessary. If the second element
+is a string, it will be used as the COMMENT part, unless it
+contains characters not allowed in the COMMENT part by RFC 5322,
+in which case the COMMENT part will be omitted."
+  :type '(choice (const :tag "RFC 5322 formatted \"first last <address>\"" nil)
+                 (function :tag "RFC 5322 phrase/comment formatting function")
+                 (list :tag "Format string (deprecated)"
+	               (string :tag "Format String")
+	               (repeat :inline t
+		               :tag "Attributes"
+		               (choice
+		                :tag "Attribute"
+		                (const :menu-tag "First Name" :tag "First Name" firstname)
+		                (const :menu-tag "Surname" :tag "Surname" name)
+		                (const :menu-tag "Email Address" :tag "Email Address" email)
+		                (const :menu-tag "Phone" :tag "Phone" phone)
+		                (symbol :menu-tag "Other")
+		                (symbol :tag "Attribute name")))))
+  :version "29.1")
 
 (defcustom eudc-inline-expansion-servers 'server-then-hotlist
   "Which servers to contact for the expansion of inline queries.

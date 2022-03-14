@@ -695,6 +695,26 @@ from all servers instead of just the matches from the first server to
 return any.  This is useful for example, if one wants to search LDAP
 for a name that happens to match a contact in one's BBDB.
 
++++
+*** New behaviour and default for option 'eudc-inline-expansion-format'
+EUDC inline expansion result formatting defaulted to
+
+                 '("%s %s <%s>" firstname name email)
+
+Since email address specifications need to comply with RFC 5322 in
+order to be useful in messages, there was a risk to produce syntax
+which was standard with RFC 822, but is marked as obsolete syntax by
+its successor RFC 5322.  Also, the first and last name part was never
+enclosed in double quotes, potentially producing invalid address
+specifications, which may be rejected by a receiving MTA.  Thus, this
+variable can now additionally be set to nil (the new default), or a
+function.  In both cases, the formatted result will be in compliance
+with RFC 5322.  When set to nil, a default format very similar to the
+old default will be produced.  When set to a function, that function
+is called, and the returned values are used to populate the phrase and
+comment parts (see RFC 5322 for definitions). In both cases, the
+phrase part will be automatically quoted if necessary.
+
 ** eww/shr
 
 +++

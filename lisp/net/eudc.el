@@ -162,6 +162,75 @@ Value is the new string."
 		    newtext)))
     (concat rtn-str (substring str start))))
 
+
+(defconst eudc-rfc5322-atext-token "[:alpha:][:digit:]!#$%&'*+/=?^_`{|}~-"
+  "Printable US-ASCII characters not including specials.  Used for atoms.")
+
+(defconst eudc-rfc5322-wsp-token " \t"
+  "Non-folding white space.")
+
+(defconst eudc-rfc5322-fwsp-token
+  (concat eudc-rfc5322-wsp-token "\n")
+  "Folding white space.")
+
+(defconst eudc-rfc5322-cctext-token "\u005D-\u007E\u002A-\u005B\u0021-\u0027"
+  "Printable US-ASCII characters not including '(', ')', or '\\'.")
+
+(defun eudc-rfc5322-quote-phrase (string)
+  "Quote STRING if it needs quoting as a phrase in a header."
+  (if (string-match
+       (concat "[^" eudc-rfc5322-wsp-token eudc-rfc5322-atext-token "]")
+       string)
+      (concat "\"" string "\"")
+    string))
+
+(defun eudc-rfc5322-valid-comment-p (string)
+  "Check if STRING can be used as comment in a header."
+  (if (string-match
+       (concat "[^" eudc-rfc5322-cctext-token eudc-rfc5322-fwsp-token "]")
+       string)
+      nil
+    t))
+
+(defun eudc-rfc5322-make-address (address &optional firstname name comment)
+  "Create a valid address specification according to RFC5322.
+RFC5322 address specifications are used in message header fields
+to indicate senders and recipients of messages.  They generally
+have one of the forms:
+
+ADDRESS
+ADDRESS (COMMENT)
+PHRASE <ADDRESS>
+PHRASE <ADDRESS> (COMMENT)
+
+The arguments FIRSTNAME and NAME are combined to form PHRASE.
+PHRASE is enclosed in double quotes if necessary.
+
+COMMENT is omitted if it contains any symbols outside the
+permitted set `eudc-rfc5322-cctext-token'."
+  (if (and address
+           (not (string-blank-p address)))
+      (let ((result address)
+            (name-given (and name
+                             (not (string-blank-p name))))
+            (firstname-given (and firstname
+                                  (not (string-blank-p firstname))))
+            (valid-comment-given (and comment
+                                      (not (string-blank-p comment))
+                                      (eudc-rfc5322-valid-comment-p comment))))
+        (if (or name-given firstname-given)
+            (let ((phrase (string-trim (concat firstname " " name))))
+              (setq result
+                    (concat
+                     (eudc-rfc5322-quote-phrase phrase)
+                     " <" result ">"))))
+        (if valid-comment-given
+            (setq result
+                  (concat result " (" comment ")")))
+        result)
+    ;; nil or empty address, nothing to return
+    nil))
+
 ;;}}}
 
 ;;{{{ Server and Protocol Variable Routines
@@ -798,13 +867,62 @@ non-nil, collect results from all servers."
 	(error "There is more than one match for the query"))))))
 
 ;;;###autoload
+(defun eudc-format-inline-expansion-result (res query-attrs)
+  "Format a query result according to `eudc-inline-expansion-format'."
+  (cond
+   ;; format string
+   ((consp eudc-inline-expansion-format)
+    (string-trim (apply #'format
+	                (car eudc-inline-expansion-format)
+	                (mapcar
+	                 (lambda (field)
+	                   (or (cdr (assq field res))
+		               ""))
+	                 (eudc-translate-attribute-list
+	                  (cdr eudc-inline-expansion-format))))))
+
+   ;; formatting function
+   ((functionp eudc-inline-expansion-format)
+    (let ((addr (cdr (assq (nth 2 query-attrs) res)))
+          (ucontent (funcall eudc-inline-expansion-format res)))
+      (if (and ucontent
+               (listp ucontent))
+          (let* ((phrase (car ucontent))
+                 (comment (cadr ucontent))
+                 (phrase-given
+                  (and phrase
+                       (stringp phrase)
+                       (not (string-blank-p phrase))))
+                 (valid-comment-given
+                  (and comment
+                       (stringp comment)
+                       (not (string-blank-p comment))
+                       (eudc-rfc5322-valid-comment-p
+                        comment))))
+            (eudc-rfc5322-make-address
+             addr nil
+             (if phrase-given phrase nil)
+             (if valid-comment-given comment nil)))
+        (progn
+          (error "Error: the function referenced by \
+`eudc-inline-expansion-format' is expected to return a list.")
+          nil))))
+
+   ;; fallback behaviour (nil function, or non-matching type)
+   (t
+    (let ((fname (cdr (assq (nth 0 query-attrs) res)))
+          (lname (cdr (assq (nth 1 query-attrs) res)))
+          (addr (cdr (assq (nth 2 query-attrs) res))))
+      (eudc-rfc5322-make-address addr fname lname)))))
+
+;;;###autoload
 (defun eudc-query-with-words (query-words &optional try-all-servers)
   "Query the directory server, and return the matching responses.
 The variable `eudc-inline-query-format' controls how to associate the
 individual QUERY-WORDS with directory attribute names.
 After querying the server for the given string, the expansion
 specified by `eudc-inline-expansion-format' is applied to the
-matches before returning them.inserted in the buffer at point.
+matches before returning them.
 Multiple servers can be tried with the same query until one finds a match,
 see `eudc-inline-expansion-servers'.   When TRY-ALL-SERVERS is non-nil,
 keep collecting results from subsequent servers after the first match."
@@ -848,28 +966,25 @@ keep collecting results from subsequent servers after the first match."
     (unwind-protect
 	(cl-flet
 	    ((run-query
-	       (query-formats)
-	       (let ((response
-		      (eudc-query
-		       (eudc-format-query query-words (car query-formats))
-		       (eudc-translate-attribute-list
-			(cdr eudc-inline-expansion-format)))))
-		 (when response
-		   ;; Process response through eudc-inline-expansion-format.
-		   (dolist (r response)
-		     (let ((response-string
-			   (apply #'format
-				   (car eudc-inline-expansion-format)
-				   (mapcar
-				    (lambda (field)
-				      (or (cdr (assq field r))
-					  ""))
-				    (eudc-translate-attribute-list
-				     (cdr eudc-inline-expansion-format))))))
-		       (if (> (length response-string) 0)
-			   (push response-string response-strings))))
-		   (when (not try-all-servers)
-		     (throw 'found nil))))))
+              (query-formats)
+              (let* ((query-attrs (eudc-translate-attribute-list
+                                        (if (consp eudc-inline-expansion-format)
+                                            (cdr eudc-inline-expansion-format)
+                                          '(firstname name email))))
+                     (response
+                      (eudc-query
+                       (eudc-format-query query-words (car query-formats))
+                       query-attrs)))
+                (when response
+                  ;; Format response.
+                  (dolist (r response)
+                    (let ((response-string
+                           (eudc-format-inline-expansion-result r query-attrs)))
+                      (if response-string
+                          (cl-pushnew response-string response-strings
+                                      :test #'equal))))
+                  (when (not try-all-servers)
+                    (throw 'found nil))))))
 	  (catch 'found
 	    ;; Loop on the servers.
 	    (dolist (server servers)
