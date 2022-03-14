@@ -133,4 +133,409 @@
        (mailcap-view-file (ert-resource-file "test.test")))
      (should mailcap--test-result))))
 
+
+
+(ert-deftest mailcap-add-mailcap-entry-new-major ()
+  "Add a major entry not yet in ‘mailcap-mime-data’."
+  (let ((mailcap-mime-data))
+
+    ;; Add a new major entry to a empty ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major1" "minor1"
+                               (list (cons 'viewer "viewer1"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major1"
+                      ("minor1" . ((viewer . "viewer1")))))))
+
+    ;; Add a new major entry to a non-empty ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major2" "minor2"
+                               (list (cons 'viewer "viewer2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major2"
+                      ("minor2" . ((viewer . "viewer2"))))
+                     ("major1"
+                      ("minor1" . ((viewer . "viewer1"))))))))
+
+  ;; Same spiel but with extra entries in INFO.
+  (let ((mailcap-mime-data))
+    ;; Add a new major entry to an empty ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major1" "minor1"
+                               (list (cons 'viewer "viewer1")
+                                     (cons 'print "print1"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major1"
+                      ("minor1" . ((viewer . "viewer1")
+                                   (print . "print1")))))))
+
+    ;; Add a new major entry to a non-empty ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major2" "minor2"
+                               (list (cons 'viewer "viewer2")
+                                     (cons 'print "print2")
+                                     (cons 'compose "compose2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major2"
+                      ("minor2" . ((viewer . "viewer2")
+                                   (print . "print2")
+                                   (compose . "compose2"))))
+                     ("major1"
+                      ("minor1" . ((viewer . "viewer1")
+                                   (print . "print1")))))))))
+
+
+(ert-deftest mailcap-add-mailcap-entry-new-minor-to-empty-major ()
+  "Add a minor entry to a an empty major entry."
+  (let ((mailcap-mime-data (list (list "major"))))
+    (mailcap-add-mailcap-entry "major" "minor1"
+                               (list (cons 'viewer "viewer1")
+                                     (cons 'print "print1"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor1" . ((viewer . "viewer1")
+                                   (print . "print1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-new-minor-to-non-empty-major ()
+  "Add a minor to a major entry containing already minor entries."
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor1"
+                      (cons 'viewer "viewer1")
+                      (cons 'test "test1")
+                      (cons 'print "print1"))))))
+
+    (mailcap-add-mailcap-entry "major" "minor2"
+                               (list (cons 'viewer "viewer2")
+                                     (cons 'test "test2")
+                                     (cons 'print "print2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor2" . ((viewer . "viewer2")
+                                   (test . "test2")
+                                   (print . "print2")))
+                      ("minor1" . ((viewer . "viewer1")
+                                   (test . "test1")
+                                   (print . "print1")))))))
+
+    (mailcap-add-mailcap-entry "major" "minor3"
+                               (list (cons 'viewer "viewer3")
+                                     (cons 'test "test3")
+                                     (cons 'compose "compose3"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor3" . ((viewer . "viewer3")
+                                   (test . "test3")
+                                   (compose . "compose3")))
+                      ("minor2" . ((viewer . "viewer2")
+                                   (test . "test2")
+                                   (print . "print2")))
+                      ("minor1" . ((viewer . "viewer1")
+                                   (test . "test1")
+                                   (print . "print1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-new-minor-to-various-major-positions ()
+  "Add a new minor entry to major entries at various postions
+in ‘mailcap-mime-data’."
+  (let ((mailcap-mime-data
+         (list
+          (list "major1"
+                (list "minor1.1"
+                      (cons 'viewer "viewer1.1")
+                      (cons 'print "print1.1")))
+          (list "major2"
+                (list "minor2.1"
+                      (cons 'viewer "viewer2.1")
+                      (cons 'print "print2.1")
+                      (cons 'compose "compose2.1")))
+          (list "major3"
+                (list "minor3.1"
+                      (cons 'viewer "viewer3.1")
+                      (cons 'compose "compose3.1")))
+          (list "major4"
+                (list "minor4.1"
+                      (cons 'viewer "viewer4.1")
+                      (cons 'edit "edit4.1"))))))
+
+    ;; Add a minor entry to a major mode at the front of
+    ;; ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major1" "minor1.2"
+                               (list (cons 'viewer "viewer1.2")
+                                     (cons 'test "test1.2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major1"
+                      ("minor1.2" . ((viewer . "viewer1.2")
+                                     (test . "test1.2")))
+                      ("minor1.1" . ((viewer . "viewer1.1")
+                                     (print . "print1.1"))))
+                     ("major2"
+                      ("minor2.1" . ((viewer . "viewer2.1")
+                                     (print . "print2.1")
+                                     (compose . "compose2.1"))))
+                     ("major3"
+                      ("minor3.1" . ((viewer . "viewer3.1")
+                                     (compose . "compose3.1"))))
+                     ("major4"
+                      ("minor4.1" . ((viewer . "viewer4.1")
+                                     (edit . "edit4.1")))))))
+
+    ;; Add a minor entry to a major mode in the middle of
+    ;; ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major3" "minor3.2"
+                               (list (cons 'viewer "viewer3.2")
+                                     (cons 'test "test3.2")
+                                     (cons 'compose "compose3.2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major1"
+                      ("minor1.2" . ((viewer . "viewer1.2")
+                                     (test . "test1.2")))
+                      ("minor1.1" . ((viewer . "viewer1.1")
+                                     (print . "print1.1"))))
+                     ("major2"
+                      ("minor2.1" . ((viewer . "viewer2.1")
+                                     (print . "print2.1")
+                                     (compose . "compose2.1"))))
+                     ("major3"
+                      ("minor3.2" . ((viewer . "viewer3.2")
+                                     (test . "test3.2")
+                                     (compose . "compose3.2")))
+                      ("minor3.1" . ((viewer . "viewer3.1")
+                                     (compose . "compose3.1"))))
+                     ("major4"
+                      ("minor4.1" . ((viewer . "viewer4.1")
+                                     (edit . "edit4.1")))))))
+
+    ;; Add a minor entry to a major mode at the end of
+    ;; ‘mailcap-mime-data’.
+    (mailcap-add-mailcap-entry "major4" "minor4.2"
+                               (list (cons 'viewer "viewer4.2")
+                                     (cons 'test "test4.2")
+                                     (cons 'print "print4.2")
+                                     (cons 'compose "compose4.2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major1"
+                      ("minor1.2" . ((viewer . "viewer1.2")
+                                     (test . "test1.2")))
+                      ("minor1.1" . ((viewer . "viewer1.1")
+                                     (print . "print1.1"))))
+                     ("major2"
+                      ("minor2.1" . ((viewer . "viewer2.1")
+                                     (print . "print2.1")
+                                     (compose . "compose2.1"))))
+                     ("major3"
+                      ("minor3.2" . ((viewer . "viewer3.2")
+                                     (test . "test3.2")
+                                     (compose . "compose3.2")))
+                      ("minor3.1" . ((viewer . "viewer3.1")
+                                     (compose . "compose3.1"))))
+                     ("major4"
+                      ("minor4.2" . ((viewer . "viewer4.2")
+                                     (test . "test4.2")
+                                     (print . "print4.2")
+                                     (compose . "compose4.2")))
+                      ("minor4.1" . ((viewer . "viewer4.1")
+                                     (edit . "edit4.1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-existing-with-test-differing-viewer ()
+  "Add a new entry for an already existing major/minor entry."
+
+  ;; The new and the existing entry have each a test info field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer1")
+                      (cons 'test "test1")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer2")
+                                     (cons 'test "test2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer2")
+                                  (test . "test2")))
+                      ("minor" . ((viewer . "viewer1")
+                                  (test . "test1")
+                                  (print . "print1"))))))))
+
+  ;; Only the new entry has a test info field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer1")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer2")
+                                     (cons 'test "test2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer2")
+                                  (test . "test2")))
+                      ("minor" . ((viewer . "viewer1")
+                                  (print . "print1"))))))))
+
+  ;; Only the existing entry has a test info field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer1")
+                      (cons 'test "test1")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer2")))
+                      ("minor" . ((viewer . "viewer1")
+                                  (test . "test1")
+                                  (print . "print1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-existing-with-test-same-viewer ()
+  "Add a new entry for an already existing major/minor entry."
+  ;; Both the new and the existing entry have each a test info field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer")
+                      (cons 'test "test1")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer")
+                                     (cons 'test "test2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer")
+                                  (test . "test2")))
+                      ("minor" . ((viewer . "viewer")
+                                  (test . "test1")
+                                  (print . "print1"))))))))
+
+  ;; Only the new entry has a test field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer")
+                                     (cons 'test "test2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer")
+                                  (test . "test2")))
+                      ("minor" . ((viewer . "viewer")
+                                  (print . "print1"))))))))
+
+  ;; Only the existing entry has a test info field.
+  (let ((mailcap-mime-data
+         (list
+          (list "major"
+                (list "minor"
+                      (cons 'viewer "viewer")
+                      (cons 'test "test1")
+                      (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer")))
+                      ("minor" . ((viewer . "viewer")
+                                  (test . "test1")
+                                  (print . "print1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-existing-without-test-differing-viewer ()
+  "Add a new entry for an already existing major/minor entry."
+  ;; Both entries do not have test fields.
+  (let ((mailcap-mime-data
+        (list
+         (list "major"
+               (list "minor"
+                     (cons 'viewer "viewer1")
+                     (cons 'print "print1"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer2")
+                                     (cons 'compose "print2"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer2")
+                                     (compose . "print2")))
+                      ("minor" . ((viewer . "viewer1")
+                                  (print . "print1")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-simple-merge ()
+  "Merge entries without tests (no extra info fields in the existing entry)."
+  (let ((mailcap-mime-data
+        (list
+         (list "major"
+               (list "minor"
+                     (cons 'viewer "viewer"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer"))
+                               'mailcap-mime-data)
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer"))))))))
+
+  (let ((mailcap-mime-data
+        (list
+         (list "major"
+               (list "minor"
+                     (cons 'viewer "viewer"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer")
+                                     (cons 'print "print"))
+                               'mailcap-mime-data)
+
+    (should (equal mailcap-mime-data
+                   '(("major"
+                      ("minor" . ((viewer . "viewer")
+                                  (print . "print")))))))))
+
+(ert-deftest mailcap-add-mailcap-entry-erroneous-merge ()
+  "Merge entries without tests (extra info fields in existing entry).
+
+In its current implementation ‘mailcap-add-mailcap-entry’ loses
+extra fields of an entry already existing in ‘mailcap-mime-data’.
+This test does not actually verify a correct result; it merely
+checks whether ‘mailcap-add-mailcap-entry’ behaviour is still the
+incorrect one.  As such, it can be satisfied by any other result
+than the expected and known wrong one, and its success does not
+help to verify the correct addition and merging of an entry."
+  :expected-result :failed
+
+  (let ((mailcap-mime-data
+        (list
+         (list "major"
+               (list "minor"
+                     (cons 'viewer "viewer")
+                     (cons 'print "print"))))))
+    (mailcap-add-mailcap-entry "major" "minor"
+                               (list (cons 'viewer "viewer")
+                                     (cons 'edit "edit"))
+                               'mailcap-mime-data)
+    ;; Has the print field been lost?
+    (should-not (equal mailcap-mime-data
+                       '(("major"
+                          ("minor" . ((viewer . "viewer")
+                                      (edit . "edit")))))))))
+
+
 ;;; mailcap-tests.el ends here
