@@ -2901,19 +2901,10 @@ To see the documentation for a defined struct type, use
            (debug
             (&define                    ;Makes top-level form not be wrapped.
              [&or symbolp
-                  (gate
+                  (gate ;; FIXME: Why?
                    symbolp &rest
-                   [&or symbolp
-                        (&or [":conc-name" symbolp]
-                             [":constructor" symbolp &optional cl-lambda-list]
-                             [":copier" symbolp]
-                             [":predicate" symbolp]
-                             [":include" symbolp &rest sexp] ;; Not finished.
-                             [":print-function" sexp]
-                             [":type" symbolp]
-                             [":noinline" &optional sexp]
-                             [":named" &optional sexp]
-                             [":initial-offset" natnump])])]
+                   [&or (":constructor" &define name &optional cl-lambda-list)
+                        sexp])]
              [&optional stringp]
              ;; All the above is for the following def-form.
              &rest &or symbolp (symbolp &optional def-form &rest sexp))))
