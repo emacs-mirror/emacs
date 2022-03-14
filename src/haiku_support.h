@@ -420,7 +420,7 @@ extern "C"
 
   extern int
   haiku_read_with_timeout (enum haiku_event_type *type, void *buf, ssize_t len,
-			   time_t timeout, bool popup_menu_p);
+			   bigtime_t timeout, bool popup_menu_p);
 
   extern int
   haiku_write (enum haiku_event_type type, void *buf);

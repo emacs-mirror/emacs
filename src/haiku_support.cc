@@ -2957,7 +2957,7 @@ BMenu_run (void *menu, int x, int y,
 
       if (infos[0].events & B_EVENT_READ)
 	{
-	  if (!haiku_read_with_timeout (&type, buf, 200, 1000000, true))
+	  while (!haiku_read_with_timeout (&type, buf, 200, 0, true))
 	    {
 	      switch (type)
 		{
