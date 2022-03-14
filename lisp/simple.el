@@ -6572,8 +6572,8 @@ is set to the buffer displayed in that window.")
   (if cursor-face-highlight-mode
       (add-hook 'pre-redisplay-functions
                 #'redisplay--update-cursor-face-highlight nil t)
-    (add-hook 'pre-redisplay-functions
-              #'redisplay--update-cursor-face-highlight t)))
+    (remove-hook 'pre-redisplay-functions
+                 #'redisplay--update-cursor-face-highlight t)))
 
 (defun redisplay--pre-redisplay-functions (windows)
   (with-demoted-errors "redisplay--pre-redisplay-functions: %S"
