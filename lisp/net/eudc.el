@@ -298,8 +298,8 @@ accordingly.  Otherwise it is set to its EUDC default binding."
 ;;}}}
 
 
-;; Add PROTOCOL to the list of supported protocols
 (defun eudc-register-protocol (protocol)
+  "Add PROTOCOL to the list of supported protocols."
   (unless (memq protocol eudc-supported-protocols)
     (setq eudc-supported-protocols
 	  (cons protocol eudc-supported-protocols))
@@ -764,7 +764,8 @@ If SAVE-QUERY-AS-KILL is non-nil, then save the pre-expansion
 text to the kill ring.  `eudc-expansion-save-query-as-kill' being
 non-nil inverts the meaning of SAVE-QUERY-AS-KILL.
 Multiple servers can be tried with the same query until one finds a match,
-see `eudc-inline-expansion-servers'."
+see `eudc-inline-expansion-servers'.  If TRY-ALL-SERVERS is
+non-nil, collect results from all servers."
   (interactive)
   (let* ((end (point))
 	 (beg (save-excursion
@@ -853,22 +854,22 @@ keep collecting results from subsequent servers after the first match."
 		       (eudc-format-query query-words (car query-formats))
 		       (eudc-translate-attribute-list
 			(cdr eudc-inline-expansion-format)))))
-		 (if response
-		     ;; Process response through eudc-inline-expansion-format.
-		     (dolist (r response)
-		       (let ((response-string
-			      (apply #'format
-			             (car eudc-inline-expansion-format)
-			             (mapcar
-				      (lambda (field)
-				        (or (cdr (assq field r))
-				            ""))
-				      (eudc-translate-attribute-list
-				       (cdr eudc-inline-expansion-format))))))
-			 (if (> (length response-string) 0)
-			     (push response-string response-strings))
-			 (when (not try-all-servers)
-			   (throw 'found nil))))))))
+		 (when response
+		   ;; Process response through eudc-inline-expansion-format.
+		   (dolist (r response)
+		     (let ((response-string
+			   (apply #'format
+				   (car eudc-inline-expansion-format)
+				   (mapcar
+				    (lambda (field)
+				      (or (cdr (assq field r))
+					  ""))
+				    (eudc-translate-attribute-list
+				     (cdr eudc-inline-expansion-format))))))
+		       (if (> (length response-string) 0)
+			   (push response-string response-strings))))
+		   (when (not try-all-servers)
+		     (throw 'found nil))))))
 	  (catch 'found
 	    ;; Loop on the servers.
 	    (dolist (server servers)
@@ -1103,6 +1104,7 @@ queries the server for the existing fields and displays a corresponding form."
      :help "Set the directory server to SERVER using PROTOCOL"]))
 
 (defun eudc-menu ()
+  "Return easy menu for EUDC."
   (let (command)
     (append '("Directory Servers")
 	    (list
@@ -1134,6 +1136,7 @@ queries the server for the existing fields and displays a corresponding form."
 	    eudc-tail-menu)))
 
 (defun eudc-install-menu ()
+  "Install EUDC menu."
   (define-key
     global-map
     [menu-bar tools directory-search]
