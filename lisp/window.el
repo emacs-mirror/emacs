@@ -5698,12 +5698,12 @@ right, if any."
 ;;; Balancing windows.
 
 ;; The following routine uses the recycled code from an old version of
-;; `window--resize-child-windows'.  It's not very pretty, but coding it the way the
-;; new `window--resize-child-windows' code does would hardly make it any shorter or
-;; more readable (FWIW we'd need three loops - one to calculate the
-;; minimum sizes per window, one to enlarge or shrink windows until the
-;; new parent-size matches, and one where we shrink the largest/enlarge
-;; the smallest window).
+;; `window--resize-child-windows'.  It's not very pretty, but coding it
+;; the way the new `window--resize-child-windows' code does would hardly
+;; make it any shorter or more readable (FWIW we'd need three loops -
+;; one to calculate the minimum sizes per window, one to enlarge or
+;; shrink windows until the new parent-size matches, and one where we
+;; shrink the largest/enlarge the smallest window).
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
 WINDOW must be a vertical combination (horizontal if HORIZONTAL
@@ -5714,9 +5714,10 @@ is non-nil)."
 	 (first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
+         (rest 0)
 	 (parent-size (window-new-pixel window))
 	 (total-sum parent-size)
-	 failed size sub-total sub-delta sub-amount rest)
+	 failed size sub-total sub-delta sub-amount)
     (while sub
       (if (window-size-fixed-p sub horizontal)
           (progn
