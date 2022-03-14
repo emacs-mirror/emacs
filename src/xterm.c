@@ -578,6 +578,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
+#include <X11/ShellP.h>
 #endif
 
 #include <unistd.h>
@@ -16762,6 +16763,9 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 {
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
+#ifdef USE_X_TOOLKIT
+  WMShellWidget shell;
+#endif
 
   if (!window)
     return;
@@ -16769,8 +16773,63 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 #ifdef USE_X_TOOLKIT
   if (f->output_data.x->widget)
     {
+      /* Do this dance in xterm.c because some stuff is not as easily
+	 available in widget.c.  */
+
+      eassert (XtIsWMShell (f->output_data.x->widget));
+      shell = (WMShellWidget) f->output_data.x->widget;
+
+      shell->wm.size_hints.flags &= ~(PPosition | USPosition);
+      shell->wm.size_hints.flags |= flags & (PPosition | USPosition);
+
+      if (user_position)
+	{
+	  shell->wm.size_hints.flags &= ~PPosition;
+	  shell->wm.size_hints.flags |= USPosition;
+	}
+
       widget_update_wm_size_hints (f->output_data.x->widget,
 				   f->output_data.x->edit_widget);
+
+#ifdef USE_MOTIF
+      /* Do this all over again for the benefit of Motif, which always
+	 knows better than the programmer.  */
+      shell->wm.size_hints.flags &= ~(PPosition | USPosition);
+      shell->wm.size_hints.flags |= flags & (PPosition | USPosition);
+
+      if (user_position)
+	{
+	  shell->wm.size_hints.flags &= ~PPosition;
+	  shell->wm.size_hints.flags |= USPosition;
+	}
+
+      /* Drill hints into Motif, since it keeps setting its own.  */
+      size_hints.flags = shell->wm.size_hints.flags;
+      size_hints.x = shell->wm.size_hints.x;
+      size_hints.y = shell->wm.size_hints.y;
+      size_hints.width = shell->wm.size_hints.width;
+      size_hints.height = shell->wm.size_hints.height;
+      size_hints.min_width = shell->wm.size_hints.min_width;
+      size_hints.min_height = shell->wm.size_hints.min_height;
+      size_hints.max_width = shell->wm.size_hints.max_width;
+      size_hints.max_height = shell->wm.size_hints.max_height;
+      size_hints.width_inc = shell->wm.size_hints.width_inc;
+      size_hints.height_inc = shell->wm.size_hints.height_inc;
+      size_hints.min_aspect.x = shell->wm.size_hints.min_aspect.x;
+      size_hints.min_aspect.y = shell->wm.size_hints.min_aspect.y;
+      size_hints.max_aspect.x = shell->wm.size_hints.max_aspect.x;
+      size_hints.max_aspect.y = shell->wm.size_hints.max_aspect.y;
+#ifdef HAVE_X11XTR6
+      size_hints.base_width = shell->wm.base_width;
+      size_hints.base_height = shell->wm.base_height;
+      size_hints.win_gravity = shell->wm.win_gravity;
+#endif
+
+      XSetWMNormalHints (XtDisplay (f->output_data.x->widget),
+			 XtWindow (f->output_data.x->widget),
+			 &size_hints);
+#endif
+
       return;
     }
 #endif
