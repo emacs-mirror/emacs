@@ -56,14 +56,6 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 }
 
 static Lisp_Object
-ccall2 (Lisp_Object (f) (ptrdiff_t nargs, Lisp_Object *args),
-        Lisp_Object arg1, Lisp_Object arg2)
-{
-  Lisp_Object args[2] = {arg1, arg2};
-  return f (2, args);
-}
-
-static Lisp_Object
 get_random_bignum (Lisp_Object limit)
 {
   /* This is a naive transcription into bignums of the fixnum algorithm.
@@ -81,9 +73,9 @@ get_random_bignum (Lisp_Object limit)
           EMACS_INT rand = get_random () >> 1;
           Lisp_Object lrand = make_fixnum (rand);
           bits += bitsperiteration;
-          val = ccall2 (Flogior,
-                        Fash (val, make_fixnum (bitsperiteration)),
-                        lrand);
+          val = CALLN (Flogior,
+		       Fash (val, make_fixnum (bitsperiteration)),
+		       lrand);
           lim = Fash (lim, make_fixnum (- bitsperiteration));
         }
       while (!EQ (lim, make_fixnum (0)));
@@ -91,11 +83,11 @@ get_random_bignum (Lisp_Object limit)
 	 get_random returns a number so close to INTMASK that the
 	 remainder isn't random.  */
       Lisp_Object remainder = Frem (val, limit);
-      if (!NILP (ccall2 (Fleq,
-	                 ccall2 (Fminus, val, remainder),
-	                 ccall2 (Fminus,
-	                         Fash (make_fixnum (1), make_fixnum (bits)),
-	                         limit))))
+      if (!NILP (CALLN (Fleq,
+			CALLN (Fminus, val, remainder),
+			CALLN (Fminus,
+			       Fash (make_fixnum (1), make_fixnum (bits)),
+			       limit))))
 	return remainder;
     }
 }

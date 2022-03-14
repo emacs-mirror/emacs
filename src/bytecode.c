@@ -325,8 +325,8 @@ If the third argument is incorrect, Emacs may crash.  */)
 	 the original unibyte form.  */
       bytestr = Fstring_as_unibyte (bytestr);
     }
-  Lisp_Object args[] = {0, bytestr, vector, maxdepth};
-  return exec_byte_code (Fmake_byte_code (4, args), 0, 0, NULL);
+  Lisp_Object fun = CALLN (Fmake_byte_code, 0, bytestr, vector, maxdepth);
+  return exec_byte_code (fun, 0, 0, NULL);
 }
 
 static void

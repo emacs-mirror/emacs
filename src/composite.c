@@ -704,8 +704,8 @@ DEFUN ("clear-composition-cache", Fclear_composition_cache,
 Clear composition cache.  */)
   (void)
 {
-  Lisp_Object args[] = {QCtest, Qequal, QCsize, make_fixnum (311)};
-  gstring_hash_table = CALLMANY (Fmake_hash_table, args);
+  gstring_hash_table = CALLN (Fmake_hash_table, QCtest, Qequal,
+			      QCsize, make_fixnum (311));
   /* Fixme: We call Fclear_face_cache to force complete re-building of
      display glyphs.  But, it may be better to call this function from
      Fclear_face_cache instead.  */
