@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "blockinput.h"
+#include "sysstdio.h"
 #include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
