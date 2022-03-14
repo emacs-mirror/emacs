@@ -2911,7 +2911,8 @@ To see the documentation for a defined struct type, use
                              [":include" symbolp &rest sexp] ;; Not finished.
                              [":print-function" sexp]
                              [":type" symbolp]
-                             [":named"]
+                             [":noinline" &optional sexp]
+                             [":named" &optional sexp]
                              [":initial-offset" natnump])])]
              [&optional stringp]
              ;; All the above is for the following def-form.
