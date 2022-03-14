@@ -1076,6 +1076,22 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
+---
+** 'prin1' doesn't always escape "." and "?" in symbols any more.
+Previously, symbols like 'foo.bar' would be printed by 'prin1' as
+"foo\.bar".  This now prints as "foo.bar" instead.  The Emacs Lisp
+reader interprets these strings as referring to the same symbol, so
+this is virtually always backwards-compatible, but there may
+theoretically be code out there that expects a specific printed
+representation.
+
+The same is the case with the "?" character: The 'foo?' symbol is now
+printed as "foo?" instead of "foo\?".
+
+If the "." and "?" characters are the first character in the symbol,
+they will still be escaped, so the '.foo' symbol is still printed as
+"\.foo" and the '?bar' symbol is still printed as "\?bar".
+
 +++
 ** Remapping 'mode-line' no longer works as expected.
 'mode-line' is now the parent face of the new 'mode-line-active' face,
