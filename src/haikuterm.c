@@ -503,7 +503,7 @@ haiku_set_horizontal_scroll_bar_thumb (struct scroll_bar *bar, int portion,
     bar->page_size = size;
 
   BView_scroll_bar_update (scroll_bar, lrint (size), BE_SB_MAX,
-			   ceil (value), bar->dragging, false);
+			   ceil (value), bar->dragging ? -1 : 0, true);
 }
 
 static struct scroll_bar *

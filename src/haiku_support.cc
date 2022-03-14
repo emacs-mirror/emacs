@@ -1882,7 +1882,10 @@ public:
 
     if (in_overscroll)
       {
-	diff = point.y - last_overscroll.y;
+	if (horizontal)
+	  diff = point.x - last_overscroll.x;
+	else
+	  diff = point.y - last_overscroll.y;
 
 	if (diff < 0)
 	  {
@@ -1894,10 +1897,16 @@ public:
 	bounds = Bounds ();
 	bounds.InsetBy (1.0, 1.0);
 	value = overscroll_start_value;
-	trough_size = BE_RECT_HEIGHT (bounds);
-	trough_size -= BE_RECT_WIDTH (bounds) / 2;
+	trough_size = (horizontal
+		       ? BE_RECT_WIDTH (bounds)
+		       : BE_RECT_HEIGHT (bounds));
+	trough_size -= (horizontal
+			? BE_RECT_HEIGHT (bounds)
+			: BE_RECT_WIDTH (bounds)) / 2;
 	if (info.double_arrows)
-	  trough_size -= BE_RECT_WIDTH (bounds) / 2;
+	  trough_size -= (horizontal
+			  ? BE_RECT_HEIGHT (bounds)
+			  : BE_RECT_WIDTH (bounds)) / 2;
 
 	value += ((double) range / trough_size) * diff;
 
