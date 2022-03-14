@@ -35,9 +35,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Byte-code interpreter thread state.  */
 struct bc_thread_state {
-  Lisp_Object *fp;		/* current frame pointer (see bytecode.c) */
-  Lisp_Object *stack;
-  Lisp_Object *stack_end;
+  struct bc_frame *fp;   /* current frame pointer */
+
+  /* start and end of allocated bytecode stack */
+  char *stack;
+  char *stack_end;
 };
 
 struct thread_state

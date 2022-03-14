@@ -335,20 +335,7 @@ bcall0 (Lisp_Object f)
   Ffuncall (1, &f);
 }
 
-/* Layout of the stack frame header. */
-enum stack_frame_index {
-  SFI_SAVED_FP,   /* previous frame pointer */
-
-  /* In a frame called directly from C, the following two members are NULL.  */
-  SFI_SAVED_TOP,  /* previous stack pointer */
-  SFI_SAVED_PC,   /* previous program counter */
-
-  SFI_FUN,        /* current function object */
-
-  SF_SIZE         /* number of words in the header */
-};
-
-/* The bytecode stack size in Lisp words.
+/* The bytecode stack size in bytes.
    This is a fairly generous amount, but:
    - if users need more, we could allocate more, or just reserve the address
      space and allocate on demand
@@ -357,7 +344,7 @@ enum stack_frame_index {
    - for maximum flexibility but a small runtime penalty, we could allocate
      the stack in smaller chunks as needed
 */
-#define BC_STACK_SIZE (512 * 1024)
+#define BC_STACK_SIZE (512 * 1024 * sizeof (Lisp_Object))
 
 /* Bytecode interpreter stack:
 
@@ -385,51 +372,28 @@ enum stack_frame_index {
            :              :
 */
 
-INLINE void *
-sf_get_ptr (Lisp_Object *fp, enum stack_frame_index index)
-{
-  return XLP (fp[index]);
-}
+/* bytecode stack frame header (footer, actually) */
+struct bc_frame {
+  struct bc_frame *saved_fp;        /* previous frame pointer,
+                                       NULL if bottommost frame */
 
-INLINE void
-sf_set_ptr (Lisp_Object *fp, enum stack_frame_index index, void *value)
-{
-  fp[index] = XIL ((uintptr_t)value);
-}
+  /* In a frame called directly from C, the following two members are NULL.  */
+  Lisp_Object *saved_top;           /* previous stack pointer */
+  const unsigned char *saved_pc;    /* previous program counter */
 
-INLINE Lisp_Object *
-sf_get_lisp_ptr (Lisp_Object *fp, enum stack_frame_index index)
-{
-  return sf_get_ptr (fp, index);
-}
+  Lisp_Object fun;                  /* current function object */
 
-INLINE void
-sf_set_lisp_ptr (Lisp_Object *fp, enum stack_frame_index index,
-		 Lisp_Object *value)
-{
-  sf_set_ptr (fp, index, value);
-}
-
-INLINE const unsigned char *
-sf_get_saved_pc (Lisp_Object *fp)
-{
-  return sf_get_ptr (fp, SFI_SAVED_PC);
-}
-
-INLINE void
-sf_set_saved_pc (Lisp_Object *fp, const unsigned char *value)
-{
-  sf_set_ptr (fp, SFI_SAVED_PC, (unsigned char *)value);
-}
+  Lisp_Object next_stack[];	    /* data stack of next frame */
+};
 
 void
 init_bc_thread (struct bc_thread_state *bc)
 {
-  bc->stack = xmalloc (BC_STACK_SIZE * sizeof *bc->stack);
+  bc->stack = xmalloc (BC_STACK_SIZE);
   bc->stack_end = bc->stack + BC_STACK_SIZE;
   /* Put a dummy header at the bottom to indicate the first free location.  */
-  bc->fp = bc->stack;
-  memset (bc->fp, 0, SF_SIZE * sizeof *bc->stack);
+  bc->fp = (struct bc_frame *)bc->stack;
+  memset (bc->fp, 0, sizeof *bc->fp);
 }
 
 void
@@ -441,16 +405,16 @@ free_bc_thread (struct bc_thread_state *bc)
 void
 mark_bytecode (struct bc_thread_state *bc)
 {
-  Lisp_Object *fp = bc->fp;
+  struct bc_frame *fp = bc->fp;
   Lisp_Object *top = NULL;     /* stack pointer of topmost frame not known */
   for (;;)
     {
-      Lisp_Object *next_fp = sf_get_lisp_ptr (fp, SFI_SAVED_FP);
+      struct bc_frame *next_fp = fp->saved_fp;
       /* Only the dummy frame at the bottom has saved_fp = NULL.  */
       if (!next_fp)
 	break;
-      mark_object (fp[SFI_FUN]);
-      Lisp_Object *frame_base = next_fp + SF_SIZE;
+      mark_object (fp->fun);
+      Lisp_Object *frame_base = next_fp->next_stack;
       if (top)
 	{
 	  /* The stack pointer of a frame is known: mark the part of the stack
@@ -464,7 +428,7 @@ mark_bytecode (struct bc_thread_state *bc)
 	  /* The stack pointer is unknown -- mark everything conservatively.  */
 	  mark_memory (frame_base, fp);
 	}
-      top = sf_get_lisp_ptr (fp, SFI_SAVED_TOP);
+      top = fp->saved_top;
       fp = next_fp;
     }
 }
@@ -477,10 +441,10 @@ DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
   struct bc_thread_state *bc = &current_thread->bc;
   int nframes = 0;
   int nruns = 0;
-  for (Lisp_Object *fp = bc->fp; fp; fp = sf_get_lisp_ptr (fp, SFI_SAVED_FP))
+  for (struct bc_frame *fp = bc->fp; fp; fp = fp->saved_fp)
     {
       nframes++;
-      if (sf_get_lisp_ptr (fp, SFI_SAVED_TOP) == NULL)
+      if (fp->saved_top == NULL)
 	nruns++;
     }
   fprintf (stderr, "%d stack frames, %d runs\n", nframes, nruns);
@@ -491,8 +455,8 @@ DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
 INLINE bool
 valid_sp (struct bc_thread_state *bc, Lisp_Object *sp)
 {
-  Lisp_Object *fp = bc->fp;
-  return sp < fp && sp + 1 >= sf_get_lisp_ptr (fp, SFI_SAVED_FP) + SF_SIZE;
+  struct bc_frame *fp = bc->fp;
+  return sp < (Lisp_Object *)fp && sp + 1 >= fp->saved_fp->next_stack;
 }
 
 /* Execute the byte-code in FUN.  ARGS_TEMPLATE is the function arity
@@ -532,20 +496,20 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   Lisp_Object *vectorp = XVECTOR (vector)->contents;
 
   EMACS_INT max_stack = XFIXNAT (maxdepth);
-  Lisp_Object *frame_base = bc->fp + SF_SIZE;
-  Lisp_Object *fp = frame_base + max_stack;
+  Lisp_Object *frame_base = bc->fp->next_stack;
+  struct bc_frame *fp = (struct bc_frame *)(frame_base + max_stack);
 
-  if (fp + SF_SIZE > bc->stack_end)
+  if ((char *)fp->next_stack > bc->stack_end)
     error ("Bytecode stack overflow");
 
   /* Save the function object so that the bytecode and vector are
      held from removal by the GC. */
-  fp[SFI_FUN] = fun;
+  fp->fun = fun;
   /* Save previous stack pointer and pc in the new frame.  If we came
      directly from outside, these will be NULL.  */
-  sf_set_lisp_ptr (fp, SFI_SAVED_TOP, top);
-  sf_set_saved_pc (fp, pc);
-  sf_set_lisp_ptr (fp, SFI_SAVED_FP, bc->fp);
+  fp->saved_top = top;
+  fp->saved_pc = pc;
+  fp->saved_fp = bc->fp;
   bc->fp = fp;
 
   top = frame_base - 1;
@@ -914,7 +878,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
 	CASE (Breturn):
 	  {
-	    Lisp_Object *saved_top = sf_get_lisp_ptr (bc->fp, SFI_SAVED_TOP);
+	    Lisp_Object *saved_top = bc->fp->saved_top;
 	    if (saved_top)
 	      {
 		Lisp_Object val = TOP;
@@ -925,11 +889,11 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		specpdl_ptr--;
 
 		top = saved_top;
-		pc = sf_get_saved_pc (bc->fp);
-		Lisp_Object *fp = sf_get_lisp_ptr (bc->fp, SFI_SAVED_FP);
+		pc = bc->fp->saved_pc;
+		struct bc_frame *fp = bc->fp->saved_fp;
 		bc->fp = fp;
 
-		Lisp_Object fun = fp[SFI_FUN];
+		Lisp_Object fun = fp->fun;
 		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
 		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
 		bytestr_data = SDATA (bytestr);
@@ -1004,9 +968,9 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		handlerlist = c->next;
 		top = c->bytecode_top;
 		op = c->bytecode_dest;
-		Lisp_Object *fp = bc->fp;
+		struct bc_frame *fp = bc->fp;
 
-		Lisp_Object fun = fp[SFI_FUN];
+		Lisp_Object fun = fp->fun;
 		Lisp_Object bytestr = AREF (fun, COMPILED_BYTECODE);
 		Lisp_Object vector = AREF (fun, COMPILED_CONSTANTS);
 		bytestr_data = SDATA (bytestr);
@@ -1756,7 +1720,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
  exit:
 
-  bc->fp = sf_get_lisp_ptr (bc->fp, SFI_SAVED_FP);
+  bc->fp = bc->fp->saved_fp;
 
   Lisp_Object result = TOP;
   return result;
