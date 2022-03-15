@@ -13611,7 +13611,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_GesturePinchEnd:
 	    {
-#if defined HAVE_XWIDGETS && HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+#if defined HAVE_XWIDGETS
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
 	      struct xwidget_view *xvw = xwidget_view_from_window (pev->event);
 
