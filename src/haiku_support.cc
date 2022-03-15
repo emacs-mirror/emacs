@@ -1785,7 +1785,6 @@ public:
 
     if (buttons == B_PRIMARY_MOUSE_BUTTON)
       {
-	maybe_overscroll = true;
 	r = ButtonRegionFor (HAIKU_SCROLL_BAR_UP_BUTTON);
 
 	if (r.Contains (pt))
@@ -1813,6 +1812,8 @@ public:
 	    haiku_write (SCROLL_BAR_PART_EVENT, &part);
 	    goto out;
 	  }
+
+	maybe_overscroll = true;
       }
 
     rq.dragging_p = 1;
