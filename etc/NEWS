@@ -699,11 +699,6 @@ displayed as emojis.  Default nil.
 This is bound to 'W D e' and will display symbols that have emoji
 representation as emojis.
 
-+++
-*** New command 'gnus-summary-browse-all-urls'.
-This is for the rare cases when you want to open _all_ the URLs in the
-article, and is bound to "v".
-
 ** EIEIO
 
 +++
