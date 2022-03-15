@@ -11286,7 +11286,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		last_mouse_window = window;
 	      }
 
-            if (!x_note_mouse_movement (f, &event->xmotion))
+            if (!x_note_mouse_movement (f, &xmotion))
 	      help_echo_string = previous_help_echo_string;
           }
         else
