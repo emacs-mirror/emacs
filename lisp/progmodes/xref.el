@@ -227,7 +227,7 @@ This behavior is new in Emacs 28.")
   "A match xref item describes a search result."
   length)
 
-(cl-defgeneric xref-match-length ((item xref-match-item))
+(cl-defmethod xref-match-length ((item xref-match-item))
   "Return the length of the match."
   (xref-match-item-length item))
 
