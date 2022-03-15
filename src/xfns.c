@@ -3642,9 +3642,9 @@ setup_xi_event_mask (struct frame *f)
 #ifndef USE_GTK
   XISetMask (m, XI_FocusIn);
   XISetMask (m, XI_FocusOut);
-#endif
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
+#endif
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
