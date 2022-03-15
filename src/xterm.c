@@ -12533,15 +12533,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (popup_activated ()
 		  && xev->evtype == XI_ButtonRelease)
-		{
-		  *finish = X_EVENT_DROP;
-		  gtk_main_do_event (copy);
-		  gdk_event_free (copy);
-		  goto XI_OTHER;
-		}
-
-	      gtk_main_do_event (copy);
-	      gdk_event_free (copy);
+		goto XI_OTHER;
 #endif
 
 #ifdef HAVE_XINPUT2_1
@@ -13717,6 +13709,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	}
       unblock_input ();
 #endif /* USE_X_TOOLKIT */
+#if defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
+      if (*finish != X_EVENT_DROP && copy)
+	{
+	  gtk_main_do_event (copy);
+	  *finish = X_EVENT_DROP;
+	}
+
+      if (copy)
+	gdk_event_free (copy);
+#endif
     break;
     }
 
