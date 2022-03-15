@@ -2989,13 +2989,7 @@ There might be text before point."
 	(put-text-property
 	 (1- (match-beginning 1)) (match-beginning 1)
 	 'syntax-table
-	 (if (= (1+ (line-beginning-position)) (match-beginning 1))
-	     ;; The `%' is a single-char comment, which Emacs
-	     ;; syntax-table can't deal with.  We could turn it
-	     ;; into a non-comment, or use `\n%' or `%^' as the comment.
-	     ;; Instead, we include it in the ^^A comment.
-             (string-to-syntax "< b")
-           (string-to-syntax ">")))
+         (string-to-syntax ">"))
 	(let ((end (line-end-position)))
 	  (if (< end (point-max))
 	      (put-text-property
@@ -3018,8 +3012,9 @@ There might be text before point."
   (defconst doctex-syntax-propertize-rules
     (syntax-propertize-precompile-rules
      latex-syntax-propertize-rules
-     ;; For DocTeX comment-in-doc.
-     ("\\(\\^\\)\\^A" (1 (doctex-font-lock-^^A))))))
+     ;; For DocTeX comment-in-doc (DocTeX ≥3 also allows ^^X).
+     ;; We make the comment start on the second char because of bug#35140.
+     ("\\^\\(\\^\\)[AX]" (1 (doctex-font-lock-^^A))))))
 
 (defvar doctex-font-lock-keywords
   (append tex-font-lock-keywords
