@@ -2165,8 +2165,9 @@ See also the function `nreverse', which is used more often.  */)
 
 
 /* Stably sort LIST using PREDICATE. This converts the list to a
-   vector, sorts the vector using the TIMSORT algorithm, and converts
-   back to a list.  */
+   vector, sorts the vector using the TIMSORT algorithm, and returns
+   the result converted back to a list.  The input list is
+   destructively reused to hold the sorted result.*/
 
 static Lisp_Object
 sort_list (Lisp_Object list, Lisp_Object predicate)
@@ -2206,11 +2207,11 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
 static void
 sort_vector (Lisp_Object vector, Lisp_Object predicate)
 {
-  ptrdiff_t len = ASIZE (vector);
-  if (len < 2)
+  ptrdiff_t length = ASIZE (vector);
+  if (length < 2)
     return;
 
-  tim_sort (predicate, XVECTOR (vector)->contents, len);
+  tim_sort (predicate, XVECTOR (vector)->contents, length);
 }
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
@@ -2256,7 +2257,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 	}
 
       Lisp_Object tem;
-      if (inorder (pred, Fcar (l1), Fcar (l2)))
+      if (!NILP (call2 (pred, Fcar (l1), Fcar (l2))))
 	{
 	  tem = l1;
 	  l1 = Fcdr (l1);

@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    which is passed around as an argument to all the subroutines.  A
    "stretch" structure includes a pointer to the run BASE of length
    LEN along with its POWER (a computed integer used by the powersort
-   merge strategy that depends on this run and the succeeding run.  */
+   merge strategy that depends on this run and the succeeding run.)  */
 
 
 #include <config.h>
@@ -64,7 +64,7 @@ struct reloc
   Lisp_Object **src;
   Lisp_Object **dst;
   ptrdiff_t *size;
-  int order;
+  int order; /* -1 while in merge_lo; +1 while in merg_hi; 0 otherwise.  */
 };
 
 
@@ -88,10 +88,8 @@ typedef struct
   ptrdiff_t min_gallop;
 
   /* 'A' is temporary storage, able to hold ALLOCED elements, to help
-     with merges.  If temporary storage is passed to the sorting entry
-     function, 'A' will point to it.  Otherwise 'A' initially points
-     to TEMPARRAY, and subsequently to newly allocated memory if
-     needed.  */
+     with merges.  'A' initially points to TEMPARRAY, and subsequently
+     to newly allocated memory if needed.  */
 
   Lisp_Object *a;
   ptrdiff_t alloced;
@@ -112,7 +110,7 @@ typedef struct
 
 /* INORDER returns true iff (PREDICATE A B) is non-nil.  */
 
-inline bool
+INLINE bool
 inorder (const Lisp_Object predicate, const Lisp_Object a, const Lisp_Object b)
 {
   return !NILP (call2 (predicate, a, b));
@@ -139,18 +137,17 @@ binarysort (merge_state *ms, Lisp_Object *lo, const Lisp_Object *hi,
       Lisp_Object *l = lo;
       Lisp_Object *r = start;
       Lisp_Object pivot = *r;
-      Lisp_Object *p;
 
       eassume (l < r);
       do {
-	p = l + ((r - l) >> 1);
+	Lisp_Object *p = l + ((r - l) >> 1);
 	if (inorder (pred, pivot, *p))
 	  r = p;
 	else
 	  l = p + 1;
       } while (l < r);
       eassume (l == r);
-      for (p = start; p > l; --p)
+      for (Lisp_Object *p = start; p > l; --p)
 	p[0] = p[-1];
       *l = pivot;
     }
@@ -468,11 +465,17 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
          cycles copying the old data.  We just free and alloc
          again.  */
       xfree (ms->a);
-      ms->a = NULL;
     }
-  ms->a = (Lisp_Object *) xmalloc (need * word_size);
-  if (ms->a != NULL)
-    ms->alloced = need;
+  ms->a = xmalloc (need * word_size);
+  ms->alloced = need;
+}
+
+
+INLINE void
+needmem (merge_state *ms, ptrdiff_t na)
+{
+  if (na > ms->alloced)
+    merge_getmem (ms, na);
 }
 
 
@@ -489,8 +492,7 @@ merge_lo (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na, Lisp_Object *ssb,
 
   eassume (ms && ssa && ssb && na > 0 && nb > 0);
   eassume (ssa + na == ssb);
-  na <= ms->alloced ? 0 : merge_getmem (ms, na);
-
+  needmem (ms, na);
   memcpy (ms->a, ssa, na * word_size);
   Lisp_Object *dest = ssa;
   ssa = ms->a;
@@ -614,7 +616,7 @@ merge_hi (merge_state *ms, Lisp_Object *ssa, ptrdiff_t na,
 
   eassume (ms && ssa && ssb && na > 0 && nb > 0);
   eassume (ssa + na == ssb);
-  nb <= ms->alloced ? 0 : merge_getmem(ms, nb);
+  needmem (ms, nb);
   Lisp_Object *dest = ssb;
   dest += nb - 1;
   memcpy(ms->a, ssb, nb * word_size);
@@ -897,7 +899,7 @@ merge_compute_minrun (ptrdiff_t n)
 static void
 reverse_vector (Lisp_Object *s, const ptrdiff_t n)
 {
-  for (ptrdiff_t i = 0; i < n / 2; i++)
+  for (ptrdiff_t i = 0; i < n >> 1; i++)
     {
       Lisp_Object tem = s[i];
       s[i] =  s[n - i - 1];
@@ -916,8 +918,6 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
 
   merge_init (&ms, length, lo, predicate);
 
-  if (length < 2)
-    return;
 
   /* March over the array once, left to right, finding natural runs,
      and extending short natural runs to minrun elements.  */
@@ -956,6 +956,6 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
   eassume (ms.pending[0].len == length);
   lo = ms.pending[0].base;
 
-  if (ms.a != ms.temparray && ms.alloced <= ms.listlen >> 1)
+  if (ms.a != ms.temparray)
     unbind_to (ms.count, Qnil);
 }
