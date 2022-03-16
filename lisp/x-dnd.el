@@ -446,7 +446,6 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(version (x-dnd-version-from-flags flags))
 		(more-than-3 (x-dnd-more-than-3-from-flags flags))
 		(dnd-source (aref data 0)))
-	   (message "%s %s" version more-than-3)
 	   (if version  ;; If flags is bad, version will be nil.
 	       (x-dnd-save-state
 		window nil nil

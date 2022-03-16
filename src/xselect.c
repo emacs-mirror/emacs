@@ -2647,6 +2647,25 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
 
 
+/* Return the timestamp where ownership of SELECTION was asserted, or
+   nil if no local selection is present.  */
+
+Lisp_Object
+x_timestamp_for_selection (struct x_display_info *dpyinfo,
+			   Lisp_Object selection)
+{
+  Lisp_Object value, local_value;
+
+  local_value = LOCAL_SELECTION (selection, dpyinfo);
+
+  if (NILP (local_value))
+    return Qnil;
+
+  value = XCAR (XCDR (XCDR (local_value)));
+
+  return value;
+}
+
 static void syms_of_xselect_for_pdumper (void);
 
 void

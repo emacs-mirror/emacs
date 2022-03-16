@@ -4038,6 +4038,35 @@ there is no match there, Emacs looks for a match in
 still no match has been found, the text for the URL is inserted.  If
 you want to alter Emacs behavior, you can customize these variables.
 
+@cindex initiating drag-and-drop
+  On some window systems, Emacs also supports dragging contents from
+itself to other frames.
+
+@defun x-begin-drag targets action &optional frame
+This function begins a drag from @var{frame}, and returns when the
+session ends, either because the drop was successful, or because the
+drop was rejected.  The drop occurs when all mouse buttons are
+released on top of an X window other than @var{frame} (the @dfn{drop
+target}).
+
+@var{targets} is a list of strings describing selection targets, much
+like the @var{data-type} argument to @code{gui-get-selection}, that
+the drop target can request from Emacs (@pxref{Window System
+Selections}).
+
+@var{action} is a symbol describing the action recommended to the
+target.  It can either be @code{XdndActionCopy}, which means which
+means to copy the contents of the selection @code{XdndSelection} to
+the drop target, or @code{XdndActionMove}, which means the same as
+@code{XdndActionCopy}, but also means the caller should delete
+whatever was saved into that selection afterwards.
+
+If the drop was rejected or no drop target was found, this function
+returns @code{nil}.  Otherwise, it returns a symbol describing the
+action the target chose to perform, which can differ from @var{action}
+if that isn't supported by the drop target.
+@end defun
+
 @node Color Names
 @section Color Names
 

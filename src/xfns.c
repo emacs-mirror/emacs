@@ -6547,7 +6547,7 @@ DEFUN ("x-set-mouse-absolute-pixel-position", Fx_set_mouse_absolute_pixel_positi
 The coordinates X and Y are interpreted in pixels relative to a position
 \(0, 0) of the selected frame's display.  */)
   (Lisp_Object x, Lisp_Object y)
-  {
+{
   struct frame *f = SELECTED_FRAME ();
 
   if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
@@ -6580,6 +6580,85 @@ The coordinates X and Y are interpreted in pixels relative to a position
   unblock_input ();
 
   return Qnil;
+}
+
+DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 3, 0,
+       doc: /* Begin dragging contents on FRAME, with targets TARGETS.
+TARGETS is a list of strings, which defines the X selection targets
+that will be available to the drop target.  Dragging starts when the
+mouse is pressed on FRAME, and the contents of the selection
+`XdndSelection' will be sent to the X window underneath the mouse
+pointer (the drop target) when the mouse button is released.  ACTION
+is a symbol which tells the target what to do, and can be one of the
+following:
+
+ - `XdndActionCopy', which means to copy the contents from the drag
+   source (FRAME) to the drop target.
+
+ - `XdndActionMove', which means to first take the contents of
+   `XdndSelection', and to delete whatever was saved into that
+   selection afterwards.
+
+There are also some other valid values of ACTION that depend on
+details of both the drop target's implementation details and that of
+Emacs.  For that reason, they are not mentioned here.  Consult
+"Drag-and-Drop Protocol for the X Window System" for more details:
+https://freedesktop.org/wiki/Specifications/XDND/.
+
+If ACTION is not specified or nil, `XdndActionCopy' is used instead.
+
+Block until the mouse buttons are released, then return the action
+chosen by the target, or `nil' if the drop was not accepted by the
+drop target.  */)
+  (Lisp_Object targets, Lisp_Object action, Lisp_Object frame)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  int ntargets = 0;
+  char *target_names[2048];
+  Atom *target_atoms;
+  Lisp_Object lval;
+  Atom xaction;
+
+  CHECK_LIST (targets);
+
+  for (; CONSP (targets); targets = XCDR (targets))
+    {
+      CHECK_STRING (XCAR (targets));
+
+      if (ntargets < 2048)
+	{
+	  target_names[ntargets] = SSDATA (XCAR (targets));
+	  ntargets++;
+	}
+      else
+	error ("Too many targets");
+    }
+
+  if (NILP (action) || EQ (action, QXdndActionCopy))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionCopy;
+  else if (EQ (action, QXdndActionMove))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionMove;
+  else if (EQ (action, QXdndActionLink))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionLink;
+  else if (EQ (action, QXdndActionAsk))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
+  else if (EQ (action, QXdndActionPrivate))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionPrivate;
+  else
+    signal_error ("Invalid drag-and-drop action", action);
+
+  target_atoms = xmalloc (ntargets * sizeof *target_atoms);
+
+  block_input ();
+  XInternAtoms (FRAME_X_DISPLAY (f), target_names,
+		ntargets, False, target_atoms);
+  unblock_input ();
+
+  x_set_dnd_targets (target_atoms, ntargets);
+  lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
+				    xaction);
+
+  return lval;
 }
 
 /************************************************************************
@@ -9150,6 +9229,12 @@ syms_of_xfns (void)
   DEFSYM (Qreverse_landscape, "reverse-landscape");
 #endif
 
+  DEFSYM (QXdndActionCopy, "XdndActionCopy");
+  DEFSYM (QXdndActionMove, "XdndActionMove");
+  DEFSYM (QXdndActionLink, "XdndActionLink");
+  DEFSYM (QXdndActionAsk, "XdndActionAsk");
+  DEFSYM (QXdndActionPrivate, "XdndActionPrivate");
+
   Fput (Qundefined_color, Qerror_conditions,
 	pure_list (Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
@@ -9423,6 +9508,7 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sx_double_buffered_p);
+  defsubr (&Sx_begin_drag);
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;

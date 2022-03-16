@@ -561,6 +561,14 @@ struct x_display_info
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
 
+  /* DND source.  */
+  Atom Xatom_XdndAware, Xatom_XdndSelection, Xatom_XdndTypeList,
+    Xatom_XdndActionCopy, Xatom_XdndActionMove, Xatom_XdndActionLink,
+    Xatom_XdndActionAsk, Xatom_XdndActionPrivate, Xatom_XdndActionList,
+    Xatom_XdndActionDescription, Xatom_XdndProxy, Xatom_XdndEnter,
+    Xatom_XdndPosition, Xatom_XdndStatus, Xatom_XdndLeave, Xatom_XdndDrop,
+    Xatom_XdndFinished;
+
 #ifdef HAVE_XKB
   /* Virtual modifiers */
   Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
@@ -1359,6 +1367,9 @@ extern void x_scroll_bar_configure (GdkEvent *);
 
 extern void x_display_set_last_user_time (struct x_display_info *, Time);
 
+extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom);
+extern void x_set_dnd_targets (Atom *, int);
+
 INLINE int
 x_display_pixel_height (struct x_display_info *dpyinfo)
 {
@@ -1452,6 +1463,9 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             unsigned long);
 extern void x_clipboard_manager_save_frame (Lisp_Object);
 extern void x_clipboard_manager_save_all (void);
+
+extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
+					      Lisp_Object);
 
 #ifdef USE_GTK
 extern bool xg_set_icon (struct frame *, Lisp_Object);

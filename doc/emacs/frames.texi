@@ -1220,6 +1220,10 @@ cursor during dragging.  To suppress such behavior, set the options
 @code{mouse-drag-and-drop-region-show-tooltip} and/or
 @code{mouse-drag-and-drop-region-show-cursor} to @code{nil}.
 
+@vindex mouse-drag-and-drop-region-cross-program
+To drag text from Emacs to other programs, set the option
+@code{mouse-drag-and-drop-region-cross-program} to a non-@code{nil}
+value.
 
 @node Menu Bars
 @section Menu Bars

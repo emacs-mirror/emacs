@@ -170,6 +170,11 @@ methods instead.
 * Changes in Emacs 29.1
 
 +++
+** New user option 'mouse-drag-and-drop-region-cross-program'.
+If non-nil, this option allows dragging text in the region from Emacs
+to another program.
+
++++
 ** New function 'command-query'.
 This function makes its argument command prompt the user for
 confirmation before executing.
@@ -1202,6 +1207,11 @@ functions.
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New function 'x-begin-drag'.
+This function initiates a drag-and-drop request with the contents of
+the selection 'XdndSelection', and returns when a drop occurs.
 
 ---
 ** New function 'ietf-drums-parse-date-string'.
