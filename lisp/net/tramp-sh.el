@@ -4134,13 +4134,10 @@ file exists and nonzero exit status otherwise."
     ;; The algorithm is as follows: we try a list of several commands.
     ;; For each command, we first run `$cmd /' -- this should return
     ;; true, as the root directory always exists.  And then we run
-    ;; `$cmd /this\ file\ does\ not\ exist ', hoping that the file indeed
-    ;; does not exist.  This should return false.  We use the first
-    ;; command we find that seems to work.
+    ;; `$cmd /\ this\ file\ does\ not\ exist\ ', hoping that the file
+    ;; indeed does not exist.  This should return false.  We use the
+    ;; first command we find that seems to work.
     ;; The list of commands to try is as follows:
-    ;; `ls -d'            This works on most systems, but NetBSD 1.4
-    ;;                    has a bug: `ls' always returns zero exit
-    ;;                    status, even for files which don't exist.
     ;; `test -e'          Some Bourne shells have a `test' builtin
     ;;                    which does not know the `-e' option.
     ;; `/bin/test -e'     For those, the `test' binary on disk normally
@@ -4148,6 +4145,10 @@ file exists and nonzero exit status otherwise."
     ;;                    is sometimes `/bin/test' and sometimes it's
     ;;                    `/usr/bin/test'.
     ;; `/usr/bin/test -e' In case `/bin/test' does not exist.
+    ;; `ls -d'            This works on most systems, but NetBSD 1.4
+    ;;                    has a bug: `ls' always returns zero exit
+    ;;                    status, even for files which don't exist.
+
     (unless (or
 	     (ignore-errors
 	       (and (setq result (format "%s -e" (tramp-get-test-command vec)))
