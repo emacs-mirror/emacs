@@ -6585,12 +6585,14 @@ The coordinates X and Y are interpreted in pixels relative to a position
 DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 3, 0,
        doc: /* Begin dragging contents on FRAME, with targets TARGETS.
 TARGETS is a list of strings, which defines the X selection targets
-that will be available to the drop target.  Dragging starts when the
-mouse is pressed on FRAME, and the contents of the selection
-`XdndSelection' will be sent to the X window underneath the mouse
-pointer (the drop target) when the mouse button is released.  ACTION
-is a symbol which tells the target what to do, and can be one of the
-following:
+that will be available to the drop target.  Block until the mouse
+buttons are released, then return the action chosen by the target, or
+`nil' if the drop was not accepted by the drop target.  Dragging
+starts when the mouse is pressed on FRAME, and the contents of the
+selection `XdndSelection' will be sent to the X window underneath the
+mouse pointer (the drop target) when the mouse button is released.
+ACTION is a symbol which tells the target what the source will do, and
+can be one of the following:
 
  - `XdndActionCopy', which means to copy the contents from the drag
    source (FRAME) to the drop target.
@@ -6605,11 +6607,8 @@ Emacs.  For that reason, they are not mentioned here.  Consult
 "Drag-and-Drop Protocol for the X Window System" for more details:
 https://freedesktop.org/wiki/Specifications/XDND/.
 
-If ACTION is not specified or nil, `XdndActionCopy' is used instead.
-
-Block until the mouse buttons are released, then return the action
-chosen by the target, or `nil' if the drop was not accepted by the
-drop target.  */)
+If ACTION is not specified or nil, `XdndActionCopy' is used
+instead.  */)
   (Lisp_Object targets, Lisp_Object action, Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
