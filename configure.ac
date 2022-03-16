@@ -3940,6 +3940,16 @@ case "${opsys}" in
   darwin) MODULES_SECONDARY_SUFFIX='.so' ;;
   *) MODULES_SECONDARY_SUFFIX='' ;;
 esac
+
+# pgtkterm.c uses dlsym
+if test $window_system = pgtk; then
+  case $opsys in
+    gnu|gnu-linux)
+    LIBMODULES="-ldl"
+    ;;
+  esac
+fi
+
 if test "${with_modules}" != "no"; then
   case $opsys in
     gnu|gnu-linux)
