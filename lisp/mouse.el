@@ -3100,7 +3100,9 @@ is copied instead of being cut."
                 (x-hide-tip)
                 (gui-set-selection 'XdndSelection value-selection)
                 (let ((drag-action-or-frame
-                       (x-begin-drag '("UTF8_STRING" "STRING")
+                       (x-begin-drag '("UTF8_STRING" "text/plain"
+                                       "text/plain;charset=utf-8"
+                                       "STRING" "TEXT" "COMPOUND_TEXT")
                                      (if mouse-drag-and-drop-region-cut-when-buffers-differ
                                          'XdndActionMove
                                        'XdndActionCopy)

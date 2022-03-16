@@ -795,22 +795,20 @@ static struct frame *x_dnd_frame;
 
 #define X_DND_SUPPORTED_VERSION 5
 
+static int x_dnd_get_window_proto (struct x_display_info *, Window);
+static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
+
 static Window
 x_dnd_get_target_window (struct x_display_info *dpyinfo,
-			 int root_x, int root_y)
+			 int root_x, int root_y, int *proto_out)
 {
   Window child_return, child, dummy, proxy;
-  int dest_x_return, dest_y_return;
-  int rc;
-  int actual_format;
-  unsigned long actual_size, bytes_remaining;
-  unsigned char *tmp_data;
-  XWindowAttributes attrs;
-  Atom actual_type;
-
+  int dest_x_return, dest_y_return, rc, proto;
   child_return = dpyinfo->root_window;
   dest_x_return = root_x;
   dest_y_return = root_y;
+
+  proto = -1;
 
   /* Not strictly necessary, but satisfies GCC.  */
   child = dpyinfo->root_window;
@@ -832,8 +830,33 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	  break;
 	}
 
+      proxy = x_dnd_get_window_proxy (dpyinfo, child_return);
+
+      if (proxy != None)
+	{
+	  proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+	  if (proto != -1)
+	    {
+	      *proto_out = proto;
+
+	      x_uncatch_errors_after_check ();
+	      return proxy;
+	    }
+	}
+
       if (child_return)
 	{
+	  proto = x_dnd_get_window_proto (dpyinfo, child_return);
+
+	  if (proto != -1)
+	    {
+	      *proto_out = proto;
+	      x_uncatch_errors_after_check ();
+
+	      return child_return;
+	    }
+
 	  rc = XTranslateCoordinates (dpyinfo->display,
 				      child, child_return,
 				      dest_x_return, dest_y_return,
@@ -850,36 +873,47 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       x_uncatch_errors_after_check ();
     }
 
-  if (child != None)
-    {
-      x_catch_errors (dpyinfo->display);
-      rc = XGetWindowProperty (dpyinfo->display, child,
-			       dpyinfo->Xatom_XdndProxy,
-			       0, 1, False, XA_WINDOW,
-			       &actual_type, &actual_format,
-			       &actual_size, &bytes_remaining,
-			       &tmp_data);
-
-      if (!x_had_errors_p (dpyinfo->display)
-	  && rc == Success
-	  && actual_type == XA_WINDOW
-	  && actual_format == 32
-	  && actual_size == 1)
-	{
-	  proxy = *(Window *) tmp_data;
-	  XFree (tmp_data);
-
-	  /* Verify the proxy window exists.  */
-	  XGetWindowAttributes (dpyinfo->display, proxy, &attrs);
-
-	  if (!x_had_errors_p (dpyinfo->display))
-	    child = proxy;
-	}
-
-      x_uncatch_errors_after_check ();
-    }
-
+  *proto_out = x_dnd_get_window_proto (dpyinfo, child);
   return child;
+}
+
+static Window
+x_dnd_get_window_proxy (struct x_display_info *dpyinfo, Window wdesc)
+{
+  int rc, actual_format;
+  unsigned long actual_size, bytes_remaining;
+  unsigned char *tmp_data;
+  XWindowAttributes attrs;
+  Atom actual_type;
+  Window proxy;
+
+  proxy = None;
+  x_catch_errors (dpyinfo->display);
+  rc = XGetWindowProperty (dpyinfo->display, wdesc,
+			   dpyinfo->Xatom_XdndProxy,
+			   0, 1, False, XA_WINDOW,
+			   &actual_type, &actual_format,
+			   &actual_size, &bytes_remaining,
+			   &tmp_data);
+
+  if (!x_had_errors_p (dpyinfo->display)
+      && rc == Success
+      && actual_type == XA_WINDOW
+      && actual_format == 32
+      && actual_size == 1)
+    {
+      proxy = *(Window *) tmp_data;
+      XFree (tmp_data);
+
+      /* Verify the proxy window exists.  */
+      XGetWindowAttributes (dpyinfo->display, proxy, &attrs);
+
+      if (x_had_errors_p (dpyinfo->display))
+	proxy = None;
+    }
+  x_uncatch_errors_after_check ();
+
+  return proxy;
 }
 
 static int
@@ -11616,10 +11650,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
 	    Window target;
+	    int target_proto;
 
 	    target = x_dnd_get_target_window (dpyinfo,
 					      event->xmotion.x_root,
-					      event->xmotion.y_root);
+					      event->xmotion.y_root,
+					      &target_proto);
 
 	    if (target != x_dnd_last_seen_window)
 	      {
@@ -11643,8 +11679,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		x_dnd_wanted_action = None;
 		x_dnd_last_seen_window = target;
-		x_dnd_last_protocol_version
-		  = x_dnd_get_window_proto (dpyinfo, target);
+		x_dnd_last_protocol_version = target_proto;
 
 		if (target != None && x_dnd_last_protocol_version != -1)
 		  x_dnd_send_enter (x_dnd_frame, target,
@@ -12849,10 +12884,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  Window target;
+		  int target_proto;
 
 		  target = x_dnd_get_target_window (dpyinfo,
 						    xev->root_x,
-						    xev->root_y);
+						    xev->root_y,
+						    &target_proto);
 
 		  if (target != x_dnd_last_seen_window)
 		    {
@@ -12875,8 +12912,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 
 		      x_dnd_last_seen_window = target;
-		      x_dnd_last_protocol_version
-			= x_dnd_get_window_proto (dpyinfo, target);
+		      x_dnd_last_protocol_version = target_proto;
 
 		      if (target != None && x_dnd_last_protocol_version != -1)
 			x_dnd_send_enter (x_dnd_frame, target,

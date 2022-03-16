@@ -485,7 +485,8 @@ two markers or an overlay.  Otherwise, it is nil."
 			       (if eight-bit 'C_STRING
 				 'STRING))))))))
 	  (cond
-	   ((eq type 'UTF8_STRING)
+	   ((or (eq type 'UTF8_STRING)
+                (eq type 'text/plain\;charset=utf-8))
 	    (if (or (not coding)
 		    (not (eq (coding-system-type coding) 'utf-8)))
 		(setq coding 'utf-8))
@@ -495,6 +496,12 @@ two markers or an overlay.  Otherwise, it is nil."
 	    (if (or (not coding)
 		    (not (eq (coding-system-type coding) 'charset)))
 		(setq coding 'iso-8859-1))
+	    (setq str (encode-coding-string str coding)))
+
+           ((eq type 'text/plain)
+            (if (or (not coding)
+		    (not (eq (coding-system-type coding) 'charset)))
+		(setq coding 'ascii))
 	    (setq str (encode-coding-string str coding)))
 
 	   ((eq type 'COMPOUND_TEXT)
@@ -630,6 +637,8 @@ This function returns the string \"emacs\"."
 	(COMPOUND_TEXT . xselect-convert-to-string)
 	(STRING . xselect-convert-to-string)
 	(UTF8_STRING . xselect-convert-to-string)
+	(text/plain . xselect-convert-to-string)
+	(text/plain\;charset=utf-8 . xselect-convert-to-string)
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)
