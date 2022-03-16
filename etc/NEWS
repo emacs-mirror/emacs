@@ -43,11 +43,10 @@ recommend examining any such warnings before you decide they are
 false.
 
 ** The Cairo graphics library is now used by default if present.
-'--with-cairo' is now the default, if the appropriate development files
-are found by 'configure'.  Note that building with Cairo means using
-Pango instead of libXFT for font support.  Since Pango 1.44 has
-removed support for bitmapped fonts, this may require you to adjust
-your font settings.
+'--with-cairo' is now the default, if the appropriate development
+files are found by 'configure'.  Building with Cairo is known to cause
+some problems with bitmap fonts.  This may require you to adjust your
+font settings, or to build with Xft support instead.
 
 Note also that 'FontBackend' settings in ".Xdefaults" or
 ".Xresources", or 'font-backend' frame parameter settings in your init

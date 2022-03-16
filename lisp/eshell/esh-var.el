@@ -34,7 +34,8 @@
 ;;
 ;; "-" is a valid part of a variable name.
 ;;
-;;   $<MYVAR>-TOO
+;;   $\"MYVAR\"-TOO
+;;   $'MYVAR'-TOO
 ;;
 ;; Only "MYVAR" is part of the variable name in this case.
 ;;
@@ -54,6 +55,11 @@
 ;;
 ;; Returns the value of an eshell subcommand.  See the note above
 ;; regarding Lisp evaluations.
+;;
+;;   $<command>
+;;
+;; Evaluates an eshell subcommand, redirecting the output to a
+;; temporary file, and returning the file name.
 ;;
 ;;   $ANYVAR[10]
 ;;
@@ -426,9 +432,12 @@ variable.
 Possible options are:
 
   NAME          an environment or Lisp variable value
-  <LONG-NAME>   disambiguates the length of the name
+  \"LONG-NAME\"   disambiguates the length of the name
+  'LONG-NAME'   as above
   {COMMAND}     result of command is variable's value
-  (LISP-FORM)   result of Lisp form is variable's value"
+  (LISP-FORM)   result of Lisp form is variable's value
+  <COMMAND>     write the output of command to a temporary file;
+                result is the file name"
   (cond
    ((eq (char-after) ?{)
     (let ((end (eshell-find-delimiter ?\{ ?\})))
@@ -460,8 +469,12 @@ Possible options are:
                    (eshell-as-subcommand ,(eshell-parse-command cmd))
                    (ignore
                     (nconc eshell-this-command-hook
-                           (list (lambda ()
-                                   (delete-file ,temp)))))
+                           ;; Quote this lambda; it will be evaluated
+                           ;; by `eshell-do-eval', which requires very
+                           ;; particular forms in order to work
+                           ;; properly.  See bug#54190.
+                           (list (function (lambda ()
+                                   (delete-file ,temp))))))
                    (quote ,temp)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()

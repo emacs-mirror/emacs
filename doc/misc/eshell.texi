@@ -579,51 +579,63 @@ of familiarity.
 
 @table @code
 
-@item $var
-Expands to the value bound to @code{var}.  This is the main way to use
+@item $@var{var}
+Expands to the value bound to @var{var}.  This is the main way to use
 variables in command invocations.
 
-@item $#var
-Expands to the length of the value bound to @code{var}.  Raises an error
+@item $"@var{var}"
+@item $'@var{var}'
+Expands to the value bound to @var{var}.  This is useful to
+disambiguate the variable name when concatenating it with another
+value, such as @samp{$"@var{var}"-suffix}.
+
+@item $#@var{var}
+Expands to the length of the value bound to @var{var}.  Raises an error
 if the value is not a sequence
 (@pxref{Sequences Arrays Vectors, Sequences, , elisp, The Emacs Lisp Reference Manual}).
 
-@item $(lisp)
-Expands to the result of evaluating the S-expression @code{(lisp)}.  On
-its own, this is identical to just @code{(lisp)}, but with the @code{$},
-it can be used in a string, such as @samp{/some/path/$(lisp).txt}.
+@item $(@var{lisp})
+Expands to the result of evaluating the S-expression @code{(@var{lisp})}.  On
+its own, this is identical to just @code{(@var{lisp})}, but with the @code{$},
+it can be used in a string, such as @samp{/some/path/$(@var{lisp}).txt}.
 
-@item $@{command@}
-Returns the output of @command{command}, which can be any valid Eshell
+@item $@{@var{command}@}
+Returns the output of @command{@var{command}}, which can be any valid Eshell
 command invocation, and may even contain expansions.
 
-@item $var[i]
-Expands to the @code{i}th element of the value bound to @code{var}.  If
+@item $<@var{command}>
+As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation
+@command{@var{command}}, but writes the output to a temporary file and
+returns the file name.
+
+@item $@var{var}[i]
+Expands to the @code{i}th element of the value bound to @var{var}.  If
 the value is a string, it will be split at whitespace to make it a list.
 Again, raises an error if the value is not a sequence.
 
-@item $var[: i]
+@item $@var{var}[: i]
 As above, but now splitting occurs at the colon character.
 
-@item $var[: i j]
+@item $@var{var}[: i j]
 As above, but instead of returning just a string, it now returns a list
 of two strings.  If the result is being interpolated into a larger
 string, this list will be flattened into one big string, with each
 element separated by a space.
 
-@item $var["\\\\" i]
+@item $@var{var}["\\\\" i]
 Separate on backslash characters.  Actually, the first argument -- if it
 doesn't have the form of a number, or a plain variable name -- can be
-any regular expression.  So to split on numbers, use @samp{$var["[0-9]+" 10 20]}.
+any regular expression.  So to split on numbers, use
+@samp{$@var{var}["[0-9]+" 10 20]}.
 
-@item $var[hello]
-Calls @code{assoc} on @code{var} with @code{"hello"}, expecting it to be
+@item $@var{var}[hello]
+Calls @code{assoc} on @var{var} with @code{"hello"}, expecting it to be
 an alist (@pxref{Association List Type, Association Lists, , elisp,
 The Emacs Lisp Reference Manual}).
 
-@item $#var[hello]
-Returns the length of the cdr of the element of @code{var} who car is equal
-to @code{"hello"}.
+@item $#@var{var}[hello]
+Returns the length of the @code{cdr} of the element of @var{var} whose
+car is equal to @code{"hello"}.
 
 @end table
 

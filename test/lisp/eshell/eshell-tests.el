@@ -130,6 +130,10 @@ e.g. \"{(+ 1 2)} 3\" => 3"
   "Interpolate Lisp form evaluation"
   (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
 
+(ert-deftest eshell-test/interp-temp-cmd ()
+  "Interpolate command result redirected to temp file"
+  (should (equal (eshell-test-command-result "cat $<echo hi>") "hi")))
+
 (ert-deftest eshell-test/interp-concat ()
   "Interpolate and concat command"
   (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))

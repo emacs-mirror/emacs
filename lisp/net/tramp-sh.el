@@ -4753,36 +4753,33 @@ Goes through the list `tramp-inline-compress-commands'."
    (t (setq tramp-ssh-controlmaster-options "")
       (let ((case-fold-search t))
 	(ignore-errors
-	  (when (executable-find "ssh")
-	    (with-tramp-progress-reporter
-		vec 4 "Computing ControlMaster options"
-	      (with-temp-buffer
-		(tramp-call-process vec "ssh" nil t nil "-o" "ControlMaster")
-		(goto-char (point-min))
-		(when (search-forward-regexp "missing.+argument" nil t)
-		  (setq tramp-ssh-controlmaster-options
-			"-o ControlMaster=auto")))
-	      (unless (zerop (length tramp-ssh-controlmaster-options))
-		(with-temp-buffer
-		  ;; We use a non-existing IP address, in order to
-		  ;; avoid useless connections, and DNS timeouts.
-		  ;; Setting ConnectTimeout is needed since OpenSSH 7.
-		  (tramp-call-process
-		   vec "ssh" nil t nil
-		   "-o" "ConnectTimeout=1" "-o" "ControlPath=%C" "0.0.0.1")
-		  (goto-char (point-min))
+	  (with-tramp-progress-reporter
+	      vec 4 "Computing ControlMaster options"
+	    ;; We use a non-existing IP address, in order to avoid
+	    ;; useless connections, and DNS timeouts.
+	    (when (zerop
+		   (tramp-call-process
+		    vec "ssh" nil nil nil
+		    "-G" "-o" "ControlMaster=auto" "0.0.0.1"))
+	      (setq tramp-ssh-controlmaster-options
+		    "-o ControlMaster=auto")
+	      (if (zerop
+		   (tramp-call-process
+		    vec "ssh" nil nil nil
+		    "-G" "-o" "ControlPath='tramp.%C'" "0.0.0.1"))
 		  (setq tramp-ssh-controlmaster-options
 			(concat tramp-ssh-controlmaster-options
-				(if (search-forward-regexp "unknown.+key" nil t)
-				    " -o ControlPath='tramp.%%r@%%h:%%p'"
-				  " -o ControlPath='tramp.%%C'"))))
-		(with-temp-buffer
-		  (tramp-call-process vec "ssh" nil t nil "-o" "ControlPersist")
-		  (goto-char (point-min))
-		  (when (search-forward-regexp "missing.+argument" nil t)
-		    (setq tramp-ssh-controlmaster-options
-			  (concat tramp-ssh-controlmaster-options
-				  " -o ControlPersist=no")))))))))
+				" -o ControlPath='tramp.%%C'"))
+		(setq tramp-ssh-controlmaster-options
+		      (concat tramp-ssh-controlmaster-options
+			      " -o ControlPath='tramp.%%r@%%h:%%p'")))
+	      (when (zerop
+		     (tramp-call-process
+		      vec "ssh" nil nil nil
+		      "-G" "-o" "ControlPersist=no" "0.0.0.1"))
+		(setq tramp-ssh-controlmaster-options
+		      (concat tramp-ssh-controlmaster-options
+			      " -o ControlPersist=no")))))))
       tramp-ssh-controlmaster-options)))
 
 (defun tramp-scp-strict-file-name-checking (vec)

@@ -43,11 +43,16 @@ General steps (for each step, check for possible errors):
     because some of the commands below run Make, so they need
     Makefiles to be present.
 
-    For Emacs 28, and as long as --with-native-compilation is not the
-    default, the tree needs to be configured with native-compilation
-    enabled, to ensure all the pertinent *.elc files will end up in
-    the tarball.  Otherwise, the *.eln files might not build correctly
-    on the user's system.
+    For Emacs 28 and later, as long as --with-native-compilation is
+    not the default, the tree needs to be configured with
+    native-compilation enabled, to ensure all the pertinent *.elc
+    files will end up in the tarball.  Otherwise, the *.eln files
+    might not build correctly on the user's system.
+
+    For a release (as opposed to pretest), delete any left-over "---"
+    and "+++" markers from etc/NEWS, as well as the "Temporary note"
+    section at the beginning of that file, and commit etc/NEWS if it
+    was modified.
 
 2.  Regenerate the etc/AUTHORS file:
       M-: (require 'authors) RET
@@ -232,7 +237,9 @@ General steps (for each step, check for possible errors):
        FILE.gz FILE.xz ...
 
     You only need the --user part if you have multiple GPG keys and do
-    not want to use the default.
+    not want to use the default.  Instead of "your@gpg.key.email" you
+    could also use the fingerprint of the key, a 40-digit hex number.
+    (Alternatively, define default-key in your ~/.gnupg/gpg.conf file.)
     Obviously, if you do not have a fast uplink, be prepared for the
     upload to take a while.
 

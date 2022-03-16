@@ -23,9 +23,9 @@ General Public License for more details.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* Transient: (transient). Transient Commands.
+* Transient: (transient).       Transient Commands.
 @end direntry
 
 @finalout

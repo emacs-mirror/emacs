@@ -45,7 +45,9 @@ git_diff='git diff --cached --name-only --diff-filter=A'
 
 # 'git diff' will backslash escape tabs and newlines, so we don't have
 # to worry about word splitting here.
-$git_diff $head | sane_egrep 'ChangeLog|^-|/-|[^-+./_0-9A-Z_a-z]' | while IFS= read -r new_name; do
+$git_diff $head |
+LC_ALL=C grep -E 'ChangeLog|^-|/-|[^-+./_0-9A-Z_a-z]' |
+while IFS= read -r new_name; do
   case $new_name in
     -* | */-*)
       echo "$new_name: File name component begins with '-'."

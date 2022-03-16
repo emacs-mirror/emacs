@@ -68,6 +68,7 @@ files.")
     (nil "castor@my-dejanews")
     (nil "chengang31@gmail.com")
     (nil "chuntaro")
+    ("Clément Pit-Claudel" "Clément Pit--Claudel")
     ("David Abrahams" "Dave Abrahams")
     ("David J. Biesack" "David Biesack")
     ("David De La Harpe Golden" "David Golden")
@@ -242,10 +243,14 @@ files.")
     ("Vinicius Jose Latorre" "viniciusjl")
     ("Gaby Launay" "galaunay")
     ("Dick R. Chiang" "dickmao")
+    ("Lin Zhou" "georgealbert@qq.com")
+    (nil "yan@metatem.net")
+    (nil "gnu_lists@halloleo.hailmail.net")
     )
   "Alist of author aliases.
 
-Each entry is of the form (REALNAME REGEXP...).  If an author's name
+Each entry is of the form (REALNAME REGEXP...).
+If an author's full name, as in \"J.R.Hacker <foobar.com>\",
 matches one of the REGEXPs, use REALNAME instead.
 If REALNAME is nil, ignore that author.")
 
@@ -496,6 +501,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "nextstep/WISHLIST"
     ;; Removed, replaced by gitmerge.el
     "admin/bzrmerge.el"
+    "bzrmerge.el"
     ;; Removed in commit f5090b91299
     "lib/fdatasync.c"
     ;; Removed as obsolete
@@ -510,8 +516,11 @@ Changes to files matching one of the regexps in this list are not listed.")
     "MORE.STUFF"
     "notes/font-backend"
     "src/ftxfont.c"
+    "ftxfont.c"
     "src/ptr-bounds.h"
     "obsolete/options.el"
+    "obsolete/old-whitespace.el"
+    "obsolete/lucid.el"
     ;; ada-mode has been deleted, now in GNU ELPA
     "ada-mode.texi"
     "doc/misc/ada-mode.texi"
@@ -872,11 +881,9 @@ Changes to files in this list are not listed.")
     "gnus-compat.el" "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "pgg.el"
     "dns-mode.el" "run-at-time.el" "gnus-encrypt.el" "sha1-el.el"
     "gnus-gl.el" "gnus.sum.el" "proto-stream.el" "color.el" "color-lab.el"
-    "eww.el" "shr-color.el" "shr.el" "earcon.el" "gnus-audio.el" "encrypt.el"
-    "format-spec.el" "gnus-move.el" "gnus-sync.el"
-    "auth-source.el" "ecomplete.el" "gravatar.el" "mailcap.el" "plstore.el"
-    "pop3.el" "qp.el" "registry.el" "rfc2231.el" "rtree.el"
-    "sieve.el" "sieve-mode.el" "gnus-ems.el"
+    "earcon.el" "gnus-audio.el" "encrypt.el"
+    "gnus-move.el" "gnus-sync.el"
+    "gnus-ems.el"
     ;; doc
     "getopt.c" "texindex.c" "news.texi" "vc.texi" "vc2-xtra.texi"
     "back.texi" "vol1.texi" "vol2.texi" "elisp-covers.texi" "two.el"
@@ -957,6 +964,43 @@ in the repository.")
 ;; NB So only add a directory if needed to disambiguate.
 ;; FIXME?
 ;; Although perhaps we could let authors-disambiguate-file-name do that?
+;;
+;; WARNING: The semantics of these entries is tricky to grasp without
+;; reading the code!
+;; The rule is: for every file that was renamed or moved to another
+;; directory, add an entry (OLD-NAME . NEW-BASENAME), where OLD-NAME
+;; is the old name of the file as it appears in the ChangeLog files,
+;; and NEW-BASENAME is the _basename_ of its new name.  Yes, this
+;; means that a file which was moved to another directory but kept its
+;; basename will have a seemingly-silly entry ("foo" . "foo").  (Told
+;; you: this is tricky!)  If the moved/renamed file was mentioned in
+;; several ChangeLog files with different leading directories, you
+;; need to provide an entry for each such instance.  For example, if
+;; some ChangeLog mentioned a moved file as lisp/gnus/something.el and
+;; another ChangeLog mentioned it as gnus/something.el, you need to
+;; have two entries:
+;;
+;;     ("gnus/something.el" . "something.el")
+;;     ("lisp/gnus/something.el" . "something.el")
+;;
+;; The important part is that the car of the entry should be identical
+;; to how a file was mentioned in the respective ChangeLog.  It is
+;; advisable to run a Grep command such as
+;;
+;;   fgrep -R BASENAME . --include='ChangeLog*'
+;;
+;; where BASENAME is the old basename of the renamed file.  This will
+;; show all the different reference forms of the file in the various
+;; ChangeLog* files, and you can then prepare a separate entry for
+;; each reference form.
+;;
+;; The cdr of the entry should generally be only the basename of the
+;; file's current name, because that's how AUTHORS references files.
+;; It _can_ have leading directories, but that is only
+;; needed/advisable if there are several files in the tree that have
+;; the same basename, and you want to disambiguate them, so that
+;; people who actually contributed to different files aren't mentioned
+;; as if they contributed to the same single file.
 (defconst authors-renamed-files-alist
   '(("nt.c" . "w32.c") ("nt.h" . "w32.h")
     ("ntheap.c" . "w32heap.c") ("ntheap.h" . "w32heap.h")
@@ -964,8 +1008,9 @@ in the repository.")
     ("ntproc.c" . "w32proc.c")
     ("w32console.c" . "w32term.c")
     ("unexnt.c" . "unexw32.c")
-    ("s/windowsnt.h" . "s/ms-w32.h")
-    ("s/ms-w32.h" . "inc/ms-w32.h")
+    ("m/windowsnt.h" . "ms-w32.h")
+    ("s/windowsnt.h" . "ms-w32.h")
+    ("s/ms-w32.h" . "ms-w32.h")
     ("src/config.h" . "config.h")
     ("winnt.el" . "w32-fns.el")
     ("linux.h" . "gnu-linux.h")
@@ -988,6 +1033,10 @@ in the repository.")
     ("INSTALL.MSYS" . "INSTALL")
     ("server.c" . "emacsserver.c")
     ("lib-src/etags.c" . "etags.c")
+    ;; gnulib
+    ("lib/strftime.c" . "nstrftime.c")
+    ("src/mini-gmp.c" . "mini-gmp.c")
+    ("src/mini-gmp.h" . "mini-gmp.h")
     ;; msdos/
     ("is-exec.c" . "is_exec.c")
     ("enriched.doc" . "enriched.txt")
@@ -1071,8 +1120,10 @@ in the repository.")
     ("nxml/test.invalid.xml" . "test-invalid.xml")
     ("nxml/test.valid.xml" . "test-valid.xml")
     ("automated/Makefile.in" . "test/Makefile.in")
-    ("test/rmailmm.el" . "test/manual/rmailmm.el")
-    ("rmailmm.el" . "test/manual/rmailmm.el")
+    ;; rmailmm tests wandered from test/ to test/manual to test/lisp/mail/
+    ("rmailmm.el" . "rmailmm-tests.el")
+    ("test/rmailmm.el" . "rmailmm-tests.el")
+    ("test/manual/rmailmm.el" . "rmailmm-tests.el")
     ;; The one in lisp is eshell/eshell.el.
     ("eshell.el" . "eshell-tests.el")
     ("automated/eshell.el" . "eshell-tests.el")
@@ -1104,22 +1155,79 @@ in the repository.")
     ("major.texi" . "modes.texi")
     ("msdog-xtra.texi" . "msdos-xtra.texi")
     ("msdog.texi" . "msdos.texi")
+    ;; Moved from lisp/gnus/ to lisp/
+    ("auth-source.el" . "auth-source.el")
+    ("lisp/gnus/auth-source.el" . "auth-source.el")
+    ("ecomplete.el" . "ecomplete.el")
+    ("format-spec.el" . "format-spec.el")
+    ("gnus/format-spec.el" . "format-spec.el")
+    ("lisp/gnus/ecomplete.el" . "ecomplete.el")
+    ("plstore.el" . "plstore.el")
+    ("lisp/gnus/plstore.el" . "plstore.el")
+    ("registry.el" . "registry.el")
+    ("lisp/gnus/registry.el" . "registry.el")
+    ("rtree.el" . "rtree.el")
     ;; Moved from lisp/gnus/ to lisp/calendar/
-    ("time-date.el" . "calendar/time-date.el")
+    ("time-date.el" . "time-date.el")
     ;; Moved from lisp/gnus/ to lisp/mail/
-    ("binhex.el" . "mail/binhex.el")
-    ("uudecode.el" . "mail/uudecode.el")
-    ("mail-parse.el" . "mail/mail-parse.el")
-    ("yenc.el" . "mail/yenc.el")
-    ("flow-fill.el" . "mail/flow-fill.el")
-    ("ietf-drums.el" . "mail/ietf-drums.el")
-    ("sieve-manage.el" . "mail/sieve-manage.el")
+    ("binhex.el" . "binhex.el")
+    ("gnus/binhex.el" . "binhex.el")
+    ("uudecode.el" . "uudecode.el")
+    ("gnus/uudecode.el" . "uudecode.el")
+    ("mail-parse.el" . "mail-parse.el")
+    ("gnus/mail-parse.el" . "mail-parse.el")
+    ("mail-prsvr.el" . "mail-prsvr.el")
+    ("gnus/mail-prsvr.el" . "mail-prsvr.el")
+    ("yenc.el" . "yenc.el")
+    ("flow-fill.el" . "flow-fill.el")
+    ("gnus/flow-fill.el" . "flow-fill.el")
+    ("ietf-drums.el" . "ietf-drums.el")
+    ("gnus/ietf-drums.el" . "ietf-drums.el")
+    ("pop3.el" . "pop3.el")
+    ("mail/pop3.el" . "pop3.el")
+    ("gnus/pop3.el" . "pop3.el")
+    ("lisp/gnus/pop3.el" . "pop3.el")
+    ("qp.el" . "qp.el")
+    ("gnus/qp.el" . "qp.el")
+    ("lisp/gnus/qp.el" . "qp.el")
+    ("rfc2045.el" . "rfc2045.el")
+    ("gnus/rfc2045.el" . "rfc2045.el")
+    ("rfc2047.el" . "rfc2047.el")
+    ("gnus/rfc2047.el" . "rfc2047.el")
+    ("rfc2231.el" . "rfc2231.el")
+    ("gnus/rfc2231.el" . "rfc2231.el")
+    ("lisp/gnus/rfc2231.el" . "rfc2231.el")
     ;; Moved from lisp/gnus/ to lisp/image/
-    ("compface.el" . "image/compface.el")
+    ("compface.el" . "compface.el")
+    ("gravatar.el" . "gravatar.el")
+    ("lisp/gnus/gravatar.el" . "gravatar.el")
     ;; Moved from lisp/gnus/ to lisp/net/
+    ("eww.el" . "eww.el")
+    ("net/eww.el" . "eww.el")
+    ("lisp/new/eww.el" . "eww.el") ; an actual typo in ChangeLog.3
+    ("gssapi.el" . "gssapi.el")
+    ("lisp/gnus/gssapi.el" . "gssapi.el")
     ("imap.el" . "net/imap.el")
+    ("mailcap.el" . "mailcap.el")
+    ("gnus/mailcap.el" . "mailcap.el")
+    ("lisp/gnus/mailcap.el" . "mailcap.el")
     ("rfc2104.el" . "net/rfc2104.el")
-    ("starttls.el" . "net/starttls.el")
+    ("starttls.el" . "starttls.el")
+    ("lisp/net/starttls.el" . "starttls.el") ; moved to obsolete/
+    ("shr.el" . "shr.el")
+    ("net/shr.el" . "shr.el")
+    ("shr-color.el" . "shr-color.el")
+    ("sieve-manage.el" . "sieve-manage.el")
+    ("sieve-mode.el" . "sieve-mode.el")
+    ("sieve.el" . "sieve.el")
+    ("lisp/gnus/sieve-manage.el" . "sieve-manage.el")
+    ("lisp/gnus/sieve-mode.el" . "sieve-mode.el")
+    ("lisp/gnus/sieve.el" . "sieve.el")
+    ;;  Moved from lisp/gnus/ to lisp/international
+    ("rfc1843.el" . "rfc1843.el")
+    ("gnus/rfc1843.el" . "rfc1843.el")
+    ("utf7.el" . "utf7.el")
+    ("gnus/utf7.el" . "utf7.el")
     ;; And from emacs/ to misc/ and back again.
     ("ns-emacs.texi" . "macos.texi")
     ("overrides.texi" . "gnus-overrides.texi")
@@ -1134,7 +1242,7 @@ in the repository.")
     ("ED.WORSHIP" . "JOKES")
     ("GNU.JOKES" . "JOKES")
     ("CHARACTERS" . "TODO")
-    ("lisp/character-fold.el" . "lisp/char-fold.el")
+    ("lisp/character-fold.el" . "char-fold.el")
     ("test/automated/character-fold-tests.el" . "char-fold-tests.el")
     ("test/automated/char-fold-tests.el" . "char-fold-tests.el")
     ("test/lisp/character-fold-tests.el" . "char-fold-tests.el")
@@ -1176,7 +1284,8 @@ in the repository.")
     ("grammars" . "grammars")
     ;; Moved from lisp/emacs-lisp/ to admin/.
     ("emacs-lisp/authors.el" . "authors.el")
-    ("emacs-lisp/find-gc.el" . "admin/find-gc.el")
+    ("find-gc.el" . "find-gc.el")
+    ("emacs-lisp/find-gc.el" . "find-gc.el")
     ;; From etc to lisp/cedet/semantic/.
     ("grammars/bovine-grammar.el" . "bovine/grammar.el")
     ("grammars/wisent-grammar.el" . "wisent/grammar.el")
@@ -1184,28 +1293,41 @@ in the repository.")
     ("nt/README.W32" . "README.W32")
     ("notes/BRANCH" . "notes/repo")
     ("notes/bzr" . "notes/repo")
-    ;; moved from lisp/ to lisp/net/
-    ("lisp/pinentry.el" . "lisp/net/pinentry.el")
+    ;; moved from lisp/ to lisp/net/, then removed
+    ("pinentry.el" . "pinentry.el")
+    ("lisp/pinentry.el" . "pinentry.el")
+    ("lisp/net/pinentry.el" . "pinentry.el")
     ;; module.* moved to emacs-module.*
-    ("src/module.h" . "src/emacs-module.h")
-    ("src/module.c" . "src/emacs-module.c")
-    ;; gnulib
-    ("lib/strftime.c" . "lib/nstrftime.c")
-    ("test/src/regex-tests.el" . "test/src/regex-emacs-tests.el")
-    ("test/lisp/emacs-lisp/cl-tests.el" . "test/lisp/obsolete/cl-tests.el")
-    ("lisp/net/starttls.el" . "lisp/obsolete/starttls.el")
-    ("url-ns.el" . "lisp/obsolete/url-ns.el")
-    ("gnus-news.texi" . "doc/misc/gnus.texi")
-    ("lisp/multifile.el" . "lisp/fileloop.el")
-    ("lisp/emacs-lisp/thread.el" . "lisp/thread.el")
-    ("lisp/emacs-lisp/cl.el" . "lisp/emacs-lisp/cl-lib.el")
-    ("lisp/progmodes/mantemp.el" . "lisp/obsolete/mantemp.el")
-    ("src/mini-gmp.c" . "lib/mini-gmp.c")
-    ("src/mini-gmp.h" . "lib/mini-gmp.h")
+    ("src/module.h" . "emacs-module.h")
+    ("src/module.c" . "emacs-module.c")
+    ("test/src/regex-tests.el" . "regex-emacs-tests.el")
+    ("test/lisp/emacs-lisp/cl-tests.el" . "cl-tests.el")
+    ("url-ns.el" . "url-ns.el")
+    ("gnus-news.texi" . "gnus.texi")
+    ("doc/misc/gnus-news.texi" . "gnus.texi")
+    ("lisp/multifile.el" . "fileloop.el")
+    ("lisp/emacs-lisp/thread.el" . "thread.el")
+    ;; cl.el was retired, replaced by cl-lib.el, and we want to
+    ;; pretend they are the same file...
+    ("emacs-lisp/cl.el" . "cl-lib.el")
+    ("lisp/emacs-lisp/cl.el" . "cl-lib.el")
+    ("lisp/obsolete/cl.el" . "cl-lib.el")
+    ("mantemp.el" . "mantemp.el")
+    ("lisp/progmodes/mantemp.el" . "mantemp.el")
+    ("progmodes/mantemp.el" . "mantemp.el")
     ("sysdep.c" . "src/sysdep.c")
+    ;; nnir.el started in lisp/gnus/ChangeLog.*, then was
+    ;; lisp/gnus/nnir.el in ChangeLog.[123], and is now
+    ;; lisp/obsolete/nnir.el.
+    ("nnir.el" . "nnir.el")
     ("lisp/gnus/nnir.el" . "nnir.el")
-    ("src/regex.c" . "emacs-regex.c")
-    ("src/regex.h" . "emacs-regex.h")
+    ;; regex.[ch] are mentioned as src/regex.[ch] in ChangeLog.[123],
+    ;; but as just regex.[ch] in src/ChangeLog.*, so we need 2 entries
+    ;; for each one of them.
+    ("regex.c" . "regex-emacs.c")
+    ("regex.h" . "regex-emacs.h")
+    ("src/regex.c" . "regex-emacs.c")
+    ("src/regex.h" . "regex-emacs.h")
     ("test/manual/rmailmm.el" . "rmailmm-tests.el")
     ("test/lisp/cedet/semantic-utest-fmt.el" . "format-tests.el")
     ("test/lisp/emacs-lisp/tabulated-list-test.el" . "tabulated-list-tests.el")
@@ -1366,10 +1488,14 @@ Additionally, for these logs we apply the `lax' elements of
 
 (defun authors-canonical-file-name (file log-file pos author)
   "Return canonical file name for FILE found in LOG-FILE.
+FILE is the file name as it appears in LOG-FILE, including any
+leading directories mentioned there.
+LOG-FILE is an absolute file name of the log file we are scanning.
 Checks whether FILE is a valid (existing) file name, has been renamed,
 or is on the list of removed files.  Returns the non-directory part of
-the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
-to print a message if FILE is not found."
+the file name to use for FILE in the \"AUTHORS\" file.
+Only uses the LOG-FILE position POS and associated AUTHOR to print a
+message if FILE is not found."
   ;; FILE should be re-checked in every different directory associated
   ;; with a LOG-FILE.  Eg configure.ac from src/ChangeLog is not the
   ;; same as that from top-level/ChangeLog.
@@ -1379,6 +1505,8 @@ to print a message if FILE is not found."
     (if entry
 	(cdr entry)
       (setq relname (file-name-nondirectory file))
+      ;; File names in `authors-valid-file-names' are OK by
+      ;; definition, so no need to check those.
       (if (or (member file authors-valid-file-names)
 	      (member relname authors-valid-file-names)
 	      (file-exists-p file)
