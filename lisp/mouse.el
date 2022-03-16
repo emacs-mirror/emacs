@@ -3097,12 +3097,28 @@ is copied instead of being cut."
                                   (frame-pixel-width frame))
                                (> (cdr location)
                                   (frame-pixel-height frame)))))
-                (tooltip-hide)
+                (x-hide-tip)
                 (gui-set-selection 'XdndSelection value-selection)
-                (when (framep
-                       (x-begin-drag '("UTF8_STRING" "STRING") 'XdndActionCopy
-                                     (posn-window (event-end event)) t))
-                  (throw 'drag-again nil))
+                (let ((drag-action-or-frame
+                       (x-begin-drag '("UTF8_STRING" "STRING")
+                                     (if mouse-drag-and-drop-region-cut-when-buffers-differ
+                                         'XdndActionMove
+                                       'XdndActionCopy)
+                                     (posn-window (event-end event)) t)))
+                  (when (framep drag-action-or-frame)
+                    (throw 'drag-again nil))
+
+                  (when (eq drag-action-or-frame 'XdndActionMove)
+                    ;; Remove the dragged text from source buffer like
+                    ;; operation `cut'.
+                    (dolist (overlay mouse-drag-and-drop-overlays)
+                      (delete-region (overlay-start overlay)
+                                     (overlay-end overlay))))
+
+                  (when (eq drag-action-or-frame 'XdndActionCopy)
+                    ;; Set back the dragged text as region on source buffer
+                    ;; like operation `copy'.
+                    (activate-mark)))
                 (throw 'cross-program-drag nil))
 
               (setq window-to-paste (posn-window (event-end event)))
@@ -3161,8 +3177,12 @@ is copied instead of being cut."
 
               ;; Show a tooltip.
               (if mouse-drag-and-drop-region-show-tooltip
-                  (tooltip-show text-tooltip)
-                (tooltip-hide))
+                  ;; Don't use tooltip-show since it has side effects
+                  ;; which change the text properties, and
+                  ;; `text-tooltip' can potentially be the text which
+                  ;; will be pasted.
+                  (x-show-tip text-tooltip)
+                (x-hide-tip))
 
               ;; Show cursor and highlight the original region.
               (when mouse-drag-and-drop-region-show-cursor
@@ -3183,7 +3203,7 @@ is copied instead of being cut."
                   (mouse-set-point event)))))))
 
       ;; Hide a tooltip.
-      (when mouse-drag-and-drop-region-show-tooltip (tooltip-hide))
+      (when mouse-drag-and-drop-region-show-tooltip (x-hide-tip))
 
       ;; Check if modifier was pressed on drop.
       (setq no-modifier-on-drop
