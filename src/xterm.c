@@ -866,6 +866,7 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	  if (x_had_errors_p (dpyinfo->display) || !rc)
 	    {
 	      x_uncatch_errors_after_check ();
+	      *proto_out = -1;
 	      return None;
 	    }
 	}
