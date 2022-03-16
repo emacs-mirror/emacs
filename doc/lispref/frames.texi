@@ -4039,8 +4039,8 @@ still no match has been found, the text for the URL is inserted.  If
 you want to alter Emacs behavior, you can customize these variables.
 
 @cindex initiating drag-and-drop
-  On some window systems, Emacs also supports dragging contents from
-itself to other frames.
+  On capable window systems, Emacs also supports dragging contents
+from its frames to windows of other applications.
 
 @defun x-begin-drag targets action &optional frame return-frame
 This function begins a drag from @var{frame}, and returns when the
@@ -4055,17 +4055,17 @@ the drop target can request from Emacs (@pxref{Window System
 Selections}).
 
 @var{action} is a symbol describing the action recommended to the
-target.  It can either be @code{XdndActionCopy}, which means which
+target.  It can either be @code{XdndActionCopy}, which
 means to copy the contents of the selection @code{XdndSelection} to
-the drop target, or @code{XdndActionMove}, which means the same as
-@code{XdndActionCopy}, but also means the caller should delete
-whatever was saved into that selection afterwards.
+the drop target; or @code{XdndActionMove}, which means copy as with
+@code{XdndActionCopy}, and in addition the caller should delete
+whatever was stored in that selection after copying it.
 
 If @var{return-frame} is non-nil and the mouse moves over an Emacs
-frame after first moving out of @var{frame}, then that frame will be
-returned immediately.  This is useful when you want to treat dragging
-content from one frame to another specially, while also being able to
-drag content to other programs.
+frame after first moving out of @var{frame}, then the frame to which
+the mouse moves will be returned immediately.  This is useful when you
+want to treat dragging content from one frame to another specially,
+while also being able to drag content to other programs.
 
 If the drop was rejected or no drop target was found, this function
 returns @code{nil}.  Otherwise, it returns a symbol describing the
