@@ -79,7 +79,7 @@ extern "C"
   /* Free the returned data.  */
   extern void BClipboard_free_data (void *ptr);
 
-  extern int be_enum_message (void *message, int32 *tc, int index,
+  extern int be_enum_message (void *message, int32 *tc, int32 index,
 			      int32 *count, const char **name_return);
   extern int be_get_message_data (void *message, const char *name,
 				  int32 type_code, int32 index,
