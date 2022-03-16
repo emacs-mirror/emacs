@@ -12593,6 +12593,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto XI_OTHER;
 #endif
 
+	      Window dummy;
+
 #ifdef HAVE_XINPUT2_1
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xv = xwidget_view_from_window (xev->event);
@@ -12603,7 +12605,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      double total_y = 0.0;
 
 	      int real_x, real_y;
-	      Window dummy;
 
 	      for (int i = 0; i < states->mask_len * 8; i++)
 		{
