@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cstdio>
 #endif
 
+#include <SupportDefs.h>
+
 #ifdef __cplusplus
 #include <stdio.h>
 extern "C"
@@ -72,11 +74,19 @@ extern "C"
   extern bool
   BClipboard_owns_primary (void);
 
-  extern bool
-  BClipboard_owns_secondary (void);
+  extern bool BClipboard_owns_secondary (void);
 
   /* Free the returned data.  */
   extern void BClipboard_free_data (void *ptr);
+
+  extern int be_enum_message (void *message, int32 *tc, int index,
+			      int32 *count, const char **name_return);
+  extern int be_get_message_data (void *message, const char *name,
+				  int32 type_code, int32 index,
+				  const void **buf_return,
+				  ssize_t *size_return);
+  extern int be_get_refs_data (void *message, const char *name,
+			       int32 index, char **path_buffer);
 #ifdef __cplusplus
 };
 #endif

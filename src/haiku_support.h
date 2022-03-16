@@ -86,7 +86,7 @@ enum haiku_event_type
     FILE_PANEL_EVENT,
     MENU_BAR_HELP_EVENT,
     ZOOM_EVENT,
-    REFS_EVENT,
+    DRAG_AND_DROP_EVENT,
     APP_QUIT_REQUESTED_EVENT,
     DUMMY_EVENT,
     MENU_BAR_LEFT
@@ -113,12 +113,11 @@ struct haiku_expose_event
   int height;
 };
 
-struct haiku_refs_event
+struct haiku_drag_and_drop_event
 {
   void *window;
   int x, y;
-  /* Free this with free! */
-  char *ref;
+  void *message;
 };
 
 struct haiku_app_quit_requested_event
@@ -942,6 +941,9 @@ extern "C"
 
   extern void
   BWindow_dimensions (void *window, int *width, int *height);
+
+  extern void
+  BMessage_delete (void *message);
 
 #ifdef __cplusplus
   extern void *

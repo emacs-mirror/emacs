@@ -3545,27 +3545,25 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    haiku_make_fullscreen_consistent (f);
 	    break;
 	  }
-	case REFS_EVENT:
+	case DRAG_AND_DROP_EVENT:
 	  {
-	    struct haiku_refs_event *b = buf;
+	    struct haiku_drag_and_drop_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
 
 	    if (!f)
 	      {
-		free (b->ref);
+		BMessage_delete (b->message);
 		continue;
 	      }
 
 	    inev.kind = DRAG_N_DROP_EVENT;
-	    inev.arg = build_string_from_utf8 (b->ref);
+	    inev.arg = haiku_message_to_lisp (b->message);
 
 	    XSETINT (inev.x, b->x);
 	    XSETINT (inev.y, b->y);
 	    XSETFRAME (inev.frame_or_window, f);
 
-	    /* There should be no problem with calling free here.
-	       free on Haiku is thread-safe.  */
-	    free (b->ref);
+	    BMessage_delete (b->message);
 	    break;
 	  }
 	case APP_QUIT_REQUESTED_EVENT:

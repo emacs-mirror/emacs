@@ -381,37 +381,6 @@ public:
     haiku_write (APP_QUIT_REQUESTED_EVENT, &rq);
     return 0;
   }
-
-  void
-  RefsReceived (BMessage *msg)
-  {
-    struct haiku_refs_event rq;
-    entry_ref ref;
-    BEntry entry;
-    BPath path;
-    int32 cookie = 0;
-    int32 x, y;
-    void *window;
-
-    if ((msg->FindPointer ("window", 0, &window) != B_OK)
-	|| (msg->FindInt32 ("x", 0, &x) != B_OK)
-	|| (msg->FindInt32 ("y", 0, &y) != B_OK))
-      return;
-
-    rq.window = window;
-    rq.x = x;
-    rq.y = y;
-
-    while (msg->FindRef ("refs", cookie++, &ref) == B_OK)
-      {
-        if (entry.SetTo (&ref, 0) == B_OK
-            && entry.GetPath (&path) == B_OK)
-          {
-            rq.ref = strdup (path.Path ());
-            haiku_write (REFS_EVENT, &rq);
-          }
-      }
-  }
 };
 
 class EmacsWindow : public BWindow
@@ -665,21 +634,19 @@ public:
 
     if (msg->WasDropped ())
       {
-	entry_ref ref;
 	BPoint whereto;
+	struct haiku_drag_and_drop_event rq;
 
-        if (msg->FindRef ("refs", &ref) == B_OK)
+	if (msg->FindPoint ("_drop_point_", &whereto) == B_OK)
 	  {
-	    msg->what = B_REFS_RECEIVED;
-	    msg->AddPointer ("window", this);
-	    if (msg->FindPoint ("_drop_point_", &whereto) == B_OK)
-	      {
-		this->ConvertFromScreen (&whereto);
-		msg->AddInt32 ("x", whereto.x);
-		msg->AddInt32 ("y", whereto.y);
-	      }
-	    be_app->PostMessage (msg);
-	    msg->SendReply (B_OK);
+	    this->ConvertFromScreen (&whereto);
+
+	    rq.window = this;
+	    rq.message = DetachCurrentMessage ();;
+	    rq.x = whereto.x;
+	    rq.y = whereto.y;
+
+	    haiku_write (DRAG_AND_DROP_EVENT, &rq);
 	  }
       }
     else if (msg->GetPointer ("menuptr"))
@@ -3896,4 +3863,10 @@ EmacsWindow_signal_menu_update_complete (void *window)
   w->menu_updated_p = true;
   pthread_cond_signal (&w->menu_update_cv);
   pthread_mutex_unlock (&w->menu_update_mutex);
+}
+
+void
+BMessage_delete (void *message)
+{
+  delete (BMessage *) message;
 }

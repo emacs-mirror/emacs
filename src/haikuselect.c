@@ -179,6 +179,138 @@ same as `SECONDARY'.  */)
   return value ? Qt : Qnil;
 }
 
+/* Return the Lisp representation of MESSAGE.
+
+   It is an alist of strings, denoting message parameter names, to a
+   list the form (TYPE . (DATA ...)), where TYPE is an integer
+   denoting the system data type of DATA, and DATA is in the general
+   case a unibyte string.
+
+   If TYPE is a symbol instead of an integer, then DATA was specially
+   decoded.  If TYPE is `ref', then DATA is the absolute file name of
+   a file, or nil if decoding the file name failed.  If TYPE is
+   `string', then DATA is a unibyte string.  If TYPE is `short', then
+   DATA is a 16-bit signed integer.  If TYPE is `long', then DATA is a
+   32-bit signed integer.  If TYPE is `llong', then DATA is a 64-bit
+   signed integer. If TYPE is `byte' or `char', then DATA is an 8-bit
+   signed integer.  If TYPE is `bool', then DATA is a boolean.  */
+Lisp_Object
+haiku_message_to_lisp (void *message)
+{
+  Lisp_Object list = Qnil, tem, t1, t2;
+  const char *name;
+  char *pbuf;
+  const void *buf;
+  ssize_t buf_size;
+  int32 i, j, count, type_code;
+  int rc;
+
+  for (i = 0; !be_enum_message (message, &type_code, i,
+				&count, &name); ++i)
+    {
+      tem = Qnil;
+
+      for (j = 0; j < count; ++j)
+	{
+	  rc = be_get_message_data (message, name,
+				    type_code, j,
+				    &buf, &buf_size);
+	  if (rc)
+	    emacs_abort ();
+
+	  switch (type_code)
+	    {
+	    case 'BOOL':
+	      t1 = (*(bool *) buf) ? Qt : Qnil;
+	      break;
+
+	    case 'RREF':
+	      rc = be_get_refs_data (message, name,
+				     j, &pbuf);
+
+	      if (rc)
+		{
+		  t1 = Qnil;
+		  break;
+		}
+
+	      if (!pbuf)
+		memory_full (SIZE_MAX);
+
+	      t1 = build_string (pbuf);
+	      free (pbuf);
+	      break;
+
+	    case 'SHRT':
+	      t1 = make_fixnum (*(int16 *) buf);
+	      break;
+
+	    case 'LONG':
+	      t1 = make_int (*(int32 *) buf);
+	      break;
+
+	    case 'LLNG':
+	      t1 = make_int ((intmax_t) *(int64 *) buf);
+	      break;
+
+	    case 'BYTE':
+	    case 'CHAR':
+	      t1 = make_fixnum (*(int8 *) buf);
+	      break;
+
+	    default:
+	      t1 = make_uninit_string (buf_size);
+	      memcpy (SDATA (t1), buf, buf_size);
+	    }
+
+	  tem = Fcons (t1, tem);
+	}
+
+      switch (type_code)
+	{
+	case 'CSTR':
+	  t2 = Qstring;
+	  break;
+
+	case 'SHRT':
+	  t2 = Qshort;
+	  break;
+
+	case 'LONG':
+	  t2 = Qlong;
+	  break;
+
+	case 'LLNG':
+	  t2 = Qllong;
+	  break;
+
+	case 'BYTE':
+	  t2 = Qbyte;
+	  break;
+
+	case 'RREF':
+	  t2 = Qref;
+	  break;
+
+	case 'CHAR':
+	  t2 = Qchar;
+	  break;
+
+	case 'BOOL':
+	  t2 = Qbool;
+	  break;
+
+	default:
+	  t2 = make_int (type_code);
+	}
+
+      tem = Fcons (t2, tem);
+      list = Fcons (Fcons (build_string_from_utf8 (name), tem), list);
+    }
+
+  return list;
+}
+
 void
 syms_of_haikuselect (void)
 {
@@ -188,6 +320,14 @@ syms_of_haikuselect (void)
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (QTARGETS, "TARGETS");
+  DEFSYM (Qstring, "string");
+  DEFSYM (Qref, "ref");
+  DEFSYM (Qshort, "short");
+  DEFSYM (Qlong, "long");
+  DEFSYM (Qllong, "llong");
+  DEFSYM (Qbyte, "byte");
+  DEFSYM (Qchar, "char");
+  DEFSYM (Qbool, "bool");
 
   defsubr (&Shaiku_selection_data);
   defsubr (&Shaiku_selection_put);

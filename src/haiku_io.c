@@ -90,8 +90,8 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_menu_bar_help_event);
     case ZOOM_EVENT:
       return sizeof (struct haiku_zoom_event);
-    case REFS_EVENT:
-      return sizeof (struct haiku_refs_event);
+    case DRAG_AND_DROP_EVENT:
+      return sizeof (struct haiku_drag_and_drop_event);
     case APP_QUIT_REQUESTED_EVENT:
       return sizeof (struct haiku_app_quit_requested_event);
     case DUMMY_EVENT:

@@ -19,6 +19,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <Clipboard.h>
+#include <Message.h>
+#include <Path.h>
+#include <Entry.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -256,4 +259,65 @@ init_haiku_select (void)
   system_clipboard = new BClipboard ("system");
   primary = new BClipboard ("primary");
   secondary = new BClipboard ("secondary");
+}
+
+int
+be_enum_message (void *message, int32 *tc, int32 index,
+		 int32 *count, const char **name_return)
+{
+  BMessage *msg = (BMessage *) message;
+  type_code type;
+  char *name;
+  status_t rc;
+
+  rc = msg->GetInfo (B_ANY_TYPE, index, &name, &type, count);
+
+  if (rc != B_OK)
+    return 1;
+
+  *tc = type;
+  *name_return = name;
+  return 0;
+}
+
+int
+be_get_refs_data (void *message, const char *name,
+		  int32 index, char **path_buffer)
+{
+  status_t rc;
+  BEntry entry;
+  BPath path;
+  entry_ref ref;
+  BMessage *msg;
+
+  msg = (BMessage *) message;
+  rc = msg->FindRef (name, index, &ref);
+
+  if (rc != B_OK)
+    return 1;
+
+  rc = entry.SetTo (&ref, 0);
+
+  if (rc != B_OK)
+    return 1;
+
+  rc = entry.GetPath (&path);
+
+  if (rc != B_OK)
+    return 1;
+
+  *path_buffer = strdup (path.Path ());
+  return 0;
+}
+
+int
+be_get_message_data (void *message, const char *name,
+		     int32 type_code, int32 index,
+		     const void **buf_return,
+		     ssize_t *size_return)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->FindData (name, type_code,
+			index, buf_return, size_return) != B_OK;
 }
