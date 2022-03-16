@@ -2817,6 +2817,9 @@ DEFUN ("<", Flss, Slss, 1, MANY, 0,
 usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) < XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_LESS);
 }
 
@@ -2825,6 +2828,9 @@ DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
 usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) > XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_GRTR);
 }
 
@@ -2833,6 +2839,9 @@ DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
 usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) <= XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
 }
 
@@ -2841,6 +2850,9 @@ DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
 usage: (>= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) >= XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);
 }
 
