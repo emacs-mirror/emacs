@@ -441,15 +441,24 @@ Symbols are also allowed; their print names are used instead.  */)
 {
   if (SYMBOLP (string1))
     string1 = SYMBOL_NAME (string1);
+  else
+    CHECK_STRING (string1);
   if (SYMBOLP (string2))
     string2 = SYMBOL_NAME (string2);
-  CHECK_STRING (string1);
-  CHECK_STRING (string2);
+  else
+    CHECK_STRING (string2);
+
+  ptrdiff_t n = min (SCHARS (string1), SCHARS (string2));
+  if (!STRING_MULTIBYTE (string1) && !STRING_MULTIBYTE (string2))
+    {
+      /* Both arguments are unibyte (hot path).  */
+      int d = memcmp (SSDATA (string1), SSDATA (string2), n);
+      return d < 0 || (d == 0 && n < SCHARS (string2)) ? Qt : Qnil;
+    }
 
   ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
-  ptrdiff_t end = min (SCHARS (string1), SCHARS (string2));
 
-  while (i1 < end)
+  while (i1 < n)
     {
       /* When we find a mismatch, we must compare the
 	 characters, not just the bytes.  */

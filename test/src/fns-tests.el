@@ -130,6 +130,49 @@
     (should (equal [nil nil nil nil nil t t t t t] (vconcat A)))
     (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A))))))
 
+(defconst fns-tests--string-lessp-cases
+  '((a 97 error)
+    (97 "a" error)
+    ("abc" "abd" t)
+    ("abd" "abc" nil)
+    (abc "abd" t)
+    ("abd" abc nil)
+    (abc abd t)
+    (abd abc nil)
+    ("" "" nil)
+    ("" " " t)
+    (" " "" nil)
+    ("abc" "abcd" t)
+    ("abcd" "abc" nil)
+    ("abc" "abc" nil)
+    (abc abc nil)
+    ("\0" "" nil)
+    ("" "\0" t)
+    ("~" "\x80" t)
+    ("\x80" "\x80" nil)
+    ("\xfe" "\xff" t)
+    ("Munchen" "München" t)
+    ("München" "Munchen" nil)
+    ("München" "München" nil)
+    ("Ré" "Réunion" t)))
+
+
+(ert-deftest fns-tests-string-lessp ()
+  ;; Exercise both `string-lessp' and its alias `string<', both directly
+  ;; and in a function (exercising its bytecode).
+  (dolist (lessp (list #'string-lessp #'string<
+                       (lambda (a b) (string-lessp a b))
+                       (lambda (a b) (string< a b))))
+    (ert-info ((prin1-to-string lessp) :prefix "function: ")
+      (dolist (case fns-tests--string-lessp-cases)
+        (ert-info ((prin1-to-string case) :prefix "case: ")
+          (pcase case
+            (`(,x ,y error)
+             (should-error (funcall lessp x y)))
+            (`(,x ,y ,expected)
+             (should (equal (funcall lessp x y) expected)))))))))
+
+
 (ert-deftest fns-tests-compare-strings ()
   (should-error (compare-strings))
   (should-error (compare-strings "xyzzy" "xyzzy"))
