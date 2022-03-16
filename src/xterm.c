@@ -11669,11 +11669,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  x_dnd_return_frame = 2;
 
 		if (x_dnd_return_frame == 2
-		    && x_window_to_frame (dpyinfo, target))
+		    && x_any_window_to_frame (dpyinfo, target))
 		  {
 		    x_dnd_in_progress = false;
 		    x_dnd_return_frame_object
-		      = x_window_to_frame (dpyinfo, target);
+		      = x_any_window_to_frame (dpyinfo, target);
 		    x_dnd_return_frame = 3;
 		  }
 
@@ -12903,11 +12903,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			x_dnd_return_frame = 2;
 
 		      if (x_dnd_return_frame == 2
-			  && x_window_to_frame (dpyinfo, target))
+			  && x_any_window_to_frame (dpyinfo, target))
 			{
 			  x_dnd_in_progress = false;
 			  x_dnd_return_frame_object
-			    = x_window_to_frame (dpyinfo, target);
+			    = x_any_window_to_frame (dpyinfo, target);
 			  x_dnd_return_frame = 3;
 			}
 
