@@ -4736,7 +4736,9 @@ xg_update_scrollbar_pos (struct frame *f,
 	  if (wdesc)
 	    {
 	      gdk_window_move_resize (wdesc, left, top, width, height);
+#if GTK_CHECK_VERSION (3, 20, 0)
 	      gtk_widget_queue_allocate (wparent);
+#endif
 	    }
 #endif
         }
@@ -4841,7 +4843,9 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 	  if (wdesc)
 	    {
 	      gdk_window_move_resize (wdesc, left, top, width, height);
+#if GTK_CHECK_VERSION (3, 20, 0)
 	      gtk_widget_queue_allocate (wparent);
+#endif
 	    }
 #endif
         }
