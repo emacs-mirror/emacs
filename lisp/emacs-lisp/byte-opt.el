@@ -1049,6 +1049,14 @@ See Info node `(elisp) Integer Basics'."
         form          ; No improvement.
       (cons 'concat (nreverse newargs)))))
 
+(defun byte-optimize-string-greaterp (form)
+  ;; Rewrite in terms of `string-lessp' which has its own bytecode.
+  (pcase (cdr form)
+    (`(,a ,b) (let ((arg1 (make-symbol "arg1")))
+                `(let ((,arg1 ,a))
+                   (string-lessp ,b ,arg1))))
+    (_ form)))
+
 (put 'identity 'byte-optimizer #'byte-optimize-identity)
 (put 'memq 'byte-optimizer #'byte-optimize-memq)
 (put 'memql  'byte-optimizer #'byte-optimize-member)
@@ -1071,6 +1079,9 @@ See Info node `(elisp) Integer Basics'."
 (put 'equal 'byte-optimizer #'byte-optimize-equal)
 (put 'string= 'byte-optimizer #'byte-optimize-binary-predicate)
 (put 'string-equal 'byte-optimizer #'byte-optimize-binary-predicate)
+
+(put 'string-greaterp 'byte-optimizer #'byte-optimize-string-greaterp)
+(put 'string> 'byte-optimizer #'byte-optimize-string-greaterp)
 
 (put 'concat 'byte-optimizer #'byte-optimize-concat)
 
