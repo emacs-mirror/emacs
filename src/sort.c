@@ -913,11 +913,23 @@ reverse_vector (Lisp_Object *s, const ptrdiff_t n)
 void
 tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
 {
+  if (SYMBOLP (predicate))
+    {
+      /* Attempt to resolve the function as far as possible ahead of time,
+	 to avoid having to do it for each call.  */
+      Lisp_Object fun = XSYMBOL (fun)->u.s.function;
+      if (SYMBOLP (fun))
+	/* Function was an alias; use slow-path resolution.  */
+	fun = indirect_function (fun);
+      /* Don't resolve to an autoload spec; that would be very slow.  */
+      if (!NILP (fun) && !(CONSP (fun) && EQ (XCAR (fun), Qautoload)))
+	predicate = fun;
+    }
+
   merge_state ms;
   Lisp_Object *lo = seq;
 
   merge_init (&ms, length, lo, predicate);
-
 
   /* March over the array once, left to right, finding natural runs,
      and extending short natural runs to minrun elements.  */
