@@ -4044,10 +4044,10 @@ from its frames to windows of other applications.
 
 @defun x-begin-drag targets action &optional frame return-frame
 This function begins a drag from @var{frame}, and returns when the
-session ends, either because the drop was successful, or because the
-drop was rejected.  The drop occurs when all mouse buttons are
-released on top of an X window other than @var{frame} (the @dfn{drop
-target}).
+drag-and-drop operation ends, either because the drop was successful,
+or because the drop was rejected.  The drop occurs when all mouse
+buttons are released on top of an X window other than @var{frame} (the
+@dfn{drop target}).
 
 @var{targets} is a list of strings describing selection targets, much
 like the @var{data-type} argument to @code{gui-get-selection}, that
