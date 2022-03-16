@@ -1367,7 +1367,8 @@ extern void x_scroll_bar_configure (GdkEvent *);
 
 extern void x_display_set_last_user_time (struct x_display_info *, Time);
 
-extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom);
+extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
+					      bool);
 extern void x_set_dnd_targets (Atom *, int);
 
 INLINE int

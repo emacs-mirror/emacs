@@ -6582,7 +6582,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 3, 0,
+DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 4, 0,
        doc: /* Begin dragging contents on FRAME, with targets TARGETS.
 TARGETS is a list of strings, which defines the X selection targets
 that will be available to the drop target.  Block until the mouse
@@ -6607,9 +6607,14 @@ Emacs.  For that reason, they are not mentioned here.  Consult
 "Drag-and-Drop Protocol for the X Window System" for more details:
 https://freedesktop.org/wiki/Specifications/XDND/.
 
+If RETURN-FRAME is non-nil, this function will return the frame if the
+mouse pointer moves onto an Emacs frame, after first moving out of
+FRAME.
+
 If ACTION is not specified or nil, `XdndActionCopy' is used
 instead.  */)
-  (Lisp_Object targets, Lisp_Object action, Lisp_Object frame)
+  (Lisp_Object targets, Lisp_Object action, Lisp_Object frame,
+   Lisp_Object return_frame)
 {
   struct frame *f = decode_window_system_frame (frame);
   int ntargets = 0;
@@ -6655,7 +6660,7 @@ instead.  */)
 
   x_set_dnd_targets (target_atoms, ntargets);
   lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
-				    xaction);
+				    xaction, !NILP (return_frame));
 
   return lval;
 }

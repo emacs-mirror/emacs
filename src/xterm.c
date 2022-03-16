@@ -771,6 +771,15 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 #endif
 
 static bool x_dnd_in_progress;
+
+/* Whether or not to return a frame from `x_dnd_begin_drag_and_drop'.
+
+   0 means to do nothing.  1 means to wait for the mouse to first exit
+   `x_dnd_frame'.  2 means to wait for the mouse to move onto a frame,
+   and 3 means to `x_dnd_return_frame_object'.  */
+static int x_dnd_return_frame;
+static struct frame *x_dnd_return_frame_object;
+
 static Window x_dnd_last_seen_window;
 static int x_dnd_last_protocol_version;
 static Time x_dnd_selection_timestamp;
@@ -1025,7 +1034,8 @@ x_set_dnd_targets (Atom *targets, int ntargets)
 }
 
 Lisp_Object
-x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction)
+x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
+			   bool return_frame_p)
 {
   XEvent next_event;
   struct input_event hold_quit;
@@ -1054,6 +1064,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction)
   x_dnd_mouse_rect_target = None;
   x_dnd_action = None;
   x_dnd_wanted_action = xaction;
+  x_dnd_return_frame = 0;
+
+  if (return_frame_p)
+    x_dnd_return_frame = 1;
 
   while (x_dnd_in_progress)
     {
@@ -1083,6 +1097,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction)
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 	  quit ();
 	}
+    }
+
+  if (x_dnd_return_frame == 3)
+    {
+      x_dnd_return_frame_object->mouse_moved = true;
+
+      XSETFRAME (action, x_dnd_return_frame_object);
+      return action;
     }
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
@@ -11606,6 +11628,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
 		  x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 
+		if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+		    && x_dnd_return_frame == 1)
+		  x_dnd_return_frame = 2;
+
+		if (x_dnd_return_frame == 2
+		    && x_window_to_frame (dpyinfo, target))
+		  {
+		    x_dnd_in_progress = false;
+		    x_dnd_return_frame_object
+		      = x_window_to_frame (dpyinfo, target);
+		    x_dnd_return_frame = 3;
+		  }
+
 		x_dnd_wanted_action = None;
 		x_dnd_last_seen_window = target;
 		x_dnd_last_protocol_version
@@ -12824,6 +12859,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  && x_dnd_last_protocol_version != -1
 			  && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
 			x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
+
+		      if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+			  && x_dnd_return_frame == 1)
+			x_dnd_return_frame = 2;
+
+		      if (x_dnd_return_frame == 2
+			  && x_window_to_frame (dpyinfo, target))
+			{
+			  x_dnd_in_progress = false;
+			  x_dnd_return_frame_object
+			    = x_window_to_frame (dpyinfo, target);
+			  x_dnd_return_frame = 3;
+			}
 
 		      x_dnd_last_seen_window = target;
 		      x_dnd_last_protocol_version

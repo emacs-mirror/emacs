@@ -4042,7 +4042,7 @@ you want to alter Emacs behavior, you can customize these variables.
   On some window systems, Emacs also supports dragging contents from
 itself to other frames.
 
-@defun x-begin-drag targets action &optional frame
+@defun x-begin-drag targets action &optional frame return-frame
 This function begins a drag from @var{frame}, and returns when the
 session ends, either because the drop was successful, or because the
 drop was rejected.  The drop occurs when all mouse buttons are
@@ -4060,6 +4060,12 @@ means to copy the contents of the selection @code{XdndSelection} to
 the drop target, or @code{XdndActionMove}, which means the same as
 @code{XdndActionCopy}, but also means the caller should delete
 whatever was saved into that selection afterwards.
+
+If @var{return-frame} is non-nil and the mouse moves over an Emacs
+frame after first moving out of @var{frame}, then that frame will be
+returned immediately.  This is useful when you want to treat dragging
+content from one frame to another specially, while also being able to
+drag content to other programs.
 
 If the drop was rejected or no drop target was found, this function
 returns @code{nil}.  Otherwise, it returns a symbol describing the
