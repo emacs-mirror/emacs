@@ -702,6 +702,19 @@ static Lisp_Object xg_default_icon_file;
 static char emacs_class[] = EMACS_CLASS;
 #endif
 
+#ifdef USE_GTK
+static int current_count;
+static int current_finish;
+static struct input_event *current_hold_quit;
+#endif
+
+enum
+{
+  X_EVENT_NORMAL,
+  X_EVENT_GOTO_OUT,
+  X_EVENT_DROP
+};
+
 enum xembed_info
   {
     XEMBED_MAPPED = 1 << 0
@@ -1072,9 +1085,11 @@ Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   bool return_frame_p)
 {
+#ifndef USE_GTK
   XEvent next_event;
-  struct input_event hold_quit;
   int finish;
+#endif
+  struct input_event hold_quit;
   char *atom_name;
   Lisp_Object action, ltimestamp;
 
@@ -1104,15 +1119,25 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (return_frame_p)
     x_dnd_return_frame = 1;
 
+  current_count = 0;
+
   while (x_dnd_in_progress)
     {
+#ifdef USE_GTK
       hold_quit.kind = NO_EVENT;
+      current_finish = X_EVENT_NORMAL;
+      current_hold_quit = &hold_quit;
+#endif
 
       block_input ();
+#ifndef USE_GTK
       XNextEvent (FRAME_X_DISPLAY (f), &next_event);
 
       handle_one_xevent (FRAME_DISPLAY_INFO (f),
 			 &next_event, &finish, &hold_quit);
+#else
+      gtk_main_iteration ();
+#endif
       unblock_input ();
 
       if (hold_quit.kind != NO_EVENT)
@@ -1130,9 +1155,16 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	    }
 
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+#ifdef USE_GTK
+	  current_hold_quit = NULL;
+#endif
 	  quit ();
 	}
     }
+
+#ifdef USE_GTK
+  current_hold_quit = NULL;
+#endif
 
   if (x_dnd_return_frame == 3)
     {
@@ -10125,13 +10157,6 @@ static struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
-enum
-{
-  X_EVENT_NORMAL,
-  X_EVENT_GOTO_OUT,
-  X_EVENT_DROP
-};
-
 /* Filter events for the current X input method.
    DPYINFO is the display this event is for.
    EVENT is the X event to filter.
@@ -10207,10 +10232,6 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
 #endif
 
 #ifdef USE_GTK
-static int current_count;
-static int current_finish;
-static struct input_event *current_hold_quit;
-
 /* This is the filter function invoked by the GTK event loop.
    It is invoked before the XEvent is translated to a GdkEvent,
    so we have a chance to act on the event before GTK.  */
