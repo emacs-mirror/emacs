@@ -118,6 +118,9 @@ static BLocker movement_locker;
 static BMessage volatile *popup_track_message;
 static int32 volatile alert_popup_value;
 
+static void *grab_view = NULL;
+static BLocker grab_view_locker;
+
 /* This could be a private API, but it's used by (at least) the Qt
    port, so it's probably here to stay.  */
 extern status_t get_subpixel_antialiasing (bool *);
@@ -1193,6 +1196,12 @@ public:
       gui_abort ("Wait for release message still exists");
 
     TearDownDoubleBuffering ();
+
+    if (!grab_view_locker.Lock ())
+      gui_abort ("Couldn't lock grab view locker");
+    if (grab_view == this)
+      grab_view = NULL;
+    grab_view_locker.Unlock ();
   }
 
   void
@@ -1447,6 +1456,17 @@ public:
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
 						    -(point.y - tt_absl_pos.y)));
 
+    if (!grab_view_locker.Lock ())
+      gui_abort ("Couldn't lock grab view locker");
+
+    if (this != grab_view)
+      {
+	grab_view_locker.Unlock ();
+	return;
+      }
+
+    grab_view_locker.Unlock ();
+
     if (movement_locker.Lock ())
       {
 	haiku_write (MOUSE_MOTION, &rq);
@@ -1461,6 +1481,12 @@ public:
     uint32 buttons;
 
     this->GetMouse (&point, &buttons, false);
+
+    if (!grab_view_locker.Lock ())
+      gui_abort ("Couldn't lock grab view locker");
+    if (buttons)
+      grab_view = this;
+    grab_view_locker.Unlock ();
 
     rq.window = this->Window ();
 
@@ -1496,7 +1522,8 @@ public:
     if (mods & B_OPTION_KEY)
       rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-    SetMouseEventMask (B_POINTER_EVENTS, B_LOCK_WINDOW_FOCUS);
+    SetMouseEventMask (B_POINTER_EVENTS, (B_LOCK_WINDOW_FOCUS
+					  | B_NO_POINTER_HISTORY));
 
     rq.time = system_time ();
     haiku_write (BUTTON_DOWN, &rq);
@@ -1509,6 +1536,12 @@ public:
     uint32 buttons;
 
     this->GetMouse (&point, &buttons, false);
+
+    if (!grab_view_locker.Lock ())
+      gui_abort ("Couldn't lock grab view locker");
+    if (!buttons)
+      grab_view = NULL;
+    grab_view_locker.Unlock ();
 
     if (!buttons && wait_for_release_message)
       {
