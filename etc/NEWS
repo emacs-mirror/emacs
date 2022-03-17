@@ -1264,7 +1264,9 @@ This allows setting a minimum display width for a region of text.
 +++
 ** New 'cursor-face 'text' property.
 This uses cursor-face instead of the default face when cursor is on or
-near the character and 'cursor-face-highlight-mode' is enabled.
+near the character and 'cursor-face-highlight-mode' is enabled.  The
+variable 'highlight-nonselected-windows' is similar to
+'highlight-nonselected-windows' but for this property.
 
 +++
 ** New event type 'touch-end'.
