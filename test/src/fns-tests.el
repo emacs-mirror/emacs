@@ -204,6 +204,52 @@
 		 [-1 2 3 4 5 5 7 8 9]))
   (should (equal (sort (vector 9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
 		 [9 8 7 5 5 4 3 2 -1]))
+  ;; Sort a reversed list and vector.
+  (should (equal
+	 (sort (reverse (number-sequence 1 1000)) (lambda (x y) (< x y)))
+	 (number-sequence 1 1000)))
+  (should (equal
+	   (sort (reverse (vconcat (number-sequence 1 1000)))
+                 (lambda (x y) (< x y)))
+	 (vconcat (number-sequence 1 1000))))
+  ;; Sort a constant list and vector.
+  (should (equal
+           (sort (make-vector 100 1) (lambda (x y) (> x y)))
+           (make-vector 100 1)))
+  (should (equal
+           (sort (append (make-vector 100 1) nil) (lambda (x y) (> x y)))
+           (append (make-vector 100 1) nil)))
+  ;; sort a long list and vector with every pair reversed.
+  (let ((vec (make-vector 100000 nil))
+        (logxor-vec (make-vector 100000 nil)))
+    (dotimes (i 100000)
+      (aset logxor-vec i  (logxor i 1))
+      (aset vec i i))
+    (should (equal
+             (sort logxor-vec (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append logxor-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; sort a list and vector with seven swaps
+  (let ((vec (make-vector 100 nil))
+        (swap-vec (make-vector 100 nil)))
+    (dotimes (i 100)
+      (aset vec i (- i 50))
+      (aset swap-vec i (- i 50)))
+    (mapc (lambda (p)
+	(let ((tmp (elt swap-vec (car p))))
+	  (aset swap-vec (car p) (elt swap-vec (cdr p)))
+	  (aset swap-vec (cdr p) tmp)))
+          '((48 . 94) (75 . 77) (33 . 41) (92 . 52)
+            (10 . 96) (1 . 14) (43 . 81)))
+    (should (equal
+             (sort (copy-sequence swap-vec) (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append swap-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; Check for sorting stability.
   (should (equal
 	   (sort
 	    (vector
