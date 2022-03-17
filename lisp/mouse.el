@@ -2991,6 +2991,21 @@ highlight the original region when
 (declare-function rectangle-intersect-p "rect" (pos1 size1 pos2 size2))
 (declare-function x-begin-drag "xfns.c")
 
+(defun mouse-drag-and-drop-region-display-tooltip (tooltip)
+  "Display TOOLTIP, a tooltip string, using `x-show-tip'.
+Call `tooltip-show-help-non-mode' instead on non-graphical displays."
+  (if (display-graphic-p)
+      (x-show-tip tooltip)
+    (tooltip-show-help-non-mode tooltip)))
+
+(defun mouse-drag-and-drop-region-hide-tooltip ()
+  "Hide any tooltip currently displayed.
+Call `tooltip-show-help-non-mode' to clear the echo area message
+instead on non-graphical displays."
+  (if (display-graphic-p)
+      (x-hide-tip)
+    (tooltip-show-help-non-mode nil)))
+
 (defun mouse-drag-and-drop-region (event)
   "Move text in the region to point where mouse is dragged to.
 The transportation of text is also referred as `drag and drop'.
@@ -3087,6 +3102,7 @@ is copied instead of being cut."
                                 (throw 'loop t)))))))
 
               (when (and mouse-drag-and-drop-region-cross-program
+                         (display-graphic-p)
                          (fboundp 'x-begin-drag)
                          (framep (posn-window (event-end event)))
                          (let ((location (posn-x-y (event-end event)))
@@ -3097,7 +3113,7 @@ is copied instead of being cut."
                                   (frame-pixel-width frame))
                                (> (cdr location)
                                   (frame-pixel-height frame)))))
-                (x-hide-tip)
+                (mouse-drag-and-drop-region-hide-tooltip)
                 (gui-set-selection 'XdndSelection value-selection)
                 (let ((drag-action-or-frame
                        (x-begin-drag '("UTF8_STRING" "text/plain"
@@ -3183,8 +3199,8 @@ is copied instead of being cut."
                   ;; which change the text properties, and
                   ;; `text-tooltip' can potentially be the text which
                   ;; will be pasted.
-                  (x-show-tip text-tooltip)
-                (x-hide-tip))
+                  (mouse-drag-and-drop-region-display-tooltip text-tooltip)
+                (mouse-drag-and-drop-region-hide-tooltip))
 
               ;; Show cursor and highlight the original region.
               (when mouse-drag-and-drop-region-show-cursor
