@@ -1093,6 +1093,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   char *atom_name;
   Lisp_Object action, ltimestamp;
 
+  if (!FRAME_VISIBLE_P (f))
+    error ("Frame is invisible");
+
   if (x_dnd_in_progress)
     error ("A drag-and-drop session is already in progress");
 
