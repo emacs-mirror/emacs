@@ -1119,7 +1119,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (return_frame_p)
     x_dnd_return_frame = 1;
 
+#ifdef USE_GTK
   current_count = 0;
+#endif
 
   while (x_dnd_in_progress)
     {
