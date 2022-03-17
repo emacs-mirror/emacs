@@ -1159,11 +1159,9 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
   else
     {
       char number[sizeof "-999999"];
-
-      /* Use XFIXNUM instead of XFIXNAT to work around GCC bug 80776.  */
-      int i = XFIXNUM (Frandom (make_fixnum (1000000)));
-      eassume (0 <= i && i < 1000000);
-
+      EMACS_INT r = get_random ();
+      eassume (0 <= r);
+      int i = r % 1000000;
       AUTO_STRING_WITH_LEN (lnumber, number, sprintf (number, "-%d", i));
       genbase = concat2 (name, lnumber);
       if (NILP (Fget_buffer (genbase)))
