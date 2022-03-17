@@ -7265,7 +7265,6 @@ process sentinels.  They shall not disturb each other."
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
-  (skip-unless noninteractive)
   ;; We have autoloaded objects from tramp.el and tramp-archive.el.
   ;; In order to remove them, we first need to load both packages.
   (require 'tramp)
@@ -7331,7 +7330,13 @@ Since it unloads Tramp, it shall be the last test to run."
 	     (and (string-match-p "^tramp" (symbol-name fun))
 		  (ert-fail
 		   (format "Function `%s' still contains Tramp advice" x))))
-	   x)))))
+	   x))))
+
+  ;; Reload.
+  (require 'tramp)
+  (require 'tramp-archive)
+  (should (featurep 'tramp))
+  (should (featurep 'tramp-archive)))
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp].
