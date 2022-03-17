@@ -81,6 +81,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haiku_support.h"
 
 #define SCROLL_BAR_UPDATE 3000
+#define WAIT_FOR_RELEASE 3001
 
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
 static key_map *key_map = NULL;
@@ -1177,6 +1178,7 @@ public:
 #endif
 
   BPoint tt_absl_pos;
+  BMessage *wait_for_release_message = NULL;
 
   color_space cspace;
 
@@ -1187,6 +1189,9 @@ public:
 
   ~EmacsView ()
   {
+    if (wait_for_release_message)
+      gui_abort ("Wait for release message still exists");
+
     TearDownDoubleBuffering ();
   }
 
@@ -1194,6 +1199,28 @@ public:
   AttachedToWindow (void)
   {
     cspace = B_RGBA32;
+  }
+
+  void
+  MessageReceived (BMessage *msg)
+  {
+    uint32 buttons;
+    BLooper *looper = Looper ();
+
+    if (msg->what == WAIT_FOR_RELEASE)
+      {
+	if (wait_for_release_message)
+	  gui_abort ("Wait for release message already exists");
+
+	GetMouse (NULL, &buttons, false);
+
+	if (!buttons)
+	  msg->SendReply (msg);
+	else
+	  wait_for_release_message = looper->DetachCurrentMessage ();
+      }
+    else
+      BView::MessageReceived (msg);
   }
 
 #ifdef USE_BE_CAIRO
@@ -1482,6 +1509,16 @@ public:
     uint32 buttons;
 
     this->GetMouse (&point, &buttons, false);
+
+    if (!buttons && wait_for_release_message)
+      {
+	wait_for_release_message->SendReply (wait_for_release_message);
+	delete wait_for_release_message;
+	wait_for_release_message = NULL;
+
+	previous_buttons = buttons;
+	return;
+      }
 
     rq.window = this->Window ();
 
@@ -3869,4 +3906,79 @@ void
 BMessage_delete (void *message)
 {
   delete (BMessage *) message;
+}
+
+static int32
+be_drag_message_thread_entry (void *thread_data)
+{
+  BMessenger *messenger;
+  BMessage reply;
+
+  messenger = (BMessenger *) thread_data;
+  messenger->SendMessage (WAIT_FOR_RELEASE, &reply);
+
+  return 0;
+}
+
+void
+be_drag_message (void *view, void *message,
+		 void (*block_input_function) (void),
+		 void (*unblock_input_function) (void),
+		 void (*process_pending_signals_function) (void))
+{
+  EmacsView *vw = (EmacsView *) view;
+  BMessage *msg = (BMessage *) message;
+  BMessage wait_for_release;
+  BMessenger messenger (vw);
+  struct object_wait_info infos[2];
+  ssize_t stat;
+
+  block_input_function ();
+  if (!vw->LockLooper ())
+    gui_abort ("Failed to lock view looper for drag");
+
+  vw->DragMessage (msg, BRect (0, 0, 0, 0));
+  vw->UnlockLooper ();
+
+  infos[0].object = port_application_to_emacs;
+  infos[0].type = B_OBJECT_TYPE_PORT;
+  infos[0].events = B_EVENT_READ;
+
+  infos[1].object = spawn_thread (be_drag_message_thread_entry,
+				  "Drag waiter thread",
+				  B_DEFAULT_MEDIA_PRIORITY,
+				  (void *) &messenger);
+  infos[1].type = B_OBJECT_TYPE_THREAD;
+  infos[1].events = B_EVENT_INVALID;
+  unblock_input_function ();
+
+  if (infos[1].object < B_OK)
+    return;
+
+  block_input_function ();
+  resume_thread (infos[1].object);
+  unblock_input_function ();
+
+  while (true)
+    {
+      block_input_function ();
+      stat = wait_for_objects ((struct object_wait_info *) &infos, 2);
+      unblock_input_function ();
+
+      if (stat == B_INTERRUPTED || stat == B_TIMED_OUT
+	  || stat == B_WOULD_BLOCK)
+	continue;
+
+      if (stat < B_OK)
+	gui_abort ("Failed to wait for drag");
+
+      if (infos[0].events & B_EVENT_READ)
+	process_pending_signals_function ();
+
+      if (infos[1].events & B_EVENT_INVALID)
+	return;
+
+      infos[0].events = B_EVENT_READ;
+      infos[1].events = B_EVENT_INVALID;
+    }
 }

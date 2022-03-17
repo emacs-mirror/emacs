@@ -87,6 +87,10 @@ extern "C"
 				  ssize_t *size_return);
   extern int be_get_refs_data (void *message, const char *name,
 			       int32 index, char **path_buffer);
+  extern void *be_create_simple_message (void);
+  extern int be_add_message_data (void *message, const char *name,
+				  int32 type_code, const void *buf,
+				  ssize_t buf_size);
 #ifdef __cplusplus
 };
 #endif

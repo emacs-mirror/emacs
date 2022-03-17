@@ -321,3 +321,19 @@ be_get_message_data (void *message, const char *name,
   return msg->FindData (name, type_code,
 			index, buf_return, size_return) != B_OK;
 }
+
+void *
+be_create_simple_message (void)
+{
+  return new BMessage (B_SIMPLE_DATA);
+}
+
+int
+be_add_message_data (void *message, const char *name,
+		     int32 type_code, const void *buf,
+		     ssize_t buf_size)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->AddData (name, type_code, buf, buf_size) != B_OK;
+}

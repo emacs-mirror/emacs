@@ -945,6 +945,12 @@ extern "C"
   extern void
   BMessage_delete (void *message);
 
+  extern void
+  be_drag_message (void *view, void *message,
+		   void (*block_input_function) (void),
+		   void (*unblock_input_function) (void),
+		   void (*process_pending_signals_function) (void));
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);

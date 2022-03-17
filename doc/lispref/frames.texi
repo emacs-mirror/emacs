@@ -4042,7 +4042,7 @@ you want to alter Emacs behavior, you can customize these variables.
   On capable window systems, Emacs also supports dragging contents
 from its frames to windows of other applications.
 
-@defun x-begin-drag targets action &optional frame return-frame
+@defun x-begin-drag targets &optional action frame return-frame
 This function begins a drag from @var{frame}, and returns when the
 drag-and-drop operation ends, either because the drop was successful,
 or because the drop was rejected.  The drop occurs when all mouse

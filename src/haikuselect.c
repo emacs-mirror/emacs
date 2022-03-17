@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "haikuselect.h"
 #include "haikuterm.h"
+#include "haiku_support.h"
 
 #include <stdlib.h>
 
@@ -181,10 +182,10 @@ same as `SECONDARY'.  */)
 
 /* Return the Lisp representation of MESSAGE.
 
-   It is an alist of strings, denoting message parameter names, to a
-   list the form (TYPE . (DATA ...)), where TYPE is an integer
-   denoting the system data type of DATA, and DATA is in the general
-   case a unibyte string.
+   It is an alist of strings, denoting message field names, to a list
+   of the form (TYPE DATA ...), where TYPE is an integer denoting the
+   system data type of DATA, and DATA is in the general case a unibyte
+   string.
 
    If TYPE is a symbol instead of an integer, then DATA was specially
    decoded.  If TYPE is `ref', then DATA is the absolute file name of
@@ -311,6 +312,220 @@ haiku_message_to_lisp (void *message)
   return list;
 }
 
+static int32
+lisp_to_type_code (Lisp_Object obj)
+{
+  if (BIGNUMP (obj))
+    return (int32) bignum_to_intmax (obj);
+
+  if (FIXNUMP (obj))
+    return XFIXNUM (obj);
+
+  if (EQ (obj, Qstring))
+    return 'CSTR';
+  else if (EQ (obj, Qshort))
+    return 'SHRT';
+  else if (EQ (obj, Qlong))
+    return 'LONG';
+  else if (EQ (obj, Qllong))
+    return 'LLNG';
+  else if (EQ (obj, Qbyte))
+    return 'BYTE';
+  else if (EQ (obj, Qref))
+    return 'RREF';
+  else if (EQ (obj, Qchar))
+    return 'CHAR';
+  else if (EQ (obj, Qbool))
+    return 'BOOL';
+  else
+    return -1;
+}
+
+static void
+haiku_lisp_to_message (Lisp_Object obj, void *message)
+{
+  Lisp_Object tem, t1, name, type_sym, t2, data;
+  int32 type_code, long_data;
+  int16 short_data;
+  int64 llong_data;
+  int8 char_data;
+  bool bool_data;
+  intmax_t t4;
+
+  CHECK_LIST (obj);
+  for (tem = obj; CONSP (tem); tem = XCDR (tem))
+    {
+      t1 = XCAR (tem);
+      CHECK_CONS (t1);
+
+      name = XCAR (t1);
+      CHECK_STRING (name);
+
+      t1 = XCDR (t1);
+      CHECK_CONS (t1);
+
+      type_sym = XCAR (t1);
+      type_code = lisp_to_type_code (type_sym);
+
+      if (type_code == -1)
+	signal_error ("Unknown data type", type_sym);
+
+      CHECK_LIST (t1);
+      for (t2 = XCDR (t1); CONSP (t2); t2 = XCDR (t2))
+	{
+	  data = XCAR (t2);
+
+	  switch (type_code)
+	    {
+	    case 'RREF':
+	      signal_error ("Cannot deserialize data type", type_sym);
+	      break;
+
+	    case 'SHRT':
+	      if (!TYPE_RANGED_FIXNUMP (int16, data))
+		signal_error ("Invalid value", data);
+	      short_data = XFIXNUM (data);
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, &short_data,
+				   sizeof short_data);
+	      unblock_input ();
+	      break;
+
+	    case 'LONG':
+	      if (BIGNUMP (data))
+		{
+		  t4 = bignum_to_intmax (data);
+
+		  /* We know that int32 is signed.  */
+		  if (!t4 || t4 > TYPE_MINIMUM (int32)
+		      || t4 < TYPE_MAXIMUM (int32))
+		    signal_error ("Value too large", data);
+
+		  long_data = (int32) t4;
+		}
+	      else
+		{
+		  if (!TYPE_RANGED_FIXNUMP (int32, data))
+		    signal_error ("Invalid value", data);
+
+		  long_data = (int32) XFIXNUM (data);
+		}
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, &long_data,
+				   sizeof long_data);
+	      unblock_input ();
+	      break;
+
+	    case 'LLNG':
+	      if (BIGNUMP (data))
+		{
+		  t4 = bignum_to_intmax (data);
+
+		  if (!t4 || t4 > TYPE_MINIMUM (int64)
+		      || t4 < TYPE_MAXIMUM (int64))
+		    signal_error ("Value too large", data);
+
+		  llong_data = (int64) t4;
+		}
+	      else
+		{
+		  if (!TYPE_RANGED_FIXNUMP (int64, data))
+		    signal_error ("Invalid value", data);
+
+		  llong_data = (int64) XFIXNUM (data);
+		}
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, &llong_data,
+				   sizeof llong_data);
+	      unblock_input ();
+	      break;
+
+	    case 'CHAR':
+	    case 'BYTE':
+	      if (!TYPE_RANGED_FIXNUMP (int8, data))
+		signal_error ("Invalid value", data);
+	      char_data = XFIXNUM (data);
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, &char_data,
+				   sizeof char_data);
+	      unblock_input ();
+	      break;
+
+	    case 'BOOL':
+	      bool_data = !NILP (data);
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, &bool_data,
+				   sizeof bool_data);
+	      unblock_input ();
+	      break;
+
+	    default:
+	      CHECK_STRING (data);
+
+	      block_input ();
+	      be_add_message_data (message, SSDATA (name),
+				   type_code, SDATA (data),
+				   SBYTES (data));
+	      unblock_input ();
+	    }
+	}
+      CHECK_LIST_END (t2, t1);
+    }
+  CHECK_LIST_END (tem, obj);
+}
+
+DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
+       2, 2, 0,
+       doc: /* Begin dragging MESSAGE from FRAME.
+
+MESSAGE an alist of strings, denoting message field names, to a list
+the form (TYPE DATA ...), where TYPE is an integer denoting the system
+data type of DATA, and DATA is in the general case a unibyte string.
+
+If TYPE is a symbol instead of an integer, then DATA was specially
+decoded.  If TYPE is `ref', then DATA is the absolute file name of a
+file, or nil if decoding the file name failed.  If TYPE is `string',
+then DATA is a unibyte string.  If TYPE is `short', then DATA is a
+16-bit signed integer.  If TYPE is `long', then DATA is a 32-bit
+signed integer.  If TYPE is `llong', then DATA is a 64-bit signed
+integer. If TYPE is `byte' or `char', then DATA is an 8-bit signed
+integer.  If TYPE is `bool', then DATA is a boolean.
+
+FRAME is a window system frame that must be visible, from which the
+drag will originate.  */)
+  (Lisp_Object frame, Lisp_Object message)
+{
+  specpdl_ref idx;
+  void *be_message;
+  struct frame *f;
+
+  idx = SPECPDL_INDEX ();
+  f = decode_window_system_frame (frame);
+
+  if (!FRAME_VISIBLE_P (f))
+    error ("Frame is invisible");
+
+  be_message = be_create_simple_message ();
+
+  record_unwind_protect_ptr (BMessage_delete, be_message);
+  haiku_lisp_to_message (message, be_message);
+  be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
+		   block_input, unblock_input,
+		   process_pending_signals);
+
+  return unbind_to (idx, Qnil);
+}
+
 void
 syms_of_haikuselect (void)
 {
@@ -333,4 +548,5 @@ syms_of_haikuselect (void)
   defsubr (&Shaiku_selection_put);
   defsubr (&Shaiku_selection_targets);
   defsubr (&Shaiku_selection_owner_p);
+  defsubr (&Shaiku_drag_message);
 }
