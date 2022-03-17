@@ -6540,7 +6540,7 @@ The overlay is returned by the function.")
         (unless (equal new rol)
           (set-window-parameter window 'internal-region-overlay new))))))
 
-(defcustom cursor-face-highlight-nonselected-window cursor-in-non-selected-windows
+(defcustom cursor-face-highlight-nonselected-window nil
   "Non-nil means highlight text with `cursor-face' even in nonselected windows.
 This variable is similar to `highlight-nonselected-windows'."
   :local t
@@ -6550,14 +6550,12 @@ This variable is similar to `highlight-nonselected-windows'."
 (defun redisplay--update-cursor-face-highlight (window)
   "Highlights the overlay used to highlight text with cursor-face."
   (let ((rol (window-parameter window 'internal-cursor-face-overlay)))
-    (if-let (((or cursor-face-highlight-nonselected-window
-                  (eq window (selected-window))
-                  (and (window-minibuffer-p)
-                       (eq window (minibuffer-selected-window)))))
-             (pt (window-point window))
-             (value (get-text-property pt 'cursor-face))
-             ;; Extra code needed here for when passing plists.
-             (cursor-face (if (facep value) value)))
+    (if-let* (((or cursor-face-highlight-nonselected-window
+                   (eq window (selected-window))
+                   (and (window-minibuffer-p)
+                        (eq window (minibuffer-selected-window)))))
+              (pt (window-point window))
+              (cursor-face (get-text-property pt 'cursor-face)))
         (let* ((start (previous-single-property-change
                        (1+ pt) 'cursor-face nil (point-min)))
                (end (next-single-property-change
