@@ -262,6 +262,16 @@ DEFAULT-BODY, if present, is used as the body of a default method.
          (declarations nil)
          (methods ())
          (options ())
+         (warnings
+          (let ((nonsymargs
+                 (delq nil (mapcar (lambda (arg) (unless (symbolp arg) arg))
+                                   args))))
+            (when nonsymargs
+              (list
+               (macroexp-warn-and-return
+                (format "Non-symbol arguments to cl-defgeneric: %s"
+                        (mapconcat #'prin1-to-string nonsymargs ""))
+                nil nil nil nonsymargs)))))
          next-head)
     (while (progn (setq next-head (car-safe (car options-and-methods)))
                   (or (keywordp next-head)
@@ -284,6 +294,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
       (setq name (gv-setter (cadr name))))
     `(prog1
          (progn
+           ,@warnings
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
              ,(if (consp doc)           ;An expression rather than a constant.
