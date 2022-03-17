@@ -50,6 +50,7 @@
 (require 'subr-x)
 (require 'yank-media)
 (require 'mailcap)
+(require 'sendmail)
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -8016,7 +8017,18 @@ is for the internal use."
 	    (select-safe-coding-system-function nil)
 	    message-required-mail-headers
 	    message-generate-hashcash
-	    rfc2047-encode-encoded-words)
+	    rfc2047-encode-encoded-words
+            ;; If `message-sendmail-envelope-from' is `header' then
+            ;; the envelope-from will be the original sender's
+            ;; address, not the resender's.  But when resending, the
+            ;; envelope-from should be the resender's address.  Defuse
+            ;; that particular case.
+            (message-sendmail-envelope-from
+             (and (not (and (eq message-sendmail-envelope-from
+                                'obey-mail-envelope-from)
+                            (eq mail-envelope-from 'header)))
+                  (not (eq message-sendmail-envelope-from 'header))
+                  message-sendmail-envelope-from)))
 	(message-send-mail))
       (when gcc
 	(message-goto-eoh)
