@@ -917,7 +917,7 @@ tim_sort (Lisp_Object predicate, Lisp_Object *seq, const ptrdiff_t length)
     {
       /* Attempt to resolve the function as far as possible ahead of time,
 	 to avoid having to do it for each call.  */
-      Lisp_Object fun = XSYMBOL (fun)->u.s.function;
+      Lisp_Object fun = XSYMBOL (predicate)->u.s.function;
       if (SYMBOLP (fun))
 	/* Function was an alias; use slow-path resolution.  */
 	fun = indirect_function (fun);
