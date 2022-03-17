@@ -223,7 +223,7 @@ gallop_left (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 {
   Lisp_Object pred = ms->predicate;
 
-  eassume (key && a && n > 0 && hint >= 0 && hint < n);
+  eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
@@ -306,7 +306,7 @@ gallop_right (merge_state *ms, const Lisp_Object key, Lisp_Object *a,
 {
   Lisp_Object pred = ms->predicate;
 
-  eassume (key && a && n > 0 && hint >= 0 && hint < n);
+  eassume (a && n > 0 && hint >= 0 && hint < n);
 
   a += hint;
   ptrdiff_t lastofs = 0;
