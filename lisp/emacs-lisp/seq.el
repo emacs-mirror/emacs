@@ -418,8 +418,9 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
     (catch 'seq--break
       (seq-doseq (e sequence)
-        (when (funcall (or testfn #'equal) e elt)
-          (throw 'seq--break t)))
+        (let ((r (funcall (or testfn #'equal) e elt)))
+          (when r
+            (throw 'seq--break r))))
       nil))
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
