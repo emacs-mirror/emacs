@@ -1459,7 +1459,7 @@ public:
     if (!grab_view_locker.Lock ())
       gui_abort ("Couldn't lock grab view locker");
 
-    if (this != grab_view)
+    if (grab_view && this != grab_view)
       {
 	grab_view_locker.Unlock ();
 	return;
