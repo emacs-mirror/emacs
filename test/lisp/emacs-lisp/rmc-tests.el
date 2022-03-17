@@ -86,7 +86,6 @@
 a: [A]aa                 b: [B]bb                 c: [C]cc
                                                   a really long
                                                   description of ccc
-                                                  \n?: [?]
-")))))
+                                                  \n")))))
 
 ;;; rmc-tests.el ends here
