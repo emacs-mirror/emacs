@@ -3872,6 +3872,21 @@ nil, it defaults to the selected frame. */)
   return unbind_to (count, font);
 }
 
+#if GTK_CHECK_VERSION (3, 14, 0)
+DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
+       doc: /* Toggle interactive GTK debugging.   */)
+  (Lisp_Object enable)
+{
+  gboolean enable_debug = !NILP (enable);
+
+  block_input ();
+  gtk_window_set_interactive_debugging (enable_debug);
+  unblock_input ();
+
+  return NILP (enable) ? Qnil : Qt;
+}
+#endif /* GTK_CHECK_VERSION (3, 14, 0) */
+
 /* ==========================================================================
 
     Lisp interface declaration
@@ -3970,6 +3985,10 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
+
+#if GTK_CHECK_VERSION (3, 14, 0)
+  defsubr (&Sx_gtk_debug);
+#endif
 
   defsubr (&Spgtk_hide_others);
   defsubr (&Spgtk_hide_emacs);
