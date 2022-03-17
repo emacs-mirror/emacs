@@ -165,6 +165,10 @@ struct haiku_output
 
   /* The pending position we're waiting for. */
   int pending_top, pending_left;
+
+  /* Whether or not adjust_frame_size and haiku_set_offset have yet
+     been called by haiku_create_frame.  */
+  bool configury_done;
 };
 
 struct x_output

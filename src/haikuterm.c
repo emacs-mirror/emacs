@@ -3779,6 +3779,13 @@ haiku_toggle_invisible_pointer (struct frame *f, bool invisible_p)
 static void
 haiku_fullscreen (struct frame *f)
 {
+  /* When FRAME_OUTPUT_DATA (f)->configury_done is false, the frame is
+     being created, and its regular width and height have not yet been
+     set.  This function will be called again by haiku_create_frame,
+     so do nothing.  */
+  if (!FRAME_OUTPUT_DATA (f)->configury_done)
+    return;
+
   if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
     {
       EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);

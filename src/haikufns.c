@@ -902,6 +902,11 @@ haiku_create_frame (Lisp_Object parms)
     BWindow_center_on_screen (FRAME_HAIKU_WINDOW (f));
   unblock_input ();
 
+  FRAME_OUTPUT_DATA (f)->configury_done = true;
+
+  if (f->want_fullscreen != FULLSCREEN_NONE)
+    FRAME_TERMINAL (f)->fullscreen_hook (f);
+
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */
   Vwindow_list = Qnil;
