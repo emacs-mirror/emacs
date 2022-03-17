@@ -200,7 +200,7 @@ take effect on menu items until the menu bar is updated again."
                 (unless (cadr field)
                   ;; Add B_MIME_TYPE to the message if the type was not
                   ;; previously defined.
-                  (push 1296649641 (alist-get (car selection-result) message
+                  (push 1296649541 (alist-get (car selection-result) message
                                               nil nil #'equal))))
               (push (cadr selection-result)
                     (cdr (alist-get (car selection-result) message
