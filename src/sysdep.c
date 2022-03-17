@@ -2200,6 +2200,16 @@ get_random (void)
   return val & INTMASK;
 }
 
+/* Return a random unsigned long.  */
+unsigned long int
+get_random_ulong (void)
+{
+  unsigned long int r = 0;
+  for (int i = 0; i < (ULONG_WIDTH + RAND_BITS - 1) / RAND_BITS; i++)
+    r = random () ^ (r << RAND_BITS) ^ (r >> (ULONG_WIDTH - RAND_BITS));
+  return r;
+}
+
 #ifndef HAVE_SNPRINTF
 /* Approximate snprintf as best we can on ancient hosts that lack it.  */
 int

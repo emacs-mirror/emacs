@@ -55,41 +55,24 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   return argument;
 }
 
+/* Return a random Lisp fixnum I in the range 0 <= I < LIM,
+   where LIM is taken from a positive fixnum.  */
 static Lisp_Object
-get_random_bignum (Lisp_Object limit)
+get_random_fixnum (EMACS_INT lim)
 {
-  /* This is a naive transcription into bignums of the fixnum algorithm.
-     I'd be quite surprised if that's anywhere near the best algorithm
-     for it.  */
-  while (true)
+  /* Return the remainder of a random integer R (in range 0..INTMASK)
+     divided by LIM, except reject the rare case where R is so close
+     to INTMASK that the remainder isn't random.  */
+  EMACS_INT difflim = INTMASK - lim + 1, diff, remainder;
+  do
     {
-      Lisp_Object val = make_fixnum (0);
-      Lisp_Object lim = limit;
-      int bits = 0;
-      int bitsperiteration = FIXNUM_BITS - 1;
-      do
-        {
-          /* Shift by one so it is a valid positive fixnum.  */
-          EMACS_INT rand = get_random () >> 1;
-          Lisp_Object lrand = make_fixnum (rand);
-          bits += bitsperiteration;
-          val = CALLN (Flogior,
-		       Fash (val, make_fixnum (bitsperiteration)),
-		       lrand);
-          lim = Fash (lim, make_fixnum (- bitsperiteration));
-        }
-      while (!EQ (lim, make_fixnum (0)));
-      /* Return the remainder, except reject the rare case where
-	 get_random returns a number so close to INTMASK that the
-	 remainder isn't random.  */
-      Lisp_Object remainder = Frem (val, limit);
-      if (!NILP (CALLN (Fleq,
-			CALLN (Fminus, val, remainder),
-			CALLN (Fminus,
-			       Fash (make_fixnum (1), make_fixnum (bits)),
-			       limit))))
-	return remainder;
+      EMACS_INT r = get_random ();
+      remainder = r % lim;
+      diff = r - remainder;
     }
+  while (difflim < diff);
+
+  return make_fixnum (remainder);
 }
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
@@ -103,32 +86,26 @@ With a string argument, set the seed based on the string's contents.
 See Info node `(elisp)Random Numbers' for more details.  */)
   (Lisp_Object limit)
 {
-  EMACS_INT val;
-
   if (EQ (limit, Qt))
     init_random ();
   else if (STRINGP (limit))
     seed_random (SSDATA (limit), SBYTES (limit));
-  if (BIGNUMP (limit))
+  else if (FIXNUMP (limit))
     {
-      if (0 > mpz_sgn (*xbignum_val (limit)))
-        xsignal2 (Qwrong_type_argument, Qnatnump, limit);
-      return get_random_bignum (limit);
+      EMACS_INT lim = XFIXNUM (limit);
+      if (lim <= 0)
+        xsignal1 (Qargs_out_of_range, limit);
+      return get_random_fixnum (lim);
+    }
+  else if (BIGNUMP (limit))
+    {
+      struct Lisp_Bignum *lim = XBIGNUM (limit);
+      if (mpz_sgn (*bignum_val (lim)) <= 0)
+        xsignal1 (Qargs_out_of_range, limit);
+      return get_random_bignum (lim);
     }
 
-  val = get_random ();
-  if (FIXNUMP (limit) && 0 < XFIXNUM (limit))
-    while (true)
-      {
-	/* Return the remainder, except reject the rare case where
-	   get_random returns a number so close to INTMASK that the
-	   remainder isn't random.  */
-	EMACS_INT remainder = val % XFIXNUM (limit);
-	if (val - remainder <= INTMASK - XFIXNUM (limit) + 1)
-	  return make_fixnum (remainder);
-	val = get_random ();
-      }
-  return make_ufixnum (val);
+  return make_ufixnum (get_random ());
 }
 
 /* Random data-structure functions.  */
