@@ -1123,8 +1123,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   while (x_dnd_in_progress)
     {
-#ifdef USE_GTK
       hold_quit.kind = NO_EVENT;
+#ifdef USE_GTK
       current_finish = X_EVENT_NORMAL;
       current_hold_quit = &hold_quit;
 #endif
