@@ -621,7 +621,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read (format-prompt "Where is command" fn)
-		                obarray 'commandp t nil nil
+		                obarray #'commandp t nil nil
 		                (and fn (symbol-name fn))))
      (list (unless (equal val "") (intern val))
 	   current-prefix-arg)))
@@ -2147,7 +2147,10 @@ the suggested string to use instead.  See
                   confusables ", ")
        string))))
 
-(defun help-command-error-confusable-suggestions (data _context _signal)
+(defun help-command-error-confusable-suggestions (data context signal)
+  ;; Delegate most of the work to the original default value of
+  ;; `command-error-function' implemented in C.
+  (command-error-default-function data context signal)
   (pcase data
     (`(void-variable ,var)
      (let ((suggestions (help-uni-confusable-suggestions
@@ -2156,8 +2159,12 @@ the suggested string to use instead.  See
          (princ (concat "\n  " suggestions) t))))
     (_ nil)))
 
-(add-function :after command-error-function
-              #'help-command-error-confusable-suggestions)
+(when (eq command-error-function #'command-error-default-function)
+  ;; Override the default set in the C code.
+  ;; This is not done using `add-function' so as to loosen the bootstrap
+  ;; dependencies.
+  (setq command-error-function
+        #'help-command-error-confusable-suggestions))
 
 (define-obsolete-function-alias 'help-for-help-internal #'help-for-help "28.1")
 
