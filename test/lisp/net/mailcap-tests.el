@@ -79,45 +79,45 @@
    ;; execution errors when running the tests from the Makefile
    ;; because then HOME=/nonexistent.
    (ert-with-temp-directory home
-     (setenv "HOME" home)
-     ;; Now parse our resource mailcap file.
-     (mailcap-parse-mailcap (ert-resource-file "mailcap"))
+     (with-environment-variables (("HOME" home))
+       ;; Now parse our resource mailcap file.
+       (mailcap-parse-mailcap (ert-resource-file "mailcap"))
 
-     ;; Assert that we get what we have defined.
-     (dolist (type '("audio/ogg" "audio/flac"))
-       (should (string= "mpv %s" (mailcap-mime-info type))))
-     (should (string= "aplay %s" (mailcap-mime-info "audio/x-wav")))
-     (should (string= "emacsclient -t %s"
-                      (mailcap-mime-info "text/plain")))
-     ;; evince is chosen because acroread has test=false and okular
-     ;; comes later.
-     (should (string= "evince %s"
-                      (mailcap-mime-info "application/pdf")))
-     (should (string= "inkscape %s"
-                      (mailcap-mime-info "image/svg+xml")))
-     (should (string= "eog %s"
-                      (mailcap-mime-info "image/jpg")))
-     ;; With REQUEST being a number, all fields of the selected entry
-     ;; should be returned.
-     (should (equal '((viewer . "evince %s")
-                      (type . "application/pdf"))
-                    (mailcap-mime-info "application/pdf" 1)))
-     ;; With 'all, all applicable entries should be returned.
-     (should (equal '(((viewer . "evince %s")
-                       (type . "application/pdf"))
-                      ((viewer . "okular %s")
-                       (type . "application/pdf")))
-                    (mailcap-mime-info "application/pdf" 'all)))
-     (let* ((c nil)
-            (toggle (lambda (_) (setq c (not c)))))
-       (mailcap-add "audio/ogg" "toggle %s" toggle)
-       (should (string= "toggle %s" (mailcap-mime-info "audio/ogg")))
-       ;; The test results are cached, so in order to have the test
-       ;; re-evaluated, one needs to clear the cache.
-       (setq mailcap-viewer-test-cache nil)
-       (should (string= "mpv %s" (mailcap-mime-info "audio/ogg")))
-       (setq mailcap-viewer-test-cache nil)
-       (should (string= "toggle %s" (mailcap-mime-info "audio/ogg")))))))
+       ;; Assert that we get what we have defined.
+       (dolist (type '("audio/ogg" "audio/flac"))
+         (should (string= "mpv %s" (mailcap-mime-info type))))
+       (should (string= "aplay %s" (mailcap-mime-info "audio/x-wav")))
+       (should (string= "emacsclient -t %s"
+                        (mailcap-mime-info "text/plain")))
+       ;; evince is chosen because acroread has test=false and okular
+       ;; comes later.
+       (should (string= "evince %s"
+                        (mailcap-mime-info "application/pdf")))
+       (should (string= "inkscape %s"
+                        (mailcap-mime-info "image/svg+xml")))
+       (should (string= "eog %s"
+                        (mailcap-mime-info "image/jpg")))
+       ;; With REQUEST being a number, all fields of the selected entry
+       ;; should be returned.
+       (should (equal '((viewer . "evince %s")
+                        (type . "application/pdf"))
+                      (mailcap-mime-info "application/pdf" 1)))
+       ;; With 'all, all applicable entries should be returned.
+       (should (equal '(((viewer . "evince %s")
+                         (type . "application/pdf"))
+                        ((viewer . "okular %s")
+                         (type . "application/pdf")))
+                      (mailcap-mime-info "application/pdf" 'all)))
+       (let* ((c nil)
+              (toggle (lambda (_) (setq c (not c)))))
+         (mailcap-add "audio/ogg" "toggle %s" toggle)
+         (should (string= "toggle %s" (mailcap-mime-info "audio/ogg")))
+         ;; The test results are cached, so in order to have the test
+         ;; re-evaluated, one needs to clear the cache.
+         (setq mailcap-viewer-test-cache nil)
+         (should (string= "mpv %s" (mailcap-mime-info "audio/ogg")))
+         (setq mailcap-viewer-test-cache nil)
+         (should (string= "toggle %s" (mailcap-mime-info "audio/ogg"))))))))
 
 (defvar mailcap--test-result nil)
 (defun mailcap--test-viewer ()
