@@ -522,6 +522,7 @@ drag will originate.  */)
   be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
 		   block_input, unblock_input,
 		   process_pending_signals);
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   return unbind_to (idx, Qnil);
 }
