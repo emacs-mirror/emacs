@@ -783,17 +783,26 @@ Make the shell buffer the current buffer, and return it.
                       (getenv "ESHELL") shell-file-name))
             (name (file-name-nondirectory prog))
             (startfile (concat "~/.emacs_" name))
-            (xargs-name (intern-soft (concat "explicit-" name "-args"))))
+            (xargs-name (intern-soft (concat "explicit-" name "-args")))
+            (start-point (point)))
        (unless (file-exists-p startfile)
          (setq startfile (locate-user-emacs-file
                           (concat "init_" name ".sh"))))
        (setq-local shell--start-prog (file-name-nondirectory prog))
        (apply #'make-comint-in-buffer "shell" buffer prog
-              (if (file-exists-p startfile) startfile)
+              nil
               (if (and xargs-name (boundp xargs-name))
                   (symbol-value xargs-name)
                 '("-i")))
-       (shell-mode))))
+       (shell-mode)
+       (when (file-exists-p startfile)
+         ;; Wait until the prompt has appeared.
+         (while (= start-point (point))
+           (sleep-for 0.1))
+         (shell-eval-command
+          (with-temp-buffer
+            (insert-file-contents startfile)
+            (buffer-string)))))))
   buffer)
 
 ;;; Directory tracking
