@@ -51,6 +51,7 @@
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method
 		(tramp-mount-args            (("-C") ("-p" "%p")
+					      ("-o" "dir_cache=no")
 					      ("-o" "transform_symlinks")
 					      ("-o" "idmap=user,reconnect")))
 		;; These are for remote processes.
