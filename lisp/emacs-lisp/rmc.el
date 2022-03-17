@@ -112,9 +112,15 @@
                 (goto-char start)
                 (dolist (line (split-string text "\n"))
                   (end-of-line)
-                  (if (bolp)
-                      (insert line "\n")
-                    (insert line))
+                  (if (not (bolp))
+		      (insert line)
+		    (insert (make-string
+                             (max (- (* (mod (1- times) columns)
+                                        (+ fill-column 4))
+                                     (current-column))
+                                  0)
+			     ?\s))
+                    (insert line "\n"))
                   (forward-line 1))))))))
     buf))
 
