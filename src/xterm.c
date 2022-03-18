@@ -1157,6 +1157,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 	      x_dnd_in_progress = false;
 	      x_dnd_frame = NULL;
+	      x_set_dnd_targets (NULL, 0);
 	    }
 
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
@@ -1166,6 +1167,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  quit ();
 	}
     }
+
+  x_set_dnd_targets (NULL, 0);
 
 #ifdef USE_GTK
   current_hold_quit = NULL;
@@ -12077,30 +12080,31 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         bool tool_bar_p = false;
 	bool dnd_grab = false;
 
-	for (int i = 1; i < 8; ++i)
-	  {
-	    if (i != event->xbutton.button
-		&& event->xbutton.state & (Button1Mask << (i - 1)))
-	      dnd_grab = true;
-	  }
-
 	if (x_dnd_in_progress
-	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame)
-	    && !dnd_grab
-	    && event->xbutton.type == ButtonRelease)
+	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
-	    x_dnd_in_progress = false;
+	    for (int i = 1; i < 8; ++i)
+	      {
+		if (i != event->xbutton.button
+		    && event->xbutton.state & (Button1Mask << (i - 1)))
+		  dnd_grab = true;
+	      }
 
-	    if (x_dnd_last_seen_window != None
-		&& x_dnd_last_protocol_version != -1)
-	      x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-			       x_dnd_selection_timestamp,
-			       x_dnd_last_protocol_version);
+	    if (dnd_grab && event->xbutton.type == ButtonRelease)
+	      {
+		x_dnd_in_progress = false;
 
-	    x_dnd_last_protocol_version = -1;
-	    x_dnd_last_seen_window = None;
-	    x_dnd_frame = NULL;
-	    x_set_dnd_targets (NULL, 0);
+		if (x_dnd_last_seen_window != None
+		    && x_dnd_last_protocol_version != -1)
+		  x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+				   x_dnd_selection_timestamp,
+				   x_dnd_last_protocol_version);
+
+		x_dnd_last_protocol_version = -1;
+		x_dnd_last_seen_window = None;
+		x_dnd_frame = NULL;
+		x_set_dnd_targets (NULL, 0);
+	      }
 
 	    goto OTHER;
 	  }
@@ -13053,31 +13057,33 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XButtonEvent bv;
 	      bool dnd_grab = false;
 
-	      for (int i = 0; i < xev->buttons.mask_len * 8; ++i)
-		{
-		  if (i != xev->detail && XIMaskIsSet (xev->buttons.mask, i))
-		    dnd_grab = true;
-		}
-
 	      if (x_dnd_in_progress
-		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame)
-		  && !dnd_grab
-		  && xev->evtype == XI_ButtonRelease)
+		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
-		  x_dnd_in_progress = false;
+		  for (int i = 0; i < xev->buttons.mask_len * 8; ++i)
+		    {
+		      if (i != xev->detail && XIMaskIsSet (xev->buttons.mask, i))
+			dnd_grab = true;
+		    }
 
-		  if (x_dnd_last_seen_window != None
-		      && x_dnd_last_protocol_version != -1)
-		    x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-				     x_dnd_selection_timestamp,
-				     x_dnd_last_protocol_version);
+		  if (!dnd_grab
+		      && xev->evtype == XI_ButtonRelease)
+		    {
+		      x_dnd_in_progress = false;
 
-		  x_dnd_last_protocol_version = -1;
-		  x_dnd_last_seen_window = None;
-		  x_dnd_frame = NULL;
-		  x_set_dnd_targets (NULL, 0);
+		      if (x_dnd_last_seen_window != None
+			  && x_dnd_last_protocol_version != -1)
+			x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+					 x_dnd_selection_timestamp,
+					 x_dnd_last_protocol_version);
 
-		  goto XI_OTHER;
+		      x_dnd_last_protocol_version = -1;
+		      x_dnd_last_seen_window = None;
+		      x_dnd_frame = NULL;
+		      x_set_dnd_targets (NULL, 0);
+
+		      goto XI_OTHER;
+		    }
 		}
 
 	      if (x_dnd_in_progress)
