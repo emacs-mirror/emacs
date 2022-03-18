@@ -378,7 +378,10 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	  switch (type_code)
 	    {
 	    case 'RREF':
-	      signal_error ("Cannot deserialize data type", type_sym);
+	      CHECK_STRING (data);
+
+	      if (be_add_refs_data (message, SSDATA (name), SSDATA (data)))
+		signal_error ("Invalid file name", data);
 	      break;
 
 	    case 'SHRT':

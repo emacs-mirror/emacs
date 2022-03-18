@@ -91,6 +91,8 @@ extern "C"
   extern int be_add_message_data (void *message, const char *name,
 				  int32 type_code, const void *buf,
 				  ssize_t buf_size);
+  extern int be_add_refs_data (void *message, const char *name,
+			       const char *filename);
 #ifdef __cplusplus
 };
 #endif

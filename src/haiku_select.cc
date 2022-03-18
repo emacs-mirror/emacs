@@ -337,3 +337,20 @@ be_add_message_data (void *message, const char *name,
 
   return msg->AddData (name, type_code, buf, buf_size) != B_OK;
 }
+
+int
+be_add_refs_data (void *message, const char *name,
+		  const char *filename)
+{
+  BEntry entry (filename);
+  entry_ref ref;
+  BMessage *msg = (BMessage *) message;
+
+  if (entry.InitCheck () != B_OK)
+    return 1;
+
+  if (entry.GetRef (&ref) != B_OK)
+    return 1;
+
+  return msg->AddRef (name, &ref) != B_OK;
+}
