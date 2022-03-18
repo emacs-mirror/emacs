@@ -189,6 +189,16 @@ and how is entirely up to the behavior of the
 `pcomplete-parse-arguments-function'."
   :type 'boolean)
 
+(defvar pcomplete-allow-modifications nil
+  "If non-nil, allow effects in `pcomplete-parse-arguments-function'.
+For the `pcomplete' command, it was common for functions in
+`pcomplete-parse-arguments-function' to make modifications to the
+buffer, like expanding variables are such.
+For `completion-at-point-functions', this is not an option any more, so
+this variable is used to tell `pcomplete-parse-arguments-function'
+whether it can do the modifications like it used to, or whether
+it should refrain from doing so.")
+
 (defcustom pcomplete-parse-arguments-function
   #'pcomplete-parse-buffer-arguments
   "A function to call to parse the current line's arguments.
@@ -392,6 +402,9 @@ Same as `pcomplete' but using the standard completion UI."
   ;; imposing the pcomplete UI over the standard UI.
   (catch 'pcompleted
     (let* ((pcomplete-stub)
+           (buffer-read-only
+            ;; Make sure the function obeys `pcomplete-allow-modifications'.
+            (if pcomplete-allow-modifications buffer-read-only t))
            pcomplete-seen pcomplete-norm-func
            pcomplete-args pcomplete-last pcomplete-index
            (pcomplete-autolist pcomplete-autolist)
@@ -526,6 +539,7 @@ completion functions list (it should occur fairly early in the list)."
 	  pcomplete-last-completion-raw nil)
     (catch 'pcompleted
       (let* ((pcomplete-stub)
+	     (pcomplete-allow-modifications t)
 	     pcomplete-seen pcomplete-norm-func
 	     pcomplete-args pcomplete-last pcomplete-index
 	     (pcomplete-autolist pcomplete-autolist)
@@ -551,7 +565,8 @@ completion functions list (it should occur fairly early in the list)."
   "Expand the textual value of the current argument.
 This will modify the current buffer."
   (interactive)
-  (let ((pcomplete-expand-before-complete t))
+  (let ((pcomplete-expand-before-complete t)
+	(pcomplete-allow-modifications t))
     (with-suppressed-warnings ((obsolete pcomplete))
       (pcomplete))))
 
@@ -569,6 +584,7 @@ This will modify the current buffer."
 This will modify the current buffer."
   (interactive)
   (let ((pcomplete-expand-before-complete t)
+	(pcomplete-allow-modifications t)
 	(pcomplete-expand-only-p t))
     (with-suppressed-warnings ((obsolete pcomplete))
       (pcomplete))
