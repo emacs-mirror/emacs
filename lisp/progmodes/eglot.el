@@ -1312,7 +1312,8 @@ fully LSP-compliant servers, this should be set to
   "Calculate current COLUMN as defined by the LSP spec.
 LBP defaults to `line-beginning-position'."
   (/ (- (length (encode-coding-region (or lbp (line-beginning-position))
-                                      (point) 'utf-16 t))
+                                      ;; Fix github#860
+                                      (min (point) (point-max)) 'utf-16 t))
         2)
      2))
 
