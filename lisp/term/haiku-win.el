@@ -48,13 +48,18 @@
 (defvar haiku-dnd-selection-value nil
   "The local value of the special `XdndSelection' selection.")
 
-(defvar haiku-dnd-selection-converters '((STRING . haiku-dnd-convert-string))
+(defvar haiku-dnd-selection-converters '((STRING . haiku-dnd-convert-string)
+                                         (text/uri-list . haiku-dnd-convert-uri-list))
   "Alist of X selection types to functions that act as selection converters.
 The functions should accept a single argument VALUE, describing
 the value of the drag-and-drop selection, and return a list of
 two elements TYPE and DATA, where TYPE is a string containing the
 MIME type of DATA, and DATA is a unibyte string, or nil if the
-data could not be converted.")
+data could not be converted.
+
+DATA can optionally have a text property `type', which specifies
+the type of DATA inside the system message (see the doc string of
+`haiku-drag-message' for more details).")
 
 (defun haiku-dnd-convert-string (value)
   "Convert VALUE to a UTF-8 string and appropriate MIME type.
@@ -63,6 +68,12 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
   (when (stringp value)
     (list "text/plain" (string-to-unibyte
                         (encode-coding-string value 'utf-8)))))
+
+(defun haiku-dnd-convert-uri-list (value)
+  "Convert VALUE to a file system reference if it is a file name."
+  (when (and (stringp value)
+             (file-exists-p value))
+    (list "refs" (propertize (expand-file-name value) 'type 'ref))))
 
 (declare-function x-open-connection "haikufns.c")
 (declare-function x-handle-args "common-win")
@@ -199,9 +210,12 @@ take effect on menu items until the menu bar is updated again."
               (let ((field (cdr (assoc (car selection-result) message))))
                 (unless (cadr field)
                   ;; Add B_MIME_TYPE to the message if the type was not
-                  ;; previously defined.
-                  (push 1296649541 (alist-get (car selection-result) message
-                                              nil nil #'equal))))
+                  ;; previously specified, or the type if it was.
+                  (push (or (get-text-property 0 'type
+                                               (cadr selection-result))
+                            1296649541)
+                        (alist-get (car selection-result) message
+                                   nil nil #'equal))))
               (push (cadr selection-result)
                     (cdr (alist-get (car selection-result) message
                                     nil nil #'equal))))))))

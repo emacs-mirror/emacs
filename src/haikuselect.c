@@ -351,6 +351,7 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   int8 char_data;
   bool bool_data;
   intmax_t t4;
+  int rc;
 
   CHECK_LIST (obj);
   for (tem = obj; CONSP (tem); tem = XCDR (tem))
@@ -390,10 +391,13 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	      short_data = XFIXNUM (data);
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, &short_data,
-				   sizeof short_data);
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &short_data,
+					sizeof short_data);
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add short", data);
 	      break;
 
 	    case 'LONG':
@@ -417,10 +421,13 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 		}
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, &long_data,
-				   sizeof long_data);
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &long_data,
+					sizeof long_data);
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add long", data);
 	      break;
 
 	    case 'LLNG':
@@ -443,10 +450,13 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 		}
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, &llong_data,
-				   sizeof llong_data);
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &llong_data,
+					sizeof llong_data);
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add llong", data);
 	      break;
 
 	    case 'CHAR':
@@ -456,30 +466,39 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	      char_data = XFIXNUM (data);
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, &char_data,
-				   sizeof char_data);
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &char_data,
+					sizeof char_data);
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add char", data);
 	      break;
 
 	    case 'BOOL':
 	      bool_data = !NILP (data);
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, &bool_data,
-				   sizeof bool_data);
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &bool_data,
+					sizeof bool_data);
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add bool", data);
 	      break;
 
 	    default:
 	      CHECK_STRING (data);
 
 	      block_input ();
-	      be_add_message_data (message, SSDATA (name),
-				   type_code, SDATA (data),
-				   SBYTES (data));
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, SDATA (data),
+					SBYTES (data));
 	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add", data);
 	    }
 	}
       CHECK_LIST_END (t2, t1);
