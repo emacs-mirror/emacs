@@ -272,7 +272,7 @@
     (should (equal
              (sort complex-vec
                    (lambda (x y) (funcall my-counter) (< (car x) (car y))))
-             (sort complex-vec 'car-less-than-car))))
+             (sort vec 'car-less-than-car))))
   ;; Check for sorting stability.
   (should (equal
 	   (sort
