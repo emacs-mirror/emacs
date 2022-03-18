@@ -219,7 +219,7 @@
   (should (equal
            (sort (append (make-vector 100 1) nil) (lambda (x y) (> x y)))
            (append (make-vector 100 1) nil)))
-  ;; sort a long list and vector with every pair reversed.
+  ;; Sort a long list and vector with every pair reversed.
   (let ((vec (make-vector 100000 nil))
         (logxor-vec (make-vector 100000 nil)))
     (dotimes (i 100000)
@@ -231,7 +231,7 @@
     (should (equal
              (sort (append logxor-vec nil) (lambda (x y) (< x y)))
              (append vec nil))))
-  ;; sort a list and vector with seven swaps
+  ;; Sort a list and vector with seven swaps.
   (let ((vec (make-vector 100 nil))
         (swap-vec (make-vector 100 nil)))
     (dotimes (i 100)
@@ -249,6 +249,30 @@
     (should (equal
              (sort (append swap-vec nil) (lambda (x y) (< x y)))
              (append vec nil))))
+  ;; Check for possible corruption after GC.
+  (let* ((size 3000)
+         (complex-vec (make-vector size nil))
+         (vec (make-vector size nil))
+         (counter 0)
+         (my-counter (lambda ()
+                       (if (< counter 500)
+                           (cl-incf counter)
+                         (setq counter 0)
+                         (garbage-collect))))
+         (rand 1)
+         (generate-random
+	  (lambda () (setq rand
+                           (logand (+ (* rand 1103515245) 12345)  2147483647)))))
+    ;; Make a complex vector and its sorted version.
+    (dotimes (i size)
+      (let ((r (funcall generate-random)))
+        (aset complex-vec i (cons r "a"))
+        (aset vec i (cons r "a"))))
+    ;; Sort it.
+    (should (equal
+             (sort complex-vec
+                   (lambda (x y) (funcall my-counter) (< (car x) (car y))))
+             (sort complex-vec 'car-less-than-car))))
   ;; Check for sorting stability.
   (should (equal
 	   (sort
