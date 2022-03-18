@@ -622,6 +622,7 @@ extern AVOID args_out_of_range_3 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object default_value (Lisp_Object symbol);
 extern void defalias (Lisp_Object symbol, Lisp_Object definition);
+extern char *fixnum_to_string (EMACS_INT number, char *buffer, char *end);
 
 
 /* Defined in emacs.c.  */

@@ -2968,6 +2968,29 @@ cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
   return val;
 }
 
+/* Render NUMBER in decimal into BUFFER which ends right before END.
+   Return the start of the string; the end is always at END.
+   The string is not null-terminated.  */
+char *
+fixnum_to_string (EMACS_INT number, char *buffer, char *end)
+{
+  EMACS_INT x = number;
+  bool negative = x < 0;
+  if (negative)
+    x = -x;
+  char *p = end;
+  do
+    {
+      eassume (p > buffer && p - 1 < end);
+      *--p = '0' + x % 10;
+      x /= 10;
+    }
+  while (x);
+  if (negative)
+    *--p = '-';
+  return p;
+}
+
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
        doc: /* Return the decimal representation of NUMBER as a string.
 Uses a minus sign if negative.
@@ -2978,21 +3001,8 @@ NUMBER may be an integer or a floating point number.  */)
 
   if (FIXNUMP (number))
     {
-      EMACS_INT x = XFIXNUM (number);
-      bool negative = x < 0;
-      if (negative)
-	x = -x;
       char *end = buffer + sizeof buffer;
-      char *p = end;
-      do
-	{
-	  eassume (p > buffer && p - 1 < buffer + sizeof buffer);
-	  *--p = '0' + x % 10;
-	  x /= 10;
-	}
-      while (x);
-      if (negative)
-	*--p = '-';
+      char *p = fixnum_to_string (XFIXNUM (number), buffer, end);
       return make_unibyte_string (p, end - p);
     }
 

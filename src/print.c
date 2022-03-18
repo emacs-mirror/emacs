@@ -2060,8 +2060,10 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  }
 	else
 	  {
-	    int len = sprintf (buf, "%"pI"d", i);
-	    strout (buf, len, len, printcharfun);
+	    char *end = buf + sizeof buf;
+	    char *start = fixnum_to_string (i, buf, end);
+	    ptrdiff_t len = end - start;
+	    strout (start, len, len, printcharfun);
 	  }
       }
       break;
