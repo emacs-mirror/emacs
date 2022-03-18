@@ -1089,6 +1089,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XEvent next_event;
   int finish;
 #endif
+#ifdef HAVE_X_I18N
+  XIC ic = FRAME_XIC (f);
+#endif
+
   struct input_event hold_quit;
   char *atom_name;
   Lisp_Object action, ltimestamp;
@@ -1126,6 +1130,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   current_count = 0;
 #endif
 
+  block_input ();
+#ifdef HAVE_X_I18N
+  /* Make sure no events get filtered when XInput 2 is enabled.
+     Otherwise, the ibus XIM server gets very confused.  */
+  FRAME_XIC (f) = NULL;
+#endif
   while (x_dnd_in_progress)
     {
       hold_quit.kind = NO_EVENT;
@@ -1134,7 +1144,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       current_hold_quit = &hold_quit;
 #endif
 
-      block_input ();
 #ifndef USE_GTK
       XNextEvent (FRAME_X_DISPLAY (f), &next_event);
 
@@ -1143,17 +1152,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #else
       gtk_main_iteration ();
 #endif
-      unblock_input ();
 
       if (hold_quit.kind != NO_EVENT)
 	{
 	  if (x_dnd_in_progress)
 	    {
-	      block_input ();
 	      if (x_dnd_last_seen_window != None
 		  && x_dnd_last_protocol_version != -1)
 		x_dnd_send_leave (f, x_dnd_last_seen_window);
-	      unblock_input ();
 
 	      x_dnd_in_progress = false;
 	      x_dnd_frame = NULL;
@@ -1164,15 +1170,23 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_GTK
 	  current_hold_quit = NULL;
 #endif
+#ifdef HAVE_X_I18N
+	  FRAME_XIC (f) = ic;
+#endif
+	  unblock_input ();
 	  quit ();
 	}
     }
-
+#ifdef HAVE_X_I18N
+  FRAME_XIC (f) = ic;
+#endif
   x_set_dnd_targets (NULL, 0);
 
 #ifdef USE_GTK
   current_hold_quit = NULL;
 #endif
+
+  unblock_input ();
 
   if (x_dnd_return_frame == 3)
     {
@@ -10205,6 +10219,9 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
     f1 = x_any_window_to_frame (dpyinfo,
 				event->xclient.window);
 
+  if (x_dnd_in_progress)
+    return 0;
+
 #ifdef USE_GTK
   if (!x_gtk_use_native_input
       && !dpyinfo->prefer_native_input)
@@ -15442,6 +15459,9 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 {
   struct xim_inst_t *xim_inst = (struct xim_inst_t *) client_data;
   struct x_display_info *dpyinfo = xim_inst->dpyinfo;
+
+  if (x_dnd_in_progress)
+    return;
 
   /* We don't support multiple XIM connections. */
   if (dpyinfo->xim)
