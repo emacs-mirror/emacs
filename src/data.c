@@ -2975,19 +2975,35 @@ NUMBER may be an integer or a floating point number.  */)
   (Lisp_Object number)
 {
   char buffer[max (FLOAT_TO_STRING_BUFSIZE, INT_BUFSIZE_BOUND (EMACS_INT))];
-  int len;
 
-  CHECK_NUMBER (number);
+  if (FIXNUMP (number))
+    {
+      EMACS_INT x = XFIXNUM (number);
+      bool negative = x < 0;
+      if (negative)
+	x = -x;
+      char *end = buffer + sizeof buffer;
+      char *p = end;
+      do
+	{
+	  eassume (p > buffer && p - 1 < buffer + sizeof buffer);
+	  *--p = '0' + x % 10;
+	  x /= 10;
+	}
+      while (x);
+      if (negative)
+	*--p = '-';
+      return make_unibyte_string (p, end - p);
+    }
 
   if (BIGNUMP (number))
     return bignum_to_string (number, 10);
 
   if (FLOATP (number))
-    len = float_to_string (buffer, XFLOAT_DATA (number));
-  else
-    len = sprintf (buffer, "%"pI"d", XFIXNUM (number));
+    return make_unibyte_string (buffer,
+				float_to_string (buffer, XFLOAT_DATA (number)));
 
-  return make_unibyte_string (buffer, len);
+  wrong_type_argument (Qnumberp, number);
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
