@@ -2418,6 +2418,37 @@ are unwound.  Example:
 @end example
 @end defmac
 
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but in case you want to overwrite Tramp's settings temporarily, you
+could let-bind it like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'my-remote-perl
+  '((perl-command-name . "/usr/local/bin/perl5")
+    (perl-command-switch . "-e %s")))
+@end group
+
+@group
+(connection-local-set-profiles
+  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  'my-remote-perl)
+@end group
+
+@group
+(let ((default-directory "/ssh:remotehost:/working/dir/")
+      (connection-local-default-application 'my-app))
+  (with-connection-local-variables
+    do something useful))
+@end group
+@end example
+
+This variable must not be changed globally.
+@end defvar
+
 @defvar enable-connection-local-variables
 If @code{nil}, connection-local variables are ignored.  This variable
 shall be changed temporarily only in special modes.
