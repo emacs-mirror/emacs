@@ -932,6 +932,11 @@ the thumbnail file.
 
 ** Dired
 
+*** New user option 'dired-mouse-drag-files'.
+If non-nil, dragging filenames with the mouse in a Dired buffer will
+initiate a drag-and-drop session allowing them to be opened in other
+programs.
+
 *** New user option 'dired-free-space'.
 Dired will now, by default, include the free space in the first line
 instead of having it on a separate line.  To get the previous behavior

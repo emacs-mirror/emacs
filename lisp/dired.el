@@ -248,6 +248,18 @@ The target is used in the prompt for file copy, rename etc."
           (other :tag "Try to guess" t))
   :group 'dired)
 
+(defcustom dired-mouse-drag-files nil
+  "If non-nil, allow the mouse to drag files from inside a Dired buffer.
+Dragging the mouse and then releasing it over the window of
+another program will result in that program opening the file, or
+creating a copy of it .
+
+If the value is `link', then a symbolic link will be created to
+the file instead by the other program (usually a file manager)."
+  :type '(choice (const :tag "Don't allow dragging" nil)
+                 (const :tag "Copy file to other window" tx)
+                 (const :tag "Create symbolic link to file" link)))
+
 (defcustom dired-copy-preserve-time t
   "If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)"
@@ -1674,6 +1686,36 @@ see `dired-use-ls-dired' for more details.")
           beg))
         beg))))
 
+(declare-function x-begin-drag "xfns.cx")
+
+(defun dired-mouse-drag (event)
+  "Begin a drag-and-drop operation for the file at EVENT.
+If we get a mouse motion event right "
+  (interactive "e")
+  (save-excursion
+    (goto-char (posn-point (event-end event)))
+    (track-mouse
+      (let ((new-event (read-event)))
+        (if (not (eq (event-basic-type new-event) 'mouse-movement))
+            (push new-event unread-command-events)
+          ;; We can get an error if there's by some chance no file
+          ;; name at point.
+          (condition-case nil
+              (progn
+                (gui-backend-set-selection 'XdndSelection
+                                           (dired-file-name-at-point))
+                (x-begin-drag '("text/uri-list"
+                                "text/x-dnd-username")
+                              (if (eq 'dired-mouse-drag-files 'link)
+                                  'XdndActionLink
+                                'XdndActionCopy)))
+            (error (push new-event unread-command-events))))))))
+
+(defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
+                                     (define-key keymap [down-mouse-1] #'dired-mouse-drag)
+                                     keymap)
+  "Keymap applied to file names when `dired-mouse-drag-files' is enabled.")
+
 (defun dired-insert-set-properties (beg end)
   "Add various text properties to the lines in the region, from BEG to END."
   (save-excursion
@@ -1693,10 +1735,15 @@ see `dired-use-ls-dired' for more details.")
 	   (progn
 	     (dired-move-to-end-of-filename)
 	     (point))
-	   '(mouse-face
-	     highlight
-	     dired-filename t
-	     help-echo "mouse-2: visit this file in other window"))
+	   (append `(mouse-face
+	             highlight
+	             dired-filename t
+	             help-echo ,(if dired-mouse-drag-files
+                                    "down-mouse-1: drag this file to another program
+mouse-2: visit this file in other window"
+                                  "mouse-2: visit this file in other window"))
+                   (when dired-mouse-drag-files
+                     `(keymap ,dired-mouse-drag-files-map))))
 	  (when (< (+ (point) 4) (line-end-position))
 	    (put-text-property (+ (point) 4) (line-end-position)
 			       'invisible 'dired-hide-details-link))))
