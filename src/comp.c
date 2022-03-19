@@ -5032,6 +5032,12 @@ return_nil (Lisp_Object arg)
 {
   return Qnil;
 }
+
+static Lisp_Object
+directory_files_matching (Lisp_Object name, Lisp_Object match)
+{
+  return Fdirectory_files (name, Qt, match, Qnil, Qnil);
+}
 #endif
 
 /* Windows does not let us delete a .eln file that is currently loaded
@@ -5049,11 +5055,11 @@ eln_load_path_final_clean_up (void)
   FOR_EACH_TAIL (dir_tail)
     {
       Lisp_Object files_in_dir =
-	internal_condition_case_5 (Fdirectory_files,
+	internal_condition_case_2 (directory_files_matching,
 				   Fexpand_file_name (Vcomp_native_version_dir,
 						      XCAR (dir_tail)),
-				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
-				   Qnil, Qt, return_nil);
+				   build_string ("\\.eln\\.old\\'"),
+				   Qt, return_nil);
       FOR_EACH_TAIL (files_in_dir)
 	internal_delete_file (XCAR (files_in_dir));
     }
