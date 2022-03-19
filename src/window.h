@@ -1188,7 +1188,6 @@ extern int window_scroll_margin (struct window *, enum margin_unit);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
-extern void sanitize_window_sizes (Lisp_Object horizontal);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);

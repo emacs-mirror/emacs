@@ -3181,14 +3181,6 @@ resize_root_window (Lisp_Object window, Lisp_Object delta,
 		horizontal, ignore, pixelwise);
 }
 
-void
-sanitize_window_sizes (Lisp_Object horizontal)
-{
-  /* Don't burp in temacs -nw before window.el is loaded.  */
-  if (!NILP (Fsymbol_function (Qwindow__sanitize_window_sizes)))
-    call1 (Qwindow__sanitize_window_sizes, horizontal);
-}
-
 
 static Lisp_Object
 window_pixel_to_total (Lisp_Object frame, Lisp_Object horizontal)
@@ -8232,7 +8224,6 @@ syms_of_window (void)
   DEFSYM (Qwindow__resize_root_window_vertically,
 	  "window--resize-root-window-vertically");
   DEFSYM (Qwindow__resize_mini_frame, "window--resize-mini-frame");
-  DEFSYM (Qwindow__sanitize_window_sizes, "window--sanitize-window-sizes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
   DEFSYM (Qsafe, "safe");
   DEFSYM (Qdisplay_buffer, "display-buffer");
