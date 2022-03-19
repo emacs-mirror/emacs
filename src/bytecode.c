@@ -452,7 +452,7 @@ DEFUN ("internal-stack-stats", Finternal_stack_stats, Sinternal_stack_stats,
 }
 
 /* Whether a stack pointer is valid in the current frame.  */
-INLINE bool
+static bool
 valid_sp (struct bc_thread_state *bc, Lisp_Object *sp)
 {
   struct bc_frame *fp = bc->fp;
