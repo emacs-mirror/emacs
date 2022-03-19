@@ -12825,9 +12825,12 @@ prepare_menu_bars (void)
 	    {
 	      Lisp_Object this = XCAR (ws);
 	      struct window *w = XWINDOW (this);
+	      /* Cf. conditions for redisplaying a window at the
+		 beginning of redisplay_window.  */
 	      if (w->redisplay
 		  || XFRAME (w->frame)->redisplay
-		  || XBUFFER (w->contents)->text->redisplay)
+		  || XBUFFER (w->contents)->text->redisplay
+		  || BUF_PT (XBUFFER (w->contents)) != w->last_point)
 		{
 		  windows = Fcons (this, windows);
 		}
