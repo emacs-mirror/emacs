@@ -117,6 +117,7 @@ static BLocker movement_locker;
 
 static BMessage volatile *popup_track_message;
 static int32 volatile alert_popup_value;
+static int current_window_id;
 
 static void *grab_view = NULL;
 static BLocker grab_view_locker;
@@ -414,11 +415,12 @@ public:
   pthread_mutex_t menu_update_mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_cond_t menu_update_cv = PTHREAD_COND_INITIALIZER;
   bool menu_updated_p = false;
+  int window_id;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
   {
-
+    window_id = current_window_id++;
   }
 
   ~EmacsWindow ()
@@ -639,7 +641,12 @@ public:
     if (msg->WasDropped ())
       {
 	BPoint whereto;
+	int32 windowid;
 	struct haiku_drag_and_drop_event rq;
+
+	if (msg->FindInt32 ("emacs:window_id", &windowid) == B_OK
+	    && windowid == this->window_id)
+	  return;
 
 	if (msg->FindPoint ("_drop_point_", &whereto) == B_OK)
 	  {
@@ -3960,6 +3967,7 @@ be_drag_message (void *view, void *message,
 		 void (*process_pending_signals_function) (void))
 {
   EmacsView *vw = (EmacsView *) view;
+  EmacsWindow *window = (EmacsWindow *) vw->Window ();
   BMessage *msg = (BMessage *) message;
   BMessage wait_for_release;
   BMessenger messenger (vw);
@@ -3967,6 +3975,7 @@ be_drag_message (void *view, void *message,
   ssize_t stat;
 
   block_input_function ();
+  msg->AddInt32 ("emacs:window_id", window->window_id);
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view looper for drag");
 
