@@ -664,11 +664,12 @@ typedef struct {
    Helper functions called by the run-time.
 */
 
-void helper_unwind_protect (Lisp_Object handler);
-Lisp_Object helper_unbind_n (Lisp_Object n);
-void helper_save_restriction (void);
-bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
-struct Lisp_Symbol_With_Pos *helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a);
+static void helper_unwind_protect (Lisp_Object);
+static Lisp_Object helper_unbind_n (Lisp_Object);
+static void helper_save_restriction (void);
+static bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object, enum pvec_type);
+static struct Lisp_Symbol_With_Pos *
+helper_GET_SYMBOL_WITH_POSITION (Lisp_Object);
 
 /* Note: helper_link_table must match the list created by
    `declare_runtime_imported_funcs'.  */
@@ -4973,7 +4974,7 @@ unknown (before GCC version 10).  */)
 /* for laziness. Change this if a performance impact is measured.             */
 /******************************************************************************/
 
-void
+static void
 helper_unwind_protect (Lisp_Object handler)
 {
   /* Support for a function here is new in 24.4.  */
@@ -4981,20 +4982,20 @@ helper_unwind_protect (Lisp_Object handler)
 			 handler);
 }
 
-Lisp_Object
+static Lisp_Object
 helper_unbind_n (Lisp_Object n)
 {
   return unbind_to (specpdl_ref_add (SPECPDL_INDEX (), -XFIXNUM (n)), Qnil);
 }
 
-void
+static void
 helper_save_restriction (void)
 {
   record_unwind_protect (save_restriction_restore,
 			 save_restriction_save ());
 }
 
-bool
+static bool
 helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 {
   return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
@@ -5002,7 +5003,7 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 			     code);
 }
 
-struct Lisp_Symbol_With_Pos *
+static struct Lisp_Symbol_With_Pos *
 helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a)
 {
   if (!SYMBOL_WITH_POS_P (a))
