@@ -1035,7 +1035,9 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
 		     PropModeReplace, (unsigned char *) x_dnd_targets,
 		     x_dnd_n_targets);
 
+  x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  x_uncatch_errors ();
 }
 
 static void
@@ -1075,7 +1077,9 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
   if (supported >= 4)
     msg.xclient.data.l[4] = action;
 
+  x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  x_uncatch_errors ();
 }
 
 static void
@@ -1094,7 +1098,9 @@ x_dnd_send_leave (struct frame *f, Window target)
   msg.xclient.data.l[3] = 0;
   msg.xclient.data.l[4] = 0;
 
+  x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  x_uncatch_errors ();
 }
 
 static void
@@ -1117,7 +1123,9 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
   if (supported >= 1)
     msg.xclient.data.l[2] = timestamp;
 
+  x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  x_uncatch_errors ();
 }
 
 void

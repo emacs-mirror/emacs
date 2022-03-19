@@ -2854,7 +2854,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_F09D8E8E19)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_A212A8F82A)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -2878,11 +2878,13 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
                              COLD_OP_NATIVE_SUBR,
 			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
       dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->command_modes, WEIGHT_NORMAL);
     }
   else
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->command_modes);
     }
   DUMP_FIELD_COPY (&out, subr, doc);
 #ifdef HAVE_NATIVE_COMP

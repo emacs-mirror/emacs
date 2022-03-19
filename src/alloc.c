@@ -6844,6 +6844,7 @@ mark_object (Lisp_Object arg)
 		set_vector_marked (ptr);
 		struct Lisp_Subr *subr = XSUBR (obj);
 		mark_object (subr->native_intspec);
+		mark_object (subr->command_modes);
 		mark_object (subr->native_comp_u);
 		mark_object (subr->lambda_list);
 		mark_object (subr->type);
