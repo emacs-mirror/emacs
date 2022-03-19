@@ -252,7 +252,7 @@ The target is used in the prompt for file copy, rename etc."
   "If non-nil, allow the mouse to drag files from inside a Dired buffer.
 Dragging the mouse and then releasing it over the window of
 another program will result in that program opening the file, or
-creating a copy of it .
+creating a copy of it.
 
 If the value is `link', then a symbolic link will be created to
 the file instead by the other program (usually a file manager)."

@@ -1695,9 +1695,15 @@ directory than in this one.  It also marks files with no counterpart,
 in both directories, as always.
 
 @cindex drag and drop, Dired
-  On the X Window System, Emacs supports the drag and drop
-protocol.  You can drag a file object from another program, and drop
-it onto a Dired buffer; this either moves, copies, or creates a link
-to the file in that directory.  Precisely which action is taken is
-determined by the originating program.  Dragging files out of a Dired
-buffer is currently not supported.
+@vindex dired-mouse-drag-files
+  On the X Window System, Emacs supports the drag and drop protocol.
+You can drag a file object from another program, and drop it onto a
+Dired buffer; this either moves, copies, or creates a link to the file
+in that directory.  Precisely which action is taken is determined by
+the originating program.  Dragging files out of a Dired buffer is also
+supported, by enabling the user option @code{dired-mouse-drag-files},
+the mouse can be used to drag files onto other programs.  When set to
+@code{link}, it will make the other program (typically a file manager)
+create a symbolic link to the file, and setting it to any other
+non-@code{nil} value will make the other program open or create a copy
+of the file.

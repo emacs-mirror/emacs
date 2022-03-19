@@ -942,6 +942,7 @@ the thumbnail file.
 
 ** Dired
 
++++
 *** New user option 'dired-mouse-drag-files'.
 If non-nil, dragging file names with the mouse in a Dired buffer will
 initiate a drag-and-drop session allowing them to be opened in other
