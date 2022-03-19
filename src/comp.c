@@ -516,8 +516,6 @@ typedef struct {
   ptrdiff_t size;
 } f_reloc_t;
 
-sigset_t saved_sigset;
-
 static f_reloc_t freloc;
 
 #define NUM_CAST_TYPES 15
@@ -648,7 +646,7 @@ typedef struct {
 
 static comp_t comp;
 
-FILE *logfile = NULL;
+static FILE *logfile;
 
 /* This is used for serialized objects by the reload mechanism.  */
 typedef struct {
@@ -667,7 +665,6 @@ typedef struct {
 */
 
 void helper_unwind_protect (Lisp_Object handler);
-Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 Lisp_Object helper_unbind_n (Lisp_Object n);
 void helper_save_restriction (void);
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code);
@@ -675,7 +672,7 @@ struct Lisp_Symbol_With_Pos *helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a);
 
 /* Note: helper_link_table must match the list created by
    `declare_runtime_imported_funcs'.  */
-void *helper_link_table[] =
+static void *helper_link_table[] =
   { wrong_type_argument,
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
     pure_write_error,
@@ -4982,14 +4979,6 @@ helper_unwind_protect (Lisp_Object handler)
   /* Support for a function here is new in 24.4.  */
   record_unwind_protect (FUNCTIONP (handler) ? bcall0 : prog_ignore,
 			 handler);
-}
-
-Lisp_Object
-helper_temp_output_buffer_setup (Lisp_Object x)
-{
-  CHECK_STRING (x);
-  temp_output_buffer_setup (SSDATA (x));
-  return Vstandard_output;
 }
 
 Lisp_Object

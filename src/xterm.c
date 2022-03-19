@@ -2339,6 +2339,68 @@ x_reset_clip_rectangles (struct frame *f, GC gc)
 #endif
 }
 
+#ifdef HAVE_XRENDER
+# if !defined USE_CAIRO && (RENDER_MAJOR > 0 || RENDER_MINOR >= 2)
+static void
+x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color,
+				    bool apply_alpha_background)
+{
+  XGCValues xgcv;
+  XColor xc;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCForeground, &xgcv);
+  xc.pixel = xgcv.foreground;
+  x_query_colors (f, &xc, 1);
+
+  color->alpha = (apply_alpha_background
+		  ? 65535 * f->alpha_background
+		  : 65535);
+
+  if (color->alpha == 65535)
+    {
+      color->red = xc.red;
+      color->blue = xc.blue;
+      color->green = xc.green;
+    }
+  else
+    {
+      color->red = (xc.red * color->alpha) / 65535;
+      color->blue = (xc.blue * color->alpha) / 65535;
+      color->green = (xc.green * color->alpha) / 65535;
+    }
+}
+# endif
+
+void
+x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color,
+				    bool apply_alpha_background)
+{
+  XGCValues xgcv;
+  XColor xc;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCBackground, &xgcv);
+  xc.pixel = xgcv.background;
+  x_query_colors (f, &xc, 1);
+
+  color->alpha = (apply_alpha_background
+		  ? 65535 * f->alpha_background
+		  : 65535);
+
+  if (color->alpha == 65535)
+    {
+      color->red = xc.red;
+      color->blue = xc.blue;
+      color->green = xc.green;
+    }
+  else
+    {
+      color->red = (xc.red * color->alpha) / 65535;
+      color->blue = (xc.blue * color->alpha) / 65535;
+      color->green = (xc.green * color->alpha) / 65535;
+    }
+}
+#endif
+
 static void
 x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
 		  bool respect_alpha_background)
@@ -3299,7 +3361,7 @@ static void x_scroll_bar_clear (struct frame *);
 static void x_check_font (struct frame *, struct font *);
 #endif
 
-void
+static void
 x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time)
 {
 #ifndef USE_GTK
@@ -19308,66 +19370,6 @@ init_xterm (void)
   gdk_disable_multidevice ();
 #endif
 #endif
-}
-#endif
-
-#ifdef HAVE_XRENDER
-void
-x_xrender_color_from_gc_foreground (struct frame *f, GC gc, XRenderColor *color,
-				    bool apply_alpha_background)
-{
-  XGCValues xgcv;
-  XColor xc;
-
-  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCForeground, &xgcv);
-  xc.pixel = xgcv.foreground;
-  x_query_colors (f, &xc, 1);
-
-  color->alpha = (apply_alpha_background
-		  ? 65535 * f->alpha_background
-		  : 65535);
-
-  if (color->alpha == 65535)
-    {
-      color->red = xc.red;
-      color->blue = xc.blue;
-      color->green = xc.green;
-    }
-  else
-    {
-      color->red = (xc.red * color->alpha) / 65535;
-      color->blue = (xc.blue * color->alpha) / 65535;
-      color->green = (xc.green * color->alpha) / 65535;
-    }
-}
-
-void
-x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color,
-				    bool apply_alpha_background)
-{
-  XGCValues xgcv;
-  XColor xc;
-
-  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCBackground, &xgcv);
-  xc.pixel = xgcv.background;
-  x_query_colors (f, &xc, 1);
-
-  color->alpha = (apply_alpha_background
-		  ? 65535 * f->alpha_background
-		  : 65535);
-
-  if (color->alpha == 65535)
-    {
-      color->red = xc.red;
-      color->blue = xc.blue;
-      color->green = xc.green;
-    }
-  else
-    {
-      color->red = (xc.red * color->alpha) / 65535;
-      color->blue = (xc.blue * color->alpha) / 65535;
-      color->green = (xc.green * color->alpha) / 65535;
-    }
 }
 #endif
 

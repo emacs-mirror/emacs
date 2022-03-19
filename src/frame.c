@@ -335,7 +335,7 @@ DEFUN ("frame-windows-min-size", Fframe_windows_min_size,
  * additionally limit the minimum frame height to a value large enough
  * to support menu bar, tab bar, mode line and echo area.
  */
-int
+static int
 frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
 			Lisp_Object ignore, Lisp_Object pixelwise)
 {

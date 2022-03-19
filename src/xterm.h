@@ -1361,8 +1361,6 @@ extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
 #ifdef HAVE_XRENDER
-extern void x_xrender_color_from_gc_foreground (struct frame *, GC,
-						XRenderColor *, bool);
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
 extern void x_xr_ensure_picture (struct frame *f);
@@ -1373,8 +1371,6 @@ extern void x_xr_reset_ext_clip (struct frame *f);
 #ifdef HAVE_GTK3
 extern void x_scroll_bar_configure (GdkEvent *);
 #endif
-
-extern void x_display_set_last_user_time (struct x_display_info *, Time);
 
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      bool);

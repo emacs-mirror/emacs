@@ -4214,7 +4214,7 @@ hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
 /* Ignore HT and return a hash code for KEY which uses 'equal' to compare keys.
    The hash code is at most INTMASK.  */
 
-Lisp_Object
+static Lisp_Object
 hashfn_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   return make_ufixnum (sxhash (key));
@@ -4223,7 +4223,7 @@ hashfn_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
 /* Ignore HT and return a hash code for KEY which uses 'eql' to compare keys.
    The hash code is at most INTMASK.  */
 
-Lisp_Object
+static Lisp_Object
 hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   return (FLOATP (key) || BIGNUMP (key) ? hashfn_equal : hashfn_eq) (key, h);
