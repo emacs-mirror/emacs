@@ -1002,6 +1002,14 @@ produced by `eshell-parse-command'."
   (let ((base (cadr (nth 2 (nth 2 (cadr command))))))
     (eshell--invoke-command-directly base)))
 
+(defun eshell-eval-argument (argument)
+  "Evaluate a single Eshell ARGUMENT and return the result."
+  (let* ((form (eshell-with-temp-command argument
+                 (eshell-parse-argument)))
+         (result (eshell-do-eval form t)))
+    (cl-assert (eq (car result) 'quote))
+    (cadr result)))
+
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."
   (if eshell-current-command

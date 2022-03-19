@@ -1002,6 +1002,7 @@ is equivalent to entering the value of @code{var} at the prompt.}
 @menu
 * Dollars Expansion::
 * Globbing::
+* Argument Predication and Modification::
 @end menu
 
 @node Dollars Expansion
@@ -1172,6 +1173,245 @@ example, @samp{[[:digit:]]#~4?} matches @file{1} and @file{12}, but
 not @file{42}.  Note that unlike in Zsh, only a single @samp{~}
 operator can be used in a pattern, and it cannot be inside of a group
 like @samp{(@var{x}~@var{y})}.
+
+@end table
+
+@node Argument Predication and Modification
+@section Argument Predication and Modification
+@cindex argument predication
+@cindex argument modification
+Eshell supports @dfn{argument predication}, to filter elements of a
+glob, and @dfn{argument modification}, to manipulate argument values.
+These are similar to glob qualifiers in Zsh (@pxref{Glob Qualifiers, ,
+, zsh, The Z Shell Manual}).
+
+Predicates and modifiers are introduced with @samp{(@var{filters})}
+after any list argument, where @var{filters} is a list of predicates
+or modifiers.  For example, @samp{*(.)} expands to all regular files
+in the current directory and @samp{*(^@@:U^u0)} expands to all
+non-symlinks not owned by @code{root}, upper-cased.
+
+You can customize the syntax and behavior of predicates and modifiers
+in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
+Customization, , , emacs, The GNU Emacs Manual}).
+
+@menu
+* Argument Predicates::
+* Argument Modifiers::
+@end menu
+
+@node Argument Predicates
+@subsection Argument Predicates
+You can use argument predicates to filter lists of file names based on
+various properties of those files.  This is most useful when combined
+with globbing, but can be used on any list of files names.  Eshell
+supports the following argument predicates:
+
+@table @asis
+
+@item @samp{/}
+Matches directories.
+
+@item @samp{.} @r{(Period)}
+Matches regular files.
+
+@item @samp{@@}
+Matches symbolic links.
+
+@item @samp{=}
+Matches sockets.
+
+@item @samp{p}
+Matches named pipes.
+
+@item @samp{%}
+Matches block or character devices.
+
+@item @samp{%b}
+Matches block devices.
+
+@item @samp{%c}
+Matches character devices.
+
+@item @samp{*}
+Matches regular files that can be executed by the current user.
+
+@item @samp{r}
+@item @samp{A}
+@item @samp{R}
+Matches files that are readable by their owners (@samp{r}), their
+groups (@samp{A}), or the world (@samp{R}).
+
+@item @samp{w}
+@item @samp{I}
+@item @samp{W}
+Matches files that are writable by their owners (@samp{w}), their
+groups (@samp{I}), or the world (@samp{W}).
+
+@item @samp{x}
+@item @samp{E}
+@item @samp{X}
+Matches files that are executable by their owners (@samp{x}), their
+groups (@samp{E}), or the world (@samp{X}).
+
+@item @samp{s}
+Matches files with the setuid flag set.
+
+@item @samp{S}
+Matches files with the setgid flag set.
+
+@item @samp{t}
+Matches files with the sticky bit set.
+
+@item @samp{U}
+Matches files owned by the current effective user ID.
+
+@item @samp{l@option{[+-]}@var{n}}
+Matches files with @var{n} links.  With @option{+} (or @option{-}),
+matches files with more than (or less than) @var{n} links,
+respectively.
+
+@item @samp{u@var{uid}}
+@item @samp{u'@var{user-name}'}
+Matches files owned by user ID @var{uid} or user name @var{user-name}.
+
+@item @samp{g@var{gid}}
+@item @samp{g'@var{group-name}'}
+Matches files owned by group ID @var{gid} or group name
+@var{group-name}.
+
+@item @samp{a@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{a@option{[+-]}'@var{file}'}
+Matches files last accessed exactly @var{n} days ago.  With @option{+}
+(or @option{-}), matches files accessed more than (or less than)
+@var{n} days ago, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of time, so
+@samp{aw-1} matches files last accessed within one week.  @var{unit}
+can be @samp{M} (30-day months), @samp{w} (weeks), @samp{h} (hours),
+@samp{m} (minutes), or @samp{s} (seconds).
+
+If @var{file} is specified instead, compare against the modification
+time of @file{file}.  Thus, @samp{a-'hello.txt'} matches all files
+accessed after @file{hello.txt} was last accessed.
+
+@item @samp{m@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{m@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines modification time.
+
+@item @samp{c@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{c@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines status change time.
+
+@item @samp{L@option{[@var{unit}]}@option{[+-]}@var{n}}
+Matches files exactly @var{n} bytes in size.  With @option{+} (or
+@option{-}), matches files larger than (or smaller than) @var{n}
+bytes, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of size, so
+@samp{Lm+5} matches files larger than 5 MiB in size.  @var{unit} can
+be one of the following (case-insensitive) characters: @samp{m}
+(megabytes), @samp{k} (kilobytes), or @samp{p} (512-byte blocks).
+
+@end table
+
+The @samp{^} and @samp{-} operators are not argument predicates
+themselves, but they modify the behavior of all subsequent predicates.
+@samp{^} inverts the meaning of subsequent predicates, so
+@samp{*(^RWX)} expands to all files whose permissions disallow the
+world from accessing them in any way (i.e., reading, writing to, or
+modifying them).  When examining a symbolic link, @samp{-} applies the
+subsequent predicates to the link's target instead of the link itself.
+
+@node Argument Modifiers
+@subsection Argument Modifiers
+You can use argument modifiers to manipulate argument values.  For
+example, you can sort lists, remove duplicate values, capitalize
+words, etc.  All argument modifiers are prefixed by @samp{:}, so
+@samp{$exec-path(:h:u:x/^\/home/)} lists all of the unique parent
+directories of the elements in @code{exec-path}, excluding those in
+@file{/home}.
+
+@table @samp
+
+@item E
+Re-evaluates the value as an Eshell argument.  For example, if
+@var{foo} is @code{"$@{echo hi@}"}, then the result of @samp{$foo(:E)}
+is @code{hi}.
+
+@item L
+Converts the value to lower case.
+
+@item U
+Converts the value to upper case.
+
+@item C
+Capitalizes the value.
+
+@item h
+Treating the value as a file name, gets the directory name (the
+``head'').  For example, @samp{foo/bar/baz.el(:h)} expands to
+@samp{foo/bar/}.
+
+@item t
+Treating the value as a file name, gets the base name (the ``tail'').
+For example, @samp{foo/bar/baz.el(:h)} expands to @samp{baz.el}.
+
+@item e
+Treating the value as a file name, gets the final extension of the
+file, excluding the dot.  For example, @samp{foo.tar.gz(:e)}
+expands to @code{gz}.
+
+@item r
+Treating the value as a file name, gets the file name excluding the
+final extension.  For example, @samp{foo/bar/baz.tar.gz(:r)} expands
+to @samp{foo/bar/baz.tar}.
+
+@item q
+Marks that the value should be interpreted by Eshell literally, so
+that any special characters like @samp{$} no longer have any special
+meaning.
+
+@item s/@var{pattern}/@var{replace}/
+Replaces the first instance of the regular expression @var{pattern}
+with @var{replace}.  Signals an error if no match is found.
+
+@item gs/@var{pattern}/@var{replace}/
+Replaces all instances of the regular expression @var{pattern} with
+@var{replace}.
+
+@item i/@var{pattern}/
+Filters a list of values to include only the elements matching the
+regular expression @var{pattern}.
+
+@item x/@var{pattern}/
+Filters a list of values to exclude all the elements matching the
+regular expression @var{pattern}.
+
+@item S
+@item S/@var{pattern}/
+Splits the value using the regular expression @var{pattern} as a
+delimiter.  If @var{pattern} is omitted, split on spaces.
+
+@item j
+@item j/@var{delim}/
+Joins a list of values, inserting the string @var{delim} between each
+value.  If @var{delim} is omitted, use a single space as the
+delimiter.
+
+@item o
+Sorts a list of strings in ascending lexicographic order, comparing
+pairs of characters according to their character codes (@pxref{Text
+Comparison, , , elisp, The Emacs Lisp Reference Manual}).
+
+@item O
+Sorts a list of strings in descending lexicographic order.
+
+@item u
+Removes any duplicate elements from a list of values.
+
+@item R
+Reverses the order of a list of values.
 
 @end table
 

@@ -592,11 +592,11 @@ list."
 The optional argument ID-FORMAT specifies the preferred uid and
 gid format.  Valid values are `string' and `integer', defaulting to
 `integer'.  See `file-attributes'."
-  (let* ((file (expand-file-name file))
+  (let* ((expanded-file (expand-file-name file))
 	 entry)
-    (if (string-equal (file-remote-p file 'method) "ftp")
-	(let ((base (file-name-nondirectory file))
-	      (dir (file-name-directory file)))
+    (if (string-equal (file-remote-p expanded-file 'method) "ftp")
+	(let ((base (file-name-nondirectory expanded-file))
+	      (dir (file-name-directory expanded-file)))
 	  (if (string-equal "" base) (setq base "."))
 	  (unless entry
 	    (setq entry (eshell-parse-ange-ls dir))
