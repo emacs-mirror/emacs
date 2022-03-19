@@ -14510,8 +14510,17 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 #ifdef HAVE_X_I18N
       /* Filter events for the current X input method.  */
-      if (x_filter_event (dpyinfo, &event))
-        continue;
+#ifdef HAVE_XINPUT2
+      if (event.type != GenericEvent)
+	{
+	  /* Input extension key events are filtered inside
+	     handle_one_xevent.  */
+#endif
+	  if (x_filter_event (dpyinfo, &event))
+	    continue;
+#ifdef HAVE_XINPUT2
+	}
+#endif
 #endif
       event_found = true;
 
