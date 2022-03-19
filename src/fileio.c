@@ -2505,6 +2505,8 @@ With a prefix argument, TRASH is nil.  */)
   return Qnil;
 }
 
+#if defined HAVE_NATIVE_COMP && defined WINDOWSNT
+
 static Lisp_Object
 internal_delete_file_1 (Lisp_Object ignore)
 {
@@ -2523,6 +2525,8 @@ internal_delete_file (Lisp_Object filename)
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
+
+#endif
 
 /* Return -1 if FILE is a case-insensitive file name, 0 if not,
    and a positive errno value if the result cannot be determined.  */
