@@ -429,6 +429,9 @@ struct x_display_info
   /* Atom used in XEmbed client messages.  */
   Atom Xatom_XEMBED, Xatom_XEMBED_INFO;
 
+  /* Atom used to determine whether or not the screen is composited.  */
+  Atom Xatom_NET_WM_CM_Sn;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -634,6 +637,12 @@ struct x_display_info
 
 #ifdef HAVE_XINERAMA
   bool xinerama_supported_p;
+#endif
+
+#ifdef HAVE_XCOMPOSITE
+  bool composite_supported_p;
+  int composite_major;
+  int composite_minor;
 #endif
 };
 

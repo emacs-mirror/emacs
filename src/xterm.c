@@ -542,6 +542,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xinerama.h>
 #endif
 
+#ifdef HAVE_XCOMPOSITE
+#include <X11/extensions/Xcomposite.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -817,6 +821,10 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 {
   Window child_return, child, dummy, proxy;
   int dest_x_return, dest_y_return, rc, proto;
+#if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
+  Window overlay_window;
+  XWindowAttributes attrs;
+#endif
   child_return = dpyinfo->root_window;
   dest_x_return = root_x;
   dest_y_return = root_y;
@@ -853,7 +861,7 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	    {
 	      *proto_out = proto;
 
-	      x_uncatch_errors_after_check ();
+	      x_uncatch_errors ();
 	      return proxy;
 	    }
 	}
@@ -865,7 +873,7 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	  if (proto != -1)
 	    {
 	      *proto_out = proto;
-	      x_uncatch_errors_after_check ();
+	      x_uncatch_errors ();
 
 	      return child_return;
 	    }
@@ -887,8 +895,49 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       x_uncatch_errors_after_check ();
     }
 
+#if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
+  if (child != dpyinfo->root_window)
+    {
+#endif
+      *proto_out = x_dnd_get_window_proto (dpyinfo, child);
+      return child;
+#if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
+    }
+  else if (dpyinfo->composite_supported_p
+	   && (dpyinfo->composite_major > 0
+	       || dpyinfo->composite_minor > 2))
+    {
+      /* Only do this if a compositing manager is present.  */
+      if (XGetSelectionOwner (dpyinfo->display,
+			      dpyinfo->Xatom_NET_WM_CM_Sn) != None)
+	{
+	  overlay_window = XCompositeGetOverlayWindow (dpyinfo->display,
+						       dpyinfo->root_window);
+	  XCompositeReleaseOverlayWindow (dpyinfo->display,
+					  dpyinfo->root_window);
+	  XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
+
+	  if (attrs.map_state == IsViewable)
+	    {
+	      proxy = x_dnd_get_window_proxy (dpyinfo, overlay_window);
+
+	      if (proxy != None)
+		{
+		  proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+		  if (proto != -1)
+		    {
+		      *proto_out = proto;
+		      return proxy;
+		    }
+		}
+	    }
+	}
+    }
+
   *proto_out = x_dnd_get_window_proto (dpyinfo, child);
   return child;
+#endif
 }
 
 static Window
@@ -17936,6 +17985,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef USE_XCB
   xcb_connection_t *xcb_conn;
 #endif
+  char *cm_atom_sprintf;
 
   block_input ();
 
@@ -18215,6 +18265,20 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     dpyinfo->xrender_supported_p
       = XRenderQueryVersion (dpyinfo->display, &dpyinfo->xrender_major,
 			     &dpyinfo->xrender_minor);
+#endif
+
+  /* This must come after XRenderQueryVersion! */
+#ifdef HAVE_XCOMPOSITE
+  int composite_event_base, composite_error_base;
+  dpyinfo->composite_supported_p = XCompositeQueryExtension (dpyinfo->display,
+							     &composite_event_base,
+							     &composite_error_base);
+
+  if (dpyinfo->composite_supported_p)
+    dpyinfo->composite_supported_p
+      = XCompositeQueryVersion (dpyinfo->display,
+				&dpyinfo->composite_major,
+				&dpyinfo->composite_minor);
 #endif
 
   /* Put the rdb where we can find it in a way that works on
@@ -18576,6 +18640,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   {
+    int n = snprintf (NULL, 0, "_NET_WM_CM_S%d",
+		      XScreenNumberOfScreen (dpyinfo->screen));
+    cm_atom_sprintf = alloca (n + 1);
+
+    snprintf (cm_atom_sprintf, n + 1, "_NET_WM_CM_S%d",
+	      XScreenNumberOfScreen (dpyinfo->screen));
+  }
+
+  {
     static const struct
     {
       const char *name;
@@ -18688,7 +18761,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     int i;
     enum { atom_count = ARRAYELTS (atom_refs) };
     /* 1 for _XSETTINGS_SN.  */
-    enum { total_atom_count = 1 + atom_count };
+    enum { total_atom_count = 2 + atom_count };
     Atom atoms_return[total_atom_count];
     char *atom_names[total_atom_count];
     static char const xsettings_fmt[] = "_XSETTINGS_S%d";
@@ -18702,6 +18775,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     sprintf (xsettings_atom_name, xsettings_fmt,
 	     XScreenNumberOfScreen (dpyinfo->screen));
     atom_names[i] = xsettings_atom_name;
+    atom_names[i + 1] = cm_atom_sprintf;
 
     XInternAtoms (dpyinfo->display, atom_names, total_atom_count,
                   False, atoms_return);
@@ -18709,8 +18783,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     for (i = 0; i < atom_count; i++)
       *(Atom *) ((char *) dpyinfo + atom_refs[i].offset) = atoms_return[i];
 
-    /* Manually copy last atom.  */
+    /* Manually copy last two atoms.  */
     dpyinfo->Xatom_xsettings_sel = atoms_return[i];
+    dpyinfo->Xatom_NET_WM_CM_Sn = atoms_return[i + 1];
   }
 
 #ifdef HAVE_XKB

@@ -4538,6 +4538,24 @@ fi
 AC_SUBST(XDBE_CFLAGS)
 AC_SUBST(XDBE_LIBS)
 
+### Use Xcomposite (-lXcomposite) if available
+HAVE_XCOMPOSITE=no
+if test "${HAVE_X11}" = "yes"; then
+  AC_CHECK_HEADER(X11/extensions/Xcomposite.h,
+    [AC_CHECK_LIB(Xcomposite, XCompositeRedirectWindow, HAVE_XCOMPOSITE=yes)],
+    [],
+    [#include <X11/extensions/Xcomposite.h>
+    ])
+  if test $HAVE_XCOMPOSITE = yes; then
+    XCOMPOSITE_LIBS=-lXcomposite
+  fi
+  if test $HAVE_XCOMPOSITE = yes; then
+    AC_DEFINE(HAVE_XCOMPOSITE, 1, [Define to 1 if you have the XCOMPOSITE extension.])
+  fi
+fi
+AC_SUBST(XCOMPOSITE_CFLAGS)
+AC_SUBST(XCOMPOSITE_LIBS)
+
 ### Use libxml (-lxml2) if available
 ### mingw32 doesn't use -lxml2, since it loads the library dynamically.
 HAVE_LIBXML2=no
