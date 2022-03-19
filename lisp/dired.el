@@ -257,7 +257,7 @@ creating a copy of it .
 If the value is `link', then a symbolic link will be created to
 the file instead by the other program (usually a file manager)."
   :type '(choice (const :tag "Don't allow dragging" nil)
-                 (const :tag "Copy file to other window" tx)
+                 (const :tag "Copy file to other window" t)
                  (const :tag "Create symbolic link to file" link)))
 
 (defcustom dired-copy-preserve-time t
@@ -1689,15 +1689,17 @@ see `dired-use-ls-dired' for more details.")
 (declare-function x-begin-drag "xfns.cx")
 
 (defun dired-mouse-drag (event)
-  "Begin a drag-and-drop operation for the file at EVENT.
-If we get a mouse motion event right "
+  "Begin a drag-and-drop operation for the file at EVENT."
   (interactive "e")
+  (when mark-active
+    (deactivate-mark))
   (save-excursion
     (goto-char (posn-point (event-end event)))
     (track-mouse
       (let ((new-event (read-event)))
         (if (not (eq (event-basic-type new-event) 'mouse-movement))
-            (push new-event unread-command-events)
+            (when (eq (event-basic-type new-event) 'mouse-1)
+              (push new-event unread-command-events))
           ;; We can get an error if there's by some chance no file
           ;; name at point.
           (condition-case nil
@@ -1709,7 +1711,8 @@ If we get a mouse motion event right "
                               (if (eq 'dired-mouse-drag-files 'link)
                                   'XdndActionLink
                                 'XdndActionCopy)))
-            (error (push new-event unread-command-events))))))))
+            (error (when (eq (event-basic-type new-event) 'mouse-1)
+                     (push new-event unread-command-events)))))))))
 
 (defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
                                      (define-key keymap [down-mouse-1] #'dired-mouse-drag)
