@@ -1338,8 +1338,6 @@ extern bool frame_inhibit_resize (struct frame *, bool, Lisp_Object);
 extern void adjust_frame_size (struct frame *, int, int, int, bool,
 			       Lisp_Object);
 extern Lisp_Object mouse_position (bool);
-extern int frame_windows_min_size (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object);
 extern void frame_size_history_plain (struct frame *, Lisp_Object);
 extern void frame_size_history_extra (struct frame *, Lisp_Object,
 				      int, int, int, int, int, int);

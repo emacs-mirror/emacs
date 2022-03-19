@@ -342,7 +342,7 @@ init_timefns (void)
 }
 
 /* Report that a time value is out of range for Emacs.  */
-void
+static AVOID
 time_overflow (void)
 {
   error ("Specified time is not representable");

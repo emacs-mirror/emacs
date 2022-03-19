@@ -147,10 +147,6 @@ extern bool syntax_prefix_flag_p (int c);
 
 extern unsigned char const syntax_spec_code[0400];
 
-/* Indexed by syntax code, give the letter that describes it.  */
-
-extern char const syntax_code_spec[16];
-
 /* Convert the byte offset BYTEPOS into a character position,
    for the object recorded in gl_state with SETUP_SYNTAX_TABLE_FOR_OBJECT.
 

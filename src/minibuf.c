@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    minibuffer recursions are encountered.  */
 
 Lisp_Object Vminibuffer_list;
-Lisp_Object Vcommand_loop_level_list;
+static Lisp_Object Vcommand_loop_level_list;
 
 /* Data to remember during recursive minibuffer invocations.  */
 
