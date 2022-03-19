@@ -898,6 +898,8 @@ non local exit (ends with an `unreachable' insn)."))
        :documentation "Doc string.")
   (int-spec nil :type list
             :documentation "Interactive form.")
+  (command-modes nil :type list
+                 :documentation "Command modes.")
   (lap () :type list
        :documentation "LAP assembly representation.")
   (ssa-status nil :type symbol
@@ -1243,6 +1245,7 @@ clashes."
                                  :c-name c-name
                                  :doc (documentation f t)
                                  :int-spec (interactive-form f)
+                                 :command-modes (command-modes f)
                                  :speed (comp-spill-speed function-name)
                                  :pure (comp-spill-decl-spec function-name
                                                              'pure))))
@@ -1282,10 +1285,12 @@ clashes."
                    (make-comp-func-l :c-name c-name
                                      :doc (documentation form t)
                                      :int-spec (interactive-form form)
+                                     :command-modes (command-modes form)
                                      :speed (comp-ctxt-speed comp-ctxt))
                  (make-comp-func-d :c-name c-name
                                    :doc (documentation form t)
                                    :int-spec (interactive-form form)
+                                   :command-modes (command-modes form)
                                    :speed (comp-ctxt-speed comp-ctxt)))))
     (let ((lap (byte-to-native-lambda-lap
                 (gethash (aref byte-code 1)
@@ -1327,6 +1332,7 @@ clashes."
             (comp-func-byte-func func) byte-func
             (comp-func-doc func) (documentation byte-func t)
             (comp-func-int-spec func) (interactive-form byte-func)
+            (comp-func-command-modes func) (command-modes byte-func)
             (comp-func-c-name func) c-name
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp-byte-frame-size byte-func)
@@ -2079,7 +2085,8 @@ and the annotation emission."
                                 (i (hash-table-count h)))
                            (puthash i (comp-func-doc f) h)
                            i)
-                         (comp-func-int-spec f)))
+                         (comp-func-int-spec f)
+                         (comp-func-command-modes f)))
                        ;; This is the compilation unit it-self passed as
                        ;; parameter.
                        (make-comp-mvar :slot 0))))))
@@ -2122,7 +2129,8 @@ These are stored in the reloc data array."
                          (i (hash-table-count h)))
                     (puthash i (comp-func-doc func) h)
                     i)
-                  (comp-func-int-spec func)))
+                  (comp-func-int-spec func)
+                  (comp-func-command-modes func)))
                 ;; This is the compilation unit it-self passed as
                 ;; parameter.
                 (make-comp-mvar :slot 0)))))

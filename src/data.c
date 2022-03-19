@@ -1167,7 +1167,11 @@ The value, if non-nil, is a list of mode name symbols.  */)
 	fun = Fsymbol_function (fun);
     }
 
-  if (COMPILEDP (fun))
+  if (SUBRP (fun))
+    {
+      return XSUBR (fun)->command_modes;
+    }
+  else if (COMPILEDP (fun))
     {
       if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
 	return Qnil;

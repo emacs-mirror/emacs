@@ -2154,6 +2154,7 @@ struct Lisp_Subr
       const char *intspec;
       Lisp_Object native_intspec;
     };
+    Lisp_Object command_modes;
     EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP
     Lisp_Object native_comp_u;
