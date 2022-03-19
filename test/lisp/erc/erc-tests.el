@@ -127,6 +127,7 @@
     (with-current-buffer (get-buffer-create "server")
       (erc-mode)
       (set-process-buffer (setq erc-server-process proc) (current-buffer))
+      (set-process-query-on-exit-flag erc-server-process nil)
       (with-current-buffer (get-buffer-create "#chan")
         (erc-mode)
         (setq erc-server-process proc))
@@ -154,7 +155,8 @@
 
     (with-current-buffer (get-buffer-create "other")
       (erc-mode)
-      (setq erc-server-process (start-process "bNet" (current-buffer) "true")))
+      (setq erc-server-process (start-process "bNet" (current-buffer) "true"))
+      (set-process-query-on-exit-flag erc-server-process nil))
 
     (ert-info ("Foreign ERC buffer not selectable")
       (ert-simulate-keys (kbd "other C-m C-a C-k C-m")
