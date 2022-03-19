@@ -445,26 +445,11 @@ static void compact_small_strings (void);
 static void free_large_strings (void);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 
-/* Forward declare mark accessor functions: they're used all over the
-   place.  */
-
-inline static bool vector_marked_p (const struct Lisp_Vector *v);
-inline static void set_vector_marked (struct Lisp_Vector *v);
-
-inline static bool vectorlike_marked_p (const union vectorlike_header *v);
-inline static void set_vectorlike_marked (union vectorlike_header *v);
-
-inline static bool cons_marked_p (const struct Lisp_Cons *c);
-inline static void set_cons_marked (struct Lisp_Cons *c);
-
-inline static bool string_marked_p (const struct Lisp_String *s);
-inline static void set_string_marked (struct Lisp_String *s);
-
-inline static bool symbol_marked_p (const struct Lisp_Symbol *s);
-inline static void set_symbol_marked (struct Lisp_Symbol *s);
-
-inline static bool interval_marked_p (INTERVAL i);
-inline static void set_interval_marked (INTERVAL i);
+static bool vector_marked_p (struct Lisp_Vector const *);
+static bool vectorlike_marked_p (union vectorlike_header const *);
+static void set_vectorlike_marked (union vectorlike_header *);
+static bool interval_marked_p (INTERVAL);
+static void set_interval_marked (INTERVAL);
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track of
    what memory allocated via lisp_malloc and lisp_align_malloc is intended
