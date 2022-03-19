@@ -140,6 +140,10 @@ extern char etext;
 #include "fingerprint.h"
 #include "epaths.h"
 
+/* Include these only because of INLINE.  */
+#include "comp.h"
+#include "thread.h"
+
 static const char emacs_version[] = PACKAGE_VERSION;
 static const char emacs_copyright[] = COPYRIGHT;
 static const char emacs_bugreport[] = PACKAGE_BUGREPORT;
