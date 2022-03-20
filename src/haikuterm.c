@@ -115,7 +115,25 @@ haiku_toolkit_position (struct frame *f, int x, int y,
 static void
 haiku_delete_terminal (struct terminal *terminal)
 {
-  emacs_abort ();
+  struct haiku_display_info *dpyinfo = terminal->display_info.haiku;
+  struct terminal *t;
+
+  if (!terminal->name)
+    return;
+
+  block_input ();
+  be_app_quit ();
+
+  /* Close all frames and delete the generic struct terminal.  */
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      if (t->type == output_haiku && t->display_info.haiku == dpyinfo)
+	{
+	  delete_terminal (t);
+	  break;
+	}
+    }
+  unblock_input ();
 }
 
 static const char *
