@@ -1384,7 +1384,8 @@ After the tab is created, the hooks in
             (split-window) (delete-window))))
 
       (let ((buffer
-             (if (functionp tab-bar-new-tab-choice)
+             (if (and (functionp tab-bar-new-tab-choice)
+                      (not (memq tab-bar-new-tab-choice '(clone window))))
                  (funcall tab-bar-new-tab-choice)
                (if (stringp tab-bar-new-tab-choice)
                    (or (get-buffer tab-bar-new-tab-choice)
