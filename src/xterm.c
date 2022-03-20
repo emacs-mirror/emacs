@@ -12429,7 +12429,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (x_dnd_last_seen_window != None
 		    && x_dnd_last_protocol_version != -1)
 		  {
-		    x_dnd_waiting_for_finish = true;
+		    /* Crazy hack to make dragging from one frame to
+		       another work.  */
+		    x_dnd_waiting_for_finish = !x_any_window_to_frame (dpyinfo,
+								       x_dnd_last_seen_window);
 		    x_dnd_pending_finish_target = x_dnd_last_seen_window;
 		    x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
@@ -13414,7 +13417,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (x_dnd_last_seen_window != None
 			  && x_dnd_last_protocol_version != -1)
 			{
-			  x_dnd_waiting_for_finish = true;
+			  x_dnd_waiting_for_finish = !x_any_window_to_frame (dpyinfo,
+									     x_dnd_last_seen_window);
 			  x_dnd_pending_finish_target = x_dnd_last_seen_window;
 			  x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
