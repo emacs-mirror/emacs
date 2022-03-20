@@ -654,7 +654,8 @@ treated as in `eglot-dbind'."
                         `(:dynamicRegistration
                           ,(if (eglot--trampish-p s) :json-false t))
                         :symbol `(:dynamicRegistration :json-false)
-                        :configuration t)
+                        :configuration t
+                        :workspaceFolders t)
             :textDocument
             (list
              :synchronization (list
@@ -718,6 +719,15 @@ treated as in `eglot-dbind'."
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
             :experimental eglot--{})))
+
+(cl-defgeneric eglot-workspace-folders (server)
+  "Return workspaceFolders for SERVER."
+  (let ((project (eglot--project server)))
+    (vconcat
+     (mapcar (lambda (dir)
+               (list :uri (eglot--path-to-uri dir)
+                     :name (abbreviate-file-name dir)))
+             `(,(project-root project) ,@(project-external-roots project))))))
 
 (defclass eglot-lsp-server (jsonrpc-process-connection)
   ((project-nickname
@@ -1164,7 +1174,8 @@ This docstring appeases checkdoc, that's all."
                             :rootUri (eglot--path-to-uri default-directory)
                             :initializationOptions (eglot-initialization-options
                                                     server)
-                            :capabilities (eglot-client-capabilities server))
+                            :capabilities (eglot-client-capabilities server)
+                            :workspaceFolders (eglot-workspace-folders server))
                       :success-fn
                       (eglot--lambda ((InitializeResult) capabilities serverInfo)
                         (unless cancelled
@@ -1923,6 +1934,11 @@ THINGS are either registrations or unregisterations (sic)."
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
   (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits))
+
+(cl-defmethod eglot-handle-request
+  (server (_method (eql workspace/workspaceFolders)))
+  "Handle server request workspace/workspaceFolders."
+  (eglot-workspace-folders server))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
