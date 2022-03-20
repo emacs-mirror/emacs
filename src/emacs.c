@@ -2818,9 +2818,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* Don't update display from now on.  */
   Vinhibit_redisplay = Qt;
 
-#ifdef HAVE_HAIKU
-  be_app_quit ();
-#endif
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifndef DOS_NT
   pid_t tpgrp = tcgetpgrp (STDIN_FILENO);
