@@ -1149,6 +1149,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef HAVE_X_I18N
   XIC ic = FRAME_XIC (f);
 #endif
+  XWindowAttributes root_window_attrs;
 
   struct input_event hold_quit;
   char *atom_name;
@@ -1187,7 +1188,21 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   current_count = 0;
 #endif
 
+  /* Now select for SubstructureNotifyMask and PropertyNotifyMask on
+     the root window, so we can get notified when window stacking
+     changes, a common operation during drag-and-drop.  */
+
   block_input ();
+  XGetWindowAttributes (FRAME_X_DISPLAY (f),
+			FRAME_DISPLAY_INFO (f)->root_window,
+			&root_window_attrs);
+
+  XSelectInput (FRAME_X_DISPLAY (f),
+		FRAME_DISPLAY_INFO (f)->root_window,
+		root_window_attrs.your_event_mask
+		| SubstructureNotifyMask
+		| PropertyChangeMask);
+
 #ifdef HAVE_X_I18N
   /* Make sure no events get filtered when XInput 2 is enabled.
      Otherwise, the ibus XIM server gets very confused.  */
@@ -1230,6 +1245,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef HAVE_X_I18N
 	  FRAME_XIC (f) = ic;
 #endif
+	  /* Restore the old event mask.  */
+	  XSelectInput (FRAME_X_DISPLAY (f),
+			FRAME_DISPLAY_INFO (f)->root_window,
+			root_window_attrs.your_event_mask);
 	  unblock_input ();
 	  quit ();
 	}
@@ -1242,6 +1261,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_GTK
   current_hold_quit = NULL;
 #endif
+
+  /* Restore the old event mask.  */
+  XSelectInput (FRAME_X_DISPLAY (f),
+		FRAME_DISPLAY_INFO (f)->root_window,
+		root_window_attrs.your_event_mask);
 
   unblock_input ();
 
@@ -10566,6 +10590,74 @@ mouse_or_wdesc_frame (struct x_display_info *dpyinfo, int wdesc)
     }
 }
 
+/* Get the window underneath the pointer, see if it moved, and update
+   the DND state accordingly.  */
+static void
+x_dnd_update_state (struct x_display_info *dpyinfo)
+{
+  int root_x, root_y, dummy_x, dummy_y, target_proto;
+  unsigned int dummy_mask;
+  Window dummy, dummy_child, target;
+
+  puts ("us");
+
+  if (XQueryPointer (dpyinfo->display,
+		     dpyinfo->root_window,
+		     &dummy, &dummy_child,
+		     &root_x, &root_y,
+		     &dummy_x, &dummy_y,
+		     &dummy_mask))
+    {
+      target = x_dnd_get_target_window (dpyinfo, root_x,
+					root_y, &target_proto);
+
+      if (target != x_dnd_last_seen_window)
+	{
+	  if (x_dnd_last_seen_window != None
+	      && x_dnd_last_protocol_version != -1
+	      && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
+	    x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
+
+	  if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+	      && x_dnd_return_frame == 1)
+	    x_dnd_return_frame = 2;
+
+	  if (x_dnd_return_frame == 2
+	      && x_any_window_to_frame (dpyinfo, target))
+	    {
+	      x_dnd_in_progress = false;
+	      x_dnd_return_frame_object
+		= x_any_window_to_frame (dpyinfo, target);
+	      x_dnd_return_frame = 3;
+	    }
+
+	  x_dnd_last_seen_window = target;
+	  x_dnd_last_protocol_version = target_proto;
+
+	  if (target != None && x_dnd_last_protocol_version != -1)
+	    x_dnd_send_enter (x_dnd_frame, target,
+			      x_dnd_last_protocol_version);
+	}
+
+      if (x_dnd_last_protocol_version != -1 && target != None)
+	x_dnd_send_position (x_dnd_frame, target,
+			     x_dnd_last_protocol_version,
+			     root_x, root_y, x_dnd_selection_timestamp,
+			     dpyinfo->Xatom_XdndActionCopy);
+    }
+  /* The pointer moved out of the screen.  */
+  else if (x_dnd_last_protocol_version)
+    {
+      if (x_dnd_last_seen_window != None
+	  && x_dnd_last_protocol_version != -1)
+	x_dnd_send_leave (x_dnd_frame,
+			  x_dnd_last_seen_window);
+
+      x_dnd_in_progress = false;
+      x_dnd_frame = NULL;
+    }
+}
+
 /* Handles the XEvent EVENT on display DPYINFO.
 
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
@@ -11006,6 +11098,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	}
 
+      if (event->xproperty.window == dpyinfo->root_window
+	  && (event->xproperty.atom == dpyinfo->Xatom_net_client_list_stacking
+	      || event->xproperty.atom == dpyinfo->Xatom_net_current_desktop)
+	  && x_dnd_in_progress)
+	x_dnd_update_state (dpyinfo);
+
       x_handle_property_notify (&event->xproperty);
       xft_settings_event (dpyinfo, event);
       goto OTHER;
@@ -11219,6 +11317,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (xg_is_menu_window (dpyinfo->display, event->xmap.window))
 	popup_activated_flag = 1;
 #endif
+
+      if (x_dnd_in_progress)
+	x_dnd_update_state (dpyinfo);
       /* We use x_top_window_to_frame because map events can
          come for sub-windows and they don't mean that the
          frame is visible.  */
@@ -12181,6 +12282,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	}
+
+      if (x_dnd_in_progress)
+	x_dnd_update_state (dpyinfo);
       goto OTHER;
 
     case ButtonRelease:
@@ -12460,6 +12564,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case CirculateNotify:
+      if (x_dnd_in_progress)
+	x_dnd_update_state (dpyinfo);
       goto OTHER;
 
     case CirculateRequest:
@@ -18801,6 +18907,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
       ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
       ATOM_REFS_INIT ("_NET_WM_USER_TIME_WINDOW", Xatom_net_wm_user_time_window)
+      ATOM_REFS_INIT ("_NET_CLIENT_LIST_STACKING", Xatom_net_client_list_stacking)
       /* Session management */
       ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
       ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)

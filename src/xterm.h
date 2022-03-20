@@ -550,7 +550,7 @@ struct x_display_info
     Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
     Xatom_net_wm_frame_drawn, Xatom_net_wm_user_time,
-    Xatom_net_wm_user_time_window;
+    Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
