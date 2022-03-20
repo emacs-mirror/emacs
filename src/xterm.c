@@ -788,6 +788,9 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 #endif
 
 static bool x_dnd_in_progress;
+static bool x_dnd_waiting_for_finish;
+static Window x_dnd_pending_finish_target;
+static int x_dnd_waiting_for_finish_proto;
 
 /* Whether or not to return a frame from `x_dnd_begin_drag_and_drop'.
 
@@ -809,6 +812,9 @@ static Atom x_dnd_wanted_action;
 static Atom *x_dnd_targets = NULL;
 static int x_dnd_n_targets;
 static struct frame *x_dnd_frame;
+static XWindowAttributes x_dnd_old_window_attrs;
+static XIC x_dnd_old_ic;
+static bool x_dnd_unwind_flag;
 
 #define X_DND_SUPPORTED_VERSION 5
 
@@ -1145,6 +1151,47 @@ x_set_dnd_targets (Atom *targets, int ntargets)
   x_dnd_n_targets = ntargets;
 }
 
+static void
+x_dnd_cleanup_drag_and_drop (void *frame)
+{
+  struct frame *f = frame;
+
+  if (!x_dnd_unwind_flag)
+    return;
+
+  if (x_dnd_in_progress)
+    {
+      eassert (x_dnd_frame);
+
+      block_input ();
+      if (x_dnd_last_seen_window != None
+	  && x_dnd_last_protocol_version != -1)
+	x_dnd_send_leave (x_dnd_frame,
+			  x_dnd_last_seen_window);
+      unblock_input ();
+
+      x_dnd_in_progress = false;
+      x_set_dnd_targets (NULL, 0);
+    }
+
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+#ifdef USE_GTK
+  current_hold_quit = NULL;
+#endif
+#ifdef HAVE_X_I18N
+  FRAME_XIC (f) = x_dnd_old_ic;
+#endif
+
+  block_input ();
+  /* Restore the old event mask.  */
+  XSelectInput (FRAME_X_DISPLAY (f),
+		FRAME_DISPLAY_INFO (f)->root_window,
+		x_dnd_old_window_attrs.your_event_mask);
+  unblock_input ();
+
+  x_dnd_frame = NULL;
+}
+
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   bool return_frame_p)
@@ -1161,6 +1208,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct input_event hold_quit;
   char *atom_name;
   Lisp_Object action, ltimestamp;
+  specpdl_ref ref;
 
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
@@ -1187,6 +1235,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_action = None;
   x_dnd_wanted_action = xaction;
   x_dnd_return_frame = 0;
+  x_dnd_waiting_for_finish = false;
 
   if (return_frame_p)
     x_dnd_return_frame = 1;
@@ -1215,7 +1264,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
      Otherwise, the ibus XIM server gets very confused.  */
   FRAME_XIC (f) = NULL;
 #endif
-  while (x_dnd_in_progress)
+  while (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
       hold_quit.kind = NO_EVENT;
 #ifdef USE_GTK
@@ -1234,6 +1283,20 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
       if (hold_quit.kind != NO_EVENT)
 	{
+	  if (hold_quit.kind == SELECTION_REQUEST_EVENT)
+	    {
+	      x_dnd_old_ic = ic;
+	      x_dnd_old_window_attrs = root_window_attrs;
+	      x_dnd_unwind_flag = true;
+
+	      ref = SPECPDL_INDEX ();
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
+	      x_dnd_unwind_flag = false;
+	      unbind_to (ref, Qnil);
+	      continue;
+	    }
+
 	  if (x_dnd_in_progress)
 	    {
 	      if (x_dnd_last_seen_window != None
@@ -10771,6 +10834,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      }
 	  }
 
+	if (event->xclient.message_type == dpyinfo->Xatom_XdndFinished
+	    && x_dnd_waiting_for_finish
+	    && event->xclient.data.l[0] == x_dnd_pending_finish_target)
+	  {
+	    x_dnd_waiting_for_finish = false;
+
+	    if (x_dnd_waiting_for_finish_proto >= 5)
+	      x_dnd_wanted_action = event->xclient.data.l[2];
+
+	    if (x_dnd_waiting_for_finish_proto >= 5
+		&& !(event->xclient.data.l[1] & 1))
+	      x_dnd_wanted_action = None;
+	  }
+
         if (event->xclient.message_type == dpyinfo->Xatom_wm_protocols
             && event->xclient.format == 32)
           {
@@ -11055,6 +11132,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	SELECTION_EVENT_TARGET (&inev.sie) = eventp->target;
 	SELECTION_EVENT_PROPERTY (&inev.sie) = eventp->property;
 	SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
+
+	/* If drag-and-drop is in progress, handle SelectionRequest
+	   events immediately, by setting hold_quit to the input
+	   event.  */
+
+	if (x_dnd_in_progress || x_dnd_waiting_for_finish)
+	  {
+	    *hold_quit = inev.ie;
+	    EVENT_INIT (inev.ie);
+	  }
       }
       break;
 
@@ -12341,9 +12428,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		if (x_dnd_last_seen_window != None
 		    && x_dnd_last_protocol_version != -1)
-		  x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-				   x_dnd_selection_timestamp,
-				   x_dnd_last_protocol_version);
+		  {
+		    x_dnd_waiting_for_finish = true;
+		    x_dnd_pending_finish_target = x_dnd_last_seen_window;
+		    x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
+
+		    x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+				     x_dnd_selection_timestamp,
+				     x_dnd_last_protocol_version);
+		  }
 
 		x_dnd_last_protocol_version = -1;
 		x_dnd_last_seen_window = None;
@@ -13320,9 +13413,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      if (x_dnd_last_seen_window != None
 			  && x_dnd_last_protocol_version != -1)
-			x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-					 x_dnd_selection_timestamp,
-					 x_dnd_last_protocol_version);
+			{
+			  x_dnd_waiting_for_finish = true;
+			  x_dnd_pending_finish_target = x_dnd_last_seen_window;
+			  x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
+
+			  x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+					   x_dnd_selection_timestamp,
+					   x_dnd_last_protocol_version);
+			}
 
 		      x_dnd_last_protocol_version = -1;
 		      x_dnd_last_seen_window = None;
