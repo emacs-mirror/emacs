@@ -196,8 +196,6 @@ struct thread_state
   struct bc_thread_state bc;
 } GCALIGNED_STRUCT;
 
-INLINE_HEADER_BEGIN
-
 INLINE bool
 THREADP (Lisp_Object a)
 {
