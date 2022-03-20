@@ -1349,11 +1349,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
-  if (x_dnd_wanted_action != None)
+  if (x_dnd_action != None)
     {
       block_input ();
       atom_name = XGetAtomName (FRAME_X_DISPLAY (f),
-				x_dnd_wanted_action);
+				x_dnd_action);
       action = intern (atom_name);
       XFree (atom_name);
       unblock_input ();
@@ -10699,6 +10699,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 	      x_dnd_return_frame = 3;
 	    }
 
+	  x_dnd_action = None;
 	  x_dnd_last_seen_window = target;
 	  x_dnd_last_protocol_version = target_proto;
 
@@ -10710,8 +10711,9 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
       if (x_dnd_last_protocol_version != -1 && target != None)
 	x_dnd_send_position (x_dnd_frame, target,
 			     x_dnd_last_protocol_version,
-			     root_x, root_y, x_dnd_selection_timestamp,
-			     dpyinfo->Xatom_XdndActionCopy);
+			     root_x, root_y,
+			     x_dnd_selection_timestamp,
+			     x_dnd_wanted_action);
     }
   /* The pointer moved out of the screen.  */
   else if (x_dnd_last_protocol_version)
@@ -10825,12 +10827,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (event->xclient.data.l[1] & 1)
 		  {
 		    if (x_dnd_last_protocol_version >= 2)
-		      x_dnd_wanted_action = event->xclient.data.l[4];
+		      x_dnd_action = event->xclient.data.l[4];
 		    else
-		      x_dnd_wanted_action = dpyinfo->Xatom_XdndActionCopy;
+		      x_dnd_action = dpyinfo->Xatom_XdndActionCopy;
 		  }
 		else
-		  x_dnd_wanted_action = None;
+		  x_dnd_action = None;
 	      }
 	  }
 
@@ -10841,11 +10843,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    x_dnd_waiting_for_finish = false;
 
 	    if (x_dnd_waiting_for_finish_proto >= 5)
-	      x_dnd_wanted_action = event->xclient.data.l[2];
+	      x_dnd_action = event->xclient.data.l[2];
 
 	    if (x_dnd_waiting_for_finish_proto >= 5
 		&& !(event->xclient.data.l[1] & 1))
-	      x_dnd_wanted_action = None;
+	      x_dnd_action = None;
 	  }
 
         if (event->xclient.message_type == dpyinfo->Xatom_wm_protocols
@@ -12005,11 +12007,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             clear_mouse_face (hlinfo);
           }
 
+	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
+
 	if (x_dnd_in_progress
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
 	    Window target;
 	    int target_proto;
+
+	    /* Sometimes the drag-and-drop operation starts with the
+	       pointer of a frame invisible due to input.  Since
+	       motion events are ignored during that, make the pointer
+	       visible manually.  */
+
+	    if (f)
+	      XTtoggle_invisible_pointer (f, false);
 
 	    target = x_dnd_get_target_window (dpyinfo,
 					      event->xmotion.x_root,
@@ -12036,7 +12048,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    x_dnd_return_frame = 3;
 		  }
 
-		x_dnd_wanted_action = None;
+		x_dnd_action = None;
 		x_dnd_last_seen_window = target;
 		x_dnd_last_protocol_version = target_proto;
 
@@ -12051,12 +12063,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				   event->xmotion.x_root,
 				   event->xmotion.y_root,
 				   x_dnd_selection_timestamp,
-				   dpyinfo->Xatom_XdndActionCopy);
+				   x_dnd_wanted_action);
 
 	    goto OTHER;
 	  }
-
-	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
 
 #ifdef USE_GTK
         if (f && xg_event_is_for_scrollbar (f, event, false))
@@ -13254,11 +13264,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  clear_mouse_face (hlinfo);
 		}
 
+	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+
 	      if (x_dnd_in_progress
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  Window target;
 		  int target_proto;
+
+		  /* Sometimes the drag-and-drop operation starts with the
+		     pointer of a frame invisible due to input.  Since
+		     motion events are ignored during that, make the pointer
+		     visible manually.  */
+
+		  if (f)
+		    XTtoggle_invisible_pointer (f, false);
 
 		  target = x_dnd_get_target_window (dpyinfo,
 						    xev->root_x,
@@ -13285,6 +13305,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  x_dnd_return_frame = 3;
 			}
 
+		      x_dnd_action = None;
 		      x_dnd_last_seen_window = target;
 		      x_dnd_last_protocol_version = target_proto;
 
@@ -13298,12 +13319,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					 x_dnd_last_protocol_version,
 					 xev->root_x, xev->root_y,
 					 x_dnd_selection_timestamp,
-					 dpyinfo->Xatom_XdndActionCopy);
+					 x_dnd_wanted_action);
 
 		  goto XI_OTHER;
 		}
-
-	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 
 #ifdef USE_GTK
 	      if (f && xg_event_is_for_scrollbar (f, event, false))
