@@ -1065,9 +1065,7 @@ This only works when `display-time' is enabled."
     (let ((from (format "%s:%s:%s" server user port))
 	  (found 0)
 	  (buf (generate-new-buffer " *imap source*"))
-	  (mail-source-string (format "imap:%s:%s" server mailbox))
-	  (imap-shell-program (or (list program) imap-shell-program))
-	  remove)
+	  (imap-shell-program (or (list program) imap-shell-program)))
       (if (and (imap-open server port stream authentication buf)
 	       (imap-authenticate
 		user (or (cdr (assoc from mail-source-password-cache))
@@ -1076,8 +1074,10 @@ This only works when `display-time' is enabled."
           (let ((mailbox-list (if (listp mailbox) mailbox (list mailbox))))
             (dolist (mailbox mailbox-list)
               (when (imap-mailbox-select mailbox nil buf)
-	  (let ((coding-system-for-write mail-source-imap-file-coding-system)
-		str)
+	        (let ((coding-system-for-write
+                       mail-source-imap-file-coding-system)
+	              (mail-source-string (format "imap:%s:%s" server mailbox))
+	              str remove)
             (message "Fetching from %s..." mailbox)
 	    (with-temp-file mail-source-crash-box
 	      ;; Avoid converting 8-bit chars from inserted strings to
