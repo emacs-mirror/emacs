@@ -911,27 +911,34 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       if (XGetSelectionOwner (dpyinfo->display,
 			      dpyinfo->Xatom_NET_WM_CM_Sn) != None)
 	{
+	  x_catch_errors (dpyinfo->display);
 	  overlay_window = XCompositeGetOverlayWindow (dpyinfo->display,
 						       dpyinfo->root_window);
 	  XCompositeReleaseOverlayWindow (dpyinfo->display,
 					  dpyinfo->root_window);
-	  XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
-
-	  if (attrs.map_state == IsViewable)
+	  if (!x_had_errors_p (dpyinfo->display))
 	    {
-	      proxy = x_dnd_get_window_proxy (dpyinfo, overlay_window);
+	      XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
 
-	      if (proxy != None)
+	      if (attrs.map_state == IsViewable)
 		{
-		  proto = x_dnd_get_window_proto (dpyinfo, proxy);
+		  proxy = x_dnd_get_window_proxy (dpyinfo, overlay_window);
 
-		  if (proto != -1)
+		  if (proxy != None)
 		    {
-		      *proto_out = proto;
-		      return proxy;
+		      proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+		      if (proto != -1)
+			{
+			  *proto_out = proto;
+			  x_uncatch_errors_after_check ();
+
+			  return proxy;
+			}
 		    }
 		}
 	    }
+	  x_uncatch_errors_after_check ();
 	}
     }
 
