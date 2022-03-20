@@ -5008,8 +5008,9 @@ performed successfully.  Any other value means an error."
 	  (tramp-message vec 6 "\n%s" (buffer-string)))
 	(if (eq exit 'ok)
 	    (ignore-errors
-	      (and (functionp tramp-password-save-function)
-		   (funcall tramp-password-save-function)))
+	      (when (functionp tramp-password-save-function)
+		(funcall tramp-password-save-function)
+                (setq tramp-password-save-function nil)))
 	  ;; Not successful.
 	  (tramp-clear-passwd vec)
 	  (delete-process proc)
