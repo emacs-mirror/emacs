@@ -2295,6 +2295,21 @@ list in @var{variables} is an alist of the form
   '((null-device . "/dev/null")))
 @end group
 @end example
+
+@findex connection-local-get-profile-variables
+If you want to append variable settings to an existing profile, you
+could use the function @code{connection-local-get-profile-variables}
+in order to retrieve the existing settings, like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'remote-bash
+  (append
+   (connection-local-get-profile-variables 'remote-bash)
+   '((shell-command-dont-erase-buffer . t))))
+@end group
+@end example
 @end defun
 
 @deffn {User Option} connection-local-profile-alist
