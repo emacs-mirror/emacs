@@ -3990,6 +3990,8 @@ since they have special meaning in a regexp."
 (defvar isearch-lazy-count-current nil)
 (defvar isearch-lazy-count-total nil)
 (defvar isearch-lazy-count-hash (make-hash-table))
+(defvar lazy-count-update-hook nil
+  "Hook run after new lazy count results are computed.")
 
 (defun lazy-highlight-cleanup (&optional force procrastinate)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
@@ -4048,7 +4050,7 @@ by other Emacs features."
 			         isearch-lazy-highlight-window-end))))))
     ;; something important did indeed change
     (lazy-highlight-cleanup t (not (equal isearch-string ""))) ;stop old timer
-    (when (and isearch-lazy-count isearch-mode (null isearch-message-function))
+    (when isearch-lazy-count
       (when (or (equal isearch-string "")
                 ;; Check if this place was reached by a condition above
                 ;; other than changed window boundaries (that shouldn't
@@ -4067,7 +4069,10 @@ by other Emacs features."
         (setq isearch-lazy-count-current nil
               isearch-lazy-count-total nil)
         ;; Delay updating the message if possible, to avoid flicker
-        (when (string-equal isearch-string "") (isearch-message))))
+        (when (string-equal isearch-string "")
+          (when (and isearch-mode (null isearch-message-function))
+            (isearch-message))
+          (run-hooks 'lazy-count-update-hook))))
     (setq isearch-lazy-highlight-window-start-changed nil)
     (setq isearch-lazy-highlight-window-end-changed nil)
     (setq isearch-lazy-highlight-error isearch-error)
@@ -4120,13 +4125,15 @@ by other Emacs features."
                                  'isearch-lazy-highlight-start))))
   ;; Update the current match number only in isearch-mode and
   ;; unless isearch-mode is used specially with isearch-message-function
-  (when (and isearch-lazy-count isearch-mode (null isearch-message-function))
+  (when isearch-lazy-count
     ;; Update isearch-lazy-count-current only when it was already set
     ;; at the end of isearch-lazy-highlight-buffer-update
     (when isearch-lazy-count-current
       (setq isearch-lazy-count-current
             (gethash (point) isearch-lazy-count-hash 0))
-      (isearch-message))))
+      (when (and isearch-mode (null isearch-message-function))
+        (isearch-message))
+      (run-hooks 'lazy-count-update-hook))))
 
 (defun isearch-lazy-highlight-search (string bound)
   "Search ahead for the next or previous match, for lazy highlighting.
@@ -4327,12 +4334,14 @@ Attempt to do the search exactly the way the pending Isearch would."
 		    (setq looping nil
 			  nomore  t))))
 	    (if nomore
-		(when (and isearch-lazy-count isearch-mode (null isearch-message-function))
+		(when isearch-lazy-count
 		  (unless isearch-lazy-count-total
 		    (setq isearch-lazy-count-total 0))
 		  (setq isearch-lazy-count-current
 			(gethash opoint isearch-lazy-count-hash 0))
-		  (isearch-message))
+                  (when (and isearch-mode (null isearch-message-function))
+                    (isearch-message))
+		  (run-hooks 'lazy-count-update-hook))
 	      (setq isearch-lazy-highlight-timer
 		    (run-at-time lazy-highlight-interval nil
 				 'isearch-lazy-highlight-buffer-update)))))))))
