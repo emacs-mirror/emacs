@@ -10606,8 +10606,6 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
   unsigned int dummy_mask;
   Window dummy, dummy_child, target;
 
-  puts ("us");
-
   if (XQueryPointer (dpyinfo->display,
 		     dpyinfo->root_window,
 		     &dummy, &dummy_child,
