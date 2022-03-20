@@ -130,8 +130,8 @@ In particular, all lines of a multiline item should be highlighted."
    (todo-toggle-item-highlighting)
    (let ((end (1- (todo-item-end)))
          (beg (todo-item-start)))
-     (should (eq (get-char-property beg 'face) 'hl-line))
-     (should (eq (get-char-property end 'face) 'hl-line))
+     (should (eq (get-char-property beg 'face) 'hl-line-face))
+     (should (eq (get-char-property end 'face) 'hl-line-face))
      (should (> (count-lines beg end) 1))
      (should (eq (next-single-char-property-change beg 'face) (1+ end))))
    (todo-toggle-item-highlighting)))   ; Turn off highlighting (for test rerun).
@@ -736,7 +736,7 @@ Subsequently moving to an item should show it highlighted."
    (todo-test--done-items-separator)
    (call-interactively #'todo-toggle-item-highlighting)
    (ert-simulate-command '(todo-previous-item))
-   (should (eq 'hl-line (get-char-property (point) 'face)))))
+   (should (eq 'hl-line-face (get-char-property (point) 'face)))))
 
 (ert-deftest todo-test-done-items-separator06-eol () ; bug#32343
   "Test enabling item highlighting at EOL of done items separator.
@@ -746,7 +746,7 @@ Subsequently moving to an item should show it highlighted."
    (todo-toggle-item-highlighting)
    (forward-line -1)
    (ert-simulate-command '(todo-previous-item))
-   (should (eq 'hl-line (get-char-property (point) 'face)))))
+   (should (eq 'hl-line-face (get-char-property (point) 'face)))))
 
 (ert-deftest todo-test-done-items-separator07 () ; bug#32343
   "Test item highlighting when crossing done items separator.
@@ -758,7 +758,7 @@ The highlighting should remain enabled."
    (todo-next-item)               ; Now on empty line above separator.
    (forward-line)                 ; Now on separator.
    (ert-simulate-command '(forward-line)) ; Now on first done item.
-   (should (eq 'hl-line (get-char-property (point) 'face)))))
+   (should (eq 'hl-line-face (get-char-property (point) 'face)))))
 
 (ert-deftest todo-test-current-file-in-edit-mode () ; bug#32437
   "Test the value of todo-current-todo-file in todo-edit-mode."
