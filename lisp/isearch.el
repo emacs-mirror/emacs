@@ -1812,6 +1812,8 @@ The following additional command keys are active while editing.
 	  (minibuffer-history-symbol)
 	  ;; Search string might have meta information on text properties.
 	  (minibuffer-allow-text-properties t))
+     (when isearch-lazy-highlight
+       (add-hook 'minibuffer-setup-hook #'minibuffer-lazy-highlight-setup))
      (setq isearch-new-string
 	   (read-from-minibuffer
 	    (isearch-message-prefix nil isearch-nonincremental)
