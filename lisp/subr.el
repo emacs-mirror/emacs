@@ -3050,7 +3050,7 @@ If there is a natural number at point, use it as default."
   (make-hash-table :test 'equal))
 
 (defun read-char-from-minibuffer-insert-char ()
-  "Insert the character you type in the minibuffer and exit.
+  "Insert the character you type into the minibuffer and exit minibuffer.
 Discard all previous input before inserting and exiting the minibuffer."
   (interactive)
   (when (minibufferp)
@@ -3059,9 +3059,11 @@ Discard all previous input before inserting and exiting the minibuffer."
     (exit-minibuffer)))
 
 (defun read-char-from-minibuffer-insert-other ()
-  "Handle inserting of a character other than allowed.
-Display an error on trying to insert a disallowed character.
-Also discard all previous input in the minibuffer."
+  "Reject a disallowed character typed into the minibuffer.
+This command is intended to be bound to keys that users are not
+allowed to type into the minibuffer.  When the user types any
+such key, this command discard all minibuffer input and displays
+an error message."
   (interactive)
   (when (minibufferp)
     (delete-minibuffer-contents)
