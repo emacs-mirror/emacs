@@ -4969,7 +4969,6 @@ unknown (before GCC version 10).  */)
 
 /******************************************************************************/
 /* Helper functions called from the run-time.				      */
-/* These can't be statics till shared mechanism is used to solve relocations. */
 /* Note: this are all potentially definable directly to gcc and are here just */
 /* for laziness. Change this if a performance impact is measured.             */
 /******************************************************************************/
