@@ -461,6 +461,7 @@ must be available."
     (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
+(defvar image-convert-to-format)
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
@@ -498,7 +499,7 @@ Image file names that are not absolute are searched for in the
     (when (eq type 'image-convert)
       (require 'image-converter)
       (setq file-or-data (image-convert file-or-data data-format)
-            type 'png
+            type (intern image-convert-to-format)
             data-p t)))
   (when (image-type-available-p type)
     (let ((image
