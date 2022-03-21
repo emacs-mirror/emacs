@@ -1022,6 +1022,9 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   return Qnil;
 }
 
+/* Note that this doesn't work for native-compiled functions in Emacs
+   28.1, but it's fixed in later Emacs versions. */
+
 DEFUN ("command-modes", Fcommand_modes, Scommand_modes, 1, 1, 0,
        doc: /* Return the modes COMMAND is defined for.
 If COMMAND is not a command, the return value is nil.
