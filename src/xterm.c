@@ -787,6 +787,10 @@ static void x_update_opaque_region (struct frame *, XEvent *);
 static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar *);
 #endif
 
+#ifdef HAVE_X_I18N
+static int x_filter_event (struct x_display_info *, XEvent *);
+#endif
+
 static bool x_dnd_in_progress;
 static bool x_dnd_waiting_for_finish;
 static Window x_dnd_pending_finish_target;
@@ -813,7 +817,6 @@ static Atom *x_dnd_targets = NULL;
 static int x_dnd_n_targets;
 static struct frame *x_dnd_frame;
 static XWindowAttributes x_dnd_old_window_attrs;
-static XIC x_dnd_old_ic;
 static bool x_dnd_unwind_flag;
 
 #define X_DND_SUPPORTED_VERSION 5
@@ -1180,9 +1183,6 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 #ifdef USE_GTK
   current_hold_quit = NULL;
 #endif
-#ifdef HAVE_X_I18N
-  FRAME_XIC (f) = x_dnd_old_ic;
-#endif
 
   block_input ();
   /* Restore the old event mask.  */
@@ -1201,9 +1201,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifndef USE_GTK
   XEvent next_event;
   int finish;
-#endif
-#ifdef HAVE_X_I18N
-  XIC ic = FRAME_XIC (f);
 #endif
   XWindowAttributes root_window_attrs;
 
@@ -1261,11 +1258,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		| SubstructureNotifyMask
 		| PropertyChangeMask);
 
-#ifdef HAVE_X_I18N
-  /* Make sure no events get filtered when XInput 2 is enabled.
-     Otherwise, the ibus XIM server gets very confused.  */
-  FRAME_XIC (f) = NULL;
-#endif
   while (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
       hold_quit.kind = NO_EVENT;
@@ -1277,8 +1269,27 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifndef USE_GTK
       XNextEvent (FRAME_X_DISPLAY (f), &next_event);
 
+#ifdef HAVE_X_I18N
+#ifdef HAVE_XINPUT2
+      if (next_event.type != GenericEvent
+	  || !FRAME_DISPLAY_INFO (f)->supports_xi2
+	  || (next_event.xgeneric.extension
+	      != FRAME_DISPLAY_INFO (f)->xi2_opcode))
+	{
+#endif
+	  if (!x_filter_event (FRAME_DISPLAY_INFO (f), &next_event))
+	    handle_one_xevent (FRAME_DISPLAY_INFO (f),
+			       &next_event, &finish, &hold_quit);
+#ifdef HAVE_XINPUT2
+	}
+      else
+	handle_one_xevent (FRAME_DISPLAY_INFO (f),
+			   &next_event, &finish, &hold_quit);
+#endif
+#else
       handle_one_xevent (FRAME_DISPLAY_INFO (f),
 			 &next_event, &finish, &hold_quit);
+#endif
 #else
       gtk_main_iteration ();
 #endif
@@ -1287,7 +1298,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	{
 	  if (hold_quit.kind == SELECTION_REQUEST_EVENT)
 	    {
-	      x_dnd_old_ic = ic;
 	      x_dnd_old_window_attrs = root_window_attrs;
 	      x_dnd_unwind_flag = true;
 
@@ -1315,9 +1325,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_GTK
 	  current_hold_quit = NULL;
 #endif
-#ifdef HAVE_X_I18N
-	  FRAME_XIC (f) = ic;
-#endif
 	  /* Restore the old event mask.  */
 	  XSelectInput (FRAME_X_DISPLAY (f),
 			FRAME_DISPLAY_INFO (f)->root_window,
@@ -1326,9 +1333,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  quit ();
 	}
     }
-#ifdef HAVE_X_I18N
-  FRAME_XIC (f) = ic;
-#endif
   x_set_dnd_targets (NULL, 0);
   x_dnd_waiting_for_finish = false;
 
@@ -10436,9 +10440,6 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
     f1 = x_any_window_to_frame (dpyinfo,
 				event->xclient.window);
 
-  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
-    return 0;
-
 #ifdef USE_GTK
   if (!x_gtk_use_native_input
       && !dpyinfo->prefer_native_input)
@@ -14818,7 +14819,9 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 #ifdef HAVE_X_I18N
       /* Filter events for the current X input method.  */
 #ifdef HAVE_XINPUT2
-      if (event.type != GenericEvent)
+      if (event.type != GenericEvent
+	  || !dpyinfo->supports_xi2
+	  || event.xgeneric.extension != dpyinfo->xi2_opcode)
 	{
 	  /* Input extension key events are filtered inside
 	     handle_one_xevent.  */
