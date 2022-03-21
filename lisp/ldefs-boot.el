@@ -1581,78 +1581,6 @@ key2: value2
 
 ;;;***
 
-;;;### (autoloads nil "autoarg" "autoarg.el" (0 0 0 0))
-;;; Generated autoloads from autoarg.el
-
-(defvar autoarg-mode nil "\
-Non-nil if Autoarg mode is enabled.
-See the `autoarg-mode' command
-for a description of this minor mode.")
-
-(custom-autoload 'autoarg-mode "autoarg" nil)
-
-(autoload 'autoarg-mode "autoarg" "\
-Toggle Autoarg mode, a global minor mode.
-
-\\<autoarg-mode-map>
-In Autoarg mode, digits are bound to `digit-argument', i.e. they
-supply prefix arguments as C-DIGIT and M-DIGIT normally do.
-Furthermore, C-DIGIT inserts DIGIT.
-\\[autoarg-terminate] terminates the prefix sequence and inserts
-the digits of the autoarg sequence into the buffer.
-Without a numeric prefix arg, the normal binding of \\[autoarg-terminate]
-is invoked, i.e. what it would be with Autoarg mode off.
-
-For example:
-`6 9 \\[autoarg-terminate]' inserts `69' into the buffer, as does `C-6 C-9'.
-`6 9 a' inserts 69 `a's into the buffer.
-`6 9 \\[autoarg-terminate] \\[autoarg-terminate]' inserts `69' into the buffer and
-then invokes the normal binding of \\[autoarg-terminate].
-`\\[universal-argument] \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
-
-\\{autoarg-mode-map}
-
-\(fn &optional ARG)" t nil)
-
-(defvar autoarg-kp-mode nil "\
-Non-nil if Autoarg-Kp mode is enabled.
-See the `autoarg-kp-mode' command
-for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `autoarg-kp-mode'.")
-
-(custom-autoload 'autoarg-kp-mode "autoarg" nil)
-
-(autoload 'autoarg-kp-mode "autoarg" "\
-Toggle Autoarg-KP mode, a global minor mode.
-
-This is a minor mode.  If called interactively, toggle the `Autoarg-Kp
-mode' mode.  If the prefix argument is positive, enable the mode, and
-if it is zero or negative, disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
-
-To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='autoarg-kp-mode)'.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-\\<autoarg-kp-mode-map>
-This is similar to `autoarg-mode' but rebinds the keypad keys
-`kp-1' etc. to supply digit arguments.
-
-\\{autoarg-kp-mode-map}
-
-\(fn &optional ARG)" t nil)
-
-(register-definition-prefixes "autoarg" '("autoarg-"))
-
-;;;***
-
 ;;;### (autoloads nil "autoconf" "progmodes/autoconf.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/autoconf.el
 
@@ -6517,6 +6445,19 @@ If given a prefix (or a COMMENT argument), also prompt for a comment.
 
 \(fn VARIABLE VALUE &optional COMMENT)" t nil)
 
+(autoload 'setopt "cus-edit" "\
+Set VARIABLE/VALUE pairs, and return the final VALUE.
+This is like `setq', but is meant for user options instead of
+plain variables.  This means that `setopt' will execute any
+`custom-set' form associated with VARIABLE.
+
+\(fn [VARIABLE VALUE]...)" nil t)
+
+(autoload 'setopt--set "cus-edit" "\
+
+
+\(fn VARIABLE VALUE)" nil nil)
+
 (autoload 'customize-save-variable "cus-edit" "\
 Set the default for VARIABLE to VALUE, and save it for future sessions.
 Return VALUE.
@@ -6690,7 +6631,7 @@ Customize all loaded groups matching REGEXP.
 
 (autoload 'custom-prompt-customize-unsaved-options "cus-edit" "\
 Prompt user to customize any unsaved customization options.
-Return non-nil if user chooses to customize, for use in
+Return nil if user chooses to customize, for use in
 `kill-emacs-query-functions'." nil nil)
 
 (autoload 'custom-buffer-create "cus-edit" "\
@@ -8045,7 +7986,7 @@ some of the `ls' switches are not supported; see the doc string of
 
 (custom-autoload 'dired-listing-switches "dired" t)
 
-(defvar dired-directory nil "\
+(defvar-local dired-directory nil "\
 The directory name or wildcard spec that this Dired directory lists.
 Local to each Dired buffer.  May be a list, in which case the car is the
 directory name and the cdr is the list of files to mention.
@@ -10397,6 +10338,11 @@ For example, to instrument all ELP functions, do the following:
 
     \\[elp-instrument-package] RET elp- RET
 
+Note that only functions that are currently loaded will be
+instrumented.  If you run this function, and then later load
+further functions that start with PREFIX, they will not be
+instrumented automatically.
+
 \(fn PREFIX)" t nil)
 
 (autoload 'elp-results "elp" "\
@@ -11854,6 +11800,15 @@ If ERROR is non-nil, report an error if there is none.
 
 \(fn NAME &optional ERROR)" t nil)
 
+(autoload 'eudc-expand-try-all "eudc" "\
+Wrap `eudc-expand-inline' with a prefix argument.
+If TRY-ALL-SERVERS -- the prefix argument when called
+interactively -- is non-nil, collect results from all servers.
+If TRY-ALL-SERVERS is nil, do not try subsequent servers after
+one server returns any match.
+
+\(fn &optional TRY-ALL-SERVERS)" t nil)
+
 (autoload 'eudc-expand-inline "eudc" "\
 Query the directory server, and expand the query string before point.
 The query string consists of the buffer substring from the point back to
@@ -11862,12 +11817,14 @@ The variable `eudc-inline-query-format' controls how to associate the
 individual inline query words with directory attribute names.
 After querying the server for the given string, the expansion specified by
 `eudc-inline-expansion-format' is inserted in the buffer at point.
-If REPLACE is non-nil, then this expansion replaces the name in the buffer.
-`eudc-expansion-overwrites-query' being non-nil inverts the meaning of REPLACE.
+If SAVE-QUERY-AS-KILL is non-nil, then save the pre-expansion
+text to the kill ring.  `eudc-expansion-save-query-as-kill' being
+non-nil inverts the meaning of SAVE-QUERY-AS-KILL.
 Multiple servers can be tried with the same query until one finds a match,
-see `eudc-inline-expansion-servers'.
+see `eudc-inline-expansion-servers'.  If TRY-ALL-SERVERS is
+non-nil, collect results from all servers.
 
-\(fn &optional REPLACE)" t nil)
+\(fn &optional SAVE-QUERY-AS-KILL TRY-ALL-SERVERS)" t nil)
 
 (autoload 'eudc-query-with-words "eudc" "\
 Query the directory server, and return the matching responses.
@@ -11877,9 +11834,10 @@ After querying the server for the given string, the expansion
 specified by `eudc-inline-expansion-format' is applied to the
 matches before returning them.inserted in the buffer at point.
 Multiple servers can be tried with the same query until one finds a match,
-see `eudc-inline-expansion-servers'.
+see `eudc-inline-expansion-servers'.   When TRY-ALL-SERVERS is non-nil,
+keep collecting results from subsequent servers after the first match.
 
-\(fn QUERY-WORDS)" nil nil)
+\(fn QUERY-WORDS &optional TRY-ALL-SERVERS)" nil nil)
 
 (autoload 'eudc-query-form "eudc" "\
 Display a form to query the directory server.
@@ -13058,6 +13016,9 @@ Interactively, prompt for LIBRARY using the one at or near point.
 This function searches `find-library-source-path' if non-nil, and
 `load-path' otherwise.
 
+See the `find-library-include-other-files' user option for
+customizing the candidate completions.
+
 \(fn LIBRARY)" t nil)
 
 (autoload 'read-library-name "find-func" "\
@@ -13218,7 +13179,7 @@ Find directly the variable at point in the other window." t nil)
 (autoload 'find-function-setup-keys "find-func" "\
 Define some key bindings for the `find-function' family of functions." nil nil)
 
-(register-definition-prefixes "find-func" '("find-"))
+(register-definition-prefixes "find-func" '("find-" "read-library-name--find-files"))
 
 ;;;***
 
@@ -13309,7 +13270,7 @@ lines.
 
 ;;;### (autoloads nil "flymake" "progmodes/flymake.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/flymake.el
-(push (purecopy '(flymake 1 2 1)) package--builtin-versions)
+(push (purecopy '(flymake 1 2 2)) package--builtin-versions)
 
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
@@ -13470,6 +13431,9 @@ disabled.
 Flyspell mode is a buffer-local minor mode.  When enabled, it
 spawns a single Ispell process and checks each word.  The default
 flyspell behavior is to highlight incorrect words.
+
+This mode is geared toward text modes.  In buffers that contain
+code, `flyspell-prog-mode' is usually a better choice.
 
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
@@ -16237,10 +16201,15 @@ If TYPE is not a symbol, search for a function definition.
 The return value is the absolute name of a readable file where OBJECT is
 defined.  If several such files exist, preference is given to a file
 found via `load-path'.  The return value can also be `C-source', which
-means that OBJECT is a function or variable defined in C.  If no
-suitable file is found, return nil.
+means that OBJECT is a function or variable defined in C, but
+it's currently unknown where.  If no suitable file is found,
+return nil.
 
-\(fn OBJECT TYPE)" nil nil)
+If ALSO-C-SOURCE is non-nil, instead of returning `C-source',
+this function will attempt to locate the definition of OBJECT in
+the C sources, too.
+
+\(fn OBJECT TYPE &optional ALSO-C-SOURCE)" nil nil)
 
 (autoload 'describe-function-1 "help-fns" "\
 
@@ -17148,7 +17117,7 @@ argument VERBOSE non-nil makes the function verbose.
 ;;; Generated autoloads from hl-line.el
 
 (autoload 'hl-line-mode "hl-line" "\
-Toggle highlighting of the current line (Hl-Line mode).
+Toggle highlighting of the current line.
 
 This is a minor mode.  If called interactively, toggle the `Hl-Line
 mode' mode.  If the prefix argument is positive, enable the mode, and
@@ -17164,17 +17133,9 @@ evaluate `hl-line-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-Hl-Line mode is a buffer-local minor mode.  If
-`hl-line-sticky-flag' is non-nil, Hl-Line mode highlights the
-line about the buffer's point in all windows.  Caveat: the
-buffer's point might be different from the point of a
-non-selected window.  Hl-Line mode uses the function
-`hl-line-highlight' on `post-command-hook' in this case.
-
-When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
-line about point in the selected window only.
-
 \(fn &optional ARG)" t nil)
+
+(put 'global-hl-line-mode 'globalized-minor-mode t)
 
 (defvar global-hl-line-mode nil "\
 Non-nil if Global Hl-Line mode is enabled.
@@ -17187,32 +17148,22 @@ or call the function `global-hl-line-mode'.")
 (custom-autoload 'global-hl-line-mode "hl-line" nil)
 
 (autoload 'global-hl-line-mode "hl-line" "\
-Toggle line highlighting in all buffers (Global Hl-Line mode).
+Toggle Hl-Line mode in all buffers.
+With prefix ARG, enable Global Hl-Line mode if ARG is positive;
+otherwise, disable it.
 
-This is a minor mode.  If called interactively, toggle the `Global
-Hl-Line mode' mode.  If the prefix argument is positive, enable the
-mode, and if it is zero or negative, disable the mode.
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
 
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
+Hl-Line mode is enabled in all buffers where `hl-line-turn-on' would
+do it.
 
-To check whether the minor mode is enabled in the current buffer,
-evaluate `(default-value \\='global-hl-line-mode)'.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
-highlights the line about the current buffer's point in all live
-windows.
-
-Global-Hl-Line mode uses the function `global-hl-line-highlight'
-on `post-command-hook'.
+See `hl-line-mode' for more information on Hl-Line mode.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "hl-line" '("global-hl-line-" "hl-line-"))
+(register-definition-prefixes "hl-line" '("hl-line-"))
 
 ;;;***
 
@@ -18251,6 +18202,14 @@ See `inferior-emacs-lisp-mode' for details.
 
 ;;;***
 
+;;;### (autoloads nil "ietf-drums-date" "mail/ietf-drums-date.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from mail/ietf-drums-date.el
+
+(register-definition-prefixes "ietf-drums-date" '("date-parse-error" "ietf-drums-"))
+
+;;;***
+
 ;;;### (autoloads nil "iimage" "iimage.el" (0 0 0 0))
 ;;; Generated autoloads from iimage.el
 
@@ -18984,7 +18943,7 @@ quoted using shell quote syntax.
 ;;;### (autoloads nil "info" "info.el" (0 0 0 0))
 ;;; Generated autoloads from info.el
 
-(defcustom Info-default-directory-list (let* ((config-dir (file-name-as-directory (or (and (featurep 'ns) (let ((dir (expand-file-name "../info" data-directory))) (if (file-directory-p dir) dir))) configure-info-directory))) (prefixes (prune-directory-list '("/usr/local/" "/usr/" "/opt/"))) (suffixes '("share/" "")) (standard-info-dirs (apply #'nconc (mapcar (lambda (pfx) (let ((dirs (mapcar (lambda (sfx) (concat pfx sfx "info/")) suffixes))) (prune-directory-list dirs))) prefixes))) (dirs (if (member config-dir standard-info-dirs) (nconc standard-info-dirs (list config-dir)) (cons config-dir standard-info-dirs)))) (if (not (eq system-type 'windows-nt)) dirs (let* ((instdir (file-name-directory invocation-directory)) (dir1 (expand-file-name "../info/" instdir)) (dir2 (expand-file-name "../../../info/" instdir))) (cond ((file-exists-p dir1) (append dirs (list dir1))) ((file-exists-p dir2) (append dirs (list dir2))) (t dirs))))) "\
+(defvar Info-default-directory-list nil "\
 Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
 Therefore, the directory of Info files that come with Emacs
@@ -18995,13 +18954,10 @@ first in this list.
 
 Once Info is started, the list of directories to search
 comes from the variable `Info-directory-list'.
-This variable `Info-default-directory-list' is used as the default
-for initializing `Info-directory-list' when Info is started, unless
-the environment variable INFOPATH is set.
 
-Although this is a customizable variable, that is mainly for technical
-reasons.  Normally, you should either set INFOPATH or customize
-`Info-additional-directory-list', rather than changing this variable." :initialize #'custom-initialize-delay :type '(repeat directory))
+This variable is used as the default for initializing
+`Info-directory-list' when Info is started, unless the
+environment variable INFOPATH is set.")
 
 (custom-autoload 'Info-default-directory-list "info" t)
 
@@ -25153,6 +25109,15 @@ downloads in the background.
 
 \(fn &optional ASYNC)" t nil)
 
+(autoload 'package-installed-p "package" "\
+Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
+If PACKAGE is a symbol, it is the package name and MIN-VERSION
+should be a version list.
+
+If PACKAGE is a `package-desc' object, MIN-VERSION is ignored.
+
+\(fn PACKAGE &optional MIN-VERSION)" nil nil)
+
 (autoload 'package-install "package" "\
 Install the package PKG.
 PKG can be a `package-desc' or a symbol naming one of the
@@ -27425,8 +27390,8 @@ If it is nil, the current key is shown.
 
 DOCSTRING is the documentation string of this package.  The command
 `describe-input-method' shows this string while replacing the form
-\\=\\<VAR> in the string by the value of VAR.  That value should be a
-string.  For instance, the form \\=\\<quail-translation-docstring> is
+\\=\\=\\=\\<VAR> in the string by the value of VAR.  That value should be a
+string.  For instance, the form \\=\\=\\=\\<quail-translation-docstring> is
 replaced by a description about how to select a translation from a
 list of candidates.
 
@@ -29314,7 +29279,7 @@ to use for finding the schema.
 ;;;### (autoloads nil "rng-xsd" "nxml/rng-xsd.el" (0 0 0 0))
 ;;; Generated autoloads from nxml/rng-xsd.el
 
-(put 'http://www\.w3\.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
+(put 'http://www.w3.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
 
 (autoload 'rng-xsd-compile "rng-xsd" "\
 Provide W3C XML Schema as a RELAX NG datatypes library.
@@ -30009,7 +29974,7 @@ will scroll the buffer by the respective amount of lines instead
 and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
-Note that the default key binding to Scroll_Lock will not work on
+Note that the default key binding to `scroll' will not work on
 MS-Windows systems if `w32-scroll-lock-modifier' is non-nil.
 
 \(fn &optional ARG)" t nil)
@@ -31675,7 +31640,7 @@ configure the behaviour.
 
 ;;;### (autoloads nil "soap-client" "net/soap-client.el" (0 0 0 0))
 ;;; Generated autoloads from net/soap-client.el
-(push (purecopy '(soap-client 3 2 0)) package--builtin-versions)
+(push (purecopy '(soap-client 3 2 1)) package--builtin-versions)
 
 (register-definition-prefixes "soap-client" '("soap-"))
 
@@ -33027,8 +32992,8 @@ The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
-the definition of words such that symbols characters are treated
-as parts of words: e.g., in `superword-mode',
+the definition of words such that characters which have symbol
+syntax are treated as parts of words: e.g., in `superword-mode',
 \"this_is_a_symbol\" counts as one word.
 
 \\{superword-mode-map}
@@ -36310,7 +36275,7 @@ Handle file: and ftp: URLs.
 
 \(fn URL CALLBACK CBARGS)" nil nil)
 
-(register-definition-prefixes "url-file" '("url-file-"))
+(register-definition-prefixes "url-file" '("url-"))
 
 ;;;***
 
@@ -38767,17 +38732,10 @@ Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "vt-control" "vt-control.el" (0 0 0 0))
-;;; Generated autoloads from vt-control.el
+;;;### (autoloads nil "vtable" "emacs-lisp/vtable.el" (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/vtable.el
 
-(register-definition-prefixes "vt-control" '("vt-"))
-
-;;;***
-
-;;;### (autoloads nil "vt100-led" "vt100-led.el" (0 0 0 0))
-;;; Generated autoloads from vt100-led.el
-
-(register-definition-prefixes "vt100-led" '("led-"))
+(register-definition-prefixes "vtable" '("vtable"))
 
 ;;;***
 
@@ -39863,7 +39821,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;;### (autoloads nil "xref" "progmodes/xref.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/xref.el
-(push (purecopy '(xref 1 3 2)) package--builtin-versions)
+(push (purecopy '(xref 1 4 1)) package--builtin-versions)
 
 (autoload 'xref-find-backend "xref" nil nil nil)
 
@@ -39881,6 +39839,13 @@ Whether the xref back-history is empty." nil nil)
 
 (autoload 'xref-forward-history-empty-p "xref" "\
 Whether the xref forward-history is empty." nil nil)
+
+(autoload 'xref-show-xrefs "xref" "\
+Display some Xref values produced by FETCHER using DISPLAY-ACTION.
+The meanings of both arguments are the same as documented in
+`xref-show-xrefs-function'.
+
+\(fn FETCHER DISPLAY-ACTION)" nil nil)
 
 (autoload 'xref-find-definitions "xref" "\
 Find the definition of the identifier at point.
@@ -40115,24 +40080,23 @@ Zone out, completely." t nil)
 
 ;;;### (autoloads nil nil ("abbrev.el" "bindings.el" "buff-menu.el"
 ;;;;;;  "button.el" "calc/calc-aent.el" "calc/calc-embed.el" "calc/calc-misc.el"
-;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/base.el" "cedet/ede/config.el"
-;;;;;;  "cedet/ede/cpp-root.el" "cedet/ede/custom.el" "cedet/ede/dired.el"
-;;;;;;  "cedet/ede/emacs.el" "cedet/ede/files.el" "cedet/ede/generic.el"
-;;;;;;  "cedet/ede/linux.el" "cedet/ede/locate.el" "cedet/ede/make.el"
-;;;;;;  "cedet/ede/shell.el" "cedet/ede/speedbar.el" "cedet/ede/system.el"
-;;;;;;  "cedet/ede/util.el" "cedet/semantic/analyze.el" "cedet/semantic/analyze/complete.el"
-;;;;;;  "cedet/semantic/analyze/refs.el" "cedet/semantic/bovine.el"
-;;;;;;  "cedet/semantic/bovine/c-by.el" "cedet/semantic/bovine/c.el"
-;;;;;;  "cedet/semantic/bovine/el.el" "cedet/semantic/bovine/gcc.el"
-;;;;;;  "cedet/semantic/bovine/make-by.el" "cedet/semantic/bovine/make.el"
-;;;;;;  "cedet/semantic/bovine/scm-by.el" "cedet/semantic/bovine/scm.el"
-;;;;;;  "cedet/semantic/complete.el" "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el"
-;;;;;;  "cedet/semantic/db-find.el" "cedet/semantic/db-global.el"
-;;;;;;  "cedet/semantic/db-mode.el" "cedet/semantic/db-typecache.el"
-;;;;;;  "cedet/semantic/db.el" "cedet/semantic/debug.el" "cedet/semantic/decorate/include.el"
-;;;;;;  "cedet/semantic/decorate/mode.el" "cedet/semantic/dep.el"
-;;;;;;  "cedet/semantic/doc.el" "cedet/semantic/edit.el" "cedet/semantic/find.el"
-;;;;;;  "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
+;;;;;;  "calc/calc-yank.el" "case-table.el" "cedet/ede/cpp-root.el"
+;;;;;;  "cedet/ede/custom.el" "cedet/ede/dired.el" "cedet/ede/emacs.el"
+;;;;;;  "cedet/ede/files.el" "cedet/ede/generic.el" "cedet/ede/linux.el"
+;;;;;;  "cedet/ede/locate.el" "cedet/ede/make.el" "cedet/ede/speedbar.el"
+;;;;;;  "cedet/ede/system.el" "cedet/ede/util.el" "cedet/semantic/analyze.el"
+;;;;;;  "cedet/semantic/analyze/complete.el" "cedet/semantic/analyze/refs.el"
+;;;;;;  "cedet/semantic/bovine.el" "cedet/semantic/bovine/c-by.el"
+;;;;;;  "cedet/semantic/bovine/c.el" "cedet/semantic/bovine/el.el"
+;;;;;;  "cedet/semantic/bovine/gcc.el" "cedet/semantic/bovine/make-by.el"
+;;;;;;  "cedet/semantic/bovine/make.el" "cedet/semantic/bovine/scm-by.el"
+;;;;;;  "cedet/semantic/bovine/scm.el" "cedet/semantic/complete.el"
+;;;;;;  "cedet/semantic/ctxt.el" "cedet/semantic/db-file.el" "cedet/semantic/db-find.el"
+;;;;;;  "cedet/semantic/db-global.el" "cedet/semantic/db-mode.el"
+;;;;;;  "cedet/semantic/db-typecache.el" "cedet/semantic/db.el" "cedet/semantic/debug.el"
+;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
+;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
+;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
 ;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
 ;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
 ;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
@@ -40151,81 +40115,93 @@ Zone out, completely." t nil)
 ;;;;;;  "cedet/srecode/insert.el" "cedet/srecode/java.el" "cedet/srecode/map.el"
 ;;;;;;  "cedet/srecode/mode.el" "cedet/srecode/srt-wy.el" "cedet/srecode/srt.el"
 ;;;;;;  "cedet/srecode/template.el" "cedet/srecode/texi.el" "composite.el"
-;;;;;;  "cus-face.el" "cus-start.el" "custom.el" "dired-aux.el" "dired-x.el"
-;;;;;;  "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
+;;;;;;  "cus-face.el" "cus-load.el" "cus-start.el" "custom.el" "dired-aux.el"
+;;;;;;  "dired-x.el" "electric.el" "emacs-lisp/backquote.el" "emacs-lisp/byte-run.el"
 ;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-preloaded.el"
-;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/easymenu.el" "emacs-lisp/eieio-custom.el"
-;;;;;;  "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el" "emacs-lisp/lisp-mode.el"
-;;;;;;  "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el" "emacs-lisp/map-ynp.el"
-;;;;;;  "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el" "emacs-lisp/syntax.el"
-;;;;;;  "emacs-lisp/timer.el" "env.el" "epa-hook.el" "erc/erc-autoaway.el"
-;;;;;;  "erc/erc-button.el" "erc/erc-capab.el" "erc/erc-compat.el"
-;;;;;;  "erc/erc-dcc.el" "erc/erc-desktop-notifications.el" "erc/erc-ezbounce.el"
-;;;;;;  "erc/erc-fill.el" "erc/erc-identd.el" "erc/erc-imenu.el"
-;;;;;;  "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el" "erc/erc-match.el"
-;;;;;;  "erc/erc-menu.el" "erc/erc-netsplit.el" "erc/erc-notify.el"
-;;;;;;  "erc/erc-page.el" "erc/erc-pcomplete.el" "erc/erc-replace.el"
-;;;;;;  "erc/erc-ring.el" "erc/erc-services.el" "erc/erc-sound.el"
-;;;;;;  "erc/erc-speedbar.el" "erc/erc-spelling.el" "erc/erc-stamp.el"
-;;;;;;  "erc/erc-status-sidebar.el" "erc/erc-track.el" "erc/erc-truncate.el"
-;;;;;;  "erc/erc-xdcc.el" "eshell/em-alias.el" "eshell/em-banner.el"
-;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
-;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
-;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
-;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
-;;;;;;  "eshell/em-tramp.el" "eshell/em-unix.el" "eshell/em-xtra.el"
-;;;;;;  "faces.el" "files.el" "font-core.el" "font-lock.el" "format.el"
+;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/debug-early.el" "emacs-lisp/easymenu.el"
+;;;;;;  "emacs-lisp/eieio-custom.el" "emacs-lisp/eieio-opt.el" "emacs-lisp/float-sup.el"
+;;;;;;  "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el" "emacs-lisp/macroexp.el"
+;;;;;;  "emacs-lisp/map-ynp.el" "emacs-lisp/nadvice.el" "emacs-lisp/shorthands.el"
+;;;;;;  "emacs-lisp/syntax.el" "emacs-lisp/timer.el" "env.el" "epa-hook.el"
+;;;;;;  "erc/erc-autoaway.el" "erc/erc-button.el" "erc/erc-capab.el"
+;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-desktop-notifications.el"
+;;;;;;  "erc/erc-ezbounce.el" "erc/erc-fill.el" "erc/erc-identd.el"
+;;;;;;  "erc/erc-imenu.el" "erc/erc-join.el" "erc/erc-list.el" "erc/erc-log.el"
+;;;;;;  "erc/erc-match.el" "erc/erc-menu.el" "erc/erc-netsplit.el"
+;;;;;;  "erc/erc-notify.el" "erc/erc-page.el" "erc/erc-pcomplete.el"
+;;;;;;  "erc/erc-replace.el" "erc/erc-ring.el" "erc/erc-services.el"
+;;;;;;  "erc/erc-sound.el" "erc/erc-speedbar.el" "erc/erc-spelling.el"
+;;;;;;  "erc/erc-stamp.el" "erc/erc-status-sidebar.el" "erc/erc-track.el"
+;;;;;;  "erc/erc-truncate.el" "erc/erc-xdcc.el" "eshell/em-alias.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
+;;;;;;  "eshell/em-xtra.el" "eshell/esh-groups.el" "faces.el" "files.el"
+;;;;;;  "finder-inf.el" "font-core.el" "font-lock.el" "format.el"
 ;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
-;;;;;;  "international/characters.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "international/characters.el" "international/charprop.el"
+;;;;;;  "international/charscript.el" "international/cp51932.el"
+;;;;;;  "international/emoji-labels.el" "international/emoji-zwj.el"
+;;;;;;  "international/eucjp-ms.el" "international/idna-mapping.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
-;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "keymap.el" "language/burmese.el"
-;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
-;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
-;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
-;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
-;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
-;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
-;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
-;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
-;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
-;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
-;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
-;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
-;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
-;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
-;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
-;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
-;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
-;;;;;;  "leim/quail/emoji.el" "leim/quail/georgian.el" "leim/quail/greek.el"
-;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
-;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
-;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
-;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
-;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
-;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
-;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
-;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
-;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/undigest.el" "menu-bar.el"
-;;;;;;  "mh-e/mh-gnus.el" "minibuffer.el" "mouse.el" "newcomment.el"
-;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
-;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
-;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
-;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
-;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
-;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
-;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
-;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
-;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
-;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
-;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
-;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
-;;;;;;  "paren.el" "progmodes/elisp-mode.el" "progmodes/prog-mode.el"
-;;;;;;  "ps-mule.el" "register.el" "replace.el" "rfn-eshadow.el"
-;;;;;;  "select.el" "simple.el" "startup.el" "subdirs.el" "subr.el"
-;;;;;;  "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
+;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-confusable.el" "international/uni-decimal.el"
+;;;;;;  "international/uni-decomposition.el" "international/uni-digit.el"
+;;;;;;  "international/uni-lowercase.el" "international/uni-mirrored.el"
+;;;;;;  "international/uni-name.el" "international/uni-numeric.el"
+;;;;;;  "international/uni-old-name.el" "international/uni-scripts.el"
+;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
+;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
+;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
+;;;;;;  "jka-cmpr-hook.el" "keymap.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
+;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
+;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
+;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
+;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
+;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
+;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
+;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
+;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
+;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
+;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
+;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
+;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
+;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
+;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/cham.el"
+;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
+;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/emoji.el"
+;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
+;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
+;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
+;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
+;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
+;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
+;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
+;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
+;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
+;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
+;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "minibuffer.el"
+;;;;;;  "mouse.el" "newcomment.el" "obarray.el" "org/ob-core.el"
+;;;;;;  "org/ob-lob.el" "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el"
+;;;;;;  "org/ol-bbdb.el" "org/ol-irc.el" "org/ol.el" "org/org-archive.el"
+;;;;;;  "org/org-attach.el" "org/org-clock.el" "org/org-colview.el"
+;;;;;;  "org/org-compat.el" "org/org-datetree.el" "org/org-duration.el"
+;;;;;;  "org/org-element.el" "org/org-feed.el" "org/org-footnote.el"
+;;;;;;  "org/org-goto.el" "org/org-id.el" "org/org-indent.el" "org/org-install.el"
+;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
+;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
+;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
+;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
+;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
+;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
+;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
+;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
+;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
 ;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
 ;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
 ;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
