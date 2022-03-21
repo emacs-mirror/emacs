@@ -899,8 +899,8 @@ is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete.
 If the value is 'always', the completion commands are always shown
-after a completion attempt or updated if they are already visible.
-If the value is 'visible' then completions are not hidden, but updated
+after a completion attempt, or updated if they are already visible.
+If the value is 'visible', then completions are not hidden, but updated
 if they are already visible while the current behavior stays the same
 as default if they are not."
   :type '(choice (const :tag "Disabled" nil)
@@ -1853,6 +1853,17 @@ Return nil if there is no valid completion, else t."
 This face is only used if the strings used for completions
 doesn't already specify a face.")
 
+(defface completions-highlight
+  '((t :inherit highlight))
+  "Default face for highlighting the current completion candidate."
+  :version "29.1")
+
+(defcustom completions-highlight-face 'completions-highlight
+  "A face name to highlight the current completion candidate.
+If the value is nil, no highlighting is performed."
+  :type '(choice (const nil) face)
+  :version "29.1")
+
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
@@ -1872,15 +1883,15 @@ completions."
   :type 'boolean
   :version "28.1")
 
-(defcustom completion-header-format
+(defcustom completions-header-format
   (propertize "%s possible completions:\n"
               'face 'shadow
               :help "Please select a completion")
   "Format of completions header.
 It may contain one %s to show the total count of completions.
-When nil no header is shown."
-  :type '(choice (const :tag "No prefix" nil)
-                 (string :tag "Prefix format string"))
+When nil, no header is shown."
+  :type '(choice (const :tag "No header" nil)
+                 (string :tag "Header format string"))
   :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
@@ -2145,24 +2156,12 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (when completion-header-format
-        (insert (format completion-header-format (length completions))))
+      (when completions-header-format
+        (insert (format completions-header-format (length completions))))
       (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
   nil)
-
-
-(defface completions-highlight
-  '((t :inherit highlight))
-  "Default face for highlighting the current line in `completions-highlight-mode'."
-  :version "29.1")
-
-(defcustom completions-highlight-face 'completions-highlight
-  "A face name to highlight current completion candidate.
-If the value is nil no highlight is performed."
-  :type '(choice (const nil) face)
-  :version "29.1")
 
 (defvar completion-extra-properties nil
   "Property list of extra properties of the current completion job.
@@ -2232,12 +2231,12 @@ variables.")
       (completion--message message))))
 
 (defcustom completions-max-height nil
-  "Maximum height for *Completions* buffer."
+  "Maximum height for *Completions* buffer window."
   :type '(choice (const nil) natnum)
   :version "29.1")
 
 (defun completions--fit-window-to-buffer (&optional win &rest _)
-  "Resize completions."
+  "Resize *Completions* buffer window."
   (if temp-buffer-resize-mode
       (let ((temp-buffer-max-height (or completions-max-height
                                         temp-buffer-max-height)))

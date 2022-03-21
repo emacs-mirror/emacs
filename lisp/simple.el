@@ -6483,7 +6483,7 @@ separate contiguous regions for each line."
   (cdr (region-bounds)))
 
 (defun redisplay--unhighlight-overlay-function (rol)
-  "If ROL is an overlay, call ``delete-overlay''."
+  "If ROL is an overlay, call `delete-overlay'."
   (when (overlayp rol) (delete-overlay rol)))
 
 (defvar redisplay-unhighlight-region-function
@@ -9399,7 +9399,7 @@ Called from `temp-buffer-show-hook'."
         (setq tab-width completion-tab-width))
       ;; Maybe enable cursor completions-highlight.
       (when completions-highlight-face
-        ;; keep highlight even if not selected
+        ;; Keep highlighting even if not selected.
         (setq-local cursor-face-highlight-nonselected-window t)
         (cursor-face-highlight-mode 1))
       ;; Maybe insert help string.
