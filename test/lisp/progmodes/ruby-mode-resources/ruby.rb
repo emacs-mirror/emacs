@@ -483,3 +483,11 @@ foo bar, {
 2 = 3
 :foo= if true
 {:abc=>4} # not indented, and '=' is not highlighted
+
+# Pattern matching
+case translation
+in ['th', orig_text, 'en', trans_text]
+  puts "English translation: #{orig_text} => #{trans_text}"
+in {'th' => orig_text, 'ja' => trans_text}
+  puts "Japanese translation: #{orig_text} => #{trans_text}"
+end

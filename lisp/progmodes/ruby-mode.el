@@ -70,7 +70,7 @@
   "Regexp to match modifiers.")
 
 (defconst ruby-block-mid-keywords
-  '("then" "else" "elsif" "when" "rescue" "ensure")
+  '("then" "else" "elsif" "when" "in" "rescue" "ensure")
   "Keywords where the indentation gets shallower in middle of block statements.")
 
 (defconst ruby-block-mid-re
@@ -369,7 +369,9 @@ This only affects the output of the command `ruby-toggle-block'."
        (for-body (for-head ";" insts))
        (for-head (id "in" exp))
        (cases (exp "then" insts)
-              (cases "when" cases) (insts "else" insts))
+              (cases "when" cases)
+              (cases "in" cases)
+              (insts "else" insts))
        (expseq (exp) );;(expseq "," expseq)
        (hashvals (exp1 "=>" exp1) (hashvals "," hashvals))
        (insts-rescue-insts (insts)
@@ -380,7 +382,7 @@ This only affects the output of the command `ruby-toggle-block'."
        (if-body (ielsei) (if-body "elsif" if-body)))
      '((nonassoc "in") (assoc ";") (right " @ ")
        (assoc ",") (right "="))
-     '((assoc "when"))
+     '((assoc "when" "in"))
      '((assoc "elsif"))
      '((assoc "rescue" "ensure"))
      '((assoc ",")))
@@ -595,7 +597,7 @@ This only affects the output of the command `ruby-toggle-block'."
      (cond
       ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
                            "while" "until" "unless"
-                           "if" "then" "elsif" "else" "when"
+                           "if" "then" "elsif" "else" "when" "in"
                            "rescue" "ensure" "{")
        (smie-rule-parent ruby-indent-level))
       ;; For (invalid) code between switch and case.
@@ -659,7 +661,7 @@ This only affects the output of the command `ruby-toggle-block'."
                         ruby-indent-level))))
     (`(:before . ,(or "else" "then" "elsif" "rescue" "ensure"))
      (smie-rule-parent))
-    ('(:before . "when")
+    (`(:before . ,(or "when" "in"))
      ;; Align to the previous `when', but look up the virtual
      ;; indentation of `case'.
      (if (smie-rule-sibling-p) 0 (smie-rule-parent)))
