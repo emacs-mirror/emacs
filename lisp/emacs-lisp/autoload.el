@@ -1108,6 +1108,9 @@ directory or directories specified."
          ;; Files with no autoload cookies or whose autoloads go to other
          ;; files because of file-local autoload-generated-file settings.
 	 (no-autoloads nil)
+         ;; Ensure that we don't do odd things when putting the doc
+         ;; strings into the autoloads file.
+         (left-margin 0)
          (autoload-modified-buffers nil)
 	 (output-time
 	  (and (file-exists-p output-file)
