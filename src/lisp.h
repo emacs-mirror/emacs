@@ -3202,6 +3202,76 @@ enum maxargs
    'Finsert (1, &text);'.  */
 #define CALLN(f, ...) CALLMANY (f, ((Lisp_Object []) {__VA_ARGS__}))
 
+/* Call function fn on no arguments.  */
+INLINE Lisp_Object
+call0 (Lisp_Object fn)
+{
+  return Ffuncall (1, &fn);
+}
+
+/* Call function fn with 1 argument arg1.  */
+INLINE Lisp_Object
+call1 (Lisp_Object fn, Lisp_Object arg1)
+{
+  return CALLN (Ffuncall, fn, arg1);
+}
+
+/* Call function fn with 2 arguments arg1, arg2.  */
+INLINE Lisp_Object
+call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2);
+}
+
+/* Call function fn with 3 arguments arg1, arg2, arg3.  */
+INLINE Lisp_Object
+call3 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3);
+}
+
+/* Call function fn with 4 arguments arg1, arg2, arg3, arg4.  */
+INLINE Lisp_Object
+call4 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4);
+}
+
+/* Call function fn with 5 arguments arg1, arg2, arg3, arg4, arg5.  */
+INLINE Lisp_Object
+call5 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4, Lisp_Object arg5)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5);
+}
+
+/* Call function fn with 6 arguments arg1, arg2, arg3, arg4, arg5, arg6.  */
+INLINE Lisp_Object
+call6 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
+/* Call function fn with 7 arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7.  */
+INLINE Lisp_Object
+call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+}
+
+/* Call function fn with 8 arguments arg1, arg2, arg3, arg4, arg5,
+   arg6, arg7, arg8.  */
+INLINE Lisp_Object
+call8 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7,
+       Lisp_Object arg8)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+}
+
 extern void defvar_lisp (struct Lisp_Objfwd const *, char const *);
 extern void defvar_lisp_nopro (struct Lisp_Objfwd const *, char const *);
 extern void defvar_bool (struct Lisp_Boolfwd const *, char const *);
@@ -4453,15 +4523,6 @@ extern bool FUNCTIONP (Lisp_Object);
 extern Lisp_Object funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *arg_vector);
 extern Lisp_Object eval_sub (Lisp_Object form);
 extern Lisp_Object apply1 (Lisp_Object, Lisp_Object);
-extern Lisp_Object call0 (Lisp_Object);
-extern Lisp_Object call1 (Lisp_Object, Lisp_Object);
-extern Lisp_Object call2 (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call4 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call6 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call7 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object call8 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object internal_catch (Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object internal_lisp_condition_case (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object internal_condition_case (Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object));
