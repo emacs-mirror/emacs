@@ -1123,6 +1123,29 @@ The struct has three slots:
   :type 'hook
   :version "27.1")
 
+;; This is being auditioned for possible exporting (as a custom hook
+;; option).  Likewise for (public versions of) `erc--input-split' and
+;; `erc--discard-trailing-multiline-nulls'.  If unneeded, we'll just
+;; run the latter on the input after `erc-pre-send-functions', and
+;; remove this hook and the struct completely.  IOW, if you need this,
+;; please say so.
+
+(defvar erc--pre-send-split-functions '(erc--discard-trailing-multiline-nulls)
+  "Special hook for modifying individual lines in multiline prompt input.
+The functions are called with one argument, an `erc--input-split'
+struct, which they can optionally modify.
+
+The struct has five slots:
+
+  `string': the input string delivered by `erc-pre-send-functions'
+  `insertp': whether to insert the lines into the buffer
+  `sendp': whether the lines should be sent to the IRC server
+  `lines': a list of lines to be sent, each one a `string'
+  `cmdp': whether to interpret input as a command, like /ignore
+
+The `string' field is effectively read-only.  When `cmdp' is
+non-nil, all but the first line will be discarded.")
+
 (defvar erc-insert-this t
   "Insert the text into the target buffer or not.
 Functions on `erc-insert-pre-hook' can set this variable to nil
@@ -5835,7 +5858,7 @@ Specifically, return the position of `erc-insert-marker'."
   (point-max))
 
 (defvar erc-last-input-time 0
-  "Time of last call to `erc-send-current-line'.
+  "Time of last successful call to `erc-send-current-line'.
 If that function has never been called, the value is 0.")
 
 (defcustom erc-accidental-paste-threshold-seconds 0.2
@@ -5851,6 +5874,50 @@ submitted line to be intentional."
   :version "26.1"
   :type '(choice number (other :tag "disabled" nil)))
 
+(defvar erc--input-line-delim-regexp (rx (| (: (? ?\r) ?\n) ?\r)))
+
+(defun erc--blank-in-multiline-input-p (lines)
+  "Detect whether LINES contains a blank line.
+When `erc-send-whitespace-lines' is in effect, return nil if
+LINES is multiline or the first line is non-empty.  When
+`erc-send-whitespace-lines' is nil, return non-nil when any line
+is empty or consists of one or more spaces, tabs, or form-feeds."
+  (catch 'return
+    (let ((multilinep (cdr lines)))
+      (dolist (line lines)
+        (when (if erc-send-whitespace-lines
+                  (and (string-empty-p line) (not multilinep))
+                (string-match (rx bot (* (in " \t\f")) eot) line))
+          (throw 'return t))))))
+
+(defun erc--check-prompt-input-for-multiline-blanks (_ lines)
+  "Return non-nil when multiline prompt input has blank LINES."
+  (when (erc--blank-in-multiline-input-p lines)
+    (if erc-warn-about-blank-lines
+        "Blank line - ignoring..."
+      'invalid)))
+
+(defun erc--check-prompt-input-for-point-in-bounds (_ _)
+  "Return non-nil when point is before prompt."
+  (when (< (point) (erc-beg-of-input-line))
+    "Point is not in the input area"))
+
+(defun erc--check-prompt-input-for-running-process (string _)
+  "Return non-nil unless in an active ERC server buffer."
+  (unless (or (erc-server-buffer-live-p)
+              (erc-command-no-process-p string))
+    "ERC: No process running"))
+
+(defvar erc--check-prompt-input-functions
+  '(erc--check-prompt-input-for-point-in-bounds
+    erc--check-prompt-input-for-multiline-blanks
+    erc--check-prompt-input-for-running-process)
+  "Validators for user input typed at prompt.
+Called with latest input string submitted by user and the list of
+lines produced by splitting it.  If any member function returns
+non-nil, processing is abandoned and input is left untouched.
+When the returned value is a string, pass it to `erc-error'.")
+
 (defun erc-send-current-line ()
   "Parse current line and send it to IRC."
   (interactive)
@@ -5864,20 +5931,21 @@ submitted line to be intentional."
                      (eolp))
             (expand-abbrev))
           (widen)
-          (if (< (point) (erc-beg-of-input-line))
-              (erc-error "Point is not in the input area")
+          (if-let* ((str (erc-user-input))
+                    (msg (run-hook-with-args-until-success
+                          'erc--check-prompt-input-functions str
+                          (split-string str erc--input-line-delim-regexp))))
+              (when (stringp msg)
+                (erc-error msg))
             (let ((inhibit-read-only t)
-                  (str (erc-user-input))
                   (old-buf (current-buffer)))
-              (if (and (not (erc-server-buffer-live-p))
-                       (not (erc-command-no-process-p str)))
-                  (erc-error "ERC: No process running")
+              (progn ; unprogn this during next major surgery
                 (erc-set-active-buffer (current-buffer))
                 ;; Kill the input and the prompt
                 (delete-region (erc-beg-of-input-line)
                                (erc-end-of-input-line))
                 (unwind-protect
-                    (erc-send-input str)
+                    (erc-send-input str 'skip-ws-chk)
                   ;; Fix the buffer if the command didn't kill it
                   (when (buffer-live-p old-buf)
                     (with-current-buffer old-buf
@@ -5892,8 +5960,8 @@ submitted line to be intentional."
                           (set-buffer-modified-p buffer-modified))))))
 
                 ;; Only when last hook has been run...
-                (run-hook-with-args 'erc-send-completed-hook str))))
-          (setq erc-last-input-time now))
+                (run-hook-with-args 'erc-send-completed-hook str)))
+            (setq erc-last-input-time now)))
       (switch-to-buffer "*ERC Accidental Paste Overflow*")
       (lwarn 'erc :warning
              "You seem to have accidentally pasted some text!"))))
@@ -5910,21 +5978,31 @@ submitted line to be intentional."
 (cl-defstruct erc-input
   string insertp sendp)
 
-(defun erc-send-input (input)
+(cl-defstruct (erc--input-split (:include erc-input))
+  lines cmdp)
+
+(defun erc--discard-trailing-multiline-nulls (state)
+  "Ensure last line of STATE's string is non-null.
+But only when `erc-send-whitespace-lines' is non-nil.  STATE is
+an `erc--input-split' object."
+  (when (and erc-send-whitespace-lines (erc--input-split-lines state))
+    (let ((reversed (nreverse (erc--input-split-lines state))))
+      (when (string-empty-p (car reversed))
+        (pop reversed)
+        (setf (erc--input-split-cmdp state) nil))
+      (nreverse (seq-drop-while #'string-empty-p reversed)))))
+
+(defun erc-send-input (input &optional skip-ws-chk)
   "Treat INPUT as typed in by the user.
 It is assumed that the input and the prompt is already deleted.
 Return non-nil only if we actually send anything."
   ;; Handle different kinds of inputs
-  (cond
-   ;; Ignore empty input
-   ((if erc-send-whitespace-lines
-        (string= input "")
-      (string-match "\\`[ \t\r\f\n]*\\'" input))
-    (when erc-warn-about-blank-lines
-      (message "Blank line - ignoring...")
-      (beep))
-    nil)
-   (t
+  (if (and (not skip-ws-chk)
+           (erc--check-prompt-input-for-multiline-blanks
+            input (split-string input erc--input-line-delim-regexp)))
+      (when erc-warn-about-blank-lines
+        (message "Blank line - ignoring...") ; compat
+        (beep))
     ;; This dynamic variable is used by `erc-send-pre-hook'.  It's
     ;; obsolete, and when it's finally removed, this binding should
     ;; also be removed.
@@ -5944,27 +6022,28 @@ Return non-nil only if we actually send anything."
 				  :insertp erc-insert-this
 				  :sendp erc-send-this))
       (run-hook-with-args 'erc-pre-send-functions state)
+      (setq state (make-erc--input-split
+                   :string (erc-input-string state)
+                   :insertp (erc-input-insertp state)
+                   :sendp (erc-input-sendp state)
+                   :lines (split-string (erc-input-string state)
+                                        erc--input-line-delim-regexp)
+                   :cmdp (string-match erc-command-regexp
+                                       (erc-input-string state))))
+      (run-hook-with-args 'erc--pre-send-split-functions state)
       (when (and (erc-input-sendp state)
-		 erc-send-this)
-	(let ((string (erc-input-string state)))
-          (if (or (if (>= emacs-major-version 28)
-                      (string-search "\n" string)
-                    (string-match "\n" string))
-                  (not (string-match erc-command-regexp string)))
-              (mapc
-               (lambda (line)
-		 (mapc
-                  (lambda (line)
-                    ;; Insert what has to be inserted for this.
-		    (when (erc-input-insertp state)
-                      (erc-display-msg line))
-                    (erc-process-input-line (concat line "\n")
-                                            (null erc-flood-protect) t))
-                  (or (and erc-flood-protect (erc-split-line line))
-                      (list line))))
-               (split-string string "\n"))
-            (erc-process-input-line (concat string "\n") t nil))
-          t))))))
+                 erc-send-this)
+        (let ((lines (erc--input-split-lines state)))
+          (if (and (erc--input-split-cmdp state) (not (cdr lines)))
+              (erc-process-input-line (concat (car lines) "\n") t nil)
+            (dolist (line lines)
+              (dolist (line (or (and erc-flood-protect (erc-split-line line))
+                                (list line)))
+                (when (erc-input-insertp state)
+                  (erc-display-msg line))
+                (erc-process-input-line (concat line "\n")
+                                        (null erc-flood-protect) t))))
+          t)))))
 
 (defun erc-display-msg (line)
   "Display LINE as a message of the user to the current target at point."
