@@ -52,6 +52,12 @@ set (`vc-git-diff-switches' for git, for instance), and
   "The command to use to run diff."
   :type 'string)
 
+(defcustom diff-entire-buffers t
+  "If non-nil, diff the entire buffers, not just the visible part.
+If nil, only use the narrowed-to parts of the buffers."
+  :type 'boolean
+  :version "29.1")
+
 ;; prompt if prefix arg present
 (defun diff-switches ()
   (if current-prefix-arg
@@ -119,7 +125,9 @@ temporary file with the buffer's contents."
   (if (bufferp file-or-buf)
       (with-current-buffer file-or-buf
         (let ((tempfile (make-temp-file "buffer-content-")))
-          (write-region nil nil tempfile nil 'nomessage)
+          (if diff-entire-buffers
+              (write-region nil nil tempfile nil 'nomessage)
+            (write-region (point-min) (point-max) tempfile nil 'nomessage))
           tempfile))
     (file-local-copy file-or-buf)))
 
@@ -274,7 +282,9 @@ interactively for diff switches.  Otherwise, the switches
 specified in the variable `diff-switches' are passed to the
 diff command.
 
-OLD and NEW may each be a buffer or a buffer name."
+OLD and NEW may each be a buffer or a buffer name.
+
+Also see the `diff-entire-buffers' variable."
   (interactive
    (let ((newb (read-buffer "Diff new buffer" (current-buffer) t))
          (oldb (read-buffer "Diff original buffer"
