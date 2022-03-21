@@ -625,6 +625,8 @@ image as text, when opening such images in `image-mode'."
 
 (put 'image-mode 'mode-class 'special)
 
+(declare-function image-converter-initialize "image-converter.el")
+
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
@@ -650,7 +652,12 @@ Key bindings:
                        "Empty file"
                      "(New file)")
                  "Empty buffer"))
-    (image-mode--display)))
+    (image-mode--display)
+    ;; Ensure that we recognize externally parsed image formats in
+    ;; commands like `n'.
+    (when image-use-external-converter
+      (require 'image-converter)
+      (image-converter-initialize))))
 
 (defun image-mode--display ()
   (if (not (image-get-display-property))

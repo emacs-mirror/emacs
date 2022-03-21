@@ -68,15 +68,19 @@ not, conversion will fail."
     (imagemagick :command "convert" :probe ("-list" "format")))
   "List of supported image converters to try.")
 
+(defun image-converter-initialize ()
+  "Determine the external image converter to be used.
+This also determines which external formats we can parse."
+  (unless image-converter
+    (image-converter--find-converter)))
+
 (defun image-convert-p (source &optional data-p)
   "Return `image-convert' if SOURCE is an image that can be converted.
 SOURCE can either be a file name or a string containing image
 data.  In the latter case, DATA-P should be non-nil.  If DATA-P
 is a string, it should be a MIME format string like
 \"image/gif\"."
-  ;; Find an installed image converter.
-  (unless image-converter
-    (image-converter--find-converter))
+  (image-converter-initialize)
   ;; When image-converter was customized
   (when (and image-converter (not image-converter-regexp))
     (when-let ((formats (image-converter--probe image-converter)))
@@ -111,9 +115,7 @@ IMAGE can also be an image object as returned by `create-image'.
 
 This function converts the image the preferred format, and the
 converted image data is returned as a string."
-  ;; Find an installed image converter.
-  (unless image-converter
-    (image-converter--find-converter))
+  (image-converter-initialize)
   (unless image-converter
     (error "No external image converters available"))
   (when (and image-format
