@@ -645,6 +645,7 @@ public:
 	struct haiku_drag_and_drop_event rq;
 
 	if (msg->FindInt32 ("emacs:window_id", &windowid) == B_OK
+	    && !msg->IsSourceRemote ()
 	    && windowid == this->window_id)
 	  return;
 
@@ -1449,7 +1450,7 @@ public:
   }
 
   void
-  MouseMoved (BPoint point, uint32 transit, const BMessage *msg)
+  MouseMoved (BPoint point, uint32 transit, const BMessage *drag_msg)
   {
     struct haiku_mouse_motion_event rq;
 
@@ -1458,6 +1459,9 @@ public:
     rq.y = point.y;
     rq.window = this->Window ();
     rq.time = system_time ();
+
+    if (drag_msg && transit != B_EXITED_VIEW)
+      return;
 
     if (ToolTip ())
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
@@ -3960,11 +3964,12 @@ be_drag_message_thread_entry (void *thread_data)
   return 0;
 }
 
-void
+bool
 be_drag_message (void *view, void *message,
 		 void (*block_input_function) (void),
 		 void (*unblock_input_function) (void),
-		 void (*process_pending_signals_function) (void))
+		 void (*process_pending_signals_function) (void),
+		 bool (*should_quit_function) (void))
 {
   EmacsView *vw = (EmacsView *) view;
   EmacsWindow *window = (EmacsWindow *) vw->Window ();
@@ -3995,7 +4000,7 @@ be_drag_message (void *view, void *message,
   unblock_input_function ();
 
   if (infos[1].object < B_OK)
-    return;
+    return false;
 
   block_input_function ();
   resume_thread (infos[1].object);
@@ -4017,8 +4022,11 @@ be_drag_message (void *view, void *message,
       if (infos[0].events & B_EVENT_READ)
 	process_pending_signals_function ();
 
+      if (should_quit_function ())
+	return true;
+
       if (infos[1].events & B_EVENT_INVALID)
-	return;
+	return false;
 
       infos[0].events = B_EVENT_READ;
       infos[1].events = B_EVENT_INVALID;

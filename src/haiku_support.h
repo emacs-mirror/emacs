@@ -945,11 +945,12 @@ extern "C"
   extern void
   BMessage_delete (void *message);
 
-  extern void
+  extern bool
   be_drag_message (void *view, void *message,
 		   void (*block_input_function) (void),
 		   void (*unblock_input_function) (void),
-		   void (*process_pending_signals_function) (void));
+		   void (*process_pending_signals_function) (void),
+		   bool (*should_quit_function) (void));
 
 #ifdef __cplusplus
   extern void *

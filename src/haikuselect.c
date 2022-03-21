@@ -506,6 +506,12 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   CHECK_LIST_END (tem, obj);
 }
 
+static bool
+haiku_should_quit_drag (void)
+{
+  return !NILP (Vquit_flag);
+}
+
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
        2, 2, 0,
        doc: /* Begin dragging MESSAGE from FRAME.
@@ -530,6 +536,7 @@ drag will originate.  */)
   specpdl_ref idx;
   void *be_message;
   struct frame *f;
+  bool rc;
 
   idx = SPECPDL_INDEX ();
   f = decode_window_system_frame (frame);
@@ -541,10 +548,14 @@ drag will originate.  */)
 
   record_unwind_protect_ptr (BMessage_delete, be_message);
   haiku_lisp_to_message (message, be_message);
-  be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
-		   block_input, unblock_input,
-		   process_pending_signals);
+  rc = be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
+			block_input, unblock_input,
+			process_pending_signals,
+			haiku_should_quit_drag);
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+  if (rc)
+    quit ();
 
   return unbind_to (idx, Qnil);
 }
