@@ -1174,6 +1174,8 @@ x_dnd_cleanup_drag_and_drop (void *frame)
       x_set_dnd_targets (NULL, 0);
     }
 
+  x_dnd_waiting_for_finish = false;
+
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
   current_hold_quit = NULL;
@@ -1213,7 +1215,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
 
-  if (x_dnd_in_progress)
+  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     error ("A drag-and-drop session is already in progress");
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
@@ -1306,6 +1308,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_in_progress = false;
 	      x_dnd_frame = NULL;
 	      x_set_dnd_targets (NULL, 0);
+	      x_dnd_waiting_for_finish = false;
 	    }
 
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
@@ -1327,6 +1330,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   FRAME_XIC (f) = ic;
 #endif
   x_set_dnd_targets (NULL, 0);
+  x_dnd_waiting_for_finish = false;
 
 #ifdef USE_GTK
   current_hold_quit = NULL;
@@ -10432,7 +10436,7 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
     f1 = x_any_window_to_frame (dpyinfo,
 				event->xclient.window);
 
-  if (x_dnd_in_progress)
+  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     return 0;
 
 #ifdef USE_GTK
@@ -17563,6 +17567,7 @@ x_free_frame_resources (struct frame *f)
 	x_dnd_send_leave (f, x_dnd_last_seen_window);
 
       x_dnd_in_progress = false;
+      x_dnd_waiting_for_finish = false;
       x_dnd_frame = NULL;
     }
 
