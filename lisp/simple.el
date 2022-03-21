@@ -9399,6 +9399,8 @@ Called from `temp-buffer-show-hook'."
         (setq tab-width completion-tab-width))
       ;; Maybe enable cursor completions-highlight.
       (when completions-highlight-face
+        ;; keep highlight even if not selected
+        (setq-local cursor-face-highlight-nonselected-window t)
         (cursor-face-highlight-mode 1))
       ;; Maybe insert help string.
       (when completion-show-help
