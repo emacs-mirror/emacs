@@ -25012,7 +25012,10 @@ function `get-char-code-property' for a way to inquire about the
 directionality is weak or neutral, such as numbers or punctuation
 characters, can be forced to display in a very different place with
 respect of its surrounding characters, so as to make the surrounding
-text confuse the user regarding what the text says.  */)
+text confuse the user regarding what the text says.
+
+Also see the `highlight-confusing-reorderings' function, which can be
+useful in similar circumstances as this function.  */)
   (Lisp_Object from, Lisp_Object to, Lisp_Object object, Lisp_Object base_dir)
 {
   struct buffer *buf = current_buffer;

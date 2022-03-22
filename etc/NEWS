@@ -450,6 +450,7 @@ the corresponding deleted frame.
 By default, it contains 'C-c <left>' and 'C-c <right>' to browse
 the history of tab window configurations back and forward.
 
+---
 ** Better detection of text suspiciously reordered on display.
 The function 'bidi-find-overridden-directionality' has been extended
 to detect reordering effects produced by embeddings and isolates
