@@ -447,7 +447,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "4"
+#define ABI_VERSION "5"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -5463,9 +5463,7 @@ This gets called by top_level_run during the load phase.  */)
 {
   Lisp_Object doc_idx = FIRST (rest);
   Lisp_Object intspec = SECOND (rest);
-  Lisp_Object command_modes = Qnil;
-  if (!NILP (XCDR (XCDR (rest))))
-    command_modes = THIRD (rest);
+  Lisp_Object command_modes = THIRD (rest);
 
   struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
   if (cu->loaded_once)
@@ -5498,9 +5496,7 @@ This gets called by top_level_run during the load phase.  */)
 {
   Lisp_Object doc_idx = FIRST (rest);
   Lisp_Object intspec = SECOND (rest);
-  Lisp_Object command_modes = Qnil;
-  if (!NILP (XCDR (XCDR (rest))))
-    command_modes = THIRD (rest);
+  Lisp_Object command_modes = THIRD (rest);
 
   Lisp_Object tem =
     make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, type, doc_idx,
