@@ -2998,6 +2998,9 @@ Call `tooltip-show-help-non-mode' instead on non-graphical displays."
       (x-show-tip tooltip)
     (tooltip-show-help-non-mode tooltip)))
 
+(declare-function x-hide-tip "xfns.c")
+(declare-function x-show-tip "xfns.c")
+
 (defun mouse-drag-and-drop-region-hide-tooltip ()
   "Hide any tooltip currently displayed.
 Call `tooltip-show-help-non-mode' to clear the echo area message

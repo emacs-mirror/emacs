@@ -255,14 +255,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (setq command-line-args (x-handle-args command-line-args))
 
   ;; Make sure we have a valid resource name.
-  (or (stringp x-resource-name)
+  (when (boundp 'x-resource-name)
+    (unless (stringp x-resource-name)
       (let (i)
 	(setq x-resource-name (copy-sequence invocation-name))
 
 	;; Change any . or * characters in x-resource-name to hyphens,
 	;; so as not to choke when we use it in X resource queries.
 	(while (setq i (string-match "[.*]" x-resource-name))
-	  (aset x-resource-name i ?-))))
+	  (aset x-resource-name i ?-)))))
 
   ;; Setup the default fontset.
   (create-default-fontset)
