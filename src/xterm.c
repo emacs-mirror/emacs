@@ -1020,7 +1020,7 @@ x_dnd_get_window_proto (struct x_display_info *dpyinfo, Window wdesc)
   value = (int) *(Atom *) tmp_data;
   XFree (tmp_data);
 
-  return (int) value;
+  return min (X_DND_SUPPORTED_VERSION, (int) value);
 }
 
 static void
