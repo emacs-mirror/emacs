@@ -127,6 +127,16 @@ Currently used in calendar/todo-mode."
     (let (inhibit-quit)
       (hl-line-mode 1))))
 
+(defun hl-line-unload-function ()
+  "Unload the Hl-Line library."
+  (global-hl-line-mode -1)
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (when hl-line-mode (hl-line-mode -1))))
+  ;; continue standard unloading
+  nil)
+
 ;;;###autoload
 (define-globalized-minor-mode global-hl-line-mode
   hl-line-mode hl-line-turn-on
