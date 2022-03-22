@@ -5247,12 +5247,12 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
   Lisp_Object window_or_frame = f
     ? window_from_coordinates (f, mx, my, &part, true, true)
     : Qnil;
+#ifdef HAVE_WINDOW_SYSTEM
   bool tool_bar_p = false;
   bool menu_bar_p = false;
 
   /* Report mouse events on the tab bar and (on GUI frames) on the
      tool bar.  */
-#ifdef HAVE_WINDOW_SYSTEM
   if ((WINDOWP (f->tab_bar_window)
        && EQ (window_or_frame, f->tab_bar_window))
 #ifndef HAVE_EXT_TOOL_BAR
