@@ -21,30 +21,90 @@
 (require 'ert)
 (require 'hl-line)
 
-(ert-deftest hl-line-sticky ()
-  (should hl-line-sticky-flag)
-  (with-temp-buffer
-    (let ((from-buffer (current-buffer)))
-      (hl-line-mode 1)
-      (save-excursion
-        (insert "foo"))
-      (hl-line-highlight)
-      (should (cl-some (apply-partially #'eq hl-line--overlay)
-                       (overlays-at (point))))
-      (switch-to-buffer (get-buffer-create "*scratch*"))
-      (hl-line-mode 1)
-      (save-excursion
-        (insert "bar"))
-      (hl-line-highlight)
-      (should (cl-some (apply-partially #'eq hl-line--overlay)
-                       (overlays-at (point))))
-      (should (buffer-local-value 'hl-line--overlay from-buffer))
-      (should-not (eq (buffer-local-value 'hl-line--overlay from-buffer)
-                      hl-line--overlay))
-      (customize-set-variable 'hl-line-sticky-flag nil)
-      (should hl-line--overlay)
-      (should (buffer-live-p from-buffer))
-      (should-not (buffer-local-value 'hl-line--overlay from-buffer)))))
+(defsubst hl-line-tests-verify (_label on-p)
+  (eq on-p (cl-some (apply-partially #'eq hl-line--overlay)
+                    (overlays-at (point)))))
+
+(ert-deftest hl-line-tests-sticky-across-frames ()
+  (skip-unless (display-graphic-p))
+  (customize-set-variable 'hl-line-sticky-flag t)
+  (call-interactively #'global-hl-line-mode)
+  (let ((first-frame (selected-frame))
+        (first-buffer "foo")
+        (second-buffer "bar")
+        second-frame)
+    (unwind-protect
+        (progn
+          (switch-to-buffer first-buffer)
+          (save-excursion
+            (insert (buffer-name)))
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 111 t))
+          (select-frame (setq second-frame (make-frame)))
+          (switch-to-buffer second-buffer)
+          (save-excursion
+            (insert (buffer-name)))
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 762 t))
+          (with-current-buffer first-buffer
+            (should (hl-line-tests-verify 534 t)))
+          (call-interactively #'global-hl-line-mode)
+          (should (hl-line-tests-verify 125 nil))
+          (with-current-buffer first-buffer
+            (should (hl-line-tests-verify 892 nil)))
+
+          ;; now do unsticky
+          (customize-set-variable 'hl-line-sticky-flag nil)
+          (call-interactively #'global-hl-line-mode)
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 467 t))
+          (with-current-buffer first-buffer
+            (should (hl-line-tests-verify 765 nil)))
+          (select-frame first-frame)
+          (should (equal (buffer-name) first-buffer))
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 423 t))
+          (with-current-buffer second-buffer
+            (should (hl-line-tests-verify 897 nil))))
+      (let (kill-buffer-query-functions)
+        (ignore-errors (kill-buffer first-buffer))
+        (ignore-errors (kill-buffer second-buffer))
+        (ignore-errors (delete-frame second-frame))))))
+
+(ert-deftest hl-line-tests-sticky ()
+  (customize-set-variable 'hl-line-sticky-flag t)
+  (let ((first-buffer "foo")
+        (second-buffer "bar"))
+    (unwind-protect
+        (progn
+          (switch-to-buffer first-buffer)
+          (hl-line-mode 1)
+          (save-excursion
+            (insert (buffer-name)))
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 123 t))
+          (switch-to-buffer second-buffer)
+          (hl-line-mode 1)
+          (save-excursion
+            (insert (buffer-name)))
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 56 t))
+          (with-current-buffer first-buffer
+            (should (hl-line-tests-verify 67 t)))
+
+          ;; now do unsticky
+          (customize-set-variable 'hl-line-sticky-flag nil)
+          (should (hl-line-tests-verify 234 t))
+          (with-current-buffer first-buffer
+            (should (hl-line-tests-verify 231 nil)))
+          (switch-to-buffer first-buffer)
+          (run-hooks 'post-command-hook)
+          (should (hl-line-tests-verify 257 t))
+          (with-current-buffer second-buffer
+            (should (hl-line-tests-verify 999 nil)))))
+    (let (kill-buffer-query-functions)
+      (ignore-errors (kill-buffer first-buffer))
+      (ignore-errors (kill-buffer second-buffer)))))
 
 (provide 'hl-line-tests)
 

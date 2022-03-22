@@ -24,17 +24,26 @@
 
 ;;; Commentary:
 
+;;  Proper scuttling of unsticky overlays relies on `post-command-hook`
+;;  being called on a buffer switch and the stationarity of
+;;  `hl-line--buffer` across switches.  One could easily imagine
+;;  programatically defeating unsticky overlays by bypassing
+;; `post-command-hook`.
+
 ;;; Code:
 
-(make-obsolete-variable 'hl-line-overlay nil "29.1")
+(make-obsolete-variable 'hl-line-overlay 'hl-line--overlay "29.1")
 (make-obsolete-variable 'global-hl-line-overlay nil "29.1")
 (make-obsolete-variable 'global-hl-line-overlays nil "29.1")
 (make-obsolete-variable 'global-hl-line-sticky-flag nil "29.1")
-(make-obsolete-variable 'hl-line-overlay-buffer nil "29.1")
+(make-obsolete-variable 'hl-line-overlay-buffer 'hl-line--buffer "29.1")
 (make-obsolete-variable 'hl-line-range-function nil "29.1")
 
 (defvar-local hl-line--overlay nil
-  "Keep state else scan entire buffer in `post-command-hook'.")
+  "The prevailing highlighting overlay per buffer.")
+
+(defvar hl-line--buffer nil
+  "Used to track last buffer.")
 
 ;; 1. define-minor-mode creates buffer-local hl-line--overlay
 ;; 2. overlay wiped by kill-all-local-variables
@@ -68,6 +77,7 @@
   :type 'boolean
   :version "22.1"
   :group 'hl-line
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
          (set-default symbol value)
          (unless value
@@ -100,14 +110,12 @@ Currently used in calendar/todo-mode."
 	(add-hook 'post-command-hook #'hl-line-highlight nil t))
     (remove-hook 'post-command-hook #'hl-line-highlight t)
     (remove-hook 'change-major-mode-hook #'hl-line-unhighlight t)
-    (let (hl-line-sticky-flag)
-      (hl-line-unhighlight))))
+    (hl-line-unhighlight)))
 
 (defun hl-line-unhighlight ()
-  (unless hl-line-sticky-flag
-    (when hl-line--overlay
-      (delete-overlay hl-line--overlay)
-      (setq hl-line--overlay nil))))
+  (when hl-line--overlay
+    (delete-overlay hl-line--overlay)
+    (setq hl-line--overlay nil)))
 
 (defun hl-line-highlight ()
   (unless (minibufferp)
@@ -120,6 +128,12 @@ Currently used in calendar/todo-mode."
     (move-overlay hl-line--overlay
                   (line-beginning-position)
                   (line-beginning-position 2))
+    (when (and (not (eq hl-line--buffer (current-buffer)))
+               (not hl-line-sticky-flag)
+               (buffer-live-p hl-line--buffer))
+      (with-current-buffer hl-line--buffer
+        (hl-line-unhighlight)))
+    (setq hl-line--buffer (current-buffer))
     (run-hooks 'hl-line-highlight-hook)))
 
 (defun hl-line-turn-on ()
