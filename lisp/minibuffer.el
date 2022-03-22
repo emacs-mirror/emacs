@@ -894,20 +894,23 @@ If the current buffer is not a minibuffer, erase its entire contents."
 
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
-If the value is t the *Completions* buffer is displayed whenever completion
+If the value is t, the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete.
-If the value is 'always', the completion commands are always shown
-after a completion attempt, or updated if they are already visible.
-If the value is 'visible', then completions are not hidden, but updated
-if they are already visible while the current behavior stays the same
-as default if they are not."
-  :type '(choice (const :tag "Disabled" nil)
-                 (const :tag "Enabled legacy" t)
-                 (const :tag "After a second attempt" lazy)
-                 (const :tag "Visible update" visible)
-                 (const :tag "Always update" always)))
+If the value is 'always', the *Completions* buffer is always shown
+after a completion attempt, and the list of completions is updated if
+already visible.
+If the value is 'visible', the *Completions* buffer is displayed
+whenever completion is requested but cannot be done for the first time,
+but remains visible thereafter, and the list of completions in it is
+updated for subsequent attempts to complete.."
+  :type '(choice (const :tag "Don't show" nil)
+                 (const :tag "Show only when cannot complete" t)
+                 (const :tag "Show after second failed completion attempt" lazy)
+                 (const :tag
+                        "Leave visible after first failed completion" visible)
+                 (const :tag "Always visible" always)))
 
 (defvar completion-styles-alist
   '((emacs21

@@ -3541,10 +3541,10 @@ special modes that implement their own highlighting.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
-This property is used instead of @code{face} when the mouse is on or
-near the character.  For this purpose, ``near'' means that all text
-between the character and where the mouse is have the same
-@code{mouse-face} property value.
+This property is used instead of @code{face} when the mouse pointer
+hovers over the text which has this property.  When this happens, the
+entire stretch of text that has the same @code{mouse-face} property
+value, not just the character under the mouse, is highlighted.
 
 Emacs ignores all face attributes from the @code{mouse-face} property
 that alter the text size (e.g., @code{:height}, @code{:weight}, and
@@ -3553,14 +3553,17 @@ unhighlighted text.
 
 @item cursor-face
 @kindex cursor-face @r{(text property)}
-This property is similar to @code{mouse-face}, but the face is used if
-the cursor (instead of mouse) is on or near the character.  Near has
-the same meaning that in @code{mouse-face} and the highlighting only
-takes effect if the mode @code{cursor-face-highlight-mode} is enabled;
-otherwise no highlighting is performed.  When the variable
+@findex cursor-face-highlight-mode
+@vindex cursor-face-highlight-nonselected-window
+This property is similar to @code{mouse-face}, but it is used when
+point (not the mouse) is inside text that has this property.  The
+highlighting happens only if the mode
+@code{cursor-face-highlight-mode} is enabled.  When the variable
 @code{cursor-face-highlight-nonselected-window} is non-@code{nil}, the
-text is highlighted even if the window is not selected that is similar
-to @code{highlight-nonselected-windows} for the region.
+text with this face is highlighted even if the window is not selected,
+similarly to what @code{highlight-nonselected-windows} does for the
+region (@pxref{Mark,, The Mark and the Region, emacs, The GNU Emacs
+Manual}).
 
 @item fontified
 @kindex fontified @r{(text property)}

@@ -579,28 +579,29 @@ alphabetical (the default), or a custom sort function.
 
 +++
 *** New values for the 'completion-auto-help' user option.
-There are two new values to control the way "*Completions*" behave after
-a 'TAB' if completion is not unique.  'always' updates or shows
-the "*Completions*" buffer after any attempt to complete.  'visual' is
-like 'always', but only update the completions if they are already
-visible.  The default value 't' always hides the completion buffer after
-some completion is made.
+There are two new values to control the way the "*Completions*" buffer
+behaves after pressing a 'TAB' if completion is not unique.  The value
+'always' updates or shows the "*Completions*" buffer after any attempt
+to complete.  The value 'visual' is like 'always', but only updates
+the completions if they are already visible.  The default value 't'
+always hides the completion buffer after some completion is made.
 
 +++
 *** New user option 'completions-max-height'.
 This option limits the height of the "*Completions*" buffer.
 
 +++
-*** New user option 'completions-header-format'
-This is a string to control the message to show before completions.
-It may contain a "%s" to show the total number of completions.  If nil no
-completions are shown.
+*** New user option 'completions-header-format'.
+This is a string to control the heading line to show in the
+"*Completions*" buffer before the list of completions.
+If it contains "%s", that is replaced with the number of completions.
+If nil, the heading line is not shown.
 
 +++
 *** New user option 'completions-highlight-face'.
-When this user option is a face name, it highlights the current
-candidate in the "*Completions*" buffer with that face.  When the
-value is nil, no highlighting is performed at all.
+When this user option names a face, the current
+candidate in the "*Completions*" buffer is highlighted with that face.
+The nil value disables this highlighting.
 
 ** Isearch and Replace
 
