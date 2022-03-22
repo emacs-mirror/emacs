@@ -796,6 +796,15 @@ offer a smarter default choice of shell command."
 			 'read-shell-command prompt nil nil))))
 
 ;;;###autoload
+(defcustom dired-confirm-shell-command t
+  "Whether to prompt for confirmation for ‘dired-do-shell-command’.
+If non-nil, prompt for confirmation if the command contains potentially
+dangerous characters.  If nil, never prompt for confirmation."
+  :type 'boolean
+  :group 'dired
+  :version "29.1")
+
+;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files asynchronously.
 
@@ -873,7 +882,9 @@ can be produced by `dired-get-marked-files', for example.
 
 `dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
-prompted for the shell command to use interactively."
+prompted for the shell command to use interactively.
+
+Also see the `dired-confirm-shell-command' variable."
   ;; Functions dired-run-shell-command and dired-shell-stuff-it do the
   ;; actual work and can be redefined for customization.
   (interactive
@@ -891,6 +902,8 @@ prompted for the shell command to use interactively."
          (ok (cond
               ((not (or on-each no-subst))
                (error "You can not combine `*' and `?' substitution marks"))
+              ((not dired-confirm-shell-command)
+               t)
               ((setq confirmations (dired--need-confirm-positions command "*"))
                (dired--no-subst-confirm confirmations command))
               ((setq confirmations (dired--need-confirm-positions command "?"))

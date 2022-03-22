@@ -1007,6 +1007,7 @@ subdirectories whose names match @code{grep-find-ignored-directories}.
 @findex dired-do-shell-command
 @kindex ! @r{(Dired)}
 @kindex X @r{(Dired)}
+@vindex dired-confirm-shell-command
 The Dired command @kbd{!} (@code{dired-do-shell-command}) reads a
 shell command string in the minibuffer, and runs that shell command on
 one or more files.  The files that the shell command operates on are
@@ -1043,7 +1044,8 @@ list of file names, putting them into one tar file @file{foo.tar}.
 If you want to use @samp{*} as a shell wildcard with whitespace around
 it, write @samp{*""}.  In the shell, this is equivalent to @samp{*};
 but since the @samp{*} is not surrounded by whitespace, Dired does not
-treat it specially.
+treat it specially.  Emacs will prompt for confirmation if you do
+this, unless @code{dired-confirm-shell-command} is @code{nil}.
 
 @item
 Otherwise, if the command string contains @samp{?} surrounded by
