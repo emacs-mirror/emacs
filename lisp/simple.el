@@ -9144,6 +9144,14 @@ This affects the commands `next-completion' and
   :version "29.1"
   :group 'completion)
 
+(defcustom completion-auto-select nil
+  "Non-nil means to automatically select the *Completions* buffer."
+  :type '(choice (const :tag "Select window" t)
+                 (const :tag "Disabled" nil)
+                 (const :tag "Select window on second-tab" second-tab))
+  :version "29.1"
+  :group 'completion)
+
 (defun previous-completion (n)
   "Move to the previous item in the completion list.
 With prefix argument N, move back N items (negative N means move
@@ -9365,12 +9373,6 @@ Called from `temp-buffer-show-hook'."
   :version "22.1"
   :group 'completion)
 
-(defcustom completion-auto-select nil
-  "Non-nil means to automatically select the *Completions* buffer."
-  :type 'boolean
-  :version "29.1"
-  :group 'completion)
-
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
@@ -9411,8 +9413,8 @@ Called from `temp-buffer-show-hook'."
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[choose-completion] to \
 select the completion near point.\n\n")))))
-  (when completion-auto-select
-    (switch-to-completions)))
+  (if (eq completion-auto-select t)
+      (switch-to-completions)))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 
