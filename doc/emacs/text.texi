@@ -1259,6 +1259,17 @@ and related functions treat hidden text, @pxref{Query Replace}.)
 You can also automatically make text visible as you navigate in it by
 using Reveal mode (@kbd{M-x reveal-mode}), a buffer-local minor mode.
 
+@vindex outline-default-state
+  The @code{outline-default-state} variable controls what headings
+will be visible after Outline mode is turned on.  If non-@code{nil},
+some headings are initially outlined.  If equal to a number, show only
+headings up to and including the corresponding level.  If equal to
+@code{outline-show-all}, all text of buffer is shown.  If equal to
+@code{outline-show-only-headings}, show only headings, whatever their
+level is.  If equal to a lambda function or function name, this
+function is expected to toggle headings visibility, and will be called
+without arguments after the mode is enabled.
+
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views
 

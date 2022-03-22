@@ -388,6 +388,7 @@ displayed, if any.
 
 ** Outline Mode
 
++++
 *** Support for customizing the default visibility state of headings.
 Customize the user option 'outline-default-state' to define what
 headings will be visible after Outline mode is turned on.  When equal
