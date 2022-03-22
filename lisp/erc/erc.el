@@ -2992,6 +2992,8 @@ for special purposes (see erc-dcc.el).")
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET."
+  (when (string= line "\n")
+    (setq line " \n"))
   (erc-message "PRIVMSG" (concat target " " line) force))
 
 (defun erc-get-arglist (fun)

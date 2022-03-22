@@ -643,19 +643,19 @@
         (ert-info ("Implicit cmd via `erc-send-input-line-function'")
 
           (ert-info ("Baseline")
-            (erc-process-input-line "hi")
+            (erc-process-input-line "hi\n")
             (should (equal (pop erc-server-flood-queue)
                            '("PRIVMSG #chan :hi\r\n" . utf-8))))
 
           (ert-info ("Spaces preserved")
-            (erc-process-input-line "hi you")
+            (erc-process-input-line "hi you\n")
             (should (equal (pop erc-server-flood-queue)
                            '("PRIVMSG #chan :hi you\r\n" . utf-8))))
 
-          (ert-info ("Empty line transmitted without injected-space kludge")
-            (erc-process-input-line "")
+          (ert-info ("Empty line transmitted with injected-space kludge")
+            (erc-process-input-line "\n")
             (should (equal (pop erc-server-flood-queue)
-                           '("PRIVMSG #chan :\r\n" . utf-8))))
+                           '("PRIVMSG #chan : \r\n" . utf-8))))
 
           (should-not calls))))))
 
