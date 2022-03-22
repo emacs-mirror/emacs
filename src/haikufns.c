@@ -631,11 +631,6 @@ haiku_create_frame (Lisp_Object parms)
   f->output_method = output_haiku;
   f->output_data.haiku = xzalloc (sizeof *f->output_data.haiku);
 
-  f->output_data.haiku->pending_zoom_x = INT_MIN;
-  f->output_data.haiku->pending_zoom_y = INT_MIN;
-  f->output_data.haiku->pending_zoom_width = INT_MIN;
-  f->output_data.haiku->pending_zoom_height = INT_MIN;
-
   fset_icon_name (f, gui_display_get_arg (dpyinfo, parms, Qicon_name,
                                           "iconName", "Title",
                                           RES_TYPE_STRING));
@@ -960,11 +955,6 @@ haiku_create_tip_frame (Lisp_Object parms)
      counts etc.  */
   f->output_method = output_haiku;
   f->output_data.haiku = xzalloc (sizeof *f->output_data.haiku);
-
-  f->output_data.haiku->pending_zoom_x = INT_MIN;
-  f->output_data.haiku->pending_zoom_y = INT_MIN;
-  f->output_data.haiku->pending_zoom_width = INT_MIN;
-  f->output_data.haiku->pending_zoom_height = INT_MIN;
 
   f->tooltip = true;
   fset_icon_name (f, Qnil);

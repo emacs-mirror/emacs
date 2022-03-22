@@ -220,10 +220,8 @@ struct haiku_menu_bar_help_event
 struct haiku_zoom_event
 {
   void *window;
-  int x;
-  int y;
-  int width;
-  int height;
+
+  bool zoomed;
 };
 
 #define FSPEC_FAMILY 1

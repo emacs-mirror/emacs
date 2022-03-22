@@ -150,11 +150,6 @@ struct haiku_output
   int menu_up_to_date_p;
   int zoomed_p;
 
-  int pending_zoom_x;
-  int pending_zoom_y;
-  int pending_zoom_width;
-  int pending_zoom_height;
-
   int menu_bar_open_p;
 
   struct font *font;

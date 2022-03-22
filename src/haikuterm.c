@@ -2851,19 +2851,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		cancel_mouse_face (f);
 		haiku_clear_under_internal_border (f);
 	      }
-
-	    if (FRAME_OUTPUT_DATA (f)->pending_zoom_width != width ||
-		FRAME_OUTPUT_DATA (f)->pending_zoom_height != height)
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 0;
-		haiku_make_fullscreen_consistent (f);
-	      }
-	    else
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_width = INT_MIN;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_height = INT_MIN;
-	      }
 	    break;
 	  }
 	case FRAME_EXPOSED:
@@ -3249,16 +3236,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    if (FRAME_OUTPUT_DATA (f)->pending_zoom_x != b->x ||
-		FRAME_OUTPUT_DATA (f)->pending_zoom_y != b->y)
-	      FRAME_OUTPUT_DATA (f)->zoomed_p = 0;
-	    else
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_x = INT_MIN;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_y = INT_MIN;
-	      }
-
 	    if (FRAME_PARENT_FRAME (f))
 	      haiku_coords_from_parent (f, &b->x, &b->y);
 
@@ -3570,12 +3547,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_height = b->height;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_width = b->width;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_x = b->x;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_y = b->y;
-
-	    FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
+	    FRAME_OUTPUT_DATA (f)->zoomed_p = b->zoomed;
 	    haiku_make_fullscreen_consistent (f);
 	    break;
 	  }
@@ -3821,13 +3793,10 @@ haiku_fullscreen (struct frame *f)
     return;
 
   if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
-    {
-      EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);
-      BWindow_zoom (FRAME_HAIKU_WINDOW (f));
-    }
+    BWindow_zoom (FRAME_HAIKU_WINDOW (f));
   else if (f->want_fullscreen == FULLSCREEN_BOTH)
     EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 1);
-  else if (f->want_fullscreen == FULLSCREEN_NONE)
+  else
     {
       EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);
       EmacsWindow_unzoom (FRAME_HAIKU_WINDOW (f));

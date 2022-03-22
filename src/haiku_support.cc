@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/Alert.h>
 #include <interface/Button.h>
 #include <interface/ControlLook.h>
+#include <interface/Deskbar.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -403,9 +404,9 @@ public:
   BRect pre_zoom_rect;
   int x_before_zoom = INT_MIN;
   int y_before_zoom = INT_MIN;
-  int fullscreen_p = 0;
-  int zoomed_p = 0;
-  int shown_flag = 0;
+  bool fullscreen_p = false;
+  bool zoomed_p = false;
+  bool shown_flag = false;
   volatile int was_shown_p = 0;
   bool menu_bar_active_p = false;
   bool override_redirect_p = false;
@@ -444,6 +445,77 @@ public:
 
     pthread_cond_destroy (&menu_update_cv);
     pthread_mutex_destroy (&menu_update_mutex);
+  }
+
+  BRect
+  CalculateZoomRect (void)
+  {
+    BScreen screen (this);
+    BDeskbar deskbar;
+    BRect screen_frame;
+    BRect frame;
+    BRect deskbar_frame;
+    BRect window_frame;
+    BRect decorator_frame;
+
+    if (!screen.IsValid ())
+      gui_abort ("Failed to calculate screen rect");
+
+    screen_frame = frame = screen.Frame ();
+    deskbar_frame = deskbar.Frame ();
+
+    if (!(modifiers () & B_SHIFT_KEY)
+	&& !deskbar.IsAutoHide ())
+      {
+	switch (deskbar.Location ())
+	  {
+	  case B_DESKBAR_TOP:
+	    frame.top = deskbar_frame.bottom + 2;
+	    break;
+
+	  case B_DESKBAR_BOTTOM:
+	  case B_DESKBAR_LEFT_BOTTOM:
+	  case B_DESKBAR_RIGHT_BOTTOM:
+	    frame.bottom = deskbar_frame.bottom - 2;
+	    break;
+
+	  case B_DESKBAR_LEFT_TOP:
+	    if (deskbar.IsExpanded ())
+	      frame.top = deskbar_frame.bottom + 2;
+	    else
+	      frame.left = deskbar_frame.right + 2;
+	    break;
+
+	  default:
+	    if (deskbar.IsExpanded ()
+		&& !deskbar.IsAlwaysOnTop ()
+		&& !deskbar.IsAutoRaise ())
+	      frame.right = deskbar_frame.left - 2;
+	  }
+      }
+
+    window_frame = Frame ();
+    decorator_frame = DecoratorFrame ();
+
+    frame.top += (window_frame.top
+		  - decorator_frame.top);
+    frame.bottom -= (decorator_frame.bottom
+		     - window_frame.bottom);
+    frame.left += (window_frame.left
+		   - decorator_frame.left);
+    frame.right -= (decorator_frame.right
+		    - window_frame.right);
+
+    if (frame.top > deskbar_frame.bottom
+	|| frame.bottom < deskbar_frame.top)
+      {
+	frame.left = screen_frame.left + (window_frame.left
+					  - decorator_frame.left);
+	frame.right = screen_frame.right - (decorator_frame.right
+					    - window_frame.left);
+      }
+
+    return frame;
   }
 
   void
@@ -989,33 +1061,29 @@ public:
   Zoom (BPoint o, float w, float h)
   {
     struct haiku_zoom_event rq;
+    BRect rect;
     rq.window = this;
-
-    rq.x = o.x;
-    rq.y = o.y;
-
-    rq.width = w + 1;
-    rq.height = h + 1;
 
     if (fullscreen_p)
       MakeFullscreen (0);
 
-    if (o.x != x_before_zoom ||
-	o.y != y_before_zoom)
+    if (!zoomed_p)
       {
-	x_before_zoom = Frame ().left;
-	y_before_zoom = Frame ().top;
 	pre_zoom_rect = Frame ();
-	zoomed_p = 1;
-	haiku_write (ZOOM_EVENT, &rq);
+	zoomed_p = true;
+	rect = CalculateZoomRect ();
       }
     else
       {
-	zoomed_p = 0;
-	x_before_zoom = y_before_zoom = INT_MIN;
+	zoomed_p = false;
+	rect = pre_zoom_rect;
       }
 
-    BWindow::Zoom (o, w, h);
+    rq.zoomed = zoomed_p;
+    haiku_write (ZOOM_EVENT, &rq);
+
+    BWindow::Zoom (rect.LeftTop (), BE_RECT_WIDTH (rect) - 1,
+		   BE_RECT_HEIGHT (rect) - 1);
   }
 
   void
@@ -1023,11 +1091,8 @@ public:
   {
     if (!zoomed_p)
       return;
-    zoomed_p = 0;
 
-    EmacsMoveTo (pre_zoom_rect.left, pre_zoom_rect.top);
-    ResizeTo (BE_RECT_WIDTH (pre_zoom_rect) - 1,
-	      BE_RECT_HEIGHT (pre_zoom_rect) - 1);
+    BWindow::Zoom ();
   }
 
   void
@@ -1082,6 +1147,8 @@ public:
 
     if (!screen.IsValid ())
       gui_abort ("Trying to make a window fullscreen without a screen");
+
+    UnZoom ();
 
     if (make_fullscreen_p == fullscreen_p)
       return;
