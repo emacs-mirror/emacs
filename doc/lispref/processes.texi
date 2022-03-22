@@ -197,7 +197,7 @@ gives special treatment to certain characters, and if these characters
 occur in the file name, they will confuse the shell.  To handle these
 characters, use the function @code{shell-quote-argument}:
 
-@defun shell-quote-argument argument
+@defun shell-quote-argument argument &optional posix
 This function returns a string that represents, in shell syntax,
 an argument whose actual contents are @var{argument}.  It should
 work reliably to concatenate the return value into a shell command
@@ -226,6 +226,15 @@ a shell command:
         (shell-quote-argument oldfile)
         " "
         (shell-quote-argument newfile))
+@end example
+
+If the optional @var{posix} argument is non-@code{nil}, @var{argument}
+is quoted according to POSIX shell quoting rules, regardless of the
+system’s shell.  This is useful when your shell could run on a remote
+host, which requires a POSIX shell in general.
+
+@example
+(shell-quote-argument "foo > bar" (file-remote-p default-directory))
 @end example
 @end defun
 

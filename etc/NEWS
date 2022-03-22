@@ -578,9 +578,9 @@ the "*Completions*" buffer.  Available styles are no sorting,
 alphabetical (the default), or a custom sort function.
 
 +++
-*** New values for the 'completion-auto-help' option.
+*** New values for the 'completion-auto-help' user option.
 There are two new values to control the way "*Completions*" behave after
-a <tab> if completion is not unique.  'always' updates or shows
+a 'TAB' if completion is not unique.  'always' updates or shows
 the "*Completions*" buffer after any attempt to complete.  'visual' is
 like 'always', but only update the completions if they are already
 visible.  The default value 't' always hides the completion buffer after
@@ -591,16 +591,16 @@ some completion is made.
 This option limits the height of the "*Completions*" buffer.
 
 +++
-*** New option 'completions-header-format'
+*** New user option 'completions-header-format'
 This is a string to control the message to show before completions.
-It may contain a "%s" to show the total number of completions. If nil no
+It may contain a "%s" to show the total number of completions.  If nil no
 completions are shown.
 
 +++
-*** New option 'completions-highlight-face'.
-When this variable is a face name, it highlights the current candidate
-in the "*Completions*" buffer with that face.  When the value is nil,
-no highlighting is performed at all.
+*** New user option 'completions-highlight-face'.
+When this user option is a face name, it highlights the current
+candidate in the "*Completions*" buffer with that face.  When the
+value is nil, no highlighting is performed at all.
 
 ** Isearch and Replace
 
@@ -1207,7 +1207,7 @@ like:
 ---
 ** The 'inhibit-changing-match-data' variable is now obsolete.
 Instead, functions like 'string-match' and 'looking-at' now take an
-optional 'inhibit-modify' argument.
+optional INHIBIT-MODIFY argument.
 
 ---
 ** 'gnus-define-keys' is now obsolete.
@@ -1330,7 +1330,7 @@ This allows setting a minimum display width for a region of text.
 ** New 'cursor-face' text property.
 This uses 'cursor-face' instead of the default face when cursor is on or
 near the character and 'cursor-face-highlight-mode' is enabled.  The
-variable 'cursor-face-highlight-nonselected-window' is similar to
+user option 'cursor-face-highlight-nonselected-window' is similar to
 'highlight-nonselected-windows', but for this property.
 
 +++
@@ -1470,8 +1470,8 @@ This command lets you examine all data in the current selection and
 the clipboard, and insert it into the buffer.
 
 ---
-** New hook 'minibuffer-lazy-highlight-setup'.
-This hook is intended to be added to 'minibuffer-setup-hook'.
+** New function 'minibuffer-lazy-highlight-setup'.
+This function is intended to be added to 'minibuffer-setup-hook'.
 It sets up the minibuffer for lazy highlighting of matches
 in the original window.
 
@@ -1542,8 +1542,7 @@ from a specified amount of pixels above or below a position.
 ---
 ** 'eshell-eval-using-options' now follows POSIX/GNU argument syntax conventions.
 Built-in commands in Eshell now accept command-line options with
-values passed as a single token, such as '-oVALUE' or
-'--option=VALUE'.
+values passed as a single token, such as '-oVALUE' or '--option=VALUE'.
 
 ** XDG support
 
@@ -1748,10 +1747,15 @@ This is recorded in the `function-history` symbol property.
 ** 'indian-tml-base-table' no longer translates digits.
 Use 'indian-tml-base-digits-table' if you want digits translation.
 
---
+---
 ** 'indian-tml-itrans-v5-hash' no longer translates digits.
 Use 'indian-tml-itrans-digits-v5-hash' if you want digits
 translation.
+
++++
+** 'shell-quote-argument' has a new optional parameter POSIX.
+This is useful when quoting shell arguments for a remote shell
+invocation.  Such shells are POSIX conform by default.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

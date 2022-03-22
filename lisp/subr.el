@@ -3760,14 +3760,18 @@ Note: :data and :device are currently not supported on Windows."
 
 (declare-function w32-shell-dos-semantics "w32-fns" nil)
 
-(defun shell-quote-argument (argument)
+(defun shell-quote-argument (argument &optional posix)
   "Quote ARGUMENT for passing as argument to an inferior shell.
 
 This function is designed to work with the syntax of your system's
 standard shell, and might produce incorrect results with unusual shells.
-See Info node `(elisp)Security Considerations'."
-  (cond
-   ((eq system-type 'ms-dos)
+See Info node `(elisp)Security Considerations'.
+
+If the optional POSIX argument is non-nil, ARGUMENT is quoted
+according to POSIX shell quoting rules, regardless of the
+system's shell."
+(cond
+   ((and (not posix) (eq system-type 'ms-dos))
     ;; Quote using double quotes, but escape any existing quotes in
     ;; the argument with backslashes.
     (let ((result "")
@@ -3782,7 +3786,7 @@ See Info node `(elisp)Security Considerations'."
                   start (1+ end))))
       (concat "\"" result (substring argument start) "\"")))
 
-   ((and (eq system-type 'windows-nt) (w32-shell-dos-semantics))
+   ((and (not posix) (eq system-type 'windows-nt) (w32-shell-dos-semantics))
 
     ;; First, quote argument so that CommandLineToArgvW will
     ;; understand it.  See
