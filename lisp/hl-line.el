@@ -47,10 +47,21 @@
   :version "21.1"
   :group 'convenience)
 
-(defface hl-line-face '((t :inherit highlight :extend t))
+(defface hl-line '((t :inherit highlight :extend t))
   "Default face for highlighting the current line in hl-line-mode."
   :version "22.1"
   :group 'hl-line)
+
+(defcustom hl-line-face 'hl-line
+  "Face with which to highlight the current line in Hl-Line mode."
+  :type 'face
+  :group 'hl-line
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (dolist (buffer (buffer-list))
+	   (with-current-buffer buffer
+	     (when hl-line--overlay
+	       (overlay-put hl-line--overlay 'face hl-line-face))))))
 
 (defcustom hl-line-sticky-flag t
   "Non-nil to preserve highlighting overlay when focus leaves window."
@@ -105,7 +116,7 @@ Currently used in calendar/todo-mode."
             (let ((ol (make-overlay (point) (point))))
               (prog1 ol
                 (overlay-put ol 'priority hl-line-overlay-priority)
-                (overlay-put ol 'face 'hl-line-face)))))
+                (overlay-put ol 'face hl-line-face)))))
     (move-overlay hl-line--overlay
                   (line-beginning-position)
                   (line-beginning-position 2))
