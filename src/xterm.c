@@ -17565,9 +17565,11 @@ x_free_frame_resources (struct frame *f)
 
   if (x_dnd_in_progress && f == x_dnd_frame)
     {
+      block_input ();
       if (x_dnd_last_seen_window != None
 	  && x_dnd_last_protocol_version != -1)
 	x_dnd_send_leave (f, x_dnd_last_seen_window);
+      unblock_input ();
 
       x_dnd_in_progress = false;
       x_dnd_waiting_for_finish = false;
@@ -17737,10 +17739,6 @@ x_free_frame_resources (struct frame *f)
     g_object_unref (FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider);
 #endif
 
-  xfree (f->output_data.x->saved_menu_event);
-  xfree (f->output_data.x);
-  f->output_data.x = NULL;
-
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;
   if (f == dpyinfo->x_focus_event_frame)
@@ -17765,6 +17763,10 @@ x_destroy_window (struct frame *f)
      commands to the X server.  */
   if (dpyinfo->display != 0)
     x_free_frame_resources (f);
+
+  xfree (f->output_data.x->saved_menu_event);
+  xfree (f->output_data.x);
+  f->output_data.x = NULL;
 
   dpyinfo->reference_count--;
 }
