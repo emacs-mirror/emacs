@@ -1835,6 +1835,22 @@ static void
 haiku_set_window_size (struct frame *f, bool change_gravity,
 		       int width, int height)
 {
+  Lisp_Object frame;
+
+  /* On X Windows, window managers typically disallow resizing a
+     window when it is fullscreen.  Do the same here.  */
+
+  XSETFRAME (frame, f);
+  if (!NILP (Fframe_parameter (frame, Qfullscreen))
+      /* Only do this if the fullscreen status has actually been
+	 applied.  */
+      && f->want_fullscreen == FULLSCREEN_NONE
+      /* And if the configury during frame completion has been
+	 completed.  Otherwise, there will be no valid "old size" to
+	 go back to.  */
+      && FRAME_OUTPUT_DATA (f)->configury_done)
+    return;
+
   haiku_update_size_hints (f);
 
   if (FRAME_HAIKU_WINDOW (f))
