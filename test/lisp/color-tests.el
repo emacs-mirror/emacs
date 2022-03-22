@@ -220,32 +220,32 @@
 
 (ert-deftest color-tests-lighten-hsl ()
   (should (equal (color-lighten-hsl 360 0.5 0.5 0) '(360 0.5 0.5)))
-  (should (equal (color-lighten-hsl 360 0.5 0.5 -10) '(360 0.5 0.4)))
+  (should (equal (color-lighten-hsl 360 0.5 0.5 -10) '(360 0.5 0.45)))
   (should (equal (color-lighten-hsl 360 0.5 0.5 -500) '(360 0.5 0.0)))
   (should
    (color-tests--approx-equal
-    (color-lighten-hsl 120 0.5 0.8 5) '(120 0.5 0.85)))
+    (color-lighten-hsl 120 0.5 0.8 5) '(120 0.5 0.84)))
   (should
    (equal (color-lighten-hsl 120 0.5 0.8 500) '(120 0.5 1.0))))
 
 (ert-deftest color-tests-lighten-name ()
-  (should (equal (color-lighten-name "black" 100) "#ffffffffffff"))
+  (should (equal (color-lighten-name "black" 100) "#000000000000"))
   (should (equal (color-lighten-name "white" 100) "#ffffffffffff"))
   (should (equal (color-lighten-name "red" 0) "#ffff00000000"))
-  (should (equal (color-lighten-name "red" 10) "#ffff33323332")))
+  (should (equal (color-lighten-name "red" 10) "#ffff19991999")))
 
 (ert-deftest color-tests-darken-hsl ()
   (should (equal (color-darken-hsl 360 0.5 0.5 0) '(360 0.5 0.5)))
-  (should (equal (color-darken-hsl 360 0.5 0.5 -10) '(360 0.5 0.6)))
+  (should (equal (color-darken-hsl 360 0.5 0.5 -10) '(360 0.5 0.55)))
   (should (equal (color-darken-hsl 360 0.5 0.5 -500) '(360 0.5 1.0)))
-  (should (equal (color-darken-hsl 120 0.5 0.8 5) '(120 0.5 0.75)))
+  (should (equal (color-darken-hsl 120 0.5 0.8 5) '(120 0.5 0.76)))
   (should (equal (color-darken-hsl 120 0.5 0.8 500) '(120 0.5 0.0))))
 
 (ert-deftest color-tests-darken-name ()
   (should (equal (color-darken-name "black" 100) "#000000000000"))
   (should (equal (color-darken-name "white" 100) "#000000000000"))
   (should (equal (color-darken-name "red" 0) "#ffff00000000"))
-  (should (equal (color-darken-name "red" 10) "#cccc00000000")))
+  (should (equal (color-darken-name "red" 10) "#e66500000000")))
 
 (provide 'color-tests)
 ;;; color-tests.el ends here
