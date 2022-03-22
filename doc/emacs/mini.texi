@@ -687,7 +687,7 @@ The Emacs Lisp Reference Manual}).
 @vindex completions-highlight-face
 When @code{completions-highlight-face} names a face, the current
 completion candidate, the one that will be selected by typing
-@kbd{@key}RET}} or clicking the mouse, will be highlighted using that
+@kbd{@key{RET}} or clicking the mouse, will be highlighted using that
 face.  The default value of this variable is
 @code{completions-highlight}; the value is @code{nil} disables this
 highlighting.  This feature uses the special text property
