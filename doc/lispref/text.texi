@@ -5408,6 +5408,12 @@ Extensions are usually shared-library files; on GNU and Unix systems,
 they have the @file{.so} file-name extension.
 @end defun
 
+@findex sqlite-mode-open-file
+If you wish to list the contents of an SQLite file, you can use the
+@code{sqlite-mode-open-file} command.  This will pop to a buffer using
+@code{sqlite-mode}, which allows you to examine (and alter) the
+contents of an SQLite database.
+
 @node Parsing HTML/XML
 @section Parsing HTML and XML
 @cindex parsing html

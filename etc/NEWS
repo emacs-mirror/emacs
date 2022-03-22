@@ -29,6 +29,7 @@ applies, and please also update docstrings as needed.
 This uses the popular sqlite3 library, and can be disabled by using
 the '--without-sqlite3' option to the 'configure' script.
 
++++
 ** Emacs has been ported to the Haiku operating system.
 The configuration process should automatically detect and build for
 Haiku.  There is also an optional window-system port to Haiku, which
@@ -50,6 +51,7 @@ Unlike X, there is no compile-time option to enable or disable
 double-buffering.  If you wish to disable double-buffering, change the
 frame parameter 'inhibit-double-buffering' instead.
 
+---
 ** Emacs now installs the ".pdmp" file using a unique fingerprint in the name.
 The file is typically installed using a file name akin to
 "...dir/libexec/emacs/29.1/x86_64-pc-linux-gnu/emacs-<fingerprint>.pdmp".
@@ -64,6 +66,7 @@ this support.
 The named feature 'xinput2' can be used to test for the presence of
 XInput 2 support from Lisp programs.
 
++++
 ** Emacs now supports being built with pure GTK.
 To use this option, make sure the GTK 3 and Cairo development files
 are installed, and configure Emacs with the option '--with-pgtk'.
@@ -154,6 +157,7 @@ example, if point is before an Emoji sequence, pressing <Delete> will
 delete the entire sequence, not just a single character at its
 beginning.
 
++++
 ** 'load-history' does not treat autoloads specially any more.
 An autoload definition appears just as a '(defun . NAME)' and the
 '(t . NAME)' entries are not generated any more.
