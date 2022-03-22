@@ -570,7 +570,14 @@ the initialization of the input ring history, and history expansion.
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
-buffer."
+buffer.
+
+By default, shell mode does nothing special when it receives a
+\"bell\" character (C-g or ^G).  If you
+  (add-hook 'comint-output-filter-functions 'shell-filter-ring-bell nil t)
+from `shell-mode-hook', Emacs will call the `ding' function
+whenever it receives the bell character in output from a
+command."
   :interactive nil
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
@@ -680,6 +687,13 @@ This function can be put on `comint-preoutput-filter-functions'."
   (if (string-match "[\C-a\C-b]" string)
       (replace-regexp-in-string "[\C-a\C-b]" "" string t t)
     string))
+
+(defun shell-filter-ring-bell (string)
+  "Call `ding' if STRING contains a \"^G\" character.
+This function can be put on `comint-output-filter-functions'."
+  (when (string-search "\a" string)
+    (ding))
+  string)
 
 (defun shell-write-history-on-exit (process event)
   "Called when the shell process is stopped.
