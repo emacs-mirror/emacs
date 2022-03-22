@@ -296,7 +296,8 @@ smaller according to whether INCREMENT is 1 or -1."
 
 (defun thumbs-file-size (img)
   (let ((i (image-size
-            (find-image `((:type ,(image-type-from-file-name img) :file ,img))) t)))
+            (find-image `((:type ,(image-supported-file-p img) :file ,img)))
+            t)))
     (concat (number-to-string (round (car i))) "x"
 	    (number-to-string (round (cdr i))))))
 
@@ -399,7 +400,7 @@ and SAME-WINDOW to show thumbs in the same window."
 	    thumbs-image-num (or num 0))
       (delete-region (point-min)(point-max))
       (save-excursion
-        (thumbs-insert-image img (image-type-from-file-name img) 0)))))
+        (thumbs-insert-image img (image-supported-file-p img) 0)))))
 
 (defun thumbs-find-image-at-point (&optional img otherwin)
   "Display image IMG for thumbnail at point.
@@ -533,7 +534,7 @@ Open another window."
 		      " - " (number-to-string num)))
 	(let ((inhibit-read-only t))
 	  (erase-buffer)
-          (thumbs-insert-image img (image-type-from-file-name img) 0)
+          (thumbs-insert-image img (image-supported-file-p img) 0)
 	  (goto-char (point-min))))
       (setq thumbs-image-num num
 	    thumbs-current-image-filename img))))
@@ -765,7 +766,7 @@ ACTION and ARG should be a valid convert command."
 (define-key dired-mode-map "\C-tw" 'thumbs-dired-setroot)
 
 (define-obsolete-function-alias 'thumbs-image-type
-  #'image-type-from-file-name "29.1")
+  #'image-supported-file-p "29.1")
 
 (provide 'thumbs)
 
