@@ -378,16 +378,16 @@ be determined."
 ;;;###autoload
 (defun image-type-from-file-name (file)
   "Determine the type of image file FILE from its name.
-Value is a symbol specifying the image type, or nil if type
-cannot be determined (or if Emacs doesn't have built-in support
-for the image type)."
-  (let ((case-fold-search t)
-        type)
+Value is a symbol specifying the image type, or nil if type cannot
+be determined."
+  (let (type first (case-fold-search t))
     (catch 'found
-      (dolist (elem image-type-file-name-regexps)
-	(when (and (string-match-p (car elem) file)
-                   (image-type-available-p (setq type (cdr elem))))
-	  (throw 'found type))))))
+      (dolist (elem image-type-file-name-regexps first)
+	(when (string-match-p (car elem) file)
+	  (if (image-type-available-p (setq type (cdr elem)))
+	      (throw 'found type)
+	    ;; If nothing seems to be supported, return first type that matched.
+	    (or first (setq first type))))))))
 
 (declare-function image-convert-p "image-converter.el"
                   (source &optional image-format))
