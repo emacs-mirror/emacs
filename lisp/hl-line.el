@@ -75,7 +75,9 @@
              (dolist (buffer (buffer-list))
                (unless (eq buffer selected)
                  (with-current-buffer buffer
-                   (hl-line-unhighlight))))))))
+                   (when hl-line--overlay
+                     (delete-overlay hl-line--overlay)
+                     (setq hl-line--overlay nil)))))))))
 
 (defcustom hl-line-overlay-priority -50
   "Priority used on the overlay used by hl-line."
