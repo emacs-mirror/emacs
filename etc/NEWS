@@ -1772,8 +1772,9 @@ The property ':position' now specifies the position of the underline
 when used as part of a property list specification for the
 ':underline' attribute.
 
++++
 ** 'defalias' records a more precise history of definitions.
-This is recorded in the `function-history` symbol property.
+This is recorded in the 'function-history' symbol property.
 
 ---
 ** 'indian-tml-base-table' no longer translates digits.
