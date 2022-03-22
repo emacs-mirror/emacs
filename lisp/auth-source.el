@@ -573,19 +573,24 @@ which says:
  or P.  The resulting token will only have keys user, host, and
  port.\"
 
-:create \\='(A B C) also means to create a token if possible.
+:create \\='(A B C)  or
+:create \\='(:unencrypted A B :encrypted C)
+also means to create a token if possible.
 
 The behavior is like :create t but if the list contains any
 parameter, that parameter will be required in the resulting
-token.  The value for that parameter will be obtained from the
-search parameters or from user input.  If any queries are needed,
-the alist `auth-source-creation-defaults' will be checked for the
-default value.  If the user, host, or port are missing, the alist
-`auth-source-creation-prompts' will be used to look up the
-prompts IN THAT ORDER (so the `user' prompt will be queried first,
-then `host', then `port', and finally `secret').  Each prompt string
-can use %u, %h, and %p to show the user, host, and port.  The prompt
-is formatted with `format-prompt', a trailing \": \" is removed.
+token (the second form is used only with the plstore backend and
+specifies if any of the extra parameters should be stored in
+encrypted format.)  The value for that parameter will be obtained
+from the search parameters or from user input.  If any queries
+are needed, the alist `auth-source-creation-defaults' will be
+checked for the default value.  If the user, host, or port are
+missing, the alist `auth-source-creation-prompts' will be used to
+look up the prompts IN THAT ORDER (so the `user' prompt will be
+queried first, then `host', then `port', and finally `secret').
+Each prompt string can use %u, %h, and %p to show the user, host,
+and port.  The prompt is formatted with `format-prompt', a
+trailing \": \" is removed.
 
 Here's an example:
 
@@ -2131,12 +2136,17 @@ entries for git.gnus.org:
   (let* ((base-required '(host user port secret))
          (base-secret '(secret))
          ;; we know (because of an assertion in auth-source-search) that the
-         ;; :create parameter is either t or a list (which includes nil)
-         (create-extra (if (eq t create) nil create))
+         ;; :create parameter is either t, or a list (which includes nil
+         ;; or a plist)
+         (create-extra-secret (plist-get create :encrypted))
+         (create-extra (if (eq t create) nil
+                         (or (append (plist-get create :unencrypted)
+                                     create-extra-secret) create)))
          (current-data (car (auth-source-search :max 1
                                                 :host host
                                                 :port port)))
          (required (append base-required create-extra))
+         (required-secret (append base-secret create-extra-secret))
          ;; `valist' is an alist
          valist
          ;; `artificial' will be returned if no creation is needed
@@ -2158,10 +2168,11 @@ entries for git.gnus.org:
               (auth-source--aput valist br br-choice))))))
 
     ;; for extra required elements, see if the spec includes a value for them
-    (dolist (er create-extra)
-      (let ((k (auth-source--symbol-keyword er))
-            (keys (cl-loop for i below (length spec) by 2
-                           collect (nth i spec))))
+    (let ((keys (cl-loop for i below (length spec) by 2
+                         collect (nth i spec)))
+          k)
+      (dolist (er create-extra)
+        (setq k (auth-source--symbol-keyword er))
         (when (memq k keys)
           (auth-source--aput valist er (plist-get spec k)))))
 
@@ -2225,7 +2236,7 @@ entries for git.gnus.org:
                            (eval default)))))
 
         (when data
-          (if (member r base-secret)
+          (if (member r required-secret)
               (setq secret-artificial
                     (plist-put secret-artificial
                                (auth-source--symbol-keyword r)
