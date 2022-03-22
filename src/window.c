@@ -6334,7 +6334,9 @@ as argument a number, nil, or `-'.
 The next window is usually the one below the current one;
 or the one at the top if the current one is at the bottom.
 It is determined by the function `other-window-for-scrolling',
-which see.  */)
+which see.
+
+Also see the `other-window-scroll-default' variable.  */)
   (Lisp_Object arg)
 {
   specpdl_ref count = SPECPDL_INDEX ();
