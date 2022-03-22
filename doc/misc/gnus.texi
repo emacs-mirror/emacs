@@ -18078,6 +18078,17 @@ parameter of @code{nnselect-rescan} will allow automatic refreshing.
 A refresh can always be invoked manually through
 @code{gnus-group-get-new-news-this-group}.
 
+By default a compressed version of the selection is stored (for
+permanent groups) along with other group information in the newsrc.
+For cases where this might be undesirable (for example if the
+selection is a very long list that doesn't compress well) a
+non-@code{nil} group parameter of @code{nnselect-always-regenerate}
+will prevent the list from being stored, and instead regenerate the
+list each time it is needed.  If more flexibility is desired,
+@code{nnselect-get-artlist-override-function} and
+@code{nnselect-store-artlist-override-function} may be set to
+functions that get and store the list of articles.
+
 Gnus includes engines for searching a variety of backends.  While the
 details of each search engine vary, the result of a search is always a
 vector of the sort used by the nnselect method, and the results of
