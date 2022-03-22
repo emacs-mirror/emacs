@@ -6483,27 +6483,38 @@ An example is a rectangular region handled as a list of
 separate contiguous regions for each line."
   (cdr (region-bounds)))
 
+(defun redisplay--unhighlight-overlay-function (rol)
+  "If ROL is an overlay, call `delete-overlay'."
+  (when (overlayp rol) (delete-overlay rol)))
+
 (defvar redisplay-unhighlight-region-function
-  (lambda (rol) (when (overlayp rol) (delete-overlay rol))))
+  #'redisplay--unhighlight-overlay-function
+  "Function to remove the region-highlight overlay.")
+
+(defun redisplay--highlight-overlay-function (start end window rol &optional face)
+  "Update the overlay ROL in WINDOW with FACE in range START-END."
+  (unless face (setq face 'region))
+  (if (not (overlayp rol))
+      (let ((nrol (make-overlay start end)))
+        (funcall redisplay-unhighlight-region-function rol)
+        (overlay-put nrol 'window window)
+        (overlay-put nrol 'face face)
+        ;; Normal priority so that a large region doesn't hide all the
+        ;; overlays within it, but high secondary priority so that if it
+        ;; ends/starts in the middle of a small overlay, that small overlay
+        ;; won't hide the region's boundaries.
+        (overlay-put nrol 'priority '(nil . 100))
+        nrol)
+    (unless (eq (overlay-get rol 'face) face)
+      (overlay-put rol 'face face))
+    (unless (and (eq (overlay-buffer rol) (current-buffer))
+                 (eq (overlay-start rol) start)
+                 (eq (overlay-end rol) end))
+      (move-overlay rol start end (current-buffer)))
+    rol))
 
 (defvar redisplay-highlight-region-function
-  (lambda (start end window rol)
-    (if (not (overlayp rol))
-        (let ((nrol (make-overlay start end)))
-          (funcall redisplay-unhighlight-region-function rol)
-          (overlay-put nrol 'window window)
-          (overlay-put nrol 'face 'region)
-          ;; Normal priority so that a large region doesn't hide all the
-          ;; overlays within it, but high secondary priority so that if it
-          ;; ends/starts in the middle of a small overlay, that small overlay
-          ;; won't hide the region's boundaries.
-          (overlay-put nrol 'priority '(nil . 100))
-          nrol)
-      (unless (and (eq (overlay-buffer rol) (current-buffer))
-                   (eq (overlay-start rol) start)
-                   (eq (overlay-end rol) end))
-        (move-overlay rol start end (current-buffer)))
-      rol))
+  #'redisplay--highlight-overlay-function
   "Function to move the region-highlight overlay.
 This function is called with four parameters, START, END, WINDOW
 and OVERLAY.  If OVERLAY is nil, a new overlay is created.  In
@@ -6528,14 +6539,48 @@ The overlay is returned by the function.")
               (funcall redisplay-highlight-region-function
                        start end window rol)))
         (unless (equal new rol)
-          (set-window-parameter window 'internal-region-overlay
-                                new))))))
+          (set-window-parameter window 'internal-region-overlay new))))))
+
+(defcustom cursor-face-highlight-nonselected-window nil
+  "Non-nil means highlight text with `cursor-face' even in nonselected windows.
+This variable is similar to `highlight-nonselected-windows'."
+  :local t
+  :type 'boolean
+  :version "29.1")
+
+(defun redisplay--update-cursor-face-highlight (window)
+  "Highlights the overlay used to highlight text with cursor-face."
+  (let ((rol (window-parameter window 'internal-cursor-face-overlay)))
+    (if-let* (((or cursor-face-highlight-nonselected-window
+                   (eq window (selected-window))
+                   (and (window-minibuffer-p)
+                        (eq window (minibuffer-selected-window)))))
+              (pt (window-point window))
+              (cursor-face (get-text-property pt 'cursor-face)))
+        (let* ((start (previous-single-property-change
+                       (1+ pt) 'cursor-face nil (point-min)))
+               (end (next-single-property-change
+                     pt 'cursor-face nil (point-max)))
+               (new (redisplay--highlight-overlay-function
+                     start end window rol cursor-face)))
+          (unless (equal new rol)
+            (set-window-parameter window 'internal-cursor-face-overlay new)))
+      (redisplay--unhighlight-overlay-function rol))))
 
 (defvar pre-redisplay-functions (list #'redisplay--update-region-highlight)
   "Hook run just before redisplay.
 It is called in each window that is to be redisplayed.  It takes one argument,
 which is the window that will be redisplayed.  When run, the `current-buffer'
 is set to the buffer displayed in that window.")
+
+(define-minor-mode cursor-face-highlight-mode
+  "When enabled, respect the cursor-face property."
+  :global nil
+  (if cursor-face-highlight-mode
+      (add-hook 'pre-redisplay-functions
+                #'redisplay--update-cursor-face-highlight nil t)
+    (remove-hook 'pre-redisplay-functions
+                 #'redisplay--update-cursor-face-highlight t)))
 
 (defun redisplay--pre-redisplay-functions (windows)
   (with-demoted-errors "redisplay--pre-redisplay-functions: %S"
@@ -9355,6 +9400,11 @@ Called from `temp-buffer-show-hook'."
       (if base-dir (setq default-directory base-dir))
       (when completion-tab-width
         (setq tab-width completion-tab-width))
+      ;; Maybe enable cursor completions-highlight.
+      (when completions-highlight-face
+        ;; Keep highlighting even if not selected.
+        (setq-local cursor-face-highlight-nonselected-window t)
+        (cursor-face-highlight-mode 1))
       ;; Maybe insert help string.
       (when completion-show-help
 	(goto-char (point-min))

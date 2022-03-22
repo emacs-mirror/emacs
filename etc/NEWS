@@ -577,6 +577,31 @@ This option controls the sorting of the completion candidates in
 the "*Completions*" buffer.  Available styles are no sorting,
 alphabetical (the default), or a custom sort function.
 
++++
+*** New values for the 'completion-auto-help' option.
+There are two new values to control the way "*Completions*" behave after
+a <tab> if completion is not unique.  'always' updates or shows
+the "*Completions*" buffer after any attempt to complete.  'visual' is
+like 'always', but only update the completions if they are already
+visible.  The default value 't' always hides the completion buffer after
+some completion is made.
+
++++
+*** New user option 'completions-max-height'.
+This option limits the height of the "*Completions*" buffer.
+
++++
+*** New option 'completions-header-format'
+This is a string to control the message to show before completions.
+It may contain a "%s" to show the total number of completions. If nil no
+completions are shown.
+
++++
+*** New option 'completions-highlight-face'.
+When this variable is a face name, it highlights the current candidate
+in the "*Completions*" buffer with that face.  When the value is nil,
+no highlighting is performed at all.
+
 ** Isearch and Replace
 
 +++
@@ -1300,6 +1325,13 @@ property.
 +++
 ** New 'min-width' 'display' property.
 This allows setting a minimum display width for a region of text.
+
++++
+** New 'cursor-face' text property.
+This uses 'cursor-face' instead of the default face when cursor is on or
+near the character and 'cursor-face-highlight-mode' is enabled.  The
+variable 'cursor-face-highlight-nonselected-window' is similar to
+'highlight-nonselected-windows', but for this property.
 
 +++
 ** New event type 'touch-end'.

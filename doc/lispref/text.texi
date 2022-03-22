@@ -3551,6 +3551,17 @@ that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
 
+@item cursor-face
+@kindex cursor-face @r{(text property)}
+This property is similar to @code{mouse-face}, but the face is used if
+the cursor (instead of mouse) is on or near the character.  Near has
+the same meaning that in @code{mouse-face} and the highlighting only
+takes effect if the mode @code{cursor-face-highlight-mode} is enabled;
+otherwise no highlighting is performed.  When the variable
+@code{cursor-face-highlight-nonselected-window} is non-@code{nil}, the
+text is highlighted even if the window is not selected that is similar
+to @code{highlight-nonselected-windows} for the region.
+
 @item fontified
 @kindex fontified @r{(text property)}
 This property says whether the text is ready for display.  If

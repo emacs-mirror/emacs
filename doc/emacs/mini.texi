@@ -624,11 +624,18 @@ completion alternatives in the completion list.
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
 commands never display the completion list buffer; you must type
-@kbd{?}  to display the list.  If the value is @code{lazy}, Emacs only
+@kbd{?} to display the list.  If the value is @code{lazy}, Emacs only
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} shows the
-completion list buffer.
+completion list buffer.  With the previous values and the default
+@code{t} the completions are hidden when some unique completion is
+executed.  If @code{completion-auto-help} is set to @code{always}, the
+completion commands are always shown after a completion attempt, or
+updated if they are already visible.  If the value is @code{visible},
+then completions are not hidden, but updated if they are already
+visible while the current behavior stays the same as default if they
+are not.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
@@ -650,6 +657,32 @@ sorted in columns horizontally in alphabetical order, but this can be
 changed by changing the @code{completions-format} user option.  If
 @code{vertical}, sort the completions vertically in columns instead,
 and if @code{one-column}, just use a single column.
+
+@vindex completions-max-height
+  When @code{completions-max-height} is non-@code{nil}, it limits the
+size of the completions window.  It is specified in lines and include
+mode, header line and a bottom divider, if any.  For a more complex
+control of the Completion window display properties, you can use
+@code{display-buffer-alist} (@pxref{Buffer Display Action
+Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
+Reference Manual}).
+
+@vindex completions-header-format
+The variable @code{completions-header-format} is a formatted string to
+control the informative line shown before the completions list of
+candidates.  It may contain a @code{%s} to show the total number of
+completions.  When it is @code{nil}, the message is totally suppressed.
+Text properties may be added to change the appearance, some useful
+ones are @code{face} or @code{cursor-intangible} (@pxref{Special
+Properties,,Properties with Special Meanings, elisp, The Emacs Lisp
+Reference Manual}).
+
+@vindex completions-highlight-face
+When @code{completions-highlight-face} is a face name, then the
+current completion candidate will be highlighted with that face.  The
+default value is @code{completions-highlight}.  When the value is
+@code{nil}, no highlighting is performed.  This feature sets the text
+property @code{cursor-face}.
 
 @node Minibuffer History
 @section Minibuffer History

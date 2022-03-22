@@ -897,8 +897,17 @@ If the current buffer is not a minibuffer, erase its entire contents."
 If the value is t the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
-the second failed attempt to complete."
-  :type '(choice (const nil) (const t) (const lazy)))
+the second failed attempt to complete.
+If the value is 'always', the completion commands are always shown
+after a completion attempt, or updated if they are already visible.
+If the value is 'visible', then completions are not hidden, but updated
+if they are already visible while the current behavior stays the same
+as default if they are not."
+  :type '(choice (const :tag "Disabled" nil)
+                 (const :tag "Enabled legacy" t)
+                 (const :tag "After a second attempt" lazy)
+                 (const :tag "Visible update" visible)
+                 (const :tag "Always update" always)))
 
 (defvar completion-styles-alist
   '((emacs21
@@ -1343,16 +1352,18 @@ when the buffer's text is already an exact match."
               (completion--cache-all-sorted-completions beg end comps)
               (minibuffer-force-complete beg end))
              (completed
-              ;; We could also decide to refresh the completions,
-              ;; if they're displayed (and assuming there are
-              ;; completions left).
-              (minibuffer-hide-completions)
-              (if exact
-                  ;; If completion did not put point at end of field,
-                  ;; it's a sign that completion is not finished.
-                  (completion--done completion
-                                    (if (< comp-pos (length completion))
-                                        'exact 'unknown))))
+              (cond
+               ((pcase completion-auto-help
+                  ('visible (get-buffer-window "*Completions*" 0))
+                  ('always t))
+                (minibuffer-completion-help beg end))
+               (t (minibuffer-hide-completions)
+                  (when exact
+                    ;; If completion did not put point at end of field,
+                    ;; it's a sign that completion is not finished.
+                    (completion--done completion
+                                      (if (< comp-pos (length completion))
+                                          'exact 'unknown))))))
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (pcase completion-auto-help
@@ -1842,6 +1853,17 @@ Return nil if there is no valid completion, else t."
 This face is only used if the strings used for completions
 doesn't already specify a face.")
 
+(defface completions-highlight
+  '((t :inherit highlight))
+  "Default face for highlighting the current completion candidate."
+  :version "29.1")
+
+(defcustom completions-highlight-face 'completions-highlight
+  "A face name to highlight the current completion candidate.
+If the value is nil, no highlighting is performed."
+  :type '(choice (const nil) face)
+  :version "29.1")
+
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
@@ -1860,6 +1882,17 @@ detailed view with more information prepended or appended to
 completions."
   :type 'boolean
   :version "28.1")
+
+(defcustom completions-header-format
+  (propertize "%s possible completions:\n"
+              'face 'shadow
+              :help "Please select a completion")
+  "Format of completions header.
+It may contain one %s to show the total count of completions.
+When nil, no header is shown."
+  :type '(choice (const :tag "No header" nil)
+                 (string :tag "Header format string"))
+  :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
@@ -2012,7 +2045,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (funcall group-fun str 'transform)
             str))
          (point))
-       `(mouse-face highlight completion--string ,str))
+       `(mouse-face highlight cursor-face ,completions-highlight-face completion--string ,str))
     ;; If `str' is a list that has 2 elements,
     ;; then the second element is a suffix annotation.
     ;; If `str' has 3 elements, then the second element
@@ -2123,10 +2156,9 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (if (null completions)
-          (insert "There are no possible completions of what you have typed.")
-        (insert "Possible completions are:\n")
-        (completion--insert-strings completions group-fun))))
+      (when completions-header-format
+        (insert (format completions-header-format (length completions))))
+      (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
   nil)
@@ -2198,6 +2230,19 @@ variables.")
                (equal pre-msg (and exit-fun (current-message))))
       (completion--message message))))
 
+(defcustom completions-max-height nil
+  "Maximum height for *Completions* buffer window."
+  :type '(choice (const nil) natnum)
+  :version "29.1")
+
+(defun completions--fit-window-to-buffer (&optional win &rest _)
+  "Resize *Completions* buffer window."
+  (if temp-buffer-resize-mode
+      (let ((temp-buffer-max-height (or completions-max-height
+                                        temp-buffer-max-height)))
+        (resize-temp-buffer-window win))
+    (fit-window-to-buffer win completions-max-height)))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2261,9 +2306,7 @@ variables.")
              ,(if (eq (selected-window) (minibuffer-window))
                   'display-buffer-at-bottom
                 'display-buffer-below-selected))
-            ,(if temp-buffer-resize-mode
-                 '(window-height . resize-temp-buffer-window)
-               '(window-height . fit-window-to-buffer))
+            (window-height . completions--fit-window-to-buffer)
             ,(when temp-buffer-resize-mode
                '(preserve-size . (nil . t)))
             (body-function
@@ -2354,6 +2397,7 @@ variables.")
   "Get rid of an out-of-date *Completions* buffer."
   ;; FIXME: We could/should use minibuffer-scroll-window here, but it
   ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
+  (interactive)
   (let ((win (get-buffer-window "*Completions*" 0)))
     (if win (with-selected-window win (bury-buffer)))))
 
