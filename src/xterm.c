@@ -6949,8 +6949,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   int finish;
 #endif
   XWindowAttributes root_window_attrs;
-
   struct input_event hold_quit;
+  struct frame *any;
   char *atom_name;
   Lisp_Object action, ltimestamp;
   specpdl_ref ref;
@@ -7110,8 +7110,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
      loop, so when dragging items to itself, always return
      XdndActionPrivate.  */
   if (x_dnd_end_window != None
-      && (x_any_window_to_frame (FRAME_DISPLAY_INFO (f),
-				 x_dnd_end_window) != f))
+      && (any = x_any_window_to_frame (FRAME_DISPLAY_INFO (f),
+				       x_dnd_end_window))
+      && (any != f))
     return QXdndActionPrivate;
 
   if (x_dnd_action != None)
