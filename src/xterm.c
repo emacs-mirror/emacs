@@ -805,6 +805,7 @@ static int x_dnd_return_frame;
 static struct frame *x_dnd_return_frame_object;
 
 static Window x_dnd_last_seen_window;
+static Window x_dnd_end_window;
 static int x_dnd_last_protocol_version;
 static Time x_dnd_selection_timestamp;
 
@@ -1173,6 +1174,8 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 			  x_dnd_last_seen_window);
       unblock_input ();
 
+      x_dnd_end_window = x_dnd_last_seen_window;
+      x_dnd_last_seen_window = None;
       x_dnd_in_progress = false;
       x_set_dnd_targets (NULL, 0);
     }
@@ -1192,184 +1195,6 @@ x_dnd_cleanup_drag_and_drop (void *frame)
   unblock_input ();
 
   x_dnd_frame = NULL;
-}
-
-Lisp_Object
-x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
-			   bool return_frame_p)
-{
-#ifndef USE_GTK
-  XEvent next_event;
-  int finish;
-#endif
-  XWindowAttributes root_window_attrs;
-
-  struct input_event hold_quit;
-  char *atom_name;
-  Lisp_Object action, ltimestamp;
-  specpdl_ref ref;
-
-  if (!FRAME_VISIBLE_P (f))
-    error ("Frame is invisible");
-
-  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
-    error ("A drag-and-drop session is already in progress");
-
-  ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
-					  QXdndSelection);
-
-  if (NILP (ltimestamp))
-    error ("No local value for XdndSelection");
-
-  if (BIGNUMP (ltimestamp))
-    x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
-  else
-    x_dnd_selection_timestamp = XFIXNUM (ltimestamp);
-
-  x_dnd_in_progress = true;
-  x_dnd_frame = f;
-  x_dnd_last_seen_window = FRAME_X_WINDOW (f);
-  x_dnd_last_protocol_version = -1;
-  x_dnd_mouse_rect_target = None;
-  x_dnd_action = None;
-  x_dnd_wanted_action = xaction;
-  x_dnd_return_frame = 0;
-  x_dnd_waiting_for_finish = false;
-
-  if (return_frame_p)
-    x_dnd_return_frame = 1;
-
-#ifdef USE_GTK
-  current_count = 0;
-#endif
-
-  /* Now select for SubstructureNotifyMask and PropertyNotifyMask on
-     the root window, so we can get notified when window stacking
-     changes, a common operation during drag-and-drop.  */
-
-  block_input ();
-  XGetWindowAttributes (FRAME_X_DISPLAY (f),
-			FRAME_DISPLAY_INFO (f)->root_window,
-			&root_window_attrs);
-
-  XSelectInput (FRAME_X_DISPLAY (f),
-		FRAME_DISPLAY_INFO (f)->root_window,
-		root_window_attrs.your_event_mask
-		| SubstructureNotifyMask
-		| PropertyChangeMask);
-
-  while (x_dnd_in_progress || x_dnd_waiting_for_finish)
-    {
-      hold_quit.kind = NO_EVENT;
-#ifdef USE_GTK
-      current_finish = X_EVENT_NORMAL;
-      current_hold_quit = &hold_quit;
-#endif
-
-#ifndef USE_GTK
-      XNextEvent (FRAME_X_DISPLAY (f), &next_event);
-
-#ifdef HAVE_X_I18N
-#ifdef HAVE_XINPUT2
-      if (next_event.type != GenericEvent
-	  || !FRAME_DISPLAY_INFO (f)->supports_xi2
-	  || (next_event.xgeneric.extension
-	      != FRAME_DISPLAY_INFO (f)->xi2_opcode))
-	{
-#endif
-	  if (!x_filter_event (FRAME_DISPLAY_INFO (f), &next_event))
-	    handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			       &next_event, &finish, &hold_quit);
-#ifdef HAVE_XINPUT2
-	}
-      else
-	handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			   &next_event, &finish, &hold_quit);
-#endif
-#else
-      handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			 &next_event, &finish, &hold_quit);
-#endif
-#else
-      gtk_main_iteration ();
-#endif
-
-      if (hold_quit.kind != NO_EVENT)
-	{
-	  if (hold_quit.kind == SELECTION_REQUEST_EVENT)
-	    {
-	      x_dnd_old_window_attrs = root_window_attrs;
-	      x_dnd_unwind_flag = true;
-
-	      ref = SPECPDL_INDEX ();
-	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-	      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
-	      x_dnd_unwind_flag = false;
-	      unbind_to (ref, Qnil);
-	      continue;
-	    }
-
-	  if (x_dnd_in_progress)
-	    {
-	      if (x_dnd_last_seen_window != None
-		  && x_dnd_last_protocol_version != -1)
-		x_dnd_send_leave (f, x_dnd_last_seen_window);
-
-	      x_dnd_in_progress = false;
-	      x_dnd_frame = NULL;
-	      x_set_dnd_targets (NULL, 0);
-	      x_dnd_waiting_for_finish = false;
-	    }
-
-	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
-#ifdef USE_GTK
-	  current_hold_quit = NULL;
-#endif
-	  /* Restore the old event mask.  */
-	  XSelectInput (FRAME_X_DISPLAY (f),
-			FRAME_DISPLAY_INFO (f)->root_window,
-			root_window_attrs.your_event_mask);
-	  unblock_input ();
-	  quit ();
-	}
-    }
-  x_set_dnd_targets (NULL, 0);
-  x_dnd_waiting_for_finish = false;
-
-#ifdef USE_GTK
-  current_hold_quit = NULL;
-#endif
-
-  /* Restore the old event mask.  */
-  XSelectInput (FRAME_X_DISPLAY (f),
-		FRAME_DISPLAY_INFO (f)->root_window,
-		root_window_attrs.your_event_mask);
-
-  unblock_input ();
-
-  if (x_dnd_return_frame == 3)
-    {
-      x_dnd_return_frame_object->mouse_moved = true;
-
-      XSETFRAME (action, x_dnd_return_frame_object);
-      return action;
-    }
-
-  FRAME_DISPLAY_INFO (f)->grabbed = 0;
-
-  if (x_dnd_action != None)
-    {
-      block_input ();
-      atom_name = XGetAtomName (FRAME_X_DISPLAY (f),
-				x_dnd_action);
-      action = intern (atom_name);
-      XFree (atom_name);
-      unblock_input ();
-
-      return action;
-    }
-
-  return Qnil;
 }
 
 /* Flush display of frame F.  */
@@ -7112,6 +6937,198 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
+/* This function is defined far away from the rest of the XDND code so
+   it can utilize `x_any_window_to_frame'.  */
+
+Lisp_Object
+x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
+			   bool return_frame_p)
+{
+#ifndef USE_GTK
+  XEvent next_event;
+  int finish;
+#endif
+  XWindowAttributes root_window_attrs;
+
+  struct input_event hold_quit;
+  char *atom_name;
+  Lisp_Object action, ltimestamp;
+  specpdl_ref ref;
+
+  if (!FRAME_VISIBLE_P (f))
+    error ("Frame is invisible");
+
+  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
+    error ("A drag-and-drop session is already in progress");
+
+  ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
+					  QXdndSelection);
+
+  if (NILP (ltimestamp))
+    error ("No local value for XdndSelection");
+
+  if (BIGNUMP (ltimestamp))
+    x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
+  else
+    x_dnd_selection_timestamp = XFIXNUM (ltimestamp);
+
+  x_dnd_in_progress = true;
+  x_dnd_frame = f;
+  x_dnd_last_seen_window = FRAME_X_WINDOW (f);
+  x_dnd_last_protocol_version = -1;
+  x_dnd_mouse_rect_target = None;
+  x_dnd_action = None;
+  x_dnd_wanted_action = xaction;
+  x_dnd_return_frame = 0;
+  x_dnd_waiting_for_finish = false;
+  x_dnd_end_window = None;
+
+  if (return_frame_p)
+    x_dnd_return_frame = 1;
+
+#ifdef USE_GTK
+  current_count = 0;
+#endif
+
+  /* Now select for SubstructureNotifyMask and PropertyNotifyMask on
+     the root window, so we can get notified when window stacking
+     changes, a common operation during drag-and-drop.  */
+
+  block_input ();
+  XGetWindowAttributes (FRAME_X_DISPLAY (f),
+			FRAME_DISPLAY_INFO (f)->root_window,
+			&root_window_attrs);
+
+  XSelectInput (FRAME_X_DISPLAY (f),
+		FRAME_DISPLAY_INFO (f)->root_window,
+		root_window_attrs.your_event_mask
+		| SubstructureNotifyMask
+		| PropertyChangeMask);
+
+  while (x_dnd_in_progress || x_dnd_waiting_for_finish)
+    {
+      hold_quit.kind = NO_EVENT;
+#ifdef USE_GTK
+      current_finish = X_EVENT_NORMAL;
+      current_hold_quit = &hold_quit;
+#endif
+
+#ifndef USE_GTK
+      XNextEvent (FRAME_X_DISPLAY (f), &next_event);
+
+#ifdef HAVE_X_I18N
+#ifdef HAVE_XINPUT2
+      if (next_event.type != GenericEvent
+	  || !FRAME_DISPLAY_INFO (f)->supports_xi2
+	  || (next_event.xgeneric.extension
+	      != FRAME_DISPLAY_INFO (f)->xi2_opcode))
+	{
+#endif
+	  if (!x_filter_event (FRAME_DISPLAY_INFO (f), &next_event))
+	    handle_one_xevent (FRAME_DISPLAY_INFO (f),
+			       &next_event, &finish, &hold_quit);
+#ifdef HAVE_XINPUT2
+	}
+      else
+	handle_one_xevent (FRAME_DISPLAY_INFO (f),
+			   &next_event, &finish, &hold_quit);
+#endif
+#else
+      handle_one_xevent (FRAME_DISPLAY_INFO (f),
+			 &next_event, &finish, &hold_quit);
+#endif
+#else
+      gtk_main_iteration ();
+#endif
+
+      if (hold_quit.kind != NO_EVENT)
+	{
+	  if (hold_quit.kind == SELECTION_REQUEST_EVENT)
+	    {
+	      x_dnd_old_window_attrs = root_window_attrs;
+	      x_dnd_unwind_flag = true;
+
+	      ref = SPECPDL_INDEX ();
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
+	      x_dnd_unwind_flag = false;
+	      unbind_to (ref, Qnil);
+	      continue;
+	    }
+
+	  if (x_dnd_in_progress)
+	    {
+	      if (x_dnd_last_seen_window != None
+		  && x_dnd_last_protocol_version != -1)
+		x_dnd_send_leave (f, x_dnd_last_seen_window);
+
+	      x_dnd_end_window = x_dnd_last_seen_window;
+	      x_dnd_last_seen_window = None;
+	      x_dnd_in_progress = false;
+	      x_dnd_frame = NULL;
+	      x_set_dnd_targets (NULL, 0);
+	      x_dnd_waiting_for_finish = false;
+	    }
+
+	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+#ifdef USE_GTK
+	  current_hold_quit = NULL;
+#endif
+	  /* Restore the old event mask.  */
+	  XSelectInput (FRAME_X_DISPLAY (f),
+			FRAME_DISPLAY_INFO (f)->root_window,
+			root_window_attrs.your_event_mask);
+	  unblock_input ();
+	  quit ();
+	}
+    }
+  x_set_dnd_targets (NULL, 0);
+  x_dnd_waiting_for_finish = false;
+
+#ifdef USE_GTK
+  current_hold_quit = NULL;
+#endif
+
+  /* Restore the old event mask.  */
+  XSelectInput (FRAME_X_DISPLAY (f),
+		FRAME_DISPLAY_INFO (f)->root_window,
+		root_window_attrs.your_event_mask);
+
+  unblock_input ();
+
+  if (x_dnd_return_frame == 3)
+    {
+      x_dnd_return_frame_object->mouse_moved = true;
+
+      XSETFRAME (action, x_dnd_return_frame_object);
+      return action;
+    }
+
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+  /* Emacs can't respond to DND events inside the nested event
+     loop, so when dragging items to itself, always return
+     XdndActionPrivate.  */
+  if (x_dnd_end_window != None
+      && (x_any_window_to_frame (FRAME_DISPLAY_INFO (f),
+				 x_dnd_end_window) != f))
+    return QXdndActionPrivate;
+
+  if (x_dnd_action != None)
+    {
+      block_input ();
+      atom_name = XGetAtomName (FRAME_X_DISPLAY (f),
+				x_dnd_action);
+      action = intern (atom_name);
+      XFree (atom_name);
+      unblock_input ();
+
+      return action;
+    }
+
+  return Qnil;
+}
+
 /* The focus may have changed.  Figure out if it is a real focus change,
    by checking both FocusIn/Out and Enter/LeaveNotify events.
 
@@ -10698,6 +10715,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 	  if (x_dnd_return_frame == 2
 	      && x_any_window_to_frame (dpyinfo, target))
 	    {
+	      x_dnd_end_window = x_dnd_last_seen_window;
+	      x_dnd_last_seen_window = None;
 	      x_dnd_in_progress = false;
 	      x_dnd_return_frame_object
 		= x_any_window_to_frame (dpyinfo, target);
@@ -10728,6 +10747,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 	x_dnd_send_leave (x_dnd_frame,
 			  x_dnd_last_seen_window);
 
+      x_dnd_end_window = x_dnd_last_seen_window;
+      x_dnd_last_seen_window = None;
       x_dnd_in_progress = false;
       x_dnd_frame = NULL;
     }
@@ -12047,6 +12068,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (x_dnd_return_frame == 2
 		    && x_any_window_to_frame (dpyinfo, target))
 		  {
+		    x_dnd_end_window = x_dnd_last_seen_window;
+		    x_dnd_last_seen_window = None;
 		    x_dnd_in_progress = false;
 		    x_dnd_return_frame_object
 		      = x_any_window_to_frame (dpyinfo, target);
@@ -12439,6 +12462,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (dnd_grab && event->xbutton.type == ButtonRelease)
 	      {
+		x_dnd_end_window = x_dnd_last_seen_window;
 		x_dnd_in_progress = false;
 
 		if (x_dnd_last_seen_window != None
@@ -13436,6 +13460,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (!dnd_grab
 		      && xev->evtype == XI_ButtonRelease)
 		    {
+		      x_dnd_end_window = x_dnd_last_seen_window;
 		      x_dnd_in_progress = false;
 
 		      if (x_dnd_last_seen_window != None
@@ -17571,6 +17596,8 @@ x_free_frame_resources (struct frame *f)
 	x_dnd_send_leave (f, x_dnd_last_seen_window);
       unblock_input ();
 
+      x_dnd_end_window = x_dnd_last_seen_window;
+      x_dnd_last_seen_window = None;
       x_dnd_in_progress = false;
       x_dnd_waiting_for_finish = false;
       x_dnd_frame = NULL;
