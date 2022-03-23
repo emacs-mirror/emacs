@@ -4070,7 +4070,10 @@ while also being able to drag content to other programs.
 If the drop was rejected or no drop target was found, this function
 returns @code{nil}.  Otherwise, it returns a symbol describing the
 action the target chose to perform, which can differ from @var{action}
-if that isn't supported by the drop target.
+if that isn't supported by the drop target.  @code{XdndActionPrivate}
+is also a valid return value in addition to @code{XdndActionCopy} and
+@code{XdndActionMove}, and means that the drop target chose to perform
+an unspecified action.
 @end defun
 
 @node Color Names

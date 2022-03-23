@@ -6601,6 +6601,9 @@ can be one of the following:
    `XdndSelection', and to delete whatever was saved into that
    selection afterwards.
 
+`XdndActionPrivate' is also a valid return value, and means that the
+drop target chose to perform an unspecified or unknown action.
+
 There are also some other valid values of ACTION that depend on
 details of both the drop target's implementation details and that of
 Emacs.  For that reason, they are not mentioned here.  Consult
