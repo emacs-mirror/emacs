@@ -1,4 +1,4 @@
-;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
+;;; pgtk-win.el --- parse relevant switches and set up for Pure-GTK  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 2001-2020, 2022 Free Software Foundation, Inc.
 
