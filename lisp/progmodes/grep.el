@@ -269,16 +269,16 @@ See `compilation-error-screen-columns'."
 (defvar grep-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map compilation-minor-mode-map)
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map "\^?" 'scroll-down-command)
-    (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
+    (define-key map " " #'scroll-up-command)
+    (define-key map [?\S-\ ] #'scroll-down-command)
+    (define-key map "\^?" #'scroll-down-command)
+    (define-key map "\C-c\C-f" #'next-error-follow-minor-mode)
 
-    (define-key map "\r" 'compile-goto-error)  ;; ?
-    (define-key map "{" 'compilation-previous-file)
-    (define-key map "}" 'compilation-next-file)
-    (define-key map "\t" 'compilation-next-error)
-    (define-key map [backtab] 'compilation-previous-error)
+    (define-key map "\r" #'compile-goto-error)  ;; ?
+    (define-key map "{" #'compilation-previous-file)
+    (define-key map "}" #'compilation-next-file)
+    (define-key map "\t" #'compilation-next-error)
+    (define-key map [backtab] #'compilation-previous-error)
     map)
   "Keymap for grep buffers.
 `compilation-minor-mode-map' is a cdr of this.")
@@ -322,24 +322,24 @@ See `compilation-error-screen-columns'."
 	  ;; FIXME: Nowadays the last button is not "help" but "search"!
 	  (help (last tool-bar-map))) ;; Keep Help last in tool bar
       (tool-bar-local-item
-       "left-arrow" 'previous-error-no-select 'previous-error-no-select map
+       "left-arrow" #'previous-error-no-select #'previous-error-no-select map
        :rtl "right-arrow"
        :help "Goto previous match")
       (tool-bar-local-item
-       "right-arrow" 'next-error-no-select 'next-error-no-select map
+       "right-arrow" #'next-error-no-select #'next-error-no-select map
        :rtl "left-arrow"
        :help "Goto next match")
       (tool-bar-local-item
-       "cancel" 'kill-compilation 'kill-compilation map
+       "cancel" #'kill-compilation #'kill-compilation map
        :enable '(let ((buffer (compilation-find-buffer)))
 		  (get-buffer-process buffer))
        :help "Stop grep")
       (tool-bar-local-item
-       "refresh" 'recompile 'recompile map
+       "refresh" #'recompile #'recompile map
        :help "Restart grep")
       (append map help))))
 
-(defalias 'kill-grep 'kill-compilation)
+(defalias 'kill-grep #'kill-compilation)
 
 ;; override compilation-last-buffer
 (defvar grep-last-buffer nil
@@ -443,9 +443,9 @@ buffer `default-directory'."
 (defvar grep-find-abbreviate-properties
   (let ((ellipsis (if (char-displayable-p ?…) "[…]" "[...]"))
         (map (make-sparse-keymap)))
-    (define-key map [down-mouse-2] 'mouse-set-point)
-    (define-key map [mouse-2] 'grep-find-toggle-abbreviation)
-    (define-key map "\C-m" 'grep-find-toggle-abbreviation)
+    (define-key map [down-mouse-2] #'mouse-set-point)
+    (define-key map [mouse-2] #'grep-find-toggle-abbreviation)
+    (define-key map "\C-m" #'grep-find-toggle-abbreviation)
     `(face nil display ,ellipsis mouse-face highlight
       help-echo "RET, mouse-2: show unabbreviated command"
       keymap ,map abbreviated-command t))
@@ -954,7 +954,7 @@ easily repeat a find command."
       (grep command-args))))
 
 ;;;###autoload
-(defalias 'find-grep 'grep-find)
+(defalias 'find-grep #'grep-find)
 
 
 ;; User-friendly interactive API.
@@ -1013,7 +1013,7 @@ these include `opts', `dir', `files', `null-device', `excl' and
   ;; Instead of a `grep-read-files-function' variable, we used to lookup
   ;; mode-specific functions in the major mode's symbol properties, so preserve
   ;; this behavior for backward compatibility.
-  (let ((old-function (get major-mode 'grep-read-files))) ;Obsolete since 28.1
+  (let ((old-function (get major-mode #'grep-read-files))) ;Obsolete since 28.1
     (if old-function
 	(funcall old-function)
       (let ((file-name-at-point
@@ -1115,6 +1115,9 @@ command before it's run."
   (when (and (stringp regexp) (> (length regexp) 0))
     (unless (and dir (file-accessible-directory-p dir))
       (setq dir default-directory))
+    (unless (string-equal (file-remote-p dir) (file-remote-p default-directory))
+      (let ((default-directory dir))
+        (grep-compute-defaults)))
     (let ((command regexp) remote)
       (if (null files)
 	  (if (string= command grep-command)
@@ -1163,7 +1166,7 @@ command before it's run."
            (if (and grep-use-null-device null-device (null-device))
 	       (concat command " " (null-device))
 	     command)
-	   'grep-mode))
+	   #'grep-mode))
 	;; Set default-directory if we started lgrep in the *grep* buffer.
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
@@ -1215,11 +1218,14 @@ command before it's run."
   (when (and (stringp regexp) (> (length regexp) 0))
     (unless (and dir (file-accessible-directory-p dir))
       (setq dir default-directory))
+    (unless (string-equal (file-remote-p dir) (file-remote-p default-directory))
+      (let ((default-directory dir))
+        (grep-compute-defaults)))
     (if (null files)
 	(if (not (string= regexp (if (consp grep-find-command)
 				     (car grep-find-command)
 				   grep-find-command)))
-	    (compilation-start regexp 'grep-mode))
+	    (compilation-start regexp #'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
       (let ((command (rgrep-default-command regexp files nil)))
 	(when command
@@ -1230,7 +1236,7 @@ command before it's run."
 	    (add-to-history 'grep-find-history command))
           (grep--save-buffers)
 	  (let ((default-directory dir))
-	    (compilation-start command 'grep-mode))
+	    (compilation-start command #'grep-mode))
 	  ;; Set default-directory if we started rgrep in the *grep* buffer.
 	  (if (eq next-error-last-buffer (current-buffer))
 	      (setq default-directory dir)))))))
@@ -1359,7 +1365,7 @@ The returned file name is relative."
     (caar (compilation--loc->file-struct loc))))
 
 ;;;###autoload
-(defalias 'rzgrep 'zrgrep)
+(defalias 'rzgrep #'zrgrep)
 
 (provide 'grep)
 
