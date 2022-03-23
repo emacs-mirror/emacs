@@ -79,7 +79,6 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
 (declare-function x-handle-args "common-win")
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
-(declare-function haiku-selection-targets "haikuselect.c")
 (declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 (declare-function haiku-drag-message "haikuselect.c")
@@ -122,6 +121,12 @@ If TYPE is nil, return \"text/plain\"."
    ((stringp type) type)
    ((symbolp type) (symbol-name type))
    (t "text/plain")))
+
+(defun haiku-selection-targets (clipboard)
+  "Find the types of data available from CLIPBOARD.
+CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
+`CLIPBOARD'.  Return the available types as a list of strings."
+  (mapcar #'car (haiku-selection-data clipboard nil)))
 
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))

@@ -726,7 +726,7 @@ public:
 	    this->ConvertFromScreen (&whereto);
 
 	    rq.window = this;
-	    rq.message = DetachCurrentMessage ();;
+	    rq.message = DetachCurrentMessage ();
 	    rq.x = whereto.x;
 	    rq.y = whereto.y;
 

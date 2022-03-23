@@ -330,6 +330,41 @@ be_get_message_data (void *message, const char *name,
 			index, buf_return, size_return) != B_OK;
 }
 
+uint32
+be_get_message_type (void *message)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->what;
+}
+
+void
+be_set_message_type (void *message, uint32 what)
+{
+  BMessage *msg = (BMessage *) message;
+
+  msg->what = what;
+}
+
+void *
+be_get_message_message (void *message, const char *name,
+			int32 index)
+{
+  BMessage *msg = (BMessage *) message;
+  BMessage *out = new (std::nothrow) BMessage;
+
+  if (!out)
+    return NULL;
+
+  if (msg->FindMessage (name, index, out) != B_OK)
+    {
+      delete out;
+      return NULL;
+    }
+
+  return out;
+}
+
 void *
 be_create_simple_message (void)
 {
@@ -361,6 +396,19 @@ be_add_refs_data (void *message, const char *name,
     return 1;
 
   return msg->AddRef (name, &ref) != B_OK;
+}
+
+int
+be_add_message_message (void *message, const char *name,
+			void *data)
+{
+  BMessage *msg = (BMessage *) message;
+  BMessage *data_message = (BMessage *) data;
+
+  if (msg->AddMessage (name, data_message) != B_OK)
+    return 1;
+
+  return 0;
 }
 
 int
