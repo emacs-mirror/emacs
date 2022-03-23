@@ -239,7 +239,10 @@ haiku_message_to_lisp (void *message)
 		memory_full (SIZE_MAX);
 
 	      t1 = build_string (pbuf);
+
+	      block_input ();
 	      free (pbuf);
+	      unblock_input ();
 	      break;
 
 	    case 'SHRT':
