@@ -64,9 +64,17 @@ BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
   if (len)
     *len = bt;
 
-  cb->Unlock ();
+  void *data = malloc (bt);
 
-  return strndup (ptr, bt);
+  if (!data)
+    {
+      cb->Unlock ();
+      return NULL;
+    }
+
+  memcpy (data, ptr, bt);
+  cb->Unlock ();
+  return (char *) data;
 }
 
 static void
@@ -353,4 +361,39 @@ be_add_refs_data (void *message, const char *name,
     return 1;
 
   return msg->AddRef (name, &ref) != B_OK;
+}
+
+int
+be_lock_clipboard_message (enum haiku_clipboard clipboard,
+			   void **message_return)
+{
+  BClipboard *board;
+
+  if (clipboard == CLIPBOARD_PRIMARY)
+    board = primary;
+  else if (clipboard == CLIPBOARD_SECONDARY)
+    board = secondary;
+  else
+    board = system_clipboard;
+
+  if (!board->Lock ())
+    return 1;
+
+  *message_return = board->Data ();
+  return 0;
+}
+
+void
+be_unlock_clipboard (enum haiku_clipboard clipboard)
+{
+  BClipboard *board;
+
+  if (clipboard == CLIPBOARD_PRIMARY)
+    board = primary;
+  else if (clipboard == CLIPBOARD_SECONDARY)
+    board = secondary;
+  else
+    board = system_clipboard;
+
+  board->Unlock ();
 }

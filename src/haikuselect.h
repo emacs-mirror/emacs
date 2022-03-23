@@ -25,6 +25,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <SupportDefs.h>
 
+enum haiku_clipboard
+  {
+    CLIPBOARD_PRIMARY,
+    CLIPBOARD_SECONDARY,
+    CLIPBOARD_CLIPBOARD
+  };
+
 #ifdef __cplusplus
 #include <stdio.h>
 extern "C"
@@ -93,6 +100,9 @@ extern "C"
 				  ssize_t buf_size);
   extern int be_add_refs_data (void *message, const char *name,
 			       const char *filename);
+  extern int be_lock_clipboard_message (enum haiku_clipboard clipboard,
+					void **message_return);
+  extern void be_unlock_clipboard (enum haiku_clipboard clipboard);
 #ifdef __cplusplus
 };
 #endif

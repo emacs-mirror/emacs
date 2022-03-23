@@ -71,43 +71,74 @@ DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
        2, 2, 0,
        doc: /* Retrieve content typed as NAME from the clipboard
 CLIPBOARD.  CLIPBOARD is the symbol `PRIMARY', `SECONDARY' or
-`CLIPBOARD'.  NAME is a MIME type denoting the type of the data to
-fetch.  */)
+`CLIPBOARD'.  NAME is a string describing the MIME type denoting the
+type of the data to fetch.  If NAME is nil, then the entire contents
+of the clipboard will be returned instead, as a serialized system
+message in the format accepted by `haiku-drag-message', which see.  */)
   (Lisp_Object clipboard, Lisp_Object name)
 {
-  CHECK_SYMBOL (clipboard);
-  CHECK_STRING (name);
   char *dat;
   ssize_t len;
+  Lisp_Object str;
+  void *message;
+  enum haiku_clipboard clipboard_name;
+  int rc;
 
-  block_input ();
-  if (EQ (clipboard, QPRIMARY))
-    dat = BClipboard_find_primary_selection_data (SSDATA (name), &len);
-  else if (EQ (clipboard, QSECONDARY))
-    dat = BClipboard_find_secondary_selection_data (SSDATA (name), &len);
-  else if (EQ (clipboard, QCLIPBOARD))
-    dat = BClipboard_find_system_data (SSDATA (name), &len);
+  CHECK_SYMBOL (clipboard);
+
+  if (!EQ (clipboard, QPRIMARY) && !EQ (clipboard, QSECONDARY)
+      && !EQ (clipboard, QCLIPBOARD))
+    signal_error ("Invalid clipboard", clipboard);
+
+  if (!NILP (name))
+    {
+      CHECK_STRING (name);
+
+      block_input ();
+      if (EQ (clipboard, QPRIMARY))
+	dat = BClipboard_find_primary_selection_data (SSDATA (name), &len);
+      else if (EQ (clipboard, QSECONDARY))
+	dat = BClipboard_find_secondary_selection_data (SSDATA (name), &len);
+      else
+	dat = BClipboard_find_system_data (SSDATA (name), &len);
+      unblock_input ();
+
+      if (!dat)
+	return Qnil;
+
+      str = make_unibyte_string (dat, len);
+
+      /* `foreign-selection' just means that the selection has to be
+	 decoded by `gui-get-selection'.  It has no other meaning,
+	 AFAICT.  */
+      Fput_text_property (make_fixnum (0), make_fixnum (len),
+			  Qforeign_selection, Qt, str);
+
+      block_input ();
+      BClipboard_free_data (dat);
+      unblock_input ();
+    }
   else
     {
+      if (EQ (clipboard, QPRIMARY))
+	clipboard_name = CLIPBOARD_PRIMARY;
+      else if (EQ (clipboard, QSECONDARY))
+	clipboard_name = CLIPBOARD_SECONDARY;
+      else
+	clipboard_name = CLIPBOARD_CLIPBOARD;
+
+      block_input ();
+      rc = be_lock_clipboard_message (clipboard_name, &message);
       unblock_input ();
-      signal_error ("Bad clipboard", clipboard);
+
+      if (rc)
+	signal_error ("Couldn't open clipboard", clipboard);
+
+      block_input ();
+      str = haiku_message_to_lisp (message);
+      be_unlock_clipboard (clipboard_name);
+      unblock_input ();
     }
-  unblock_input ();
-
-  if (!dat)
-    return Qnil;
-
-  Lisp_Object str = make_unibyte_string (dat, len);
-
-  /* `foreign-selection' just means that the selection has to be
-     decoded by `gui-get-selection'.  It has no other meaning,
-     AFAICT.  */
-  Fput_text_property (make_fixnum (0), make_fixnum (len),
-		      Qforeign_selection, Qt, str);
-
-  block_input ();
-  BClipboard_free_data (dat);
-  unblock_input ();
 
   return str;
 }
@@ -359,6 +390,7 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   CHECK_LIST (obj);
   for (tem = obj; CONSP (tem); tem = XCDR (tem))
     {
+      maybe_quit ();
       t1 = XCAR (tem);
       CHECK_CONS (t1);
 
@@ -377,6 +409,7 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
       CHECK_LIST (t1);
       for (t2 = XCDR (t1); CONSP (t2); t2 = XCDR (t2))
 	{
+	  maybe_quit ();
 	  data = XCAR (t2);
 
 	  switch (type_code)
