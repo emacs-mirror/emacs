@@ -1974,8 +1974,18 @@ THINGS are either registrations or unregisterations (sic)."
   "If non-nil, value of the last inserted character in buffer.")
 
 (defun eglot--post-self-insert-hook ()
-  "Set `eglot--last-inserted-char'."
-  (setq eglot--last-inserted-char last-input-event))
+  "Set `eglot--last-inserted-char', call on-type-formatting if necessary."
+  (setq eglot--last-inserted-char last-input-event)
+  (when (or (eq last-input-event
+                (elt (eglot--server-capable
+                      :documentOnTypeFormattingProvider
+                      :firstTriggerCharacter)
+                     0))
+            (seq-find (lambda (elt) (eq last-input-event (elt elt 0)))
+                      (eglot--server-capable
+                         :documentOnTypeFormattingProvider
+                         :moreTriggerCharacter)))
+    (eglot-format (point) nil (string last-input-event))))
 
 (defun eglot--pre-command-hook ()
   "Reset `eglot--last-inserted-char'."
@@ -2357,14 +2367,23 @@ Try to visit the target file for a richer summary line."
   (interactive)
   (eglot-format nil nil))
 
-(defun eglot-format (&optional beg end)
+(defun eglot-format (&optional beg end on-type-format)
   "Format region BEG END.
 If either BEG or END is nil, format entire buffer.
 Interactively, format active region, or entire buffer if region
-is not active."
+is not active.
+
+If ON-TYPE-FORMAT is non-nil, request on-type-formatting from the
+server.  The argument should be a one-character-long string that
+has just been inserted at BEG."
   (interactive (and (region-active-p) (list (region-beginning) (region-end))))
   (pcase-let ((`(,method ,cap ,args)
                (cond
+                ((and beg on-type-format)
+                 `(:textDocument/onTypeFormatting
+                   :documentOnTypeFormattingProvider
+                   ,`(:position ,(eglot--pos-to-lsp-position beg)
+                      :ch ,on-type-format)))
                 ((and beg end)
                  `(:textDocument/rangeFormatting
                    :documentRangeFormattingProvider
