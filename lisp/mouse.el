@@ -3119,13 +3119,15 @@ is copied instead of being cut."
                 (mouse-drag-and-drop-region-hide-tooltip)
                 (gui-set-selection 'XdndSelection value-selection)
                 (let ((drag-action-or-frame
-                       (x-begin-drag '("UTF8_STRING" "text/plain"
-                                       "text/plain;charset=utf-8"
-                                       "STRING" "TEXT" "COMPOUND_TEXT")
-                                     (if mouse-drag-and-drop-region-cut-when-buffers-differ
-                                         'XdndActionMove
-                                       'XdndActionCopy)
-                                     (posn-window (event-end event)) t)))
+                       (condition-case nil
+                           (x-begin-drag '("UTF8_STRING" "text/plain"
+                                           "text/plain;charset=utf-8"
+                                           "STRING" "TEXT" "COMPOUND_TEXT")
+                                         (if mouse-drag-and-drop-region-cut-when-buffers-differ
+                                             'XdndActionMove
+                                           'XdndActionCopy)
+                                         (posn-window (event-end event)) t)
+                         (quit nil))))
                   (when (framep drag-action-or-frame)
                     (throw 'drag-again nil))
 
