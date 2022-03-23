@@ -17596,7 +17596,7 @@ x_free_frame_resources (struct frame *f)
 	x_dnd_send_leave (f, x_dnd_last_seen_window);
       unblock_input ();
 
-      x_dnd_end_window = x_dnd_last_seen_window;
+      x_dnd_end_window = None;
       x_dnd_last_seen_window = None;
       x_dnd_in_progress = false;
       x_dnd_waiting_for_finish = false;
