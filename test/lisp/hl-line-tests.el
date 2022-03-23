@@ -22,12 +22,15 @@
 (require 'hl-line)
 
 (defsubst hl-line-tests-verify (_label on-p)
-  (eq on-p (cl-some (apply-partially #'eq hl-line--overlay)
-                    (overlays-at (point)))))
+  (if on-p
+      (cl-some (apply-partially #'eq hl-line-overlay)
+               (overlays-at (point)))
+    (not (cl-some (apply-partially #'eq hl-line-overlay)
+                  (overlays-at (point))))))
 
 (ert-deftest hl-line-tests-sticky-across-frames ()
   (skip-unless (display-graphic-p))
-  (customize-set-variable 'hl-line-sticky-flag t)
+  (customize-set-variable 'global-hl-line-sticky-flag t)
   (call-interactively #'global-hl-line-mode)
   (let ((first-frame (selected-frame))
         (first-buffer "foo")

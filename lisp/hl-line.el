@@ -102,7 +102,15 @@ This variable has no effect in Global Highlight Line mode.
 For that, use `global-hl-line-sticky-flag'."
   :type 'boolean
   :version "22.1"
-  :group 'hl-line)
+  :group 'hl-line
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (unless value
+           (let ((selected (window-buffer (selected-window))))
+             (dolist (buffer (buffer-list))
+               (unless (eq buffer selected)
+                 (with-current-buffer buffer
+                   (hl-line-unhighlight))))))))
 
 (defcustom global-hl-line-sticky-flag nil
   "Non-nil means the Global HL-Line mode highlight appears in all windows.
