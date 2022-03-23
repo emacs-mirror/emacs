@@ -122,7 +122,26 @@ haiku_delete_terminal (struct terminal *terminal)
     return;
 
   block_input ();
+
   be_app_quit ();
+  delete_port (port_application_to_emacs);
+
+  BCursor_delete (dpyinfo->text_cursor);
+  BCursor_delete (dpyinfo->nontext_cursor);
+  BCursor_delete (dpyinfo->modeline_cursor);
+  BCursor_delete (dpyinfo->hand_cursor);
+  BCursor_delete (dpyinfo->hourglass_cursor);
+  BCursor_delete (dpyinfo->horizontal_drag_cursor);
+  BCursor_delete (dpyinfo->vertical_drag_cursor);
+  BCursor_delete (dpyinfo->left_edge_cursor);
+  BCursor_delete (dpyinfo->top_left_corner_cursor);
+  BCursor_delete (dpyinfo->top_edge_cursor);
+  BCursor_delete (dpyinfo->top_right_corner_cursor);
+  BCursor_delete (dpyinfo->right_edge_cursor);
+  BCursor_delete (dpyinfo->bottom_right_corner_cursor);
+  BCursor_delete (dpyinfo->bottom_edge_cursor);
+  BCursor_delete (dpyinfo->bottom_left_corner_cursor);
+  BCursor_delete (dpyinfo->no_cursor);
 
   /* Close all frames and delete the generic struct terminal.  */
   for (t = terminal_list; t; t = t->next_terminal)
@@ -3911,6 +3930,37 @@ haiku_term_init (void)
   dpyinfo->smallest_char_width = 1;
 
   gui_init_fringe (terminal->rif);
+
+#define ASSIGN_CURSOR(cursor, be_cursor) (dpyinfo->cursor = be_cursor)
+  ASSIGN_CURSOR (text_cursor, BCursor_create_i_beam ());
+  ASSIGN_CURSOR (nontext_cursor, BCursor_create_default ());
+  ASSIGN_CURSOR (modeline_cursor, BCursor_create_modeline ());
+  ASSIGN_CURSOR (hand_cursor, BCursor_create_grab ());
+  ASSIGN_CURSOR (hourglass_cursor, BCursor_create_progress_cursor ());
+  ASSIGN_CURSOR (horizontal_drag_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_EAST_WEST));
+  ASSIGN_CURSOR (vertical_drag_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_SOUTH));
+  ASSIGN_CURSOR (left_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_WEST));
+  ASSIGN_CURSOR (top_left_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_WEST));
+  ASSIGN_CURSOR (top_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH));
+  ASSIGN_CURSOR (top_right_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_EAST));
+  ASSIGN_CURSOR (right_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_EAST));
+  ASSIGN_CURSOR (bottom_right_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_EAST));
+  ASSIGN_CURSOR (bottom_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH));
+  ASSIGN_CURSOR (bottom_left_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_WEST));
+  ASSIGN_CURSOR (no_cursor,
+		 BCursor_from_id (CURSOR_ID_NO_CURSOR));
+#undef ASSIGN_CURSOR
+
   unblock_input ();
 
   return dpyinfo;

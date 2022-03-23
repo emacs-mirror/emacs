@@ -761,38 +761,27 @@ haiku_create_frame (Lisp_Object parms)
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !NILP (tem));
 
   block_input ();
-#define ASSIGN_CURSOR(cursor, be_cursor) \
-  (FRAME_OUTPUT_DATA (f)->cursor = be_cursor)
+#define ASSIGN_CURSOR(cursor) \
+  (FRAME_OUTPUT_DATA (f)->cursor = dpyinfo->cursor)
 
-  ASSIGN_CURSOR (text_cursor, BCursor_create_i_beam ());
-  ASSIGN_CURSOR (nontext_cursor, BCursor_create_default ());
-  ASSIGN_CURSOR (modeline_cursor, BCursor_create_modeline ());
-  ASSIGN_CURSOR (hand_cursor, BCursor_create_grab ());
-  ASSIGN_CURSOR (hourglass_cursor, BCursor_create_progress_cursor ());
-  ASSIGN_CURSOR (horizontal_drag_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_EAST_WEST));
-  ASSIGN_CURSOR (vertical_drag_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_SOUTH));
-  ASSIGN_CURSOR (left_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_WEST));
-  ASSIGN_CURSOR (top_left_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_WEST));
-  ASSIGN_CURSOR (top_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH));
-  ASSIGN_CURSOR (top_right_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_EAST));
-  ASSIGN_CURSOR (right_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_EAST));
-  ASSIGN_CURSOR (bottom_right_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_EAST));
-  ASSIGN_CURSOR (bottom_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH));
-  ASSIGN_CURSOR (bottom_left_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_WEST));
-  ASSIGN_CURSOR (no_cursor,
-		 BCursor_from_id (CURSOR_ID_NO_CURSOR));
+  ASSIGN_CURSOR (text_cursor);
+  ASSIGN_CURSOR (nontext_cursor);
+  ASSIGN_CURSOR (modeline_cursor);
+  ASSIGN_CURSOR (hand_cursor);
+  ASSIGN_CURSOR (hourglass_cursor);
+  ASSIGN_CURSOR (horizontal_drag_cursor);
+  ASSIGN_CURSOR (vertical_drag_cursor);
+  ASSIGN_CURSOR (left_edge_cursor);
+  ASSIGN_CURSOR (top_left_corner_cursor);
+  ASSIGN_CURSOR (top_edge_cursor);
+  ASSIGN_CURSOR (top_right_corner_cursor);
+  ASSIGN_CURSOR (right_edge_cursor);
+  ASSIGN_CURSOR (bottom_right_corner_cursor);
+  ASSIGN_CURSOR (bottom_edge_cursor);
+  ASSIGN_CURSOR (bottom_left_corner_cursor);
+  ASSIGN_CURSOR (no_cursor);
 
-  ASSIGN_CURSOR (current_cursor, FRAME_OUTPUT_DATA (f)->text_cursor);
+  FRAME_OUTPUT_DATA (f)->current_cursor = dpyinfo->text_cursor;
 #undef ASSIGN_CURSOR
 
   f->terminal->reference_count++;
@@ -1554,25 +1543,6 @@ haiku_free_frame_resources (struct frame *f)
 
   if (window)
     BWindow_quit (window);
-
-  /* Free cursors */
-
-  BCursor_delete (f->output_data.haiku->text_cursor);
-  BCursor_delete (f->output_data.haiku->nontext_cursor);
-  BCursor_delete (f->output_data.haiku->modeline_cursor);
-  BCursor_delete (f->output_data.haiku->hand_cursor);
-  BCursor_delete (f->output_data.haiku->hourglass_cursor);
-  BCursor_delete (f->output_data.haiku->horizontal_drag_cursor);
-  BCursor_delete (f->output_data.haiku->vertical_drag_cursor);
-  BCursor_delete (f->output_data.haiku->left_edge_cursor);
-  BCursor_delete (f->output_data.haiku->top_left_corner_cursor);
-  BCursor_delete (f->output_data.haiku->top_edge_cursor);
-  BCursor_delete (f->output_data.haiku->top_right_corner_cursor);
-  BCursor_delete (f->output_data.haiku->right_edge_cursor);
-  BCursor_delete (f->output_data.haiku->bottom_right_corner_cursor);
-  BCursor_delete (f->output_data.haiku->bottom_edge_cursor);
-  BCursor_delete (f->output_data.haiku->bottom_left_corner_cursor);
-  BCursor_delete (f->output_data.haiku->no_cursor);
 
   xfree (FRAME_OUTPUT_DATA (f));
   FRAME_OUTPUT_DATA (f) = NULL;
