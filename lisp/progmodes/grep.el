@@ -48,8 +48,8 @@ to avoid computing them again.")
   "Set SYMBOL to VALUE, and update `grep-host-defaults-alist'.
 SYMBOL should be one of `grep-command', `grep-template',
 `grep-use-null-device', `grep-find-command' `grep-find-template',
-`grep-find-use-xargs', `grep-use-null-filename-separator', or
-`grep-highlight-matches'."
+`grep-find-use-xargs', `grep-use-null-filename-separator',
+`grep-highlight-matches', or `grep-quoting-style'."
   (when grep-host-defaults-alist
     (let* ((host-id
 	    (intern (or (file-remote-p default-directory) "localhost")))
@@ -201,6 +201,9 @@ by `grep-compute-defaults'; to change the default value, use
 		 (const :tag "Not Set" nil))
   :set #'grep-apply-setting
   :version "22.1")
+
+(defvar grep-quoting-style nil
+  "Whether to use POSIX-like shell argument quoting.")
 
 (defcustom grep-files-aliases
   '(("all" .   "* .*")
@@ -616,8 +619,8 @@ This function is called from `compilation-filter-hook'."
   "Compute the defaults for the `grep' command.
 The value depends on `grep-command', `grep-template',
 `grep-use-null-device', `grep-find-command', `grep-find-template',
-`grep-use-null-filename-separator', `grep-find-use-xargs' and
-`grep-highlight-matches'."
+`grep-use-null-filename-separator', `grep-find-use-xargs',
+`grep-highlight-matches', and `grep-quoting-style'."
   ;; Keep default values.
   (unless grep-host-defaults-alist
     (add-to-list
@@ -631,7 +634,8 @@ The value depends on `grep-command', `grep-template',
              (grep-use-null-filename-separator
               ,grep-use-null-filename-separator)
 	     (grep-find-use-xargs ,grep-find-use-xargs)
-	     (grep-highlight-matches ,grep-highlight-matches)))))
+	     (grep-highlight-matches ,grep-highlight-matches)
+             (grep-quoting-style ,grep-quoting-style)))))
   (let* ((remote (file-remote-p default-directory))
          (host-id (intern (or remote "localhost")))
 	 (host-defaults (assq host-id grep-host-defaults-alist))
@@ -791,8 +795,11 @@ The value depends on `grep-command', `grep-template',
                                  find-program gcmd null quot-braces))
                         (t
                          (format "%s -H <D> <X> -type f <F> -print | \"%s\" %s"
-                                 find-program xargs-program gcmd))))))))
-     ;; Save defaults for this host.
+                                 find-program xargs-program gcmd))))))
+
+        (setq grep-quoting-style remote)))
+
+    ;; Save defaults for this host.
     (setq grep-host-defaults-alist
 	  (delete (assq host-id grep-host-defaults-alist)
 		  grep-host-defaults-alist))
@@ -807,7 +814,8 @@ The value depends on `grep-command', `grep-template',
 	     (grep-use-null-filename-separator
 	      ,grep-use-null-filename-separator)
 	     (grep-find-use-xargs ,grep-find-use-xargs)
-	     (grep-highlight-matches ,grep-highlight-matches))))))
+	     (grep-highlight-matches ,grep-highlight-matches)
+             (grep-quoting-style ,grep-quoting-style))))))
 
 (defun grep-tag-default ()
   (or (and transient-mark-mode mark-active
@@ -821,8 +829,7 @@ The value depends on `grep-command', `grep-template',
 (defun grep-default-command ()
   "Compute the default grep command for \\[universal-argument] \\[grep] to offer."
   (let ((tag-default
-         (shell-quote-argument
-          (grep-tag-default) (file-remote-p default-directory)))
+         (shell-quote-argument (grep-tag-default) grep-quoting-style))
 	;; This a regexp to match single shell arguments.
 	;; Could someone please add comments explaining it?
 	(sh-arg-re
@@ -956,7 +963,6 @@ easily repeat a find command."
 ;;;###autoload
 (defalias 'find-grep #'grep-find)
 
-
 ;; User-friendly interactive API.
 
 (defconst grep-expand-keywords
@@ -965,8 +971,7 @@ easily repeat a find command."
     ("<F>" . files)
     ("<N>" . (null-device))
     ("<X>" . excl)
-    ("<R>" . (shell-quote-argument
-              (or regexp "") (file-remote-p (expand-file-name (or dir "."))))))
+    ("<R>" . (shell-quote-argument (or regexp "") grep-quoting-style)))
   "List of substitutions performed by `grep-expand-template'.
 If car of an element matches, the cdr is evalled in order to get the
 substitution string.
@@ -1118,12 +1123,11 @@ command before it's run."
     (unless (string-equal (file-remote-p dir) (file-remote-p default-directory))
       (let ((default-directory dir))
         (grep-compute-defaults)))
-    (let ((command regexp) remote)
+    (let ((command regexp))
       (if (null files)
 	  (if (string= command grep-command)
 	      (setq command nil))
-	(setq dir (file-name-as-directory (expand-file-name dir))
-              remote (file-remote-p dir))
+	(setq dir (file-name-as-directory (expand-file-name dir)))
 	(unless (or (not grep-use-directories-skip)
                     (eq grep-use-directories-skip t))
 	  (setq grep-use-directories-skip
@@ -1142,11 +1146,12 @@ command before it's run."
                                      (lambda (ignore)
                                        (cond ((stringp ignore)
                                               (shell-quote-argument
-                                               ignore remote))
+                                               ignore grep-quoting-style))
                                              ((consp ignore)
                                               (and (funcall (car ignore) dir)
                                                    (shell-quote-argument
-                                                    (cdr ignore) remote)))))
+                                                    (cdr ignore)
+                                                    grep-quoting-style)))))
 				     grep-find-ignored-files
 				     " --exclude=")))
 		       (and (eq grep-use-directories-skip t)
@@ -1253,50 +1258,50 @@ command before it's run."
 (defun rgrep-default-command (regexp files dir)
   "Compute the command for \\[rgrep] to use by default."
   (require 'find-dired)      ; for `find-name-arg'
-  (let ((remote (file-remote-p (or dir default-directory))))
-    (grep-expand-template
-     grep-find-template
-     regexp
-     (concat (shell-quote-argument "(" remote)
-             " " find-name-arg " "
-             (mapconcat
-              (lambda (x) (shell-quote-argument x remote))
-              (split-string files)
-              (concat " -o " find-name-arg " "))
-             " "
-             (shell-quote-argument ")" remote))
-     dir
-     (concat
-      (and grep-find-ignored-directories
-           (concat "-type d "
-                   (shell-quote-argument "(" remote)
-                   ;; we should use shell-quote-argument here
-                   " -path "
-                   (mapconcat
-                    (lambda (d) (shell-quote-argument (concat "*/" d) remote))
-                    (rgrep-find-ignored-directories dir)
-                    " -o -path ")
-                   " "
-                   (shell-quote-argument ")" remote)
-                   " -prune -o "))
-      (and grep-find-ignored-files
-           (concat (shell-quote-argument "!" remote) " -type d "
-                   (shell-quote-argument "(" remote)
-                   ;; we should use shell-quote-argument here
-                   " -name "
-                   (mapconcat
-                    (lambda (ignore)
-                      (cond ((stringp ignore)
-                             (shell-quote-argument ignore remote))
-                            ((consp ignore)
-                             (and (funcall (car ignore) dir)
-                                  (shell-quote-argument
-                                   (cdr ignore) remote)))))
-                    grep-find-ignored-files
-                    " -o -name ")
-                   " "
-                   (shell-quote-argument ")" remote)
-                   " -prune -o "))))))
+  (grep-expand-template
+   grep-find-template
+   regexp
+   (concat (shell-quote-argument "(" grep-quoting-style)
+           " " find-name-arg " "
+           (mapconcat
+            (lambda (x) (shell-quote-argument x grep-quoting-style))
+            (split-string files)
+            (concat " -o " find-name-arg " "))
+           " "
+           (shell-quote-argument ")" grep-quoting-style))
+   dir
+   (concat
+    (and grep-find-ignored-directories
+         (concat "-type d "
+                 (shell-quote-argument "(" grep-quoting-style)
+                 ;; we should use shell-quote-argument here
+                 " -path "
+                 (mapconcat
+                  (lambda (d)
+                    (shell-quote-argument (concat "*/" d) grep-quoting-style))
+                  (rgrep-find-ignored-directories dir)
+                  " -o -path ")
+                 " "
+                 (shell-quote-argument ")" grep-quoting-style)
+                 " -prune -o "))
+    (and grep-find-ignored-files
+         (concat (shell-quote-argument "!" grep-quoting-style) " -type d "
+                 (shell-quote-argument "(" grep-quoting-style)
+                 ;; we should use shell-quote-argument here
+                 " -name "
+                 (mapconcat
+                  (lambda (ignore)
+                    (cond ((stringp ignore)
+                           (shell-quote-argument ignore grep-quoting-style))
+                          ((consp ignore)
+                           (and (funcall (car ignore) dir)
+                                (shell-quote-argument
+                                 (cdr ignore) grep-quoting-style)))))
+                  grep-find-ignored-files
+                  " -o -name ")
+                 " "
+                 (shell-quote-argument ")" grep-quoting-style)
+                 " -prune -o ")))))
 
 (defun grep-find-toggle-abbreviation ()
   "Toggle showing the hidden part of rgrep/lgrep/zrgrep command line."
