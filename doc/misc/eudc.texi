@@ -811,7 +811,7 @@ quoting the result if necessary.  No @var{comment} part will be added
 in this case.  This will produce any of the default formats
 @center @var{address}
 @center @var{first} @code{<}@var{address}@code{>}
-@center @var{last} @code{<}@var{address}@code{>
+@center @var{last} @code{<}@var{address}@code{>}
 @center @var{first} @var{last} @code{<}@var{address}@code{>}
 depending on whether a first and/or last name are returned by the
 query, or not.
