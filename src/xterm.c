@@ -7067,8 +7067,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       current_hold_quit = &hold_quit;
 #endif
 
-#ifndef USE_GTK
+#ifdef USE_GTK
+      gtk_main_iteration ();
+#else
+#ifdef USE_X_TOOLKIT
+      XtAppNextEvent (Xt_app_con, &next_event);
+#else
       XNextEvent (FRAME_X_DISPLAY (f), &next_event);
+#endif
 
 #ifdef HAVE_X_I18N
 #ifdef HAVE_XINPUT2
@@ -7091,8 +7097,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       handle_one_xevent (FRAME_DISPLAY_INFO (f),
 			 &next_event, &finish, &hold_quit);
 #endif
-#else
-      gtk_main_iteration ();
 #endif
 
       if (hold_quit.kind != NO_EVENT)
