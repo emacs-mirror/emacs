@@ -3495,7 +3495,10 @@ DEFUN ("frame-native-width", Fframe_native_width,
        Sframe_native_width, 0, 1, 0,
        doc: /* Return FRAME's native width in pixels.
 For a terminal frame, the result really gives the width in characters.
-If FRAME is omitted or nil, the selected frame is used.  */)
+If FRAME is omitted or nil, the selected frame is used.
+
+If you're interested only in the width of the text portion of the
+frame, see `frame-text-width' instead.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_any_frame (frame);
@@ -3518,6 +3521,9 @@ In the Gtk+ and NS versions, it includes only any window (including the
 minibuffer or echo area), mode line, and header line.  It does not
 include the tool bar or menu bar.  With other graphical versions, it may
 also include the tool bar and the menu bar.
+
+If you're interested only in the height of the text portion of the
+frame, see `frame-text-height' instead.
 
 For a text terminal, it includes the menu bar.  In this case, the
 result is really in characters rather than pixels (i.e., is identical
