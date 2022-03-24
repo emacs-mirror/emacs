@@ -7010,6 +7010,17 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		       PropModeReplace, (unsigned char *) ask_action_list,
 		       n_ask_actions);
     }
+  else
+    {
+      /* Delete those two properties, since some clients look at them
+	 and not the action to decide whether or not the user should
+	 be prompted to select an action.  */
+
+      XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList);
+      XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
+    }
 
   x_dnd_in_progress = true;
   x_dnd_frame = f;

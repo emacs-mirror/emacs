@@ -6643,10 +6643,14 @@ instead.  */)
   for (; CONSP (targets); targets = XCDR (targets))
     {
       CHECK_STRING (XCAR (targets));
+      maybe_quit ();
 
       if (ntargets < 2048)
 	{
-	  target_names[ntargets] = SSDATA (XCAR (targets));
+	  scratch = SSDATA (XCAR (targets));
+	  len = strlen (scratch);
+	  target_names[ntargets] = SAFE_ALLOCA (len + 1);
+	  strncpy (target_names[ntargets], scratch, len + 1);;
 	  ntargets++;
 	}
       else
@@ -6663,6 +6667,8 @@ instead.  */)
     xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionLink;
   else if (EQ (action, QXdndActionPrivate))
     xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionPrivate;
+  else if (EQ (action, QXdndActionAsk))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
   else if (CONSP (action))
     {
       xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
@@ -6671,6 +6677,7 @@ instead.  */)
       CHECK_LIST (action);
       for (; CONSP (action); action = XCDR (action))
 	{
+	  maybe_quit ();
 	  tem = XCAR (action);
 	  CHECK_CONS (tem);
 	  t1 = XCAR (tem);
@@ -6686,6 +6693,8 @@ instead.  */)
 		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionMove;
 	      else if (EQ (t1, QXdndActionLink))
 		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionLink;
+	      else if (EQ (t1, QXdndActionAsk))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
 	      else if (EQ (t1, QXdndActionPrivate))
 		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionPrivate;
 	      else
