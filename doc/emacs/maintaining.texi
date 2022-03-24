@@ -2974,11 +2974,12 @@ etags --language=none \
 
 @findex visit-tags-table
   Emacs has at any time at most one @dfn{selected} tags table.  All
-the commands for working with tags tables use the selected one.  To
-select a tags table, type @kbd{M-x visit-tags-table}, which reads the
-tags table file name as an argument, with @file{TAGS} defaulting to
-the first directory that contains a file named @file{TAGS} encountered
-when recursively searching upward from the default directory.
+the commands for working with tags tables use the selected one first.
+To select a tags table, type @kbd{M-x visit-tags-table}, which reads
+the tags table file name as an argument, with @file{TAGS} defaulting
+to the first directory that contains a file named @file{TAGS}
+encountered when recursively searching upward from the default
+directory.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
@@ -2988,16 +2989,25 @@ variable's initial value is @code{nil}; that value tells all the
 commands for working with tags tables that they must ask for a tags
 table file name to use.
 
-  Using @code{visit-tags-table} when a tags table is already loaded
-gives you a choice: you can add the new tags table to the current list
-of tags tables, or start a new list.  The tags commands use all the tags
-tables in the current list.  If you start a new list, the new tags table
-is used @emph{instead} of others.  If you add the new table to the
-current list, it is used @emph{as well as} the others.
+  In addition to the selected tags table, Emacs maintains the list of
+several tags tables that you use together.  For example, if you are
+working on a program that uses a library, you may wish to have the
+tags tables of both the program and the library available, so that
+Emacs could easily find identifiers from both.  If the selected tags
+table doesn't have the identifier or doesn't mention the source file a
+tags command needs, the command will try using all the other tags
+tables in the current list of tags tables.
+
+  Using @code{visit-tags-table} to load a new tags table when another
+tags table is already loaded gives you a choice: you can add the new
+tags table to the current list of tags tables, or discard the current
+list and start a new list.  If you start a new list, the new tags
+table is used @emph{instead} of others.  If you add the new table to
+the current list, it is used @emph{as well as} the others.
 
 @vindex tags-table-list
   You can specify a precise list of tags tables by setting the variable
-@code{tags-table-list} to a list of strings, like this:
+@code{tags-table-list} to a list of directory names, like this:
 
 @c keep this on two lines for formatting in smallbook
 @example
