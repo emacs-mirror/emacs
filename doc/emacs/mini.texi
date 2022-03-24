@@ -642,6 +642,14 @@ the completion.  The value @code{visible} is a hybrid: it behaves like
 completion list buffer, and like @code{always} when it decides whether
 to pop it down.
 
+@vindex completion-auto-select
+The completions window can be automatically selected.  To enable this
+behavior, customize the user option @code{completion-auto-select} to
+@code{t} and pressing @key{TAB} will switch to the completion list
+buffer when it pops up that buffer.  If the value is
+@code{second-tab}, then the first @key{TAB} will pops up the
+completions list buffer and the second one will switch to it.
+
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
 commands can cycle through completion alternatives.  Normally, if
