@@ -1373,7 +1373,8 @@ extern void x_scroll_bar_configure (GdkEvent *);
 #endif
 
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
-					      bool);
+					      bool, Atom *, const char **,
+					      size_t);
 extern void x_set_dnd_targets (Atom *, int);
 
 INLINE int

@@ -4061,6 +4061,11 @@ the drop target; or @code{XdndActionMove}, which means copy as with
 @code{XdndActionCopy}, and in addition the caller should delete
 whatever was stored in that selection after copying it.
 
+@var{action} may also be an alist which associates between symbols
+describing the available actions, and strings that the drop target is
+expected to present to the user to choose between the available
+actions.
+
 If @var{return-frame} is non-nil and the mouse moves over an Emacs
 frame after first moving out of @var{frame}, then the frame to which
 the mouse moves will be returned immediately.  This is useful when you

@@ -224,7 +224,9 @@ take effect on menu items until the menu bar is updated again."
               (push (cadr selection-result)
                     (cdr (alist-get (car selection-result) message
                                     nil nil #'equal))))))))
-    (prog1 (or action 'XdndActionCopy)
+    (prog1 (or (and (symbolp action)
+                    action)
+               'XdndActionCopy)
       (haiku-drag-message (or frame (selected-frame))
                           message))))
 

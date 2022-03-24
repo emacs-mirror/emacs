@@ -6942,7 +6942,9 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
-			   bool return_frame_p)
+			   bool return_frame_p, Atom *ask_action_list,
+			   const char **ask_action_names,
+			   size_t n_ask_actions)
 {
 #ifndef USE_GTK
   XEvent next_event;
@@ -6951,9 +6953,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XWindowAttributes root_window_attrs;
   struct input_event hold_quit;
   struct frame *any;
-  char *atom_name;
+  char *atom_name, *ask_actions;
   Lisp_Object action, ltimestamp;
   specpdl_ref ref;
+  ptrdiff_t i, end, fill;
+  XTextProperty prop;
 
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
@@ -6971,6 +6975,41 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
   else
     x_dnd_selection_timestamp = XFIXNUM (ltimestamp);
+
+  if (n_ask_actions)
+    {
+      ask_actions = NULL;
+      end = 0;
+
+      for (i = 0; i < n_ask_actions; ++i)
+	{
+	  fill = end;
+	  end += strlen (ask_action_names[i]) + 1;
+
+	  if (ask_actions)
+	    ask_actions = xrealloc (ask_actions, end);
+	  else
+	    ask_actions = xmalloc (end);
+
+	  strncpy (ask_actions + fill,
+		   ask_action_names[i],
+		   end - fill);
+	}
+
+      prop.value = (unsigned char *) ask_actions;
+      prop.encoding = XA_STRING;
+      prop.format = 8;
+      prop.nitems = end;
+
+      XSetTextProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			&prop, FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
+      xfree (ask_actions);
+
+      XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList, XA_ATOM, 32,
+		       PropModeReplace, (unsigned char *) ask_action_list,
+		       n_ask_actions);
+    }
 
   x_dnd_in_progress = true;
   x_dnd_frame = f;
