@@ -7001,6 +7001,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       prop.format = 8;
       prop.nitems = end;
 
+      block_input ();
       XSetTextProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			&prop, FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
       xfree (ask_actions);
@@ -7009,6 +7010,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList, XA_ATOM, 32,
 		       PropModeReplace, (unsigned char *) ask_action_list,
 		       n_ask_actions);
+      unblock_input ();
     }
   else
     {
@@ -7016,10 +7018,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	 and not the action to decide whether or not the user should
 	 be prompted to select an action.  */
 
+      block_input ();
       XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList);
       XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
+      unblock_input ();
     }
 
   x_dnd_in_progress = true;
