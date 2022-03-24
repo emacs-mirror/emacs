@@ -86,11 +86,14 @@ as was already the case for all the non-preloaded files.
 ** Emacs Sessions (Desktop)
 
 +++
-*** New option to load if locking Emacs not running locally.
-The option 'desktop-load-locked-desktop' can now be set to value
-'check-pid', which means to load the desktop only if the locking Emacs
-process is not running on the local machine.  See the "(emacs) Saving
-Emacs Sessions" node in the Emacs manual for details.
+*** New option to load a locked desktop if locking Emacs is not running.
+The option 'desktop-load-locked-desktop' can now be set to the value
+'check-pid', which means to allow loading a locked ".emacs.desktop"
+file if the Emacs process which locked it is no longer running on the
+local machine.  This allows to avoid asking questions about locked
+desktop files when the Emacs session which locked it crashes or was
+otherwise interrupted and didn't exit gracefully.  See the "(emacs)
+Saving Emacs Sessions" node in the Emacs manual for more details.
 
 
 * Startup Changes in Emacs 29.1
