@@ -2838,8 +2838,11 @@ is not active."
                                            :newName ,newname))
    current-prefix-arg))
 
-(defun eglot--region-bounds () "Region bounds if active, else point and nil."
-  (if (use-region-p) `(,(region-beginning) ,(region-end)) `(,(point) nil)))
+(defun eglot--region-bounds ()
+  "Region bounds if active, else bounds of things at point."
+  (if (use-region-p) `(,(region-beginning) ,(region-end))
+    (let ((boftap (bounds-of-thing-at-point 'sexp)))
+      (list (car boftap) (cdr boftap)))))
 
 (defun eglot-code-actions (beg &optional end action-kind)
   "Offer to execute actions of ACTION-KIND between BEG and END.
