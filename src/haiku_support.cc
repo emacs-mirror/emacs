@@ -3395,6 +3395,8 @@ void
 be_get_version_string (char *version, int len)
 {
   std::strncpy (version, "Unknown Haiku release", len - 1);
+  version[len - 1] = '\0';
+
   BPath path;
   if (find_directory (B_BEOS_LIB_DIRECTORY, &path) == B_OK)
     {
@@ -3408,7 +3410,10 @@ be_get_version_string (char *version, int len)
           && appFileInfo.GetVersionInfo (&versionInfo,
                                          B_APP_VERSION_KIND) == B_OK
           && versionInfo.short_info[0] != '\0')
-	std::strncpy (version, versionInfo.short_info, len - 1);
+	{
+	  std::strncpy (version, versionInfo.short_info, len - 1);
+	  version[len - 1] = '\0';
+	}
     }
 }
 

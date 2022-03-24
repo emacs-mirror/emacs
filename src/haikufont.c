@@ -437,6 +437,7 @@ haikufont_spec_or_entity_to_pattern (Lisp_Object ent,
       strncpy ((char *) &ptn->style,
 	       SSDATA (SYMBOL_NAME (tem)),
 	       sizeof ptn->style - 1);
+      ptn->style[sizeof ptn->style - 1] = '\0';
     }
 
   tem = FONT_SLANT_SYMBOLIC (ent);
@@ -475,6 +476,7 @@ haikufont_spec_or_entity_to_pattern (Lisp_Object ent,
       strncpy ((char *) &ptn->family,
 	       SSDATA (SYMBOL_NAME (tem)),
 	       sizeof ptn->family - 1);
+      ptn->family[sizeof ptn->family - 1] = '\0';
     }
 
   tem = assq_no_quit (QCscript, AREF (ent, FONT_EXTRA_INDEX));

@@ -289,6 +289,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
       pattern->specified |= FSPEC_STYLE;
       std::strncpy ((char *) &pattern->style, st,
 		    sizeof pattern->style - 1);
+      pattern->style[sizeof pattern->style - 1] = '\0';
     }
 
   free (style);
@@ -411,6 +412,7 @@ haiku_font_fill_pattern (struct haiku_font_pattern *pattern,
   pattern->specified |= FSPEC_FAMILY;
   std::strncpy (pattern->family, family,
 		sizeof pattern->family - 1);
+  pattern->family[sizeof pattern->family - 1] = '\0';
   pattern->specified |= FSPEC_SPACING;
   pattern->mono_spacing_p = flags & B_IS_FIXED;
 }
@@ -534,6 +536,8 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
   if (!(pat->specified & FSPEC_FAMILY))
     return 1;
   strncpy (name, pat->family, sizeof name - 1);
+  name[sizeof name - 1] = '\0';
+
   sty_count = count_font_styles (name);
 
   if (!sty_count &&
@@ -603,6 +607,7 @@ BFont_populate_fixed_family (struct haiku_font_pattern *ptn)
 
   ptn->specified |= FSPEC_FAMILY;
   strncpy (ptn->family, f, sizeof ptn->family - 1);
+  ptn->family[sizeof ptn->family - 1] = '\0';
 }
 
 void
@@ -614,6 +619,7 @@ BFont_populate_plain_family (struct haiku_font_pattern *ptn)
 
   ptn->specified |= FSPEC_FAMILY;
   strncpy (ptn->family, f, sizeof ptn->family - 1);
+  ptn->family[sizeof ptn->family - 1] = '\0';
 }
 
 int
