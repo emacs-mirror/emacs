@@ -584,8 +584,10 @@ value.
 
 *** The "*Completions*" buffer can now be automatically selected.
 To enable this behavior, customize the user option
-'completion-auto-select' to t.  Then pressing 'TAB' will switch to the
-"*Completions*" buffer when it pops up that buffer.
+'completion-auto-select' to t and pressing 'TAB' will switch to the
+"*Completions*" buffer when it pops up that buffer. If the value is
+'second-tab', then the first tab will display "*Completions*" and the
+second one will switch to the "*Completions*" buffer.
 
 *** New user option 'completion-wrap-movement'.
 When non-nil, the commands 'next-completion' and 'previous-completion'
