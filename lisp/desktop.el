@@ -230,16 +230,26 @@ Zero or nil means disable auto-saving due to idleness."
 (defcustom desktop-load-locked-desktop 'ask
   "Specifies whether the desktop should be loaded if locked.
 Possible values are:
-   t    -- load anyway.
-   nil  -- don't load.
-   ask  -- ask the user.
-If the value is nil, or `ask' and the user chooses not to load the desktop,
-the normal hook `desktop-not-loaded-hook' is run."
+   t          -- load anyway.
+   nil        -- don't load.
+   ask        -- ask the user.
+   check-pid  -- load if locking Emacs process is missing locally.
+
+If the value is nil, or `ask' and the user chooses not to load
+the desktop, the normal hook `desktop-not-loaded-hook' is run.
+
+If the value is `check-pid', load the desktop if the Emacs
+process that has locked it is not running on the local machine.
+This should not be used in circumstances where the locking Emacs
+might still be running on another machine.  That could be the
+case if you have remotely mounted (NFS) paths in
+`desktop-dirname'."
   :type
   '(choice
     (const :tag "Load anyway" t)
     (const :tag "Don't load" nil)
-    (const :tag "Ask the user" ask))
+    (const :tag "Ask the user" ask)
+    (const :tag "Load if no local process" check-pid))
   :group 'desktop
   :version "22.2")
 
@@ -661,6 +671,28 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 	     (setq owner (read (current-buffer)))
 	     (integerp owner)))
 	 owner)))
+
+(defun desktop--emacs-pid-running-p (pid)
+  "Return t if an Emacs process with PID exists."
+  (when-let ((attr (process-attributes pid)))
+    (equal (alist-get 'comm attr)
+           (file-name-nondirectory (car command-line-args)))))
+
+(defun desktop--load-locked-desktop-p (owner)
+  "Return t if a locked desktop should be loaded.
+OWNER is the pid in the lock file.
+The return value of this function depends on the value of
+`desktop-load-locked-desktop'."
+  (pcase desktop-load-locked-desktop
+    ('ask
+     (unless (daemonp)
+       (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
+Using it may cause conflicts.  Use it anyway? " owner))))
+    ('check-pid
+     (or (eq (emacs-pid) owner)
+         (not (desktop--emacs-pid-running-p owner))))
+    ('nil nil)
+    (_ t)))
 
 (defun desktop-claim-lock (&optional dirname)
   "Record this Emacs process as the owner of the desktop file in DIRNAME.
@@ -1263,11 +1295,7 @@ It returns t if a desktop file was loaded, nil otherwise.
 	      (desktop-save nil)
 	      (desktop-autosave-was-enabled))
 	  (if (and owner
-		   (memq desktop-load-locked-desktop '(nil ask))
-		   (or (null desktop-load-locked-desktop)
-		       (daemonp)
-		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
-Using it may cause conflicts.  Use it anyway? " owner)))))
+                   (not (desktop--load-locked-desktop-p owner)))
 	      (let ((default-directory desktop-dirname))
 		(setq desktop-dirname nil)
 		(run-hooks 'desktop-not-loaded-hook)

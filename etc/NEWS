@@ -83,6 +83,15 @@ input of sequences such as 'C-;' and 'C-S-u'.
 Instead, they're fetched as needed from the corresponding ".elc" file,
 as was already the case for all the non-preloaded files.
 
+** Emacs Sessions (Desktop)
+
++++
+*** New option to load if locking Emacs not running locally.
+The option 'desktop-load-locked-desktop' can now be set to value
+'check-pid', which means to load the desktop only if the locking Emacs
+process is not running on the local machine.  See the "(emacs) Saving
+Emacs Sessions" node in the Emacs manual for details.
+
 
 * Startup Changes in Emacs 29.1
 

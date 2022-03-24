@@ -2770,7 +2770,12 @@ will by default ask you whether to use the locked desktop file.  You
 can avoid the question by customizing the variable
 @code{desktop-load-locked-desktop} to either @code{nil}, which means
 never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.
+desktop without asking.  Finally, the @code{check-pid} value means to
+load the file if the Emacs process that has locked the desktop is not
+running on the local machine.  This should not be used in
+circumstances where the locking Emacs might still be running on
+another machine.  This could be the case in multi-user environments
+where your home directory is mounted remotely using NFS or similar.
 
 @cindex desktop restore in daemon mode
   When Emacs starts in daemon mode, it cannot ask you any questions,
