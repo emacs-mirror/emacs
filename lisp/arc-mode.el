@@ -1340,7 +1340,8 @@ NEW-NAME."
   t)
 
 (defun archive-*-write-file-member (archive descr command)
-  (let* ((ename (archive--file-desc-ext-file-name descr))
+  (let* ((archive (expand-file-name archive))
+         (ename (archive--file-desc-ext-file-name descr))
          (tmpfile (expand-file-name ename archive-tmpdir))
          (top (directory-file-name (file-name-as-directory archive-tmpdir)))
 	 (default-directory (file-name-as-directory top)))
@@ -1364,6 +1365,7 @@ NEW-NAME."
 	  (setq ename
 		(encode-coding-string ename archive-file-name-coding-system))
           (let* ((coding-system-for-write 'no-conversion)
+		 (default-directory (file-name-as-directory archive-tmpdir))
 		 (exitcode (apply #'call-process
 				  (car command)
 				  nil
