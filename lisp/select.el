@@ -547,25 +547,18 @@ two markers or an overlay.  Otherwise, it is nil."
 	(xselect--int-to-cons len))))
 
 (defun xselect-convert-to-targets (selection _type value)
-  ;; return a vector of atoms, but remove duplicates first.
-  (let* ((all (cons 'TIMESTAMP
-		    (cons 'MULTIPLE
-			  (mapcar (lambda (conv)
-                                    (if (or (not (consp (cdr conv)))
-                                            (funcall (cadr conv) selection
-                                                     (car conv) value))
-                                        (car conv)
-                                      '_EMACS_INTERNAL))
-                                  selection-converter-alist))))
-	 (rest all))
-    (while rest
-      (cond ((memq (car rest) (cdr rest))
-	     (setcdr rest (delq (car rest) (cdr rest))))
-	    ((eq (car (cdr rest)) '_EMACS_INTERNAL)
-	     (setcdr rest (cdr (cdr rest))))
-	    (t
-	     (setq rest (cdr rest)))))
-    (apply 'vector all)))
+  ;; Return a vector of atoms, but remove duplicates first.
+  (apply #'vector
+         (delete-dups
+          `( TIMESTAMP MULTIPLE
+             . ,(delq '_EMACS_INTERNAL
+                      (mapcar (lambda (conv)
+                                (if (or (not (consp (cdr conv)))
+                                        (funcall (cadr conv) selection
+                                                 (car conv) value))
+                                    (car conv)
+                                  '_EMACS_INTERNAL))
+                              selection-converter-alist))))))
 
 (defun xselect-convert-to-delete (selection _type _value)
   (gui-backend-set-selection selection nil)
