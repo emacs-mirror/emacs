@@ -9168,6 +9168,13 @@ forward)."
 With prefix argument N, move N items (negative N means move
 backward)."
   (interactive "p")
+  (let ((prev (previous-single-property-change (point) 'mouse-face)))
+    (goto-char (cond
+                ((not prev)
+                 (1- (next-single-property-change (point) 'mouse-face)))
+                ((/= prev (point))
+                 (point))
+                (t prev))))
   (let ((beg (point-min)) (end (point-max)))
     (catch 'bound
       (while (> n 0)
@@ -9185,7 +9192,7 @@ backward)."
         (unless (get-text-property (point) 'mouse-face)
           (goto-char (next-single-property-change (point) 'mouse-face nil end)))
         (setq n (1- n)))
-      (while (< n 0)
+      (while (and (< n 0) (not (bobp)))
         (let ((prop (get-text-property (1- (point)) 'mouse-face)))
           ;; If in a completion, move to the start of it.
           (when (and prop (eq prop (get-text-property (point) 'mouse-face)))
