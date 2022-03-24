@@ -91,7 +91,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
 
 (defcustom auto-insert-alist
-  '((("\\.\\([Hh]\\|hh\\|hpp\\|hxx\\|h\\+\\+\\)\\'" . "C / C++ header")
+  `((("\\.\\([Hh]\\|hh\\|hpp\\|hxx\\|h\\+\\+\\)\\'" . "C / C++ header")
      (replace-regexp-in-string
       "[^A-Z0-9]" "_"
       (string-replace
@@ -113,7 +113,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("[Mm]akefile\\'" . "Makefile") . "makefile.inc")
 
-    (html-mode . (lambda () (sgml-tag "html")))
+    (html-mode . ,(lambda () (sgml-tag "html")))
 
     (plain-tex-mode . "tex-insert.tex")
     (bibtex-mode . "tex-insert.tex")
@@ -128,9 +128,9 @@ If this contains a %s, that will be replaced by the matching rule."
      "\n\\end{document}")
 
     (("/bin/.*[^/]\\'" . "Shell-Script mode magic number") .
-     (lambda ()
-       (if (eq major-mode (default-value 'major-mode))
-	   (sh-mode))))
+     ,(lambda ()
+	(if (eq major-mode (default-value 'major-mode))
+	    (sh-mode))))
 
     (ada-mode . ada-header)
 
@@ -171,7 +171,7 @@ If this contains a %s, that will be replaced by the matching rule."
      '(setq v1 (let (modes)
                  (mapatoms (lambda (mode)
                              (let ((name (symbol-name mode)))
-                               (when (string-match "-mode$" name)
+                               (when (string-match "-mode\\'" name)
                                  (push name modes)))))
                  (sort modes 'string<)))
      (completing-read "Local variables for mode: " v1 nil t)
@@ -210,7 +210,8 @@ If this contains a %s, that will be replaced by the matching rule."
 	   "\n"))
  ((let ((minibuffer-help-form v2))
     (completing-read "Keyword, C-h: " v1 nil t))
-    str ", ") & -2 "
+    str ", ")
+ & -2 "
 
 \;; This program is free software; you can redistribute it and/or modify
 \;; it under the terms of the GNU General Public License as published by
