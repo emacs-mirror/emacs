@@ -1,4 +1,4 @@
-;;; undigest.el --- Tests for undigest.el  -*- lexical-binding:t -*-
+;;; undigest-tests.el --- Tests for undigest.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
