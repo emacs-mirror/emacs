@@ -2715,7 +2715,9 @@ The method used must be an out-of-band method."
 	  ;; Try to insert the amount of free space.
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
-	  (when (re-search-forward "^\\([[:space:]]*total\\)" nil t)
+	  (when (and (re-search-forward "^\\([[:space:]]*total\\)" nil t)
+		     ;; Emacs 29.1 or later.
+		     (not (fboundp 'dired--insert-disk-space)))
 	    (when-let ((available (get-free-disk-space ".")))
 	      ;; Replace "total" with "total used", to avoid confusion.
 	      (replace-match "\\1 used in directory")

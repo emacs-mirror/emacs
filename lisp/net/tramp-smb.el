@@ -1129,7 +1129,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; Insert size information.
 	  (when full-directory-p
 	    (insert
-	     (if avail
+	     (if (and avail
+		      ;; Emacs 29.1 or later.
+		      (not (fboundp 'dired--insert-disk-space)))
 		 (format "total used in directory %s available %s\n" used avail)
 	       (format "total %s\n" used))))
 
