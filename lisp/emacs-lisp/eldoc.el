@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.11.0
+;; Version: 1.11.1
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -102,7 +102,7 @@ put in the echo area.  If a positive integer, the number is used
 directly, while a float specifies the number of lines as a
 proportion of the echo area frame's height.
 
-If value is the symbol `truncate-sym-name-if-fit' t, the part of
+If value is the symbol `truncate-sym-name-if-fit', the part of
 the doc string that represents a symbol's name may be truncated
 if it will enable the rest of the doc string to fit on a single
 line, without resizing the echo area.
@@ -525,7 +525,8 @@ Helper for `eldoc-display-in-echo-area'."
                         (goto-char (point-min))
                         (skip-chars-forward " \t\n")
                         (point))
-                 (goto-char (line-end-position available))
+                 (forward-visible-line (1- available))
+                 (end-of-visible-line)
                  (skip-chars-backward " \t\n")))
         (truncated (save-excursion
                      (skip-chars-forward " \t\n")
@@ -535,7 +536,8 @@ Helper for `eldoc-display-in-echo-area'."
           ((and truncated
                 (> available 1)
                 eldoc-echo-area-display-truncation-message)
-           (goto-char (line-end-position 0))
+           (forward-visible-line -1)
+           (end-of-visible-line)
            (concat (buffer-substring start (point))
                    (format
                     "\n(Documentation truncated. Use `%s' to see rest)"
@@ -610,7 +612,8 @@ Honor `eldoc-echo-area-use-multiline-p' and
                (let ((string
                       (with-current-buffer (eldoc--format-doc-buffer docs)
                         (buffer-substring (goto-char (point-min))
-                                          (line-end-position 1)))))
+                                          (progn (end-of-visible-line)
+                                                 (point))))))
                  (if (> (length string) width)  ; truncation to happen
                      (unless (eldoc--echo-area-prefer-doc-buffer-p t)
                        (truncate-string-to-width string width))
