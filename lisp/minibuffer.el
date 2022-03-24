@@ -1413,20 +1413,20 @@ scroll the window of possible completions."
     (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
         (cond
-         ;; here this is possible only when second-tab, so jump now.
+         ;; Here this is possible only when second-tab, so jump now.
          (completion-auto-select
           (switch-to-completions))
-         ;; reverse tab
+         ;; Reverse tab
          ((equal (this-command-keys) [backtab])
           (if (pos-visible-in-window-p (point-min) window)
-              ;; If beginning is in view, scroll up to the end
+              ;; If beginning is in view, scroll up to the end.
               (set-window-point window (point-max))
             ;; Else scroll down one screen.
             (with-selected-window window (scroll-down))))
-         ;; normal tab
+         ;; Normal tab
          (t
           (if (pos-visible-in-window-p (point-max) window)
-              ;; If end is in view, scroll up to the end
+              ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
             ;; Else scroll down one screen.
             (with-selected-window window (scroll-up)))))

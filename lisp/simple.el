@@ -9145,9 +9145,13 @@ This affects the commands `next-completion' and
   :group 'completion)
 
 (defcustom completion-auto-select nil
-  "Non-nil means to automatically select the *Completions* buffer."
-  :type '(choice (const :tag "Select window" t)
-                 (const :tag "Disabled" nil)
+  "Non-nil means to automatically select the *Completions* buffer.
+When the value is t, then pressing TAB will switch to the completion list
+buffer when it pops up that buffer.  If the value is `second-tab', then the
+first TAB will pop up the completions list buffer, and the second one will
+switch to it."
+  :type '(choice (const :tag "Disabled" nil)
+                 (const :tag "Select window on first tab" t)
                  (const :tag "Select window on second-tab" second-tab))
   :version "29.1"
   :group 'completion)
@@ -9413,8 +9417,8 @@ Called from `temp-buffer-show-hook'."
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[choose-completion] to \
 select the completion near point.\n\n")))))
-  (if (eq completion-auto-select t)
-      (switch-to-completions)))
+  (when (eq completion-auto-select t)
+    (switch-to-completions)))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 

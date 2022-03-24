@@ -585,11 +585,12 @@ value.
 
 ** Minibuffer and Completions
 
++++
 *** The "*Completions*" buffer can now be automatically selected.
 To enable this behavior, customize the user option
-'completion-auto-select' to t and pressing 'TAB' will switch to the
-"*Completions*" buffer when it pops up that buffer. If the value is
-'second-tab', then the first tab will display "*Completions*" and the
+'completion-auto-select' to t, then pressing 'TAB' will switch to the
+"*Completions*" buffer when it pops up that buffer.  If the value is
+'second-tab', then the first tab will display "*Completions*", and the
 second one will switch to the "*Completions*" buffer.
 
 *** New user option 'completion-wrap-movement'.
