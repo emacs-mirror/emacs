@@ -105,12 +105,13 @@ For that, use `global-hl-line-sticky-flag'."
   :group 'hl-line
   :set (lambda (symbol value)
          (set-default symbol value)
-         (unless value
-           (let ((selected (window-buffer (selected-window))))
-             (dolist (buffer (buffer-list))
-               (unless (eq buffer selected)
-                 (with-current-buffer buffer
-                   (hl-line-unhighlight))))))))
+         (when (featurep 'hl-line)
+           (unless value
+             (let ((selected (window-buffer (selected-window))))
+               (dolist (buffer (buffer-list))
+                 (unless (eq buffer selected)
+                   (with-current-buffer buffer
+                     (hl-line-unhighlight)))))))))
 
 (defcustom global-hl-line-sticky-flag nil
   "Non-nil means the Global HL-Line mode highlight appears in all windows.
