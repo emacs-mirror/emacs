@@ -82,7 +82,7 @@ question.
 (defun forward-thing (thing &optional n)
   "Move forward to the end of the Nth next THING.
 THING should be a symbol specifying a type of syntactic entity.
-Possibilities include `symbol', `list', `sexp', `defun',
+Possibilities include `symbol', `list', `sexp', `defun', `number',
 `filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
   (let ((forward-op (or (get thing 'forward-op)
@@ -97,7 +97,7 @@ Possibilities include `symbol', `list', `sexp', `defun',
 (defun bounds-of-thing-at-point (thing)
   "Determine the start and end buffer locations for the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
-Possibilities include `symbol', `list', `sexp', `defun',
+Possibilities include `symbol', `list', `sexp', `defun', `number',
 `filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'.
 
@@ -732,6 +732,7 @@ Signal an error if the entire string was not used."
   "Return the symbol at point, or nil if none is found."
   (let ((thing (thing-at-point 'symbol)))
     (if thing (intern thing))))
+
 ;;;###autoload
 (defun number-at-point ()
   "Return the number at point, or nil if none is found.
@@ -746,7 +747,9 @@ like \"0xBEEF09\" or \"#xBEEF09\", are recognized."
     (string-to-number
      (buffer-substring (match-beginning 0) (match-end 0))))))
 
+(put 'number 'forward-op 'forward-word)
 (put 'number 'thing-at-point 'number-at-point)
+
 ;;;###autoload
 (defun list-at-point (&optional ignore-comment-or-string)
   "Return the Lisp list at point, or nil if none is found.
