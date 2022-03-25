@@ -8663,7 +8663,7 @@ these articles."
         (when matching-subject
           (gnus-summary-limit-include-matching-articles
            "subject"
-           matching-subject)
+           (regexp-quote matching-subject))
           ;; Each of the previous two limit calls push a limit onto
           ;; the limit stack. Presumably we want to think of the
           ;; thread and its associated subject matches as a single
