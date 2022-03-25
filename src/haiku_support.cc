@@ -4068,7 +4068,7 @@ be_drag_message_thread_entry (void *thread_data)
 }
 
 bool
-be_drag_message (void *view, void *message,
+be_drag_message (void *view, void *message, bool allow_same_view,
 		 void (*block_input_function) (void),
 		 void (*unblock_input_function) (void),
 		 void (*process_pending_signals_function) (void),
@@ -4083,7 +4083,10 @@ be_drag_message (void *view, void *message,
   ssize_t stat;
 
   block_input_function ();
-  msg->AddInt32 ("emacs:window_id", window->window_id);
+
+  if (!allow_same_view)
+    msg->AddInt32 ("emacs:window_id", window->window_id);
+
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view looper for drag");
 

@@ -585,7 +585,7 @@ haiku_should_quit_drag (void)
 }
 
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
-       2, 2, 0,
+       2, 3, 0,
        doc: /* Begin dragging MESSAGE from FRAME.
 
 MESSAGE an alist of strings, denoting message field names, to a list
@@ -606,8 +606,11 @@ associates to a 32-bit unsigned integer describing the type of the
 system message.
 
 FRAME is a window system frame that must be visible, from which the
-drag will originate.  */)
-  (Lisp_Object frame, Lisp_Object message)
+drag will originate.
+
+ALLOW-SAME-FRAME, if nil or not specified, means that MESSAGE will be
+ignored if it is dropped on top of FRAME.  */)
+  (Lisp_Object frame, Lisp_Object message, Lisp_Object allow_same_frame)
 {
   specpdl_ref idx;
   void *be_message;
@@ -625,6 +628,7 @@ drag will originate.  */)
   record_unwind_protect_ptr (BMessage_delete, be_message);
   haiku_lisp_to_message (message, be_message);
   rc = be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
+			!NILP (allow_same_frame),
 			block_input, unblock_input,
 			process_pending_signals,
 			haiku_should_quit_drag);
