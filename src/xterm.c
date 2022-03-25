@@ -820,10 +820,139 @@ static struct frame *x_dnd_frame;
 static XWindowAttributes x_dnd_old_window_attrs;
 static bool x_dnd_unwind_flag;
 
+struct x_client_list_window
+{
+  Window window;
+  Display *dpy;
+  int x, y;
+  int width, height;
+  bool visible_p;
+  long previous_event_mask;
+
+  struct x_client_list_window *next;
+};
+
+static struct x_client_list_window *x_dnd_toplevels = NULL;
+static bool x_dnd_use_toplevels;
+
+static void
+x_dnd_free_toplevels (void)
+{
+  struct x_client_list_window *last;
+  struct x_client_list_window *tem = x_dnd_toplevels;
+
+  while (tem)
+    {
+      last = tem;
+      tem = tem->next;
+
+      x_catch_errors (last->dpy);
+      XSelectInput (last->dpy, last->window,
+		    last->previous_event_mask);
+      x_uncatch_errors ();
+      xfree (last);
+    }
+
+  x_dnd_toplevels = NULL;
+}
+
+static int
+x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
+{
+  Atom type;
+  Window *toplevels, child;
+  int format, rc, dest_x, dest_y;
+  unsigned long nitems, bytes_after;
+  unsigned char *data = NULL;
+  unsigned long i;
+  XWindowAttributes attrs;
+  struct x_client_list_window *tem;
+
+  rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
+			   dpyinfo->Xatom_net_client_list_stacking,
+			   0, LONG_MAX, False, XA_WINDOW, &type,
+			   &format, &nitems, &bytes_after, &data);
+
+  if (rc != Success)
+    return 1;
+
+  if (format != 32 || type != XA_WINDOW)
+    {
+      XFree (data);
+      return 1;
+    }
+
+  toplevels = (Window *) data;
+
+  /* Actually right because _NET_CLIENT_LIST_STACKING has bottom-up
+     order.  */
+  for (i = 0; i < nitems; ++i)
+    {
+      x_catch_errors (dpyinfo->display);
+      rc = (XGetWindowAttributes (dpyinfo->display,
+				  toplevels[i], &attrs)
+	    && !x_had_errors_p (dpyinfo->display));
+
+      if (rc)
+	rc = (XTranslateCoordinates (dpyinfo->display, toplevels[i],
+				     attrs.root, -attrs.border_width,
+				     -attrs.border_width, &dest_x,
+				     &dest_y, &child)
+	      && !x_had_errors_p (dpyinfo->display));
+      x_uncatch_errors_after_check ();
+
+      if (rc)
+	{
+	  tem = xmalloc (sizeof *tem);
+	  tem->window = toplevels[i];
+	  tem->dpy = dpyinfo->display;
+	  tem->x = dest_x;
+	  tem->y = dest_y;
+	  tem->width = attrs.width + attrs.border_width;
+	  tem->height = attrs.height + attrs.border_width;
+	  tem->visible_p = (attrs.map_state == IsViewable);
+	  tem->next = x_dnd_toplevels;
+	  tem->previous_event_mask = attrs.your_event_mask;
+
+	  x_catch_errors (dpyinfo->display);
+	  XSelectInput (dpyinfo->display, toplevels[i],
+			attrs.your_event_mask | StructureNotifyMask);
+	  x_uncatch_errors ();
+
+	  x_dnd_toplevels = tem;
+	}
+    }
+
+  return 0;
+}
+
 #define X_DND_SUPPORTED_VERSION 5
 
 static int x_dnd_get_window_proto (struct x_display_info *, Window);
 static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
+
+static Window
+x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
+			   int root_x, int root_y)
+{
+  struct x_client_list_window *tem;
+
+  /* Loop through x_dnd_toplevels until we find the toplevel where
+     root_x and root_y are.  */
+
+  for (tem = x_dnd_toplevels; tem; tem = tem->next)
+    {
+      if (!tem->visible_p)
+	continue;
+
+      if (root_x >= tem->x && root_y >= tem->y
+	  && root_x < tem->x + tem->width
+	  && root_y < tem->y + tem->height)
+	return tem->window;
+    }
+
+  return None;
+}
 
 static Window
 x_dnd_get_target_window (struct x_display_info *dpyinfo,
@@ -840,6 +969,76 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
   dest_y_return = root_y;
 
   proto = -1;
+
+  if (x_dnd_use_toplevels)
+    {
+      child = x_dnd_get_target_window_1 (dpyinfo, root_x, root_y);
+
+      if (child != None)
+	{
+	  proxy = x_dnd_get_window_proxy (dpyinfo, child_return);
+
+	  if (proxy != None)
+	    {
+	      proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+	      if (proto != -1)
+		{
+		  *proto_out = proto;
+		  return proxy;
+		}
+	    }
+
+	  *proto_out = x_dnd_get_window_proto (dpyinfo, child);
+	  return child;
+	}
+
+      /* Then look at the composite overlay window.  */
+#if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
+      if (dpyinfo->composite_supported_p
+	  && (dpyinfo->composite_major > 0
+	      || dpyinfo->composite_minor > 2))
+	{
+	  if (XGetSelectionOwner (dpyinfo->display,
+				  dpyinfo->Xatom_NET_WM_CM_Sn) != None)
+	    {
+	      x_catch_errors (dpyinfo->display);
+	      overlay_window = XCompositeGetOverlayWindow (dpyinfo->display,
+							   dpyinfo->root_window);
+	      XCompositeReleaseOverlayWindow (dpyinfo->display,
+					      dpyinfo->root_window);
+	      if (!x_had_errors_p (dpyinfo->display))
+		{
+		  XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
+
+		  if (attrs.map_state == IsViewable)
+		    {
+		      proxy = x_dnd_get_window_proxy (dpyinfo, overlay_window);
+
+		      if (proxy != None)
+			{
+			  proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+			  if (proto != -1)
+			    {
+			      *proto_out = proto;
+			      x_uncatch_errors_after_check ();
+
+			      return proxy;
+			    }
+			}
+		    }
+		}
+	      x_uncatch_errors_after_check ();
+	    }
+	}
+#endif
+
+      /* No toplevel was found and the overlay window was not a proxy,
+	 so return None.  */
+      *proto_out = -1;
+      return None;
+    }
 
   /* Not strictly necessary, but satisfies GCC.  */
   child = dpyinfo->root_window;
@@ -1005,7 +1204,7 @@ x_dnd_get_window_proto (struct x_display_info *dpyinfo, Window wdesc)
   unsigned long n, left;
   bool had_errors;
 
-  if (wdesc == None || wdesc == FRAME_X_WINDOW (x_dnd_frame))
+  if (wdesc == None || wdesc == FRAME_OUTER_WINDOW (x_dnd_frame))
     return -1;
 
   x_catch_errors (dpyinfo->display);
@@ -1181,6 +1380,9 @@ x_dnd_cleanup_drag_and_drop (void *frame)
     }
 
   x_dnd_waiting_for_finish = false;
+
+  if (x_dnd_use_toplevels)
+    x_dnd_free_toplevels ();
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
@@ -7036,6 +7238,18 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_return_frame = 0;
   x_dnd_waiting_for_finish = false;
   x_dnd_end_window = None;
+  x_dnd_use_toplevels
+    = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
+  x_dnd_toplevels = NULL;
+
+  if (x_dnd_use_toplevels)
+    {
+      if (x_dnd_compute_toplevels (FRAME_DISPLAY_INFO (f)))
+	{
+	  x_dnd_free_toplevels ();
+	  x_dnd_use_toplevels = false;
+	}
+    }
 
   if (return_frame_p)
     x_dnd_return_frame = 1;
@@ -7128,6 +7342,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_waiting_for_finish = false;
 	    }
 
+	  if (x_dnd_use_toplevels)
+	    x_dnd_free_toplevels ();
+
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
 	  current_hold_quit = NULL;
@@ -7162,6 +7379,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       return action;
     }
 
+  if (x_dnd_use_toplevels)
+    x_dnd_free_toplevels ();
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Emacs can't respond to DND events inside the nested event
@@ -11292,8 +11511,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (event->xproperty.window == dpyinfo->root_window
 	  && (event->xproperty.atom == dpyinfo->Xatom_net_client_list_stacking
 	      || event->xproperty.atom == dpyinfo->Xatom_net_current_desktop)
-	  && x_dnd_in_progress)
-	x_dnd_update_state (dpyinfo);
+	  && x_dnd_in_progress
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
+	{
+	  if (x_dnd_use_toplevels)
+	    {
+	      x_dnd_free_toplevels ();
+
+	      if (x_dnd_compute_toplevels (dpyinfo))
+		{
+		  x_dnd_free_toplevels ();
+		  x_dnd_use_toplevels = false;
+		}
+	    }
+
+	  x_dnd_update_state (dpyinfo);
+	}
 
       x_handle_property_notify (&event->xproperty);
       xft_settings_event (dpyinfo, event);
@@ -11464,6 +11697,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case UnmapNotify:
+      if (x_dnd_in_progress && x_dnd_use_toplevels)
+	{
+	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
+	       tem = tem->next)
+	    {
+	      if (tem->window == event->xmap.window)
+		{
+		  tem->visible_p = false;
+		  break;
+		}
+	    }
+	}
+
       /* Redo the mouse-highlight after the tooltip has gone.  */
       if (event->xunmap.window == tip_window)
         {
@@ -11511,6 +11757,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (x_dnd_in_progress)
 	x_dnd_update_state (dpyinfo);
+
+      if (x_dnd_in_progress && x_dnd_use_toplevels)
+	{
+	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
+	       tem = tem->next)
+	    {
+	      if (tem->window == event->xmap.window)
+		{
+		  tem->visible_p = true;
+		  break;
+		}
+	    }
+	}
+
       /* We use x_top_window_to_frame because map events can
          come for sub-windows and they don't mean that the
          frame is visible.  */
@@ -12286,6 +12546,56 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           else
 	    configureEvent = next_event;
         }
+
+      if (x_dnd_in_progress && x_dnd_use_toplevels)
+	{
+	  int rc, dest_x, dest_y;
+	  Window child;
+	  struct x_client_list_window *tem, *last = NULL;
+
+	  for (tem = x_dnd_toplevels; tem; last = tem, tem = tem->next)
+	    {
+	      /* Not completely right, since the parent could be
+		 unmapped, but good enough.  */
+
+	      if (tem->window == configureEvent.xconfigure.window)
+		{
+		  x_catch_errors (dpyinfo->display);
+		  rc = (XTranslateCoordinates (dpyinfo->display,
+					       configureEvent.xconfigure.window,
+					       dpyinfo->root_window,
+					       -configureEvent.xconfigure.border_width,
+					       -configureEvent.xconfigure.border_width,
+					       &dest_x, &dest_y, &child)
+			&& !x_had_errors_p (dpyinfo->display));
+		  x_uncatch_errors_after_check ();
+
+		  if (rc)
+		    {
+		      tem->x = dest_x;
+		      tem->y = dest_y;
+		      tem->width = (configureEvent.xconfigure.width
+				    + configureEvent.xconfigure.border_width);
+		      tem->height = (configureEvent.xconfigure.height
+				     + configureEvent.xconfigure.border_width);
+		    }
+		  else
+		    {
+		      /* The window was probably destroyed, so get rid
+			 of it.  */
+
+		      if (!last)
+			x_dnd_toplevels = tem->next;
+		      else
+			last->next = tem->next;
+
+		      xfree (tem);
+		    }
+
+		  break;
+		}
+	    }
+	}
 
 #if defined HAVE_GTK3 && defined USE_TOOLKIT_SCROLL_BARS
 	  struct scroll_bar *bar = x_window_to_scroll_bar (dpyinfo->display,
