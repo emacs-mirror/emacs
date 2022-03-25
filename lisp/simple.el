@@ -9146,13 +9146,17 @@ This affects the commands `next-completion' and
 
 (defcustom completion-auto-select nil
   "Non-nil means to automatically select the *Completions* buffer.
-When the value is t, then pressing TAB will switch to the completion list
-buffer when it pops up that buffer.  If the value is `second-tab', then the
-first TAB will pop up the completions list buffer, and the second one will
-switch to it."
-  :type '(choice (const :tag "Disabled" nil)
-                 (const :tag "Select window on first tab" t)
-                 (const :tag "Select window on second-tab" second-tab))
+When the value is t, pressing TAB will switch to the completion list
+buffer when Emacs pops up a window showing that buffer.
+If the value is `second-tab', then the first TAB will pop up the
+window shwoing the completions list buffer, and the next TAB will
+switch to that window.
+See `completion-auto-help' for controlling when the window showing
+the completions is popped up and down."
+  :type '(choice (const :tag "Don't auto-select completions window" nil)
+                 (const :tag "Select completions window on first TAB" t)
+                 (const :tag
+                        "Select completions window on second TAB" second-tab))
   :version "29.1"
   :group 'completion)
 
