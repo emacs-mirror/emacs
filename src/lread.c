@@ -550,13 +550,21 @@ invalid_syntax_lisp (Lisp_Object s, Lisp_Object readcharfun)
 {
   if (BUFFERP (readcharfun))
     {
+      ptrdiff_t line, column;
+
+      /* Get the line/column in the readcharfun buffer.  */
+      {
+	specpdl_ref count = SPECPDL_INDEX ();
+
+	record_unwind_protect_excursion ();
+	set_buffer_internal (XBUFFER (readcharfun));
+	line = count_lines (BEGV_BYTE, PT_BYTE) + 1;
+	column = current_column ();
+	unbind_to (count, Qnil);
+      }
+
       xsignal (Qinvalid_read_syntax,
-	       list3 (s,
-		      /* We should already be in the readcharfun
-			 buffer when this error is called, so no need
-			 to switch to it first. */
-		      make_fixnum (count_lines (BEGV_BYTE, PT_BYTE) + 1),
-		      make_fixnum (current_column ())));
+	       list3 (s, make_fixnum (line), make_fixnum (column)));
     }
   else
     xsignal1 (Qinvalid_read_syntax, s);
