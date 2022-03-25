@@ -7503,8 +7503,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_in_progress = false;
 	      x_dnd_frame = NULL;
 	      x_set_dnd_targets (NULL, 0);
-	      x_dnd_waiting_for_finish = false;
 	    }
+
+	  x_dnd_waiting_for_finish = false;
 
 	  if (x_dnd_use_toplevels)
 	    x_dnd_free_toplevels ();
