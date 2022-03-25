@@ -296,7 +296,7 @@ non-nil call this function with argument GROUP to get the
 artlist; if the group parameter 'nnselect-always-regenerate is
 non-nil, regenerate the artlist; otherwise retrieve the artlist
 directly from the group parameters."
-  `(when (gnus-nnselect-group-p group)
+  `(when (gnus-nnselect-group-p ,group)
      (let ((override (gnus-group-get-parameter
 		     ,group
 		     'nnselect-get-artlist-override-function)))
