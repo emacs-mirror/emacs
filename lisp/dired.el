@@ -1733,20 +1733,26 @@ see `dired-use-ls-dired' for more details.")
 				 'invisible 'dired-hide-details-information))
 	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
 			     'invisible 'dired-hide-details-detail)
+          (when dired-mouse-drag-files
+            (put-text-property (point)
+	                       (save-excursion
+	                         (dired-move-to-end-of-filename)
+                                 (backward-char)
+	                         (point))
+                               'keymap
+                               dired-mouse-drag-files-map))
 	  (add-text-properties
 	   (point)
 	   (progn
 	     (dired-move-to-end-of-filename)
 	     (point))
-	   (append `(mouse-face
-	             highlight
-	             dired-filename t
-	             help-echo ,(if dired-mouse-drag-files
-                                    "down-mouse-1: drag this file to another program
+	   `(mouse-face
+	     highlight
+	     dired-filename t
+	     help-echo ,(if dired-mouse-drag-files
+                            "down-mouse-1: drag this file to another program
 mouse-2: visit this file in other window"
-                                  "mouse-2: visit this file in other window"))
-                   (when dired-mouse-drag-files
-                     `(keymap ,dired-mouse-drag-files-map))))
+                          "mouse-2: visit this file in other window")))
 	  (when (< (+ (point) 4) (line-end-position))
 	    (put-text-property (+ (point) 4) (line-end-position)
 			       'invisible 'dired-hide-details-link))))
