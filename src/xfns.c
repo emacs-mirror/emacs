@@ -6582,7 +6582,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 4, 0,
+DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 5, 0,
        doc: /* Begin dragging contents on FRAME, with targets TARGETS.
 TARGETS is a list of strings, which defines the X selection targets
 that will be available to the drop target.  Block until the mouse
@@ -6612,7 +6612,7 @@ https://freedesktop.org/wiki/Specifications/XDND/.
 
 If RETURN-FRAME is non-nil, this function will return the frame if the
 mouse pointer moves onto an Emacs frame, after first moving out of
-FRAME.
+FRAME.  (This is not guaranteed to work on some systems.)
 
 If ACTION is a list and not nil, its elements are assumed to be a cons
 of (ITEM . STRING), where ITEM is the name of an action, and STRING is
@@ -6620,9 +6620,13 @@ a string describing ITEM to the user.  The drop target is expected to
 prompt the user to choose between any of the actions in the list.
 
 If ACTION is not specified or nil, `XdndActionCopy' is used
-instead.  */)
+instead.
+
+If ALLOW-CURRENT-FRAME is not specified or nil, then the drop target
+is allowed to be FRAME.  Otherwise, no action will be taken if the
+mouse buttons are released on top of FRAME.  */)
   (Lisp_Object targets, Lisp_Object action, Lisp_Object frame,
-   Lisp_Object return_frame)
+   Lisp_Object return_frame, Lisp_Object allow_current_frame)
 {
   struct frame *f = decode_window_system_frame (frame);
   int ntargets = 0, nnames = 0;
@@ -6650,7 +6654,7 @@ instead.  */)
 	  scratch = SSDATA (XCAR (targets));
 	  len = strlen (scratch);
 	  target_names[ntargets] = SAFE_ALLOCA (len + 1);
-	  strncpy (target_names[ntargets], scratch, len + 1);;
+	  strncpy (target_names[ntargets], scratch, len + 1);
 	  ntargets++;
 	}
       else
@@ -6725,7 +6729,8 @@ instead.  */)
   x_set_dnd_targets (target_atoms, ntargets);
   lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
 				    xaction, !NILP (return_frame), action_list,
-				    (const char **) &name_list, nnames);
+				    (const char **) &name_list, nnames,
+				    !NILP (allow_current_frame));
 
   SAFE_FREE ();
   return lval;

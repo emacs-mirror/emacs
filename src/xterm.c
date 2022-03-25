@@ -799,6 +799,7 @@ static bool x_dnd_in_progress;
 static bool x_dnd_waiting_for_finish;
 static Window x_dnd_pending_finish_target;
 static int x_dnd_waiting_for_finish_proto;
+static bool x_dnd_allow_current_frame;
 
 /* Whether or not to return a frame from `x_dnd_begin_drag_and_drop'.
 
@@ -1368,7 +1369,8 @@ x_dnd_get_window_proto (struct x_display_info *dpyinfo, Window wdesc)
   unsigned long n, left;
   bool had_errors;
 
-  if (wdesc == None || wdesc == FRAME_OUTER_WINDOW (x_dnd_frame))
+  if (wdesc == None || (!x_dnd_allow_current_frame
+			&& wdesc == FRAME_OUTER_WINDOW (x_dnd_frame)))
     return -1;
 
   x_catch_errors (dpyinfo->display);
@@ -7310,7 +7312,7 @@ Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   bool return_frame_p, Atom *ask_action_list,
 			   const char **ask_action_names,
-			   size_t n_ask_actions)
+			   size_t n_ask_actions, bool allow_current_frame)
 {
 #ifndef USE_GTK
   XEvent next_event;
@@ -7394,7 +7396,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   x_dnd_in_progress = true;
   x_dnd_frame = f;
-  x_dnd_last_seen_window = FRAME_OUTER_WINDOW (f);
+  x_dnd_last_seen_window = None;
   x_dnd_last_protocol_version = -1;
   x_dnd_mouse_rect_target = None;
   x_dnd_action = None;
@@ -7405,6 +7407,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_use_toplevels
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
   x_dnd_toplevels = NULL;
+  x_dnd_allow_current_frame = allow_current_frame;
 
   if (x_dnd_use_toplevels)
     {

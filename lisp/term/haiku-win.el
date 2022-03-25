@@ -199,7 +199,7 @@ This is necessary because on Haiku `use-system-tooltip' doesn't
 take effect on menu items until the menu bar is updated again."
   (force-mode-line-update t))
 
-(defun x-begin-drag (targets &optional action frame _return-frame)
+(defun x-begin-drag (targets &optional action frame _return-frame _allow-current-frame)
   "SKIP: real doc in xfns.c."
   (unless haiku-dnd-selection-value
     (error "No local value for XdndSelection"))

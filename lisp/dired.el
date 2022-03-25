@@ -1710,7 +1710,8 @@ see `dired-use-ls-dired' for more details.")
                                 "text/x-dnd-username")
                               (if (eq 'dired-mouse-drag-files 'link)
                                   'XdndActionLink
-                                'XdndActionCopy)))
+                                'XdndActionCopy)
+                              nil nil t))
             (error (when (eq (event-basic-type new-event) 'mouse-1)
                      (push new-event unread-command-events)))))))))
 
