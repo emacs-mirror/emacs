@@ -546,6 +546,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/extensions/Xcomposite.h>
 #endif
 
+#ifdef HAVE_XSHAPE
+#include <X11/extensions/shape.h>
+#endif
+
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
@@ -826,10 +830,21 @@ struct x_client_list_window
   Display *dpy;
   int x, y;
   int width, height;
-  bool visible_p;
+  bool mapped_p;
   long previous_event_mask;
+  unsigned long wm_state;
 
   struct x_client_list_window *next;
+
+#ifdef HAVE_XSHAPE
+  int border_width;
+
+  XRectangle *input_rects;
+  int n_input_rects;
+
+  XRectangle *bounding_rects;
+  int n_bounding_rects;
+#endif
 };
 
 static struct x_client_list_window *x_dnd_toplevels = NULL;
@@ -849,7 +864,18 @@ x_dnd_free_toplevels (void)
       x_catch_errors (last->dpy);
       XSelectInput (last->dpy, last->window,
 		    last->previous_event_mask);
+#ifdef HAVE_XSHAPE
+      XShapeSelectInput (last->dpy, last->window, None);
+#endif
       x_uncatch_errors ();
+
+#ifdef HAVE_XSHAPE
+      if (last->n_input_rects != -1)
+	xfree (last->input_rects);
+      if (last->n_bounding_rects != -1)
+	xfree (last->bounding_rects);
+#endif
+
       xfree (last);
     }
 
@@ -862,11 +888,15 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   Atom type;
   Window *toplevels, child;
   int format, rc, dest_x, dest_y;
-  unsigned long nitems, bytes_after;
-  unsigned char *data = NULL;
+  unsigned long nitems, wmstate_items, bytes_after, *wmstate;
+  unsigned char *data = NULL, *wmstate_data = NULL;
   unsigned long i;
   XWindowAttributes attrs;
   struct x_client_list_window *tem;
+#ifdef HAVE_XSHAPE
+  int count, ordering;
+  XRectangle *rects;
+#endif
 
   rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
 			   dpyinfo->Xatom_net_client_list_stacking,
@@ -899,10 +929,22 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 				     -attrs.border_width, &dest_x,
 				     &dest_y, &child)
 	      && !x_had_errors_p (dpyinfo->display));
+      if (rc)
+	rc = ((XGetWindowProperty (dpyinfo->display,
+				   toplevels[i],
+				   dpyinfo->Xatom_wm_state,
+				   0, 2, False, AnyPropertyType,
+				   &type, &format, &wmstate_items,
+				   &bytes_after, &wmstate_data)
+	       == Success)
+	      && !x_had_errors_p (dpyinfo->display)
+	      && wmstate_data && wmstate_items == 2 && format == 32);
       x_uncatch_errors_after_check ();
 
       if (rc)
 	{
+	  wmstate = (unsigned long *) wmstate_data;
+
 	  tem = xmalloc (sizeof *tem);
 	  tem->window = toplevels[i];
 	  tem->dpy = dpyinfo->display;
@@ -910,13 +952,93 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  tem->y = dest_y;
 	  tem->width = attrs.width + attrs.border_width;
 	  tem->height = attrs.height + attrs.border_width;
-	  tem->visible_p = (attrs.map_state == IsViewable);
+	  tem->mapped_p = (attrs.map_state != IsUnmapped);
 	  tem->next = x_dnd_toplevels;
 	  tem->previous_event_mask = attrs.your_event_mask;
+	  tem->wm_state = wmstate[0];
+
+	  XFree (wmstate_data);
+
+#ifdef HAVE_XSHAPE
+	  tem->border_width = attrs.border_width;
+	  tem->n_bounding_rects = -1;
+	  tem->n_input_rects = -1;
+
+	  if (dpyinfo->xshape_supported_p)
+	    {
+	      x_catch_errors (dpyinfo->display);
+	      XShapeSelectInput (dpyinfo->display,
+				 toplevels[i],
+				 ShapeNotifyMask);
+	      x_uncatch_errors ();
+
+	      x_catch_errors (dpyinfo->display);
+	      rects = XShapeGetRectangles (dpyinfo->display,
+					   toplevels[i],
+					   ShapeBounding,
+					   &count, &ordering);
+	      rc = x_had_errors_p (dpyinfo->display);
+	      x_uncatch_errors_after_check ();
+
+	      /* Does XShapeGetRectangles allocate anything upon an
+		 error?  */
+	      if (!rc)
+		{
+		  tem->n_bounding_rects = count;
+		  tem->bounding_rects
+		    = xmalloc (sizeof *tem->bounding_rects * count);
+		  memcpy (tem->bounding_rects, rects,
+			  sizeof *tem->bounding_rects * count);
+
+		  XFree (rects);
+		}
+
+#ifdef ShapeInput
+	      if (dpyinfo->xshape_major > 1
+		  || (dpyinfo->xshape_major == 1
+		      && dpyinfo->xshape_minor >= 1))
+		{
+		  x_catch_errors (dpyinfo->display);
+		  rects = XShapeGetRectangles (dpyinfo->display,
+					       toplevels[i], ShapeInput,
+					       &count, &ordering);
+		  rc = x_had_errors_p (dpyinfo->display);
+		  x_uncatch_errors_after_check ();
+
+		  /* Does XShapeGetRectangles allocate anything upon
+		     an error?  */
+		  if (!rc)
+		    {
+		      tem->n_input_rects = count;
+		      tem->input_rects
+			= xmalloc (sizeof *tem->input_rects * count);
+		      memcpy (tem->input_rects, rects,
+			      sizeof *tem->input_rects * count);
+
+		      XFree (rects);
+		    }
+		}
+#endif
+	    }
+
+	  /* Handle the common case where the input shape equals the
+	     bounding shape.  */
+
+	  if (tem->n_input_rects != -1
+	      && tem->n_bounding_rects == tem->n_input_rects
+	      && !memcmp (tem->bounding_rects, tem->input_rects,
+			  tem->n_input_rects * sizeof *tem->input_rects))
+	    {
+	      xfree (tem->input_rects);
+	      tem->n_input_rects = -1;
+	    }
+#endif
 
 	  x_catch_errors (dpyinfo->display);
 	  XSelectInput (dpyinfo->display, toplevels[i],
-			attrs.your_event_mask | StructureNotifyMask);
+			(attrs.your_event_mask
+			 | StructureNotifyMask
+			 | PropertyChangeMask));
 	  x_uncatch_errors ();
 
 	  x_dnd_toplevels = tem;
@@ -931,6 +1053,28 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 static int x_dnd_get_window_proto (struct x_display_info *, Window);
 static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
 
+#ifdef HAVE_XSHAPE
+static bool
+x_dnd_get_target_window_2 (XRectangle *rects, int nrects,
+			   int x, int y)
+{
+  int i;
+  XRectangle *tem;
+
+  for (i = 0; i < nrects; ++i)
+    {
+      tem = &rects[i];
+
+      if (x >= tem->x && y >= tem->y
+	  && x < tem->x + tem->width
+	  && y < tem->y + tem->height)
+	return true;
+    }
+
+  return false;
+}
+#endif
+
 static Window
 x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
 			   int root_x, int root_y)
@@ -942,13 +1086,33 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
 
   for (tem = x_dnd_toplevels; tem; tem = tem->next)
     {
-      if (!tem->visible_p)
+      if (!tem->mapped_p || tem->wm_state != NormalState)
 	continue;
 
       if (root_x >= tem->x && root_y >= tem->y
 	  && root_x < tem->x + tem->width
 	  && root_y < tem->y + tem->height)
-	return tem->window;
+	{
+#ifdef HAVE_XSHAPE
+	  if (tem->n_bounding_rects == -1)
+#endif
+	    return tem->window;
+
+#ifdef HAVE_XSHAPE
+	  if (x_dnd_get_target_window_2 (tem->bounding_rects,
+					 tem->n_bounding_rects,
+					 tem->border_width + root_x - tem->x,
+					 tem->border_width + root_y - tem->y))
+	    {
+	      if (tem->n_input_rects == -1
+		  || x_dnd_get_target_window_2 (tem->input_rects,
+						tem->n_input_rects,
+						tem->border_width + root_x - tem->x,
+						tem->border_width + root_y - tem->y))
+		return tem->window;
+	    }
+#endif
+	}
     }
 
   return None;
@@ -7230,7 +7394,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   x_dnd_in_progress = true;
   x_dnd_frame = f;
-  x_dnd_last_seen_window = FRAME_X_WINDOW (f);
+  x_dnd_last_seen_window = FRAME_OUTER_WINDOW (f);
   x_dnd_last_protocol_version = -1;
   x_dnd_mouse_rect_target = None;
   x_dnd_action = None;
@@ -10983,10 +11147,10 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 	{
 	  if (x_dnd_last_seen_window != None
 	      && x_dnd_last_protocol_version != -1
-	      && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
+	      && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 	    x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 
-	  if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+	  if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
 	      && x_dnd_return_frame == 1)
 	    x_dnd_return_frame = 2;
 
@@ -10999,6 +11163,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 	      x_dnd_return_frame_object
 		= x_any_window_to_frame (dpyinfo, target);
 	      x_dnd_return_frame = 3;
+	      x_dnd_waiting_for_finish = false;
+	      target = None;
 	    }
 
 	  x_dnd_action = None;
@@ -11018,7 +11184,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
 			     x_dnd_wanted_action);
     }
   /* The pointer moved out of the screen.  */
-  else if (x_dnd_last_protocol_version)
+  else if (x_dnd_last_protocol_version != -1)
     {
       if (x_dnd_last_seen_window != None
 	  && x_dnd_last_protocol_version != -1)
@@ -11028,6 +11194,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo)
       x_dnd_end_window = x_dnd_last_seen_window;
       x_dnd_last_seen_window = None;
       x_dnd_in_progress = false;
+      x_dnd_waiting_for_finish = false;
       x_dnd_frame = NULL;
     }
 }
@@ -11464,6 +11631,65 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case PropertyNotify:
+      if (x_dnd_in_progress && x_dnd_use_toplevels
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame)
+	  && event->xproperty.atom == dpyinfo->Xatom_wm_state)
+	{
+	  struct x_client_list_window *tem, *last;
+
+	  for (last = NULL, tem = x_dnd_toplevels; tem;
+	       last = tem, tem = tem->next)
+	    {
+	      if (tem->window == event->xproperty.window)
+		{
+		  Atom actual_type;
+		  int actual_format, rc;
+		  unsigned long nitems, bytesafter;
+		  unsigned char *data = NULL;
+
+
+		  if (event->xproperty.state == PropertyDelete)
+		    {
+		      if (!last)
+			x_dnd_toplevels = tem->next;
+		      else
+			last->next = tem->next;
+
+#ifdef HAVE_XSHAPE
+		      if (tem->n_input_rects != -1)
+			xfree (tem->input_rects);
+		      if (tem->n_bounding_rects != -1)
+			xfree (tem->bounding_rects);
+#endif
+		      xfree (tem);
+		    }
+		  else
+		    {
+		      x_catch_errors (dpyinfo->display);
+		      rc = XGetWindowProperty (dpyinfo->display,
+					       event->xproperty.window,
+					       dpyinfo->Xatom_wm_state,
+					       0, 2, False, AnyPropertyType,
+					       &actual_type, &actual_format,
+					       &nitems, &bytesafter, &data);
+
+		      if (!x_had_errors_p (dpyinfo->display) && rc == Success && data
+			  && nitems == 2 && actual_format == 32)
+			{
+			  tem->wm_state = ((unsigned long *) data)[0];
+			  XFree (data);
+			}
+		      else
+			tem->wm_state = WithdrawnState;
+		      x_uncatch_errors_after_check ();
+		    }
+
+		  x_dnd_update_state (dpyinfo);
+		  break;
+		}
+	    }
+	}
+
       f = x_top_window_to_frame (dpyinfo, event->xproperty.window);
       if (f && event->xproperty.atom == dpyinfo->Xatom_net_wm_state)
 	{
@@ -11697,14 +11923,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case UnmapNotify:
-      if (x_dnd_in_progress && x_dnd_use_toplevels)
+      if (x_dnd_in_progress && x_dnd_use_toplevels
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	{
 	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
 	       tem = tem->next)
 	    {
-	      if (tem->window == event->xmap.window)
+	      if (tem->window == event->xunmap.window)
 		{
-		  tem->visible_p = false;
+		  tem->mapped_p = false;
 		  break;
 		}
 	    }
@@ -11758,14 +11985,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (x_dnd_in_progress)
 	x_dnd_update_state (dpyinfo);
 
-      if (x_dnd_in_progress && x_dnd_use_toplevels)
+      if (x_dnd_in_progress && x_dnd_use_toplevels
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	{
 	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
 	       tem = tem->next)
 	    {
 	      if (tem->window == event->xmap.window)
 		{
-		  tem->visible_p = true;
+		  tem->mapped_p = true;
 		  break;
 		}
 	    }
@@ -12389,10 +12617,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		if (x_dnd_last_seen_window != None
 		    && x_dnd_last_protocol_version != -1
-		    && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
+		    && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 		  x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 
-		if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+		if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
 		    && x_dnd_return_frame == 1)
 		  x_dnd_return_frame = 2;
 
@@ -12405,6 +12633,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    x_dnd_return_frame_object
 		      = x_any_window_to_frame (dpyinfo, target);
 		    x_dnd_return_frame = 3;
+		    x_dnd_waiting_for_finish = false;
+		    target = None;
 		  }
 
 		x_dnd_action = None;
@@ -12547,7 +12777,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    configureEvent = next_event;
         }
 
-      if (x_dnd_in_progress && x_dnd_use_toplevels)
+      if (x_dnd_in_progress && x_dnd_use_toplevels
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	{
 	  int rc, dest_x, dest_y;
 	  Window child;
@@ -12589,6 +12820,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      else
 			last->next = tem->next;
 
+#ifdef HAVE_XSHAPE
+		      if (tem->n_input_rects != -1)
+			xfree (tem->input_rects);
+		      if (tem->n_bounding_rects != -1)
+			xfree (tem->bounding_rects);
+#endif
 		      xfree (tem);
 		    }
 
@@ -13699,20 +13936,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      if (x_dnd_last_seen_window != None
 			  && x_dnd_last_protocol_version != -1
-			  && x_dnd_last_seen_window != FRAME_X_WINDOW (x_dnd_frame))
+			  && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 			x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 
-		      if (x_dnd_last_seen_window == FRAME_X_WINDOW (x_dnd_frame)
+		      if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
 			  && x_dnd_return_frame == 1)
 			x_dnd_return_frame = 2;
 
 		      if (x_dnd_return_frame == 2
 			  && x_any_window_to_frame (dpyinfo, target))
 			{
+			  x_dnd_end_window = x_dnd_last_seen_window;
+			  x_dnd_last_seen_window = None;
 			  x_dnd_in_progress = false;
 			  x_dnd_return_frame_object
 			    = x_any_window_to_frame (dpyinfo, target);
 			  x_dnd_return_frame = 3;
+			  x_dnd_waiting_for_finish = false;
+			  target = None;
 			}
 
 		      x_dnd_action = None;
@@ -15043,7 +15284,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     default:
 #ifdef HAVE_XKB
-      if (event->type == dpyinfo->xkb_event_type)
+      if (dpyinfo->supports_xkb
+	  && event->type == dpyinfo->xkb_event_type)
 	{
 	  XkbEvent *xkbevent = (XkbEvent *) event;
 
@@ -15086,6 +15328,109 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	      x_find_modifier_meanings (dpyinfo);
+	    }
+	}
+#endif
+#ifdef HAVE_XSHAPE
+      if (dpyinfo->xshape_supported_p
+	  && event->type == dpyinfo->xshape_event_base + ShapeNotify
+	  && x_dnd_in_progress && x_dnd_use_toplevels
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
+	{
+	  XEvent xevent;
+	  XShapeEvent *xse = (XShapeEvent *) event;
+	  XRectangle *rects;
+	  int rc, ordering;
+
+	  while (XPending (dpyinfo->display))
+	    {
+	      XNextEvent (dpyinfo->display, &xevent);
+
+	      if (xevent.type == dpyinfo->xshape_event_base + ShapeNotify
+		  && ((XShapeEvent *) &xevent)->window == xse->window)
+		xse = (XShapeEvent *) &xevent;
+	      else
+		{
+		  XPutBackEvent (dpyinfo->display, &xevent);
+		  break;
+		}
+	    }
+
+	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
+	       tem = tem->next)
+	    {
+	      if (tem->window == xse->window)
+		{
+		  if (tem->n_input_rects != -1)
+		    xfree (tem->input_rects);
+		  if (tem->n_bounding_rects != -1)
+		    xfree (tem->bounding_rects);
+
+		  tem->n_input_rects = -1;
+		  tem->n_bounding_rects = -1;
+
+		  x_catch_errors (dpyinfo->display);
+		  rects = XShapeGetRectangles (dpyinfo->display,
+					       xse->window,
+					       ShapeBounding,
+					       &count, &ordering);
+		  rc = x_had_errors_p (dpyinfo->display);
+		  x_uncatch_errors_after_check ();
+
+		  /* Does XShapeGetRectangles allocate anything upon an
+		     error?  */
+		  if (!rc)
+		    {
+		      tem->n_bounding_rects = count;
+		      tem->bounding_rects
+			= xmalloc (sizeof *tem->bounding_rects * count);
+		      memcpy (tem->bounding_rects, rects,
+			      sizeof *tem->bounding_rects * count);
+
+		      XFree (rects);
+		    }
+
+#ifdef ShapeInput
+		  if (dpyinfo->xshape_major > 1
+		      || (dpyinfo->xshape_major == 1
+			  && dpyinfo->xshape_minor >= 1))
+		    {
+		      x_catch_errors (dpyinfo->display);
+		      rects = XShapeGetRectangles (dpyinfo->display,
+						   xse->window, ShapeInput,
+						   &count, &ordering);
+		      rc = x_had_errors_p (dpyinfo->display);
+		      x_uncatch_errors_after_check ();
+
+		      /* Does XShapeGetRectangles allocate anything upon
+			 an error?  */
+		      if (!rc)
+			{
+			  tem->n_input_rects = count;
+			  tem->input_rects
+			    = xmalloc (sizeof *tem->input_rects * count);
+			  memcpy (tem->input_rects, rects,
+				  sizeof *tem->input_rects * count);
+
+			  XFree (rects);
+			}
+		    }
+#endif
+
+		  /* Handle the common case where the input shape equals the
+		     bounding shape.  */
+
+		  if (tem->n_input_rects != -1
+		      && tem->n_bounding_rects == tem->n_input_rects
+		      && !memcmp (tem->bounding_rects, tem->input_rects,
+				  tem->n_input_rects * sizeof *tem->input_rects))
+		    {
+		      xfree (tem->input_rects);
+		      tem->n_input_rects = -1;
+		    }
+
+		  break;
+		}
 	    }
 	}
 #endif
@@ -19011,6 +19356,19 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				&dpyinfo->composite_minor);
 #endif
 
+#ifdef HAVE_XSHAPE
+  dpyinfo->xshape_supported_p
+    = XShapeQueryExtension (dpyinfo->display,
+			    &dpyinfo->xshape_event_base,
+			    &dpyinfo->xshape_error_base);
+
+  if (dpyinfo->xshape_supported_p)
+    dpyinfo->xshape_supported_p
+      = XShapeQueryVersion (dpyinfo->display,
+			    &dpyinfo->xshape_major,
+			    &dpyinfo->xshape_minor);
+#endif
+
   /* Put the rdb where we can find it in a way that works on
      all versions.  */
   dpyinfo->rdb = xrdb;
@@ -19391,6 +19749,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("WM_SAVE_YOURSELF", Xatom_wm_save_yourself)
       ATOM_REFS_INIT ("WM_DELETE_WINDOW", Xatom_wm_delete_window)
       ATOM_REFS_INIT ("WM_CHANGE_STATE", Xatom_wm_change_state)
+      ATOM_REFS_INIT ("WM_STATE", Xatom_wm_state)
       ATOM_REFS_INIT ("WM_CONFIGURE_DENIED", Xatom_wm_configure_denied)
       ATOM_REFS_INIT ("WM_MOVED", Xatom_wm_window_moved)
       ATOM_REFS_INIT ("WM_CLIENT_LEADER", Xatom_wm_client_leader)

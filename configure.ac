@@ -4538,6 +4538,24 @@ fi
 AC_SUBST(XDBE_CFLAGS)
 AC_SUBST(XDBE_LIBS)
 
+### Use the Nonrectangular Window Shape extension if available.
+HAVE_XSHAPE=no
+if test "${HAVE_X11}" = "yes"; then
+  AC_CHECK_HEADER(X11/extensions/shape.h,
+    [AC_CHECK_LIB(Xext, XShapeQueryVersion, HAVE_XSHAPE=yes)],
+    [],
+    [#include <X11/extensions/shape.h>
+    ])
+  if test $HAVE_XSHAPE = yes; then
+    XSHAPE_LIBS=-lXext
+  fi
+  if test $HAVE_XSHAPE = yes; then
+    AC_DEFINE(HAVE_XSHAPE, 1, [Define to 1 if you have the Nonrectangular Window Shape extension.])
+  fi
+fi
+AC_SUBST(XSHAPE_CFLAGS)
+AC_SUBST(XSHAPE_LIBS)
+
 ### Use Xcomposite (-lXcomposite) if available
 HAVE_XCOMPOSITE=no
 if test "${HAVE_X11}" = "yes"; then

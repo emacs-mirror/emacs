@@ -396,6 +396,7 @@ struct x_display_info
 
   /* Atom for indicating window state to the window manager.  */
   Atom Xatom_wm_change_state;
+  Atom Xatom_wm_state;
 
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
@@ -643,6 +644,14 @@ struct x_display_info
   bool composite_supported_p;
   int composite_major;
   int composite_minor;
+#endif
+
+#ifdef HAVE_XSHAPE
+  bool xshape_supported_p;
+  int xshape_major;
+  int xshape_minor;
+  int xshape_event_base;
+  int xshape_error_base;
 #endif
 };
 
