@@ -8,7 +8,8 @@ NOTES FOR EMACS CONTINUOUS BUILD ON EMBA
 A continuous build for Emacs can be found at
 <https://emba.gnu.org/emacs/emacs>, a Gitlab instance.  It watches the
 Emacs git repository and starts a pipeline (jobset) if there are new
-changes.  This happens for all Emacs branches.
+changes.  This happens for all Emacs branches which belong to the
+defined workflow (see below).
 
 * Mail notifications
 
@@ -31,6 +32,10 @@ The Emacs jobset is defined in the Emacs source tree, file
 '.gitlab-ci.yml'.  All related files are located in directory
 'test/infra'.  They could be adapted for every Emacs branch, see
 <https://emba.gnu.org/help/ci/yaml/README.md>.
+
+Only branches which name start with 'master', 'emacs', 'feature', or
+'fix' are considered.  This is declared in the workflow rules of file
+'test/infra/gitlab-ci.yml'.
 
 A jobset on Gitlab is called pipeline.  Emacs pipelines run through
 the stages 'build-images', 'platform-images' and 'native-comp-images'
