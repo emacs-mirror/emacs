@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haiku_support.h"
 
 static Lisp_Object *volatile menu_item_selection;
+static struct timespec menu_timer_timespec;
 
 int popup_activated_p = 0;
 
@@ -340,12 +341,35 @@ haiku_menu_show_help (void *help, void *data)
     show_help_echo (Qnil, Qnil, Qnil, Qnil);
 }
 
+static Lisp_Object
+haiku_process_pending_signals_for_menu_1 (void *ptr)
+{
+  menu_timer_timespec = timer_check ();
+
+  return Qnil;
+}
+
+static Lisp_Object
+haiku_process_pending_signals_for_menu_2 (enum nonlocal_exit exit, Lisp_Object error)
+{
+  menu_timer_timespec.tv_sec = 0;
+  menu_timer_timespec.tv_nsec = -1;
+
+  return Qnil;
+}
+
 static struct timespec
 haiku_process_pending_signals_for_menu (void)
 {
   process_pending_signals ();
 
-  return timer_check ();
+  /* The original idea was to let timers throw so that timeouts can
+     work correctly, but there's no way to pop down a BPopupMenu
+     that's currently popped up.  */
+  internal_catch_all (haiku_process_pending_signals_for_menu_1, NULL,
+		      haiku_process_pending_signals_for_menu_2);
+
+  return menu_timer_timespec;
 }
 
 Lisp_Object
