@@ -797,7 +797,7 @@ The value depends on `grep-command', `grep-template',
                          (format "%s -H <D> <X> -type f <F> -print | \"%s\" %s"
                                  find-program xargs-program gcmd))))))
 
-        (setq grep-quoting-style remote)))
+        (setq grep-quoting-style (and remote 'posix))))
 
     ;; Save defaults for this host.
     (setq grep-host-defaults-alist
