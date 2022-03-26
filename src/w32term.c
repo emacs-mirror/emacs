@@ -7744,9 +7744,10 @@ The native image API library used is GDI+ via GDIPLUS.DLL.  This
 library is available only since W2K, therefore this variable is
 unconditionally set to nil on older systems.  */);
 
-  /* For now, disabled by default, since this is an experimental feature.  */
-#if 0 && HAVE_NATIVE_IMAGE_API
-  if (os_subtype == OS_9X)
+  /* Disabled for Cygwin/w32 builds, since they don't link against
+     -lgdiplus, see configure.ac.  */
+#if defined WINDOWSNT && HAVE_NATIVE_IMAGE_API
+  if (os_subtype == OS_SUBTYPE_9X)
     w32_use_native_image_api = 0;
   else
     w32_use_native_image_api = 1;

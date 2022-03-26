@@ -1821,6 +1821,19 @@ follow the system's dark mode: GUI frames use the appropriate light or
 dark title bar and scroll bars, based on the user's Windows-wide color
 settings.
 
+---
+*** Emacs now uses native image APIs to display some image formats.
+On Windows 2000 and later, Emacs now defaults to using the native
+image APIs for displaying the BMP, GIF, JPEG, PNG, and TIFF images.
+This means Emacs on MS-Windows needs no longer use external image
+support libraries to display those images.  Other image types -- XPM,
+SVG, and WEBP -- still need support libraries for Emacs to be able to
+display them.
+
+The use of native image APIs is controlled by the variable
+'w32-use-native-image-API', whose value now defaults to t on systems
+where those APIs are available.
+
 +++
 *** Emacs now supports display of BMP images using native image APIs.
 When 'w32-use-native-image-API' is non-nil, Emacs on MS-Windows now
