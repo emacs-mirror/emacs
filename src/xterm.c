@@ -1288,6 +1288,39 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 	  x_dnd_toplevels = tem;
 	}
+      else
+	{
+#ifdef HAVE_XCB_SHAPE
+	  if (dpyinfo->xshape_supported_p)
+	    {
+	      bounding_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+								    bounding_rect_cookies[i],
+								    &error);
+
+	      if (bounding_rect_reply)
+		free (bounding_rect_reply);
+	      else
+		free (error);
+	    }
+#endif
+
+#ifdef HAVE_XCB_SHAPE_INPUT_RECTS
+	  if (dpyinfo->xshape_supported_p
+	      && (dpyinfo->xshape_major > 1
+		  || (dpyinfo->xshape_major == 1
+		      && dpyinfo->xshape_minor >= 1)))
+	    {
+	      input_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+								    input_rect_cookies[i],
+								    &error);
+
+	      if (input_rect_reply)
+		free (input_rect_reply);
+	      else
+		free (error);
+	    }
+#endif
+	}
 
 #ifdef USE_XCB
       if (attrs_reply)
