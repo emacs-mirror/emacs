@@ -673,10 +673,26 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 	 owner)))
 
 (defun desktop--emacs-pid-running-p (pid)
-  "Return t if an Emacs process with PID exists."
+  "Return non-nil if an Emacs process whose ID is PID might still be running."
   (when-let ((attr (process-attributes pid)))
-    (equal (alist-get 'comm attr)
-           (file-name-nondirectory (car command-line-args)))))
+    (let ((proc-cmd (alist-get 'comm attr))
+          (my-cmd (file-name-nondirectory (car command-line-args)))
+          (case-fold-search t))
+      (or (equal proc-cmd my-cmd)
+          (and (eq system-type 'windows-nt)
+               (eq t (compare-strings proc-cmd
+                                      nil
+                                      (if (string-suffix-p ".exe" proc-cmd t)
+                                          -4)
+                                      my-cmd
+                                      nil
+                                      (if (string-suffix-p ".exe" my-cmd t)
+                                          -4))))
+          ;; We should err on the safe side here: if any of the
+          ;; executables is something like "emacs-nox" or "emacs-42.1"
+          ;; or "gemacs" or "xemacs", let's recognize them as well.
+          (and (string-match-p "emacs" proc-cmd)
+               (string-match-p "emacs" my-cmd))))))
 
 (defun desktop--load-locked-desktop-p (owner)
   "Return t if a locked desktop should be loaded.
