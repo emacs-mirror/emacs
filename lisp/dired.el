@@ -248,17 +248,27 @@ The target is used in the prompt for file copy, rename etc."
           (other :tag "Try to guess" t))
   :group 'dired)
 
+
 (defcustom dired-mouse-drag-files nil
   "If non-nil, allow the mouse to drag files from inside a Dired buffer.
 Dragging the mouse and then releasing it over the window of
 another program will result in that program opening the file, or
-creating a copy of it.
+creating a copy of it.  This feature is supported only on X
+Windows and Haiku.
 
 If the value is `link', then a symbolic link will be created to
 the file instead by the other program (usually a file manager)."
+  :set (lambda (option value)
+         (set-default option value)
+         (dolist (buffer (buffer-list))
+           (with-current-buffer buffer
+             (when (derived-mode-p 'dired-mode)
+               (revert-buffer nil t)))))
   :type '(choice (const :tag "Don't allow dragging" nil)
                  (const :tag "Copy file to other window" t)
-                 (const :tag "Create symbolic link to file" link)))
+                 (const :tag "Create symbolic link to file" link))
+  :group 'dired
+  :version "29.1")
 
 (defcustom dired-copy-preserve-time t
   "If non-nil, Dired preserves the last-modified time in a file copy.
@@ -1734,7 +1744,7 @@ see `dired-use-ls-dired' for more details.")
 				 'invisible 'dired-hide-details-information))
 	  (put-text-property (+ (line-beginning-position) 1) (1- (point))
 			     'invisible 'dired-hide-details-detail)
-          (when dired-mouse-drag-files
+          (when (and dired-mouse-drag-files (fboundp 'x-begin-drag))
             (put-text-property (point)
 	                       (save-excursion
 	                         (dired-move-to-end-of-filename)
@@ -1750,7 +1760,8 @@ see `dired-use-ls-dired' for more details.")
 	   `(mouse-face
 	     highlight
 	     dired-filename t
-	     help-echo ,(if dired-mouse-drag-files
+	     help-echo ,(if (and dired-mouse-drag-files
+                                 (fboundp 'x-begin-drag))
                             "down-mouse-1: drag this file to another program
 mouse-2: visit this file in other window"
                           "mouse-2: visit this file in other window")))
