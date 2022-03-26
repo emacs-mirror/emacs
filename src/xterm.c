@@ -1025,8 +1025,9 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  free (error);
 	}
 
-      if (xcb_get_property_value_length (property_reply) != 8
-	  || property_reply->format != 32)
+      if (property_reply
+	  && (xcb_get_property_value_length (property_reply) != 8
+	      || property_reply->format != 32))
 	rc = false;
 
       geometry_reply = xcb_get_geometry_reply (dpyinfo->xcb_connection,
