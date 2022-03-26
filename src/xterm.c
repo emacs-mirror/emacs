@@ -887,12 +887,31 @@ static int
 x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 {
   Atom type;
-  Window *toplevels, child;
-  int format, rc, dest_x, dest_y;
-  unsigned long nitems, wmstate_items, bytes_after, *wmstate;
-  unsigned char *data = NULL, *wmstate_data = NULL;
+  Window *toplevels;
+  int format, rc;
+  unsigned long nitems, bytes_after;
   unsigned long i;
+  unsigned char *data = NULL;
+
+#ifndef USE_XCB
+  int dest_x, dest_y;
+  unsigned long *wmstate;
+  unsigned long wmstate_items;
+  unsigned char *wmstate_data = NULL;
   XWindowAttributes attrs;
+  Window child;
+#else
+  uint32_t *wmstate;
+  xcb_get_window_attributes_cookie_t *window_attribute_cookies;
+  xcb_translate_coordinates_cookie_t *translate_coordinate_cookies;
+  xcb_get_property_cookie_t *get_property_cookies;
+  xcb_get_geometry_cookie_t *get_geometry_cookies;
+  xcb_get_window_attributes_reply_t attrs, *attrs_reply;
+  xcb_translate_coordinates_reply_t *coordinates_reply;
+  xcb_get_property_reply_t *property_reply;
+  xcb_get_geometry_reply_t *geometry_reply;
+  xcb_generic_error_t *error;
+#endif
   struct x_client_list_window *tem;
 #ifdef HAVE_XSHAPE
   int count, ordering;
@@ -915,10 +934,40 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
   toplevels = (Window *) data;
 
+#ifdef USE_XCB
+  window_attribute_cookies
+    = alloca (sizeof *window_attribute_cookies * nitems);
+  translate_coordinate_cookies
+    = alloca (sizeof *translate_coordinate_cookies * nitems);
+  get_property_cookies
+    = alloca (sizeof *get_property_cookies * nitems);
+  get_geometry_cookies
+    = alloca (sizeof *get_geometry_cookies * nitems);
+
+  for (i = 0; i < nitems; ++i)
+    {
+      window_attribute_cookies[i]
+	= xcb_get_window_attributes (dpyinfo->xcb_connection,
+				     (xcb_window_t) toplevels[i]);
+      translate_coordinate_cookies[i]
+	= xcb_translate_coordinates (dpyinfo->xcb_connection,
+				     (xcb_window_t) toplevels[i],
+				     (xcb_window_t) dpyinfo->root_window,
+				     0, 0);
+      get_property_cookies[i]
+	= xcb_get_property (dpyinfo->xcb_connection, 0, (xcb_window_t) toplevels[i],
+			    (xcb_atom_t) dpyinfo->Xatom_wm_state, XCB_ATOM_ANY,
+			    0, 2);
+      get_geometry_cookies[i]
+	= xcb_get_geometry (dpyinfo->xcb_connection, (xcb_window_t) toplevels[i]);
+    }
+#endif
+
   /* Actually right because _NET_CLIENT_LIST_STACKING has bottom-up
      order.  */
   for (i = 0; i < nitems; ++i)
     {
+#ifndef USE_XCB
       x_catch_errors (dpyinfo->display);
       rc = (XGetWindowAttributes (dpyinfo->display,
 				  toplevels[i], &attrs)
@@ -941,27 +990,98 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	      && !x_had_errors_p (dpyinfo->display)
 	      && wmstate_data && wmstate_items == 2 && format == 32);
       x_uncatch_errors_after_check ();
+#else
+      rc = true;
+
+      attrs_reply
+	= xcb_get_window_attributes_reply (dpyinfo->xcb_connection,
+					   window_attribute_cookies[i],
+					   &error);
+
+      if (!attrs_reply)
+	{
+	  rc = false;
+	  free (error);
+	}
+
+      coordinates_reply
+	= xcb_translate_coordinates_reply (dpyinfo->xcb_connection,
+					   translate_coordinate_cookies[i],
+					   &error);
+
+      if (!coordinates_reply)
+	{
+	  rc = false;
+	  free (error);
+	}
+
+      property_reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+					       get_property_cookies[i],
+					       &error);
+
+      if (!property_reply)
+	{
+	  rc = false;
+	  free (error);
+	}
+
+      if (xcb_get_property_value_length (property_reply) != 8
+	  || property_reply->format != 32)
+	rc = false;
+
+      geometry_reply = xcb_get_geometry_reply (dpyinfo->xcb_connection,
+					       get_geometry_cookies[i],
+					       &error);
+
+      if (!geometry_reply)
+	{
+	  rc = false;
+	  free (error);
+	}
+#endif
 
       if (rc)
 	{
+#ifdef USE_XCB
+	  wmstate = (uint32_t *) xcb_get_property_value (property_reply);
+	  attrs = *attrs_reply;
+#else
 	  wmstate = (unsigned long *) wmstate_data;
+#endif
 
 	  tem = xmalloc (sizeof *tem);
 	  tem->window = toplevels[i];
 	  tem->dpy = dpyinfo->display;
+#ifndef USE_XCB
 	  tem->x = dest_x;
 	  tem->y = dest_y;
 	  tem->width = attrs.width + attrs.border_width;
 	  tem->height = attrs.height + attrs.border_width;
+#else
+	  tem->x = (coordinates_reply->dst_x
+		    - geometry_reply->border_width);
+	  tem->y = (coordinates_reply->dst_y
+		    - geometry_reply->border_width);
+	  tem->width = (geometry_reply->width
+			+ geometry_reply->border_width);
+	  tem->height = (geometry_reply->height
+			 + geometry_reply->border_width);
+#endif
 	  tem->mapped_p = (attrs.map_state != IsUnmapped);
 	  tem->next = x_dnd_toplevels;
 	  tem->previous_event_mask = attrs.your_event_mask;
 	  tem->wm_state = wmstate[0];
 
+#ifndef USE_XCB
 	  XFree (wmstate_data);
+#endif
 
 #ifdef HAVE_XSHAPE
+#ifndef USE_XCB
 	  tem->border_width = attrs.border_width;
+#else
+	  tem->border_width = geometry_reply->border_width;
+#endif
 	  tem->n_bounding_rects = -1;
 	  tem->n_input_rects = -1;
 
@@ -1044,6 +1164,20 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 	  x_dnd_toplevels = tem;
 	}
+
+#ifdef USE_XCB
+      if (attrs_reply)
+	free (attrs_reply);
+
+      if (coordinates_reply)
+	free (coordinates_reply);
+
+      if (property_reply)
+	free (property_reply);
+
+      if (geometry_reply)
+	free (geometry_reply);
+#endif
     }
 
   return 0;
