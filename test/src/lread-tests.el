@@ -258,5 +258,27 @@ literals (Bug#20852)."
   (should (equal (read "-0.e-5") -0.0))
   )
 
+(defun lread-test-read-and-print (str)
+  (let* ((read-circle t)
+         (print-circle t)
+         (val (read-from-string str)))
+    (if (consp val)
+        (prin1-to-string (car val))
+      (error "reading %S failed: %S" str val))))
+
+(defconst lread-test-circle-cases
+  '("#1=(#1# . #1#)"
+    "#1=[#1# a #1#]"
+    "#1=(#2=[#1# #2#] . #1#)"
+    "#1=(#2=[#1# #2#] . #2#)"
+    "#1=[#2=(#1# . #2#)]"
+    "#1=(#2=[#3=(#1# . #2#) #4=(#3# . #4#)])"
+    ))
+
+(ert-deftest lread-circle ()
+  (dolist (str lread-test-circle-cases)
+    (ert-info (str :prefix "input: ")
+      (should (equal (lread-test-read-and-print str) str))))
+  (should-error (read-from-string "#1=#1#") :type 'invalid-read-syntax))
 
 ;;; lread-tests.el ends here
