@@ -118,6 +118,14 @@ any protocol specific data.")
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp terminal))
 
+(defconst x-dnd-xdnd-to-action
+  '(("XdndActionPrivate" . private)
+    ("XdndActionCopy" . copy)
+    ("XdndActionMove" . move)
+    ("XdndActionLink" . link)
+    ("XdndActionAsk" . ask))
+  "Mapping from XDND action types to Lisp symbols.")
+
 (defvar x-dnd-empty-state [nil nil nil nil nil nil nil])
 
 (declare-function x-register-dnd-atom "xselect.c")
@@ -393,14 +401,6 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  XDND protocol.
-
-(defconst x-dnd-xdnd-to-action
-  '(("XdndActionPrivate" . private)
-    ("XdndActionCopy" . copy)
-    ("XdndActionMove" . move)
-    ("XdndActionLink" . link)
-    ("XdndActionAsk" . ask))
-  "Mapping from XDND action types to Lisp symbols.")
 
 (declare-function x-change-window-property "xfns.c"
 		  (prop value &optional frame type format outer-P))
