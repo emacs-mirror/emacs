@@ -5507,6 +5507,12 @@ symbol}.  The symbols for the above formats are, respectively,
 @code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{jpeg},
 @code{tiff}, @code{png}, @code{svg}, and @code{webp}.
 
+  On some platforms, the built-in image support that doesn't require
+any optional libraries includes BMP images.@footnote{
+On MS-Windows, this requires @code{w32-use-native-image-API} to be set
+non-@code{nil}.
+}
+
   Furthermore, if you build Emacs with ImageMagick
 (@code{libMagickWand}) support, Emacs can display any image format
 that ImageMagick can.  @xref{ImageMagick Images}.  All images

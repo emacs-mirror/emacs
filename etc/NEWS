@@ -1821,6 +1821,11 @@ follow the system's dark mode: GUI frames use the appropriate light or
 dark title bar and scroll bars, based on the user's Windows-wide color
 settings.
 
++++
+*** Emacs now supports display of BMP images using native image APIs.
+When 'w32-use-native-image-API' is non-nil, Emacs on MS-Windows now
+has built-in support for displaying BMP images.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

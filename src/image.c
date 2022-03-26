@@ -11558,6 +11558,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
 # ifdef HAVE_NTGUI
   DEFSYM (Qgdiplus, "gdiplus");
   DEFSYM (Qshlwapi, "shlwapi");
+  DEFSYM (Qbmp, "bmp");
+  add_image_type (Qbmp);
 # endif
 #endif
 
