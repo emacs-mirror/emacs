@@ -341,7 +341,7 @@ unless a different file is specified on the command line.")
 	(error "No history"))
    (let (length file)
      (when (and args (string-match "^[0-9]+$" (car args)))
-       (setq length (min (eshell-convert (car args))
+       (setq length (min (string-to-number (car args))
 			 (ring-length eshell-history-ring))
 	     args (cdr args)))
      (and length
