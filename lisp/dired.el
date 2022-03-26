@@ -1704,7 +1704,8 @@ see `dired-use-ls-dired' for more details.")
   (when mark-active
     (deactivate-mark))
   (save-excursion
-    (goto-char (posn-point (event-end event)))
+    (with-selected-window (posn-window (event-end event))
+      (goto-char (posn-point (event-end event))))
     (track-mouse
       (let ((new-event (read-event)))
         (if (not (eq (event-basic-type new-event) 'mouse-movement))
@@ -1715,7 +1716,9 @@ see `dired-use-ls-dired' for more details.")
           (condition-case nil
               (progn
                 (gui-backend-set-selection 'XdndSelection
-                                           (dired-file-name-at-point))
+                                           (with-selected-window (posn-window
+                                                                  (event-end event))
+                                             (dired-file-name-at-point)))
                 (x-begin-drag '("text/uri-list"
                                 "text/x-dnd-username")
                               (if (eq 'dired-mouse-drag-files 'link)

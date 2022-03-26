@@ -115,6 +115,9 @@ the type we want for the drop,
 the action we want for the drop,
 any protocol specific data.")
 
+(declare-function x-get-selection-internal "xselect.c"
+		  (selection-symbol target-type &optional time-stamp terminal))
+
 (defvar x-dnd-empty-state [nil nil nil nil nil nil nil])
 
 (declare-function x-register-dnd-atom "xselect.c")
@@ -336,21 +339,41 @@ nil if not."
 Currently XDND, Motif and old KDE 1.x protocols are recognized."
   (interactive "e")
   (let* ((client-message (car (cdr (cdr event))))
-	 (window (posn-window (event-start event)))
-	 (message-atom (aref client-message 0))
-	 (frame (aref client-message 1))
-	 (format (aref client-message 2))
-	 (data (aref client-message 3)))
+	 (window (posn-window (event-start event))))
+    (if (eq (and (consp client-message)
+                 (car client-message))
+            'XdndSelection)
+        ;; This is an internal Emacs message caused by something being
+        ;; dropped on top of a frame.
+        (progn
+          (let ((action (cdr (assoc (symbol-name (cadr client-message))
+                                    x-dnd-xdnd-to-action)))
+                (targets (cddr client-message)))
+            (x-dnd-save-state window nil nil
+                              (apply #'vector targets))
+            (x-dnd-maybe-call-test-function window action)
+            (unwind-protect
+                (x-dnd-drop-data event (if (framep window) window
+                                         (window-frame window))
+                                 window
+                                 (x-get-selection-internal
+                                  'XdndSelection
+                                  (intern (x-dnd-current-type window)))
+                                 (x-dnd-current-type window))
+              (x-dnd-forget-drop window))))
+      (let ((message-atom (aref client-message 0))
+	    (frame (aref client-message 1))
+	    (format (aref client-message 2))
+	    (data (aref client-message 3)))
+        (cond ((equal "DndProtocol" message-atom)	; Old KDE 1.x.
+	       (x-dnd-handle-old-kde event frame window message-atom format data))
 
-    (cond ((equal "DndProtocol" message-atom)	; Old KDE 1.x.
-	   (x-dnd-handle-old-kde event frame window message-atom format data))
+	      ((equal "_MOTIF_DRAG_AND_DROP_MESSAGE" message-atom)	; Motif
+	       (x-dnd-handle-motif event frame window message-atom format data))
 
-	  ((equal "_MOTIF_DRAG_AND_DROP_MESSAGE" message-atom)	; Motif
-	   (x-dnd-handle-motif event frame window message-atom format data))
-
-	  ((and (> (length message-atom) 4)	; XDND protocol.
-		(equal "Xdnd" (substring message-atom 0 4)))
-	   (x-dnd-handle-xdnd event frame window message-atom format data)))))
+	      ((and (> (length message-atom) 4)	; XDND protocol.
+		    (equal "Xdnd" (substring message-atom 0 4)))
+	       (x-dnd-handle-xdnd event frame window message-atom format data)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -425,8 +448,6 @@ otherwise return the frame coordinates."
 (declare-function x-get-atom-name "xselect.c" (value &optional frame))
 (declare-function x-send-client-message "xselect.c"
 		  (display dest from message-type format values))
-(declare-function x-get-selection-internal "xselect.c"
-		  (selection-symbol target-type &optional time-stamp terminal))
 
 (defun x-dnd-version-from-flags (flags)
   "Return the version byte from the 32 bit FLAGS in an XDndEnter message."

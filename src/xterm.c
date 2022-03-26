@@ -1396,6 +1396,9 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
   int i;
   XEvent msg;
 
+  if (x_top_window_to_frame (dpyinfo, target))
+    return;
+
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type = dpyinfo->Xatom_XdndEnter;
   msg.xclient.format = 32;
@@ -1443,6 +1446,9 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 	return;
     }
 
+  if (x_top_window_to_frame (dpyinfo, target))
+    return;
+
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type = dpyinfo->Xatom_XdndPosition;
   msg.xclient.format = 32;
@@ -1470,6 +1476,9 @@ x_dnd_send_leave (struct frame *f, Window target)
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XEvent msg;
 
+  if (x_top_window_to_frame (dpyinfo, target))
+    return;
+
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type = dpyinfo->Xatom_XdndLeave;
   msg.xclient.format = 32;
@@ -1491,6 +1500,62 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XEvent msg;
+  struct input_event ie;
+  struct frame *self_frame;
+  int root_x, root_y, win_x, win_y, i;
+  unsigned int mask;
+  Window root, child;
+  Lisp_Object lval;
+  char **atom_names;
+  char *name;
+
+  self_frame = x_top_window_to_frame (dpyinfo, target);
+
+  if (self_frame)
+    {
+      /* Send a special drag-and-drop event when dropping on top of an
+	 Emacs frame to avoid all the overhead involved with sending
+	 client events.  */
+      EVENT_INIT (ie);
+
+      if (XQueryPointer (dpyinfo->display, FRAME_X_WINDOW (self_frame),
+			 &root, &child, &root_x, &root_y, &win_x, &win_y,
+			 &mask))
+	{
+	  ie.kind = DRAG_N_DROP_EVENT;
+	  XSETFRAME (ie.frame_or_window, self_frame);
+
+	  lval = Qnil;
+	  atom_names = alloca (x_dnd_n_targets * sizeof *atom_names);
+	  name = XGetAtomName (dpyinfo->display, x_dnd_wanted_action);
+
+	  if (!XGetAtomNames (dpyinfo->display, x_dnd_targets,
+			      x_dnd_n_targets, atom_names))
+	    {
+	      XFree (name);
+	      return;
+	    }
+
+	  for (i = x_dnd_n_targets; i != 0; --i)
+	    {
+	      lval = Fcons (intern (atom_names[i - 1]), lval);
+	      XFree (atom_names[i - 1]);
+	    }
+
+	  lval = Fcons (intern (name), lval);
+	  lval = Fcons (QXdndSelection, lval);
+	  ie.arg = lval;
+	  ie.timestamp = CurrentTime;
+
+	  XSETINT (ie.x, win_x);
+	  XSETINT (ie.y, win_y);
+
+	  XFree (name);
+	  kbd_buffer_store_event (&ie);
+
+	  return;
+	}
+    }
 
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type = dpyinfo->Xatom_XdndDrop;
