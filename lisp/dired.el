@@ -1282,39 +1282,42 @@ The return value is the target column for the file names."
   ;; This differs from dired-buffers-for-dir in that it does not consider
   ;; subdirs of default-directory and searches for the first match only.
   ;; Also, the major mode must be MODE.
-  (if (and (featurep 'dired-x)
-           dired-find-subdir
-           ;; Don't try to find a wildcard as a subdirectory.
-	   (string-equal dirname (file-name-directory dirname)))
-      (let* ((cur-buf (current-buffer))
-	     (buffers (nreverse (dired-buffers-for-dir dirname)))
-	     (cur-buf-matches (and (memq cur-buf buffers)
-				   ;; Wildcards must match, too:
-				   (equal dired-directory dirname))))
-	;; We don't want to switch to the same buffer---
-	(setq buffers (delq cur-buf buffers))
-	(or (car (sort buffers #'dired-buffer-more-recently-used-p))
-	    ;; ---unless it's the only possibility:
-	    (and cur-buf-matches cur-buf)))
-    ;; No dired-x, or dired-find-subdir nil.
-    (setq dirname (expand-file-name dirname))
-    (let (found (blist dired-buffers))    ; was (buffer-list)
-      (or mode (setq mode 'dired-mode))
-      (while blist
-        (if (null (buffer-name (cdr (car blist))))
-            (setq blist (cdr blist))
-          (with-current-buffer (cdr (car blist))
-            (if (and (eq major-mode mode)
-                     dired-directory  ;; nil during find-alternate-file
-                     (equal dirname
-                            (expand-file-name
-                             (if (consp dired-directory)
-                                 (car dired-directory)
-                               dired-directory))))
-                (setq found (cdr (car blist))
-                      blist nil)
-              (setq blist (cdr blist))))))
-      found)))
+  ;; We bind `non-essential' in order to avoid hangs in remote buffers
+  ;; with a blocked connection.  (Bug#54542)
+  (let ((non-essential t))
+    (if (and (featurep 'dired-x)
+             dired-find-subdir
+             ;; Don't try to find a wildcard as a subdirectory.
+	     (string-equal dirname (file-name-directory dirname)))
+        (let* ((cur-buf (current-buffer))
+	       (buffers (nreverse (dired-buffers-for-dir dirname)))
+	       (cur-buf-matches (and (memq cur-buf buffers)
+				     ;; Wildcards must match, too:
+				     (equal dired-directory dirname))))
+	  ;; We don't want to switch to the same buffer---
+	  (setq buffers (delq cur-buf buffers))
+	  (or (car (sort buffers #'dired-buffer-more-recently-used-p))
+	      ;; ---unless it's the only possibility:
+	      (and cur-buf-matches cur-buf)))
+      ;; No dired-x, or dired-find-subdir nil.
+      (setq dirname (expand-file-name dirname))
+      (let (found (blist dired-buffers))    ; was (buffer-list)
+        (or mode (setq mode 'dired-mode))
+        (while blist
+          (if (null (buffer-name (cdr (car blist))))
+              (setq blist (cdr blist))
+            (with-current-buffer (cdr (car blist))
+              (if (and (eq major-mode mode)
+                       dired-directory  ;; nil during find-alternate-file
+                       (equal dirname
+                              (expand-file-name
+                               (if (consp dired-directory)
+                                   (car dired-directory)
+                                 dired-directory))))
+                  (setq found (cdr (car blist))
+                        blist nil)
+                (setq blist (cdr blist))))))
+        found))))
 
 
 ;;; Read in a new dired buffer
