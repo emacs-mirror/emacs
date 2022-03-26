@@ -966,8 +966,11 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
     = alloca (sizeof *get_property_cookies * nitems);
   get_geometry_cookies
     = alloca (sizeof *get_geometry_cookies * nitems);
+
+#ifdef HAVE_XCB_SHAPE
   bounding_rect_cookies
     = alloca (sizeof *bounding_rect_cookies * nitems);
+#endif
 
 #ifdef HAVE_XCB_SHAPE_INPUT_RECTS
   input_rect_cookies
