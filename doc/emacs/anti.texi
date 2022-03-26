@@ -31,10 +31,6 @@ back in time.  The @code{ftx} font backend is again part of Emacs, for
 the same reasons.
 
 @item
-As Motif becomes more and more important with moving farther into the
-past, we've reinstated the code which supports Motif in Emacs.
-
-@item
 Emacs once again supports versions 5.3 and older OpenBSD systems,
 which will be needed as you move back in time.
 
