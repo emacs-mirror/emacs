@@ -148,9 +148,9 @@ chars"
   "Test that the backslash is not preserved for escaped special
 chars"
   (with-temp-eshell
-   (eshell-command-result-p "echo \"h\\\\i\""
+   (eshell-command-result-p "echo \"\\\"hi\\\\\""
                             ;; Backslashes are doubled for regexp.
-                            "h\\\\i\n")))
+                            "\\\"hi\\\\\n")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"

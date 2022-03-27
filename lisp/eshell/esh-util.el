@@ -151,49 +151,52 @@ Otherwise, evaluates FORM with no error handling."
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
-The matching is bounded by BOUND.
-If REVERSE-P is non-nil, process the region backwards.
-If BACKSLASH-P is non-nil, and OPEN and CLOSE are the same character,
-then quoting is done by a backslash, rather than a doubled delimiter."
+The matching is bounded by BOUND. If REVERSE-P is non-nil,
+process the region backwards.
+
+If BACKSLASH-P is non-nil, or OPEN and CLOSE are different
+characters, then a backslash can be used to escape a delimiter
+(or another backslash).  Otherwise, the delimiter is escaped by
+doubling it up."
   (save-excursion
     (let ((depth 1)
 	  (bound (or bound (point-max))))
-      (if (if reverse-p
-	      (eq (char-before) close)
-	    (eq (char-after) open))
-	  (forward-char (if reverse-p -1 1)))
+      (when (if reverse-p
+                (eq (char-before) close)
+              (eq (char-after) open))
+        (forward-char (if reverse-p -1 1)))
       (while (and (> depth 0)
-		  (funcall (if reverse-p '> '<) (point) bound))
-	(let ((c (if reverse-p (char-before) (char-after))) nc)
+                  (funcall (if reverse-p #'> #'<) (point) bound))
+        (let ((c (if reverse-p (char-before) (char-after))))
 	  (cond ((and (not reverse-p)
 		      (or (not (eq open close))
 			  backslash-p)
 		      (eq c ?\\)
-		      (setq nc (char-after (1+ (point))))
-		      (or (eq nc open) (eq nc close)))
+                      (memq (char-after (1+ (point)))
+                            (list open close ?\\)))
 		 (forward-char 1))
 		((and reverse-p
 		      (or (not (eq open close))
 			  backslash-p)
-		      (or (eq c open) (eq c close))
-		      (eq (char-before (1- (point)))
-			  ?\\))
+                      (eq (char-before (1- (point))) ?\\)
+                      (memq c (list open close ?\\)))
 		 (forward-char -1))
 		((eq open close)
-		 (if (eq c open)
-		     (if (and (not backslash-p)
-			      (eq (if reverse-p
-				      (char-before (1- (point)))
-				    (char-after (1+ (point)))) open))
-			 (forward-char (if reverse-p -1 1))
-		       (setq depth (1- depth)))))
+                 (when (eq c open)
+                   (if (and (not backslash-p)
+                            (eq (if reverse-p
+                                    (char-before (1- (point)))
+                                  (char-after (1+ (point))))
+                                open))
+                       (forward-char (if reverse-p -1 1))
+                     (setq depth (1- depth)))))
 		((= c open)
 		 (setq depth (+ depth (if reverse-p -1 1))))
 		((= c close)
 		 (setq depth (+ depth (if reverse-p 1 -1))))))
 	(forward-char (if reverse-p -1 1)))
-      (if (= depth 0)
-	  (if reverse-p (point) (1- (point)))))))
+      (when (= depth 0)
+        (if reverse-p (point) (1- (point)))))))
 
 (defun eshell-convert (string)
   "Convert STRING into a more native looking Lisp object."
