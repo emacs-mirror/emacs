@@ -1785,7 +1785,7 @@ x_dnd_send_leave (struct frame *f, Window target)
   x_uncatch_errors ();
 }
 
-static void
+static bool
 x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 		 int supported)
 {
@@ -1824,7 +1824,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 			      x_dnd_n_targets, atom_names))
 	    {
 	      XFree (name);
-	      return;
+	      return false;
 	    }
 
 	  for (i = x_dnd_n_targets; i != 0; --i)
@@ -1844,8 +1844,13 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 	  XFree (name);
 	  kbd_buffer_store_event (&ie);
 
-	  return;
+	  return false;
 	}
+    }
+  else if (x_dnd_action == None)
+    {
+      x_dnd_send_leave (f, target);
+      return false;
     }
 
   msg.xclient.type = ClientMessage;
@@ -1864,6 +1869,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
   x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
   x_uncatch_errors ();
+  return true;
 }
 
 void
@@ -13451,16 +13457,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (x_dnd_last_seen_window != None
 		    && x_dnd_last_protocol_version != -1)
 		  {
-		    /* Crazy hack to make dragging from one frame to
-		       another work.  */
-		    x_dnd_waiting_for_finish = !x_any_window_to_frame (dpyinfo,
-								       x_dnd_last_seen_window);
 		    x_dnd_pending_finish_target = x_dnd_last_seen_window;
 		    x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
-		    x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-				     x_dnd_selection_timestamp,
-				     x_dnd_last_protocol_version);
+		    x_dnd_waiting_for_finish
+		      = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+					 x_dnd_selection_timestamp,
+					 x_dnd_last_protocol_version);
 		  }
 
 		x_dnd_last_protocol_version = -1;
@@ -14453,14 +14456,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (x_dnd_last_seen_window != None
 			  && x_dnd_last_protocol_version != -1)
 			{
-			  x_dnd_waiting_for_finish = !x_any_window_to_frame (dpyinfo,
-									     x_dnd_last_seen_window);
 			  x_dnd_pending_finish_target = x_dnd_last_seen_window;
 			  x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
-			  x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-					   x_dnd_selection_timestamp,
-					   x_dnd_last_protocol_version);
+			  x_dnd_waiting_for_finish
+			    = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+					       x_dnd_selection_timestamp,
+					       x_dnd_last_protocol_version);
 			}
 
 		      x_dnd_last_protocol_version = -1;
