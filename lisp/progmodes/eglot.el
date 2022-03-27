@@ -2381,7 +2381,9 @@ is not active."
       (cl-list*
        :textDocument (eglot--TextDocumentIdentifier)
        :options (list :tabSize tab-width
-                      :insertSpaces (if indent-tabs-mode :json-false t))
+                      :insertSpaces (if indent-tabs-mode :json-false t)
+                      :insertFinalNewline (if require-final-newline t :json-false)
+                      :trimFinalNewlines (if delete-trailing-lines t :json-false))
        args)
       :deferred method))))
 
