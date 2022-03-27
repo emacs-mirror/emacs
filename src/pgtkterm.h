@@ -212,9 +212,6 @@ struct pgtk_display_info
      Unused if this display supports Xfixes extension.  */
   Emacs_Cursor invisible_cursor;
 
-  /* Function used to toggle pointer visibility on this display.  */
-  void (*toggle_visible_pointer) (struct frame *, bool);
-
   /* The GDK cursor for scroll bars and popup menus.  */
   GdkCursor *xg_cursor;
 

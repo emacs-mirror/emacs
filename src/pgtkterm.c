@@ -4697,16 +4697,17 @@ pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo)
    the appropriate X display info.  */
 
 static void
-XTframe_rehighlight (struct frame *frame)
+pgtk_frame_rehighlight_hook (struct frame *frame)
 {
   pgtk_frame_rehighlight (FRAME_DISPLAY_INFO (frame));
 }
 
 
-/* Toggle mouse pointer visibility on frame F by using invisible cursor.  */
+/* Set whether or not the mouse pointer should be visible on frame
+   F.  */
 
 static void
-x_toggle_visible_pointer (struct frame *f, bool invisible)
+pgtk_toggle_invisible_pointer (struct frame *f, bool invisible)
 {
   Emacs_Cursor cursor;
   if (invisible)
@@ -4716,22 +4717,6 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
   gdk_window_set_cursor (gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
 			 cursor);
   f->pointer_invisible = invisible;
-}
-
-static void
-x_setup_pointer_blanking (struct pgtk_display_info *dpyinfo)
-{
-  dpyinfo->toggle_visible_pointer = x_toggle_visible_pointer;
-  dpyinfo->invisible_cursor =
-    gdk_cursor_new_for_display (dpyinfo->gdpy, GDK_BLANK_CURSOR);
-}
-
-static void
-XTtoggle_invisible_pointer (struct frame *f, bool invisible)
-{
-  block_input ();
-  FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, invisible);
-  unblock_input ();
 }
 
 /* The focus has changed.  Update the frames as necessary to reflect
@@ -4790,13 +4775,13 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
 
   terminal->clear_frame_hook = pgtk_clear_frame;
   terminal->ring_bell_hook = pgtk_ring_bell;
-  terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
+  terminal->toggle_invisible_pointer_hook = pgtk_toggle_invisible_pointer;
   terminal->update_begin_hook = pgtk_update_begin;
   terminal->update_end_hook = pgtk_update_end;
   terminal->read_socket_hook = pgtk_read_socket;
   terminal->frame_up_to_date_hook = pgtk_frame_up_to_date;
   terminal->mouse_position_hook = pgtk_mouse_position;
-  terminal->frame_rehighlight_hook = XTframe_rehighlight;
+  terminal->frame_rehighlight_hook = pgtk_frame_rehighlight_hook;
   terminal->buffer_flipping_unblocked_hook = pgtk_buffer_flipping_unblocked_hook;
   terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
   terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
@@ -5772,7 +5757,7 @@ x_focus_changed (gboolean is_enter, int state,
         }
 
       if (frame->pointer_invisible)
-	XTtoggle_invisible_pointer (frame, false);
+	pgtk_toggle_invisible_pointer (frame, false);
     }
 }
 
@@ -6754,7 +6739,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 	init_sigio (dpyinfo->connection);
     }
 
-  x_setup_pointer_blanking (dpyinfo);
+  dpyinfo->invisible_cursor
+    = gdk_cursor_new_for_display (dpyinfo->gdpy, GDK_BLANK_CURSOR);
 
   xsettings_initialize (dpyinfo);
 
