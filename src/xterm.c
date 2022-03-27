@@ -13443,7 +13443,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  dnd_grab = true;
 	      }
 
-	    if (dnd_grab && event->xbutton.type == ButtonRelease)
+	    if (!dnd_grab && event->xbutton.type == ButtonRelease)
 	      {
 		x_dnd_end_window = x_dnd_last_seen_window;
 		x_dnd_in_progress = false;
