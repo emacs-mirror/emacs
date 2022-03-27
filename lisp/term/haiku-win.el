@@ -61,6 +61,17 @@ DATA can optionally have a text property `type', which specifies
 the type of DATA inside the system message (see the doc string of
 `haiku-drag-message' for more details).")
 
+(defvar haiku-normal-selection-encoders '(haiku-select-encode-xstring
+                                          haiku-select-encode-utf-8-string)
+  "List of functions which act as selection encoders.
+These functions accept two arguments SELECTION and VALUE, and
+return an association appropriate for a serialized system
+message (or nil if VALUE is not applicable to the encoder) that
+will be put into the system selection SELECTION.  VALUE is the
+content that is being put into the selection by
+`gui-set-selection'.  See the doc string of `haiku-drag-message'
+for more details on the structure of the associations.")
+
 (defun haiku-dnd-convert-string (value)
   "Convert VALUE to a UTF-8 string and appropriate MIME type.
 Return a list of the appropriate MIME type, and UTF-8 data of
@@ -128,6 +139,22 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
 `CLIPBOARD'.  Return the available types as a list of strings."
   (mapcar #'car (haiku-selection-data clipboard nil)))
 
+(defun haiku-select-encode-xstring (_selection value)
+  "Convert VALUE to a system message association.
+VALUE will be encoded as Latin-1 (like on X Windows) and stored
+under the type `text/plain;charset=iso-8859-1'."
+  (when (stringp value)
+    (list "text/plain;charset=iso-8859-1" 1296649541
+          (encode-coding-string value 'iso-latin-1))))
+
+(defun haiku-select-encode-utf-8-string (_selection value)
+  "Convert VALUE to a system message association.
+VALUE will be encoded as UTF-8 and stored under the type
+`text/plain'."
+  (when (stringp value)
+    (list "text/plain" 1296649541
+          (encode-coding-string value 'utf-8-unix))))
+
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
   (if (eq data-type 'TARGETS)
@@ -141,7 +168,12 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
                                               &context (window-system haiku))
   (if (eq type 'XdndSelection)
       (setq haiku-dnd-selection-value value)
-    (haiku-selection-put type "text/plain" value t)))
+    (let ((message nil))
+      (dolist (encoder haiku-normal-selection-encoders)
+        (let ((result (funcall encoder type value)))
+          (when result
+            (push result message))))
+      (haiku-selection-put type message nil))))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
                                               &context (window-system haiku))
@@ -165,7 +197,7 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
                             (file-name-nondirectory default-filename))
     (error "x-file-dialog on a tty frame")))
 
-(defun haiku-dnd-handle-drag-n-drop-event (event)
+(defun haiku-drag-and-drop (event)
   "Handle specified drag-n-drop EVENT."
   (interactive "e")
   (let* ((string (caddr event))
@@ -189,7 +221,7 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
      (t (message "Don't know how to drop any of: %s" (mapcar #'car string))))))
 
 (define-key special-event-map [drag-n-drop]
-            'haiku-dnd-handle-drag-n-drop-event)
+            'haiku-drag-and-drop)
 
 (defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
 

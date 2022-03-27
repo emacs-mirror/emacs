@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 
+static void haiku_lisp_to_message (Lisp_Object, void *);
+
 DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
        2, 2, 0,
        doc: /* Retrieve content typed as NAME from the clipboard
@@ -88,7 +90,7 @@ message in the format accepted by `haiku-drag-message', which see.  */)
 	clipboard_name = CLIPBOARD_CLIPBOARD;
 
       block_input ();
-      rc = be_lock_clipboard_message (clipboard_name, &message);
+      rc = be_lock_clipboard_message (clipboard_name, &message, false);
       unblock_input ();
 
       if (rc)
@@ -96,11 +98,17 @@ message in the format accepted by `haiku-drag-message', which see.  */)
 
       block_input ();
       str = haiku_message_to_lisp (message);
-      be_unlock_clipboard (clipboard_name);
+      be_unlock_clipboard (clipboard_name, true);
       unblock_input ();
     }
 
   return str;
+}
+
+static void
+haiku_unwind_clipboard_lock (int clipboard)
+{
+  be_unlock_clipboard (clipboard, false);
 }
 
 DEFUN ("haiku-selection-put", Fhaiku_selection_put, Shaiku_selection_put,
@@ -110,18 +118,53 @@ CLIPBOARD is the symbol `PRIMARY', `SECONDARY' or `CLIPBOARD'.  NAME
 is a MIME type denoting the type of the data to add.  DATA is the
 string that will be placed in the clipboard, or nil if the content is
 to be removed.  CLEAR, if non-nil, means to erase all the previous
-contents of the clipboard.  */)
+contents of the clipboard.
+
+Alternatively, NAME can be a system message in the format accepted by
+`haiku-drag-message', which will replace the contents of CLIPBOARD.
+In that case, the arguments after NAME are ignored.  */)
   (Lisp_Object clipboard, Lisp_Object name, Lisp_Object data,
    Lisp_Object clear)
 {
+  enum haiku_clipboard clipboard_name;
+  specpdl_ref ref;
+  char *dat;
+  ptrdiff_t len;
+  int rc;
+  void *message;
+
+  if (CONSP (name) || NILP (name))
+    {
+      if (EQ (clipboard, QPRIMARY))
+	clipboard_name = CLIPBOARD_PRIMARY;
+      else if (EQ (clipboard, QSECONDARY))
+	clipboard_name = CLIPBOARD_SECONDARY;
+      else if (EQ (clipboard, QCLIPBOARD))
+	clipboard_name = CLIPBOARD_CLIPBOARD;
+      else
+	signal_error ("Invalid clipboard", clipboard);
+
+      rc = be_lock_clipboard_message (clipboard_name,
+				      &message, true);
+
+      if (rc)
+	signal_error ("Couldn't open clipboard", clipboard);
+
+      ref = SPECPDL_INDEX ();
+      record_unwind_protect_int (haiku_unwind_clipboard_lock,
+				 clipboard_name);
+      haiku_lisp_to_message (name, message);
+
+      return unbind_to (ref, Qnil);
+    }
+
   CHECK_SYMBOL (clipboard);
   CHECK_STRING (name);
   if (!NILP (data))
     CHECK_STRING (data);
 
-  block_input ();
-  char *dat = !NILP (data) ? SSDATA (data) : NULL;
-  ptrdiff_t len = !NILP (data) ? SBYTES (data) : 0;
+  dat = !NILP (data) ? SSDATA (data) : NULL;
+  len = !NILP (data) ? SBYTES (data) : 0;
 
   if (EQ (clipboard, QPRIMARY))
     BClipboard_set_primary_selection_data (SSDATA (name), dat, len,
@@ -136,7 +179,6 @@ contents of the clipboard.  */)
       unblock_input ();
       signal_error ("Bad clipboard", clipboard);
     }
-  unblock_input ();
 
   return Qnil;
 }

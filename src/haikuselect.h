@@ -107,8 +107,10 @@ extern "C"
   extern int be_add_message_message (void *message, const char *name,
 				     void *data);
   extern int be_lock_clipboard_message (enum haiku_clipboard clipboard,
-					void **message_return);
-  extern void be_unlock_clipboard (enum haiku_clipboard clipboard);
+					void **message_return,
+					bool clear);
+  extern void be_unlock_clipboard (enum haiku_clipboard clipboard,
+				   bool discard);
 #ifdef __cplusplus
 };
 #endif

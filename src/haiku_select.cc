@@ -413,7 +413,7 @@ be_add_message_message (void *message, const char *name,
 
 int
 be_lock_clipboard_message (enum haiku_clipboard clipboard,
-			   void **message_return)
+			   void **message_return, bool clear)
 {
   BClipboard *board;
 
@@ -427,12 +427,15 @@ be_lock_clipboard_message (enum haiku_clipboard clipboard,
   if (!board->Lock ())
     return 1;
 
+  if (clear)
+    board->Clear ();
+
   *message_return = board->Data ();
   return 0;
 }
 
 void
-be_unlock_clipboard (enum haiku_clipboard clipboard)
+be_unlock_clipboard (enum haiku_clipboard clipboard, bool discard)
 {
   BClipboard *board;
 
@@ -442,6 +445,11 @@ be_unlock_clipboard (enum haiku_clipboard clipboard)
     board = secondary;
   else
     board = system_clipboard;
+
+  if (discard)
+    board->Revert ();
+  else
+    board->Commit ();
 
   board->Unlock ();
 }
