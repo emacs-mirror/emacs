@@ -15699,8 +15699,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 	  XEvent xevent;
 	  XShapeEvent *xse = (XShapeEvent *) event;
+#if defined HAVE_XCB_SHAPE && defined HAVE_XCB_SHAPE_INPUT_RECTS
+	  xcb_shape_get_rectangles_cookie_t bounding_rect_cookie;
+	  xcb_shape_get_rectangles_reply_t *bounding_rect_reply;
+	  xcb_rectangle_iterator_t bounding_rect_iterator;
+
+	  xcb_shape_get_rectangles_cookie_t input_rect_cookie;
+	  xcb_shape_get_rectangles_reply_t *input_rect_reply;
+	  xcb_rectangle_iterator_t input_rect_iterator;
+
+	  xcb_generic_error_t *error;
+#else
 	  XRectangle *rects;
 	  int rc, ordering;
+#endif
 
 	  while (XPending (dpyinfo->display))
 	    {
@@ -15729,6 +15741,86 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  tem->n_input_rects = -1;
 		  tem->n_bounding_rects = -1;
 
+#if defined HAVE_XCB_SHAPE && defined HAVE_XCB_SHAPE_INPUT_RECTS
+		  bounding_rect_cookie = xcb_shape_get_rectangles (dpyinfo->xcb_connection,
+								   (xcb_window_t) xse->window,
+								   XCB_SHAPE_SK_BOUNDING);
+		  if (dpyinfo->xshape_major > 1
+		      || (dpyinfo->xshape_major == 1
+			  && dpyinfo->xshape_minor >= 1))
+		    input_rect_cookie
+		      = xcb_shape_get_rectangles (dpyinfo->xcb_connection,
+						  (xcb_window_t) xse->window,
+						  XCB_SHAPE_SK_INPUT);
+
+		  bounding_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+									bounding_rect_cookie,
+									&error);
+
+		  if (bounding_rect_reply)
+		    {
+		      bounding_rect_iterator
+			= xcb_shape_get_rectangles_rectangles_iterator (bounding_rect_reply);
+		      tem->n_bounding_rects = bounding_rect_iterator.rem + 1;
+		      tem->bounding_rects = xmalloc (tem->n_bounding_rects
+						     * sizeof *tem->bounding_rects);
+		      tem->n_bounding_rects = 0;
+
+		      for (; bounding_rect_iterator.rem; xcb_rectangle_next (&bounding_rect_iterator))
+			{
+			  tem->bounding_rects[tem->n_bounding_rects].x
+			    = bounding_rect_iterator.data->x;
+			  tem->bounding_rects[tem->n_bounding_rects].y
+			    = bounding_rect_iterator.data->y;
+			  tem->bounding_rects[tem->n_bounding_rects].width
+			    = bounding_rect_iterator.data->width;
+			  tem->bounding_rects[tem->n_bounding_rects].height
+			    = bounding_rect_iterator.data->height;
+
+			  tem->n_bounding_rects++;
+			}
+
+		      free (bounding_rect_reply);
+		    }
+		  else
+		    free (error);
+
+		  if (dpyinfo->xshape_major > 1
+		      || (dpyinfo->xshape_major == 1
+			  && dpyinfo->xshape_minor >= 1))
+		    {
+		      input_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
+									 input_rect_cookie, &error);
+
+		      if (input_rect_reply)
+			{
+			  input_rect_iterator
+			    = xcb_shape_get_rectangles_rectangles_iterator (input_rect_reply);
+			  tem->n_input_rects = input_rect_iterator.rem + 1;
+			  tem->input_rects = xmalloc (tem->n_input_rects
+						      * sizeof *tem->input_rects);
+			  tem->n_input_rects = 0;
+
+			  for (; input_rect_iterator.rem; xcb_rectangle_next (&input_rect_iterator))
+			    {
+			      tem->input_rects[tem->n_input_rects].x
+				= input_rect_iterator.data->x;
+			      tem->input_rects[tem->n_input_rects].y
+				= input_rect_iterator.data->y;
+			      tem->input_rects[tem->n_input_rects].width
+				= input_rect_iterator.data->width;
+			      tem->input_rects[tem->n_input_rects].height
+				= input_rect_iterator.data->height;
+
+			      tem->n_input_rects++;
+			    }
+
+			  free (input_rect_reply);
+			}
+		      else
+			free (error);
+		    }
+#else
 		  x_catch_errors (dpyinfo->display);
 		  rects = XShapeGetRectangles (dpyinfo->display,
 					       xse->window,
@@ -15775,6 +15867,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  XFree (rects);
 			}
 		    }
+#endif
 #endif
 
 		  /* Handle the common case where the input shape equals the
