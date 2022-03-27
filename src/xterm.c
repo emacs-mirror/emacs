@@ -7657,7 +7657,12 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 #else /* !USE_X_TOOLKIT && !USE_GTK */
 
 #define x_any_window_to_frame(d, i) x_window_to_frame (d, i)
-#define x_top_window_to_frame(d, i) x_window_to_frame (d, i)
+
+struct frame *
+x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
+{
+  return x_window_to_frame (dpyinfo, wdesc);
+}
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
