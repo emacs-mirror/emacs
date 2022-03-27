@@ -107,5 +107,4 @@ haiku_load_image (struct frame *f, struct image *img,
 void
 syms_of_haikuimage (void)
 {
-  DEFSYM (Qbmp, "bmp");
 }
