@@ -1715,7 +1715,8 @@ IGNORES is a list of glob patterns for files to ignore."
      .
      ;; '!*/' is there to filter out dirs (e.g. submodules).
      "xargs -0 rg <C> --null -nH --no-heading --no-messages -g '!*/' -e <R>"
-     ))
+     )
+    (ugrep . "xargs -0 ugrep <C> --null -ns -e <R>"))
   "Associative list mapping program identifiers to command templates.
 
 Program identifier should be a symbol, named after the search program.
@@ -1744,6 +1745,7 @@ utility function used by commands like `dired-do-find-regexp' and
   :type '(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
+          (const :tag "Use ugrep" grep)
           (symbol :tag "User defined"))
   :version "28.1"
   :package-version '(xref . "1.0.4"))
