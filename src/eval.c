@@ -559,6 +559,10 @@ usage: (function ARG)  */)
 	{ /* Handle the special (:documentation <form>) to build the docstring
 	     dynamically.  */
 	  Lisp_Object docstring = eval_sub (Fcar (XCDR (tmp)));
+	  if (SYMBOLP (docstring) && !NILP (docstring))
+	    /* Hack for OClosures: Allow the docstring to be a symbol
+             * (the OClosure's type).  */
+	    docstring = Fsymbol_name (docstring);
 	  CHECK_STRING (docstring);
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}

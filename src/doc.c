@@ -514,11 +514,19 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      if (PVSIZE (fun) > COMPILED_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there,
+           * such as the symbols used for Oclosures.  */
+	  && (FIXNUMP (AREF (fun, COMPILED_DOC_STRING))
+	      || STRINGP (AREF (fun, COMPILED_DOC_STRING))
+	      || CONSP (AREF (fun, COMPILED_DOC_STRING))))
 	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
       else
 	{
-	  AUTO_STRING (format, "No docstring slot for %s");
+	  AUTO_STRING (format,
+	               (PVSIZE (fun) > COMPILED_DOC_STRING
+	                ? "Docstring slot busy for %s"
+	                : "No docstring slot for %s"));
 	  CALLN (Fmessage, format,
 		 (SYMBOLP (obj)
 		  ? SYMBOL_NAME (obj)

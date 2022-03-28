@@ -201,7 +201,10 @@ Returns a form where all lambdas don't have any free variables."
          (i 0)
          (new-env ()))
     ;; Build the "formal and actual envs" for the closure-converted function.
-    (dolist (fv fvs)
+    ;; Hack for OClosure: `nreverse' here intends to put the captured vars
+    ;; in the closure such that the first one is the one that is bound
+    ;; most closely.
+    (dolist (fv (nreverse fvs))
       (let ((exp (or (cdr (assq fv env)) fv)))
         (pcase exp
           ;; If `fv' is a variable that's wrapped in a cons-cell,
@@ -240,7 +243,7 @@ Returns a form where all lambdas don't have any free variables."
   ;; this case better, we'd need to traverse the tree one more time to
   ;; collect this data, and I think that it's not worth it.
   (mapcar (lambda (mapping)
-            (if (not (eq (cadr mapping) 'apply-partially))
+            (if (not (eq (cadr mapping) #'apply-partially))
                 mapping
               (cl-assert (eq (car mapping) (nth 2 mapping)))
               `(,(car mapping)
@@ -449,6 +452,9 @@ places where they originally did not directly appear."
                  (let ((var-def (cconv--lifted-arg var env))
                        (closedsym (make-symbol (format "closed-%s" var))))
                    (setq new-env (cconv--remap-llv new-env var closedsym))
+                   ;; FIXME: `closedsym' doesn't need to be added to `extend'
+                   ;; but adding it makes it easier to write the assertion at
+                   ;; the beginning of this function.
                    (setq new-extend (cons closedsym (remq var new-extend)))
                    (push `(,closedsym ,var-def) binders-new)))
 
@@ -603,6 +609,14 @@ places where they originally did not directly appear."
                               forms)))
 
     (`(declare . ,_) form)              ;The args don't contain code.
+
+    (`(oclosure--fix-type (ignore . ,vars) ,exp)
+     (dolist (var vars)
+       (let ((x (assq var env)))
+         (pcase (cdr x)
+           (`(car-safe . ,_) (error "Slot %S should not be mutated" var))
+           (_ (cl-assert (null (cdr x)))))))
+     (cconv-convert exp env extend))
 
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,

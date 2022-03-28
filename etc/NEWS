@@ -1156,6 +1156,11 @@ It is believed to no longer be useful.
 
 * New Modes and Packages in Emacs 29.1
 
++++
+** New package 'oclosure'.
+Allows the creation of "functions with slots" or "function objects"
+via the macros `oclosure-define` and `oclosure-lambda`.
+
 ---
 ** New theme 'leuven-dark'.
 This is a dark version of the 'leuven' theme.
