@@ -1108,6 +1108,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  tem->y = dest_y;
 	  tem->width = attrs.width + attrs.border_width;
 	  tem->height = attrs.height + attrs.border_width;
+	  tem->mapped_p = (attrs.map_state != IsUnmapped);
 #else
 	  tem->x = (coordinates_reply->dst_x
 		    - geometry_reply->border_width);
@@ -1117,8 +1118,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 			+ geometry_reply->border_width);
 	  tem->height = (geometry_reply->height
 			 + geometry_reply->border_width);
+	  tem->mapped_p = (attrs.map_state != XCB_MAP_STATE_UNMAPPED);
 #endif
-	  tem->mapped_p = (attrs.map_state != IsUnmapped);
 	  tem->next = x_dnd_toplevels;
 	  tem->previous_event_mask = attrs.your_event_mask;
 	  tem->wm_state = wmstate[0];
@@ -1311,8 +1312,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 		      && dpyinfo->xshape_minor >= 1)))
 	    {
 	      input_rect_reply = xcb_shape_get_rectangles_reply (dpyinfo->xcb_connection,
-								    input_rect_cookies[i],
-								    &error);
+								 input_rect_cookies[i],
+								 &error);
 
 	      if (input_rect_reply)
 		free (input_rect_reply);
