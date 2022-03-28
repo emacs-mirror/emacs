@@ -986,9 +986,10 @@ rather than every 1024 byte block, but nobody seems to care."
          'dcc-get-file-too-long
          ?f (file-name-nondirectory (buffer-name)))
         (delete-process proc))
-       (t
-        (process-send-string
-         proc (erc-pack-int received-bytes)))))))
+       ((not (process-get proc :reportingp))
+        (process-put proc :reportingp t)
+        (process-send-string proc (erc-pack-int received-bytes))
+        (process-put proc :reportingp nil))))))
 
 (defun erc-dcc-get-sentinel (proc event)
   "This is the process sentinel for CTCP DCC SEND connections.
