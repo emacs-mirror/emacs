@@ -3747,6 +3747,14 @@ if test "${HAVE_X11}" = "yes"; then
 [Define to 1 if you have the XCB library and X11-XCB library for mixed
   X11/XCB programming.])
         XCB_LIBS="-lX11-xcb -lxcb -lxcb-util"
+      else
+        AC_CHECK_LIB(xcb-aux, xcb_aux_sync, HAVE_XCB_AUX=yes)
+        if test "${HAVE_XCB_AUX}" = "yes"; then
+          AC_DEFINE(USE_XCB, 1,
+[Define to 1 if you have the XCB library and X11-XCB library for mixed
+ X11/XCB programming.])
+          XCB_LIBS="-lX11-xcb -lxcb -lxcb-aux"
+        fi
       fi
     fi
   fi
