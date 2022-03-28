@@ -3457,11 +3457,13 @@ the word mode."
                    (if (and (not isearch-success) (not isearch-case-fold-search))
                        "case-sensitive ")
                    (let ((prefix ""))
-                     (advice-function-mapc
-                      (lambda (_ props)
-                        (let ((np (cdr (assq 'isearch-message-prefix props))))
-                          (if np (setq prefix (concat np prefix)))))
-                      isearch-filter-predicate)
+                     (dolist (advice-function (list isearch-filter-predicate
+                                                    isearch-search-fun-function))
+                       (advice-function-mapc
+                        (lambda (_ props)
+                          (let ((np (cdr (assq 'isearch-message-prefix props))))
+                            (if np (setq prefix (concat np prefix)))))
+                        advice-function))
                      prefix)
                    (isearch--describe-regexp-mode isearch-regexp-function)
 		   (cond

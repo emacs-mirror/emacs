@@ -3155,16 +3155,16 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
 
 (define-minor-mode dired-isearch-filenames-mode
   "Toggle file names searching on or off.
-When on, Isearch skips matches outside file names using the predicate
-`dired-isearch-filter-filenames' that matches only at file names.
-When off, it uses the original predicate."
+When on, Isearch skips matches outside file names using the search function
+`dired-isearch-search-filenames' that matches only at file names.
+When off, it uses the default search function."
   :lighter nil
   (if dired-isearch-filenames-mode
-      (add-function :before-while (local 'isearch-filter-predicate)
-                    #'dired-isearch-filter-filenames
+      (add-function :around (local 'isearch-search-fun-function)
+                    #'dired-isearch-search-filenames
                     '((isearch-message-prefix . "filename ")))
-    (remove-function (local 'isearch-filter-predicate)
-                     #'dired-isearch-filter-filenames))
+    (remove-function (local 'isearch-search-fun-function)
+                     #'dired-isearch-search-filenames))
   (when isearch-mode
     (setq isearch-success t isearch-adjusted t)
     (isearch-update)))
@@ -3188,12 +3188,46 @@ Intended to be added to `isearch-mode-hook'."
   (unless isearch-suspended
     (kill-local-variable 'dired-isearch-filenames)))
 
-(defun dired-isearch-filter-filenames (beg end)
-  "Test whether some part of the current search match is inside a file name.
-This function returns non-nil if some part of the text between BEG and END
-is part of a file name (i.e., has the text property `dired-filename')."
-  (text-property-not-all (min beg end) (max beg end)
-			 'dired-filename nil))
+(defun dired-isearch-search-filenames (orig-fun)
+  "Return the function that searches inside file names.
+The returned function narrows the search to match the search string
+only as part of a file name enclosed by the text property `dired-filename'.
+It's intended to override the default search function."
+  (let ((search-fun (funcall orig-fun))
+        (property 'dired-filename))
+    (lambda (string &optional bound noerror count)
+      (let* ((old (point))
+             ;; Check if point is already on the property.
+             (beg (when (get-text-property
+                         (if isearch-forward old (max (1- old) (point-min)))
+                         property)
+                    old))
+             end found)
+        ;; Otherwise, try to search for the next property.
+        (unless beg
+          (setq beg (if isearch-forward
+                        (next-single-property-change old property)
+                      (previous-single-property-change old property)))
+          (when beg (goto-char beg)))
+        ;; Non-nil `beg' means there are more properties.
+        (while (and beg (not found))
+          ;; Search for the end of the current property.
+          (setq end (if isearch-forward
+                        (next-single-property-change beg property)
+                      (previous-single-property-change beg property)))
+          (setq found (funcall
+                       search-fun string (if bound (if isearch-forward
+                                                       (min bound end)
+                                                     (max bound end))
+                                           end)
+                       noerror count))
+          (unless found
+            (setq beg (if isearch-forward
+                          (next-single-property-change end property)
+                        (previous-single-property-change end property)))
+            (when beg (goto-char beg))))
+        (unless found (goto-char old))
+        found))))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()

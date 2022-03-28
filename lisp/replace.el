@@ -2685,6 +2685,11 @@ to a regexp that is actually used for the search.")
 	  (or (if regexp-flag
 		  replace-re-search-function
 		replace-search-function)
+              ;; `isearch-search-fun' can't be used here because
+              ;; when buffer-local `isearch-search-fun-function'
+              ;; searches e.g. the minibuffer history, then
+              ;; `query-replace' should not operate on the whole
+              ;; history, but only on the minibuffer contents.
 	      (isearch-search-fun-default))))
     (funcall search-function search-string limit t)))
 
