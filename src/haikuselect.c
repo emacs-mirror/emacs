@@ -112,7 +112,7 @@ haiku_unwind_clipboard_lock (int clipboard)
 }
 
 DEFUN ("haiku-selection-put", Fhaiku_selection_put, Shaiku_selection_put,
-       3, 4, 0,
+       2, 4, 0,
        doc: /* Add or remove content from the clipboard CLIPBOARD.
 CLIPBOARD is the symbol `PRIMARY', `SECONDARY' or `CLIPBOARD'.  NAME
 is a MIME type denoting the type of the data to add.  DATA is the

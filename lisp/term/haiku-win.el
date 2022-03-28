@@ -72,10 +72,40 @@ content that is being put into the selection by
 `gui-set-selection'.  See the doc string of `haiku-drag-message'
 for more details on the structure of the associations.")
 
+(defun haiku-selection-bounds (value)
+  "Return bounds of selection value VALUE.
+The return value is a list (BEG END BUF) if VALUE is a cons of
+two markers or an overlay.  Otherwise, it is nil."
+  (cond ((bufferp value)
+	 (with-current-buffer value
+	   (when (mark t)
+	     (list (mark t) (point) value))))
+	((and (consp value)
+	      (markerp (car value))
+	      (markerp (cdr value)))
+	 (when (and (marker-buffer (car value))
+		    (buffer-name (marker-buffer (car value)))
+		    (eq (marker-buffer (car value))
+			(marker-buffer (cdr value))))
+	   (list (marker-position (car value))
+		 (marker-position (cdr value))
+		 (marker-buffer (car value)))))
+	((overlayp value)
+	 (when (overlay-buffer value)
+	   (list (overlay-start value)
+		 (overlay-end value)
+		 (overlay-buffer value))))))
+
 (defun haiku-dnd-convert-string (value)
   "Convert VALUE to a UTF-8 string and appropriate MIME type.
 Return a list of the appropriate MIME type, and UTF-8 data of
 VALUE as a unibyte string, or nil if VALUE was not a string."
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
   (when (stringp value)
     (list "text/plain" (string-to-unibyte
                         (encode-coding-string value 'utf-8)))))
@@ -143,7 +173,13 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
   "Convert VALUE to a system message association.
 VALUE will be encoded as Latin-1 (like on X Windows) and stored
 under the type `text/plain;charset=iso-8859-1'."
-  (when (stringp value)
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
+  (when (and (stringp value) (not (string-empty-p value)))
     (list "text/plain;charset=iso-8859-1" 1296649541
           (encode-coding-string value 'iso-latin-1))))
 
@@ -151,7 +187,13 @@ under the type `text/plain;charset=iso-8859-1'."
   "Convert VALUE to a system message association.
 VALUE will be encoded as UTF-8 and stored under the type
 `text/plain'."
-  (when (stringp value)
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
+  (when (and (stringp value) (not (string-empty-p value)))
     (list "text/plain" 1296649541
           (encode-coding-string value 'utf-8-unix))))
 
@@ -173,7 +215,7 @@ VALUE will be encoded as UTF-8 and stored under the type
         (let ((result (funcall encoder type value)))
           (when result
             (push result message))))
-      (haiku-selection-put type message nil))))
+      (haiku-selection-put type message))))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
                                               &context (window-system haiku))
