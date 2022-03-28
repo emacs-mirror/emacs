@@ -1343,8 +1343,75 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 #define X_DND_SUPPORTED_VERSION 5
 
+
 static int x_dnd_get_window_proto (struct x_display_info *, Window);
 static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
+
+#ifdef USE_XCB
+static void
+x_dnd_get_proxy_proto (struct x_display_info *dpyinfo, Window wdesc,
+		       Window *proxy_out, int *proto_out)
+{
+  xcb_get_property_cookie_t xdnd_proto_cookie;
+  xcb_get_property_cookie_t xdnd_proxy_cookie;
+  xcb_get_property_reply_t *reply;
+  xcb_generic_error_t *error;
+
+  if (proxy_out)
+    *proxy_out = None;
+
+  if (proto_out)
+    *proto_out = -1;
+
+  if (proxy_out)
+    xdnd_proxy_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
+					  (xcb_window_t) wdesc,
+					  (xcb_atom_t) dpyinfo->Xatom_XdndProxy,
+					  XCB_ATOM_WINDOW, 0, 1);
+
+  if (proto_out)
+    xdnd_proto_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
+					  (xcb_window_t) wdesc,
+					  (xcb_atom_t) dpyinfo->Xatom_XdndAware,
+					  XCB_ATOM_ATOM, 0, 1);
+
+  if (proxy_out)
+    {
+      reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				      xdnd_proxy_cookie, &error);
+
+      if (!reply)
+	free (error);
+      else
+	{
+	  if (reply->format == 32
+	      && reply->type == XCB_ATOM_WINDOW
+	      && (xcb_get_property_value_length (reply) >= 4))
+	    *proxy_out = *(xcb_window_t *) xcb_get_property_value (reply);
+
+	  free (reply);
+	}
+    }
+
+  if (proto_out)
+    {
+      reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				      xdnd_proto_cookie, &error);
+
+      if (!reply)
+	free (error);
+      else
+	{
+	  if (reply->format == 32
+	      && reply->type == XCB_ATOM_ATOM
+	      && (xcb_get_property_value_length (reply) >= 4))
+	    *proto_out = (int) *(xcb_atom_t *) xcb_get_property_value (reply);
+
+	  free (reply);
+	}
+    }
+}
+#endif
 
 #ifdef HAVE_XSHAPE
 static bool
@@ -1433,7 +1500,11 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 
       if (child != None)
 	{
-	  proxy = x_dnd_get_window_proxy (dpyinfo, child_return);
+#ifndef USE_XCB
+	  proxy = x_dnd_get_window_proxy (dpyinfo, child);
+#else
+	  x_dnd_get_proxy_proto (dpyinfo, child, &proxy, proto_out);
+#endif
 
 	  if (proxy != None)
 	    {
@@ -1446,7 +1517,9 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 		}
 	    }
 
+#ifndef USE_XCB
 	  *proto_out = x_dnd_get_window_proto (dpyinfo, child);
+#endif
 	  return child;
 	}
 
