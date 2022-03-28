@@ -374,7 +374,9 @@ arguments to pass to the OPERATION."
 ;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()
   "Add archive file name handler to `file-name-handler-alist'."
-  (when tramp-archive-enabled
+  (when (and tramp-archive-enabled
+             (not
+              (rassq #'tramp-archive-file-name-handler file-name-handler-alist)))
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
 		       #'tramp-archive-autoload-file-name-handler))

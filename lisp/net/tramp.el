@@ -2756,10 +2756,11 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 ;;;###autoload
 (progn (defun tramp-register-autoload-file-name-handlers ()
   "Add Tramp file name handlers to `file-name-handler-alist' during autoload."
-  (add-to-list 'file-name-handler-alist
-	       (cons tramp-autoload-file-name-regexp
-		     #'tramp-autoload-file-name-handler))
-  (put #'tramp-autoload-file-name-handler 'safe-magic t)))
+  (unless (rassq #'tramp-file-name-handler file-name-handler-alist)
+    (add-to-list 'file-name-handler-alist
+	         (cons tramp-autoload-file-name-regexp
+		       #'tramp-autoload-file-name-handler))
+    (put #'tramp-autoload-file-name-handler 'safe-magic t))))
 
 (put #'tramp-register-autoload-file-name-handlers 'tramp-autoload t)
 ;;;###autoload (tramp-register-autoload-file-name-handlers)
