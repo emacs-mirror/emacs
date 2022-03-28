@@ -350,10 +350,10 @@ the formats available in the clipboard if TYPE is `CLIPBOARD'."
 (defun gui-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
-DATA specifies the contents.  TYPE must be a symbol.  \(It can also
-be a string, which stands for the symbol with that name, but this
-is considered obsolete.)  DATA may be a string, a symbol, an
-integer (or a cons of two integers or list of two integers).
+DATA specifies the contents.  TYPE must be a symbol.  \(It can
+also be a string, which stands for the symbol with that name, but
+this is considered obsolete.)  DATA may be a string, a symbol, or
+an integer.
 
 The selection may also be a cons of two markers pointing to the same buffer,
 or an overlay.  In these cases, the selection is considered to be the text

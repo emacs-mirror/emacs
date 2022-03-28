@@ -3918,11 +3918,11 @@ upper-case names, in accord with X Window System conventions.  If
 @var{type} is @code{nil}, that stands for @code{PRIMARY}.
 
 If @var{data} is @code{nil}, it means to clear out the selection.
-Otherwise, @var{data} may be a string, a symbol, an integer (or a cons
-of two integers or list of two integers), an overlay, or a cons of two
-markers pointing to the same buffer.  An overlay or a pair of markers
-stands for text in the overlay or between the markers.  The argument
-@var{data} may also be a vector of valid non-vector selection values.
+Otherwise, @var{data} may be a string, a symbol, an integer, an
+overlay, or a cons of two markers pointing to the same buffer.  An
+overlay or a pair of markers stands for text in the overlay or between
+the markers.  The argument @var{data} may also be a vector of valid
+non-vector selection values.
 
 This function returns @var{data}.
 @end deffn
