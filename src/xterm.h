@@ -433,6 +433,8 @@ struct x_display_info
   /* Atom used to determine whether or not the screen is composited.  */
   Atom Xatom_NET_WM_CM_Sn;
 
+  Atom Xatom_MOTIF_WM_HINTS;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
@@ -551,7 +553,8 @@ struct x_display_info
     Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
     Xatom_net_wm_frame_drawn, Xatom_net_wm_user_time,
-    Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking;
+    Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking,
+    Xatom_net_wm_pid;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;

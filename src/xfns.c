@@ -867,7 +867,7 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 #else
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -979,7 +979,7 @@ x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value, Lisp_Object old_v
       xg_set_no_focus_on_map (f, new_value);
 #else /* not USE_GTK */
       Display *dpy = FRAME_X_DISPLAY (f);
-      Atom prop = XInternAtom (dpy, "_NET_WM_USER_TIME", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_net_wm_user_time;
       Time timestamp = NILP (new_value) ? CurrentTime : 0;
 
       XChangeProperty (dpy, FRAME_OUTER_WINDOW (f), prop,
@@ -3918,7 +3918,7 @@ x_window (struct frame *f, long window_prompting)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -4097,7 +4097,7 @@ x_window (struct frame *f)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -4435,9 +4435,7 @@ set_machine_and_pid_properties (struct frame *f)
       unsigned long xpid = pid;
       XChangeProperty (FRAME_X_DISPLAY (f),
 		       FRAME_OUTER_WINDOW (f),
-		       XInternAtom (FRAME_X_DISPLAY (f),
-				    "_NET_WM_PID",
-				    False),
+		       FRAME_DISPLAY_INFO (f)->Xatom_net_wm_pid,
 		       XA_CARDINAL, 32, PropModeReplace,
 		       (unsigned char *) &xpid, 1);
     }
@@ -7073,6 +7071,13 @@ If WINDOW-ID is non-nil, change the property of that window instead
   unsigned char *data;
   int nelements;
   Window target_window;
+#ifdef USE_XCB
+  xcb_intern_atom_cookie_t prop_atom_cookie;
+  xcb_intern_atom_cookie_t target_type_cookie;
+  xcb_intern_atom_reply_t *reply;
+  xcb_generic_error_t *generic_error;
+  bool rc;
+#endif
 
   CHECK_STRING (prop);
 
@@ -7136,12 +7141,61 @@ If WINDOW-ID is non-nil, change the property of that window instead
     }
 
   block_input ();
+#ifndef USE_XCB
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   if (! NILP (type))
     {
       CHECK_STRING (type);
       target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
     }
+#else
+  rc = true;
+  prop_atom_cookie
+    = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+		       0, SBYTES (prop), SSDATA (prop));
+
+  if (!NILP (type))
+    {
+      CHECK_STRING (type);
+      target_type_cookie
+	= xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+			   0, SBYTES (type), SSDATA (type));
+    }
+
+  reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
+				 prop_atom_cookie, &generic_error);
+
+  if (reply)
+    {
+      prop_atom = (Atom) reply->atom;
+      free (reply);
+    }
+  else
+    {
+      free (generic_error);
+      rc = false;
+    }
+
+  if (!NILP (type))
+    {
+      reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
+				     target_type_cookie, &generic_error);
+
+      if (reply)
+	{
+	  target_type = (Atom) reply->atom;
+	  free (reply);
+	}
+      else
+	{
+	  free (generic_error);
+	  rc = false;
+	}
+    }
+
+  if (!rc)
+    error ("Failed to intern type or property atom");
+#endif
 
   XChangeProperty (FRAME_X_DISPLAY (f), target_window,
 		   prop_atom, target_type, element_format, PropModeReplace,
