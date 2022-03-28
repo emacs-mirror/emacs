@@ -1191,6 +1191,13 @@ or modifiers.  For example, @samp{*(.)} expands to all regular files
 in the current directory and @samp{*(^@@:U^u0)} expands to all
 non-symlinks not owned by @code{root}, upper-cased.
 
+Some predicates and modifiers accept string parameters, such as
+@samp{*(u'@var{user}')}, which matches all files owned by @var{user}.
+These parameters must be surrounded by delimiters; you can use any of
+the following pairs of delimiters: @code{" @dots{} "}, @code{' @dots{}
+'}, @code{/ @dots{} /}, @code{| @dots{} |}, @code{( @dots{} )},
+@code{[ @dots{} ]}, @code{< @dots{} >}, or @code{@{ @dots{} @}}.
+
 You can customize the syntax and behavior of predicates and modifiers
 in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
 Customization, , , emacs, The GNU Emacs Manual}).
@@ -1378,6 +1385,11 @@ meaning.
 @item s/@var{pattern}/@var{replace}/
 Replaces the first instance of the regular expression @var{pattern}
 with @var{replace}.  Signals an error if no match is found.
+
+As with other modifiers taking string parameters, you can use
+different delimiters to separate @var{pattern} and @var{replace}, such
+as @samp{s'@dots{}'@dots{}'}, @samp{s[@dots{}][@dots{}]}, or even
+@samp{s[@dots{}]/@dots{}/}.
 
 @item gs/@var{pattern}/@var{replace}/
 Replaces all instances of the regular expression @var{pattern} with

@@ -26,6 +26,7 @@
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
+(require 'em-pred)
 
 (require 'eshell-tests-helpers
          (expand-file-name "eshell-tests-helpers"
@@ -254,8 +255,6 @@ read, write, and execute predicates to query the file's modes."
       (cl-letf (((symbol-function 'eshell-user-id)
                  (lambda (name) (seq-position user-names name))))
         (should (equal (eshell-eval-predicate files "u'one'")
-                       '("/fake/uid=1")))
-        (should (equal (eshell-eval-predicate files "u{one}")
                        '("/fake/uid=1")))))))
 
 (ert-deftest em-pred-test/predicate-gid ()
@@ -268,8 +267,6 @@ read, write, and execute predicates to query the file's modes."
       (cl-letf (((symbol-function 'eshell-group-id)
                  (lambda (name) (seq-position group-names name))))
         (should (equal (eshell-eval-predicate files "g'one'")
-                       '("/fake/gid=1")))
-        (should (equal (eshell-eval-predicate files "g{one}")
                        '("/fake/gid=1")))))))
 
 (defmacro em-pred-test--time-deftest (name file-attribute predicate
@@ -430,6 +427,8 @@ PREDICATE is the predicate used to query that attribute."
   "Test that \":s/PAT/REP/\" replaces PAT with REP once."
   (should (equal (eshell-eval-predicate "bar" ":s/a/*/") "b*r"))
   (should (equal (eshell-eval-predicate "bar" ":s|a|*|") "b*r"))
+  (should (equal (eshell-eval-predicate "bar" ":s{a}{*}") "b*r"))
+  (should (equal (eshell-eval-predicate "bar" ":s{a}'*'") "b*r"))
   (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":s/[ao]/*/")
                  '("f*o" "b*r" "b*z")))
   (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":s|[ao]|*|")
@@ -450,23 +449,15 @@ PREDICATE is the predicate used to query that attribute."
 (ert-deftest em-pred-test/modifier-include ()
   "Test that \":i/PAT/\" filters elements to include only ones matching PAT."
   (should (equal (eshell-eval-predicate "foo" ":i/a/") nil))
-  (should (equal (eshell-eval-predicate "foo" ":i|a|") nil))
   (should (equal (eshell-eval-predicate "bar" ":i/a/") "bar"))
-  (should (equal (eshell-eval-predicate "bar" ":i|a|") "bar"))
   (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":i/a/")
-                 '("bar" "baz")))
-  (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":i|a|")
                  '("bar" "baz"))))
 
 (ert-deftest em-pred-test/modifier-exclude ()
   "Test that \":x/PAT/\" filters elements to exclude any matching PAT."
   (should (equal (eshell-eval-predicate "foo" ":x/a/") "foo"))
-  (should (equal (eshell-eval-predicate "foo" ":x|a|") "foo"))
   (should (equal (eshell-eval-predicate "bar" ":x/a/") nil))
-  (should (equal (eshell-eval-predicate "bar" ":x|a|") nil))
   (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":x/a/")
-                 '("foo")))
-  (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":x|a|")
                  '("foo"))))
 
 (ert-deftest em-pred-test/modifier-split ()
@@ -516,7 +507,7 @@ PREDICATE is the predicate used to query that attribute."
                  '("baz" "bar" "foo"))))
 
 
-;; Combinations
+;; Miscellaneous
 
 (ert-deftest em-pred-test/combine-predicate-and-modifier ()
   "Test combination of predicates and modifiers."
@@ -525,5 +516,21 @@ PREDICATE is the predicate used to query that attribute."
                    "/fake/subdir/type=-.el")))
       (should (equal (eshell-eval-predicate files ".:e:u")
                      '("el" "txt"))))))
+
+(ert-deftest em-pred-test/predicate-delimiters ()
+  "Test various delimiter pairs with predicates and modifiers."
+  (dolist (delims eshell-pred-delimiter-pairs)
+    (eshell-with-file-attributes-from-name
+     (let ((files '("/fake/uid=1" "/fake/uid=2"))
+           (user-names '("root" "one" "two")))
+       (cl-letf (((symbol-function 'eshell-user-id)
+                  (lambda (name) (seq-position user-names name))))
+         (should (equal (eshell-eval-predicate
+                         files (format "u%cone%c" (car delims) (cdr delims)))
+                        '("/fake/uid=1"))))))
+    (should (equal (eshell-eval-predicate
+                    '("foo" "bar" "baz")
+                    (format ":j%c-%c" (car delims) (cdr delims)))
+                   "foo-bar-baz"))))
 
 ;; em-pred-tests.el ends here
