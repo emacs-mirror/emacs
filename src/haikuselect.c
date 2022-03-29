@@ -213,25 +213,8 @@ same as `SECONDARY'.  */)
   return value ? Qt : Qnil;
 }
 
-/* Return the Lisp representation of MESSAGE.
-
-   It is an alist of strings, denoting message field names, to a list
-   of the form (TYPE DATA ...), where TYPE is an integer denoting the
-   system data type of DATA, and DATA is in the general case a unibyte
-   string.
-
-   If TYPE is a symbol instead of an integer, then DATA was specially
-   decoded.  If TYPE is `ref', then DATA is the absolute file name of
-   a file, or nil if decoding the file name failed.  If TYPE is
-   `string', then DATA is a unibyte string.  If TYPE is `short', then
-   DATA is a 16-bit signed integer.  If TYPE is `long', then DATA is a
-   32-bit signed integer.  If TYPE is `llong', then DATA is a 64-bit
-   signed integer. If TYPE is `byte' or `char', then DATA is an 8-bit
-   signed integer.  If TYPE is `bool', then DATA is a boolean.
-
-   If the field name is not a string but the symbol `type', then it
-   associates to a 32-bit unsigned integer describing the type of the
-   system message.  */
+/* Return the Lisp representation of MESSAGE.  See Fhaiku_drag_message
+   for the format of the object returned.  */
 Lisp_Object
 haiku_message_to_lisp (void *message)
 {
@@ -243,6 +226,7 @@ haiku_message_to_lisp (void *message)
   int32 i, j, count, type_code;
   int rc;
   void *msg;
+  float point_x, point_y;
 
   for (i = 0; !be_enum_message (message, &type_code, i,
 				&count, &name); ++i)
@@ -287,9 +271,22 @@ haiku_message_to_lisp (void *message)
 
 	      t1 = build_string (pbuf);
 
-	      block_input ();
 	      free (pbuf);
-	      unblock_input ();
+	      break;
+
+	    case 'BPNT':
+	      rc = be_get_point_data (message, name,
+				      j, &point_x,
+				      &point_y);
+
+	      if (rc)
+		{
+		  t1 = Qnil;
+		  break;
+		}
+
+	      t1 = Fcons (make_float (point_x),
+			  make_float (point_y));
 	      break;
 
 	    case 'SHRT':
@@ -307,6 +304,14 @@ haiku_message_to_lisp (void *message)
 	    case 'BYTE':
 	    case 'CHAR':
 	      t1 = make_fixnum (*(int8 *) buf);
+	      break;
+
+	    case 'SIZT':
+	      t1 = make_uint ((uintmax_t) *(size_t *) buf);
+	      break;
+
+	    case 'SSZT':
+	      t1 = make_int ((intmax_t) *(ssize_t *) buf);
 	      break;
 
 	    default:
@@ -355,6 +360,18 @@ haiku_message_to_lisp (void *message)
 	  t2 = Qmessage;
 	  break;
 
+	case 'SIZT':
+	  t2 = Qsize_t;
+	  break;
+
+	case 'SSZT':
+	  t2 = Qssize_t;
+	  break;
+
+	case 'BPNT':
+	  t2 = Qpoint;
+	  break;
+
 	default:
 	  t2 = make_int (type_code);
 	}
@@ -394,6 +411,12 @@ lisp_to_type_code (Lisp_Object obj)
     return 'BOOL';
   else if (EQ (obj, Qmessage))
     return 'MSGG';
+  else if (EQ (obj, Qsize_t))
+    return 'SIZT';
+  else if (EQ (obj, Qssize_t))
+    return 'SSZT';
+  else if (EQ (obj, Qpoint))
+    return 'BPNT';
   else
     return -1;
 }
@@ -408,8 +431,11 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   int8 char_data;
   bool bool_data;
   void *msg_data;
+  size_t sizet_data;
+  ssize_t ssizet_data;
   intmax_t t4;
   uintmax_t t5;
+  float t6, t7;
   int rc;
   specpdl_ref ref;
 
@@ -498,6 +524,19 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 		signal_error ("Invalid file name", data);
 	      break;
 
+	    case 'BPNT':
+	      CHECK_CONS (data);
+	      CHECK_NUMBER (XCAR (data));
+	      CHECK_NUMBER (XCDR (data));
+
+	      t6 = XFLOATINT (XCAR (data));
+	      t7 = XFLOATINT (XCDR (data));
+
+	      if (be_add_point_data (message, SSDATA (name),
+				     t6, t7))
+		signal_error ("Invalid point", data);
+	      break;
+
 	    case 'SHRT':
 	      if (!TYPE_RANGED_FIXNUMP (int16, data))
 		signal_error ("Invalid value", data);
@@ -572,6 +611,63 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 		signal_error ("Failed to add llong", data);
 	      break;
 
+	    case 'SIZT':
+	      if (BIGNUMP (data))
+		{
+		  t4 = bignum_to_intmax (data);
+
+		  if (!t4 || t4 > TYPE_MAXIMUM (size_t))
+		    signal_error ("Value too large", data);
+
+		  sizet_data = (size_t) t4;
+		}
+	      else
+		{
+		  if (!TYPE_RANGED_FIXNUMP (size_t, data))
+		    signal_error ("Invalid value", data);
+
+		  sizet_data = (int64) XFIXNUM (data);
+		}
+
+	      block_input ();
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &sizet_data,
+					sizeof sizet_data);
+	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add sizet", data);
+	      break;
+
+	    case 'SSZT':
+	      if (BIGNUMP (data))
+		{
+		  t4 = bignum_to_intmax (data);
+
+		  if (!t4 || t4 > TYPE_MINIMUM (ssize_t)
+		      || t4 < TYPE_MAXIMUM (ssize_t))
+		    signal_error ("Value too large", data);
+
+		  ssizet_data = (ssize_t) t4;
+		}
+	      else
+		{
+		  if (!TYPE_RANGED_FIXNUMP (ssize_t, data))
+		    signal_error ("Invalid value", data);
+
+		  ssizet_data = (int64) XFIXNUM (data);
+		}
+
+	      block_input ();
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &ssizet_data,
+					sizeof ssizet_data);
+	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add ssizet", data);
+	      break;
+
 	    case 'CHAR':
 	    case 'BYTE':
 	      if (!TYPE_RANGED_FIXNUMP (int8, data))
@@ -641,7 +737,13 @@ then DATA is a unibyte string.  If TYPE is `short', then DATA is a
 16-bit signed integer.  If TYPE is `long', then DATA is a 32-bit
 signed integer.  If TYPE is `llong', then DATA is a 64-bit signed
 integer. If TYPE is `byte' or `char', then DATA is an 8-bit signed
-integer.  If TYPE is `bool', then DATA is a boolean.
+integer.  If TYPE is `bool', then DATA is a boolean.  If TYPE is
+`size_t', then DATA is an integer that can hold between 0 and the
+maximum value returned by the `sizeof' C operator on the current
+system.  If TYPE is `ssize_t', then DATA is an integer that can hold
+values from -1 to the maximum value of the C data type `ssize_t' on
+the current system.  If TYPE is `point', then DATA is a cons of float
+values describing the X and Y coordinates of an on-screen location.
 
 If the field name is not a string but the symbol `type', then it
 associates to a 32-bit unsigned integer describing the type of the
@@ -701,6 +803,9 @@ syms_of_haikuselect (void)
   DEFSYM (Qchar, "char");
   DEFSYM (Qbool, "bool");
   DEFSYM (Qtype, "type");
+  DEFSYM (Qsize_t, "size_t");
+  DEFSYM (Qssize_t, "ssize_t");
+  DEFSYM (Qpoint, "point");
 
   defsubr (&Shaiku_selection_data);
   defsubr (&Shaiku_selection_put);

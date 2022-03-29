@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "haikuselect.h"
 
-
 static BClipboard *primary = NULL;
 static BClipboard *secondary = NULL;
 static BClipboard *system_clipboard = NULL;
@@ -319,6 +318,26 @@ be_get_refs_data (void *message, const char *name,
 }
 
 int
+be_get_point_data (void *message, const char *name,
+		   int32 index, float *x, float *y)
+{
+  status_t rc;
+  BMessage *msg;
+  BPoint point;
+
+  msg = (BMessage *) message;
+  rc = msg->FindPoint (name, index, &point);
+
+  if (rc != B_OK)
+    return 1;
+
+  *x = point.x;
+  *y = point.y;
+
+  return 0;
+}
+
+int
 be_get_message_data (void *message, const char *name,
 		     int32 type_code, int32 index,
 		     const void **buf_return,
@@ -396,6 +415,15 @@ be_add_refs_data (void *message, const char *name,
     return 1;
 
   return msg->AddRef (name, &ref) != B_OK;
+}
+
+int
+be_add_point_data (void *message, const char *name,
+		   float x, float y)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->AddPoint (name, BPoint (x, y)) != B_OK;
 }
 
 int

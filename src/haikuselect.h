@@ -94,6 +94,8 @@ extern "C"
 				  ssize_t *size_return);
   extern int be_get_refs_data (void *message, const char *name,
 			       int32 index, char **path_buffer);
+  extern int be_get_point_data (void *message, const char *name,
+				int32 index, float *x, float *y);
   extern uint32 be_get_message_type (void *message);
   extern void be_set_message_type (void *message, uint32 what);
   extern void *be_get_message_message (void *message, const char *name,
@@ -104,6 +106,8 @@ extern "C"
 				  ssize_t buf_size);
   extern int be_add_refs_data (void *message, const char *name,
 			       const char *filename);
+  extern int be_add_point_data (void *message, const char *name,
+				float x, float y);
   extern int be_add_message_message (void *message, const char *name,
 				     void *data);
   extern int be_lock_clipboard_message (enum haiku_clipboard clipboard,
