@@ -1278,6 +1278,30 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	      xfree (tem->input_rects);
 	      tem->n_input_rects = -1;
 	    }
+
+	  /* And the common case where there is no input rect and the
+	     bouding rect equals the window dimensions.  */
+
+	  if (tem->n_input_rects == -1
+	      && tem->n_bounding_rects == 1
+#ifdef USE_XCB
+	      && tem->bounding_rects[0].width == (geometry_reply->width
+						  + geometry_reply->border_width)
+	      && tem->bounding_rects[0].height == (geometry_reply->height
+						   + geometry_reply->border_width)
+	      && tem->bounding_rects[0].x == -geometry_reply->border_width
+	      && tem->bounding_rects[0].y == -geometry_reply->border_width
+#else
+	      && tem->bounding_rects[0].width == attrs.width + attrs.border_width
+	      && tem->bounding_rects[0].height == attrs.height + attrs.border_width
+	      && tem->bounding_rects[0].x == -attrs.border_width
+	      && tem->bounding_rects[0].y == -attrs.border_width
+#endif
+	      )
+	    {
+	      xfree (tem->bounding_rects);
+	      tem->n_bounding_rects = -1;
+	    }
 #endif
 
 	  x_catch_errors (dpyinfo->display);
