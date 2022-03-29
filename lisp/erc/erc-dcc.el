@@ -768,7 +768,7 @@ the matching regexp, or nil if none found."
 PROC is the process-object of the DCC connection.  Returns the number of
 bytes sent."
   (let* ((elt (erc-dcc-member :peer proc))
-         (confirmed-marker (plist-get elt :sent))
+         (confirmed-marker (plist-get elt :confirmed))
          (sent-marker (plist-get elt :sent)))
     (with-current-buffer (process-buffer proc)
       (when erc-dcc-verbose
