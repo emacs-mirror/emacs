@@ -321,6 +321,7 @@ list of slot properties.  The currently known properties are the following:
        ,@(oclosure--defstruct-make-copiers
           copiers slotdescs name))))
 
+;;;###autoload
 (defun oclosure--define (name docstring parent-names slots
                               &rest props)
   (let* ((class (oclosure--build-class name docstring parent-names slots))
