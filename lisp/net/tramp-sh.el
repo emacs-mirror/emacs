@@ -2856,6 +2856,7 @@ implementation will be used."
 			    stderr (tramp-make-tramp-temp-name v)))))
 		 (remote-tmpstderr
 		  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
+		 (orig-command command)
 		 (program (car command))
 		 (args (cdr command))
 		 ;; When PROGRAM matches "*sh", and the first arg is
@@ -3012,6 +3013,9 @@ implementation will be used."
 			  (set-process-sentinel p sentinel))
 			(when filter
 			  (set-process-filter p filter))
+			(process-put p 'remote-command orig-command)
+			(tramp-set-connection-property
+			 p "remote-command" orig-command)
 			;; Set query flag and process marker for this
 			;; process.  We ignore errors, because the
 			;; process could have finished already.
@@ -4877,7 +4881,8 @@ Goes through the list `tramp-inline-compress-commands'."
 		   "\\(illegal\\|unknown\\) option -- R" nil 'noerror)))))
 
        ;; Check, that RemoteCommand is not used.
-       (with-tramp-connection-property (tramp-get-process vec1) "remote-command"
+       (with-tramp-connection-property
+	   (tramp-get-process vec1) "ssh-remote-command"
 	 (let ((command `("ssh" "-G" ,(tramp-file-name-host vec1))))
 	   (with-temp-buffer
 	     (tramp-call-process

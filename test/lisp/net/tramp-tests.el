@@ -4540,14 +4540,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
 	  (tmp-name (tramp--test-make-temp-name nil quoted))
-	  kill-buffer-query-functions proc)
+	  kill-buffer-query-functions command proc)
 
       ;; Simple process.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq proc (start-file-process "test1" (current-buffer) "cat"))
+	    (setq command '("cat")
+		  proc
+		  (apply #'start-file-process "test1" (current-buffer) command))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
+	    (should (equal (process-get proc 'remote-command) command))
 	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
@@ -4564,11 +4567,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (should (file-exists-p tmp-name))
-	    (setq proc
-		  (start-file-process
-		   "test2" (current-buffer)
-		   "cat" (file-name-nondirectory tmp-name)))
+	    (setq command `("cat" ,(file-name-nondirectory tmp-name))
+		  proc
+		  (apply #'start-file-process "test2" (current-buffer) command))
 	    (should (processp proc))
+	    (should (equal (process-get proc 'remote-command) command))
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
@@ -4583,9 +4586,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; Process filter.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq proc (start-file-process "test3" (current-buffer) "cat"))
+	    (setq command '("cat")
+		  proc
+		  (apply #'start-file-process "test3" (current-buffer) command))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
+	    (should (equal (process-get proc 'remote-command) command))
 	    (set-process-filter
 	     proc
 	     (lambda (p s) (with-current-buffer (process-buffer p) (insert s))))
@@ -4604,9 +4610,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       (unless (tramp--test-sshfs-p)
 	(unwind-protect
 	    (with-temp-buffer
-	      (setq proc (start-file-process "test3" (current-buffer) "cat"))
+	    (setq command '("cat")
+		  proc
+		  (apply #'start-file-process "test4" (current-buffer) command))
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
+	      (should (equal (process-get proc 'remote-command) command))
 	      (set-process-filter proc t)
 	      (process-send-string proc "foo\n")
 	      (process-send-eof proc)
@@ -4632,12 +4641,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	(dolist (process-connection-type '(nil pipe t pty))
 	  (unwind-protect
 	      (with-temp-buffer
-		(setq proc
-		      (start-file-process
-		       (format "test4-%s" process-connection-type)
-		       (current-buffer) "hexdump" "-v" "-e" "/1 \"%02X\n\""))
+		(setq command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
+		      proc
+		      (apply #'start-file-process
+			     (format "test5-%s" process-connection-type)
+			     (current-buffer) command))
 		(should (processp proc))
 		(should (equal (process-status proc) 'run))
+		(should (equal (process-get proc 'remote-command) command))
 		(process-send-string proc "foo\r\n")
 		(process-send-eof proc)
 		;; Read output.
@@ -4665,12 +4676,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; It works only for tramp-sh.el, and not direct async processes.
 	    (if (or (not (tramp--test-sh-p)) (tramp-direct-async-process-p))
 		(should-error
-		 (start-file-process "test5" (current-buffer) nil)
+		 (start-file-process "test6" (current-buffer) nil)
 		 :type 'wrong-type-argument)
 
-	      (setq proc (start-file-process "test5" (current-buffer) nil))
+	      (setq proc (start-file-process "test6" (current-buffer) nil))
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
+	      (should-not (process-get proc 'remote-command))
 	      ;; On MS Windows, `process-tty-name' returns nil.
 	      (unless (tramp--test-windows-nt-p)
 		(should (stringp (process-tty-name proc))))))
@@ -4724,19 +4736,21 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((default-directory tramp-test-temporary-file-directory)
 	  (tmp-name (tramp--test-make-temp-name nil quoted))
-	  kill-buffer-query-functions proc)
+	  kill-buffer-query-functions command proc)
       (with-no-warnings (should-not (make-process)))
 
       ;; Simple process.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq proc
+	    (setq command '("cat")
+		  proc
 		  (with-no-warnings
 		    (make-process
-		     :name "test1" :buffer (current-buffer) :command '("cat")
+		     :name "test1" :buffer (current-buffer) :command command
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
+	    (should (equal (process-get proc 'remote-command) command))
 	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
@@ -4753,13 +4767,14 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	  (with-temp-buffer
 	    (write-region "foo" nil tmp-name)
 	    (should (file-exists-p tmp-name))
-	    (setq proc
+	    (setq command `("cat" ,(file-name-nondirectory tmp-name))
+		  proc
 		  (with-no-warnings
 		    (make-process
-		     :name "test2" :buffer (current-buffer)
-		     :command `("cat" ,(file-name-nondirectory tmp-name))
+		     :name "test2" :buffer (current-buffer) :command command
 		     :file-handler t)))
 	    (should (processp proc))
+	    (should (equal (process-get proc 'remote-command) command))
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
@@ -4774,16 +4789,18 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       ;; Process filter.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq proc
+	    (setq command '("cat")
+		  proc
 		  (with-no-warnings
 		    (make-process
-		     :name "test3" :buffer (current-buffer) :command '("cat")
+		     :name "test3" :buffer (current-buffer) :command command
 		     :filter
 		     (lambda (p s)
 		       (with-current-buffer (process-buffer p) (insert s)))
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
+	    (should (equal (process-get proc 'remote-command) command))
 	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    ;; Read output.
@@ -4799,14 +4816,16 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       (unless (tramp--test-sshfs-p)
 	(unwind-protect
 	    (with-temp-buffer
-	      (setq proc
+	      (setq command '("cat")
+		    proc
 		    (with-no-warnings
 		      (make-process
-		       :name "test3" :buffer (current-buffer) :command '("cat")
+		       :name "test4" :buffer (current-buffer) :command command
 		       :filter t
 		       :file-handler t)))
 	      (should (processp proc))
 	      (should (equal (process-status proc) 'run))
+	      (should (equal (process-get proc 'remote-command) command))
 	      (process-send-string proc "foo\n")
 	      (process-send-eof proc)
 	      ;; Read output.  There shouldn't be any.
@@ -4822,16 +4841,18 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       ;; Process sentinel.
       (unwind-protect
 	  (with-temp-buffer
-	    (setq proc
+	    (setq command '("cat")
+		  proc
 		  (with-no-warnings
 		    (make-process
-		     :name "test4" :buffer (current-buffer) :command '("cat")
+		     :name "test5" :buffer (current-buffer) :command command
 		     :sentinel
 		     (lambda (p s)
 		       (with-current-buffer (process-buffer p) (insert s)))
 		     :file-handler t)))
 	    (should (processp proc))
 	    (should (equal (process-status proc) 'run))
+	    (should (equal (process-get proc 'remote-command) command))
 	    (process-send-string proc "foo\n")
 	    (process-send-eof proc)
 	    (delete-process proc)
@@ -4850,14 +4871,15 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	(let ((stderr (generate-new-buffer "*stderr*")))
 	  (unwind-protect
 	      (with-temp-buffer
-		(setq proc
+		(setq command '("cat" "/does-not-exist")
+		      proc
 		      (with-no-warnings
 			(make-process
-			 :name "test5" :buffer (current-buffer)
-			 :command '("cat" "/does-not-exist")
+			 :name "test6" :buffer (current-buffer) :command  command
 			 :stderr stderr
 			 :file-handler t)))
 		(should (processp proc))
+		(should (equal (process-get proc 'remote-command) command))
 		;; Read output.
 		(with-timeout (10 (tramp--test-timeout-handler))
 		  (while (accept-process-output proc 0 nil t)))
@@ -4881,14 +4903,15 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
       (unless (tramp-direct-async-process-p)
 	(unwind-protect
 	    (with-temp-buffer
-	      (setq proc
+	      (setq command '("cat" "/does-not-exist")
+		    proc
 		    (with-no-warnings
 		      (make-process
-		       :name "test6" :buffer (current-buffer)
-		       :command '("cat" "/does-not-exist")
+		       :name "test7" :buffer (current-buffer) :command command
 		       :stderr tmp-name
 		       :file-handler t)))
 	      (should (processp proc))
+	      (should (equal (process-get proc 'remote-command) command))
 	      ;; Read stderr.
 	      (with-timeout (10 (tramp--test-timeout-handler))
 		(while (accept-process-output proc nil nil t)))
@@ -4919,18 +4942,20 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		   (unless connection-type '(nil pipe t pty)))
 	    (unwind-protect
 		(with-temp-buffer
-		  (setq proc
+		  (setq command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
+			proc
 			(with-no-warnings
 			  (make-process
 			   :name
-			   (format "test7-%s-%s"
+			   (format "test8-%s-%s"
 				   connection-type process-connection-type)
 			   :buffer (current-buffer)
 			   :connection-type connection-type
-			   :command '("hexdump" "-v" "-e" "/1 \"%02X\n\"")
+			   :command command
 			   :file-handler t)))
 		  (should (processp proc))
 		  (should (equal (process-status proc) 'run))
+		  (should (equal (process-get proc 'remote-command) command))
 		  (process-send-string proc "foo\r\n")
 		  (process-send-eof proc)
 		  ;; Read output.
@@ -4970,16 +4995,19 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   ;; process.
   (let ((default-directory (file-truename tramp-test-temporary-file-directory))
 	(delete-exited-processes t)
-	kill-buffer-query-functions proc)
+	kill-buffer-query-functions command proc)
     (unwind-protect
 	(with-temp-buffer
-	  (setq proc (start-file-process-shell-command
-		      "test" (current-buffer)
-		      "trap 'echo boom; exit 1' 2; sleep 100"))
+	  (setq command "trap 'echo boom; exit 1' 2; sleep 100"
+		proc (start-file-process-shell-command
+		      "test" (current-buffer) command))
 	  (should (processp proc))
 	  (should (process-live-p proc))
 	  (should (equal (process-status proc) 'run))
 	  (should (numberp (process-get proc 'remote-pid)))
+	  (should (equal (process-get proc 'remote-command)
+			 (with-connection-local-variables
+			  `(,shell-file-name ,shell-command-switch ,command))))
 	  (should (interrupt-process proc))
 	  ;; Let the process accept the interrupt.
 	  (with-timeout (10 (tramp--test-timeout-handler))
@@ -5000,6 +5028,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 INPUT, if non-nil, is a string sent to the process."
   (let ((proc (async-shell-command command output-buffer error-buffer))
 	(delete-exited-processes t))
+    (should (equal (process-get proc 'remote-command)
+		   (with-connection-local-variables
+		    `(,shell-file-name ,shell-command-switch ,command))))
     (cl-letf (((symbol-function #'shell-command-sentinel) #'ignore))
       (when (stringp input)
 	(process-send-string proc input))

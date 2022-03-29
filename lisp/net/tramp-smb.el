@@ -1544,7 +1544,8 @@ component is used as the target of the symlink."
 	   (command (string-join (cons program args) " "))
 	   (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	   (name1 name)
-	   (i 0))
+	   (i 0)
+	   p)
       (unwind-protect
 	  (save-excursion
 	    (save-restriction
@@ -1567,8 +1568,13 @@ component is used as the target of the symlink."
 			host (file-name-directory localname))))
 		  (tramp-message v 6 "(%s); exit" command)
 		  (tramp-send-string v command)))
+	      (setq p (tramp-get-connection-process v))
+	      (when program
+		(process-put p 'remote-command (cons program args))
+		(tramp-set-connection-property
+	       p "remote-command" (cons program args)))
 	      ;; Return value.
-	      (tramp-get-connection-process v)))
+	      p))
 
 	;; Save exit.
 	(with-current-buffer (tramp-get-connection-buffer v)

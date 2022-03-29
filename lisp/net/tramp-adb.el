@@ -973,6 +973,7 @@ implementation will be used."
 			 (tramp-make-tramp-temp-file v))))
 		 (remote-tmpstderr
 		  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
+		 (orig-command command)
 		 (program (car command))
 		 (args (cdr command))
 		 (command
@@ -1030,6 +1031,9 @@ implementation will be used."
 			    (set-process-sentinel p sentinel))
 			  (when filter
 			    (set-process-filter p filter))
+			  (process-put p 'remote-command orig-command)
+			  (tramp-set-connection-property
+			   p "remote-command" orig-command)
 			  ;; Set query flag and process marker for
 			  ;; this process.  We ignore errors, because
 			  ;; the process could have finished already.
