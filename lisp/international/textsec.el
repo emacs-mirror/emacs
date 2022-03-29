@@ -231,6 +231,15 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
        (textsec-single-script-p string1)
        (textsec-single-script-p string2)))
 
+(defun textsec--ipvx-address-p (domain)
+  "Return non-nil if DOMAIN is an ipv4 or ipv6 address."
+  (or (string-match-p "\\`\\([0-9]\\{1,3\\}\\.?\\)\\{1,4\\}\\'" domain)
+      (let ((ipv6 "\\([0-9a-f]\\{0,4\\}:?\\)\\{1,8\\}"))
+        ;; With brackets.
+        (or (string-match-p (format "\\`\\[%s\\]\\'" ipv6) domain)
+            ;; Without.
+            (string-match-p (format "\\`%s\\'" ipv6) domain)))))
+
 (defun textsec-domain-suspicious-p (domain)
   "Say whether DOMAIN's name looks suspicious.
 Return nil if it isn't suspicious.  If it is, return a string explaining
@@ -241,6 +250,9 @@ that can look similar to other characters when displayed, or
 use characters that are not allowed by Unicode's IDNA mapping,
 or use certain other unusual mixtures of characters."
   (catch 'found
+    ;; Plain domains aren't suspicious.
+    (when (textsec--ipvx-address-p domain)
+      (throw 'found nil))
     (seq-do
      (lambda (char)
        (when (eq (elt idna-mapping-table char) t)
