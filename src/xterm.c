@@ -15987,6 +15987,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      tem->n_input_rects = -1;
 		    }
 
+		  /* And the common case where there is no input rect and the
+		     bouding rect equals the window dimensions.  */
+
+		  if (tem->n_input_rects == -1
+		      && tem->n_bounding_rects == 1
+		      && tem->bounding_rects[0].width == tem->width
+		      && tem->bounding_rects[0].height == tem->height
+		      && tem->bounding_rects[0].x == -tem->border_width
+		      && tem->bounding_rects[0].y == -tem->border_width)
+		    {
+		      xfree (tem->bounding_rects);
+		      tem->n_bounding_rects = -1;
+		    }
+
 		  break;
 		}
 	    }
