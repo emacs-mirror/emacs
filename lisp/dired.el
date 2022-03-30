@@ -2887,7 +2887,7 @@ As a side effect, killed dired buffers for DIR are removed from
        ((null (buffer-name buf))
 	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-       ((dired-in-this-tree-p (car elt) dir)
+       ((dired-in-this-tree-p dir (car elt))
 	(with-current-buffer buf
           (when (and (or subdirs
                          (assoc dir dired-subdir-alist))
