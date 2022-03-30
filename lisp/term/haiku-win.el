@@ -44,6 +44,7 @@
 (defvar x-command-line-resources)
 
 (defvar haiku-initialized)
+(defvar haiku-signal-invalid-refs)
 
 (defvar haiku-dnd-selection-value nil
   "The local value of the special `XdndSelection' selection.")
@@ -277,7 +278,8 @@ take effect on menu items until the menu bar is updated again."
   "SKIP: real doc in xfns.c."
   (unless haiku-dnd-selection-value
     (error "No local value for XdndSelection"))
-  (let ((message nil))
+  (let ((message nil)
+        (haiku-signal-invalid-refs nil))
     (dolist (target targets)
       (let ((selection-converter (cdr (assoc (intern target)
                                              haiku-dnd-selection-converters))))

@@ -520,7 +520,8 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	    case 'RREF':
 	      CHECK_STRING (data);
 
-	      if (be_add_refs_data (message, SSDATA (name), SSDATA (data)))
+	      if (be_add_refs_data (message, SSDATA (name), SSDATA (data))
+		  && haiku_signal_invalid_refs)
 		signal_error ("Invalid file name", data);
 	      break;
 
@@ -787,6 +788,12 @@ ignored if it is dropped on top of FRAME.  */)
 void
 syms_of_haikuselect (void)
 {
+  DEFVAR_BOOL ("haiku-signal-invalid-refs", haiku_signal_invalid_refs,
+     doc: /* If nil, silently ignore invalid file names in system messages.
+Otherwise, an error will be signalled if adding a file reference to a
+system message failed.  */);
+  haiku_signal_invalid_refs = true;
+
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
   DEFSYM (QSTRING, "STRING");
