@@ -1060,7 +1060,7 @@ ns_update_end (struct frame *f)
   block_input ();
 
   [view unlockFocus];
-#if defined (NS_IMPL_GNUSTEP)
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
   [[view window] flushWindow];
 #endif
 
@@ -1127,7 +1127,7 @@ ns_unfocus (struct frame *f)
     {
       EmacsView *view = FRAME_NS_VIEW (f);
       [view unlockFocus];
-#if defined (NS_IMPL_GNUSTEP)
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
       [[view window] flushWindow];
 #endif
     }
@@ -7208,7 +7208,7 @@ not_in_argv (NSString *arg)
 
   [[EmacsWindow alloc] initWithEmacsFrame:f];
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
   /* These settings mean AppKit will retain the contents of the frame
      on resize.  Unfortunately it also means the frame will not be
      automatically marked for display, but we can do that ourselves in
@@ -7872,7 +7872,7 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 - (CALayer *)makeBackingLayer
 {
   EmacsLayer *l = [[EmacsLayer alloc]
@@ -7888,19 +7888,12 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView lockFocus]");
 
-  if ([self wantsLayer])
-    {
-      CGContextRef context = [(EmacsLayer*)[self layer] getContext];
+  CGContextRef context = [(EmacsLayer*)[self layer] getContext];
 
-      [NSGraphicsContext
+  [NSGraphicsContext
         setCurrentContext:[NSGraphicsContext
                             graphicsContextWithCGContext:context
                                                  flipped:YES]];
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  else
-    [super lockFocus];
-#endif
 }
 
 
@@ -7908,18 +7901,8 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("[EmacsView unlockFocus]");
 
-  if ([self wantsLayer])
-    {
-      [NSGraphicsContext setCurrentContext:nil];
-      [self setNeedsDisplay:YES];
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-  else
-    {
-      [super unlockFocus];
-      [super flushWindow];
-    }
-#endif
+  [NSGraphicsContext setCurrentContext:nil];
+  [self setNeedsDisplay:YES];
 }
 
 
@@ -7928,19 +7911,16 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
-  if ([self wantsLayer])
-    {
-      NSRect frame = [self frame];
-      EmacsLayer *layer = (EmacsLayer *)[self layer];
+  NSRect frame = [self frame];
+  EmacsLayer *layer = (EmacsLayer *)[self layer];
 
-      [layer setContentsScale:[[notification object] backingScaleFactor]];
-      [layer setColorSpace:[[[notification object] colorSpace] CGColorSpace]];
+  [layer setContentsScale:[[notification object] backingScaleFactor]];
+  [layer setColorSpace:[[[notification object] colorSpace] CGColorSpace]];
 
-      ns_clear_frame (emacsframe);
-      expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
-    }
+  ns_clear_frame (emacsframe);
+  expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
 }
-#endif /* NS_IMPL_COCOA */
+#endif
 
 
 - (void)copyRect:(NSRect)srcRect to:(NSPoint)dest
@@ -7952,57 +7932,45 @@ not_in_argv (NSString *arg)
   NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
                                NSHeight (srcRect));
 
-#ifdef NS_IMPL_COCOA
-  if ([self wantsLayer])
-    {
-      double scale = [[self window] backingScaleFactor];
-      CGContextRef context = [(EmacsLayer *)[self layer] getContext];
-      int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
-      void *pixels = CGBitmapContextGetData (context);
-      int rowSize = CGBitmapContextGetBytesPerRow (context);
-      int srcRowSize = NSWidth (srcRect) * scale * bpp;
-      void *srcPixels = (char *) pixels
-                        + (int) (NSMinY (srcRect) * scale * rowSize
-                                 + NSMinX (srcRect) * scale * bpp);
-      void *dstPixels = (char *) pixels
-                        + (int) (dest.y * scale * rowSize
-                                 + dest.x * scale * bpp);
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+  double scale = [[self window] backingScaleFactor];
+  CGContextRef context = [(EmacsLayer *)[self layer] getContext];
+  int bpp = CGBitmapContextGetBitsPerPixel (context) / 8;
+  void *pixels = CGBitmapContextGetData (context);
+  int rowSize = CGBitmapContextGetBytesPerRow (context);
+  int srcRowSize = NSWidth (srcRect) * scale * bpp;
+  void *srcPixels = (char *) pixels
+    + (int) (NSMinY (srcRect) * scale * rowSize
+             + NSMinX (srcRect) * scale * bpp);
+  void *dstPixels = (char *) pixels
+    + (int) (dest.y * scale * rowSize
+             + dest.x * scale * bpp);
 
-      if (NSIntersectsRect (srcRect, dstRect)
-          && NSMinY (srcRect) < NSMinY (dstRect))
-        for (int y = NSHeight (srcRect) * scale - 1 ; y >= 0 ; y--)
-          memmove ((char *) dstPixels + y * rowSize,
-                   (char *) srcPixels + y * rowSize,
-                   srcRowSize);
-      else
-        for (int y = 0 ; y < NSHeight (srcRect) * scale ; y++)
-          memmove ((char *) dstPixels + y * rowSize,
-                   (char *) srcPixels + y * rowSize,
-                   srcRowSize);
-
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+  if (NSIntersectsRect (srcRect, dstRect)
+      && NSMinY (srcRect) < NSMinY (dstRect))
+    for (int y = NSHeight (srcRect) * scale - 1 ; y >= 0 ; y--)
+      memmove ((char *) dstPixels + y * rowSize,
+               (char *) srcPixels + y * rowSize,
+               srcRowSize);
   else
-    {
-#endif
-#endif /* NS_IMPL_COCOA */
+    for (int y = 0 ; y < NSHeight (srcRect) * scale ; y++)
+      memmove ((char *) dstPixels + y * rowSize,
+               (char *) srcPixels + y * rowSize,
+               srcRowSize);
 
-#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-      hide_bell();              // Ensure the bell image isn't scrolled.
+#else
+  hide_bell();              // Ensure the bell image isn't scrolled.
 
-      ns_focus (emacsframe, &dstRect, 1);
-      [self scrollRect: srcRect
-                    by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
-                                    dstRect.origin.y - srcRect.origin.y)];
-      ns_unfocus (emacsframe);
-#endif
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-    }
+  ns_focus (emacsframe, &dstRect, 1);
+  [self scrollRect: srcRect
+                by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
+                                dstRect.origin.y - srcRect.origin.y)];
+  ns_unfocus (emacsframe);
 #endif
 }
 
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 /* If the frame has been garbaged but the toolkit wants to draw, for
    example when resizing the frame, we end up with a blank screen.
    Sometimes this results in an unpleasant flicker, so try to
@@ -9477,7 +9445,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 @end  /* EmacsScroller */
 
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 
 /* ==========================================================================
 

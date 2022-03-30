@@ -487,7 +487,7 @@ typedef id instancetype;
 #endif
 - (int)fullscreenState;
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 - (void)lockFocus;
 - (void)unlockFocus;
 #endif
@@ -698,7 +698,7 @@ typedef id instancetype;
 + (CGFloat)scrollerWidth;
 @end
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 @interface EmacsLayer : CALayer
 {
   NSMutableArray *cache;
