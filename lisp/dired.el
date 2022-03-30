@@ -1699,13 +1699,29 @@ see `dired-use-ls-dired' for more details.")
           beg))
         beg))))
 
-(declare-function x-begin-drag "xfns.cx")
+(defvar dired-last-dragged-remote-file nil
+  "If non-nil, the name of a local copy of the last remote file that was dragged.
+It can't be removed immediately after the drag-and-drop operation
+completes, since there is no way to determine when the drop
+target has finished opening it.  So instead, this file is removed
+when Emacs exits or the user drags another file.")
+
+(declare-function x-begin-drag "xfns.c")
+
+(defun dired-remove-last-dragged-local-file ()
+  "Remove the local copy of the last remote file to be dragged."
+  (when dired-last-dragged-remote-file
+    (unwind-protect
+        (delete-file dired-last-dragged-remote-file)
+      (setq dired-last-dragged-remote-file nil)))
+  (remove-hook 'kill-emacs-hook #'dired-remove-last-dragged-local-file))
 
 (defun dired-mouse-drag (event)
   "Begin a drag-and-drop operation for the file at EVENT."
   (interactive "e")
   (when mark-active
     (deactivate-mark))
+  (dired-remove-last-dragged-local-file)
   (save-excursion
     (with-selected-window (posn-window (event-end event))
       (goto-char (posn-point (event-end event))))
@@ -1728,7 +1744,10 @@ see `dired-use-ls-dired' for more details.")
                   ;; actually implements file DND according to the
                   ;; spec.
                   (when (file-remote-p filename)
-                    (setq filename (file-local-copy filename)))
+                    (setq filename (file-local-copy filename))
+                    (setq dired-last-dragged-remote-file filename)
+                    (add-hook 'kill-emacs-hook
+                              #'dired-remove-last-dragged-local-file))
                   (gui-backend-set-selection 'XdndSelection filename)
                   (x-begin-drag '("text/uri-list"
                                   "text/x-dnd-username")
