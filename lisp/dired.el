@@ -1717,17 +1717,25 @@ see `dired-use-ls-dired' for more details.")
           ;; We can get an error if there's by some chance no file
           ;; name at point.
           (condition-case nil
-              (progn
-                (gui-backend-set-selection 'XdndSelection
-                                           (with-selected-window (posn-window
-                                                                  (event-end event))
-                                             (dired-file-name-at-point)))
-                (x-begin-drag '("text/uri-list"
-                                "text/x-dnd-username")
-                              (if (eq 'dired-mouse-drag-files 'link)
-                                  'XdndActionLink
-                                'XdndActionCopy)
-                              nil nil t))
+              (let ((filename (with-selected-window (posn-window
+                                                     (event-end event))
+                                (dired-file-name-at-point))))
+                (when filename
+                  ;; In theory x-dnd-username combined with a proper
+                  ;; file URI containing the hostname of the remote
+                  ;; server could be used here instead of creating a
+                  ;; local copy of the remote file, but no program
+                  ;; actually implements file DND according to the
+                  ;; spec.
+                  (when (file-remote-p filename)
+                    (setq filename (file-local-copy filename)))
+                  (gui-backend-set-selection 'XdndSelection filename)
+                  (x-begin-drag '("text/uri-list"
+                                  "text/x-dnd-username")
+                                (if (eq 'dired-mouse-drag-files 'link)
+                                    'XdndActionLink
+                                  'XdndActionCopy)
+                                nil nil t)))
             (error (when (eq (event-basic-type new-event) 'mouse-1)
                      (push new-event unread-command-events)))))))))
 
