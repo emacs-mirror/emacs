@@ -5961,6 +5961,45 @@ name of a process or buffer, or nil to default to the current buffer."
  (lambda ()
    (remove-hook 'interrupt-process-functions #'tramp-interrupt-process)))
 
+(defun tramp-signal-process (process sigcode &optional remote)
+  "Send PROCESS the signal with code SIGCODE.
+PROCESS may also be a number specifying the process id of the
+process to signal; in this case, the process need not be a child of
+this Emacs.
+If PROCESS is a process object which contains the property
+`remote-pid', or PROCESS is a number and REMOTE is a remote file name,
+PROCESS is interpreted as process on the respective remote host, which
+will be the process to signal.
+SIGCODE may be an integer, or a symbol whose name is a signal name."
+  (let (pid vec)
+    (cond
+     ((processp process)
+      (setq pid (process-get process 'remote-pid)
+            vec (process-get process 'vector)))
+     ((numberp process)
+      (setq pid process
+            vec (and (stringp remote) (tramp-dissect-file-name remote))))
+     (t (signal 'wrong-type-argument (list #'processp process))))
+    (unless (or (numberp sigcode) (symbolp sigcode))
+      (signal 'wrong-type-argument (list #'numberp sigcode)))
+    ;; If it's a Tramp process, send SIGCODE remotely.
+    (when (and pid vec)
+      (tramp-message
+       vec 5 "Send signal %s to process %s with pid %s" sigcode process pid)
+      ;; This is for tramp-sh.el.  Other backends do not support this (yet).
+      (if (tramp-compat-funcall
+           'tramp-send-command-and-check
+           vec (format "\\kill -%s %d" sigcode pid))
+          0 -1))))
+
+;; `signal-process-functions' exists since Emacs 29.1.
+(when (boundp 'signal-process-functions)
+  (add-hook 'signal-process-functions #'tramp-signal-process)
+  (add-hook
+   'tramp-unload-hook
+   (lambda ()
+     (remove-hook 'signal-process-functions #'tramp-signal-process))))
+
 (defun tramp-get-remote-null-device (vec)
   "Return null device on the remote host identified by VEC.
 If VEC is `tramp-null-hop', return local null device."

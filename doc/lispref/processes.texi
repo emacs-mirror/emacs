@@ -1472,7 +1472,7 @@ incoming data from the connection.  For serial connections, data that
 arrived during the time the process was stopped might be lost.
 @end defun
 
-@deffn Command signal-process process signal
+@deffn Command signal-process process signal &optional remote
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer,
 or a symbol whose name is a signal.
@@ -1480,12 +1480,18 @@ or a symbol whose name is a signal.
 The @var{process} argument can be a system process @acronym{ID} (an
 integer); that allows you to send signals to processes that are not
 children of Emacs.  @xref{System Processes}.
+
+If @var{process} is a process object which contains the property
+@code{remote-pid}, or @var{process} is a number and @var{remote} is a
+remote file name, @var{process} is interpreted as process on the
+respective remote host, which will be the process to signal.
 @end deffn
 
 Sometimes, it is necessary to send a signal to a non-local
 asynchronous process.  This is possible by writing an own
-@code{interrupt-process} implementation.  This function must be added
-then to @code{interrupt-process-functions}.
+@code{interrupt-process} or @code{signal-process} implementation.
+This function must be added then to @code{interrupt-process-functions}
+or @code{signal-process-functions}, respectively.
 
 @defvar interrupt-process-functions
 This variable is a list of functions to be called for
@@ -1496,6 +1502,17 @@ default function, which shall always be the last in this list, is
 @code{internal-default-interrupt-process}.
 
 This is the mechanism, how Tramp implements @code{interrupt-process}.
+@end defvar
+
+@defvar signal-process-functions
+This variable is a list of functions to be called for
+@code{signal-process}.  The arguments of the functions are the same as
+for @code{signal-process}.  These functions are called in the order of
+the list, until one of them returns non-@code{nil}.  The default
+function, which shall always be the last in this list, is
+@code{signal-default-interrupt-process}.
+
+This is the mechanism, how Tramp implements @code{signal-process}.
 @end defvar
 
 @node Output from Processes

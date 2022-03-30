@@ -132,8 +132,8 @@ If you have code in your init file that removes directories from
 To get the previous action back, put something like the following in
 your init file:
 
-  (require 'ido)
-  (keymap-set ido-file-completion-map "C-k" #'ido-delete-file-at-head)
+    (require 'ido)
+    (keymap-set ido-file-completion-map "C-k" #'ido-delete-file-at-head)
 
 ---
 ** New user option 'term-clear-full-screen-programs'.
@@ -590,8 +590,8 @@ value.
 To enable this behavior, customize the user option
 'completion-auto-select' to t, then pressing 'TAB' will switch to the
 "*Completions*" buffer when it pops up that buffer.  If the value is
-'second-tab', then the first tab will display "*Completions*", and the
-second one will switch to the "*Completions*" buffer.
+'second-tab', then the first 'TAB' will display "*Completions*", and
+the second one will switch to the "*Completions*" buffer.
 
 *** New user option 'completion-wrap-movement'.
 When non-nil, the commands 'next-completion' and 'previous-completion'
@@ -710,8 +710,8 @@ It narrows to the current node.
 +++
 *** 'eudc-expansion-overwrites-query' to 'eudc-expansion-save-query-as-kill'.
 'eudc-expansion-overwrites-query' is renamed to
-'eudc-expansion-save-query-as-kill' to reflect the actual behaviour of
-the customization variable.
+'eudc-expansion-save-query-as-kill' to reflect the actual behavior of
+the user option.
 
 +++
 *** New command 'eudc-expand-try-all'.
@@ -722,10 +722,10 @@ return any.  This is useful for example, if one wants to search LDAP
 for a name that happens to match a contact in one's BBDB.
 
 +++
-*** New behaviour and default for option 'eudc-inline-expansion-format'
+*** New behavior and default for user option 'eudc-inline-expansion-format'.
 EUDC inline expansion result formatting defaulted to
 
-                 '("%s %s <%s>" firstname name email)
+    '("%s %s <%s>" firstname name email)
 
 Since email address specifications need to comply with RFC 5322 in
 order to be useful in messages, there was a risk to produce syntax
@@ -738,7 +738,7 @@ function.  In both cases, the formatted result will be in compliance
 with RFC 5322.  When set to nil, a default format very similar to the
 old default will be produced.  When set to a function, that function
 is called, and the returned values are used to populate the phrase and
-comment parts (see RFC 5322 for definitions). In both cases, the
+comment parts (see RFC 5322 for definitions).  In both cases, the
 phrase part will be automatically quoted if necessary.
 
 ** eww/shr
@@ -1153,13 +1153,20 @@ This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.
 It is believed to no longer be useful.
 
+---
+** proced.el supports sending signals to local processes with root permissions.
+When typing 'C-u k' or 'C-u r', sending a signal to or renicing of a
+local process will use alternative credentials.  The credentials to be
+used can be customised by the user option 'proced-remote-directory',
+which defaults to "/sudo::".  'proced-signal-function' has been marked obsolete.
+
 
 * New Modes and Packages in Emacs 29.1
 
 +++
 ** New package 'oclosure'.
 Allows the creation of "functions with slots" or "function objects"
-via the macros `oclosure-define` and `oclosure-lambda`.
+via the macros 'oclosure-define' and 'oclosure-lambda'.
 
 ---
 ** New theme 'leuven-dark'.
@@ -1813,6 +1820,13 @@ translation.
 ** 'shell-quote-argument' has a new optional parameter POSIX.
 This is useful when quoting shell arguments for a remote shell
 invocation.  Such shells are POSIX conform by default.
+
++++
+** 'signal-process' now consults the list 'signal-process-functions'.
+This is to determine which function has to be called in order to
+deliver the signal.  This allows Tramp to send the signal to remote
+asynchronous processes.  The hitherto existing implementation has been
+moved to 'signal-default-interrupt-process'.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

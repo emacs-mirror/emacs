@@ -4984,6 +4984,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
   :tags (append '(:expensive-test :tramp-asynchronous-processes)
+                ;; The final `process-live-p' check does not run sufficiently.
 		(and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
 		     '(:unstable)))
   (skip-unless (tramp--test-enabled))
@@ -5021,6 +5022,73 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
       ;; Cleanup.
       (ignore-errors (delete-process proc)))))
+
+(ert-deftest tramp-test31-signal-process ()
+  "Check `signal-process'."
+  :tags (append '(:expensive-test :tramp-asynchronous-processes)
+                ;; The final `process-live-p' check does not run sufficiently.
+		(and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
+		     '(:unstable)))
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-sh-p))
+  (skip-unless (not (tramp--test-crypt-p)))
+  ;; Since Emacs 29.1.
+  (skip-unless (boundp 'signal-process-functions))
+
+  ;; We must use `file-truename' for the temporary directory, in
+  ;; order to establish the connection prior running an asynchronous
+  ;; process.
+  (let ((default-directory (file-truename tramp-test-temporary-file-directory))
+	(delete-exited-processes t)
+	kill-buffer-query-functions command proc)
+
+    (dolist (sigcode '(2 INT))
+      (unwind-protect
+	  (with-temp-buffer
+	    (setq command "trap 'echo boom; exit 1' 2; sleep 100"
+		  proc (start-file-process-shell-command
+		        (format "test1%s" sigcode) (current-buffer) command))
+	    (should (processp proc))
+	    (should (process-live-p proc))
+	    (should (equal (process-status proc) 'run))
+	    (should (numberp (process-get proc 'remote-pid)))
+	    (should (equal (process-get proc 'remote-command)
+			   (with-connection-local-variables
+			    `(,shell-file-name ,shell-command-switch ,command))))
+	    (should (zerop (signal-process proc sigcode)))
+	    ;; Let the process accept the signal.
+	    (with-timeout (10 (tramp--test-timeout-handler))
+	      (while (accept-process-output proc 0 nil t)))
+            (should-not (process-live-p proc)))
+
+        ;; Cleanup.
+        (ignore-errors (kill-process proc))
+        (ignore-errors (delete-process proc)))
+
+      (unwind-protect
+	  (with-temp-buffer
+	    (setq command "trap 'echo boom; exit 1' 2; sleep 100"
+		  proc (start-file-process-shell-command
+		        (format "test2%s" sigcode) (current-buffer) command))
+	    (should (processp proc))
+	    (should (process-live-p proc))
+	    (should (equal (process-status proc) 'run))
+	    (should (numberp (process-get proc 'remote-pid)))
+	    (should (equal (process-get proc 'remote-command)
+			   (with-connection-local-variables
+			    `(,shell-file-name ,shell-command-switch ,command))))
+	    (should
+             (zerop
+              (signal-process
+               (process-get proc 'remote-pid) sigcode default-directory)))
+	    ;; Let the process accept the signal.
+	    (with-timeout (10 (tramp--test-timeout-handler))
+	      (while (accept-process-output proc 0 nil t)))
+            (should-not (process-live-p proc)))
+
+        ;; Cleanup.
+        (ignore-errors (kill-process proc))
+        (ignore-errors (delete-process proc))))))
 
 (defun tramp--test-async-shell-command
     (command output-buffer &optional error-buffer input)

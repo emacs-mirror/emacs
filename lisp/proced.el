@@ -29,10 +29,6 @@
 ;;
 ;; To do:
 ;; - Interactive temporary customizability of flags in `proced-grammar-alist'
-;; - Allow "sudo kill PID", "sudo renice PID"
-;;   `proced-send-signal' operates on multiple processes one by one.
-;;   With "sudo" we want to execute one "kill" or "renice" command
-;;   for all marked processes.  Is there a `sudo-call-process'?
 ;;
 ;; Thoughts and Ideas
 ;; - Currently, `process-attributes' returns the list of
@@ -61,6 +57,14 @@ It can be an elisp function (usually `signal-process') or a string specifying
 the external command (usually \"kill\")."
   :type '(choice (function :tag "function")
                  (string :tag "command")))
+(make-obsolete-variable 'proced-signal-function "no longer used." "29.1")
+
+(defcustom proced-remote-directory "/sudo::"
+  "Remote directory to be used when sending a signal.
+It must point to the local host, via a `sudo' or `doas' method,
+or alike.  See `proced-send-signal' and `proced-renice'."
+  :version "29.1"
+  :type '(string :tag "remote directory"))
 
 (defcustom proced-renice-command "renice"
   "Name of renice command."
@@ -626,6 +630,9 @@ Return nil if point is not on a process line."
 Type \\[proced] to start a Proced session.  In a Proced buffer
 type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
+Type \\[proced-renice] to renice marked processes.
+With a prefix argument \\[universal-argument], sending signals to and renicing of processes
+will be performed with the credentials of `proced-remote-directory'.
 
 The initial content of a listing is defined by the variable `proced-filter'
 and the variable `proced-format'.
@@ -1766,7 +1773,10 @@ runs the normal hook `proced-after-send-signal-hook'.
 For backward compatibility SIGNAL and PROCESS-ALIST may be nil.
 Then PROCESS-ALIST contains the marked processes or the process point is on
 and SIGNAL is queried interactively.  This noninteractive usage is still
-supported but discouraged.  It will be removed in a future version of Emacs."
+supported but discouraged.  It will be removed in a future version of Emacs.
+
+With a prefix argument \\[universal-argument], send the signal with the credentials of
+`proced-remote-directory'."
   (interactive
    (let* ((process-alist (proced-marked-processes))
           (pnum (if (= 1 (length process-alist))
@@ -1808,7 +1818,10 @@ supported but discouraged.  It will be removed in a future version of Emacs."
                                         proced-signal-list
                                         nil nil nil nil "TERM"))))))
 
-  (let (failures)
+  (let ((default-directory
+         (if (and current-prefix-arg (stringp proced-remote-directory))
+             proced-remote-directory temporary-file-directory))
+        failures)
     ;; Why not always use `signal-process'?  See
     ;; https://lists.gnu.org/r/emacs-devel/2008-03/msg02955.html
     (if (functionp proced-signal-function)
@@ -1821,7 +1834,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
           (dolist (process process-alist)
             (condition-case err
                 (unless (zerop (funcall
-                                proced-signal-function (car process) signal))
+                                proced-signal-function (car process) signal
+                                (file-remote-p default-directory)))
                   (proced-log "%s\n" (cdr process))
                   (push (cdr process) failures))
               (error ; catch errors from failed signals
@@ -1833,7 +1847,7 @@ supported but discouraged.  It will be removed in a future version of Emacs."
         (dolist (process process-alist)
           (with-temp-buffer
             (condition-case nil
-                (unless (zerop (call-process
+                (unless (zerop (process-file
                                 proced-signal-function nil t nil
                                 signal (number-to-string (car process))))
                   (proced-log (current-buffer))
@@ -1862,7 +1876,10 @@ PROCESS-ALIST is an alist as returned by `proced-marked-processes'.
 Interactively, PROCESS-ALIST contains the marked processes.
 If no process is marked, it contains the process point is on,
 After renicing all processes in PROCESS-ALIST, this command runs
-the normal hook `proced-after-send-signal-hook'."
+the normal hook `proced-after-send-signal-hook'.
+
+With a prefix argument \\[universal-argument], apply renice with the credentials of
+`proced-remote-directory'."
   (interactive
    (let ((process-alist (proced-marked-processes)))
      (proced-with-processes-buffer process-alist
@@ -1871,11 +1888,14 @@ the normal hook `proced-after-send-signal-hook'."
    proced-mode)
   (if (numberp priority)
       (setq priority (number-to-string priority)))
-  (let (failures)
+  (let ((default-directory
+         (if (and current-prefix-arg (stringp proced-remote-directory))
+             proced-remote-directory temporary-file-directory))
+        failures)
     (dolist (process process-alist)
       (with-temp-buffer
         (condition-case nil
-            (unless (zerop (call-process
+            (unless (zerop (process-file
                             proced-renice-command nil t nil
                             priority (number-to-string (car process))))
               (proced-log (current-buffer))
