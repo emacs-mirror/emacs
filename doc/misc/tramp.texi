@@ -5030,6 +5030,26 @@ be restored by moving them manually from
 
 
 @item
+How to identify temporary files produced by @value{tramp}?
+
+@vindex tramp-temp-name-prefix
+Temporary files are kept in your @code{temporary-file-directory}
+directory, which is often @file{/tmp/}.  By default, they have the
+file name prefix @t{"tramp."}.  If you want to change this prefix, for
+example because you want to identify temporary files produced by
+@code{file-local-copy} in your package, you can bind the variable
+@code{tramp-temp-name-prefix} temporarily:
+
+@example
+@group
+(let ((tramp-temp-name-prefix "my-prefix."))
+  (file-local-copy "@trampfn{ssh,,.emacs}"))
+@result{} "/tmp/my-prefix.HDfgDZ"
+@end group
+@end example
+
+
+@item
 How to shorten long file names when typing in @value{tramp}?
 
 Adapt several of these approaches to reduce typing.  If the full name
