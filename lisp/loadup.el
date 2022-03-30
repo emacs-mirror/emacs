@@ -197,6 +197,7 @@
 
 (load "button")                  ;After loaddefs, because of define-minor-mode!
 (load "emacs-lisp/cl-preloaded")
+(load "emacs-lisp/oclosure")          ;Used by cl-generic
 (load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 
