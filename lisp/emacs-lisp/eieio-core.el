@@ -704,7 +704,7 @@ an error."
       nil
     ;; Trim off object IDX junk added in for the object index.
     (setq slot-idx (- slot-idx (eval-when-compile eieio--object-num-slots)))
-    (let* ((sd (aref (eieio--class-slots class)
+    (let* ((sd (aref (cl--class-slots class)
                      slot-idx))
            (st (cl--slot-descriptor-type sd)))
       (cond
@@ -712,7 +712,7 @@ an error."
 	(signal 'invalid-slot-type
                 (list (eieio--class-name class) slot st value)))
        ((alist-get :read-only (cl--slot-descriptor-props sd))
-        (signal 'eieio-read-only (list (eieio--class-name class) slot)))))))
+        (signal 'eieio-read-only (list (cl--class-name class) slot)))))))
 
 (defun eieio--validate-class-slot-value (class slot-idx value slot)
   "Make sure that for CLASS referencing SLOT-IDX, VALUE is valid.
@@ -896,7 +896,7 @@ The slot is a symbol which is installed in CLASS by the `defclass' call.
 If SLOT is the value created with :initarg instead,
 reverse-lookup that name, and recurse with the associated slot value."
   ;; Removed checks to outside this call
-  (let* ((fsi (gethash slot (eieio--class-index-table class))))
+  (let* ((fsi (gethash slot (cl--class-index-table class))))
     (if (integerp fsi)
         fsi
       (let ((fn (eieio--initarg-to-attribute class slot)))
