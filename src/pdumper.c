@@ -162,7 +162,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 /* Worst-case allocation granularity on any system that might load
    this dump.  */
 static int
-dump_get_page_size (void)
+dump_get_max_page_size (void)
 {
   return 64 * 1024;
 }
@@ -4210,7 +4210,7 @@ types.  */)
   eassert (dump_queue_empty_p (&ctx->dump_queue));
 
   dump_off discardable_end = ctx->offset;
-  dump_align_output (ctx, dump_get_page_size ());
+  dump_align_output (ctx, dump_get_max_page_size ());
   ctx->header.cold_start = ctx->offset;
 
   /* Start the cold section.  This section contains bytes that should
@@ -4928,7 +4928,7 @@ dump_mmap_contiguous (struct dump_memory_map *maps, int nr_maps)
     return true;
 
   size_t total_size = 0;
-  int worst_case_page_size = dump_get_page_size ();
+  int worst_case_page_size = dump_get_max_page_size ();
 
   for (int i = 0; i < nr_maps; ++i)
     {
@@ -5616,7 +5616,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   err = PDUMPER_LOAD_OOM;
 
   adj_discardable_start = header->discardable_start;
-  dump_page_size = dump_get_page_size ();
+  dump_page_size = dump_get_max_page_size ();
   /* Snap to next page boundary.  */
   adj_discardable_start = ROUNDUP (adj_discardable_start, dump_page_size);
   eassert (adj_discardable_start % dump_page_size == 0);
