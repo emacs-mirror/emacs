@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "fingerprint.h"
 #include "frame.h"
-#include "getpagesize.h"
 #include "intervals.h"
 #include "lisp.h"
 #include "pdumper.h"
