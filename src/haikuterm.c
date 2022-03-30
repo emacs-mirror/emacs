@@ -58,7 +58,7 @@ struct unhandled_event
   uint8_t buffer[200];
 };
 
-static bool any_help_event_p = false;
+static bool any_help_event_p;
 
 char *
 get_keysym_name (int keysym)
@@ -3120,7 +3120,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  do_help = 1;
 	      }
 
-	    need_flush = FRAME_DIRTY_P (f);
+	    if (FRAME_DIRTY_P (f))
+	      need_flush = 1;
 	    break;
 	  }
 	case BUTTON_UP:
