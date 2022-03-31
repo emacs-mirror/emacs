@@ -603,174 +603,177 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
     (2 . private)) ; Motif does not have private, so use copy for private.
   "Mapping from number to operation for Motif DND.")
 
-(defun x-dnd-handle-motif (event frame window message-atom _format data)
-  (let* ((message-type (cdr (assoc (aref data 0) x-dnd-motif-message-types)))
+(defun x-dnd-handle-motif (event frame window _message-atom _format data)
+  (let* ((message-type (cdr (assoc (logand (aref data 0) #x3f)
+                                   x-dnd-motif-message-types)))
+         (initiator-p (eq (lsh (aref data 0) -7) 0))
 	 (source-byteorder (aref data 1))
 	 (my-byteorder (byteorder))
 	 (source-flags (x-dnd-get-motif-value data 2 2 source-byteorder))
 	 (source-action (cdr (assoc (logand ?\xF source-flags)
 				    x-dnd-motif-to-action))))
 
-    (cond ((eq message-type 'XmTOP_LEVEL_ENTER)
-	   (let* ((dnd-source (x-dnd-get-motif-value
-			       data 8 4 source-byteorder))
-		  (selection-atom (x-dnd-get-motif-value
-				   data 12 4 source-byteorder))
-		  (atom-name (x-get-atom-name selection-atom))
-		  (types (when atom-name
-			   (x-get-selection-internal (intern atom-name)
-						     'TARGETS))))
-	     (x-dnd-forget-drop frame)
-	     (when types (x-dnd-save-state window nil nil
-					   types
-					   dnd-source))))
+    (when initiator-p
+      (cond ((eq message-type 'XmTOP_LEVEL_ENTER)
+	     (let* ((dnd-source (x-dnd-get-motif-value
+			         data 8 4 source-byteorder))
+		    (selection-atom (x-dnd-get-motif-value
+				     data 12 4 source-byteorder))
+		    (atom-name (x-get-atom-name selection-atom))
+		    (types (when atom-name
+			     (x-get-selection-internal (intern atom-name)
+						       'TARGETS))))
+	       (x-dnd-forget-drop frame)
+	       (when types (x-dnd-save-state window nil nil
+					     types
+					     dnd-source))))
 
-	  ;; Can not forget drop here, LEAVE comes before DROP_START and
-	  ;; we need the state in DROP_START.
-	  ((eq message-type 'XmTOP_LEVEL_LEAVE)
-	   nil)
+	    ;; Can not forget drop here, LEAVE comes before DROP_START and
+	    ;; we need the state in DROP_START.
+	    ((eq message-type 'XmTOP_LEVEL_LEAVE)
+	     nil)
 
-	  ((eq message-type 'XmDRAG_MOTION)
-	   (let* ((state (x-dnd-get-state-for-frame frame))
-		  (timestamp (x-dnd-motif-value-to-list
-			      (x-dnd-get-motif-value data 4 4
-						     source-byteorder)
-			      4 my-byteorder))
-		  (x (x-dnd-motif-value-to-list
-		      (x-dnd-get-motif-value data 8 2 source-byteorder)
+	    ((eq message-type 'XmDRAG_MOTION)
+	     (let* ((state (x-dnd-get-state-for-frame frame))
+		    (timestamp (x-dnd-motif-value-to-list
+			        (x-dnd-get-motif-value data 4 4
+						       source-byteorder)
+			        4 my-byteorder))
+		    (x (x-dnd-motif-value-to-list
+		        (x-dnd-get-motif-value data 8 2 source-byteorder)
+		        2 my-byteorder))
+		    (y (x-dnd-motif-value-to-list
+		        (x-dnd-get-motif-value data 10 2 source-byteorder)
+		        2 my-byteorder))
+		    (dnd-source (aref state 6))
+		    (first-move (not (aref state 3)))
+		    (action-type (x-dnd-maybe-call-test-function
+				  window
+				  source-action))
+		    (reply-action (car (rassoc (car action-type)
+					       x-dnd-motif-to-action)))
+		    (reply-flags
+		     (x-dnd-motif-value-to-list
+		      (if reply-action
+			  (+ reply-action
+			     ?\x30	; 30:  valid drop site
+			     ?\x700)	; 700: can do copy, move or link
+		        ?\x30)		; 30:  drop site, but noop.
 		      2 my-byteorder))
-		  (y (x-dnd-motif-value-to-list
-		      (x-dnd-get-motif-value data 10 2 source-byteorder)
+		    (reply (append
+			    (list
+			     (+ ?\x80	; 0x80 indicates a reply.
+			        (if first-move
+				    3	; First time, reply is SITE_ENTER.
+				  2))	; Not first time, reply is DRAG_MOTION.
+			     my-byteorder)
+			    reply-flags
+			    timestamp
+			    x
+			    y)))
+	       (x-send-client-message frame
+				      dnd-source
+				      frame
+				      "_MOTIF_DRAG_AND_DROP_MESSAGE"
+				      8
+				      reply)))
+
+	    ((eq message-type 'XmOPERATION_CHANGED)
+	     (let* ((state (x-dnd-get-state-for-frame frame))
+		    (timestamp (x-dnd-motif-value-to-list
+			        (x-dnd-get-motif-value data 4 4 source-byteorder)
+			        4 my-byteorder))
+		    (dnd-source (aref state 6))
+		    (action-type (x-dnd-maybe-call-test-function
+				  window
+				  source-action))
+		    (reply-action (car (rassoc (car action-type)
+					       x-dnd-motif-to-action)))
+		    (reply-flags
+		     (x-dnd-motif-value-to-list
+		      (if reply-action
+			  (+ reply-action
+			     ?\x30	; 30:  valid drop site
+			     ?\x700)	; 700: can do copy, move or link
+		        ?\x30)		; 30:  drop site, but noop
 		      2 my-byteorder))
-		  (dnd-source (aref state 6))
-		  (first-move (not (aref state 3)))
-		  (action-type (x-dnd-maybe-call-test-function
-				window
-				source-action))
-		  (reply-action (car (rassoc (car action-type)
-					     x-dnd-motif-to-action)))
-		  (reply-flags
-		   (x-dnd-motif-value-to-list
-		    (if reply-action
-			(+ reply-action
-			   ?\x30	; 30:  valid drop site
-			   ?\x700)	; 700: can do copy, move or link
-		      ?\x30)		; 30:  drop site, but noop.
-		    2 my-byteorder))
-		  (reply (append
-			  (list
-			   (+ ?\x80	; 0x80 indicates a reply.
-			      (if first-move
-				  3	; First time, reply is SITE_ENTER.
-				2))	; Not first time, reply is DRAG_MOTION.
-			   my-byteorder)
-			  reply-flags
-			  timestamp
-			  x
-			  y)))
-	     (x-send-client-message frame
-				    dnd-source
-				    frame
-				    "_MOTIF_DRAG_AND_DROP_MESSAGE"
-				    8
-				    reply)))
+		    (reply (append
+			    (list
+			     (+ ?\x80	; 0x80 indicates a reply.
+			        8)	; 8 is OPERATION_CHANGED
+			     my-byteorder)
+			    reply-flags
+			    timestamp)))
+	       (x-send-client-message frame
+				      dnd-source
+				      frame
+				      "_MOTIF_DRAG_AND_DROP_MESSAGE"
+				      8
+				      reply)))
 
-	  ((eq message-type 'XmOPERATION_CHANGED)
-	   (let* ((state (x-dnd-get-state-for-frame frame))
-		  (timestamp (x-dnd-motif-value-to-list
-			      (x-dnd-get-motif-value data 4 4 source-byteorder)
-			      4 my-byteorder))
-		  (dnd-source (aref state 6))
-		  (action-type (x-dnd-maybe-call-test-function
-				window
-				source-action))
-		  (reply-action (car (rassoc (car action-type)
-					     x-dnd-motif-to-action)))
-		  (reply-flags
-		   (x-dnd-motif-value-to-list
-		    (if reply-action
-			(+ reply-action
-			   ?\x30	; 30:  valid drop site
-			   ?\x700)	; 700: can do copy, move or link
-		      ?\x30)		; 30:  drop site, but noop
-		    2 my-byteorder))
-		  (reply (append
-			  (list
-			   (+ ?\x80	; 0x80 indicates a reply.
-			      8)	; 8 is OPERATION_CHANGED
-			   my-byteorder)
-			  reply-flags
-			  timestamp)))
-	     (x-send-client-message frame
-				    dnd-source
-				    frame
-				    "_MOTIF_DRAG_AND_DROP_MESSAGE"
-				    8
-				    reply)))
-
-	  ((eq message-type 'XmDROP_START)
-	   (let* ((x (x-dnd-motif-value-to-list
-		      (x-dnd-get-motif-value data 8 2 source-byteorder)
+	    ((eq message-type 'XmDROP_START)
+	     (let* ((x (x-dnd-motif-value-to-list
+		        (x-dnd-get-motif-value data 8 2 source-byteorder)
+		        2 my-byteorder))
+		    (y (x-dnd-motif-value-to-list
+		        (x-dnd-get-motif-value data 10 2 source-byteorder)
+		        2 my-byteorder))
+		    (selection-atom (x-dnd-get-motif-value
+				     data 12 4 source-byteorder))
+		    (atom-name (x-get-atom-name selection-atom))
+		    (dnd-source (x-dnd-get-motif-value
+			         data 16 4 source-byteorder))
+		    (action-type (x-dnd-maybe-call-test-function
+				  window
+				  source-action))
+		    (reply-action (car (rassoc (car action-type)
+					       x-dnd-motif-to-action)))
+		    (reply-flags
+		     (x-dnd-motif-value-to-list
+		      (if reply-action
+			  (+ reply-action
+			     ?\x30	; 30:  valid drop site
+			     ?\x700)	; 700: can do copy, move or link
+		        (+ ?\x30		; 30:  drop site, but noop.
+			   ?\x200))	; 200: drop cancel.
 		      2 my-byteorder))
-		  (y (x-dnd-motif-value-to-list
-		      (x-dnd-get-motif-value data 10 2 source-byteorder)
-		      2 my-byteorder))
-		  (selection-atom (x-dnd-get-motif-value
-				   data 12 4 source-byteorder))
-		  (atom-name (x-get-atom-name selection-atom))
-		  (dnd-source (x-dnd-get-motif-value
-			       data 16 4 source-byteorder))
-		  (action-type (x-dnd-maybe-call-test-function
-				window
-				source-action))
-		  (reply-action (car (rassoc (car action-type)
-					     x-dnd-motif-to-action)))
-		  (reply-flags
-		   (x-dnd-motif-value-to-list
-		    (if reply-action
-			(+ reply-action
-			   ?\x30	; 30:  valid drop site
-			   ?\x700)	; 700: can do copy, move or link
-		      (+ ?\x30		; 30:  drop site, but noop.
-			 ?\x200))	; 200: drop cancel.
-		    2 my-byteorder))
-		  (reply (append
-			  (list
-			   (+ ?\x80	; 0x80 indicates a reply.
-			      5)	; DROP_START.
-			   my-byteorder)
-			  reply-flags
-			  x
-			  y))
-		  (timestamp (x-dnd-get-motif-value
-			      data 4 4 source-byteorder))
-		  action)
+		    (reply (append
+			    (list
+			     (+ ?\x80	; 0x80 indicates a reply.
+			        5)	; DROP_START.
+			     my-byteorder)
+			    reply-flags
+			    x
+			    y))
+		    (timestamp (x-dnd-get-motif-value
+			        data 4 4 source-byteorder))
+		    action)
 
-	     (x-send-client-message frame
-				    dnd-source
-				    frame
-				    "_MOTIF_DRAG_AND_DROP_MESSAGE"
-				    8
-				    reply)
-	     (setq action
-		   (when (and reply-action atom-name)
-		     (let* ((value (x-get-selection-internal
-				    (intern atom-name)
-				    (intern (x-dnd-current-type window)))))
-		       (when value
-			 (condition-case info
-			     (x-dnd-drop-data event frame window value
-					      (x-dnd-current-type window))
-			   (error
-			    (message "Error: %s" info)
-			    nil))))))
-	     (x-get-selection-internal
-	      (intern atom-name)
-	      (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
-	      timestamp)
-	     (x-dnd-forget-drop frame)))
+	       (x-send-client-message frame
+				      dnd-source
+				      frame
+				      "_MOTIF_DRAG_AND_DROP_MESSAGE"
+				      8
+				      reply)
+	       (setq action
+		     (when (and reply-action atom-name)
+		       (let* ((value (x-get-selection-internal
+				      (intern atom-name)
+				      (intern (x-dnd-current-type window)))))
+		         (when value
+			   (condition-case info
+			       (x-dnd-drop-data event frame window value
+					        (x-dnd-current-type window))
+			     (error
+			      (message "Error: %s" info)
+			      nil))))))
+	       (x-get-selection-internal
+	        (intern atom-name)
+	        (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
+	        timestamp)
+	       (x-dnd-forget-drop frame)))
 
-	  (t (error "Unknown Motif DND message %s %s" message-atom data)))))
+            (t (message "Unknown Motif drag-and-drop message: %s" (logand (aref data 0) #x3f)))))))
 
 
 ;;;

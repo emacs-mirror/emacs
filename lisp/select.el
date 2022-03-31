@@ -655,6 +655,9 @@ VALUE is the local selection value of SELECTION."
        (stringp value)
        (file-exists-p value)))
 
+(defun xselect-convert-xm-special (_selection _type _value)
+  "")
+
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
 	(COMPOUND_TEXT . xselect-convert-to-string)
@@ -679,7 +682,9 @@ VALUE is the local selection value of SELECTION."
 	(ATOM . xselect-convert-to-atom)
 	(INTEGER . xselect-convert-to-integer)
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
-	(_EMACS_INTERNAL . xselect-convert-to-identity)))
+	(_EMACS_INTERNAL . xselect-convert-to-identity)
+        (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
+        (XmTRANSFER_FAILURE . xselect-convert-xm-special)))
 
 (provide 'select)
 
