@@ -2502,6 +2502,10 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 
   if (self_frame)
     {
+      if (!x_dnd_allow_current_frame
+	  && self_frame == x_dnd_frame)
+	return false;
+
       /* Send a special drag-and-drop event when dropping on top of an
 	 Emacs frame to avoid all the overhead involved with sending
 	 client events.  */
@@ -8625,7 +8629,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_end_window != None
       && (any = x_any_window_to_frame (FRAME_DISPLAY_INFO (f),
 				       x_dnd_end_window))
-      && (any != f))
+      && (allow_current_frame || any != f))
     return QXdndActionPrivate;
 
   if (x_dnd_action != None)
