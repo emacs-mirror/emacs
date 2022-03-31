@@ -807,6 +807,13 @@ static int x_filter_event (struct x_display_info *, XEvent *);
 
 static bool x_dnd_in_progress;
 static bool x_dnd_waiting_for_finish;
+/* 0 means nothing has happened.  1 means an XmDROP_START message was
+   sent to the target, but no response has yet been received.  2 means
+   a response to our XmDROP_START message was received and the target
+   accepted the drop, so Emacs should start waiting for the drop
+   target to convert one of the special selections XmTRANSFER_SUCCESS
+   or XmTRANSFER_FAILURE.  */
+static int x_dnd_waiting_for_motif_finish;
 static Window x_dnd_pending_finish_target;
 static int x_dnd_waiting_for_finish_proto;
 static bool x_dnd_allow_current_frame;
@@ -920,6 +927,16 @@ typedef struct xm_drop_start_message
   /* CARD32 */ uint32_t source_window;
 } xm_drop_start_message;
 
+typedef struct xm_drop_start_reply
+{
+  /* BYTE   */ uint8_t reason;
+  /* BYTE   */ uint8_t byte_order;
+
+  /* CARD16 */ uint16_t side_effects;
+  /* CARD16 */ uint16_t better_x;
+  /* CARD16 */ uint16_t better_y;
+} xm_drop_start_reply;
+
 typedef struct xm_drag_initiator_info
 {
   /* BYTE   */ uint8_t byteorder;
@@ -942,32 +959,37 @@ typedef struct xm_drag_receiver_info
 } xm_drag_receiver_info;
 
 #define XM_DRAG_SIDE_EFFECT(op, site, ops, act)		\
-  ((op) | ((site) << 4) | ((ops) << 8) | ((act) << 16))
+  ((op) | ((site) << 4) | ((ops) << 8) | ((act) << 12))
 
 /* Some of the macros below are temporarily unused.  */
 
-/* #define XM_DRAG_SIDE_EFFECT_OPERATION(effect)	((effect) & 0xf) */
-/* #define XM_DRAG_SIDE_EFFECT_SITE_STATUS(effect)	(((effect) & 0xf0) >> 4) */
+#define XM_DRAG_SIDE_EFFECT_OPERATION(effect)	((effect) & 0xf)
+#define XM_DRAG_SIDE_EFFECT_SITE_STATUS(effect)	(((effect) & 0xf0) >> 4)
 /* #define XM_DRAG_SIDE_EFFECT_OPERATIONS(effect)	(((effect) & 0xf00) >> 8) */
-/* #define XM_DRAG_SIDE_EFFECT_DROP_ACTION(effect)	(((effect) & 0xf000) >> 16) */
+#define XM_DRAG_SIDE_EFFECT_DROP_ACTION(effect)	(((effect) & 0xf000) >> 12)
 
 #define XM_DRAG_NOOP 0
 #define XM_DRAG_MOVE (1L << 0)
 #define XM_DRAG_COPY (1L << 1)
 #define XM_DRAG_LINK (1L << 2)
 
-#define XM_DROP_ACTION_DROP	0
-#define XM_DROP_SITE_VALID	1
+#define XM_DROP_ACTION_DROP		0
+/* #define XM_DROP_ACTION_DROP_HELP	1 */
+#define XM_DROP_ACTION_DROP_CANCEL	2
 
 #define XM_DRAG_REASON(originator, code)	((code) | ((originator) << 7))
-/* #define XM_DRAG_REASON_ORIGINATOR(reason)	(((reason) & 0x80) ? 1 : 0) */
-/* #define XM_DRAG_REASON_CODE(reason)		((reason) & 0x7f) */
+#define XM_DRAG_REASON_ORIGINATOR(reason)	(((reason) & 0x80) ? 1 : 0)
+#define XM_DRAG_REASON_CODE(reason)		((reason) & 0x7f)
 
 #define XM_DRAG_REASON_DROP_START	5
 #define XM_DRAG_ORIGINATOR_INITIATOR	0
-/* #define XM_DRAG_ORIGINATOR_RECEIVER	1 */
+#define XM_DRAG_ORIGINATOR_RECEIVER	1
 
 #define XM_DRAG_STYLE_NONE 0
+
+#define XM_DROP_SITE_VALID	3
+/* #define XM_DROP_SITE_INVALID	2 */
+/* #define XM_DROP_SITE_NONE	1 */
 
 static uint8_t
 xm_side_effect_from_action (struct x_display_info *dpyinfo, Atom action)
@@ -1150,7 +1172,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   Display *temp_display;
 
   drag_window = None;
-  XGrabServer (dpyinfo->display);
   rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
 			   dpyinfo->Xatom_MOTIF_DRAG_WINDOW,
 			   0, 1, False, XA_WINDOW, &actual_type,
@@ -1177,8 +1198,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 	XFree (tmp_data);
     }
 
-  XUngrabServer (dpyinfo->display);
-
   if (drag_window == None)
     {
       unrequest_sigio ();
@@ -1189,8 +1208,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 	return None;
 
       XSetCloseDownMode (temp_display, RetainPermanent);
-
-      XGrabServer (temp_display);
       attrs.override_redirect = True;
       drag_window = XCreateWindow (temp_display, DefaultRootWindow (temp_display),
 				   -1, -1, 1, 1, 0, CopyFromParent, InputOnly,
@@ -1200,7 +1217,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 				    "_MOTIF_DRAG_WINDOW", False),
 		       XA_WINDOW, 32, PropModeReplace,
 		       (unsigned char *) &drag_window, 1);
-      XUngrabServer (temp_display);
       XCloseDisplay (temp_display);
 
       /* Make sure the drag window created is actually valid for the
@@ -1394,6 +1410,37 @@ xm_send_drop_message (struct x_display_info *dpyinfo, Window source,
   x_catch_errors (dpyinfo->display);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
   x_uncatch_errors ();
+}
+
+static int
+xm_read_drop_start_reply (XEvent *msg, xm_drop_start_reply *reply)
+{
+  uint8_t *data;
+
+  data = (uint8_t *) &msg->xclient.data.b[0];
+
+  if ((XM_DRAG_REASON_ORIGINATOR (data[0])
+       != XM_DRAG_ORIGINATOR_RECEIVER)
+      || (XM_DRAG_REASON_CODE (data[0])
+	  != XM_DRAG_REASON_DROP_START))
+    return 1;
+
+  reply->reason = *(data++);
+  reply->byte_order = *(data++);
+  reply->side_effects = *(uint16_t *) data;
+  reply->better_x = *(uint16_t *) (data + 2);
+  reply->better_y = *(uint16_t *) (data + 4);
+
+  if (reply->byte_order != XM_TARGETS_TABLE_CUR)
+    {
+      SWAPCARD16 (reply->side_effects);
+      SWAPCARD16 (reply->better_x);
+      SWAPCARD16 (reply->better_y);
+    }
+
+  reply->byte_order = XM_TARGETS_TABLE_CUR;
+
+  return 0;
 }
 
 static int
@@ -8475,6 +8522,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_wanted_action = xaction;
   x_dnd_return_frame = 0;
   x_dnd_waiting_for_finish = false;
+  x_dnd_waiting_for_motif_finish = 0;
   x_dnd_end_window = None;
   x_dnd_use_toplevels
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
@@ -12384,7 +12432,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  }
 
 	if (event->xclient.message_type == dpyinfo->Xatom_XdndFinished
-	    && x_dnd_waiting_for_finish
+	    && (x_dnd_waiting_for_finish && !x_dnd_waiting_for_motif_finish)
 	    && event->xclient.data.l[0] == x_dnd_pending_finish_target)
 	  {
 	    x_dnd_waiting_for_finish = false;
@@ -12395,6 +12443,59 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (x_dnd_waiting_for_finish_proto >= 5
 		&& !(event->xclient.data.l[1] & 1))
 	      x_dnd_action = None;
+	  }
+
+	if ((event->xclient.message_type
+	     == dpyinfo->Xatom_MOTIF_DRAG_AND_DROP_MESSAGE)
+	    /* FIXME: There should probably be a check that the event
+	       comes from the same display where the drop event was
+	       sent, but there's no way to get that information here
+	       safely.  */
+	    && x_dnd_waiting_for_finish
+	    && x_dnd_waiting_for_motif_finish == 1)
+	  {
+	    xm_drop_start_reply reply;
+	    uint16_t operation, status, action;
+
+	    if (!xm_read_drop_start_reply (event, &reply))
+	      {
+		operation = XM_DRAG_SIDE_EFFECT_OPERATION (reply.side_effects);
+		status = XM_DRAG_SIDE_EFFECT_SITE_STATUS (reply.side_effects);
+		action = XM_DRAG_SIDE_EFFECT_DROP_ACTION (reply.side_effects);
+
+		if (operation != XM_DRAG_MOVE
+		    && operation != XM_DRAG_COPY
+		    && operation != XM_DRAG_LINK)
+		  {
+		    x_dnd_waiting_for_finish = false;
+		    goto OTHER;
+		  }
+
+		if (status != XM_DROP_SITE_VALID
+		    || action == XM_DROP_ACTION_DROP_CANCEL)
+		  {
+		    x_dnd_waiting_for_finish = false;
+		    goto OTHER;
+		  }
+
+		switch (operation)
+		  {
+		  case XM_DRAG_MOVE:
+		    x_dnd_action = dpyinfo->Xatom_XdndActionMove;
+		    break;
+
+		  case XM_DRAG_COPY:
+		    x_dnd_action = dpyinfo->Xatom_XdndActionCopy;
+		    break;
+
+		  case XM_DRAG_LINK:
+		    x_dnd_action = dpyinfo->Xatom_XdndActionLink;
+		    break;
+		  }
+
+		x_dnd_waiting_for_motif_finish = 2;
+		goto OTHER;
+	      }
 	  }
 
         if (event->xclient.message_type == dpyinfo->Xatom_wm_protocols
@@ -12703,6 +12804,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    *hold_quit = inev.ie;
 	    EVENT_INIT (inev.ie);
 	  }
+
+	if (x_dnd_waiting_for_finish
+	    && x_dnd_waiting_for_motif_finish == 2
+	    && eventp->selection == dpyinfo->Xatom_XdndSelection
+	    && (eventp->target == dpyinfo->Xatom_XmTRANSFER_SUCCESS
+		|| eventp->target == dpyinfo->Xatom_XmTRANSFER_FAILURE))
+	  x_dnd_waiting_for_finish = false;
       }
       break;
 
@@ -14197,7 +14305,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			    xm_write_drag_initiator_info (dpyinfo->display,
 							  FRAME_X_WINDOW (x_dnd_frame),
-							  dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
+							  dpyinfo->Xatom_XdndSelection,
 							  dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
 							  &drag_initiator_info);
 
@@ -14207,18 +14315,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    dmsg.side_effects
 			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										 x_dnd_wanted_action),
-						     XM_DROP_SITE_VALID,
-						     xm_side_effect_from_action (dpyinfo,
-										 x_dnd_wanted_action),
+						     XM_DROP_SITE_VALID, XM_DRAG_NOOP,
 						     XM_DROP_ACTION_DROP);
 			    dmsg.timestamp = event->xbutton.time;
 			    dmsg.x = event->xbutton.x_root;
 			    dmsg.y = event->xbutton.y_root;
-			    dmsg.index_atom = dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO;
+			    dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
 			    dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 			    xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
 						  x_dnd_last_seen_window, &dmsg);
+
+			    x_dnd_waiting_for_finish = true;
+			    x_dnd_waiting_for_motif_finish = 1;
 			  }
 		      }
 		  }
@@ -15248,7 +15357,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 				  xm_write_drag_initiator_info (dpyinfo->display,
 								FRAME_X_WINDOW (x_dnd_frame),
-								dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
+								dpyinfo->Xatom_XdndSelection,
 								dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
 								&drag_initiator_info);
 
@@ -15265,11 +15374,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				  dmsg.timestamp = xev->time;
 				  dmsg.x = lrint (xev->root_x);
 				  dmsg.y = lrint (xev->root_y);
-				  dmsg.index_atom = dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO;
+				  /* This atom technically has to be
+				     unique to each drag-and-drop
+				     operation, but that isn't easy to
+				     accomplish, since we cannot
+				     randomly move data around between
+				     selections.  Let's hope no two
+				     instances of Emacs try to drag
+				     into the same window at the same
+				     time.  */
+				  dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
 				  dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 				  xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
 							x_dnd_last_seen_window, &dmsg);
+
+				  x_dnd_waiting_for_finish = true;
+				  x_dnd_waiting_for_motif_finish = 1;
 				}
 			    }
 			}
@@ -21140,6 +21261,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		      Xatom_MOTIF_DRAG_INITIATOR_INFO)
       ATOM_REFS_INIT ("_MOTIF_DRAG_RECEIVER_INFO",
 		      Xatom_MOTIF_DRAG_RECEIVER_INFO)
+      ATOM_REFS_INIT ("XmTRANSFER_SUCCESS", Xatom_XmTRANSFER_SUCCESS)
+      ATOM_REFS_INIT ("XmTRANSFER_FAILURE", Xatom_XmTRANSFER_FAILURE)
     };
 
     int i;

@@ -437,6 +437,8 @@ struct x_display_info
     Xatom_MOTIF_DRAG_TARGETS, Xatom_MOTIF_DRAG_AND_DROP_MESSAGE,
     Xatom_MOTIF_DRAG_INITIATOR_INFO, Xatom_MOTIF_DRAG_RECEIVER_INFO;
 
+  Atom Xatom_XmTRANSFER_SUCCESS, Xatom_XmTRANSFER_FAILURE;
+
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
