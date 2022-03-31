@@ -1674,7 +1674,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	       == Success)
 	      && !x_had_errors_p (dpyinfo->display)
 	      && wmstate_data && wmstate_items == 2 && format == 32);
-      x_uncatch_errors_after_check ();
+      x_uncatch_errors ();
 #else
       rc = true;
 
@@ -2141,6 +2141,92 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
   return None;
 }
 
+static int
+x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
+			      Window window, int *wmstate_out,
+			      int *proto_out)
+{
+#ifndef USE_XCB
+  Atom type;
+  int format, rc;
+  unsigned long nitems, bytes_after;
+  unsigned char *data = NULL;
+
+  x_catch_errors (dpyinfo->display);
+  rc = ((XGetWindowProperty (dpyinfo->display, window,
+			     dpyinfo->Xatom_wm_state,
+			     0, 2, False, AnyPropertyType,
+			     &type, &format, &nitems,
+			     &bytes_after, &data)
+	 == Success)
+	&& !x_had_errors_p (dpyinfo->display)
+	&& data && nitems == 2 && format == 32);
+  x_uncatch_errors ();
+
+  if (rc)
+    {
+      *wmstate_out = *(unsigned long *) data;
+      *proto_out = x_dnd_get_window_proto (dpyinfo, window);
+    }
+
+  if (data)
+    XFree (data);
+
+  return rc;
+#else
+  xcb_get_property_cookie_t wmstate_cookie;
+  xcb_get_property_cookie_t xdnd_proto_cookie;
+  xcb_get_property_reply_t *reply;
+  xcb_generic_error_t *error;
+  int rc;
+
+  rc = true;
+
+  wmstate_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
+				     (xcb_window_t) window,
+				     (xcb_atom_t) dpyinfo->Xatom_wm_state,
+				     XCB_ATOM_ANY, 0, 2);
+  xdnd_proto_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
+					(xcb_window_t) window,
+					(xcb_atom_t) dpyinfo->Xatom_XdndAware,
+					XCB_ATOM_ATOM, 0, 1);
+
+  reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				  wmstate_cookie, &error);
+
+  if (!reply)
+    free (error), rc = false;
+  else
+    {
+      if (reply->format != 32
+	  || xcb_get_property_value_length (reply) != 8)
+	rc = false;
+      else
+	*wmstate_out = *(uint32_t *) xcb_get_property_value (reply);
+
+      free (reply);
+    }
+
+  reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				  xdnd_proto_cookie, &error);
+
+  if (!reply)
+    free (error);
+  else
+    {
+      if (reply->format == 32
+	  && xcb_get_property_value_length (reply) >= 4)
+	*proto_out = *(uint32_t *) xcb_get_property_value (reply);
+      else
+	*proto_out = -1;
+
+      free (reply);
+    }
+
+  return rc;
+#endif
+}
+
 static Window
 x_dnd_get_target_window (struct x_display_info *dpyinfo,
 			 int root_x, int root_y, int *proto_out)
@@ -2151,6 +2237,8 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
   Window overlay_window;
   XWindowAttributes attrs;
 #endif
+  int wmstate;
+
   child_return = dpyinfo->root_window;
   dest_x_return = root_x;
   dest_y_return = root_y;
@@ -2270,6 +2358,15 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 
       if (child_return)
 	{
+	  if (x_dnd_get_wm_state_and_proto (dpyinfo, child_return,
+					    &wmstate, &proto))
+	    {
+	      *proto_out = proto;
+	      x_uncatch_errors ();
+
+	      return child_return;
+	    }
+
 	  proto = x_dnd_get_window_proto (dpyinfo, child_return);
 
 	  if (proto != -1)
