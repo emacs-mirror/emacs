@@ -14166,61 +14166,63 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					 x_dnd_selection_timestamp,
 					 x_dnd_last_protocol_version);
 		  }
+		else if (x_dnd_last_seen_window != None)
+		  {
+		    xm_drag_receiver_info drag_receiver_info;
+		    xm_drag_initiator_info drag_initiator_info;
+		    xm_drop_start_message dmsg;
+		    int idx;
+
+		    if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
+						     &drag_receiver_info)
+			&& drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
+			&& (x_dnd_allow_current_frame
+			    || FRAME_OUTER_WINDOW (x_dnd_frame) != x_dnd_last_seen_window))
+		      {
+			idx = xm_setup_dnd_targets (dpyinfo, x_dnd_targets,
+						    x_dnd_n_targets);
+
+			if (idx != -1)
+			  {
+			    drag_initiator_info.byteorder = XM_TARGETS_TABLE_CUR;
+			    drag_initiator_info.protocol = 0;
+			    drag_initiator_info.table_index = idx;
+			    drag_initiator_info.selection = dpyinfo->Xatom_XdndSelection;
+
+			    memset (&dmsg, 0, sizeof dmsg);
+
+			    xm_write_drag_initiator_info (dpyinfo->display,
+							  FRAME_X_WINDOW (x_dnd_frame),
+							  dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
+							  dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
+							  &drag_initiator_info);
+
+			    dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+							  XM_DRAG_REASON_DROP_START);
+			    dmsg.byte_order = XM_TARGETS_TABLE_CUR;
+			    dmsg.side_effects
+			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+										 x_dnd_wanted_action),
+						     XM_DROP_SITE_VALID,
+						     xm_side_effect_from_action (dpyinfo,
+										 x_dnd_wanted_action),
+						     XM_DROP_ACTION_DROP);
+			    dmsg.timestamp = event->xbutton.time;
+			    dmsg.x = event->xbutton.x_root;
+			    dmsg.y = event->xbutton.y_root;
+			    dmsg.index_atom = dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO;
+			    dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+
+			    xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+						  x_dnd_last_seen_window, &dmsg);
+			  }
+		      }
+		  }
 
 		x_dnd_last_protocol_version = -1;
 		x_dnd_last_seen_window = None;
 		x_dnd_frame = NULL;
 		x_set_dnd_targets (NULL, 0);
-	      }
-	    else if (x_dnd_last_seen_window != None)
-	      {
-		xm_drag_receiver_info drag_receiver_info;
-		xm_drag_initiator_info drag_initiator_info;
-		xm_drop_start_message dmsg;
-		int idx;
-
-		if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
-						 &drag_receiver_info)
-		    && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE)
-		  {
-		    idx = xm_setup_dnd_targets (dpyinfo, x_dnd_targets,
-						x_dnd_n_targets);
-
-		    if (idx != -1)
-		      {
-			drag_initiator_info.byteorder = XM_TARGETS_TABLE_CUR;
-			drag_initiator_info.protocol = 0;
-			drag_initiator_info.table_index = idx;
-			drag_initiator_info.selection = dpyinfo->Xatom_XdndSelection;
-
-			memset (&dmsg, 0, sizeof dmsg);
-
-			xm_write_drag_initiator_info (dpyinfo->display,
-						      FRAME_X_WINDOW (x_dnd_frame),
-						      dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
-						      dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
-						      &drag_initiator_info);
-
-			dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-						      XM_DRAG_REASON_DROP_START);
-			dmsg.byte_order = XM_TARGETS_TABLE_CUR;
-			dmsg.side_effects
-			  = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
-									     x_dnd_wanted_action),
-						 XM_DROP_SITE_VALID,
-						 xm_side_effect_from_action (dpyinfo,
-									     x_dnd_wanted_action),
-						 XM_DROP_ACTION_DROP);
-			dmsg.timestamp = event->xbutton.time;
-			dmsg.x = event->xbutton.x_root;
-			dmsg.y = event->xbutton.y_root;
-			dmsg.index_atom = dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO;
-			dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
-
-			xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
-					      x_dnd_last_seen_window, &dmsg);
-		      }
-		  }
 	      }
 
 	    goto OTHER;
@@ -15224,7 +15226,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
 							   &drag_receiver_info)
-			      && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE)
+			      && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
+			      && (x_dnd_allow_current_frame
+				  || FRAME_OUTER_WINDOW (x_dnd_frame) != x_dnd_last_seen_window))
 			    {
 			      idx = xm_setup_dnd_targets (dpyinfo, x_dnd_targets,
 							  x_dnd_n_targets);
