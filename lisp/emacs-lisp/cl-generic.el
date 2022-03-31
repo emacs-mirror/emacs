@@ -1098,7 +1098,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (dolist (method (cl--generic-method-table generic))
           (let* ((info (cl--generic-method-info method)))
             ;; FIXME: Add hyperlinks for the types as well.
-            (insert (format "%s%S" (nth 0 info) (nth 1 info)))
+            (insert (format "%s%S" (nth 0 info) (cons function (nth 1 info))))
             (let* ((met-name (cl--generic-load-hist-format
                               function
                               (cl--generic-method-qualifiers method)
