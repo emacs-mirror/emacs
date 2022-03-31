@@ -144,6 +144,7 @@ Looks like:
    (dcc-get-bytes-received . "DCC: %f: %b bytes received")
    (dcc-get-complete
     . "DCC: file %f transfer complete (%s bytes in %t seconds)")
+   (dcc-get-failed . "DCC: file %f transfer failed at %s of %v in %t seconds")
    (dcc-get-cmd-aborted . "DCC: Aborted getting %f from %n")
    (dcc-get-file-too-long
     . "DCC: %f: File longer than sender claimed; aborting transfer")
@@ -920,8 +921,7 @@ and making the connection."
             (inhibit-file-name-operation 'write-region))
         (write-region (point) (point) erc-dcc-file-name nil 'nomessage))
 
-      (setq erc-server-process parent-proc
-            erc-dcc-entry-data entry)
+      (setq erc-server-process parent-proc)
       (setq erc-dcc-byte-count 0)
       (setq proc
             (funcall erc-dcc-connect-function
@@ -935,8 +935,8 @@ and making the connection."
 
       (set-process-filter proc #'erc-dcc-get-filter)
       (set-process-sentinel proc #'erc-dcc-get-sentinel)
-      (setq entry (plist-put entry :start-time (erc-current-time)))
-      (setq entry (plist-put entry :peer proc)))))
+      (setq erc-dcc-entry-data (plist-put (plist-put entry :peer proc)
+                                          :start-time (erc-current-time))))))
 
 (defun erc-dcc-append-contents (buffer _file)
   "Append the contents of BUFFER to FILE.
@@ -990,27 +990,30 @@ rather than every 1024 byte block, but nobody seems to care."
         (process-send-string
          proc (erc-pack-int received-bytes)))))))
 
-
-(defun erc-dcc-get-sentinel (proc _event)
+(defun erc-dcc-get-sentinel (proc event)
   "This is the process sentinel for CTCP DCC SEND connections.
 It shuts down the connection and notifies the user that the
 transfer is complete."
   ;; FIXME, we should look at EVENT, and also check size.
+  (unless (string= event "connection broken by remote peer\n")
+    (lwarn 'erc :warning "Unexpected sentinel event %S for %s"
+           (string-trim-right event) proc))
   (with-current-buffer (process-buffer proc)
     (delete-process proc)
     (setq erc-dcc-list (delete erc-dcc-entry-data erc-dcc-list))
     (unless (= (point-min) (point-max))
       (erc-dcc-append-contents (current-buffer) erc-dcc-file-name))
-    (erc-display-message
-     nil 'notice erc-server-process
-     'dcc-get-complete
-     ?f erc-dcc-file-name
-     ?s (number-to-string erc-dcc-byte-count)
-     ?t (format "%.0f"
-                (erc-time-diff (plist-get erc-dcc-entry-data :start-time)
-                               nil))))
-  (kill-buffer (process-buffer proc))
-  (delete-process proc))
+    (let ((done (= erc-dcc-byte-count (plist-get erc-dcc-entry-data :size))))
+      (erc-display-message
+       nil (if done 'notice '(notice error)) erc-server-process
+       (if done 'dcc-get-complete 'dcc-get-failed)
+       ?v (plist-get erc-dcc-entry-data :size)
+       ?f erc-dcc-file-name
+       ?s (number-to-string erc-dcc-byte-count)
+       ?t (format "%.0f"
+                  (erc-time-diff (plist-get erc-dcc-entry-data :start-time)
+                                 nil))))
+    (kill-buffer)))
 
 ;;; CHAT handling
 
