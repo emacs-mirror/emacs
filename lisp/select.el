@@ -567,9 +567,13 @@ two markers or an overlay.  Otherwise, it is nil."
   ;; done the conversion (and any side-effects) but have no value to return.
   'NULL)
 
-(defun xselect-convert-to-filename (_selection _type value)
-  (when (setq value (xselect--selection-bounds value))
-    (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value)))))
+(defun xselect-convert-to-filename (selection _type value)
+  (if (not (eq selection 'XdndSelection))
+      (when (setq value (xselect--selection-bounds value))
+        (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
+    (when (and (stringp value)
+               (file-exists-p value))
+      (xselect--encode-string 'C_STRING value))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -648,6 +652,13 @@ This function returns the string \"emacs\"."
              (concat "file://" (expand-file-name value)))
             "\n")))
 
+(defun xselect-convert-to-xm-file (selection _type value)
+  (when (and (stringp value)
+             (file-exists-p value)
+             (eq selection 'XdndSelection))
+    (xselect--encode-string 'C_STRING
+                            (concat value [0]))))
+
 (defun xselect-uri-list-available-p (selection _type value)
   "Return whether or not `text/uri-list' is a valid target for SELECTION.
 VALUE is the local selection value of SELECTION."
@@ -667,6 +678,7 @@ VALUE is the local selection value of SELECTION."
 	(text/plain\;charset=utf-8 . xselect-convert-to-string)
         (text/uri-list . (xselect-uri-list-available-p . xselect-convert-to-text-uri-list))
         (text/x-xdnd-username . xselect-convert-to-username)
+        (FILE . (xselect-uri-list-available-p . xselect-convert-to-xm-file))
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)
