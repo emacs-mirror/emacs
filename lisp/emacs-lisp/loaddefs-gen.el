@@ -174,7 +174,7 @@ expression, in which case we want to handle forms differently."
                        define-globalized-minor-mode defun defmacro
 		       easy-mmode-define-minor-mode define-minor-mode
                        define-inline cl-defun cl-defmacro cl-defgeneric
-                       cl-defstruct pcase-defmacro))
+                       cl-defstruct pcase-defmacro iter-defun cl-iter-defun))
            (macrop car)
 	   (setq expand (let ((load-true-file-name file)
                               (load-file-name file))
