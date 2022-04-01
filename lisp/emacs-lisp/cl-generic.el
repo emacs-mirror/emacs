@@ -308,8 +308,10 @@ DEFAULT-BODY, if present, is used as the body of a default method.
                   `(help-add-fundoc-usage ,doc ',args)
                 (help-add-fundoc-usage doc args)))
            :autoload-end
-           ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
-                     (nreverse methods)))
+           ,(when methods
+              `(with-suppressed-warnings ((obsolete ,name))
+                 ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
+                           (nreverse methods)))))
        ,@(mapcar (lambda (declaration)
                    (let ((f (cdr (assq (car declaration)
                                        defun-declarations-alist))))
@@ -552,8 +554,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                     cl--generic-edebug-make-name nil]
              lambda-doc                 ; documentation string
              def-body)))                ; part to be debugged
-  (let ((qualifiers nil)
-        (orig-name name))
+  (let ((qualifiers nil))
     (while (cl-generic--method-qualifier-p args)
       (push args qualifiers)
       (setq args (pop body)))
@@ -563,18 +564,15 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (setq name (gv-setter (cadr name))))
     (pcase-let* ((`(,call-con . ,fun) (cl--generic-lambda args body)))
       `(progn
-         ,(and (get name 'byte-obsolete-info)
-               (let* ((obsolete (get name 'byte-obsolete-info)))
-                 (macroexp-warn-and-return
-                  (macroexp--obsolete-warning name obsolete "generic function")
-                  nil (list 'obsolete name) nil orig-name)))
          ;; You could argue that `defmethod' modifies rather than defines the
          ;; function, so warnings like "not known to be defined" are fair game.
          ;; But in practice, it's common to use `cl-defmethod'
          ;; without a previous `cl-defgeneric'.
          ;; The ",'" is a no-op that pacifies check-declare.
          (,'declare-function ,name "")
-         (cl-generic-define-method ',name ',(nreverse qualifiers) ',args
+         ;; We use #' to quote `name' so as to trigger an
+         ;; obsolescence warning when applicable.
+         (cl-generic-define-method #',name ',(nreverse qualifiers) ',args
                                    ',call-con ,fun)))))
 
 (defun cl--generic-member-method (specializers qualifiers methods)
