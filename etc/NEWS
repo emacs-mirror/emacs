@@ -1444,10 +1444,10 @@ option.
 ** Keymaps and key definitions
 
 +++
-*** New functions for defining and manipulating keystrokes have been added.
-These all take just the syntax defined by 'key-valid-p'.  None of the
-older functions have been depreciated or altered, but are deemphasised
-in the documentation.
+*** New functions for defining and manipulating keystrokes.
+These all take the syntax defined by 'key-valid-p'.  None of the older
+functions have been deprecated or altered, but they are now
+de-emphasized in the documentation.
 
 +++
 *** Use 'keymap-set' instead of 'define-key'.
