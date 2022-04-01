@@ -34247,7 +34247,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 #endif
 
 #if defined (HAVE_HAIKU)
-  if (popup_activated_p || haiku_dnd_in_progress)
+  if (popup_activated_p)
     return;
 #endif
 

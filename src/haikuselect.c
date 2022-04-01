@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 
-bool haiku_dnd_in_progress;
 static void haiku_lisp_to_message (Lisp_Object, void *);
 
 DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
@@ -728,7 +727,6 @@ static void
 haiku_unwind_drag_message (void *message)
 {
   BMessage_delete (message);
-  haiku_dnd_in_progress = false;
 }
 
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
@@ -776,7 +774,6 @@ ignored if it is dropped on top of FRAME.  */)
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
 
-  haiku_dnd_in_progress = true;
   be_message = be_create_simple_message ();
 
   record_unwind_protect_ptr (haiku_unwind_drag_message, be_message);

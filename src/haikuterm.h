@@ -35,7 +35,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define HAVE_CHAR_CACHE_MAX 65535
 
 extern int popup_activated_p;
-extern bool haiku_dnd_in_progress;
 
 extern void be_app_quit (void);
 

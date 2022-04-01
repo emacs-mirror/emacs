@@ -279,6 +279,7 @@ take effect on menu items until the menu bar is updated again."
   (unless haiku-dnd-selection-value
     (error "No local value for XdndSelection"))
   (let ((message nil)
+        (mouse-highlight nil)
         (haiku-signal-invalid-refs nil))
     (dolist (target targets)
       (let ((selection-converter (cdr (assoc (intern target)
