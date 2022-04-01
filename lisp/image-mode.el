@@ -1196,8 +1196,9 @@ replacing the current Image mode buffer."
   "Return an alist of type/buffer for all \"parent\" buffers to image FILE.
 This is normally a list of Dired buffers, but can also be archive and
 tar mode buffers."
-  (let ((buffers nil)
-        (dir (file-name-directory file)))
+  (let* ((non-essential t) ; Do not block for remote buffers.
+         (buffers nil)
+         (dir (file-name-directory file)))
     (cond
      ((and (boundp 'tar-superior-buffer)
 	   tar-superior-buffer)
@@ -1212,6 +1213,8 @@ tar mode buffers."
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (when (and (derived-mode-p 'dired-mode)
+	             (equal (file-remote-p dir)
+		            (file-remote-p default-directory))
 	             (equal (file-truename dir)
 		            (file-truename default-directory)))
             (push (cons 'dired (current-buffer)) buffers))))
