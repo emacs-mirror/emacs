@@ -29,6 +29,16 @@
   "Simple OClosure."
   fst snd name)
 
+(cl-defmethod oclosure-test-gen ((_x compiled-function)) "#<bytecode>")
+
+(cl-defmethod oclosure-test-gen ((_x cons)) "#<cons>")
+
+(cl-defmethod oclosure-test-gen ((_x oclosure))
+  (format "#<oclosure:%s>" (cl-call-next-method)))
+
+(cl-defmethod oclosure-test-gen ((_x oclosure-test))
+  (format "#<oclosure-test:%s>" (cl-call-next-method)))
+
 (ert-deftest oclosure-test ()
   (let* ((i 42)
          (ocl1 (oclosure-lambda (oclosure-test (fst 1) (snd 2) (name "hi"))
@@ -51,6 +61,9 @@
     (should (equal (funcall (oclosure-test-copy1 ocl1 9)) '(9 2 44)))
     (should (cl-typep ocl1 'oclosure-test))
     (should (cl-typep ocl1 'oclosure))
+    (should (member (oclosure-test-gen ocl1)
+                    '("#<oclosure-test:#<oclosure:#<cons>>>"
+                      "#<oclosure-test:#<oclosure:#<bytecode>>>")))
     ))
 
 (ert-deftest oclosure-test-limits ()

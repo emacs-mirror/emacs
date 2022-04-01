@@ -305,6 +305,17 @@ supertypes from the most specific to least specific.")
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-class)))
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-object)))
 
+(defun cl--class-allparents (class)
+  (let ((parents ())
+        (classes (list class)))
+    ;; BFS precedence.  FIXME: Use a topological sort.
+    (while (let ((class (pop classes)))
+             (cl-pushnew (cl--class-name class) parents)
+             (setq classes
+                   (append classes
+                           (cl--class-parents class)))))
+    (nreverse parents)))
+
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
 ;; directly on that function, since those cookies only go to cl-loaddefs.

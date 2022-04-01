@@ -1126,7 +1126,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                  (let ((sclass (cl--find-class specializer))
                        (tclass (cl--find-class type)))
                    (when (and sclass tclass)
-                     (member specializer (cl--generic-class-parents tclass))))))
+                     (member specializer (cl--class-allparents tclass))))))
            (setq applies t)))
     applies))
 
@@ -1255,22 +1255,11 @@ These match if the argument is `eql' to VAL."
   ;; Use exactly the same code as for `typeof'.
   `(if ,name (type-of ,name) 'null))
 
-(defun cl--generic-class-parents (class)
-  (let ((parents ())
-        (classes (list class)))
-    ;; BFS precedence.  FIXME: Use a topological sort.
-    (while (let ((class (pop classes)))
-             (cl-pushnew (cl--class-name class) parents)
-             (setq classes
-                   (append classes
-                           (cl--class-parents class)))))
-    (nreverse parents)))
-
 (defun cl--generic-struct-specializers (tag &rest _)
   (and (symbolp tag)
        (let ((class (get tag 'cl--class)))
          (when (cl-typep class 'cl-structure-class)
-           (cl--generic-class-parents class)))))
+           (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl--generic-struct-generalizer
   50 #'cl--generic-struct-tag
@@ -1352,6 +1341,42 @@ Used internally for the (major-mode MODE) context specializers."
                     ;;E.g. could be (eql ...)
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
+
+;;; Dispatch on OClosure type
+
+;; It would make sense to put this into `oclosure.el' except that when
+;; `oclosure.el' is loaded `cl-defmethod' is not available yet.
+
+(defun cl--generic-oclosure-tag (name &rest _)
+  `(oclosure-type ,name))
+
+(defun cl-generic--oclosure-specializers (tag &rest _)
+  (and (symbolp tag)
+       (let ((class (cl--find-class tag)))
+         (when (cl-typep class 'oclosure--class)
+           (oclosure--class-allparents class)))))
+
+(cl-generic-define-generalizer cl-generic--oclosure-generalizer
+  ;; Give slightly higher priority than the struct specializer, so that
+  ;; for a generic function with methods dispatching structs and on OClosures,
+  ;; we first try `oclosure-type' before `type-of' since `type-of' will return
+  ;; non-nil for an OClosure as well.
+  51 #'cl--generic-oclosure-tag
+  #'cl-generic--oclosure-specializers)
+
+(cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
+  "Support for dispatch on types defined by `oclosure-define'."
+  (or
+   (when (symbolp type)
+     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
+     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
+     ;; take place without requiring cl-lib.
+     (let ((class (cl--find-class type)))
+       (and (cl-typep class 'oclosure--class)
+            (list cl-generic--oclosure-generalizer))))
+   (cl-call-next-method)))
+
+(cl--generic-prefill-dispatchers 0 oclosure)
 
 ;;; Support for unloading.
 

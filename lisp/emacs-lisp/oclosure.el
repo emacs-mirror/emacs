@@ -131,16 +131,17 @@
 (cl-defstruct (oclosure--class
                (:constructor nil)
                (:constructor oclosure--class-make
-                ( name docstring slots parents
+                ( name docstring slots parents allparents
                   &aux (index-table (oclosure--index-table slots))))
                (:include cl--class)
                (:copier nil))
-  "Metaclass for OClosure classes.")
+  "Metaclass for OClosure classes."
+  (allparents nil :read-only t :type (list-of symbol)))
 
 (setf (cl--find-class 'oclosure)
       (oclosure--class-make 'oclosure
                             "The root parent of all OClosure classes"
-                            nil nil))
+                            nil nil '(oclosure)))
 (defun oclosure--p (oclosure)
   (not (not (oclosure-type oclosure))))
 
@@ -283,7 +284,9 @@ list of slot properties.  The currently known properties are the following:
     (oclosure--class-make name docstring slotdescs
                           (if (cdr parent-names)
                               (oclosure--class-parents parent-class)
-                            (list parent-class)))))
+                            (list parent-class))
+                          (cons name (oclosure--class-allparents
+                                      parent-class)))))
 
 (defmacro oclosure--define-functions (name copiers)
   (let* ((class (cl--find-class name))
@@ -324,7 +327,10 @@ list of slot properties.  The currently known properties are the following:
                               &rest props)
   (let* ((class (oclosure--build-class name docstring parent-names slots))
          (pred (lambda (oclosure)
-                 (eq name (oclosure-type oclosure))))
+                 (let ((type (oclosure-type oclosure)))
+                   (when type
+                     (memq name (oclosure--class-allparents
+                                 (cl--find-class type)))))))
          (predname (or (plist-get props :predicate)
                        (intern (format "%s--internal-p" name)))))
     (setf (cl--find-class name) class)
