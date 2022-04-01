@@ -496,7 +496,44 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   compositing manager that the contents of the window now accurately
   reflect the new size.  The compositing manager will then display the
   contents of the window, and the window manager might also postpone
-  updating the window decorations until this moment.  */
+  updating the window decorations until this moment.
+
+  DRAG AND DROP
+
+  Drag and drop in Emacs is implemented in two ways, depending on
+  which side initiated the drag-and-drop operation.  When another X
+  client initiates a drag, and the user drops something on Emacs, a
+  `drag-n-drop-event' is sent with the contents of the ClientMessage,
+  and further processing (i.e. retrieving selection contents and
+  replying to the initiating client) is performed from Lisp inside
+  `x-dnd.el'.
+
+  However, dragging contents from Emacs is implemented entirely in C.
+  X Windows has several competing drag-and-drop protocols, of which
+  Emacs supports two: the XDND protocol (see
+  https://freedesktop.org/wiki/Specifications/XDND) and the Motif drop
+  protocol.  These protocols are based on the initiator owning a
+  special selection, specifying an action the recipient should
+  perform, grabbing the mouse, and sending various different client
+  messages to the toplevel window underneath the mouse as it moves, or
+  when buttons are released.
+
+  The Lisp interface to drag-and-drop is synchronous, and involves
+  running a nested event loop with some global state until the drag
+  finishes.  When the mouse moves, Emacs looks up the toplevel window
+  underneath the pointer (the target window) either using a cache
+  provided by window managers that support the
+  _NET_WM_CLIENT_LIST_STACKING root window property, or by calling
+  XTranslateCoordinates in a loop until a toplevel window is found,
+  and sends various entry, exit, or motion events to the window
+  containing a list of targets the special selection can be converted
+  to, and the chosen action that the recipient should perform.  The
+  recipient can then send messages in reply detailing the action it
+  has actually chosen to perform.  Finally, when the mouse buttons are
+  released over the recipient window, Emacs sends a "drop" message to
+  the target window, waits for a reply, and returns the action
+  selected by the recipient to the Lisp code that initiated the
+  drag-and-drop operation.  */
 
 #include <config.h>
 #include <stdlib.h>
