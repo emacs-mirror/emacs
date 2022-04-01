@@ -1413,11 +1413,11 @@ xm_send_drop_message (struct x_display_info *dpyinfo, Window source,
 }
 
 static int
-xm_read_drop_start_reply (XEvent *msg, xm_drop_start_reply *reply)
+xm_read_drop_start_reply (const XEvent *msg, xm_drop_start_reply *reply)
 {
-  uint8_t *data;
+  const uint8_t *data;
 
-  data = (uint8_t *) &msg->xclient.data.b[0];
+  data = (const uint8_t *) &msg->xclient.data.b[0];
 
   if ((XM_DRAG_REASON_ORIGINATOR (data[0])
        != XM_DRAG_ORIGINATOR_RECEIVER)
