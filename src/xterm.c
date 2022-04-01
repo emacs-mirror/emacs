@@ -851,6 +851,7 @@ static bool x_dnd_waiting_for_finish;
    target to convert one of the special selections XmTRANSFER_SUCCESS
    or XmTRANSFER_FAILURE.  */
 static int x_dnd_waiting_for_motif_finish;
+static bool x_dnd_xm_use_help;
 static Window x_dnd_pending_finish_target;
 static int x_dnd_waiting_for_finish_proto;
 static bool x_dnd_allow_current_frame;
@@ -1011,7 +1012,7 @@ typedef struct xm_drag_receiver_info
 #define XM_DRAG_LINK (1L << 2)
 
 #define XM_DROP_ACTION_DROP		0
-/* #define XM_DROP_ACTION_DROP_HELP	1 */
+#define XM_DROP_ACTION_DROP_HELP	1
 #define XM_DROP_ACTION_DROP_CANCEL	2
 
 #define XM_DRAG_REASON(originator, code)	((code) | ((originator) << 7))
@@ -8648,6 +8649,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_return_frame = 0;
   x_dnd_waiting_for_finish = false;
   x_dnd_waiting_for_motif_finish = 0;
+  x_dnd_xm_use_help = false;
   x_dnd_end_window = None;
   x_dnd_use_toplevels
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
@@ -12597,7 +12599,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  }
 
 		if (status != XM_DROP_SITE_VALID
-		    || action == XM_DROP_ACTION_DROP_CANCEL)
+		    || (action == XM_DROP_ACTION_DROP_CANCEL
+			|| action == XM_DROP_ACTION_DROP_HELP))
 		  {
 		    x_dnd_waiting_for_finish = false;
 		    goto OTHER;
@@ -13542,6 +13545,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                                   &compose_status);
 #endif
 
+#ifdef XK_F1
+	  if (x_dnd_in_progress && keysym == XK_F1)
+	    {
+	      x_dnd_xm_use_help = true;
+	      goto done_keysym;
+	    }
+#endif
+
           /* If not using XIM/XIC, and a compose sequence is in progress,
              we break here.  Otherwise, chars_matched is always 0.  */
           if (compose_status.chars_matched > 0 && nbytes == 0)
@@ -14441,7 +14452,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										 x_dnd_wanted_action),
 						     XM_DROP_SITE_VALID, XM_DRAG_NOOP,
-						     XM_DROP_ACTION_DROP);
+						     (x_dnd_xm_use_help
+						      ? XM_DROP_ACTION_DROP
+						      : XM_DROP_ACTION_DROP_HELP));
 			    dmsg.timestamp = event->xbutton.time;
 			    dmsg.x = event->xbutton.x_root;
 			    dmsg.y = event->xbutton.y_root;
@@ -15495,7 +15508,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							   XM_DROP_SITE_VALID,
 							   xm_side_effect_from_action (dpyinfo,
 										       x_dnd_wanted_action),
-							   XM_DROP_ACTION_DROP);
+							   (x_dnd_xm_use_help
+							    ? XM_DROP_ACTION_DROP
+							    : XM_DROP_ACTION_DROP_HELP));
 				  dmsg.timestamp = xev->time;
 				  dmsg.x = lrint (xev->root_x);
 				  dmsg.y = lrint (xev->root_y);
@@ -16114,6 +16129,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						  NULL);
 			}
 		    }
+
+#ifdef XK_F1
+		  if (x_dnd_in_progress && keysym == XK_F1)
+		    {
+		      x_dnd_xm_use_help = true;
+		      goto xi_done_keysym;
+		    }
+#endif
 
 		  /* First deal with keysyms which have defined
 		     translations to characters.  */
