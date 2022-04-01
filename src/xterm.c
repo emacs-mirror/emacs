@@ -1494,7 +1494,7 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
   x_catch_errors (dpyinfo->display);
   rc = XGetWindowProperty (dpyinfo->display, wdesc,
 			   dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
-			   0, LONG_MAX, False,
+			   0, 4, False,
 			   dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
 			   &actual_type, &actual_format, &nitems,
 			   &bytes_remaining,
@@ -14452,7 +14452,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										 x_dnd_wanted_action),
 						     XM_DROP_SITE_VALID, XM_DRAG_NOOP,
-						     (x_dnd_xm_use_help
+						     (!x_dnd_xm_use_help
 						      ? XM_DROP_ACTION_DROP
 						      : XM_DROP_ACTION_DROP_HELP));
 			    dmsg.timestamp = event->xbutton.time;
@@ -15508,7 +15508,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							   XM_DROP_SITE_VALID,
 							   xm_side_effect_from_action (dpyinfo,
 										       x_dnd_wanted_action),
-							   (x_dnd_xm_use_help
+							   (!x_dnd_xm_use_help
 							    ? XM_DROP_ACTION_DROP
 							    : XM_DROP_ACTION_DROP_HELP));
 				  dmsg.timestamp = xev->time;
