@@ -2164,10 +2164,9 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
   x_uncatch_errors ();
 
   if (rc)
-    {
-      *wmstate_out = *(unsigned long *) data;
-      *proto_out = x_dnd_get_window_proto (dpyinfo, window);
-    }
+    *wmstate_out = *(unsigned long *) data;
+
+  *proto_out = x_dnd_get_window_proto (dpyinfo, window);
 
   if (data)
     XFree (data);
@@ -2210,6 +2209,7 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
   reply = xcb_get_property_reply (dpyinfo->xcb_connection,
 				  xdnd_proto_cookie, &error);
 
+  *proto_out = -1;
   if (!reply)
     free (error);
   else
@@ -2217,8 +2217,6 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
       if (reply->format == 32
 	  && xcb_get_property_value_length (reply) >= 4)
 	*proto_out = *(uint32_t *) xcb_get_property_value (reply);
-      else
-	*proto_out = -1;
 
       free (reply);
     }
@@ -2359,17 +2357,10 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       if (child_return)
 	{
 	  if (x_dnd_get_wm_state_and_proto (dpyinfo, child_return,
-					    &wmstate, &proto))
-	    {
-	      *proto_out = proto;
-	      x_uncatch_errors ();
-
-	      return child_return;
-	    }
-
-	  proto = x_dnd_get_window_proto (dpyinfo, child_return);
-
-	  if (proto != -1)
+					    &wmstate, &proto)
+	      /* Proto is set by x_dnd_get_wm_state even if getting
+		 the wm state failed.  */
+	      || proto != -1)
 	    {
 	      *proto_out = proto;
 	      x_uncatch_errors ();
