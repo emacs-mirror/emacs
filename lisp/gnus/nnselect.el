@@ -388,6 +388,7 @@ artlist; otherwise store the ARTLIST in the group parameters."
 		     (gnus-group-find-parameter artgroup
 						'gnus-fetch-old-headers t))
 		    fetch-old)))
+              (gnus-request-group artgroup)
 	      (erase-buffer)
 	      (pcase (setq gnus-headers-retrieved-by
 			   (or
