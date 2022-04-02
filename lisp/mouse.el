@@ -102,7 +102,8 @@ point at the click position."
 If the mouse moves this many lines close to the top or bottom of
 a window while dragging text, then that window will be scrolled
 down and up respectively."
-  :type 'integer
+  :type '(choice (const :tag "Don't scroll during mouse movement")
+                 (integer :tag "This many lines from window top or bottom"))
   :version "29.1")
 
 (defvar mouse--last-down nil)
