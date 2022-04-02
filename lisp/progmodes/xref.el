@@ -1745,7 +1745,7 @@ utility function used by commands like `dired-do-find-regexp' and
   :type '(choice
           (const :tag "Use Grep" grep)
           (const :tag "Use ripgrep" ripgrep)
-          (const :tag "Use ugrep" grep)
+          (const :tag "Use ugrep" ugrep)
           (symbol :tag "User defined"))
   :version "28.1"
   :package-version '(xref . "1.0.4"))
