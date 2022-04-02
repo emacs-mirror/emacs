@@ -1142,8 +1142,8 @@ support for pipelines which will move a lot of data.  See section
 
 +++
 *** New user option 'font-lock-ignore'.
-This variable provides a mechanism to selectively disable font-lock
-keywords.
+This option provides a mechanism to selectively disable font-lock
+keyword-driven fontifications.
 
 +++
 *** New package vtable.el for formatting tabular data.

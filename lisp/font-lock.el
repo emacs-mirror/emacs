@@ -281,37 +281,42 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
   :group 'font-lock)
 
 (defcustom font-lock-ignore nil
-  "Rules to selectively disable font-lock keywords.
-This is a list of rule sets of the form
+  "Rules to selectively disable fontifications due to `font-lock-keywords'.
+If non-nil, the value should be a list of condition sets of the form
 
-  (MODE RULE ...)
+  (SYMBOL CONDITION ...)
 
 where:
 
- - MODE is a symbol, say a major or minor mode.  The subsequent
-   rules apply if the current major mode is derived from MODE or
-   MODE is bound and true as a variable.
+ - SYMBOL is a symbol, usually a major or minor mode.  The subsequent
+   CONDITIONs apply if SYMBOL is bound as variable and its value is non-nil.
+   If SYMBOL is a symbol of a mode, that means the buffer has that mode
+   enabled (for major modes, it means the buffer's major mode is derived
+   from SYMBOL's mode).
 
- - Each RULE can be one of the following:
-   - A symbol, say a face name.  It matches any font-lock keyword
-     containing the symbol in its definition.  The symbol is
+ - Each CONDITION can be one of the following:
+   - A symbol, typically a face.  It matches any element of
+     `font-lock-keywords' that references the symbol.  The symbol is
      interpreted as a glob pattern; in particular, `*' matches
-     everything.
-   - A string.  It matches any font-lock keyword defined by a regexp
-     that matches the string.
-   - A form (pred FUNCTION).  It matches if FUNCTION, which is called
-     with the font-lock keyword as argument, returns non-nil.
-   - A form (not RULE).  It matches if RULE doesn't.
-   - A form (and RULE ...).  It matches if all the provided rules
-     match.
-   - A form (or RULE ...).  It matches if any of the provided rules
-     match.
-   - A form (except RULE ...).  This can be used only at top level or
-     inside an `or' clause.  It undoes the effect of a previous
-     matching rule.
+     everything, `?' matches any single character, and `[abcd]'
+     matches one character from the set.
+   - A string.  It matches any element of `font-lock-keywords' whose
+     MATCHER is a regexp that matches the string.  This can be used to
+     disable fontification of a particular programming keyword.
+   - A form (pred FUNCTION).  It matches an element of `font-lock-keywords'
+     if FUNCTION, when called with the element as the argument, returns
+     non-nil.
+   - A form (not CONDITION).  It matches if CONDITION doesn't.
+   - A form (and CONDITION ...).  It matches if all the provided
+     CONDITIONs match.
+   - A form (or CONDITION ...).  It matches if at least one of the
+     provided CONDITIONs matches.
+   - A form (except CONDITIONs ...).  This can be used only at top level
+     or inside an `or' clause.  It undoes the effect of previous
+     matching CONDITIONs on the same level.
 
-In each buffer, font lock keywords that match at least one
-applicable rule are disabled."
+In each buffer, fontifications due to the elements of `font-lock-keywords'
+that match at least one applicable CONDITION are disabled."
   :type '(alist :key-type symbol :value-type sexp)
   :group 'font-lock
   :version "29.1")

@@ -1011,10 +1011,15 @@ in C comments, use this:
 @end example
 
 @findex font-lock-remove-keywords
+@vindex font-lock-ignore
 @noindent
 To remove keywords from the font-lock highlighting patterns, use the
 function @code{font-lock-remove-keywords}.  @xref{Search-based
 Fontification,,, elisp, The Emacs Lisp Reference Manual}.
+Alternatively, you can selectively disable highlighting due to some
+keywords by customizing the @code{font-lock-ignore} option,
+@pxref{Customizing Keywords,,, elisp, The Emacs Lisp Reference
+Manual}.
 
 @cindex just-in-time (JIT) font-lock
 @cindex background syntax highlighting

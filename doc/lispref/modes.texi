@@ -3204,9 +3204,9 @@ Non-@code{nil} means that regular expression matching for the sake of
 
   You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
-@code{font-lock-remove-keywords} to remove rules.  You can also set
-the @code{font-lock-ignore} variable to disable keywords that match
-certain criteria.
+@code{font-lock-remove-keywords} to remove rules.  You can also
+customize the @code{font-lock-ignore} option to selectively disable
+fontification rules for keywords that match certain criteria.
 
 @defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer
@@ -3276,51 +3276,64 @@ mode @emph{and} all modes derived from it, do this instead:
       font-lock-keyword-face)))))
 @end smallexample
 
-@defvar font-lock-ignore
-This variable contains rules to selectively disable Font Lock
-keywords.  It is a list with elements of the following form:
+@defopt font-lock-ignore
+@cindex selectively disabling font-lock fontifications
+This option defines conditions for selectively disabling
+fontifications due to certain Font Lock keywords.  If non-@code{nil},
+its value is a list of elements of the following form:
 
 @example
-(@var{mode} @var{rule} @dots{})
+(@var{symbol} @var{condition} @dots{})
 @end example
 
-Here, @var{mode} is a symbol, say a major or minor mode.  The
-subsequent rules apply if the current major mode is derived from
-@var{mode} or @var{mode} is bound and true as a variable.  Each
-@var{rule} can be one of the following:
+Here, @var{symbol} is a symbol, usually a major or minor mode.  The
+subsequent @var{condition}s of a @var{symbol}'s list element will be in
+effect if @var{symbol} is bound and its value is non-@code{nil}.  For
+a mode's symbol, it means that the current major mode is derived from
+that mode, or that minor mode is enabled in the buffer.  When a
+@var{condition} is in effect, any fontifications caused by
+@code{font-lock-keywords} elements that match the @var{condition} will
+be disabled.
 
-@table @code
-@cindex @var{font-lock-ignore} rules
-@item @var{symbol}
-A symbol, say a face name, matches any Font Lock keyword containing
-the symbol in its definition.  The symbol is interpreted as a glob
-pattern; in particular, @code{*} matches everything.
+Each @var{condition} can be one of the following:
 
-@item @var{string}
-A string matches any font-lock keyword defined by a regexp that
-matches the string.
+@table @asis
+@item a symbol
+This condition matches any element of Font Lock keywords that
+references the symbol.  This is usually a face, but can be any symbol
+referenced by an element of the @code{font-lock-keywords} list.  The
+symbol can contain wildcards: @code{*} matches any string in the
+symbol'ss name, @code{?} matches a single character, and
+@code{[@var{char-set}]}, where @var{char-set} is a string of one or
+more characters, matches a single character from the set.
 
-@item (pred @var{function})
-A rule of this form matches if @var{function}, called with the
-Font Lock keyword as argument, returns non-@code{nil}.
+@item a string
+This condition matches any element of Font Lock keywords whose
+@var{matcher} is a regexp which matches the string.  In other words,
+this condition matches a Font Lock rule which highlights the string.
+Thus, the string could be a specific program keyword whose
+highlighting you want to disable.
 
-@item (not @var{rule})
-A rule of this form matches if @var{rule} doesn’t.
+@item @code{(pred @var{function})}
+This condition matches any element of Font Lock keywords for which
+@var{function}, when called with the element as the argument, returns
+non-@code{nil}.
 
-@item (and @var{rule} @dots{})
-A rule of this form matches if each @var{rule} matches.
+@item @code{(not @var{condition})}
+This matches if @var{condition} doesn’t.
 
-@item (or @var{rule} @dots{})
-A rule of this form matches if some @var{rule} matches.
+@item @code{(and @var{condition} @dots{})}
+This matches if each of the @var{condition}s matches.
 
-@item (except @var{rule})
-A rule of this form can only be used at top level or inside an
-@code{or} clause.  It undoes the effect of a previously matching rule.
+@item @code{(or @var{condition} @dots{})}
+This matches if at least one of the @var{condition}s matches.
+
+@item @code{(except @var{condition})}
+This condition can only be used at top level or inside an
+@code{or} clause.  It undoes the effect of a previously matching
+condition on the same level.
 @end table
-
-In each buffer, Font Lock keywords that match at least one applicable
-rule are disabled.
-@end defvar
+@end defopt
 
 As an example, consider the following setting:
 
@@ -3337,23 +3350,23 @@ Line by line, this does the following:
 
 @enumerate
 @item
-In all programming modes, disable all font-lock keywords that apply
-one of the standard font-lock faces (excluding strings and comments,
-which are covered by syntactic Font Lock).
+In all programming modes, disable fontifications due to all font-lock
+keywords that apply one of the standard font-lock faces (excluding
+strings and comments, which are covered by syntactic Font Lock).
 
 @item
 However, keep any keywords that add a @code{help-echo} text property.
 
 @item
 In Emacs Lisp mode, also keep the highlighting of autoload cookies,
-which would have been excluded by rule 1.
+which would have been excluded by the first condition.
 
 @item
-In @code{whitespace-mode} (a minor mode), don't highlight an empty
-line at beginning of buffer.
+When @code{whitespace-mode} (a minor mode) is enabled, also don't
+highlight an empty line at beginning of buffer.
 
 @item
-Finally, in Makefile mode, don't apply any ignore rules.
+Finally, in Makefile mode, don't apply any conditions.
 @end enumerate
 
 @node Other Font Lock Variables
