@@ -1732,6 +1732,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
   "x" #'bookmark-bmenu-execute-deletions
   "d" #'bookmark-bmenu-delete
   "D" #'bookmark-bmenu-delete-all
+  "S-SPC" #'previous-line
   "SPC" #'next-line
   "DEL" #'bookmark-bmenu-backup-unmark
   "u" #'bookmark-bmenu-unmark
