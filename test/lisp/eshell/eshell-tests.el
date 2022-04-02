@@ -44,6 +44,10 @@
   "Test `eshell-command-result' with an elisp command."
   (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
 
+(ert-deftest eshell-test/lisp-command-with-quote ()
+  "Test `eshell-command-result' with an elisp command containing a quote."
+  (should (equal (eshell-test-command-result "(eq 'foo nil)") nil)))
+
 (ert-deftest eshell-test/for-loop ()
   "Test `eshell-command-result' with a for loop.."
   (let ((process-environment (cons "foo" process-environment)))
