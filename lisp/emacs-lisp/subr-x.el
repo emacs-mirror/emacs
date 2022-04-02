@@ -320,12 +320,6 @@ than this function."
      (end (substring string (- (length string) length)))
      (t (substring string 0 length)))))
 
-;;;###autoload
-(defun string-lines (string &optional omit-nulls)
-  "Split STRING into a list of lines.
-If OMIT-NULLS, empty lines will be removed from the results."
-  (split-string string "\n" omit-nulls))
-
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
 If PADDING is nil, the space character is used.  If not nil, it
@@ -414,32 +408,6 @@ and return the value found in PLACE instead."
                ,(funcall setter val)
                ,val)))))
 
-;;;###autoload
-(defun ensure-empty-lines (&optional lines)
-  "Ensure that there are LINES number of empty lines before point.
-If LINES is nil or omitted, ensure that there is a single empty
-line before point.
-
-If called interactively, LINES is given by the prefix argument.
-
-If there are more than LINES empty lines before point, the number
-of empty lines is reduced to LINES.
-
-If point is not at the beginning of a line, a newline character
-is inserted before adjusting the number of empty lines."
-  (interactive "p")
-  (unless (bolp)
-    (insert "\n"))
-  (let ((lines (or lines 1))
-        (start (save-excursion
-                 (if (re-search-backward "[^\n]" nil t)
-                     (+ (point) 2)
-                   (point-min)))))
-    (cond
-     ((> (- (point) start) lines)
-      (delete-region (point) (- (point) (- (point) start lines))))
-     ((< (- (point) start) lines)
-      (insert (make-string (- lines (- (point) start)) ?\n))))))
 
 ;;;###autoload
 (defun string-pixel-width (string)

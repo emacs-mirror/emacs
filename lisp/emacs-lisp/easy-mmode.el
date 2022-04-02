@@ -114,7 +114,7 @@ it is disabled.")
         ;; line.
         (ensure-empty-lines)
         (while (and lines
-                    (string-empty-p (car lines)))
+                    (equal (car lines) ""))
           (pop lines))
         ;; Insert the doc string.
         (dolist (line lines)
