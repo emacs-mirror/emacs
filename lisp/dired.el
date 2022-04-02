@@ -1750,7 +1750,7 @@ when Emacs exits or the user drags another file.")
                               #'dired-remove-last-dragged-local-file))
                   (gui-backend-set-selection 'XdndSelection filename)
                   (x-begin-drag '("text/uri-list" "text/x-dnd-username"
-                                  "FILE_NAME" "FILE")
+                                  "FILE_NAME" "FILE" "HOST_NAME")
                                 (if (eq 'dired-mouse-drag-files 'link)
                                     'XdndActionLink
                                   'XdndActionCopy)
