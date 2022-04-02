@@ -6085,6 +6085,8 @@ maybe_garbage_collect (void)
     garbage_collect ();
 }
 
+static inline bool mark_stack_empty_p (void);
+
 /* Subroutine of Fgarbage_collect that does most of the work.  */
 void
 garbage_collect (void)
@@ -6099,6 +6101,8 @@ garbage_collect (void)
 
   if (garbage_collection_inhibited)
     return;
+
+  eassert(mark_stack_empty_p ());
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   record_in_backtrace (QAutomatic_GC, 0, 0);
@@ -6221,6 +6225,8 @@ garbage_collect (void)
   /* Must happen after all other marking and before gc_sweep.  */
   mark_and_sweep_weak_table_contents ();
   eassert (weak_hash_tables == NULL);
+
+  eassert (mark_stack_empty_p ());
 
   gc_sweep ();
 
@@ -6395,15 +6401,25 @@ mark_glyph_matrix (struct glyph_matrix *matrix)
       }
 }
 
+/* Whether to remember a few of the last marked values for debugging.  */
+#define GC_REMEMBER_LAST_MARKED 0
+
+#if GC_REMEMBER_LAST_MARKED
 enum { LAST_MARKED_SIZE = 1 << 9 }; /* Must be a power of 2.  */
 Lisp_Object last_marked[LAST_MARKED_SIZE] EXTERNALLY_VISIBLE;
 static int last_marked_index;
+#endif
 
+/* Whether to enable the mark_object_loop_halt debugging feature.  */
+#define GC_CDR_COUNT 0
+
+#if GC_CDR_COUNT
 /* For debugging--call abort when we cdr down this many
    links of a list, in mark_object.  In debugging,
    the call to abort will hit a breakpoint.
    Normally this is zero and the check never goes off.  */
 ptrdiff_t mark_object_loop_halt EXTERNALLY_VISIBLE;
+#endif
 
 static void
 mark_vectorlike (union vectorlike_header *header)
@@ -6455,19 +6471,6 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
       else
 	mark_object (val);
     }
-}
-
-NO_INLINE /* To reduce stack depth in mark_object.  */
-static Lisp_Object
-mark_compiled (struct Lisp_Vector *ptr)
-{
-  int i, size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-
-  set_vector_marked (ptr);
-  for (i = 0; i < size; i++)
-    if (i != COMPILED_CONSTANTS)
-      mark_object (ptr->contents[i]);
-  return size > COMPILED_CONSTANTS ? ptr->contents[COMPILED_CONSTANTS] : Qnil;
 }
 
 /* Mark the chain of overlays starting at PTR.  */
@@ -6622,110 +6625,161 @@ mark_window (struct Lisp_Vector *ptr)
     (w, mark_discard_killed_buffers (w->next_buffers));
 }
 
-static void
-mark_hash_table (struct Lisp_Vector *ptr)
+/* Entry of the mark stack.  */
+struct mark_entry
 {
-  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *) ptr;
+  ptrdiff_t n;		        /* number of values, or 0 if a single value */
+  union {
+    Lisp_Object value;		/* when n = 0 */
+    Lisp_Object *values;	/* when n > 0 */
+  } u;
+};
 
-  mark_vectorlike (&h->header);
-  mark_object (h->test.name);
-  mark_object (h->test.user_hash_function);
-  mark_object (h->test.user_cmp_function);
-  /* If hash table is not weak, mark all keys and values.  For weak
-     tables, mark only the vector and not its contents --- that's what
-     makes it weak.  */
-  if (NILP (h->weak))
-    mark_object (h->key_and_value);
-  else
+/* This stack is used during marking for traversing data structures without
+   using C recursion.  */
+struct mark_stack
+{
+  struct mark_entry *stack;	/* base of stack */
+  ptrdiff_t size;		/* allocated size in entries */
+  ptrdiff_t sp;			/* current number of entries */
+};
+
+static struct mark_stack mark_stk = {NULL, 0, 0};
+
+static inline bool
+mark_stack_empty_p (void)
+{
+  return mark_stk.sp <= 0;
+}
+
+/* Pop and return a value from the mark stack (which must be nonempty).  */
+static inline Lisp_Object
+mark_stack_pop (void)
+{
+  eassume (!mark_stack_empty_p ());
+  struct mark_entry *e = &mark_stk.stack[mark_stk.sp - 1];
+  if (e->n == 0)		/* single value */
     {
-      eassert (h->next_weak == NULL);
-      h->next_weak = weak_hash_tables;
-      weak_hash_tables = h;
-      set_vector_marked (XVECTOR (h->key_and_value));
+      --mark_stk.sp;
+      return e->u.value;
     }
+  /* Array of values: pop them left to right, which seems to be slightly
+     faster than right to left.  */
+  e->n--;
+  if (e->n == 0)
+    --mark_stk.sp;		/* last value consumed */
+  return (++e->u.values)[-1];
 }
 
-void
-mark_objects (Lisp_Object *obj, ptrdiff_t n)
+NO_INLINE static void
+grow_mark_stack (void)
 {
-  for (ptrdiff_t i = 0; i < n; i++)
-    mark_object (obj[i]);
+  struct mark_stack *ms = &mark_stk;
+  eassert (ms->sp == ms->size);
+  ptrdiff_t min_incr = ms->sp == 0 ? 8192 : 1;
+  ptrdiff_t oldsize = ms->size;
+  ms->stack = xpalloc (ms->stack, &ms->size, min_incr, -1, sizeof *ms->stack);
+  eassert (ms->sp < ms->size);
 }
 
-/* Determine type of generic Lisp_Object and mark it accordingly.
-
-   This function implements a straightforward depth-first marking
-   algorithm and so the recursion depth may be very high (a few
-   tens of thousands is not uncommon).  To minimize stack usage,
-   a few cold paths are moved out to NO_INLINE functions above.
-   In general, inlining them doesn't help you to gain more speed.  */
-
-void
-mark_object (Lisp_Object arg)
+/* Push VALUE onto the mark stack.  */
+static inline void
+mark_stack_push_value (Lisp_Object value)
 {
-  register Lisp_Object obj;
-  void *po;
+  if (mark_stk.sp >= mark_stk.size)
+    grow_mark_stack ();
+  mark_stk.stack[mark_stk.sp++] = (struct mark_entry){.n = 0, .u.value = value};
+}
+
+/* Push the N values at VALUES onto the mark stack.  */
+static inline void
+mark_stack_push_values (Lisp_Object *values, ptrdiff_t n)
+{
+  eassume (n >= 0);
+  if (n == 0)
+    return;
+  if (mark_stk.sp >= mark_stk.size)
+    grow_mark_stack ();
+  mark_stk.stack[mark_stk.sp++] = (struct mark_entry){.n = n,
+						      .u.values = values};
+}
+
+/* Traverse and mark objects on the mark stack above BASE_SP.
+
+   Traversal is depth-first using the mark stack for most common
+   object types.  Recursion is used for other types, in the hope that
+   they are rare enough that C stack usage is kept low.  */
+static void
+process_mark_stack (ptrdiff_t base_sp)
+{
 #if GC_CHECK_MARKED_OBJECTS
   struct mem_node *m = NULL;
 #endif
+#if GC_CDR_COUNT
   ptrdiff_t cdr_count = 0;
+#endif
 
-  obj = arg;
- loop:
+  eassume (mark_stk.sp >= base_sp && base_sp >= 0);
 
-  po = XPNTR (obj);
-  if (PURE_P (po))
-    return;
+  while (mark_stk.sp > base_sp)
+    {
+      Lisp_Object obj = mark_stack_pop ();
+    mark_obj: ;
+      void *po = XPNTR (obj);
+      if (PURE_P (po))
+	continue;
 
-  last_marked[last_marked_index++] = obj;
-  last_marked_index &= LAST_MARKED_SIZE - 1;
+#if GC_REMEMBER_LAST_MARKED
+      last_marked[last_marked_index++] = obj;
+      last_marked_index &= LAST_MARKED_SIZE - 1;
+#endif
 
-  /* Perform some sanity checks on the objects marked here.  Abort if
-     we encounter an object we know is bogus.  This increases GC time
-     by ~80%.  */
+      /* Perform some sanity checks on the objects marked here.  Abort if
+	 we encounter an object we know is bogus.  This increases GC time
+	 by ~80%.  */
 #if GC_CHECK_MARKED_OBJECTS
 
-  /* Check that the object pointed to by PO is known to be a Lisp
-     structure allocated from the heap.  */
+      /* Check that the object pointed to by PO is known to be a Lisp
+	 structure allocated from the heap.  */
 #define CHECK_ALLOCATED()			\
-  do {						\
-    if (pdumper_object_p (po))			\
-      {                                         \
-        if (!pdumper_object_p_precise (po))     \
-          emacs_abort ();                       \
-        break;                                  \
-      }                                         \
-    m = mem_find (po);				\
-    if (m == MEM_NIL)				\
-      emacs_abort ();				\
-  } while (0)
+      do {					\
+	if (pdumper_object_p (po))		\
+	  {					\
+	    if (!pdumper_object_p_precise (po))	\
+	      emacs_abort ();			\
+	    break;				\
+	  }					\
+	m = mem_find (po);			\
+	if (m == MEM_NIL)			\
+	  emacs_abort ();			\
+      } while (0)
 
-  /* Check that the object pointed to by PO is live, using predicate
-     function LIVEP.  */
-#define CHECK_LIVE(LIVEP, MEM_TYPE)		\
-  do {						\
-    if (pdumper_object_p (po))			\
-      break;                                    \
-    if (! (m->type == MEM_TYPE && LIVEP (m, po))) \
-      emacs_abort ();				\
-  } while (0)
+      /* Check that the object pointed to by PO is live, using predicate
+	 function LIVEP.  */
+#define CHECK_LIVE(LIVEP, MEM_TYPE)			\
+      do {						\
+	if (pdumper_object_p (po))			\
+	  break;					\
+	if (! (m->type == MEM_TYPE && LIVEP (m, po)))	\
+	  emacs_abort ();				\
+      } while (0)
 
-  /* Check both of the above conditions, for non-symbols.  */
-#define CHECK_ALLOCATED_AND_LIVE(LIVEP, MEM_TYPE) \
-  do {						\
-    CHECK_ALLOCATED ();				\
-    CHECK_LIVE (LIVEP, MEM_TYPE);		\
-  } while (false)
+      /* Check both of the above conditions, for non-symbols.  */
+#define CHECK_ALLOCATED_AND_LIVE(LIVEP, MEM_TYPE)	\
+      do {						\
+	CHECK_ALLOCATED ();				\
+	CHECK_LIVE (LIVEP, MEM_TYPE);			\
+      } while (false)
 
-  /* Check both of the above conditions, for symbols.  */
-#define CHECK_ALLOCATED_AND_LIVE_SYMBOL()	\
-  do {						\
-    if (!c_symbol_p (ptr))			\
-      {						\
-	CHECK_ALLOCATED ();			\
-	CHECK_LIVE (live_symbol_p, MEM_TYPE_SYMBOL); \
-      }						\
-  } while (false)
+      /* Check both of the above conditions, for symbols.  */
+#define CHECK_ALLOCATED_AND_LIVE_SYMBOL()			\
+      do {							\
+	if (!c_symbol_p (ptr))					\
+	  {							\
+	    CHECK_ALLOCATED ();					\
+	    CHECK_LIVE (live_symbol_p, MEM_TYPE_SYMBOL);	\
+	  }							\
+      } while (false)
 
 #else /* not GC_CHECK_MARKED_OBJECTS */
 
@@ -6734,205 +6788,241 @@ mark_object (Lisp_Object arg)
 
 #endif /* not GC_CHECK_MARKED_OBJECTS */
 
-  switch (XTYPE (obj))
-    {
-    case Lisp_String:
-      {
-	register struct Lisp_String *ptr = XSTRING (obj);
-        if (string_marked_p (ptr))
-          break;
-	CHECK_ALLOCATED_AND_LIVE (live_string_p, MEM_TYPE_STRING);
-        set_string_marked (ptr);
-        mark_interval_tree (ptr->u.s.intervals);
+      switch (XTYPE (obj))
+	{
+	case Lisp_String:
+	  {
+	    register struct Lisp_String *ptr = XSTRING (obj);
+	    if (string_marked_p (ptr))
+	      break;
+	    CHECK_ALLOCATED_AND_LIVE (live_string_p, MEM_TYPE_STRING);
+	    set_string_marked (ptr);
+	    mark_interval_tree (ptr->u.s.intervals);
 #ifdef GC_CHECK_STRING_BYTES
-	/* Check that the string size recorded in the string is the
-	   same as the one recorded in the sdata structure.  */
-	string_bytes (ptr);
+	    /* Check that the string size recorded in the string is the
+	       same as the one recorded in the sdata structure.  */
+	    string_bytes (ptr);
 #endif /* GC_CHECK_STRING_BYTES */
-      }
-      break;
-
-    case Lisp_Vectorlike:
-      {
-	register struct Lisp_Vector *ptr = XVECTOR (obj);
-
-	if (vector_marked_p (ptr))
+	  }
 	  break;
 
-        enum pvec_type pvectype
-          = PSEUDOVECTOR_TYPE (ptr);
+	case Lisp_Vectorlike:
+	  {
+	    register struct Lisp_Vector *ptr = XVECTOR (obj);
+
+	    if (vector_marked_p (ptr))
+	      break;
+
+	    enum pvec_type pvectype
+	      = PSEUDOVECTOR_TYPE (ptr);
 
 #ifdef GC_CHECK_MARKED_OBJECTS
-        if (!pdumper_object_p (po) && !SUBRP (obj) && !main_thread_p (po))
-          {
-	    m = mem_find (po);
-	    if (m == MEM_NIL)
-	      emacs_abort ();
-	    if (m->type == MEM_TYPE_VECTORLIKE)
-	      CHECK_LIVE (live_large_vector_p, MEM_TYPE_VECTORLIKE);
-	    else
-	      CHECK_LIVE (live_small_vector_p, MEM_TYPE_VECTOR_BLOCK);
-          }
-#endif
-
-	switch (pvectype)
-	  {
-	  case PVEC_BUFFER:
-	    mark_buffer ((struct buffer *) ptr);
-            break;
-
-          case PVEC_COMPILED:
-            /* Although we could treat this just like a vector, mark_compiled
-               returns the COMPILED_CONSTANTS element, which is marked at the
-               next iteration of goto-loop here.  This is done to avoid a few
-               recursive calls to mark_object.  */
-            obj = mark_compiled (ptr);
-            if (!NILP (obj))
-              goto loop;
-            break;
-
-          case PVEC_FRAME:
-            mark_frame (ptr);
-            break;
-
-          case PVEC_WINDOW:
-            mark_window (ptr);
-            break;
-
-	  case PVEC_HASH_TABLE:
-            mark_hash_table (ptr);
-	    break;
-
-	  case PVEC_CHAR_TABLE:
-	  case PVEC_SUB_CHAR_TABLE:
-	    mark_char_table (ptr, (enum pvec_type) pvectype);
-	    break;
-
-          case PVEC_BOOL_VECTOR:
-            /* bool vectors in a dump are permanently "marked", since
-               they're in the old section and don't have mark bits.
-               If we're looking at a dumped bool vector, we should
-               have aborted above when we called vector_marked_p, so
-               we should never get here.  */
-            eassert (!pdumper_object_p (ptr));
-            set_vector_marked (ptr);
-            break;
-
-          case PVEC_OVERLAY:
-	    mark_overlay (XOVERLAY (obj));
-	    break;
-
-	  case PVEC_SUBR:
-#ifdef HAVE_NATIVE_COMP
-	    if (SUBR_NATIVE_COMPILEDP (obj))
+	    if (!pdumper_object_p (po) && !SUBRP (obj) && !main_thread_p (po))
 	      {
-		set_vector_marked (ptr);
-		struct Lisp_Subr *subr = XSUBR (obj);
-		mark_object (subr->native_intspec);
-		mark_object (subr->command_modes);
-		mark_object (subr->native_comp_u);
-		mark_object (subr->lambda_list);
-		mark_object (subr->type);
+		m = mem_find (po);
+		if (m == MEM_NIL)
+		  emacs_abort ();
+		if (m->type == MEM_TYPE_VECTORLIKE)
+		  CHECK_LIVE (live_large_vector_p, MEM_TYPE_VECTORLIKE);
+		else
+		  CHECK_LIVE (live_small_vector_p, MEM_TYPE_VECTOR_BLOCK);
 	      }
 #endif
-	    break;
 
-	  case PVEC_FREE:
-	    emacs_abort ();
+	    switch (pvectype)
+	      {
+	      case PVEC_BUFFER:
+		mark_buffer ((struct buffer *) ptr);
+		break;
 
-	  default:
-	    /* A regular vector, or a pseudovector needing no special
-	       treatment.  */
-	    mark_vectorlike (&ptr->header);
+	      case PVEC_FRAME:
+		mark_frame (ptr);
+		break;
+
+	      case PVEC_WINDOW:
+		mark_window (ptr);
+		break;
+
+	      case PVEC_HASH_TABLE:
+		{
+		  struct Lisp_Hash_Table *h = (struct Lisp_Hash_Table *)ptr;
+		  ptrdiff_t size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+		  set_vector_marked (ptr);
+		  mark_stack_push_values (ptr->contents, size);
+		  mark_stack_push_value (h->test.name);
+		  mark_stack_push_value (h->test.user_hash_function);
+		  mark_stack_push_value (h->test.user_cmp_function);
+		  if (NILP (h->weak))
+		    mark_stack_push_value (h->key_and_value);
+		  else
+		    {
+		      /* For weak tables, mark only the vector and not its
+			 contents --- that's what makes it weak.  */
+		      eassert (h->next_weak == NULL);
+		      h->next_weak = weak_hash_tables;
+		      weak_hash_tables = h;
+		      set_vector_marked (XVECTOR (h->key_and_value));
+		    }
+		  break;
+		}
+
+	      case PVEC_CHAR_TABLE:
+	      case PVEC_SUB_CHAR_TABLE:
+		mark_char_table (ptr, (enum pvec_type) pvectype);
+		break;
+
+	      case PVEC_BOOL_VECTOR:
+		/* bool vectors in a dump are permanently "marked", since
+		   they're in the old section and don't have mark bits.
+		   If we're looking at a dumped bool vector, we should
+		   have aborted above when we called vector_marked_p, so
+		   we should never get here.  */
+		eassert (!pdumper_object_p (ptr));
+		set_vector_marked (ptr);
+		break;
+
+	      case PVEC_OVERLAY:
+		mark_overlay (XOVERLAY (obj));
+		break;
+
+	      case PVEC_SUBR:
+#ifdef HAVE_NATIVE_COMP
+		if (SUBR_NATIVE_COMPILEDP (obj))
+		  {
+		    set_vector_marked (ptr);
+		    struct Lisp_Subr *subr = XSUBR (obj);
+		    mark_stack_push_value (subr->native_intspec);
+		    mark_stack_push_value (subr->command_modes);
+		    mark_stack_push_value (subr->native_comp_u);
+		    mark_stack_push_value (subr->lambda_list);
+		    mark_stack_push_value (subr->type);
+		  }
+#endif
+		break;
+
+	      case PVEC_FREE:
+		emacs_abort ();
+
+	      default:
+		{
+		  /* A regular vector or pseudovector needing no special
+		     treatment.  */
+		  ptrdiff_t size = ptr->header.size;
+		  if (size & PSEUDOVECTOR_FLAG)
+		    size &= PSEUDOVECTOR_SIZE_MASK;
+		  set_vector_marked (ptr);
+		  mark_stack_push_values (ptr->contents, size);
+		}
+		break;
+	      }
 	  }
-      }
-      break;
-
-    case Lisp_Symbol:
-      {
-	struct Lisp_Symbol *ptr = XBARE_SYMBOL (obj);
-      nextsym:
-        if (symbol_marked_p (ptr))
-          break;
-        CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
-        set_symbol_marked (ptr);
-	/* Attempt to catch bogus objects.  */
-	eassert (valid_lisp_object_p (ptr->u.s.function));
-	mark_object (ptr->u.s.function);
-	mark_object (ptr->u.s.plist);
-	switch (ptr->u.s.redirect)
-	  {
-	  case SYMBOL_PLAINVAL: mark_object (SYMBOL_VAL (ptr)); break;
-	  case SYMBOL_VARALIAS:
-	    {
-	      Lisp_Object tem;
-	      XSETSYMBOL (tem, SYMBOL_ALIAS (ptr));
-	      mark_object (tem);
-	      break;
-	    }
-	  case SYMBOL_LOCALIZED:
-	    mark_localized_symbol (ptr);
-	    break;
-	  case SYMBOL_FORWARDED:
-	    /* If the value is forwarded to a buffer or keyboard field,
-	       these are marked when we see the corresponding object.
-	       And if it's forwarded to a C variable, either it's not
-	       a Lisp_Object var, or it's staticpro'd already.  */
-	    break;
-	  default: emacs_abort ();
-	  }
-	if (!PURE_P (XSTRING (ptr->u.s.name)))
-          set_string_marked (XSTRING (ptr->u.s.name));
-        mark_interval_tree (string_intervals (ptr->u.s.name));
-	/* Inner loop to mark next symbol in this bucket, if any.  */
-	po = ptr = ptr->u.s.next;
-	if (ptr)
-	  goto nextsym;
-      }
-      break;
-
-    case Lisp_Cons:
-      {
-	struct Lisp_Cons *ptr = XCONS (obj);
-	if (cons_marked_p (ptr))
 	  break;
-	CHECK_ALLOCATED_AND_LIVE (live_cons_p, MEM_TYPE_CONS);
-        set_cons_marked (ptr);
-	/* If the cdr is nil, avoid recursion for the car.  */
-	if (NILP (ptr->u.s.u.cdr))
+
+	case Lisp_Symbol:
 	  {
-	    obj = ptr->u.s.car;
-	    cdr_count = 0;
-	    goto loop;
+	    struct Lisp_Symbol *ptr = XBARE_SYMBOL (obj);
+	  nextsym:
+	    if (symbol_marked_p (ptr))
+	      break;
+	    CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
+	    set_symbol_marked (ptr);
+	    /* Attempt to catch bogus objects.  */
+	    eassert (valid_lisp_object_p (ptr->u.s.function));
+	    mark_stack_push_value (ptr->u.s.function);
+	    mark_stack_push_value (ptr->u.s.plist);
+	    switch (ptr->u.s.redirect)
+	      {
+	      case SYMBOL_PLAINVAL:
+		mark_stack_push_value (SYMBOL_VAL (ptr));
+		break;
+	      case SYMBOL_VARALIAS:
+		{
+		  Lisp_Object tem;
+		  XSETSYMBOL (tem, SYMBOL_ALIAS (ptr));
+		  mark_stack_push_value (tem);
+		  break;
+		}
+	      case SYMBOL_LOCALIZED:
+		mark_localized_symbol (ptr);
+		break;
+	      case SYMBOL_FORWARDED:
+		/* If the value is forwarded to a buffer or keyboard field,
+		   these are marked when we see the corresponding object.
+		   And if it's forwarded to a C variable, either it's not
+		   a Lisp_Object var, or it's staticpro'd already.  */
+		break;
+	      default: emacs_abort ();
+	      }
+	    if (!PURE_P (XSTRING (ptr->u.s.name)))
+	      set_string_marked (XSTRING (ptr->u.s.name));
+	    mark_interval_tree (string_intervals (ptr->u.s.name));
+	    /* Inner loop to mark next symbol in this bucket, if any.  */
+	    po = ptr = ptr->u.s.next;
+	    if (ptr)
+	      goto nextsym;
 	  }
-	mark_object (ptr->u.s.car);
-	obj = ptr->u.s.u.cdr;
-	cdr_count++;
-	if (cdr_count == mark_object_loop_halt)
+	  break;
+
+	case Lisp_Cons:
+	  {
+	    struct Lisp_Cons *ptr = XCONS (obj);
+	    if (cons_marked_p (ptr))
+	      break;
+	    CHECK_ALLOCATED_AND_LIVE (live_cons_p, MEM_TYPE_CONS);
+	    set_cons_marked (ptr);
+	    /* Avoid growing the stack if the cdr is nil.
+	       In any case, make sure the car is expanded first.  */
+	    if (!NILP (ptr->u.s.u.cdr))
+	      {
+		mark_stack_push_value (ptr->u.s.u.cdr);
+#if GC_CDR_COUNT
+		cdr_count++;
+		if (cdr_count == mark_object_loop_halt)
+		  emacs_abort ();
+#endif
+	      }
+	    /* Speedup hack for the common case (successive list elements).  */
+	    obj = ptr->u.s.car;
+	    goto mark_obj;
+	  }
+
+	case Lisp_Float:
+	  CHECK_ALLOCATED_AND_LIVE (live_float_p, MEM_TYPE_FLOAT);
+	  /* Do not mark floats stored in a dump image: these floats are
+	     "cold" and do not have mark bits.  */
+	  if (pdumper_object_p (XFLOAT (obj)))
+	    eassert (pdumper_cold_object_p (XFLOAT (obj)));
+	  else if (!XFLOAT_MARKED_P (XFLOAT (obj)))
+	    XFLOAT_MARK (XFLOAT (obj));
+	  break;
+
+	case_Lisp_Int:
+	  break;
+
+	default:
 	  emacs_abort ();
-	goto loop;
-      }
-
-    case Lisp_Float:
-      CHECK_ALLOCATED_AND_LIVE (live_float_p, MEM_TYPE_FLOAT);
-      /* Do not mark floats stored in a dump image: these floats are
-         "cold" and do not have mark bits.  */
-      if (pdumper_object_p (XFLOAT (obj)))
-        eassert (pdumper_cold_object_p (XFLOAT (obj)));
-      else if (!XFLOAT_MARKED_P (XFLOAT (obj)))
-        XFLOAT_MARK (XFLOAT (obj));
-      break;
-
-    case_Lisp_Int:
-      break;
-
-    default:
-      emacs_abort ();
+	}
     }
 
 #undef CHECK_LIVE
 #undef CHECK_ALLOCATED
 #undef CHECK_ALLOCATED_AND_LIVE
+}
+
+void
+mark_object (Lisp_Object obj)
+{
+  ptrdiff_t sp = mark_stk.sp;
+  mark_stack_push_value (obj);
+  process_mark_stack (sp);
+}
+
+void
+mark_objects (Lisp_Object *objs, ptrdiff_t n)
+{
+  ptrdiff_t sp = mark_stk.sp;
+  mark_stack_push_values (objs, n);
+  process_mark_stack (sp);
 }
 
 /* Mark the Lisp pointers in the terminal objects.
