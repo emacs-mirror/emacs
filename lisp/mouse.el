@@ -3097,20 +3097,23 @@ is copied instead of being cut."
               ;; either up or down depending on which margin it is in.
               (when mouse-drag-and-drop-region-scroll-margin
                 (let* ((row (cdr (posn-col-row (event-end event))))
-                       (window (posn-window (event-end event)))
-                       (text-height (window-text-height window))
+                       (window (when (windowp (posn-window (event-end event)))
+                                 (posn-window (event-end event))))
+                       (text-height (when window
+                                      (window-text-height window)))
                        ;; Make sure it's possible to scroll both up
                        ;; and down if the margin is too large for the
                        ;; window.
-                       (margin (min (/ text-height 3)
-                                    mouse-drag-and-drop-region-scroll-margin)))
-                  ;; At 2 lines, the window becomes too small for any
-                  ;; meaningful scrolling.
-                  (unless (<= text-height 2)
-                    ;; We could end up at the beginning or end of the
-                    ;; buffer.
-                    (ignore-errors
-                      (when (windowp window)
+                       (margin (when text-height
+                                 (min (/ text-height 3)
+                                      mouse-drag-and-drop-region-scroll-margin))))
+                  (when (windowp window)
+                    ;; At 2 lines, the window becomes too small for any
+                    ;; meaningful scrolling.
+                    (unless (<= text-height 2)
+                      ;; We could end up at the beginning or end of the
+                      ;; buffer.
+                      (ignore-errors
                         (cond
                          ;; Inside the bottom scroll margin, scroll up.
                          ((> row (- text-height margin))
