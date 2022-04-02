@@ -1266,6 +1266,9 @@ Matches files with the sticky bit set.
 @item @samp{U}
 Matches files owned by the current effective user ID.
 
+@item @samp{G}
+Matches files owned by the current effective group ID.
+
 @item @samp{l@option{[+-]}@var{n}}
 Matches files with @var{n} links.  With @option{+} (or @option{-}),
 matches files with more than (or less than) @var{n} links,

@@ -225,6 +225,14 @@ read, write, and execute predicates to query the file's modes."
         (should (equal (eshell-eval-predicate files "U")
                        '("/fake/uid=1")))))))
 
+(ert-deftest em-pred-test/predicate-effective-gid ()
+  "Test that \"G\" matches files owned by the effective GID."
+  (eshell-with-file-attributes-from-name
+    (cl-letf (((symbol-function 'group-gid) (lambda () 1)))
+      (let ((files '("/fake/gid=1" "/fake/gid=2")))
+        (should (equal (eshell-eval-predicate files "G")
+                       '("/fake/gid=1")))))))
+
 (ert-deftest em-pred-test/predicate-links ()
   "Test that \"l\" filters by number of links."
   (eshell-with-file-attributes-from-name

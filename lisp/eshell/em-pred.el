@@ -88,10 +88,10 @@ ordinary strings."
             (if (file-exists-p file)
                 (= (file-attribute-user-id (file-attributes file))
                    (user-uid)))))
-    ;; (?G . (lambda (file)               ; owned by effective gid
-    ;;         (if (file-exists-p file)
-    ;;             (= (file-attribute-user-id (file-attributes file))
-    ;;                (user-uid)))))
+    (?G . (lambda (file)               ; owned by effective gid
+            (if (file-exists-p file)
+                (= (file-attribute-group-id (file-attributes file))
+                   (group-gid)))))
     (?* . (lambda (file)
             (and (file-regular-p file)
                  (not (file-symlink-p file))
@@ -161,6 +161,7 @@ PERMISSION BITS (for owner/group/world):
 
 OWNERSHIP:
   U               owned by effective uid
+  G               owned by effective gid
   u(UID|\\='user\\=')   owned by UID/user
   g(GID|\\='group\\=')  owned by GID/group
 
