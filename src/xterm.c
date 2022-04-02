@@ -1077,7 +1077,7 @@ typedef struct xm_top_level_leave_message
 
 #define XM_DROP_SITE_VALID	3
 /* #define XM_DROP_SITE_INVALID	2 */
-/* #define XM_DROP_SITE_NONE	1 */
+#define XM_DROP_SITE_NONE	1
 
 static uint8_t
 xm_side_effect_from_action (struct x_display_info *dpyinfo, Atom action)
@@ -1589,6 +1589,29 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
 				 Window target, xm_top_level_leave_message *dmsg)
 {
   XEvent msg;
+  xm_drag_motion_message mmsg;
+
+  /* Motif support for TOP_LEVEL_LEAVE has bitrotted, since these days
+     it assumes every client supports the preregister protocol style,
+     but we only support drop-only and dynamic.  (Interestingly enough
+     LessTif works fine.)  Sending an event with impossible
+     coordinates serves to get rid of any active drop site that might
+     still be around in the target drag context.  */
+
+  if (x_dnd_fix_motif_leave)
+    {
+      mmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+				    XM_DRAG_REASON_DRAG_MOTION);
+      mmsg.byteorder = XM_TARGETS_TABLE_CUR;
+      mmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+									   x_dnd_wanted_action),
+					       XM_DROP_SITE_NONE, 0, 0);
+      mmsg.timestamp = dmsg->timestamp;
+      mmsg.x = 65535;
+      mmsg.y = 65535;
+
+      xm_send_drag_motion_message (dpyinfo, source, target, &mmsg);
+    }
 
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type
@@ -14384,10 +14407,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						  XM_DRAG_REASON_DRAG_MOTION);
 		    dmsg.byteorder = XM_TARGETS_TABLE_CUR;
-		    dmsg.side_effects = 0;
-		    dmsg.timestamp = event->xbutton.time;
-		    dmsg.x = event->xbutton.x_root;
-		    dmsg.y = event->xbutton.y_root;
+		    dmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+											 x_dnd_wanted_action),
+							     XM_DROP_SITE_NONE, 0, 0);
+		    dmsg.timestamp = event->xmotion.time;
+		    dmsg.x = event->xmotion.x_root;
+		    dmsg.y = event->xmotion.y_root;
 
 		    lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						  XM_DRAG_REASON_TOP_LEVEL_LEAVE);
@@ -15832,7 +15857,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							XM_DRAG_REASON_DRAG_MOTION);
 			  dmsg.byteorder = XM_TARGETS_TABLE_CUR;
-			  dmsg.side_effects = 0;
+			  dmsg.side_effects
+			    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+									       x_dnd_wanted_action),
+						   XM_DROP_SITE_NONE, 0, 0);
 			  dmsg.timestamp = xev->time;
 			  dmsg.x = lrint (xev->root_x);
 			  dmsg.y = lrint (xev->root_y);
@@ -22742,4 +22770,12 @@ reliably continue to receive updates even if the finger moves off the
 frame, but may cause crashes with some window managers and/or external
 programs.  */);
   x_input_grab_touch_events = true;
+
+  DEFVAR_BOOL ("x-dnd-fix-motif-leave", x_dnd_fix_motif_leave,
+	       doc: /* Work around Motif bug during drag-and-drop.
+When non-nil, Emacs will send a motion event containing impossible
+coordinates to a Motif drop receiver when the mouse moves outside it
+during a drag-and-drop session, to work around broken implementations
+of Motif.  */);
+  x_dnd_fix_motif_leave = true;
 }
