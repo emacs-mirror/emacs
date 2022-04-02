@@ -607,7 +607,9 @@ two markers or an overlay.  Otherwise, it is nil."
                               selection-converter-alist))))))
 
 (defun xselect-convert-to-delete (selection _type _value)
-  (gui-backend-set-selection selection nil)
+  ;; This should be handled by the caller of `x-begin-drag'.
+  (unless (eq selection 'XdndSelection)
+    (gui-backend-set-selection selection nil))
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.
