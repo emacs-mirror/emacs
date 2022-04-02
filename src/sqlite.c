@@ -1,4 +1,5 @@
-/*
+/* Support for accessing SQLite databases.
+
 Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,8 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 This file is based on the emacs-sqlite3 package written by Syohei
 YOSHIDA <syohex@gmail.com>, which can be found at:
 
-   https://github.com/syohex/emacs-sqlite3
-*/
+   https://github.com/syohex/emacs-sqlite3  */
 
 #include <config.h>
 #include "lisp.h"
