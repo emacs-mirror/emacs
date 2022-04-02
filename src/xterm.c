@@ -604,6 +604,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <flexmember.h>
 #include "character.h"
 #include "coding.h"
 #include "composite.h"
@@ -1135,7 +1136,8 @@ xm_read_targets_table_rec (uint8_t *bytes, ptrdiff_t length,
   if (byteorder != XM_TARGETS_TABLE_CUR)
     SWAPCARD16 (nitems);
 
-  rec = xmalloc (sizeof *rec + nitems * 4);
+  rec = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
+			     targets, nitems * 4));
   rec->n_targets = nitems;
 
   for (i = 0; i < nitems; ++i)
@@ -1428,7 +1430,8 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
       header.total_data_size = 8 + 2 + ntargets * 4;
 
       recs = xmalloc (sizeof *recs);
-      recs[0] = xmalloc (sizeof **recs + ntargets * 4);
+      recs[0] = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
+				     targets, ntargets * 4));
 
       recs[0]->n_targets = ntargets;
 
@@ -1448,7 +1451,9 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	  header.target_list_count++;
 	  header.total_data_size += 2 + ntargets * 4;
 
-	  recs[header.target_list_count - 1] = xmalloc (sizeof **recs + ntargets * 4);
+	  recs[header.target_list_count - 1]
+	    = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
+				   targets, ntargets * 4));
 	  recs[header.target_list_count - 1]->n_targets = ntargets;
 
 	  for (i = 0; i < ntargets; ++i)
