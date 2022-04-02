@@ -285,7 +285,9 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
     return QNULL;
 
   block_input ();
+  x_catch_errors (dpyinfo->display);
   str = XGetAtomName (dpyinfo->display, atom);
+  x_uncatch_errors ();
   unblock_input ();
   TRACE1 ("XGetAtomName --> %s", str);
   if (! str) return Qnil;
