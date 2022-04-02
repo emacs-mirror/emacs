@@ -577,6 +577,12 @@ This uses the Tai Tham script, whose support has been enhanced.
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
 ---
+** kmacro
+Kmacros are now OClosures and have a new constructor 'kmacro' which
+uses the 'key-parse' syntax.  It replaces the old 'kmacro-lambda-form'
+(which is now declared obsolete).
+
+---
 ** 'savehist.el' can now truncate variables that are too long.
 An element of 'savehist-additional-variables' can now be of the form
 '(VARIABLE . MAX-ELTS)', which means to truncate the VARIABLE's value to

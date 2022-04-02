@@ -580,8 +580,10 @@ This is a regression test for: Bug#3412, Bug#11817."
     ;; Check the bound key and run it and verify correct counter
     ;; and format.
     (should (equal (string-to-vector "\C-cxi")
-                   (car (kmacro-extract-lambda
-                         (key-binding "\C-x\C-kA")))))
+                   (car (with-suppressed-warnings
+                            ((obsolete kmacro-extract-lambda))
+                          (kmacro-extract-lambda
+                           (key-binding "\C-x\C-kA"))))))
     (kmacro-tests-should-insert "<5>"
       (funcall (key-binding "\C-x\C-kA")))))
 
@@ -605,7 +607,7 @@ This is a regression test for: Bug#3412, Bug#11817."
   (dotimes (i 2)
     (kmacro-tests-define-macro (make-vector (1+ i) (+ ?a i)))
     (kmacro-name-last-macro 'kmacro-tests-symbol-for-test)
-    (should (fboundp 'kmacro-tests-symbol-for-test)))
+    (should (commandp 'kmacro-tests-symbol-for-test)))
 
   ;; Now run the function bound to the symbol. Result should be the
   ;; second macro.
@@ -821,6 +823,15 @@ This is a regression for item 7 in Bug#24991."
                                 :result "x"
                                 :macro-result "x")
     (kmacro-tests-simulate-command '(beginning-of-line))))
+
+(ert-deftest kmacro-tests--cl-print ()
+  (should (equal (cl-prin1-to-string
+                  (kmacro [?a ?b backspace backspace]))
+                 "#f(kmacro \"a b <backspace> <backspace>\")"))
+  (should (equal (cl-prin1-to-string
+                  (with-suppressed-warnings ((obsolete kmacro-lambda-form))
+                    (kmacro-lambda-form [?a ?b backspace backspace] 1 "%d")))
+                 "#f(kmacro \"a b <backspace> <backspace>\" 1 \"%d\")")))
 
 (cl-defun kmacro-tests-run-step-edit
     (macro &key events sequences result macro-result)
