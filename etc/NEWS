@@ -190,6 +190,11 @@ methods instead.
 If non-nil, this option allows dragging text in the region from Emacs
 to another program.
 
+---
+** New user option 'mouse-drag-and-drop-region-scroll-margin'.
+If non-nil, this option allows scrolling a window while dragging text
+around without a scroll wheel.
+
 +++
 ** New function 'command-query'.
 This function makes its argument command prompt the user for

@@ -97,6 +97,14 @@ point at the click position."
   :type 'boolean
   :version "22.1")
 
+(defcustom mouse-drag-and-drop-region-scroll-margin nil
+  "If non-nil, the scroll margin inside a window when dragging text.
+If the mouse moves this many lines close to the top or bottom of
+a window while dragging text, then that window will be scrolled
+down and up respectively."
+  :type 'integer
+  :version "29.1")
+
 (defvar mouse--last-down nil)
 
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)
@@ -3084,6 +3092,34 @@ is copied instead of being cut."
                        ;; Handle `mouse-autoselect-window'.
                        (memq (car event) '(select-window switch-frame))))
             (catch 'drag-again
+              ;; If the mouse is in the drag scroll margin, scroll
+              ;; either up or down depending on which margin it is in.
+              (when mouse-drag-and-drop-region-scroll-margin
+                (let* ((row (cdr (posn-col-row (event-end event))))
+                       (window (posn-window (event-end event)))
+                       (text-height (window-text-height window))
+                       ;; Make sure it's possible to scroll both up
+                       ;; and down if the margin is too large for the
+                       ;; window.
+                       (margin (min (/ text-height 3)
+                                    mouse-drag-and-drop-region-scroll-margin)))
+                  ;; At 2 lines, the window becomes too small for any
+                  ;; meaningful scrolling.
+                  (unless (<= text-height 2)
+                    ;; We could end up at the beginning or end of the
+                    ;; buffer.
+                    (ignore-errors
+                      (when (windowp window)
+                        (cond
+                         ;; Inside the bottom scroll margin, scroll up.
+                         ((> row (- text-height margin))
+                          (with-selected-window window
+                            (scroll-up 1)))
+                         ;; Inside the top scroll margin, scroll down.
+                         ((< row margin)
+                          (with-selected-window window
+                            (scroll-down 1)))))))))
+
               ;; Obtain the dragged text in region.  When the loop was
               ;; skipped, value-selection remains nil.
               (unless value-selection
