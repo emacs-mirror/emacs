@@ -499,7 +499,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		       )))
 	   (x-send-client-message
 	    frame dnd-source frame "XdndStatus" 32 list-to-send)
-	   ))
+           (dnd-handle-movement (event-start event))))
 
 	((equal "XdndLeave" message)
 	 (x-dnd-forget-drop window))
@@ -676,7 +676,8 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 				      frame
 				      "_MOTIF_DRAG_AND_DROP_MESSAGE"
 				      8
-				      reply)))
+				      reply)
+               (dnd-handle-movement (event-start event))))
 
 	    ((eq message-type 'XmOPERATION_CHANGED)
 	     (let* ((state (x-dnd-get-state-for-frame frame))

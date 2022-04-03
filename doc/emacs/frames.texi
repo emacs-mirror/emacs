@@ -1196,6 +1196,18 @@ the variable @code{dnd-open-file-other-window}.
   The XDND and Motif drag and drop protocols, and the old KDE 1.x
 protocol, are currently supported.
 
+@vindex dnd-indicate-insertion-point
+@vindex dnd-scroll-margin
+
+  It can be difficult to scroll a window or determine where dropped
+text will be inserted while dragging text onto an Emacs window.
+Setting the option @var{dnd-indicate-insertion-point} to a
+non-@code{nil} value makes point move to the location any dropped text
+will be inserted when the mouse moves in a window during drag, and
+setting @code{dnd-scroll-margin} to an integer value causes a window
+to be scrolled if the mouse moves within that many lines of the top
+or bottom of the window during drag.
+
 @vindex mouse-drag-and-drop-region
   Emacs can also optionally drag the region with the mouse into
 another portion of this or another buffer.  To enable that, customize
