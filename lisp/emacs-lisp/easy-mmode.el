@@ -82,9 +82,9 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
       (replace-regexp-in-string (regexp-quote lighter) lighter name t t))))
 
 (defconst easy-mmode--arg-docstring
-  "This is a minor mode.  If called interactively, toggle the `%s'
-mode.  If the prefix argument is positive, enable the mode, and
-if it is zero or negative, disable the mode.
+  "This is a %sminor mode.  If called interactively, toggle the
+`%s' mode.  If the prefix argument is positive, enable the mode,
+and if it is zero or negative, disable the mode.
 
 If called from Lisp, toggle the mode if ARG is `toggle'.
 Enable the mode if ARG is nil, omitted, or is a positive number.
@@ -97,7 +97,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.")
 
 (defun easy-mmode--mode-docstring (doc mode-pretty-name keymap-sym
-                                       getter)
+                                       getter global)
   ;; If we have a doc string, and it's already complete (which we
   ;; guess at with the simple heuristic below), then just return that
   ;; as is.
@@ -124,10 +124,12 @@ it is disabled.")
         (let* ((fill-prefix nil)
                (docs-fc (bound-and-true-p emacs-lisp-docstring-fill-column))
                (fill-column (if (integerp docs-fc) docs-fc 65))
-               (argdoc (format easy-mmode--arg-docstring mode-pretty-name
-                               ;; Avoid having quotes turn into pretty quotes.
-                               (string-replace "'" "\\\\='"
-                                               (format "%S" getter)))))
+               (argdoc (format
+                        easy-mmode--arg-docstring
+                        (if global "global " "")
+                        mode-pretty-name
+                        ;; Avoid having quotes turn into pretty quotes.
+                        (string-replace "'" "\\\\='" (format "%S" getter)))))
           (let ((start (point)))
             (insert argdoc)
             (when (fboundp 'fill-region)
@@ -335,7 +337,7 @@ or call the function `%s'."))))
          warnwrap
          `(defun ,modefun (&optional arg ,@extra-args)
             ,(easy-mmode--mode-docstring doc pretty-name keymap-sym
-                                         getter)
+                                         getter globalp)
             ,(when interactive
 	       ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	       ;; repeat-command still does the toggling correctly.
