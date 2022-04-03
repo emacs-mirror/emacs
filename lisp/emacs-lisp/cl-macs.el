@@ -3625,7 +3625,7 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 
 (define-inline cl-struct-slot-value (struct-type slot-name inst)
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
-STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
+STRUCT-TYPE and SLOT-NAME are symbols.  INST is a structure instance."
   (declare (side-effect-free t))
   (inline-letevals (struct-type slot-name inst)
     (inline-quote
