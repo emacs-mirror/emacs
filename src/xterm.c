@@ -2745,6 +2745,22 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
   if (child != dpyinfo->root_window)
     {
 #endif
+      if (child != None)
+	{
+	  proxy = x_dnd_get_window_proxy (dpyinfo, child);
+
+	  if (proxy)
+	    {
+	      proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+	      if (proto != -1)
+		{
+		  *proto_out = proto;
+		  return proxy;
+		}
+	    }
+	}
+
       *proto_out = x_dnd_get_window_proto (dpyinfo, child);
       return child;
 #if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
@@ -2785,6 +2801,22 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 		}
 	    }
 	  x_uncatch_errors_after_check ();
+	}
+    }
+
+  if (child != None)
+    {
+      proxy = x_dnd_get_window_proxy (dpyinfo, child);
+
+      if (proxy)
+	{
+	  proto = x_dnd_get_window_proto (dpyinfo, proxy);
+
+	  if (proto != -1)
+	    {
+	      *proto_out = proto;
+	      return proxy;
+	    }
 	}
     }
 
