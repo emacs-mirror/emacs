@@ -2270,6 +2270,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   Lisp_Object frame, tail;
   struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
+  bool return_no_frame_flag = false;
 
   NSTRACE ("ns_mouse_position");
 
@@ -2313,15 +2314,25 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 #endif
 
   if (!f)
-    f = dpyinfo->ns_focus_frame ? dpyinfo->ns_focus_frame : SELECTED_FRAME ();
+    {
+      f = (dpyinfo->ns_focus_frame
+	   ? dpyinfo->ns_focus_frame : SELECTED_FRAME ());
+      return_no_frame_flag = EQ (track_mouse, Qdrag_source);
+    }
+
+  if (!FRAME_NS_P (f))
+    f = NULL;
 
   /* While dropping, use the last mouse frame only if there is no
      currently focused frame.  */
-  if (!f
-      && EQ (track_mouse, Qdropping)
+  if (!f && (EQ (track_mouse, Qdropping)
+	     || EQ (track_mouse, Qdrag_source))
       && dpyinfo->last_mouse_frame
       && FRAME_LIVE_P (dpyinfo->last_mouse_frame))
-    f = dpyinfo->last_mouse_frame;
+    {
+      f = dpyinfo->last_mouse_frame;
+      return_no_frame_flag = EQ (track_mouse, Qdrag_source);
+    }
 
   if (f && FRAME_NS_P (f))
     {
@@ -2340,7 +2351,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       if (y) XSETINT (*y, lrint (view_position.y));
       if (time)
         *time = dpyinfo->last_mouse_movement_time;
-      *fp = f;
+      *fp = return_no_frame_flag ? NULL : f;
     }
 
   unblock_input ();
