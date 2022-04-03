@@ -452,7 +452,8 @@ haiku_mouse_or_wdesc_frame (void *window)
 			? x_display_list->last_mouse_frame
 			: NULL);
 
-  if (lm_f && !EQ (track_mouse, Qdropping))
+  if (lm_f && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
     return lm_f;
   else
     {
@@ -2566,6 +2567,9 @@ haiku_scroll_run (struct window *w, struct run *run)
   unblock_input ();
 }
 
+/* Haiku doesn't provide any way to get the frame actually underneath
+   the pointer, so we typically return dpyinfo->last_mouse_frame, and
+   refrain from returning anything if that doesn't exist.  */
 static void
 haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		      enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
@@ -2585,7 +2589,9 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	XFRAME (frame)->mouse_moved = false;
     }
 
-  if (gui_mouse_grabbed (x_display_list) && !EQ (track_mouse, Qdropping))
+  if (gui_mouse_grabbed (x_display_list)
+      && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
     f1 = x_display_list->last_mouse_frame;
 
   if (!f1 || FRAME_TOOLTIP_P (f1))
