@@ -14977,7 +14977,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    dmsg.side_effects
 			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										 x_dnd_wanted_action),
-						     XM_DROP_SITE_VALID, XM_DRAG_NOOP,
+						     XM_DROP_SITE_VALID,
+						     xm_side_effect_from_action (dpyinfo,
+										 x_dnd_wanted_action),
 						     (!x_dnd_xm_use_help
 						      ? XM_DROP_ACTION_DROP
 						      : XM_DROP_ACTION_DROP_HELP));
