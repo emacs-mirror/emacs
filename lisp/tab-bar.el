@@ -1659,9 +1659,10 @@ happens interactively)."
           (setq index (max 0 (min index (length tabs))))
           (cl-pushnew tab (nthcdr index tabs))
           (when (eq index 0)
-            ;; pushnew handles the head of tabs but not frame-parameter
+            ;; `pushnew' handles the head of tabs but not frame-parameter
             (tab-bar-tabs-set tabs))
-          (tab-bar-select-tab (1+ index))))
+          (tab-bar-select-tab (1+ index)))
+        (tab-bar--update-tab-bar-lines))
 
     (message "No more closed tabs to undo")))
 
