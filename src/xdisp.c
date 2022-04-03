@@ -33856,7 +33856,8 @@ define_frame_cursor1 (struct frame *f, Emacs_Cursor cursor, Lisp_Object pointer)
     return;
 
   /* Do not change cursor shape while dragging mouse.  */
-  if (EQ (track_mouse, Qdragging) || EQ (track_mouse, Qdropping))
+  if (EQ (track_mouse, Qdragging) || EQ (track_mouse, Qdropping)
+      || EQ (track_mouse, Qdrag_source))
     return;
 
   if (!NILP (pointer))
@@ -35678,6 +35679,7 @@ be let-bound around code that needs to disable messages temporarily. */);
 
   DEFSYM (Qdragging, "dragging");
   DEFSYM (Qdropping, "dropping");
+  DEFSYM (Qdrag_source, "drag-source");
 
   DEFSYM (Qdrag_with_mode_line, "drag-with-mode-line");
   DEFSYM (Qdrag_with_header_line, "drag-with-header-line");

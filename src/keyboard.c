@@ -5253,13 +5253,13 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
   /* Report mouse events on the tab bar and (on GUI frames) on the
      tool bar.  */
-  if ((WINDOWP (f->tab_bar_window)
-       && EQ (window_or_frame, f->tab_bar_window))
+  if (f && ((WINDOWP (f->tab_bar_window)
+	     && EQ (window_or_frame, f->tab_bar_window))
 #ifndef HAVE_EXT_TOOL_BAR
-      || (WINDOWP (f->tool_bar_window)
-	  && EQ (window_or_frame, f->tool_bar_window))
+	    || (WINDOWP (f->tool_bar_window)
+		&& EQ (window_or_frame, f->tool_bar_window))
 #endif
-      )
+	    ))
     {
       /* While 'track-mouse' is neither nil nor t, do not report this
 	 event as something that happened on the tool or tab bar since
@@ -5283,7 +5283,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       window_or_frame = Qnil;
     }
 
-  if (FRAME_TERMINAL (f)->toolkit_position_hook)
+  if (f && FRAME_TERMINAL (f)->toolkit_position_hook)
     {
       FRAME_TERMINAL (f)->toolkit_position_hook (f, mx, my, &menu_bar_p,
 						 &tool_bar_p);
@@ -5524,9 +5524,16 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	}
 #endif
     }
-
   else
-    window_or_frame = Qnil;
+    {
+      if (EQ (track_mouse, Qdrag_source))
+	{
+	  xret = mx;
+	  yret = my;
+	}
+
+      window_or_frame = Qnil;
+    }
 
   return Fcons (window_or_frame,
 		Fcons (posn,
@@ -12563,12 +12570,15 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 	       doc: /* Non-nil means generate motion events for mouse motion.
 The special values `dragging' and `dropping' assert that the mouse
 cursor retains its appearance during mouse motion.  Any non-nil value
-but `dropping' asserts that motion events always relate to the frame
-where the mouse movement started.  The value `dropping' asserts
-that motion events relate to the frame where the mouse cursor is seen
-when generating the event.  If there's no such frame, such motion
-events relate to the frame where the mouse movement started.  */);
-
+but `dropping' or `drag-source' asserts that motion events always
+relate to the frame where the mouse movement started.  The value
+`dropping' asserts that motion events relate to the frame where the
+mouse cursor is seen when generating the event.  If there's no such
+frame, such motion events relate to the frame where the mouse movement
+started.  The value `drag-source' is like `dropping', but the
+`posn-window' will be nil in mouse position lists inside mouse
+movement events if there is no frame directly visible underneath the
+mouse pointer.  */);
   DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
 		 doc: /* Alist of system-specific X windows key symbols.
 Each element should have the form (N . SYMBOL) where N is the

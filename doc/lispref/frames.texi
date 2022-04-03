@@ -3512,10 +3512,18 @@ enabled.  Typically, @var{body} would use @code{read-event} to read
 the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
-The value of @code{track-mouse} is that of the last form in @var{body}.
-You should design @var{body} to return when it sees the up-event that
-indicates the release of the button, or whatever kind of event means
-it is time to stop tracking.
+The value of @code{track-mouse} is that of the last form in
+@var{body}.  You should design @var{body} to return when it sees the
+up-event that indicates the release of the button, or whatever kind of
+event means it is time to stop tracking.  Its value also controls how
+mouse events are reported while a mouse button is held down: if it is
+@code{dropping} or @code{drag-source}, the motion events are reported
+relative to the frame underneath the pointer.  If there is no such
+frame, the events will be reported relative to the frame the mouse
+buttons were first pressed on.  In addition, the @code{posn-window} of
+the mouse position list will be @code{nil} if the value is
+@code{drag-source}.  This is useful to determine if a frame is not
+directly visible underneath the mouse pointer.
 
 The @code{track-mouse} form causes Emacs to generate mouse motion
 events by binding the variable @code{track-mouse} to a

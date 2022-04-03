@@ -3085,7 +3085,18 @@ is copied instead of being cut."
     (ignore-errors
       (catch 'cross-program-drag
         (track-mouse
-          (setq track-mouse 'dropping)
+          (setq track-mouse (if mouse-drag-and-drop-region-cross-program
+                                ;; When `track-mouse' is `drop', we
+                                ;; get events with a posn-window of
+                                ;; the grabbed frame even if some
+                                ;; window is between that and the
+                                ;; pointer.  This makes dragging to a
+                                ;; window on top of a frame
+                                ;; impossible.  With this value of
+                                ;; `track-mouse', no frame is returned
+                                ;; in that particular case.
+                                'drag-source
+                              'drop))
           ;; When event was "click" instead of "drag", skip loop.
           (while (progn
                    (setq event (read-key))      ; read-event or read-key
@@ -3151,15 +3162,16 @@ is copied instead of being cut."
               (when (and mouse-drag-and-drop-region-cross-program
                          (display-graphic-p)
                          (fboundp 'x-begin-drag)
-                         (framep (posn-window (event-end event)))
-                         (let ((location (posn-x-y (event-end event)))
-                               (frame (posn-window (event-end event))))
-                           (or (< (car location) 0)
-                               (< (cdr location) 0)
-                               (> (car location)
-                                  (frame-pixel-width frame))
-                               (> (cdr location)
-                                  (frame-pixel-height frame)))))
+                         (or (and (framep (posn-window (event-end event)))
+                                  (let ((location (posn-x-y (event-end event)))
+                                        (frame (posn-window (event-end event))))
+                                    (or (< (car location) 0)
+                                        (< (cdr location) 0)
+                                        (> (car location)
+                                           (frame-pixel-width frame))
+                                        (> (cdr location)
+                                           (frame-pixel-height frame)))))
+                             (not (posn-window (event-end event)))))
                 (mouse-drag-and-drop-region-hide-tooltip)
                 (gui-set-selection 'XdndSelection value-selection)
                 (let ((drag-action-or-frame

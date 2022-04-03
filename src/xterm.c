@@ -9811,7 +9811,8 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 	x_catch_errors (FRAME_X_DISPLAY (*fp));
 
-	if (gui_mouse_grabbed (dpyinfo) && !EQ (track_mouse, Qdropping))
+	if (gui_mouse_grabbed (dpyinfo) && !EQ (track_mouse, Qdropping)
+	    && !EQ (track_mouse, Qdrag_source))
 	  {
 	    /* If mouse was grabbed on a frame, give coords for that frame
 	       even if the mouse is now outside it.  */
@@ -9900,7 +9901,8 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	  }
 
 	if ((!f1 || FRAME_TOOLTIP_P (f1))
-	    && EQ (track_mouse, Qdropping)
+	    && (EQ (track_mouse, Qdropping)
+		|| EQ (track_mouse, Qdrag_source))
 	    && gui_mouse_grabbed (dpyinfo))
 	  {
 	    /* When dropping then if we didn't get a frame or only a
@@ -9916,12 +9918,26 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 				   root_x, root_y, &win_x, &win_y,
 				   /* Child of win.  */
 				   &child);
-	    f1 = dpyinfo->last_mouse_frame;
+
+	    if (!EQ (track_mouse, Qdrag_source))
+	      f1 = dpyinfo->last_mouse_frame;
+	    else
+	      {
+		/* Don't set FP but do set WIN_X and WIN_Y in this
+		   case, so make_lispy_movement knows which
+		   coordinates to report.  */
+		*bar_window = Qnil;
+		*part = 0;
+		*fp = NULL;
+		XSETINT (*x, win_x);
+		XSETINT (*y, win_y);
+		*timestamp = dpyinfo->last_mouse_movement_time;
+	      }
 	  }
 	else if (f1 && FRAME_TOOLTIP_P (f1))
 	  f1 = NULL;
 
-	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
+	if (x_had_errors_p (dpyinfo->display))
 	  f1 = NULL;
 
 	x_uncatch_errors_after_check ();
@@ -9931,7 +9947,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	  {
 	    struct scroll_bar *bar;
 
-            bar = x_window_to_scroll_bar (FRAME_X_DISPLAY (*fp), win, 2);
+            bar = x_window_to_scroll_bar (dpyinfo->display, win, 2);
 
 	    if (bar)
 	      {
@@ -12735,7 +12751,8 @@ mouse_or_wdesc_frame (struct x_display_info *dpyinfo, int wdesc)
 			? dpyinfo->last_mouse_frame
 			: NULL);
 
-  if (lm_f && !EQ (track_mouse, Qdropping))
+  if (lm_f && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
     return lm_f;
   else
     {

@@ -1332,6 +1332,12 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'track-mouse' can be a new value 'drag-source'.
+This means the same as 'dropping', but modifies the mouse position
+list in reported motion events if there is no frame underneath the
+mouse pointer.
+
++++
 ** New function 'x-begin-drag'.
 This function initiates a drag-and-drop request with the contents of
 the selection 'XdndSelection', and returns when a drop occurs.
