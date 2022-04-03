@@ -1593,9 +1593,10 @@ this is a reply."
 	      (nnheader-set-temp-buffer " *acc*")
 	      (setq message-options (with-current-buffer cur message-options))
 	      (insert-buffer-substring cur)
+              (restore-buffer-modified-p nil)
 	      (run-hooks 'gnus-gcc-pre-body-encode-hook)
 	      ;; Avoid re-doing things like GPG-encoding secret parts.
-	      (if (not encoded-cache)
+	      (if (or (buffer-modified-p) (not encoded-cache))
 		  (message-encode-message-body)
 		(erase-buffer)
 		(insert encoded-cache))
