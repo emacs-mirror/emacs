@@ -2653,8 +2653,23 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	}
 #endif
 
-      /* No toplevel was found and the overlay window was not a proxy,
-	 so return None.  */
+      /* Now look for an XdndProxy on the root window.  */
+
+      proxy = x_dnd_get_window_proxy (dpyinfo, dpyinfo->root_window);
+
+      if (proxy != None)
+	{
+	  proto = x_dnd_get_window_proto (dpyinfo, dpyinfo->root_window);
+
+	  if (proto != -1)
+	    {
+	      *proto_out = proto;
+	      return proxy;
+	    }
+	}
+
+      /* No toplevel was found and the overlay and root windows were
+	 not proxies, so return None.  */
       *proto_out = -1;
       return None;
     }
