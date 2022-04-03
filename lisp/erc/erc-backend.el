@@ -123,6 +123,14 @@
   "Nickname on the current server.
 Use `erc-current-nick' to access this.")
 
+(defvar-local erc-session-user-full-name nil
+  "Real name used for the current session.
+Sent as the last argument to the USER command.")
+
+(defvar-local erc-session-username nil
+  "Username used for the current session.
+Sent as the first argument of the USER command.")
+
 ;;; Server attributes
 
 (defvar-local erc-server-process nil
@@ -584,7 +592,9 @@ Make sure you are in an ERC buffer when running this."
       (let ((erc-server-connect-function (or erc-session-connector
                                              #'erc-open-network-stream)))
         (erc-open erc-session-server erc-session-port erc-server-current-nick
-                  erc-session-user-full-name t erc-session-password)))))
+                  erc-session-user-full-name t erc-session-password
+                  nil nil nil erc-session-client-certificate
+                  erc-session-username)))))
 
 (defun erc-server-delayed-reconnect (buffer)
   (if (buffer-live-p buffer)

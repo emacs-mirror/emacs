@@ -149,6 +149,8 @@
 (defvar erc-session-connector)
 (defvar erc-session-port)
 (defvar erc-session-server)
+(defvar erc-session-user-full-name)
+(defvar erc-session-username)
 
 ;; tunable connection and authentication parameters
 
@@ -1820,9 +1822,6 @@ all channel buffers on all servers."
 (defvar-local erc-default-recipients nil
   "List of default recipients of the current buffer.")
 
-(defvar-local erc-session-user-full-name nil
-  "Full name of the user on the current server.")
-
 (defvar-local erc-channel-user-limit nil
   "Limit of users per channel.")
 
@@ -1989,8 +1988,8 @@ removed from the list will be disabled."
 
 (defun erc-open (&optional server port nick full-name
                            connect passwd tgt-list channel process
-                           client-certificate)
-  "Connect to SERVER on PORT as NICK with FULL-NAME.
+                           client-certificate user)
+  "Connect to SERVER on PORT as NICK with USER and FULL-NAME.
 
 If CONNECT is non-nil, connect to the server.  Otherwise assume
 already connected and just create a separate buffer for the new
@@ -2095,7 +2094,7 @@ Returns the buffer for the given server or channel."
       (erc-display-prompt)
       (goto-char (point-max)))
 
-    (erc-determine-parameters server port nick full-name)
+    (erc-determine-parameters server port nick full-name user)
 
     ;; Saving log file on exit
     (run-hook-with-args 'erc-connect-pre-hook buffer)
@@ -2216,6 +2215,7 @@ parameters SERVER and NICK."
 (cl-defun erc (&key (server (erc-compute-server))
                     (port   (erc-compute-port))
                     (nick   (erc-compute-nick))
+                    (user   (erc-compute-user))
                     password
                     (full-name (erc-compute-full-name)))
   "ERC is a powerful, modular, and extensible IRC client.
@@ -2227,6 +2227,7 @@ Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
+   (user   (erc-compute-user))
    password
    (full-name (erc-compute-full-name))
 
@@ -2238,7 +2239,7 @@ then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
 for the values of the other parameters."
   (interactive (erc-select-read-args))
-  (erc-open server port nick full-name t password))
+  (erc-open server port nick full-name t password nil nil nil nil user))
 
 ;;;###autoload
 (defalias 'erc-select #'erc)
@@ -2248,6 +2249,7 @@ for the values of the other parameters."
 (cl-defun erc-tls (&key (server (erc-compute-server))
                         (port   (erc-compute-port))
                         (nick   (erc-compute-nick))
+                        (user   (erc-compute-user))
                         password
                         (full-name (erc-compute-full-name))
                         client-certificate)
@@ -2291,7 +2293,7 @@ Example usage:
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (erc-open server port nick full-name t password
-              nil nil nil client-certificate)))
+              nil nil nil client-certificate user)))
 
 (defun erc-open-tls-stream (name buffer host port &rest parameters)
   "Open an TLS stream to an IRC server.
@@ -4311,7 +4313,8 @@ To change how this query window is displayed, use `let' to bind
                        nil
                        (list target)
                        target
-                       erc-server-process)))
+                       erc-server-process
+                       erc-session-username)))
     (unless buf
       (error "Couldn't open query window"))
     (erc-update-mode-line)
@@ -6153,14 +6156,14 @@ user input."
   (erc-server-send
    (format "USER %s %s %s :%s"
            ;; hacked - S.B.
-           (if erc-anonymous-login erc-email-userid (user-login-name))
+           erc-session-username
            "0" "*"
            erc-session-user-full-name))
   (erc-update-mode-line))
 
 ;; connection properties' heuristics
 
-(defun erc-determine-parameters (&optional server port nick name)
+(defun erc-determine-parameters (&optional server port nick name user)
   "Determine the connection and authentication parameters.
 Sets the buffer local variables:
 
@@ -6168,11 +6171,13 @@ Sets the buffer local variables:
 - `erc-session-server'
 - `erc-session-port'
 - `erc-session-user-full-name'
+- `erc-session-username'
 - `erc-server-current-nick'"
   (setq erc-session-connector erc-server-connect-function
         erc-session-server (erc-compute-server server)
         erc-session-port (or port erc-default-port)
-        erc-session-user-full-name (erc-compute-full-name name))
+        erc-session-user-full-name (erc-compute-full-name name)
+        erc-session-username (erc-compute-user user))
   (erc-set-current-nick (erc-compute-nick nick)))
 
 (defun erc-compute-server (&optional server)
@@ -6189,6 +6194,10 @@ non-nil value is found.
       erc-server
       (getenv "IRCSERVER")
       erc-default-server))
+
+(defun erc-compute-user (&optional user)
+  "Return a suitable value for the session user name."
+  (or user (if erc-anonymous-login erc-email-userid (user-login-name))))
 
 (defun erc-compute-nick (&optional nick)
   "Return user's IRC nick.
@@ -7018,6 +7027,7 @@ This function should be on `erc-kill-channel-hook'."
 ;; Teach url.el how to open irc:// URLs with ERC.
 ;; To activate, customize `url-irc-function' to `url-irc-erc'.
 
+;; FIXME change user to nick, and use API to find server buffer
 ;;;###autoload
 (defun erc-handle-irc-url (host port channel user password)
   "Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
