@@ -508,25 +508,28 @@ unless the current buffer is a scratch buffer."
 Switch to a buffer editing the last file dropped, or insert the
 string dropped into the current buffer."
   (interactive "e")
-  (let* ((window (posn-window (event-start event)))
-         (arg (car (cdr (cdr event))))
-         (type (car arg))
-         (operations (car (cdr arg)))
-         (objects (cdr (cdr arg)))
-         (string (mapconcat 'identity objects "\n")))
-    (set-frame-selected-window nil window)
-    (raise-frame)
-    (setq window (selected-window))
-    (cond ((or (memq 'ns-drag-operation-generic operations)
-               (memq 'ns-drag-operation-copy operations))
-           ;; Perform the default/copy action.
-           (dolist (data objects)
-             (dnd-handle-one-url window 'private (if (eq type 'file)
-                                                     (concat "file:" data)
-                                                   data))))
-          (t
-           ;; Insert the text as is.
-           (dnd-insert-text window 'private string)))))
+  (if (eq (car-safe (cdr-safe (cdr-safe event))) 'lambda)
+      (dnd-handle-movement (event-start event))
+    (let* ((window (posn-window (event-start event)))
+           (arg (car (cdr (cdr event))))
+           (type (car arg))
+           (operations (car (cdr arg)))
+           (objects (cdr (cdr arg)))
+           (string (mapconcat 'identity objects "\n")))
+      (set-frame-selected-window nil window)
+      (raise-frame)
+      (setq window (selected-window))
+      (goto-char (posn-point (event-start event)))
+      (cond ((or (memq 'ns-drag-operation-generic operations)
+                 (memq 'ns-drag-operation-copy operations))
+             ;; Perform the default/copy action.
+             (dolist (data objects)
+               (dnd-handle-one-url window 'private (if (eq type 'file)
+                                                       (concat "file:" data)
+                                                     data))))
+            (t
+             ;; Insert the text as is.
+             (dnd-insert-text window 'private string))))))
 
 (global-set-key [drag-n-drop] 'ns-drag-n-drop)
 

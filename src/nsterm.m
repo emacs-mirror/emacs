@@ -8056,6 +8056,37 @@ not_in_argv (NSString *arg)
   return YES;
 }
 
+- (BOOL) wantsPeriodicDraggingUpdates
+{
+  return YES;
+}
+
+- (NSDragOperation) draggingUpdated: (id <NSDraggingInfo>) sender
+{
+  struct input_event ie;
+  NSPoint position;
+  int x, y;
+
+  EVENT_INIT (ie);
+  ie.kind = DRAG_N_DROP_EVENT;
+
+  /* Get rid of mouse face.  */
+  [self mouseExited: [[self window] currentEvent]];
+
+  position = [self convertPoint: [sender draggingLocation]
+		       fromView: nil];
+  x = lrint (position.x);
+  y = lrint (position.y);
+
+  XSETINT (ie.x, x);
+  XSETINT (ie.y, y);
+  XSETFRAME (ie.frame_or_window, emacsframe);
+  ie.arg = Qlambda;
+  ie.modifiers = 0;
+
+  kbd_buffer_store_event (&ie);
+  return NSDragOperationGeneric;
+}
 
 -(BOOL)performDragOperation: (id <NSDraggingInfo>) sender
 {
