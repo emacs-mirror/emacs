@@ -159,6 +159,7 @@ struct haiku_mouse_motion_event
   int x;
   int y;
   bigtime_t time;
+  bool dnd_message;
 };
 
 struct haiku_menu_bar_left_event

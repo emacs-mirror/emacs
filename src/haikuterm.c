@@ -2970,6 +2970,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_mouse_motion_event *b = buf;
 	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
+	    Lisp_Object frame;
 
 	    if (!f)
 	      continue;
@@ -2986,7 +2987,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		break;
 	      }
 
-	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
 
 	    x_display_list->last_mouse_movement_time = b->time / 1000;
@@ -3102,8 +3102,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 			&& (!NILP (focus_follows_mouse)
 			    || f == SELECTED_FRAME ()))
 		      {
-			inev.kind = SELECT_WINDOW_EVENT;
-			inev.frame_or_window = window;
+			inev2.kind = SELECT_WINDOW_EVENT;
+			inev2.frame_or_window = window;
 		      }
 
 		    last_mouse_window = window;
@@ -3118,6 +3118,21 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		if (!NILP (help_echo_string)
 		    || !NILP (previous_help_echo_string))
 		  do_help = 1;
+
+		if (b->dnd_message)
+		  {
+		    /* It doesn't make sense to show tooltips when
+		       another program is dragging stuff over us.  */
+
+		    do_help = -1;
+		    inev.kind = DRAG_N_DROP_EVENT;
+		    inev.arg = Qlambda;
+
+		    XSETINT (inev.x, b->x);
+		    XSETINT (inev.y, b->y);
+		    XSETFRAME (inev.frame_or_window, f);
+		    break;
+		  }
 	      }
 
 	    if (FRAME_DIRTY_P (f))

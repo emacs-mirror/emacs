@@ -245,23 +245,26 @@ VALUE will be encoded as UTF-8 and stored under the type
   (interactive "e")
   (let* ((string (caddr event))
 	 (window (posn-window (event-start event))))
-    (cond
-     ((assoc "refs" string)
-      (with-selected-window window
-        (raise-frame)
-        (dolist (filename (cddr (assoc "refs" string)))
-          (dnd-handle-one-url window 'private
-                              (concat "file:" filename)))))
-     ((assoc "text/plain" string)
-      (with-selected-window window
-        (raise-frame)
-        (dolist (text (cddr (assoc "text/plain" string)))
-          (goto-char (posn-point (event-start event)))
-          (dnd-insert-text window 'private
-                           (if (multibyte-string-p text)
-                               text
-                             (decode-coding-string text 'undecided))))))
-     (t (message "Don't know how to drop any of: %s" (mapcar #'car string))))))
+    (if (eq string 'lambda) ; This means the mouse moved.
+        (dnd-handle-movement (event-start event))
+      (cond
+       ((assoc "refs" string)
+        (with-selected-window window
+          (raise-frame)
+          (dolist (filename (cddr (assoc "refs" string)))
+            (dnd-handle-one-url window 'private
+                                (concat "file:" filename)))))
+       ((assoc "text/plain" string)
+        (with-selected-window window
+          (raise-frame)
+          (dolist (text (cddr (assoc "text/plain" string)))
+            (goto-char (posn-point (event-start event)))
+            (dnd-insert-text window 'private
+                             (if (multibyte-string-p text)
+                                 text
+                               (decode-coding-string text 'undecided))))))
+       (t (message "Don't know how to drop any of: %s"
+                   (mapcar #'car string)))))))
 
 (define-key special-event-map [drag-n-drop]
             'haiku-drag-and-drop)
