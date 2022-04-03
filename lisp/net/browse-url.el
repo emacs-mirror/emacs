@@ -851,7 +851,11 @@ If ARGS are omitted, the default is to pass
          ((featurep 'pgtk)
           (setq classname (pgtk-backend-display-class))
           (if (equal classname "GdkWaylandDisplay")
-              (setenv "WAYLAND_DISPLAY" dpy)
+              (progn
+                ;; The `display' frame parameter is probably wrong.
+                ;; See bug#53969 for some context.
+                ;; (setenv "WAYLAND_DISPLAY" dpy)
+                )
             (setenv "DISPLAY" dpy)))
          (t
           (setenv "DISPLAY" dpy)))))
