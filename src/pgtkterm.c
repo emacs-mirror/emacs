@@ -3329,8 +3329,8 @@ pgtk_frame_up_to_date (struct frame *f)
 
 static void
 pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
-		     enum scroll_bar_part *part, Lisp_Object * x,
-		     Lisp_Object * y, Time * timestamp)
+		     enum scroll_bar_part *part, Lisp_Object *x,
+		     Lisp_Object *y, Time *timestamp)
 {
   struct frame *f1;
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
@@ -3339,6 +3339,7 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
   GdkDevice *device;
   GdkModifierType mask;
   GdkWindow *win;
+  bool return_frame_flag = false;
 
   block_input ();
 
@@ -3352,30 +3353,37 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
 
   dpyinfo->last_mouse_scroll_bar = NULL;
 
-  if (gui_mouse_grabbed (dpyinfo))
+  if (gui_mouse_grabbed (dpyinfo)
+      && (!EQ (track_mouse, Qdropping)
+	  && !EQ (track_mouse, Qdrag_source)))
     {
-      /* 1.1. use last_mouse_frame as frame where the pointer is on. */
+      /* 1.1. use last_mouse_frame as frame where the pointer is
+	 on.  */
       f1 = dpyinfo->last_mouse_frame;
     }
   else
     {
       f1 = *fp;
-      /* 1.2. get frame where the pointer is on. */
+      /* 1.2. get frame where the pointer is on.  */
       win = gtk_widget_get_window (FRAME_GTK_WIDGET (*fp));
       seat = gdk_display_get_default_seat (dpyinfo->gdpy);
       device = gdk_seat_get_pointer (seat);
-      win =
-	gdk_window_get_device_position (win, device, &win_x, &win_y, &mask);
+      win = gdk_window_get_device_position (win, device, &win_x,
+					    &win_y, &mask);
       if (win != NULL)
 	f1 = pgtk_any_window_to_frame (win);
       else
 	{
-	  /* crossing display server? */
 	  f1 = SELECTED_FRAME ();
+
+	  if (!FRAME_PGTK_P (f1))
+	    f1 = dpyinfo->last_mouse_frame;
+
+	  return_frame_flag = EQ (track_mouse, Qdrag_source);
 	}
     }
 
-  /* f1 can be a terminal frame. Bug#50322 */
+  /* F1 can be a terminal frame.  (Bug#50322) */
   if (f1 == NULL || !FRAME_PGTK_P (f1))
     {
       unblock_input ();
@@ -3399,7 +3407,7 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
 
       *bar_window = Qnil;
       *part = 0;
-      *fp = f1;
+      *fp = !return_frame_flag ? f1 : NULL;
       XSETINT (*x, win_x);
       XSETINT (*y, win_y);
       *timestamp = dpyinfo->last_mouse_movement_time;
