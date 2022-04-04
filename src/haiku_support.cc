@@ -122,6 +122,7 @@ static int current_window_id;
 
 static void *grab_view = NULL;
 static BLocker grab_view_locker;
+static bool drag_and_drop_in_progress;
 
 /* This could be a private API, but it's used by (at least) the Qt
    port, so it's probably here to stay.  */
@@ -4111,6 +4112,8 @@ be_drag_message (void *view, void *message, bool allow_same_view,
   resume_thread (infos[1].object);
   unblock_input_function ();
 
+  drag_and_drop_in_progress = true;
+
   while (true)
     {
       block_input_function ();
@@ -4128,12 +4131,24 @@ be_drag_message (void *view, void *message, bool allow_same_view,
 	process_pending_signals_function ();
 
       if (should_quit_function ())
-	return true;
+	{
+	  drag_and_drop_in_progress = false;
+	  return true;
+	}
 
       if (infos[1].events & B_EVENT_INVALID)
-	return false;
+	{
+	  drag_and_drop_in_progress = false;
+	  return false;
+	}
 
       infos[0].events = B_EVENT_READ;
       infos[1].events = B_EVENT_INVALID;
     }
+}
+
+bool
+be_drag_and_drop_in_progress (void)
+{
+  return drag_and_drop_in_progress;
 }

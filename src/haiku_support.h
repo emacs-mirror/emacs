@@ -951,6 +951,9 @@ extern "C"
 		   void (*process_pending_signals_function) (void),
 		   bool (*should_quit_function) (void));
 
+  extern bool
+  be_drag_and_drop_in_progress (void);
+
 #ifdef __cplusplus
   extern void *
   find_appropriate_view_for_draw (void *vw);

@@ -3145,12 +3145,16 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		       another program is dragging stuff over us.  */
 
 		    do_help = -1;
-		    inev.kind = DRAG_N_DROP_EVENT;
-		    inev.arg = Qlambda;
 
-		    XSETINT (inev.x, b->x);
-		    XSETINT (inev.y, b->y);
-		    XSETFRAME (inev.frame_or_window, f);
+		    if (!be_drag_and_drop_in_progress ())
+		      {
+			inev.kind = DRAG_N_DROP_EVENT;
+			inev.arg = Qlambda;
+
+			XSETINT (inev.x, b->x);
+			XSETINT (inev.y, b->y);
+			XSETFRAME (inev.frame_or_window, f);
+		      }
 		    break;
 		  }
 	      }
