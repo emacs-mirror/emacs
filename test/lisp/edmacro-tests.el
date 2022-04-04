@@ -25,23 +25,24 @@
 (require 'edmacro)
 
 (ert-deftest edmacro-test-edmacro-parse-keys ()
-  (should (equal (edmacro-parse-keys "") ""))
-  (should (equal (edmacro-parse-keys "x") "x"))
-  (should (equal (edmacro-parse-keys "C-a") "\C-a"))
+  (should (equal (edmacro-parse-keys "") []))
+  (should (equal (edmacro-parse-keys "x") [?x]))
+  (should (equal (edmacro-parse-keys "C-a") [?\C-a]))
 
   ;; comments
-  (should (equal (edmacro-parse-keys ";; foobar") ""))
-  (should (equal (edmacro-parse-keys ";;;") ""))
-  (should (equal (edmacro-parse-keys "; ; ;") ";;;"))
-  (should (equal (edmacro-parse-keys "REM foobar") ""))
-  (should (equal (edmacro-parse-keys "x ;; foobar") "x"))
-  (should (equal (edmacro-parse-keys "x REM foobar") "x"))
+  (should (equal (edmacro-parse-keys ";; foobar") []))
+  (should (equal (edmacro-parse-keys ";;;") []))
+  (should (equal (edmacro-parse-keys "; ; ;") [?\; ?\; ?\;]))
+  (should (equal (edmacro-parse-keys "REM foobar") []))
+  (should (equal (edmacro-parse-keys "x ;; foobar") [?x]))
+  (should (equal (edmacro-parse-keys "x REM foobar") [?x]))
   (should (equal (edmacro-parse-keys "<<goto-line>>")
-                 [134217848 103 111 116 111 45 108 105 110 101 13]))
+                 [?\M-x ?g ?o ?t ?o ?- ?l ?i ?n ?e ?\r]))
 
   ;; repetitions
-  (should (equal (edmacro-parse-keys "3*x") "xxx"))
-  (should (equal (edmacro-parse-keys "3*C-m") "\C-m\C-m\C-m"))
-  (should (equal (edmacro-parse-keys "10*foo") "foofoofoofoofoofoofoofoofoofoo")))
+  (should (equal (edmacro-parse-keys "3*x") [?x ?x ?x]))
+  (should (equal (edmacro-parse-keys "3*C-m") [?\C-m ?\C-m ?\C-m]))
+  (should (equal (edmacro-parse-keys "10*foo")
+                 (apply #'vconcat (make-list 10 [?f ?o ?o])))))
 
 ;;; edmacro-tests.el ends here
