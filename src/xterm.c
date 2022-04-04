@@ -896,6 +896,11 @@ struct x_client_list_window
   struct x_client_list_window *next;
   uint8_t xm_protocol_style;
 
+  int frame_extents_left;
+  int frame_extents_right;
+  int frame_extents_top;
+  int frame_extents_bottom;
+
 #ifdef HAVE_XSHAPE
   int border_width;
 
@@ -1787,27 +1792,30 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   unsigned long nitems, bytes_after;
   unsigned long i;
   unsigned char *data = NULL;
+  int frame_extents[4];
 
 #ifndef USE_XCB
   int dest_x, dest_y;
   unsigned long *wmstate;
-  unsigned long wmstate_items;
-  unsigned char *wmstate_data = NULL;
+  unsigned long wmstate_items, extent_items;
+  unsigned char *wmstate_data = NULL, *extent_data = NULL;
   XWindowAttributes attrs;
   Window child;
   xm_drag_receiver_info xm_info;
 #else
-  uint32_t *wmstate;
+  uint32_t *wmstate, *fextents;
   uint8_t *xmdata;
   xcb_get_window_attributes_cookie_t *window_attribute_cookies;
   xcb_translate_coordinates_cookie_t *translate_coordinate_cookies;
   xcb_get_property_cookie_t *get_property_cookies;
   xcb_get_property_cookie_t *xm_property_cookies;
+  xcb_get_property_cookie_t *extent_property_cookies;
   xcb_get_geometry_cookie_t *get_geometry_cookies;
   xcb_get_window_attributes_reply_t attrs, *attrs_reply;
   xcb_translate_coordinates_reply_t *coordinates_reply;
   xcb_get_property_reply_t *property_reply;
   xcb_get_property_reply_t *xm_property_reply;
+  xcb_get_property_reply_t *extent_property_reply;
   xcb_get_geometry_reply_t *geometry_reply;
   xcb_generic_error_t *error;
 #endif
@@ -1855,6 +1863,8 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
     = alloca (sizeof *get_property_cookies * nitems);
   xm_property_cookies
     = alloca (sizeof *xm_property_cookies * nitems);
+  extent_property_cookies
+    = alloca (sizeof *extent_property_cookies * nitems);
   get_geometry_cookies
     = alloca (sizeof *get_geometry_cookies * nitems);
 
@@ -1887,6 +1897,11 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 			    (xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
 			    (xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
 			    0, 4);
+      extent_property_cookies[i]
+	= xcb_get_property (dpyinfo->xcb_connection, 0,
+			    (xcb_window_t) toplevels[i],
+			    (xcb_atom_t) dpyinfo->Xatom_net_frame_extents,
+			    XCB_ATOM_CARDINAL, 0, 4);
       get_geometry_cookies[i]
 	= xcb_get_geometry (dpyinfo->xcb_connection, (xcb_window_t) toplevels[i]);
 
@@ -1913,6 +1928,11 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
      order.  */
   for (i = 0; i < nitems; ++i)
     {
+      frame_extents[0] = 0;
+      frame_extents[1] = 0;
+      frame_extents[2] = 0;
+      frame_extents[3] = 0;
+
 #ifndef USE_XCB
       x_catch_errors (dpyinfo->display);
       rc = (XGetWindowAttributes (dpyinfo->display,
@@ -1935,6 +1955,24 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	       == Success)
 	      && !x_had_errors_p (dpyinfo->display)
 	      && wmstate_data && wmstate_items == 2 && format == 32);
+
+      if (XGetWindowProperty (dpyinfo->display, toplevels[i],
+			      dpyinfo->Xatom_net_frame_extents,
+			      0, 4, False, XA_CARDINAL, &type,
+			      &format, &extent_items, &bytes_after,
+			      &extent_data) == Success
+	  && !x_had_errors_p (dpyinfo->display)
+	  && extent_data && extent_items >= 4 && format == 32)
+	{
+	  frame_extents[0] = ((unsigned long *) extent_data)[0];
+	  frame_extents[1] = ((unsigned long *) extent_data)[1];
+	  frame_extents[2] = ((unsigned long *) extent_data)[2];
+	  frame_extents[3] = ((unsigned long *) extent_data)[3];
+	}
+
+      if (extent_data)
+	XFree (extent_data);
+
       x_uncatch_errors ();
 #else
       rc = true;
@@ -1971,12 +2009,37 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  free (error);
 	}
 
+      /* These requests don't set rc on failure because they aren't
+	 required.  */
+
       xm_property_reply = xcb_get_property_reply (dpyinfo->xcb_connection,
 						  xm_property_cookies[i],
 						  &error);
 
       if (!xm_property_reply)
 	free (error);
+
+      extent_property_reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+						      extent_property_cookies[i],
+						      &error);
+
+      if (!extent_property_reply)
+	free (error);
+      else
+	{
+	  if (xcb_get_property_value_length (extent_property_reply) == 16
+	      && extent_property_reply->format == 32
+	      && extent_property_reply->type == XCB_ATOM_CARDINAL)
+	    {
+	      fextents = xcb_get_property_value (extent_property_reply);
+	      frame_extents[0] = fextents[0];
+	      frame_extents[1] = fextents[1];
+	      frame_extents[2] = fextents[2];
+	      frame_extents[3] = fextents[3];
+	    }
+
+	  free (extent_property_reply);
+	}
 
       if (property_reply
 	  && (xcb_get_property_value_length (property_reply) != 8
@@ -2006,6 +2069,11 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	  tem = xmalloc (sizeof *tem);
 	  tem->window = toplevels[i];
 	  tem->dpy = dpyinfo->display;
+	  tem->frame_extents_left = frame_extents[0];
+	  tem->frame_extents_right = frame_extents[1];
+	  tem->frame_extents_top = frame_extents[2];
+	  tem->frame_extents_bottom = frame_extents[3];
+
 #ifndef USE_XCB
 	  tem->x = dest_x;
 	  tem->y = dest_y;
@@ -2387,17 +2455,54 @@ x_dnd_get_target_window_2 (XRectangle *rects, int nrects,
 
 static Window
 x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
-			   int root_x, int root_y, int *motif_out)
+			   int root_x, int root_y, int *motif_out,
+			   bool *extents_p)
 {
   struct x_client_list_window *tem, *chosen = NULL;
 
   /* Loop through x_dnd_toplevels until we find the toplevel where
      root_x and root_y are.  */
 
+  *motif_out = XM_DRAG_STYLE_NONE;
   for (tem = x_dnd_toplevels; tem; tem = tem->next)
     {
       if (!tem->mapped_p || tem->wm_state != NormalState)
 	continue;
+
+      /* Test if the coordinates are inside the window's frame
+	 extents, and return None in that case.  */
+
+      *extents_p = true;
+      if (root_x > tem->x - tem->frame_extents_left
+	  && root_x < tem->x
+	  && root_y > tem->y - tem->frame_extents_top
+	  && root_y < (tem->y + tem->height - 1
+		       + tem->frame_extents_bottom))
+	return None;
+
+      if (root_x > tem->x + tem->width
+	  && root_x < (tem->x + tem->width - 1
+		       + tem->frame_extents_right)
+	  && root_y > tem->y - tem->frame_extents_top
+	  && root_y < (tem->y + tem->height - 1
+		       + tem->frame_extents_bottom))
+	return None;
+
+      if (root_y > tem->y - tem->frame_extents_top
+	  && root_y < tem->y
+	  && root_x > tem->x - tem->frame_extents_left
+	  && root_x < (tem->x + tem->width - 1
+		       + tem->frame_extents_right))
+	return None;
+
+      if (root_y > tem->y + tem->height
+	  && root_y < (tem->y + tem->height - 1
+		       + tem->frame_extents_bottom)
+	  && root_x >= tem->x - tem->frame_extents_left
+	  && root_x < (tem->x + tem->width - 1
+		       + tem->frame_extents_right))
+	return None;
+      *extents_p = false;
 
       if (root_x >= tem->x && root_y >= tem->y
 	  && root_x < tem->x + tem->width
@@ -2566,6 +2671,7 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 {
   Window child_return, child, dummy, proxy;
   int dest_x_return, dest_y_return, rc, proto, motif;
+  bool extents_p;
 #if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
   Window overlay_window;
   XWindowAttributes attrs;
@@ -2581,8 +2687,10 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 
   if (x_dnd_use_toplevels)
     {
+      extents_p = false;
       child = x_dnd_get_target_window_1 (dpyinfo, root_x,
-					 root_y, motif_out);
+					 root_y, motif_out,
+					 &extents_p);
 
       if (!x_dnd_allow_current_frame
 	  && FRAME_X_WINDOW (x_dnd_frame) == child)
@@ -2611,6 +2719,14 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	  *proto_out = x_dnd_get_window_proto (dpyinfo, child);
 #endif
 	  return child;
+	}
+
+      if (extents_p)
+	{
+	  *proto_out = -1;
+	  *motif_out = XM_DRAG_STYLE_NONE;
+
+	  return None;
 	}
 
       /* Then look at the composite overlay window.  */
