@@ -9072,11 +9072,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		| SubstructureNotifyMask
 		| PropertyChangeMask);
 
+  if (EQ (return_frame, Qnow))
+    x_dnd_update_state (FRAME_DISPLAY_INFO (f), CurrentTime);
+
   while (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
-      if (EQ (return_frame, Qnow))
-	x_dnd_update_state (FRAME_DISPLAY_INFO (f), CurrentTime);
-
       hold_quit.kind = NO_EVENT;
 #ifdef USE_GTK
       current_finish = X_EVENT_NORMAL;
@@ -12835,6 +12835,10 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 
       if (target != x_dnd_last_seen_window)
 	{
+	  if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
+	      && x_dnd_return_frame == 1)
+	    x_dnd_return_frame = 2;
+
 	  if (x_dnd_last_seen_window != None
 	      && x_dnd_last_protocol_version != -1
 	      && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
@@ -12857,10 +12861,6 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 		xm_send_top_level_leave_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
 						 x_dnd_last_seen_window, &lmsg);
 	    }
-
-	  if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
-	      && x_dnd_return_frame == 1)
-	    x_dnd_return_frame = 2;
 
 	  if (x_dnd_return_frame == 2
 	      && x_any_window_to_frame (dpyinfo, target))
@@ -14466,6 +14466,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (target != x_dnd_last_seen_window)
 	      {
+		if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
+		    && x_dnd_return_frame == 1)
+		  x_dnd_return_frame = 2;
+
 		if (x_dnd_last_seen_window != None
 		    && x_dnd_last_protocol_version != -1
 		    && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
@@ -14509,10 +14513,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							 x_dnd_last_seen_window, &lmsg);
 		      }
 		  }
-
-		if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
-		    && x_dnd_return_frame == 1)
-		  x_dnd_return_frame = 2;
 
 		if (x_dnd_return_frame == 2
 		    && x_any_window_to_frame (dpyinfo, target))
@@ -15918,6 +15918,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (target != x_dnd_last_seen_window)
 		    {
+		      if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
+			  && x_dnd_return_frame == 1)
+			x_dnd_return_frame = 2;
+
 		      if (x_dnd_last_seen_window != None
 			  && x_dnd_last_protocol_version != -1
 			  && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
@@ -15963,10 +15967,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							       x_dnd_last_seen_window, &lmsg);
 			    }
 			}
-
-		      if (target != FRAME_OUTER_WINDOW (x_dnd_frame)
-			  && x_dnd_return_frame == 1)
-			x_dnd_return_frame = 2;
 
 		      if (x_dnd_return_frame == 2
 			  && x_any_window_to_frame (dpyinfo, target))
