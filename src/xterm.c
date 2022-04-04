@@ -843,44 +843,120 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
 
+/* Global state maintained during a drag-and-drop operation.  */
+
+/* Flag that indicates if a drag-and-drop operation is in progress.  */
 static bool x_dnd_in_progress;
+
+/* Flag that indicates if a drag-and-drop operation is no longer in
+   progress, but the nested event loop should continue to run, because
+   handle_one_xevent is waiting for the drop target to return some
+   important information.  */
 static bool x_dnd_waiting_for_finish;
-/* 0 means nothing has happened.  1 means an XmDROP_START message was
-   sent to the target, but no response has yet been received.  2 means
-   a response to our XmDROP_START message was received and the target
-   accepted the drop, so Emacs should start waiting for the drop
-   target to convert one of the special selections XmTRANSFER_SUCCESS
-   or XmTRANSFER_FAILURE.  */
+
+/* State of the Motif drop operation.
+
+   0 means nothing has happened, i.e. the event loop should not wait
+   for the receiver to send any data.  1 means an XmDROP_START message
+   was sent to the target, but no response has yet been received.  2
+   means a response to our XmDROP_START message was received and the
+   target accepted the drop, so Emacs should start waiting for the
+   drop target to convert one of the special selections
+   XmTRANSFER_SUCCESS or XmTRANSFER_FAILURE.  */
 static int x_dnd_waiting_for_motif_finish;
+
+/* Whether or not F1 was pressed during the drag-and-drop operation.
+
+   Motif programs rely on this to decide whether or not help
+   information about the drop site should be displayed.  */
 static bool x_dnd_xm_use_help;
+
+/* Whether or not Motif drag initiator info was set up.  */
 static bool x_dnd_motif_setup_p;
+
+/* The target window we are waiting for an XdndFinished message
+   from.  */
 static Window x_dnd_pending_finish_target;
+
+/* The protocol version of that target window.  */
 static int x_dnd_waiting_for_finish_proto;
+
+/* Whether or not it is OK for something to be dropped on the frame
+   where the drag-and-drop operation originated.  */
 static bool x_dnd_allow_current_frame;
 
 /* Whether or not to return a frame from `x_dnd_begin_drag_and_drop'.
 
    0 means to do nothing.  1 means to wait for the mouse to first exit
    `x_dnd_frame'.  2 means to wait for the mouse to move onto a frame,
-   and 3 means to `x_dnd_return_frame_object'.  */
+   and 3 means to return `x_dnd_return_frame_object'.  */
 static int x_dnd_return_frame;
+
+/* The frame that should be returned by
+   `x_dnd_begin_drag_and_drop'.  */
 static struct frame *x_dnd_return_frame_object;
 
+/* The last toplevel window the mouse pointer moved over.  */
 static Window x_dnd_last_seen_window;
+
+/* The window where the drop happened.  Normally None, but it is set
+   when something is actually dropped.  */
 static Window x_dnd_end_window;
+
+/* The XDND protocol version of `x_dnd_last_seen_window'.  -1 means it
+   did not support XDND.  */
 static int x_dnd_last_protocol_version;
+
+/* The Motif drag and drop protocol style of `x_dnd_last_seen_window'.
+   XM_DRAG_STYLE_NONE means the window does not support the Motif drag
+   or drop protocol.  XM_DRAG_STYLE_DROP_ONLY means the window does
+   not respond to any drag protocol messages, so only drops should be
+   sent.  Any other value means that the window supports both the drag
+   and drop protocols.  */
 static int x_dnd_last_motif_style;
+
+/* The timestamp where Emacs last acquired ownership of the
+   `XdndSelection' selection.  */
 static Time x_dnd_selection_timestamp;
 
+/* The drop target window to which the rectangle below applies.  */
 static Window x_dnd_mouse_rect_target;
+
+/* A rectangle where XDND position messages should not be sent to the
+   drop target if the mouse pointer lies within.  */
 static XRectangle x_dnd_mouse_rect;
+
+/* The action the drop target actually chose to perform.
+
+   Under XDND, this is set upon receiving the XdndFinished or
+   XdndStatus messages from the drop target.
+
+   Under Motif, this is changed upon receiving a XmDROP_START message
+   in reply to our own.  */
 static Atom x_dnd_action;
+
+/* The action we want the drop target to perform.  The drop target may
+   elect to perform some different action, which is guaranteed to be
+   in `x_dnd_action' upon completion of a drop.  */
 static Atom x_dnd_wanted_action;
 
+/* Array of selection targets available to the drop target.  */
 static Atom *x_dnd_targets = NULL;
+
+/* The number of elements in that array.  */
 static int x_dnd_n_targets;
+
+/* The frame where the drag-and-drop operation originated.  */
 static struct frame *x_dnd_frame;
+
+/* The old window attributes of the root window before the
+   drag-and-drop operation started.  It is used to keep the old event
+   mask around, since that should be restored after the operation
+   finishes.  */
 static XWindowAttributes x_dnd_old_window_attrs;
+
+/* Whether or not `x_dnd_cleaup_drag_and_drop' should actually clean
+   up the drag and drop operation.  */
 static bool x_dnd_unwind_flag;
 
 struct x_client_list_window
