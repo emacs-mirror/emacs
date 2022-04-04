@@ -5026,18 +5026,6 @@ If a fill prefix is specified, it overrides all the above."
 (defalias 'c-comment-line-break-function 'c-indent-new-comment-line)
 (make-obsolete 'c-comment-line-break-function 'c-indent-new-comment-line "21.1")
 
-;; Advice for Emacsen older than 21.1 (!), released 2001/10
-(unless (boundp 'comment-line-break-function)
-  (defvar c-inside-line-break-advice nil)
-  (defadvice indent-new-comment-line (around c-line-break-advice
-					     activate preactivate)
-    "Call `c-indent-new-comment-line' if in CC Mode."
-    (if (or c-inside-line-break-advice
-	    (not c-buffer-is-cc-mode))
-	ad-do-it
-      (let ((c-inside-line-break-advice t))
-	(c-indent-new-comment-line (ad-get-arg 0))))))
-
 (defun c-context-line-break ()
   "Do a line break suitable to the context.
 
