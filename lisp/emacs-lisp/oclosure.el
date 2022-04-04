@@ -511,6 +511,26 @@ This has 2 uses:
   "OClosure function to access a specific slot of an OClosure function."
   index)
 
+(defun oclosure--slot-index (oclosure slotname)
+  (gethash slotname
+           (oclosure--class-index-table
+            (cl--find-class (oclosure-type oclosure)))))
+
+(defun oclosure--slot-value (oclosure slotname)
+  (let ((class (cl--find-class (oclosure-type oclosure)))
+        (index (oclosure--slot-index oclosure slotname)))
+    (oclosure--get oclosure index
+                   (oclosure--slot-mutable-p
+                    (nth index (oclosure--class-slots class))))))
+
+(defun oclosure--set-slot-value (oclosure slotname value)
+  (let ((class (cl--find-class (oclosure-type oclosure)))
+        (index (oclosure--slot-index oclosure slotname)))
+    (unless (oclosure--slot-mutable-p
+             (nth index (oclosure--class-slots class)))
+      (signal 'setting-constant (list oclosure slotname)))
+    (oclosure--set value oclosure index)))
+
 (defconst oclosure--mut-getter-prototype
   (oclosure-lambda (oclosure-accessor (type) (slot) (index)) (oclosure)
     (oclosure--get oclosure index t)))

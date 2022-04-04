@@ -22,12 +22,13 @@
 (require 'ert)
 (require 'oclosure)
 (require 'cl-lib)
+(require 'eieio)
 
 (oclosure-define (oclosure-test
                   (:copier oclosure-test-copy)
                   (:copier oclosure-test-copy1 (fst)))
   "Simple OClosure."
-  fst snd name)
+  fst snd (name :mutable t))
 
 (cl-defmethod oclosure-test-gen ((_x compiled-function)) "#<bytecode>")
 
@@ -122,5 +123,21 @@
     (should (equal (oclosure-test-mut--mut f) 10))
     (should (equal (funcall f 5) 15))
     (should (equal (funcall f2 15) 68))))
+
+(ert-deftest oclosure-test-slot-value ()
+  (require 'eieio)
+  (let ((ocl (oclosure-lambda
+                 (oclosure-test (fst 'fst1) (snd 'snd1) (name 'name1))
+                 (x)
+               (list name fst snd x))))
+    (should (equal 'fst1  (slot-value ocl 'fst)))
+    (should (equal 'snd1  (slot-value ocl 'snd)))
+    (should (equal 'name1  (slot-value ocl 'name)))
+    (setf (slot-value ocl 'name) 'new-name)
+    (should (equal 'new-name (slot-value ocl 'name)))
+    (should (equal '(new-name fst1 snd1 arg) (funcall ocl 'arg)))
+    (should-error (setf (slot-value ocl 'fst) 'new-fst) :type 'setting-constant)
+    (should (equal 'fst1  (slot-value ocl 'fst)))
+    ))
 
 ;;; oclosure-tests.el ends here.
