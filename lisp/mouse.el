@@ -3061,7 +3061,8 @@ is copied instead of being cut."
          value-selection    ; This remains nil when event was "click".
          text-tooltip
          states
-         window-exempt)
+         window-exempt
+         drag-again-mouse-position)
 
     ;; STATES stores for each window on this frame its start and point
     ;; positions so we can restore them on all windows but for the one
@@ -3171,7 +3172,14 @@ is copied instead of being cut."
                                            (frame-pixel-width frame))
                                         (> (cdr location)
                                            (frame-pixel-height frame)))))
-                             (not (posn-window (event-end event)))))
+                             (and (or (not drag-again-mouse-position)
+                                      (let ((mouse-position (mouse-absolute-pixel-position)))
+                                        (or (< 5 (abs (- (car drag-again-mouse-position)
+                                                         (car mouse-position))))
+                                            (< 5 (abs (- (cdr drag-again-mouse-position)
+                                                         (cdr mouse-position)))))))
+                                  (not (posn-window (event-end event))))))
+                (setq drag-again-mouse-position nil)
                 (mouse-drag-and-drop-region-hide-tooltip)
                 (gui-set-selection 'XdndSelection value-selection)
                 (let ((drag-action-or-frame
@@ -3182,9 +3190,18 @@ is copied instead of being cut."
                                          (if mouse-drag-and-drop-region-cut-when-buffers-differ
                                              'XdndActionMove
                                            'XdndActionCopy)
-                                         (posn-window (event-end event)) t)
+                                         (posn-window (event-end event)) 'now)
                          (quit nil))))
                   (when (framep drag-action-or-frame)
+                    ;; With some window managers `x-begin-drag'
+                    ;; returns a frame sooner than `mouse-position'
+                    ;; will return one, due to over-wide frame windows
+                    ;; being drawn by the window manager.  To avoid
+                    ;; that, we just require the mouse move a few
+                    ;; pixels before beginning another cross-program
+                    ;; drag.
+                    (setq drag-again-mouse-position
+                          (mouse-absolute-pixel-position))
                     (throw 'drag-again nil))
 
                   (let ((min-char (point)))

@@ -2295,6 +2295,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 static int x_dnd_get_window_proto (struct x_display_info *, Window);
 static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
+static void x_dnd_update_state (struct x_display_info *, Time);
 
 #ifdef USE_XCB
 static void
@@ -8933,9 +8934,9 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
-			   bool return_frame_p, Atom *ask_action_list,
-			   const char **ask_action_names,
-			   size_t n_ask_actions, bool allow_current_frame)
+			   Lisp_Object return_frame, Atom *ask_action_list,
+			   const char **ask_action_names, size_t n_ask_actions,
+			   bool allow_current_frame)
 {
 #ifndef USE_GTK
   XEvent next_event;
@@ -9046,8 +9047,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	}
     }
 
-  if (return_frame_p)
+  if (!NILP (return_frame))
     x_dnd_return_frame = 1;
+
+  if (EQ (return_frame, Qnow))
+    x_dnd_return_frame = 2;
 
 #ifdef USE_GTK
   current_count = 0;
@@ -9070,6 +9074,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   while (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
+      if (EQ (return_frame, Qnow))
+	x_dnd_update_state (FRAME_DISPLAY_INFO (f), CurrentTime);
+
       hold_quit.kind = NO_EVENT;
 #ifdef USE_GTK
       current_finish = X_EVENT_NORMAL;
@@ -9951,7 +9958,9 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 				   /* Child of win.  */
 				   &child);
 
-	    if (!EQ (track_mouse, Qdrag_source))
+	    if (!EQ (track_mouse, Qdrag_source)
+		/* Don't let tooltips interfere.  */
+		|| (f1 && FRAME_TOOLTIP_P (f1)))
 	      f1 = dpyinfo->last_mouse_frame;
 	    else
 	      {
@@ -22662,6 +22671,7 @@ syms_of_xterm (void)
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
+  DEFSYM (Qnow, "now");
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");

@@ -6712,7 +6712,9 @@ https://freedesktop.org/wiki/Specifications/XDND/.
 
 If RETURN-FRAME is non-nil, this function will return the frame if the
 mouse pointer moves onto an Emacs frame, after first moving out of
-FRAME.  (This is not guaranteed to work on some systems.)
+FRAME.  (This is not guaranteed to work on some systems.)  If
+RETURN-FRAME is the symbol `now', any frame underneath the mouse
+pointer will be returned immediately.
 
 If ACTION is a list and not nil, its elements are assumed to be a cons
 of (ITEM . STRING), where ITEM is the name of an action, and STRING is
@@ -6828,7 +6830,7 @@ mouse buttons are released on top of FRAME.  */)
 
   x_set_dnd_targets (target_atoms, ntargets);
   lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
-				    xaction, !NILP (return_frame), action_list,
+				    xaction, return_frame, action_list,
 				    (const char **) &name_list, nnames,
 				    !NILP (allow_current_frame));
 
