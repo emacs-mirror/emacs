@@ -1096,13 +1096,12 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (dolist (method (cl--generic-method-table generic))
           (let* ((info (cl--generic-method-info method)))
             ;; FIXME: Add hyperlinks for the types as well.
-            (if (length> (nth 0 info) 0)
-                (insert (format "%s%S" (nth 0 info)
-                                (let ((print-quoted nil))
-                                  (nth 1 info))))
-              ;; Make the non-":extra" bits look more like `C-h f'
-              ;; output.
-              (insert (format "%S" (cons function (nth 1 info)))))
+            (let ((print-quoted nil))
+              (if (length> (nth 0 info) 0)
+                  (insert (format "%s%S" (nth 0 info) (nth 1 info)))
+                ;; Make the non-":extra" bits look more like `C-h f'
+                ;; output.
+                (insert (format "%S" (cons function (nth 1 info))))))
             (let* ((met-name (cl--generic-load-hist-format
                               function
                               (cl--generic-method-qualifiers method)
