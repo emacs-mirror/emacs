@@ -6677,7 +6677,6 @@ grow_mark_stack (void)
   struct mark_stack *ms = &mark_stk;
   eassert (ms->sp == ms->size);
   ptrdiff_t min_incr = ms->sp == 0 ? 8192 : 1;
-  ptrdiff_t oldsize = ms->size;
   ms->stack = xpalloc (ms->stack, &ms->size, min_incr, -1, sizeof *ms->stack);
   eassert (ms->sp < ms->size);
 }
