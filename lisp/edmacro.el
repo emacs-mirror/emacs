@@ -99,8 +99,7 @@ With a prefix argument, format the macro in a more concise way."
   (when keys
     (let ((cmd (if (arrayp keys) (key-binding keys) keys))
           (cmd-noremap (when (arrayp keys) (key-binding keys nil t)))
-	  (mac nil) (mac-counter nil) (mac-format nil)
-	  kmacro)
+	  (mac nil) (mac-counter nil) (mac-format nil))
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
@@ -131,10 +130,10 @@ With a prefix argument, format the macro in a more concise way."
 	    (t
 	     (setq mac cmd)
 	     (setq cmd nil)))
-      (when (setq kmacro (kmacro-extract-lambda mac))
-	(setq mac (car kmacro)
-	      mac-counter (nth 1 kmacro)
-	      mac-format (nth 2 kmacro)))
+      (when (kmacro-p mac)
+	(setq mac (kmacro--keys mac)
+	      mac-counter (kmacro--counter mac)
+	      mac-format (kmacro--format mac)))
       (unless (arrayp mac)
 	(error "Key sequence %s is not a keyboard macro"
 	       (key-description keys)))
@@ -260,7 +259,7 @@ or nil, use a compact 80-column format."
 			  (push key keys)
 			  (let ((b (key-binding key)))
 			    (and b (commandp b) (not (arrayp b))
-				 (not (kmacro-extract-lambda b))
+				 (not (kmacro-p b))
 				 (or (not (fboundp b))
 				     (not (or (arrayp (symbol-function b))
 					      (get b 'kmacro))))
@@ -313,10 +312,7 @@ or nil, use a compact 80-column format."
 	    (when cmd
 	      (if (= (length mac) 0)
 		  (fmakunbound cmd)
-		(fset cmd
-		      (if (and mac-counter mac-format)
-			  (kmacro-lambda-form mac mac-counter mac-format)
-			mac))))
+		(fset cmd (kmacro mac mac-counter mac-format))))
 	    (if no-keys
 		(when cmd
 		  (cl-loop for key in (where-is-internal cmd '(keymap)) do
@@ -327,10 +323,8 @@ or nil, use a compact 80-column format."
 		  (cl-loop for key in keys do
                            (global-set-key key
                                            (or cmd
-                                               (if (and mac-counter mac-format)
-                                                   (kmacro-lambda-form
-                                                    mac mac-counter mac-format)
-                                                 mac))))))))))
+                                               (kmacro mac mac-counter
+                                                       mac-format))))))))))
       (kill-buffer buf)
       (when (buffer-name obuf)
 	(switch-to-buffer obuf))
@@ -645,9 +639,9 @@ This function assumes that the events can be stored in a string."
 
 ;;; Parsing a human-readable keyboard macro.
 
-(defun edmacro-parse-keys (string &optional need-vector)
+(defun edmacro-parse-keys (string &optional _need-vector)
   (let ((result (kbd string)))
-    (if (and need-vector (stringp result))
+    (if (stringp result)
         (seq-into result 'vector)
       result)))
 
